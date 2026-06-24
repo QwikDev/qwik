@@ -56,9 +56,9 @@ export function ensureGlobals(doc: any, opts?: MockDocumentOptions) {
     set: (url: string) => (loc.href = normalizeUrl(url).href),
   });
 
-  if (typeof doc.createRange !== 'function') {
-    doc.createRange = createMockRange;
-  }
+  const createRange =
+    typeof doc.createRange === 'function' ? doc.createRange.bind(doc) : createMockRange;
+  doc.createRange = () => ensureRangeMethods(createRange());
 
   doc.defaultView = {
     get document() {
@@ -100,8 +100,14 @@ function createMockRange(): Range {
   let end: Node | null = null;
 
   return {
+    setStartBefore(node: Node): void {
+      start = node.previousSibling;
+    },
     setStartAfter(node: Node): void {
       start = node;
+    },
+    setEndAfter(node: Node): void {
+      end = node.nextSibling;
     },
     setEndBefore(node: Node): void {
       end = node;
@@ -133,6 +139,16 @@ function createMockRange(): Range {
       end.parentNode.insertBefore(node, end);
     },
   } as Range;
+}
+
+function ensureRangeMethods(range: Range): Range {
+  const writableRange = range as Range & {
+    setStartBefore?: (node: Node) => void;
+    setEndAfter?: (node: Node) => void;
+  };
+  writableRange.setStartBefore ??= (node: Node) => range.setStartAfter(node);
+  writableRange.setEndAfter ??= (node: Node) => range.setEndBefore(node);
+  return range;
 }
 
 class MockShadowRoot extends (domino as any).impl.DocumentFragment {

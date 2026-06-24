@@ -49,15 +49,25 @@ const ROW_OPEN = 'r';
 const ROW_CLOSE = '/r';
 const EMPTY_ARRAY: [] = [];
 
-export class RangeRowDom {
+class RowRange {
+  readonly nativeRange: Range;
+
   constructor(
+    document: Document,
     readonly start: Comment,
-    readonly end: Comment,
-    public pendingNodes: readonly Node[] | null
-  ) {}
+    readonly end: Comment
+  ) {
+    this.nativeRange = document.createRange();
+    this.refresh();
+  }
+
+  refresh(): void {
+    this.nativeRange.setStartBefore(this.start);
+    this.nativeRange.setEndAfter(this.end);
+  }
 }
 
-export type RowDom = Element | RangeRowDom;
+export type RowDom = Element | RowRange;
 
 /** ForRange represents a list-owned range in the DOM. */
 export class ForRange {
@@ -148,7 +158,7 @@ export class ForBlock<T = unknown> {
 
     for (let i = 0; i < nextLength; i++) {
       const key = keyFn(items[i], i);
-      if (isDev && seenKeys !== null) {
+      if (seenKeys !== null) {
         if (seenKeys.has(key)) {
           throw new Error(`Duplicate vdomless ForBlock key "${String(key)}".`);
         }
@@ -169,6 +179,7 @@ export class ForBlock<T = unknown> {
     const oldIndexSignals = this.indexSignals;
     const oldLength = oldKeys.length;
 
+    // remove all case
     if (nextLength === 0) {
       this.range.clear();
       for (let i = 0; i < oldLength; i++) {
@@ -178,7 +189,7 @@ export class ForBlock<T = unknown> {
         }
       }
       this.commitRows(
-        nextKeys,
+        EMPTY_ARRAY,
         EMPTY_ARRAY,
         EMPTY_ARRAY,
         this.usesItemSignal ? EMPTY_ARRAY : null,
@@ -194,31 +205,36 @@ export class ForBlock<T = unknown> {
       ? new Array<Signal<number> | null>(nextLength)
       : null;
 
+    // insert all case
     if (oldLength === 0) {
       const parent = getRangeParent(this.range.start, this.range.end);
-      const fragment = this.container.document.createDocumentFragment();
-      let insertParent: Node = fragment;
-      let finalParent = parent;
-      let finalNode: Node = fragment;
+      let insertParent: Node;
+      let finalParent: Node;
+      let finalNode: Node;
       let finalReference: Node | null = this.range.end;
+      const fragment = this.container.document.createDocumentFragment();
 
       // detach parent if we can, this is the fastest way to insert all rows into the DOM
       const hostParent = parent.parentNode;
       if (
         hostParent !== null &&
         parent.firstChild === this.range.start &&
-        parent.lastChild === this.range.end
+        parent.lastChild === this.range.end &&
+        canDetachParent(parent)
       ) {
-        if (canDetachParent(parent)) {
-          finalParent = hostParent;
-          finalNode = parent;
-          finalReference = parent.nextSibling;
-          hostParent.removeChild(parent);
-          insertParent = parent;
-        }
+        finalParent = hostParent;
+        finalNode = parent;
+        finalReference = parent.nextSibling;
+        hostParent.removeChild(parent);
+        insertParent = parent;
+      } else {
+        finalParent = parent;
+        finalNode = fragment;
+        insertParent = fragment;
       }
 
-      const rowReference = insertParent === parent ? this.range.end : null;
+      const insertBeforeReference = insertParent === parent ? this.range.end : null;
+
       for (let i = 0; i < nextLength; i++) {
         const row = this.createAndStoreRow(
           nextRows,
@@ -230,9 +246,8 @@ export class ForBlock<T = unknown> {
           i,
           renderFn
         );
-        insertOrMoveRow(this.container.document, insertParent, row, rowReference);
+        insertOrMoveRow(insertParent, row, insertBeforeReference);
       }
-
       finalParent.insertBefore(finalNode, finalReference);
 
       this.commitRows(nextKeys, nextRows, nextOwners, nextItemSignals, nextIndexSignals);
@@ -308,7 +323,7 @@ export class ForBlock<T = unknown> {
           i,
           renderFn
         );
-        insertOrMoveRow(this.container.document, fragment, row, null);
+        insertOrMoveRow(fragment, row, null);
       }
 
       if (firstChanged <= newLast) {
@@ -332,29 +347,27 @@ export class ForBlock<T = unknown> {
       return;
     }
 
-    const changedLength = newLast - firstChanged + 1;
-    const newIndexByKey = new Map<ForKey, number>();
-    const nextDuplicate = new Int32Array(changedLength);
-    const retainedOldIndex = new Int32Array(changedLength);
-    nextDuplicate.fill(-1);
-    retainedOldIndex.fill(-1);
+    const oldMiddleLength = oldLast - firstChanged + 1;
+    const newMiddleLength = newLast - firstChanged + 1;
+    const sources = new Int32Array(newMiddleLength);
+    let moved = false;
+    let lastRetainedNewIndex = 0;
 
-    for (let i = newLast; i >= firstChanged; i--) {
-      const key = nextKeys[i];
-      const nextIndex = newIndexByKey.get(key);
-      nextDuplicate[i - firstChanged] = nextIndex ?? -1;
-      newIndexByKey.set(key, i);
-    }
-
-    for (let i = firstChanged; i <= oldLast; i++) {
-      const key = oldKeys[i];
-      const nextIndex = newIndexByKey.get(key);
-      if (nextIndex !== undefined && nextIndex !== -1) {
+    if (nextLength < 4 || (oldMiddleLength | newMiddleLength) < 32) {
+      for (let oldIndex = firstChanged; oldIndex <= oldLast; oldIndex++) {
+        let nextIndex = -1;
+        for (let i = firstChanged; i <= newLast; i++) {
+          if (sources[i - firstChanged] === 0 && oldKeys[oldIndex] === nextKeys[i]) {
+            nextIndex = i;
+            break;
+          }
+        }
         if (
+          nextIndex !== -1 &&
           canRetainRow(
             needsResumeRows,
-            oldItemSignals?.[i] ?? null,
-            oldIndexSignals?.[i] ?? null,
+            oldItemSignals?.[oldIndex] ?? null,
+            oldIndexSignals?.[oldIndex] ?? null,
             items[nextIndex],
             nextIndex
           )
@@ -365,64 +378,96 @@ export class ForBlock<T = unknown> {
             nextItemSignals,
             nextIndexSignals,
             nextIndex,
-            i,
+            oldIndex,
             items[nextIndex]
           );
-          retainedOldIndex[nextIndex - firstChanged] = i;
+          sources[nextIndex - firstChanged] = oldIndex + 1;
+          if (nextIndex < lastRetainedNewIndex) {
+            moved = true;
+          } else {
+            lastRetainedNewIndex = nextIndex;
+          }
         } else {
-          removeRow(oldRows[i]);
-          const owner = oldOwners[i];
+          removeRow(oldRows[oldIndex]);
+          const owner = oldOwners[oldIndex];
           if (owner !== null) {
             disposeOwner(owner);
           }
-          this.createAndStoreRow(
+        }
+      }
+    } else {
+      const newIndexByKey = new Map<ForKey, number>();
+      for (let i = firstChanged; i <= newLast; i++) {
+        newIndexByKey.set(nextKeys[i], i);
+      }
+
+      for (let oldIndex = firstChanged; oldIndex <= oldLast; oldIndex++) {
+        const nextIndex = newIndexByKey.get(oldKeys[oldIndex]);
+        if (
+          nextIndex !== undefined &&
+          sources[nextIndex - firstChanged] === 0 &&
+          canRetainRow(
+            needsResumeRows,
+            oldItemSignals?.[oldIndex] ?? null,
+            oldIndexSignals?.[oldIndex] ?? null,
+            items[nextIndex],
+            nextIndex
+          )
+        ) {
+          this.retainRow(
             nextRows,
             nextOwners,
             nextItemSignals,
             nextIndexSignals,
             nextIndex,
-            items[nextIndex],
-            nextIndex,
-            renderFn
+            oldIndex,
+            items[nextIndex]
           );
+          sources[nextIndex - firstChanged] = oldIndex + 1;
+          if (nextIndex < lastRetainedNewIndex) {
+            moved = true;
+          } else {
+            lastRetainedNewIndex = nextIndex;
+          }
+        } else {
+          removeRow(oldRows[oldIndex]);
+          const owner = oldOwners[oldIndex];
+          if (owner !== null) {
+            disposeOwner(owner);
+          }
         }
-        newIndexByKey.set(key, nextDuplicate[nextIndex - firstChanged]);
-      } else {
-        removeRow(oldRows[i]);
-        const owner = oldOwners[i];
-        if (owner !== null) {
-          disposeOwner(owner);
-        }
-      }
-    }
-
-    for (let i = firstChanged; i <= newLast; i++) {
-      if (!(i in nextRows)) {
-        this.createAndStoreRow(
-          nextRows,
-          nextOwners,
-          nextItemSignals,
-          nextIndexSignals,
-          i,
-          items[i],
-          i,
-          renderFn
-        );
       }
     }
 
     const parent = getRangeParent(this.range.start, this.range.end);
-    const reference: Node =
+    let anchor: Node =
       newLast + 1 < nextLength ? firstRowNode(nextRows[newLast + 1]) : this.range.end;
-    reorderRows(
-      this.container.document,
-      parent,
-      nextRows,
-      firstChanged,
-      newLast,
-      reference,
-      retainedOldIndex
-    );
+    const keep = moved ? longestIncreasingSubsequencePositions(sources) : EMPTY_ARRAY;
+    let keepIndex = keep.length - 1;
+
+    for (let i = newMiddleLength - 1; i >= 0; i--) {
+      const nextIndex = firstChanged + i;
+      if (sources[i] === 0) {
+        const row = this.createAndStoreRow(
+          nextRows,
+          nextOwners,
+          nextItemSignals,
+          nextIndexSignals,
+          nextIndex,
+          items[nextIndex],
+          nextIndex,
+          renderFn
+        );
+        insertOrMoveRow(parent, row, anchor);
+      } else if (moved) {
+        if (keepIndex < 0 || i !== keep[keepIndex]) {
+          insertOrMoveRow(parent, nextRows[nextIndex], anchor);
+        } else {
+          keepIndex--;
+        }
+      }
+      anchor = firstRowNode(nextRows[nextIndex]);
+    }
 
     this.commitRows(nextKeys, nextRows, nextOwners, nextItemSignals, nextIndexSignals);
   }
@@ -442,7 +487,7 @@ export class ForBlock<T = unknown> {
       keys[i] = keyFn(items[i], i);
       const rowRange = rowRanges[i];
       rows[i] = Array.isArray(rowRange)
-        ? new RangeRowDom(rowRange[0], rowRange[1], null)
+        ? createRangeRow(this.container.document, rowRange[0], rowRange[1])
         : (rowRange as Element);
       owners[i] = null;
       if (itemSignals !== null) {
@@ -614,11 +659,19 @@ function createRowDom(document: Document, nodes: readonly Node[]): RowDom {
     return nodes[0] as Element;
   }
 
-  return new RangeRowDom(
-    document.createComment(ROW_OPEN),
-    document.createComment(ROW_CLOSE),
-    nodes
-  );
+  const fragment = document.createDocumentFragment();
+  const start = document.createComment(ROW_OPEN);
+  const end = document.createComment(ROW_CLOSE);
+  fragment.appendChild(start);
+  for (let i = 0; i < nodes.length; i++) {
+    fragment.appendChild(nodes[i]);
+  }
+  fragment.appendChild(end);
+  return createRangeRow(document, start, end);
+}
+
+function createRangeRow(document: Document, start: Comment, end: Comment): RowRange {
+  return new RowRange(document, start, end);
 }
 
 function canDetachParent(parent: Node): boolean {
@@ -631,34 +684,24 @@ function canDetachParent(parent: Node): boolean {
   );
 }
 
-function insertOrMoveRow(
-  document: Document,
-  parent: Node,
-  row: RowDom,
-  reference: Node | null
-): void {
-  if (row instanceof RangeRowDom) {
-    if (row.pendingNodes !== null) {
-      const fragment = document.createDocumentFragment();
-      fragment.appendChild(row.start);
-      for (let i = 0; i < row.pendingNodes.length; i++) {
-        fragment.appendChild(row.pendingNodes[i]);
-      }
-      fragment.appendChild(row.end);
-      row.pendingNodes = null;
-      parent.insertBefore(fragment, reference);
+function isRangeRow(row: RowDom): row is RowRange {
+  return row instanceof RowRange;
+}
+
+function insertOrMoveRow(parent: Node, row: RowDom, reference: Node | null): void {
+  if (isRangeRow(row)) {
+    const first = rangeFirstNode(row);
+    const last = rangeLastNode(row);
+    if (last.parentNode === parent && fastNextSibling(last) === reference) {
       return;
     }
 
-    if (row.end.parentNode === parent && fastNextSibling(row.end) === reference) {
-      return;
-    }
-
-    let node: Node = row.start;
+    let node: Node = first;
     while (true) {
       const next = fastNextSibling(node);
       parent.insertBefore(node, reference);
-      if (node === row.end) {
+      if (node === last) {
+        row.refresh();
         return;
       }
       node = next!;
@@ -672,14 +715,16 @@ function insertOrMoveRow(
 }
 
 function removeRow(row: RowDom): void {
-  if (row instanceof RangeRowDom) {
-    const parent = row.start.parentNode!;
+  if (isRangeRow(row)) {
+    const first = rangeFirstNode(row);
+    const last = rangeLastNode(row);
+    const parent = first.parentNode!;
 
-    let node: Node = row.start;
+    let node: Node = first;
     while (true) {
       const next = fastNextSibling(node);
       parent.removeChild(node);
-      if (node === row.end) {
+      if (node === last) {
         return;
       }
       node = next!;
@@ -687,6 +732,18 @@ function removeRow(row: RowDom): void {
   } else {
     row.parentNode!.removeChild(row);
   }
+}
+
+function firstRowNode(row: RowDom): Node {
+  return isRangeRow(row) ? rangeFirstNode(row) : row;
+}
+
+function rangeFirstNode(range: RowRange): Node {
+  return range.start;
+}
+
+function rangeLastNode(range: RowRange): Node {
+  return range.end;
 }
 
 function canRetainRow<T>(
@@ -703,61 +760,25 @@ function canRetainRow<T>(
   );
 }
 
-function firstRowNode(row: RowDom): Node {
-  return row instanceof RangeRowDom ? row.start : row;
-}
-
-function reorderRows(
-  document: Document,
-  parent: Node,
-  rows: RowDom[],
-  start: number,
-  end: number,
-  reference: Node,
-  oldIndexes: Int32Array
-): void {
-  const seq: number[] = [];
-  const seqOffsets: number[] = [];
-  for (let i = 0; i < oldIndexes.length; i++) {
-    const oldIndex = oldIndexes[i];
-    if (oldIndex !== -1) {
-      seqOffsets.push(i);
-      seq.push(oldIndex);
-    }
-  }
-
-  const keep = new Uint8Array(oldIndexes.length);
-  const positions = longestIncreasingSubsequencePositions(seq);
-  for (let i = 0; i < positions.length; i++) {
-    keep[seqOffsets[positions[i]]] = 1;
-  }
-
-  let anchor = reference;
-  for (let i = end; i >= start; i--) {
-    const offset = i - start;
-    if (keep[offset] === 1) {
-      anchor = firstRowNode(rows[i]);
-      continue;
-    }
-    insertOrMoveRow(document, parent, rows[i], anchor);
-    anchor = firstRowNode(rows[i]);
-  }
-}
-
-function longestIncreasingSubsequencePositions(values: number[]): number[] {
+function longestIncreasingSubsequencePositions(values: Int32Array): number[] {
   const length = values.length;
   if (length === 0) {
     return [];
   }
 
   const tails: number[] = [];
-  const prev = new Array<number>(length).fill(-1);
+  const prev = new Int32Array(length);
+  prev.fill(-1);
   for (let i = 0; i < length; i++) {
+    const value = values[i];
+    if (value === 0) {
+      continue;
+    }
     let low = 0;
     let high = tails.length;
     while (low < high) {
       const mid = (low + high) >> 1;
-      if (values[tails[mid]] < values[i]) {
+      if (values[tails[mid]] < value) {
         low = mid + 1;
       } else {
         high = mid;
@@ -767,6 +788,9 @@ function longestIncreasingSubsequencePositions(values: number[]): number[] {
       prev[i] = tails[low - 1];
     }
     tails[low] = i;
+  }
+  if (tails.length === 0) {
+    return [];
   }
 
   const positions: number[] = [];

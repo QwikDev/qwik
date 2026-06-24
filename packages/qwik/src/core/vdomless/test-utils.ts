@@ -97,6 +97,12 @@ const testDocument = {
   createDocumentFragment(): DocumentFragment {
     return createTestDocumentFragment();
   },
+  createComment(data: string): Comment {
+    return Object.assign(createTestDomNode(data), {
+      data,
+      nodeType: 8,
+    }) as unknown as Comment;
+  },
   createRange(): Range {
     return createTestRange();
   },
@@ -106,15 +112,28 @@ function createTestDocumentFragment(): TestDocumentFragment {
   const fragment = {
     isTestFragment: true,
     nodes: [] as TestDomNode[],
+    get childNodes() {
+      return fragment.nodes as unknown as NodeListOf<ChildNode>;
+    },
     appendChild(node: Node): Node {
       return fragment.insertBefore(node, null);
     },
+    removeChild(node: Node): Node {
+      const child = node as TestDomNode;
+      const index = fragment.nodes.indexOf(child);
+      if (index === -1) {
+        throw new Error('Missing child');
+      }
+
+      fragment.nodes.splice(index, 1);
+      child.parent = null;
+      return node;
+    },
     insertBefore(node: Node, before: Node | null): Node {
       if (isTestDocumentFragment(node)) {
-        for (let i = 0; i < node.nodes.length; i++) {
-          fragment.insertBefore(node.nodes[i], before);
+        while (node.nodes.length > 0) {
+          fragment.insertBefore(node.nodes[0], before);
         }
-        node.nodes.length = 0;
         return node;
       }
 
@@ -131,7 +150,7 @@ function createTestDocumentFragment(): TestDocumentFragment {
       }
 
       fragment.nodes.splice(beforeIndex, 0, child);
-      child.parent = null;
+      child.parent = fragment as unknown as TestParentNode;
       return node;
     },
   } as unknown as TestDocumentFragment;
@@ -144,41 +163,72 @@ function isTestDocumentFragment(node: Node): node is TestDocumentFragment {
 }
 
 function createTestRange(): Range {
-  let start: TestDomNode | null = null;
-  let end: TestDomNode | null = null;
+  let startContainer: TestParentNode | TestDocumentFragment | null = null;
+  let startOffset = 0;
+  let endContainer: TestParentNode | TestDocumentFragment | null = null;
+  let endOffset = 0;
+
+  const getParent = (node: Node): TestParentNode | TestDocumentFragment => {
+    const parent = (node as TestDomNode).parent;
+    if (parent === null) {
+      throw new Error('Range boundary node must have a parent');
+    }
+    return parent as TestParentNode | TestDocumentFragment;
+  };
+
+  const getIndex = (parent: TestParentNode | TestDocumentFragment, node: Node): number => {
+    const index = parent.nodes.indexOf(node as TestDomNode);
+    if (index === -1) {
+      throw new Error('Range boundary node not found');
+    }
+    return index;
+  };
 
   return {
+    get startContainer(): Node {
+      return startContainer as unknown as Node;
+    },
+    get startOffset(): number {
+      return startOffset;
+    },
+    get endContainer(): Node {
+      return endContainer as unknown as Node;
+    },
+    get endOffset(): number {
+      return endOffset;
+    },
+    setStartBefore(node: Node): void {
+      startContainer = getParent(node);
+      startOffset = getIndex(startContainer, node);
+    },
     setStartAfter(node: Node): void {
-      start = node as TestDomNode;
+      startContainer = getParent(node);
+      startOffset = getIndex(startContainer, node) + 1;
+    },
+    setEndAfter(node: Node): void {
+      endContainer = getParent(node);
+      endOffset = getIndex(endContainer, node) + 1;
     },
     setEndBefore(node: Node): void {
-      end = node as TestDomNode;
+      endContainer = getParent(node);
+      endOffset = getIndex(endContainer, node);
     },
     deleteContents(): void {
-      if (start === null || end === null) {
+      if (startContainer === null || endContainer === null || startContainer !== endContainer) {
         throw new Error('Range boundary not set');
       }
 
-      const parent = start.parent;
-      if (parent === null || parent !== end.parent) {
-        throw new Error('Range markers must share a parent');
-      }
-
-      let child = start.nextSibling as TestDomNode | null;
-      while (child !== null && child !== end) {
-        const next = child.nextSibling as TestDomNode | null;
-        parent.removeChild(child);
-        child = next;
-      }
-      if (child !== end) {
-        throw new Error('Range end marker not found');
+      while (startOffset < endOffset) {
+        const child = startContainer.nodes[startOffset];
+        startContainer.removeChild(child);
+        endOffset--;
       }
     },
     insertNode(node: Node): void {
-      if (end === null || end.parent === null) {
+      if (startContainer === null) {
         throw new Error('Range boundary not set');
       }
-      end.parent.insertBefore(node, end);
+      startContainer.insertBefore(node, startContainer.nodes[startOffset] ?? null);
     },
   } as unknown as Range;
 }
@@ -208,6 +258,9 @@ export function createTestDomNode(label: string): TestDomNode {
 export function createTestParentNode(nodes: TestDomNode[]): TestParentNode {
   const parent = {
     nodes: [] as TestDomNode[],
+    get childNodes() {
+      return parent.nodes as unknown as NodeListOf<ChildNode>;
+    },
     removeChild(node: Node): Node {
       const child = node as TestDomNode;
       const index = parent.nodes.indexOf(child);
@@ -221,10 +274,9 @@ export function createTestParentNode(nodes: TestDomNode[]): TestParentNode {
     },
     insertBefore(node: Node, before: Node | null): Node {
       if (isTestDocumentFragment(node)) {
-        for (let i = 0; i < node.nodes.length; i++) {
-          parent.insertBefore(node.nodes[i], before);
+        while (node.nodes.length > 0) {
+          parent.insertBefore(node.nodes[0], before);
         }
-        node.nodes.length = 0;
         return node;
       }
 

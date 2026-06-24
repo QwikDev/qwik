@@ -40,7 +40,7 @@ describe('ForBlock reorder', () => {
     const listOwner = createOwner(null);
     const block = new ForBlock(
       new ForRange(
-        startNode.ownerDocument,
+        startNode.ownerDocument!,
         startNode as unknown as Comment,
         endNode as unknown as Comment
       ),
@@ -51,7 +51,7 @@ describe('ForBlock reorder', () => {
       false,
       listOwner,
       null,
-      { document: startNode.ownerDocument } as ContainerContext
+      { document: startNode.ownerDocument! } as ContainerContext
     );
 
     block.keys = [1, 2, 3, 4, 5];
@@ -59,6 +59,36 @@ describe('ForBlock reorder', () => {
     block.owners = block.rows.map(() => createOwner(listOwner));
 
     return { block, insertCount: () => insertCount, parent };
+  };
+
+  const createKeyedBlock = (oldIds: number[], nextIds: number[]) => {
+    const startNode = createTestDomNode('start');
+    const endNode = createTestDomNode('end');
+    const oldRows = oldIds.map((id) => createTestDomNode(String(id)));
+    const parent = createTestParentNode([startNode, ...oldRows, endNode]);
+    const items = createSignal(nextIds.map((id) => ({ id })));
+    const listOwner = createOwner(null);
+    const block = new ForBlock(
+      new ForRange(
+        startNode.ownerDocument!,
+        startNode as unknown as Comment,
+        endNode as unknown as Comment
+      ),
+      items,
+      (item) => item.id,
+      (_ctx, item) => [createElementNode(String((item as { id: number }).id))],
+      false,
+      false,
+      listOwner,
+      null,
+      { document: startNode.ownerDocument! } as ContainerContext
+    );
+
+    block.keys = oldIds;
+    block.rows = oldRows as unknown as Element[];
+    block.owners = block.rows.map(() => createOwner(listOwner));
+
+    return { block, parent };
   };
 
   it('moves only swapped keyed row endpoints', () => {
@@ -106,6 +136,42 @@ describe('ForBlock reorder', () => {
     expect(parent.nodes.map(getNodeLabel)).toEqual(['start', 'end']);
   });
 
+  it('appends keyed rows after a retained prefix', () => {
+    const { block, parent } = createKeyedBlock([1, 2], [1, 2, 3, 4]);
+
+    block.reconcile(
+      new ForBlockSubscription(block),
+      (item) => item.id,
+      (_ctx, item) => [createElementNode(String((item as { id: number }).id))]
+    );
+
+    expect(parent.nodes.map(getNodeLabel)).toEqual(['start', '1', '2', '3', '4', 'end']);
+  });
+
+  it('prepends keyed rows before a retained suffix', () => {
+    const { block, parent } = createKeyedBlock([2, 3], [0, 1, 2, 3]);
+
+    block.reconcile(
+      new ForBlockSubscription(block),
+      (item) => item.id,
+      (_ctx, item) => [createElementNode(String((item as { id: number }).id))]
+    );
+
+    expect(parent.nodes.map(getNodeLabel)).toEqual(['start', '0', '1', '2', '3', 'end']);
+  });
+
+  it('trims removed keyed rows from the head and tail', () => {
+    const { block, parent } = createKeyedBlock([0, 1, 2, 3], [1, 2]);
+
+    block.reconcile(
+      new ForBlockSubscription(block),
+      (item) => item.id,
+      (_ctx, item) => [createElementNode(String((item as { id: number }).id))]
+    );
+
+    expect(parent.nodes.map(getNodeLabel)).toEqual(['start', '1', '2', 'end']);
+  });
+
   it('creates rows directly when starting empty', () => {
     const startNode = createTestDomNode('start');
     const endNode = createTestDomNode('end');
@@ -114,7 +180,7 @@ describe('ForBlock reorder', () => {
     const listOwner = createOwner(null);
     const block = new ForBlock(
       new ForRange(
-        startNode.ownerDocument,
+        startNode.ownerDocument!,
         startNode as unknown as Comment,
         endNode as unknown as Comment
       ),
@@ -125,7 +191,7 @@ describe('ForBlock reorder', () => {
       false,
       listOwner,
       null,
-      { document: startNode.ownerDocument } as ContainerContext
+      { document: startNode.ownerDocument! } as ContainerContext
     );
 
     block.reconcile(
@@ -136,6 +202,127 @@ describe('ForBlock reorder', () => {
 
     expect(parent.nodes.map(getNodeLabel)).toEqual(['start', '1', '2', '3', 'end']);
     expect(block.owners).toEqual([null, null, null]);
+  });
+
+  it('creates native range rows for multi-node fragments', () => {
+    const startNode = createTestDomNode('start');
+    const endNode = createTestDomNode('end');
+    const parent = createTestParentNode([startNode, endNode]);
+    const items = createSignal([1, 2]);
+    const listOwner = createOwner(null);
+    const block = new ForBlock(
+      new ForRange(
+        startNode.ownerDocument!,
+        startNode as unknown as Comment,
+        endNode as unknown as Comment
+      ),
+      items,
+      (item) => item,
+      (_ctx, item) => [createTestDomNode(`a${item}`), createTestDomNode(`b${item}`)],
+      false,
+      false,
+      listOwner,
+      null,
+      { document: startNode.ownerDocument! } as ContainerContext
+    );
+
+    block.reconcile(
+      new ForBlockSubscription(block),
+      (item) => item,
+      (_ctx, item) => [createTestDomNode(`a${item}`), createTestDomNode(`b${item}`)]
+    );
+
+    expect(parent.nodes.map(getNodeLabel)).toEqual([
+      'start',
+      'r',
+      'a1',
+      'b1',
+      '/r',
+      'r',
+      'a2',
+      'b2',
+      '/r',
+      'end',
+    ]);
+  });
+
+  it('updates retained item and index signals', () => {
+    const startNode = createTestDomNode('start');
+    const endNode = createTestDomNode('end');
+    createTestParentNode([startNode, endNode]);
+    const items = createSignal([
+      { id: 1, label: 'a' },
+      { id: 2, label: 'b' },
+    ]);
+    const listOwner = createOwner(null);
+    const block = new ForBlock(
+      new ForRange(
+        startNode.ownerDocument!,
+        startNode as unknown as Comment,
+        endNode as unknown as Comment
+      ),
+      items,
+      (item) => item.id,
+      () => [createElementNode('row')],
+      true,
+      true,
+      listOwner,
+      null,
+      { document: startNode.ownerDocument! } as ContainerContext
+    );
+    const subscription = new ForBlockSubscription(block);
+
+    block.reconcile(
+      subscription,
+      (item) => item.id,
+      () => [createElementNode('row')]
+    );
+    items.value = [
+      { id: 0, label: 'z' },
+      { id: 1, label: 'aa' },
+      { id: 2, label: 'bb' },
+    ];
+    block.reconcile(
+      subscription,
+      (item) => item.id,
+      () => [createElementNode('row')]
+    );
+
+    expect(block.itemSignals![1]!.value).toEqual({ id: 1, label: 'aa' });
+    expect(block.indexSignals![1]!.value).toBe(1);
+    expect(block.itemSignals![2]!.value).toEqual({ id: 2, label: 'bb' });
+    expect(block.indexSignals![2]!.value).toBe(2);
+  });
+
+  it('throws on duplicate keys in dev', () => {
+    const startNode = createTestDomNode('start');
+    const endNode = createTestDomNode('end');
+    createTestParentNode([startNode, endNode]);
+    const items = createSignal([1, 1]);
+    const listOwner = createOwner(null);
+    const block = new ForBlock(
+      new ForRange(
+        startNode.ownerDocument!,
+        startNode as unknown as Comment,
+        endNode as unknown as Comment
+      ),
+      items,
+      (item) => item,
+      (_ctx, item) => [createElementNode(String(item))],
+      false,
+      false,
+      listOwner,
+      null,
+      { document: startNode.ownerDocument! } as ContainerContext
+    );
+
+    expect(() =>
+      block.reconcile(
+        new ForBlockSubscription(block),
+        (item) => item,
+        (_ctx, item) => [createElementNode(String(item))]
+      )
+    ).toThrow('Duplicate vdomless ForBlock key "1".');
   });
 
   it('detaches empty element parent while creating initial rows', () => {
@@ -149,9 +336,9 @@ describe('ForBlock reorder', () => {
     const endNode = list.lastChild as Comment;
     const removeChild = vi.spyOn(host.constructor.prototype, 'removeChild');
     const insertBefore = vi.spyOn(host.constructor.prototype, 'insertBefore');
-    const renderRow = (_ctx: ContainerContext, item: number) => {
+    const renderRow = (_ctx: ContainerContext, item: number | { value: number }) => {
       const li = document.createElement('li');
-      li.textContent = String(item);
+      li.textContent = String(typeof item === 'object' ? item.value : item);
       return [li];
     };
 
@@ -200,7 +387,7 @@ describe('ForBlock reorder', () => {
     const listOwner = createOwner(null);
     const block = new ForBlock(
       new ForRange(
-        startNode.ownerDocument,
+        startNode.ownerDocument!,
         startNode as unknown as Comment,
         endNode as unknown as Comment
       ),
@@ -211,7 +398,7 @@ describe('ForBlock reorder', () => {
       false,
       listOwner,
       null,
-      { document: startNode.ownerDocument } as ContainerContext
+      { document: startNode.ownerDocument! } as ContainerContext
     );
     const subscription = new ForBlockSubscription(block);
 
@@ -234,7 +421,7 @@ describe('ForBlock reorder', () => {
     const listOwner = createOwner(null);
     const block = new ForBlock(
       new ForRange(
-        startNode.ownerDocument,
+        startNode.ownerDocument!,
         startNode as unknown as Comment,
         endNode as unknown as Comment
       ),
@@ -248,7 +435,7 @@ describe('ForBlock reorder', () => {
       false,
       listOwner,
       null,
-      { document: startNode.ownerDocument } as ContainerContext
+      { document: startNode.ownerDocument! } as ContainerContext
     );
 
     block.reconcile(

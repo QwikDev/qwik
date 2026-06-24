@@ -31,6 +31,7 @@ export type AttrExpressionFn<TArgs extends unknown[] = unknown[]> = (...args: TA
 type DomPropsFn<TArgs extends unknown[] = unknown[]> = (
   ...args: TArgs
 ) => Record<string, unknown> | null | undefined;
+export type DomBatchFn = () => unknown;
 
 export interface DomEffectOptions {
   scheduler?: Scheduler;
@@ -42,7 +43,8 @@ export type DomEffect =
   | AttrEffect
   | AttrExpressionEffect<any[]>
   | SerializedAttrEffect
-  | PropsEffect<any[]>;
+  | PropsEffect<any[]>
+  | DomBatchEffect;
 
 export class TextExpressionEffect<TArgs extends unknown[] = unknown[]> {
   constructor(
@@ -123,6 +125,14 @@ export class PropsEffect<TArgs extends unknown[] = unknown[]> {
   }
 }
 
+export class DomBatchEffect {
+  constructor(readonly fn: DomBatchFn) {}
+
+  run(): unknown {
+    return this.fn();
+  }
+}
+
 export class DomSubscription implements DomSubscriber {
   readonly kind = SubscriberKind.Dom;
   owner: Owner | null = null;
@@ -139,9 +149,7 @@ export class DomSubscription implements DomSubscriber {
     cleanupDeps(this);
 
     const value = runWithCollector(this, () => this.effect.run());
-    if (isDev && isPromise(value)) {
-      throw new Error('Scalar DOM effects must be synchronous');
-    }
+    assertSyncDomValue(value);
   }
 }
 
@@ -232,11 +240,22 @@ export function createPropsEffect<TArgs extends unknown[]>(
   return createDomSubscription(new PropsEffect(element, args, fn), options?.scheduler);
 }
 
+export function createDomBatchEffect(fn: DomBatchFn, options?: DomEffectOptions): DomSubscriber {
+  return createDomSubscription(new DomBatchEffect(fn), options?.scheduler);
+}
+
+export function runDomBatchEffect(subscriber: DomSubscriber, fn: DomBatchFn): void {
+  assertSyncDomValue(runWithCollector(subscriber, fn));
+}
+
 function createDomSubscription(effect: DomEffect, scheduler: Scheduler | undefined): DomSubscriber {
   return registerSubscriberToOwner(new DomSubscription(effect, scheduler ?? getActiveScheduler()));
 }
 
-function patchTextValue(text: Text, value: TextExpressionValue | Promise<TextExpressionValue>) {
+export function patchTextValue(
+  text: Text,
+  value: TextExpressionValue | Promise<TextExpressionValue>
+) {
   if (isPromise(value)) {
     return value.then((resolved) => {
       setTextData(text, resolved);
@@ -261,11 +280,17 @@ function patchAttrValue(element: Element, name: string, value: unknown): void {
   element.setAttribute(name, serializeAttrExpressionValue(name, value));
 }
 
-function readTrackedSourceValue<T>(source: Source<T>): T {
+export function readTrackedSourceValue<T>(source: Source<T>): T {
   track(source);
   return readSourceValue(source);
 }
 
 function getActiveScheduler(): Scheduler {
   return getActiveInvokeContextOrNull()?.container?.scheduler ?? defaultScheduler;
+}
+
+function assertSyncDomValue(value: unknown): void {
+  if (isDev && isPromise(value)) {
+    throw new Error('Scalar DOM effects must be synchronous');
+  }
 }

@@ -51,6 +51,12 @@ export function createSsrImports(
   if (usage.hasComponentPropsSpread) {
     sparkSpecifiers.push(QwikSymbol.MergeProps);
   }
+  if (usage.hasDomBatch) {
+    sparkSpecifiers.push(QwikSymbol.CreateSsrDomBatchEffect);
+    if (usage.hasDomBatchDynamicAttr || usage.hasDomBatchAttrExpression || usage.hasDomBatchProps) {
+      sparkSpecifiers.push(QwikSymbol.CreateSsrElementTarget);
+    }
+  }
   if (qrlSegments.size > 0) {
     sparkSpecifiers.push(QwikSymbol.QrlWithChunk);
   }
@@ -58,11 +64,15 @@ export function createSsrImports(
     usage.hasSourceText ||
     usage.hasTextExpression ||
     usage.hasDynamicAttr ||
-    usage.hasAttrExpression
+    usage.hasAttrExpression ||
+    usage.hasDomBatchSourceText ||
+    usage.hasDomBatchTextExpression ||
+    usage.hasDomBatchDynamicAttr ||
+    usage.hasDomBatchAttrExpression
   ) {
     sparkSpecifiers.push(QwikSymbol.EscapeHTML);
   }
-  if (usage.hasSourceText) {
+  if (usage.hasSourceText || usage.hasDomBatchSourceText) {
     sparkSpecifiers.push(QwikSymbol.RenderSsrTextNode);
   }
   if (usage.hasElementText) {
@@ -71,10 +81,10 @@ export function createSsrImports(
   if (usage.hasRangeText) {
     sparkSpecifiers.push(QwikSymbol.CreateSsrRangeTextTarget);
   }
-  if (usage.hasTextExpression) {
+  if (usage.hasTextExpression || usage.hasDomBatchTextExpression) {
     sparkSpecifiers.push(QwikSymbol.RenderSsrTextExpression);
   }
-  if (usage.hasDynamicAttr) {
+  if (usage.hasDynamicAttr || usage.hasDomBatchDynamicAttr) {
     sparkSpecifiers.push(
       QwikSymbol.CreateSsrElementTarget,
       QwikSymbol.RenderSsrAttr,
@@ -82,10 +92,10 @@ export function createSsrImports(
       QwikSymbol.RenderSsrStyle
     );
   }
-  if (usage.hasAttrExpression) {
+  if (usage.hasAttrExpression || usage.hasDomBatchAttrExpression) {
     sparkSpecifiers.push(QwikSymbol.CreateSsrElementTarget, QwikSymbol.RenderSsrAttrExpression);
   }
-  if (usage.hasDomProps) {
+  if (usage.hasDomProps || usage.hasDomBatchProps) {
     sparkSpecifiers.push(QwikSymbol.CreateSsrElementTarget, QwikSymbol.RenderSsrProps);
   }
   if (usage.hasBranch) {
@@ -102,6 +112,12 @@ export function createSsrImports(
 
 export interface SsrImportUsage {
   hasDynamicBinding: boolean;
+  hasDomBatch: boolean;
+  hasDomBatchSourceText: boolean;
+  hasDomBatchTextExpression: boolean;
+  hasDomBatchDynamicAttr: boolean;
+  hasDomBatchAttrExpression: boolean;
+  hasDomBatchProps: boolean;
   hasSourceText: boolean;
   hasElementText: boolean;
   hasRangeText: boolean;
@@ -138,6 +154,21 @@ export function createCsrImports(
   }
   if (usage.hasComponentPropsSpread) {
     sparkSpecifiers.push(QwikSymbol.MergeProps);
+  }
+  if (usage.hasDomBatch) {
+    sparkSpecifiers.push(QwikSymbol.CreateDomBatchEffect);
+    if (usage.hasDomBatchProps) {
+      sparkSpecifiers.push(QwikSymbol.ApplyDomProps);
+    }
+    if (usage.hasDomBatchTextExpression) {
+      sparkSpecifiers.push(QwikSymbol.PatchTextValue);
+    }
+    if (usage.hasDomBatchSourceText || usage.hasDomBatchDynamicAttr) {
+      sparkSpecifiers.push(QwikSymbol.ReadTrackedSourceValue);
+    }
+    if (usage.hasDomBatchDynamicAttr || usage.hasDomBatchAttrExpression) {
+      sparkSpecifiers.push(QwikSymbol.SerializeAttrExpressionValue);
+    }
   }
   if (usage.hasSourceText) {
     sparkSpecifiers.push(QwikSymbol.CreateTextNodeEffect);
@@ -189,6 +220,12 @@ export function createCsrImports(
 
 export interface CsrImportUsage {
   hasDynamicBinding: boolean;
+  hasDomBatch: boolean;
+  hasDomBatchSourceText: boolean;
+  hasDomBatchTextExpression: boolean;
+  hasDomBatchDynamicAttr: boolean;
+  hasDomBatchAttrExpression: boolean;
+  hasDomBatchProps: boolean;
   hasSourceText: boolean;
   hasTextExpression: boolean;
   hasDynamicAttr: boolean;

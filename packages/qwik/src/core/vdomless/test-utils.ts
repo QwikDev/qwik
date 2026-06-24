@@ -310,8 +310,22 @@ export function createAttrTarget(): { element: Element; attrs: Map<string, strin
   const attrs = new Map<string, string>();
   return {
     element: {
+      get className() {
+        return attrs.get('class') ?? '';
+      },
+      set className(value: string) {
+        if (value === '') {
+          attrs.delete('class');
+        } else {
+          attrs.set('class', value);
+        }
+      },
       setAttribute(name: string, value: string) {
-        attrs.set(name, value);
+        if (name === 'class' && value === '') {
+          attrs.delete(name);
+        } else {
+          attrs.set(name, value);
+        }
       },
       removeAttribute(name: string) {
         attrs.delete(name);

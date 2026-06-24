@@ -11,11 +11,14 @@ import {
   createSsrElementTarget,
   createSsrElementTextTarget,
   createSsrRangeTextTarget,
+  createSsrDomBatchEffect,
   createSsrSerializedAttrEffect,
   createSsrTextExpressionEffect,
   createSsrTextNodeEffect,
   EffectTargetKind,
+  renderSsrClass,
   renderSsrTextNode,
+  SsrDomSubscription,
 } from './dom/effect/ssr-effect';
 import { ComputedFlags } from './reactive/flags';
 import { createComputedQrl } from './reactive/computed-qrl';
@@ -133,6 +136,29 @@ describe('vdomless serdes emit-only', () => {
     expect(stylePayload[3]).toBe(EffectTargetKind.Element);
     expect(stylePayload[5]).toBe(2);
     expect(stylePayload[9]).toBe(AttrSerializer.Style);
+  });
+
+  it('serializes SSR DOM batch subscribers', async () => {
+    const count = createSignal(1);
+    const classSource = createSignal('active');
+
+    createOwned(() => {
+      const batch = createSsrDomBatchEffect() as SsrDomSubscription;
+      renderSsrTextNode(createSsrElementTextTarget(4), count, batch);
+      renderSsrClass(createSsrElementTarget(5), classSource, batch);
+    });
+
+    const state = await serialize(count, classSource);
+    const signalPayload = state[1] as unknown[];
+    const effectPayload = signalPayload[3] as unknown[];
+    const opsPayload = effectPayload[5] as unknown[];
+    const textOpPayload = opsPayload[1] as unknown[];
+    const classOpPayload = opsPayload[3] as unknown[];
+
+    expect(effectPayload[1]).toBe(EffectKind.DomBatch);
+    expect(effectPayload[3]).toEqual([TypeIds.RootRef, 0, TypeIds.RootRef, 1]);
+    expect(textOpPayload[1]).toBe(EffectKind.TextNode);
+    expect(classOpPayload[1]).toBe(EffectKind.SerializedAttr);
   });
 
   it('serializes branch subscriptions as effect subscriptions with owned subscribers', async () => {

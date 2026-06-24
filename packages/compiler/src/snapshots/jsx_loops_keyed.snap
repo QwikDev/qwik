@@ -109,11 +109,12 @@ import { component_data_index_segment_3 } from './component.tsx_component_data_i
 import { component_className_segment_4 } from './component.tsx_component_className_segment_4';
 import { component_text_segment_5 } from './component.tsx_component_text_segment_5';
 import {
+  createSsrDomBatchEffect,
+  createSsrElementTarget,
   _qrlWithChunk,
   escapeHTML,
   createSsrElementTextTarget,
   renderSsrTextExpression,
-  createSsrElementTarget,
   renderSsrAttrExpression,
   renderSsrProps,
 } from '@qwik.dev/core/spark';
@@ -149,30 +150,35 @@ const q_component_q_e_click_segment_6 = /* @__PURE__ */ _qrlWithChunk(
 export const component_for_render_segment_0 = (ctx, rangeId, rowId, row, index) => {
   const id0 = ctx.nextId();
   ctx.addRoot(row);
+  const batch2 = createSsrDomBatchEffect();
   const props1 = renderSsrProps(
     createSsrElementTarget(id0),
     [row],
     q_component_props_segment_2,
-    ctx.eventAttr
+    ctx.eventAttr,
+    batch2
   );
-  const id2 = ctx.nextId();
+  const id3 = ctx.nextId();
   ctx.addRoot(index);
-  const attr3 = renderSsrAttrExpression(
-    createSsrElementTarget(id2),
+  const attr4 = renderSsrAttrExpression(
+    createSsrElementTarget(id3),
     'data-index',
     [index],
-    q_component_data_index_segment_3
+    q_component_data_index_segment_3,
+    batch2
   );
-  const attr4 = renderSsrAttrExpression(
-    createSsrElementTarget(id2),
+  const attr5 = renderSsrAttrExpression(
+    createSsrElementTarget(id3),
     'class',
     [row],
-    q_component_className_segment_4
+    q_component_className_segment_4,
+    batch2
   );
-  const text5 = renderSsrTextExpression(
-    createSsrElementTextTarget(id2),
+  const text6 = renderSsrTextExpression(
+    createSsrElementTextTarget(id3),
     [row],
-    q_component_text_segment_5
+    q_component_text_segment_5,
+    batch2
   );
   return (
     '<li q:id="' +
@@ -182,13 +188,13 @@ export const component_for_render_segment_0 = (ctx, rangeId, rowId, row, index) 
     '>' +
     (props1.innerHTML ??
       '<span q:id="' +
-        id2 +
+        id3 +
         '" data-index="' +
-        escapeHTML(attr3) +
-        '" class="' +
         escapeHTML(attr4) +
+        '" class="' +
+        escapeHTML(attr5) +
         '">' +
-        escapeHTML(text5) +
+        escapeHTML(text6) +
         '</span><button' +
         ctx.eventAttr('q-e:click', q_component_q_e_click_segment_6.w([row])) +
         '>Toggle</button>') +
@@ -446,9 +452,11 @@ null
 ============================= src/component.tsx_component_for_render_segment_0.js (ENTRY POINT)==
 
 import {
-  createPropsEffect,
-  createAttrExpressionEffect,
-  createTextExpressionEffect,
+  applyDomProps,
+  createDomBatchEffect,
+  runDomBatchEffect,
+  serializeAttrExpressionValue,
+  patchTextValue,
   setEvent,
 } from '@qwik.dev/core/spark';
 import { component_q_e_click_segment_6 } from './component.tsx_component_q_e_click_segment_6';
@@ -458,39 +466,45 @@ const component_for_render_segment_0_expr2 = (row) => ({ active: row.value.selec
 const component_for_render_segment_0_expr3 = (row) => row.value.label;
 export const component_for_render_segment_0 = (ctx, row, index) => {
   const el0 = ctx.document.createElement('li');
-  const effect1 = createPropsEffect(el0, [row], component_for_render_segment_0_expr0, {
-    scheduler: ctx.scheduler,
-  });
-  effect1.run();
-  const el2 = ctx.document.createElement('span');
-  const effect3 = createAttrExpressionEffect(
-    el2,
-    'data-index',
-    [index],
-    component_for_render_segment_0_expr1,
-    { scheduler: ctx.scheduler }
-  );
-  effect3.run();
-  const effect4 = createAttrExpressionEffect(
-    el2,
-    'class',
-    [row],
-    component_for_render_segment_0_expr2,
-    { scheduler: ctx.scheduler }
-  );
-  effect4.run();
-  const text5 = ctx.document.createTextNode('');
-  const effect6 = createTextExpressionEffect(text5, [row], component_for_render_segment_0_expr3, {
-    scheduler: ctx.scheduler,
-  });
-  effect6.run();
-  el2.appendChild(text5);
-  el0.appendChild(el2);
-  const el7 = ctx.document.createElement('button');
-  setEvent(el7, 'q-e:click', component_q_e_click_segment_6, [row]);
-  const text8 = ctx.document.createTextNode('Toggle');
-  el7.appendChild(text8);
-  el0.appendChild(el7);
+  let prevProps1 = null;
+  const effect2 = createDomBatchEffect(batch3, { scheduler: ctx.scheduler });
+  function batchOp4() {
+    prevProps1 = applyDomProps(el0, component_for_render_segment_0_expr0(row), prevProps1);
+  }
+  runDomBatchEffect(effect2, batchOp4);
+  const el5 = ctx.document.createElement('span');
+  function batchOp6() {
+    el5.setAttribute(
+      'data-index',
+      serializeAttrExpressionValue('data-index', component_for_render_segment_0_expr1(index))
+    );
+  }
+  runDomBatchEffect(effect2, batchOp6);
+  function batchOp7() {
+    el5.setAttribute(
+      'class',
+      serializeAttrExpressionValue('class', component_for_render_segment_0_expr2(row))
+    );
+  }
+  runDomBatchEffect(effect2, batchOp7);
+  const text8 = ctx.document.createTextNode('');
+  function batchOp9() {
+    patchTextValue(text8, component_for_render_segment_0_expr3(row));
+  }
+  runDomBatchEffect(effect2, batchOp9);
+  el5.appendChild(text8);
+  el0.appendChild(el5);
+  const el10 = ctx.document.createElement('button');
+  setEvent(el10, 'q-e:click', component_q_e_click_segment_6, [row]);
+  const text11 = ctx.document.createTextNode('Toggle');
+  el10.appendChild(text11);
+  el0.appendChild(el10);
+  function batch3() {
+    batchOp4();
+    batchOp6();
+    batchOp7();
+    batchOp9();
+  }
   return [el0];
 };
 

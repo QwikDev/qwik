@@ -14,10 +14,12 @@ import {
   createAttrEffect,
   createAttrExpressionEffect,
   createClassEffect,
+  createDomBatchEffect,
   createPropsEffect,
   createStyleEffect,
   createTextExpressionEffect,
   createTextNodeEffect,
+  runDomBatchEffect,
   type TextExpressionFn,
 } from './effect';
 
@@ -342,6 +344,66 @@ describe('DOM effects', () => {
     await scheduler.flushInteraction();
 
     expect(seen).toEqual(['third', 'first', 'second']);
+  });
+
+  it('batches multiple DOM operations under one subscriber', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const count = createSignal(1);
+    const active = createSignal(false);
+    const text = createText();
+    const { element, attrs } = createAttrTarget();
+    const effect = createOwned(() =>
+      createDomBatchEffect(
+        () => {
+          text.data = String(count.value);
+          element.setAttribute('class', active.value ? 'active' : '');
+        },
+        { scheduler }
+      )
+    );
+
+    scheduler.notify(effect);
+    await scheduler.flushInteraction();
+
+    expect(effect.deps).toEqual([count, active]);
+    expect(count.subs).toEqual([effect]);
+    expect(active.subs).toEqual([effect]);
+    expect(text.data).toBe('1');
+    expect(attrs.has('class')).toBe(false);
+
+    count.value = 2;
+    await scheduler.flushInteraction();
+
+    expect(text.data).toBe('2');
+    expect(attrs.has('class')).toBe(false);
+
+    active.value = true;
+    await scheduler.flushInteraction();
+
+    expect(text.data).toBe('2');
+    expect(attrs.get('class')).toBe('active');
+  });
+
+  it('collects initial batch dependencies one operation at a time', () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const count = createSignal(1);
+    const active = createSignal(false);
+    const text = createText();
+    const { element, attrs } = createAttrTarget();
+    const effect = createOwned(() => createDomBatchEffect(() => undefined, { scheduler }));
+
+    runDomBatchEffect(effect, () => {
+      text.data = String(count.value);
+    });
+    runDomBatchEffect(effect, () => {
+      element.setAttribute('class', active.value ? 'active' : '');
+    });
+
+    expect(effect.deps).toEqual([count, active]);
+    expect(count.subs).toEqual([effect]);
+    expect(active.subs).toEqual([effect]);
+    expect(text.data).toBe('1');
+    expect(attrs.has('class')).toBe(false);
   });
 
   it('removes direct DOM effects from sources when disposed', async () => {

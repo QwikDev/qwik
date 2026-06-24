@@ -6,6 +6,7 @@ import { SSRForBlockSubscription as SsrForBlockSubscription } from '../../vdomle
 import {
   EffectTargetKind,
   SsrDomSubscription,
+  type SsrScalarDomEffect,
   type SsrDomEffect,
 } from '../../vdomless/dom/effect/ssr-effect';
 import { ComputedFlags } from '../../vdomless/reactive/flags';
@@ -783,28 +784,72 @@ function serializeForBlockSubscription(subscription: SsrForBlockSubscription): u
 function serializeDomSubscription(subscription: SsrDomSubscription): unknown[] {
   const effect = subscription.effect;
   const deps = serializeDeps(subscription.deps);
+
+  if (effect.kind === EffectKind.DomBatch) {
+    return [
+      effect.kind,
+      deps,
+      effect.effects.map((scalarEffect) => serializeSsrScalarDomEffect(scalarEffect)),
+    ];
+  }
+
+  return serializeSsrScalarDomEffect(effect, deps);
+}
+
+function serializeSsrScalarDomEffect(
+  effect: SsrScalarDomEffect,
+  deps?: readonly Dependency[]
+): unknown[] {
   const target = effect.target;
+  const serializedDeps = deps ?? serializeSsrScalarDomEffectDeps(effect);
 
   switch (effect.kind) {
     case EffectKind.TextNode:
       return target.kind === EffectTargetKind.RangeText
-        ? [effect.kind, target.kind, target.id, target.markerIndex, deps]
-        : [effect.kind, target.kind, target.id, deps];
+        ? [effect.kind, target.kind, target.id, target.markerIndex, serializedDeps]
+        : [effect.kind, target.kind, target.id, serializedDeps];
     case EffectKind.TextExpression:
       return target.kind === EffectTargetKind.RangeText
-        ? [effect.kind, target.kind, target.id, target.markerIndex, deps, effect.args, effect.qrl]
-        : [effect.kind, target.kind, target.id, deps, effect.args, effect.qrl];
+        ? [
+            effect.kind,
+            target.kind,
+            target.id,
+            target.markerIndex,
+            serializedDeps,
+            effect.args,
+            effect.qrl,
+          ]
+        : [effect.kind, target.kind, target.id, serializedDeps, effect.args, effect.qrl];
     case EffectKind.Attr:
-      return [effect.kind, target.kind, target.id, deps, effect.name];
+      return [effect.kind, target.kind, target.id, serializedDeps, effect.name];
     case EffectKind.AttrExpression:
-      return [effect.kind, target.kind, target.id, deps, effect.name, effect.args, effect.qrl];
+      return [
+        effect.kind,
+        target.kind,
+        target.id,
+        serializedDeps,
+        effect.name,
+        effect.args,
+        effect.qrl,
+      ];
     case EffectKind.SerializedAttr:
-      return [effect.kind, target.kind, target.id, deps, effect.serializer];
+      return [effect.kind, target.kind, target.id, serializedDeps, effect.serializer];
     case EffectKind.Props:
-      return [effect.kind, target.kind, target.id, deps, effect.args, effect.qrl];
+      return [effect.kind, target.kind, target.id, serializedDeps, effect.args, effect.qrl];
   }
 
   return assertNeverSsrDomEffect(effect);
+}
+
+function serializeSsrScalarDomEffectDeps(effect: SsrScalarDomEffect): readonly Dependency[] {
+  switch (effect.kind) {
+    case EffectKind.TextNode:
+    case EffectKind.Attr:
+    case EffectKind.SerializedAttr:
+      return effect.source === undefined ? EMPTY_ARRAY : [effect.source];
+    default:
+      return EMPTY_ARRAY;
+  }
 }
 
 function serializeDeps(deps: Dependency[] | null): readonly Dependency[] {

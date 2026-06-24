@@ -14,8 +14,9 @@ export function App() {
 
 import {
   createSignal,
-  escapeHTML,
+  createSsrDomBatchEffect,
   createSsrElementTarget,
+  escapeHTML,
   renderSsrAttr,
   renderSsrClass,
   renderSsrStyle,
@@ -27,20 +28,21 @@ export function App(_props, ctx) {
   const style = createSignal('color:red');
   const id0 = ctx.nextId();
   ctx.addRoot(title);
-  const attr1 = renderSsrAttr(createSsrElementTarget(id0), 'title', title);
+  const batch1 = createSsrDomBatchEffect();
+  const attr2 = renderSsrAttr(createSsrElementTarget(id0), 'title', title, batch1);
   ctx.addRoot(classes);
-  const attr2 = renderSsrClass(createSsrElementTarget(id0), classes);
+  const attr3 = renderSsrClass(createSsrElementTarget(id0), classes, batch1);
   ctx.addRoot(style);
-  const attr3 = renderSsrStyle(createSsrElementTarget(id0), style);
+  const attr4 = renderSsrStyle(createSsrElementTarget(id0), style, batch1);
   return (
     '<div q:id="' +
     id0 +
     '" title="' +
-    escapeHTML(attr1) +
-    '" class="' +
     escapeHTML(attr2) +
-    '" style="' +
+    '" class="' +
     escapeHTML(attr3) +
+    '" style="' +
+    escapeHTML(attr4) +
     '">Attrs</div>'
   );
 }
@@ -55,9 +57,9 @@ null
 
 import {
   createSignal,
-  createAttrEffect,
-  createClassEffect,
-  createStyleEffect,
+  createDomBatchEffect,
+  readTrackedSourceValue,
+  serializeAttrExpressionValue,
 } from '@qwik.dev/core/spark';
 
 export function App(_props, ctx) {
@@ -65,14 +67,15 @@ export function App(_props, ctx) {
   const classes = createSignal('active');
   const style = createSignal('color:red');
   const el0 = ctx.document.createElement('div');
-  const effect1 = createAttrEffect(el0, 'title', title, { scheduler: ctx.scheduler });
+  const effect1 = createDomBatchEffect(batch2, { scheduler: ctx.scheduler });
+  const text3 = ctx.document.createTextNode('Attrs');
+  el0.appendChild(text3);
+  function batch2() {
+    el0.setAttribute('title', String(readTrackedSourceValue(title)));
+    el0.className = serializeAttrExpressionValue('class', readTrackedSourceValue(classes));
+    el0.setAttribute('style', serializeAttrExpressionValue('style', readTrackedSourceValue(style)));
+  }
   ctx.scheduler.notify(effect1);
-  const effect2 = createClassEffect(el0, classes, { scheduler: ctx.scheduler });
-  ctx.scheduler.notify(effect2);
-  const effect3 = createStyleEffect(el0, style, { scheduler: ctx.scheduler });
-  ctx.scheduler.notify(effect3);
-  const text4 = ctx.document.createTextNode('Attrs');
-  el0.appendChild(text4);
   return [el0];
 }
 

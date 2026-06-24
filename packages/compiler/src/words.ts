@@ -4,6 +4,7 @@ export enum QwikModule {
 }
 
 export enum QwikSymbol {
+  ApplyDomProps = 'applyDomProps',
   Captures = '_captures',
   BranchRange = 'BranchRange',
   ForRange = 'ForRange',
@@ -17,9 +18,11 @@ export enum QwikSymbol {
   CreateCapturedEvent = 'createCapturedEvent',
   CreateContext = 'createContext',
   CreateContextProvider = 'createContextProvider',
+  CreateDomBatchEffect = 'createDomBatchEffect',
   CreatePropsEffect = 'createPropsEffect',
   CreateSsrElementTarget = 'createSsrElementTarget',
   CreateSsrElementTextTarget = 'createSsrElementTextTarget',
+  CreateSsrDomBatchEffect = 'createSsrDomBatchEffect',
   CreateSsrRangeTextTarget = 'createSsrRangeTextTarget',
   CreateStyleEffect = 'createStyleEffect',
   CreateTextExpressionEffect = 'createTextExpressionEffect',
@@ -27,7 +30,9 @@ export enum QwikSymbol {
   EscapeHTML = 'escapeHTML',
   InlinedQrl = 'inlinedQrl',
   MergeProps = 'mergeProps',
+  PatchTextValue = 'patchTextValue',
   QrlWithChunk = '_qrlWithChunk',
+  ReadTrackedSourceValue = 'readTrackedSourceValue',
   RenderSsrBranch = 'renderSsrBranch',
   RenderSsrForBlock = 'renderSsrForBlock',
   RenderSsrAttrExpression = 'renderSsrAttrExpression',
@@ -37,6 +42,8 @@ export enum QwikSymbol {
   RenderSsrStyle = 'renderSsrStyle',
   RenderSsrTextExpression = 'renderSsrTextExpression',
   RenderSsrTextNode = 'renderSsrTextNode',
+  RunDomBatchEffect = 'runDomBatchEffect',
+  SerializeAttrExpressionValue = 'serializeAttrExpressionValue',
   SetEvent = 'setEvent',
   WithCaptures = '_withCaptures',
 }

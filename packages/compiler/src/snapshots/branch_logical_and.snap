@@ -92,11 +92,12 @@ null
 import { component_props_segment_2 } from './component.tsx_component_props_segment_2';
 import {
   _captures,
+  createSsrDomBatchEffect,
+  createSsrElementTarget,
   _qrlWithChunk,
   escapeHTML,
   renderSsrTextNode,
   createSsrRangeTextTarget,
-  createSsrElementTarget,
   renderSsrProps,
 } from '@qwik.dev/core/spark';
 const q_component_props_segment_2 = /* @__PURE__ */ _qrlWithChunk(
@@ -111,20 +112,22 @@ export const component_branch_then_segment_1 = (ctx) => {
   const id0 = ctx.nextId();
   ctx.addRoot(attrs);
   ctx.addRoot(label);
+  const batch2 = createSsrDomBatchEffect();
   const props1 = renderSsrProps(
     createSsrElementTarget(id0),
     [attrs, label],
     q_component_props_segment_2,
-    ctx.eventAttr
+    ctx.eventAttr,
+    batch2
   );
-  const text2 = renderSsrTextNode(createSsrRangeTextTarget(id0, 0), label);
+  const text3 = renderSsrTextNode(createSsrRangeTextTarget(id0, 0), label, batch2);
   return (
     '<span q:id="' +
     id0 +
     '"' +
     props1.attrs +
     '>' +
-    (props1.innerHTML ?? '<!t>' + escapeHTML(text2) + '<!/t>!') +
+    (props1.innerHTML ?? '<!t>' + escapeHTML(text3) + '<!/t>!') +
     '</span>'
   );
 };
@@ -258,7 +261,12 @@ null
 */
 ============================= src/component.tsx_component_branch_then_segment_1.js (ENTRY POINT)==
 
-import { createPropsEffect, createTextNodeEffect, _captures } from '@qwik.dev/core/spark';
+import {
+  applyDomProps,
+  createDomBatchEffect,
+  readTrackedSourceValue,
+  _captures,
+} from '@qwik.dev/core/spark';
 const component_branch_then_segment_1_expr0 = (attrs, label) => ({
   ...attrs.value,
   get title() {
@@ -269,16 +277,21 @@ export const component_branch_then_segment_1 = (ctx) => {
   const attrs = _captures[0],
     label = _captures[1];
   const el0 = ctx.document.createElement('span');
-  const effect1 = createPropsEffect(el0, [attrs, label], component_branch_then_segment_1_expr0, {
-    scheduler: ctx.scheduler,
-  });
-  ctx.scheduler.notify(effect1);
-  const text2 = ctx.document.createTextNode('');
-  const effect3 = createTextNodeEffect(text2, label, { scheduler: ctx.scheduler });
-  ctx.scheduler.notify(effect3);
-  el0.appendChild(text2);
-  const text4 = ctx.document.createTextNode('!');
+  let prevProps1 = null;
+  const effect2 = createDomBatchEffect(batch3, { scheduler: ctx.scheduler });
+  const text4 = ctx.document.createTextNode('');
   el0.appendChild(text4);
+  const text5 = ctx.document.createTextNode('!');
+  el0.appendChild(text5);
+  function batch3() {
+    prevProps1 = applyDomProps(
+      el0,
+      component_branch_then_segment_1_expr0(attrs, label),
+      prevProps1
+    );
+    text4.data = String(readTrackedSourceValue(label));
+  }
+  ctx.scheduler.notify(effect2);
   return [el0];
 };
 

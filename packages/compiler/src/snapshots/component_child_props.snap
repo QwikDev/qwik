@@ -18,6 +18,7 @@ export function Parent() {
 import {
   createSignal,
   createComponent,
+  createSsrDomBatchEffect,
   _qrlWithChunk,
   escapeHTML,
   createSsrRangeTextTarget,
@@ -42,18 +43,21 @@ q_component_text_segment_1.s(component_text_segment_1);
 export function Child(props, ctx) {
   const id0 = ctx.nextId();
   ctx.addRoot(props);
+  const batch2 = createSsrDomBatchEffect();
   const text1 = renderSsrTextExpression(
     createSsrRangeTextTarget(id0, 0),
     [props],
-    q_component_text_segment_0
+    q_component_text_segment_0,
+    batch2
   );
-  const text2 = renderSsrTextExpression(
+  const text3 = renderSsrTextExpression(
     createSsrRangeTextTarget(id0, 1),
     [props],
-    q_component_text_segment_1
+    q_component_text_segment_1,
+    batch2
   );
   return (
-    '<p q:id="' + id0 + '"><!t>' + escapeHTML(text1) + '<!/t>: <!t>' + escapeHTML(text2) + '</p>'
+    '<p q:id="' + id0 + '"><!t>' + escapeHTML(text1) + '<!/t>: <!t>' + escapeHTML(text3) + '</p>'
   );
 }
 export async function Parent(_props, ctx) {
@@ -138,26 +142,29 @@ null
 
 ============================= src/component.tsx ==
 
-import { createSignal, createComponent, createTextExpressionEffect } from '@qwik.dev/core/spark';
+import {
+  createSignal,
+  createComponent,
+  createDomBatchEffect,
+  patchTextValue,
+} from '@qwik.dev/core/spark';
 
 const dom_Child_expr0 = (props) => props.label;
 const dom_Child_expr1 = (props) => props.count;
 export function Child(props, ctx) {
   const el0 = ctx.document.createElement('p');
   const text1 = ctx.document.createTextNode('');
-  const effect2 = createTextExpressionEffect(text1, [props], dom_Child_expr0, {
-    scheduler: ctx.scheduler,
-  });
-  ctx.scheduler.notify(effect2);
+  const effect2 = createDomBatchEffect(batch3, { scheduler: ctx.scheduler });
   el0.appendChild(text1);
-  const text3 = ctx.document.createTextNode(': ');
-  el0.appendChild(text3);
-  const text4 = ctx.document.createTextNode('');
-  const effect5 = createTextExpressionEffect(text4, [props], dom_Child_expr1, {
-    scheduler: ctx.scheduler,
-  });
-  ctx.scheduler.notify(effect5);
+  const text4 = ctx.document.createTextNode(': ');
   el0.appendChild(text4);
+  const text5 = ctx.document.createTextNode('');
+  el0.appendChild(text5);
+  function batch3() {
+    patchTextValue(text1, dom_Child_expr0(props));
+    patchTextValue(text5, dom_Child_expr1(props));
+  }
+  ctx.scheduler.notify(effect2);
   return [el0];
 }
 export function Parent(_props, ctx) {

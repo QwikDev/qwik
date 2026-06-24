@@ -5,6 +5,7 @@ import { EffectKind } from './effect-kind.enum';
 import {
   SsrDomSubscription,
   EffectTargetKind,
+  createSsrDomBatchEffect,
   createSsrElementTarget,
   createSsrElementTextTarget,
   createSsrRangeTextTarget,
@@ -31,7 +32,7 @@ describe('SSR DOM effect helpers', () => {
     expect(subscriber).toBeInstanceOf(SsrDomSubscription);
     expect(subscriber.deps).toEqual([count]);
     expect(subscriber.effect.kind).toBe(EffectKind.TextNode);
-    expect(subscriber.effect.target).toBe(target);
+    expect((subscriber.effect as any).target).toBe(target);
   });
 
   it('creates a text expression subscriber and collects dynamic reads from the QRL', () => {
@@ -52,7 +53,7 @@ describe('SSR DOM effect helpers', () => {
     expect(subscriber).toBeInstanceOf(SsrDomSubscription);
     expect(subscriber.deps).toEqual([count]);
     expect(subscriber.effect.kind).toBe(EffectKind.TextExpression);
-    expect(subscriber.effect.target).toBe(target);
+    expect((subscriber.effect as any).target).toBe(target);
   });
 
   it('creates attr, class, and style subscribers', () => {
@@ -94,7 +95,36 @@ describe('SSR DOM effect helpers', () => {
     expect(subscriber).toBeInstanceOf(SsrDomSubscription);
     expect(subscriber.deps).toEqual([count]);
     expect(subscriber.effect.kind).toBe(EffectKind.AttrExpression);
-    expect(subscriber.effect.target).toBe(target);
+    expect((subscriber.effect as any).target).toBe(target);
+  });
+
+  it('batches SSR DOM effects under one subscriber', () => {
+    const count = createSignal(1);
+    const active = createSignal(false);
+    const textTarget = createSsrRangeTextTarget(4, 0);
+    const attrTarget = createSsrElementTarget(5);
+    const qrl = createQRL<AttrExpressionFn<[]>>(
+      './class.attr.js',
+      'className',
+      () => ({ active: active.value }),
+      null,
+      null
+    );
+
+    const batch = createOwned(() => {
+      const subscriber = createSsrDomBatchEffect() as SsrDomSubscription;
+      const text = renderSsrTextNode(textTarget, count, subscriber);
+      const attr = renderSsrAttrExpression(attrTarget, 'class', [], qrl, subscriber);
+      return { attr, subscriber, text };
+    });
+
+    expect(batch.text).toBe('1');
+    expect(batch.attr).toBe('');
+    expect(count.subs).toEqual([batch.subscriber]);
+    expect(active.subs).toEqual([batch.subscriber]);
+    expect(batch.subscriber.deps).toEqual([count, active]);
+    expect(batch.subscriber.effect.kind).toBe(EffectKind.DomBatch);
+    expect((batch.subscriber.effect as any).effects).toHaveLength(2);
   });
 
   it('renders spread DOM props without children and collects getter dependencies', () => {

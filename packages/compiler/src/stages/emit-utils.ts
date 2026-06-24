@@ -345,6 +345,34 @@ export function hasDirectDomEvent(node: RenderNode | null): boolean {
   );
 }
 
+export function countScalarDomEffects(node: RenderNode | null): number {
+  if (!node) {
+    return 0;
+  }
+  if (node.kind === 'dynamicText') {
+    return 1;
+  }
+  if (node.kind === 'element') {
+    let count = node.props.some((prop) => prop.kind === 'spread')
+      ? 1
+      : node.props.reduce(
+          (total, prop) => total + (prop.kind === 'named' && prop.binding ? 1 : 0),
+          0
+        );
+    for (const child of node.children) {
+      count += countScalarDomEffects(child);
+    }
+    return count;
+  }
+  if (node.kind === 'fragment') {
+    return node.children.reduce((total, child) => total + countScalarDomEffects(child), 0);
+  }
+  if (node.kind === 'component') {
+    return node.children.reduce((total, child) => total + countScalarDomEffects(child), 0);
+  }
+  return 0;
+}
+
 export function emitObjectGetterName(name: string): string {
   return /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(name) ? name : `[${JSON.stringify(name)}]`;
 }

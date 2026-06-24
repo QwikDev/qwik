@@ -6,11 +6,13 @@ import { ForBlock, ForRange } from '../../vdomless/dom/for/for';
 import {
   AttrEffect,
   AttrExpressionEffect,
+  DomBatchEffect,
   PropsEffect,
   SerializedAttrEffect,
   TextExpressionEffect,
   TextNodeEffect,
   type AttrExpressionFn,
+  type DomEffect,
   type TextExpressionFn,
 } from '../../vdomless/dom/effect/effect';
 import { EffectKind } from '../../vdomless/dom/effect/effect-kind.enum';
@@ -41,6 +43,7 @@ import {
 import { assertDefined, assertNumber } from '../error/assert';
 import { qError, QError } from '../error/error';
 import type { QRLInternal } from '../qrl/qrl-class';
+import { isPromise } from '../utils/promises';
 import { allocate, resolvers } from './allocate';
 import { TypeIds } from './constants';
 import { needsInflation } from './deser-proxy';
@@ -217,36 +220,17 @@ export const inflate = async (
           restoreForBlockSubscription(container, target as Writeable<ForBlockSubscription>, parts);
           break;
         }
-        case EffectKind.TextNode: {
-          restoreTextNodeSubscription(container, target as Writeable<DomSubscriber>, parts);
-          break;
-        }
-        case EffectKind.TextExpression: {
-          await restoreTextExpressionSubscription(
-            container,
-            target as Writeable<DomSubscriber>,
-            parts
-          );
-          break;
-        }
-        case EffectKind.Attr: {
-          restoreAttrSubscription(container, target as Writeable<DomSubscriber>, parts);
-          break;
-        }
-        case EffectKind.AttrExpression: {
-          await restoreAttrExpressionSubscription(
-            container,
-            target as Writeable<DomSubscriber>,
-            parts
-          );
-          break;
-        }
-        case EffectKind.SerializedAttr: {
-          restoreSerializedAttrSubscription(container, target as Writeable<DomSubscriber>, parts);
-          break;
-        }
+        case EffectKind.TextNode:
+        case EffectKind.TextExpression:
+        case EffectKind.Attr:
+        case EffectKind.AttrExpression:
+        case EffectKind.SerializedAttr:
         case EffectKind.Props: {
-          await restorePropsSubscription(container, target as Writeable<DomSubscriber>, parts);
+          await restoreDomSubscription(container, target as Writeable<DomSubscriber>, parts);
+          break;
+        }
+        case EffectKind.DomBatch: {
+          await restoreDomBatchSubscription(container, target as Writeable<DomSubscriber>, parts);
           break;
         }
         default:
@@ -374,97 +358,125 @@ function ensureDeserializedOwner(subscriber: Subscriber): void {
   }
 }
 
-function restoreTextNodeSubscription(
-  container: ContainerContext,
-  subscription: Writeable<DomSubscriber>,
-  parts: unknown[]
-): void {
-  const target = readDomSubscriptionTarget(parts);
-  const text = resolveTextTarget(container, target.targetKind, target.targetId, target.markerIndex);
-
-  subscription.effect = new TextNodeEffect(text, target.deps[0]);
-  restoreDependencies(subscription, target.deps);
-}
-
-async function restoreTextExpressionSubscription(
+async function restoreDomSubscription(
   container: ContainerContext,
   subscription: Writeable<DomSubscriber>,
   parts: unknown[]
 ): Promise<void> {
-  const target = readDomSubscriptionTarget(parts);
-  const text = resolveTextTarget(container, target.targetKind, target.targetId, target.markerIndex);
-  const qrl = parts[target.depsIndex + 2] as QRLInternal<TextExpressionFn>;
-  const fn = await qrl.resolve();
+  const restored = await restoreDomEffect(container, parts);
+  subscription.effect = restored.effect;
+  restoreDependencies(subscription, restored.deps);
+}
 
-  subscription.effect = new TextExpressionEffect(
-    text,
-    parts[target.depsIndex + 1] as unknown[],
-    (...args) => {
-      return fn(...args);
+async function restoreDomBatchSubscription(
+  container: ContainerContext,
+  subscription: Writeable<DomSubscriber>,
+  parts: unknown[]
+): Promise<void> {
+  const deps = parts[1] as Dependency[];
+  const effectParts = parts[2] as unknown[][];
+  const effects: DomEffect[] = Array(effectParts.length);
+
+  for (let i = 0; i < effectParts.length; i++) {
+    effects[i] = (await restoreDomEffect(container, effectParts[i])).effect;
+  }
+
+  subscription.effect = new DomBatchEffect(() => {
+    let pending: unknown;
+    for (let i = 0; i < effects.length; i++) {
+      const value = effects[i].run();
+      if (pending === undefined && isPromise(value)) {
+        pending = value;
+      }
     }
-  );
-  restoreDependencies(subscription, target.deps);
+    return pending;
+  });
+  restoreDependencies(subscription, deps);
 }
 
-function restoreAttrSubscription(
+async function restoreDomEffect(
   container: ContainerContext,
-  subscription: Writeable<DomSubscriber>,
   parts: unknown[]
-): void {
-  const target = readDomSubscriptionTarget(parts);
-  const source = readRequiredDomSource(target.deps, target.targetKind);
-  const element = resolveElementTarget(container, target.targetKind, target.targetId);
-
-  subscription.effect = new AttrEffect(element, String(parts[4]), source);
-  restoreDependencies(subscription, target.deps);
-}
-
-async function restoreAttrExpressionSubscription(
-  container: ContainerContext,
-  subscription: Writeable<DomSubscriber>,
-  parts: unknown[]
-): Promise<void> {
-  const target = readDomSubscriptionTarget(parts);
-  const element = resolveElementTarget(container, target.targetKind, target.targetId);
-  const qrl = parts[target.depsIndex + 3] as QRLInternal<AttrExpressionFn>;
-  const fn = await qrl.resolve();
-
-  subscription.effect = new AttrExpressionEffect(
-    element,
-    String(parts[target.depsIndex + 1]),
-    parts[target.depsIndex + 2] as unknown[],
-    fn
-  );
-  restoreDependencies(subscription, target.deps);
-}
-
-function restoreSerializedAttrSubscription(
-  container: ContainerContext,
-  subscription: Writeable<DomSubscriber>,
-  parts: unknown[]
-): void {
-  const target = readDomSubscriptionTarget(parts);
-  const source = readRequiredDomSource(target.deps, target.targetKind);
-  const element = resolveElementTarget(container, target.targetKind, target.targetId);
-
-  subscription.effect = new SerializedAttrEffect(element, source, parts[4] as any);
-  restoreDependencies(subscription, target.deps);
-}
-
-async function restorePropsSubscription(
-  container: ContainerContext,
-  subscription: Writeable<DomSubscriber>,
-  parts: unknown[]
-): Promise<void> {
-  const target = readDomSubscriptionTarget(parts);
-  const element = resolveElementTarget(container, target.targetKind, target.targetId);
-  const qrl = parts[target.depsIndex + 2] as QRLInternal<
-    (...args: unknown[]) => Record<string, unknown> | null | undefined
-  >;
-  const fn = await qrl.resolve();
-
-  subscription.effect = new PropsEffect(element, parts[target.depsIndex + 1] as unknown[], fn);
-  restoreDependencies(subscription, target.deps);
+): Promise<{ effect: DomEffect; deps: Dependency[] }> {
+  const kind = parts[0] as EffectKind;
+  switch (kind) {
+    case EffectKind.TextNode: {
+      const target = readDomSubscriptionTarget(parts);
+      const text = resolveTextTarget(
+        container,
+        target.targetKind,
+        target.targetId,
+        target.markerIndex
+      );
+      const source = readRequiredSource(target.deps);
+      return { deps: target.deps, effect: new TextNodeEffect(text, source) };
+    }
+    case EffectKind.TextExpression: {
+      const target = readDomSubscriptionTarget(parts);
+      const text = resolveTextTarget(
+        container,
+        target.targetKind,
+        target.targetId,
+        target.markerIndex
+      );
+      const qrl = parts[target.depsIndex + 2] as QRLInternal<TextExpressionFn>;
+      const fn = await qrl.resolve();
+      return {
+        deps: target.deps,
+        effect: new TextExpressionEffect(
+          text,
+          parts[target.depsIndex + 1] as unknown[],
+          (...args) => {
+            return fn(...args);
+          }
+        ),
+      };
+    }
+    case EffectKind.Attr: {
+      const target = readDomSubscriptionTarget(parts);
+      const source = readRequiredDomSource(target.deps, target.targetKind);
+      const element = resolveElementTarget(container, target.targetKind, target.targetId);
+      return { deps: target.deps, effect: new AttrEffect(element, String(parts[4]), source) };
+    }
+    case EffectKind.AttrExpression: {
+      const target = readDomSubscriptionTarget(parts);
+      const element = resolveElementTarget(container, target.targetKind, target.targetId);
+      const qrl = parts[target.depsIndex + 3] as QRLInternal<AttrExpressionFn>;
+      const fn = await qrl.resolve();
+      return {
+        deps: target.deps,
+        effect: new AttrExpressionEffect(
+          element,
+          String(parts[target.depsIndex + 1]),
+          parts[target.depsIndex + 2] as unknown[],
+          fn
+        ),
+      };
+    }
+    case EffectKind.SerializedAttr: {
+      const target = readDomSubscriptionTarget(parts);
+      const source = readRequiredDomSource(target.deps, target.targetKind);
+      const element = resolveElementTarget(container, target.targetKind, target.targetId);
+      return {
+        deps: target.deps,
+        effect: new SerializedAttrEffect(element, source, parts[4] as any),
+      };
+    }
+    case EffectKind.Props: {
+      const target = readDomSubscriptionTarget(parts);
+      const element = resolveElementTarget(container, target.targetKind, target.targetId);
+      const qrl = parts[target.depsIndex + 2] as QRLInternal<
+        (...args: unknown[]) => Record<string, unknown> | null | undefined
+      >;
+      const fn = await qrl.resolve();
+      return {
+        deps: target.deps,
+        effect: new PropsEffect(element, parts[target.depsIndex + 1] as unknown[], fn),
+      };
+    }
+    default:
+      throw qError(QError.serializeErrorNotImplemented, [kind]);
+  }
 }
 
 function readDomSubscriptionTarget(parts: unknown[]): {
@@ -484,11 +496,15 @@ function readDomSubscriptionTarget(parts: unknown[]): {
 }
 
 function readRequiredDomSource(deps: Dependency[], targetKind: EffectTargetKind): Dependency {
-  if (!Array.isArray(deps) || deps.length === 0) {
-    throw new Error('DOM subscription requires a source dependency.');
-  }
   if (targetKind !== EffectTargetKind.Element) {
     throw new Error(`Unsupported element target kind ${targetKind}.`);
+  }
+  return readRequiredSource(deps);
+}
+
+function readRequiredSource(deps: Dependency[]): Dependency {
+  if (!Array.isArray(deps) || deps.length === 0) {
+    throw new Error('DOM subscription requires a source dependency.');
   }
   return deps[0];
 }

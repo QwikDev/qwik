@@ -13,6 +13,7 @@ export function App() {
 
 import {
   createSignal,
+  createSsrDomBatchEffect,
   escapeHTML,
   renderSsrTextNode,
   createSsrRangeTextTarget,
@@ -23,10 +24,11 @@ export function App(_props, ctx) {
   const second = createSignal(2);
   const id0 = ctx.nextId();
   ctx.addRoot(first);
-  const text1 = renderSsrTextNode(createSsrRangeTextTarget(id0, 0), first);
+  const batch2 = createSsrDomBatchEffect();
+  const text1 = renderSsrTextNode(createSsrRangeTextTarget(id0, 0), first, batch2);
   ctx.addRoot(second);
-  const text2 = renderSsrTextNode(createSsrRangeTextTarget(id0, 1), second);
-  return '<p q:id="' + id0 + '"><!t>' + escapeHTML(text1) + '<!t>' + escapeHTML(text2) + '</p>';
+  const text3 = renderSsrTextNode(createSsrRangeTextTarget(id0, 1), second, batch2);
+  return '<p q:id="' + id0 + '"><!t>' + escapeHTML(text1) + '<!t>' + escapeHTML(text3) + '</p>';
 }
 
 null
@@ -37,20 +39,22 @@ null
 
 ============================= src/component.tsx ==
 
-import { createSignal, createTextNodeEffect } from '@qwik.dev/core/spark';
+import { createSignal, createDomBatchEffect, readTrackedSourceValue } from '@qwik.dev/core/spark';
 
 export function App(_props, ctx) {
   const first = createSignal(1);
   const second = createSignal(2);
   const el0 = ctx.document.createElement('p');
   const text1 = ctx.document.createTextNode('');
-  const effect2 = createTextNodeEffect(text1, first, { scheduler: ctx.scheduler });
-  ctx.scheduler.notify(effect2);
+  const effect2 = createDomBatchEffect(batch3, { scheduler: ctx.scheduler });
   el0.appendChild(text1);
-  const text3 = ctx.document.createTextNode('');
-  const effect4 = createTextNodeEffect(text3, second, { scheduler: ctx.scheduler });
-  ctx.scheduler.notify(effect4);
-  el0.appendChild(text3);
+  const text4 = ctx.document.createTextNode('');
+  el0.appendChild(text4);
+  function batch3() {
+    text1.data = String(readTrackedSourceValue(first));
+    text4.data = String(readTrackedSourceValue(second));
+  }
+  ctx.scheduler.notify(effect2);
   return [el0];
 }
 

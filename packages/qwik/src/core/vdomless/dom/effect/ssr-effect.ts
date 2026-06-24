@@ -29,13 +29,14 @@ type DomPropsFn<TArgs extends unknown[] = unknown[]> = (
 ) => Record<string, unknown> | null | undefined;
 export type DomPropsQrl<TArgs extends unknown[] = unknown[]> = QRLInternal<DomPropsFn<TArgs>>;
 
-export type SsrDomEffect =
+export type SsrScalarDomEffect =
   | SsrTextExpressionEffect<any[]>
   | SsrTextNodeEffect
   | SsrAttrEffect
   | SsrAttrExpressionEffect<any[]>
   | SsrSerializedAttrEffect
   | SsrPropsEffect<any[]>;
+export type SsrDomEffect = SsrScalarDomEffect | SsrDomBatchEffect;
 
 export const enum EffectTargetKind {
   ElementText = 0,
@@ -76,7 +77,10 @@ export class SsrTextNodeEffect {
   readonly kind = EffectKind.TextNode;
   readonly phase = Phase.ScalarDom;
 
-  constructor(readonly target: SsrEffectTarget) {}
+  constructor(
+    readonly target: SsrEffectTarget,
+    readonly source?: Source
+  ) {}
 }
 
 export class SsrAttrEffect {
@@ -85,7 +89,8 @@ export class SsrAttrEffect {
 
   constructor(
     readonly target: SsrEffectTarget,
-    readonly name: string
+    readonly name: string,
+    readonly source?: Source
   ) {}
 }
 
@@ -107,7 +112,8 @@ export class SsrSerializedAttrEffect {
 
   constructor(
     readonly target: SsrEffectTarget,
-    readonly serializer: AttrSerializer
+    readonly serializer: AttrSerializer,
+    readonly source?: Source
   ) {}
 }
 
@@ -120,6 +126,12 @@ export class SsrPropsEffect<TArgs extends unknown[] = unknown[]> {
     readonly args: TArgs,
     readonly qrl: DomPropsQrl<TArgs>
   ) {}
+}
+
+export class SsrDomBatchEffect {
+  readonly kind = EffectKind.DomBatch;
+  readonly phase = Phase.ScalarDom;
+  readonly effects: SsrScalarDomEffect[] = [];
 }
 
 export class SsrDomSubscription implements SsrDomSubscriber {
@@ -145,7 +157,7 @@ export class SSRForBlockSubscription<T = unknown> implements SsrForBlockSubscrib
 }
 
 export function createSsrTextNodeEffect(target: SsrEffectTarget): SsrDomSubscriber {
-  return registerSubscriberToOwner(new SsrDomSubscription(new SsrTextNodeEffect(target)));
+  return useSsrDomEffect(undefined, new SsrTextNodeEffect(target));
 }
 
 export function createSsrTextExpressionEffect<TArgs extends unknown[]>(
@@ -153,13 +165,11 @@ export function createSsrTextExpressionEffect<TArgs extends unknown[]>(
   args: TArgs,
   qrl: TextExpressionQrl<TArgs>
 ): SsrDomSubscriber {
-  return registerSubscriberToOwner(
-    new SsrDomSubscription(new SsrTextExpressionEffect(target, args, qrl))
-  );
+  return useSsrDomEffect(undefined, new SsrTextExpressionEffect(target, args, qrl));
 }
 
 export function createSsrAttrEffect(target: SsrEffectTarget, name: string): SsrDomSubscriber {
-  return registerSubscriberToOwner(new SsrDomSubscription(new SsrAttrEffect(target, name)));
+  return useSsrDomEffect(undefined, new SsrAttrEffect(target, name));
 }
 
 export function createSsrAttrExpressionEffect<TArgs extends unknown[]>(
@@ -168,18 +178,14 @@ export function createSsrAttrExpressionEffect<TArgs extends unknown[]>(
   args: TArgs,
   qrl: AttrExpressionQrl<TArgs>
 ): SsrDomSubscriber {
-  return registerSubscriberToOwner(
-    new SsrDomSubscription(new SsrAttrExpressionEffect(target, name, args, qrl))
-  );
+  return useSsrDomEffect(undefined, new SsrAttrExpressionEffect(target, name, args, qrl));
 }
 
 export function createSsrSerializedAttrEffect(
   target: SsrEffectTarget,
   serializer: AttrSerializer
 ): SsrDomSubscriber {
-  return registerSubscriberToOwner(
-    new SsrDomSubscription(new SsrSerializedAttrEffect(target, serializer))
-  );
+  return useSsrDomEffect(undefined, new SsrSerializedAttrEffect(target, serializer));
 }
 
 export function createSsrPropsEffect<TArgs extends unknown[]>(
@@ -187,7 +193,11 @@ export function createSsrPropsEffect<TArgs extends unknown[]>(
   args: TArgs,
   qrl: DomPropsQrl<TArgs>
 ): SsrDomSubscriber {
-  return registerSubscriberToOwner(new SsrDomSubscription(new SsrPropsEffect(target, args, qrl)));
+  return useSsrDomEffect(undefined, new SsrPropsEffect(target, args, qrl));
+}
+
+export function createSsrDomBatchEffect(): SsrDomSubscriber {
+  return registerSubscriberToOwner(new SsrDomSubscription(new SsrDomBatchEffect()));
 }
 
 export function createSsrElementTextTarget(id: number): SsrEffectTarget {
@@ -212,17 +222,25 @@ export function createSsrRangeTextTarget(id: number, markerIndex: number): SsrEf
   };
 }
 
-export function renderSsrTextNode(target: SsrEffectTarget, source: Source): string {
-  const subscriber = createSsrTextNodeEffect(target);
+export function renderSsrTextNode(
+  target: SsrEffectTarget,
+  source: Source,
+  batch?: SsrDomSubscriber
+): string {
+  const subscriber = useSsrDomEffect(
+    batch,
+    new SsrTextNodeEffect(target, batch ? source : undefined)
+  );
   return String(runWithCollector(subscriber, readTrackedSourceValue, source));
 }
 
 export function renderSsrTextExpression<TArgs extends unknown[]>(
   target: SsrEffectTarget,
   args: TArgs,
-  qrl: TextExpressionQrl<TArgs>
+  qrl: TextExpressionQrl<TArgs>,
+  batch?: SsrDomSubscriber
 ): ReturnType<TextExpressionFn<TArgs>> {
-  const subscriber = createSsrTextExpressionEffect(target, args, qrl);
+  const subscriber = useSsrDomEffect(batch, new SsrTextExpressionEffect(target, args, qrl));
   const fn = qrl.resolved;
 
   if (fn === undefined) {
@@ -232,8 +250,16 @@ export function renderSsrTextExpression<TArgs extends unknown[]>(
   return runWithCollector(subscriber, fn, ...args);
 }
 
-export function renderSsrAttr(target: SsrEffectTarget, name: string, source: Source): string {
-  const subscriber = createSsrAttrEffect(target, name);
+export function renderSsrAttr(
+  target: SsrEffectTarget,
+  name: string,
+  source: Source,
+  batch?: SsrDomSubscriber
+): string {
+  const subscriber = useSsrDomEffect(
+    batch,
+    new SsrAttrEffect(target, name, batch ? source : undefined)
+  );
   return String(runWithCollector(subscriber, readTrackedSourceValue, source));
 }
 
@@ -241,9 +267,10 @@ export function renderSsrAttrExpression<TArgs extends unknown[]>(
   target: SsrEffectTarget,
   name: string,
   args: TArgs,
-  qrl: AttrExpressionQrl<TArgs>
+  qrl: AttrExpressionQrl<TArgs>,
+  batch?: SsrDomSubscriber
 ): string {
-  const subscriber = createSsrAttrExpressionEffect(target, name, args, qrl);
+  const subscriber = useSsrDomEffect(batch, new SsrAttrExpressionEffect(target, name, args, qrl));
   const fn = qrl.resolved;
 
   if (fn === undefined) {
@@ -253,14 +280,28 @@ export function renderSsrAttrExpression<TArgs extends unknown[]>(
   return serializeAttrExpressionValue(name, runWithCollector(subscriber, fn, ...args));
 }
 
-export function renderSsrClass(target: SsrEffectTarget, source: Source): string {
-  const subscriber = createSsrSerializedAttrEffect(target, AttrSerializer.Class);
+export function renderSsrClass(
+  target: SsrEffectTarget,
+  source: Source,
+  batch?: SsrDomSubscriber
+): string {
+  const subscriber = useSsrDomEffect(
+    batch,
+    new SsrSerializedAttrEffect(target, AttrSerializer.Class, batch ? source : undefined)
+  );
   const value = runWithCollector(subscriber, readTrackedSourceValue, source);
   return serializeClass(value as ClassList);
 }
 
-export function renderSsrStyle(target: SsrEffectTarget, source: Source): string {
-  const subscriber = createSsrSerializedAttrEffect(target, AttrSerializer.Style);
+export function renderSsrStyle(
+  target: SsrEffectTarget,
+  source: Source,
+  batch?: SsrDomSubscriber
+): string {
+  const subscriber = useSsrDomEffect(
+    batch,
+    new SsrSerializedAttrEffect(target, AttrSerializer.Style, batch ? source : undefined)
+  );
   const value = runWithCollector(subscriber, readTrackedSourceValue, source);
   return stringifyStyle(value);
 }
@@ -269,9 +310,10 @@ export function renderSsrProps<TArgs extends unknown[]>(
   target: SsrEffectTarget,
   args: TArgs,
   qrl: DomPropsQrl<TArgs>,
-  eventAttr?: (name: string, value: unknown) => string
+  eventAttr?: (name: string, value: unknown) => string,
+  batch?: SsrDomSubscriber
 ) {
-  const subscriber = createSsrPropsEffect(target, args, qrl);
+  const subscriber = useSsrDomEffect(batch, new SsrPropsEffect(target, args, qrl));
   const fn = qrl.resolved;
 
   if (fn === undefined) {
@@ -279,6 +321,25 @@ export function renderSsrProps<TArgs extends unknown[]>(
   }
 
   return runWithCollector(subscriber, () => renderDomPropsToString(fn(...args), eventAttr));
+}
+
+function useSsrDomEffect(
+  batch: SsrDomSubscriber | undefined,
+  effect: SsrScalarDomEffect
+): SsrDomSubscriber {
+  if (batch) {
+    addSsrBatchEffect(batch, effect);
+    return batch;
+  }
+  return registerSubscriberToOwner(new SsrDomSubscription(effect));
+}
+
+function addSsrBatchEffect(batch: SsrDomSubscriber, effect: SsrScalarDomEffect): void {
+  const batchEffect = batch.effect;
+  if (!(batchEffect instanceof SsrDomBatchEffect)) {
+    throw new Error('Expected SSR DOM batch effect.');
+  }
+  batchEffect.effects.push(effect);
 }
 
 function readTrackedSourceValue<T>(source: Source<T>): T {

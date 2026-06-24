@@ -3,7 +3,6 @@ import { implicit$FirstArg, isDev, isServer, type NoSerialize, type QRL } from '
 import {
   _deserialize,
   _getContextEvent,
-  _getContextContainer,
   _injectAsyncSignalValue,
   _markSignalAsExternallyOwned,
   _resolveContextWithoutSequentialScope,
@@ -124,6 +123,8 @@ export type RouteLoaderCtx = {
   pageSearch?: string;
   /** SPA navigation function. Client-only and intentionally omitted from SSR state. */
   goto?: NoSerialize<RouteNavigate>;
+  /** Client manifest hash for q-loader fetch URLs. */
+  manifestHash?: string;
 };
 
 export type RouteLoaderState = Record<string, AsyncSignal<unknown>>;
@@ -164,17 +165,6 @@ const isRequestEvent = (value: unknown): value is RequestEvent =>
 
 const isLoaderInternal = (value: unknown): value is LoaderInternal =>
   typeof value === 'function' && (value as LoaderInternal).__brand === 'server_loader';
-
-const getClientManifestHash = (ctx: unknown) => {
-  // We cheat and grab the internal signal of the AsyncJob
-  // Maybe we should expose .signal? Would be good for implementing channels
-  const container = (ctx as { $signal$?: { $container$?: unknown } }).$signal$?.$container$;
-  return (
-    (container as { qManifestHash?: string } | undefined)?.qManifestHash ||
-    (_getContextContainer() as { qManifestHash?: string } | undefined)?.qManifestHash ||
-    'dev'
-  );
-};
 
 /**
  * Fetch a single loader's data from the server.
@@ -324,7 +314,7 @@ const createRouteLoaderSignal = (
       const pagePathname = trackedPagePathname || location.pathname;
       const pageSearch = trackedPageSearch || location.search;
       const pageUrl = new URL(pagePathname + pageSearch, location.href);
-      const mHash = getClientManifestHash(ctx);
+      const mHash = routeLoaderCtx.manifestHash || 'dev';
       const basePath = (qwikRouterConfig as any).basePathname ?? '/';
       const needsResumeFetch = stateValues[resumeValueKey] === _UNINITIALIZED;
       const fetchRoutePath = routePath || (needsResumeFetch ? pageUrl.pathname : undefined);

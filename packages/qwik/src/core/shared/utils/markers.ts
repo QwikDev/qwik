@@ -41,6 +41,7 @@ export const QBaseAttr = 'q:base';
 export const QLocaleAttr = 'q:locale';
 export const QManifestHashAttr = 'q:manifest-hash';
 export const QInstanceAttr = 'q:instance';
+export const QStatePrewarmAttr = 'q:prewarm';
 export const QContainerIsland = 'q:container-island';
 export const QContainerIslandEnd = '/' + QContainerIsland;
 export const QIgnore = 'q:ignore';

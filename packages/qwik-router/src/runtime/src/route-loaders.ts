@@ -248,7 +248,7 @@ export const fetchRouteLoaderData = async (
       return undefined;
     }
     const text = await response.text();
-    return _deserialize<LoaderResponse>(text) ?? undefined;
+    return (await _deserialize<LoaderResponse>(text)) ?? undefined;
   };
 
   if (opts?.ignoreCache || opts?.signal) {

@@ -441,7 +441,7 @@ export const serverQrl = <T extends ServerFunction>(
         })();
       } else if (contentType === 'application/qwik-json') {
         const str = await res.text();
-        const obj = _deserialize(str);
+        const obj = await _deserialize(str);
         if (res.status >= 400) {
           throw obj;
         }
@@ -525,7 +525,7 @@ const deserializeStream = async function* (
       const lines = buffer.split(/\n/);
       buffer = lines.pop()!;
       for (const line of lines) {
-        const deserializedData = _deserialize(line);
+        const deserializedData = await _deserialize(line);
         yield deserializedData;
       }
     }

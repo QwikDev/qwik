@@ -7,13 +7,24 @@ import type {
   LoaderInternal,
 } from '../../runtime/src/types';
 import { getRouteLoaderValues, loadRouteLoader } from '../../runtime/src/route-loaders';
-import type { AbortMessage, RedirectMessage } from './redirect-handler';
-import type { RewriteMessage } from './rewrite-handler';
-import type { ServerError } from './server-error';
+import { QACTION_KEY, QDATA_KEY } from '../../runtime/src/constants';
+import { isPromise } from '../../runtime/src/utils';
+import { createCacheControl } from './cache-control';
+import { Cookie } from './cookie';
+import {
+  IsQAction,
+  QActionId,
+  QLoaderId,
+  recognizeRequest,
+  trimRecognizedInternalPathname,
+} from './request-path';
+import { AbortMessage, RedirectMessage } from './redirect-handler';
+import { RewriteMessage } from './rewrite-handler';
+import { ServerError } from './server-error';
+import { encoder, getContentType } from './request-utils';
 import type {
   CacheControl,
   CacheControlTarget,
-  Cookie as RequestCookie,
   RequestEvent,
   RequestEventCommon,
   RequestEventLoader,
@@ -22,26 +33,6 @@ import type {
   ServerRequestEvent,
   ServerRequestMode,
 } from './types';
-
-interface RequestEventDeps {
-  QDATA_KEY: string;
-  isPromise: (value: unknown) => value is Promise<unknown>;
-  createCacheControl: (cacheControl: CacheControl) => string;
-  Cookie: new (cookie?: string | null) => RequestCookie;
-  AbortMessage: new () => AbortMessage;
-  RedirectMessage: new () => RedirectMessage;
-  RewriteMessage: new (pathname: string) => RewriteMessage;
-  ServerError: new <T = any>(status: number, data: T) => ServerError<T>;
-  recognizeRequest: typeof import('./request-path').recognizeRequest;
-  trimRecognizedInternalPathname: typeof import('./request-path').trimRecognizedInternalPathname;
-  IsQLoader: string;
-  IsQAction: string;
-  QLoaderId: string;
-  QActionId: string;
-  QACTION_KEY: string;
-  encoder: TextEncoder;
-  getContentType: typeof import('./request-utils').getContentType;
-}
 
 const RequestEvMode = Symbol('RequestEvMode');
 const RequestEvRoute = Symbol('RequestEvRoute');
@@ -54,8 +45,7 @@ export const RequestEvShareServerTiming = '@serverTiming';
 export const RequestEvETagCacheKey = '@eTagCacheKey';
 export const RequestEvHttpStatusMessage = '@httpStatusMessage';
 
-export function createRequestEventWithDeps(
-  deps: RequestEventDeps,
+export function createRequestEvent(
   serverRequestEv: ServerRequestEvent,
   loadedRoute: LoadedRoute,
   requestHandlers: RequestHandler<any>[],
@@ -65,26 +55,26 @@ export function createRequestEventWithDeps(
   const { request, platform, env } = serverRequestEv;
 
   const sharedMap = new Map();
-  const cookie = new deps.Cookie(request.headers.get('cookie'));
+  const cookie = new Cookie(request.headers.get('cookie'));
   const headers = new Headers();
   const url = new URL(request.url);
   let internalRequest: RequestEvent['internalRequest'] = false;
   // Recognize internal request types (q-loader-*.json)
-  const recognized = deps.recognizeRequest(url.pathname);
+  const recognized = recognizeRequest(url.pathname);
   if (recognized) {
-    url.pathname = deps.trimRecognizedInternalPathname(url.pathname, recognized);
+    url.pathname = trimRecognizedInternalPathname(url.pathname, recognized);
     sharedMap.set(recognized.type, true);
     internalRequest = 'loader';
     if (recognized.data?.loaderId) {
-      sharedMap.set(deps.QLoaderId, recognized.data.loaderId);
+      sharedMap.set(QLoaderId, recognized.data.loaderId);
     }
   }
 
   // Detect action requests via ?qaction= query parameter
-  const actionId = url.searchParams.get(deps.QACTION_KEY);
+  const actionId = url.searchParams.get(QACTION_KEY);
   if (actionId) {
-    sharedMap.set(deps.IsQAction, true);
-    sharedMap.set(deps.QActionId, actionId);
+    sharedMap.set(IsQAction, true);
+    sharedMap.set(QActionId, actionId);
     if (request.method === 'POST' && request.headers.get('accept')?.includes('application/json')) {
       internalRequest = 'action';
     }
@@ -102,7 +92,7 @@ export function createRequestEventWithDeps(
     while (routeModuleIndex < requestHandlers.length) {
       const moduleRequestHandler = requestHandlers[routeModuleIndex];
       const result = moduleRequestHandler(requestEv);
-      if (deps.isPromise(result)) {
+      if (isPromise(result)) {
         await result;
       }
       routeModuleIndex++;
@@ -134,7 +124,7 @@ export function createRequestEventWithDeps(
       status = statusOrResponse;
       const writableStream = requestEv.getWritableStream();
       const writer = writableStream.getWriter();
-      writer.write(typeof body === 'string' ? deps.encoder.encode(body) : body);
+      writer.write(typeof body === 'string' ? encoder.encode(body) : body);
       writer.close();
     } else {
       status = statusOrResponse.status;
@@ -164,7 +154,7 @@ export function createRequestEventWithDeps(
   };
 
   const exit = <T extends AbortMessage | RedirectMessage | RewriteMessage>(
-    message: T = new deps.AbortMessage() as T
+    message: T = new AbortMessage() as T
   ) => {
     routeModuleIndex = ABORT_INDEX;
     return message;
@@ -214,7 +204,7 @@ export function createRequestEventWithDeps(
 
     cacheControl: (cacheControl: CacheControl, target: CacheControlTarget = 'Cache-Control') => {
       check();
-      headers.set(target, deps.createCacheControl(cacheControl));
+      headers.set(target, createCacheControl(cacheControl));
     },
 
     resolveValue: (async (loaderOrAction: LoaderInternal | ActionInternal) => {
@@ -256,7 +246,7 @@ export function createRequestEventWithDeps(
     error: <T = any>(statusCode: number, message: T) => {
       status = statusCode;
       headers.delete('Cache-Control');
-      return new deps.ServerError(statusCode, message);
+      return new ServerError(statusCode, message);
     },
 
     redirect: (statusCode: number, url: string) => {
@@ -280,21 +270,21 @@ export function createRequestEventWithDeps(
         headers.set('Cache-Control', 'no-store');
       }
       if (internalRequest === 'loader') {
-        return new deps.RedirectMessage();
+        return new RedirectMessage();
       }
-      return exit(new deps.RedirectMessage());
+      return exit(new RedirectMessage());
     },
 
     rewrite: (pathname: string) => {
       check();
       if (pathname.startsWith('http')) {
-        throw new deps.ServerError(
+        throw new ServerError(
           400,
           isDev ? 'Rewrite does not support absolute urls' : 'Bad Request'
         );
       }
       sharedMap.set(RequestEvIsRewrite, true);
-      return exit(new deps.RewriteMessage(pathname.replace(/\/+/g, '/')));
+      return exit(new RewriteMessage(pathname.replace(/\/+/g, '/')));
     },
 
     defer: (returnData) => {
@@ -325,7 +315,7 @@ export function createRequestEventWithDeps(
       if (requestData !== undefined) {
         return requestData;
       }
-      return (requestData = parseRequest(deps, requestEv, sharedMap));
+      return (requestData = parseRequest(requestEv, sharedMap));
     },
 
     json: (statusCode: number, data: any) => {
@@ -402,11 +392,10 @@ export function getRequestMode(requestEv: RequestEventCommon) {
 const ABORT_INDEX = Number.MAX_SAFE_INTEGER;
 
 const parseRequest = async (
-  deps: RequestEventDeps,
   { request, method, query }: RequestEventInternal,
   sharedMap: Map<string, any>
 ): Promise<JSONValue | undefined> => {
-  const type = deps.getContentType(request.headers);
+  const type = getContentType(request.headers);
   if (type === 'application/x-www-form-urlencoded' || type === 'multipart/form-data') {
     const formData = await request.formData();
     sharedMap.set(RequestEvSharedActionFormData, formData);
@@ -415,8 +404,8 @@ const parseRequest = async (
     const data = await request.json();
     return data;
   } else if (type === 'application/qwik-json') {
-    if (method === 'GET' && query.has(deps.QDATA_KEY)) {
-      const data = query.get(deps.QDATA_KEY);
+    if (method === 'GET' && query.has(QDATA_KEY)) {
+      const data = query.get(QDATA_KEY);
       if (data) {
         try {
           return (await _deserialize(decodeURIComponent(data))) as JSONValue;

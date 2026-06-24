@@ -99,9 +99,7 @@ describe('SSG worker bundle isolation', () => {
       const reachesRenderMachinery = (files: Set<string>) =>
         [...files].some((fileName) =>
           (byFile.get(fileName)?.moduleIds ?? []).some((id) =>
-            /worker-thread|resolve-request-handlers|request-event-core|user-response-runner/.test(
-              id
-            )
+            /worker-thread|resolve-request-handlers|request-event-core|user-response/.test(id)
           )
         );
 

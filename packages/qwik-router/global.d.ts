@@ -7,7 +7,7 @@ declare module '*?compiled-string' {
 }
 
 type RequestEventInternal =
-  import('./middleware/request-handler/request-event').RequestEventInternal;
+  import('./middleware/request-handler/request-event-core').RequestEventInternal;
 type SerializationStrategy = import('@qwik.dev/core/internal').SerializationStrategy;
 declare var _qwikActionsMap: Map<string, ActionInternal> | undefined;
 

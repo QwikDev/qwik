@@ -10,7 +10,7 @@ import {
   trimInternalPathname,
   trimRecognizedInternalPathname,
 } from './request-path';
-import { renderQwikMiddleware, resolveRequestHandlers } from './resolve-request-handlers';
+import { renderQwikMiddleware, resolveRequestHandlers } from './resolve-request-handlers-core';
 import type { ServerRenderOptions, ServerRequestEvent } from './types';
 import { runQwikRouter, type QwikRouterRun } from './user-response';
 

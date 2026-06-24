@@ -366,7 +366,6 @@ function applyRewriteRoutes(root: BuildTrieNode, rewriteConfigs: RewriteRouteOpt
         if (!child) {
           child = {
             _files: [],
-            _dirPath: '',
             children: new Map(),
           };
           if (step.paramName) {

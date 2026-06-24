@@ -3,7 +3,7 @@ import { parentPort } from 'node:worker_threads';
 import {
   renderQwikMiddleware,
   resolveRequestHandlers,
-} from '../middleware/request-handler/resolve-request-handlers';
+} from '../middleware/request-handler/resolve-request-handlers-core';
 import { trimInternalPathname } from '../middleware/request-handler/request-path';
 import type { ServerRequestEvent } from '../middleware/request-handler/types';
 import { runQwikRouter } from '../middleware/request-handler/user-response';

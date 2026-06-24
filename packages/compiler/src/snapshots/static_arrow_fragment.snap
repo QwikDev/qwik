@@ -26,7 +26,7 @@ export const App = (_props, ctx) => {
   const text1 = ctx.document.createTextNode('Hello');
   el0.appendChild(text1);
   const el2 = ctx.document.createElement('p');
-  el2.setAttribute('class', 'copy');
+  el2.className = 'copy';
   const text3 = ctx.document.createTextNode('Qwik');
   el2.appendChild(text3);
   return [el0, el2];

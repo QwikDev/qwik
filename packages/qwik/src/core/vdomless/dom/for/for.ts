@@ -45,7 +45,6 @@ type SsrForRenderFn<T> = (
 ) => ValueOrPromise<string>;
 
 const ELEMENT_NODE = 1;
-const ROW_ATTR = 'q:row';
 const ROW_OPEN = 'r';
 const ROW_CLOSE = '/r';
 const EMPTY_ARRAY: [] = [];
@@ -196,8 +195,30 @@ export class ForBlock<T = unknown> {
       : null;
 
     if (oldLength === 0) {
+      const parent = getRangeParent(this.range.start, this.range.end);
       const fragment = this.container.document.createDocumentFragment();
+      let insertParent: Node = fragment;
+      let finalParent = parent;
+      let finalNode: Node = fragment;
+      let finalReference: Node | null = this.range.end;
 
+      // detach parent if we can, this is the fastest way to insert all rows into the DOM
+      const hostParent = parent.parentNode;
+      if (
+        hostParent !== null &&
+        parent.firstChild === this.range.start &&
+        parent.lastChild === this.range.end
+      ) {
+        if (canDetachParent(parent)) {
+          finalParent = hostParent;
+          finalNode = parent;
+          finalReference = parent.nextSibling;
+          hostParent.removeChild(parent);
+          insertParent = parent;
+        }
+      }
+
+      const rowReference = insertParent === parent ? this.range.end : null;
       for (let i = 0; i < nextLength; i++) {
         const row = this.createAndStoreRow(
           nextRows,
@@ -209,10 +230,10 @@ export class ForBlock<T = unknown> {
           i,
           renderFn
         );
-        insertOrMoveRow(this.container.document, fragment, row, null);
+        insertOrMoveRow(this.container.document, insertParent, row, rowReference);
       }
 
-      getRangeParent(this.range.start, this.range.end).insertBefore(fragment, this.range.end);
+      finalParent.insertBefore(finalNode, finalReference);
 
       this.commitRows(nextKeys, nextRows, nextOwners, nextItemSignals, nextIndexSignals);
       return;
@@ -590,15 +611,23 @@ function renderForRow<T>(
 
 function createRowDom(document: Document, nodes: readonly Node[]): RowDom {
   if (nodes.length === 1 && nodes[0].nodeType === ELEMENT_NODE) {
-    const element = nodes[0] as Element;
-    element.setAttribute(ROW_ATTR, '');
-    return element;
+    return nodes[0] as Element;
   }
 
   return new RangeRowDom(
     document.createComment(ROW_OPEN),
     document.createComment(ROW_CLOSE),
     nodes
+  );
+}
+
+function canDetachParent(parent: Node): boolean {
+  const ownerDocument = parent.ownerDocument;
+  return (
+    ownerDocument !== null &&
+    parent !== ownerDocument.documentElement &&
+    parent !== ownerDocument.head &&
+    parent !== ownerDocument.body
   );
 }
 

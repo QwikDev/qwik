@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import { createDocument } from '../../../../testing/document';
 import { createTextNodeEffect, ForBlockSubscription } from '../effect/effect';
 import { createSignal } from '../../reactive/signal';
 import type { ContainerContext } from '../../runtime/container-context';
@@ -135,6 +136,59 @@ describe('ForBlock reorder', () => {
 
     expect(parent.nodes.map(getNodeLabel)).toEqual(['start', '1', '2', '3', 'end']);
     expect(block.owners).toEqual([null, null, null]);
+  });
+
+  it('detaches empty element parent while creating initial rows', () => {
+    const document = createDocument({
+      html: '<section><ul><!--start--><!--end--></ul><p>after</p></section>',
+    });
+    const host = document.querySelector('section')!;
+    const list = document.querySelector('ul')!;
+    const after = document.querySelector('p')!;
+    const startNode = list.firstChild as Comment;
+    const endNode = list.lastChild as Comment;
+    const removeChild = vi.spyOn(host.constructor.prototype, 'removeChild');
+    const insertBefore = vi.spyOn(host.constructor.prototype, 'insertBefore');
+    const renderRow = (_ctx: ContainerContext, item: number) => {
+      const li = document.createElement('li');
+      li.textContent = String(item);
+      return [li];
+    };
+
+    const items = createSignal([1, 2, 3]);
+    const listOwner = createOwner(null);
+    const block = new ForBlock(
+      new ForRange(document, startNode, endNode),
+      items,
+      (item) => item,
+      renderRow,
+      false,
+      false,
+      listOwner,
+      null,
+      { document } as ContainerContext
+    );
+
+    try {
+      block.reconcile(new ForBlockSubscription(block), (item) => item, renderRow);
+
+      expect(removeChild.mock.calls.filter(([node]) => node === list)).toHaveLength(1);
+      expect(
+        insertBefore.mock.calls.filter(([node, before]) => node === list && before === after)
+      ).toHaveLength(1);
+      expect(host.firstElementChild).toBe(list);
+      expect(list.querySelector('li')!.hasAttribute('q:row')).toBe(false);
+      expect([...list.childNodes].map((node) => node.textContent)).toEqual([
+        'start',
+        '1',
+        '2',
+        '3',
+        'end',
+      ]);
+    } finally {
+      removeChild.mockRestore();
+      insertBefore.mockRestore();
+    }
   });
 
   it('does not track signals read by key functions', () => {

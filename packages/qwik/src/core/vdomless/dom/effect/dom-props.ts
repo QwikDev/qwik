@@ -185,7 +185,8 @@ function serializeDomAttribute(key: string, value: unknown): string | null {
   if (serialized === true) {
     return '';
   }
-  return String(serialized);
+  const valueString = String(serialized);
+  return valueString === '' && (key === 'class' || key === 'style') ? null : valueString;
 }
 
 function removeEvent(element: Element, key: string): void {

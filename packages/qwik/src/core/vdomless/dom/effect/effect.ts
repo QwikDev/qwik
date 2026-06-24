@@ -100,11 +100,12 @@ export class SerializedAttrEffect {
   ) {}
 
   run(): void {
-    const name = this.serializer === AttrSerializer.Class ? 'class' : 'style';
-    this.element.setAttribute(
-      name,
-      serializeAttrExpressionValue(name, readTrackedSourceValue(this.source))
-    );
+    const value = readTrackedSourceValue(this.source);
+    if (this.serializer === AttrSerializer.Class) {
+      this.element.className = serializeAttrExpressionValue('class', value);
+    } else {
+      patchAttrValue(this.element, 'style', value);
+    }
   }
 }
 

@@ -131,6 +131,32 @@ describe('DOM effects', () => {
     expect(attrs.get('style')).toBe('color:red');
   });
 
+  it('removes empty serialized classes from expressions', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const active = createSignal(false);
+    const { element, attrs } = createAttrTarget();
+    const effect = createOwned(() =>
+      createAttrExpressionEffect(element, 'class', [], () => ({ active: active.value }), {
+        scheduler,
+      })
+    );
+
+    scheduler.notify(effect);
+    await scheduler.flushInteraction();
+
+    expect(attrs.has('class')).toBe(false);
+
+    active.value = true;
+    await scheduler.flushInteraction();
+
+    expect(attrs.get('class')).toBe('active');
+
+    active.value = false;
+    await scheduler.flushInteraction();
+
+    expect(attrs.has('class')).toBe(false);
+  });
+
   it('patches serialized styles from direct sources', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const style = createSignal({
@@ -173,6 +199,11 @@ describe('DOM effects', () => {
     await scheduler.flushInteraction();
 
     expect(attrs.get('class')).toBe('base next');
+
+    classes.value = { active: false };
+    await scheduler.flushInteraction();
+
+    expect(attrs.has('class')).toBe(false);
   });
 
   it('patches spread DOM props and removes stale attributes', async () => {
@@ -206,6 +237,12 @@ describe('DOM effects', () => {
     expect(attrs.has('style')).toBe(false);
     expect(attrs.get('id')).toBe('next');
     expect(element.innerHTML).toBe('');
+
+    props.value = { className: { active: false } };
+    await scheduler.flushInteraction();
+
+    expect(attrs.has('id')).toBe(false);
+    expect(attrs.has('class')).toBe(false);
   });
 
   it('patches spread DOM events and modifiers', async () => {

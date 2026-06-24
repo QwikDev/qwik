@@ -204,7 +204,15 @@ export class DomEmitter {
           }
           const attr = serializeAttrValue(prop.value);
           if (attr !== null) {
-            this.line(`${id}.setAttribute(${JSON.stringify(prop.name)}, ${JSON.stringify(attr)});`);
+            if (prop.name === 'class') {
+              if (attr !== '') {
+                this.line(`${id}.className = ${JSON.stringify(attr)};`);
+              }
+            } else {
+              this.line(
+                `${id}.setAttribute(${JSON.stringify(prop.name)}, ${JSON.stringify(attr)});`
+              );
+            }
           }
         }
       }

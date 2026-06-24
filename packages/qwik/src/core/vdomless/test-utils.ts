@@ -261,6 +261,9 @@ export function createAttrTarget(): { element: Element; attrs: Map<string, strin
       setAttribute(name: string, value: string) {
         attrs.set(name, value);
       },
+      removeAttribute(name: string) {
+        attrs.delete(name);
+      },
     } as Element,
     attrs,
   };

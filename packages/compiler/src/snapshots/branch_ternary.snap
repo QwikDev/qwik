@@ -289,7 +289,7 @@ import { createTextNodeEffect, _captures } from '@qwik.dev/core/spark';
 export const component_branch_then_segment_1 = (ctx) => {
   const count = _captures[0];
   const el0 = ctx.document.createElement('p');
-  el0.setAttribute('class', 'even');
+  el0.className = 'even';
   const text1 = ctx.document.createTextNode('Even ');
   el0.appendChild(text1);
   const text2 = ctx.document.createTextNode('');

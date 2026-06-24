@@ -1790,7 +1790,7 @@ describe('ErrorBoundary onError$', () => {
     expect(container.element.querySelector('#fb')?.textContent).toContain('caught: boom');
   });
 
-  it('fires once for an SSR-caught throw (server side)', async () => {
+  it('fires once for an SSR-caught throw (out-of-order) and not again on resume', async () => {
     onErrorLog.errors = [];
     await ssrRenderToDom(
       <ErrorBoundary
@@ -1803,7 +1803,7 @@ describe('ErrorBoundary onError$', () => {
       >
         <Thrower />
       </ErrorBoundary>,
-      { debug }
+      { debug, streaming: { inOrder: { strategy: 'disabled' }, outOfOrder: true } }
     );
     await getTestPlatform().flush();
     await delay(0);
@@ -1864,5 +1864,144 @@ describe('ErrorBoundary onError$', () => {
     expect((globalThis as any).__ebOnErrorLog).toEqual(['client boom']);
     expect(el.querySelector('#fb')?.textContent).toContain('caught: client boom');
     delete (globalThis as any).__ebOnErrorLog;
+  });
+
+  // `fireOnError` is fire-and-forget: a throwing/rejecting onError$ is swallowed and must never
+  // break the render. Both swallow arms (the sync try/catch and the async `.catch`) are covered.
+  it('a synchronously throwing onError$ is swallowed; the fallback still renders (CSR)', async () => {
+    const log: unknown[] = [];
+    const { container } = await domRender(
+      <ErrorBoundary
+        fallback$={$((e: any) => (
+          <p id="fb">caught: {e.message}</p>
+        ))}
+        onError$={$((e: any) => {
+          log.push(e instanceof Error ? e.message : e);
+          throw new Error('onError boom');
+        })}
+      >
+        <Thrower />
+      </ErrorBoundary>,
+      { debug }
+    );
+    await waitForDrain(container);
+    await getTestPlatform().flush();
+    // onError$ ran (so it was invoked) and threw, but the fallback renders unaffected.
+    expect(log).toEqual(['boom']);
+    expect(container.element.querySelector('#fb')?.textContent).toContain('caught: boom');
+  });
+
+  it('an async-rejecting onError$ is swallowed; the fallback still renders (CSR)', async () => {
+    const log: unknown[] = [];
+    const { container } = await domRender(
+      <ErrorBoundary
+        fallback$={$((e: any) => (
+          <p id="fb">caught: {e.message}</p>
+        ))}
+        onError$={$((e: any) => {
+          log.push(e instanceof Error ? e.message : e);
+          return Promise.reject(new Error('onError async boom'));
+        })}
+      >
+        <Thrower />
+      </ErrorBoundary>,
+      { debug }
+    );
+    await waitForDrain(container);
+    await getTestPlatform().flush();
+    await delay(0);
+    expect(log).toEqual(['boom']);
+    expect(container.element.querySelector('#fb')?.textContent).toContain('caught: boom');
+  });
+
+  it('a throwing onError$ does not abort SSR; the page still renders the fallback', async () => {
+    const log: unknown[] = [];
+    const { container } = await ssrRenderToDom(
+      <ErrorBoundary
+        fallback$={$((e: any) => (
+          <p id="fb">caught: {e.message}</p>
+        ))}
+        onError$={$((e: any) => {
+          log.push(e instanceof Error ? e.message : e);
+          throw new Error('onError boom');
+        })}
+      >
+        <Thrower />
+      </ErrorBoundary>,
+      { debug, streaming: { outOfOrder: false } }
+    );
+    await getTestPlatform().flush();
+    await delay(0);
+    expect(log).toEqual(['boom']);
+    expect(container.element.querySelector('#fb')?.textContent).toContain('caught: boom');
+  });
+
+  // Under escalation (inner catches, its own fallback throws, the outer catches the escalated error)
+  // each boundary's onError$ must fire exactly once, for its own error — no double-fire, no swap.
+  it('escalation: inner and outer onError$ each fire once for their own error (CSR)', async () => {
+    const innerLog: unknown[] = [];
+    const outerLog: unknown[] = [];
+    const { container } = await domRender(
+      <ErrorBoundary
+        fallback$={$(() => (
+          <p id="fb-outer">outer</p>
+        ))}
+        onError$={$((e: any) => {
+          outerLog.push(e instanceof Error ? e.message : e);
+        })}
+      >
+        <ErrorBoundary
+          fallback$={$(() => {
+            throw new Error('inner fallback boom');
+          })}
+          onError$={$((e: any) => {
+            innerLog.push(e instanceof Error ? e.message : e);
+          })}
+        >
+          <Thrower />
+        </ErrorBoundary>
+      </ErrorBoundary>,
+      { debug }
+    );
+    await waitForDrain(container).catch(() => {});
+    await getTestPlatform().flush();
+
+    const el = container.element;
+    expect(el.querySelector('#fb-outer')?.textContent).toBe('outer');
+    expect(el.querySelector('#fb-inner')).toBeFalsy();
+    expect(innerLog).toEqual(['boom']);
+    expect(outerLog).toEqual(['inner fallback boom']);
+  });
+
+  it('escalation: inner and outer onError$ each fire once for their own error (in-order SSR)', async () => {
+    const innerLog: unknown[] = [];
+    const outerLog: unknown[] = [];
+    await ssrRenderToDom(
+      <ErrorBoundary
+        fallback$={$(() => (
+          <p id="fb-outer">outer</p>
+        ))}
+        onError$={$((e: any) => {
+          outerLog.push(e instanceof Error ? e.message : e);
+        })}
+      >
+        <ErrorBoundary
+          fallback$={$(() => {
+            throw new Error('inner fallback boom');
+          })}
+          onError$={$((e: any) => {
+            innerLog.push(e instanceof Error ? e.message : e);
+          })}
+        >
+          <Thrower />
+        </ErrorBoundary>
+      </ErrorBoundary>,
+      { debug, streaming: { outOfOrder: false } }
+    );
+    await getTestPlatform().flush();
+    await delay(0);
+    // Server-side fire happens before serialization, so captured refs observe it directly.
+    expect(innerLog).toEqual(['boom']);
+    expect(outerLog).toEqual(['inner fallback boom']);
   });
 });

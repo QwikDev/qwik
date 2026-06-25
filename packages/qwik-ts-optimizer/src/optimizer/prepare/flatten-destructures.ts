@@ -111,7 +111,11 @@ export function flattenDestructureUseCalls(
         if (!subs) continue;
         const hit = subs.find(sub => sub.from === node.name);
         if (!hit) continue;
-        edits().overwrite(node.start, node.end, hit.to);
+        let replacement = hit.to;
+        if (isShorthandPropertyValue(node, parent)) {
+          replacement = `${node.name}: ${hit.to}`;
+        }
+        edits().overwrite(node.start, node.end, replacement);
         return;
       }
     },
@@ -155,6 +159,10 @@ function isDeclaringIdentifierPosition(node: AstNode, parent: AstParentNode): bo
     default:
       return false;
   }
+}
+
+function isShorthandPropertyValue(node: AstNode, parent: AstParentNode): boolean {
+  return parent?.type === 'Property' && parent.shorthand === true && parent.value === node;
 }
 
 interface FlattenableDecl {

@@ -14,12 +14,17 @@
  */
 
 import { describe, it, expect } from 'vitest';
+import { parseSync } from 'oxc-parser';
 import { parseWithRawTransfer } from '../../../src/optimizer/ast/parse.js';
 import { flattenDestructureUseCalls } from '../../../src/optimizer/prepare/flatten-destructures.js';
 
 function flatten(source: string): { source: string; changed: boolean } {
   const { program } = parseWithRawTransfer('test.tsx', source);
   return flattenDestructureUseCalls(source, 'test.tsx', program);
+}
+
+function parseErrorCount(source: string): number {
+  return parseSync('test.tsx', source, { lang: 'tsx' }).errors.length;
 }
 
 describe('flattenDestructureUseCalls', () => {
@@ -189,5 +194,58 @@ describe('flattenDestructureUseCalls', () => {
     const { source: out, changed } = flatten(source);
     expect(changed).toBe(false);
     expect(out).toBe(source);
+  });
+
+  it('expands an object-literal shorthand to `key: member` instead of a bare member expression', () => {
+    const source = [
+      `import { component$ } from '@qwik.dev/core';`,
+      `export default component$(() => {`,
+      `  const { value } = useStore();`,
+      `  const ctx = { value };`,
+      `  return <div>{ctx.value}</div>;`,
+      `});`,
+    ].join('\n');
+
+    const { source: out, changed } = flatten(source);
+    expect(changed).toBe(true);
+    expect(out).toContain('const ctx = { value: store.value }');
+    expect(out).not.toContain('{ store.value }');
+    expect(parseErrorCount(out)).toBe(0);
+  });
+
+  it('expands a renamed-key shorthand using the local binding name as the key', () => {
+    const source = [
+      `import { component$ } from '@qwik.dev/core';`,
+      `export default component$((props) => {`,
+      `  const { disabledSig: isDisabled } = useBindings(props, {});`,
+      `  const context = { isDisabled };`,
+      `  return <div>{context.isDisabled}</div>;`,
+      `});`,
+    ].join('\n');
+
+    const { source: out, changed } = flatten(source);
+    expect(changed).toBe(true);
+    expect(out).toContain('const bindings = useBindings(props, {})');
+    expect(out).toContain('{ isDisabled: bindings.disabledSig }');
+    expect(out).not.toContain('{ bindings.disabledSig }');
+    expect(parseErrorCount(out)).toBe(0);
+  });
+
+  it('rewrites shorthand and explicit props in the same object literal, leaving valid JS', () => {
+    const source = [
+      `import { component$ } from '@qwik.dev/core';`,
+      `export default component$((props) => {`,
+      `  const { disabledSig: isDisabled, openSig } = useBindings(props, {});`,
+      `  const context = { isDisabled, openSig, label: openSig };`,
+      `  return context;`,
+      `});`,
+    ].join('\n');
+
+    const { source: out, changed } = flatten(source);
+    expect(changed).toBe(true);
+    expect(out).toContain('isDisabled: bindings.disabledSig');
+    expect(out).toContain('openSig: bindings.openSig');
+    expect(out).toContain('label: bindings.openSig');
+    expect(parseErrorCount(out)).toBe(0);
   });
 });

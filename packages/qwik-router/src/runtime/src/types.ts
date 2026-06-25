@@ -306,10 +306,13 @@ export interface RouteData {
   _G?: string;
   /** The JS bundle names for this route (SSR only) */
   _B?: string[];
-  /** The not-found (404) module loader for this subtree */
-  _4?: ContentModuleLoader;
-  /** The error page module loader for this subtree (error.tsx, takes precedence over _4) */
-  _E?: ContentModuleLoader;
+  /**
+   * Not-found (404) boundary: single loader (runtime prepends layouts) or override chain
+   * (`404@layout`/`!`).
+   */
+  _4?: ContentModuleLoader | ModuleLoader[];
+  /** Error (error.tsx) boundary, same single-or-override-chain shape as `_4`. */
+  _E?: ContentModuleLoader | ModuleLoader[];
   /** The parameter name when this node is reached via `_W` or `_A` from the parent */
   _P?: string;
   /** Prefix for infix params (e.g. "pre" for `pre[slug]post`) — only on `_W` nodes */
@@ -434,8 +437,8 @@ export interface LoadedRoute {
   $routeBundleNames$?: string[] | undefined;
   /** Whether this route is a not-found (404) route */
   $notFound$?: boolean;
-  /** The error module loader (nearest _E ancestor), for rendering ServerErrors */
-  $errorLoader$?: ContentModuleLoader;
+  /** The nearest _E (error.tsx) boundary for thrown ServerErrors: single loader or override chain. */
+  $errorLoader$?: ContentModuleLoader | ModuleLoader[];
   /** Merged array of routeLoader$ hashes from all matched nodes (layouts + page) */
   $loaders$?: string[];
   /** Runtime-only mapping of routeLoader$ hashes to the matched pathname used for q-loader fetches */

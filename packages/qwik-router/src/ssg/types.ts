@@ -78,11 +78,6 @@ export interface SsgRenderOptions extends RenderOptions {
    */
   emitData?: boolean;
   /**
-   * Set to `false` if the static build should not write custom or default `404.html` pages.
-   * Defaults to `true`.
-   */
-  emit404Pages?: boolean;
-  /**
    * Defines file system routes relative to the source `routes` directory that should be static
    * generated. Accepts wildcard behavior. This should not include the "base" pathname. If not
    * provided, all routes will be static generated. `exclude` always takes priority over `include`.
@@ -148,7 +143,7 @@ export interface SsgWorkerRenderResult {
   error: { message: string; stack: string | undefined } | null;
   filePath: string | null;
   contentType: string | null;
-  resourceType: 'page' | '404' | null;
+  resourceType: 'page' | null;
 }
 
 /** @public */

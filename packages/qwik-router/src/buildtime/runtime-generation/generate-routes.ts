@@ -1,6 +1,7 @@
 import type { QwikManifest, QwikVitePlugin } from '@qwik.dev/core/optimizer';
 import {
   createFileId,
+  errorBoundaryName,
   isModuleExt,
   isPageExt,
   removeExtension,
@@ -260,32 +261,16 @@ function serializeBuildTrie(
       continue;
     }
 
-    // Check if this is error.tsx or 404.tsx
-    const isError = file.extlessName === 'error';
-    const is404 = file.extlessName === '404';
+    const expr = buildLoaderChainExpr(file.extlessName, loaderExpr, ancestorLayouts, nodeLayouts);
 
-    if (isError) {
-      errorExpr = loaderExpr;
-    } else if (is404) {
-      notFoundExpr = loaderExpr;
+    // error.tsx / 404.tsx (+ optional layout modifier) are boundaries, not navigable pages.
+    const boundary = errorBoundaryName(file.extlessName);
+    if (boundary === '404') {
+      notFoundExpr = expr;
+    } else if (boundary === 'error') {
+      errorExpr = expr;
     } else {
-      // Normal route or endpoint — check for layout stop / named layout
-      const { layoutName, layoutStop } = parseRouteIndexName(file.extlessName);
-
-      if (layoutStop) {
-        // Layout stop: emit _I as array with just the page loader (no layouts)
-        indexExpr = `[ ${loaderExpr} ]`;
-      } else if (layoutName) {
-        // Named layout: walk ancestors to build the override chain
-        const chain = resolveNamedLayoutChain(ancestorLayouts, nodeLayouts, layoutName);
-        const chainExprs = chain.map((l) => l.id);
-        chainExprs.push(loaderExpr);
-        indexExpr = `[ ${chainExprs.join(', ')} ]`;
-      } else {
-        // Normal route: single loader, runtime prepends _L
-        indexExpr = loaderExpr;
-      }
-
+      indexExpr = expr;
       // Find the BuiltRoute for bundle names
       bundleRoute = ctx.routes.find((r) => r.filePath === file.filePath);
     }
@@ -425,6 +410,27 @@ function serializeBuildTrie(
     return '{}';
   }
   return `{\n${lines.join('\n')}\n${indent}}`;
+}
+
+/**
+ * The `_I`/`_E`/`_4` loader expression: a bare loader (runtime prepends gathered layouts), or an
+ * override chain for `!` (layout stop) / `@name` (named layout).
+ */
+function buildLoaderChainExpr(
+  extlessName: string,
+  loaderExpr: string,
+  ancestorLayouts: LayoutInfo[],
+  nodeLayouts: LayoutInfo[]
+): string {
+  const { layoutName, layoutStop } = parseRouteIndexName(extlessName);
+  if (layoutStop) {
+    return `[ ${loaderExpr} ]`;
+  }
+  if (layoutName) {
+    const chain = resolveNamedLayoutChain(ancestorLayouts, nodeLayouts, layoutName);
+    return `[ ${[...chain.map((l) => l.id), loaderExpr].join(', ')} ]`;
+  }
+  return loaderExpr;
 }
 
 /**

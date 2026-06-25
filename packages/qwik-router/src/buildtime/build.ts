@@ -1,5 +1,5 @@
 import { addError, addWarning } from '../utils/format';
-import { createFileId, getPathnameFromDirPath } from '../utils/fs';
+import { createFileId, getPathnameFromDirPath, isErrorName } from '../utils/fs';
 import { ensureSlash } from '../utils/pathname';
 import { resolveMenu } from './markdown/menu';
 import { resolveLayout, resolveRoute } from './routing/resolve-source-file';
@@ -293,9 +293,8 @@ function applyRewriteRoutes(root: BuildTrieNode, rewriteConfigs: RewriteRouteOpt
   const routables: { steps: TriePathStep[]; node: BuildTrieNode }[] = [];
 
   function walk(node: BuildTrieNode, steps: TriePathStep[]) {
-    const hasRoute = node._files.some(
-      (f) => f.type === 'route' && f.extlessName !== 'error' && f.extlessName !== '404'
-    );
+    // error.tsx / 404.tsx (and their @layout/! variants) are boundaries, not navigable routes.
+    const hasRoute = node._files.some((f) => f.type === 'route' && !isErrorName(f.extlessName));
     if (hasRoute) {
       routables.push({ steps: [...steps], node });
     }

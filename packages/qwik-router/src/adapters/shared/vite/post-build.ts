@@ -1,6 +1,5 @@
 import fs from 'node:fs';
 import { join } from 'node:path';
-import { getErrorHtml } from '../../../middleware/request-handler/error-handler';
 import { LOADER_REGEX } from '../../../middleware/request-handler/request-path';
 import { ensureSlash } from '../../../utils/pathname';
 
@@ -22,7 +21,6 @@ export async function postBuild(
   ]);
 
   const staticPaths = new Set(userStaticPaths.map(ensureSlash));
-  const notFounds: string[][] = [];
 
   const loadItem = async (fsDir: string, fsName: string, pathname: string) => {
     pathname = ensureSlash(pathname);
@@ -50,13 +48,6 @@ export async function postBuild(
       return;
     }
 
-    if (fsName === '404.html') {
-      // static 404.html file
-      const notFoundHtml = await fs.promises.readFile(fsPath, 'utf-8');
-      notFounds.push([pathname, notFoundHtml]);
-      return;
-    }
-
     const stat = await fs.promises.stat(fsPath);
     if (stat.isDirectory()) {
       await loadDir(fsPath, ensureSlash(pathname + fsName));
@@ -74,37 +65,9 @@ export async function postBuild(
     await loadDir(clientOutDir, pathName);
   }
 
-  const notFoundPathsCode = createNotFoundPathsCode(pathName, notFounds);
   const staticPathsCode = createStaticPathsCode(staticPaths);
 
-  await injectStatics(staticPathsCode, notFoundPathsCode, serverOutDir);
-}
-
-function createNotFoundPathsCode(basePathname: string, notFounds: string[][]) {
-  /** Sort in order of longest path, so that the most specific paths match first */
-  notFounds.sort((a, b) => {
-    if (a[0].length > b[0].length) {
-      return -1;
-    }
-    if (a[0].length < b[0].length) {
-      return 1;
-    }
-    if (a[0] < b[0]) {
-      return -1;
-    }
-    if (a[0] > b[0]) {
-      return 1;
-    }
-    return 0;
-  });
-
-  if (!notFounds.some((r) => r[0] === basePathname)) {
-    const html = getErrorHtml(404, 'Resource Not Found');
-    notFounds.push([basePathname, html]);
-  }
-
-  // This is the body of the not found array
-  return JSON.stringify(notFounds, null, 2).slice(1, -1);
+  await injectStatics(staticPathsCode, serverOutDir);
 }
 
 function createStaticPathsCode(staticPaths: Set<string>) {
@@ -112,24 +75,17 @@ function createStaticPathsCode(staticPaths: Set<string>) {
   return JSON.stringify(Array.from(new Set<string>(staticPaths)).sort()).slice(1, -1);
 }
 
-const injectStatics = async (
-  staticPathsCode: string,
-  notFoundPathsCode: string,
-  outDir: string
-) => {
+const injectStatics = async (staticPathsCode: string, outDir: string) => {
   const promises = new Set<Promise<void>>();
-  // replace the placeholders in the build output with the actual values
+  // replace the static-paths placeholder in the build output with the actual values
   const doReplace = async (path: string) => {
     const code = await fs.promises.readFile(path, 'utf-8');
 
     let replaced = false;
-    const newCode = code.replace(
-      /(['"])__QWIK_ROUTER_(STATIC_PATHS|NOT_FOUND)_ARRAY__\1/g,
-      (_, _quote, type) => {
-        replaced = true;
-        return type === 'STATIC_PATHS' ? staticPathsCode : notFoundPathsCode;
-      }
-    );
+    const newCode = code.replace(/(['"])__QWIK_ROUTER_STATIC_PATHS_ARRAY__\1/g, () => {
+      replaced = true;
+      return staticPathsCode;
+    });
     if (replaced) {
       await fs.promises.writeFile(path, newCode);
     }

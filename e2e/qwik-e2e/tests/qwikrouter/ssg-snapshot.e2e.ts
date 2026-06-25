@@ -79,6 +79,14 @@ test.describe('router ssg snapshot', () => {
     expect(normalizedHtml).toEqual(expectedHtml);
   });
 
+  test('a 404.tsx boundary prerenders <dir>/404.html inside its layout', async () => {
+    // sub/ has a layout + 404 (no index): the boundary is force-prerendered to sub/404.html,
+    // wrapping the 404 page in sub/layout.tsx — proves the SSG miss-render + layout inheritance.
+    const html = await readFile(resolve(distDir, 'sub', '404.html'), 'utf-8');
+    expect(html, 'sub layout should wrap the 404 page').toContain('data-ssg-404-layout');
+    expect(html, '404 page content should render').toContain('Sub Not Found');
+  });
+
   test('preloader chunk brotli size stays within budget', async () => {
     const manifest = JSON.parse(await readFile(resolve(distDir, 'q-manifest.json'), 'utf-8'));
     const preloaderFile = manifest.preloader as string | undefined;

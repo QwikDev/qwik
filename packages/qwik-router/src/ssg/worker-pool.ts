@@ -189,7 +189,9 @@ export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
 
     const result = await ssgWorker.render(ssgRoute);
 
-    if (sitemapOutFile && result.ok && result.resourceType === 'page') {
+    // The 404 page is a normal prerendered page; the sitemap just shouldn't list the not-found template.
+    const isNotFoundPage = result.pathname.endsWith('/404.html');
+    if (sitemapOutFile && result.ok && result.resourceType === 'page' && !isNotFoundPage) {
       sitemapBuffer.push(`<url><loc>${result.url}</loc></url>`);
       if (sitemapBuffer.length > 50) {
         const siteMapUrls = sitemapBuffer.join('\n') + '\n';

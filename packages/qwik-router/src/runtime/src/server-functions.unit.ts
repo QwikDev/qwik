@@ -255,13 +255,14 @@ describe('types', () => {
   });
 
   test('standard schema action infers input, output, and string array errors', () => () => {
-    const schema = createStandardSchema<{ id: string }, { id: number }>((value) => ({
-      value: { id: Number((value as { id: string }).id) },
-    }));
     const action = routeAction$((data) => {
       expectTypeOf(data).toEqualTypeOf<{ id: number }>();
       return { ok: true };
-    }, schema$(schema));
+    }, schema$(() =>
+      createStandardSchema<{ id: string }, { id: number }>((value) => ({
+        value: { id: Number((value as { id: string }).id) },
+      }))
+    ));
     type ActionValue = ReturnType<typeof action>['value'];
 
     expectTypeOf<ActionValue>().toMatchTypeOf<
@@ -276,7 +277,7 @@ describe('types', () => {
   });
 
   test('standard schema validates successfully', async () => {
-    const schema = schema$(
+    const schema = schema$(() =>
       createStandardSchema<{ id: string }, { id: number }>((value) => ({
         value: { id: Number((value as { id: string }).id) },
       }))
@@ -289,15 +290,16 @@ describe('types', () => {
   });
 
   test('standard schema supports callable schemas', async () => {
-    const callableSchema = Object.assign(() => 'schema function result', {
-      '~standard': {
-        version: 1 as const,
-        vendor: 'test',
-        validate: (value: unknown) => ({ value: String(value) }),
-        types: undefined as unknown as StandardSchemaV1.Types<string>,
-      },
-    }) satisfies StandardSchemaV1<string>;
-    const schema = schema$(callableSchema);
+    const schema = schema$(() =>
+      Object.assign(() => 'schema function result', {
+        '~standard': {
+          version: 1 as const,
+          vendor: 'test',
+          validate: (value: unknown) => ({ value: String(value) }),
+          types: undefined as unknown as StandardSchemaV1.Types<string>,
+        },
+      }) satisfies StandardSchemaV1<string>
+    );
 
     await expect(schema.validate(undefined as any, 'hello')).resolves.toEqual({
       success: true,
@@ -306,7 +308,7 @@ describe('types', () => {
   });
 
   test('standard schema flattens issues to numeric dot paths', async () => {
-    const schema = schema$(
+    const schema = schema$(() =>
       createStandardSchema<{ items: { name: string }[] }>(() => ({
         issues: [
           { message: 'Form issue' },

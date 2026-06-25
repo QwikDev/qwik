@@ -1,6 +1,6 @@
 import { applySubscriptionPatches } from '../control-flow/suspense-utils';
 import { wrapDeserializerProxy } from '../shared/serdes/deser-proxy';
-import { preprocessState } from '../shared/serdes/index';
+import { preprocessStateIterator } from '../shared/serdes/preprocess-state';
 import type { SubscriptionPatch } from '../shared/serdes/subscription-patch';
 import { QStatePatchAttrSelector, QSuspenseResolved } from '../shared/utils/markers';
 import { qDev } from '../shared/utils/qdev';
@@ -18,14 +18,16 @@ type SegmentStateContainer = {
 
 const processedStatePatchScripts = new WeakMap<DomContainer, WeakSet<Element>>();
 
-/** @internal */
-export const processSegmentStateScripts = (container: DomContainer, segmentId?: string): void => {
+export function* processSegmentStateScriptsIterator(
+  container: DomContainer,
+  segmentId?: string
+): Generator<void, void, void> {
   if (!__EXPERIMENTAL__.suspense) {
     return;
   }
   const stateContainer = container as unknown as SegmentStateContainer;
   const qwikStates = stateContainer.element.querySelectorAll(
-    `${stateScriptSelector(stateContainer.$instanceHash$)}${QStatePatchAttrSelector}`
+    `script[type="qwik/state"][q\\:instance="${stateContainer.$instanceHash$}"]${QStatePatchAttrSelector}`
   );
   const processedScripts = getProcessedStatePatchScripts(container);
   for (let i = 0; i < qwikStates.length; i++) {
@@ -37,9 +39,10 @@ export const processSegmentStateScripts = (container: DomContainer, segmentId?: 
       continue;
     }
     processedScripts.add(stateScript);
-    processStatePatch(container, stateContainer, stateScript.textContent);
+    yield* processStatePatch(container, stateContainer, stateScript.textContent);
+    yield;
   }
-};
+}
 
 const getProcessedStatePatchScripts = (container: DomContainer): WeakSet<Element> => {
   let processedScripts = processedStatePatchScripts.get(container);
@@ -50,36 +53,33 @@ const getProcessedStatePatchScripts = (container: DomContainer): WeakSet<Element
   return processedScripts;
 };
 
-const stateScriptSelector = (instanceHash: string): string => {
-  return `script[type="qwik/state"][q\\:instance="${instanceHash}"]`;
-};
-
-const processStatePatch = (
+function* processStatePatch(
   container: DomContainer,
   stateContainer: SegmentStateContainer,
   textContent: string | null
-): void => {
-  if (textContent) {
-    const [rootStart, rawStateData, forwardRefs, subscriptionPatchRootId] = JSON.parse(
-      textContent
-    ) as [number, unknown[], Array<number | string> | 0 | undefined, number | string | undefined];
-    appendStatePatchRoots(container, stateContainer, rootStart, rawStateData);
-    mergeForwardRefs(stateContainer, forwardRefs || undefined);
-    applySubscriptionPatches(
-      container,
-      subscriptionPatchRootId === undefined
-        ? undefined
-        : (stateContainer.$getObjectById$(subscriptionPatchRootId) as SubscriptionPatch[])
-    );
+): Generator<void, void, void> {
+  if (!textContent) {
+    return;
   }
-};
+  const [rootStart, rawStateData, forwardRefs, subscriptionPatchRootId] = JSON.parse(
+    textContent
+  ) as [number, unknown[], Array<number | string> | 0 | undefined, number | string | undefined];
+  yield* appendStatePatchRoots(container, stateContainer, rootStart, rawStateData);
+  mergeForwardRefs(stateContainer, forwardRefs || undefined);
+  applySubscriptionPatches(
+    container,
+    subscriptionPatchRootId === undefined
+      ? undefined
+      : (stateContainer.$getObjectById$(subscriptionPatchRootId) as SubscriptionPatch[])
+  );
+}
 
-const appendStatePatchRoots = (
+function* appendStatePatchRoots(
   container: DomContainer,
   stateContainer: SegmentStateContainer,
   rootStart: number,
   rawStateData: unknown[]
-): void => {
+): Generator<void, void, void> {
   const currentRootCount = stateContainer.$rawStateData$.length / 2;
   if (rootStart !== currentRootCount) {
     if (qDev) {
@@ -91,15 +91,16 @@ const appendStatePatchRoots = (
   }
   for (let i = 0; i < rawStateData.length; i++) {
     stateContainer.$rawStateData$[rootStart * 2 + i] = rawStateData[i];
+    yield;
   }
-  preprocessState(stateContainer.$rawStateData$, container, undefined, rootStart * 2);
+  yield* preprocessStateIterator(stateContainer.$rawStateData$, container, rootStart * 2);
   stateContainer.$stateData$ = wrapDeserializerProxy(
     container,
     stateContainer.$rawStateData$
   ) as unknown[];
   stateContainer.$stateData$.length = stateContainer.$rawStateData$.length / 2;
   stateContainer.$rootForwardRefs$ = stateContainer.$forwardRefs$;
-};
+}
 
 const mergeForwardRefs = (
   stateContainer: SegmentStateContainer,

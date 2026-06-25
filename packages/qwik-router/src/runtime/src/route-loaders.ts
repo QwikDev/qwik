@@ -3,7 +3,6 @@ import { implicit$FirstArg, isDev, isServer, type NoSerialize, type QRL } from '
 import {
   _deserialize,
   _getContextEvent,
-  _getContextContainer,
   _injectAsyncSignalValue,
   _markSignalAsExternallyOwned,
   _resolveContextWithoutSequentialScope,
@@ -124,6 +123,8 @@ export type RouteLoaderCtx = {
   pageSearch?: string;
   /** SPA navigation function. Client-only and intentionally omitted from SSR state. */
   goto?: NoSerialize<RouteNavigate>;
+  /** Client manifest hash for q-loader fetch URLs. */
+  manifestHash?: string;
 };
 
 export type RouteLoaderState = Record<string, AsyncSignal<unknown>>;
@@ -139,6 +140,9 @@ class ServerRouteLoaderCapture {
 
   load() {
     const requestEv = getRequestEvent();
+    if (!requestEv) {
+      throw new Error('Unable to determine the current RequestEvent.');
+    }
     // Use pre-computed value from loadersMiddleware if available,
     // to avoid re-running the loader after the response stream is open.
     const values = getRouteLoaderValues(requestEv);
@@ -161,17 +165,6 @@ const isRequestEvent = (value: unknown): value is RequestEvent =>
 
 const isLoaderInternal = (value: unknown): value is LoaderInternal =>
   typeof value === 'function' && (value as LoaderInternal).__brand === 'server_loader';
-
-const getClientManifestHash = (ctx: unknown) => {
-  // We cheat and grab the internal signal of the AsyncJob
-  // Maybe we should expose .signal? Would be good for implementing channels
-  const container = (ctx as { $signal$?: { $container$?: unknown } }).$signal$?.$container$;
-  return (
-    (container as { qManifestHash?: string } | undefined)?.qManifestHash ||
-    (_getContextContainer() as { qManifestHash?: string } | undefined)?.qManifestHash ||
-    'dev'
-  );
-};
 
 /**
  * Fetch a single loader's data from the server.
@@ -245,7 +238,7 @@ export const fetchRouteLoaderData = async (
       return undefined;
     }
     const text = await response.text();
-    return _deserialize<LoaderResponse>(text) ?? undefined;
+    return (await _deserialize<LoaderResponse>(text)) ?? undefined;
   };
 
   if (opts?.ignoreCache || opts?.signal) {
@@ -321,7 +314,7 @@ const createRouteLoaderSignal = (
       const pagePathname = trackedPagePathname || location.pathname;
       const pageSearch = trackedPageSearch || location.search;
       const pageUrl = new URL(pagePathname + pageSearch, location.href);
-      const mHash = getClientManifestHash(ctx);
+      const mHash = routeLoaderCtx.manifestHash || 'dev';
       const basePath = (qwikRouterConfig as any).basePathname ?? '/';
       const needsResumeFetch = stateValues[resumeValueKey] === _UNINITIALIZED;
       const fetchRoutePath = routePath || (needsResumeFetch ? pageUrl.pathname : undefined);
@@ -482,16 +475,17 @@ const getLoaderOptions = (rest: (LoaderOptions | DataValidator)[]) => {
   };
 };
 
-export const getRequestEvent = (thisArg?: unknown): RequestEvent => {
+/**
+ * Returns the current RequestEvent if possible. Only usable on the server, and only during request
+ * processing.
+ *
+ * @public
+ */
+export const getRequestEvent = (thisArg?: unknown): RequestEvent | undefined => {
   if (!isServer) {
     throw new Error('getRequestEvent() can only be used on the server.');
   }
-  const requestEvent =
-    _asyncRequestStore?.getStore() || [thisArg, _getContextEvent()].find(isRequestEvent);
-  if (!requestEvent) {
-    throw new Error('Unable to determine the current RequestEvent.');
-  }
-  return requestEvent;
+  return _asyncRequestStore?.getStore() || [thisArg, _getContextEvent()].find(isRequestEvent);
 };
 
 const REQUEST_ROUTE_LOADER_VALUES = '@routeLoaderValues';

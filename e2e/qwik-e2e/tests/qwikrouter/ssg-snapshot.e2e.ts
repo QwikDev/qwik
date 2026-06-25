@@ -1,13 +1,12 @@
 import { expect, test } from '@playwright/test';
 import { qwikVite } from '@qwik.dev/core/optimizer';
-import type { QwikManifest } from '@qwik.dev/core/optimizer';
 import { ssgAdapter } from '@qwik.dev/router/adapters/ssg/vite';
 import { qwikRouter } from '@qwik.dev/router/vite';
 import compress from 'brotli/compress.js';
 import { readFile, rm, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { build, type InlineConfig, type PluginOption } from 'vite';
+import { build, createBuilder, type InlineConfig, type PluginOption } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
 // Brotli size budgets for production bundles. These are ceilings, not exact matches: any size
@@ -26,10 +25,9 @@ const expectedHtmlPath = resolve(appDir, 'expected.ssg.html');
 const expectedStatePath = resolve(appDir, 'expected.state.txt');
 
 test.describe('router ssg snapshot', () => {
-  // All tests share one production build via `beforeAll`. Without `serial`, Playwright's
-  // `fullyParallel` config distributes the tests across workers, each re-running the build
-  // against the same `serverDir` — that race wipes `run-ssg.js` mid-build and the SSG adapter
-  // then fails with "Cannot find module .../server/run-ssg.js".
+  // One shared production build via `beforeAll`. `serial` keeps Playwright's `fullyParallel` config
+  // from distributing these tests across workers, which would re-run the build against the same
+  // `serverDir`/`distDir` and race.
   test.describe.configure({ mode: 'serial' });
 
   test.skip(({ browserName }) => browserName !== 'chromium', 'Runs once in Chromium e2e.');
@@ -50,6 +48,12 @@ test.describe('router ssg snapshot', () => {
     const normalizedState = normalizeStateDump(
       _dumpState(JSON.parse(state!) as unknown[], false, '', null),
       manifestHash
+    );
+
+    // Regression guard: loaderPaths must map the root loader to "/", or off-route loaders fetch the
+    // wrong URL and 404. The hash is wildcarded (optimizer-derived); the route path "/" is stable.
+    expect(normalizedState).toMatch(
+      /"loaderPaths"\s+Object \[\s+\{string\} "[^"]+"\s+\{string\} "\/"/
     );
 
     let expectedHtml = (await readFile(expectedHtmlPath, 'utf-8').catch(() => '')).replace(
@@ -127,8 +131,10 @@ async function buildFixtureApp() {
   await rm(distDir, { recursive: true, force: true });
   await rm(serverDir, { recursive: true, force: true });
 
-  let clientManifest: QwikManifest | undefined;
   const plugins: PluginOption[] = [qwikRouter(), tsconfigPaths({ root: '.' })];
+  // Fresh instance so the server build's loadersByFile starts empty, mirroring apps that run
+  // build.client/build.server as separate processes (exercises the manifest recovery path).
+  const serverPlugins: PluginOption[] = [qwikRouter(), tsconfigPaths({ root: '.' })];
 
   const getConfig = (extra?: InlineConfig): InlineConfig => ({
     root: appDir,
@@ -149,16 +155,13 @@ async function buildFixtureApp() {
         qwikVite({
           client: {
             outDir: distDir,
-            manifestOutput(manifest) {
-              clientManifest = manifest;
-            },
           },
         }),
       ],
     })
   );
 
-  await build(
+  const builder = await createBuilder(
     getConfig({
       build: {
         minify: true,
@@ -166,12 +169,9 @@ async function buildFixtureApp() {
         outDir: serverDir,
       },
       plugins: [
-        ...plugins,
-        qwikVite({
-          ssr: {
-            manifestInput: clientManifest,
-          },
-        }),
+        ...serverPlugins,
+        // No manifestInput: the server build reads the client manifest from disk, like real apps.
+        qwikVite(),
         ssgAdapter({
           origin: 'https://snapshot.qwik.dev',
           include: ['/*'],
@@ -179,6 +179,7 @@ async function buildFixtureApp() {
       ],
     })
   );
+  await builder.buildApp();
 }
 
 function extractManifestHash(html: string): string | null {

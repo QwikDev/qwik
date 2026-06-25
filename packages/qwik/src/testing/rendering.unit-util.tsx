@@ -55,6 +55,7 @@ import type { ElementVNode } from '../core/shared/vnode/element-vnode';
 import { processOutOfOrderSegmentVNodeData } from '../core/client/process-vnode-data';
 import { executeBackpatch } from '../backpatch-executor-shared';
 import { getTestPlatform } from '@qwik.dev/core/testing';
+import { whenContainerDataReady } from '../core/client/dom-container';
 
 /** @public */
 export async function domRender(
@@ -194,6 +195,7 @@ export async function ssrRenderToDom(
   if (!isStreaming) {
     emulateExecutionOfOutOfOrderScripts(document);
   }
+  await whenContainerDataReady(container, () => undefined);
   if (opts.debug) {
     console.log('========================================================');
     console.log('------------------------- SSR --------------------------');
@@ -434,6 +436,7 @@ function renderStyles(getStyles: () => Record<string, string | string[]>) {
 
 export async function rerenderComponent(element: HTMLElement) {
   const container = _getDomContainer(element) as _DomContainer;
+  await whenContainerDataReady(container, () => undefined);
   const vElement = container.vNodeLocate(element);
   const host = getHostVNode(vElement) as HostElement;
   markVNodeDirty(container, host, ChoreBits.COMPONENT);

@@ -110,15 +110,12 @@ export interface SsgOptions extends SsgRenderOptions {
  * @public
  */
 export interface SsgGenerateOptions extends SsgOptions {
-  /** The SSR render function (default export from entry.ssr). */
+  /** SSR render function (default export from `entry.ssr`); worker-only — the main entry omits it. */
   render: Render;
   /** The Qwik Router Config object (default export from `@qwik-router-config`). */
   qwikRouterConfig: QwikRouterConfig;
 
-  /**
-   * Path or URL to the worker entry file. Workers are spawned using this file. When run-ssg.js
-   * serves as both main and worker entry, this should be `import.meta.url` of that file.
-   */
+  /** Path or URL to the worker entry file (`run-ssg-worker.js`); workers are spawned from it. */
   workerFilePath?: string | URL;
 }
 

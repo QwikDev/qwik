@@ -1022,6 +1022,48 @@ T
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/form-component.tsx)
 
+<h2 id="getrequestevent">getRequestEvent</h2>
+
+Returns the current RequestEvent if possible. Only usable on the server, and only during request processing.
+
+```typescript
+getRequestEvent: (thisArg?: unknown) => RequestEvent | undefined;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+thisArg
+
+</td><td>
+
+unknown
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+RequestEvent \| undefined
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/route-loaders.ts)
+
 <h2 id="getvalidatorinputtype">GetValidatorInputType</h2>
 
 ```typescript
@@ -2081,6 +2123,14 @@ The `strictLoaders` Vite plugin option applies `invalidate: []` globally for all
 
 ```typescript
 routeAction$: ActionConstructor;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
+
+<h2 id="routeactionqrl">routeActionQrl</h2>
+
+```typescript
+routeActionQrl: ActionConstructorQRL;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)

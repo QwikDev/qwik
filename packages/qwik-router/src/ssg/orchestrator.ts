@@ -302,9 +302,7 @@ export async function mainThread(sys: System) {
 }
 
 function validateOptions(opts: SsgGenerateOptions) {
-  if (!opts.render) {
-    throw new Error(`Missing "render" option`);
-  }
+  // render is worker-only; the main thread needs only the route config.
   if (!opts.qwikRouterConfig) {
     throw new Error(`Missing "qwikRouterConfig" option`);
   }

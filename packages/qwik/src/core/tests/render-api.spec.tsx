@@ -33,10 +33,11 @@ import type {
   StreamingOptions,
   StreamWriter,
 } from '../../server/types';
+import { whenContainerDataReady } from '../client/dom-container';
 import { vnode_getFirstChild } from '../client/vnode-utils';
 import { _fnSignal, type _ContainerElement } from '../internal';
 import { QContainerValue } from '../shared/types';
-import { QContainerAttr, QwikEvContainerReady } from '../shared/utils/markers';
+import { QContainerAttr, QwikEvContainerReady, QStatePrewarmAttr } from '../shared/utils/markers';
 
 vi.hoisted(() => {
   vi.stubGlobal('QWIK_LOADER_DEFAULT_MINIFIED', 'min');
@@ -243,6 +244,7 @@ describe('render api', () => {
       document = createDocument({ html: result.html });
       emulateExecutionOfQwikFuncs(document);
       const container = getDomContainer(document.body.firstChild as HTMLElement);
+      await whenContainerDataReady(container, () => undefined);
       const vNode = vnode_getFirstChild(container.rootVNode);
       expect(vNode).toMatchVDOM(
         <button>
@@ -603,6 +605,45 @@ describe('render api', () => {
         });
         expect(result.html.includes(`${testAttrName}="${testAttrValue}"`)).toBeTruthy();
       });
+      describe('statePrewarm', () => {
+        it('should omit state prewarm attribute by default', async () => {
+          const result = await renderToStringAndSetPlatform(<Counter />, {
+            containerTagName: 'div',
+          });
+
+          expect(result.html.includes(QStatePrewarmAttr)).toBe(false);
+        });
+
+        it('should omit state prewarm attribute when disabled explicitly', async () => {
+          const result = await renderToStringAndSetPlatform(<Counter />, {
+            containerTagName: 'div',
+            statePrewarm: false,
+          });
+
+          expect(result.html.includes(QStatePrewarmAttr)).toBe(false);
+        });
+
+        it('should render numeric state prewarm threshold', async () => {
+          const result = await renderToStringAndSetPlatform(<Counter />, {
+            containerTagName: 'div',
+            statePrewarm: 512,
+          });
+
+          expect(result.html.includes(`${QStatePrewarmAttr}="512"`)).toBe(true);
+        });
+
+        it('should prefer disabled state prewarm option over custom container attribute', async () => {
+          const result = await renderToStringAndSetPlatform(<Counter />, {
+            containerTagName: 'div',
+            containerAttributes: {
+              [QStatePrewarmAttr]: '512',
+            },
+            statePrewarm: false,
+          });
+
+          expect(result.html.includes(QStatePrewarmAttr)).toBe(false);
+        });
+      });
       describe('qRender', () => {
         afterEach(async () => {
           // restore default value
@@ -801,6 +842,7 @@ describe('render api', () => {
         document = createDocument({ html: chunks.join('') });
         emulateExecutionOfQwikFuncs(document);
         const container = getDomContainer(document.body.firstChild as HTMLElement);
+        await whenContainerDataReady(container, () => undefined);
         const vNode = vnode_getFirstChild(container.rootVNode);
         expect(vNode).toMatchVDOM(
           <button>

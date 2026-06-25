@@ -119,6 +119,10 @@ Follow that bias:
   scope.
 - Keep new durable lessons in the most specific skill or reference that future agents are likely to
   load. Do not add package-specific details to these always-on rules unless they affect most tasks.
+- Write those notes **prescriptively** — the invariants to keep, the traps that cause false passes,
+  where things live, and how to verify — rather than describing how the code currently works (the
+  source already does that). Omit "don't do X" prohibitions for anything a test already enforces; the
+  suite is the guardrail, so reserve notes for what it can't self-enforce.
 - When updating guidance, load the `qwik-guidance-maintenance` skill.
 
 ### Code Style

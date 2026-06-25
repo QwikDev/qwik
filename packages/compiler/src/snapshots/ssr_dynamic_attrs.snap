@@ -60,7 +60,7 @@ import {
   createTemplate,
   createDomBatchEffect,
   readTrackedSourceValue,
-  serializeAttrExpressionValue,
+  patchAttrValue,
 } from '@qwik.dev/core/spark';
 
 const dom_App_template0 = createTemplate('<div>Attrs</div>');
@@ -73,8 +73,8 @@ export function App(_props, ctx) {
   const effect2 = createDomBatchEffect(batch3, { scheduler: ctx.scheduler });
   function batch3() {
     el1.setAttribute('title', String(readTrackedSourceValue(title)));
-    el1.className = serializeAttrExpressionValue('class', readTrackedSourceValue(classes));
-    el1.setAttribute('style', serializeAttrExpressionValue('style', readTrackedSourceValue(style)));
+    patchAttrValue(el1, 'class', readTrackedSourceValue(classes));
+    patchAttrValue(el1, 'style', readTrackedSourceValue(style));
   }
   ctx.scheduler.notify(effect2);
   return el1;

@@ -137,6 +137,7 @@ export {
   createStyleEffect,
   createTextExpressionEffect,
   createTextNodeEffect,
+  patchAttrValue,
   patchTextValue,
   readTrackedSourceValue,
   runDomBatchEffect,

@@ -191,7 +191,7 @@ import {
   createSignal,
   createTemplate,
   createDomBatchEffect,
-  serializeAttrExpressionValue,
+  patchAttrValue,
 } from '@qwik.dev/core/spark';
 
 const dom_App_template0 = createTemplate('<div data-kind="counter">Attrs</div>');
@@ -204,9 +204,9 @@ export function App(_props, ctx) {
   const el1 = fragment0.firstChild;
   const effect2 = createDomBatchEffect(batch3, { scheduler: ctx.scheduler });
   function batch3() {
-    el1.setAttribute('title', serializeAttrExpressionValue('title', dom_App_expr1(count)));
-    el1.setAttribute('class', serializeAttrExpressionValue('class', dom_App_expr2(count)));
-    el1.setAttribute('style', serializeAttrExpressionValue('style', dom_App_expr3(count)));
+    patchAttrValue(el1, 'title', dom_App_expr1(count));
+    patchAttrValue(el1, 'class', dom_App_expr2(count));
+    patchAttrValue(el1, 'style', dom_App_expr3(count));
   }
   ctx.scheduler.notify(effect2);
   return el1;

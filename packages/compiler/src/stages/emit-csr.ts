@@ -618,9 +618,9 @@ export class DomEmitter {
         binding.qrlSegmentId,
         this.emitSourceExpression(binding.expressionRange)
       );
-      this.use(QwikSymbol.SerializeAttrExpressionValue);
+      this.use(QwikSymbol.PatchAttrValue);
       this.emitDomBatchOp(
-        `${elementId}.setAttribute(${JSON.stringify(prop.name)}, ${QwikSymbol.SerializeAttrExpressionValue}(${JSON.stringify(prop.name)}, ${callback.invoke}));`
+        `${QwikSymbol.PatchAttrValue}(${elementId}, ${JSON.stringify(prop.name)}, ${callback.invoke});`
       );
       return;
     }
@@ -628,17 +628,13 @@ export class DomEmitter {
     const sourceValue = `${QwikSymbol.ReadTrackedSourceValue}(${binding.sourceName})`;
     this.use(QwikSymbol.ReadTrackedSourceValue);
     if (prop.name === 'class') {
-      this.use(QwikSymbol.SerializeAttrExpressionValue);
-      this.emitDomBatchOp(
-        `${elementId}.className = ${QwikSymbol.SerializeAttrExpressionValue}('class', ${sourceValue});`
-      );
+      this.use(QwikSymbol.PatchAttrValue);
+      this.emitDomBatchOp(`${QwikSymbol.PatchAttrValue}(${elementId}, 'class', ${sourceValue});`);
       return;
     }
     if (prop.name === 'style') {
-      this.use(QwikSymbol.SerializeAttrExpressionValue);
-      this.emitDomBatchOp(
-        `${elementId}.setAttribute('style', ${QwikSymbol.SerializeAttrExpressionValue}('style', ${sourceValue}));`
-      );
+      this.use(QwikSymbol.PatchAttrValue);
+      this.emitDomBatchOp(`${QwikSymbol.PatchAttrValue}(${elementId}, 'style', ${sourceValue});`);
       return;
     }
     this.emitDomBatchOp(

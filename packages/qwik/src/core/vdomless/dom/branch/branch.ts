@@ -19,7 +19,8 @@ import {
   type BranchSubscriber,
   type SsrBranchSubscriber,
 } from '../../runtime/subscriber';
-import { EMPTY_NODES, toNodes } from '../../utils/nodes';
+import { EMPTY_NODES } from '../../utils/consts';
+import { toNodes } from '../../utils/nodes';
 import type { MaybeNodeOutput } from '../../utils/nodes';
 import { getFunctionOrResolve } from '../qrl';
 import { createContentRange, replaceRange } from '../range/range';

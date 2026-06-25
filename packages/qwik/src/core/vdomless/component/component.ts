@@ -10,8 +10,8 @@ import {
 import type { ContainerContext } from '../runtime/container-context';
 import { disposeOwner } from '../runtime/owner';
 import { runWithCollector } from '../reactive/tracking';
-import { EMPTY_NODES } from '../utils/nodes';
 import type { NodeOutput } from '../utils/nodes';
+import { EMPTY_NODES } from '../utils/consts';
 
 export type ComponentOutput = NodeOutput | string;
 export type ComponentRenderOutput = ValueOrPromise<ComponentOutput | void>;

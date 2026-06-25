@@ -19,6 +19,7 @@ import {
   createStyleEffect,
   createTextExpressionEffect,
   createTextNodeEffect,
+  patchAttrValue,
   runDomBatchEffect,
   type TextExpressionFn,
 } from './effect';
@@ -131,6 +132,22 @@ describe('DOM effects', () => {
     await scheduler.flushInteraction();
 
     expect(attrs.get('style')).toBe('color:red');
+  });
+
+  it('patches serialized class values through className', () => {
+    let className = '';
+    const element = {
+      set className(value: string) {
+        className = value;
+      },
+      setAttribute() {
+        throw new Error('class should use className');
+      },
+    } as unknown as Element;
+
+    patchAttrValue(element, 'class', { active: true });
+
+    expect(className).toBe('active');
   });
 
   it('removes empty serialized classes from expressions', async () => {

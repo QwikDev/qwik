@@ -17,6 +17,7 @@ import type { Owner } from '../../runtime/owner';
 import type { ForBlock } from '../for/for';
 import { applyDomProps } from './dom-props';
 import { isDev } from '@qwik.dev/core/build';
+import { EMPTY_STRING } from '../../utils/consts';
 
 export const enum AttrSerializer {
   Class = 0,
@@ -102,12 +103,11 @@ export class SerializedAttrEffect {
   ) {}
 
   run(): void {
-    const value = readTrackedSourceValue(this.source);
-    if (this.serializer === AttrSerializer.Class) {
-      this.element.className = serializeAttrExpressionValue('class', value);
-    } else {
-      patchAttrValue(this.element, 'style', value);
-    }
+    patchAttrValue(
+      this.element,
+      this.serializer === AttrSerializer.Class ? 'class' : 'style',
+      readTrackedSourceValue(this.source)
+    );
   }
 }
 
@@ -272,12 +272,17 @@ function setTextData(text: Text, value: TextExpressionValue): void {
 export function serializeAttrExpressionValue(name: string, value: unknown): string {
   const serialized = serializeAttribute(name, value);
   return serialized == null || serialized === false || serialized === true
-    ? ''
+    ? EMPTY_STRING
     : String(serialized);
 }
 
-function patchAttrValue(element: Element, name: string, value: unknown): void {
-  element.setAttribute(name, serializeAttrExpressionValue(name, value));
+export function patchAttrValue(element: Element, name: string, value: unknown): void {
+  const serialized = serializeAttrExpressionValue(name, value);
+  if (name === 'class') {
+    element.className = serialized;
+  } else {
+    element.setAttribute(name, serialized);
+  }
 }
 
 export function readTrackedSourceValue<T>(source: Source<T>): T {

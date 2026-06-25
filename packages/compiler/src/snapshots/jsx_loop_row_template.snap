@@ -408,7 +408,7 @@ null
 
 import {
   createTemplate,
-  serializeAttrExpressionValue,
+  patchAttrValue,
   createDomBatchEffect,
   runDomBatchEffect,
   patchTextValue,
@@ -426,10 +426,7 @@ export const component_for_render_segment_0 = (ctx, row, index) => {
   const el1 = fragment0.firstChild;
   const effect2 = createDomBatchEffect(batch3, { scheduler: ctx.scheduler });
   function batchOp4() {
-    el1.setAttribute(
-      'class',
-      serializeAttrExpressionValue('class', component_for_render_segment_0_expr1(row))
-    );
+    patchAttrValue(el1, 'class', component_for_render_segment_0_expr1(row));
   }
   runDomBatchEffect(effect2, batchOp4);
   const el5 = el1.firstChild;

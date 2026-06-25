@@ -455,7 +455,7 @@ import {
   applyDomProps,
   createDomBatchEffect,
   runDomBatchEffect,
-  serializeAttrExpressionValue,
+  patchAttrValue,
   patchTextValue,
   setEvent,
 } from '@qwik.dev/core/spark';
@@ -474,17 +474,11 @@ export const component_for_render_segment_0 = (ctx, row, index) => {
   runDomBatchEffect(effect2, batchOp4);
   const el5 = ctx.document.createElement('span');
   function batchOp6() {
-    el5.setAttribute(
-      'data-index',
-      serializeAttrExpressionValue('data-index', component_for_render_segment_0_expr1(index))
-    );
+    patchAttrValue(el5, 'data-index', component_for_render_segment_0_expr1(index));
   }
   runDomBatchEffect(effect2, batchOp6);
   function batchOp7() {
-    el5.setAttribute(
-      'class',
-      serializeAttrExpressionValue('class', component_for_render_segment_0_expr2(row))
-    );
+    patchAttrValue(el5, 'class', component_for_render_segment_0_expr2(row));
   }
   runDomBatchEffect(effect2, batchOp7);
   const text8 = ctx.document.createTextNode('');

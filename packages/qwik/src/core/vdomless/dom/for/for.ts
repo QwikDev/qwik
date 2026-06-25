@@ -27,6 +27,7 @@ import { ForBlockSubscription } from '../effect/effect';
 import { SSRForBlockSubscription } from '../effect/ssr-effect';
 import { getFunctionOrResolve } from '../qrl';
 import { createContentRange, getRangeParent } from '../range/range';
+import { EMPTY_ARRAY } from '../../utils/consts';
 
 export type ForKey = string | number;
 type ForKeyFn<T> = (item: T, index: number) => ForKey;
@@ -49,7 +50,6 @@ type SsrForRenderFn<T> = (
 const ELEMENT_NODE = 1;
 const ROW_OPEN = 'r';
 const ROW_CLOSE = '/r';
-const EMPTY_ARRAY: [] = [];
 
 class RowRange {
   readonly nativeRange: Range;

@@ -171,7 +171,7 @@ export function createCsrImports(
       sparkSpecifiers.push(QwikSymbol.ReadTrackedSourceValue);
     }
     if (usage.hasDomBatchDynamicAttr || usage.hasDomBatchAttrExpression) {
-      sparkSpecifiers.push(QwikSymbol.SerializeAttrExpressionValue);
+      sparkSpecifiers.push(QwikSymbol.PatchAttrValue);
     }
   }
   if (usage.hasSourceText) {

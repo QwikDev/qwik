@@ -31,6 +31,7 @@ export enum QwikSymbol {
   EscapeHTML = 'escapeHTML',
   InlinedQrl = 'inlinedQrl',
   MergeProps = 'mergeProps',
+  PatchAttrValue = 'patchAttrValue',
   PatchTextValue = 'patchTextValue',
   QrlWithChunk = '_qrlWithChunk',
   ReadTrackedSourceValue = 'readTrackedSourceValue',

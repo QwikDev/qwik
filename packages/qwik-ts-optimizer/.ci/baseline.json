@@ -942,6 +942,9 @@
       "tests/optimizer/rewrite/const-replacement.test.ts :: replaceConstants replaces isServer with false and isBrowser with true when isServer=false",
       "tests/optimizer/rewrite/const-replacement.test.ts :: replaceConstants replaces isServer with true and isBrowser with false when isServer=true",
       "tests/optimizer/rewrite/const-replacement.test.ts :: replaceConstants replaces multiple references of the same identifier",
+      "tests/optimizer/rewrite/inlined-qrl-in-captures.test.ts :: inlinedQrl nested inside another inlinedQrl captures array does not extract the capture-position QRL into its own segment",
+      "tests/optimizer/rewrite/inlined-qrl-in-captures.test.ts :: inlinedQrl nested inside another inlinedQrl captures array every emitted module is valid JS",
+      "tests/optimizer/rewrite/inlined-qrl-in-captures.test.ts :: inlinedQrl nested inside another inlinedQrl captures array hoists the capture-position QRL body to a top-level _inlined_ const and keeps the call inline",
       "tests/optimizer/rewrite/jsxprop-call-sites.test.ts :: jSXProp ctxKind recognised as JSX-attr call site Negative scope: HTML eventHandler ctxKind unchanged `<div onClick$={() => …}>` → still emits `q-e:click` (HTML event-handler path preserved)",
       "tests/optimizer/rewrite/jsxprop-call-sites.test.ts :: jSXProp ctxKind recognised as JSX-attr call site Negative scope: ctxKind classification unchanged by predicate extension Component + onProp$ + transpileJsx=true → jSXProp metadata preserved",
       "tests/optimizer/rewrite/jsxprop-call-sites.test.ts :: jSXProp ctxKind recognised as JSX-attr call site Negative scope: ctxKind classification unchanged by predicate extension HTML + onClick$ + transpileJsx=true → eventHandler metadata preserved",
@@ -1294,6 +1297,6 @@
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) has null input",
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) parses without error"
     ],
-    "total": 1109
+    "total": 1112
   }
 }

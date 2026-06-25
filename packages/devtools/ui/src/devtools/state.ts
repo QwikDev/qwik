@@ -1,4 +1,10 @@
-import type { AssetInfo, Component, NpmInfo, RoutesInfo } from '@qwik.dev/devtools/kit';
+import type {
+  AssetInfo,
+  Component,
+  DependencyInfo,
+  NpmInfo,
+  RoutesInfo,
+} from '@qwik.dev/devtools/kit';
 import type { NoSerialize } from '@qwik.dev/core';
 
 export type DevtoolsTabId =
@@ -28,7 +34,7 @@ export interface DevtoolsState {
   assets: AssetInfo[];
   components: Component[];
   routes: NoSerialize<RoutesInfo[]> | undefined;
-  allDependencies: unknown[];
+  allDependencies: DependencyInfo[];
   isLoadingDependencies: boolean;
   panelBounds: DevtoolsPanelBounds;
   lastPanelBounds: DevtoolsPanelBounds | null;

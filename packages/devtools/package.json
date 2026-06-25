@@ -12,7 +12,8 @@
     "rollup-plugin-visualizer": "^6.0.3",
     "superjson": "^2.2.6",
     "vite-hot-client": "^2.1.0",
-    "vite-plugin-inspect": "^11.3.3"
+    "vite-plugin-inspect": "^11.3.3",
+    "yaml": "^2.8.3"
   },
   "devDependencies": {
     "@babel/types": "7.29.0",

@@ -1,9 +1,14 @@
-import { trimInternalPathname } from '@qwik-router-ssg-worker/middleware/request-handler/request-path';
 import { _serialize as serialize } from '@qwik.dev/core/internal';
 import { parentPort } from 'node:worker_threads';
+import {
+  renderQwikMiddleware,
+  resolveRequestHandlers,
+} from '../middleware/request-handler/resolve-request-handlers-core';
+import { trimInternalPathname } from '../middleware/request-handler/request-path';
 import type { ServerRequestEvent } from '../middleware/request-handler/types';
+import { runQwikRouter } from '../middleware/request-handler/user-response';
 import { getRouteLoaderValues, getRouteLoaders } from '../runtime/src/route-loaders';
-import { renderQwikMiddleware, resolveRequestHandlers } from './resolve-request-handlers-ssg';
+import { loadRoute } from '../runtime/src/routing';
 import type {
   SsgHandlerOptions,
   SsgRoute,
@@ -13,8 +18,6 @@ import type {
   WorkerInputMessage,
   WorkerOutputMessage,
 } from './types';
-import { runQwikRouter } from './user-response-ssg';
-import { loadRoute } from './worker-imports/runtime';
 
 interface StaticWorkerThreadDeps {
   loadRoute: typeof loadRoute;
@@ -37,9 +40,6 @@ const staticWorkerThreadDeps: StaticWorkerThreadDeps = {
 };
 
 export async function workerThread(sys: System) {
-  // Special case: we allow importing qwik again in the same process, it's ok because we just needed the serializer
-  // TODO: remove this once we have vite environment API and no longer need the serializer separately
-  delete (globalThis as any).__qwik;
   const opts = sys.getOptions();
   const pendingPromises = new Set<Promise<any>>();
   const deps: WorkerThreadDeps = {
@@ -163,7 +163,9 @@ async function workerRender(
         return {};
       },
       getWritableStream: (status, headers, _, _r, requestEv) => {
-        result.ok = status >= 200 && status < 300;
+        // The not-found page renders with a 404 status but is still written as a static asset.
+        const isNotFoundPage = url.pathname.endsWith('/404.html');
+        result.ok = (status >= 200 && status < 300) || (isNotFoundPage && status === 404);
 
         if (!result.ok) {
           // not ok, don't write anything
@@ -172,12 +174,9 @@ async function workerRender(
 
         result.contentType = (headers.get('Content-Type') || '').toLowerCase();
         const isHtml = result.contentType.includes('text/html');
-        const is404ErrorPage = url.pathname.endsWith('/404.html');
         const routeFilePath = sys.getRouteFilePath(url.pathname, isHtml);
 
-        if (is404ErrorPage) {
-          result.resourceType = '404';
-        } else if (isHtml) {
+        if (isHtml) {
           result.resourceType = 'page';
         }
 
@@ -232,7 +231,7 @@ async function workerRender(
             const writePromises: Promise<any>[] = [];
 
             try {
-              if (writeLoaderDataEnabled && !is404ErrorPage) {
+              if (writeLoaderDataEnabled && !isNotFoundPage) {
                 const routeLoaders = getRouteLoaders(requestEv);
                 const loaderValues = getRouteLoaderValues(requestEv);
                 const manifestHash = (opts.manifest as any)?.manifestHash || 'dev';
@@ -400,7 +399,9 @@ async function requestHandlerForSsg<T>(
     deps.renderQwikMiddleware(render)
   );
 
-  if (qwikRouterConfig.fallthrough && loadedRoute.$notFound$) {
+  // The forced 404.html prerender is a miss by design — render it even under fallthrough so the
+  // static asset exists for the adapter/host to serve.
+  if (qwikRouterConfig.fallthrough && loadedRoute.$notFound$ && !pathname.endsWith('/404.html')) {
     return null;
   }
 

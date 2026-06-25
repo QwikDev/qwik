@@ -33,7 +33,6 @@ export const loadRoute = async (
     loaderPathsByHash,
     menuLoader,
     errorLoader,
-    notFoundLoader,
   } = result;
 
   const routeName = '/' + routeParts.join('/');
@@ -58,42 +57,6 @@ export const loadRoute = async (
     (menuModule) => (menu = menuModule?.default),
     cacheModules
   );
-
-  // For not-found routes, create a wrapper module that renders 404.tsx for 404 status
-  // and the default error handler for other statuses, with cacheKey based on status.
-  if (notFound && notFoundLoader) {
-    // Also load the error module or fallback for non-404 errors
-    let notFoundMod: RouteModule | undefined;
-    let errorMod: RouteModule | undefined;
-    loadModule<RouteModule>(
-      notFoundLoader,
-      pendingLoads,
-      (mod) => (notFoundMod = mod),
-      cacheModules
-    );
-    loadModule<RouteModule>(
-      errorLoader || httpErrorLoader,
-      pendingLoads,
-      (mod) => (errorMod = mod),
-      cacheModules
-    );
-    if (pendingLoads.length > 0) {
-      await Promise.all(pendingLoads);
-    }
-    const { createNotFoundWrapper } = await import('./not-found-wrapper');
-    const wrapperModule = createNotFoundWrapper(notFoundMod!, errorMod!);
-    return {
-      $routeName$: routeName,
-      $params$: params,
-      $mods$: [wrapperModule],
-      $menu$: deepFreeze(menu),
-      $routeBundleNames$: routeBundleNames,
-      $notFound$: notFound,
-      $errorLoader$: errorLoader,
-      $loaders$: loaderHashes,
-      $loaderPaths$: loaderPathsByHash,
-    };
-  }
 
   if (pendingLoads.length > 0) {
     await Promise.all(pendingLoads);
@@ -217,20 +180,22 @@ function resolveLoaders(
 }
 
 /**
- * Collect layouts, error loaders, and 404 loaders from a node and any group ancestors between the
- * parent and this node. `groups` is the chain of group nodes entered to reach `node`.
- *
- * `_E` (error.tsx) and `_4` (404.tsx) are tracked separately so that:
- *
- * - `_4` is used for not-found (404) errors specifically
- * - `_E` is used for all other ServerErrors (403, 500, etc.)
+ * A captured error/404 boundary: its loader (a single loader, or an override layout chain) plus a
+ * snapshot of the ambient layouts where it was found. A bare boundary renders in its OWN layouts —
+ * not in deeper ones gathered while walking past it to the dead end.
+ */
+type BoundaryRef = { v: ContentModuleLoader | ModuleLoader[] | undefined; layouts: ModuleLoader[] };
+
+/**
+ * Collect layouts, the nearest error (`_E`) and not-found (`_4`) boundaries, and the menu from a
+ * node and the group ancestors entered to reach it.
  */
 function collectNodeMeta(
   node: RouteData,
   groups: RouteData[],
   layouts: ModuleLoader[],
-  errorLoaderRef: { v: ContentModuleLoader | undefined },
-  notFoundLoaderRef: { v: ContentModuleLoader | undefined },
+  errorLoaderRef: BoundaryRef,
+  notFoundLoaderRef: BoundaryRef,
   menuLoaderRef: { v: MenuModuleLoader | undefined },
   loaderHashes?: string[],
   loaderPathsByHash?: Record<string, string>,
@@ -252,9 +217,11 @@ function collectNodeMeta(
     }
     if (g._E) {
       errorLoaderRef.v = g._E;
+      errorLoaderRef.layouts = [...layouts];
     }
     if (g._4) {
       notFoundLoaderRef.v = g._4;
+      notFoundLoaderRef.layouts = [...layouts];
     }
     if (g._N) {
       menuLoaderRef.v = g._N;
@@ -274,9 +241,11 @@ function collectNodeMeta(
   }
   if (node._E) {
     errorLoaderRef.v = node._E;
+    errorLoaderRef.layouts = [...layouts];
   }
   if (node._4) {
     notFoundLoaderRef.v = node._4;
+    notFoundLoaderRef.layouts = [...layouts];
   }
   if (node._N) {
     menuLoaderRef.v = node._N;
@@ -414,23 +383,24 @@ function tryWildcardMatch(
 }
 
 /**
- * Find a node with `_I` at the current level, including inside group children (_M). Returns the
- * node and the groups entered to reach it.
+ * Descend through a node and its pathless `_M` groups (depth-first, in `_M` order), returning the
+ * first node for which `hit` yields a value, plus the chain of groups entered to reach it. The
+ * shared traversal behind the index / rest / boundary lookups inside groups.
  */
-function findIndexNode(node: RouteData): { target: RouteData; groups: RouteData[] } | undefined {
-  if (node._I || node._G != null) {
-    return { target: node, groups: [] };
+function descendGroups<T>(
+  node: RouteData,
+  hit: (n: RouteData) => T | undefined
+): { value: T; node: RouteData; groups: RouteData[] } | undefined {
+  const value = hit(node);
+  if (value !== undefined) {
+    return { value, node, groups: [] };
   }
   if (node._M) {
     for (let j = 0; j < node._M.length; j++) {
       const group = node._M[j];
-      const result = findIndexNode(group);
+      const result = descendGroups(group, hit);
       if (result) {
-        // Only add the group to the chain if it's not already the target
-        // (otherwise collectNodeMeta would add its layout twice)
-        if (result.target !== group) {
-          result.groups.unshift(group);
-        }
+        result.groups.unshift(group);
         return result;
       }
     }
@@ -439,24 +409,44 @@ function findIndexNode(node: RouteData): { target: RouteData; groups: RouteData[
 }
 
 /**
- * Find a rest wildcard (_A) at the current node or inside its _M groups. Returns the _A node and
- * the groups entered to reach it. Used to save fallback checkpoints during matching.
+ * Find a node with `_I`/`_G` at the current level, including inside `_M` groups. Returns it and the
+ * groups entered to reach it — excluding the target itself, whose `_L` the caller applies (so it
+ * isn't double-counted).
+ */
+function findIndexNode(node: RouteData): { target: RouteData; groups: RouteData[] } | undefined {
+  const r = descendGroups(node, (n) => (n._I || n._G != null ? n : undefined));
+  return r ? { target: r.node, groups: r.groups.filter((g) => g !== r.node) } : undefined;
+}
+
+/**
+ * Find a rest wildcard (`_A`) at the current node or inside its `_M` groups, with the groups
+ * entered to reach it. Used to save fallback checkpoints during matching.
  */
 function findRestNode(node: RouteData): { next: RouteData; groups: RouteData[] } | undefined {
-  if (node._A) {
-    return { next: node._A as RouteData, groups: [] };
+  const r = descendGroups(node, (n) => n._A as RouteData | undefined);
+  return r ? { next: r.value, groups: r.groups } : undefined;
+}
+
+/**
+ * Find a `_4`/`_E` boundary inside a node's pathless `_M` groups (first in `_M` order), wrapped in
+ * those groups' layouts.
+ */
+function findGroupBoundary(
+  node: RouteData,
+  layouts: ModuleLoader[],
+  kind: '_4' | '_E'
+): { v: ContentModuleLoader | ModuleLoader[]; layouts: ModuleLoader[] } | undefined {
+  const r = descendGroups(node, (n) => n[kind]);
+  if (!r) {
+    return undefined;
   }
-  if (node._M) {
-    for (let j = 0; j < node._M.length; j++) {
-      const group = node._M[j];
-      const result = findRestNode(group);
-      if (result) {
-        result.groups.unshift(group);
-        return result;
-      }
+  const groupLayouts = [...layouts];
+  for (const g of r.groups) {
+    if (g._L) {
+      groupLayouts.push(g._L);
     }
   }
-  return undefined;
+  return { v: r.value, layouts: groupLayouts };
 }
 
 /**
@@ -481,10 +471,8 @@ function matchRouteTree(
   loaderHashes: string[] | undefined;
   loaderPathsByHash: Record<string, string> | undefined;
   menuLoader: MenuModuleLoader | undefined;
-  /** The nearest _E (error.tsx) loader in the ancestor chain */
-  errorLoader: ContentModuleLoader | undefined;
-  /** The nearest _4 (404.tsx) loader in the ancestor chain */
-  notFoundLoader: ContentModuleLoader | undefined;
+  /** The nearest _E (error.tsx) boundary in the ancestor chain (single loader or override chain) */
+  errorLoader: ContentModuleLoader | ModuleLoader[] | undefined;
 } {
   let node: RouteData = root;
   const params: PathParams = {};
@@ -492,29 +480,26 @@ function matchRouteTree(
   const layouts: ModuleLoader[] = [];
   const loaderHashes: string[] = [];
   const loaderPathsByHash: Record<string, string> = {};
-  const errorLoaderRef: { v: ContentModuleLoader | undefined } = { v: undefined };
-  const notFoundLoaderRef: { v: ContentModuleLoader | undefined } = { v: undefined };
+  const errorLoaderRef: BoundaryRef = { v: undefined, layouts: [] };
+  const notFoundLoaderRef: BoundaryRef = { v: undefined, layouts: [] };
   const menuLoaderRef: { v: MenuModuleLoader | undefined } = { v: undefined };
+  // Nodes the walk passes that carry pathless `_M` groups (with the layout depth at each). On a miss,
+  // a boundary in a group the walk never entered is recovered by searching these nearest-first.
+  const groupNodes: { node: RouteData; depth: number }[] = [];
 
-  // Collect root layout, error loader, 404 loader, and menu loader
-  if (root._L) {
-    layouts.push(root._L);
-  }
-  if (root._R) {
-    loaderHashes.push(...root._R);
-    for (let i = 0; i < root._R.length; i++) {
-      const hash = root._R[i];
-      loaderPathsByHash[hash] = '/';
-    }
-  }
-  if (root._E) {
-    errorLoaderRef.v = root._E;
-  }
-  if (root._4) {
-    notFoundLoaderRef.v = root._4;
-  }
-  if (root._N) {
-    menuLoaderRef.v = root._N;
+  // Collect the root's layout, error/404 boundaries, and menu (same logic as any node).
+  collectNodeMeta(
+    root,
+    [],
+    layouts,
+    errorLoaderRef,
+    notFoundLoaderRef,
+    menuLoaderRef,
+    loaderHashes,
+    loaderPathsByHash
+  );
+  if (root._M) {
+    groupNodes.push({ node: root, depth: layouts.length });
   }
 
   let done = false;
@@ -536,8 +521,10 @@ function matchRouteTree(
         params: PathParams;
         layouts: ModuleLoader[];
         loaderPathsByHash: Record<string, string>;
-        errorLoader: ContentModuleLoader | undefined;
-        notFoundLoader: ContentModuleLoader | undefined;
+        errorLoader: ContentModuleLoader | ModuleLoader[] | undefined;
+        errorLayouts: ModuleLoader[];
+        notFoundLoader: ContentModuleLoader | ModuleLoader[] | undefined;
+        notFoundLayouts: ModuleLoader[];
         menuLoader: MenuModuleLoader | undefined;
       }
     | undefined;
@@ -568,7 +555,9 @@ function matchRouteTree(
         layouts: [...layouts],
         loaderPathsByHash: { ...loaderPathsByHash },
         errorLoader: errorLoaderRef.v,
+        errorLayouts: errorLoaderRef.layouts,
         notFoundLoader: notFoundLoaderRef.v,
+        notFoundLayouts: notFoundLoaderRef.layouts,
         menuLoader: menuLoaderRef.v,
       };
     }
@@ -592,6 +581,9 @@ function matchRouteTree(
       loaderPathsByHash,
       matchedPathname
     );
+    if (node._M) {
+      groupNodes.push({ node, depth: layouts.length });
+    }
   }
 
   // If we consumed all parts but the current node has no _I,
@@ -669,8 +661,8 @@ function matchRouteTree(
     const fbRouteParts = [...fb.routeParts, `[...${fb.paramName}]`];
     const fbLayouts = [...fb.layouts];
     const fbLoaderPathsByHash = { ...fb.loaderPathsByHash };
-    const fbErrorRef: { v: ContentModuleLoader | undefined } = { v: fb.errorLoader };
-    const fbNotFoundRef: { v: ContentModuleLoader | undefined } = { v: fb.notFoundLoader };
+    const fbErrorRef: BoundaryRef = { v: fb.errorLoader, layouts: fb.errorLayouts };
+    const fbNotFoundRef: BoundaryRef = { v: fb.notFoundLoader, layouts: fb.notFoundLayouts };
     const fbMenuRef: { v: MenuModuleLoader | undefined } = { v: fb.menuLoader };
 
     const fbLoaderHashes: string[] = [];
@@ -699,20 +691,53 @@ function matchRouteTree(
           Object.keys(fbLoaderPathsByHash).length > 0 ? fbLoaderPathsByHash : undefined,
         menuLoader: fbMenuRef.v,
         errorLoader: fbErrorRef.v,
-        notFoundLoader: fbNotFoundRef.v,
       };
     }
-    // Update error/menu loaders from fallback for the not-found response
+    // Update error/menu loaders (and their layout snapshots) from fallback for the not-found response
     errorLoaderRef.v = fbErrorRef.v;
+    errorLoaderRef.layouts = fbErrorRef.layouts;
     notFoundLoaderRef.v = fbNotFoundRef.v;
+    notFoundLoaderRef.layouts = fbNotFoundRef.layouts;
     menuLoaderRef.v = fbMenuRef.v;
   }
 
   if (!loaders) {
-    // For not-found routes, use the 404 module, then error module, then built-in fallback
-    const loader = notFoundLoaderRef.v || errorLoaderRef.v || httpErrorLoader;
+    // Pathless groups are URL-transparent: a boundary in one (e.g. `(app)/404.tsx`) acts at the group's
+    // parent level. If the walk never descended into it, recover from the passed `_M`-group nodes
+    // nearest-first (dead-end → root), each at its recorded layout depth.
+    const recover = (kind: '_4' | '_E') => {
+      for (let k = groupNodes.length - 1; k >= 0; k--) {
+        const found = findGroupBoundary(
+          groupNodes[k].node,
+          layouts.slice(0, groupNodes[k].depth),
+          kind
+        );
+        if (found) {
+          return found;
+        }
+      }
+      return undefined;
+    };
+    if (!notFoundLoaderRef.v) {
+      const g = recover('_4');
+      if (g) {
+        notFoundLoaderRef.v = g.v;
+        notFoundLoaderRef.layouts = g.layouts;
+      }
+    }
+    if (!errorLoaderRef.v) {
+      const g = recover('_E');
+      if (g) {
+        errorLoaderRef.v = g.v;
+        errorLoaderRef.layouts = g.layouts;
+      }
+    }
+    // A bare boundary uses its own (snapshotted) layouts; an override chain (404@layout / 404!) as-is.
+    const ref = notFoundLoaderRef.v ? notFoundLoaderRef : errorLoaderRef.v ? errorLoaderRef : null;
+    const boundary = ref?.v ?? httpErrorLoader;
+    const boundaryLayouts = ref ? ref.layouts : layouts;
     return {
-      loaders: [loader],
+      loaders: Array.isArray(boundary) ? boundary : [...boundaryLayouts, boundary],
       params,
       routeParts,
       notFound: true,
@@ -721,7 +746,6 @@ function matchRouteTree(
       loaderPathsByHash: undefined,
       menuLoader: menuLoaderRef.v,
       errorLoader: errorLoaderRef.v,
-      notFoundLoader: notFoundLoaderRef.v,
     };
   }
 
@@ -745,7 +769,6 @@ function matchRouteTree(
     loaderPathsByHash: Object.keys(loaderPathsByHash).length > 0 ? loaderPathsByHash : undefined,
     menuLoader: menuLoaderRef.v,
     errorLoader: errorLoaderRef.v,
-    notFoundLoader: notFoundLoaderRef.v,
   };
 }
 

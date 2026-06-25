@@ -1162,22 +1162,18 @@ describe.each([
       }
       expect((globalThis as any).log).toEqual(['task:0']);
 
-      const triggerPromise = trigger(document.body, 'button', 'click');
-      await vi.advanceTimersByTimeAsync(9);
+      await trigger(document.body, 'button', 'click');
+      await vi.advanceTimersByTimeAsync(1);
       expect((globalThis as any).log).toEqual(['task:0', 'cleanup:0:start']);
       expect((globalThis as any).log).not.toContain('task:1');
 
-      await vi.advanceTimersByTimeAsync(1);
-      await triggerPromise;
-      await waitForDrain(container);
-      await vi.waitFor(() =>
-        expect((globalThis as any).log).toEqual([
-          'task:0',
-          'cleanup:0:start',
-          'cleanup:0:end',
-          'task:1',
-        ])
-      );
+      await vi.advanceTimersByTimeAsync(9);
+      expect((globalThis as any).log).toEqual([
+        'task:0',
+        'cleanup:0:start',
+        'cleanup:0:end',
+        'task:1',
+      ]);
     } finally {
       vi.useRealTimers();
     }

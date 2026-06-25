@@ -31,6 +31,7 @@ import { transformMenu } from '../markdown/menu';
 import { generateQwikRouterEntries } from '../runtime-generation/generate-entries';
 import { generateQwikRouterConfig } from '../runtime-generation/generate-qwik-router-config';
 import { generateServiceWorkerRegister } from '../runtime-generation/generate-service-worker';
+import { getServerExcludedRoutes } from '../runtime-generation/server-exclude';
 import type { RoutingContext } from '../types';
 import { getRouteImports } from './get-route-imports';
 import { imagePlugin } from './image-jsx';
@@ -190,6 +191,8 @@ function qwikRouterPlugin(
   const serverPluginsDir = userOpts?.serverPluginsDir ?? routesDir;
   /** Map from source file path to array of routeLoader$ hashes found in that file */
   const loadersByFile = new Map<string, string[]>();
+  /** SSG include/exclude from the adapter (see `_setSsgRoutes`); drives the server-route prune. */
+  let ssgRoutePatterns: { include?: string[]; exclude?: string[] } | undefined;
 
   const api: QwikRouterPluginApi = {
     getBasePathname: () => ctx?.opts.basePathname ?? '/',
@@ -198,6 +201,9 @@ function qwikRouterPlugin(
     },
     getServiceWorkers: () => {
       return ctx?.serviceWorkers.slice() ?? [];
+    },
+    _setSsgRoutes: (include, exclude) => {
+      ssgRoutePatterns = include?.length ? { include, exclude } : undefined;
     },
   };
 
@@ -271,8 +277,9 @@ function qwikRouterPlugin(
 
     configEnvironment(name: string, _config: EnvironmentOptions, _env: ConfigEnv) {
       // Use environment name to distinguish server vs client — config.consumer is not yet set
-      // at the time this hook is called.
-      if (name === 'ssr') {
+      // at the time this hook is called. Adapters may add their own server environment (e.g. `ssg`),
+      // which needs the same externalization as `ssr`.
+      if (name === 'ssr' || name === 'ssg') {
         return {
           resolve: {
             external: ['node:async_hooks'],
@@ -427,11 +434,20 @@ function qwikRouterPlugin(
             // invalidation, so pass it directly. In build mode the config is loaded before
             // route files are optimized, so loadersByFile is empty here; pass undefined to
             // emit __LOADERS:...__ placeholders that generateBundle replaces after optimization.
+            const isServerConsumer = this.environment.config.consumer === 'server';
+            // Prune the deployed SSR plan (drop prerendered server-free routes so their chunks
+            // tree-shake out). The adapter's dedicated `ssg` environment renders every page, so it
+            // (like the client and dev) keeps the full trie — keyed on the environment name.
+            const serverExcludePaths =
+              isServerConsumer && !devServer && this.environment.name !== 'ssg'
+                ? await getServerExcludedRoutes(ctx, ssgRoutePatterns)
+                : undefined;
             return generateQwikRouterConfig(
               ctx,
               qwikPlugin!,
-              this.environment.config.consumer === 'server',
-              devServer ? loadersByFile : undefined
+              isServerConsumer,
+              devServer ? loadersByFile : undefined,
+              serverExcludePaths
             );
           }
 
@@ -489,6 +505,16 @@ function qwikRouterPlugin(
     },
 
     generateBundle(_, bundles) {
+      // A separate server build skips onSegment, so recover routeLoader$ hashes from the manifest.
+      const manifest = qwikPlugin!.api.getManifest();
+      if (manifest) {
+        const srcDir = qwikPlugin!.api.getOptions().srcDir!;
+        for (const symbol of Object.values(manifest.symbols)) {
+          if (symbol.ctxName === 'routeLoader$' && symbol.origin) {
+            addRouteLoaderHash(loadersByFile, resolve(srcDir, symbol.origin), symbol.hash);
+          }
+        }
+      }
       // Replace __LOADERS:...__ placeholder strings with actual loader hash arrays.
       // Runs even when no routeLoader$ was found so placeholders collapse to `void 0`
       // (otherwise they remain as raw strings and the client iterates them per-character).

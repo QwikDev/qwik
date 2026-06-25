@@ -18,3 +18,15 @@ export const QWIK_VNODE_PROTOCOL = {
   },
   bridgeVirtualModuleId: 'virtual:qwik-devtools-bridge',
 } as const;
+
+/**
+ * Serializable VNode tree node exchanged between the page hook and the devtools UI/extension.
+ * Shared data contract: do not redeclare in consumers, import it from here.
+ */
+export interface DevtoolsVNodeTreeNode {
+  name?: string;
+  id: string;
+  label?: string;
+  props?: Record<string, unknown>;
+  children?: DevtoolsVNodeTreeNode[];
+}

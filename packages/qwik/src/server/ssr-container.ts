@@ -47,6 +47,7 @@ import {
   QScopedStyle,
   QSlot,
   QSlotParent,
+  QStatePrewarmAttr,
   QStatePatchAttr,
   QStyle,
   QSuspenseResolved,
@@ -650,6 +651,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     containerAttributes[QLocaleAttr] = this.$locale$;
     containerAttributes[QManifestHashAttr] = this.resolvedManifest.manifest.manifestHash;
     containerAttributes[QInstanceAttr] = this.$instanceHash$;
+    const statePrewarm = this.renderOptions.statePrewarm;
+    if (typeof statePrewarm === 'number') {
+      containerAttributes[QStatePrewarmAttr] = String(statePrewarm);
+    } else {
+      delete containerAttributes[QStatePrewarmAttr];
+    }
 
     this.$serverData$.containerAttributes = containerAttributes;
 
@@ -1689,6 +1696,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
   }
 
+  writeRootRefDelta(id: number, base: number) {
+    const delta = id - base;
+    this.size += String(delta).length;
+    this.writer.writeRootRefDelta(id, base);
+  }
+
   writeArray(array: string[], separator: string) {
     for (let i = 0; i < array.length; i++) {
       const element = array[i];
@@ -1813,6 +1826,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         this.write(escapeHTML(chunk));
       } else if (typeof chunk === 'number') {
         this.writeRootRef(chunk);
+      } else if ('base' in chunk) {
+        this.writeRootRefDelta(chunk.id, chunk.base);
       } else {
         this.writeRootRefPath(chunk.path);
       }

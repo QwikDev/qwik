@@ -63,7 +63,7 @@ export async function submitAction(
 
   if ((response.headers.get('content-type') || '').includes('json')) {
     const text = await response.text();
-    const data = _deserialize<{
+    const data = await _deserialize<{
       result: unknown;
       redirect?: string;
       loaderHashes?: string[];

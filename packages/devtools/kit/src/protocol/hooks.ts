@@ -44,6 +44,17 @@ export const SIGNAL_HOOK_TYPES = [
   'useContext',
 ] as const;
 
+/**
+ * A single component hook entry with deeply serialized data, returned by the devtools hook's
+ * component detail lookup. Shared data contract: do not redeclare in consumers, import it from
+ * here.
+ */
+export interface DevtoolsComponentDetailEntry {
+  hookType: string;
+  variableName: string;
+  data: unknown;
+}
+
 export const INNER_USE_HOOK = 'useCollectHooks';
 export const VIRTUAL_QWIK_DEVTOOLS_KEY = 'virtual-qwik-devtools.ts';
 export const QWIK_DEVTOOLS_HOOK_VERSION = 1;

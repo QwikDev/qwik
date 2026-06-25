@@ -84,6 +84,7 @@ export {
   validatorQrl,
   zod$,
   zodQrl,
+  getRequestEvent,
 } from './server-functions';
 export { routeLoader$, routeLoaderQrl } from './route-loaders';
 export { ServiceWorkerRegister } from './sw-component';

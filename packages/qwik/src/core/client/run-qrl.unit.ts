@@ -4,6 +4,7 @@ import * as qrlClass from '../shared/qrl/qrl-class';
 import * as useCore from '../use/use-core';
 import * as vnodeUtils from './vnode-utils';
 import * as promises from '../shared/utils/promises';
+import * as domContainer from './dom-container';
 import { ITERATION_ITEM_MULTI, ITERATION_ITEM_SINGLE } from '../shared/utils/markers';
 import { VNodeFlags } from './types';
 
@@ -13,7 +14,7 @@ vi.mock('../shared/qrl/qrl-class', async () => {
     await vi.importActual<typeof import('../shared/qrl/qrl-class')>('../shared/qrl/qrl-class');
   return {
     ...actual,
-    deserializeCaptures: vi.fn(),
+    deserializeCaptureDeltas: vi.fn(),
     setCaptures: vi.fn(),
     _captures: null,
   };
@@ -29,6 +30,15 @@ vi.mock('../use/use-core', async () => {
     ...actual,
     newInvokeContextFromDOM: vi.fn(),
     invokeApply: vi.fn(),
+  };
+});
+
+vi.mock('./dom-container', async () => {
+  const actual = await vi.importActual<typeof import('./dom-container')>('./dom-container');
+  return {
+    ...actual,
+    getDomContainer: vi.fn(),
+    whenContainerDataReady: vi.fn((_container, callback) => callback()),
   };
 });
 
@@ -75,6 +85,7 @@ describe('_run', () => {
 
     // Create mock container
     mockContainer = {
+      document: {},
       handleError: vi.fn(),
       $getObjectById$: vi.fn(),
     };
@@ -91,8 +102,12 @@ describe('_run', () => {
     mockQrl = vi.fn();
 
     // Setup default mocks
+    vi.mocked(domContainer.getDomContainer).mockReturnValue(mockContainer);
     vi.mocked(useCore.newInvokeContextFromDOM).mockReturnValue(mockContext);
-    vi.mocked(qrlClass.deserializeCaptures).mockReturnValue([mockQrl]);
+    vi.mocked(domContainer.whenContainerDataReady).mockImplementation((_container, callback) =>
+      callback()
+    );
+    vi.mocked(qrlClass.deserializeCaptureDeltas).mockReturnValue([mockQrl]);
 
     // Mock _captures global
     Object.defineProperty(qrlClass, '_captures', {
@@ -117,7 +132,11 @@ describe('_run', () => {
   it('should create invoke context from DOM', () => {
     _run.call('', mockEvent, mockElement);
 
-    expect(useCore.newInvokeContextFromDOM).toHaveBeenCalledWith(mockEvent, mockElement);
+    expect(useCore.newInvokeContextFromDOM).toHaveBeenCalledWith(
+      mockEvent,
+      mockElement,
+      mockContainer
+    );
   });
 
   it('should deserialize captures when this is a string', () => {
@@ -125,14 +144,14 @@ describe('_run', () => {
 
     _run.call(capturesString, mockEvent, mockElement);
 
-    expect(qrlClass.deserializeCaptures).toHaveBeenCalledWith(mockContainer, capturesString);
+    expect(qrlClass.deserializeCaptureDeltas).toHaveBeenCalledWith(mockContainer, capturesString);
     expect(qrlClass.setCaptures).toHaveBeenCalled();
   });
 
   it('should not deserialize captures when this is not a string', () => {
     _run.call(undefined as any, mockEvent, mockElement);
 
-    expect(qrlClass.deserializeCaptures).not.toHaveBeenCalled();
+    expect(qrlClass.deserializeCaptureDeltas).not.toHaveBeenCalled();
   });
 
   it('should get QRL from first capture', () => {
@@ -151,8 +170,8 @@ describe('_run', () => {
   it('should handle empty captures string', () => {
     _run.call('', mockEvent, mockElement);
 
-    // Empty string is still a string, so deserializeCaptures will be called
-    expect(qrlClass.deserializeCaptures).toHaveBeenCalledWith(mockContainer, '');
+    // Empty string is still a string, so deserializeCaptureDeltas will be called
+    expect(qrlClass.deserializeCaptureDeltas).toHaveBeenCalledWith(mockContainer, '');
   });
 
   it('should work with connected element and valid captures', () => {
@@ -160,8 +179,12 @@ describe('_run', () => {
 
     _run.call(capturesString, mockEvent, mockElement);
 
-    expect(useCore.newInvokeContextFromDOM).toHaveBeenCalledWith(mockEvent, mockElement);
-    expect(qrlClass.deserializeCaptures).toHaveBeenCalledWith(mockContainer, capturesString);
+    expect(useCore.newInvokeContextFromDOM).toHaveBeenCalledWith(
+      mockEvent,
+      mockElement,
+      mockContainer
+    );
+    expect(qrlClass.deserializeCaptureDeltas).toHaveBeenCalledWith(mockContainer, capturesString);
     expect(qrlClass.setCaptures).toHaveBeenCalled();
   });
 
@@ -171,7 +194,11 @@ describe('_run', () => {
 
     _run.call('test-captures', clickEvent, buttonElement);
 
-    expect(useCore.newInvokeContextFromDOM).toHaveBeenCalledWith(clickEvent, buttonElement);
+    expect(useCore.newInvokeContextFromDOM).toHaveBeenCalledWith(
+      clickEvent,
+      buttonElement,
+      mockContainer
+    );
   });
 
   it('should handle element being disconnected during event', () => {
@@ -180,7 +207,7 @@ describe('_run', () => {
     const result = _run.call('captures', mockEvent, disconnectedElement);
 
     expect(result).toBeUndefined();
-    expect(qrlClass.deserializeCaptures).not.toHaveBeenCalled();
+    expect(qrlClass.deserializeCaptureDeltas).not.toHaveBeenCalled();
   });
 
   it('should handle different event types', () => {
@@ -188,7 +215,11 @@ describe('_run', () => {
 
     _run.call('mouse-captures', mouseEvent, mockElement);
 
-    expect(useCore.newInvokeContextFromDOM).toHaveBeenCalledWith(mouseEvent, mockElement);
+    expect(useCore.newInvokeContextFromDOM).toHaveBeenCalledWith(
+      mouseEvent,
+      mockElement,
+      mockContainer
+    );
   });
 
   it('should handle keyboard events', () => {
@@ -196,8 +227,15 @@ describe('_run', () => {
 
     _run.call('keyboard-captures', keyboardEvent, mockElement);
 
-    expect(useCore.newInvokeContextFromDOM).toHaveBeenCalledWith(keyboardEvent, mockElement);
-    expect(qrlClass.deserializeCaptures).toHaveBeenCalledWith(mockContainer, 'keyboard-captures');
+    expect(useCore.newInvokeContextFromDOM).toHaveBeenCalledWith(
+      keyboardEvent,
+      mockElement,
+      mockContainer
+    );
+    expect(qrlClass.deserializeCaptureDeltas).toHaveBeenCalledWith(
+      mockContainer,
+      'keyboard-captures'
+    );
   });
 
   it('should handle complex capture strings', () => {
@@ -205,8 +243,30 @@ describe('_run', () => {
 
     _run.call(complexCaptures, mockEvent, mockElement);
 
-    expect(qrlClass.deserializeCaptures).toHaveBeenCalledWith(mockContainer, complexCaptures);
+    expect(qrlClass.deserializeCaptureDeltas).toHaveBeenCalledWith(mockContainer, complexCaptures);
     expect(qrlClass.setCaptures).toHaveBeenCalled();
+  });
+
+  it('should wait for container data readiness before creating context', async () => {
+    let ready!: () => void;
+    vi.mocked(domContainer.whenContainerDataReady).mockImplementation(
+      (_container, callback: any) =>
+        new Promise((resolve) => {
+          ready = () => resolve(callback());
+        })
+    );
+
+    const result = _run.call('captures', mockEvent, mockElement);
+
+    expect(useCore.newInvokeContextFromDOM).not.toHaveBeenCalled();
+    ready();
+    await result;
+
+    expect(useCore.newInvokeContextFromDOM).toHaveBeenCalledWith(
+      mockEvent,
+      mockElement,
+      mockContainer
+    );
   });
 });
 
@@ -222,6 +282,7 @@ describe('runEventHandlerQRL', () => {
     mockEvent = new Event('click');
     mockElement = createMockElement();
     mockContainer = {
+      document: {},
       handleError: vi.fn(),
       $getObjectById$: vi.fn(),
     };
@@ -232,7 +293,11 @@ describe('runEventHandlerQRL', () => {
     };
     mockQrl = vi.fn();
 
+    vi.mocked(domContainer.getDomContainer).mockReturnValue(mockContainer);
     vi.mocked(useCore.newInvokeContextFromDOM).mockReturnValue(mockContext);
+    vi.mocked(domContainer.whenContainerDataReady).mockImplementation((_container, callback) =>
+      callback()
+    );
     vi.mocked(useCore.invokeApply).mockReturnValue(undefined);
     vi.mocked(vnodeUtils.vnode_getProp).mockReturnValue(null);
     vi.mocked(promises.retryOnPromise).mockImplementation((fn) => fn());
@@ -255,7 +320,11 @@ describe('runEventHandlerQRL', () => {
   it('should create invoke context from DOM when ctx is not provided', () => {
     runEventHandlerQRL(mockQrl, mockEvent, mockElement);
 
-    expect(useCore.newInvokeContextFromDOM).toHaveBeenCalledWith(mockEvent, mockElement);
+    expect(useCore.newInvokeContextFromDOM).toHaveBeenCalledWith(
+      mockEvent,
+      mockElement,
+      mockContainer
+    );
   });
 
   it('should use provided ctx without creating a new one', () => {

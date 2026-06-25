@@ -5,7 +5,7 @@ import type {
   ServerRequestEvent,
 } from '@qwik.dev/router/middleware/request-handler';
 import {
-  getNotFound,
+  getErrorHtml,
   isStaticPath,
   requestHandler,
 } from '@qwik.dev/router/middleware/request-handler';
@@ -118,16 +118,11 @@ export function createQwikRouter(opts: QwikRouterAzureOptions): AzureFunction {
         }
       }
 
-      // qwik router did not have a route for this request
-      // response with 404 for this pathname
-
-      // In the development server, we replace the getNotFound function
-      // For static paths, we assign a static "Not Found" message.
-      // This ensures consistency between development and production environments for specific URLs.
+      // No matching route: respond with a minimal 404 (static paths get a plain message).
       const notFoundHtml =
         !req.headers.accept?.includes('text/html') || isStaticPath(req.method || 'GET', url)
           ? 'Not Found'
-          : getNotFound(url.pathname);
+          : getErrorHtml(404, 'Not Found');
       return {
         status: 404,
         headers: { 'Content-Type': 'text/html; charset=utf-8', 'X-Not-Found': url.pathname },

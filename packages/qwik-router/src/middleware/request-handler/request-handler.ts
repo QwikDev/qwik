@@ -10,7 +10,7 @@ import {
   trimInternalPathname,
   trimRecognizedInternalPathname,
 } from './request-path';
-import { renderQwikMiddleware, resolveRequestHandlers } from './resolve-request-handlers';
+import { renderQwikMiddleware, resolveRequestHandlers } from './resolve-request-handlers-core';
 import type { ServerRenderOptions, ServerRequestEvent } from './types';
 import { runQwikRouter, type QwikRouterRun } from './user-response';
 
@@ -18,6 +18,8 @@ let qwikRouterConfig: QwikRouterConfig;
 
 async function getConfig(): Promise<QwikRouterConfig> {
   if (!qwikRouterConfig) {
+    // The production server build prunes this plan (drops prerendered server-free routes); full
+    // when nothing is excluded. See the router config `load`.
     qwikRouterConfig = (await import('@qwik-router-config')) as any as QwikRouterConfig;
   }
   return qwikRouterConfig;

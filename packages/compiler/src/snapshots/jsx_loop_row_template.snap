@@ -32,11 +32,7 @@ export function App() {
 import {
   createSignal,
   _qrlWithChunk,
-  escapeHTML,
   createSsrElementTextTarget,
-  renderSsrTextExpression,
-  createSsrElementTarget,
-  renderSsrAttrExpression,
   renderSsrForBlock,
 } from '@qwik.dev/core/spark';
 import { component_for_key_segment_1 } from './component.tsx_component_for_key_segment_1';

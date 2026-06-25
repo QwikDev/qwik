@@ -14,9 +14,8 @@ export function App() {
 
 import {
   createSignal,
-  createSsrDomBatchEffect,
-  createSsrElementTarget,
   escapeHTML,
+  createSsrElementTarget,
   renderSsrAttr,
 } from '@qwik.dev/core/spark';
 
@@ -26,21 +25,20 @@ export function App(_props, ctx) {
   const style = createSignal('color:red');
   const id0 = ctx.nextId();
   ctx.addRoot(title);
-  const batch1 = createSsrDomBatchEffect();
-  const attr2 = renderSsrAttr(createSsrElementTarget(id0), 'title', title, batch1);
+  const attr1 = renderSsrAttr(createSsrElementTarget(id0), 'title', title);
   ctx.addRoot(classes);
-  const attr3 = renderSsrAttr(createSsrElementTarget(id0), 'class', classes, batch1);
+  const attr2 = renderSsrAttr(createSsrElementTarget(id0), 'class', classes);
   ctx.addRoot(style);
-  const attr4 = renderSsrAttr(createSsrElementTarget(id0), 'style', style, batch1);
+  const attr3 = renderSsrAttr(createSsrElementTarget(id0), 'style', style);
   return (
     '<div q:id="' +
     id0 +
     '" title="' +
-    escapeHTML(attr2) +
+    escapeHTML(attr1) +
     '" class="' +
-    escapeHTML(attr3) +
+    escapeHTML(attr2) +
     '" style="' +
-    escapeHTML(attr4) +
+    escapeHTML(attr3) +
     '">Attrs</div>'
   );
 }
@@ -53,13 +51,7 @@ null
 
 ============================= src/component.tsx ==
 
-import {
-  createSignal,
-  createTemplate,
-  createDomBatchEffect,
-  readTrackedSourceValue,
-  patchAttrValue,
-} from '@qwik.dev/core/spark';
+import { createSignal, createTemplate, createAttrEffect } from '@qwik.dev/core/spark';
 
 const dom_App_template0 = createTemplate('<div>Attrs</div>');
 export function App(_props, ctx) {
@@ -68,13 +60,12 @@ export function App(_props, ctx) {
   const style = createSignal('color:red');
   const fragment0 = dom_App_template0(ctx.document);
   const el1 = fragment0.firstChild;
-  const effect2 = createDomBatchEffect(batch3, { scheduler: ctx.scheduler });
-  function batch3() {
-    patchAttrValue(el1, 'title', readTrackedSourceValue(title));
-    patchAttrValue(el1, 'class', readTrackedSourceValue(classes));
-    patchAttrValue(el1, 'style', readTrackedSourceValue(style));
-  }
+  const effect2 = createAttrEffect(el1, 'title', title, { scheduler: ctx.scheduler });
   ctx.scheduler.notify(effect2);
+  const effect3 = createAttrEffect(el1, 'class', classes, { scheduler: ctx.scheduler });
+  ctx.scheduler.notify(effect3);
+  const effect4 = createAttrEffect(el1, 'style', style, { scheduler: ctx.scheduler });
+  ctx.scheduler.notify(effect4);
   return el1;
 }
 

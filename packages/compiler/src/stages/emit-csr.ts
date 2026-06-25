@@ -19,8 +19,11 @@ import {
   emitComponentSetup,
   emitImports,
   emitObjectGetterName,
-  countScalarDomEffects,
+  getDomEffectBatchStats,
+  getDomPropsBatchKey,
+  getDynamicBindingBatchKey,
   hasDynamicBinding,
+  isDomEffectBatched,
   rewriteLoopCaptures,
   serializeAttrValue,
 } from './emit-utils';
@@ -36,11 +39,17 @@ type ElementRenderNode = Extract<RenderNode, { kind: 'element' }>;
 interface DomEmitterOptions {
   branchCondition?: 'qrl' | 'inline';
   domEffectMode?: 'notify' | 'run';
-  domEffectCount?: number;
+  domEffectBatchCounts?: ReadonlyMap<string, number>;
   helperPrefix?: string;
   importSegment?: (qrlSegment: QrlSegmentOutput) => void;
   use?: (symbol: QwikSymbol) => void;
   loopCaptures?: readonly { name: string; source: string }[];
+}
+
+interface DomBatchState {
+  effectId: string;
+  updateId: string;
+  ops: string[];
 }
 
 export function emitCsrModule(
@@ -99,7 +108,7 @@ function emitDomRenderer(
     qrlSegments,
     sourceCode,
     {
-      domEffectCount: countScalarDomEffects(component.root),
+      domEffectBatchCounts: getDomEffectBatchStats(component.root, qrlSegments).counts,
       helperPrefix: createHelperPrefix(component.exportName),
     },
     component
@@ -129,9 +138,7 @@ export class DomEmitter {
   private readonly hoists: string[] = [];
   private readonly helperBySegment = new Map<string, string>();
   private readonly moduleImportNames = new Set<string>();
-  private batchEffectId: string | null = null;
-  private batchUpdateId: string | null = null;
-  private readonly batchOps: string[] = [];
+  private readonly batches = new Map<string, DomBatchState>();
 
   constructor(
     private qrlSegments: Map<string, QrlSegmentOutput>,
@@ -352,10 +359,12 @@ export class DomEmitter {
   }
 
   private emitDynamicTextBinding(textId: string, node: DynamicTextRenderNode): void {
-    if (this.shouldBatchDomEffects()) {
+    const batchKey = getDynamicBindingBatchKey(node.binding, this.qrlSegments);
+    if (this.shouldBatchDomEffect(batchKey)) {
       if (node.binding.kind === 'source') {
         this.use(QwikSymbol.ReadTrackedSourceValue);
         this.emitDomBatchOp(
+          batchKey!,
           `${textId}.data = String(${QwikSymbol.ReadTrackedSourceValue}(${node.binding.sourceName}));`
         );
       } else {
@@ -364,7 +373,10 @@ export class DomEmitter {
           this.emitSourceExpression(node.expressionRange)
         );
         this.use(QwikSymbol.PatchTextValue);
-        this.emitDomBatchOp(`${QwikSymbol.PatchTextValue}(${textId}, ${callback.invoke});`);
+        this.emitDomBatchOp(
+          batchKey!,
+          `${QwikSymbol.PatchTextValue}(${textId}, ${callback.invoke});`
+        );
       }
       return;
     }
@@ -398,11 +410,13 @@ export class DomEmitter {
       const callback = node.propsSegmentId
         ? this.emitDomExpressionCallback(node.propsSegmentId, `(${propsExpression})`)
         : this.emitInlineDomExpressionCallback(`(${this.emitDomPropsExpression(node.props)})`);
-      if (this.shouldBatchDomEffects()) {
+      const batchKey = getDomPropsBatchKey(node, this.qrlSegments);
+      if (this.shouldBatchDomEffect(batchKey)) {
         const prevPropsId = this.next('prevProps');
         this.use(QwikSymbol.ApplyDomProps);
         this.line(`let ${prevPropsId} = null;`);
         this.emitDomBatchOp(
+          batchKey!,
           `${prevPropsId} = ${QwikSymbol.ApplyDomProps}(${elementId}, ${callback.invoke}, ${prevPropsId});`
         );
       } else {
@@ -421,8 +435,9 @@ export class DomEmitter {
         continue;
       }
       if (prop.binding) {
-        if (this.shouldBatchDomEffects()) {
-          this.emitDynamicAttrBatchOp(elementId, prop);
+        const batchKey = getDynamicBindingBatchKey(prop.binding, this.qrlSegments);
+        if (this.shouldBatchDomEffect(batchKey)) {
+          this.emitDynamicAttrBatchOp(elementId, prop, batchKey!);
         } else {
           const effectId = this.next('effect');
           this.line(this.emitDynamicAttrEffect(effectId, elementId, prop));
@@ -600,7 +615,7 @@ export class DomEmitter {
     )}, ${sourceName}, { scheduler: ctx.scheduler });`;
   }
 
-  private emitDynamicAttrBatchOp(elementId: string, prop: PropRecord): void {
+  private emitDynamicAttrBatchOp(elementId: string, prop: PropRecord, batchKey: string): void {
     if (prop.kind !== 'named') {
       throw new Error('Dynamic attribute effects require named props.');
     }
@@ -612,6 +627,7 @@ export class DomEmitter {
       );
       this.use(QwikSymbol.PatchAttrValue);
       this.emitDomBatchOp(
+        batchKey,
         `${QwikSymbol.PatchAttrValue}(${elementId}, ${JSON.stringify(prop.name)}, ${callback.invoke});`
       );
       return;
@@ -621,49 +637,50 @@ export class DomEmitter {
     this.use(QwikSymbol.ReadTrackedSourceValue);
     this.use(QwikSymbol.PatchAttrValue);
     this.emitDomBatchOp(
+      batchKey,
       `${QwikSymbol.PatchAttrValue}(${elementId}, ${JSON.stringify(prop.name)}, ${sourceValue});`
     );
   }
 
-  private shouldBatchDomEffects(): boolean {
-    return (this.options.domEffectCount ?? 0) > 1;
+  private shouldBatchDomEffect(batchKey: string | null): boolean {
+    return isDomEffectBatched(this.options.domEffectBatchCounts, batchKey);
   }
 
-  private ensureDomBatchEffect(): string {
-    if (this.batchEffectId !== null) {
-      return this.batchEffectId;
+  private ensureDomBatchEffect(batchKey: string): DomBatchState {
+    const existing = this.batches.get(batchKey);
+    if (existing) {
+      return existing;
     }
     const effectId = this.next('effect');
     const updateId = this.next('batch');
-    this.batchEffectId = effectId;
-    this.batchUpdateId = updateId;
     this.use(QwikSymbol.CreateDomBatchEffect);
     this.line(
       `const ${effectId} = ${QwikSymbol.CreateDomBatchEffect}(${updateId}, { scheduler: ctx.scheduler });`
     );
-    return effectId;
+    const state = { effectId, updateId, ops: [] };
+    this.batches.set(batchKey, state);
+    return state;
   }
 
-  private emitDomBatchOp(operation: string): void {
-    const effectId = this.ensureDomBatchEffect();
+  private emitDomBatchOp(batchKey: string, operation: string): void {
+    const batch = this.ensureDomBatchEffect(batchKey);
     if (this.options.domEffectMode === 'run') {
       const opId = this.next('batchOp');
-      this.batchOps.push(`${opId}();`);
+      batch.ops.push(`${opId}();`);
       this.line(`function ${opId}() { ${operation} }`);
       this.use(QwikSymbol.RunDomBatchEffect);
-      this.line(`${QwikSymbol.RunDomBatchEffect}(${effectId}, ${opId});`);
+      this.line(`${QwikSymbol.RunDomBatchEffect}(${batch.effectId}, ${opId});`);
       return;
     }
-    this.batchOps.push(operation);
+    batch.ops.push(operation);
   }
 
   finalizeDomBatchEffects(): void {
-    if (this.batchEffectId === null || this.batchUpdateId === null) {
-      return;
-    }
-    this.line(`function ${this.batchUpdateId}() { ${this.batchOps.join(' ')} }`);
-    if (this.options.domEffectMode !== 'run') {
-      this.line(`ctx.scheduler.notify(${this.batchEffectId});`);
+    for (const batch of this.batches.values()) {
+      this.line(`function ${batch.updateId}() { ${batch.ops.join(' ')} }`);
+      if (this.options.domEffectMode !== 'run') {
+        this.line(`ctx.scheduler.notify(${batch.effectId});`);
+      }
     }
   }
 

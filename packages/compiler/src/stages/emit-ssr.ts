@@ -18,14 +18,17 @@ import {
   emitImports,
   emitObjectGetterName,
   emitSsrQrlPrelude,
-  countScalarDomEffects,
   escapeAttr,
   escapeText,
   flattenElementChildren,
+  getDomEffectBatchStats,
+  getDomPropsBatchKey,
+  getDynamicBindingBatchKey,
   hasBranch,
   hasForBlock,
   hasComponent,
   hasDynamicBinding,
+  isDomEffectBatched,
   rewriteLoopCaptures,
   serializeAttrValue,
   shouldResolveSsrQrl,
@@ -35,7 +38,7 @@ import { emitQrlReference } from './implicit-dollar';
 type HtmlPart = string | { code: string };
 
 interface SsrEmitterOptions {
-  domEffectCount?: number;
+  domEffectBatchCounts?: ReadonlyMap<string, number>;
   rootRangeTarget?: string;
   rootElementAttr?: string;
   loopCaptures?: readonly { name: string; source: string }[];
@@ -74,7 +77,7 @@ function emitSsrComponent(
   sourceCode: string
 ) {
   const emitter = new SsrEmitter(qrlSegments, sourceCode, {
-    domEffectCount: countScalarDomEffects(component.root),
+    domEffectBatchCounts: getDomEffectBatchStats(component.root, qrlSegments).counts,
   });
   const html = emitter.emitHtmlExpression(component.root!);
   const isAsync =
@@ -127,7 +130,7 @@ export class SsrEmitter {
   private counter = 0;
   private readonly lines: string[] = [];
   private readonly roots = new Set<string>();
-  private ssrBatchId: string | null = null;
+  private readonly ssrBatches = new Map<string, string>();
   usesCtx = false;
 
   constructor(
@@ -364,7 +367,7 @@ export class SsrEmitter {
     this.emitCaptureRoots(qrlSegment);
     this.usesCtx = true;
     const id = this.next('props');
-    const batchArg = this.shouldBatchDomEffects() ? `, ${this.ensureSsrBatchEffect()}` : '';
+    const batchArg = this.emitSsrBatchArg(getDomPropsBatchKey(node, this.qrlSegments));
     this.line(
       `const ${id} = ${QwikSymbol.RenderSsrProps}(${QwikSymbol.CreateSsrElementTarget}(${elementId}), ${this.emitCaptureArgs(
         qrlSegment
@@ -443,7 +446,7 @@ export class SsrEmitter {
       const qrlSegment = this.requireQrlSegment(binding.qrlSegmentId);
       this.emitCaptureRoots(qrlSegment);
       const id = this.next('attr');
-      const batchArg = this.shouldBatchDomEffects() ? `, ${this.ensureSsrBatchEffect()}` : '';
+      const batchArg = this.emitSsrBatchArg(getDynamicBindingBatchKey(binding, this.qrlSegments));
       this.line(
         `const ${id} = ${QwikSymbol.RenderSsrAttrExpression}(${target}, ${JSON.stringify(
           prop.name
@@ -452,7 +455,7 @@ export class SsrEmitter {
       return [` ${prop.name}="`, { code: `${QwikSymbol.EscapeHTML}(${id})` }, '"'];
     }
     this.emitRoot(binding.sourceName);
-    const batchArg = this.shouldBatchDomEffects() ? `, ${this.ensureSsrBatchEffect()}` : '';
+    const batchArg = this.emitSsrBatchArg(getDynamicBindingBatchKey(binding, this.qrlSegments));
     const id = this.next('attr');
     this.line(
       `const ${id} = ${QwikSymbol.RenderSsrAttr}(${target}, ${JSON.stringify(prop.name)}, ${
@@ -493,7 +496,9 @@ export class SsrEmitter {
     if (node.binding.kind === 'source') {
       this.emitRoot(node.binding.sourceName);
       const id = this.next('text');
-      const batchArg = this.shouldBatchDomEffects() ? `, ${this.ensureSsrBatchEffect()}` : '';
+      const batchArg = this.emitSsrBatchArg(
+        getDynamicBindingBatchKey(node.binding, this.qrlSegments)
+      );
       this.line(
         `const ${id} = ${QwikSymbol.RenderSsrTextNode}(${target}, ${node.binding.sourceName}${batchArg});`
       );
@@ -506,7 +511,9 @@ export class SsrEmitter {
     }
     this.emitCaptureRoots(qrlSegment);
     const id = this.next('text');
-    const batchArg = this.shouldBatchDomEffects() ? `, ${this.ensureSsrBatchEffect()}` : '';
+    const batchArg = this.emitSsrBatchArg(
+      getDynamicBindingBatchKey(node.binding, this.qrlSegments)
+    );
     this.line(
       `const ${id} = ${QwikSymbol.RenderSsrTextExpression}(${target}, ${this.emitCaptureArgs(
         qrlSegment
@@ -522,16 +529,19 @@ export class SsrEmitter {
     return id;
   }
 
-  private shouldBatchDomEffects(): boolean {
-    return (this.options.domEffectCount ?? 0) > 1;
+  private emitSsrBatchArg(batchKey: string | null): string {
+    return isDomEffectBatched(this.options.domEffectBatchCounts, batchKey)
+      ? `, ${this.ensureSsrBatchEffect(batchKey!)}`
+      : '';
   }
 
-  private ensureSsrBatchEffect(): string {
-    if (this.ssrBatchId !== null) {
-      return this.ssrBatchId;
+  private ensureSsrBatchEffect(batchKey: string): string {
+    const existing = this.ssrBatches.get(batchKey);
+    if (existing !== undefined) {
+      return existing;
     }
     const id = this.next('batch');
-    this.ssrBatchId = id;
+    this.ssrBatches.set(batchKey, id);
     this.line(`const ${id} = ${QwikSymbol.CreateSsrDomBatchEffect}();`);
     return id;
   }

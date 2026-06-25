@@ -21,8 +21,6 @@ export function App() {
 import {
   createSignal,
   _qrlWithChunk,
-  escapeHTML,
-  renderSsrTextNode,
   createSsrRangeTextTarget,
   renderSsrBranch,
 } from '@qwik.dev/core/spark';

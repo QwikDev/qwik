@@ -1,5 +1,7 @@
 import type {
   ComponentRecord,
+  DynamicBinding,
+  ElementNode,
   ImportRecord,
   NamedPropRecord,
   QrlSegmentOutput,
@@ -345,32 +347,111 @@ export function hasDirectDomEvent(node: RenderNode | null): boolean {
   );
 }
 
-export function countScalarDomEffects(node: RenderNode | null): number {
+export type ScalarDomEffectKind =
+  | 'sourceText'
+  | 'textExpression'
+  | 'dynamicAttr'
+  | 'attrExpression'
+  | 'props';
+
+export interface ScalarDomEffectInfo {
+  kind: ScalarDomEffectKind;
+  batchKey: string | null;
+}
+
+export interface DomEffectBatchStats {
+  effects: ScalarDomEffectInfo[];
+  counts: ReadonlyMap<string, number>;
+}
+
+export function getDomEffectBatchStats(
+  node: RenderNode | null,
+  qrlSegments: Map<string, QrlSegmentOutput>
+): DomEffectBatchStats {
+  const effects = collectScalarDomEffects(node, qrlSegments);
+  const counts = new Map<string, number>();
+  for (const effect of effects) {
+    if (effect.batchKey !== null) {
+      counts.set(effect.batchKey, (counts.get(effect.batchKey) ?? 0) + 1);
+    }
+  }
+  return { effects, counts };
+}
+
+export function isDomEffectBatched(
+  counts: ReadonlyMap<string, number> | undefined,
+  batchKey: string | null
+): boolean {
+  return batchKey !== null && (counts?.get(batchKey) ?? 0) > 1;
+}
+
+export function getDynamicBindingBatchKey(
+  binding: DynamicBinding,
+  qrlSegments: Map<string, QrlSegmentOutput>
+): string | null {
+  if (binding.kind === 'source') {
+    return `source:${binding.sourceName}`;
+  }
+  return getQrlCaptureBatchKey(qrlSegments.get(binding.qrlSegmentId));
+}
+
+export function getDomPropsBatchKey(
+  node: ElementNode,
+  qrlSegments: Map<string, QrlSegmentOutput>
+): string | null {
+  return node.propsSegmentId === null
+    ? null
+    : getQrlCaptureBatchKey(qrlSegments.get(node.propsSegmentId));
+}
+
+function collectScalarDomEffects(
+  node: RenderNode | null,
+  qrlSegments: Map<string, QrlSegmentOutput>
+): ScalarDomEffectInfo[] {
   if (!node) {
-    return 0;
+    return [];
   }
   if (node.kind === 'dynamicText') {
-    return 1;
+    return [
+      {
+        kind: node.binding.kind === 'source' ? 'sourceText' : 'textExpression',
+        batchKey: getDynamicBindingBatchKey(node.binding, qrlSegments),
+      },
+    ];
   }
   if (node.kind === 'element') {
-    let count = node.props.some((prop) => prop.kind === 'spread')
-      ? 1
-      : node.props.reduce(
-          (total, prop) => total + (prop.kind === 'named' && prop.binding ? 1 : 0),
-          0
-        );
-    for (const child of node.children) {
-      count += countScalarDomEffects(child);
+    const effects: ScalarDomEffectInfo[] = [];
+    if (node.props.some((prop) => prop.kind === 'spread')) {
+      effects.push({ kind: 'props', batchKey: getDomPropsBatchKey(node, qrlSegments) });
+    } else {
+      for (const prop of node.props) {
+        if (prop.kind === 'named' && prop.binding) {
+          effects.push({
+            kind: prop.binding.kind === 'source' ? 'dynamicAttr' : 'attrExpression',
+            batchKey: getDynamicBindingBatchKey(prop.binding, qrlSegments),
+          });
+        }
+      }
     }
-    return count;
+    for (const child of node.children) {
+      effects.push(...collectScalarDomEffects(child, qrlSegments));
+    }
+    return effects;
   }
-  if (node.kind === 'fragment') {
-    return node.children.reduce((total, child) => total + countScalarDomEffects(child), 0);
+  if (node.kind === 'fragment' || node.kind === 'component') {
+    return node.children.flatMap((child) => collectScalarDomEffects(child, qrlSegments));
   }
-  if (node.kind === 'component') {
-    return node.children.reduce((total, child) => total + countScalarDomEffects(child), 0);
+  return [];
+}
+
+function getQrlCaptureBatchKey(qrlSegment: QrlSegmentOutput | undefined): string | null {
+  if (!qrlSegment) {
+    return null;
   }
-  return 0;
+  return `captures:${qrlSegment.segment.captures
+    .map((capture) => capture.name)
+    .sort()
+    .join(',')}`;
 }
 
 export function emitObjectGetterName(name: string): string {

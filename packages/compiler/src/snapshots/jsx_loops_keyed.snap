@@ -24,12 +24,7 @@ export function App() {
 import {
   createSignal,
   _qrlWithChunk,
-  escapeHTML,
   createSsrElementTextTarget,
-  renderSsrTextExpression,
-  createSsrElementTarget,
-  renderSsrAttrExpression,
-  renderSsrProps,
   renderSsrForBlock,
 } from '@qwik.dev/core/spark';
 import { component_for_key_segment_1 } from './component.tsx_component_for_key_segment_1';
@@ -164,8 +159,7 @@ export const component_for_render_segment_0 = (ctx, rangeId, rowId, row, index) 
     createSsrElementTarget(id3),
     'data-index',
     [index],
-    q_component_data_index_segment_3,
-    batch2
+    q_component_data_index_segment_3
   );
   const attr5 = renderSsrAttrExpression(
     createSsrElementTarget(id3),
@@ -455,6 +449,7 @@ import {
   applyDomProps,
   createDomBatchEffect,
   runDomBatchEffect,
+  createAttrExpressionEffect,
   patchAttrValue,
   patchTextValue,
   setEvent,
@@ -473,10 +468,14 @@ export const component_for_render_segment_0 = (ctx, row, index) => {
   }
   runDomBatchEffect(effect2, batchOp4);
   const el5 = ctx.document.createElement('span');
-  function batchOp6() {
-    patchAttrValue(el5, 'data-index', component_for_render_segment_0_expr1(index));
-  }
-  runDomBatchEffect(effect2, batchOp6);
+  const effect6 = createAttrExpressionEffect(
+    el5,
+    'data-index',
+    [index],
+    component_for_render_segment_0_expr1,
+    { scheduler: ctx.scheduler }
+  );
+  effect6.run();
   function batchOp7() {
     patchAttrValue(el5, 'class', component_for_render_segment_0_expr2(row));
   }
@@ -495,7 +494,6 @@ export const component_for_render_segment_0 = (ctx, row, index) => {
   el0.appendChild(el10);
   function batch3() {
     batchOp4();
-    batchOp6();
     batchOp7();
     batchOp9();
   }

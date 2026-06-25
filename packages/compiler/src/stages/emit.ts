@@ -28,23 +28,20 @@ import {
 } from './emit-csr';
 import { emitSsrDomPropsExpression, emitSsrModule, SsrEmitter } from './emit-ssr';
 import {
-  countScalarDomEffects,
   emitImports,
   emitSsrQrlPrelude,
-  hasAttrExpressionBinding,
   hasCapturedCsrFunction,
   hasCapturedDomPropsEvent,
   hasComponentPropsSpread,
-  hasDomPropsBinding,
-  hasDynamicAttrBinding,
   hasDynamicBinding,
   hasElementTextBinding,
   hasBranch,
   hasForBlock,
   hasComponent,
   hasRangeTextBinding,
-  hasSourceTextBinding,
-  hasTextExpression,
+  getDomEffectBatchStats,
+  isDomEffectBatched,
+  type ScalarDomEffectKind,
   rewriteLoopCaptures,
   shouldResolveSsrQrl,
 } from './emit-utils';
@@ -120,7 +117,8 @@ function createModuleImports(
         components.map((component) => ({
           root: component.root,
           providesContext: component.providesContext,
-        }))
+        })),
+        qrlSegments
       )
     );
   }
@@ -137,35 +135,52 @@ interface SsrUsageRoot {
   providesContext?: boolean;
 }
 
-function createSsrImportUsage(roots: readonly SsrUsageRoot[]): SsrImportUsage {
+function createSsrImportUsage(
+  roots: readonly SsrUsageRoot[],
+  qrlSegments: Map<string, QrlSegmentOutput> = new Map()
+): SsrImportUsage {
   const items = roots.map((item) => ({
     ...item,
-    domEffectCount: countScalarDomEffects(item.root),
+    batchStats: getDomEffectBatchStats(item.root, qrlSegments),
   }));
   const has = (predicate: (node: RenderNode | null) => boolean) =>
     items.some((item) => predicate(item.root));
-  const hasBatched = (predicate: (node: RenderNode | null) => boolean) =>
-    items.some((item) => item.domEffectCount > 1 && predicate(item.root));
-  const hasScalar = (predicate: (node: RenderNode | null) => boolean) =>
-    items.some((item) => item.domEffectCount <= 1 && predicate(item.root));
+  const hasBatched = (kind: ScalarDomEffectKind) =>
+    items.some((item) =>
+      item.batchStats.effects.some(
+        (effect) =>
+          effect.kind === kind && isDomEffectBatched(item.batchStats.counts, effect.batchKey)
+      )
+    );
+  const hasScalar = (kind: ScalarDomEffectKind) =>
+    items.some((item) =>
+      item.batchStats.effects.some(
+        (effect) =>
+          effect.kind === kind && !isDomEffectBatched(item.batchStats.counts, effect.batchKey)
+      )
+    );
 
   return {
     hasDynamicBinding: items.some(
       (item) => hasDynamicBinding(item.root) || item.providesContext === true
     ),
-    hasDomBatch: items.some((item) => item.domEffectCount > 1),
-    hasDomBatchSourceText: hasBatched(hasSourceTextBinding),
-    hasDomBatchTextExpression: hasBatched(hasTextExpression),
-    hasDomBatchDynamicAttr: hasBatched(hasDynamicAttrBinding),
-    hasDomBatchAttrExpression: hasBatched(hasAttrExpressionBinding),
-    hasDomBatchProps: hasBatched(hasDomPropsBinding),
-    hasSourceText: hasScalar(hasSourceTextBinding),
+    hasDomBatch: items.some((item) =>
+      item.batchStats.effects.some((effect) =>
+        isDomEffectBatched(item.batchStats.counts, effect.batchKey)
+      )
+    ),
+    hasDomBatchSourceText: hasBatched('sourceText'),
+    hasDomBatchTextExpression: hasBatched('textExpression'),
+    hasDomBatchDynamicAttr: hasBatched('dynamicAttr'),
+    hasDomBatchAttrExpression: hasBatched('attrExpression'),
+    hasDomBatchProps: hasBatched('props'),
+    hasSourceText: hasScalar('sourceText'),
     hasElementText: has(hasElementTextBinding),
     hasRangeText: has(hasRangeTextBinding),
-    hasTextExpression: hasScalar(hasTextExpression),
-    hasDynamicAttr: hasScalar(hasDynamicAttrBinding),
-    hasAttrExpression: hasScalar(hasAttrExpressionBinding),
-    hasDomProps: hasScalar(hasDomPropsBinding),
+    hasTextExpression: hasScalar('textExpression'),
+    hasDynamicAttr: hasScalar('dynamicAttr'),
+    hasAttrExpression: hasScalar('attrExpression'),
+    hasDomProps: hasScalar('props'),
     hasBranch: has(hasBranch),
     hasForBlock: has(hasForBlock),
     hasComponent: has(hasComponent),
@@ -402,31 +417,45 @@ function collectCsrRootImportUsage(
   const items = components.map((component) => ({
     root: component.root,
     providesContext: component.providesContext,
-    domEffectCount: countScalarDomEffects(component.root),
+    batchStats: getDomEffectBatchStats(component.root, qrlSegments),
   }));
   const has = (predicate: (node: RenderNode | null) => boolean) =>
     items.some((item) => predicate(item.root));
-  const hasBatched = (predicate: (node: RenderNode | null) => boolean) =>
-    items.some((item) => item.domEffectCount > 1 && predicate(item.root));
-  const hasScalar = (predicate: (node: RenderNode | null) => boolean) =>
-    items.some((item) => item.domEffectCount <= 1 && predicate(item.root));
+  const hasBatched = (kind: ScalarDomEffectKind) =>
+    items.some((item) =>
+      item.batchStats.effects.some(
+        (effect) =>
+          effect.kind === kind && isDomEffectBatched(item.batchStats.counts, effect.batchKey)
+      )
+    );
+  const hasScalar = (kind: ScalarDomEffectKind) =>
+    items.some((item) =>
+      item.batchStats.effects.some(
+        (effect) =>
+          effect.kind === kind && !isDomEffectBatched(item.batchStats.counts, effect.batchKey)
+      )
+    );
 
   return {
     hasDynamicBinding: items.some(
       (item) => hasCsrRootDynamicBinding(item.root) || item.providesContext
     ),
     hasTemplate: has(canEmitTemplateRoot),
-    hasDomBatch: items.some((item) => item.domEffectCount > 1),
-    hasDomBatchSourceText: hasBatched(hasCsrRootSourceTextBinding),
-    hasDomBatchTextExpression: hasBatched(hasCsrRootTextExpression),
-    hasDomBatchDynamicAttr: hasBatched(hasCsrRootDynamicAttrBinding),
-    hasDomBatchAttrExpression: hasBatched(hasCsrRootAttrExpression),
-    hasDomBatchProps: hasBatched(hasCsrRootDomPropsBinding),
-    hasSourceText: hasScalar(hasCsrRootSourceTextBinding),
-    hasTextExpression: hasScalar(hasCsrRootTextExpression),
-    hasDynamicAttr: hasScalar(hasCsrRootDynamicAttrBinding),
-    hasAttrExpression: hasScalar(hasCsrRootAttrExpression),
-    hasDomProps: hasScalar(hasCsrRootDomPropsBinding),
+    hasDomBatch: items.some((item) =>
+      item.batchStats.effects.some((effect) =>
+        isDomEffectBatched(item.batchStats.counts, effect.batchKey)
+      )
+    ),
+    hasDomBatchSourceText: hasBatched('sourceText'),
+    hasDomBatchTextExpression: hasBatched('textExpression'),
+    hasDomBatchDynamicAttr: hasBatched('dynamicAttr'),
+    hasDomBatchAttrExpression: hasBatched('attrExpression'),
+    hasDomBatchProps: hasBatched('props'),
+    hasSourceText: hasScalar('sourceText'),
+    hasTextExpression: hasScalar('textExpression'),
+    hasDynamicAttr: hasScalar('dynamicAttr'),
+    hasAttrExpression: hasScalar('attrExpression'),
+    hasDomProps: hasScalar('props'),
     hasDirectEvent: has(hasCsrRootDirectDomEvent),
     hasCapturedDomPropsEvent: has((root) => hasCapturedDomPropsEvent(root, qrlSegments)),
     hasCapturedFunction: has((root) => hasCapturedCsrFunction(root, qrlSegments)),
@@ -457,45 +486,6 @@ function hasCsrRootDynamicBinding(node: RenderNode | null): boolean {
             prop.kind === 'spread' ||
             (prop.kind === 'named' && (prop.binding || prop.expressionRange !== undefined))
         ))
-  );
-}
-
-function hasCsrRootSourceTextBinding(node: RenderNode | null): boolean {
-  return someCsrRootNode(
-    node,
-    (current) => current.kind === 'dynamicText' && current.binding.kind === 'source'
-  );
-}
-
-function hasCsrRootTextExpression(node: RenderNode | null): boolean {
-  return someCsrRootNode(
-    node,
-    (current) => current.kind === 'dynamicText' && current.binding.kind === 'expression'
-  );
-}
-
-function hasCsrRootDynamicAttrBinding(node: RenderNode | null): boolean {
-  return someCsrRootNode(
-    node,
-    (current) =>
-      current.kind === 'element' &&
-      current.props.some((prop) => prop.kind === 'named' && prop.binding?.kind === 'source')
-  );
-}
-
-function hasCsrRootAttrExpression(node: RenderNode | null): boolean {
-  return someCsrRootNode(
-    node,
-    (current) =>
-      current.kind === 'element' &&
-      current.props.some((prop) => prop.kind === 'named' && prop.binding?.kind === 'expression')
-  );
-}
-
-function hasCsrRootDomPropsBinding(node: RenderNode | null): boolean {
-  return someCsrRootNode(
-    node,
-    (current) => current.kind === 'element' && current.props.some((prop) => prop.kind === 'spread')
   );
 }
 
@@ -924,7 +914,7 @@ function createSsrBranchRenderSegmentSource(
   const hasBranchRootRangeText = hasRootRangeTextBinding(fragment);
   const captures = qrlSegment.segment.captures;
   const emitter = new SsrEmitter(segmentQrlSegments, ctx.input.code, {
-    domEffectCount: countScalarDomEffects(fragment),
+    domEffectBatchCounts: getDomEffectBatchStats(fragment, segmentQrlSegments).counts,
     rootRangeTarget: hasBranchRootRangeText ? 'rangeId' : undefined,
   });
   const html = emitter.emitHtmlExpression(fragment);
@@ -949,7 +939,7 @@ function createSsrBranchRenderSegmentSource(
   const imports = createSsrImports(
     importRecords,
     segmentQrlSegments,
-    createSsrImportUsage([{ root: fragment }])
+    createSsrImportUsage([{ root: fragment }], segmentQrlSegments)
   );
   const importLine = imports.length > 0 ? `${emitImports(imports).join('\n')}\n\n` : '';
   const qrlPrelude = emitSsrQrlPrelude(segmentQrlSegments);
@@ -1007,7 +997,7 @@ function createBranchRenderSegmentSource(
   const captures = qrlSegment.segment.captures;
   const emitter = new DomEmitter(segmentQrlSegments, ctx.input.code, {
     branchCondition: 'inline',
-    domEffectCount: countScalarDomEffects(fragment),
+    domEffectBatchCounts: getDomEffectBatchStats(fragment, segmentQrlSegments).counts,
     helperPrefix: qrlSegment.symbolName,
     importSegment: (segment) => usage.segmentImports.set(segment.id, segment),
     use: (symbol) => usage.sparkImports.add(symbol),
@@ -1071,7 +1061,7 @@ function createSsrForRenderSegmentSource(
   const captures = qrlSegment.segment.captures;
   const rowIsElement = children.length === 1 && children[0].kind === 'element';
   const emitter = new SsrEmitter(segmentQrlSegments, ctx.input.code, {
-    domEffectCount: countScalarDomEffects(fragment),
+    domEffectBatchCounts: getDomEffectBatchStats(fragment, segmentQrlSegments).counts,
     rootRangeTarget: hasForRootRangeText ? 'rowId' : undefined,
     rootElementAttr: rowIsElement ? 'q:row' : undefined,
     loopCaptures: createLoopParamCaptures(qrlSegment.segment),
@@ -1099,7 +1089,7 @@ function createSsrForRenderSegmentSource(
   const imports = createSsrImports(
     importRecords,
     segmentQrlSegments,
-    createSsrImportUsage([{ root: fragment }])
+    createSsrImportUsage([{ root: fragment }], segmentQrlSegments)
   );
   const importLine = imports.length > 0 ? `${emitImports(imports).join('\n')}\n\n` : '';
   const qrlPrelude = emitSsrQrlPrelude(segmentQrlSegments);
@@ -1136,7 +1126,7 @@ function createForRenderSegmentSource(
   const emitter = new DomEmitter(segmentQrlSegments, ctx.input.code, {
     branchCondition: 'inline',
     domEffectMode: 'run',
-    domEffectCount: countScalarDomEffects(fragment),
+    domEffectBatchCounts: getDomEffectBatchStats(fragment, segmentQrlSegments).counts,
     helperPrefix: qrlSegment.symbolName,
     loopCaptures: createLoopParamCaptures(qrlSegment.segment),
     importSegment: (segment) => usage.segmentImports.set(segment.id, segment),

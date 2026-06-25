@@ -183,7 +183,7 @@ export default component$(() => {
 
 Code explanation:
 
-- The function passed to `routeLoader$` is invoked on the server eagerly before any component is rendered and is responsible for loading data.
+- The function passed to [`routeLoader$`](/docs/route-loader/#routeloader) is invoked on the server eagerly before any component is rendered and is responsible for loading data.
 - The `routeLoader$` returns a use-hook, `useDadJoke()`, that can be used in the component to retrieve the server data.
 
 <LongNote title="routeLoader$ Behavior">
@@ -289,7 +289,7 @@ export default component$(() => {
 
 ### 4. Modifying State
 
-Keeping track of the state and updating the UI is core to what applications do. Qwik provides a `useSignal` hook to keep track of the application's state. To learn more, see [state management](/docs/core/state/).
+Keeping track of the state and updating the UI is core to what applications do. Qwik provides a [`useSignal`](/docs/core/state/#usesignal) hook to keep track of the application's state. To learn more, see [state management](/docs/core/state/).
 
 To declare state:
 
@@ -368,7 +368,7 @@ export default component$(() => {
 
 In Qwik, a [task](/docs/core/tasks/#usetask) is work that needs to happen when a state changes. (This is similar to an "effect" in other frameworks.) In this example, we use the task to invoke code on the server.
 
-1. Import `useTask$` from `qwik` and `server$` from `qwik-router`.
+1. Import [`useTask$`](/docs/core/tasks/#usetask) from `qwik` and [`server$`](/docs/server$/#server) from `qwik-router`.
    ```tsx /useTask\$/ /server\$/
    import { component$, useSignal, useTask$ } from "@qwik.dev/core";
    import {
@@ -497,7 +497,7 @@ To add styles:
     ```tsx
     import styles from "./index.css?inline";
     ```
-3. Import `useStylesScoped$` from `qwik`.
+3. Import [`useStylesScoped$`](/docs/core/styles/) from `qwik`.
    ```tsx /useStylesScoped$/
    import { component$, useSignal, useStylesScoped$, useTask$ } from "@qwik.dev/core";
 4. Tell the component to load the styles:

@@ -68,7 +68,7 @@ const Child = component$(() => {
 </CodeSandbox>
 
 
-In the above example, a `ContextId` named `docs.theme-context` is created and used to provide a `useSignal` to the `default` component. The `Child` component uses the `useContext` method to get the `useSignal` and render its value.
+In the above example, a `ContextId` named `docs.theme-context` is created and used to provide a [`useSignal`](/docs/core/state/#usesignal) to the `default` component. The `Child` component uses the `useContext` method to get the `useSignal` and render its value.
 
 ## `createContextId()`
 
@@ -117,7 +117,7 @@ export const Parent = component$(() => {
 
 - `ContextId`: A previously created Context must be supplied, serving as an identifier for the data being provided as the second parameter.
 
-- `data`: You can provide any data type, such as Qwik's useSignal, useStore, arrays, or objects.
+- `data`: You can provide any data type, such as Qwik's useSignal, [useStore](/docs/core/state/#usestore), arrays, or objects.
 
 ### Caveats
 

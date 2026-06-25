@@ -25,7 +25,7 @@ created_at: '2023-03-30T19:49:50Z'
 
 ## Components
 
-Qwik components are very similar to React components. They are functions that return JSX. However, `component$(...)` needs to be used, event handlers must have the `$` suffix, state is created using `useSignal()`, `class` is used instead of `className` and some other differences.
+Qwik components are very similar to React components. They are functions that return JSX. However, [`component$(...)`](/docs/core/overview/#component) needs to be used, event handlers must have the `$` suffix, state is created using [`useSignal()`](/docs/core/state/#usesignal), `class` is used instead of `className` and some other differences.
 
 
 ```tsx title="src/components/my-other-component/index.tsx"
@@ -168,14 +168,14 @@ export default component$(() => {
 
 ### Rules of use hooks
 
-Methods that start with `use` are special in Qwik, such as `useSignal()`, `useStore()`, `useOn()`, `useTask$()`, `useLocation()` and so on. Very similar to React hooks.
+Methods that start with `use` are special in Qwik, such as `useSignal()`, [`useStore()`](/docs/core/state/#usestore), [`useOn()`](/docs/guides/best-practices/#useon), [`useTask$()`](/docs/core/tasks/#usetask), [`useLocation()`](/docs/api/#uselocation) and so on. Very similar to React hooks.
 
 - They can only be called within a component$.
 - They can only be called from the top level of a component$, not inside a conditional, or a loop.
 
 ## Styling
 
-Qwik supports out of the box, CSS modules, or even Tailwind, global CSS imports and lazy loading scoped CSS using `useStylesScoped$()`. CSS Modules are the recommended way to style Qwik components.
+Qwik supports out of the box, CSS modules, or even Tailwind, global CSS imports and lazy loading scoped CSS using [`useStylesScoped$()`](/docs/core/styles/). CSS Modules are the recommended way to style Qwik components.
 
 ### CSS Modules
 
@@ -202,7 +202,7 @@ Remember that Qwik uses `class` instead of `className` for CSS classes.
 
 ## $(...) rules
 
-The `$(...)` function and any function that end with `$` are special in Qwik, such as: `$()`, `useTask$()`, `useVisibleTask$()`... The `$` at the end represents a lazy loading boundary. There are some rules that apply to the first argument of any `$` function. It is NOT related to jQuery at all.
+The `$(...)` function and any function that end with `$` are special in Qwik, such as: `$()`, `useTask$()`, [`useVisibleTask$()`](/docs/core/tasks/#usevisibletask)... The `$` at the end represents a lazy loading boundary. There are some rules that apply to the first argument of any `$` function. It is NOT related to jQuery at all.
 
 - The first argument must be an imported variable.
 - The first argument must be a declared variable at the top level of the same module.
@@ -509,7 +509,7 @@ export default component$(() => {
 
 ## Fetching / loading data
 
-The recommended way to load data from the server is to use the `routeLoader$()` function exported from `@qwik.dev/router`. The `routeLoader$()` function is used to create a data loader that will be executed on the server before the route is rendered. The return of `routeLoader$()` must be exported as a named export from the route file, ie, it can only be used in a `index.tsx`, inside of `src/routes/`.
+The recommended way to load data from the server is to use the [`routeLoader$()`](/docs/route-loader/#routeloader) function exported from `@qwik.dev/router`. The `routeLoader$()` function is used to create a data loader that will be executed on the server before the route is rendered. The return of `routeLoader$()` must be exported as a named export from the route file, ie, it can only be used in a `index.tsx`, inside of `src/routes/`.
 
 ```tsx title="src/routes/user/[userID]/index.tsx"
 
@@ -558,7 +558,7 @@ The `routeLoader$()` function takes a function that returns a promise. The promi
 
 ## Handle form submissions
 
-Qwik provides the `routeAction$()` API exported from `@qwik.dev/router` to handle form requests on the server. `routeAction$()` is only executed on the server when the form is submitted.
+Qwik provides the [`routeAction$()`](/docs/action/#routeaction) API exported from `@qwik.dev/router` to handle form requests on the server. `routeAction$()` is only executed on the server when the form is submitted.
 
 ```tsx title="src/routes/user/[userID]/index.tsx"
 
@@ -724,7 +724,7 @@ The `routeLoader$()` is a special component that is only executed on the server.
 
 ### `server$((...args) => { ... })`
 
-The `server$()` is a special way to declare functions that only run on the server. If called from the client, they will behave like an RPC call, and will be executed on the server. They can take any serializable arguments, and return any serializable value.
+The [`server$()`](/docs/server$/#server) is a special way to declare functions that only run on the server. If called from the client, they will behave like an RPC call, and will be executed on the server. They can take any serializable arguments, and return any serializable value.
 
 ### `isServer` & `isBrowser` conditionals
 

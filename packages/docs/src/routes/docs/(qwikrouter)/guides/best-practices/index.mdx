@@ -75,7 +75,7 @@ the function that the "read" is happening at, will re-run again
 on every change to that signal.
 
 That’s why it’s better to "read" values (and track them)
-inside of `useTask$`, `useComputed$`, or `useAsync$` functions instead of inside component functions,
+inside of [`useTask$`](/docs/core/tasks/#usetask), [`useComputed$`](/docs/core/state/#usecomputed), or [`useAsync$`](/docs/core/state/#useasync) functions instead of inside component functions,
 whenever possible.
 
 Because otherwise, your component function will re-run
@@ -126,13 +126,13 @@ export default component$(() => {
 
 ## Use `useVisibleTask$()` as a last resort
 
-Although convenient, `useVisibleTask$()` runs code eagerly and blocks the main thread, preventing user interaction until the task is finished. You can think of it as an escape hatch.
+Although convenient, [`useVisibleTask$()`](/docs/core/tasks/#usevisibletask) runs code eagerly and blocks the main thread, preventing user interaction until the task is finished. You can think of it as an escape hatch.
 
 When in doubt, instead of "useVisibleTask$()" use:
 - `useTask$()` -> perform code execution in SSR mode.
 - `useOn()` -> listen to events on the root element of `the current component`.
-- `useOnWindow()` -> listen to events on the `window` object.
-- `useOnDocument()` -> listen to events on the `document` object.
+- [`useOnWindow()`](/docs/core/events/#useonwindowdocument-hook) -> listen to events on the `window` object.
+- [`useOnDocument()`](/docs/core/events/#useonwindowdocument-hook) -> listen to events on the `document` object.
 
 Sometimes though, it is the only way to achieve the result.
 
@@ -176,7 +176,7 @@ useOnDocument(
 
 ## Avoid accessing the location from the `window` object
 
-Don't access `window.location` directly, use `useLocation()` hook instead.
+Don't access `window.location` directly, use [`useLocation()`](/docs/api/#uselocation) hook instead.
 
 ```tsx title="Suboptimal implementation"
 // Don't do this!

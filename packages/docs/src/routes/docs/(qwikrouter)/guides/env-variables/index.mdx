@@ -111,7 +111,7 @@ DB_PRIVATE_KEY=123456789
 
 ### Usage Examples
 
-Server-side variables can only be accessed in server-only APIs that expose the `RequestEvent` object, such as `routeLoader$()`, `routeAction$()`, `server$()` and endpoint handlers such as `onGet`, `onPost`, `onRequest` etc.
+Server-side variables can only be accessed in server-only APIs that expose the `RequestEvent` object, such as [`routeLoader$()`](/docs/route-loader/#routeloader), [`routeAction$()`](/docs/action/#routeaction), [`server$()`](/docs/server$/#server) and endpoint handlers such as `onGet`, `onPost`, `onRequest` etc.
 
 ```tsx /DB_PRIVATE_KEY/ title="src/routes/index.tsx"
 import {

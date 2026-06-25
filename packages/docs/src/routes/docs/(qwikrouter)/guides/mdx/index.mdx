@@ -159,7 +159,7 @@ The above example will generate the following HTML code.
 ```
 
 ## Reading frontmatter data
-Frontmatter keys are accessible by leveraging the `useDocumentHead()` hook.
+Frontmatter keys are accessible by leveraging the [`useDocumentHead()`](/docs/api/#usedocumenthead) hook.
 
 ```markdown title="src/routes/some/path/index.mdx"
 ---
@@ -375,4 +375,4 @@ export const ReadingProgress = component$(() => {
 - This functionality only works with `.mdx` files, not with `.tsx` or other file types
 - Headings must have unique content to generate unique IDs
 - The heading data is available only on the client-side after hydration
-- Consider using `useVisibleTask$` if you need to interact with the heading elements in the DOM
+- Consider using [`useVisibleTask$`](/docs/core/tasks/#usevisibletask) if you need to interact with the heading elements in the DOM

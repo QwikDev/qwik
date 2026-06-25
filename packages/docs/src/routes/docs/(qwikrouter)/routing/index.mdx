@@ -428,6 +428,22 @@ export default defineConfig(async () => {
 });
 ```
 
+By default a config rewrites every matching route. Add `exclude` to skip routes that should not be rewritten under that config. The patterns use the same glob syntax as the SSG `include`/`exclude` and are matched per config:
+
+```tsx
+rewriteRoutes: [
+  {
+    prefix: 'it',
+    paths: {
+      'docs': 'documentazione',
+      'products': 'prodotti',
+    },
+    // `/blog` stays English-only: no `/it` mirror is generated for it.
+    exclude: ['/blog/*'],
+  },
+],
+```
+
 ## Advanced routing
 
 Qwik Router also supports:

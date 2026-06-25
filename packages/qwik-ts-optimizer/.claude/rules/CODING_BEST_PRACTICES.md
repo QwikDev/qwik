@@ -393,6 +393,46 @@ Losing `const` at the variable level is the trade-off. If `const` is
 structurally important, extract a helper function and `return` from
 each branch — the helper's return value is `const` at the call site.
 
+## Comments
+
+Comments explain **why**, not **what** — the code and the identifier
+names already say what. A comment earns its place by anchoring to an
+invariant, a precondition, or a non-obvious constraint the reader can't
+recover from the diff.
+
+Code comments (in `src/` and tests) must not reference the **SWC
+reference implementation** — not `SWC`, `swc-reference-only`,
+`@qwik.dev/optimizer`, "the Rust optimizer", nor file:line citations
+into the reference. This optimizer is a rewrite that will eventually
+supersede SWC, at which point every "matches SWC" / "mirrors
+`transform.rs:NNN`" comment becomes a dangling reference to something
+that no longer exists — stale by construction, and impossible to
+verify. State the behavior the optimizer implements as its own defined
+contract instead ("fold attribute whitespace so the value survives as a
+single-line string"), not as a derivative of an external tool.
+
+The parity rationale is still worth recording — it just belongs where
+it stays meaningful and doesn't rot in the code: the commit message, the
+PR description, or the Linear ticket. This is the same boundary as
+tracker IDs, which also never appear in code comments, test file
+headers, or test descriptions — only in commits, PRs, and project
+state. Existing references in untouched code are cleaned up
+opportunistically when you're editing that code for another reason, not
+in dedicated sweeps.
+
+Tests document themselves through their `describe` / `it` names and the
+shape of their assertions — never a preamble comment block. A file-level
+or `describe`-level summary that narrates what the suite covers is the
+same comment rot as a WHAT-comment: it duplicates information the test
+names already carry, and it drifts as cases are added or changed. If a
+preamble feels necessary, the test names are underspecified — fix the
+names. Each `it(...)` states the exact behavior it pins ("folds a
+trailing newline to a trailing space"), so the runner's output reads as
+a specification. The narrow exception is a single line explaining a
+non-obvious mechanism a *reader of one test* cannot recover from the
+code — a hardware quirk, an external-tool bug being worked around — and
+even then it sits inside that one test, not in a header.
+
 ## What this codebase does not do
 
 A few patterns from broader JS/TS practice that are not used here,

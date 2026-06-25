@@ -100,6 +100,33 @@ function isConstValueNode(valueNode: AstMaybeNode): boolean {
   }
 }
 
+/**
+ * Fold the whitespace of a string-literal JSX attribute value so a value
+ * spanning multiple physical source lines (or containing tabs) survives
+ * re-emission as a single-line JS string literal — raw newlines inside an
+ * emitted JS string are a syntax error. `quoted` is the raw source slice
+ * including its surrounding quote characters.
+ *
+ * Per-line: tabs become spaces; leading whitespace is stripped from
+ * continuation lines and trailing whitespace from every non-last line; the
+ * lines (empty ones included, so a blank line contributes one join space)
+ * are joined with a single space.
+ */
+function foldJsxAttrStringWhitespace(quoted: string): string {
+  const quote = quoted[0];
+  const interior = quoted.slice(1, -1);
+  const lines = interior.split(/\r\n|\r|\n/);
+  const folded = lines
+    .map((line, i) => {
+      let l = line.replace(/\t/g, ' ');
+      if (i > 0) l = l.replace(/^ +/, '');
+      if (i < lines.length - 1) l = l.replace(/ +$/, '');
+      return l;
+    })
+    .join(' ');
+  return `${quote}${folded}${quote}`;
+}
+
 /** True if entry string is a quoted prop key whose name has a rewritten event prefix. */
 export function isRewrittenEventEntry(entry: string): boolean {
   return entry.startsWith('"') && startsWithRewrittenEventPrefix(entry.slice(1));
@@ -261,6 +288,14 @@ export function processProps(
     } else {
       valueNode = attr.value;
       valueText = sliceWithFallback(ctx, attr.value.start, attr.value.end);
+      // A string-literal attribute value may span multiple physical lines
+      // or contain tabs in source — valid JSX, but raw newlines inside an
+      // emitted JS string literal are a syntax error. Only touch the slice
+      // when such characters are present so single-line values keep their
+      // exact source bytes (and existing snapshots are unaffected).
+      if (attr.value.type === 'Literal' && /[\n\r\t]/.test(valueText)) {
+        valueText = foldJsxAttrStringWhitespace(valueText);
+      }
     }
 
     if (isBindProp(propName) && !tagIsHtml) {

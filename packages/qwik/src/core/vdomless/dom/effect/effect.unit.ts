@@ -13,10 +13,8 @@ import { Scheduler } from '../../runtime/scheduler';
 import {
   createAttrEffect,
   createAttrExpressionEffect,
-  createClassEffect,
   createDomBatchEffect,
   createPropsEffect,
-  createStyleEffect,
   createTextExpressionEffect,
   createTextNodeEffect,
   patchAttrValue,
@@ -183,7 +181,7 @@ describe('DOM effects', () => {
       display: 'grid',
     });
     const { element, attrs } = createAttrTarget();
-    const effect = createOwned(() => createStyleEffect(element, style, { scheduler }));
+    const effect = createOwned(() => createAttrEffect(element, 'style', style, { scheduler }));
 
     scheduler.notify(effect);
     await scheduler.flushInteraction();
@@ -207,7 +205,7 @@ describe('DOM effects', () => {
       selected: 1,
     });
     const { element, attrs } = createAttrTarget();
-    const effect = createOwned(() => createClassEffect(element, classes, { scheduler }));
+    const effect = createOwned(() => createAttrEffect(element, 'class', classes, { scheduler }));
 
     scheduler.notify(effect);
     await scheduler.flushInteraction();
@@ -346,7 +344,7 @@ describe('DOM effects', () => {
       createAttrEffect(createAttrTarget().element, 'data-order', order, { scheduler })
     );
     const second = createOwned(() =>
-      createStyleEffect(createAttrTarget().element, order, { scheduler })
+      createAttrEffect(createAttrTarget().element, 'style', order, { scheduler })
     );
     const third = createOwned(() => createTextNodeEffect(createText(), order, { scheduler }));
     const seen: string[] = [];

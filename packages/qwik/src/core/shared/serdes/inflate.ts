@@ -8,7 +8,6 @@ import {
   AttrExpressionEffect,
   DomBatchEffect,
   PropsEffect,
-  SerializedAttrEffect,
   TextExpressionEffect,
   TextNodeEffect,
   type AttrExpressionFn,
@@ -223,8 +222,6 @@ export const inflate = async (
         case EffectKind.TextNode:
         case EffectKind.TextExpression:
         case EffectKind.Attr:
-        case EffectKind.AttrExpression:
-        case EffectKind.SerializedAttr:
         case EffectKind.Props: {
           await restoreDomSubscription(container, target as Writeable<DomSubscriber>, parts);
           break;
@@ -434,33 +431,23 @@ async function restoreDomEffect(
     }
     case EffectKind.Attr: {
       const target = readDomSubscriptionTarget(parts);
+      const element = resolveElementTarget(container, target.targetKind, target.targetId);
+      const name = String(parts[target.depsIndex + 1]);
+      if (parts.length > target.depsIndex + 3) {
+        const qrl = parts[target.depsIndex + 3] as QRLInternal<AttrExpressionFn>;
+        const fn = await qrl.resolve();
+        return {
+          deps: target.deps,
+          effect: new AttrExpressionEffect(
+            element,
+            name,
+            parts[target.depsIndex + 2] as unknown[],
+            fn
+          ),
+        };
+      }
       const source = readRequiredDomSource(target.deps, target.targetKind);
-      const element = resolveElementTarget(container, target.targetKind, target.targetId);
-      return { deps: target.deps, effect: new AttrEffect(element, String(parts[4]), source) };
-    }
-    case EffectKind.AttrExpression: {
-      const target = readDomSubscriptionTarget(parts);
-      const element = resolveElementTarget(container, target.targetKind, target.targetId);
-      const qrl = parts[target.depsIndex + 3] as QRLInternal<AttrExpressionFn>;
-      const fn = await qrl.resolve();
-      return {
-        deps: target.deps,
-        effect: new AttrExpressionEffect(
-          element,
-          String(parts[target.depsIndex + 1]),
-          parts[target.depsIndex + 2] as unknown[],
-          fn
-        ),
-      };
-    }
-    case EffectKind.SerializedAttr: {
-      const target = readDomSubscriptionTarget(parts);
-      const source = readRequiredDomSource(target.deps, target.targetKind);
-      const element = resolveElementTarget(container, target.targetKind, target.targetId);
-      return {
-        deps: target.deps,
-        effect: new SerializedAttrEffect(element, source, parts[4] as any),
-      };
+      return { deps: target.deps, effect: new AttrEffect(element, name, source) };
     }
     case EffectKind.Props: {
       const target = readDomSubscriptionTarget(parts);

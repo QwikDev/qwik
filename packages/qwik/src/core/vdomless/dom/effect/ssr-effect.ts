@@ -1,7 +1,6 @@
 import { EffectKind } from './effect-kind.enum';
 import { Phase } from '../../runtime/scheduler';
 import {
-  AttrSerializer,
   serializeAttrExpressionValue,
   type AttrExpressionFn,
   type TextExpressionFn,
@@ -13,8 +12,6 @@ import { runWithCollector, track } from '../../reactive/tracking';
 import type { QRLInternal } from '../../../shared/qrl/qrl-class';
 import { registerSubscriberToOwner } from '../../runtime/owner';
 import type { Owner } from '../../runtime/owner';
-import type { ClassList } from '../../../shared/jsx/types/jsx-qwik-attributes';
-import { serializeClass, stringifyStyle } from '../../../shared/utils/styles';
 import type { SSRForBlock } from '../for/for';
 import { renderDomPropsToString } from './dom-props';
 
@@ -34,7 +31,6 @@ export type SsrScalarDomEffect =
   | SsrTextNodeEffect
   | SsrAttrEffect
   | SsrAttrExpressionEffect<any[]>
-  | SsrSerializedAttrEffect
   | SsrPropsEffect<any[]>;
 export type SsrDomEffect = SsrScalarDomEffect | SsrDomBatchEffect;
 
@@ -95,7 +91,7 @@ export class SsrAttrEffect {
 }
 
 export class SsrAttrExpressionEffect<TArgs extends unknown[] = unknown[]> {
-  readonly kind = EffectKind.AttrExpression;
+  readonly kind = EffectKind.Attr;
   readonly phase = Phase.ScalarDom;
 
   constructor(
@@ -103,17 +99,6 @@ export class SsrAttrExpressionEffect<TArgs extends unknown[] = unknown[]> {
     readonly name: string,
     readonly args: TArgs,
     readonly qrl: AttrExpressionQrl<TArgs>
-  ) {}
-}
-
-export class SsrSerializedAttrEffect {
-  readonly kind = EffectKind.SerializedAttr;
-  readonly phase = Phase.ScalarDom;
-
-  constructor(
-    readonly target: SsrEffectTarget,
-    readonly serializer: AttrSerializer,
-    readonly source?: Source
   ) {}
 }
 
@@ -179,13 +164,6 @@ export function createSsrAttrExpressionEffect<TArgs extends unknown[]>(
   qrl: AttrExpressionQrl<TArgs>
 ): SsrDomSubscriber {
   return useSsrDomEffect(undefined, new SsrAttrExpressionEffect(target, name, args, qrl));
-}
-
-export function createSsrSerializedAttrEffect(
-  target: SsrEffectTarget,
-  serializer: AttrSerializer
-): SsrDomSubscriber {
-  return useSsrDomEffect(undefined, new SsrSerializedAttrEffect(target, serializer));
 }
 
 export function createSsrPropsEffect<TArgs extends unknown[]>(
@@ -260,7 +238,10 @@ export function renderSsrAttr(
     batch,
     new SsrAttrEffect(target, name, batch ? source : undefined)
   );
-  return String(runWithCollector(subscriber, readTrackedSourceValue, source));
+  return serializeAttrExpressionValue(
+    name,
+    runWithCollector(subscriber, readTrackedSourceValue, source)
+  );
 }
 
 export function renderSsrAttrExpression<TArgs extends unknown[]>(
@@ -278,32 +259,6 @@ export function renderSsrAttrExpression<TArgs extends unknown[]>(
   }
 
   return serializeAttrExpressionValue(name, runWithCollector(subscriber, fn, ...args));
-}
-
-export function renderSsrClass(
-  target: SsrEffectTarget,
-  source: Source,
-  batch?: SsrDomSubscriber
-): string {
-  const subscriber = useSsrDomEffect(
-    batch,
-    new SsrSerializedAttrEffect(target, AttrSerializer.Class, batch ? source : undefined)
-  );
-  const value = runWithCollector(subscriber, readTrackedSourceValue, source);
-  return serializeClass(value as ClassList);
-}
-
-export function renderSsrStyle(
-  target: SsrEffectTarget,
-  source: Source,
-  batch?: SsrDomSubscriber
-): string {
-  const subscriber = useSsrDomEffect(
-    batch,
-    new SsrSerializedAttrEffect(target, AttrSerializer.Style, batch ? source : undefined)
-  );
-  const value = runWithCollector(subscriber, readTrackedSourceValue, source);
-  return stringifyStyle(value);
 }
 
 export function renderSsrProps<TArgs extends unknown[]>(

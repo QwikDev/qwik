@@ -4,7 +4,11 @@ import { inflate } from '../shared/serdes/inflate';
 import { createSerializationContext } from '../shared/serdes/serialization-context';
 import { Constants, TypeIds } from '../shared/serdes/constants';
 import { EffectKind } from './dom/effect/effect-kind.enum';
-import { createTextNodeEffect, AttrSerializer, type TextExpressionFn } from './dom/effect/effect';
+import {
+  createTextNodeEffect,
+  type AttrExpressionFn,
+  type TextExpressionFn,
+} from './dom/effect/effect';
 import { BranchSubscription, renderSsrBranch } from './dom/branch/branch';
 import { renderSsrForBlock } from './dom/for/for';
 import {
@@ -12,11 +16,12 @@ import {
   createSsrElementTextTarget,
   createSsrRangeTextTarget,
   createSsrDomBatchEffect,
-  createSsrSerializedAttrEffect,
+  createSsrAttrEffect,
+  createSsrAttrExpressionEffect,
   createSsrTextExpressionEffect,
   createSsrTextNodeEffect,
   EffectTargetKind,
-  renderSsrClass,
+  renderSsrAttr,
   renderSsrTextNode,
   SsrDomSubscription,
 } from './dom/effect/ssr-effect';
@@ -116,8 +121,8 @@ describe('vdomless serdes emit-only', () => {
     const [classEffect, styleEffect] = createOwned(
       () =>
         [
-          createSsrSerializedAttrEffect(createSsrElementTarget(2), AttrSerializer.Class),
-          createSsrSerializedAttrEffect(createSsrElementTarget(2), AttrSerializer.Style),
+          createSsrAttrEffect(createSsrElementTarget(2), 'class'),
+          createSsrAttrEffect(createSsrElementTarget(2), 'style'),
         ] as const
     );
 
@@ -128,14 +133,44 @@ describe('vdomless serdes emit-only', () => {
     const classPayload = (state[1] as unknown[])[3] as unknown[];
     const stylePayload = (state[3] as unknown[])[3] as unknown[];
 
-    expect(classPayload[1]).toBe(EffectKind.SerializedAttr);
+    expect(classPayload[1]).toBe(EffectKind.Attr);
     expect(classPayload[3]).toBe(EffectTargetKind.Element);
     expect(classPayload[5]).toBe(2);
-    expect(classPayload[9]).toBe(AttrSerializer.Class);
-    expect(stylePayload[1]).toBe(EffectKind.SerializedAttr);
+    expect(classPayload[9]).toBe('class');
+    expect(stylePayload[1]).toBe(EffectKind.Attr);
     expect(stylePayload[3]).toBe(EffectTargetKind.Element);
     expect(stylePayload[5]).toBe(2);
-    expect(stylePayload[9]).toBe(AttrSerializer.Style);
+    expect(stylePayload[9]).toBe('style');
+  });
+
+  it('serializes SSR attr expression subscribers as attrs', async () => {
+    const count = createSignal(1);
+    const container = createCaptureContainer({ 0: count });
+    const qrl = createQRL<AttrExpressionFn<[Signal<number>]>>(
+      './style.attr.js',
+      'style',
+      (source) => ({ opacity: source.value }),
+      null,
+      '0',
+      container
+    );
+    const effect = createOwned(() =>
+      createSsrAttrExpressionEffect(createSsrElementTarget(2), 'style', [count], qrl)
+    );
+
+    await qrl.resolve(container);
+    runWithCollector(effect, () => qrl.resolved!(count));
+
+    const state = await serialize(count);
+    const signalPayload = state[1] as unknown[];
+    const effectPayload = signalPayload[3] as unknown[];
+
+    expect(effectPayload[1]).toBe(EffectKind.Attr);
+    expect(effectPayload[3]).toBe(EffectTargetKind.Element);
+    expect(effectPayload[5]).toBe(2);
+    expect(effectPayload[9]).toBe('style');
+    expect(effectPayload[10]).toBe(TypeIds.Array);
+    expect(effectPayload[12]).toBe(TypeIds.QRL);
   });
 
   it('serializes SSR DOM batch subscribers', async () => {
@@ -145,7 +180,7 @@ describe('vdomless serdes emit-only', () => {
     createOwned(() => {
       const batch = createSsrDomBatchEffect() as SsrDomSubscription;
       renderSsrTextNode(createSsrElementTextTarget(4), count, batch);
-      renderSsrClass(createSsrElementTarget(5), classSource, batch);
+      renderSsrAttr(createSsrElementTarget(5), 'class', classSource, batch);
     });
 
     const state = await serialize(count, classSource);
@@ -158,7 +193,8 @@ describe('vdomless serdes emit-only', () => {
     expect(effectPayload[1]).toBe(EffectKind.DomBatch);
     expect(effectPayload[3]).toEqual([TypeIds.RootRef, 0, TypeIds.RootRef, 1]);
     expect(textOpPayload[1]).toBe(EffectKind.TextNode);
-    expect(classOpPayload[1]).toBe(EffectKind.SerializedAttr);
+    expect(classOpPayload[1]).toBe(EffectKind.Attr);
+    expect(classOpPayload[9]).toBe('class');
   });
 
   it('serializes branch subscriptions as effect subscriptions with owned subscribers', async () => {

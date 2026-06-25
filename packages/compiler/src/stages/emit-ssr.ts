@@ -453,16 +453,12 @@ export class SsrEmitter {
     }
     this.emitRoot(binding.sourceName);
     const batchArg = this.shouldBatchDomEffects() ? `, ${this.ensureSsrBatchEffect()}` : '';
-    const renderCall =
-      prop.name === 'class'
-        ? `${QwikSymbol.RenderSsrClass}(${target}, ${binding.sourceName}${batchArg})`
-        : prop.name === 'style'
-          ? `${QwikSymbol.RenderSsrStyle}(${target}, ${binding.sourceName}${batchArg})`
-          : `${QwikSymbol.RenderSsrAttr}(${target}, ${JSON.stringify(prop.name)}, ${
-              binding.sourceName
-            }${batchArg})`;
     const id = this.next('attr');
-    this.line(`const ${id} = ${renderCall};`);
+    this.line(
+      `const ${id} = ${QwikSymbol.RenderSsrAttr}(${target}, ${JSON.stringify(prop.name)}, ${
+        binding.sourceName
+      }${batchArg});`
+    );
     return [` ${prop.name}="`, { code: `${QwikSymbol.EscapeHTML}(${id})` }, '"'];
   }
 

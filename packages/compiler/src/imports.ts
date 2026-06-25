@@ -85,12 +85,7 @@ export function createSsrImports(
     sparkSpecifiers.push(QwikSymbol.RenderSsrTextExpression);
   }
   if (usage.hasDynamicAttr || usage.hasDomBatchDynamicAttr) {
-    sparkSpecifiers.push(
-      QwikSymbol.CreateSsrElementTarget,
-      QwikSymbol.RenderSsrAttr,
-      QwikSymbol.RenderSsrClass,
-      QwikSymbol.RenderSsrStyle
-    );
+    sparkSpecifiers.push(QwikSymbol.CreateSsrElementTarget, QwikSymbol.RenderSsrAttr);
   }
   if (usage.hasAttrExpression || usage.hasDomBatchAttrExpression) {
     sparkSpecifiers.push(QwikSymbol.CreateSsrElementTarget, QwikSymbol.RenderSsrAttrExpression);
@@ -181,11 +176,7 @@ export function createCsrImports(
     sparkSpecifiers.push(QwikSymbol.CreateTextExpressionEffect);
   }
   if (usage.hasDynamicAttr) {
-    sparkSpecifiers.push(
-      QwikSymbol.CreateAttrEffect,
-      QwikSymbol.CreateClassEffect,
-      QwikSymbol.CreateStyleEffect
-    );
+    sparkSpecifiers.push(QwikSymbol.CreateAttrEffect);
   }
   if (usage.hasAttrExpression) {
     sparkSpecifiers.push(QwikSymbol.CreateAttrExpressionEffect);

@@ -594,14 +594,6 @@ export class DomEmitter {
       )}, ${callback.args}, ${callback.fn}, { scheduler: ctx.scheduler });`;
     }
     const sourceName = binding.sourceName;
-    if (prop.name === 'class') {
-      this.use(QwikSymbol.CreateClassEffect);
-      return `const ${effectId} = ${QwikSymbol.CreateClassEffect}(${elementId}, ${sourceName}, { scheduler: ctx.scheduler });`;
-    }
-    if (prop.name === 'style') {
-      this.use(QwikSymbol.CreateStyleEffect);
-      return `const ${effectId} = ${QwikSymbol.CreateStyleEffect}(${elementId}, ${sourceName}, { scheduler: ctx.scheduler });`;
-    }
     this.use(QwikSymbol.CreateAttrEffect);
     return `const ${effectId} = ${QwikSymbol.CreateAttrEffect}(${elementId}, ${JSON.stringify(
       prop.name
@@ -627,18 +619,9 @@ export class DomEmitter {
 
     const sourceValue = `${QwikSymbol.ReadTrackedSourceValue}(${binding.sourceName})`;
     this.use(QwikSymbol.ReadTrackedSourceValue);
-    if (prop.name === 'class') {
-      this.use(QwikSymbol.PatchAttrValue);
-      this.emitDomBatchOp(`${QwikSymbol.PatchAttrValue}(${elementId}, 'class', ${sourceValue});`);
-      return;
-    }
-    if (prop.name === 'style') {
-      this.use(QwikSymbol.PatchAttrValue);
-      this.emitDomBatchOp(`${QwikSymbol.PatchAttrValue}(${elementId}, 'style', ${sourceValue});`);
-      return;
-    }
+    this.use(QwikSymbol.PatchAttrValue);
     this.emitDomBatchOp(
-      `${elementId}.setAttribute(${JSON.stringify(prop.name)}, String(${sourceValue}));`
+      `${QwikSymbol.PatchAttrValue}(${elementId}, ${JSON.stringify(prop.name)}, ${sourceValue});`
     );
   }
 

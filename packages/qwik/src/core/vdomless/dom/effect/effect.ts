@@ -19,11 +19,6 @@ import { applyDomProps } from './dom-props';
 import { isDev } from '@qwik.dev/core/build';
 import { EMPTY_STRING } from '../../utils/consts';
 
-export const enum AttrSerializer {
-  Class = 0,
-  Style = 1,
-}
-
 export type TextExpressionValue = string | number | boolean | bigint | null | undefined;
 export type TextExpressionFn<TArgs extends unknown[] = unknown[]> = (
   ...args: TArgs
@@ -43,7 +38,6 @@ export type DomEffect =
   | TextNodeEffect
   | AttrEffect
   | AttrExpressionEffect<any[]>
-  | SerializedAttrEffect
   | PropsEffect<any[]>
   | DomBatchEffect;
 
@@ -78,7 +72,7 @@ export class AttrEffect {
   ) {}
 
   run(): void {
-    this.element.setAttribute(this.name, String(readTrackedSourceValue(this.source)));
+    patchAttrValue(this.element, this.name, readTrackedSourceValue(this.source));
   }
 }
 
@@ -92,22 +86,6 @@ export class AttrExpressionEffect<TArgs extends unknown[] = unknown[]> {
 
   run(): void {
     patchAttrValue(this.element, this.name, this.fn(...this.args));
-  }
-}
-
-export class SerializedAttrEffect {
-  constructor(
-    readonly element: Element,
-    readonly source: Source,
-    readonly serializer: AttrSerializer
-  ) {}
-
-  run(): void {
-    patchAttrValue(
-      this.element,
-      this.serializer === AttrSerializer.Class ? 'class' : 'style',
-      readTrackedSourceValue(this.source)
-    );
   }
 }
 
@@ -205,28 +183,6 @@ export function createAttrExpressionEffect<TArgs extends unknown[]>(
 ): DomSubscriber {
   return createDomSubscription(
     new AttrExpressionEffect(element, name, args, fn),
-    options?.scheduler
-  );
-}
-
-export function createClassEffect(
-  element: Element,
-  source: Source,
-  options?: DomEffectOptions
-): DomSubscriber {
-  return createDomSubscription(
-    new SerializedAttrEffect(element, source, AttrSerializer.Class),
-    options?.scheduler
-  );
-}
-
-export function createStyleEffect(
-  element: Element,
-  source: Source,
-  options?: DomEffectOptions
-): DomSubscriber {
-  return createDomSubscription(
-    new SerializedAttrEffect(element, source, AttrSerializer.Style),
     options?.scheduler
   );
 }

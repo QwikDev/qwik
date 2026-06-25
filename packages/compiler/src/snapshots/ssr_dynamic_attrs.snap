@@ -18,8 +18,6 @@ import {
   createSsrElementTarget,
   escapeHTML,
   renderSsrAttr,
-  renderSsrClass,
-  renderSsrStyle,
 } from '@qwik.dev/core/spark';
 
 export function App(_props, ctx) {
@@ -31,9 +29,9 @@ export function App(_props, ctx) {
   const batch1 = createSsrDomBatchEffect();
   const attr2 = renderSsrAttr(createSsrElementTarget(id0), 'title', title, batch1);
   ctx.addRoot(classes);
-  const attr3 = renderSsrClass(createSsrElementTarget(id0), classes, batch1);
+  const attr3 = renderSsrAttr(createSsrElementTarget(id0), 'class', classes, batch1);
   ctx.addRoot(style);
-  const attr4 = renderSsrStyle(createSsrElementTarget(id0), style, batch1);
+  const attr4 = renderSsrAttr(createSsrElementTarget(id0), 'style', style, batch1);
   return (
     '<div q:id="' +
     id0 +
@@ -72,7 +70,7 @@ export function App(_props, ctx) {
   const el1 = fragment0.firstChild;
   const effect2 = createDomBatchEffect(batch3, { scheduler: ctx.scheduler });
   function batch3() {
-    el1.setAttribute('title', String(readTrackedSourceValue(title)));
+    patchAttrValue(el1, 'title', readTrackedSourceValue(title));
     patchAttrValue(el1, 'class', readTrackedSourceValue(classes));
     patchAttrValue(el1, 'style', readTrackedSourceValue(style));
   }

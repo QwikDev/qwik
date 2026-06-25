@@ -821,19 +821,18 @@ function serializeSsrScalarDomEffect(
           ]
         : [effect.kind, target.kind, target.id, serializedDeps, effect.args, effect.qrl];
     case EffectKind.Attr:
+      if ('qrl' in effect) {
+        return [
+          effect.kind,
+          target.kind,
+          target.id,
+          serializedDeps,
+          effect.name,
+          effect.args,
+          effect.qrl,
+        ];
+      }
       return [effect.kind, target.kind, target.id, serializedDeps, effect.name];
-    case EffectKind.AttrExpression:
-      return [
-        effect.kind,
-        target.kind,
-        target.id,
-        serializedDeps,
-        effect.name,
-        effect.args,
-        effect.qrl,
-      ];
-    case EffectKind.SerializedAttr:
-      return [effect.kind, target.kind, target.id, serializedDeps, effect.serializer];
     case EffectKind.Props:
       return [effect.kind, target.kind, target.id, serializedDeps, effect.args, effect.qrl];
   }
@@ -844,9 +843,9 @@ function serializeSsrScalarDomEffect(
 function serializeSsrScalarDomEffectDeps(effect: SsrScalarDomEffect): readonly Dependency[] {
   switch (effect.kind) {
     case EffectKind.TextNode:
-    case EffectKind.Attr:
-    case EffectKind.SerializedAttr:
       return effect.source === undefined ? EMPTY_ARRAY : [effect.source];
+    case EffectKind.Attr:
+      return 'source' in effect && effect.source !== undefined ? [effect.source] : EMPTY_ARRAY;
     default:
       return EMPTY_ARRAY;
   }

@@ -12,6 +12,7 @@ import { createRegExp, exactly, oneOrMore, whitespace, wordChar, charIn, charNot
 import { rewriteImportSource } from './rewrite-imports.js';
 import { isQwikPackageSource } from '../qwik/qwik-packages.js';
 import { getQrlCalleeName } from '../qwik/qrl-naming.js';
+import { quoteAsStringLiteral } from '../edit/string-literal.js';
 
 // Keep this as a raw RegExp because the lazy quantifier is the clearest way
 // to preserve the current non-greedy block comment stripping behavior.
@@ -80,7 +81,7 @@ function minifyFunctionText(text: string): string {
  */
 export function buildSyncTransform(originalFnText: string): string {
   const minified = minifyFunctionText(originalFnText);
-  return `_qrlSync(${originalFnText}, "${minified}")`;
+  return `_qrlSync(${originalFnText}, ${quoteAsStringLiteral(minified)})`;
 }
 
 /** Qrl callee names that get PURE annotations. */

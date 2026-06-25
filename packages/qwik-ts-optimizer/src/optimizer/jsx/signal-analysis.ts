@@ -19,6 +19,7 @@ import {
   isReplaceableIdentifierPosition,
   type RangeReplacementCollector,
 } from '../edit/range-replace.js';
+import { quoteAsStringLiteral } from '../edit/string-literal.js';
 
 const trailingComma = createRegExp(
   exactly(',').and(anyOf('}', ']', ')').grouped()),
@@ -431,9 +432,7 @@ function generateFnSignal(
   strBody = stripOuterParens(strBody);
   strBody = stripTernaryConditionParens(strBody);
 
-  const hoistedStr = strBody.includes('"')
-    ? `'${strBody}'`
-    : `"${strBody}"`;
+  const hoistedStr = quoteAsStringLiteral(strBody);
 
   return { hoistedFn, hoistedStr };
 }

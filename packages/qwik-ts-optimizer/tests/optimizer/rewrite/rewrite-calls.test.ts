@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { parseSync } from 'oxc-parser';
 import {
   getQrlCalleeName,
   buildQrlDeclaration,
@@ -46,6 +47,19 @@ describe('buildSyncTransform', () => {
     expect(result).toContain(originalFn);
     // Should have a minified string as second argument
     expect(result).toMatch(/_qrlSync\([\s\S]+,\s*"/);
+  });
+
+  it('single-quote-wraps a serialized body containing double-quote string literals', () => {
+    const result = buildSyncTransform('(e, el) => { console.log("drop"); }');
+    expect(result).toContain(`'(e,el)=>`);
+    expect(result).toContain('console.log("drop")');
+    expect(parseSync('t.tsx', result, { lang: 'tsx' }).errors).toHaveLength(0);
+  });
+
+  it('keeps double-quote wrapping when the body has no double quotes', () => {
+    const result = buildSyncTransform('(event, target) => { event.preventDefault(); }');
+    expect(result).toContain('"(event,target)=>');
+    expect(parseSync('t.tsx', result, { lang: 'tsx' }).errors).toHaveLength(0);
   });
 });
 

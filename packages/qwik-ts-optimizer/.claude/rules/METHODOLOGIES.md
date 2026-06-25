@@ -59,13 +59,13 @@ Run this as soon as the PR is merged. **Confirm with the user before the destruc
    ```
    Grounds the rest of the cleanup against the post-merge tip.
 
-2. **Rebuild + re-sync qwik-bundler's dist when the merge touched `src/`.** The TS optimizer ships into [qwik-bundler](https://github.com/thejackshelton/qwik-bundler) as a pnpm `file:../TS-Optimizer` devDep, which pnpm snapshots as a **content-addressed copy at install time — not a live symlink**. After any merge that changes optimizer behavior, the bundler keeps silently running stale optimizer code under `experimental: ['tsOptimizer']` until the copy is refreshed:
+2. **Rebuild + re-sync the consumer's dist when the merge touched `src/`.** The TS optimizer (`qwik-ts-optimizer`, renamed from `qwik-optimizer-ts` per OSS-498) ships into downstream apps as a pnpm `file:../TS-Optimizer` dep, which pnpm snapshots as a **content-addressed copy at install time — not a live symlink**. The current consumer is `qwik-design-system` (`docs/package.json` → `qwik-ts-optimizer: file:../../TS-Optimizer`); it also pulls in [qwik-bundler](https://github.com/thejackshelton/qwik-bundler), whose own copy symlinks to the single `qwik-ts-optimizer` store copy — so one resync refreshes both. Until the copy is refreshed, the build keeps silently running stale optimizer code under `experimental: ['tsOptimizer']`:
    ```
    pnpm build
    rsync -a --delete dist/ \
-     ../qwik-bundler/node_modules/.pnpm/qwik-optimizer-ts@file+..+TS-Optimizer_*/node_modules/qwik-optimizer-ts/dist/
+     ../qwik-design-system/node_modules/.pnpm/qwik-ts-optimizer@file+..+TS-Optimizer_*/node_modules/qwik-ts-optimizer/dist/
    ```
-   Verify by `grep`-ing the synced output for a string introduced by the merged change. If the store glob matches more than one directory (stale installs), don't rsync into a glob — run `pnpm install --force` in qwik-bundler instead. Skip this step for docs/tests-only merges. The same rule applies mid-development: **any** verification against the real bundler (dev SSR, `build.client`, Playwright) must be preceded by a fresh build + re-sync, or the result is meaningless.
+   Verify by `grep`-ing the synced output for a string introduced by the merged change. If the store glob matches more than one directory (stale installs), don't rsync into a glob — run `pnpm install --force` in the consuming repo instead. Skip this step for docs/tests-only merges. The same rule applies mid-development: **any** verification against the real bundler (dev SSR, `build.client`, Playwright) must be preceded by a fresh build + re-sync, or the result is meaningless.
 
 3. **Delete the merged branch — local and remote.**
    ```

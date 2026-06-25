@@ -324,6 +324,10 @@ pnpm deps
 
 This will show an interactive UI to update all dependencies. Be careful about performing major updates, especially for the docs site, since not all functionality has test coverage there. Be sure to test thoroughly.
 
+When you add or change a single dependency, run `pnpm dedupe.fix` and commit the updated `pnpm-lock.yaml`. CI verifies the lockfile is fully deduped and forces the `linux/x64` platform, so a bare `pnpm dedupe` (pnpm's built-in, which dedupes for your machine) can produce a different result and still fail CI — `pnpm dedupe.fix` pins those platform flags to match CI.
+
+If the `Verify pnpm dedupe` check fails even though your lockfile looks deduped, your branch is probably behind `build/v2` (which may have bumped a shared dependency). CI tests your branch _merged_ with `build/v2`, so update your branch onto `build/v2`, re-run `pnpm dedupe.fix`, and commit the result.
+
 ## Starter CLI `create-qwik`
 
 - [Starter CLI](https://github.com/QwikDev/qwik/blob/main/starters/README.md)

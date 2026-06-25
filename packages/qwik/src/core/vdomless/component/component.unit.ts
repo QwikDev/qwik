@@ -35,6 +35,14 @@ describe('components and invoke contexts', () => {
     expect(count.subs).toBeNull();
   });
 
+  it('returns scalar node component output', () => {
+    const node = createNode('component');
+
+    const output = createComponent(null, () => node);
+
+    expect(output).toBe(node);
+  });
+
   it('does not collect direct component reads from an outer collector', () => {
     const scheduler = new Scheduler(noopSchedule);
     const collector = runWithOwner(createOwner(null), () => createTask(() => {}, { scheduler }));

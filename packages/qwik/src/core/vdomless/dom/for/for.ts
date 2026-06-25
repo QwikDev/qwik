@@ -21,6 +21,8 @@ import {
 } from '../../runtime/owner';
 import { findForRowRanges } from '../../runtime/node-walker';
 import type { ForBlockSubscriber } from '../../runtime/subscriber';
+import { toNodes } from '../../utils/nodes';
+import type { MaybeNodeOutput } from '../../utils/nodes';
 import { ForBlockSubscription } from '../effect/effect';
 import { SSRForBlockSubscription } from '../effect/ssr-effect';
 import { getFunctionOrResolve } from '../qrl';
@@ -35,7 +37,7 @@ type ForRenderFn<T> = (
   ctx: ContainerContext,
   item: ForRenderItem<T>,
   index: ForRenderIndex
-) => readonly Node[];
+) => MaybeNodeOutput;
 type SsrForRenderFn<T> = (
   ctx: SsrForContext,
   rangeId: number,
@@ -528,7 +530,7 @@ export class ForBlock<T = unknown> {
   ): RowDom {
     const itemSignal = this.usesItemSignal ? new Signal(item) : null;
     const indexSignal = this.usesIndexSignal ? new Signal(index) : null;
-    let nodes: readonly Node[] | undefined;
+    let nodes: MaybeNodeOutput;
 
     try {
       nodes = runWithCollector(
@@ -550,7 +552,7 @@ export class ForBlock<T = unknown> {
       throw error;
     }
 
-    const row = createRowDom(this.container.document, nodes ?? EMPTY_ARRAY);
+    const row = createRowDom(this.container.document, nodes);
     const rowOwner = this.rowInvokeContext.owner;
     this.rowInvokeContext.owner = null;
     writeRowState(
@@ -650,11 +652,12 @@ function renderForRow<T>(
   ctx: ContainerContext,
   item: ForRenderItem<T>,
   index: ForRenderIndex
-): readonly Node[] {
+): MaybeNodeOutput {
   return renderFn(ctx, item, index);
 }
 
-function createRowDom(document: Document, nodes: readonly Node[]): RowDom {
+function createRowDom(document: Document, output: MaybeNodeOutput): RowDom {
+  const nodes = toNodes(output);
   if (nodes.length === 1 && nodes[0].nodeType === ELEMENT_NODE) {
     return nodes[0] as Element;
   }

@@ -30,13 +30,13 @@ const dom_App_template0 = createTemplate('<div>Hello</div>');
 export const App = (_props, ctx) => {
   const fragment0 = dom_App_template0(ctx.document);
   const el1 = fragment0.firstChild;
-  return [el1];
+  return el1;
 };
 const dom_default_template0 = createTemplate('<section>Default wrapped</section>');
 export default function Home(_props, ctx) {
   const fragment0 = dom_default_template0(ctx.document);
   const el1 = fragment0.firstChild;
-  return [el1];
+  return el1;
 }
 
 null

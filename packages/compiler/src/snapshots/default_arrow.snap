@@ -21,7 +21,7 @@ const dom_default_template0 = createTemplate('<section>Default arrow</section>')
 export default (_props, ctx) => {
   const fragment0 = dom_default_template0(ctx.document);
   const el1 = fragment0.firstChild;
-  return [el1];
+  return el1;
 };
 
 null

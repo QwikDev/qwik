@@ -247,7 +247,7 @@ export function App(_props, ctx) {
   );
   ctx.scheduler.notify(branch4);
   el0.appendChild(fragment1);
-  return [el0];
+  return el0;
 }
 
 null
@@ -296,7 +296,7 @@ export const component_branch_then_segment_1 = (ctx) => {
   const effect3 = createTextNodeEffect(text2, count, { scheduler: ctx.scheduler });
   ctx.scheduler.notify(effect3);
   el0.appendChild(text2);
-  return [el0];
+  return el0;
 };
 
 null
@@ -337,7 +337,7 @@ export const component_branch_else_segment_2 = (ctx) => {
   const effect3 = createTextNodeEffect(text2, count, { scheduler: ctx.scheduler });
   ctx.scheduler.notify(effect3);
   el0.appendChild(text2);
-  return [el0];
+  return el0;
 };
 
 null

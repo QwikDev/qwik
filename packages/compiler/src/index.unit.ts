@@ -101,6 +101,17 @@ describe('transformModules', () => {
     });
   });
 
+  test('emits scalar CSR output from a single-child fragment', async () => {
+    await testInput('static_single_child_fragment', {
+      code: `export const App = () => (
+  <>
+    <span>One</span>
+  </>
+);
+`,
+    });
+  });
+
   test('strips TypeScript syntax from generated component setup', async () => {
     await testInput('typescript_setup', {
       code: `import { createContextId } from '@qwik.dev/core';

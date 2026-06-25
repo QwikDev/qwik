@@ -351,7 +351,7 @@ export function App(_props, ctx) {
   );
   ctx.scheduler.notify(branch4);
   el0.appendChild(fragment1);
-  return [el0];
+  return el0;
 }
 
 null
@@ -371,7 +371,7 @@ export function Hello(_props, ctx) {
   el0.appendChild(text2);
   const text4 = ctx.document.createTextNode('!');
   el0.appendChild(text4);
-  return [el0];
+  return el0;
 }
 
 null
@@ -411,7 +411,7 @@ export function Counter(_props, ctx) {
   });
   ctx.scheduler.notify(effect3);
   el0.appendChild(text2);
-  return [el0];
+  return el0;
 }
 
 null
@@ -475,7 +475,7 @@ import { Hello } from './component.tsx_component_Hello';
 import { createComponent } from '@qwik.dev/core/spark';
 export const component_branch_then_segment_3 = (ctx) => {
   const cmp0 = createComponent({ name: 'Qwik' }, (props) => Hello(props, ctx), { container: ctx });
-  return [...cmp0];
+  return cmp0;
 };
 
 null
@@ -514,7 +514,7 @@ export const component_branch_else_segment_4 = (ctx) => {
     (props) => Counter(props, ctx),
     { container: ctx }
   );
-  return [...cmp0];
+  return cmp0;
 };
 
 null

@@ -77,7 +77,7 @@ export function App(_props, ctx) {
     el1.setAttribute('style', serializeAttrExpressionValue('style', readTrackedSourceValue(style)));
   }
   ctx.scheduler.notify(effect2);
-  return [el1];
+  return el1;
 }
 
 null

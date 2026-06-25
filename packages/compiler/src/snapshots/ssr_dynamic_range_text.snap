@@ -44,7 +44,7 @@ export function App(_props, ctx) {
   const effect3 = createTextNodeEffect(text2, count, { scheduler: ctx.scheduler });
   ctx.scheduler.notify(effect3);
   el0.appendChild(text2);
-  return [el0];
+  return el0;
 }
 
 null

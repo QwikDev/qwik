@@ -19,11 +19,13 @@ import {
   type BranchSubscriber,
   type SsrBranchSubscriber,
 } from '../../runtime/subscriber';
+import { EMPTY_NODES, toNodes } from '../../utils/nodes';
+import type { MaybeNodeOutput } from '../../utils/nodes';
 import { getFunctionOrResolve } from '../qrl';
 import { createContentRange, replaceRange } from '../range/range';
 
 type BranchConditionFn = () => boolean;
-type BranchHandlerFn = (ctx: ContainerContext) => readonly Node[];
+type BranchHandlerFn = (ctx: ContainerContext) => MaybeNodeOutput;
 type SSRBranchHandlerFn = (ctx: ContainerContext, rangeId: number) => string;
 
 /** BranchRange represents a range of nodes in the DOM that can be replaced with new nodes */
@@ -47,8 +49,6 @@ const enum BranchState {
   Then = 0,
   Else = 1,
 }
-
-const EMPTY_NODES: readonly Node[] = [];
 
 export class Branch {
   currentOwner: Owner | null;
@@ -126,7 +126,7 @@ export class BranchSubscription implements BranchSubscriber {
           container: this.branch.container,
         });
 
-        let nodes: readonly Node[];
+        let nodes: MaybeNodeOutput;
         try {
           nodes = runWithCollector(null, () =>
             invoke(newInvokeContext, () => renderer(newInvokeContext.container!))
@@ -140,7 +140,7 @@ export class BranchSubscription implements BranchSubscriber {
         }
 
         this.branch.currentOwner = newInvokeContext.owner;
-        this.branch.range.replace(nodes ?? EMPTY_NODES);
+        this.branch.range.replace(toNodes(nodes));
       });
     });
   }

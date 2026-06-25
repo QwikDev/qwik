@@ -36,18 +36,20 @@ import { createComponent } from '@qwik.dev/core/spark';
 
 export function Wrapper(props, ctx) {
   const el0 = ctx.document.createElement('section');
-  for (let i = 0; i < (props.children ?? []).length; i++)
-    el0.appendChild((props.children ?? [])[i]);
-  return [el0];
+  if (Array.isArray(props.children ?? []))
+    for (let i = 0; i < (props.children ?? []).length; i++)
+      el0.appendChild((props.children ?? [])[i]);
+  else el0.appendChild(props.children ?? []);
+  return el0;
 }
 export function Parent(_props, ctx) {
   const el1 = ctx.document.createElement('p');
   const text2 = ctx.document.createTextNode('Projected');
   el1.appendChild(text2);
-  const cmp0 = createComponent({ children: [el1] }, (props) => Wrapper(props, ctx), {
+  const cmp0 = createComponent({ children: el1 }, (props) => Wrapper(props, ctx), {
     container: ctx,
   });
-  return [...cmp0];
+  return cmp0;
 }
 
 null

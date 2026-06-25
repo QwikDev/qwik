@@ -4,10 +4,12 @@ import { QContainerAttr } from '../shared/utils/markers';
 import { createContainerContext, type ContainerContext } from './runtime/container-context';
 import { invoke, newInvokeContext } from './runtime/invoke-context';
 import { defaultScheduler, type Scheduler } from './runtime/scheduler';
+import { toNodes } from './utils/nodes';
+import type { MaybeNodeOutput } from './utils/nodes';
 
 export type CsrRenderContext = ContainerContext;
 
-export type CsrRenderRoot = (_props: undefined, ctx: CsrRenderContext) => readonly Node[] | void;
+export type CsrRenderRoot = (_props: undefined, ctx: CsrRenderContext) => MaybeNodeOutput;
 
 export const render = async (
   root: CsrRenderRoot,
@@ -20,7 +22,7 @@ export const render = async (
   const context = createContainerContext(target, scheduler);
 
   const output = invoke(newInvokeContext({ container: context }), root, undefined, context);
-  const nodes = output ?? [];
+  const nodes = toNodes(output);
   for (let i = 0; i < nodes.length; i++) {
     target.appendChild(nodes[i]);
   }

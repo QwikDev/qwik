@@ -172,7 +172,7 @@ export function App(_props, ctx) {
   setEvent(el1, 'q-e:dblclick', component_q_e_dblclick_segment_1);
   setEvent(el1, 'q-w:scroll', component_q_w_scroll_segment_2);
   setEvent(el1, 'q-d:keydown', component_q_d_keydown_segment_3);
-  return [el1];
+  return el1;
 }
 
 null

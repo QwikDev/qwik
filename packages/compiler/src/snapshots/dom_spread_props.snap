@@ -163,7 +163,7 @@ export function App(_props, ctx) {
   ctx.scheduler.notify(effect1);
   const text2 = ctx.document.createTextNode('Child');
   el0.appendChild(text2);
-  return [el0];
+  return el0;
 }
 
 null

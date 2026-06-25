@@ -55,7 +55,7 @@ export function App(_props, ctx) {
     text4.data = String(readTrackedSourceValue(second));
   }
   ctx.scheduler.notify(effect2);
-  return [el0];
+  return el0;
 }
 
 null

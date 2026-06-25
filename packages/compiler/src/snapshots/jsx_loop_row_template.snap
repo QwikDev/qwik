@@ -371,7 +371,7 @@ export function App(_props, ctx) {
   forBlock5.run();
   el1.appendChild(fragment2);
   el0.appendChild(el1);
-  return [el0];
+  return el0;
 }
 
 null
@@ -438,7 +438,7 @@ export const component_for_render_segment_0 = (ctx, row, index) => {
     patchTextValue(text6, component_for_render_segment_0_expr2(row));
   }
   runDomBatchEffect(effect2, batchOp7);
-  const el8 = el1.firstChild.nextSibling;
+  const el8 = el5.nextSibling;
   const el9 = el8.firstChild;
   setEvent(el9, 'q-e:click', component_q_e_click_segment_4, [row]);
   const text10 = el9.firstChild;
@@ -451,7 +451,7 @@ export const component_for_render_segment_0 = (ctx, row, index) => {
     batchOp7();
     batchOp11();
   }
-  return [el1];
+  return el1;
 };
 
 null

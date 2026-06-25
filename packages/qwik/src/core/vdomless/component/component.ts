@@ -10,8 +10,10 @@ import {
 import type { ContainerContext } from '../runtime/container-context';
 import { disposeOwner } from '../runtime/owner';
 import { runWithCollector } from '../reactive/tracking';
+import { EMPTY_NODES } from '../utils/nodes';
+import type { NodeOutput } from '../utils/nodes';
 
-export type ComponentOutput = readonly Node[] | string;
+export type ComponentOutput = NodeOutput | string;
 export type ComponentRenderOutput = ValueOrPromise<ComponentOutput | void>;
 export type ComponentRenderFn<TProps = unknown> = (props: TProps) => ComponentRenderOutput;
 
@@ -21,8 +23,6 @@ export interface ComponentOptions {
   invokeContext?: RuntimeInvokeContext | null;
   slotScope?: SlotScope | null;
 }
-
-const EMPTY_NODES: readonly Node[] = [];
 
 export function createComponent<TProps>(
   props: TProps,
@@ -34,6 +34,16 @@ export function createComponent<TProps>(
   render: (props: TProps) => readonly Node[] | void,
   options?: ComponentOptions
 ): readonly Node[];
+export function createComponent<TProps>(
+  props: TProps,
+  render: (props: TProps) => Node | void,
+  options?: ComponentOptions
+): Node | readonly Node[];
+export function createComponent<TProps>(
+  props: TProps,
+  render: (props: TProps) => NodeOutput | void,
+  options?: ComponentOptions
+): NodeOutput;
 export function createComponent<TProps>(
   props: TProps,
   render: ComponentRenderFn<TProps>,

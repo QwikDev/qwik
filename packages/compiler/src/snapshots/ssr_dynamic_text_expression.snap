@@ -89,7 +89,7 @@ export function App(_props, ctx) {
     scheduler: ctx.scheduler,
   });
   ctx.scheduler.notify(effect3);
-  return [el1];
+  return el1;
 }
 
 null

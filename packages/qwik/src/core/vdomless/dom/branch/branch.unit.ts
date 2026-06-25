@@ -188,6 +188,25 @@ describe('branches', () => {
     expect(elseRuns).toBe(1);
   });
 
+  it('runs CSR branches with scalar node output', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const node = createNode('then');
+    const { range, replacements } = createBranchRange();
+    const branch = createOwned(() =>
+      createBranch(
+        { scheduler } as ContainerContext,
+        range,
+        () => true,
+        () => node
+      )
+    );
+
+    scheduler.notify(branch);
+    await scheduler.flushInteraction();
+
+    expect(replacements).toEqual([[node]]);
+  });
+
   it('does not rerender CSR branches when branch state is unchanged', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const count = createSignal(1);

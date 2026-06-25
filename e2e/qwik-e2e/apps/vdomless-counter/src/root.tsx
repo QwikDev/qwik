@@ -102,6 +102,7 @@ export function Root() {
                   id="run"
                   class="btn btn-primary btn-block"
                   type="button"
+                  stoppropagation:click
                   onClick$={() => (data.value = buildData(1_000))}
                 >
                   Create 1,000 rows
@@ -112,6 +113,7 @@ export function Root() {
                   id="runlots"
                   class="btn btn-primary btn-block"
                   type="button"
+                  stoppropagation:click
                   onClick$={() => (data.value = buildData(10_000))}
                 >
                   Create 10,000 rows
@@ -122,6 +124,7 @@ export function Root() {
                   id="add"
                   class="btn btn-primary btn-block"
                   type="button"
+                  stoppropagation:click
                   onClick$={() => (data.value = [...data.value, ...buildData(1_000)])}
                 >
                   Append 1,000 rows
@@ -132,6 +135,7 @@ export function Root() {
                   id="update"
                   class="btn btn-primary btn-block"
                   type="button"
+                  stoppropagation:click
                   onClick$={() => {
                     const dataValue = data.value;
                     for (let i = 0, d = dataValue, len = d.length; i < len; i += 10) {
@@ -147,6 +151,7 @@ export function Root() {
                   id="clear"
                   class="btn btn-primary btn-block"
                   type="button"
+                  stoppropagation:click
                   onClick$={() => (data.value = [])}
                 >
                   Clear
@@ -157,6 +162,7 @@ export function Root() {
                   id="swaprows"
                   class="btn btn-primary btn-block"
                   type="button"
+                  stoppropagation:click
                   onClick$={() => {
                     const list = data.value;
                     if (list.length > 998) {

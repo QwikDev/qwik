@@ -118,7 +118,7 @@ function emitDomRenderer(
   );
   const roots = emitter.emitTemplateRoot(root) ?? emitter.emitRoot(root);
   emitter.finalizeDomBatchEffects();
-  emitter.line(`return [${emitReturnItems(roots).join(', ')}];`);
+  emitter.line(`return ${emitNodeOutputExpression(roots)};`);
   return { body: emitter.toString(), hoists: emitter.emitHoists() };
 }
 
@@ -233,9 +233,8 @@ export class DomEmitter {
   ): string {
     const entries: string[] = [];
     if (children.length > 0) {
-      entries.push(
-        `${JSON.stringify('children')}: [${emitReturnItems(children.flatMap((child) => this.emitRoot(child))).join(', ')}]`
-      );
+      const childOutputs = children.flatMap((child) => this.emitRoot(child));
+      entries.push(`${JSON.stringify('children')}: ${emitNodeOutputExpression(childOutputs)}`);
     }
     if (!props.some((prop) => prop.kind === 'spread')) {
       const propEntries = props.map((prop) => this.emitComponentPropEntry(prop));
@@ -316,7 +315,7 @@ export class DomEmitter {
   private appendChild(parent: string, child: DomOutput): void {
     if (child.kind === 'nodes') {
       this.line(
-        `for (let i = 0; i < ${child.id}.length; i++) ${parent}.appendChild(${child.id}[i]);`
+        `if (Array.isArray(${child.id})) for (let i = 0; i < ${child.id}.length; i++) ${parent}.appendChild(${child.id}[i]); else ${parent}.appendChild(${child.id});`
       );
     } else {
       this.line(`${parent}.appendChild(${child.id});`);
@@ -824,8 +823,18 @@ function createHelperPrefix(name: string): string {
   return `dom_${name.replace(/[^A-Za-z0-9_$]/g, '_')}`;
 }
 
-export function emitReturnItems(outputs: readonly DomOutput[]): string[] {
-  return outputs.map((output) => (output.kind === 'nodes' ? `...${output.id}` : output.id));
+export function emitNodeOutputExpression(outputs: readonly DomOutput[]): string {
+  if (outputs.length === 0) {
+    return '[]';
+  }
+  if (outputs.length === 1) {
+    return outputs[0].id;
+  }
+  const items = outputs.map((output) => output.id);
+  if (outputs.some((output) => output.kind === 'nodes')) {
+    return `[].concat(${items.join(', ')})`;
+  }
+  return `[${items.join(', ')}]`;
 }
 
 export function canEmitTemplateRoot(node: RenderNode | null): boolean {

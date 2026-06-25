@@ -90,7 +90,7 @@ export function App(_props, ctx) {
   const fragment0 = dom_App_template0(ctx.document);
   const el1 = fragment0.firstChild;
   setEvent(el1, 'q-e:click', component_q_e_click_segment_0, [rows]);
-  return [el1];
+  return el1;
 }
 
 null

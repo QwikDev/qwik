@@ -165,7 +165,7 @@ export function Child(props, ctx) {
     patchTextValue(text5, dom_Child_expr1(props));
   }
   ctx.scheduler.notify(effect2);
-  return [el0];
+  return el0;
 }
 export function Parent(_props, ctx) {
   const count = createSignal(1);
@@ -179,7 +179,7 @@ export function Parent(_props, ctx) {
     (props) => Child(props, ctx),
     { container: ctx }
   );
-  return [...cmp0];
+  return cmp0;
 }
 
 null

@@ -131,7 +131,8 @@ export function App(_props, ctx) {
   const count = createSignal(0);
   const el0 = ctx.document.createElement('main');
   const cmp1 = createComponent({}, (props) => Child(props, ctx), { container: ctx });
-  for (let i = 0; i < cmp1.length; i++) el0.appendChild(cmp1[i]);
+  if (Array.isArray(cmp1)) for (let i = 0; i < cmp1.length; i++) el0.appendChild(cmp1[i]);
+  else el0.appendChild(cmp1);
   const el2 = ctx.document.createElement('p');
   const effect3 = createAttrExpressionEffect(el2, 'style', [count], dom_App_expr0, {
     scheduler: ctx.scheduler,
@@ -140,7 +141,7 @@ export function App(_props, ctx) {
   const text4 = ctx.document.createTextNode('After');
   el2.appendChild(text4);
   el0.appendChild(el2);
-  return [el0];
+  return el0;
 }
 
 null
@@ -151,7 +152,7 @@ const dom_Child_template0 = createTemplate('<span>Child</span>');
 export function Child(_props, ctx) {
   const fragment0 = dom_Child_template0(ctx.document);
   const el1 = fragment0.firstChild;
-  return [el1];
+  return el1;
 }
 
 null

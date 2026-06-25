@@ -204,6 +204,37 @@ describe('ForBlock reorder', () => {
     expect(block.owners).toEqual([null, null, null]);
   });
 
+  it('creates rows from scalar node output', () => {
+    const startNode = createTestDomNode('start');
+    const endNode = createTestDomNode('end');
+    const parent = createTestParentNode([startNode, endNode]);
+    const items = createSignal([1]);
+    const listOwner = createOwner(null);
+    const block = new ForBlock(
+      new ForRange(
+        startNode.ownerDocument!,
+        startNode as unknown as Comment,
+        endNode as unknown as Comment
+      ),
+      items,
+      (item) => item,
+      (_ctx, item) => createElementNode(String(item)),
+      false,
+      false,
+      listOwner,
+      null,
+      { document: startNode.ownerDocument! } as ContainerContext
+    );
+
+    block.reconcile(
+      new ForBlockSubscription(block),
+      (item) => item,
+      (_ctx, item) => createElementNode(String(item))
+    );
+
+    expect(parent.nodes.map(getNodeLabel)).toEqual(['start', '1', 'end']);
+  });
+
   it('creates native range rows for multi-node fragments', () => {
     const startNode = createTestDomNode('start');
     const endNode = createTestDomNode('end');

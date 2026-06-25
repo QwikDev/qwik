@@ -46,7 +46,7 @@ export function App(_props, ctx) {
   el0.appendChild(text2);
   const text4 = ctx.document.createTextNode(' world');
   el0.appendChild(text4);
-  return [el0];
+  return el0;
 }
 
 null

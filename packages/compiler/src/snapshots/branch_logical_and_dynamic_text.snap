@@ -146,7 +146,7 @@ export function App(_props, ctx) {
   );
   ctx.scheduler.notify(branch4);
   el0.appendChild(fragment1);
-  return [el0];
+  return el0;
 }
 
 null

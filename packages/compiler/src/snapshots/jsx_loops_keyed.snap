@@ -415,7 +415,7 @@ export function App(_props, ctx) {
   );
   forBlock4.run();
   el0.appendChild(fragment1);
-  return [el0];
+  return el0;
 }
 
 null
@@ -505,7 +505,7 @@ export const component_for_render_segment_0 = (ctx, row, index) => {
     batchOp7();
     batchOp9();
   }
-  return [el0];
+  return el0;
 };
 
 null

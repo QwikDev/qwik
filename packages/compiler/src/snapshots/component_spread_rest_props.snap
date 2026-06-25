@@ -159,7 +159,7 @@ export function Button(_props, ctx) {
   ctx.scheduler.notify(effect1);
   const text2 = ctx.document.createTextNode('Click');
   el0.appendChild(text2);
-  return [el0];
+  return el0;
 }
 export function Parent(_props, ctx) {
   const attrs = { title: 'Save' };
@@ -172,7 +172,7 @@ export function Parent(_props, ctx) {
     (props) => Button(props, ctx),
     { container: ctx }
   );
-  return [...cmp0];
+  return cmp0;
 }
 
 null

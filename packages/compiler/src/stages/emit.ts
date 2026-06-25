@@ -20,7 +20,12 @@ import type {
   SegmentRecord,
 } from '../types';
 import { QwikSymbol } from '../words';
-import { DomEmitter, canEmitTemplateRoot, emitCsrModule, emitReturnItems } from './emit-csr';
+import {
+  DomEmitter,
+  canEmitTemplateRoot,
+  emitCsrModule,
+  emitNodeOutputExpression,
+} from './emit-csr';
 import { emitSsrDomPropsExpression, emitSsrModule, SsrEmitter } from './emit-ssr';
 import {
   countScalarDomEffects,
@@ -1019,7 +1024,7 @@ function createBranchRenderSegmentSource(
   const bodyStatements = [
     captureLine,
     emitter.toString(),
-    `return [${emitReturnItems(roots).join(', ')}];`,
+    `return ${emitNodeOutputExpression(roots)};`,
   ]
     .filter(Boolean)
     .join('\n');
@@ -1149,7 +1154,7 @@ function createForRenderSegmentSource(
   const bodyStatements = [
     captureLine,
     emitter.toString(),
-    `return [${emitReturnItems(roots).join(', ')}];`,
+    `return ${emitNodeOutputExpression(roots)};`,
   ]
     .filter(Boolean)
     .join('\n');

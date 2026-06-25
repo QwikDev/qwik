@@ -617,6 +617,14 @@ export const ensureRouteLoaderSignals = (
   const loaders = getModuleRouteLoaders(mods);
   for (let i = 0; i < loaders.length; i++) {
     const loader = loaders[i];
+    // Dev-only safety net for the first SPA nav: the route module isn't transformed yet, so the
+    // client trie has no _R loader hash and the loader would resolve to undefined. Seed the page
+    // path (where the loader runs), only filling genuine gaps so a trie-resolved path is kept.
+    if (isDev && !isServer) {
+      if (routeLoaderCtx.pagePathname && routeLoaderCtx.loaderPaths[loader.__id] === undefined) {
+        routeLoaderCtx.loaderPaths[loader.__id] = routeLoaderCtx.pagePathname;
+      }
+    }
     ensureRouteLoaderSignal(loader, state, routeLoaderCtx);
   }
   return loaders;

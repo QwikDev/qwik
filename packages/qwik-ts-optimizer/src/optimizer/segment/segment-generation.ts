@@ -43,6 +43,8 @@ import {
   getSentinelCounter,
 } from "./inline-strategy.js";
 import { eventHandlerPropName } from "../jsx/event-handlers.js";
+import { parseArrayItems } from "../qwik/w-call.js";
+import { hoistInlinedQrlBodies } from "./hoist-inlined-qrl.js";
 import { extractDestructuredFieldInfo } from "../rewrite/index.js";
 import { collectSameFileSymbolInfo } from "./module-symbols.js";
 import { rewriteImportSource } from "../rewrite/rewrite-imports.js";
@@ -1151,6 +1153,10 @@ export function buildNestedCallSites(
         const params = eventHandlerQpParams(child.paramNames);
         if (params.length > 0) qpParams = params;
       }
+      const explicitCaptureItems =
+        child.isInlinedQrl && child.explicitCaptures
+          ? parseArrayItems(child.explicitCaptures)
+          : undefined;
       nestedCallSites.push({
         qrlVarName,
         callStart: child.callStart,
@@ -1159,6 +1165,10 @@ export function buildNestedCallSites(
         qrlCallee: child.isBare ? undefined : child.qrlCallee || undefined,
         captureNames:
           child.captureNames.length > 0 ? child.captureNames : undefined,
+        explicitCaptureItems:
+          explicitCaptureItems && explicitCaptureItems.length > 0
+            ? explicitCaptureItems
+            : undefined,
         importSource: child.importSource || undefined,
         elementQpParams: qpParams,
       });
@@ -1349,6 +1359,7 @@ export function buildDefaultStrategySegment(
       emitMode,
       devFile,
     });
+    segmentCode = hoistInlinedQrlBodies(segmentCode);
   }
 
   // Build segment metadata and entry field

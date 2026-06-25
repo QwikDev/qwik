@@ -207,8 +207,14 @@ export function rewriteNestedCallSitesInline(
       let relStart = site.callStart - bodyOffset;
       const relEnd = site.callEnd - bodyOffset;
       let qrlRef = site.qrlVarName;
-      if (site.captureNames && site.captureNames.length > 0) {
-        qrlRef = formatWCall(site.qrlVarName, site.captureNames, '        ', '    ');
+      // Full inlinedQrl captures win over identifier-only captureNames here:
+      // dropping a non-identifier capture leaves `_captures[i]` undefined.
+      const wrapItems =
+        site.explicitCaptureItems && site.explicitCaptureItems.length > 0
+          ? site.explicitCaptureItems
+          : site.captureNames;
+      if (wrapItems && wrapItems.length > 0) {
+        qrlRef = formatWCall(site.qrlVarName, wrapItems, '        ', '    ');
       }
       let replacement: string;
       if (site.qrlCallee) {

@@ -30,6 +30,7 @@ The optimizer transforms one canonical surface into another. The single most use
 | `qrl(() => import("./..."), "name")` | Lazy-loadable QRL reference for one segment | Phase 4 parent rewrite, Phase 5 segment imports |
 | `componentQrl(...)`, `useTaskQrl(...)`, `useStylesQrl(...)`, etc. | Already-named-Qrl form of a marker; replaces `component$(fn)` with `componentQrl(q_<symbol>)` | Phase 4 parent rewrite |
 | `q_<symbol>` | Optimizer-generated `qrl(...)` constant binding; one per segment, lives in either parent or owning segment | Phase 4 / Phase 5 |
+| `_inlined_<name>` | Hoisted body of a capture-position `inlinedQrl` (a QRL used as a value inside another QRL's captures array, so not a lazy boundary). The inline `inlinedQrl(<fn>, "name", …)` function is lifted to a top-level `const _inlined_name = <fn>` and the call references it | Phase 5 segment codegen (`segment/hoist-inlined-qrl.ts`) |
 | `_captures`, `_captures[i]` | Capture serialisation array; runtime injects the bound values when calling the segment | Phase 5 capture imports + injection |
 | `_rawProps` | Convention name for un-destructured component props when a child segment captures a destructured prop field | Phase 4 props consolidation |
 | `_auto_<name>` | Compiler-generated re-export prefix; distinguishes from user `export` statements | Phase 3 `reexport` decisions emitted in Phase 4 |

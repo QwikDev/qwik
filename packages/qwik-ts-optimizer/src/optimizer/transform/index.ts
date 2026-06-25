@@ -392,6 +392,45 @@ function prepareModuleInput(mod: ModuleContext): PreparedModuleInput {
 
 /** Phase 1+2 walk: extract `$()` segments and gather every per-module
  * fact in one fused program traversal, or emit the module verbatim. */
+/**
+ * Drop `inlinedQrl` extractions that sit as a value inside another
+ * `inlinedQrl`'s captures array. A QRL used as a capture value is not a
+ * lazy-loadable boundary, so it must not become its own segment — extracting
+ * it would rewrite its call site (inside the outer extraction's `.w([...])`
+ * array) and collide with the outer's capture-wrap edit, corrupting output.
+ * These stay inline in the owning segment body, where `hoistInlinedQrlBodies`
+ * lifts their body to a top-level `_inlined_<name>` const.
+ *
+ * Containment is read off existing offsets: an extraction whose call sits
+ * inside another inlinedQrl's call but *after* that call's arg0 body
+ * (`callStart >= outer.argEnd`) can only be in arg2 (the captures array) —
+ * arg1 is the name string literal and cannot hold a call.
+ */
+function filterCaptureInlinedQrls(
+  extractions: ExtractionResult[],
+): ExtractionResult[] {
+  const inlined = extractions.filter((e) => e.isInlinedQrl);
+  if (inlined.length < 2) return extractions;
+
+  const captureInlined = new Set<ExtractionResult>();
+  for (const inner of inlined) {
+    for (const outer of inlined) {
+      if (inner === outer) continue;
+      if (
+        inner.callStart > outer.callStart &&
+        inner.callEnd < outer.callEnd &&
+        inner.callStart >= outer.argEnd
+      ) {
+        captureInlined.add(inner);
+        break;
+      }
+    }
+  }
+
+  if (captureInlined.size === 0) return extractions;
+  return extractions.filter((e) => !captureInlined.has(e));
+}
+
 function extractModuleSegments(
   mod: ModuleContext,
   prepared: PreparedModuleInput,
@@ -475,7 +514,12 @@ function extractModuleSegments(
     };
   }
 
-  return { kind: 'extracted', extractions, closureNodes, facts };
+  return {
+    kind: 'extracted',
+    extractions: filterCaptureInlinedQrls(extractions),
+    closureNodes,
+    facts,
+  };
 }
 
 /** Resolve the emit configuration (pure derivation from options + ext). */

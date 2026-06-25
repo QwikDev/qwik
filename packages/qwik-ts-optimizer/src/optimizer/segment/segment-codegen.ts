@@ -125,6 +125,7 @@ export interface NestedCallSiteInfo {
   elementQpParams?: string[];
   qrlCallee?: string;
   captureNames?: string[];
+  explicitCaptureItems?: string[];
   importSource?: string;
 }
 

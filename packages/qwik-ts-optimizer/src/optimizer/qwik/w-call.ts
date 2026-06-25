@@ -30,3 +30,38 @@ export function formatWCall(
 ): string {
   return qrlVar + wCallSuffix(captures, innerIndent, closeIndent);
 }
+
+/**
+ * Split a bracketed array-literal source string into its top-level element
+ * texts. Commas inside nested `()`/`[]`/`{}` or string literals don't split —
+ * a capture array can hold a nested call whose own commas must survive.
+ */
+export function parseArrayItems(arrayText: string): string[] {
+  let inner = arrayText.trim();
+  if (inner.startsWith('[')) inner = inner.slice(1);
+  if (inner.endsWith(']')) inner = inner.slice(0, -1);
+
+  const items: string[] = [];
+  let depth = 0;
+  let start = 0;
+  let quote: string | null = null;
+  for (let i = 0; i < inner.length; i++) {
+    const ch = inner[i];
+    if (quote !== null) {
+      if (ch === '\\') i++;
+      else if (ch === quote) quote = null;
+      continue;
+    }
+    if (ch === '"' || ch === "'" || ch === '`') quote = ch;
+    else if (ch === '(' || ch === '[' || ch === '{') depth++;
+    else if (ch === ')' || ch === ']' || ch === '}') depth--;
+    else if (ch === ',' && depth === 0) {
+      const item = inner.slice(start, i).trim();
+      if (item.length > 0) items.push(item);
+      start = i + 1;
+    }
+  }
+  const last = inner.slice(start).trim();
+  if (last.length > 0) items.push(last);
+  return items;
+}

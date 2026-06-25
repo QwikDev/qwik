@@ -43,7 +43,7 @@ import { collectBindingNamesFromPattern } from '../ast/binding-pattern.js';
 import type { AstFunction, AstNode, AstProgram, ImportDeclarationSpecifier, ImportSpecifier } from '../../ast-types.js';
 import { forEachAstChild } from '../ast/guards.js';
 import { getJsxAttributeName } from '../jsx/jsx-attr-name.js';
-import { wCallSuffix } from '../qwik/w-call.js';
+import { wCallSuffix, parseArrayItems } from '../qwik/w-call.js';
 import { pureAwareOverwriteStart } from '../edit/text-scanning.js';
 import { RAW_TRANSFER_PARSER_OPTIONS } from '../../ast-types.js';
 import type { RewriteContext } from './rewrite-context.js';
@@ -121,18 +121,6 @@ export interface ParentRewriteResult {
   movedDeclSnapshots: Map<string, string>;
   /** Final JSX key counter value after parent module transform (for segment continuation). */
   jsxKeyCounterValue?: number;
-}
-
-/**
- * Parse array literal items from source text like "[left, true, right]".
- */
-function parseArrayItems(arrayText: string): string[] {
-  let inner = arrayText.trim();
-  if (inner.startsWith('[')) inner = inner.slice(1);
-  if (inner.endsWith(']')) inner = inner.slice(0, -1);
-  inner = inner.trim();
-  if (!inner) return [];
-  return inner.split(',').map(s => s.trim()).filter(s => s.length > 0);
 }
 
 function isMarkerSpecifier(

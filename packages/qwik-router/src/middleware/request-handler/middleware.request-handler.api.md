@@ -90,11 +90,6 @@ export interface EnvGetter {
 // @public (undocumented)
 export function getErrorHtml(status: number, e: any): string;
 
-// Warning: (ae-internal-missing-underscore) The name "getNotFound" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function getNotFound(prefix: string): string;
-
 // @public
 export type InternalRequest = false | 'loader' | 'action';
 

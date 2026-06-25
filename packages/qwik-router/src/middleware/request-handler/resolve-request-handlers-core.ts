@@ -22,45 +22,38 @@ import {
 } from '../../runtime/src/route-loaders';
 import { ensureSlash } from '../../utils/pathname';
 import { performETagMatch, hash, normalizeETag, setETagHeader } from './etag-hash';
-import type { RequestEventInternal } from './request-event-core';
+import {
+  getRequestMode,
+  RequestEvETagCacheKey,
+  RequestEvHttpStatusMessage,
+  RequestEvShareServerTiming,
+  RequestEvSharedActionId,
+  RequestRouteName,
+  type RequestEventInternal,
+} from './request-event-core';
 import { loaderHandler } from './handlers/loader-handler';
 import { jsonRequestWrapper } from './handlers/json-request-wrapper';
 import { actionHandler } from './handlers/action-handler';
 import { IsQLoader, QLoaderId } from './request-path';
 import type { ErrorCodes, RequestEvent, RequestEventBase, RequestHandler } from './types';
+import { QACTION_KEY, QFN_KEY } from '../../runtime/src/constants';
+import { resolveRouteConfig } from '../../runtime/src/head';
+import {
+  defaultSsrCacheKey,
+  getCachedSsr,
+  MAX_CACHE_SIZE,
+  resolveCacheKey,
+  resolveETag,
+  setCachedSsr,
+} from './etag';
+import { HttpStatus } from './http-status-codes';
+import { getQwikRouterServerData } from './response-page';
+import { encoder, isContentType } from './request-utils';
+import { ServerError } from './server-error';
 
-interface ResolveRequestHandlersDeps {
-  QACTION_KEY: string;
-  QFN_KEY: string;
-  RequestEvETagCacheKey: string;
-  RequestEvHttpStatusMessage: string;
-  RequestEvShareServerTiming: string;
-  RequestEvSharedActionId: string;
-  RequestRouteName: string;
-  RedirectMessage: new () => InstanceType<typeof import('./redirect-handler').RedirectMessage>;
-  ServerError: new <T = any>(
-    status: number,
-    data: T
-  ) => InstanceType<typeof import('./server-error').ServerError<T>>;
-  HttpStatus: typeof import('./http-status-codes').HttpStatus;
-  encoder: TextEncoder;
-  isContentType: typeof import('./request-utils').isContentType;
-  defaultSsrCacheKey: typeof import('./etag').defaultSsrCacheKey;
-  defaultLoaderCacheKey: typeof import('./etag').defaultLoaderCacheKey;
-  getCachedSsr: typeof import('./etag').getCachedSsr;
-  getCachedLoader: typeof import('./etag').getCachedLoader;
-  getQwikRouterServerData: typeof import('./response-page').getQwikRouterServerData;
-  getRequestMode: typeof import('./request-event-core').getRequestMode;
-  loadHttpError: () => Promise<unknown>;
-  MAX_CACHE_SIZE: number;
-  resolveCacheKey: typeof import('./etag').resolveCacheKey;
-  resolveETag: typeof import('./etag').resolveETag;
-  resolveRouteConfig: typeof import('../../runtime/src/head').resolveRouteConfig;
-  setCachedSsr: typeof import('./etag').setCachedSsr;
-  setCachedLoader: typeof import('./etag').setCachedLoader;
-}
+const loadHttpError = () => import('../../runtime/src/http-error');
 
-export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
+function createResolveRequestHandlers() {
   const resolveRequestHandlers = (
     serverPlugins: RouteModule[] | undefined,
     route: LoadedRoute,
@@ -133,7 +126,7 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
 
     if (isPageRoute) {
       requestHandlers.push((ev) => {
-        ev.sharedMap.set(deps.RequestRouteName, routeName);
+        ev.sharedMap.set(RequestRouteName, routeName);
       });
       requestHandlers.push(actionsMiddleware(routeActions));
       requestHandlers.push(loadersMiddleware(routeLoaders, route));
@@ -270,14 +263,14 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
       }
       const { method } = requestEv;
       if (isDev && method === 'GET') {
-        if (requestEv.query.has(deps.QACTION_KEY)) {
+        if (requestEv.query.has(QACTION_KEY)) {
           console.warn(
             'Seems like you are submitting a Qwik Action via GET request. Qwik Actions should be submitted via POST request.\nMake sure your <form> has method="POST" attribute, like this: <form method="POST">'
           );
         }
       }
       if (method === 'POST') {
-        const selectedActionId = requestEv.query.get(deps.QACTION_KEY);
+        const selectedActionId = requestEv.query.get(QACTION_KEY);
         if (selectedActionId) {
           const serverActionsMap = globalThis._qwikActionsMap as
             | Map<string, ActionInternal>
@@ -286,7 +279,7 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
             routeActions.find((action) => action.__id === selectedActionId) ??
             serverActionsMap?.get(selectedActionId);
           if (action) {
-            requestEv.sharedMap.set(deps.RequestEvSharedActionId, selectedActionId);
+            requestEv.sharedMap.set(RequestEvSharedActionId, selectedActionId);
             const data = await requestEv.parseBody();
             if (!data || typeof data !== 'object') {
               throw new Error(
@@ -393,7 +386,7 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
           }
           return loaderValues[id];
         }
-        return requestEv.sharedMap.get(deps.RequestEvSharedActionId) === id
+        return requestEv.sharedMap.get(RequestEvSharedActionId) === id
           ? requestEv.sharedMap.get('@actionResult')
           : undefined;
       }) as ResolveSyncValue;
@@ -406,7 +399,7 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
       };
 
       const status = requestEv.status();
-      const config = deps.resolveRouteConfig(getData, routeLocation, mods, '', status);
+      const config = resolveRouteConfig(getData, routeLocation, mods, '', status);
 
       const headProps: DocumentHeadProps = {
         head: config.head,
@@ -416,18 +409,18 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
         ...routeLocation,
       };
 
-      const resolvedETag = deps.resolveETag(config.eTag, headProps);
+      const resolvedETag = resolveETag(config.eTag, headProps);
       const normalizedETag = resolvedETag !== null ? normalizeETag(resolvedETag) : '';
       if (normalizedETag && performETagMatch(requestEv as RequestEventInternal, normalizedETag)) {
         return;
       }
 
-      if (deps.MAX_CACHE_SIZE <= 0) {
+      if (MAX_CACHE_SIZE <= 0) {
         return;
       }
-      const cacheKey = deps.resolveCacheKey(
+      const cacheKey = resolveCacheKey(
         config.cacheKey,
-        deps.defaultSsrCacheKey,
+        defaultSsrCacheKey,
         requestEv,
         normalizedETag
       );
@@ -435,7 +428,7 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
         return;
       }
 
-      const cached = deps.getCachedSsr(cacheKey);
+      const cached = getCachedSsr(cacheKey);
       if (cached) {
         requestEv.headers.set('Content-Type', 'text/html; charset=utf-8');
         requestEv.headers.set('X-SSR-Cache', 'HIT');
@@ -454,7 +447,7 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
         return;
       }
 
-      requestEv.sharedMap.set(deps.RequestEvETagCacheKey, { key: cacheKey, eTag: normalizedETag });
+      requestEv.sharedMap.set(RequestEvETagCacheKey, { key: cacheKey, eTag: normalizedETag });
     };
   }
 
@@ -466,7 +459,7 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
       try {
         await requestEv.next();
       } catch (e) {
-        if (!(e instanceof deps.ServerError) || requestEv.headersSent) {
+        if (!(e instanceof ServerError) || requestEv.headersSent) {
           throw e;
         }
 
@@ -478,13 +471,18 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
         const status = e.status as number;
         requestEv.status(status);
 
+        // Bare error.tsx renders standalone (a thrown layout would re-throw); an override chain
+        // (error@layout / error!) renders inside its picked layouts.
         const errorLoader = route.$errorLoader$;
-        const errorModule = errorLoader ? await errorLoader() : await deps.loadHttpError();
-
-        route.$mods$ = [errorModule as RouteModule];
+        if (Array.isArray(errorLoader)) {
+          route.$mods$ = (await Promise.all(errorLoader.map((load) => load()))) as RouteModule[];
+        } else {
+          const errorModule = errorLoader ? await errorLoader() : await loadHttpError();
+          route.$mods$ = [errorModule as RouteModule];
+        }
 
         requestEv.sharedMap.set(
-          deps.RequestEvHttpStatusMessage,
+          RequestEvHttpStatusMessage,
           typeof e.data === 'string' ? e.data : 'Server Error'
         );
 
@@ -526,7 +524,7 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
   }
 
   async function runServerFunction(ev: RequestEvent) {
-    const serverFnHash = ev.query.get(deps.QFN_KEY);
+    const serverFnHash = ev.query.get(QFN_KEY);
     if (
       serverFnHash &&
       ev.request.headers.get('X-QRL') === serverFnHash &&
@@ -550,7 +548,7 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
           result = await (qrl as Function).apply(ev, data[0]);
         }
       } catch (err) {
-        if (err instanceof deps.ServerError) {
+        if (err instanceof ServerError) {
           throw ev.error(err.status as ErrorCodes, err.data);
         }
         console.error(`Server function ${serverFnHash} failed:`, err);
@@ -568,7 +566,7 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
           if (ev.signal.aborted) {
             break;
           }
-          await stream.write(deps.encoder.encode(`${message}\n`));
+          await stream.write(encoder.encode(`${message}\n`));
         }
         stream.close();
       } else {
@@ -592,12 +590,12 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
     if (pathname !== basePathname && !pathname.endsWith('.html')) {
       if (!globalThis.__NO_TRAILING_SLASH__) {
         if (!pathname.endsWith('/')) {
-          throw ev.redirect(deps.HttpStatus.MovedPermanently, ensureSlash(pathname) + search);
+          throw ev.redirect(HttpStatus.MovedPermanently, ensureSlash(pathname) + search);
         }
       } else {
         if (pathname.endsWith('/')) {
           throw ev.redirect(
-            deps.HttpStatus.MovedPermanently,
+            HttpStatus.MovedPermanently,
             pathname.slice(0, pathname.length - 1) + search
           );
         }
@@ -653,7 +651,7 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
 
     const isSimpleRequest =
       !contentType ||
-      deps.isContentType(
+      isContentType(
         requestEv.request.headers,
         'application/x-www-form-urlencoded',
         'multipart/form-data',
@@ -694,7 +692,7 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
         responseHeaders.set('Content-Type', 'text/html; charset=utf-8');
       }
 
-      const cachePlan = requestEv.sharedMap.get(deps.RequestEvETagCacheKey) as
+      const cachePlan = requestEv.sharedMap.get(RequestEvETagCacheKey) as
         | { key: string; eTag: string }
         | undefined;
 
@@ -720,8 +718,8 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
       });
       const stream = writable.getWriter();
       try {
-        const isStatic = deps.getRequestMode(requestEv) === 'static';
-        const serverData = deps.getQwikRouterServerData(requestEv);
+        const isStatic = getRequestMode(requestEv) === 'static';
+        const serverData = getQwikRouterServerData(requestEv);
         const result = await render({
           base: requestEv.basePathname + 'build/',
           stream,
@@ -760,7 +758,7 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
         // Use the pre-resolved eTag when set; otherwise auto-hash the rendered HTML so future cache
         // hits can serve a stable validator and short-circuit with 304.
         const cachedETag = cachePlan.eTag || hash(html);
-        deps.setCachedSsr(cachePlan.key, { eTag: cachedETag, body: html });
+        setCachedSsr(cachePlan.key, { eTag: cachedETag, body: html });
       }
 
       await writableStream.close();
@@ -781,9 +779,9 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
       return await fn();
     } finally {
       const duration = now() - start;
-      let measurements = requestEv.sharedMap.get(deps.RequestEvShareServerTiming);
+      let measurements = requestEv.sharedMap.get(RequestEvShareServerTiming);
       if (!measurements) {
-        requestEv.sharedMap.set(deps.RequestEvShareServerTiming, (measurements = []));
+        requestEv.sharedMap.set(RequestEvShareServerTiming, (measurements = []));
       }
       measurements.push([name, duration]);
     }
@@ -804,3 +802,18 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
     verifySerializable,
   };
 }
+
+export const {
+  actionsMiddleware,
+  checkBrand,
+  checkCSRF,
+  fixTrailingSlash,
+  getPathname,
+  isLastModulePageRoute,
+  isQrl,
+  loadersMiddleware,
+  measure,
+  renderQwikMiddleware,
+  resolveRequestHandlers,
+  verifySerializable,
+} = createResolveRequestHandlers();

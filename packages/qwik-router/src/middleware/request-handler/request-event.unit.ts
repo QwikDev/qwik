@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createRequestEvent } from './request-event';
+import { createRequestEvent } from './request-event-core';
 import type { ServerRequestEvent } from './types';
 import type { LoadedRoute } from '../../runtime/src/types';
 import { RedirectMessage, ServerError } from '@qwik.dev/router/middleware/request-handler';

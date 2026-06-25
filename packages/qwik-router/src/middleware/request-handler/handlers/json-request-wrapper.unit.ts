@@ -44,7 +44,8 @@ describe('jsonRequestWrapper', () => {
 
     const [, body] = requestEv.send.mock.calls[0];
     expect(requestEv.headers.get('Location')).toBeNull();
-    expect(_deserialize(body)).toEqual({ r: '/login/' });
+    const result = await _deserialize(body);
+    expect(result).toEqual({ r: '/login/' });
   });
 });
 

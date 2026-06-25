@@ -73,7 +73,7 @@ describe('server-exclude: getServerExcludedRoutes', () => {
     gatedLayout: 'gated/layout.tsx',
     gatedPage: 'gated/index.tsx',
     notFound: '404.tsx',
-    errorPage: 'error.tsx',
+    errorBoundary: 'error.tsx',
   };
 
   beforeAll(async () => {
@@ -93,9 +93,10 @@ describe('server-exclude: getServerExcludedRoutes', () => {
       `export const onRequest = () => {};\nexport default () => null;`
     );
     await writeFile(join(dir, routeNames.gatedPage), `export default () => null;`);
-    // Server-free 404/error components — the guard must keep them despite this.
+    // Server-free 404/error: must NOT prune — they're the SSR not-found/error boundaries (_4/_E) with
+    // no static fallback for a direct request.
     await writeFile(join(dir, routeNames.notFound), `export default () => null;`);
-    await writeFile(join(dir, routeNames.errorPage), `export default () => null;`);
+    await writeFile(join(dir, routeNames.errorBoundary), `export default () => null;`);
   });
 
   function ctxWith(routes: Partial<BuiltRoute>[]): RoutingContext {
@@ -156,20 +157,26 @@ describe('server-exclude: getServerExcludedRoutes', () => {
     );
   });
 
-  test('never excludes error.tsx/404.tsx handlers (they run on the server)', async () => {
+  test('keeps a prerendered, server-free 404.tsx (SSR renders it via _4 on a direct request)', async () => {
     const ctx = ctxWith([
       { filePath: join(dir, routeNames.notFound), ext: '.tsx', pathname: '/404.html' },
-      { filePath: join(dir, routeNames.errorPage), ext: '.tsx', pathname: '/error.html' },
     ]);
-    // Broad include so both would match; createRouteTester also always reports 404.html prerendered.
-    const excluded = await getServerExcludedRoutes(ctx, { include: ['/*'] });
+    // createRouteTester always reports 404.html prerendered, regardless of the include.
+    const excluded = await getServerExcludedRoutes(ctx, { include: ['/blog/*'] });
     assert.isFalse(
       excluded.has(join(dir, routeNames.notFound)),
-      '404 handler must stay in the server plan'
+      '404.tsx must stay: a direct hit to an unmatched path is rendered server-side from _4'
     );
+  });
+
+  test('keeps a prerendered, server-free error.tsx (runtime error boundary, no static fallback)', async () => {
+    const ctx = ctxWith([
+      { filePath: join(dir, routeNames.errorBoundary), ext: '.tsx', pathname: '/error.html' },
+    ]);
+    const excluded = await getServerExcludedRoutes(ctx, { include: ['/*'] });
     assert.isFalse(
-      excluded.has(join(dir, routeNames.errorPage)),
-      'error handler must stay in the server plan'
+      excluded.has(join(dir, routeNames.errorBoundary)),
+      'error.tsx must stay: _E is the only server-side source for runtime 403/500 errors'
     );
   });
 

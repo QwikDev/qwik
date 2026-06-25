@@ -1022,6 +1022,48 @@ T
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/form-component.tsx)
 
+<h2 id="getrequestevent">getRequestEvent</h2>
+
+Returns the current RequestEvent if possible. Only usable on the server, and only during request processing.
+
+```typescript
+getRequestEvent: (thisArg?: unknown) => RequestEvent | undefined;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+thisArg
+
+</td><td>
+
+unknown
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+RequestEvent \| undefined
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/route-loaders.ts)
+
 <h2 id="getvalidatorinputtype">GetValidatorInputType</h2>
 
 ```typescript
@@ -2085,6 +2127,14 @@ routeAction$: ActionConstructor;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
 
+<h2 id="routeactionqrl">routeActionQrl</h2>
+
+```typescript
+routeActionQrl: ActionConstructorQRL;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
+
 <h2 id="routeconfig">RouteConfig</h2>
 
 Unified route configuration export. Groups head, eTag, and cacheKey with the same resolution rules as DocumentHead: can be a static object or a function receiving DocumentHeadProps.
@@ -2235,11 +2285,11 @@ _(Optional)_ Prefix for infix params (e.g. "pre" for `pre[slug]post`) — only o
 
 </td><td>
 
-ContentModuleLoader
+ContentModuleLoader \| ModuleLoader[]
 
 </td><td>
 
-_(Optional)_ The not-found (404) module loader for this subtree
+_(Optional)_ Not-found (404) boundary: single loader (runtime prepends layouts) or override chain (`404@layout`/`!`).
 
 </td></tr>
 <tr><td>
@@ -2280,11 +2330,11 @@ _(Optional)_ The JS bundle names for this route (SSR only)
 
 </td><td>
 
-ContentModuleLoader
+ContentModuleLoader \| ModuleLoader[]
 
 </td><td>
 
-_(Optional)_ The error page module loader for this subtree (error.tsx, takes precedence over \_4)
+_(Optional)_ Error (error.tsx) boundary, same single-or-override-chain shape as `_4`.
 
 </td></tr>
 <tr><td>

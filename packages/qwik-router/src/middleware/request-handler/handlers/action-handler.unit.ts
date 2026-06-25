@@ -76,7 +76,7 @@ describe('actionHandler', () => {
 
     await actionHandler([createAction()])(requestEv as any);
 
-    const response = _deserialize<Record<string, unknown>>(sent.body!);
+    const response = await _deserialize<Record<string, unknown>>(sent.body!);
     expect(sent.status).toBe(200);
     expect(response).toEqual({ result: { ok: { name: 'Ada' } } });
     expect(response).not.toHaveProperty('loaders');
@@ -90,7 +90,7 @@ describe('actionHandler', () => {
 
     await actionHandler([createAction(['loader-a', 'loader-b'])])(requestEv as any);
 
-    const response = _deserialize<Record<string, unknown>>(sent.body!);
+    const response = await _deserialize<Record<string, unknown>>(sent.body!);
     expect(response).toEqual({
       result: { ok: { name: 'Ada' } },
       loaderHashes: ['loader-a', 'loader-b'],
@@ -104,7 +104,7 @@ describe('actionHandler', () => {
 
     await actionHandler([createAction()])(requestEv as any);
 
-    const response = _deserialize<Record<string, unknown>>(sent.body!);
+    const response = await _deserialize<Record<string, unknown>>(sent.body!);
     expect(response).toEqual({
       result: { ok: { name: 'Ada' } },
       loaderHashes: [],
@@ -132,7 +132,7 @@ describe('actionHandler', () => {
     await actionHandler([action])(requestEv as any);
 
     expect(sent.status).toBe(422);
-    const response = _deserialize<Record<string, unknown>>(sent.body!);
+    const response = await _deserialize<Record<string, unknown>>(sent.body!);
     expect(response.result).toMatchObject({ failed: true, status: 422 });
   });
 
@@ -155,7 +155,7 @@ describe('actionHandler', () => {
     await actionHandler([action])(requestEv as any);
 
     expect(sent.status).toBe(500);
-    const response = _deserialize<Record<string, unknown>>(sent.body!);
+    const response = await _deserialize<Record<string, unknown>>(sent.body!);
     expect(response.result).toMatchObject({ failed: true, msg: 'something went wrong' });
   });
 });

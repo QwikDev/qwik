@@ -247,24 +247,21 @@ test('loadRoute — loader paths are replaced by deeper matches', async () => {
   });
 });
 
-test('loadRoute — 404 fallback used when no route matches', async () => {
-  const marker = () => 'not-found-sentinel';
-  const sentinel = { default: marker };
-  const notFoundLoader: ModuleLoader = () => sentinel as any;
+test('loadRoute — miss renders the nearest _4 inside gathered layouts', async () => {
+  const rootLayout = { default: () => 'layout' };
+  const notFound = { default: () => 'not-found' };
   const routes: RouteData = {
-    _4: notFoundLoader,
+    _L: () => rootLayout as any,
+    _4: () => notFound as any,
     blog: buildTree('/blog'),
   };
   const result = await loadRoute(routes, false, '/does-not-exist');
   assert.isTrue(result.$notFound$);
-  // When _4 exists, a wrapper module is created that delegates based on status
-  assert.equal(result.$mods$.length, 1);
-  const wrapper = result.$mods$[0] as any;
-  assert.isFunction(wrapper.default, 'wrapper has default component');
-  assert.isFunction(wrapper.cacheKey, 'wrapper has cacheKey');
+  // Gathered root layout + the 404 module, no wrapper.
+  assert.deepEqual(result.$mods$, [rootLayout, notFound]);
 });
 
-test('loadRoute — _4 used for 404, _E stored as ErrorLoader', async () => {
+test('loadRoute — miss renders _4; _E remains the thrown-error loader', async () => {
   const errorSentinel = { default: () => 'error-handler' };
   const notFoundSentinel = { default: () => '404-handler' };
   const errorLoader: ModuleLoader = () => errorSentinel as any;
@@ -276,51 +273,75 @@ test('loadRoute — _4 used for 404, _E stored as ErrorLoader', async () => {
   };
   const result = await loadRoute(routes, false, '/does-not-exist');
   assert.isTrue(result.$notFound$);
-  // _4 is used for the wrapper's 404 rendering, _E is stored as ErrorLoader
-  assert.equal(result.$mods$.length, 1);
-  const wrapper = result.$mods$[0] as any;
-  assert.isFunction(wrapper.default, 'wrapper has default component');
+  assert.deepEqual(result.$mods$, [notFoundSentinel]);
   assert.equal(result.$errorLoader$, errorLoader);
 });
 
-test('loadRoute — deeper _4 takes precedence over root _4', async () => {
-  const rootSentinel = { default: () => 'root-404' };
-  const blogSentinel = { default: () => 'blog-404' };
-  const rootNotFound: ModuleLoader = () => rootSentinel as any;
-  const blogNotFound: ModuleLoader = () => blogSentinel as any;
-  const blogPost = makeLoader();
+test('loadRoute — deeper _4 wins and renders in its own layouts', async () => {
+  const rootLayout = { default: () => 'root-layout' };
+  const blogLayout = { default: () => 'blog-layout' };
+  const blogNotFound = { default: () => 'blog-404' };
   const routes: RouteData = {
-    _4: rootNotFound,
+    _L: () => rootLayout as any,
+    _4: () => ({ default: () => 'root-404' }) as any,
     blog: {
-      _4: blogNotFound,
-      _W: {
-        _P: 'slug',
-        _I: blogPost,
-      },
+      _L: () => blogLayout as any,
+      _4: () => blogNotFound as any,
+      _W: { _P: 'slug', _I: makeLoader() },
     },
   };
-  // /blog/does-not-exist-deeply/extra: navigates into `blog`, `_W` matches, then fails → blog's _4
-  const result = await loadRoute(routes, false, '/blog/does-not-exist-deeply/extra');
+  // /blog/missing/extra dead-ends under blog; blog's _4 renders in its own [root, blog] layouts.
+  const result = await loadRoute(routes, false, '/blog/missing/extra');
   assert.isTrue(result.$notFound$);
-  // Wrapper module is created from the deeper _4
-  assert.equal(result.$mods$.length, 1);
-  const wrapper = result.$mods$[0] as any;
-  assert.isFunction(wrapper.default, 'wrapper has default component');
+  assert.deepEqual(result.$mods$, [rootLayout, blogLayout, blogNotFound]);
 });
 
-test('loadRoute — 404 result has no layout modules', async () => {
-  const sentinel = { default: () => 'not-found' };
-  const notFoundLoader: ModuleLoader = () => sentinel as any;
+test('loadRoute — a bare _4 renders in its own layouts, not a deeper sibling layout', async () => {
+  // Root 404; /blog has its own layout. A miss under /blog renders the root 404 in the root layout
+  // only — never wrapped in /blog's layout, which the root 404 is not nested under.
+  const rootLayout = { default: () => 'root-layout' };
+  const blogLayout = { default: () => 'blog-layout' };
+  const root404 = { default: () => 'root-404' };
   const routes: RouteData = {
-    _4: notFoundLoader,
+    _L: () => rootLayout as any,
+    _4: () => root404 as any,
+    blog: { _L: () => blogLayout as any },
+  };
+  const result = await loadRoute(routes, false, '/blog/nonexistent');
+  assert.isTrue(result.$notFound$);
+  assert.deepEqual(result.$mods$, [rootLayout, root404]);
+});
+
+test('loadRoute — a mid-tree _4 excludes layouts from directories deeper than itself', async () => {
+  const rootLayout = { default: () => 'root-layout' };
+  const aLayout = { default: () => 'a-layout' };
+  const bLayout = { default: () => 'b-layout' };
+  const a404 = { default: () => 'a-404' };
+  const routes: RouteData = {
+    _L: () => rootLayout as any,
+    a: {
+      _L: () => aLayout as any,
+      _4: () => a404 as any,
+      b: { _L: () => bLayout as any },
+    },
+  };
+  // /a/b/missing dead-ends under b; the nearest 404 (a's) renders in [root, a] — never b's layout.
+  const result = await loadRoute(routes, false, '/a/b/missing');
+  assert.isTrue(result.$notFound$);
+  assert.deepEqual(result.$mods$, [rootLayout, aLayout, a404]);
+});
+
+test('loadRoute — miss with no layouts renders just the 404 module', async () => {
+  const sentinel = { default: () => 'not-found' };
+  const routes: RouteData = {
+    _4: () => sentinel as any,
   };
   const result = await loadRoute(routes, false, '/anything');
   assert.isTrue(result.$notFound$);
-  // Only the wrapper component, no layouts
-  assert.equal(result.$mods$.length, 1);
+  assert.deepEqual(result.$mods$, [sentinel]);
 });
 
-test('loadRoute — only _E (no _4) used directly for not-found', async () => {
+test('loadRoute — miss falls back to _E when there is no _4', async () => {
   const errorSentinel = { default: () => 'error-handler' };
   const errorLoader: ModuleLoader = () => errorSentinel as any;
   const routes: RouteData = {
@@ -329,9 +350,64 @@ test('loadRoute — only _E (no _4) used directly for not-found', async () => {
   };
   const result = await loadRoute(routes, false, '/does-not-exist');
   assert.isTrue(result.$notFound$);
-  // When only _E exists (no _4), the error module is used directly (no wrapper)
   assert.deepEqual(result.$mods$, [errorSentinel]);
   assert.equal(result.$errorLoader$, errorLoader);
+});
+
+test('loadRoute — an override-chain _4 (404@layout / 404!) is used as-is, ignoring gathered _L', async () => {
+  const gatheredLayout = makeLoader();
+  const pickedLayout = { default: () => 'picked' };
+  const notFound = { default: () => 'not-found' };
+  const routes: RouteData = {
+    _L: gatheredLayout,
+    // _4 as an override array: the complete chain, so the gathered root _L is not prepended.
+    _4: [() => pickedLayout as any, () => notFound as any],
+  };
+  const result = await loadRoute(routes, false, '/missing');
+  assert.isTrue(result.$notFound$);
+  assert.deepEqual(result.$mods$, [pickedLayout, notFound]);
+});
+
+test('loadRoute — a 404 inside a pathless root group is found on a top-level miss', async () => {
+  // routes/(app)/{layout,index,404}.tsx → the 404 lives in root._M[0]._4, not root._4. A top-level
+  // miss that never descends into the group must still render it, wrapped in the group's layout.
+  const appLayout = { default: () => 'app-layout' };
+  const app404 = { default: () => 'app-404' };
+  const routes: RouteData = {
+    _M: [{ _L: () => appLayout as any, _4: () => app404 as any, _I: makeLoader() }],
+  };
+  const result = await loadRoute(routes, false, '/totally-missing');
+  assert.isTrue(result.$notFound$);
+  assert.deepEqual(result.$mods$, [appLayout, app404]);
+});
+
+test('loadRoute — a 404 in a nested pathless group is recovered with all its group layouts', async () => {
+  const aLayout = { default: () => 'a-layout' };
+  const bLayout = { default: () => 'b-layout' };
+  const nested404 = { default: () => 'nested-404' };
+  const routes: RouteData = {
+    _M: [
+      { _L: () => aLayout as any, _M: [{ _L: () => bLayout as any, _4: () => nested404 as any }] },
+    ],
+  };
+  const result = await loadRoute(routes, false, '/missing');
+  assert.isTrue(result.$notFound$);
+  assert.deepEqual(result.$mods$, [aLayout, bLayout, nested404]);
+});
+
+test('loadRoute — a root-group 404 is found on a miss that dead-ends inside an ungrouped sibling', async () => {
+  // routes/(app)/404.tsx (root group) + routes/blog/ (sibling OUTSIDE the group). A miss under /blog
+  // dead-ends at `blog`, which has no group — but the (app) group is URL-transparent, so its 404 is
+  // the root 404 and must still render. (Regression: recovery only searched the dead-end node.)
+  const appLayout = { default: () => 'app-layout' };
+  const app404 = { default: () => 'app-404' };
+  const routes: RouteData = {
+    _M: [{ _L: () => appLayout as any, _4: () => app404 as any, _I: makeLoader() }],
+    blog: { _I: makeLoader() },
+  };
+  const result = await loadRoute(routes, false, '/blog/missing');
+  assert.isTrue(result.$notFound$);
+  assert.deepEqual(result.$mods$, [appLayout, app404]);
 });
 
 test('loadRoute — ErrorLoader passed through on matched routes', async () => {

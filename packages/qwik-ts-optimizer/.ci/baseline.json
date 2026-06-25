@@ -916,11 +916,14 @@
       "tests/optimizer/jsxdev-handler-extraction.test.ts :: pre-transformed `_jsxDEV` reactive emit (q:p, const-bag, _wrapProp, flags) server/hoist: capturing handler gets q:p + const-bag + _wrapProp + flag 7",
       "tests/optimizer/prepare/flatten-destructures.test.ts :: flattenDestructureUseCalls does not crash on two flattenable decls in the same scope (BENCH-01 repro)",
       "tests/optimizer/prepare/flatten-destructures.test.ts :: flattenDestructureUseCalls does not flatten destructures outside a component$ body",
+      "tests/optimizer/prepare/flatten-destructures.test.ts :: flattenDestructureUseCalls expands a renamed-key shorthand using the local binding name as the key",
+      "tests/optimizer/prepare/flatten-destructures.test.ts :: flattenDestructureUseCalls expands an object-literal shorthand to `key: member` instead of a bare member expression",
       "tests/optimizer/prepare/flatten-destructures.test.ts :: flattenDestructureUseCalls handles three flattenable decls in source order without crashing",
       "tests/optimizer/prepare/flatten-destructures.test.ts :: flattenDestructureUseCalls leaves a renamed-import component module unchanged (never flattened; prefilter must not matter)",
       "tests/optimizer/prepare/flatten-destructures.test.ts :: flattenDestructureUseCalls leaves the source unchanged when no flattenable decl exists",
       "tests/optimizer/prepare/flatten-destructures.test.ts :: flattenDestructureUseCalls rewrites a single `const { X } = useFoo()` to `const foo = useFoo()` + ref access",
       "tests/optimizer/prepare/flatten-destructures.test.ts :: flattenDestructureUseCalls rewrites references in subsequent decl initializers (cross-decl reference)",
+      "tests/optimizer/prepare/flatten-destructures.test.ts :: flattenDestructureUseCalls rewrites shorthand and explicit props in the same object literal, leaving valid JS",
       "tests/optimizer/prepare/flatten-destructures.test.ts :: flattenDestructureUseCalls skips marker-suffixed callees ($-ending) so use*$ extraction isn't disturbed",
       "tests/optimizer/prepare/flatten-destructures.test.ts :: flattenDestructureUseCalls still flattens when the `component$` token also appears in unrelated text",
       "tests/optimizer/preparsed-program.test.ts :: preParsedProgram thread-through accepts an externally-parsed Program without throwing",
@@ -1297,6 +1300,6 @@
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) has null input",
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) parses without error"
     ],
-    "total": 1112
+    "total": 1115
   }
 }

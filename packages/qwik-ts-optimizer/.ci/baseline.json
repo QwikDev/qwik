@@ -767,6 +767,14 @@
       "tests/optimizer/jsx/jsx-key-counter-ordering.test.ts :: JSX key counter ordering assigns JSX keys to two sibling top-level component$ in source order",
       "tests/optimizer/jsx/jsx-key-counter-ordering.test.ts :: JSX key counter ordering skips segments that have no JSX (no key consumed for empty bodies)",
       "tests/optimizer/jsx/jsx-key-counter-ordering.test.ts :: JSX key counter ordering within a single subtree assigns keys depth-first (child JSX before parent JSX)",
+      "tests/optimizer/jsx/jsx-multiline-attr-whitespace.test.ts :: multi-line JSX attribute string whitespace folding converts a tab to a single space even without a newline",
+      "tests/optimizer/jsx/jsx-multiline-attr-whitespace.test.ts :: multi-line JSX attribute string whitespace folding emits valid JS for a multi-line class attribute (no Unterminated string)",
+      "tests/optimizer/jsx/jsx-multiline-attr-whitespace.test.ts :: multi-line JSX attribute string whitespace folding folds a bare newline to a single space",
+      "tests/optimizer/jsx/jsx-multiline-attr-whitespace.test.ts :: multi-line JSX attribute string whitespace folding folds a leading newline to a leading space",
+      "tests/optimizer/jsx/jsx-multiline-attr-whitespace.test.ts :: multi-line JSX attribute string whitespace folding folds a trailing newline to a trailing space",
+      "tests/optimizer/jsx/jsx-multiline-attr-whitespace.test.ts :: multi-line JSX attribute string whitespace folding folds newline + indentation to a single space",
+      "tests/optimizer/jsx/jsx-multiline-attr-whitespace.test.ts :: multi-line JSX attribute string whitespace folding keeps an empty line as an extra join space (a\\n\\n  b -> \"a  b\")",
+      "tests/optimizer/jsx/jsx-multiline-attr-whitespace.test.ts :: multi-line JSX attribute string whitespace folding leaves a single-line space-only value byte-for-byte unchanged",
       "tests/optimizer/jsx/jsx-split-source-order.test.ts :: _jsxSplit source-ordered emission multi-spread + after-all-spreads literal const: works without an event-handler in const",
       "tests/optimizer/jsx/jsx-split-source-order.test.ts :: _jsxSplit source-ordered emission multi-spread + no real-const-after (only event handlers): falls through to wrappers",
       "tests/optimizer/jsx/jsx-split-source-order.test.ts :: _jsxSplit source-ordered emission multi-spread + real-const-after: spreads emit raw in source order, no wrappers",
@@ -1283,6 +1291,6 @@
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) has null input",
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) parses without error"
     ],
-    "total": 1098
+    "total": 1106
   }
 }

@@ -41,6 +41,7 @@ import {
 } from '../../vdomless/runtime/subscriber';
 import { assertDefined, assertNumber } from '../error/assert';
 import { qError, QError } from '../error/error';
+import { withCaptures } from '../qrl/qrl-captures';
 import type { QRLInternal } from '../qrl/qrl-class';
 import { isPromise } from '../utils/promises';
 import { allocate, resolvers } from './allocate';
@@ -417,16 +418,11 @@ async function restoreDomEffect(
         target.markerIndex
       );
       const qrl = parts[target.depsIndex + 2] as QRLInternal<TextExpressionFn>;
-      const fn = await qrl.resolve();
+      const args = parts[target.depsIndex + 1] as unknown[];
+      const fn = withCaptures(await qrl.resolve(), args);
       return {
         deps: target.deps,
-        effect: new TextExpressionEffect(
-          text,
-          parts[target.depsIndex + 1] as unknown[],
-          (...args) => {
-            return fn(...args);
-          }
-        ),
+        effect: new TextExpressionEffect(text, args, fn),
       };
     }
     case EffectKind.Attr: {
@@ -434,16 +430,12 @@ async function restoreDomEffect(
       const element = resolveElementTarget(container, target.targetKind, target.targetId);
       const name = String(parts[target.depsIndex + 1]);
       if (parts.length > target.depsIndex + 3) {
+        const args = parts[target.depsIndex + 2] as unknown[];
         const qrl = parts[target.depsIndex + 3] as QRLInternal<AttrExpressionFn>;
-        const fn = await qrl.resolve();
+        const fn = withCaptures(await qrl.resolve(), args);
         return {
           deps: target.deps,
-          effect: new AttrExpressionEffect(
-            element,
-            name,
-            parts[target.depsIndex + 2] as unknown[],
-            fn
-          ),
+          effect: new AttrExpressionEffect(element, name, args, fn),
         };
       }
       const source = readRequiredDomSource(target.deps, target.targetKind);
@@ -455,10 +447,11 @@ async function restoreDomEffect(
       const qrl = parts[target.depsIndex + 2] as QRLInternal<
         (...args: unknown[]) => Record<string, unknown> | null | undefined
       >;
-      const fn = await qrl.resolve();
+      const args = parts[target.depsIndex + 1] as unknown[];
+      const fn = withCaptures(await qrl.resolve(), args);
       return {
         deps: target.deps,
-        effect: new PropsEffect(element, parts[target.depsIndex + 1] as unknown[], fn),
+        effect: new PropsEffect(element, args, fn),
       };
     }
     default:

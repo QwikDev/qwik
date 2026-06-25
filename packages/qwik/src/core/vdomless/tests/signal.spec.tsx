@@ -77,4 +77,22 @@ describe.each([
 
     cleanup();
   });
+
+  it('should update empty text expression value', async () => {
+    const MyComp = () => {
+      const count = createSignal(0);
+      return <button onClick$={() => count.value++}>{count.value > 0 ? count.value : ''}</button>;
+    };
+
+    const { container, cleanup, qwikLoader } = await render(<MyComp />, { debug });
+    const button = container.querySelector('button');
+    expect(button?.textContent).toBe('');
+
+    expect(qwikLoader).toBeDefined();
+    await qwikLoader?.dispatch(button!, 'click');
+
+    expect(button?.textContent).toBe('1');
+
+    cleanup();
+  });
 });

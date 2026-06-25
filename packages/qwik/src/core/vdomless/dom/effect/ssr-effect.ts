@@ -10,6 +10,7 @@ import { SubscriberKind } from '../../runtime/subscriber';
 import { readSourceValue, type Dependency, type Source } from '../../reactive/source';
 import { runWithCollector, track } from '../../reactive/tracking';
 import type { QRLInternal } from '../../../shared/qrl/qrl-class';
+import { withCaptures } from '../../../shared/qrl/qrl-captures';
 import { registerSubscriberToOwner } from '../../runtime/owner';
 import type { Owner } from '../../runtime/owner';
 import type { SSRForBlock } from '../for/for';
@@ -225,7 +226,7 @@ export function renderSsrTextExpression<TArgs extends unknown[]>(
     throw qrl.resolve();
   }
 
-  return serializeSsrTextValue(runWithCollector(subscriber, fn, ...args));
+  return serializeSsrTextValue(runWithCollector(subscriber, withCaptures(fn, args), ...args));
 }
 
 function serializeSsrTextValue(value: unknown): string {
@@ -263,7 +264,10 @@ export function renderSsrAttrExpression<TArgs extends unknown[]>(
     throw qrl.resolve();
   }
 
-  return serializeAttrExpressionValue(name, runWithCollector(subscriber, fn, ...args));
+  return serializeAttrExpressionValue(
+    name,
+    runWithCollector(subscriber, withCaptures(fn, args), ...args)
+  );
 }
 
 export function renderSsrProps<TArgs extends unknown[]>(
@@ -280,7 +284,9 @@ export function renderSsrProps<TArgs extends unknown[]>(
     throw qrl.resolve();
   }
 
-  return runWithCollector(subscriber, () => renderDomPropsToString(fn(...args), eventAttr));
+  return runWithCollector(subscriber, () =>
+    renderDomPropsToString(withCaptures(fn, args)(...args), eventAttr)
+  );
 }
 
 function useSsrDomEffect(

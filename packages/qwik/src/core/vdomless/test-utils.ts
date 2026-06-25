@@ -538,12 +538,22 @@ function withSchedulerFlush(
   return {
     async dispatch(target, type, payload) {
       await qwikLoader.dispatch(target, type, payload);
-      await flushScheduler(scheduler);
+      await settleScheduler(scheduler);
     },
     cleanup() {
       qwikLoader.cleanup();
     },
   };
+}
+
+async function settleScheduler(scheduler: Scheduler): Promise<void> {
+  // ponytail: test-only drain; replace with explicit lazy-subscriber await if runtime exposes one.
+  for (let i = 0; i < 50; i++) {
+    await flushScheduler(scheduler);
+    await Promise.resolve();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  }
+  await flushScheduler(scheduler);
 }
 
 async function flushScheduler(scheduler: Scheduler): Promise<void> {
@@ -582,7 +592,17 @@ function shouldBootQwikLoader(container: Element): boolean {
 
 function shouldBootQwikLoaderFromEvents(document: Document): boolean {
   const qWindow = document.defaultView as (Window & { _qwikEv?: unknown }) | null;
-  return Array.isArray(qWindow?._qwikEv) && qWindow._qwikEv.length > 0;
+  if (Array.isArray(qWindow?._qwikEv) && qWindow._qwikEv.length > 0) {
+    return true;
+  }
+
+  const elements = document.querySelectorAll('*');
+  for (let i = 0; i < elements.length; i++) {
+    if ((elements[i] as { _qDispatch?: unknown })._qDispatch) {
+      return true;
+    }
+  }
+  return false;
 }
 
 async function compileJsxRoot<TRoot extends CsrRenderComponent | SsrRenderComponent>(
@@ -606,7 +626,25 @@ async function compileJsxRootPair(jsx: JSXOutput): Promise<{
     importCompiledRoot<SsrRenderComponent>('ssr', id, inputPath, input.code, input.rootExportName),
     importCompiledRoot<CsrRenderComponent>('csr', id, inputPath, input.code, input.rootExportName),
   ]);
+  await writeMissingServerSegmentsToClientDir(server, client);
   return { server, client };
+}
+
+async function writeMissingServerSegmentsToClientDir(
+  server: CompiledRoot<SsrRenderComponent>,
+  client: CompiledRoot<CsrRenderComponent>
+): Promise<void> {
+  const clientDir = fileURLToPath(client.moduleBase);
+  for (let i = 0; i < server.modules.length; i++) {
+    const module = server.modules[i];
+    if (!module.segment) {
+      continue;
+    }
+    const filePath = join(clientDir, basename(module.path));
+    if (!existsSync(filePath)) {
+      await writeFile(filePath, module.code);
+    }
+  }
 }
 
 async function createCompiledInput(jsx: JSXOutput): Promise<CompiledInput> {

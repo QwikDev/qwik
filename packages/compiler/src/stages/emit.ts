@@ -64,31 +64,41 @@ export async function emitModules(ctx: CompilerContext) {
   }
 
   const qrlSegments = collectQrlSegments(ctx, supported, ctx.emitTarget);
-  const exportedComponents = supported.filter((component) => component.exported);
-  const localComponents = supported.filter((component) => !component.exported);
-  const mainQrlSegments = collectQrlSegments(ctx, exportedComponents, ctx.emitTarget, false);
-  const imports = createModuleImports(ctx, exportedComponents, mainQrlSegments);
+  const referencedComponents = collectReferencedComponents(ctx, supported);
+  const moduleComponents = supported.filter(
+    (component) => !component.exported || referencedComponents.has(component)
+  );
+  const mainComponents = supported.filter(
+    (component) => component.exported && !referencedComponents.has(component)
+  );
+  const mainQrlSegments = collectQrlSegments(ctx, mainComponents, ctx.emitTarget, false);
+  const mainPrelude = createModulePrelude(ctx, qrlSegments);
+  const exports = createComponentReExports(
+    ctx,
+    moduleComponents.filter((component) => component.exported)
+  );
+  const imports = createModuleImports(ctx, mainComponents, mainQrlSegments);
   const outputCode =
     ctx.emitTarget === 'ssr'
       ? emitSsrModule(
-          exportedComponents,
+          mainComponents,
           mainQrlSegments,
           ctx.manifest.segments,
           ctx.input.code,
           imports,
-          createModulePrelude(ctx, exportedComponents, mainQrlSegments)
+          `${mainPrelude}${exports}`
         )
       : emitCsrModule(
-          exportedComponents,
+          mainComponents,
           mainQrlSegments,
           ctx.manifest.segments,
           ctx.input.code,
           imports,
-          createModulePrelude(ctx, exportedComponents, mainQrlSegments)
+          `${mainPrelude}${exports}`
         );
   const modules = [createModule(ctx.input.path, outputCode)];
 
-  for (const component of localComponents) {
+  for (const component of moduleComponents) {
     modules.push(await createComponentModule(ctx, component));
   }
 
@@ -128,6 +138,25 @@ function createModuleImports(
     collectCsrRootQrlSegments(components, qrlSegments),
     collectCsrRootImportUsage(components, qrlSegments)
   );
+}
+
+function collectReferencedComponents(
+  ctx: CompilerContext,
+  components: readonly ComponentRecord[]
+): Set<ComponentRecord> {
+  const referenced = new Set<ComponentRecord>();
+  for (const component of components) {
+    if (component.root === null) {
+      continue;
+    }
+    for (const name of collectComponentReferenceNames(component.root, true)) {
+      const child = findNamedComponent(ctx, name);
+      if (child && child !== component) {
+        referenced.add(child);
+      }
+    }
+  }
+  return referenced;
 }
 
 interface SsrUsageRoot {
@@ -192,7 +221,6 @@ const EMPTY_SSR_IMPORT_USAGE = createSsrImportUsage([]);
 
 function createModulePrelude(
   ctx: CompilerContext,
-  components: readonly ComponentRecord[],
   qrlSegments: Map<string, QrlSegmentOutput>
 ): string {
   const moduleImportNames = collectModuleImportNames(qrlSegments);
@@ -200,12 +228,29 @@ function createModulePrelude(
     return '';
   }
 
-  const declarations = collectPreservedModuleDeclarations(ctx, components);
+  const declarations = collectPreservedModuleDeclarations(ctx);
   if (declarations.length === 0) {
     return '';
   }
 
   return `${declarations.join('\n')}\nexport { ${moduleImportNames.join(', ')} };\n\n`;
+}
+
+function createComponentReExports(
+  ctx: CompilerContext,
+  components: readonly ComponentRecord[]
+): string {
+  if (components.length === 0) {
+    return '';
+  }
+  return `${components
+    .map((component) => {
+      const path = JSON.stringify(createComponentImportPath(ctx, component));
+      return component.exportName === 'default'
+        ? `export { default } from ${path};`
+        : `export { ${component.exportName} } from ${path};`;
+    })
+    .join('\n')}\n\n`;
 }
 
 function collectModuleImportNames(qrlSegments: Map<string, QrlSegmentOutput>): string[] {
@@ -218,11 +263,8 @@ function collectModuleImportNames(qrlSegments: Map<string, QrlSegmentOutput>): s
   return [...names];
 }
 
-function collectPreservedModuleDeclarations(
-  ctx: CompilerContext,
-  components: readonly ComponentRecord[]
-): string[] {
-  const componentRanges = components
+function collectPreservedModuleDeclarations(ctx: CompilerContext): string[] {
+  const componentRanges = ctx.manifest.components
     .map((component) => component.functionRange)
     .filter((range): range is [number, number] => range !== null);
   const declarations: string[] = [];
@@ -281,7 +323,7 @@ async function createComponentModule(ctx: CompilerContext, component: ComponentR
           ctx.manifest.segments,
           ctx.input.code,
           imports,
-          createModulePrelude(ctx, [component], qrlSegments)
+          createModulePrelude(ctx, qrlSegments)
         )
       : emitCsrModule(
           [component],
@@ -289,7 +331,7 @@ async function createComponentModule(ctx: CompilerContext, component: ComponentR
           ctx.manifest.segments,
           ctx.input.code,
           imports,
-          createModulePrelude(ctx, [component], qrlSegments)
+          createModulePrelude(ctx, qrlSegments)
         );
   const modulePath = createComponentModulePath(ctx, component);
   const transformed = await transform(modulePath, source, {
@@ -495,7 +537,9 @@ function hasCsrRootDirectDomEvent(node: RenderNode | null): boolean {
     (current) =>
       current.kind === 'element' &&
       !current.props.some((prop) => prop.kind === 'spread') &&
-      current.props.some((prop) => prop.kind === 'named' && prop.qrlSegmentId)
+      current.props.some(
+        (prop) => prop.kind === 'named' && (prop.qrlSegmentId || prop.expressionRange !== undefined)
+      )
   );
 }
 
@@ -1232,7 +1276,12 @@ function createComponentReferenceImports(
   const sameModuleNames = new Set<string>();
   for (const name of names) {
     const component = findNamedComponent(ctx, name);
-    if (!component || component.exported || component === currentComponent) {
+    if (
+      !component ||
+      component === currentComponent ||
+      !component.supported ||
+      component.root === null
+    ) {
       continue;
     }
     sameModuleNames.add(name);
@@ -1264,24 +1313,36 @@ function createComponentReferenceImports(
   return imports;
 }
 
-function collectComponentReferenceNames(node: RenderNode): Set<string> {
+function collectComponentReferenceNames(node: RenderNode, includeBranches = false): Set<string> {
   const names = new Set<string>();
-  collectComponentReferenceNamesInNode(node, names);
+  collectComponentReferenceNamesInNode(node, names, includeBranches);
   return names;
 }
 
-function collectComponentReferenceNamesInNode(node: RenderNode, names: Set<string>) {
+function collectComponentReferenceNamesInNode(
+  node: RenderNode,
+  names: Set<string>,
+  includeBranches: boolean
+) {
   if (node.kind === 'component') {
     names.add(node.name);
   }
   if (node.kind === 'element' || node.kind === 'fragment' || node.kind === 'component') {
     for (const child of node.children) {
-      collectComponentReferenceNamesInNode(child, names);
+      collectComponentReferenceNamesInNode(child, names, includeBranches);
     }
   }
   if (node.kind === 'for') {
     for (const child of node.children) {
-      collectComponentReferenceNamesInNode(child, names);
+      collectComponentReferenceNamesInNode(child, names, includeBranches);
+    }
+  }
+  if (includeBranches && node.kind === 'branch') {
+    for (const child of node.thenChildren) {
+      collectComponentReferenceNamesInNode(child, names, includeBranches);
+    }
+    for (const child of node.elseChildren) {
+      collectComponentReferenceNamesInNode(child, names, includeBranches);
     }
   }
 }

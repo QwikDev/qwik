@@ -350,6 +350,21 @@ export function Parent() {
     });
   });
 
+  test('passes component event props through native events', async () => {
+    await testInput('component_event_prop_passthrough', {
+      code: `import type { QRL } from '@qwik.dev/core';
+
+export function Button(props: { onClick$: QRL<() => any> }) {
+  return <button onClick$={props.onClick$}>Click</button>;
+}
+
+export function Parent() {
+  return <Button onClick$={() => 1} />;
+}
+`,
+    });
+  });
+
   test('emits SSR and CSR ternary branch renderers', async () => {
     await testInput('branch_ternary', {
       code: `import { createSignal } from '@qwik.dev/core/spark';

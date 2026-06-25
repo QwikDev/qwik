@@ -305,6 +305,15 @@ export class SsrEmitter {
           parts.push(...this.emitDynamicAttrParts(prop, elementId!));
           continue;
         }
+        if (prop.expressionRange !== undefined) {
+          this.usesCtx = true;
+          parts.push({
+            code: `ctx.eventAttr(${JSON.stringify(prop.name)}, ${this.emitSourceExpression(
+              prop.expressionRange
+            )})`,
+          });
+          continue;
+        }
         if (prop.qrlSegmentId) {
           const qrlSegment = this.qrlSegments.get(prop.qrlSegmentId);
           if (qrlSegment) {

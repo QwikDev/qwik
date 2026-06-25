@@ -137,6 +137,7 @@ export function createCsrImports(
     !usage.hasTemplate &&
     !usage.hasComponent &&
     !usage.hasDomProps &&
+    !usage.hasDirectEvent &&
     !usage.hasComponentPropsSpread &&
     !usage.hasForBlock
   ) {
@@ -187,10 +188,10 @@ export function createCsrImports(
   if (usage.hasCapturedDomPropsEvent) {
     sparkSpecifiers.push(QwikSymbol.CreateCapturedEvent);
   }
+  if (usage.hasDirectEvent) {
+    sparkSpecifiers.push(QwikSymbol.SetEvent);
+  }
   if (qrlSegments.size > 0) {
-    if (usage.hasDirectEvent) {
-      sparkSpecifiers.push(QwikSymbol.SetEvent);
-    }
     if (usage.hasCapturedFunction) {
       sparkSpecifiers.push(QwikSymbol.WithCaptures);
     }

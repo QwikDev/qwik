@@ -445,6 +445,17 @@ export class DomEmitter {
         }
         continue;
       }
+      if (prop.expressionRange !== undefined) {
+        const handlerId = this.next('event');
+        this.use(QwikSymbol.SetEvent);
+        this.line(`const ${handlerId} = ${this.emitExpression(prop.expressionRange)};`);
+        this.line(
+          `if (${handlerId}) ${QwikSymbol.SetEvent}(${elementId}, ${JSON.stringify(
+            prop.name
+          )}, ${handlerId});`
+        );
+        continue;
+      }
       if (prop.qrlSegmentId) {
         const qrlSegment = this.qrlSegments.get(prop.qrlSegmentId);
         if (qrlSegment) {

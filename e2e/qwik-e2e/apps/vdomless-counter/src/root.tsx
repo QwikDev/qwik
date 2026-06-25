@@ -53,6 +53,7 @@
 //   );
 // }
 
+import type { QRL } from '@qwik.dev/core';
 import { createSignal } from '@qwik.dev/core/spark';
 
 const adjectives = ["pretty", "large", "big", "small", "tall", "short", "long", "handsome", "plain", "quaint", "clean", "elegant", "easy", "angry", "crazy", "helpful", "mushy", "odd", "unsightly", "adorable", "important", "inexpensive", "cheap", "expensive", "fancy"]; // prettier-ignore
@@ -84,6 +85,20 @@ const buildData = (count: number): Row[] => {
   return data;
 };
 
+const Button = ({ id, text, onClick$ }: { id: string; text: string; onClick$: QRL<() => any> }) => {
+  return (
+    <button
+      id={id}
+      class="btn btn-primary btn-block"
+      type="button"
+      stoppropagation:click
+      onClick$={onClick$}
+    >
+      {text}
+    </button>
+  );
+};
+
 export function Root() {
   const data = createSignal([]);
   const selectedItem = createSignal(null);
@@ -98,64 +113,40 @@ export function Root() {
           <div class="col-md-6">
             <div class="row">
               <div class="col-sm-6 smallpad">
-                <button
+                <Button
                   id="run"
-                  class="btn btn-primary btn-block"
-                  type="button"
-                  stoppropagation:click
                   onClick$={() => (data.value = buildData(1_000))}
-                >
-                  Create 1,000 rows
-                </button>
+                  text="Create 1,000 rows"
+                />
               </div>
               <div class="col-sm-6 smallpad">
-                <button
+                <Button
                   id="runlots"
-                  class="btn btn-primary btn-block"
-                  type="button"
-                  stoppropagation:click
                   onClick$={() => (data.value = buildData(10_000))}
-                >
-                  Create 10,000 rows
-                </button>
+                  text="Create 10,000 rows"
+                />
               </div>
               <div class="col-sm-6 smallpad">
-                <button
+                <Button
                   id="add"
-                  class="btn btn-primary btn-block"
-                  type="button"
-                  stoppropagation:click
                   onClick$={() => (data.value = [...data.value, ...buildData(1_000)])}
-                >
-                  Append 1,000 rows
-                </button>
+                  text="Append 1,000 rows"
+                />
               </div>
               <div class="col-sm-6 smallpad">
-                <button
+                <Button
                   id="update"
-                  class="btn btn-primary btn-block"
-                  type="button"
-                  stoppropagation:click
                   onClick$={() => {
                     const dataValue = data.value;
                     for (let i = 0, d = dataValue, len = d.length; i < len; i += 10) {
                       d[i].label.value += ' !!!';
                     }
                   }}
-                >
-                  Update every 10th row
-                </button>
+                  text="Update every 10th row"
+                />
               </div>
               <div class="col-sm-6 smallpad">
-                <button
-                  id="clear"
-                  class="btn btn-primary btn-block"
-                  type="button"
-                  stoppropagation:click
-                  onClick$={() => (data.value = [])}
-                >
-                  Clear
-                </button>
+                <Button id="clear" onClick$={() => (data.value = [])} text="Clear" />
               </div>
               <div class="col-sm-6 smallpad">
                 <button

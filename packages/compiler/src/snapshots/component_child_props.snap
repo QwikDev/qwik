@@ -15,9 +15,29 @@ export function Parent() {
 
 ============================= src/component.tsx ==
 
+import { createSignal, createComponent } from '@qwik.dev/core/spark';
+import { Child } from './component.tsx_component_Child';
+
+export { Child } from './component.tsx_component_Child';
+
+export async function Parent(_props, ctx) {
+  const count = createSignal(1);
+  const component0 = createComponent(
+    {
+      label: 'Hi',
+      get count() {
+        return count.value;
+      },
+    },
+    (props) => Child(props, ctx)
+  );
+  return await component0;
+}
+
+null
+============================= src/component.tsx_component_Child.js (ENTRY POINT)==
+
 import {
-  createSignal,
-  createComponent,
   createSsrDomBatchEffect,
   _qrlWithChunk,
   escapeHTML,
@@ -26,20 +46,18 @@ import {
 } from '@qwik.dev/core/spark';
 import { component_text_segment_0 } from './component.tsx_component_text_segment_0';
 import { component_text_segment_1 } from './component.tsx_component_text_segment_1';
-
-const q_component_text_segment_0 = /*#__PURE__*/ _qrlWithChunk(
+const q_component_text_segment_0 = /* @__PURE__ */ _qrlWithChunk(
   './component.tsx_component_text_segment_0',
   () => import('./component.tsx_component_text_segment_0'),
   'component_text_segment_0'
 );
 q_component_text_segment_0.s(component_text_segment_0);
-const q_component_text_segment_1 = /*#__PURE__*/ _qrlWithChunk(
+const q_component_text_segment_1 = /* @__PURE__ */ _qrlWithChunk(
   './component.tsx_component_text_segment_1',
   () => import('./component.tsx_component_text_segment_1'),
   'component_text_segment_1'
 );
 q_component_text_segment_1.s(component_text_segment_1);
-
 export function Child(props, ctx) {
   const id0 = ctx.nextId();
   ctx.addRoot(props);
@@ -60,21 +78,30 @@ export function Child(props, ctx) {
     '<p q:id="' + id0 + '"><!t>' + escapeHTML(text1) + '<!/t>: <!t>' + escapeHTML(text3) + '</p>'
   );
 }
-export async function Parent(_props, ctx) {
-  const count = createSignal(1);
-  const component0 = createComponent(
-    {
-      label: 'Hi',
-      get count() {
-        return count.value;
-      },
-    },
-    (props) => Child(props, ctx)
-  );
-  return await component0;
-}
 
 null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_Child",
+  "entry": null,
+  "displayName": "component_Child",
+  "hash": "component_Child",
+  "canonicalFilename": "component.tsx_component_Child",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component",
+  "captures": false,
+  "loc": [
+    60,
+    130
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
 ============================= src/component.tsx_component_text_segment_0.js (ENTRY POINT)==
 
 export const component_text_segment_0 = (props) => {
@@ -142,13 +169,30 @@ null
 
 ============================= src/component.tsx ==
 
-import {
-  createSignal,
-  createComponent,
-  createDomBatchEffect,
-  patchTextValue,
-} from '@qwik.dev/core/spark';
+import { createSignal, createComponent } from '@qwik.dev/core/spark';
+import { Child } from './component.tsx_component_Child';
 
+export { Child } from './component.tsx_component_Child';
+
+export function Parent(_props, ctx) {
+  const count = createSignal(1);
+  const cmp0 = createComponent(
+    {
+      label: 'Hi',
+      get count() {
+        return count.value;
+      },
+    },
+    (props) => Child(props, ctx),
+    { container: ctx }
+  );
+  return cmp0;
+}
+
+null
+============================= src/component.tsx_component_Child.js (ENTRY POINT)==
+
+import { createDomBatchEffect, patchTextValue } from '@qwik.dev/core/spark';
 const dom_Child_expr0 = (props) => props.label;
 const dom_Child_expr1 = (props) => props.count;
 export function Child(props, ctx) {
@@ -167,22 +211,30 @@ export function Child(props, ctx) {
   ctx.scheduler.notify(effect2);
   return el0;
 }
-export function Parent(_props, ctx) {
-  const count = createSignal(1);
-  const cmp0 = createComponent(
-    {
-      label: 'Hi',
-      get count() {
-        return count.value;
-      },
-    },
-    (props) => Child(props, ctx),
-    { container: ctx }
-  );
-  return cmp0;
-}
 
 null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_Child",
+  "entry": null,
+  "displayName": "component_Child",
+  "hash": "component_Child",
+  "canonicalFilename": "component.tsx_component_Child",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component",
+  "captures": false,
+  "loc": [
+    60,
+    130
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
 ============================= src/component.tsx_component_text_segment_0.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core/spark';

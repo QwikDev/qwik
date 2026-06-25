@@ -185,6 +185,16 @@ function lowerJsxAttributes(
         }
         continue;
       }
+      const expressionRange = getDynamicExpressionRange(expr);
+      if (expressionRange !== null) {
+        props.push({
+          kind: 'named',
+          name: eventName,
+          value: null,
+          expressionRange,
+        });
+        continue;
+      }
       ctx.manifest.diagnostics.push(
         createDiagnostic(ctx.input.path, `Event prop "${name}" must be an inline function.`)
       );

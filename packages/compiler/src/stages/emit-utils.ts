@@ -343,7 +343,9 @@ export function hasDirectDomEvent(node: RenderNode | null): boolean {
     (current) =>
       current.kind === 'element' &&
       !current.props.some((prop) => prop.kind === 'spread') &&
-      current.props.some((prop) => prop.kind === 'named' && prop.qrlSegmentId)
+      current.props.some(
+        (prop) => prop.kind === 'named' && (prop.qrlSegmentId || prop.expressionRange !== undefined)
+      )
   );
 }
 

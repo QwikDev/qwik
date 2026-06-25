@@ -12,11 +12,11 @@ export function Parent() {
 
 ============================= src/component.tsx ==
 
+import { Wrapper } from './component.tsx_component_Wrapper';
 import { createComponent } from '@qwik.dev/core/spark';
 
-export function Wrapper(props, _ctx) {
-  return '<section>' + (props.children ?? '') + '</section>';
-}
+export { Wrapper } from './component.tsx_component_Wrapper';
+
 export async function Parent(_props, ctx) {
   const component0 = createComponent({ children: '<p>Projected</p>' }, (props) =>
     Wrapper(props, ctx)
@@ -25,6 +25,35 @@ export async function Parent(_props, ctx) {
 }
 
 null
+============================= src/component.tsx_component_Wrapper.js (ENTRY POINT)==
+
+export function Wrapper(props, _ctx) {
+  return '<section>' + (props.children ?? '') + '</section>';
+}
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_Wrapper",
+  "entry": null,
+  "displayName": "component_Wrapper",
+  "hash": "component_Wrapper",
+  "canonicalFilename": "component.tsx_component_Wrapper",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component",
+  "captures": false,
+  "loc": [
+    7,
+    79
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
 == SSR DIAGNOSTICS ==
 
 []
@@ -32,16 +61,11 @@ null
 
 ============================= src/component.tsx ==
 
+import { Wrapper } from './component.tsx_component_Wrapper';
 import { createComponent } from '@qwik.dev/core/spark';
 
-export function Wrapper(props, ctx) {
-  const el0 = ctx.document.createElement('section');
-  if (Array.isArray(props.children ?? []))
-    for (let i = 0; i < (props.children ?? []).length; i++)
-      el0.appendChild((props.children ?? [])[i]);
-  else el0.appendChild(props.children ?? []);
-  return el0;
-}
+export { Wrapper } from './component.tsx_component_Wrapper';
+
 export function Parent(_props, ctx) {
   const el1 = ctx.document.createElement('p');
   const text2 = ctx.document.createTextNode('Projected');
@@ -53,6 +77,40 @@ export function Parent(_props, ctx) {
 }
 
 null
+============================= src/component.tsx_component_Wrapper.js (ENTRY POINT)==
+
+export function Wrapper(props, ctx) {
+  const el0 = ctx.document.createElement('section');
+  if (Array.isArray(props.children ?? []))
+    for (let i = 0; i < (props.children ?? []).length; i++)
+      el0.appendChild((props.children ?? [])[i]);
+  else el0.appendChild(props.children ?? []);
+  return el0;
+}
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_Wrapper",
+  "entry": null,
+  "displayName": "component_Wrapper",
+  "hash": "component_Wrapper",
+  "canonicalFilename": "component.tsx_component_Wrapper",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component",
+  "captures": false,
+  "loc": [
+    7,
+    79
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
 == CSR DIAGNOSTICS ==
 
 []

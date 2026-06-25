@@ -1,4 +1,4 @@
-import { component$, createContextId } from '@qwik.dev/core';
+import { component$, createContextId, type QRL } from '@qwik.dev/core';
 import {
   createContext,
   createContextProvider,
@@ -153,6 +153,35 @@ describe.each([
     await qwikLoader?.dispatch(button!, 'click');
 
     expect(button?.textContent).toBe('1');
+
+    cleanup();
+  });
+
+  it('should pass event props to native child elements', async () => {
+    const Button = component$((props: { onClick$: QRL<() => any> }) => {
+      return <button onClick$={props.onClick$}>Click</button>;
+    });
+
+    const Parent = component$(() => {
+      const count = createSignal(0);
+      return (
+        <section>
+          <Button onClick$={() => count.value++} />
+          <span>{count.value}</span>
+        </section>
+      );
+    });
+
+    const { container, cleanup, qwikLoader } = await render(<Parent />, { debug });
+    const button = container.querySelector('button');
+    const value = container.querySelector('span');
+
+    expect(value?.textContent).toBe('0');
+    expect(qwikLoader).toBeDefined();
+
+    await qwikLoader?.dispatch(button!, 'click');
+
+    expect(value?.textContent).toBe('1');
 
     cleanup();
   });

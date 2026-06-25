@@ -23,19 +23,12 @@ import {
   createContextProvider,
   createSignal,
   createComponent,
-  escapeHTML,
-  renderSsrTextNode,
-  createSsrElementTextTarget,
 } from '@qwik.dev/core/spark';
 import { Context } from './context';
+import { Child } from './component.tsx_component_Child';
 
-export function Child(_props, ctx) {
-  const value = createContext(Context);
-  const id0 = ctx.nextId();
-  ctx.addRoot(value);
-  const text1 = renderSsrTextNode(createSsrElementTextTarget(id0), value);
-  return '<p q:id="' + id0 + '">' + escapeHTML(text1) + '</p>';
-}
+export { Child } from './component.tsx_component_Child';
+
 export async function Parent(_props, ctx) {
   const value = createSignal('provided');
   createContextProvider(Context, value);
@@ -46,6 +39,44 @@ export async function Parent(_props, ctx) {
 }
 
 null
+============================= src/component.tsx_component_Child.js (ENTRY POINT)==
+
+import {
+  createContext,
+  escapeHTML,
+  renderSsrTextNode,
+  createSsrElementTextTarget,
+} from '@qwik.dev/core/spark';
+import { Context } from './context';
+export function Child(_props, ctx) {
+  const value = createContext(Context);
+  const id0 = ctx.nextId();
+  ctx.addRoot(value);
+  const text1 = renderSsrTextNode(createSsrElementTextTarget(id0), value);
+  return '<p q:id="' + id0 + '">' + escapeHTML(text1) + '</p>';
+}
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_Child",
+  "entry": null,
+  "displayName": "component_Child",
+  "hash": "component_Child",
+  "canonicalFilename": "component.tsx_component_Child",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component",
+  "captures": false,
+  "loc": [
+    135,
+    224
+  ],
+  "paramNames": []
+}
+*/
 == SSR DIAGNOSTICS ==
 
 []
@@ -58,21 +89,12 @@ import {
   createContextProvider,
   createSignal,
   createComponent,
-  createTemplate,
-  createTextNodeEffect,
 } from '@qwik.dev/core/spark';
 import { Context } from './context';
+import { Child } from './component.tsx_component_Child';
 
-const dom_Child_template0 = createTemplate('<p> </p>');
-export function Child(_props, ctx) {
-  const value = createContext(Context);
-  const fragment0 = dom_Child_template0(ctx.document);
-  const el1 = fragment0.firstChild;
-  const text2 = el1.firstChild;
-  const effect3 = createTextNodeEffect(text2, value, { scheduler: ctx.scheduler });
-  ctx.scheduler.notify(effect3);
-  return el1;
-}
+export { Child } from './component.tsx_component_Child';
+
 export function Parent(_props, ctx) {
   const value = createSignal('provided');
   createContextProvider(Context, value);
@@ -84,6 +106,42 @@ export function Parent(_props, ctx) {
 }
 
 null
+============================= src/component.tsx_component_Child.js (ENTRY POINT)==
+
+import { createContext, createTemplate, createTextNodeEffect } from '@qwik.dev/core/spark';
+import { Context } from './context';
+const dom_Child_template0 = createTemplate('<p> </p>');
+export function Child(_props, ctx) {
+  const value = createContext(Context);
+  const fragment0 = dom_Child_template0(ctx.document);
+  const el1 = fragment0.firstChild;
+  const text2 = el1.firstChild;
+  const effect3 = createTextNodeEffect(text2, value, { scheduler: ctx.scheduler });
+  ctx.scheduler.notify(effect3);
+  return el1;
+}
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_Child",
+  "entry": null,
+  "displayName": "component_Child",
+  "hash": "component_Child",
+  "canonicalFilename": "component.tsx_component_Child",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component",
+  "captures": false,
+  "loc": [
+    135,
+    224
+  ],
+  "paramNames": []
+}
+*/
 == CSR DIAGNOSTICS ==
 
 []

@@ -14,27 +14,38 @@ export function Parent() {
 
 ============================= src/component.tsx ==
 
-import {
-  createComponent,
-  mergeProps,
-  _qrlWithChunk,
-  createSsrElementTarget,
-  renderSsrProps,
-} from '@qwik.dev/core/spark';
-import { component_props_segment_0 } from './component.tsx_component_props_segment_0';
+import { Button } from './component.tsx_component_Button';
+import { createComponent, mergeProps, _qrlWithChunk } from '@qwik.dev/core/spark';
 
-const q_component_props_segment_0 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_props_segment_0',
-  () => import('./component.tsx_component_props_segment_0'),
-  'component_props_segment_0'
-);
-q_component_props_segment_0.s(component_props_segment_0);
 const q_component_q_e_click_segment_2 = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_q_e_click_segment_2',
   () => import('./component.tsx_component_q_e_click_segment_2'),
   'component_q_e_click_segment_2'
 );
 
+export { Button } from './component.tsx_component_Button';
+
+export async function Parent(_props, ctx) {
+  const attrs = { title: 'Save' };
+  const label = 'clicked';
+  const component0 = createComponent(
+    mergeProps(attrs, { kind: 'primary', onClick$: q_component_q_e_click_segment_2.w([label]) }),
+    (props) => Button(props, ctx)
+  );
+  return await component0;
+}
+
+null
+============================= src/component.tsx_component_Button.js (ENTRY POINT)==
+
+import { _qrlWithChunk, createSsrElementTarget, renderSsrProps } from '@qwik.dev/core/spark';
+import { component_props_segment_0 } from './component.tsx_component_props_segment_0';
+const q_component_props_segment_0 = /* @__PURE__ */ _qrlWithChunk(
+  './component.tsx_component_props_segment_0',
+  () => import('./component.tsx_component_props_segment_0'),
+  'component_props_segment_0'
+);
+q_component_props_segment_0.s(component_props_segment_0);
 export function Button(_props, ctx) {
   const { kind, ...rest } = _props;
   const id0 = ctx.nextId();
@@ -50,17 +61,30 @@ export function Button(_props, ctx) {
     '<button q:id="' + id0 + '"' + props1.attrs + '>' + (props1.innerHTML ?? 'Click') + '</button>'
   );
 }
-export async function Parent(_props, ctx) {
-  const attrs = { title: 'Save' };
-  const label = 'clicked';
-  const component0 = createComponent(
-    mergeProps(attrs, { kind: 'primary', onClick$: q_component_q_e_click_segment_2.w([label]) }),
-    (props) => Button(props, ctx)
-  );
-  return await component0;
-}
 
 null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_Button",
+  "entry": null,
+  "displayName": "component_Button",
+  "hash": "component_Button",
+  "canonicalFilename": "component.tsx_component_Button",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component",
+  "captures": false,
+  "loc": [
+    7,
+    104
+  ],
+  "paramNames": [
+    "_"
+  ]
+}
+*/
 ============================= src/component.tsx_component_props_segment_0.js (ENTRY POINT)==
 
 export const component_props_segment_0 = (rest, kind) => {
@@ -136,14 +160,30 @@ null
 
 ============================= src/component.tsx ==
 
-import {
-  createComponent,
-  mergeProps,
-  createPropsEffect,
-  _withCaptures,
-} from '@qwik.dev/core/spark';
+import { Button } from './component.tsx_component_Button';
+import { createComponent, mergeProps, _withCaptures } from '@qwik.dev/core/spark';
 import { component_q_e_click_segment_2 } from './component.tsx_component_q_e_click_segment_2';
 
+export { Button } from './component.tsx_component_Button';
+
+export function Parent(_props, ctx) {
+  const attrs = { title: 'Save' };
+  const label = 'clicked';
+  const cmp0 = createComponent(
+    mergeProps(attrs, {
+      kind: 'primary',
+      onClick$: _withCaptures(component_q_e_click_segment_2, [label]),
+    }),
+    (props) => Button(props, ctx),
+    { container: ctx }
+  );
+  return cmp0;
+}
+
+null
+============================= src/component.tsx_component_Button.js (ENTRY POINT)==
+
+import { createPropsEffect } from '@qwik.dev/core/spark';
 const dom_Button_expr0 = (rest, kind) => ({
   ...rest,
   get ['data-kind']() {
@@ -161,21 +201,30 @@ export function Button(_props, ctx) {
   el0.appendChild(text2);
   return el0;
 }
-export function Parent(_props, ctx) {
-  const attrs = { title: 'Save' };
-  const label = 'clicked';
-  const cmp0 = createComponent(
-    mergeProps(attrs, {
-      kind: 'primary',
-      onClick$: _withCaptures(component_q_e_click_segment_2, [label]),
-    }),
-    (props) => Button(props, ctx),
-    { container: ctx }
-  );
-  return cmp0;
-}
 
 null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_Button",
+  "entry": null,
+  "displayName": "component_Button",
+  "hash": "component_Button",
+  "canonicalFilename": "component.tsx_component_Button",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component",
+  "captures": false,
+  "loc": [
+    7,
+    104
+  ],
+  "paramNames": [
+    "_"
+  ]
+}
+*/
 ============================= src/component.tsx_component_props_segment_0.js (ENTRY POINT)==
 
 export const component_props_segment_0 = (rest, kind) => {

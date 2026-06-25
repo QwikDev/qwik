@@ -2,20 +2,22 @@
  * Tests for strip-exports module.
  *
  * Verifies that stripExportDeclarations() replaces specified export bodies
- * with throw statements and removes unused imports.
+ * with throw statements. Import cleanup is the parent rewrite pipeline's
+ * job (processImports + filterUnusedImports), not this function's — see
+ * strip-exports-dup-imports.test.ts for the pipeline-level coverage.
  */
 
 import { describe, it, expect } from 'vitest';
 import MagicString from 'magic-string';
 import { parseSync } from 'oxc-parser';
 import { stripExportDeclarations } from '../../../src/optimizer/rewrite/strip-exports.js';
-import { collectImports } from '../../../src/optimizer/extraction/marker-detection.js';
+import { transformModule } from '../../../src/optimizer/transform/index.js';
+import { mkFilePath, mkSourceText } from '../../../src/optimizer/types/brands.js';
 
 function runStrip(source: string, stripExports: string[]) {
   const { program } = parseSync('test.tsx', source);
   const s = new MagicString(source);
-  const importMap = collectImports(program);
-  const result = stripExportDeclarations(source, s, program, stripExports, importMap);
+  const result = stripExportDeclarations(s, program, stripExports);
   return { code: s.toString(), ...result };
 }
 
@@ -38,15 +40,29 @@ export const onGet = () => {
   });
 
   it('removes imports used only by the stripped export', () => {
-    const source = `import mongodb from 'mongodb';
-
-export const onGet = () => {
-  const data = mongodb.collection.whatever;
-  return { body: { data } };
-};
-`;
-    const result = runStrip(source, ['onGet']);
-    expect(result.code).not.toContain('mongodb');
+    // This pass only rewrites the export body; pruning imports left unused
+    // by the strip is the parent rewrite pipeline's job (filterUnusedImports
+    // after processImports). Asserting it end-to-end keeps the behavior
+    // covered where it actually lives now.
+    const source = `import { component$, useSignal } from "@qwik.dev/core";
+import { dbOnly } from "./db";
+export const onGet = () => dbOnly.find();
+export default component$(() => {
+  const sig = useSignal(0);
+  return sig.value;
+});`;
+    const out = transformModule({
+      input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(source) }],
+      srcDir: mkFilePath('.'),
+      entryStrategy: { type: 'smart' },
+      minify: 'simplify',
+      transpileTs: true,
+      transpileJsx: true,
+      mode: 'prod',
+      isServer: false,
+      stripExports: ['onGet'],
+    });
+    expect(out.modules[0].code).not.toContain('dbOnly');
   });
 
   it('preserves exports NOT in the strip list', () => {

@@ -460,7 +460,7 @@ function processImports(ctx: RewriteContext): void {
 
 function applyModeTransforms(ctx: RewriteContext): void {
   if (ctx.stripExports && ctx.stripExports.length > 0) {
-    stripExportDeclarations(ctx.source, ctx.s, ctx.program, ctx.stripExports, ctx.originalImports);
+    stripExportDeclarations(ctx.s, ctx.program, ctx.stripExports);
   }
   let isDev: boolean | undefined;
   if (ctx.mode === 'dev' || ctx.mode === 'hmr') {

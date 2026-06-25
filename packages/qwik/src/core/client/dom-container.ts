@@ -163,6 +163,30 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     this.$setServerData$();
     element.qContainer = this;
     element.qDestroy = () => this.$destroy$();
+    // Route an async `qerror` to the closest ErrorBoundary, not every boundary. Registered
+    // synchronously here (not in the deferred resume) so every container — CSR included — has it.
+    this.$qErrorHandler$ = (e: Event) => {
+      const detail = (e as CustomEvent<{ error: unknown; element?: Element; importError?: string }>)
+        .detail;
+      // qwikloader already console.error'd import/symbol failures; don't re-log them (which would
+      // duplicate once per container on the document-level listener) or route them to a boundary.
+      if (detail?.importError) {
+        return;
+      }
+      const source = detail?.element;
+      if (source && this.element.contains(source)) {
+        const host = this.vNodeLocate(source);
+        if (host) {
+          // A re-throw from `handleError` would become uncaught inside this listener, so log it.
+          try {
+            this.handleError(detail.error, host);
+          } catch (handlerError) {
+            logError(handlerError);
+          }
+        }
+      }
+    };
+    this.document.addEventListener?.('qerror', this.$qErrorHandler$);
     this.$containerDataProcessState$ = ContainerDataProcessState.ProcessingVNode;
     processVNodeData(document);
     onVNodeDataReady(document, () => {
@@ -200,29 +224,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       yield* processSegmentStateScriptsIterator(this);
     }
     this.$hoistStyles$();
-    // Route an async `qerror` to the closest ErrorBoundary, not every boundary.
-    this.$qErrorHandler$ = (e: Event) => {
-      const detail = (e as CustomEvent<{ error: unknown; element?: Element; importError?: string }>)
-        .detail;
-      // qwikloader already console.error'd import/symbol failures; don't re-log them (which would
-      // duplicate once per container on the document-level listener) or route them to a boundary.
-      if (detail?.importError) {
-        return;
-      }
-      const source = detail?.element;
-      if (source && this.element.contains(source)) {
-        const host = this.vNodeLocate(source);
-        if (host) {
-          // A re-throw from `handleError` would become uncaught inside this listener, so log it.
-          try {
-            this.handleError(detail.error, host);
-          } catch (handlerError) {
-            logError(handlerError);
-          }
-        }
-      }
-    };
-    document.addEventListener?.('qerror', this.$qErrorHandler$);
     element.setAttribute(QContainerAttr, QContainerValue.RESUMED);
     if (!qTest && element.isConnected) {
       element.dispatchEvent(new CustomEvent('qresume', { bubbles: true }));

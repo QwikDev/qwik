@@ -14,8 +14,7 @@ describe.each([
         { id: 'a', label: 'Alpha' },
         { id: 'b', label: 'Beta' },
       ]);
-      // TODO(vdomless): empty SSR dynamic text currently leaves no text node to inflate.
-      const selected = createSignal('none');
+      const selected = createSignal('');
       return (
         <section>
           <button

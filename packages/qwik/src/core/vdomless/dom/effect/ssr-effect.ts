@@ -209,7 +209,7 @@ export function renderSsrTextNode(
     batch,
     new SsrTextNodeEffect(target, batch ? source : undefined)
   );
-  return String(runWithCollector(subscriber, readTrackedSourceValue, source));
+  return serializeSsrTextValue(runWithCollector(subscriber, readTrackedSourceValue, source));
 }
 
 export function renderSsrTextExpression<TArgs extends unknown[]>(
@@ -217,7 +217,7 @@ export function renderSsrTextExpression<TArgs extends unknown[]>(
   args: TArgs,
   qrl: TextExpressionQrl<TArgs>,
   batch?: SsrDomSubscriber
-): ReturnType<TextExpressionFn<TArgs>> {
+): string {
   const subscriber = useSsrDomEffect(batch, new SsrTextExpressionEffect(target, args, qrl));
   const fn = qrl.resolved;
 
@@ -225,7 +225,12 @@ export function renderSsrTextExpression<TArgs extends unknown[]>(
     throw qrl.resolve();
   }
 
-  return runWithCollector(subscriber, fn, ...args);
+  return serializeSsrTextValue(runWithCollector(subscriber, fn, ...args));
+}
+
+function serializeSsrTextValue(value: unknown): string {
+  const text = value == null ? '' : String(value);
+  return text === '' ? ' ' : text;
 }
 
 export function renderSsrAttr(

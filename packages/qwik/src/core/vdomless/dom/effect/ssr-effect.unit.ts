@@ -33,6 +33,13 @@ describe('SSR DOM effect helpers', () => {
     expect((subscriber.effect as any).target).toBe(target);
   });
 
+  it('serializes empty SSR text nodes as a text anchor', () => {
+    const text = createSignal('');
+    const target = createSsrElementTextTarget(0);
+
+    expect(createOwned(() => renderSsrTextNode(target, text))).toBe(' ');
+  });
+
   it('creates a text expression subscriber and collects dynamic reads from the QRL', () => {
     const count = createSignal(1);
     const target = createSsrRangeTextTarget(1, 0);
@@ -52,6 +59,13 @@ describe('SSR DOM effect helpers', () => {
     expect(subscriber.deps).toEqual([count]);
     expect(subscriber.effect.kind).toBe(EffectKind.TextExpression);
     expect((subscriber.effect as any).target).toBe(target);
+  });
+
+  it('serializes empty SSR text expressions as a text anchor', () => {
+    const target = createSsrRangeTextTarget(2, 0);
+    const qrl = createQRL<TextExpressionFn<[]>>('./empty.text.js', 'empty', () => '', null, null);
+
+    expect(createOwned(() => renderSsrTextExpression(target, [], qrl))).toBe(' ');
   });
 
   it('creates attr, class, and style subscribers', () => {

@@ -825,7 +825,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[issues](#)
+issues
 
 </td><td>
 
@@ -1115,7 +1115,7 @@ export type GetValidatorErrorType<VALIDATOR extends TypedDataValidator> =
 
 **References:** [TypedDataValidator](#typeddatavalidator), [StandardSchemaDataValidator](#standardschemadatavalidator), [StandardSchemaValidatorErrorType](#standardschemavalidatorerrortype), [StandardSchemaV1.InferInput](#standardschemav1-inferinput), [ValidatorErrorType](#validatorerrortype), [GetValidatorInputType](#getvalidatorinputtype)
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
 <h2 id="getvalidatorinputtype">GetValidatorInputType</h2>
 
@@ -1190,7 +1190,7 @@ type InferInput<Schema extends StandardTypedV1> =
   StandardTypedV1.InferInput<Schema>;
 ```
 
-**References:** [StandardTypedV1](#standardtypedv1-interface), [StandardTypedV1.InferInput](#)
+**References:** [StandardTypedV1](#standardtypedv1-interface), StandardTypedV1.InferInput
 
 <h2 id="standardschemav1-inferoutput">InferOutput</h2>
 
@@ -1201,7 +1201,7 @@ type InferOutput<Schema extends StandardTypedV1> =
   StandardTypedV1.InferOutput<Schema>;
 ```
 
-**References:** [StandardTypedV1](#standardtypedv1-interface), [StandardTypedV1.InferOutput](#)
+**References:** [StandardTypedV1](#standardtypedv1-interface), StandardTypedV1.InferOutput
 
 <h2 id="standardschemav1-issue">Issue</h2>
 
@@ -1230,7 +1230,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[message](#)
+message
 
 </td><td>
 
@@ -1247,7 +1247,7 @@ The error message of the issue.
 </td></tr>
 <tr><td>
 
-[path?](#)
+path?
 
 </td><td>
 
@@ -1463,50 +1463,6 @@ export type NavigationType = "initial" | "form" | "link" | "popstate";
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-<h2 id="standardschemav1-options">Options</h2>
-
-The Standard Schema options interface.
-
-```typescript
-interface Options
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[libraryOptions?](#)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-Record&lt;string, unknown&gt; \| undefined
-
-</td><td>
-
-_(Optional)_ Explicit support for additional vendor-specific parameters, if needed.
-
-</td></tr>
-</tbody></table>
-
 <h2 id="omitprops">omitProps</h2>
 
 > This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
@@ -1563,6 +1519,50 @@ Omit&lt;T, KEYS&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/typed-routes.ts)
 
+<h2 id="standardschemav1-options">Options</h2>
+
+The Standard Schema options interface.
+
+```typescript
+interface Options
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+libraryOptions?
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+Record&lt;string, unknown&gt; \| undefined
+
+</td><td>
+
+_(Optional)_ Explicit support for additional vendor-specific parameters, if needed.
+
+</td></tr>
+</tbody></table>
+
 <h2 id="pagemodule">PageModule</h2>
 
 ```typescript
@@ -1588,32 +1588,6 @@ export declare type PathParams = Record<string, string>;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
-
-<h2 id="prefetchstrategy">PrefetchStrategy</h2>
-
-Defines when link prefetching should be triggered.
-
-```typescript
-export type PrefetchStrategy =
-  /**
-   * Prefetch when the user commits to navigating.
-   *
-   * Triggered by `pointerdown` or the `Enter` key.
-   */
-  | "commit"
-  /**
-   * Prefetch when the user shows navigation intent.
-   *
-   * Triggered by `pointerenter`, hover, or focus.
-   */
-  | "intent"
-  /** Prefetch when the link becomes visible in the viewport. */
-  | "visible"
-  /** Disable link prefetching. */
-  | "off";
-```
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/link-component.tsx)
 
 <h2 id="standardschemav1-pathsegment">PathSegment</h2>
 
@@ -1642,7 +1616,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[key](#)
+key
 
 </td><td>
 
@@ -1659,6 +1633,32 @@ The key representing a path segment.
 </td></tr>
 </tbody></table>
 
+<h2 id="prefetchstrategy">PrefetchStrategy</h2>
+
+Defines when link prefetching should be triggered.
+
+```typescript
+export type PrefetchStrategy =
+  /**
+   * Prefetch when the user commits to navigating.
+   *
+   * Triggered by `pointerdown` or the `Enter` key.
+   */
+  | "commit"
+  /**
+   * Prefetch when the user shows navigation intent.
+   *
+   * Triggered by `pointerenter`, hover, or focus.
+   */
+  | "intent"
+  /** Prefetch when the link becomes visible in the viewport. */
+  | "visible"
+  /** Disable link prefetching. */
+  | "off";
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/link-component.tsx)
+
 <h2 id="preventnavigatecallback">PreventNavigateCallback</h2>
 
 ```typescript
@@ -1669,14 +1669,6 @@ export type PreventNavigateCallback = (
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-<h2 id="q_route">Q_ROUTE</h2>
-
-```typescript
-Q_ROUTE = "q:route";
-```
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/constants.ts)
-
 <h2 id="standardschemav1-props">Props</h2>
 
 The Standard Schema properties interface.
@@ -1685,7 +1677,7 @@ The Standard Schema properties interface.
 interface Props<Input = unknown, Output = Input> extends StandardTypedV1.Props<Input, Output>
 ```
 
-**Extends:** [StandardTypedV1.Props](#)&lt;Input, Output&gt;
+**Extends:** StandardTypedV1.Props&lt;Input, Output&gt;
 
 <table><thead><tr><th>
 
@@ -1706,7 +1698,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[validate](#)
+validate
 
 </td><td>
 
@@ -1722,6 +1714,14 @@ Validates unknown input values.
 
 </td></tr>
 </tbody></table>
+
+<h2 id="q_route">Q_ROUTE</h2>
+
+```typescript
+Q_ROUTE = "q:route";
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/constants.ts)
 
 <h2 id="qwik_city_scroller">QWIK_CITY_SCROLLER</h2>
 
@@ -2873,7 +2873,7 @@ RouterOutlet: import("@qwik.dev/core").Component<unknown>;
 schema$: StandardSchemaConstructor;
 ```
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/server-functions.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
 
 <h2 id="schemaqrl">schemaQrl</h2>
 
@@ -2881,7 +2881,7 @@ schema$: StandardSchemaConstructor;
 schemaQrl: StandardSchemaConstructorQRL;
 ```
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/server-functions.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
 
 <h2 id="server_">server$</h2>
 
@@ -3040,7 +3040,7 @@ export type StandardSchemaConstructor = {
 
 **References:** [StandardSchemaV1](#standardschemav1-interface), [StandardSchemaDataValidator](#standardschemadatavalidator)
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
 <h2 id="standardschemaconstructorqrl">StandardSchemaConstructorQRL</h2>
 
@@ -3055,7 +3055,7 @@ export type StandardSchemaConstructorQRL = {
 
 **References:** [StandardSchemaV1](#standardschemav1-interface), [StandardSchemaDataValidator](#standardschemadatavalidator)
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
 <h2 id="standardschemadatavalidator">StandardSchemaDataValidator</h2>
 
@@ -3077,7 +3077,7 @@ export type StandardSchemaDataValidator<
 
 **References:** [StandardSchemaV1](#standardschemav1-interface), [ValidatorReturn](#validatorreturn), [StandardSchemaValidatorErrorType](#standardschemavalidatorerrortype), [StandardSchemaV1.InferInput](#standardschemav1-inferinput)
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
 <h2 id="standardschemav1-interface">StandardSchemaV1</h2>
 
@@ -3197,7 +3197,7 @@ The result interface of the validate function.
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
 <h2 id="standardschemav1-namespace">StandardSchemaV1</h2>
 
@@ -3317,7 +3317,7 @@ The result interface of the validate function.
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
 <h2 id="standardschemavalidatorerrorkeydotnotation">StandardSchemaValidatorErrorKeyDotNotation</h2>
 
@@ -3361,7 +3361,7 @@ export type StandardSchemaValidatorErrorKeyDotNotation<
 
 **References:** [StandardSchemaValidatorErrorKeyDotNotation](#standardschemavalidatorerrorkeydotnotation)
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
 <h2 id="standardschemavalidatorerrortype">StandardSchemaValidatorErrorType</h2>
 
@@ -3376,7 +3376,7 @@ export type StandardSchemaValidatorErrorType<T, U = string> = {
 
 **References:** [StandardSchemaValidatorErrorKeyDotNotation](#standardschemavalidatorerrorkeydotnotation)
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
 <h2 id="standardtypedv1-interface">StandardTypedV1</h2>
 
@@ -3395,7 +3395,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[Props](#)
+Props
 
 </td><td>
 
@@ -3404,7 +3404,7 @@ The Standard Typed properties interface.
 </td></tr>
 <tr><td>
 
-[Types](#)
+Types
 
 </td><td>
 
@@ -3424,7 +3424,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[InferInput](#)
+InferInput
 
 </td><td>
 
@@ -3433,7 +3433,7 @@ Infers the input type of a Standard Typed.
 </td></tr>
 <tr><td>
 
-[InferOutput](#)
+InferOutput
 
 </td><td>
 
@@ -3442,7 +3442,7 @@ Infers the output type of a Standard Typed.
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
 <h2 id="standardtypedv1-namespace">StandardTypedV1</h2>
 
@@ -3461,7 +3461,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[Props](#)
+Props
 
 </td><td>
 
@@ -3470,7 +3470,7 @@ The Standard Typed properties interface.
 </td></tr>
 <tr><td>
 
-[Types](#)
+Types
 
 </td><td>
 
@@ -3490,7 +3490,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[InferInput](#)
+InferInput
 
 </td><td>
 
@@ -3499,7 +3499,7 @@ Infers the input type of a Standard Typed.
 </td></tr>
 <tr><td>
 
-[InferOutput](#)
+InferOutput
 
 </td><td>
 
@@ -3508,7 +3508,7 @@ Infers the output type of a Standard Typed.
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
 <h2 id="staticgenerate">StaticGenerate</h2>
 
@@ -3601,7 +3601,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[issues?](#)
+issues?
 
 </td><td>
 
@@ -3618,7 +3618,7 @@ _(Optional)_ A falsy value for `issues` indicates success.
 </td></tr>
 <tr><td>
 
-[value](#)
+value
 
 </td><td>
 
@@ -3647,6 +3647,16 @@ export type TypedDataValidator =
 **References:** [StandardSchemaDataValidator](#standardschemadatavalidator)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
+
+<h2 id="standardschemav1-types">Types</h2>
+
+The Standard Schema types interface.
+
+```typescript
+interface Types<Input = unknown, Output = Input> extends StandardTypedV1.Types<Input, Output>
+```
+
+**Extends:** StandardTypedV1.Types&lt;Input, Output&gt;
 
 <h2 id="untypedappurl">untypedAppUrl</h2>
 
@@ -3717,16 +3727,6 @@ _(Optional)_
 string
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/typed-routes.ts)
-
-<h2 id="standardschemav1-types">Types</h2>
-
-The Standard Schema types interface.
-
-```typescript
-interface Types<Input = unknown, Output = Input> extends StandardTypedV1.Types<Input, Output>
-```
-
-**Extends:** [StandardTypedV1.Types](#)&lt;Input, Output&gt;
 
 <h2 id="usecontent">useContent</h2>
 

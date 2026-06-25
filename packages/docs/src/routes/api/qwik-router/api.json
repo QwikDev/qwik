@@ -26,7 +26,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type ActionConstructor = {\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: {\n        readonly id?: string;\n        readonly validation: [VALIDATOR, ...REST];\n    }): Action<StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>> | FailReturn<FailOfRest<REST>>>, GetValidatorInputType<VALIDATOR>, false>;\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: {\n        readonly id?: string;\n        readonly validation: [VALIDATOR];\n    }): Action<StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>>, GetValidatorInputType<VALIDATOR>, false>;\n    <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, options: {\n        readonly id?: string;\n        readonly validation: REST;\n    }): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: VALIDATOR, ...rest: REST): Action<StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>> | FailReturn<FailOfRest<REST>>>, GetValidatorInputType<VALIDATOR>, false>;\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: VALIDATOR): Action<StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>>, GetValidatorInputType<VALIDATOR>, false>;\n    <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, ...rest: REST): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;\n    <OBJ>(actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, options?: {\n        readonly id?: string;\n    }): Action<StrictUnion<OBJ>>;\n};\n```\n**References:** [TypedDataValidator](#typeddatavalidator)<!-- -->, [DataValidator](#datavalidator)<!-- -->, [GetValidatorOutputType](#getvalidatoroutputtype)<!-- -->, [Action](#action)<!-- -->, [StrictUnion](#strictunion)<!-- -->, [FailReturn](#failreturn)<!-- -->, [ValidatorErrorType](#validatorerrortype)<!-- -->, [GetValidatorInputType](#getvalidatorinputtype)<!-- -->, [FailOfRest](#failofrest)<!-- -->, [JSONObject](#jsonobject)",
+      "content": "```typescript\nexport type ActionConstructor = {\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: {\n        readonly id?: string;\n        readonly validation: [VALIDATOR, ...REST];\n    }): Action<StrictUnion<OBJ | FailReturn<GetValidatorErrorType<VALIDATOR>> | FailReturn<FailOfRest<REST>>>, GetValidatorInputType<VALIDATOR>, false>;\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: {\n        readonly id?: string;\n        readonly validation: [VALIDATOR];\n    }): Action<StrictUnion<OBJ | FailReturn<GetValidatorErrorType<VALIDATOR>>>, GetValidatorInputType<VALIDATOR>, false>;\n    <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, options: {\n        readonly id?: string;\n        readonly validation: REST;\n    }): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: VALIDATOR, ...rest: REST): Action<StrictUnion<OBJ | FailReturn<GetValidatorErrorType<VALIDATOR>> | FailReturn<FailOfRest<REST>>>, GetValidatorInputType<VALIDATOR>, false>;\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: VALIDATOR): Action<StrictUnion<OBJ | FailReturn<GetValidatorErrorType<VALIDATOR>>>, GetValidatorInputType<VALIDATOR>, false>;\n    <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, ...rest: REST): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;\n    <OBJ>(actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, options?: {\n        readonly id?: string;\n    }): Action<StrictUnion<OBJ>>;\n};\n```\n**References:** [TypedDataValidator](#typeddatavalidator)<!-- -->, [DataValidator](#datavalidator)<!-- -->, [GetValidatorOutputType](#getvalidatoroutputtype)<!-- -->, [Action](#action)<!-- -->, [StrictUnion](#strictunion)<!-- -->, [FailReturn](#failreturn)<!-- -->, [GetValidatorErrorType](#getvalidatorerrortype)<!-- -->, [FailOfRest](#failofrest)<!-- -->, [GetValidatorInputType](#getvalidatorinputtype)<!-- -->, [JSONObject](#jsonobject)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.actionconstructor.md"
     },
@@ -311,6 +311,23 @@
       "mdFile": "router.failreturn.md"
     },
     {
+      "name": "FailureResult",
+      "id": "standardschemav1-failureresult",
+      "hierarchy": [
+        {
+          "name": "StandardSchemaV1",
+          "id": "standardschemav1-failureresult"
+        },
+        {
+          "name": "FailureResult",
+          "id": "standardschemav1-failureresult"
+        }
+      ],
+      "kind": "Interface",
+      "content": "The result interface if validation fails.\n\n\n```typescript\ninterface FailureResult \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nissues\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nReadonlyArray&lt;[Issue](#standardschemav1-issue)<!-- -->&gt;\n\n\n</td><td>\n\nThe issues of failed validation.\n\n\n</td></tr>\n</tbody></table>",
+      "mdFile": "router.standardschemav1.failureresult.md"
+    },
+    {
       "name": "Form",
       "id": "form",
       "hierarchy": [
@@ -367,6 +384,20 @@
       "mdFile": "router.getrequestevent.md"
     },
     {
+      "name": "GetValidatorErrorType",
+      "id": "getvalidatorerrortype",
+      "hierarchy": [
+        {
+          "name": "GetValidatorErrorType",
+          "id": "getvalidatorerrortype"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type GetValidatorErrorType<VALIDATOR extends TypedDataValidator> = VALIDATOR extends StandardSchemaDataValidator<infer TYPE> ? StandardSchemaValidatorErrorType<StandardSchemaV1.InferInput<TYPE>> : ValidatorErrorType<GetValidatorInputType<VALIDATOR>>;\n```\n**References:** [TypedDataValidator](#typeddatavalidator)<!-- -->, [StandardSchemaDataValidator](#standardschemadatavalidator)<!-- -->, [StandardSchemaValidatorErrorType](#standardschemavalidatorerrortype)<!-- -->, [StandardSchemaV1.InferInput](#standardschemav1-inferinput)<!-- -->, [ValidatorErrorType](#validatorerrortype)<!-- -->, [GetValidatorInputType](#getvalidatorinputtype)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
+      "mdFile": "router.getvalidatorerrortype.md"
+    },
+    {
       "name": "GetValidatorInputType",
       "id": "getvalidatorinputtype",
       "hierarchy": [
@@ -376,7 +407,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type GetValidatorInputType<VALIDATOR extends TypedDataValidator> = VALIDATOR extends ValibotDataValidator<infer TYPE> ? v.InferInput<TYPE> : VALIDATOR extends ZodDataValidator<infer TYPE> ? z.input<TYPE> : never;\n```\n**References:** [TypedDataValidator](#typeddatavalidator)",
+      "content": "```typescript\nexport type GetValidatorInputType<VALIDATOR extends TypedDataValidator> = VALIDATOR extends StandardSchemaDataValidator<infer TYPE> ? StandardSchemaV1.InferInput<TYPE> : VALIDATOR extends ValibotDataValidator<infer TYPE> ? v.InferInput<TYPE> : VALIDATOR extends ZodDataValidator<infer TYPE> ? z.input<TYPE> : never;\n```\n**References:** [TypedDataValidator](#typeddatavalidator)<!-- -->, [StandardSchemaDataValidator](#standardschemadatavalidator)<!-- -->, [StandardSchemaV1.InferInput](#standardschemav1-inferinput)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.getvalidatorinputtype.md"
     },
@@ -390,7 +421,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type GetValidatorOutputType<VALIDATOR extends TypedDataValidator> = VALIDATOR extends ValibotDataValidator<infer TYPE> ? v.InferOutput<TYPE> : VALIDATOR extends ZodDataValidator<infer TYPE> ? z.output<TYPE> : never;\n```\n**References:** [TypedDataValidator](#typeddatavalidator)",
+      "content": "```typescript\nexport type GetValidatorOutputType<VALIDATOR extends TypedDataValidator> = VALIDATOR extends StandardSchemaDataValidator<infer TYPE> ? StandardSchemaV1.InferOutput<TYPE> : VALIDATOR extends ValibotDataValidator<infer TYPE> ? v.InferOutput<TYPE> : VALIDATOR extends ZodDataValidator<infer TYPE> ? z.output<TYPE> : never;\n```\n**References:** [TypedDataValidator](#typeddatavalidator)<!-- -->, [StandardSchemaDataValidator](#standardschemadatavalidator)<!-- -->, [StandardSchemaV1.InferOutput](#standardschemav1-inferoutput)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.getvalidatoroutputtype.md"
     },
@@ -435,6 +466,57 @@
       "content": "```typescript\nexport type HttpStatus = {\n    status: number;\n    message: string;\n};\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.httperrorprops.md"
+    },
+    {
+      "name": "InferInput",
+      "id": "standardschemav1-inferinput",
+      "hierarchy": [
+        {
+          "name": "StandardSchemaV1",
+          "id": "standardschemav1-inferinput"
+        },
+        {
+          "name": "InferInput",
+          "id": "standardschemav1-inferinput"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "Infers the input type of a Standard Schema.\n\n\n```typescript\ntype InferInput<Schema extends StandardTypedV1> = StandardTypedV1.InferInput<Schema>;\n```\n**References:** [StandardTypedV1](#standardtypedv1-interface)<!-- -->, StandardTypedV1.InferInput",
+      "mdFile": "router.standardschemav1.inferinput.md"
+    },
+    {
+      "name": "InferOutput",
+      "id": "standardschemav1-inferoutput",
+      "hierarchy": [
+        {
+          "name": "StandardSchemaV1",
+          "id": "standardschemav1-inferoutput"
+        },
+        {
+          "name": "InferOutput",
+          "id": "standardschemav1-inferoutput"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "Infers the output type of a Standard Schema.\n\n\n```typescript\ntype InferOutput<Schema extends StandardTypedV1> = StandardTypedV1.InferOutput<Schema>;\n```\n**References:** [StandardTypedV1](#standardtypedv1-interface)<!-- -->, StandardTypedV1.InferOutput",
+      "mdFile": "router.standardschemav1.inferoutput.md"
+    },
+    {
+      "name": "Issue",
+      "id": "standardschemav1-issue",
+      "hierarchy": [
+        {
+          "name": "StandardSchemaV1",
+          "id": "standardschemav1-issue"
+        },
+        {
+          "name": "Issue",
+          "id": "standardschemav1-issue"
+        }
+      ],
+      "kind": "Interface",
+      "content": "The issue interface of the failure output.\n\n\n```typescript\ninterface Issue \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nmessage\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\nThe error message of the issue.\n\n\n</td></tr>\n<tr><td>\n\npath?\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nReadonlyArray&lt;PropertyKey \\| [PathSegment](#standardschemav1-pathsegment)<!-- -->&gt; \\| undefined\n\n\n</td><td>\n\n_(Optional)_ The path of the issue, if any.\n\n\n</td></tr>\n</tbody></table>",
+      "mdFile": "router.standardschemav1.issue.md"
     },
     {
       "name": "JSONObject",
@@ -549,6 +631,23 @@
       "mdFile": "router.omitprops.md"
     },
     {
+      "name": "Options",
+      "id": "standardschemav1-options",
+      "hierarchy": [
+        {
+          "name": "StandardSchemaV1",
+          "id": "standardschemav1-options"
+        },
+        {
+          "name": "Options",
+          "id": "standardschemav1-options"
+        }
+      ],
+      "kind": "Interface",
+      "content": "The Standard Schema options interface.\n\n\n```typescript\ninterface Options \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nlibraryOptions?\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nRecord&lt;string, unknown&gt; \\| undefined\n\n\n</td><td>\n\n_(Optional)_ Explicit support for additional vendor-specific parameters, if needed.\n\n\n</td></tr>\n</tbody></table>",
+      "mdFile": "router.standardschemav1.options.md"
+    },
+    {
       "name": "PageModule",
       "id": "pagemodule",
       "hierarchy": [
@@ -577,6 +676,23 @@
       "mdFile": "router.pathparams.md"
     },
     {
+      "name": "PathSegment",
+      "id": "standardschemav1-pathsegment",
+      "hierarchy": [
+        {
+          "name": "StandardSchemaV1",
+          "id": "standardschemav1-pathsegment"
+        },
+        {
+          "name": "PathSegment",
+          "id": "standardschemav1-pathsegment"
+        }
+      ],
+      "kind": "Interface",
+      "content": "The path segment interface of the issue.\n\n\n```typescript\ninterface PathSegment \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nkey\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nPropertyKey\n\n\n</td><td>\n\nThe key representing a path segment.\n\n\n</td></tr>\n</tbody></table>",
+      "mdFile": "router.standardschemav1.pathsegment.md"
+    },
+    {
       "name": "PrefetchStrategy",
       "id": "prefetchstrategy",
       "hierarchy": [
@@ -603,6 +719,23 @@
       "content": "```typescript\nexport type PreventNavigateCallback = (url?: number | URL) => ValueOrPromise<boolean>;\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.preventnavigatecallback.md"
+    },
+    {
+      "name": "Props",
+      "id": "standardschemav1-props",
+      "hierarchy": [
+        {
+          "name": "StandardSchemaV1",
+          "id": "standardschemav1-props"
+        },
+        {
+          "name": "Props",
+          "id": "standardschemav1-props"
+        }
+      ],
+      "kind": "Interface",
+      "content": "The Standard Schema properties interface.\n\n\n```typescript\ninterface Props<Input = unknown, Output = Input> extends StandardTypedV1.Props<Input, Output> \n```\n**Extends:** StandardTypedV1.Props<!-- -->&lt;Input, Output&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nvalidate\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n(value: unknown, options?: [Options](#standardschemav1-options) \\| undefined) =&gt; [Result](#standardschemav1-result)<!-- -->&lt;Output&gt; \\| Promise&lt;[Result](#standardschemav1-result)<!-- -->&lt;Output&gt;&gt;\n\n\n</td><td>\n\nValidates unknown input values.\n\n\n</td></tr>\n</tbody></table>",
+      "mdFile": "router.standardschemav1.props.md"
     },
     {
       "name": "Q_ROUTE",
@@ -857,6 +990,23 @@
       "mdFile": "router.resolveddocumenthead.md"
     },
     {
+      "name": "Result",
+      "id": "standardschemav1-result",
+      "hierarchy": [
+        {
+          "name": "StandardSchemaV1",
+          "id": "standardschemav1-result"
+        },
+        {
+          "name": "Result",
+          "id": "standardschemav1-result"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "The result interface of the validate function.\n\n\n```typescript\ntype Result<Output> = SuccessResult<Output> | FailureResult;\n```\n**References:** [SuccessResult](#standardschemav1-successresult)<!-- -->, [FailureResult](#standardschemav1-failureresult)",
+      "mdFile": "router.standardschemav1.result.md"
+    },
+    {
       "name": "routeAction$",
       "id": "routeaction_",
       "hierarchy": [
@@ -983,6 +1133,34 @@
       "mdFile": "router.routeroutlet.md"
     },
     {
+      "name": "schema$",
+      "id": "schema_",
+      "hierarchy": [
+        {
+          "name": "schema$",
+          "id": "schema_"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nschema$: StandardSchemaConstructor\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts",
+      "mdFile": "router.schema_.md"
+    },
+    {
+      "name": "schemaQrl",
+      "id": "schemaqrl",
+      "hierarchy": [
+        {
+          "name": "schemaQrl",
+          "id": "schemaqrl"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nschemaQrl: StandardSchemaConstructorQRL\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts",
+      "mdFile": "router.schemaqrl.md"
+    },
+    {
       "name": "server$",
       "id": "server_",
       "hierarchy": [
@@ -1053,6 +1231,132 @@
       "mdFile": "router.serviceworkerregister.md"
     },
     {
+      "name": "StandardSchemaConstructor",
+      "id": "standardschemaconstructor",
+      "hierarchy": [
+        {
+          "name": "StandardSchemaConstructor",
+          "id": "standardschemaconstructor"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type StandardSchemaConstructor = {\n    <T extends StandardSchemaV1>(schema: T): StandardSchemaDataValidator<T>;\n    <T extends StandardSchemaV1>(schema: (ev: RequestEvent) => T): StandardSchemaDataValidator<T>;\n};\n```\n**References:** [StandardSchemaV1](#standardschemav1-interface)<!-- -->, [StandardSchemaDataValidator](#standardschemadatavalidator)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
+      "mdFile": "router.standardschemaconstructor.md"
+    },
+    {
+      "name": "StandardSchemaConstructorQRL",
+      "id": "standardschemaconstructorqrl",
+      "hierarchy": [
+        {
+          "name": "StandardSchemaConstructorQRL",
+          "id": "standardschemaconstructorqrl"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type StandardSchemaConstructorQRL = {\n    <T extends StandardSchemaV1>(schema: QRL<T>): StandardSchemaDataValidator<T>;\n    <T extends StandardSchemaV1>(schema: QRL<(ev: RequestEvent) => T>): StandardSchemaDataValidator<T>;\n};\n```\n**References:** [StandardSchemaV1](#standardschemav1-interface)<!-- -->, [StandardSchemaDataValidator](#standardschemadatavalidator)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
+      "mdFile": "router.standardschemaconstructorqrl.md"
+    },
+    {
+      "name": "StandardSchemaDataValidator",
+      "id": "standardschemadatavalidator",
+      "hierarchy": [
+        {
+          "name": "StandardSchemaDataValidator",
+          "id": "standardschemadatavalidator"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type StandardSchemaDataValidator<T extends StandardSchemaV1 = StandardSchemaV1> = {\n    readonly __brand: 'standard-schema';\n    validate(ev: RequestEvent, data: unknown): Promise<ValidatorReturn<StandardSchemaValidatorErrorType<StandardSchemaV1.InferInput<T>>>>;\n};\n```\n**References:** [StandardSchemaV1](#standardschemav1-interface)<!-- -->, [ValidatorReturn](#validatorreturn)<!-- -->, [StandardSchemaValidatorErrorType](#standardschemavalidatorerrortype)<!-- -->, [StandardSchemaV1.InferInput](#standardschemav1-inferinput)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
+      "mdFile": "router.standardschemadatavalidator.md"
+    },
+    {
+      "name": "StandardSchemaV1",
+      "id": "standardschemav1",
+      "hierarchy": [
+        {
+          "name": "StandardSchemaV1",
+          "id": "standardschemav1"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport declare namespace StandardSchemaV1 \n```\n\n\n<table><thead><tr><th>\n\nInterface\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[FailureResult](#standardschemav1-failureresult)\n\n\n</td><td>\n\nThe result interface if validation fails.\n\n\n</td></tr>\n<tr><td>\n\n[Issue](#standardschemav1-issue)\n\n\n</td><td>\n\nThe issue interface of the failure output.\n\n\n</td></tr>\n<tr><td>\n\n[Options](#standardschemav1-options)\n\n\n</td><td>\n\nThe Standard Schema options interface.\n\n\n</td></tr>\n<tr><td>\n\n[PathSegment](#standardschemav1-pathsegment)\n\n\n</td><td>\n\nThe path segment interface of the issue.\n\n\n</td></tr>\n<tr><td>\n\n[Props](#standardschemav1-props)\n\n\n</td><td>\n\nThe Standard Schema properties interface.\n\n\n</td></tr>\n<tr><td>\n\n[SuccessResult](#standardschemav1-successresult)\n\n\n</td><td>\n\nThe result interface if validation succeeds.\n\n\n</td></tr>\n<tr><td>\n\n[Types](#standardschemav1-types)\n\n\n</td><td>\n\nThe Standard Schema types interface.\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nType Alias\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[InferInput](#standardschemav1-inferinput)\n\n\n</td><td>\n\nInfers the input type of a Standard Schema.\n\n\n</td></tr>\n<tr><td>\n\n[InferOutput](#standardschemav1-inferoutput)\n\n\n</td><td>\n\nInfers the output type of a Standard Schema.\n\n\n</td></tr>\n<tr><td>\n\n[Result](#standardschemav1-result)\n\n\n</td><td>\n\nThe result interface of the validate function.\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
+      "mdFile": "router.standardschemav1.md"
+    },
+    {
+      "name": "StandardSchemaV1",
+      "id": "standardschemav1",
+      "hierarchy": [
+        {
+          "name": "StandardSchemaV1",
+          "id": "standardschemav1"
+        }
+      ],
+      "kind": "Namespace",
+      "content": "```typescript\nexport declare namespace StandardSchemaV1 \n```\n\n\n<table><thead><tr><th>\n\nInterface\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[FailureResult](#standardschemav1-failureresult)\n\n\n</td><td>\n\nThe result interface if validation fails.\n\n\n</td></tr>\n<tr><td>\n\n[Issue](#standardschemav1-issue)\n\n\n</td><td>\n\nThe issue interface of the failure output.\n\n\n</td></tr>\n<tr><td>\n\n[Options](#standardschemav1-options)\n\n\n</td><td>\n\nThe Standard Schema options interface.\n\n\n</td></tr>\n<tr><td>\n\n[PathSegment](#standardschemav1-pathsegment)\n\n\n</td><td>\n\nThe path segment interface of the issue.\n\n\n</td></tr>\n<tr><td>\n\n[Props](#standardschemav1-props)\n\n\n</td><td>\n\nThe Standard Schema properties interface.\n\n\n</td></tr>\n<tr><td>\n\n[SuccessResult](#standardschemav1-successresult)\n\n\n</td><td>\n\nThe result interface if validation succeeds.\n\n\n</td></tr>\n<tr><td>\n\n[Types](#standardschemav1-types)\n\n\n</td><td>\n\nThe Standard Schema types interface.\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nType Alias\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[InferInput](#standardschemav1-inferinput)\n\n\n</td><td>\n\nInfers the input type of a Standard Schema.\n\n\n</td></tr>\n<tr><td>\n\n[InferOutput](#standardschemav1-inferoutput)\n\n\n</td><td>\n\nInfers the output type of a Standard Schema.\n\n\n</td></tr>\n<tr><td>\n\n[Result](#standardschemav1-result)\n\n\n</td><td>\n\nThe result interface of the validate function.\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
+      "mdFile": "router.standardschemav1.md"
+    },
+    {
+      "name": "StandardSchemaValidatorErrorKeyDotNotation",
+      "id": "standardschemavalidatorerrorkeydotnotation",
+      "hierarchy": [
+        {
+          "name": "StandardSchemaValidatorErrorKeyDotNotation",
+          "id": "standardschemavalidatorerrorkeydotnotation"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type StandardSchemaValidatorErrorKeyDotNotation<T, Prefix extends string = '', Depth extends 0 | 1 | 2 | 3 | 4 | 5 = 5> = T extends unknown ? IsAny<T> extends true ? never : unknown extends T ? Prefix extends '' ? string : never : NonNullable<T> extends readonly (infer U)[] ? `${Prefix}${number}` | (Depth extends 0 ? never : StandardSchemaValidatorErrorKeyDotNotation<U, `${Prefix}${number}.`, [\n    never,\n    0,\n    1,\n    2,\n    3,\n    4\n][Depth]>) : NonNullable<T> extends object ? {\n    [K in keyof NonNullable<T> & (string | number)]: `${Prefix}${K}` | (Depth extends 0 ? never : StandardSchemaValidatorErrorKeyDotNotation<NonNullable<T>[K], `${Prefix}${K}.`, [\n        never,\n        0,\n        1,\n        2,\n        3,\n        4\n    ][Depth]>);\n}[keyof NonNullable<T> & (string | number)] : never : never;\n```\n**References:** [StandardSchemaValidatorErrorKeyDotNotation](#standardschemavalidatorerrorkeydotnotation)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
+      "mdFile": "router.standardschemavalidatorerrorkeydotnotation.md"
+    },
+    {
+      "name": "StandardSchemaValidatorErrorType",
+      "id": "standardschemavalidatorerrortype",
+      "hierarchy": [
+        {
+          "name": "StandardSchemaValidatorErrorType",
+          "id": "standardschemavalidatorerrortype"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type StandardSchemaValidatorErrorType<T, U = string> = {\n    formErrors: U[];\n    fieldErrors: Partial<Record<StandardSchemaValidatorErrorKeyDotNotation<T>, U[]>>;\n};\n```\n**References:** [StandardSchemaValidatorErrorKeyDotNotation](#standardschemavalidatorerrorkeydotnotation)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
+      "mdFile": "router.standardschemavalidatorerrortype.md"
+    },
+    {
+      "name": "StandardTypedV1",
+      "id": "standardtypedv1",
+      "hierarchy": [
+        {
+          "name": "StandardTypedV1",
+          "id": "standardtypedv1"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport declare namespace StandardTypedV1 \n```\n\n\n<table><thead><tr><th>\n\nInterface\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nProps\n\n\n</td><td>\n\nThe Standard Typed properties interface.\n\n\n</td></tr>\n<tr><td>\n\nTypes\n\n\n</td><td>\n\nThe Standard Typed types interface.\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nType Alias\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nInferInput\n\n\n</td><td>\n\nInfers the input type of a Standard Typed.\n\n\n</td></tr>\n<tr><td>\n\nInferOutput\n\n\n</td><td>\n\nInfers the output type of a Standard Typed.\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
+      "mdFile": "router.standardtypedv1.md"
+    },
+    {
+      "name": "StandardTypedV1",
+      "id": "standardtypedv1",
+      "hierarchy": [
+        {
+          "name": "StandardTypedV1",
+          "id": "standardtypedv1"
+        }
+      ],
+      "kind": "Namespace",
+      "content": "```typescript\nexport declare namespace StandardTypedV1 \n```\n\n\n<table><thead><tr><th>\n\nInterface\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nProps\n\n\n</td><td>\n\nThe Standard Typed properties interface.\n\n\n</td></tr>\n<tr><td>\n\nTypes\n\n\n</td><td>\n\nThe Standard Typed types interface.\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nType Alias\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nInferInput\n\n\n</td><td>\n\nInfers the input type of a Standard Typed.\n\n\n</td></tr>\n<tr><td>\n\nInferOutput\n\n\n</td><td>\n\nInfers the output type of a Standard Typed.\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
+      "mdFile": "router.standardtypedv1.md"
+    },
+    {
       "name": "StaticGenerate",
       "id": "staticgenerate",
       "hierarchy": [
@@ -1095,6 +1399,23 @@
       "mdFile": "router.strictunion.md"
     },
     {
+      "name": "SuccessResult",
+      "id": "standardschemav1-successresult",
+      "hierarchy": [
+        {
+          "name": "StandardSchemaV1",
+          "id": "standardschemav1-successresult"
+        },
+        {
+          "name": "SuccessResult",
+          "id": "standardschemav1-successresult"
+        }
+      ],
+      "kind": "Interface",
+      "content": "The result interface if validation succeeds.\n\n\n```typescript\ninterface SuccessResult<Output> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nissues?\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nundefined\n\n\n</td><td>\n\n_(Optional)_ A falsy value for `issues` indicates success.\n\n\n</td></tr>\n<tr><td>\n\nvalue\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nOutput\n\n\n</td><td>\n\nThe typed output value.\n\n\n</td></tr>\n</tbody></table>",
+      "mdFile": "router.standardschemav1.successresult.md"
+    },
+    {
       "name": "TypedDataValidator",
       "id": "typeddatavalidator",
       "hierarchy": [
@@ -1104,9 +1425,26 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type TypedDataValidator = ValibotDataValidator | ZodDataValidator;\n```",
+      "content": "```typescript\nexport type TypedDataValidator = StandardSchemaDataValidator | ValibotDataValidator | ZodDataValidator;\n```\n**References:** [StandardSchemaDataValidator](#standardschemadatavalidator)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.typeddatavalidator.md"
+    },
+    {
+      "name": "Types",
+      "id": "standardschemav1-types",
+      "hierarchy": [
+        {
+          "name": "StandardSchemaV1",
+          "id": "standardschemav1-types"
+        },
+        {
+          "name": "Types",
+          "id": "standardschemav1-types"
+        }
+      ],
+      "kind": "Interface",
+      "content": "The Standard Schema types interface.\n\n\n```typescript\ninterface Types<Input = unknown, Output = Input> extends StandardTypedV1.Types<Input, Output> \n```\n**Extends:** StandardTypedV1.Types<!-- -->&lt;Input, Output&gt;",
+      "mdFile": "router.standardschemav1.types.md"
     },
     {
       "name": "untypedAppUrl",

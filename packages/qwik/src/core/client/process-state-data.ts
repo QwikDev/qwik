@@ -1,5 +1,6 @@
 import { type DomContainer } from './dom-container';
 import { onVNodeDataReady } from './process-vnode-data';
+import { logError } from '../shared/utils/log';
 import {
   createYieldingIteratorState,
   scheduleYieldingIterator,
@@ -91,9 +92,10 @@ function scheduleProcessContainerStateData(
       state.$active$ = null;
       scheduleProcessContainerStateData(container, state);
     },
-    () => {
+    (error) => {
       state.$active$ = null;
-      container.$containerDataProcessState$ = ContainerDataProcessState.ProcessingStateDone;
+      logError(error);
+      markContainerDataReady(container);
     }
   );
   scheduleYieldingIterator(state.$active$);

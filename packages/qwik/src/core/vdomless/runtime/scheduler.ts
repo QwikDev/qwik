@@ -1,15 +1,14 @@
 import { cleanupDeps } from '../reactive/cleanup';
 import { OwnerFlags, SubscriberFlags } from '../reactive/flags';
 import { Owner, type OwnerItem } from './owner';
-import { SubscriberKind } from './subscriber';
-import { runWithCollector } from '../reactive/tracking';
+import { runTaskSubscriber } from './run-task';
+import { SubscriberKind, takeDirty } from './subscriber';
 import type {
   BranchSubscriber,
   DomSubscriber,
   ForBlockSubscriber,
   IdleSubscriber,
   PhaseSubscriber,
-  ScheduledSubscriber,
   SsrDomSubscriber,
   TaskSubscriber,
   VisibleTaskSubscriber,
@@ -274,12 +273,7 @@ export class Scheduler {
   }
 
   private async runTask(task: TaskSubscriber | VisibleTaskSubscriber): Promise<void> {
-    if (!takeDirty(task)) {
-      return;
-    }
-
-    cleanupDeps(task);
-    await runWithCollector(task, () => task.task.run());
+    await runTaskSubscriber(task);
   }
 
   private async runBranch(branch: BranchSubscriber): Promise<void> {
@@ -365,15 +359,6 @@ export function notifyPhaseSubscriber(subscriber: PhaseSubscriber | SsrDomSubscr
 
 export function scheduleFlush(): void {
   defaultScheduler.scheduleFlush();
-}
-
-function takeDirty(subscriber: ScheduledSubscriber): boolean {
-  if (subscriber.owner === null || !(subscriber.flags & SubscriberFlags.Dirty)) {
-    return false;
-  }
-
-  subscriber.flags &= ~SubscriberFlags.Dirty;
-  return true;
 }
 
 function markOwnerDirty(owner: Owner, phase: OwnerFlags): void {

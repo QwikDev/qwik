@@ -1,9 +1,15 @@
-import type { ImportRecord, QrlSegmentOutput, SegmentRecord, SourceRange } from '../types';
+import type {
+  ComponentRecord,
+  ImportRecord,
+  QrlSegmentOutput,
+  SegmentRecord,
+  SourceRange,
+} from '../types';
 import { QwikSymbol } from '../words';
 
 export type DollarTransformTarget = 'ssr' | 'csr';
 
-interface Replacement {
+export interface Replacement {
   range: SourceRange;
   value: string;
 }
@@ -12,19 +18,29 @@ export function transformDollarImports(
   imports: readonly ImportRecord[],
   target: DollarTransformTarget
 ): ImportRecord[] {
-  return imports.map((record) => ({
-    ...record,
-    specifiers: record.specifiers.map((specifier) => {
+  return imports.flatMap((record) => {
+    const specifiers = record.specifiers.flatMap((specifier) => {
       if (specifier.kind !== 'named' || !isImplicitDollarName(specifier.importedName)) {
-        return specifier;
+        return [specifier];
+      }
+      if (
+        target === 'ssr' &&
+        (specifier.importedName === 'createTask$' ||
+          specifier.importedName === 'createVisibleTask$')
+      ) {
+        return [];
       }
       return {
         ...specifier,
         importedName: getTargetName(specifier.importedName, target),
         localName: getTargetLocalName(specifier.localName, specifier.importedName, target),
       };
-    }),
-  }));
+    });
+    if (record.specifiers.length > 0 && specifiers.length === 0) {
+      return [];
+    }
+    return [{ ...record, specifiers }];
+  });
 }
 
 export function transformImplicitDollarCode(
@@ -41,6 +57,10 @@ export function transformImplicitDollarCode(
     }
 
     if (target === 'csr') {
+      const fnReplacement = createTaskGeneratorReplacement(sourceCode, segment);
+      if (fnReplacement) {
+        replacements.push(fnReplacement);
+      }
       if (segment.calleeNameRange) {
         replacements.push({
           range: segment.calleeNameRange,
@@ -60,6 +80,43 @@ export function transformImplicitDollarCode(
 
 export function isImplicitDollarSegment(segment: SegmentRecord) {
   return segment.kind === 'function' && isImplicitDollarName(segment.ctxName);
+}
+
+export function isCreateTaskSegment(segment: SegmentRecord) {
+  return isImplicitDollarSegment(segment) && segment.ctxName === 'createTask$';
+}
+
+export function isCreateVisibleTaskSegment(segment: SegmentRecord) {
+  return isImplicitDollarSegment(segment) && segment.ctxName === 'createVisibleTask$';
+}
+
+export function isTaskDollarSegment(segment: SegmentRecord) {
+  return isCreateTaskSegment(segment) || isCreateVisibleTaskSegment(segment);
+}
+
+export function hasTaskSetupSegment(
+  component: ComponentRecord,
+  segments: readonly SegmentRecord[],
+  predicate: (segment: SegmentRecord) => boolean = isTaskDollarSegment
+) {
+  return segments.some(
+    (segment) =>
+      predicate(segment) &&
+      component.setupRanges.some((range) => isRangeInside(segment.range, range)) &&
+      !isNestedInImplicitDollarSegment(segment, segments)
+  );
+}
+
+export function isNestedInImplicitDollarSegment(
+  segment: SegmentRecord,
+  segments: readonly SegmentRecord[]
+) {
+  return segments.some(
+    (candidate) =>
+      candidate !== segment &&
+      isImplicitDollarSegment(candidate) &&
+      isRangeInside(segment.range, candidate.functionRange)
+  );
 }
 
 export function isImplicitDollarName(name: string) {
@@ -92,14 +149,95 @@ function createSsrReplacement(
 
   const prefix = sourceCode.slice(callRange[0], firstArgRange[0]);
   const suffix = sourceCode.slice(firstArgRange[1], callRange[1]);
+  if (isCreateVisibleTaskSegment(segment)) {
+    return createSsrVisibleTaskReplacement(sourceCode, callRange);
+  }
+  if (isCreateTaskSegment(segment)) {
+    const taskValue = `${QwikSymbol.Invoke}(invokeCtx, () => ${QwikSymbol.CreateTaskQrl}(${emitQrlReference(qrlSegment)}${suffix})`;
+    const taskName = `task_${segment.id}`;
+    return {
+      range: callRange,
+      value: `const ${taskName} = ${taskValue}; ctx.addRoot(${taskName}); await ${QwikSymbol.RunTaskSubscriber}(${taskName})`,
+    };
+  }
+  const callee = replaceSegmentCalleeName(prefix, callRange[0], segment);
   return {
     range: callRange,
-    value: `${replaceSegmentCalleeName(
-      prefix,
-      callRange[0],
-      segment
-    )}${emitQrlReference(qrlSegment)}${suffix}`,
+    value: `${callee}${emitQrlReference(qrlSegment)}${suffix}`,
   };
+}
+
+function createSsrVisibleTaskReplacement(sourceCode: string, callRange: SourceRange): Replacement {
+  const statementRange = getStandaloneCallStatementRange(sourceCode, callRange);
+  return statementRange === null
+    ? {
+        range: callRange,
+        value: 'undefined',
+      }
+    : {
+        range: statementRange,
+        value: '',
+      };
+}
+
+function getStandaloneCallStatementRange(
+  sourceCode: string,
+  callRange: SourceRange
+): SourceRange | null {
+  let before = callRange[0] - 1;
+  while (before >= 0 && /\s/.test(sourceCode[before])) {
+    before--;
+  }
+  if (before >= 0 && sourceCode[before] !== '{' && sourceCode[before] !== ';') {
+    return null;
+  }
+
+  let after = callRange[1];
+  while (after < sourceCode.length && /\s/.test(sourceCode[after])) {
+    after++;
+  }
+  return sourceCode[after] === ';' ? [callRange[0], after + 1] : null;
+}
+
+export function createTaskGeneratorReplacement(
+  sourceCode: string,
+  segment: SegmentRecord
+): Replacement | null {
+  if (!isTaskDollarSegment(segment) || !segment.async || !segment.functionRange) {
+    return null;
+  }
+  const params = segment.paramRanges.map(([start, end]) => sourceCode.slice(start, end)).join(', ');
+  const body = segment.bodyRange
+    ? rewriteAwaitToYield(sourceCode, segment.bodyRange, segment.awaitRanges)
+    : 'undefined';
+  const bodyStatements =
+    segment.bodyKind === 'block' ? body.slice(1, -1).trim() : `return ${body};`;
+  return {
+    range: segment.functionRange,
+    value: `function* (${params}) {\n${indentBody(bodyStatements)}\n}`,
+  };
+}
+
+export function rewriteAwaitToYield(
+  sourceCode: string,
+  range: SourceRange,
+  awaitRanges: readonly SourceRange[]
+) {
+  return applyReplacements(
+    sourceCode,
+    range,
+    awaitRanges.map((awaitRange) => ({
+      range: awaitRange,
+      value: 'yield ',
+    }))
+  );
+}
+
+function indentBody(value: string) {
+  return value
+    .split('\n')
+    .map((line) => (line.trim() ? `  ${line}` : line))
+    .join('\n');
 }
 
 function replaceSegmentCalleeName(value: string, offset: number, segment: SegmentRecord) {

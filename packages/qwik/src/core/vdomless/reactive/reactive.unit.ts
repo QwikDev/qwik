@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { _captures, createQRL } from '../../shared/qrl/qrl-class';
-import { createCaptureContainer, createIdleSubscriber, noopSchedule } from '../test-utils';
+import {
+  createCaptureContainer,
+  createIdleSubscriber,
+  noopSchedule,
+  runWithTestContainer,
+} from '../test-utils';
 import { disposeSubscriber } from './cleanup';
 import { Computed, createComputed } from './computed';
 import { createComputedQrl } from './computed-qrl';
@@ -130,7 +135,7 @@ describe('reactive primitives', () => {
   it('reads cached disposed computed values without tracking', () => {
     const scheduler = new Scheduler(noopSchedule);
     const count = createSignal(1);
-    const collector = createOwned(() => createTask(() => {}, { scheduler }));
+    const collector = runWithTestContainer(scheduler, () => createTask(() => {}));
     let runs = 0;
     const doubled = createOwned(() =>
       createComputed(() => {

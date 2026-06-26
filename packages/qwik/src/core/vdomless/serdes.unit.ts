@@ -32,8 +32,10 @@ import { createWindow } from '../../testing/document';
 import { createContainerContext, type ContainerContext } from './runtime/container-context';
 import { createContextScope } from './runtime/context-scope';
 import { createOwner, registerSubscriberToOwner, runWithOwner } from './runtime/owner';
+import { Phase, Scheduler } from './runtime/scheduler';
+import { createTaskQrl, Task, TaskSubscription, type TaskFn } from './runtime/task';
 import { runWithCollector } from './reactive/tracking';
-import { createCaptureContainer, createText } from './test-utils';
+import { createCaptureContainer, createText, runWithTestContainer } from './test-utils';
 
 type BranchConditionFn = () => boolean;
 type BranchRenderFn = (ctx: ContainerContext) => string;
@@ -473,7 +475,43 @@ describe('vdomless serdes emit-only', () => {
     ]);
   });
 
-  it.todo('serializes a task subscription with group, phase, qrl, and deps');
+  it('serializes and inflates a task subscription with phase, qrl, and deps', async () => {
+    const count = createSignal(7);
+    const scheduler = new Scheduler(() => {});
+    const qrl = createQRL<TaskFn>('./task.js', 'task', () => {}, null, null);
+    const task = runWithTestContainer(scheduler, () => createTaskQrl(qrl));
+
+    runWithCollector(task, () => count.value);
+
+    const state = await serialize(count);
+    const signalPayload = state[1] as unknown[];
+    const taskPayload = signalPayload[3] as unknown[];
+
+    expect(signalPayload[2]).toBe(TypeIds.Task);
+    expect(taskPayload[1]).toBe(Phase.BlockingTask);
+    expect(taskPayload[2]).toBe(TypeIds.QRL);
+    expect(taskPayload[4]).toBe(TypeIds.Array);
+    expect(taskPayload[5]).toEqual([TypeIds.RootRef, 0]);
+
+    const win = createWindow({ html: '<div q:container></div>' });
+    const container = createContainerContext(win.document.body.firstElementChild as HTMLElement);
+    const restored = registerSubscriberToOwner(
+      new TaskSubscription(new Task(undefined, Phase.BlockingTask, undefined, container)),
+      createOwner(null)
+    );
+
+    await inflate(container, restored, TypeIds.Task, [
+      TypeIds.Plain,
+      Phase.BlockingTask,
+      TypeIds.Plain,
+      qrl,
+      TypeIds.Array,
+      [TypeIds.Plain, count],
+    ]);
+
+    expect(restored.task.qrl).toBe(qrl);
+    expect(count.subs).toContain(restored);
+  });
 });
 
 async function serialize(...roots: unknown[]): Promise<unknown[]> {

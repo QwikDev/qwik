@@ -48,8 +48,14 @@ import {
   shouldResolveSsrQrl,
 } from './emit-utils';
 import {
+  hasTaskSetupSegment,
+  isCreateTaskSegment,
+  isCreateVisibleTaskSegment,
   isImplicitDollarSegment,
+  isNestedInImplicitDollarSegment,
   isRangeInside,
+  isTaskDollarSegment,
+  rewriteAwaitToYield,
   transformDollarImports,
   transformImplicitDollarCode,
 } from './implicit-dollar';
@@ -126,10 +132,24 @@ function createModuleImports(
       baseImports,
       qrlSegments,
       createSsrImportUsage(
-        components.map((component) => ({
-          root: component.root,
-          providesContext: component.providesContext,
-        })),
+        components.map((component) => {
+          const hasTask = hasTaskSetupSegment(
+            component,
+            ctx.manifest.segments,
+            isCreateTaskSegment
+          );
+          return {
+            root: component.root,
+            providesContext: component.providesContext,
+            hasSetupAwait: hasTask,
+            hasTask,
+            hasVisibleTask: hasTaskSetupSegment(
+              component,
+              ctx.manifest.segments,
+              isCreateVisibleTaskSegment
+            ),
+          };
+        }),
         qrlSegments
       )
     );
@@ -164,6 +184,9 @@ function collectReferencedComponents(
 interface SsrUsageRoot {
   root: RenderNode | null;
   providesContext?: boolean;
+  hasSetupAwait?: boolean;
+  hasTask?: boolean;
+  hasVisibleTask?: boolean;
 }
 
 function createSsrImportUsage(
@@ -218,6 +241,9 @@ function createSsrImportUsage(
     hasComponent: has(hasComponent),
     hasComponentSlots: has(hasComponentSlots),
     hasComponentPropsSpread: has(hasComponentPropsSpread),
+    hasSetupAwait: items.some((item) => item.hasSetupAwait === true),
+    hasTask: items.some((item) => item.hasTask === true),
+    hasVisibleTask: items.some((item) => item.hasVisibleTask === true),
   };
 }
 
@@ -632,18 +658,6 @@ function collectComponentImplicitDollarSegments(
   }
 }
 
-function isNestedInImplicitDollarSegment(
-  segment: SegmentRecord,
-  segments: readonly SegmentRecord[]
-) {
-  return segments.some(
-    (candidate) =>
-      candidate !== segment &&
-      isImplicitDollarSegment(candidate) &&
-      isRangeInside(segment.range, candidate.functionRange)
-  );
-}
-
 function collectNodeQrlSegments(
   ctx: CompilerContext,
   node: RenderNode,
@@ -894,13 +908,15 @@ function createQrlSegmentSource(
     .map(([start, end]) => source.slice(start, end))
     .join(', ');
   const body = qrlSegment.segment.bodyRange
-    ? transformImplicitDollarCode(
-        source,
-        qrlSegment.segment.bodyRange,
-        ctx.manifest.segments,
-        new Map([[qrlSegment.id, qrlSegment]]),
-        ctx.emitTarget
-      )
+    ? qrlSegment.segment.async && isTaskDollarSegment(qrlSegment.segment)
+      ? rewriteAwaitToYield(source, qrlSegment.segment.bodyRange, qrlSegment.segment.awaitRanges)
+      : transformImplicitDollarCode(
+          source,
+          qrlSegment.segment.bodyRange,
+          ctx.manifest.segments,
+          new Map([[qrlSegment.id, qrlSegment]]),
+          ctx.emitTarget
+        )
     : 'undefined';
   let bodyStatements =
     qrlSegment.segment.bodyKind === 'block' ? body.slice(1, -1).trim() : `return ${body};`;
@@ -921,6 +937,13 @@ function createQrlSegmentSource(
         ]).join('\n')}\n\n`
       : '';
 
+  const isGeneratorTask = qrlSegment.segment.async && isTaskDollarSegment(qrlSegment.segment);
+  if (isGeneratorTask) {
+    return `${importLine}export const ${qrlSegment.symbolName} = function* (${params}) {
+${captureLine}${indentBody(bodyStatements)}
+};
+`;
+  }
   return `${importLine}export const ${qrlSegment.symbolName} = ${
     qrlSegment.segment.async ? 'async ' : ''
   }(${params}) => {

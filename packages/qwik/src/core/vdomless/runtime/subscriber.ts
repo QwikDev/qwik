@@ -1,4 +1,4 @@
-import type { ComputedFlags, SubscriberFlags } from '../reactive/flags';
+import { SubscriberFlags, type ComputedFlags } from '../reactive/flags';
 import type { Branch, SSRBranch } from '../dom/branch/branch';
 import type { ForBlock, SSRForBlock } from '../dom/for/for';
 import type { ValueOrPromise } from '../../shared/utils/types';
@@ -7,6 +7,7 @@ import type { ComputedSource, Dependency } from '../reactive/source';
 import type { Task, VisibleTask } from './task';
 import type { SsrDomEffect } from '../dom/effect/ssr-effect';
 import type { Owner } from './owner';
+import type { Scheduler } from './scheduler';
 
 export const enum SubscriberKind {
   Computed = 0,
@@ -31,6 +32,15 @@ export interface ScheduledSubscriber extends OwnedSubscriber {
   flags: SubscriberFlags;
 }
 
+export function takeDirty(subscriber: ScheduledSubscriber): boolean {
+  if (subscriber.owner === null || !(subscriber.flags & SubscriberFlags.Dirty)) {
+    return false;
+  }
+
+  subscriber.flags &= ~SubscriberFlags.Dirty;
+  return true;
+}
+
 export interface ComputedSubscriber<T = unknown>
   extends Collector, ComputedSource<T>, OwnedSubscriber {
   readonly kind: SubscriberKind.Computed;
@@ -47,11 +57,15 @@ export interface IdleJobRecord {
 export interface TaskSubscriber extends Collector, ScheduledSubscriber {
   readonly kind: SubscriberKind.Task;
   readonly task: Task;
+  readonly scheduler: Scheduler;
+  runPromise: Promise<void> | null;
 }
 
 export interface VisibleTaskSubscriber extends Collector, ScheduledSubscriber {
   readonly kind: SubscriberKind.VisibleTask;
   readonly task: VisibleTask;
+  readonly scheduler: Scheduler;
+  runPromise: Promise<void> | null;
 }
 
 export interface DomSubscriber extends Collector, ScheduledSubscriber {

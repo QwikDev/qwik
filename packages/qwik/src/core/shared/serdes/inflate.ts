@@ -29,6 +29,8 @@ import type { ContextScope } from '../../vdomless/runtime/context-scope';
 import { newInvokeContext, type RuntimeInvokeContext } from '../../vdomless/runtime/invoke-context';
 import type { Projection, SlotScope } from '../../vdomless/dom/slot/slot';
 import { createOwner, registerSubscriberToOwner } from '../../vdomless/runtime/owner';
+import { Phase } from '../../vdomless/runtime/scheduler';
+import { Task, TaskSubscription, type TaskQrlRef } from '../../vdomless/runtime/task';
 import {
   findBranchRange,
   findBranchTextNode,
@@ -44,6 +46,7 @@ import {
   type ComputedSubscriber,
   type DomSubscriber,
   type Subscriber,
+  type TaskSubscriber,
 } from '../../vdomless/runtime/subscriber';
 import { assertDefined, assertNumber } from '../error/assert';
 import { qError, QError } from '../error/error';
@@ -265,6 +268,17 @@ export const inflate = async (
         default:
           throw qError(QError.serializeErrorNotImplemented, [kind]);
       }
+      break;
+    }
+    case TypeIds.Task: {
+      ensureDeserializedOwner(target as Subscriber);
+      const subscription = target as Writeable<TaskSubscription>;
+      const parts = data as unknown[];
+      const phase = parts[0] as Phase.BlockingTask | Phase.DeferredTask;
+      const qrl = parts[1] as TaskQrlRef;
+      const deps = parts[2] as Dependency[];
+      subscription.task = new Task(undefined, phase, qrl, container);
+      restoreDependencies(subscription, deps);
       break;
     }
     default:
@@ -593,7 +607,7 @@ function resolveBranchTextTarget(
 }
 
 function restoreDependencies(
-  collector: DomSubscriber | BranchSubscription | ForBlockSubscription,
+  collector: DomSubscriber | BranchSubscription | ForBlockSubscription | TaskSubscriber,
   deps: Dependency[]
 ) {
   if (deps && deps.length > 0) {

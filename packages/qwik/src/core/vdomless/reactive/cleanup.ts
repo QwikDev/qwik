@@ -55,7 +55,12 @@ export function disposeSubscriber(subscriber: Subscriber): void {
         return;
       }
       subscriber.flags = SubscriberFlags.None;
-      if (subscriber.kind === SubscriberKind.Branch) {
+      if (
+        subscriber.kind === SubscriberKind.Task ||
+        subscriber.kind === SubscriberKind.VisibleTask
+      ) {
+        subscriber.task.dispose();
+      } else if (subscriber.kind === SubscriberKind.Branch) {
         subscriber.branch.dispose();
       } else if (subscriber.kind === SubscriberKind.ForBlock) {
         subscriber.block.dispose();

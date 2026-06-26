@@ -582,4 +582,28 @@ export function Parent() {
 `,
     });
   });
+
+  test('emits task setup with async generator lowering', async () => {
+    await testInput('task_async_generator', {
+      code: `import { createSignal, createTask$, createVisibleTask$ } from '@qwik.dev/core/spark';
+
+export function App() {
+  const count = createSignal(0);
+  createTask$(async ({ cleanup }) => {
+    const before = count.value;
+    await Promise.resolve();
+    cleanup(async () => {
+      await Promise.resolve(before);
+    });
+    count.value;
+  });
+  createVisibleTask$(async () => {
+    await Promise.resolve();
+    count.value;
+  }, { strategy: 'document-ready' });
+  return <button>{count.value}</button>;
+}
+`,
+    });
+  });
 });

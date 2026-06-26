@@ -5,6 +5,7 @@ import type {
   QDispatchHandler,
   QElement,
 } from '../../../shared/types';
+import { qTest } from '../../../shared/utils/qdev';
 
 type EventHandler = (event: Event, element: Element) => unknown;
 
@@ -44,7 +45,7 @@ export function setEvent(
 }
 
 function registerQwikLoaderEvent(element: Element, eventName: string) {
-  const qWindow = element.ownerDocument.defaultView as qWindow | null;
+  const qWindow = (qTest ? element.ownerDocument.defaultView : window) as qWindow | null;
   if (qWindow) {
     (qWindow._qwikEv ||= [] as any).push(eventName);
   }

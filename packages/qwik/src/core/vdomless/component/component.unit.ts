@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createNode, createText, noopSchedule } from '../test-utils';
+import { createNode, createText, noopSchedule, runWithTestContainer } from '../test-utils';
 import { createTextNodeEffect } from '../dom/effect/effect';
 import { createSignal } from '../reactive/signal';
 import type { ContainerContext } from '../runtime/container-context';
@@ -45,7 +45,7 @@ describe('components and invoke contexts', () => {
 
   it('does not collect direct component reads from an outer collector', () => {
     const scheduler = new Scheduler(noopSchedule);
-    const collector = runWithOwner(createOwner(null), () => createTask(() => {}, { scheduler }));
+    const collector = runWithTestContainer(scheduler, () => createTask(() => {}));
     const count = createSignal(1);
     const node = createNode('component');
 

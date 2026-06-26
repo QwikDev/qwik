@@ -98,18 +98,24 @@ export {
   scheduleFlush,
   type ScheduleFlush,
 } from './runtime/scheduler';
+export { runTaskSubscriber } from './runtime/run-task';
 export {
   Task,
   TaskSubscription,
   VisibleTask,
   VisibleTaskSubscription,
   createTask,
+  createTask$,
   createTaskQrl,
   createVisibleTask,
+  createVisibleTask$,
   createVisibleTaskQrl,
+  type TaskCleanupFn,
+  type TaskCtx,
   type TaskFn,
   type TaskOptions,
   type TaskQrlRef,
+  type VisibleTaskStrategy,
   type VisibleTaskOptions,
 } from './runtime/task';
 
@@ -190,7 +196,13 @@ export {
   type TextExpressionQrl,
 } from './dom/effect/ssr-effect';
 export { _qrlWithChunk } from '../shared/qrl/qrl';
-export { _captures, _run, _withCaptures } from '../../spark/handlers';
+export {
+  _captures,
+  _run,
+  _visibleTask,
+  _withCaptures,
+  createVisibleTaskHandlerQrl,
+} from '../../spark/handlers';
 export {
   createContainerContext,
   getOrCreateContainerContext,

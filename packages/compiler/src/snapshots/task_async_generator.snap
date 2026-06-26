@@ -1,0 +1,199 @@
+==INPUT==
+
+import { createSignal, createTask$, createVisibleTask$ } from '@qwik.dev/core/spark';
+
+export function App() {
+  const count = createSignal(0);
+  createTask$(async ({ cleanup }) => {
+    const before = count.value;
+    await Promise.resolve();
+    cleanup(async () => {
+      await Promise.resolve(before);
+    });
+    count.value;
+  });
+  createVisibleTask$(async () => {
+    await Promise.resolve();
+    count.value;
+  }, { strategy: 'document-ready' });
+  return <button>{count.value}</button>;
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  createSignal,
+  _qrlWithChunk,
+  escapeHTML,
+  renderSsrTextNode,
+  createSsrElementTextTarget,
+  getActiveInvokeContextOrNull,
+  invoke,
+  createTaskQrl,
+  runTaskSubscriber,
+  createVisibleTaskHandlerQrl,
+} from '@qwik.dev/core/spark';
+import { component_createTask$_segment_0 } from './component.tsx_component_createTask$_segment_0';
+import { component_createVisibleTask$_segment_1 } from './component.tsx_component_createVisibleTask$_segment_1';
+
+const q_component_createTask$_segment_0 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_createTask$_segment_0',
+  () => import('./component.tsx_component_createTask$_segment_0'),
+  'component_createTask$_segment_0'
+);
+q_component_createTask$_segment_0.s(component_createTask$_segment_0);
+const q_component_createVisibleTask$_segment_1 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_createVisibleTask$_segment_1',
+  () => import('./component.tsx_component_createVisibleTask$_segment_1'),
+  'component_createVisibleTask$_segment_1'
+);
+q_component_createVisibleTask$_segment_1.s(component_createVisibleTask$_segment_1);
+
+export async function App(_props, ctx) {
+  const invokeCtx = getActiveInvokeContextOrNull();
+  const count = createSignal(0);
+  const task_segment_0 = invoke(invokeCtx, () =>
+    createTaskQrl(q_component_createTask$_segment_0.w([count]))
+  );
+  ctx.addRoot(task_segment_0);
+  await runTaskSubscriber(task_segment_0);
+
+  return invoke(invokeCtx, () => {
+    const id0 = ctx.nextId();
+    ctx.addRoot(count);
+    const text1 = renderSsrTextNode(createSsrElementTextTarget(id0), count);
+    return (
+      '<button q:id="' +
+      id0 +
+      '"' +
+      ctx.eventAttr(
+        'q-d:qinit',
+        createVisibleTaskHandlerQrl(q_component_createVisibleTask$_segment_1.w([count]))
+      ) +
+      '>' +
+      escapeHTML(text1) +
+      '</button>'
+    );
+  });
+}
+
+null
+============================= src/component.tsx_component_createTask$_segment_0.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+export const component_createTask$_segment_0 = function* ({ cleanup }) {
+  const count = _captures[0];
+  const before = count.value;
+  yield Promise.resolve();
+  cleanup(async () => {
+    await Promise.resolve(before);
+  });
+  count.value;
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_createTask$_segment_0",
+  "entry": null,
+  "displayName": "component_createTask$_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_createTask$_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "createTask$",
+  "captures": true,
+  "loc": [
+    143,
+    319
+  ],
+  "paramNames": [
+    "_"
+  ],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_createVisibleTask$_segment_1.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+export const component_createVisibleTask$_segment_1 = function* () {
+  const count = _captures[0];
+  yield Promise.resolve();
+  count.value;
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_createVisibleTask$_segment_1",
+  "entry": null,
+  "displayName": "component_createVisibleTask$_segment_1",
+  "hash": "segment_1",
+  "canonicalFilename": "component.tsx_component_createVisibleTask$_segment_1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "createVisibleTask$",
+  "captures": true,
+  "loc": [
+    322,
+    432
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  createSignal,
+  createTask,
+  createVisibleTask,
+  createTemplate,
+  createTextNodeEffect,
+} from '@qwik.dev/core/spark';
+
+const dom_App_template0 = createTemplate('<button> </button>');
+export function App(_props, ctx) {
+  const count = createSignal(0);
+  createTask(function* ({ cleanup }) {
+    const before = count.value;
+    yield Promise.resolve();
+    cleanup(async () => {
+      await Promise.resolve(before);
+    });
+    count.value;
+  });
+  createVisibleTask(
+    function* () {
+      yield Promise.resolve();
+      count.value;
+    },
+    { strategy: 'document-ready' }
+  );
+  const fragment0 = dom_App_template0(ctx.document);
+  const el1 = fragment0.firstChild;
+  const text2 = el1.firstChild;
+  const effect3 = createTextNodeEffect(text2, count, { scheduler: ctx.scheduler });
+  ctx.scheduler.notify(effect3);
+  return el1;
+}
+
+null
+== CSR DIAGNOSTICS ==
+
+[]

@@ -41,7 +41,10 @@ export function createSsrImports(
     !usage.hasComponentPropsSpread &&
     !usage.hasForBlock &&
     !usage.hasSlot &&
-    !usage.hasComponentSlots
+    !usage.hasComponentSlots &&
+    !usage.hasSetupAwait &&
+    !usage.hasTask &&
+    !usage.hasVisibleTask
   ) {
     return [];
   }
@@ -107,6 +110,15 @@ export function createSsrImports(
   if (usage.hasSlot) {
     sparkSpecifiers.push(QwikSymbol.RenderSsrSlot);
   }
+  if (usage.hasSetupAwait) {
+    sparkSpecifiers.push(QwikSymbol.GetActiveInvokeContextOrNull, QwikSymbol.Invoke);
+  }
+  if (usage.hasTask) {
+    sparkSpecifiers.push(QwikSymbol.CreateTaskQrl, QwikSymbol.RunTaskSubscriber);
+  }
+  if (usage.hasVisibleTask) {
+    sparkSpecifiers.push(QwikSymbol.CreateVisibleTaskHandlerQrl);
+  }
   if (sparkSpecifiers.length > 0) {
     records.push(createQwikSparkImport(...sparkSpecifiers));
   }
@@ -134,6 +146,9 @@ export interface SsrImportUsage {
   hasComponent: boolean;
   hasComponentSlots: boolean;
   hasComponentPropsSpread: boolean;
+  hasSetupAwait: boolean;
+  hasTask: boolean;
+  hasVisibleTask: boolean;
 }
 
 export function createCsrImports(

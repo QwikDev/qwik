@@ -1,4 +1,3 @@
-import type { QRLInternal } from '../../../shared/qrl/qrl-class';
 import type { QRL } from '../../../shared/qrl/qrl.public';
 import { maybeThen } from '../../../shared/utils/promises';
 import type { ValueOrPromise } from '../../../shared/utils/types';
@@ -22,7 +21,7 @@ import {
 import { EMPTY_NODES } from '../../utils/consts';
 import { toNodes } from '../../utils/nodes';
 import type { MaybeNodeOutput } from '../../utils/nodes';
-import { getFunctionOrResolve } from '../qrl';
+import { getFunctionOrResolve } from '../../utils/qrl';
 import { createContentRange, replaceRange } from '../range/range';
 
 type BranchConditionFn = () => boolean;
@@ -186,55 +185,47 @@ export class SSRBranch {
   run(): ValueOrPromise<string> {
     const subscription = registerSubscriberToOwner(new SSRBranchSubscription(this));
 
-    return maybeThen(
-      this.conditionQrl.resolved ?? resolveQrl(this.conditionQrl, this.container),
-      (conditionFn) => {
-        const trackedCondition = runWithCollector(subscription, conditionFn);
-        return maybeThen(trackedCondition, (trackedCondition) => {
-          const nextBranch = trackedCondition ? BranchState.Then : BranchState.Else;
-          const rendererQrl = trackedCondition ? this.thenQrl : this.elseQrl;
+    return maybeThen(getFunctionOrResolve(this.conditionQrl, this.container), (conditionFn) => {
+      const trackedCondition = runWithCollector(subscription, conditionFn);
+      return maybeThen(trackedCondition, (trackedCondition) => {
+        const nextBranch = trackedCondition ? BranchState.Then : BranchState.Else;
+        const rendererQrl = trackedCondition ? this.thenQrl : this.elseQrl;
 
-          return maybeThen(
-            rendererQrl?.resolved ??
-              (rendererQrl ? resolveQrl(rendererQrl, this.container) : undefined),
-            (renderer) => {
-              if (renderer === undefined) {
-                return '';
-              }
-
-              subscription.branch.currentBranch = nextBranch;
-
-              const invokeContext = newChildInvokeContext(this.invokeContext, {
-                ownerHost: subscription.owner,
-                container: this.container,
-              });
-
-              let html: ValueOrPromise<string>;
-              try {
-                html = runWithCollector(null, () =>
-                  invoke(invokeContext, () => renderer(invokeContext.container!, this.rangeId))
-                );
-              } catch (error) {
-                if (invokeContext.owner !== null) {
-                  disposeOwner(invokeContext.owner);
-                  invokeContext.owner = null;
-                }
-                throw error;
-              }
-              return maybeThen(html, (html) => {
-                subscription.branch.currentOwner = invokeContext.owner;
-                return html;
-              });
+        return maybeThen(
+          rendererQrl ? getFunctionOrResolve(rendererQrl, this.container) : undefined,
+          (renderer) => {
+            if (renderer === undefined) {
+              return '';
             }
-          );
-        });
-      }
-    );
-  }
-}
 
-function resolveQrl<T>(qrl: QRL<T>, ctx?: ContainerContext): Promise<T> {
-  return (qrl as QRLInternal<T>).resolve(ctx);
+            subscription.branch.currentBranch = nextBranch;
+
+            const invokeContext = newChildInvokeContext(this.invokeContext, {
+              ownerHost: subscription.owner,
+              container: this.container,
+            });
+
+            let html: ValueOrPromise<string>;
+            try {
+              html = runWithCollector(null, () =>
+                invoke(invokeContext, () => renderer(invokeContext.container!, this.rangeId))
+              );
+            } catch (error) {
+              if (invokeContext.owner !== null) {
+                disposeOwner(invokeContext.owner);
+                invokeContext.owner = null;
+              }
+              throw error;
+            }
+            return maybeThen(html, (html) => {
+              subscription.branch.currentOwner = invokeContext.owner;
+              return html;
+            });
+          }
+        );
+      });
+    });
+  }
 }
 
 export class SSRBranchSubscription implements SsrBranchSubscriber {

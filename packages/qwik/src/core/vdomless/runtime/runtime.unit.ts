@@ -6,6 +6,7 @@ import {
   createTaskSubscriber,
   createText,
   noopSchedule,
+  runWithTestContainer,
 } from '../test-utils';
 import { disposeSubscriber } from '../reactive/cleanup';
 import { createComputed } from '../reactive/computed';
@@ -23,6 +24,7 @@ import {
 } from './owner';
 import { invoke, newInvokeContext } from './invoke-context';
 import { Scheduler } from './scheduler';
+import { runTaskSubscriber } from './run-task';
 import type { DomSubscriber, TaskSubscriber, VisibleTaskSubscriber } from './subscriber';
 import {
   createTask,
@@ -31,6 +33,7 @@ import {
   createVisibleTaskQrl,
   type TaskFn,
 } from './task';
+import type { ContainerContext } from './container-context';
 
 describe('runtime scheduler and owner lifecycle', () => {
   it('flushes blocking tasks before DOM effects', async () => {
@@ -86,23 +89,24 @@ describe('runtime scheduler and owner lifecycle', () => {
     let parentDeferred!: TaskSubscriber;
     let childBlocking!: TaskSubscriber;
 
-    runWithOwner(parent, () => {
-      parentDeferred = createTask(
-        () => {
-          order.push('parent:deferred');
-        },
-        { deferUpdates: true, scheduler }
-      );
-      const child = createOwner();
-      runWithOwner(child, () => {
-        childBlocking = createTask(
+    runWithTestContainer(
+      scheduler,
+      () => {
+        parentDeferred = createTask(
           () => {
-            order.push('child:blocking');
+            order.push('parent:deferred');
           },
-          { scheduler }
+          { deferUpdates: false }
         );
-      });
-    });
+        const child = createOwner();
+        runWithOwner(child, () => {
+          childBlocking = createTask(() => {
+            order.push('child:blocking');
+          });
+        });
+      },
+      parent
+    );
 
     scheduler.notify(childBlocking);
     scheduler.notify(parentDeferred);
@@ -142,7 +146,7 @@ describe('runtime scheduler and owner lifecycle', () => {
   it('skips disposed tasks that were already scheduled', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const seen: string[] = [];
-    const task = createOwned(() => createTask(() => seen.push('task'), { scheduler }));
+    const task = runWithTestContainer(scheduler, () => createTask(() => seen.push('task')));
 
     scheduler.notify(task);
     disposeSubscriber(task);
@@ -345,12 +349,14 @@ describe('runtime scheduler and owner lifecycle', () => {
     let task!: TaskSubscriber;
     let visibleTask!: VisibleTaskSubscriber;
 
-    runWithOwner(owner, () => {
-      task = createTask(() => seen.push(count.value), { scheduler });
-      visibleTask = createVisibleTask(() => seen.push(count.value + 10), {
-        scheduler,
-      });
-    });
+    runWithTestContainer(
+      scheduler,
+      () => {
+        task = createTask(() => seen.push(count.value));
+        visibleTask = createVisibleTask(() => seen.push(count.value + 10));
+      },
+      owner
+    );
 
     expect(owner.items).toEqual([task, visibleTask]);
 
@@ -369,7 +375,7 @@ describe('runtime scheduler and owner lifecycle', () => {
 
   it('does not track dependencies through runWithOwner', () => {
     const scheduler = new Scheduler(noopSchedule);
-    const collector = createOwned(() => createTask(() => {}, { scheduler }));
+    const collector = runWithTestContainer(scheduler, () => createTask(() => {}));
     const owner = createOwner();
     const tracked = createSignal('tracked');
     const untracked = createSignal('untracked');
@@ -395,7 +401,7 @@ describe('runtime scheduler and owner lifecycle', () => {
     const scheduler = new Scheduler(noopSchedule);
     const parent = createOwner();
     const child = createOwner();
-    const collector = createOwned(() => createTask(() => {}, { scheduler }));
+    const collector = runWithTestContainer(scheduler, () => createTask(() => {}));
 
     runWithOwner(parent, () => {
       runWithCollector(collector, () => {
@@ -420,13 +426,10 @@ describe('runtime scheduler and owner lifecycle', () => {
     const scheduler = new Scheduler(noopSchedule);
     const count = createSignal(0);
     const seen: number[] = [];
-    const task = createOwned(() =>
-      createTask(
-        () => {
-          seen.push(count.value);
-        },
-        { scheduler }
-      )
+    const task = runWithTestContainer(scheduler, () =>
+      createTask(() => {
+        seen.push(count.value);
+      })
     );
 
     scheduler.notify(task);
@@ -441,13 +444,234 @@ describe('runtime scheduler and owner lifecycle', () => {
     expect(seen).toEqual([0, 1]);
   });
 
+  it('tracks generator task dependencies before and after yield', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const before = createSignal(0);
+    const after = createSignal(10);
+    const seen: string[] = [];
+
+    runWithTestContainer(scheduler, () =>
+      createTask(function* () {
+        seen.push(`before:${before.value}`);
+        yield Promise.resolve();
+        seen.push(`after:${after.value}`);
+      })
+    );
+
+    await scheduler.flushInteraction();
+    before.value = 1;
+    await scheduler.flushInteraction();
+    after.value = 11;
+    await scheduler.flushInteraction();
+
+    expect(seen).toEqual(['before:0', 'after:10', 'before:1', 'after:10', 'before:1', 'after:11']);
+  });
+
+  it('throws rejected generator yields back into the task', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const seen: string[] = [];
+
+    runWithTestContainer(scheduler, () =>
+      createTask(function* () {
+        try {
+          yield Promise.reject(new Error('first'));
+        } catch (error) {
+          seen.push((error as Error).message);
+          try {
+            yield Promise.reject(new Error('second'));
+          } catch (error) {
+            seen.push((error as Error).message);
+          }
+        }
+      })
+    );
+
+    await scheduler.flushInteraction();
+
+    expect(seen).toEqual(['first', 'second']);
+  });
+
+  it('does not rerun a pending task unless it was marked dirty', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const order: string[] = [];
+    let release!: () => void;
+    const task = runWithTestContainer(scheduler, () =>
+      createTask(() => {
+        order.push('run');
+        return new Promise<void>((resolve) => {
+          release = resolve;
+        });
+      })
+    );
+
+    const run = runTaskSubscriber(task);
+    await Promise.resolve();
+    const flush = scheduler.flushInteraction();
+    await Promise.resolve();
+
+    expect(order).toEqual(['run']);
+
+    release();
+    await run;
+    await flush;
+    await scheduler.flushInteraction();
+
+    expect(order).toEqual(['run']);
+  });
+
+  it.each([
+    [
+      'cleanup callbacks',
+      (
+        cleanup: (callback: () => Promise<void>) => void,
+        value: number,
+        order: string[],
+        wait: () => Promise<void>
+      ) => {
+        cleanup(async () => {
+          order.push(`cleanup:${value}:start`);
+          await wait();
+          order.push(`cleanup:${value}:end`);
+        });
+      },
+    ],
+    [
+      'returned cleanup',
+      (
+        _cleanup: (callback: () => Promise<void>) => void,
+        value: number,
+        order: string[],
+        wait: () => Promise<void>
+      ) => {
+        return async () => {
+          order.push(`cleanup:${value}:start`);
+          await wait();
+          order.push(`cleanup:${value}:end`);
+        };
+      },
+    ],
+  ])('awaits async %s before rerun', async (_name, registerCleanup) => {
+    const scheduler = new Scheduler(noopSchedule);
+    const count = createSignal(0);
+    const order: string[] = [];
+    let releaseCleanup!: () => void;
+
+    runWithTestContainer(scheduler, () =>
+      createTask(({ cleanup }) => {
+        const value = count.value;
+        order.push(`run:${value}`);
+        return registerCleanup(cleanup, value, order, () => {
+          return new Promise<void>((resolve) => {
+            releaseCleanup = resolve;
+          });
+        });
+      })
+    );
+
+    await scheduler.flushInteraction();
+    count.value = 1;
+    const rerun = scheduler.flushInteraction();
+    await Promise.resolve();
+
+    expect(order).toEqual(['run:0', 'cleanup:0:start']);
+
+    releaseCleanup();
+    await rerun;
+
+    expect(order).toEqual(['run:0', 'cleanup:0:start', 'cleanup:0:end', 'run:1']);
+  });
+
+  it('throws cleanup errors without rerunning the task', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const count = createSignal(0);
+    const seen: number[] = [];
+    const error = new Error('cleanup boom');
+
+    runWithTestContainer(scheduler, () =>
+      createTask(({ cleanup }) => {
+        seen.push(count.value);
+        cleanup(() => {
+          throw error;
+        });
+      })
+    );
+
+    await scheduler.flushInteraction();
+    count.value = 1;
+    await expect(scheduler.flushInteraction()).rejects.toBe(error);
+
+    expect(seen).toEqual([0]);
+  });
+
+  it('rejects async cleanup errors without rerunning the task', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const count = createSignal(0);
+    const seen: number[] = [];
+    const error = new Error('async cleanup boom');
+
+    runWithTestContainer(scheduler, () =>
+      createTask(({ cleanup }) => {
+        seen.push(count.value);
+        cleanup(async () => {
+          await Promise.resolve();
+          throw error;
+        });
+      })
+    );
+
+    await scheduler.flushInteraction();
+    count.value = 1;
+    await expect(scheduler.flushInteraction()).rejects.toBe(error);
+
+    expect(seen).toEqual([0]);
+  });
+
+  it('awaits async visible task cleanup before rerun', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const count = createSignal(0);
+    const order: string[] = [];
+    let releaseCleanup!: () => void;
+    let resolveSecondRun!: () => void;
+    const secondRun = new Promise<void>((resolve) => {
+      resolveSecondRun = resolve;
+    });
+
+    runWithTestContainer(scheduler, () =>
+      createVisibleTask(({ cleanup }) => {
+        const value = count.value;
+        order.push(`run:${value}`);
+        if (value === 1) {
+          resolveSecondRun();
+        }
+        cleanup(async () => {
+          order.push(`cleanup:${value}:start`);
+          await new Promise<void>((resolve) => {
+            releaseCleanup = resolve;
+          });
+          order.push(`cleanup:${value}:end`);
+        });
+      })
+    );
+
+    await scheduler.flushInteraction();
+    count.value = 1;
+    await scheduler.flushInteraction();
+    await Promise.resolve();
+
+    expect(order).toEqual(['run:0', 'cleanup:0:start']);
+
+    releaseCleanup();
+    await secondRun;
+
+    expect(order).toEqual(['run:0', 'cleanup:0:start', 'cleanup:0:end', 'run:1']);
+  });
+
   it('runs deferred tasks without blocking on a deferred queue', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const order: string[] = [];
-    const task = createOwned(() =>
+    const task = runWithTestContainer(scheduler, () =>
       createTask(() => order.push('deferred'), {
-        deferUpdates: true,
-        scheduler,
+        deferUpdates: false,
       })
     );
 
@@ -475,7 +699,7 @@ describe('runtime scheduler and owner lifecycle', () => {
       },
       null
     );
-    const task = createOwned(() => createTaskQrl(qrl, { scheduler }));
+    const task = runWithTestContainer(scheduler, () => createTaskQrl(qrl));
 
     scheduler.notify(task);
     await scheduler.flushInteraction();
@@ -487,8 +711,10 @@ describe('runtime scheduler and owner lifecycle', () => {
   it('runs visible tasks in enqueue order', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const order: string[] = [];
-    const second = createOwned(() => createVisibleTask(() => order.push('second'), { scheduler }));
-    const first = createOwned(() =>
+    const second = runWithTestContainer(scheduler, () =>
+      createVisibleTask(() => order.push('second'))
+    );
+    const first = runWithTestContainer(scheduler, () =>
       createVisibleTaskQrl(
         createQRL<TaskFn>(
           'chunk',
@@ -498,8 +724,7 @@ describe('runtime scheduler and owner lifecycle', () => {
           },
           null,
           null
-        ),
-        { scheduler }
+        )
       )
     );
 
@@ -514,24 +739,18 @@ describe('runtime scheduler and owner lifecycle', () => {
     const scheduler = new Scheduler(noopSchedule);
     const order: string[] = [];
     let resolveFirst: (() => void) | undefined;
-    const first = createOwned(() =>
-      createVisibleTask(
-        () => {
-          order.push('first:start');
-          return new Promise<void>((resolve) => {
-            resolveFirst = resolve;
-          });
-        },
-        { scheduler }
-      )
+    const first = runWithTestContainer(scheduler, () =>
+      createVisibleTask(() => {
+        order.push('first:start');
+        return new Promise<void>((resolve) => {
+          resolveFirst = resolve;
+        });
+      })
     );
-    const second = createOwned(() =>
-      createVisibleTask(
-        () => {
-          order.push('second:start');
-        },
-        { scheduler }
-      )
+    const second = runWithTestContainer(scheduler, () =>
+      createVisibleTask(() => {
+        order.push('second:start');
+      })
     );
 
     scheduler.notify(first);
@@ -545,10 +764,13 @@ describe('runtime scheduler and owner lifecycle', () => {
   it('restores serialized captures for task QRLs', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const seen: string[] = [];
-    const container = createCaptureContainer({
-      0: 'task',
-      1: 'capture',
-    });
+    const container = createCaptureContainer(
+      {
+        0: 'task',
+        1: 'capture',
+      },
+      scheduler
+    );
     const qrl = createQRL<TaskFn>(
       'chunk',
       'symbol',
@@ -562,7 +784,7 @@ describe('runtime scheduler and owner lifecycle', () => {
       '0 1',
       container
     );
-    const task = createOwned(() => createTaskQrl(qrl, { scheduler, container }));
+    const task = createOwned(() => createTaskQrl(qrl), container);
 
     scheduler.notify(task);
     await scheduler.flushInteraction();
@@ -576,8 +798,8 @@ describe('runtime scheduler and owner lifecycle', () => {
     const a = createSignal('a');
     const b = createSignal('b');
     const seen: string[] = [];
-    const task = createOwned(() =>
-      createTask(() => seen.push(useA.value ? a.value : b.value), { scheduler })
+    const task = runWithTestContainer(scheduler, () =>
+      createTask(() => seen.push(useA.value ? a.value : b.value))
     );
 
     scheduler.notify(task);
@@ -603,10 +825,8 @@ describe('runtime scheduler and owner lifecycle', () => {
     const a = createSignal('a');
     const b = createSignal('b');
     const seen: string[] = [];
-    const task = createOwned(() =>
-      createVisibleTask(() => seen.push(useA.value ? a.value : b.value), {
-        scheduler,
-      })
+    const task = runWithTestContainer(scheduler, () =>
+      createVisibleTask(() => seen.push(useA.value ? a.value : b.value))
     );
 
     scheduler.notify(task);
@@ -627,6 +847,11 @@ describe('runtime scheduler and owner lifecycle', () => {
   });
 });
 
-function createOwned<T>(run: () => T): T {
-  return runWithOwner(createOwner(null), run);
+function createOwned<T>(run: () => T, container?: ContainerContext): T {
+  return runWithCollector(
+    null,
+    invoke,
+    newInvokeContext({ owner: createOwner(null), container }),
+    run
+  );
 }

@@ -14,7 +14,7 @@ import {
 import { disposeOwner, type Owner } from '../../runtime/owner';
 import { EMPTY_ARRAY, EMPTY_NODES, EMPTY_STRING } from '../../utils/consts';
 import { toNodes, type MaybeNodeOutput } from '../../utils/nodes';
-import { getFunctionOrResolve } from '../qrl';
+import { getFunctionOrResolve } from '../../utils/qrl';
 
 type SlotRenderFn = (ctx: ContainerContext) => MaybeNodeOutput | Promise<MaybeNodeOutput>;
 type SsrSlotRenderFn = (ctx: SsrSlotContext, rangeId: number) => ValueOrPromise<string>;

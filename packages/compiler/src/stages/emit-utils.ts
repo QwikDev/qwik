@@ -9,6 +9,7 @@ import type {
   SegmentRecord,
 } from '../types';
 import {
+  hasTaskSetupSegment,
   isImplicitDollarSegment,
   transformImplicitDollarCode,
   type DollarTransformTarget,
@@ -75,7 +76,11 @@ export function emitComponentSetup(
   target: DollarTransformTarget,
   force = false
 ) {
-  if (!force && !hasCapturedQrlSegment(component.root, qrlSegments)) {
+  if (
+    !force &&
+    !hasCapturedQrlSegment(component.root, qrlSegments) &&
+    !hasTaskSetupSegment(component, segments)
+  ) {
     return '';
   }
   return component.setupRanges

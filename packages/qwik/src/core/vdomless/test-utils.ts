@@ -14,13 +14,16 @@ import { render as renderCsr, type CsrRenderRoot } from './csr-render';
 import type { BranchRange } from './dom/branch/branch';
 import { createTextExpressionEffect } from './dom/effect/effect';
 import { SubscriberFlags } from './reactive/flags';
+import { runWithCollector } from './reactive/tracking';
 import { createContainerContext, type ContainerContext } from './runtime/container-context';
 import {
   createOwner,
   getActiveOwner,
   registerSubscriberToOwner,
   runWithOwner,
+  type Owner,
 } from './runtime/owner';
+import { invoke, newInvokeContext } from './runtime/invoke-context';
 import { Scheduler } from './runtime/scheduler';
 import {
   SubscriberKind,
@@ -336,9 +339,9 @@ export function createAttrTarget(): { element: Element; attrs: Map<string, strin
 }
 
 export function createCaptureContainer(
-  captures: Record<string, unknown>
+  captures: Record<string, unknown>,
+  scheduler = new Scheduler(noopSchedule)
 ): ContainerContext & { nextId(): number } {
-  const scheduler = new Scheduler(noopSchedule);
   let nextId = 0;
   const container: ContainerContext & { nextId(): number } = {
     element: {} as HTMLElement,
@@ -374,13 +377,26 @@ export function createCaptureContainer(
   return container;
 }
 
+export function runWithTestContainer<T>(
+  scheduler: Scheduler,
+  run: () => T,
+  owner: Owner | null = createOwner(null)
+): T {
+  return runWithCollector(
+    null,
+    invoke,
+    newInvokeContext({ owner, container: createCaptureContainer({}, scheduler) }),
+    run
+  );
+}
+
 export function createTaskSubscriber(
   scheduler: Scheduler,
   label: string,
   order: string[]
 ): TaskSubscriber {
-  const create = () => createTask(() => order.push(label), { scheduler });
-  return getActiveOwner() === null ? runWithOwner(createOwner(null), create) : create();
+  const create = () => createTask(() => order.push(label));
+  return runWithTestContainer(scheduler, create, getActiveOwner() ?? createOwner(null));
 }
 
 export function createOrderTextExpressionEffect(

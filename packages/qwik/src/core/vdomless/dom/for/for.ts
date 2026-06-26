@@ -25,7 +25,7 @@ import { toNodes } from '../../utils/nodes';
 import type { MaybeNodeOutput } from '../../utils/nodes';
 import { ForBlockSubscription } from '../effect/effect';
 import { SSRForBlockSubscription } from '../effect/ssr-effect';
-import { getFunctionOrResolve } from '../qrl';
+import { getFunctionOrResolve } from '../../utils/qrl';
 import { createContentRange, getRangeParent } from '../range/range';
 import { EMPTY_ARRAY, NodeType } from '../../utils/consts';
 

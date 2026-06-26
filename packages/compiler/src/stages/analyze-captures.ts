@@ -1137,6 +1137,7 @@ class CaptureAnalyzer {
       bodyRange: getRange(fn.body),
       bodyKind: unwrapExpression(fn.body)?.type === 'BlockStatement' ? 'block' : 'expression',
       async: !!fn.async,
+      awaitRanges: fn.async ? collectTopLevelAwaitRanges(fn) : [],
       parentId: this.currentSegment()?.record.id ?? null,
       params: getParams(fn),
       captures: [...spec.explicitCaptures],
@@ -1181,6 +1182,7 @@ class CaptureAnalyzer {
       bodyRange: expressionRange,
       bodyKind: 'expression',
       async: false,
+      awaitRanges: [],
       parentId: this.currentSegment()?.record.id ?? null,
       params: getParams(fn),
       captures: [],
@@ -1220,6 +1222,7 @@ class CaptureAnalyzer {
       bodyRange: expressionRange,
       bodyKind: 'expression',
       async: false,
+      awaitRanges: [],
       parentId: this.currentSegment()?.record.id ?? null,
       params: [],
       captures: [],
@@ -1550,6 +1553,38 @@ function isStaticBranchTextExpression(node: AstNode): boolean {
 
 function rangesEqual(left: SourceRange | null, right: SourceRange | null): boolean {
   return !!left && !!right && left[0] === right[0] && left[1] === right[1];
+}
+
+function collectTopLevelAwaitRanges(fn: AstFunction): SourceRange[] {
+  const ranges: SourceRange[] = [];
+  visitAwait(fn.body);
+  return ranges;
+
+  function visitAwait(value: unknown): void {
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        visitAwait(item);
+      }
+      return;
+    }
+    if (!isNode(value) || isFunctionLike(value)) {
+      return;
+    }
+    if (value.type === 'AwaitExpression') {
+      const awaitRange = getRange(value);
+      const argRange = getRange(value.argument);
+      if (awaitRange !== null && argRange !== null) {
+        ranges.push([awaitRange[0], argRange[0]]);
+      }
+      visitAwait(value.argument);
+      return;
+    }
+    for (const key of Object.keys(value)) {
+      if (!shouldSkipUnknownChild(key)) {
+        visitAwait((value as Record<string, unknown>)[key]);
+      }
+    }
+  }
 }
 
 function shouldSkipUnknownChild(key: string): boolean {

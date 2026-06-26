@@ -6,6 +6,8 @@ import { Signal } from '../../vdomless/reactive/signal';
 import type { ContainerContext } from '../../vdomless/runtime/container-context';
 import { createContextScope } from '../../vdomless/runtime/context-scope';
 import { createProjection, createSlotScope } from '../../vdomless/dom/slot/slot';
+import { Task, TaskSubscription } from '../../vdomless/runtime/task';
+import { Phase } from '../../vdomless/runtime/scheduler';
 import { qError, QError } from '../error/error';
 import type { QRLInternal } from '../qrl/qrl-class';
 import { _UNINITIALIZED } from '../utils/constants';
@@ -117,6 +119,8 @@ export const allocate = async (
       }
       return new DomSubscription(null!, context.scheduler);
     }
+    case TypeIds.Task:
+      return new TaskSubscription(new Task(undefined, Phase.BlockingTask, undefined, context));
     case TypeIds.ContextScope:
       return createContextScope(null);
     case TypeIds.SlotScope:

@@ -26,16 +26,23 @@ import {
   getDomPropsBatchKey,
   getDynamicBindingBatchKey,
   hasBranch,
-  hasForBlock,
   hasComponent,
-  hasSlot,
   hasDynamicBinding,
+  hasForBlock,
+  hasSlot,
   isDomEffectBatched,
   rewriteLoopCaptures,
   serializeAttrValue,
   shouldResolveSsrQrl,
 } from './emit-utils';
-import { emitQrlReference } from './implicit-dollar';
+import {
+  emitQrlReference,
+  hasTaskSetupSegment,
+  isCreateTaskSegment,
+  isCreateVisibleTaskSegment,
+  isNestedInImplicitDollarSegment,
+  isRangeInside,
+} from './implicit-dollar';
 
 type HtmlPart = string | { code: string };
 
@@ -44,6 +51,12 @@ interface SsrEmitterOptions {
   rootRangeTarget?: string;
   rootElementAttr?: string;
   loopCaptures?: readonly { name: string; source: string }[];
+  visibleTasks?: VisibleTaskCarrier[];
+}
+
+interface VisibleTaskCarrier {
+  qrlSegment: QrlSegmentOutput;
+  eventName: 'q-e:qvisible' | 'q-d:qinit' | 'q-d:qidle';
 }
 
 export function emitSsrModule(
@@ -80,9 +93,12 @@ function emitSsrComponent(
 ) {
   const emitter = new SsrEmitter(qrlSegments, sourceCode, {
     domEffectBatchCounts: getDomEffectBatchStats(component.root, qrlSegments).counts,
+    visibleTasks: collectVisibleTaskCarriers(component, segments, qrlSegments, sourceCode),
   });
   const html = emitter.emitHtmlExpression(component.root!);
+  const setupAwaits = hasTaskSetupSegment(component, segments, isCreateTaskSegment);
   const isAsync =
+    setupAwaits ||
     hasBranch(component.root) ||
     hasForBlock(component.root) ||
     hasComponent(component.root) ||
@@ -97,18 +113,31 @@ function emitSsrComponent(
   );
   const paramSetup = emitComponentParamSetup(component, sourceCode);
   const statements = emitter.toString();
-  const bodyParts = component.providesContext
+  const renderBodyParts = component.providesContext
     ? [
-        paramSetup,
-        setup,
         'const contextScopeId = ctx.contextScopeId();',
         statements,
         `const contextHtml = ${html};`,
         "return '<!c=' + contextScopeId + '>' + contextHtml + '<!/c>';",
       ].filter(Boolean)
-    : [paramSetup, setup, statements, `return ${html};`].filter(Boolean);
+    : [statements, `return ${html};`].filter(Boolean);
+  const renderBody = renderBodyParts.join('\n');
+  const bodyParts = setupAwaits
+    ? [
+        `const invokeCtx = ${QwikSymbol.GetActiveInvokeContextOrNull}();`,
+        paramSetup,
+        setup,
+        `return ${QwikSymbol.Invoke}(invokeCtx, ${
+          /\bawait\b/.test(renderBody) ? 'async ' : ''
+        }() => {\n${renderBody
+          .split('\n')
+          .map((line) => `  ${line}`)
+          .join('\n')}\n});`,
+      ].filter(Boolean)
+    : [paramSetup, setup, ...renderBodyParts].filter(Boolean);
   const body = bodyParts.join('\n');
-  const ctxParam = emitter.usesCtx || component.providesContext ? 'ctx' : '_ctx';
+  const ctxParam =
+    emitter.usesCtx || component.providesContext || setup.includes('ctx.') ? 'ctx' : '_ctx';
   const propsParam = getComponentPropsParam(component);
   if (component.declarationKind === 'function') {
     return `export ${isAsync ? 'async ' : ''}function ${component.exportName}(${propsParam}, ${ctxParam}) {\n${body}\n}`;
@@ -129,6 +158,49 @@ function emitSsrComponent(
 
 function getComponentPropsParam(component: ComponentRecord): string {
   return component.params[0]?.name ?? '_props';
+}
+
+function collectVisibleTaskCarriers(
+  component: ComponentRecord,
+  segments: readonly SegmentRecord[],
+  qrlSegments: Map<string, QrlSegmentOutput>,
+  sourceCode: string
+): VisibleTaskCarrier[] {
+  const carriers: VisibleTaskCarrier[] = [];
+  for (const segment of segments) {
+    if (
+      !isCreateVisibleTaskSegment(segment) ||
+      !component.setupRanges.some((range) => isRangeInside(segment.range, range)) ||
+      isNestedInImplicitDollarSegment(segment, segments)
+    ) {
+      continue;
+    }
+    const qrlSegment = qrlSegments.get(segment.id);
+    if (qrlSegment) {
+      carriers.push({
+        qrlSegment,
+        eventName: getVisibleTaskEventName(segment, sourceCode),
+      });
+    }
+  }
+  return carriers;
+}
+
+function getVisibleTaskEventName(
+  segment: SegmentRecord,
+  sourceCode: string
+): VisibleTaskCarrier['eventName'] {
+  const optionsRange = segment.argumentRanges[1];
+  if (optionsRange) {
+    const options = sourceCode.slice(optionsRange[0], optionsRange[1]);
+    if (/\bstrategy\s*:\s*['"]document-ready['"]/.test(options)) {
+      return 'q-d:qinit';
+    }
+    if (/\bstrategy\s*:\s*['"]document-idle['"]/.test(options)) {
+      return 'q-d:qidle';
+    }
+  }
+  return 'q-e:qvisible';
 }
 
 export class SsrEmitter {
@@ -322,6 +394,7 @@ export class SsrEmitter {
       parts.push(` ${this.options.rootElementAttr}`);
       this.options.rootElementAttr = undefined;
     }
+    parts.push(...this.emitVisibleTaskEventAttrParts());
 
     if (hasProps) {
       propsRenderId = this.emitSsrDomProps(node, elementId!);
@@ -601,6 +674,34 @@ export class SsrEmitter {
 
   private emitCaptureArgs(qrlSegment: QrlSegmentOutput): string {
     return `[${qrlSegment.segment.captures.map((capture) => capture.name).join(', ')}]`;
+  }
+
+  private emitVisibleTaskEventAttrParts(): HtmlPart[] {
+    const visibleTasks = this.options.visibleTasks;
+    if (!visibleTasks || visibleTasks.length === 0) {
+      return [];
+    }
+    this.usesCtx = true;
+    const grouped = new Map<VisibleTaskCarrier['eventName'], string[]>();
+    for (const visibleTask of visibleTasks) {
+      this.emitCaptureRoots(visibleTask.qrlSegment);
+      const handlers = grouped.get(visibleTask.eventName) ?? [];
+      handlers.push(
+        `${QwikSymbol.CreateVisibleTaskHandlerQrl}(${emitQrlReference(visibleTask.qrlSegment)})`
+      );
+      grouped.set(visibleTask.eventName, handlers);
+    }
+    visibleTasks.length = 0;
+
+    const parts: HtmlPart[] = [];
+    for (const [eventName, handlers] of grouped) {
+      parts.push({
+        code: `ctx.eventAttr(${JSON.stringify(eventName)}, ${
+          handlers.length === 1 ? handlers[0] : `[${handlers.join(', ')}]`
+        })`,
+      });
+    }
+    return parts;
   }
 
   private emitRoot(name: string) {

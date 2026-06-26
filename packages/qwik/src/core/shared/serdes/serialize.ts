@@ -15,6 +15,7 @@ import { Signal } from '../../vdomless/reactive/signal';
 import { isLazySerialized } from '../../vdomless/reactive/lazy-serialized';
 import type { Dependency, SourceSubs } from '../../vdomless/reactive/source';
 import { isContextScope } from '../../vdomless/runtime/context-scope';
+import { TaskSubscription } from '../../vdomless/runtime/task';
 import {
   isProjection,
   isSlotScope,
@@ -464,6 +465,8 @@ export class Serializer {
       value instanceof SsrForBlockSubscription
     ) {
       this.output(TypeIds.EffectSubscription, serializeEffectSubscription(value));
+    } else if (value instanceof TaskSubscription) {
+      this.output(TypeIds.Task, serializeTaskSubscription(value));
     } else if (isContextScope(value)) {
       const out: unknown[] = [value.parent ?? null];
       const values = value.values;
@@ -744,6 +747,10 @@ function serializeEffectSubscription(
   }
 
   return serializeDomSubscription(subscription);
+}
+
+function serializeTaskSubscription(subscription: TaskSubscription): unknown[] {
+  return [subscription.task.phase, subscription.task.qrl, serializeDeps(subscription.deps)];
 }
 
 function serializeBranchSubscription(subscription: SsrBranchSubscription): unknown[] {

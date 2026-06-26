@@ -101,6 +101,7 @@ export interface SegmentRecord {
   bodyRange: SourceRange | null;
   bodyKind: 'block' | 'expression';
   async: boolean;
+  awaitRanges: SourceRange[];
   parentId: string | null;
   params: ParamRecord[];
   captures: CaptureRecord[];

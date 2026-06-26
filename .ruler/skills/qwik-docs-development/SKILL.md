@@ -94,3 +94,25 @@ Set `QWIK_LLMS_BASE_URL` only when intentionally testing alternate generated lin
   changed.
 - If docs source or scripts contradict this skill, update the skill before finishing or record why
   guidance edits were out of scope.
+
+## No Hydration Terminology
+
+Never describe Qwik or any part of how Qwik works as hydration. Qwik does not hydrate. Qwik is
+resumable: the server serializes application state and listeners into the HTML, and the client
+resumes execution exactly where the server left off, without re-running component code or
+rebuilding the framework state.
+
+- Do not call any Qwik mechanism "hydration", "hydrating", "rehydration", "partial hydration",
+  "progressive hydration", "selective hydration", or "island hydration".
+- Do not describe Qwik components, containers, or apps as "hydrated" or "needing to hydrate".
+- Use the Qwik terminilogy instead: "javascript streaming", "JIT preloading", "resumability", "resume", "resuming", "serialization", "deserialization", and "lazy execution".
+- Describe client startup as Qwik resuming from serialized state, not as Qwik booting, mounting,
+  or hydrating the app.
+
+### Allowed Mentions
+
+The word "hydration" may appear only when explicitly contrasting Qwik with hydration-based
+frameworks, and the sentence must make clear that hydration is what other frameworks do and what
+Qwik avoids. For example: "Unlike frameworks that hydrate on the client, Qwik resumes from
+serialized state." Never use hydration vocabulary, even casually or by analogy, to explain what
+Qwik itself does.

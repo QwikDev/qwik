@@ -1,3 +1,5 @@
+import transitionCss from './qwik-view-transition.css?inline';
+
 // This types are missing in current typescript version: 5.4.5
 
 interface StartViewTransitionOptions {
@@ -29,11 +31,25 @@ export interface ViewTransition {
 export const shouldStartViewTransition = (viewTransition: boolean | undefined): boolean =>
   viewTransition === true && 'startViewTransition' in document;
 
+const VIEW_TRANSITION_STYLE_ID = 'qwik-view-transition';
+
+/** Inject the view-transition stylesheet once, only when a transition actually runs. */
+export const ensureViewTransitionStyles = (): void => {
+  if (document.getElementById(VIEW_TRANSITION_STYLE_ID)) {
+    return;
+  }
+  const style = document.createElement('style');
+  style.id = VIEW_TRANSITION_STYLE_ID;
+  style.textContent = transitionCss;
+  document.head.appendChild(style);
+};
+
 export const startViewTransition = (params: {
   types: string[];
   update: () => Promise<void>;
 }): { ready: Promise<void>; transition?: ViewTransition } => {
   if ('startViewTransition' in document) {
+    ensureViewTransitionStyles();
     let transition: ViewTransition;
     try {
       // Typed transition starts with Chrome 125 & Safari 18

@@ -45,7 +45,6 @@ import {
   useServerData,
   useSignal,
   useStore,
-  useStyles$,
   useTask$,
   type QRL,
 } from '@qwik.dev/core';
@@ -77,7 +76,6 @@ import {
 } from './contexts';
 import { createDocumentHead, resolveHead } from './head';
 import { refreshLinkPrefetchObserver } from './link-prefetch';
-import transitionCss from './qwik-view-transition.css?inline';
 import { loadRoute } from './routing';
 import {
   callRestoreScrollOnDocument,
@@ -193,7 +191,6 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       'useQwikRouter can only run during SSR on the server. If you are seeing this, it means you are re-rendering the root of your application. Fix that or use the <QwikRouterProvider> component around the root of your application.'
     );
   }
-  useStyles$(transitionCss);
   const env = useQwikRouterEnv();
   if (!env?.params) {
     throw new Error(

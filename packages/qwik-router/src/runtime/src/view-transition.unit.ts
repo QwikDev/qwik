@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { shouldStartViewTransition } from './view-transition';
+import { ensureViewTransitionStyles, shouldStartViewTransition } from './view-transition';
 
 describe('shouldStartViewTransition', () => {
   afterEach(() => vi.unstubAllGlobals());
@@ -26,5 +26,28 @@ describe('shouldStartViewTransition', () => {
   it('is off when opted in but the browser lacks support', () => {
     withViewTransitionSupport(false);
     expect(shouldStartViewTransition(true)).toBe(false);
+  });
+});
+
+describe('ensureViewTransitionStyles', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  const fakeDocument = () => {
+    const appended: Array<{ id: string; textContent: string }> = [];
+    return {
+      appended,
+      getElementById: (id: string) => appended.find((el) => el.id === id) ?? null,
+      createElement: () => ({ id: '', textContent: '' }),
+      head: { appendChild: (el: { id: string; textContent: string }) => appended.push(el) },
+    };
+  };
+
+  it('injects the view-transition stylesheet exactly once', () => {
+    const doc = fakeDocument();
+    vi.stubGlobal('document', doc);
+    ensureViewTransitionStyles();
+    ensureViewTransitionStyles();
+    expect(doc.appended).toHaveLength(1);
+    expect(doc.appended[0].id).toBe('qwik-view-transition');
   });
 });

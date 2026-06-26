@@ -5,7 +5,7 @@
 
 `ErrorBoundary` now ships from `@qwik.dev/core` instead of `@qwik.dev/router` — update your imports. It also changes behavior:
 
-- `fallback$` is now required.
+- `fallback$` is now required and receives `(error, reset)`; calling `reset()` clears the error and re-attempts the children (works for both client-caught and SSR render errors).
 - New optional `onError$` side-effect (logging/telemetry), fired once per caught error.
 - The `useErrorBoundary()` hook is removed — `<ErrorBoundary>` is the single error-boundary surface.
 - An error is handled by the closest boundary (its own subtree), instead of every boundary reacting to the global `qerror` event.

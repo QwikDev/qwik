@@ -464,7 +464,7 @@ export function computeSegmentUsage(
  * call site; reason strings keep the `(MIG-XX)` suffix as a grep target
  * back to the Rust SWC reference.
  */
-const MIG_REASON = {
+export const MIG_REASON = {
   MOVE_SINGLE_SEGMENT: 'single-use safe variable (MIG-01)',
   MOVE_SHARED_DESTRUCTURE_UNIFIED: 'all bindings of shared destructure flow to same single segment (MIG-05a)',
   REEXPORT_EXPORTED: 'exported variable used by segment (MIG-03)',
@@ -476,6 +476,29 @@ const MIG_REASON = {
   KEEP_EXPORTED: 'exported but not used by any segment',
   KEEP_UNUSED: 'not used by any segment',
 } as const;
+
+const INLINE_STRATEGY_REEXPORT_REASONS: ReadonlySet<string> = new Set([
+  MIG_REASON.REEXPORT_EXPORTED,
+  MIG_REASON.REEXPORT_DUAL_USE,
+  MIG_REASON.REEXPORT_MULTI_SEGMENT,
+]);
+
+/**
+ * Inline/hoist strategy keeps segment bodies in the parent module, so a
+ * module-level decl consumed by a segment is already in scope. Only reexports
+ * whose binding is needed *beyond* this module survive — exported decls
+ * (MIG-03) and decls shared across consumers (MIG-02). Side-effect (MIG-04),
+ * shared-destructure (MIG-05) and moved-dep (MIG-06) reexports are
+ * runtime-redundant here and are dropped, as is every `move` (which would
+ * delete a decl the in-parent body still references).
+ */
+export function filterInlineStrategyMigrations(
+  decisions: readonly MigrationDecision[],
+): MigrationDecision[] {
+  return decisions.filter(
+    (d) => d.action === 'reexport' && INLINE_STRATEGY_REEXPORT_REASONS.has(d.reason),
+  );
+}
 
 /**
  * Identifier names referenced within a module-level declaration's byte

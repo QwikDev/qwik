@@ -11,6 +11,8 @@ import {
   analyzeMigration,
   collectModuleLevelDecls,
   computeSegmentUsage,
+  filterInlineStrategyMigrations,
+  MIG_REASON,
   type MigrationDecision,
   type ModuleLevelDecl,
 } from '../../../src/optimizer/analysis/variable-migration.js';
@@ -508,5 +510,33 @@ describe('analyzeMigration MIG-06 (moved-decl dependencies)', () => {
     const byName = new Map(decisions.map((d) => [d.varName, d]));
     expect(byName.get('stays')?.action).toBe('keep');
     expect(byName.get('SETTINGS')?.action).toBe('keep');
+  });
+});
+
+describe('filterInlineStrategyMigrations', () => {
+  const decisions: MigrationDecision[] = [
+    { action: 'reexport', varName: 'exported', reason: MIG_REASON.REEXPORT_EXPORTED },
+    { action: 'reexport', varName: 'dualUse', reason: MIG_REASON.REEXPORT_DUAL_USE },
+    { action: 'reexport', varName: 'multiSegment', reason: MIG_REASON.REEXPORT_MULTI_SEGMENT },
+    { action: 'reexport', varName: 'sideEffect', reason: MIG_REASON.REEXPORT_SIDE_EFFECTS },
+    { action: 'reexport', varName: 'sharedDestructure', reason: MIG_REASON.REEXPORT_SHARED_DESTRUCTURE },
+    { action: 'reexport', varName: 'movedDep', reason: MIG_REASON.REEXPORT_MOVED_DECL_DEP },
+    { action: 'move', varName: 'mover', reason: MIG_REASON.MOVE_SINGLE_SEGMENT },
+    { action: 'keep', varName: 'kept', reason: MIG_REASON.KEEP_UNUSED },
+  ];
+
+  it('keeps only the exported (MIG-03) and multi-segment/dual-use (MIG-02) reexports', () => {
+    const result = filterInlineStrategyMigrations(decisions);
+    expect(result.map((d) => d.varName)).toEqual(['exported', 'dualUse', 'multiSegment']);
+  });
+
+  it('drops the side-effect (MIG-04) reexport for a decl consumed by an inline segment', () => {
+    const result = filterInlineStrategyMigrations(decisions);
+    expect(result.some((d) => d.varName === 'sideEffect')).toBe(false);
+  });
+
+  it('drops every move (which would delete a still-referenced in-parent decl)', () => {
+    const result = filterInlineStrategyMigrations(decisions);
+    expect(result.some((d) => d.action === 'move')).toBe(false);
   });
 });

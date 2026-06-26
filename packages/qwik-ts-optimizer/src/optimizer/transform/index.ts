@@ -46,6 +46,7 @@ import type { ScopeAwareCollectResult } from "../jsx/jsx.js";
 import {
   analyzeMigration,
   collectModuleLevelDecls,
+  filterInlineStrategyMigrations,
   type MigrationDecision,
   type ModuleLevelDecl,
 } from "../analysis/variable-migration.js";
@@ -879,9 +880,7 @@ function attributeSegmentUsage(
     program,
   );
   if (isInlineStrategy) {
-    migrationDecisions = migrationDecisions.filter(
-      (d) => d.action === 'reexport',
-    );
+    migrationDecisions = filterInlineStrategyMigrations(migrationDecisions);
   }
 
   return {

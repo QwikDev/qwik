@@ -2,6 +2,7 @@ import {
   component$,
   ErrorBoundary,
   isServer,
+  Slot,
   Suspense,
   useServerData,
   useSignal,
@@ -78,6 +79,24 @@ const EbSyncThrower = component$(() => {
     throw new Error('eb sync boom');
   }
   return <span id="eb-thrower-client" />;
+});
+
+// A plain user component that projects its children through its own <Slot>.
+const EbWrapper = component$(() => (
+  <div data-eb-wrapper="">
+    <Slot />
+  </div>
+));
+
+// Fails during SSR, then recovers when re-executed on the client — so reset() must RE-EXECUTE
+// (re-create) the children, not merely re-claim them.
+const EbWrapAsync = component$(() => {
+  if (isServer) {
+    return new Promise<JSXOutput>((_resolve, reject) => {
+      setTimeout(() => reject(new Error('eb wrap async boom')), 200);
+    }) as unknown as JSXOutput;
+  }
+  return <p id="eb-wrap-recovered">recovered</p>;
 });
 
 const EbInertContent = component$<{ trigger: Signal<number> }>((props) => {
@@ -285,6 +304,25 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
             throw on click
           </button>
         </ErrorBoundary>
+      ) : scenario === 'reset-wrapped' ? (
+        // A plain <Slot>-projecting component (EbWrapper) sits between the route and the
+        // ErrorBoundary; the child does async work that errors on SSR and recovers when re-executed.
+        <Suspense fallback={<span id="eb-skel">loading</span>}>
+          <EbWrapper>
+            <ErrorBoundary
+              fallback$={(e, reset) => (
+                <section id="eb-fallback">
+                  <p id="eb-fallback-msg">caught: {String((e as any)?.message ?? e)}</p>
+                  <button id="eb-reset" onClick$={() => reset()}>
+                    Retry
+                  </button>
+                </section>
+              )}
+            >
+              <EbWrapAsync />
+            </ErrorBoundary>
+          </EbWrapper>
+        </Suspense>
       ) : (
         <ErrorBoundary fallback$={(e) => <EbFallback msg={String((e as any)?.message ?? e)} />}>
           <EbContent />

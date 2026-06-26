@@ -307,4 +307,24 @@ test.describe('ErrorBoundary reset', () => {
     await page.locator('#eb-content-button').click();
     await expect(page.locator('#eb-content-count')).toHaveText('1');
   });
+
+  // KNOWN BUG (see .planning/error-boundary-redesign-status.md "Known limit"): when a plain
+  // <Slot>-projecting component wraps the <ErrorBoundary>, reset() re-renders the wrapper and
+  // re-claims the children instead of re-executing them, so an async child never re-runs. The
+  // owner must be the children's projection owner, not getParentHost(boundary). Remove `.fixme`
+  // to drive the fix.
+  test.fixme('reset re-executes async children through a Slot-projecting wrapper component', async ({
+    page,
+  }) => {
+    await page.goto('/e2e/error-boundary-streaming?scenario=reset-wrapped', {
+      waitUntil: 'commit',
+    });
+    await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
+
+    await page.locator('#eb-reset').click();
+
+    // reset() must RE-EXECUTE the async child (re-create it), not re-claim the failed one.
+    await expect(page.locator('#eb-wrap-recovered')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#eb-fallback')).toHaveCount(0);
+  });
 });

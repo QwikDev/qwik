@@ -133,9 +133,13 @@ const EbAsyncThrower = component$(() => {
 
 export const ErrorBoundaryStreamingRoot = component$(() => {
   const url = useServerData<string>('url');
-  const scenario = getSearchParam(url, 'scenario');
+  // Capture once into a (serialized) signal so an OWNER re-render — e.g. reset() or a key bump —
+  // doesn't recompute the branch from a client-side url that lacks the query string.
+  const scenario = useSignal(getSearchParam(url, 'scenario')).value;
   const touched = useSignal(0);
   const inertTrigger = useSignal(0);
+  // Dev-owned key for the key-swap reset experiment (scenario `reset-wrapped-key`).
+  const attempt = useSignal(0);
 
   return (
     <main>
@@ -314,6 +318,26 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
                 <section id="eb-fallback">
                   <p id="eb-fallback-msg">caught: {String((e as any)?.message ?? e)}</p>
                   <button id="eb-reset" onClick$={() => reset()}>
+                    Retry
+                  </button>
+                </section>
+              )}
+            >
+              <EbWrapAsync />
+            </ErrorBoundary>
+          </EbWrapper>
+        </Suspense>
+      ) : scenario === 'reset-wrapped-key' ? (
+        // SAME wrapper shape as `reset-wrapped`, but recovery is a dev-owned `key` bump on the
+        // <ErrorBoundary> (declared in this children-authoring component), not the built-in reset().
+        <Suspense fallback={<span id="eb-skel">loading</span>}>
+          <EbWrapper>
+            <ErrorBoundary
+              key={attempt.value}
+              fallback$={(e) => (
+                <section id="eb-fallback">
+                  <p id="eb-fallback-msg">caught: {String((e as any)?.message ?? e)}</p>
+                  <button id="eb-reset" onClick$={() => attempt.value++}>
                     Retry
                   </button>
                 </section>

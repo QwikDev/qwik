@@ -313,7 +313,7 @@ test.describe('ErrorBoundary reset', () => {
   // re-claims the children instead of re-executing them, so an async child never re-runs. The
   // owner must be the children's projection owner, not getParentHost(boundary). Remove `.fixme`
   // to drive the fix.
-  test.fixme('reset re-executes async children through a Slot-projecting wrapper component', async ({
+  test('reset re-executes async children through a Slot-projecting wrapper component', async ({
     page,
   }) => {
     await page.goto('/e2e/error-boundary-streaming?scenario=reset-wrapped', {
@@ -324,6 +324,20 @@ test.describe('ErrorBoundary reset', () => {
     await page.locator('#eb-reset').click();
 
     // reset() must RE-EXECUTE the async child (re-create it), not re-claim the failed one.
+    await expect(page.locator('#eb-wrap-recovered')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#eb-fallback')).toHaveCount(0);
+  });
+
+  // STRESS TEST (key-swap exploration): a dev-owned `key` bump re-executes async children through a
+  // Slot wrapper after an SSR error — the same wrapper shape as the test above, recovered via `key`.
+  test('wrapper key-swap: key bump re-executes the async child through a Slot wrapper', async ({
+    page,
+  }) => {
+    await page.goto('/e2e/error-boundary-streaming?scenario=reset-wrapped-key', {
+      waitUntil: 'commit',
+    });
+    await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
+    await page.locator('#eb-reset').click();
     await expect(page.locator('#eb-wrap-recovered')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#eb-fallback')).toHaveCount(0);
   });

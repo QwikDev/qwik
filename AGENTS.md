@@ -55,8 +55,12 @@ commands:
 ### getting started
 
 ```bash
-# Setup — once per checkout, and again after dependency changes
-pnpm install && pnpm build.core
+pnpm i
+```
+
+```bash
+pnpm build.core # for a fresh start
+pnpm build.full # for a fresh start and you are working on the docs (the docs run the optimizer)
 ```
 ### Iterating
 
@@ -74,9 +78,11 @@ pnpm vitest run packages/qwik/src/core/tests/use-task.spec.tsx
 pnpm playwright test e2e/qwik-e2e/tests/events.e2e.ts --browser=chromium --config e2e/qwik-e2e/playwright.config.ts
 ```
 
+`build.core.dev` also re-emits fresh Qwik and Router `.d.ts` incrementally (via `tscDevDts` + re-export shims), so editing a public signature no longer leaves stale types — `build.watch` skips the type pass to stay instant.
+
 For Qwik e2e tests, use `--browser=chromium` with `e2e/qwik-e2e/playwright.config.ts`.
 
-Run `pnpm build.full` only when you are touching the optimizer rust code.
+Re-run `pnpm build.full` when you are touching the optimizer rust code.
 
 ### When making a PR
 
@@ -121,26 +127,9 @@ Follow that bias:
 - Keep new durable lessons in the most specific skill or reference that future agents are likely to
   load. Do not add package-specific details to these always-on rules unless they affect most tasks.
 - Write those notes **prescriptively** — the invariants to keep, the traps that cause false passes,
-  where things live, and how to verify — rather than describing how the code currently works (the
-  source already does that). Omit "don't do X" prohibitions for anything a test already enforces; the
+  where things live, and how to verify — rather than describing how the code currently works. Omit "don't do X" prohibitions for anything a test already enforces; the
   suite is the guardrail, so reserve notes for what it can't self-enforce.
 - When updating guidance, load the `qwik-guidance-maintenance` skill.
-
-### Code Style
-
-Prettier and ESLint define style. Keep semicolons, single quotes, two-space indentation, trailing
-commas where configured, and always use braces for control flow.
-
-Naming conventions:
-
-| Pattern | Usage |
-| --- | --- |
-| `use*` | Hooks called in component/task scope |
-| `*$` | QRL boundary extracted by the optimizer |
-| `create*` | Factory functions |
-| `*.unit.ts(x)` | Vitest unit files |
-| `*.spec.ts(x)` | Vitest spec files |
-| `*.e2e.ts` | Playwright e2e files |
 
 ### Skill Selection
 
@@ -165,22 +154,21 @@ the skill list unambiguous outside the repo-local `.ruler` tree.
 
 When a change affects published packages, add a changeset under `.changeset/`.
 
-- Use `patch` for bug fixes, `minor` for new features and `major` for API removal. A `major` may also include a new feature, but it must remove or break a public API. 
+- Use `patch` for bug fixes: focus on the issue rather than the solution.
+- `minor` for new features: explain the new feature.
+- `major` for API removal: may also include a new feature, but it must remove or break a public API.
 - Enforce 1 changeset per change.
 - Write the changeset summary in lowercase (e.g. `fix:`)
-- 1 sentence focused on the bug fix or feature. Don't include implementation details.
+- 1 short sentence (10-ish words) focused on the bug fix or feature. Don't include implementation details.
 
 ### Code Quality
 
-Write code that junior developers and AI agents can understand during review and future changes.
 
 #### Sanity
 
-- Prefer local semantic helpers over broad rewrites when they make state, ordering, or ownership
-  clearer.
-- Do not leave debug logging, temporary names, "fixup" code, or unexplained broad fallbacks in the
-  final diff.
-- Only add explanatory comments where absolutely necessary, only to warn and crucial information that is not self-explanatory. Write comments for humans: keep your comments constrained to 1 short sentence or 2 maximum; be mindful of character count; focus on explaning the crux of the issue rather than implementation details.  
+- Remember to keep your code DRY.
+- Do not leave debug logging or temporary names in the final diff.
+- Only add comments for crucial information that is not self-explanatory. Keep your comments constrained to 1 short sentence (10-ish words) maximum. Focus on explaning the why/issue rather than implementation details.  
 - Write one changeset per patch/minor/major change. Keep the changeset message constrained to 1 short sentence or 2 maximum, focused on the bug fix, feature or breaking changes. Don't explain the internals or implementation details.
 
 #### Naming
@@ -221,27 +209,21 @@ Before finishing, read the changed code as if you are new to the package:
 
 If the answer is no, simplify the code before calling the task complete.
 
-### No Hydration Terminology
+### Code Style
 
-Never describe Qwik or any part of how Qwik works as hydration. Qwik does not hydrate. Qwik is
-resumable: the server serializes application state and listeners into the HTML, and the client
-resumes execution exactly where the server left off, without re-running component code or
-rebuilding the framework state.
+Prettier and ESLint define style. Keep semicolons, single quotes, two-space indentation, trailing
+commas where configured, and always use braces for control flow.
 
-- Do not call any Qwik mechanism "hydration", "hydrating", "rehydration", "partial hydration",
-  "progressive hydration", "selective hydration", or "island hydration".
-- Do not describe Qwik components, containers, or apps as "hydrated" or "needing to hydrate".
-- Use the Qwik terminilogy instead: "javascript streaming", "JIT preloading", "resumability", "resume", "resuming", "serialization", "deserialization", and "lazy execution".
-- Describe client startup as Qwik resuming from serialized state, not as Qwik booting, mounting,
-  or hydrating the app.
+Naming conventions:
 
-#### Allowed Mentions
-
-The word "hydration" may appear only when explicitly contrasting Qwik with hydration-based
-frameworks, and the sentence must make clear that hydration is what other frameworks do and what
-Qwik avoids. For example: "Unlike frameworks that hydrate on the client, Qwik resumes from
-serialized state." Never use hydration vocabulary, even casually or by analogy, to explain what
-Qwik itself does.
+| Pattern | Usage |
+| --- | --- |
+| `use*` | Hooks called in component/task scope |
+| `*$` | QRL boundary extracted by the optimizer |
+| `create*` | Factory functions |
+| `*.unit.ts(x)` | Vitest unit files |
+| `*.spec.ts(x)` | Vitest spec files |
+| `*.e2e.ts` | Playwright e2e files |
 
 ### Security And Supply Chain
 
@@ -343,6 +325,28 @@ is resolved.
   task.
 - Do not commit `.only` tests.
 - Do not skip tests for behavior changes; use the closest focused test first.
+
+### No Hydration Terminology
+
+Never describe Qwik or any part of how Qwik works as hydration. Qwik does not hydrate. Qwik is
+resumable: the server serializes application state and listeners into the HTML, and the client
+resumes execution exactly where the server left off, without re-running component code or
+rebuilding the framework state.
+
+- Do not call any Qwik mechanism "hydration", "hydrating", "rehydration", "partial hydration",
+  "progressive hydration", "selective hydration", or "island hydration".
+- Do not describe Qwik components, containers, or apps as "hydrated" or "needing to hydrate".
+- Use the Qwik terminilogy instead: "javascript streaming", "JIT preloading", "resumability", "resume", "resuming", "serialization", "deserialization", and "lazy execution".
+- Describe client startup as Qwik resuming from serialized state, not as Qwik booting, mounting,
+  or hydrating the app.
+
+#### Allowed Mentions
+
+The word "hydration" may appear only when explicitly contrasting Qwik with hydration-based
+frameworks, and the sentence must make clear that hydration is what other frameworks do and what
+Qwik avoids. For example: "Unlike frameworks that hydrate on the client, Qwik resumes from
+serialized state." Never use hydration vocabulary, even casually or by analogy, to explain what
+Qwik itself does.
 
 
 

@@ -4,6 +4,7 @@ import '../../testing/vdom-diff.unit-util';
 import { VNodeDataSeparator, getSegmentVNodeRefId } from '../shared/vnode-data-types';
 import { DomContainer, getDomContainer } from './dom-container';
 import {
+  enqueueProcessVNodeDataJob,
   findVDataSectionEnd,
   processOutOfOrderSegmentVNodeData,
   processVNodeData,
@@ -1064,6 +1065,24 @@ describe('processVnodeData', () => {
     const refId = getSegmentVNodeRefId('1', 1);
     expect(first.element.qVNodeRefs?.get(refId)).toBe(first.element.querySelector('section'));
     expect(second.element.qVNodeRefs?.get(refId)).toBe(second.element.querySelector('section'));
+  });
+});
+
+describe('vnode-data resume errors', () => {
+  it('a resume error unblocks whenVNodeDataReady instead of hanging silently', async () => {
+    const document = createDocument() as QDocument;
+
+    // Drive the vnode-data pipeline with a throwing iterator
+    enqueueProcessVNodeDataJob(
+      document,
+      (function* () {
+        yield;
+        throw new Error('resume boom');
+      })()
+    );
+
+    await whenVNodeDataReady(document, () => undefined);
+    expect(true).toBe(true);
   });
 });
 

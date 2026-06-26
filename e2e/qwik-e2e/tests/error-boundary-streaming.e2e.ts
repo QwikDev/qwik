@@ -274,9 +274,7 @@ test.describe('ErrorBoundary streaming swap', () => {
   });
 });
 
-// `reset()` (the 2nd `fallback$` arg) clears the error and re-attempts the children. The unit specs
-// drive it directly; only a real browser exercises the resumed reset handler + the projection
-// re-supply that lands the recovered content interactively.
+// Only a real browser exercises the resumed reset handler + projection re-supply.
 test.describe('ErrorBoundary reset', () => {
   test('in-order SSR resume: reset re-executes the children and recovers', async ({ page }) => {
     await page.goto('/e2e/error-boundary-streaming?scenario=reset&outOfOrder=false', {
@@ -287,14 +285,13 @@ test.describe('ErrorBoundary reset', () => {
 
     await page.locator('#eb-reset').click();
 
-    // The dead inert content is dropped and the children re-execute (client-side, so no re-throw).
+    // Inert content dropped; children re-execute client-side (no re-throw).
     await expect(page.locator('#eb-content')).toHaveCount(1, { timeout: 10000 });
     await expect(page.locator('#eb-content')).toBeVisible();
-    // The child threw only on the server, so client re-execution recovers (an empty marker span).
+    // Empty marker span: the child threw only on the server.
     await expect(page.locator('#eb-thrower-client')).toBeAttached();
     await expect(page.locator('#eb-fallback')).toHaveCount(0);
 
-    // The recovered content is interactive.
     await page.locator('#eb-content-button').click();
     await expect(page.locator('#eb-content-count')).toHaveText('1');
   });
@@ -307,7 +304,7 @@ test.describe('ErrorBoundary reset', () => {
 
     await expect(page.locator('#eb-content')).toHaveCount(1, { timeout: 10000 });
     await expect(page.locator('#eb-content')).toBeVisible();
-    // The child threw only on the server, so client re-execution recovers (an empty marker span).
+    // Empty marker span: the child threw only on the server.
     await expect(page.locator('#eb-thrower-client')).toBeAttached();
     await expect(page.locator('#eb-fallback')).toHaveCount(0);
 
@@ -331,7 +328,7 @@ test.describe('ErrorBoundary reset', () => {
     await expect(page.locator('#eb-content')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#eb-fallback')).toHaveCount(0);
 
-    // Fresh content, interactive again (its own count starts at 0).
+    // Fresh content, interactive again.
     await page.locator('#eb-content-button').click();
     await expect(page.locator('#eb-content-count')).toHaveText('1');
   });

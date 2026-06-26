@@ -20,10 +20,8 @@ import type { ErrorBoundaryStore } from './error-handling';
 /** @public */
 export interface ErrorBoundaryProps {
   /**
-   * Rendered in place of the subtree when a descendant throws. Receives the caught error and a
-   * `reset` callback that clears the error and re-attempts the children. For screen-reader
-   * announcement, render a live region in the fallback (e.g. `<div role="alert">`); the swap adds
-   * none.
+   * Rendered when a descendant throws; receives `(error, reset)`. Add a live region for
+   * screen-reader announcement.
    */
   fallback$: QRL<(error: any, reset: QRL<() => void>) => any>;
   /** Side-effect fired once per caught error; never affects rendering. */
@@ -31,9 +29,7 @@ export interface ErrorBoundaryProps {
 }
 
 /**
- * `reset` handler passed to `fallback$`: clears the error and re-attempts the children. Reads the
- * boundary from the invoke context (the element the fallback's handler fired on), so it carries no
- * captured state and stays serializable.
+ * `reset` handler: clears the error and re-attempts the boundary's children.
  *
  * @internal
  */
@@ -109,15 +105,12 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
 
   const isServerEnv = qTest ? isServerPlatform() : !isBrowser;
   if (__EXPERIMENTAL__.errorBoundary && isServerEnv) {
-    // Capture the projection owner (the component that supplied the children) so a resumed `reset()`
-    // can re-render it — the resumed owner isn't reachable by a client DOM-parent walk. Serializing
-    // the ref also roots the owner so it materializes. Set for every boundary (an SSR-clean boundary
-    // can still take a client error), but only on the server, so the client pays nothing to record it.
+    // Serialize the projection owner so a resumed `reset()` can re-render it (else unreachable).
     const hostNode = tryGetInvokeContext()?.$hostElement$ as
       | { parentComponent?: unknown }
       | undefined;
     store.$resetOwner$ = hostNode?.parentComponent;
-    // Out-of-order: fallback streams as a segment, revealed by the shared `qO` (host carries `q:rp`).
+    // Out-of-order: fallback streams as a segment, revealed by `qO`.
     if (isOutOfOrderStreaming()) {
       return buildErrorBoundaryHosts(store, QSuspenseResultParent, SSRErrorFallback);
     }

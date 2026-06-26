@@ -105,8 +105,7 @@ export const isDomContainer = (container: any): container is DomContainer => {
   return container instanceof DomContainer;
 };
 
-// A boundary's fallback/content host markers; used to re-find the boundary when a reset fires from
-// inside an out-of-order streamed fallback segment (whose vnodes don't chain up to the boundary).
+// Boundary host markers, to re-find a boundary from inside a streamed fallback segment.
 const RESET_BOUNDARY_HOST_SELECTOR = [QErrorFallbackHost, QSuspenseResultParent, QErrorContentHost]
   .map((marker) => `[${marker.replace(':', '\\:')}]`)
   .join(',');
@@ -387,19 +386,11 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     return null;
   }
 
-  /**
-   * Clear the closest boundary's error and re-attempt its children. The children were projected
-   * through the boundary's `<Slot>` and consumed when the fallback replaced it, so re-render the
-   * projection owner (it re-supplies them) and clear the error in the SAME tick (so the boundary
-   * shows its `<Slot>` again). The scheduler then distributes the fresh children into the
-   * re-rendered boundary, executing them once. `host` is the element the fallback's `reset` handler
-   * fired on.
-   */
+  /** Clear the boundary's error and re-attempt its children (`host` = the element reset fired on). */
   resetErrorBoundary(host: VNode): void {
     let boundaryHost = this.resolveContextHost(host, ERROR_CONTEXT);
     if (!boundaryHost) {
-      // The fired element may sit inside an out-of-order streamed fallback segment, whose vnodes
-      // don't chain up to the boundary; re-resolve from the boundary host element in the main flow.
+      // Re-resolve from the host element: a streamed fallback segment doesn't chain to the boundary.
       const hostEl = (host as { node?: Element }).node?.closest?.(RESET_BOUNDARY_HOST_SELECTOR);
       boundaryHost = hostEl
         ? this.resolveContextHost(this.vNodeLocate(hostEl), ERROR_CONTEXT)
@@ -412,11 +403,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     if (!store || store.error === undefined) {
       return;
     }
-    // The projected children were consumed when the fallback replaced the `<Slot>`, so re-render the
-    // component that owns them. A client-rendered boundary finds its owner by a DOM-parent walk; a
-    // resumed SSR boundary uses the `$resetOwner$` ref serialized on the throw (which also roots the
-    // owner so it materializes). Re-rendering the owner cascades into the boundary, which re-renders
-    // to its `<Slot>` once `error` is cleared in the SAME tick — executing the fresh children once.
+    // Re-render the children's owner and clear the error in the same tick to re-supply + re-execute.
     const owner = this.getParentHost(boundaryHost) ?? (store.$resetOwner$ as VNode | undefined);
     if (!owner) {
       return;

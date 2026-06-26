@@ -11,11 +11,7 @@ export interface ErrorBoundaryStore {
   $onError$?: (error: unknown) => void;
   /** Server-only; streams `fallback$` as an out-of-order segment. */
   $emitFallback$?: (error: unknown) => void | Promise<void>;
-  /**
-   * Serialized on an SSR throw (an `ISsrNode` server-side, a `VNode` after resume): the projection
-   * owner of the boundary's children. A resumed owner isn't reachable by a DOM-parent walk, so
-   * `reset()` re-renders it through this ref to re-supply the torn-down children.
-   */
+  /** Serialized projection owner, so a resumed `reset()` can re-render it. */
   $resetOwner$?: unknown;
 }
 

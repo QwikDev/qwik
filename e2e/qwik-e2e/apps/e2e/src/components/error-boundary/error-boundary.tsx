@@ -262,8 +262,7 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
           <span id="eb-no-boundary-touched">{touched.value}</span>
         </>
       ) : scenario === 'reset' ? (
-        // SSR throw → fallback with a `reset` button. Reset re-executes the children; `EbSyncThrower`
-        // throws only on the server, so client re-execution after reset recovers.
+        // SSR throw; reset re-executes the children (EbSyncThrower throws only on the server).
         <ErrorBoundary
           fallback$={(e, reset) => (
             <section id="eb-fallback">
@@ -278,7 +277,7 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
           <EbSyncThrower />
         </ErrorBoundary>
       ) : scenario === 'reset-csr' ? (
-        // Client-time throw → fallback with a `reset` button. Reset re-supplies the content.
+        // Client throw; reset re-supplies the content.
         <ErrorBoundary
           fallback$={(e, reset) => (
             <section id="eb-fallback">

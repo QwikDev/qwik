@@ -1950,8 +1950,7 @@ describe('ErrorBoundary onError$', () => {
   });
 });
 
-// `reset` (the 2nd fallback arg) clears the error and re-attempts the children. Module-level
-// counters: a `let` captured inside a `component$` becomes a const, so mutate module state.
+// Module-level counters: a `let` captured in a `component$` becomes a const.
 const resetRef = { flake: 0, toggle: 0 };
 const ResetFlake = component$(() => {
   resetRef.flake++;
@@ -2022,10 +2021,7 @@ describe('ErrorBoundary reset', () => {
     expect(el.querySelector('#alive')).toBeTruthy();
   });
 
-  // A resumed SSR error re-supplies its torn-down children through the `$resetOwner$` ref serialized
-  // on the throw. The unit harness doesn't dispatch resumed handlers, so drive the reset directly
-  // (the real click path is the e2e); `resetErrorBoundary` re-resolves the boundary from the fired
-  // element, including from inside an out-of-order streamed fallback segment.
+  // Harness can't dispatch resumed handlers, so drive reset directly; the e2e is the real path.
   const resetResumed = async (container: any) => {
     const c = _getDomContainer(container.element) as any;
     c.resetErrorBoundary(c.vNodeLocate(container.element.querySelector('#retry')));

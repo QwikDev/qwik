@@ -22,7 +22,10 @@ import type {
 import { _asyncRequestStore } from '../../middleware/request-handler/async-request-store';
 import { getLoaderName } from '../../middleware/request-handler/request-path';
 import { RedirectMessage } from '../../middleware/request-handler/redirect-handler';
-import { ServerError } from '../../middleware/request-handler/server-error';
+import {
+  ServerError,
+  throwIfControlFlowSignal,
+} from '../../middleware/request-handler/server-error';
 import { ensureSlash } from '../../utils/pathname';
 import { DEFAULT_LOADERS_SERIALIZATION_STRATEGY } from './constants';
 import { RouteLoaderCtxContext, RouteStateContext } from './contexts';
@@ -657,6 +660,7 @@ export const getRouteLoaderData = async (
     loaderRequestEv
   );
   const value = typeof resolved === 'function' ? resolved() : resolved;
+  throwIfControlFlowSignal(value);
   if (isDev) {
     verifySerializable(value, loaderQrl);
   }

@@ -21,6 +21,7 @@ export type {
   DocumentMeta,
   DocumentScript,
   DocumentStyle,
+  ExcludeControlFlow,
   FailReturn,
   HttpStatus as HttpErrorProps,
   InternalRequest,

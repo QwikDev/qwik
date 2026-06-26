@@ -62,7 +62,7 @@ export interface ServerRenderOptions extends RenderOptions {
 /** @public */
 export type RequestHandler<PLATFORM = QwikRouterPlatform> = (
   ev: RequestEvent<PLATFORM>
-) => Promise<void> | void;
+) => Promise<void | AbortMessage | ServerError> | void | AbortMessage | ServerError;
 
 /**
  * Internal JSON request kind handled by Qwik Router, or `false` for normal page requests.

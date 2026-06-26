@@ -12,7 +12,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type Action<RETURN, INPUT = Record<string, unknown>, OPTIONAL extends boolean = true> = {\n    (): ActionStore<RETURN, INPUT, OPTIONAL>;\n};\n```\n**References:** [ActionStore](#actionstore)",
+      "content": "```typescript\nexport type Action<RETURN, INPUT = Record<string, unknown>, OPTIONAL extends boolean = true> = {\n    (): ActionStore<ExcludeControlFlow<RETURN>, INPUT, OPTIONAL>;\n};\n```\n**References:** [ActionStore](#actionstore)<!-- -->, [ExcludeControlFlow](#excludecontrolflow)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.action.md"
     },
@@ -283,6 +283,20 @@
       "mdFile": "router.errorboundary.md"
     },
     {
+      "name": "ExcludeControlFlow",
+      "id": "excludecontrolflow",
+      "hierarchy": [
+        {
+          "name": "ExcludeControlFlow",
+          "id": "excludecontrolflow"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "Drops control-flow signals (`ev.redirect()`<!-- -->, `ev.error()`<!-- -->, etc.) from a loader/action return type: those are thrown, not surfaced as data. `ev.fail()` is plain data and is kept.\n\n\n```typescript\nexport type ExcludeControlFlow<T> = Exclude<T, AbortMessage | ServerError>;\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
+      "mdFile": "router.excludecontrolflow.md"
+    },
+    {
       "name": "FailOfRest",
       "id": "failofrest",
       "hierarchy": [
@@ -502,7 +516,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type Loader<RETURN> = {\n    (): LoaderSignal<RETURN>;\n};\n```\n**References:** [LoaderSignal](#loadersignal)",
+      "content": "```typescript\nexport type Loader<RETURN> = {\n    (): LoaderSignal<ExcludeControlFlow<RETURN>>;\n};\n```\n**References:** [LoaderSignal](#loadersignal)<!-- -->, [ExcludeControlFlow](#excludecontrolflow)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.loader_2.md"
     },

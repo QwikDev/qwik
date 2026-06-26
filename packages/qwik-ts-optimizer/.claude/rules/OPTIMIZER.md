@@ -521,6 +521,10 @@ Two consumers of the `migrationDecisions` array:
 - **Parent rewrite** (`rewrite/output-assembly.ts:655` — `assembleOutput`): for `reexport`, append the `export { x as _auto_x }` line; for `move`, delete the source range.
 - **Segment codegen** (`segment/segment-generation.ts:765` — `wireMigration`): for `reexport`, add to the segment's `autoImports` (becomes `import { _auto_x as x }`); for `move` targeting **this segment**, inline the declaration text + its own import deps.
 
+### Inline/hoist strategy filter
+
+Under the `inline` / `hoist` entry strategies the segment bodies stay in the parent module, so a decl consumed by a segment is already in scope and most migration is runtime-redundant. `filterInlineStrategyMigrations` (`variable-migration.ts`) keeps only the reexports whose binding is needed *beyond* this module — `REEXPORT_EXPORTED` (MIG-03) and `REEXPORT_DUAL_USE` / `REEXPORT_MULTI_SEGMENT` (MIG-02). Side-effect (MIG-04), shared-destructure (MIG-05) and moved-dep (MIG-06) reexports are dropped, as is every `move` (which would delete an in-parent decl the inline body still references). Emitting the runtime-redundant reexports anyway diverges from SWC and can perturb SSR module-init order — that spurious `_auto_<decl>` was the trigger for the OSS-506 `serverQrl is not a function` crash on the qwik-design-system dev SSR. SWC still emits MIG-02/MIG-03 reexports under inline (e.g. `_auto_STYLES` in `example_reg_ctx_name_segments_hoisted`), which is why the filter is a whitelist, not a blanket drop.
+
 ---
 
 ## Deep dive: JSX rewrite

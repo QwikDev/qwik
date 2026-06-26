@@ -117,8 +117,7 @@ export const nextOutOfOrderSuspenseId = (): number => {
 };
 
 /**
- * Reserve a per-container id for an `<ErrorBoundary>`'s two-host swap without arming the OOOS
- * executor.
+ * Reserve an id for an `<ErrorBoundary>` two-host swap without arming the OOOS executor.
  *
  * @internal
  */

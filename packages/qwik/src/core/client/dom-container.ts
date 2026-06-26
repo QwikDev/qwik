@@ -317,7 +317,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         throw err;
       }
     }
-    // Walk to the closest boundary that can still handle the error so a 2nd throw escalates upward.
+    // Walk to the closest boundary that can still handle it, so a 2nd throw escalates.
     let current: VNode | null = host;
     while (current) {
       const boundaryHost = this.resolveContextHost(current, ERROR_CONTEXT);
@@ -347,11 +347,10 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         logError(err);
         return;
       }
-      // Boundary already shows its fallback (e.g. the fallback threw): escalate past its own boundary.
+      // Boundary already shows its fallback (the fallback threw): escalate past it.
       current = this.getParentHost(boundaryHost);
     }
-    // No boundary above can handle it: rethrow on a fresh macrotask so it reaches the global error
-    // handler instead of an uncaught chore rejection.
+    // No boundary above: rethrow async so it reaches the global error handler, not the chore loop.
     logErrorAndThrowAsync(err);
   }
 

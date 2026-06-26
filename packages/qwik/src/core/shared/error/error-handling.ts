@@ -26,10 +26,7 @@ export const isRecoverable = (err: any) => {
   return true;
 };
 
-/**
- * Project a non-serializable thrown value to a serializable `Error` so it can't abort
- * serialization.
- */
+/** Project a non-serializable throw to a serializable `Error`, so serialization can't abort. */
 export const toSerializableBoundaryError = (err: unknown): unknown => {
   if (err instanceof Error || canSerialize(err)) {
     return err;
@@ -38,10 +35,7 @@ export const toSerializableBoundaryError = (err: unknown): unknown => {
   return new Error(typeof rawMessage === 'string' ? rawMessage : String(err));
 };
 
-/**
- * Fire `onError$` with the original error; fire-and-forget — its own failure never affects
- * rendering.
- */
+/** Fire-and-forget `onError$`; its own failure never affects rendering. */
 export const fireOnError = (
   onError: ((error: unknown) => unknown) | undefined | null,
   error: unknown
@@ -56,10 +50,7 @@ export const fireOnError = (
   }
 };
 
-/**
- * Mark the boundary errored (serializable projection) and fire `onError$` once, with the original
- * error.
- */
+/** Mark the boundary errored and fire `onError$` once, with the original error. */
 export const markBoundaryErrored = (store: ErrorBoundaryStore, error: unknown): void => {
   const isFirstCatch = store.error === undefined;
   store.error = toSerializableBoundaryError(error);

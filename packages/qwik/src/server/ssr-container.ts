@@ -1442,7 +1442,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   emitErrorSwapExecutorIfNeeded(): void {
-    // Gated on `errorBoundary` only, so a plain in-order SSR error swaps with no Suspense/OOOS.
+    // Gated on `errorBoundary` only, so an in-order SSR error swaps without Suspense.
     if (!__EXPERIMENTAL__.errorBoundary || this.isErrorSwapExecutorEmitted) {
       return;
     }
@@ -1454,7 +1454,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   $registerErrorSwap$(_boundaryId: number): void {
-    // No-op: standalone boundaries emit `qErr` inline; only a segment defers it (see override).
+    // No-op: standalone boundaries emit `qErr` inline; only a segment defers it.
   }
 
   emitInlineScript(script: string): void {

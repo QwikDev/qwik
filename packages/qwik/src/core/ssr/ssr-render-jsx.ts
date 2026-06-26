@@ -139,8 +139,8 @@ function findErrorBoundaryNode(host: ISsrNode | null): ISsrNode | null {
 }
 
 /**
- * First error wins: a boundary whose own fallback threw has a detached `$fallback$`, so it's
- * skipped and the error escalates.
+ * First error wins: a boundary whose own fallback threw has a detached `$fallback$`, so it
+ * escalates.
  */
 function renderErrorBoundaryFallback(
   ssr: SSRContainer,
@@ -162,7 +162,7 @@ function renderErrorBoundaryFallback(
     if (!errorStore || !errorStore.$fallback$) {
       continue;
     }
-    // Boundary outside the segment already streamed its fallback host: reject so the segment tears down.
+    // Boundary outside the segment already streamed: reject so the segment tears down.
     if (
       __EXPERIMENTAL__.errorBoundary &&
       isOutOfOrderSegmentContainer(ssr) &&
@@ -180,19 +180,19 @@ function renderErrorBoundaryFallback(
   throw err;
 }
 
-/** Mark a swapped-out boundary's content inert so the dead subtree is never resumed on the client. */
+/** Mark a swapped-out boundary's content inert so the dead subtree never resumes. */
 function markErrorBoundaryContentInert(
   ssr: SSRContainer,
   boundaryNode: ReturnType<SSRContainer['getOrCreateLastNode']>
 ): void {
-  // Only the boundary and its ancestors can hold a live projection ref into the dead content.
+  // Only the boundary + ancestors can hold a live projection ref into dead content.
   const liveOwners = new Map<string, ISsrNode>();
   for (let n: ISsrNode | null = boundaryNode; n; n = n.parentComponent) {
     if (n.id) {
       liveOwners.set(n.id, n);
     }
   }
-  // Runs before the fallback host renders, so these children are only the dead partial content.
+  // Runs before the fallback host renders, so children are only dead partial content.
   const children = boundaryNode.children;
   if (children) {
     for (let i = 0; i < children.length; i++) {
@@ -207,7 +207,7 @@ function markSubtreeInert(
   liveOwners: Map<string, ISsrNode>
 ): void {
   node.vnodeData[0] |= VNodeDataFlag.INERT;
-  // Cut a live owner's slot ref into the dead content so client resume won't walk into it.
+  // Cut the live owner's slot ref so client resume won't walk into dead content.
   const ownerId = node.getProp(QSlotParent) as string | null;
   if (ownerId) {
     const owner = liveOwners.get(ownerId);
@@ -241,10 +241,7 @@ async function resolveErrorBoundaryFallback(
   return isPromise(fallback) ? await fallback : fallback;
 }
 
-/**
- * `host` is captured here so a deferred rejection resolves against the node that produced it, not
- * whatever is current later.
- */
+/** `host` is captured so a deferred rejection routes to the node that produced it. */
 function catchToErrorBoundary(
   ssr: SSRContainer,
   host: ReturnType<SSRContainer['getOrCreateLastNode']>,

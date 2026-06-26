@@ -5,6 +5,24 @@ import { generateQwikApiMarkdownDocs, generateQwikRouterApiMarkdownDocs } from '
 import { type BuildConfig, copyFile, ensureDir, panic } from './util.ts';
 
 /**
+ * Jsx-runtime only re-exports JSX, so we don't run it through api-extractor — we just point its
+ * `.d.ts` at the source re-export. Shared by the production api-extractor path and the dev shim
+ * path.
+ */
+export function writeJsxRuntimeDts(config: BuildConfig) {
+  const jsxContent = readFileSync(join(config.srcQwikDir, 'jsx-runtime.ts'), 'utf-8');
+  writeFileSync(
+    join(config.distQwikPkgDir, 'jsx-runtime.d.ts'),
+    `// re-export to make TS happy when not using nodenext import resolution\n${jsxContent}`
+  );
+  ensureDir(join(config.distQwikPkgDir, 'jsx-runtime'));
+  writeFileSync(
+    join(config.distQwikPkgDir, 'jsx-runtime', 'index.d.ts'),
+    `// re-export to make TS happy when not using nodenext import resolution\nexport * from '../jsx-runtime';`
+  );
+}
+
+/**
  * Create each submodule's bundled dts file, and ensure the public API has not changed for a
  * production build.
  */
@@ -19,16 +37,7 @@ export async function apiExtractorQwik(config: BuildConfig) {
   );
   // Special case for jsx-runtime:
   // It only re-exports JSX. Don't duplicate the types
-  const jsxContent = readFileSync(join(config.srcQwikDir, 'jsx-runtime.ts'), 'utf-8');
-  writeFileSync(
-    join(config.distQwikPkgDir, 'jsx-runtime.d.ts'),
-    `// re-export to make TS happy when not using nodenext import resolution\n${jsxContent}`
-  );
-  ensureDir(join(config.distQwikPkgDir, 'jsx-runtime'));
-  writeFileSync(
-    join(config.distQwikPkgDir, 'jsx-runtime', 'index.d.ts'),
-    `// re-export to make TS happy when not using nodenext import resolution\nexport * from '../jsx-runtime';`
-  );
+  writeJsxRuntimeDts(config);
   createTypesApi(config, config.qwikVitePkgDir, join(config.distQwikPkgDir, 'optimizer.d.ts'), '.');
   createTypesApi(
     config,
@@ -298,7 +307,7 @@ function generateQwikRouterReferenceModules(config: BuildConfig) {
   writeFileSync(distIndexPath, serverDts);
 }
 
-function generateServerReferenceModules(config: BuildConfig) {
+export function generateServerReferenceModules(config: BuildConfig) {
   // server-modules.d.ts
   const referenceDts = `/// <reference types="./server" />
 declare module '@qwik-client-manifest' {

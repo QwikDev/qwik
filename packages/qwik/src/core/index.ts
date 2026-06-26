@@ -158,7 +158,11 @@ export { useVisibleTask$ } from './use/use-visible-task-dollar';
 export { useComputed$ } from './use/use-computed';
 export type { AsyncFn } from './use/use-async';
 export { useAsyncQrl, useAsync$ } from './use/use-async';
-export { ErrorBoundary, errorBoundaryCmp as _ebC } from './shared/error/error-boundary';
+export {
+  ErrorBoundary,
+  errorBoundaryCmp as _ebC,
+  errorBoundaryReset as _ebR,
+} from './shared/error/error-boundary';
 export type { ErrorBoundaryProps } from './shared/error/error-boundary';
 export {
   type ReadonlySignal,

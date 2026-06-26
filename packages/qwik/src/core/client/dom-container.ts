@@ -29,6 +29,8 @@ import {
   QContainerSelector,
   QCursorBoundary,
   QCtxAttr,
+  QErrorContentHost,
+  QErrorFallbackHost,
   QInstanceAttr,
   QLocaleAttr,
   QManifestHashAttr,
@@ -38,6 +40,7 @@ import {
   QStyle,
   QStyleSelector,
   QStylesAllSelector,
+  QSuspenseResultParent,
   Q_PROPS_SEPARATOR,
   USE_ON_LOCAL_SEQ_IDX,
   getQFuncs,
@@ -101,6 +104,12 @@ export function _getQContainerElement(element: Element): Element | null {
 export const isDomContainer = (container: any): container is DomContainer => {
   return container instanceof DomContainer;
 };
+
+// A boundary's fallback/content host markers; used to re-find the boundary when a reset fires from
+// inside an out-of-order streamed fallback segment (whose vnodes don't chain up to the boundary).
+const RESET_BOUNDARY_HOST_SELECTOR = [QErrorFallbackHost, QSuspenseResultParent, QErrorContentHost]
+  .map((marker) => `[${marker.replace(':', '\\:')}]`)
+  .join(',');
 
 function getOutOfOrderStreamingScript(boundaryId: number, content: Element | null) {
   const segmentId = String(boundaryId);
@@ -376,6 +385,44 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       host = this.getParentHost(host)!;
     }
     return null;
+  }
+
+  /**
+   * Clear the closest boundary's error and re-attempt its children. The children were projected
+   * through the boundary's `<Slot>` and consumed when the fallback replaced it, so re-render the
+   * projection owner (it re-supplies them) and clear the error in the SAME tick (so the boundary
+   * shows its `<Slot>` again). The scheduler then distributes the fresh children into the
+   * re-rendered boundary, executing them once. `host` is the element the fallback's `reset` handler
+   * fired on.
+   */
+  resetErrorBoundary(host: VNode): void {
+    let boundaryHost = this.resolveContextHost(host, ERROR_CONTEXT);
+    if (!boundaryHost) {
+      // The fired element may sit inside an out-of-order streamed fallback segment, whose vnodes
+      // don't chain up to the boundary; re-resolve from the boundary host element in the main flow.
+      const hostEl = (host as { node?: Element }).node?.closest?.(RESET_BOUNDARY_HOST_SELECTOR);
+      boundaryHost = hostEl
+        ? this.resolveContextHost(this.vNodeLocate(hostEl), ERROR_CONTEXT)
+        : null;
+    }
+    if (!boundaryHost) {
+      return;
+    }
+    const store = this.resolveContext<ErrorBoundaryStore>(boundaryHost, ERROR_CONTEXT);
+    if (!store || store.error === undefined) {
+      return;
+    }
+    // The projected children were consumed when the fallback replaced the `<Slot>`, so re-render the
+    // component that owns them. A client-rendered boundary finds its owner by a DOM-parent walk; a
+    // resumed SSR boundary uses the `$resetOwner$` ref serialized on the throw (which also roots the
+    // owner so it materializes). Re-rendering the owner cascades into the boundary, which re-renders
+    // to its `<Slot>` once `error` is cleared in the SAME tick — executing the fresh children once.
+    const owner = this.getParentHost(boundaryHost) ?? (store.$resetOwner$ as VNode | undefined);
+    if (!owner) {
+      return;
+    }
+    markVNodeDirty(this, owner, ChoreBits.COMPONENT);
+    store.error = undefined;
   }
 
   getParentHost(host: VNode): VNode | null {

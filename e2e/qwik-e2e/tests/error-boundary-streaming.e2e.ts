@@ -273,3 +273,66 @@ test.describe('ErrorBoundary streaming swap', () => {
     await expect.poll(() => pageErrors, { timeout: 10000 }).toContain('no-boundary boom');
   });
 });
+
+// `reset()` (the 2nd `fallback$` arg) clears the error and re-attempts the children. The unit specs
+// drive it directly; only a real browser exercises the resumed reset handler + the projection
+// re-supply that lands the recovered content interactively.
+test.describe('ErrorBoundary reset', () => {
+  test('in-order SSR resume: reset re-executes the children and recovers', async ({ page }) => {
+    await page.goto('/e2e/error-boundary-streaming?scenario=reset&outOfOrder=false', {
+      waitUntil: 'commit',
+    });
+    await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#eb-content')).toBeHidden();
+
+    await page.locator('#eb-reset').click();
+
+    // The dead inert content is dropped and the children re-execute (client-side, so no re-throw).
+    await expect(page.locator('#eb-content')).toHaveCount(1, { timeout: 10000 });
+    await expect(page.locator('#eb-content')).toBeVisible();
+    // The child threw only on the server, so client re-execution recovers (an empty marker span).
+    await expect(page.locator('#eb-thrower-client')).toBeAttached();
+    await expect(page.locator('#eb-fallback')).toHaveCount(0);
+
+    // The recovered content is interactive.
+    await page.locator('#eb-content-button').click();
+    await expect(page.locator('#eb-content-count')).toHaveText('1');
+  });
+
+  test('out-of-order SSR resume: reset re-executes the children and recovers', async ({ page }) => {
+    await page.goto('/e2e/error-boundary-streaming?scenario=reset', { waitUntil: 'commit' });
+    await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
+
+    await page.locator('#eb-reset').click();
+
+    await expect(page.locator('#eb-content')).toHaveCount(1, { timeout: 10000 });
+    await expect(page.locator('#eb-content')).toBeVisible();
+    // The child threw only on the server, so client re-execution recovers (an empty marker span).
+    await expect(page.locator('#eb-thrower-client')).toBeAttached();
+    await expect(page.locator('#eb-fallback')).toHaveCount(0);
+
+    await page.locator('#eb-content-button').click();
+    await expect(page.locator('#eb-content-count')).toHaveText('1');
+  });
+
+  test('client error: reset re-supplies the content interactively', async ({ page }) => {
+    await page.goto('/e2e/error-boundary-streaming?scenario=reset-csr', { waitUntil: 'commit' });
+    await expect(page.locator('#eb-content')).toBeVisible({ timeout: 10000 });
+
+    // Touch state so the container resumes before the client throw routes.
+    await page.locator('#eb-content-button').click();
+    await expect(page.locator('#eb-content-count')).toHaveText('1');
+
+    await page.locator('#eb-csr-throw').click();
+    await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
+
+    await page.locator('#eb-reset').click();
+
+    await expect(page.locator('#eb-content')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#eb-fallback')).toHaveCount(0);
+
+    // Fresh content, interactive again (its own count starts at 0).
+    await page.locator('#eb-content-button').click();
+    await expect(page.locator('#eb-content-count')).toHaveText('1');
+  });
+});

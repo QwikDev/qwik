@@ -14,18 +14,39 @@ import type { QRL } from '../qrl/qrl.public';
 import { noSerialize } from '../serdes/verify';
 import { QErrorContentHost, QErrorFallbackHost, QSuspenseResultParent } from '../utils/markers';
 import { qTest } from '../utils/qdev';
+import { tryGetInvokeContext } from '../../use/use-core';
 import type { ErrorBoundaryStore } from './error-handling';
 
 /** @public */
 export interface ErrorBoundaryProps {
   /**
-   * Rendered in place of the subtree when a descendant throws. For screen-reader announcement,
-   * render a live region in the fallback (e.g. `<div role="alert">`); the swap itself adds none.
+   * Rendered in place of the subtree when a descendant throws. Receives the caught error and a
+   * `reset` callback that clears the error and re-attempts the children. For screen-reader
+   * announcement, render a live region in the fallback (e.g. `<div role="alert">`); the swap adds
+   * none.
    */
-  fallback$: QRL<(error: any) => any>;
+  fallback$: QRL<(error: any, reset: QRL<() => void>) => any>;
   /** Side-effect fired once per caught error; never affects rendering. */
   onError$?: QRL<(error: unknown) => void>;
 }
+
+/**
+ * `reset` handler passed to `fallback$`: clears the error and re-attempts the children. Reads the
+ * boundary from the invoke context (the element the fallback's handler fired on), so it carries no
+ * captured state and stays serializable.
+ *
+ * @internal
+ */
+export const errorBoundaryReset = (): void => {
+  const ctx = tryGetInvokeContext();
+  const container = ctx?.$container$ as
+    | { resetErrorBoundary?: (host: unknown) => void }
+    | undefined;
+  const host = ctx?.$hostElement$;
+  if (container?.resetErrorBoundary && host) {
+    container.resetErrorBoundary(host);
+  }
+};
 
 // Core isn't optimizer-processed, so ErrorBoundary is hand-built with `inlinedQrl`.
 
@@ -79,24 +100,40 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
     );
   }
   const store = useErrorBoundaryStore();
+  const reset = /*#__PURE__*/ inlinedQrl(errorBoundaryReset, '_ebR');
   // Server-only mirrors in fresh closures, so `noSerialize` taints them, not the serialized prop QRLs.
   const fallbackQrl = props.fallback$;
-  store.$fallback$ = noSerialize((error: any) => fallbackQrl(error));
+  store.$fallback$ = noSerialize((error: any) => fallbackQrl(error, reset));
   const onErrorQrl = props.onError$;
   store.$onError$ = onErrorQrl ? noSerialize((error: unknown) => onErrorQrl(error)) : undefined;
 
   const isServerEnv = qTest ? isServerPlatform() : !isBrowser;
-  // Out-of-order: fallback streams as a segment, revealed by the shared `qO` (host carries `q:rp`).
-  if (__EXPERIMENTAL__.errorBoundary && isServerEnv && isOutOfOrderStreaming()) {
-    return buildErrorBoundaryHosts(store, QSuspenseResultParent, SSRErrorFallback);
-  }
-  // In-order: fallback emitted inline, swapped by `qErr`.
   if (__EXPERIMENTAL__.errorBoundary && isServerEnv) {
+    // Capture the projection owner (the component that supplied the children) so a resumed `reset()`
+    // can re-render it — the resumed owner isn't reachable by a client DOM-parent walk. Serializing
+    // the ref also roots the owner so it materializes. Set for every boundary (an SSR-clean boundary
+    // can still take a client error), but only on the server, so the client pays nothing to record it.
+    const hostNode = tryGetInvokeContext()?.$hostElement$ as
+      | { parentComponent?: unknown }
+      | undefined;
+    store.$resetOwner$ = hostNode?.parentComponent;
+    // Out-of-order: fallback streams as a segment, revealed by the shared `qO` (host carries `q:rp`).
+    if (isOutOfOrderStreaming()) {
+      return buildErrorBoundaryHosts(store, QSuspenseResultParent, SSRErrorFallback);
+    }
+    // In-order: fallback emitted inline, swapped by `qErr`.
     return buildErrorBoundaryHosts(store, QErrorFallbackHost, SSRErrorFallbackInline);
   }
 
   if (store.error !== undefined) {
-    return /*#__PURE__*/ _jsxSorted(Fragment, null, null, props.fallback$(store.error), 0, null);
+    return /*#__PURE__*/ _jsxSorted(
+      Fragment,
+      null,
+      null,
+      props.fallback$(store.error, reset),
+      0,
+      null
+    );
   }
 
   return /*#__PURE__*/ _jsxSorted(Slot, null, null, null, 0, null);

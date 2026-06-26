@@ -261,6 +261,44 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
           </button>
           <span id="eb-no-boundary-touched">{touched.value}</span>
         </>
+      ) : scenario === 'reset' ? (
+        // SSR throw → fallback with a `reset` button. Reset re-executes the children; `EbSyncThrower`
+        // throws only on the server, so client re-execution after reset recovers.
+        <ErrorBoundary
+          fallback$={(e, reset) => (
+            <section id="eb-fallback">
+              <p id="eb-fallback-msg">caught: {String((e as any)?.message ?? e)}</p>
+              <button id="eb-reset" onClick$={() => reset()}>
+                Retry
+              </button>
+            </section>
+          )}
+        >
+          <EbContent />
+          <EbSyncThrower />
+        </ErrorBoundary>
+      ) : scenario === 'reset-csr' ? (
+        // Client-time throw → fallback with a `reset` button. Reset re-supplies the content.
+        <ErrorBoundary
+          fallback$={(e, reset) => (
+            <section id="eb-fallback">
+              <p id="eb-fallback-msg">caught: {String((e as any)?.message ?? e)}</p>
+              <button id="eb-reset" onClick$={() => reset()}>
+                Retry
+              </button>
+            </section>
+          )}
+        >
+          <EbContent />
+          <button
+            id="eb-csr-throw"
+            onClick$={() => {
+              throw new Error('csr reset boom');
+            }}
+          >
+            throw on click
+          </button>
+        </ErrorBoundary>
       ) : (
         <ErrorBoundary fallback$={(e) => <EbFallback msg={String((e as any)?.message ?? e)} />}>
           <EbContent />

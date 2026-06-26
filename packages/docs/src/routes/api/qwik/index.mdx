@@ -1659,11 +1659,11 @@ fallback$
 
 </td><td>
 
-[QRL](#qrl-type-alias)&lt;(error: any) =&gt; any&gt;
+[QRL](#qrl-type-alias)&lt;(error: any, reset: [QRL](#qrl-type-alias)&lt;() =&gt; void&gt;) =&gt; any&gt;
 
 </td><td>
 
-Rendered in place of the subtree when a descendant throws. For screen-reader announcement, render a live region in the fallback (e.g. `<div role="alert">`); the swap itself adds none.
+Rendered in place of the subtree when a descendant throws. Receives the caught error and a `reset` callback that clears the error and re-attempts the children. For screen-reader announcement, render a live region in the fallback (e.g. `<div role="alert">`); the swap adds none.
 
 </td></tr>
 <tr><td>

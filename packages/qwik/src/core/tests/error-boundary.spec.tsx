@@ -18,6 +18,7 @@ import {
   domRender,
   getTestPlatform,
   ssrRenderToDom,
+  trigger,
   waitForDrain,
 } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
@@ -217,8 +218,7 @@ describe('ErrorBoundary', () => {
     ev.initEvent('qerror', false, false);
     (ev as any).detail = { error: new Error('client boom'), element: target };
     el.ownerDocument.dispatchEvent(ev);
-    // With no ancestor boundary the throwing fallback escalates instead of looping; a drain rejection
-    // is acceptable, the point is it terminates.
+    // No ancestor boundary: the throwing fallback escalates instead of looping — a drain rejection is fine.
     try {
       await waitForDrain(container);
     } catch {
@@ -1947,5 +1947,117 @@ describe('ErrorBoundary onError$', () => {
     // Server-side fire is before serialization, so captured refs observe it directly.
     expect(innerLog).toEqual(['boom']);
     expect(outerLog).toEqual(['inner fallback boom']);
+  });
+});
+
+// `reset` (the 2nd fallback arg) clears the error and re-attempts the children. Module-level
+// counters: a `let` captured inside a `component$` becomes a const, so mutate module state.
+const resetRef = { flake: 0, toggle: 0 };
+const ResetFlake = component$(() => {
+  resetRef.flake++;
+  if (resetRef.flake === 1) {
+    throw new Error('boom');
+  }
+  return <div id="ok">ok</div>;
+});
+const ResetAlwaysThrows = component$(() => {
+  throw new Error('persistent');
+});
+const ResetToggle = component$(() => {
+  resetRef.toggle++;
+  if (resetRef.toggle % 2 === 1) {
+    throw new Error(`boom-${resetRef.toggle}`);
+  }
+  return <div id="alive">alive</div>;
+});
+const withResetBoundary = (child: JSXOutput) =>
+  component$(() => (
+    <main>
+      <ErrorBoundary
+        fallback$={$((e: any, reset: any) => (
+          <button id="retry" onClick$={() => reset()}>
+            caught: {e.message}
+          </button>
+        ))}
+      >
+        {child}
+      </ErrorBoundary>
+    </main>
+  ));
+
+describe('ErrorBoundary reset', () => {
+  it('CSR: reset re-executes a flaky projected child and recovers', async () => {
+    resetRef.flake = 0;
+    const App = withResetBoundary(<ResetFlake />);
+    const { container } = await domRender(<App />, { debug });
+    const el = container.element;
+    expect(el.querySelector('#retry')).toBeTruthy();
+    expect(el.querySelector('#ok')).toBeFalsy();
+
+    await trigger(el, '#retry', 'click');
+
+    expect(el.querySelector('#ok')?.textContent).toContain('ok');
+    expect(el.querySelector('#retry')).toBeFalsy();
+  });
+
+  it('CSR: a still-throwing child re-shows the fallback (no loop)', async () => {
+    const App = withResetBoundary(<ResetAlwaysThrows />);
+    const { container } = await domRender(<App />, { debug });
+    const el = container.element;
+
+    await trigger(el, '#retry', 'click');
+
+    expect(el.querySelector('#retry')?.textContent).toContain('persistent');
+  });
+
+  it('CSR: reset re-arms the boundary for a later error', async () => {
+    resetRef.toggle = 0;
+    const App = withResetBoundary(<ResetToggle />);
+    const { container } = await domRender(<App />, { debug });
+    const el = container.element;
+    expect(el.querySelector('#retry')?.textContent).toContain('boom-1');
+
+    await trigger(el, '#retry', 'click'); // toggle -> 2, renders
+
+    expect(el.querySelector('#alive')).toBeTruthy();
+  });
+
+  // A resumed SSR error re-supplies its torn-down children through the `$resetOwner$` ref serialized
+  // on the throw. The unit harness doesn't dispatch resumed handlers, so drive the reset directly
+  // (the real click path is the e2e); `resetErrorBoundary` re-resolves the boundary from the fired
+  // element, including from inside an out-of-order streamed fallback segment.
+  const resetResumed = async (container: any) => {
+    const c = _getDomContainer(container.element) as any;
+    c.resetErrorBoundary(c.vNodeLocate(container.element.querySelector('#retry')));
+    await waitForDrain(container);
+  };
+
+  it('in-order SSR resume: reset re-executes the child', async () => {
+    resetRef.flake = 0;
+    const App = withResetBoundary(<ResetFlake />);
+    const { container } = await ssrRenderToDom(<App />, {
+      debug,
+      streaming: { outOfOrder: false },
+    });
+    expect(container.element.querySelector('#retry')).toBeTruthy();
+
+    await resetResumed(container);
+
+    expect(container.element.querySelector('#ok')).toBeTruthy();
+    expect(container.element.querySelector('#retry')).toBeFalsy();
+  });
+
+  it('out-of-order SSR resume: reset re-executes the child', async () => {
+    resetRef.flake = 0;
+    const App = withResetBoundary(<ResetFlake />);
+    const { container } = await ssrRenderToDom(<App />, {
+      debug,
+      streaming: { inOrder: { strategy: 'disabled' }, outOfOrder: true },
+    });
+    expect(container.element.querySelector('#retry')).toBeTruthy();
+
+    await resetResumed(container);
+
+    expect(container.element.querySelector('#ok')).toBeTruthy();
   });
 });

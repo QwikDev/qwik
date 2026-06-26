@@ -445,6 +445,7 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     qContainer: string;
     // (undocumented)
     qManifestHash: string;
+    resetErrorBoundary(host: _VNode): void;
     // (undocumented)
     resolveContext<T>(host: _VNode, contextId: ContextId<T>): T | undefined;
     resolveContextHost(host: _VNode, contextId: ContextId<unknown>): _VNode | null;
@@ -481,6 +482,9 @@ export const _eaT: (input: TaskCtx) => Promise<void>;
 // @internal (undocumented)
 export const _ebC: (props: ErrorBoundaryProps) => JSXOutput;
 
+// @internal
+export const _ebR: () => void;
+
 // @internal (undocumented)
 export const _EFFECT_BACK_REF: unique symbol;
 
@@ -516,7 +520,7 @@ export const ErrorBoundary: Component<ErrorBoundaryProps>;
 
 // @public (undocumented)
 export interface ErrorBoundaryProps {
-    fallback$: QRL<(error: any) => any>;
+    fallback$: QRL<(error: any, reset: QRL<() => void>) => any>;
     onError$?: QRL<(error: unknown) => void>;
 }
 

@@ -53,6 +53,7 @@ import {
   convertStyleIdsToString,
 } from '../shared/utils/scoped-styles';
 import { setErrorPayload } from '../shared/cursor/chore-execution';
+import { SUSPENSE_QRL_SYMBOL } from '../control-flow/suspense-utils';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
 import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
@@ -403,11 +404,21 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       return;
     }
     // Re-render the children's owner and clear the error in the same tick to re-supply + re-execute.
-    const owner = this.getParentHost(boundaryHost) ?? (store.$resetOwner$ as VNode | undefined);
-    if (!owner) {
+    let owner = this.getParentHost(boundaryHost);
+    // A boundary projected through a `<Suspense>` resolves to the Suspense, not the component that
+    // supplies its children; climb past it so a 2nd/CSR reset re-renders the actual owner.
+    while (
+      owner &&
+      (this.getHostProp(owner, OnRenderProp) as { $symbol$?: string } | null)?.$symbol$ ===
+        SUSPENSE_QRL_SYMBOL
+    ) {
+      owner = this.getParentHost(owner);
+    }
+    const resolvedOwner = owner ?? (store.$resetOwner$ as VNode | undefined);
+    if (!resolvedOwner) {
       return;
     }
-    markVNodeDirty(this, owner, ChoreBits.COMPONENT);
+    markVNodeDirty(this, resolvedOwner, ChoreBits.COMPONENT);
     store.error = undefined;
   }
 

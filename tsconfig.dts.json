@@ -1,0 +1,76 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "emitDeclarationOnly": true,
+    "incremental": true,
+    "tsBuildInfoFile": "./dist-dev/tsbuildinfo/dev-dts.tsbuildinfo",
+    "inlineSourceMap": false,
+    "inlineSources": false,
+    "sourceMap": false,
+    "sourceRoot": "",
+    "paths": {
+      "@qwik.dev/core": ["packages/qwik/src/core"],
+      "@qwik.dev/core/internal": ["packages/qwik/src/core"],
+      "@qwik.dev/core/jsx-runtime": ["packages/qwik/src/jsx-runtime"],
+      "@qwik.dev/core/jsx-dev-runtime": ["packages/qwik/src/jsx-runtime"],
+      "@qwik.dev/core/build": ["packages/qwik/src/build"],
+      "@qwik.dev/optimizer": ["packages/optimizer/src"],
+      "@qwik.dev/core/optimizer": ["packages/qwik-vite/src"],
+      "@qwik.dev/core/preloader": ["packages/qwik/src/preloader"],
+      "@qwik.dev/core/server": ["packages/qwik/src/server"],
+      "@qwik.dev/core/testing": ["packages/qwik/src/testing"],
+      "@qwik.dev/core/worker": ["packages/qwik/src/web-worker"],
+      "@qwik.dev/core/devtools": ["packages/qwik/src/devtools"],
+      "@qwik.dev/core/insights": ["packages/qwik/src/insights"],
+      "@qwik.dev/core/insights/vite": ["packages/qwik/src/insights/vite"],
+      "@qwik-client-manifest": ["packages/qwik/src/server/server-modules.d.ts"],
+      "@qwik.dev/router": ["packages/qwik-router/src/runtime/src/index.ts"],
+      "@qwik.dev/router/service-worker": [
+        "packages/qwik-router/src/runtime/src/service-worker/index.ts"
+      ],
+      "@qwik.dev/router/adapters/azure-swa/vite": [
+        "packages/qwik-router/src/adapters/azure-swa/vite/index.ts"
+      ],
+      "@qwik.dev/router/adapters/cloudflare-pages/vite": [
+        "packages/qwik-router/src/adapters/cloudflare-pages/vite/index.ts"
+      ],
+      "@qwik.dev/router/adapters/node-server/vite": [
+        "packages/qwik-router/src/adapters/node-server/vite/index.ts"
+      ],
+      "@qwik.dev/router/adapters/netlify-edge/vite": [
+        "packages/qwik-router/src/adapters/netlify-edge/vite/index.ts"
+      ],
+      "@qwik.dev/router/adapters/shared/vite": [
+        "packages/qwik-router/src/adapters/shared/vite/index.ts"
+      ],
+      "@qwik.dev/router/adapters/ssg/vite": ["packages/qwik-router/src/adapters/ssg/vite/index.ts"],
+      "@qwik.dev/router/middleware/azure-swa": ["packages/qwik-router/src/middleware/azure-swa"],
+      "@qwik.dev/router/middleware/aws-lambda": ["packages/qwik-router/src/middleware/aws-lambda"],
+      "@qwik.dev/router/middleware/cloudflare-pages": [
+        "packages/qwik-router/src/middleware/cloudflare-pages"
+      ],
+      "@qwik.dev/router/middleware/request-handler": [
+        "packages/qwik-router/src/middleware/request-handler"
+      ],
+      "@qwik.dev/router/middleware/node": ["packages/qwik-router/src/middleware/node"],
+      "@qwik.dev/router/middleware/netlify-edge": [
+        "packages/qwik-router/src/middleware/netlify-edge"
+      ],
+      "@qwik.dev/router/ssg": ["packages/qwik-router/src/ssg"],
+      "@qwik.dev/router/vite": ["packages/qwik-router/src/buildtime/vite"],
+      "@qwik-router-config": ["packages/qwik-router/src/runtime/src/qwik-router-config.ts"],
+      "@qwik-router-sw-register-build": [
+        "packages/qwik-router/src/buildtime/runtime-generation/sw-register-build.ts"
+      ],
+      "@qwik-router-sw-register": ["packages/qwik-router/src/runtime/src/sw-register-runtime.ts"]
+    }
+  },
+  "include": [
+    "packages/qwik/src",
+    "packages/qwik/global.d.ts",
+    "packages/qwik-vite/global.d.ts",
+    "packages/qwik-router/src",
+    "packages/qwik-router/global.d.ts"
+  ],
+  "exclude": ["**/dist", "**/lib", "node_modules"]
+}

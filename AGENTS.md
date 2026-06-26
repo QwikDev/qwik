@@ -74,6 +74,8 @@ pnpm vitest run packages/qwik/src/core/tests/use-task.spec.tsx
 pnpm playwright test e2e/qwik-e2e/tests/events.e2e.ts --browser=chromium --config e2e/qwik-e2e/playwright.config.ts
 ```
 
+`build.core.dev` also re-emits fresh Qwik and Router `.d.ts` incrementally (via `tscDevDts` + re-export shims), so editing a public signature no longer leaves stale types — `build.watch` skips the type pass to stay instant.
+
 For Qwik e2e tests, use `--browser=chromium` with `e2e/qwik-e2e/playwright.config.ts`.
 
 Run `pnpm build.full` only when you are touching the optimizer rust code.

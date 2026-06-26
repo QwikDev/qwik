@@ -841,7 +841,6 @@ describe('ErrorBoundary: falsy thrown values', () => {
 
   it('out-of-order streaming: a thrown falsy value reveals the fallback host', async () => {
     const FalsyThrower = component$((): JSXOutput => {
-      // eslint-disable-next-line no-throw-literal
       throw 0;
     });
     const chunks: string[] = [];

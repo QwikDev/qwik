@@ -6,6 +6,7 @@ import {
   getSegmentVNodeRefId,
 } from '../shared/vnode-data-types';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
+import { logError } from '../shared/utils/log';
 import type { ContainerElement, QDocument } from './types';
 import {
   createYieldingIteratorState,
@@ -143,7 +144,7 @@ export const whenVNodeDataReady = <T>(
   });
 };
 
-function enqueueProcessVNodeDataJob(
+export function enqueueProcessVNodeDataJob(
   qDocument: QDocument,
   iterator: Generator<void, void, void>
 ): void {
@@ -177,9 +178,8 @@ function scheduleProcessVNodeData(qDocument: QDocument, state: ProcessVNodeDataS
     },
     (error) => {
       state.$active$ = null;
-      qDocument.qVNodeDataReady = qDocument.qVNodeDataStarted = false;
-      qDocument.qVNodeDataState = undefined;
-      throw error;
+      logError(error);
+      markVNodeDataReady(qDocument);
     }
   );
   scheduleYieldingIterator(state.$active$);

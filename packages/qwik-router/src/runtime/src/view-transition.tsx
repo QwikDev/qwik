@@ -25,6 +25,10 @@ export interface ViewTransition {
   types?: Set<string>;
 }
 
+/** View transitions are opt-in and require browser support. */
+export const shouldStartViewTransition = (viewTransition: boolean | undefined): boolean =>
+  viewTransition === true && 'startViewTransition' in document;
+
 export const startViewTransition = (params: {
   types: string[];
   update: () => Promise<void>;

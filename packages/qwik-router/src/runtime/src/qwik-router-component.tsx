@@ -118,7 +118,11 @@ import type {
 import { submitAction } from './use-endpoint';
 import { useQwikRouterEnv } from './use-functions';
 import { isSameOrigin, isSamePath, toPath, toUrl } from './utils';
-import { startViewTransition, type ViewTransition } from './view-transition';
+import {
+  shouldStartViewTransition,
+  startViewTransition,
+  type ViewTransition,
+} from './view-transition';
 
 declare const window: ClientSPAWindow;
 
@@ -134,9 +138,9 @@ export const QWIK_ROUTER_SCROLLER = '_qRouterScroller';
 /** @public */
 export interface QwikRouterProps {
   /**
-   * Enable the ViewTransition API
+   * Enable the ViewTransition API on SPA navigation. Opt-in: set to `true` to enable.
    *
-   * Default: `true`
+   * Default: `false`
    *
    * @see https://github.com/WICG/view-transitions/blob/main/explainer.md
    * @see https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API
@@ -828,7 +832,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       };
 
       const _waitNextPage = () => {
-        if (props?.viewTransition === false || !('startViewTransition' in document)) {
+        if (!shouldStartViewTransition(props?.viewTransition)) {
           return navigate().then(() => undefined as ViewTransition | undefined);
         }
         const { ready, transition } = startViewTransition({

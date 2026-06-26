@@ -18,7 +18,10 @@ import type { ErrorBoundaryStore } from './error-handling';
 
 /** @public */
 export interface ErrorBoundaryProps {
-  /** Rendered in place of the subtree when a descendant throws. */
+  /**
+   * Rendered in place of the subtree when a descendant throws. For screen-reader announcement,
+   * render a live region in the fallback (e.g. `<div role="alert">`); the swap itself adds none.
+   */
   fallback$: QRL<(error: any) => any>;
   /** Side-effect fired once per caught error; never affects rendering. */
   onError$?: QRL<(error: unknown) => void>;

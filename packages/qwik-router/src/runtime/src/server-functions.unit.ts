@@ -247,14 +247,17 @@ describe('types', () => {
   });
 
   test('standard schema action infers input, output, and string array errors', () => () => {
-    const action = routeAction$((data) => {
-      expectTypeOf(data).toEqualTypeOf<{ id: number }>();
-      return { ok: true };
-    }, schema$(() =>
-      createStandardSchema<{ id: string }, { id: number }>((value) => ({
-        value: { id: Number((value as { id: string }).id) },
-      }))
-    ));
+    const action = routeAction$(
+      (data) => {
+        expectTypeOf(data).toEqualTypeOf<{ id: number }>();
+        return { ok: true };
+      },
+      schema$(() =>
+        createStandardSchema<{ id: string }, { id: number }>((value) => ({
+          value: { id: Number((value as { id: string }).id) },
+        }))
+      )
+    );
     type ActionValue = ReturnType<typeof action>['value'];
 
     expectTypeOf<ActionValue>().toMatchTypeOf<
@@ -282,15 +285,16 @@ describe('types', () => {
   });
 
   test('standard schema supports callable schemas', async () => {
-    const schema = schema$(() =>
-      Object.assign(() => 'schema function result', {
-        '~standard': {
-          version: 1 as const,
-          vendor: 'test',
-          validate: (value: unknown) => ({ value: String(value) }),
-          types: undefined as unknown as StandardSchemaV1.Types<string>,
-        },
-      }) satisfies StandardSchemaV1<string>
+    const schema = schema$(
+      () =>
+        Object.assign(() => 'schema function result', {
+          '~standard': {
+            version: 1 as const,
+            vendor: 'test',
+            validate: (value: unknown) => ({ value: String(value) }),
+            types: undefined as unknown as StandardSchemaV1.Types<string>,
+          },
+        }) satisfies StandardSchemaV1<string>
     );
 
     await expect(schema.validate(undefined as any, 'hello')).resolves.toEqual({

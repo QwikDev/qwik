@@ -76,8 +76,10 @@ export interface StandardSchemaV1<Input = unknown, Output = Input> {
 /** @public */
 export declare namespace StandardSchemaV1 {
   /** The Standard Schema properties interface. */
-  export interface Props<Input = unknown, Output = Input>
-    extends StandardTypedV1.Props<Input, Output> {
+  export interface Props<Input = unknown, Output = Input> extends StandardTypedV1.Props<
+    Input,
+    Output
+  > {
     /** Validates unknown input values. */
     readonly validate: (
       value: unknown,
@@ -123,8 +125,10 @@ export declare namespace StandardSchemaV1 {
   }
 
   /** The Standard Schema types interface. */
-  export interface Types<Input = unknown, Output = Input>
-    extends StandardTypedV1.Types<Input, Output> {}
+  export interface Types<Input = unknown, Output = Input> extends StandardTypedV1.Types<
+    Input,
+    Output
+  > {}
 
   /** Infers the input type of a Standard Schema. */
   export type InferInput<Schema extends StandardTypedV1> = StandardTypedV1.InferInput<Schema>;

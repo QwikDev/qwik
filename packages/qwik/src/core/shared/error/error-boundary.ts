@@ -18,6 +18,11 @@ import { tryGetInvokeContext } from '../../use/use-core';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import type { ErrorBoundaryStore } from './error-handling';
 
+/** Minimal SSR frame shape: the projection frame holds the component that authored the children. */
+type ISsrComponentFrameLike = {
+  projectionComponentFrame?: { componentNode?: unknown } | null;
+};
+
 /** @public */
 export interface ErrorBoundaryProps {
   /**
@@ -98,7 +103,8 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
   }
   const store = useErrorBoundaryStore();
   // Capture the boundary host so a streamed fallback's `reset()` can re-find the boundary.
-  const host = tryGetInvokeContext()?.$hostElement$;
+  const invokeCtx = tryGetInvokeContext();
+  const host = invokeCtx?.$hostElement$;
   const reset = /*#__PURE__*/ inlinedQrl(errorBoundaryReset, '_ebR', [host]);
   // Server-only mirrors in fresh closures, so `noSerialize` taints them, not the serialized prop QRLs.
   const fallbackQrl = props.fallback$;
@@ -108,8 +114,17 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
 
   const isServerEnv = qTest ? isServerPlatform() : !isBrowser;
   if (__EXPERIMENTAL__.errorBoundary && isServerEnv) {
-    // Serialize the projection owner so a resumed `reset()` can re-render it (else unreachable).
-    store.$resetOwner$ = (host as { parentComponent?: unknown } | undefined)?.parentComponent;
+    // Serialize the children's projection owner (the component that wrote `<ErrorBoundary>{children}`)
+    // so a resumed `reset()` re-renders + re-executes them — NOT the EB's physical parent, which a
+    // `<Slot>`-projecting wrapper sits between. The owning frame is the EB frame's projection frame.
+    const ownerFrame = (
+      invokeCtx?.$container$ as
+        | { getComponentFrame?: (depth: number) => ISsrComponentFrameLike | null }
+        | undefined
+    )?.getComponentFrame?.(0);
+    store.$resetOwner$ =
+      ownerFrame?.projectionComponentFrame?.componentNode ??
+      (host as { parentComponent?: unknown } | undefined)?.parentComponent;
     // Out-of-order: fallback streams as a segment, revealed by `qO`.
     if (isOutOfOrderStreaming()) {
       return buildErrorBoundaryHosts(store, QSuspenseResultParent, SSRErrorFallback);

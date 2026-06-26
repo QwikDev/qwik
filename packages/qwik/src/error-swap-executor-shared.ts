@@ -1,7 +1,4 @@
-/**
- * Installed independently of the OOOS Suspense executor (`qO`) so an in-order SSR error still swaps
- * without any Suspense machinery present.
- */
+// Installed independently of the OOOS Suspense executor (`qO`) so an in-order SSR error still swaps without Suspense.
 
 const Q_ERROR_CONTENT_SELECTOR = '[q\\:ebc="';
 const Q_ERROR_FALLBACK_SELECTOR = '[q\\:ebf="';

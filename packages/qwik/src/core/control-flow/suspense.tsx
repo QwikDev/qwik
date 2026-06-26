@@ -259,7 +259,7 @@ const SSRDeferredSlot = __EXPERIMENTAL__.suspense
       const boundaryState = jsx.varProps.boundary as SSROutOfOrderBoundaryState | null;
       const contentStyle = jsx.varProps.contentStyle as Signal<{ display: string }>;
       const revealBoundary = jsx.varProps.reveal as OutOfOrderRevealBoundary | null;
-      // Once its placeholder streamed, the enclosing boundary can't catch in place; route to `$emitFallback$`.
+      // Placeholder already streamed: can't catch in place, route to `$emitFallback$`.
       const errorBoundaryStore =
         __EXPERIMENTAL__.errorBoundary && options.parentComponentFrame
           ? (ssr.resolveContext(options.parentComponentFrame.componentNode, ERROR_CONTEXT) as
@@ -288,7 +288,6 @@ const SSRDeferredSlot = __EXPERIMENTAL__.suspense
             )
           )
           .catch((error) => {
-            // Tear the whole enclosing boundary down to its fallback, rather than wedging it here.
             if (errorBoundaryStore && errorBoundaryStore.$emitFallback$) {
               return errorBoundaryStore.$emitFallback$(error);
             }
@@ -350,7 +349,7 @@ async function finalizeAndSwapOutOfOrderSegment(
     ssr.emitOutOfOrderExecutorIfNeeded();
   }
   ssr.emitInlineScript(`qO(${boundaryId})`);
-  // Run deferred ErrorBoundary swaps at the root now that `qO` injected the hosts; inline `qErr` was inert in the segment `<template>`.
+  // Inline `qErr` was inert in the segment `<template>`; run the deferred swaps now that `qO` injected the hosts.
   const errorSwapIds = rendered.container.$errorSwapIds$;
   if (__EXPERIMENTAL__.errorBoundary && errorSwapIds.length) {
     ssr.emitErrorSwapExecutorIfNeeded();
@@ -398,17 +397,16 @@ export const SSRErrorFallback = __EXPERIMENTAL__.errorBoundary
           if (!fallback) {
             return;
           }
-          // The catch point: mark the boundary errored (projecting to a serializable error so a
-          // non-serializable throw can't abort page serialization) and fire onError$ once.
+          // Projects to a serializable error so a non-serializable throw can't abort serialization.
           markBoundaryErrored(store, error);
-          // Stay detached so a throw from the fallback itself propagates instead of re-rendering it.
+          // Detach so a throw from the fallback itself propagates instead of re-rendering it.
           store.$fallback$ = undefined;
           const segment = await ssr.segment(segmentId, fallback(error) as JSXOutput, options);
           await emitErrorBoundaryFallback(ssr, boundaryId, segmentId, segment);
         };
         store.$emitFallback$ = noSerialize(streamFallback);
         writeOutOfOrderPlaceholder(ssr, boundaryId);
-        // A sync content-render throw already set `store.error`; stream the swap inline (`!== undefined` so a falsy throw still streams).
+        // Sync content throw: stream the swap inline (`!== undefined` so a falsy throw still streams).
         if (store.error !== undefined && store.$fallback$) {
           return streamFallback(store.error);
         }
@@ -425,8 +423,7 @@ export const SSRErrorFallbackInline = __EXPERIMENTAL__.errorBoundary
         // `!== undefined` (not truthiness) so a falsy thrown value still swaps.
         if (store.error !== undefined && store.$fallback$) {
           const fallback = store.$fallback$;
-          // Detach so a throw from the fallback itself escalates to the enclosing boundary instead
-          // of being re-absorbed here (parity with the out-of-order path and with CSR).
+          // Detach so a throw from the fallback itself escalates instead of being re-absorbed here.
           store.$fallback$ = undefined;
           if (isOutOfOrderSegmentContainer(ssr)) {
             // Inline `qErr` is inert inside the segment `<template>`; defer it to run at the root after the `qO` reveal.

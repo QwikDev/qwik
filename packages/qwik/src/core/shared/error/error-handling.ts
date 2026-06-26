@@ -13,11 +13,8 @@ export interface ErrorBoundaryStore {
   /** Server-only; streams `fallback$` as an out-of-order segment. */
   $emitFallback$?: (error: unknown) => void | Promise<void>;
   /**
-   * The content-host SSR node, captured so a throw can mark the swapped-out subtree inert (its
-   * tasks must not resume). Unlike the sibling `$`-fields this is intentionally NOT
-   * `noSerialize`'d: serializing it roots the content host in the client VNode graph, which is what
-   * lets a client re-render locate and drop the inert subtree. Wrapping it in `noSerialize` looks
-   * tidier but breaks the inert-teardown re-render tests — leave it serialized.
+   * Serialized BY DESIGN (NOT `noSerialize`'d like the siblings): rooting the content host lets a
+   * client re-render locate and drop the inert subtree. `noSerialize`-ing it breaks those tests.
    */
   $contentHostNode$?: ISsrNode;
 }
@@ -34,8 +31,8 @@ export const isRecoverable = (err: any) => {
 };
 
 /**
- * A non-serializable thrown value would abort the whole page, so project it to a serializable
- * `Error`.
+ * Project a non-serializable thrown value to a serializable `Error` so it can't abort
+ * serialization.
  */
 export const toSerializableBoundaryError = (err: unknown): unknown => {
   if (err instanceof Error || canSerialize(err)) {
@@ -46,8 +43,8 @@ export const toSerializableBoundaryError = (err: unknown): unknown => {
 };
 
 /**
- * Fire a boundary's `onError$` with the original error; fire-and-forget, its own failure never
- * affects rendering.
+ * Fire `onError$` with the original error; fire-and-forget — its own failure never affects
+ * rendering.
  */
 export const fireOnError = (
   onError: ((error: unknown) => unknown) | undefined | null,
@@ -64,8 +61,8 @@ export const fireOnError = (
 };
 
 /**
- * Mark a boundary as errored — projecting a non-serializable throw to a serializable `Error` — and
- * fire its `onError$` exactly once, with the original (un-projected) error.
+ * Mark the boundary errored (serializable projection) and fire `onError$` once, with the original
+ * error.
  */
 export const markBoundaryErrored = (store: ErrorBoundaryStore, error: unknown): void => {
   const isFirstCatch = store.error === undefined;

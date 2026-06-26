@@ -107,7 +107,7 @@ export async function _walkJSX(
         if (typeof value === 'function') {
           if (value === Promise) {
             const pending = stack.pop() as Promise<JSXOutput>;
-            // Route an awaited child's rejection to the closest boundary, else it aborts the stream.
+            // Route to the closest boundary, else the rejection aborts the stream.
             stack.push(await catchToErrorBoundary(ssr, ssr.getOrCreateLastNode(), () => pending));
           } else {
             const result = (value as StackFn).apply(ssr);
@@ -129,7 +129,6 @@ export async function _walkJSX(
   await drain();
 }
 
-/** Closest SSR node that provides `ERROR_CONTEXT`, so escalation can resume the walk above it. */
 function findErrorBoundaryNode(host: ISsrNode | null): ISsrNode | null {
   for (let node = host; node; node = node.parentComponent) {
     const ctx = node.getProp(QCtxAttr) as Array<string | unknown> | null;
@@ -141,10 +140,8 @@ function findErrorBoundaryNode(host: ISsrNode | null): ISsrNode | null {
 }
 
 /**
- * Route an SSR render throw to the closest `<ErrorBoundary>`; rethrow (aborting to the error page)
- * when there's no boundary above. A boundary whose own fallback already threw has a detached
- * `$fallback$`, so it is skipped and the error escalates to the enclosing boundary, matching the
- * client's `handleError`.
+ * First error wins: a boundary whose own fallback threw has a detached `$fallback$`, so it's
+ * skipped and the error escalates.
  */
 function renderErrorBoundaryFallback(
   ssr: SSRContainer,
@@ -164,10 +161,9 @@ function renderErrorBoundaryFallback(
       | ErrorBoundaryStore
       | undefined;
     if (!errorStore || !errorStore.$fallback$) {
-      // This boundary can't render a fallback (its own fallback already threw) — escalate above it.
       continue;
     }
-    // A boundary outside the segment already streamed its fallback host, so let the segment reject and tear it down.
+    // Boundary outside the segment already streamed its fallback host: reject so the segment tears down.
     if (
       __EXPERIMENTAL__.errorBoundary &&
       isOutOfOrderSegmentContainer(ssr) &&
@@ -175,21 +171,16 @@ function renderErrorBoundaryFallback(
     ) {
       throw err;
     }
-    // Never block streaming: mark the error and render nothing; the sibling fallback-host swaps the content out.
     markBoundaryErrored(errorStore, err);
     if (__EXPERIMENTAL__.errorBoundary && errorStore.$contentHostNode$) {
       markErrorBoundaryContentInert(ssr, errorStore.$contentHostNode$);
     }
     return null;
   }
-  // No enclosing boundary can render a fallback; rethrow to abort to the error page.
+  // No boundary above: rethrow to abort to the error page (safety net).
   throw err;
 }
 
-/**
- * Stash the just-opened `content-host` SSR node on its boundary's store so a later throw can mark
- * the swapped-out subtree inert.
- */
 function captureErrorBoundaryContentHost(ssr: SSRContainer): void {
   const contentHost = ssr.getOrCreateLastNode();
   const errorStore = ssr.resolveContext(contentHost, ERROR_CONTEXT) as ErrorBoundaryStore | null;
@@ -198,10 +189,7 @@ function captureErrorBoundaryContentHost(ssr: SSRContainer): void {
   }
 }
 
-/**
- * Make a swapped-out boundary's content inert so the dead, hidden subtree is never resumed on the
- * client.
- */
+/** Mark a swapped-out boundary's content inert so the dead subtree is never resumed on the client. */
 function markErrorBoundaryContentInert(
   ssr: SSRContainer,
   contentHost: ReturnType<SSRContainer['getOrCreateLastNode']>
@@ -214,8 +202,7 @@ function markErrorBoundaryContentInert(
       liveOwners.set(n.id, n);
     }
   }
-  // Runs at throw time, before the fallback host renders, so the boundary's children here are only
-  // the partial (dead) content — the fallback host isn't a child yet, so it stays resumable.
+  // Runs before the fallback host renders, so these children are only the dead partial content.
   const children = boundaryNode.children;
   if (children) {
     for (let i = 0; i < children.length; i++) {
@@ -230,7 +217,7 @@ function markSubtreeInert(
   liveOwners: Map<string, ISsrNode>
 ): void {
   node.vnodeData[0] |= VNodeDataFlag.INERT;
-  // Cut a live owner's slot ref into the dead content so client resume won't index-walk into it.
+  // Cut a live owner's slot ref into the dead content so client resume won't walk into it.
   const ownerId = node.getProp(QSlotParent) as string | null;
   if (ownerId) {
     const owner = liveOwners.get(ownerId);
@@ -255,10 +242,6 @@ function markSubtreeInert(
   }
 }
 
-/**
- * {@link renderErrorBoundaryFallback}, awaiting an async fallback so async drain sites get a plain
- * value.
- */
 async function resolveErrorBoundaryFallback(
   ssr: SSRContainer,
   host: ReturnType<SSRContainer['getOrCreateLastNode']>,
@@ -269,10 +252,8 @@ async function resolveErrorBoundaryFallback(
 }
 
 /**
- * Run a render-producing call and route any throw — synchronous or from the returned promise — to
- * the closest `<ErrorBoundary>` via {@link renderErrorBoundaryFallback}, so each drain site can drop
- * its own try/catch. `host` is captured here so a deferred (async) rejection still resolves against
- * the node that produced it, not whatever node happens to be current when it rejects later.
+ * `host` is captured here so a deferred rejection resolves against the node that produced it, not
+ * whatever is current later.
  */
 function catchToErrorBoundary(
   ssr: SSRContainer,
@@ -334,7 +315,7 @@ function processJSXNode(
             await ssr.streamHandler.flush();
           }
         } catch (err) {
-          // Route a mid-stream async-generator throw to the closest boundary, else it aborts SSR.
+          // Route to the closest boundary, else a mid-stream throw aborts SSR.
           const fallback = await resolveErrorBoundaryFallback(ssr, ssr.getOrCreateLastNode(), err);
           await _walkJSX(ssr, fallback, {
             currentStyleScoped: options.currentStyleScoped,
@@ -393,7 +374,7 @@ function processJSXNode(
         const children = jsx.children as JSXOutput;
         children != null && enqueue(children);
       } else if (isFunction(type)) {
-        // `errorBoundary` reuses internal server components (the in-order fallback host) without `suspense`.
+        // `errorBoundary` reuses internal server components (the fallback host) without `suspense`.
         if (
           (__EXPERIMENTAL__.suspense || __EXPERIMENTAL__.errorBoundary) &&
           isInternalServerComponent(type)
@@ -500,7 +481,6 @@ function processJSXNode(
             options.parentComponentFrame
           );
 
-          // A throw (sync or from the async body) routes to the closest boundary via the captured host.
           const jsxOutput = catchToErrorBoundary(ssr, host, () =>
             applyQwikComponentBody(ssr, jsx, type)
           );

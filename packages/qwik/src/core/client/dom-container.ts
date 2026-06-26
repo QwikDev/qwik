@@ -163,13 +163,11 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     this.$setServerData$();
     element.qContainer = this;
     element.qDestroy = () => this.$destroy$();
-    // Route an async `qerror` to the closest ErrorBoundary, not every boundary. Registered
-    // synchronously here (not in the deferred resume) so every container — CSR included — has it.
+    // Registered synchronously here (not in deferred resume) so CSR containers get it too.
     this.$qErrorHandler$ = (e: Event) => {
       const detail = (e as CustomEvent<{ error: unknown; element?: Element; importError?: string }>)
         .detail;
-      // qwikloader already console.error'd import/symbol failures; don't re-log them (which would
-      // duplicate once per container on the document-level listener) or route them to a boundary.
+      // qwikloader already logged import/symbol failures; don't re-log or route them.
       if (detail?.importError) {
         return;
       }
@@ -177,7 +175,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       if (source && this.element.contains(source)) {
         const host = this.vNodeLocate(source);
         if (host) {
-          // A re-throw from `handleError` would become uncaught inside this listener, so log it.
           try {
             this.handleError(detail.error, host);
           } catch (handlerError) {
@@ -312,7 +309,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         throw err;
       }
     }
-    // Walk up to the closest ERROR_CONTEXT provider that can still handle this error, so a 2nd throw escalates to an ancestor instead of looping on itself.
+    // Walk to the closest boundary that can still handle the error so a 2nd throw escalates upward.
     let current: VNode | null = host;
     while (current) {
       const boundaryHost = this.resolveContextHost(current, ERROR_CONTEXT);
@@ -321,9 +318,9 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       }
       const store = this.resolveContext<ErrorBoundaryStore>(boundaryHost, ERROR_CONTEXT);
       if (store && store.error === undefined) {
-        // A resumed boundary never subscribed to `store.error`, so mark it dirty explicitly to render its fallback.
+        // Resumed boundary never subscribed to `store.error`, so mark dirty to render the fallback.
         store.error = err;
-        // `store.$onError$` is server-only ($-store fields aren't serialized), so read serialized `props.onError$` from the host.
+        // `store.$onError$` is server-only (not serialized); read serialized `props.onError$` instead.
         const boundaryProps = this.getHostProp<{ onError$?: (error: unknown) => unknown }>(
           boundaryHost,
           ELEMENT_PROPS
@@ -338,16 +335,15 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         return;
       }
       if (boundaryHost.dirty & ChoreBits.COMPONENT) {
-        // Fallback re-render still pending: a concurrent 2nd throw, first error wins, so absorb it.
+        // Fallback re-render still pending: first error wins, absorb this one.
         logError(err);
         return;
       }
-      // Boundary already shows its fallback (e.g. the fallback itself threw): escalate so it doesn't loop on its own boundary.
+      // Boundary already shows its fallback (e.g. the fallback threw): escalate past its own boundary.
       current = this.getParentHost(boundaryHost);
     }
-    // No boundary above can handle it. Re-throw on a fresh macrotask so the error still reaches the
-    // global error handler (window.onerror / Sentry / Insights) instead of surfacing as an uncaught
-    // chore rejection here.
+    // No boundary above can handle it: rethrow on a fresh macrotask so it reaches the global error
+    // handler instead of an uncaught chore rejection.
     logErrorAndThrowAsync(err);
   }
 

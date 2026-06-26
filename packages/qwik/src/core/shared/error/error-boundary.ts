@@ -24,9 +24,9 @@ export interface ErrorBoundaryProps {
   onError$?: QRL<(error: unknown) => void>;
 }
 
-// Core isn't run through the optimizer, so ErrorBoundary is hand-built with `inlinedQrl`.
+// Core isn't optimizer-processed, so ErrorBoundary is hand-built with `inlinedQrl`.
 
-// Test against `undefined`, not truthiness, so a thrown falsy value still shows the fallback.
+// `!== undefined`, not truthiness, so a thrown falsy value still shows the fallback.
 const _ebContentStyle = (store: ErrorBoundaryStore) => ({
   display: store.error !== undefined ? 'none' : 'contents',
 });
@@ -36,8 +36,6 @@ const _ebFallbackStyle = (store: ErrorBoundaryStore) => ({
 });
 const _ebFallbackStyle_str = '{display:p0.error!==undefined?"contents":"none"}';
 
-// Both server branches render the same two display-toggled hosts; they differ only in the
-// fallback-host marker and which fallback component delivers the swap.
 const buildErrorBoundaryHosts = (
   store: ErrorBoundaryStore,
   fallbackHostMarker: string,
@@ -72,29 +70,24 @@ const buildErrorBoundaryHosts = (
 
 /** @internal */
 export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
-  // The flag is build-time replaced, so when it is off ErrorBoundary can't work: fail loud instead of degrading.
   if (!__EXPERIMENTAL__.errorBoundary) {
     throw new Error(
       '<ErrorBoundary> requires the `errorBoundary` experimental feature. Enable it in your Qwik Vite config: qwikVite({ experimental: ["errorBoundary"] }).'
     );
   }
   const store = useErrorBoundaryStore();
-  // Store mirrors for the server SSR-catch path; wrapped in fresh closures so `noSerialize` taints
-  // the closure, not the shared prop QRL that must stay serialized for the client.
+  // Server-only mirrors in fresh closures, so `noSerialize` taints them, not the serialized prop QRLs.
   const fallbackQrl = props.fallback$;
   store.$fallback$ = noSerialize((error: any) => fallbackQrl(error));
   const onErrorQrl = props.onError$;
   store.$onError$ = onErrorQrl ? noSerialize((error: unknown) => onErrorQrl(error)) : undefined;
 
   const isServerEnv = qTest ? isServerPlatform() : !isBrowser;
+  // Out-of-order: fallback streams as a segment, revealed by the shared `qO` (host carries `q:rp`).
   if (__EXPERIMENTAL__.errorBoundary && isServerEnv && isOutOfOrderStreaming()) {
-    // OOOS: the fallback-host carries `q:rp` and is revealed by the shared `qO` segment executor.
-    // The hosts deliberately don't read `store.error` directly (only the styles' fn-signal does):
-    // subscribing the component would re-render an already-streamed host on a late deferred throw.
     return buildErrorBoundaryHosts(store, QSuspenseResultParent, SSRErrorFallback);
   }
-
-  // In-order SSR: same two-host swap, but the fallback-host emits inline right after the content-host so the swap needs no buffering.
+  // In-order: fallback emitted inline, swapped by `qErr`.
   if (__EXPERIMENTAL__.errorBoundary && isServerEnv) {
     return buildErrorBoundaryHosts(store, QErrorFallbackHost, SSRErrorFallbackInline);
   }

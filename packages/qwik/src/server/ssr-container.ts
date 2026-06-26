@@ -458,7 +458,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   nextOutOfOrderId(markUsed = true): number {
-    // An in-order ErrorBoundary needs an id but must not arm the OOOS executor, so only mark used when OOOS is active.
+    // In-order ErrorBoundary needs an id but must not arm the OOOS executor.
     const ooosActive = __EXPERIMENTAL__.suspense && this.outOfOrderStreaming;
     if (!ooosActive && !__EXPERIMENTAL__.errorBoundary) {
       return 0;
@@ -1442,7 +1442,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   emitErrorSwapExecutorIfNeeded(): void {
-    // Gated on `errorBoundary` only so a plain in-order SSR error swaps even with no Suspense/OOOS.
+    // Gated on `errorBoundary` only, so a plain in-order SSR error swaps with no Suspense/OOOS.
     if (!__EXPERIMENTAL__.errorBoundary || this.isErrorSwapExecutorEmitted) {
       return;
     }
@@ -1454,7 +1454,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   $registerErrorSwap$(_boundaryId: number): void {
-    // No-op: standalone boundaries emit `qErr` inline; only a segment defers it.
+    // No-op: standalone boundaries emit `qErr` inline; only a segment defers it (see override).
   }
 
   emitInlineScript(script: string): void {
@@ -1872,7 +1872,7 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
   }
 
   override $registerErrorSwap$(boundaryId: number): void {
-    // A `qErr` inside this segment's `<template>` would be inert on reveal, so defer the swap to the root.
+    // `qErr` is inert inside the segment `<template>`, so defer the swap to the root.
     this.$errorSwapIds$.push(boundaryId);
   }
 
@@ -1893,7 +1893,6 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
   }
 
   override emitErrorSwapExecutorIfNeeded(): void {
-    // Install the swap executor at the root, not inside the segment.
     this.$rootContainer$.emitErrorSwapExecutorIfNeeded();
   }
 

@@ -1,7 +1,6 @@
 import { canSerialize } from '../serdes/can-serialize';
 import { createContextId } from '../../use/use-context';
 import { logError } from '../utils/log';
-import type { ISsrNode } from '../../ssr/ssr-types';
 
 /** @internal */
 export interface ErrorBoundaryStore {
@@ -12,11 +11,6 @@ export interface ErrorBoundaryStore {
   $onError$?: (error: unknown) => void;
   /** Server-only; streams `fallback$` as an out-of-order segment. */
   $emitFallback$?: (error: unknown) => void | Promise<void>;
-  /**
-   * Serialized BY DESIGN (NOT `noSerialize`'d like the siblings): rooting the content host lets a
-   * client re-render locate and drop the inert subtree. `noSerialize`-ing it breaks those tests.
-   */
-  $contentHostNode$?: ISsrNode;
 }
 
 export const ERROR_CONTEXT = /*#__PURE__*/ createContextId<ErrorBoundaryStore>('qk-error');

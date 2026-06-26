@@ -28,7 +28,6 @@ import {
   QCtxAttr,
   QCursorBoundary,
   QDefaultSlot,
-  QErrorContentHost,
   QScopedStyle,
   QSlot,
   QSlotParent,
@@ -172,8 +171,8 @@ function renderErrorBoundaryFallback(
       throw err;
     }
     markBoundaryErrored(errorStore, err);
-    if (__EXPERIMENTAL__.errorBoundary && errorStore.$contentHostNode$) {
-      markErrorBoundaryContentInert(ssr, errorStore.$contentHostNode$);
+    if (__EXPERIMENTAL__.errorBoundary) {
+      markErrorBoundaryContentInert(ssr, boundaryNode);
     }
     return null;
   }
@@ -181,20 +180,11 @@ function renderErrorBoundaryFallback(
   throw err;
 }
 
-function captureErrorBoundaryContentHost(ssr: SSRContainer): void {
-  const contentHost = ssr.getOrCreateLastNode();
-  const errorStore = ssr.resolveContext(contentHost, ERROR_CONTEXT) as ErrorBoundaryStore | null;
-  if (errorStore) {
-    errorStore.$contentHostNode$ = contentHost;
-  }
-}
-
 /** Mark a swapped-out boundary's content inert so the dead subtree is never resumed on the client. */
 function markErrorBoundaryContentInert(
   ssr: SSRContainer,
-  contentHost: ReturnType<SSRContainer['getOrCreateLastNode']>
+  boundaryNode: ReturnType<SSRContainer['getOrCreateLastNode']>
 ): void {
-  const boundaryNode = contentHost.parentComponent ?? contentHost;
   // Only the boundary and its ancestors can hold a live projection ref into the dead content.
   const liveOwners = new Map<string, ISsrNode>();
   for (let n: ISsrNode | null = boundaryNode; n; n = n.parentComponent) {
@@ -348,10 +338,6 @@ function processJSXNode(
         );
         if (innerHTML) {
           ssr.htmlNode(innerHTML);
-        }
-
-        if (__EXPERIMENTAL__.errorBoundary && jsx.varProps && QErrorContentHost in jsx.varProps) {
-          captureErrorBoundaryContentHost(ssr);
         }
 
         enqueue(ssr.closeElement);

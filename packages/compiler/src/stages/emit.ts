@@ -224,7 +224,7 @@ function createModulePrelude(
   qrlSegments: Map<string, QrlSegmentOutput>
 ): string {
   const moduleImportNames = collectModuleImportNames(qrlSegments);
-  if (moduleImportNames.length === 0 || ctx.program === null) {
+  if (ctx.program === null) {
     return '';
   }
 
@@ -233,7 +233,9 @@ function createModulePrelude(
     return '';
   }
 
-  return `${declarations.join('\n')}\nexport { ${moduleImportNames.join(', ')} };\n\n`;
+  const exports =
+    moduleImportNames.length === 0 ? '' : `export { ${moduleImportNames.join(', ')} };\n`;
+  return `${declarations.join('\n')}\n${exports}\n`;
 }
 
 function createComponentReExports(

@@ -663,12 +663,12 @@ async function createCompiledInput(jsx: JSXOutput): Promise<CompiledInput> {
     Math.max(location.columnNumber - 1, 0)
   );
   const componentName = getRenderedComponentName(sourceFile, jsxPosition);
-  const components = getScopedComponentDeclarations(sourceFile, jsxPosition);
-  if (!components.some((component) => component.name === componentName)) {
-    components.push(getComponentDeclaration(sourceFile, componentName, jsxPosition));
+  const declarations = getScopedDeclarations(sourceFile, jsxPosition);
+  if (!declarations.some((declaration) => declaration.name === componentName)) {
+    declarations.push(getComponentDeclaration(sourceFile, componentName, jsxPosition));
   }
   const imports = getQwikImports(sourceFile);
-  const exports = components.map((component) => component.source);
+  const exports = declarations.map((declaration) => declaration.source);
 
   return {
     code: `${imports.join('\n')}\n${exports.join('\n')}\n`,
@@ -768,7 +768,7 @@ function getRenderedComponentName(sourceFile: ts.SourceFile, position: number): 
   return name;
 }
 
-function getScopedComponentDeclarations(
+function getScopedDeclarations(
   sourceFile: ts.SourceFile,
   beforePosition: number
 ): ComponentDeclarationSource[] {
@@ -778,7 +778,7 @@ function getScopedComponentDeclarations(
   for (let i = 0; i < path.length; i++) {
     const node = path[i];
     if (ts.isSourceFile(node) || ts.isBlock(node)) {
-      collectComponentDeclarations(sourceFile, node.statements, beforePosition, declarations);
+      collectScopedDeclarations(sourceFile, node.statements, beforePosition, declarations);
     }
   }
 
@@ -800,7 +800,7 @@ function getNodePath(sourceFile: ts.SourceFile, position: number): ts.Node[] {
   return path;
 }
 
-function collectComponentDeclarations(
+function collectScopedDeclarations(
   sourceFile: ts.SourceFile,
   statements: ts.NodeArray<ts.Statement>,
   beforePosition: number,
@@ -808,21 +808,27 @@ function collectComponentDeclarations(
 ): void {
   for (let i = 0; i < statements.length; i++) {
     const statement = statements[i];
-    if (statement.getStart(sourceFile) >= beforePosition) {
+    if (statement.getStart(sourceFile) >= beforePosition || statement.end > beforePosition) {
       continue;
     }
     if (ts.isVariableStatement(statement)) {
+      const kind = getVariableDeclarationKind(statement.declarationList);
       for (let j = 0; j < statement.declarationList.declarations.length; j++) {
         const declaration = statement.declarationList.declarations[j];
-        const component = createVariableComponentDeclarationSource(sourceFile, declaration);
-        if (component !== null) {
-          declarations.set(component.name, component);
+        const source = createVariableDeclarationSource(sourceFile, declaration, kind);
+        if (source !== null) {
+          declarations.set(source.name, source);
         }
       }
     } else if (ts.isFunctionDeclaration(statement)) {
-      const component = createFunctionComponentDeclarationSource(sourceFile, statement);
-      if (component !== null) {
-        declarations.set(component.name, component);
+      const source = createFunctionDeclarationSource(sourceFile, statement);
+      if (source !== null) {
+        declarations.set(source.name, source);
+      }
+    } else if (ts.isClassDeclaration(statement)) {
+      const source = createClassDeclarationSource(sourceFile, statement);
+      if (source !== null) {
+        declarations.set(source.name, source);
       }
     }
   }
@@ -874,6 +880,20 @@ function createNamedComponentDeclarationSource(
   return null;
 }
 
+function createVariableDeclarationSource(
+  sourceFile: ts.SourceFile,
+  declaration: ts.VariableDeclaration,
+  kind: string
+): ComponentDeclarationSource | null {
+  if (!ts.isIdentifier(declaration.name)) {
+    return null;
+  }
+  return {
+    name: declaration.name.text,
+    source: `export ${kind} ${declaration.getText(sourceFile)};`,
+  };
+}
+
 function createVariableComponentDeclarationSource(
   sourceFile: ts.SourceFile,
   declaration: ts.VariableDeclaration
@@ -888,6 +908,36 @@ function createVariableComponentDeclarationSource(
   return {
     name: declaration.name.text,
     source: `export const ${declaration.getText(sourceFile)};`,
+  };
+}
+
+function createFunctionDeclarationSource(
+  sourceFile: ts.SourceFile,
+  declaration: ts.FunctionDeclaration
+): ComponentDeclarationSource | null {
+  const name = declaration.name?.text;
+  if (name === undefined) {
+    return null;
+  }
+  const source = declaration.getText(sourceFile);
+  return {
+    name,
+    source: hasExportModifier(declaration) ? source : `export ${source}`,
+  };
+}
+
+function createClassDeclarationSource(
+  sourceFile: ts.SourceFile,
+  declaration: ts.ClassDeclaration
+): ComponentDeclarationSource | null {
+  const name = declaration.name?.text;
+  if (name === undefined) {
+    return null;
+  }
+  const source = declaration.getText(sourceFile);
+  return {
+    name,
+    source: hasExportModifier(declaration) ? source : `export ${source}`,
   };
 }
 
@@ -923,6 +973,16 @@ function isComponentDollarCall(expression: ts.Expression): expression is ts.Call
 function isComponentName(name: string): boolean {
   const first = name.charCodeAt(0);
   return first >= 65 && first <= 90;
+}
+
+function getVariableDeclarationKind(declarationList: ts.VariableDeclarationList): string {
+  if ((declarationList.flags & ts.NodeFlags.Const) !== 0) {
+    return 'const';
+  }
+  if ((declarationList.flags & ts.NodeFlags.Let) !== 0) {
+    return 'let';
+  }
+  return 'var';
 }
 
 function hasExportModifier(node: ts.Node): boolean {
@@ -990,6 +1050,10 @@ async function importCompiledRoot<TRoot extends CsrRenderComponent | SsrRenderCo
     await writeFile(filePath, module.code);
     if (!module.segment && !module.isEntry) {
       entryPath = filePath;
+      const inputModulePath = join(dir, createInputModuleFileName(inputPath));
+      if (inputModulePath !== filePath) {
+        await writeFile(inputModulePath, module.code);
+      }
     }
   }
 
@@ -1048,6 +1112,10 @@ function prepareCompiledModulesForImport(
 function createSegmentImportFileName(module: TransformModule): string {
   const fileName = basename(module.path);
   return fileName.endsWith('.js') ? `${fileName.slice(0, -3)}.mjs` : `${fileName}.mjs`;
+}
+
+function createInputModuleFileName(inputPath: string): string {
+  return `${basename(inputPath).replace(/\.[cm]?[jt]sx?$/, '')}.js`;
 }
 
 function findRepoRoot() {

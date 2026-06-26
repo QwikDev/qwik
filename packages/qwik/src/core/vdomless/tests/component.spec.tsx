@@ -108,6 +108,27 @@ describe.each([
     cleanup();
   });
 
+  it('should render a nested child with scoped constants', async () => {
+    const label = 'Scoped Child';
+
+    function Child() {
+      return <span>{label}</span>;
+    }
+
+    function Parent() {
+      return (
+        <section>
+          <Child />
+        </section>
+      );
+    }
+
+    const { container, cleanup } = await render(<Parent />, { debug });
+
+    expect(container.querySelector('span')?.textContent).toBe('Scoped Child');
+    cleanup();
+  });
+
   it('should pass props to a child component', async () => {
     function Child(props: { label: string; count: number }) {
       return (

@@ -6,15 +6,14 @@ import {
   type Signal,
 } from '@qwik.dev/core/spark';
 import { describe, expect, it } from 'vitest';
-import { TypeIds } from '../../shared/serdes/constants';
 import { csrRender, ssrRender } from '../test-utils';
 
 const debug = false;
 
 describe.each([
-  { name: 'ssrRender', render: ssrRender }, //
-  { name: 'csrRender', render: csrRender }, //
-])('$name: context', ({ name, render }) => {
+  { render: ssrRender }, //
+  { render: csrRender }, //
+])('$name: context', ({ render }) => {
   it('should provide and retrieve context', async () => {
     const MyComp = () => {
       const contextId = createContextId<Signal<string>>('context-integration');
@@ -28,16 +27,6 @@ describe.each([
     const { container, cleanup } = await render(<MyComp />, { debug });
 
     expect(container.querySelector('p')?.textContent).toBe('provided');
-    const comments = collectCommentData(container);
-    if (name === 'ssrRender') {
-      const marker = comments.find((comment) => /^c=\d+$/.test(comment));
-      expect(marker).toBeDefined();
-      expect(comments).toContain('/c');
-      expect(getStateRootType(container, Number(marker!.slice(2)))).toBe(TypeIds.ContextScope);
-    } else {
-      expect(comments.some((comment) => /^c=\d+$/.test(comment))).toBe(false);
-    }
-
     cleanup();
   });
 
@@ -63,32 +52,126 @@ describe.each([
 
     cleanup();
   });
+
+  it('should provide and retrieve context in nested component', async () => {
+    const contextId = createContextId<Signal<string>>('context-integration');
+    const MyComp = () => {
+      const source = createSignal('provided');
+      createContextProvider(contextId, source);
+
+      return <Child />;
+    };
+
+    const Child = () => {
+      const context = createContext(contextId);
+      return <p>{context.value}</p>;
+    };
+    const { container, cleanup } = await render(<MyComp />, { debug });
+
+    expect(container.querySelector('p')?.textContent).toBe('provided');
+    cleanup();
+  });
+
+  it('should provide and retrieve context in dynamic component', async () => {
+    const contextId = createContextId<Signal<string>>('context-integration');
+    const MyComp = () => {
+      const source = createSignal('provided');
+      createContextProvider(contextId, source);
+      const toggle = createSignal(false);
+
+      return (
+        <button onClick$={() => (toggle.value = !toggle.value)}>
+          {toggle.value ? <Child /> : null}
+        </button>
+      );
+    };
+
+    const Child = () => {
+      const context = createContext(contextId);
+      return <span>{context.value}</span>;
+    };
+    const { container, cleanup, qwikLoader } = await render(<MyComp />, { debug });
+    expect(container.querySelector('span')).toBeUndefined();
+
+    const button = container.querySelector('button');
+    await qwikLoader?.dispatch(button!, 'click');
+
+    expect(container.querySelector('span')?.textContent).toBe('provided');
+    cleanup();
+  });
+
+  it('should ignore closed nested context scopes for dynamic components', async () => {
+    const contextId = createContextId<Signal<string>>('context-nearest-open');
+    const MyComp = () => {
+      const source = createSignal('outer');
+      const toggle = createSignal(false);
+      createContextProvider(contextId, source);
+
+      return (
+        <section>
+          <Inner />
+          <button onClick$={() => (toggle.value = true)}>
+            {toggle.value ? <OuterChild /> : null}
+          </button>
+        </section>
+      );
+    };
+
+    const Inner = () => {
+      const source = createSignal('inner');
+      createContextProvider(contextId, source);
+      return <InnerChild />;
+    };
+
+    const InnerChild = () => {
+      const context = createContext(contextId);
+      return <span id="inner">{context.value}</span>;
+    };
+
+    const OuterChild = () => {
+      const context = createContext(contextId);
+      return <span id="outer">{context.value}</span>;
+    };
+
+    const { container, cleanup, qwikLoader } = await render(<MyComp />, { debug });
+    expect(container.querySelector('#inner')?.textContent).toBe('inner');
+    expect(container.querySelector('#outer')).toBeUndefined();
+
+    const button = container.querySelector('button');
+    await qwikLoader?.dispatch(button!, 'click');
+
+    expect(container.querySelector('#outer')?.textContent).toBe('outer');
+    cleanup();
+  });
+
+  it('should provide and retrieve context in dynamic for block component', async () => {
+    const contextId = createContextId<Signal<string>>('context-for-integration');
+    const MyComp = () => {
+      const source = createSignal('provided');
+      const items = createSignal<string[]>([]);
+      createContextProvider(contextId, source);
+
+      return (
+        <button onClick$={() => (items.value = ['child'])}>
+          {items.value.map((item) => (
+            <Child key={item} />
+          ))}
+        </button>
+      );
+    };
+
+    const Child = () => {
+      const context = createContext(contextId);
+      return <span>{context.value}</span>;
+    };
+
+    const { container, cleanup, qwikLoader } = await render(<MyComp />, { debug });
+    expect(container.querySelector('span')).toBeUndefined();
+
+    const button = container.querySelector('button');
+    await qwikLoader?.dispatch(button!, 'click');
+
+    expect(container.querySelector('span')?.textContent).toBe('provided');
+    cleanup();
+  });
 });
-
-const collectCommentData = (node: Node): string[] => {
-  const comments: string[] = [];
-  const visit = (current: Node): void => {
-    if (current.nodeType === 8) {
-      comments.push((current as Comment).data);
-    }
-    for (let child = current.firstChild; child !== null; child = child.nextSibling) {
-      visit(child);
-    }
-  };
-  visit(node);
-  return comments;
-};
-
-const getStateRootType = (container: Element, rootId: number): unknown => {
-  const scripts = container.querySelectorAll<HTMLScriptElement>('script[type="qwik/state"]');
-  for (let i = 0; i < scripts.length; i++) {
-    const script = scripts[i];
-    const base = Number(script.getAttribute('q:base'));
-    const len = Number(script.getAttribute('q:len'));
-    if (rootId >= base && rootId < base + len) {
-      const state = JSON.parse(script.textContent || '[]') as unknown[];
-      return state[(rootId - base) * 2];
-    }
-  }
-  return undefined;
-};

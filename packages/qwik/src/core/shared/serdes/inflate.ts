@@ -21,8 +21,12 @@ import { createLazySourceSubs, LazySerialized } from '../../vdomless/reactive/la
 import { Signal as VdomlessSignal } from '../../vdomless/reactive/signal';
 import { readSourceValue, type Dependency, type SourceSub } from '../../vdomless/reactive/source';
 import { addDependency } from '../../vdomless/reactive/tracking';
-import type { ContainerContext } from '../../vdomless/runtime/container-context';
+import {
+  getContextScopeForNode,
+  type ContainerContext,
+} from '../../vdomless/runtime/container-context';
 import type { ContextScope } from '../../vdomless/runtime/context-scope';
+import { newInvokeContext, type RuntimeInvokeContext } from '../../vdomless/runtime/invoke-context';
 import { createOwner, registerSubscriberToOwner } from '../../vdomless/runtime/owner';
 import {
   findBranchRange,
@@ -213,11 +217,19 @@ export const inflate = async (
       const kind = parts[0] as EffectKind;
       switch (kind) {
         case EffectKind.Branch: {
-          restoreBranchSubscription(container, target as Writeable<BranchSubscription>, parts);
+          await restoreBranchSubscription(
+            container,
+            target as Writeable<BranchSubscription>,
+            parts
+          );
           break;
         }
         case EffectKind.ForBlock: {
-          restoreForBlockSubscription(container, target as Writeable<ForBlockSubscription>, parts);
+          await restoreForBlockSubscription(
+            container,
+            target as Writeable<ForBlockSubscription>,
+            parts
+          );
           break;
         }
         case EffectKind.TextNode:
@@ -241,11 +253,11 @@ export const inflate = async (
   }
 };
 
-function restoreBranchSubscription(
+async function restoreBranchSubscription(
   container: ContainerContext,
   subscription: Writeable<BranchSubscription>,
   parts: unknown[]
-): void {
+): Promise<void> {
   const rangeId = parts[1] as number;
   const mountedBranch = parts[2] == null ? undefined : (parts[2] as 0 | 1);
   const deps = parts[3] as Dependency[];
@@ -260,13 +272,14 @@ function restoreBranchSubscription(
     throw new Error(`Missing branch range ${rangeId}.`);
   }
 
+  const invokeContext = await restoreInvokeContext(container, markerRange[0]);
   subscription.branch = new Branch(
     new BranchRange(container.document, markerRange[0], markerRange[1]),
     conditionQrl,
     thenQrl,
     elseQrl,
     mountedBranch ?? null,
-    null,
+    invokeContext,
     container
   );
   restoreDependencies(subscription, deps);
@@ -280,11 +293,11 @@ function restoreBranchSubscription(
   }
 }
 
-function restoreForBlockSubscription(
+async function restoreForBlockSubscription(
   container: ContainerContext,
   subscription: Writeable<ForBlockSubscription>,
   parts: unknown[]
-): void {
+): Promise<void> {
   const rangeId = parts[1] as number;
   const deps = parts[2] as Dependency[];
   const keyQrl = parts[3] as QRLInternal<(item: unknown, index: number) => string | number>;
@@ -303,6 +316,7 @@ function restoreForBlockSubscription(
   }
 
   const listOwner = createOwner(subscription.owner);
+  const invokeContext = await restoreInvokeContext(container, markerRange[0]);
   const block = new ForBlock(
     new ForRange(container.document, markerRange[0], markerRange[1]),
     deps[0] as Dependency<readonly unknown[]>,
@@ -311,13 +325,23 @@ function restoreForBlockSubscription(
     usesItemSignal,
     usesIndexSignal,
     listOwner,
-    null,
+    invokeContext,
     container
   );
   block.resumeItems = readSourceValue(deps[0] as Dependency<readonly unknown[]>) ?? [];
 
   subscription.block = block;
   restoreDependencies(subscription, deps);
+}
+
+async function restoreInvokeContext(
+  container: ContainerContext,
+  node: Node
+): Promise<RuntimeInvokeContext> {
+  return newInvokeContext({
+    container,
+    contextScope: (await getContextScopeForNode(container, node)) as ContextScope | null,
+  });
 }
 
 function createLazySourceSubscribers(

@@ -1,14 +1,10 @@
 import { ELEMENT_ID } from '../../shared/utils/markers';
-import { fastFirstChild, fastNextSibling } from './fast-getters';
+import { NodeType } from '../utils/consts';
+import { fastFirstChild, fastNextSibling, fastPreviousSibling } from './fast-getters';
 
 const ELEMENT_ID_SELECTOR = ELEMENT_ID.replace(':', '\\:');
 const CONTEXT_OPEN = 'c=';
 const CONTEXT_CLOSE = '/c';
-const ELEMENT_NODE = 1;
-const COMMENT_NODE = 8;
-const DOCUMENT_NODE = 9;
-const TEXT_NODE = 3;
-const DOCUMENT_FRAGMENT_NODE = 11;
 const RANGE_TEXT_MARKER = 't';
 const BRANCH_OPEN = 'b=';
 const BRANCH_CLOSE = '/b';
@@ -37,7 +33,7 @@ export function findQwikElement(element: Element, elementId: string | number): E
 
 export function findElementText(parentNode: Node): Text | null {
   const text = fastFirstChild(parentNode);
-  return text !== null && text.nodeType === TEXT_NODE ? (text as Text) : null;
+  return text !== null && text.nodeType === NodeType.Text ? (text as Text) : null;
 }
 
 export function findTextNode(parentNode: Node, markerIndex: number): Text | null {
@@ -45,12 +41,12 @@ export function findTextNode(parentNode: Node, markerIndex: number): Text | null
   let currentNode = fastFirstChild(parentNode);
   while (currentNode) {
     if (
-      currentNode.nodeType === COMMENT_NODE &&
+      currentNode.nodeType === NodeType.Comment &&
       (currentNode as Comment).data === RANGE_TEXT_MARKER
     ) {
       if (index === markerIndex) {
         const text = fastNextSibling(currentNode);
-        return text !== null && text.nodeType === TEXT_NODE ? (text as Text) : null;
+        return text !== null && text.nodeType === NodeType.Text ? (text as Text) : null;
       }
       index++;
     }
@@ -65,12 +61,14 @@ export function findBranchTextNode(range: BranchMarkerRange, markerIndex: number
   let currentNode = fastNextSibling(range[0]);
   while (currentNode && currentNode !== end) {
     if (
-      currentNode.nodeType === COMMENT_NODE &&
+      currentNode.nodeType === NodeType.Comment &&
       (currentNode as Comment).data === RANGE_TEXT_MARKER
     ) {
       if (index === markerIndex) {
         const text = fastNextSibling(currentNode);
-        return text !== null && text !== end && text.nodeType === TEXT_NODE ? (text as Text) : null;
+        return text !== null && text !== end && text.nodeType === NodeType.Text
+          ? (text as Text)
+          : null;
       }
       index++;
     }
@@ -116,7 +114,7 @@ export function findForRowRanges(start: Comment, end: Comment): ForRowRange[] {
   let sibling = fastNextSibling(start);
 
   while (sibling !== null && sibling !== end) {
-    if (sibling.nodeType === COMMENT_NODE) {
+    if (sibling.nodeType === NodeType.Comment) {
       const comment = sibling as Comment;
       const data = comment.data;
 
@@ -136,7 +134,7 @@ export function findForRowRanges(start: Comment, end: Comment): ForRowRange[] {
       }
     } else if (
       rowStart === null &&
-      sibling.nodeType === ELEMENT_NODE &&
+      sibling.nodeType === NodeType.Element &&
       (sibling as Element).hasAttribute(ROW_ATTR)
     ) {
       rows.push(sibling as Element);
@@ -156,7 +154,7 @@ function findComment(node: Node, data: string): Comment | null {
   }
   let child = fastFirstChild(node);
   while (child !== null) {
-    if (child.nodeType === COMMENT_NODE && (child as Comment).data === data) {
+    if (child.nodeType === NodeType.Comment && (child as Comment).data === data) {
       return child as Comment;
     }
     const nested = findComment(child, data);
@@ -176,7 +174,7 @@ function findRangeEnd(start: Comment, open: string, close: string): Comment | nu
   let depth = 0;
   let sibling = fastNextSibling(start);
   while (sibling !== null) {
-    if (sibling.nodeType === COMMENT_NODE) {
+    if (sibling.nodeType === NodeType.Comment) {
       const data = (sibling as Comment).data;
       if (data.startsWith(open)) {
         depth++;
@@ -201,9 +199,9 @@ export function findContextScopeId(node: Node): string | null {
     }
 
     let depth = 0;
-    let sibling = current.previousSibling;
+    let sibling = fastPreviousSibling(current);
     while (sibling !== null) {
-      if (sibling.nodeType === COMMENT_NODE) {
+      if (sibling.nodeType === NodeType.Comment) {
         const data = (sibling as Comment).data;
         if (data === CONTEXT_CLOSE) {
           depth++;
@@ -214,7 +212,7 @@ export function findContextScopeId(node: Node): string | null {
           depth--;
         }
       }
-      sibling = sibling.previousSibling;
+      sibling = fastPreviousSibling(sibling);
     }
 
     current = parent;
@@ -224,8 +222,8 @@ export function findContextScopeId(node: Node): string | null {
 
 function canHaveChildNodes(node: Node): boolean {
   return (
-    node.nodeType === ELEMENT_NODE ||
-    node.nodeType === DOCUMENT_NODE ||
-    node.nodeType === DOCUMENT_FRAGMENT_NODE
+    node.nodeType === NodeType.Element ||
+    node.nodeType === NodeType.Document ||
+    node.nodeType === NodeType.DocumentFragment
   );
 }

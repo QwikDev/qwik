@@ -8,6 +8,14 @@ export const fastNextSibling = (node: Node): Node | null => {
   return _fastNextSibling.call(node) ?? null;
 };
 
+let _fastPreviousSibling: ((this: Node) => Node | null) | null = null;
+export const fastPreviousSibling = (node: Node): Node | null => {
+  if (!_fastPreviousSibling) {
+    _fastPreviousSibling = fastGetter<typeof _fastPreviousSibling>(node, 'previousSibling')!;
+  }
+  return _fastPreviousSibling.call(node) ?? null;
+};
+
 let _fastFirstChild: ((this: Node) => Node | null) | null = null;
 export const fastFirstChild = (node: Node): Node | null => {
   if (!_fastFirstChild) {

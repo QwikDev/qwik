@@ -27,7 +27,7 @@ import { ForBlockSubscription } from '../effect/effect';
 import { SSRForBlockSubscription } from '../effect/ssr-effect';
 import { getFunctionOrResolve } from '../qrl';
 import { createContentRange, getRangeParent } from '../range/range';
-import { EMPTY_ARRAY } from '../../utils/consts';
+import { EMPTY_ARRAY, NodeType } from '../../utils/consts';
 
 export type ForKey = string | number;
 type ForKeyFn<T> = (item: T, index: number) => ForKey;
@@ -47,7 +47,6 @@ type SsrForRenderFn<T> = (
   index: ForRenderIndex
 ) => ValueOrPromise<string>;
 
-const ELEMENT_NODE = 1;
 const ROW_OPEN = 'r';
 const ROW_CLOSE = '/r';
 
@@ -89,6 +88,7 @@ export class ForRange {
       .replaceChildren;
     if (
       replaceChildren !== undefined &&
+      parent.nodeType !== NodeType.DocumentFragment &&
       parent.firstChild === this.start &&
       parent.lastChild === this.end
     ) {
@@ -658,7 +658,7 @@ function renderForRow<T>(
 
 function createRowDom(document: Document, output: MaybeNodeOutput): RowDom {
   const nodes = toNodes(output);
-  if (nodes.length === 1 && nodes[0].nodeType === ELEMENT_NODE) {
+  if (nodes.length === 1 && nodes[0].nodeType === NodeType.Element) {
     return nodes[0] as Element;
   }
 

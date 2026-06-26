@@ -486,11 +486,11 @@ importers:
         specifier: 8.11.3
         version: 8.11.3(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react@19.2.4))(@mui/material@7.3.2(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@mui/system@7.3.2(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@qds.dev/tools':
-        specifier: 0.14.3
-        version: 0.14.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.10.0)
+        specifier: 0.15.2
+        version: 0.15.2(@emnapi/core@1.9.2)(@emnapi/runtime@1.10.0)
       '@qds.dev/ui':
-        specifier: 0.14.3
-        version: 0.14.3(@qwik.dev/core@packages+qwik)
+        specifier: 0.15.2
+        version: 0.15.2(@qwik.dev/core@packages+qwik)
       '@qwik.dev/core':
         specifier: workspace:*
         version: link:../qwik
@@ -3768,13 +3768,13 @@ packages:
   '@poppinss/exception@1.2.3':
     resolution: {integrity: sha512-dCED+QRChTVatE9ibtoaxc+WkdzOSjYTKi/+uacHWIsfodVfpsueo3+DKpgU5Px8qXjgmXkSvhXvSCz3fnP9lw==}
 
-  '@qds.dev/tools@0.14.3':
-    resolution: {integrity: sha512-W3t/cmpoNeZEzazSCbn09RxVeQQGNTtAwnYHS4TxF/clRMxbLm2/8aJV9cI037UzxmR33QlxfyzAZ9GBYjU+wA==}
+  '@qds.dev/tools@0.15.2':
+    resolution: {integrity: sha512-OEGnv8tt6hfoJUxUerR0Gf9M4mXmRVe0bK+ChVwc1fAOYg/CLeRxhorDOAIuaXJ0EAL9cY93HDWHjGiZ0MX2Aw==}
 
-  '@qds.dev/ui@0.14.3':
-    resolution: {integrity: sha512-xSnWgHqXbbp4WEda8rjw/YFDKQi9UhZP1ZIYUVI7z4+IzJ51H558xDV04qpKZWAHdO0XD68KVFLW12rAcS73EQ==}
+  '@qds.dev/ui@0.15.2':
+    resolution: {integrity: sha512-gBc7osiHgP8qsgo7PTnnOqQxNB/XKP9LoOxQYGgCHayy8sWFYFJbZIHzNaKsqKovbKHv6ECMTvPs8jgwSeBroQ==}
     peerDependencies:
-      '@qwik.dev/core': '>=2.0.0-beta.27'
+      '@qwik.dev/core': '>=2.0.0-beta.30'
 
   '@quansync/fs@1.0.0':
     resolution: {integrity: sha512-4TJ3DFtlf1L5LDMaM6CanJ/0lckGNtJcMjQ1NAV6zDmA0tEHKZtxNKin8EgPaVX1YzljbxckyT2tJrpQKAtngQ==}
@@ -14469,7 +14469,7 @@ snapshots:
 
   '@poppinss/exception@1.2.3': {}
 
-  '@qds.dev/tools@0.14.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.10.0)':
+  '@qds.dev/tools@0.15.2(@emnapi/core@1.9.2)(@emnapi/runtime@1.10.0)':
     dependencies:
       '@iconify/json': 2.2.461
       '@iconify/utils': 3.1.0
@@ -14486,7 +14486,7 @@ snapshots:
       - '@emnapi/runtime'
       - supports-color
 
-  '@qds.dev/ui@0.14.3(@qwik.dev/core@packages+qwik)':
+  '@qds.dev/ui@0.15.2(@qwik.dev/core@packages+qwik)':
     dependencies:
       '@oddbird/css-anchor-positioning': 0.6.1
       '@qwik.dev/core': link:packages/qwik

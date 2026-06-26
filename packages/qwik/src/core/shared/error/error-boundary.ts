@@ -15,6 +15,7 @@ import { noSerialize } from '../serdes/verify';
 import { QErrorContentHost, QErrorFallbackHost, QSuspenseResultParent } from '../utils/markers';
 import { qTest } from '../utils/qdev';
 import { tryGetInvokeContext } from '../../use/use-core';
+import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import type { ErrorBoundaryStore } from './error-handling';
 
 /** @public */
@@ -34,11 +35,11 @@ export interface ErrorBoundaryProps {
  * @internal
  */
 export const errorBoundaryReset = (): void => {
-  const ctx = tryGetInvokeContext();
-  const container = ctx?.$container$ as
+  // The render-time boundary host; the reset-time host is the streamed fallback's, which doesn't chain.
+  const [host] = useLexicalScope<[unknown]>();
+  const container = tryGetInvokeContext()?.$container$ as
     | { resetErrorBoundary?: (host: unknown) => void }
     | undefined;
-  const host = ctx?.$hostElement$;
   if (container?.resetErrorBoundary && host) {
     container.resetErrorBoundary(host);
   }
@@ -96,7 +97,9 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
     );
   }
   const store = useErrorBoundaryStore();
-  const reset = /*#__PURE__*/ inlinedQrl(errorBoundaryReset, '_ebR');
+  // Capture the boundary host so a streamed fallback's `reset()` can re-find the boundary.
+  const host = tryGetInvokeContext()?.$hostElement$;
+  const reset = /*#__PURE__*/ inlinedQrl(errorBoundaryReset, '_ebR', [host]);
   // Server-only mirrors in fresh closures, so `noSerialize` taints them, not the serialized prop QRLs.
   const fallbackQrl = props.fallback$;
   store.$fallback$ = noSerialize((error: any) => fallbackQrl(error, reset));
@@ -106,10 +109,7 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
   const isServerEnv = qTest ? isServerPlatform() : !isBrowser;
   if (__EXPERIMENTAL__.errorBoundary && isServerEnv) {
     // Serialize the projection owner so a resumed `reset()` can re-render it (else unreachable).
-    const hostNode = tryGetInvokeContext()?.$hostElement$ as
-      | { parentComponent?: unknown }
-      | undefined;
-    store.$resetOwner$ = hostNode?.parentComponent;
+    store.$resetOwner$ = (host as { parentComponent?: unknown } | undefined)?.parentComponent;
     // Out-of-order: fallback streams as a segment, revealed by `qO`.
     if (isOutOfOrderStreaming()) {
       return buildErrorBoundaryHosts(store, QSuspenseResultParent, SSRErrorFallback);

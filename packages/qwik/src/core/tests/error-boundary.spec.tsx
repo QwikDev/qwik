@@ -98,7 +98,6 @@ const streamAndResume = async (jsx: JSXOutput) => {
 const displayOf = (el: Element | null | undefined) =>
   (el as HTMLElement | null | undefined)?.style?.display;
 
-/** Dispatch a `qerror` CustomEvent the same way qwikloader does. */
 const dispatchQError = (
   target: Element,
   detail: { error: unknown; element?: Element; importError?: string }
@@ -142,7 +141,6 @@ describe('ErrorBoundary', () => {
     );
     const el = container.element;
     expect(el.querySelector('#fb')?.textContent).toContain('caught: boom');
-    // The partial content sits well-formed inside the hidden content-host — swapped out, not deleted.
     const contentHost = el.querySelector('[q\\:ebc]') as HTMLElement;
     expect(contentHost.style.display).toBe('none');
     expect(contentHost.contains(el.querySelector('#content'))).toBe(true);
@@ -218,7 +216,6 @@ describe('ErrorBoundary', () => {
     ev.initEvent('qerror', false, false);
     (ev as any).detail = { error: new Error('client boom'), element: target };
     el.ownerDocument.dispatchEvent(ev);
-    // No ancestor boundary: the throwing fallback escalates instead of looping — a drain rejection is fine.
     try {
       await waitForDrain(container);
     } catch {
@@ -492,7 +489,6 @@ describe('ErrorBoundary projection', () => {
   });
 });
 
-// Each `qerror` listener is guarded by `element.contains(source)`, so only the owning container reacts.
 describe('ErrorBoundary across multiple containers on one document', () => {
   const renderTwoContainers = async (jsxA: any, jsxB: any) => {
     setPlatform(getTestPlatform());
@@ -774,7 +770,6 @@ describe('ErrorBoundary SSR async-generator + non-serializable throws (experimen
   });
 });
 
-// Falsy throws still trigger: the boundary keys on `store.error !== undefined`, not truthiness.
 describe('ErrorBoundary: falsy thrown values', () => {
   const Boundary = component$(() => {
     return (
@@ -893,7 +888,6 @@ describe('ErrorBoundary: recoverable vs build errors (dev)', () => {
   });
 
   it('CSR: a non-recoverable build error is not caught by the boundary', async () => {
-    // `handleError` rethrows non-recoverable errors past the boundary, so the fallback must NOT show.
     const { container } = await domRender(boxed(<button id="content">x</button>), { debug });
     const el = container.element;
     const target = el.querySelector('#content')!;
@@ -937,7 +931,6 @@ describe('ErrorBoundary throwing-fallback escalation (SSR)', () => {
       streaming: { outOfOrder: false },
     });
     const el = container.element;
-    // Harness doesn't run the swap script for an inert escalated host, so the visible swap is e2e-only.
     expect(el.querySelector('#fb-outer')?.textContent).toBe('outer');
   });
 
@@ -948,7 +941,6 @@ describe('ErrorBoundary throwing-fallback escalation (SSR)', () => {
     });
     const el = container.element;
     expect(el.querySelector('#fb-outer')?.textContent).toBe('outer');
-    // Out-of-order reveals via `qO`, which the harness drives, so the swap is observable here.
     expect(displayOf(el.querySelector('[q\\:ebc="1"]'))).toBe('none');
   });
 });
@@ -986,7 +978,6 @@ describe('ErrorBoundary safety net: in-order SSR throw with no boundary above', 
     } catch (err) {
       caught = err;
     }
-    // Identity preserved — no `toSerializableBoundaryError` on this path.
     expect(caught).toBe(original);
   });
 
@@ -1023,7 +1014,6 @@ describe('ErrorBoundary qerror listener', () => {
     );
     const target = container.element.querySelector('#target')!;
 
-    // Listener must contain handleError's re-throw, not let it escape document.dispatchEvent.
     expect(() =>
       dispatchQError(target, { error: new Error('boom'), element: target })
     ).not.toThrow();
@@ -1061,7 +1051,6 @@ describe('ErrorBoundary qerror listener', () => {
     );
     const target = container.element.querySelector('#target')!;
 
-    // qwikloader already logged the import failure — don't re-log or route it.
     expect(() =>
       dispatchQError(target, { error: new Error('sym:0'), element: target, importError: 'sync' })
     ).not.toThrow();
@@ -1072,7 +1061,6 @@ describe('ErrorBoundary qerror listener', () => {
 });
 
 // ===== V. SSR streaming swap mechanics (experimental) =====
-// Out-of-order off: content still streams live and a `qErr` inline script swaps in the fallback.
 describe('ErrorBoundary in-order swap (no out-of-order streaming)', () => {
   const inOrder = { debug, streaming: { outOfOrder: false } } as const;
 
@@ -1244,7 +1232,6 @@ describe('ErrorBoundary streaming swap (experimental)', () => {
       </main>
     );
     expect(html).toContain('id="before"');
-    // The swap lands right after the boundary, not at end-of-stream.
     const swapPos = html.search(/qO\(\d/);
     expect(swapPos).toBeGreaterThan(html.indexOf('id="before"'));
     expect(swapPos).toBeLessThan(html.indexOf('id="eb-tail"'));
@@ -1460,7 +1447,6 @@ describe('ErrorBoundary streaming swap (experimental)', () => {
     expect(displayOf(document.querySelector('#ok-b')?.closest('div[style]'))).toBe('contents');
   });
 
-  // The out-of-order branch never read `store.error`, so a client error relies on `handleError`'s re-render.
   it('client: a post-resume error on an out-of-order streamed boundary re-renders to its fallback', async () => {
     const { container } = await ssrRenderToDom(
       <main>
@@ -1550,7 +1536,6 @@ describe('ErrorBoundary routing through Suspense (experimental)', () => {
 
 describe('ErrorBoundary concurrent fallback teardown (experimental)', () => {
   it('two sibling <Suspense> that both reject tear the boundary down exactly once', async () => {
-    // First error wins: the second rejection must no-op on the already-detached fallback, not crash.
     const { document } = await streamAndResume(
       <main>
         <ErrorBoundary
@@ -1577,8 +1562,6 @@ describe('ErrorBoundary concurrent fallback teardown (experimental)', () => {
   });
 });
 
-// Inert swapped-out content is removed for free on re-render (driven via `rerenderComponent` since
-// an SSR-errored boundary has no self-trigger).
 describe('ErrorBoundary: a re-render deletes the inert swapped-out content', () => {
   it('in-order: re-rendering an SSR-errored boundary drops the inert content-host, fallback stays', async () => {
     const { container } = await ssrRenderToDom(
@@ -1814,7 +1797,6 @@ describe('ErrorBoundary onError$', () => {
     delete (globalThis as any).__ebOnErrorLog;
   });
 
-  // `fireOnError` is fire-and-forget: a throwing/rejecting onError$ is swallowed, never breaks the render.
   it('a synchronously throwing onError$ is swallowed; the fallback still renders (CSR)', async () => {
     const log: unknown[] = [];
     const { container } = await domRender(
@@ -1944,7 +1926,6 @@ describe('ErrorBoundary onError$', () => {
     );
     await getTestPlatform().flush();
     await delay(0);
-    // Server-side fire is before serialization, so captured refs observe it directly.
     expect(innerLog).toEqual(['boom']);
     expect(outerLog).toEqual(['inner fallback boom']);
   });
@@ -2016,7 +1997,7 @@ describe('ErrorBoundary reset', () => {
     const el = container.element;
     expect(el.querySelector('#retry')?.textContent).toContain('boom-1');
 
-    await trigger(el, '#retry', 'click'); // toggle -> 2, renders
+    await trigger(el, '#retry', 'click');
 
     expect(el.querySelector('#alive')).toBeTruthy();
   });

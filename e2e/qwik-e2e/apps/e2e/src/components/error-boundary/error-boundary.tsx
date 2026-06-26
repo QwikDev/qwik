@@ -36,7 +36,6 @@ const waitForRelease = (requestId: string, releaseId: string): Promise<void> =>
     resolvers.add(resolve);
   });
 
-// `id` prefixes markers so nested boundaries can tell their fallbacks apart.
 const EbFallback = component$((props: { msg: string; id?: string }) => {
   const id = props.id ?? 'eb-fallback';
   const count = useSignal(0);
@@ -74,7 +73,6 @@ const EbContent = component$(() => {
   );
 });
 
-// Throws only during SSR so the boundary streams its content first, then swaps.
 const EbSyncThrower = component$(() => {
   if (isServer) {
     throw new Error('eb sync boom');
@@ -82,7 +80,6 @@ const EbSyncThrower = component$(() => {
   return <span id="eb-thrower-client" />;
 });
 
-// Records client task runs on `window` so a test can assert the swapped-out task never re-runs.
 const EbInertContent = component$<{ trigger: Signal<number> }>((props) => {
   useTask$(({ track }) => {
     track(() => props.trigger.value);
@@ -98,7 +95,6 @@ const EbInertContent = component$<{ trigger: Signal<number> }>((props) => {
   );
 });
 
-// A deferred child whose async work rejects after its Suspense placeholder has streamed.
 const EbAsyncThrower = component$(() => {
   const url = useServerData<string>('url');
   const requestId = useServerData<string>('ooosRequestId');
@@ -150,7 +146,6 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
           </ErrorBoundary>
         </Suspense>
       ) : scenario === 'nested' ? (
-        // An outer-boundary throw replaces the whole subtree, including the inner boundary's fallback.
         <ErrorBoundary
           fallback$={(e) => <EbFallback id="eb-outer" msg={String((e as any)?.message ?? e)} />}
         >
@@ -171,8 +166,6 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
           </ErrorBoundary>
         </ErrorBoundary>
       ) : scenario === 'throw-fallback' ? (
-        // The INNER boundary's own fallback throws during SSR; the error must escalate to the OUTER
-        // boundary, which renders its fallback over the whole subtree.
         <ErrorBoundary
           fallback$={(e) => <EbFallback id="eb-outer" msg={String((e as any)?.message ?? e)} />}
         >
@@ -186,7 +179,6 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
           </ErrorBoundary>
         </ErrorBoundary>
       ) : scenario === 'inert' ? (
-        // Bumping the signal from outside the boundary must not re-run the swapped-out task.
         <>
           <ErrorBoundary fallback$={(e) => <EbFallback msg={String((e as any)?.message ?? e)} />}>
             <EbInertContent trigger={inertTrigger} />
@@ -226,7 +218,6 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
           <div id="eb-content">content ok</div>
         </ErrorBoundary>
       ) : scenario === 'onerror' ? (
-        // Records `onError$` runs on `window` so the test can assert it fired exactly once.
         <ErrorBoundary
           fallback$={(e) => <EbFallback msg={String((e as any)?.message ?? e)} />}
           onError$={(e) => {
@@ -247,8 +238,6 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
           <div id="eb-content">content ok</div>
         </ErrorBoundary>
       ) : scenario === 'no-boundary' ? (
-        // No enclosing ErrorBoundary: a throwing client handler must still reach the global error
-        // handler (window.onerror), not be swallowed to the console.
         <>
           <button
             id="eb-no-boundary-throw"
@@ -262,7 +251,6 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
           <span id="eb-no-boundary-touched">{touched.value}</span>
         </>
       ) : scenario === 'reset' ? (
-        // SSR throw; reset re-executes the children (EbSyncThrower throws only on the server).
         <ErrorBoundary
           fallback$={(e, reset) => (
             <section id="eb-fallback">
@@ -277,7 +265,6 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
           <EbSyncThrower />
         </ErrorBoundary>
       ) : scenario === 'reset-csr' ? (
-        // Client throw; reset re-supplies the content.
         <ErrorBoundary
           fallback$={(e, reset) => (
             <section id="eb-fallback">

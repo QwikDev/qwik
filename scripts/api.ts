@@ -4,11 +4,7 @@ import { join } from 'node:path';
 import { generateQwikApiMarkdownDocs, generateQwikRouterApiMarkdownDocs } from './api-docs.ts';
 import { type BuildConfig, copyFile, ensureDir, panic } from './util.ts';
 
-/**
- * Jsx-runtime only re-exports JSX, so we don't run it through api-extractor — we just point its
- * `.d.ts` at the source re-export. Shared by the production api-extractor path and the dev shim
- * path.
- */
+// jsx-runtime just re-exports JSX, so skip api-extractor.
 export function writeJsxRuntimeDts(config: BuildConfig) {
   const jsxContent = readFileSync(join(config.srcQwikDir, 'jsx-runtime.ts'), 'utf-8');
   writeFileSync(
@@ -293,7 +289,7 @@ function createTypesApi(
   }
 }
 
-function generateQwikRouterReferenceModules(config: BuildConfig) {
+export function generateQwikRouterReferenceModules(config: BuildConfig) {
   const srcModulesPath = join(config.packagesDir, 'qwik-router', 'lib');
 
   const destModulesPath = join(srcModulesPath, 'modules.d.ts');

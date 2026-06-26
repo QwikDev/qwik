@@ -19,7 +19,6 @@ import { buildPropertyAccessor } from '../ast/identifier-name.js';
 import { rewritePropsFieldReferences } from './props-field-rewrite.js';
 import {
   forEachAstChild,
-  someAstChild,
   getAssignedIdentifierName,
   type AstIdentifierNode,
   type AstRangedNode,
@@ -363,34 +362,17 @@ function getStatementRemovalRange(
   return { start: offset + lineStart, end: removeEnd };
 }
 
-/** Walk an arrow body looking for a `ReturnStatement` (any depth that
- * doesn't descend into nested function/arrow bodies — those are their own
- * scopes). Matches SWC's coarse "any return in this block" check. */
-function blockHasReturn(stmt: AstMaybeNode): boolean {
-  if (!stmt || typeof stmt !== 'object') return false;
-  if (stmt.type === 'ReturnStatement') return true;
-  if (
-    stmt.type === 'FunctionDeclaration' ||
-    stmt.type === 'FunctionExpression' ||
-    stmt.type === 'ArrowFunctionExpression'
-  ) {
-    return false;
-  }
-  return someAstChild(stmt, (child) => blockHasReturn(child));
+function isExpressionBodyArrow(body: AstMaybeNode): boolean {
+  return body != null && body.type !== 'BlockStatement';
+}
+
+function blockHasTopLevelReturn(body: AstMaybeNode): boolean {
+  if (body == null || body.type !== 'BlockStatement') return false;
+  return (body.body ?? []).some((stmt) => stmt?.type === 'ReturnStatement');
 }
 
 function arrowBodyLooksLikeComponent(body: AstMaybeNode): boolean {
-  if (!body) return false;
-  // Direct expression body: arrow returns the expression. Matches SWC's
-  // "Expr is CallExpression" specifically — and we also accept any non-
-  // statement expression here since they all behave as "the function
-  // returns this value."
-  if (body.type !== 'BlockStatement') return true;
-  // Block body: needs at least one return statement at this scope.
-  for (const stmt of body.body ?? []) {
-    if (blockHasReturn(stmt as AstMaybeNode)) return true;
-  }
-  return false;
+  return isExpressionBodyArrow(body) || blockHasTopLevelReturn(body);
 }
 
 function analyzeRawPropsTransform(
@@ -407,17 +389,6 @@ function analyzeRawPropsTransform(
 
   if (firstParam.type !== 'ObjectPattern') return null;
 
-  // Match SWC's `PropsDestructuring::visit_mut_arrow_expr` gate
-  // (`swc-reference-only/props_destructuring.rs:288-307`): rawProps
-  // consolidation on a *standalone* arrow expression only fires when the
-  // arrow's body either (a) is a direct call expression (e.g. `() => fn()`)
-  // or (b) is a block with at least one return statement. The intent is to
-  // pattern-match "inline component returning JSX" while skipping handlers
-  // like `useTask$(({ track }) => { track(...); track(...); })` whose
-  // destructured fields aren't props at all but a task-context object the
-  // runtime supplies. Without this gate, TS consolidates `({ track })` to
-  // `(_rawProps)` and rewrites `track(...)` to `_rawProps.track(...)`,
-  // diverging from SWC.
   if (!arrowBodyLooksLikeComponent(fn.body)) return null;
 
   const bindings = collectPatternBindings(firstParam, body, offset);

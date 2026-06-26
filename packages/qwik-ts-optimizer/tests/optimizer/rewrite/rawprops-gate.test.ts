@@ -29,6 +29,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
+import { parseSync } from 'oxc-parser';
 import { transformModule } from '../../../src/optimizer/transform/index.js';
 import type { TransformModule } from '../../../src/optimizer/types/types.js';
 import { mkFilePath, mkSourceText } from '../../../src/optimizer/types/brands.js';
@@ -37,6 +38,13 @@ function findParent(result: { modules: readonly TransformModule[] }): TransformM
   const parent = result.modules.find((m) => m.kind === 'parent');
   if (!parent) throw new Error('parent module not found');
   return parent;
+}
+
+function expectAllModulesParse(result: { modules: readonly TransformModule[] }): void {
+  for (const m of result.modules) {
+    const parsed = parseSync('m.jsx', m.code, { lang: 'jsx' });
+    expect(parsed.errors, `module ${m.path} must parse:\n${m.code}`).toHaveLength(0);
+  }
 }
 
 describe('bug 1: consolidation gate preserves unsafe destructures', () => {
@@ -223,5 +231,71 @@ export const C = component$(({count, stuff = hola()}) => {
     expect(code).not.toContain('_rawProps');
     // Source destructure preserved.
     expect(code).toMatch(/\(\{\s*count,\s*stuff\s*=\s*hola\(\)\s*\}\)\s*=>/);
+  });
+});
+
+describe('bug 3: gate counts only top-level returns, not nested ones', () => {
+  function findSegment(
+    result: { modules: readonly TransformModule[] },
+    needle: string,
+  ): TransformModule {
+    const seg = result.modules.find(
+      (m) => m.kind === 'segment' && m.path.includes(needle),
+    );
+    if (!seg) throw new Error(`segment ${needle} not found`);
+    return seg;
+  }
+
+  it('keeps a handler param when its only `return` is nested in control flow', () => {
+    const input = `
+import { component$, useContext, useTask$ } from '@qwik.dev/core';
+import { rootContextId } from './ctx';
+
+export const C = component$(({ api }) => {
+  const context = useContext(rootContextId);
+  useTask$(({ track }) => {
+    track(() => context.path);
+    if (!api?.items?.length) return;
+    context.value = api.items;
+  });
+  return <div>{api?.items?.length}</div>;
+});
+`;
+    const result = transformModule({
+      input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(input) }],
+      srcDir: mkFilePath('.'),
+      entryStrategy: { type: 'segment' },
+    });
+
+    const seg = findSegment(result, 'useTask');
+    expect(seg.code).toMatch(/\(\{\s*track\s*\}\)\s*=>/);
+    expect(seg.code).not.toMatch(/\(_rawProps\)\s*=>/);
+    expect(seg.code).toContain('_captures[0]');
+    expect(seg.code).toContain('_rawProps.api');
+    const rawPropsDecls = seg.code.match(/(?<![\w$.])_rawProps\s*=/g) ?? [];
+    expect(rawPropsDecls).toHaveLength(1);
+    expectAllModulesParse(result);
+  });
+
+  it('still consolidates a component whose block returns at top level', () => {
+    const input = `
+import { component$ } from '@qwik.dev/core';
+
+export const C = component$(({ label }) => {
+  if (!label) {
+    label;
+  }
+  return <div>{label}</div>;
+});
+`;
+    const result = transformModule({
+      input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(input) }],
+      srcDir: mkFilePath('.'),
+      entryStrategy: { type: 'segment' },
+    });
+
+    const seg = findSegment(result, 'component');
+    expect(seg.code).toMatch(/\(_rawProps\)\s*=>/);
+    expectAllModulesParse(result);
   });
 });

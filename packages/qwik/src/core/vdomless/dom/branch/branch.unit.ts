@@ -21,9 +21,9 @@ import {
   invoke,
   newInvokeContext,
   type RuntimeInvokeContext,
-  type SlotScope,
 } from '../../runtime/invoke-context';
 import type { ContextScope } from '../../runtime/context-scope';
+import type { SlotScope } from '../slot/slot';
 import { createOwner, registerSubscriberToOwner, runWithOwner } from '../../runtime/owner';
 import { Scheduler } from '../../runtime/scheduler';
 import type { BranchSubscriber, DomSubscriber } from '../../runtime/subscriber';
@@ -82,7 +82,6 @@ describe('branches', () => {
       values: new Map(),
     };
     const slotScope: SlotScope = {
-      id: 'branch-slot',
       slots: new Map(),
     };
     const branchContext = newInvokeContext({

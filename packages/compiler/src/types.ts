@@ -88,7 +88,8 @@ export interface SegmentRecord {
     | 'branchCondition'
     | 'branchRender'
     | 'forKey'
-    | 'forRender';
+    | 'forRender'
+    | 'slotRender';
   ctxName: string;
   range: SourceRange | null;
   calleeRange: SourceRange | null;
@@ -153,7 +154,7 @@ export interface ComponentNode {
   kind: 'component';
   name: string;
   props: ComponentPropRecord[];
-  children: RenderNode[];
+  slots: ComponentSlotRecord[];
 }
 
 export interface FragmentNode {
@@ -164,6 +165,19 @@ export interface FragmentNode {
 export interface ChildrenNode {
   kind: 'children';
   propsName: string;
+}
+
+export interface SlotNode {
+  kind: 'slot';
+  name: string;
+  fallbackSegmentId: string | null;
+  children: RenderNode[];
+}
+
+export interface ComponentSlotRecord {
+  name: string;
+  segmentId: string;
+  children: RenderNode[];
 }
 
 export interface TextNode {
@@ -204,6 +218,7 @@ export type RenderNode =
   | ComponentNode
   | FragmentNode
   | ChildrenNode
+  | SlotNode
   | TextNode
   | DynamicTextNode
   | BranchNode

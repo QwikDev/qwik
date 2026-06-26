@@ -38,6 +38,8 @@ import {
   hasBranch,
   hasForBlock,
   hasComponent,
+  hasComponentSlots,
+  hasSlot,
   hasRangeTextBinding,
   getDomEffectBatchStats,
   isDomEffectBatched,
@@ -212,7 +214,9 @@ function createSsrImportUsage(
     hasDomProps: hasScalar('props'),
     hasBranch: has(hasBranch),
     hasForBlock: has(hasForBlock),
+    hasSlot: has(hasSlot),
     hasComponent: has(hasComponent),
+    hasComponentSlots: has(hasComponentSlots),
     hasComponentPropsSpread: has(hasComponentPropsSpread),
   };
 }
@@ -425,8 +429,17 @@ function collectCsrRootNodeQrlSegments(
         collectExistingQrlSegment(prop.qrlSegmentId, qrlSegments, rootSegments);
       }
     }
-    for (const child of node.children) {
-      collectCsrRootNodeQrlSegments(child, qrlSegments, rootSegments);
+    for (const slot of node.slots) {
+      collectExistingQrlSegment(slot.segmentId, qrlSegments, rootSegments);
+      for (const child of slot.children) {
+        collectCsrRootNodeQrlSegments(child, qrlSegments, rootSegments);
+      }
+    }
+    return;
+  }
+  if (node.kind === 'slot') {
+    if (node.fallbackSegmentId) {
+      collectExistingQrlSegment(node.fallbackSegmentId, qrlSegments, rootSegments);
     }
     return;
   }
@@ -505,7 +518,9 @@ function collectCsrRootImportUsage(
     hasCapturedFunction: has((root) => hasCapturedCsrFunction(root, qrlSegments)),
     hasBranch: has(hasCsrRootBranch),
     hasForBlock: has(hasCsrRootForBlock),
+    hasSlot: has(hasCsrRootSlot),
     hasComponent: has(hasCsrRootComponent),
+    hasComponentSlots: has(hasCsrRootComponentSlots),
     hasComponentPropsSpread: has(hasCsrRootComponentPropsSpread),
   };
 }
@@ -561,8 +576,19 @@ function hasCsrRootForBlock(node: RenderNode | null): boolean {
   return someCsrRootNode(node, (current) => current.kind === 'for');
 }
 
+function hasCsrRootSlot(node: RenderNode | null): boolean {
+  return someCsrRootNode(node, (current) => current.kind === 'slot');
+}
+
 function hasCsrRootComponent(node: RenderNode | null): boolean {
   return someCsrRootNode(node, (current) => current.kind === 'component');
+}
+
+function hasCsrRootComponentSlots(node: RenderNode | null): boolean {
+  return someCsrRootNode(
+    node,
+    (current) => current.kind === 'component' && current.slots.length > 0
+  );
 }
 
 function someCsrRootNode(
@@ -575,7 +601,15 @@ function someCsrRootNode(
   if (predicate(node)) {
     return true;
   }
-  if (node.kind === 'element' || node.kind === 'fragment' || node.kind === 'component') {
+  if (node.kind === 'element' || node.kind === 'fragment') {
+    return node.children.some((child) => someCsrRootNode(child, predicate));
+  }
+  if (node.kind === 'component') {
+    return node.slots.some((slot) =>
+      slot.children.some((child) => someCsrRootNode(child, predicate))
+    );
+  }
+  if (node.kind === 'slot') {
     return node.children.some((child) => someCsrRootNode(child, predicate));
   }
   return false;
@@ -637,6 +671,38 @@ function collectNodeQrlSegments(
         collectSegmentById(ctx, prop.qrlSegmentId, segmentById, qrlSegments);
       }
     }
+    for (const slot of node.slots) {
+      collectSegmentById(ctx, slot.segmentId, segmentById, qrlSegments);
+      if (includeBranchChildren) {
+        for (const child of slot.children) {
+          collectNodeQrlSegments(
+            ctx,
+            child,
+            segmentById,
+            qrlSegments,
+            includeTextExpressions,
+            includeBranchChildren
+          );
+        }
+      }
+    }
+  }
+  if (node.kind === 'slot') {
+    if (node.fallbackSegmentId) {
+      collectSegmentById(ctx, node.fallbackSegmentId, segmentById, qrlSegments);
+    }
+    if (includeBranchChildren) {
+      for (const child of node.children) {
+        collectNodeQrlSegments(
+          ctx,
+          child,
+          segmentById,
+          qrlSegments,
+          includeTextExpressions,
+          includeBranchChildren
+        );
+      }
+    }
   }
   if (node.kind === 'branch') {
     collectSegmentById(ctx, node.conditionSegmentId, segmentById, qrlSegments);
@@ -686,7 +752,7 @@ function collectNodeQrlSegments(
   if (includeTextExpressions && node.kind === 'dynamicText' && node.binding.kind === 'expression') {
     collectSegmentById(ctx, node.binding.qrlSegmentId, segmentById, qrlSegments);
   }
-  if (node.kind === 'element' || node.kind === 'fragment' || node.kind === 'component') {
+  if (node.kind === 'element' || node.kind === 'fragment') {
     for (const child of node.children) {
       collectNodeQrlSegments(
         ctx,
@@ -799,7 +865,7 @@ function createQrlSegmentSource(
     if (ctx.emitTarget === 'ssr') {
       return createSsrBranchRenderSegmentSource(ctx, qrlSegment, qrlSegments);
     }
-    return createBranchRenderSegmentSource(ctx, qrlSegment, qrlSegments);
+    return createBranchRenderSegmentSource(ctx, qrlSegment);
   }
 
   if (qrlSegment.segment.kind === 'forRender') {
@@ -807,6 +873,13 @@ function createQrlSegmentSource(
       return createSsrForRenderSegmentSource(ctx, qrlSegment, qrlSegments);
     }
     return createForRenderSegmentSource(ctx, qrlSegment, qrlSegments);
+  }
+
+  if (qrlSegment.segment.kind === 'slotRender') {
+    if (ctx.emitTarget === 'ssr') {
+      return createSsrSlotRenderSegmentSource(ctx, qrlSegment, qrlSegments);
+    }
+    return createSlotRenderSegmentSource(ctx, qrlSegment);
   }
 
   const source = ctx.input.code;
@@ -954,17 +1027,27 @@ function createSsrBranchRenderSegmentSource(
   if (children === null) {
     throw new Error(`Missing branch render IR for ${qrlSegment.id}.`);
   }
+  return createSsrRenderSegmentSource(ctx, qrlSegment, qrlSegments, children, false);
+}
 
+function createSsrRenderSegmentSource(
+  ctx: CompilerContext,
+  qrlSegment: QrlSegmentOutput,
+  qrlSegments: Map<string, QrlSegmentOutput>,
+  children: readonly RenderNode[],
+  alwaysRangeId: boolean
+) {
   const fragment: RenderNode = { kind: 'fragment', children: [...children] };
   const segmentQrlSegments = collectRenderNodeQrlSegments(ctx, fragment, qrlSegments);
-  const hasBranchRootRangeText = hasRootRangeTextBinding(fragment);
+  const hasRootRangeText = hasRootRangeTextBinding(fragment);
   const captures = qrlSegment.segment.captures;
   const emitter = new SsrEmitter(segmentQrlSegments, ctx.input.code, {
     domEffectBatchCounts: getDomEffectBatchStats(fragment, segmentQrlSegments).counts,
-    rootRangeTarget: hasBranchRootRangeText ? 'rangeId' : undefined,
+    rootRangeTarget: hasRootRangeText ? 'rangeId' : undefined,
   });
   const html = emitter.emitHtmlExpression(fragment);
-  const isAsync = hasBranch(fragment) || hasComponent(fragment);
+  const isAsync =
+    hasBranch(fragment) || hasForBlock(fragment) || hasComponent(fragment) || hasSlot(fragment);
   const captureLine =
     captures.length > 0
       ? `const ${captures
@@ -990,7 +1073,7 @@ function createSsrBranchRenderSegmentSource(
   const importLine = imports.length > 0 ? `${emitImports(imports).join('\n')}\n\n` : '';
   const qrlPrelude = emitSsrQrlPrelude(segmentQrlSegments);
 
-  const params = hasBranchRootRangeText ? 'ctx, rangeId' : 'ctx';
+  const params = alwaysRangeId || hasRootRangeText ? 'ctx, rangeId' : 'ctx';
   return `${importLine}${qrlPrelude}export const ${qrlSegment.symbolName} = ${
     isAsync ? 'async ' : ''
   }(${params}) => {
@@ -1021,16 +1104,20 @@ function createSsrResolvedSegmentImports(
   return imports;
 }
 
-function createBranchRenderSegmentSource(
-  ctx: CompilerContext,
-  qrlSegment: QrlSegmentOutput,
-  qrlSegments: Map<string, QrlSegmentOutput>
-) {
+function createBranchRenderSegmentSource(ctx: CompilerContext, qrlSegment: QrlSegmentOutput) {
   const children = findBranchRenderChildren(ctx, qrlSegment.id);
   if (children === null) {
     throw new Error(`Missing branch render IR for ${qrlSegment.id}.`);
   }
+  return createDomRenderSegmentSource(ctx, qrlSegment, children, 'ctx');
+}
 
+function createDomRenderSegmentSource(
+  ctx: CompilerContext,
+  qrlSegment: QrlSegmentOutput,
+  children: readonly RenderNode[],
+  params: string
+) {
   const usage: BranchRenderUsage = {
     sparkImports: new Set(),
     segmentImports: new Map(),
@@ -1085,7 +1172,7 @@ function createBranchRenderSegmentSource(
 
   const importLine =
     imports.length > 0 ? `${emitImports(normalizeImports(imports)).join('\n')}\n\n` : '';
-  return `${importLine}${emitter.emitHoists()}export const ${qrlSegment.symbolName} = (ctx) => {
+  return `${importLine}${emitter.emitHoists()}export const ${qrlSegment.symbolName} = (${params}) => {
 ${indentBody(bodyStatements)}
 };
 `;
@@ -1114,7 +1201,8 @@ function createSsrForRenderSegmentSource(
   });
   const html = emitter.emitHtmlExpression(fragment);
   const rowHtml = rowIsElement ? html : `'<!r=' + rowId + '>' + ${html} + '<!/r>'`;
-  const isAsync = hasBranch(fragment) || hasForBlock(fragment) || hasComponent(fragment);
+  const isAsync =
+    hasBranch(fragment) || hasForBlock(fragment) || hasComponent(fragment) || hasSlot(fragment);
   const captureLine =
     captures.length > 0
       ? `const ${captures
@@ -1220,6 +1308,26 @@ function createForRenderSegmentSource(
 ${indentBody(bodyStatements)}
 };
 `;
+}
+
+function createSsrSlotRenderSegmentSource(
+  ctx: CompilerContext,
+  qrlSegment: QrlSegmentOutput,
+  qrlSegments: Map<string, QrlSegmentOutput>
+) {
+  const children = findSlotRenderChildren(ctx, qrlSegment.id);
+  if (children === null) {
+    throw new Error(`Missing slot render IR for ${qrlSegment.id}.`);
+  }
+  return createSsrRenderSegmentSource(ctx, qrlSegment, qrlSegments, children, true);
+}
+
+function createSlotRenderSegmentSource(ctx: CompilerContext, qrlSegment: QrlSegmentOutput) {
+  const children = findSlotRenderChildren(ctx, qrlSegment.id);
+  if (children === null) {
+    throw new Error(`Missing slot render IR for ${qrlSegment.id}.`);
+  }
+  return createDomRenderSegmentSource(ctx, qrlSegment, children, 'ctx');
 }
 
 function createDomEmitterModuleImports(ctx: CompilerContext, emitter: DomEmitter): ImportRecord[] {
@@ -1329,7 +1437,19 @@ function collectComponentReferenceNamesInNode(
   if (node.kind === 'component') {
     names.add(node.name);
   }
-  if (node.kind === 'element' || node.kind === 'fragment' || node.kind === 'component') {
+  if (node.kind === 'element' || node.kind === 'fragment') {
+    for (const child of node.children) {
+      collectComponentReferenceNamesInNode(child, names, includeBranches);
+    }
+  }
+  if (node.kind === 'component') {
+    for (const slot of node.slots) {
+      for (const child of slot.children) {
+        collectComponentReferenceNamesInNode(child, names, includeBranches);
+      }
+    }
+  }
+  if (node.kind === 'slot') {
     for (const child of node.children) {
       collectComponentReferenceNamesInNode(child, names, includeBranches);
     }
@@ -1385,93 +1505,24 @@ function findPropsSegmentElement(ctx: CompilerContext, segmentId: string): Eleme
 }
 
 function findPropsSegmentElementInNode(node: RenderNode, segmentId: string): ElementNode | null {
-  if (node.kind === 'element') {
-    if (node.propsSegmentId === segmentId) {
-      return node;
-    }
-    for (const child of node.children) {
-      const element = findPropsSegmentElementInNode(child, segmentId);
-      if (element !== null) {
-        return element;
-      }
-    }
-    return null;
-  }
-  if (node.kind === 'fragment' || node.kind === 'component') {
-    for (const child of node.children) {
-      const element = findPropsSegmentElementInNode(child, segmentId);
-      if (element !== null) {
-        return element;
-      }
-    }
-    return null;
-  }
-  if (node.kind === 'branch') {
-    for (const child of node.thenChildren) {
-      const element = findPropsSegmentElementInNode(child, segmentId);
-      if (element !== null) {
-        return element;
-      }
-    }
-    for (const child of node.elseChildren) {
-      const element = findPropsSegmentElementInNode(child, segmentId);
-      if (element !== null) {
-        return element;
-      }
-    }
-  }
-  if (node.kind === 'for') {
-    for (const child of node.children) {
-      const element = findPropsSegmentElementInNode(child, segmentId);
-      if (element !== null) {
-        return element;
-      }
-    }
-  }
-  return null;
+  return findRenderNodeValue(node, (current) =>
+    current.kind === 'element' && current.propsSegmentId === segmentId ? current : null
+  );
 }
 
 function findBranchRenderChildrenInNode(
   node: RenderNode,
   segmentId: string
 ): readonly RenderNode[] | null {
-  if (node.kind === 'branch') {
-    if (node.thenSegmentId === segmentId) {
-      return node.thenChildren;
+  return findRenderNodeValue(node, (current) => {
+    if (current.kind !== 'branch') {
+      return null;
     }
-    if (node.elseSegmentId === segmentId) {
-      return node.elseChildren;
+    if (current.thenSegmentId === segmentId) {
+      return current.thenChildren;
     }
-    for (const child of node.thenChildren) {
-      const children = findBranchRenderChildrenInNode(child, segmentId);
-      if (children !== null) {
-        return children;
-      }
-    }
-    for (const child of node.elseChildren) {
-      const children = findBranchRenderChildrenInNode(child, segmentId);
-      if (children !== null) {
-        return children;
-      }
-    }
-  }
-  if (node.kind === 'element' || node.kind === 'fragment' || node.kind === 'component') {
-    for (const child of node.children) {
-      const children = findBranchRenderChildrenInNode(child, segmentId);
-      if (children !== null) {
-        return children;
-      }
-    }
-  }
-  if (node.kind === 'for') {
-    for (const child of node.children) {
-      const children = findBranchRenderChildrenInNode(child, segmentId);
-      if (children !== null) {
-        return children;
-      }
-    }
-  }
-  return null;
+    return current.elseSegmentId === segmentId ? current.elseChildren : null;
+  });
 }
 
 function findForRenderChildren(
@@ -1490,43 +1541,97 @@ function findForRenderChildren(
   return null;
 }
 
+function findSlotRenderChildren(
+  ctx: CompilerContext,
+  segmentId: string
+): readonly RenderNode[] | null {
+  for (const component of ctx.manifest.components) {
+    if (component.root === null) {
+      continue;
+    }
+    const children = findSlotRenderChildrenInNode(component.root, segmentId);
+    if (children !== null) {
+      return children;
+    }
+  }
+  return null;
+}
+
 function findForRenderChildrenInNode(
   node: RenderNode,
   segmentId: string
 ): readonly RenderNode[] | null {
-  if (node.kind === 'for') {
-    if (node.renderSegmentId === segmentId) {
-      return node.children;
+  return findRenderNodeValue(node, (current) =>
+    current.kind === 'for' && current.renderSegmentId === segmentId ? current.children : null
+  );
+}
+
+function findSlotRenderChildrenInNode(
+  node: RenderNode,
+  segmentId: string
+): readonly RenderNode[] | null {
+  return findRenderNodeValue(node, (current) => {
+    if (current.kind === 'component') {
+      return current.slots.find((slot) => slot.segmentId === segmentId)?.children ?? null;
     }
+    return current.kind === 'slot' && current.fallbackSegmentId === segmentId
+      ? current.children
+      : null;
+  });
+}
+
+function findRenderNodeValue<T>(node: RenderNode, match: (node: RenderNode) => T | null): T | null {
+  const matched = match(node);
+  if (matched !== null) {
+    return matched;
+  }
+
+  if (node.kind === 'element' || node.kind === 'fragment') {
     for (const child of node.children) {
-      const children = findForRenderChildrenInNode(child, segmentId);
-      if (children !== null) {
-        return children;
+      const childMatch = findRenderNodeValue(child, match);
+      if (childMatch !== null) {
+        return childMatch;
+      }
+    }
+    return null;
+  }
+
+  if (node.kind === 'component') {
+    for (const slot of node.slots) {
+      for (const child of slot.children) {
+        const childMatch = findRenderNodeValue(child, match);
+        if (childMatch !== null) {
+          return childMatch;
+        }
+      }
+    }
+    return null;
+  }
+
+  if (node.kind === 'slot' || node.kind === 'for') {
+    for (const child of node.children) {
+      const childMatch = findRenderNodeValue(child, match);
+      if (childMatch !== null) {
+        return childMatch;
       }
     }
   }
+
   if (node.kind === 'branch') {
     for (const child of node.thenChildren) {
-      const children = findForRenderChildrenInNode(child, segmentId);
-      if (children !== null) {
-        return children;
+      const childMatch = findRenderNodeValue(child, match);
+      if (childMatch !== null) {
+        return childMatch;
       }
     }
     for (const child of node.elseChildren) {
-      const children = findForRenderChildrenInNode(child, segmentId);
-      if (children !== null) {
-        return children;
+      const childMatch = findRenderNodeValue(child, match);
+      if (childMatch !== null) {
+        return childMatch;
       }
     }
   }
-  if (node.kind === 'element' || node.kind === 'fragment' || node.kind === 'component') {
-    for (const child of node.children) {
-      const children = findForRenderChildrenInNode(child, segmentId);
-      if (children !== null) {
-        return children;
-      }
-    }
-  }
+
   return null;
 }
 

@@ -15,6 +15,12 @@ import { Signal } from '../../vdomless/reactive/signal';
 import { isLazySerialized } from '../../vdomless/reactive/lazy-serialized';
 import type { Dependency, SourceSubs } from '../../vdomless/reactive/source';
 import { isContextScope } from '../../vdomless/runtime/context-scope';
+import {
+  isProjection,
+  isSlotScope,
+  type Projection,
+  type SlotScope,
+} from '../../vdomless/dom/slot/slot';
 import { Owner } from '../../vdomless/runtime/owner';
 import type { Subscriber } from '../../vdomless/runtime/subscriber';
 import type { SSRInternalStreamWriter, SSRWriteChunk } from '../../ssr/ssr-types';
@@ -465,6 +471,10 @@ export class Serializer {
         out.push(key, value === undefined ? explicitUndefined : value);
       }
       this.output(TypeIds.ContextScope, out);
+    } else if (isSlotScope(value)) {
+      this.output(TypeIds.SlotScope, serializeSlotScope(value));
+    } else if (isProjection(value)) {
+      this.output(TypeIds.Projection, serializeProjection(value));
     } else if (isObjectLiteral(value)) {
       if (Array.isArray(value)) {
         this.output(TypeIds.Array, value);
@@ -748,6 +758,7 @@ function serializeBranchSubscription(subscription: SsrBranchSubscription): unkno
     effect.thenQrl,
     effect.elseQrl ?? null,
     getSsrBranchOwnedSubscribers(subscription),
+    effect.invokeContext?.slotScope ?? null,
   ];
 }
 
@@ -778,7 +789,20 @@ function serializeForBlockSubscription(subscription: SsrForBlockSubscription): u
     effect.renderQrl,
     effect.usesItemSignal,
     effect.usesIndexSignal,
+    effect.invokeContext?.slotScope ?? null,
   ];
+}
+
+function serializeSlotScope(scope: SlotScope): unknown[] {
+  const out: unknown[] = [];
+  for (const [name, projections] of scope.slots) {
+    out.push(name, projections);
+  }
+  return out;
+}
+
+function serializeProjection(projection: Projection): unknown[] {
+  return [projection.renderQrl, projection.slotScope];
 }
 
 function serializeDomSubscription(subscription: SsrDomSubscription): unknown[] {

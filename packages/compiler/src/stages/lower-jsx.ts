@@ -24,6 +24,7 @@ import type {
 import type {
   AstJsxNode,
   ComponentNamedPropRecord,
+  ComponentSlotRecord,
   ComponentPropRecord,
   CompilerContext,
   DynamicBinding,
@@ -34,6 +35,7 @@ import type {
   SourceRange,
   BranchNode,
   ForNode,
+  SlotNode,
 } from '../types';
 
 export function lowerStaticJsxToIr(ctx: CompilerContext) {
@@ -112,13 +114,16 @@ function lowerJsxElement(
       'Only simple JSX element names are supported in vdomless static components.'
     );
   }
+  if (name === 'Slot') {
+    return lowerSlotElement(ctx, node, propsName);
+  }
   if (!isNativeTag(name)) {
     if (isComponentTagName(name)) {
       return {
         kind: 'component',
         name,
         props: lowerComponentAttributes(ctx, opening.attributes),
-        children: lowerJsxChildren(ctx, node.children, propsName),
+        slots: lowerComponentSlots(ctx, node.children, propsName),
       };
     }
     return unsupportedNode(
@@ -137,8 +142,112 @@ function lowerJsxElement(
   };
 }
 
+function lowerSlotElement(
+  ctx: CompilerContext,
+  node: JSXElement,
+  propsName: string | null
+): SlotNode {
+  const name = getStaticSlotName(ctx, node.openingElement.attributes);
+  const children = lowerJsxChildren(ctx, node.children, propsName);
+  const range = children.length > 0 ? getRange(node) : null;
+  const segment = range === null ? null : findSlotRenderSegment(ctx, range);
+  return {
+    kind: 'slot',
+    name,
+    fallbackSegmentId: children.length > 0 ? (segment?.id ?? null) : null,
+    children,
+  };
+}
+
+function lowerComponentSlots(
+  ctx: CompilerContext,
+  children: JSXChild[],
+  propsName: string | null
+): ComponentSlotRecord[] {
+  const slots: ComponentSlotRecord[] = [];
+  for (const child of children) {
+    if (isEmptyJsxChild(child)) {
+      continue;
+    }
+    const slotName = getProjectionSlotName(ctx, child);
+    const rendered = lowerJsxChildren(ctx, [child], propsName);
+    if (rendered.length === 0) {
+      continue;
+    }
+    const range = getRange(child);
+    const segment = range === null ? null : findSlotRenderSegment(ctx, range);
+    if (segment == null) {
+      continue;
+    }
+    slots.push({
+      name: slotName,
+      segmentId: segment.id,
+      children: rendered,
+    });
+  }
+  return slots;
+}
+
 function isComponentTagName(name: string): boolean {
   return /^[A-Z][A-Za-z0-9_$]*$/.test(name);
+}
+
+function getStaticSlotName(ctx: CompilerContext, attributes: JSXAttributeItem[]): string {
+  for (const attr of attributes) {
+    if (attr.type !== 'JSXAttribute' || getJsxAttributeName(attr.name) !== 'name') {
+      continue;
+    }
+    const name = readStaticSlotAttribute(attr.value);
+    if (name !== null) {
+      return name;
+    }
+    ctx.manifest.diagnostics.push(
+      createDiagnostic(ctx.input.path, 'Dynamic Slot name is not supported in vdomless yet.')
+    );
+    return '';
+  }
+  return '';
+}
+
+function getProjectionSlotName(ctx: CompilerContext, child: JSXChild): string {
+  if (child.type !== 'JSXElement') {
+    return '';
+  }
+  for (const attr of child.openingElement.attributes) {
+    if (attr.type !== 'JSXAttribute' || getJsxAttributeName(attr.name) !== 'q:slot') {
+      continue;
+    }
+    const name = readStaticSlotAttribute(attr.value);
+    if (name !== null) {
+      return name;
+    }
+    ctx.manifest.diagnostics.push(
+      createDiagnostic(ctx.input.path, 'Dynamic q:slot is not supported in vdomless yet.')
+    );
+    return '';
+  }
+  return '';
+}
+
+function readStaticSlotAttribute(valueNode: JSXAttributeValue | null): string | null {
+  if (!valueNode) {
+    return '';
+  }
+  if (valueNode.type === 'Literal' && typeof valueNode.value === 'string') {
+    return valueNode.value;
+  }
+  if (valueNode.type === 'JSXExpressionContainer') {
+    const value = getStaticExpressionValue(unwrapExpression(valueNode.expression));
+    return value.supported && typeof value.value === 'string' ? value.value : null;
+  }
+  return null;
+}
+
+function isEmptyJsxChild(child: JSXChild): boolean {
+  if (child.type === 'JSXText') {
+    return normalizeJsxText(child.value ?? child.raw ?? '') === '';
+  }
+  return child.type === 'JSXExpressionContainer' && child.expression?.type === 'JSXEmptyExpression';
 }
 
 function lowerJsxAttributes(
@@ -589,7 +698,7 @@ function lowerJsxChildren(
       }
       const expression = unwrapExpression(child.expression);
       if (isPropsChildrenExpression(expression, propsName)) {
-        nodes.push({ kind: 'children', propsName: propsName! });
+        nodes.push({ kind: 'slot', name: '', fallbackSegmentId: null, children: [] });
         continue;
       }
       const expressionRange = getRange(expression);
@@ -900,7 +1009,7 @@ function lowerExpressionChildren(
     return [];
   }
   if (isPropsChildrenExpression(expr, propsName)) {
-    return [{ kind: 'children', propsName: propsName! }];
+    return [{ kind: 'slot', name: '', fallbackSegmentId: null, children: [] }];
   }
   if (expr.type === 'JSXElement' || expr.type === 'JSXFragment') {
     return [lowerJsxNode(ctx, expr, propsName)];
@@ -1035,6 +1144,12 @@ function findBranchSegment(
 function findForSegment(ctx: CompilerContext, kind: 'forKey' | 'forRender', range: SourceRange) {
   return ctx.manifest.segments.find(
     (segment) => segment.kind === kind && rangesEqual(segment.range, range)
+  );
+}
+
+function findSlotRenderSegment(ctx: CompilerContext, range: SourceRange) {
+  return ctx.manifest.segments.find(
+    (segment) => segment.kind === 'slotRender' && rangesEqual(segment.range, range)
   );
 }
 

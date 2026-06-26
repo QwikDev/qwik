@@ -11,9 +11,9 @@ import {
   newChildInvokeContext,
   newInvokeContext,
   type RuntimeInvokeContext,
-  type SlotScope,
 } from '../runtime/invoke-context';
 import type { ContextScope } from '../runtime/context-scope';
+import type { SlotScope } from '../dom/slot/slot';
 import { createOwner, disposeOwner, runWithOwner } from '../runtime/owner';
 import { Scheduler } from '../runtime/scheduler';
 import type { DomSubscriber } from '../runtime/subscriber';
@@ -133,7 +133,6 @@ describe('components and invoke contexts', () => {
     const parentOwner = createOwner();
     const container = {} as ContainerContext;
     const slotScope: SlotScope = {
-      id: 'slot',
       slots: new Map(),
     };
     const parentContext = newInvokeContext({
@@ -180,7 +179,6 @@ describe('components and invoke contexts', () => {
       values: new Map(),
     };
     const slotScope: SlotScope = {
-      id: 'slot',
       slots: new Map(),
     };
     const container = {} as ContainerContext;

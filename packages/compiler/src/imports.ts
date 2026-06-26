@@ -39,7 +39,9 @@ export function createSsrImports(
     !usage.hasComponent &&
     !usage.hasDomProps &&
     !usage.hasComponentPropsSpread &&
-    !usage.hasForBlock
+    !usage.hasForBlock &&
+    !usage.hasSlot &&
+    !usage.hasComponentSlots
   ) {
     return [];
   }
@@ -47,6 +49,9 @@ export function createSsrImports(
   const sparkSpecifiers: QwikSymbol[] = [];
   if (usage.hasComponent) {
     sparkSpecifiers.push(QwikSymbol.CreateComponent);
+  }
+  if (usage.hasComponentSlots) {
+    sparkSpecifiers.push(QwikSymbol.CreateSlotScope, QwikSymbol.RegisterProjection);
   }
   if (usage.hasComponentPropsSpread) {
     sparkSpecifiers.push(QwikSymbol.MergeProps);
@@ -99,6 +104,9 @@ export function createSsrImports(
   if (usage.hasForBlock) {
     sparkSpecifiers.push(QwikSymbol.RenderSsrForBlock);
   }
+  if (usage.hasSlot) {
+    sparkSpecifiers.push(QwikSymbol.RenderSsrSlot);
+  }
   if (sparkSpecifiers.length > 0) {
     records.push(createQwikSparkImport(...sparkSpecifiers));
   }
@@ -122,7 +130,9 @@ export interface SsrImportUsage {
   hasDomProps: boolean;
   hasBranch: boolean;
   hasForBlock: boolean;
+  hasSlot: boolean;
   hasComponent: boolean;
+  hasComponentSlots: boolean;
   hasComponentPropsSpread: boolean;
 }
 
@@ -139,7 +149,9 @@ export function createCsrImports(
     !usage.hasDomProps &&
     !usage.hasDirectEvent &&
     !usage.hasComponentPropsSpread &&
-    !usage.hasForBlock
+    !usage.hasForBlock &&
+    !usage.hasSlot &&
+    !usage.hasComponentSlots
   ) {
     return [];
   }
@@ -148,6 +160,12 @@ export function createCsrImports(
   const segmentImports: ImportRecord[] = [];
   if (usage.hasComponent) {
     sparkSpecifiers.push(QwikSymbol.CreateComponent);
+  }
+  if (usage.hasComponentSlots) {
+    sparkSpecifiers.push(QwikSymbol.CreateSlotScope, QwikSymbol.RegisterProjection);
+  }
+  if (usage.hasSlot) {
+    sparkSpecifiers.push(QwikSymbol.CreateSlot);
   }
   if (usage.hasTemplate) {
     sparkSpecifiers.push(QwikSymbol.CreateTemplate);
@@ -233,7 +251,9 @@ export interface CsrImportUsage {
   hasCapturedFunction: boolean;
   hasBranch: boolean;
   hasForBlock: boolean;
+  hasSlot: boolean;
   hasComponent: boolean;
+  hasComponentSlots: boolean;
   hasComponentPropsSpread: boolean;
 }
 

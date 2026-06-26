@@ -9,6 +9,7 @@ import type {
   QrlSegmentOutput,
   RenderNode,
   SegmentRecord,
+  SlotNode,
 } from '../types';
 import { QwikSymbol } from '../words';
 import {
@@ -188,6 +189,9 @@ export class DomEmitter {
     if (node.kind === 'children') {
       return { id: `(${node.propsName}.children ?? [])`, kind: 'nodes' };
     }
+    if (node.kind === 'slot') {
+      return this.emitSlot(node);
+    }
     if (node.kind === 'text') {
       const id = this.next('text');
       this.line(`const ${id} = ctx.document.createTextNode(${JSON.stringify(node.value)});`);
@@ -210,10 +214,13 @@ export class DomEmitter {
     }
     if (node.kind === 'component') {
       const id = this.next('cmp');
-      const props = this.emitComponentProps(node.props, node.children);
+      const props = this.emitComponentProps(node.props);
+      const slotScope = this.emitComponentSlotScope(node);
       this.use(QwikSymbol.CreateComponent);
       this.line(
-        `const ${id} = ${QwikSymbol.CreateComponent}(${props}, (props) => ${node.name}(props, ctx), { container: ctx });`
+        `const ${id} = ${QwikSymbol.CreateComponent}(${props}, (props) => ${node.name}(props, ctx), { container: ctx${
+          slotScope === null ? '' : `, slotScope: ${slotScope}`
+        } });`
       );
       return { id, kind: 'nodes' };
     }
@@ -234,20 +241,10 @@ export class DomEmitter {
     throw new Error('Unsupported render node.');
   }
 
-  private emitComponentProps(
-    props: ComponentPropRecord[],
-    children: readonly RenderNode[]
-  ): string {
-    const entries: string[] = [];
-    if (children.length > 0) {
-      const childOutputs = children.flatMap((child) => this.emitRoot(child));
-      entries.push(`${JSON.stringify('children')}: ${emitNodeOutputExpression(childOutputs)}`);
-    }
+  private emitComponentProps(props: ComponentPropRecord[]): string {
     if (!props.some((prop) => prop.kind === 'spread')) {
       const propEntries = props.map((prop) => this.emitComponentPropEntry(prop));
-      return [...propEntries, ...entries].length === 0
-        ? '{}'
-        : `{ ${[...propEntries, ...entries].join(', ')} }`;
+      return propEntries.length === 0 ? '{}' : `{ ${propEntries.join(', ')} }`;
     }
 
     const sources: string[] = [];
@@ -267,10 +264,42 @@ export class DomEmitter {
         currentEntries.push(this.emitComponentPropEntry(prop));
       }
     }
-    currentEntries.push(...entries);
     flushEntries();
     this.use(QwikSymbol.MergeProps);
     return sources.length === 0 ? '{}' : `${QwikSymbol.MergeProps}(${sources.join(', ')})`;
+  }
+
+  private emitComponentSlotScope(node: Extract<RenderNode, { kind: 'component' }>): string | null {
+    if (node.slots.length === 0) {
+      return null;
+    }
+    const id = this.next('slotScope');
+    this.use(QwikSymbol.CreateSlotScope);
+    this.use(QwikSymbol.RegisterProjection);
+    this.line(`const ${id} = ${QwikSymbol.CreateSlotScope}();`);
+    for (const slot of node.slots) {
+      const qrlSegment = this.requireQrlSegment(slot.segmentId);
+      this.importSegment(qrlSegment);
+      this.line(
+        `${QwikSymbol.RegisterProjection}(${id}, ${JSON.stringify(
+          slot.name
+        )}, ${this.emitCapturedFunction(qrlSegment)});`
+      );
+    }
+    return id;
+  }
+
+  private emitSlot(node: SlotNode): DomOutput {
+    const id = this.next('slot');
+    let fallback = 'undefined';
+    if (node.fallbackSegmentId !== null) {
+      const qrlSegment = this.requireQrlSegment(node.fallbackSegmentId);
+      this.importSegment(qrlSegment);
+      fallback = this.emitCapturedFunction(qrlSegment);
+    }
+    this.use(QwikSymbol.CreateSlot);
+    this.line(`const ${id} = ${QwikSymbol.CreateSlot}(${JSON.stringify(node.name)}, ${fallback});`);
+    return { id, kind: 'nodes' };
   }
 
   private emitComponentPropEntry(prop: ComponentPropRecord): string {
@@ -574,6 +603,14 @@ export class DomEmitter {
     }
     this.importSegment(qrlSegment);
     return this.emitCapturedFunction(qrlSegment);
+  }
+
+  private requireQrlSegment(segmentId: string): QrlSegmentOutput {
+    const qrlSegment = this.qrlSegments.get(segmentId);
+    if (!qrlSegment) {
+      throw new Error(`Missing QRL segment ${segmentId}.`);
+    }
+    return qrlSegment;
   }
 
   private emitCapturedFunction(qrlSegment: QrlSegmentOutput) {

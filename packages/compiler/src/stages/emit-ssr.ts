@@ -10,6 +10,7 @@ import type {
   QrlSegmentOutput,
   RenderNode,
   SegmentRecord,
+  SlotNode,
 } from '../types';
 import { QwikSymbol } from '../words';
 import {
@@ -27,6 +28,7 @@ import {
   hasBranch,
   hasForBlock,
   hasComponent,
+  hasSlot,
   hasDynamicBinding,
   isDomEffectBatched,
   rewriteLoopCaptures,
@@ -81,7 +83,10 @@ function emitSsrComponent(
   });
   const html = emitter.emitHtmlExpression(component.root!);
   const isAsync =
-    hasBranch(component.root) || hasForBlock(component.root) || hasComponent(component.root);
+    hasBranch(component.root) ||
+    hasForBlock(component.root) ||
+    hasComponent(component.root) ||
+    hasSlot(component.root);
   const setup = emitComponentSetup(
     component,
     qrlSegments,
@@ -150,6 +155,9 @@ export class SsrEmitter {
     if (node.kind === 'children') {
       return [{ code: `(${node.propsName}.children ?? '')` }];
     }
+    if (node.kind === 'slot') {
+      return this.emitSlotParts(node);
+    }
     if (node.kind === 'fragment') {
       return this.emitFragmentParts(node.children);
     }
@@ -205,11 +213,13 @@ export class SsrEmitter {
   private emitComponentParts(node: Extract<RenderNode, { kind: 'component' }>): HtmlPart[] {
     this.usesCtx = true;
     const componentId = this.next('component');
+    const slotScope = this.emitComponentSlotScope(node);
     this.line(
       `const ${componentId} = ${QwikSymbol.CreateComponent}(${this.emitComponentProps(
-        node.props,
-        node.children
-      )}, (props) => ${node.name}(props, ctx));`
+        node.props
+      )}, (props) => ${node.name}(props, ctx)${
+        slotScope === null ? '' : `, { slotScope: ${slotScope} }`
+      });`
     );
     return [
       {
@@ -218,23 +228,10 @@ export class SsrEmitter {
     ];
   }
 
-  private emitComponentProps(
-    props: ComponentPropRecord[],
-    children: readonly RenderNode[]
-  ): string {
-    const entries: string[] = [];
-    if (children.length > 0) {
-      entries.push(
-        `${JSON.stringify('children')}: ${partsToExpression(
-          children.flatMap((child) => this.emitHtmlParts(child))
-        )}`
-      );
-    }
+  private emitComponentProps(props: ComponentPropRecord[]): string {
     if (!props.some((prop) => prop.kind === 'spread')) {
       const propEntries = props.map((prop) => this.emitComponentPropEntry(prop));
-      return [...propEntries, ...entries].length === 0
-        ? '{}'
-        : `{ ${[...propEntries, ...entries].join(', ')} }`;
+      return propEntries.length === 0 ? '{}' : `{ ${propEntries.join(', ')} }`;
     }
 
     const sources: string[] = [];
@@ -254,9 +251,42 @@ export class SsrEmitter {
         currentEntries.push(this.emitComponentPropEntry(prop));
       }
     }
-    currentEntries.push(...entries);
     flushEntries();
     return sources.length === 0 ? '{}' : `${QwikSymbol.MergeProps}(${sources.join(', ')})`;
+  }
+
+  private emitComponentSlotScope(node: Extract<RenderNode, { kind: 'component' }>): string | null {
+    if (node.slots.length === 0) {
+      return null;
+    }
+    const id = this.next('slotScope');
+    this.line(`const ${id} = ${QwikSymbol.CreateSlotScope}();`);
+    this.line(`ctx.addRoot(${id});`);
+    for (const slot of node.slots) {
+      const qrlSegment = this.requireQrlSegment(slot.segmentId);
+      this.emitCaptureRoots(qrlSegment);
+      this.line(
+        `${QwikSymbol.RegisterProjection}(${id}, ${JSON.stringify(slot.name)}, ${emitQrlReference(
+          qrlSegment
+        )});`
+      );
+    }
+    return id;
+  }
+
+  private emitSlotParts(node: SlotNode): HtmlPart[] {
+    this.usesCtx = true;
+    const id = this.next('slot');
+    let fallback = 'undefined';
+    if (node.fallbackSegmentId !== null) {
+      const qrlSegment = this.requireQrlSegment(node.fallbackSegmentId);
+      this.emitCaptureRoots(qrlSegment);
+      fallback = emitQrlReference(qrlSegment);
+    }
+    this.line(
+      `const ${id} = ${QwikSymbol.RenderSsrSlot}(ctx, ${JSON.stringify(node.name)}, ${fallback});`
+    );
+    return [{ code: `(await ${id})` }];
   }
 
   private emitComponentPropEntry(prop: ComponentPropRecord): string {

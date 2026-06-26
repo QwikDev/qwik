@@ -10,12 +10,15 @@ const BRANCH_OPEN = 'b=';
 const BRANCH_CLOSE = '/b';
 const FOR_OPEN = 'f=';
 const FOR_CLOSE = '/f';
+const SLOT_OPEN = 's=';
+const SLOT_CLOSE = '/s';
 const ROW_OPEN = 'r';
 const ROW_CLOSE = '/r';
 const ROW_ATTR = 'q:row';
 
 export type BranchMarkerRange = readonly [Comment, Comment];
 export type ForMarkerRange = readonly [Comment, Comment];
+export type SlotMarkerRange = readonly [Comment, Comment];
 export type RowMarkerRange = readonly [Comment, Comment];
 export type ForRowRange = Element | RowMarkerRange;
 
@@ -95,6 +98,15 @@ export function findForRange(element: Element, rangeId: string | number): ForMar
     return null;
   }
   const end = findRangeEnd(start, FOR_OPEN, FOR_CLOSE);
+  return end === null ? null : [start, end];
+}
+
+export function findSlotRange(element: Element, rangeId: string | number): SlotMarkerRange | null {
+  const start = findComment(element, SLOT_OPEN + String(rangeId));
+  if (start === null) {
+    return null;
+  }
+  const end = findRangeEnd(start, SLOT_OPEN, SLOT_CLOSE);
   return end === null ? null : [start, end];
 }
 

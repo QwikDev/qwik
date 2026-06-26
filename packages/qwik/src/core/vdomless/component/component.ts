@@ -5,9 +5,9 @@ import {
   invoke,
   newChildInvokeContext,
   type RuntimeInvokeContext,
-  type SlotScope,
 } from '../runtime/invoke-context';
 import type { ContainerContext } from '../runtime/container-context';
+import type { SlotScope } from '../dom/slot/slot';
 import { disposeOwner } from '../runtime/owner';
 import { runWithCollector } from '../reactive/tracking';
 import type { NodeOutput } from '../utils/nodes';

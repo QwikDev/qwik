@@ -1,13 +1,7 @@
 import type { ContainerContext } from './container-context';
 import type { ContextScope } from './context-scope';
 import type { Owner } from './owner';
-
-export type SlotName = string;
-
-export interface SlotScope {
-  id: string | null;
-  slots: Map<SlotName, unknown>;
-}
+import type { SlotScope } from '../dom/slot/slot';
 
 export interface RuntimeInvokeContext {
   owner: Owner | null;

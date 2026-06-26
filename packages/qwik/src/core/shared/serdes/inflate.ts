@@ -27,6 +27,7 @@ import {
 } from '../../vdomless/runtime/container-context';
 import type { ContextScope } from '../../vdomless/runtime/context-scope';
 import { newInvokeContext, type RuntimeInvokeContext } from '../../vdomless/runtime/invoke-context';
+import type { Projection, SlotScope } from '../../vdomless/dom/slot/slot';
 import { createOwner, registerSubscriberToOwner } from '../../vdomless/runtime/owner';
 import {
   findBranchRange,
@@ -35,6 +36,7 @@ import {
   findForRange,
   findForRowRange,
   findQwikElement,
+  findSlotRange,
   findTextNode,
 } from '../../vdomless/runtime/node-walker';
 import {
@@ -191,6 +193,23 @@ export const inflate = async (
       }
       break;
     }
+    case TypeIds.SlotScope: {
+      const scope = target as SlotScope;
+      const d = data as unknown[];
+      for (let i = 0; i < d.length; i += 2) {
+        scope.slots.set(d[i] as string, d[i + 1] as Projection[]);
+      }
+      break;
+    }
+    case TypeIds.Projection: {
+      const projection = target as Projection;
+      const d = data as unknown[];
+      projection.renderQrl = d[0];
+      projection.owner = null;
+      projection.nodes = null;
+      projection.slotScope = (d[1] as SlotScope | null) ?? null;
+      break;
+    }
     case TypeIds.Promise: {
       const promise = target as Promise<unknown>;
       const [resolved, result] = data as [boolean, unknown];
@@ -266,6 +285,7 @@ async function restoreBranchSubscription(
   const elseQrl =
     (parts[6] as QRLInternal<(ctx: ContainerContext) => readonly Node[]> | null) ?? undefined;
   const ownedSubscribers = parts[7] as Subscriber[] | undefined;
+  const slotScope = (parts[8] as SlotScope | null | undefined) ?? null;
   const markerRange = findBranchRange(container.element, rangeId);
   isDev && assertDefined(markerRange, `Missing branch range ${rangeId}.`);
   if (markerRange === null) {
@@ -273,6 +293,7 @@ async function restoreBranchSubscription(
   }
 
   const invokeContext = await restoreInvokeContext(container, markerRange[0]);
+  invokeContext.slotScope = slotScope;
   subscription.branch = new Branch(
     new BranchRange(container.document, markerRange[0], markerRange[1]),
     conditionQrl,
@@ -306,6 +327,7 @@ async function restoreForBlockSubscription(
   >;
   const usesItemSignal = parts[5] as boolean;
   const usesIndexSignal = parts[6] as boolean;
+  const slotScope = (parts[7] as SlotScope | null | undefined) ?? null;
   const markerRange = findForRange(container.element, rangeId);
   isDev && assertDefined(markerRange, `Missing for range ${rangeId}.`);
   if (markerRange === null) {
@@ -317,6 +339,7 @@ async function restoreForBlockSubscription(
 
   const listOwner = createOwner(subscription.owner);
   const invokeContext = await restoreInvokeContext(container, markerRange[0]);
+  invokeContext.slotScope = slotScope;
   const block = new ForBlock(
     new ForRange(container.document, markerRange[0], markerRange[1]),
     deps[0] as Dependency<readonly unknown[]>,
@@ -562,7 +585,11 @@ function resolveBranchTextTarget(
     return findBranchTextNode(range, markerIndex);
   }
   const rowRange = findForRowRange(container.element, rangeId);
-  return rowRange === null ? null : findBranchTextNode(rowRange, markerIndex);
+  if (rowRange !== null) {
+    return findBranchTextNode(rowRange, markerIndex);
+  }
+  const slotRange = findSlotRange(container.element, rangeId);
+  return slotRange === null ? null : findBranchTextNode(slotRange, markerIndex);
 }
 
 function restoreDependencies(

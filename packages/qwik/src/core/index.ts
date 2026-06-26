@@ -72,7 +72,7 @@ export type {
   SSRStreamChildren,
   SSRStreamWriter,
 } from './shared/jsx/utils.public';
-export { Slot } from './shared/jsx/slot.public';
+export { Slot } from './vdomless/dom/slot/slot';
 export {
   Fragment,
   RenderOnce,

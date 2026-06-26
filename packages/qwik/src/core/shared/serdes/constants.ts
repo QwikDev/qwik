@@ -121,6 +121,8 @@ export const enum TypeIds {
   EffectSubscription,
   SubscriptionPatch,
   ContextScope,
+  SlotScope,
+  Projection,
 }
 
 // Used for dumpState, make sure they are in sync with TypeIds
@@ -168,4 +170,6 @@ export const _typeIdNames = [
   'EffectSubscription',
   'SubscriptionPatch',
   'ContextScope',
+  'SlotScope',
+  'Projection',
 ];

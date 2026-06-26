@@ -54,7 +54,7 @@
 // }
 
 import type { QRL } from '@qwik.dev/core';
-import { createSignal } from '@qwik.dev/core/spark';
+import { createSignal, Slot } from '@qwik.dev/core/spark';
 
 const adjectives = ["pretty", "large", "big", "small", "tall", "short", "long", "handsome", "plain", "quaint", "clean", "elegant", "easy", "angry", "crazy", "helpful", "mushy", "odd", "unsightly", "adorable", "important", "inexpensive", "cheap", "expensive", "fancy"]; // prettier-ignore
 const colors = ["red", "yellow", "blue", "green", "pink", "brown", "purple", "brown", "white", "black", "orange"]; // prettier-ignore
@@ -85,7 +85,7 @@ const buildData = (count: number): Row[] => {
   return data;
 };
 
-const Button = ({ id, text, onClick$ }: { id: string; text: string; onClick$: QRL<() => any> }) => {
+const Button = ({ id, onClick$ }: { id: string; onClick$: QRL<() => any> }) => {
   return (
     <button
       id={id}
@@ -94,7 +94,7 @@ const Button = ({ id, text, onClick$ }: { id: string; text: string; onClick$: QR
       stoppropagation:click
       onClick$={onClick$}
     >
-      {text}
+      <Slot />
     </button>
   );
 };
@@ -113,25 +113,22 @@ export function Root() {
           <div class="col-md-6">
             <div class="row">
               <div class="col-sm-6 smallpad">
-                <Button
-                  id="run"
-                  onClick$={() => (data.value = buildData(1_000))}
-                  text="Create 1,000 rows"
-                />
+                <Button id="run" onClick$={() => (data.value = buildData(1_000))}>
+                  Create 1,000 rows
+                </Button>
               </div>
               <div class="col-sm-6 smallpad">
-                <Button
-                  id="runlots"
-                  onClick$={() => (data.value = buildData(10_000))}
-                  text="Create 10,000 rows"
-                />
+                <Button id="runlots" onClick$={() => (data.value = buildData(10_000))}>
+                  Create 10,000 rows
+                </Button>
               </div>
               <div class="col-sm-6 smallpad">
                 <Button
                   id="add"
                   onClick$={() => (data.value = [...data.value, ...buildData(1_000)])}
-                  text="Append 1,000 rows"
-                />
+                >
+                  Append 1,000 rows
+                </Button>
               </div>
               <div class="col-sm-6 smallpad">
                 <Button
@@ -142,18 +139,18 @@ export function Root() {
                       d[i].label.value += ' !!!';
                     }
                   }}
-                  text="Update every 10th row"
-                />
+                >
+                  Update every 10th row
+                </Button>
               </div>
               <div class="col-sm-6 smallpad">
-                <Button id="clear" onClick$={() => (data.value = [])} text="Clear" />
+                <Button id="clear" onClick$={() => (data.value = [])}>
+                  Clear
+                </Button>
               </div>
               <div class="col-sm-6 smallpad">
-                <button
+                <Button
                   id="swaprows"
-                  class="btn btn-primary btn-block"
-                  type="button"
-                  stoppropagation:click
                   onClick$={() => {
                     const list = data.value;
                     if (list.length > 998) {
@@ -166,7 +163,7 @@ export function Root() {
                   }}
                 >
                   Swap Rows
-                </button>
+                </Button>
               </div>
             </div>
           </div>

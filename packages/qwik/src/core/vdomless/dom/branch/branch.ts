@@ -26,8 +26,8 @@ import { getFunctionOrResolve } from '../qrl';
 import { createContentRange, replaceRange } from '../range/range';
 
 type BranchConditionFn = () => boolean;
-type BranchHandlerFn = (ctx: ContainerContext) => MaybeNodeOutput;
-type SSRBranchHandlerFn = (ctx: ContainerContext, rangeId: number) => string;
+type BranchHandlerFn = (ctx: ContainerContext) => ValueOrPromise<MaybeNodeOutput>;
+type SSRBranchHandlerFn = (ctx: ContainerContext, rangeId: number) => ValueOrPromise<string>;
 
 /** BranchRange represents a range of nodes in the DOM that can be replaced with new nodes */
 export class BranchRange {
@@ -127,7 +127,7 @@ export class BranchSubscription implements BranchSubscriber {
           container: this.branch.container,
         });
 
-        let nodes: MaybeNodeOutput;
+        let nodes: ValueOrPromise<MaybeNodeOutput>;
         try {
           nodes = runWithCollector(null, () =>
             invoke(newInvokeContext, () => renderer(newInvokeContext.container!))
@@ -140,8 +140,10 @@ export class BranchSubscription implements BranchSubscriber {
           throw error;
         }
 
-        this.branch.currentOwner = newInvokeContext.owner;
-        this.branch.range.replace(toNodes(nodes));
+        return maybeThen(nodes, (nodes) => {
+          this.branch.currentOwner = newInvokeContext.owner;
+          this.branch.range.replace(toNodes(nodes));
+        });
       });
     });
   }
@@ -202,12 +204,12 @@ export class SSRBranch {
 
               subscription.branch.currentBranch = nextBranch;
 
-              const invokeContext = newChildInvokeContext(getActiveInvokeContextOrNull(), {
+              const invokeContext = newChildInvokeContext(this.invokeContext, {
                 ownerHost: subscription.owner,
                 container: this.container,
               });
 
-              let html: string;
+              let html: ValueOrPromise<string>;
               try {
                 html = runWithCollector(null, () =>
                   invoke(invokeContext, () => renderer(invokeContext.container!, this.rangeId))
@@ -219,8 +221,10 @@ export class SSRBranch {
                 }
                 throw error;
               }
-              subscription.branch.currentOwner = invokeContext.owner;
-              return html;
+              return maybeThen(html, (html) => {
+                subscription.branch.currentOwner = invokeContext.owner;
+                return html;
+              });
             }
           );
         });

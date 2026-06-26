@@ -5,6 +5,7 @@ import { ComputedQrl } from '../../vdomless/reactive/computed-qrl';
 import { Signal } from '../../vdomless/reactive/signal';
 import type { ContainerContext } from '../../vdomless/runtime/container-context';
 import { createContextScope } from '../../vdomless/runtime/context-scope';
+import { createProjection, createSlotScope } from '../../vdomless/dom/slot/slot';
 import { qError, QError } from '../error/error';
 import type { QRLInternal } from '../qrl/qrl-class';
 import { _UNINITIALIZED } from '../utils/constants';
@@ -118,6 +119,10 @@ export const allocate = async (
     }
     case TypeIds.ContextScope:
       return createContextScope(null);
+    case TypeIds.SlotScope:
+      return createSlotScope();
+    case TypeIds.Projection:
+      return createProjection();
     default:
       throw qError(QError.serializeErrorCannotAllocate, [typeId]);
   }

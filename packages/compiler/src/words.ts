@@ -19,6 +19,8 @@ export enum QwikSymbol {
   CreateContextProvider = 'createContextProvider',
   CreateDomBatchEffect = 'createDomBatchEffect',
   CreatePropsEffect = 'createPropsEffect',
+  CreateSlot = 'createSlot',
+  CreateSlotScope = 'createSlotScope',
   CreateSsrElementTarget = 'createSsrElementTarget',
   CreateSsrElementTextTarget = 'createSsrElementTextTarget',
   CreateSsrDomBatchEffect = 'createSsrDomBatchEffect',
@@ -35,6 +37,7 @@ export enum QwikSymbol {
   ReadTrackedSourceValue = 'readTrackedSourceValue',
   RenderSsrBranch = 'renderSsrBranch',
   RenderSsrForBlock = 'renderSsrForBlock',
+  RenderSsrSlot = 'renderSsrSlot',
   RenderSsrAttrExpression = 'renderSsrAttrExpression',
   RenderSsrProps = 'renderSsrProps',
   RenderSsrAttr = 'renderSsrAttr',
@@ -43,5 +46,6 @@ export enum QwikSymbol {
   RunDomBatchEffect = 'runDomBatchEffect',
   SerializeAttrExpressionValue = 'serializeAttrExpressionValue',
   SetEvent = 'setEvent',
+  RegisterProjection = 'registerProjection',
   WithCaptures = '_withCaptures',
 }

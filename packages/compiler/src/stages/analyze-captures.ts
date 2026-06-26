@@ -10,6 +10,7 @@ import {
   isStaticSourceTextExpression,
   isFunctionLike,
   isNativeTag,
+  normalizeJsxText,
   unwrapExpression,
 } from '../ast-utils';
 import type {
@@ -476,6 +477,8 @@ class CaptureAnalyzer {
   private visitJsxElement(node: JSXElement) {
     const tag = getJsxName(node.openingElement.name);
     const isNativeElement = !!tag && isNativeTag(tag);
+    const isSlotElement = tag === 'Slot';
+    const isComponentElement = !!tag && !isNativeElement && !isSlotElement;
     const visitAttrs = () => {
       for (const attr of node.openingElement.attributes) {
         this.visitJsxAttribute(attr, isNativeElement);
@@ -495,6 +498,27 @@ class CaptureAnalyzer {
       }
     } else {
       visitAttrs();
+    }
+    if (isSlotElement) {
+      const range = getRange(node);
+      if (range !== null && node.children.some((child) => !isEmptyJsxChild(child))) {
+        this.visitSlotRenderChildren(node.children, range);
+      }
+      return;
+    }
+    if (isComponentElement) {
+      for (const child of node.children) {
+        if (isEmptyJsxChild(child)) {
+          continue;
+        }
+        const range = getRange(child);
+        if (range === null) {
+          this.visit(child);
+          continue;
+        }
+        this.visitSlotRenderChildren([child], range);
+      }
+      return;
     }
     for (const child of node.children) {
       if (child.type === 'JSXExpressionContainer') {
@@ -534,6 +558,21 @@ class CaptureAnalyzer {
     const segment = this.createSyntheticJsxTextSegment(range);
     this.segmentStack.push(segment);
     this.visit(expr);
+    this.segmentStack.pop();
+    this.propagateCapturesToBranchRender(parentSegment, segment);
+  }
+
+  private visitSlotRenderChildren(children: readonly unknown[], range: SourceRange) {
+    const parentSegment = this.currentSegment();
+    const segment = this.createSyntheticSegment('slotRender', 'slot:render', range);
+    this.segmentStack.push(segment);
+    for (const child of children) {
+      if ((child as { type?: string }).type === 'JSXExpressionContainer') {
+        this.visitJsxChildExpression((child as { expression: unknown }).expression);
+      } else {
+        this.visit(child);
+      }
+    }
     this.segmentStack.pop();
     this.propagateCapturesToBranchRender(parentSegment, segment);
   }
@@ -1058,7 +1097,8 @@ class CaptureAnalyzer {
   ) {
     if (
       parentSegment?.record.kind !== 'branchRender' &&
-      parentSegment?.record.kind !== 'forRender'
+      parentSegment?.record.kind !== 'forRender' &&
+      parentSegment?.record.kind !== 'slotRender'
     ) {
       return;
     }
@@ -1485,6 +1525,16 @@ function isEmptyBranchExpression(node: unknown): boolean {
     return expr.value === null || expr.value === false;
   }
   return false;
+}
+
+function isEmptyJsxChild(child: unknown): boolean {
+  if (!isNode(child)) {
+    return true;
+  }
+  if (child.type === 'JSXText') {
+    return normalizeJsxText(child.value ?? child.raw ?? '') === '';
+  }
+  return child.type === 'JSXExpressionContainer' && child.expression?.type === 'JSXEmptyExpression';
 }
 
 function isStaticBranchTextExpression(node: AstNode): boolean {

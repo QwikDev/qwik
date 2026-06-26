@@ -161,6 +161,7 @@ export function shouldResolveSsrQrl(qrlSegment: QrlSegmentOutput) {
     qrlSegment.segment.kind === 'branchCondition' ||
     qrlSegment.segment.kind === 'forKey' ||
     qrlSegment.segment.kind === 'forRender' ||
+    qrlSegment.segment.kind === 'slotRender' ||
     isImplicitDollarSegment(qrlSegment.segment)
   );
 }
@@ -179,12 +180,22 @@ export function hasCapturedQrlSegment(
       );
     }
     if (current.kind === 'component') {
-      return current.props.some(
-        (prop) =>
-          prop.kind === 'named' &&
-          prop.qrlSegmentId &&
-          (qrlSegments.get(prop.qrlSegmentId)?.segment.captures.length ?? 0) > 0
+      return (
+        current.props.some(
+          (prop) =>
+            prop.kind === 'named' &&
+            prop.qrlSegmentId &&
+            (qrlSegments.get(prop.qrlSegmentId)?.segment.captures.length ?? 0) > 0
+        ) ||
+        current.slots.some(
+          (slot) => (qrlSegments.get(slot.segmentId)?.segment.captures.length ?? 0) > 0
+        )
       );
+    }
+    if (current.kind === 'slot') {
+      return current.fallbackSegmentId
+        ? (qrlSegments.get(current.fallbackSegmentId)?.segment.captures.length ?? 0) > 0
+        : false;
     }
     if (current.kind === 'branch') {
       return (
@@ -211,12 +222,22 @@ export function hasCapturedCsrFunction(
 ): boolean {
   return someRenderNode(node, (current) => {
     if (current.kind === 'component') {
-      return current.props.some(
-        (prop) =>
-          prop.kind === 'named' &&
-          prop.qrlSegmentId &&
-          (qrlSegments.get(prop.qrlSegmentId)?.segment.captures.length ?? 0) > 0
+      return (
+        current.props.some(
+          (prop) =>
+            prop.kind === 'named' &&
+            prop.qrlSegmentId &&
+            (qrlSegments.get(prop.qrlSegmentId)?.segment.captures.length ?? 0) > 0
+        ) ||
+        current.slots.some(
+          (slot) => (qrlSegments.get(slot.segmentId)?.segment.captures.length ?? 0) > 0
+        )
       );
+    }
+    if (current.kind === 'slot') {
+      return current.fallbackSegmentId
+        ? (qrlSegments.get(current.fallbackSegmentId)?.segment.captures.length ?? 0) > 0
+        : false;
     }
     if (current.kind === 'branch') {
       return (
@@ -270,6 +291,17 @@ export function hasForBlock(node: RenderNode | null): boolean {
 
 export function hasComponent(node: RenderNode | null): boolean {
   return someRenderNode(node, (current) => current.kind === 'component');
+}
+
+export function hasComponentSlots(node: RenderNode | null): boolean {
+  return someRenderNode(
+    node,
+    (current) => current.kind === 'component' && current.slots.length > 0
+  );
+}
+
+export function hasSlot(node: RenderNode | null): boolean {
+  return someRenderNode(node, (current) => current.kind === 'slot');
 }
 
 export function hasTextExpression(node: RenderNode | null): boolean {
@@ -440,8 +472,13 @@ function collectScalarDomEffects(
     }
     return effects;
   }
-  if (node.kind === 'fragment' || node.kind === 'component') {
+  if (node.kind === 'fragment') {
     return node.children.flatMap((child) => collectScalarDomEffects(child, qrlSegments));
+  }
+  if (node.kind === 'component') {
+    return node.slots.flatMap((slot) =>
+      slot.children.flatMap((child) => collectScalarDomEffects(child, qrlSegments))
+    );
   }
   return [];
 }
@@ -484,8 +521,11 @@ export function hasRangeTextBinding(node: RenderNode | null): boolean {
     }
     return children.some(hasRangeTextBinding);
   }
-  if (node.kind === 'fragment' || node.kind === 'component') {
+  if (node.kind === 'fragment') {
     return node.children.some(hasRangeTextBinding);
+  }
+  if (node.kind === 'component') {
+    return node.slots.some((slot) => slot.children.some(hasRangeTextBinding));
   }
   if (node.kind === 'branch') {
     return (
@@ -520,7 +560,15 @@ function someRenderNode(
   if (predicate(node)) {
     return true;
   }
-  if (node.kind === 'element' || node.kind === 'fragment' || node.kind === 'component') {
+  if (node.kind === 'element' || node.kind === 'fragment') {
+    return node.children.some((child) => someRenderNode(child, predicate));
+  }
+  if (node.kind === 'component') {
+    return node.slots.some((slot) =>
+      slot.children.some((child) => someRenderNode(child, predicate))
+    );
+  }
+  if (node.kind === 'slot') {
     return node.children.some((child) => someRenderNode(child, predicate));
   }
   if (node.kind === 'branch') {

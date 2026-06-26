@@ -67,8 +67,21 @@ export {
   type ChildInvokeContextOptions,
   type NewInvokeContextOptions,
   type RuntimeInvokeContext,
-  type SlotScope,
 } from './runtime/invoke-context';
+export {
+  Slot,
+  createProjection,
+  createSlot,
+  createSlotScope,
+  isProjection,
+  isSlotScope,
+  registerProjection,
+  renderSsrSlot,
+  resolveSlot,
+  type Projection,
+  type SlotName,
+  type SlotScope,
+} from './dom/slot/slot';
 export { ContextScope, createContextScope, isContextScope } from './runtime/context-scope';
 export {
   createContext,

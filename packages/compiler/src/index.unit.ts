@@ -534,6 +534,36 @@ export function Parent() {
     });
   });
 
+  test('projects default Slot children', async () => {
+    await testInput('component_child_slot_default', {
+      code: `import { Slot } from '@qwik.dev/core';
+
+export function Wrapper() {
+  return <section><Slot /></section>;
+}
+
+export function Parent() {
+  return <Wrapper><p>Projected</p></Wrapper>;
+}
+`,
+    });
+  });
+
+  test('projects named Slot children', async () => {
+    await testInput('component_child_slot_named', {
+      code: `import { Slot } from '@qwik.dev/core';
+
+export function Wrapper() {
+  return <section><header><Slot name="header" /></header><main><Slot /></main></section>;
+}
+
+export function Parent() {
+  return <Wrapper><h1 q:slot="header">Title</h1><p>Body</p></Wrapper>;
+}
+`,
+    });
+  });
+
   test('inherits context across child component renderers', async () => {
     await testInput('component_child_context', {
       code: `import { createContext, createContextProvider, createSignal } from '@qwik.dev/core/spark';

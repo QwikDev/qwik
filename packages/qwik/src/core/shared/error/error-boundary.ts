@@ -37,7 +37,8 @@ export interface ErrorBoundaryInfo {
 export interface ErrorBoundaryProps {
   /**
    * Rendered when a descendant throws; receives `(error, reset)`. Add a live region for
-   * screen-reader announcement.
+   * screen-reader announcement. Invoke `reset` wrapped in a handler — `onClick$={() => reset()}`,
+   * not `onClick$={reset}` — so it stays wired in a streamed fallback after resume.
    */
   fallback$: QRL<(error: unknown, reset: QRL<() => void>) => JSXOutput>;
   /** Side-effect fired once per caught error; never affects rendering. */

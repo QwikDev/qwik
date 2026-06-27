@@ -659,6 +659,20 @@
       "mdFile": "core.errorboundary.md"
     },
     {
+      "name": "ErrorBoundaryInfo",
+      "id": "errorboundaryinfo",
+      "hierarchy": [
+        {
+          "name": "ErrorBoundaryInfo",
+          "id": "errorboundaryinfo"
+        }
+      ],
+      "kind": "Interface",
+      "content": "Structured metadata about a caught error, passed to `onError$`<!-- -->.\n\n\n```typescript\nexport interface ErrorBoundaryInfo \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nboundaryId\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\nStable id of the boundary that caught it.\n\n\n</td></tr>\n<tr><td>\n\nphase\n\n\n</td><td>\n\n\n</td><td>\n\n'render' \\| 'task' \\| 'event' \\| 'async-generator' \\| 'async-signal'\n\n\n</td><td>\n\nWhere the caught error originated.\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/error/error-boundary.ts",
+      "mdFile": "core.errorboundaryinfo.md"
+    },
+    {
       "name": "ErrorBoundaryProps",
       "id": "errorboundaryprops",
       "hierarchy": [
@@ -668,7 +682,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface ErrorBoundaryProps \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfallback$\n\n\n</td><td>\n\n\n</td><td>\n\n[QRL](#qrl-type-alias)<!-- -->&lt;(error: any, reset: [QRL](#qrl-type-alias)<!-- -->&lt;() =&gt; void&gt;) =&gt; any&gt;\n\n\n</td><td>\n\nRendered in place of the subtree when a descendant throws. Receives the caught error and a `reset` callback that clears the error and re-attempts the children. For screen-reader announcement, render a live region in the fallback (e.g. `<div role=\"alert\">`<!-- -->); the swap adds none.\n\n\n</td></tr>\n<tr><td>\n\nonError$?\n\n\n</td><td>\n\n\n</td><td>\n\n[QRL](#qrl-type-alias)<!-- -->&lt;(error: unknown) =&gt; void&gt;\n\n\n</td><td>\n\n_(Optional)_ Side-effect fired once per caught error; never affects rendering.\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface ErrorBoundaryProps \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfallback$\n\n\n</td><td>\n\n\n</td><td>\n\n[QRL](#qrl-type-alias)<!-- -->&lt;(error: unknown, reset: [QRL](#qrl-type-alias)<!-- -->&lt;() =&gt; void&gt;) =&gt; [JSXOutput](#jsxoutput)<!-- -->&gt;\n\n\n</td><td>\n\nRendered when a descendant throws; receives `(error, reset)`<!-- -->. Add a live region for screen-reader announcement. Invoke `reset` wrapped in a handler — `onClick$={() => reset()}`<!-- -->, not `onClick$={reset}` — so it stays wired in a streamed fallback after resume.\n\n\n</td></tr>\n<tr><td>\n\nonError$?\n\n\n</td><td>\n\n\n</td><td>\n\n[QRL](#qrl-type-alias)<!-- -->&lt;(error: unknown, info: [ErrorBoundaryInfo](#errorboundaryinfo)<!-- -->) =&gt; void&gt;\n\n\n</td><td>\n\n_(Optional)_ Side-effect fired once per caught error; never affects rendering.\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/error/error-boundary.ts",
       "mdFile": "core.errorboundaryprops.md"
     },

@@ -52,7 +52,8 @@ import { assertDefined, assertNumber } from '../error/assert';
 import { qError, QError } from '../error/error';
 import { withCaptures } from '../qrl/qrl-captures';
 import type { QRLInternal } from '../qrl/qrl-class';
-import { isPromise } from '../utils/promises';
+import { isPromise, maybeThen } from '../utils/promises';
+import type { ValueOrPromise } from '../utils/types';
 import { allocate, resolvers } from './allocate';
 import { TypeIds } from './constants';
 import { needsInflation } from './deser-proxy';
@@ -79,12 +80,12 @@ const isSafeObjectKV = (key: unknown, value: unknown): key is string | number =>
   );
 };
 
-export const inflate = async (
+export const inflate = (
   container: ContainerContext,
   target: unknown,
   typeId: TypeIds,
   data: unknown
-): Promise<void> => {
+): ValueOrPromise<void> => {
   if (typeId === TypeIds.Plain) {
     // Already processed
     return;
@@ -92,17 +93,32 @@ export const inflate = async (
   // Restore the complex data, special case for Array
   if (
     typeId !== TypeIds.Array &&
+    typeId !== TypeIds.BigArray &&
     typeId !== TypeIds.Signal &&
     typeId !== TypeIds.ComputedSignal &&
     Array.isArray(data)
   ) {
-    data = await _eagerDeserializeArray(container, data);
+    return maybeThen(_eagerDeserializeArray(container, data), (data) =>
+      inflateResolved(container, target, typeId, data)
+    );
   }
+  return inflateResolved(container, target, typeId, data);
+};
+
+const inflateResolved = (
+  container: ContainerContext,
+  target: unknown,
+  typeId: TypeIds,
+  data: unknown
+): ValueOrPromise<void> => {
   switch (typeId) {
     case TypeIds.Array:
+    case TypeIds.BigArray:
       // Arrays are special, we need to fill the array in place
-      await _eagerDeserializeArray(container, data as unknown[], target as unknown[]);
-      break;
+      return maybeThen(
+        _eagerDeserializeArray(container, data as unknown[], target as unknown[]),
+        () => undefined
+      );
     case TypeIds.Object:
       if (data === 0) {
         // Special case, was an empty object
@@ -120,40 +136,43 @@ export const inflate = async (
     case TypeIds.Signal: {
       const signal = target as VdomlessSignal<unknown>;
       const d = data as unknown[];
-      signal.v = await deserializeData(container, d[0] as TypeIds, d[1]);
-      if (d.length > 2) {
-        signal.subs = createLazySourceSubscribers(signal, container, d, 2);
-      }
-      break;
+      return maybeThen(deserializeData(container, d[0] as TypeIds, d[1]), (value) => {
+        signal.v = value;
+        if (d.length > 2) {
+          signal.subs = createLazySourceSubscribers(signal, container, d, 2);
+        }
+      });
     }
     case TypeIds.ComputedSignal: {
       const computed = target as Writeable<ComputedSubscriber<unknown>>;
       ensureDeserializedOwner(computed);
       const d = data as unknown[];
-      const qrl = (await deserializeData(container, d[0] as TypeIds, d[1])) as QRLInternal<
-        () => unknown
-      >;
-      const deps = (await deserializeData(container, d[2] as TypeIds, d[3])) as Dependency[];
-      const value = await deserializeData(container, d[4] as TypeIds, d[5]);
-      computed.compute = await qrl.resolve();
-      if (deps && deps.length > 0) {
-        computed.deps = [];
-        computed.depVersions = [];
-        for (let i = 0; i < deps.length; i++) {
-          addDependency(computed, deps[i]);
-        }
-      }
+      return maybeThen(deserializeData(container, d[0] as TypeIds, d[1]), (qrl) =>
+        maybeThen(deserializeData(container, d[2] as TypeIds, d[3]), (deps) =>
+          maybeThen(deserializeData(container, d[4] as TypeIds, d[5]), (value) =>
+            maybeThen((qrl as QRLInternal<() => unknown>).resolve(), (compute) => {
+              computed.compute = compute;
+              if (deps && (deps as Dependency[]).length > 0) {
+                computed.deps = [];
+                computed.depVersions = [];
+                for (let i = 0; i < (deps as Dependency[]).length; i++) {
+                  addDependency(computed, (deps as Dependency[])[i]);
+                }
+              }
 
-      if (value === NEEDS_COMPUTATION) {
-        computed.flags = ComputedFlags.Dirty;
-      } else {
-        computed.v = value;
-        computed.flags = ComputedFlags.HasValue;
-      }
-      if (d.length > 6) {
-        computed.subs = createLazySourceSubscribers(computed, container, d, 6);
-      }
-      break;
+              if (value === NEEDS_COMPUTATION) {
+                computed.flags = ComputedFlags.Dirty;
+              } else {
+                computed.v = value;
+                computed.flags = ComputedFlags.HasValue;
+              }
+              if (d.length > 6) {
+                computed.subs = createLazySourceSubscribers(computed, container, d, 6);
+              }
+            })
+          )
+        )
+      );
     }
     case TypeIds.Error: {
       const d = data as string[];
@@ -239,31 +258,27 @@ export const inflate = async (
       const kind = parts[0] as EffectKind;
       switch (kind) {
         case EffectKind.Branch: {
-          await restoreBranchSubscription(
+          return restoreBranchSubscription(
             container,
             target as Writeable<BranchSubscription>,
             parts
           );
-          break;
         }
         case EffectKind.ForBlock: {
-          await restoreForBlockSubscription(
+          return restoreForBlockSubscription(
             container,
             target as Writeable<ForBlockSubscription>,
             parts
           );
-          break;
         }
         case EffectKind.TextNode:
         case EffectKind.TextExpression:
         case EffectKind.Attr:
         case EffectKind.Props: {
-          await restoreDomSubscription(container, target as Writeable<DomSubscriber>, parts);
-          break;
+          return restoreDomSubscription(container, target as Writeable<DomSubscriber>, parts);
         }
         case EffectKind.DomBatch: {
-          await restoreDomBatchSubscription(container, target as Writeable<DomSubscriber>, parts);
-          break;
+          return restoreDomBatchSubscription(container, target as Writeable<DomSubscriber>, parts);
         }
         default:
           throw qError(QError.serializeErrorNotImplemented, [kind]);
@@ -623,28 +638,42 @@ function restoreDependencies(
  * Restores an array eagerly. If you need it lazily, use `deserializeData(container, TypeIds.Array,
  * array)` instead
  */
-export const _eagerDeserializeArray = async (
+export const _eagerDeserializeArray = (
   container: ContainerContext,
   data: unknown[],
   output: unknown[] = Array(data.length / 2)
-): Promise<unknown[]> => {
-  for (let i = 0; i < data.length; i += 2) {
-    output[i / 2] = await deserializeData(container, data[i] as TypeIds, data[i + 1]);
-  }
-  return output;
+): ValueOrPromise<unknown[]> => {
+  let i = 0;
+  const drain = (): ValueOrPromise<unknown[]> => {
+    while (i < data.length) {
+      const index = i;
+      const value = deserializeData(container, data[index] as TypeIds, data[index + 1]);
+      i += 2;
+      if (isPromise(value)) {
+        return value.then((value) => {
+          output[index / 2] = value;
+          return drain();
+        });
+      }
+      output[index / 2] = value;
+    }
+    return output;
+  };
+  return drain();
 };
 
-export async function deserializeData(
+export function deserializeData(
   container: ContainerContext,
   typeId: number,
   value: unknown
-): Promise<unknown> {
+): ValueOrPromise<unknown> {
   if (typeId === TypeIds.Plain) {
     return value;
   }
-  const propValue = await allocate(container, typeId, value);
-  if (needsInflation(typeId)) {
-    await inflate(container, propValue, typeId, value);
-  }
-  return propValue;
+  return maybeThen(allocate(container, typeId, value), (propValue) => {
+    if (needsInflation(typeId)) {
+      return maybeThen(inflate(container, propValue, typeId, value), () => propValue);
+    }
+    return propValue;
+  });
 }

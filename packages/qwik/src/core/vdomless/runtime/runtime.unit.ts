@@ -59,6 +59,26 @@ describe('runtime scheduler and owner lifecycle', () => {
     expect(order).toEqual(['task', 'first-dom', 'second-dom']);
   });
 
+  it('handles errors from automatically scheduled flushes', async () => {
+    let flush!: () => void;
+    let ran = false;
+    const scheduler = new Scheduler((scheduledFlush) => {
+      flush = scheduledFlush;
+    });
+
+    runWithTestContainer(scheduler, () =>
+      createTask(() => {
+        ran = true;
+        throw new Error('scheduled boom');
+      })
+    );
+
+    flush();
+    await Promise.resolve();
+
+    expect(ran).toBe(true);
+  });
+
   it('runs parent owner work before child owner work', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const parent = createOwner();

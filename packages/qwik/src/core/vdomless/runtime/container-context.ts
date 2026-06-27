@@ -21,6 +21,7 @@ export interface StateChunk {
 
 export interface ContainerState {
   rootToChunk: StateChunk[];
+  forwardRefsChunk: StateChunk | null;
   liveRoots: Map<number, unknown>;
 }
 
@@ -30,6 +31,7 @@ export interface ContainerContext {
   scheduler: Scheduler;
   state: ContainerState;
   forwardRefs: Array<number | string> | null;
+  getForwardRefs(): Array<number | string> | null;
   getRoot(id: number | string): Promise<unknown>;
   restoreCaptures(ids: string): Promise<unknown[]>;
   notify(subscriber: PhaseSubscriber): void;
@@ -71,6 +73,7 @@ function createContainerContextRecord(
 ): ContainerContext {
   const state: ContainerState = {
     rootToChunk: [],
+    forwardRefsChunk: null,
     liveRoots: new Map(),
   };
   const context: ContainerContext = {
@@ -79,6 +82,9 @@ function createContainerContextRecord(
     scheduler,
     state,
     forwardRefs: null,
+    getForwardRefs() {
+      return getForwardRefs(context);
+    },
     getRoot(id) {
       return getRoot(context, Number(id));
     },
@@ -128,10 +134,27 @@ function registerStateScripts(context: ContainerContext): void {
       script,
       parsed: null,
     };
+    if (fastGetAttribute(script, 'q:fr') !== null) {
+      context.state.forwardRefsChunk = chunk;
+    }
     for (let offset = 0; offset < len; offset++) {
       context.state.rootToChunk[base + offset] = chunk;
     }
   }
+}
+
+function getForwardRefs(context: ContainerContext): Array<number | string> | null {
+  if (context.forwardRefs !== null) {
+    return context.forwardRefs;
+  }
+
+  const chunk = context.state.forwardRefsChunk;
+  if (chunk === null) {
+    return null;
+  }
+
+  chunk.parsed ??= parseStateChunk(context, chunk);
+  return context.forwardRefs;
 }
 
 async function getRoot(context: ContainerContext, id: number): Promise<unknown> {
@@ -165,10 +188,14 @@ async function getRoot(context: ContainerContext, id: number): Promise<unknown> 
 }
 
 function parseStateChunk(context: ContainerContext, chunk: StateChunk): unknown[] {
+  if (chunk.parsed !== null) {
+    return chunk.parsed;
+  }
   const parsed = JSON.parse(chunk.script.textContent || '[]');
   if (!Array.isArray(parsed)) {
     throw new Error('Invalid Qwik state chunk.');
   }
+  chunk.parsed = parsed;
   preprocessStateChunk(context, chunk, parsed);
   return parsed;
 }
@@ -185,37 +212,62 @@ function preprocessStateChunk(
     if (type === TypeIds.ForwardRefs) {
       context.forwardRefs = value as Array<number | string>;
     } else if (type === TypeIds.RootRef && typeof value === 'string' && value.includes(' ')) {
-      promoteDeepRootRef(chunk, parsed, typeIndex, value);
+      promoteDeepRootRef(context, chunk, parsed, typeIndex, value);
     }
   }
 }
 
 function promoteDeepRootRef(
+  context: ContainerContext,
   chunk: StateChunk,
   parsed: unknown[],
   rootTypeIndex: number,
   path: string
 ): void {
-  const promotedRoot = chunk.base + rootTypeIndex / 2;
-  const parts = path.split(' ');
-  let object: unknown = parsed;
+  const root = resolveRootRef(context, path, chunk.base + rootTypeIndex / 2);
+  parsed[rootTypeIndex] = root.type;
+  parsed[rootTypeIndex + 1] = root.value;
+}
+
+function resolveRootRef(
+  context: ContainerContext,
+  rootRef: number | string,
+  promotedRoot?: number
+): { type: TypeIds; value: unknown } {
+  const parts = String(rootRef).split(' ');
+  const sourceRoot = Number(parts[0]);
+  const sourceChunk = context.state.rootToChunk[sourceRoot];
+  if (sourceChunk === undefined) {
+    throw new Error(`Missing Qwik state root ${sourceRoot}.`);
+  }
+
+  let object: unknown = parseStateChunk(context, sourceChunk);
+  let objectType = TypeIds.RootRef;
   let parent: unknown[] | null = null;
   let typeIndex = 0;
   let valueIndex = 0;
-  let objectType = TypeIds.RootRef;
 
   for (let i = 0; i < parts.length; i++) {
     parent = object as unknown[];
-    typeIndex = (i === 0 ? Number(parts[i]) - chunk.base : Number(parts[i])) * 2;
+    typeIndex = (i === 0 ? sourceRoot - sourceChunk.base : Number(parts[i])) * 2;
     valueIndex = typeIndex + 1;
     objectType = parent[typeIndex] as TypeIds;
     object = parent[valueIndex];
+
+    if (objectType === TypeIds.RootRef) {
+      const root = resolveRootRef(context, object as number | string);
+      objectType = root.type;
+      object = root.value;
+    }
   }
 
-  if (parent !== null) {
+  if (promotedRoot !== undefined && parent !== null) {
     parent[typeIndex] = TypeIds.RootRef;
     parent[valueIndex] = promotedRoot;
   }
-  parsed[rootTypeIndex] = objectType;
-  parsed[rootTypeIndex + 1] = object;
+
+  return {
+    type: objectType,
+    value: object,
+  };
 }

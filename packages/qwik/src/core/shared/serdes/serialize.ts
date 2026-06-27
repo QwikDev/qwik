@@ -48,6 +48,8 @@ import {
 } from './serialization-context';
 import { fastSkipSerialize } from './verify';
 
+const MAX_INLINE_ARRAY_ITEMS = 64;
+
 /**
  * Format:
  *
@@ -258,10 +260,26 @@ export class Serializer {
       this.outputString(value);
     } else {
       this.$writer$.write(type + COMMA);
+      const shouldFlattenArrayItems = type === TypeIds.BigArray;
       this.outputArray(value, !!keepUndefined, (valueItem, idx) => {
-        this.writeValue(valueItem, idx);
+        if (shouldFlattenArrayItems && this.shouldFlattenArrayItem(valueItem)) {
+          this.output(TypeIds.RootRef, this.$serializationContext$.$addRoot$(valueItem));
+        } else {
+          this.writeValue(valueItem, idx);
+        }
       });
     }
+  }
+
+  private shouldFlattenArrayItem(value: unknown): value is object {
+    return (
+      typeof value === 'object' &&
+      value !== null &&
+      value !== EMPTY_ARRAY &&
+      value !== EMPTY_OBJ &&
+      !(value instanceof SerializationBackRef) &&
+      isObjectLiteral(value)
+    );
   }
 
   private getSeenRefOrOutput(
@@ -480,7 +498,10 @@ export class Serializer {
       this.output(TypeIds.Projection, serializeProjection(value));
     } else if (isObjectLiteral(value)) {
       if (Array.isArray(value)) {
-        this.output(TypeIds.Array, value);
+        this.output(
+          this.shouldSerializeAsBigArray(value) ? TypeIds.BigArray : TypeIds.Array,
+          value
+        );
       } else {
         const out: any[] = [];
         for (const key in value) {
@@ -573,6 +594,18 @@ export class Serializer {
     } else {
       throw qError(QError.serializeErrorUnknownType, [typeof value]);
     }
+  }
+
+  private shouldSerializeAsBigArray(value: unknown[]): boolean {
+    if (value.length <= MAX_INLINE_ARRAY_ITEMS) {
+      return false;
+    }
+    for (let i = 0; i < value.length; i++) {
+      if (this.shouldFlattenArrayItem(value[i])) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private resolvePromise(

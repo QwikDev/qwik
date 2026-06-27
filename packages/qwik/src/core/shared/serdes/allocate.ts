@@ -11,48 +11,52 @@ import { Phase } from '../../vdomless/runtime/scheduler';
 import { qError, QError } from '../error/error';
 import type { QRLInternal } from '../qrl/qrl-class';
 import { _UNINITIALIZED } from '../utils/constants';
+import { maybeThen } from '../utils/promises';
+import type { ValueOrPromise } from '../utils/types';
 import { _constants, TypeIds, type Constants } from './constants';
 import { createQRLWithBackChannel } from './qrl-to-string';
 
 export const resolvers = new WeakMap<Promise<any>, [Function, Function]>();
 
-export const allocate = async (
+export const allocate = (
   context: ContainerContext,
   typeId: number,
   value: unknown
-): Promise<any> => {
+): ValueOrPromise<any> => {
   switch (typeId) {
     case TypeIds.Plain:
       return value;
     case TypeIds.RootRef:
       return context.getRoot(value as number);
-    case TypeIds.ForwardRef:
-      const rootRef = context.forwardRefs?.[value as number];
+    case TypeIds.ForwardRef: {
+      const forwardRefs = context.forwardRefs ?? context.getForwardRefs();
+      const rootRef = forwardRefs?.[value as number];
       if (rootRef === -1 || rootRef === undefined) {
         return _UNINITIALIZED;
       } else {
         return context.getRoot(rootRef);
       }
+    }
     case TypeIds.ForwardRefs:
       return value;
     case TypeIds.Constant:
       return _constants[value as Constants];
     case TypeIds.Array:
+    case TypeIds.BigArray:
       return Array((value as any[]).length / 2);
     case TypeIds.Object:
       return {};
     case TypeIds.QRL: {
-      let qrl: QRLInternal;
       if (typeof value === 'string') {
         const [chunkId, symbolId, captureIds] = value.split('#');
-        const chunk = (await context.getRoot(chunkId)) as string;
-        const symbol = (await context.getRoot(symbolId)) as string;
-        qrl = createQRLWithBackChannel(chunk, symbol, captureIds || null, context);
-      } else {
-        // Sync qrl
-        qrl = createQRLWithBackChannel('', String(value), null, context);
+        return maybeThen(context.getRoot(chunkId), (chunk) =>
+          maybeThen(context.getRoot(symbolId), (symbol) =>
+            createQRLWithBackChannel(chunk as string, symbol as string, captureIds || null, context)
+          )
+        );
       }
-      return qrl;
+      // Sync qrl
+      return createQRLWithBackChannel('', String(value), null, context) as QRLInternal;
     }
     case TypeIds.URL:
       return new URL(value as string);

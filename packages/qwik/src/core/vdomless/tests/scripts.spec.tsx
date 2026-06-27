@@ -118,6 +118,38 @@ describe('ssrRender: qwikloader', () => {
 
     cleanup();
   });
+
+  it('should run captured handlers when state is split across scripts', async () => {
+    const ScriptsLoaderSplitState = () => {
+      const signals = createSignal(Array.from({ length: 1025 }, (_, i) => createSignal(i)));
+      const last = signals.value[signals.value.length - 1];
+
+      return (
+        <div>
+          {signals.value.map((signal, index) => (
+            <span key={index}>{signal.value}</span>
+          ))}
+          <button onClick$={() => last.value++}>{last.value}</button>
+        </div>
+      );
+    };
+
+    const { container, cleanup, qwikLoader } = await ssrRender(<ScriptsLoaderSplitState />, {
+      debug,
+    });
+    const button = container.querySelector('button');
+
+    expect(button).not.toBeNull();
+    expect(qwikLoader).toBeDefined();
+    expect(container.querySelectorAll('script[type="qwik/state"]').length).toBeGreaterThan(1);
+    expect(button!.textContent).toBe('1024');
+
+    await qwikLoader!.dispatch(button!, 'click');
+
+    expect(button!.textContent).toBe('1025');
+
+    cleanup();
+  });
 });
 
 describe('csrRender: qwikloader', () => {

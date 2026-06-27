@@ -125,6 +125,21 @@ describe('shared-serialization', () => {
         (23 chars)"
       `);
     });
+    it(title(TypeIds.BigArray) + ' - flatten large object arrays', async () => {
+      const rows = Array.from({ length: 65 }, (_, i) => ({ i }));
+      const state = JSON.parse(await _serialize(rows));
+      const rootValue = state[1] as unknown[];
+
+      expect(state[0]).toBe(TypeIds.BigArray);
+      expect(rootValue).toHaveLength(rows.length * 2);
+      expect(rootValue[0]).toBe(TypeIds.RootRef);
+      expect(rootValue[1]).toBe(1);
+      expect(state[2]).toBe(TypeIds.Object);
+      expect(state.length / 2).toBe(rows.length + 1);
+
+      const primitives = JSON.parse(await _serialize(Array.from({ length: 65 }, (_, i) => i)));
+      expect(primitives[0]).toBe(TypeIds.Array);
+    });
     it(title(TypeIds.Object), async () => {
       const objs = await serialize({ foo: shared1 }, { bar: shared1, shared: true });
       expect(_dumpState(objs)).toMatchInlineSnapshot(`

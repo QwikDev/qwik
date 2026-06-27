@@ -47,6 +47,7 @@ export const getTerserConfig = () => ({
   compress: {
     global_defs: {
       'window.BuildEvents': false,
+      'globalThis.qDev': false,
     },
     keep_fargs: false,
     unsafe: true,

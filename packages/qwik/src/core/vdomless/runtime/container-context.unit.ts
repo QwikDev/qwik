@@ -27,6 +27,23 @@ describe('ContainerContext', () => {
     expect(await context.restoreCaptures('1 2')).toEqual(['one', 'two']);
   });
 
+  it('restores forward refs from a separate state chunk', async () => {
+    const container = createContainer(`
+      <script type="qwik/state" q:base="0" q:len="1">
+        [${TypeIds.Array},[${TypeIds.ForwardRef},0]]
+      </script>
+      <script type="qwik/state" q:base="1" q:len="1" q:fr>
+        [${TypeIds.ForwardRefs},[2]]
+      </script>
+      <script type="qwik/state" q:base="2" q:len="1">
+        [${TypeIds.Plain},"value"]
+      </script>
+    `);
+    const context = createContainerContext(container);
+
+    expect(await context.getRoot(0)).toEqual(['value']);
+  });
+
   it('restores context scopes from context markers by state root id', async () => {
     const container = createContainer(`
       <script type="qwik/state" q:base="5" q:len="1">
@@ -68,6 +85,84 @@ describe('ContainerContext', () => {
 
     const parent = (await context.getRoot(0)) as { shared: { value: number } };
     const shared = await context.getRoot(1);
+
+    expect(parent.shared).toBe(shared);
+    expect(parent.shared.value).toBe(1);
+  });
+
+  it('promotes deep root refs across state chunks', async () => {
+    const container = createContainer(`
+      <script type="qwik/state" q:base="0" q:len="1">
+        [${TypeIds.Object},[${TypeIds.Plain},"shared",${TypeIds.Object},[${TypeIds.Plain},"value",${TypeIds.Plain},1]]]
+      </script>
+      <script type="qwik/state" q:base="1024" q:len="1">
+        [${TypeIds.RootRef},"0 1"]
+      </script>
+    `);
+    const context = createContainerContext(container);
+
+    const shared = await context.getRoot(1024);
+    const parent = (await context.getRoot(0)) as { shared: { value: number } };
+
+    expect(parent.shared).toBe(shared);
+    expect(parent.shared.value).toBe(1);
+  });
+
+  it('restores root refs across state chunks', async () => {
+    const container = createContainer(`
+      <script type="qwik/state" q:base="0" q:len="1">
+        [${TypeIds.Object},[${TypeIds.Plain},"shared",${TypeIds.RootRef},1024]]
+      </script>
+      <script type="qwik/state" q:base="1024" q:len="1">
+        [${TypeIds.Object},[${TypeIds.Plain},"value",${TypeIds.Plain},1]]
+      </script>
+    `);
+    const context = createContainerContext(container);
+
+    const parent = (await context.getRoot(0)) as { shared: { value: number } };
+    const shared = await context.getRoot(1024);
+
+    expect(parent.shared).toBe(shared);
+    expect(parent.shared.value).toBe(1);
+  });
+
+  it('promotes deep root refs through intermediate root refs', async () => {
+    const container = createContainer(`
+      <script type="qwik/state" q:base="0" q:len="1">
+        [${TypeIds.Object},[${TypeIds.Plain},"shared",${TypeIds.RootRef},62465]]
+      </script>
+      <script type="qwik/state" q:base="1024" q:len="1">
+        [${TypeIds.RootRef},"0 1 1"]
+      </script>
+      <script type="qwik/state" q:base="62465" q:len="1">
+        [${TypeIds.Object},[${TypeIds.Plain},"nested",${TypeIds.Object},[${TypeIds.Plain},"value",${TypeIds.Plain},1]]]
+      </script>
+    `);
+    const context = createContainerContext(container);
+
+    const nested = await context.getRoot(1024);
+    const parent = (await context.getRoot(62465)) as { nested: { value: number } };
+
+    expect(parent.nested).toBe(nested);
+    expect(parent.nested.value).toBe(1);
+  });
+
+  it('promotes deep root refs through intermediate deep root refs', async () => {
+    const container = createContainer(`
+      <script type="qwik/state" q:base="0" q:len="1">
+        [${TypeIds.Object},[${TypeIds.Plain},"shared",${TypeIds.RootRef},"18 0 1"]]
+      </script>
+      <script type="qwik/state" q:base="18" q:len="1">
+        [${TypeIds.Array},[${TypeIds.Array},[${TypeIds.Plain},"skip",${TypeIds.Object},[${TypeIds.Plain},"value",${TypeIds.Plain},1]]]]
+      </script>
+      <script type="qwik/state" q:base="1024" q:len="1">
+        [${TypeIds.RootRef},"0 1"]
+      </script>
+    `);
+    const context = createContainerContext(container);
+
+    const shared = await context.getRoot(1024);
+    const parent = (await context.getRoot(0)) as { shared: { value: number } };
 
     expect(parent.shared).toBe(shared);
     expect(parent.shared.value).toBe(1);

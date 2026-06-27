@@ -1,5 +1,6 @@
 import { cleanupDeps } from '../reactive/cleanup';
 import { OwnerFlags, SubscriberFlags } from '../reactive/flags';
+import { logError } from '../../shared/utils/log';
 import { Owner, type OwnerItem } from './owner';
 import { runTaskSubscriber } from './run-task';
 import { SubscriberKind, takeDirty } from './subscriber';
@@ -242,7 +243,7 @@ export class Scheduler {
     for (let i = 0; i < end && i < items.length; i++) {
       const item = items[i];
       if (!(item instanceof Owner) && item.kind === SubscriberKind.VisibleTask) {
-        void this.runTask(item);
+        this.runTask(item).catch(logError);
       }
     }
   }
@@ -267,7 +268,7 @@ export class Scheduler {
       if (item.kind === SubscriberKind.Idle) {
         this.runIdleJob(item);
       } else if (item.kind === SubscriberKind.Task && item.task.phase === Phase.DeferredTask) {
-        void this.runTask(item);
+        this.runTask(item).catch(logError);
       }
     }
   }
@@ -311,7 +312,7 @@ export class Scheduler {
 
   private readonly flushScheduled = (): void => {
     this.flushPending = false;
-    void this.flushInteraction();
+    this.flushInteraction().catch(logError);
   };
 
   private removeQueuedDescendants(owner: Owner): void {

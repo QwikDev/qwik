@@ -349,9 +349,13 @@ export function createCaptureContainer(
     scheduler,
     state: {
       rootToChunk: [],
+      forwardRefsChunk: null,
       liveRoots: new Map(),
     },
     forwardRefs: null,
+    getForwardRefs() {
+      return container.forwardRefs;
+    },
     getRoot(id) {
       return Promise.resolve(captures[String(id)]);
     },

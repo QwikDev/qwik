@@ -117,12 +117,13 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
     // Serialize the children's projection owner (the component that wrote `<ErrorBoundary>{children}`)
     // so a resumed `reset()` re-renders + re-executes them — NOT the EB's physical parent, which a
     // `<Slot>`-projecting wrapper sits between. The owning frame is the EB frame's projection frame.
+    // `resetOwner` (not `$resetOwner$`): the prod build drops `$`-prefixed store keys.
     const ownerFrame = (
       invokeCtx?.$container$ as
         | { getComponentFrame?: (depth: number) => ISsrComponentFrameLike | null }
         | undefined
     )?.getComponentFrame?.(0);
-    store.$resetOwner$ =
+    store.resetOwner =
       ownerFrame?.projectionComponentFrame?.componentNode ??
       (host as { parentComponent?: unknown } | undefined)?.parentComponent;
     // Out-of-order: fallback streams as a segment, revealed by `qO`.

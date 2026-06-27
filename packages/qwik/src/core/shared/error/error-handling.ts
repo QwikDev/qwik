@@ -11,8 +11,13 @@ export interface ErrorBoundaryStore {
   $onError$?: (error: unknown) => void;
   /** Server-only; streams `fallback$` as an out-of-order segment. */
   $emitFallback$?: (error: unknown) => void | Promise<void>;
-  /** Serialized projection owner, so a resumed `reset()` can re-render it. */
-  $resetOwner$?: unknown;
+  /**
+   * Serialized projection owner (the children's authoring component), so a resumed `reset()`
+   * re-renders it. A plain (non-`$`) field on purpose: the prod build drops `$`-prefixed store
+   * keys, so this node ref must NOT be `$`-prefixed — and the ref also roots the owner so it
+   * resumes.
+   */
+  resetOwner?: unknown;
 }
 
 export const ERROR_CONTEXT = /*#__PURE__*/ createContextId<ErrorBoundaryStore>('qk-error');

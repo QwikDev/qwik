@@ -414,7 +414,8 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     ) {
       owner = this.getParentHost(owner);
     }
-    const resolvedOwner = owner ?? (store.$resetOwner$ as VNode | undefined);
+    // `getParentHost` is null for a resumed boundary; fall back to the serialized projection owner.
+    const resolvedOwner = owner ?? (store.resetOwner as VNode | undefined);
     if (!resolvedOwner) {
       return;
     }

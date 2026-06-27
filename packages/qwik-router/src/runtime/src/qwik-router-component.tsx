@@ -566,12 +566,6 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
             return;
           }
 
-          actionData = {
-            status: result.status,
-            action: action.id,
-            actionResult: result.result,
-          };
-
           // Resolve the action promise and free the closure
           if (action.resolve) {
             action.resolve({
@@ -580,6 +574,19 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
             });
             action.resolve = undefined;
           }
+
+          if (result.redirect) {
+            // Action redirected: SPA-navigate to the target. Don't await — goto re-runs this
+            // same task for the new route, so awaiting its completion here would deadlock.
+            goto(result.redirect, { replaceState: true });
+            return;
+          }
+
+          actionData = {
+            status: result.status,
+            action: action.id,
+            actionResult: result.result,
+          };
 
           actionLoaderHashes = result.loaderHashes;
           shouldInvalidateActionLoaders = true;

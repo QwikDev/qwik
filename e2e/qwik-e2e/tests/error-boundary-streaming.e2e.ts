@@ -351,6 +351,26 @@ test.describe('ErrorBoundary reset', () => {
     await expect(page.locator('#eb-fallback')).toHaveCount(0);
   });
 
+  // SPA-nav equivalent: an EB inside <Suspense> mounted CLIENT-FIRST (never SSR'd, so no serialized
+  // $resetOwner$) — reset() must resolve the owner purely at runtime (getParentHost + Suspense-climb).
+  test('reset re-executes children of a client-first (SPA-nav) ErrorBoundary inside a Suspense', async ({
+    page,
+  }) => {
+    await page.goto('/e2e/error-boundary-streaming?scenario=reset-spa', { waitUntil: 'commit' });
+    // The boundary is not rendered until the client mounts it (simulating navigation to this view).
+    await expect(page.locator('#eb-spa-show')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#eb-fallback')).toHaveCount(0);
+
+    await page.locator('#eb-spa-show').click();
+    await expect(page.locator('#eb-fallback-msg')).toContainText('client boom 1', {
+      timeout: 10000,
+    });
+
+    await page.locator('#eb-reset').click();
+    await expect(page.locator('#eb-reerror-recovered')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#eb-fallback')).toHaveCount(0);
+  });
+
   // STRESS TEST (key-swap exploration): a dev-owned `key` bump re-executes async children through a
   // Slot wrapper after an SSR error — the same wrapper shape as the test above, recovered via `key`.
   test('wrapper key-swap: key bump re-executes the async child through a Slot wrapper', async ({

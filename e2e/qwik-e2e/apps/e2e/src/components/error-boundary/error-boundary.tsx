@@ -156,6 +156,8 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
   const inertTrigger = useSignal(0);
   // Dev-owned key for the key-swap reset experiment (scenario `reset-wrapped-key`).
   const attempt = useSignal(0);
+  // Toggle that mounts the `reset-spa` boundary CLIENT-FIRST (never SSR'd), simulating SPA navigation.
+  const spaShow = useSignal(false);
 
   return (
     <main>
@@ -380,6 +382,31 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
             <EbReErrorAsync />
           </ErrorBoundary>
         </Suspense>
+      ) : scenario === 'reset-spa' ? (
+        // SPA-nav equivalent (this app has no router): the EB-in-<Suspense> is mounted CLIENT-FIRST via
+        // a toggle, so it is never SSR'd and has NO serialized $resetOwner$ — reset() must resolve the
+        // owner purely at runtime (getParentHost + the Suspense-climb). Child errors then recovers.
+        <>
+          <button id="eb-spa-show" onClick$={() => (spaShow.value = true)}>
+            Show
+          </button>
+          {spaShow.value ? (
+            <Suspense fallback={<span id="eb-skel">loading</span>}>
+              <ErrorBoundary
+                fallback$={(e, reset) => (
+                  <section id="eb-fallback">
+                    <p id="eb-fallback-msg">caught: {String((e as any)?.message ?? e)}</p>
+                    <button id="eb-reset" onClick$={() => reset()}>
+                      Retry
+                    </button>
+                  </section>
+                )}
+              >
+                <EbReErrorAsync />
+              </ErrorBoundary>
+            </Suspense>
+          ) : null}
+        </>
       ) : (
         <ErrorBoundary fallback$={(e) => <EbFallback msg={String((e as any)?.message ?? e)} />}>
           <EbContent />

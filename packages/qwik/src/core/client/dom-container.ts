@@ -129,6 +129,25 @@ function getOutOfOrderStreamingScript(boundaryId: number, content: Element | nul
   }
 }
 
+// One `unhandledrejection` listener per window: many containers share a page, so a per-container
+// listener would log the same rejection once per container (the `1+N` bug the qerror path fixed).
+const windowsWithRejectionBridge = new WeakSet<object>();
+
+/** Route a fire-and-forget promise rejection (otherwise lost) to `logError`, once per window. */
+function registerUnhandledRejectionBridge(view: (Window & typeof globalThis) | null | undefined) {
+  if (
+    !view ||
+    typeof view.addEventListener !== 'function' ||
+    windowsWithRejectionBridge.has(view)
+  ) {
+    return;
+  }
+  windowsWithRejectionBridge.add(view);
+  view.addEventListener('unhandledrejection', (e: PromiseRejectionEvent) => {
+    logError(e?.reason);
+  });
+}
+
 /** @internal */
 export class DomContainer extends _SharedContainer implements IClientContainer {
   public element: ContainerElement;
@@ -194,6 +213,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       }
     };
     this.document.addEventListener?.('qerror', this.$qErrorHandler$);
+    registerUnhandledRejectionBridge(document.defaultView);
     this.$containerDataProcessState$ = ContainerDataProcessState.ProcessingVNode;
     processVNodeData(document);
     onVNodeDataReady(document, () => {

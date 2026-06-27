@@ -72,6 +72,34 @@ const _ebFallbackStyle = (store: ErrorBoundaryStore) => ({
 });
 const _ebFallbackStyle_str = '{display:p0.error!==undefined?"contents":"none"}';
 
+// Core-bundled (non-lazy, no QRL) last-resort fallback for when the `fallback$` chunk itself fails
+// to load. `role="alert"` because it's the one fallback the author can't annotate.
+const buildLastResortFallback = (): JSXOutput =>
+  /*#__PURE__*/ _jsxSorted('div', { role: 'alert' }, null, 'Something went wrong.', 0, null);
+
+/**
+ * Invoke the `fallback$` QRL, but if its chunk fails to LOAD (the QRL rejects without ever
+ * resolving) render the last-resort node instead of nothing. A fallback that loaded and then THREW
+ * still escalates to the parent (its rejection is re-thrown), preserving existing behavior.
+ */
+const renderFallbackOrLastResort = (
+  fallbackQrl: QRL<(error: unknown, reset: QRL<() => void>) => JSXOutput>,
+  error: unknown,
+  reset: QRL<() => void>
+): JSXOutput | Promise<JSXOutput> => {
+  const rendered = fallbackQrl(error, reset) as JSXOutput | Promise<JSXOutput>;
+  if (rendered && typeof (rendered as Promise<JSXOutput>).then === 'function') {
+    return (rendered as Promise<JSXOutput>).catch((err) => {
+      // Loaded then threw → the QRL resolved; escalate. Never loaded → chunk failure; last resort.
+      if ((fallbackQrl as { resolved?: unknown }).resolved !== undefined) {
+        throw err;
+      }
+      return buildLastResortFallback();
+    });
+  }
+  return rendered;
+};
+
 const buildErrorBoundaryHosts = (
   store: ErrorBoundaryStore,
   fallbackHostMarker: string,
@@ -158,7 +186,7 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
       Fragment,
       null,
       null,
-      props.fallback$(store.error, reset),
+      renderFallbackOrLastResort(props.fallback$, store.error, reset),
       0,
       null
     );

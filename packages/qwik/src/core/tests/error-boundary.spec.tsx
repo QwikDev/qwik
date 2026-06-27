@@ -21,7 +21,9 @@ import {
   trigger,
   waitForDrain,
 } from '@qwik.dev/core/testing';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import * as logUtils from '../shared/utils/log';
+import { qrl } from '../shared/qrl/qrl';
 import { processOutOfOrderSegmentVNodeData } from '../client/process-vnode-data';
 import { rerenderComponent } from '../../testing/rendering.unit-util';
 import { delay } from '../shared/utils/promises';
@@ -2237,5 +2239,94 @@ describe('ErrorBoundary reset', () => {
     await resetResumed(container);
 
     expect(container.element.querySelector('#ok')).toBeTruthy();
+  });
+});
+
+// ===== Last-resort fallback: the `fallback$` chunk itself fails to load =====
+describe('ErrorBoundary last-resort fallback', () => {
+  it('CSR: renders a built-in role="alert" node when the fallback$ chunk fails to load', async () => {
+    // A QRL whose import rejects: `resolved` stays undefined, exactly like a 404'd chunk.
+    const failingFallback = qrl(() => Promise.reject(new Error('chunk load failure')), 'fb') as any;
+    const { container } = await domRender(
+      <ErrorBoundary fallback$={failingFallback}>
+        <Thrower />
+      </ErrorBoundary>,
+      { debug }
+    );
+    await waitForDrain(container).catch(() => {});
+    const el = container.element;
+    const alert = el.querySelector('[role="alert"]');
+    expect(alert).toBeTruthy();
+    expect(alert?.textContent).toContain('Something went wrong');
+  });
+
+  it('CSR: a fallback$ that LOADS then THROWS escalates to the outer boundary (no last-resort)', async () => {
+    const { container } = await domRender(
+      <ErrorBoundary
+        fallback$={$(() => (
+          <p id="fb-outer">outer</p>
+        ))}
+      >
+        <ErrorBoundary
+          fallback$={$(() => {
+            throw new Error('inner fallback boom');
+          })}
+        >
+          <Thrower />
+        </ErrorBoundary>
+      </ErrorBoundary>,
+      { debug }
+    );
+    await waitForDrain(container).catch(() => {});
+    const el = container.element;
+    expect(el.querySelector('#fb-outer')?.textContent).toBe('outer');
+    // A loaded-then-threw fallback must escalate, NOT show the last-resort node.
+    expect(el.querySelector('[role="alert"]')).toBeFalsy();
+  });
+});
+
+// ===== unhandledrejection → logError bridge =====
+describe('unhandledrejection bridge', () => {
+  const renderTwoContainers = async () => {
+    setPlatform(getTestPlatform());
+    const document = createDocument();
+    // The mock window's addEventListener is a noop; make it real + spyable so we can both
+    // assert single registration and capture the handler the bridge installs.
+    const listeners: Record<string, ((e: any) => void)[]> = {};
+    const view = document.defaultView as any;
+    view.addEventListener = vi.fn((type: string, cb: (e: any) => void) => {
+      (listeners[type] ||= []).push(cb);
+    });
+    const hostA = document.createElement('div');
+    const hostB = document.createElement('div');
+    document.body.appendChild(hostA);
+    document.body.appendChild(hostB);
+    await render(hostA, <div id="a">a</div>);
+    await render(hostB, <div id="b">b</div>);
+    return { document, view, listeners };
+  };
+
+  it('registers exactly one unhandledrejection listener across two containers, routing to logError once', async () => {
+    const logErrorSpy = vi
+      .spyOn(logUtils, 'logError')
+      .mockImplementation((message?: any) => message as Error);
+    try {
+      const { view, listeners } = await renderTwoContainers();
+      const registrations = (view.addEventListener as any).mock.calls.filter(
+        (c: any[]) => c[0] === 'unhandledrejection'
+      );
+      // Single-fire invariant: one listener for the whole page, not one per container.
+      expect(registrations.length).toBe(1);
+
+      const handlers = listeners['unhandledrejection'] ?? [];
+      expect(handlers.length).toBe(1);
+      const reason = new Error('fire-and-forget rejection');
+      handlers[0]({ reason });
+
+      expect(logErrorSpy).toHaveBeenCalledTimes(1);
+      expect(logErrorSpy).toHaveBeenCalledWith(reason);
+    } finally {
+      logErrorSpy.mockRestore();
+    }
   });
 });

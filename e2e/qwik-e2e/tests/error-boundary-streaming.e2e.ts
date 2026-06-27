@@ -51,7 +51,7 @@ test.describe('ErrorBoundary streaming swap', () => {
     await expect(page.locator('#eb-footer')).toHaveText('Footer shell', { timeout: 10000 });
 
     await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: eb sync boom');
+    await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: An error occurred');
     await expect(page.locator('#eb-content')).toBeHidden();
 
     await page.locator('#eb-fallback-button').click();
@@ -68,7 +68,7 @@ test.describe('ErrorBoundary streaming swap', () => {
     await expect(page.locator('#eb-footer')).toHaveText('Footer shell', { timeout: 10000 });
 
     await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: eb sync boom');
+    await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: An error occurred');
     await expect(page.locator('#eb-content')).toBeHidden();
 
     await page.locator('#eb-fallback-button').click();
@@ -86,7 +86,7 @@ test.describe('ErrorBoundary streaming swap', () => {
 
     await expect(page.locator('#eb-deferred-ok')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: eb sync boom');
+    await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: An error occurred');
     await expect(page.locator('#eb-content')).toBeHidden();
 
     await page.locator('#eb-fallback-button').click();
@@ -110,7 +110,7 @@ test.describe('ErrorBoundary streaming swap', () => {
     await releaseDeferred(page, '#eb-release');
 
     await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: eb async boom');
+    await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: An error occurred');
     await expect(page.locator('#eb-sibling')).toBeHidden();
 
     await page.locator('#eb-fallback-button').click();
@@ -192,7 +192,7 @@ test.describe('ErrorBoundary streaming swap', () => {
     await page.goto('/e2e/error-boundary-streaming?scenario=nested', { waitUntil: 'commit' });
 
     await expect(page.locator('#eb-inner')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#eb-inner-msg')).toHaveText('caught: eb sync boom');
+    await expect(page.locator('#eb-inner-msg')).toHaveText('caught: An error occurred');
     await expect(page.locator('#eb-outer')).toHaveCount(0);
 
     await page.locator('#eb-outer-throw').click();
@@ -213,7 +213,7 @@ test.describe('ErrorBoundary streaming swap', () => {
 
     await expect(page.locator('#eb-title')).toHaveText('EB Streaming', { timeout: 10000 });
     await expect(page.locator('#eb-outer')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#eb-outer-msg')).toHaveText('caught: inner fallback boom');
+    await expect(page.locator('#eb-outer-msg')).toHaveText('caught: An error occurred');
     await expect(page.locator('#eb-content')).toBeHidden();
 
     await page.locator('#eb-outer-button').click();
@@ -230,7 +230,7 @@ test.describe('ErrorBoundary streaming swap', () => {
 
     await expect(page.locator('#eb-title')).toHaveText('EB Streaming', { timeout: 10000 });
     await expect(page.locator('#eb-outer')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#eb-outer-msg')).toHaveText('caught: inner fallback boom');
+    await expect(page.locator('#eb-outer-msg')).toHaveText('caught: An error occurred');
     await expect(page.locator('#eb-content')).toBeHidden();
 
     await page.locator('#eb-outer-button').click();
@@ -337,7 +337,7 @@ test.describe('ErrorBoundary reset', () => {
       waitUntil: 'commit',
     });
     await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#eb-fallback-msg')).toContainText('ssr boom');
+    await expect(page.locator('#eb-fallback-msg')).toContainText('An error occurred');
 
     // 1st reset: re-executes the child, which errors again on its first client run.
     await page.locator('#eb-reset').click();

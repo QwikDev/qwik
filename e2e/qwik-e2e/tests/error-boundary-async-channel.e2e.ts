@@ -28,7 +28,7 @@ test.describe('ErrorBoundary × async-signal .error channel', () => {
       waitUntil: 'commit',
     });
 
-    await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: unexpected-async-error', {
+    await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: An error occurred', {
       timeout: 10000,
     });
     await expect(page.locator('#async-value')).toHaveCount(0);

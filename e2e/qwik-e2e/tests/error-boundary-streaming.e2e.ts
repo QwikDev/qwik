@@ -185,6 +185,22 @@ test.describe('ErrorBoundary streaming swap', () => {
     expect(await page.evaluate(() => (window as any).__ebOnErrorMsg)).toBe('onerror boom');
   });
 
+  test("onError$ info carries phase 'event' and a stable boundaryId for a real qwikloader throw", async ({
+    page,
+  }) => {
+    await page.goto('/e2e/error-boundary-streaming?scenario=onerror', { waitUntil: 'commit' });
+
+    await expect(page.locator('#eb-content')).toHaveText('content ok', { timeout: 10000 });
+    await page.locator('#eb-onerror-throw').click();
+
+    await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
+    await page.waitForFunction(() => (window as any).__ebOnErrorPhase !== undefined);
+    // A throw from a real qwikloader-dispatched event handler routes through the live `qerror`
+    // listener, so the 2nd-arg phase is 'event' — the unit suite fabricates the qerror and can't prove it.
+    expect(await page.evaluate(() => (window as any).__ebOnErrorPhase)).toBe('event');
+    expect(await page.evaluate(() => (window as any).__ebOnErrorBoundaryId)).toBeTruthy();
+  });
+
   // ── cross-phase & multi-boundary ──
   test('SSR inner error, then a client throw makes the outer boundary replace the whole subtree', async ({
     page,
@@ -201,6 +217,29 @@ test.describe('ErrorBoundary streaming swap', () => {
     await expect(page.locator('#eb-inner')).toHaveCount(0);
     await page.locator('#eb-outer-button').click();
     await expect(page.locator('#eb-outer-count')).toHaveText('1');
+  });
+
+  test('a real client throw inside the inner boundary is caught by the nearest (inner) boundary, outer intact', async ({
+    page,
+  }) => {
+    await page.goto('/e2e/error-boundary-streaming?scenario=nested-client', {
+      waitUntil: 'commit',
+    });
+
+    await expect(page.locator('#eb-content')).toHaveText('content ok', { timeout: 10000 });
+    await expect(page.locator('#eb-outer-ok')).toBeVisible();
+    await expect(page.locator('#eb-inner')).toHaveCount(0);
+
+    await page.locator('#eb-inner-throw').click();
+
+    // The closest boundary catches the real event-handler throw: inner swaps, outer stays intact.
+    await expect(page.locator('#eb-inner')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#eb-outer')).toHaveCount(0);
+    await expect(page.locator('#eb-outer-ok')).toBeVisible();
+    await expect(page.locator('#eb-inner-msg')).toHaveText('caught: inner client boom');
+
+    await page.locator('#eb-inner-button').click();
+    await expect(page.locator('#eb-inner-count')).toHaveText('1');
   });
 
   test('in-order: a throwing inner fallback escalates to the outer boundary, fallback interactive', async ({
@@ -383,5 +422,62 @@ test.describe('ErrorBoundary reset', () => {
     await page.locator('#eb-reset').click();
     await expect(page.locator('#eb-wrap-recovered')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#eb-fallback')).toHaveCount(0);
+  });
+});
+
+test.describe('ErrorBoundary last-resort & rejection bridge', () => {
+  test('built-in last-resort node renders when the fallback$ chunk fails to load', async ({
+    page,
+  }) => {
+    // Block only the lazily-loaded fallback QRL chunks under /build/ (both the inline `fallback$`
+    // wrapper and the `EbFallback` component it imports contain "fallback" in the filename). Aborting
+    // them makes `fallbackQrl()` reject without ever resolving → core renders the last-resort node.
+    const blockedFallbackChunks: string[] = [];
+    await page.route(/\/build\/[^?]*[Ff]allback[^?]*\.js/, (route) => {
+      blockedFallbackChunks.push(route.request().url());
+      return route.abort();
+    });
+
+    await page.goto('/e2e/error-boundary-streaming?scenario=last-resort', { waitUntil: 'commit' });
+
+    await expect(page.locator('#eb-content')).toHaveText('content ok', { timeout: 10000 });
+    await expect(page.locator('[role="alert"]')).toHaveCount(0);
+
+    await page.locator('#eb-last-resort-throw').click();
+
+    // The fallback chunk can't load, so the boundary shows the non-lazy core node instead of nothing.
+    const lastResort = page.locator('[role="alert"]');
+    await expect(lastResort).toBeVisible({ timeout: 10000 });
+    await expect(lastResort).toHaveText('Something went wrong.');
+    await expect(page.locator('#eb-fallback')).toHaveCount(0);
+    expect(blockedFallbackChunks.length).toBeGreaterThan(0);
+
+    // Shell stays interactive: the page itself never errored out.
+    await expect(page.locator('#eb-title')).toHaveText('EB Streaming');
+  });
+
+  test('a fire-and-forget Promise.reject reaches logError via the unhandledrejection bridge', async ({
+    page,
+  }) => {
+    const consoleErrors: string[] = [];
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        consoleErrors.push(msg.text());
+      }
+    });
+
+    await page.goto('/e2e/error-boundary-streaming?scenario=unhandled-rejection', {
+      waitUntil: 'commit',
+    });
+    await expect(page.locator('#eb-reject')).toBeVisible({ timeout: 10000 });
+
+    // Touch state so the container resumes and the per-window bridge is registered before the reject.
+    await page.locator('#eb-reject').click();
+    await expect(page.locator('#eb-reject-touched')).toHaveText('1');
+
+    // The bridge logs the rejection reason via `logError` (qTest is off in a real browser).
+    await expect
+      .poll(() => consoleErrors.join('\n'), { timeout: 10000 })
+      .toContain('unhandled boom');
   });
 });

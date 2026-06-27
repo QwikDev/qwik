@@ -284,9 +284,12 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
       ) : scenario === 'onerror' ? (
         <ErrorBoundary
           fallback$={(e) => <EbFallback msg={String((e as any)?.message ?? e)} />}
-          onError$={(e) => {
+          onError$={(e, info) => {
             (window as any).__ebOnErrorRuns = ((window as any).__ebOnErrorRuns ?? 0) + 1;
             (window as any).__ebOnErrorMsg = (e as any)?.message ?? String(e);
+            // 2nd arg metadata: a real qwikloader-dispatched event throw must route with phase 'event'.
+            (window as any).__ebOnErrorPhase = info?.phase;
+            (window as any).__ebOnErrorBoundaryId = info?.boundaryId;
           }}
         >
           <button
@@ -442,6 +445,61 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
             <AsyncValueThrows />
           </Suspense>
         </ErrorBoundary>
+      ) : scenario === 'nested-client' ? (
+        // A real client throw from INSIDE the inner boundary must be caught by the NEAREST (inner)
+        // boundary, leaving the outer intact.
+        <ErrorBoundary
+          fallback$={(e) => <EbFallback id="eb-outer" msg={String((e as any)?.message ?? e)} />}
+        >
+          <div id="eb-outer-ok">outer ok</div>
+          <ErrorBoundary
+            fallback$={(e) => <EbFallback id="eb-inner" msg={String((e as any)?.message ?? e)} />}
+          >
+            <button
+              id="eb-inner-throw"
+              onClick$={() => {
+                touched.value++;
+                throw new Error('inner client boom');
+              }}
+            >
+              throw on click
+            </button>
+            <span id="eb-inner-touched">{touched.value}</span>
+            <div id="eb-content">content ok</div>
+          </ErrorBoundary>
+        </ErrorBoundary>
+      ) : scenario === 'last-resort' ? (
+        // SSR-clean boundary; a client throw routes to the lazily-loaded `fallback$` chunk. Blocking
+        // that chunk in the test forces core's built-in last-resort `role="alert"` node.
+        <ErrorBoundary fallback$={(e) => <EbFallback msg={String((e as any)?.message ?? e)} />}>
+          <button
+            id="eb-last-resort-throw"
+            onClick$={() => {
+              touched.value++;
+              throw new Error('last-resort boom');
+            }}
+          >
+            throw on click
+          </button>
+          <span id="eb-last-resort-touched">{touched.value}</span>
+          <div id="eb-content">content ok</div>
+        </ErrorBoundary>
+      ) : scenario === 'unhandled-rejection' ? (
+        // Fire-and-forget rejection (not awaited, not thrown): reaches `logError` via the per-window
+        // `unhandledrejection` bridge, NOT any boundary.
+        <>
+          <button
+            id="eb-reject"
+            onClick$={() => {
+              touched.value++;
+              // eslint-disable-next-line @typescript-eslint/no-floating-promises
+              Promise.reject(new Error('unhandled boom'));
+            }}
+          >
+            fire-and-forget reject
+          </button>
+          <span id="eb-reject-touched">{touched.value}</span>
+        </>
       ) : (
         <ErrorBoundary fallback$={(e) => <EbFallback msg={String((e as any)?.message ?? e)} />}>
           <EbContent />

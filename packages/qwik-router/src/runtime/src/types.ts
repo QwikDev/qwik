@@ -9,6 +9,7 @@ import type {
 } from '@qwik.dev/core';
 import type { SerializationStrategy } from '@qwik.dev/core/internal';
 import type {
+  AbortMessage,
   EnvGetter,
   RequestEvent,
   RequestEventAction,
@@ -16,6 +17,7 @@ import type {
   RequestEventLoader,
   RequestHandler,
   ResolveSyncValue,
+  ServerError,
 } from '@qwik.dev/router/middleware/request-handler';
 import type * as v from 'valibot';
 import type * as z from 'zod';
@@ -991,6 +993,14 @@ type Failed = {
 /** @public */
 export type FailReturn<T> = T & Failed;
 
+/**
+ * Drops control-flow signals (`ev.redirect()`, `ev.error()`, etc.) from a loader/action return
+ * type: those are thrown, not surfaced as data. `ev.fail()` is plain data and is kept.
+ *
+ * @public
+ */
+export type ExcludeControlFlow<T> = Exclude<T, AbortMessage | ServerError>;
+
 /** @public */
 export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<infer VALIDATOR>
   ? Signal<ValueOrPromise<VALIDATOR>>
@@ -1003,7 +1013,7 @@ export type Loader<RETURN> = {
    * Returns the `Signal` containing the data returned by the `loader$` function. Like all `use-`
    * functions and methods, it can only be invoked within a `component$()`.
    */
-  (): LoaderSignal<RETURN>;
+  (): LoaderSignal<ExcludeControlFlow<RETURN>>;
 };
 
 export interface LoaderInternal extends Loader<any> {
@@ -1028,7 +1038,7 @@ export type Action<RETURN, INPUT = Record<string, unknown>, OPTIONAL extends boo
    * component$(). Like all `use-` functions and methods, it can only be invoked within a
    * `component$()`.
    */
-  (): ActionStore<RETURN, INPUT, OPTIONAL>;
+  (): ActionStore<ExcludeControlFlow<RETURN>, INPUT, OPTIONAL>;
 };
 
 export interface ActionInternal extends Action<any, any> {

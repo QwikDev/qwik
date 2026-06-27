@@ -49,7 +49,7 @@ import {
 import { HttpStatus } from './http-status-codes';
 import { getQwikRouterServerData } from './response-page';
 import { encoder, isContentType } from './request-utils';
-import { ServerError } from './server-error';
+import { ServerError, throwIfControlFlowSignal } from './server-error';
 
 const loadHttpError = () => import('../../runtime/src/http-error');
 
@@ -296,6 +296,7 @@ function createResolveRequestHandlers() {
                     action.__qrl.call(requestEv, result.data as JSONObject, requestEv)
                   )
                 : await action.__qrl.call(requestEv, result.data as JSONObject, requestEv);
+              throwIfControlFlowSignal(actionResolved);
               if (isDev) {
                 verifySerializable(actionResolved, action.__qrl);
               }
@@ -554,6 +555,7 @@ function createResolveRequestHandlers() {
         console.error(`Server function ${serverFnHash} failed:`, err);
         throw ev.error(500, 'Invalid request');
       }
+      throwIfControlFlowSignal(result);
       if (isAsyncIterator(result)) {
         ev.headers.set('Content-Type', 'text/qwik-json-stream');
         const writable = ev.getWritableStream();

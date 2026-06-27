@@ -20,6 +20,7 @@ import type { ValueOrPromise } from '@qwik.dev/core';
 
 // @public (undocumented)
 export class AbortMessage {
+    readonly __controlFlow: true;
 }
 
 // Warning: (ae-forgotten-export) The symbol "RequestEventInternal" needs to be exported by the entry point index.d.ts
@@ -170,7 +171,7 @@ export interface RequestEventLoader<PLATFORM = QwikRouterPlatform> extends Reque
 }
 
 // @public (undocumented)
-export type RequestHandler<PLATFORM = QwikRouterPlatform> = (ev: RequestEvent<PLATFORM>) => Promise<void> | void;
+export type RequestHandler<PLATFORM = QwikRouterPlatform> = (ev: RequestEvent<PLATFORM>) => Promise<void | AbortMessage | ServerError> | void | AbortMessage | ServerError;
 
 // Warning: (ae-forgotten-export) The symbol "QwikRouterRun" needs to be exported by the entry point index.d.ts
 //

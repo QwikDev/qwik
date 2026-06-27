@@ -20,7 +20,7 @@ import {
 } from './request-path';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
 import { RewriteMessage } from './rewrite-handler';
-import { ServerError } from './server-error';
+import { ServerError, throwIfControlFlowSignal } from './server-error';
 import { encoder, getContentType } from './request-utils';
 import type {
   CacheControl,
@@ -92,9 +92,7 @@ export function createRequestEvent(
     while (routeModuleIndex < requestHandlers.length) {
       const moduleRequestHandler = requestHandlers[routeModuleIndex];
       const result = moduleRequestHandler(requestEv);
-      if (isPromise(result)) {
-        await result;
-      }
+      throwIfControlFlowSignal(isPromise(result) ? await result : result);
       routeModuleIndex++;
     }
   };

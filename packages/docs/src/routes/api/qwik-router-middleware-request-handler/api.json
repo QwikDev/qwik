@@ -3,6 +3,23 @@
   "package": "@qwik.dev/qwik-router/middleware/request-handler",
   "members": [
     {
+      "name": "__controlFlow",
+      "id": "abortmessage-__controlflow",
+      "hierarchy": [
+        {
+          "name": "AbortMessage",
+          "id": "abortmessage-__controlflow"
+        },
+        {
+          "name": "__controlFlow",
+          "id": "abortmessage-__controlflow"
+        }
+      ],
+      "kind": "Property",
+      "content": "Type-only brand so `Exclude<>` can drop control-flow signals from resolved loader/action data.\n\n\n```typescript\nreadonly __controlFlow: true;\n```",
+      "mdFile": "router.abortmessage.__controlflow.md"
+    },
+    {
       "name": "AbortMessage",
       "id": "abortmessage",
       "hierarchy": [
@@ -12,7 +29,7 @@
         }
       ],
       "kind": "Class",
-      "content": "```typescript\nexport declare class AbortMessage \n```",
+      "content": "```typescript\nexport declare class AbortMessage \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[\\_\\_controlFlow](#abortmessage-__controlflow)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\ntrue\n\n\n</td><td>\n\nType-only brand so `Exclude<>` can drop control-flow signals from resolved loader/action data.\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/redirect-handler.ts",
       "mdFile": "router.abortmessage.md"
     },
@@ -414,7 +431,7 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nexport type RequestHandler<PLATFORM = QwikRouterPlatform> = (ev: RequestEvent<PLATFORM>) => Promise<void> | void;\n```\n**References:** [RequestEvent](#requestevent)",
+      "content": "```typescript\nexport type RequestHandler<PLATFORM = QwikRouterPlatform> = (ev: RequestEvent<PLATFORM>) => Promise<void | AbortMessage | ServerError> | void | AbortMessage | ServerError;\n```\n**References:** [RequestEvent](#requestevent)<!-- -->, [AbortMessage](#abortmessage)<!-- -->, [ServerError](#servererror)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/request-handler.ts",
       "mdFile": "router.requesthandler.md"
     },
@@ -428,7 +445,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type RequestHandler<PLATFORM = QwikRouterPlatform> = (ev: RequestEvent<PLATFORM>) => Promise<void> | void;\n```\n**References:** [RequestEvent](#requestevent)",
+      "content": "```typescript\nexport type RequestHandler<PLATFORM = QwikRouterPlatform> = (ev: RequestEvent<PLATFORM>) => Promise<void | AbortMessage | ServerError> | void | AbortMessage | ServerError;\n```\n**References:** [RequestEvent](#requestevent)<!-- -->, [AbortMessage](#abortmessage)<!-- -->, [ServerError](#servererror)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts",
       "mdFile": "router.requesthandler.md"
     },

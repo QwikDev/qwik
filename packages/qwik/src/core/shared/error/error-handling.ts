@@ -77,6 +77,14 @@ export const toSerializableBoundaryError = (err: unknown, dev: boolean = isDev):
   return new Error(typeof rawMessage === 'string' ? rawMessage : String(err));
 };
 
+/**
+ * What the boundary's fallback displays. Redacts a client-origin error in prod so it matches the
+ * SSR path; keeps an already-redacted projection (it has a `digest`) so the digest the client shows
+ * stays consistent with the server log. `dev` is explicit so tests can drive both paths.
+ */
+export const redactBoundaryErrorForDisplay = (error: unknown, dev: boolean = isDev): unknown =>
+  error instanceof Error && 'digest' in error ? error : toSerializableBoundaryError(error, dev);
+
 /** Fire-and-forget `onError$`; its own failure never affects rendering. */
 export const fireOnError = (
   onError: ((error: unknown, info: ErrorBoundaryInfo) => unknown) | undefined | null,

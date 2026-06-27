@@ -29,6 +29,7 @@ import { rerenderComponent } from '../../testing/rendering.unit-util';
 import { delay } from '../shared/utils/promises';
 import {
   markBoundaryErrored,
+  redactBoundaryErrorForDisplay,
   toSerializableBoundaryError,
   type ErrorBoundaryStore,
 } from '../shared/error/error-handling';
@@ -1814,6 +1815,28 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
     markBoundaryErrored(store, original);
     expect(received).toHaveLength(1);
     expect(received[0]).toBe(original);
+  });
+
+  // The client fallback render redacts via this helper, so a client-caught error matches the SSR path
+  // in prod. (The e2e harness builds the client in dev mode, so this is the unit proof.)
+  it('redactBoundaryErrorForDisplay: prod redacts a raw client error to generic + digest', () => {
+    const raw = Object.assign(new Error('client secret'), { token: 'abc' });
+    const out = redactBoundaryErrorForDisplay(raw, /* dev */ false) as Error & { digest?: string };
+    expect(out.message).toBe('An error occurred');
+    expect((out as Record<string, unknown>).token).toBeUndefined();
+    expect(typeof out.digest).toBe('string');
+  });
+
+  it('redactBoundaryErrorForDisplay: dev keeps the original error (full fidelity)', () => {
+    const raw = new Error('client secret');
+    expect(redactBoundaryErrorForDisplay(raw, /* dev */ true)).toBe(raw);
+  });
+
+  it('redactBoundaryErrorForDisplay: keeps an already-redacted projection (preserves the digest)', () => {
+    const alreadyRedacted = toSerializableBoundaryError(new Error('orig'), false) as Error & {
+      digest: string;
+    };
+    expect(redactBoundaryErrorForDisplay(alreadyRedacted, false)).toBe(alreadyRedacted);
   });
 });
 

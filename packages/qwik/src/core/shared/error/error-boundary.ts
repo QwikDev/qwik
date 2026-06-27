@@ -18,7 +18,7 @@ import { tryGetInvokeContext } from '../../use/use-core';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { getNextUniqueIndex } from '../utils/unique-index-generator';
 import { getStoreTarget } from '../../reactive-primitives/impl/store';
-import type { ErrorBoundaryStore } from './error-handling';
+import { redactBoundaryErrorForDisplay, type ErrorBoundaryStore } from './error-handling';
 
 /** Minimal SSR frame shape: the projection frame holds the component that authored the children. */
 type ISsrComponentFrameLike = {
@@ -183,11 +183,13 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
   }
 
   if (store.error !== undefined) {
+    // Client-side display redaction (prod) for parity with the SSR path; no-op in dev.
+    const displayError = redactBoundaryErrorForDisplay(store.error);
     return /*#__PURE__*/ _jsxSorted(
       Fragment,
       null,
       null,
-      renderFallbackOrLastResort(props.fallback$, store.error, reset),
+      renderFallbackOrLastResort(props.fallback$, displayError, reset),
       0,
       null
     );

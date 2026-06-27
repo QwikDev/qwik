@@ -1,4 +1,5 @@
 import type { ISsrNode, StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-types';
+import type { ErrorBoundaryInfo } from './error/error-boundary';
 import type { ContextId } from '../use/use-context';
 import type { EventHandler } from './jsx/types/jsx-qwik-attributes';
 import type { SerializationContext } from './serdes/index';
@@ -33,7 +34,7 @@ export interface Container {
   $pendingCount$: number;
   $checkPendingCount$(): void;
 
-  handleError(err: any, $host$: HostElement | null): void;
+  handleError(err: any, $host$: HostElement | null, phase?: ErrorBoundaryInfo['phase']): void;
   getParentHost(host: HostElement): HostElement | null;
   setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
   resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined;

@@ -55,6 +55,7 @@ import {
   markBoundaryErrored,
   type ErrorBoundaryStore,
 } from '../shared/error/error-handling';
+import type { ErrorBoundaryInfo } from '../shared/error/error-boundary';
 import type { ISsrComponentFrame, ISsrNode, SSRContainer, SSRRenderJSXOptions } from './ssr-types';
 import { resolveSlotName } from '../shared/utils/prop';
 
@@ -99,7 +100,14 @@ export async function _walkJSX(
           try {
             await retryOnPromise(() => stack.push(trackFn()));
           } catch (err) {
-            stack.push(await resolveErrorBoundaryFallback(ssr, ssr.getOrCreateLastNode(), err));
+            stack.push(
+              await resolveErrorBoundaryFallback(
+                ssr,
+                ssr.getOrCreateLastNode(),
+                err,
+                'async-signal'
+              )
+            );
           }
           continue;
         }
@@ -145,7 +153,8 @@ function findErrorBoundaryNode(host: ISsrNode | null): ISsrNode | null {
 function renderErrorBoundaryFallback(
   ssr: SSRContainer,
   host: ReturnType<SSRContainer['getOrCreateLastNode']>,
-  err: unknown
+  err: unknown,
+  phase: ErrorBoundaryInfo['phase'] = 'render'
 ): ValueOrPromise<JSXOutput> {
   // A non-recoverable build/plugin error must surface, not hide in any fallback.
   if (qDev && !isRecoverable(err)) {
@@ -170,7 +179,7 @@ function renderErrorBoundaryFallback(
     ) {
       throw err;
     }
-    markBoundaryErrored(errorStore, err);
+    markBoundaryErrored(errorStore, err, phase);
     if (__EXPERIMENTAL__.errorBoundary) {
       markErrorBoundaryContentInert(ssr, boundaryNode);
     }
@@ -235,9 +244,10 @@ function markSubtreeInert(
 async function resolveErrorBoundaryFallback(
   ssr: SSRContainer,
   host: ReturnType<SSRContainer['getOrCreateLastNode']>,
-  err: unknown
+  err: unknown,
+  phase: ErrorBoundaryInfo['phase'] = 'render'
 ): Promise<JSXOutput> {
-  const fallback = renderErrorBoundaryFallback(ssr, host, err);
+  const fallback = renderErrorBoundaryFallback(ssr, host, err, phase);
   return isPromise(fallback) ? await fallback : fallback;
 }
 
@@ -245,13 +255,16 @@ async function resolveErrorBoundaryFallback(
 function catchToErrorBoundary(
   ssr: SSRContainer,
   host: ReturnType<SSRContainer['getOrCreateLastNode']>,
-  produce: () => ValueOrPromise<JSXOutput>
+  produce: () => ValueOrPromise<JSXOutput>,
+  phase: ErrorBoundaryInfo['phase'] = 'render'
 ): ValueOrPromise<JSXOutput> {
   try {
     const out = produce();
-    return isPromise(out) ? out.catch((err) => renderErrorBoundaryFallback(ssr, host, err)) : out;
+    return isPromise(out)
+      ? out.catch((err) => renderErrorBoundaryFallback(ssr, host, err, phase))
+      : out;
   } catch (err) {
-    return renderErrorBoundaryFallback(ssr, host, err);
+    return renderErrorBoundaryFallback(ssr, host, err, phase);
   }
 }
 
@@ -303,7 +316,12 @@ function processJSXNode(
           }
         } catch (err) {
           // Route to the closest boundary, else a mid-stream throw aborts SSR.
-          const fallback = await resolveErrorBoundaryFallback(ssr, ssr.getOrCreateLastNode(), err);
+          const fallback = await resolveErrorBoundaryFallback(
+            ssr,
+            ssr.getOrCreateLastNode(),
+            err,
+            'async-generator'
+          );
           await _walkJSX(ssr, fallback, {
             currentStyleScoped: options.currentStyleScoped,
             parentComponentFrame: options.parentComponentFrame,

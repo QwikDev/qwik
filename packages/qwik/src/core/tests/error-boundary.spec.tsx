@@ -597,6 +597,36 @@ describe('ErrorBoundary catches task throws', () => {
       expect(el.querySelector('#content')).toBeFalsy();
     });
 
+    it('onError$ receives info.phase "task" for a useTask$ throw', async () => {
+      const infos: Array<{ phase: string; boundaryId: string }> = [];
+      const ThrowingTask = component$(() => {
+        useTask$(() => {
+          throw new Error('task boom');
+        });
+        return <span id="content">ok</span>;
+      });
+
+      const { container } = await domRender(
+        <ErrorBoundary
+          fallback$={$((e: any) => (
+            <p id="fb">caught: {e.message}</p>
+          ))}
+          onError$={$((_e: any, info: any) => {
+            infos.push({ phase: info.phase, boundaryId: info.boundaryId });
+          })}
+        >
+          <ThrowingTask />
+        </ErrorBoundary>,
+        { debug }
+      );
+      await waitForDrain(container);
+      await getTestPlatform().flush();
+
+      expect(infos).toHaveLength(1);
+      expect(infos[0].phase).toBe('task');
+      expect(infos[0].boundaryId.length).toBeGreaterThan(0);
+    });
+
     it('an async useTask$ throw is caught by the nearest <ErrorBoundary>', async () => {
       const ThrowingTask = component$(() => {
         useTask$(async () => {
@@ -742,6 +772,28 @@ describe('ErrorBoundary SSR async-generator + non-serializable throws (experimen
       { debug }
     );
     expect(container.element.querySelector('#fb')?.textContent).toContain('caught: async gen boom');
+  });
+
+  it('onError$ receives info.phase "async-generator" for an async-generator child throw', async () => {
+    const infos: Array<{ phase: string; boundaryId: string }> = [];
+    await ssrRenderToDom(
+      <ErrorBoundary
+        fallback$={$((e: any) => (
+          <p id="fb">caught: {String(e?.message ?? e)}</p>
+        ))}
+        onError$={$((_e: any, info: any) => {
+          infos.push({ phase: info.phase, boundaryId: info.boundaryId });
+        })}
+      >
+        <AsyncGenThrower />
+      </ErrorBoundary>,
+      { debug }
+    );
+    await getTestPlatform().flush();
+    await delay(0);
+    expect(infos).toHaveLength(1);
+    expect(infos[0].phase).toBe('async-generator');
+    expect(infos[0].boundaryId.length).toBeGreaterThan(0);
   });
 
   it('a non-serializable throw renders the fallback AND the page still serializes', async () => {
@@ -1426,6 +1478,36 @@ describe('ErrorBoundary streaming swap (experimental)', () => {
     expect(displayOf(document.querySelector('#before')?.closest('div[style]'))).toBe('none');
   });
 
+  it('onError$ receives info.phase "async-signal" for a rejecting async signal', async () => {
+    (globalThis as any).__ebAsyncSignalInfo = [];
+    await streamAndResume(
+      <main>
+        <ErrorBoundary
+          fallback$={$((e: any) => (
+            <p id="fb">caught: {String(e?.message ?? e)}</p>
+          ))}
+          onError$={$((_e: any, info: any) => {
+            ((globalThis as any).__ebAsyncSignalInfo ||= []).push({
+              phase: info.phase,
+              boundaryId: info.boundaryId,
+            });
+          })}
+        >
+          <div id="before">before</div>
+          <AsyncSignalThrower />
+        </ErrorBoundary>
+      </main>
+    );
+    const infos = (globalThis as any).__ebAsyncSignalInfo as Array<{
+      phase: string;
+      boundaryId: string;
+    }>;
+    expect(infos).toHaveLength(1);
+    expect(infos[0].phase).toBe('async-signal');
+    expect(infos[0].boundaryId.length).toBeGreaterThan(0);
+    delete (globalThis as any).__ebAsyncSignalInfo;
+  });
+
   it('sibling boundaries swap independently', async () => {
     const { document } = await streamAndResume(
       <main>
@@ -1700,7 +1782,7 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
     expect(redacted).toBeInstanceOf(Error);
     expect(redacted.message).toBe('An error occurred');
     expect(redacted.message).not.toContain('secret');
-    expect((redacted as Record<string, unknown>).query).toBeUndefined();
+    expect((redacted as unknown as Record<string, unknown>).query).toBeUndefined();
     expect(typeof redacted.digest).toBe('string');
     expect(redacted.digest!.length).toBeGreaterThan(0);
   });
@@ -1758,6 +1840,76 @@ describe('ErrorBoundary onError$', () => {
 
     expect(container.element.querySelector('#fb')?.textContent).toContain('caught: boom');
     expect(onErrorLog.errors).toEqual(['boom']);
+  });
+
+  it('passes an info arg with phase "render" and a non-empty boundaryId for a render throw (CSR)', async () => {
+    const infos: Array<{ phase: string; boundaryId: string }> = [];
+    const { container } = await domRender(
+      <ErrorBoundary
+        fallback$={$((e: any) => (
+          <p id="fb">caught: {e.message}</p>
+        ))}
+        onError$={$((_e: any, info: any) => {
+          infos.push({ phase: info.phase, boundaryId: info.boundaryId });
+        })}
+      >
+        <Thrower />
+      </ErrorBoundary>,
+      { debug }
+    );
+    await waitForDrain(container);
+    await getTestPlatform().flush();
+
+    expect(infos).toHaveLength(1);
+    expect(infos[0].phase).toBe('render');
+    expect(typeof infos[0].boundaryId).toBe('string');
+    expect(infos[0].boundaryId.length).toBeGreaterThan(0);
+  });
+
+  it('passes a stable boundaryId for the same caught error (in-order SSR render throw)', async () => {
+    const infos: Array<{ phase: string; boundaryId: string }> = [];
+    await ssrRenderToDom(
+      <ErrorBoundary
+        fallback$={$((e: any) => (
+          <p id="fb">caught: {e.message}</p>
+        ))}
+        onError$={$((_e: any, info: any) => {
+          infos.push({ phase: info.phase, boundaryId: info.boundaryId });
+        })}
+      >
+        <Thrower />
+      </ErrorBoundary>,
+      { debug, streaming: { outOfOrder: false } }
+    );
+    await getTestPlatform().flush();
+    await delay(0);
+    expect(infos).toHaveLength(1);
+    expect(infos[0].phase).toBe('render');
+    expect(infos[0].boundaryId.length).toBeGreaterThan(0);
+  });
+
+  it('still fires exactly once with the new info arg present, and a throwing onError$ is swallowed (CSR)', async () => {
+    const calls: Array<{ phase: string; boundaryId: string }> = [];
+    const { container } = await domRender(
+      <ErrorBoundary
+        fallback$={$((e: any) => (
+          <p id="fb">caught: {e.message}</p>
+        ))}
+        onError$={$((_e: any, info: any) => {
+          calls.push({ phase: info.phase, boundaryId: info.boundaryId });
+          throw new Error('onError boom');
+        })}
+      >
+        <Thrower />
+      </ErrorBoundary>,
+      { debug }
+    );
+    await waitForDrain(container);
+    await getTestPlatform().flush();
+    expect(calls).toHaveLength(1);
+    expect(calls[0].phase).toBe('render');
+    expect(calls[0].boundaryId.length).toBeGreaterThan(0);
+    expect(container.element.querySelector('#fb')?.textContent).toContain('caught: boom');
   });
 
   it('is optional: a boundary without onError$ still catches', async () => {

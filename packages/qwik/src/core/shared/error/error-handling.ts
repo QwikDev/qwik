@@ -2,6 +2,7 @@ import { isDev } from '@qwik.dev/core/build';
 import { canSerialize } from '../serdes/can-serialize';
 import { createContextId } from '../../use/use-context';
 import { logError } from '../utils/log';
+import type { ErrorBoundaryInfo } from './error-boundary';
 
 /** @internal */
 export interface ErrorBoundaryStore {
@@ -9,7 +10,7 @@ export interface ErrorBoundaryStore {
   /** Server-only; the client re-renders with `props.fallback$` instead. */
   $fallback$?: (error: any) => unknown;
   /** Server-only `onError$` mirror; the client fires the serialized `props.onError$` instead. */
-  $onError$?: (error: unknown) => void;
+  $onError$?: (error: unknown, info: ErrorBoundaryInfo) => void;
   /** Server-only; streams `fallback$` as an out-of-order segment. */
   $emitFallback$?: (error: unknown) => void | Promise<void>;
   /**
@@ -19,6 +20,11 @@ export interface ErrorBoundaryStore {
    * resumes.
    */
   resetOwner?: unknown;
+  /**
+   * Stable boundary id handed to `onError$` as `info.boundaryId`. A plain (non-`$`) field so it
+   * serializes — the CSR-on-resume sink reads it after resume.
+   */
+  boundaryId?: string;
 }
 
 export const ERROR_CONTEXT = /*#__PURE__*/ createContextId<ErrorBoundaryStore>('qk-error');
@@ -73,24 +79,29 @@ export const toSerializableBoundaryError = (err: unknown, dev: boolean = isDev):
 
 /** Fire-and-forget `onError$`; its own failure never affects rendering. */
 export const fireOnError = (
-  onError: ((error: unknown) => unknown) | undefined | null,
-  error: unknown
+  onError: ((error: unknown, info: ErrorBoundaryInfo) => unknown) | undefined | null,
+  error: unknown,
+  info: ErrorBoundaryInfo
 ): void => {
   if (!onError) {
     return;
   }
   try {
-    Promise.resolve(onError(error)).catch(logError);
+    Promise.resolve(onError(error, info)).catch(logError);
   } catch (e) {
     logError(e);
   }
 };
 
-/** Mark the boundary errored and fire `onError$` once, with the original error. */
-export const markBoundaryErrored = (store: ErrorBoundaryStore, error: unknown): void => {
+/** Mark the boundary errored and fire `onError$` once, with the original error and its phase. */
+export const markBoundaryErrored = (
+  store: ErrorBoundaryStore,
+  error: unknown,
+  phase: ErrorBoundaryInfo['phase'] = 'render'
+): void => {
   const isFirstCatch = store.error === undefined;
   store.error = toSerializableBoundaryError(error);
   if (isFirstCatch) {
-    fireOnError(store.$onError$, error);
+    fireOnError(store.$onError$, error, { phase, boundaryId: store.boundaryId ?? '' });
   }
 };

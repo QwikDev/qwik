@@ -163,7 +163,7 @@ export {
   errorBoundaryCmp as _ebC,
   errorBoundaryReset as _ebR,
 } from './shared/error/error-boundary';
-export type { ErrorBoundaryProps } from './shared/error/error-boundary';
+export type { ErrorBoundaryInfo, ErrorBoundaryProps } from './shared/error/error-boundary';
 export {
   type ReadonlySignal,
   type AsyncSignal,

@@ -13,6 +13,7 @@ import {
   type SerializationContext,
 } from './serdes/serialization-context';
 import type { Container, HostElement, ObjToProxyMap } from './types';
+import type { ErrorBoundaryInfo } from './error/error-boundary';
 
 /** @internal */
 export abstract class _SharedContainer implements Container {
@@ -79,7 +80,11 @@ export abstract class _SharedContainer implements Container {
   }
 
   abstract ensureProjectionResolved(host: HostElement): void;
-  abstract handleError(err: any, $host$: HostElement | null): void;
+  abstract handleError(
+    err: any,
+    $host$: HostElement | null,
+    phase?: ErrorBoundaryInfo['phase']
+  ): void;
   abstract getParentHost(host: HostElement): HostElement | null;
   abstract setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
   abstract resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined;

@@ -182,7 +182,7 @@ export const runTask = (
   }
 
   task.$flags$ &= ~TaskFlags.DIRTY;
-  const handleError = (reason: unknown) => container.handleError(reason, host);
+  const handleError = (reason: unknown) => container.handleError(reason, host, 'task');
 
   let taskPromise: Promise<void> | null = null;
   const result = maybeThen(cleanupAsyncDestroyable(task, handleError), () => {

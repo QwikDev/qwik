@@ -16,12 +16,22 @@ import { QErrorContentHost, QErrorFallbackHost, QSuspenseResultParent } from '..
 import { qTest } from '../utils/qdev';
 import { tryGetInvokeContext } from '../../use/use-core';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
+import { getNextUniqueIndex } from '../utils/unique-index-generator';
+import { getStoreTarget } from '../../reactive-primitives/impl/store';
 import type { ErrorBoundaryStore } from './error-handling';
 
 /** Minimal SSR frame shape: the projection frame holds the component that authored the children. */
 type ISsrComponentFrameLike = {
   projectionComponentFrame?: { componentNode?: unknown } | null;
 };
+
+/** Structured metadata about a caught error, passed to `onError$`. @public */
+export interface ErrorBoundaryInfo {
+  /** Where the caught error originated. */
+  phase: 'render' | 'task' | 'event' | 'async-generator' | 'async-signal';
+  /** Stable id of the boundary that caught it. */
+  boundaryId: string;
+}
 
 /** @public */
 export interface ErrorBoundaryProps {
@@ -31,7 +41,7 @@ export interface ErrorBoundaryProps {
    */
   fallback$: QRL<(error: any, reset: QRL<() => void>) => any>;
   /** Side-effect fired once per caught error; never affects rendering. */
-  onError$?: QRL<(error: unknown) => void>;
+  onError$?: QRL<(error: unknown, info: ErrorBoundaryInfo) => void>;
 }
 
 /**
@@ -105,12 +115,21 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
   // Capture the boundary host so a streamed fallback's `reset()` can re-find the boundary.
   const invokeCtx = tryGetInvokeContext();
   const host = invokeCtx?.$hostElement$;
+  // Stable id passed to `onError$` as `info.boundaryId`. A non-`$` field so it serializes for the
+  // CSR-on-resume sink; minted on both server and client so pure-CSR boundaries also have one.
+  // Read the raw target (not the proxy) so the component never subscribes to `boundaryId`.
+  const container = invokeCtx?.$container$;
+  if (container && (getStoreTarget(store) ?? store).boundaryId === undefined) {
+    store.boundaryId = getNextUniqueIndex(container);
+  }
   const reset = /*#__PURE__*/ inlinedQrl(errorBoundaryReset, '_ebR', [host]);
   // Server-only mirrors in fresh closures, so `noSerialize` taints them, not the serialized prop QRLs.
   const fallbackQrl = props.fallback$;
   store.$fallback$ = noSerialize((error: any) => fallbackQrl(error, reset));
   const onErrorQrl = props.onError$;
-  store.$onError$ = onErrorQrl ? noSerialize((error: unknown) => onErrorQrl(error)) : undefined;
+  store.$onError$ = onErrorQrl
+    ? noSerialize((error: unknown, info: ErrorBoundaryInfo) => onErrorQrl(error, info))
+    : undefined;
 
   const isServerEnv = qTest ? isServerPlatform() : !isBrowser;
   if (__EXPERIMENTAL__.errorBoundary && isServerEnv) {

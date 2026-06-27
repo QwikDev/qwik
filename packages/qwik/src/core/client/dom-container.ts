@@ -10,6 +10,7 @@ import {
   isRecoverable,
   type ErrorBoundaryStore,
 } from '../shared/error/error-handling';
+import type { ErrorBoundaryInfo } from '../shared/error/error-boundary';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { wrapDeserializerProxy } from '../shared/serdes/deser-proxy';
 import { eagerDeserializeStateIterator } from '../shared/serdes/inflate';
@@ -185,7 +186,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         const host = this.vNodeLocate(source);
         if (host) {
           try {
-            this.handleError(detail.error, host);
+            this.handleError(detail.error, host, 'event');
           } catch (handlerError) {
             logError(handlerError);
           }
@@ -305,7 +306,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     return qrl;
   }
 
-  handleError(err: any, host: VNode | null): void {
+  handleError(err: any, host: VNode | null, phase: ErrorBoundaryInfo['phase'] = 'render'): void {
     if (qDev && host) {
       if (typeof document !== 'undefined') {
         setErrorPayload(host, err);
@@ -330,11 +331,13 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         // Resumed boundary never subscribed to `store.error`, so mark dirty to render the fallback.
         store.error = err;
         // `store.$onError$` is server-only (not serialized); read serialized `props.onError$` instead.
-        const boundaryProps = this.getHostProp<{ onError$?: (error: unknown) => unknown }>(
-          boundaryHost,
-          ELEMENT_PROPS
-        );
-        fireOnError(boundaryProps?.onError$, err);
+        const boundaryProps = this.getHostProp<{
+          onError$?: (error: unknown, info: ErrorBoundaryInfo) => unknown;
+        }>(boundaryHost, ELEMENT_PROPS);
+        fireOnError(boundaryProps?.onError$, err, {
+          phase,
+          boundaryId: store.boundaryId ?? '',
+        });
         markVNodeDirty(this, boundaryHost, ChoreBits.COMPONENT);
         return;
       }

@@ -71,7 +71,7 @@ export function runEventHandlerQRL(
         return invokeApply(ctx, realHandler, [event, element]);
       }
     },
-    (err) => container.handleError(err, hostElement)
+    (err) => container.handleError(err, hostElement, 'event')
   );
 }
 

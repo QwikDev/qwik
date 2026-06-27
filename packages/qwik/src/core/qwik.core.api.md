@@ -253,7 +253,7 @@ export interface _Container {
     // (undocumented)
     getParentHost(host: _HostElement): _HostElement | null;
     // (undocumented)
-    handleError(err: any, $host$: _HostElement | null): void;
+    handleError(err: any, $host$: _HostElement | null, phase?: ErrorBoundaryInfo['phase']): void;
     // (undocumented)
     resolveContext<T>(host: _HostElement, contextId: ContextId<T>): T | undefined;
     // Warning: (ae-forgotten-export) The symbol "SymbolToChunkResolver" needs to be exported by the entry point index.d.ts
@@ -438,7 +438,7 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     // (undocumented)
     getSyncFn(id: number): (...args: unknown[]) => unknown;
     // (undocumented)
-    handleError(err: any, host: _VNode | null): void;
+    handleError(err: any, host: _VNode | null, phase?: ErrorBoundaryInfo['phase']): void;
     // (undocumented)
     parseQRL<T = unknown>(qrlStr: string): QRL<T>;
     // (undocumented)
@@ -518,10 +518,16 @@ export const _EMPTY_OBJ: Record<string, any>;
 // @public (undocumented)
 export const ErrorBoundary: Component<ErrorBoundaryProps>;
 
+// @public
+export interface ErrorBoundaryInfo {
+    boundaryId: string;
+    phase: 'render' | 'task' | 'event' | 'async-generator' | 'async-signal';
+}
+
 // @public (undocumented)
 export interface ErrorBoundaryProps {
     fallback$: QRL<(error: any, reset: QRL<() => void>) => any>;
-    onError$?: QRL<(error: unknown) => void>;
+    onError$?: QRL<(error: unknown, info: ErrorBoundaryInfo) => void>;
 }
 
 // @public (undocumented)
@@ -1277,7 +1283,7 @@ export abstract class _SharedContainer implements _Container {
     // (undocumented)
     abstract getParentHost(host: _HostElement): _HostElement | null;
     // (undocumented)
-    abstract handleError(err: any, $host$: _HostElement | null): void;
+    abstract handleError(err: any, $host$: _HostElement | null, phase?: ErrorBoundaryInfo['phase']): void;
     // (undocumented)
     abstract resolveContext<T>(host: _HostElement, contextId: ContextId<T>): T | undefined;
     // (undocumented)

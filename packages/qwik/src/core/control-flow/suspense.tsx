@@ -399,7 +399,8 @@ export const SSRErrorFallback = __EXPERIMENTAL__.errorBoundary
           markBoundaryErrored(store, error);
           // Detach so a throw from the fallback itself propagates instead of re-rendering it.
           store.$fallback$ = undefined;
-          const segment = await ssr.segment(segmentId, fallback(error) as JSXOutput, options);
+          // Render the redacted `store.error`, not raw `error`, so the streamed fallback can't leak it.
+          const segment = await ssr.segment(segmentId, fallback(store.error) as JSXOutput, options);
           await emitErrorBoundaryFallback(ssr, boundaryId, segmentId, segment);
         };
         store.$emitFallback$ = noSerialize(streamFallback);

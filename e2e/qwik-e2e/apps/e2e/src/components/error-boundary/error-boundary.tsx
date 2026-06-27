@@ -4,6 +4,7 @@ import {
   isServer,
   Slot,
   Suspense,
+  useAsync$,
   useServerData,
   useSignal,
   useTask$,
@@ -145,6 +146,28 @@ const EbAsyncThrower = component$(() => {
     }) as unknown as JSXOutput;
   }
   return <span id="eb-async-client" />;
+});
+
+// useAsync$ is the basis the loaders are being refactored onto. An async rejection is CAPTURED into the
+// signal's `.error` (the expected channel): reading `.error` handles it inline, so the enclosing
+// <ErrorBoundary> stays inert. Reading `.value` instead RE-THROWS the captured error → the boundary
+// catches it. (A loader maps onto this: a ServerError is surfaced via `.error`; an unexpected error
+// propagates to the boundary.)
+const AsyncErrorInline = component$(() => {
+  const data = useAsync$(async () => {
+    throw new Error('expected-async-error');
+  });
+  if (data.loading) {
+    return <span id="async-loading">loading</span>;
+  }
+  return <div id="async-error">handled: {(data.error as Error)?.message ?? 'none'}</div>;
+});
+
+const AsyncValueThrows = component$(() => {
+  const data = useAsync$(async () => {
+    throw new Error('unexpected-async-error');
+  });
+  return <div id="async-value">{String(data.value)}</div>;
 });
 
 export const ErrorBoundaryStreamingRoot = component$(() => {
@@ -407,6 +430,18 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
             </Suspense>
           ) : null}
         </>
+      ) : scenario === 'async-error-inline' ? (
+        // EXPECTED channel: async error read via `.error` → handled inline; the boundary stays inert.
+        <ErrorBoundary fallback$={(e) => <EbFallback msg={String((e as any)?.message ?? e)} />}>
+          <AsyncErrorInline />
+        </ErrorBoundary>
+      ) : scenario === 'async-error-throw' ? (
+        // UNEXPECTED channel: async error read via `.value` → re-thrown → caught by the boundary.
+        <ErrorBoundary fallback$={(e) => <EbFallback msg={String((e as any)?.message ?? e)} />}>
+          <Suspense fallback={<span id="async-loading">loading</span>}>
+            <AsyncValueThrows />
+          </Suspense>
+        </ErrorBoundary>
       ) : (
         <ErrorBoundary fallback$={(e) => <EbFallback msg={String((e as any)?.message ?? e)} />}>
           <EbContent />

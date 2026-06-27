@@ -99,6 +99,22 @@ const EbWrapAsync = component$(() => {
   return <p id="eb-wrap-recovered">recovered</p>;
 });
 
+// Errors on SSR AND on the first client re-execution, then recovers on the second — so a SECOND
+// reset() runs a CLIENT re-render of an EB-inside-<Suspense> (the case the reset Suspense-climb targets).
+// The run counter is on `window` so it survives the boundary being re-created between resets.
+const EbReErrorAsync = component$(() => {
+  if (isServer) {
+    return new Promise<JSXOutput>((_resolve, reject) => {
+      setTimeout(() => reject(new Error('eb reerror ssr boom')), 50);
+    }) as unknown as JSXOutput;
+  }
+  const runs = ((window as any).__ebReErrorRuns = ((window as any).__ebReErrorRuns ?? 0) + 1);
+  if (runs < 2) {
+    throw new Error('eb reerror client boom ' + runs);
+  }
+  return <p id="eb-reerror-recovered">recovered after {runs} runs</p>;
+});
+
 const EbInertContent = component$<{ trigger: Signal<number> }>((props) => {
   useTask$(({ track }) => {
     track(() => props.trigger.value);
@@ -346,6 +362,23 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
               <EbWrapAsync />
             </ErrorBoundary>
           </EbWrapper>
+        </Suspense>
+      ) : scenario === 'reset-reerror' ? (
+        // EB directly inside <Suspense>, child re-errors once then recovers — so the 2nd reset() runs a
+        // CLIENT re-render of the boundary, exercising the reset Suspense-climb.
+        <Suspense fallback={<span id="eb-skel">loading</span>}>
+          <ErrorBoundary
+            fallback$={(e, reset) => (
+              <section id="eb-fallback">
+                <p id="eb-fallback-msg">caught: {String((e as any)?.message ?? e)}</p>
+                <button id="eb-reset" onClick$={() => reset()}>
+                  Retry
+                </button>
+              </section>
+            )}
+          >
+            <EbReErrorAsync />
+          </ErrorBoundary>
         </Suspense>
       ) : (
         <ErrorBoundary fallback$={(e) => <EbFallback msg={String((e as any)?.message ?? e)} />}>

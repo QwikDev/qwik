@@ -328,6 +328,29 @@ test.describe('ErrorBoundary reset', () => {
     await expect(page.locator('#eb-fallback')).toHaveCount(0);
   });
 
+  // 2nd retry: an EB inside <Suspense> whose child re-errors once, so the SECOND reset() is a CLIENT
+  // re-render of the boundary — the case the reset Suspense-climb targets.
+  test('second reset re-executes children of an ErrorBoundary inside a Suspense (re-error then recover)', async ({
+    page,
+  }) => {
+    await page.goto('/e2e/error-boundary-streaming?scenario=reset-reerror', {
+      waitUntil: 'commit',
+    });
+    await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#eb-fallback-msg')).toContainText('ssr boom');
+
+    // 1st reset: re-executes the child, which errors again on its first client run.
+    await page.locator('#eb-reset').click();
+    await expect(page.locator('#eb-fallback-msg')).toContainText('client boom 1', {
+      timeout: 10000,
+    });
+
+    // 2nd reset: re-executes again; the child recovers on its second client run.
+    await page.locator('#eb-reset').click();
+    await expect(page.locator('#eb-reerror-recovered')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#eb-fallback')).toHaveCount(0);
+  });
+
   // STRESS TEST (key-swap exploration): a dev-owned `key` bump re-executes async children through a
   // Slot wrapper after an SSR error — the same wrapper shape as the test above, recovered via `key`.
   test('wrapper key-swap: key bump re-executes the async child through a Slot wrapper', async ({

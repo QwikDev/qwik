@@ -368,7 +368,7 @@ describe('runEventHandlerQRL', () => {
 
     runEventHandlerQRL(mockQrl, mockEvent, mockElement, mockContext);
 
-    expect(mockContainer.handleError).toHaveBeenCalledWith(error, mockHostElement);
+    expect(mockContainer.handleError).toHaveBeenCalledWith(error, mockHostElement, 'event');
   });
 
   it('should return the value from retryOnPromise', () => {

@@ -39,7 +39,7 @@ export interface ErrorBoundaryProps {
    * Rendered when a descendant throws; receives `(error, reset)`. Add a live region for
    * screen-reader announcement.
    */
-  fallback$: QRL<(error: any, reset: QRL<() => void>) => any>;
+  fallback$: QRL<(error: unknown, reset: QRL<() => void>) => JSXOutput>;
   /** Side-effect fired once per caught error; never affects rendering. */
   onError$?: QRL<(error: unknown, info: ErrorBoundaryInfo) => void>;
 }
@@ -125,7 +125,7 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
   const reset = /*#__PURE__*/ inlinedQrl(errorBoundaryReset, '_ebR', [host]);
   // Server-only mirrors in fresh closures, so `noSerialize` taints them, not the serialized prop QRLs.
   const fallbackQrl = props.fallback$;
-  store.$fallback$ = noSerialize((error: any) => fallbackQrl(error, reset));
+  store.$fallback$ = noSerialize((error: unknown) => fallbackQrl(error, reset));
   const onErrorQrl = props.onError$;
   store.$onError$ = onErrorQrl
     ? noSerialize((error: unknown, info: ErrorBoundaryInfo) => onErrorQrl(error, info))

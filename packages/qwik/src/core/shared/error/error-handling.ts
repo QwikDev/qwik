@@ -6,9 +6,9 @@ import type { ErrorBoundaryInfo } from './error-boundary';
 
 /** @internal */
 export interface ErrorBoundaryStore {
-  error: any | undefined;
+  error: unknown | undefined;
   /** Server-only; the client re-renders with `props.fallback$` instead. */
-  $fallback$?: (error: any) => unknown;
+  $fallback$?: (error: unknown) => unknown;
   /** Server-only `onError$` mirror; the client fires the serialized `props.onError$` instead. */
   $onError$?: (error: unknown, info: ErrorBoundaryInfo) => void;
   /** Server-only; streams `fallback$` as an out-of-order segment. */

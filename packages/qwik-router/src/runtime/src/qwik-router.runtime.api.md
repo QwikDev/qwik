@@ -633,28 +633,31 @@ export namespace StandardSchemaV1 {
 // Warning: (ae-forgotten-export) The symbol "IsAny" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export type StandardSchemaValidatorErrorKeyDotNotation<T, Prefix extends string = '', Depth extends 0 | 1 | 2 | 3 | 4 | 5 = 5> = T extends unknown ? IsAny<T> extends true ? never : unknown extends T ? Prefix extends '' ? string : never : NonNullable<T> extends readonly (infer U)[] ? `${Prefix}${number}` | (Depth extends 0 ? never : StandardSchemaValidatorErrorKeyDotNotation<U, `${Prefix}${number}.`, [
-never,
-0,
-1,
-2,
-3,
-4
-][Depth]>) : NonNullable<T> extends object ? {
-    [K in keyof NonNullable<T> & (string | number)]: `${Prefix}${K}` | (Depth extends 0 ? never : StandardSchemaValidatorErrorKeyDotNotation<NonNullable<T>[K], `${Prefix}${K}.`, [
+export type StandardSchemaValidatorErrorKeyDotNotation<T, Prefix extends string = '', Depth extends 0 | 1 | 2 | 3 | 4 | 5 = 5> = T extends unknown ? IsAny<T> extends true ? never : NonNullable<T> extends object ? {
+    [K in keyof NonNullable<T> & string]: IsAny<NonNullable<NonNullable<T>[K]>> extends true ? never : NonNullable<NonNullable<T>[K]> extends readonly (infer U)[] ? `${Prefix}${K}` | `${Prefix}${K}[]` | (IsAny<U> extends true ? never : U extends object ? Depth extends 0 ? never : StandardSchemaValidatorErrorKeyDotNotation<U, `${Prefix}${K}[].`, [
     never,
     0,
     1,
     2,
     3,
     4
-    ][Depth]>);
-}[keyof NonNullable<T> & (string | number)] : never : never;
+    ][Depth]> : never) : NonNullable<NonNullable<T>[K]> extends object ? `${Prefix}${K}` | (Depth extends 0 ? never : StandardSchemaValidatorErrorKeyDotNotation<NonNullable<NonNullable<T>[K]>, `${Prefix}${K}.`, [
+    never,
+    0,
+    1,
+    2,
+    3,
+    4
+    ][Depth]>) : `${Prefix}${K}`;
+}[keyof NonNullable<T> & string] : never : never;
 
 // @public (undocumented)
 export type StandardSchemaValidatorErrorType<T, U = string> = {
     formErrors: U[];
-    fieldErrors: Partial<Record<StandardSchemaValidatorErrorKeyDotNotation<T>, U[]>>;
+    fieldErrors: Partial<{
+        [K in StandardSchemaValidatorErrorKeyDotNotation<T>]: K extends `${infer _Prefix}[]${infer _Suffix}` ? U[] : U;
+    }>;
+    issues: ReadonlyArray<StandardSchemaV1.Issue>;
 };
 
 // @public

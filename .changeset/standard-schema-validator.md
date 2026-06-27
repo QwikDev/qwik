@@ -1,5 +1,5 @@
 ---
-"@builder.io/qwik-city": minor
+"@qwik.dev/router": minor
 ---
 
-Add `schema$()` support for Standard Schema compatible validators in Qwik City actions.
+add `schema$()` support for Standard Schema compatible validators in Qwik Router actions.

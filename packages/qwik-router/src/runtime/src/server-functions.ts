@@ -240,25 +240,38 @@ const flattenValibotIssues = (issues: v.GenericIssue[]) => {
 
 const flattenStandardSchemaIssues = (issues: ReadonlyArray<StandardSchemaV1.Issue>) => {
   const formErrors: string[] = [];
-  const fieldErrors: Partial<Record<string, string[]>> = {};
+  const fieldErrors: Record<string, string | string[]> = {};
+  const standardIssues: StandardSchemaV1.Issue[] = [];
 
   for (const issue of issues) {
-    const dotPath = issue.path
-      ?.map((item) => String(typeof item === 'object' ? item.key : item))
-      .join('.');
-    if (dotPath) {
-      const messages = fieldErrors[dotPath];
-      if (messages) {
-        messages.push(issue.message);
+    standardIssues.push(
+      issue.path ? { message: issue.message, path: issue.path } : { message: issue.message }
+    );
+    const fieldPath = issue.path
+      ?.map((item) => (typeof item === 'object' ? item.key : item))
+      .reduce<string>((path, segment) => {
+        if (typeof segment === 'number') {
+          return `${path}[]`;
+        }
+        return path ? `${path}.${String(segment)}` : String(segment);
+      }, '');
+    if (fieldPath) {
+      if (fieldPath.includes('[]')) {
+        const messages = fieldErrors[fieldPath];
+        if (Array.isArray(messages)) {
+          messages.push(issue.message);
+        } else {
+          fieldErrors[fieldPath] = [issue.message];
+        }
       } else {
-        fieldErrors[dotPath] = [issue.message];
+        fieldErrors[fieldPath] = issue.message;
       }
     } else {
       formErrors.push(issue.message);
     }
   }
 
-  return { formErrors, fieldErrors };
+  return { formErrors, fieldErrors, issues: standardIssues };
 };
 
 /** @public */

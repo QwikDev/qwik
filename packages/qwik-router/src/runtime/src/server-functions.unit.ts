@@ -207,7 +207,7 @@ describe('types', () => {
     }>();
   });
 
-  test('standard schema type with array dot paths', () => () => {
+  test('standard schema type uses Qwik validator array paths', () => () => {
     type Input = {
       title: string;
       items?: {
@@ -217,18 +217,17 @@ describe('types', () => {
     };
     type ErrorType = StandardSchemaValidatorErrorType<Input>['fieldErrors'];
     type EqualType = {
-      title?: string[];
-      items?: string[];
-      [key: `items.${number}`]: string[] | undefined;
-      [key: `items.${number}.name`]: string[] | undefined;
-      [key: `items.${number}.tags`]: string[] | undefined;
-      [key: `items.${number}.tags.${number}`]: string[] | undefined;
+      title?: string;
+      items?: string;
+      ['items[]']?: string[];
+      ['items[].name']?: string[];
+      ['items[].tags']?: string[];
+      ['items[].tags[]']?: string[];
     };
 
     expectTypeOf<ErrorType>().toEqualTypeOf<EqualType>();
     expectTypeOf<ErrorType>().not.toEqualTypeOf<{
-      ['items[]']?: string[];
-      ['items[].name']?: string[];
+      [key: `items.${number}.name`]: string[] | undefined;
     }>();
   });
 
@@ -236,11 +235,11 @@ describe('types', () => {
     type Input = { kind: 'user'; user: { name: string } } | { kind: 'org'; org: { slug: string } };
     type ErrorType = StandardSchemaValidatorErrorType<Input>['fieldErrors'];
     type EqualType = {
-      kind?: string[];
-      user?: string[];
-      'user.name'?: string[];
-      org?: string[];
-      'org.slug'?: string[];
+      kind?: string;
+      user?: string;
+      'user.name'?: string;
+      org?: string;
+      'org.slug'?: string;
     };
 
     expectTypeOf<ErrorType>().toEqualTypeOf<EqualType>();
@@ -265,7 +264,8 @@ describe('types', () => {
       | {
           failed: true;
           formErrors: string[];
-          fieldErrors: { id?: string[] };
+          fieldErrors: { id?: string };
+          issues: ReadonlyArray<StandardSchemaV1.Issue>;
         }
       | undefined
     >();
@@ -303,7 +303,7 @@ describe('types', () => {
     });
   });
 
-  test('standard schema flattens issues to numeric dot paths', async () => {
+  test('standard schema flattens issues to Qwik validator paths and preserves issues', async () => {
     const schema = schema$(() =>
       createStandardSchema<{ items: { name: string }[] }>(() => ({
         issues: [
@@ -315,15 +315,23 @@ describe('types', () => {
       }))
     );
 
+    const issues = [
+      { message: 'Form issue' },
+      { message: 'Items issue', path: ['items'] },
+      { message: 'Name issue', path: ['items', 0, { key: 'name' }] },
+      { message: 'Second name issue', path: ['items', 0, 'name'] },
+    ];
+
     await expect(schema.validate(undefined as any, { items: [{ name: '' }] })).resolves.toEqual({
       success: false,
       status: 400,
       error: {
         formErrors: ['Form issue'],
         fieldErrors: {
-          items: ['Items issue'],
-          'items.0.name': ['Name issue', 'Second name issue'],
+          items: 'Items issue',
+          'items[].name': ['Name issue', 'Second name issue'],
         },
+        issues,
       },
     });
   });

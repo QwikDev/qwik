@@ -4,11 +4,55 @@ title: \@qwik.dev/qwik-router/middleware/request-handler API Reference
 
 # [API](/api) &rsaquo; @qwik.dev/qwik-router/middleware/request-handler
 
+<h2 id="abortmessage-__controlflow">__controlFlow</h2>
+
+Type-only brand so `Exclude<>` can drop control-flow signals from resolved loader/action data.
+
+```typescript
+readonly __controlFlow: true;
+```
+
 <h2 id="abortmessage">AbortMessage</h2>
 
 ```typescript
 export declare class AbortMessage
 ```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[\_\_controlFlow](#abortmessage-__controlflow)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+true
+
+</td><td>
+
+Type-only brand so `Exclude<>` can drop control-flow signals from resolved loader/action data.
+
+</td></tr>
+</tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/redirect-handler.ts)
 
@@ -1598,10 +1642,14 @@ resolveValue
 ```typescript
 export type RequestHandler<PLATFORM = QwikRouterPlatform> = (
   ev: RequestEvent<PLATFORM>,
-) => Promise<void> | void;
+) =>
+  | Promise<void | AbortMessage | ServerError>
+  | void
+  | AbortMessage
+  | ServerError;
 ```
 
-**References:** [RequestEvent](#requestevent)
+**References:** [RequestEvent](#requestevent), [AbortMessage](#abortmessage), [ServerError](#servererror)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/request-handler.ts)
 
@@ -1610,10 +1658,14 @@ export type RequestHandler<PLATFORM = QwikRouterPlatform> = (
 ```typescript
 export type RequestHandler<PLATFORM = QwikRouterPlatform> = (
   ev: RequestEvent<PLATFORM>,
-) => Promise<void> | void;
+) =>
+  | Promise<void | AbortMessage | ServerError>
+  | void
+  | AbortMessage
+  | ServerError;
 ```
 
-**References:** [RequestEvent](#requestevent)
+**References:** [RequestEvent](#requestevent), [AbortMessage](#abortmessage), [ServerError](#servererror)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts)
 

@@ -12,11 +12,11 @@ export type Action<
   INPUT = Record<string, unknown>,
   OPTIONAL extends boolean = true,
 > = {
-  (): ActionStore<RETURN, INPUT, OPTIONAL>;
+  (): ActionStore<ExcludeControlFlow<RETURN>, INPUT, OPTIONAL>;
 };
 ```
 
-**References:** [ActionStore](#actionstore)
+**References:** [ActionStore](#actionstore), [ExcludeControlFlow](#excludecontrolflow)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
@@ -783,6 +783,16 @@ ErrorBoundary: import("@qwik.dev/core").Component<ErrorBoundaryProps>;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/error-boundary.tsx)
 
+<h2 id="excludecontrolflow">ExcludeControlFlow</h2>
+
+Drops control-flow signals (`ev.redirect()`, `ev.error()`, etc.) from a loader/action return type: those are thrown, not surfaced as data. `ev.fail()` is plain data and is kept.
+
+```typescript
+export type ExcludeControlFlow<T> = Exclude<T, AbortMessage | ServerError>;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
+
 <h2 id="failofrest">FailOfRest</h2>
 
 ```typescript
@@ -1294,11 +1304,11 @@ _(Optional)_
 
 ```typescript
 export type Loader<RETURN> = {
-  (): LoaderSignal<RETURN>;
+  (): LoaderSignal<ExcludeControlFlow<RETURN>>;
 };
 ```
 
-**References:** [LoaderSignal](#loadersignal)
+**References:** [LoaderSignal](#loadersignal), [ExcludeControlFlow](#excludecontrolflow)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 

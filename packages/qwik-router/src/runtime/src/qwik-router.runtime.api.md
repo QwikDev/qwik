@@ -4,6 +4,7 @@
 
 ```ts
 
+import type { AbortMessage } from '@qwik.dev/router/middleware/request-handler';
 import type { AsyncSignal } from '@qwik.dev/core';
 import { Component } from '@qwik.dev/core';
 import { Cookie } from '@qwik.dev/router/middleware/request-handler';
@@ -28,6 +29,7 @@ import { RequestEventLoader } from '@qwik.dev/router/middleware/request-handler'
 import { RequestHandler } from '@qwik.dev/router/middleware/request-handler';
 import type { ResolveSyncValue } from '@qwik.dev/router/middleware/request-handler';
 import type { SerializationStrategy } from '@qwik.dev/core/internal';
+import type { ServerError } from '@qwik.dev/router/middleware/request-handler';
 import type { Signal } from '@qwik.dev/core';
 import type * as v from 'valibot';
 import type { ValueOrPromise } from '@qwik.dev/core';
@@ -37,7 +39,7 @@ import type * as z_2 from 'zod';
 
 // @public (undocumented)
 export type Action<RETURN, INPUT = Record<string, unknown>, OPTIONAL extends boolean = true> = {
-    (): ActionStore<RETURN, INPUT, OPTIONAL>;
+    (): ActionStore<ExcludeControlFlow<RETURN>, INPUT, OPTIONAL>;
 };
 
 // @public (undocumented)
@@ -193,6 +195,9 @@ export type DocumentStyle = Readonly<((Omit<QwikIntrinsicElements['style'], 'dan
 // @public (undocumented)
 export const ErrorBoundary: Component<ErrorBoundaryProps>;
 
+// @public
+export type ExcludeControlFlow<T> = Exclude<T, AbortMessage | ServerError>;
+
 // @public (undocumented)
 export type FailOfRest<REST extends readonly DataValidator[]> = REST extends readonly DataValidator<infer ERROR>[] ? ERROR : never;
 
@@ -285,7 +290,7 @@ export interface LinkProps extends AnchorAttributes {
 
 // @public (undocumented)
 type Loader_2<RETURN> = {
-    (): LoaderSignal<RETURN>;
+    (): LoaderSignal<ExcludeControlFlow<RETURN>>;
 };
 export { Loader_2 as Loader }
 

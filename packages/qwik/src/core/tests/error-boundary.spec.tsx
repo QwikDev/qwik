@@ -25,6 +25,11 @@ import { describe, expect, it } from 'vitest';
 import { processOutOfOrderSegmentVNodeData } from '../client/process-vnode-data';
 import { rerenderComponent } from '../../testing/rendering.unit-util';
 import { delay } from '../shared/utils/promises';
+import {
+  markBoundaryErrored,
+  toSerializableBoundaryError,
+  type ErrorBoundaryStore,
+} from '../shared/error/error-handling';
 
 const debug = false;
 
@@ -1681,6 +1686,50 @@ describe('ErrorBoundary SSR→CSR cross-phase (experimental)', () => {
     expect(el.querySelector('#content')).toBeFalsy();
     expect(el.querySelector('[q\\:ebc]')).toBeFalsy();
     expect(el.querySelector('[q\\:ebf]')).toBeFalsy();
+  });
+});
+
+describe('ErrorBoundary error redaction (prod payload safety)', () => {
+  it('prod: scrubs message + attached props to a generic message + stable digest', () => {
+    const original = Object.assign(new Error('secret-db-detail'), {
+      query: 'SELECT * FROM users',
+    });
+    const redacted = toSerializableBoundaryError(original, /* dev */ false) as Error & {
+      digest?: string;
+    };
+    expect(redacted).toBeInstanceOf(Error);
+    expect(redacted.message).toBe('An error occurred');
+    expect(redacted.message).not.toContain('secret');
+    expect((redacted as Record<string, unknown>).query).toBeUndefined();
+    expect(typeof redacted.digest).toBe('string');
+    expect(redacted.digest!.length).toBeGreaterThan(0);
+  });
+
+  it('prod: digest is deterministic per error and distinguishes different errors', () => {
+    const err = new Error('boom');
+    const d1 = (toSerializableBoundaryError(err, false) as Error & { digest: string }).digest;
+    const d2 = (toSerializableBoundaryError(err, false) as Error & { digest: string }).digest;
+    const dOther = (
+      toSerializableBoundaryError(new Error('different'), false) as Error & {
+        digest: string;
+      }
+    ).digest;
+    expect(d1).toBe(d2);
+    expect(d1).not.toBe(dOther);
+  });
+
+  it('dev: keeps full fidelity (returns the original Error unchanged)', () => {
+    const original = new Error('full-detail');
+    expect(toSerializableBoundaryError(original, /* dev */ true)).toBe(original);
+  });
+
+  it('markBoundaryErrored fires onError$ with the ORIGINAL error, not the redacted projection', () => {
+    const received: unknown[] = [];
+    const store: ErrorBoundaryStore = { error: undefined, $onError$: (e) => received.push(e) };
+    const original = Object.assign(new Error('boom'), { secret: 'x' });
+    markBoundaryErrored(store, original);
+    expect(received).toHaveLength(1);
+    expect(received[0]).toBe(original);
   });
 });
 

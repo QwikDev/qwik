@@ -1,3 +1,4 @@
+import { isDev } from '@qwik.dev/core/build';
 import { canSerialize } from '../serdes/can-serialize';
 import { createContextId } from '../../use/use-context';
 import { logError } from '../utils/log';
@@ -31,8 +32,38 @@ export const isRecoverable = (err: any) => {
   return true;
 };
 
-/** Project a non-serializable throw to a serializable `Error`, so serialization can't abort. */
-export const toSerializableBoundaryError = (err: unknown): unknown => {
+const GENERIC_BOUNDARY_ERROR_MESSAGE = 'An error occurred';
+
+/**
+ * Stable, non-reversible digest of a thrown value, to correlate a redacted client error with server
+ * logs.
+ */
+const errorBoundaryDigest = (err: unknown): string => {
+  const source =
+    err instanceof Error ? `${err.name}: ${err.message}\n${err.stack ?? ''}` : String(err);
+  let hash = 0;
+  for (let i = 0; i < source.length; i++) {
+    hash = (Math.imul(31, hash) + source.charCodeAt(i)) | 0;
+  }
+  return (hash >>> 0).toString(36);
+};
+
+/**
+ * Project a caught error to the value serialized into the HTML and handed to `fallback$`.
+ *
+ * In production this REDACTS to a generic message + a stable `digest` (dropping the raw message and
+ * any attached props; the stack is already dev-gated in the serializer), so internal detail never
+ * reaches the client. `onError$` and server `logError` still receive the original error (see
+ * `markBoundaryErrored`). In dev it keeps full fidelity, projecting a non-serializable throw to a
+ * serializable `Error`. `dev` is an explicit arg so tests can drive both paths — the build-time
+ * `isDev` constant can't be toggled at runtime.
+ */
+export const toSerializableBoundaryError = (err: unknown, dev: boolean = isDev): unknown => {
+  if (!dev) {
+    const redacted = new Error(GENERIC_BOUNDARY_ERROR_MESSAGE) as Error & { digest: string };
+    redacted.digest = errorBoundaryDigest(err);
+    return redacted;
+  }
   if (err instanceof Error || canSerialize(err)) {
     return err;
   }

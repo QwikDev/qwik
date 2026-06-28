@@ -30,6 +30,7 @@ import { emitSsrDomPropsExpression, emitSsrModule, SsrEmitter } from './emit-ssr
 import {
   emitImports,
   emitSsrQrlPrelude,
+  hasUseId,
   hasCapturedCsrFunction,
   hasCapturedDomPropsEvent,
   hasComponentPropsSpread,
@@ -42,6 +43,7 @@ import {
   hasSlot,
   hasRangeTextBinding,
   getDomEffectBatchStats,
+  ID_PARAM,
   isDomEffectBatched,
   type ScalarDomEffectKind,
   rewriteLoopCaptures,
@@ -74,6 +76,7 @@ export async function emitModules(ctx: CompilerContext) {
   if (supported.length === 0) {
     return;
   }
+  assignComponentIdState(ctx, supported);
 
   const qrlSegments = collectQrlSegments(ctx, supported, ctx.emitTarget);
   const referencedComponents = collectReferencedComponents(ctx, supported);
@@ -98,7 +101,8 @@ export async function emitModules(ctx: CompilerContext) {
           ctx.manifest.segments,
           ctx.input.code,
           imports,
-          `${mainPrelude}${exports}`
+          `${mainPrelude}${exports}`,
+          (name) => findNamedComponent(ctx, name)?.needsId === true
         )
       : emitCsrModule(
           mainComponents,
@@ -106,7 +110,8 @@ export async function emitModules(ctx: CompilerContext) {
           ctx.manifest.segments,
           ctx.input.code,
           imports,
-          `${mainPrelude}${exports}`
+          `${mainPrelude}${exports}`,
+          (name) => findNamedComponent(ctx, name)?.needsId === true
         );
   const modules = [createModule(ctx.input.path, outputCode)];
 
@@ -148,6 +153,7 @@ function createModuleImports(
             hasSetupAwait: hasTask,
             hasTask,
             hasSetupQrl: hasSetupQrlSegment(component, ctx.manifest.segments),
+            hasUseId: hasUseId(component, ctx.input.code),
             hasVisibleTask: hasTaskSetupSegment(
               component,
               ctx.manifest.segments,
@@ -165,6 +171,30 @@ function createModuleImports(
     collectCsrRootQrlSegments(components, qrlSegments),
     collectCsrRootImportUsage(components, qrlSegments, ctx.manifest.segments, ctx.input.code)
   );
+}
+
+function assignComponentIdState(ctx: CompilerContext, components: readonly ComponentRecord[]) {
+  for (const component of components) {
+    component.idBase = `q${createComponentSymbol(ctx, component)}-`;
+    component.needsId = hasUseId(component, ctx.input.code);
+  }
+
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const component of components) {
+      if (component.root === null || component.needsId) {
+        continue;
+      }
+      for (const name of collectComponentReferenceNames(component.root, true)) {
+        if (findNamedComponent(ctx, name)?.needsId === true) {
+          component.needsId = true;
+          changed = true;
+          break;
+        }
+      }
+    }
+  }
 }
 
 function collectReferencedComponents(
@@ -191,6 +221,7 @@ interface SsrUsageRoot {
   providesContext?: boolean;
   hasSetupAwait?: boolean;
   hasSetupQrl?: boolean;
+  hasUseId?: boolean;
   hasTask?: boolean;
   hasVisibleTask?: boolean;
 }
@@ -250,6 +281,7 @@ function createSsrImportUsage(
     hasComponentPropsSpread: has(hasComponentPropsSpread),
     hasSetupAwait: items.some((item) => item.hasSetupAwait === true),
     hasSetupQrl: items.some((item) => item.hasSetupQrl === true),
+    hasUseId: items.some((item) => item.hasUseId === true),
     hasValueOrPromise: valueOrPromiseCounts.some((count) => count > 0),
     hasMultipleValueOrPromise: valueOrPromiseCounts.some((count) => count > 1),
     hasTask: items.some((item) => item.hasTask === true),
@@ -399,7 +431,8 @@ async function createComponentModule(ctx: CompilerContext, component: ComponentR
           ctx.manifest.segments,
           ctx.input.code,
           imports,
-          createModulePrelude(ctx, qrlSegments)
+          createModulePrelude(ctx, qrlSegments),
+          (name) => findNamedComponent(ctx, name)?.needsId === true
         )
       : emitCsrModule(
           [component],
@@ -407,7 +440,8 @@ async function createComponentModule(ctx: CompilerContext, component: ComponentR
           ctx.manifest.segments,
           ctx.input.code,
           imports,
-          createModulePrelude(ctx, qrlSegments)
+          createModulePrelude(ctx, qrlSegments),
+          (name) => findNamedComponent(ctx, name)?.needsId === true
         );
   const modulePath = createComponentModulePath(ctx, component);
   const transformed = await transform(modulePath, source, {
@@ -547,6 +581,7 @@ function collectCsrRootImportUsage(
     const useOnEvents = collectUseOnCarriers(component, segments, qrlSegments, sourceCode);
     return {
       root: component.root,
+      component,
       providesContext: component.providesContext,
       batchStats: getDomEffectBatchStats(component.root, qrlSegments),
       hasSetupQrl: hasSetupQrlSegment(component, segments),
@@ -603,6 +638,7 @@ function collectCsrRootImportUsage(
     hasComponentSlots: has(hasCsrRootComponentSlots),
     hasComponentPropsSpread: has(hasCsrRootComponentPropsSpread),
     hasSetupQrl: items.some((item) => item.hasSetupQrl),
+    hasUseId: items.some((item) => hasUseId(item.component, sourceCode)),
   };
 }
 
@@ -1141,10 +1177,13 @@ function createSsrRenderSegmentSource(
   const fragment: RenderNode = { kind: 'fragment', children: [...children] };
   const segmentQrlSegments = collectRenderNodeQrlSegments(ctx, fragment, qrlSegments);
   const hasRootRangeText = hasRootRangeTextBinding(fragment);
+  const needsId = renderNodesNeedId(ctx, children);
   const captures = qrlSegment.segment.captures;
   const emitter = new SsrEmitter(segmentQrlSegments, ctx.input.code, {
     domEffectBatchCounts: getDomEffectBatchStats(fragment, segmentQrlSegments).counts,
     rootRangeTarget: hasRootRangeText ? 'rangeId' : undefined,
+    idExpr: needsId ? ID_PARAM : undefined,
+    componentNeedsId: (name) => findNamedComponent(ctx, name)?.needsId === true,
   });
   const slotInvokeContextId = hasSlot(fragment) ? emitter.ensureSlotInvokeContextId() : null;
   const html = emitter.emitHtmlExpression(fragment);
@@ -1182,7 +1221,9 @@ function createSsrRenderSegmentSource(
   const importLine = imports.length > 0 ? `${emitImports(imports).join('\n')}\n\n` : '';
   const qrlPrelude = emitSsrQrlPrelude(segmentQrlSegments);
 
-  const params = alwaysRangeId || hasRootRangeText ? 'ctx, rangeId' : 'ctx';
+  const params = `${alwaysRangeId || hasRootRangeText ? 'ctx, rangeId' : 'ctx'}${
+    needsId ? `, ${ID_PARAM}` : ''
+  }`;
   return `${importLine}${qrlPrelude}export const ${qrlSegment.symbolName} = ${
     isAsync ? 'async ' : ''
   }(${params}) => {
@@ -1236,13 +1277,16 @@ function createDomRenderSegmentSource(
     children: [...children],
   });
   const fragment: RenderNode = { kind: 'fragment', children: [...children] };
+  const needsId = renderNodesNeedId(ctx, children);
   const captures = qrlSegment.segment.captures;
   const emitter = new DomEmitter(segmentQrlSegments, ctx.input.code, {
     branchCondition: 'inline',
     domEffectBatchCounts: getDomEffectBatchStats(fragment, segmentQrlSegments).counts,
     helperPrefix: qrlSegment.symbolName,
+    idExpr: needsId ? ID_PARAM : undefined,
     importSegment: (segment) => usage.segmentImports.set(segment.id, segment),
     use: (symbol) => usage.sparkImports.add(symbol),
+    componentNeedsId: (name) => findNamedComponent(ctx, name)?.needsId === true,
   });
   const roots =
     emitter.emitTemplateRoots(children) ?? children.flatMap((child) => emitter.emitRoot(child));
@@ -1281,7 +1325,8 @@ function createDomRenderSegmentSource(
 
   const importLine =
     imports.length > 0 ? `${emitImports(normalizeImports(imports)).join('\n')}\n\n` : '';
-  return `${importLine}${emitter.emitHoists()}export const ${qrlSegment.symbolName} = (${params}) => {
+  const idParam = needsId ? `, ${ID_PARAM}` : '';
+  return `${importLine}${emitter.emitHoists()}export const ${qrlSegment.symbolName} = (${params}${idParam}) => {
 ${indentBody(bodyStatements)}
 };
 `;
@@ -1300,12 +1345,15 @@ function createSsrForRenderSegmentSource(
   const fragment: RenderNode = { kind: 'fragment', children: [...children] };
   const segmentQrlSegments = collectRenderNodeQrlSegments(ctx, fragment, qrlSegments);
   const hasForRootRangeText = hasRootRangeTextBinding(fragment);
+  const needsId = renderNodesNeedId(ctx, children);
   const captures = qrlSegment.segment.captures;
   const rowIsElement = children.length === 1 && children[0].kind === 'element';
   const emitter = new SsrEmitter(segmentQrlSegments, ctx.input.code, {
     domEffectBatchCounts: getDomEffectBatchStats(fragment, segmentQrlSegments).counts,
     rootRangeTarget: hasForRootRangeText ? 'rowId' : undefined,
     rootElementAttr: rowIsElement ? 'q:row' : undefined,
+    idExpr: needsId ? ID_PARAM : undefined,
+    componentNeedsId: (name) => findNamedComponent(ctx, name)?.needsId === true,
     loopCaptures: createLoopParamCaptures(qrlSegment.segment),
   });
   const slotInvokeContextId = hasSlot(fragment) ? emitter.ensureSlotInvokeContextId() : null;
@@ -1348,7 +1396,7 @@ function createSsrForRenderSegmentSource(
 
   return `${importLine}${qrlPrelude}export const ${qrlSegment.symbolName} = ${
     isAsync ? 'async ' : ''
-  }(ctx, rangeId, rowId, ${itemName}, ${indexName}) => {
+  }(ctx, rangeId, rowId, ${itemName}, ${indexName}${needsId ? `, ${ID_PARAM}` : ''}) => {
 ${indentBody(bodyStatements)}
 };
 `;
@@ -1373,15 +1421,18 @@ function createForRenderSegmentSource(
     children: [...children],
   });
   const fragment: RenderNode = { kind: 'fragment', children: [...children] };
+  const needsId = renderNodesNeedId(ctx, children);
   const captures = qrlSegment.segment.captures;
   const emitter = new DomEmitter(segmentQrlSegments, ctx.input.code, {
     branchCondition: 'inline',
     domEffectMode: 'run',
     domEffectBatchCounts: getDomEffectBatchStats(fragment, segmentQrlSegments).counts,
     helperPrefix: qrlSegment.symbolName,
+    idExpr: needsId ? ID_PARAM : undefined,
     loopCaptures: createLoopParamCaptures(qrlSegment.segment),
     importSegment: (segment) => usage.segmentImports.set(segment.id, segment),
     use: (symbol) => usage.sparkImports.add(symbol),
+    componentNeedsId: (name) => findNamedComponent(ctx, name)?.needsId === true,
   });
   const roots =
     emitter.emitTemplateRoots(children) ?? children.flatMap((child) => emitter.emitRoot(child));
@@ -1421,7 +1472,8 @@ function createForRenderSegmentSource(
   const importLine =
     imports.length > 0 ? `${emitImports(normalizeImports(imports)).join('\n')}\n\n` : '';
   const { itemName, indexName } = getForRenderParamNames(qrlSegment.segment);
-  return `${importLine}${emitter.emitHoists()}export const ${qrlSegment.symbolName} = (ctx, ${itemName}, ${indexName}) => {
+  const idParam = needsId ? `, ${ID_PARAM}` : '';
+  return `${importLine}${emitter.emitHoists()}export const ${qrlSegment.symbolName} = (ctx, ${itemName}, ${indexName}${idParam}) => {
 ${indentBody(bodyStatements)}
 };
 `;
@@ -1544,6 +1596,17 @@ function collectComponentReferenceNames(node: RenderNode, includeBranches = fals
   const names = new Set<string>();
   collectComponentReferenceNamesInNode(node, names, includeBranches);
   return names;
+}
+
+function renderNodesNeedId(ctx: CompilerContext, nodes: readonly RenderNode[]): boolean {
+  return nodes.some((node) => {
+    for (const name of collectComponentReferenceNames(node, true)) {
+      if (findNamedComponent(ctx, name)?.needsId === true) {
+        return true;
+      }
+    }
+    return false;
+  });
 }
 
 function collectComponentReferenceNamesInNode(

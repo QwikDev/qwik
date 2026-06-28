@@ -14,6 +14,7 @@ import type {
 } from '../types';
 import { QwikSymbol } from '../words';
 import {
+  emitComponentExpression,
   emitComponentParamSetup,
   emitComponentSetup,
   emitImports,
@@ -25,8 +26,10 @@ import {
   getDomEffectBatchStats,
   getDomPropsBatchKey,
   getDynamicBindingBatchKey,
+  hasUseId,
   hasDynamicBinding,
   hasSlot,
+  ID_PARAM,
   isDomEffectBatched,
   rewriteLoopCaptures,
   serializeAttrValue,
@@ -46,9 +49,12 @@ import {
 type HtmlPart = string | { code: string };
 
 interface SsrEmitterOptions {
+  component?: ComponentRecord;
   domEffectBatchCounts?: ReadonlyMap<string, number>;
   rootRangeTarget?: string;
   rootElementAttr?: string;
+  idExpr?: string;
+  componentNeedsId?: (name: string) => boolean;
   loopCaptures?: readonly { name: string; source: string }[];
   visibleTasks?: VisibleTaskCarrier[];
   useOnEvents?: UseOnCarrier[];
@@ -72,11 +78,14 @@ export function emitSsrModule(
   segments: readonly SegmentRecord[],
   sourceCode: string,
   imports: ImportRecord[],
-  modulePrelude = ''
+  modulePrelude = '',
+  componentNeedsId?: (name: string) => boolean
 ) {
   const prelude = emitPrelude(qrlSegments, imports);
   return `${prelude}${modulePrelude}${components
-    .map((component) => emitSsrComponent(component, qrlSegments, segments, sourceCode))
+    .map((component) =>
+      emitSsrComponent(component, qrlSegments, segments, sourceCode, componentNeedsId)
+    )
     .join('\n')}\n`;
 }
 
@@ -96,10 +105,14 @@ function emitSsrComponent(
   component: ComponentRecord,
   qrlSegments: Map<string, QrlSegmentOutput>,
   segments: readonly SegmentRecord[],
-  sourceCode: string
+  sourceCode: string,
+  componentNeedsId?: (name: string) => boolean
 ) {
   const emitter = new SsrEmitter(qrlSegments, sourceCode, {
+    component,
     domEffectBatchCounts: getDomEffectBatchStats(component.root, qrlSegments).counts,
+    idExpr: component.needsId ? ID_PARAM : undefined,
+    componentNeedsId,
     visibleTasks: collectVisibleTaskCarriers(component, segments, qrlSegments, sourceCode),
     useOnEvents: collectUseOnCarriers(component, segments, qrlSegments, sourceCode),
   });
@@ -115,7 +128,9 @@ function emitSsrComponent(
     segments,
     sourceCode,
     'ssr',
-    hasDynamicBinding(component.root) || component.providesContext
+    hasDynamicBinding(component.root) ||
+      component.providesContext ||
+      hasUseId(component, sourceCode)
   );
   const paramSetup = emitComponentParamSetup(component, sourceCode);
   const returnExpression = component.providesContext
@@ -153,22 +168,23 @@ function emitSsrComponent(
   const body = bodyParts.join('\n');
   const ctxParam =
     emitter.usesCtx || component.providesContext || setup.includes('ctx.') ? 'ctx' : '_ctx';
+  const idParam = component.needsId ? `, ${ID_PARAM} = ${JSON.stringify(component.idBase)}` : '';
   const propsParam = getComponentPropsParam(component);
   if (component.declarationKind === 'function') {
-    return `export ${isAsync ? 'async ' : ''}function ${component.exportName}(${propsParam}, ${ctxParam}) {\n${body}\n}`;
+    return `export ${isAsync ? 'async ' : ''}function ${component.exportName}(${propsParam}, ${ctxParam}${idParam}) {\n${body}\n}`;
   }
   if (component.declarationKind === 'const') {
     return bodyParts.length > 1
-      ? `export const ${component.exportName} = ${isAsync ? 'async ' : ''}(${propsParam}, ${ctxParam}) => {\n${body}\n};`
-      : `export const ${component.exportName} = ${isAsync ? 'async ' : ''}(${propsParam}, ${ctxParam}) => ${returnExpression};`;
+      ? `export const ${component.exportName} = ${isAsync ? 'async ' : ''}(${propsParam}, ${ctxParam}${idParam}) => {\n${body}\n};`
+      : `export const ${component.exportName} = ${isAsync ? 'async ' : ''}(${propsParam}, ${ctxParam}${idParam}) => ${returnExpression};`;
   }
   if (component.declarationKind === 'defaultFunction') {
     const name = component.localName ? ` ${component.localName}` : '';
-    return `export default ${isAsync ? 'async ' : ''}function${name}(${propsParam}, ${ctxParam}) {\n${body}\n}`;
+    return `export default ${isAsync ? 'async ' : ''}function${name}(${propsParam}, ${ctxParam}${idParam}) {\n${body}\n}`;
   }
   return bodyParts.length > 1
-    ? `export default ${isAsync ? 'async ' : ''}(${propsParam}, ${ctxParam}) => {\n${body}\n};`
-    : `export default ${isAsync ? 'async ' : ''}(${propsParam}, ${ctxParam}) => ${returnExpression};`;
+    ? `export default ${isAsync ? 'async ' : ''}(${propsParam}, ${ctxParam}${idParam}) => {\n${body}\n};`
+    : `export default ${isAsync ? 'async ' : ''}(${propsParam}, ${ctxParam}${idParam}) => ${returnExpression};`;
 }
 
 function getComponentPropsParam(component: ComponentRecord): string {
@@ -220,6 +236,7 @@ function getVisibleTaskEventName(
 
 export class SsrEmitter {
   private counter = 0;
+  private idCounter = 0;
   private readonly lines: string[] = [];
   private readonly roots = new Set<string>();
   private readonly ssrBatches = new Map<string, string>();
@@ -327,10 +344,11 @@ export class SsrEmitter {
     this.usesCtx = true;
     const componentId = this.next('component');
     const slotScope = this.emitComponentSlotScope(node);
+    const idArg = this.options.componentNeedsId?.(node.name) === true ? this.emitIdArg('c') : '';
     this.line(
       `const ${componentId} = ${QwikSymbol.CreateComponent}(${this.emitComponentProps(
         node.props
-      )}, (props) => ${node.name}(props, ctx)${
+      )}, (props) => ${node.name}(props, ctx${idArg})${
         slotScope === null ? '' : `, { slotScope: ${slotScope} }`
       });`
     );
@@ -378,10 +396,12 @@ export class SsrEmitter {
     for (const slot of node.slots) {
       const qrlSegment = this.requireQrlSegment(slot.segmentId);
       this.emitCaptureRoots(qrlSegment);
+      const idArg = this.emitIdArg('s');
+      const slotScopeArg = idArg === '' ? '' : `, undefined${idArg}`;
       this.line(
         `${QwikSymbol.RegisterProjection}(${id}, ${JSON.stringify(slot.name)}, ${emitQrlReference(
           qrlSegment
-        )});`
+        )}${slotScopeArg});`
       );
     }
     return id;
@@ -400,7 +420,7 @@ export class SsrEmitter {
     this.line(
       `const ${id} = ${QwikSymbol.RenderSsrSlot}(ctx, ${JSON.stringify(
         node.name
-      )}, ${fallback}, ${invokeContextId});`
+      )}, ${fallback}, ${invokeContextId}${this.emitIdArg('s')});`
     );
     return [{ code: this.trackValueOrPromise(id) }];
   }
@@ -576,8 +596,9 @@ export class SsrEmitter {
       emitQrlReference(thenQrl),
       elseQrl ? emitQrlReference(elseQrl) : 'undefined',
     ];
+    const idArg = this.emitIdArg('b');
     const branchId = this.next('branch');
-    this.line(`const ${branchId} = ${QwikSymbol.RenderSsrBranch}(${args.join(', ')});`);
+    this.line(`const ${branchId} = ${QwikSymbol.RenderSsrBranch}(${args.join(', ')}${idArg});`);
 
     return [
       '<!b=',
@@ -603,7 +624,9 @@ export class SsrEmitter {
     this.line(
       `const ${blockId} = ${QwikSymbol.RenderSsrForBlock}(ctx, ${rangeId}, ${node.sourceName}, ${emitQrlReference(
         keyQrl
-      )}, ${emitQrlReference(renderQrl)}, ${String(node.usesItemSignal)}, ${String(node.usesIndexSignal)});`
+      )}, ${emitQrlReference(renderQrl)}, ${String(node.usesItemSignal)}, ${String(
+        node.usesIndexSignal
+      )}${this.emitIdArg('f')});`
     );
 
     return [
@@ -841,6 +864,12 @@ export class SsrEmitter {
     return id;
   }
 
+  private emitIdArg(prefix: string): string {
+    return this.options.idExpr === undefined
+      ? ''
+      : `, ${this.options.idExpr} + ${JSON.stringify(`${prefix}${this.idCounter++}-`)}`;
+  }
+
   private line(code: string) {
     this.lines.push(code);
   }
@@ -856,10 +885,11 @@ export class SsrEmitter {
   }
 
   private emitSourceExpression(range: [number, number]): string {
-    return rewriteLoopCaptures(
-      this.sourceCode.slice(range[0], range[1]),
-      this.options.loopCaptures ?? []
-    );
+    const expression =
+      this.options.component === undefined
+        ? this.sourceCode.slice(range[0], range[1])
+        : emitComponentExpression(this.options.component, this.sourceCode, range);
+    return rewriteLoopCaptures(expression, this.options.loopCaptures ?? []);
   }
 }
 

@@ -1,0 +1,110 @@
+==INPUT==
+
+import { useId } from '@qwik.dev/core';
+
+export function Child() {
+  useId();
+  return <span />;
+}
+
+export function App() {
+  return <Child />;
+}
+
+== SSR OUTPUT ==
+
+============================= src/use-id-child.tsx ==
+
+import { Child } from './use-id-child.tsx_use_id_child_Child';
+import { createComponent, maybeThen } from '@qwik.dev/core/spark';
+
+export { Child } from './use-id-child.tsx_use_id_child_Child';
+
+export function App(_props, ctx, _id = 'quse_id_child_App-') {
+  const component0 = createComponent({}, (props) => Child(props, ctx, _id + 'c0-'));
+  return maybeThen(component0, (component0) => component0);
+}
+
+null
+============================= src/use-id-child.tsx_use_id_child_Child.js (ENTRY POINT)==
+
+import { createId } from '@qwik.dev/core/spark';
+export function Child(_props, _ctx, _id = 'quse_id_child_Child-') {
+  createId(_id + 'u0');
+  return '<span></span>';
+}
+
+null
+/*
+{
+  "origin": "use-id-child.tsx",
+  "name": "use_id_child_Child",
+  "entry": null,
+  "displayName": "use_id_child_Child",
+  "hash": "use_id_child_Child",
+  "canonicalFilename": "use-id-child.tsx_use_id_child_Child",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component",
+  "captures": false,
+  "loc": [
+    47,
+    95
+  ],
+  "paramNames": []
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/use-id-child.tsx ==
+
+import { Child } from './use-id-child.tsx_use_id_child_Child';
+import { createComponent } from '@qwik.dev/core/spark';
+
+export { Child } from './use-id-child.tsx_use_id_child_Child';
+
+export function App(_props, ctx, _id = 'quse_id_child_App-') {
+  const cmp0 = createComponent({}, (props) => Child(props, ctx, _id + 'c0-'), { container: ctx });
+  return cmp0;
+}
+
+null
+============================= src/use-id-child.tsx_use_id_child_Child.js (ENTRY POINT)==
+
+import { createTemplate, createId } from '@qwik.dev/core/spark';
+const dom_Child_template0 = createTemplate('<span></span>');
+export function Child(_props, ctx, _id = 'quse_id_child_Child-') {
+  createId(_id + 'u0');
+  const fragment0 = dom_Child_template0(ctx.document);
+  const el1 = fragment0.firstChild;
+  return el1;
+}
+
+null
+/*
+{
+  "origin": "use-id-child.tsx",
+  "name": "use_id_child_Child",
+  "entry": null,
+  "displayName": "use_id_child_Child",
+  "hash": "use_id_child_Child",
+  "canonicalFilename": "use-id-child.tsx_use_id_child_Child",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component",
+  "captures": false,
+  "loc": [
+    47,
+    95
+  ],
+  "paramNames": []
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

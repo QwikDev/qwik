@@ -42,6 +42,7 @@ export {
 } from './reactive/async-signal';
 export type { AsyncCtx, AsyncSignalOptions } from '../reactive-primitives/types';
 export { createStore, type Store } from './reactive/store';
+export { createId } from './use-id';
 
 export {
   SubscriberKind,

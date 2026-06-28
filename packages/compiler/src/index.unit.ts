@@ -153,6 +153,36 @@ export default component$(function Home() {
     });
   });
 
+  test('lowers useId calls to createId', async () => {
+    await testInput('use_id', {
+      path: 'src/use-id.tsx',
+      code: `import { useId } from '@qwik.dev/core';
+
+export function App() {
+  const id = useId();
+  return <label for={id}>Name</label>;
+}
+`,
+    });
+  });
+
+  test('passes useId seed to child components', async () => {
+    await testInput('use_id_child_component', {
+      path: 'src/use-id-child.tsx',
+      code: `import { useId } from '@qwik.dev/core';
+
+export function Child() {
+  useId();
+  return <span />;
+}
+
+export function App() {
+  return <Child />;
+}
+`,
+    });
+  });
+
   test('extracts event handlers into QRL-style modules', async () => {
     await testInput('event_handler_qrl', {
       code: `export function App() {

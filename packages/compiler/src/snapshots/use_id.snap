@@ -1,0 +1,135 @@
+==INPUT==
+
+import { useId } from '@qwik.dev/core';
+
+export function App() {
+  const id = useId();
+  return <label for={id}>Name</label>;
+}
+
+== SSR OUTPUT ==
+
+============================= src/use-id.tsx ==
+
+import {
+  _qrlWithChunk,
+  escapeHTML,
+  createSsrElementTarget,
+  renderSsrAttrExpression,
+  maybeThen,
+  createId,
+} from '@qwik.dev/core/spark';
+import { use_id_for_segment_0 } from './use-id.tsx_use_id_for_segment_0';
+
+const q_use_id_for_segment_0 = /*#__PURE__*/ _qrlWithChunk(
+  './use-id.tsx_use_id_for_segment_0',
+  () => import('./use-id.tsx_use_id_for_segment_0'),
+  'use_id_for_segment_0'
+);
+q_use_id_for_segment_0.s(use_id_for_segment_0);
+
+export function App(_props, ctx, _id = 'quse_id_App-') {
+  const id = createId(_id + 'u0');
+  const id0 = ctx.nextId();
+  ctx.addRoot(id);
+  const attr1 = renderSsrAttrExpression(
+    createSsrElementTarget(id0),
+    'for',
+    [id],
+    q_use_id_for_segment_0
+  );
+  return maybeThen(
+    attr1,
+    (attr1) => '<label q:id="' + id0 + '" for="' + escapeHTML(attr1) + '">Name</label>'
+  );
+}
+
+null
+============================= src/use-id.tsx_use_id_for_segment_0.js (ENTRY POINT)==
+
+export const use_id_for_segment_0 = (id) => {
+  return id;
+};
+
+null
+/*
+{
+  "origin": "use-id.tsx",
+  "name": "use_id_for_segment_0",
+  "entry": null,
+  "displayName": "use_id_for_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "use-id.tsx_use_id_for_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "for",
+  "captures": true,
+  "loc": [
+    105,
+    107
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "id"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/use-id.tsx ==
+
+import { createTemplate, createAttrExpressionEffect, createId } from '@qwik.dev/core/spark';
+
+const dom_App_template0 = createTemplate('<label>Name</label>');
+const dom_App_expr1 = (id) => id;
+export function App(_props, ctx, _id = 'quse_id_App-') {
+  const id = createId(_id + 'u0');
+  const fragment0 = dom_App_template0(ctx.document);
+  const el1 = fragment0.firstChild;
+  const effect2 = createAttrExpressionEffect(el1, 'for', [id], dom_App_expr1, {
+    scheduler: ctx.scheduler,
+  });
+  ctx.scheduler.notify(effect2);
+  return el1;
+}
+
+null
+============================= src/use-id.tsx_use_id_for_segment_0.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+export const use_id_for_segment_0 = () => {
+  const id = _captures[0];
+  return id;
+};
+
+null
+/*
+{
+  "origin": "use-id.tsx",
+  "name": "use_id_for_segment_0",
+  "entry": null,
+  "displayName": "use_id_for_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "use-id.tsx_use_id_for_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "for",
+  "captures": true,
+  "loc": [
+    105,
+    107
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "id"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

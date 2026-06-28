@@ -69,7 +69,10 @@ export interface ComponentRecord {
   functionRange: SourceRange | null;
   qrlBoundary: string | null;
   providesContext: boolean;
+  idBase: string;
+  needsId: boolean;
   segmentId: string | null;
+  useIdNames: string[];
   params: ParamRecord[];
   setupRanges: SourceRange[];
   jsx: AstJsxNode | null;

@@ -13,6 +13,7 @@ export enum QwikSymbol {
   CreateAttrExpressionEffect = 'createAttrExpressionEffect',
   CreateBranch = 'createBranch',
   CreateForBlock = 'createForBlock',
+  CreateId = 'createId',
   CreateComponent = 'createComponent',
   CreateCapturedEvent = 'createCapturedEvent',
   CreateContext = 'createContext',
@@ -54,5 +55,6 @@ export enum QwikSymbol {
   SerializeAttrExpressionValue = 'serializeAttrExpressionValue',
   SetEvent = 'setEvent',
   RegisterProjection = 'registerProjection',
+  UseId = 'useId',
   WithCaptures = '_withCaptures',
 }

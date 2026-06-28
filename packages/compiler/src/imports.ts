@@ -44,6 +44,7 @@ export function createSsrImports(
     !usage.hasComponentSlots &&
     !usage.hasSetupAwait &&
     !usage.hasSetupQrl &&
+    !usage.hasUseId &&
     !usage.hasTask &&
     !usage.hasVisibleTask
   ) {
@@ -129,6 +130,9 @@ export function createSsrImports(
   if (usage.hasVisibleTask) {
     sparkSpecifiers.push(QwikSymbol.CreateVisibleTaskHandlerQrl);
   }
+  if (usage.hasUseId) {
+    sparkSpecifiers.push(QwikSymbol.CreateId);
+  }
   if (sparkSpecifiers.length > 0) {
     records.push(createQwikSparkImport(...sparkSpecifiers));
   }
@@ -158,6 +162,7 @@ export interface SsrImportUsage {
   hasComponentPropsSpread: boolean;
   hasSetupAwait: boolean;
   hasSetupQrl: boolean;
+  hasUseId: boolean;
   hasValueOrPromise: boolean;
   hasMultipleValueOrPromise: boolean;
   hasTask: boolean;
@@ -180,7 +185,8 @@ export function createCsrImports(
     !usage.hasForBlock &&
     !usage.hasSlot &&
     !usage.hasComponentSlots &&
-    !usage.hasSetupQrl
+    !usage.hasSetupQrl &&
+    !usage.hasUseId
   ) {
     return [];
   }
@@ -254,6 +260,9 @@ export function createCsrImports(
   if (usage.hasForBlock) {
     sparkSpecifiers.push(QwikSymbol.ForRange, QwikSymbol.CreateForBlock);
   }
+  if (usage.hasUseId) {
+    sparkSpecifiers.push(QwikSymbol.CreateId);
+  }
   if (sparkSpecifiers.length > 0) {
     records.push(createQwikSparkImport(...sparkSpecifiers));
   }
@@ -285,6 +294,7 @@ export interface CsrImportUsage {
   hasComponentSlots: boolean;
   hasComponentPropsSpread: boolean;
   hasSetupQrl: boolean;
+  hasUseId: boolean;
 }
 
 export function normalizeImports(imports: readonly ImportRecord[]) {

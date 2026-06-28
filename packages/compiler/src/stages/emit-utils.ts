@@ -17,6 +17,8 @@ import {
 } from './implicit-dollar';
 import { QwikSymbol } from '../words';
 
+export const ID_PARAM = '_id';
+
 export function emitImports(imports: readonly ImportRecord[]) {
   return imports.map(emitImportDeclaration);
 }
@@ -88,7 +90,8 @@ export function emitComponentSetup(
   return component.setupRanges
     .map((range) => {
       const code = transformImplicitDollarCode(sourceCode, range, segments, qrlSegments, target);
-      return target === 'csr' ? rewriteDestructuredProps(component, code) : code;
+      const rewritten = target === 'csr' ? rewriteDestructuredProps(component, code) : code;
+      return rewriteUseIdCalls(component, sourceCode, range, rewritten);
     })
     .join('\n');
 }
@@ -118,7 +121,55 @@ export function emitComponentExpression(
   sourceCode: string,
   range: [number, number]
 ): string {
-  return rewriteDestructuredProps(component, sourceCode.slice(range[0], range[1]));
+  const expression = rewriteDestructuredProps(component, sourceCode.slice(range[0], range[1]));
+  return rewriteUseIdCalls(component, sourceCode, range, expression);
+}
+
+export function hasUseId(component: ComponentRecord, sourceCode: string): boolean {
+  if (component.functionRange === null || component.useIdNames.length === 0) {
+    return false;
+  }
+  return countUseIdCalls(component, sourceCode, component.functionRange) > 0;
+}
+
+function rewriteUseIdCalls(
+  component: ComponentRecord | null | undefined,
+  sourceCode: string,
+  range: [number, number],
+  code: string
+): string {
+  if (!component || component.useIdNames.length === 0) {
+    return code;
+  }
+
+  let index =
+    component.functionRange === null
+      ? 0
+      : countUseIdCalls(component, sourceCode, [component.functionRange[0], range[0]]);
+  for (const name of component.useIdNames) {
+    code = code.replace(
+      useIdPattern(name),
+      () => `${QwikSymbol.CreateId}(${ID_PARAM} + "u${index++}")`
+    );
+  }
+  return code;
+}
+
+function countUseIdCalls(
+  component: ComponentRecord,
+  sourceCode: string,
+  range: [number, number]
+): number {
+  const code = sourceCode.slice(range[0], range[1]);
+  let count = 0;
+  for (const name of component.useIdNames) {
+    count += code.match(useIdPattern(name))?.length ?? 0;
+  }
+  return count;
+}
+
+function useIdPattern(name: string): RegExp {
+  return new RegExp(`(?<![.$\\w])${escapeRegExp(name)}\\s*\\(\\s*\\)`, 'g');
 }
 
 export function rewriteDestructuredProps(

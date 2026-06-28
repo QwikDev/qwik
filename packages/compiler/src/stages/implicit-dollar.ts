@@ -6,7 +6,7 @@ import type {
   SegmentRecord,
   SourceRange,
 } from '../types';
-import { QwikSymbol } from '../words';
+import { QwikModule, QwikSymbol } from '../words';
 
 export type DollarTransformTarget = 'ssr' | 'csr';
 
@@ -33,6 +33,9 @@ export function transformDollarImports(
       (specifier): ImportSpecifierRecord | ImportSpecifierRecord[] => {
         if (specifier.kind !== 'named') {
           return [specifier];
+        }
+        if (record.source === QwikModule.Core && specifier.importedName === QwikSymbol.UseId) {
+          return [];
         }
         if (specifier.importedName === '$') {
           return [];

@@ -1,5 +1,6 @@
 import { isDev } from '@qwik.dev/core/build';
 import type { QRL } from '../../../shared/qrl/qrl.public';
+import { hashCode } from '../../../shared/utils/hash_code';
 import { isPromise, maybeThen } from '../../../shared/utils/promises';
 import type { ValueOrPromise } from '../../../shared/utils/types';
 import { Signal } from '../../reactive/signal';
@@ -37,14 +38,16 @@ type SsrForContext = ContainerContext & { nextId(): number };
 type ForRenderFn<T> = (
   ctx: ContainerContext,
   item: ForRenderItem<T>,
-  index: ForRenderIndex
+  index: ForRenderIndex,
+  id?: string
 ) => MaybeNodeOutput;
 type SsrForRenderFn<T> = (
   ctx: SsrForContext,
   rangeId: number,
   rowId: number,
   item: ForRenderItem<T>,
-  index: ForRenderIndex
+  index: ForRenderIndex,
+  id?: string
 ) => ValueOrPromise<string>;
 
 const ROW_OPEN = 'r';
@@ -120,7 +123,8 @@ export class ForBlock<T = unknown> {
     readonly usesIndexSignal: boolean,
     readonly listOwner: Owner,
     readonly invokeContext: RuntimeInvokeContext | null,
-    readonly container: ContainerContext
+    readonly container: ContainerContext,
+    readonly idBase = ''
   ) {
     this.itemSignals = usesItemSignal ? [] : null;
     this.indexSignals = usesIndexSignal ? [] : null;
@@ -244,6 +248,7 @@ export class ForBlock<T = unknown> {
           nextItemSignals,
           nextIndexSignals,
           i,
+          nextKeys[i],
           items[i],
           i,
           renderFn
@@ -321,6 +326,7 @@ export class ForBlock<T = unknown> {
           nextItemSignals,
           nextIndexSignals,
           i,
+          nextKeys[i],
           items[i],
           i,
           renderFn
@@ -456,6 +462,7 @@ export class ForBlock<T = unknown> {
           nextItemSignals,
           nextIndexSignals,
           nextIndex,
+          nextKeys[nextIndex],
           items[nextIndex],
           nextIndex,
           renderFn
@@ -524,6 +531,7 @@ export class ForBlock<T = unknown> {
     itemSignals: Array<Signal<T> | null> | null,
     indexSignals: Array<Signal<number> | null> | null,
     nextIndex: number,
+    key: ForKey,
     item: T,
     index: number,
     renderFn: ForRenderFn<T>
@@ -541,7 +549,8 @@ export class ForBlock<T = unknown> {
         renderFn,
         this.container,
         itemSignal ?? item,
-        indexSignal ?? index
+        indexSignal ?? index,
+        createRowId(this.idBase, key)
       );
     } catch (error) {
       const owner = this.rowInvokeContext.owner;
@@ -609,7 +618,8 @@ export function createForBlock<T>(
   keyFn: ForKeyFn<T> | QRL<ForKeyFn<T>>,
   renderFn: ForRenderFn<T> | QRL<ForRenderFn<T>>,
   usesItemSignal = true,
-  usesIndexSignal = false
+  usesIndexSignal = false,
+  idBase = ''
 ): ForBlockSubscriber {
   const listOwner = createOwner();
   const block = new ForBlock(
@@ -621,7 +631,8 @@ export function createForBlock<T>(
     usesIndexSignal,
     listOwner,
     getActiveInvokeContextOrNull(),
-    ctx
+    ctx,
+    idBase
   );
   return registerSubscriberToOwner(new ForBlockSubscription(block, ctx.scheduler));
 }
@@ -651,9 +662,10 @@ function renderForRow<T>(
   renderFn: ForRenderFn<T>,
   ctx: ContainerContext,
   item: ForRenderItem<T>,
-  index: ForRenderIndex
+  index: ForRenderIndex,
+  id?: string
 ): MaybeNodeOutput {
-  return renderFn(ctx, item, index);
+  return renderFn(ctx, item, index, id);
 }
 
 function createRowDom(document: Document, output: MaybeNodeOutput): RowDom {
@@ -832,7 +844,8 @@ export class SSRForBlock<T = unknown> {
     readonly usesItemSignal: boolean,
     readonly usesIndexSignal: boolean,
     readonly invokeContext: RuntimeInvokeContext | null,
-    readonly container: SsrForContext
+    readonly container: SsrForContext,
+    readonly idBase = ''
   ) {}
 
   run(): ValueOrPromise<string> {
@@ -879,7 +892,14 @@ export class SSRForBlock<T = unknown> {
         try {
           rowHtml = runWithCollector(null, () =>
             invoke(invokeContext, () =>
-              renderFn(this.container, this.rangeId, rowId, itemSignal ?? item, indexSignal ?? i)
+              renderFn(
+                this.container,
+                this.rangeId,
+                rowId,
+                itemSignal ?? item,
+                indexSignal ?? i,
+                createRowId(this.idBase, key)
+              )
             )
           );
         } catch (error) {
@@ -913,6 +933,10 @@ export class SSRForBlock<T = unknown> {
   }
 }
 
+function createRowId(idBase: string, key: ForKey): string {
+  return idBase === '' ? '' : `${idBase}${hashCode(String(key))}-`;
+}
+
 export function renderSsrForBlock<T>(
   ctx: SsrForContext,
   rangeId: number,
@@ -920,7 +944,8 @@ export function renderSsrForBlock<T>(
   keyQrl: QRL<ForKeyFn<T>>,
   renderQrl: QRL<SsrForRenderFn<T>>,
   usesItemSignal = true,
-  usesIndexSignal = false
+  usesIndexSignal = false,
+  idBase = ''
 ): ValueOrPromise<string> {
   const block = new SSRForBlock(
     rangeId,
@@ -930,7 +955,8 @@ export function renderSsrForBlock<T>(
     usesItemSignal,
     usesIndexSignal,
     getActiveInvokeContextOrNull(),
-    ctx
+    ctx,
+    idBase
   );
   return block.run();
 }

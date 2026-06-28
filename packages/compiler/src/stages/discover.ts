@@ -185,7 +185,10 @@ function addFunctionComponent(
     functionRange: getRange(fn),
     qrlBoundary,
     providesContext: body.providesContext,
+    idBase: '',
+    needsId: false,
     segmentId: null,
+    useIdNames: getUseIdNames(ctx),
     params: getParams(fn),
     setupRanges: body.setupRanges,
     jsx: body.jsx,
@@ -194,6 +197,25 @@ function addFunctionComponent(
   };
   ctx.manifest.components.push(component);
   return component;
+}
+
+function getUseIdNames(ctx: CompilerContext): string[] {
+  const names: string[] = [];
+  for (const importRecord of ctx.manifest.imports) {
+    if (importRecord.typeOnly || importRecord.source !== QwikModule.Core) {
+      continue;
+    }
+    for (const specifier of importRecord.specifiers) {
+      if (
+        specifier.kind === 'named' &&
+        !specifier.typeOnly &&
+        specifier.importedName === QwikSymbol.UseId
+      ) {
+        names.push(specifier.localName);
+      }
+    }
+  }
+  return names;
 }
 
 interface LocalComponentCandidate {

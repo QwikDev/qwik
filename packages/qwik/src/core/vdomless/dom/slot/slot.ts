@@ -17,8 +17,15 @@ import { EMPTY_ARRAY, EMPTY_NODES, EMPTY_STRING } from '../../utils/consts';
 import { toNodes, type MaybeNodeOutput } from '../../utils/nodes';
 import { getFunctionOrResolve } from '../../utils/qrl';
 
-type SlotRenderFn = (ctx: ContainerContext) => MaybeNodeOutput | Promise<MaybeNodeOutput>;
-type SsrSlotRenderFn = (ctx: SsrSlotContext, rangeId: number) => ValueOrPromise<string>;
+type SlotRenderFn = (
+  ctx: ContainerContext,
+  id?: string
+) => MaybeNodeOutput | Promise<MaybeNodeOutput>;
+type SsrSlotRenderFn = (
+  ctx: SsrSlotContext,
+  rangeId: number,
+  id?: string
+) => ValueOrPromise<string>;
 export type SlotName = string;
 
 export interface Projection {
@@ -26,6 +33,7 @@ export interface Projection {
   owner: Owner | null;
   nodes: readonly Node[] | null;
   slotScope: SlotScope | null;
+  idBase: string;
 }
 
 export interface SlotScope {
@@ -56,12 +64,14 @@ class ProjectionState implements Projection {
   owner: Owner | null;
   nodes: readonly Node[] | null;
   slotScope: SlotScope | null;
+  idBase: string;
 
-  constructor(renderQrl: unknown, slotScope: SlotScope | null) {
+  constructor(renderQrl: unknown, slotScope: SlotScope | null, idBase: string) {
     this.renderQrl = renderQrl;
     this.owner = null;
     this.nodes = null;
     this.slotScope = slotScope;
+    this.idBase = idBase;
   }
 }
 
@@ -74,7 +84,7 @@ export function isSlotScope(value: unknown): value is SlotScope {
 }
 
 export function createProjection(): Projection {
-  return new ProjectionState(null, null);
+  return new ProjectionState(null, null, EMPTY_STRING);
 }
 
 export function isProjection(value: unknown): value is Projection {
@@ -85,12 +95,14 @@ export function registerProjection(
   scope: SlotScope,
   name: string,
   renderQrl: unknown,
-  slotScope?: SlotScope | null
+  slotScope?: SlotScope | null,
+  idBase = EMPTY_STRING
 ): Projection {
   const normalized = name || EMPTY_STRING;
   const registered = new ProjectionState(
     renderQrl,
-    slotScope ?? getActiveInvokeContextOrNull()?.slotScope ?? null
+    slotScope ?? getActiveInvokeContextOrNull()?.slotScope ?? null,
+    idBase
   );
   const slots = scope.slots;
   const projections = slots.get(normalized);
@@ -111,14 +123,15 @@ export function resolveSlot(
 
 export function createSlot(
   name: string = EMPTY_STRING,
-  fallback?: SlotRenderFn
+  fallback?: SlotRenderFn,
+  idBase = EMPTY_STRING
 ): ValueOrPromise<readonly Node[]> {
   const context = getActiveInvokeContext();
   const projections = resolveSlot(context.slotScope, name);
   if (projections.length === 0) {
     return fallback === undefined
       ? EMPTY_NODES
-      : maybeThen(fallback(context.container!), (output) => toNodes(output));
+      : maybeThen(fallback(context.container!, idBase), (output) => toNodes(output));
   }
 
   const nodes: Node[] = [];
@@ -139,14 +152,15 @@ export function renderSsrSlot(
   ctx: SsrSlotContext,
   name: string = EMPTY_STRING,
   fallback?: QRL<SsrSlotRenderFn>,
-  invokeContext: RuntimeInvokeContext | null = getActiveInvokeContext()
+  invokeContext: RuntimeInvokeContext | null = getActiveInvokeContext(),
+  idBase = EMPTY_STRING
 ): ValueOrPromise<string> {
   const context = invokeContext ?? getActiveInvokeContext();
   const projections = resolveSlot(context.slotScope, name);
   if (projections.length === 0) {
     return fallback === undefined
       ? EMPTY_STRING
-      : renderSsrProjection(ctx, fallback, null, context);
+      : renderSsrProjection(ctx, fallback, null, context, idBase);
   }
 
   let html = EMPTY_STRING;
@@ -155,7 +169,8 @@ export function renderSsrSlot(
       ctx,
       projections[i].renderQrl,
       projections[i].slotScope,
-      context
+      context,
+      projections[i].idBase
     );
     if (isPromise(output)) {
       return output.then((resolved) => {
@@ -191,7 +206,7 @@ function project(
       slotScope: projection.slotScope,
     });
     try {
-      const output = invoke(invokeContext, render, container);
+      const output = invoke(invokeContext, render, container, projection.idBase);
       return maybeThen(output, (output) => {
         const nodes = toNodes(output);
         projection.owner = invokeContext.owner;
@@ -212,7 +227,8 @@ function renderSsrProjection(
   ctx: SsrSlotContext,
   renderQrl: unknown,
   slotScope: SlotScope | null,
-  base: RuntimeInvokeContext
+  base: RuntimeInvokeContext,
+  idBase: string
 ): ValueOrPromise<string> {
   const rangeId = ctx.nextId();
   const render = getFunctionOrResolve(
@@ -224,7 +240,7 @@ function renderSsrProjection(
       ownerHost: base,
       slotScope,
     });
-    const html = invoke(invokeContext, render, ctx, rangeId);
+    const html = invoke(invokeContext, render, ctx, rangeId, idBase);
     return maybeThen(html, (html) => `<!s=${rangeId}>${html}<!/s>`);
   });
 }
@@ -261,7 +277,8 @@ function renderRemainingSsrProjections(
       ctx,
       projections[i].renderQrl,
       projections[i].slotScope,
-      invokeContext
+      invokeContext,
+      projections[i].idBase
     );
     if (isPromise(projected)) {
       return projected.then((resolved) =>

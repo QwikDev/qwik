@@ -20,6 +20,8 @@ import {
   emitComponentSetup,
   emitImports,
   emitObjectGetterName,
+  hasUseId,
+  ID_PARAM,
   getDomEffectBatchStats,
   getDomPropsBatchKey,
   getDynamicBindingBatchKey,
@@ -45,6 +47,8 @@ interface DomEmitterOptions {
   helperPrefix?: string;
   importSegment?: (qrlSegment: QrlSegmentOutput) => void;
   use?: (symbol: QwikSymbol) => void;
+  idExpr?: string;
+  componentNeedsId?: (name: string) => boolean;
   loopCaptures?: readonly { name: string; source: string }[];
   useOnEvents?: UseOnCarrier[];
 }
@@ -68,11 +72,14 @@ export function emitCsrModule(
   segments: readonly SegmentRecord[],
   sourceCode: string,
   imports: ImportRecord[],
-  modulePrelude = ''
+  modulePrelude = '',
+  componentNeedsId?: (name: string) => boolean
 ) {
   const prelude = emitPrelude(imports);
   return `${prelude}${modulePrelude}${components
-    .map((component) => emitCsrComponent(component, qrlSegments, segments, sourceCode))
+    .map((component) =>
+      emitCsrComponent(component, qrlSegments, segments, sourceCode, componentNeedsId)
+    )
     .join('\n')}\n`;
 }
 
@@ -87,21 +94,29 @@ function emitCsrComponent(
   component: ComponentRecord,
   qrlSegments: Map<string, QrlSegmentOutput>,
   segments: readonly SegmentRecord[],
-  sourceCode: string
+  sourceCode: string,
+  componentNeedsId?: (name: string) => boolean
 ) {
-  const { body, hoists } = emitDomRenderer(component, qrlSegments, segments, sourceCode);
+  const { body, hoists } = emitDomRenderer(
+    component,
+    qrlSegments,
+    segments,
+    sourceCode,
+    componentNeedsId
+  );
   const propsParam = getComponentPropsParam(component);
+  const idParam = component.needsId ? `, ${ID_PARAM} = ${JSON.stringify(component.idBase)}` : '';
   if (component.declarationKind === 'function') {
-    return `${hoists}export function ${component.exportName}(${propsParam}, ctx) {\n${body}\n}`;
+    return `${hoists}export function ${component.exportName}(${propsParam}, ctx${idParam}) {\n${body}\n}`;
   }
   if (component.declarationKind === 'const') {
-    return `${hoists}export const ${component.exportName} = (${propsParam}, ctx) => {\n${body}\n};`;
+    return `${hoists}export const ${component.exportName} = (${propsParam}, ctx${idParam}) => {\n${body}\n};`;
   }
   if (component.declarationKind === 'defaultFunction') {
     const name = component.localName ? ` ${component.localName}` : '';
-    return `${hoists}export default function${name}(${propsParam}, ctx) {\n${body}\n}`;
+    return `${hoists}export default function${name}(${propsParam}, ctx${idParam}) {\n${body}\n}`;
   }
-  return `${hoists}export default (${propsParam}, ctx) => {\n${body}\n};`;
+  return `${hoists}export default (${propsParam}, ctx${idParam}) => {\n${body}\n};`;
 }
 
 function getComponentPropsParam(component: ComponentRecord): string {
@@ -112,7 +127,8 @@ function emitDomRenderer(
   component: ComponentRecord,
   qrlSegments: Map<string, QrlSegmentOutput>,
   segments: readonly SegmentRecord[],
-  sourceCode: string
+  sourceCode: string,
+  componentNeedsId?: (name: string) => boolean
 ) {
   const emitter = new DomEmitter(
     qrlSegments,
@@ -120,6 +136,8 @@ function emitDomRenderer(
     {
       domEffectBatchCounts: getDomEffectBatchStats(component.root, qrlSegments).counts,
       helperPrefix: createHelperPrefix(component.exportName),
+      idExpr: component.needsId ? ID_PARAM : undefined,
+      componentNeedsId,
       useOnEvents: collectUseOnCarriers(component, segments, qrlSegments, sourceCode),
     },
     component
@@ -133,7 +151,7 @@ function emitDomRenderer(
       segments,
       sourceCode,
       'csr',
-      hasDynamicBinding(root) || component.providesContext
+      hasDynamicBinding(root) || component.providesContext || hasUseId(component, sourceCode)
     )
   );
   const roots = emitter.emitTemplateRoot(root) ?? emitter.emitRoot(root);
@@ -146,6 +164,7 @@ function emitDomRenderer(
 export class DomEmitter {
   private counter = 0;
   private helperCounter = 0;
+  private idCounter = 0;
   private readonly lines: string[] = [];
   private readonly hoists: string[] = [];
   private readonly helperBySegment = new Map<string, string>();
@@ -227,9 +246,10 @@ export class DomEmitter {
       const id = this.next('cmp');
       const props = this.emitComponentProps(node.props);
       const slotScope = this.emitComponentSlotScope(node);
+      const idArg = this.options.componentNeedsId?.(node.name) === true ? this.emitIdArg('c') : '';
       this.use(QwikSymbol.CreateComponent);
       this.line(
-        `const ${id} = ${QwikSymbol.CreateComponent}(${props}, (props) => ${node.name}(props, ctx), { container: ctx${
+        `const ${id} = ${QwikSymbol.CreateComponent}(${props}, (props) => ${node.name}(props, ctx${idArg}), { container: ctx${
           slotScope === null ? '' : `, slotScope: ${slotScope}`
         } });`
       );
@@ -291,10 +311,12 @@ export class DomEmitter {
     for (const slot of node.slots) {
       const qrlSegment = this.requireQrlSegment(slot.segmentId);
       this.importSegment(qrlSegment);
+      const idArg = this.emitIdArg('s');
+      const slotScopeArg = idArg === '' ? '' : `, undefined${idArg}`;
       this.line(
         `${QwikSymbol.RegisterProjection}(${id}, ${JSON.stringify(
           slot.name
-        )}, ${this.emitCapturedFunction(qrlSegment)});`
+        )}, ${this.emitCapturedFunction(qrlSegment)}${slotScopeArg});`
       );
     }
     return id;
@@ -309,7 +331,11 @@ export class DomEmitter {
       fallback = this.emitCapturedFunction(qrlSegment);
     }
     this.use(QwikSymbol.CreateSlot);
-    this.line(`const ${id} = ${QwikSymbol.CreateSlot}(${JSON.stringify(node.name)}, ${fallback});`);
+    this.line(
+      `const ${id} = ${QwikSymbol.CreateSlot}(${JSON.stringify(node.name)}, ${fallback}${this.emitIdArg(
+        's'
+      )});`
+    );
     return { id, kind: 'nodes' };
   }
 
@@ -649,7 +675,7 @@ export class DomEmitter {
     this.line(`${fragmentId}.appendChild(${startId});`);
     this.line(`${fragmentId}.appendChild(${endId});`);
     this.line(
-      `const ${branchId} = ${QwikSymbol.CreateBranch}(ctx, new ${QwikSymbol.BranchRange}(ctx.document, ${startId}, ${endId}), ${condition}, ${thenRenderer}, ${elseRenderer});`
+      `const ${branchId} = ${QwikSymbol.CreateBranch}(ctx, new ${QwikSymbol.BranchRange}(ctx.document, ${startId}, ${endId}), ${condition}, ${thenRenderer}, ${elseRenderer}${this.emitIdArg('b')});`
     );
     this.line(`ctx.scheduler.notify(${branchId});`);
     return { id: fragmentId, kind: 'node' };
@@ -695,7 +721,7 @@ export class DomEmitter {
     this.line(`${fragmentId}.appendChild(${startId});`);
     this.line(`${fragmentId}.appendChild(${endId});`);
     this.line(
-      `const ${blockId} = ${QwikSymbol.CreateForBlock}(ctx, new ${QwikSymbol.ForRange}(ctx.document, ${startId}, ${endId}), ${node.sourceName}, ${keyFn}, ${renderer}, ${String(node.usesItemSignal)}, ${String(node.usesIndexSignal)});`
+      `const ${blockId} = ${QwikSymbol.CreateForBlock}(ctx, new ${QwikSymbol.ForRange}(ctx.document, ${startId}, ${endId}), ${node.sourceName}, ${keyFn}, ${renderer}, ${String(node.usesItemSignal)}, ${String(node.usesIndexSignal)}${this.emitIdArg('f')});`
     );
     this.line(`${blockId}.run();`);
     return { id: fragmentId, kind: 'node' };
@@ -888,6 +914,12 @@ export class DomEmitter {
     const id = `${prefix}${this.counter}`;
     this.counter++;
     return id;
+  }
+
+  private emitIdArg(prefix: string): string {
+    return this.options.idExpr === undefined
+      ? ''
+      : `, ${this.options.idExpr} + ${JSON.stringify(`${prefix}${this.idCounter++}-`)}`;
   }
 
   private nextHelper() {

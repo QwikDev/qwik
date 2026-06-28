@@ -557,8 +557,9 @@ function withSchedulerFlush(
 ): QwikLoaderTestDriver {
   return {
     async dispatch(target, type, payload) {
-      await qwikLoader.dispatch(target, type, payload);
+      const event = await qwikLoader.dispatch(target, type, payload);
       await settleScheduler(scheduler);
+      return event;
     },
     cleanup() {
       qwikLoader.cleanup();

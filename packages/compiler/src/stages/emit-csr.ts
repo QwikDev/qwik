@@ -28,6 +28,7 @@ import {
   rewriteLoopCaptures,
   serializeAttrValue,
 } from './emit-utils';
+import { collectUseOnCarriers, type UseOnCarrier } from './implicit-dollar';
 
 export interface DomOutput {
   id: string;
@@ -45,6 +46,14 @@ interface DomEmitterOptions {
   importSegment?: (qrlSegment: QrlSegmentOutput) => void;
   use?: (symbol: QwikSymbol) => void;
   loopCaptures?: readonly { name: string; source: string }[];
+  useOnEvents?: UseOnCarrier[];
+}
+
+interface UseOnGroup {
+  handlers: string[];
+  capture: boolean;
+  preventdefault: boolean;
+  stoppropagation: boolean;
 }
 
 interface DomBatchState {
@@ -111,6 +120,7 @@ function emitDomRenderer(
     {
       domEffectBatchCounts: getDomEffectBatchStats(component.root, qrlSegments).counts,
       helperPrefix: createHelperPrefix(component.exportName),
+      useOnEvents: collectUseOnCarriers(component, segments, qrlSegments, sourceCode),
     },
     component
   );
@@ -127,6 +137,7 @@ function emitDomRenderer(
     )
   );
   const roots = emitter.emitTemplateRoot(root) ?? emitter.emitRoot(root);
+  emitter.emitGlobalUseOnCarrier(roots);
   emitter.finalizeDomBatchEffects();
   emitter.line(`return ${emitNodeOutputExpression(roots)};`);
   return { body: emitter.toString(), hoists: emitter.emitHoists() };
@@ -434,6 +445,7 @@ export class DomEmitter {
     node: ElementRenderNode,
     includeStaticAttrs: boolean
   ): void {
+    const useOnGroups = this.consumeUseOnGroups(true);
     if (hasDomProps(node.props)) {
       const propsExpression = this.emitDomPropsExpression(node.props, true);
       const callback = node.propsSegmentId
@@ -456,6 +468,7 @@ export class DomEmitter {
         );
         this.emitInitialDomEffect(effectId);
       }
+      this.emitUseOnGroups(elementId, useOnGroups);
       return;
     }
 
@@ -476,25 +489,44 @@ export class DomEmitter {
       }
       if (prop.expressionRange !== undefined) {
         const handlerId = this.next('event');
+        const useOnGroup = useOnGroups.get(prop.name);
+        if (useOnGroup) {
+          useOnGroups.delete(prop.name);
+        }
         this.use(QwikSymbol.SetEvent);
         this.line(`const ${handlerId} = ${this.emitExpression(prop.expressionRange)};`);
         this.line(
           `if (${handlerId}) ${QwikSymbol.SetEvent}(${elementId}, ${JSON.stringify(
             prop.name
-          )}, ${handlerId});`
+          )}, ${emitHandlersExpression([handlerId, ...(useOnGroup?.handlers ?? [])])});`
         );
+        if (useOnGroup) {
+          this.emitUseOnModifiers(elementId, prop.name, useOnGroup);
+        }
         continue;
       }
       if (prop.qrlSegmentId) {
         const qrlSegment = this.qrlSegments.get(prop.qrlSegmentId);
         if (qrlSegment) {
+          const useOnGroup = useOnGroups.get(prop.name);
+          if (useOnGroup) {
+            useOnGroups.delete(prop.name);
+          }
           this.use(QwikSymbol.SetEvent);
           this.importSegment(qrlSegment);
           this.line(
             `${QwikSymbol.SetEvent}(${elementId}, ${JSON.stringify(prop.name)}, ${
-              qrlSegment.symbolName
-            }${this.emitEventCaptureArgs(qrlSegment)});`
+              useOnGroup
+                ? emitHandlersExpression([
+                    this.emitDomEventHandler(qrlSegment),
+                    ...useOnGroup.handlers,
+                  ])
+                : qrlSegment.symbolName
+            }${useOnGroup ? '' : this.emitEventCaptureArgs(qrlSegment)});`
           );
+          if (useOnGroup) {
+            this.emitUseOnModifiers(elementId, prop.name, useOnGroup);
+          }
         }
         continue;
       }
@@ -513,6 +545,88 @@ export class DomEmitter {
           );
         }
       }
+    }
+    this.emitUseOnGroups(elementId, useOnGroups);
+  }
+
+  emitGlobalUseOnCarrier(roots: DomOutput[]): void {
+    const groups = this.consumeUseOnGroups(false);
+    if (groups.size === 0) {
+      return;
+    }
+    const scriptId = this.next('script');
+    this.line(`const ${scriptId} = ctx.document.createElement('script');`);
+    this.line(`${scriptId}.setAttribute('hidden', '');`);
+    this.emitUseOnGroups(scriptId, groups);
+    roots.push({ id: scriptId, kind: 'node' });
+  }
+
+  private consumeUseOnGroups(includeElementEvents: boolean): Map<string, UseOnGroup> {
+    const events = this.options.useOnEvents;
+    const grouped = new Map<string, UseOnGroup>();
+    if (!events || events.length === 0) {
+      return grouped;
+    }
+
+    const remaining: UseOnCarrier[] = [];
+    for (const event of events) {
+      if (!includeElementEvents && isElementEvent(event.eventName)) {
+        remaining.push(event);
+        continue;
+      }
+      const handler = this.emitUseOnHandler(event);
+      if (handler === null) {
+        remaining.push(event);
+        continue;
+      }
+      const group = grouped.get(event.eventName) ?? {
+        handlers: [],
+        capture: false,
+        preventdefault: false,
+        stoppropagation: false,
+      };
+      group.handlers.push(handler);
+      group.capture ||= event.capture;
+      group.preventdefault ||= event.preventdefault;
+      group.stoppropagation ||= event.stoppropagation;
+      grouped.set(event.eventName, group);
+    }
+
+    events.length = 0;
+    events.push(...remaining);
+    return grouped;
+  }
+
+  private emitUseOnHandler(event: UseOnCarrier): string | null {
+    const range = event.segment.argumentRanges[0];
+    return range === null ? null : this.emitExpression(range);
+  }
+
+  private emitUseOnGroups(elementId: string, groups: Map<string, UseOnGroup>): void {
+    if (groups.size === 0) {
+      return;
+    }
+    this.use(QwikSymbol.SetEvent);
+    for (const [eventName, group] of groups) {
+      this.line(
+        `${QwikSymbol.SetEvent}(${elementId}, ${JSON.stringify(eventName)}, ${emitHandlersExpression(
+          group.handlers
+        )});`
+      );
+      this.emitUseOnModifiers(elementId, eventName, group);
+    }
+  }
+
+  private emitUseOnModifiers(elementId: string, eventName: string, group: UseOnGroup): void {
+    const name = eventName.slice(eventName.indexOf(':') + 1);
+    if (group.capture) {
+      this.line(`${elementId}.setAttribute(${JSON.stringify(`capture:${name}`)}, '');`);
+    }
+    if (group.preventdefault) {
+      this.line(`${elementId}.setAttribute(${JSON.stringify(`preventdefault:${name}`)}, '');`);
+    }
+    if (group.stoppropagation) {
+      this.line(`${elementId}.setAttribute(${JSON.stringify(`stoppropagation:${name}`)}, '');`);
     }
   }
 
@@ -1021,6 +1135,14 @@ function needsTemplatePatch(node: RenderNode): boolean {
 
 function hasDomProps(props: readonly PropRecord[]): boolean {
   return props.some((prop) => prop.kind === 'spread');
+}
+
+function emitHandlersExpression(handlers: string[]): string {
+  return handlers.length === 1 ? handlers[0] : `[${handlers.join(', ')}]`;
+}
+
+function isElementEvent(eventName: string): boolean {
+  return eventName.charCodeAt(2) === 101 /* e */;
 }
 
 const TEMPLATE_UNSAFE_TAGS = new Set(['script', 'style', 'template', 'textarea', 'title']);

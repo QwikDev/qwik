@@ -10,6 +10,7 @@ import type {
 } from '../types';
 import {
   hasTaskSetupSegment,
+  hasSetupQrlSegment,
   isImplicitDollarSegment,
   transformImplicitDollarCode,
   type DollarTransformTarget,
@@ -79,7 +80,8 @@ export function emitComponentSetup(
   if (
     !force &&
     !hasCapturedQrlSegment(component.root, qrlSegments) &&
-    !hasTaskSetupSegment(component, segments)
+    !hasTaskSetupSegment(component, segments) &&
+    !hasSetupQrlSegment(component, segments)
   ) {
     return '';
   }

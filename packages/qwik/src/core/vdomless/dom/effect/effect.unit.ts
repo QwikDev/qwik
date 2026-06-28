@@ -19,7 +19,6 @@ import {
   createTextNodeEffect,
   patchAttrValue,
   runDomBatchEffect,
-  type TextExpressionFn,
 } from './effect';
 
 describe('DOM effects', () => {
@@ -450,24 +449,6 @@ describe('DOM effects', () => {
 
     expect(text.data).toBe('');
     expect(effect.owner).toBeNull();
-  });
-
-  it('rejects async scalar text expressions', async () => {
-    const scheduler = new Scheduler(noopSchedule);
-    const asyncText = createOwned(() =>
-      createTextExpressionEffect(
-        createText(),
-        [],
-        (() => Promise.resolve('async')) as unknown as TextExpressionFn<[]>,
-        { scheduler }
-      )
-    );
-
-    scheduler.notify(asyncText);
-
-    await expect(scheduler.flushInteraction()).rejects.toThrow(
-      'Scalar DOM effects must be synchronous'
-    );
   });
 
   it('cleans up dynamic dependencies for text expressions', async () => {

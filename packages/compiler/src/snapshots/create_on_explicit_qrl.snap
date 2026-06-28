@@ -1,0 +1,150 @@
+==INPUT==
+
+import { $ } from '@qwik.dev/core';
+import { createOn, createOnDocument, createSignal } from '@qwik.dev/core/spark';
+
+export function App() {
+  const count = createSignal(0);
+  createOn('click', $(() => count.value++));
+  createOnDocument('qinit', $(() => count.value += 2), { capture: true, preventdefault: true });
+  return <button>{count.value}</button>;
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  createSignal,
+  _qrlWithChunk,
+  escapeHTML,
+  renderSsrTextNode,
+  createSsrElementTextTarget,
+  maybeThen,
+} from '@qwik.dev/core/spark';
+
+const q_component_$_segment_0 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_$_segment_0',
+  () => import('./component.tsx_component_$_segment_0'),
+  'component_$_segment_0'
+);
+const q_component_$_segment_1 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_$_segment_1',
+  () => import('./component.tsx_component_$_segment_1'),
+  'component_$_segment_1'
+);
+
+export function App(_props, ctx) {
+  const count = createSignal(0);
+
+  const id0 = ctx.nextId();
+  ctx.addRoot(count);
+  const text1 = renderSsrTextNode(createSsrElementTextTarget(id0), count);
+  return maybeThen(
+    text1,
+    (text1) =>
+      '<button q:id="' +
+      id0 +
+      '"' +
+      ctx.eventAttr('q-e:click', q_component_$_segment_0.w([count])) +
+      ctx.eventAttr('q-d:qinit', q_component_$_segment_1.w([count])) +
+      ' capture:qinit preventdefault:qinit>' +
+      escapeHTML(text1) +
+      '</button>'
+  );
+}
+
+null
+============================= src/component.tsx_component_$_segment_0.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+export const component_$_segment_0 = () => {
+  const count = _captures[0];
+  return count.value++;
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_$_segment_0",
+  "entry": null,
+  "displayName": "component_$_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_$_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    192,
+    214
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_$_segment_1.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+export const component_$_segment_1 = () => {
+  const count = _captures[0];
+  return (count.value += 2);
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_$_segment_1",
+  "entry": null,
+  "displayName": "component_$_segment_1",
+  "hash": "segment_1",
+  "canonicalFilename": "component.tsx_component_$_segment_1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    244,
+    269
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { createSignal, createTemplate, createTextNodeEffect, setEvent } from '@qwik.dev/core/spark';
+
+const dom_App_template0 = createTemplate('<button> </button>');
+export function App(_props, ctx) {
+  const count = createSignal(0);
+
+  const fragment0 = dom_App_template0(ctx.document);
+  const el1 = fragment0.firstChild;
+  setEvent(el1, 'q-e:click', () => count.value++);
+  setEvent(el1, 'q-d:qinit', () => (count.value += 2));
+  el1.setAttribute('capture:qinit', '');
+  el1.setAttribute('preventdefault:qinit', '');
+  const text2 = el1.firstChild;
+  const effect3 = createTextNodeEffect(text2, count, { scheduler: ctx.scheduler });
+  ctx.scheduler.notify(effect3);
+  return el1;
+}
+
+null
+== CSR DIAGNOSTICS ==
+
+[]

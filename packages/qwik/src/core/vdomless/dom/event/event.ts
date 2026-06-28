@@ -28,7 +28,7 @@ export function createCapturedEvent(
 export function setEvent(
   element: Element,
   key: string,
-  handler: QDispatchHandler,
+  handler: QDispatchHandler | QDispatchHandler[],
   captures?: readonly unknown[] | null
 ): void {
   const scopedKebabName = key.slice(2);
@@ -45,10 +45,8 @@ export function setEvent(
 }
 
 function registerQwikLoaderEvent(element: Element, eventName: string) {
-  const qWindow = (qTest ? element.ownerDocument.defaultView : window) as qWindow | null;
-  if (qWindow) {
-    (qWindow._qwikEv ||= [] as any).push(eventName);
-  }
+  const qWindow = (qTest ? element.ownerDocument.defaultView : window) as unknown as qWindow;
+  (qWindow._qwikEv ||= [] as any).push(eventName);
 }
 
 function runCapturedEvent(captures: CapturedEventHandler, event: Event, element: Element): unknown {

@@ -2,6 +2,7 @@ import type { ContainerContext } from './container-context';
 import type { ContextScope } from './context-scope';
 import type { Owner } from './owner';
 import type { SlotScope } from '../dom/slot/slot';
+import type { UseOnMap } from './use-on';
 
 export interface RuntimeInvokeContext {
   owner: Owner | null;
@@ -13,6 +14,7 @@ export interface RuntimeInvokeContext {
   contextScope: ContextScope | null;
   localContextScope: ContextScope | null;
   slotScope: SlotScope | null;
+  useOnEvents: UseOnMap | null;
 }
 
 export interface NewInvokeContextOptions {
@@ -61,6 +63,7 @@ export function newInvokeContext(options?: NewInvokeContextOptions): RuntimeInvo
     contextScope: options?.contextScope ?? null,
     localContextScope: options?.localContextScope ?? null,
     slotScope: options?.slotScope ?? null,
+    useOnEvents: null,
   };
 }
 

@@ -196,6 +196,21 @@ export function App() {
     });
   });
 
+  test('emits createOn with explicit qrl handler', async () => {
+    await testInput('create_on_explicit_qrl', {
+      code: `import { $ } from '@qwik.dev/core';
+import { createOn, createOnDocument, createSignal } from '@qwik.dev/core/spark';
+
+export function App() {
+  const count = createSignal(0);
+  createOn('click', $(() => count.value++));
+  createOnDocument('qinit', $(() => count.value += 2), { capture: true, preventdefault: true });
+  return <button>{count.value}</button>;
+}
+`,
+    });
+  });
+
   test('supports SSR and CSR dynamic text', async () => {
     await testInput('dynamic_signal_text', {
       code: `import { createSignal } from '@qwik.dev/core/spark';

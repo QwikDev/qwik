@@ -49,6 +49,9 @@ import {
 } from './emit-utils';
 import {
   hasTaskSetupSegment,
+  hasSetupQrlSegment,
+  collectUseOnCarriers,
+  isExplicitDollarSegment,
   isCreateTaskSegment,
   isCreateVisibleTaskSegment,
   isGeneratorTrackedSegment,
@@ -58,6 +61,7 @@ import {
   rewriteAwaitToYield,
   transformDollarImports,
   transformImplicitDollarCode,
+  type UseOnCarrier,
 } from './implicit-dollar';
 
 export async function emitModules(ctx: CompilerContext) {
@@ -143,6 +147,7 @@ function createModuleImports(
             providesContext: component.providesContext,
             hasSetupAwait: hasTask,
             hasTask,
+            hasSetupQrl: hasSetupQrlSegment(component, ctx.manifest.segments),
             hasVisibleTask: hasTaskSetupSegment(
               component,
               ctx.manifest.segments,
@@ -158,7 +163,7 @@ function createModuleImports(
   return createCsrImports(
     baseImports,
     collectCsrRootQrlSegments(components, qrlSegments),
-    collectCsrRootImportUsage(components, qrlSegments)
+    collectCsrRootImportUsage(components, qrlSegments, ctx.manifest.segments, ctx.input.code)
   );
 }
 
@@ -185,6 +190,7 @@ interface SsrUsageRoot {
   root: RenderNode | null;
   providesContext?: boolean;
   hasSetupAwait?: boolean;
+  hasSetupQrl?: boolean;
   hasTask?: boolean;
   hasVisibleTask?: boolean;
 }
@@ -243,6 +249,7 @@ function createSsrImportUsage(
     hasComponentSlots: has(hasComponentSlots),
     hasComponentPropsSpread: has(hasComponentPropsSpread),
     hasSetupAwait: items.some((item) => item.hasSetupAwait === true),
+    hasSetupQrl: items.some((item) => item.hasSetupQrl === true),
     hasValueOrPromise: valueOrPromiseCounts.some((count) => count > 0),
     hasMultipleValueOrPromise: valueOrPromiseCounts.some((count) => count > 1),
     hasTask: items.some((item) => item.hasTask === true),
@@ -532,13 +539,20 @@ function collectExistingQrlSegment(
 
 function collectCsrRootImportUsage(
   components: readonly ComponentRecord[],
-  qrlSegments: Map<string, QrlSegmentOutput>
+  qrlSegments: Map<string, QrlSegmentOutput>,
+  segments: readonly SegmentRecord[],
+  sourceCode: string
 ) {
-  const items = components.map((component) => ({
-    root: component.root,
-    providesContext: component.providesContext,
-    batchStats: getDomEffectBatchStats(component.root, qrlSegments),
-  }));
+  const items = components.map((component) => {
+    const useOnEvents = collectUseOnCarriers(component, segments, qrlSegments, sourceCode);
+    return {
+      root: component.root,
+      providesContext: component.providesContext,
+      batchStats: getDomEffectBatchStats(component.root, qrlSegments),
+      hasSetupQrl: hasSetupQrlSegment(component, segments),
+      useOnEvents,
+    };
+  });
   const has = (predicate: (node: RenderNode | null) => boolean) =>
     items.some((item) => predicate(item.root));
   const hasBatched = (kind: ScalarDomEffectKind) =>
@@ -576,8 +590,11 @@ function collectCsrRootImportUsage(
     hasDynamicAttr: hasScalar('dynamicAttr'),
     hasAttrExpression: hasScalar('attrExpression'),
     hasDomProps: hasScalar('props'),
-    hasDirectEvent: has(hasCsrRootDirectDomEvent),
-    hasCapturedDomPropsEvent: has((root) => hasCapturedDomPropsEvent(root, qrlSegments)),
+    hasDirectEvent:
+      has(hasCsrRootDirectDomEvent) || items.some((item) => item.useOnEvents.length > 0),
+    hasCapturedDomPropsEvent:
+      has((root) => hasCapturedDomPropsEvent(root, qrlSegments)) ||
+      items.some((item) => hasCapturedUseOnMerge(item.root, qrlSegments, item.useOnEvents)),
     hasCapturedFunction: has((root) => hasCapturedCsrFunction(root, qrlSegments)),
     hasBranch: has(hasCsrRootBranch),
     hasForBlock: has(hasCsrRootForBlock),
@@ -585,6 +602,7 @@ function collectCsrRootImportUsage(
     hasComponent: has(hasCsrRootComponent),
     hasComponentSlots: has(hasCsrRootComponentSlots),
     hasComponentPropsSpread: has(hasCsrRootComponentPropsSpread),
+    hasSetupQrl: items.some((item) => item.hasSetupQrl),
   };
 }
 
@@ -619,6 +637,29 @@ function hasCsrRootDirectDomEvent(node: RenderNode | null): boolean {
       !current.props.some((prop) => prop.kind === 'spread') &&
       current.props.some(
         (prop) => prop.kind === 'named' && (prop.qrlSegmentId || prop.expressionRange !== undefined)
+      )
+  );
+}
+
+function hasCapturedUseOnMerge(
+  node: RenderNode | null,
+  qrlSegments: Map<string, QrlSegmentOutput>,
+  useOnEvents: readonly UseOnCarrier[]
+): boolean {
+  if (useOnEvents.length === 0) {
+    return false;
+  }
+  const eventNames = new Set(useOnEvents.map((event) => event.eventName));
+  return someCsrRootNode(
+    node,
+    (current) =>
+      current.kind === 'element' &&
+      current.props.some(
+        (prop) =>
+          prop.kind === 'named' &&
+          prop.qrlSegmentId &&
+          eventNames.has(prop.name) &&
+          (qrlSegments.get(prop.qrlSegmentId)?.segment.captures.length ?? 0) > 0
       )
   );
 }
@@ -685,7 +726,7 @@ function collectComponentImplicitDollarSegments(
 ) {
   for (const segment of ctx.manifest.segments) {
     if (
-      isImplicitDollarSegment(segment) &&
+      (isImplicitDollarSegment(segment) || isExplicitDollarSegment(segment)) &&
       component.setupRanges.some((range) => isRangeInside(segment.range, range)) &&
       !isNestedInImplicitDollarSegment(segment, ctx.manifest.segments) &&
       !qrlSegments.has(segment.id)

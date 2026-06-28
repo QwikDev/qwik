@@ -88,6 +88,15 @@ export function ensureGlobals(doc: any, opts?: MockDocumentOptions) {
     },
   };
 
+  const createElement = doc.createElement.bind(doc);
+  doc.createElement = (tagName: string, options?: ElementCreationOptions) => {
+    const element = createElement(tagName, options);
+    if (tagName.toLowerCase() === 'template') {
+      ((element as HTMLTemplateElement).content.ownerDocument as any).defaultView = doc.defaultView;
+    }
+    return element;
+  };
+
   return doc.defaultView;
 }
 

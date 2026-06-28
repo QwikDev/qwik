@@ -175,6 +175,15 @@ export {
 } from './dom/effect/effect';
 export { applyDomProps, normalizeDomProps, renderDomPropsToString } from './dom/effect/dom-props';
 export { createCapturedEvent, setEvent } from './dom/event/event';
+export {
+  createOn,
+  createOnDocument,
+  createOnWindow,
+  recordUseOnEvent,
+  type OnHandler,
+  type UseOnEvent,
+  type UseOnMap,
+} from './runtime/use-on';
 export { createTemplate, type TemplateFactory } from './dom/template/template';
 export {
   EffectTargetKind,

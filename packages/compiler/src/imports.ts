@@ -43,6 +43,7 @@ export function createSsrImports(
     !usage.hasSlot &&
     !usage.hasComponentSlots &&
     !usage.hasSetupAwait &&
+    !usage.hasSetupQrl &&
     !usage.hasTask &&
     !usage.hasVisibleTask
   ) {
@@ -156,6 +157,7 @@ export interface SsrImportUsage {
   hasComponentSlots: boolean;
   hasComponentPropsSpread: boolean;
   hasSetupAwait: boolean;
+  hasSetupQrl: boolean;
   hasValueOrPromise: boolean;
   hasMultipleValueOrPromise: boolean;
   hasTask: boolean;
@@ -177,7 +179,8 @@ export function createCsrImports(
     !usage.hasComponentPropsSpread &&
     !usage.hasForBlock &&
     !usage.hasSlot &&
-    !usage.hasComponentSlots
+    !usage.hasComponentSlots &&
+    !usage.hasSetupQrl
   ) {
     return [];
   }
@@ -281,6 +284,7 @@ export interface CsrImportUsage {
   hasComponent: boolean;
   hasComponentSlots: boolean;
   hasComponentPropsSpread: boolean;
+  hasSetupQrl: boolean;
 }
 
 export function normalizeImports(imports: readonly ImportRecord[]) {

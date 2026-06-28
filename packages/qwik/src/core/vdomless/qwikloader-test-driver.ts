@@ -6,7 +6,7 @@ import { QRL_RUNTIME_CHUNK } from '../shared/serdes/qrl-to-string';
 export type QwikLoaderEventPayload = EventInit & Record<string, unknown>;
 
 export interface QwikLoaderTestDriver {
-  dispatch(target: Element, type: string, payload?: QwikLoaderEventPayload): Promise<void>;
+  dispatch(target: Element, type: string, payload?: QwikLoaderEventPayload): Promise<Event>;
   cleanup(): void;
 }
 
@@ -17,19 +17,22 @@ export async function bootQwikLoader(document: Document): Promise<QwikLoaderTest
   }
 
   ensureDocumentReady(document);
+  ensureWindowEventTarget(win);
   executeQwikEventScripts(document, win);
   runQwikLoader(await getQwikLoaderSource(document), document, win);
 
   return {
     async dispatch(target, type, init = {}) {
       ensureConnectedTarget(target);
+      const dispatchType = parseDispatchType(type);
       const errors: unknown[] = [];
       const onError = (event: Event) => {
         errors.push((event as CustomEvent).detail);
       };
       document.addEventListener('qerror', onError);
+      const event = createTestEvent(target.ownerDocument, dispatchType.eventName, init);
       try {
-        target.dispatchEvent(createTestEvent(target.ownerDocument, type, init));
+        getDispatchTarget(document, win, target, dispatchType.scope).dispatchEvent(event);
         await flushQwikLoaderTasks(win);
       } finally {
         document.removeEventListener('qerror', onError);
@@ -37,6 +40,7 @@ export async function bootQwikLoader(document: Document): Promise<QwikLoaderTest
       if (errors.length > 0) {
         throw new Error(formatQwikLoaderError(errors[0]));
       }
+      return event;
     },
     cleanup() {},
   };
@@ -80,6 +84,37 @@ function ensureConnectedTarget(target: Element): void {
       value: true,
     });
   }
+}
+
+function ensureWindowEventTarget(win: Window): void {
+  if (typeof win.dispatchEvent === 'function') {
+    return;
+  }
+
+  const listeners: Record<string, EventListener[]> = {};
+  win.addEventListener = ((type: string, listener: EventListener | null) => {
+    if (listener !== null) {
+      (listeners[type] ||= []).push(listener);
+    }
+  }) as Window['addEventListener'];
+  win.removeEventListener = ((type: string, listener: EventListener | null) => {
+    const typeListeners = listeners[type];
+    if (typeListeners && listener !== null) {
+      const index = typeListeners.indexOf(listener);
+      if (index !== -1) {
+        typeListeners.splice(index, 1);
+      }
+    }
+  }) as Window['removeEventListener'];
+  win.dispatchEvent = ((event: Event) => {
+    const typeListeners = listeners[event.type];
+    if (typeListeners) {
+      for (let i = 0; i < typeListeners.length; i++) {
+        typeListeners[i].call(win, event);
+      }
+    }
+    return !event.defaultPrevented;
+  }) as Window['dispatchEvent'];
 }
 
 function executeQwikEventScripts(document: Document, win: Window): void {
@@ -188,7 +223,45 @@ function createTestEvent(
     cancelable,
   });
   Object.assign(event, rest);
+  let cancelBubble = false;
+  const stopPropagation = event.stopPropagation.bind(event);
+  Object.defineProperty(event, 'stopPropagation', {
+    configurable: true,
+    value: () => {
+      cancelBubble = true;
+      stopPropagation();
+    },
+  });
+  Object.defineProperty(event, 'cancelBubble', {
+    configurable: true,
+    get: () => cancelBubble,
+    set: (value) => {
+      cancelBubble = Boolean(value);
+    },
+  });
   return event;
+}
+
+function parseDispatchType(type: string): { scope: string | null; eventName: string } {
+  const separator = type.indexOf(':');
+  return separator === -1
+    ? { scope: null, eventName: type }
+    : { scope: type.slice(0, separator), eventName: type.slice(separator + 1) };
+}
+
+function getDispatchTarget(
+  document: Document,
+  win: Window,
+  target: Element,
+  scope: string | null
+): EventTarget {
+  if (scope?.charAt(0) === 'w') {
+    return win;
+  }
+  if (scope?.charAt(0) === 'd') {
+    return document;
+  }
+  return target;
 }
 
 async function flushQwikLoaderTasks(win: Window): Promise<void> {

@@ -33,12 +33,14 @@ import {
   shouldResolveSsrQrl,
 } from './emit-utils';
 import {
+  collectUseOnCarriers,
   emitQrlReference,
   hasTaskSetupSegment,
   isCreateTaskSegment,
   isCreateVisibleTaskSegment,
   isNestedInImplicitDollarSegment,
   isRangeInside,
+  type UseOnCarrier,
 } from './implicit-dollar';
 
 type HtmlPart = string | { code: string };
@@ -49,11 +51,19 @@ interface SsrEmitterOptions {
   rootElementAttr?: string;
   loopCaptures?: readonly { name: string; source: string }[];
   visibleTasks?: VisibleTaskCarrier[];
+  useOnEvents?: UseOnCarrier[];
 }
 
 interface VisibleTaskCarrier {
   qrlSegment: QrlSegmentOutput;
   eventName: 'q-e:qvisible' | 'q-d:qinit' | 'q-d:qidle';
+}
+
+interface UseOnGroup {
+  handlers: string[];
+  capture: boolean;
+  preventdefault: boolean;
+  stoppropagation: boolean;
 }
 
 export function emitSsrModule(
@@ -91,9 +101,12 @@ function emitSsrComponent(
   const emitter = new SsrEmitter(qrlSegments, sourceCode, {
     domEffectBatchCounts: getDomEffectBatchStats(component.root, qrlSegments).counts,
     visibleTasks: collectVisibleTaskCarriers(component, segments, qrlSegments, sourceCode),
+    useOnEvents: collectUseOnCarriers(component, segments, qrlSegments, sourceCode),
   });
   const slotInvokeContextId = hasSlot(component.root) ? emitter.ensureSlotInvokeContextId() : null;
-  const html = emitter.emitHtmlExpression(component.root!);
+  const html = emitter.emitGlobalUseOnCarrierExpression(
+    emitter.emitHtmlExpression(component.root!)
+  );
   const setupAwaits = hasTaskSetupSegment(component, segments, isCreateTaskSegment);
   const isAsync = setupAwaits;
   const setup = emitComponentSetup(
@@ -236,6 +249,16 @@ export class SsrEmitter {
     return `${QwikSymbol.MaybeThen}(${QwikSymbol.PromiseAll}([${ids.join(', ')}]), ([${ids.join(
       ', '
     )}]) => ${expression})`;
+  }
+
+  emitGlobalUseOnCarrierExpression(expression: string): string {
+    const groups = this.consumeUseOnGroups(false);
+    if (groups.size === 0) {
+      return expression;
+    }
+    return `${expression} + '<script hidden' + ${partsToExpression(
+      this.emitUseOnGroupParts(groups)
+    )} + '></script>'`;
   }
 
   private emitHtmlParts(node: RenderNode): HtmlPart[] {
@@ -411,6 +434,7 @@ export class SsrEmitter {
     const elementId = needsElementTarget ? this.nextTargetId() : null;
     let propsRenderId: string | null = null;
     const parts: HtmlPart[] = [`<${node.tag}`];
+    const useOnGroups = this.consumeUseOnGroups(true);
 
     if (elementId !== null) {
       parts.push(' q:id="', { code: elementId }, '"');
@@ -424,6 +448,7 @@ export class SsrEmitter {
     if (hasProps) {
       propsRenderId = this.emitSsrDomProps(node, elementId!);
       parts.push({ code: `${propsRenderId}.attrs` });
+      parts.push(...this.emitUseOnGroupParts(useOnGroups));
     } else {
       for (const prop of node.props) {
         if (prop.kind !== 'named') {
@@ -435,20 +460,38 @@ export class SsrEmitter {
         }
         if (prop.expressionRange !== undefined) {
           this.usesCtx = true;
+          const useOnGroup = useOnGroups.get(prop.name);
+          if (useOnGroup) {
+            useOnGroups.delete(prop.name);
+          }
           parts.push({
-            code: `ctx.eventAttr(${JSON.stringify(prop.name)}, ${this.emitSourceExpression(
-              prop.expressionRange
-            )})`,
+            code: `ctx.eventAttr(${JSON.stringify(prop.name)}, ${emitHandlersExpression([
+              this.emitSourceExpression(prop.expressionRange),
+              ...(useOnGroup?.handlers ?? []),
+            ])})`,
           });
+          if (useOnGroup) {
+            parts.push(...emitUseOnModifierParts(prop.name, useOnGroup));
+          }
           continue;
         }
         if (prop.qrlSegmentId) {
           const qrlSegment = this.qrlSegments.get(prop.qrlSegmentId);
           if (qrlSegment) {
             this.usesCtx = true;
+            const useOnGroup = useOnGroups.get(prop.name);
+            if (useOnGroup) {
+              useOnGroups.delete(prop.name);
+            }
             parts.push({
-              code: `ctx.eventAttr(${JSON.stringify(prop.name)}, ${emitQrlReference(qrlSegment)})`,
+              code: `ctx.eventAttr(${JSON.stringify(prop.name)}, ${emitHandlersExpression([
+                emitQrlReference(qrlSegment),
+                ...(useOnGroup?.handlers ?? []),
+              ])})`,
             });
+            if (useOnGroup) {
+              parts.push(...emitUseOnModifierParts(prop.name, useOnGroup));
+            }
           }
           continue;
         }
@@ -462,6 +505,7 @@ export class SsrEmitter {
         }
         parts.push(` ${prop.name}="${escapeAttr(value)}"`);
       }
+      parts.push(...this.emitUseOnGroupParts(useOnGroups));
     }
 
     parts.push('>');
@@ -733,6 +777,57 @@ export class SsrEmitter {
     return parts;
   }
 
+  private consumeUseOnGroups(includeElementEvents: boolean): Map<string, UseOnGroup> {
+    const events = this.options.useOnEvents;
+    const grouped = new Map<string, UseOnGroup>();
+    if (!events || events.length === 0) {
+      return grouped;
+    }
+
+    const remaining: UseOnCarrier[] = [];
+    for (const event of events) {
+      if (!includeElementEvents && isElementEvent(event.eventName)) {
+        remaining.push(event);
+        continue;
+      }
+      if (event.qrlSegment === undefined) {
+        remaining.push(event);
+        continue;
+      }
+      this.emitCaptureRoots(event.qrlSegment);
+      const group = grouped.get(event.eventName) ?? {
+        handlers: [],
+        capture: false,
+        preventdefault: false,
+        stoppropagation: false,
+      };
+      group.handlers.push(emitQrlReference(event.qrlSegment));
+      group.capture ||= event.capture;
+      group.preventdefault ||= event.preventdefault;
+      group.stoppropagation ||= event.stoppropagation;
+      grouped.set(event.eventName, group);
+    }
+
+    events.length = 0;
+    events.push(...remaining);
+    return grouped;
+  }
+
+  private emitUseOnGroupParts(groups: Map<string, UseOnGroup>): HtmlPart[] {
+    if (groups.size === 0) {
+      return [];
+    }
+    this.usesCtx = true;
+    const parts: HtmlPart[] = [];
+    for (const [eventName, group] of groups) {
+      parts.push({
+        code: `ctx.eventAttr(${JSON.stringify(eventName)}, ${emitHandlersExpression(group.handlers)})`,
+      });
+      parts.push(...emitUseOnModifierParts(eventName, group));
+    }
+    return parts;
+  }
+
   private emitRoot(name: string) {
     if (this.roots.has(name)) {
       return;
@@ -774,6 +869,29 @@ function hasDynamicSourceProp(node: ElementNode) {
 
 function hasDomProps(node: ElementNode) {
   return node.props.some((prop) => prop.kind === 'spread');
+}
+
+function emitHandlersExpression(handlers: string[]): string {
+  return handlers.length === 1 ? handlers[0] : `[${handlers.join(', ')}]`;
+}
+
+function emitUseOnModifierParts(eventName: string, group: UseOnGroup): HtmlPart[] {
+  const name = eventName.slice(eventName.indexOf(':') + 1);
+  const parts: HtmlPart[] = [];
+  if (group.capture) {
+    parts.push(` capture:${name}`);
+  }
+  if (group.preventdefault) {
+    parts.push(` preventdefault:${name}`);
+  }
+  if (group.stoppropagation) {
+    parts.push(` stoppropagation:${name}`);
+  }
+  return parts;
+}
+
+function isElementEvent(eventName: string): boolean {
+  return eventName.charCodeAt(2) === 101 /* e */;
 }
 
 function hasElementTextTarget(children: readonly RenderNode[]) {

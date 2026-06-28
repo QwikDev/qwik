@@ -1,6 +1,7 @@
 import type {
   ComponentRecord,
   ImportRecord,
+  ImportSpecifierRecord,
   QrlSegmentOutput,
   SegmentRecord,
   SourceRange,
@@ -14,28 +15,48 @@ export interface Replacement {
   value: string;
 }
 
+export interface UseOnCarrier {
+  segment: SegmentRecord;
+  qrlSegment: QrlSegmentOutput | undefined;
+  eventName: string;
+  capture: boolean;
+  preventdefault: boolean;
+  stoppropagation: boolean;
+}
+
 export function transformDollarImports(
   imports: readonly ImportRecord[],
   target: DollarTransformTarget
 ): ImportRecord[] {
   return imports.flatMap((record) => {
-    const specifiers = record.specifiers.flatMap((specifier) => {
-      if (specifier.kind !== 'named' || !isImplicitDollarName(specifier.importedName)) {
-        return [specifier];
+    const specifiers: ImportSpecifierRecord[] = record.specifiers.flatMap(
+      (specifier): ImportSpecifierRecord | ImportSpecifierRecord[] => {
+        if (specifier.kind !== 'named') {
+          return [specifier];
+        }
+        if (specifier.importedName === '$') {
+          return [];
+        }
+        if (isCreateOnName(specifier.importedName)) {
+          return [];
+        }
+        if (!isImplicitDollarName(specifier.importedName)) {
+          return [specifier];
+        }
+        if (
+          target === 'ssr' &&
+          (specifier.importedName === 'createTask$' ||
+            specifier.importedName === 'createVisibleTask$')
+        ) {
+          return [];
+        }
+        return {
+          ...specifier,
+          importedName: getTargetName(specifier.importedName, target),
+          localName: getTargetLocalName(specifier.localName, specifier.importedName, target),
+        };
       }
-      if (
-        target === 'ssr' &&
-        (specifier.importedName === 'createTask$' ||
-          specifier.importedName === 'createVisibleTask$')
-      ) {
-        return [];
-      }
-      return {
-        ...specifier,
-        importedName: getTargetName(specifier.importedName, target),
-        localName: getTargetLocalName(specifier.localName, specifier.importedName, target),
-      };
-    });
+    );
     if (record.specifiers.length > 0 && specifiers.length === 0) {
       return [];
     }
@@ -52,11 +73,29 @@ export function transformImplicitDollarCode(
 ) {
   const replacements: Replacement[] = [];
   for (const segment of segments) {
-    if (!isImplicitDollarSegment(segment) || !isRangeInside(segment.range, range)) {
+    if (
+      !(isImplicitDollarSegment(segment) || isExplicitDollarSegment(segment)) ||
+      !isRangeInside(segment.range, range)
+    ) {
       continue;
     }
 
+    if (isExplicitDollarSegment(segment)) {
+      const useOnCallReplacement = createUseOnCallStatementReplacement(sourceCode, segment);
+      if (useOnCallReplacement !== null) {
+        replacements.push(useOnCallReplacement);
+        continue;
+      }
+    }
+
     if (target === 'csr') {
+      if (isExplicitDollarSegment(segment)) {
+        const replacement = createCsrExplicitDollarReplacement(sourceCode, segment);
+        if (replacement) {
+          replacements.push(replacement);
+        }
+        continue;
+      }
       const fnReplacement = createTaskGeneratorReplacement(sourceCode, segment);
       if (fnReplacement) {
         replacements.push(fnReplacement);
@@ -80,6 +119,10 @@ export function transformImplicitDollarCode(
 
 export function isImplicitDollarSegment(segment: SegmentRecord) {
   return segment.kind === 'function' && isImplicitDollarName(segment.ctxName);
+}
+
+export function isExplicitDollarSegment(segment: SegmentRecord) {
+  return segment.kind === 'function' && segment.ctxName === '$';
 }
 
 export function isCreateTaskSegment(segment: SegmentRecord) {
@@ -115,6 +158,59 @@ export function hasTaskSetupSegment(
   );
 }
 
+export function hasSetupQrlSegment(component: ComponentRecord, segments: readonly SegmentRecord[]) {
+  return segments.some(
+    (segment) =>
+      (isImplicitDollarSegment(segment) || isExplicitDollarSegment(segment)) &&
+      component.setupRanges.some((range) => isRangeInside(segment.range, range)) &&
+      !isNestedInImplicitDollarSegment(segment, segments)
+  );
+}
+
+export function collectUseOnCarriers(
+  component: ComponentRecord,
+  segments: readonly SegmentRecord[],
+  qrlSegments: Map<string, QrlSegmentOutput>,
+  sourceCode: string
+): UseOnCarrier[] {
+  const carriers: UseOnCarrier[] = [];
+  for (const segment of segments) {
+    if (
+      !isExplicitDollarSegment(segment) ||
+      !component.setupRanges.some((range) => isRangeInside(segment.range, range)) ||
+      isNestedInImplicitDollarSegment(segment, segments)
+    ) {
+      continue;
+    }
+
+    const call = segment.range === null ? null : findCreateOnCall(sourceCode, segment.range);
+    if (call === null) {
+      continue;
+    }
+
+    const events = parseCreateOnEvents(sourceCode.slice(call.args[0][0], call.args[0][1]));
+    if (events.length === 0) {
+      continue;
+    }
+
+    const options = parseCreateOnOptions(
+      call.args[2] ? sourceCode.slice(call.args[2][0], call.args[2][1]) : ''
+    );
+    const scope = getCreateOnScope(call.name, options.passive);
+    for (const event of events) {
+      carriers.push({
+        segment,
+        qrlSegment: qrlSegments.get(segment.id),
+        eventName: scope + fromCamelToKebabCase(event),
+        capture: options.capture,
+        preventdefault: options.preventdefault,
+        stoppropagation: options.stoppropagation,
+      });
+    }
+  }
+  return carriers;
+}
+
 export function isNestedInImplicitDollarSegment(
   segment: SegmentRecord,
   segments: readonly SegmentRecord[]
@@ -129,6 +225,10 @@ export function isNestedInImplicitDollarSegment(
 
 export function isImplicitDollarName(name: string) {
   return name !== '$' && name !== QwikSymbol.Component && name.endsWith('$');
+}
+
+function isCreateOnName(name: string) {
+  return name === 'createOn' || name === 'createOnDocument' || name === 'createOnWindow';
 }
 
 export function emitQrlReference(qrlSegment: QrlSegmentOutput) {
@@ -154,6 +254,12 @@ function createSsrReplacement(
   if (!callRange || !firstArgRange || !qrlSegment) {
     return null;
   }
+  if (isExplicitDollarSegment(segment)) {
+    return {
+      range: callRange,
+      value: emitQrlReference(qrlSegment),
+    };
+  }
 
   const prefix = sourceCode.slice(callRange[0], firstArgRange[0]);
   const suffix = sourceCode.slice(firstArgRange[1], callRange[1]);
@@ -173,6 +279,39 @@ function createSsrReplacement(
     range: callRange,
     value: `${callee}${emitQrlReference(qrlSegment)}${suffix}`,
   };
+}
+
+function createCsrExplicitDollarReplacement(
+  sourceCode: string,
+  segment: SegmentRecord
+): Replacement | null {
+  const callRange = segment.range;
+  const firstArgRange = segment.argumentRanges[0];
+  if (!callRange || !firstArgRange) {
+    return null;
+  }
+  return {
+    range: callRange,
+    value: sourceCode.slice(firstArgRange[0], firstArgRange[1]),
+  };
+}
+
+function createUseOnCallStatementReplacement(
+  sourceCode: string,
+  segment: SegmentRecord
+): Replacement | null {
+  if (segment.range === null) {
+    return null;
+  }
+  const call = findCreateOnCall(sourceCode, segment.range);
+  if (
+    call === null ||
+    parseCreateOnEvents(sourceCode.slice(call.args[0][0], call.args[0][1])).length === 0
+  ) {
+    return null;
+  }
+  const statementRange = getStandaloneCallStatementRange(sourceCode, call.range);
+  return statementRange === null ? null : { range: statementRange, value: '' };
 }
 
 function createSsrVisibleTaskReplacement(sourceCode: string, callRange: SourceRange): Replacement {
@@ -257,6 +396,202 @@ function replaceSegmentCalleeName(value: string, offset: number, segment: Segmen
     segment,
     'ssr'
   )}${value.slice(nameRange[1] - offset)}`;
+}
+
+function findCreateOnCall(
+  sourceCode: string,
+  segmentRange: SourceRange
+): { name: string; args: SourceRange[]; range: SourceRange; start: number } | null {
+  const names = ['createOnDocument', 'createOnWindow', 'createOn'];
+  let best: { name: string; args: SourceRange[]; range: SourceRange; start: number } | null = null;
+  for (const name of names) {
+    let index = sourceCode.lastIndexOf(name, segmentRange[0]);
+    while (index !== -1) {
+      const call = parseNamedCall(sourceCode, name, index);
+      if (
+        call &&
+        call.args.length >= 2 &&
+        isRangeInside(segmentRange, call.args[1]) &&
+        (best === null || call.start > best.start)
+      ) {
+        best = call;
+        break;
+      }
+      index = sourceCode.lastIndexOf(name, index - 1);
+    }
+  }
+  return best;
+}
+
+function parseNamedCall(
+  sourceCode: string,
+  name: string,
+  start: number
+): { name: string; args: SourceRange[]; range: SourceRange; start: number } | null {
+  if (
+    isIdent(sourceCode.charCodeAt(start - 1)) ||
+    isIdent(sourceCode.charCodeAt(start + name.length))
+  ) {
+    return null;
+  }
+  let open = start + name.length;
+  while (/\s/.test(sourceCode[open])) {
+    open++;
+  }
+  if (sourceCode[open] !== '(') {
+    return null;
+  }
+  const close = findMatchingParen(sourceCode, open);
+  return close === -1
+    ? null
+    : {
+        name,
+        args: splitTopLevelArgs(sourceCode, open + 1, close),
+        range: [start, close + 1],
+        start,
+      };
+}
+
+function parseCreateOnEvents(source: string): string[] {
+  const trimmed = source.trim();
+  if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+    return splitTopLevelArgs(trimmed, 1, trimmed.length - 1)
+      .map(([start, end]) => parseStringLiteral(trimmed.slice(start, end)))
+      .filter((event): event is string => event !== null);
+  }
+  const event = parseStringLiteral(trimmed);
+  return event === null ? [] : [event];
+}
+
+function parseCreateOnOptions(source: string): {
+  passive: boolean;
+  capture: boolean;
+  preventdefault: boolean;
+  stoppropagation: boolean;
+} {
+  return {
+    passive: /\bpassive\s*:\s*true\b/.test(source),
+    capture: /\bcapture\s*:\s*true\b/.test(source),
+    preventdefault: /\bpreventdefault\s*:\s*true\b/.test(source),
+    stoppropagation: /\bstoppropagation\s*:\s*true\b/.test(source),
+  };
+}
+
+function getCreateOnScope(name: string, passive: boolean): string {
+  if (name === 'createOnDocument') {
+    return passive ? 'q-dp:' : 'q-d:';
+  }
+  if (name === 'createOnWindow') {
+    return passive ? 'q-wp:' : 'q-w:';
+  }
+  return passive ? 'q-ep:' : 'q-e:';
+}
+
+function fromCamelToKebabCase(value: string): string {
+  return value.replace(/([A-Z-])/g, (part) => '-' + part.toLowerCase());
+}
+
+function parseStringLiteral(source: string): string | null {
+  const trimmed = source.trim();
+  const quote = trimmed[0];
+  if ((quote !== '"' && quote !== "'") || trimmed[trimmed.length - 1] !== quote) {
+    return null;
+  }
+  if (quote === '"') {
+    try {
+      return JSON.parse(trimmed) as string;
+    } catch {
+      return null;
+    }
+  }
+  return trimmed.slice(1, -1).replace(/\\'/g, "'").replace(/\\\\/g, '\\');
+}
+
+function splitTopLevelArgs(source: string, start: number, end: number): SourceRange[] {
+  const args: SourceRange[] = [];
+  let argStart = start;
+  let depth = 0;
+  let quote = '';
+  for (let i = start; i < end; i++) {
+    const char = source[i];
+    if (quote) {
+      if (char === '\\') {
+        i++;
+      } else if (char === quote) {
+        quote = '';
+      }
+      continue;
+    }
+    if (char === '"' || char === "'" || char === '`') {
+      quote = char;
+      continue;
+    }
+    if (char === '(' || char === '[' || char === '{') {
+      depth++;
+      continue;
+    }
+    if (char === ')' || char === ']' || char === '}') {
+      depth--;
+      continue;
+    }
+    if (char === ',' && depth === 0) {
+      pushArg(args, source, argStart, i);
+      argStart = i + 1;
+    }
+  }
+  pushArg(args, source, argStart, end);
+  return args;
+}
+
+function pushArg(args: SourceRange[], source: string, start: number, end: number): void {
+  while (start < end && /\s/.test(source[start])) {
+    start++;
+  }
+  while (end > start && /\s/.test(source[end - 1])) {
+    end--;
+  }
+  if (start < end) {
+    args.push([start, end]);
+  }
+}
+
+function findMatchingParen(source: string, open: number): number {
+  let depth = 0;
+  let quote = '';
+  for (let i = open; i < source.length; i++) {
+    const char = source[i];
+    if (quote) {
+      if (char === '\\') {
+        i++;
+      } else if (char === quote) {
+        quote = '';
+      }
+      continue;
+    }
+    if (char === '"' || char === "'" || char === '`') {
+      quote = char;
+      continue;
+    }
+    if (char === '(') {
+      depth++;
+    } else if (char === ')') {
+      depth--;
+      if (depth === 0) {
+        return i;
+      }
+    }
+  }
+  return -1;
+}
+
+function isIdent(char: number): boolean {
+  return (
+    (char >= 48 && char <= 57) ||
+    (char >= 65 && char <= 90) ||
+    (char >= 97 && char <= 122) ||
+    char === 36 ||
+    char === 95
+  );
 }
 
 function getSegmentTargetName(segment: SegmentRecord, target: DollarTransformTarget) {

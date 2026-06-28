@@ -353,7 +353,7 @@ describe('ForBlock reorder', () => {
         (item) => item,
         (_ctx, item) => [createElementNode(String(item))]
       )
-    ).toThrow('Duplicate vdomless ForBlock key "1".');
+    ).toThrow('Duplicate ForBlock key "1".');
   });
 
   it('detaches empty element parent while creating initial rows', () => {

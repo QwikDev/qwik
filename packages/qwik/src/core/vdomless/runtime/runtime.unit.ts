@@ -249,7 +249,7 @@ describe('runtime scheduler and owner lifecycle', () => {
   it('throws when creating subscribers without an active owner', () => {
     const scheduler = new Scheduler(noopSchedule);
     expect(() => createTextNodeEffect(createText(), createSignal(1), { scheduler })).toThrow(
-      'Missing active owner context for vdomless subscriber'
+      'Missing active owner context for subscriber'
     );
   });
 

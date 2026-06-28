@@ -162,7 +162,7 @@ export class ForBlock<T = unknown> {
       const key = keyFn(items[i], i);
       if (seenKeys !== null) {
         if (seenKeys.has(key)) {
-          throw new Error(`Duplicate vdomless ForBlock key "${String(key)}".`);
+          throw new Error(`Duplicate ForBlock key "${String(key)}".`);
         }
         seenKeys.add(key);
       }
@@ -867,7 +867,7 @@ export class SSRForBlock<T = unknown> {
         const key = keyFn(item, i);
         if (seenKeys !== null) {
           if (seenKeys.has(key)) {
-            throw new Error(`Duplicate vdomless ForBlock key "${String(key)}".`);
+            throw new Error(`Duplicate ForBlock key "${String(key)}".`);
           }
           seenKeys.add(key);
         }

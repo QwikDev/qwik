@@ -59,7 +59,7 @@ export function registerSubscriberToOwner<T extends Subscriber>(
   const resolvedOwner = arguments.length === 1 ? getOrCreateActiveOwnerOrThrow() : (owner ?? null);
 
   if (resolvedOwner === null) {
-    throw new Error('Missing owner for vdomless subscriber');
+    throw new Error('Missing owner for subscriber');
   }
 
   if (resolvedOwner.flags & OwnerFlags.Disposed) {
@@ -116,7 +116,7 @@ function getOrCreateActiveOwnerOrNull(): Owner | null {
 function getOrCreateActiveOwnerOrThrow(): Owner {
   const owner = getOrCreateActiveOwnerOrNull();
   if (owner === null) {
-    throw new Error('Missing active owner context for vdomless subscriber');
+    throw new Error('Missing active owner context for subscriber');
   }
   return owner;
 }

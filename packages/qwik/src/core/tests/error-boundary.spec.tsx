@@ -1823,7 +1823,7 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
     const raw = Object.assign(new Error('client secret'), { token: 'abc' });
     const out = redactBoundaryErrorForDisplay(raw, /* dev */ false) as Error & { digest?: string };
     expect(out.message).toBe('An error occurred');
-    expect((out as Record<string, unknown>).token).toBeUndefined();
+    expect((out as unknown as Record<string, unknown>).token).toBeUndefined();
     expect(typeof out.digest).toBe('string');
   });
 
@@ -1837,6 +1837,68 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
       digest: string;
     };
     expect(redactBoundaryErrorForDisplay(alreadyRedacted, false)).toBe(alreadyRedacted);
+  });
+
+  it('transformError: overrides the projection in both dev and prod', () => {
+    const original = Object.assign(new Error('secret-db-detail'), { query: 'SELECT 1' });
+    const transformError = (e: unknown) =>
+      new Error(`safe: ${e instanceof Error ? e.name : 'unknown'}`);
+    // Applies even in dev — when the app sets a transform, it owns the policy.
+    const inDev = toSerializableBoundaryError(original, /* dev */ true, transformError) as Error;
+    expect(inDev.message).toBe('safe: Error');
+    expect((inDev as unknown as Record<string, unknown>).query).toBeUndefined();
+    // And in prod, replacing the default generic scrub.
+    const inProd = toSerializableBoundaryError(original, /* dev */ false, transformError) as Error;
+    expect(inProd.message).toBe('safe: Error');
+  });
+
+  it('transformError: fail-closed — a throwing transform redacts to generic + digest, never the raw', () => {
+    const out = toSerializableBoundaryError(new Error('secret'), /* dev */ true, () => {
+      throw new Error('transform bug');
+    }) as Error & { digest?: string };
+    expect(out.message).toBe('An error occurred');
+    expect(out.message).not.toContain('secret');
+    expect(typeof out.digest).toBe('string');
+  });
+
+  it('transformError: fail-closed — a non-serializable return redacts to generic + digest', () => {
+    const out = toSerializableBoundaryError(
+      new Error('secret'),
+      /* dev */ true,
+      () => () => {}
+    ) as Error & {
+      digest?: string;
+    };
+    expect(out.message).toBe('An error occurred');
+    expect(typeof out.digest).toBe('string');
+  });
+
+  it('markBoundaryErrored: applies transformError to store.error but fires onError$ with the original', () => {
+    const received: unknown[] = [];
+    const store: ErrorBoundaryStore = { error: undefined, $onError$: (e) => received.push(e) };
+    const original = Object.assign(new Error('boom'), { secret: 'x' });
+    markBoundaryErrored(store, original, 'render', () => new Error('redacted'));
+    expect((store.error as Error).message).toBe('redacted');
+    expect(received).toEqual([original]);
+  });
+
+  it('transformError (render option): redacts the SSR-serialized boundary error end-to-end', async () => {
+    const SecretThrower = component$((): JSXOutput => {
+      throw new Error('SECRET-db-detail');
+    });
+    const { container } = await ssrRenderToDom(
+      <ErrorBoundary
+        fallback$={$((e: any) => (
+          <p id="fb">shown: {e instanceof Error ? e.message : String(e)}</p>
+        ))}
+      >
+        <SecretThrower />
+      </ErrorBoundary>,
+      { debug, transformError: () => new Error('redacted-by-app') }
+    );
+    const text = container.element.querySelector('#fb')?.textContent;
+    expect(text).toContain('redacted-by-app');
+    expect(text).not.toContain('SECRET');
   });
 });
 

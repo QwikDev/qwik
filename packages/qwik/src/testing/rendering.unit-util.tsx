@@ -130,6 +130,8 @@ export async function ssrRenderToDom(
     resume?: boolean;
     /** Inject nodes into the document before test runs (for testing purposes) */
     onBeforeResume?: (document: Document) => void;
+    /** Override the SSR `<ErrorBoundary>` error redaction (`RenderOptions.transformError`). */
+    transformError?: (error: unknown) => unknown;
   } = {}
 ) {
   setPlatform(getTestPlatform());
@@ -148,6 +150,7 @@ export async function ssrRenderToDom(
     const renderOptions = {
       containerTagName: opts.containerTagName,
       qwikLoader: opts.qwikLoader ? 'inline' : 'never',
+      transformError: opts.transformError,
     } as const;
     if (opts.stream || opts.streaming) {
       const stream: StreamWriter = {

@@ -577,6 +577,21 @@ _(Optional)_ Root-count threshold for eager yielded state prewarm during client 
 Defaults to `false`, keeping state fully lazy. Set to a number to enable eager prewarm when serialized state has at least that many roots.
 
 </td></tr>
+<tr><td>
+
+transformError?
+
+</td><td>
+
+</td><td>
+
+(error: unknown) =&gt; unknown
+
+</td><td>
+
+_(Optional)_ Server-only. Maps a thrown error to the value an `<ErrorBoundary>` serializes into the HTML (and hands to its `fallback$` on resume), running at SSR catch time before serialization. `onError$` and server logging still receive the original error. Return a serializable value; a throw or a non-serializable return falls back to a redacted generic error. When omitted, the default is secure: full fidelity in dev, a generic message + `digest` in production.
+
+</td></tr>
 </tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)

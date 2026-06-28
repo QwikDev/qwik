@@ -54,6 +54,13 @@ const errorBoundaryDigest = (err: unknown): string => {
   return (hash >>> 0).toString(36);
 };
 
+/** Redact to a generic message + a stable `digest`, dropping the raw message and any attached props. */
+const redactToGeneric = (err: unknown): Error & { digest: string } => {
+  const redacted = new Error(GENERIC_BOUNDARY_ERROR_MESSAGE) as Error & { digest: string };
+  redacted.digest = errorBoundaryDigest(err);
+  return redacted;
+};
+
 /**
  * Project a caught error to the value serialized into the HTML and handed to `fallback$`.
  *
@@ -63,12 +70,27 @@ const errorBoundaryDigest = (err: unknown): string => {
  * `markBoundaryErrored`). In dev it keeps full fidelity, projecting a non-serializable throw to a
  * serializable `Error`. `dev` is an explicit arg so tests can drive both paths — the build-time
  * `isDev` constant can't be toggled at runtime.
+ *
+ * `transformError` (the server-only `RenderOptions.transformError`), when set, OWNS the projection
+ * in both dev and prod. It is fail-closed: a throw or a non-serializable return redacts to the
+ * generic shape rather than leaking the raw error.
  */
-export const toSerializableBoundaryError = (err: unknown, dev: boolean = isDev): unknown => {
+export const toSerializableBoundaryError = (
+  err: unknown,
+  dev: boolean = isDev,
+  transformError?: (error: unknown) => unknown
+): unknown => {
+  if (transformError) {
+    let projected: unknown;
+    try {
+      projected = transformError(err);
+    } catch {
+      return redactToGeneric(err);
+    }
+    return projected instanceof Error || canSerialize(projected) ? projected : redactToGeneric(err);
+  }
   if (!dev) {
-    const redacted = new Error(GENERIC_BOUNDARY_ERROR_MESSAGE) as Error & { digest: string };
-    redacted.digest = errorBoundaryDigest(err);
-    return redacted;
+    return redactToGeneric(err);
   }
   if (err instanceof Error || canSerialize(err)) {
     return err;
@@ -105,10 +127,11 @@ export const fireOnError = (
 export const markBoundaryErrored = (
   store: ErrorBoundaryStore,
   error: unknown,
-  phase: ErrorBoundaryInfo['phase'] = 'render'
+  phase: ErrorBoundaryInfo['phase'] = 'render',
+  transformError?: (error: unknown) => unknown
 ): void => {
   const isFirstCatch = store.error === undefined;
-  store.error = toSerializableBoundaryError(error);
+  store.error = toSerializableBoundaryError(error, isDev, transformError);
   if (isFirstCatch) {
     fireOnError(store.$onError$, error, { phase, boundaryId: store.boundaryId ?? '' });
   }

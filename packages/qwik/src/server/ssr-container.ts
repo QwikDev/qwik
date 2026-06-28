@@ -259,6 +259,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   public symbolToChunkResolver: SymbolToChunkResolver;
   public renderOptions: RenderOptions;
   public readonly outOfOrderStreaming: boolean;
+  public readonly $transformError$: ((error: unknown) => unknown) | undefined;
   public serializationCtx: SerializationContext;
   // Sometimes there is no app state, but framework metadata still points to a vnode id.
   // For example, an OOOS segment can point outside the segment to a root vnode through
@@ -345,6 +346,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.$buildBase$ = opts.buildBase;
     this.resolvedManifest = opts.resolvedManifest;
     this.renderOptions = opts.renderOptions;
+    this.$transformError$ = opts.renderOptions.transformError;
     const outOfOrderStreaming =
       (this.renderOptions as RenderToStreamOptions).streaming?.outOfOrder === true;
     if (!__EXPERIMENTAL__.suspense) {

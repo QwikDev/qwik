@@ -179,7 +179,7 @@ function renderErrorBoundaryFallback(
     ) {
       throw err;
     }
-    markBoundaryErrored(errorStore, err, phase);
+    markBoundaryErrored(errorStore, err, phase, ssr.$transformError$);
     if (__EXPERIMENTAL__.errorBoundary) {
       markErrorBoundaryContentInert(ssr, boundaryNode);
     }

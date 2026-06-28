@@ -111,6 +111,8 @@ export interface SSRContainer extends Container {
   readonly symbolToChunkResolver: SymbolToChunkResolver;
   readonly resolvedManifest: ResolvedManifest;
   readonly outOfOrderStreaming: boolean;
+  /** Server-only `RenderOptions.transformError`: redacts a boundary error before serialization. */
+  readonly $transformError$: ((error: unknown) => unknown) | undefined;
   additionalHeadNodes: Array<JSXNodeInternal>;
   additionalBodyNodes: Array<JSXNodeInternal>;
   $noScriptHere$: number;

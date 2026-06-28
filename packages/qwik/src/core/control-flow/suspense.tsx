@@ -396,7 +396,7 @@ export const SSRErrorFallback = __EXPERIMENTAL__.errorBoundary
           if (!fallback) {
             return;
           }
-          markBoundaryErrored(store, error);
+          markBoundaryErrored(store, error, 'render', ssr.$transformError$);
           // Detach so a throw from the fallback itself propagates instead of re-rendering it.
           store.$fallback$ = undefined;
           // Render the redacted `store.error`, not raw `error`, so the streamed fallback can't leak it.

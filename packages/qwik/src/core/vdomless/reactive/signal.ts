@@ -1,8 +1,5 @@
-import { resolveLazySubscribers } from './lazy-serialized';
 import type { Source, SourceSubs } from './source';
-import { SubscriberKind, type PhaseSubscriber, type Subscriber } from '../runtime/subscriber';
-import { notifyPhaseSubscriber } from '../runtime/scheduler';
-import { markComputedDirty } from './computed';
+import { notifySourceSubscribers } from './notify';
 import { track } from './tracking';
 
 export class Signal<T> implements Source<T> {
@@ -26,7 +23,7 @@ export class Signal<T> implements Source<T> {
 
     this.v = next;
     this.version++;
-    this.notifySubscribers();
+    notifySourceSubscribers(this);
   }
 
   get untrackedValue(): T {
@@ -38,28 +35,7 @@ export class Signal<T> implements Source<T> {
   }
 
   trigger(): void {
-    this.notifySubscribers();
-  }
-
-  private notifySubscribers(): void {
-    if (resolveLazySubscribers(this, () => this.notifySubscribers())) {
-      return;
-    }
-
-    const subs = this.subs;
-    if (subs === null) {
-      return;
-    }
-
-    const snapshot = subs.slice() as Subscriber[];
-    for (let i = 0; i < snapshot.length; i++) {
-      const subscriber = snapshot[i];
-      if (subscriber.kind === SubscriberKind.Computed) {
-        markComputedDirty(subscriber);
-      } else {
-        notifyPhaseSubscriber(subscriber as PhaseSubscriber);
-      }
-    }
+    notifySourceSubscribers(this);
   }
 }
 

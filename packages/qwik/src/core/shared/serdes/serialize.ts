@@ -12,6 +12,12 @@ import {
 import { ComputedFlags } from '../../vdomless/reactive/flags';
 import { ComputedQrl } from '../../vdomless/reactive/computed-qrl';
 import { Signal } from '../../vdomless/reactive/signal';
+import {
+  getStoreSources,
+  isStore,
+  StorePropSource,
+  unwrapStore,
+} from '../../vdomless/reactive/store';
 import { isLazySerialized } from '../../vdomless/reactive/lazy-serialized';
 import type { Dependency, SourceSubs } from '../../vdomless/reactive/source';
 import { isContextScope } from '../../vdomless/runtime/context-scope';
@@ -477,6 +483,10 @@ export class Serializer {
       this.output(TypeIds.Signal, serializeSignal(value));
     } else if (value instanceof ComputedQrl) {
       this.output(TypeIds.ComputedSignal, serializeComputed(value));
+    } else if (isStore(value)) {
+      this.output(TypeIds.Store, this.serializeStore(value));
+    } else if (value instanceof StorePropSource) {
+      this.output(TypeIds.StoreProp, this.serializeStoreProp(value));
     } else if (
       value instanceof SsrDomSubscription ||
       value instanceof SsrBranchSubscription ||
@@ -594,6 +604,17 @@ export class Serializer {
     } else {
       throw qError(QError.serializeErrorUnknownType, [typeof value]);
     }
+  }
+
+  private serializeStore(store: object): unknown[] {
+    const raw = unwrapStore(store);
+    const records: unknown[] = [];
+    collectStoreSourceRecords(raw, records, []);
+    return records.length > 0 ? [raw, records] : [raw];
+  }
+
+  private serializeStoreProp(source: StorePropSource): unknown[] {
+    return [this.$serializationContext$.$addRoot$(source.target), source.prop as string | number];
   }
 
   private shouldSerializeAsBigArray(value: unknown[]): boolean {
@@ -749,6 +770,43 @@ function serializeSignal(signal: Signal<unknown>): unknown[] {
     signal.v === undefined ? explicitUndefined : signal.v,
     ...serializeSubscribers(signal.subs),
   ];
+}
+
+function collectStoreSourceRecords(
+  raw: object,
+  records: unknown[],
+  path: Array<string | number>,
+  seen = new WeakSet<object>()
+) {
+  if (seen.has(raw)) {
+    return;
+  }
+  seen.add(raw);
+
+  // eslint-disable-next-line qwik-local/loop-style
+  for (const source of getStoreSources(raw)) {
+    if (source.subs !== null) {
+      records.push([
+        path.slice(),
+        source.prop as string | number,
+        ...serializeSubscribers(source.subs),
+      ]);
+    }
+  }
+
+  const proto = Object.getPrototypeOf(raw);
+  if (!Array.isArray(raw) && proto !== Object.prototype && proto !== null) {
+    return;
+  }
+  const entries = Array.isArray(raw) ? raw.entries() : Object.entries(raw);
+  // eslint-disable-next-line qwik-local/loop-style
+  for (const [key, value] of entries) {
+    if (value !== null && typeof value === 'object') {
+      path.push(key);
+      collectStoreSourceRecords(unwrapStore(value) as object, records, path, seen);
+      path.pop();
+    }
+  }
 }
 
 function serializeComputed(computed: ComputedQrl<unknown>): unknown[] {

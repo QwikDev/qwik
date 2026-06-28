@@ -19,6 +19,12 @@ import { EffectTargetKind } from '../../vdomless/dom/effect/ssr-effect';
 import { ComputedFlags } from '../../vdomless/reactive/flags';
 import { createLazySourceSubs, LazySerialized } from '../../vdomless/reactive/lazy-serialized';
 import { Signal as VdomlessSignal } from '../../vdomless/reactive/signal';
+import {
+  bindStoreSource,
+  getStoreSource,
+  StorePropSource,
+  unwrapStore,
+} from '../../vdomless/reactive/store';
 import { readSourceValue, type Dependency, type SourceSub } from '../../vdomless/reactive/source';
 import { addDependency } from '../../vdomless/reactive/tracking';
 import {
@@ -54,7 +60,7 @@ import { withCaptures } from '../qrl/qrl-captures';
 import type { QRLInternal } from '../qrl/qrl-class';
 import { isPromise, maybeThen } from '../utils/promises';
 import type { ValueOrPromise } from '../utils/types';
-import { allocate, resolvers } from './allocate';
+import { allocate, pendingStoreTargets, resolvers } from './allocate';
 import { TypeIds } from './constants';
 import { needsInflation } from './deser-proxy';
 
@@ -95,6 +101,8 @@ export const inflate = (
     typeId !== TypeIds.Array &&
     typeId !== TypeIds.BigArray &&
     typeId !== TypeIds.Signal &&
+    typeId !== TypeIds.Store &&
+    typeId !== TypeIds.StoreProp &&
     typeId !== TypeIds.ComputedSignal &&
     Array.isArray(data)
   ) {
@@ -171,6 +179,29 @@ const inflateResolved = (
               }
             })
           )
+        )
+      );
+    }
+    case TypeIds.Store: {
+      const raw = unwrapStore(target as object) as object;
+      const pending = pendingStoreTargets.get(raw);
+      const d = data as unknown[];
+      const inflatedRaw = pending ? inflate(container, raw, pending.t, pending.v) : undefined;
+      pendingStoreTargets.delete(raw);
+      return maybeThen(inflatedRaw, () => {
+        if (d.length > 2) {
+          return restoreStoreSources(container, raw, d[2] as TypeIds, d[3]);
+        }
+      });
+    }
+    case TypeIds.StoreProp: {
+      const source = target as StorePropSource;
+      const d = data as unknown[];
+      return maybeThen(deserializeData(container, d[0] as TypeIds, d[1]), (rootId) =>
+        maybeThen(container.getRoot(rootId as number | string), (target) =>
+          maybeThen(deserializeData(container, d[2] as TypeIds, d[3]), (prop) => {
+            bindStoreSource(source, target as object, prop as PropertyKey);
+          })
         )
       );
     }
@@ -424,6 +455,52 @@ function createLazySourceSubscribers(
       return subscriber;
     });
   });
+}
+
+function restoreStoreSources(
+  container: ContainerContext,
+  raw: object,
+  typeId: TypeIds,
+  data: unknown
+): ValueOrPromise<void> {
+  if (typeId !== TypeIds.Array && typeId !== TypeIds.BigArray) {
+    return;
+  }
+  const records = data as unknown[];
+  let i = 0;
+  const restoreNext = (): ValueOrPromise<void> => {
+    while (i < records.length) {
+      const recordType = records[i] as TypeIds;
+      const record = records[i + 1] as unknown[];
+      i += 2;
+      if (recordType !== TypeIds.Array || !Array.isArray(record) || record.length < 2) {
+        continue;
+      }
+      const start = record.length >= 4 && record[0] === TypeIds.Array ? 4 : 2;
+      const path = start === 4 ? deserializeData(container, record[0] as TypeIds, record[1]) : [];
+      return maybeThen(path, (path) =>
+        maybeThen(
+          deserializeData(container, record[start - 2] as TypeIds, record[start - 1]),
+          (prop) => {
+            let target = raw as Record<PropertyKey, unknown>;
+            for (let j = 0; j < (path as unknown[]).length; j++) {
+              target = target[(path as unknown[])[j] as PropertyKey] as Record<
+                PropertyKey,
+                unknown
+              >;
+            }
+            const source = getStoreSource(
+              unwrapStore(target as object) as object,
+              prop as PropertyKey
+            );
+            source.subs = createLazySourceSubscribers(source, container, record, start);
+            return restoreNext();
+          }
+        )
+      );
+    }
+  };
+  return restoreNext();
 }
 
 function ensureDeserializedOwner(subscriber: Subscriber): void {

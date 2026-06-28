@@ -2,6 +2,7 @@ import { NEEDS_COMPUTATION } from '../../reactive-primitives/types';
 import { SsrDomSubscription } from '../../vdomless/dom/effect/ssr-effect';
 import { ComputedQrl } from '../../vdomless/reactive/computed-qrl';
 import { Signal } from '../../vdomless/reactive/signal';
+import { isStore, StorePropSource } from '../../vdomless/reactive/store';
 import { isQrl } from '../qrl/qrl-utils';
 import { _UNINITIALIZED } from '../utils/constants';
 import { isPromise } from '../utils/promises';
@@ -21,6 +22,9 @@ export const canSerialize = (value: unknown, seen: WeakSet<any> = new WeakSet())
       return true;
     }
     seen.add(value);
+    if (isStore(value) || value instanceof StorePropSource) {
+      return true;
+    }
     const proto = Object.getPrototypeOf(value);
     if (proto == Object.prototype) {
       for (const key in value as object) {

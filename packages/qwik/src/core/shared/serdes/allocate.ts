@@ -3,6 +3,7 @@ import { BranchSubscription } from '../../vdomless/dom/branch/branch';
 import { EffectKind } from '../../vdomless/dom/effect/effect-kind.enum';
 import { ComputedQrl } from '../../vdomless/reactive/computed-qrl';
 import { Signal } from '../../vdomless/reactive/signal';
+import { createStore, StorePropSource, unwrapStore } from '../../vdomless/reactive/store';
 import type { ContainerContext } from '../../vdomless/runtime/container-context';
 import { createContextScope } from '../../vdomless/runtime/context-scope';
 import { createProjection, createSlotScope } from '../../vdomless/dom/slot/slot';
@@ -17,6 +18,7 @@ import { _constants, TypeIds, type Constants } from './constants';
 import { createQRLWithBackChannel } from './qrl-to-string';
 
 export const resolvers = new WeakMap<Promise<any>, [Function, Function]>();
+export const pendingStoreTargets = new WeakMap<object, { t: TypeIds; v: unknown }>();
 
 export const allocate = (
   context: ContainerContext,
@@ -87,6 +89,23 @@ export const allocate = (
       return new Signal(undefined);
     case TypeIds.ComputedSignal:
       return new ComputedQrl(null!);
+    case TypeIds.Store: {
+      const data = value as unknown[];
+      const t = data[0] as TypeIds;
+      const v = data[1];
+      return maybeThen(allocate(context, t, v), (raw) => {
+        const store = createStore(raw as object);
+        const target = unwrapStore(store) as object;
+        if (t >= TypeIds.Error || t === TypeIds.Array || t === TypeIds.Object) {
+          pendingStoreTargets.set(target, { t, v });
+        }
+        data[0] = TypeIds.Plain;
+        data[1] = target;
+        return store;
+      });
+    }
+    case TypeIds.StoreProp:
+      return new StorePropSource();
     case TypeIds.URLSearchParams:
       return new URLSearchParams(value as string);
     case TypeIds.FormData:

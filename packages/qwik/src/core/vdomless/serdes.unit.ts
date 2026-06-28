@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createQRL } from '../shared/qrl/qrl-class';
-import { inflate } from '../shared/serdes/inflate';
+import { deserializeData, inflate } from '../shared/serdes/inflate';
 import { createSerializationContext } from '../shared/serdes/serialization-context';
 import { Constants, TypeIds } from '../shared/serdes/constants';
 import { EffectKind } from './dom/effect/effect-kind.enum';
@@ -28,6 +28,7 @@ import {
 import { ComputedFlags } from './reactive/flags';
 import { createComputedQrl } from './reactive/computed-qrl';
 import { createSignal, type Signal } from './reactive/signal';
+import { createStore, getStoreSource } from './reactive/store';
 import { createWindow } from '../../testing/document';
 import { createContainerContext, type ContainerContext } from './runtime/container-context';
 import { createContextScope } from './runtime/context-scope';
@@ -71,6 +72,43 @@ describe('vdomless serdes emit-only', () => {
     expect(effectPayload[5]).toBe(7);
     expect(effectPayload[6]).toBe(TypeIds.Array);
     expect(effectPayload[7]).toEqual([TypeIds.RootRef, 0]);
+  });
+
+  it('serializes store prop subscribers as source dependencies', async () => {
+    const state = createStore({ deep: { count: 0 }, other: 0 });
+    const qrl = createQRL<TextExpressionFn<[typeof state]>>(
+      './store.text.js',
+      'text',
+      (state) => state.deep.count,
+      null,
+      null
+    );
+    const effect = createOwned(() =>
+      createSsrTextExpressionEffect(createSsrElementTextTarget(7), [state], qrl)
+    );
+
+    runWithCollector(effect, () => state.deep.count);
+
+    const serialized = await serialize(state);
+
+    expect(countSerializedValue(serialized, TypeIds.Store)).toBe(1);
+    expect(countSerializedValue(serialized, TypeIds.StoreProp)).toBeGreaterThanOrEqual(2);
+  });
+
+  it('deserializes store prop sources through the shared dependency path', async () => {
+    const state = createStore({ count: 0 });
+    const win = createWindow({ html: '<div q:container></div>' });
+    const container = createContainerContext(win.document.body.firstElementChild as HTMLElement);
+    container.state.liveRoots.set(0, state);
+
+    const source = await deserializeData(container, TypeIds.StoreProp, [
+      TypeIds.Plain,
+      0,
+      TypeIds.Plain,
+      'count',
+    ]);
+
+    expect(source).toBe(getStoreSource(state, 'count'));
   });
 
   it('does not serialize orphan SSR effect targets', async () => {

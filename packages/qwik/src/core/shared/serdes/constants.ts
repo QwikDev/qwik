@@ -124,6 +124,7 @@ export const enum TypeIds {
   SlotScope,
   Projection,
   BigArray,
+  StoreProp,
 }
 
 // Used for dumpState, make sure they are in sync with TypeIds
@@ -174,4 +175,5 @@ export const _typeIdNames = [
   'SlotScope',
   'Projection',
   'BigArray',
+  'StoreProp',
 ];

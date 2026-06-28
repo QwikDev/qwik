@@ -5,6 +5,7 @@ import { isArray, isFunction, isObject, isSerializableObject } from '../utils/ty
 import { isQrl } from '../qrl/qrl-utils';
 import { Computed } from '../../vdomless/reactive/computed';
 import { Signal } from '../../vdomless/reactive/signal';
+import { isStore, StorePropSource } from '../../vdomless/reactive/store';
 
 /** @internal */
 export const verifySerializable = <T>(value: T, preMessage?: string): T => {
@@ -98,7 +99,12 @@ const _verifySerializable = <T>(
 };
 
 const isReactiveSource = (value: unknown): boolean => {
-  return value instanceof Signal || value instanceof Computed;
+  return (
+    value instanceof Signal ||
+    value instanceof Computed ||
+    isStore(value) ||
+    value instanceof StorePropSource
+  );
 };
 
 const isKnownSerializableValue = (value: unknown): boolean => {

@@ -138,29 +138,21 @@ describe('components and invoke contexts', () => {
     const parentContext = newInvokeContext({
       owner: parentOwner,
       container,
-      idPrefix: 'parent-',
       contextScope,
       slotScope,
     });
     let activeContext!: RuntimeInvokeContext;
 
     const nodes = invoke(parentContext, () =>
-      createComponent(
-        null,
-        () => {
-          activeContext = getActiveInvokeContext();
-        },
-        {
-          idPrefix: 'child-',
-        }
-      )
+      createComponent(null, () => {
+        activeContext = getActiveInvokeContext();
+      })
     );
 
     expect(nodes).toEqual([]);
     expect(activeContext.owner).not.toBe(parentOwner);
     expect(activeContext.owner).toBeNull();
     expect(activeContext.container).toBe(container);
-    expect(activeContext.idPrefix).toBe('child-');
     expect(activeContext.contextScope).toBe(contextScope);
     expect(activeContext.localContextScope).toBeNull();
     expect(activeContext.slotScope).toBe(slotScope);
@@ -185,7 +177,6 @@ describe('components and invoke contexts', () => {
     const parentContext = newInvokeContext({
       owner: parentOwner,
       container,
-      idPrefix: 'parent-',
       contextScope,
       localContextScope,
       slotScope,
@@ -195,15 +186,14 @@ describe('components and invoke contexts', () => {
 
     expect(childContext.owner).toBeNull();
     expect(childContext.container).toBe(container);
-    expect(childContext.idPrefix).toBe('parent-');
     expect(childContext.contextScope).toBe(contextScope);
     expect(childContext.localContextScope).toBeNull();
     expect(childContext.slotScope).toBe(slotScope);
   });
 
   it('restores invoke context after throw', () => {
-    const outerContext = newInvokeContext({ idPrefix: 'outer-' });
-    const innerContext = newInvokeContext({ idPrefix: 'inner-' });
+    const outerContext = newInvokeContext();
+    const innerContext = newInvokeContext();
 
     invoke(outerContext, () => {
       expect(getActiveInvokeContext()).toBe(outerContext);

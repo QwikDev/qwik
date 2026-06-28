@@ -87,7 +87,6 @@ describe('branches', () => {
     };
     const branchContext = newInvokeContext({
       owner: rootOwner,
-      idPrefix: 'branch-',
       contextScope,
       slotScope,
     });
@@ -121,7 +120,6 @@ describe('branches', () => {
 
     expect(conditionContext).toBe(branchContext);
     expect(componentContext.owner).toBeNull();
-    expect(componentContext.idPrefix).toBe('branch-');
     expect(componentContext.contextScope).toBe(contextScope);
     expect(componentContext.slotScope).toBe(slotScope);
     expect(replacements).toEqual([[componentNode]]);

@@ -10,7 +10,6 @@ export interface RuntimeInvokeContext {
   // the source of truth; this only answers where to attach the new owner.
   ownerHost: Owner | RuntimeInvokeContext | null;
   container: ContainerContext | undefined;
-  idPrefix: string;
   contextScope: ContextScope | null;
   localContextScope: ContextScope | null;
   slotScope: SlotScope | null;
@@ -21,7 +20,6 @@ export interface NewInvokeContextOptions {
   owner?: Owner | null;
   ownerHost?: Owner | RuntimeInvokeContext | null;
   container?: ContainerContext;
-  idPrefix?: string;
   contextScope?: ContextScope | null;
   localContextScope?: ContextScope | null;
   slotScope?: SlotScope | null;
@@ -30,7 +28,6 @@ export interface NewInvokeContextOptions {
 export interface ChildInvokeContextOptions {
   ownerHost?: Owner | RuntimeInvokeContext | null;
   container?: ContainerContext;
-  idPrefix?: string;
   contextScope?: ContextScope | null;
   slotScope?: SlotScope | null;
 }
@@ -59,7 +56,6 @@ export function newInvokeContext(options?: NewInvokeContextOptions): RuntimeInvo
     owner: options?.owner ?? null,
     ownerHost: options?.ownerHost ?? null,
     container: options?.container,
-    idPrefix: options?.idPrefix ?? '',
     contextScope: options?.contextScope ?? null,
     localContextScope: options?.localContextScope ?? null,
     slotScope: options?.slotScope ?? null,
@@ -75,7 +71,6 @@ export function newChildInvokeContext(
     owner: null,
     ownerHost: options?.ownerHost ?? base ?? null,
     container: options?.container ?? base?.container,
-    idPrefix: options?.idPrefix ?? base?.idPrefix,
     contextScope: options?.contextScope ?? base?.contextScope ?? null,
     localContextScope: null,
     slotScope: options?.slotScope ?? base?.slotScope ?? null,

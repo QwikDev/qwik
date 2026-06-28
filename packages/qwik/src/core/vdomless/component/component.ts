@@ -19,7 +19,6 @@ export type ComponentRenderFn<TProps = unknown> = (props: TProps) => ComponentRe
 
 export interface ComponentOptions {
   container?: ContainerContext;
-  idPrefix?: string;
   invokeContext?: RuntimeInvokeContext | null;
   slotScope?: SlotScope | null;
 }

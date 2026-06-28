@@ -815,7 +815,6 @@ function createRowInvokeContext(
     owner: null,
     ownerHost,
     container: container ?? base?.container,
-    idPrefix: base?.idPrefix,
     contextScope: base?.contextScope,
     localContextScope: base?.localContextScope,
     slotScope: base?.slotScope,

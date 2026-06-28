@@ -45,7 +45,6 @@ export function runWithOwner<T, TArgs extends unknown[]>(
   const context = newInvokeContext({
     owner,
     container: activeContext?.container,
-    idPrefix: activeContext?.idPrefix,
     contextScope: activeContext?.contextScope,
     localContextScope: activeContext?.localContextScope,
     slotScope: activeContext?.slotScope,

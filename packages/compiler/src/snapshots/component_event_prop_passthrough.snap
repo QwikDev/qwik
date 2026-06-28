@@ -15,7 +15,7 @@ export function Parent() {
 ============================= src/component.tsx ==
 
 import { Button } from './component.tsx_component_Button';
-import { createComponent, _qrlWithChunk } from '@qwik.dev/core/spark';
+import { createComponent, _qrlWithChunk, maybeThen } from '@qwik.dev/core/spark';
 
 const q_component_q_e_click_segment_0 = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_q_e_click_segment_0',
@@ -25,11 +25,11 @@ const q_component_q_e_click_segment_0 = /*#__PURE__*/ _qrlWithChunk(
 
 export { Button } from './component.tsx_component_Button';
 
-export async function Parent(_props, ctx) {
+export function Parent(_props, ctx) {
   const component0 = createComponent({ onClick$: q_component_q_e_click_segment_0 }, (props) =>
     Button(props, ctx)
   );
-  return await component0;
+  return maybeThen(component0, (component0) => component0);
 }
 
 null

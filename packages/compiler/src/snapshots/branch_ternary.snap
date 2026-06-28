@@ -23,6 +23,7 @@ import {
   _qrlWithChunk,
   createSsrRangeTextTarget,
   renderSsrBranch,
+  maybeThen,
 } from '@qwik.dev/core/spark';
 import { component_branch_condition_segment_0 } from './component.tsx_component_branch_condition_segment_0';
 
@@ -43,7 +44,7 @@ const q_component_branch_else_segment_2 = /*#__PURE__*/ _qrlWithChunk(
   'component_branch_else_segment_2'
 );
 
-export async function App(_props, ctx) {
+export function App(_props, ctx) {
   const count = createSignal(0);
   const id0 = ctx.nextId();
   ctx.addRoot(count);
@@ -54,7 +55,7 @@ export async function App(_props, ctx) {
     q_component_branch_then_segment_1.w([count]),
     q_component_branch_else_segment_2.w([count])
   );
-  return '<section><!b=' + id0 + '>' + (await branch1) + '<!/b></section>';
+  return maybeThen(branch1, (branch1) => '<section><!b=' + id0 + '>' + branch1 + '<!/b></section>');
 }
 
 null
@@ -97,13 +98,17 @@ import {
   escapeHTML,
   renderSsrTextNode,
   createSsrRangeTextTarget,
+  maybeThen,
 } from '@qwik.dev/core/spark';
 export const component_branch_then_segment_1 = (ctx) => {
   const count = _captures[0];
   const id0 = ctx.nextId();
   ctx.addRoot(count);
   const text1 = renderSsrTextNode(createSsrRangeTextTarget(id0, 0), count);
-  return '<p q:id="' + id0 + '" class="even">Even <!t>' + escapeHTML(text1) + '</p>';
+  return maybeThen(
+    text1,
+    (text1) => '<p q:id="' + id0 + '" class="even">Even <!t>' + escapeHTML(text1) + '</p>'
+  );
 };
 
 null
@@ -138,6 +143,7 @@ import {
   escapeHTML,
   renderSsrTextNode,
   createSsrRangeTextTarget,
+  maybeThen,
 } from '@qwik.dev/core/spark';
 const q_component_q_e_click_segment_3 = /* @__PURE__ */ _qrlWithChunk(
   './component.tsx_component_q_e_click_segment_3',
@@ -149,14 +155,16 @@ export const component_branch_else_segment_2 = (ctx) => {
   const id0 = ctx.nextId();
   ctx.addRoot(count);
   const text1 = renderSsrTextNode(createSsrRangeTextTarget(id0, 0), count);
-  return (
-    '<button q:id="' +
-    id0 +
-    '"' +
-    ctx.eventAttr('q-e:click', q_component_q_e_click_segment_3.w([count])) +
-    '>Odd <!t>' +
-    escapeHTML(text1) +
-    '</button>'
+  return maybeThen(
+    text1,
+    (text1) =>
+      '<button q:id="' +
+      id0 +
+      '"' +
+      ctx.eventAttr('q-e:click', q_component_q_e_click_segment_3.w([count])) +
+      '>Odd <!t>' +
+      escapeHTML(text1) +
+      '</button>'
   );
 };
 

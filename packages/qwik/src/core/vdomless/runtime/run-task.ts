@@ -4,6 +4,7 @@ import { SubscriberFlags } from '../reactive/flags';
 import { runWithCollector } from '../reactive/tracking';
 import { getFunctionOrResolve } from '../utils/qrl';
 import type { Task, TaskCleanupFn, VisibleTask } from './task';
+import { drainGenerator } from './generator';
 import { takeDirty, type TaskSubscriber, type VisibleTaskSubscriber } from './subscriber';
 
 export function runTaskSubscriber(
@@ -30,9 +31,7 @@ export function runTaskSubscriber(
           },
         })
       );
-      const cleanup = isGenerator(result)
-        ? await drainTaskGenerator(subscriber, result)
-        : await result;
+      const cleanup = isGenerator(result) ? await drainGenerator(subscriber, result) : await result;
       if (typeof cleanup === 'function') {
         addCleanup(task, cleanup as TaskCleanupFn);
       }
@@ -71,45 +70,4 @@ export async function runTaskCleanups(task: Task | VisibleTask): Promise<void> {
 function addCleanup(task: Task | VisibleTask, callback: TaskCleanupFn): void {
   const cleanups = task.cleanups ?? (task.cleanups = []);
   cleanups.push(callback);
-}
-
-async function drainTaskGenerator(
-  subscriber: TaskSubscriber | VisibleTaskSubscriber,
-  generator: Generator<unknown>
-): Promise<unknown> {
-  let input: unknown;
-  let rejected = false;
-  while (true) {
-    let step: IteratorResult<unknown>;
-    try {
-      step = runWithCollector(subscriber, () =>
-        rejected ? generator.throw!(input) : generator.next(input)
-      );
-    } catch (error) {
-      await closeTaskGenerator(generator);
-      throw error;
-    }
-
-    if (step.done) {
-      return step.value;
-    }
-
-    try {
-      input = await step.value;
-      rejected = false;
-    } catch (error) {
-      if (typeof generator.throw !== 'function') {
-        throw error;
-      }
-      input = error;
-      rejected = true;
-    }
-  }
-}
-
-async function closeTaskGenerator(generator: Generator<unknown>): Promise<void> {
-  if (typeof generator.return !== 'function') {
-    return;
-  }
-  await generator.return(undefined);
 }

@@ -5,6 +5,8 @@ import {
   type AttrExpressionFn,
   type TextExpressionFn,
 } from './effect';
+import { retryOnPromise } from '../../../shared/utils/promises';
+import type { ValueOrPromise } from '../../../shared/utils/types';
 import type { SsrDomSubscriber, SsrForBlockSubscriber } from '../../runtime/subscriber';
 import { SubscriberKind } from '../../runtime/subscriber';
 import { readSourceValue, type Dependency, type Source } from '../../reactive/source';
@@ -205,12 +207,14 @@ export function renderSsrTextNode(
   target: SsrEffectTarget,
   source: Source,
   batch?: SsrDomSubscriber
-): string {
+): ValueOrPromise<string> {
   const subscriber = useSsrDomEffect(
     batch,
     new SsrTextNodeEffect(target, batch ? source : undefined)
   );
-  return serializeSsrTextValue(runWithCollector(subscriber, readTrackedSourceValue, source));
+  return retryOnPromise(() =>
+    serializeSsrTextValue(runWithCollector(subscriber, readTrackedSourceValue, source))
+  );
 }
 
 export function renderSsrTextExpression<TArgs extends unknown[]>(
@@ -218,15 +222,18 @@ export function renderSsrTextExpression<TArgs extends unknown[]>(
   args: TArgs,
   qrl: TextExpressionQrl<TArgs>,
   batch?: SsrDomSubscriber
-): string {
+): ValueOrPromise<string> {
   const subscriber = useSsrDomEffect(batch, new SsrTextExpressionEffect(target, args, qrl));
-  const fn = qrl.resolved;
 
-  if (fn === undefined) {
-    throw qrl.resolve();
-  }
+  return retryOnPromise(() => {
+    const fn = qrl.resolved;
 
-  return serializeSsrTextValue(runWithCollector(subscriber, withCaptures(fn, args), ...args));
+    if (fn === undefined) {
+      throw qrl.resolve();
+    }
+
+    return serializeSsrTextValue(runWithCollector(subscriber, withCaptures(fn, args), ...args));
+  });
 }
 
 function serializeSsrTextValue(value: unknown): string {
@@ -239,14 +246,13 @@ export function renderSsrAttr(
   name: string,
   source: Source,
   batch?: SsrDomSubscriber
-): string {
+): ValueOrPromise<string> {
   const subscriber = useSsrDomEffect(
     batch,
     new SsrAttrEffect(target, name, batch ? source : undefined)
   );
-  return serializeAttrExpressionValue(
-    name,
-    runWithCollector(subscriber, readTrackedSourceValue, source)
+  return retryOnPromise(() =>
+    serializeAttrExpressionValue(name, runWithCollector(subscriber, readTrackedSourceValue, source))
   );
 }
 
@@ -256,18 +262,21 @@ export function renderSsrAttrExpression<TArgs extends unknown[]>(
   args: TArgs,
   qrl: AttrExpressionQrl<TArgs>,
   batch?: SsrDomSubscriber
-): string {
+): ValueOrPromise<string> {
   const subscriber = useSsrDomEffect(batch, new SsrAttrExpressionEffect(target, name, args, qrl));
-  const fn = qrl.resolved;
 
-  if (fn === undefined) {
-    throw qrl.resolve();
-  }
+  return retryOnPromise(() => {
+    const fn = qrl.resolved;
 
-  return serializeAttrExpressionValue(
-    name,
-    runWithCollector(subscriber, withCaptures(fn, args), ...args)
-  );
+    if (fn === undefined) {
+      throw qrl.resolve();
+    }
+
+    return serializeAttrExpressionValue(
+      name,
+      runWithCollector(subscriber, withCaptures(fn, args), ...args)
+    );
+  });
 }
 
 export function renderSsrProps<TArgs extends unknown[]>(
@@ -276,17 +285,20 @@ export function renderSsrProps<TArgs extends unknown[]>(
   qrl: DomPropsQrl<TArgs>,
   eventAttr?: (name: string, value: unknown) => string,
   batch?: SsrDomSubscriber
-) {
+): ValueOrPromise<ReturnType<typeof renderDomPropsToString>> {
   const subscriber = useSsrDomEffect(batch, new SsrPropsEffect(target, args, qrl));
-  const fn = qrl.resolved;
 
-  if (fn === undefined) {
-    throw qrl.resolve();
-  }
+  return retryOnPromise(() => {
+    const fn = qrl.resolved;
 
-  return runWithCollector(subscriber, () =>
-    renderDomPropsToString(withCaptures(fn, args)(...args), eventAttr)
-  );
+    if (fn === undefined) {
+      throw qrl.resolve();
+    }
+
+    return runWithCollector(subscriber, () =>
+      renderDomPropsToString(withCaptures(fn, args)(...args), eventAttr)
+    );
+  });
 }
 
 function useSsrDomEffect(

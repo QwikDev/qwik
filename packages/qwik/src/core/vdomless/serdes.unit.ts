@@ -27,9 +27,11 @@ import {
 } from './dom/effect/ssr-effect';
 import { ComputedFlags } from './reactive/flags';
 import { createComputedQrl } from './reactive/computed-qrl';
+import { createAsyncQrl } from './reactive/async-signal';
 import { createSignal, type Signal } from './reactive/signal';
 import { createStore, getStoreSource } from './reactive/store';
 import { createWindow } from '../../testing/document';
+import type { ValueOrPromise } from '../shared/utils/types';
 import { createContainerContext, type ContainerContext } from './runtime/container-context';
 import { createContextScope } from './runtime/context-scope';
 import { createOwner, registerSubscriberToOwner, runWithOwner } from './runtime/owner';
@@ -39,7 +41,7 @@ import { runWithCollector } from './reactive/tracking';
 import { createCaptureContainer, createText, runWithTestContainer } from './test-utils';
 
 type BranchConditionFn = () => boolean;
-type BranchRenderFn = (ctx: ContainerContext) => string;
+type BranchRenderFn = (ctx: ContainerContext) => ValueOrPromise<string>;
 
 const BRANCH_THEN = 0;
 
@@ -109,6 +111,49 @@ describe('vdomless serdes emit-only', () => {
     ]);
 
     expect(source).toBe(getStoreSource(state, 'count'));
+  });
+
+  it('serializes an async signal with cached value and subscribers', async () => {
+    const qrl = createQRL('./async.js', 'load', () => {
+      return 6;
+    });
+    const signal = createOwned(() => createAsyncQrl(qrl, { initial: 5 }));
+    const effect = createOwned(() => createSsrTextNodeEffect(createSsrElementTextTarget(7)));
+
+    runWithCollector(effect, () => signal.value);
+    await signal.promise();
+
+    const state = await serialize(signal);
+    const payload = state[1] as unknown[];
+
+    expect(state[0]).toBe(TypeIds.AsyncSignal);
+    expect(payload[0]).toBe(TypeIds.QRL);
+    expect(payload[4]).toBe(TypeIds.Plain);
+    expect(payload[5]).toBe(6);
+    expect(payload[6]).toBe(TypeIds.Constant);
+    expect(payload[7]).toBe(Constants.Null);
+    expect(payload[8]).toBe(TypeIds.EffectSubscription);
+  });
+
+  it('deserializes async signal cached value', async () => {
+    const qrl = createQRL('./async.js', 'load', () => {
+      return 7;
+    });
+    const win = createWindow({ html: '<div q:container></div>' });
+    const container = createContainerContext(win.document.body.firstElementChild as HTMLElement);
+
+    const signal = await deserializeData(container, TypeIds.AsyncSignal, [
+      TypeIds.Plain,
+      qrl,
+      TypeIds.Array,
+      [],
+      TypeIds.Plain,
+      7,
+      TypeIds.Constant,
+      Constants.Null,
+    ]);
+
+    expect((signal as { value: number }).value).toBe(7);
   });
 
   it('does not serialize orphan SSR effect targets', async () => {
@@ -291,7 +336,12 @@ describe('vdomless serdes emit-only', () => {
       null
     );
     const renderQrl = createQRL<
-      (ctx: ContainerContext, rangeId: number, rowId: number, item: Row | Signal<Row>) => string
+      (
+        ctx: ContainerContext,
+        rangeId: number,
+        rowId: number,
+        item: Row | Signal<Row>
+      ) => ValueOrPromise<string>
     >(
       './for.render.js',
       'render',

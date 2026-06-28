@@ -110,8 +110,17 @@ export function createSsrImports(
   if (usage.hasSlot) {
     sparkSpecifiers.push(QwikSymbol.RenderSsrSlot);
   }
+  if (usage.hasValueOrPromise) {
+    sparkSpecifiers.push(QwikSymbol.MaybeThen);
+  }
+  if (usage.hasMultipleValueOrPromise) {
+    sparkSpecifiers.push(QwikSymbol.PromiseAll);
+  }
+  if (usage.hasSetupAwait || usage.hasSlot) {
+    sparkSpecifiers.push(QwikSymbol.GetActiveInvokeContextOrNull);
+  }
   if (usage.hasSetupAwait) {
-    sparkSpecifiers.push(QwikSymbol.GetActiveInvokeContextOrNull, QwikSymbol.Invoke);
+    sparkSpecifiers.push(QwikSymbol.Invoke);
   }
   if (usage.hasTask) {
     sparkSpecifiers.push(QwikSymbol.CreateTaskQrl, QwikSymbol.RunTaskSubscriber);
@@ -147,6 +156,8 @@ export interface SsrImportUsage {
   hasComponentSlots: boolean;
   hasComponentPropsSpread: boolean;
   hasSetupAwait: boolean;
+  hasValueOrPromise: boolean;
+  hasMultipleValueOrPromise: boolean;
   hasTask: boolean;
   hasVisibleTask: boolean;
 }

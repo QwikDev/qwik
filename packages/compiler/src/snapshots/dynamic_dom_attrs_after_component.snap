@@ -25,6 +25,8 @@ import {
   escapeHTML,
   createSsrElementTarget,
   renderSsrAttrExpression,
+  maybeThen,
+  promiseAll,
 } from '@qwik.dev/core/spark';
 import { Child } from './component.tsx_component_Child';
 import { component_style_segment_0 } from './component.tsx_component_style_segment_0';
@@ -36,7 +38,7 @@ const q_component_style_segment_0 = /*#__PURE__*/ _qrlWithChunk(
 );
 q_component_style_segment_0.s(component_style_segment_0);
 
-export async function App(_props, ctx) {
+export function App(_props, ctx) {
   const count = createSignal(0);
   const component0 = createComponent({}, (props) => Child(props, ctx));
   const id1 = ctx.nextId();
@@ -47,14 +49,16 @@ export async function App(_props, ctx) {
     [count],
     q_component_style_segment_0
   );
-  return (
-    '<main>' +
-    (await component0) +
-    '<p q:id="' +
-    id1 +
-    '" style="' +
-    escapeHTML(attr2) +
-    '">After</p></main>'
+  return maybeThen(
+    promiseAll([component0, attr2]),
+    ([component0, attr2]) =>
+      '<main>' +
+      component0 +
+      '<p q:id="' +
+      id1 +
+      '" style="' +
+      escapeHTML(attr2) +
+      '">After</p></main>'
   );
 }
 

@@ -15,12 +15,12 @@ export function Parent() {
 
 ============================= src/component.tsx ==
 
-import { createSignal, createComponent } from '@qwik.dev/core/spark';
+import { createSignal, createComponent, maybeThen } from '@qwik.dev/core/spark';
 import { Child } from './component.tsx_component_Child';
 
 export { Child } from './component.tsx_component_Child';
 
-export async function Parent(_props, ctx) {
+export function Parent(_props, ctx) {
   const count = createSignal(1);
   const component0 = createComponent(
     {
@@ -31,7 +31,7 @@ export async function Parent(_props, ctx) {
     },
     (props) => Child(props, ctx)
   );
-  return await component0;
+  return maybeThen(component0, (component0) => component0);
 }
 
 null
@@ -43,6 +43,8 @@ import {
   escapeHTML,
   createSsrRangeTextTarget,
   renderSsrTextExpression,
+  maybeThen,
+  promiseAll,
 } from '@qwik.dev/core/spark';
 import { component_text_segment_0 } from './component.tsx_component_text_segment_0';
 import { component_text_segment_1 } from './component.tsx_component_text_segment_1';
@@ -74,8 +76,10 @@ export function Child(props, ctx) {
     q_component_text_segment_1,
     batch2
   );
-  return (
-    '<p q:id="' + id0 + '"><!t>' + escapeHTML(text1) + '<!/t>: <!t>' + escapeHTML(text3) + '</p>'
+  return maybeThen(
+    promiseAll([text1, text3]),
+    ([text1, text3]) =>
+      '<p q:id="' + id0 + '"><!t>' + escapeHTML(text1) + '<!/t>: <!t>' + escapeHTML(text3) + '</p>'
   );
 }
 

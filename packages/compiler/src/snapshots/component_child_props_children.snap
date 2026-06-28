@@ -18,6 +18,7 @@ import {
   createSlotScope,
   registerProjection,
   _qrlWithChunk,
+  maybeThen,
 } from '@qwik.dev/core/spark';
 import { component_slot_render_segment_1 } from './component.tsx_component_slot_render_segment_1';
 
@@ -30,21 +31,22 @@ q_component_slot_render_segment_1.s(component_slot_render_segment_1);
 
 export { Wrapper } from './component.tsx_component_Wrapper';
 
-export async function Parent(_props, ctx) {
+export function Parent(_props, ctx) {
   const slotScope1 = createSlotScope();
   ctx.addRoot(slotScope1);
   registerProjection(slotScope1, '', q_component_slot_render_segment_1);
   const component0 = createComponent({}, (props) => Wrapper(props, ctx), { slotScope: slotScope1 });
-  return await component0;
+  return maybeThen(component0, (component0) => component0);
 }
 
 null
 ============================= src/component.tsx_component_Wrapper.js (ENTRY POINT)==
 
-import { renderSsrSlot } from '@qwik.dev/core/spark';
-export async function Wrapper(props, ctx) {
-  const slot0 = renderSsrSlot(ctx, '', undefined);
-  return '<section>' + (await slot0) + '</section>';
+import { renderSsrSlot, maybeThen, getActiveInvokeContextOrNull } from '@qwik.dev/core/spark';
+export function Wrapper(props, ctx) {
+  const slotCtx0 = getActiveInvokeContextOrNull();
+  const slot1 = renderSsrSlot(ctx, '', undefined, slotCtx0);
+  return maybeThen(slot1, (slot1) => '<section>' + slot1 + '</section>');
 }
 
 null

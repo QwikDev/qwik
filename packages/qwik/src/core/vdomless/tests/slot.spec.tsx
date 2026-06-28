@@ -56,6 +56,25 @@ describe.each([
     cleanup();
   });
 
+  it('renders slot after a dynamic SSR attr', async () => {
+    const Button = component$((props: { id: string }) => {
+      return (
+        <button id={props.id}>
+          <Slot />
+        </button>
+      );
+    });
+
+    const App = component$(() => {
+      return <Button id="run">Run</Button>;
+    });
+
+    const { container, cleanup } = await render(<App />, { debug });
+
+    expect(container.querySelector('#run')?.textContent).toBe('Run');
+    cleanup();
+  });
+
   it('provides parent context to projected slot children', async () => {
     const contextId = createContextId<string>('slot-parent-context');
 

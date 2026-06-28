@@ -17,6 +17,8 @@ import {
   escapeHTML,
   createSsrElementTarget,
   renderSsrAttr,
+  maybeThen,
+  promiseAll,
 } from '@qwik.dev/core/spark';
 
 export function App(_props, ctx) {
@@ -30,16 +32,18 @@ export function App(_props, ctx) {
   const attr2 = renderSsrAttr(createSsrElementTarget(id0), 'class', classes);
   ctx.addRoot(style);
   const attr3 = renderSsrAttr(createSsrElementTarget(id0), 'style', style);
-  return (
-    '<div q:id="' +
-    id0 +
-    '" title="' +
-    escapeHTML(attr1) +
-    '" class="' +
-    escapeHTML(attr2) +
-    '" style="' +
-    escapeHTML(attr3) +
-    '">Attrs</div>'
+  return maybeThen(
+    promiseAll([attr1, attr2, attr3]),
+    ([attr1, attr2, attr3]) =>
+      '<div q:id="' +
+      id0 +
+      '" title="' +
+      escapeHTML(attr1) +
+      '" class="' +
+      escapeHTML(attr2) +
+      '" style="' +
+      escapeHTML(attr3) +
+      '">Attrs</div>'
   );
 }
 

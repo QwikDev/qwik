@@ -15,7 +15,7 @@ export function Parent() {
 ============================= src/component.tsx ==
 
 import { Button } from './component.tsx_component_Button';
-import { createComponent, mergeProps, _qrlWithChunk } from '@qwik.dev/core/spark';
+import { createComponent, mergeProps, _qrlWithChunk, maybeThen } from '@qwik.dev/core/spark';
 
 const q_component_q_e_click_segment_2 = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_q_e_click_segment_2',
@@ -25,20 +25,25 @@ const q_component_q_e_click_segment_2 = /*#__PURE__*/ _qrlWithChunk(
 
 export { Button } from './component.tsx_component_Button';
 
-export async function Parent(_props, ctx) {
+export function Parent(_props, ctx) {
   const attrs = { title: 'Save' };
   const label = 'clicked';
   const component0 = createComponent(
     mergeProps(attrs, { kind: 'primary', onClick$: q_component_q_e_click_segment_2.w([label]) }),
     (props) => Button(props, ctx)
   );
-  return await component0;
+  return maybeThen(component0, (component0) => component0);
 }
 
 null
 ============================= src/component.tsx_component_Button.js (ENTRY POINT)==
 
-import { _qrlWithChunk, createSsrElementTarget, renderSsrProps } from '@qwik.dev/core/spark';
+import {
+  _qrlWithChunk,
+  createSsrElementTarget,
+  renderSsrProps,
+  maybeThen,
+} from '@qwik.dev/core/spark';
 import { component_props_segment_0 } from './component.tsx_component_props_segment_0';
 const q_component_props_segment_0 = /* @__PURE__ */ _qrlWithChunk(
   './component.tsx_component_props_segment_0',
@@ -57,8 +62,16 @@ export function Button(_props, ctx) {
     q_component_props_segment_0,
     ctx.eventAttr
   );
-  return (
-    '<button q:id="' + id0 + '"' + props1.attrs + '>' + (props1.innerHTML ?? 'Click') + '</button>'
+  return maybeThen(
+    props1,
+    (props1) =>
+      '<button q:id="' +
+      id0 +
+      '"' +
+      props1.attrs +
+      '>' +
+      (props1.innerHTML ?? 'Click') +
+      '</button>'
   );
 }
 

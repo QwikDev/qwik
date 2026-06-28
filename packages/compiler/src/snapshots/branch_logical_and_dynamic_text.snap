@@ -15,6 +15,7 @@ import {
   _qrlWithChunk,
   createSsrRangeTextTarget,
   renderSsrBranch,
+  maybeThen,
 } from '@qwik.dev/core/spark';
 import { component_branch_condition_segment_0 } from './component.tsx_component_branch_condition_segment_0';
 
@@ -30,7 +31,7 @@ const q_component_branch_then_segment_1 = /*#__PURE__*/ _qrlWithChunk(
   'component_branch_then_segment_1'
 );
 
-export async function App(_props, ctx) {
+export function App(_props, ctx) {
   const count = createSignal(0);
   const id0 = ctx.nextId();
   ctx.addRoot(count);
@@ -41,7 +42,7 @@ export async function App(_props, ctx) {
     q_component_branch_then_segment_1.w([count]),
     undefined
   );
-  return '<p><!b=' + id0 + '>' + (await branch1) + '<!/b></p>';
+  return maybeThen(branch1, (branch1) => '<p><!b=' + id0 + '>' + branch1 + '<!/b></p>');
 }
 
 null
@@ -84,12 +85,16 @@ import {
   escapeHTML,
   renderSsrTextNode,
   createSsrRangeTextTarget,
+  maybeThen,
 } from '@qwik.dev/core/spark';
 export const component_branch_then_segment_1 = (ctx, rangeId) => {
   const count = _captures[0];
   ctx.addRoot(count);
   const text0 = renderSsrTextNode(createSsrRangeTextTarget(rangeId, 0), count);
-  return 'Count is greater than 2 and equal to <!t>' + escapeHTML(text0);
+  return maybeThen(
+    text0,
+    (text0) => 'Count is greater than 2 and equal to <!t>' + escapeHTML(text0)
+  );
 };
 
 null

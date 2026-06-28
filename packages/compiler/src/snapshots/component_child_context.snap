@@ -23,19 +23,23 @@ import {
   createContextProvider,
   createSignal,
   createComponent,
+  maybeThen,
 } from '@qwik.dev/core/spark';
 import { Context } from './context';
 import { Child } from './component.tsx_component_Child';
 
 export { Child } from './component.tsx_component_Child';
 
-export async function Parent(_props, ctx) {
+export function Parent(_props, ctx) {
   const value = createSignal('provided');
   createContextProvider(Context, value);
   const contextScopeId = ctx.contextScopeId();
   const component0 = createComponent({}, (props) => Child(props, ctx));
-  const contextHtml = '<section>' + (await component0) + '</section>';
-  return '<!c=' + contextScopeId + '>' + contextHtml + '<!/c>';
+  return maybeThen(
+    component0,
+    (component0) =>
+      '<!c=' + contextScopeId + '>' + '<section>' + component0 + '</section>' + '<!/c>'
+  );
 }
 
 null
@@ -46,6 +50,7 @@ import {
   escapeHTML,
   renderSsrTextNode,
   createSsrElementTextTarget,
+  maybeThen,
 } from '@qwik.dev/core/spark';
 import { Context } from './context';
 export function Child(_props, ctx) {
@@ -53,7 +58,7 @@ export function Child(_props, ctx) {
   const id0 = ctx.nextId();
   ctx.addRoot(value);
   const text1 = renderSsrTextNode(createSsrElementTextTarget(id0), value);
-  return '<p q:id="' + id0 + '">' + escapeHTML(text1) + '</p>';
+  return maybeThen(text1, (text1) => '<p q:id="' + id0 + '">' + escapeHTML(text1) + '</p>');
 }
 
 null

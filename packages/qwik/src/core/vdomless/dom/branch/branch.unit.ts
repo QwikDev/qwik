@@ -26,6 +26,7 @@ import type { ContextScope } from '../../runtime/context-scope';
 import type { SlotScope } from '../slot/slot';
 import { createOwner, registerSubscriberToOwner, runWithOwner } from '../../runtime/owner';
 import { Scheduler } from '../../runtime/scheduler';
+import type { ValueOrPromise } from '../../../shared/utils/types';
 import type { BranchSubscriber, DomSubscriber } from '../../runtime/subscriber';
 import type { ContainerContext } from '../../runtime/container-context';
 import {
@@ -38,7 +39,7 @@ import {
 
 type BranchConditionFn = () => boolean;
 type BranchRenderFn = (ctx: ContainerContext) => readonly Node[];
-type SsrBranchRenderFn = (ctx: ContainerContext) => string;
+type SsrBranchRenderFn = (ctx: ContainerContext) => ValueOrPromise<string>;
 
 const BRANCH_THEN = 0;
 const BRANCH_ELSE = 1;

@@ -29,6 +29,7 @@ import {
   escapeHTML,
   renderSsrTextNode,
   createSsrElementTextTarget,
+  maybeThen,
   getActiveInvokeContextOrNull,
   invoke,
   createTaskQrl,
@@ -64,17 +65,19 @@ export async function App(_props, ctx) {
     const id0 = ctx.nextId();
     ctx.addRoot(count);
     const text1 = renderSsrTextNode(createSsrElementTextTarget(id0), count);
-    return (
-      '<button q:id="' +
-      id0 +
-      '"' +
-      ctx.eventAttr(
-        'q-d:qinit',
-        createVisibleTaskHandlerQrl(q_component_createVisibleTask$_segment_1.w([count]))
-      ) +
-      '>' +
-      escapeHTML(text1) +
-      '</button>'
+    return maybeThen(
+      text1,
+      (text1) =>
+        '<button q:id="' +
+        id0 +
+        '"' +
+        ctx.eventAttr(
+          'q-d:qinit',
+          createVisibleTaskHandlerQrl(q_component_createVisibleTask$_segment_1.w([count]))
+        ) +
+        '>' +
+        escapeHTML(text1) +
+        '</button>'
     );
   });
 }

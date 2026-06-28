@@ -606,4 +606,21 @@ export function App() {
 `,
     });
   });
+
+  test('emits async signal setup with async generator lowering', async () => {
+    await testInput('async_signal_generator', {
+      code: `import { createAsync$, createSignal } from '@qwik.dev/core/spark';
+
+export function App() {
+  const count = createSignal(0);
+  const data = createAsync$(async () => {
+    const before = count.value;
+    await Promise.resolve();
+    return before + count.value;
+  }, { initial: 0 });
+  return <button>{data.value}</button>;
+}
+`,
+    });
+  });
 });

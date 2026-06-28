@@ -51,10 +51,10 @@ import {
   hasTaskSetupSegment,
   isCreateTaskSegment,
   isCreateVisibleTaskSegment,
+  isGeneratorTrackedSegment,
   isImplicitDollarSegment,
   isNestedInImplicitDollarSegment,
   isRangeInside,
-  isTaskDollarSegment,
   rewriteAwaitToYield,
   transformDollarImports,
   transformImplicitDollarCode,
@@ -213,6 +213,7 @@ function createSsrImportUsage(
           effect.kind === kind && !isDomEffectBatched(item.batchStats.counts, effect.batchKey)
       )
     );
+  const valueOrPromiseCounts = items.map((item) => countSsrValueOrPromiseNodes(item.root));
 
   return {
     hasDynamicBinding: items.some(
@@ -242,9 +243,45 @@ function createSsrImportUsage(
     hasComponentSlots: has(hasComponentSlots),
     hasComponentPropsSpread: has(hasComponentPropsSpread),
     hasSetupAwait: items.some((item) => item.hasSetupAwait === true),
+    hasValueOrPromise: valueOrPromiseCounts.some((count) => count > 0),
+    hasMultipleValueOrPromise: valueOrPromiseCounts.some((count) => count > 1),
     hasTask: items.some((item) => item.hasTask === true),
     hasVisibleTask: items.some((item) => item.hasVisibleTask === true),
   };
+}
+
+function countSsrValueOrPromiseNodes(node: RenderNode | null): number {
+  if (node === null) {
+    return 0;
+  }
+  if (node.kind === 'dynamicText') {
+    return 1;
+  }
+  if (node.kind === 'branch' || node.kind === 'for' || node.kind === 'slot') {
+    return 1;
+  }
+  if (node.kind === 'component') {
+    return 1;
+  }
+  if (node.kind === 'fragment') {
+    return node.children.reduce((count, child) => count + countSsrValueOrPromiseNodes(child), 0);
+  }
+  if (node.kind === 'element') {
+    let count = node.props.some((prop) => prop.kind === 'spread') ? 1 : 0;
+    for (const prop of node.props) {
+      if (prop.kind === 'named' && prop.binding) {
+        count++;
+      }
+    }
+    return (
+      count +
+      node.children.reduce(
+        (childCount, child) => childCount + countSsrValueOrPromiseNodes(child),
+        0
+      )
+    );
+  }
+  return 0;
 }
 
 const EMPTY_SSR_IMPORT_USAGE = createSsrImportUsage([]);
@@ -908,7 +945,7 @@ function createQrlSegmentSource(
     .map(([start, end]) => source.slice(start, end))
     .join(', ');
   const body = qrlSegment.segment.bodyRange
-    ? qrlSegment.segment.async && isTaskDollarSegment(qrlSegment.segment)
+    ? qrlSegment.segment.async && isGeneratorTrackedSegment(qrlSegment.segment)
       ? rewriteAwaitToYield(source, qrlSegment.segment.bodyRange, qrlSegment.segment.awaitRanges)
       : transformImplicitDollarCode(
           source,
@@ -937,7 +974,7 @@ function createQrlSegmentSource(
         ]).join('\n')}\n\n`
       : '';
 
-  const isGeneratorTask = qrlSegment.segment.async && isTaskDollarSegment(qrlSegment.segment);
+  const isGeneratorTask = qrlSegment.segment.async && isGeneratorTrackedSegment(qrlSegment.segment);
   if (isGeneratorTask) {
     return `${importLine}export const ${qrlSegment.symbolName} = function* (${params}) {
 ${captureLine}${indentBody(bodyStatements)}
@@ -1068,16 +1105,24 @@ function createSsrRenderSegmentSource(
     domEffectBatchCounts: getDomEffectBatchStats(fragment, segmentQrlSegments).counts,
     rootRangeTarget: hasRootRangeText ? 'rangeId' : undefined,
   });
+  const slotInvokeContextId = hasSlot(fragment) ? emitter.ensureSlotInvokeContextId() : null;
   const html = emitter.emitHtmlExpression(fragment);
-  const isAsync =
-    hasBranch(fragment) || hasForBlock(fragment) || hasComponent(fragment) || hasSlot(fragment);
+  const returnExpression = emitter.emitReturnExpression(html);
+  const isAsync = false;
   const captureLine =
     captures.length > 0
       ? `const ${captures
           .map((capture, index) => `${capture.name} = ${QwikSymbol.Captures}[${index}]`)
           .join(', ')};`
       : '';
-  const bodyStatements = [captureLine, emitter.toString(), `return ${html};`]
+  const bodyStatements = [
+    captureLine,
+    slotInvokeContextId === null
+      ? ''
+      : `const ${slotInvokeContextId} = ${QwikSymbol.GetActiveInvokeContextOrNull}();`,
+    emitter.toString(),
+    `return ${returnExpression};`,
+  ]
     .filter(Boolean)
     .join('\n');
   const importRecords = [
@@ -1222,17 +1267,25 @@ function createSsrForRenderSegmentSource(
     rootElementAttr: rowIsElement ? 'q:row' : undefined,
     loopCaptures: createLoopParamCaptures(qrlSegment.segment),
   });
+  const slotInvokeContextId = hasSlot(fragment) ? emitter.ensureSlotInvokeContextId() : null;
   const html = emitter.emitHtmlExpression(fragment);
   const rowHtml = rowIsElement ? html : `'<!r=' + rowId + '>' + ${html} + '<!/r>'`;
-  const isAsync =
-    hasBranch(fragment) || hasForBlock(fragment) || hasComponent(fragment) || hasSlot(fragment);
+  const returnExpression = emitter.emitReturnExpression(rowHtml);
+  const isAsync = false;
   const captureLine =
     captures.length > 0
       ? `const ${captures
           .map((capture, index) => `${capture.name} = ${QwikSymbol.Captures}[${index}]`)
           .join(', ')};`
       : '';
-  const bodyStatements = [captureLine, emitter.toString(), `return ${rowHtml};`]
+  const bodyStatements = [
+    captureLine,
+    slotInvokeContextId === null
+      ? ''
+      : `const ${slotInvokeContextId} = ${QwikSymbol.GetActiveInvokeContextOrNull}();`,
+    emitter.toString(),
+    `return ${returnExpression};`,
+  ]
     .filter(Boolean)
     .join('\n');
   const importRecords = [

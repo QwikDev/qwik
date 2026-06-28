@@ -1,4 +1,5 @@
-import { isPromise } from '../../../shared/utils/promises';
+import { isPromise, retryOnPromise } from '../../../shared/utils/promises';
+import { logError } from '../../../shared/utils/log';
 import { serializeAttribute } from '../../../shared/utils/styles';
 import type { ValueOrPromise } from '../../../shared/utils/types';
 import { cleanupDeps } from '../../reactive/cleanup';
@@ -60,7 +61,7 @@ export class TextNodeEffect {
   ) {}
 
   run(): void {
-    this.text.data = String(readTrackedSourceValue(this.source));
+    setTextData(this.text, readTrackedSourceValue(this.source));
   }
 }
 
@@ -126,7 +127,19 @@ export class DomSubscription implements DomSubscriber {
   run(): void {
     cleanupDeps(this);
 
-    const value = runWithCollector(this, () => this.effect.run());
+    const value = retryOnPromise(
+      () => {
+        if (this.owner === null) {
+          return;
+        }
+        return runWithCollector(this, () => this.effect.run());
+      },
+      () => {}
+    );
+    if (isPromise(value)) {
+      value.catch(logError);
+      return;
+    }
     assertSyncDomValue(value);
   }
 }

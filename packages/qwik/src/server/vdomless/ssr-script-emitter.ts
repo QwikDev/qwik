@@ -9,7 +9,12 @@ const MAX_STATE_ROOTS_PER_SCRIPT = 1024;
 export class SsrScriptEmitter {
   constructor(private opts: RenderToStreamOptions) {}
 
-  async emitState(serializedState: string, base: number, len: number): Promise<void> {
+  async emitState(
+    serializedState: string,
+    base: number,
+    len: number,
+    attrs?: Record<string, ScriptAttrValue>
+  ): Promise<void> {
     if (len > MAX_STATE_ROOTS_PER_SCRIPT) {
       const state = JSON.parse(serializedState) as unknown[];
       const hasForwardRefs = state[(len - 1) * 2] === TypeIds.ForwardRefs;
@@ -18,7 +23,13 @@ export class SsrScriptEmitter {
         const chunkLen = Math.min(MAX_STATE_ROOTS_PER_SCRIPT, rootLen - offset);
         const start = offset * 2;
         const end = start + chunkLen * 2;
-        await this.emitStateChunk(JSON.stringify(state.slice(start, end)), base + offset, chunkLen);
+        await this.emitStateChunk(
+          JSON.stringify(state.slice(start, end)),
+          base + offset,
+          chunkLen,
+          false,
+          offset === 0 ? attrs : undefined
+        );
       }
       if (hasForwardRefs) {
         await this.emitStateChunk(
@@ -31,17 +42,24 @@ export class SsrScriptEmitter {
       return;
     }
 
-    await this.emitStateChunk(serializedState, base, len);
+    await this.emitStateChunk(serializedState, base, len, false, attrs);
   }
 
   private async emitStateChunk(
     serializedState: string,
     base: number,
     len: number,
-    forwardRefs = false
+    forwardRefs = false,
+    attrs?: Record<string, ScriptAttrValue>
   ): Promise<void> {
     await this.writeScript(
-      { type: 'qwik/state', 'q:base': String(base), 'q:len': String(len), 'q:fr': forwardRefs },
+      {
+        type: 'qwik/state',
+        'q:base': String(base),
+        'q:len': String(len),
+        'q:fr': forwardRefs,
+        ...attrs,
+      },
       escapeScript(serializedState)
     );
   }

@@ -1,5 +1,5 @@
 import type { QRL } from '../../../shared/qrl/qrl.public';
-import { maybeThen } from '../../../shared/utils/promises';
+import { maybeThen, retryOnPromise } from '../../../shared/utils/promises';
 import type { ValueOrPromise } from '../../../shared/utils/types';
 import { SubscriberFlags } from '../../reactive/flags';
 import type { Dependency } from '../../reactive/source';
@@ -186,7 +186,7 @@ export class SSRBranch {
     const subscription = registerSubscriberToOwner(new SSRBranchSubscription(this));
 
     return maybeThen(getFunctionOrResolve(this.conditionQrl, this.container), (conditionFn) => {
-      const trackedCondition = runWithCollector(subscription, conditionFn);
+      const trackedCondition = retryOnPromise(() => runWithCollector(subscription, conditionFn));
       return maybeThen(trackedCondition, (trackedCondition) => {
         const nextBranch = trackedCondition ? BranchState.Then : BranchState.Else;
         const rendererQrl = trackedCondition ? this.thenQrl : this.elseQrl;

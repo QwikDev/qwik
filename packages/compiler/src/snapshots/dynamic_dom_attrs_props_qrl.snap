@@ -26,6 +26,8 @@ import {
   _qrlWithChunk,
   escapeHTML,
   renderSsrAttrExpression,
+  maybeThen,
+  promiseAll,
 } from '@qwik.dev/core/spark';
 import { component_title_segment_0 } from './component.tsx_component_title_segment_0';
 import { component_className_segment_1 } from './component.tsx_component_className_segment_1';
@@ -76,16 +78,18 @@ export function App(_props, ctx) {
     q_component_style_segment_2,
     batch2
   );
-  return (
-    '<div q:id="' +
-    id0 +
-    '" title="' +
-    escapeHTML(attr1) +
-    '" class="' +
-    escapeHTML(attr3) +
-    '" style="' +
-    escapeHTML(attr4) +
-    '" data-kind="counter">Attrs</div>'
+  return maybeThen(
+    promiseAll([attr1, attr3, attr4]),
+    ([attr1, attr3, attr4]) =>
+      '<div q:id="' +
+      id0 +
+      '" title="' +
+      escapeHTML(attr1) +
+      '" class="' +
+      escapeHTML(attr3) +
+      '" style="' +
+      escapeHTML(attr4) +
+      '" data-kind="counter">Attrs</div>'
   );
 }
 

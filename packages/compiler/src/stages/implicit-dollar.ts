@@ -90,8 +90,16 @@ export function isCreateVisibleTaskSegment(segment: SegmentRecord) {
   return isImplicitDollarSegment(segment) && segment.ctxName === 'createVisibleTask$';
 }
 
+export function isCreateAsyncSegment(segment: SegmentRecord) {
+  return isImplicitDollarSegment(segment) && segment.ctxName === 'createAsync$';
+}
+
 export function isTaskDollarSegment(segment: SegmentRecord) {
   return isCreateTaskSegment(segment) || isCreateVisibleTaskSegment(segment);
+}
+
+export function isGeneratorTrackedSegment(segment: SegmentRecord) {
+  return isTaskDollarSegment(segment) || isCreateAsyncSegment(segment);
 }
 
 export function hasTaskSetupSegment(
@@ -203,7 +211,7 @@ export function createTaskGeneratorReplacement(
   sourceCode: string,
   segment: SegmentRecord
 ): Replacement | null {
-  if (!isTaskDollarSegment(segment) || !segment.async || !segment.functionRange) {
+  if (!isGeneratorTrackedSegment(segment) || !segment.async || !segment.functionRange) {
     return null;
   }
   const params = segment.paramRanges.map(([start, end]) => sourceCode.slice(start, end)).join(', ');

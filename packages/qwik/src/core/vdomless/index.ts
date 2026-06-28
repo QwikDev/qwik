@@ -1,5 +1,6 @@
 export { ComputedFlags, OwnerFlags, SubscriberFlags } from './reactive/flags';
 export { escapeHTML } from '../shared/utils/character-escaping';
+export { maybeThen, promiseAll } from '../shared/utils/promises';
 export {
   isComputedSource,
   peekSourceValue,
@@ -31,6 +32,15 @@ export {
   type ComputedQrlFn,
   type ComputedQrlRef,
 } from './reactive/computed-qrl';
+export {
+  AsyncSignal,
+  createAsync,
+  createAsyncQrl,
+  createAsync$,
+  type AsyncSignalFn,
+  type AsyncSignalQrl,
+} from './reactive/async-signal';
+export type { AsyncCtx, AsyncSignalOptions } from '../reactive-primitives/types';
 export { createStore, type Store } from './reactive/store';
 
 export {
@@ -203,6 +213,7 @@ export {
   _withCaptures,
   createVisibleTaskHandlerQrl,
 } from '../../spark/handlers';
+export { _res } from '../shared/jsx/bind-handlers';
 export {
   createContainerContext,
   getOrCreateContainerContext,

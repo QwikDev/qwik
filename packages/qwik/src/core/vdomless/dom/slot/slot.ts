@@ -10,6 +10,7 @@ import {
   getActiveInvokeContextOrNull,
   invoke,
   newChildInvokeContext,
+  type RuntimeInvokeContext,
 } from '../../runtime/invoke-context';
 import { disposeOwner, type Owner } from '../../runtime/owner';
 import { EMPTY_ARRAY, EMPTY_NODES, EMPTY_STRING } from '../../utils/consts';
@@ -137,21 +138,29 @@ export function createSlot(
 export function renderSsrSlot(
   ctx: SsrSlotContext,
   name: string = EMPTY_STRING,
-  fallback?: QRL<SsrSlotRenderFn>
+  fallback?: QRL<SsrSlotRenderFn>,
+  invokeContext: RuntimeInvokeContext | null = getActiveInvokeContext()
 ): ValueOrPromise<string> {
-  const context = getActiveInvokeContext();
+  const context = invokeContext ?? getActiveInvokeContext();
   const projections = resolveSlot(context.slotScope, name);
   if (projections.length === 0) {
-    return fallback === undefined ? EMPTY_STRING : renderSsrProjection(ctx, fallback, null);
+    return fallback === undefined
+      ? EMPTY_STRING
+      : renderSsrProjection(ctx, fallback, null, context);
   }
 
   let html = EMPTY_STRING;
   for (let i = 0; i < projections.length; i++) {
-    const output = renderSsrProjection(ctx, projections[i].renderQrl, projections[i].slotScope);
+    const output = renderSsrProjection(
+      ctx,
+      projections[i].renderQrl,
+      projections[i].slotScope,
+      context
+    );
     if (isPromise(output)) {
       return output.then((resolved) => {
         html += resolved;
-        return renderRemainingSsrProjections(ctx, html, projections, i + 1);
+        return renderRemainingSsrProjections(ctx, html, projections, i + 1, context);
       });
     }
     html += output;
@@ -202,7 +211,8 @@ function project(
 function renderSsrProjection(
   ctx: SsrSlotContext,
   renderQrl: unknown,
-  slotScope: SlotScope | null
+  slotScope: SlotScope | null,
+  base: RuntimeInvokeContext
 ): ValueOrPromise<string> {
   const rangeId = ctx.nextId();
   const render = getFunctionOrResolve(
@@ -210,7 +220,6 @@ function renderSsrProjection(
     ctx as any
   );
   return maybeThen(render, (render) => {
-    const base = getActiveInvokeContextOrNull();
     const invokeContext = newChildInvokeContext(base, {
       ownerHost: base,
       slotScope,
@@ -243,14 +252,20 @@ function renderRemainingSsrProjections(
   ctx: SsrSlotContext,
   html: string,
   projections: readonly Projection[],
-  start: number
+  start: number,
+  invokeContext: RuntimeInvokeContext
 ): ValueOrPromise<string> {
   let output = html;
   for (let i = start; i < projections.length; i++) {
-    const projected = renderSsrProjection(ctx, projections[i].renderQrl, projections[i].slotScope);
+    const projected = renderSsrProjection(
+      ctx,
+      projections[i].renderQrl,
+      projections[i].slotScope,
+      invokeContext
+    );
     if (isPromise(projected)) {
       return projected.then((resolved) =>
-        renderRemainingSsrProjections(ctx, output + resolved, projections, i + 1)
+        renderRemainingSsrProjections(ctx, output + resolved, projections, i + 1, invokeContext)
       );
     }
     output += projected;

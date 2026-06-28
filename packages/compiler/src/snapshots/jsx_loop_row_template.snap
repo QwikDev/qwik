@@ -34,6 +34,7 @@ import {
   _qrlWithChunk,
   createSsrElementTextTarget,
   renderSsrForBlock,
+  maybeThen,
 } from '@qwik.dev/core/spark';
 import { component_for_key_segment_1 } from './component.tsx_component_for_key_segment_1';
 import { component_for_render_segment_0 } from './component.tsx_component_for_render_segment_0';
@@ -51,7 +52,7 @@ const q_component_for_render_segment_0 = /*#__PURE__*/ _qrlWithChunk(
 );
 q_component_for_render_segment_0.s(component_for_render_segment_0);
 
-export async function App(_props, ctx) {
+export function App(_props, ctx) {
   const rows = createSignal([
     {
       id: 1,
@@ -70,7 +71,10 @@ export async function App(_props, ctx) {
     true,
     false
   );
-  return '<table><tbody><!f=' + id0 + '>' + (await forBlock1) + '<!/f></tbody></table>';
+  return maybeThen(
+    forBlock1,
+    (forBlock1) => '<table><tbody><!f=' + id0 + '>' + forBlock1 + '<!/f></tbody></table>'
+  );
 }
 
 null
@@ -116,6 +120,8 @@ import {
   createSsrElementTextTarget,
   renderSsrTextExpression,
   renderSsrAttrExpression,
+  maybeThen,
+  promiseAll,
 } from '@qwik.dev/core/spark';
 const q_component_className_segment_2 = /* @__PURE__ */ _qrlWithChunk(
   './component.tsx_component_className_segment_2',
@@ -165,22 +171,24 @@ export const component_for_render_segment_0 = (ctx, rangeId, rowId, row, index) 
     q_component_text_segment_5,
     batch2
   );
-  return (
-    '<tr q:id="' +
-    id0 +
-    '" q:row class="' +
-    escapeHTML(attr1) +
-    '"><td q:id="' +
-    id3 +
-    '" class="col-md-1">' +
-    escapeHTML(text4) +
-    '</td><td class="col-md-4"><a q:id="' +
-    id5 +
-    '"' +
-    ctx.eventAttr('q-e:click', q_component_q_e_click_segment_4.w([row])) +
-    '>' +
-    escapeHTML(text6) +
-    '</a></td><td class="col-md-1"><a><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></a></td><td class="col-md-6"></td></tr>'
+  return maybeThen(
+    promiseAll([attr1, text4, text6]),
+    ([attr1, text4, text6]) =>
+      '<tr q:id="' +
+      id0 +
+      '" q:row class="' +
+      escapeHTML(attr1) +
+      '"><td q:id="' +
+      id3 +
+      '" class="col-md-1">' +
+      escapeHTML(text4) +
+      '</td><td class="col-md-4"><a q:id="' +
+      id5 +
+      '"' +
+      ctx.eventAttr('q-e:click', q_component_q_e_click_segment_4.w([row])) +
+      '>' +
+      escapeHTML(text6) +
+      '</a></td><td class="col-md-1"><a><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></a></td><td class="col-md-6"></td></tr>'
   );
 };
 

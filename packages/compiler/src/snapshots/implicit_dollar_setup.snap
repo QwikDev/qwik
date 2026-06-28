@@ -18,6 +18,7 @@ import {
   escapeHTML,
   renderSsrTextNode,
   createSsrElementTextTarget,
+  maybeThen,
 } from '@qwik.dev/core/spark';
 import { component_createComputed$_segment_0 } from './component.tsx_component_createComputed$_segment_0';
 
@@ -34,7 +35,7 @@ export function App(_props, ctx) {
   const id0 = ctx.nextId();
   ctx.addRoot(double);
   const text1 = renderSsrTextNode(createSsrElementTextTarget(id0), double);
-  return '<p q:id="' + id0 + '">' + escapeHTML(text1) + '</p>';
+  return maybeThen(text1, (text1) => '<p q:id="' + id0 + '">' + escapeHTML(text1) + '</p>');
 }
 
 null

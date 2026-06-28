@@ -2,6 +2,7 @@ import { _captures, deserializeCaptures, setCaptures } from '../../shared/qrl/qr
 import type { Signal } from '../../reactive-primitives/signal.public';
 import { AsyncSignalImpl } from '../../reactive-primitives/impl/async-signal-impl';
 import { AsyncSignalFlags } from '../../reactive-primitives/types';
+import { AsyncSignal } from '../../vdomless/reactive/async-signal';
 import { getOrCreateContainerContext } from '../../vdomless/runtime/container-context';
 import type { ValueOrPromise } from '../utils/types';
 
@@ -62,6 +63,9 @@ export function _res(this: string | undefined, _: any, element: Element) {
         const capture = _captures[i];
         if (capture instanceof AsyncSignalImpl && capture.$flags$ & AsyncSignalFlags.CLIENT_ONLY) {
           capture.$computeIfNeeded$();
+        }
+        if (capture instanceof AsyncSignal) {
+          capture.resume();
         }
         // Polling async signals will automatically schedule themselves.
       }

@@ -24,6 +24,7 @@ import {
   createComponent,
   _qrlWithChunk,
   renderSsrBranch,
+  maybeThen,
 } from '@qwik.dev/core/spark';
 import { component_branch_condition_segment_2 } from './component.tsx_component_branch_condition_segment_2';
 
@@ -44,7 +45,7 @@ const q_component_branch_else_segment_4 = /*#__PURE__*/ _qrlWithChunk(
   'component_branch_else_segment_4'
 );
 
-export async function App(_props, ctx) {
+export function App(_props, ctx) {
   const count = createSignal(0);
   const id0 = ctx.nextId();
   ctx.addRoot(count);
@@ -55,7 +56,7 @@ export async function App(_props, ctx) {
     q_component_branch_then_segment_3,
     q_component_branch_else_segment_4.w([count])
   );
-  return '<section><!b=' + id0 + '>' + (await branch1) + '<!/b></section>';
+  return maybeThen(branch1, (branch1) => '<section><!b=' + id0 + '>' + branch1 + '<!/b></section>');
 }
 
 null
@@ -66,6 +67,7 @@ import {
   escapeHTML,
   createSsrRangeTextTarget,
   renderSsrTextExpression,
+  maybeThen,
 } from '@qwik.dev/core/spark';
 import { component_text_segment_1 } from './component.tsx_component_text_segment_1';
 const q_component_text_segment_1 = /* @__PURE__ */ _qrlWithChunk(
@@ -83,7 +85,10 @@ export function Hello(_props, ctx) {
     [name],
     q_component_text_segment_1
   );
-  return '<p q:id="' + id0 + '">Hello, <!t>' + escapeHTML(text1) + '<!/t>!</p>';
+  return maybeThen(
+    text1,
+    (text1) => '<p q:id="' + id0 + '">Hello, <!t>' + escapeHTML(text1) + '<!/t>!</p>'
+  );
 }
 
 null
@@ -116,6 +121,7 @@ import {
   escapeHTML,
   createSsrRangeTextTarget,
   renderSsrTextExpression,
+  maybeThen,
 } from '@qwik.dev/core/spark';
 import { component_text_segment_0 } from './component.tsx_component_text_segment_0';
 const q_component_text_segment_0 = /* @__PURE__ */ _qrlWithChunk(
@@ -133,7 +139,10 @@ export function Counter(_props, ctx) {
     [count],
     q_component_text_segment_0
   );
-  return '<p q:id="' + id0 + '">Count: <!t>' + escapeHTML(text1) + '</p>';
+  return maybeThen(
+    text1,
+    (text1) => '<p q:id="' + id0 + '">Count: <!t>' + escapeHTML(text1) + '</p>'
+  );
 }
 
 null
@@ -194,10 +203,10 @@ null
 ============================= src/component.tsx_component_branch_then_segment_3.js (ENTRY POINT)==
 
 import { Hello } from './component.tsx_component_Hello';
-import { createComponent } from '@qwik.dev/core/spark';
-export const component_branch_then_segment_3 = async (ctx) => {
+import { createComponent, maybeThen } from '@qwik.dev/core/spark';
+export const component_branch_then_segment_3 = (ctx) => {
   const component0 = createComponent({ name: 'Qwik' }, (props) => Hello(props, ctx));
-  return await component0;
+  return maybeThen(component0, (component0) => component0);
 };
 
 null
@@ -224,8 +233,8 @@ null
 ============================= src/component.tsx_component_branch_else_segment_4.js (ENTRY POINT)==
 
 import { Counter } from './component.tsx_component_Counter';
-import { _captures, createComponent } from '@qwik.dev/core/spark';
-export const component_branch_else_segment_4 = async (ctx) => {
+import { _captures, createComponent, maybeThen } from '@qwik.dev/core/spark';
+export const component_branch_else_segment_4 = (ctx) => {
   const count = _captures[0];
   const component0 = createComponent(
     {
@@ -235,7 +244,7 @@ export const component_branch_else_segment_4 = async (ctx) => {
     },
     (props) => Counter(props, ctx)
   );
-  return await component0;
+  return maybeThen(component0, (component0) => component0);
 };
 
 null

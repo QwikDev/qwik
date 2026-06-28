@@ -17,6 +17,7 @@ import {
   _qrlWithChunk,
   createSsrRangeTextTarget,
   renderSsrBranch,
+  maybeThen,
 } from '@qwik.dev/core/spark';
 import { component_branch_condition_segment_0 } from './component.tsx_component_branch_condition_segment_0';
 
@@ -32,7 +33,7 @@ const q_component_branch_then_segment_1 = /*#__PURE__*/ _qrlWithChunk(
   'component_branch_then_segment_1'
 );
 
-export async function App(_props, ctx) {
+export function App(_props, ctx) {
   const visible = createSignal(true);
   const label = createSignal('ready');
   const attrs = createSignal({ role: 'status' });
@@ -47,7 +48,7 @@ export async function App(_props, ctx) {
     q_component_branch_then_segment_1.w([attrs, label]),
     undefined
   );
-  return '<div><!b=' + id0 + '>' + (await branch1) + '<!/b></div>';
+  return maybeThen(branch1, (branch1) => '<div><!b=' + id0 + '>' + branch1 + '<!/b></div>');
 }
 
 null
@@ -94,6 +95,8 @@ import {
   createSsrRangeTextTarget,
   createSsrElementTarget,
   renderSsrProps,
+  maybeThen,
+  promiseAll,
 } from '@qwik.dev/core/spark';
 const q_component_props_segment_2 = /* @__PURE__ */ _qrlWithChunk(
   './component.tsx_component_props_segment_2',
@@ -114,14 +117,16 @@ export const component_branch_then_segment_1 = (ctx) => {
     ctx.eventAttr
   );
   const text2 = renderSsrTextNode(createSsrRangeTextTarget(id0, 0), label);
-  return (
-    '<span q:id="' +
-    id0 +
-    '"' +
-    props1.attrs +
-    '>' +
-    (props1.innerHTML ?? '<!t>' + escapeHTML(text2) + '<!/t>!') +
-    '</span>'
+  return maybeThen(
+    promiseAll([props1, text2]),
+    ([props1, text2]) =>
+      '<span q:id="' +
+      id0 +
+      '"' +
+      props1.attrs +
+      '>' +
+      (props1.innerHTML ?? '<!t>' + escapeHTML(text2) + '<!/t>!') +
+      '</span>'
   );
 };
 

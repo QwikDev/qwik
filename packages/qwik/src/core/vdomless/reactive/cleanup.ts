@@ -39,6 +39,7 @@ export function disposeSubscriber(subscriber: Subscriber): void {
 
   switch (subscriber.kind) {
     case SubscriberKind.Computed:
+      (subscriber as { dispose?: () => void }).dispose?.();
       subscriber.flags &= ComputedFlags.HasValue;
       cleanupDeps(subscriber);
       // Only computed is both a subscriber and a source, so it can retain

@@ -25,10 +25,7 @@ import {
   getDomEffectBatchStats,
   getDomPropsBatchKey,
   getDynamicBindingBatchKey,
-  hasBranch,
-  hasComponent,
   hasDynamicBinding,
-  hasForBlock,
   hasSlot,
   isDomEffectBatched,
   rewriteLoopCaptures,
@@ -95,14 +92,10 @@ function emitSsrComponent(
     domEffectBatchCounts: getDomEffectBatchStats(component.root, qrlSegments).counts,
     visibleTasks: collectVisibleTaskCarriers(component, segments, qrlSegments, sourceCode),
   });
+  const slotInvokeContextId = hasSlot(component.root) ? emitter.ensureSlotInvokeContextId() : null;
   const html = emitter.emitHtmlExpression(component.root!);
   const setupAwaits = hasTaskSetupSegment(component, segments, isCreateTaskSegment);
-  const isAsync =
-    setupAwaits ||
-    hasBranch(component.root) ||
-    hasForBlock(component.root) ||
-    hasComponent(component.root) ||
-    hasSlot(component.root);
+  const isAsync = setupAwaits;
   const setup = emitComponentSetup(
     component,
     qrlSegments,
@@ -112,15 +105,24 @@ function emitSsrComponent(
     hasDynamicBinding(component.root) || component.providesContext
   );
   const paramSetup = emitComponentParamSetup(component, sourceCode);
-  const statements = emitter.toString();
+  const returnExpression = component.providesContext
+    ? emitter.emitReturnExpression(`'<!c=' + contextScopeId + '>' + ${html} + '<!/c>'`)
+    : emitter.emitReturnExpression(html);
+  const statements = [
+    slotInvokeContextId === null
+      ? ''
+      : `const ${slotInvokeContextId} = ${QwikSymbol.GetActiveInvokeContextOrNull}();`,
+    emitter.toString(),
+  ]
+    .filter(Boolean)
+    .join('\n');
   const renderBodyParts = component.providesContext
     ? [
         'const contextScopeId = ctx.contextScopeId();',
         statements,
-        `const contextHtml = ${html};`,
-        "return '<!c=' + contextScopeId + '>' + contextHtml + '<!/c>';",
+        `return ${returnExpression};`,
       ].filter(Boolean)
-    : [statements, `return ${html};`].filter(Boolean);
+    : [statements, `return ${returnExpression};`].filter(Boolean);
   const renderBody = renderBodyParts.join('\n');
   const bodyParts = setupAwaits
     ? [
@@ -145,7 +147,7 @@ function emitSsrComponent(
   if (component.declarationKind === 'const') {
     return bodyParts.length > 1
       ? `export const ${component.exportName} = ${isAsync ? 'async ' : ''}(${propsParam}, ${ctxParam}) => {\n${body}\n};`
-      : `export const ${component.exportName} = ${isAsync ? 'async ' : ''}(${propsParam}, ${ctxParam}) => ${html};`;
+      : `export const ${component.exportName} = ${isAsync ? 'async ' : ''}(${propsParam}, ${ctxParam}) => ${returnExpression};`;
   }
   if (component.declarationKind === 'defaultFunction') {
     const name = component.localName ? ` ${component.localName}` : '';
@@ -153,7 +155,7 @@ function emitSsrComponent(
   }
   return bodyParts.length > 1
     ? `export default ${isAsync ? 'async ' : ''}(${propsParam}, ${ctxParam}) => {\n${body}\n};`
-    : `export default ${isAsync ? 'async ' : ''}(${propsParam}, ${ctxParam}) => ${html};`;
+    : `export default ${isAsync ? 'async ' : ''}(${propsParam}, ${ctxParam}) => ${returnExpression};`;
 }
 
 function getComponentPropsParam(component: ComponentRecord): string {
@@ -208,6 +210,8 @@ export class SsrEmitter {
   private readonly lines: string[] = [];
   private readonly roots = new Set<string>();
   private readonly ssrBatches = new Map<string, string>();
+  private readonly valueOrPromiseIds: string[] = [];
+  private slotInvokeContextId: string | null = null;
   usesCtx = false;
 
   constructor(
@@ -218,6 +222,20 @@ export class SsrEmitter {
 
   emitHtmlExpression(node: RenderNode) {
     return partsToExpression(this.emitHtmlParts(node));
+  }
+
+  emitReturnExpression(expression: string): string {
+    const ids = this.valueOrPromiseIds;
+    if (ids.length === 0) {
+      return expression;
+    }
+    if (ids.length === 1) {
+      const id = ids[0];
+      return `${QwikSymbol.MaybeThen}(${id}, (${id}) => ${expression})`;
+    }
+    return `${QwikSymbol.MaybeThen}(${QwikSymbol.PromiseAll}([${ids.join(', ')}]), ([${ids.join(
+      ', '
+    )}]) => ${expression})`;
   }
 
   private emitHtmlParts(node: RenderNode): HtmlPart[] {
@@ -295,7 +313,7 @@ export class SsrEmitter {
     );
     return [
       {
-        code: `(await ${componentId})`,
+        code: this.trackValueOrPromise(componentId),
       },
     ];
   }
@@ -349,6 +367,7 @@ export class SsrEmitter {
   private emitSlotParts(node: SlotNode): HtmlPart[] {
     this.usesCtx = true;
     const id = this.next('slot');
+    const invokeContextId = this.ensureSlotInvokeContextId();
     let fallback = 'undefined';
     if (node.fallbackSegmentId !== null) {
       const qrlSegment = this.requireQrlSegment(node.fallbackSegmentId);
@@ -356,9 +375,15 @@ export class SsrEmitter {
       fallback = emitQrlReference(qrlSegment);
     }
     this.line(
-      `const ${id} = ${QwikSymbol.RenderSsrSlot}(ctx, ${JSON.stringify(node.name)}, ${fallback});`
+      `const ${id} = ${QwikSymbol.RenderSsrSlot}(ctx, ${JSON.stringify(
+        node.name
+      )}, ${fallback}, ${invokeContextId});`
     );
-    return [{ code: `(await ${id})` }];
+    return [{ code: this.trackValueOrPromise(id) }];
+  }
+
+  ensureSlotInvokeContextId(): string {
+    return (this.slotInvokeContextId ??= this.next('slotCtx'));
   }
 
   private emitComponentPropEntry(prop: ComponentPropRecord): string {
@@ -485,7 +510,7 @@ export class SsrEmitter {
         qrlSegment
       )}, ${qrlSegment.qrlVariableName}, ctx.eventAttr${batchArg});`
     );
-    return id;
+    return this.trackValueOrPromise(id);
   }
 
   private emitBranchParts(node: BranchNode): HtmlPart[] {
@@ -515,7 +540,7 @@ export class SsrEmitter {
       { code: rangeId },
       '>',
       {
-        code: `(await ${branchId})`,
+        code: this.trackValueOrPromise(branchId),
       },
       '<!/b>',
     ];
@@ -542,7 +567,7 @@ export class SsrEmitter {
       { code: rangeId },
       '>',
       {
-        code: `(await ${blockId})`,
+        code: this.trackValueOrPromise(blockId),
       },
       '<!/f>',
     ];
@@ -564,6 +589,7 @@ export class SsrEmitter {
           prop.name
         )}, ${this.emitCaptureArgs(qrlSegment)}, ${qrlSegment.qrlVariableName}${batchArg});`
       );
+      this.trackValueOrPromise(id);
       return [` ${prop.name}="`, { code: `${QwikSymbol.EscapeHTML}(${id})` }, '"'];
     }
     this.emitRoot(binding.sourceName);
@@ -574,6 +600,7 @@ export class SsrEmitter {
         binding.sourceName
       }${batchArg});`
     );
+    this.trackValueOrPromise(id);
     return [` ${prop.name}="`, { code: `${QwikSymbol.EscapeHTML}(${id})` }, '"'];
   }
 
@@ -614,6 +641,7 @@ export class SsrEmitter {
       this.line(
         `const ${id} = ${QwikSymbol.RenderSsrTextNode}(${target}, ${node.binding.sourceName}${batchArg});`
       );
+      this.trackValueOrPromise(id);
       return [{ code: `${QwikSymbol.EscapeHTML}(${id})` }];
     }
 
@@ -631,6 +659,7 @@ export class SsrEmitter {
         qrlSegment
       )}, ${qrlSegment.qrlVariableName}${batchArg});`
     );
+    this.trackValueOrPromise(id);
     return [{ code: `${QwikSymbol.EscapeHTML}(${id})` }];
   }
 
@@ -710,6 +739,11 @@ export class SsrEmitter {
     }
     this.roots.add(name);
     this.line(`ctx.addRoot(${name});`);
+  }
+
+  private trackValueOrPromise(id: string): string {
+    this.valueOrPromiseIds.push(id);
+    return id;
   }
 
   private line(code: string) {

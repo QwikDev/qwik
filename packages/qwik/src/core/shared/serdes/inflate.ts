@@ -1,5 +1,5 @@
 import { isDev } from '@qwik.dev/core/build';
-import { NEEDS_COMPUTATION } from '../../reactive-primitives/types';
+import { NEEDS_COMPUTATION, type AsyncSignalOptions } from '../../reactive-primitives/types';
 import { Branch, BranchRange, BranchSubscription } from '../../vdomless/dom/branch/branch';
 import { ForBlockSubscription } from '../../vdomless/dom/effect/effect';
 import { ForBlock, ForRange } from '../../vdomless/dom/for/for';
@@ -17,6 +17,7 @@ import {
 import { EffectKind } from '../../vdomless/dom/effect/effect-kind.enum';
 import { EffectTargetKind } from '../../vdomless/dom/effect/ssr-effect';
 import { ComputedFlags } from '../../vdomless/reactive/flags';
+import { AsyncSignal } from '../../vdomless/reactive/async-signal';
 import { createLazySourceSubs, LazySerialized } from '../../vdomless/reactive/lazy-serialized';
 import { Signal as VdomlessSignal } from '../../vdomless/reactive/signal';
 import {
@@ -104,6 +105,7 @@ export const inflate = (
     typeId !== TypeIds.Store &&
     typeId !== TypeIds.StoreProp &&
     typeId !== TypeIds.ComputedSignal &&
+    typeId !== TypeIds.AsyncSignal &&
     Array.isArray(data)
   ) {
     return maybeThen(_eagerDeserializeArray(container, data), (data) =>
@@ -176,6 +178,32 @@ const inflateResolved = (
               }
               if (d.length > 6) {
                 computed.subs = createLazySourceSubscribers(computed, container, d, 6);
+              }
+            })
+          )
+        )
+      );
+    }
+    case TypeIds.AsyncSignal: {
+      const signal = target as AsyncSignal<unknown>;
+      ensureDeserializedOwner(signal);
+      const d = data as unknown[];
+      const subscriberOffset = 8;
+      return maybeThen(deserializeData(container, d[0] as TypeIds, d[1]), (qrl) =>
+        maybeThen(deserializeData(container, d[2] as TypeIds, d[3]), (deps) =>
+          maybeThen(deserializeData(container, d[4] as TypeIds, d[5]), (value) =>
+            maybeThen(deserializeData(container, d[6] as TypeIds, d[7]), (options) => {
+              signal.computeQrl = qrl as AsyncSignal<unknown>['computeQrl'];
+              signal.setOptions((options as AsyncSignalOptions<unknown> | null) ?? undefined);
+              restoreDependencies(signal, deps as Dependency[]);
+              if (value === NEEDS_COMPUTATION) {
+                signal.flags = ComputedFlags.Dirty;
+              } else {
+                signal.v = value as unknown;
+                signal.flags = ComputedFlags.HasValue;
+              }
+              if (d.length > subscriberOffset) {
+                signal.subs = createLazySourceSubscribers(signal, container, d, subscriberOffset);
               }
             })
           )
@@ -699,7 +727,12 @@ function resolveBranchTextTarget(
 }
 
 function restoreDependencies(
-  collector: DomSubscriber | BranchSubscription | ForBlockSubscription | TaskSubscriber,
+  collector:
+    | DomSubscriber
+    | BranchSubscription
+    | ForBlockSubscription
+    | TaskSubscriber
+    | AsyncSignal<unknown>,
   deps: Dependency[]
 ) {
   if (deps && deps.length > 0) {

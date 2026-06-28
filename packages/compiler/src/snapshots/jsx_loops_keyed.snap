@@ -26,6 +26,7 @@ import {
   _qrlWithChunk,
   createSsrElementTextTarget,
   renderSsrForBlock,
+  maybeThen,
 } from '@qwik.dev/core/spark';
 import { component_for_key_segment_1 } from './component.tsx_component_for_key_segment_1';
 import { component_for_render_segment_0 } from './component.tsx_component_for_render_segment_0';
@@ -43,7 +44,7 @@ const q_component_for_render_segment_0 = /*#__PURE__*/ _qrlWithChunk(
 );
 q_component_for_render_segment_0.s(component_for_render_segment_0);
 
-export async function App(_props, ctx) {
+export function App(_props, ctx) {
   const items = createSignal([
     {
       id: 'a',
@@ -63,7 +64,7 @@ export async function App(_props, ctx) {
     true,
     true
   );
-  return '<ul><!f=' + id0 + '>' + (await forBlock1) + '<!/f></ul>';
+  return maybeThen(forBlock1, (forBlock1) => '<ul><!f=' + id0 + '>' + forBlock1 + '<!/f></ul>');
 }
 
 null
@@ -112,6 +113,8 @@ import {
   renderSsrTextExpression,
   renderSsrAttrExpression,
   renderSsrProps,
+  maybeThen,
+  promiseAll,
 } from '@qwik.dev/core/spark';
 const q_component_props_segment_2 = /* @__PURE__ */ _qrlWithChunk(
   './component.tsx_component_props_segment_2',
@@ -174,25 +177,27 @@ export const component_for_render_segment_0 = (ctx, rangeId, rowId, row, index) 
     q_component_text_segment_5,
     batch2
   );
-  return (
-    '<li q:id="' +
-    id0 +
-    '" q:row' +
-    props1.attrs +
-    '>' +
-    (props1.innerHTML ??
-      '<span q:id="' +
-        id3 +
-        '" data-index="' +
-        escapeHTML(attr4) +
-        '" class="' +
-        escapeHTML(attr5) +
-        '">' +
-        escapeHTML(text6) +
-        '</span><button' +
-        ctx.eventAttr('q-e:click', q_component_q_e_click_segment_6.w([row])) +
-        '>Toggle</button>') +
-    '</li>'
+  return maybeThen(
+    promiseAll([props1, attr4, attr5, text6]),
+    ([props1, attr4, attr5, text6]) =>
+      '<li q:id="' +
+      id0 +
+      '" q:row' +
+      props1.attrs +
+      '>' +
+      (props1.innerHTML ??
+        '<span q:id="' +
+          id3 +
+          '" data-index="' +
+          escapeHTML(attr4) +
+          '" class="' +
+          escapeHTML(attr5) +
+          '">' +
+          escapeHTML(text6) +
+          '</span><button' +
+          ctx.eventAttr('q-e:click', q_component_q_e_click_segment_6.w([row])) +
+          '>Toggle</button>') +
+      '</li>'
   );
 };
 

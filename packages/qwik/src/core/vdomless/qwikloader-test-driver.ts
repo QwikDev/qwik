@@ -106,6 +106,21 @@ async function getQwikLoaderSource(document: Document): Promise<string> {
 }
 
 function runQwikLoader(source: string, document: Document, win: Window): void {
+  const testWindow = win as Window & {
+    requestIdleCallback?: (callback: IdleRequestCallback) => number;
+    cancelIdleCallback?: (handle: number) => void;
+  };
+  testWindow.requestIdleCallback ??= (callback: IdleRequestCallback) =>
+    setTimeout(
+      () =>
+        callback({
+          didTimeout: false,
+          timeRemaining: () => 0,
+        }),
+      0
+    ) as unknown as number;
+  testWindow.cancelIdleCallback ??= (handle: number) => clearTimeout(handle);
+
   const testSource = source
     .replace(
       'const queueTasks = (tasks) => {',

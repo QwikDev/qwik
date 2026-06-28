@@ -16,6 +16,8 @@ import {
   escapeHTML,
   renderSsrTextNode,
   createSsrRangeTextTarget,
+  maybeThen,
+  promiseAll,
 } from '@qwik.dev/core/spark';
 
 export function App(_props, ctx) {
@@ -26,7 +28,11 @@ export function App(_props, ctx) {
   const text1 = renderSsrTextNode(createSsrRangeTextTarget(id0, 0), first);
   ctx.addRoot(second);
   const text2 = renderSsrTextNode(createSsrRangeTextTarget(id0, 1), second);
-  return '<p q:id="' + id0 + '"><!t>' + escapeHTML(text1) + '<!t>' + escapeHTML(text2) + '</p>';
+  return maybeThen(
+    promiseAll([text1, text2]),
+    ([text1, text2]) =>
+      '<p q:id="' + id0 + '"><!t>' + escapeHTML(text1) + '<!t>' + escapeHTML(text2) + '</p>'
+  );
 }
 
 null

@@ -13,13 +13,13 @@ export function Parent() {
 ============================= src/component.tsx ==
 
 import { Child } from './component.tsx_component_Child';
-import { createComponent } from '@qwik.dev/core/spark';
+import { createComponent, maybeThen } from '@qwik.dev/core/spark';
 
 export { Child } from './component.tsx_component_Child';
 
-export async function Parent(_props, ctx) {
+export function Parent(_props, ctx) {
   const component0 = createComponent({}, (props) => Child(props, ctx));
-  return '<section>' + (await component0) + '</section>';
+  return maybeThen(component0, (component0) => '<section>' + component0 + '</section>');
 }
 
 null

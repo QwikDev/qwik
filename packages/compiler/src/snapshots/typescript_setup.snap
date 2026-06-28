@@ -21,6 +21,7 @@ import {
   escapeHTML,
   renderSsrTextNode,
   createSsrElementTextTarget,
+  maybeThen,
 } from '@qwik.dev/core/spark';
 
 export const App = (_props, ctx) => {
@@ -31,8 +32,19 @@ export const App = (_props, ctx) => {
   const id0 = ctx.nextId();
   ctx.addRoot(source);
   const text1 = renderSsrTextNode(createSsrElementTextTarget(id0), source);
-  const contextHtml = '<p q:id="' + id0 + '">' + escapeHTML(text1) + '</p>';
-  return '<!c=' + contextScopeId + '>' + contextHtml + '<!/c>';
+  return maybeThen(
+    text1,
+    (text1) =>
+      '<!c=' +
+      contextScopeId +
+      '>' +
+      '<p q:id="' +
+      id0 +
+      '">' +
+      escapeHTML(text1) +
+      '</p>' +
+      '<!/c>'
+  );
 };
 
 null

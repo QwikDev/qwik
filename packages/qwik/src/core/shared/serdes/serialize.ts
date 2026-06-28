@@ -10,6 +10,7 @@ import {
   type SsrDomEffect,
 } from '../../vdomless/dom/effect/ssr-effect';
 import { ComputedFlags } from '../../vdomless/reactive/flags';
+import { AsyncSignal } from '../../vdomless/reactive/async-signal';
 import { ComputedQrl } from '../../vdomless/reactive/computed-qrl';
 import { Signal } from '../../vdomless/reactive/signal';
 import {
@@ -479,7 +480,9 @@ export class Serializer {
   }
 
   private writeObjectValue(value: {}) {
-    if (value instanceof Signal) {
+    if (value instanceof AsyncSignal) {
+      this.output(TypeIds.AsyncSignal, serializeAsyncSignal(value));
+    } else if (value instanceof Signal) {
       this.output(TypeIds.Signal, serializeSignal(value));
     } else if (value instanceof ComputedQrl) {
       this.output(TypeIds.ComputedSignal, serializeComputed(value));
@@ -825,6 +828,45 @@ function serializeComputed(computed: ComputedQrl<unknown>): unknown[] {
     value,
     ...serializeSubscribers(computed.subs),
   ];
+}
+
+function serializeAsyncSignal(signal: AsyncSignal<unknown>): unknown[] {
+  const hasCachedValue = !!(signal.flags & ComputedFlags.HasValue);
+  const needsComputation =
+    !hasCachedValue || !!(signal.flags & ComputedFlags.Dirty) || fastSkipSerialize(signal.v);
+  const value = needsComputation
+    ? NEEDS_COMPUTATION
+    : signal.v === undefined
+      ? explicitUndefined
+      : signal.v;
+
+  return [
+    signal.computeQrl,
+    serializeDeps(signal.deps),
+    value,
+    serializeAsyncSignalOptions(signal),
+    ...serializeSubscribers(signal.subs),
+  ];
+}
+
+function serializeAsyncSignalOptions(signal: AsyncSignal<unknown>): Record<string, unknown> | null {
+  const options: Record<string, unknown> = {};
+  if (signal.options?.clientOnly) {
+    options.clientOnly = true;
+  }
+  if (signal.options?.allowStale === false) {
+    options.allowStale = false;
+  }
+  if (signal.options?.timeout) {
+    options.timeout = signal.options.timeout;
+  }
+  if (signal.expires) {
+    options.expires = signal.expires;
+  }
+  if (!signal.poll) {
+    options.poll = false;
+  }
+  return Object.keys(options).length === 0 ? null : options;
 }
 
 function serializeEffectSubscription(

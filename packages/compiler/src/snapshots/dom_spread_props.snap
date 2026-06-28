@@ -20,6 +20,7 @@ import {
   _qrlWithChunk,
   createSsrElementTarget,
   renderSsrProps,
+  maybeThen,
 } from '@qwik.dev/core/spark';
 import { component_props_segment_0 } from './component.tsx_component_props_segment_0';
 
@@ -51,7 +52,11 @@ export function App(_props, ctx) {
     q_component_props_segment_0,
     ctx.eventAttr
   );
-  return '<div q:id="' + id0 + '"' + props1.attrs + '>' + (props1.innerHTML ?? 'Child') + '</div>';
+  return maybeThen(
+    props1,
+    (props1) =>
+      '<div q:id="' + id0 + '"' + props1.attrs + '>' + (props1.innerHTML ?? 'Child') + '</div>'
+  );
 }
 
 null

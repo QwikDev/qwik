@@ -3,7 +3,10 @@ import { StringSSRWriter } from '../ssr-stream-writer';
 import { setEvent } from '../../core/ssr/ssr-events';
 import { getClientManifest } from '../../core/shared/get-client-manifest';
 import { getPlatform, setPlatform } from '../../core/shared/platform/platform';
+import { createQRL } from '../../core/shared/qrl/qrl-class';
+import { _res } from '../../core/shared/jsx/bind-handlers';
 import { createSerializationContext } from '../../core/shared/serdes/serialization-context';
+import type { SerializationContext } from '../../core/shared/serdes/serialization-context';
 import { escapeHTML } from '../../core/shared/utils/character-escaping';
 import type { ValueOrPromise } from '../../core/shared/utils/types';
 import { QContainerValue } from '../../core/shared/types';
@@ -23,6 +26,7 @@ import {
   invoke,
   newInvokeContext,
 } from '../../core/vdomless/runtime/invoke-context';
+import { disposeOwner } from '../../core/vdomless/runtime/owner';
 import { version } from '../../core/version';
 import { SsrScriptEmitter } from './ssr-script-emitter';
 import type {
@@ -36,6 +40,7 @@ import type { CorePlatformServer, ResolvedManifest, SymbolMapper } from '../qwik
 import { getBuildBase } from '../utils';
 
 export interface SsrRenderContext {
+  serializationCtx: SerializationContext;
   nextId(): number;
   addRoot(value: unknown): number;
   contextScopeId(): string;
@@ -67,6 +72,7 @@ export const renderToStream = async (
   const previousPlatform = getPlatform();
   const resolvedManifest = resolveManifest(opts.manifest);
   setVdomlessServerPlatform(opts, resolvedManifest);
+  const rootInvokeContext = newInvokeContext();
 
   try {
     const containerTagName = opts.containerTagName ?? 'html';
@@ -94,6 +100,7 @@ export const renderToStream = async (
     const scripts = new SsrScriptEmitter(opts);
     let nextId = 0;
     const ctx: SsrRenderContext = {
+      serializationCtx,
       nextId() {
         return nextId++;
       },
@@ -115,8 +122,10 @@ export const renderToStream = async (
         return serialized === null ? '' : ` ${name}="${escapeHTML(writeChunks(serialized))}"`;
       },
     };
+    rootInvokeContext.container = ctx as any;
 
-    const html = await invoke(newInvokeContext(), root, undefined, ctx);
+    const html = await invoke(rootInvokeContext, root, undefined, ctx);
+    const stateAttrs = createStateScriptEventAttrs(serializationCtx);
     const [containerOpen, containerClose] = createContainerTags(
       containerTagName,
       containerAttributes,
@@ -129,7 +138,8 @@ export const renderToStream = async (
       await scripts.emitState(
         serializationCtx.$writer$.toString(),
         0,
-        serializationCtx.$serializedRootCount$
+        serializationCtx.$serializedRootCount$,
+        stateAttrs
       );
     }
     if (serializationCtx.$eventQrls$.size > 0) {
@@ -161,9 +171,28 @@ export const renderToStream = async (
       },
     };
   } finally {
+    if (rootInvokeContext.owner !== null) {
+      disposeOwner(rootInvokeContext.owner);
+    }
     setPlatform(previousPlatform);
   }
 };
+
+function createStateScriptEventAttrs(
+  serializationCtx: ReturnType<typeof createSerializationContext>
+): Record<string, string> | undefined {
+  const eagerResume = serializationCtx.$eagerResume$;
+  if (eagerResume.size === 0) {
+    return undefined;
+  }
+  const serialized = setEvent(
+    serializationCtx,
+    'q-d:qidle',
+    createQRL(null, '_res', _res, null, [...eagerResume]),
+    false
+  );
+  return serialized === null ? undefined : { 'q-d:qidle': writeChunks(serialized) };
+}
 
 function createContainerAttributes(
   opts: RenderToStreamOptions,

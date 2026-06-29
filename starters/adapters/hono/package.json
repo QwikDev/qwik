@@ -1,0 +1,30 @@
+{
+  "description": "Hono server on Bun",
+  "scripts": {
+    "build.server": "qwik check-client src dist && vite build -c adapters/hono/vite.config.ts",
+    "serve": "bun server/entry.hono.js"
+  },
+  "dependencies": {
+    "hono": "^4.12.27"
+  },
+  "devDependencies": {
+    "@types/bun": "*"
+  },
+  "__qwik__": {
+    "priority": 20,
+    "displayName": "Adapter: Hono on Bun",
+    "docs": [
+      "https://qwik.dev/deployments/bun/",
+      "https://hono.dev/docs/getting-started/bun"
+    ],
+    "nextSteps": {
+      "title": "Next Steps",
+      "lines": [
+        "Now you can build a production-ready Hono app on Bun:",
+        "",
+        "- bun run build: production build",
+        "- bun run serve: runs the production server locally"
+      ]
+    }
+  }
+}

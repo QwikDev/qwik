@@ -1,0 +1,30 @@
+{
+  "description": "Elysia server on Bun",
+  "scripts": {
+    "build.server": "qwik check-client src dist && vite build -c adapters/elysia/vite.config.ts",
+    "serve": "bun server/entry.elysia.js"
+  },
+  "dependencies": {
+    "elysia": "^1.4.29"
+  },
+  "devDependencies": {
+    "@types/bun": "*"
+  },
+  "__qwik__": {
+    "priority": 20,
+    "displayName": "Adapter: Elysia on Bun",
+    "docs": [
+      "https://qwik.dev/deployments/bun/",
+      "https://elysiajs.com/quick-start"
+    ],
+    "nextSteps": {
+      "title": "Next Steps",
+      "lines": [
+        "Now you can build a production-ready Elysia app on Bun:",
+        "",
+        "- bun run build: production build",
+        "- bun run serve: runs the production server locally"
+      ]
+    }
+  }
+}

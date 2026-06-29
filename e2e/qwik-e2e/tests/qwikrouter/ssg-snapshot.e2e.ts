@@ -85,6 +85,8 @@ test.describe('router ssg snapshot', () => {
 
   test('generated route config (trie) matches the checked-in snapshot', async () => {
     expect(capturedRouterConfig, 'router config was captured during the client build').toBeTruthy();
+    // Readable, pre-bundle trie: `_R` keeps the `__LOADERS:` placeholder, not the real loader hashes
+    // `generateBundle` injects later (kept so the snapshot tracks structure, not churning hashes).
     const normalizedConfig = normalizeRouterConfig(capturedRouterConfig!);
 
     let expectedConfig = (await readFile(expectedConfigPath, 'utf-8').catch(() => '')).replace(

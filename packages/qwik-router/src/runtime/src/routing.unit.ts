@@ -274,7 +274,8 @@ test('loadRoute — miss renders _4; _E remains the thrown-error loader', async 
   const result = await loadRoute(routes, false, '/does-not-exist');
   assert.isTrue(result.$notFound$);
   assert.deepEqual(result.$mods$, [notFoundSentinel]);
-  assert.equal(result.$errorLoader$, errorLoader);
+  // $errorLoader$ is the thrown-error chain; here _E has no layouts, so just the boundary.
+  assert.deepEqual(result.$errorLoader$, [errorLoader]);
 });
 
 test('loadRoute — deeper _4 wins and renders in its own layouts', async () => {
@@ -351,7 +352,7 @@ test('loadRoute — miss falls back to _E when there is no _4', async () => {
   const result = await loadRoute(routes, false, '/does-not-exist');
   assert.isTrue(result.$notFound$);
   assert.deepEqual(result.$mods$, [errorSentinel]);
-  assert.equal(result.$errorLoader$, errorLoader);
+  assert.deepEqual(result.$errorLoader$, [errorLoader]);
 });
 
 test('loadRoute — an override-chain _4 (404@layout / 404!) is used as-is, ignoring gathered _L', async () => {
@@ -422,7 +423,54 @@ test('loadRoute — ErrorLoader passed through on matched routes', async () => {
   };
   const result = await loadRoute(routes, false, '/blog');
   assert.isFalse(result.$notFound$);
-  assert.equal(result.$errorLoader$, errorLoader);
+  assert.deepEqual(result.$errorLoader$, [errorLoader]);
+});
+
+test('loadRoute — a bare _E renders in its gathered layouts on a throw', async () => {
+  // No strip: $errorLoader$ is the boundary in its ancestor layouts, so the error renders in them.
+  const rootLayout = { default: () => 'root-layout' };
+  const errorMod = { default: () => 'error' };
+  const rootLayoutLoader: ModuleLoader = () => rootLayout as any;
+  const errorLoader: ModuleLoader = () => errorMod as any;
+  const routes: RouteData = {
+    _L: rootLayoutLoader,
+    _E: errorLoader,
+    blog: { _I: makeLoader() },
+  };
+  const result = await loadRoute(routes, false, '/blog');
+  assert.isFalse(result.$notFound$);
+  assert.deepEqual(result.$errorLoader$, [rootLayoutLoader, errorLoader]);
+});
+
+test('loadRoute — an override _E (error!/error@x) is used as-is on a throw, ignoring gathered _L', async () => {
+  const rootLayout = makeLoader();
+  const errorMod = { default: () => 'error' };
+  const errorLoader: ModuleLoader = () => errorMod as any;
+  const routes: RouteData = {
+    _L: rootLayout,
+    // error! → override array with no layouts: rendered standalone, ignoring the gathered root _L.
+    _E: [errorLoader],
+    blog: { _I: makeLoader() },
+  };
+  const result = await loadRoute(routes, false, '/blog');
+  assert.isFalse(result.$notFound$);
+  assert.deepEqual(result.$errorLoader$, [errorLoader]);
+});
+
+test("loadRoute — a [...rest] node's own _E is captured on an empty-rest match", async () => {
+  // URL "/" matches [...rest] with an empty value via the node's own _A; the rest node's _E must
+  // still be captured (regression: the direct-_A branch collected only _L/_N).
+  const restLayout = { default: () => 'rest-layout' };
+  const errorMod = { default: () => 'error' };
+  const restLayoutLoader: ModuleLoader = () => restLayout as any;
+  const errorLoader: ModuleLoader = () => errorMod as any;
+  const routes: RouteData = {
+    _A: { _P: 'rest', _I: makeLoader(), _L: restLayoutLoader, _E: errorLoader },
+  };
+  const result = await loadRoute(routes, false, '/');
+  assert.isFalse(result.$notFound$);
+  assert.deepEqual(result.$params$, { rest: '' });
+  assert.deepEqual(result.$errorLoader$, [restLayoutLoader, errorLoader]);
 });
 
 test('loadRoute — routeName is constructed from matched path parts', async () => {

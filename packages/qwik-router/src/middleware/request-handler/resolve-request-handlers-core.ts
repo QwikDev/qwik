@@ -472,15 +472,12 @@ function createResolveRequestHandlers() {
         const status = e.status as number;
         requestEv.status(status);
 
-        // Bare error.tsx renders standalone (a thrown layout would re-throw); an override chain
-        // (error@layout / error!) renders inside its picked layouts.
+        // $errorLoader$ is the error boundary's chain, rendered as-is — a bare error.tsx in its
+        // layouts, `error!.tsx` standalone. Undefined → built-in fallback.
         const errorLoader = route.$errorLoader$;
-        if (Array.isArray(errorLoader)) {
-          route.$mods$ = (await Promise.all(errorLoader.map((load) => load()))) as RouteModule[];
-        } else {
-          const errorModule = errorLoader ? await errorLoader() : await loadHttpError();
-          route.$mods$ = [errorModule as RouteModule];
-        }
+        route.$mods$ = errorLoader
+          ? ((await Promise.all(errorLoader.map((load) => load()))) as RouteModule[])
+          : [(await loadHttpError()) as RouteModule];
 
         requestEv.sharedMap.set(
           RequestEvHttpStatusMessage,

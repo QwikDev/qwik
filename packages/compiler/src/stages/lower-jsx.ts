@@ -703,6 +703,11 @@ function lowerJsxChildren(
       }
       const expressionRange = getRange(expression);
       if (expressionRange) {
+        const staticBranch = lowerStaticBranchExpression(ctx, expression, propsName);
+        if (staticBranch) {
+          nodes.push(...staticBranch);
+          continue;
+        }
         const branch = lowerBranchExpression(ctx, expression, expressionRange, propsName);
         if (branch) {
           nodes.push(branch);
@@ -999,6 +1004,48 @@ function lowerBranchExpression(
   return null;
 }
 
+function lowerStaticBranchExpression(
+  ctx: CompilerContext,
+  expression: unknown,
+  propsName: string | null
+): RenderNode[] | null {
+  const expr = unwrapExpression(expression);
+  if (!isAstNode(expr)) {
+    return null;
+  }
+  if (expr.type === 'ConditionalExpression') {
+    const condition = getStaticBranchCondition(expr.test);
+    return condition === null
+      ? null
+      : lowerExpressionChildren(ctx, condition ? expr.consequent : expr.alternate, propsName);
+  }
+  if (expr.type === 'LogicalExpression' && expr.operator === '&&') {
+    const condition = getStaticBranchCondition(expr.left);
+    return condition === null
+      ? null
+      : condition
+        ? lowerExpressionChildren(ctx, expr.right, propsName)
+        : [];
+  }
+  return null;
+}
+
+function getStaticBranchCondition(expression: unknown): boolean | null {
+  const expr = unwrapExpression(expression);
+  if (!isAstNode(expr)) {
+    return null;
+  }
+  if (expr.type === 'Literal') {
+    if (expr.value === true) {
+      return true;
+    }
+    if (expr.value === false || expr.value === null) {
+      return false;
+    }
+  }
+  return null;
+}
+
 function lowerExpressionChildren(
   ctx: CompilerContext,
   expression: unknown,
@@ -1016,6 +1063,10 @@ function lowerExpressionChildren(
   }
   const range = getRange(expr);
   if (range !== null) {
+    const staticBranch = lowerStaticBranchExpression(ctx, expr, propsName);
+    if (staticBranch) {
+      return staticBranch;
+    }
     const branch = lowerBranchExpression(ctx, expr, range, propsName);
     if (branch) {
       return [branch];

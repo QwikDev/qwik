@@ -28,9 +28,8 @@ export function App(_props, ctx, _id = 'quse_id_child_App-') {
 null
 ============================= src/use-id-child.tsx_use_id_child_Child.js (ENTRY POINT)==
 
-import { createId } from '@qwik.dev/core/spark';
 export function Child(_props, _ctx, _id = 'quse_id_child_Child-') {
-  createId(_id + 'u0');
+  _id + 'u0';
   return '<span></span>';
 }
 
@@ -75,10 +74,10 @@ export function App(_props, ctx, _id = 'quse_id_child_App-') {
 null
 ============================= src/use-id-child.tsx_use_id_child_Child.js (ENTRY POINT)==
 
-import { createTemplate, createId } from '@qwik.dev/core/spark';
+import { createTemplate } from '@qwik.dev/core/spark';
 const dom_Child_template0 = createTemplate('<span></span>');
 export function Child(_props, ctx, _id = 'quse_id_child_Child-') {
-  createId(_id + 'u0');
+  _id + 'u0';
   const fragment0 = dom_Child_template0(ctx.document);
   const el1 = fragment0.firstChild;
   return el1;

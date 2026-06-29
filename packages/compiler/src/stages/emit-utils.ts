@@ -147,10 +147,7 @@ function rewriteUseIdCalls(
       ? 0
       : countUseIdCalls(component, sourceCode, [component.functionRange[0], range[0]]);
   for (const name of component.useIdNames) {
-    code = code.replace(
-      useIdPattern(name),
-      () => `${QwikSymbol.CreateId}(${ID_PARAM} + "u${index++}")`
-    );
+    code = code.replace(useIdPattern(name), () => `(${ID_PARAM} + "u${index++}")`);
   }
   return code;
 }

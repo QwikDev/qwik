@@ -153,7 +153,7 @@ export default component$(function Home() {
     });
   });
 
-  test('lowers useId calls to createId', async () => {
+  test('inlines useId calls', async () => {
     await testInput('use_id', {
       path: 'src/use-id.tsx',
       code: `import { useId } from '@qwik.dev/core';
@@ -468,6 +468,21 @@ function Hello({ name }: { name: string }) {
 export function App() {
   const count = createSignal(0);
   return <section>{count.value < 2 ? <Hello name="Qwik" /> : <Counter count={count.value} />}</section>;
+}
+`,
+    });
+  });
+
+  test('folds literal branches', async () => {
+    await testInput('branch_literal_fold', {
+      code: `export function App() {
+  return (
+    <section>
+      {false && <p>Hidden</p>}
+      {true ? <span>Shown</span> : <em>Hidden</em>}
+      {null ? <b>Never</b> : null}
+    </section>
+  );
 }
 `,
     });

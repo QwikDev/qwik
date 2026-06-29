@@ -130,9 +130,6 @@ export function createSsrImports(
   if (usage.hasVisibleTask) {
     sparkSpecifiers.push(QwikSymbol.CreateVisibleTaskHandlerQrl);
   }
-  if (usage.hasUseId) {
-    sparkSpecifiers.push(QwikSymbol.CreateId);
-  }
   if (sparkSpecifiers.length > 0) {
     records.push(createQwikSparkImport(...sparkSpecifiers));
   }
@@ -259,9 +256,6 @@ export function createCsrImports(
   }
   if (usage.hasForBlock) {
     sparkSpecifiers.push(QwikSymbol.ForRange, QwikSymbol.CreateForBlock);
-  }
-  if (usage.hasUseId) {
-    sparkSpecifiers.push(QwikSymbol.CreateId);
   }
   if (sparkSpecifiers.length > 0) {
     records.push(createQwikSparkImport(...sparkSpecifiers));

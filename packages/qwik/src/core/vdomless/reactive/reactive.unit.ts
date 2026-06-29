@@ -209,15 +209,21 @@ describe('reactive primitives', () => {
   });
 
   it('throws unresolved computed QRL promises and computes after resolve', async () => {
+    let loadCount = 0;
     const qrl = createQRL(
       'chunk',
       'symbol',
       null,
-      () => Promise.resolve({ symbol: () => 'resolved-computed' }),
+      async () => {
+        loadCount++;
+        return { symbol: () => 'resolved-computed' };
+      },
       null
     );
     const computed = createOwned(() => createComputedQrl(qrl));
     let pending: unknown;
+
+    expect(loadCount).toBe(1);
 
     try {
       computed.value;

@@ -3,6 +3,7 @@ import { createQRL } from '../core/shared/qrl/qrl-class';
 import { _captures, setCaptures, withCaptures } from '../core/shared/qrl/qrl-captures';
 import type { QRLInternal } from '../core/shared/qrl/qrl-class';
 import { assertQrl } from '../core/shared/qrl/qrl-utils';
+import { retryOnPromise } from '../core/shared/utils/promises';
 import type { ValueOrPromise } from '../core/shared/utils/types';
 import {
   getOrCreateContainerContext,
@@ -39,7 +40,9 @@ function runCapturedQrl(
 ): ValueOrPromise<unknown> {
   const qrlToRun = captures[0] as QRLInternal<(...args: any[]) => void>;
   isDev && assertQrl(qrlToRun);
-  return qrlToRun.resolve(context).then(() => qrlToRun.resolved!(event, element));
+  return qrlToRun
+    .resolve(context)
+    .then(() => retryOnPromise(() => qrlToRun.resolved!(event, element)));
 }
 
 export function createVisibleTaskHandlerQrl(

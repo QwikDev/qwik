@@ -2,6 +2,7 @@ import { isServer } from '@qwik.dev/core/build';
 import { isGenerator } from '../../shared/utils/async-generator';
 import { QError, qError } from '../../shared/error/error';
 import { implicit$FirstArg } from '../../shared/qrl/implicit_dollar';
+import type { QRLInternal } from '../../shared/qrl/qrl-class';
 import type { QRL } from '../../shared/qrl/qrl.public';
 import { retryOnPromise } from '../../shared/utils/promises';
 import { qTest } from '../../shared/utils/qdev';
@@ -524,9 +525,10 @@ export function createAsyncQrl<T>(
   computeQrl: AsyncSignalQrl<T>,
   options?: AsyncSignalOptions<T>
 ): AsyncSignal<T> {
-  return registerSubscriberToOwner(
-    new AsyncSignal<T>(computeQrl, null, getActiveInvokeContextOrNull()?.container, options)
-  );
+  const container = getActiveInvokeContextOrNull()?.container;
+  const signal = new AsyncSignal<T>(computeQrl, null, container, options);
+  void (signal.computeQrl as QRLInternal<AsyncSignalFn<T>>).resolve(container).catch(() => {});
+  return registerSubscriberToOwner(signal);
 }
 
 export const createAsync$: <T>(

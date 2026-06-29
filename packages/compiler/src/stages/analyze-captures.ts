@@ -424,7 +424,10 @@ class CaptureAnalyzer {
     const qrlCallee = this.getQrlCallee(node.callee);
     const qrlName = qrlCallee?.ctxName ?? null;
     const firstArg = getArgumentExpression(node.arguments?.[0]);
-    const isQrlFunctionCall = !!qrlName && isFunctionLike(unwrapExpression(firstArg));
+    const firstArgExpr = unwrapExpression(firstArg);
+    const isQrlFunctionCall = !!qrlName && isFunctionLike(firstArgExpr);
+    const isSerializerObjectCall =
+      qrlName === 'createSerializer$' && firstArgExpr?.type === 'ObjectExpression';
     const isIterationCall = !isQrlFunctionCall && isIterationMethodCall(node);
     const isInlinedQrl = qrlName === QwikSymbol.InlinedQrl;
     const hasExplicitCaptureArray =
@@ -461,6 +464,26 @@ class CaptureAnalyzer {
             paramKind: isIterationCall ? 'loop' : 'param',
           });
         }
+      } else if (i === 0 && isSerializerObjectCall && expr) {
+        const expressionRange = getRange(expr);
+        if (expressionRange === null) {
+          this.visit(expr);
+          continue;
+        }
+        const segment = this.createSyntheticSegment(
+          'function',
+          qrlCallee!.ctxName,
+          expressionRange
+        );
+        segment.record.range = getRange(node);
+        segment.record.calleeRange = getRange(node.callee);
+        segment.record.calleeNameRange = qrlCallee!.nameRange;
+        segment.record.calleeName = qrlCallee!.localName;
+        segment.record.functionRange = expressionRange;
+        segment.record.argumentRanges = (node.arguments ?? []).map(getRange);
+        this.segmentStack.push(segment);
+        this.visit(expr);
+        this.segmentStack.pop();
       } else {
         this.visit(arg);
       }
@@ -1581,7 +1604,7 @@ function collectTopLevelAwaitRanges(fn: AstFunction): SourceRange[] {
     }
     for (const key of Object.keys(value)) {
       if (!shouldSkipUnknownChild(key)) {
-        visitAwait((value as Record<string, unknown>)[key]);
+        visitAwait((value as unknown as Record<string, unknown>)[key]);
       }
     }
   }

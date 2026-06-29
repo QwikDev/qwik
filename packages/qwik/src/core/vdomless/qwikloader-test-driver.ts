@@ -51,21 +51,16 @@ function formatQwikLoaderError(detail: unknown): string {
     const record = detail as Record<string, unknown>;
     const error = record.error;
     const importError = record.importError;
-    const message =
-      error instanceof Error
-        ? error.message
-        : importError instanceof Error
-          ? importError.message
-          : typeof error === 'string'
-            ? error
-            : typeof importError === 'string'
-              ? importError
-              : undefined;
+    const message = getErrorMessage(error) ?? getErrorMessage(importError);
     const symbol = typeof record.symbol === 'string' ? ` symbol=${record.symbol}` : '';
     const qbase = typeof record.qBase === 'string' ? ` qBase=${record.qBase}` : '';
     return `Qwikloader error:${symbol}${qbase}${message ? ` ${message}` : ''}`;
   }
   return `Qwikloader error: ${String(detail)}`;
+}
+
+function getErrorMessage(error: unknown): string | undefined {
+  return error instanceof Error ? error.message : error != null ? String(error) : undefined;
 }
 
 function ensureDocumentReady(document: Document): void {
@@ -196,7 +191,7 @@ function runQwikLoader(source: string, document: Document, win: Window): void {
 
 function importQwikLoaderModule(href: string): Promise<Record<string, unknown>> {
   if (href.endsWith(`/${QRL_RUNTIME_CHUNK}`) || href === QRL_RUNTIME_CHUNK) {
-    return import('@qwik.dev/core/spark');
+    return import('./index');
   }
   return import(/* @vite-ignore */ href);
 }

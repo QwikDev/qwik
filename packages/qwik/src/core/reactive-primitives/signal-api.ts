@@ -1,4 +1,3 @@
-import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { SignalImpl } from './impl/signal-impl';
 import { ComputedSignalImpl } from './impl/computed-signal-impl';
@@ -10,10 +9,10 @@ import {
   type ComputeQRL,
   type SerializerArg,
 } from './types';
-import { SerializerSignalImpl } from './impl/serializer-signal-impl';
 import { AsyncSignalImpl } from './impl/async-signal-impl';
 import { getComputedSignalFlags } from './utils';
 import type { AsyncFn } from '../use/use-async';
+import { createSerializerQrl } from '../vdomless/reactive/serializer-signal';
 
 /** @internal */
 export const createSignal = <T>(value?: T): Signal<T> => {
@@ -25,6 +24,7 @@ export const createComputedSignal = <T>(
   qrl: QRL<() => T>,
   options?: ComputedOptions
 ): ComputedSignalImpl<T> => {
+  void qrl.resolve().catch(() => {});
   return new ComputedSignalImpl<T>(
     options?.container || null,
     qrl as ComputeQRL<T>,
@@ -37,6 +37,7 @@ export const createAsyncSignal = <T>(
   qrl: QRL<AsyncFn<T>>,
   options?: AsyncSignalOptions<T>
 ): AsyncSignalImpl<T> => {
+  void qrl.resolve().catch(() => {});
   return new AsyncSignalImpl<T>(
     options?.container || null,
     qrl as AsyncQRL<T>,
@@ -46,12 +47,6 @@ export const createAsyncSignal = <T>(
 };
 
 /** @internal */
-export const createSerializerSignal = <T, S>(
-  arg: QRL<{
-    serialize: (data: S | undefined) => T;
-    deserialize: (data: T) => S;
-    initial?: S;
-  }>
-) => {
-  return new SerializerSignalImpl<T, S>(null, arg as any as QRLInternal<SerializerArg<T, S>>);
+export const createSerializerSignal = <T, S>(arg: QRL<SerializerArg<T, S>>) => {
+  return createSerializerQrl<T, S>(arg);
 };

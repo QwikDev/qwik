@@ -18,6 +18,7 @@ import { EffectKind } from '../../vdomless/dom/effect/effect-kind.enum';
 import { EffectTargetKind } from '../../vdomless/dom/effect/ssr-effect';
 import { ComputedFlags } from '../../vdomless/reactive/flags';
 import { AsyncSignal } from '../../vdomless/reactive/async-signal';
+import { SerializerSignal } from '../../vdomless/reactive/serializer-signal';
 import { createLazySourceSubs, LazySerialized } from '../../vdomless/reactive/lazy-serialized';
 import { Signal as VdomlessSignal } from '../../vdomless/reactive/signal';
 import {
@@ -55,6 +56,7 @@ import {
   type Subscriber,
   type TaskSubscriber,
 } from '../../vdomless/runtime/subscriber';
+import { getFunctionOrResolve } from '../../vdomless/utils/qrl';
 import { assertDefined, assertNumber } from '../error/assert';
 import { qError, QError } from '../error/error';
 import { withCaptures } from '../qrl/qrl-captures';
@@ -106,6 +108,7 @@ export const inflate = (
     typeId !== TypeIds.StoreProp &&
     typeId !== TypeIds.ComputedSignal &&
     typeId !== TypeIds.AsyncSignal &&
+    typeId !== TypeIds.SerializerSignal &&
     Array.isArray(data)
   ) {
     return maybeThen(_eagerDeserializeArray(container, data), (data) =>
@@ -205,6 +208,29 @@ const inflateResolved = (
               if (d.length > subscriberOffset) {
                 signal.subs = createLazySourceSubscribers(signal, container, d, subscriberOffset);
               }
+            })
+          )
+        )
+      );
+    }
+    case TypeIds.SerializerSignal: {
+      const signal = target as SerializerSignal<unknown, unknown>;
+      ensureDeserializedOwner(signal);
+      const d = data as unknown[];
+      const subscriberOffset = 8;
+      return maybeThen(deserializeData(container, d[0] as TypeIds, d[1]), (qrl) =>
+        maybeThen(deserializeData(container, d[2] as TypeIds, d[3]), (deps) =>
+          maybeThen(deserializeData(container, d[4] as TypeIds, d[5]), (value) =>
+            maybeThen(deserializeData(container, d[6] as TypeIds, d[7]), (initialized) => {
+              signal.argQrl = qrl as SerializerSignal<unknown, unknown>['argQrl'];
+              restoreDependencies(signal, deps as Dependency[]);
+              signal.v = initialized ? (value as unknown) : NEEDS_COMPUTATION;
+              signal.flags = ComputedFlags.HasValue;
+              signal.didInitialize = false;
+              if (d.length > subscriberOffset) {
+                signal.subs = createLazySourceSubscribers(signal, container, d, subscriberOffset);
+              }
+              return maybeThen(getFunctionOrResolve(signal.argQrl!, container), () => {});
             })
           )
         )
@@ -732,7 +758,8 @@ function restoreDependencies(
     | BranchSubscription
     | ForBlockSubscription
     | TaskSubscriber
-    | AsyncSignal<unknown>,
+    | AsyncSignal<unknown>
+    | SerializerSignal<unknown, unknown>,
   deps: Dependency[]
 ) {
   if (deps && deps.length > 0) {

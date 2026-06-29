@@ -4,6 +4,8 @@ import { Computed } from './computed';
 import { registerSubscriberToOwner } from '../runtime/owner';
 import { implicit$FirstArg } from '../../shared/qrl/implicit_dollar';
 import type { ContainerContext } from '../runtime/container-context';
+import { getActiveInvokeContextOrNull } from '../runtime/invoke-context';
+import { getFunctionOrResolve } from '../utils/qrl';
 
 export type ComputedQrlFn<T> = () => T;
 export type ComputedQrlRef<T> = QRLInternal<ComputedQrlFn<T>>;
@@ -21,7 +23,10 @@ export function createComputedQrl<T>(
   computeQrl: ComputedQrlRef<T>,
   container?: ContainerContext
 ): ComputedQrl<T> {
-  return registerSubscriberToOwner(new ComputedQrl(computeQrl, container));
+  const contextContainer = container ?? getActiveInvokeContextOrNull()?.container;
+  const computed = new ComputedQrl(computeQrl, contextContainer);
+  void computed.computeQrl.resolve(contextContainer).catch(() => {});
+  return registerSubscriberToOwner(computed);
 }
 
 export const createComputed$: <T>(qrl: () => T) => Computed<T> = /*#__PURE__*/ implicit$FirstArg(
@@ -29,10 +34,10 @@ export const createComputed$: <T>(qrl: () => T) => Computed<T> = /*#__PURE__*/ i
 );
 
 function computeQrlValue<T>(this: ComputedQrl<T>): T {
-  const compute = this.computeQrl.resolved;
+  const compute = getFunctionOrResolve(this.computeQrl, this.container);
 
-  if (compute === undefined) {
-    throw this.computeQrl.resolve(this.container);
+  if (isPromise(compute)) {
+    throw compute;
   }
 
   const value = compute();

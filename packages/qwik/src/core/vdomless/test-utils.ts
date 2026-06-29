@@ -1100,7 +1100,11 @@ async function importCompiledRoot<TRoot extends CsrRenderComponent | SsrRenderCo
 function prepareCompiledModulesForImport(
   modules: readonly TransformModule[]
 ): readonly TransformModule[] {
-  const replacements: Array<[string, string]> = [];
+  const sparkSource = pathToFileURL(join(findRepoRoot(), 'packages/qwik/src/spark/index.ts')).href;
+  const replacements: Array<[string, string]> = [
+    ["'@qwik.dev/core/spark'", JSON.stringify(sparkSource)],
+    ['"@qwik.dev/core/spark"', JSON.stringify(sparkSource)],
+  ];
   for (let i = 0; i < modules.length; i++) {
     const module = modules[i];
     if (!module.segment) {

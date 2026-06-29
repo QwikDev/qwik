@@ -1,5 +1,11 @@
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
-import type { AsyncCtx, AsyncSignalOptions, ComputedOptions, SerializerArg } from './types';
+import type {
+  AsyncCtx,
+  AsyncSignalOptions,
+  ComputedOptions,
+  SerializerArg,
+  SerializerArgObject,
+} from './types';
 import {
   createSignal as _createSignal,
   createComputedSignal as createComputedQrl,
@@ -146,6 +152,12 @@ export interface AsyncSignal<T = unknown> extends ComputedSignal<T> {
   invalidate(info?: unknown): void;
 }
 
+type SerializerArgObjectWithInitial<T, S> = SerializerArgObject<T, S> & { initial: S };
+type SerializerArgFactoryWithInitial<T, S> = () => SerializerArgObjectWithInitial<T, S> & {
+  update?: (current: T) => T | void;
+};
+type SerializerSignalReturn<T> = T extends Promise<any> ? never : SerializerSignal<T>;
+
 /**
  * Creates a Signal with the given value. If no value is given, the signal is created with
  * `undefined`.
@@ -193,9 +205,9 @@ export { createAsyncQrl };
  *
  * @public
  */
-export const createSerializer$: <T, S>(
-  arg: SerializerArg<T, S>
-) => T extends Promise<any> ? never : SerializerSignal<T> = implicit$FirstArg(
-  createSerializerQrl as any
-);
+export const createSerializer$: {
+  <T, S>(arg: SerializerArgObjectWithInitial<T, S>): SerializerSignalReturn<T>;
+  <T, S>(arg: SerializerArgFactoryWithInitial<T, S>): SerializerSignalReturn<T>;
+  <T, S>(arg: SerializerArg<T, S>): SerializerSignalReturn<T>;
+} = implicit$FirstArg(createSerializerQrl as any);
 export { createSerializerQrl };

@@ -102,6 +102,17 @@ describe('signal types', () => {
       expectTypeOf(signal).toEqualTypeOf<SerializerSignal<Foo>>();
       expectTypeOf(signal.value).toEqualTypeOf<Foo>();
     }
+    {
+      const signal = createSerializer$({
+        deserialize: (count = 0) => {
+          expectTypeOf(count).toEqualTypeOf<number>();
+          return { count };
+        },
+        initial: 2,
+        serialize: (obj) => obj.count,
+      });
+      expectTypeOf(signal.value.count).toEqualTypeOf<number>();
+    }
   });
   it('AsyncSignal<T>', () => async () => {
     const signal = createAsync$(() => Promise.resolve(42));

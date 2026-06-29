@@ -2,6 +2,7 @@ import { NEEDS_COMPUTATION } from '../../reactive-primitives/types';
 import { SsrDomSubscription } from '../../vdomless/dom/effect/ssr-effect';
 import { ComputedQrl } from '../../vdomless/reactive/computed-qrl';
 import { AsyncSignal } from '../../vdomless/reactive/async-signal';
+import { SerializerSignal } from '../../vdomless/reactive/serializer-signal';
 import { Signal } from '../../vdomless/reactive/signal';
 import { isStore, StorePropSource } from '../../vdomless/reactive/store';
 import { isQrl } from '../qrl/qrl-utils';
@@ -48,6 +49,8 @@ export const canSerialize = (value: unknown, seen: WeakSet<any> = new WeakSet())
     } else if (isPromise(value)) {
       return true;
     } else if (value instanceof AsyncSignal) {
+      return true;
+    } else if (value instanceof SerializerSignal) {
       return true;
     } else if (value instanceof Signal) {
       return true;

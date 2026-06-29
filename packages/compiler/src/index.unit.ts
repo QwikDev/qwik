@@ -552,6 +552,22 @@ export function App() {
     });
   });
 
+  test('transforms serializer object literals in component setup', async () => {
+    await testInput('serializer_object_setup', {
+      code: `import { createSerializer$, createSignal } from '@qwik.dev/core/spark';
+export function App() {
+  const count = createSignal(1);
+  const custom = createSerializer$({
+    initial: 2,
+    deserialize: (value = 0) => ({ count: value + count.value }),
+    serialize: (value) => value.count,
+  });
+  return <p>{custom.value.count}</p>;
+}
+`,
+    });
+  });
+
   test('emits nested child component renderers', async () => {
     await testInput('component_child_nested', {
       code: `export function Child() {

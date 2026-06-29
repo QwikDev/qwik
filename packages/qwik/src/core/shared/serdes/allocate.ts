@@ -3,6 +3,7 @@ import { BranchSubscription } from '../../vdomless/dom/branch/branch';
 import { EffectKind } from '../../vdomless/dom/effect/effect-kind.enum';
 import { ComputedQrl } from '../../vdomless/reactive/computed-qrl';
 import { AsyncSignal } from '../../vdomless/reactive/async-signal';
+import { SerializerSignal } from '../../vdomless/reactive/serializer-signal';
 import { Signal } from '../../vdomless/reactive/signal';
 import { createStore, StorePropSource, unwrapStore } from '../../vdomless/reactive/store';
 import type { ContainerContext } from '../../vdomless/runtime/container-context';
@@ -90,6 +91,8 @@ export const allocate = (
       return new Signal(undefined);
     case TypeIds.AsyncSignal:
       return new AsyncSignal(null, null, context);
+    case TypeIds.SerializerSignal:
+      return new SerializerSignal(null, context);
     case TypeIds.ComputedSignal:
       return new ComputedQrl(null!);
     case TypeIds.Store: {

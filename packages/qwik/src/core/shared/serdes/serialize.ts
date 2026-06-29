@@ -12,6 +12,7 @@ import {
 import { ComputedFlags } from '../../vdomless/reactive/flags';
 import { AsyncSignal } from '../../vdomless/reactive/async-signal';
 import { ComputedQrl } from '../../vdomless/reactive/computed-qrl';
+import { SerializerSignal } from '../../vdomless/reactive/serializer-signal';
 import { Signal } from '../../vdomless/reactive/signal';
 import {
   getStoreSources,
@@ -45,7 +46,7 @@ import {
 } from '../ssr-const';
 import { _UNINITIALIZED } from '../utils/constants';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
-import { isPromise } from '../utils/promises';
+import { isPromise, maybeThen } from '../utils/promises';
 import { Constants, explicitUndefined, TypeIds } from './constants';
 import { qrlToString } from './qrl-to-string';
 import {
@@ -53,7 +54,7 @@ import {
   type SeenRef,
   type SerializationContext,
 } from './serialization-context';
-import { fastSkipSerialize } from './verify';
+import { fastSkipSerialize, SerializerSymbol } from './verify';
 
 const MAX_INLINE_ARRAY_ITEMS = 64;
 
@@ -480,7 +481,17 @@ export class Serializer {
   }
 
   private writeObjectValue(value: {}) {
-    if (value instanceof AsyncSignal) {
+    if (value instanceof SerializerSignal) {
+      const maybeValue = getSerializerSignalValue(value);
+      if (isPromise(maybeValue)) {
+        const forwardRefId = this.resolvePromise(maybeValue, (resolved, resolvedValue) => {
+          return new PromiseResult(TypeIds.SerializerSignal, resolved, resolvedValue, value);
+        });
+        this.output(TypeIds.ForwardRef, forwardRefId);
+      } else {
+        this.output(TypeIds.SerializerSignal, serializeSerializerSignal(value, maybeValue));
+      }
+    } else if (value instanceof AsyncSignal) {
       this.output(TypeIds.AsyncSignal, serializeAsyncSignal(value));
     } else if (value instanceof Signal) {
       this.output(TypeIds.Signal, serializeSignal(value));
@@ -583,7 +594,17 @@ export class Serializer {
       });
       this.output(TypeIds.ForwardRef, forwardRefId);
     } else if (value instanceof PromiseResult) {
-      this.output(TypeIds.Promise, [value.$resolved$, value.$value$]);
+      if (value.$type$ === TypeIds.SerializerSignal) {
+        if (!value.$resolved$) {
+          throw qError(QError.serializerSymbolRejectedPromise);
+        }
+        this.output(
+          TypeIds.SerializerSignal,
+          serializeSerializerSignal(value.$signal$!, value.$value$)
+        );
+      } else {
+        this.output(TypeIds.Promise, [value.$resolved$, value.$value$]);
+      }
     } else if (value instanceof Uint8Array) {
       let buf = '';
       const length = value.length;
@@ -764,7 +785,8 @@ export class PromiseResult {
   constructor(
     public $type$: number,
     public $resolved$: boolean,
-    public $value$: unknown
+    public $value$: unknown,
+    public $signal$?: SerializerSignal<unknown, unknown>
   ) {}
 }
 
@@ -828,6 +850,57 @@ function serializeComputed(computed: ComputedQrl<unknown>): unknown[] {
     value,
     ...serializeSubscribers(computed.subs),
   ];
+}
+
+function serializeSerializerSignal(
+  signal: SerializerSignal<unknown, unknown>,
+  value: unknown
+): unknown[] {
+  const initialized = value !== NEEDS_COMPUTATION;
+  return [
+    signal.argQrl,
+    serializeDeps(signal.deps),
+    value === undefined ? explicitUndefined : value,
+    initialized,
+    ...serializeSubscribers(signal.subs),
+  ];
+}
+
+function getSerializerSignalValue(signal: SerializerSignal<unknown, unknown>): unknown {
+  if (
+    !signal.didInitialize ||
+    !!(signal.flags & ComputedFlags.Dirty) ||
+    fastSkipSerialize(signal.v)
+  ) {
+    return NEEDS_COMPUTATION;
+  }
+
+  const value = signal.v;
+  const localArg = signal.arg;
+  if (localArg !== null) {
+    return getSerializedSerializerValue(localArg, value);
+  }
+
+  const argQrl = signal.argQrl;
+  if (argQrl === null) {
+    return NEEDS_COMPUTATION;
+  }
+  const arg = argQrl.resolved ?? argQrl.resolve(signal.container);
+  return maybeThen(arg, (arg) => getSerializedSerializerValue(arg, value));
+}
+
+function getSerializedSerializerValue(arg: unknown, value: unknown): unknown {
+  const serializerArg = typeof arg === 'function' ? (arg as () => any)() : (arg as any);
+  let data = serializerArg.serialize?.(value);
+  if (
+    data === undefined &&
+    (typeof value === 'object' || typeof value === 'function') &&
+    value !== null &&
+    typeof (value as any)[SerializerSymbol] === 'function'
+  ) {
+    data = (value as { [SerializerSymbol]: (value: unknown) => unknown })[SerializerSymbol](value);
+  }
+  return maybeThen(data, (data) => (data === undefined ? NEEDS_COMPUTATION : data));
 }
 
 function serializeAsyncSignal(signal: AsyncSignal<unknown>): unknown[] {

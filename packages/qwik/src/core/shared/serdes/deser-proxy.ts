@@ -6,7 +6,10 @@ import { inflate } from './inflate';
 
 /** Arrays/Objects are special-cased so their identifiers is a single digit. */
 export const needsInflation = (typeId: TypeIds) =>
-  typeId >= TypeIds.Error || typeId === TypeIds.Array || typeId === TypeIds.Object;
+  typeId >= TypeIds.Error ||
+  typeId === TypeIds.Array ||
+  typeId === TypeIds.Object ||
+  typeId === TypeIds.SerializerSignal;
 const deserializedProxyMap = new WeakMap<object, unknown[]>();
 type DeserializerProxy<T extends object = object> = T & { [SERIALIZER_PROXY_UNWRAP]: object };
 

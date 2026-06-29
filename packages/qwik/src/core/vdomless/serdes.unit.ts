@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { createQRL } from '../shared/qrl/qrl-class';
+import { needsInflation } from '../shared/serdes/deser-proxy';
 import { deserializeData, inflate } from '../shared/serdes/inflate';
 import { createSerializationContext } from '../shared/serdes/serialization-context';
 import { Constants, TypeIds } from '../shared/serdes/constants';
+import { SerializerSymbol } from '../shared/serdes/verify';
 import { EffectKind } from './dom/effect/effect-kind.enum';
 import {
   createTextNodeEffect,
@@ -28,6 +30,7 @@ import {
 import { ComputedFlags } from './reactive/flags';
 import { createComputedQrl } from './reactive/computed-qrl';
 import { createAsyncQrl } from './reactive/async-signal';
+import { createSerializerQrl, type SerializerSignal } from './reactive/serializer-signal';
 import { createSignal, type Signal } from './reactive/signal';
 import { createStore, getStoreSource } from './reactive/store';
 import { createWindow } from '../../testing/document';
@@ -44,6 +47,14 @@ type BranchConditionFn = () => boolean;
 type BranchRenderFn = (ctx: ContainerContext) => ValueOrPromise<string>;
 
 const BRANCH_THEN = 0;
+
+class CustomSerializable {
+  constructor(public n = 3) {}
+
+  inc(): void {
+    this.n++;
+  }
+}
 
 describe('vdomless serdes emit-only', () => {
   it('serializes a vdomless signal without subscribers', async () => {
@@ -136,11 +147,17 @@ describe('vdomless serdes emit-only', () => {
   });
 
   it('deserializes async signal cached value', async () => {
-    const qrl = createQRL('./async.js', 'load', () => {
-      return 7;
+    let loadCount = 0;
+    const qrl = createQRL('./async.js', 'load', null, async () => {
+      loadCount++;
+      return {
+        load: () => 7,
+      };
     });
     const win = createWindow({ html: '<div q:container></div>' });
     const container = createContainerContext(win.document.body.firstElementChild as HTMLElement);
+
+    expect(qrl.resolved).toBeUndefined();
 
     const signal = await deserializeData(container, TypeIds.AsyncSignal, [
       TypeIds.Plain,
@@ -153,7 +170,123 @@ describe('vdomless serdes emit-only', () => {
       Constants.Null,
     ]);
 
+    expect(loadCount).toBe(0);
+    expect(qrl.resolved).toBeUndefined();
     expect((signal as { value: number }).value).toBe(7);
+  });
+
+  it('serializes a serializer signal custom object', async () => {
+    const qrl = createQRL('./serializer.js', 'arg', {
+      deserialize: (n?: number) => new CustomSerializable(n),
+      serialize: (obj: CustomSerializable) => obj.n,
+    });
+    const signal = createOwned(() => createSerializerQrl(qrl));
+
+    signal.value.inc();
+
+    const state = await serialize(signal);
+    const payload = state[1] as unknown[];
+
+    expect(state[0]).toBe(TypeIds.SerializerSignal);
+    expect(payload[0]).toBe(TypeIds.QRL);
+    expect(payload[2]).toBe(TypeIds.Constant);
+    expect(payload[3]).toBe(Constants.EMPTY_ARRAY);
+    expect(payload[4]).toBe(TypeIds.Plain);
+    expect(payload[5]).toBe(4);
+    expect(payload[6]).toBe(TypeIds.Constant);
+    expect(payload[7]).toBe(Constants.True);
+  });
+
+  it('serializes an unread serializer signal as needing computation', async () => {
+    const qrl = createQRL('./serializer.js', 'arg', {
+      deserialize: (n?: number) => new CustomSerializable(n),
+      serialize: (obj: CustomSerializable) => obj.n,
+      initial: 7,
+    });
+    const signal = createOwned(() => createSerializerQrl(qrl));
+
+    const state = await serialize(signal);
+    const payload = state[1] as unknown[];
+
+    expect(payload[4]).toBe(TypeIds.Constant);
+    expect(payload[5]).toBe(Constants.NEEDS_COMPUTATION);
+    expect(payload[6]).toBe(TypeIds.Constant);
+    expect(payload[7]).toBe(Constants.False);
+  });
+
+  it('serializes an async serializer result through a forward ref', async () => {
+    const qrl = createQRL('./serializer.js', 'arg', {
+      deserialize: (n?: number) => new CustomSerializable(n),
+      serialize: (obj: CustomSerializable) => Promise.resolve(obj.n),
+    });
+    const signal = createOwned(() => createSerializerQrl(qrl));
+
+    signal.value.inc();
+
+    const state = await serialize(signal);
+
+    expect(state[0]).toBe(TypeIds.ForwardRef);
+    expect(countSerializedValue(state, TypeIds.SerializerSignal)).toBe(1);
+    expect(countSerializedValue(state, TypeIds.ForwardRefs)).toBe(1);
+  });
+
+  it('inflates a serializer signal payload and deserializes on first read', async () => {
+    let loadCount = 0;
+    const qrl = createQRL('./serializer.js', 'arg', null, async () => {
+      loadCount++;
+      return {
+        arg: {
+          deserialize: (n?: number) => new CustomSerializable(n),
+          serialize: (obj: CustomSerializable) => obj.n,
+        },
+      };
+    });
+    const win = createWindow({ html: '<div q:container></div>' });
+    const container = createContainerContext(win.document.body.firstElementChild as HTMLElement);
+
+    expect(qrl.resolved).toBeUndefined();
+
+    const signal = (await deserializeData(container, TypeIds.SerializerSignal, [
+      TypeIds.Plain,
+      qrl,
+      TypeIds.Array,
+      [],
+      TypeIds.Plain,
+      9,
+      TypeIds.Constant,
+      Constants.True,
+    ])) as SerializerSignal<CustomSerializable, number>;
+
+    expect(loadCount).toBe(1);
+    expect(qrl.resolved).toBeDefined();
+    expect(signal.value).toBeInstanceOf(CustomSerializable);
+    expect(signal.value.n).toBe(9);
+  });
+
+  it('inflates serializer signal lazy roots', () => {
+    expect(needsInflation(TypeIds.SerializerSignal)).toBe(true);
+  });
+
+  it('serializes a serializer signal value with SerializerSymbol fallback', async () => {
+    class SymbolSerializable extends CustomSerializable {
+      [SerializerSymbol](obj: this): number {
+        return obj.n * 2;
+      }
+    }
+    const qrl = createQRL('./serializer.js', 'arg', {
+      deserialize: (n?: number) => new SymbolSerializable(n),
+    });
+    const signal = createOwned(() => createSerializerQrl(qrl));
+
+    signal.value.inc();
+
+    const state = await serialize(signal);
+    const payload = state[1] as unknown[];
+
+    expect(payload[4]).toBe(TypeIds.Plain);
+    expect(payload[5]).toBe(8);
+    expect(payload[6]).toBe(TypeIds.Constant);
+    expect(payload[7]).toBe(Constants.True);
   });
 
   it('does not serialize orphan SSR effect targets', async () => {

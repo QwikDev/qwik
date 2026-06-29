@@ -46,4 +46,16 @@ test.describe('returned control-flow signals', () => {
     // The client then navigates to the redirect target.
     await expect(page.locator('#returned-control-flow-target')).toBeVisible();
   });
+
+  test('JSON action redirect works even when the signal is neither thrown nor returned', async ({
+    page,
+  }) => {
+    await page.goto(`${base}/action-redirect-discarded/`);
+    const [response] = await Promise.all([
+      page.waitForResponse((r) => r.url().includes('qaction=')),
+      page.locator('button[type="submit"]').click(),
+    ]);
+    expect(response.headers()['location']).toBeUndefined();
+    await expect(page.locator('#returned-control-flow-target')).toBeVisible();
+  });
 });

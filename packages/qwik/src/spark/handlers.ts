@@ -11,7 +11,11 @@ import {
 } from '../core/vdomless/runtime/container-context';
 import { createVisibleTaskQrl, type TaskQrlRef } from '../core/vdomless/runtime/task';
 import { createOwner } from '../core/vdomless/runtime/owner';
-import { invoke, newInvokeContext } from '../core/vdomless/runtime/invoke-context';
+import {
+  invoke,
+  newInvokeContext,
+  type RuntimeInvokeContext,
+} from '../core/vdomless/runtime/invoke-context';
 
 export { _captures };
 export { withCaptures as _withCaptures };
@@ -22,27 +26,50 @@ export function _run(this: string, event: Event, element: Element): ValueOrPromi
   }
 
   const context = getOrCreateContainerContext(element);
-  if (typeof this === 'string') {
-    return context.restoreCaptures(this).then((captures) => {
+  return runQrl(
+    this,
+    event,
+    element,
+    context,
+    context.locale ? newInvokeContext({ container: context }) : null
+  );
+}
+
+function runQrl(
+  thisValue: unknown,
+  event: Event,
+  element: Element,
+  context: ContainerContext,
+  invokeContext: RuntimeInvokeContext | null
+): ValueOrPromise<unknown> {
+  if (typeof thisValue === 'string') {
+    return context.restoreCaptures(thisValue).then((captures) => {
       setCaptures(captures);
-      return runCapturedQrl(captures, event, element, context);
+      return runCapturedQrl(captures, event, element, context, invokeContext);
     });
   }
 
-  return runCapturedQrl(_captures!, event, element, context);
+  return runCapturedQrl(_captures!, event, element, context, invokeContext);
 }
 
 function runCapturedQrl(
   captures: Readonly<unknown[]>,
   event: Event,
   element: Element,
-  context: ContainerContext
+  context: ContainerContext,
+  invokeContext: RuntimeInvokeContext | null = null
 ): ValueOrPromise<unknown> {
   const qrlToRun = captures[0] as QRLInternal<(...args: any[]) => void>;
   isDev && assertQrl(qrlToRun);
   return qrlToRun
     .resolve(context)
-    .then(() => retryOnPromise(() => qrlToRun.resolved!(event, element)));
+    .then(() =>
+      retryOnPromise(() =>
+        invokeContext
+          ? invoke(invokeContext, qrlToRun.resolved!, event, element)
+          : qrlToRun.resolved!(event, element)
+      )
+    );
 }
 
 export function createVisibleTaskHandlerQrl(

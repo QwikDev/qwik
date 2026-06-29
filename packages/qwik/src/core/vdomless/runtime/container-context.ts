@@ -1,4 +1,4 @@
-import { QContainerSelector } from '../../shared/utils/markers';
+import { QContainerSelector, QLocaleAttr } from '../../shared/utils/markers';
 import { TypeIds } from '../../shared/serdes/constants';
 import { allocate } from '../../shared/serdes/allocate';
 import { inflate } from '../../shared/serdes/inflate';
@@ -28,6 +28,7 @@ export interface ContainerState {
 export interface ContainerContext {
   element: HTMLElement;
   document: Document;
+  locale: string | null;
   scheduler: Scheduler;
   state: ContainerState;
   forwardRefs: Array<number | string> | null;
@@ -79,6 +80,7 @@ function createContainerContextRecord(
   const context: ContainerContext = {
     element,
     document: element.ownerDocument,
+    locale: element.getAttribute(QLocaleAttr),
     scheduler,
     state,
     forwardRefs: null,

@@ -128,7 +128,7 @@ export { useServerData } from './use/use-env-data';
 export { useStylesQrl, useStyles$, useStylesScopedQrl, useStylesScoped$ } from './use/use-styles';
 export { useOn, useOnDocument, useOnWindow, type UseOnOptions } from './use/use-on';
 export { useSignal, useConstant } from './use/use-signal';
-export { withLocale, getLocale } from './use/use-locale';
+export { withLocale, getLocale, setLocale } from './use/use-locale';
 
 export type { UseStylesScoped } from './use/use-styles';
 export type { UseSignal } from './use/use-signal';

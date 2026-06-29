@@ -33,7 +33,7 @@ import {
 } from './runtime/subscriber';
 import { createTask } from './runtime/task';
 import { renderToString, type SsrRenderRoot } from '../../server/vdomless/ssr-render';
-import type { QwikLoaderOptions } from '../../server/types';
+import type { QwikLoaderOptions, RenderToStringOptions } from '../../server/types';
 import { bootQwikLoader, type QwikLoaderTestDriver } from './qwikloader-test-driver';
 export { bootQwikLoader };
 export type { QwikLoaderTestDriver };
@@ -45,6 +45,7 @@ export interface RenderOptions {
   qwikLoader?: QwikLoaderOptions;
   scheduler?: Scheduler;
   base?: string;
+  locale?: RenderToStringOptions['locale'];
 }
 
 export interface RenderResult {
@@ -346,6 +347,7 @@ export function createCaptureContainer(
   const container: ContainerContext & { nextId(): number } = {
     element: {} as HTMLElement,
     document: null!,
+    locale: null,
     scheduler,
     state: {
       rootToChunk: [],
@@ -1100,8 +1102,11 @@ async function importCompiledRoot<TRoot extends CsrRenderComponent | SsrRenderCo
 function prepareCompiledModulesForImport(
   modules: readonly TransformModule[]
 ): readonly TransformModule[] {
+  const coreSource = pathToFileURL(join(findRepoRoot(), 'packages/qwik/src/core/index.ts')).href;
   const sparkSource = pathToFileURL(join(findRepoRoot(), 'packages/qwik/src/spark/index.ts')).href;
   const replacements: Array<[string, string]> = [
+    ["'@qwik.dev/core'", JSON.stringify(coreSource)],
+    ['"@qwik.dev/core"', JSON.stringify(coreSource)],
     ["'@qwik.dev/core/spark'", JSON.stringify(sparkSource)],
     ['"@qwik.dev/core/spark"', JSON.stringify(sparkSource)],
   ];

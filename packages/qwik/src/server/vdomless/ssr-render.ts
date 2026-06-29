@@ -5,6 +5,7 @@ import { getClientManifest } from '../../core/shared/get-client-manifest';
 import { getPlatform, setPlatform } from '../../core/shared/platform/platform';
 import { createQRL } from '../../core/shared/qrl/qrl-class';
 import { _res } from '../../core/shared/jsx/bind-handlers';
+import { withLocale } from '../../core/vdomless/runtime/use-locale';
 import { createSerializationContext } from '../../core/shared/serdes/serialization-context';
 import type { SerializationContext } from '../../core/shared/serdes/serialization-context';
 import { escapeHTML } from '../../core/shared/utils/character-escaping';
@@ -118,13 +119,20 @@ export const renderToStream = async (
         return scope.id;
       },
       eventAttr(name, value, hasMovedCaptures = false) {
-        const serialized = setEvent(serializationCtx, name, value, hasMovedCaptures);
+        const serialized = setEvent(
+          serializationCtx,
+          name,
+          value,
+          hasMovedCaptures || locale !== ''
+        );
         return serialized === null ? '' : ` ${name}="${escapeHTML(writeChunks(serialized))}"`;
       },
     };
     rootInvokeContext.container = ctx as any;
 
-    const html = await invoke(rootInvokeContext, root, undefined, ctx);
+    const html = await (locale
+      ? withLocale(locale, () => invoke(rootInvokeContext, root, undefined, ctx))
+      : invoke(rootInvokeContext, root, undefined, ctx));
     const stateAttrs = createStateScriptEventAttrs(serializationCtx);
     const [containerOpen, containerClose] = createContainerTags(
       containerTagName,

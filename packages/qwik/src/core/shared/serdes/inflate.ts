@@ -374,7 +374,12 @@ function* inflateIterator(
       ];
       let owner = d[0];
       if (owner === _UNINITIALIZED) {
-        owner = new JSXNodeImpl(Fragment, d[1], d[2], null, 0, null);
+        owner = new JSXNodeImpl(Fragment, null, null, null, 0, null);
+        // Important: var/const props can be eager-deserialization placeholders. (empty objects)
+        // Do not let JSXNodeImpl constructor normalize {} to EMPTY_OBJ/null.
+        owner.varProps = d[1];
+        owner.constProps = d[2];
+
         owner._proxy = propsProxy;
       }
       propsProxy[_OWNER] = owner;

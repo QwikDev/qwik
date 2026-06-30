@@ -6,6 +6,7 @@ import type {
   ElementNode,
   ForNode,
   ImportRecord,
+  JsxValueRecord,
   PropRecord,
   QrlSegmentOutput,
   RenderNode,
@@ -44,6 +45,7 @@ import {
   isNestedInImplicitDollarSegment,
   isRangeInside,
   type UseOnCarrier,
+  type Replacement,
 } from './implicit-dollar';
 
 type HtmlPart = string | { code: string };
@@ -108,6 +110,7 @@ function emitSsrComponent(
   sourceCode: string,
   componentNeedsId?: (name: string) => boolean
 ) {
+  const jsxValueReplacements = createJsxValueReplacements(component);
   const emitter = new SsrEmitter(qrlSegments, sourceCode, {
     component,
     domEffectBatchCounts: getDomEffectBatchStats(component.root, qrlSegments).counts,
@@ -130,7 +133,15 @@ function emitSsrComponent(
     'ssr',
     hasDynamicBinding(component.root) ||
       component.providesContext ||
-      hasUseId(component, sourceCode)
+      hasUseId(component, sourceCode),
+    jsxValueReplacements,
+    component.jsxValues.map((value) => value.expressionRange)
+  );
+  const jsxValueFactories = emitSsrJsxValueFactories(
+    component,
+    qrlSegments,
+    sourceCode,
+    componentNeedsId
   );
   const paramSetup = emitComponentParamSetup(component, sourceCode);
   const returnExpression = component.providesContext
@@ -156,6 +167,7 @@ function emitSsrComponent(
     ? [
         `const invokeCtx = ${QwikSymbol.GetActiveInvokeContextOrNull}();`,
         paramSetup,
+        jsxValueFactories,
         setup,
         `return ${QwikSymbol.Invoke}(invokeCtx, ${
           /\bawait\b/.test(renderBody) ? 'async ' : ''
@@ -164,10 +176,15 @@ function emitSsrComponent(
           .map((line) => `  ${line}`)
           .join('\n')}\n});`,
       ].filter(Boolean)
-    : [paramSetup, setup, ...renderBodyParts].filter(Boolean);
+    : [paramSetup, jsxValueFactories, setup, ...renderBodyParts].filter(Boolean);
   const body = bodyParts.join('\n');
   const ctxParam =
-    emitter.usesCtx || component.providesContext || setup.includes('ctx.') ? 'ctx' : '_ctx';
+    emitter.usesCtx ||
+    component.providesContext ||
+    setup.includes('ctx.') ||
+    jsxValueFactories.includes('ctx')
+      ? 'ctx'
+      : '_ctx';
   const idParam = component.needsId ? `, ${ID_PARAM} = ${JSON.stringify(component.idBase)}` : '';
   const propsParam = getComponentPropsParam(component);
   if (component.declarationKind === 'function') {
@@ -185,6 +202,55 @@ function emitSsrComponent(
   return bodyParts.length > 1
     ? `export default ${isAsync ? 'async ' : ''}(${propsParam}, ${ctxParam}${idParam}) => {\n${body}\n};`
     : `export default ${isAsync ? 'async ' : ''}(${propsParam}, ${ctxParam}${idParam}) => ${returnExpression};`;
+}
+
+function createJsxValueReplacements(component: ComponentRecord): Replacement[] {
+  return component.jsxValues.map((value) => ({
+    range: value.expressionRange,
+    value: value.factoryName,
+  }));
+}
+
+function emitSsrJsxValueFactories(
+  component: ComponentRecord,
+  qrlSegments: Map<string, QrlSegmentOutput>,
+  sourceCode: string,
+  componentNeedsId?: (name: string) => boolean
+) {
+  return component.jsxValues
+    .map((value) =>
+      emitSsrJsxValueFactory(component, value, qrlSegments, sourceCode, componentNeedsId)
+    )
+    .join('\n');
+}
+
+function emitSsrJsxValueFactory(
+  component: ComponentRecord,
+  value: JsxValueRecord,
+  qrlSegments: Map<string, QrlSegmentOutput>,
+  sourceCode: string,
+  componentNeedsId?: (name: string) => boolean
+) {
+  const root = value.root!;
+  const emitter = new SsrEmitter(qrlSegments, sourceCode, {
+    component,
+    domEffectBatchCounts: getDomEffectBatchStats(root, qrlSegments).counts,
+    idExpr: component.needsId ? ID_PARAM : undefined,
+    componentNeedsId,
+  });
+  const slotInvokeContextId = hasSlot(root) ? emitter.ensureSlotInvokeContextId() : null;
+  const html = emitter.emitHtmlExpression(root);
+  const returnExpression = emitter.emitReturnExpression(html);
+  const body = [
+    slotInvokeContextId === null
+      ? ''
+      : `const ${slotInvokeContextId} = ${QwikSymbol.GetActiveInvokeContextOrNull}();`,
+    emitter.toString(),
+    `return ${returnExpression};`,
+  ]
+    .filter(Boolean)
+    .join('\n');
+  return `const ${value.factoryName} = () => {\n${indentBody(body)}\n};`;
 }
 
 function getComponentPropsParam(component: ComponentRecord): string {
@@ -302,6 +368,9 @@ export class SsrEmitter {
     }
     if (node.kind === 'element') {
       return this.emitElementParts(node);
+    }
+    if (node.kind === 'dynamicJsx') {
+      return this.emitDynamicJsxParts(node);
     }
     if (node.kind === 'dynamicText') {
       throw new Error('Dynamic text outside an element is not supported for SSR resume yet.');
@@ -730,6 +799,12 @@ export class SsrEmitter {
     return [{ code: `${QwikSymbol.EscapeHTML}(${id})` }];
   }
 
+  private emitDynamicJsxParts(node: Extract<RenderNode, { kind: 'dynamicJsx' }>): HtmlPart[] {
+    const id = this.next('jsx');
+    this.line(`const ${id} = ${this.emitSourceExpression(node.expressionRange)}();`);
+    return [{ code: this.trackValueOrPromise(id) }];
+  }
+
   private nextTargetId() {
     const id = this.next('id');
     this.usesCtx = true;
@@ -922,6 +997,13 @@ function emitUseOnModifierParts(eventName: string, group: UseOnGroup): HtmlPart[
 
 function isElementEvent(eventName: string): boolean {
   return eventName.charCodeAt(2) === 101 /* e */;
+}
+
+function indentBody(body: string) {
+  return body
+    .split('\n')
+    .map((line) => `  ${line}`)
+    .join('\n');
 }
 
 function hasElementTextTarget(children: readonly RenderNode[]) {

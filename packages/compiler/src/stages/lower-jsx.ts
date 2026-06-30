@@ -24,6 +24,7 @@ import type {
 import type {
   AstJsxNode,
   ComponentNamedPropRecord,
+  ComponentRecord,
   ComponentSlotRecord,
   ComponentPropRecord,
   CompilerContext,
@@ -55,7 +56,10 @@ export function lowerStaticJsxToIr(ctx: CompilerContext) {
       );
       continue;
     }
-    component.root = lowerJsxNode(ctx, component.jsx, propsName);
+    for (const value of component.jsxValues) {
+      value.root = lowerJsxNode(ctx, value.jsx, propsName, component);
+    }
+    component.root = lowerJsxNode(ctx, component.jsx, propsName, component);
   }
 }
 
@@ -82,29 +86,32 @@ function getPropsParamName(
 function lowerJsxNode(
   ctx: CompilerContext,
   node: AstJsxNode,
-  propsName: string | null
+  propsName: string | null,
+  component: ComponentRecord
 ): RenderNode {
   if (node.type === 'JSXElement') {
-    return lowerJsxElement(ctx, node, propsName);
+    return lowerJsxElement(ctx, node, propsName, component);
   }
-  return lowerJsxFragment(ctx, node, propsName);
+  return lowerJsxFragment(ctx, node, propsName, component);
 }
 
 function lowerJsxFragment(
   ctx: CompilerContext,
   node: JSXFragment,
-  propsName: string | null
+  propsName: string | null,
+  component: ComponentRecord
 ): FragmentNode {
   return {
     kind: 'fragment',
-    children: lowerJsxChildren(ctx, node.children, propsName),
+    children: lowerJsxChildren(ctx, node.children, propsName, component),
   };
 }
 
 function lowerJsxElement(
   ctx: CompilerContext,
   node: JSXElement,
-  propsName: string | null
+  propsName: string | null,
+  component: ComponentRecord
 ): RenderNode {
   const opening = node.openingElement;
   const name = getJsxName(opening.name);
@@ -115,7 +122,7 @@ function lowerJsxElement(
     );
   }
   if (name === 'Slot') {
-    return lowerSlotElement(ctx, node, propsName);
+    return lowerSlotElement(ctx, node, propsName, component);
   }
   if (!isNativeTag(name)) {
     if (isComponentTagName(name)) {
@@ -123,7 +130,7 @@ function lowerJsxElement(
         kind: 'component',
         name,
         props: lowerComponentAttributes(ctx, opening.attributes),
-        slots: lowerComponentSlots(ctx, node.children, propsName),
+        slots: lowerComponentSlots(ctx, node.children, propsName, component),
       };
     }
     return unsupportedNode(
@@ -138,17 +145,18 @@ function lowerJsxElement(
     tag: name,
     propsSegmentId: propsSegment?.id ?? null,
     props: lowerJsxAttributes(ctx, opening.attributes, propsSegment !== undefined),
-    children: lowerJsxChildren(ctx, node.children, propsName),
+    children: lowerJsxChildren(ctx, node.children, propsName, component),
   };
 }
 
 function lowerSlotElement(
   ctx: CompilerContext,
   node: JSXElement,
-  propsName: string | null
+  propsName: string | null,
+  component: ComponentRecord
 ): SlotNode {
   const name = getStaticSlotName(ctx, node.openingElement.attributes);
-  const children = lowerJsxChildren(ctx, node.children, propsName);
+  const children = lowerJsxChildren(ctx, node.children, propsName, component);
   const range = children.length > 0 ? getRange(node) : null;
   const segment = range === null ? null : findSlotRenderSegment(ctx, range);
   return {
@@ -162,7 +170,8 @@ function lowerSlotElement(
 function lowerComponentSlots(
   ctx: CompilerContext,
   children: JSXChild[],
-  propsName: string | null
+  propsName: string | null,
+  component: ComponentRecord
 ): ComponentSlotRecord[] {
   const slots: ComponentSlotRecord[] = [];
   for (const child of children) {
@@ -170,7 +179,7 @@ function lowerComponentSlots(
       continue;
     }
     const slotName = getProjectionSlotName(ctx, child);
-    const rendered = lowerJsxChildren(ctx, [child], propsName);
+    const rendered = lowerJsxChildren(ctx, [child], propsName, component);
     if (rendered.length === 0) {
       continue;
     }
@@ -677,7 +686,8 @@ function lowerStaticAttributeValue(
 function lowerJsxChildren(
   ctx: CompilerContext,
   children: JSXChild[],
-  propsName: string | null
+  propsName: string | null,
+  component: ComponentRecord
 ): RenderNode[] {
   const nodes: RenderNode[] = [];
   for (const child of children) {
@@ -689,7 +699,7 @@ function lowerJsxChildren(
       continue;
     }
     if (child.type === 'JSXElement' || child.type === 'JSXFragment') {
-      nodes.push(lowerJsxNode(ctx, child, propsName));
+      nodes.push(lowerJsxNode(ctx, child, propsName, component));
       continue;
     }
     if (child.type === 'JSXExpressionContainer') {
@@ -697,23 +707,36 @@ function lowerJsxChildren(
         continue;
       }
       const expression = unwrapExpression(child.expression);
+      if (isJsxValueExpression(expression, component)) {
+        const expressionRange = getRange(expression);
+        if (expressionRange) {
+          nodes.push({ kind: 'dynamicJsx', expressionRange });
+          continue;
+        }
+      }
       if (isPropsChildrenExpression(expression, propsName)) {
         nodes.push({ kind: 'slot', name: '', fallbackSegmentId: null, children: [] });
         continue;
       }
       const expressionRange = getRange(expression);
       if (expressionRange) {
-        const staticBranch = lowerStaticBranchExpression(ctx, expression, propsName);
+        const staticBranch = lowerStaticBranchExpression(ctx, expression, propsName, component);
         if (staticBranch) {
           nodes.push(...staticBranch);
           continue;
         }
-        const branch = lowerBranchExpression(ctx, expression, expressionRange, propsName);
+        const branch = lowerBranchExpression(
+          ctx,
+          expression,
+          expressionRange,
+          propsName,
+          component
+        );
         if (branch) {
           nodes.push(branch);
           continue;
         }
-        const forNode = lowerForExpression(ctx, expression, expressionRange, propsName);
+        const forNode = lowerForExpression(ctx, expression, expressionRange, propsName, component);
         if (forNode) {
           nodes.push(forNode);
           continue;
@@ -749,7 +772,8 @@ function lowerForExpression(
   ctx: CompilerContext,
   expression: unknown,
   expressionRange: SourceRange,
-  propsName: string | null
+  propsName: string | null,
+  component: ComponentRecord
 ): ForNode | null {
   const call = parseMapCall(ctx, expression);
   if (call === null) {
@@ -789,7 +813,7 @@ function lowerForExpression(
     sourceName: call.sourceName,
     keySegmentId: keySegment.id,
     renderSegmentId: renderSegment.id,
-    children: lowerExpressionChildren(ctx, rowJsx, propsName),
+    children: lowerExpressionChildren(ctx, rowJsx, propsName, component),
     usesItemSignal: usesIdentifierIgnoringKey(rowJsx, call.itemName),
     usesIndexSignal:
       call.indexName === null ? false : usesIdentifierIgnoringKey(rowJsx, call.indexName),
@@ -944,7 +968,8 @@ function lowerBranchExpression(
   ctx: CompilerContext,
   expression: unknown,
   expressionRange: SourceRange,
-  propsName: string | null
+  propsName: string | null,
+  component: ComponentRecord
 ): BranchNode | null {
   const expr = unwrapExpression(expression);
   if (!isAstNode(expr)) {
@@ -976,8 +1001,8 @@ function lowerBranchExpression(
       conditionSegmentId: conditionSegment.id,
       thenSegmentId: thenSegment.id,
       elseSegmentId: elseSegment?.id,
-      thenChildren: lowerExpressionChildren(ctx, expr.consequent, propsName),
-      elseChildren: lowerExpressionChildren(ctx, expr.alternate, propsName),
+      thenChildren: lowerExpressionChildren(ctx, expr.consequent, propsName, component),
+      elseChildren: lowerExpressionChildren(ctx, expr.alternate, propsName, component),
     };
   }
   if (expr.type === 'LogicalExpression' && expr.operator === '&&') {
@@ -997,7 +1022,7 @@ function lowerBranchExpression(
       conditionRange,
       conditionSegmentId: conditionSegment.id,
       thenSegmentId: thenSegment.id,
-      thenChildren: lowerExpressionChildren(ctx, expr.right, propsName),
+      thenChildren: lowerExpressionChildren(ctx, expr.right, propsName, component),
       elseChildren: [],
     };
   }
@@ -1007,7 +1032,8 @@ function lowerBranchExpression(
 function lowerStaticBranchExpression(
   ctx: CompilerContext,
   expression: unknown,
-  propsName: string | null
+  propsName: string | null,
+  component: ComponentRecord
 ): RenderNode[] | null {
   const expr = unwrapExpression(expression);
   if (!isAstNode(expr)) {
@@ -1017,14 +1043,19 @@ function lowerStaticBranchExpression(
     const condition = getStaticBranchCondition(expr.test);
     return condition === null
       ? null
-      : lowerExpressionChildren(ctx, condition ? expr.consequent : expr.alternate, propsName);
+      : lowerExpressionChildren(
+          ctx,
+          condition ? expr.consequent : expr.alternate,
+          propsName,
+          component
+        );
   }
   if (expr.type === 'LogicalExpression' && expr.operator === '&&') {
     const condition = getStaticBranchCondition(expr.left);
     return condition === null
       ? null
       : condition
-        ? lowerExpressionChildren(ctx, expr.right, propsName)
+        ? lowerExpressionChildren(ctx, expr.right, propsName, component)
         : [];
   }
   return null;
@@ -1049,7 +1080,8 @@ function getStaticBranchCondition(expression: unknown): boolean | null {
 function lowerExpressionChildren(
   ctx: CompilerContext,
   expression: unknown,
-  propsName: string | null
+  propsName: string | null,
+  component: ComponentRecord
 ): RenderNode[] {
   const expr = unwrapExpression(expression);
   if (!isAstNode(expr) || isEmptyBranchExpression(expr)) {
@@ -1058,20 +1090,24 @@ function lowerExpressionChildren(
   if (isPropsChildrenExpression(expr, propsName)) {
     return [{ kind: 'slot', name: '', fallbackSegmentId: null, children: [] }];
   }
+  if (isJsxValueExpression(expr, component)) {
+    const expressionRange = getRange(expr);
+    return expressionRange ? [{ kind: 'dynamicJsx', expressionRange }] : [];
+  }
   if (expr.type === 'JSXElement' || expr.type === 'JSXFragment') {
-    return [lowerJsxNode(ctx, expr, propsName)];
+    return [lowerJsxNode(ctx, expr, propsName, component)];
   }
   const range = getRange(expr);
   if (range !== null) {
-    const staticBranch = lowerStaticBranchExpression(ctx, expr, propsName);
+    const staticBranch = lowerStaticBranchExpression(ctx, expr, propsName, component);
     if (staticBranch) {
       return staticBranch;
     }
-    const branch = lowerBranchExpression(ctx, expr, range, propsName);
+    const branch = lowerBranchExpression(ctx, expr, range, propsName, component);
     if (branch) {
       return [branch];
     }
-    const forNode = lowerForExpression(ctx, expr, range, propsName);
+    const forNode = lowerForExpression(ctx, expr, range, propsName, component);
     if (forNode) {
       return [forNode];
     }
@@ -1156,6 +1192,15 @@ function isPropsChildrenExpression(expression: unknown, propsName: string | null
     isAstNode(property) &&
     property.type === 'Identifier' &&
     property.name === 'children'
+  );
+}
+
+function isJsxValueExpression(expression: unknown, component: ComponentRecord): boolean {
+  const expr = unwrapExpression(expression);
+  return (
+    isAstNode(expr) &&
+    expr.type === 'Identifier' &&
+    component.jsxValues.some((value) => value.name === expr.name)
   );
 }
 

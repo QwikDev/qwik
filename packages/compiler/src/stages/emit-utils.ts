@@ -7,13 +7,16 @@ import type {
   QrlSegmentOutput,
   RenderNode,
   SegmentRecord,
+  SourceRange,
 } from '../types';
 import {
   hasTaskSetupSegment,
   hasSetupQrlSegment,
   isImplicitDollarSegment,
+  isRangeInside,
   transformImplicitDollarCode,
   type DollarTransformTarget,
+  type Replacement,
 } from './implicit-dollar';
 import { QwikSymbol } from '../words';
 
@@ -77,19 +80,30 @@ export function emitComponentSetup(
   segments: readonly SegmentRecord[],
   sourceCode: string,
   target: DollarTransformTarget,
-  force = false
+  force = false,
+  replacements: readonly Replacement[] = [],
+  skipRanges: readonly SourceRange[] = []
 ) {
   if (
     !force &&
     !hasCapturedQrlSegment(component.root, qrlSegments) &&
     !hasTaskSetupSegment(component, segments) &&
-    !hasSetupQrlSegment(component, segments)
+    !hasSetupQrlSegment(component, segments) &&
+    replacements.length === 0
   ) {
     return '';
   }
   return component.setupRanges
     .map((range) => {
-      const code = transformImplicitDollarCode(sourceCode, range, segments, qrlSegments, target);
+      const code = transformImplicitDollarCode(
+        sourceCode,
+        range,
+        segments,
+        qrlSegments,
+        target,
+        skipRanges,
+        replacements.filter((replacement) => isRangeInside(replacement.range, range))
+      );
       const rewritten = target === 'csr' ? rewriteDestructuredProps(component, code) : code;
       return rewriteUseIdCalls(component, sourceCode, range, rewritten);
     })
@@ -317,6 +331,7 @@ export function hasDynamicBinding(node: RenderNode | null): boolean {
   return someRenderNode(
     node,
     (current) =>
+      current.kind === 'dynamicJsx' ||
       current.kind === 'dynamicText' ||
       current.kind === 'branch' ||
       current.kind === 'for' ||

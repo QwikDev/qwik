@@ -72,13 +72,16 @@ export function transformImplicitDollarCode(
   range: SourceRange,
   segments: readonly SegmentRecord[],
   qrlSegments: Map<string, QrlSegmentOutput>,
-  target: DollarTransformTarget
+  target: DollarTransformTarget,
+  skipRanges: readonly SourceRange[] = [],
+  extraReplacements: Replacement[] = []
 ) {
-  const replacements: Replacement[] = [];
+  const replacements: Replacement[] = [...extraReplacements];
   for (const segment of segments) {
     if (
       !(isImplicitDollarSegment(segment) || isExplicitDollarSegment(segment)) ||
-      !isRangeInside(segment.range, range)
+      !isRangeInside(segment.range, range) ||
+      skipRanges.some((skipRange) => isRangeInside(segment.range, skipRange))
     ) {
       continue;
     }
@@ -617,7 +620,11 @@ function getTargetName(name: string, target: DollarTransformTarget) {
   return target === 'ssr' ? `${base}Qrl` : base;
 }
 
-function applyReplacements(sourceCode: string, range: SourceRange, replacements: Replacement[]) {
+export function applyReplacements(
+  sourceCode: string,
+  range: SourceRange,
+  replacements: Replacement[]
+) {
   let output = sourceCode.slice(range[0], range[1]);
   const sorted = replacements
     .filter((replacement) => isRangeInside(replacement.range, range))

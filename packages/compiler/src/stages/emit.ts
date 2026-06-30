@@ -133,7 +133,9 @@ function createModuleImports(
 ) {
   const transformedImports = transformDollarImports(ctx.manifest.imports, ctx.emitTarget);
   const componentImports = components.flatMap((component) =>
-    createComponentReferenceImports(ctx, component.root!, component)
+    getComponentRoots(component).flatMap((root) =>
+      createComponentReferenceImports(ctx, root, component)
+    )
   );
   const baseImports = [...transformedImports, ...componentImports];
   if (ctx.emitTarget === 'ssr') {
@@ -141,26 +143,7 @@ function createModuleImports(
       baseImports,
       qrlSegments,
       createSsrImportUsage(
-        components.map((component) => {
-          const hasTask = hasTaskSetupSegment(
-            component,
-            ctx.manifest.segments,
-            isCreateTaskSegment
-          );
-          return {
-            root: component.root,
-            providesContext: component.providesContext,
-            hasSetupAwait: hasTask,
-            hasTask,
-            hasSetupQrl: hasSetupQrlSegment(component, ctx.manifest.segments),
-            hasUseId: hasUseId(component, ctx.input.code),
-            hasVisibleTask: hasTaskSetupSegment(
-              component,
-              ctx.manifest.segments,
-              isCreateVisibleTaskSegment
-            ),
-          };
-        }),
+        components.flatMap((component) => createSsrUsageRoots(ctx, component)),
         qrlSegments
       )
     );
@@ -186,10 +169,15 @@ function assignComponentIdState(ctx: CompilerContext, components: readonly Compo
       if (component.root === null || component.needsId) {
         continue;
       }
-      for (const name of collectComponentReferenceNames(component.root, true)) {
-        if (findNamedComponent(ctx, name)?.needsId === true) {
-          component.needsId = true;
-          changed = true;
+      for (const root of getComponentRoots(component)) {
+        for (const name of collectComponentReferenceNames(root, true)) {
+          if (findNamedComponent(ctx, name)?.needsId === true) {
+            component.needsId = true;
+            changed = true;
+            break;
+          }
+        }
+        if (component.needsId) {
           break;
         }
       }
@@ -203,17 +191,30 @@ function collectReferencedComponents(
 ): Set<ComponentRecord> {
   const referenced = new Set<ComponentRecord>();
   for (const component of components) {
-    if (component.root === null) {
-      continue;
-    }
-    for (const name of collectComponentReferenceNames(component.root, true)) {
-      const child = findNamedComponent(ctx, name);
-      if (child && child !== component) {
-        referenced.add(child);
+    for (const root of getComponentRoots(component)) {
+      for (const name of collectComponentReferenceNames(root, true)) {
+        const child = findNamedComponent(ctx, name);
+        if (child && child !== component) {
+          referenced.add(child);
+        }
       }
     }
   }
   return referenced;
+}
+
+function getComponentRoots(component: ComponentRecord): RenderNode[] {
+  return [component.root, ...component.jsxValues.map((value) => value.root)].filter(
+    (root): root is RenderNode => root !== null
+  );
+}
+
+function getComponentUsageRoot(component: ComponentRecord): RenderNode | null {
+  const roots = getComponentRoots(component);
+  if (roots.length === 0) {
+    return null;
+  }
+  return roots.length === 1 ? roots[0] : { kind: 'fragment', children: roots };
 }
 
 interface SsrUsageRoot {
@@ -224,6 +225,26 @@ interface SsrUsageRoot {
   hasUseId?: boolean;
   hasTask?: boolean;
   hasVisibleTask?: boolean;
+}
+
+function createSsrUsageRoots(ctx: CompilerContext, component: ComponentRecord): SsrUsageRoot[] {
+  const hasTask = hasTaskSetupSegment(component, ctx.manifest.segments, isCreateTaskSegment);
+  return [
+    {
+      root: component.root,
+      providesContext: component.providesContext,
+      hasSetupAwait: hasTask,
+      hasTask,
+      hasSetupQrl: hasSetupQrlSegment(component, ctx.manifest.segments),
+      hasUseId: hasUseId(component, ctx.input.code),
+      hasVisibleTask: hasTaskSetupSegment(
+        component,
+        ctx.manifest.segments,
+        isCreateVisibleTaskSegment
+      ),
+    },
+    ...component.jsxValues.map((value) => ({ root: value.root })),
+  ];
 }
 
 function createSsrImportUsage(
@@ -294,6 +315,9 @@ function countSsrValueOrPromiseNodes(node: RenderNode | null): number {
     return 0;
   }
   if (node.kind === 'dynamicText') {
+    return 1;
+  }
+  if (node.kind === 'dynamicJsx') {
     return 1;
   }
   if (node.kind === 'branch' || node.kind === 'for' || node.kind === 'slot') {
@@ -475,15 +499,8 @@ function collectQrlSegments(
   const segmentById = new Map(ctx.manifest.segments.map((segment) => [segment.id, segment]));
   const qrlSegments = new Map<string, QrlSegmentOutput>();
   for (const component of components) {
-    if (component.root) {
-      collectNodeQrlSegments(
-        ctx,
-        component.root,
-        segmentById,
-        qrlSegments,
-        true,
-        includeBranchChildren
-      );
+    for (const root of getComponentRoots(component)) {
+      collectNodeQrlSegments(ctx, root, segmentById, qrlSegments, true, includeBranchChildren);
     }
     if (emitTarget === 'ssr') {
       collectComponentImplicitDollarSegments(ctx, component, qrlSegments);
@@ -498,8 +515,8 @@ function collectCsrRootQrlSegments(
 ): Map<string, QrlSegmentOutput> {
   const rootSegments = new Map<string, QrlSegmentOutput>();
   for (const component of components) {
-    if (component.root) {
-      collectCsrRootNodeQrlSegments(component.root, qrlSegments, rootSegments);
+    for (const root of getComponentRoots(component)) {
+      collectCsrRootNodeQrlSegments(root, qrlSegments, rootSegments);
     }
   }
   return rootSegments;
@@ -580,10 +597,10 @@ function collectCsrRootImportUsage(
   const items = components.map((component) => {
     const useOnEvents = collectUseOnCarriers(component, segments, qrlSegments, sourceCode);
     return {
-      root: component.root,
+      root: getComponentUsageRoot(component),
       component,
       providesContext: component.providesContext,
-      batchStats: getDomEffectBatchStats(component.root, qrlSegments),
+      batchStats: getDomEffectBatchStats(getComponentUsageRoot(component), qrlSegments),
       hasSetupQrl: hasSetupQrlSegment(component, segments),
       useOnEvents,
     };
@@ -609,7 +626,11 @@ function collectCsrRootImportUsage(
     hasDynamicBinding: items.some(
       (item) => hasCsrRootDynamicBinding(item.root) || item.providesContext
     ),
-    hasTemplate: has(canEmitTemplateRoot),
+    hasTemplate:
+      has(canEmitTemplateRoot) ||
+      items.some((item) =>
+        item.component.jsxValues.some((value) => canEmitTemplateRoot(value.root))
+      ),
     hasDomBatch: items.some((item) =>
       item.batchStats.effects.some((effect) =>
         isDomEffectBatched(item.batchStats.counts, effect.batchKey)
@@ -647,6 +668,7 @@ function hasCsrRootDynamicBinding(node: RenderNode | null): boolean {
     node,
     (current) =>
       current.kind === 'dynamicText' ||
+      current.kind === 'dynamicJsx' ||
       current.kind === 'branch' ||
       current.kind === 'for' ||
       (current.kind === 'component' &&
@@ -1660,12 +1682,11 @@ function findBranchRenderChildren(
   segmentId: string
 ): readonly RenderNode[] | null {
   for (const component of ctx.manifest.components) {
-    if (component.root === null) {
-      continue;
-    }
-    const children = findBranchRenderChildrenInNode(component.root, segmentId);
-    if (children !== null) {
-      return children;
+    for (const root of getComponentRoots(component)) {
+      const children = findBranchRenderChildrenInNode(root, segmentId);
+      if (children !== null) {
+        return children;
+      }
     }
   }
   return null;
@@ -1673,12 +1694,11 @@ function findBranchRenderChildren(
 
 function findPropsSegmentElement(ctx: CompilerContext, segmentId: string): ElementNode | null {
   for (const component of ctx.manifest.components) {
-    if (component.root === null) {
-      continue;
-    }
-    const element = findPropsSegmentElementInNode(component.root, segmentId);
-    if (element !== null) {
-      return element;
+    for (const root of getComponentRoots(component)) {
+      const element = findPropsSegmentElementInNode(root, segmentId);
+      if (element !== null) {
+        return element;
+      }
     }
   }
   return null;
@@ -1710,12 +1730,11 @@ function findForRenderChildren(
   segmentId: string
 ): readonly RenderNode[] | null {
   for (const component of ctx.manifest.components) {
-    if (component.root === null) {
-      continue;
-    }
-    const children = findForRenderChildrenInNode(component.root, segmentId);
-    if (children !== null) {
-      return children;
+    for (const root of getComponentRoots(component)) {
+      const children = findForRenderChildrenInNode(root, segmentId);
+      if (children !== null) {
+        return children;
+      }
     }
   }
   return null;
@@ -1726,12 +1745,11 @@ function findSlotRenderChildren(
   segmentId: string
 ): readonly RenderNode[] | null {
   for (const component of ctx.manifest.components) {
-    if (component.root === null) {
-      continue;
-    }
-    const children = findSlotRenderChildrenInNode(component.root, segmentId);
-    if (children !== null) {
-      return children;
+    for (const root of getComponentRoots(component)) {
+      const children = findSlotRenderChildrenInNode(root, segmentId);
+      if (children !== null) {
+        return children;
+      }
     }
   }
   return null;

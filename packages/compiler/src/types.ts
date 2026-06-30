@@ -75,9 +75,18 @@ export interface ComponentRecord {
   useIdNames: string[];
   params: ParamRecord[];
   setupRanges: SourceRange[];
+  jsxValues: JsxValueRecord[];
   jsx: AstJsxNode | null;
   root: RenderNode | null;
   supported: boolean;
+}
+
+export interface JsxValueRecord {
+  name: string;
+  factoryName: string;
+  expressionRange: SourceRange;
+  jsx: AstJsxNode;
+  root: RenderNode | null;
 }
 
 export interface SegmentRecord {
@@ -195,6 +204,11 @@ export interface DynamicTextNode {
   binding: DynamicBinding;
 }
 
+export interface DynamicJsxNode {
+  kind: 'dynamicJsx';
+  expressionRange: SourceRange;
+}
+
 export interface BranchNode {
   kind: 'branch';
   expressionRange: SourceRange;
@@ -225,6 +239,7 @@ export type RenderNode =
   | SlotNode
   | TextNode
   | DynamicTextNode
+  | DynamicJsxNode
   | BranchNode
   | ForNode;
 

@@ -5,6 +5,7 @@ import type {
   CaptureRecord,
   ForNode,
   ImportRecord,
+  JsxValueRecord,
   PropRecord,
   QrlSegmentOutput,
   RenderNode,
@@ -30,7 +31,7 @@ import {
   rewriteLoopCaptures,
   serializeAttrValue,
 } from './emit-utils';
-import { collectUseOnCarriers, type UseOnCarrier } from './implicit-dollar';
+import { collectUseOnCarriers, type Replacement, type UseOnCarrier } from './implicit-dollar';
 
 export interface DomOutput {
   id: string;
@@ -130,6 +131,7 @@ function emitDomRenderer(
   sourceCode: string,
   componentNeedsId?: (name: string) => boolean
 ) {
+  const jsxValueReplacements = createJsxValueReplacements(component);
   const emitter = new DomEmitter(
     qrlSegments,
     sourceCode,
@@ -144,6 +146,7 @@ function emitDomRenderer(
   );
   const root = component.root!;
   emitter.raw(emitComponentParamSetup(component, sourceCode, { omitRewrittenProps: true }));
+  emitter.raw(emitCsrJsxValueFactories(component, qrlSegments, sourceCode, componentNeedsId));
   emitter.raw(
     emitComponentSetup(
       component,
@@ -151,7 +154,9 @@ function emitDomRenderer(
       segments,
       sourceCode,
       'csr',
-      hasDynamicBinding(root) || component.providesContext || hasUseId(component, sourceCode)
+      hasDynamicBinding(root) || component.providesContext || hasUseId(component, sourceCode),
+      jsxValueReplacements,
+      component.jsxValues.map((value) => value.expressionRange)
     )
   );
   const roots = emitter.emitTemplateRoot(root) ?? emitter.emitRoot(root);
@@ -159,6 +164,53 @@ function emitDomRenderer(
   emitter.finalizeDomBatchEffects();
   emitter.line(`return ${emitNodeOutputExpression(roots)};`);
   return { body: emitter.toString(), hoists: emitter.emitHoists() };
+}
+
+function createJsxValueReplacements(component: ComponentRecord): Replacement[] {
+  return component.jsxValues.map((value) => ({
+    range: value.expressionRange,
+    value: value.factoryName,
+  }));
+}
+
+function emitCsrJsxValueFactories(
+  component: ComponentRecord,
+  qrlSegments: Map<string, QrlSegmentOutput>,
+  sourceCode: string,
+  componentNeedsId?: (name: string) => boolean
+) {
+  return component.jsxValues
+    .map((value) =>
+      emitCsrJsxValueFactory(component, value, qrlSegments, sourceCode, componentNeedsId)
+    )
+    .join('\n');
+}
+
+function emitCsrJsxValueFactory(
+  component: ComponentRecord,
+  value: JsxValueRecord,
+  qrlSegments: Map<string, QrlSegmentOutput>,
+  sourceCode: string,
+  componentNeedsId?: (name: string) => boolean
+) {
+  const root = value.root!;
+  const emitter = new DomEmitter(
+    qrlSegments,
+    sourceCode,
+    {
+      domEffectBatchCounts: getDomEffectBatchStats(root, qrlSegments).counts,
+      helperPrefix: createHelperPrefix(`${component.exportName}_${value.factoryName}`),
+      idExpr: component.needsId ? ID_PARAM : undefined,
+      componentNeedsId,
+    },
+    component
+  );
+  const roots = emitter.emitTemplateRoot(root) ?? emitter.emitRoot(root);
+  emitter.finalizeDomBatchEffects();
+  emitter.line(`return ${emitNodeOutputExpression(roots)};`);
+  return `${emitter.emitHoists()}const ${value.factoryName} = () => {\n${indentBody(
+    emitter.toString()
+  )}\n};`;
 }
 
 export class DomEmitter {
@@ -232,6 +284,11 @@ export class DomEmitter {
       this.line(`const ${id} = ctx.document.createTextNode('');`);
       this.emitDynamicTextBinding(id, node);
       return { id, kind: 'node' };
+    }
+    if (node.kind === 'dynamicJsx') {
+      const id = this.next('jsx');
+      this.line(`const ${id} = ${this.emitExpression(node.expressionRange)}();`);
+      return { id, kind: 'nodes' };
     }
     if (node.kind === 'element') {
       const id = this.next('el');
@@ -1148,6 +1205,13 @@ function nextSiblingPath(start: string, count: number): string {
     path += '.nextSibling';
   }
   return path;
+}
+
+function indentBody(body: string) {
+  return body
+    .split('\n')
+    .map((line) => `  ${line}`)
+    .join('\n');
 }
 
 function needsTemplatePatch(node: RenderNode): boolean {

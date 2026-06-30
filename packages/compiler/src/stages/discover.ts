@@ -34,6 +34,7 @@ interface ComponentFunctionInfo {
 interface ComponentBodyInfo {
   jsx: AstJsxNode | null;
   setupRanges: NonNullable<ComponentRecord['functionRange']>[];
+  jsxValues: ComponentRecord['jsxValues'];
   providesContext: boolean;
 }
 
@@ -191,6 +192,7 @@ function addFunctionComponent(
     useIdNames: getUseIdNames(ctx),
     params: getParams(fn),
     setupRanges: body.setupRanges,
+    jsxValues: body.jsxValues,
     jsx: body.jsx,
     root: null,
     supported: true,
@@ -237,6 +239,9 @@ function discoverLocalComponents(
   for (const component of ctx.manifest.components) {
     if (component.jsx) {
       collectJsxComponentNames(component.jsx, queue);
+    }
+    for (const value of component.jsxValues) {
+      collectJsxComponentNames(value.jsx, queue);
     }
   }
 
@@ -340,15 +345,16 @@ function getComponentBody(
 ): ComponentBodyInfo {
   const body = unwrapExpression(fn.body);
   if (!body) {
-    return { jsx: null, setupRanges: [], providesContext: false };
+    return { jsx: null, setupRanges: [], jsxValues: [], providesContext: false };
   }
   if (body.type === 'JSXElement' || body.type === 'JSXFragment') {
-    return { jsx: body, setupRanges: [], providesContext: false };
+    return { jsx: body, setupRanges: [], jsxValues: [], providesContext: false };
   }
   if (body.type !== 'BlockStatement') {
-    return { jsx: null, setupRanges: [], providesContext: false };
+    return { jsx: null, setupRanges: [], jsxValues: [], providesContext: false };
   }
   const setupRanges: ComponentBodyInfo['setupRanges'] = [];
+  const jsxValues: ComponentBodyInfo['jsxValues'] = [];
   let providesContext = false;
   for (const statement of body.body ?? []) {
     const statementRange = getRange(statement);
@@ -356,19 +362,49 @@ function getComponentBody(
       if (statementRange) {
         setupRanges.push(statementRange);
       }
+      collectJsxValues(statement, jsxValues);
       providesContext ||= containsContextProviderCall(statement, contextProviderImports);
       continue;
     }
     const argument = unwrapExpression(statement.argument);
     if (isJsxNode(argument)) {
-      return { jsx: argument, setupRanges, providesContext };
+      return { jsx: argument, setupRanges, jsxValues, providesContext };
     }
     if (statementRange) {
       setupRanges.push(statementRange);
     }
+    collectJsxValues(statement, jsxValues);
     providesContext ||= containsContextProviderCall(statement, contextProviderImports);
   }
-  return { jsx: null, setupRanges: [], providesContext: false };
+  return { jsx: null, setupRanges: [], jsxValues: [], providesContext: false };
+}
+
+function collectJsxValues(statement: unknown, jsxValues: ComponentBodyInfo['jsxValues']) {
+  if (
+    !statement ||
+    typeof statement !== 'object' ||
+    (statement as { type?: string }).type !== 'VariableDeclaration'
+  ) {
+    return;
+  }
+  for (const declarator of (statement as { declarations?: unknown[] }).declarations ?? []) {
+    if (!declarator || typeof declarator !== 'object') {
+      continue;
+    }
+    const record = declarator as { id?: unknown; init?: unknown };
+    const name = getIdentifierName(record.id);
+    const jsx = unwrapExpression(record.init);
+    const expressionRange = getRange(record.init);
+    if (name && isJsxNode(jsx) && expressionRange) {
+      jsxValues.push({
+        name,
+        factoryName: `__jsxValue${jsxValues.length}`,
+        expressionRange,
+        jsx,
+        root: null,
+      });
+    }
+  }
 }
 
 function getContextProviderImports(ctx: CompilerContext): ContextProviderImports {

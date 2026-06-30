@@ -699,4 +699,36 @@ export function App() {
 `,
     });
   });
+
+  test('transforms JSX values declared in component setup', async () => {
+    await testInput('jsx_value_setup', {
+      code: `export function App() {
+  const someJsx = <div>Some JSX</div>;
+  return <button>{someJsx}</button>;
+}
+`,
+    });
+  });
+
+  test('creates fresh CSR DOM for repeated JSX value use', async () => {
+    await testInput('jsx_value_repeated', {
+      code: `export function App() {
+  const item = <span>Item</span>;
+  return <div>{item}{item}</div>;
+}
+`,
+    });
+  });
+
+  test('collects dynamic JSX value segments', async () => {
+    await testInput('jsx_value_dynamic', {
+      code: `import { createSignal } from '@qwik.dev/core/spark';
+export function App() {
+  const count = createSignal(0);
+  const button = <button onClick$={() => count.value++}>{count.value}</button>;
+  return <section>{button}</section>;
+}
+`,
+    });
+  });
 });

@@ -1,0 +1,51 @@
+==INPUT==
+
+export function App() {
+  const someJsx = <div>Some JSX</div>;
+  return <button>{someJsx}</button>;
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { maybeThen } from '@qwik.dev/core/spark';
+
+export function App(_props, _ctx) {
+  const __jsxValue0 = () => {
+    return '<div>Some JSX</div>';
+  };
+  const someJsx = __jsxValue0;
+  const jsx0 = someJsx();
+  return maybeThen(jsx0, (jsx0) => '<button>' + jsx0 + '</button>');
+}
+
+null
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { createTemplate } from '@qwik.dev/core/spark';
+
+export function App(_props, ctx) {
+  const dom_App___jsxValue0_template0 = createTemplate('<div>Some JSX</div>');
+  const __jsxValue0 = () => {
+    const fragment0 = dom_App___jsxValue0_template0(ctx.document);
+    const el1 = fragment0.firstChild;
+    return el1;
+  };
+  const someJsx = __jsxValue0;
+  const el0 = ctx.document.createElement('button');
+  const jsx1 = someJsx();
+  if (Array.isArray(jsx1)) for (let i = 0; i < jsx1.length; i++) el0.appendChild(jsx1[i]);
+  else el0.appendChild(jsx1);
+  return el0;
+}
+
+null
+== CSR DIAGNOSTICS ==
+
+[]

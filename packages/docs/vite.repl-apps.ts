@@ -2,7 +2,7 @@ import type { TransformModuleInput } from '@qwik.dev/core/optimizer';
 import MagicString from 'magic-string';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { basename, join } from 'node:path';
-import type { PluginContext } from 'rollup';
+import type { PluginContext } from 'rolldown';
 import type { Plugin } from 'vite';
 import type { ReplModuleInput } from './src/repl/types';
 import type { ExampleSection } from './src/routes/examples/apps/examples-data';
@@ -323,31 +323,36 @@ export function rawSource(): Plugin {
       },
     },
 
-    load(id) {
-      if (id.startsWith('\0raw-source:')) {
-        let path = id.slice('\0raw-source:'.length);
-        if (path.startsWith('/@fs/')) {
-          path = path.slice('/@fs'.length);
+    // `pre` so we own `\0raw-source:` ids before Vite's wasm-helper, which would otherwise
+    // try to read a null-byte path for a `.wasm` raw source.
+    load: {
+      order: 'pre',
+      handler(id) {
+        if (id.startsWith('\0raw-source:')) {
+          let path = id.slice('\0raw-source:'.length);
+          if (path.startsWith('/@fs/')) {
+            path = path.slice('/@fs'.length);
+          }
+          if (path.startsWith('\x00')) {
+            // let's just assume it's a path
+            path = path.slice(1);
+          }
+          if (isDev) {
+            const devUrl = `${base}@raw-fs${path}`;
+            return `export default "${devUrl}";`;
+          }
+          const fileContent = readFileSync(path);
+          const ref = this.emitFile({
+            type: 'asset',
+            name: basename(path),
+            source: fileContent,
+          });
+          return {
+            code: `export default "@@RAW-URL_${ref}@@";`,
+            map: { version: 3, sources: [path], mappings: '' },
+          };
         }
-        if (path.startsWith('\x00')) {
-          // let's just assume it's a path
-          path = path.slice(1);
-        }
-        if (isDev) {
-          const devUrl = `${base}@raw-fs${path}`;
-          return `export default "${devUrl}";`;
-        }
-        const fileContent = readFileSync(path);
-        const ref = this.emitFile({
-          type: 'asset',
-          name: basename(path),
-          source: fileContent,
-        });
-        return {
-          code: `export default "@@RAW-URL_${ref}@@";`,
-          map: { version: 3, sources: [path], mappings: '' },
-        };
-      }
+      },
     },
 
     renderChunk(code, chunk) {

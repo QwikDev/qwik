@@ -10,7 +10,7 @@ import type {
   HmrContext,
   Plugin,
   PluginOption,
-  Rollup,
+  Rolldown,
   UserConfig,
   ViteDevServer,
 } from 'vite';
@@ -88,22 +88,26 @@ export function replaceLoaderPlaceholders(
   // Replace `_R: "__LOADERS:path1|path2__"` with the actual hash array, or strip the whole
   // `_R: ...` entry when no routeLoader$ was found — that way the client-side routing code
   // never sees a stale placeholder string and spreads it character-by-character.
-  return code.replace(/_R\s*:\s*"__LOADERS:([^"]+)__"\s*,?/g, (_match, paths: string) => {
-    const filePaths = paths.split('|');
-    const hashes: string[] = [];
-    for (const filePath of filePaths) {
-      const fileHashes = loadersByFile.get(filePath);
-      if (fileHashes) {
-        hashes.push(...fileHashes);
+  // Quote may be ", ' or ` (minifiers can re-emit as a template literal); pair via backreference.
+  return code.replace(
+    /_R\s*:\s*(["'`])__LOADERS:(.+?)__\1\s*,?/g,
+    (_match, _quote: string, paths: string) => {
+      const filePaths = paths.split('|');
+      const hashes: string[] = [];
+      for (const filePath of filePaths) {
+        const fileHashes = loadersByFile.get(filePath);
+        if (fileHashes) {
+          hashes.push(...fileHashes);
+        }
       }
+      if (hashes.length > 0) {
+        return `_R: ${JSON.stringify(hashes)},`;
+      }
+      // Trailing commas inside object literals are legal, so removing a mid-object entry
+      // (and the trailing comma it emitted with) leaves the surrounding trie literal valid.
+      return '';
     }
-    if (hashes.length > 0) {
-      return `_R: ${JSON.stringify(hashes)},`;
-    }
-    // Trailing commas inside object literals are legal, so removing a mid-object entry
-    // (and the trailing comma it emitted with) leaves the surrounding trie literal valid.
-    return '';
-  });
+  );
 }
 
 export function addRouteLoaderHash(
@@ -599,7 +603,7 @@ function qwikRouterPlugin(
             if (e && typeof e == 'object' && 'position' in e && 'reason' in e) {
               const column = (e as any).position?.start.column;
               const line = (e as any).position?.start.line;
-              const err: Rollup.RollupError = Object.assign(new Error(e.reason), {
+              const err: Rolldown.RolldownError = Object.assign(new Error(e.reason), {
                 id,
                 plugin: 'qwik-router-mdx',
                 loc: {
@@ -717,7 +721,7 @@ function serverFnsPlugin(buildContextRef: BuildContextRef): Plugin {
   }
   reset();
 
-  async function collectServerFnModules(this: Rollup.PluginContext) {
+  async function collectServerFnModules(this: Rolldown.PluginContext) {
     if (serverFnsReady) {
       await serverFnsReady;
       return;

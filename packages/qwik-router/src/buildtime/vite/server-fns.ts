@@ -1,7 +1,7 @@
-import type { Rollup } from 'vite';
+import type { Rolldown } from 'vite';
 import type { RoutingContext } from '../types';
 
-export type ServerFnPluginContext = Pick<Rollup.PluginContext, 'resolve' | 'load'>;
+export type ServerFnPluginContext = Pick<Rolldown.PluginContext, 'resolve' | 'load'>;
 export type ServerFnRoutingContext = Pick<RoutingContext, 'layouts' | 'routes' | 'serverPlugins'>;
 
 export async function collectServerFnModuleIds(

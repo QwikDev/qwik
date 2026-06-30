@@ -672,11 +672,11 @@ The version of the manifest
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/types.ts)
 
-<h2 id="qwikrollup">qwikRollup</h2>
+<h2 id="qwikrolldown">qwikRolldown</h2>
 
 ```typescript
-export declare function qwikRollup(
-  qwikRollupOpts?: QwikRollupPluginOptions,
+export declare function qwikRolldown(
+  qwikRolldownOpts?: QwikRolldownPluginOptions,
 ): any;
 ```
 
@@ -695,11 +695,11 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-qwikRollupOpts
+qwikRolldownOpts
 
 </td><td>
 
-[QwikRollupPluginOptions](#qwikrolluppluginoptions)
+[QwikRolldownPluginOptions](#qwikrolldownpluginoptions)
 
 </td><td>
 
@@ -712,12 +712,12 @@ _(Optional)_
 
 any
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/plugins/rollup.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/plugins/rolldown.ts)
 
-<h2 id="qwikrolluppluginoptions">QwikRollupPluginOptions</h2>
+<h2 id="qwikrolldownpluginoptions">QwikRolldownPluginOptions</h2>
 
 ```typescript
-export interface QwikRollupPluginOptions
+export interface QwikRolldownPluginOptions
 ```
 
 <table><thead><tr><th>
@@ -967,7 +967,37 @@ _(Optional)_ Hook that's called after the build and provides all of the transfor
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/plugins/rollup.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/plugins/rolldown.ts)
+
+<h2 id="qwikrollup">qwikRollup</h2>
+
+> Warning: This API is now obsolete.
+>
+> Use `qwikRolldown`.
+
+Renamed to `qwikRolldown` — Rollup support was dropped in the Vite 8 migration.
+
+```typescript
+qwikRollup: typeof qwikRolldown;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/plugins/rolldown.ts)
+
+<h2 id="qwikrolluppluginoptions">QwikRollupPluginOptions</h2>
+
+> Warning: This API is now obsolete.
+>
+> Use `QwikRolldownPluginOptions`.
+
+Renamed to `QwikRolldownPluginOptions`.
+
+```typescript
+export type QwikRollupPluginOptions = QwikRolldownPluginOptions;
+```
+
+**References:** [QwikRolldownPluginOptions](#qwikrolldownpluginoptions)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/plugins/rolldown.ts)
 
 <h2 id="qwiksymbol">QwikSymbol</h2>
 
@@ -1147,7 +1177,7 @@ string \| null
 
 <h2 id="qwikvite">qwikVite</h2>
 
-The types for Vite/Rollup don't allow us to be too specific about the return type. The correct return type is `[QwikVitePlugin, VitePlugin<never>]`, and if you search the plugin by name you'll get the `QwikVitePlugin`.
+The types for Vite/Rolldown don't allow us to be too specific about the return type. The correct return type is `[QwikVitePlugin, VitePlugin<never>]`, and if you search the plugin by name you'll get the `QwikVitePlugin`.
 
 ```typescript
 export declare function qwikVite(qwikViteOpts?: QwikVitePluginOptions): any;

@@ -618,6 +618,7 @@ export declare function ssrRenderToDom(
     raw?: boolean;
     qwikLoader?: boolean;
     containerTagName?: string;
+    statePrewarm?: number | false;
     stream?: StreamWriter;
     streaming?: StreamingOptions;
     resume?: boolean;
@@ -661,7 +662,7 @@ opts
 
 </td><td>
 
-\{ debug?: boolean; raw?: boolean; qwikLoader?: boolean; containerTagName?: string; stream?: StreamWriter; streaming?: [StreamingOptions](#streamingoptions); resume?: boolean; onBeforeResume?: (document: Document) =&gt; void; }
+\{ debug?: boolean; raw?: boolean; qwikLoader?: boolean; containerTagName?: string; statePrewarm?: number \| false; stream?: StreamWriter; streaming?: [StreamingOptions](#streamingoptions); resume?: boolean; onBeforeResume?: (document: Document) =&gt; void; }
 
 </td><td>
 

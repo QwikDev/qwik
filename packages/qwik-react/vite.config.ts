@@ -11,7 +11,7 @@ export default defineConfig(() => {
         formats: ['es'],
         fileName: (format, entryName) => `${entryName}.mjs`,
       },
-      rollupOptions: {
+      rolldownOptions: {
         external: [
           'react',
           'react/jsx-runtime',

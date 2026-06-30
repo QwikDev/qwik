@@ -137,3 +137,35 @@ export function parseId(originalId: string) {
 
 export const getSymbolHash = (symbolName: string) =>
   /_([a-zA-Z0-9]+)($|\.js($|\?))/.exec(symbolName)?.[1];
+
+/**
+ * Flatten a path-like name into a chunk `[name]`-safe token (Rolldown rejects path separators
+ * there).
+ */
+export const flattenToChunkName = (name: string) =>
+  name
+    .replace(/^[A-Za-z]:/, '')
+    .replace(/^(\.\.[/\\])+/, '')
+    .replace(/^\.[/\\]/, '')
+    .replace(/^[/\\]+/, '')
+    .replace(/[/\\]+/g, '-');
+
+// Chunk names the manifest matches to find the core/preloader bundles; a user or segment chunk must
+// never collide with one or it would hijack that manifest pointer. (The qwikloader is matched by its
+// emit reference instead, so a same-named route chunk can't shadow it.)
+const RESERVED_CHUNK_NAMES = new Set(['qwik-core', 'qwikloader', 'qwik-preloader']);
+
+/**
+ * Turn an entry/segment name into a chunk `[name]`, kept clear of path separators and reserved
+ * names.
+ */
+export const sanitizeChunkGroupName = (name: string | null | undefined) => {
+  if (!name) {
+    return null;
+  }
+  const chunkName = /[/\\]/.test(name) ? flattenToChunkName(name) : name;
+  if (!chunkName) {
+    return null;
+  }
+  return RESERVED_CHUNK_NAMES.has(chunkName) ? `${chunkName}-segment` : chunkName;
+};

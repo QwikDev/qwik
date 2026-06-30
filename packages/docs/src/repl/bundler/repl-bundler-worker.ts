@@ -6,7 +6,7 @@ import {
   replMinify,
   replResolver,
   replWorkerQrlChunks,
-} from './rollup-plugins';
+} from './rolldown-plugins';
 import { QWIK_PKG_NAME_V1 } from '../repl-constants';
 
 // Worker message types
@@ -179,7 +179,7 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
     plugins: [
       definesPlugin(defines),
       replCss({ srcInputs }),
-      qwikViteModule!.qwikRollup({
+      qwikViteModule!.qwikRolldown({
         optimizerOptions: { binding, _optimizer: qwikOptimizerModule },
         target: 'client',
         buildMode,
@@ -226,7 +226,7 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
     plugins: [
       definesPlugin(defines),
       replCss({ srcInputs }),
-      qwikViteModule!.qwikRollup({
+      qwikViteModule!.qwikRolldown({
         optimizerOptions: { binding, _optimizer: qwikOptimizerModule },
         target: 'ssr',
         buildMode,

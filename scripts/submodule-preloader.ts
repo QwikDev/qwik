@@ -18,7 +18,7 @@ export async function submodulePreloader(config: BuildConfig): Promise<void> {
         formats: ['es'],
         fileName: () => 'preloader.mjs',
       },
-      rollupOptions: {
+      rolldownOptions: {
         external: ['@qwik.dev/core/build'],
       },
       minify: 'terser',

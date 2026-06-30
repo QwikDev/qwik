@@ -1,4 +1,4 @@
-import type { OutputBundle, PluginContext } from 'rollup';
+import type { OutputBundle, PluginContext } from 'rolldown';
 import type { Plugin as VitePlugin, UserConfig } from 'vite';
 import type { QwikManifest } from '../types';
 import { QWIK_CORE_ID, QWIK_CORE_INTERNAL_ID, type QwikBuildTarget } from './plugin';

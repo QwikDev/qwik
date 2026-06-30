@@ -1,4 +1,4 @@
-import type { Rollup } from 'vite';
+import type { Rolldown } from 'vite';
 import { type NormalizedQwikPluginOptions } from './plugins/plugin';
 import type { GlobalInjections, Path, QwikBundle, QwikManifest, SegmentAnalysis } from './types';
 
@@ -412,21 +412,20 @@ export function computeTotals(graph: QwikManifest['bundles']): void {
   }
 }
 
-const preloaderRegex = /[/\\](core|qwik)[/\\]dist[/\\]preloader\.(|c|m)js$/;
-const coreRegex = /[/\\](core|qwik)[/\\]dist[/\\]core(\.min|\.prod)?\.(|c|m)js$/;
-const qwikLoaderRegex = /[/\\](core|qwik)[/\\](dist[/\\])?qwikloader(\.debug)?\.[^/]*js$/;
 /**
- * Generates the Qwik build manifest from the Rollup output bundles. It also figures out the bundle
- * files for the preloader, core, qwikloader and handlers. This information is used during SSR.
+ * Generates the Qwik build manifest from the Rolldown output bundles. It also figures out the
+ * bundle files for the preloader, core, qwikloader and handlers. This information is used during
+ * SSR.
  */
 export function generateManifestFromBundles(
   path: Path,
   segments: SegmentAnalysis[],
   injections: GlobalInjections[],
-  outputBundles: Rollup.OutputBundle,
+  outputBundles: Rolldown.OutputBundle,
   opts: NormalizedQwikPluginOptions,
   debug: (...args: any[]) => void,
-  canonPath: (p: string) => string
+  canonPath: (p: string) => string,
+  qwikLoaderFileName?: string
 ) {
   // Note that this will be the order of the JSON file
   const manifest: QwikManifest = {
@@ -463,16 +462,22 @@ export function generateManifestFromBundles(
   let preloaderBundleName: string | undefined;
   let qwikHandlersName: string | undefined;
 
+  // The qwikloader is emitFile'd, so its output name is passed in from the emit reference — never
+  // matched by chunk name, which a user route like /qwikloader would shadow.
+  manifest.qwikLoader = qwikLoaderFileName ? canonPath(qwikLoaderFileName) : undefined;
+
+  // core and preloader are code-splitting groups (no emit reference), so we match them by the group
+  // name assigned in qwik-vite plugin.ts. The qwik-core group bundles core runtime + handlers.
   for (const outputBundle of Object.values(outputBundles)) {
-    const bundleFileName = getBundleName(outputBundle.fileName);
-    if (outputBundle.name === 'core') {
+    if (outputBundle.name === 'qwik-core') {
+      const bundleFileName = canonPath(outputBundle.fileName);
       coreBundleName = bundleFileName;
-    }
-    if (outputBundle.name === 'preloader') {
-      preloaderBundleName = bundleFileName;
-    }
-    if (outputBundle.name === 'handlers') {
       qwikHandlersName = bundleFileName;
+      manifest.core = bundleFileName;
+    } else if (outputBundle.name === 'qwik-preloader') {
+      const bundleFileName = canonPath(outputBundle.fileName);
+      preloaderBundleName = bundleFileName;
+      manifest.preloader = bundleFileName;
     }
   }
   // We need to find our QRL exports
@@ -506,8 +511,6 @@ export function generateManifestFromBundles(
       }
     }
     const bundleImports = outputBundle.imports
-      // Tree shaking might remove imports
-      .filter((i) => outputBundle.code.includes(path.basename(i)))
       .map((i) => getBundleName(i))
       .filter((i) => i !== preloaderBundleName && i !== coreBundleName && i !== qwikHandlersName)
       .filter(Boolean) as string[];
@@ -515,40 +518,18 @@ export function generateManifestFromBundles(
       bundle.imports = bundleImports;
     }
     const bundleDynamicImports = outputBundle.dynamicImports
-      .filter((i) => outputBundle.code.includes(path.basename(i)))
       .map((i) => getBundleName(i))
       .filter(Boolean) as string[];
     if (bundleDynamicImports.length > 0) {
       bundle.dynamicImports = bundleDynamicImports;
     }
 
-    // It can happen that our modules end up in facades, not nice but needs handling
-    if (outputBundle.facadeModuleId) {
-      if (preloaderRegex.test(outputBundle.facadeModuleId)) {
-        manifest.preloader = bundleFileName;
-      } else if (coreRegex.test(outputBundle.facadeModuleId)) {
-        manifest.core = bundleFileName;
-      } else if (qwikLoaderRegex.test(outputBundle.facadeModuleId)) {
-        manifest.qwikLoader = bundleFileName;
-      }
-    }
-    // Rollup doesn't provide the moduleIds in the outputBundle but Vite does
     const ids = outputBundle.moduleIds || Object.keys(outputBundle.modules);
     const modulePaths = ids
       .filter((m) => !m.startsWith(`\u0000`))
       .map((m) => path.relative(opts.rootDir, m));
     if (modulePaths.length > 0) {
       bundle.origins = modulePaths;
-      // keep these if statements separate so that weird bundling still works
-      if (!manifest.preloader && modulePaths.some((m) => preloaderRegex.test(m))) {
-        manifest.preloader = bundleFileName;
-      }
-      if (!manifest.core && modulePaths.some((m) => coreRegex.test(m))) {
-        manifest.core = bundleFileName;
-      }
-      if (!manifest.qwikLoader && modulePaths.some((m) => qwikLoaderRegex.test(m))) {
-        manifest.qwikLoader = bundleFileName;
-      }
     }
 
     manifest.bundles[bundleFileName] = bundle;

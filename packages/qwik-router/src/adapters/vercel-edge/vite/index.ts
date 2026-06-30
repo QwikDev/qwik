@@ -29,10 +29,9 @@ export function vercelEdgeAdapter(opts: VercelEdgeAdapterOptions = {}): any {
         build: {
           ssr: true,
           outDir,
-          rollupOptions: {
+          rolldownOptions: {
             output: {
               format: 'es',
-              hoistTransitiveImports: false,
             },
           },
         },

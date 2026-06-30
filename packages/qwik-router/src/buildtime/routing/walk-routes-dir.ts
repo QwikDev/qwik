@@ -57,59 +57,52 @@ export async function walkRoutes(routesDir: string): Promise<BuildTrieNode> {
 }
 
 async function walkRouteDir(node: BuildTrieNode, dirPath: string) {
-  const dirItemNames = await fs.promises.readdir(dirPath);
+  // Sort and process in name order so _files and children are populated deterministically,
+  // independent of fs.stat resolution order (otherwise the route config flakes).
+  const dirItemNames = (await fs.promises.readdir(dirPath)).sort();
 
-  await Promise.all(
+  const items = await Promise.all(
     dirItemNames.map(async (itemName) => {
       const itemPath = normalizePath(join(dirPath, itemName));
-
-      const stat = await fs.promises.stat(itemPath);
-      if (stat.isDirectory()) {
-        const parsed = parseDirName(itemName);
-
-        if (parsed.key === null) {
-          // Group directory: keep as child with (name) key for layout scoping
-          let child = node.children.get(itemName);
-          if (!child) {
-            child = {
-              _files: [],
-              children: new Map(),
-            };
-            node.children.set(itemName, child);
-          }
-          await walkRouteDir(child, itemPath);
-        } else {
-          let child = node.children.get(parsed.key);
-          if (!child) {
-            child = {
-              _files: [],
-              children: new Map(),
-            };
-            if (parsed.paramName) {
-              child._P = parsed.paramName;
-            }
-            if (parsed.prefix) {
-              child._0 = parsed.prefix;
-            }
-            if (parsed.suffix) {
-              child._9 = parsed.suffix;
-            }
-            node.children.set(parsed.key, child);
-          }
-          await walkRouteDir(child, itemPath);
-        }
-      } else {
-        const sourceFileName = getSourceFile(itemName);
-        if (sourceFileName !== null) {
-          node._files.push({
-            ...sourceFileName,
-            fileName: itemName,
-            filePath: itemPath,
-            dirName: basename(dirPath),
-            dirPath: normalizePath(dirPath),
-          });
-        }
-      }
+      const isDirectory = (await fs.promises.stat(itemPath)).isDirectory();
+      return { itemName, itemPath, isDirectory };
     })
   );
+
+  const childWalks: Promise<void>[] = [];
+  for (const { itemName, itemPath, isDirectory } of items) {
+    if (isDirectory) {
+      const parsed = parseDirName(itemName);
+      // Group directory `(name)`: keep as child with the original name for layout scoping.
+      const childKey = parsed.key === null ? itemName : parsed.key;
+      let child = node.children.get(childKey);
+      if (!child) {
+        child = { _files: [], children: new Map() };
+        if (parsed.paramName) {
+          child._P = parsed.paramName;
+        }
+        if (parsed.prefix) {
+          child._0 = parsed.prefix;
+        }
+        if (parsed.suffix) {
+          child._9 = parsed.suffix;
+        }
+        node.children.set(childKey, child);
+      }
+      childWalks.push(walkRouteDir(child, itemPath));
+    } else {
+      const sourceFileName = getSourceFile(itemName);
+      if (sourceFileName !== null) {
+        node._files.push({
+          ...sourceFileName,
+          fileName: itemName,
+          filePath: itemPath,
+          dirName: basename(dirPath),
+          dirPath: normalizePath(dirPath),
+        });
+      }
+    }
+  }
+
+  await Promise.all(childWalks);
 }

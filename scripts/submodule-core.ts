@@ -1,6 +1,6 @@
 import { build, type BuildOptions } from 'esbuild';
 import { join } from 'node:path';
-import { type InputOptions, type OutputOptions, rollup } from 'rollup';
+import { type InputOptions, type OutputOptions, rolldown } from 'rolldown';
 import { minify } from 'terser';
 import {
   type BuildConfig,
@@ -66,7 +66,7 @@ async function submoduleCoreProd(config: BuildConfig): Promise<object | undefine
     banner: getBanner('@qwik.dev/core', config.distVersion),
   };
 
-  const build = await rollup(input);
+  const build = await rolldown(input);
 
   await build.write(esmOutput);
 
@@ -109,7 +109,7 @@ async function submoduleCoreProd(config: BuildConfig): Promise<object | undefine
       },
     ],
   };
-  const buildMin = await rollup(inputMin);
+  const buildMin = await rolldown(inputMin);
   await buildMin.write({
     dir: join(config.distQwikPkgDir),
     format: 'es',
@@ -229,7 +229,7 @@ async function prepareProdCode(config: BuildConfig): Promise<string> {
     ],
   };
 
-  const prodBuild = await rollup(inputProd);
+  const prodBuild = await rolldown(inputProd);
   const chunks: string[] = [];
   await prodBuild.generate({
     format: 'es',

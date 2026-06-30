@@ -75,7 +75,7 @@ export default defineConfig((): UserConfig => {
     ],
     build: {
       minify: false,
-      rollupOptions: {
+      rolldownOptions: {
         output: {
           manualChunks: (id) => {
             // Put library code in separate chunks

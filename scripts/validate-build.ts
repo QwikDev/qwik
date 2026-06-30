@@ -1,7 +1,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { basename, extname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { rollup } from 'rollup';
+import { rolldown } from 'rolldown';
 import ts from 'typescript';
 import { access, type BuildConfig, type PackageJSON, panic, readFile } from './util.ts';
 
@@ -210,7 +210,7 @@ async function validateModuleTreeshake(
   external: string[] = []
 ): Promise<void> {
   const virtualInputId = `@index`;
-  const bundle = await rollup({
+  const bundle = await rolldown({
     input: virtualInputId,
     treeshake: {
       moduleSideEffects: 'no-external',

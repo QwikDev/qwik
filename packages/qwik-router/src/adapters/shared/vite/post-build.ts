@@ -82,7 +82,8 @@ const injectStatics = async (staticPathsCode: string, outDir: string) => {
     const code = await fs.promises.readFile(path, 'utf-8');
 
     let replaced = false;
-    const newCode = code.replace(/(['"])__QWIK_ROUTER_STATIC_PATHS_ARRAY__\1/g, () => {
+    // Quote may be a backtick: minifiers can re-emit the placeholder as a template literal.
+    const newCode = code.replace(/(["'`])__QWIK_ROUTER_STATIC_PATHS_ARRAY__\1/g, () => {
       replaced = true;
       return staticPathsCode;
     });

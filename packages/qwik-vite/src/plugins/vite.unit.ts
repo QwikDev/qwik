@@ -1,9 +1,10 @@
 import path, { resolve } from 'node:path';
-import type { Rollup } from 'vite';
+import type { Rolldown } from 'vite';
 import { assert, describe, test } from 'vitest';
 import { normalizePath } from '../../../qwik/src/testing/util';
 import type { OptimizerOptions } from '../types';
 import { qwikVite, type QwikVitePlugin, type QwikVitePluginOptions } from './vite';
+import { flattenToChunkName } from './vite-utils';
 import {
   createBuildWorkerCoreChunkResolver,
   createBuildWorkerQrlChunkResolver,
@@ -30,7 +31,7 @@ const chunkInfoMocks = [
     facadeModuleId: cwd + '/app/chunk.tsx',
     moduleIds: [cwd + '/app/chunk.tsx'],
   },
-] as Rollup.PreRenderedChunk[];
+] as Rolldown.PreRenderedChunk[];
 
 function mockOptimizerOptions(env: 'node' | 'deno' = 'node'): OptimizerOptions {
   return {
@@ -83,13 +84,13 @@ test('command: serve, mode: development', async () => {
   ))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
-  const rollupOptions = build!.rollupOptions!;
-  const outputOptions = rollupOptions.output as Rollup.OutputOptions;
+  const rolldownOptions = build!.rolldownOptions!;
+  const outputOptions = rolldownOptions.output as Rolldown.OutputOptions;
   const chunkFileNames = outputOptions.chunkFileNames as (
-    chunkInfo: Rollup.PreRenderedChunk
+    chunkInfo: Rolldown.PreRenderedChunk
   ) => string;
   const entryFileNames = outputOptions.entryFileNames as (
-    chunkInfo: Rollup.PreRenderedChunk
+    chunkInfo: Rolldown.PreRenderedChunk
   ) => string;
 
   assert.deepEqual(opts.target, 'client');
@@ -98,17 +99,12 @@ test('command: serve, mode: development', async () => {
   assert.deepEqual(opts.debug, false);
 
   assert.deepEqual(build.outDir, normalizePath(resolve(cwd, 'dist')));
-  assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'root'))]);
+  assert.deepEqual(rolldownOptions.input, [normalizePath(resolve(cwd, 'src', 'root'))]);
 
   assert.deepEqual(outputOptions.assetFileNames, 'assets/[hash]-[name].[ext]');
   assert.deepEqual(chunkFileNames(chunkInfoMocks[0]), `build/chunk.tsx.js`);
   assert.deepEqual(entryFileNames(chunkInfoMocks[0]), `build/chunk.tsx.js`);
-  const relDev = path.relative(cwd, chunkInfoMocks[1].name);
-  const sanitizedDev = relDev
-    .replace(/^\(\.\.\/\)+/, '')
-    .replace(/^\/+/, '')
-    .replace(/\//g, '-');
-  const expectedDevChunk = `build/${sanitizedDev}.js`;
+  const expectedDevChunk = `build/${flattenToChunkName(path.relative(cwd, chunkInfoMocks[1].name))}.js`;
   assert.deepEqual(chunkFileNames(chunkInfoMocks[1]), expectedDevChunk);
   assert.deepEqual(entryFileNames(chunkInfoMocks[1]), expectedDevChunk);
   assert.deepEqual(outputOptions.format, 'es');
@@ -133,8 +129,8 @@ test('command: serve, mode: production', async () => {
   ))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
-  const rollupOptions = build!.rollupOptions!;
-  const outputOptions = rollupOptions.output as Rollup.OutputOptions;
+  const rolldownOptions = build!.rolldownOptions!;
+  const outputOptions = rolldownOptions.output as Rolldown.OutputOptions;
 
   assert.deepEqual(opts.target, 'client');
   assert.deepEqual(opts.buildMode, 'production');
@@ -144,7 +140,7 @@ test('command: serve, mode: production', async () => {
 
   assert.deepEqual(build.outDir, normalizePath(resolve(cwd, 'dist')));
   assert.deepEqual(build.emptyOutDir, undefined);
-  assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'root'))]);
+  assert.deepEqual(rolldownOptions.input, [normalizePath(resolve(cwd, 'src', 'root'))]);
   assert.deepEqual(outputOptions.assetFileNames, 'assets/[hash]-[name].[ext]');
   assert.deepEqual(outputOptions.chunkFileNames, 'build/q-[hash].js');
   assert.deepEqual(outputOptions.entryFileNames, 'build/q-[hash].js');
@@ -169,13 +165,13 @@ test('command: build, mode: development', async () => {
   ))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
-  const rollupOptions = build!.rollupOptions!;
-  const outputOptions = rollupOptions.output as Rollup.OutputOptions;
+  const rolldownOptions = build!.rolldownOptions!;
+  const outputOptions = rolldownOptions.output as Rolldown.OutputOptions;
   const chunkFileNames = outputOptions.chunkFileNames as (
-    chunkInfo: Rollup.PreRenderedChunk
+    chunkInfo: Rolldown.PreRenderedChunk
   ) => string;
   const entryFileNames = outputOptions.entryFileNames as (
-    chunkInfo: Rollup.PreRenderedChunk
+    chunkInfo: Rolldown.PreRenderedChunk
   ) => string;
 
   assert.deepEqual(opts.target, 'client');
@@ -187,19 +183,14 @@ test('command: build, mode: development', async () => {
   assert.deepEqual(plugin.enforce, 'pre');
   assert.deepEqual(build.outDir, normalizePath(resolve(cwd, 'dist')));
   assert.deepEqual(build.emptyOutDir, undefined);
-  assert.deepEqual((rollupOptions.input as string[]).map(normalizePath), [
+  assert.deepEqual((rolldownOptions.input as string[]).map(normalizePath), [
     normalizePath(resolve(cwd, 'src', 'root')),
   ]);
 
   assert.deepEqual(outputOptions.assetFileNames, 'assets/[hash]-[name].[ext]');
   assert.deepEqual(chunkFileNames(chunkInfoMocks[0]), `build/chunk.tsx.js`);
   assert.deepEqual(entryFileNames(chunkInfoMocks[0]), `build/chunk.tsx.js`);
-  const relBuildDev = path.relative(cwd, chunkInfoMocks[1].name);
-  const sanitizedBuildDev = relBuildDev
-    .replace(/^\(\.\.\/\)+/, '')
-    .replace(/^\/+/, '')
-    .replace(/\//g, '-');
-  const expectedBuildDevChunk = `build/${sanitizedBuildDev}.js`;
+  const expectedBuildDevChunk = `build/${flattenToChunkName(path.relative(cwd, chunkInfoMocks[1].name))}.js`;
   assert.deepEqual(chunkFileNames(chunkInfoMocks[1]), expectedBuildDevChunk);
   assert.deepEqual(entryFileNames(chunkInfoMocks[1]), expectedBuildDevChunk);
 
@@ -222,8 +213,8 @@ test('command: build, mode: production', async () => {
   ))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
-  const rollupOptions = build!.rollupOptions!;
-  const outputOptions = rollupOptions.output as Rollup.OutputOptions;
+  const rolldownOptions = build!.rolldownOptions!;
+  const outputOptions = rolldownOptions.output as Rolldown.OutputOptions;
 
   assert.deepEqual(opts.target, 'client');
   assert.deepEqual(opts.buildMode, 'production');
@@ -234,7 +225,7 @@ test('command: build, mode: production', async () => {
   assert.deepEqual(plugin.enforce, 'pre');
   assert.deepEqual(build.outDir, normalizePath(resolve(cwd, 'dist')));
   assert.deepEqual(build.emptyOutDir, undefined);
-  assert.deepEqual((rollupOptions.input as string[]).map(normalizePath), [
+  assert.deepEqual((rolldownOptions.input as string[]).map(normalizePath), [
     normalizePath(resolve(cwd, 'src', 'root')),
   ]);
 
@@ -267,12 +258,12 @@ test('command: build, --mode production (client)', async () => {
   ))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
-  const rollupOptions = build!.rollupOptions!;
+  const rolldownOptions = build!.rolldownOptions!;
   assert.deepEqual(opts.resolveQwikBuild, true);
 
   assert.deepEqual(opts.target, 'client');
   assert.deepEqual(opts.buildMode, 'production');
-  assert.deepEqual((rollupOptions.input as string[]).map(normalizePath), [
+  assert.deepEqual((rolldownOptions.input as string[]).map(normalizePath), [
     normalizePath(resolve(cwd, 'src', 'root')),
   ]);
   assert.deepEqual(build.outDir, normalizePath(resolve(cwd, 'client-dist')));
@@ -291,8 +282,8 @@ test('command: build, --ssr entry.server.tsx', async () => {
   ))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
-  const rollupOptions = build!.rollupOptions!;
-  const outputOptions = rollupOptions.output as Rollup.OutputOptions;
+  const rolldownOptions = build!.rolldownOptions!;
+  const outputOptions = rolldownOptions.output as Rolldown.OutputOptions;
 
   assert.deepEqual(opts.target, 'ssr');
   assert.deepEqual(opts.buildMode, 'development');
@@ -303,7 +294,7 @@ test('command: build, --ssr entry.server.tsx', async () => {
   assert.deepEqual(plugin.enforce, 'pre');
   assert.deepEqual(build.outDir, normalizePath(resolve(cwd, 'server')));
   assert.deepEqual(build.emptyOutDir, undefined);
-  assert.deepEqual((rollupOptions.input as string[]).map(normalizePath), [
+  assert.deepEqual((rolldownOptions.input as string[]).map(normalizePath), [
     normalizePath(resolve(cwd, 'src', 'entry.server.tsx')),
   ]);
 
@@ -336,13 +327,13 @@ test('command: serve, --mode ssr', async () => {
   ))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
-  const rollupOptions = build!.rollupOptions!;
+  const rolldownOptions = build!.rolldownOptions!;
 
   assert.deepEqual(opts.target, 'ssr');
   assert.deepEqual(opts.buildMode, 'development');
   assert.deepEqual(build.minify, undefined);
   assert.deepEqual(build.ssr, undefined);
-  assert.deepEqual((rollupOptions.input as string[]).map(normalizePath), [
+  assert.deepEqual((rolldownOptions.input as string[]).map(normalizePath), [
     normalizePath(resolve(cwd, 'src', 'renderz.tsx')),
   ]);
   assert.deepEqual(c.build.outDir, normalizePath(resolve(cwd, 'ssr-dist')));
@@ -367,13 +358,13 @@ test('command: serve, --mode ssr with build.assetsDir', async () => {
   ))!;
   const opts = plugin.api?.getOptions();
   const build = c.build!;
-  const rollupOptions = build!.rollupOptions!;
+  const rolldownOptions = build!.rolldownOptions!;
 
   assert.deepEqual(opts.target, 'ssr');
   assert.deepEqual(opts.buildMode, 'development');
   assert.deepEqual(build.minify, undefined);
   assert.deepEqual(build.ssr, undefined);
-  assert.deepEqual((rollupOptions.input as string[]).map(normalizePath), [
+  assert.deepEqual((rolldownOptions.input as string[]).map(normalizePath), [
     normalizePath(resolve(cwd, 'src', 'renderz.tsx')),
   ]);
   assert.deepEqual(c.build.outDir, normalizePath(resolve(cwd, 'ssr-dist')));
@@ -417,7 +408,7 @@ test('build.assetsDir is ignored: it no longer relocates Qwik output', async () 
     { build: { assetsDir: 'q' } },
     { command: 'build', mode: 'production' }
   ))!;
-  const outputOptions = c.build.rollupOptions.output as Rollup.OutputOptions;
+  const outputOptions = c.build.rolldownOptions.output as Rolldown.OutputOptions;
   // assets stay at the default dir and chunks stay at build/ — assetsDir has no effect on Qwik output
   assert.deepEqual(outputOptions.assetFileNames, 'assets/[hash]-[name].[ext]');
   assert.deepEqual(outputOptions.chunkFileNames, 'build/q-[hash].js');
@@ -427,10 +418,12 @@ test('user output.assetFileNames relocates assets but keeps chunks at build/', a
   const plugin = getPlugin({ optimizerOptions: mockOptimizerOptions() });
   const c: any = (await plugin.config.call(
     configHookPluginContext,
-    { build: { rollupOptions: { output: { assetFileNames: 'q/assets/[hash]-[name][extname]' } } } },
+    {
+      build: { rolldownOptions: { output: { assetFileNames: 'q/assets/[hash]-[name][extname]' } } },
+    },
     { command: 'build', mode: 'production' }
   ))!;
-  const outputOptions = c.build.rollupOptions.output as Rollup.OutputOptions;
+  const outputOptions = c.build.rolldownOptions.output as Rolldown.OutputOptions;
   assert.deepEqual(outputOptions.assetFileNames, 'q/assets/[hash]-[name][extname]');
   assert.deepEqual(outputOptions.chunkFileNames, 'build/q-[hash].js');
   assert.deepEqual(outputOptions.entryFileNames, 'build/q-[hash].js');
@@ -447,10 +440,12 @@ test('user output.assetFileNames also applies to the SSR build (client/SSR stay 
   const plugin = getPlugin(initOpts);
   const c: any = (await plugin.config.call(
     configHookPluginContext,
-    { build: { rollupOptions: { output: { assetFileNames: 'q/assets/[hash]-[name][extname]' } } } },
+    {
+      build: { rolldownOptions: { output: { assetFileNames: 'q/assets/[hash]-[name][extname]' } } },
+    },
     { command: 'serve', mode: 'ssr' }
   ))!;
-  const outputOptions = c.build.rollupOptions.output as Rollup.OutputOptions;
+  const outputOptions = c.build.rolldownOptions.output as Rolldown.OutputOptions;
   assert.deepEqual(outputOptions.assetFileNames, 'q/assets/[hash]-[name][extname]');
 });
 
@@ -518,14 +513,14 @@ test('command: build, --mode lib', async () => {
   ))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
-  const rollupOptions = build!.rollupOptions!;
-  const outputOptions = rollupOptions.output as Rollup.OutputOptions;
+  const rolldownOptions = build!.rolldownOptions!;
+  const outputOptions = rolldownOptions.output as Rolldown.OutputOptions;
 
   assert.deepEqual(opts.target, 'lib');
   assert.deepEqual(opts.buildMode, 'development');
   assert.deepEqual(build.minify, false);
   assert.deepEqual(build.ssr, undefined);
-  assert.deepEqual(rollupOptions.input, undefined);
+  assert.deepEqual(rolldownOptions.input, undefined);
 
   assert.deepEqual(outputOptions.assetFileNames, 'assets/[hash]-[name].[ext]');
   assert.isFunction(outputOptions.chunkFileNames);
@@ -548,7 +543,7 @@ test('command: build, --mode lib with multiple outputs', async () => {
         lib: {
           entry: './src/index.ts',
         },
-        rollupOptions: {
+        rolldownOptions: {
           output: [
             {
               format: 'es',
@@ -574,14 +569,14 @@ test('command: build, --mode lib with multiple outputs', async () => {
   ))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
-  const rollupOptions = build!.rollupOptions!;
-  const outputOptions = rollupOptions.output as Rollup.OutputOptions[];
+  const rolldownOptions = build!.rolldownOptions!;
+  const outputOptions = rolldownOptions.output as Rolldown.OutputOptions[];
 
   assert.deepEqual(opts.target, 'lib');
   assert.deepEqual(opts.buildMode, 'development');
   assert.deepEqual(build.minify, false);
   assert.deepEqual(build.ssr, undefined);
-  assert.deepEqual(rollupOptions.input, undefined);
+  assert.deepEqual(rolldownOptions.input, undefined);
 
   assert.ok(Array.isArray(outputOptions));
   assert.lengthOf(outputOptions, 4);
@@ -616,7 +611,7 @@ describe('input config', () => {
       {},
       { command: 'build', mode: 'development' }
     ))!;
-    assert.deepEqual(c.build.rollupOptions.input, ['./src/widget/counter.tsx']);
+    assert.deepEqual(c.build.rolldownOptions.input, ['./src/widget/counter.tsx']);
   });
   test('should handle ssr target', async () => {
     const plugin = getPlugin(initOpts);
@@ -625,7 +620,7 @@ describe('input config', () => {
       {},
       { command: 'build', mode: 'ssr' }
     ))!;
-    assert.deepEqual(c.build.rollupOptions.input, ['./src/widget/ssr.tsx']);
+    assert.deepEqual(c.build.rolldownOptions.input, ['./src/widget/ssr.tsx']);
   });
 });
 

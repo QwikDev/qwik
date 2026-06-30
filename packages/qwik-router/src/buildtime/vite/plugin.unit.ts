@@ -9,6 +9,7 @@ import {
   invalidateRouterConfigModules,
   isRouterSourceFilePath,
   qwikRouter,
+  replaceLoaderPlaceholders,
 } from './plugin';
 
 describe('qwikRouter plugin', () => {
@@ -85,6 +86,40 @@ describe('qwikRouter plugin', () => {
       } finally {
         await rm(dir, { recursive: true, force: true });
       }
+    });
+  });
+
+  describe('replaceLoaderPlaceholders', () => {
+    const loaders = new Map<string, string[]>([
+      ["/home/o'brien/app/routes/index.tsx", ['h1']],
+      ['/app/routes/about.tsx', ['h2', 'h3']],
+    ]);
+
+    it('replaces a double-quoted placeholder with the loader hash array', () => {
+      expect(
+        replaceLoaderPlaceholders('{x:1,_R:"__LOADERS:/app/routes/about.tsx__",y:2}', loaders)
+      ).toBe('{x:1,_R: ["h2","h3"],y:2}');
+    });
+
+    it('replaces a backtick placeholder (minifier may re-emit as a template literal)', () => {
+      expect(
+        replaceLoaderPlaceholders('{_R:`__LOADERS:/app/routes/about.tsx__`,y:2}', loaders)
+      ).toBe('{_R: ["h2","h3"],y:2}');
+    });
+
+    it('tolerates quotes within the path content', () => {
+      expect(
+        replaceLoaderPlaceholders(
+          `{_R:"__LOADERS:/home/o'brien/app/routes/index.tsx__",y:2}`,
+          loaders
+        )
+      ).toBe('{_R: ["h1"],y:2}');
+    });
+
+    it('strips the entry (with trailing comma) when no loader matches', () => {
+      expect(
+        replaceLoaderPlaceholders('{_R:"__LOADERS:/app/routes/none.tsx__",y:2}', loaders)
+      ).toBe('{y:2}');
     });
   });
 

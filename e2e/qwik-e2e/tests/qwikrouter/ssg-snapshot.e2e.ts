@@ -23,6 +23,10 @@ const distDir = resolve(appDir, 'dist');
 const serverDir = resolve(appDir, 'server');
 const expectedHtmlPath = resolve(appDir, 'expected.ssg.html');
 const expectedStatePath = resolve(appDir, 'expected.state.txt');
+const expectedConfigPath = resolve(appDir, 'expected.config.txt');
+
+// Generated route trie, captured pre-bundle so the snapshot shows structure, not hashed chunks.
+let capturedRouterConfig: string | null = null;
 
 test.describe('router ssg snapshot', () => {
   // One shared production build via `beforeAll`. `serial` keeps Playwright's `fullyParallel` config
@@ -77,6 +81,27 @@ test.describe('router ssg snapshot', () => {
 
     expect(normalizedState).toEqual(expectedState);
     expect(normalizedHtml).toEqual(expectedHtml);
+  });
+
+  test('generated route config (trie) matches the checked-in snapshot', async () => {
+    expect(capturedRouterConfig, 'router config was captured during the client build').toBeTruthy();
+    // Readable, pre-bundle trie: `_R` keeps the `__LOADERS:` placeholder, not the real loader hashes
+    // `generateBundle` injects later (kept so the snapshot tracks structure, not churning hashes).
+    const normalizedConfig = normalizeRouterConfig(capturedRouterConfig!);
+
+    let expectedConfig = (await readFile(expectedConfigPath, 'utf-8').catch(() => '')).replace(
+      /\r\n/g,
+      '\n'
+    );
+
+    warnIfSizeChanged('route config', expectedConfig, normalizedConfig);
+
+    if (process.env.UPDATE_SSG_SNAPSHOT === '1') {
+      await writeFile(expectedConfigPath, normalizedConfig, 'utf-8');
+      expectedConfig = normalizedConfig;
+    }
+
+    expect(normalizedConfig).toEqual(expectedConfig);
   });
 
   test('a 404.tsx boundary prerenders <dir>/404.html inside its layout', async () => {
@@ -135,9 +160,24 @@ async function checkBrotliBudget(label: string, content: string, budget: number)
   ).toBeLessThanOrEqual(budget);
 }
 
+// enforce:'pre' so we capture qwik-router's load() output before the bundler rewrites its imports.
+function captureRouterConfig(): PluginOption {
+  return {
+    name: 'capture-router-config',
+    enforce: 'pre',
+    transform(code, id) {
+      if (id.endsWith('@qwik-router-config')) {
+        capturedRouterConfig = code;
+      }
+      return null;
+    },
+  };
+}
+
 async function buildFixtureApp() {
   await rm(distDir, { recursive: true, force: true });
   await rm(serverDir, { recursive: true, force: true });
+  capturedRouterConfig = null;
 
   const plugins: PluginOption[] = [qwikRouter(), tsconfigPaths({ root: '.' })];
   // Fresh instance so the server build's loadersByFile starts empty, mirroring apps that run
@@ -160,6 +200,7 @@ async function buildFixtureApp() {
     getConfig({
       plugins: [
         ...plugins,
+        captureRouterConfig(),
         qwikVite({
           client: {
             outDir: distDir,
@@ -231,6 +272,16 @@ function normalizeStateDump(stateDump: string, manifestHash: string | null) {
     result = result.replaceAll(manifestHash, 'MANIFEST_HASH');
   }
   return result;
+}
+
+function normalizeRouterConfig(code: string) {
+  // Strip machine-specific absolute paths so the snapshot is checkout-independent. Match the
+  // forward-slash form: config paths are posix, but resolve() yields backslashes on Windows.
+  const posix = (p: string) => p.replaceAll('\\', '/');
+  return code
+    .replace(/\r\n/g, '\n')
+    .replaceAll(posix(appDir), '<app>')
+    .replaceAll(posix(repoRoot), '<root>');
 }
 
 function warnIfSizeChanged(label: string, expected: string, actual: string) {

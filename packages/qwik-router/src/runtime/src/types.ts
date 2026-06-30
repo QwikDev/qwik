@@ -439,8 +439,8 @@ export interface LoadedRoute {
   $routeBundleNames$?: string[] | undefined;
   /** Whether this route is a not-found (404) route */
   $notFound$?: boolean;
-  /** The nearest _E (error.tsx) boundary for thrown ServerErrors: single loader or override chain. */
-  $errorLoader$?: ContentModuleLoader | ModuleLoader[];
+  /** The nearest _E (error.tsx) boundary's chain to render on a thrown ServerError (in its layouts). */
+  $errorLoader$?: ModuleLoader[];
   /** Merged array of routeLoader$ hashes from all matched nodes (layouts + page) */
   $loaders$?: string[];
   /** Runtime-only mapping of routeLoader$ hashes to the matched pathname used for q-loader fetches */

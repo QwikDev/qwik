@@ -347,7 +347,7 @@ describe('resolve-request-handler', () => {
           } as RouteModule,
           justHiModule as RouteModule,
         ],
-        $errorLoader$: vi.fn(async () => ({ default: () => null })),
+        $errorLoader$: [vi.fn(async () => ({ default: () => null }))],
       };
       const renderHandler = vi.fn(async (requestEv: { exit: () => void }) => {
         requestEv.exit();

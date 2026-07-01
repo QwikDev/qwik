@@ -4,10 +4,13 @@ import { getLoaderName } from '../../middleware/request-handler/request-path';
 import { FULLPATH_HEADER, fetchRouteLoaderData } from './route-loaders';
 import { submitAction } from './use-endpoint';
 
+const previousStrictLoaders = globalThis.__STRICT_LOADERS__;
+
 describe('submitAction', () => {
   afterEach(() => {
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
+    globalThis.__STRICT_LOADERS__ = previousStrictLoaders;
   });
 
   const makeJsonResponse = async (payload: object, status = 200) =>
@@ -124,6 +127,29 @@ describe('fetchRouteLoaderData', () => {
       expect.objectContaining({
         headers: {
           [FULLPATH_HEADER]: '/products/123/view/',
+        },
+      })
+    );
+  });
+
+  it('sends X-Qwik-fullpath for strict root loader requests on deeper page paths', async () => {
+    globalThis.__STRICT_LOADERS__ = true;
+    const fetchSpy = vi.fn().mockResolvedValue(
+      new Response('', {
+        status: 404,
+      })
+    );
+    vi.stubGlobal('fetch', fetchSpy);
+
+    await fetchRouteLoaderData('root-loader', '/', 'manifest-hash', {
+      pageUrl: new URL('http://localhost/products/123/?view=full'),
+    });
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      `/${getLoaderName('root-loader', 'manifest-hash')}?view=full`,
+      expect.objectContaining({
+        headers: {
+          [FULLPATH_HEADER]: '/products/123/',
         },
       })
     );

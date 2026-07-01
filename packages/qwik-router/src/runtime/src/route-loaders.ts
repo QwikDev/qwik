@@ -169,6 +169,24 @@ const isRequestEvent = (value: unknown): value is RequestEvent =>
 const isLoaderInternal = (value: unknown): value is LoaderInternal =>
   typeof value === 'function' && (value as LoaderInternal).__brand === 'server_loader';
 
+const getDevRouteLoaderRegistry = () => {
+  if (!isDev || !isServer) {
+    return undefined;
+  }
+  const registryKey = Symbol.for('qwik.dev.router.route-loaders');
+  return ((globalThis as any)[registryKey] ||= new Map<string, LoaderInternal>()) as Map<
+    string,
+    LoaderInternal
+  >;
+};
+
+const registerDevRouteLoader = (loader: LoaderInternal) => {
+  if (!isDev) {
+    return;
+  }
+  getDevRouteLoaderRegistry()?.set(loader.__id, loader);
+};
+
 /**
  * Fetch a single loader's data from the server.
  *
@@ -203,7 +221,7 @@ export const fetchRouteLoaderData = async (
   const url = `${pathBase}${getLoaderName(loaderId, manifestHash)}${search}`;
 
   const headers: Record<string, string> = {};
-  if (pageUrl && pageUrl.pathname !== pathBase && !globalThis.__STRICT_LOADERS__) {
+  if (pageUrl && pageUrl.pathname !== pathBase) {
     headers[FULLPATH_HEADER] = pageUrl.pathname;
   }
 
@@ -621,8 +639,7 @@ export const ensureRouteLoaderSignals = (
   for (let i = 0; i < loaders.length; i++) {
     const loader = loaders[i];
     // Dev-only safety net for the first SPA nav: the route module isn't transformed yet, so the
-    // client trie has no _R loader hash and the loader would resolve to undefined. Seed the page
-    // path (where the loader runs), only filling genuine gaps so a trie-resolved path is kept.
+    // client trie has no _R loader hash and the loader would resolve to undefined.
     if (isDev && !isServer) {
       if (routeLoaderCtx.pagePathname && routeLoaderCtx.loaderPaths[loader.__id] === undefined) {
         routeLoaderCtx.loaderPaths[loader.__id] = routeLoaderCtx.pagePathname;
@@ -648,7 +665,11 @@ export const resolveRouteLoaderByHash = (
   routeLoaders: readonly LoaderInternal[],
   loaderId: string
 ) => {
-  return routeLoaders.find((loader) => loader.__id === loaderId);
+  // Cold dev q-loader requests can know an id before route-local scans see the loader object.
+  return (
+    routeLoaders.find((loader) => loader.__id === loaderId) ??
+    (isDev ? getDevRouteLoaderRegistry()?.get(loaderId) : undefined)
+  );
 };
 
 /** Run a loader and return its raw value. Errors/redirects propagate as exceptions. */
@@ -828,6 +849,9 @@ export const routeLoaderQrl = ((
   loader.__search = search;
   loader.__allowStale = allowStale;
   Object.freeze(loader);
+  if (isDev) {
+    registerDevRouteLoader(loader);
+  }
   return loader;
 }) as LoaderConstructorQRL;
 

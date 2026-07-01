@@ -168,12 +168,18 @@ describe.each([
   });
 
   it('does not render style nodes before text output', async () => {
+    const InnerCmp = component$(() => {
+      return <div>Hello world</div>;
+    });
+
     const App = component$(() => {
       useStyles$(STYLE);
+      const groupSig = createSignal('1');
       return (
         <>
           Some text:{'  '}
-          <button>click</button>
+          <button onClick$={() => (groupSig.value = '2')}>click</button>
+          {groupSig.value === '2' && <InnerCmp />}
         </>
       );
     });
@@ -181,7 +187,7 @@ describe.each([
     const { document, container, cleanup } = await render(<App />, { debug });
 
     expect(document.querySelectorAll(QStyleSelector)).toHaveLength(1);
-    expect(container.textContent).toBe('Some text:  click');
+    expect(container.textContent).toMatch(/^Some text: {2}click/);
     cleanup();
   });
 });

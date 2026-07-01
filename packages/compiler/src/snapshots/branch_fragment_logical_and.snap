@@ -1,0 +1,366 @@
+==INPUT==
+
+import { createSignal } from '@qwik.dev/core/spark';
+
+function InnerCmp() {
+  return <div>Hello world</div>;
+}
+
+export function App() {
+  const groupSig = createSignal('1');
+  return (
+    <>
+      Some text:{'  '}
+      <button onClick$={() => (groupSig.value = '2')}>click</button>
+      {groupSig.value === '2' && <InnerCmp />}
+    </>
+  );
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  createSignal,
+  createComponent,
+  _qrlWithChunk,
+  renderSsrBranch,
+  maybeThen,
+} from '@qwik.dev/core/spark';
+import { component_branch_condition_segment_1 } from './component.tsx_component_branch_condition_segment_1';
+
+const q_component_q_e_click_segment_0 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_q_e_click_segment_0',
+  () => import('./component.tsx_component_q_e_click_segment_0'),
+  'component_q_e_click_segment_0'
+);
+const q_component_branch_condition_segment_1 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_branch_condition_segment_1',
+  () => import('./component.tsx_component_branch_condition_segment_1'),
+  'component_branch_condition_segment_1'
+);
+q_component_branch_condition_segment_1.s(component_branch_condition_segment_1);
+const q_component_branch_then_segment_2 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_branch_then_segment_2',
+  () => import('./component.tsx_component_branch_then_segment_2'),
+  'component_branch_then_segment_2'
+);
+
+export function App(_props, ctx) {
+  const groupSig = createSignal('1');
+  const id0 = ctx.nextId();
+  ctx.addRoot(groupSig);
+  const branch1 = renderSsrBranch(
+    ctx,
+    id0,
+    q_component_branch_condition_segment_1.w([groupSig]),
+    q_component_branch_then_segment_2,
+    undefined
+  );
+  return maybeThen(
+    branch1,
+    (branch1) =>
+      'Some text:  <button' +
+      ctx.eventAttr('q-e:click', q_component_q_e_click_segment_0.w([groupSig])) +
+      '>click</button><!b=' +
+      id0 +
+      '>' +
+      branch1 +
+      '<!/b>'
+  );
+}
+
+null
+============================= src/component.tsx_component_InnerCmp.js (ENTRY POINT)==
+
+export function InnerCmp(_props, _ctx) {
+  return '<div>Hello world</div>';
+}
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_InnerCmp",
+  "entry": null,
+  "displayName": "component_InnerCmp",
+  "hash": "component_InnerCmp",
+  "canonicalFilename": "component.tsx_component_InnerCmp",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component",
+  "captures": false,
+  "loc": [
+    53,
+    108
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_0.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+export const component_q_e_click_segment_0 = () => {
+  const groupSig = _captures[0];
+  return (groupSig.value = '2');
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_0",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    218,
+    255
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "groupSig"
+  ]
+}
+*/
+============================= src/component.tsx_component_branch_condition_segment_1.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+export const component_branch_condition_segment_1 = () => {
+  const groupSig = _captures[0];
+  return groupSig.value === '2';
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_condition_segment_1",
+  "entry": null,
+  "displayName": "component_branch_condition_segment_1",
+  "hash": "segment_1",
+  "canonicalFilename": "component.tsx_component_branch_condition_segment_1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:condition",
+  "captures": true,
+  "loc": [
+    278,
+    300
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "groupSig"
+  ]
+}
+*/
+============================= src/component.tsx_component_branch_then_segment_2.js (ENTRY POINT)==
+
+import { InnerCmp } from './component.tsx_component_InnerCmp';
+import { createComponent, maybeThen } from '@qwik.dev/core/spark';
+export const component_branch_then_segment_2 = (ctx) => {
+  const component0 = createComponent({}, (props) => InnerCmp(props, ctx));
+  return maybeThen(component0, (component0) => component0);
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_then_segment_2",
+  "entry": null,
+  "displayName": "component_branch_then_segment_2",
+  "hash": "segment_2",
+  "canonicalFilename": "component.tsx_component_branch_then_segment_2",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:then",
+  "captures": false,
+  "loc": [
+    304,
+    316
+  ],
+  "paramNames": []
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  createSignal,
+  setEvent,
+  _withCaptures,
+  BranchRange,
+  createBranch,
+} from '@qwik.dev/core/spark';
+import { component_q_e_click_segment_0 } from './component.tsx_component_q_e_click_segment_0';
+import { component_branch_condition_segment_1 } from './component.tsx_component_branch_condition_segment_1';
+import { component_branch_then_segment_2 } from './component.tsx_component_branch_then_segment_2';
+
+export function App(_props, ctx) {
+  const groupSig = createSignal('1');
+  const text0 = ctx.document.createTextNode('Some text:');
+  const text1 = ctx.document.createTextNode('  ');
+  const el2 = ctx.document.createElement('button');
+  setEvent(el2, 'q-e:click', component_q_e_click_segment_0, [groupSig]);
+  const text3 = ctx.document.createTextNode('click');
+  el2.appendChild(text3);
+  const fragment4 = ctx.document.createDocumentFragment();
+  const comment5 = ctx.document.createComment('b');
+  const comment6 = ctx.document.createComment('/b');
+  fragment4.appendChild(comment5);
+  fragment4.appendChild(comment6);
+  const branch7 = createBranch(
+    ctx,
+    new BranchRange(ctx.document, comment5, comment6),
+    _withCaptures(component_branch_condition_segment_1, [groupSig]),
+    component_branch_then_segment_2,
+    undefined
+  );
+  ctx.scheduler.notify(branch7);
+  return [text0, text1, el2, fragment4];
+}
+
+null
+============================= src/component.tsx_component_InnerCmp.js (ENTRY POINT)==
+
+import { createTemplate } from '@qwik.dev/core/spark';
+const dom_InnerCmp_template0 = createTemplate('<div>Hello world</div>');
+export function InnerCmp(_props, ctx) {
+  const fragment0 = dom_InnerCmp_template0(ctx.document);
+  const el1 = fragment0.firstChild;
+  return el1;
+}
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_InnerCmp",
+  "entry": null,
+  "displayName": "component_InnerCmp",
+  "hash": "component_InnerCmp",
+  "canonicalFilename": "component.tsx_component_InnerCmp",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component",
+  "captures": false,
+  "loc": [
+    53,
+    108
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_0.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+export const component_q_e_click_segment_0 = () => {
+  const groupSig = _captures[0];
+  return (groupSig.value = '2');
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_0",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    218,
+    255
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "groupSig"
+  ]
+}
+*/
+============================= src/component.tsx_component_branch_condition_segment_1.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+export const component_branch_condition_segment_1 = () => {
+  const groupSig = _captures[0];
+  return groupSig.value === '2';
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_condition_segment_1",
+  "entry": null,
+  "displayName": "component_branch_condition_segment_1",
+  "hash": "segment_1",
+  "canonicalFilename": "component.tsx_component_branch_condition_segment_1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:condition",
+  "captures": true,
+  "loc": [
+    278,
+    300
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "groupSig"
+  ]
+}
+*/
+============================= src/component.tsx_component_branch_then_segment_2.js (ENTRY POINT)==
+
+import { InnerCmp } from './component.tsx_component_InnerCmp';
+import { createComponent } from '@qwik.dev/core/spark';
+export const component_branch_then_segment_2 = (ctx) => {
+  const cmp0 = createComponent({}, (props) => InnerCmp(props, ctx), { container: ctx });
+  return cmp0;
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_then_segment_2",
+  "entry": null,
+  "displayName": "component_branch_then_segment_2",
+  "hash": "segment_2",
+  "canonicalFilename": "component.tsx_component_branch_then_segment_2",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:then",
+  "captures": false,
+  "loc": [
+    304,
+    316
+  ],
+  "paramNames": []
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

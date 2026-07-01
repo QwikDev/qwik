@@ -522,6 +522,28 @@ export function App() {
     });
   });
 
+  test('emits logical branch renderers in fragments', async () => {
+    await testInput('branch_fragment_logical_and', {
+      code: `import { createSignal } from '@qwik.dev/core/spark';
+
+function InnerCmp() {
+  return <div>Hello world</div>;
+}
+
+export function App() {
+  const groupSig = createSignal('1');
+  return (
+    <>
+      Some text:{'  '}
+      <button onClick$={() => (groupSig.value = '2')}>click</button>
+      {groupSig.value === '2' && <InnerCmp />}
+    </>
+  );
+}
+`,
+    });
+  });
+
   test('emits dynamic text inside logical branch renderers', async () => {
     await testInput('branch_logical_and_dynamic_text', {
       code: `import { createSignal } from '@qwik.dev/core/spark';

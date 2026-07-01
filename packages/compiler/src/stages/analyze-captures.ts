@@ -204,7 +204,11 @@ class CaptureAnalyzer {
         return;
       case 'JSXFragment':
         for (const child of node.children ?? []) {
-          this.visit(child);
+          if (child.type === 'JSXExpressionContainer') {
+            this.visitJsxChildExpression(child.expression);
+          } else {
+            this.visit(child);
+          }
         }
         return;
       case 'JSXExpressionContainer':

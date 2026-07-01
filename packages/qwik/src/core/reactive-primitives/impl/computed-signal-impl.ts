@@ -29,6 +29,7 @@ const log = (...args: any[]) => console.log('COMPUTED SIGNAL', ...args.map(qwikD
  *
  * The value is available synchronously, but the computation is done lazily.
  */
+// TODO when we make core lazy async, lazy load the async engine part of this class
 export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
   extends SignalImpl<T>
   implements BackRef

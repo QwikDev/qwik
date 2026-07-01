@@ -605,8 +605,7 @@ export type ActionConstructor = {
       data: GetValidatorOutputType<VALIDATOR>,
       event: RequestEventAction
     ) => ValueOrPromise<OBJ>,
-    options: {
-      readonly id?: string;
+    options: ActionOptions & {
       readonly validation: [VALIDATOR, ...REST];
     }
   ): Action<
@@ -625,8 +624,7 @@ export type ActionConstructor = {
       data: GetValidatorOutputType<VALIDATOR>,
       event: RequestEventAction
     ) => ValueOrPromise<OBJ>,
-    options: {
-      readonly id?: string;
+    options: ActionOptions & {
       readonly validation: [VALIDATOR];
     }
   ): Action<
@@ -638,8 +636,7 @@ export type ActionConstructor = {
   // Use options object, use data validator
   <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(
     actionQrl: (data: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>,
-    options: {
-      readonly id?: string;
+    options: ActionOptions & {
       readonly validation: REST;
     }
   ): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;
@@ -688,9 +685,7 @@ export type ActionConstructor = {
   // No validators
   <OBJ>(
     actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>,
-    options?: {
-      readonly id?: string;
-    }
+    options?: ActionOptions
   ): Action<StrictUnion<OBJ>>;
 };
 
@@ -705,8 +700,7 @@ export type ActionConstructorQRL = {
     actionQrl: QRL<
       (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>
     >,
-    options: {
-      readonly id?: string;
+    options: ActionOptions & {
       readonly validation: [VALIDATOR, ...REST];
     }
   ): Action<
@@ -724,8 +718,7 @@ export type ActionConstructorQRL = {
     actionQrl: QRL<
       (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>
     >,
-    options: {
-      readonly id?: string;
+    options: ActionOptions & {
       readonly validation: [VALIDATOR];
     }
   ): Action<
@@ -737,8 +730,7 @@ export type ActionConstructorQRL = {
   // Use options object, use data validator
   <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(
     actionQrl: QRL<(data: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>>,
-    options: {
-      readonly id?: string;
+    options: ActionOptions & {
       readonly validation: REST;
     }
   ): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;
@@ -785,9 +777,7 @@ export type ActionConstructorQRL = {
   // No validators
   <OBJ>(
     actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>>,
-    options?: {
-      readonly id?: string;
-    }
+    options?: ActionOptions
   ): Action<StrictUnion<OBJ>>;
 };
 

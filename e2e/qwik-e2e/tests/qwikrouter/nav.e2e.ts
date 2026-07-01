@@ -92,6 +92,7 @@ test.describe('nav', () => {
       const heading = page.locator('h1');
 
       await expect(heading).toHaveText('Product: hat');
+      await expect(page.getByText('Price: $21.96')).toBeVisible();
       await link.click();
 
       // URL and params update immediately — the nav task does not wait for loaders.
@@ -100,6 +101,7 @@ test.describe('nav', () => {
         .poll(() => new URL(page.url()).pathname)
         .toBe('/qwikrouter-test/products/jacket/');
       await expect(heading).toHaveText('Product: jacket');
+      await expect(page.getByText('Price: $48.96')).toBeVisible();
     });
 
     test.describe('scroll-restoration', () => {

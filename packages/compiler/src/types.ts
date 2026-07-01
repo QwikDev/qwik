@@ -216,6 +216,7 @@ export interface DynamicTextNode {
 export interface DynamicJsxNode {
   kind: 'dynamicJsx';
   expressionRange: SourceRange;
+  invoke: boolean;
 }
 
 export interface BranchNode {

@@ -833,4 +833,33 @@ export function App() {
 `,
     });
   });
+
+  test('handles function call in JSX', async () => {
+    await testInput('handle_function_call', {
+      code: `import { createSignal } from '@qwik.dev/core/spark';
+      import { fun } from './utils';
+
+function renderItem(value: number) {
+  return fun(value);
+}
+
+function renderFallback(value: number) {
+  return fun(value);
+}
+
+export function App() {
+  const count = createSignal(1);
+  const renderers = { item: fun };
+  return (
+    <section>
+      {fun(count.value)}
+      {renderers.item(count.value + 1)}
+      {count.value > 1 ? renderItem(count.value) : renderFallback(0)}
+      {count.value && renderItem(count.value)}
+    </section>
+  );
+}
+`,
+    });
+  });
 });

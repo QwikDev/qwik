@@ -829,7 +829,9 @@ export class SsrEmitter {
 
   private emitDynamicJsxParts(node: Extract<RenderNode, { kind: 'dynamicJsx' }>): HtmlPart[] {
     const id = this.next('jsx');
-    this.line(`const ${id} = ${this.emitSourceExpression(node.expressionRange)}();`);
+    this.line(
+      `const ${id} = ${this.emitSourceExpression(node.expressionRange)}${node.invoke ? '()' : ''};`
+    );
     return [{ code: this.trackValueOrPromise(id) }];
   }
 

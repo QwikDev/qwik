@@ -299,7 +299,9 @@ export class DomEmitter {
     }
     if (node.kind === 'dynamicJsx') {
       const id = this.next('jsx');
-      this.line(`const ${id} = ${this.emitExpression(node.expressionRange)}();`);
+      this.line(
+        `const ${id} = ${this.emitExpression(node.expressionRange)}${node.invoke ? '()' : ''};`
+      );
       return { id, kind: 'nodes' };
     }
     if (node.kind === 'element') {

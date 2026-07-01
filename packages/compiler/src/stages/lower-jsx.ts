@@ -6,6 +6,7 @@ import {
   getSignalValueSourceName,
   getStaticExpressionValue,
   getStaticSourceTextExpressionParts,
+  isCallExpression,
   isEventProp,
   isNativeTag,
   isFunctionLike,
@@ -710,7 +711,7 @@ function lowerJsxChildren(
       if (isJsxValueExpression(expression, component)) {
         const expressionRange = getRange(expression);
         if (expressionRange) {
-          nodes.push({ kind: 'dynamicJsx', expressionRange });
+          nodes.push({ kind: 'dynamicJsx', expressionRange, invoke: true });
           continue;
         }
       }
@@ -739,6 +740,10 @@ function lowerJsxChildren(
         const forNode = lowerForExpression(ctx, expression, expressionRange, propsName, component);
         if (forNode) {
           nodes.push(forNode);
+          continue;
+        }
+        if (isDynamicJsxCallExpression(expression)) {
+          nodes.push({ kind: 'dynamicJsx', expressionRange, invoke: false });
           continue;
         }
         const textParts = lowerStaticSourceTextExpression(expression);
@@ -1092,7 +1097,7 @@ function lowerExpressionChildren(
   }
   if (isJsxValueExpression(expr, component)) {
     const expressionRange = getRange(expr);
-    return expressionRange ? [{ kind: 'dynamicJsx', expressionRange }] : [];
+    return expressionRange ? [{ kind: 'dynamicJsx', expressionRange, invoke: true }] : [];
   }
   if (expr.type === 'JSXElement' || expr.type === 'JSXFragment') {
     return [lowerJsxNode(ctx, expr, propsName, component)];
@@ -1110,6 +1115,9 @@ function lowerExpressionChildren(
     const forNode = lowerForExpression(ctx, expr, range, propsName, component);
     if (forNode) {
       return [forNode];
+    }
+    if (isDynamicJsxCallExpression(expr)) {
+      return [{ kind: 'dynamicJsx', expressionRange: range, invoke: false }];
     }
     const textParts = lowerStaticSourceTextExpression(expr);
     if (textParts) {
@@ -1202,6 +1210,10 @@ function isJsxValueExpression(expression: unknown, component: ComponentRecord): 
     expr.type === 'Identifier' &&
     component.jsxValues.some((value) => value.name === expr.name)
   );
+}
+
+function isDynamicJsxCallExpression(expression: unknown): boolean {
+  return isCallExpression(unwrapExpression(expression));
 }
 
 function createDynamicTextBinding(

@@ -19,6 +19,7 @@ import type {
 import type {
   AstFunction,
   AstJsxNode,
+  AstNode,
   CompilerContext,
   ComponentRecord,
   ImportRecord,

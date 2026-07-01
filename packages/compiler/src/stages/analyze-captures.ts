@@ -567,6 +567,10 @@ class CaptureAnalyzer {
     if (this.visitJsxForExpression(expr)) {
       return;
     }
+    if (expr.type === 'CallExpression') {
+      this.visit(expr);
+      return;
+    }
     if (getSignalValueSourceName(expr) !== null) {
       this.visit(expr);
       return;
@@ -748,6 +752,7 @@ class CaptureAnalyzer {
       node.type === 'JSXFragment' ||
       isStaticBranchTextExpression(node) ||
       getSignalValueSourceName(node) !== null ||
+      node.type === 'CallExpression' ||
       isStaticSourceTextExpression(node)
     ) {
       this.visit(node);

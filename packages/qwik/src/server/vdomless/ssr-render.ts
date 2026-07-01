@@ -46,6 +46,7 @@ export interface SsrRenderContext {
   addRoot(value: unknown): number;
   contextScopeId(): string;
   eventAttr(name: string, value: unknown, hasMovedCaptures?: boolean): string;
+  styleIds: Map<string, string>;
 }
 
 export type SsrRenderRoot = (_props: undefined, ctx: SsrRenderContext) => ValueOrPromise<string>;
@@ -99,9 +100,11 @@ export const renderToStream = async (
       new WeakMap<any, any>()
     );
     const scripts = new SsrScriptEmitter(opts);
+    const styleIds = new Map<string, string>();
     let nextId = 0;
     const ctx: SsrRenderContext = {
       serializationCtx,
+      styleIds,
       nextId() {
         return nextId++;
       },
@@ -134,13 +137,14 @@ export const renderToStream = async (
       ? withLocale(locale, () => invoke(rootInvokeContext, root, undefined, ctx))
       : invoke(rootInvokeContext, root, undefined, ctx));
     const stateAttrs = createStateScriptEventAttrs(serializationCtx);
+    const styledHtml = injectStyles(html, styleIds);
     const [containerOpen, containerClose] = createContainerTags(
       containerTagName,
       containerAttributes,
-      html
+      styledHtml
     );
     await opts.stream.write(containerOpen);
-    await opts.stream.write(html);
+    await opts.stream.write(styledHtml);
     if (serializationCtx.$roots$.length > 0) {
       await serializationCtx.$serialize$();
       await scripts.emitState(
@@ -158,7 +162,7 @@ export const renderToStream = async (
 
     return {
       flushes: 0,
-      size: containerOpen.length + html.length + containerClose.length,
+      size: containerOpen.length + styledHtml.length + containerClose.length,
       isStatic: serializationCtx.$roots$.length === 0 && serializationCtx.$eventQrls$.size === 0,
       manifest: resolvedManifest?.manifest,
       snapshotResult: {
@@ -234,6 +238,22 @@ function createContainerTags(
     return [openTag, `</${tagName}>`];
   }
   return [openTag + '<head></head><body>', '</body></html>'];
+}
+
+function injectStyles(html: string, styles: Map<string, string>): string {
+  if (styles.size === 0) {
+    return html;
+  }
+  const styleHtml = Array.from(styles, ([styleId, content]) => {
+    return `<style q:style="${escapeHTML(styleId)}">${content}</style>`;
+  }).join('');
+  if (/<\/head>/i.test(html)) {
+    return html.replace(/<\/head>/i, `${styleHtml}</head>`);
+  }
+  if (/<body(\s|>|\/)/i.test(html)) {
+    return `<head>${styleHtml}</head>${html}`;
+  }
+  return `<head>${styleHtml}</head><body>${html}</body>`;
 }
 
 function createContainerOpenTag(tagName: string, attrs: Record<string, string>): string {

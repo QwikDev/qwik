@@ -1,0 +1,45 @@
+==INPUT==
+
+import { useStylesScoped$ } from '@qwik.dev/core';
+import styles from './app.css?inline';
+
+export function App() {
+  useStylesScoped$(styles);
+  return <div class="container">Hello</div>;
+}
+
+== SSR OUTPUT ==
+
+============================= src/use-styles-scoped.tsx ==
+
+import styles from './app.css?inline';
+import { appendScopedStyle } from '@qwik.dev/core/spark';
+
+export function App(_props, _ctx) {
+  appendScopedStyle(styles, 'snlqo7-0');
+  return '<div class="⚡️snlqo7-0 container">Hello</div>';
+}
+
+null
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/use-styles-scoped.tsx ==
+
+import styles from './app.css?inline';
+import { createTemplate, appendScopedStyle } from '@qwik.dev/core/spark';
+
+const dom_App_template0 = createTemplate('<div class="⚡️snlqo7-0 container">Hello</div>');
+export function App(_props, ctx) {
+  appendScopedStyle(styles, 'snlqo7-0');
+  const fragment0 = dom_App_template0(ctx.document);
+  const el1 = fragment0.firstChild;
+  return el1;
+}
+
+null
+== CSR DIAGNOSTICS ==
+
+[]

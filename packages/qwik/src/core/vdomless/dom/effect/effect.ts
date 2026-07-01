@@ -1,6 +1,5 @@
 import { isPromise, retryOnPromise } from '../../../shared/utils/promises';
 import { logError } from '../../../shared/utils/log';
-import { serializeAttribute } from '../../../shared/utils/styles';
 import type { ValueOrPromise } from '../../../shared/utils/types';
 import { cleanupDeps } from '../../reactive/cleanup';
 import { SubscriberFlags } from '../../reactive/flags';
@@ -16,9 +15,10 @@ import { runWithCollector, track } from '../../reactive/tracking';
 import { getActiveInvokeContextOrNull } from '../../runtime/invoke-context';
 import type { Owner } from '../../runtime/owner';
 import type { ForBlock } from '../for/for';
-import { applyDomProps } from './dom-props';
+import { applyDomProps, patchAttrValue } from './dom-props';
 import { isDev } from '@qwik.dev/core/build';
-import { EMPTY_STRING } from '../../utils/consts';
+
+export { patchAttrValue, serializeAttrExpressionValue } from './dom-props';
 
 export type TextExpressionValue = string | number | boolean | bigint | null | undefined;
 export type TextExpressionFn<TArgs extends unknown[] = unknown[]> = (
@@ -32,6 +32,7 @@ export type DomBatchFn = () => unknown;
 
 export interface DomEffectOptions {
   scheduler?: Scheduler;
+  styleScopedId?: string;
 }
 
 export type DomEffect =
@@ -57,7 +58,7 @@ export class TextExpressionEffect<TArgs extends unknown[] = unknown[]> {
 export class TextNodeEffect {
   constructor(
     readonly text: Text,
-    readonly source: Source
+    readonly source: Source<TextExpressionValue>
   ) {}
 
   run(): void {
@@ -69,11 +70,17 @@ export class AttrEffect {
   constructor(
     readonly element: Element,
     readonly name: string,
-    readonly source: Source
+    readonly source: Source,
+    readonly styleScopedId?: string
   ) {}
 
   run(): void {
-    patchAttrValue(this.element, this.name, readTrackedSourceValue(this.source));
+    patchAttrValue(
+      this.element,
+      this.name,
+      readTrackedSourceValue(this.source),
+      this.styleScopedId
+    );
   }
 }
 
@@ -82,11 +89,12 @@ export class AttrExpressionEffect<TArgs extends unknown[] = unknown[]> {
     readonly element: Element,
     readonly name: string,
     readonly args: TArgs,
-    readonly fn: AttrExpressionFn<TArgs>
+    readonly fn: AttrExpressionFn<TArgs>,
+    readonly styleScopedId?: string
   ) {}
 
   run(): void {
-    patchAttrValue(this.element, this.name, this.fn(...this.args));
+    patchAttrValue(this.element, this.name, this.fn(...this.args), this.styleScopedId);
   }
 }
 
@@ -96,11 +104,17 @@ export class PropsEffect<TArgs extends unknown[] = unknown[]> {
   constructor(
     readonly element: Element,
     readonly args: TArgs,
-    readonly fn: DomPropsFn<TArgs>
+    readonly fn: DomPropsFn<TArgs>,
+    readonly styleScopedId?: string
   ) {}
 
   run(): void {
-    this.prevProps = applyDomProps(this.element, this.fn(...this.args), this.prevProps);
+    this.prevProps = applyDomProps(
+      this.element,
+      this.fn(...this.args),
+      this.prevProps,
+      this.styleScopedId
+    );
   }
 }
 
@@ -127,17 +141,13 @@ export class DomSubscription implements DomSubscriber {
   run(): void {
     cleanupDeps(this);
 
-    const value = retryOnPromise(
-      () => {
-        if (this.owner === null) {
-          return;
-        }
-        return runWithCollector(this, () => this.effect.run());
-      },
-      () => {}
-    );
+    const value = retryOnPromise(() => {
+      if (this.owner === null) {
+        return;
+      }
+      return runWithCollector(this, () => this.effect.run());
+    }, logError);
     if (isPromise(value)) {
-      value.catch(logError);
       return;
     }
     assertSyncDomValue(value);
@@ -172,7 +182,7 @@ export function createTextExpressionEffect<TArgs extends unknown[]>(
 
 export function createTextNodeEffect(
   text: Text,
-  source: Source,
+  source: Source<TextExpressionValue>,
   options?: DomEffectOptions
 ): DomSubscriber {
   return createDomSubscription(new TextNodeEffect(text, source), options?.scheduler);
@@ -184,7 +194,10 @@ export function createAttrEffect(
   source: Source,
   options?: DomEffectOptions
 ): DomSubscriber {
-  return createDomSubscription(new AttrEffect(element, name, source), options?.scheduler);
+  return createDomSubscription(
+    new AttrEffect(element, name, source, options?.styleScopedId),
+    options?.scheduler
+  );
 }
 
 export function createAttrExpressionEffect<TArgs extends unknown[]>(
@@ -195,7 +208,7 @@ export function createAttrExpressionEffect<TArgs extends unknown[]>(
   options?: DomEffectOptions
 ): DomSubscriber {
   return createDomSubscription(
-    new AttrExpressionEffect(element, name, args, fn),
+    new AttrExpressionEffect(element, name, args, fn, options?.styleScopedId),
     options?.scheduler
   );
 }
@@ -206,7 +219,10 @@ export function createPropsEffect<TArgs extends unknown[]>(
   fn: DomPropsFn<TArgs>,
   options?: DomEffectOptions
 ): DomSubscriber {
-  return createDomSubscription(new PropsEffect(element, args, fn), options?.scheduler);
+  return createDomSubscription(
+    new PropsEffect(element, args, fn, options?.styleScopedId),
+    options?.scheduler
+  );
 }
 
 export function createDomBatchEffect(fn: DomBatchFn, options?: DomEffectOptions): DomSubscriber {
@@ -236,22 +252,6 @@ export function patchTextValue(
 
 function setTextData(text: Text, value: TextExpressionValue): void {
   text.data = value == null ? '' : String(value);
-}
-
-export function serializeAttrExpressionValue(name: string, value: unknown): string {
-  const serialized = serializeAttribute(name, value);
-  return serialized == null || serialized === false || serialized === true
-    ? EMPTY_STRING
-    : String(serialized);
-}
-
-export function patchAttrValue(element: Element, name: string, value: unknown): void {
-  const serialized = serializeAttrExpressionValue(name, value);
-  if (name === 'class') {
-    element.className = serialized;
-  } else {
-    element.setAttribute(name, serialized);
-  }
 }
 
 export function readTrackedSourceValue<T>(source: Source<T>): T {

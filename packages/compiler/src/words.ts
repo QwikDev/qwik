@@ -5,6 +5,8 @@ export enum QwikModule {
 
 export enum QwikSymbol {
   ApplyDomProps = 'applyDomProps',
+  AppendScopedStyle = 'appendScopedStyle',
+  AppendStyle = 'appendStyle',
   Captures = '_captures',
   BranchRange = 'BranchRange',
   ForRange = 'ForRange',
@@ -56,5 +58,7 @@ export enum QwikSymbol {
   SetEvent = 'setEvent',
   RegisterProjection = 'registerProjection',
   UseId = 'useId',
+  UseStyles = 'useStyles$',
+  UseStylesScoped = 'useStylesScoped$',
   WithCaptures = '_withCaptures',
 }

@@ -639,14 +639,19 @@ async function restoreDomEffect(
       if (parts.length > target.depsIndex + 3) {
         const args = parts[target.depsIndex + 2] as unknown[];
         const qrl = parts[target.depsIndex + 3] as QRLInternal<AttrExpressionFn>;
+        const styleScopedId = parts[target.depsIndex + 4] as string | null;
         const fn = withCaptures(await qrl.resolve(), args);
         return {
           deps: target.deps,
-          effect: new AttrExpressionEffect(element, name, args, fn),
+          effect: new AttrExpressionEffect(element, name, args, fn, styleScopedId ?? undefined),
         };
       }
       const source = readRequiredDomSource(target.deps, target.targetKind);
-      return { deps: target.deps, effect: new AttrEffect(element, name, source) };
+      const styleScopedId = parts[target.depsIndex + 2] as string | null;
+      return {
+        deps: target.deps,
+        effect: new AttrEffect(element, name, source, styleScopedId ?? undefined),
+      };
     }
     case EffectKind.Props: {
       const target = readDomSubscriptionTarget(parts);
@@ -655,10 +660,11 @@ async function restoreDomEffect(
         (...args: unknown[]) => Record<string, unknown> | null | undefined
       >;
       const args = parts[target.depsIndex + 1] as unknown[];
+      const styleScopedId = parts[target.depsIndex + 3] as string | null;
       const fn = withCaptures(await qrl.resolve(), args);
       return {
         deps: target.deps,
-        effect: new PropsEffect(element, args, fn),
+        effect: new PropsEffect(element, args, fn, styleScopedId ?? undefined),
       };
     }
     default:

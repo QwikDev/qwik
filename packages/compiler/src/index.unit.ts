@@ -183,6 +183,86 @@ export function App() {
     });
   });
 
+  test('lowers global useStyles$', async () => {
+    await testInput('use_styles_global', {
+      path: 'src/use-styles.tsx',
+      code: `import { useStyles$ } from '@qwik.dev/core';
+import styles from './app.css?inline';
+
+export function App() {
+  useStyles$(styles);
+  return <div class="container">Hello</div>;
+}
+`,
+    });
+  });
+
+  test('lowers scoped static classes', async () => {
+    await testInput('use_styles_scoped_static', {
+      path: 'src/use-styles-scoped.tsx',
+      code: `import { useStylesScoped$ } from '@qwik.dev/core';
+import styles from './app.css?inline';
+
+export function App() {
+  useStylesScoped$(styles);
+  return <div class="container">Hello</div>;
+}
+`,
+    });
+  });
+
+  test('lowers scoped dynamic object class updates', async () => {
+    await testInput('use_styles_scoped_dynamic', {
+      path: 'src/use-styles-scoped-dynamic.tsx',
+      code: `import { useStylesScoped$ } from '@qwik.dev/core';
+import { createSignal } from '@qwik.dev/core/spark';
+import styles from './app.css?inline';
+
+export function App() {
+  useStylesScoped$(styles);
+  const active = createSignal(false);
+  return <button class={{ container: true, active: active.value }} onClick$={() => active.value = true}>Toggle</button>;
+}
+`,
+    });
+  });
+
+  test('lowers multiple scoped styles', async () => {
+    await testInput('use_styles_scoped_multiple', {
+      path: 'src/use-styles-scoped-multiple.tsx',
+      code: `import { useStylesScoped$ } from '@qwik.dev/core';
+import red from './red.css?inline';
+import blue from './blue.css?inline';
+
+export function App() {
+  useStylesScoped$(red);
+  useStylesScoped$(blue);
+  return <div class="container">Hello</div>;
+}
+`,
+    });
+  });
+
+  test('keeps scoped classes on projected JSX owner', async () => {
+    await testInput('use_styles_scoped_projection', {
+      path: 'src/use-styles-scoped-projection.tsx',
+      code: `import { Slot, useStylesScoped$ } from '@qwik.dev/core';
+import parentStyles from './parent.css?inline';
+import childStyles from './child.css?inline';
+
+export function Child() {
+  useStylesScoped$(childStyles);
+  return <section class="child"><Slot /></section>;
+}
+
+export function App() {
+  useStylesScoped$(parentStyles);
+  return <Child><span class="projected">Projected</span></Child>;
+}
+`,
+    });
+  });
+
   test('extracts event handlers into QRL-style modules', async () => {
     await testInput('event_handler_qrl', {
       code: `export function App() {

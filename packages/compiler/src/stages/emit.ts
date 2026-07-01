@@ -45,6 +45,7 @@ import {
   getDomEffectBatchStats,
   ID_PARAM,
   isDomEffectBatched,
+  getScopedStyleClass,
   type ScalarDomEffectKind,
   rewriteLoopCaptures,
   shouldResolveSsrQrl,
@@ -160,6 +161,9 @@ function assignComponentIdState(ctx: CompilerContext, components: readonly Compo
   for (const component of components) {
     component.idBase = `q${createComponentSymbol(ctx, component)}-`;
     component.needsId = hasUseId(component, ctx.input.code);
+    for (let i = 0; i < component.styles.length; i++) {
+      component.styles[i].styleId = createStyleId(ctx, component, i);
+    }
   }
 
   let changed = true;
@@ -183,6 +187,19 @@ function assignComponentIdState(ctx: CompilerContext, components: readonly Compo
       }
     }
   }
+}
+
+function createStyleId(ctx: CompilerContext, component: ComponentRecord, index: number): string {
+  return `${hashCode(`${createComponentSymbol(ctx, component)}_style${index}`)}-${index}`;
+}
+
+function hashCode(text: string, hash = 0) {
+  for (let i = 0; i < text.length; i++) {
+    const chr = text.charCodeAt(i);
+    hash = (hash << 5) - hash + chr;
+    hash |= 0;
+  }
+  return Number(Math.abs(hash)).toString(36);
 }
 
 function collectReferencedComponents(
@@ -223,6 +240,8 @@ interface SsrUsageRoot {
   hasSetupAwait?: boolean;
   hasSetupQrl?: boolean;
   hasUseId?: boolean;
+  hasStyle?: boolean;
+  hasScopedStyle?: boolean;
   hasTask?: boolean;
   hasVisibleTask?: boolean;
 }
@@ -237,6 +256,8 @@ function createSsrUsageRoots(ctx: CompilerContext, component: ComponentRecord): 
       hasTask,
       hasSetupQrl: hasSetupQrlSegment(component, ctx.manifest.segments),
       hasUseId: hasUseId(component, ctx.input.code),
+      hasStyle: component.styles.some((style) => !style.scoped),
+      hasScopedStyle: component.styles.some((style) => style.scoped),
       hasVisibleTask: hasTaskSetupSegment(
         component,
         ctx.manifest.segments,
@@ -303,6 +324,8 @@ function createSsrImportUsage(
     hasSetupAwait: items.some((item) => item.hasSetupAwait === true),
     hasSetupQrl: items.some((item) => item.hasSetupQrl === true),
     hasUseId: items.some((item) => item.hasUseId === true),
+    hasStyle: items.some((item) => item.hasStyle === true),
+    hasScopedStyle: items.some((item) => item.hasScopedStyle === true),
     hasValueOrPromise: valueOrPromiseCounts.some((count) => count > 0),
     hasMultipleValueOrPromise: valueOrPromiseCounts.some((count) => count > 1),
     hasTask: items.some((item) => item.hasTask === true),
@@ -602,6 +625,8 @@ function collectCsrRootImportUsage(
       providesContext: component.providesContext,
       batchStats: getDomEffectBatchStats(getComponentUsageRoot(component), qrlSegments),
       hasSetupQrl: hasSetupQrlSegment(component, segments),
+      hasStyle: component.styles.some((style) => !style.scoped),
+      hasScopedStyle: component.styles.some((style) => style.scoped),
       useOnEvents,
     };
   });
@@ -660,6 +685,8 @@ function collectCsrRootImportUsage(
     hasComponentPropsSpread: has(hasCsrRootComponentPropsSpread),
     hasSetupQrl: items.some((item) => item.hasSetupQrl),
     hasUseId: items.some((item) => hasUseId(item.component, sourceCode)),
+    hasStyle: items.some((item) => item.hasStyle),
+    hasScopedStyle: items.some((item) => item.hasScopedStyle),
   };
 }
 
@@ -1177,16 +1204,28 @@ interface BranchRenderUsage {
   segmentImports: Map<string, QrlSegmentOutput>;
 }
 
+interface RenderSegmentChildren {
+  component: ComponentRecord;
+  children: readonly RenderNode[];
+}
+
 function createSsrBranchRenderSegmentSource(
   ctx: CompilerContext,
   qrlSegment: QrlSegmentOutput,
   qrlSegments: Map<string, QrlSegmentOutput>
 ) {
-  const children = findBranchRenderChildren(ctx, qrlSegment.id);
-  if (children === null) {
+  const found = findBranchRenderChildren(ctx, qrlSegment.id);
+  if (found === null) {
     throw new Error(`Missing branch render IR for ${qrlSegment.id}.`);
   }
-  return createSsrRenderSegmentSource(ctx, qrlSegment, qrlSegments, children, false);
+  return createSsrRenderSegmentSource(
+    ctx,
+    qrlSegment,
+    qrlSegments,
+    found.children,
+    false,
+    getScopedStyleClass(found.component)
+  );
 }
 
 function createSsrRenderSegmentSource(
@@ -1194,7 +1233,8 @@ function createSsrRenderSegmentSource(
   qrlSegment: QrlSegmentOutput,
   qrlSegments: Map<string, QrlSegmentOutput>,
   children: readonly RenderNode[],
-  alwaysRangeId: boolean
+  alwaysRangeId: boolean,
+  styleScopedId?: string
 ) {
   const fragment: RenderNode = { kind: 'fragment', children: [...children] };
   const segmentQrlSegments = collectRenderNodeQrlSegments(ctx, fragment, qrlSegments);
@@ -1206,6 +1246,7 @@ function createSsrRenderSegmentSource(
     rootRangeTarget: hasRootRangeText ? 'rangeId' : undefined,
     idExpr: needsId ? ID_PARAM : undefined,
     componentNeedsId: (name) => findNamedComponent(ctx, name)?.needsId === true,
+    styleScopedId,
   });
   const slotInvokeContextId = hasSlot(fragment) ? emitter.ensureSlotInvokeContextId() : null;
   const html = emitter.emitHtmlExpression(fragment);
@@ -1277,18 +1318,25 @@ function createSsrResolvedSegmentImports(
 }
 
 function createBranchRenderSegmentSource(ctx: CompilerContext, qrlSegment: QrlSegmentOutput) {
-  const children = findBranchRenderChildren(ctx, qrlSegment.id);
-  if (children === null) {
+  const found = findBranchRenderChildren(ctx, qrlSegment.id);
+  if (found === null) {
     throw new Error(`Missing branch render IR for ${qrlSegment.id}.`);
   }
-  return createDomRenderSegmentSource(ctx, qrlSegment, children, 'ctx');
+  return createDomRenderSegmentSource(
+    ctx,
+    qrlSegment,
+    found.children,
+    'ctx',
+    getScopedStyleClass(found.component)
+  );
 }
 
 function createDomRenderSegmentSource(
   ctx: CompilerContext,
   qrlSegment: QrlSegmentOutput,
   children: readonly RenderNode[],
-  params: string
+  params: string,
+  styleScopedId?: string
 ) {
   const usage: BranchRenderUsage = {
     sparkImports: new Set(),
@@ -1309,6 +1357,7 @@ function createDomRenderSegmentSource(
     importSegment: (segment) => usage.segmentImports.set(segment.id, segment),
     use: (symbol) => usage.sparkImports.add(symbol),
     componentNeedsId: (name) => findNamedComponent(ctx, name)?.needsId === true,
+    styleScopedId,
   });
   const roots =
     emitter.emitTemplateRoots(children) ?? children.flatMap((child) => emitter.emitRoot(child));
@@ -1359,10 +1408,11 @@ function createSsrForRenderSegmentSource(
   qrlSegment: QrlSegmentOutput,
   qrlSegments: Map<string, QrlSegmentOutput>
 ) {
-  const children = findForRenderChildren(ctx, qrlSegment.id);
-  if (children === null) {
+  const found = findForRenderChildren(ctx, qrlSegment.id);
+  if (found === null) {
     throw new Error(`Missing for render IR for ${qrlSegment.id}.`);
   }
+  const children = found.children;
 
   const fragment: RenderNode = { kind: 'fragment', children: [...children] };
   const segmentQrlSegments = collectRenderNodeQrlSegments(ctx, fragment, qrlSegments);
@@ -1377,6 +1427,7 @@ function createSsrForRenderSegmentSource(
     idExpr: needsId ? ID_PARAM : undefined,
     componentNeedsId: (name) => findNamedComponent(ctx, name)?.needsId === true,
     loopCaptures: createLoopParamCaptures(qrlSegment.segment),
+    styleScopedId: getScopedStyleClass(found.component),
   });
   const slotInvokeContextId = hasSlot(fragment) ? emitter.ensureSlotInvokeContextId() : null;
   const html = emitter.emitHtmlExpression(fragment);
@@ -1429,10 +1480,11 @@ function createForRenderSegmentSource(
   qrlSegment: QrlSegmentOutput,
   qrlSegments: Map<string, QrlSegmentOutput>
 ) {
-  const children = findForRenderChildren(ctx, qrlSegment.id);
-  if (children === null) {
+  const found = findForRenderChildren(ctx, qrlSegment.id);
+  if (found === null) {
     throw new Error(`Missing for render IR for ${qrlSegment.id}.`);
   }
+  const children = found.children;
 
   const usage: BranchRenderUsage = {
     sparkImports: new Set(),
@@ -1455,6 +1507,7 @@ function createForRenderSegmentSource(
     importSegment: (segment) => usage.segmentImports.set(segment.id, segment),
     use: (symbol) => usage.sparkImports.add(symbol),
     componentNeedsId: (name) => findNamedComponent(ctx, name)?.needsId === true,
+    styleScopedId: getScopedStyleClass(found.component),
   });
   const roots =
     emitter.emitTemplateRoots(children) ?? children.flatMap((child) => emitter.emitRoot(child));
@@ -1506,19 +1559,32 @@ function createSsrSlotRenderSegmentSource(
   qrlSegment: QrlSegmentOutput,
   qrlSegments: Map<string, QrlSegmentOutput>
 ) {
-  const children = findSlotRenderChildren(ctx, qrlSegment.id);
-  if (children === null) {
+  const found = findSlotRenderChildren(ctx, qrlSegment.id);
+  if (found === null) {
     throw new Error(`Missing slot render IR for ${qrlSegment.id}.`);
   }
-  return createSsrRenderSegmentSource(ctx, qrlSegment, qrlSegments, children, true);
+  return createSsrRenderSegmentSource(
+    ctx,
+    qrlSegment,
+    qrlSegments,
+    found.children,
+    true,
+    getScopedStyleClass(found.component)
+  );
 }
 
 function createSlotRenderSegmentSource(ctx: CompilerContext, qrlSegment: QrlSegmentOutput) {
-  const children = findSlotRenderChildren(ctx, qrlSegment.id);
-  if (children === null) {
+  const found = findSlotRenderChildren(ctx, qrlSegment.id);
+  if (found === null) {
     throw new Error(`Missing slot render IR for ${qrlSegment.id}.`);
   }
-  return createDomRenderSegmentSource(ctx, qrlSegment, children, 'ctx');
+  return createDomRenderSegmentSource(
+    ctx,
+    qrlSegment,
+    found.children,
+    'ctx',
+    getScopedStyleClass(found.component)
+  );
 }
 
 function createDomEmitterModuleImports(ctx: CompilerContext, emitter: DomEmitter): ImportRecord[] {
@@ -1680,12 +1746,12 @@ function findNamedComponent(ctx: CompilerContext, name: string) {
 function findBranchRenderChildren(
   ctx: CompilerContext,
   segmentId: string
-): readonly RenderNode[] | null {
+): RenderSegmentChildren | null {
   for (const component of ctx.manifest.components) {
     for (const root of getComponentRoots(component)) {
       const children = findBranchRenderChildrenInNode(root, segmentId);
       if (children !== null) {
-        return children;
+        return { component, children };
       }
     }
   }
@@ -1728,12 +1794,12 @@ function findBranchRenderChildrenInNode(
 function findForRenderChildren(
   ctx: CompilerContext,
   segmentId: string
-): readonly RenderNode[] | null {
+): RenderSegmentChildren | null {
   for (const component of ctx.manifest.components) {
     for (const root of getComponentRoots(component)) {
       const children = findForRenderChildrenInNode(root, segmentId);
       if (children !== null) {
-        return children;
+        return { component, children };
       }
     }
   }
@@ -1743,12 +1809,12 @@ function findForRenderChildren(
 function findSlotRenderChildren(
   ctx: CompilerContext,
   segmentId: string
-): readonly RenderNode[] | null {
+): RenderSegmentChildren | null {
   for (const component of ctx.manifest.components) {
     for (const root of getComponentRoots(component)) {
       const children = findSlotRenderChildrenInNode(root, segmentId);
       if (children !== null) {
-        return children;
+        return { component, children };
       }
     }
   }

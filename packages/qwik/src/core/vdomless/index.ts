@@ -192,6 +192,7 @@ export {
   type UseOnEvent,
   type UseOnMap,
 } from './runtime/use-on';
+export { appendScopedStyle, appendStyle } from './runtime/use-styles';
 export { createTemplate, type TemplateFactory } from './dom/template/template';
 export {
   EffectTargetKind,

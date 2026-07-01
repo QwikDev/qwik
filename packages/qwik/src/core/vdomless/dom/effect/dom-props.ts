@@ -21,7 +21,7 @@ export function normalizeDomProps(props: DomProps): PropMap {
   return collectDomProps(props);
 }
 
-function collectDomProps(props: DomProps, element?: Element) {
+function collectDomProps(props: DomProps, element?: Element, styleScopedId?: string) {
   const normalized: PropMap = {};
   if (props == null) {
     return normalized;
@@ -88,7 +88,7 @@ function collectDomProps(props: DomProps, element?: Element) {
     }
 
     const normalizedKey = key === 'className' ? 'class' : key;
-    setDomProp(normalized, normalizedKey, value, element);
+    setDomProp(normalized, normalizedKey, value, element, styleScopedId);
   }
   return normalized;
 }
@@ -96,13 +96,14 @@ function collectDomProps(props: DomProps, element?: Element) {
 export function applyDomProps(
   element: Element,
   props: DomProps,
-  prevProps: Record<string, unknown> | null = null
+  prevProps: Record<string, unknown> | null = null,
+  styleScopedId?: string
 ): Record<string, unknown> {
-  const nextProps = collectDomProps(props, element);
+  const nextProps = collectDomProps(props, element, styleScopedId);
   if (prevProps !== null) {
     for (const key in prevProps) {
       if (!(key in nextProps)) {
-        removeDomProp(element, key);
+        removeDomProp(element, key, key === 'class' ? styleScopedId : undefined);
       }
     }
   }
@@ -111,9 +112,10 @@ export function applyDomProps(
 
 export function renderDomPropsToString(
   props: DomProps,
-  eventAttr?: (name: string, value: unknown) => string
+  eventAttr?: (name: string, value: unknown) => string,
+  styleScopedId?: string
 ) {
-  const normalized = normalizeDomProps(props);
+  const normalized = collectDomProps(props, undefined, styleScopedId);
   let attrs = '';
   let innerHTML: string | null = null;
 
@@ -130,21 +132,21 @@ export function renderDomPropsToString(
       continue;
     }
 
-    const serialized = serializeDomAttribute(key, value);
-    if (serialized === null) {
+    const attrValue = serializeAttrExpressionValue(key, value, styleScopedId);
+    if (attrValue === null) {
       continue;
     }
-    if (serialized === '') {
+    if (attrValue === '') {
       attrs += ` ${key}`;
     } else {
-      attrs += ` ${key}="${escapeHTML(serialized)}"`;
+      attrs += ` ${key}="${escapeHTML(attrValue)}"`;
     }
   }
 
   return { attrs, innerHTML };
 }
 
-function applyDomProp(element: Element, key: string, value: unknown): void {
+function applyDomProp(element: Element, key: string, value: unknown, styleScopedId?: string): void {
   if (key === 'dangerouslySetInnerHTML') {
     (element as Element & { innerHTML: string }).innerHTML =
       value == null || value === false ? '' : String(value);
@@ -159,26 +161,27 @@ function applyDomProp(element: Element, key: string, value: unknown): void {
     return;
   }
 
-  const serialized = serializeDomAttribute(key, value);
-  if (serialized === null) {
-    element.removeAttribute?.(key);
-  } else {
-    element.setAttribute(key, serialized);
-  }
+  patchAttrValue(element, key, value, styleScopedId);
 }
 
-function removeDomProp(element: Element, key: string): void {
+function removeDomProp(element: Element, key: string, styleScopedId?: string): void {
   if (key === 'dangerouslySetInnerHTML') {
     (element as Element & { innerHTML: string }).innerHTML = '';
   } else if (isHtmlAttributeAnEventName(key)) {
     removeEvent(element, key);
+  } else if (key === 'class' && styleScopedId !== undefined) {
+    patchAttrValue(element, key, '', styleScopedId);
   } else {
     element.removeAttribute?.(key);
   }
 }
 
-function serializeDomAttribute(key: string, value: unknown): string | null {
-  const serialized = serializeAttribute(key, value);
+export function serializeAttrExpressionValue(
+  name: string,
+  value: unknown,
+  styleScopedId?: string
+): string | null {
+  const serialized = serializeAttribute(name, value, styleScopedId);
   if (serialized == null || serialized === false) {
     return null;
   }
@@ -186,7 +189,25 @@ function serializeDomAttribute(key: string, value: unknown): string | null {
     return '';
   }
   const valueString = String(serialized);
-  return valueString === '' && (key === 'class' || key === 'style') ? null : valueString;
+  return valueString === '' && (name === 'class' || name === 'style') ? null : valueString;
+}
+
+export function patchAttrValue(
+  element: Element,
+  name: string,
+  value: unknown,
+  styleScopedId?: string
+): void {
+  const serialized = serializeAttrExpressionValue(name, value, styleScopedId);
+  if (serialized === null) {
+    element.removeAttribute?.(name);
+    return;
+  }
+  if (name === 'class') {
+    element.className = serialized;
+  } else {
+    element.setAttribute(name, serialized);
+  }
 }
 
 function removeEvent(element: Element, key: string): void {
@@ -204,11 +225,12 @@ function setDomProp(
   props: PropMap,
   key: string,
   value: unknown,
-  element: Element | undefined
+  element: Element | undefined,
+  styleScopedId?: string
 ): void {
   props[key] = value;
   if (element !== undefined) {
-    applyDomProp(element, key, value);
+    applyDomProp(element, key, value, styleScopedId);
   }
 }
 

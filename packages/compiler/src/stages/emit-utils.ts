@@ -21,6 +21,7 @@ import {
 import { QwikSymbol } from '../words';
 
 export const ID_PARAM = '_id';
+const STYLE_SCOPE_PREFIX = '⚡️';
 
 export function emitImports(imports: readonly ImportRecord[]) {
   return imports.map(emitImportDeclaration);
@@ -108,6 +109,34 @@ export function emitComponentSetup(
       return rewriteUseIdCalls(component, sourceCode, range, rewritten);
     })
     .join('\n');
+}
+
+export function createStyleHookReplacements(
+  component: ComponentRecord,
+  sourceCode: string
+): Replacement[] {
+  return component.styles.map((style) => {
+    const helper = style.scoped ? QwikSymbol.AppendScopedStyle : QwikSymbol.AppendStyle;
+    const arg = sourceCode.slice(style.argRange[0], style.argRange[1]);
+    const call = `${helper}(${arg}, ${JSON.stringify(style.styleId)})`;
+    if (style.standalone) {
+      return {
+        range: style.callRange,
+        value: call,
+      };
+    }
+    return {
+      range: style.callRange,
+      value: style.scoped ? `({ scopeId: ${call} })` : `({ styleId: ${call} })`,
+    };
+  });
+}
+
+export function getScopedStyleClass(component: ComponentRecord): string | undefined {
+  const ids = component.styles
+    .filter((style) => style.scoped)
+    .map((style) => STYLE_SCOPE_PREFIX + style.styleId);
+  return ids.length === 0 ? undefined : ids.join(' ');
 }
 
 export function emitComponentParamSetup(

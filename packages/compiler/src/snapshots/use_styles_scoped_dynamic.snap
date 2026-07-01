@@ -1,0 +1,239 @@
+==INPUT==
+
+import { useStylesScoped$ } from '@qwik.dev/core';
+import { createSignal } from '@qwik.dev/core/spark';
+import styles from './app.css?inline';
+
+export function App() {
+  useStylesScoped$(styles);
+  const active = createSignal(false);
+  return <button class={{ container: true, active: active.value }} onClick$={() => active.value = true}>Toggle</button>;
+}
+
+== SSR OUTPUT ==
+
+============================= src/use-styles-scoped-dynamic.tsx ==
+
+import {
+  createSignal,
+  _qrlWithChunk,
+  escapeHTML,
+  createSsrElementTarget,
+  renderSsrAttrExpression,
+  maybeThen,
+  appendScopedStyle,
+} from '@qwik.dev/core/spark';
+import styles from './app.css?inline';
+import { use_styles_scoped_dynamic_class_segment_0 } from './use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_0';
+
+const q_use_styles_scoped_dynamic_class_segment_0 = /*#__PURE__*/ _qrlWithChunk(
+  './use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_0',
+  () => import('./use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_0'),
+  'use_styles_scoped_dynamic_class_segment_0'
+);
+q_use_styles_scoped_dynamic_class_segment_0.s(use_styles_scoped_dynamic_class_segment_0);
+const q_use_styles_scoped_dynamic_q_e_click_segment_1 = /*#__PURE__*/ _qrlWithChunk(
+  './use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_q_e_click_segment_1',
+  () => import('./use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_q_e_click_segment_1'),
+  'use_styles_scoped_dynamic_q_e_click_segment_1'
+);
+
+export function App(_props, ctx) {
+  appendScopedStyle(styles, 'z0ce9z-0');
+  const active = createSignal(false);
+  const id0 = ctx.nextId();
+  ctx.addRoot(active);
+  const attr1 = renderSsrAttrExpression(
+    createSsrElementTarget(id0),
+    'class',
+    [active],
+    q_use_styles_scoped_dynamic_class_segment_0,
+    undefined,
+    '⚡️z0ce9z-0'
+  );
+  return maybeThen(
+    attr1,
+    (attr1) =>
+      '<button q:id="' +
+      id0 +
+      '" class="' +
+      escapeHTML(attr1) +
+      '"' +
+      ctx.eventAttr('q-e:click', q_use_styles_scoped_dynamic_q_e_click_segment_1.w([active])) +
+      '>Toggle</button>'
+  );
+}
+
+null
+============================= src/use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_0.js (ENTRY POINT)==
+
+export const use_styles_scoped_dynamic_class_segment_0 = (active) => {
+  return {
+    container: true,
+    active: active.value,
+  };
+};
+
+null
+/*
+{
+  "origin": "use-styles-scoped-dynamic.tsx",
+  "name": "use_styles_scoped_dynamic_class_segment_0",
+  "entry": null,
+  "displayName": "use_styles_scoped_dynamic_class_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "class",
+  "captures": true,
+  "loc": [
+    254,
+    300
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "active"
+  ]
+}
+*/
+============================= src/use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_q_e_click_segment_1.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+export const use_styles_scoped_dynamic_q_e_click_segment_1 = () => {
+  const active = _captures[0];
+  return (active.value = true);
+};
+
+null
+/*
+{
+  "origin": "use-styles-scoped-dynamic.tsx",
+  "name": "use_styles_scoped_dynamic_q_e_click_segment_1",
+  "entry": null,
+  "displayName": "use_styles_scoped_dynamic_q_e_click_segment_1",
+  "hash": "segment_1",
+  "canonicalFilename": "use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_q_e_click_segment_1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    302,
+    338
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "active"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/use-styles-scoped-dynamic.tsx ==
+
+import {
+  createSignal,
+  createTemplate,
+  createAttrExpressionEffect,
+  setEvent,
+  appendScopedStyle,
+} from '@qwik.dev/core/spark';
+import styles from './app.css?inline';
+import { use_styles_scoped_dynamic_q_e_click_segment_1 } from './use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_q_e_click_segment_1';
+
+const dom_App_template0 = createTemplate('<button class="⚡️z0ce9z-0">Toggle</button>');
+const dom_App_expr1 = (active) => ({
+  container: true,
+  active: active.value,
+});
+export function App(_props, ctx) {
+  appendScopedStyle(styles, 'z0ce9z-0');
+  const active = createSignal(false);
+  const fragment0 = dom_App_template0(ctx.document);
+  const el1 = fragment0.firstChild;
+  const effect2 = createAttrExpressionEffect(el1, 'class', [active], dom_App_expr1, {
+    scheduler: ctx.scheduler,
+    styleScopedId: '⚡️z0ce9z-0',
+  });
+  ctx.scheduler.notify(effect2);
+  setEvent(el1, 'q-e:click', use_styles_scoped_dynamic_q_e_click_segment_1, [active]);
+  return el1;
+}
+
+null
+============================= src/use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_0.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+export const use_styles_scoped_dynamic_class_segment_0 = () => {
+  const active = _captures[0];
+  return {
+    container: true,
+    active: active.value,
+  };
+};
+
+null
+/*
+{
+  "origin": "use-styles-scoped-dynamic.tsx",
+  "name": "use_styles_scoped_dynamic_class_segment_0",
+  "entry": null,
+  "displayName": "use_styles_scoped_dynamic_class_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "class",
+  "captures": true,
+  "loc": [
+    254,
+    300
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "active"
+  ]
+}
+*/
+============================= src/use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_q_e_click_segment_1.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+export const use_styles_scoped_dynamic_q_e_click_segment_1 = () => {
+  const active = _captures[0];
+  return (active.value = true);
+};
+
+null
+/*
+{
+  "origin": "use-styles-scoped-dynamic.tsx",
+  "name": "use_styles_scoped_dynamic_q_e_click_segment_1",
+  "entry": null,
+  "displayName": "use_styles_scoped_dynamic_q_e_click_segment_1",
+  "hash": "segment_1",
+  "canonicalFilename": "use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_q_e_click_segment_1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    302,
+    338
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "active"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

@@ -45,6 +45,8 @@ export function createSsrImports(
     !usage.hasSetupAwait &&
     !usage.hasSetupQrl &&
     !usage.hasUseId &&
+    !usage.hasStyle &&
+    !usage.hasScopedStyle &&
     !usage.hasTask &&
     !usage.hasVisibleTask
   ) {
@@ -130,6 +132,12 @@ export function createSsrImports(
   if (usage.hasVisibleTask) {
     sparkSpecifiers.push(QwikSymbol.CreateVisibleTaskHandlerQrl);
   }
+  if (usage.hasStyle) {
+    sparkSpecifiers.push(QwikSymbol.AppendStyle);
+  }
+  if (usage.hasScopedStyle) {
+    sparkSpecifiers.push(QwikSymbol.AppendScopedStyle);
+  }
   if (sparkSpecifiers.length > 0) {
     records.push(createQwikSparkImport(...sparkSpecifiers));
   }
@@ -160,6 +168,8 @@ export interface SsrImportUsage {
   hasSetupAwait: boolean;
   hasSetupQrl: boolean;
   hasUseId: boolean;
+  hasStyle: boolean;
+  hasScopedStyle: boolean;
   hasValueOrPromise: boolean;
   hasMultipleValueOrPromise: boolean;
   hasTask: boolean;
@@ -183,7 +193,9 @@ export function createCsrImports(
     !usage.hasSlot &&
     !usage.hasComponentSlots &&
     !usage.hasSetupQrl &&
-    !usage.hasUseId
+    !usage.hasUseId &&
+    !usage.hasStyle &&
+    !usage.hasScopedStyle
   ) {
     return [];
   }
@@ -257,6 +269,12 @@ export function createCsrImports(
   if (usage.hasForBlock) {
     sparkSpecifiers.push(QwikSymbol.ForRange, QwikSymbol.CreateForBlock);
   }
+  if (usage.hasStyle) {
+    sparkSpecifiers.push(QwikSymbol.AppendStyle);
+  }
+  if (usage.hasScopedStyle) {
+    sparkSpecifiers.push(QwikSymbol.AppendScopedStyle);
+  }
   if (sparkSpecifiers.length > 0) {
     records.push(createQwikSparkImport(...sparkSpecifiers));
   }
@@ -289,6 +307,8 @@ export interface CsrImportUsage {
   hasComponentPropsSpread: boolean;
   hasSetupQrl: boolean;
   hasUseId: boolean;
+  hasStyle: boolean;
+  hasScopedStyle: boolean;
 }
 
 export function normalizeImports(imports: readonly ImportRecord[]) {

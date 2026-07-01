@@ -35,12 +35,17 @@ interface ComponentBodyInfo {
   jsx: AstJsxNode | null;
   setupRanges: NonNullable<ComponentRecord['functionRange']>[];
   jsxValues: ComponentRecord['jsxValues'];
+  styles: ComponentRecord['styles'];
   providesContext: boolean;
 }
 
 interface ContextProviderImports {
   named: Set<string>;
   namespaces: Set<string>;
+}
+
+interface StyleHookImports {
+  named: Map<string, boolean>;
 }
 
 export function collectModuleFacts(ctx: CompilerContext) {
@@ -177,7 +182,7 @@ function addFunctionComponent(
   qrlBoundary: string | null = null,
   exported = true
 ) {
-  const body = getComponentBody(fn, getContextProviderImports(ctx));
+  const body = getComponentBody(fn, getContextProviderImports(ctx), getStyleHookImports(ctx));
   const component: ComponentRecord = {
     exportName,
     localName,
@@ -190,6 +195,7 @@ function addFunctionComponent(
     needsId: false,
     segmentId: null,
     useIdNames: getUseIdNames(ctx),
+    styles: body.styles,
     params: getParams(fn),
     setupRanges: body.setupRanges,
     jsxValues: body.jsxValues,
@@ -341,20 +347,22 @@ function getComponentFunction(node: unknown): ComponentFunctionInfo | null {
 
 function getComponentBody(
   fn: AstFunction,
-  contextProviderImports: ContextProviderImports
+  contextProviderImports: ContextProviderImports,
+  styleHookImports: StyleHookImports
 ): ComponentBodyInfo {
   const body = unwrapExpression(fn.body);
   if (!body) {
-    return { jsx: null, setupRanges: [], jsxValues: [], providesContext: false };
+    return { jsx: null, setupRanges: [], jsxValues: [], styles: [], providesContext: false };
   }
   if (body.type === 'JSXElement' || body.type === 'JSXFragment') {
-    return { jsx: body, setupRanges: [], jsxValues: [], providesContext: false };
+    return { jsx: body, setupRanges: [], jsxValues: [], styles: [], providesContext: false };
   }
   if (body.type !== 'BlockStatement') {
-    return { jsx: null, setupRanges: [], jsxValues: [], providesContext: false };
+    return { jsx: null, setupRanges: [], jsxValues: [], styles: [], providesContext: false };
   }
   const setupRanges: ComponentBodyInfo['setupRanges'] = [];
   const jsxValues: ComponentBodyInfo['jsxValues'] = [];
+  const styles: ComponentBodyInfo['styles'] = [];
   let providesContext = false;
   for (const statement of body.body ?? []) {
     const statementRange = getRange(statement);
@@ -362,21 +370,83 @@ function getComponentBody(
       if (statementRange) {
         setupRanges.push(statementRange);
       }
+      collectStyleHooks(statement, styleHookImports, styles);
       collectJsxValues(statement, jsxValues);
       providesContext ||= containsContextProviderCall(statement, contextProviderImports);
       continue;
     }
     const argument = unwrapExpression(statement.argument);
     if (isJsxNode(argument)) {
-      return { jsx: argument, setupRanges, jsxValues, providesContext };
+      return { jsx: argument, setupRanges, jsxValues, styles, providesContext };
     }
     if (statementRange) {
       setupRanges.push(statementRange);
     }
+    collectStyleHooks(statement, styleHookImports, styles);
     collectJsxValues(statement, jsxValues);
     providesContext ||= containsContextProviderCall(statement, contextProviderImports);
   }
-  return { jsx: null, setupRanges: [], jsxValues: [], providesContext: false };
+  return { jsx: null, setupRanges: [], jsxValues: [], styles: [], providesContext: false };
+}
+
+function collectStyleHooks(
+  statement: unknown,
+  imports: StyleHookImports,
+  styles: ComponentBodyInfo['styles']
+) {
+  if (imports.named.size === 0) {
+    return;
+  }
+  const standaloneExpression =
+    statement &&
+    typeof statement === 'object' &&
+    (statement as { type?: string }).type === 'ExpressionStatement'
+      ? unwrapExpression((statement as { expression?: unknown }).expression)
+      : null;
+  visitStyleHookCalls(statement, statement, (call) => {
+    const localName = getIdentifierName(unwrapExpression(call.callee));
+    if (localName === null || !imports.named.has(localName)) {
+      return;
+    }
+    const callRange = getRange(call);
+    const firstArg = call.arguments?.[0];
+    const argRange = getRange(firstArg);
+    if (callRange === null || argRange === null) {
+      return;
+    }
+    styles.push({
+      scoped: imports.named.get(localName) === true,
+      callRange,
+      argRange,
+      standalone: standaloneExpression === unwrapExpression(call),
+      styleId: '',
+    });
+  });
+}
+
+function visitStyleHookCalls(
+  node: unknown,
+  root: unknown,
+  visitor: (node: Extract<AstNode, { type: 'CallExpression' }>) => void
+) {
+  if (!node || typeof node !== 'object' || !('type' in node)) {
+    return;
+  }
+  if (node !== root && isFunctionLike(node)) {
+    return;
+  }
+  if (isCallExpression(node)) {
+    visitor(node);
+  }
+  for (const value of Object.values(node)) {
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        visitStyleHookCalls(item, root, visitor);
+      }
+    } else {
+      visitStyleHookCalls(value, root, visitor);
+    }
+  }
 }
 
 function collectJsxValues(statement: unknown, jsxValues: ComponentBodyInfo['jsxValues']) {
@@ -427,6 +497,26 @@ function getContextProviderImports(ctx: CompilerContext): ContextProviderImports
     }
   }
   return { named, namespaces };
+}
+
+function getStyleHookImports(ctx: CompilerContext): StyleHookImports {
+  const named = new Map<string, boolean>();
+  for (const importRecord of ctx.manifest.imports) {
+    if (importRecord.typeOnly || importRecord.source !== QwikModule.Core) {
+      continue;
+    }
+    for (const specifier of importRecord.specifiers) {
+      if (specifier.kind !== 'named' || specifier.typeOnly) {
+        continue;
+      }
+      if (specifier.importedName === QwikSymbol.UseStyles) {
+        named.set(specifier.localName, false);
+      } else if (specifier.importedName === QwikSymbol.UseStylesScoped) {
+        named.set(specifier.localName, true);
+      }
+    }
+  }
+  return { named };
 }
 
 function containsContextProviderCall(

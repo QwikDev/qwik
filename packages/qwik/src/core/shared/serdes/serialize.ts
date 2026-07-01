@@ -5,6 +5,8 @@ import { SSRBranchSubscription as SsrBranchSubscription } from '../../vdomless/d
 import { SSRForBlockSubscription as SsrForBlockSubscription } from '../../vdomless/dom/effect/ssr-effect';
 import {
   EffectTargetKind,
+  SsrAttrEffect,
+  SsrAttrExpressionEffect,
   SsrDomSubscription,
   type SsrScalarDomEffect,
   type SsrDomEffect,
@@ -1058,7 +1060,7 @@ function serializeSsrScalarDomEffect(
           ]
         : [effect.kind, target.kind, target.id, serializedDeps, effect.args, effect.qrl];
     case EffectKind.Attr:
-      if ('qrl' in effect) {
+      if (effect instanceof SsrAttrExpressionEffect) {
         return [
           effect.kind,
           target.kind,
@@ -1067,11 +1069,27 @@ function serializeSsrScalarDomEffect(
           effect.name,
           effect.args,
           effect.qrl,
+          effect.styleScopedId,
         ];
       }
-      return [effect.kind, target.kind, target.id, serializedDeps, effect.name];
+      return [
+        effect.kind,
+        target.kind,
+        target.id,
+        serializedDeps,
+        effect.name,
+        effect.styleScopedId,
+      ];
     case EffectKind.Props:
-      return [effect.kind, target.kind, target.id, serializedDeps, effect.args, effect.qrl];
+      return [
+        effect.kind,
+        target.kind,
+        target.id,
+        serializedDeps,
+        effect.args,
+        effect.qrl,
+        effect.styleScopedId,
+      ];
   }
 
   return assertNeverSsrDomEffect(effect);
@@ -1082,7 +1100,9 @@ function serializeSsrScalarDomEffectDeps(effect: SsrScalarDomEffect): readonly D
     case EffectKind.TextNode:
       return effect.source === undefined ? EMPTY_ARRAY : [effect.source];
     case EffectKind.Attr:
-      return 'source' in effect && effect.source !== undefined ? [effect.source] : EMPTY_ARRAY;
+      return effect instanceof SsrAttrEffect && effect.source !== undefined
+        ? [effect.source]
+        : EMPTY_ARRAY;
     default:
       return EMPTY_ARRAY;
   }

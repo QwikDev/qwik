@@ -21,6 +21,8 @@ import {
   emitComponentSetup,
   emitImports,
   emitObjectGetterName,
+  createStyleHookReplacements,
+  getScopedStyleClass,
   hasUseId,
   ID_PARAM,
   getDomEffectBatchStats,
@@ -52,6 +54,7 @@ interface DomEmitterOptions {
   componentNeedsId?: (name: string) => boolean;
   loopCaptures?: readonly { name: string; source: string }[];
   useOnEvents?: UseOnCarrier[];
+  styleScopedId?: string;
 }
 
 interface UseOnGroup {
@@ -132,6 +135,11 @@ function emitDomRenderer(
   componentNeedsId?: (name: string) => boolean
 ) {
   const jsxValueReplacements = createJsxValueReplacements(component);
+  const styleScopedId = getScopedStyleClass(component);
+  const replacements = [
+    ...jsxValueReplacements,
+    ...createStyleHookReplacements(component, sourceCode),
+  ];
   const emitter = new DomEmitter(
     qrlSegments,
     sourceCode,
@@ -141,6 +149,7 @@ function emitDomRenderer(
       idExpr: component.needsId ? ID_PARAM : undefined,
       componentNeedsId,
       useOnEvents: collectUseOnCarriers(component, segments, qrlSegments, sourceCode),
+      styleScopedId,
     },
     component
   );
@@ -155,7 +164,7 @@ function emitDomRenderer(
       sourceCode,
       'csr',
       hasDynamicBinding(root) || component.providesContext || hasUseId(component, sourceCode),
-      jsxValueReplacements,
+      replacements,
       component.jsxValues.map((value) => value.expressionRange)
     )
   );
@@ -202,6 +211,7 @@ function emitCsrJsxValueFactory(
       helperPrefix: createHelperPrefix(`${component.exportName}_${value.factoryName}`),
       idExpr: component.needsId ? ID_PARAM : undefined,
       componentNeedsId,
+      styleScopedId: getScopedStyleClass(component),
     },
     component
   );
@@ -251,7 +261,9 @@ export class DomEmitter {
     const fragmentId = this.next('fragment');
     this.use(QwikSymbol.CreateTemplate);
     this.hoists.push(
-      `const ${templateId} = ${QwikSymbol.CreateTemplate}(${JSON.stringify(emitTemplateHtml(roots))});`
+      `const ${templateId} = ${QwikSymbol.CreateTemplate}(${JSON.stringify(
+        emitTemplateHtml(roots, this.options.styleScopedId)
+      )});`
     );
     this.line(`const ${fragmentId} = ${templateId}(ctx.document);`);
     const outputs: DomOutput[] = [];
@@ -529,6 +541,7 @@ export class DomEmitter {
     includeStaticAttrs: boolean
   ): void {
     const useOnGroups = this.consumeUseOnGroups(true);
+    const styleScopedId = this.options.styleScopedId;
     if (hasDomProps(node.props)) {
       const propsExpression = this.emitDomPropsExpression(node.props, true);
       const callback = node.propsSegmentId
@@ -541,13 +554,13 @@ export class DomEmitter {
         this.line(`let ${prevPropsId} = null;`);
         this.emitDomBatchOp(
           batchKey!,
-          `${prevPropsId} = ${QwikSymbol.ApplyDomProps}(${elementId}, ${callback.invoke}, ${prevPropsId});`
+          `${prevPropsId} = ${QwikSymbol.ApplyDomProps}(${elementId}, ${callback.invoke}, ${prevPropsId}${this.emitStyleScopedArg()});`
         );
       } else {
         const effectId = this.next('effect');
         this.use(QwikSymbol.CreatePropsEffect);
         this.line(
-          `const ${effectId} = ${QwikSymbol.CreatePropsEffect}(${elementId}, ${callback.args}, ${callback.fn}, { scheduler: ctx.scheduler });`
+          `const ${effectId} = ${QwikSymbol.CreatePropsEffect}(${elementId}, ${callback.args}, ${callback.fn}, ${this.emitDomEffectOptions()});`
         );
         this.emitInitialDomEffect(effectId);
       }
@@ -555,6 +568,7 @@ export class DomEmitter {
       return;
     }
 
+    const hasClassProp = node.props.some((prop) => prop.kind === 'named' && prop.name === 'class');
     for (const prop of node.props) {
       if (prop.kind !== 'named') {
         continue;
@@ -617,17 +631,21 @@ export class DomEmitter {
         continue;
       }
       const attr = serializeAttrValue(prop.value);
-      if (attr !== null) {
-        if (prop.name === 'class') {
-          if (attr !== '') {
-            this.line(`${elementId}.className = ${JSON.stringify(attr)};`);
-          }
-        } else {
-          this.line(
-            `${elementId}.setAttribute(${JSON.stringify(prop.name)}, ${JSON.stringify(attr)});`
-          );
+      if (prop.name === 'class') {
+        const scopedClass = mergeScopedClass(styleScopedId, attr ?? '');
+        if (scopedClass !== '') {
+          this.line(`${elementId}.className = ${JSON.stringify(scopedClass)};`);
         }
+        continue;
       }
+      if (attr !== null) {
+        this.line(
+          `${elementId}.setAttribute(${JSON.stringify(prop.name)}, ${JSON.stringify(attr)});`
+        );
+      }
+    }
+    if (includeStaticAttrs && styleScopedId !== undefined && !hasClassProp) {
+      this.line(`${elementId}.className = ${JSON.stringify(styleScopedId)};`);
     }
     this.emitUseOnGroups(elementId, useOnGroups);
   }
@@ -851,13 +869,13 @@ export class DomEmitter {
       this.use(QwikSymbol.CreateAttrExpressionEffect);
       return `const ${effectId} = ${QwikSymbol.CreateAttrExpressionEffect}(${elementId}, ${JSON.stringify(
         prop.name
-      )}, ${callback.args}, ${callback.fn}, { scheduler: ctx.scheduler });`;
+      )}, ${callback.args}, ${callback.fn}, ${this.emitDomEffectOptions()});`;
     }
     const sourceName = binding.sourceName;
     this.use(QwikSymbol.CreateAttrEffect);
     return `const ${effectId} = ${QwikSymbol.CreateAttrEffect}(${elementId}, ${JSON.stringify(
       prop.name
-    )}, ${sourceName}, { scheduler: ctx.scheduler });`;
+    )}, ${sourceName}, ${this.emitDomEffectOptions()});`;
   }
 
   private emitDynamicAttrBatchOp(elementId: string, prop: PropRecord, batchKey: string): void {
@@ -873,7 +891,7 @@ export class DomEmitter {
       this.use(QwikSymbol.PatchAttrValue);
       this.emitDomBatchOp(
         batchKey,
-        `${QwikSymbol.PatchAttrValue}(${elementId}, ${JSON.stringify(prop.name)}, ${callback.invoke});`
+        `${QwikSymbol.PatchAttrValue}(${elementId}, ${JSON.stringify(prop.name)}, ${callback.invoke}${this.emitStyleScopedArg()});`
       );
       return;
     }
@@ -883,8 +901,21 @@ export class DomEmitter {
     this.use(QwikSymbol.PatchAttrValue);
     this.emitDomBatchOp(
       batchKey,
-      `${QwikSymbol.PatchAttrValue}(${elementId}, ${JSON.stringify(prop.name)}, ${sourceValue});`
+      `${QwikSymbol.PatchAttrValue}(${elementId}, ${JSON.stringify(prop.name)}, ${sourceValue}${this.emitStyleScopedArg()});`
     );
+  }
+
+  private emitStyleScopedArg(): string {
+    return this.options.styleScopedId === undefined
+      ? ''
+      : `, ${JSON.stringify(this.options.styleScopedId)}`;
+  }
+
+  private emitDomEffectOptions(): string {
+    const styleScopedId = this.options.styleScopedId;
+    return styleScopedId === undefined
+      ? '{ scheduler: ctx.scheduler }'
+      : `{ scheduler: ctx.scheduler, styleScopedId: ${JSON.stringify(styleScopedId)} }`;
   }
 
   private shouldBatchDomEffect(batchKey: string | null): boolean {
@@ -1131,11 +1162,11 @@ function canEmitTemplateProps(node: ElementRenderNode): boolean {
   });
 }
 
-function emitTemplateHtml(nodes: readonly RenderNode[]): string {
-  return nodes.map(emitTemplateNodeHtml).join('');
+function emitTemplateHtml(nodes: readonly RenderNode[], styleScopedId?: string): string {
+  return nodes.map((node) => emitTemplateNodeHtml(node, styleScopedId)).join('');
 }
 
-function emitTemplateNodeHtml(node: RenderNode): string {
+function emitTemplateNodeHtml(node: RenderNode, styleScopedId?: string): string {
   if (node.kind === 'text') {
     return escapeText(node.value);
   }
@@ -1146,16 +1177,17 @@ function emitTemplateNodeHtml(node: RenderNode): string {
     throw new Error('Unsupported template node.');
   }
 
-  const attrs = emitTemplateAttrs(node);
+  const attrs = emitTemplateAttrs(node, styleScopedId);
   const open = `<${node.tag}${attrs}>`;
   if (VOID_ELEMENTS.has(node.tag)) {
     return open;
   }
-  return `${open}${emitTemplateHtml(node.children)}</${node.tag}>`;
+  return `${open}${emitTemplateHtml(node.children, styleScopedId)}</${node.tag}>`;
 }
 
-function emitTemplateAttrs(node: ElementRenderNode): string {
+function emitTemplateAttrs(node: ElementRenderNode, styleScopedId?: string): string {
   let attrs = '';
+  let hasClass = false;
   for (const prop of node.props) {
     if (
       prop.kind !== 'named' ||
@@ -1165,13 +1197,33 @@ function emitTemplateAttrs(node: ElementRenderNode): string {
     ) {
       continue;
     }
+    if (prop.name === 'class') {
+      hasClass = true;
+    }
     const attr = serializeAttrValue(prop.value);
-    if (attr === null || (prop.name === 'class' && attr === '')) {
+    if (prop.name === 'class') {
+      const scopedClass = mergeScopedClass(styleScopedId, attr ?? '');
+      if (scopedClass !== '') {
+        attrs += ` class="${escapeAttr(scopedClass)}"`;
+      }
+      continue;
+    }
+    if (attr === null) {
       continue;
     }
     attrs += attr === '' ? ` ${prop.name}` : ` ${prop.name}="${escapeAttr(attr)}"`;
   }
+  if (!hasClass && styleScopedId !== undefined) {
+    attrs += ` class="${escapeAttr(styleScopedId)}"`;
+  }
   return attrs;
+}
+
+function mergeScopedClass(styleScopedId: string | undefined, className: string | null): string {
+  if (styleScopedId === undefined) {
+    return className ?? '';
+  }
+  return className ? `${styleScopedId} ${className}` : styleScopedId;
 }
 
 function flattenTemplateRoot(node: RenderNode): RenderNode[] {

@@ -165,12 +165,12 @@ describe('DOM effects', () => {
     active.value = true;
     await scheduler.flushInteraction();
 
-    expect(attrs.get('class')).toBe('active');
+    expect(element.className).toBe('active');
 
     active.value = false;
     await scheduler.flushInteraction();
 
-    expect(attrs.has('class')).toBe(false);
+    expect(element.className).toBe('');
   });
 
   it('patches serialized styles from direct sources', async () => {
@@ -494,12 +494,22 @@ function createOwned<T>(run: () => T): T {
 }
 
 function createPropsTarget(): {
-  element: Element & { innerHTML: string };
+  element: Element & { innerHTML: string; className: string };
   attrs: Map<string, string>;
 } {
   const attrs = new Map<string, string>();
   const element = {
     innerHTML: '',
+    get className() {
+      return attrs.get('class') ?? '';
+    },
+    set className(value: string) {
+      if (value === '') {
+        attrs.delete('class');
+      } else {
+        attrs.set('class', value);
+      }
+    },
     ownerDocument: {
       defaultView: {},
     },
@@ -509,6 +519,6 @@ function createPropsTarget(): {
     removeAttribute(name: string) {
       attrs.delete(name);
     },
-  } as unknown as Element & { innerHTML: string };
+  } as unknown as Element & { innerHTML: string; className: string };
   return { element, attrs };
 }

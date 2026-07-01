@@ -1,10 +1,6 @@
 import { EffectKind } from './effect-kind.enum';
 import { Phase } from '../../runtime/scheduler';
-import {
-  serializeAttrExpressionValue,
-  type AttrExpressionFn,
-  type TextExpressionFn,
-} from './effect';
+import { type AttrExpressionFn, type TextExpressionFn } from './effect';
 import { retryOnPromise } from '../../../shared/utils/promises';
 import type { ValueOrPromise } from '../../../shared/utils/types';
 import type { SsrDomSubscriber, SsrForBlockSubscriber } from '../../runtime/subscriber';
@@ -16,7 +12,7 @@ import { withCaptures } from '../../../shared/qrl/qrl-captures';
 import { registerSubscriberToOwner } from '../../runtime/owner';
 import type { Owner } from '../../runtime/owner';
 import type { SSRForBlock } from '../for/for';
-import { renderDomPropsToString } from './dom-props';
+import { renderDomPropsToString, serializeAttrExpressionValue } from './dom-props';
 
 export type TextExpressionQrl<TArgs extends unknown[] = unknown[]> = QRLInternal<
   TextExpressionFn<TArgs>
@@ -89,7 +85,8 @@ export class SsrAttrEffect {
   constructor(
     readonly target: SsrEffectTarget,
     readonly name: string,
-    readonly source?: Source
+    readonly source?: Source,
+    readonly styleScopedId: string | null = null
   ) {}
 }
 
@@ -101,7 +98,8 @@ export class SsrAttrExpressionEffect<TArgs extends unknown[] = unknown[]> {
     readonly target: SsrEffectTarget,
     readonly name: string,
     readonly args: TArgs,
-    readonly qrl: AttrExpressionQrl<TArgs>
+    readonly qrl: AttrExpressionQrl<TArgs>,
+    readonly styleScopedId: string | null = null
   ) {}
 }
 
@@ -112,7 +110,8 @@ export class SsrPropsEffect<TArgs extends unknown[] = unknown[]> {
   constructor(
     readonly target: SsrEffectTarget,
     readonly args: TArgs,
-    readonly qrl: DomPropsQrl<TArgs>
+    readonly qrl: DomPropsQrl<TArgs>,
+    readonly styleScopedId: string | null = null
   ) {}
 }
 
@@ -156,25 +155,34 @@ export function createSsrTextExpressionEffect<TArgs extends unknown[]>(
   return useSsrDomEffect(undefined, new SsrTextExpressionEffect(target, args, qrl));
 }
 
-export function createSsrAttrEffect(target: SsrEffectTarget, name: string): SsrDomSubscriber {
-  return useSsrDomEffect(undefined, new SsrAttrEffect(target, name));
+export function createSsrAttrEffect(
+  target: SsrEffectTarget,
+  name: string,
+  styleScopedId?: string
+): SsrDomSubscriber {
+  return useSsrDomEffect(undefined, new SsrAttrEffect(target, name, undefined, styleScopedId));
 }
 
 export function createSsrAttrExpressionEffect<TArgs extends unknown[]>(
   target: SsrEffectTarget,
   name: string,
   args: TArgs,
-  qrl: AttrExpressionQrl<TArgs>
+  qrl: AttrExpressionQrl<TArgs>,
+  styleScopedId?: string
 ): SsrDomSubscriber {
-  return useSsrDomEffect(undefined, new SsrAttrExpressionEffect(target, name, args, qrl));
+  return useSsrDomEffect(
+    undefined,
+    new SsrAttrExpressionEffect(target, name, args, qrl, styleScopedId)
+  );
 }
 
 export function createSsrPropsEffect<TArgs extends unknown[]>(
   target: SsrEffectTarget,
   args: TArgs,
-  qrl: DomPropsQrl<TArgs>
+  qrl: DomPropsQrl<TArgs>,
+  styleScopedId?: string
 ): SsrDomSubscriber {
-  return useSsrDomEffect(undefined, new SsrPropsEffect(target, args, qrl));
+  return useSsrDomEffect(undefined, new SsrPropsEffect(target, args, qrl, styleScopedId));
 }
 
 export function createSsrDomBatchEffect(): SsrDomSubscriber {
@@ -245,14 +253,20 @@ export function renderSsrAttr(
   target: SsrEffectTarget,
   name: string,
   source: Source,
-  batch?: SsrDomSubscriber
+  batch?: SsrDomSubscriber,
+  styleScopedId?: string
 ): ValueOrPromise<string> {
   const subscriber = useSsrDomEffect(
     batch,
-    new SsrAttrEffect(target, name, batch ? source : undefined)
+    new SsrAttrEffect(target, name, batch ? source : undefined, styleScopedId)
   );
-  return retryOnPromise(() =>
-    serializeAttrExpressionValue(name, runWithCollector(subscriber, readTrackedSourceValue, source))
+  return retryOnPromise(
+    () =>
+      serializeAttrExpressionValue(
+        name,
+        runWithCollector(subscriber, readTrackedSourceValue, source),
+        styleScopedId
+      ) ?? ''
   );
 }
 
@@ -261,9 +275,13 @@ export function renderSsrAttrExpression<TArgs extends unknown[]>(
   name: string,
   args: TArgs,
   qrl: AttrExpressionQrl<TArgs>,
-  batch?: SsrDomSubscriber
+  batch?: SsrDomSubscriber,
+  styleScopedId?: string
 ): ValueOrPromise<string> {
-  const subscriber = useSsrDomEffect(batch, new SsrAttrExpressionEffect(target, name, args, qrl));
+  const subscriber = useSsrDomEffect(
+    batch,
+    new SsrAttrExpressionEffect(target, name, args, qrl, styleScopedId)
+  );
 
   return retryOnPromise(() => {
     const fn = qrl.resolved;
@@ -272,9 +290,12 @@ export function renderSsrAttrExpression<TArgs extends unknown[]>(
       throw qrl.resolve();
     }
 
-    return serializeAttrExpressionValue(
-      name,
-      runWithCollector(subscriber, withCaptures(fn, args), ...args)
+    return (
+      serializeAttrExpressionValue(
+        name,
+        runWithCollector(subscriber, withCaptures(fn, args), ...args),
+        styleScopedId
+      ) ?? ''
     );
   });
 }
@@ -284,9 +305,10 @@ export function renderSsrProps<TArgs extends unknown[]>(
   args: TArgs,
   qrl: DomPropsQrl<TArgs>,
   eventAttr?: (name: string, value: unknown) => string,
-  batch?: SsrDomSubscriber
+  batch?: SsrDomSubscriber,
+  styleScopedId?: string
 ): ValueOrPromise<ReturnType<typeof renderDomPropsToString>> {
-  const subscriber = useSsrDomEffect(batch, new SsrPropsEffect(target, args, qrl));
+  const subscriber = useSsrDomEffect(batch, new SsrPropsEffect(target, args, qrl, styleScopedId));
 
   return retryOnPromise(() => {
     const fn = qrl.resolved;
@@ -296,7 +318,7 @@ export function renderSsrProps<TArgs extends unknown[]>(
     }
 
     return runWithCollector(subscriber, () =>
-      renderDomPropsToString(withCaptures(fn, args)(...args), eventAttr)
+      renderDomPropsToString(withCaptures(fn, args)(...args), eventAttr, styleScopedId)
     );
   });
 }

@@ -32,6 +32,7 @@ export interface ContainerContext {
   scheduler: Scheduler;
   state: ContainerState;
   forwardRefs: Array<number | string> | null;
+  styleIds?: Map<string, string>;
   getForwardRefs(): Array<number | string> | null;
   getRoot(id: number | string): Promise<unknown>;
   restoreCaptures(ids: string): Promise<unknown[]>;

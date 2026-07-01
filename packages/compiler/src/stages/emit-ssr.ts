@@ -20,6 +20,8 @@ import {
   emitComponentSetup,
   emitImports,
   emitObjectGetterName,
+  createStyleHookReplacements,
+  getScopedStyleClass,
   emitSsrQrlPrelude,
   escapeAttr,
   escapeText,
@@ -60,6 +62,7 @@ interface SsrEmitterOptions {
   loopCaptures?: readonly { name: string; source: string }[];
   visibleTasks?: VisibleTaskCarrier[];
   useOnEvents?: UseOnCarrier[];
+  styleScopedId?: string;
 }
 
 interface VisibleTaskCarrier {
@@ -111,6 +114,11 @@ function emitSsrComponent(
   componentNeedsId?: (name: string) => boolean
 ) {
   const jsxValueReplacements = createJsxValueReplacements(component);
+  const styleScopedId = getScopedStyleClass(component);
+  const replacements = [
+    ...jsxValueReplacements,
+    ...createStyleHookReplacements(component, sourceCode),
+  ];
   const emitter = new SsrEmitter(qrlSegments, sourceCode, {
     component,
     domEffectBatchCounts: getDomEffectBatchStats(component.root, qrlSegments).counts,
@@ -118,6 +126,7 @@ function emitSsrComponent(
     componentNeedsId,
     visibleTasks: collectVisibleTaskCarriers(component, segments, qrlSegments, sourceCode),
     useOnEvents: collectUseOnCarriers(component, segments, qrlSegments, sourceCode),
+    styleScopedId,
   });
   const slotInvokeContextId = hasSlot(component.root) ? emitter.ensureSlotInvokeContextId() : null;
   const html = emitter.emitGlobalUseOnCarrierExpression(
@@ -134,7 +143,7 @@ function emitSsrComponent(
     hasDynamicBinding(component.root) ||
       component.providesContext ||
       hasUseId(component, sourceCode),
-    jsxValueReplacements,
+    replacements,
     component.jsxValues.map((value) => value.expressionRange)
   );
   const jsxValueFactories = emitSsrJsxValueFactories(
@@ -237,6 +246,7 @@ function emitSsrJsxValueFactory(
     domEffectBatchCounts: getDomEffectBatchStats(root, qrlSegments).counts,
     idExpr: component.needsId ? ID_PARAM : undefined,
     componentNeedsId,
+    styleScopedId: getScopedStyleClass(component),
   });
   const slotInvokeContextId = hasSlot(root) ? emitter.ensureSlotInvokeContextId() : null;
   const html = emitter.emitHtmlExpression(root);
@@ -539,6 +549,10 @@ export class SsrEmitter {
       parts.push({ code: `${propsRenderId}.attrs` });
       parts.push(...this.emitUseOnGroupParts(useOnGroups));
     } else {
+      const styleScopedId = this.options.styleScopedId;
+      const hasClassProp = node.props.some(
+        (prop) => prop.kind === 'named' && prop.name === 'class'
+      );
       for (const prop of node.props) {
         if (prop.kind !== 'named') {
           continue;
@@ -585,6 +599,13 @@ export class SsrEmitter {
           continue;
         }
         const value = serializeAttrValue(prop.value);
+        if (prop.name === 'class') {
+          const scopedClass = mergeScopedClass(styleScopedId, value ?? '');
+          if (scopedClass !== '') {
+            parts.push(` class="${escapeAttr(scopedClass)}"`);
+          }
+          continue;
+        }
         if (value === null) {
           continue;
         }
@@ -593,6 +614,9 @@ export class SsrEmitter {
           continue;
         }
         parts.push(` ${prop.name}="${escapeAttr(value)}"`);
+      }
+      if (!hasClassProp && styleScopedId !== undefined) {
+        parts.push(` class="${escapeAttr(styleScopedId)}"`);
       }
       parts.push(...this.emitUseOnGroupParts(useOnGroups));
     }
@@ -641,7 +665,9 @@ export class SsrEmitter {
     this.line(
       `const ${id} = ${QwikSymbol.RenderSsrProps}(${QwikSymbol.CreateSsrElementTarget}(${elementId}), ${this.emitCaptureArgs(
         qrlSegment
-      )}, ${qrlSegment.qrlVariableName}, ctx.eventAttr${batchArg});`
+      )}, ${qrlSegment.qrlVariableName}, ctx.eventAttr${batchArg}${this.emitSsrStyleScopedArg(
+        batchArg
+      )});`
     );
     return this.trackValueOrPromise(id);
   }
@@ -723,7 +749,9 @@ export class SsrEmitter {
       this.line(
         `const ${id} = ${QwikSymbol.RenderSsrAttrExpression}(${target}, ${JSON.stringify(
           prop.name
-        )}, ${this.emitCaptureArgs(qrlSegment)}, ${qrlSegment.qrlVariableName}${batchArg});`
+        )}, ${this.emitCaptureArgs(qrlSegment)}, ${
+          qrlSegment.qrlVariableName
+        }${batchArg}${this.emitSsrStyleScopedArg(batchArg)});`
       );
       this.trackValueOrPromise(id);
       return [` ${prop.name}="`, { code: `${QwikSymbol.EscapeHTML}(${id})` }, '"'];
@@ -734,7 +762,7 @@ export class SsrEmitter {
     this.line(
       `const ${id} = ${QwikSymbol.RenderSsrAttr}(${target}, ${JSON.stringify(prop.name)}, ${
         binding.sourceName
-      }${batchArg});`
+      }${batchArg}${this.emitSsrStyleScopedArg(batchArg)});`
     );
     this.trackValueOrPromise(id);
     return [` ${prop.name}="`, { code: `${QwikSymbol.EscapeHTML}(${id})` }, '"'];
@@ -816,6 +844,14 @@ export class SsrEmitter {
     return isDomEffectBatched(this.options.domEffectBatchCounts, batchKey)
       ? `, ${this.ensureSsrBatchEffect(batchKey!)}`
       : '';
+  }
+
+  private emitSsrStyleScopedArg(batchArg: string): string {
+    const styleScopedId = this.options.styleScopedId;
+    if (styleScopedId === undefined) {
+      return '';
+    }
+    return `${batchArg === '' ? ', undefined' : ''}, ${JSON.stringify(styleScopedId)}`;
   }
 
   private ensureSsrBatchEffect(batchKey: string): string {
@@ -993,6 +1029,13 @@ function emitUseOnModifierParts(eventName: string, group: UseOnGroup): HtmlPart[
     parts.push(` stoppropagation:${name}`);
   }
   return parts;
+}
+
+function mergeScopedClass(styleScopedId: string | undefined, className: string | null): string {
+  if (styleScopedId === undefined) {
+    return className ?? '';
+  }
+  return className ? `${styleScopedId} ${className}` : styleScopedId;
 }
 
 function isElementEvent(eventName: string): boolean {

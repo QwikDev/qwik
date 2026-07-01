@@ -1,0 +1,53 @@
+==INPUT==
+
+import { useStylesScoped$ } from '@qwik.dev/core';
+import red from './red.css?inline';
+import blue from './blue.css?inline';
+
+export function App() {
+  useStylesScoped$(red);
+  useStylesScoped$(blue);
+  return <div class="container">Hello</div>;
+}
+
+== SSR OUTPUT ==
+
+============================= src/use-styles-scoped-multiple.tsx ==
+
+import red from './red.css?inline';
+import blue from './blue.css?inline';
+import { appendScopedStyle } from '@qwik.dev/core/spark';
+
+export function App(_props, _ctx) {
+  appendScopedStyle(red, 'hbhupu-0');
+  appendScopedStyle(blue, 'hbhupv-1');
+  return '<div class="⚡️hbhupu-0 ⚡️hbhupv-1 container">Hello</div>';
+}
+
+null
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/use-styles-scoped-multiple.tsx ==
+
+import red from './red.css?inline';
+import blue from './blue.css?inline';
+import { createTemplate, appendScopedStyle } from '@qwik.dev/core/spark';
+
+const dom_App_template0 = createTemplate(
+  '<div class="⚡️hbhupu-0 ⚡️hbhupv-1 container">Hello</div>'
+);
+export function App(_props, ctx) {
+  appendScopedStyle(red, 'hbhupu-0');
+  appendScopedStyle(blue, 'hbhupv-1');
+  const fragment0 = dom_App_template0(ctx.document);
+  const el1 = fragment0.firstChild;
+  return el1;
+}
+
+null
+== CSR DIAGNOSTICS ==
+
+[]

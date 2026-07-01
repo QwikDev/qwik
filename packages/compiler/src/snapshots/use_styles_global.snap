@@ -1,0 +1,45 @@
+==INPUT==
+
+import { useStyles$ } from '@qwik.dev/core';
+import styles from './app.css?inline';
+
+export function App() {
+  useStyles$(styles);
+  return <div class="container">Hello</div>;
+}
+
+== SSR OUTPUT ==
+
+============================= src/use-styles.tsx ==
+
+import styles from './app.css?inline';
+import { appendStyle } from '@qwik.dev/core/spark';
+
+export function App(_props, _ctx) {
+  appendStyle(styles, 'mx5j1a-0');
+  return '<div class="container">Hello</div>';
+}
+
+null
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/use-styles.tsx ==
+
+import styles from './app.css?inline';
+import { createTemplate, appendStyle } from '@qwik.dev/core/spark';
+
+const dom_App_template0 = createTemplate('<div class="container">Hello</div>');
+export function App(_props, ctx) {
+  appendStyle(styles, 'mx5j1a-0');
+  const fragment0 = dom_App_template0(ctx.document);
+  const el1 = fragment0.firstChild;
+  return el1;
+}
+
+null
+== CSR DIAGNOSTICS ==
+
+[]

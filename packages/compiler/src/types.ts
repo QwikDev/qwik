@@ -73,12 +73,21 @@ export interface ComponentRecord {
   needsId: boolean;
   segmentId: string | null;
   useIdNames: string[];
+  styles: StyleHookRecord[];
   params: ParamRecord[];
   setupRanges: SourceRange[];
   jsxValues: JsxValueRecord[];
   jsx: AstJsxNode | null;
   root: RenderNode | null;
   supported: boolean;
+}
+
+export interface StyleHookRecord {
+  scoped: boolean;
+  callRange: SourceRange;
+  argRange: SourceRange;
+  standalone: boolean;
+  styleId: string;
 }
 
 export interface JsxValueRecord {

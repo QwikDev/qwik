@@ -37,6 +37,13 @@ export function transformDollarImports(
         if (record.source === QwikModule.Core && specifier.importedName === QwikSymbol.UseId) {
           return [];
         }
+        if (
+          record.source === QwikModule.Core &&
+          (specifier.importedName === QwikSymbol.UseStyles ||
+            specifier.importedName === QwikSymbol.UseStylesScoped)
+        ) {
+          return [];
+        }
         if (specifier.importedName === '$') {
           return [];
         }

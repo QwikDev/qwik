@@ -11,7 +11,8 @@ vi.mock('../../middleware/request-handler/async-request-store', () => ({
 }));
 
 import * as z from 'zod';
-import { getRequestEvent, server$ } from './server-functions';
+import { routeLoader$ } from './route-loaders';
+import { getRequestEvent, routeAction$, server$ } from './server-functions';
 import type { RequestEventBase, ValidatorErrorType } from './types';
 
 describe('types', () => {
@@ -91,6 +92,13 @@ describe('types', () => {
         source: string;
       }>
     >();
+  });
+
+  test('routeAction$ accepts invalidate without validators', () => () => {
+    const useData = routeLoader$(() => ({ ok: true }));
+    const useAction = routeAction$((form) => form, { invalidate: [useData] });
+
+    expectTypeOf(useAction).not.toBeAny();
   });
 
   test('easy zod type', () => () => {

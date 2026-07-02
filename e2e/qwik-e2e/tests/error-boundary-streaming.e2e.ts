@@ -502,6 +502,62 @@ test.describe('ErrorBoundary last-resort & rejection bridge', () => {
     await expect(page.locator('#eb-title')).toHaveText('EB Streaming');
   });
 
+  // Writer-path twin of the unit's fabricated importError qerror: on a real chunk 404 the
+  // qwikloader must dispatch a tagged qerror and never swap working content for the fallback.
+  test('a failed qwikloader dynamic import (chunk 404) leaves the boundary inert', async ({
+    page,
+  }) => {
+    const pageErrors: string[] = [];
+    page.on('pageerror', (err) => pageErrors.push(err.message));
+    const consoleErrors: string[] = [];
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        consoleErrors.push(msg.text());
+      }
+    });
+    // Chromium network noise ("Failed to load resource: net::ERR_FAILED") never matches this.
+    const importFailureErrors = () =>
+      consoleErrors.filter((text) => /dynamically imported|error loading|importerror/i.test(text));
+
+    // Observe the writer directly: the qerror the qwikloader dispatches must carry importError.
+    await page.addInitScript(() => {
+      (window as any).__ebQErrors = [];
+      document.addEventListener('qerror', (e: any) => {
+        (window as any).__ebQErrors.push({ importError: e.detail?.importError ?? null });
+      });
+    });
+
+    // Handlers dispatch as `handlers.js#_run`, so the qwikloader's own import() is that wrapper
+    // chunk — abort it; the component handler chunk is imported later by core, not the loader.
+    const blockedRequests: string[] = [];
+    await page.route(/\/build\/handlers\.js/, (route) => {
+      blockedRequests.push(route.request().url());
+      return route.abort();
+    });
+
+    await page.goto('/e2e/error-boundary-streaming?scenario=happy', { waitUntil: 'commit' });
+    await expect(page.locator('#eb-content')).toBeVisible({ timeout: 10000 });
+
+    await page.locator('#eb-content-throw').click();
+
+    // qwikloader logs the failed import exactly once; a re-added container re-log would make it 2.
+    await expect.poll(() => importFailureErrors().length, { timeout: 10000 }).toBeGreaterThan(0);
+    await page.waitForTimeout(300);
+    expect(importFailureErrors()).toHaveLength(1);
+    expect(blockedRequests.length).toBeGreaterThan(0);
+
+    const qErrors = await page.evaluate(() => (window as any).__ebQErrors);
+    expect(qErrors).toEqual([{ importError: 'async' }]);
+
+    // Boundary inert: no fallback, no last-resort node, content untouched.
+    await expect(page.locator('#eb-fallback')).toHaveCount(0);
+    await expect(page.locator('[role="alert"]')).toHaveCount(0);
+    await expect(page.locator('#eb-content')).toBeVisible();
+    // The handler increments before throwing, so 0 proves the import failed, not a caught throw.
+    await expect(page.locator('#eb-content-touched')).toHaveText('0');
+    expect(pageErrors).toEqual([]);
+  });
+
   test('a fire-and-forget Promise.reject reaches logError via the unhandledrejection bridge', async ({
     page,
   }) => {

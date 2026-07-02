@@ -41,6 +41,7 @@ test.describe('ErrorBoundary streaming swap', () => {
   test('happy path: content interactive after resume, no fallback or swap script, then catches a client throw', async ({
     page,
   }) => {
+    assertNoBrowserErrors(page);
     const response = await page.goto('/e2e/error-boundary-streaming?scenario=happy', {
       waitUntil: 'commit',
     });
@@ -144,6 +145,7 @@ test.describe('ErrorBoundary streaming swap', () => {
     test(`client-time throw after resume re-renders the boundary to its fallback (${mode})`, async ({
       page,
     }) => {
+      assertNoBrowserErrors(page);
       await page.goto(streamingUrl('client', outOfOrder), { waitUntil: 'commit' });
 
       await expect(page.locator('#eb-content')).toHaveText('content ok', { timeout: 10000 });
@@ -159,6 +161,7 @@ test.describe('ErrorBoundary streaming swap', () => {
 
   // ── onError$ ──
   test('onError$ fires once with the error on a client-time throw', async ({ page }) => {
+    assertNoBrowserErrors(page);
     await page.goto('/e2e/error-boundary-streaming?scenario=onerror', { waitUntil: 'commit' });
 
     await expect(page.locator('#eb-content')).toHaveText('content ok', { timeout: 10000 });
@@ -176,6 +179,7 @@ test.describe('ErrorBoundary streaming swap', () => {
   test("onError$ info carries phase 'event' and a stable boundaryId for a real qwikloader throw", async ({
     page,
   }) => {
+    assertNoBrowserErrors(page);
     await page.goto('/e2e/error-boundary-streaming?scenario=onerror', { waitUntil: 'commit' });
 
     await expect(page.locator('#eb-content')).toHaveText('content ok', { timeout: 10000 });
@@ -193,6 +197,7 @@ test.describe('ErrorBoundary streaming swap', () => {
   test('SSR inner error, then a client throw makes the outer boundary replace the whole subtree', async ({
     page,
   }) => {
+    assertNoBrowserErrors(page);
     await page.goto('/e2e/error-boundary-streaming?scenario=nested', { waitUntil: 'commit' });
 
     await expect(page.locator('#eb-inner')).toBeVisible({ timeout: 10000 });
@@ -225,6 +230,7 @@ test.describe('ErrorBoundary streaming swap', () => {
   test('a real client throw inside the inner boundary is caught by the nearest (inner) boundary, outer intact', async ({
     page,
   }) => {
+    assertNoBrowserErrors(page);
     await page.goto('/e2e/error-boundary-streaming?scenario=nested-client', {
       waitUntil: 'commit',
     });
@@ -282,9 +288,13 @@ test.describe('ErrorBoundary streaming swap', () => {
 test.describe('ErrorBoundary reset', () => {
   for (const { mode, outOfOrder } of streamingModes) {
     test(`${mode} SSR resume: reset re-executes the children and recovers`, async ({ page }) => {
+      assertNoBrowserErrors(page);
       await page.goto(streamingUrl('reset', outOfOrder), { waitUntil: 'commit' });
       await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
       await expect(page.locator('#eb-content')).toBeHidden();
+      // SSR emits the two-host swap wrappers; prove they exist so the post-reset count(0) can't be vacuous.
+      await expect(page.locator('[q\\:ebc]')).toHaveCount(1);
+      await expect(page.locator('[q\\:ebf]')).toHaveCount(1);
 
       await page.locator('#eb-reset').click();
 
@@ -295,10 +305,15 @@ test.describe('ErrorBoundary reset', () => {
 
       await page.locator('#eb-content-button').click();
       await expect(page.locator('#eb-content-count')).toHaveText('1');
+
+      // The client re-render after reset() collapses the SSR two-host wrappers: no swap-host residue.
+      await expect(page.locator('[q\\:ebc]')).toHaveCount(0);
+      await expect(page.locator('[q\\:ebf]')).toHaveCount(0);
     });
   }
 
   test('client error: reset re-supplies the content interactively', async ({ page }) => {
+    assertNoBrowserErrors(page);
     await page.goto('/e2e/error-boundary-streaming?scenario=reset-csr', { waitUntil: 'commit' });
     await expect(page.locator('#eb-content')).toBeVisible({ timeout: 10000 });
 
@@ -321,6 +336,7 @@ test.describe('ErrorBoundary reset', () => {
   test('reset re-executes async children through a Slot-projecting wrapper component', async ({
     page,
   }) => {
+    assertNoBrowserErrors(page);
     await page.goto('/e2e/error-boundary-streaming?scenario=reset-wrapped', {
       waitUntil: 'commit',
     });
@@ -338,6 +354,7 @@ test.describe('ErrorBoundary reset', () => {
   test('second reset re-executes children of an ErrorBoundary inside a Suspense (re-error then recover)', async ({
     page,
   }) => {
+    assertNoBrowserErrors(page);
     await page.goto('/e2e/error-boundary-streaming?scenario=reset-reerror', {
       waitUntil: 'commit',
     });
@@ -361,6 +378,7 @@ test.describe('ErrorBoundary reset', () => {
   test('reset re-executes children of a client-first (SPA-nav) ErrorBoundary inside a Suspense', async ({
     page,
   }) => {
+    assertNoBrowserErrors(page);
     await page.goto('/e2e/error-boundary-streaming?scenario=reset-spa', { waitUntil: 'commit' });
     // The boundary is not rendered until the client mounts it (simulating navigation to this view).
     await expect(page.locator('#eb-spa-show')).toBeVisible({ timeout: 10000 });
@@ -381,6 +399,7 @@ test.describe('ErrorBoundary reset', () => {
   test('wrapper key-swap: key bump re-executes the async child through a Slot wrapper', async ({
     page,
   }) => {
+    assertNoBrowserErrors(page);
     await page.goto('/e2e/error-boundary-streaming?scenario=reset-wrapped-key', {
       waitUntil: 'commit',
     });

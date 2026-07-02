@@ -3,6 +3,7 @@ import {
   type DocumentHead,
   Form,
   Link,
+  type RequestHandler,
   routeAction$,
   routeLoader$,
   z,
@@ -12,13 +13,9 @@ import { delay } from '../../actions/login';
 
 export const useDateLoader = routeLoader$(() => new Date('2021-01-01T00:00:00.000Z'));
 
-// Note: a loader cannot read action state via `resolveValue(useForm)`. After an action
-// submission, the client invalidates loaders and refetches them as standalone GET
-// requests, which carry no action context — so `resolveValue(actionQrl)` returns
-// undefined. Read action state directly from the action signal (e.g. in the head, or
-// from `useForm.value` in components), not via a loader.
-export const useDependencyLoader = routeLoader$(async ({ params, redirect, json }) => {
-  await delay(100);
+// Route control flow (redirect/json) lives in middleware, which runs eagerly before render.
+// Loaders are data-only and run lazily, so they must not drive redirects.
+export const onRequest: RequestHandler = ({ params, redirect, json }) => {
   if (params.id === 'redirect') {
     throw redirect(302, '/qwikrouter-test/');
   } else if (params.id === 'redirect-welcome') {
@@ -26,6 +23,10 @@ export const useDependencyLoader = routeLoader$(async ({ params, redirect, json 
   } else if (params.id === 'json') {
     throw json(200, { nu: 42 });
   }
+};
+
+export const useDependencyLoader = routeLoader$(async ({ params }) => {
+  await delay(100);
   return {
     nu: 42,
     name: params.id,

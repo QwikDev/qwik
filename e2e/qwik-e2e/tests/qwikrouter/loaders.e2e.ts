@@ -202,26 +202,20 @@ test.describe('loaders', () => {
       await expect(page.locator('#prop-unwrapped')).toHaveText('test');
     });
 
-    test('should modify ServerError in middleware', async ({ page }) => {
+    test('a failing loader does not affect SSR when its value is not read', async ({ page }) => {
       const response = await page.goto('/qwikrouter-test/loaders/loader-error');
-      const contentType = await response?.headerValue('Content-Type');
-      const status = response?.status();
 
-      expect(status).toEqual(401);
-      expect(contentType).toEqual('text/html; charset=utf-8');
-      const body = page.locator('body');
-      await expect(body).toContainText('loader-error-caught');
+      expect(response?.status()).toEqual(200);
+      await expect(page.locator('#loader-error-rendered')).toBeVisible();
     });
 
-    test('should return html with uncaught ServerErrors thrown in loaders', async ({ page }) => {
+    test('a loader awaiting a failing server$ does not affect SSR when unread', async ({
+      page,
+    }) => {
       const response = await page.goto('/qwikrouter-test/loaders/loader-error/uncaught-server');
-      const contentType = await response?.headerValue('Content-Type');
-      const status = response?.status();
 
-      expect(status).toEqual(401);
-      expect(contentType).toEqual('text/html; charset=utf-8');
-      const body = page.locator('body');
-      await expect(body).toContainText('server-error-data');
+      expect(response?.status()).toEqual(200);
+      await expect(page.locator('#uncaught-server-rendered')).toBeVisible();
     });
 
     test('should not serialize loaders by default and serialize with serializationStrategy: always', async ({

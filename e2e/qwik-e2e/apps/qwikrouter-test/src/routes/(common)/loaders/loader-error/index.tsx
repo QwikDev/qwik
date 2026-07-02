@@ -6,6 +6,7 @@ const useError = routeLoader$(async function ({ error }): Promise<string> {
 });
 
 export default component$(() => {
+  // Lazy data-only loader: it fails, but nothing reads its value, so SSR is unaffected.
   useError();
-  return <></>;
+  return <div id="loader-error-rendered">rendered</div>;
 });

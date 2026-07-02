@@ -11,6 +11,7 @@ const useCatchServerErrorInLoader = routeLoader$(async () => {
 });
 
 export default component$(() => {
+  // Lazy data-only loader: it fails, but nothing reads its value, so SSR is unaffected.
   useCatchServerErrorInLoader();
-  return <></>;
+  return <div id="uncaught-server-rendered">rendered</div>;
 });

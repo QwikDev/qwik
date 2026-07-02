@@ -314,23 +314,22 @@ function createResolveRequestHandlers() {
   }
 
   function loadersMiddleware(routeLoaders: LoaderInternal[], route: LoadedRoute): RequestHandler {
-    return async (requestEvent: RequestEvent) => {
+    return (requestEvent: RequestEvent) => {
       const requestEv = requestEvent as RequestEventInternal;
       if (requestEv.headersSent) {
         requestEv.exit();
         return;
       }
-      if (routeLoaders.length > 0) {
-        setLoaderData(requestEv, routeLoaders, route);
+      if (routeLoaders.length === 0) {
+        return;
+      }
+      setLoaderData(requestEv, routeLoaders, route);
 
-        // Run loaders directly and store raw values.
-        // Errors/redirects propagate so middleware can catch them (e.g. plugin@errors).
-        const loaderValues = getRouteLoaderValues(requestEv);
-        await Promise.all(
-          routeLoaders.map(async (loader) => {
-            loaderValues[loader.__id] = await loadRouteLoader(loader, requestEv);
-          })
-        );
+      // Start every loader concurrently but don't await them: render only blocks on — and only
+      // fails from — loaders whose .value it reads. Swallowing rejections keeps an unread failing
+      // loader from crashing the request; the error resurfaces if .value is read during render.
+      for (const loader of routeLoaders) {
+        loadRouteLoader(loader, requestEv).catch(() => {});
       }
     };
   }

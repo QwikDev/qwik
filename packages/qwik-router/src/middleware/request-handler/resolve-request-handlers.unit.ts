@@ -369,6 +369,92 @@ describe('resolve-request-handler', () => {
     });
   });
 
+  describe('lazy loaders middleware', () => {
+    function makeLoader(
+      id: string,
+      impl: (...args: any[]) => unknown,
+      strategy: 'never' | 'always' = 'never'
+    ) {
+      const loader: any = () => {};
+      loader.__brand = 'server_loader';
+      loader.__id = id;
+      loader.__qrl = { call: (_thisArg: unknown, ev: unknown) => impl(ev), getHash: () => id };
+      loader.__validators = undefined;
+      loader.__serializationStrategy = strategy;
+      loader.__search = undefined;
+      return loader;
+    }
+
+    function pageRouteWithLoader(loader: unknown): LoadedRoute {
+      return {
+        $routeName$: '/',
+        $params$: {},
+        $mods$: [{ useData: loader }, { default: () => null }] as any,
+        $errorLoader$: vi.fn(async () => ({ default: () => null })),
+      };
+    }
+
+    function runPage(route: LoadedRoute, renderHandler: any) {
+      globalThis.__NO_TRAILING_SLASH__ = false;
+      const handlers = resolveRequestHandlers(undefined, route, 'GET', true, renderHandler);
+      const requestEv = createRequestEvent(
+        createMockServerRequestEvent('http://localhost:3000/'),
+        route,
+        handlers,
+        '/',
+        vi.fn()
+      );
+      return requestEv;
+    }
+
+    it('starts loaders during the request even when render never reads them', async () => {
+      const impl = vi.fn(() => 'value');
+      const route = pageRouteWithLoader(makeLoader('l1', impl));
+      const renderHandler = vi.fn((requestEv: { exit: () => void }) => {
+        requestEv.exit();
+      });
+      const requestEv = runPage(route, renderHandler);
+
+      await requestEv.next();
+
+      expect(impl).toHaveBeenCalledTimes(1);
+      expect(renderHandler).toHaveBeenCalledOnce();
+    });
+
+    it('does not await loaders before render', async () => {
+      let release!: () => void;
+      const gate = new Promise<string>((resolve) => (release = () => resolve('late')));
+      const route = pageRouteWithLoader(makeLoader('l1', () => gate));
+      const renderHandler = vi.fn((requestEv: { exit: () => void }) => {
+        requestEv.exit();
+      });
+      const requestEv = runPage(route, renderHandler);
+
+      // Resolves without awaiting the still-pending loader; eager middleware would hang here.
+      await requestEv.next();
+
+      expect(renderHandler).toHaveBeenCalledOnce();
+      release();
+    });
+
+    it('does not let an unread failing loader affect the response', async () => {
+      const route = pageRouteWithLoader(
+        makeLoader('l1', () => {
+          throw new ServerError(401, 'boom');
+        })
+      );
+      const renderHandler = vi.fn((requestEv: { exit: () => void }) => {
+        requestEv.exit();
+      });
+      const requestEv = runPage(route, renderHandler);
+
+      await expect(requestEv.next()).resolves.toBeUndefined();
+
+      expect(renderHandler).toHaveBeenCalledOnce();
+      expect(requestEv.status()).toBe(200);
+    });
+  });
+
   describe('action result resolution', () => {
     it('always returns undefined for actions, even when one was submitted', async () => {
       // Loaders must be a pure function of the URL — see route-loader docs and the

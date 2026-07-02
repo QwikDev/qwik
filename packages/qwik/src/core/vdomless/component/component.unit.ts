@@ -73,7 +73,7 @@ describe('components and invoke contexts', () => {
 
     runWithOwner(owner, () => {
       nodes = createComponent({ source, text }, (props) => {
-        effect = createTextNodeEffect(props.text, props.source, { scheduler });
+        effect = createTextNodeEffect(props.text, props.source, scheduler);
         scheduler.notify(effect);
         return [node];
       });

@@ -14,7 +14,7 @@ import { cleanupDeps } from './cleanup';
 import { ComputedFlags } from './flags';
 import { notifySourceSubscribers } from './notify';
 import { Signal } from './signal';
-import type { Dependency, SourceSubs } from './source';
+import type { Source, SourceSubs } from './source';
 import { isStore } from './store';
 import { runWithCollector, track } from './tracking';
 import type { ContainerContext } from '../runtime/container-context';
@@ -67,7 +67,7 @@ export class AsyncSignal<T>
 {
   readonly kind = SubscriberKind.Computed;
   owner: Owner | null = null;
-  deps: Dependency[] | null = null;
+  deps: Source[] | null = null;
   depVersions: number[] | null = null;
   flags = ComputedFlags.Dirty;
   subs: SourceSubs = null;

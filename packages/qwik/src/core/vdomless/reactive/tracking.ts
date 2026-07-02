@@ -1,4 +1,4 @@
-import type { Dependency } from './source';
+import type { Source } from './source';
 import type { CollectorSubscriber } from '../runtime/subscriber';
 
 let activeCollector: CollectorSubscriber | null = null;
@@ -25,11 +25,11 @@ export function runWithCollector<T, TArgs extends unknown[]>(
   }
 }
 
-export function untrack<T>(run: () => T): T {
-  return runWithCollector(null, run);
+export function untrack<T, TArgs extends unknown[]>(run: (...args: TArgs) => T, ...args: TArgs): T {
+  return runWithCollector(null, run, ...args);
 }
 
-export function track(source: Dependency): void {
+export function track(source: Source): void {
   const collector = activeCollector;
   if (collector === null || collector === source) {
     return;
@@ -50,7 +50,7 @@ export function track(source: Dependency): void {
   addDependency(collector, source);
 }
 
-export function addDependency(collector: CollectorSubscriber, source: Dependency): void {
+export function addDependency(collector: CollectorSubscriber, source: Source): void {
   collector.deps!.push(source);
   collector.depVersions!.push(source.version);
 

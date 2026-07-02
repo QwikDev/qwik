@@ -71,7 +71,7 @@ export const App = (_props, ctx) => {
   const fragment0 = dom_App_template0(ctx.document);
   const el1 = fragment0.firstChild;
   const text2 = el1.firstChild;
-  const effect3 = createTextNodeEffect(text2, source, { scheduler: ctx.scheduler });
+  const effect3 = createTextNodeEffect(text2, source, ctx.scheduler);
   ctx.scheduler.notify(effect3);
   return el1;
 };

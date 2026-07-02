@@ -27,7 +27,7 @@ import {
   StorePropSource,
   unwrapStore,
 } from '../../vdomless/reactive/store';
-import { readSourceValue, type Dependency, type SourceSub } from '../../vdomless/reactive/source';
+import { readSourceValue, type Source, type SourceSub } from '../../vdomless/reactive/source';
 import { addDependency } from '../../vdomless/reactive/tracking';
 import {
   getContextScopeForNode,
@@ -165,11 +165,11 @@ const inflateResolved = (
           maybeThen(deserializeData(container, d[4] as TypeIds, d[5]), (value) =>
             maybeThen((qrl as QRLInternal<() => unknown>).resolve(), (compute) => {
               computed.compute = compute;
-              if (deps && (deps as Dependency[]).length > 0) {
+              if (deps && (deps as Source[]).length > 0) {
                 computed.deps = [];
                 computed.depVersions = [];
-                for (let i = 0; i < (deps as Dependency[]).length; i++) {
-                  addDependency(computed, (deps as Dependency[])[i]);
+                for (let i = 0; i < (deps as Source[]).length; i++) {
+                  addDependency(computed, (deps as Source[])[i]);
                 }
               }
 
@@ -198,7 +198,7 @@ const inflateResolved = (
             maybeThen(deserializeData(container, d[6] as TypeIds, d[7]), (options) => {
               signal.computeQrl = qrl as AsyncSignal<unknown>['computeQrl'];
               signal.setOptions((options as AsyncSignalOptions<unknown> | null) ?? undefined);
-              restoreDependencies(signal, deps as Dependency[]);
+              restoreDependencies(signal, deps as Source[]);
               if (value === NEEDS_COMPUTATION) {
                 signal.flags = ComputedFlags.Dirty;
               } else {
@@ -223,7 +223,7 @@ const inflateResolved = (
           maybeThen(deserializeData(container, d[4] as TypeIds, d[5]), (value) =>
             maybeThen(deserializeData(container, d[6] as TypeIds, d[7]), (initialized) => {
               signal.argQrl = qrl as SerializerSignal<unknown, unknown>['argQrl'];
-              restoreDependencies(signal, deps as Dependency[]);
+              restoreDependencies(signal, deps as Source[]);
               signal.v = initialized ? (value as unknown) : NEEDS_COMPUTATION;
               signal.flags = ComputedFlags.HasValue;
               signal.didInitialize = false;
@@ -376,7 +376,7 @@ const inflateResolved = (
       const parts = data as unknown[];
       const phase = parts[0] as Phase.BlockingTask | Phase.DeferredTask;
       const qrl = parts[1] as TaskQrlRef;
-      const deps = parts[2] as Dependency[];
+      const deps = parts[2] as Source[];
       subscription.task = new Task(undefined, phase, qrl, container);
       restoreDependencies(subscription, deps);
       break;
@@ -393,7 +393,7 @@ async function restoreBranchSubscription(
 ): Promise<void> {
   const rangeId = parts[1] as number;
   const mountedBranch = parts[2] == null ? undefined : (parts[2] as 0 | 1);
-  const deps = parts[3] as Dependency[];
+  const deps = parts[3] as Source[];
   const conditionQrl = parts[4] as QRLInternal<() => boolean>;
   const thenQrl = parts[5] as QRLInternal<(ctx: ContainerContext) => readonly Node[]>;
   const elseQrl =
@@ -434,7 +434,7 @@ async function restoreForBlockSubscription(
   parts: unknown[]
 ): Promise<void> {
   const rangeId = parts[1] as number;
-  const deps = parts[2] as Dependency[];
+  const deps = parts[2] as Source[];
   const keyQrl = parts[3] as QRLInternal<(item: unknown, index: number) => string | number>;
   const renderQrl = parts[4] as QRLInternal<
     (ctx: ContainerContext, item: unknown, index: unknown) => readonly Node[]
@@ -456,7 +456,7 @@ async function restoreForBlockSubscription(
   invokeContext.slotScope = slotScope;
   const block = new ForBlock(
     new ForRange(container.document, markerRange[0], markerRange[1]),
-    deps[0] as Dependency<readonly unknown[]>,
+    deps[0] as Source<readonly unknown[]>,
     keyQrl,
     renderQrl,
     usesItemSignal,
@@ -465,7 +465,7 @@ async function restoreForBlockSubscription(
     invokeContext,
     container
   );
-  block.resumeItems = readSourceValue(deps[0] as Dependency<readonly unknown[]>) ?? [];
+  block.resumeItems = readSourceValue(deps[0] as Source<readonly unknown[]>) ?? [];
 
   subscription.block = block;
   restoreDependencies(subscription, deps);
@@ -482,7 +482,7 @@ async function restoreInvokeContext(
 }
 
 function createLazySourceSubscribers(
-  source: Dependency,
+  source: Source,
   container: ContainerContext,
   data: unknown[],
   start: number
@@ -578,7 +578,7 @@ async function restoreDomBatchSubscription(
   subscription: Writeable<DomSubscriber>,
   parts: unknown[]
 ): Promise<void> {
-  const deps = parts[1] as Dependency[];
+  const deps = parts[1] as Source[];
   const effectParts = parts[2] as unknown[][];
   const effects: DomEffect[] = Array(effectParts.length);
 
@@ -602,7 +602,7 @@ async function restoreDomBatchSubscription(
 async function restoreDomEffect(
   container: ContainerContext,
   parts: unknown[]
-): Promise<{ effect: DomEffect; deps: Dependency[] }> {
+): Promise<{ effect: DomEffect; deps: Source[] }> {
   const kind = parts[0] as EffectKind;
   switch (kind) {
     case EffectKind.TextNode: {
@@ -677,25 +677,25 @@ function readDomSubscriptionTarget(parts: unknown[]): {
   targetId: number;
   markerIndex: number | undefined;
   depsIndex: number;
-  deps: Dependency[];
+  deps: Source[];
 } {
   const targetKind = parts[1] as EffectTargetKind;
   const targetId = parts[2] as number;
   const isRangeText = targetKind === EffectTargetKind.RangeText;
   const markerIndex = isRangeText ? (parts[3] as number) : undefined;
   const depsIndex = isRangeText ? 4 : 3;
-  const deps = parts[depsIndex] as Dependency[];
+  const deps = parts[depsIndex] as Source[];
   return { targetKind, targetId, markerIndex, depsIndex, deps };
 }
 
-function readRequiredDomSource(deps: Dependency[], targetKind: EffectTargetKind): Dependency {
+function readRequiredDomSource(deps: Source[], targetKind: EffectTargetKind): Source {
   if (targetKind !== EffectTargetKind.Element) {
     throw new Error(`Unsupported element target kind ${targetKind}.`);
   }
   return readRequiredSource(deps);
 }
 
-function readRequiredSource(deps: Dependency[]): Dependency {
+function readRequiredSource(deps: Source[]): Source {
   if (!Array.isArray(deps) || deps.length === 0) {
     throw new Error('DOM subscription requires a source dependency.');
   }
@@ -766,7 +766,7 @@ function restoreDependencies(
     | TaskSubscriber
     | AsyncSignal<unknown>
     | SerializerSignal<unknown, unknown>,
-  deps: Dependency[]
+  deps: Source[]
 ) {
   if (deps && deps.length > 0) {
     collector.deps = [];

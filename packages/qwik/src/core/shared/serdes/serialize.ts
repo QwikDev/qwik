@@ -23,7 +23,7 @@ import {
   unwrapStore,
 } from '../../vdomless/reactive/store';
 import { isLazySerialized } from '../../vdomless/reactive/lazy-serialized';
-import type { Dependency, SourceSubs } from '../../vdomless/reactive/source';
+import type { Source, SourceSubs } from '../../vdomless/reactive/source';
 import { isContextScope } from '../../vdomless/runtime/context-scope';
 import { TaskSubscription } from '../../vdomless/runtime/task';
 import {
@@ -1037,7 +1037,7 @@ function serializeDomSubscription(subscription: SsrDomSubscription): unknown[] {
 
 function serializeSsrScalarDomEffect(
   effect: SsrScalarDomEffect,
-  deps?: readonly Dependency[]
+  deps?: readonly Source[]
 ): unknown[] {
   const target = effect.target;
   const serializedDeps = deps ?? serializeSsrScalarDomEffectDeps(effect);
@@ -1095,7 +1095,7 @@ function serializeSsrScalarDomEffect(
   return assertNeverSsrDomEffect(effect);
 }
 
-function serializeSsrScalarDomEffectDeps(effect: SsrScalarDomEffect): readonly Dependency[] {
+function serializeSsrScalarDomEffectDeps(effect: SsrScalarDomEffect): readonly Source[] {
   switch (effect.kind) {
     case EffectKind.TextNode:
       return effect.source === undefined ? EMPTY_ARRAY : [effect.source];
@@ -1108,7 +1108,7 @@ function serializeSsrScalarDomEffectDeps(effect: SsrScalarDomEffect): readonly D
   }
 }
 
-function serializeDeps(deps: Dependency[] | null): readonly Dependency[] {
+function serializeDeps(deps: Source[] | null): readonly Source[] {
   return deps ?? EMPTY_ARRAY;
 }
 

@@ -3,7 +3,7 @@ import { ComputedFlags } from './flags';
 import { registerSubscriberToOwner } from '../runtime/owner';
 import { notifyPhaseSubscriber } from '../runtime/scheduler';
 import { resolveLazySubscribers } from './lazy-serialized';
-import type { Dependency, SourceSubs } from './source';
+import type { Source, SourceSubs } from './source';
 import {
   SubscriberKind,
   type ComputedSubscriber,
@@ -19,7 +19,7 @@ export class Computed<T> implements ComputedSubscriber<T> {
   v!: T;
   version = 0;
   subs: SourceSubs = null;
-  deps: Dependency[] | null = null;
+  deps: Source[] | null = null;
   depVersions: number[] | null = null;
   flags = ComputedFlags.Dirty;
 

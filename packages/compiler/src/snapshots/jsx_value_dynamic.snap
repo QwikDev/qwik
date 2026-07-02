@@ -99,7 +99,7 @@ export function App(_props, ctx) {
     const el1 = fragment0.firstChild;
     setEvent(el1, 'q-e:click', component_q_e_click_segment_0, [count]);
     const text2 = el1.firstChild;
-    const effect3 = createTextNodeEffect(text2, count, { scheduler: ctx.scheduler });
+    const effect3 = createTextNodeEffect(text2, count, ctx.scheduler);
     ctx.scheduler.notify(effect3);
     return el1;
   };

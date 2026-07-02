@@ -6,9 +6,9 @@ import type { UseOnMap } from './use-on';
 
 export interface RuntimeInvokeContext {
   owner: Owner | null;
-  // Host for a lazy owner before it exists. Once materialized, Owner.parent is
-  // the source of truth; this only answers where to attach the new owner.
-  ownerHost: Owner | RuntimeInvokeContext | null;
+  // Parent owner for a lazy owner before it exists. Once materialized,
+  // Owner.parent is the source of truth.
+  ownerHost: Owner | null;
   container: ContainerContext | undefined;
   contextScope: ContextScope | null;
   localContextScope: ContextScope | null;
@@ -18,7 +18,7 @@ export interface RuntimeInvokeContext {
 
 export interface NewInvokeContextOptions {
   owner?: Owner | null;
-  ownerHost?: Owner | RuntimeInvokeContext | null;
+  ownerHost?: Owner | null;
   container?: ContainerContext;
   contextScope?: ContextScope | null;
   localContextScope?: ContextScope | null;
@@ -26,7 +26,7 @@ export interface NewInvokeContextOptions {
 }
 
 export interface ChildInvokeContextOptions {
-  ownerHost?: Owner | RuntimeInvokeContext | null;
+  ownerHost?: Owner | null;
   container?: ContainerContext;
   contextScope?: ContextScope | null;
   slotScope?: SlotScope | null;
@@ -69,7 +69,7 @@ export function newChildInvokeContext(
 ): RuntimeInvokeContext {
   return newInvokeContext({
     owner: null,
-    ownerHost: options?.ownerHost ?? base ?? null,
+    ownerHost: options?.ownerHost ?? base?.owner ?? null,
     container: options?.container ?? base?.container,
     contextScope: options?.contextScope ?? base?.contextScope ?? null,
     localContextScope: null,

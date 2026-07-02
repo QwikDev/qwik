@@ -6,10 +6,12 @@ import {
   getParams,
   getRange,
   getStaticExpressionValue,
+  isKnownSourceFactoryName,
   isEventProp,
   isStaticSourceTextExpression,
   isFunctionLike,
   isNativeTag,
+  isSignalValueMethodCallExpression,
   normalizeJsxText,
   unwrapExpression,
 } from '../ast-utils';
@@ -37,7 +39,7 @@ import type {
   SegmentRecord,
   SourceRange,
 } from '../types';
-import { QwikSymbol } from '../words';
+import { QwikModule, QwikSymbol } from '../words';
 
 const MODULE_FUNCTION_OWNER_ID = 0;
 
@@ -63,11 +65,13 @@ interface BindingRecord {
   symbolId: number;
   name: string;
   importedName: string | null;
+  importedSource: string | null;
   scopeId: number;
   functionOwnerId: number;
   kind: BindingKind;
   range: SourceRange | null;
   moduleLevel: boolean;
+  isSource: boolean;
 }
 
 interface SegmentState {
@@ -347,7 +351,8 @@ class CaptureAnalyzer {
           'import',
           local,
           this.currentScopeId,
-          getImportSpecifierName(specifier) ?? name
+          getImportSpecifierName(specifier) ?? name,
+          String(node.source.value)
         );
       }
     }
@@ -357,7 +362,11 @@ class CaptureAnalyzer {
     const kind = bindingKind ?? variableKindToBindingKind(node.kind);
     const targetScopeId = kind === 'var' ? this.nearestFunctionScopeId() : this.currentScopeId;
     for (const declaration of node.declarations ?? []) {
-      this.definePatternBindings(declaration.id, kind, targetScopeId);
+      const isSource =
+        kind === 'const' &&
+        getIdentifierName(declaration.id) !== null &&
+        this.isKnownSourceFactoryCall(declaration.init);
+      this.definePatternBindings(declaration.id, kind, targetScopeId, isSource);
       this.visitPatternExpressions(declaration.id);
       this.visit(declaration.init);
     }
@@ -381,7 +390,7 @@ class CaptureAnalyzer {
 
     const paramKind = options.paramKind ?? 'param';
     for (const param of node.params ?? []) {
-      this.definePatternBindings(param, paramKind, functionScopeId);
+      this.definePatternBindings(param, paramKind, functionScopeId, paramKind === 'loop');
     }
 
     const segment = options.segment
@@ -567,15 +576,15 @@ class CaptureAnalyzer {
     if (this.visitJsxForExpression(expr)) {
       return;
     }
-    if (expr.type === 'CallExpression') {
+    if (expr.type === 'CallExpression' && !this.isKnownSignalValueMethodCallExpression(expr)) {
       this.visit(expr);
       return;
     }
-    if (getSignalValueSourceName(expr) !== null) {
+    if (this.getKnownSignalValueSourceName(expr) !== null) {
       this.visit(expr);
       return;
     }
-    if (isStaticSourceTextExpression(expr)) {
+    if (isStaticSourceTextExpression(expr, (name) => this.isKnownSourceName(name))) {
       this.visit(expr);
       return;
     }
@@ -644,7 +653,7 @@ class CaptureAnalyzer {
     const currentSegment = this.currentSegment();
     const dynamicAttr =
       isNativeElement && currentSegment?.record.kind !== 'jsxSpreadProps'
-        ? getDynamicDomAttribute(name, expr)
+        ? getDynamicDomAttribute(name, expr, (sourceName) => this.isKnownSourceName(sourceName))
         : null;
     if (dynamicAttr) {
       const range = getRange(dynamicAttr.expr);
@@ -679,7 +688,7 @@ class CaptureAnalyzer {
   }
 
   private visitJsxForExpression(expr: AstNode): boolean {
-    const call = parseJsxMapCall(expr);
+    const call = parseJsxMapCall(expr, (sourceName) => this.isKnownSourceName(sourceName));
     if (call === null) {
       return false;
     }
@@ -751,9 +760,9 @@ class CaptureAnalyzer {
       node.type === 'JSXElement' ||
       node.type === 'JSXFragment' ||
       isStaticBranchTextExpression(node) ||
-      getSignalValueSourceName(node) !== null ||
-      node.type === 'CallExpression' ||
-      isStaticSourceTextExpression(node)
+      this.getKnownSignalValueSourceName(node) !== null ||
+      (node.type === 'CallExpression' && !this.isKnownSignalValueMethodCallExpression(node)) ||
+      isStaticSourceTextExpression(node, (name) => this.isKnownSourceName(name))
     ) {
       this.visit(node);
       return;
@@ -926,7 +935,12 @@ class CaptureAnalyzer {
     }
   }
 
-  private definePatternBindings(pattern: unknown, kind: BindingKind, scopeId: number) {
+  private definePatternBindings(
+    pattern: unknown,
+    kind: BindingKind,
+    scopeId: number,
+    isSource = false
+  ) {
     if (!pattern) {
       return;
     }
@@ -935,29 +949,29 @@ class CaptureAnalyzer {
       return;
     }
     if (unwrapped.type === 'Identifier') {
-      this.defineBinding(unwrapped.name, kind, unwrapped, scopeId);
+      this.defineBinding(unwrapped.name, kind, unwrapped, scopeId, null, null, isSource);
       return;
     }
     if (unwrapped.type === 'AssignmentPattern') {
-      this.definePatternBindings(unwrapped.left, kind, scopeId);
+      this.definePatternBindings(unwrapped.left, kind, scopeId, isSource);
       return;
     }
     if (unwrapped.type === 'RestElement') {
-      this.definePatternBindings(unwrapped.argument, kind, scopeId);
+      this.definePatternBindings(unwrapped.argument, kind, scopeId, isSource);
       return;
     }
     if (unwrapped.type === 'ArrayPattern') {
       for (const element of unwrapped.elements ?? []) {
-        this.definePatternBindings(element, kind, scopeId);
+        this.definePatternBindings(element, kind, scopeId, isSource);
       }
       return;
     }
     if (unwrapped.type === 'ObjectPattern') {
       for (const prop of unwrapped.properties ?? []) {
         if (prop.type === 'RestElement') {
-          this.definePatternBindings(prop.argument, kind, scopeId);
+          this.definePatternBindings(prop.argument, kind, scopeId, isSource);
         } else {
-          this.definePatternBindings(prop.value, kind, scopeId);
+          this.definePatternBindings(prop.value, kind, scopeId, isSource);
         }
       }
     }
@@ -1005,22 +1019,29 @@ class CaptureAnalyzer {
     kind: BindingKind,
     node: unknown,
     scopeId: number,
-    importedName: string | null = null
+    importedName: string | null = null,
+    importedSource: string | null = null,
+    isSource = false
   ): BindingRecord {
     const scope = this.scopes[scopeId];
     const existing = scope.bindings.get(name);
     if (existing) {
+      existing.isSource ||= isSource;
+      existing.importedName ??= importedName;
+      existing.importedSource ??= importedSource;
       return existing;
     }
     const binding: BindingRecord = {
       symbolId: this.nextSymbolId++,
       name,
       importedName,
+      importedSource,
       scopeId,
       functionOwnerId: scope.functionOwnerId,
       kind,
       range: getRange(node),
       moduleLevel: scope.functionOwnerId === MODULE_FUNCTION_OWNER_ID,
+      isSource,
     };
     scope.bindings.set(name, binding);
     return binding;
@@ -1308,6 +1329,62 @@ class CaptureAnalyzer {
     return binding.importedName ?? localName;
   }
 
+  private getKnownSignalValueSourceName(expr: unknown): string | null {
+    const sourceName = getSignalValueSourceName(expr);
+    return sourceName !== null && this.isKnownSourceName(sourceName) ? sourceName : null;
+  }
+
+  private isKnownSignalValueMethodCallExpression(expr: unknown): boolean {
+    return isSignalValueMethodCallExpression(expr, (sourceName) =>
+      this.isKnownSourceName(sourceName)
+    );
+  }
+
+  private isKnownSourceName(name: string): boolean {
+    return this.resolveBinding(name)?.isSource === true;
+  }
+
+  private isKnownSourceFactoryCall(node: unknown): boolean {
+    const expr = unwrapExpression(node);
+    if (!expr || expr.type !== 'CallExpression') {
+      return false;
+    }
+    const callee = unwrapExpression(expr.callee);
+    const localName = getIdentifierName(callee);
+    if (localName !== null) {
+      return this.isKnownSourceFactoryImport(localName);
+    }
+    if (!callee || callee.type !== 'MemberExpression' || callee.computed) {
+      return false;
+    }
+    const objectName = getIdentifierName(callee.object);
+    const propertyName = getIdentifierName(callee.property);
+    return (
+      objectName !== null &&
+      propertyName !== null &&
+      this.isKnownSourceNamespaceImport(objectName) &&
+      isKnownSourceFactoryName(propertyName)
+    );
+  }
+
+  private isKnownSourceFactoryImport(localName: string): boolean {
+    const binding = this.resolveBinding(localName);
+    return (
+      binding?.kind === 'import' &&
+      binding.importedSource === QwikModule.Spark &&
+      isKnownSourceFactoryName(binding.importedName ?? binding.name)
+    );
+  }
+
+  private isKnownSourceNamespaceImport(localName: string): boolean {
+    const binding = this.resolveBinding(localName);
+    return (
+      binding?.kind === 'import' &&
+      binding.importedSource === QwikModule.Spark &&
+      binding.importedName === '*'
+    );
+  }
+
   private resolveBinding(name: string): BindingRecord | null {
     let scopeId: number | null = this.currentScopeId;
     while (scopeId !== null) {
@@ -1448,7 +1525,10 @@ function getArgumentExpression(node: Argument | null | undefined): AstNode | nul
   return node;
 }
 
-function parseJsxMapCall(expr: AstNode): {
+function parseJsxMapCall(
+  expr: AstNode,
+  isKnownSourceName: (sourceName: string) => boolean
+): {
   sourceExpression: AstNode;
   callback: AstFunction;
 } | null {
@@ -1462,7 +1542,8 @@ function parseJsxMapCall(expr: AstNode): {
   if (getIdentifierName(callee.property) !== 'map') {
     return null;
   }
-  if (getSignalValueSourceName(callee.object) === null) {
+  const sourceName = getSignalValueSourceName(callee.object);
+  if (sourceName === null || !isKnownSourceName(sourceName)) {
     return null;
   }
   const callback = unwrapExpression(getArgumentExpression(expr.arguments?.[0]));
@@ -1535,14 +1616,19 @@ function isJsxEventName(name: string): boolean {
   );
 }
 
-function getDynamicDomAttribute(name: string | null, expr: AstNode | null | undefined) {
+function getDynamicDomAttribute(
+  name: string | null,
+  expr: AstNode | null | undefined,
+  isKnownSourceName: (sourceName: string) => boolean
+) {
   if (!name || isEventProp(name)) {
     return null;
   }
   if (!expr || expr.type === 'JSXEmptyExpression') {
     return null;
   }
-  if (getSignalValueSourceName(expr) !== null) {
+  const sourceName = getSignalValueSourceName(expr);
+  if (sourceName !== null && isKnownSourceName(sourceName)) {
     return null;
   }
   if (getStaticExpressionValue(expr).supported) {

@@ -76,6 +76,7 @@ export interface ComponentRecord {
   styles: StyleHookRecord[];
   params: ParamRecord[];
   setupRanges: SourceRange[];
+  knownSourceNames: string[];
   jsxValues: JsxValueRecord[];
   jsx: AstJsxNode | null;
   root: RenderNode | null;

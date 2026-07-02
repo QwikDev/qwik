@@ -428,7 +428,7 @@ const component_for_render_segment_0_expr3 = (row) => row.value.label;
 export const component_for_render_segment_0 = (ctx, row, index) => {
   const fragment0 = component_for_render_segment_0_template0(ctx.document);
   const el1 = fragment0.firstChild;
-  const effect2 = createDomBatchEffect(batch3, { scheduler: ctx.scheduler });
+  const effect2 = createDomBatchEffect(batch3, ctx.scheduler);
   function batchOp4() {
     patchAttrValue(el1, 'class', component_for_render_segment_0_expr1(row));
   }

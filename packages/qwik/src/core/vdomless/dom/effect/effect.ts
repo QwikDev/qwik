@@ -10,15 +10,12 @@ import {
   type DomSubscriber,
   type ForBlockSubscriber,
 } from '../../runtime/subscriber';
-import { readSourceValue, type Dependency, type Source } from '../../reactive/source';
+import { readSourceValue, type Source } from '../../reactive/source';
 import { runWithCollector, track } from '../../reactive/tracking';
 import { getActiveInvokeContextOrNull } from '../../runtime/invoke-context';
 import type { Owner } from '../../runtime/owner';
 import type { ForBlock } from '../for/for';
 import { applyDomProps, patchAttrValue } from './dom-props';
-import { isDev } from '@qwik.dev/core/build';
-
-export { patchAttrValue, serializeAttrExpressionValue } from './dom-props';
 
 export type TextExpressionValue = string | number | boolean | bigint | null | undefined;
 export type TextExpressionFn<TArgs extends unknown[] = unknown[]> = (
@@ -29,11 +26,6 @@ type DomPropsFn<TArgs extends unknown[] = unknown[]> = (
   ...args: TArgs
 ) => Record<string, unknown> | null | undefined;
 export type DomBatchFn = () => unknown;
-
-export interface DomEffectOptions {
-  scheduler?: Scheduler;
-  styleScopedId?: string;
-}
 
 export type DomEffect =
   | TextExpressionEffect<any[]>
@@ -130,7 +122,7 @@ export class DomSubscription implements DomSubscriber {
   readonly kind = SubscriberKind.Dom;
   owner: Owner | null = null;
   flags = SubscriberFlags.None;
-  deps: Dependency[] | null = null;
+  deps: Source[] | null = null;
   depVersions: number[] | null = null;
 
   constructor(
@@ -141,16 +133,12 @@ export class DomSubscription implements DomSubscriber {
   run(): void {
     cleanupDeps(this);
 
-    const value = retryOnPromise(() => {
+    retryOnPromise(() => {
       if (this.owner === null) {
         return;
       }
       return runWithCollector(this, () => this.effect.run());
     }, logError);
-    if (isPromise(value)) {
-      return;
-    }
-    assertSyncDomValue(value);
   }
 }
 
@@ -158,7 +146,7 @@ export class ForBlockSubscription<T = unknown> implements ForBlockSubscriber {
   readonly kind = SubscriberKind.ForBlock;
   owner: Owner | null = null;
   flags = SubscriberFlags.None;
-  deps: Dependency[] | null = null;
+  deps: Source[] | null = null;
   depVersions: number[] | null = null;
 
   constructor(
@@ -175,29 +163,27 @@ export function createTextExpressionEffect<TArgs extends unknown[]>(
   text: Text,
   args: TArgs,
   fn: TextExpressionFn<TArgs>,
-  options?: DomEffectOptions
+  scheduler?: Scheduler
 ): DomSubscriber {
-  return createDomSubscription(new TextExpressionEffect(text, args, fn), options?.scheduler);
+  return createDomSubscription(new TextExpressionEffect(text, args, fn), scheduler);
 }
 
 export function createTextNodeEffect(
   text: Text,
   source: Source<TextExpressionValue>,
-  options?: DomEffectOptions
+  scheduler?: Scheduler
 ): DomSubscriber {
-  return createDomSubscription(new TextNodeEffect(text, source), options?.scheduler);
+  return createDomSubscription(new TextNodeEffect(text, source), scheduler);
 }
 
 export function createAttrEffect(
   element: Element,
   name: string,
   source: Source,
-  options?: DomEffectOptions
+  scheduler?: Scheduler,
+  styleScopedId?: string
 ): DomSubscriber {
-  return createDomSubscription(
-    new AttrEffect(element, name, source, options?.styleScopedId),
-    options?.scheduler
-  );
+  return createDomSubscription(new AttrEffect(element, name, source, styleScopedId), scheduler);
 }
 
 export function createAttrExpressionEffect<TArgs extends unknown[]>(
@@ -205,11 +191,12 @@ export function createAttrExpressionEffect<TArgs extends unknown[]>(
   name: string,
   args: TArgs,
   fn: AttrExpressionFn<TArgs>,
-  options?: DomEffectOptions
+  scheduler?: Scheduler,
+  styleScopedId?: string
 ): DomSubscriber {
   return createDomSubscription(
-    new AttrExpressionEffect(element, name, args, fn, options?.styleScopedId),
-    options?.scheduler
+    new AttrExpressionEffect(element, name, args, fn, styleScopedId),
+    scheduler
   );
 }
 
@@ -217,20 +204,18 @@ export function createPropsEffect<TArgs extends unknown[]>(
   element: Element,
   args: TArgs,
   fn: DomPropsFn<TArgs>,
-  options?: DomEffectOptions
+  scheduler?: Scheduler,
+  styleScopedId?: string
 ): DomSubscriber {
-  return createDomSubscription(
-    new PropsEffect(element, args, fn, options?.styleScopedId),
-    options?.scheduler
-  );
+  return createDomSubscription(new PropsEffect(element, args, fn, styleScopedId), scheduler);
 }
 
-export function createDomBatchEffect(fn: DomBatchFn, options?: DomEffectOptions): DomSubscriber {
-  return createDomSubscription(new DomBatchEffect(fn), options?.scheduler);
+export function createDomBatchEffect(fn: DomBatchFn, scheduler?: Scheduler): DomSubscriber {
+  return createDomSubscription(new DomBatchEffect(fn), scheduler);
 }
 
 export function runDomBatchEffect(subscriber: DomSubscriber, fn: DomBatchFn): void {
-  assertSyncDomValue(runWithCollector(subscriber, fn));
+  runWithCollector(subscriber, fn);
 }
 
 function createDomSubscription(effect: DomEffect, scheduler: Scheduler | undefined): DomSubscriber {
@@ -261,10 +246,4 @@ export function readTrackedSourceValue<T>(source: Source<T>): T {
 
 function getActiveScheduler(): Scheduler {
   return getActiveInvokeContextOrNull()?.container?.scheduler ?? defaultScheduler;
-}
-
-function assertSyncDomValue(value: unknown): void {
-  if (isDev && isPromise(value)) {
-    throw new Error('Scalar DOM effects must be synchronous');
-  }
 }

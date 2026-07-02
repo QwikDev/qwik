@@ -12,7 +12,7 @@ import {
   type TaskSubscriber,
   type VisibleTaskSubscriber,
 } from './subscriber';
-import type { Dependency } from '../reactive/source';
+import type { Source } from '../reactive/source';
 import type { ContainerContext } from './container-context';
 import type { Owner } from './owner';
 
@@ -68,7 +68,7 @@ abstract class ScheduledSubscription implements ScheduledSubscriber {
   abstract readonly kind: SubscriberKind;
   owner: Owner | null = null;
   flags = SubscriberFlags.None;
-  deps: Dependency[] | null = null;
+  deps: Source[] | null = null;
   depVersions: number[] | null = null;
   runPromise: Promise<void> | null = null;
 

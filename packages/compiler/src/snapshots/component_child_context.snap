@@ -47,17 +47,29 @@ null
 
 import {
   createContext,
+  _qrlWithChunk,
   escapeHTML,
-  renderSsrTextNode,
   createSsrElementTextTarget,
+  renderSsrTextExpression,
   maybeThen,
 } from '@qwik.dev/core/spark';
 import { Context } from './context';
+import { component_text_segment_0 } from './component.tsx_component_text_segment_0';
+const q_component_text_segment_0 = /* @__PURE__ */ _qrlWithChunk(
+  './component.tsx_component_text_segment_0',
+  () => import('./component.tsx_component_text_segment_0'),
+  'component_text_segment_0'
+);
+q_component_text_segment_0.s(component_text_segment_0);
 export function Child(_props, ctx) {
   const value = createContext(Context);
   const id0 = ctx.nextId();
   ctx.addRoot(value);
-  const text1 = renderSsrTextNode(createSsrElementTextTarget(id0), value);
+  const text1 = renderSsrTextExpression(
+    createSsrElementTextTarget(id0),
+    [value],
+    q_component_text_segment_0
+  );
   return maybeThen(text1, (text1) => '<p q:id="' + id0 + '">' + escapeHTML(text1) + '</p>');
 }
 
@@ -80,6 +92,36 @@ null
     224
   ],
   "paramNames": []
+}
+*/
+============================= src/component.tsx_component_text_segment_0.js (ENTRY POINT)==
+
+export const component_text_segment_0 = (value) => {
+  return value.value;
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_0",
+  "entry": null,
+  "displayName": "component_text_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_text_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    205,
+    216
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "value"
+  ]
 }
 */
 == SSR DIAGNOSTICS ==
@@ -113,15 +155,16 @@ export function Parent(_props, ctx) {
 null
 ============================= src/component.tsx_component_Child.js (ENTRY POINT)==
 
-import { createContext, createTemplate, createTextNodeEffect } from '@qwik.dev/core/spark';
+import { createContext, createTemplate, createTextExpressionEffect } from '@qwik.dev/core/spark';
 import { Context } from './context';
 const dom_Child_template0 = createTemplate('<p> </p>');
+const dom_Child_expr1 = (value) => value.value;
 export function Child(_props, ctx) {
   const value = createContext(Context);
   const fragment0 = dom_Child_template0(ctx.document);
   const el1 = fragment0.firstChild;
   const text2 = el1.firstChild;
-  const effect3 = createTextNodeEffect(text2, value, { scheduler: ctx.scheduler });
+  const effect3 = createTextExpressionEffect(text2, [value], dom_Child_expr1, ctx.scheduler);
   ctx.scheduler.notify(effect3);
   return el1;
 }
@@ -145,6 +188,38 @@ null
     224
   ],
   "paramNames": []
+}
+*/
+============================= src/component.tsx_component_text_segment_0.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+export const component_text_segment_0 = () => {
+  const value = _captures[0];
+  return value.value;
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_0",
+  "entry": null,
+  "displayName": "component_text_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_text_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    205,
+    216
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "value"
+  ]
 }
 */
 == CSR DIAGNOSTICS ==

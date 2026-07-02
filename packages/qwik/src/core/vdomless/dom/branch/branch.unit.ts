@@ -143,7 +143,7 @@ describe('branches', () => {
         () => visible.value,
         () => {
           thenRuns++;
-          const effect = createTextNodeEffect(text, branchText, { scheduler });
+          const effect = createTextNodeEffect(text, branchText, scheduler);
           scheduler.notify(effect);
           return [thenNode];
         },
@@ -297,7 +297,7 @@ describe('branches', () => {
           order.push('effect');
           return 'effect';
         },
-        { scheduler }
+        scheduler
       );
     });
 
@@ -347,7 +347,7 @@ describe('branches', () => {
         range,
         () => visible.value,
         () => {
-          const effect = createTextNodeEffect(text, local, { scheduler });
+          const effect = createTextNodeEffect(text, local, scheduler);
           scheduler.notify(effect);
           return [node];
         }
@@ -529,7 +529,7 @@ describe('branches', () => {
     branch.branch.currentOwner = mountedOwner;
 
     runWithOwner(mountedOwner, () => {
-      effect = createTextNodeEffect(text, local, { scheduler });
+      effect = createTextNodeEffect(text, local, scheduler);
     });
 
     scheduler.notify(effect);

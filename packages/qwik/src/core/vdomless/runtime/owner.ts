@@ -33,6 +33,10 @@ export function getActiveOwner(): Owner | null {
   return getActiveOwnerScope();
 }
 
+export function getOrCreateContextOwner(context: RuntimeInvokeContext | null): Owner | null {
+  return context === null ? null : materializeContextOwner(context);
+}
+
 // Runs creation code under a lifetime owner. This intentionally clears the
 // active collector: owner scope decides what gets disposed together, while the
 // collector decides which source reads become dependencies.
@@ -109,8 +113,7 @@ export function disposeOwner(owner: Owner): void {
 }
 
 function getOrCreateActiveOwnerOrNull(): Owner | null {
-  const context = getActiveInvokeContextOrNull();
-  return context === null ? null : materializeContextOwner();
+  return getOrCreateContextOwner(getActiveInvokeContextOrNull());
 }
 
 function getOrCreateActiveOwnerOrThrow(): Owner {
@@ -121,24 +124,17 @@ function getOrCreateActiveOwnerOrThrow(): Owner {
   return owner;
 }
 
-function materializeContextOwner(context = getActiveInvokeContextOrNull()!): Owner {
+function materializeContextOwner(context: RuntimeInvokeContext): Owner {
   const owner = context.owner;
   if (owner !== null) {
     return owner;
   }
 
-  const parentOwner = materializeOwnerHost(context.ownerHost);
+  const parentOwner = context.ownerHost;
   const nextOwner = new Owner();
   registerOwnerToOwner(nextOwner, parentOwner);
   context.owner = nextOwner;
   return nextOwner;
-}
-
-function materializeOwnerHost(host: Owner | RuntimeInvokeContext | null): Owner | null {
-  if (host === null) {
-    return null;
-  }
-  return host instanceof Owner ? host : materializeContextOwner(host);
 }
 
 function registerOwnerToOwner(owner: Owner, parent: Owner | null): void {

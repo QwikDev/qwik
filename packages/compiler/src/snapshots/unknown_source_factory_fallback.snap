@@ -1,0 +1,235 @@
+==INPUT==
+
+function maybeSignal() {
+  return { value: 'maybe' };
+}
+
+export function App() {
+  const foo = maybeSignal();
+  return <div title={foo.value}>{foo.value}</div>;
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  createSsrDomBatchEffect,
+  createSsrElementTarget,
+  _qrlWithChunk,
+  escapeHTML,
+  createSsrElementTextTarget,
+  renderSsrTextExpression,
+  renderSsrAttrExpression,
+  maybeThen,
+  promiseAll,
+} from '@qwik.dev/core/spark';
+import { component_title_segment_0 } from './component.tsx_component_title_segment_0';
+import { component_text_segment_1 } from './component.tsx_component_text_segment_1';
+
+const q_component_title_segment_0 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_title_segment_0',
+  () => import('./component.tsx_component_title_segment_0'),
+  'component_title_segment_0'
+);
+q_component_title_segment_0.s(component_title_segment_0);
+const q_component_text_segment_1 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_text_segment_1',
+  () => import('./component.tsx_component_text_segment_1'),
+  'component_text_segment_1'
+);
+q_component_text_segment_1.s(component_text_segment_1);
+
+function maybeSignal() {
+  return { value: 'maybe' };
+}
+
+export function App(_props, ctx) {
+  const foo = maybeSignal();
+  const id0 = ctx.nextId();
+  ctx.addRoot(foo);
+  const batch2 = createSsrDomBatchEffect();
+  const attr1 = renderSsrAttrExpression(
+    createSsrElementTarget(id0),
+    'title',
+    [foo],
+    q_component_title_segment_0,
+    batch2
+  );
+  const text3 = renderSsrTextExpression(
+    createSsrElementTextTarget(id0),
+    [foo],
+    q_component_text_segment_1,
+    batch2
+  );
+  return maybeThen(
+    promiseAll([attr1, text3]),
+    ([attr1, text3]) =>
+      '<div q:id="' + id0 + '" title="' + escapeHTML(attr1) + '">' + escapeHTML(text3) + '</div>'
+  );
+}
+
+null
+============================= src/component.tsx_component_title_segment_0.js (ENTRY POINT)==
+
+export const component_title_segment_0 = (foo) => {
+  return foo.value;
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_title_segment_0",
+  "entry": null,
+  "displayName": "component_title_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_title_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "title",
+  "captures": true,
+  "loc": [
+    127,
+    136
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "foo"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_1.js (ENTRY POINT)==
+
+export const component_text_segment_1 = (foo) => {
+  return foo.value;
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_1",
+  "entry": null,
+  "displayName": "component_text_segment_1",
+  "hash": "segment_1",
+  "canonicalFilename": "component.tsx_component_text_segment_1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    139,
+    148
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "foo"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  createTemplate,
+  createDomBatchEffect,
+  patchTextValue,
+  patchAttrValue,
+} from '@qwik.dev/core/spark';
+
+function maybeSignal() {
+  return { value: 'maybe' };
+}
+
+const dom_App_template0 = createTemplate('<div> </div>');
+const dom_App_expr1 = (foo) => foo.value;
+const dom_App_expr2 = (foo) => foo.value;
+export function App(_props, ctx) {
+  const foo = maybeSignal();
+  const fragment0 = dom_App_template0(ctx.document);
+  const el1 = fragment0.firstChild;
+  const effect2 = createDomBatchEffect(batch3, ctx.scheduler);
+  const text4 = el1.firstChild;
+  function batch3() {
+    patchAttrValue(el1, 'title', dom_App_expr1(foo));
+    patchTextValue(text4, dom_App_expr2(foo));
+  }
+  ctx.scheduler.notify(effect2);
+  return el1;
+}
+
+null
+============================= src/component.tsx_component_title_segment_0.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+export const component_title_segment_0 = () => {
+  const foo = _captures[0];
+  return foo.value;
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_title_segment_0",
+  "entry": null,
+  "displayName": "component_title_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_title_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "title",
+  "captures": true,
+  "loc": [
+    127,
+    136
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "foo"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_1.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+export const component_text_segment_1 = () => {
+  const foo = _captures[0];
+  return foo.value;
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_1",
+  "entry": null,
+  "displayName": "component_text_segment_1",
+  "hash": "segment_1",
+  "canonicalFilename": "component.tsx_component_text_segment_1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    139,
+    148
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "foo"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

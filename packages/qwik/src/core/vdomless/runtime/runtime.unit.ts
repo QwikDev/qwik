@@ -187,7 +187,7 @@ describe('runtime scheduler and owner lifecycle', () => {
     expect(getActiveOwner()).toBeNull();
     runWithOwner(owner, () => {
       expect(getActiveOwner()).toBe(owner);
-      effect = createTextNodeEffect(text, count, { scheduler });
+      effect = createTextNodeEffect(text, count, scheduler);
       expect(owner.items).toEqual([effect]);
     });
     expect(getActiveOwner()).toBeNull();
@@ -213,7 +213,7 @@ describe('runtime scheduler and owner lifecycle', () => {
     let effect!: DomSubscriber;
 
     invoke(context, () => {
-      effect = createTextNodeEffect(createText(), count, { scheduler });
+      effect = createTextNodeEffect(createText(), count, scheduler);
     });
 
     expect(context.owner).not.toBeNull();
@@ -227,7 +227,7 @@ describe('runtime scheduler and owner lifecycle', () => {
     const sourceOwner = createOwner();
     const count = createSignal(1);
     const effect = runWithOwner(sourceOwner, () =>
-      createTextNodeEffect(createText(), count, { scheduler })
+      createTextNodeEffect(createText(), count, scheduler)
     );
 
     expect(owner.items).toBeNull();
@@ -248,7 +248,7 @@ describe('runtime scheduler and owner lifecycle', () => {
 
   it('throws when creating subscribers without an active owner', () => {
     const scheduler = new Scheduler(noopSchedule);
-    expect(() => createTextNodeEffect(createText(), createSignal(1), { scheduler })).toThrow(
+    expect(() => createTextNodeEffect(createText(), createSignal(1), scheduler)).toThrow(
       'Missing active owner context for subscriber'
     );
   });
@@ -288,10 +288,10 @@ describe('runtime scheduler and owner lifecycle', () => {
     let innerEffect!: DomSubscriber;
 
     runWithOwner(parent, () => {
-      outerEffect = createTextNodeEffect(createText(), outerSource, { scheduler });
+      outerEffect = createTextNodeEffect(createText(), outerSource, scheduler);
       child = createOwner();
       runWithOwner(child, () => {
-        innerEffect = createTextNodeEffect(createText(), innerSource, { scheduler });
+        innerEffect = createTextNodeEffect(createText(), innerSource, scheduler);
       });
     });
 
@@ -336,7 +336,7 @@ describe('runtime scheduler and owner lifecycle', () => {
     const owner = createOwner();
     const sourceOwner = createOwner();
     const effect = runWithOwner(sourceOwner, () =>
-      createTextNodeEffect(createText(), createSignal(1), { scheduler })
+      createTextNodeEffect(createText(), createSignal(1), scheduler)
     );
 
     disposeOwner(owner);

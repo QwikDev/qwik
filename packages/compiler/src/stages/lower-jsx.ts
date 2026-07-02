@@ -10,6 +10,7 @@ import {
   isEventProp,
   isNativeTag,
   isFunctionLike,
+  isSignalValueMethodCallExpression,
   jsxEventToHtmlAttribute,
   normalizeJsxText,
   unwrapExpression,
@@ -42,6 +43,7 @@ import type {
 
 export function lowerStaticJsxToIr(ctx: CompilerContext) {
   for (const component of ctx.manifest.components) {
+    const sourceNames = new Set(component.knownSourceNames);
     const propsName = getPropsParamName(ctx, component.params, component.exportName);
     if (propsName === false) {
       component.supported = false;
@@ -58,9 +60,9 @@ export function lowerStaticJsxToIr(ctx: CompilerContext) {
       continue;
     }
     for (const value of component.jsxValues) {
-      value.root = lowerJsxNode(ctx, value.jsx, propsName, component);
+      value.root = lowerJsxNode(ctx, value.jsx, propsName, component, sourceNames);
     }
-    component.root = lowerJsxNode(ctx, component.jsx, propsName, component);
+    component.root = lowerJsxNode(ctx, component.jsx, propsName, component, sourceNames);
   }
 }
 
@@ -88,23 +90,25 @@ function lowerJsxNode(
   ctx: CompilerContext,
   node: AstJsxNode,
   propsName: string | null,
-  component: ComponentRecord
+  component: ComponentRecord,
+  sourceNames: ReadonlySet<string>
 ): RenderNode {
   if (node.type === 'JSXElement') {
-    return lowerJsxElement(ctx, node, propsName, component);
+    return lowerJsxElement(ctx, node, propsName, component, sourceNames);
   }
-  return lowerJsxFragment(ctx, node, propsName, component);
+  return lowerJsxFragment(ctx, node, propsName, component, sourceNames);
 }
 
 function lowerJsxFragment(
   ctx: CompilerContext,
   node: JSXFragment,
   propsName: string | null,
-  component: ComponentRecord
+  component: ComponentRecord,
+  sourceNames: ReadonlySet<string>
 ): FragmentNode {
   return {
     kind: 'fragment',
-    children: lowerJsxChildren(ctx, node.children, propsName, component),
+    children: lowerJsxChildren(ctx, node.children, propsName, component, sourceNames),
   };
 }
 
@@ -112,7 +116,8 @@ function lowerJsxElement(
   ctx: CompilerContext,
   node: JSXElement,
   propsName: string | null,
-  component: ComponentRecord
+  component: ComponentRecord,
+  sourceNames: ReadonlySet<string>
 ): RenderNode {
   const opening = node.openingElement;
   const name = getJsxName(opening.name);
@@ -123,7 +128,7 @@ function lowerJsxElement(
     );
   }
   if (name === 'Slot') {
-    return lowerSlotElement(ctx, node, propsName, component);
+    return lowerSlotElement(ctx, node, propsName, component, sourceNames);
   }
   if (!isNativeTag(name)) {
     if (isComponentTagName(name)) {
@@ -131,7 +136,7 @@ function lowerJsxElement(
         kind: 'component',
         name,
         props: lowerComponentAttributes(ctx, opening.attributes),
-        slots: lowerComponentSlots(ctx, node.children, propsName, component),
+        slots: lowerComponentSlots(ctx, node.children, propsName, component, sourceNames),
       };
     }
     return unsupportedNode(
@@ -145,8 +150,8 @@ function lowerJsxElement(
     kind: 'element',
     tag: name,
     propsSegmentId: propsSegment?.id ?? null,
-    props: lowerJsxAttributes(ctx, opening.attributes, propsSegment !== undefined),
-    children: lowerJsxChildren(ctx, node.children, propsName, component),
+    props: lowerJsxAttributes(ctx, opening.attributes, sourceNames, propsSegment !== undefined),
+    children: lowerJsxChildren(ctx, node.children, propsName, component, sourceNames),
   };
 }
 
@@ -154,10 +159,11 @@ function lowerSlotElement(
   ctx: CompilerContext,
   node: JSXElement,
   propsName: string | null,
-  component: ComponentRecord
+  component: ComponentRecord,
+  sourceNames: ReadonlySet<string>
 ): SlotNode {
   const name = getStaticSlotName(ctx, node.openingElement.attributes);
-  const children = lowerJsxChildren(ctx, node.children, propsName, component);
+  const children = lowerJsxChildren(ctx, node.children, propsName, component, sourceNames);
   const range = children.length > 0 ? getRange(node) : null;
   const segment = range === null ? null : findSlotRenderSegment(ctx, range);
   return {
@@ -172,7 +178,8 @@ function lowerComponentSlots(
   ctx: CompilerContext,
   children: JSXChild[],
   propsName: string | null,
-  component: ComponentRecord
+  component: ComponentRecord,
+  sourceNames: ReadonlySet<string>
 ): ComponentSlotRecord[] {
   const slots: ComponentSlotRecord[] = [];
   for (const child of children) {
@@ -180,7 +187,7 @@ function lowerComponentSlots(
       continue;
     }
     const slotName = getProjectionSlotName(ctx, child);
-    const rendered = lowerJsxChildren(ctx, [child], propsName, component);
+    const rendered = lowerJsxChildren(ctx, [child], propsName, component, sourceNames);
     if (rendered.length === 0) {
       continue;
     }
@@ -263,6 +270,7 @@ function isEmptyJsxChild(child: JSXChild): boolean {
 function lowerJsxAttributes(
   ctx: CompilerContext,
   attributes: JSXAttributeItem[],
+  sourceNames: ReadonlySet<string>,
   forcePropsObject = false
 ): PropRecord[] {
   if (forcePropsObject || attributes.some((attr) => attr.type === 'JSXSpreadAttribute')) {
@@ -329,7 +337,7 @@ function lowerJsxAttributes(
       continue;
     }
 
-    const dynamicValue = lowerDynamicSourceAttributeValue(ctx, attr.value);
+    const dynamicValue = lowerDynamicSourceAttributeValue(ctx, attr.value, sourceNames);
     if (dynamicValue) {
       props.push({
         kind: 'named',
@@ -540,13 +548,14 @@ function lowerComponentAttributeValue(
 
 function lowerDynamicSourceAttributeValue(
   ctx: CompilerContext,
-  valueNode: JSXAttributeValue | null
+  valueNode: JSXAttributeValue | null,
+  sourceNames: ReadonlySet<string>
 ): Extract<DynamicBinding, { kind: 'source' }> | null {
   if (valueNode?.type !== 'JSXExpressionContainer') {
     return null;
   }
   const expression = unwrapExpression(valueNode.expression);
-  const sourceName = getSignalValueSourceName(expression);
+  const sourceName = getKnownSourceValueName(expression, sourceNames);
   const expressionRange = getRange(expression);
   if (sourceName === null || expressionRange === null) {
     return null;
@@ -688,7 +697,8 @@ function lowerJsxChildren(
   ctx: CompilerContext,
   children: JSXChild[],
   propsName: string | null,
-  component: ComponentRecord
+  component: ComponentRecord,
+  sourceNames: ReadonlySet<string>
 ): RenderNode[] {
   const nodes: RenderNode[] = [];
   for (const child of children) {
@@ -700,7 +710,7 @@ function lowerJsxChildren(
       continue;
     }
     if (child.type === 'JSXElement' || child.type === 'JSXFragment') {
-      nodes.push(lowerJsxNode(ctx, child, propsName, component));
+      nodes.push(lowerJsxNode(ctx, child, propsName, component, sourceNames));
       continue;
     }
     if (child.type === 'JSXExpressionContainer') {
@@ -721,7 +731,13 @@ function lowerJsxChildren(
       }
       const expressionRange = getRange(expression);
       if (expressionRange) {
-        const staticBranch = lowerStaticBranchExpression(ctx, expression, propsName, component);
+        const staticBranch = lowerStaticBranchExpression(
+          ctx,
+          expression,
+          propsName,
+          component,
+          sourceNames
+        );
         if (staticBranch) {
           nodes.push(...staticBranch);
           continue;
@@ -731,27 +747,46 @@ function lowerJsxChildren(
           expression,
           expressionRange,
           propsName,
-          component
+          component,
+          sourceNames
         );
         if (branch) {
           nodes.push(branch);
           continue;
         }
-        const forNode = lowerForExpression(ctx, expression, expressionRange, propsName, component);
+        const forNode = lowerForExpression(
+          ctx,
+          expression,
+          expressionRange,
+          propsName,
+          component,
+          sourceNames
+        );
         if (forNode) {
           nodes.push(forNode);
+          continue;
+        }
+        const textParts = lowerStaticSourceTextExpression(expression, sourceNames);
+        if (textParts) {
+          nodes.push(...textParts);
+          continue;
+        }
+        const isSignalTextCall = isSignalValueMethodCallExpression(expression, (name) =>
+          sourceNames.has(name)
+        );
+        const binding = createDynamicTextBinding(ctx, expression, expressionRange, sourceNames);
+        if (binding && isSignalTextCall) {
+          nodes.push({
+            kind: 'dynamicText',
+            expressionRange,
+            binding,
+          });
           continue;
         }
         if (isDynamicJsxCallExpression(expression)) {
           nodes.push({ kind: 'dynamicJsx', expressionRange, invoke: false });
           continue;
         }
-        const textParts = lowerStaticSourceTextExpression(expression);
-        if (textParts) {
-          nodes.push(...textParts);
-          continue;
-        }
-        const binding = createDynamicTextBinding(ctx, expression, expressionRange);
         if (binding) {
           nodes.push({
             kind: 'dynamicText',
@@ -778,9 +813,10 @@ function lowerForExpression(
   expression: unknown,
   expressionRange: SourceRange,
   propsName: string | null,
-  component: ComponentRecord
+  component: ComponentRecord,
+  sourceNames: ReadonlySet<string>
 ): ForNode | null {
-  const call = parseMapCall(ctx, expression);
+  const call = parseMapCall(ctx, expression, sourceNames);
   if (call === null) {
     return null;
   }
@@ -818,7 +854,13 @@ function lowerForExpression(
     sourceName: call.sourceName,
     keySegmentId: keySegment.id,
     renderSegmentId: renderSegment.id,
-    children: lowerExpressionChildren(ctx, rowJsx, propsName, component),
+    children: lowerExpressionChildren(
+      ctx,
+      rowJsx,
+      propsName,
+      component,
+      extendSourceNames(sourceNames, call.itemName, call.indexName)
+    ),
     usesItemSignal: usesIdentifierIgnoringKey(rowJsx, call.itemName),
     usesIndexSignal:
       call.indexName === null ? false : usesIdentifierIgnoringKey(rowJsx, call.indexName),
@@ -827,7 +869,8 @@ function lowerForExpression(
 
 function parseMapCall(
   ctx: CompilerContext,
-  expression: unknown
+  expression: unknown,
+  sourceNames: ReadonlySet<string>
 ): { sourceName: string; callback: any; itemName: string; indexName: string | null } | null {
   const expr = unwrapExpression(expression);
   if (!isAstNode(expr) || expr.type !== 'CallExpression') {
@@ -854,7 +897,11 @@ function parseMapCall(
     return null;
   }
 
-  const sourceName = getSignalValueSourceName(callee.object);
+  const rawSourceName = getSignalValueSourceName(callee.object);
+  if (rawSourceName !== null && !sourceNames.has(rawSourceName)) {
+    return null;
+  }
+  const sourceName = rawSourceName;
   if (sourceName === null) {
     ctx.manifest.diagnostics.push(
       createDiagnostic(ctx.input.path, 'vdomless JSX .map() source must be a signal value.')
@@ -974,7 +1021,8 @@ function lowerBranchExpression(
   expression: unknown,
   expressionRange: SourceRange,
   propsName: string | null,
-  component: ComponentRecord
+  component: ComponentRecord,
+  sourceNames: ReadonlySet<string>
 ): BranchNode | null {
   const expr = unwrapExpression(expression);
   if (!isAstNode(expr)) {
@@ -1006,8 +1054,14 @@ function lowerBranchExpression(
       conditionSegmentId: conditionSegment.id,
       thenSegmentId: thenSegment.id,
       elseSegmentId: elseSegment?.id,
-      thenChildren: lowerExpressionChildren(ctx, expr.consequent, propsName, component),
-      elseChildren: lowerExpressionChildren(ctx, expr.alternate, propsName, component),
+      thenChildren: lowerExpressionChildren(
+        ctx,
+        expr.consequent,
+        propsName,
+        component,
+        sourceNames
+      ),
+      elseChildren: lowerExpressionChildren(ctx, expr.alternate, propsName, component, sourceNames),
     };
   }
   if (expr.type === 'LogicalExpression' && expr.operator === '&&') {
@@ -1027,7 +1081,7 @@ function lowerBranchExpression(
       conditionRange,
       conditionSegmentId: conditionSegment.id,
       thenSegmentId: thenSegment.id,
-      thenChildren: lowerExpressionChildren(ctx, expr.right, propsName, component),
+      thenChildren: lowerExpressionChildren(ctx, expr.right, propsName, component, sourceNames),
       elseChildren: [],
     };
   }
@@ -1038,7 +1092,8 @@ function lowerStaticBranchExpression(
   ctx: CompilerContext,
   expression: unknown,
   propsName: string | null,
-  component: ComponentRecord
+  component: ComponentRecord,
+  sourceNames: ReadonlySet<string>
 ): RenderNode[] | null {
   const expr = unwrapExpression(expression);
   if (!isAstNode(expr)) {
@@ -1052,7 +1107,8 @@ function lowerStaticBranchExpression(
           ctx,
           condition ? expr.consequent : expr.alternate,
           propsName,
-          component
+          component,
+          sourceNames
         );
   }
   if (expr.type === 'LogicalExpression' && expr.operator === '&&') {
@@ -1060,7 +1116,7 @@ function lowerStaticBranchExpression(
     return condition === null
       ? null
       : condition
-        ? lowerExpressionChildren(ctx, expr.right, propsName, component)
+        ? lowerExpressionChildren(ctx, expr.right, propsName, component, sourceNames)
         : [];
   }
   return null;
@@ -1086,7 +1142,8 @@ function lowerExpressionChildren(
   ctx: CompilerContext,
   expression: unknown,
   propsName: string | null,
-  component: ComponentRecord
+  component: ComponentRecord,
+  sourceNames: ReadonlySet<string>
 ): RenderNode[] {
   const expr = unwrapExpression(expression);
   if (!isAstNode(expr) || isEmptyBranchExpression(expr)) {
@@ -1100,30 +1157,42 @@ function lowerExpressionChildren(
     return expressionRange ? [{ kind: 'dynamicJsx', expressionRange, invoke: true }] : [];
   }
   if (expr.type === 'JSXElement' || expr.type === 'JSXFragment') {
-    return [lowerJsxNode(ctx, expr, propsName, component)];
+    return [lowerJsxNode(ctx, expr, propsName, component, sourceNames)];
   }
   const range = getRange(expr);
   if (range !== null) {
-    const staticBranch = lowerStaticBranchExpression(ctx, expr, propsName, component);
+    const staticBranch = lowerStaticBranchExpression(ctx, expr, propsName, component, sourceNames);
     if (staticBranch) {
       return staticBranch;
     }
-    const branch = lowerBranchExpression(ctx, expr, range, propsName, component);
+    const branch = lowerBranchExpression(ctx, expr, range, propsName, component, sourceNames);
     if (branch) {
       return [branch];
     }
-    const forNode = lowerForExpression(ctx, expr, range, propsName, component);
+    const forNode = lowerForExpression(ctx, expr, range, propsName, component, sourceNames);
     if (forNode) {
       return [forNode];
+    }
+    const textParts = lowerStaticSourceTextExpression(expr, sourceNames);
+    if (textParts) {
+      return textParts;
+    }
+    const isSignalTextCall = isSignalValueMethodCallExpression(expr, (name) =>
+      sourceNames.has(name)
+    );
+    const binding = createDynamicTextBinding(ctx, expr, range, sourceNames);
+    if (binding && isSignalTextCall) {
+      return [
+        {
+          kind: 'dynamicText',
+          expressionRange: range,
+          binding,
+        },
+      ];
     }
     if (isDynamicJsxCallExpression(expr)) {
       return [{ kind: 'dynamicJsx', expressionRange: range, invoke: false }];
     }
-    const textParts = lowerStaticSourceTextExpression(expr);
-    if (textParts) {
-      return textParts;
-    }
-    const binding = createDynamicTextBinding(ctx, expr, range);
     if (binding) {
       return [
         {
@@ -1147,8 +1216,11 @@ function lowerExpressionChildren(
   return [];
 }
 
-function lowerStaticSourceTextExpression(expression: unknown): RenderNode[] | null {
-  const parts = getStaticSourceTextExpressionParts(expression);
+function lowerStaticSourceTextExpression(
+  expression: unknown,
+  sourceNames: ReadonlySet<string>
+): RenderNode[] | null {
+  const parts = getStaticSourceTextExpressionParts(expression, (name) => sourceNames.has(name));
   if (!parts) {
     return null;
   }
@@ -1219,9 +1291,10 @@ function isDynamicJsxCallExpression(expression: unknown): boolean {
 function createDynamicTextBinding(
   ctx: CompilerContext,
   expression: unknown,
-  expressionRange: SourceRange
+  expressionRange: SourceRange,
+  sourceNames: ReadonlySet<string>
 ): DynamicBinding | null {
-  const sourceName = getSignalValueSourceName(expression);
+  const sourceName = getKnownSourceValueName(expression, sourceNames);
   if (sourceName !== null) {
     return {
       kind: 'source',
@@ -1237,6 +1310,29 @@ function createDynamicTextBinding(
         qrlSegmentId: segment.id,
       }
     : null;
+}
+
+function getKnownSourceValueName(
+  expression: unknown,
+  sourceNames: ReadonlySet<string>
+): string | null {
+  const sourceName = getSignalValueSourceName(expression);
+  return sourceName !== null && sourceNames.has(sourceName) ? sourceName : null;
+}
+
+function extendSourceNames(
+  sourceNames: ReadonlySet<string>,
+  ...names: Array<string | null>
+): ReadonlySet<string> {
+  const filteredNames = names.filter((name): name is string => name !== null);
+  if (filteredNames.length === 0) {
+    return sourceNames;
+  }
+  const next = new Set(sourceNames);
+  for (const name of filteredNames) {
+    next.add(name);
+  }
+  return next;
 }
 
 function findBranchSegment(

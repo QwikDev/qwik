@@ -425,6 +425,30 @@ export function App() {
     });
   });
 
+  test('falls back to expression effects for plain value objects', async () => {
+    await testInput('plain_value_object_fallback', {
+      code: `export function App() {
+  const foo = { value: 'hello' };
+  return <p title={foo.value}>{foo.value}<span>{'Hi ' + foo.value}</span></p>;
+}
+`,
+    });
+  });
+
+  test('falls back to expression effects for unknown source factories', async () => {
+    await testInput('unknown_source_factory_fallback', {
+      code: `function maybeSignal() {
+  return { value: 'maybe' };
+}
+
+export function App() {
+  const foo = maybeSignal();
+  return <div title={foo.value}>{foo.value}</div>;
+}
+`,
+    });
+  });
+
   test('hoists SSR dynamic attrs before async child output', async () => {
     await testInput('dynamic_dom_attrs_after_component', {
       code: `import { createSignal } from '@qwik.dev/core/spark';
@@ -640,6 +664,29 @@ export function App() {
 }
 `,
     });
+  });
+
+  test('does not lower unknown value maps to ForNode', async () => {
+    const result = await testInput('jsx_unknown_value_map_fallback', {
+      code: `function getItems() {
+  return { value: [{ id: 'a', label: 'Alpha' }] };
+}
+
+export function App() {
+  const items = getItems();
+  return (
+    <ul>
+      {items.value.map((row) => (
+        <li key={row.id}>{row.label}</li>
+      ))}
+    </ul>
+  );
+}
+`,
+    });
+    expect(result.csr.modules.map((module) => module.code).join('\n')).not.toContain(
+      'createForBlock'
+    );
   });
 
   test('transforms implicit dollar calls in component setup', async () => {

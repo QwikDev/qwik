@@ -192,7 +192,7 @@ export const component_branch_then_segment_1 = (ctx) => {
   const count = _captures[0];
   const text0 = ctx.document.createTextNode('Count is greater than 2 and equal to ');
   const text1 = ctx.document.createTextNode('');
-  const effect2 = createTextNodeEffect(text1, count, { scheduler: ctx.scheduler });
+  const effect2 = createTextNodeEffect(text1, count, ctx.scheduler);
   ctx.scheduler.notify(effect2);
   return [text0, text1];
 };

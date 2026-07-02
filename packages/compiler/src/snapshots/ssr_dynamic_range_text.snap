@@ -45,7 +45,7 @@ export function App(_props, ctx) {
   const text1 = ctx.document.createTextNode('Hello ');
   el0.appendChild(text1);
   const text2 = ctx.document.createTextNode('');
-  const effect3 = createTextNodeEffect(text2, count, { scheduler: ctx.scheduler });
+  const effect3 = createTextNodeEffect(text2, count, ctx.scheduler);
   ctx.scheduler.notify(effect3);
   el0.appendChild(text2);
   return el0;

@@ -64,11 +64,11 @@ export function App(_props, ctx) {
   const style = createSignal('color:red');
   const fragment0 = dom_App_template0(ctx.document);
   const el1 = fragment0.firstChild;
-  const effect2 = createAttrEffect(el1, 'title', title, { scheduler: ctx.scheduler });
+  const effect2 = createAttrEffect(el1, 'title', title, ctx.scheduler);
   ctx.scheduler.notify(effect2);
-  const effect3 = createAttrEffect(el1, 'class', classes, { scheduler: ctx.scheduler });
+  const effect3 = createAttrEffect(el1, 'class', classes, ctx.scheduler);
   ctx.scheduler.notify(effect3);
-  const effect4 = createAttrEffect(el1, 'style', style, { scheduler: ctx.scheduler });
+  const effect4 = createAttrEffect(el1, 'style', style, ctx.scheduler);
   ctx.scheduler.notify(effect4);
   return el1;
 }

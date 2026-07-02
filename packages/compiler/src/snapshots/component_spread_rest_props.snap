@@ -206,9 +206,7 @@ const dom_Button_expr0 = (rest, kind) => ({
 export function Button(_props, ctx) {
   const { kind, ...rest } = _props;
   const el0 = ctx.document.createElement('button');
-  const effect1 = createPropsEffect(el0, [rest, kind], dom_Button_expr0, {
-    scheduler: ctx.scheduler,
-  });
+  const effect1 = createPropsEffect(el0, [rest, kind], dom_Button_expr0, ctx.scheduler);
   ctx.scheduler.notify(effect1);
   const text2 = ctx.document.createTextNode('Click');
   el0.appendChild(text2);

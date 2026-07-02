@@ -467,7 +467,7 @@ const component_for_render_segment_0_expr3 = (row) => row.value.label;
 export const component_for_render_segment_0 = (ctx, row, index) => {
   const el0 = ctx.document.createElement('li');
   let prevProps1 = null;
-  const effect2 = createDomBatchEffect(batch3, { scheduler: ctx.scheduler });
+  const effect2 = createDomBatchEffect(batch3, ctx.scheduler);
   function batchOp4() {
     prevProps1 = applyDomProps(el0, component_for_render_segment_0_expr0(row), prevProps1);
   }
@@ -478,7 +478,7 @@ export const component_for_render_segment_0 = (ctx, row, index) => {
     'data-index',
     [index],
     component_for_render_segment_0_expr1,
-    { scheduler: ctx.scheduler }
+    ctx.scheduler
   );
   effect6.run();
   function batchOp7() {

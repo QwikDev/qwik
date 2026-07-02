@@ -373,9 +373,7 @@ export function Hello(_props, ctx) {
   const text1 = ctx.document.createTextNode('Hello, ');
   el0.appendChild(text1);
   const text2 = ctx.document.createTextNode('');
-  const effect3 = createTextExpressionEffect(text2, [_props.name], dom_Hello_expr0, {
-    scheduler: ctx.scheduler,
-  });
+  const effect3 = createTextExpressionEffect(text2, [_props.name], dom_Hello_expr0, ctx.scheduler);
   ctx.scheduler.notify(effect3);
   el0.appendChild(text2);
   const text4 = ctx.document.createTextNode('!');
@@ -415,9 +413,12 @@ export function Counter(_props, ctx) {
   const text1 = ctx.document.createTextNode('Count: ');
   el0.appendChild(text1);
   const text2 = ctx.document.createTextNode('');
-  const effect3 = createTextExpressionEffect(text2, [_props.count], dom_Counter_expr0, {
-    scheduler: ctx.scheduler,
-  });
+  const effect3 = createTextExpressionEffect(
+    text2,
+    [_props.count],
+    dom_Counter_expr0,
+    ctx.scheduler
+  );
   ctx.scheduler.notify(effect3);
   el0.appendChild(text2);
   return el0;

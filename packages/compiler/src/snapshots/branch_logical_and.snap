@@ -270,12 +270,15 @@ export const component_branch_then_segment_1 = (ctx) => {
   const attrs = _captures[0],
     label = _captures[1];
   const el0 = ctx.document.createElement('span');
-  const effect1 = createPropsEffect(el0, [attrs, label], component_branch_then_segment_1_expr0, {
-    scheduler: ctx.scheduler,
-  });
+  const effect1 = createPropsEffect(
+    el0,
+    [attrs, label],
+    component_branch_then_segment_1_expr0,
+    ctx.scheduler
+  );
   ctx.scheduler.notify(effect1);
   const text2 = ctx.document.createTextNode('');
-  const effect3 = createTextNodeEffect(text2, label, { scheduler: ctx.scheduler });
+  const effect3 = createTextNodeEffect(text2, label, ctx.scheduler);
   ctx.scheduler.notify(effect3);
   el0.appendChild(text2);
   const text4 = ctx.document.createTextNode('!');

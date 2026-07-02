@@ -418,7 +418,7 @@ export function createOrderTextExpressionEffect(
         order.push(label);
         return label;
       },
-      { scheduler }
+      scheduler
     );
   return getActiveOwner() === null ? runWithOwner(createOwner(null), create) : create();
 }
@@ -1011,8 +1011,9 @@ function getVariableDeclarationKind(declarationList: ts.VariableDeclarationList)
 function hasExportModifier(node: ts.Node): boolean {
   return (
     ts.canHaveModifiers(node) &&
-    ts.getModifiers(node)?.some((modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword) ===
-      true
+    ts
+      .getModifiers(node)
+      ?.some((modifier: any) => modifier.kind === ts.SyntaxKind.ExportKeyword) === true
   );
 }
 

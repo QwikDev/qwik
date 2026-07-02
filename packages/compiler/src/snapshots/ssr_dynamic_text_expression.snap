@@ -86,9 +86,7 @@ export function App(_props, ctx) {
   const fragment0 = dom_App_template0(ctx.document);
   const el1 = fragment0.firstChild;
   const text2 = el1.firstChild;
-  const effect3 = createTextExpressionEffect(text2, [count], dom_App_expr1, {
-    scheduler: ctx.scheduler,
-  });
+  const effect3 = createTextExpressionEffect(text2, [count], dom_App_expr1, ctx.scheduler);
   ctx.scheduler.notify(effect3);
   return el1;
 }

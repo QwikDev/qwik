@@ -144,6 +144,58 @@ export const App = component$(() => <p>{greeting}</p>);
     expect(event?.captures.map((capture) => capture.source)).toEqual(['loop', 'loop']);
   });
 
+  test('skips JSX source segments for namespace-imported Spark sources', () => {
+    const ctx = analyzeInput({
+      code: `import * as spark from '@qwik.dev/core/spark';
+
+export function App() {
+  const count = spark.createSignal(0);
+  return <p title={count.value}>{count.value}</p>;
+}
+`,
+    });
+
+    expect(ctx.manifest.segments).toEqual([]);
+    expect(ctx.manifest.components[0].knownSourceNames).toEqual(['count']);
+  });
+
+  test('creates JSX expression segments for source aliases', () => {
+    const ctx = analyzeInput({
+      code: `import { createSignal } from '@qwik.dev/core/spark';
+
+export function App() {
+  const count = createSignal(0);
+  const alias = count;
+  return <p title={alias.value}>{alias.value}</p>;
+}
+`,
+    });
+
+    expect(ctx.manifest.segments.map((segment) => `${segment.kind}:${segment.ctxName}`)).toEqual([
+      'jsxProp:title',
+      'jsxText:text',
+    ]);
+    expect(ctx.manifest.components[0].knownSourceNames).toEqual(['count']);
+  });
+
+  test('does not trust shadowed Spark source factories', () => {
+    const ctx = analyzeInput({
+      code: `import { createSignal } from '@qwik.dev/core/spark';
+
+export function App() {
+  const createSignal = () => ({ value: 0 });
+  const count = createSignal();
+  return <p>{count.value}</p>;
+}
+`,
+    });
+
+    expect(ctx.manifest.segments.map((segment) => `${segment.kind}:${segment.ctxName}`)).toEqual([
+      'jsxText:text',
+    ]);
+    expect(ctx.manifest.components[0].knownSourceNames).toEqual([]);
+  });
+
   test('keeps nested QRL captures isolated from parent handler captures', () => {
     const ctx = analyzeInput({
       code: `export function App(props) {

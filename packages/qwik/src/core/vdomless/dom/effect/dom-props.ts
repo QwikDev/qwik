@@ -1,5 +1,6 @@
 import {
   EventNameHtmlScope,
+  EventNameJSXScope,
   isHtmlAttributeAnEventName,
   jsxEventToHtmlAttribute,
   normalizeJsxEventName,
@@ -8,18 +9,22 @@ import { escapeHTML } from '../../../shared/utils/character-escaping';
 import { serializeAttribute } from '../../../shared/utils/styles';
 import type { QElement } from '../../../shared/types';
 import { setEvent } from '../event/event';
+import {
+  BindEventPrefix,
+  ClassAttr,
+  ClassNameAttr,
+  DangerousInnerHTMLAttr,
+  EMPTY_STRING,
+  EventSuffix,
+  PassiveEventPrefix,
+  PreventDefaultEventPrefix,
+  StopPropagationEventPrefix,
+  StyleAttr,
+} from '../../utils/consts';
 
 type DomProps = Record<string, unknown> | null | undefined;
 type PropMap = Record<string, unknown>;
 type PassiveMap = Record<string, true>;
-
-const PASSIVE = 'passive:';
-const PREVENT_DEFAULT = 'preventdefault:';
-const STOP_PROPAGATION = 'stoppropagation:';
-
-export function normalizeDomProps(props: DomProps): PropMap {
-  return collectDomProps(props);
-}
 
 function collectDomProps(props: DomProps, element?: Element, styleScopedId?: string) {
   const normalized: PropMap = {};
@@ -29,13 +34,13 @@ function collectDomProps(props: DomProps, element?: Element, styleScopedId?: str
 
   let passiveEvents: PassiveMap | null = null;
   for (const key in props) {
-    if (key === 'children' || key === 'ref' || key.startsWith('bind:')) {
+    if (key === 'children' || key === 'ref' || key.startsWith(BindEventPrefix)) {
       continue;
     }
     const value = props[key];
-    if (key.startsWith(PASSIVE)) {
+    if (key.startsWith(PassiveEventPrefix)) {
       if (value) {
-        const eventKey = normalizeJsxEventName(key.slice(PASSIVE.length));
+        const eventKey = normalizeJsxEventName(key.slice(PassiveEventPrefix.length));
         passiveEvents ||= {};
         passiveEvents[eventKey] = true;
         moveDomProp(
@@ -56,22 +61,22 @@ function collectDomProps(props: DomProps, element?: Element, styleScopedId?: str
           `${EventNameHtmlScope.documentPassive}${eventKey}`,
           element
         );
-        removeDomPropFromMap(normalized, `${PREVENT_DEFAULT}${eventKey}`, element);
+        clearDomPropFromMap(normalized, `${PreventDefaultEventPrefix}${eventKey}`, element);
       }
       continue;
     }
-    if (key.startsWith(PREVENT_DEFAULT)) {
-      const eventKey = normalizeJsxEventName(key.slice(PREVENT_DEFAULT.length));
+    if (key.startsWith(PreventDefaultEventPrefix)) {
+      const eventKey = normalizeJsxEventName(key.slice(PreventDefaultEventPrefix.length));
       if (passiveEvents?.[eventKey]) {
         continue;
       }
-      setDomProp(normalized, `${PREVENT_DEFAULT}${eventKey}`, value, element);
+      setDomProp(normalized, `${PreventDefaultEventPrefix}${eventKey}`, value, element);
       continue;
     }
-    if (key.startsWith(STOP_PROPAGATION)) {
+    if (key.startsWith(StopPropagationEventPrefix)) {
       setDomProp(
         normalized,
-        `${STOP_PROPAGATION}${normalizeJsxEventName(key.slice(STOP_PROPAGATION.length))}`,
+        `${StopPropagationEventPrefix}${normalizeJsxEventName(key.slice(StopPropagationEventPrefix.length))}`,
         value,
         element
       );
@@ -87,7 +92,7 @@ function collectDomProps(props: DomProps, element?: Element, styleScopedId?: str
       continue;
     }
 
-    const normalizedKey = key === 'className' ? 'class' : key;
+    const normalizedKey = key === ClassNameAttr ? ClassAttr : key;
     setDomProp(normalized, normalizedKey, value, element, styleScopedId);
   }
   return normalized;
@@ -103,7 +108,7 @@ export function applyDomProps(
   if (prevProps !== null) {
     for (const key in prevProps) {
       if (!(key in nextProps)) {
-        removeDomProp(element, key, key === 'class' ? styleScopedId : undefined);
+        applyDomProp(element, key, null, styleScopedId);
       }
     }
   }
@@ -121,7 +126,7 @@ export function renderDomPropsToString(
 
   for (const key in normalized) {
     const value = normalized[key];
-    if (key === 'dangerouslySetInnerHTML') {
+    if (key === DangerousInnerHTMLAttr) {
       innerHTML = value == null || value === false ? '' : String(value);
       continue;
     }
@@ -136,7 +141,7 @@ export function renderDomPropsToString(
     if (attrValue === null) {
       continue;
     }
-    if (attrValue === '') {
+    if (Object.is(attrValue, EMPTY_STRING)) {
       attrs += ` ${key}`;
     } else {
       attrs += ` ${key}="${escapeHTML(attrValue)}"`;
@@ -147,7 +152,7 @@ export function renderDomPropsToString(
 }
 
 function applyDomProp(element: Element, key: string, value: unknown, styleScopedId?: string): void {
-  if (key === 'dangerouslySetInnerHTML') {
+  if (key === DangerousInnerHTMLAttr) {
     (element as Element & { innerHTML: string }).innerHTML =
       value == null || value === false ? '' : String(value);
     return;
@@ -162,52 +167,6 @@ function applyDomProp(element: Element, key: string, value: unknown, styleScoped
   }
 
   patchAttrValue(element, key, value, styleScopedId);
-}
-
-function removeDomProp(element: Element, key: string, styleScopedId?: string): void {
-  if (key === 'dangerouslySetInnerHTML') {
-    (element as Element & { innerHTML: string }).innerHTML = '';
-  } else if (isHtmlAttributeAnEventName(key)) {
-    removeEvent(element, key);
-  } else if (key === 'class' && styleScopedId !== undefined) {
-    patchAttrValue(element, key, '', styleScopedId);
-  } else {
-    element.removeAttribute?.(key);
-  }
-}
-
-export function serializeAttrExpressionValue(
-  name: string,
-  value: unknown,
-  styleScopedId?: string
-): string | null {
-  const serialized = serializeAttribute(name, value, styleScopedId);
-  if (serialized == null || serialized === false) {
-    return null;
-  }
-  if (serialized === true) {
-    return '';
-  }
-  const valueString = String(serialized);
-  return valueString === '' && (name === 'class' || name === 'style') ? null : valueString;
-}
-
-export function patchAttrValue(
-  element: Element,
-  name: string,
-  value: unknown,
-  styleScopedId?: string
-): void {
-  const serialized = serializeAttrExpressionValue(name, value, styleScopedId);
-  if (serialized === null) {
-    element.removeAttribute?.(name);
-    return;
-  }
-  if (name === 'class') {
-    element.className = serialized;
-  } else {
-    element.setAttribute(name, serialized);
-  }
 }
 
 function removeEvent(element: Element, key: string): void {
@@ -234,11 +193,11 @@ function setDomProp(
   }
 }
 
-function removeDomPropFromMap(props: PropMap, key: string, element: Element | undefined): void {
+function clearDomPropFromMap(props: PropMap, key: string, element: Element | undefined): void {
   if (key in props) {
     delete props[key];
     if (element !== undefined) {
-      removeDomProp(element, key);
+      applyDomProp(element, key, null);
     }
   }
 }
@@ -246,20 +205,54 @@ function removeDomPropFromMap(props: PropMap, key: string, element: Element | un
 function moveDomProp(props: PropMap, from: string, to: string, element: Element | undefined): void {
   if (from in props) {
     const value = props[from];
-    removeDomPropFromMap(props, from, element);
+    clearDomPropFromMap(props, from, element);
     setDomProp(props, to, value, element);
   }
 }
 
 function getPassiveEventKey(key: string): string | null {
-  if (key.startsWith('on') && key.endsWith('$')) {
+  if (key.startsWith(EventNameJSXScope.on) && key.endsWith(EventSuffix)) {
     return normalizeJsxEventName(key.slice(2, -1));
   }
-  if (key.startsWith('window:on') && key.endsWith('$')) {
+  if (key.startsWith(EventNameJSXScope.window) && key.endsWith(EventSuffix)) {
     return normalizeJsxEventName(key.slice(9, -1));
   }
-  if (key.startsWith('document:on') && key.endsWith('$')) {
+  if (key.startsWith(EventNameJSXScope.document) && key.endsWith(EventSuffix)) {
     return normalizeJsxEventName(key.slice(11, -1));
   }
   return null;
+}
+
+export function serializeAttrExpressionValue(
+  name: string,
+  value: unknown,
+  styleScopedId?: string
+): string | null {
+  const serialized = serializeAttribute(name, value, styleScopedId);
+  if (serialized == null || serialized === false) {
+    return null;
+  }
+  if (serialized === true) {
+    return '';
+  }
+  const valueString = String(serialized);
+  return valueString === '' && (name === ClassAttr || name === StyleAttr) ? null : valueString;
+}
+
+export function patchAttrValue(
+  element: Element,
+  name: string,
+  value: unknown,
+  styleScopedId?: string
+): void {
+  const serialized = serializeAttrExpressionValue(name, value, styleScopedId);
+  if (serialized === null) {
+    element.removeAttribute?.(name);
+    return;
+  }
+  if (name === ClassAttr) {
+    element.className = serialized;
+  } else {
+    element.setAttribute(name, serialized);
+  }
 }

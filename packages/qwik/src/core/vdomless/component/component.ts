@@ -8,14 +8,15 @@ import {
 } from '../runtime/invoke-context';
 import type { ContainerContext } from '../runtime/container-context';
 import type { SlotScope } from '../dom/slot/slot';
-import { disposeOwner } from '../runtime/owner';
-import { runWithCollector } from '../reactive/tracking';
+import { disposeOwner, getOrCreateContextOwner } from '../runtime/owner';
+import { untrack } from '../reactive/tracking';
 import type { NodeOutput } from '../utils/nodes';
 import { EMPTY_NODES } from '../utils/consts';
 
 export type ComponentOutput = NodeOutput | string;
-export type ComponentRenderOutput = ValueOrPromise<ComponentOutput | void>;
-export type ComponentRenderFn<TProps = unknown> = (props: TProps) => ComponentRenderOutput;
+export type ComponentRenderFn<TProps = unknown> = (
+  props: TProps
+) => ValueOrPromise<ComponentOutput | void>;
 
 export interface ComponentOptions {
   container?: ContainerContext;
@@ -47,29 +48,25 @@ export function createComponent<TProps>(
   props: TProps,
   render: ComponentRenderFn<TProps>,
   options?: ComponentOptions
-): ComponentRenderOutput;
+): ValueOrPromise<ComponentOutput | void>;
 export function createComponent<TProps>(
   props: TProps,
   render: ComponentRenderFn<TProps>,
   options?: ComponentOptions
-): ComponentRenderOutput {
-  return runComponent(props, render, options);
-}
-
-function runComponent<TProps>(
-  props: TProps,
-  render: ComponentRenderFn<TProps>,
-  options: ComponentOptions | undefined
-): ComponentRenderOutput {
+): ValueOrPromise<ComponentOutput | void> {
   const parentInvokeContext =
-    options !== undefined && 'invokeContext' in options
-      ? (options.invokeContext ?? null)
+    options !== undefined && options.invokeContext
+      ? options.invokeContext
       : getActiveInvokeContextOrNull();
-  const invokeContext = newChildInvokeContext(parentInvokeContext, options);
+  const invokeContext = newChildInvokeContext(parentInvokeContext, {
+    ownerHost: getOrCreateContextOwner(parentInvokeContext),
+    container: options?.container,
+    slotScope: options?.slotScope,
+  });
 
-  let nodes: ComponentRenderOutput;
+  let nodes: ValueOrPromise<ComponentOutput | void>;
   try {
-    nodes = runWithCollector(null, invoke, invokeContext, render, props);
+    nodes = untrack(invoke, invokeContext, render, props);
   } catch (error) {
     if (invokeContext.owner !== null) {
       disposeOwner(invokeContext.owner);

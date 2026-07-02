@@ -2,7 +2,7 @@ import type { QRL } from '../../../shared/qrl/qrl.public';
 import { maybeThen, retryOnPromise } from '../../../shared/utils/promises';
 import type { ValueOrPromise } from '../../../shared/utils/types';
 import { SubscriberFlags } from '../../reactive/flags';
-import type { Dependency } from '../../reactive/source';
+import type { Source } from '../../reactive/source';
 import { runWithCollector } from '../../reactive/tracking';
 import type { ContainerContext } from '../../runtime/container-context';
 import {
@@ -87,7 +87,7 @@ export class BranchSubscription implements BranchSubscriber {
   readonly kind = SubscriberKind.Branch;
   owner: Owner | null = null;
   flags = SubscriberFlags.None;
-  deps: Dependency[] | null = null;
+  deps: Source[] | null = null;
   depVersions: number[] | null = null;
 
   constructor(
@@ -243,7 +243,7 @@ export class SSRBranch {
 export class SSRBranchSubscription implements SsrBranchSubscriber {
   readonly kind = SubscriberKind.Branch;
   owner: Owner | null = null;
-  deps: Dependency[] | null = null;
+  deps: Source[] | null = null;
   depVersions: number[] | null = null;
 
   constructor(readonly branch: SSRBranch) {}

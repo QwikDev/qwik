@@ -17,9 +17,9 @@ import {
   createPropsEffect,
   createTextExpressionEffect,
   createTextNodeEffect,
-  patchAttrValue,
   runDomBatchEffect,
 } from './effect';
+import { patchAttrValue } from './dom-props';
 
 describe('DOM effects', () => {
   it('patches text expression data', async () => {
@@ -27,9 +27,7 @@ describe('DOM effects', () => {
     const count = createSignal(7);
     const text = createText();
     const effect = createOwned(() =>
-      createTextExpressionEffect(text, [count], (source) => source.value, {
-        scheduler,
-      })
+      createTextExpressionEffect(text, [count], (source) => source.value, scheduler)
     );
 
     scheduler.notify(effect);
@@ -52,7 +50,7 @@ describe('DOM effects', () => {
           seen.push(value);
           return value;
         },
-        { scheduler }
+        scheduler
       )
     );
 
@@ -75,7 +73,7 @@ describe('DOM effects', () => {
     const scheduler = new Scheduler(noopSchedule);
     const count = createSignal(7);
     const text = createText();
-    const effect = createOwned(() => createTextNodeEffect(text, count, { scheduler }));
+    const effect = createOwned(() => createTextNodeEffect(text, count, scheduler));
 
     scheduler.notify(effect);
     await scheduler.flushInteraction();
@@ -93,7 +91,7 @@ describe('DOM effects', () => {
     const scheduler = new Scheduler(noopSchedule);
     const title = createSignal('hello');
     const { element, attrs } = createAttrTarget();
-    const effect = createOwned(() => createAttrEffect(element, 'title', title, { scheduler }));
+    const effect = createOwned(() => createAttrEffect(element, 'title', title, scheduler));
 
     scheduler.notify(effect);
     await scheduler.flushInteraction();
@@ -116,7 +114,7 @@ describe('DOM effects', () => {
         'style',
         [],
         () => ({ color: count.value > 0 ? 'red' : 'blue' }),
-        { scheduler }
+        scheduler
       )
     );
 
@@ -152,9 +150,7 @@ describe('DOM effects', () => {
     const active = createSignal(false);
     const { element, attrs } = createAttrTarget();
     const effect = createOwned(() =>
-      createAttrExpressionEffect(element, 'class', [], () => ({ active: active.value }), {
-        scheduler,
-      })
+      createAttrExpressionEffect(element, 'class', [], () => ({ active: active.value }), scheduler)
     );
 
     scheduler.notify(effect);
@@ -180,7 +176,7 @@ describe('DOM effects', () => {
       display: 'grid',
     });
     const { element, attrs } = createAttrTarget();
-    const effect = createOwned(() => createAttrEffect(element, 'style', style, { scheduler }));
+    const effect = createOwned(() => createAttrEffect(element, 'style', style, scheduler));
 
     scheduler.notify(effect);
     await scheduler.flushInteraction();
@@ -204,7 +200,7 @@ describe('DOM effects', () => {
       selected: 1,
     });
     const { element, attrs } = createAttrTarget();
-    const effect = createOwned(() => createAttrEffect(element, 'class', classes, { scheduler }));
+    const effect = createOwned(() => createAttrEffect(element, 'class', classes, scheduler));
 
     scheduler.notify(effect);
     await scheduler.flushInteraction();
@@ -233,7 +229,7 @@ describe('DOM effects', () => {
     });
     const { element, attrs } = createPropsTarget();
     const effect = createOwned(() =>
-      createPropsEffect(element, [], () => props.value as Record<string, unknown>, { scheduler })
+      createPropsEffect(element, [], () => props.value as Record<string, unknown>, scheduler)
     );
 
     scheduler.notify(effect);
@@ -275,7 +271,7 @@ describe('DOM effects', () => {
     });
     const { element, attrs } = createPropsTarget();
     const effect = createOwned(() =>
-      createPropsEffect(element, [], () => props.value as Record<string, unknown>, { scheduler })
+      createPropsEffect(element, [], () => props.value as Record<string, unknown>, scheduler)
     );
 
     scheduler.notify(effect);
@@ -307,7 +303,7 @@ describe('DOM effects', () => {
     const count = createSignal(2);
     const doubled = createOwned(() => createComputed(() => count.value * 2));
     const text = createText();
-    const effect = createOwned(() => createTextNodeEffect(text, doubled, { scheduler }));
+    const effect = createOwned(() => createTextNodeEffect(text, doubled, scheduler));
 
     scheduler.notify(effect);
     await scheduler.flushInteraction();
@@ -340,12 +336,12 @@ describe('DOM effects', () => {
     const scheduler = new Scheduler(noopSchedule);
     const order = createSignal('');
     const first = createOwned(() =>
-      createAttrEffect(createAttrTarget().element, 'data-order', order, { scheduler })
+      createAttrEffect(createAttrTarget().element, 'data-order', order, scheduler)
     );
     const second = createOwned(() =>
-      createAttrEffect(createAttrTarget().element, 'style', order, { scheduler })
+      createAttrEffect(createAttrTarget().element, 'style', order, scheduler)
     );
-    const third = createOwned(() => createTextNodeEffect(createText(), order, { scheduler }));
+    const third = createOwned(() => createTextNodeEffect(createText(), order, scheduler));
     const seen: string[] = [];
 
     first.effect.run = () => seen.push('first');
@@ -367,13 +363,10 @@ describe('DOM effects', () => {
     const text = createText();
     const { element, attrs } = createAttrTarget();
     const effect = createOwned(() =>
-      createDomBatchEffect(
-        () => {
-          text.data = String(count.value);
-          element.setAttribute('class', active.value ? 'active' : '');
-        },
-        { scheduler }
-      )
+      createDomBatchEffect(() => {
+        text.data = String(count.value);
+        element.setAttribute('class', active.value ? 'active' : '');
+      }, scheduler)
     );
 
     scheduler.notify(effect);
@@ -404,7 +397,7 @@ describe('DOM effects', () => {
     const active = createSignal(false);
     const text = createText();
     const { element, attrs } = createAttrTarget();
-    const effect = createOwned(() => createDomBatchEffect(() => undefined, { scheduler }));
+    const effect = createOwned(() => createDomBatchEffect(() => undefined, scheduler));
 
     runDomBatchEffect(effect, () => {
       text.data = String(count.value);
@@ -423,7 +416,7 @@ describe('DOM effects', () => {
   it('removes direct DOM effects from sources when disposed', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const count = createSignal(1);
-    const effect = createOwned(() => createTextNodeEffect(createText(), count, { scheduler }));
+    const effect = createOwned(() => createTextNodeEffect(createText(), count, scheduler));
 
     scheduler.notify(effect);
     await scheduler.flushInteraction();
@@ -438,9 +431,7 @@ describe('DOM effects', () => {
   it('skips disposed DOM effects that were already scheduled', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const text = createText();
-    const effect = createOwned(() =>
-      createTextNodeEffect(text, createSignal('next'), { scheduler })
-    );
+    const effect = createOwned(() => createTextNodeEffect(text, createSignal('next'), scheduler));
 
     scheduler.notify(effect);
     disposeSubscriber(effect);
@@ -462,7 +453,7 @@ describe('DOM effects', () => {
         text,
         [useA, a, b],
         (selected, left, right) => (selected.value ? left.value : right.value),
-        { scheduler }
+        scheduler
       )
     );
 

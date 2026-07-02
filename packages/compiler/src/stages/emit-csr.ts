@@ -522,7 +522,7 @@ export class DomEmitter {
     if (node.binding.kind === 'source') {
       this.use(QwikSymbol.CreateTextNodeEffect);
       this.line(
-        `const ${effectId} = ${QwikSymbol.CreateTextNodeEffect}(${textId}, ${node.binding.sourceName}, { scheduler: ctx.scheduler });`
+        `const ${effectId} = ${QwikSymbol.CreateTextNodeEffect}(${textId}, ${node.binding.sourceName}, ctx.scheduler);`
       );
     } else {
       const callback = this.emitDomExpressionCallback(
@@ -531,7 +531,7 @@ export class DomEmitter {
       );
       this.use(QwikSymbol.CreateTextExpressionEffect);
       this.line(
-        `const ${effectId} = ${QwikSymbol.CreateTextExpressionEffect}(${textId}, ${callback.args}, ${callback.fn}, { scheduler: ctx.scheduler });`
+        `const ${effectId} = ${QwikSymbol.CreateTextExpressionEffect}(${textId}, ${callback.args}, ${callback.fn}, ctx.scheduler);`
       );
     }
     this.emitInitialDomEffect(effectId);
@@ -562,7 +562,7 @@ export class DomEmitter {
         const effectId = this.next('effect');
         this.use(QwikSymbol.CreatePropsEffect);
         this.line(
-          `const ${effectId} = ${QwikSymbol.CreatePropsEffect}(${elementId}, ${callback.args}, ${callback.fn}, ${this.emitDomEffectOptions()});`
+          `const ${effectId} = ${QwikSymbol.CreatePropsEffect}(${elementId}, ${callback.args}, ${callback.fn}, ${this.emitDomEffectArgs()});`
         );
         this.emitInitialDomEffect(effectId);
       }
@@ -871,13 +871,13 @@ export class DomEmitter {
       this.use(QwikSymbol.CreateAttrExpressionEffect);
       return `const ${effectId} = ${QwikSymbol.CreateAttrExpressionEffect}(${elementId}, ${JSON.stringify(
         prop.name
-      )}, ${callback.args}, ${callback.fn}, ${this.emitDomEffectOptions()});`;
+      )}, ${callback.args}, ${callback.fn}, ${this.emitDomEffectArgs()});`;
     }
     const sourceName = binding.sourceName;
     this.use(QwikSymbol.CreateAttrEffect);
     return `const ${effectId} = ${QwikSymbol.CreateAttrEffect}(${elementId}, ${JSON.stringify(
       prop.name
-    )}, ${sourceName}, ${this.emitDomEffectOptions()});`;
+    )}, ${sourceName}, ${this.emitDomEffectArgs()});`;
   }
 
   private emitDynamicAttrBatchOp(elementId: string, prop: PropRecord, batchKey: string): void {
@@ -913,11 +913,8 @@ export class DomEmitter {
       : `, ${JSON.stringify(this.options.styleScopedId)}`;
   }
 
-  private emitDomEffectOptions(): string {
-    const styleScopedId = this.options.styleScopedId;
-    return styleScopedId === undefined
-      ? '{ scheduler: ctx.scheduler }'
-      : `{ scheduler: ctx.scheduler, styleScopedId: ${JSON.stringify(styleScopedId)} }`;
+  private emitDomEffectArgs(): string {
+    return `ctx.scheduler${this.emitStyleScopedArg()}`;
   }
 
   private shouldBatchDomEffect(batchKey: string | null): boolean {
@@ -933,7 +930,7 @@ export class DomEmitter {
     const updateId = this.next('batch');
     this.use(QwikSymbol.CreateDomBatchEffect);
     this.line(
-      `const ${effectId} = ${QwikSymbol.CreateDomBatchEffect}(${updateId}, { scheduler: ctx.scheduler });`
+      `const ${effectId} = ${QwikSymbol.CreateDomBatchEffect}(${updateId}, ctx.scheduler);`
     );
     const state = { effectId, updateId, ops: [] };
     this.batches.set(batchKey, state);

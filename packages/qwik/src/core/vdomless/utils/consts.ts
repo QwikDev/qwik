@@ -11,3 +11,17 @@ export const enum NodeType {
   Document = 9,
   DocumentFragment = 11,
 }
+
+// static strings
+
+export const PassiveEventPrefix = 'passive:';
+export const PreventDefaultEventPrefix = 'preventdefault:';
+export const StopPropagationEventPrefix = 'stoppropagation:';
+export const BindEventPrefix = 'bind:';
+
+export const EventSuffix = '$';
+
+export const ClassAttr = 'class';
+export const ClassNameAttr = 'className';
+export const StyleAttr = 'style';
+export const DangerousInnerHTMLAttr = 'dangerouslySetInnerHTML';

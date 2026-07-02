@@ -10,8 +10,6 @@ export interface Source<T = unknown> {
   subs: SourceSubs;
 }
 
-export type Dependency<T = unknown> = Source<T>;
-
 export interface ComputedSource<T = unknown> extends Source<T> {
   readonly kind: SubscriberKind.Computed;
   readonly value: T;

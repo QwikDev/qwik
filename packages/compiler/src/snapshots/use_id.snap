@@ -89,9 +89,7 @@ export function App(_props, ctx, _id = 'quse_id_App-') {
   const id = _id + 'u0';
   const fragment0 = dom_App_template0(ctx.document);
   const el1 = fragment0.firstChild;
-  const effect2 = createAttrExpressionEffect(el1, 'for', [id], dom_App_expr1, {
-    scheduler: ctx.scheduler,
-  });
+  const effect2 = createAttrExpressionEffect(el1, 'for', [id], dom_App_expr1, ctx.scheduler);
   ctx.scheduler.notify(effect2);
   return el1;
 }

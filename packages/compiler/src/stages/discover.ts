@@ -3,6 +3,7 @@ import {
   getJsxName,
   getParams,
   getRange,
+  isKnownSourceFactoryName,
   isCallExpression,
   isFunctionLike,
   isIdentifierNamed,
@@ -35,6 +36,7 @@ interface ComponentFunctionInfo {
 interface ComponentBodyInfo {
   jsx: AstJsxNode | null;
   setupRanges: NonNullable<ComponentRecord['functionRange']>[];
+  knownSourceNames: string[];
   jsxValues: ComponentRecord['jsxValues'];
   styles: ComponentRecord['styles'];
   providesContext: boolean;
@@ -47,6 +49,11 @@ interface ContextProviderImports {
 
 interface StyleHookImports {
   named: Map<string, boolean>;
+}
+
+interface SourceFactoryImports {
+  named: Set<string>;
+  namespaces: Set<string>;
 }
 
 export function collectModuleFacts(ctx: CompilerContext) {
@@ -183,7 +190,12 @@ function addFunctionComponent(
   qrlBoundary: string | null = null,
   exported = true
 ) {
-  const body = getComponentBody(fn, getContextProviderImports(ctx), getStyleHookImports(ctx));
+  const body = getComponentBody(
+    fn,
+    getContextProviderImports(ctx),
+    getStyleHookImports(ctx),
+    getSourceFactoryImports(ctx)
+  );
   const component: ComponentRecord = {
     exportName,
     localName,
@@ -199,6 +211,7 @@ function addFunctionComponent(
     styles: body.styles,
     params: getParams(fn),
     setupRanges: body.setupRanges,
+    knownSourceNames: body.knownSourceNames,
     jsxValues: body.jsxValues,
     jsx: body.jsx,
     root: null,
@@ -349,19 +362,47 @@ function getComponentFunction(node: unknown): ComponentFunctionInfo | null {
 function getComponentBody(
   fn: AstFunction,
   contextProviderImports: ContextProviderImports,
-  styleHookImports: StyleHookImports
+  styleHookImports: StyleHookImports,
+  sourceFactoryImports: SourceFactoryImports
 ): ComponentBodyInfo {
   const body = unwrapExpression(fn.body);
   if (!body) {
-    return { jsx: null, setupRanges: [], jsxValues: [], styles: [], providesContext: false };
+    return {
+      jsx: null,
+      setupRanges: [],
+      knownSourceNames: [],
+      jsxValues: [],
+      styles: [],
+      providesContext: false,
+    };
   }
   if (body.type === 'JSXElement' || body.type === 'JSXFragment') {
-    return { jsx: body, setupRanges: [], jsxValues: [], styles: [], providesContext: false };
+    return {
+      jsx: body,
+      setupRanges: [],
+      knownSourceNames: [],
+      jsxValues: [],
+      styles: [],
+      providesContext: false,
+    };
   }
   if (body.type !== 'BlockStatement') {
-    return { jsx: null, setupRanges: [], jsxValues: [], styles: [], providesContext: false };
+    return {
+      jsx: null,
+      setupRanges: [],
+      knownSourceNames: [],
+      jsxValues: [],
+      styles: [],
+      providesContext: false,
+    };
   }
+  const shadowedSourceFactoryImports = getShadowedSourceFactoryImports(
+    fn,
+    body.body ?? [],
+    sourceFactoryImports
+  );
   const setupRanges: ComponentBodyInfo['setupRanges'] = [];
+  const knownSourceNames: ComponentBodyInfo['knownSourceNames'] = [];
   const jsxValues: ComponentBodyInfo['jsxValues'] = [];
   const styles: ComponentBodyInfo['styles'] = [];
   let providesContext = false;
@@ -372,22 +413,133 @@ function getComponentBody(
         setupRanges.push(statementRange);
       }
       collectStyleHooks(statement, styleHookImports, styles);
+      collectKnownSourceNames(
+        statement,
+        sourceFactoryImports,
+        shadowedSourceFactoryImports,
+        knownSourceNames
+      );
       collectJsxValues(statement, jsxValues);
       providesContext ||= containsContextProviderCall(statement, contextProviderImports);
       continue;
     }
     const argument = unwrapExpression(statement.argument);
     if (isJsxNode(argument)) {
-      return { jsx: argument, setupRanges, jsxValues, styles, providesContext };
+      return { jsx: argument, setupRanges, knownSourceNames, jsxValues, styles, providesContext };
     }
     if (statementRange) {
       setupRanges.push(statementRange);
     }
     collectStyleHooks(statement, styleHookImports, styles);
+    collectKnownSourceNames(
+      statement,
+      sourceFactoryImports,
+      shadowedSourceFactoryImports,
+      knownSourceNames
+    );
     collectJsxValues(statement, jsxValues);
     providesContext ||= containsContextProviderCall(statement, contextProviderImports);
   }
-  return { jsx: null, setupRanges: [], jsxValues: [], styles: [], providesContext: false };
+  return {
+    jsx: null,
+    setupRanges: [],
+    knownSourceNames: [],
+    jsxValues: [],
+    styles: [],
+    providesContext: false,
+  };
+}
+
+function collectKnownSourceNames(
+  statement: unknown,
+  imports: SourceFactoryImports,
+  shadowedSourceFactoryImports: Set<string>,
+  knownSourceNames: string[]
+) {
+  if (
+    !statement ||
+    typeof statement !== 'object' ||
+    (statement as { type?: string }).type !== 'VariableDeclaration' ||
+    (statement as { kind?: string }).kind !== 'const'
+  ) {
+    return;
+  }
+  for (const declarator of (statement as { declarations?: unknown[] }).declarations ?? []) {
+    if (!declarator || typeof declarator !== 'object') {
+      continue;
+    }
+    const record = declarator as { id?: unknown; init?: unknown };
+    const name = getIdentifierName(record.id);
+    if (name && isKnownSourceFactoryCall(record.init, imports, shadowedSourceFactoryImports)) {
+      knownSourceNames.push(name);
+    }
+  }
+}
+
+function getShadowedSourceFactoryImports(
+  fn: AstFunction,
+  statements: AstNode[],
+  imports: SourceFactoryImports
+): Set<string> {
+  const localNames = new Set<string>();
+  for (const param of fn.params ?? []) {
+    collectPatternBindingNames(param, localNames);
+  }
+  for (const statement of statements) {
+    collectStatementBindingNames(statement, localNames);
+  }
+  return new Set(
+    [...localNames].filter((name) => imports.named.has(name) || imports.namespaces.has(name))
+  );
+}
+
+function collectStatementBindingNames(statement: AstNode, names: Set<string>) {
+  if (statement.type === 'VariableDeclaration') {
+    for (const declaration of statement.declarations ?? []) {
+      collectPatternBindingNames(declaration.id, names);
+    }
+    return;
+  }
+  if (statement.type === 'FunctionDeclaration' || statement.type === 'ClassDeclaration') {
+    const name = getIdentifierName(statement.id);
+    if (name !== null) {
+      names.add(name);
+    }
+  }
+}
+
+function collectPatternBindingNames(pattern: unknown, names: Set<string>) {
+  const unwrapped = unwrapExpression(pattern);
+  if (!unwrapped) {
+    return;
+  }
+  if (unwrapped.type === 'Identifier') {
+    names.add(unwrapped.name);
+    return;
+  }
+  if (unwrapped.type === 'AssignmentPattern') {
+    collectPatternBindingNames(unwrapped.left, names);
+    return;
+  }
+  if (unwrapped.type === 'RestElement') {
+    collectPatternBindingNames(unwrapped.argument, names);
+    return;
+  }
+  if (unwrapped.type === 'ArrayPattern') {
+    for (const element of unwrapped.elements ?? []) {
+      collectPatternBindingNames(element, names);
+    }
+    return;
+  }
+  if (unwrapped.type === 'ObjectPattern') {
+    for (const prop of unwrapped.properties ?? []) {
+      if (prop.type === 'RestElement') {
+        collectPatternBindingNames(prop.argument, names);
+      } else {
+        collectPatternBindingNames(prop.value, names);
+      }
+    }
+  }
 }
 
 function collectStyleHooks(
@@ -518,6 +670,56 @@ function getStyleHookImports(ctx: CompilerContext): StyleHookImports {
     }
   }
   return { named };
+}
+
+function getSourceFactoryImports(ctx: CompilerContext): SourceFactoryImports {
+  const named = new Set<string>();
+  const namespaces = new Set<string>();
+  for (const importRecord of ctx.manifest.imports) {
+    if (importRecord.typeOnly || importRecord.source !== QwikModule.Spark) {
+      continue;
+    }
+    for (const specifier of importRecord.specifiers) {
+      if (specifier.kind === 'namespace') {
+        namespaces.add(specifier.localName);
+      } else if (
+        specifier.kind === 'named' &&
+        !specifier.typeOnly &&
+        isKnownSourceFactoryName(specifier.importedName)
+      ) {
+        named.add(specifier.localName);
+      }
+    }
+  }
+  return { named, namespaces };
+}
+
+function isKnownSourceFactoryCall(
+  node: unknown,
+  imports: SourceFactoryImports,
+  shadowedSourceFactoryImports: Set<string>
+): boolean {
+  const expr = unwrapExpression(node);
+  if (!isCallExpression(expr)) {
+    return false;
+  }
+  const callee = unwrapExpression(expr.callee);
+  const localName = getIdentifierName(callee);
+  if (localName !== null) {
+    return imports.named.has(localName) && !shadowedSourceFactoryImports.has(localName);
+  }
+  if (!callee || callee.type !== 'MemberExpression' || callee.computed) {
+    return false;
+  }
+  const objectName = getIdentifierName(callee.object);
+  const propertyName = getIdentifierName(callee.property);
+  return (
+    objectName !== null &&
+    propertyName !== null &&
+    imports.namespaces.has(objectName) &&
+    !shadowedSourceFactoryImports.has(objectName) &&
+    isKnownSourceFactoryName(propertyName)
+  );
 }
 
 function containsContextProviderCall(

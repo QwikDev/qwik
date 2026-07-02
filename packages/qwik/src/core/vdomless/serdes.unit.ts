@@ -514,9 +514,7 @@ describe('vdomless serdes emit-only', () => {
     const local = createSignal('mounted');
     const rootOwner = createOwner(null);
     const ownedEffect = runWithOwner(rootOwner, () =>
-      createTextNodeEffect(createText(), local, {
-        scheduler: container.scheduler,
-      })
+      createTextNodeEffect(createText(), local, container.scheduler)
     );
     const branch = registerSubscriberToOwner(
       new BranchSubscription(null!, container.scheduler),

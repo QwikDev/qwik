@@ -11,6 +11,25 @@ export type StaticSourceTextPart =
   | { kind: 'text'; value: string }
   | { kind: 'source'; sourceName: string; expressionRange: SourceRange };
 
+export type SourceNamePredicate = (sourceName: string) => boolean;
+
+export const SOURCE_FACTORY_NAMES = new Set([
+  'createSignal',
+  'createComputed',
+  'createComputedQrl',
+  'createComputed$',
+  'createAsync',
+  'createAsyncQrl',
+  'createAsync$',
+  'createSerializer',
+  'createSerializerQrl',
+  'createSerializer$',
+]);
+
+export function isKnownSourceFactoryName(name: string): boolean {
+  return SOURCE_FACTORY_NAMES.has(name);
+}
+
 export function visit(node: unknown, visitor: (node: AstNode) => void) {
   if (!isObjectNode(node)) {
     return;
@@ -217,12 +236,34 @@ export function getSignalValueSourceName(node: unknown): string | null {
   return isObjectNode(object) && object.type === 'Identifier' ? object.name : null;
 }
 
-export function isStaticSourceTextExpression(node: unknown): boolean {
-  return getStaticSourceTextExpressionParts(node) !== null;
+export function isSignalValueMethodCallExpression(
+  node: unknown,
+  isKnownSourceName: SourceNamePredicate = acceptAnySourceName
+): boolean {
+  const expr = unwrapExpression(node);
+  if (!isObjectNode(expr) || expr.type !== 'CallExpression') {
+    return false;
+  }
+  const callee = unwrapExpression(expr.callee);
+  if (!isObjectNode(callee) || callee.type !== 'MemberExpression' || callee.computed) {
+    return false;
+  }
+  const sourceName = getSignalValueSourceName(callee.object);
+  return sourceName !== null && isKnownSourceName(sourceName);
 }
 
-export function getStaticSourceTextExpressionParts(node: unknown): StaticSourceTextPart[] | null {
-  const analysis = analyzeStaticSourceTextExpression(node);
+export function isStaticSourceTextExpression(
+  node: unknown,
+  isKnownSourceName: SourceNamePredicate = acceptAnySourceName
+): boolean {
+  return getStaticSourceTextExpressionParts(node, isKnownSourceName) !== null;
+}
+
+export function getStaticSourceTextExpressionParts(
+  node: unknown,
+  isKnownSourceName: SourceNamePredicate = acceptAnySourceName
+): StaticSourceTextPart[] | null {
+  const analysis = analyzeStaticSourceTextExpression(node, isKnownSourceName);
   return analysis?.guaranteedString ? analysis.parts : null;
 }
 
@@ -308,7 +349,8 @@ function fromCamelToKebabCase(value: string) {
 }
 
 function analyzeStaticSourceTextExpression(
-  node: unknown
+  node: unknown,
+  isKnownSourceName: SourceNamePredicate
 ): { parts: StaticSourceTextPart[]; guaranteedString: boolean } | null {
   const expr = unwrapExpression(node);
   if (!isObjectNode(expr)) {
@@ -326,15 +368,15 @@ function analyzeStaticSourceTextExpression(
   }
   const sourceName = getSignalValueSourceName(expr);
   const expressionRange = getRange(expr);
-  if (sourceName !== null && expressionRange !== null) {
+  if (sourceName !== null && isKnownSourceName(sourceName) && expressionRange !== null) {
     return {
       parts: [{ kind: 'source', sourceName, expressionRange }],
       guaranteedString: false,
     };
   }
   if (expr.type === 'BinaryExpression' && expr.operator === '+') {
-    const left = analyzeStaticSourceTextExpression(expr.left);
-    const right = analyzeStaticSourceTextExpression(expr.right);
+    const left = analyzeStaticSourceTextExpression(expr.left, isKnownSourceName);
+    const right = analyzeStaticSourceTextExpression(expr.right, isKnownSourceName);
     if (!left || !right || (!left.guaranteedString && !right.guaranteedString)) {
       return null;
     }
@@ -344,6 +386,10 @@ function analyzeStaticSourceTextExpression(
     };
   }
   return null;
+}
+
+function acceptAnySourceName(): boolean {
+  return true;
 }
 
 function isObjectNode(node: unknown): node is AstNode {

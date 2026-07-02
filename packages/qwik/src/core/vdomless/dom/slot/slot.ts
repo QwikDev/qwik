@@ -12,7 +12,7 @@ import {
   newChildInvokeContext,
   type RuntimeInvokeContext,
 } from '../../runtime/invoke-context';
-import { disposeOwner, type Owner } from '../../runtime/owner';
+import { disposeOwner, getOrCreateContextOwner, type Owner } from '../../runtime/owner';
 import { EMPTY_ARRAY, EMPTY_NODES, EMPTY_STRING } from '../../utils/consts';
 import { toNodes, type MaybeNodeOutput } from '../../utils/nodes';
 import { getFunctionOrResolve } from '../../utils/qrl';
@@ -199,9 +199,9 @@ function project(
     container
   );
   return maybeThen(render, (render) => {
-    const base = getActiveInvokeContextOrNull();
-    const invokeContext = newChildInvokeContext(base, {
-      ownerHost: projection.owner ?? base,
+    const currentInvokeContext = getActiveInvokeContextOrNull();
+    const invokeContext = newChildInvokeContext(currentInvokeContext, {
+      ownerHost: projection.owner ?? getOrCreateContextOwner(currentInvokeContext),
       container,
       slotScope: projection.slotScope,
     });
@@ -237,7 +237,7 @@ function renderSsrProjection(
   );
   return maybeThen(render, (render) => {
     const invokeContext = newChildInvokeContext(base, {
-      ownerHost: base,
+      ownerHost: getOrCreateContextOwner(base),
       slotScope,
     });
     const html = invoke(invokeContext, render, ctx, rangeId, idBase);

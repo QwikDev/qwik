@@ -162,9 +162,7 @@ export function App(_props, ctx) {
   });
   const title = createSignal('final');
   const el0 = ctx.document.createElement('div');
-  const effect1 = createPropsEffect(el0, [attrs, title], dom_App_expr0, {
-    scheduler: ctx.scheduler,
-  });
+  const effect1 = createPropsEffect(el0, [attrs, title], dom_App_expr0, ctx.scheduler);
   ctx.scheduler.notify(effect1);
   const text2 = ctx.document.createTextNode('Child');
   el0.appendChild(text2);

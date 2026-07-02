@@ -299,7 +299,7 @@ export const component_branch_then_segment_1 = (ctx) => {
   const text1 = ctx.document.createTextNode('Even ');
   el0.appendChild(text1);
   const text2 = ctx.document.createTextNode('');
-  const effect3 = createTextNodeEffect(text2, count, { scheduler: ctx.scheduler });
+  const effect3 = createTextNodeEffect(text2, count, ctx.scheduler);
   ctx.scheduler.notify(effect3);
   el0.appendChild(text2);
   return el0;
@@ -340,7 +340,7 @@ export const component_branch_else_segment_2 = (ctx) => {
   const text1 = ctx.document.createTextNode('Odd ');
   el0.appendChild(text1);
   const text2 = ctx.document.createTextNode('');
-  const effect3 = createTextNodeEffect(text2, count, { scheduler: ctx.scheduler });
+  const effect3 = createTextNodeEffect(text2, count, ctx.scheduler);
   ctx.scheduler.notify(effect3);
   el0.appendChild(text2);
   return el0;

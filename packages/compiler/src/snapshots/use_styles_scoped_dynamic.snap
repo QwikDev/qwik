@@ -157,10 +157,14 @@ export function App(_props, ctx) {
   const active = createSignal(false);
   const fragment0 = dom_App_template0(ctx.document);
   const el1 = fragment0.firstChild;
-  const effect2 = createAttrExpressionEffect(el1, 'class', [active], dom_App_expr1, {
-    scheduler: ctx.scheduler,
-    styleScopedId: '⚡️z0ce9z-0',
-  });
+  const effect2 = createAttrExpressionEffect(
+    el1,
+    'class',
+    [active],
+    dom_App_expr1,
+    ctx.scheduler,
+    '⚡️z0ce9z-0'
+  );
   ctx.scheduler.notify(effect2);
   setEvent(el1, 'q-e:click', use_styles_scoped_dynamic_q_e_click_segment_1, [active]);
   return el1;

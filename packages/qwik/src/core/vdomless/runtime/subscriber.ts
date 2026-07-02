@@ -3,7 +3,7 @@ import type { Branch, SSRBranch } from '../dom/branch/branch';
 import type { ForBlock, SSRForBlock } from '../dom/for/for';
 import type { ValueOrPromise } from '../../shared/utils/types';
 import type { DomEffect } from '../dom/effect/effect';
-import type { ComputedSource, Dependency } from '../reactive/source';
+import type { ComputedSource, Source } from '../reactive/source';
 import type { Task, VisibleTask } from './task';
 import type { SsrDomEffect } from '../dom/effect/ssr-effect';
 import type { Owner } from './owner';
@@ -20,7 +20,7 @@ export const enum SubscriberKind {
 }
 
 export interface Collector {
-  deps: Dependency[] | null;
+  deps: Source[] | null;
   depVersions: number[] | null;
 }
 

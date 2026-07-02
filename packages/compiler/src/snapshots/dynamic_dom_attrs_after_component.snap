@@ -138,9 +138,7 @@ export function App(_props, ctx) {
   if (Array.isArray(cmp1)) for (let i = 0; i < cmp1.length; i++) el0.appendChild(cmp1[i]);
   else el0.appendChild(cmp1);
   const el2 = ctx.document.createElement('p');
-  const effect3 = createAttrExpressionEffect(el2, 'style', [count], dom_App_expr0, {
-    scheduler: ctx.scheduler,
-  });
+  const effect3 = createAttrExpressionEffect(el2, 'style', [count], dom_App_expr0, ctx.scheduler);
   ctx.scheduler.notify(effect3);
   const text4 = ctx.document.createTextNode('After');
   el2.appendChild(text4);

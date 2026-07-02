@@ -6,7 +6,6 @@ export {
   peekSourceValue,
   readSourceValue,
   type ComputedSource,
-  type Dependency,
   type Source,
 } from './reactive/source';
 export { cleanupDeps, disposeSubscriber, disposeSubscribers } from './reactive/cleanup';
@@ -142,7 +141,6 @@ export {
   type ComponentOutput,
   type ComponentOptions,
   type ComponentRenderFn,
-  type ComponentRenderOutput,
 } from './component/component';
 export { mergeProps } from './component/props';
 
@@ -170,18 +168,20 @@ export {
   createPropsEffect,
   createTextExpressionEffect,
   createTextNodeEffect,
-  patchAttrValue,
   patchTextValue,
   readTrackedSourceValue,
   runDomBatchEffect,
-  serializeAttrExpressionValue,
   type AttrExpressionFn,
   type DomEffect,
-  type DomEffectOptions,
   type TextExpressionFn,
   type TextExpressionValue,
 } from './dom/effect/effect';
-export { applyDomProps, normalizeDomProps, renderDomPropsToString } from './dom/effect/dom-props';
+export {
+  applyDomProps,
+  renderDomPropsToString,
+  patchAttrValue,
+  serializeAttrExpressionValue,
+} from './dom/effect/dom-props';
 export { createCapturedEvent, setEvent } from './dom/event/event';
 export {
   createOn,

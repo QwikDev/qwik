@@ -123,6 +123,42 @@ test.describe('ErrorBoundary streaming swap', () => {
     await expect(page.locator('#eb-fallback-count')).toHaveText('1');
   });
 
+  // The historical option-2 failure class: unit tests passed while the real browser aborted
+  // resume with "Missing refElement", leaving a visible-but-dead fallback.
+  test('qErr swap as a main-flow sibling of a live deferred <Suspense> segment stays interactive', async ({
+    page,
+  }) => {
+    assertNoBrowserErrors(page);
+    const response = await page.goto(`${streamingUrl('sibling-suspense', true)}&release=eb`, {
+      waitUntil: 'commit',
+    });
+
+    // Pre-release: the boundary already swapped while the sibling segment is still pending.
+    await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: An error occurred');
+    await expect(page.locator('#eb-content')).toBeHidden();
+    await expect(page.locator('#eb-skel')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#eb-deferred-ok')).toHaveCount(0);
+
+    await releaseDeferred(page, '#eb-release');
+
+    await expect(page.locator('#eb-deferred-ok')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#eb-fallback')).toBeVisible();
+    await expect(page.locator('#eb-content')).toBeHidden();
+
+    // Liveness the unit spec cannot prove: resume must survive the swap + deferred segment combo.
+    await page.locator('#eb-fallback-button').click();
+    await expect(page.locator('#eb-fallback-count')).toHaveText('1');
+
+    // Safe only after the release closed the stream: the page genuinely carries both mechanisms.
+    const html = await response!.text();
+    expect(html).toMatch(/qErr\(/);
+    expect(html).toMatch(/qO\(/);
+    // The fallback host is the inline swap host, not a deferred-segment host.
+    await expect(page.locator('[q\\:ebf] #eb-fallback')).toHaveCount(1);
+    await expect(page.locator('[q\\:rp] #eb-fallback')).toHaveCount(0);
+  });
+
   test('inert: a swapped-out content task does not re-run when an outside signal changes', async ({
     page,
   }) => {

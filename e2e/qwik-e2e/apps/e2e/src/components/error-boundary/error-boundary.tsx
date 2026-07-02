@@ -100,6 +100,24 @@ const EbDeferredOk = component$(() => {
   return <span id="eb-deferred-ok">deferred ok</span>;
 });
 
+// Release-gated resolve (unlike EbDeferredOk's timer), so pre-release assertions cannot race.
+const EbGatedOk = component$(() => {
+  const url = useServerData<string>('url');
+  const requestId = useServerData<string>('ooosRequestId');
+  if (isServer) {
+    const releaseId = getSearchParam(url, 'release');
+    if (releaseId && requestId) {
+      return waitForRelease(requestId, releaseId).then(() => (
+        <span id="eb-deferred-ok">deferred ok</span>
+      )) as unknown as JSXOutput;
+    }
+    return new Promise<JSXOutput>((resolve) => {
+      setTimeout(() => resolve(<span id="eb-deferred-ok">deferred ok</span>), 1000);
+    }) as unknown as JSXOutput;
+  }
+  return <span id="eb-deferred-ok">deferred ok</span>;
+});
+
 const EbContent = component$(() => {
   const count = useSignal(0);
   return (
@@ -233,6 +251,22 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
             <EbSyncThrower />
           </ErrorBoundary>
         </Suspense>
+      ) : scenario === 'sibling-suspense' ? (
+        // The swapped boundary is a MAIN-FLOW sibling of a live deferred segment: qErr and qO coexist.
+        <>
+          <ErrorBoundary fallback$={defaultFallback}>
+            <EbContent />
+            <EbSyncThrower />
+          </ErrorBoundary>
+          <Suspense fallback={<span id="eb-skel">loading</span>}>
+            <EbGatedOk />
+          </Suspense>
+          <ManualOutOfOrderReleaseButton
+            id="eb-release"
+            label="Release deferred ok"
+            releaseParam="release"
+          />
+        </>
       ) : scenario === 'nested' ? (
         <ErrorBoundary fallback$={(e) => <EbFallback id="eb-outer" msg={errMsg(e)} />}>
           <EbThrowOnClick

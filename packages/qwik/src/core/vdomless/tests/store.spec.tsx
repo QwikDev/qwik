@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createStore } from '@qwik.dev/core/spark';
 import { csrRender, ssrRender } from '../test-utils';
-import { useComputed } from '../reactive/computed';
+import { useComputed } from '../reactive/public-api';
 import { createOwner, runWithOwner } from '../runtime/owner';
 
 const debug = false;

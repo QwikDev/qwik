@@ -38,7 +38,7 @@ import { createContainerContext, type ContainerContext } from './runtime/contain
 import { createContextScope } from './runtime/context-scope';
 import { createOwner, registerSubscriberToOwner, runWithOwner } from './runtime/owner';
 import { Phase, Scheduler } from './runtime/scheduler';
-import { createTaskQrl, Task, TaskSubscription, type TaskFn } from './runtime/task';
+import { useTaskQrl, Task, TaskSubscription, type TaskFn } from './runtime/task';
 import { runWithCollector } from './reactive/tracking';
 import { createCaptureContainer, createText, runWithTestContainer } from './test-utils';
 
@@ -697,7 +697,7 @@ describe('vdomless serdes emit-only', () => {
     const count = useSignal(7);
     const scheduler = new Scheduler(() => {});
     const qrl = createQRL<TaskFn>('./task.js', 'task', () => {}, null, null);
-    const task = runWithTestContainer(scheduler, () => createTaskQrl(qrl));
+    const task = runWithTestContainer(scheduler, () => useTaskQrl(qrl));
 
     runWithCollector(task, () => count.value);
 

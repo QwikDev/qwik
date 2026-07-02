@@ -42,8 +42,8 @@ import {
   collectUseOnCarriers,
   emitQrlReference,
   hasTaskSetupSegment,
-  isCreateTaskSegment,
-  isCreateVisibleTaskSegment,
+  isUseTaskSegment,
+  isUseVisibleTaskSegment,
   isNestedInImplicitDollarSegment,
   isRangeInside,
   type UseOnCarrier,
@@ -132,7 +132,7 @@ function emitSsrComponent(
   const html = emitter.emitGlobalUseOnCarrierExpression(
     emitter.emitHtmlExpression(component.root!)
   );
-  const setupAwaits = hasTaskSetupSegment(component, segments, isCreateTaskSegment);
+  const setupAwaits = hasTaskSetupSegment(component, segments, isUseTaskSegment);
   const isAsync = setupAwaits;
   const setup = emitComponentSetup(
     component,
@@ -276,7 +276,7 @@ function collectVisibleTaskCarriers(
   const carriers: VisibleTaskCarrier[] = [];
   for (const segment of segments) {
     if (
-      !isCreateVisibleTaskSegment(segment) ||
+      !isUseVisibleTaskSegment(segment) ||
       !component.setupRanges.some((range) => isRangeInside(segment.range, range)) ||
       isNestedInImplicitDollarSegment(segment, segments)
     ) {

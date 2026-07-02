@@ -7,12 +7,11 @@ import {
   runWithTestContainer,
 } from '../test-utils';
 import { disposeSubscriber } from './cleanup';
-import { Computed, useComputed } from './computed';
-import { useComputedQrl } from './computed-qrl';
-import { useSignal } from './signal';
+import { Computed } from './computed';
+import { useComputedQrl, useComputed, useSignal } from './public-api';
 import { runWithCollector } from './tracking';
 import { Scheduler } from '../runtime/scheduler';
-import { createTask } from '../runtime/task';
+import { useTask } from '../runtime/task';
 import { createOwner, runWithOwner } from '../runtime/owner';
 
 describe('reactive primitives', () => {
@@ -135,7 +134,7 @@ describe('reactive primitives', () => {
   it('reads cached disposed computed values without tracking', () => {
     const scheduler = new Scheduler(noopSchedule);
     const count = useSignal(1);
-    const collector = runWithTestContainer(scheduler, () => createTask(() => {}));
+    const collector = runWithTestContainer(scheduler, () => useTask(() => {}));
     let runs = 0;
     const doubled = createOwned(() =>
       useComputed(() => {

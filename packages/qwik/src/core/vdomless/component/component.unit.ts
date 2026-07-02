@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createNode, createText, noopSchedule, runWithTestContainer } from '../test-utils';
 import { createTextNodeEffect } from '../dom/effect/effect';
-import { useSignal } from '../reactive/signal';
+import { useSignal } from '../reactive/public-api';
 import type { ContainerContext } from '../runtime/container-context';
 import { getActiveCollector, runWithCollector } from '../reactive/tracking';
 import {
@@ -17,7 +17,7 @@ import type { SlotScope } from '../dom/slot/slot';
 import { createOwner, disposeOwner, runWithOwner } from '../runtime/owner';
 import { Scheduler } from '../runtime/scheduler';
 import type { DomSubscriber } from '../runtime/subscriber';
-import { createTask } from '../runtime/task';
+import { useTask } from '../runtime/task';
 import { createComponent, type ComponentRenderFn } from './component';
 
 describe('components and invoke contexts', () => {
@@ -45,7 +45,7 @@ describe('components and invoke contexts', () => {
 
   it('does not collect direct component reads from an outer collector', () => {
     const scheduler = new Scheduler(noopSchedule);
-    const collector = runWithTestContainer(scheduler, () => createTask(() => {}));
+    const collector = runWithTestContainer(scheduler, () => useTask(() => {}));
     const count = useSignal(1);
     const node = createNode('component');
 

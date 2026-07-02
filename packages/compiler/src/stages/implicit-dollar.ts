@@ -55,8 +55,7 @@ export function transformDollarImports(
         }
         if (
           target === 'ssr' &&
-          (specifier.importedName === 'createTask$' ||
-            specifier.importedName === 'createVisibleTask$')
+          (specifier.importedName === 'useTask$' || specifier.importedName === 'useVisibleTask$')
         ) {
           return [];
         }
@@ -109,7 +108,7 @@ export function transformImplicitDollarCode(
         }
         continue;
       }
-      const fnReplacement = createTaskGeneratorReplacement(sourceCode, segment);
+      const fnReplacement = createGeneratorTrackedReplacement(sourceCode, segment);
       if (fnReplacement) {
         replacements.push(fnReplacement);
       }
@@ -138,12 +137,12 @@ export function isExplicitDollarSegment(segment: SegmentRecord) {
   return segment.kind === 'function' && segment.ctxName === '$';
 }
 
-export function isCreateTaskSegment(segment: SegmentRecord) {
-  return isImplicitDollarSegment(segment) && segment.ctxName === 'createTask$';
+export function isUseTaskSegment(segment: SegmentRecord) {
+  return isImplicitDollarSegment(segment) && segment.ctxName === 'useTask$';
 }
 
-export function isCreateVisibleTaskSegment(segment: SegmentRecord) {
-  return isImplicitDollarSegment(segment) && segment.ctxName === 'createVisibleTask$';
+export function isUseVisibleTaskSegment(segment: SegmentRecord) {
+  return isImplicitDollarSegment(segment) && segment.ctxName === 'useVisibleTask$';
 }
 
 export function isUseAsyncSegment(segment: SegmentRecord) {
@@ -151,7 +150,7 @@ export function isUseAsyncSegment(segment: SegmentRecord) {
 }
 
 export function isTaskDollarSegment(segment: SegmentRecord) {
-  return isCreateTaskSegment(segment) || isCreateVisibleTaskSegment(segment);
+  return isUseTaskSegment(segment) || isUseVisibleTaskSegment(segment);
 }
 
 export function isGeneratorTrackedSegment(segment: SegmentRecord) {
@@ -276,11 +275,11 @@ function createSsrReplacement(
 
   const prefix = sourceCode.slice(callRange[0], firstArgRange[0]);
   const suffix = sourceCode.slice(firstArgRange[1], callRange[1]);
-  if (isCreateVisibleTaskSegment(segment)) {
+  if (isUseVisibleTaskSegment(segment)) {
     return createSsrVisibleTaskReplacement(sourceCode, callRange);
   }
-  if (isCreateTaskSegment(segment)) {
-    const taskValue = `${QwikSymbol.Invoke}(invokeCtx, () => ${QwikSymbol.CreateTaskQrl}(${emitQrlReference(qrlSegment)}${suffix})`;
+  if (isUseTaskSegment(segment)) {
+    const taskValue = `${QwikSymbol.Invoke}(invokeCtx, () => ${QwikSymbol.UseTaskQrl}(${emitQrlReference(qrlSegment)}${suffix})`;
     const taskName = `task_${segment.id}`;
     return {
       range: callRange,
@@ -359,7 +358,7 @@ function getStandaloneCallStatementRange(
   return sourceCode[after] === ';' ? [callRange[0], after + 1] : null;
 }
 
-export function createTaskGeneratorReplacement(
+export function createGeneratorTrackedReplacement(
   sourceCode: string,
   segment: SegmentRecord
 ): Replacement | null {

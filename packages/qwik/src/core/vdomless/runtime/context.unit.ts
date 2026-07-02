@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createComponent } from '../component/component';
-import { useSignal } from '../reactive/signal';
+import { useSignal } from '../reactive/public-api';
 import { BranchSubscription, createBranch } from '../dom/branch/branch';
 import { createBranchRange, createNode, noopSchedule } from '../test-utils';
 import type { ContainerContext } from './container-context';

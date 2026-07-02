@@ -9,7 +9,7 @@ import {
   getOrCreateContainerContext,
   type ContainerContext,
 } from '../core/vdomless/runtime/container-context';
-import { createVisibleTaskQrl, type TaskQrlRef } from '../core/vdomless/runtime/task';
+import { useVisibleTaskQrl, type TaskQrlRef } from '../core/vdomless/runtime/task';
 import { createOwner } from '../core/vdomless/runtime/owner';
 import {
   invoke,
@@ -98,6 +98,6 @@ function runCapturedVisibleTask(captures: Readonly<unknown[]>, context: Containe
   const qrlToRun = captures[0] as TaskQrlRef;
   isDev && assertQrl(qrlToRun);
   invoke(newInvokeContext({ owner: createOwner(null), container: context }), () => {
-    createVisibleTaskQrl(qrlToRun);
+    useVisibleTaskQrl(qrlToRun);
   });
 }

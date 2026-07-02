@@ -15,7 +15,8 @@ import {
   renderSsrTextExpression,
   renderSsrTextNode,
 } from './ssr-effect';
-import { useSignal, type Signal } from '../../reactive/signal';
+import { type Signal } from '../../reactive/signal';
+import { useSignal } from '../../reactive/public-api';
 import { createOwner, runWithOwner } from '../../runtime/owner';
 
 describe('SSR DOM effect helpers', () => {

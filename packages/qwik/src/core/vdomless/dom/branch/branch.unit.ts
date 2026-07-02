@@ -12,7 +12,7 @@ import {
 } from '../../test-utils';
 import { createComponent } from '../../component/component';
 import { disposeSubscriber } from '../../reactive/cleanup';
-import { useSignal } from '../../reactive/signal';
+import { useSignal } from '../../reactive/public-api';
 import { createTextExpressionEffect, createTextNodeEffect } from '../effect/effect';
 import { createSsrElementTextTarget, renderSsrTextNode } from '../effect/ssr-effect';
 import {
@@ -54,7 +54,7 @@ describe('branches', () => {
     const nextB = createTestDomNode('next-b');
     const parent = createTestParentNode([start, oldA, oldB, end]);
     const range = new BranchRange(
-      start.ownerDocument,
+      start.ownerDocument!,
       start as unknown as Comment,
       end as unknown as Comment
     );

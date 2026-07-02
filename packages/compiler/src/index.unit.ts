@@ -810,11 +810,11 @@ export function Parent() {
 
   test('emits task setup with async generator lowering', async () => {
     await testInput('task_async_generator', {
-      code: `import { useSignal, createTask$, createVisibleTask$ } from '@qwik.dev/core/spark';
+      code: `import { useSignal, useTask$, useVisibleTask$ } from '@qwik.dev/core/spark';
 
 export function App() {
   const count = useSignal(0);
-  createTask$(async ({ cleanup }) => {
+  useTask$(async ({ cleanup }) => {
     const before = count.value;
     await Promise.resolve();
     cleanup(async () => {
@@ -822,7 +822,7 @@ export function App() {
     });
     count.value;
   });
-  createVisibleTask$(async () => {
+  useVisibleTask$(async () => {
     await Promise.resolve();
     count.value;
   }, { strategy: 'document-ready' });

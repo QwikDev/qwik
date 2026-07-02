@@ -1,5 +1,5 @@
 import { component$ } from '@qwik.dev/core';
-import { useSignal, createTask$, createVisibleTask$ } from '@qwik.dev/core/spark';
+import { useSignal, useTask$, useVisibleTask$ } from '@qwik.dev/core/spark';
 import { describe, expect, it } from 'vitest';
 import { csrRender, ssrRender } from '../test-utils';
 
@@ -17,7 +17,7 @@ describe.each([
     const App = component$(() => {
       const value = useSignal('wrong');
 
-      createTask$(async () => {
+      useTask$(async () => {
         await Promise.resolve();
         value.value = 'WORKS';
       });
@@ -43,13 +43,13 @@ describe.each([
     const App = component$(() => {
       const ready = useSignal('pending');
 
-      createTask$(async () => {
+      useTask$(async () => {
         (globalThis as any).__vdomlessTaskOrder.push('1:start');
         await Promise.resolve();
         (globalThis as any).__vdomlessTaskOrder.push('1:done');
       });
 
-      createTask$(async () => {
+      useTask$(async () => {
         (globalThis as any).__vdomlessTaskOrder.push('2:start');
         await Promise.resolve();
         (globalThis as any).__vdomlessTaskOrder.push('2:done');
@@ -80,7 +80,7 @@ describe.each([
       const after = useSignal(10);
       const label = useSignal('');
 
-      createTask$(async () => {
+      useTask$(async () => {
         const left = before.value;
         await Promise.resolve();
         label.value = `${left}:${after.value}`;
@@ -120,7 +120,7 @@ describe.each([
     const App = component$(() => {
       const count = useSignal(0);
 
-      createTask$(() => {
+      useTask$(() => {
         const value = count.value;
         (globalThis as any).__vdomlessTaskCleanup.push(`task:${value}`);
         return () => {
@@ -148,7 +148,7 @@ describe.each([
 
   it('task runs cleanup on unmount after client activation', async () => {
     const Child = component$((props: { cleanupCount: { value: number } }) => {
-      createTask$(({ cleanup }) => {
+      useTask$(({ cleanup }) => {
         cleanup(() => {
           props.cleanupCount.value++;
         });
@@ -186,7 +186,7 @@ describe.each([
       const count = useSignal(1);
       const items = useSignal<number[]>([]);
 
-      createTask$(async () => {
+      useTask$(async () => {
         await Promise.resolve();
         items.value = [1, 2, 3];
         count.value = 2;
@@ -228,7 +228,7 @@ describe.each([
       ];
       const sizes = useSignal('');
 
-      createTask$(() => {
+      useTask$(() => {
         const key = sort.value;
         sizes.value = rows
           .toSorted((a, b) => a[key] - b[key])
@@ -259,11 +259,11 @@ describe.each([
     cleanup();
   });
 
-  it('createVisibleTask$ supports document-ready strategy', async () => {
+  it('useVisibleTask$ supports document-ready strategy', async () => {
     const App = component$(() => {
       const value = useSignal('SSR');
 
-      createVisibleTask$(
+      useVisibleTask$(
         () => {
           value.value = 'CSR';
         },
@@ -284,12 +284,12 @@ describe.each([
     cleanup();
   });
 
-  it('createVisibleTask$ tracks signal reads after await once active', async () => {
+  it('useVisibleTask$ tracks signal reads after await once active', async () => {
     const App = component$(() => {
       const count = useSignal(0);
       const label = useSignal('idle');
 
-      createVisibleTask$(async () => {
+      useVisibleTask$(async () => {
         await Promise.resolve();
         label.value = `visible:${count.value}`;
       });

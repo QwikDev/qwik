@@ -3,15 +3,14 @@ import { _captures, createQRL } from '../../shared/qrl/qrl-class';
 import {
   createCaptureContainer,
   createOrderTextExpressionEffect,
-  createTaskSubscriber,
+  useTaskSubscriber,
   createText,
   noopSchedule,
   runWithTestContainer,
 } from '../test-utils';
 import { disposeSubscriber } from '../reactive/cleanup';
-import { useComputed } from '../reactive/computed';
 import { OwnerFlags } from '../reactive/flags';
-import { useSignal } from '../reactive/signal';
+import { useSignal, useComputed } from '../reactive/public-api';
 import { getActiveCollector, runWithCollector } from '../reactive/tracking';
 import { createTextNodeEffect } from '../dom/effect/effect';
 import {
@@ -26,13 +25,7 @@ import { invoke, newInvokeContext } from './invoke-context';
 import { Scheduler } from './scheduler';
 import { runTaskSubscriber } from './run-task';
 import type { DomSubscriber, TaskSubscriber, VisibleTaskSubscriber } from './subscriber';
-import {
-  createTask,
-  createTaskQrl,
-  createVisibleTask,
-  createVisibleTaskQrl,
-  type TaskFn,
-} from './task';
+import { useTask, useTaskQrl, useVisibleTask, useVisibleTaskQrl, type TaskFn } from './task';
 import type { ContainerContext } from './container-context';
 
 describe('runtime scheduler and owner lifecycle', () => {
@@ -45,7 +38,7 @@ describe('runtime scheduler and owner lifecycle', () => {
     let secondDom!: DomSubscriber;
 
     runWithOwner(owner, () => {
-      task = createTaskSubscriber(scheduler, 'task', order);
+      task = useTaskSubscriber(scheduler, 'task', order);
       firstDom = createOrderTextExpressionEffect(scheduler, 'first-dom', order);
       secondDom = createOrderTextExpressionEffect(scheduler, 'second-dom', order);
     });
@@ -67,7 +60,7 @@ describe('runtime scheduler and owner lifecycle', () => {
     });
 
     runWithTestContainer(scheduler, () =>
-      createTask(() => {
+      useTask(() => {
         ran = true;
         throw new Error('scheduled boom');
       })
@@ -87,10 +80,10 @@ describe('runtime scheduler and owner lifecycle', () => {
     let childTask!: TaskSubscriber;
 
     runWithOwner(parent, () => {
-      parentTask = createTaskSubscriber(scheduler, 'parent', order);
+      parentTask = useTaskSubscriber(scheduler, 'parent', order);
       const child = createOwner();
       runWithOwner(child, () => {
-        childTask = createTaskSubscriber(scheduler, 'child', order);
+        childTask = useTaskSubscriber(scheduler, 'child', order);
       });
     });
 
@@ -112,7 +105,7 @@ describe('runtime scheduler and owner lifecycle', () => {
     runWithTestContainer(
       scheduler,
       () => {
-        parentDeferred = createTask(
+        parentDeferred = useTask(
           () => {
             order.push('parent:deferred');
           },
@@ -120,7 +113,7 @@ describe('runtime scheduler and owner lifecycle', () => {
         );
         const child = createOwner();
         runWithOwner(child, () => {
-          childBlocking = createTask(() => {
+          childBlocking = useTask(() => {
             order.push('child:blocking');
           });
         });
@@ -139,8 +132,8 @@ describe('runtime scheduler and owner lifecycle', () => {
   it('keeps enqueue order for tasks', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const order: string[] = [];
-    const first = createTaskSubscriber(scheduler, 'first', order);
-    const second = createTaskSubscriber(scheduler, 'second', order);
+    const first = useTaskSubscriber(scheduler, 'first', order);
+    const second = useTaskSubscriber(scheduler, 'second', order);
 
     scheduler.notify(first);
     scheduler.notify(second);
@@ -166,7 +159,7 @@ describe('runtime scheduler and owner lifecycle', () => {
   it('skips disposed tasks that were already scheduled', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const seen: string[] = [];
-    const task = runWithTestContainer(scheduler, () => createTask(() => seen.push('task')));
+    const task = runWithTestContainer(scheduler, () => useTask(() => seen.push('task')));
 
     scheduler.notify(task);
     disposeSubscriber(task);
@@ -372,8 +365,8 @@ describe('runtime scheduler and owner lifecycle', () => {
     runWithTestContainer(
       scheduler,
       () => {
-        task = createTask(() => seen.push(count.value));
-        visibleTask = createVisibleTask(() => seen.push(count.value + 10));
+        task = useTask(() => seen.push(count.value));
+        visibleTask = useVisibleTask(() => seen.push(count.value + 10));
       },
       owner
     );
@@ -395,7 +388,7 @@ describe('runtime scheduler and owner lifecycle', () => {
 
   it('does not track dependencies through runWithOwner', () => {
     const scheduler = new Scheduler(noopSchedule);
-    const collector = runWithTestContainer(scheduler, () => createTask(() => {}));
+    const collector = runWithTestContainer(scheduler, () => useTask(() => {}));
     const owner = createOwner();
     const tracked = useSignal('tracked');
     const untracked = useSignal('untracked');
@@ -421,7 +414,7 @@ describe('runtime scheduler and owner lifecycle', () => {
     const scheduler = new Scheduler(noopSchedule);
     const parent = createOwner();
     const child = createOwner();
-    const collector = runWithTestContainer(scheduler, () => createTask(() => {}));
+    const collector = runWithTestContainer(scheduler, () => useTask(() => {}));
 
     runWithOwner(parent, () => {
       runWithCollector(collector, () => {
@@ -442,12 +435,12 @@ describe('runtime scheduler and owner lifecycle', () => {
     expect(getActiveCollector()).toBeNull();
   });
 
-  it('createTask tracks dependencies and reruns after signal mutation', async () => {
+  it('useTask tracks dependencies and reruns after signal mutation', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const count = useSignal(0);
     const seen: number[] = [];
     const task = runWithTestContainer(scheduler, () =>
-      createTask(() => {
+      useTask(() => {
         seen.push(count.value);
       })
     );
@@ -471,7 +464,7 @@ describe('runtime scheduler and owner lifecycle', () => {
     const seen: string[] = [];
 
     runWithTestContainer(scheduler, () =>
-      createTask(function* () {
+      useTask(function* () {
         seen.push(`before:${before.value}`);
         yield Promise.resolve();
         seen.push(`after:${after.value}`);
@@ -492,7 +485,7 @@ describe('runtime scheduler and owner lifecycle', () => {
     const seen: string[] = [];
 
     runWithTestContainer(scheduler, () =>
-      createTask(function* () {
+      useTask(function* () {
         try {
           yield Promise.reject(new Error('first'));
         } catch (error) {
@@ -516,7 +509,7 @@ describe('runtime scheduler and owner lifecycle', () => {
     const order: string[] = [];
     let release!: () => void;
     const task = runWithTestContainer(scheduler, () =>
-      createTask(() => {
+      useTask(() => {
         order.push('run');
         return new Promise<void>((resolve) => {
           release = resolve;
@@ -577,7 +570,7 @@ describe('runtime scheduler and owner lifecycle', () => {
     let releaseCleanup!: () => void;
 
     runWithTestContainer(scheduler, () =>
-      createTask(({ cleanup }) => {
+      useTask(({ cleanup }) => {
         const value = count.value;
         order.push(`run:${value}`);
         return registerCleanup(cleanup, value, order, () => {
@@ -608,7 +601,7 @@ describe('runtime scheduler and owner lifecycle', () => {
     const error = new Error('cleanup boom');
 
     runWithTestContainer(scheduler, () =>
-      createTask(({ cleanup }) => {
+      useTask(({ cleanup }) => {
         seen.push(count.value);
         cleanup(() => {
           throw error;
@@ -630,7 +623,7 @@ describe('runtime scheduler and owner lifecycle', () => {
     const error = new Error('async cleanup boom');
 
     runWithTestContainer(scheduler, () =>
-      createTask(({ cleanup }) => {
+      useTask(({ cleanup }) => {
         seen.push(count.value);
         cleanup(async () => {
           await Promise.resolve();
@@ -657,7 +650,7 @@ describe('runtime scheduler and owner lifecycle', () => {
     });
 
     runWithTestContainer(scheduler, () =>
-      createVisibleTask(({ cleanup }) => {
+      useVisibleTask(({ cleanup }) => {
         const value = count.value;
         order.push(`run:${value}`);
         if (value === 1) {
@@ -690,7 +683,7 @@ describe('runtime scheduler and owner lifecycle', () => {
     const scheduler = new Scheduler(noopSchedule);
     const order: string[] = [];
     const task = runWithTestContainer(scheduler, () =>
-      createTask(() => order.push('deferred'), {
+      useTask(() => order.push('deferred'), {
         deferUpdates: false,
       })
     );
@@ -719,7 +712,7 @@ describe('runtime scheduler and owner lifecycle', () => {
       },
       null
     );
-    const task = runWithTestContainer(scheduler, () => createTaskQrl(qrl));
+    const task = runWithTestContainer(scheduler, () => useTaskQrl(qrl));
 
     scheduler.notify(task);
     await scheduler.flushInteraction();
@@ -732,10 +725,10 @@ describe('runtime scheduler and owner lifecycle', () => {
     const scheduler = new Scheduler(noopSchedule);
     const order: string[] = [];
     const second = runWithTestContainer(scheduler, () =>
-      createVisibleTask(() => order.push('second'))
+      useVisibleTask(() => order.push('second'))
     );
     const first = runWithTestContainer(scheduler, () =>
-      createVisibleTaskQrl(
+      useVisibleTaskQrl(
         createQRL<TaskFn>(
           'chunk',
           'symbol',
@@ -760,7 +753,7 @@ describe('runtime scheduler and owner lifecycle', () => {
     const order: string[] = [];
     let resolveFirst: (() => void) | undefined;
     const first = runWithTestContainer(scheduler, () =>
-      createVisibleTask(() => {
+      useVisibleTask(() => {
         order.push('first:start');
         return new Promise<void>((resolve) => {
           resolveFirst = resolve;
@@ -768,7 +761,7 @@ describe('runtime scheduler and owner lifecycle', () => {
       })
     );
     const second = runWithTestContainer(scheduler, () =>
-      createVisibleTask(() => {
+      useVisibleTask(() => {
         order.push('second:start');
       })
     );
@@ -804,7 +797,7 @@ describe('runtime scheduler and owner lifecycle', () => {
       '0 1',
       container
     );
-    const task = createOwned(() => createTaskQrl(qrl), container);
+    const task = createOwned(() => useTaskQrl(qrl), container);
 
     scheduler.notify(task);
     await scheduler.flushInteraction();
@@ -819,7 +812,7 @@ describe('runtime scheduler and owner lifecycle', () => {
     const b = useSignal('b');
     const seen: string[] = [];
     const task = runWithTestContainer(scheduler, () =>
-      createTask(() => seen.push(useA.value ? a.value : b.value))
+      useTask(() => seen.push(useA.value ? a.value : b.value))
     );
 
     scheduler.notify(task);
@@ -846,7 +839,7 @@ describe('runtime scheduler and owner lifecycle', () => {
     const b = useSignal('b');
     const seen: string[] = [];
     const task = runWithTestContainer(scheduler, () =>
-      createVisibleTask(() => seen.push(useA.value ? a.value : b.value))
+      useVisibleTask(() => seen.push(useA.value ? a.value : b.value))
     );
 
     scheduler.notify(task);

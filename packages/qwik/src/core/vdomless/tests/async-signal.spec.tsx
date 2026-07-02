@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { component$ } from '@qwik.dev/core';
-import { useAsync$, useSignal, createTask$ } from '@qwik.dev/core/spark';
+import { useAsync$, useSignal, useTask$ } from '@qwik.dev/core/spark';
 import { csrRender, ssrRender } from '../test-utils';
 
 const debug = false;
@@ -212,7 +212,7 @@ describe.each([
         return count.value * 2;
       });
 
-      createTask$(async () => {
+      useTask$(async () => {
         await doubleCount.promise();
         (globalThis as any).__asyncLog.push('task');
         (globalThis as any).__asyncLog.push(doubleCount.value);

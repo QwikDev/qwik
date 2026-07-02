@@ -100,7 +100,7 @@ export class VisibleTaskSubscription
   }
 }
 
-export function createTask(run: TaskFn, options?: TaskOptions): TaskSubscriber {
+export function useTask(run: TaskFn, options?: TaskOptions): TaskSubscriber {
   const container = getActiveInvokeContextOrNull()?.container;
   const scheduler = container?.scheduler ?? defaultScheduler;
   const subscriber = registerSubscriberToOwner(
@@ -118,7 +118,7 @@ export function createTask(run: TaskFn, options?: TaskOptions): TaskSubscriber {
   return subscriber;
 }
 
-export function createTaskQrl(qrl: TaskQrlRef, options?: TaskOptions): TaskSubscriber {
+export function useTaskQrl(qrl: TaskQrlRef, options?: TaskOptions): TaskSubscriber {
   const container = getActiveInvokeContextOrNull()?.container;
   const scheduler = container?.scheduler ?? defaultScheduler;
   const subscriber = registerSubscriberToOwner(
@@ -136,12 +136,9 @@ export function createTaskQrl(qrl: TaskQrlRef, options?: TaskOptions): TaskSubsc
   return subscriber;
 }
 
-export const createTask$ = implicit$FirstArg(createTaskQrl);
+export const useTask$ = implicit$FirstArg(useTaskQrl);
 
-export function createVisibleTask(
-  run: TaskFn,
-  options?: VisibleTaskOptions
-): VisibleTaskSubscriber {
+export function useVisibleTask(run: TaskFn, options?: VisibleTaskOptions): VisibleTaskSubscriber {
   const container = getActiveInvokeContextOrNull()?.container;
   const scheduler = container?.scheduler ?? defaultScheduler;
   const subscriber = registerSubscriberToOwner(
@@ -151,7 +148,7 @@ export function createVisibleTask(
   return subscriber;
 }
 
-export function createVisibleTaskQrl(
+export function useVisibleTaskQrl(
   qrl: TaskQrlRef,
   options?: VisibleTaskOptions
 ): VisibleTaskSubscriber {
@@ -164,4 +161,4 @@ export function createVisibleTaskQrl(
   return subscriber;
 }
 
-export const createVisibleTask$ = implicit$FirstArg(createVisibleTaskQrl);
+export const useVisibleTask$ = implicit$FirstArg(useVisibleTaskQrl);

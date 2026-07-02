@@ -20,7 +20,7 @@ export enum QwikSymbol {
   CreateCapturedEvent = 'createCapturedEvent',
   CreateContext = 'createContext',
   CreateContextProvider = 'createContextProvider',
-  CreateTaskQrl = 'createTaskQrl',
+  UseTaskQrl = 'useTaskQrl',
   CreateDomBatchEffect = 'createDomBatchEffect',
   CreatePropsEffect = 'createPropsEffect',
   CreateSlot = 'createSlot',

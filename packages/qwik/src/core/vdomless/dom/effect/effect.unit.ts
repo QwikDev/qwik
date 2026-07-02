@@ -6,8 +6,7 @@ import {
   noopSchedule,
 } from '../../test-utils';
 import { disposeSubscriber } from '../../reactive/cleanup';
-import { useComputed } from '../../reactive/computed';
-import { useSignal } from '../../reactive/signal';
+import { useSignal, useComputed } from '../../reactive/public-api';
 import { createOwner, runWithOwner } from '../../runtime/owner';
 import { Scheduler } from '../../runtime/scheduler';
 import {
@@ -431,7 +430,7 @@ describe('DOM effects', () => {
   it('skips disposed DOM effects that were already scheduled', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const text = createText();
-    const effect = createOwned(() => createTextNodeEffect(text, createSignal('next'), scheduler));
+    const effect = createOwned(() => createTextNodeEffect(text, useSignal('next'), scheduler));
 
     scheduler.notify(effect);
     disposeSubscriber(effect);

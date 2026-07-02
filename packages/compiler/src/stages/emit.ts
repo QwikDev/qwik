@@ -55,8 +55,8 @@ import {
   hasSetupQrlSegment,
   collectUseOnCarriers,
   isExplicitDollarSegment,
-  isCreateTaskSegment,
-  isCreateVisibleTaskSegment,
+  isUseTaskSegment,
+  isUseVisibleTaskSegment,
   isGeneratorTrackedSegment,
   isImplicitDollarSegment,
   isNestedInImplicitDollarSegment,
@@ -247,7 +247,7 @@ interface SsrUsageRoot {
 }
 
 function createSsrUsageRoots(ctx: CompilerContext, component: ComponentRecord): SsrUsageRoot[] {
-  const hasTask = hasTaskSetupSegment(component, ctx.manifest.segments, isCreateTaskSegment);
+  const hasTask = hasTaskSetupSegment(component, ctx.manifest.segments, isUseTaskSegment);
   return [
     {
       root: component.root,
@@ -261,7 +261,7 @@ function createSsrUsageRoots(ctx: CompilerContext, component: ComponentRecord): 
       hasVisibleTask: hasTaskSetupSegment(
         component,
         ctx.manifest.segments,
-        isCreateVisibleTaskSegment
+        isUseVisibleTaskSegment
       ),
     },
     ...component.jsxValues.map((value) => ({ root: value.root })),

@@ -31,7 +31,7 @@ import {
   type IdleSubscriber,
   type TaskSubscriber,
 } from './runtime/subscriber';
-import { createTask } from './runtime/task';
+import { useTask } from './runtime/task';
 import { renderToString, type SsrRenderRoot } from '../../server/vdomless/ssr-render';
 import type { QwikLoaderOptions, RenderToStringOptions } from '../../server/types';
 import { bootQwikLoader, type QwikLoaderTestDriver } from './qwikloader-test-driver';
@@ -396,12 +396,12 @@ export function runWithTestContainer<T>(
   );
 }
 
-export function createTaskSubscriber(
+export function useTaskSubscriber(
   scheduler: Scheduler,
   label: string,
   order: string[]
 ): TaskSubscriber {
-  const create = () => createTask(() => order.push(label));
+  const create = () => useTask(() => order.push(label));
   return runWithTestContainer(scheduler, create, getActiveOwner() ?? createOwner(null));
 }
 

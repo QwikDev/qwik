@@ -127,7 +127,7 @@ export function createSsrImports(
     sparkSpecifiers.push(QwikSymbol.Invoke);
   }
   if (usage.hasTask) {
-    sparkSpecifiers.push(QwikSymbol.CreateTaskQrl, QwikSymbol.RunTaskSubscriber);
+    sparkSpecifiers.push(QwikSymbol.UseTaskQrl, QwikSymbol.RunTaskSubscriber);
   }
   if (usage.hasVisibleTask) {
     sparkSpecifiers.push(QwikSymbol.CreateVisibleTaskHandlerQrl);

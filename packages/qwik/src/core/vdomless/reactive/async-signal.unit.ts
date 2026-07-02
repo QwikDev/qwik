@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createOwner, runWithOwner } from '../runtime/owner';
-import { useAsync } from './async-signal';
-import { useSignal } from './signal';
+import { useSignal, useAsync } from './public-api';
 
 describe('vdomless async signal', () => {
   it('tracks generator dependencies before and after yield', async () => {

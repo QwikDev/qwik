@@ -175,19 +175,23 @@ false passes. (Read the source for the full mechanism.)
 
 Where the pieces live: `errorBoundaryCmp` (`shared/error/error-boundary.ts`); SSR catch + inert
 (`ssr/ssr-render-jsx.ts`: `renderErrorBoundaryFallback`, `catchToErrorBoundary`,
-`markErrorBoundaryContentInert`); the two SSR fallback hosts (`control-flow/suspense.tsx`:
-`SSRErrorFallback` = out-of-order/`qO`, `SSRErrorFallbackInline` = in-order/`qErr`); client routing
-(`client/dom-container.ts`: `handleError`, the `qerror` listener); shared helpers
-(`shared/error/error-handling.ts`: `markBoundaryErrored`, `fireOnError`, `toSerializableBoundaryError`,
-`ErrorBoundaryStore`). Gated on the `errorBoundary` flag (the component throws when it's off).
+`markErrorBoundaryContentInert`); the SSR fallback hosts (`control-flow/suspense.tsx`:
+`SSRErrorFallbackHost` picks at drain time between `SSRErrorFallbackInline` = in-place/`qErr` and
+`SSRErrorFallback` = deferred/`qO`); client routing (`client/dom-container.ts`: `handleError`, the
+`qerror` listener); shared helpers (`shared/error/error-handling.ts`: `markBoundaryErrored`,
+`fireOnError`, `toSerializableBoundaryError`, `isErrorFromDeferredSegment`, `ErrorBoundaryStore`).
+Gated on the `errorBoundary` flag (the component throws when it's off).
 
 ### Keep these invariants
 - **Never let the boundary buffer or block streaming.** Content streams live into the `content-host`;
   on a throw `renderErrorBoundaryFallback` sets `store.error` + fires `onError$` once + marks content
   inert + returns `null`. It must NOT render the fallback itself — a sibling `fallback-host` does.
-- **Keep the two-branch swap** (`qErr` inline vs `qO` segment, chosen by `isOutOfOrderStreaming()`).
-  It encodes a resume invariant, not style: an out-of-order fallback's vnode-data must travel through
-  a segment (reconciled by `qProcessOOOS` on reveal); inline-under-OOOS desyncs the refs.
+- **Keep the origin-based swap split, decided at fallback-host DRAIN time** (`SSRErrorFallbackHost`):
+  an in-place error (already in `store.error` when the host drains) swaps inline via `qErr` (`q:ebf`
+  host) even when OOOS is enabled; only a deferred-segment error keeps the `qO` shell (`q:rp` host) —
+  including one that raced in before the host drained (`isErrorFromDeferredSegment`). The resume
+  invariant: a deferred fallback's vnode-data must travel through a segment (`qProcessOOOS`), and
+  inline content must never sit under a `q:rp` host (OOOS resume hijacks it into a template).
 - **Write the error state only through `markBoundaryErrored(store, error)`** — it sets `store.error`
   via `toSerializableBoundaryError` and fires `onError$` exactly once with the ORIGINAL error. Don't
   re-inline that first-catch triple.
@@ -212,11 +216,14 @@ Where the pieces live: `errorBoundaryCmp` (`shared/error/error-boundary.ts`); SS
   `streaming: { outOfOrder: false }` — exercise BOTH branches.
 - `qwik-dom`'s `element.querySelector` is NOT subtree-scoped — use `host.contains(el)` for placement.
   Rendering one JSX object in two containers trips "props across containers"; build a fresh tree per test.
-- e2e: rebuild, kill the stale `:3301` server (`reuseExistingServer` serves a stale bundle), run `CI=1`:
+- e2e: rebuild with **`pnpm build.core`**, NOT `build.core.dev` — dev builds proxy
+  `core.prod.mjs`/`server.prod.mjs` to the dev bundles, so server `isDev` stays true and the suite's
+  prod-redaction asserts (`caught: An error occurred`) false-FAIL on unredacted messages. Kill the
+  stale `:3301` server (`reuseExistingServer` serves a stale bundle), run `CI=1`:
 
 ```bash
 pnpm vitest run packages/qwik/src/core/tests/error-boundary.spec.tsx
-pnpm build.core.dev && lsof -nP -iTCP:3301 -sTCP:LISTEN | awk 'NR>1{print $2}' | xargs -r kill
+pnpm build.core && lsof -nP -iTCP:3301 -sTCP:LISTEN | awk 'NR>1{print $2}' | xargs -r kill
 CI=1 pnpm playwright test e2e/qwik-e2e/tests/error-boundary-streaming.e2e.ts --browser=chromium --config e2e/qwik-e2e/playwright.config.ts
 ```
 

@@ -1,6 +1,6 @@
 import { assert, describe, test } from 'vitest';
 import type { BuildTrieNode, BuiltRoute, RouteSourceFile } from '../types';
-import { createRoutes } from './generate-routes';
+import { createRoutes, type RouteLoaderSourceFiles } from './generate-routes';
 
 /** Create a minimal BuildTrieNode */
 function makeNode(overrides?: Partial<BuildTrieNode>): BuildTrieNode {
@@ -51,7 +51,11 @@ function getRoutesExpr(
   trie: BuildTrieNode,
   routes: BuiltRoute[] = [],
   loadersByFile?: Map<string, string[]>,
-  extra?: { isSSR?: boolean; serverExcludePaths?: ReadonlySet<string> }
+  extra?: {
+    isSSR?: boolean;
+    serverExcludePaths?: ReadonlySet<string>;
+    routeLoaderSourceFiles?: RouteLoaderSourceFiles;
+  }
 ): string {
   const c: string[] = [];
   const esmImports: string[] = [];
@@ -89,7 +93,8 @@ function getRoutesExpr(
     esmImports,
     extra?.isSSR ?? false,
     loadersByFile,
-    extra?.serverExcludePaths
+    extra?.serverExcludePaths,
+    extra?.routeLoaderSourceFiles
   );
   const routesLine = c.find((line) => line.startsWith('export const routes'));
   assert.ok(routesLine, 'should have a routes export');
@@ -175,6 +180,22 @@ describe('generate-routes: loadersByFile propagation', () => {
     assert.include(expr, 'group-loader-hash', 'group child should emit its loader hash');
   });
 
+  test('loadersByFile emits _R hashes from re-exported source files in dev mode', () => {
+    const root = makeNode();
+    const child = makeNode();
+    const routeFile = makeRouteFile('/test/dashboard');
+    const loaderFile = '/test/loaders/dashboard.ts';
+    child._files = [routeFile];
+    root.children.set('dashboard', child);
+
+    const routes = [makeBuiltRoute(routeFile.filePath)];
+    const loadersByFile = new Map([[loaderFile, ['reexported-loader-hash']]]);
+    const routeLoaderSourceFiles = new Map([[routeFile.filePath, [loaderFile]]]);
+    const expr = getRoutesExpr(root, routes, loadersByFile, { routeLoaderSourceFiles });
+
+    assert.include(expr, 'reexported-loader-hash', 're-exported loader hash should be emitted');
+  });
+
   test('without loadersByFile regular children emit a build placeholder', () => {
     const root = makeNode();
     const child = makeNode();
@@ -191,6 +212,25 @@ describe('generate-routes: loadersByFile propagation', () => {
       'regular child should emit build placeholder without loadersByFile'
     );
     assert.notInclude(expr, 'loader-hash', 'no concrete hash expected in build mode');
+  });
+
+  test('build placeholders include re-exported source files', () => {
+    const root = makeNode();
+    const child = makeNode();
+    const routeFile = makeRouteFile('/test/dashboard');
+    const loaderFile = '/test/loaders/dashboard.ts';
+    child._files = [routeFile];
+    root.children.set('dashboard', child);
+
+    const routes = [makeBuiltRoute(routeFile.filePath)];
+    const routeLoaderSourceFiles = new Map([[routeFile.filePath, [loaderFile]]]);
+    const expr = getRoutesExpr(root, routes, undefined, { routeLoaderSourceFiles });
+
+    assert.include(
+      expr,
+      `__LOADERS:${routeFile.filePath}|${loaderFile}__`,
+      'build placeholder should include re-exported loader source'
+    );
   });
 });
 

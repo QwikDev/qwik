@@ -1758,10 +1758,34 @@ describe('ErrorBoundary swap mechanics (qErr)', () => {
     delete (globalThis as any).__ebAsyncSignalInfo;
   });
 
-  // stays todo permanently until the Missing-refElement probe
-  it.todo(
-    '[NEW] a sync throw in a boundary that is a SIBLING of a real Suspense segment still swaps in place via qErr'
-  );
+  it('[NEW] a sync throw in a boundary that is a SIBLING of a real Suspense segment still swaps in place via qErr', async () => {
+    // Resolves AFTER the drain so the sibling <Suspense> produces a real deferred segment.
+    const SlowResolver = component$(() => {
+      const pending = delay(5).then(() => <span id="deferred-ok">deferred ok</span>) as any;
+      return <>{pending}</>;
+    });
+    const { html, document } = await streamAndResume(
+      <main>
+        <ErrorBoundary fallback$={fb()}>
+          <div id="before">before</div>
+          <Thrower />
+        </ErrorBoundary>
+        <Suspense fallback={<span id="skel">loading</span>}>
+          <SlowResolver />
+        </Suspense>
+      </main>,
+      OOOS_OPT_IN
+    );
+    const fbEl = document.querySelector('#fb');
+    expect(fbEl?.textContent).toContain('caught: boom');
+    expect(fbEl?.closest('[q\\:ebf]')).toBeTruthy();
+    expect(fbEl?.closest('[q\\:rp]')).toBeFalsy();
+    expect(displayOf(document.querySelector('#before')?.closest('[q\\:ebc]'))).toBe('none');
+    expect(html).toContain('qErr(');
+    // The sibling segment still resolves through its own qO delivery.
+    expect(document.querySelector('#deferred-ok')?.textContent).toBe('deferred ok');
+    expect(html).toContain('qO(');
+  });
 });
 
 // ===== G. OOOS (opt-in, Suspense) =====

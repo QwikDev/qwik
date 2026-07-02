@@ -3,12 +3,21 @@ import { expect, test } from '@playwright/test';
 const base = '/qwikrouter-test/returned-control-flow';
 
 // Returning ev.redirect()/ev.error() must behave the same as throwing them.
-// Route loaders are data-only and lazy, so route control flow belongs in request
-// handlers/actions (eager), not loaders — hence no loader cases here.
 test.describe('returned control-flow signals', () => {
+  test('loader returning redirect redirects', async ({ page }) => {
+    await page.goto(`${base}/loader-redirect/`);
+    await expect(page.locator('#returned-control-flow-target')).toBeVisible();
+  });
+
   test('request handler returning redirect redirects', async ({ page }) => {
     await page.goto(`${base}/handler-redirect/`);
     await expect(page.locator('#returned-control-flow-target')).toBeVisible();
+  });
+
+  test('loader returning error renders the error response', async ({ page }) => {
+    const response = await page.goto(`${base}/loader-error/`);
+    expect(response?.status()).toEqual(401);
+    await expect(page.locator('body')).toContainText('returned-loader-error');
   });
 
   test('action returning error responds with the error status', async ({ page }) => {

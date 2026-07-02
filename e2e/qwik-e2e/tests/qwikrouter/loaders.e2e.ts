@@ -202,20 +202,35 @@ test.describe('loaders', () => {
       await expect(page.locator('#prop-unwrapped')).toHaveText('test');
     });
 
-    test('a failing loader does not affect SSR when its value is not read', async ({ page }) => {
+    test('should modify ServerError in middleware', async ({ page }) => {
       const response = await page.goto('/qwikrouter-test/loaders/loader-error');
+      const contentType = await response?.headerValue('Content-Type');
+      const status = response?.status();
 
-      expect(response?.status()).toEqual(200);
-      await expect(page.locator('#loader-error-rendered')).toBeVisible();
+      expect(status).toEqual(401);
+      expect(contentType).toEqual('text/html; charset=utf-8');
+      const body = page.locator('body');
+      await expect(body).toContainText('loader-error-caught');
     });
 
-    test('a loader awaiting a failing server$ does not affect SSR when unread', async ({
-      page,
-    }) => {
+    test('should return html with uncaught ServerErrors thrown in loaders', async ({ page }) => {
       const response = await page.goto('/qwikrouter-test/loaders/loader-error/uncaught-server');
+      const contentType = await response?.headerValue('Content-Type');
+      const status = response?.status();
 
+      expect(status).toEqual(401);
+      expect(contentType).toEqual('text/html; charset=utf-8');
+      const body = page.locator('body');
+      await expect(body).toContainText('server-error-data');
+    });
+
+    test('a blockSSR:false loader is isolated from the page response', async ({ page }) => {
+      const response = await page.goto('/qwikrouter-test/loaders/non-blocking/');
+
+      // Neither the unread error() nor the read fail() leaks its status onto the page response.
       expect(response?.status()).toEqual(200);
-      await expect(page.locator('#uncaught-server-rendered')).toBeVisible();
+      await expect(page.locator('#non-blocking-rendered')).toBeVisible();
+      await expect(page.locator('#non-blocking-fail')).toHaveText('background-fail');
     });
 
     test('should not serialize loaders by default and serialize with serializationStrategy: always', async ({

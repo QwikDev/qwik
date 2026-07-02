@@ -325,12 +325,25 @@ function createResolveRequestHandlers() {
       }
       setLoaderData(requestEv, routeLoaders, route);
 
-      // Start every loader concurrently but don't await them: render only blocks on — and only
-      // fails from — loaders whose .value it reads. Swallowing rejections keeps an unread failing
-      // loader from crashing the request; the error resurfaces if .value is read during render.
-      for (const loader of routeLoaders) {
-        loadRouteLoader(loader, requestEv).catch(() => {});
+      // Start every loader concurrently. `blockSSR` loaders (the default) are awaited before SSR so
+      // a redirect/error short-circuits the response; the first one in route order wins. Loaders
+      // with `blockSSR: false` resolve in the background and only surface when their `.value` is
+      // read.
+      let allBlockSSRLoaders: Promise<void> | undefined;
+      for (let i = 0; i < routeLoaders.length; i++) {
+        const loader = routeLoaders[i];
+        const promise = loadRouteLoader(loader, requestEv);
+        // Handle every rejection so a background loader can't crash the request.
+        promise.catch(() => {});
+        if (loader.__blockSSR) {
+          // Chain the promises so a thrown error is handled in route order
+          // Note: status changes are last-writer wins, but that's fine
+          allBlockSSRLoaders = (
+            allBlockSSRLoaders ? allBlockSSRLoaders.then(() => promise) : promise
+          ) as Promise<void>;
+        }
       }
+      return allBlockSSRLoaders;
     };
   }
 

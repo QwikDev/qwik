@@ -55,6 +55,7 @@ A few properties of route loaders:
 - **Keyed by route, not by call site.** Two visits to the same URL share one logical "result" per "route + url params + search params" set, not one per `useProductDetails()` call.
 - **Result is an `AsyncSignal`.** Components read `.value`, watch `.loading`, and check `.error`. Reading `.value` while the signal is in error state re-throws the error.
 - **Each loader has its own JSON endpoint.** The client fetches `q-loader-{id}.{hash}.json` for navigation, polling, and post-action invalidation. Browser HTTP cache, ETags, and the `expires` option all apply.
+- **Blocks SSR by default.** The server awaits the loader before rendering the page, so a `throw redirect()` or `throw error()` controls the response. Opt out with `blockSSR: false` to run it in the background — see [Background loaders](#background-loaders-blockssr).
 
 This means a `routeLoader$()` should be a **pure function of the URL**: same `params` and `search` → same response. Mixing in any other input (action state, request bodies, one-shot tokens) makes the cached responses inconsistent — see [Loaders cannot read action state](#loaders-cannot-read-action-state).
 
@@ -97,7 +98,7 @@ Loaders signal failure two ways:
 - **`throw requestEvent.error(status, data)`** — throw a `ServerError` directly. `signal.error` is `ServerError {status, data}`. Reading `signal.value` re-throws the error, so you should branch on `signal.error` first. This is the recommended way to signal failure from a loader.
 - **`return requestEvent.fail(status, data)`** — returns an inline failure. `signal.value.failed` is `true` and `signal.value` contains the rest of the data.
 
-In both cases, the HTTP response status is set to `status`, and the result is not cacheable.
+In both cases the result is not cacheable. For a blocking loader (the default) the HTTP response status is also set to `status`; a `blockSSR: false` loader is isolated from the page response — see [Background loaders](#background-loaders-blockssr).
 
 ## Multiple `routeLoader$`s
 
@@ -256,6 +257,23 @@ export default () => ({
 
 When using lazy-loaded data, branch on `.loading` to show a placeholder until it arrives — see [Reading the result in a component](#reading-the-result-in-a-component).
 
+## Background loaders (`blockSSR`)
+
+By default a loader **blocks SSR**: the server awaits it before rendering, so a `throw redirect()` or `throw error()` short-circuits the HTTP response. When several loaders block, the first one to error, in route order, decides the error, however the last one to set the status, in chronological order, decides the status.
+
+Set `blockSSR: false` to run a loader in the background instead. The server starts it but does not wait: rendering begins immediately, and reading `.value` suspends only that read until the loader resolves. This starts SSR sooner, and is the recommended setting, unless you need to control the request from the loader.
+
+```tsx title="src/routes/product/[productId]/index.tsx"
+export const useRecommendations = routeLoader$(
+  async ({ params }) => fetchRecommendations(params.productId),
+  { blockSSR: false }
+);
+```
+
+A background loader is treated as a **separate request**: it cannot redirect or error the page response. If it calls `redirect()` or `error()`, that control flow is captured on its own signal (surfacing when `.value` is read) and never changes the page's status or headers. Keep route guards that must redirect or set a status in a [request handler](/docs/middleware) such as `onRequest`, or in a blocking loader.
+
+Note: when the client fetches a background loader for SPA navigation, there is no difference between a blocking and non-blocking loader — the SPA fetch is always async, and the page is already rendered. Errors are not surfaced directly, but redirects are followed automatically.
+
 ## Accessing `RequestEvent`
 
 The loader function receives the same [`RequestEvent`](/docs/middleware#requestevent) as middleware. Use it to read params, headers, cookies, the URL, and so on.
@@ -341,6 +359,7 @@ export default component$(() => {
 | `poll`                  | `false`      | Auto-refetch when expired, but only while components are reading the loader.                          |
 | `allowStale`            | `true`       | Show stale data while refetching. `false` blocks readers until fresh data arrives.                    |
 | `serializationStrategy` | `'never'`    | `'never'` / `'always'` / `'auto'` — embed loader data in the SSR HTML?                                |
+| `blockSSR`              | `true`       | Await the loader before SSR (can redirect/error the response). `false` runs it in the background.     |
 | `eTag`                  | —            | `true` (auto-hash), string, or `(ev) => string \| null`. Returns 304 on match.                       |
 | `search`                | `[]` *       | Allowlist of search params the loader depends on. *(default `[]` when `strictLoaders` is enabled)*    |
 | `validation`            | —            | Array of [`DataValidator`](/docs/(qwikrouter)/validator/index.mdx)s applied before the loader runs.   |

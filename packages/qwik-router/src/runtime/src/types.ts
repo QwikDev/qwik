@@ -869,6 +869,15 @@ export type LoaderOptions = {
    * boundary). This is useful when showing old data during navigation would be confusing.
    */
   readonly allowStale?: boolean;
+  /**
+   * When true (default), the loader is awaited before SSR renders, so its redirect or error can
+   * short-circuit the response and its value is ready for synchronous reads (e.g. in the head).
+   *
+   * When false, the loader runs in the background without blocking SSR: rendering starts
+   * immediately and reading its `.value` suspends until it resolves. A background loader cannot
+   * redirect or error the initial SSR response; treat it as a separate request.
+   */
+  readonly blockSSR?: boolean;
 };
 
 /** @public */
@@ -1028,6 +1037,7 @@ export interface LoaderInternal extends Loader<any> {
   __cacheKey: CacheKeyFn | undefined;
   __search: string[] | undefined;
   __allowStale: boolean;
+  __blockSSR: boolean;
   (): LoaderSignal<unknown>;
 }
 

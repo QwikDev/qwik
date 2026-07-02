@@ -3,9 +3,11 @@ import {
   component$,
   ErrorBoundary,
   isServer,
+  Resource,
   Slot,
   Suspense,
   useAsync$,
+  useResource$,
   useServerData,
   useSignal,
   useTask$,
@@ -228,6 +230,22 @@ const AsyncValueThrows = component$(() => {
     throw new Error('unexpected-async-error');
   });
   return <div id="async-value">{String(data.value)}</div>;
+});
+
+// SSR-time fetch (useResource$ resolves during SSR) inlines the fragment into the initial
+// document, so its inline swap scripts execute parser-driven with a real currentScript.
+const EbEmbeddedFragment = component$(() => {
+  const fragmentHtml = useResource$<string>(async () => {
+    const url = `http://localhost:${(globalThis as any).PORT}/e2e/error-boundary-streaming?fragment&loader=false&outOfOrder=false`;
+    const res = await fetch(url);
+    return res.text();
+  });
+  return (
+    <Resource
+      value={fragmentHtml}
+      onResolved={(html) => <div id="eb-embed" dangerouslySetInnerHTML={html} />}
+    />
+  );
 });
 
 export const ErrorBoundaryStreamingRoot = component$(() => {
@@ -474,6 +492,21 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
           <EbThrowOnClick idPrefix="eb-last-resort" message="last-resort boom" touched={touched} />
           <div id="eb-content">content ok</div>
         </ErrorBoundary>
+      ) : scenario === 'multi-container' ? (
+        // Host boundary FIRST in document order, so an unscoped qErr from the embedded fragment
+        // would hide this host content instead of the fragment's.
+        <>
+          <ErrorBoundary fallback$={(e) => <EbFallback id="eb-host-fb" msg={errMsg(e)} />}>
+            <section id="eb-host-content">
+              <p>host content</p>
+              <button id="eb-host-button" onClick$={() => touched.value++}>
+                Touch host
+              </button>
+              <span id="eb-host-count">{touched.value}</span>
+            </section>
+          </ErrorBoundary>
+          <EbEmbeddedFragment />
+        </>
       ) : scenario === 'unhandled-rejection' ? (
         // Fire-and-forget rejection (not awaited, not thrown): reaches `logError` via the per-window
         // `unhandledrejection` bridge, NOT any boundary.

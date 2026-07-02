@@ -513,6 +513,48 @@ test.describe('ErrorBoundary reset', () => {
   });
 });
 
+test.describe('ErrorBoundary multi-container qErr scoping', () => {
+  // The embedded fragment's inline qErr executes parser-driven (real currentScript), the only
+  // path where the executor's container-scoping branch runs.
+  test('an SSR error inside an embedded container swaps only that container boundary', async ({
+    page,
+  }) => {
+    assertNoBrowserErrors(page);
+    await page.goto('/e2e/error-boundary-streaming?scenario=multi-container', {
+      waitUntil: 'commit',
+    });
+
+    // The embedded fragment errored during its own SSR and swapped to its fallback.
+    await expect(page.locator('#eb-embed #eb-fallback')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#eb-embed #eb-fallback-msg')).toHaveText(
+      'caught: An error occurred'
+    );
+    await expect(page.locator('#eb-embed #eb-content')).toBeHidden();
+
+    // Collision precondition: boundary ids are per-container counters, so both boundaries share
+    // one id — that collision is what makes the scoping observable (revisit if id allocation changes).
+    const hostBoundaryId = await page
+      .locator('div[q\\:ebc]:has(#eb-host-content)')
+      .getAttribute('q:ebc');
+    const fragmentBoundaryId = await page.locator('#eb-embed [q\\:ebc]').getAttribute('q:ebc');
+    expect(hostBoundaryId).not.toBeNull();
+    expect(fragmentBoundaryId).toBe(hostBoundaryId);
+
+    // Isolation: the host boundary — earlier in document order, so an unscoped qErr would hit it
+    // first — is untouched.
+    await expect(page.locator('#eb-host-content')).toBeVisible();
+    await expect(page.locator('#eb-host-fb')).toHaveCount(0);
+
+    // Host liveness: the host container still resumes and stays interactive.
+    await page.locator('#eb-host-button').click();
+    await expect(page.locator('#eb-host-count')).toHaveText('1');
+
+    // Fragment liveness: the errored embedded container resumes its own fallback.
+    await page.locator('#eb-embed #eb-fallback-button').click();
+    await expect(page.locator('#eb-embed #eb-fallback-count')).toHaveText('1');
+  });
+});
+
 test.describe('ErrorBoundary last-resort & rejection bridge', () => {
   test('built-in last-resort node renders when the fallback$ chunk fails to load', async ({
     page,

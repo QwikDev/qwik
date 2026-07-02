@@ -1944,6 +1944,29 @@ describe('ErrorBoundary OOOS (opt-in, Suspense)', () => {
     expect(displayOf(document.querySelector('#sibling')?.closest('div[style]'))).toBe('none');
   });
 
+  it('an in-place throw beside a deferred <Suspense> swaps via qErr and absorbs the late rejection', async () => {
+    // Rejects AFTER the boundary's fallback host drained, so the swap is already done in place.
+    const SlowRejector = component$(() => {
+      const pending = delay(5).then(() => Promise.reject(new Error('late boom'))) as any;
+      return <>{pending}</>;
+    });
+    const { html, document } = await streamAndResume(
+      <main>
+        <ErrorBoundary fallback$={fb()}>
+          <Thrower />
+          <Suspense fallback={<span id="skel">loading</span>}>
+            <SlowRejector />
+          </Suspense>
+        </ErrorBoundary>
+      </main>,
+      OOOS_OPT_IN
+    );
+    expect(fbCount(document)).toBe(1);
+    expect(document.querySelector('#fb')?.textContent).toContain('caught: boom');
+    expect(document.querySelector('#fb')?.closest('[q\\:ebf]')).toBeTruthy();
+    expect(html).toContain('qErr(');
+  });
+
   it('fires once for an SSR-caught throw (out-of-order) and not again on resume', async () => {
     onErrorLog.errors = [];
     await ssrRenderToDom(

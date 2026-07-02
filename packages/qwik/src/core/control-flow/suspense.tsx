@@ -14,6 +14,7 @@ import { _captures } from '../shared/qrl/qrl-class';
 import {
   QCursorBoundary,
   QDefaultSlot,
+  QErrorFallbackHost,
   QSuspenseResolved,
   QSuspenseResultParent,
 } from '../shared/utils/markers';
@@ -24,6 +25,7 @@ import { createInternalServerComponent } from '../ssr/internal-server-component'
 import type { SSRContainer, SSROutOfOrderSegment, SSRRenderJSXOptions } from '../ssr/ssr-types';
 import {
   ERROR_CONTEXT,
+  isErrorFromDeferredSegment,
   markBoundaryErrored,
   type ErrorBoundaryStore,
 } from '../shared/error/error-handling';
@@ -288,8 +290,14 @@ const SSRDeferredSlot = __EXPERIMENTAL__.suspense
             )
           )
           .catch((error) => {
-            if (errorBoundaryStore && errorBoundaryStore.$emitFallback$) {
-              return errorBoundaryStore.$emitFallback$(error);
+            if (errorBoundaryStore) {
+              if (errorBoundaryStore.$emitFallback$) {
+                return errorBoundaryStore.$emitFallback$(error);
+              }
+              // Boundary already swapped in place: first error wins, absorb the late one.
+              if (errorBoundaryStore.error !== undefined) {
+                return;
+              }
             }
             throw error;
           })
@@ -439,6 +447,49 @@ export const SSRErrorFallbackInline = __EXPERIMENTAL__.errorBoundary
         }
       }
     )
+  : null!;
+
+/**
+ * Drain-time `<ErrorBoundary>` fallback host. The content host drained first, so an in-place throw
+ * is already in `store.error` here: it swaps inline via `qErr` even when out-of-order streaming is
+ * enabled. Only an error that can still arrive late (a deferred child segment) keeps the `qO`
+ * late-delivery shell.
+ */
+export const SSRErrorFallbackHost = __EXPERIMENTAL__.errorBoundary
+  ? /*#__PURE__*/ createInternalServerComponent<{
+      boundaryId: number;
+      store: ErrorBoundaryStore;
+      hostStyle: Signal<{ display: string }>;
+    }>((ssr, jsx, _options, enqueue) => {
+      const boundaryId = jsx.varProps.boundaryId as number;
+      const store = jsx.varProps.store as ErrorBoundaryStore;
+      const hostStyle = jsx.varProps.hostStyle as Signal<{ display: string }>;
+      const deliverLate =
+        __EXPERIMENTAL__.suspense &&
+        ssr.outOfOrderStreaming &&
+        !isOutOfOrderSegmentContainer(ssr) &&
+        (store.error === undefined || isErrorFromDeferredSegment(store));
+      enqueue(
+        /*#__PURE__*/ _jsxSorted(
+          'div',
+          {
+            [deliverLate ? QSuspenseResultParent : QErrorFallbackHost]: String(boundaryId),
+            style: hostStyle,
+          },
+          null,
+          /*#__PURE__*/ _jsxSorted(
+            deliverLate ? SSRErrorFallback : SSRErrorFallbackInline,
+            { boundaryId, store },
+            null,
+            null,
+            1,
+            null
+          ),
+          1,
+          null
+        )
+      );
+    })
   : null!;
 
 async function emitErrorBoundaryFallback(

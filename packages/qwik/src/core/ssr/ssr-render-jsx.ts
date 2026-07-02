@@ -53,6 +53,7 @@ import {
   ERROR_CONTEXT,
   isRecoverable,
   markBoundaryErrored,
+  markErrorFromDeferredSegment,
   type ErrorBoundaryStore,
 } from '../shared/error/error-handling';
 import type { ErrorBoundaryInfo } from '../shared/error/error-boundary';
@@ -181,6 +182,10 @@ function renderErrorBoundaryFallback(
     }
     markBoundaryErrored(errorStore, err, phase, ssr.$transformError$);
     if (__EXPERIMENTAL__.errorBoundary) {
+      // An error absorbed inside a segment must keep `qO` delivery for a not-yet-drained host.
+      if (isOutOfOrderSegmentContainer(ssr)) {
+        markErrorFromDeferredSegment(errorStore);
+      }
       markErrorBoundaryContentInert(ssr, boundaryNode);
     }
     return null;

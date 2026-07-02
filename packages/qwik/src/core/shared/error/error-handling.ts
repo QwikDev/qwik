@@ -123,6 +123,19 @@ export const fireOnError = (
   }
 };
 
+// Server-only: boundaries whose caught error came from a deferred (out-of-order) segment. Kept out
+// of the store so the flag never serializes.
+const boundariesWithDeferredError = /*#__PURE__*/ new WeakSet<ErrorBoundaryStore>();
+
+/** Record that the boundary's error originated inside a deferred segment. */
+export const markErrorFromDeferredSegment = (store: ErrorBoundaryStore): void => {
+  boundariesWithDeferredError.add(store);
+};
+
+/** A deferred-origin error keeps `qO` segment delivery even when absorbed before the host drains. */
+export const isErrorFromDeferredSegment = (store: ErrorBoundaryStore): boolean =>
+  boundariesWithDeferredError.has(store);
+
 /** Mark the boundary errored and fire `onError$` once, with the original error and its phase. */
 export const markBoundaryErrored = (
   store: ErrorBoundaryStore,

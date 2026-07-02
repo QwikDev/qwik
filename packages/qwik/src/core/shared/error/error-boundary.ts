@@ -1,6 +1,6 @@
 import { isBrowser } from '@qwik.dev/core/build';
-import { isOutOfOrderStreaming, nextErrorBoundaryId } from '../../control-flow/suspense-utils';
-import { SSRErrorFallback, SSRErrorFallbackInline } from '../../control-flow/suspense';
+import { nextErrorBoundaryId } from '../../control-flow/suspense-utils';
+import { SSRErrorFallbackHost } from '../../control-flow/suspense';
 import { useErrorBoundaryStore } from '../../use/use-error-boundary-store';
 import { componentQrl, type Component } from '../component.public';
 import { _jsxSorted } from '../jsx/jsx-internal';
@@ -12,7 +12,7 @@ import { _fnSignal } from '../qrl/inlined-fn';
 import { inlinedQrl } from '../qrl/qrl';
 import type { QRL } from '../qrl/qrl.public';
 import { noSerialize } from '../serdes/verify';
-import { QErrorContentHost, QErrorFallbackHost, QSuspenseResultParent } from '../utils/markers';
+import { QErrorContentHost } from '../utils/markers';
 import { qTest } from '../utils/qdev';
 import { tryGetInvokeContext } from '../../use/use-core';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
@@ -101,11 +101,7 @@ const renderFallbackOrLastResort = (
   return rendered;
 };
 
-const buildErrorBoundaryHosts = (
-  store: ErrorBoundaryStore,
-  fallbackHostMarker: string,
-  FallbackComponent: typeof SSRErrorFallback
-): JSXOutput => {
+const buildErrorBoundaryHosts = (store: ErrorBoundaryStore): JSXOutput => {
   const boundaryId = nextErrorBoundaryId();
   return [
     /*#__PURE__*/ _jsxSorted(
@@ -119,14 +115,16 @@ const buildErrorBoundaryHosts = (
       1,
       null
     ),
+    // The host marker + delivery mode are chosen at drain time, when an in-place throw is known.
     /*#__PURE__*/ _jsxSorted(
-      'div',
+      SSRErrorFallbackHost,
       {
-        [fallbackHostMarker]: String(boundaryId),
-        style: /*#__PURE__*/ _fnSignal(_ebFallbackStyle, [store], _ebFallbackStyle_str),
+        boundaryId,
+        store,
+        hostStyle: /*#__PURE__*/ _fnSignal(_ebFallbackStyle, [store], _ebFallbackStyle_str),
       },
       null,
-      /*#__PURE__*/ _jsxSorted(FallbackComponent, { boundaryId, store }, null, null, 1, null),
+      null,
       1,
       null
     ),
@@ -174,12 +172,7 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
     store.resetOwner =
       ownerFrame?.projectionComponentFrame?.componentNode ??
       (host as { parentComponent?: unknown } | undefined)?.parentComponent;
-    // Out-of-order: fallback streams as a segment, revealed by `qO`.
-    if (isOutOfOrderStreaming()) {
-      return buildErrorBoundaryHosts(store, QSuspenseResultParent, SSRErrorFallback);
-    }
-    // In-order: fallback emitted inline, swapped by `qErr`.
-    return buildErrorBoundaryHosts(store, QErrorFallbackHost, SSRErrorFallbackInline);
+    return buildErrorBoundaryHosts(store);
   }
 
   if (store.error !== undefined) {

@@ -810,7 +810,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikRouterProps \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nviewTransition?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ Enable the ViewTransition API\n\nDefault: `true`\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface QwikRouterProps \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nviewTransition?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ Enable the ViewTransition API on SPA navigation. Opt-in: set to `true` to enable.\n\nDefault: `false`\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx",
       "mdFile": "router.qwikrouterprops.md"
     },

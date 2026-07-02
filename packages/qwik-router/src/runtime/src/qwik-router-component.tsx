@@ -45,7 +45,6 @@ import {
   useServerData,
   useSignal,
   useStore,
-  useStyles$,
   useTask$,
   type QRL,
 } from '@qwik.dev/core';
@@ -77,7 +76,6 @@ import {
 } from './contexts';
 import { createDocumentHead, resolveHead } from './head';
 import { refreshLinkPrefetchObserver } from './link-prefetch';
-import transitionCss from './qwik-view-transition.css?inline';
 import { loadRoute } from './routing';
 import {
   callRestoreScrollOnDocument,
@@ -118,7 +116,11 @@ import type {
 import { submitAction } from './use-endpoint';
 import { useQwikRouterEnv } from './use-functions';
 import { isSameOrigin, isSamePath, toPath, toUrl } from './utils';
-import { startViewTransition, type ViewTransition } from './view-transition';
+import {
+  shouldStartViewTransition,
+  startViewTransition,
+  type ViewTransition,
+} from './view-transition';
 
 declare const window: ClientSPAWindow;
 
@@ -134,9 +136,9 @@ export const QWIK_ROUTER_SCROLLER = '_qRouterScroller';
 /** @public */
 export interface QwikRouterProps {
   /**
-   * Enable the ViewTransition API
+   * Enable the ViewTransition API on SPA navigation. Opt-in: set to `true` to enable.
    *
-   * Default: `true`
+   * Default: `false`
    *
    * @see https://github.com/WICG/view-transitions/blob/main/explainer.md
    * @see https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API
@@ -189,7 +191,6 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       'useQwikRouter can only run during SSR on the server. If you are seeing this, it means you are re-rendering the root of your application. Fix that or use the <QwikRouterProvider> component around the root of your application.'
     );
   }
-  useStyles$(transitionCss);
   const env = useQwikRouterEnv();
   if (!env?.params) {
     throw new Error(
@@ -835,7 +836,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       };
 
       const _waitNextPage = () => {
-        if (props?.viewTransition === false || !('startViewTransition' in document)) {
+        if (!shouldStartViewTransition(props?.viewTransition)) {
           return navigate().then(() => undefined as ViewTransition | undefined);
         }
         const { ready, transition } = startViewTransition({

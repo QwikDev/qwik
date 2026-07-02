@@ -6,7 +6,7 @@ import {
   noopSchedule,
 } from '../../test-utils';
 import { disposeSubscriber } from '../../reactive/cleanup';
-import { createComputed } from '../../reactive/computed';
+import { useComputed } from '../../reactive/computed';
 import { useSignal } from '../../reactive/signal';
 import { createOwner, runWithOwner } from '../../runtime/owner';
 import { Scheduler } from '../../runtime/scheduler';
@@ -301,7 +301,7 @@ describe('DOM effects', () => {
   it('patches direct DOM effects from computed sources', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const count = useSignal(2);
-    const doubled = createOwned(() => createComputed(() => count.value * 2));
+    const doubled = createOwned(() => useComputed(() => count.value * 2));
     const text = createText();
     const effect = createOwned(() => createTextNodeEffect(text, doubled, scheduler));
 

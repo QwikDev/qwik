@@ -1,10 +1,10 @@
 ==INPUT==
 
-import { createAsync$, useSignal } from '@qwik.dev/core/spark';
+import { useAsync$, useSignal } from '@qwik.dev/core/spark';
 
 export function App() {
   const count = useSignal(0);
-  const data = createAsync$(async () => {
+  const data = useAsync$(async () => {
     const before = count.value;
     await Promise.resolve();
     return before + count.value;
@@ -17,7 +17,7 @@ export function App() {
 ============================= src/component.tsx ==
 
 import {
-  createAsyncQrl,
+  useAsyncQrl,
   useSignal,
   _qrlWithChunk,
   escapeHTML,
@@ -25,18 +25,18 @@ import {
   createSsrElementTextTarget,
   maybeThen,
 } from '@qwik.dev/core/spark';
-import { component_createAsync$_segment_0 } from './component.tsx_component_createAsync$_segment_0';
+import { component_useAsync$_segment_0 } from './component.tsx_component_useAsync$_segment_0';
 
-const q_component_createAsync$_segment_0 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_createAsync$_segment_0',
-  () => import('./component.tsx_component_createAsync$_segment_0'),
-  'component_createAsync$_segment_0'
+const q_component_useAsync$_segment_0 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_useAsync$_segment_0',
+  () => import('./component.tsx_component_useAsync$_segment_0'),
+  'component_useAsync$_segment_0'
 );
-q_component_createAsync$_segment_0.s(component_createAsync$_segment_0);
+q_component_useAsync$_segment_0.s(component_useAsync$_segment_0);
 
 export function App(_props, ctx) {
   const count = useSignal(0);
-  const data = createAsyncQrl(q_component_createAsync$_segment_0.w([count]), { initial: 0 });
+  const data = useAsyncQrl(q_component_useAsync$_segment_0.w([count]), { initial: 0 });
   const id0 = ctx.nextId();
   ctx.addRoot(data);
   const text1 = renderSsrTextNode(createSsrElementTextTarget(id0), data);
@@ -47,10 +47,10 @@ export function App(_props, ctx) {
 }
 
 null
-============================= src/component.tsx_component_createAsync$_segment_0.js (ENTRY POINT)==
+============================= src/component.tsx_component_useAsync$_segment_0.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core/spark';
-export const component_createAsync$_segment_0 = function* () {
+export const component_useAsync$_segment_0 = function* () {
   const count = _captures[0];
   const before = count.value;
   yield Promise.resolve();
@@ -61,19 +61,19 @@ null
 /*
 {
   "origin": "component.tsx",
-  "name": "component_createAsync$_segment_0",
+  "name": "component_useAsync$_segment_0",
   "entry": null,
-  "displayName": "component_createAsync$_segment_0",
+  "displayName": "component_useAsync$_segment_0",
   "hash": "segment_0",
-  "canonicalFilename": "component.tsx_component_createAsync$_segment_0",
+  "canonicalFilename": "component.tsx_component_useAsync$_segment_0",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
-  "ctxName": "createAsync$",
+  "ctxName": "useAsync$",
   "captures": true,
   "loc": [
-    131,
-    265
+    128,
+    259
   ],
   "paramNames": [],
   "captureNames": [
@@ -88,12 +88,12 @@ null
 
 ============================= src/component.tsx ==
 
-import { createAsync, useSignal, createTemplate, createTextNodeEffect } from '@qwik.dev/core/spark';
+import { useAsync, useSignal, createTemplate, createTextNodeEffect } from '@qwik.dev/core/spark';
 
 const dom_App_template0 = createTemplate('<button> </button>');
 export function App(_props, ctx) {
   const count = useSignal(0);
-  const data = createAsync(
+  const data = useAsync(
     function* () {
       const before = count.value;
       yield Promise.resolve();

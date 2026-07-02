@@ -38,9 +38,3 @@ export class Signal<T> implements Source<T> {
     notifySourceSubscribers(this);
   }
 }
-
-export function useSignal<T>(): Signal<T | undefined>;
-export function useSignal<T>(value: T): Signal<T>;
-export function useSignal<T>(value?: T): Signal<T | undefined> {
-  return new Signal(value);
-}

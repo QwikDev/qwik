@@ -7,8 +7,8 @@ import {
   runWithTestContainer,
 } from '../test-utils';
 import { disposeSubscriber } from './cleanup';
-import { Computed, createComputed } from './computed';
-import { createComputedQrl } from './computed-qrl';
+import { Computed, useComputed } from './computed';
+import { useComputedQrl } from './computed-qrl';
 import { useSignal } from './signal';
 import { runWithCollector } from './tracking';
 import { Scheduler } from '../runtime/scheduler';
@@ -41,7 +41,7 @@ describe('reactive primitives', () => {
     const count = useSignal(1);
     let runs = 0;
     const doubled = createOwned(() =>
-      createComputed(() => {
+      useComputed(() => {
         runs++;
         return count.value * 2;
       })
@@ -67,11 +67,11 @@ describe('reactive primitives', () => {
     let doubledRuns = 0;
     let quadrupledRuns = 0;
     const [doubled, quadrupled] = createOwned(() => {
-      const doubled = createComputed(() => {
+      const doubled = useComputed(() => {
         doubledRuns++;
         return count.value * 2;
       });
-      const quadrupled = createComputed(() => {
+      const quadrupled = useComputed(() => {
         quadrupledRuns++;
         return doubled.value * 2;
       });
@@ -97,7 +97,7 @@ describe('reactive primitives', () => {
     const b = useSignal('b');
     let runs = 0;
     const selected = createOwned(() =>
-      createComputed(() => {
+      useComputed(() => {
         runs++;
         return useA.value ? a.value : b.value;
       })
@@ -122,7 +122,7 @@ describe('reactive primitives', () => {
 
   it('removes source subscriptions when a collector is disposed', () => {
     const count = useSignal(1);
-    const doubled = createOwned(() => createComputed(() => count.value * 2));
+    const doubled = createOwned(() => useComputed(() => count.value * 2));
 
     expect(doubled.value).toBe(2);
     expect(count.subs).toContain(doubled);
@@ -138,7 +138,7 @@ describe('reactive primitives', () => {
     const collector = runWithTestContainer(scheduler, () => createTask(() => {}));
     let runs = 0;
     const doubled = createOwned(() =>
-      createComputed(() => {
+      useComputed(() => {
         runs++;
         return count.value * 2;
       })
@@ -161,7 +161,7 @@ describe('reactive primitives', () => {
   });
 
   it('throws when reading a disposed computed without a cached value', () => {
-    const doubled = createOwned(() => createComputed(() => 2));
+    const doubled = createOwned(() => useComputed(() => 2));
 
     disposeSubscriber(doubled);
 
@@ -172,11 +172,11 @@ describe('reactive primitives', () => {
     const count = useSignal(1);
     let runs = 0;
     const [doubled, quadrupled] = createOwned(() => {
-      const doubled = createComputed(() => {
+      const doubled = useComputed(() => {
         runs++;
         return count.value * 2;
       });
-      const quadrupled = createComputed(() => doubled.value * 2);
+      const quadrupled = useComputed(() => doubled.value * 2);
       return [doubled, quadrupled] as const;
     });
 
@@ -194,7 +194,7 @@ describe('reactive primitives', () => {
   it('throws on circular computed dependencies', () => {
     let circular!: Computed<number>;
     createOwned(() => {
-      circular = createComputed(() => circular.value + 1);
+      circular = useComputed(() => circular.value + 1);
     });
 
     expect(() => circular.value).toThrow('Circular computed dependency');
@@ -202,7 +202,7 @@ describe('reactive primitives', () => {
 
   it('runs resolved computed QRLs synchronously', () => {
     const computed = createOwned(() =>
-      createComputedQrl(createQRL('chunk', 'symbol', () => 'computed', null, null))
+      useComputedQrl(createQRL('chunk', 'symbol', () => 'computed', null, null))
     );
 
     expect(computed.value).toBe('computed');
@@ -220,7 +220,7 @@ describe('reactive primitives', () => {
       },
       null
     );
-    const computed = createOwned(() => createComputedQrl(qrl));
+    const computed = createOwned(() => useComputedQrl(qrl));
     let pending: unknown;
 
     expect(loadCount).toBe(1);
@@ -252,7 +252,7 @@ describe('reactive primitives', () => {
       '0 1',
       container
     );
-    const computed = createOwned(() => createComputedQrl(qrl, container));
+    const computed = createOwned(() => useComputedQrl(qrl, container));
     let pending: unknown;
 
     try {

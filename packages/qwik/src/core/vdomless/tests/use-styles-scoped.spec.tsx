@@ -1,5 +1,5 @@
 import { component$, Slot, useStylesScoped$ } from '@qwik.dev/core';
-import { createAsync$, useSignal } from '@qwik.dev/core/spark';
+import { useAsync$, useSignal } from '@qwik.dev/core/spark';
 import { describe, expect, it } from 'vitest';
 import { QStyle, QStyleSelector } from '../../shared/utils/markers';
 import { getScopedStyles } from '../../shared/utils/scoped-stylesheet';
@@ -431,7 +431,7 @@ describe.each([
 
   it('awaits async component output before applying scoped class', async () => {
     const App = component$(() => {
-      const value = createAsync$(async () => 'ready');
+      const value = useAsync$(async () => 'ready');
       useStylesScoped$(`.red { color: red; }`);
       return <div class="red">{value.value}</div>;
     });

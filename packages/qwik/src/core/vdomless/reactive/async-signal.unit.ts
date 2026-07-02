@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createOwner, runWithOwner } from '../runtime/owner';
-import { createAsync } from './async-signal';
+import { useAsync } from './async-signal';
 import { useSignal } from './signal';
 
 describe('vdomless async signal', () => {
@@ -9,7 +9,7 @@ describe('vdomless async signal', () => {
     const after = useSignal(10);
     const seen: string[] = [];
     const signal = createOwned(() =>
-      createAsync<number>(function* () {
+      useAsync<number>(function* () {
         seen.push(`before:${before.value}`);
         yield Promise.resolve();
         seen.push(`after:${after.value}`);
@@ -34,7 +34,7 @@ describe('vdomless async signal', () => {
     let release!: () => void;
     const dep = useSignal(1);
     const signal = createOwned(() =>
-      createAsync<number>(
+      useAsync<number>(
         function* () {
           const value = dep.value;
           yield new Promise<void>((resolve) => {
@@ -64,7 +64,7 @@ describe('vdomless async signal', () => {
 
   it('captures errors', async () => {
     const signal = createOwned(() =>
-      createAsync<number>(function* () {
+      useAsync<number>(function* () {
         yield Promise.resolve();
         throw new Error('boom');
       })
@@ -83,7 +83,7 @@ describe('vdomless async signal', () => {
     let continued = false;
     let release!: () => void;
     const signal = createOwned(() =>
-      createAsync<number>(function* ({ abortSignal: signal, cleanup }) {
+      useAsync<number>(function* ({ abortSignal: signal, cleanup }) {
         abortSignal = signal;
         cleanup(() => {
           cleaned = true;
@@ -110,7 +110,7 @@ describe('vdomless async signal', () => {
 
   it('times out pending work', async () => {
     const signal = createOwned(() =>
-      createAsync<number>(
+      useAsync<number>(
         function* () {
           yield new Promise(() => {});
           return 1;

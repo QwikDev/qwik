@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createAsync$, createSerializer$, useSignal } from '@qwik.dev/core/spark';
+import { useAsync$, createSerializer$, useSignal } from '@qwik.dev/core/spark';
 import { csrRender, ssrRender } from '../test-utils';
 
 const debug = false;
@@ -133,7 +133,7 @@ describe.each([
 
   it('should deserialize a Promise initial value as Date', async () => {
     const DateDisplay = () => {
-      const dateStr = createAsync$(() => Promise.resolve('2025-01-15T12:00:00.000Z'));
+      const dateStr = useAsync$(() => Promise.resolve('2025-01-15T12:00:00.000Z'));
       const date = createSerializer$(() => ({
         deserialize: (str: string) => new Date(str),
         serialize: (d) => d.toISOString(),

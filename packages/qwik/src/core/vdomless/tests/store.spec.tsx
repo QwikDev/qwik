@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createStore } from '@qwik.dev/core/spark';
 import { csrRender, ssrRender } from '../test-utils';
-import { createComputed } from '../reactive/computed';
+import { useComputed } from '../reactive/computed';
 import { createOwner, runWithOwner } from '../runtime/owner';
 
 const debug = false;
@@ -11,7 +11,7 @@ describe('vdomless store runtime', () => {
     const state = createStore({ count: 0, name: 'Qwik' });
     let runs = 0;
     const count = createOwned(() =>
-      createComputed(() => {
+      useComputed(() => {
         runs++;
         return state.count;
       })
@@ -33,7 +33,7 @@ describe('vdomless store runtime', () => {
 
   it('tracks deep props and parent replacement', () => {
     const state = createStore({ user: { name: 'Ada' } });
-    const name = createOwned(() => createComputed(() => state.user.name));
+    const name = createOwned(() => useComputed(() => state.user.name));
 
     expect(name.value).toBe('Ada');
 
@@ -46,8 +46,8 @@ describe('vdomless store runtime', () => {
 
   it('tracks array indexes and length', () => {
     const state = createStore<{ items: string[] }>({ items: [] });
-    const first = createOwned(() => createComputed(() => state.items[0]));
-    const length = createOwned(() => createComputed(() => state.items.length));
+    const first = createOwned(() => useComputed(() => state.items[0]));
+    const length = createOwned(() => useComputed(() => state.items.length));
 
     expect(first.value).toBeUndefined();
     expect(length.value).toBe(0);
@@ -65,8 +65,8 @@ describe('vdomless store runtime', () => {
 
   it('tracks property existence', () => {
     const state = createStore<{ a?: number; b?: number }>({ a: 1 });
-    const hasA = createOwned(() => createComputed(() => 'a' in state));
-    const hasB = createOwned(() => createComputed(() => 'b' in state));
+    const hasA = createOwned(() => useComputed(() => 'a' in state));
+    const hasB = createOwned(() => useComputed(() => 'b' in state));
 
     expect(hasA.value).toBe(true);
     expect(hasB.value).toBe(false);

@@ -28,8 +28,8 @@ import {
   SsrDomSubscription,
 } from './dom/effect/ssr-effect';
 import { ComputedFlags } from './reactive/flags';
-import { createComputedQrl } from './reactive/computed-qrl';
-import { createAsyncQrl } from './reactive/async-signal';
+import { useComputedQrl } from './reactive/computed-qrl';
+import { useAsyncQrl } from './reactive/async-signal';
 import { createSerializerQrl, type SerializerSignal } from './reactive/serializer-signal';
 import { useSignal, type Signal } from './reactive/signal';
 import { createStore, getStoreSource } from './reactive/store';
@@ -128,7 +128,7 @@ describe('vdomless serdes emit-only', () => {
     const qrl = createQRL('./async.js', 'load', () => {
       return 6;
     });
-    const signal = createOwned(() => createAsyncQrl(qrl, { initial: 5 }));
+    const signal = createOwned(() => useAsyncQrl(qrl, { initial: 5 }));
     const effect = createOwned(() => createSsrTextNodeEffect(createSsrElementTextTarget(7)));
 
     runWithCollector(effect, () => signal.value);
@@ -575,7 +575,7 @@ describe('vdomless serdes emit-only', () => {
     const [doubled, effect] = createOwned(
       () =>
         [
-          createComputedQrl(qrl, container),
+          useComputedQrl(qrl, container),
           createSsrTextNodeEffect(createSsrElementTextTarget(4)),
         ] as const
     );
@@ -616,7 +616,7 @@ describe('vdomless serdes emit-only', () => {
       container
     );
     await qrl.resolve(container);
-    const doubled = createOwned(() => createComputedQrl(qrl, container));
+    const doubled = createOwned(() => useComputedQrl(qrl, container));
 
     doubled.value;
     doubled.flags |= ComputedFlags.Dirty;
@@ -666,7 +666,7 @@ describe('vdomless serdes emit-only', () => {
     const source = useSignal('value');
     const container = createCaptureContainer({});
     const computed = createOwned(() =>
-      createComputedQrl(
+      useComputedQrl(
         createQRL('./context.computed.js', 'computedValue', () => 'computed'),
         container
       )

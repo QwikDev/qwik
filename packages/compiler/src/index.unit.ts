@@ -834,11 +834,11 @@ export function App() {
 
   test('emits async signal setup with async generator lowering', async () => {
     await testInput('async_signal_generator', {
-      code: `import { createAsync$, useSignal } from '@qwik.dev/core/spark';
+      code: `import { useAsync$, useSignal } from '@qwik.dev/core/spark';
 
 export function App() {
   const count = useSignal(0);
-  const data = createAsync$(async () => {
+  const data = useAsync$(async () => {
     const before = count.value;
     await Promise.resolve();
     return before + count.value;

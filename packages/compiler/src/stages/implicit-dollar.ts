@@ -146,8 +146,8 @@ export function isCreateVisibleTaskSegment(segment: SegmentRecord) {
   return isImplicitDollarSegment(segment) && segment.ctxName === 'createVisibleTask$';
 }
 
-export function isCreateAsyncSegment(segment: SegmentRecord) {
-  return isImplicitDollarSegment(segment) && segment.ctxName === 'createAsync$';
+export function isUseAsyncSegment(segment: SegmentRecord) {
+  return isImplicitDollarSegment(segment) && segment.ctxName === 'useAsync$';
 }
 
 export function isTaskDollarSegment(segment: SegmentRecord) {
@@ -155,7 +155,7 @@ export function isTaskDollarSegment(segment: SegmentRecord) {
 }
 
 export function isGeneratorTrackedSegment(segment: SegmentRecord) {
-  return isTaskDollarSegment(segment) || isCreateAsyncSegment(segment);
+  return isTaskDollarSegment(segment) || isUseAsyncSegment(segment);
 }
 
 export function hasTaskSetupSegment(

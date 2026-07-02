@@ -16,31 +16,24 @@ export {
   track,
   untrack,
 } from './reactive/tracking';
-export { useSignal, Signal } from './reactive/signal';
+export {
+  useSignal,
+  useComputed,
+  useComputedQrl,
+  useComputed$,
+  useAsync,
+  useAsyncQrl,
+  useAsync$,
+} from './reactive/public-api';
+export { Signal } from './reactive/signal';
 export {
   Computed,
-  createComputed,
-  createComputed as useComputed,
   markComputedDirty,
   readComputed,
   readComputedUntracked,
 } from './reactive/computed';
-export {
-  ComputedQrl,
-  createComputedQrl,
-  createComputedQrl as useComputedQrl,
-  useComputed$,
-  type ComputedQrlFn,
-  type ComputedQrlRef,
-} from './reactive/computed-qrl';
-export {
-  AsyncSignal,
-  createAsync,
-  createAsyncQrl,
-  createAsync$,
-  type AsyncSignalFn,
-  type AsyncSignalQrl,
-} from './reactive/async-signal';
+export { ComputedQrl, type ComputedQrlFn, type ComputedQrlRef } from './reactive/computed-qrl';
+export { AsyncSignal, type AsyncSignalFn, type AsyncSignalQrl } from './reactive/async-signal';
 export {
   SerializerSignal,
   createSerializer,

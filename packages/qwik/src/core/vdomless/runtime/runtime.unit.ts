@@ -9,7 +9,7 @@ import {
   runWithTestContainer,
 } from '../test-utils';
 import { disposeSubscriber } from '../reactive/cleanup';
-import { createComputed } from '../reactive/computed';
+import { useComputed } from '../reactive/computed';
 import { OwnerFlags } from '../reactive/flags';
 import { useSignal } from '../reactive/signal';
 import { getActiveCollector, runWithCollector } from '../reactive/tracking';
@@ -350,7 +350,7 @@ describe('runtime scheduler and owner lifecycle', () => {
   it('registers computed subscribers with the active owner', () => {
     const owner = createOwner();
     const count = useSignal(1);
-    const doubled = runWithOwner(owner, () => createComputed(() => count.value * 2));
+    const doubled = runWithOwner(owner, () => useComputed(() => count.value * 2));
 
     expect(owner.items).toEqual([doubled]);
     expect(doubled.value).toBe(2);

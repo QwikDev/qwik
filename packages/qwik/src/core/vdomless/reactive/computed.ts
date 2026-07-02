@@ -38,10 +38,6 @@ export class Computed<T> implements ComputedSubscriber<T> {
   }
 }
 
-export function createComputed<T>(compute: () => T): Computed<T> {
-  return registerSubscriberToOwner(new Computed(compute));
-}
-
 export function readComputed<T>(computed: ComputedSubscriber<T>): T {
   if (computed.owner === null) {
     return readDisposedComputed(computed);

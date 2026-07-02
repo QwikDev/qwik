@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { component$ } from '@qwik.dev/core';
-import { createAsync$, useSignal, createTask$ } from '@qwik.dev/core/spark';
+import { useAsync$, useSignal, createTask$ } from '@qwik.dev/core/spark';
 import { csrRender, ssrRender } from '../test-utils';
 
 const debug = false;
@@ -12,7 +12,7 @@ describe.each([
   it('resolves promise in computed result', async () => {
     const Counter = () => {
       const count = useSignal(1);
-      const doubleCount = createAsync$(async () => count.value * 2);
+      const doubleCount = useAsync$(async () => count.value * 2);
       return <button onClick$={() => count.value++}>{doubleCount.value}</button>;
     };
 
@@ -36,8 +36,8 @@ describe.each([
   it('computes async result from async result', async () => {
     const Counter = () => {
       const count = useSignal(1);
-      const doubleCount = createAsync$(async () => count.value * 2);
-      const quadrupleCount = createAsync$(async () => doubleCount.value * 2);
+      const doubleCount = useAsync$(async () => count.value * 2);
+      const quadrupleCount = useAsync$(async () => doubleCount.value * 2);
       return <button onClick$={() => count.value++}>{quadrupleCount.value}</button>;
     };
 
@@ -57,7 +57,7 @@ describe.each([
   it('resolves delayed promise in computed result', async () => {
     const Counter = () => {
       const count = useSignal(1);
-      const doubleCount = createAsync$(async () => {
+      const doubleCount = useAsync$(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
         return count.value * 2;
       });
@@ -79,7 +79,7 @@ describe.each([
 
   it('handles undefined as promise result', async () => {
     const Counter = () => {
-      const value = createAsync$<string | undefined>(async () => undefined);
+      const value = useAsync$<string | undefined>(async () => undefined);
       return <div>{value.value}</div>;
     };
 
@@ -94,7 +94,7 @@ describe.each([
   it('renders as attribute', async () => {
     const Counter = () => {
       const count = useSignal(1);
-      const doubleCount = createAsync$(async () => count.value * 2);
+      const doubleCount = useAsync$(async () => count.value * 2);
       return <button data-count={doubleCount.value} onClick$={() => count.value++}></button>;
     };
 
@@ -116,7 +116,7 @@ describe.each([
 
     const Counter = () => {
       const count = useSignal(1);
-      const doubleCount = createAsync$(async () => {
+      const doubleCount = useAsync$(async () => {
         const value = count.value;
         if (value === 2) {
           await new Promise<void>((resolve) => {
@@ -160,7 +160,7 @@ describe.each([
 
   it('does not show initial value after SSR', async () => {
     const Counter = () => {
-      const asyncValue = createAsync$(async () => 42, { initial: 10 });
+      const asyncValue = useAsync$(async () => 42, { initial: 10 });
       return <div>{asyncValue.value}</div>;
     };
 
@@ -175,7 +175,7 @@ describe.each([
   it('shows error state', async () => {
     const Counter = () => {
       const count = useSignal(1);
-      const doubleCount = createAsync$(async () => {
+      const doubleCount = useAsync$(async () => {
         const value = count.value;
         if (value > 1) {
           throw new Error('test');
@@ -207,7 +207,7 @@ describe.each([
 
     const Counter = () => {
       const count = useSignal(1);
-      const doubleCount = createAsync$(async () => {
+      const doubleCount = useAsync$(async () => {
         (globalThis as any).__asyncLog.push('async');
         return count.value * 2;
       });
@@ -233,7 +233,7 @@ describe.each([
   it('skips computation on SSR for clientOnly and resumes on qidle', async () => {
     const Counter = () => {
       const count = useSignal(1);
-      const asyncValue = createAsync$(async () => count.value * 2, {
+      const asyncValue = useAsync$(async () => count.value * 2, {
         clientOnly: true,
         initial: 0,
       });
@@ -272,14 +272,14 @@ describe.each([
 
     const Counter = () => {
       const count = useSignal(1);
-      createAsync$(
+      useAsync$(
         async () => {
           (globalThis as any).__asyncComputations.unused = true;
           return count.value * 2;
         },
         { clientOnly: true, initial: 0 }
       );
-      const asyncValue = createAsync$(
+      const asyncValue = useAsync$(
         async () => {
           (globalThis as any).__asyncComputations.used = true;
           return count.value * 3;
@@ -314,7 +314,7 @@ describe.each([
 
   it('throws when reading clientOnly value without initial during SSR', async () => {
     const Counter = () => {
-      const asyncValue = createAsync$(async () => 42, { clientOnly: true });
+      const asyncValue = useAsync$(async () => 42, { clientOnly: true });
       return <div>{asyncValue.value}</div>;
     };
 
@@ -335,7 +335,7 @@ describe.each([
 
     const Counter = () => {
       const count = useSignal(1);
-      const asyncValue = createAsync$(async ({ cleanup }) => {
+      const asyncValue = useAsync$(async ({ cleanup }) => {
         const value = count.value;
         cleanup(() => {
           (globalThis as any).__asyncLog.push('cleanup');
@@ -367,7 +367,7 @@ describe.each([
     (globalThis as any).__asyncLog = [];
 
     const Child = component$(() => {
-      const asyncValue = createAsync$(async ({ cleanup }) => {
+      const asyncValue = useAsync$(async ({ cleanup }) => {
         cleanup(() => {
           (globalThis as any).__asyncLog.push('cleanup');
         });
@@ -410,7 +410,7 @@ describe.each([
   it('resumes polling AsyncSignal with qidle on SSR', async () => {
     const Counter = () => {
       const start = Date.now();
-      const elapsed = createAsync$(async () => Date.now() - start, { expires: 50 });
+      const elapsed = useAsync$(async () => Date.now() - start, { expires: 50 });
       return (
         <div>
           <div id="elapsed">{elapsed.value}</div>

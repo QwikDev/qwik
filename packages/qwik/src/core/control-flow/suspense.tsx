@@ -450,10 +450,8 @@ export const SSRErrorFallbackInline = __EXPERIMENTAL__.errorBoundary
   : null!;
 
 /**
- * Drain-time `<ErrorBoundary>` fallback host. The content host drained first, so an in-place throw
- * is already in `store.error` here: it swaps inline via `qErr` even when out-of-order streaming is
- * enabled. Only an error that can still arrive late (a deferred child segment) keeps the `qO`
- * late-delivery shell.
+ * Drain-time `<ErrorBoundary>` fallback host: an in-place throw is already in `store.error`, so it
+ * swaps inline via `qErr`; only a deferred-segment error keeps the `qO` late-delivery shell.
  */
 export const SSRErrorFallbackHost = __EXPERIMENTAL__.errorBoundary
   ? /*#__PURE__*/ createInternalServerComponent<{

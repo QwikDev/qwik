@@ -84,7 +84,7 @@ export enum ExperimentalFeatures {
   show = 'show',
   /** Enable the Suspense fallback primitive */
   suspense = 'suspense',
-  /** Enable out-of-order streaming swap for the ErrorBoundary fallback */
+  /** Enable the ErrorBoundary primitive */
   errorBoundary = 'errorBoundary',
   /** Enable the Valibot form validation */
   valibot = 'valibot',

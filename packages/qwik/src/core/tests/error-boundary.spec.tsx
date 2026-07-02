@@ -2048,8 +2048,8 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
     expect(received[0]).toBe(original);
   });
 
-  // The client fallback render redacts via this helper, so a client-caught error matches the SSR path
-  // in prod. (The e2e harness builds the client in dev mode, so this is the unit proof.)
+  // The client fallback render redacts via this helper; the e2e harness builds in dev, so this is
+  // the prod-redaction proof.
   it('redactBoundaryErrorForDisplay: prod redacts a raw client error to generic + digest', () => {
     const raw = Object.assign(new Error('client secret'), { token: 'abc' });
     const out = redactBoundaryErrorForDisplay(raw, /* dev */ false) as Error & { digest?: string };

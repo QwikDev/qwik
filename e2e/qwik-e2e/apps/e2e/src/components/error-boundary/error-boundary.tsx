@@ -82,7 +82,6 @@ const EbSyncThrower = component$(() => {
   return <span id="eb-thrower-client" />;
 });
 
-// A plain user component that projects its children through its own <Slot>.
 const EbWrapper = component$(() => (
   <div data-eb-wrapper="">
     <Slot />
@@ -100,9 +99,8 @@ const EbWrapAsync = component$(() => {
   return <p id="eb-wrap-recovered">recovered</p>;
 });
 
-// Errors on SSR AND on the first client re-execution, then recovers on the second — so a SECOND
-// reset() runs a CLIENT re-render of an EB-inside-<Suspense> (the case the reset Suspense-climb targets).
-// The run counter is on `window` so it survives the boundary being re-created between resets.
+// Errors on SSR and the 1st client run, so the 2nd reset() is a client re-render of an
+// EB-inside-<Suspense>; the run counter lives on `window` to survive boundary re-creation.
 const EbReErrorAsync = component$(() => {
   if (isServer) {
     return new Promise<JSXOutput>((_resolve, reject) => {
@@ -148,11 +146,8 @@ const EbAsyncThrower = component$(() => {
   return <span id="eb-async-client" />;
 });
 
-// useAsync$ is the basis the loaders are being refactored onto. An async rejection is CAPTURED into the
-// signal's `.error` (the expected channel): reading `.error` handles it inline, so the enclosing
-// <ErrorBoundary> stays inert. Reading `.value` instead RE-THROWS the captured error → the boundary
-// catches it. (A loader maps onto this: a ServerError is surfaced via `.error`; an unexpected error
-// propagates to the boundary.)
+// Loader contract on useAsync$: reading `.error` handles the rejection inline (boundary inert);
+// reading `.value` re-throws it to the boundary.
 const AsyncErrorInline = component$(() => {
   const data = useAsync$(async () => {
     throw new Error('expected-async-error');
@@ -422,9 +417,8 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
           </ErrorBoundary>
         </Suspense>
       ) : scenario === 'reset-spa' ? (
-        // SPA-nav equivalent (this app has no router): the EB-in-<Suspense> is mounted CLIENT-FIRST via
-        // a toggle, so it is never SSR'd and has NO serialized $resetOwner$ — reset() must resolve the
-        // owner purely at runtime (getParentHost + the Suspense-climb). Child errors then recovers.
+        // SPA-nav equivalent: mounted CLIENT-FIRST (never SSR'd, no serialized resetOwner), so
+        // reset() must resolve the owner at runtime (getParentHost + Suspense-climb).
         <>
           <button id="eb-spa-show" onClick$={() => (spaShow.value = true)}>
             Show
@@ -482,8 +476,8 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
           </ErrorBoundary>
         </ErrorBoundary>
       ) : scenario === 'last-resort' ? (
-        // SSR-clean boundary; a client throw routes to the lazily-loaded `fallback$` chunk. Blocking
-        // that chunk in the test forces core's built-in last-resort `role="alert"` node.
+        // SSR-clean; the test blocks the lazily-loaded `fallback$` chunk to force core's
+        // last-resort `role="alert"` node.
         <ErrorBoundary fallback$={(e) => <EbFallback msg={String((e as any)?.message ?? e)} />}>
           <button
             id="eb-last-resort-throw"

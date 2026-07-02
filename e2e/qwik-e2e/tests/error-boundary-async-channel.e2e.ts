@@ -1,11 +1,7 @@
 import { expect, test } from '@playwright/test';
 
-// The async-signal `.error` channel vs the <ErrorBoundary>. Loaders are being refactored onto async
-// signals (useAsync$), so this pins the contract:
-//   - an async error CAPTURED into `.error` is the EXPECTED channel → handled inline, boundary inert.
-//   - an error that PROPAGATES (read via `.value`, or any unexpected throw) → caught by <ErrorBoundary>.
-// A loader maps onto this: a ServerError is surfaced via `.error` (handled), an unexpected error
-// propagates to the boundary.
+// Pins the loader contract on async signals: `.error` is the handled channel (boundary stays
+// inert); reading `.value` re-throws to the <ErrorBoundary>.
 test.describe('ErrorBoundary × async-signal .error channel', () => {
   test('async error read via `.error` is handled inline — the boundary stays inert', async ({
     page,

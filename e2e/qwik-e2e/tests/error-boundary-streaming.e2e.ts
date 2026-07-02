@@ -362,11 +362,6 @@ test.describe('ErrorBoundary reset', () => {
     await expect(page.locator('#eb-content-count')).toHaveText('1');
   });
 
-  // KNOWN BUG (see .planning/error-boundary-redesign-status.md "Known limit"): when a plain
-  // <Slot>-projecting component wraps the <ErrorBoundary>, reset() re-renders the wrapper and
-  // re-claims the children instead of re-executing them, so an async child never re-runs. The
-  // owner must be the children's projection owner, not getParentHost(boundary). Remove `.fixme`
-  // to drive the fix.
   test('reset re-executes async children through a Slot-projecting wrapper component', async ({
     page,
   }) => {
@@ -444,9 +439,8 @@ test.describe('ErrorBoundary last-resort & rejection bridge', () => {
   test('built-in last-resort node renders when the fallback$ chunk fails to load', async ({
     page,
   }) => {
-    // Block only the lazily-loaded fallback QRL chunks under /build/ (both the inline `fallback$`
-    // wrapper and the `EbFallback` component it imports contain "fallback" in the filename). Aborting
-    // them makes `fallbackQrl()` reject without ever resolving → core renders the last-resort node.
+    // Abort the /build/ chunks named "fallback" (the `fallback$` wrapper and `EbFallback`)
+    // so `fallbackQrl()` rejects without ever resolving.
     const blockedFallbackChunks: string[] = [];
     await page.route(/\/build\/[^?]*[Ff]allback[^?]*\.js/, (route) => {
       blockedFallbackChunks.push(route.request().url());

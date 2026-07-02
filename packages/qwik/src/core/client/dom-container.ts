@@ -351,8 +351,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       const store = this.resolveContext<ErrorBoundaryStore>(boundaryHost, ERROR_CONTEXT);
       if (store && store.error === undefined) {
         // Resumed boundary never subscribed to `store.error`, so mark dirty to render the fallback.
-        // Stored raw — a client-origin error never serializes, so there's no leak. The fallback
-        // render (errorBoundaryCmp) redacts it for display parity with the SSR path in prod.
+        // Stored raw — client errors never serialize; errorBoundaryCmp redacts for display in prod.
         store.error = storedError;
         // `store.$onError$` is server-only (not serialized); read serialized `props.onError$` instead.
         const boundaryProps = this.getHostProp<{

@@ -14,16 +14,11 @@ export interface ErrorBoundaryStore {
   /** Server-only; streams `fallback$` as an out-of-order segment. */
   $emitFallback$?: (error: unknown) => void | Promise<void>;
   /**
-   * Serialized projection owner (the children's authoring component), so a resumed `reset()`
-   * re-renders it. A plain (non-`$`) field on purpose: the prod build drops `$`-prefixed store
-   * keys, so this node ref must NOT be `$`-prefixed — and the ref also roots the owner so it
-   * resumes.
+   * Children's projection owner for a resumed `reset()`; plain (non-`$`) so prod serializes it, and
+   * the ref roots the owner.
    */
   resetOwner?: unknown;
-  /**
-   * Stable boundary id handed to `onError$` as `info.boundaryId`. A plain (non-`$`) field so it
-   * serializes — the CSR-on-resume sink reads it after resume.
-   */
+  /** Stable id for `onError$`; plain (non-`$`) so the CSR-on-resume sink can read it after resume. */
   boundaryId?: string;
 }
 
@@ -62,19 +57,10 @@ const redactToGeneric = (err: unknown): Error & { digest: string } => {
 };
 
 /**
- * Project a caught error to the value serialized into the HTML and handed to `fallback$`.
- *
- * In production this REDACTS to a generic message + a stable `digest` (dropping the raw message and
- * any attached props; the stack is already dev-gated in the serializer), so internal detail never
- * reaches the client. `onError$` and server `logError` still receive the original error (see
- * `markBoundaryErrored`). In dev it keeps full fidelity, projecting a non-serializable throw to a
- * serializable `Error`. It never returns `undefined` — that is the store's "no error" sentinel, so
- * a thrown/projected `undefined` becomes an `Error` the store can key on. `dev` is an explicit arg
- * so tests can drive both paths — the build-time `isDev` constant can't be toggled at runtime.
- *
- * `transformError` (the server-only `RenderOptions.transformError`), when set, OWNS the projection
- * in both dev and prod. It is fail-closed: a throw or a non-serializable return redacts to the
- * generic shape rather than leaking the raw error.
+ * Project a caught error to the serialized/`fallback$` value. Prod redacts to a generic message +
+ * stable `digest`; dev keeps fidelity; never returns `undefined` (the store's no-error sentinel).
+ * `transformError` owns the projection in both modes and is fail-closed; `dev` is an explicit arg
+ * so tests can drive both paths.
  */
 export const toSerializableBoundaryError = (
   err: unknown,
@@ -103,9 +89,8 @@ export const toSerializableBoundaryError = (
 };
 
 /**
- * What the boundary's fallback displays. Redacts a client-origin error in prod so it matches the
- * SSR path; keeps an already-redacted projection (it has a `digest`) so the digest the client shows
- * stays consistent with the server log. `dev` is explicit so tests can drive both paths.
+ * Fallback display value: redacts client errors in prod to match SSR, keeping an already-redacted
+ * (`digest`) projection so digests stay consistent with server logs.
  */
 export const redactBoundaryErrorForDisplay = (error: unknown, dev: boolean = isDev): unknown =>
   error instanceof Error && 'digest' in error ? error : toSerializableBoundaryError(error, dev);
@@ -126,8 +111,7 @@ export const fireOnError = (
   }
 };
 
-// Server-only: boundaries whose caught error came from a deferred (out-of-order) segment. Kept out
-// of the store so the flag never serializes.
+// Server-only WeakSet, kept off the store so the deferred-origin flag never serializes.
 const boundariesWithDeferredError = /*#__PURE__*/ new WeakSet<ErrorBoundaryStore>();
 
 /** Record that the boundary's error originated inside a deferred segment. */
@@ -160,8 +144,8 @@ const getTaggedErrorPhase = (err: unknown): ErrorBoundaryInfo['phase'] | undefin
     : undefined;
 
 /**
- * Mark the boundary errored and fire `onError$` with the original error and its phase. Each newly
- * caught error fires again, so display (`store.error`) and telemetry stay consistent.
+ * Mark the boundary errored and fire `onError$` with the original error; each newly caught error
+ * fires again so display and telemetry stay consistent.
  */
 export const markBoundaryErrored = (
   store: ErrorBoundaryStore,

@@ -17,7 +17,6 @@ describe('ErrorBoundary public types', () => {
       // @ts-expect-error error is `unknown`, so a bare `.message` access is rejected.
       error.message;
       if (error instanceof Error) {
-        // Narrowed: now `.message` is allowed.
         return <span>{error.message}</span>;
       }
       return <span>error</span>;
@@ -34,7 +33,6 @@ describe('ErrorBoundary public types', () => {
     accept($(() => null));
     accept($(() => undefined));
     accept($(() => [<span>a</span>, 'b', null]));
-    // A non-JSX value (plain object) is not a valid fallback return.
     // @ts-expect-error fallback$ must return JSXOutput, not an arbitrary object.
     accept($(() => ({ not: 'jsx' })));
     expectTypeOf<JSXOutput>().not.toBeAny();

@@ -73,15 +73,14 @@ const _ebFallbackStyle = (store: ErrorBoundaryStore) => ({
 });
 const _ebFallbackStyle_str = '{display:p0.error!==undefined?"contents":"none"}';
 
-// Core-bundled (non-lazy, no QRL) last-resort fallback for when the `fallback$` chunk itself fails
-// to load. `role="alert"` because it's the one fallback the author can't annotate.
+// Core-bundled last-resort for a failed `fallback$` chunk; `role="alert"` because the author
+// can't annotate it.
 const buildLastResortFallback = (): JSXOutput =>
   /*#__PURE__*/ _jsxSorted('div', { role: 'alert' }, null, 'Something went wrong.', 0, null);
 
 /**
- * Invoke the `fallback$` QRL, but if its chunk fails to LOAD (the QRL rejects without ever
- * resolving) render the last-resort node instead of nothing. A fallback that loaded and then THREW
- * still escalates to the parent (its rejection is re-thrown), preserving existing behavior.
+ * Render `fallback$`, or the last-resort node when its chunk fails to LOAD; a loaded-then-thrown
+ * fallback still escalates to the parent.
  */
 const renderFallbackOrLastResort = (
   fallbackQrl: QRL<(error: unknown, reset: QRL<() => void>) => JSXOutput>,
@@ -142,8 +141,8 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
   // Capture the boundary host so a streamed fallback's `reset()` can re-find the boundary.
   const invokeCtx = tryGetInvokeContext();
   const host = invokeCtx?.$hostElement$;
-  // Stable id passed to `onError$` as `info.boundaryId`. A non-`$` field so it serializes for the
-  // CSR-on-resume sink; minted on both server and client so pure-CSR boundaries also have one.
+  // Non-`$` so the `onError$` id serializes for the CSR-on-resume sink; minted on both sides so
+  // pure-CSR boundaries get one.
   // Read the raw target (not the proxy) so the component never subscribes to `boundaryId`.
   const container = invokeCtx?.$container$;
   if (container && (getStoreTarget(store) ?? store).boundaryId === undefined) {
@@ -160,10 +159,8 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
 
   const isServerEnv = qTest ? isServerPlatform() : !isBrowser;
   if (__EXPERIMENTAL__.errorBoundary && isServerEnv) {
-    // Serialize the children's projection owner (the component that wrote `<ErrorBoundary>{children}`)
-    // so a resumed `reset()` re-renders + re-executes them — NOT the EB's physical parent, which a
-    // `<Slot>`-projecting wrapper sits between. The owning frame is the EB frame's projection frame.
-    // `resetOwner` (not `$resetOwner$`): the prod build drops `$`-prefixed store keys.
+    // Serialize the children's projection owner (not the physical parent a `<Slot>` wrapper hides)
+    // so a resumed reset() re-executes them; plain `resetOwner` because prod drops `$`-prefixed keys.
     const ownerFrame = (
       invokeCtx?.$container$ as
         | { getComponentFrame?: (depth: number) => ISsrComponentFrameLike | null }

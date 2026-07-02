@@ -139,16 +139,16 @@ export const markErrorFromDeferredSegment = (store: ErrorBoundaryStore): void =>
 export const isErrorFromDeferredSegment = (store: ErrorBoundaryStore): boolean =>
   boundariesWithDeferredError.has(store);
 
-/** Mark the boundary errored and fire `onError$` once, with the original error and its phase. */
+/**
+ * Mark the boundary errored and fire `onError$` with the original error and its phase. Each newly
+ * caught error fires again, so display (`store.error`) and telemetry stay consistent.
+ */
 export const markBoundaryErrored = (
   store: ErrorBoundaryStore,
   error: unknown,
   phase: ErrorBoundaryInfo['phase'] = 'render',
   transformError?: (error: unknown) => unknown
 ): void => {
-  const isFirstCatch = store.error === undefined;
   store.error = toSerializableBoundaryError(error, isDev, transformError);
-  if (isFirstCatch) {
-    fireOnError(store.$onError$, error, { phase, boundaryId: store.boundaryId ?? '' });
-  }
+  fireOnError(store.$onError$, error, { phase, boundaryId: store.boundaryId ?? '' });
 };

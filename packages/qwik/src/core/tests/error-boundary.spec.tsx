@@ -375,7 +375,7 @@ describe.each(modes)('ErrorBoundary behavior (%s)', (mode, renderMode) => {
     expect(el.ownerDocument.querySelector('[role="alert"]')).toBeFalsy();
   });
 
-  it('a useTask$ throw is caught by the nearest <ErrorBoundary>', async () => {
+  it('a useTask$ throw is caught by the nearest parent <ErrorBoundary>', async () => {
     const { container } = await renderMode(() => (
       <ErrorBoundary fallback$={fb()}>
         <ThrowingTask />
@@ -425,7 +425,7 @@ describe.each(modes)('ErrorBoundary behavior (%s)', (mode, renderMode) => {
     expect(el.querySelector('#content')).toBeFalsy();
   });
 
-  it('a useTask$ throw is caught by the NEAREST of nested boundaries', async () => {
+  it('a useTask$ throw is caught by the NEAREST parent of nested boundaries', async () => {
     const { container } = await renderMode(() => (
       <ErrorBoundary
         fallback$={$(() => (
@@ -1026,7 +1026,7 @@ describe('ErrorBoundary CSR-specific', () => {
     );
   });
 
-  it('a useVisibleTask$ throw is caught by the nearest <ErrorBoundary>', async () => {
+  it('a useVisibleTask$ throw is caught by the nearest parent <ErrorBoundary>', async () => {
     const ThrowingVisibleTask = component$(() => {
       const state = useSignal('init');
       useVisibleTask$(() => {
@@ -2131,7 +2131,7 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
     expect(new Set(digests).size).toBe(digests.length);
   });
 
-  it('[NEW] markBoundaryErrored called twice: onError$ fires only for the first error, but the second overwrites store.error', () => {
+  it('[NEW] markBoundaryErrored called twice: each new error re-fires onError$ and overwrites store.error', () => {
     const received: unknown[] = [];
     const store: ErrorBoundaryStore = { error: undefined, $onError$: (e) => received.push(e) };
     const first = new Error('first');
@@ -2141,8 +2141,8 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
     expect(store.error).toBe(first);
 
     markBoundaryErrored(store, second);
-    expect(received).toEqual([first]);
-    // Pins current behavior: the losing error still replaces store.error (possible design question).
+    // Display and telemetry stay consistent: the new error both reports and replaces.
+    expect(received).toEqual([first, second]);
     expect(store.error).toBe(second);
   });
 });

@@ -15,9 +15,9 @@ export type SourceNamePredicate = (sourceName: string) => boolean;
 
 export const SOURCE_FACTORY_NAMES = new Set([
   'useSignal',
-  'createComputed',
-  'createComputedQrl',
-  'createComputed$',
+  'useComputed',
+  'useComputedQrl',
+  'useComputed$',
   'createAsync',
   'createAsyncQrl',
   'createAsync$',

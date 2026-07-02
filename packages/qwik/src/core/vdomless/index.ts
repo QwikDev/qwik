@@ -20,6 +20,7 @@ export { useSignal, Signal } from './reactive/signal';
 export {
   Computed,
   createComputed,
+  createComputed as useComputed,
   markComputedDirty,
   readComputed,
   readComputedUntracked,
@@ -27,7 +28,8 @@ export {
 export {
   ComputedQrl,
   createComputedQrl,
-  createComputed$,
+  createComputedQrl as useComputedQrl,
+  useComputed$,
   type ComputedQrlFn,
   type ComputedQrlRef,
 } from './reactive/computed-qrl';

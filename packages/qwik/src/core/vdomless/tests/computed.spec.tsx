@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { csrRender, ssrRender } from '../test-utils';
-import { useSignal, createComputed$ } from '@qwik.dev/core/spark';
+import { useSignal, useComputed$ } from '@qwik.dev/core/spark';
 
 const debug = false;
 
@@ -11,7 +11,7 @@ describe.each([
   it('should render computed signal', async () => {
     const MyComp = () => {
       const count = useSignal(0);
-      const double = createComputed$(() => count.value * 2);
+      const double = useComputed$(() => count.value * 2);
       return <p>{double.value}</p>;
     };
 
@@ -25,7 +25,7 @@ describe.each([
   it('should update signal value', async () => {
     const MyComp = () => {
       const count = useSignal(0);
-      const double = createComputed$(() => count.value * 2);
+      const double = useComputed$(() => count.value * 2);
       return <button onClick$={() => count.value++}>{double.value}</button>;
     };
 
@@ -45,7 +45,7 @@ describe.each([
   it('should update mixed signal text', async () => {
     const MyComp = () => {
       const count = useSignal(0);
-      const double = createComputed$(() => count.value * 2);
+      const double = useComputed$(() => count.value * 2);
       return <button onClick$={() => count.value++}>Count {double.value}</button>;
     };
 
@@ -65,7 +65,7 @@ describe.each([
   it('should update text expression value', async () => {
     const MyComp = () => {
       const count = useSignal(0);
-      const double = createComputed$(() => count.value * 2);
+      const double = useComputed$(() => count.value * 2);
       return <button onClick$={() => count.value++}>{double.value + 1}</button>;
     };
 
@@ -85,8 +85,8 @@ describe.each([
   it('should update multiple text expression value', async () => {
     const MyComp = () => {
       const count = useSignal(0);
-      const double = createComputed$(() => count.value * 2);
-      const quadruple = createComputed$(() => count.value * 4);
+      const double = useComputed$(() => count.value * 2);
+      const quadruple = useComputed$(() => count.value * 4);
       return (
         <button onClick$={() => count.value++}>
           {count.value}

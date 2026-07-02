@@ -1,9 +1,9 @@
 ==INPUT==
 
-import { useSignal, createComputed$ } from '@qwik.dev/core/spark';
+import { useSignal, useComputed$ } from '@qwik.dev/core/spark';
 export function App() {
   const count = useSignal(1);
-  const double = createComputed$(() => count.value * 2);
+  const double = useComputed$(() => count.value * 2);
   return <p>{double.value}</p>;
 }
 
@@ -13,25 +13,25 @@ export function App() {
 
 import {
   useSignal,
-  createComputedQrl,
+  useComputedQrl,
   _qrlWithChunk,
   escapeHTML,
   renderSsrTextNode,
   createSsrElementTextTarget,
   maybeThen,
 } from '@qwik.dev/core/spark';
-import { component_createComputed$_segment_0 } from './component.tsx_component_createComputed$_segment_0';
+import { component_useComputed$_segment_0 } from './component.tsx_component_useComputed$_segment_0';
 
-const q_component_createComputed$_segment_0 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_createComputed$_segment_0',
-  () => import('./component.tsx_component_createComputed$_segment_0'),
-  'component_createComputed$_segment_0'
+const q_component_useComputed$_segment_0 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_useComputed$_segment_0',
+  () => import('./component.tsx_component_useComputed$_segment_0'),
+  'component_useComputed$_segment_0'
 );
-q_component_createComputed$_segment_0.s(component_createComputed$_segment_0);
+q_component_useComputed$_segment_0.s(component_useComputed$_segment_0);
 
 export function App(_props, ctx) {
   const count = useSignal(1);
-  const double = createComputedQrl(q_component_createComputed$_segment_0.w([count]));
+  const double = useComputedQrl(q_component_useComputed$_segment_0.w([count]));
   const id0 = ctx.nextId();
   ctx.addRoot(double);
   const text1 = renderSsrTextNode(createSsrElementTextTarget(id0), double);
@@ -39,10 +39,10 @@ export function App(_props, ctx) {
 }
 
 null
-============================= src/component.tsx_component_createComputed$_segment_0.js (ENTRY POINT)==
+============================= src/component.tsx_component_useComputed$_segment_0.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core/spark';
-export const component_createComputed$_segment_0 = () => {
+export const component_useComputed$_segment_0 = () => {
   const count = _captures[0];
   return count.value * 2;
 };
@@ -51,19 +51,19 @@ null
 /*
 {
   "origin": "component.tsx",
-  "name": "component_createComputed$_segment_0",
+  "name": "component_useComputed$_segment_0",
   "entry": null,
-  "displayName": "component_createComputed$_segment_0",
+  "displayName": "component_useComputed$_segment_0",
   "hash": "segment_0",
-  "canonicalFilename": "component.tsx_component_createComputed$_segment_0",
+  "canonicalFilename": "component.tsx_component_useComputed$_segment_0",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
-  "ctxName": "createComputed$",
+  "ctxName": "useComputed$",
   "captures": true,
   "loc": [
-    136,
-    174
+    133,
+    168
   ],
   "paramNames": [],
   "captureNames": [
@@ -78,17 +78,12 @@ null
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  createComputed,
-  createTemplate,
-  createTextNodeEffect,
-} from '@qwik.dev/core/spark';
+import { useSignal, useComputed, createTemplate, createTextNodeEffect } from '@qwik.dev/core/spark';
 
 const dom_App_template0 = createTemplate('<p> </p>');
 export function App(_props, ctx) {
   const count = useSignal(1);
-  const double = createComputed(() => count.value * 2);
+  const double = useComputed(() => count.value * 2);
   const fragment0 = dom_App_template0(ctx.document);
   const el1 = fragment0.firstChild;
   const text2 = el1.firstChild;

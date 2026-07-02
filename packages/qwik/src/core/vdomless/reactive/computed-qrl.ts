@@ -29,7 +29,7 @@ export function createComputedQrl<T>(
   return registerSubscriberToOwner(computed);
 }
 
-export const createComputed$: <T>(qrl: () => T) => Computed<T> = /*#__PURE__*/ implicit$FirstArg(
+export const useComputed$: <T>(qrl: () => T) => Computed<T> = /*#__PURE__*/ implicit$FirstArg(
   createComputedQrl as any
 );
 

@@ -691,10 +691,10 @@ export function App() {
 
   test('transforms implicit dollar calls in component setup', async () => {
     await testInput('implicit_dollar_setup', {
-      code: `import { useSignal, createComputed$ } from '@qwik.dev/core/spark';
+      code: `import { useSignal, useComputed$ } from '@qwik.dev/core/spark';
 export function App() {
   const count = useSignal(1);
-  const double = createComputed$(() => count.value * 2);
+  const double = useComputed$(() => count.value * 2);
   return <p>{double.value}</p>;
 }
 `,

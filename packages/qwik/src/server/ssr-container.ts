@@ -1379,7 +1379,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   emitPatchDataIfNeeded(): void {
     const patches: (string | number | boolean | null)[] = [];
-    for (const [elementIndex, backpatchEntries] of this.backpatchMap) {
+    // The inline executor walks forward-only, so entries must ascend by element index.
+    const sortedBackpatches = [...this.backpatchMap.entries()].sort(
+      ([a], [b]) => Number(a) - Number(b)
+    );
+    for (let entryIdx = 0; entryIdx < sortedBackpatches.length; entryIdx++) {
+      const [elementIndex, backpatchEntries] = sortedBackpatches[entryIdx];
       for (let i = 0; i < backpatchEntries.length; i++) {
         const backpatchEntry = backpatchEntries[i];
         patches.push(

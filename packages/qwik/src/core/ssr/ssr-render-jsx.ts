@@ -18,6 +18,7 @@ import {
   type SSRStreamChildren,
 } from '../shared/jsx/utils.public';
 import { type SerializationContext } from '../shared/serdes/index';
+import { hasVirtualNodePath } from '../shared/vnode-data-types';
 import { DEBUG_TYPE, VirtualType } from '../shared/types';
 import { isAsyncGenerator } from '../shared/utils/async-generator';
 import { EMPTY_OBJ } from '../shared/utils/flyweight';
@@ -228,6 +229,11 @@ function markSubtreeInert(
     if (owner) {
       owner.removeProp((node.getProp(QSlot) as string | null) ?? QDefaultSlot);
     }
+  }
+  // Elements still materialize when inert; a dead virtual node can't, so drop
+  // its subscriptions to keep serialized producer effects from referencing it.
+  if (hasVirtualNodePath(node.id)) {
+    clearAllEffects(ssr, node);
   }
   const seq = node.getProp(ELEMENT_SEQ) as unknown[] | null;
   if (seq) {

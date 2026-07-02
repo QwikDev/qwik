@@ -256,30 +256,40 @@ describe.each(modes)('ErrorBoundary behavior (%s)', (mode, renderMode) => {
     expect(el.querySelector('#content')).toBeTruthy();
   });
 
-  // SSR arm pinned as failing: resume crashes with "Missing child" (vnode_getChildWithIdx).
-  (mode === 'SSR' ? it.fails : it)(
-    'nested boundaries: when the outer also throws it supersedes the inner fallback',
-    async () => {
-      const { container } = await renderMode(() => (
+  it('nested boundaries: when the outer also throws it supersedes the inner fallback', async () => {
+    const { container } = await renderMode(() => (
+      <ErrorBoundary
+        fallback$={$(() => (
+          <p id="fb-outer">outer</p>
+        ))}
+      >
         <ErrorBoundary
           fallback$={$(() => (
-            <p id="fb-outer">outer</p>
+            <p id="fb-inner">inner</p>
           ))}
         >
-          <ErrorBoundary
-            fallback$={$(() => (
-              <p id="fb-inner">inner</p>
-            ))}
-          >
-            <Thrower message="boomA" />
-          </ErrorBoundary>
-          <Thrower message="boomB" />
+          <Thrower message="boomA" />
         </ErrorBoundary>
-      ));
-      expect(container.element.querySelector('#fb-outer')).toBeTruthy();
-      expect(container.element.querySelector('#fb-inner')).toBeFalsy();
+        <Thrower message="boomB" />
+      </ErrorBoundary>
+    ));
+    const el = container.element;
+    expect(el.querySelector('#fb-outer')).toBeTruthy();
+    if (mode === 'CSR') {
+      expect(el.querySelector('#fb-inner')).toBeFalsy();
+    } else {
+      // SSR keeps the superseded inner fallback inside the hidden inert content host.
+      const contentHost = el.querySelector('[q\\:ebc]') as HTMLElement;
+      expect(contentHost.style.display).toBe('none');
+      expect(contentHost.contains(el.querySelector('#fb-inner'))).toBe(true);
+      // Every root must deserialize: no serialized refs into the inert region ("Missing child").
+      const state = el.querySelector('script[type="qwik/state"]')!;
+      const rootCount = (JSON.parse(state.textContent!) as unknown[]).length / 2;
+      for (let i = 0; i < rootCount; i++) {
+        container.$getObjectById$(i);
+      }
     }
-  );
+  });
 
   it('two throwing children in one boundary render a single fallback (first error wins)', async () => {
     const { container } = await renderMode(() => (
@@ -1290,7 +1300,6 @@ describe('ErrorBoundary SSR-specific', () => {
   });
 
   const UndefinedThrower = component$((): JSXOutput => {
-    // eslint-disable-next-line no-throw-literal
     throw undefined;
   });
 

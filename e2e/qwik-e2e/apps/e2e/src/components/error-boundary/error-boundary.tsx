@@ -229,6 +229,19 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
             <EbSyncThrower />
           </ErrorBoundary>
         </ErrorBoundary>
+      ) : scenario === 'nested-ssr' ? (
+        // Both boundaries error server-side: the inner swaps first, then the outer's own child
+        // throw supersedes it, leaving the inner fallback inside the outer's inert content.
+        <ErrorBoundary
+          fallback$={(e) => <EbFallback id="eb-outer" msg={String((e as any)?.message ?? e)} />}
+        >
+          <ErrorBoundary
+            fallback$={(e) => <EbFallback id="eb-inner" msg={String((e as any)?.message ?? e)} />}
+          >
+            <EbSyncThrower />
+          </ErrorBoundary>
+          <EbSyncThrower />
+        </ErrorBoundary>
       ) : scenario === 'throw-fallback' ? (
         <ErrorBoundary
           fallback$={(e) => <EbFallback id="eb-outer" msg={String((e as any)?.message ?? e)} />}

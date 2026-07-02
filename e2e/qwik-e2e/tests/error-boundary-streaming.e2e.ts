@@ -219,6 +219,21 @@ test.describe('ErrorBoundary streaming swap', () => {
     await expect(page.locator('#eb-outer-count')).toHaveText('1');
   });
 
+  test('SSR nested: the outer supersedes an already-swapped inner fallback when both error server-side', async ({
+    page,
+  }) => {
+    assertNoBrowserErrors(page);
+    await page.goto('/e2e/error-boundary-streaming?scenario=nested-ssr', { waitUntil: 'commit' });
+
+    await expect(page.locator('#eb-outer')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#eb-outer-msg')).toHaveText('caught: An error occurred');
+    // The superseded inner fallback stays in the DOM, hidden inside the outer's inert content.
+    await expect(page.locator('#eb-inner')).toBeHidden();
+
+    await page.locator('#eb-outer-button').click();
+    await expect(page.locator('#eb-outer-count')).toHaveText('1');
+  });
+
   test('a real client throw inside the inner boundary is caught by the nearest (inner) boundary, outer intact', async ({
     page,
   }) => {

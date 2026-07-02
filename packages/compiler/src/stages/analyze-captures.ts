@@ -440,7 +440,7 @@ class CaptureAnalyzer {
     const firstArgExpr = unwrapExpression(firstArg);
     const isQrlFunctionCall = !!qrlName && isFunctionLike(firstArgExpr);
     const isSerializerObjectCall =
-      qrlName === 'createSerializer$' && firstArgExpr?.type === 'ObjectExpression';
+      qrlName === 'useSerializer$' && firstArgExpr?.type === 'ObjectExpression';
     const isIterationCall = !isQrlFunctionCall && isIterationMethodCall(node);
     const isInlinedQrl = qrlName === QwikSymbol.InlinedQrl;
     const hasExplicitCaptureArray =

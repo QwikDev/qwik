@@ -703,10 +703,10 @@ export function App() {
 
   test('transforms serializer object literals in component setup', async () => {
     await testInput('serializer_object_setup', {
-      code: `import { createSerializer$, useSignal } from '@qwik.dev/core/spark';
+      code: `import { useSerializer$, useSignal } from '@qwik.dev/core/spark';
 export function App() {
   const count = useSignal(1);
-  const custom = createSerializer$({
+  const custom = useSerializer$({
     initial: 2,
     deserialize: (value = 0) => ({ count: value + count.value }),
     serialize: (value) => value.count,

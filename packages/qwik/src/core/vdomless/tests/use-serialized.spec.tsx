@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { useAsync$, createSerializer$, useSignal } from '@qwik.dev/core/spark';
+import { useAsync$, useSerializer$, useSignal } from '@qwik.dev/core/spark';
 import { csrRender, ssrRender } from '../test-utils';
 
 const debug = false;
@@ -10,7 +10,7 @@ describe.each([
 ])('$render.name: serializer signals', ({ render }) => {
   it('should do custom serialization', async () => {
     const Counter = () => {
-      const myCount = createSerializer$({
+      const myCount = useSerializer$({
         deserialize: (count = 0) => ({
           count,
         }),
@@ -43,7 +43,7 @@ describe.each([
   it('should update reactively', async () => {
     const Counter = () => {
       const sig = useSignal(1);
-      const myCount = createSerializer$(() => ({
+      const myCount = useSerializer$(() => ({
         deserialize: () => ({
           count: sig.value * 2,
         }),
@@ -69,7 +69,7 @@ describe.each([
 
   it('should support custom serialize function', async () => {
     const Counter = () => {
-      const count = createSerializer$({
+      const count = useSerializer$({
         deserialize: (data: number = 0) => ({
           count: data,
         }),
@@ -101,7 +101,7 @@ describe.each([
 
   it('should recalculate value without update function', async () => {
     const Counter = () => {
-      const count = createSerializer$({
+      const count = useSerializer$({
         deserialize: (data: number = 0) => ({
           count: data,
         }),
@@ -134,7 +134,7 @@ describe.each([
   it('should deserialize a Promise initial value as Date', async () => {
     const DateDisplay = () => {
       const dateStr = useAsync$(() => Promise.resolve('2025-01-15T12:00:00.000Z'));
-      const date = createSerializer$(() => ({
+      const date = useSerializer$(() => ({
         deserialize: (str: string) => new Date(str),
         serialize: (d) => d.toISOString(),
         initial: dateStr.value,
@@ -153,7 +153,7 @@ describe.each([
   it('should not crash when used many times', async () => {
     const App = () => {
       const foo = useSignal(0);
-      const custom = createSerializer$(() => ({
+      const custom = useSerializer$(() => ({
         initial: { bar: 'bar' },
         serialize: (c: { foo: number; bar: string }) => ({ foo: c.foo, bar: c.bar }),
         deserialize: (d) => ({ foo: foo.value, bar: d.bar }),

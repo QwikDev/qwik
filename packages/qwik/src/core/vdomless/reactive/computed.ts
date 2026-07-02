@@ -1,6 +1,5 @@
 import { cleanupDeps } from './cleanup';
 import { ComputedFlags } from './flags';
-import { registerSubscriberToOwner } from '../runtime/owner';
 import { notifyPhaseSubscriber } from '../runtime/scheduler';
 import { resolveLazySubscribers } from './lazy-serialized';
 import type { Source, SourceSubs } from './source';

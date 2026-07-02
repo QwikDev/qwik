@@ -21,9 +21,9 @@ export const SOURCE_FACTORY_NAMES = new Set([
   'useAsync',
   'useAsyncQrl',
   'useAsync$',
-  'createSerializer',
-  'createSerializerQrl',
-  'createSerializer$',
+  'useSerializer',
+  'useSerializerQrl',
+  'useSerializer$',
 ]);
 
 export function isKnownSourceFactoryName(name: string): boolean {

@@ -1,7 +1,8 @@
 import type { AsyncSignal as PublicAsyncSignal } from '../../reactive-primitives/signal.public';
-import type { AsyncCtx, AsyncSignalOptions } from '../../reactive-primitives/types';
+import type { AsyncCtx, AsyncSignalOptions, SerializerArg } from '../../reactive-primitives/types';
 import { implicit$FirstArg } from '../../shared/qrl/implicit_dollar';
 import type { QRLInternal } from '../../shared/qrl/qrl-class';
+import type { QRL } from '../../shared/qrl/qrl.public';
 import type { ValueOrPromise } from '../../shared/utils/types';
 import type { ContainerContext } from '../runtime/container-context';
 import { getActiveInvokeContextOrNull } from '../runtime/invoke-context';
@@ -9,6 +10,13 @@ import { registerSubscriberToOwner } from '../runtime/owner';
 import { AsyncSignal, AsyncSignalFn, type AsyncSignalQrl } from './async-signal';
 import { Computed } from './computed';
 import { ComputedQrl, ComputedQrlRef } from './computed-qrl';
+import {
+  SerializerArgObjectWithInitial,
+  SerializerSignal,
+  type UseSerializerDollar,
+  type SerializerArgFactoryWithInitial,
+  type SerializerSignalQrl,
+} from './serializer-signal';
 import { Signal } from './signal';
 
 /** Signal */
@@ -39,7 +47,7 @@ export const useComputed$: <T>(qrl: () => T) => Computed<T> = /*#__PURE__*/ impl
   useComputedQrl as any
 );
 
-/** AsyncSignal */
+/** Async */
 
 export function useAsync<T>(
   compute: AsyncSignalFn<T>,
@@ -64,3 +72,29 @@ export const useAsync$: <T>(
   qrl: (ctx: AsyncCtx<T>) => ValueOrPromise<T>,
   options?: AsyncSignalOptions<T>
 ) => PublicAsyncSignal<T> = /*#__PURE__*/ implicit$FirstArg(useAsyncQrl as any);
+
+/** Serializer */
+
+export function useSerializer<T, S>(
+  arg: SerializerArgObjectWithInitial<T, S>
+): SerializerSignal<T, S>;
+export function useSerializer<T, S>(
+  arg: SerializerArgFactoryWithInitial<T, S>
+): SerializerSignal<T, S>;
+export function useSerializer<T, S>(arg: SerializerArg<T, S>): SerializerSignal<T, S>;
+export function useSerializer<T, S>(arg: SerializerArg<T, S>): SerializerSignal<T, S> {
+  return registerSubscriberToOwner(
+    new SerializerSignal<T, S>(null, getActiveInvokeContextOrNull()?.container, arg)
+  );
+}
+
+export function useSerializerQrl<T, S>(argQrl: QRL<SerializerArg<T, S>>): SerializerSignal<T, S> {
+  const container = getActiveInvokeContextOrNull()?.container;
+  const signal = new SerializerSignal<T, S>(argQrl as SerializerSignalQrl<T, S>, container);
+  void signal.argQrl!.resolve(container).catch(() => {});
+  return registerSubscriberToOwner(signal);
+}
+
+export const useSerializer$: UseSerializerDollar = /*#__PURE__*/ implicit$FirstArg(
+  useSerializerQrl as any
+);

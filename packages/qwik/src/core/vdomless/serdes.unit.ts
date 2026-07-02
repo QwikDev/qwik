@@ -28,10 +28,9 @@ import {
   SsrDomSubscription,
 } from './dom/effect/ssr-effect';
 import { ComputedFlags } from './reactive/flags';
-import { useComputedQrl } from './reactive/computed-qrl';
-import { useAsyncQrl } from './reactive/async-signal';
-import { createSerializerQrl, type SerializerSignal } from './reactive/serializer-signal';
-import { useSignal, type Signal } from './reactive/signal';
+import { useAsyncQrl, useComputedQrl, useSerializerQrl, useSignal } from './reactive/public-api';
+import { type SerializerSignal } from './reactive/serializer-signal';
+import { type Signal } from './reactive/signal';
 import { createStore, getStoreSource } from './reactive/store';
 import { createWindow } from '../../testing/document';
 import type { ValueOrPromise } from '../shared/utils/types';
@@ -180,7 +179,7 @@ describe('vdomless serdes emit-only', () => {
       deserialize: (n?: number) => new CustomSerializable(n),
       serialize: (obj: CustomSerializable) => obj.n,
     });
-    const signal = createOwned(() => createSerializerQrl(qrl));
+    const signal = createOwned(() => useSerializerQrl(qrl));
 
     signal.value.inc();
 
@@ -203,7 +202,7 @@ describe('vdomless serdes emit-only', () => {
       serialize: (obj: CustomSerializable) => obj.n,
       initial: 7,
     });
-    const signal = createOwned(() => createSerializerQrl(qrl));
+    const signal = createOwned(() => useSerializerQrl(qrl));
 
     const state = await serialize(signal);
     const payload = state[1] as unknown[];
@@ -219,7 +218,7 @@ describe('vdomless serdes emit-only', () => {
       deserialize: (n?: number) => new CustomSerializable(n),
       serialize: (obj: CustomSerializable) => Promise.resolve(obj.n),
     });
-    const signal = createOwned(() => createSerializerQrl(qrl));
+    const signal = createOwned(() => useSerializerQrl(qrl));
 
     signal.value.inc();
 
@@ -276,7 +275,7 @@ describe('vdomless serdes emit-only', () => {
     const qrl = createQRL('./serializer.js', 'arg', {
       deserialize: (n?: number) => new SymbolSerializable(n),
     });
-    const signal = createOwned(() => createSerializerQrl(qrl));
+    const signal = createOwned(() => useSerializerQrl(qrl));
 
     signal.value.inc();
 

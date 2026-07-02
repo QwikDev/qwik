@@ -24,6 +24,9 @@ export {
   useAsync,
   useAsyncQrl,
   useAsync$,
+  useSerializer,
+  useSerializerQrl,
+  useSerializer$,
 } from './reactive/public-api';
 export { Signal } from './reactive/signal';
 export {
@@ -34,13 +37,7 @@ export {
 } from './reactive/computed';
 export { ComputedQrl, type ComputedQrlFn, type ComputedQrlRef } from './reactive/computed-qrl';
 export { AsyncSignal, type AsyncSignalFn, type AsyncSignalQrl } from './reactive/async-signal';
-export {
-  SerializerSignal,
-  createSerializer,
-  createSerializerQrl,
-  createSerializer$,
-  type SerializerSignalQrl,
-} from './reactive/serializer-signal';
+export { SerializerSignal, type SerializerSignalQrl } from './reactive/serializer-signal';
 export type { AsyncCtx, AsyncSignalOptions } from '../reactive-primitives/types';
 export { createStore, type Store } from './reactive/store';
 export { createId } from './use-id';

@@ -103,6 +103,27 @@ describe('convertManifestToBundleGraph', () => {
     ]);
   });
 
+  test('import cycle through the reduced bundle keeps reachable deps', () => {
+    // a.js imports x.js back, so the covering path for d.js runs x -> a -> x -> d.
+    // Reduction must not use that path (it severs x -> d) and must keep both deps.
+    const manifest = {
+      bundles: {
+        'x.js': { size, total, imports: ['a.js', 'd.js'] },
+        'a.js': { size, total, imports: ['x.js'] },
+        'd.js': { size, total },
+      } as Record<string, QwikBundle>,
+      mapping: {},
+    } as QwikManifest;
+    expect(convertManifestToBundleGraph(manifest)).toEqual([
+      'x.js', // 0
+      3,
+      5,
+      'a.js', // 3
+      0,
+      'd.js', // 5
+    ]);
+  });
+
   test('adder', () => {
     expect(
       convertManifestToBundleGraph(

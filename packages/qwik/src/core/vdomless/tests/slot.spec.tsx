@@ -1,5 +1,5 @@
 import { component$, createContextId, Slot } from '@qwik.dev/core';
-import { createContext, createContextProvider, useSignal } from '@qwik.dev/core/spark';
+import { useContext, useContextProvider, useSignal } from '@qwik.dev/core/spark';
 import { describe, expect, it } from 'vitest';
 import { csrRender, ssrRender } from '../test-utils';
 
@@ -79,7 +79,7 @@ describe.each([
     const contextId = createContextId<string>('slot-parent-context');
 
     const Parent = component$(() => {
-      createContextProvider(contextId, 'provided');
+      useContextProvider(contextId, 'provided');
       return (
         <section>
           <Slot />
@@ -88,7 +88,7 @@ describe.each([
     });
 
     const Child = component$(() => {
-      const value = createContext(contextId);
+      const value = useContext(contextId);
       return <span>{value}</span>;
     });
 
@@ -118,12 +118,12 @@ describe.each([
     });
 
     const Child = component$(() => {
-      const value = createContext(contextId);
+      const value = useContext(contextId);
       return <span>{value}</span>;
     });
 
     const App = component$(() => {
-      createContextProvider(contextId, 'provided');
+      useContextProvider(contextId, 'provided');
       return (
         <Parent>
           <Child />

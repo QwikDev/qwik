@@ -643,7 +643,7 @@ function getContextProviderImports(ctx: CompilerContext): ContextProviderImports
       } else if (
         specifier.kind === 'named' &&
         !specifier.typeOnly &&
-        specifier.importedName === QwikSymbol.CreateContextProvider
+        specifier.importedName === QwikSymbol.UseContextProvider
       ) {
         named.add(specifier.localName);
       }
@@ -758,7 +758,7 @@ function isContextProviderCallee(
   const propertyName = getIdentifierName(unwrapped.property);
   const objectName = getIdentifierName(unwrapped.object);
   return (
-    propertyName === QwikSymbol.CreateContextProvider &&
+    propertyName === QwikSymbol.UseContextProvider &&
     objectName !== null &&
     contextProviderImports.namespaces.has(objectName)
   );

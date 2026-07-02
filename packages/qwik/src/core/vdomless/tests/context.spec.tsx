@@ -1,5 +1,5 @@
 import { createContextId } from '@qwik.dev/core';
-import { createContext, createContextProvider, useSignal, type Signal } from '@qwik.dev/core/spark';
+import { useContext, useContextProvider, useSignal, type Signal } from '@qwik.dev/core/spark';
 import { describe, expect, it } from 'vitest';
 import { csrRender, ssrRender } from '../test-utils';
 
@@ -13,8 +13,8 @@ describe.each([
     const MyComp = () => {
       const contextId = createContextId<Signal<string>>('context-integration');
       const source = useSignal('provided');
-      createContextProvider(contextId, source);
-      const context = createContext(contextId);
+      useContextProvider(contextId, source);
+      const context = useContext(contextId);
 
       return <p>{context.value}</p>;
     };
@@ -29,8 +29,8 @@ describe.each([
     const MyComp = () => {
       const contextId = createContextId<Signal<string>>('context-reactive');
       const source = useSignal('before');
-      createContextProvider(contextId, source);
-      const context = createContext(contextId);
+      useContextProvider(contextId, source);
+      const context = useContext(contextId);
 
       return <button onClick$={() => (context.value = 'after')}>{context.value}</button>;
     };
@@ -52,13 +52,13 @@ describe.each([
     const contextId = createContextId<Signal<string>>('context-integration');
     const MyComp = () => {
       const source = useSignal('provided');
-      createContextProvider(contextId, source);
+      useContextProvider(contextId, source);
 
       return <Child />;
     };
 
     const Child = () => {
-      const context = createContext(contextId);
+      const context = useContext(contextId);
       return <p>{context.value}</p>;
     };
     const { container, cleanup } = await render(<MyComp />, { debug });
@@ -71,7 +71,7 @@ describe.each([
     const contextId = createContextId<Signal<string>>('context-integration');
     const MyComp = () => {
       const source = useSignal('provided');
-      createContextProvider(contextId, source);
+      useContextProvider(contextId, source);
       const toggle = useSignal(false);
 
       return (
@@ -82,7 +82,7 @@ describe.each([
     };
 
     const Child = () => {
-      const context = createContext(contextId);
+      const context = useContext(contextId);
       return <span>{context.value}</span>;
     };
     const { container, cleanup, qwikLoader } = await render(<MyComp />, { debug });
@@ -100,7 +100,7 @@ describe.each([
     const MyComp = () => {
       const source = useSignal('outer');
       const toggle = useSignal(false);
-      createContextProvider(contextId, source);
+      useContextProvider(contextId, source);
 
       return (
         <section>
@@ -114,17 +114,17 @@ describe.each([
 
     const Inner = () => {
       const source = useSignal('inner');
-      createContextProvider(contextId, source);
+      useContextProvider(contextId, source);
       return <InnerChild />;
     };
 
     const InnerChild = () => {
-      const context = createContext(contextId);
+      const context = useContext(contextId);
       return <span id="inner">{context.value}</span>;
     };
 
     const OuterChild = () => {
-      const context = createContext(contextId);
+      const context = useContext(contextId);
       return <span id="outer">{context.value}</span>;
     };
 
@@ -144,7 +144,7 @@ describe.each([
     const MyComp = () => {
       const source = useSignal('provided');
       const items = useSignal<string[]>([]);
-      createContextProvider(contextId, source);
+      useContextProvider(contextId, source);
 
       return (
         <button onClick$={() => (items.value = ['child'])}>
@@ -156,7 +156,7 @@ describe.each([
     };
 
     const Child = () => {
-      const context = createContext(contextId);
+      const context = useContext(contextId);
       return <span>{context.value}</span>;
     };
 

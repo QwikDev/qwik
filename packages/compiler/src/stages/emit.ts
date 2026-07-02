@@ -1088,8 +1088,8 @@ function createQrlSegmentSource(
   if (captures.length > 0) {
     sparkImports.push(QwikSymbol.Captures);
   }
-  if (usesIdentifier(bodyStatements, QwikSymbol.CreateContext)) {
-    sparkImports.push(QwikSymbol.CreateContext);
+  if (usesIdentifier(bodyStatements, QwikSymbol.UseContext)) {
+    sparkImports.push(QwikSymbol.UseContext);
   }
   const importRecords = createSegmentModuleImports(ctx, qrlSegment);
   const importLine =
@@ -1139,8 +1139,8 @@ function createSsrDomExpressionSegmentSource(
     : 'undefined';
   const bodyStatements = `return ${rewriteLoopCaptures(body, captures)};`;
   const sparkImports: QwikSymbol[] = [];
-  if (usesIdentifier(bodyStatements, QwikSymbol.CreateContext)) {
-    sparkImports.push(QwikSymbol.CreateContext);
+  if (usesIdentifier(bodyStatements, QwikSymbol.UseContext)) {
+    sparkImports.push(QwikSymbol.UseContext);
   }
   const importRecords = createSegmentModuleImports(ctx, qrlSegment);
   const importLine =

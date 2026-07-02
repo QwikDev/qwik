@@ -92,12 +92,7 @@ export {
   type SlotScope,
 } from './dom/slot/slot';
 export { ContextScope, createContextScope, isContextScope } from './runtime/context-scope';
-export {
-  createContext,
-  createContextProvider,
-  type ContextId,
-  type CreateContext,
-} from './runtime/context';
+export { useContext, useContextProvider, type ContextId, type UseContext } from './runtime/context';
 export {
   Phase,
   Scheduler,

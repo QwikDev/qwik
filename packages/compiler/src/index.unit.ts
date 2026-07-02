@@ -115,12 +115,12 @@ describe('transformModules', () => {
   test('strips TypeScript syntax from generated component setup', async () => {
     await testInput('typescript_setup', {
       code: `import { createContextId } from '@qwik.dev/core';
-import { createContextProvider, useSignal, type Signal } from '@qwik.dev/core/spark';
+import { useContextProvider, useSignal, type Signal } from '@qwik.dev/core/spark';
 
 export const App = () => {
   const contextId = createContextId<Signal<string>>('context');
   const source: Signal<string> = useSignal('hello');
-  createContextProvider(contextId, source);
+  useContextProvider(contextId, source);
   return <p>{source.value}</p>;
 };
 `,
@@ -791,17 +791,17 @@ export function Parent() {
 
   test('inherits context across child component renderers', async () => {
     await testInput('component_child_context', {
-      code: `import { createContext, createContextProvider, useSignal } from '@qwik.dev/core/spark';
+      code: `import { useContext, useContextProvider, useSignal } from '@qwik.dev/core/spark';
 import { Context } from './context';
 
 export function Child() {
-  const value = createContext(Context);
+  const value = useContext(Context);
   return <p>{value.value}</p>;
 }
 
 export function Parent() {
   const value = useSignal('provided');
-  createContextProvider(Context, value);
+  useContextProvider(Context, value);
   return <section><Child /></section>;
 }
 `,

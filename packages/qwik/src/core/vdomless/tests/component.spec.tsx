@@ -1,5 +1,5 @@
 import { component$, createContextId, type QRL } from '@qwik.dev/core';
-import { createContext, createContextProvider, useSignal, type Signal } from '@qwik.dev/core/spark';
+import { useContext, useContextProvider, useSignal, type Signal } from '@qwik.dev/core/spark';
 import { describe, expect, it } from 'vitest';
 import { csrRender, ssrRender } from '../test-utils';
 
@@ -205,14 +205,14 @@ describe.each([
   it('should provide parent context to a child component', async () => {
     const Child = component$(() => {
       const Context = createContextId<Signal<string>>('vdomless-child-component-context');
-      const value = createContext(Context);
+      const value = useContext(Context);
       return <span>{value.value}</span>;
     });
 
     const Parent = component$(() => {
       const Context = createContextId<Signal<string>>('vdomless-child-component-context');
       const value = useSignal('provided');
-      createContextProvider(Context, value);
+      useContextProvider(Context, value);
       return (
         <section>
           <Child />

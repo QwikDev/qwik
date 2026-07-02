@@ -1,12 +1,12 @@
 ==INPUT==
 
 import { createContextId } from '@qwik.dev/core';
-import { createContextProvider, useSignal, type Signal } from '@qwik.dev/core/spark';
+import { useContextProvider, useSignal, type Signal } from '@qwik.dev/core/spark';
 
 export const App = () => {
   const contextId = createContextId<Signal<string>>('context');
   const source: Signal<string> = useSignal('hello');
-  createContextProvider(contextId, source);
+  useContextProvider(contextId, source);
   return <p>{source.value}</p>;
 };
 
@@ -16,7 +16,7 @@ export const App = () => {
 
 import { createContextId } from '@qwik.dev/core';
 import {
-  createContextProvider,
+  useContextProvider,
   useSignal,
   escapeHTML,
   renderSsrTextNode,
@@ -27,7 +27,7 @@ import {
 export const App = (_props, ctx) => {
   const contextId = createContextId('context');
   const source = useSignal('hello');
-  createContextProvider(contextId, source);
+  useContextProvider(contextId, source);
   const contextScopeId = ctx.contextScopeId();
   const id0 = ctx.nextId();
   ctx.addRoot(source);
@@ -57,7 +57,7 @@ null
 
 import { createContextId } from '@qwik.dev/core';
 import {
-  createContextProvider,
+  useContextProvider,
   useSignal,
   createTemplate,
   createTextNodeEffect,
@@ -67,7 +67,7 @@ const dom_App_template0 = createTemplate('<p> </p>');
 export const App = (_props, ctx) => {
   const contextId = createContextId('context');
   const source = useSignal('hello');
-  createContextProvider(contextId, source);
+  useContextProvider(contextId, source);
   const fragment0 = dom_App_template0(ctx.document);
   const el1 = fragment0.firstChild;
   const text2 = el1.firstChild;

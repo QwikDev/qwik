@@ -11,7 +11,7 @@ import {
   type RuntimeInvokeContext,
 } from './invoke-context';
 import { Scheduler } from './scheduler';
-import { createContext, createContextProvider, type ContextId } from './context';
+import { useContext, useContextProvider, type ContextId } from './context';
 
 describe('context runtime', () => {
   it('provides and reads context in the active invoke context', () => {
@@ -19,8 +19,8 @@ describe('context runtime', () => {
     const invokeContext = newInvokeContext();
 
     const value = invoke(invokeContext, () => {
-      createContextProvider(contextId, { value: 'provided' });
-      return createContext(contextId);
+      useContextProvider(contextId, { value: 'provided' });
+      return useContext(contextId);
     });
 
     expect(value).toEqual({ value: 'provided' });
@@ -32,15 +32,15 @@ describe('context runtime', () => {
     const invokeContext = newInvokeContext();
 
     invoke(invokeContext, () => {
-      createContextProvider(firstContext, 'first');
+      useContextProvider(firstContext, 'first');
       const scope = getActiveInvokeContext().localContextScope;
 
-      createContextProvider(secondContext, 2);
+      useContextProvider(secondContext, 2);
 
       expect(getActiveInvokeContext().localContextScope).toBe(scope);
       expect(getActiveInvokeContext().contextScope).toBe(scope);
-      expect(createContext(firstContext)).toBe('first');
-      expect(createContext(secondContext)).toBe(2);
+      expect(useContext(firstContext)).toBe('first');
+      expect(useContext(secondContext)).toBe(2);
     });
   });
 
@@ -50,14 +50,14 @@ describe('context runtime', () => {
     let innerValue = '';
 
     const outerValue = invoke(invokeContext, () => {
-      createContextProvider(contextId, 'outer');
+      useContextProvider(contextId, 'outer');
       createComponent(null, () => {
-        createContextProvider(contextId, 'inner');
+        useContextProvider(contextId, 'inner');
         createComponent(null, () => {
-          innerValue = createContext(contextId);
+          innerValue = useContext(contextId);
         });
       });
-      return createContext(contextId);
+      return useContext(contextId);
     });
 
     expect(innerValue).toBe('inner');
@@ -70,10 +70,10 @@ describe('context runtime', () => {
     let value = '';
 
     invoke(invokeContext, () => {
-      createContextProvider(contextId, 'visible');
+      useContextProvider(contextId, 'visible');
       createComponent(null, () => {
         createComponent(null, () => {
-          value = createContext(contextId);
+          value = useContext(contextId);
         });
       });
     });
@@ -89,11 +89,11 @@ describe('context runtime', () => {
 
     invoke(invokeContext, () => {
       createComponent(null, () => {
-        createContextProvider(contextId, 'child');
-        providedValue = createContext(contextId);
+        useContextProvider(contextId, 'child');
+        providedValue = useContext(contextId);
       });
       createComponent(null, () => {
-        siblingValue = createContext(contextId, 'fallback');
+        siblingValue = useContext(contextId, 'fallback');
       });
     });
 
@@ -109,15 +109,15 @@ describe('context runtime', () => {
     const invokeContext = newInvokeContext();
 
     invoke(invokeContext, () => {
-      createContextProvider(emptyContext, '');
-      createContextProvider(falseContext, false);
-      createContextProvider(nullContext, null);
-      createContextProvider(undefinedContext, undefined);
+      useContextProvider(emptyContext, '');
+      useContextProvider(falseContext, false);
+      useContextProvider(nullContext, null);
+      useContextProvider(undefinedContext, undefined);
 
-      expect(createContext(emptyContext, 'fallback')).toBe('');
-      expect(createContext(falseContext, 'fallback')).toBe(false);
-      expect(createContext(nullContext, 'fallback')).toBeNull();
-      expect(createContext(undefinedContext, 'fallback')).toBeUndefined();
+      expect(useContext(emptyContext, 'fallback')).toBe('');
+      expect(useContext(falseContext, 'fallback')).toBe(false);
+      expect(useContext(nullContext, 'fallback')).toBeNull();
+      expect(useContext(undefinedContext, 'fallback')).toBeUndefined();
     });
   });
 
@@ -126,11 +126,11 @@ describe('context runtime', () => {
     const invokeContext = newInvokeContext();
 
     invoke(invokeContext, () => {
-      expect(createContext(contextId, { value: 'default' })).toEqual({ value: 'default' });
-      expect(createContext(contextId, (value) => value?.value ?? 'transformed-default')).toBe(
+      expect(useContext(contextId, { value: 'default' })).toEqual({ value: 'default' });
+      expect(useContext(contextId, (value) => value?.value ?? 'transformed-default')).toBe(
         'transformed-default'
       );
-      expect(() => createContext(contextId)).toThrow(/useContext\(context-missing\)/);
+      expect(() => useContext(contextId)).toThrow(/useContext\(context-missing\)/);
     });
   });
 
@@ -139,8 +139,8 @@ describe('context runtime', () => {
     const invokeContext = newInvokeContext();
 
     const value = invoke(invokeContext, () => {
-      createContextProvider(contextId, { value: 'provided' });
-      return createContext(contextId, (current) => current?.value);
+      useContextProvider(contextId, { value: 'provided' });
+      return useContext(contextId, (current) => current?.value);
     });
 
     expect(value).toBe('provided');
@@ -152,8 +152,8 @@ describe('context runtime', () => {
     const invokeContext = newInvokeContext();
 
     const value = invoke(invokeContext, () => {
-      createContextProvider(dependencyContext, 'dependency');
-      return createContext(contextId, () => createContext(dependencyContext));
+      useContextProvider(dependencyContext, 'dependency');
+      return useContext(contextId, () => useContext(dependencyContext));
     });
 
     expect(value).toBe('dependency');
@@ -170,7 +170,7 @@ describe('context runtime', () => {
     let branchValue = '';
 
     const branch = invoke(invokeContext, () => {
-      createContextProvider(contextId, 'branch-value');
+      useContextProvider(contextId, 'branch-value');
       return createBranch(
         { scheduler } as ContainerContext,
         range,
@@ -178,7 +178,7 @@ describe('context runtime', () => {
         () => {
           createComponent(null, () => {
             branchContext = getActiveInvokeContext();
-            branchValue = createContext(contextId);
+            branchValue = useContext(contextId);
           });
           return [branchNode];
         }

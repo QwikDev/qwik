@@ -10,7 +10,7 @@ export interface ContextId<STATE> {
   readonly id: string;
 }
 
-export interface CreateContext {
+export interface UseContext {
   <STATE, T>(context: ContextId<STATE>, transformer: (value: STATE | undefined) => T): T;
   <STATE, T>(context: ContextId<STATE>, defaultValue: T): STATE | T;
   <STATE>(context: ContextId<STATE>): STATE;
@@ -18,7 +18,7 @@ export interface CreateContext {
 
 const CONTEXT_NOT_FOUND = Symbol();
 
-export const createContextProvider = <STATE>(context: ContextId<STATE>, value: STATE): void => {
+export const useContextProvider = <STATE>(context: ContextId<STATE>, value: STATE): void => {
   if (qDev) {
     validateContext(context);
     verifySerializable(value);
@@ -35,7 +35,7 @@ export const createContextProvider = <STATE>(context: ContextId<STATE>, value: S
   scope.values.set(context.id, value);
 };
 
-export const createContext: CreateContext = <STATE, T>(
+export const useContext: UseContext = <STATE, T>(
   context: ContextId<STATE>,
   defaultValue?: T | ((current: STATE | undefined) => T)
 ) => {

@@ -139,6 +139,26 @@ export const markErrorFromDeferredSegment = (store: ErrorBoundaryStore): void =>
 export const isErrorFromDeferredSegment = (store: ErrorBoundaryStore): boolean =>
   boundariesWithDeferredError.has(store);
 
+// The SSR container rethrows through the render drain, whose catch site only knows phase 'render'.
+const ERROR_PHASE = /*#__PURE__*/ Symbol('qErrorPhase');
+
+/** Tag the error's originating phase so a rethrow through the render drain keeps it. */
+export const tagErrorPhase = (err: unknown, phase: ErrorBoundaryInfo['phase']): void => {
+  if (err === null || (typeof err !== 'object' && typeof err !== 'function')) {
+    return;
+  }
+  try {
+    Object.defineProperty(err, ERROR_PHASE, { value: phase, configurable: true });
+  } catch {
+    // Frozen error: best-effort, the catch site falls back to its own phase.
+  }
+};
+
+const getTaggedErrorPhase = (err: unknown): ErrorBoundaryInfo['phase'] | undefined =>
+  err !== null && (typeof err === 'object' || typeof err === 'function')
+    ? (err as { [ERROR_PHASE]?: ErrorBoundaryInfo['phase'] })[ERROR_PHASE]
+    : undefined;
+
 /**
  * Mark the boundary errored and fire `onError$` with the original error and its phase. Each newly
  * caught error fires again, so display (`store.error`) and telemetry stay consistent.
@@ -150,5 +170,9 @@ export const markBoundaryErrored = (
   transformError?: (error: unknown) => unknown
 ): void => {
   store.error = toSerializableBoundaryError(error, isDev, transformError);
-  fireOnError(store.$onError$, error, { phase, boundaryId: store.boundaryId ?? '' });
+  fireOnError(store.$onError$, error, {
+    // A tagged origin (e.g. a task throw rethrown through the SSR drain) beats the catch site's.
+    phase: getTaggedErrorPhase(error) ?? phase,
+    boundaryId: store.boundaryId ?? '',
+  });
 };

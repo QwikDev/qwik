@@ -388,29 +388,25 @@ describe.each(modes)('ErrorBoundary behavior (%s)', (mode, renderMode) => {
     expect(el.querySelector('#content')).toBeFalsy();
   });
 
-  // SSR arm pinned as failing: SSR reports phase "render" instead of "task".
-  (mode === 'SSR' ? it.fails : it)(
-    'onError$ receives info.phase "task" for a useTask$ throw',
-    async () => {
-      const infos: Array<{ phase: string; boundaryId: string }> = [];
-      const { container } = await renderMode(() => (
-        <ErrorBoundary
-          fallback$={fb()}
-          onError$={$((_e: any, info: any) => {
-            infos.push({ phase: info.phase, boundaryId: info.boundaryId });
-          })}
-        >
-          <ThrowingTask />
-        </ErrorBoundary>
-      ));
-      await waitForDrain(container);
-      await getTestPlatform().flush();
+  it('onError$ receives info.phase "task" for a useTask$ throw', async () => {
+    const infos: Array<{ phase: string; boundaryId: string }> = [];
+    const { container } = await renderMode(() => (
+      <ErrorBoundary
+        fallback$={fb()}
+        onError$={$((_e: any, info: any) => {
+          infos.push({ phase: info.phase, boundaryId: info.boundaryId });
+        })}
+      >
+        <ThrowingTask />
+      </ErrorBoundary>
+    ));
+    await waitForDrain(container);
+    await getTestPlatform().flush();
 
-      expect(infos).toHaveLength(1);
-      expect(infos[0].phase).toBe('task');
-      expect(infos[0].boundaryId.length).toBeGreaterThan(0);
-    }
-  );
+    expect(infos).toHaveLength(1);
+    expect(infos[0].phase).toBe('task');
+    expect(infos[0].boundaryId.length).toBeGreaterThan(0);
+  });
 
   it('an async useTask$ throw is caught by the nearest <ErrorBoundary>', async () => {
     const { container } = await renderMode(() => (

@@ -196,7 +196,7 @@ client routing (`client/dom-container.ts`); shared helpers (`shared/error/error-
   toggle under plain `ssrRenderToDom` came from the backpatch, not the swap.
 - Deserialization is lazy: a poisoned ref into an inert region passes render-only asserts.
   Deserialize every root (`container.$getObjectById$`) to pin the writer protocol;
-  `q:state-prewarm` makes real resume eager.
+  `q:prewarm` makes real resume eager.
 - Flags are build-time-replaced and ON suite-wide; the unit env defaults `outOfOrder: true`, so
   exercise the in-order branch with explicit `streaming: { outOfOrder: false }`.
 - `qwik-dom` `querySelector` is document-wide — use `host.contains(el)`; build a fresh JSX tree per

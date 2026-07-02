@@ -68,8 +68,9 @@ const redactToGeneric = (err: unknown): Error & { digest: string } => {
  * any attached props; the stack is already dev-gated in the serializer), so internal detail never
  * reaches the client. `onError$` and server `logError` still receive the original error (see
  * `markBoundaryErrored`). In dev it keeps full fidelity, projecting a non-serializable throw to a
- * serializable `Error`. `dev` is an explicit arg so tests can drive both paths — the build-time
- * `isDev` constant can't be toggled at runtime.
+ * serializable `Error`. It never returns `undefined` — that is the store's "no error" sentinel, so
+ * a thrown/projected `undefined` becomes an `Error` the store can key on. `dev` is an explicit arg
+ * so tests can drive both paths — the build-time `isDev` constant can't be toggled at runtime.
  *
  * `transformError` (the server-only `RenderOptions.transformError`), when set, OWNS the projection
  * in both dev and prod. It is fail-closed: a throw or a non-serializable return redacts to the
@@ -87,12 +88,14 @@ export const toSerializableBoundaryError = (
     } catch {
       return redactToGeneric(err);
     }
-    return projected instanceof Error || canSerialize(projected) ? projected : redactToGeneric(err);
+    return projected instanceof Error || (projected !== undefined && canSerialize(projected))
+      ? projected
+      : redactToGeneric(err);
   }
   if (!dev) {
     return redactToGeneric(err);
   }
-  if (err instanceof Error || canSerialize(err)) {
+  if (err instanceof Error || (err !== undefined && canSerialize(err))) {
     return err;
   }
   const rawMessage = (err as { message?: unknown })?.message;

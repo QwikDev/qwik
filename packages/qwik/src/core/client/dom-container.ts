@@ -339,6 +339,8 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         throw err;
       }
     }
+    // A thrown `undefined` can't key `store.error` (its "no error" sentinel); store a keyable Error.
+    const storedError = err === undefined ? new Error('undefined') : err;
     // Walk to the closest boundary that can still handle it, so a 2nd throw escalates.
     let current: VNode | null = host;
     while (current) {
@@ -351,7 +353,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         // Resumed boundary never subscribed to `store.error`, so mark dirty to render the fallback.
         // Stored raw — a client-origin error never serializes, so there's no leak. The fallback
         // render (errorBoundaryCmp) redacts it for display parity with the SSR path in prod.
-        store.error = err;
+        store.error = storedError;
         // `store.$onError$` is server-only (not serialized); read serialized `props.onError$` instead.
         const boundaryProps = this.getHostProp<{
           onError$?: (error: unknown, info: ErrorBoundaryInfo) => unknown;
@@ -365,7 +367,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       }
       if (store && store.error === null) {
         // A generic ERROR_CONTEXT consumer captures only, never re-renders.
-        store.error = err;
+        store.error = storedError;
         return;
       }
       if (boundaryHost.dirty & ChoreBits.COMPONENT) {

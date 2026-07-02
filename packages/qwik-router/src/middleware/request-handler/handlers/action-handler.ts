@@ -7,6 +7,7 @@ import type {
   RequestHandler,
   ValidatorReturn,
 } from '../../../runtime/src/types';
+import { RedirectMessage } from '../redirect-handler';
 import { RequestEvSharedActionId, type RequestEventInternal } from '../request-event-core';
 import { IsQAction, QActionId } from '../request-path';
 import { throwIfControlFlowSignal } from '../server-error';
@@ -98,6 +99,10 @@ export function actionHandler(routeActions: ActionInternal[]): RequestHandler {
         verifySerializable(actionResolved, action.__qrl);
       }
       actionResult = actionResolved;
+    }
+    // The action resulted in a redirect, throw a RedirectMessage to let the redirect handler handle it.
+    if (requestEv.headers.has('Location')) {
+      throw new RedirectMessage();
     }
     const responseData: Record<string, unknown> = {
       result: actionResult,

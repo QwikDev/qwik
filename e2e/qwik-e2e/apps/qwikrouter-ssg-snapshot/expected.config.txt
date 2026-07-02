@@ -1,0 +1,26 @@
+
+/** Qwik Router Config */
+
+import { isDev } from '@qwik.dev/core/build';
+
+/** Qwik Router ServerPlugins (0) */
+export const serverPlugins = [
+];
+
+/** Qwik Router Layouts (1) */
+const SubLayout = ()=>import("<app>/src/routes/sub/layout");
+
+/** Qwik Router Routes (2) */
+export const routes = {
+  _I: ()=>import("<app>/src/routes/index"),
+  _R: "__LOADERS:<app>/src/routes/index.tsx__",
+  "sub": {
+    _L: SubLayout,
+    _R: "__LOADERS:<app>/src/routes/sub/404.tsx|<app>/src/routes/sub/layout.tsx__",
+    _4: ()=>import("<app>/src/routes/sub/404"),
+  },
+};
+export const trailingSlash = true;
+export const basePathname = "/";
+export const cacheModules = !isDev;
+export default { routes, serverPlugins, trailingSlash, basePathname, cacheModules };

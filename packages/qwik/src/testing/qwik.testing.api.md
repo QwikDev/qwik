@@ -109,6 +109,7 @@ export function ssrRenderToDom(jsx: JSXOutput, opts?: {
     raw?: boolean;
     qwikLoader?: boolean;
     containerTagName?: string;
+    statePrewarm?: number | false;
     stream?: StreamWriter;
     streaming?: StreamingOptions;
     resume?: boolean;

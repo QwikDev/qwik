@@ -122,6 +122,8 @@ export async function ssrRenderToDom(
     qwikLoader?: boolean;
     /** Override the SSR container tag name. */
     containerTagName?: string;
+    /** Root-count threshold for eager yielded state prewarm during client resume. */
+    statePrewarm?: number | false;
     /** Stream rendered chunks while still collecting the final HTML. */
     stream?: StreamWriter;
     /** Configure SSR streaming. */
@@ -151,6 +153,7 @@ export async function ssrRenderToDom(
       containerTagName: opts.containerTagName,
       qwikLoader: opts.qwikLoader ? 'inline' : 'never',
       transformError: opts.transformError,
+      statePrewarm: opts.statePrewarm,
     } as const;
     if (opts.stream || opts.streaming) {
       const stream: StreamWriter = {

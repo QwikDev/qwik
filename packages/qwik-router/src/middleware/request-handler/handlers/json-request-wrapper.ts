@@ -48,13 +48,14 @@ export function jsonRequestWrapper(): RequestHandler {
         return;
       }
       if (err instanceof RedirectMessage) {
+        const location = requestEv.headers.get('Location') || '/';
+        requestEv.headers.delete('Location');
         if (isLoader) {
-          const location = requestEv.headers.get('Location') || '/';
-          requestEv.headers.delete('Location');
           await sendJsonResponse(requestEv, { r: location });
         } else {
-          // Action redirects: let HTTP redirect propagate — client handles via response.redirected
-          throw err;
+          // Return the redirect as JSON (status 200) so the client navigates itself. A real HTTP
+          // 3xx would be auto-followed by fetch, turning the action POST into a GET of the target.
+          await sendActionResponse(requestEv, { redirect: location });
         }
       } else if (err instanceof ServerError) {
         if (isLoader) {

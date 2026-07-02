@@ -13,9 +13,8 @@
     Constant ':'
   ]
 ]
-8 {number} 25
+8 {number} 24
 9 Array [
-  {string} "ji2uyl-0"
   RootRef [omitted]
   Store [
     Object [
@@ -40,7 +39,7 @@
             QRL "[omitted]"
             Set [
               EffectSubscriptionNoData [
-                VNode "12AAA"
+                VNode "11AAA"
                 Constant ':'
               ]
               EffectSubscriptionNoData [
@@ -67,7 +66,7 @@
                     RootRef [omitted]
                   ]
                   {number} 3
-                  VNode "14A"
+                  VNode "13A"
                   EffectSubscriptionNoData [
                     RootRef [omitted]
                     Constant '.'
@@ -164,7 +163,7 @@
       Set [
         RootRef [omitted]
         EffectSubscriptionNoData [
-          VNode "12A"
+          VNode "11A"
           Constant ':'
         ]
       ]
@@ -246,7 +245,7 @@
       Task [
         QRL "[omitted]"
         {number} 10
-        {number} 22
+        {number} 21
         RootRef [omitted]
       ]
       Constant ':'
@@ -259,7 +258,7 @@
       Task [
         QRL "[omitted]"
         {number} 2
-        {number} 23
+        {number} 22
         RootRef [omitted]
       ]
       Constant ':'
@@ -285,6 +284,12 @@
   {number} 1
   {number} 1
   {number} 1
+  Task [
+    QRL "[omitted]"
+    {number} 10
+    {number} 20
+    RootRef [omitted]
+  ]
   ...
 ]
 10 Array [

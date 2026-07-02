@@ -175,8 +175,9 @@ Tracks `contentInternal`, `navContext`, and `actionDataSignal`. Client-only
    the navigation commit below.
 4. **Scroll setup:** finds scroller element, sets up `__q_scroll_restore__` callback.
 5. **SPA init:** calls `initializeSPA(goto, scrollEl)` (one-time setup).
-6. **View transition:** calls `startViewTransition({ update: navigate, types })`.
-   Inside the update callback: `clientNavigate(...)` pushes/replaces history,
+6. **View transition (opt-in):** when `viewTransition` is enabled, calls
+   `startViewTransition({ update: navigate, types })`; otherwise `navigate()` runs
+   directly. Inside the update callback: `clientNavigate(...)` pushes/replaces history,
    `contentInternal.trigger()` fires subscribers (rendering new content),
    `_waitUntilRendered(container)` waits for the render cycle.
 7. **Post-transition:** sets `q:route` attribute, saves scroll state, enables

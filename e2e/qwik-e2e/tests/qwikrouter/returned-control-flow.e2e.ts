@@ -22,11 +22,40 @@ test.describe('returned control-flow signals', () => {
 
   test('action returning error responds with the error status', async ({ page }) => {
     await page.goto(`${base}/action-error/`);
-    const actionPath = await page.locator('form').getAttribute('action');
-    const response = await page.request.post(new URL(actionPath!, page.url()).href, {
-      headers: { Accept: 'application/json' },
-      form: {},
-    });
+    // Submit via the real form so the request carries a valid Origin (passes CSRF).
+    const [response] = await Promise.all([
+      page.waitForResponse((r) => r.url().includes('qaction=')),
+      page.locator('button[type="submit"]').click(),
+    ]);
     expect(response.status()).toEqual(403);
+  });
+
+  test('JSON action redirect responds with an envelope and navigates the page', async ({
+    page,
+  }) => {
+    await page.goto(`${base}/action-redirect/`);
+    const [response] = await Promise.all([
+      page.waitForResponse((r) => r.url().includes('qaction=')),
+      page.locator('button[type="submit"]').click(),
+    ]);
+    // Redirect is carried in the JSON body (status 200) so fetch doesn't auto-follow it.
+    expect(response.status()).toEqual(200);
+    expect(response.headers()['location']).toBeUndefined();
+    // The 200 envelope must not be cached, or a stale redirect could be replayed.
+    expect(response.headers()['cache-control']).toContain('no-store');
+    // The client then navigates to the redirect target.
+    await expect(page.locator('#returned-control-flow-target')).toBeVisible();
+  });
+
+  test('JSON action redirect works even when the signal is neither thrown nor returned', async ({
+    page,
+  }) => {
+    await page.goto(`${base}/action-redirect-discarded/`);
+    const [response] = await Promise.all([
+      page.waitForResponse((r) => r.url().includes('qaction=')),
+      page.locator('button[type="submit"]').click(),
+    ]);
+    expect(response.headers()['location']).toBeUndefined();
+    await expect(page.locator('#returned-control-flow-target')).toBeVisible();
   });
 });

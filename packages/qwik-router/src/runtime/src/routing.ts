@@ -187,6 +187,13 @@ function resolveLoaders(
 type BoundaryRef = { v: ContentModuleLoader | ModuleLoader[] | undefined; layouts: ModuleLoader[] };
 
 /**
+ * The full chain to render for a boundary: a bare loader in its snapshot layouts, an override
+ * as-is.
+ */
+const boundaryChain = (ref: BoundaryRef): ModuleLoader[] | undefined =>
+  ref.v ? (Array.isArray(ref.v) ? ref.v : [...ref.layouts, ref.v]) : undefined;
+
+/**
  * Collect layouts, the nearest error (`_E`) and not-found (`_4`) boundaries, and the menu from a
  * node and the group ancestors entered to reach it.
  */
@@ -471,8 +478,8 @@ function matchRouteTree(
   loaderHashes: string[] | undefined;
   loaderPathsByHash: Record<string, string> | undefined;
   menuLoader: MenuModuleLoader | undefined;
-  /** The nearest _E (error.tsx) boundary in the ancestor chain (single loader or override chain) */
-  errorLoader: ContentModuleLoader | ModuleLoader[] | undefined;
+  /** The nearest _E (error.tsx) boundary's chain to render on a thrown error (in its layouts). */
+  errorLoader: ModuleLoader[] | undefined;
 } {
   let node: RouteData = root;
   const params: PathParams = {};
@@ -610,22 +617,8 @@ function matchRouteTree(
       }
     }
 
-    // Check for _A (rest wildcard with empty value) on the node itself
-    if (!node._I && node._G == null && node._A) {
-      const next = node._A as RouteData;
-      const paramName = next._P!;
-      params[paramName as string] = '';
-      routeParts.push(`[...${paramName}]`);
-      node = next;
-      if (node._L) {
-        layouts.push(node._L);
-      }
-      if (node._N) {
-        menuLoaderRef.v = node._N;
-      }
-    }
-
-    // Also check _M groups for _A with empty value
+    // Rest wildcard (`_A`) with empty value, on the node itself or inside its `_M` groups
+    // (`findRestNode` matches both), captured via `collectNodeMeta`.
     if (!node._I && node._G == null) {
       const restInfo = findRestNode(node);
       if (restInfo) {
@@ -690,7 +683,7 @@ function matchRouteTree(
         loaderPathsByHash:
           Object.keys(fbLoaderPathsByHash).length > 0 ? fbLoaderPathsByHash : undefined,
         menuLoader: fbMenuRef.v,
-        errorLoader: fbErrorRef.v,
+        errorLoader: boundaryChain(fbErrorRef),
       };
     }
     // Update error/menu loaders (and their layout snapshots) from fallback for the not-found response
@@ -745,7 +738,7 @@ function matchRouteTree(
       loaderHashes: undefined,
       loaderPathsByHash: undefined,
       menuLoader: menuLoaderRef.v,
-      errorLoader: errorLoaderRef.v,
+      errorLoader: boundaryChain(errorLoaderRef),
     };
   }
 
@@ -768,7 +761,7 @@ function matchRouteTree(
     loaderHashes: loaderHashes.length > 0 ? loaderHashes : undefined,
     loaderPathsByHash: Object.keys(loaderPathsByHash).length > 0 ? loaderPathsByHash : undefined,
     menuLoader: menuLoaderRef.v,
-    errorLoader: errorLoaderRef.v,
+    errorLoader: boundaryChain(errorLoaderRef),
   };
 }
 

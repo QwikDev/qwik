@@ -145,6 +145,11 @@ When touching these areas:
 ## QRL And Optimizer-Facing Runtime
 
 - Use `$`-suffixed APIs and `$()` in tests when a QRL boundary is expected.
+- The Rust optimizer does not extract identifier-valued `$`-props. `foo$={someHoistedFn}` passes
+  the raw function through untransformed: SSR serialization then fails with Q34, while CSR-only
+  paths falsely pass because a raw function is still callable. Shared or hoisted handlers and
+  fallbacks passed to a `$`-prop must be explicit module-scope `$()` QRLs, and any verification
+  must exercise an SSR path.
 - Avoid manual QRL construction unless nearby tests already use it for the same reason.
 - If runtime behavior relies on optimizer output, inspect the optimizer transform and snapshot too.
 - For event or JSX attribute changes, keep `event-names`, JSX runtime, qwikloader, and optimizer

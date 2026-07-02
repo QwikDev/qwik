@@ -8,7 +8,7 @@ use crate::words::*;
 use anyhow::Error;
 use indexmap::IndexMap;
 use std::collections::{BTreeMap, HashMap, HashSet};
-use swc_atoms::Atom;
+use swc_atoms::{atom, Atom};
 use swc_common::comments::{SingleThreadedComments, SingleThreadedCommentsMap};
 use swc_common::Spanned;
 use swc_common::DUMMY_SP;
@@ -111,6 +111,7 @@ pub struct NewModuleCtx<'a> {
 	pub global: &'a GlobalCollect,
 	pub core_module: &'a Atom,
 	pub need_transform: bool,
+	pub is_real_generator: bool,
 	pub explicit_extensions: bool,
 	pub leading_comments: SingleThreadedCommentsMap,
 	pub trailing_comments: SingleThreadedCommentsMap,
@@ -447,6 +448,9 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
 	module.body = final_body;
 
 	module.body.push(create_named_export(expr, ctx.name));
+	if ctx.is_real_generator {
+		module.body.push(create_real_generator_marker(ctx.name));
+	}
 	Ok((module, comments))
 }
 
@@ -1108,6 +1112,208 @@ fn create_named_export(expr: Box<ast::Expr>, name: &str) -> ast::ModuleItem {
 			}],
 		})),
 	}))
+}
+
+/// Property marking user-written generator segments, so the runtime does not drive them like
+/// converted async functions (e.g. `server$` streams real generators).
+pub const REAL_GENERATOR_PROP: &str = "__q_gen__";
+
+/// Was this a generator before conversion? (arrows cannot be generators)
+pub fn is_plain_generator(expr: &ast::Expr) -> bool {
+	matches!(expr, ast::Expr::Fn(fn_expr) if fn_expr.function.is_generator && !fn_expr.function.is_async)
+}
+
+/// Expression-safe marker for inline QRLs: `Object.assign(fn, { __q_gen__: true })`
+pub fn mark_real_generator_expr(expr: ast::Expr) -> ast::Expr {
+	ast::Expr::Call(ast::CallExpr {
+		span: DUMMY_SP,
+		ctxt: Default::default(),
+		callee: ast::Callee::Expr(Box::new(ast::Expr::Member(ast::MemberExpr {
+			span: DUMMY_SP,
+			obj: Box::new(ast::Expr::Ident(ast::Ident::new(
+				atom!("Object"),
+				DUMMY_SP,
+				Default::default(),
+			))),
+			prop: ast::MemberProp::Ident(ast::IdentName::new(atom!("assign"), DUMMY_SP)),
+		}))),
+		args: vec![
+			ast::ExprOrSpread {
+				spread: None,
+				expr: Box::new(expr),
+			},
+			ast::ExprOrSpread {
+				spread: None,
+				expr: Box::new(ast::Expr::Object(ast::ObjectLit {
+					span: DUMMY_SP,
+					props: vec![ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(
+						ast::KeyValueProp {
+							key: ast::PropName::Str(ast::Str::from(REAL_GENERATOR_PROP)),
+							value: Box::new(ast::Expr::Lit(ast::Lit::Bool(ast::Bool {
+								span: DUMMY_SP,
+								value: true,
+							}))),
+						},
+					)))],
+				})),
+			},
+		],
+		type_args: None,
+	})
+}
+
+/// Statement form for segment modules: `sym.__q_gen__ = true;`
+fn create_real_generator_marker(name: &str) -> ast::ModuleItem {
+	ast::ModuleItem::Stmt(ast::Stmt::Expr(ast::ExprStmt {
+		span: DUMMY_SP,
+		expr: Box::new(ast::Expr::Assign(ast::AssignExpr {
+			span: DUMMY_SP,
+			op: ast::AssignOp::Assign,
+			left: ast::AssignTarget::Simple(ast::SimpleAssignTarget::Member(ast::MemberExpr {
+				span: DUMMY_SP,
+				obj: Box::new(ast::Expr::Ident(ast::Ident::new(
+					Atom::from(name),
+					DUMMY_SP,
+					Default::default(),
+				))),
+				prop: ast::MemberProp::Ident(ast::IdentName::new(
+					Atom::from(REAL_GENERATOR_PROP),
+					DUMMY_SP,
+				)),
+			})),
+			right: Box::new(ast::Expr::Lit(ast::Lit::Bool(ast::Bool {
+				span: DUMMY_SP,
+				value: true,
+			}))),
+		})),
+	}))
+}
+
+/// Converts an async segment function into a sync generator (`await` -> `yield`) so the runtime
+/// can restore the invoke context across await points while driving the generator.
+///
+/// Arrows become function expressions because arrows cannot be generators. Functions containing a
+/// top-level `for await` are left async (generators cannot express them); the runtime then falls
+/// back to plain promise semantics. Async generators are also left untouched.
+pub fn convert_async_segment_to_generator(expr: ast::Expr) -> ast::Expr {
+	match expr {
+		ast::Expr::Arrow(arrow) if arrow.is_async && !arrow.is_generator => {
+			if contains_direct_for_await(&arrow.body) {
+				return ast::Expr::Arrow(arrow);
+			}
+			let body = match *arrow.body {
+				ast::BlockStmtOrExpr::BlockStmt(block) => block,
+				ast::BlockStmtOrExpr::Expr(expr) => ast::BlockStmt {
+					span: DUMMY_SP,
+					ctxt: Default::default(),
+					stmts: vec![create_return_stmt(expr)],
+				},
+			};
+			ast::Expr::Fn(ast::FnExpr {
+				ident: None,
+				function: Box::new(ast::Function {
+					params: arrow
+						.params
+						.into_iter()
+						.map(|pat| ast::Param {
+							span: DUMMY_SP,
+							decorators: vec![],
+							pat,
+						})
+						.collect(),
+					decorators: vec![],
+					span: arrow.span,
+					ctxt: arrow.ctxt,
+					body: Some(body.fold_with(&mut AwaitToYield)),
+					is_generator: true,
+					is_async: false,
+					type_params: None,
+					return_type: None,
+				}),
+			})
+		}
+		ast::Expr::Fn(fn_expr) if fn_expr.function.is_async && !fn_expr.function.is_generator => {
+			if contains_direct_for_await(&fn_expr.function.body) {
+				return ast::Expr::Fn(fn_expr);
+			}
+			let function = *fn_expr.function;
+			ast::Expr::Fn(ast::FnExpr {
+				function: Box::new(ast::Function {
+					body: function.body.map(|body| body.fold_with(&mut AwaitToYield)),
+					is_generator: true,
+					is_async: false,
+					..function
+				}),
+				..fn_expr
+			})
+		}
+		_ => expr,
+	}
+}
+
+/// Rewrites `await` into `yield` without descending into nested functions, whose awaits are their
+/// own. Nested non-async functions cannot contain our awaits, so stopping at every function
+/// boundary is correct.
+struct AwaitToYield;
+
+impl Fold for AwaitToYield {
+	fn fold_function(&mut self, node: ast::Function) -> ast::Function {
+		node
+	}
+	fn fold_arrow_expr(&mut self, node: ast::ArrowExpr) -> ast::ArrowExpr {
+		node
+	}
+	fn fold_constructor(&mut self, node: ast::Constructor) -> ast::Constructor {
+		node
+	}
+	fn fold_getter_prop(&mut self, node: ast::GetterProp) -> ast::GetterProp {
+		node
+	}
+	fn fold_setter_prop(&mut self, node: ast::SetterProp) -> ast::SetterProp {
+		node
+	}
+
+	fn fold_expr(&mut self, node: ast::Expr) -> ast::Expr {
+		let node = node.fold_children_with(self);
+		if let ast::Expr::Await(await_expr) = node {
+			ast::Expr::Yield(ast::YieldExpr {
+				span: await_expr.span,
+				arg: Some(await_expr.arg),
+				delegate: false,
+			})
+		} else {
+			node
+		}
+	}
+}
+
+/// Detects `for await` loops in a function body, ignoring nested functions' own loops.
+fn contains_direct_for_await<N: VisitWith<ForAwaitFinder>>(body: &N) -> bool {
+	let mut finder = ForAwaitFinder { found: false };
+	body.visit_with(&mut finder);
+	finder.found
+}
+
+struct ForAwaitFinder {
+	found: bool,
+}
+
+impl Visit for ForAwaitFinder {
+	noop_visit_type!();
+
+	fn visit_function(&mut self, _: &ast::Function) {}
+	fn visit_arrow_expr(&mut self, _: &ast::ArrowExpr) {}
+	fn visit_constructor(&mut self, _: &ast::Constructor) {}
+	fn visit_getter_prop(&mut self, _: &ast::GetterProp) {}
+	fn visit_setter_prop(&mut self, _: &ast::SetterProp) {}
+
+	fn visit_for_of_stmt(&mut self, node: &ast::ForOfStmt) {
+		if node.is_await {
+			self.found = true;
+			return;
+		}
+		node.visit_children_with(self);
+	}
 }
 
 pub fn transform_function_expr(expr: ast::Expr, _captures: &Id, scoped_idents: &[Id]) -> ast::Expr {

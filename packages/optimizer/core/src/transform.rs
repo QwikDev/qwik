@@ -1,4 +1,7 @@
-use crate::code_move::transform_function_expr;
+use crate::code_move::{
+	convert_async_segment_to_generator, is_plain_generator, mark_real_generator_expr,
+	transform_function_expr,
+};
 use crate::collector::{
 	collect_from_pat, new_ident_from_id, GlobalCollect, Id, IdentCollector, ImportKind,
 };
@@ -92,6 +95,8 @@ pub struct SegmentData {
 	pub display_name: Atom,
 	pub hash: Atom,
 	pub need_transform: bool,
+	/// User-written generator segments get a runtime marker so they are not driven like async fns
+	pub is_real_generator: bool,
 	pub migrated_root_vars: Vec<ast::ModuleItem>,
 }
 
@@ -606,6 +611,10 @@ impl<'a> QwikTransform<'a> {
 		} else {
 			folded
 		};
+		// user generators get a runtime marker; async fns become generators so the
+		// runtime can restore context across awaits
+		let is_real_generator = is_plain_generator(&folded);
+		let folded = convert_async_segment_to_generator(folded);
 
 		let (scoped_idents, captures) = {
 			if let Some(scoped) = third_arg {
@@ -657,6 +666,7 @@ impl<'a> QwikTransform<'a> {
 			display_name,
 			need_transform: false,
 			hash,
+			is_real_generator,
 			migrated_root_vars: Vec::new(),
 		};
 		// Preprocessed inlinedQrl from libs are always emitted — stripping is meant for user code without the user having to write guards; libs can put guards themselves.
@@ -667,6 +677,11 @@ impl<'a> QwikTransform<'a> {
 			}
 		}
 		if self.is_inline() {
+			let folded = if segment_data.is_real_generator {
+				mark_real_generator_expr(folded)
+			} else {
+				folded
+			};
 			let folded = if self.should_reg_segment(&segment_data.ctx_name) {
 				ast::Expr::Call(self.create_internal_call(
 					&_REG_SYMBOL,
@@ -918,6 +933,7 @@ impl<'a> QwikTransform<'a> {
 			self.segment_stack.push(symbol_name.clone());
 			let folded = first_arg.fold_with(self);
 			self.segment_stack.pop();
+			let is_real_generator = is_plain_generator(&folded);
 
 			let param_idents = get_function_params(&folded);
 			let (mut scoped_idents, _is_const) =
@@ -944,6 +960,11 @@ impl<'a> QwikTransform<'a> {
 			} else {
 				folded
 			};
+			let folded = if is_real_generator {
+				mark_real_generator_expr(folded)
+			} else {
+				folded
+			};
 
 			let captures = Captures::Auto(scoped_idents.clone());
 			let segment_data = SegmentData {
@@ -959,6 +980,7 @@ impl<'a> QwikTransform<'a> {
 				display_name,
 				need_transform: false,
 				hash,
+				is_real_generator,
 				migrated_root_vars: Vec::new(),
 			};
 
@@ -996,6 +1018,10 @@ impl<'a> QwikTransform<'a> {
 		self.segment_stack.push(symbol_name.clone());
 		let span = first_arg.span();
 		let folded = first_arg.fold_with(self);
+		// user generators get a runtime marker; async fns become generators so the
+		// runtime can restore context across awaits
+		let is_real_generator = is_plain_generator(&folded);
+		let folded = convert_async_segment_to_generator(folded);
 		self.segment_stack.pop();
 
 		// Collect local idents
@@ -1037,6 +1063,7 @@ impl<'a> QwikTransform<'a> {
 			display_name,
 			need_transform: true,
 			hash,
+			is_real_generator,
 			migrated_root_vars: Vec::new(),
 		};
 		let should_emit = self.should_emit_segment(&segment_data);
@@ -1065,6 +1092,11 @@ impl<'a> QwikTransform<'a> {
 			let folded = if !segment_data.scoped_idents.is_empty() {
 				let new_local = self.ensure_core_import(&_CAPTURES);
 				transform_function_expr(folded, &new_local, &segment_data.scoped_idents)
+			} else {
+				folded
+			};
+			let folded = if segment_data.is_real_generator {
+				mark_real_generator_expr(folded)
 			} else {
 				folded
 			};

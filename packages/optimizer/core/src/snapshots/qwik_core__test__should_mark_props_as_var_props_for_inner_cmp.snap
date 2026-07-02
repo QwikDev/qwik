@@ -1,6 +1,5 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 4197
 expression: output
 ---
 ==INPUT==
@@ -109,10 +108,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { _captures } from "@qwik.dev/core";
 import { serverImg } from "~/routes/(authenticated)/layout";
 //
-export const ModelImg_component_imgLoc_useResource_Ogi9hEJvtmI = async (_rawProps)=>{
+export const ModelImg_component_imgLoc_useResource_Ogi9hEJvtmI = function*(_rawProps) {
     const props = _captures[0];
     _rawProps.track(()=>props.store.model);
-    return await serverImg('some.png');
+    return yield serverImg('some.png');
 };
 
 

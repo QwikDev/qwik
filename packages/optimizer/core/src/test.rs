@@ -7773,6 +7773,69 @@ impl TestInput {
 }
 
 #[test]
+fn example_async_segments_become_generators() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useTask$, useSignal, server$, $ } from '@qwik.dev/core';
+
+export const delay = (ms) => new Promise((res) => setTimeout(res, ms));
+
+export const Cmp = component$(async () => {
+	const count = useSignal(0);
+	await delay(10);
+	const doubled = await Promise.resolve(count.value) + 1;
+	useTask$(async function namedTask() {
+		const inner = async () => await delay(1);
+		await inner();
+	});
+	return (
+		<button onClick$={async () => {
+			await delay(1);
+			count.value++;
+		}}>{doubled}</button>
+	);
+});
+
+// for-await cannot be expressed in a sync generator: stays async
+export const iterated = $(async () => {
+	for await (const chunk of getSource()) {
+		console.log(chunk);
+	}
+});
+
+// async generators stay untouched
+export const streaming = server$(async function* () {
+	yield 1;
+	await delay(1);
+	yield 2;
+});
+
+// expression-body async arrow
+export const simple = $(async () => delay(1).then(() => 'done'));
+
+// user generators are not converted and get the real-generator marker
+export const streamedSync = server$(function* () {
+	yield 1;
+	yield 2;
+});
+
+// marker must coexist with captures destructuring
+export const Scaled = component$(() => {
+	const factor = useSignal(3);
+	const gen = $(function* () {
+		yield factor.value;
+	});
+	return <div onClick$={() => gen()} />;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn should_preserve_non_ident_explicit_captures() {
 	let res = test_input!(TestInput {
 		code: r#"

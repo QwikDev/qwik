@@ -1,6 +1,5 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 5854
 expression: output
 ---
 ==INPUT==
@@ -83,7 +82,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { _captures } from "@qwik.dev/core";
 //
-export const Foo_component_other_useAsync_fsHooibmyyE = async (_rawProps)=>{
+export const Foo_component_other_useAsync_fsHooibmyyE = function*(_rawProps) {
     const other = _captures[0];
     const timer = setInterval(()=>{
         other.value++;
@@ -136,7 +135,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { _captures } from "@qwik.dev/core";
 //
-export const Foo_component_sig_useAsync_f0BGwWm4eeY = async (_rawProps)=>{
+export const Foo_component_sig_useAsync_f0BGwWm4eeY = function*(_rawProps) {
     const sig = _captures[0];
     const timer = setInterval(()=>{
         sig.value++;

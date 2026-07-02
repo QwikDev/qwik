@@ -12,7 +12,8 @@ import type { Consumer, EffectProperty, EffectSubscription } from '../reactive-p
 import { assertDefined } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import type { Container, HostElement } from '../shared/types';
-import { RenderEvent, TaskEvent } from '../shared/utils/markers';
+import { RealGeneratorProp, RenderEvent, TaskEvent } from '../shared/utils/markers';
+import { isPromise } from '../shared/utils/promises';
 import { seal } from '../shared/utils/qdev';
 import { isObject } from '../shared/utils/types';
 import { setLocale } from './use-locale';
@@ -102,7 +103,13 @@ export function invoke<FN extends (...args: any[]) => any>(
   return invokeApply.call(this, context, fn, args);
 }
 
-/** Call a function with the given InvokeContext and array of arguments. */
+/**
+ * Call a function with the given InvokeContext and array of arguments.
+ *
+ * When the function returns a generator (the optimizer converts async QRL segments to generators),
+ * it is driven to completion: each yielded value is awaited and sent back while the InvokeContext
+ * is restored, so context (including reactive tracking) survives across await points.
+ */
 export function invokeApply<FN extends (this: THIS, ...args: any[]) => any, THIS>(
   this: THIS,
   context: InvokeContext | undefined,
@@ -110,13 +117,50 @@ export function invokeApply<FN extends (this: THIS, ...args: any[]) => any, THIS
   args?: Parameters<FN>
 ): ReturnType<FN> {
   const previousContext = _context;
+  let returnValue: ReturnType<FN>;
   try {
     _context = context;
-    return fn.apply(this, args!);
+    returnValue = fn.apply(this, args!);
   } finally {
     _context = previousContext;
   }
+  // user-written generators are marked by the optimizer and returned as-is (e.g. server$ streams)
+  if (isGeneratorInstance(returnValue) && !(fn as any)[RealGeneratorProp]) {
+    return drainGenerator(returnValue, context) as ReturnType<FN>;
+  }
+  return returnValue;
 }
+
+const isGeneratorInstance = (value: any): value is Generator =>
+  !!value && typeof value.next === 'function' && value[Symbol.toStringTag] === 'Generator';
+
+const resumeGenerator = (
+  gen: Generator,
+  context: InvokeContext | undefined,
+  method: 'next' | 'throw',
+  value: unknown
+): IteratorResult<unknown> => {
+  const resume = gen[method].bind(gen) as (input: unknown) => IteratorResult<unknown>;
+  return invokeApply(context, resume, [value]);
+};
+
+const drainGenerator = (gen: Generator, context: InvokeContext | undefined): Promise<unknown> => {
+  // Return completion values raw to avoid extra microtask hops vs a native async fn
+  const step = (result: IteratorResult<unknown>): unknown =>
+    result.done
+      ? result.value
+      : Promise.resolve(result.value).then(
+          (value) => step(resumeGenerator(gen, context, 'next', value)),
+          (error) => step(resumeGenerator(gen, context, 'throw', error))
+        );
+  try {
+    const result = step(resumeGenerator(gen, context, 'next', undefined));
+    return isPromise(result) ? (result as Promise<unknown>) : Promise.resolve(result);
+  } catch (error) {
+    // an async function never throws synchronously, keep that contract
+    return Promise.reject(error);
+  }
+};
 
 export const newInvokeContextFromDOM = (
   event: Event,

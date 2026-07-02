@@ -85,7 +85,7 @@ export const executeComponent = (
     if ('children' in props) {
       delete props.children;
     }
-    componentFn = componentQRL.getFn(iCtx);
+    componentFn = componentQRL.getFn(iCtx) as typeof componentFn;
   } else if (isQwikComponent(componentQRL)) {
     const qComponentFn = componentQRL as any as (
       props: Props,

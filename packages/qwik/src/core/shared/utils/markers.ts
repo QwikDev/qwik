@@ -27,6 +27,13 @@ export const QBackRefs = 'q:brefs';
 export const QFuncsPrefix = 'qFuncs_';
 export const QwikEvContainerReady = 0;
 
+/**
+ * The optimizer sets this on user-written generator segment functions so the runtime can tell them
+ * apart from async functions it converted to generators (which must be driven instead). Must stay
+ * in sync with the optimizer and the qwikloader.
+ */
+export const RealGeneratorProp = '__q_gen__';
+
 export const getQFuncs = (
   document: Document,
   hash: string

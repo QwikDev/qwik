@@ -1,6 +1,5 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 1713
 expression: output
 ---
 ==INPUT==
@@ -51,9 +50,9 @@ import { _captures } from "@qwik.dev/core";
 import mongo from "mongodb";
 import redis from "redis";
 //
-export const Parent_component_useTask_gDH1EtUWqBU = async ()=>{
+export const Parent_component_useTask_gDH1EtUWqBU = function*() {
     const state = _captures[0];
-    state.text = await mongo.users();
+    state.text = yield mongo.users();
     redis.set(state.text);
 };
 
@@ -100,9 +99,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { _captures } from "@qwik.dev/core";
 import mongo from "mongodb";
 //
-export const Child_component_useTask_Oh4n7ZeqJkU = async ()=>{
+export const Child_component_useTask_Oh4n7ZeqJkU = function*() {
     const state = _captures[0];
-    state.text = await mongo.users();
+    state.text = yield mongo.users();
 };
 
 

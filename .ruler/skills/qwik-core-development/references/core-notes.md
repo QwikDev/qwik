@@ -150,6 +150,29 @@ When touching these areas:
 - For event or JSX attribute changes, keep `event-names`, JSX runtime, qwikloader, and optimizer
   behavior aligned.
 
+## Async Segments Are Generators
+
+The optimizer converts async QRL segment functions to sync generators (`await` -> `yield`) so the
+runtime can restore the invoke context (and reactive tracking) across await points. Invariants:
+
+- Never call a resolved segment function raw and treat its result as a promise. Route calls through
+  `invokeApply` (use-core.ts), which drives generators; the qwikloader and testing
+  `element-fixture.ts` ship their own copies of the driver for capture-less serialized handlers.
+- Driving must keep async-function semantics: always return a promise, never throw synchronously,
+  and avoid extra microtask hops (tests are sensitive to completion timing).
+- User-written generator segments are marked by the optimizer with `__q_gen__`
+  (`RealGeneratorProp` in markers.ts) and must be returned as-is — `server$` streams them. The
+  marker must survive wrappers like `bindCaptures`; the property string is duplicated in the
+  optimizer (`code_move.rs`) and the qwikloader, keep them in sync.
+- Functions with a top-level `for await` and async generators are not converted and keep plain
+  promise/async-iterator behavior.
+- Only component render fns keep reactive tracking across awaits. Task contexts have no
+  `$effectSubscriber$`, and async-signal computes strip the ambient subscriber before invoking the
+  compute (`$runComputation$`) so store/signal reads there never subscribe the rendering component;
+  the SSG state snapshot (`e2e/qwik-e2e/apps/qwikrouter-ssg-snapshot`) catches leaks.
+- Test both paths in `core/tests/async-component.spec.tsx` and `use/use-core.unit.ts` when touching
+  this area.
+
 ## Focused Verification
 
 Use the closest command first:

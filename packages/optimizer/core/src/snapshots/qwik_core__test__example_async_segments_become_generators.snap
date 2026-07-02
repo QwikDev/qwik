@@ -1,0 +1,431 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$, useTask$, useSignal, server$, $ } from '@qwik.dev/core';
+
+export const delay = (ms) => new Promise((res) => setTimeout(res, ms));
+
+export const Cmp = component$(async () => {
+	const count = useSignal(0);
+	await delay(10);
+	const doubled = await Promise.resolve(count.value) + 1;
+	useTask$(async function namedTask() {
+		const inner = async () => await delay(1);
+		await inner();
+	});
+	return (
+		<button onClick$={async () => {
+			await delay(1);
+			count.value++;
+		}}>{doubled}</button>
+	);
+});
+
+// for-await cannot be expressed in a sync generator: stays async
+export const iterated = $(async () => {
+	for await (const chunk of getSource()) {
+		console.log(chunk);
+	}
+});
+
+// async generators stay untouched
+export const streaming = server$(async function* () {
+	yield 1;
+	await delay(1);
+	yield 2;
+});
+
+// expression-body async arrow
+export const simple = $(async () => delay(1).then(() => 'done'));
+
+// user generators are not converted and get the real-generator marker
+export const streamedSync = server$(function* () {
+	yield 1;
+	yield 2;
+});
+
+// marker must coexist with captures destructuring
+export const Scaled = component$(() => {
+	const factor = useSignal(3);
+	const gen = $(function* () {
+		yield factor.value;
+	});
+	return <div onClick$={() => gen()} />;
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { serverQrl } from "@qwik.dev/core";
+//
+const q_Cmp_component_4ryKJTOKjWE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE");
+const q_Scaled_component_yixRR4y3Reo = /*#__PURE__*/ qrl(()=>import("./test.tsx_Scaled_component_yixRR4y3Reo"), "Scaled_component_yixRR4y3Reo");
+const q_iterated_MLuDXp4tx0Y = /*#__PURE__*/ qrl(()=>import("./test.tsx_iterated_MLuDXp4tx0Y"), "iterated_MLuDXp4tx0Y");
+const q_simple_iL5maxvwNfc = /*#__PURE__*/ qrl(()=>import("./test.tsx_simple_iL5maxvwNfc"), "simple_iL5maxvwNfc");
+const q_streamedSync_server_Jrg1kNrLVaQ = /*#__PURE__*/ qrl(()=>import("./test.tsx_streamedSync_server_Jrg1kNrLVaQ"), "streamedSync_server_Jrg1kNrLVaQ");
+const q_streaming_server_HVZAxmVmf0o = /*#__PURE__*/ qrl(()=>import("./test.tsx_streaming_server_HVZAxmVmf0o"), "streaming_server_HVZAxmVmf0o");
+//
+export const delay = (ms)=>new Promise((res)=>setTimeout(res, ms));
+export const Cmp = /*#__PURE__*/ componentQrl(q_Cmp_component_4ryKJTOKjWE);
+// for-await cannot be expressed in a sync generator: stays async
+export const iterated = q_iterated_MLuDXp4tx0Y;
+// async generators stay untouched
+export const streaming = serverQrl(q_streaming_server_HVZAxmVmf0o);
+// expression-body async arrow
+export const simple = q_simple_iL5maxvwNfc;
+// user generators are not converted and get the real-generator marker
+export const streamedSync = serverQrl(q_streamedSync_server_Jrg1kNrLVaQ);
+// marker must coexist with captures destructuring
+export const Scaled = /*#__PURE__*/ componentQrl(q_Scaled_component_yixRR4y3Reo);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;AAGA,OAAO,MAAM,QAAQ,CAAC,KAAO,IAAI,QAAQ,CAAC,MAAQ,WAAW,KAAK,KAAK;AAEvE,OAAO,MAAM,oBAAM,0CAchB;AAEH,iEAAiE;AACjE,OAAO,MAAM,kCAIV;AAEH,kCAAkC;AAClC,OAAO,MAAM,YAAY,0CAItB;AAEH,8BAA8B;AAC9B,OAAO,MAAM,8BAAoD;AAEjE,sEAAsE;AACtE,OAAO,MAAM,eAAe,6CAGzB;AAEH,kDAAkD;AAClD,OAAO,MAAM,uBAAS,6CAMnB\"}")
+============================= test.tsx_Cmp_component_button_q_e_click_0O0tA6ahzDQ.js (ENTRY POINT)==
+
+import { delay } from "./test";
+//
+export const Cmp_component_button_q_e_click_0O0tA6ahzDQ = function*(_, _1, count) {
+    yield delay(1);
+    count.value++;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0DAcoB;IACjB,MAAM,MAAM;IACZ,MAAM,KAAK;AACZ\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_button_q_e_click_0O0tA6ahzDQ",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component_button_q_e_click",
+  "hash": "0O0tA6ahzDQ",
+  "canonicalFilename": "test.tsx_Cmp_component_button_q_e_click_0O0tA6ahzDQ",
+  "path": "",
+  "extension": "js",
+  "parent": "Cmp_component_4ryKJTOKjWE",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    437,
+    491
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "count"
+  ]
+}
+*/
+============================= test.tsx_iterated_MLuDXp4tx0Y.js (ENTRY POINT)==
+
+export const iterated_MLuDXp4tx0Y = async ()=>{
+    for await (const chunk of getSource())console.log(chunk);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"oCAsB0B;IACzB,WAAW,MAAM,SAAS,YACzB,QAAQ,GAAG,CAAC;AAEd\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "iterated_MLuDXp4tx0Y",
+  "entry": null,
+  "displayName": "test.tsx_iterated",
+  "hash": "MLuDXp4tx0Y",
+  "canonicalFilename": "test.tsx_iterated_MLuDXp4tx0Y",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    613,
+    695
+  ]
+}
+*/
+============================= test.tsx_Scaled_component_div_q_e_click_HG58ka0Ry1o.js (ENTRY POINT)==
+
+export const Scaled_component_div_q_e_click_HG58ka0Ry1o = (_, _1, gen)=>gen();
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"0DAkDuB,cAAM\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Scaled_component_div_q_e_click_HG58ka0Ry1o",
+  "entry": null,
+  "displayName": "test.tsx_Scaled_component_div_q_e_click",
+  "hash": "HG58ka0Ry1o",
+  "canonicalFilename": "test.tsx_Scaled_component_div_q_e_click_HG58ka0Ry1o",
+  "path": "",
+  "extension": "js",
+  "parent": "Scaled_component_yixRR4y3Reo",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    1277,
+    1288
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "gen"
+  ]
+}
+*/
+============================= test.tsx_Cmp_component_4ryKJTOKjWE.js (ENTRY POINT)==
+
+import { delay } from "./test";
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { useSignal } from "@qwik.dev/core";
+import { useTaskQrl } from "@qwik.dev/core";
+//
+const q_Cmp_component_button_q_e_click_0O0tA6ahzDQ = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_button_q_e_click_0O0tA6ahzDQ"), "Cmp_component_button_q_e_click_0O0tA6ahzDQ");
+const q_Cmp_component_useTask_bNlzGV2RmqM = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_useTask_bNlzGV2RmqM"), "Cmp_component_useTask_bNlzGV2RmqM");
+//
+export const Cmp_component_4ryKJTOKjWE = function*() {
+    const count = useSignal(0);
+    yield delay(10);
+    const doubled = (yield Promise.resolve(count.value)) + 1;
+    useTaskQrl(q_Cmp_component_useTask_bNlzGV2RmqM);
+    return /*#__PURE__*/ _jsxSorted("button", {
+        "q:p": count
+    }, {
+        "q-e:click": q_Cmp_component_button_q_e_click_0O0tA6ahzDQ
+    }, doubled, 5, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;yCAK8B;IAC7B,MAAM,QAAQ,UAAU;IACxB,MAAM,MAAM;IACZ,MAAM,UAAU,CAAA,MAAM,QAAQ,OAAO,CAAC,MAAM,KAAK,CAAA,IAAI;IACrD;IAIA,qBACC,WAAC;;;QAAO,WAAQ;OAGZ;AAEN\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_4ryKJTOKjWE",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component",
+  "hash": "4ryKJTOKjWE",
+  "canonicalFilename": "test.tsx_Cmp_component_4ryKJTOKjWE",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    184,
+    517
+  ]
+}
+*/
+============================= test.tsx_Scaled_component_gen_UDzYD78xe3A.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+//
+export const Scaled_component_gen_UDzYD78xe3A = function*() {
+    const factor = _captures[0];
+    yield factor.value;
+};
+Scaled_component_gen_UDzYD78xe3A.__q_gen__ = true;
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;gDA+Ce;;IACb,MAAM,OAAO,KAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Scaled_component_gen_UDzYD78xe3A",
+  "entry": null,
+  "displayName": "test.tsx_Scaled_component_gen",
+  "hash": "UDzYD78xe3A",
+  "canonicalFilename": "test.tsx_Scaled_component_gen_UDzYD78xe3A",
+  "path": "",
+  "extension": "js",
+  "parent": "Scaled_component_yixRR4y3Reo",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    1212,
+    1251
+  ],
+  "captureNames": [
+    "factor"
+  ]
+}
+*/
+============================= test.tsx_Cmp_component_useTask_bNlzGV2RmqM.js (ENTRY POINT)==
+
+import { delay } from "./test";
+//
+export const Cmp_component_useTask_bNlzGV2RmqM = function* namedTask() {
+    const inner = async ()=>await delay(1);
+    yield inner();
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;iDASU,UAAe;IACvB,MAAM,QAAQ,UAAY,MAAM,MAAM;IACtC,MAAM;AACP\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_useTask_bNlzGV2RmqM",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component_useTask",
+  "hash": "bNlzGV2RmqM",
+  "canonicalFilename": "test.tsx_Cmp_component_useTask_bNlzGV2RmqM",
+  "path": "",
+  "extension": "js",
+  "parent": "Cmp_component_4ryKJTOKjWE",
+  "ctxKind": "function",
+  "ctxName": "useTask$",
+  "captures": false,
+  "loc": [
+    312,
+    404
+  ]
+}
+*/
+============================= test.tsx_streamedSync_server_Jrg1kNrLVaQ.js (ENTRY POINT)==
+
+export const streamedSync_server_Jrg1kNrLVaQ = function*() {
+    yield 1;
+    yield 2;
+};
+streamedSync_server_Jrg1kNrLVaQ.__q_gen__ = true;
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"+CAuCoC;IACnC,MAAM;IACN,MAAM;AACP\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "streamedSync_server_Jrg1kNrLVaQ",
+  "entry": null,
+  "displayName": "test.tsx_streamedSync_server",
+  "hash": "Jrg1kNrLVaQ",
+  "canonicalFilename": "test.tsx_streamedSync_server_Jrg1kNrLVaQ",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "server$",
+  "captures": false,
+  "loc": [
+    1035,
+    1071
+  ]
+}
+*/
+============================= test.tsx_Scaled_component_yixRR4y3Reo.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { useSignal } from "@qwik.dev/core";
+//
+const q_Scaled_component_div_q_e_click_HG58ka0Ry1o = /*#__PURE__*/ qrl(()=>import("./test.tsx_Scaled_component_div_q_e_click_HG58ka0Ry1o"), "Scaled_component_div_q_e_click_HG58ka0Ry1o");
+const q_Scaled_component_gen_UDzYD78xe3A = /*#__PURE__*/ qrl(()=>import("./test.tsx_Scaled_component_gen_UDzYD78xe3A"), "Scaled_component_gen_UDzYD78xe3A");
+//
+export const Scaled_component_yixRR4y3Reo = ()=>{
+    const factor = useSignal(3);
+    const gen = q_Scaled_component_gen_UDzYD78xe3A.w([
+        factor
+    ]);
+    return /*#__PURE__*/ _jsxSorted("div", {
+        "q:p": gen
+    }, {
+        "q-e:click": q_Scaled_component_div_q_e_click_HG58ka0Ry1o
+    }, null, 7, "u6_1");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;4CA6CiC;IAChC,MAAM,SAAS,UAAU;IACzB,MAAM;;;IAGN,qBAAO,WAAC;;;QAAI,WAAQ;;AACrB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Scaled_component_yixRR4y3Reo",
+  "entry": null,
+  "displayName": "test.tsx_Scaled_component",
+  "hash": "yixRR4y3Reo",
+  "canonicalFilename": "test.tsx_Scaled_component_yixRR4y3Reo",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    1159,
+    1295
+  ]
+}
+*/
+============================= test.tsx_simple_iL5maxvwNfc.js (ENTRY POINT)==
+
+import { delay } from "./test";
+//
+export const simple_iL5maxvwNfc = function*() {
+    return delay(1).then(()=>'done');
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;kCAoCwB;WAAY,MAAM,GAAG,IAAI,CAAC,IAAM\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "simple_iL5maxvwNfc",
+  "entry": null,
+  "displayName": "test.tsx_simple",
+  "hash": "iL5maxvwNfc",
+  "canonicalFilename": "test.tsx_simple_iL5maxvwNfc",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    885,
+    924
+  ]
+}
+*/
+============================= test.tsx_streaming_server_HVZAxmVmf0o.js (ENTRY POINT)==
+
+import { delay } from "./test";
+//
+export const streaming_server_HVZAxmVmf0o = async function*() {
+    yield 1;
+    await delay(1);
+    yield 2;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;4CA6BiC;IAChC,MAAM;IACN,MAAM,MAAM;IACZ,MAAM;AACP\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "streaming_server_HVZAxmVmf0o",
+  "entry": null,
+  "displayName": "test.tsx_streaming_server",
+  "hash": "HVZAxmVmf0o",
+  "canonicalFilename": "test.tsx_streaming_server_HVZAxmVmf0o",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "server$",
+  "captures": false,
+  "loc": [
+    767,
+    826
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

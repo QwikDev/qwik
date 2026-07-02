@@ -7,7 +7,7 @@ import { isServerPlatform } from '../../shared/platform/platform';
 import type { Container } from '../../shared/types';
 import { isPromise, maybeThen, retryOnPromise } from '../../shared/utils/promises';
 import type { SSRContainer } from '../../ssr/ssr-types';
-import { tryGetInvokeContext } from '../../use/use-core';
+import { invokeApply, tryGetInvokeContext } from '../../use/use-core';
 import { trackFn } from '../../use/utils/tracker';
 import { _EFFECT_BACK_REF, type BackRef } from '../backref';
 import type { AsyncSignal } from '../signal.public';
@@ -484,7 +484,15 @@ export class AsyncSignalImpl<T>
       // values injected via _injectAsyncSignalValue) should never transition through a
       // visible loading state, which on SSR would fire the loading-effect subscribers
       // (tasks) while the value is still "loading" from their perspective.
-      const valuePromise = retryOnPromise(fn.bind(null, running));
+      // invokeApply drives generator segments (async fns converted by the optimizer).
+      // Strip the ambient effect subscriber: compute fns only track via their explicit track().
+      let iCtx = tryGetInvokeContext();
+      if (iCtx?.$effectSubscriber$) {
+        iCtx = { ...iCtx, $effectSubscriber$: undefined };
+      }
+      const valuePromise = retryOnPromise(() =>
+        invokeApply(iCtx, fn as (job: typeof running) => T, [running])
+      );
       let value: T;
       if (isPromise(valuePromise)) {
         this.untrackedLoading = true;

@@ -1,6 +1,5 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 6906
 expression: output
 ---
 ==INPUT==
@@ -64,14 +63,14 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_featureAction_formAction_cZgh2PzV1cc.js (ENTRY POINT)==
 
-export const featureAction_formAction_cZgh2PzV1cc = async (requestEvent)=>{
+export const featureAction_formAction_cZgh2PzV1cc = function*(requestEvent) {
     return {
         status: 'success'
     };
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"oDAO2C,OAAO;IAC/C,OAAO;QACN,QAAQ;IACT;AACD\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"oDAO2C,UAAO;IAC/C,OAAO;QACN,QAAQ;IACT;AACD\"}")
 /*
 {
   "origin": "test.tsx",

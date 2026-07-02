@@ -2870,10 +2870,10 @@ NoSerializeSymbol: unique symbol
 <h2 id="onrenderfn">OnRenderFn</h2>
 
 ```typescript
-export type OnRenderFn<PROPS> = (props: PROPS) => JSXOutput;
+export type OnRenderFn<PROPS> = (props: PROPS) => ValueOrPromise<JSXOutput>;
 ```
 
-**References:** [JSXOutput](#jsxoutput)
+**References:** [ValueOrPromise](#valueorpromise), [JSXOutput](#jsxoutput)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/component.public.ts)
 

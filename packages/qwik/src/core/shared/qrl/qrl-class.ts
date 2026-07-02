@@ -6,7 +6,7 @@ import { isBrowser, isDev } from '@qwik.dev/core/build';
 import { invokeApply, tryGetInvokeContext, type InvokeContext } from '../../use/use-core';
 import { assertDefined } from '../error/assert';
 import { QError, qError } from '../error/error';
-import { getQFuncs } from '../utils/markers';
+import { getQFuncs, RealGeneratorProp } from '../utils/markers';
 import { isPromise, maybeThen } from '../utils/promises';
 import { qDev, qTest } from '../utils/qdev';
 import { isFunction, type ValueOrPromise } from '../utils/types';
@@ -245,14 +245,14 @@ const qrlCallFn = function <TYPE>(
   ...args: QrlArgs<TYPE>
 ): ValueOrPromise<QrlReturn<TYPE>> {
   const qrl = getInstance<TYPE>(this);
+  // grab the context while we are sync
+  const ctx = tryGetInvokeContext();
   if (qrl.resolved) {
-    return (qrl.resolved as any).apply(withThis, args);
+    // go through invokeApply so generator segments (async fns) are driven
+    return invokeApply.call(withThis, ctx, qrl.resolved as any, args);
   }
 
   // Not resolved yet: we'll return a promise
-
-  // grab the context while we are sync
-  const ctx = tryGetInvokeContext();
 
   return qrlResolve
     .call(qrl, ctx?.$container$)
@@ -485,10 +485,15 @@ const bindCaptures = <TYPE>(qrl: QRLClass<unknown>, ref: TYPE): TYPE => {
   if (typeof ref !== 'function' || !qrl.$captures$) {
     return ref;
   }
-  return function boundCaptures(this: unknown, ...args: QrlArgs<TYPE>) {
+  const boundCaptures = function (this: unknown, ...args: QrlArgs<TYPE>) {
     ensureQrlCaptures(qrl);
     return ref.apply(this, args);
-  } as TYPE;
+  };
+  if ((ref as any)[RealGeneratorProp]) {
+    // keep user generators recognizable through the wrapper
+    (boundCaptures as any)[RealGeneratorProp] = true;
+  }
+  return boundCaptures as TYPE;
 };
 
 const $resolve$ = <TYPE>(

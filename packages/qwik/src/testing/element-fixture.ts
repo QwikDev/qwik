@@ -4,7 +4,7 @@ import { vi } from 'vitest';
 import { assertDefined } from '../core/shared/error/assert';
 import type { Container, QElement, QwikLoaderEventScope } from '../core/shared/types';
 import { fromCamelToKebabCase } from '../core/shared/utils/event-names';
-import { QFuncsPrefix, QInstanceAttr } from '../core/shared/utils/markers';
+import { QFuncsPrefix, QInstanceAttr, RealGeneratorProp } from '../core/shared/utils/markers';
 import { createWindow } from './document';
 import type { MockDocument, MockWindow } from './types';
 import { waitForDrain } from './util';
@@ -167,6 +167,21 @@ const QContainerSelector = '[q\\:container]';
 const isElementNode = (node: Node | null): node is Element => !!node && node.nodeType === 1;
 const isPromise = (promise: any): promise is Promise<any> =>
   promise && typeof promise.then === 'function';
+
+// Same generator driving as the qwikloader: async QRL segments are emitted as generators
+const isGenerator = (value: any): value is Generator =>
+  value && value[Symbol.toStringTag] === 'Generator';
+
+const driveGenerator = (gen: Generator): Promise<unknown> => {
+  const step = (result: IteratorResult<unknown>): unknown =>
+    result.done
+      ? result.value
+      : Promise.resolve(result.value).then(
+          (value) => step(gen.next(value)),
+          (error) => step(gen.throw(error))
+        );
+  return Promise.resolve(step(gen.next()));
+};
 let queuedTasks: Promise<void> | undefined;
 const runTasks = async (tasks: Task[]) => {
   for (let i = 0; i < tasks.length; i++) {
@@ -324,7 +339,10 @@ const dispatchOnElement = (
               sync.resolve();
               fn = sync.resolved as Function;
             }
-            return fn.apply(captures, [event, element]);
+            const result = fn.apply(captures, [event, element]);
+            return isGenerator(result) && !(fn as any)[RealGeneratorProp]
+              ? driveGenerator(result)
+              : result;
           };
           if (chunk || defer) {
             defer = true;

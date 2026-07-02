@@ -836,7 +836,7 @@ export const noSerialize: <T extends object | undefined>(input: T) => NoSerializ
 export const NoSerializeSymbol: unique symbol;
 
 // @public (undocumented)
-export type OnRenderFn<PROPS> = (props: PROPS) => JSXOutput;
+export type OnRenderFn<PROPS> = (props: PROPS) => ValueOrPromise<JSXOutput>;
 
 // @public (undocumented)
 export interface OnVisibleTaskOptions {

@@ -87,6 +87,26 @@ const findShadowRoots = (fragment: EventTarget & ParentNode) => {
 const isPromise = (promise: any): promise is Promise<any> =>
   promise && typeof promise.then === 'function';
 
+/**
+ * The optimizer converts async QRL segments into generators so core can restore context across
+ * awaits. Handlers without captures are invoked here without core, so we drive the generator
+ * ourselves: await each yielded value and pass it back. User-written generators are marked with
+ * `__q_gen__` (see markers.ts) and must not be driven.
+ */
+const isGenerator = (value: any): value is Generator =>
+  value && value[Symbol.toStringTag] === 'Generator';
+
+const driveGenerator = (gen: Generator): Promise<unknown> => {
+  const step = (result: IteratorResult<unknown>): unknown =>
+    result.done
+      ? result.value
+      : Promise.resolve(result.value).then(
+          (value) => step(gen.next(value)),
+          (error) => step(gen.throw(error))
+        );
+  return Promise.resolve(step(gen.next()));
+};
+
 const runTasks = async (tasks: Task[]) => {
   for (let i = 0; i < tasks.length; i++) {
     await tasks[i]();
@@ -335,7 +355,10 @@ const dispatch = (
             });
           };
           try {
-            const result = handler.call(capturedIds, ev, element);
+            let result = handler.call(capturedIds, ev, element);
+            if (isGenerator(result) && !(handler as any).__q_gen__) {
+              result = driveGenerator(result) as Promise<void>;
+            }
             if (isPromise(result)) {
               return result.catch(onError);
             }

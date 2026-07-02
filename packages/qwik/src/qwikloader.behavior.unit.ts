@@ -434,6 +434,65 @@ describe('qwikloader behavior', () => {
     }
   });
 
+  test('drives generator handlers emitted for async qrl segments', async () => {
+    const { doc } = createLoaderEnvironment(['e:click']);
+    const logs: string[] = [];
+    const previousLogs = (globalThis as any).__qwikLoaderGenLogs;
+    (globalThis as any).__qwikLoaderGenLogs = logs;
+    // the optimizer emits async handlers as generators; yielded values must be awaited & sent back
+    const moduleUrl = `data:text/javascript;charset=utf-8,${encodeURIComponent(
+      'export const handler = function* () { const value = yield Promise.resolve("resolved"); globalThis.__qwikLoaderGenLogs.push("done " + value); };'
+    )}`;
+    const container = createMockElement(null, {
+      'q:container': '',
+      'q:base': './',
+      'q:instance': 'gen',
+    });
+    const button = createMockElement(container, {
+      'q-e:click': `${moduleUrl}#handler#`,
+    });
+    try {
+      getSingleListener(doc, 'click').handler(createMockEvent(button));
+      await vi.waitFor(() => {
+        expect(logs).toEqual(['done resolved']);
+      });
+      expect(doc.dispatchEvent).not.toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'qerror' })
+      );
+    } finally {
+      (globalThis as any).__qwikLoaderGenLogs = previousLogs;
+    }
+  });
+
+  test('does not drive handlers marked as real generators', async () => {
+    const { doc } = createLoaderEnvironment(['e:click']);
+    const logs: string[] = [];
+    const previousLogs = (globalThis as any).__qwikLoaderGenLogs;
+    (globalThis as any).__qwikLoaderGenLogs = logs;
+    // marked generators are user-written; driving them would wrongly run their body
+    const moduleUrl = `data:text/javascript;charset=utf-8,${encodeURIComponent(
+      'export const handler = function* () { globalThis.__qwikLoaderGenLogs.push("driven"); yield 1; }; handler.__q_gen__ = true;'
+    )}`;
+    const container = createMockElement(null, {
+      'q:container': '',
+      'q:base': './',
+      'q:instance': 'realgen',
+    });
+    const button = createMockElement(container, {
+      'q-e:click': `${moduleUrl}#handler#`,
+    });
+    try {
+      getSingleListener(doc, 'click').handler(createMockEvent(button));
+      await flushQueuedTasks();
+      expect(logs).toEqual([]);
+      expect(doc.dispatchEvent).not.toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'qerror' })
+      );
+    } finally {
+      (globalThis as any).__qwikLoaderGenLogs = previousLogs;
+    }
+  });
+
   test('falls back to readystatechange while waiting for streamed container data', async () => {
     const { doc } = createLoaderEnvironment(['e:click']);
     const logs: string[] = [];

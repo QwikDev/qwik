@@ -508,6 +508,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 								local_idents: &h.data.local_idents,
 								scoped_idents: &h.data.scoped_idents,
 								need_transform: h.data.need_transform,
+								is_real_generator: h.data.is_real_generator,
 								explicit_extensions: q.options.explicit_extensions,
 								global: &q.options.global_collect,
 								core_module: &q.options.core_module,

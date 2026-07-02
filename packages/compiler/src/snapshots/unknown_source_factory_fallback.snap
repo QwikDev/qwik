@@ -155,12 +155,12 @@ export function App(_props, ctx) {
   const foo = maybeSignal();
   const fragment0 = dom_App_template0(ctx.document);
   const el1 = fragment0.firstChild;
-  const effect2 = createDomBatchEffect(batch3, ctx.scheduler);
   const text4 = el1.firstChild;
   function batch3() {
     patchAttrValue(el1, 'title', dom_App_expr1(foo));
     patchTextValue(text4, dom_App_expr2(foo));
   }
+  const effect2 = createDomBatchEffect(batch3, ctx.scheduler);
   ctx.scheduler.notify(effect2);
   return el1;
 }

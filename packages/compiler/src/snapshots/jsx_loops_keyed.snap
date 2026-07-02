@@ -453,11 +453,11 @@ null
 import {
   applyDomProps,
   createDomBatchEffect,
-  runDomBatchEffect,
   createAttrExpressionEffect,
   patchAttrValue,
   patchTextValue,
   setEvent,
+  runDomBatchEffect,
 } from '@qwik.dev/core/spark';
 import { component_q_e_click_segment_6 } from './component.tsx_component_q_e_click_segment_6';
 const component_for_render_segment_0_expr0 = (row) => ({ ...row.value.attrs });
@@ -467,41 +467,30 @@ const component_for_render_segment_0_expr3 = (row) => row.value.label;
 export const component_for_render_segment_0 = (ctx, row, index) => {
   const el0 = ctx.document.createElement('li');
   let prevProps1 = null;
-  const effect2 = createDomBatchEffect(batch3, ctx.scheduler);
-  function batchOp4() {
-    prevProps1 = applyDomProps(el0, component_for_render_segment_0_expr0(row), prevProps1);
-  }
-  runDomBatchEffect(effect2, batchOp4);
-  const el5 = ctx.document.createElement('span');
-  const effect6 = createAttrExpressionEffect(
-    el5,
+  const el4 = ctx.document.createElement('span');
+  const effect5 = createAttrExpressionEffect(
+    el4,
     'data-index',
     [index],
     component_for_render_segment_0_expr1,
     ctx.scheduler
   );
-  effect6.run();
-  function batchOp7() {
-    patchAttrValue(el5, 'class', component_for_render_segment_0_expr2(row));
-  }
-  runDomBatchEffect(effect2, batchOp7);
-  const text8 = ctx.document.createTextNode('');
-  function batchOp9() {
-    patchTextValue(text8, component_for_render_segment_0_expr3(row));
-  }
-  runDomBatchEffect(effect2, batchOp9);
-  el5.appendChild(text8);
-  el0.appendChild(el5);
-  const el10 = ctx.document.createElement('button');
-  setEvent(el10, 'q-e:click', component_q_e_click_segment_6, [row]);
-  const text11 = ctx.document.createTextNode('Toggle');
-  el10.appendChild(text11);
-  el0.appendChild(el10);
+  effect5.run();
+  const text6 = ctx.document.createTextNode('');
+  el4.appendChild(text6);
+  el0.appendChild(el4);
+  const el7 = ctx.document.createElement('button');
+  setEvent(el7, 'q-e:click', component_q_e_click_segment_6, [row]);
+  const text8 = ctx.document.createTextNode('Toggle');
+  el7.appendChild(text8);
+  el0.appendChild(el7);
   function batch3() {
-    batchOp4();
-    batchOp7();
-    batchOp9();
+    prevProps1 = applyDomProps(el0, component_for_render_segment_0_expr0(row), prevProps1);
+    patchAttrValue(el4, 'class', component_for_render_segment_0_expr2(row));
+    patchTextValue(text6, component_for_render_segment_0_expr3(row));
   }
+  const effect2 = createDomBatchEffect(batch3, ctx.scheduler);
+  runDomBatchEffect(effect2, batch3);
   return el0;
 };
 

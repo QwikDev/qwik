@@ -929,9 +929,6 @@ export class DomEmitter {
     const effectId = this.next('effect');
     const updateId = this.next('batch');
     this.use(QwikSymbol.CreateDomBatchEffect);
-    this.line(
-      `const ${effectId} = ${QwikSymbol.CreateDomBatchEffect}(${updateId}, ctx.scheduler);`
-    );
     const state = { effectId, updateId, ops: [] };
     this.batches.set(batchKey, state);
     return state;
@@ -939,21 +936,19 @@ export class DomEmitter {
 
   private emitDomBatchOp(batchKey: string, operation: string): void {
     const batch = this.ensureDomBatchEffect(batchKey);
-    if (this.options.domEffectMode === 'run') {
-      const opId = this.next('batchOp');
-      batch.ops.push(`${opId}();`);
-      this.line(`function ${opId}() { ${operation} }`);
-      this.use(QwikSymbol.RunDomBatchEffect);
-      this.line(`${QwikSymbol.RunDomBatchEffect}(${batch.effectId}, ${opId});`);
-      return;
-    }
     batch.ops.push(operation);
   }
 
   finalizeDomBatchEffects(): void {
     for (const batch of this.batches.values()) {
       this.line(`function ${batch.updateId}() { ${batch.ops.join(' ')} }`);
-      if (this.options.domEffectMode !== 'run') {
+      this.line(
+        `const ${batch.effectId} = ${QwikSymbol.CreateDomBatchEffect}(${batch.updateId}, ctx.scheduler);`
+      );
+      if (this.options.domEffectMode === 'run') {
+        this.use(QwikSymbol.RunDomBatchEffect);
+        this.line(`${QwikSymbol.RunDomBatchEffect}(${batch.effectId}, ${batch.updateId});`);
+      } else {
         this.line(`ctx.scheduler.notify(${batch.effectId});`);
       }
     }

@@ -414,9 +414,9 @@ import {
   createTemplate,
   patchAttrValue,
   createDomBatchEffect,
-  runDomBatchEffect,
   patchTextValue,
   setEvent,
+  runDomBatchEffect,
 } from '@qwik.dev/core/spark';
 import { component_q_e_click_segment_4 } from './component.tsx_component_q_e_click_segment_4';
 const component_for_render_segment_0_template0 = createTemplate(
@@ -428,30 +428,19 @@ const component_for_render_segment_0_expr3 = (row) => row.value.label;
 export const component_for_render_segment_0 = (ctx, row, index) => {
   const fragment0 = component_for_render_segment_0_template0(ctx.document);
   const el1 = fragment0.firstChild;
-  const effect2 = createDomBatchEffect(batch3, ctx.scheduler);
-  function batchOp4() {
-    patchAttrValue(el1, 'class', component_for_render_segment_0_expr1(row));
-  }
-  runDomBatchEffect(effect2, batchOp4);
-  const el5 = el1.firstChild;
-  const text6 = el5.firstChild;
-  function batchOp7() {
-    patchTextValue(text6, component_for_render_segment_0_expr2(row));
-  }
-  runDomBatchEffect(effect2, batchOp7);
-  const el8 = el5.nextSibling;
-  const el9 = el8.firstChild;
-  setEvent(el9, 'q-e:click', component_q_e_click_segment_4, [row]);
-  const text10 = el9.firstChild;
-  function batchOp11() {
-    patchTextValue(text10, component_for_render_segment_0_expr3(row));
-  }
-  runDomBatchEffect(effect2, batchOp11);
+  const el4 = el1.firstChild;
+  const text5 = el4.firstChild;
+  const el6 = el4.nextSibling;
+  const el7 = el6.firstChild;
+  setEvent(el7, 'q-e:click', component_q_e_click_segment_4, [row]);
+  const text8 = el7.firstChild;
   function batch3() {
-    batchOp4();
-    batchOp7();
-    batchOp11();
+    patchAttrValue(el1, 'class', component_for_render_segment_0_expr1(row));
+    patchTextValue(text5, component_for_render_segment_0_expr2(row));
+    patchTextValue(text8, component_for_render_segment_0_expr3(row));
   }
+  const effect2 = createDomBatchEffect(batch3, ctx.scheduler);
+  runDomBatchEffect(effect2, batch3);
   return el1;
 };
 

@@ -206,12 +206,12 @@ export function App(_props, ctx) {
   const count = createSignal(0);
   const fragment0 = dom_App_template0(ctx.document);
   const el1 = fragment0.firstChild;
-  const effect2 = createDomBatchEffect(batch3, ctx.scheduler);
   function batch3() {
     patchAttrValue(el1, 'title', dom_App_expr1(count));
     patchAttrValue(el1, 'class', dom_App_expr2(count));
     patchAttrValue(el1, 'style', dom_App_expr3(count));
   }
+  const effect2 = createDomBatchEffect(batch3, ctx.scheduler);
   ctx.scheduler.notify(effect2);
   return el1;
 }

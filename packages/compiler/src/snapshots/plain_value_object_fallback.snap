@@ -199,7 +199,6 @@ export function App(_props, ctx) {
   const foo = { value: 'hello' };
   const fragment0 = dom_App_template0(ctx.document);
   const el1 = fragment0.firstChild;
-  const effect2 = createDomBatchEffect(batch3, ctx.scheduler);
   const text4 = el1.firstChild;
   const el5 = text4.nextSibling;
   const text6 = el5.firstChild;
@@ -208,6 +207,7 @@ export function App(_props, ctx) {
     patchTextValue(text4, dom_App_expr2(foo));
     patchTextValue(text6, dom_App_expr3(foo));
   }
+  const effect2 = createDomBatchEffect(batch3, ctx.scheduler);
   ctx.scheduler.notify(effect2);
   return el1;
 }

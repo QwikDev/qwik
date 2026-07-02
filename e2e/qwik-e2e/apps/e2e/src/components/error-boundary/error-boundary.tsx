@@ -515,7 +515,6 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
             id="eb-reject"
             onClick$={() => {
               touched.value++;
-              // eslint-disable-next-line @typescript-eslint/no-floating-promises
               Promise.reject(new Error('unhandled boom'));
             }}
           >

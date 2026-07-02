@@ -1,8 +1,8 @@
 ==INPUT==
 
-import { createSignal } from '@qwik.dev/core/spark';
+import { useSignal } from '@qwik.dev/core/spark';
 export function App() {
-  const count = createSignal(1);
+  const count = useSignal(1);
   return <p>{count.value + 1}</p>;
 }
 
@@ -11,7 +11,7 @@ export function App() {
 ============================= src/component.tsx ==
 
 import {
-  createSignal,
+  useSignal,
   _qrlWithChunk,
   escapeHTML,
   createSsrElementTextTarget,
@@ -28,7 +28,7 @@ const q_component_text_segment_0 = /*#__PURE__*/ _qrlWithChunk(
 q_component_text_segment_0.s(component_text_segment_0);
 
 export function App(_props, ctx) {
-  const count = createSignal(1);
+  const count = useSignal(1);
   const id0 = ctx.nextId();
   ctx.addRoot(count);
   const text1 = renderSsrTextExpression(
@@ -61,8 +61,8 @@ null
   "ctxName": "text",
   "captures": true,
   "loc": [
-    121,
-    136
+    115,
+    130
   ],
   "paramNames": [],
   "captureNames": [
@@ -77,12 +77,12 @@ null
 
 ============================= src/component.tsx ==
 
-import { createSignal, createTemplate, createTextExpressionEffect } from '@qwik.dev/core/spark';
+import { useSignal, createTemplate, createTextExpressionEffect } from '@qwik.dev/core/spark';
 
 const dom_App_template0 = createTemplate('<p> </p>');
 const dom_App_expr1 = (count) => count.value + 1;
 export function App(_props, ctx) {
-  const count = createSignal(1);
+  const count = useSignal(1);
   const fragment0 = dom_App_template0(ctx.document);
   const el1 = fragment0.firstChild;
   const text2 = el1.firstChild;
@@ -115,8 +115,8 @@ null
   "ctxName": "text",
   "captures": true,
   "loc": [
-    121,
-    136
+    115,
+    130
   ],
   "paramNames": [],
   "captureNames": [

@@ -1,8 +1,8 @@
 ==INPUT==
 
-import { createSignal } from "@qwik.dev/core";
+import { useSignal } from "@qwik.dev/core";
 export function App() {
-  const count = createSignal(1);
+  const count = useSignal(1);
   return <button onClick$={() => count.value++}>Count</button>;
 }
 
@@ -10,7 +10,7 @@ export function App() {
 
 ============================= src/component.tsx ==
 
-import { createSignal } from '@qwik.dev/core';
+import { useSignal } from '@qwik.dev/core';
 import { _qrlWithChunk } from '@qwik.dev/core/spark';
 
 const q_component_q_e_click_segment_0 = /*#__PURE__*/ _qrlWithChunk(
@@ -20,7 +20,7 @@ const q_component_q_e_click_segment_0 = /*#__PURE__*/ _qrlWithChunk(
 );
 
 export function App(_props, ctx) {
-  const count = createSignal(1);
+  const count = useSignal(1);
   return (
     '<button' +
     ctx.eventAttr('q-e:click', q_component_q_e_click_segment_0.w([count])) +
@@ -52,8 +52,8 @@ null
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    119,
-    149
+    113,
+    143
   ],
   "paramNames": [],
   "captureNames": [
@@ -68,13 +68,13 @@ null
 
 ============================= src/component.tsx ==
 
-import { createSignal } from '@qwik.dev/core';
+import { useSignal } from '@qwik.dev/core';
 import { createTemplate, setEvent } from '@qwik.dev/core/spark';
 import { component_q_e_click_segment_0 } from './component.tsx_component_q_e_click_segment_0';
 
 const dom_App_template0 = createTemplate('<button>Count</button>');
 export function App(_props, ctx) {
-  const count = createSignal(1);
+  const count = useSignal(1);
   const fragment0 = dom_App_template0(ctx.document);
   const el1 = fragment0.firstChild;
   setEvent(el1, 'q-e:click', component_q_e_click_segment_0, [count]);
@@ -105,8 +105,8 @@ null
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    119,
-    149
+    113,
+    143
   ],
   "paramNames": [],
   "captureNames": [

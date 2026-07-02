@@ -1,5 +1,5 @@
 import { component$, Slot, useStyles$ } from '@qwik.dev/core';
-import { createSignal } from '@qwik.dev/core/spark';
+import { useSignal } from '@qwik.dev/core/spark';
 import { describe, expect, it } from 'vitest';
 import { QStyle, QStyleSelector } from '../../shared/utils/markers';
 import { csrRender, ssrRender } from '../test-utils';
@@ -53,7 +53,7 @@ describe.each([
   it('keeps the style after a signal update', async () => {
     const App = component$(() => {
       useStyles$(STYLE_RED);
-      const count = createSignal(0);
+      const count = useSignal(0);
       return (
         <button class="container" onClick$={() => count.value++}>
           {count.value}
@@ -77,7 +77,7 @@ describe.each([
       return <div>Hello</div>;
     });
     const App = component$(() => {
-      const show = createSignal(true);
+      const show = useSignal(true);
       return (
         <div class="parent" onClick$={() => (show.value = false)}>
           {show.value && <Styled />}
@@ -146,7 +146,7 @@ describe.each([
       return <div class="container">Blue</div>;
     });
     const App = component$(() => {
-      const show = createSignal(true);
+      const show = useSignal(true);
       return (
         <div class="parent" onClick$={() => (show.value = false)}>
           {show.value && <Red />}
@@ -174,7 +174,7 @@ describe.each([
 
     const App = component$(() => {
       useStyles$(STYLE);
-      const groupSig = createSignal('1');
+      const groupSig = useSignal('1');
       return (
         <>
           Some text:{'  '}

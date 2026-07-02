@@ -1,8 +1,8 @@
 ==INPUT==
 
-import { createSignal } from '@qwik.dev/core/spark';
+import { useSignal } from '@qwik.dev/core/spark';
 export function App() {
-  const count = createSignal(0);
+  const count = useSignal(0);
   return <p>Hello {count.value}</p>;
 }
 
@@ -11,7 +11,7 @@ export function App() {
 ============================= src/component.tsx ==
 
 import {
-  createSignal,
+  useSignal,
   escapeHTML,
   renderSsrTextNode,
   createSsrRangeTextTarget,
@@ -19,7 +19,7 @@ import {
 } from '@qwik.dev/core/spark';
 
 export function App(_props, ctx) {
-  const count = createSignal(0);
+  const count = useSignal(0);
   const id0 = ctx.nextId();
   ctx.addRoot(count);
   const text1 = renderSsrTextNode(createSsrRangeTextTarget(id0, 0), count);
@@ -37,10 +37,10 @@ null
 
 ============================= src/component.tsx ==
 
-import { createSignal, createTextNodeEffect } from '@qwik.dev/core/spark';
+import { useSignal, createTextNodeEffect } from '@qwik.dev/core/spark';
 
 export function App(_props, ctx) {
-  const count = createSignal(0);
+  const count = useSignal(0);
   const el0 = ctx.document.createElement('p');
   const text1 = ctx.document.createTextNode('Hello ');
   el0.appendChild(text1);

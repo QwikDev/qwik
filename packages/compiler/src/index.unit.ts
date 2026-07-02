@@ -115,11 +115,11 @@ describe('transformModules', () => {
   test('strips TypeScript syntax from generated component setup', async () => {
     await testInput('typescript_setup', {
       code: `import { createContextId } from '@qwik.dev/core';
-import { createContextProvider, createSignal, type Signal } from '@qwik.dev/core/spark';
+import { createContextProvider, useSignal, type Signal } from '@qwik.dev/core/spark';
 
 export const App = () => {
   const contextId = createContextId<Signal<string>>('context');
-  const source: Signal<string> = createSignal('hello');
+  const source: Signal<string> = useSignal('hello');
   createContextProvider(contextId, source);
   return <p>{source.value}</p>;
 };
@@ -215,12 +215,12 @@ export function App() {
     await testInput('use_styles_scoped_dynamic', {
       path: 'src/use-styles-scoped-dynamic.tsx',
       code: `import { useStylesScoped$ } from '@qwik.dev/core';
-import { createSignal } from '@qwik.dev/core/spark';
+import { useSignal } from '@qwik.dev/core/spark';
 import styles from './app.css?inline';
 
 export function App() {
   useStylesScoped$(styles);
-  const active = createSignal(false);
+  const active = useSignal(false);
   return <button class={{ container: true, active: active.value }} onClick$={() => active.value = true}>Toggle</button>;
 }
 `,
@@ -274,9 +274,9 @@ export function App() {
 
   test('uses _captures for extracted event lexical scope', async () => {
     await testInput('event_handler_captures', {
-      code: `import { createSignal } from "@qwik.dev/core";
+      code: `import { useSignal } from "@qwik.dev/core";
 export function App() {
-  const count = createSignal(1);
+  const count = useSignal(1);
   return <button onClick$={() => count.value++}>Count</button>;
 }
 `,
@@ -309,10 +309,10 @@ export function App() {
   test('emits createOn with explicit qrl handler', async () => {
     await testInput('create_on_explicit_qrl', {
       code: `import { $ } from '@qwik.dev/core';
-import { createOn, createOnDocument, createSignal } from '@qwik.dev/core/spark';
+import { createOn, createOnDocument, useSignal } from '@qwik.dev/core/spark';
 
 export function App() {
-  const count = createSignal(0);
+  const count = useSignal(0);
   createOn('click', $(() => count.value++));
   createOnDocument('qinit', $(() => count.value += 2), { capture: true, preventdefault: true });
   return <button>{count.value}</button>;
@@ -323,9 +323,9 @@ export function App() {
 
   test('supports SSR and CSR dynamic text', async () => {
     await testInput('dynamic_signal_text', {
-      code: `import { createSignal } from '@qwik.dev/core/spark';
+      code: `import { useSignal } from '@qwik.dev/core/spark';
 export function App() {
-  const count = createSignal(0);
+  const count = useSignal(0);
   return <p>{count.value}</p>;
 }
 `,
@@ -334,9 +334,9 @@ export function App() {
 
   test('emits SSR range text for mixed dynamic text', async () => {
     await testInput('ssr_dynamic_range_text', {
-      code: `import { createSignal } from '@qwik.dev/core/spark';
+      code: `import { useSignal } from '@qwik.dev/core/spark';
 export function App() {
-  const count = createSignal(0);
+  const count = useSignal(0);
   return <p>Hello {count.value}</p>;
 }
 `,
@@ -345,9 +345,9 @@ export function App() {
 
   test('preserves multiline text spacing before dynamic text', async () => {
     await testInput('ssr_dynamic_range_text_multiline_spacing', {
-      code: `import { createSignal } from '@qwik.dev/core/spark';
+      code: `import { useSignal } from '@qwik.dev/core/spark';
 export function App() {
-  const count = createSignal(0);
+  const count = useSignal(0);
   return (
     <p>
       Count: {count.value}
@@ -360,9 +360,9 @@ export function App() {
 
   test('emits SSR range text boundaries before static text', async () => {
     await testInput('ssr_dynamic_range_text_boundary', {
-      code: `import { createSignal } from '@qwik.dev/core/spark';
+      code: `import { useSignal } from '@qwik.dev/core/spark';
 export function App() {
-  const count = createSignal(0);
+  const count = useSignal(0);
   return <p>Hello {count.value} world</p>;
 }
 `,
@@ -371,10 +371,10 @@ export function App() {
 
   test('emits local marker indexes for multiple SSR range texts', async () => {
     await testInput('ssr_dynamic_range_text_multiple', {
-      code: `import { createSignal } from '@qwik.dev/core/spark';
+      code: `import { useSignal } from '@qwik.dev/core/spark';
 export function App() {
-  const first = createSignal(1);
-  const second = createSignal(2);
+  const first = useSignal(1);
+  const second = useSignal(2);
   return <p>{first.value}{second.value}</p>;
 }
 `,
@@ -383,9 +383,9 @@ export function App() {
 
   test('emits SSR text expression QRLs', async () => {
     await testInput('ssr_dynamic_text_expression', {
-      code: `import { createSignal } from '@qwik.dev/core/spark';
+      code: `import { useSignal } from '@qwik.dev/core/spark';
 export function App() {
-  const count = createSignal(1);
+  const count = useSignal(1);
   return <p>{count.value + 1}</p>;
 }
 `,
@@ -394,11 +394,11 @@ export function App() {
 
   test('emits SSR dynamic attrs', async () => {
     await testInput('ssr_dynamic_attrs', {
-      code: `import { createSignal } from '@qwik.dev/core/spark';
+      code: `import { useSignal } from '@qwik.dev/core/spark';
 export function App() {
-  const title = createSignal('hello');
-  const classes = createSignal('active');
-  const style = createSignal('color:red');
+  const title = useSignal('hello');
+  const classes = useSignal('active');
+  const style = useSignal('color:red');
   return <div title={title.value} className={classes.value} style={style.value}>Attrs</div>;
 }
 `,
@@ -407,9 +407,9 @@ export function App() {
 
   test('emits dynamic DOM attrs through attr expression QRLs', async () => {
     await testInput('dynamic_dom_attrs_props_qrl', {
-      code: `import { createSignal } from '@qwik.dev/core/spark';
+      code: `import { useSignal } from '@qwik.dev/core/spark';
 export function App() {
-  const count = createSignal(0);
+  const count = useSignal(0);
   return (
     <div
       title={\`count \${count.value}\`}
@@ -451,12 +451,12 @@ export function App() {
 
   test('hoists SSR dynamic attrs before async child output', async () => {
     await testInput('dynamic_dom_attrs_after_component', {
-      code: `import { createSignal } from '@qwik.dev/core/spark';
+      code: `import { useSignal } from '@qwik.dev/core/spark';
 function Child() {
   return <span>Child</span>;
 }
 export function App() {
-  const count = createSignal(0);
+  const count = useSignal(0);
   return (
     <main>
       <Child />
@@ -470,14 +470,14 @@ export function App() {
 
   test('emits DOM spread props with override order', async () => {
     await testInput('dom_spread_props', {
-      code: `import { createSignal } from '@qwik.dev/core/spark';
+      code: `import { useSignal } from '@qwik.dev/core/spark';
 export function App() {
-  const attrs = createSignal({
+  const attrs = useSignal({
     title: 'from-spread',
     children: 'ignored',
     className: { active: true },
   });
-  const title = createSignal('final');
+  const title = useSignal('final');
   return <div {...attrs.value} title={title.value} onClick$={() => (title.value = 'clicked')} data-id="static">Child</div>;
 }
 `,
@@ -516,9 +516,9 @@ export function Parent() {
 
   test('emits SSR and CSR ternary branch renderers', async () => {
     await testInput('branch_ternary', {
-      code: `import { createSignal } from '@qwik.dev/core/spark';
+      code: `import { useSignal } from '@qwik.dev/core/spark';
 export function App() {
-  const count = createSignal(0);
+  const count = useSignal(0);
   return (
     <section>
       {count.value % 2 === 0 ? (
@@ -535,11 +535,11 @@ export function App() {
 
   test('emits SSR and CSR logical branch renderers', async () => {
     await testInput('branch_logical_and', {
-      code: `import { createSignal } from '@qwik.dev/core/spark';
+      code: `import { useSignal } from '@qwik.dev/core/spark';
 export function App() {
-  const visible = createSignal(true);
-  const label = createSignal('ready');
-  const attrs = createSignal({ role: 'status' });
+  const visible = useSignal(true);
+  const label = useSignal('ready');
+  const attrs = useSignal({ role: 'status' });
   return <div>{visible.value && <span {...attrs.value} title={\`label \${label.value}\`}>{label.value + '!'}</span>}</div>;
 }
 `,
@@ -548,14 +548,14 @@ export function App() {
 
   test('emits logical branch renderers in fragments', async () => {
     await testInput('branch_fragment_logical_and', {
-      code: `import { createSignal } from '@qwik.dev/core/spark';
+      code: `import { useSignal } from '@qwik.dev/core/spark';
 
 function InnerCmp() {
   return <div>Hello world</div>;
 }
 
 export function App() {
-  const groupSig = createSignal('1');
+  const groupSig = useSignal('1');
   return (
     <>
       Some text:{'  '}
@@ -570,9 +570,9 @@ export function App() {
 
   test('emits dynamic text inside logical branch renderers', async () => {
     await testInput('branch_logical_and_dynamic_text', {
-      code: `import { createSignal } from '@qwik.dev/core/spark';
+      code: `import { useSignal } from '@qwik.dev/core/spark';
 export function App() {
-  const count = createSignal(0);
+  const count = useSignal(0);
   return <p>{count.value > 2 && 'Count is greater than 2 and equal to ' + count.value}</p>;
 }
 `,
@@ -581,7 +581,7 @@ export function App() {
 
   test('imports local child components inside branch renderers', async () => {
     await testInput('branch_local_components', {
-      code: `import { createSignal } from '@qwik.dev/core/spark';
+      code: `import { useSignal } from '@qwik.dev/core/spark';
 
 function Counter({ count }: { count: number }) {
   return <p>Count: {count}</p>;
@@ -592,7 +592,7 @@ function Hello({ name }: { name: string }) {
 }
 
 export function App() {
-  const count = createSignal(0);
+  const count = useSignal(0);
   return <section>{count.value < 2 ? <Hello name="Qwik" /> : <Counter count={count.value} />}</section>;
 }
 `,
@@ -616,9 +616,9 @@ export function App() {
 
   test('supports keyed JSX loops', async () => {
     await testInput('jsx_loops_keyed', {
-      code: `import { createSignal } from '@qwik.dev/core/spark';
+      code: `import { useSignal } from '@qwik.dev/core/spark';
 export function App() {
-  const items = createSignal([{ id: 'a', label: 'Alpha', selected: true, attrs: { title: 'Alpha' } }]);
+  const items = useSignal([{ id: 'a', label: 'Alpha', selected: true, attrs: { title: 'Alpha' } }]);
   return (
     <ul>
       {items.value.map((row, index) => (
@@ -638,9 +638,9 @@ export function App() {
 
   test('emits CSR templates for keyed table row loops', async () => {
     await testInput('jsx_loop_row_template', {
-      code: `import { createSignal } from '@qwik.dev/core/spark';
+      code: `import { useSignal } from '@qwik.dev/core/spark';
 export function App() {
-  const rows = createSignal([{ id: 1, label: 'Alpha', selected: false }]);
+  const rows = useSignal([{ id: 1, label: 'Alpha', selected: false }]);
   return (
     <table>
       <tbody>
@@ -691,9 +691,9 @@ export function App() {
 
   test('transforms implicit dollar calls in component setup', async () => {
     await testInput('implicit_dollar_setup', {
-      code: `import { createSignal, createComputed$ } from '@qwik.dev/core/spark';
+      code: `import { useSignal, createComputed$ } from '@qwik.dev/core/spark';
 export function App() {
-  const count = createSignal(1);
+  const count = useSignal(1);
   const double = createComputed$(() => count.value * 2);
   return <p>{double.value}</p>;
 }
@@ -703,9 +703,9 @@ export function App() {
 
   test('transforms serializer object literals in component setup', async () => {
     await testInput('serializer_object_setup', {
-      code: `import { createSerializer$, createSignal } from '@qwik.dev/core/spark';
+      code: `import { createSerializer$, useSignal } from '@qwik.dev/core/spark';
 export function App() {
-  const count = createSignal(1);
+  const count = useSignal(1);
   const custom = createSerializer$({
     initial: 2,
     deserialize: (value = 0) => ({ count: value + count.value }),
@@ -732,14 +732,14 @@ export function Parent() {
 
   test('passes literal and expression props to child components', async () => {
     await testInput('component_child_props', {
-      code: `import { createSignal } from '@qwik.dev/core/spark';
+      code: `import { useSignal } from '@qwik.dev/core/spark';
 
 export function Child(props: { label: string; count: number }) {
   return <p>{props.label}: {props.count}</p>;
 }
 
 export function Parent() {
-  const count = createSignal(1);
+  const count = useSignal(1);
   return <Child label="Hi" count={count.value} />;
 }
 `,
@@ -791,7 +791,7 @@ export function Parent() {
 
   test('inherits context across child component renderers', async () => {
     await testInput('component_child_context', {
-      code: `import { createContext, createContextProvider, createSignal } from '@qwik.dev/core/spark';
+      code: `import { createContext, createContextProvider, useSignal } from '@qwik.dev/core/spark';
 import { Context } from './context';
 
 export function Child() {
@@ -800,7 +800,7 @@ export function Child() {
 }
 
 export function Parent() {
-  const value = createSignal('provided');
+  const value = useSignal('provided');
   createContextProvider(Context, value);
   return <section><Child /></section>;
 }
@@ -810,10 +810,10 @@ export function Parent() {
 
   test('emits task setup with async generator lowering', async () => {
     await testInput('task_async_generator', {
-      code: `import { createSignal, createTask$, createVisibleTask$ } from '@qwik.dev/core/spark';
+      code: `import { useSignal, createTask$, createVisibleTask$ } from '@qwik.dev/core/spark';
 
 export function App() {
-  const count = createSignal(0);
+  const count = useSignal(0);
   createTask$(async ({ cleanup }) => {
     const before = count.value;
     await Promise.resolve();
@@ -834,10 +834,10 @@ export function App() {
 
   test('emits async signal setup with async generator lowering', async () => {
     await testInput('async_signal_generator', {
-      code: `import { createAsync$, createSignal } from '@qwik.dev/core/spark';
+      code: `import { createAsync$, useSignal } from '@qwik.dev/core/spark';
 
 export function App() {
-  const count = createSignal(0);
+  const count = useSignal(0);
   const data = createAsync$(async () => {
     const before = count.value;
     await Promise.resolve();
@@ -871,9 +871,9 @@ export function App() {
 
   test('collects dynamic JSX value segments', async () => {
     await testInput('jsx_value_dynamic', {
-      code: `import { createSignal } from '@qwik.dev/core/spark';
+      code: `import { useSignal } from '@qwik.dev/core/spark';
 export function App() {
-  const count = createSignal(0);
+  const count = useSignal(0);
   const button = <button onClick$={() => count.value++}>{count.value}</button>;
   return <section>{button}</section>;
 }
@@ -883,7 +883,7 @@ export function App() {
 
   test('handles function call in JSX', async () => {
     await testInput('handle_function_call', {
-      code: `import { createSignal } from '@qwik.dev/core/spark';
+      code: `import { useSignal } from '@qwik.dev/core/spark';
       import { fun } from './utils';
 
 function renderItem(value: number) {
@@ -895,7 +895,7 @@ function renderFallback(value: number) {
 }
 
 export function App() {
-  const count = createSignal(1);
+  const count = useSignal(1);
   const renderers = { item: fun };
   return (
     <section>

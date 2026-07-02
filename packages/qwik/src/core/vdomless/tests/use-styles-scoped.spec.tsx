@@ -1,5 +1,5 @@
 import { component$, Slot, useStylesScoped$ } from '@qwik.dev/core';
-import { createAsync$, createSignal } from '@qwik.dev/core/spark';
+import { createAsync$, useSignal } from '@qwik.dev/core/spark';
 import { describe, expect, it } from 'vitest';
 import { QStyle, QStyleSelector } from '../../shared/utils/markers';
 import { getScopedStyles } from '../../shared/utils/scoped-stylesheet';
@@ -34,7 +34,7 @@ describe.each([
   it('keeps scoped class when object class updates', async () => {
     const App = component$(() => {
       useStylesScoped$(STYLE_RED);
-      const active = createSignal(false);
+      const active = useSignal(false);
       return (
         <button
           class={{ container: true, active: active.value }}
@@ -59,7 +59,7 @@ describe.each([
   it('keeps scoped class when array class updates', async () => {
     const App = component$(() => {
       useStylesScoped$(STYLE_RED);
-      const count = createSignal(10);
+      const count = useSignal(10);
       return (
         <button class={['container', `count-${count.value}`]} onClick$={() => count.value++}>
           Hello
@@ -81,7 +81,7 @@ describe.each([
   it('keeps scoped style in head after a signal update', async () => {
     const App = component$(() => {
       useStylesScoped$(STYLE_RED);
-      const count = createSignal(0);
+      const count = useSignal(0);
       return (
         <button class="container" onClick$={() => count.value++}>
           {count.value}
@@ -248,7 +248,7 @@ describe.each([
       return <div>Hello</div>;
     });
     const App = component$(() => {
-      const show = createSignal(true);
+      const show = useSignal(true);
       return (
         <div class="parent" onClick$={() => (show.value = false)}>
           {show.value && <Styled />}
@@ -321,7 +321,7 @@ describe.each([
       return <div class="container">Blue</div>;
     });
     const App = component$(() => {
-      const show = createSignal(true);
+      const show = useSignal(true);
       return (
         <div class="parent" onClick$={() => (show.value = false)}>
           {show.value && <Red />}
@@ -447,7 +447,7 @@ describe.each([
   it('keeps projected scoped classes when toggling a slot', async () => {
     const Child = component$(() => {
       useStylesScoped$(STYLE_BLUE);
-      const show = createSignal(false);
+      const show = useSignal(false);
       return (
         <section>
           <button onClick$={() => (show.value = !show.value)}>toggle slot</button>

@@ -1,5 +1,5 @@
 import { component$, createContextId, Slot } from '@qwik.dev/core';
-import { createContext, createContextProvider, createSignal } from '@qwik.dev/core/spark';
+import { createContext, createContextProvider, useSignal } from '@qwik.dev/core/spark';
 import { describe, expect, it } from 'vitest';
 import { csrRender, ssrRender } from '../test-utils';
 
@@ -139,7 +139,7 @@ describe.each([
 
   it('toggles a projected slot after render', async () => {
     const Toggle = component$(() => {
-      const shown = createSignal(true);
+      const shown = useSignal(true);
       return (
         <section>
           <button onClick$={() => (shown.value = !shown.value)}>toggle</button>
@@ -179,7 +179,7 @@ describe.each([
     });
 
     const App = component$(() => {
-      const shown = createSignal(true);
+      const shown = useSignal(true);
       return (
         <Frame>
           <button onClick$={() => (shown.value = !shown.value)}>toggle</button>

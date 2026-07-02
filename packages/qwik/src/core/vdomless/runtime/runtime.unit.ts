@@ -11,7 +11,7 @@ import {
 import { disposeSubscriber } from '../reactive/cleanup';
 import { createComputed } from '../reactive/computed';
 import { OwnerFlags } from '../reactive/flags';
-import { createSignal } from '../reactive/signal';
+import { useSignal } from '../reactive/signal';
 import { getActiveCollector, runWithCollector } from '../reactive/tracking';
 import { createTextNodeEffect } from '../dom/effect/effect';
 import {
@@ -180,7 +180,7 @@ describe('runtime scheduler and owner lifecycle', () => {
   it('registers subscribers with the active owner', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const owner = createOwner();
-    const count = createSignal(1);
+    const count = useSignal(1);
     const text = createText();
     let effect!: DomSubscriber;
 
@@ -209,7 +209,7 @@ describe('runtime scheduler and owner lifecycle', () => {
   it('materializes lazy root context owners', () => {
     const scheduler = new Scheduler(noopSchedule);
     const context = newInvokeContext({ owner: null });
-    const count = createSignal(1);
+    const count = useSignal(1);
     let effect!: DomSubscriber;
 
     invoke(context, () => {
@@ -225,7 +225,7 @@ describe('runtime scheduler and owner lifecycle', () => {
     const scheduler = new Scheduler(noopSchedule);
     const owner = createOwner();
     const sourceOwner = createOwner();
-    const count = createSignal(1);
+    const count = useSignal(1);
     const effect = runWithOwner(sourceOwner, () =>
       createTextNodeEffect(createText(), count, scheduler)
     );
@@ -248,7 +248,7 @@ describe('runtime scheduler and owner lifecycle', () => {
 
   it('throws when creating subscribers without an active owner', () => {
     const scheduler = new Scheduler(noopSchedule);
-    expect(() => createTextNodeEffect(createText(), createSignal(1), scheduler)).toThrow(
+    expect(() => createTextNodeEffect(createText(), useSignal(1), scheduler)).toThrow(
       'Missing active owner context for subscriber'
     );
   });
@@ -281,8 +281,8 @@ describe('runtime scheduler and owner lifecycle', () => {
   it('disposes child owners with their parent owner', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const parent = createOwner();
-    const outerSource = createSignal('outer');
-    const innerSource = createSignal('inner');
+    const outerSource = useSignal('outer');
+    const innerSource = useSignal('inner');
     let child!: Owner;
     let outerEffect!: DomSubscriber;
     let innerEffect!: DomSubscriber;
@@ -336,7 +336,7 @@ describe('runtime scheduler and owner lifecycle', () => {
     const owner = createOwner();
     const sourceOwner = createOwner();
     const effect = runWithOwner(sourceOwner, () =>
-      createTextNodeEffect(createText(), createSignal(1), scheduler)
+      createTextNodeEffect(createText(), useSignal(1), scheduler)
     );
 
     disposeOwner(owner);
@@ -349,7 +349,7 @@ describe('runtime scheduler and owner lifecycle', () => {
 
   it('registers computed subscribers with the active owner', () => {
     const owner = createOwner();
-    const count = createSignal(1);
+    const count = useSignal(1);
     const doubled = runWithOwner(owner, () => createComputed(() => count.value * 2));
 
     expect(owner.items).toEqual([doubled]);
@@ -364,7 +364,7 @@ describe('runtime scheduler and owner lifecycle', () => {
   it('registers task subscribers with the active owner', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const owner = createOwner();
-    const count = createSignal(1);
+    const count = useSignal(1);
     const seen: number[] = [];
     let task!: TaskSubscriber;
     let visibleTask!: VisibleTaskSubscriber;
@@ -397,8 +397,8 @@ describe('runtime scheduler and owner lifecycle', () => {
     const scheduler = new Scheduler(noopSchedule);
     const collector = runWithTestContainer(scheduler, () => createTask(() => {}));
     const owner = createOwner();
-    const tracked = createSignal('tracked');
-    const untracked = createSignal('untracked');
+    const tracked = useSignal('tracked');
+    const untracked = useSignal('untracked');
 
     runWithCollector(collector, () => {
       expect(getActiveCollector()).toBe(collector);
@@ -444,7 +444,7 @@ describe('runtime scheduler and owner lifecycle', () => {
 
   it('createTask tracks dependencies and reruns after signal mutation', async () => {
     const scheduler = new Scheduler(noopSchedule);
-    const count = createSignal(0);
+    const count = useSignal(0);
     const seen: number[] = [];
     const task = runWithTestContainer(scheduler, () =>
       createTask(() => {
@@ -466,8 +466,8 @@ describe('runtime scheduler and owner lifecycle', () => {
 
   it('tracks generator task dependencies before and after yield', async () => {
     const scheduler = new Scheduler(noopSchedule);
-    const before = createSignal(0);
-    const after = createSignal(10);
+    const before = useSignal(0);
+    const after = useSignal(10);
     const seen: string[] = [];
 
     runWithTestContainer(scheduler, () =>
@@ -572,7 +572,7 @@ describe('runtime scheduler and owner lifecycle', () => {
     ],
   ])('awaits async %s before rerun', async (_name, registerCleanup) => {
     const scheduler = new Scheduler(noopSchedule);
-    const count = createSignal(0);
+    const count = useSignal(0);
     const order: string[] = [];
     let releaseCleanup!: () => void;
 
@@ -603,7 +603,7 @@ describe('runtime scheduler and owner lifecycle', () => {
 
   it('throws cleanup errors without rerunning the task', async () => {
     const scheduler = new Scheduler(noopSchedule);
-    const count = createSignal(0);
+    const count = useSignal(0);
     const seen: number[] = [];
     const error = new Error('cleanup boom');
 
@@ -625,7 +625,7 @@ describe('runtime scheduler and owner lifecycle', () => {
 
   it('rejects async cleanup errors without rerunning the task', async () => {
     const scheduler = new Scheduler(noopSchedule);
-    const count = createSignal(0);
+    const count = useSignal(0);
     const seen: number[] = [];
     const error = new Error('async cleanup boom');
 
@@ -648,7 +648,7 @@ describe('runtime scheduler and owner lifecycle', () => {
 
   it('awaits async visible task cleanup before rerun', async () => {
     const scheduler = new Scheduler(noopSchedule);
-    const count = createSignal(0);
+    const count = useSignal(0);
     const order: string[] = [];
     let releaseCleanup!: () => void;
     let resolveSecondRun!: () => void;
@@ -814,9 +814,9 @@ describe('runtime scheduler and owner lifecycle', () => {
 
   it('cleans up dynamic dependencies for tasks', async () => {
     const scheduler = new Scheduler(noopSchedule);
-    const useA = createSignal(true);
-    const a = createSignal('a');
-    const b = createSignal('b');
+    const useA = useSignal(true);
+    const a = useSignal('a');
+    const b = useSignal('b');
     const seen: string[] = [];
     const task = runWithTestContainer(scheduler, () =>
       createTask(() => seen.push(useA.value ? a.value : b.value))
@@ -841,9 +841,9 @@ describe('runtime scheduler and owner lifecycle', () => {
 
   it('cleans up dynamic dependencies for visible tasks', async () => {
     const scheduler = new Scheduler(noopSchedule);
-    const useA = createSignal(true);
-    const a = createSignal('a');
-    const b = createSignal('b');
+    const useA = useSignal(true);
+    const a = useSignal('a');
+    const b = useSignal('b');
     const seen: string[] = [];
     const task = runWithTestContainer(scheduler, () =>
       createVisibleTask(() => seen.push(useA.value ? a.value : b.value))

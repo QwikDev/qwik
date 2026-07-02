@@ -15,12 +15,12 @@ import {
   renderSsrTextExpression,
   renderSsrTextNode,
 } from './ssr-effect';
-import { createSignal, type Signal } from '../../reactive/signal';
+import { useSignal, type Signal } from '../../reactive/signal';
 import { createOwner, runWithOwner } from '../../runtime/owner';
 
 describe('SSR DOM effect helpers', () => {
   it('creates a text node subscriber and collects the source dependency', () => {
-    const count = createSignal(1);
+    const count = useSignal(1);
     const target = createSsrRangeTextTarget(0, 0);
 
     const value = createOwned(() => renderSsrTextNode(target, count));
@@ -34,14 +34,14 @@ describe('SSR DOM effect helpers', () => {
   });
 
   it('serializes empty SSR text nodes as a text anchor', () => {
-    const text = createSignal('');
+    const text = useSignal('');
     const target = createSsrElementTextTarget(0);
 
     expect(createOwned(() => renderSsrTextNode(target, text))).toBe(' ');
   });
 
   it('creates a text expression subscriber and collects dynamic reads from the QRL', () => {
-    const count = createSignal(1);
+    const count = useSignal(1);
     const target = createSsrRangeTextTarget(1, 0);
     const qrl = createQRL<TextExpressionFn<[Signal<number>]>>(
       './counter.text.js',
@@ -69,9 +69,9 @@ describe('SSR DOM effect helpers', () => {
   });
 
   it('creates attr, class, and style subscribers', () => {
-    const title = createSignal('hello');
-    const className = createSignal<unknown>({ active: true });
-    const style = createSignal({ color: 'red' });
+    const title = useSignal('hello');
+    const className = useSignal<unknown>({ active: true });
+    const style = useSignal({ color: 'red' });
     const target = createSsrElementTarget(2);
 
     expect(createOwned(() => renderSsrAttr(target, 'title', title))).toBe('hello');
@@ -90,7 +90,7 @@ describe('SSR DOM effect helpers', () => {
   });
 
   it('creates attr expression subscribers', () => {
-    const count = createSignal(1);
+    const count = useSignal(1);
     const target = createSsrElementTarget(3);
     const qrl = createQRL<AttrExpressionFn<[]>>(
       './style.attr.js',
@@ -111,8 +111,8 @@ describe('SSR DOM effect helpers', () => {
   });
 
   it('batches SSR DOM effects under one subscriber', () => {
-    const count = createSignal(1);
-    const active = createSignal(false);
+    const count = useSignal(1);
+    const active = useSignal(false);
     const textTarget = createSsrRangeTextTarget(4, 0);
     const attrTarget = createSsrElementTarget(5);
     const qrl = createQRL<AttrExpressionFn<[]>>(
@@ -140,7 +140,7 @@ describe('SSR DOM effect helpers', () => {
   });
 
   it('renders spread DOM props without children and collects getter dependencies', () => {
-    const title = createSignal('hello');
+    const title = useSignal('hello');
     const target = createSsrElementTarget(4);
     const qrl = createQRL<DomPropsFn<[]>>(
       './props.js',

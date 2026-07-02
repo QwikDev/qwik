@@ -1,10 +1,5 @@
 import { component$, createContextId, type QRL } from '@qwik.dev/core';
-import {
-  createContext,
-  createContextProvider,
-  createSignal,
-  type Signal,
-} from '@qwik.dev/core/spark';
+import { createContext, createContextProvider, useSignal, type Signal } from '@qwik.dev/core/spark';
 import { describe, expect, it } from 'vitest';
 import { csrRender, ssrRender } from '../test-utils';
 
@@ -157,7 +152,7 @@ describe.each([
     });
 
     const Parent = component$(() => {
-      const count = createSignal(0);
+      const count = useSignal(0);
       return (
         <button onClick$={() => count.value++}>
           <Child count={count} />
@@ -184,7 +179,7 @@ describe.each([
     });
 
     const Parent = component$(() => {
-      const count = createSignal(0);
+      const count = useSignal(0);
       return (
         <section>
           <Button onClick$={() => count.value++} />
@@ -216,7 +211,7 @@ describe.each([
 
     const Parent = component$(() => {
       const Context = createContextId<Signal<string>>('vdomless-child-component-context');
-      const value = createSignal('provided');
+      const value = useSignal('provided');
       createContextProvider(Context, value);
       return (
         <section>
@@ -240,7 +235,7 @@ describe('csrRender: component expression props', () => {
     }
 
     function Parent() {
-      const count = createSignal(0);
+      const count = useSignal(0);
       return (
         <button onClick$={() => count.value++}>
           <Child count={count.value} />

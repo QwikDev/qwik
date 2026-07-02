@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createComponent } from '../component/component';
-import { createSignal } from '../reactive/signal';
+import { useSignal } from '../reactive/signal';
 import { BranchSubscription, createBranch } from '../dom/branch/branch';
 import { createBranchRange, createNode, noopSchedule } from '../test-utils';
 import type { ContainerContext } from './container-context';
@@ -162,7 +162,7 @@ describe('context runtime', () => {
   it('inherits context into branch renderers and branch components', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const contextId = createTestContextId<string>('context-branch');
-    const visible = createSignal(true);
+    const visible = useSignal(true);
     const branchNode = createNode('branch');
     const { range, replacements } = createBranchRange();
     const invokeContext = newInvokeContext();

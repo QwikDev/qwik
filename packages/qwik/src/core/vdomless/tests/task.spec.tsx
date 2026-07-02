@@ -1,5 +1,5 @@
 import { component$ } from '@qwik.dev/core';
-import { createSignal, createTask$, createVisibleTask$ } from '@qwik.dev/core/spark';
+import { useSignal, createTask$, createVisibleTask$ } from '@qwik.dev/core/spark';
 import { describe, expect, it } from 'vitest';
 import { csrRender, ssrRender } from '../test-utils';
 
@@ -15,7 +15,7 @@ describe.each([
     }
 
     const App = component$(() => {
-      const value = createSignal('wrong');
+      const value = useSignal('wrong');
 
       createTask$(async () => {
         await Promise.resolve();
@@ -41,7 +41,7 @@ describe.each([
     (globalThis as any).__vdomlessTaskOrder = [] as string[];
 
     const App = component$(() => {
-      const ready = createSignal('pending');
+      const ready = useSignal('pending');
 
       createTask$(async () => {
         (globalThis as any).__vdomlessTaskOrder.push('1:start');
@@ -76,9 +76,9 @@ describe.each([
 
   it('task tracks signal reads before and after await', async () => {
     const App = component$(() => {
-      const before = createSignal(0);
-      const after = createSignal(10);
-      const label = createSignal('');
+      const before = useSignal(0);
+      const after = useSignal(10);
+      const label = useSignal('');
 
       createTask$(async () => {
         const left = before.value;
@@ -118,7 +118,7 @@ describe.each([
     (globalThis as any).__vdomlessTaskCleanup = [] as string[];
 
     const App = component$(() => {
-      const count = createSignal(0);
+      const count = useSignal(0);
 
       createTask$(() => {
         const value = count.value;
@@ -158,8 +158,8 @@ describe.each([
     });
 
     const App = component$(() => {
-      const show = createSignal(true);
-      const cleanupCount = createSignal(0);
+      const show = useSignal(true);
+      const cleanupCount = useSignal(0);
 
       return (
         <button onClick$={() => (show.value = !show.value)}>
@@ -183,8 +183,8 @@ describe.each([
 
   it('task updates multiple signals after await', async () => {
     const App = component$(() => {
-      const count = createSignal(1);
-      const items = createSignal<number[]>([]);
+      const count = useSignal(1);
+      const items = useSignal<number[]>([]);
 
       createTask$(async () => {
         await Promise.resolve();
@@ -219,14 +219,14 @@ describe.each([
 
   it('task rerenders component after task mutation', async () => {
     const App = component$(() => {
-      const sort = createSignal<'id' | 'size'>('size');
+      const sort = useSignal<'id' | 'size'>('size');
       const rows = [
         { id: 1, size: 4 },
         { id: 2, size: 3 },
         { id: 3, size: 2 },
         { id: 4, size: 1 },
       ];
-      const sizes = createSignal('');
+      const sizes = useSignal('');
 
       createTask$(() => {
         const key = sort.value;
@@ -261,7 +261,7 @@ describe.each([
 
   it('createVisibleTask$ supports document-ready strategy', async () => {
     const App = component$(() => {
-      const value = createSignal('SSR');
+      const value = useSignal('SSR');
 
       createVisibleTask$(
         () => {
@@ -286,8 +286,8 @@ describe.each([
 
   it('createVisibleTask$ tracks signal reads after await once active', async () => {
     const App = component$(() => {
-      const count = createSignal(0);
-      const label = createSignal('idle');
+      const count = useSignal(0);
+      const label = useSignal('idle');
 
       createVisibleTask$(async () => {
         await Promise.resolve();

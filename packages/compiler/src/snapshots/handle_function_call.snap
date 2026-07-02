@@ -1,6 +1,6 @@
 ==INPUT==
 
-import { createSignal } from '@qwik.dev/core/spark';
+import { useSignal } from '@qwik.dev/core/spark';
       import { fun } from './utils';
 
 function renderItem(value: number) {
@@ -12,7 +12,7 @@ function renderFallback(value: number) {
 }
 
 export function App() {
-  const count = createSignal(1);
+  const count = useSignal(1);
   const renderers = { item: fun };
   return (
     <section>
@@ -29,7 +29,7 @@ export function App() {
 ============================= src/component.tsx ==
 
 import {
-  createSignal,
+  useSignal,
   _qrlWithChunk,
   renderSsrBranch,
   maybeThen,
@@ -76,7 +76,7 @@ function renderFallback(value) {
 export { renderItem, renderFallback };
 
 export function App(_props, ctx) {
-  const count = createSignal(1);
+  const count = useSignal(1);
   const renderers = { item: fun };
   const jsx0 = fun(count.value);
   const jsx1 = renderers.item(count.value + 1);
@@ -139,8 +139,8 @@ null
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    370,
-    385
+    364,
+    379
   ],
   "paramNames": [],
   "captureNames": [
@@ -173,8 +173,8 @@ null
   "ctxName": "branch:then",
   "captures": true,
   "loc": [
-    388,
-    411
+    382,
+    405
   ],
   "paramNames": [],
   "captureNames": [
@@ -206,8 +206,8 @@ null
   "ctxName": "branch:else",
   "captures": false,
   "loc": [
-    414,
-    431
+    408,
+    425
   ],
   "paramNames": []
 }
@@ -235,8 +235,8 @@ null
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    440,
-    451
+    434,
+    445
   ],
   "paramNames": [],
   "captureNames": [
@@ -269,8 +269,8 @@ null
   "ctxName": "branch:then",
   "captures": true,
   "loc": [
-    455,
-    478
+    449,
+    472
   ],
   "paramNames": [],
   "captureNames": [
@@ -285,7 +285,7 @@ null
 
 ============================= src/component.tsx ==
 
-import { createSignal, _withCaptures, BranchRange, createBranch } from '@qwik.dev/core/spark';
+import { useSignal, _withCaptures, BranchRange, createBranch } from '@qwik.dev/core/spark';
 import { fun } from './utils';
 import { component_branch_condition_segment_0 } from './component.tsx_component_branch_condition_segment_0';
 import { component_branch_then_segment_1 } from './component.tsx_component_branch_then_segment_1';
@@ -302,7 +302,7 @@ function renderFallback(value) {
 export { renderItem, renderFallback };
 
 export function App(_props, ctx) {
-  const count = createSignal(1);
+  const count = useSignal(1);
   const renderers = { item: fun };
   const el0 = ctx.document.createElement('section');
   const jsx1 = fun(count.value);
@@ -366,8 +366,8 @@ null
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    370,
-    385
+    364,
+    379
   ],
   "paramNames": [],
   "captureNames": [
@@ -400,8 +400,8 @@ null
   "ctxName": "branch:then",
   "captures": true,
   "loc": [
-    388,
-    411
+    382,
+    405
   ],
   "paramNames": [],
   "captureNames": [
@@ -432,8 +432,8 @@ null
   "ctxName": "branch:else",
   "captures": false,
   "loc": [
-    414,
-    431
+    408,
+    425
   ],
   "paramNames": []
 }
@@ -461,8 +461,8 @@ null
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    440,
-    451
+    434,
+    445
   ],
   "paramNames": [],
   "captureNames": [
@@ -495,8 +495,8 @@ null
   "ctxName": "branch:then",
   "captures": true,
   "loc": [
-    455,
-    478
+    449,
+    472
   ],
   "paramNames": [],
   "captureNames": [

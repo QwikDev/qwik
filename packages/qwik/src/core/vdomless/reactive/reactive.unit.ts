@@ -9,7 +9,7 @@ import {
 import { disposeSubscriber } from './cleanup';
 import { Computed, createComputed } from './computed';
 import { createComputedQrl } from './computed-qrl';
-import { createSignal } from './signal';
+import { useSignal } from './signal';
 import { runWithCollector } from './tracking';
 import { Scheduler } from '../runtime/scheduler';
 import { createTask } from '../runtime/task';
@@ -17,7 +17,7 @@ import { createOwner, runWithOwner } from '../runtime/owner';
 
 describe('reactive primitives', () => {
   it('notifies signal subscribers and skips Object.is-equal writes', async () => {
-    const count = createSignal(0);
+    const count = useSignal(0);
     const scheduler = new Scheduler(noopSchedule);
     let notifications = 0;
     const subscriber = createIdleSubscriber(() => {
@@ -38,7 +38,7 @@ describe('reactive primitives', () => {
   });
 
   it('keeps computed values lazy and cached until a dependency changes', () => {
-    const count = createSignal(1);
+    const count = useSignal(1);
     let runs = 0;
     const doubled = createOwned(() =>
       createComputed(() => {
@@ -63,7 +63,7 @@ describe('reactive primitives', () => {
   });
 
   it('propagates computed dirty state through computed chains lazily', () => {
-    const count = createSignal(1);
+    const count = useSignal(1);
     let doubledRuns = 0;
     let quadrupledRuns = 0;
     const [doubled, quadrupled] = createOwned(() => {
@@ -92,9 +92,9 @@ describe('reactive primitives', () => {
   });
 
   it('drops stale dynamic computed dependencies on recompute', () => {
-    const useA = createSignal(true);
-    const a = createSignal('a');
-    const b = createSignal('b');
+    const useA = useSignal(true);
+    const a = useSignal('a');
+    const b = useSignal('b');
     let runs = 0;
     const selected = createOwned(() =>
       createComputed(() => {
@@ -121,7 +121,7 @@ describe('reactive primitives', () => {
   });
 
   it('removes source subscriptions when a collector is disposed', () => {
-    const count = createSignal(1);
+    const count = useSignal(1);
     const doubled = createOwned(() => createComputed(() => count.value * 2));
 
     expect(doubled.value).toBe(2);
@@ -134,7 +134,7 @@ describe('reactive primitives', () => {
 
   it('reads cached disposed computed values without tracking', () => {
     const scheduler = new Scheduler(noopSchedule);
-    const count = createSignal(1);
+    const count = useSignal(1);
     const collector = runWithTestContainer(scheduler, () => createTask(() => {}));
     let runs = 0;
     const doubled = createOwned(() =>
@@ -169,7 +169,7 @@ describe('reactive primitives', () => {
   });
 
   it('clears computed subscribers when disposed', () => {
-    const count = createSignal(1);
+    const count = useSignal(1);
     let runs = 0;
     const [doubled, quadrupled] = createOwned(() => {
       const doubled = createComputed(() => {

@@ -1,4 +1,4 @@
-import { createSignal } from '@qwik.dev/core/spark';
+import { useSignal } from '@qwik.dev/core/spark';
 import { describe, expect, it } from 'vitest';
 import { csrRender, ssrRender } from '../test-utils';
 
@@ -10,11 +10,11 @@ describe.each([
 ])('$name: loops', ({ render }) => {
   it('updates retained keyed rows and row event captures', async () => {
     const MyComp = () => {
-      const items = createSignal([
+      const items = useSignal([
         { id: 'a', label: 'Alpha' },
         { id: 'b', label: 'Beta' },
       ]);
-      const selected = createSignal('');
+      const selected = useSignal('');
       return (
         <section>
           <button
@@ -62,7 +62,7 @@ describe.each([
 
   it('renders keyed fragment rows', async () => {
     const MyComp = () => {
-      const items = createSignal([
+      const items = useSignal([
         { id: 'a', label: 'Alpha' },
         { id: 'b', label: 'Beta' },
       ]);

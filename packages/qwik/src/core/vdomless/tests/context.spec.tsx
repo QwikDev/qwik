@@ -1,10 +1,5 @@
 import { createContextId } from '@qwik.dev/core';
-import {
-  createContext,
-  createContextProvider,
-  createSignal,
-  type Signal,
-} from '@qwik.dev/core/spark';
+import { createContext, createContextProvider, useSignal, type Signal } from '@qwik.dev/core/spark';
 import { describe, expect, it } from 'vitest';
 import { csrRender, ssrRender } from '../test-utils';
 
@@ -17,7 +12,7 @@ describe.each([
   it('should provide and retrieve context', async () => {
     const MyComp = () => {
       const contextId = createContextId<Signal<string>>('context-integration');
-      const source = createSignal('provided');
+      const source = useSignal('provided');
       createContextProvider(contextId, source);
       const context = createContext(contextId);
 
@@ -33,7 +28,7 @@ describe.each([
   it('should keep retrieved context reactive', async () => {
     const MyComp = () => {
       const contextId = createContextId<Signal<string>>('context-reactive');
-      const source = createSignal('before');
+      const source = useSignal('before');
       createContextProvider(contextId, source);
       const context = createContext(contextId);
 
@@ -56,7 +51,7 @@ describe.each([
   it('should provide and retrieve context in nested component', async () => {
     const contextId = createContextId<Signal<string>>('context-integration');
     const MyComp = () => {
-      const source = createSignal('provided');
+      const source = useSignal('provided');
       createContextProvider(contextId, source);
 
       return <Child />;
@@ -75,9 +70,9 @@ describe.each([
   it('should provide and retrieve context in dynamic component', async () => {
     const contextId = createContextId<Signal<string>>('context-integration');
     const MyComp = () => {
-      const source = createSignal('provided');
+      const source = useSignal('provided');
       createContextProvider(contextId, source);
-      const toggle = createSignal(false);
+      const toggle = useSignal(false);
 
       return (
         <button onClick$={() => (toggle.value = !toggle.value)}>
@@ -103,8 +98,8 @@ describe.each([
   it('should ignore closed nested context scopes for dynamic components', async () => {
     const contextId = createContextId<Signal<string>>('context-nearest-open');
     const MyComp = () => {
-      const source = createSignal('outer');
-      const toggle = createSignal(false);
+      const source = useSignal('outer');
+      const toggle = useSignal(false);
       createContextProvider(contextId, source);
 
       return (
@@ -118,7 +113,7 @@ describe.each([
     };
 
     const Inner = () => {
-      const source = createSignal('inner');
+      const source = useSignal('inner');
       createContextProvider(contextId, source);
       return <InnerChild />;
     };
@@ -147,8 +142,8 @@ describe.each([
   it('should provide and retrieve context in dynamic for block component', async () => {
     const contextId = createContextId<Signal<string>>('context-for-integration');
     const MyComp = () => {
-      const source = createSignal('provided');
-      const items = createSignal<string[]>([]);
+      const source = useSignal('provided');
+      const items = useSignal<string[]>([]);
       createContextProvider(contextId, source);
 
       return (

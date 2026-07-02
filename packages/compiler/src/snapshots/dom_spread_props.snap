@@ -1,13 +1,13 @@
 ==INPUT==
 
-import { createSignal } from '@qwik.dev/core/spark';
+import { useSignal } from '@qwik.dev/core/spark';
 export function App() {
-  const attrs = createSignal({
+  const attrs = useSignal({
     title: 'from-spread',
     children: 'ignored',
     className: { active: true },
   });
-  const title = createSignal('final');
+  const title = useSignal('final');
   return <div {...attrs.value} title={title.value} onClick$={() => (title.value = 'clicked')} data-id="static">Child</div>;
 }
 
@@ -16,7 +16,7 @@ export function App() {
 ============================= src/component.tsx ==
 
 import {
-  createSignal,
+  useSignal,
   _qrlWithChunk,
   createSsrElementTarget,
   renderSsrProps,
@@ -37,12 +37,12 @@ const q_component_q_e_click_segment_1 = /*#__PURE__*/ _qrlWithChunk(
 );
 
 export function App(_props, ctx) {
-  const attrs = createSignal({
+  const attrs = useSignal({
     title: 'from-spread',
     children: 'ignored',
     className: { active: true },
   });
-  const title = createSignal('final');
+  const title = useSignal('final');
   const id0 = ctx.nextId();
   ctx.addRoot(attrs);
   ctx.addRoot(title);
@@ -94,8 +94,8 @@ null
   "ctxName": "props",
   "captures": true,
   "loc": [
-    235,
-    335
+    226,
+    326
   ],
   "paramNames": [],
   "captureNames": [
@@ -127,8 +127,8 @@ null
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    277,
-    317
+    268,
+    308
   ],
   "paramNames": [],
   "captureNames": [
@@ -143,7 +143,7 @@ null
 
 ============================= src/component.tsx ==
 
-import { createSignal, createPropsEffect, createCapturedEvent } from '@qwik.dev/core/spark';
+import { useSignal, createPropsEffect, createCapturedEvent } from '@qwik.dev/core/spark';
 import { component_q_e_click_segment_1 } from './component.tsx_component_q_e_click_segment_1';
 
 const dom_App_expr0 = (attrs, title) => ({
@@ -155,12 +155,12 @@ const dom_App_expr0 = (attrs, title) => ({
   'data-id': 'static',
 });
 export function App(_props, ctx) {
-  const attrs = createSignal({
+  const attrs = useSignal({
     title: 'from-spread',
     children: 'ignored',
     className: { active: true },
   });
-  const title = createSignal('final');
+  const title = useSignal('final');
   const el0 = ctx.document.createElement('div');
   const effect1 = createPropsEffect(el0, [attrs, title], dom_App_expr0, ctx.scheduler);
   ctx.scheduler.notify(effect1);
@@ -204,8 +204,8 @@ null
   "ctxName": "props",
   "captures": true,
   "loc": [
-    235,
-    335
+    226,
+    326
   ],
   "paramNames": [],
   "captureNames": [
@@ -237,8 +237,8 @@ null
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    277,
-    317
+    268,
+    308
   ],
   "paramNames": [],
   "captureNames": [

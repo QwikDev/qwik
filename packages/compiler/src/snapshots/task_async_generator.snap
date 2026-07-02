@@ -1,9 +1,9 @@
 ==INPUT==
 
-import { createSignal, createTask$, createVisibleTask$ } from '@qwik.dev/core/spark';
+import { useSignal, createTask$, createVisibleTask$ } from '@qwik.dev/core/spark';
 
 export function App() {
-  const count = createSignal(0);
+  const count = useSignal(0);
   createTask$(async ({ cleanup }) => {
     const before = count.value;
     await Promise.resolve();
@@ -24,7 +24,7 @@ export function App() {
 ============================= src/component.tsx ==
 
 import {
-  createSignal,
+  useSignal,
   _qrlWithChunk,
   escapeHTML,
   renderSsrTextNode,
@@ -54,7 +54,7 @@ q_component_createVisibleTask$_segment_1.s(component_createVisibleTask$_segment_
 
 export async function App(_props, ctx) {
   const invokeCtx = getActiveInvokeContextOrNull();
-  const count = createSignal(0);
+  const count = useSignal(0);
   const task_segment_0 = invoke(invokeCtx, () =>
     createTaskQrl(q_component_createTask$_segment_0.w([count]))
   );
@@ -111,8 +111,8 @@ null
   "ctxName": "createTask$",
   "captures": true,
   "loc": [
-    143,
-    319
+    137,
+    313
   ],
   "paramNames": [
     "_"
@@ -146,8 +146,8 @@ null
   "ctxName": "createVisibleTask$",
   "captures": true,
   "loc": [
-    322,
-    432
+    316,
+    426
   ],
   "paramNames": [],
   "captureNames": [
@@ -163,7 +163,7 @@ null
 ============================= src/component.tsx ==
 
 import {
-  createSignal,
+  useSignal,
   createTask,
   createVisibleTask,
   createTemplate,
@@ -172,7 +172,7 @@ import {
 
 const dom_App_template0 = createTemplate('<button> </button>');
 export function App(_props, ctx) {
-  const count = createSignal(0);
+  const count = useSignal(0);
   createTask(function* ({ cleanup }) {
     const before = count.value;
     yield Promise.resolve();

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createNode, createText, noopSchedule, runWithTestContainer } from '../test-utils';
 import { createTextNodeEffect } from '../dom/effect/effect';
-import { createSignal } from '../reactive/signal';
+import { useSignal } from '../reactive/signal';
 import type { ContainerContext } from '../runtime/container-context';
 import { getActiveCollector, runWithCollector } from '../reactive/tracking';
 import {
@@ -22,7 +22,7 @@ import { createComponent, type ComponentRenderFn } from './component';
 
 describe('components and invoke contexts', () => {
   it('mounts components without collecting direct signal reads', () => {
-    const count = createSignal(1);
+    const count = useSignal(1);
     const node = createNode('component');
 
     const nodes = createComponent(count, (source) => {
@@ -46,7 +46,7 @@ describe('components and invoke contexts', () => {
   it('does not collect direct component reads from an outer collector', () => {
     const scheduler = new Scheduler(noopSchedule);
     const collector = runWithTestContainer(scheduler, () => createTask(() => {}));
-    const count = createSignal(1);
+    const count = useSignal(1);
     const node = createNode('component');
 
     runWithCollector(collector, () => {
@@ -65,7 +65,7 @@ describe('components and invoke contexts', () => {
   it('registers component render work with the active owner', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const owner = createOwner();
-    const source = createSignal('mounted');
+    const source = useSignal('mounted');
     const text = createText();
     const node = createNode('component');
     let nodes!: readonly Node[];
@@ -106,7 +106,7 @@ describe('components and invoke contexts', () => {
   });
 
   it('disposes component work when render throws', () => {
-    const source = createSignal('value');
+    const source = useSignal('value');
     const text = createText();
     const owner = createOwner();
     let effect!: DomSubscriber;

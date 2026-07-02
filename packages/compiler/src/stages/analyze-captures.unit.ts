@@ -149,7 +149,7 @@ export const App = component$(() => <p>{greeting}</p>);
       code: `import * as spark from '@qwik.dev/core/spark';
 
 export function App() {
-  const count = spark.createSignal(0);
+  const count = spark.useSignal(0);
   return <p title={count.value}>{count.value}</p>;
 }
 `,
@@ -161,10 +161,10 @@ export function App() {
 
   test('creates JSX expression segments for source aliases', () => {
     const ctx = analyzeInput({
-      code: `import { createSignal } from '@qwik.dev/core/spark';
+      code: `import { useSignal } from '@qwik.dev/core/spark';
 
 export function App() {
-  const count = createSignal(0);
+  const count = useSignal(0);
   const alias = count;
   return <p title={alias.value}>{alias.value}</p>;
 }
@@ -180,11 +180,11 @@ export function App() {
 
   test('does not trust shadowed Spark source factories', () => {
     const ctx = analyzeInput({
-      code: `import { createSignal } from '@qwik.dev/core/spark';
+      code: `import { useSignal } from '@qwik.dev/core/spark';
 
 export function App() {
-  const createSignal = () => ({ value: 0 });
-  const count = createSignal();
+  const useSignal = () => ({ value: 0 });
+  const count = useSignal();
   return <p>{count.value}</p>;
 }
 `,

@@ -1,5 +1,5 @@
 import { component$, useId } from '@qwik.dev/core';
-import { createSignal } from '@qwik.dev/core/spark';
+import { useSignal } from '@qwik.dev/core/spark';
 import { describe, expect, it } from 'vitest';
 import { csrRender, ssrRender } from '../test-utils';
 
@@ -65,7 +65,7 @@ describe.each([
     });
 
     const App = component$(() => {
-      const enabled = createSignal(false);
+      const enabled = useSignal(false);
 
       return (
         <div>

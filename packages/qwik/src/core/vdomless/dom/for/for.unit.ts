@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createDocument } from '../../../../testing/document';
 import { createTextNodeEffect, ForBlockSubscription } from '../effect/effect';
-import { createSignal } from '../../reactive/signal';
+import { useSignal } from '../../reactive/signal';
 import type { ContainerContext } from '../../runtime/container-context';
 import { createOwner } from '../../runtime/owner';
 import {
@@ -36,7 +36,7 @@ describe('ForBlock reorder', () => {
       return insertBefore(node, before);
     }) as typeof parent.insertBefore;
 
-    const items = createSignal(nextIds.map((id) => ({ id })));
+    const items = useSignal(nextIds.map((id) => ({ id })));
     const listOwner = createOwner(null);
     const block = new ForBlock(
       new ForRange(
@@ -66,7 +66,7 @@ describe('ForBlock reorder', () => {
     const endNode = createTestDomNode('end');
     const oldRows = oldIds.map((id) => createTestDomNode(String(id)));
     const parent = createTestParentNode([startNode, ...oldRows, endNode]);
-    const items = createSignal(nextIds.map((id) => ({ id })));
+    const items = useSignal(nextIds.map((id) => ({ id })));
     const listOwner = createOwner(null);
     const block = new ForBlock(
       new ForRange(
@@ -176,7 +176,7 @@ describe('ForBlock reorder', () => {
     const startNode = createTestDomNode('start');
     const endNode = createTestDomNode('end');
     const parent = createTestParentNode([startNode, endNode]);
-    const items = createSignal([1, 2, 3]);
+    const items = useSignal([1, 2, 3]);
     const listOwner = createOwner(null);
     const block = new ForBlock(
       new ForRange(
@@ -208,7 +208,7 @@ describe('ForBlock reorder', () => {
     const startNode = createTestDomNode('start');
     const endNode = createTestDomNode('end');
     const parent = createTestParentNode([startNode, endNode]);
-    const items = createSignal([1]);
+    const items = useSignal([1]);
     const listOwner = createOwner(null);
     const block = new ForBlock(
       new ForRange(
@@ -239,7 +239,7 @@ describe('ForBlock reorder', () => {
     const startNode = createTestDomNode('start');
     const endNode = createTestDomNode('end');
     const parent = createTestParentNode([startNode, endNode]);
-    const items = createSignal([1, 2]);
+    const items = useSignal([1, 2]);
     const listOwner = createOwner(null);
     const block = new ForBlock(
       new ForRange(
@@ -281,7 +281,7 @@ describe('ForBlock reorder', () => {
     const startNode = createTestDomNode('start');
     const endNode = createTestDomNode('end');
     createTestParentNode([startNode, endNode]);
-    const items = createSignal([
+    const items = useSignal([
       { id: 1, label: 'a' },
       { id: 2, label: 'b' },
     ]);
@@ -329,7 +329,7 @@ describe('ForBlock reorder', () => {
     const startNode = createTestDomNode('start');
     const endNode = createTestDomNode('end');
     createTestParentNode([startNode, endNode]);
-    const items = createSignal([1, 1]);
+    const items = useSignal([1, 1]);
     const listOwner = createOwner(null);
     const block = new ForBlock(
       new ForRange(
@@ -373,7 +373,7 @@ describe('ForBlock reorder', () => {
       return [li];
     };
 
-    const items = createSignal([1, 2, 3]);
+    const items = useSignal([1, 2, 3]);
     const listOwner = createOwner(null);
     const block = new ForBlock(
       new ForRange(document, startNode, endNode),
@@ -413,8 +413,8 @@ describe('ForBlock reorder', () => {
     const startNode = createTestDomNode('start');
     const endNode = createTestDomNode('end');
     createTestParentNode([startNode, endNode]);
-    const items = createSignal([1, 2, 3]);
-    const keySuffix = createSignal('a');
+    const items = useSignal([1, 2, 3]);
+    const keySuffix = useSignal('a');
     const listOwner = createOwner(null);
     const block = new ForBlock(
       new ForRange(
@@ -447,8 +447,8 @@ describe('ForBlock reorder', () => {
     const startNode = createTestDomNode('start');
     const endNode = createTestDomNode('end');
     createTestParentNode([startNode, endNode]);
-    const items = createSignal([1]);
-    const text = createSignal('row');
+    const items = useSignal([1]);
+    const text = useSignal('row');
     const listOwner = createOwner(null);
     const block = new ForBlock(
       new ForRange(

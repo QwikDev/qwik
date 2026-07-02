@@ -1,4 +1,4 @@
-import { createSignal } from '@qwik.dev/core/spark';
+import { useSignal } from '@qwik.dev/core/spark';
 import { describe, expect, it } from 'vitest';
 import { csrRender, ssrRender } from '../test-utils';
 
@@ -10,7 +10,7 @@ describe.each([
 ])('$name: branching', ({ render }) => {
   it('switches ternary branches while scalar effects update the active branch', async () => {
     const MyComp = () => {
-      const count = createSignal(0);
+      const count = useSignal(0);
       return (
         <section>
           <button onClick$={() => count.value++}>inc</button>
@@ -49,7 +49,7 @@ describe.each([
 
   it('switches logical-and branches while scalar effects update the active branch', async () => {
     const MyComp = () => {
-      const count = createSignal(0);
+      const count = useSignal(0);
       return (
         <section>
           <button onClick$={() => count.value++}>inc</button>
@@ -82,7 +82,7 @@ describe.each([
 
   it('updates dynamic text rendered directly by a logical-and branch', async () => {
     const MyComp = () => {
-      const count = createSignal(3);
+      const count = useSignal(3);
       return (
         <section>
           <button onClick$={() => count.value++}>inc</button>
@@ -105,7 +105,7 @@ describe.each([
 
   it('renders multiple SSR branches from one async root', async () => {
     const MyComp = () => {
-      const count = createSignal(0);
+      const count = useSignal(0);
       return (
         <section>
           <p>Parity: {count.value % 2 === 0 ? 'even' : 'odd'}</p>

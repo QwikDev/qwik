@@ -1,9 +1,9 @@
 ==INPUT==
 
-import { createAsync$, createSignal } from '@qwik.dev/core/spark';
+import { createAsync$, useSignal } from '@qwik.dev/core/spark';
 
 export function App() {
-  const count = createSignal(0);
+  const count = useSignal(0);
   const data = createAsync$(async () => {
     const before = count.value;
     await Promise.resolve();
@@ -18,7 +18,7 @@ export function App() {
 
 import {
   createAsyncQrl,
-  createSignal,
+  useSignal,
   _qrlWithChunk,
   escapeHTML,
   renderSsrTextNode,
@@ -35,7 +35,7 @@ const q_component_createAsync$_segment_0 = /*#__PURE__*/ _qrlWithChunk(
 q_component_createAsync$_segment_0.s(component_createAsync$_segment_0);
 
 export function App(_props, ctx) {
-  const count = createSignal(0);
+  const count = useSignal(0);
   const data = createAsyncQrl(q_component_createAsync$_segment_0.w([count]), { initial: 0 });
   const id0 = ctx.nextId();
   ctx.addRoot(data);
@@ -72,8 +72,8 @@ null
   "ctxName": "createAsync$",
   "captures": true,
   "loc": [
-    137,
-    271
+    131,
+    265
   ],
   "paramNames": [],
   "captureNames": [
@@ -88,16 +88,11 @@ null
 
 ============================= src/component.tsx ==
 
-import {
-  createAsync,
-  createSignal,
-  createTemplate,
-  createTextNodeEffect,
-} from '@qwik.dev/core/spark';
+import { createAsync, useSignal, createTemplate, createTextNodeEffect } from '@qwik.dev/core/spark';
 
 const dom_App_template0 = createTemplate('<button> </button>');
 export function App(_props, ctx) {
-  const count = createSignal(0);
+  const count = useSignal(0);
   const data = createAsync(
     function* () {
       const before = count.value;

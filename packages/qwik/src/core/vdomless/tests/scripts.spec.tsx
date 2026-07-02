@@ -1,5 +1,5 @@
 import { component$ } from '@qwik.dev/core';
-import { createSignal } from '@qwik.dev/core/spark';
+import { useSignal } from '@qwik.dev/core/spark';
 import { describe, expect, it } from 'vitest';
 import { csrRender, ssrRender } from '../test-utils';
 
@@ -76,7 +76,7 @@ describe('ssrRender: qwikloader', () => {
 
   it('should run a lazy event handler with captured state through qwikloader', async () => {
     const ScriptsLoaderCapturedClick = () => {
-      const count = createSignal(0);
+      const count = useSignal(0);
       return <button onClick$={() => count.value++}>{count.value}</button>;
     };
 
@@ -98,7 +98,7 @@ describe('ssrRender: qwikloader', () => {
 
   it('should queue quick captured clicks through qwikloader', async () => {
     const ScriptsLoaderCapturedClick = () => {
-      const count = createSignal(0);
+      const count = useSignal(0);
       return <button onClick$={() => count.value++}>{count.value}</button>;
     };
 
@@ -121,7 +121,7 @@ describe('ssrRender: qwikloader', () => {
 
   it('should run captured handlers when state is split across scripts', async () => {
     const ScriptsLoaderSplitState = () => {
-      const signals = createSignal(Array.from({ length: 1025 }, (_, i) => createSignal(i)));
+      const signals = useSignal(Array.from({ length: 1025 }, (_, i) => useSignal(i)));
       const last = signals.value[signals.value.length - 1];
 
       return (

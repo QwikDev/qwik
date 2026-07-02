@@ -7,7 +7,7 @@ import {
   SerializerSymbol,
 } from './verify';
 import { createComputed } from '../../vdomless/reactive/computed';
-import { createSignal } from '../../vdomless/reactive/signal';
+import { useSignal } from '../../vdomless/reactive/signal';
 
 describe('verifySerializable', () => {
   describe('serializable values', () => {
@@ -44,7 +44,7 @@ describe('verifySerializable', () => {
     });
 
     it('should allow reactive sources by instance', () => {
-      const count = createSignal(1);
+      const count = useSignal(1);
       const doubled = createComputed(() => count.value * 2);
 
       expect(verifySerializable(count)).toBe(count);

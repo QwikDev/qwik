@@ -1,10 +1,10 @@
 ==INPUT==
 
 import { $ } from '@qwik.dev/core';
-import { createOn, createOnDocument, createSignal } from '@qwik.dev/core/spark';
+import { createOn, createOnDocument, useSignal } from '@qwik.dev/core/spark';
 
 export function App() {
-  const count = createSignal(0);
+  const count = useSignal(0);
   createOn('click', $(() => count.value++));
   createOnDocument('qinit', $(() => count.value += 2), { capture: true, preventdefault: true });
   return <button>{count.value}</button>;
@@ -15,7 +15,7 @@ export function App() {
 ============================= src/component.tsx ==
 
 import {
-  createSignal,
+  useSignal,
   _qrlWithChunk,
   escapeHTML,
   renderSsrTextNode,
@@ -35,7 +35,7 @@ const q_component_$_segment_1 = /*#__PURE__*/ _qrlWithChunk(
 );
 
 export function App(_props, ctx) {
-  const count = createSignal(0);
+  const count = useSignal(0);
 
   const id0 = ctx.nextId();
   ctx.addRoot(count);
@@ -78,8 +78,8 @@ null
   "ctxName": "$",
   "captures": true,
   "loc": [
-    192,
-    214
+    186,
+    208
   ],
   "paramNames": [],
   "captureNames": [
@@ -110,8 +110,8 @@ null
   "ctxName": "$",
   "captures": true,
   "loc": [
-    244,
-    269
+    238,
+    263
   ],
   "paramNames": [],
   "captureNames": [
@@ -126,11 +126,11 @@ null
 
 ============================= src/component.tsx ==
 
-import { createSignal, createTemplate, createTextNodeEffect, setEvent } from '@qwik.dev/core/spark';
+import { useSignal, createTemplate, createTextNodeEffect, setEvent } from '@qwik.dev/core/spark';
 
 const dom_App_template0 = createTemplate('<button> </button>');
 export function App(_props, ctx) {
-  const count = createSignal(0);
+  const count = useSignal(0);
 
   const fragment0 = dom_App_template0(ctx.document);
   const el1 = fragment0.firstChild;

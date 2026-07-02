@@ -1,13 +1,13 @@
 ==INPUT==
 
-import { createSignal } from '@qwik.dev/core/spark';
+import { useSignal } from '@qwik.dev/core/spark';
 
 export function Child(props: { label: string; count: number }) {
   return <p>{props.label}: {props.count}</p>;
 }
 
 export function Parent() {
-  const count = createSignal(1);
+  const count = useSignal(1);
   return <Child label="Hi" count={count.value} />;
 }
 
@@ -15,13 +15,13 @@ export function Parent() {
 
 ============================= src/component.tsx ==
 
-import { createSignal, createComponent, maybeThen } from '@qwik.dev/core/spark';
+import { useSignal, createComponent, maybeThen } from '@qwik.dev/core/spark';
 import { Child } from './component.tsx_component_Child';
 
 export { Child } from './component.tsx_component_Child';
 
 export function Parent(_props, ctx) {
-  const count = createSignal(1);
+  const count = useSignal(1);
   const component0 = createComponent(
     {
       label: 'Hi',
@@ -98,8 +98,8 @@ null
   "ctxName": "component",
   "captures": false,
   "loc": [
-    60,
-    130
+    57,
+    127
   ],
   "paramNames": [
     "props"
@@ -127,8 +127,8 @@ null
   "ctxName": "text",
   "captures": true,
   "loc": [
-    96,
-    107
+    93,
+    104
   ],
   "paramNames": [],
   "captureNames": [
@@ -157,8 +157,8 @@ null
   "ctxName": "text",
   "captures": true,
   "loc": [
-    111,
-    122
+    108,
+    119
   ],
   "paramNames": [],
   "captureNames": [
@@ -173,13 +173,13 @@ null
 
 ============================= src/component.tsx ==
 
-import { createSignal, createComponent } from '@qwik.dev/core/spark';
+import { useSignal, createComponent } from '@qwik.dev/core/spark';
 import { Child } from './component.tsx_component_Child';
 
 export { Child } from './component.tsx_component_Child';
 
 export function Parent(_props, ctx) {
-  const count = createSignal(1);
+  const count = useSignal(1);
   const cmp0 = createComponent(
     {
       label: 'Hi',
@@ -231,8 +231,8 @@ null
   "ctxName": "component",
   "captures": false,
   "loc": [
-    60,
-    130
+    57,
+    127
   ],
   "paramNames": [
     "props"
@@ -262,8 +262,8 @@ null
   "ctxName": "text",
   "captures": true,
   "loc": [
-    96,
-    107
+    93,
+    104
   ],
   "paramNames": [],
   "captureNames": [
@@ -294,8 +294,8 @@ null
   "ctxName": "text",
   "captures": true,
   "loc": [
-    111,
-    122
+    108,
+    119
   ],
   "paramNames": [],
   "captureNames": [

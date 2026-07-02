@@ -1,8 +1,8 @@
 ==INPUT==
 
-import { createSignal } from '@qwik.dev/core/spark';
+import { useSignal } from '@qwik.dev/core/spark';
 export function App() {
-  const items = createSignal([{ id: 'a', label: 'Alpha', selected: true, attrs: { title: 'Alpha' } }]);
+  const items = useSignal([{ id: 'a', label: 'Alpha', selected: true, attrs: { title: 'Alpha' } }]);
   return (
     <ul>
       {items.value.map((row, index) => (
@@ -22,7 +22,7 @@ export function App() {
 ============================= src/component.tsx ==
 
 import {
-  createSignal,
+  useSignal,
   _qrlWithChunk,
   createSsrElementTextTarget,
   renderSsrForBlock,
@@ -45,7 +45,7 @@ const q_component_for_render_segment_0 = /*#__PURE__*/ _qrlWithChunk(
 q_component_for_render_segment_0.s(component_for_render_segment_0);
 
 export function App(_props, ctx) {
-  const items = createSignal([
+  const items = useSignal([
     {
       id: 'a',
       label: 'Alpha',
@@ -89,8 +89,8 @@ null
   "ctxName": "for:key",
   "captures": false,
   "loc": [
-    250,
-    256
+    244,
+    250
   ],
   "paramNames": [
     "row",
@@ -216,8 +216,8 @@ null
   "ctxName": "for:render",
   "captures": false,
   "loc": [
-    241,
-    482
+    235,
+    476
   ],
   "paramNames": [
     "row",
@@ -246,8 +246,8 @@ null
   "ctxName": "props",
   "captures": true,
   "loc": [
-    241,
-    273
+    235,
+    267
   ],
   "paramNames": [],
   "captureNames": [
@@ -276,8 +276,8 @@ null
   "ctxName": "data-index",
   "captures": true,
   "loc": [
-    302,
-    307
+    296,
+    301
   ],
   "paramNames": [],
   "captureNames": [
@@ -306,8 +306,8 @@ null
   "ctxName": "className",
   "captures": true,
   "loc": [
-    320,
-    344
+    314,
+    338
   ],
   "paramNames": [],
   "captureNames": [
@@ -336,8 +336,8 @@ null
   "ctxName": "text",
   "captures": true,
   "loc": [
-    360,
-    369
+    354,
+    363
   ],
   "paramNames": [],
   "captureNames": [
@@ -368,8 +368,8 @@ null
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    407,
-    452
+    401,
+    446
   ],
   "paramNames": [],
   "captureNames": [
@@ -384,12 +384,12 @@ null
 
 ============================= src/component.tsx ==
 
-import { createSignal, ForRange, createForBlock } from '@qwik.dev/core/spark';
+import { useSignal, ForRange, createForBlock } from '@qwik.dev/core/spark';
 import { component_for_key_segment_1 } from './component.tsx_component_for_key_segment_1';
 import { component_for_render_segment_0 } from './component.tsx_component_for_render_segment_0';
 
 export function App(_props, ctx) {
-  const items = createSignal([
+  const items = useSignal([
     {
       id: 'a',
       label: 'Alpha',
@@ -439,8 +439,8 @@ null
   "ctxName": "for:key",
   "captures": false,
   "loc": [
-    250,
-    256
+    244,
+    250
   ],
   "paramNames": [
     "row",
@@ -509,8 +509,8 @@ null
   "ctxName": "for:render",
   "captures": false,
   "loc": [
-    241,
-    482
+    235,
+    476
   ],
   "paramNames": [
     "row",
@@ -539,8 +539,8 @@ null
   "ctxName": "props",
   "captures": true,
   "loc": [
-    241,
-    273
+    235,
+    267
   ],
   "paramNames": [],
   "captureNames": [
@@ -571,8 +571,8 @@ null
   "ctxName": "data-index",
   "captures": true,
   "loc": [
-    302,
-    307
+    296,
+    301
   ],
   "paramNames": [],
   "captureNames": [
@@ -603,8 +603,8 @@ null
   "ctxName": "className",
   "captures": true,
   "loc": [
-    320,
-    344
+    314,
+    338
   ],
   "paramNames": [],
   "captureNames": [
@@ -635,8 +635,8 @@ null
   "ctxName": "text",
   "captures": true,
   "loc": [
-    360,
-    369
+    354,
+    363
   ],
   "paramNames": [],
   "captureNames": [
@@ -667,8 +667,8 @@ null
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    407,
-    452
+    401,
+    446
   ],
   "paramNames": [],
   "captureNames": [

@@ -14,7 +14,7 @@ export type StaticSourceTextPart =
 export type SourceNamePredicate = (sourceName: string) => boolean;
 
 export const SOURCE_FACTORY_NAMES = new Set([
-  'createSignal',
+  'useSignal',
   'createComputed',
   'createComputedQrl',
   'createComputed$',

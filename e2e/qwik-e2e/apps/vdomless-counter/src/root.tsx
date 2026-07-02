@@ -1,60 +1,5 @@
-// import { createSignal } from '@qwik.dev/core/spark';
-
-// function Counter({ count }: { count: number }) {
-//   return <span>Count from component: {count}</span>;
-// }
-
-// function Hello({ name }: { name: string }) {
-//   return <span>Hello, {name}!</span>;
-// }
-
-// export function Root() {
-//   const count = createSignal(0);
-
-//   return (
-//     <>
-//       <head>
-//         <meta charset="utf-8" />
-//         <title>Vdomless Counter</title>
-//       </head>
-//       <body>
-//         <main style="font-family: system-ui, sans-serif; max-width: 40rem; margin: 4rem auto; line-height: 1.5;">
-//           <h1>Counter</h1>
-//           <button
-//             id="increment"
-//             type="button"
-//             style="font: inherit; padding: 0.6rem 0.9rem; border: 1px solid #222; background: white;"
-//             onClick$={() => count.value++}
-//           >
-//             Increment
-//           </button>
-//           <h2>Update text</h2>
-//           <p>{count.value}</p>
-//           <h2>Update shared text</h2>
-//           <p>Count: {count.value}</p>
-//           <h2>Dynamic branches</h2>
-//           <p>Count value is {count.value % 2 === 0 ? 'even' : 'odd'}.</p>
-//           <h2>Conditional rendering</h2>
-//           <p>{count.value > 5 && 'Count is greater than 5'}</p>
-//           <p>{count.value > 2 && 'Count is greater than 2 and equal to ' + count.value}</p>
-//           <h2>Conditional element rendering</h2>
-//           <p>
-//             {count.value < 2 ? <span>Count is {count.value}</span> : <b>Count is {count.value}</b>}
-//           </p>
-//           <h2>Conditional component rendering</h2>
-//           <div>{count.value < 2 ? <Hello name="Qwik" /> : <Counter count={count.value} />}</div>
-//           <h2>Conditional style render</h2>
-//           <p style={{ color: count.value % 2 === 0 ? 'red' : 'blue' }}>
-//             This text changes color based on the count value.
-//           </p>
-//         </main>
-//       </body>
-//     </>
-//   );
-// }
-
 import type { QRL } from '@qwik.dev/core';
-import { createSignal, Slot } from '@qwik.dev/core/spark';
+import { useSignal, Slot } from '@qwik.dev/core/spark';
 
 const adjectives = ["pretty", "large", "big", "small", "tall", "short", "long", "handsome", "plain", "quaint", "clean", "elegant", "easy", "angry", "crazy", "helpful", "mushy", "odd", "unsightly", "adorable", "important", "inexpensive", "cheap", "expensive", "fancy"]; // prettier-ignore
 const colors = ["red", "yellow", "blue", "green", "pink", "brown", "purple", "brown", "white", "black", "orange"]; // prettier-ignore
@@ -64,22 +9,24 @@ const random = (max: number) => Math.round(Math.random() * 1000) % max;
 
 let nextId = 1;
 
+type Signal<T> = { value: T };
+
 type Row = {
   id: number;
-  label: ReturnType<typeof createSignal<string>>;
-  selected: ReturnType<typeof createSignal<boolean>>;
+  label: Signal<string>;
+  selected: Signal<boolean>;
 };
 
 const buildData = (count: number): Row[] => {
   const data = new Array(count);
   for (let i = 0; i < count; i++) {
-    const label = createSignal(
+    const label = useSignal(
       `${adjectives[random(adjectives.length)]} ${colors[random(colors.length)]} ${nouns[random(nouns.length)]}`
     );
     data[i] = {
       id: nextId++,
       label,
-      selected: createSignal(false),
+      selected: useSignal(false),
     };
   }
   return data;
@@ -100,8 +47,8 @@ const Button = ({ id, onClick$ }: { id: string; onClick$: QRL<() => any> }) => {
 };
 
 export function Root() {
-  const data = createSignal([]);
-  const selectedItem = createSignal(null);
+  const data = useSignal([]);
+  const selectedItem = useSignal(null);
 
   return (
     <div class="container">

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createAsync$, createSerializer$, createSignal } from '@qwik.dev/core/spark';
+import { createAsync$, createSerializer$, useSignal } from '@qwik.dev/core/spark';
 import { csrRender, ssrRender } from '../test-utils';
 
 const debug = false;
@@ -17,7 +17,7 @@ describe.each([
         serialize: (data) => data.count,
         initial: 2,
       });
-      const spy = createSignal(myCount.value.count);
+      const spy = useSignal(myCount.value.count);
       return (
         <button
           onClick$={() => {
@@ -42,7 +42,7 @@ describe.each([
 
   it('should update reactively', async () => {
     const Counter = () => {
-      const sig = createSignal(1);
+      const sig = useSignal(1);
       const myCount = createSerializer$(() => ({
         deserialize: () => ({
           count: sig.value * 2,
@@ -152,7 +152,7 @@ describe.each([
 
   it('should not crash when used many times', async () => {
     const App = () => {
-      const foo = createSignal(0);
+      const foo = useSignal(0);
       const custom = createSerializer$(() => ({
         initial: { bar: 'bar' },
         serialize: (c: { foo: number; bar: string }) => ({ foo: c.foo, bar: c.bar }),

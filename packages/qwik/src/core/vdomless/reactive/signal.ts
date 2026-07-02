@@ -39,8 +39,8 @@ export class Signal<T> implements Source<T> {
   }
 }
 
-export function createSignal<T>(): Signal<T | undefined>;
-export function createSignal<T>(value: T): Signal<T>;
-export function createSignal<T>(value?: T): Signal<T | undefined> {
+export function useSignal<T>(): Signal<T | undefined>;
+export function useSignal<T>(value: T): Signal<T>;
+export function useSignal<T>(value?: T): Signal<T | undefined> {
   return new Signal(value);
 }

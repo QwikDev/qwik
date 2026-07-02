@@ -10,7 +10,7 @@ import {
   isLazySerialized,
   LazySerialized,
 } from '../../vdomless/reactive/lazy-serialized';
-import { createSignal, type Signal } from '../../vdomless/reactive/signal';
+import { useSignal, type Signal } from '../../vdomless/reactive/signal';
 import {
   createContainerContext,
   type ContainerContext,
@@ -135,7 +135,7 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
 
   it('keeps signal subscribers lazy until the signal updates', async () => {
     const context = createContext('<p q:id="10">1</p>');
-    const signal = createSignal(1);
+    const signal = useSignal(1);
     const data = [
       TypeIds.Plain,
       1,
@@ -173,7 +173,7 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
 
   it('keeps ForBlock and DOM subscribers lazy under a source', async () => {
     const context = createContext('<!--f=1--><!--/f--><p q:id="10">1</p>');
-    const signal = createSignal([{ id: 1 }]);
+    const signal = useSignal([{ id: 1 }]);
     const data = [
       TypeIds.Plain,
       signal.value,
@@ -261,7 +261,7 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
 
   it('resolves range text from a local marker index', async () => {
     const context = createContext('<p q:id="10">A<!t>0<!/t> B<!t>1</p>');
-    const count = createSignal(1);
+    const count = useSignal(1);
     const subscription = await inflateTextSubscription(context, count, 10, 1);
 
     expect(subscription.effect).toBeInstanceOf(TextNodeEffect);
@@ -272,7 +272,7 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
 
   it('does not count range boundary markers as targets', async () => {
     const context = createContext('<p q:id="11"><!t>0<!/t><!t>1</p>');
-    const count = createSignal(1);
+    const count = useSignal(1);
     const subscription = await inflateTextSubscription(context, count, 11, 1);
 
     expect((subscription.effect as TextNodeEffect).text.data).toBe('1');
@@ -280,7 +280,7 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
 
   it('throws when a range marker is not followed by a text node', async () => {
     const context = createContext('<p q:id="12"><!t><!/t></p>');
-    const count = createSignal(1);
+    const count = useSignal(1);
 
     await expect(inflateTextSubscription(context, count, 12, 0)).rejects.toThrow(
       'Missing range text target 12:0.'

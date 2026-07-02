@@ -12,7 +12,7 @@ import {
 } from '../../test-utils';
 import { createComponent } from '../../component/component';
 import { disposeSubscriber } from '../../reactive/cleanup';
-import { createSignal } from '../../reactive/signal';
+import { useSignal } from '../../reactive/signal';
 import { createTextExpressionEffect, createTextNodeEffect } from '../effect/effect';
 import { createSsrElementTextTarget, renderSsrTextNode } from '../effect/ssr-effect';
 import {
@@ -90,7 +90,7 @@ describe('branches', () => {
       contextScope,
       slotScope,
     });
-    const visible = createSignal(true);
+    const visible = useSignal(true);
     const branchNode = createNode('branch');
     const componentNode = createNode('component');
     const { range, replacements } = createBranchRange();
@@ -127,8 +127,8 @@ describe('branches', () => {
 
   it('runs CSR branches and switches branch owners', async () => {
     const scheduler = new Scheduler(noopSchedule);
-    const visible = createSignal(true);
-    const branchText = createSignal('then');
+    const visible = useSignal(true);
+    const branchText = useSignal('then');
     const { range, replacements } = createBranchRange();
     const thenNode = createNode('then');
     const elseNode = createNode('else');
@@ -207,7 +207,7 @@ describe('branches', () => {
 
   it('does not rerender CSR branches when branch state is unchanged', async () => {
     const scheduler = new Scheduler(noopSchedule);
-    const count = createSignal(1);
+    const count = useSignal(1);
     const { range, replacements } = createBranchRange();
     const node = createNode('positive');
     let renderRuns = 0;
@@ -235,7 +235,7 @@ describe('branches', () => {
 
   it('runs branch renderers only when counter changes branch state', async () => {
     const scheduler = new Scheduler(noopSchedule);
-    const count = createSignal(0);
+    const count = useSignal(0);
     const zeroNode = createNode('zero');
     const positiveNode = createNode('positive');
     const { range, replacements } = createBranchRange();
@@ -336,8 +336,8 @@ describe('branches', () => {
 
   it('disposes active branch owners and clears branch ranges', async () => {
     const scheduler = new Scheduler(noopSchedule);
-    const visible = createSignal(true);
-    const local = createSignal('local');
+    const visible = useSignal(true);
+    const local = useSignal('local');
     const text = createText();
     const node = createNode('branch');
     const { range, replacements } = createBranchRange();
@@ -373,7 +373,7 @@ describe('branches', () => {
 
   it('loads unresolved branch condition QRLs before tracking dependencies', async () => {
     const scheduler = new Scheduler(noopSchedule);
-    const visible = createSignal(true);
+    const visible = useSignal(true);
     const node = createNode('then');
     const { range, replacements } = createBranchRange();
     let resolved = false;
@@ -403,7 +403,7 @@ describe('branches', () => {
 
   it('loads branch render QRLs only when entering their branch', async () => {
     const scheduler = new Scheduler(noopSchedule);
-    const visible = createSignal(true);
+    const visible = useSignal(true);
     const thenNode = createNode('then');
     const elseNode = createNode('else');
     const { range, replacements } = createBranchRange();
@@ -441,7 +441,7 @@ describe('branches', () => {
 
   it('resumes mounted branches without loading the matching renderer', async () => {
     const scheduler = new Scheduler(noopSchedule);
-    const visible = createSignal(true);
+    const visible = useSignal(true);
     const thenNode = createNode('then');
     const { range, replacements } = createBranchRange();
     let thenResolved = false;
@@ -485,8 +485,8 @@ describe('branches', () => {
 
   it('switches resumed mounted branches and disposes the mounted owner', async () => {
     const scheduler = new Scheduler(noopSchedule);
-    const visible = createSignal(true);
-    const local = createSignal('mounted');
+    const visible = useSignal(true);
+    const local = useSignal('mounted');
     const text = createText();
     const elseNode = createNode('else');
     const { range, replacements } = createBranchRange();
@@ -584,8 +584,8 @@ describe('branches', () => {
 
   it('renders SSR branches from QRLs and registers reactive work', async () => {
     const scheduler = new Scheduler(noopSchedule);
-    const visible = createSignal(true);
-    const child = createSignal('then');
+    const visible = useSignal(true);
+    const child = useSignal('then');
     const ctx = { scheduler } as ContainerContext;
     const conditionQrl = createQRL<BranchConditionFn>('chunk', 'condition', () => visible.value);
     const thenQrl = createQRL<SsrBranchRenderFn>('chunk', 'renderThen', () => {
@@ -605,7 +605,7 @@ describe('branches', () => {
 
   it('resolves async SSR branch QRLs', async () => {
     const scheduler = new Scheduler(noopSchedule);
-    const visible = createSignal(false);
+    const visible = useSignal(false);
     const ctx = { scheduler } as ContainerContext;
     let conditionResolved = false;
     let elseResolved = false;

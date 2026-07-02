@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { csrRender, ssrRender } from '../test-utils';
-import { createSignal } from '@qwik.dev/core/spark';
+import { useSignal } from '@qwik.dev/core/spark';
 
 const debug = false;
 
@@ -10,7 +10,7 @@ describe.each([
 ])('$name: signals', ({ render }) => {
   it('should render signal', async () => {
     const MyComp = () => {
-      const count = createSignal(0);
+      const count = useSignal(0);
       return <p>{count.value}</p>;
     };
 
@@ -23,7 +23,7 @@ describe.each([
 
   it('should update signal value', async () => {
     const MyComp = () => {
-      const count = createSignal(0);
+      const count = useSignal(0);
       return <button onClick$={() => count.value++}>{count.value}</button>;
     };
 
@@ -42,7 +42,7 @@ describe.each([
 
   it('should update mixed signal text', async () => {
     const MyComp = () => {
-      const count = createSignal(0);
+      const count = useSignal(0);
       return <button onClick$={() => count.value++}>Count {count.value}</button>;
     };
 
@@ -61,7 +61,7 @@ describe.each([
 
   it('should update text expression value', async () => {
     const MyComp = () => {
-      const count = createSignal(0);
+      const count = useSignal(0);
       return <button onClick$={() => count.value++}>{count.value + 1}</button>;
     };
 
@@ -80,7 +80,7 @@ describe.each([
 
   it('should update empty text expression value', async () => {
     const MyComp = () => {
-      const count = createSignal(0);
+      const count = useSignal(0);
       return <button onClick$={() => count.value++}>{count.value > 0 ? count.value : ''}</button>;
     };
 

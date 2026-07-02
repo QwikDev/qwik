@@ -16,7 +16,7 @@ export {
   track,
   untrack,
 } from './reactive/tracking';
-export { createSignal, Signal } from './reactive/signal';
+export { useSignal, Signal } from './reactive/signal';
 export {
   Computed,
   createComputed,

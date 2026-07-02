@@ -1,10 +1,10 @@
 ==INPUT==
 
-import { createSignal } from '@qwik.dev/core/spark';
+import { useSignal } from '@qwik.dev/core/spark';
 export function App() {
-  const title = createSignal('hello');
-  const classes = createSignal('active');
-  const style = createSignal('color:red');
+  const title = useSignal('hello');
+  const classes = useSignal('active');
+  const style = useSignal('color:red');
   return <div title={title.value} className={classes.value} style={style.value}>Attrs</div>;
 }
 
@@ -13,7 +13,7 @@ export function App() {
 ============================= src/component.tsx ==
 
 import {
-  createSignal,
+  useSignal,
   escapeHTML,
   createSsrElementTarget,
   renderSsrAttr,
@@ -22,9 +22,9 @@ import {
 } from '@qwik.dev/core/spark';
 
 export function App(_props, ctx) {
-  const title = createSignal('hello');
-  const classes = createSignal('active');
-  const style = createSignal('color:red');
+  const title = useSignal('hello');
+  const classes = useSignal('active');
+  const style = useSignal('color:red');
   const id0 = ctx.nextId();
   ctx.addRoot(title);
   const attr1 = renderSsrAttr(createSsrElementTarget(id0), 'title', title);
@@ -55,13 +55,13 @@ null
 
 ============================= src/component.tsx ==
 
-import { createSignal, createTemplate, createAttrEffect } from '@qwik.dev/core/spark';
+import { useSignal, createTemplate, createAttrEffect } from '@qwik.dev/core/spark';
 
 const dom_App_template0 = createTemplate('<div>Attrs</div>');
 export function App(_props, ctx) {
-  const title = createSignal('hello');
-  const classes = createSignal('active');
-  const style = createSignal('color:red');
+  const title = useSignal('hello');
+  const classes = useSignal('active');
+  const style = useSignal('color:red');
   const fragment0 = dom_App_template0(ctx.document);
   const el1 = fragment0.firstChild;
   const effect2 = createAttrEffect(el1, 'title', title, ctx.scheduler);

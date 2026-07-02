@@ -1,10 +1,10 @@
 ==INPUT==
 
-import { createSignal } from '@qwik.dev/core/spark';
+import { useSignal } from '@qwik.dev/core/spark';
 export function App() {
-  const visible = createSignal(true);
-  const label = createSignal('ready');
-  const attrs = createSignal({ role: 'status' });
+  const visible = useSignal(true);
+  const label = useSignal('ready');
+  const attrs = useSignal({ role: 'status' });
   return <div>{visible.value && <span {...attrs.value} title={`label ${label.value}`}>{label.value + '!'}</span>}</div>;
 }
 
@@ -13,7 +13,7 @@ export function App() {
 ============================= src/component.tsx ==
 
 import {
-  createSignal,
+  useSignal,
   _qrlWithChunk,
   createSsrRangeTextTarget,
   renderSsrBranch,
@@ -34,9 +34,9 @@ const q_component_branch_then_segment_1 = /*#__PURE__*/ _qrlWithChunk(
 );
 
 export function App(_props, ctx) {
-  const visible = createSignal(true);
-  const label = createSignal('ready');
-  const attrs = createSignal({ role: 'status' });
+  const visible = useSignal(true);
+  const label = useSignal('ready');
+  const attrs = useSignal({ role: 'status' });
   const id0 = ctx.nextId();
   ctx.addRoot(visible);
   ctx.addRoot(attrs);
@@ -75,8 +75,8 @@ null
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    215,
-    228
+    203,
+    216
   ],
   "paramNames": [],
   "captureNames": [
@@ -145,8 +145,8 @@ null
   "ctxName": "branch:then",
   "captures": true,
   "loc": [
-    232,
-    312
+    220,
+    300
   ],
   "paramNames": [],
   "captureNames": [
@@ -181,8 +181,8 @@ null
   "ctxName": "props",
   "captures": true,
   "loc": [
-    232,
-    286
+    220,
+    274
   ],
   "paramNames": [],
   "captureNames": [
@@ -198,14 +198,14 @@ null
 
 ============================= src/component.tsx ==
 
-import { createSignal, _withCaptures, BranchRange, createBranch } from '@qwik.dev/core/spark';
+import { useSignal, _withCaptures, BranchRange, createBranch } from '@qwik.dev/core/spark';
 import { component_branch_condition_segment_0 } from './component.tsx_component_branch_condition_segment_0';
 import { component_branch_then_segment_1 } from './component.tsx_component_branch_then_segment_1';
 
 export function App(_props, ctx) {
-  const visible = createSignal(true);
-  const label = createSignal('ready');
-  const attrs = createSignal({ role: 'status' });
+  const visible = useSignal(true);
+  const label = useSignal('ready');
+  const attrs = useSignal({ role: 'status' });
   const el0 = ctx.document.createElement('div');
   const fragment1 = ctx.document.createDocumentFragment();
   const comment2 = ctx.document.createComment('b');
@@ -248,8 +248,8 @@ null
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    215,
-    228
+    203,
+    216
   ],
   "paramNames": [],
   "captureNames": [
@@ -301,8 +301,8 @@ null
   "ctxName": "branch:then",
   "captures": true,
   "loc": [
-    232,
-    312
+    220,
+    300
   ],
   "paramNames": [],
   "captureNames": [
@@ -337,8 +337,8 @@ null
   "ctxName": "props",
   "captures": true,
   "loc": [
-    232,
-    286
+    220,
+    274
   ],
   "paramNames": [],
   "captureNames": [

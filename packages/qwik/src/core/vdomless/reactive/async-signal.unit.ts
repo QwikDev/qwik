@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { createOwner, runWithOwner } from '../runtime/owner';
 import { createAsync } from './async-signal';
-import { createSignal } from './signal';
+import { useSignal } from './signal';
 
 describe('vdomless async signal', () => {
   it('tracks generator dependencies before and after yield', async () => {
-    const before = createSignal(0);
-    const after = createSignal(10);
+    const before = useSignal(0);
+    const after = useSignal(10);
     const seen: string[] = [];
     const signal = createOwned(() =>
       createAsync<number>(function* () {
@@ -32,7 +32,7 @@ describe('vdomless async signal', () => {
 
   it('returns stale value while recomputing', async () => {
     let release!: () => void;
-    const dep = createSignal(1);
+    const dep = useSignal(1);
     const signal = createOwned(() =>
       createAsync<number>(
         function* () {

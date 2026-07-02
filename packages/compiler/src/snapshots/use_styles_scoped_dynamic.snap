@@ -1,12 +1,12 @@
 ==INPUT==
 
 import { useStylesScoped$ } from '@qwik.dev/core';
-import { createSignal } from '@qwik.dev/core/spark';
+import { useSignal } from '@qwik.dev/core/spark';
 import styles from './app.css?inline';
 
 export function App() {
   useStylesScoped$(styles);
-  const active = createSignal(false);
+  const active = useSignal(false);
   return <button class={{ container: true, active: active.value }} onClick$={() => active.value = true}>Toggle</button>;
 }
 
@@ -15,7 +15,7 @@ export function App() {
 ============================= src/use-styles-scoped-dynamic.tsx ==
 
 import {
-  createSignal,
+  useSignal,
   _qrlWithChunk,
   escapeHTML,
   createSsrElementTarget,
@@ -40,7 +40,7 @@ const q_use_styles_scoped_dynamic_q_e_click_segment_1 = /*#__PURE__*/ _qrlWithCh
 
 export function App(_props, ctx) {
   appendScopedStyle(styles, 'z0ce9z-0');
-  const active = createSignal(false);
+  const active = useSignal(false);
   const id0 = ctx.nextId();
   ctx.addRoot(active);
   const attr1 = renderSsrAttrExpression(
@@ -89,8 +89,8 @@ null
   "ctxName": "class",
   "captures": true,
   "loc": [
-    254,
-    300
+    248,
+    294
   ],
   "paramNames": [],
   "captureNames": [
@@ -121,8 +121,8 @@ null
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    302,
-    338
+    296,
+    332
   ],
   "paramNames": [],
   "captureNames": [
@@ -138,7 +138,7 @@ null
 ============================= src/use-styles-scoped-dynamic.tsx ==
 
 import {
-  createSignal,
+  useSignal,
   createTemplate,
   createAttrExpressionEffect,
   setEvent,
@@ -154,7 +154,7 @@ const dom_App_expr1 = (active) => ({
 });
 export function App(_props, ctx) {
   appendScopedStyle(styles, 'z0ce9z-0');
-  const active = createSignal(false);
+  const active = useSignal(false);
   const fragment0 = dom_App_template0(ctx.document);
   const el1 = fragment0.firstChild;
   const effect2 = createAttrExpressionEffect(
@@ -197,8 +197,8 @@ null
   "ctxName": "class",
   "captures": true,
   "loc": [
-    254,
-    300
+    248,
+    294
   ],
   "paramNames": [],
   "captureNames": [
@@ -229,8 +229,8 @@ null
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    302,
-    338
+    296,
+    332
   ],
   "paramNames": [],
   "captureNames": [

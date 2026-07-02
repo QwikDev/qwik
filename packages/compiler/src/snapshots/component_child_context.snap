@@ -1,6 +1,6 @@
 ==INPUT==
 
-import { createContext, createContextProvider, createSignal } from '@qwik.dev/core/spark';
+import { createContext, createContextProvider, useSignal } from '@qwik.dev/core/spark';
 import { Context } from './context';
 
 export function Child() {
@@ -9,7 +9,7 @@ export function Child() {
 }
 
 export function Parent() {
-  const value = createSignal('provided');
+  const value = useSignal('provided');
   createContextProvider(Context, value);
   return <section><Child /></section>;
 }
@@ -21,7 +21,7 @@ export function Parent() {
 import {
   createContext,
   createContextProvider,
-  createSignal,
+  useSignal,
   createComponent,
   maybeThen,
 } from '@qwik.dev/core/spark';
@@ -31,7 +31,7 @@ import { Child } from './component.tsx_component_Child';
 export { Child } from './component.tsx_component_Child';
 
 export function Parent(_props, ctx) {
-  const value = createSignal('provided');
+  const value = useSignal('provided');
   createContextProvider(Context, value);
   const contextScopeId = ctx.contextScopeId();
   const component0 = createComponent({}, (props) => Child(props, ctx));
@@ -88,8 +88,8 @@ null
   "ctxName": "component",
   "captures": false,
   "loc": [
-    135,
-    224
+    132,
+    221
   ],
   "paramNames": []
 }
@@ -115,8 +115,8 @@ null
   "ctxName": "text",
   "captures": true,
   "loc": [
-    205,
-    216
+    202,
+    213
   ],
   "paramNames": [],
   "captureNames": [
@@ -134,7 +134,7 @@ null
 import {
   createContext,
   createContextProvider,
-  createSignal,
+  useSignal,
   createComponent,
 } from '@qwik.dev/core/spark';
 import { Context } from './context';
@@ -143,7 +143,7 @@ import { Child } from './component.tsx_component_Child';
 export { Child } from './component.tsx_component_Child';
 
 export function Parent(_props, ctx) {
-  const value = createSignal('provided');
+  const value = useSignal('provided');
   createContextProvider(Context, value);
   const el0 = ctx.document.createElement('section');
   const cmp1 = createComponent({}, (props) => Child(props, ctx), { container: ctx });
@@ -184,8 +184,8 @@ null
   "ctxName": "component",
   "captures": false,
   "loc": [
-    135,
-    224
+    132,
+    221
   ],
   "paramNames": []
 }
@@ -213,8 +213,8 @@ null
   "ctxName": "text",
   "captures": true,
   "loc": [
-    205,
-    216
+    202,
+    213
   ],
   "paramNames": [],
   "captureNames": [

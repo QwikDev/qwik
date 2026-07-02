@@ -31,7 +31,7 @@ import { ComputedFlags } from './reactive/flags';
 import { createComputedQrl } from './reactive/computed-qrl';
 import { createAsyncQrl } from './reactive/async-signal';
 import { createSerializerQrl, type SerializerSignal } from './reactive/serializer-signal';
-import { createSignal, type Signal } from './reactive/signal';
+import { useSignal, type Signal } from './reactive/signal';
 import { createStore, getStoreSource } from './reactive/store';
 import { createWindow } from '../../testing/document';
 import type { ValueOrPromise } from '../shared/utils/types';
@@ -58,14 +58,14 @@ class CustomSerializable {
 
 describe('vdomless serdes emit-only', () => {
   it('serializes a vdomless signal without subscribers', async () => {
-    const count = createSignal(0);
+    const count = useSignal(0);
     const state = await serialize(count);
 
     expect(state).toEqual([TypeIds.Signal, [TypeIds.Plain, 0]]);
   });
 
   it('serializes a signal with an SSR text node subscriber', async () => {
-    const count = createSignal(0);
+    const count = useSignal(0);
     const effect = createOwned(() => createSsrTextNodeEffect(createSsrElementTextTarget(7)));
 
     runWithCollector(effect, () => count.value);
@@ -290,7 +290,7 @@ describe('vdomless serdes emit-only', () => {
   });
 
   it('does not serialize orphan SSR effect targets', async () => {
-    const count = createSignal(0);
+    const count = useSignal(0);
 
     expect(createOwned(() => renderSsrTextNode(createSsrElementTextTarget(8), count))).toBe('0');
 
@@ -300,7 +300,7 @@ describe('vdomless serdes emit-only', () => {
   });
 
   it('serializes an SSR text expression subscriber with args and QRL captures', async () => {
-    const count = createSignal(1);
+    const count = useSignal(1);
     const container = createCaptureContainer({ 0: count });
     const qrl = createQRL<TextExpressionFn<[Signal<number>]>>(
       './counter.text.js',
@@ -334,8 +334,8 @@ describe('vdomless serdes emit-only', () => {
   });
 
   it('serializes SSR class and style subscribers', async () => {
-    const classSource = createSignal('active');
-    const styleSource = createSignal('color:red');
+    const classSource = useSignal('active');
+    const styleSource = useSignal('color:red');
     const [classEffect, styleEffect] = createOwned(
       () =>
         [
@@ -362,7 +362,7 @@ describe('vdomless serdes emit-only', () => {
   });
 
   it('serializes SSR attr expression subscribers as attrs', async () => {
-    const count = createSignal(1);
+    const count = useSignal(1);
     const container = createCaptureContainer({ 0: count });
     const qrl = createQRL<AttrExpressionFn<[Signal<number>]>>(
       './style.attr.js',
@@ -392,8 +392,8 @@ describe('vdomless serdes emit-only', () => {
   });
 
   it('serializes SSR DOM batch subscribers', async () => {
-    const count = createSignal(1);
-    const classSource = createSignal('active');
+    const count = useSignal(1);
+    const classSource = useSignal('active');
 
     createOwned(() => {
       const batch = createSsrDomBatchEffect() as SsrDomSubscription;
@@ -416,8 +416,8 @@ describe('vdomless serdes emit-only', () => {
   });
 
   it('serializes branch subscriptions as effect subscriptions with owned subscribers', async () => {
-    const visible = createSignal(true);
-    const child = createSignal('then');
+    const visible = useSignal(true);
+    const child = useSignal('then');
     const conditionQrl = createQRL<BranchConditionFn>(
       './branch.condition.js',
       'condition',
@@ -459,8 +459,8 @@ describe('vdomless serdes emit-only', () => {
 
   it('serializes for block subscriptions without eager row-local subscribers', async () => {
     type Row = { id: string; label: Signal<string> };
-    const label = createSignal('alpha');
-    const items = createSignal<Row[]>([{ id: 'alpha', label }]);
+    const label = useSignal('alpha');
+    const items = useSignal<Row[]>([{ id: 'alpha', label }]);
     const keyQrl = createQRL<(item: Row) => string>(
       './for.key.js',
       'key',
@@ -510,8 +510,8 @@ describe('vdomless serdes emit-only', () => {
       html: '<div q:container><!b=4><span>then</span><!/b></div>',
     });
     const container = createContainerContext(win.document.body.firstElementChild as HTMLElement);
-    const visible = createSignal(true);
-    const local = createSignal('mounted');
+    const visible = useSignal(true);
+    const local = useSignal('mounted');
     const rootOwner = createOwner(null);
     const ownedEffect = runWithOwner(rootOwner, () =>
       createTextNodeEffect(createText(), local, container.scheduler)
@@ -561,7 +561,7 @@ describe('vdomless serdes emit-only', () => {
   });
 
   it('serializes a computed QRL with deps, cached value, and DOM subscriber', async () => {
-    const count = createSignal(2);
+    const count = useSignal(2);
     const container = createCaptureContainer({ 0: count });
     const qrl = createQRL<() => number>(
       './counter.computed.js',
@@ -605,7 +605,7 @@ describe('vdomless serdes emit-only', () => {
   });
 
   it('serializes a dirty computed QRL as needing computation', async () => {
-    const count = createSignal(2);
+    const count = useSignal(2);
     const container = createCaptureContainer({ 0: count });
     const qrl = createQRL<() => number>(
       './counter.computed.js',
@@ -663,7 +663,7 @@ describe('vdomless serdes emit-only', () => {
   it('serializes context parent scopes and reactive values as root references', async () => {
     const parent = createContextScope(null);
     const child = createContextScope(parent);
-    const source = createSignal('value');
+    const source = useSignal('value');
     const container = createCaptureContainer({});
     const computed = createOwned(() =>
       createComputedQrl(
@@ -695,7 +695,7 @@ describe('vdomless serdes emit-only', () => {
   });
 
   it('serializes and inflates a task subscription with phase, qrl, and deps', async () => {
-    const count = createSignal(7);
+    const count = useSignal(7);
     const scheduler = new Scheduler(() => {});
     const qrl = createQRL<TaskFn>('./task.js', 'task', () => {}, null, null);
     const task = runWithTestContainer(scheduler, () => createTaskQrl(qrl));

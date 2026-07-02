@@ -1,8 +1,8 @@
 ==INPUT==
 
-import { createSignal, createComputed$ } from '@qwik.dev/core/spark';
+import { useSignal, createComputed$ } from '@qwik.dev/core/spark';
 export function App() {
-  const count = createSignal(1);
+  const count = useSignal(1);
   const double = createComputed$(() => count.value * 2);
   return <p>{double.value}</p>;
 }
@@ -12,7 +12,7 @@ export function App() {
 ============================= src/component.tsx ==
 
 import {
-  createSignal,
+  useSignal,
   createComputedQrl,
   _qrlWithChunk,
   escapeHTML,
@@ -30,7 +30,7 @@ const q_component_createComputed$_segment_0 = /*#__PURE__*/ _qrlWithChunk(
 q_component_createComputed$_segment_0.s(component_createComputed$_segment_0);
 
 export function App(_props, ctx) {
-  const count = createSignal(1);
+  const count = useSignal(1);
   const double = createComputedQrl(q_component_createComputed$_segment_0.w([count]));
   const id0 = ctx.nextId();
   ctx.addRoot(double);
@@ -62,8 +62,8 @@ null
   "ctxName": "createComputed$",
   "captures": true,
   "loc": [
-    142,
-    180
+    136,
+    174
   ],
   "paramNames": [],
   "captureNames": [
@@ -79,7 +79,7 @@ null
 ============================= src/component.tsx ==
 
 import {
-  createSignal,
+  useSignal,
   createComputed,
   createTemplate,
   createTextNodeEffect,
@@ -87,7 +87,7 @@ import {
 
 const dom_App_template0 = createTemplate('<p> </p>');
 export function App(_props, ctx) {
-  const count = createSignal(1);
+  const count = useSignal(1);
   const double = createComputed(() => count.value * 2);
   const fragment0 = dom_App_template0(ctx.document);
   const el1 = fragment0.firstChild;

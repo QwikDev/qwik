@@ -1,8 +1,8 @@
 ==INPUT==
 
-import { createSignal } from '@qwik.dev/core/spark';
+import { useSignal } from '@qwik.dev/core/spark';
 export function App() {
-  const count = createSignal(0);
+  const count = useSignal(0);
   return (
     <div
       title={`count ${count.value}`}
@@ -20,7 +20,7 @@ export function App() {
 ============================= src/component.tsx ==
 
 import {
-  createSignal,
+  useSignal,
   createSsrDomBatchEffect,
   createSsrElementTarget,
   _qrlWithChunk,
@@ -53,7 +53,7 @@ const q_component_style_segment_2 = /*#__PURE__*/ _qrlWithChunk(
 q_component_style_segment_2.s(component_style_segment_2);
 
 export function App(_props, ctx) {
-  const count = createSignal(0);
+  const count = useSignal(0);
   const id0 = ctx.nextId();
   ctx.addRoot(count);
   const batch2 = createSsrDomBatchEffect();
@@ -115,8 +115,8 @@ null
   "ctxName": "title",
   "captures": true,
   "loc": [
-    129,
-    151
+    123,
+    145
   ],
   "paramNames": [],
   "captureNames": [
@@ -145,8 +145,8 @@ null
   "ctxName": "className",
   "captures": true,
   "loc": [
-    164,
-    191
+    158,
+    185
   ],
   "paramNames": [],
   "captureNames": [
@@ -175,8 +175,8 @@ null
   "ctxName": "style",
   "captures": true,
   "loc": [
-    200,
-    251
+    194,
+    245
   ],
   "paramNames": [],
   "captureNames": [
@@ -192,7 +192,7 @@ null
 ============================= src/component.tsx ==
 
 import {
-  createSignal,
+  useSignal,
   createTemplate,
   createDomBatchEffect,
   patchAttrValue,
@@ -203,7 +203,7 @@ const dom_App_expr1 = (count) => `count ${count.value}`;
 const dom_App_expr2 = (count) => ({ active: count.value > 0 });
 const dom_App_expr3 = (count) => ({ color: count.value % 2 === 0 ? 'green' : 'blue' });
 export function App(_props, ctx) {
-  const count = createSignal(0);
+  const count = useSignal(0);
   const fragment0 = dom_App_template0(ctx.document);
   const el1 = fragment0.firstChild;
   function batch3() {
@@ -240,8 +240,8 @@ null
   "ctxName": "title",
   "captures": true,
   "loc": [
-    129,
-    151
+    123,
+    145
   ],
   "paramNames": [],
   "captureNames": [
@@ -272,8 +272,8 @@ null
   "ctxName": "className",
   "captures": true,
   "loc": [
-    164,
-    191
+    158,
+    185
   ],
   "paramNames": [],
   "captureNames": [
@@ -304,8 +304,8 @@ null
   "ctxName": "style",
   "captures": true,
   "loc": [
-    200,
-    251
+    194,
+    245
   ],
   "paramNames": [],
   "captureNames": [

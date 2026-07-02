@@ -1,5 +1,5 @@
 import { $, component$ } from '@qwik.dev/core';
-import { createOn, createOnDocument, createOnWindow, createSignal } from '@qwik.dev/core/spark';
+import { createOn, createOnDocument, createOnWindow, useSignal } from '@qwik.dev/core/spark';
 import { describe, expect, it } from 'vitest';
 import { csrRender, ssrRender } from '../test-utils';
 
@@ -11,7 +11,7 @@ describe.each([
 ])('$name: createOn', ({ render }) => {
   it('attaches element events to the first rendered element', async () => {
     const App = component$(() => {
-      const count = createSignal(0);
+      const count = useSignal(0);
 
       createOn(
         'click',
@@ -35,7 +35,7 @@ describe.each([
 
   it('updates for passive option', async () => {
     const App = component$(() => {
-      const count = createSignal(0);
+      const count = useSignal(0);
 
       createOn(
         'click',
@@ -59,7 +59,7 @@ describe.each([
 
   it('supports multiple event names', async () => {
     const App = component$(() => {
-      const count = createSignal(0);
+      const count = useSignal(0);
 
       createOn(
         ['click', 'focus'],
@@ -160,7 +160,7 @@ describe.each([
 
   it('merges with JSX listeners for the same element event', async () => {
     const App = component$(() => {
-      const count = createSignal(0);
+      const count = useSignal(0);
 
       createOn(
         'click',
@@ -183,7 +183,7 @@ describe.each([
 
   it('updates with mixed listeners', async () => {
     const App = component$(() => {
-      const count = createSignal(0);
+      const count = useSignal(0);
 
       createOn(
         'click',
@@ -208,7 +208,7 @@ describe.each([
   describe('createOnDocument', () => {
     it('updates value', async () => {
       const App = component$(() => {
-        const count = createSignal(0);
+        const count = useSignal(0);
 
         createOnDocument(
           'click',
@@ -231,7 +231,7 @@ describe.each([
 
     it('updates value with multiple events', async () => {
       const App = component$(() => {
-        const count = createSignal(0);
+        const count = useSignal(0);
 
         createOnDocument(
           'click',
@@ -261,7 +261,7 @@ describe.each([
 
     it('supports DOMContentLoaded event', async () => {
       const App = component$(() => {
-        const count = createSignal(0);
+        const count = useSignal(0);
 
         createOnDocument(
           'DOMContentLoaded',
@@ -305,7 +305,7 @@ describe.each([
   describe('createOnWindow', () => {
     it('updates value', async () => {
       const App = component$(() => {
-        const count = createSignal(0);
+        const count = useSignal(0);
 
         createOnWindow(
           'click',
@@ -347,7 +347,7 @@ describe.each([
 
     it('merges with JSX listeners for the same window event', async () => {
       const App = component$(() => {
-        const count = createSignal(0);
+        const count = useSignal(0);
 
         createOnWindow(
           'dblclick',
@@ -372,7 +372,7 @@ describe.each([
   describe('custom events', () => {
     it('updates for createOn custom event', async () => {
       const App = component$(() => {
-        const count = createSignal(0);
+        const count = useSignal(0);
 
         createOn(
           'SomeCustomEvent',
@@ -396,7 +396,7 @@ describe.each([
 
   it('updates with element, document, window, and JSX listeners together', async () => {
     const App = component$(() => {
-      const count = createSignal(0);
+      const count = useSignal(0);
 
       createOn(
         'click',

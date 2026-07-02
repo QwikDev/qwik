@@ -184,7 +184,7 @@ Gated on the `errorBoundary` flag (the component throws when it's off).
 
 ### Keep these invariants
 - **Never let the boundary buffer or block streaming.** Content streams live into the `content-host`;
-  on a throw `renderErrorBoundaryFallback` sets `store.error` + fires `onError$` once + marks content
+  on a throw `renderErrorBoundaryFallback` sets `store.error` + fires `onError$` + marks content
   inert + returns `null`. It must NOT render the fallback itself — a sibling `fallback-host` does.
 - **Keep the origin-based swap split, decided at fallback-host DRAIN time** (`SSRErrorFallbackHost`):
   an in-place error (already in `store.error` when the host drains) swaps inline via `qErr` (`q:ebf`
@@ -193,10 +193,15 @@ Gated on the `errorBoundary` flag (the component throws when it's off).
   invariant: a deferred fallback's vnode-data must travel through a segment (`qProcessOOOS`), and
   inline content must never sit under a `q:rp` host (OOOS resume hijacks it into a template).
 - **Write the error state only through `markBoundaryErrored(store, error)`** — it sets `store.error`
-  via `toSerializableBoundaryError` and fires `onError$` exactly once with the ORIGINAL error. Don't
-  re-inline that first-catch triple.
-- **`onError$` fires once**: server via the `store.$onError$` mirror, client via the serialized
-  `props.onError$`. The `$`-mirror is server-only — never read it on the client.
+  via `toSerializableBoundaryError` and fires `onError$` with the ORIGINAL error and its phase (an
+  SSR-rethrown task error keeps its phase via the `tagErrorPhase` symbol tag). Each newly caught
+  error re-fires — first-wins absorption belongs to the CALL SITES (detached `$fallback$` /
+  `error !== undefined` guards), never to a first-catch gate inside it.
+- **`store.error === undefined` means "no error".** Every writer path must normalize a thrown
+  `undefined` to a keyable `Error`: `toSerializableBoundaryError` never returns `undefined` (SSR),
+  and the client `handleError` maps it before storing. `onError$` still gets the raw thrown value.
+- **`onError$` fires once per caught error**: server via the `store.$onError$` mirror, client via
+  the serialized `props.onError$`. The `$`-mirror is server-only — never read it on the client.
 - **Keep `content-host` before `fallback-host`** in DOM/vnode order (the `qO` reveal hides the
   previous sibling, and a later throw must resolve up through the content-host).
 - **Keep the `qErr` executor independent of `qO`** (gated on `errorBoundary`, not `suspense`) so a

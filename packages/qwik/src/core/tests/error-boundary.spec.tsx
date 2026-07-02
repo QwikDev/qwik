@@ -84,6 +84,10 @@ class NonSerializableError {
   }
 }
 
+const NonSerializableThrower = component$((): JSXOutput => {
+  throw new NonSerializableError();
+});
+
 const streamAndResume = async (jsx: JSXOutput, opts: Record<string, unknown> = {}) => {
   const chunks: string[] = [];
   await ssrRenderToDom(jsx, {
@@ -147,6 +151,16 @@ const BoxedWithSibling = component$(() => {
     <ErrorBoundary fallback$={fb()}>
       <div id="sibling">sibling</div>
       <Slot />
+    </ErrorBoundary>
+  );
+});
+
+const NamedSlotProjector = component$(() => {
+  return (
+    <ErrorBoundary fallback$={fb()}>
+      <div id="named-host">
+        <Slot name="danger" />
+      </div>
     </ErrorBoundary>
   );
 });
@@ -310,6 +324,20 @@ describe.each(modes)('ErrorBoundary behavior (%s)', (mode, renderMode) => {
         <Thrower />
       </Boxed>
     ));
+    expect(container.element.querySelector('#fb')?.textContent).toContain('caught: boom');
+  });
+
+  it('[NEW] named-slot projection: a throw in named-slot content is caught by the projected-into boundary', async () => {
+    const { container } = await renderMode(
+      () => (
+        <NamedSlotProjector>
+          <div q:slot="danger">
+            <Thrower />
+          </div>
+        </NamedSlotProjector>
+      ),
+      modeOpts
+    );
     expect(container.element.querySelector('#fb')?.textContent).toContain('caught: boom');
   });
 
@@ -531,6 +559,35 @@ describe.each(modes)('ErrorBoundary behavior (%s)', (mode, renderMode) => {
       expect(container.element.querySelector('#fb')?.textContent).toContain('caught: boom');
     });
 
+    it('[NEW] the outer onError$ stays silent when the inner boundary catches cleanly', async () => {
+      const outerLog: unknown[] = [];
+      const { container } = await renderMode(
+        () => (
+          <ErrorBoundary
+            fallback$={$(() => (
+              <p id="fb-outer">outer</p>
+            ))}
+            onError$={$((e: any) => {
+              outerLog.push(e instanceof Error ? e.message : e);
+            })}
+          >
+            <ErrorBoundary fallback$={fb('fb-inner')}>
+              <Thrower />
+            </ErrorBoundary>
+          </ErrorBoundary>
+        ),
+        modeOpts
+      );
+      await waitForDrain(container);
+      await getTestPlatform().flush();
+      await delay(0);
+
+      const el = container.element;
+      expect(el.querySelector('#fb-inner')?.textContent).toContain('caught: boom');
+      expect(el.querySelector('#fb-outer')).toBeFalsy();
+      expect(outerLog).toEqual([]);
+    });
+
     it('escalation: inner and outer onError$ each fire once for their own error', async () => {
       const innerLog: unknown[] = [];
       const outerLog: unknown[] = [];
@@ -560,13 +617,13 @@ describe.each(modes)('ErrorBoundary behavior (%s)', (mode, renderMode) => {
 });
 
 describe('ErrorBoundary behavior', () => {
-  it.todo('[NEW] the outer onError$ stays silent when the inner boundary catches cleanly');
-
-  it.todo(
-    '[NEW] named-slot projection: a throw in named-slot content is caught by the projected-into boundary'
-  );
-
-  it.todo('[NEW] a thrown non-Error class instance is caught (CSR)');
+  it('[NEW] a thrown non-Error class instance is caught (CSR)', async () => {
+    const { container } = await domRender(boxed(<NonSerializableThrower />), { debug });
+    await waitForDrain(container);
+    expect(container.element.querySelector('#fb')?.textContent).toContain(
+      'caught: non-serializable boom'
+    );
+  });
 });
 
 // ===== B. Reset =====
@@ -680,13 +737,65 @@ describe.each(resetModes)(
 );
 
 describe('ErrorBoundary reset', () => {
-  it.todo(
-    '[NEW] sequential errors across resets: a second error after recovery shows the second message, and reset recovers again'
-  );
+  it('[NEW] sequential errors across resets: a second error after recovery shows the second message, and reset recovers again', async () => {
+    resetRef.toggle = 0;
+    const App = withResetBoundary(<ResetToggle />);
+    const { container } = await domRender(<App />, { debug });
+    const el = container.element;
+    expect(el.querySelector('#retry')?.textContent).toContain('boom-1');
 
-  it.todo(
-    '[NEW] reset after escalation: the outer boundary resets and re-attempts the whole subtree'
-  );
+    await trigger(el, '#retry', 'click');
+    expect(el.querySelector('#alive')).toBeTruthy();
+
+    // A signal write is fine-grained (text-only), so force a full component re-render instead.
+    await rerenderComponent(el.querySelector('#alive') as HTMLElement);
+    await waitForDrain(container).catch(() => {});
+    expect(el.querySelector('#retry')?.textContent).toContain('boom-3');
+
+    await trigger(el, '#retry', 'click');
+    expect(el.querySelector('#alive')).toBeTruthy();
+    expect(el.querySelector('#retry')).toBeFalsy();
+  });
+
+  // Throws only on its FIRST call so the post-reset re-attempt can prove the inner re-arms.
+  const escalationRef = { fallbackCalls: 0 };
+  // Wrapped in a component$: reset() re-renders the children's OWNER, so the boundary needs one.
+  const EscalationResetApp = component$(() => (
+    <ErrorBoundary
+      fallback$={$((e: any, reset: any) => (
+        <button id="retry-outer" onClick$={() => reset()}>
+          outer: {String(e?.message ?? e)}
+        </button>
+      ))}
+    >
+      <ErrorBoundary
+        fallback$={$(() => {
+          escalationRef.fallbackCalls++;
+          if (escalationRef.fallbackCalls === 1) {
+            throw new Error('inner fallback boom');
+          }
+          return <p id="fb-inner">inner recovered</p>;
+        })}
+      >
+        <Thrower />
+      </ErrorBoundary>
+    </ErrorBoundary>
+  ));
+
+  it('[NEW] reset after escalation: the outer boundary resets and re-attempts the whole subtree', async () => {
+    escalationRef.fallbackCalls = 0;
+    const { container } = await domRender(<EscalationResetApp />, { debug });
+    await waitForDrain(container).catch(() => {});
+    const el = container.element;
+    expect(el.querySelector('#retry-outer')?.textContent).toContain('inner fallback boom');
+
+    await trigger(el, '#retry-outer', 'click');
+    await waitForDrain(container).catch(() => {});
+
+    // The re-attempted subtree re-arms the INNER boundary: it catches its own error again.
+    expect(el.querySelector('#fb-inner')?.textContent).toContain('inner recovered');
+    expect(el.querySelector('#retry-outer')).toBeFalsy();
+  });
 });
 
 // ===== C. CSR-specific =====
@@ -786,7 +895,30 @@ describe('ErrorBoundary CSR-specific', () => {
     });
   });
 
-  it.todo('[NEW] onError$ info.phase for a qerror-delivered client error');
+  it('[NEW] onError$ info.phase for a qerror-delivered client error', async () => {
+    const infos: Array<{ phase: string; boundaryId: string }> = [];
+    const { container } = await domRender(
+      <ErrorBoundary
+        fallback$={fb()}
+        onError$={$((_e: any, info: any) => {
+          infos.push({ phase: info.phase, boundaryId: info.boundaryId });
+        })}
+      >
+        <button id="target">x</button>
+      </ErrorBoundary>,
+      { debug }
+    );
+    const target = container.element.querySelector('#target')!;
+    dispatchQError(target, { error: new Error('client boom'), element: target });
+    await waitForDrain(container);
+    await getTestPlatform().flush();
+    await delay(0);
+
+    expect(infos).toHaveLength(1);
+    // dom-container's qerror listener routes through handleError(..., 'event').
+    expect(infos[0].phase).toBe('event');
+    expect(infos[0].boundaryId.length).toBeGreaterThan(0);
+  });
 
   describe('falsy thrown values', () => {
     const Boundary = component$(() => {
@@ -801,22 +933,23 @@ describe('ErrorBoundary CSR-specific', () => {
       );
     });
 
-    it.each([0, null, '', false])('shows the fallback when %s is thrown', async (thrown) => {
-      const { container } = await domRender(<Boundary />, { debug });
-      const el = container.element;
-      expect(el.querySelector('#content')).toBeTruthy();
+    it.each([0, null, '', false, undefined])(
+      'shows the fallback when %s is thrown',
+      async (thrown) => {
+        const { container } = await domRender(<Boundary />, { debug });
+        const el = container.element;
+        expect(el.querySelector('#content')).toBeTruthy();
 
-      dispatchQError(el.querySelector('#content')!, {
-        error: thrown,
-        element: el.querySelector('#content')!,
-      });
-      await waitForDrain(container);
+        dispatchQError(el.querySelector('#content')!, {
+          error: thrown,
+          element: el.querySelector('#content')!,
+        });
+        await waitForDrain(container);
 
-      expect(el.querySelector('#fb')).toBeTruthy();
-      expect(el.querySelector('#content')).toBeFalsy();
-    });
-
-    it.todo('[NEW] shows the fallback when undefined is thrown');
+        expect(el.querySelector('#fb')).toBeTruthy();
+        expect(el.querySelector('#content')).toBeFalsy();
+      }
+    );
   });
 
   it('CSR: a non-recoverable build error is not caught by the boundary', async () => {
@@ -935,9 +1068,30 @@ describe('ErrorBoundary CSR-specific', () => {
       expect(alert?.textContent).toContain('Something went wrong');
     });
 
-    it.todo(
-      '[NEW] a failing fallback$ chunk with an outer boundary still renders the last-resort locally'
-    );
+    it('[NEW] a failing fallback$ chunk with an outer boundary still renders the last-resort locally', async () => {
+      const failingFallback = qrl(
+        () => Promise.reject(new Error('chunk load failure')),
+        'fb'
+      ) as any;
+      const { container } = await domRender(
+        <ErrorBoundary
+          fallback$={$(() => (
+            <p id="fb-outer">outer</p>
+          ))}
+        >
+          <ErrorBoundary fallback$={failingFallback}>
+            <Thrower />
+          </ErrorBoundary>
+        </ErrorBoundary>,
+        { debug }
+      );
+      await waitForDrain(container).catch(() => {});
+      const el = container.element;
+      const alert = el.querySelector('[role="alert"]');
+      expect(alert?.textContent).toContain('Something went wrong');
+      // A chunk LOAD failure is handled locally; it never escalates to the outer boundary.
+      expect(el.querySelector('#fb-outer')).toBeFalsy();
+    });
   });
 
   describe('unhandledrejection bridge', () => {
@@ -985,9 +1139,29 @@ describe('ErrorBoundary CSR-specific', () => {
     });
   });
 
-  it.todo(
-    '[NEW] a render throw with no enclosing boundary surfaces the ORIGINAL error to logError'
-  );
+  it('[NEW] a render throw with no enclosing boundary surfaces the ORIGINAL error to logError', async () => {
+    const original = new Error('unbounded boom');
+    const UnboundedThrower = component$((): JSXOutput => {
+      throw original;
+    });
+    // The no-boundary exit logs AND re-throws async (so global reporters still see it).
+    const throwAsyncSpy = vi
+      .spyOn(logUtils, 'logErrorAndThrowAsync')
+      .mockImplementation((message?: any) => message as Error);
+    try {
+      const { container } = await domRender(
+        <main>
+          <UnboundedThrower />
+        </main>,
+        { debug }
+      );
+      await waitForDrain(container).catch(() => {});
+      expect(throwAsyncSpy).toHaveBeenCalledTimes(1);
+      expect(throwAsyncSpy).toHaveBeenCalledWith(original);
+    } finally {
+      throwAsyncSpy.mockRestore();
+    }
+  });
 });
 
 // ===== D. SSR-specific =====
@@ -1093,10 +1267,6 @@ describe('ErrorBoundary SSR-specific', () => {
     expect(infos[0].boundaryId.length).toBeGreaterThan(0);
   });
 
-  const NonSerializableThrower = component$((): JSXOutput => {
-    throw new NonSerializableError();
-  });
-
   const NormalErrorThrower = component$((): JSXOutput => {
     throw new Error('normal boom');
   });
@@ -1121,6 +1291,16 @@ describe('ErrorBoundary SSR-specific', () => {
       { debug }
     );
     expect(container.element.querySelector('#fb')?.textContent).toContain('caught: normal boom');
+  });
+
+  const UndefinedThrower = component$((): JSXOutput => {
+    // eslint-disable-next-line no-throw-literal
+    throw undefined;
+  });
+
+  it('[NEW] a throw of undefined during SSR render reveals the fallback', async () => {
+    const { container } = await ssrRenderToDom(boxed(<UndefinedThrower />), { debug });
+    expect(container.element.querySelector('#fb')).toBeTruthy();
   });
 
   it('SSR: a non-recoverable build error is NOT hidden in the fallback (it surfaces)', async () => {
@@ -1253,7 +1433,35 @@ describe('ErrorBoundary SSR→CSR cross-phase', () => {
     }
   );
 
-  it.todo('[NEW] a qerror on a resumed container routes to the NEAREST of nested boundaries');
+  it('[NEW] a qerror on a resumed container routes to the NEAREST of nested boundaries', async () => {
+    const { container } = await ssrRenderToDom(
+      <main>
+        <ErrorBoundary
+          fallback$={$(() => (
+            <p id="fb-outer">outer</p>
+          ))}
+        >
+          <ErrorBoundary
+            fallback$={$(() => (
+              <p id="fb-inner">inner</p>
+            ))}
+          >
+            <button id="target">x</button>
+          </ErrorBoundary>
+        </ErrorBoundary>
+      </main>,
+      { debug }
+    );
+    const el = container.element;
+    expect(el.querySelector('#fb-inner')).toBeFalsy();
+
+    const target = el.querySelector('#target')!;
+    dispatchQError(target, { error: new Error('client boom'), element: target });
+    await waitForDrain(container);
+
+    expect(el.querySelector('#fb-inner')).toBeTruthy();
+    expect(el.querySelector('#fb-outer')).toBeFalsy();
+  });
 });
 
 // ===== F. Swap mechanics (qErr) =====
@@ -1884,6 +2092,34 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
     expect(text).not.toContain('SECRET');
   });
 
-  it.todo('[NEW] digest is produced and deterministic for non-Error thrown values');
-  it.todo('[NEW] markBoundaryErrored called twice: onError$ fires only for the first error');
+  it('[NEW] digest is produced and deterministic for non-Error thrown values', () => {
+    const digestOf = (thrown: unknown) => {
+      const projected = toSerializableBoundaryError(thrown, false) as Error & { digest: string };
+      expect(projected).toBeInstanceOf(Error);
+      expect(projected.message).toBe('An error occurred');
+      expect(typeof projected.digest).toBe('string');
+      expect(projected.digest.length).toBeGreaterThan(0);
+      return projected.digest;
+    };
+    const digests = [0, 'string boom', { code: 'X' }].map((thrown) => {
+      expect(digestOf(thrown)).toBe(digestOf(thrown));
+      return digestOf(thrown);
+    });
+    expect(new Set(digests).size).toBe(digests.length);
+  });
+
+  it('[NEW] markBoundaryErrored called twice: onError$ fires only for the first error, but the second overwrites store.error', () => {
+    const received: unknown[] = [];
+    const store: ErrorBoundaryStore = { error: undefined, $onError$: (e) => received.push(e) };
+    const first = new Error('first');
+    const second = new Error('second');
+    markBoundaryErrored(store, first);
+    expect(received).toEqual([first]);
+    expect(store.error).toBe(first);
+
+    markBoundaryErrored(store, second);
+    expect(received).toEqual([first]);
+    // Pins current behavior: the losing error still replaces store.error (possible design question).
+    expect(store.error).toBe(second);
+  });
 });

@@ -211,9 +211,15 @@ Gated on the `errorBoundary` flag (the component throws when it's off).
   terminates the loop.
 
 ### Testing gotchas (they cause false passes)
-- The unit harness (`domRender`/`ssrRenderToDom`/`streamAndResume`) **simulates** resume — it runs the
-  `qO`/`qErr` scripts but not real qwikloader resume/event dispatch, so a spec can pass while a real
+- The unit harness (`domRender`/`ssrRenderToDom`/`streamAndResume`) **simulates** resume — it runs
+  inline scripts but not real qwikloader resume/event dispatch, so a spec can pass while a real
   browser breaks. Back every resume/interactivity claim with `error-boundary-streaming.e2e.ts`.
+  Only the EB spec's `streamAndResume` executes `qErr` scripts; plain `ssrRenderToDom` runs just
+  `qO` + backpatch, so a display toggle it shows came from the BACKPATCH, not the swap script.
+- Deserialization is lazy (proxied roots), so a serialized ref into an inert region passes
+  render-only asserts and can first explode inside a failed assert's stringify. Pin the writer
+  protocol by deserializing every root — `container.$getObjectById$(i)` for `i < stateLength / 2`
+  (the nested-boundaries EB spec does) — and remember `q:state-prewarm` makes real resume eager.
 - The flags are build-time-replaced and BOTH `errorBoundary` + `suspense` are ON for the whole unit
   suite, so you cannot toggle them at runtime in a test; the flag-off path needs a separate build.
 - For serialization/resume, verify on **`build.core`** (full tsc) — `build.core.dev` masks SSR→resume

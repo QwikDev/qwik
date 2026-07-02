@@ -170,73 +170,37 @@ Never use `pnpm test.unit` for agent verification in this repo.
 
 ## ErrorBoundary (experimental `errorBoundary`)
 
-Prescriptive notes for touching ErrorBoundary code — what not to break, and the traps that cause
-false passes. (Read the source for the full mechanism.)
+Where things live: `errorBoundaryCmp` (`shared/error/error-boundary.ts`); SSR catch + inert marking
+(`ssr/ssr-render-jsx.ts`); fallback hosts (`control-flow/suspense.tsx`, `SSRErrorFallbackHost`);
+client routing (`client/dom-container.ts`); shared helpers (`shared/error/error-handling.ts`).
 
-Where the pieces live: `errorBoundaryCmp` (`shared/error/error-boundary.ts`); SSR catch + inert
-(`ssr/ssr-render-jsx.ts`: `renderErrorBoundaryFallback`, `catchToErrorBoundary`,
-`markErrorBoundaryContentInert`); the SSR fallback hosts (`control-flow/suspense.tsx`:
-`SSRErrorFallbackHost` picks at drain time between `SSRErrorFallbackInline` = in-place/`qErr` and
-`SSRErrorFallback` = deferred/`qO`); client routing (`client/dom-container.ts`: `handleError`, the
-`qerror` listener); shared helpers (`shared/error/error-handling.ts`: `markBoundaryErrored`,
-`fireOnError`, `toSerializableBoundaryError`, `isErrorFromDeferredSegment`, `ErrorBoundaryStore`).
-Gated on the `errorBoundary` flag (the component throws when it's off).
+### Invariants
+- The boundary never buffers streaming: the SSR catch only sets `store.error`, fires `onError$`,
+  marks content inert, and returns `null` — the sibling `fallback-host` renders the fallback.
+- The swap is decided at fallback-host drain time by error ORIGIN: in-place → inline + `qErr`
+  (`q:ebf`), even under OOOS; deferred-segment → `qO` shell (`q:rp`). Inline content must never sit
+  under `q:rp` (OOOS resume hijacks it into a template); a deferred fallback's vnode-data must
+  travel through a segment.
+- `markBoundaryErrored` is the only server error writer: it normalizes (never stores `undefined`)
+  and fires `onError$` per caught error with the ORIGINAL error + phase (`tagErrorPhase` survives
+  the SSR rethrow). First-wins absorption lives at the call sites, not inside it.
+- `store.error === undefined` means "no error" — every writer normalizes a thrown `undefined`.
+- `store.$onError$` is server-only; the client uses the serialized `props.onError$`.
+- `content-host` precedes `fallback-host`; the `qErr` executor stays independent of `qO` (gated on
+  `errorBoundary`, not `suspense`).
+- Closest boundary catches; a throwing fallback escalates past detached-`$fallback$` boundaries.
 
-### Keep these invariants
-- **Never let the boundary buffer or block streaming.** Content streams live into the `content-host`;
-  on a throw `renderErrorBoundaryFallback` sets `store.error` + fires `onError$` + marks content
-  inert + returns `null`. It must NOT render the fallback itself — a sibling `fallback-host` does.
-- **Keep the origin-based swap split, decided at fallback-host DRAIN time** (`SSRErrorFallbackHost`):
-  an in-place error (already in `store.error` when the host drains) swaps inline via `qErr` (`q:ebf`
-  host) even when OOOS is enabled; only a deferred-segment error keeps the `qO` shell (`q:rp` host) —
-  including one that raced in before the host drained (`isErrorFromDeferredSegment`). The resume
-  invariant: a deferred fallback's vnode-data must travel through a segment (`qProcessOOOS`), and
-  inline content must never sit under a `q:rp` host (OOOS resume hijacks it into a template).
-- **Write the error state only through `markBoundaryErrored(store, error)`** — it sets `store.error`
-  via `toSerializableBoundaryError` and fires `onError$` with the ORIGINAL error and its phase (an
-  SSR-rethrown task error keeps its phase via the `tagErrorPhase` symbol tag). Each newly caught
-  error re-fires — first-wins absorption belongs to the CALL SITES (detached `$fallback$` /
-  `error !== undefined` guards), never to a first-catch gate inside it.
-- **`store.error === undefined` means "no error".** Every writer path must normalize a thrown
-  `undefined` to a keyable `Error`: `toSerializableBoundaryError` never returns `undefined` (SSR),
-  and the client `handleError` maps it before storing. `onError$` still gets the raw thrown value.
-- **`onError$` fires once per caught error**: server via the `store.$onError$` mirror, client via
-  the serialized `props.onError$`. The `$`-mirror is server-only — never read it on the client.
-- **Keep `content-host` before `fallback-host`** in DOM/vnode order (the `qO` reveal hides the
-  previous sibling, and a later throw must resolve up through the content-host).
-- **Keep the `qErr` executor independent of `qO`** (gated on `errorBoundary`, not `suspense`) so a
-  plain in-order page still swaps.
-- **Closest boundary catches; a throwing fallback escalates.** Both SSR and client skip a boundary
-  whose `$fallback$` is already detached and walk to the nearest ancestor; the top-level handler
-  terminates the loop.
-
-### Testing gotchas (they cause false passes)
-- The unit harness (`domRender`/`ssrRenderToDom`/`streamAndResume`) **simulates** resume — it runs
-  inline scripts but not real qwikloader resume/event dispatch, so a spec can pass while a real
-  browser breaks. Back every resume/interactivity claim with `error-boundary-streaming.e2e.ts`.
-  Only the EB spec's `streamAndResume` executes `qErr` scripts; plain `ssrRenderToDom` runs just
-  `qO` + backpatch, so a display toggle it shows came from the BACKPATCH, not the swap script.
-- Deserialization is lazy (proxied roots), so a serialized ref into an inert region passes
-  render-only asserts and can first explode inside a failed assert's stringify. Pin the writer
-  protocol by deserializing every root — `container.$getObjectById$(i)` for `i < stateLength / 2`
-  (the nested-boundaries EB spec does) — and remember `q:state-prewarm` makes real resume eager.
-- The flags are build-time-replaced and BOTH `errorBoundary` + `suspense` are ON for the whole unit
-  suite, so you cannot toggle them at runtime in a test; the flag-off path needs a separate build.
-- For serialization/resume, verify on **`build.core`** (full tsc) — `build.core.dev` masks SSR→resume
-  bugs. The unit env defaults `outOfOrder: true`, so the in-order branch only runs with explicit
-  `streaming: { outOfOrder: false }` — exercise BOTH branches.
-- `qwik-dom`'s `element.querySelector` is NOT subtree-scoped — use `host.contains(el)` for placement.
-  Rendering one JSX object in two containers trips "props across containers"; build a fresh tree per test.
-- e2e: rebuild with **`pnpm build.core`**, NOT `build.core.dev` — dev builds proxy
-  `core.prod.mjs`/`server.prod.mjs` to the dev bundles, so server `isDev` stays true and the suite's
-  prod-redaction asserts (`caught: An error occurred`) false-FAIL on unredacted messages. Kill the
-  stale `:3301` server (`reuseExistingServer` serves a stale bundle), run `CI=1`:
-
-```bash
-pnpm vitest run packages/qwik/src/core/tests/error-boundary.spec.tsx
-pnpm build.core && lsof -nP -iTCP:3301 -sTCP:LISTEN | awk 'NR>1{print $2}' | xargs -r kill
-CI=1 pnpm playwright test e2e/qwik-e2e/tests/error-boundary-streaming.e2e.ts --browser=chromium --config e2e/qwik-e2e/playwright.config.ts
-```
+### False-pass traps
+- The unit harness simulates resume — back resume/interactivity claims with
+  `error-boundary-streaming.e2e.ts`. Only `streamAndResume` executes `qErr` scripts; a display
+  toggle under plain `ssrRenderToDom` came from the backpatch, not the swap.
+- Deserialization is lazy: a poisoned ref into an inert region passes render-only asserts.
+  Deserialize every root (`container.$getObjectById$`) to pin the writer protocol;
+  `q:state-prewarm` makes real resume eager.
+- Flags are build-time-replaced and ON suite-wide; the unit env defaults `outOfOrder: true`, so
+  exercise the in-order branch with explicit `streaming: { outOfOrder: false }`.
+- `qwik-dom` `querySelector` is document-wide — use `host.contains(el)`; build a fresh JSX tree per
+  container ("props across containers").
 
 ## Keep This Reference Fresh
 

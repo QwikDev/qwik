@@ -195,6 +195,47 @@ test.describe('ErrorBoundary streaming swap', () => {
     });
   }
 
+  // In-order streams qwik/state (and the container-ready marker) at the very END, so a click on
+  // the already-swapped fallback MID-STREAM must be queued by the qwikloader
+  // (waitForContainerReady) and replayed after resume — the OOOS twin flushes container-ready
+  // with the shell and never exercises this window.
+  test('in-order mid-stream click on a swapped fallback is queued and replayed after resume', async ({
+    page,
+  }) => {
+    assertNoBrowserErrors(page);
+    // 'direct' in-order streaming: the default 'auto' strategy keeps the swap in the server
+    // buffer while the gate is pending, so the fallback would never be visible mid-stream.
+    await page.goto(`${streamingUrl('midstream', false)}&release=eb&inOrderStrategy=direct`, {
+      waitUntil: 'commit',
+    });
+
+    // The boundary already swapped while the gated in-order sibling still blocks the stream.
+    await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: An error occurred');
+    await expect(page.locator('#eb-deferred-ok')).toHaveCount(0);
+
+    // The qwikloader must be initialized (default click subscription) or the click is lost.
+    await page.waitForFunction(() => !!(window as any)._qwikEv?.roots);
+    // Premise: not resumed yet — resume flips q:container 'paused' → 'resumed' (dom-container.ts).
+    await expect(page.locator('html')).toHaveAttribute('q:container', 'paused');
+
+    await page.locator('#eb-reset').click();
+    // Queued, not run: the swapped-out SSR content stays hidden and the container stays paused.
+    await expect(page.locator('#eb-content')).toBeHidden();
+    await expect(page.locator('#eb-fallback')).toBeVisible();
+    await expect(page.locator('html')).toHaveAttribute('q:container', 'paused');
+
+    await releaseDeferred(page, '#eb-release');
+    await page.waitForLoadState('load');
+
+    // Replayed after container-ready: reset re-executed the children and recovered.
+    await expect(page.locator('#eb-content')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#eb-thrower-client')).toBeAttached();
+    await expect(page.locator('#eb-fallback')).toHaveCount(0);
+    await expect(page.locator('#eb-deferred-ok')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('html')).toHaveAttribute('q:container', 'resumed');
+  });
+
   // Interaction-free client throw: qvisible (IntersectionObserver) fires the _task QRL on the
   // resumed container — a delivery chain no unit harness exercises (it runs visible tasks eagerly).
   test('useVisibleTask$ throw after resume is routed to the boundary without interaction', async ({

@@ -276,6 +276,23 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
             releaseParam="release"
           />
         </>
+      ) : scenario === 'midstream' ? (
+        // In-order mid-stream window: the release-gated sibling AFTER the boundary holds the
+        // stream open, so the swapped fallback is clickable before qwik/state has arrived.
+        <>
+          <ErrorBoundary fallback$={resetFallback}>
+            <EbContent />
+            <EbSyncThrower />
+          </ErrorBoundary>
+          <ManualOutOfOrderReleaseButton
+            id="eb-release"
+            label="Release gated ok"
+            releaseParam="release"
+          />
+          <Suspense fallback={<span id="eb-skel">loading</span>}>
+            <EbGatedOk />
+          </Suspense>
+        </>
       ) : scenario === 'nested' ? (
         <ErrorBoundary fallback$={(e) => <EbFallback id="eb-outer" msg={errMsg(e)} />}>
           <EbThrowOnClick

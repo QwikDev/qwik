@@ -317,12 +317,14 @@ function processJSXNode(
       enqueue(() => ssr.streamHandler.flush());
     } else if (isAsyncGenerator(value)) {
       enqueue(async () => {
+        // Fresh object per walk: _walkJSX mutates its options in place.
+        const freshWalkOptions = () => ({
+          currentStyleScoped: options.currentStyleScoped,
+          parentComponentFrame: options.parentComponentFrame,
+        });
         try {
           for await (const chunk of value) {
-            await _walkJSX(ssr, chunk as JSXOutput, {
-              currentStyleScoped: options.currentStyleScoped,
-              parentComponentFrame: options.parentComponentFrame,
-            });
+            await _walkJSX(ssr, chunk as JSXOutput, freshWalkOptions());
             await ssr.streamHandler.flush();
           }
         } catch (err) {
@@ -333,10 +335,7 @@ function processJSXNode(
             err,
             'async-generator'
           );
-          await _walkJSX(ssr, fallback, {
-            currentStyleScoped: options.currentStyleScoped,
-            parentComponentFrame: options.parentComponentFrame,
-          });
+          await _walkJSX(ssr, fallback, freshWalkOptions());
         }
       });
     } else {

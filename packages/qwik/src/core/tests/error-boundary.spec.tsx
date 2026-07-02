@@ -133,6 +133,13 @@ const dispatchQError = (
 
 const fbCount = (root: any) => root.querySelectorAll('#fb').length;
 
+// Settles fire-and-forget onError$ delivery; drain may reject when the error escalates.
+const settleOnErrorDelivery = async (container: Parameters<typeof waitForDrain>[0]) => {
+  await waitForDrain(container).catch(() => {});
+  await getTestPlatform().flush();
+  await delay(0);
+};
+
 // ===== Shared fixtures hoisted to module scope (used across suites) =====
 
 // Fresh QRL per call: a fallback QRL must not be shared across containers.
@@ -472,9 +479,7 @@ describe.each(modes)('ErrorBoundary behavior (%s)', (mode, renderMode) => {
         ),
         modeOpts
       );
-      await waitForDrain(container);
-      await getTestPlatform().flush();
-      await delay(0);
+      await settleOnErrorDelivery(container);
 
       expect(container.element.querySelector('#fb')?.textContent).toContain('caught: boom');
       expect(onErrorLog.errors).toEqual(['boom']);
@@ -495,9 +500,7 @@ describe.each(modes)('ErrorBoundary behavior (%s)', (mode, renderMode) => {
         ),
         modeOpts
       );
-      await waitForDrain(container);
-      await getTestPlatform().flush();
-      await delay(0);
+      await settleOnErrorDelivery(container);
 
       expect(infos).toHaveLength(1);
       expect(infos[0].phase).toBe('render');
@@ -521,9 +524,7 @@ describe.each(modes)('ErrorBoundary behavior (%s)', (mode, renderMode) => {
         ),
         modeOpts
       );
-      await waitForDrain(container);
-      await getTestPlatform().flush();
-      await delay(0);
+      await settleOnErrorDelivery(container);
 
       expect(calls).toHaveLength(1);
       expect(calls[0].phase).toBe('render');
@@ -547,9 +548,7 @@ describe.each(modes)('ErrorBoundary behavior (%s)', (mode, renderMode) => {
         ),
         modeOpts
       );
-      await waitForDrain(container);
-      await getTestPlatform().flush();
-      await delay(0);
+      await settleOnErrorDelivery(container);
 
       expect(log).toEqual(['boom']);
       expect(container.element.querySelector('#fb')?.textContent).toContain('caught: boom');
@@ -584,9 +583,7 @@ describe.each(modes)('ErrorBoundary behavior (%s)', (mode, renderMode) => {
         ),
         modeOpts
       );
-      await waitForDrain(container);
-      await getTestPlatform().flush();
-      await delay(0);
+      await settleOnErrorDelivery(container);
 
       const el = container.element;
       expect(el.querySelector('#fb-inner')?.textContent).toContain('caught: boom');
@@ -609,9 +606,7 @@ describe.each(modes)('ErrorBoundary behavior (%s)', (mode, renderMode) => {
           }),
         modeOpts
       );
-      await waitForDrain(container).catch(() => {});
-      await getTestPlatform().flush();
-      await delay(0);
+      await settleOnErrorDelivery(container);
 
       const el = container.element;
       expect(el.querySelector('#fb-outer')?.textContent).toBe('outer');
@@ -914,9 +909,7 @@ describe('ErrorBoundary CSR-specific', () => {
     );
     const target = container.element.querySelector('#target')!;
     dispatchQError(target, { error: new Error('client boom'), element: target });
-    await waitForDrain(container);
-    await getTestPlatform().flush();
-    await delay(0);
+    await settleOnErrorDelivery(container);
 
     expect(infos).toHaveLength(1);
     // dom-container's qerror listener routes through handleError(..., 'event').
@@ -1328,9 +1321,7 @@ describe('ErrorBoundary SSR-specific', () => {
     const el = container.element;
     const target = el.querySelector('#target')!;
     dispatchQError(target, { error: new Error('client boom'), element: target });
-    await waitForDrain(container);
-    await getTestPlatform().flush();
-    await delay(0);
+    await settleOnErrorDelivery(container);
 
     expect((globalThis as any).__ebOnErrorLog).toEqual(['client boom']);
     expect(el.querySelector('#fb')?.textContent).toContain('caught: client boom');

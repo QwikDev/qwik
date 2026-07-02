@@ -303,19 +303,20 @@ describe('qwikloader behavior', () => {
     expect(logs).toEqual(['child bubble']);
   });
 
+  const stopLogHandlerQrl = (label: string) =>
+    `data:text/javascript;charset=utf-8,${encodeURIComponent(
+      `export const handler = () => globalThis.__qwikLoaderStopLogs.push(${JSON.stringify(label)});`
+    )}#handler#`;
+
   test('a deferred (importing) handler that does not stop still runs the deferred ancestor', async () => {
     const { doc } = createLoaderEnvironment(['e:click']);
     const logs: string[] = [];
     const previousLogs = (globalThis as any).__qwikLoaderStopLogs;
-    const childModule = `data:text/javascript;charset=utf-8,${encodeURIComponent(
-      'export const handler = () => globalThis.__qwikLoaderStopLogs.push("child run");'
-    )}`;
-    const parentModule = `data:text/javascript;charset=utf-8,${encodeURIComponent(
-      'export const handler = () => globalThis.__qwikLoaderStopLogs.push("parent bubble");'
-    )}`;
     const container = createMockElement(null, { 'q:container': 'resumed', 'q:base': './' });
-    const parent = createMockElement(container, { 'q-e:click': `${parentModule}#handler#` });
-    const child = createMockElement(parent, { 'q-e:click': `${childModule}#handler#` });
+    const parent = createMockElement(container, {
+      'q-e:click': stopLogHandlerQrl('parent bubble'),
+    });
+    const child = createMockElement(parent, { 'q-e:click': stopLogHandlerQrl('child run') });
 
     (globalThis as any).__qwikLoaderStopLogs = logs;
     try {
@@ -332,18 +333,12 @@ describe('qwikloader behavior', () => {
     const { doc } = createLoaderEnvironment(['e:click']);
     const logs: string[] = [];
     const previousLogs = (globalThis as any).__qwikLoaderStopLogs;
-    const captureModule = `data:text/javascript;charset=utf-8,${encodeURIComponent(
-      'export const handler = () => globalThis.__qwikLoaderStopLogs.push("capturer capture");'
-    )}`;
-    const bubbleModule = `data:text/javascript;charset=utf-8,${encodeURIComponent(
-      'export const handler = () => globalThis.__qwikLoaderStopLogs.push("target bubble");'
-    )}`;
     const container = createMockElement(null, { 'q:container': 'resumed', 'q:base': './' });
     const capturer = createMockElement(container, {
       'capture:click': true,
-      'q-e:click': `${captureModule}#handler#`,
+      'q-e:click': stopLogHandlerQrl('capturer capture'),
     });
-    const target = createMockElement(capturer, { 'q-e:click': `${bubbleModule}#handler#` });
+    const target = createMockElement(capturer, { 'q-e:click': stopLogHandlerQrl('target bubble') });
 
     (globalThis as any).__qwikLoaderStopLogs = logs;
     try {

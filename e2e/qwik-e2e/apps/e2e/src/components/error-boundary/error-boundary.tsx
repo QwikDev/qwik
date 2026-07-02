@@ -1,4 +1,5 @@
 import {
+  $,
   component$,
   ErrorBoundary,
   isServer,
@@ -9,6 +10,7 @@ import {
   useSignal,
   useTask$,
   type JSXOutput,
+  type QRL,
   type Signal,
 } from '@qwik.dev/core';
 import { ManualOutOfOrderReleaseButton } from '../suspense/ooos';
@@ -51,6 +53,42 @@ const EbFallback = component$((props: { msg: string; id?: string }) => {
     </section>
   );
 });
+
+const errMsg = (e: unknown) => String((e as any)?.message ?? e);
+
+// Explicit `$()`: the optimizer leaves identifier-valued `$`-props alone, so a shared
+// fallback must already be a QRL or SSR serialization fails with Q34.
+const defaultFallback = $((e: unknown) => <EbFallback msg={errMsg(e)} />);
+
+// Must stay `onClick$={() => reset()}` so the streamed fallback keeps a wired reset after resume.
+const resetFallback = $((e: unknown, reset: QRL<() => void>) => (
+  <section id="eb-fallback">
+    <p id="eb-fallback-msg">caught: {errMsg(e)}</p>
+    <button id="eb-reset" onClick$={() => reset()}>
+      Retry
+    </button>
+  </section>
+));
+
+const EbThrowOnClick = component$<{
+  idPrefix: string;
+  message: string;
+  touched: Signal<number>;
+  label?: string;
+}>((props) => (
+  <>
+    <button
+      id={`${props.idPrefix}-throw`}
+      onClick$={() => {
+        props.touched.value++;
+        throw new Error(props.message);
+      }}
+    >
+      {props.label ?? 'throw on click'}
+    </button>
+    <span id={`${props.idPrefix}-touched`}>{props.touched.value}</span>
+  </>
+));
 
 // Resolves after a tick so the enclosing `<Suspense>` genuinely defers into an out-of-order segment.
 const EbDeferredOk = component$(() => {
@@ -182,65 +220,42 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
       <h1 id="eb-title">EB Streaming</h1>
       {scenario === 'happy' ? (
         // No SSR throw; touch state first so the container resumes before the client throw routes.
-        <ErrorBoundary fallback$={(e) => <EbFallback msg={String((e as any)?.message ?? e)} />}>
+        <ErrorBoundary fallback$={defaultFallback}>
           <EbContent />
-          <button
-            id="eb-content-throw"
-            onClick$={() => {
-              touched.value++;
-              throw new Error('happy click boom');
-            }}
-          >
-            throw on click
-          </button>
-          <span id="eb-content-touched">{touched.value}</span>
+          <EbThrowOnClick idPrefix="eb-content" message="happy click boom" touched={touched} />
         </ErrorBoundary>
       ) : scenario === 'suspense' ? (
         // The deferred-ok sibling forces a real out-of-order segment so the boundary swaps within it.
         <Suspense fallback={<span id="eb-skel">loading</span>}>
           <EbDeferredOk />
-          <ErrorBoundary fallback$={(e) => <EbFallback msg={String((e as any)?.message ?? e)} />}>
+          <ErrorBoundary fallback$={defaultFallback}>
             <EbContent />
             <EbSyncThrower />
           </ErrorBoundary>
         </Suspense>
       ) : scenario === 'nested' ? (
-        <ErrorBoundary
-          fallback$={(e) => <EbFallback id="eb-outer" msg={String((e as any)?.message ?? e)} />}
-        >
-          <button
-            id="eb-outer-throw"
-            onClick$={() => {
-              touched.value++;
-              throw new Error('outer click boom');
-            }}
-          >
-            trigger outer
-          </button>
-          <span id="eb-outer-touched">{touched.value}</span>
-          <ErrorBoundary
-            fallback$={(e) => <EbFallback id="eb-inner" msg={String((e as any)?.message ?? e)} />}
-          >
+        <ErrorBoundary fallback$={(e) => <EbFallback id="eb-outer" msg={errMsg(e)} />}>
+          <EbThrowOnClick
+            idPrefix="eb-outer"
+            message="outer click boom"
+            touched={touched}
+            label="trigger outer"
+          />
+          <ErrorBoundary fallback$={(e) => <EbFallback id="eb-inner" msg={errMsg(e)} />}>
             <EbSyncThrower />
           </ErrorBoundary>
         </ErrorBoundary>
       ) : scenario === 'nested-ssr' ? (
         // Both boundaries error server-side: the inner swaps first, then the outer's own child
         // throw supersedes it, leaving the inner fallback inside the outer's inert content.
-        <ErrorBoundary
-          fallback$={(e) => <EbFallback id="eb-outer" msg={String((e as any)?.message ?? e)} />}
-        >
-          <ErrorBoundary
-            fallback$={(e) => <EbFallback id="eb-inner" msg={String((e as any)?.message ?? e)} />}
-          >
+        <ErrorBoundary fallback$={(e) => <EbFallback id="eb-outer" msg={errMsg(e)} />}>
+          <ErrorBoundary fallback$={(e) => <EbFallback id="eb-inner" msg={errMsg(e)} />}>
             <EbSyncThrower />
           </ErrorBoundary>
           <EbSyncThrower />
         </ErrorBoundary>
       ) : scenario === 'throw-fallback' ? (
-        <ErrorBoundary
-          fallback$={(e) => <EbFallback id="eb-outer" msg={String((e as any)?.message ?? e)} />}
-        >
+        <ErrorBoundary fallback$={(e) => <EbFallback id="eb-outer" msg={errMsg(e)} />}>
           <ErrorBoundary
             fallback$={() => {
               throw new Error('inner fallback boom');
@@ -252,7 +267,7 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
         </ErrorBoundary>
       ) : scenario === 'inert' ? (
         <>
-          <ErrorBoundary fallback$={(e) => <EbFallback msg={String((e as any)?.message ?? e)} />}>
+          <ErrorBoundary fallback$={defaultFallback}>
             <EbInertContent trigger={inertTrigger} />
           </ErrorBoundary>
           <button id="eb-inert-trigger" onClick$={() => inertTrigger.value++}>
@@ -262,7 +277,7 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
         </>
       ) : scenario === 'async' ? (
         <>
-          <ErrorBoundary fallback$={(e) => <EbFallback msg={String((e as any)?.message ?? e)} />}>
+          <ErrorBoundary fallback$={defaultFallback}>
             <div id="eb-sibling">sibling</div>
             <Suspense fallback={<span id="eb-skel">loading</span>}>
               <EbAsyncThrower />
@@ -276,22 +291,13 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
         </>
       ) : scenario === 'client' ? (
         // Touch a signal first so the container resumes before the client throw routes to the fallback.
-        <ErrorBoundary fallback$={(e) => <EbFallback msg={String((e as any)?.message ?? e)} />}>
-          <button
-            id="eb-client-throw"
-            onClick$={() => {
-              touched.value++;
-              throw new Error('client click boom');
-            }}
-          >
-            throw on click
-          </button>
-          <span id="eb-client-touched">{touched.value}</span>
+        <ErrorBoundary fallback$={defaultFallback}>
+          <EbThrowOnClick idPrefix="eb-client" message="client click boom" touched={touched} />
           <div id="eb-content">content ok</div>
         </ErrorBoundary>
       ) : scenario === 'onerror' ? (
         <ErrorBoundary
-          fallback$={(e) => <EbFallback msg={String((e as any)?.message ?? e)} />}
+          fallback$={defaultFallback}
           onError$={(e, info) => {
             (window as any).__ebOnErrorRuns = ((window as any).__ebOnErrorRuns ?? 0) + 1;
             (window as any).__ebOnErrorMsg = (e as any)?.message ?? String(e);
@@ -300,56 +306,18 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
             (window as any).__ebOnErrorBoundaryId = info?.boundaryId;
           }}
         >
-          <button
-            id="eb-onerror-throw"
-            onClick$={() => {
-              touched.value++;
-              throw new Error('onerror boom');
-            }}
-          >
-            throw on click
-          </button>
-          <span id="eb-onerror-touched">{touched.value}</span>
+          <EbThrowOnClick idPrefix="eb-onerror" message="onerror boom" touched={touched} />
           <div id="eb-content">content ok</div>
         </ErrorBoundary>
       ) : scenario === 'no-boundary' ? (
-        <>
-          <button
-            id="eb-no-boundary-throw"
-            onClick$={() => {
-              touched.value++;
-              throw new Error('no-boundary boom');
-            }}
-          >
-            throw on click
-          </button>
-          <span id="eb-no-boundary-touched">{touched.value}</span>
-        </>
+        <EbThrowOnClick idPrefix="eb-no-boundary" message="no-boundary boom" touched={touched} />
       ) : scenario === 'reset' ? (
-        <ErrorBoundary
-          fallback$={(e, reset) => (
-            <section id="eb-fallback">
-              <p id="eb-fallback-msg">caught: {String((e as any)?.message ?? e)}</p>
-              <button id="eb-reset" onClick$={() => reset()}>
-                Retry
-              </button>
-            </section>
-          )}
-        >
+        <ErrorBoundary fallback$={resetFallback}>
           <EbContent />
           <EbSyncThrower />
         </ErrorBoundary>
       ) : scenario === 'reset-csr' ? (
-        <ErrorBoundary
-          fallback$={(e, reset) => (
-            <section id="eb-fallback">
-              <p id="eb-fallback-msg">caught: {String((e as any)?.message ?? e)}</p>
-              <button id="eb-reset" onClick$={() => reset()}>
-                Retry
-              </button>
-            </section>
-          )}
-        >
+        <ErrorBoundary fallback$={resetFallback}>
           <EbContent />
           <button
             id="eb-csr-throw"
@@ -365,16 +333,7 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
         // ErrorBoundary; the child does async work that errors on SSR and recovers when re-executed.
         <Suspense fallback={<span id="eb-skel">loading</span>}>
           <EbWrapper>
-            <ErrorBoundary
-              fallback$={(e, reset) => (
-                <section id="eb-fallback">
-                  <p id="eb-fallback-msg">caught: {String((e as any)?.message ?? e)}</p>
-                  <button id="eb-reset" onClick$={() => reset()}>
-                    Retry
-                  </button>
-                </section>
-              )}
-            >
+            <ErrorBoundary fallback$={resetFallback}>
               <EbWrapAsync />
             </ErrorBoundary>
           </EbWrapper>
@@ -388,7 +347,7 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
               key={attempt.value}
               fallback$={(e) => (
                 <section id="eb-fallback">
-                  <p id="eb-fallback-msg">caught: {String((e as any)?.message ?? e)}</p>
+                  <p id="eb-fallback-msg">caught: {errMsg(e)}</p>
                   <button id="eb-reset" onClick$={() => attempt.value++}>
                     Retry
                   </button>
@@ -403,16 +362,7 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
         // EB directly inside <Suspense>, child re-errors once then recovers — so the 2nd reset() runs a
         // CLIENT re-render of the boundary, exercising the reset Suspense-climb.
         <Suspense fallback={<span id="eb-skel">loading</span>}>
-          <ErrorBoundary
-            fallback$={(e, reset) => (
-              <section id="eb-fallback">
-                <p id="eb-fallback-msg">caught: {String((e as any)?.message ?? e)}</p>
-                <button id="eb-reset" onClick$={() => reset()}>
-                  Retry
-                </button>
-              </section>
-            )}
-          >
+          <ErrorBoundary fallback$={resetFallback}>
             <EbReErrorAsync />
           </ErrorBoundary>
         </Suspense>
@@ -425,16 +375,7 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
           </button>
           {spaShow.value ? (
             <Suspense fallback={<span id="eb-skel">loading</span>}>
-              <ErrorBoundary
-                fallback$={(e, reset) => (
-                  <section id="eb-fallback">
-                    <p id="eb-fallback-msg">caught: {String((e as any)?.message ?? e)}</p>
-                    <button id="eb-reset" onClick$={() => reset()}>
-                      Retry
-                    </button>
-                  </section>
-                )}
-              >
+              <ErrorBoundary fallback$={resetFallback}>
                 <EbReErrorAsync />
               </ErrorBoundary>
             </Suspense>
@@ -442,12 +383,12 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
         </>
       ) : scenario === 'async-error-inline' ? (
         // EXPECTED channel: async error read via `.error` → handled inline; the boundary stays inert.
-        <ErrorBoundary fallback$={(e) => <EbFallback msg={String((e as any)?.message ?? e)} />}>
+        <ErrorBoundary fallback$={defaultFallback}>
           <AsyncErrorInline />
         </ErrorBoundary>
       ) : scenario === 'async-error-throw' ? (
         // UNEXPECTED channel: async error read via `.value` → re-thrown → caught by the boundary.
-        <ErrorBoundary fallback$={(e) => <EbFallback msg={String((e as any)?.message ?? e)} />}>
+        <ErrorBoundary fallback$={defaultFallback}>
           <Suspense fallback={<span id="async-loading">loading</span>}>
             <AsyncValueThrows />
           </Suspense>
@@ -455,40 +396,18 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
       ) : scenario === 'nested-client' ? (
         // A real client throw from INSIDE the inner boundary must be caught by the NEAREST (inner)
         // boundary, leaving the outer intact.
-        <ErrorBoundary
-          fallback$={(e) => <EbFallback id="eb-outer" msg={String((e as any)?.message ?? e)} />}
-        >
+        <ErrorBoundary fallback$={(e) => <EbFallback id="eb-outer" msg={errMsg(e)} />}>
           <div id="eb-outer-ok">outer ok</div>
-          <ErrorBoundary
-            fallback$={(e) => <EbFallback id="eb-inner" msg={String((e as any)?.message ?? e)} />}
-          >
-            <button
-              id="eb-inner-throw"
-              onClick$={() => {
-                touched.value++;
-                throw new Error('inner client boom');
-              }}
-            >
-              throw on click
-            </button>
-            <span id="eb-inner-touched">{touched.value}</span>
+          <ErrorBoundary fallback$={(e) => <EbFallback id="eb-inner" msg={errMsg(e)} />}>
+            <EbThrowOnClick idPrefix="eb-inner" message="inner client boom" touched={touched} />
             <div id="eb-content">content ok</div>
           </ErrorBoundary>
         </ErrorBoundary>
       ) : scenario === 'last-resort' ? (
         // SSR-clean; the test blocks the lazily-loaded `fallback$` chunk to force core's
         // last-resort `role="alert"` node.
-        <ErrorBoundary fallback$={(e) => <EbFallback msg={String((e as any)?.message ?? e)} />}>
-          <button
-            id="eb-last-resort-throw"
-            onClick$={() => {
-              touched.value++;
-              throw new Error('last-resort boom');
-            }}
-          >
-            throw on click
-          </button>
-          <span id="eb-last-resort-touched">{touched.value}</span>
+        <ErrorBoundary fallback$={defaultFallback}>
+          <EbThrowOnClick idPrefix="eb-last-resort" message="last-resort boom" touched={touched} />
           <div id="eb-content">content ok</div>
         </ErrorBoundary>
       ) : scenario === 'unhandled-rejection' ? (
@@ -508,7 +427,7 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
           <span id="eb-reject-touched">{touched.value}</span>
         </>
       ) : (
-        <ErrorBoundary fallback$={(e) => <EbFallback msg={String((e as any)?.message ?? e)} />}>
+        <ErrorBoundary fallback$={defaultFallback}>
           <EbContent />
           <EbSyncThrower />
         </ErrorBoundary>

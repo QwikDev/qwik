@@ -18,6 +18,24 @@ const releaseDeferred = async (page: Page, selector: string) => {
   expect(response.ok()).toBeTruthy();
 };
 
+// Twin scenarios run in both streaming modes so in-order/out-of-order parity cannot drift.
+const streamingModes = [
+  { mode: 'in-order', outOfOrder: false },
+  { mode: 'out-of-order', outOfOrder: true },
+] as const;
+
+const streamingUrl = (scenario: string | null, outOfOrder: boolean) => {
+  const params = new URLSearchParams();
+  if (scenario) {
+    params.set('scenario', scenario);
+  }
+  if (!outOfOrder) {
+    params.set('outOfOrder', 'false');
+  }
+  const query = params.toString();
+  return `/e2e/error-boundary-streaming${query ? `?${query}` : ''}`;
+};
+
 test.describe('ErrorBoundary streaming swap', () => {
   // ── happy path ──
   test('happy path: content interactive after resume, no fallback or swap script, then catches a client throw', async ({
@@ -43,37 +61,24 @@ test.describe('ErrorBoundary streaming swap', () => {
   });
 
   // ── SSR-time swaps (simplest → most complex) ──
-  test('in-order sync throw: qErr swap (no OOOS), fallback interactive', async ({ page }) => {
-    assertNoBrowserErrors(page);
-    await page.goto('/e2e/error-boundary-streaming?outOfOrder=false', { waitUntil: 'commit' });
+  for (const { mode, outOfOrder } of streamingModes) {
+    test(`${mode} sync throw: streams the shell, swaps to the fallback, keeps it interactive`, async ({
+      page,
+    }) => {
+      assertNoBrowserErrors(page);
+      await page.goto(streamingUrl(null, outOfOrder), { waitUntil: 'commit' });
 
-    await expect(page.locator('#eb-title')).toHaveText('EB Streaming', { timeout: 10000 });
-    await expect(page.locator('#eb-footer')).toHaveText('Footer shell', { timeout: 10000 });
+      await expect(page.locator('#eb-title')).toHaveText('EB Streaming', { timeout: 10000 });
+      await expect(page.locator('#eb-footer')).toHaveText('Footer shell', { timeout: 10000 });
 
-    await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: An error occurred');
-    await expect(page.locator('#eb-content')).toBeHidden();
+      await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: An error occurred');
+      await expect(page.locator('#eb-content')).toBeHidden();
 
-    await page.locator('#eb-fallback-button').click();
-    await expect(page.locator('#eb-fallback-count')).toHaveText('1');
-  });
-
-  test('sync throw: streams the shell, swaps to the fallback, keeps it interactive', async ({
-    page,
-  }) => {
-    assertNoBrowserErrors(page);
-    await page.goto('/e2e/error-boundary-streaming', { waitUntil: 'commit' });
-
-    await expect(page.locator('#eb-title')).toHaveText('EB Streaming', { timeout: 10000 });
-    await expect(page.locator('#eb-footer')).toHaveText('Footer shell', { timeout: 10000 });
-
-    await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: An error occurred');
-    await expect(page.locator('#eb-content')).toBeHidden();
-
-    await page.locator('#eb-fallback-button').click();
-    await expect(page.locator('#eb-fallback-count')).toHaveText('1');
-  });
+      await page.locator('#eb-fallback-button').click();
+      await expect(page.locator('#eb-fallback-count')).toHaveText('1');
+    });
+  }
 
   test('boundary inside a deferred <Suspense>: hoisted qErr swap, fallback interactive', async ({
     page,
@@ -135,39 +140,22 @@ test.describe('ErrorBoundary streaming swap', () => {
   });
 
   // ── client-time errors after resume ──
-  test('client-time throw after resume re-renders the boundary to its fallback (in-order)', async ({
-    page,
-  }) => {
-    await page.goto('/e2e/error-boundary-streaming?scenario=client&outOfOrder=false', {
-      waitUntil: 'commit',
+  for (const { mode, outOfOrder } of streamingModes) {
+    test(`client-time throw after resume re-renders the boundary to its fallback (${mode})`, async ({
+      page,
+    }) => {
+      await page.goto(streamingUrl('client', outOfOrder), { waitUntil: 'commit' });
+
+      await expect(page.locator('#eb-content')).toHaveText('content ok', { timeout: 10000 });
+      await expect(page.locator('#eb-fallback')).toHaveCount(0);
+
+      await page.locator('#eb-client-throw').click();
+      await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
+
+      await page.locator('#eb-fallback-button').click();
+      await expect(page.locator('#eb-fallback-count')).toHaveText('1');
     });
-
-    await expect(page.locator('#eb-content')).toHaveText('content ok', { timeout: 10000 });
-    await expect(page.locator('#eb-fallback')).toHaveCount(0);
-
-    await page.locator('#eb-client-throw').click();
-    await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-
-    await page.locator('#eb-fallback-button').click();
-    await expect(page.locator('#eb-fallback-count')).toHaveText('1');
-  });
-
-  test('client-time throw after resume re-renders the boundary to its fallback (out-of-order)', async ({
-    page,
-  }) => {
-    await page.goto('/e2e/error-boundary-streaming?scenario=client', {
-      waitUntil: 'commit',
-    });
-
-    await expect(page.locator('#eb-content')).toHaveText('content ok', { timeout: 10000 });
-    await expect(page.locator('#eb-fallback')).toHaveCount(0);
-
-    await page.locator('#eb-client-throw').click();
-    await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-
-    await page.locator('#eb-fallback-button').click();
-    await expect(page.locator('#eb-fallback-count')).toHaveText('1');
-  });
+  }
 
   // ── onError$ ──
   test('onError$ fires once with the error on a client-time throw', async ({ page }) => {
@@ -257,39 +245,22 @@ test.describe('ErrorBoundary streaming swap', () => {
     await expect(page.locator('#eb-inner-count')).toHaveText('1');
   });
 
-  test('in-order: a throwing inner fallback escalates to the outer boundary, fallback interactive', async ({
-    page,
-  }) => {
-    assertNoBrowserErrors(page);
-    await page.goto('/e2e/error-boundary-streaming?scenario=throw-fallback&outOfOrder=false', {
-      waitUntil: 'commit',
+  for (const { mode, outOfOrder } of streamingModes) {
+    test(`${mode}: a throwing inner fallback escalates to the outer boundary, fallback interactive`, async ({
+      page,
+    }) => {
+      assertNoBrowserErrors(page);
+      await page.goto(streamingUrl('throw-fallback', outOfOrder), { waitUntil: 'commit' });
+
+      await expect(page.locator('#eb-title')).toHaveText('EB Streaming', { timeout: 10000 });
+      await expect(page.locator('#eb-outer')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('#eb-outer-msg')).toHaveText('caught: An error occurred');
+      await expect(page.locator('#eb-content')).toBeHidden();
+
+      await page.locator('#eb-outer-button').click();
+      await expect(page.locator('#eb-outer-count')).toHaveText('1');
     });
-
-    await expect(page.locator('#eb-title')).toHaveText('EB Streaming', { timeout: 10000 });
-    await expect(page.locator('#eb-outer')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#eb-outer-msg')).toHaveText('caught: An error occurred');
-    await expect(page.locator('#eb-content')).toBeHidden();
-
-    await page.locator('#eb-outer-button').click();
-    await expect(page.locator('#eb-outer-count')).toHaveText('1');
-  });
-
-  test('out-of-order: a throwing inner fallback escalates to the outer boundary, fallback interactive', async ({
-    page,
-  }) => {
-    assertNoBrowserErrors(page);
-    await page.goto('/e2e/error-boundary-streaming?scenario=throw-fallback', {
-      waitUntil: 'commit',
-    });
-
-    await expect(page.locator('#eb-title')).toHaveText('EB Streaming', { timeout: 10000 });
-    await expect(page.locator('#eb-outer')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#eb-outer-msg')).toHaveText('caught: An error occurred');
-    await expect(page.locator('#eb-content')).toBeHidden();
-
-    await page.locator('#eb-outer-button').click();
-    await expect(page.locator('#eb-outer-count')).toHaveText('1');
-  });
+  }
 
   // ── no enclosing boundary ──
   test('no boundary: a client throw still surfaces to the global error handler', async ({
@@ -309,38 +280,23 @@ test.describe('ErrorBoundary streaming swap', () => {
 });
 
 test.describe('ErrorBoundary reset', () => {
-  test('in-order SSR resume: reset re-executes the children and recovers', async ({ page }) => {
-    await page.goto('/e2e/error-boundary-streaming?scenario=reset&outOfOrder=false', {
-      waitUntil: 'commit',
+  for (const { mode, outOfOrder } of streamingModes) {
+    test(`${mode} SSR resume: reset re-executes the children and recovers`, async ({ page }) => {
+      await page.goto(streamingUrl('reset', outOfOrder), { waitUntil: 'commit' });
+      await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('#eb-content')).toBeHidden();
+
+      await page.locator('#eb-reset').click();
+
+      await expect(page.locator('#eb-content')).toHaveCount(1, { timeout: 10000 });
+      await expect(page.locator('#eb-content')).toBeVisible();
+      await expect(page.locator('#eb-thrower-client')).toBeAttached();
+      await expect(page.locator('#eb-fallback')).toHaveCount(0);
+
+      await page.locator('#eb-content-button').click();
+      await expect(page.locator('#eb-content-count')).toHaveText('1');
     });
-    await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#eb-content')).toBeHidden();
-
-    await page.locator('#eb-reset').click();
-
-    await expect(page.locator('#eb-content')).toHaveCount(1, { timeout: 10000 });
-    await expect(page.locator('#eb-content')).toBeVisible();
-    await expect(page.locator('#eb-thrower-client')).toBeAttached();
-    await expect(page.locator('#eb-fallback')).toHaveCount(0);
-
-    await page.locator('#eb-content-button').click();
-    await expect(page.locator('#eb-content-count')).toHaveText('1');
-  });
-
-  test('out-of-order SSR resume: reset re-executes the children and recovers', async ({ page }) => {
-    await page.goto('/e2e/error-boundary-streaming?scenario=reset', { waitUntil: 'commit' });
-    await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-
-    await page.locator('#eb-reset').click();
-
-    await expect(page.locator('#eb-content')).toHaveCount(1, { timeout: 10000 });
-    await expect(page.locator('#eb-content')).toBeVisible();
-    await expect(page.locator('#eb-thrower-client')).toBeAttached();
-    await expect(page.locator('#eb-fallback')).toHaveCount(0);
-
-    await page.locator('#eb-content-button').click();
-    await expect(page.locator('#eb-content-count')).toHaveText('1');
-  });
+  }
 
   test('client error: reset re-supplies the content interactively', async ({ page }) => {
     await page.goto('/e2e/error-boundary-streaming?scenario=reset-csr', { waitUntil: 'commit' });

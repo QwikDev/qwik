@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createStore } from '@qwik.dev/core/spark';
+import { useStore } from '@qwik.dev/core/spark';
 import { csrRender, ssrRender } from '../test-utils';
 import { useComputed } from '../reactive/public-api';
 import { createOwner, runWithOwner } from '../runtime/owner';
@@ -8,7 +8,7 @@ const debug = false;
 
 describe('vdomless store runtime', () => {
   it('tracks shallow props without notifying unrelated props', () => {
-    const state = createStore({ count: 0, name: 'Qwik' });
+    const state = useStore({ count: 0, name: 'Qwik' });
     let runs = 0;
     const count = createOwned(() =>
       useComputed(() => {
@@ -32,7 +32,7 @@ describe('vdomless store runtime', () => {
   });
 
   it('tracks deep props and parent replacement', () => {
-    const state = createStore({ user: { name: 'Ada' } });
+    const state = useStore({ user: { name: 'Ada' } });
     const name = createOwned(() => useComputed(() => state.user.name));
 
     expect(name.value).toBe('Ada');
@@ -45,7 +45,7 @@ describe('vdomless store runtime', () => {
   });
 
   it('tracks array indexes and length', () => {
-    const state = createStore<{ items: string[] }>({ items: [] });
+    const state = useStore<{ items: string[] }>({ items: [] });
     const first = createOwned(() => useComputed(() => state.items[0]));
     const length = createOwned(() => useComputed(() => state.items.length));
 
@@ -64,7 +64,7 @@ describe('vdomless store runtime', () => {
   });
 
   it('tracks property existence', () => {
-    const state = createStore<{ a?: number; b?: number }>({ a: 1 });
+    const state = useStore<{ a?: number; b?: number }>({ a: 1 });
     const hasA = createOwned(() => useComputed(() => 'a' in state));
     const hasB = createOwned(() => useComputed(() => 'b' in state));
 
@@ -85,7 +85,7 @@ describe.each([
 ])('$name: stores', ({ render }) => {
   it('updates shallow store text after an event', async () => {
     const App = () => {
-      const state = createStore({ count: 0 });
+      const state = useStore({ count: 0 });
       return <button onClick$={() => state.count++}>{state.count}</button>;
     };
 
@@ -101,7 +101,7 @@ describe.each([
 
   it('updates deep store text after an event', async () => {
     const App = () => {
-      const state = createStore({ deep: { count: 0 } });
+      const state = useStore({ deep: { count: 0 } });
       return <button onClick$={() => state.deep.count++}>{state.deep.count}</button>;
     };
 

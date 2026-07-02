@@ -5,7 +5,7 @@ import { ComputedQrl } from '../../vdomless/reactive/computed-qrl';
 import { AsyncSignal } from '../../vdomless/reactive/async-signal';
 import { SerializerSignal } from '../../vdomless/reactive/serializer-signal';
 import { Signal } from '../../vdomless/reactive/signal';
-import { createStore, StorePropSource, unwrapStore } from '../../vdomless/reactive/store';
+import { useStore, StorePropSource, unwrapStore } from '../../vdomless/reactive/store';
 import type { ContainerContext } from '../../vdomless/runtime/container-context';
 import { createContextScope } from '../../vdomless/runtime/context-scope';
 import { createProjection, createSlotScope } from '../../vdomless/dom/slot/slot';
@@ -100,7 +100,7 @@ export const allocate = (
       const t = data[0] as TypeIds;
       const v = data[1];
       return maybeThen(allocate(context, t, v), (raw) => {
-        const store = createStore(raw as object);
+        const store = useStore(raw as object);
         const target = unwrapStore(store) as object;
         if (t >= TypeIds.Error || t === TypeIds.Array || t === TypeIds.Object) {
           pendingStoreTargets.set(target, { t, v });

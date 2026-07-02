@@ -33,7 +33,7 @@ export class StorePropSource<T = unknown> implements Source<T> {
   }
 }
 
-export function createStore<T extends object>(value: T): Store<T> {
+export function useStore<T extends object>(value: T): Store<T> {
   if (!isWrappable(value)) {
     return value;
   }
@@ -97,7 +97,7 @@ const storeHandler: ProxyHandler<StoreTarget> = {
     if (typeof prop !== 'symbol') {
       track(getStoreSource(target, prop));
     }
-    return isWrappable(value) ? createStore(value) : value;
+    return isWrappable(value) ? useStore(value) : value;
   },
 
   set(target, prop, value) {

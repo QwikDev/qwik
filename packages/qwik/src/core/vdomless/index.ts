@@ -39,7 +39,7 @@ export { ComputedQrl, type ComputedQrlFn, type ComputedQrlRef } from './reactive
 export { AsyncSignal, type AsyncSignalFn, type AsyncSignalQrl } from './reactive/async-signal';
 export { SerializerSignal, type SerializerSignalQrl } from './reactive/serializer-signal';
 export type { AsyncCtx, AsyncSignalOptions } from '../reactive-primitives/types';
-export { createStore, type Store } from './reactive/store';
+export { useStore, type Store } from './reactive/store';
 export { createId } from './use-id';
 
 export {

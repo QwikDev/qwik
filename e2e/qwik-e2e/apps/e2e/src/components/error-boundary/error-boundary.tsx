@@ -9,6 +9,7 @@ import {
   useServerData,
   useSignal,
   useTask$,
+  useVisibleTask$,
   type JSXOutput,
   type QRL,
   type Signal,
@@ -185,6 +186,14 @@ const EbInertContent = component$<{ trigger: Signal<number> }>((props) => {
   );
 });
 
+// SSR renders clean; the throw arrives via the real qvisible → _task chain on the resumed container.
+const EbVisibleTaskThrower = component$(() => {
+  useVisibleTask$(() => {
+    throw new Error('visible boom');
+  });
+  return <div id="eb-content">streamed content</div>;
+});
+
 const EbAsyncThrower = component$(() => {
   const url = useServerData<string>('url');
   const requestId = useServerData<string>('ooosRequestId');
@@ -328,6 +337,10 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
         <ErrorBoundary fallback$={defaultFallback}>
           <EbThrowOnClick idPrefix="eb-client" message="client click boom" touched={touched} />
           <div id="eb-content">content ok</div>
+        </ErrorBoundary>
+      ) : scenario === 'visible-task' ? (
+        <ErrorBoundary fallback$={defaultFallback}>
+          <EbVisibleTaskThrower />
         </ErrorBoundary>
       ) : scenario === 'onerror' ? (
         <ErrorBoundary

@@ -195,6 +195,32 @@ test.describe('ErrorBoundary streaming swap', () => {
     });
   }
 
+  // Interaction-free client throw: qvisible (IntersectionObserver) fires the _task QRL on the
+  // resumed container — a delivery chain no unit harness exercises (it runs visible tasks eagerly).
+  test('useVisibleTask$ throw after resume is routed to the boundary without interaction', async ({
+    page,
+  }) => {
+    // The caught task throw may legitimately console.error in dev; only pageerror escapes matter.
+    const pageErrors: string[] = [];
+    page.on('pageerror', (err) => pageErrors.push(err.message));
+
+    await page.goto('/e2e/error-boundary-streaming?scenario=visible-task', {
+      waitUntil: 'commit',
+    });
+
+    await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
+    // Client-phase throw in this qDev client bundle: the raw message, not the redacted form.
+    await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: visible boom');
+    await expect(page.locator('#eb-content')).toBeHidden();
+
+    await page.locator('#eb-fallback-button').click();
+    await expect(page.locator('#eb-fallback-count')).toHaveText('1');
+
+    // Routed, not escaped: after a short settle no unhandled 'visible boom' reached window.onerror.
+    await page.waitForTimeout(200);
+    expect(pageErrors.filter((message) => message.includes('visible boom'))).toEqual([]);
+  });
+
   // ── onError$ ──
   test('onError$ fires once with the error on a client-time throw', async ({ page }) => {
     assertNoBrowserErrors(page);

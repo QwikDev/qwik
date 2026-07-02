@@ -1,5 +1,5 @@
 ---
-'@qwik.dev/router': minor
+'@qwik.dev/router': major
 ---
 
-feat(router): SPA view transitions are now opt-in via the `viewTransition` prop (default `false`).
+BREAKING: SPA view transitions are now opt-in; set `viewTransition={true}` on `QwikRouterProvider` to re-enable them.

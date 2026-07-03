@@ -201,7 +201,9 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         return;
       }
       const source = detail?.element;
-      if (source && this.element.contains(source)) {
+      // Resolve to the nearest owning container; qerror is shared on the document, so a plain
+      // contains() check also matches outer containers of a nested source and double-handles it.
+      if (source && source.closest(QContainerSelector) === this.element) {
         const host = this.vNodeLocate(source);
         if (host) {
           try {

@@ -1021,6 +1021,54 @@ describe('ErrorBoundary CSR-specific', () => {
         expect(hosts[untouched].querySelector(`#target-${untouched}`)).toBeTruthy();
       }
     );
+
+    it('routes a qerror to the NEAREST owning container when an inner container nests inside an outer one', async () => {
+      setPlatform(getTestPlatform());
+      const document = createDocument();
+      const hostOuter = document.createElement('div');
+      document.body.appendChild(hostOuter);
+      // Outer container A owns an ErrorBoundary whose subtree hosts the nested container B.
+      await render(
+        hostOuter,
+        <ErrorBoundary
+          fallback$={$((e: any) => (
+            <p id="fb-outer">caught outer: {e.message}</p>
+          ))}
+        >
+          <div id="embed-host" />
+        </ErrorBoundary>
+      );
+      const embedHost = hostOuter.querySelector('#embed-host')!;
+      const hostInner = document.createElement('div');
+      embedHost.appendChild(hostInner);
+      await render(
+        hostInner,
+        <ErrorBoundary
+          fallback$={$((e: any) => (
+            <p id="fb-inner">caught inner: {e.message}</p>
+          ))}
+        >
+          <button id="target-inner">x</button>
+        </ErrorBoundary>
+      );
+      const outer = _getDomContainer(hostOuter) as any;
+      const inner = _getDomContainer(hostInner);
+      // A.contains(source-in-B) is true and A's vNodeLocate resolves the foreign source into A's own
+      // boundary subtree, so a contains()-gated handler double-handles the inner error via A.
+      const outerHandleError = vi.spyOn(outer, 'handleError');
+
+      const innerTarget = hostInner.querySelector('#target-inner')!;
+      dispatchQError(innerTarget, { error: new Error('boom from inner'), element: innerTarget });
+      await waitForDrain(inner).catch(() => {});
+      await waitForDrain(outer).catch(() => {});
+
+      expect(hostInner.querySelector('#fb-inner')?.textContent).toContain(
+        'caught inner: boom from inner'
+      );
+      // The outer container does not own the inner source; it must never handle its error.
+      expect(outerHandleError).not.toHaveBeenCalled();
+      expect(hostOuter.querySelector('#fb-outer')).toBeFalsy();
+    });
   });
 
   it('a useVisibleTask$ throw is caught by the nearest parent <ErrorBoundary>', async () => {

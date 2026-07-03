@@ -51,6 +51,14 @@ export const findLocation = (e: Error): Loc | undefined => {
 
 export const isVirtualId = (id: string) => id.startsWith('\0');
 
+export const toDevPath = (normalizedId: string, normalizedRootDir: string): string => {
+  const root = normalizedRootDir.replace(/\/+$/, '');
+  if (normalizedId.startsWith(root + '/')) {
+    return normalizedId.slice(root.length);
+  }
+  return '/@fs/' + normalizedId.replace(/^\/+/, '');
+};
+
 const safeParseInt = (nu: string) => {
   try {
     return parseInt(nu, 10);

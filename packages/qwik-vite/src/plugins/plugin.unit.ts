@@ -833,3 +833,85 @@ describe('transform: globalThis.__QWIK_MANIFEST__ replacement', () => {
     expect(result!.map).toBeTruthy();
   });
 });
+
+describe('hotUpdate segment classification', () => {
+  const transformCtx = { addWatchFile: () => undefined, emitFile: () => undefined } as any;
+
+  async function setupHmrPlugin() {
+    const plugin = await mockPlugin(process.platform, true);
+    await plugin.normalizeOptions({ rootDir: '/root' });
+    plugin.configureServer({
+      hot: {},
+      moduleGraph: { getModuleById: () => undefined, invalidateModule: () => undefined },
+    } as any);
+    return plugin;
+  }
+
+  const hmrEnv = (invalidated: string[]) =>
+    ({
+      name: 'client',
+      moduleGraph: {
+        getModuleById: (id: string) => ({ id }),
+        invalidateModule: (m: any) => invalidated.push(m.id),
+      },
+    }) as any;
+
+  test('reports a re-renderable segment when a component parent changes', async () => {
+    const plugin = await setupHmrPlugin();
+    const parentId = '/root/src/routes/index.tsx';
+    await plugin.transform(
+      transformCtx,
+      `import { component$ } from '@qwik.dev/core';\nexport default component$(() => <button onClick$={() => 'hi'}>hi</button>);\n`,
+      parentId
+    );
+    const invalidated: string[] = [];
+    const didReRender = (plugin as any).hotUpdate(hmrEnv(invalidated), {
+      file: parentId,
+      modules: [{ id: parentId }],
+    });
+    expect(didReRender).toBe(true);
+    expect(invalidated.length).toBeGreaterThan(0);
+  });
+
+  test('reports a re-renderable segment when a task body changes', async () => {
+    const plugin = await setupHmrPlugin();
+    const parentId = '/root/src/routes/index.tsx';
+    await plugin.transform(
+      transformCtx,
+      `import { component$, useVisibleTask$, useSignal } from '@qwik.dev/core';\nexport default component$(() => {\n  const s = useSignal(0);\n  useVisibleTask$(() => { s.value = 1; });\n  return <p>{s.value}</p>;\n});\n`,
+      parentId
+    );
+    const invalidated: string[] = [];
+    const didReRender = (plugin as any).hotUpdate(hmrEnv(invalidated), {
+      file: parentId,
+      modules: [{ id: parentId }],
+    });
+    expect(didReRender).toBe(true);
+  });
+
+  test('reports no re-renderable segment when a plain worker module changes', async () => {
+    const plugin = await setupHmrPlugin();
+    const workerId = '/root/src/thing.worker.ts';
+    await plugin.transform(transformCtx, `self.onmessage = () => postMessage('w');\n`, workerId);
+    const invalidated: string[] = [];
+    const didReRender = (plugin as any).hotUpdate(hmrEnv(invalidated), {
+      file: workerId,
+      modules: [{ id: workerId }],
+    });
+    expect(didReRender).toBe(false);
+    expect(invalidated).toEqual([]);
+  });
+
+  test('reports no re-renderable segment when a plain util module changes', async () => {
+    const plugin = await setupHmrPlugin();
+    const utilId = '/root/src/util.ts';
+    await plugin.transform(transformCtx, `export const help = () => 'help';\n`, utilId);
+    const invalidated: string[] = [];
+    const didReRender = (plugin as any).hotUpdate(hmrEnv(invalidated), {
+      file: utilId,
+      modules: [{ id: utilId }],
+    });
+    expect(didReRender).toBe(false);
+    expect(invalidated).toEqual([]);
+  });
+});

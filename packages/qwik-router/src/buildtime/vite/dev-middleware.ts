@@ -1,6 +1,8 @@
 import type { Render } from '@qwik.dev/core/server';
 import type { RendererOptions } from '@qwik.dev/router';
-import type { Connect, ViteDevServer } from 'vite';
+import { promises as fs } from 'node:fs';
+import { preprocessCSS } from 'vite';
+import type { Connect, HtmlTagDescriptor, ViteDevServer } from 'vite';
 import type { LoaderInternal } from '../../runtime/src/types';
 import { isPageExt, normalizePath } from '../../utils/fs';
 import {
@@ -194,93 +196,82 @@ const CSS_EXTENSIONS = ['.css', '.scss', '.sass', '.less', '.styl', '.stylus'];
 const JS_EXTENSIONS = /\.[mc]?[tj]sx?$/;
 const isCssPath = (url: string) => CSS_EXTENSIONS.some((ext) => url.endsWith(ext));
 
-/**
- * Qwik handles CSS imports itself, meaning vite doesn't get to see them, so we need to manually
- * inject the CSS URLs.
- *
- * We check both the client and SSR module graphs because on the first page request only the SSR
- * graph has been populated (via ssrLoadModule). The client graph is empty until the browser
- * actually fetches modules through Vite's dev server.
- */
-const getCssUrls = (server: ViteDevServer) => {
+interface RouterCssModule {
+  id: string;
+  file: string;
+  url: string;
+}
+
+const collectRouterCssModules = (server: ViteDevServer): RouterCssModule[] => {
   const clientGraph = server.environments.client.moduleGraph;
   const ssrGraph = server.environments.ssr.moduleGraph;
-  const cssModules = new Set<string>();
-  const cssImportedByCSS = new Set<string>();
+  const byFile = new Map<string, RouterCssModule>();
 
   for (const graph of [clientGraph, ssrGraph]) {
     for (const mod of graph.idToModuleMap.values()) {
       const [pathId, query] = mod.url.split('?');
-
-      if (!query && isCssPath(pathId)) {
-        const isEntryCSS = mod.importers.size === 0;
-        const hasCSSImporter = Array.from(mod.importers).some((importer) => {
-          const importerPath = importer.url || importer.file;
-
-          const isCSS = importerPath && isCssPath(importerPath);
-
-          if (isCSS && mod.url) {
-            cssImportedByCSS.add(mod.url);
-          }
-
-          return isCSS;
-        });
-
-        const hasJSImporter = Array.from(mod.importers).some((importer) => {
-          const importerPath = importer.url || importer.file;
-          return importerPath && JS_EXTENSIONS.test(importerPath);
-        });
-
-        if ((isEntryCSS || hasJSImporter) && !hasCSSImporter && !cssImportedByCSS.has(mod.url)) {
-          cssModules.add(`${mod.url}${mod.lastHMRTimestamp ? `?t=${mod.lastHMRTimestamp}` : ''}`);
-          // SSR-only CSS isn't watched by Vite; watch it so edits fire handleHotUpdate.
-          if (mod.file) {
-            server.watcher.add(mod.file);
-          }
+      if (query || !isCssPath(pathId) || !mod.file || !mod.id) {
+        continue;
+      }
+      const isEntryCSS = mod.importers.size === 0;
+      let hasCSSImporter = false;
+      let hasJSImporter = false;
+      for (const importer of mod.importers) {
+        const importerPath = importer.url || importer.file;
+        if (!importerPath) {
+          continue;
         }
+        if (isCssPath(importerPath)) {
+          hasCSSImporter = true;
+        } else if (JS_EXTENSIONS.test(importerPath)) {
+          hasJSImporter = true;
+        }
+      }
+      if ((isEntryCSS || hasJSImporter) && !hasCSSImporter && !byFile.has(mod.file)) {
+        byFile.set(mod.file, { id: mod.id, file: mod.file, url: mod.url });
       }
     }
   }
-  return [...cssModules];
+  return [...byFile.values()];
 };
 
-export const getRouterIndexTags = (server: ViteDevServer) => {
-  const cssUrls = getCssUrls(server);
-  return cssUrls.map((url) => ({
-    tag: 'link',
-    attrs: { rel: 'stylesheet', href: server.config.base + url.slice(1) },
-  }));
+export const buildRouterCssTags = (
+  cssModules: { id: string; url: string; css: string }[]
+): HtmlTagDescriptor[] => {
+  const tags: HtmlTagDescriptor[] = [];
+  for (const { id, url, css } of cssModules) {
+    if (css) {
+      tags.push({
+        tag: 'style',
+        attrs: { 'data-vite-dev-id': id },
+        children: css,
+        injectTo: 'head',
+      });
+    } else {
+      tags.push({ tag: 'link', attrs: { rel: 'stylesheet', href: url }, injectTo: 'head' });
+    }
+    tags.push({
+      tag: 'script',
+      attrs: { type: 'module' },
+      children: `import ${JSON.stringify(url)}`,
+      injectTo: 'head',
+    });
+  }
+  return tags;
 };
 
-/**
- * Live-reload route CSS that Qwik injects as `<link>` tags; it only lives in the SSR graph, so Vite
- * skips HMR. Emit a `css-update` to swap the `<link>` in place. Returns `true` when handled.
- */
-export const sendRouterCssHotUpdate = (
-  server: ViteDevServer,
-  file: string,
-  timestamp: number
-): boolean => {
-  const { client, ssr } = server.environments;
-  if (!isCssPath(file) || client.moduleGraph.getModulesByFile(file)?.size) {
-    return false;
-  }
-  const paths = new Set<string>();
-  for (const mod of ssr.moduleGraph.getModulesByFile(file) ?? []) {
-    mod.lastHMRTimestamp = timestamp; // keep getCssUrls' cache-busting query fresh on full reloads
-    paths.add(mod.url.split('?')[0]);
-  }
-  if (!paths.size) {
-    return false;
-  }
-  client.hot.send({
-    type: 'update',
-    updates: [...paths].map((path) => ({
-      type: 'css-update' as const,
-      path,
-      acceptedPath: path,
-      timestamp,
-    })),
-  });
-  return true;
+export const getRouterIndexTags = async (server: ViteDevServer): Promise<HtmlTagDescriptor[]> => {
+  const cssModules = await Promise.all(
+    collectRouterCssModules(server).map(async ({ id, file, url }) => {
+      let css = '';
+      try {
+        const raw = await fs.readFile(file, 'utf-8');
+        css = (await preprocessCSS(raw, file, server.config)).code;
+      } catch {
+        // no styles inlined; a <link> is emitted instead
+      }
+      return { id, url: server.config.base + url.slice(1), css };
+    })
+  );
+  return buildRouterCssTags(cssModules);
 };

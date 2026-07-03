@@ -1,9 +1,11 @@
+import { mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import path, { resolve } from 'node:path';
-import type { Rolldown } from 'vite';
+import { resolveConfig, type Rolldown } from 'vite';
 import { assert, describe, test } from 'vitest';
 import { normalizePath } from '../../../qwik/src/testing/util';
 import type { OptimizerOptions } from '../types';
-import { qwikVite, type QwikVitePlugin, type QwikVitePluginOptions } from './vite';
+import { isSameClassMap, qwikVite, type QwikVitePlugin, type QwikVitePluginOptions } from './vite';
 import { flattenToChunkName } from './vite-utils';
 import {
   createBuildWorkerCoreChunkResolver,
@@ -985,5 +987,273 @@ describe('worker core chunk rewrites', () => {
       rewritten,
       'import { setPlatform, _deserialize } from "./qwik-worker-core-abcd.js";'
     );
+  });
+});
+
+describe('hotUpdate', () => {
+  // A real optimizer so transforms populate the plugin's segment outputs, which the reload
+  // decision now consults to tell in-place re-renders from edits Vite must reload.
+  const realOptimizerOptions = (): OptimizerOptions => ({
+    sys: {
+      cwd: () => process.cwd(),
+      env: 'node',
+      os: process.platform,
+      dynamicImport: async (p) => import(p),
+      strictDynamicImport: async (p) => import(p),
+      path: path as any,
+    },
+  });
+
+  const transformCtx = { addWatchFile: () => undefined, emitFile: () => undefined } as any;
+
+  function mockServer() {
+    const sent: any[] = [];
+    return {
+      sent,
+      server: {
+        middlewares: { use() {} },
+        hot: {},
+        moduleGraph: { getModuleById: () => undefined, invalidateModule: () => undefined },
+        environments: {
+          client: {
+            hot: { send: (msg: any) => sent.push(msg) },
+            moduleGraph: { getModuleById: () => undefined, invalidateModule: () => undefined },
+          },
+        },
+      } as any,
+    };
+  }
+
+  async function setup() {
+    const plugins = qwikVite({
+      optimizerOptions: realOptimizerOptions(),
+      devTools: { imageDevTools: false },
+    }) as any;
+    const pre = plugins[0] as QwikVitePlugin;
+    const post = plugins[1] as QwikVitePlugin;
+    await pre.config.call(configHookPluginContext, {}, { command: 'serve', mode: 'development' });
+    return { pre, post };
+  }
+
+  const invoke = (plugin: QwikVitePlugin, envName: 'ssr' | 'client', modules: any[]) =>
+    (plugin.hotUpdate as any).call(
+      {
+        environment: {
+          name: envName,
+          moduleGraph: { getModuleById: () => undefined, invalidateModule: () => undefined },
+        },
+      },
+      { file: modules[0]?.id ?? modules[0]?.url ?? '', modules, timestamp: 123 }
+    );
+
+  const componentCode = `import { component$ } from '@qwik.dev/core';
+export default component$(() => <button onClick$={() => 'x'}>hi</button>);
+`;
+
+  const sourceModule = (id: string) => ({
+    url: '/src/routes/a/index.tsx',
+    type: 'js',
+    importers: new Set(),
+    id,
+  });
+
+  test('source edit re-renders in place and suppresses the client reload', async () => {
+    const { pre, post } = await setup();
+    const { server, sent } = mockServer();
+    post.configureServer!.call(configHookPluginContext, server, undefined as any);
+
+    const id = normalizePath(resolve(cwd, 'src/routes/a/index.tsx'));
+    await (pre.transform as any).call(transformCtx, componentCode, id);
+
+    await invoke(post, 'ssr', [sourceModule(id)]);
+    const clientReturn = await invoke(post, 'client', [sourceModule(id)]);
+
+    assert.deepEqual(sent, [
+      {
+        type: 'custom',
+        event: 'qwik:hmr',
+        data: { files: ['/src/routes/a/index.tsx'], t: 123 },
+      },
+    ]);
+    assert.deepEqual(clientReturn, []);
+  });
+
+  const routerConfigModule = () => ({
+    url: '@qwik-router-config',
+    type: 'js',
+    importers: new Set([{ url: '/@fs/qwik-router/lib/request-handler/index.mjs', type: 'js' }]),
+    id: '@qwik-router-config',
+  });
+
+  test('route edit re-renders even with the appended router config module', async () => {
+    const { pre, post } = await setup();
+    const { server, sent } = mockServer();
+    post.configureServer!.call(configHookPluginContext, server, undefined as any);
+
+    const id = normalizePath(resolve(cwd, 'src/routes/a/index.tsx'));
+    await (pre.transform as any).call(transformCtx, componentCode, id);
+
+    await invoke(post, 'ssr', [sourceModule(id), routerConfigModule()]);
+    const clientReturn = await invoke(post, 'client', [sourceModule(id)]);
+
+    assert.deepEqual(sent, [
+      {
+        type: 'custom',
+        event: 'qwik:hmr',
+        data: { files: ['/src/routes/a/index.tsx'], t: 123 },
+      },
+    ]);
+    assert.deepEqual(clientReturn, []);
+  });
+
+  test('worker module edit reloads instead of being swallowed', async () => {
+    const { pre, post } = await setup();
+    const { server, sent } = mockServer();
+    post.configureServer!.call(configHookPluginContext, server, undefined as any);
+
+    const id = normalizePath(resolve(cwd, 'src/thing.worker.ts'));
+    await (pre.transform as any).call(
+      transformCtx,
+      `self.onmessage = () => postMessage('w');\n`,
+      id
+    );
+
+    const workerModule = {
+      url: '/src/thing.worker.ts?worker_file&type=module',
+      id,
+      type: 'js',
+      importers: new Set(),
+    };
+    // A client-only worker is absent from the SSR module graph.
+    await invoke(post, 'ssr', []);
+    const clientReturn = await invoke(post, 'client', [workerModule]);
+
+    // A re-render can't recreate the worker, so we reload rather than let Vite swallow the edit.
+    assert.deepEqual(sent, [{ type: 'full-reload' }]);
+    assert.deepEqual(clientReturn, []);
+  });
+
+  test('plain util edit stays in place instead of reloading', async () => {
+    const { pre, post } = await setup();
+    const { server, sent } = mockServer();
+    post.configureServer!.call(configHookPluginContext, server, undefined as any);
+
+    const id = normalizePath(resolve(cwd, 'src/util.ts'));
+    await (pre.transform as any).call(transformCtx, `export const help = () => 'help';\n`, id);
+
+    const utilModule = { url: '/src/util.ts', id, type: 'js', importers: new Set() };
+    const clientReturn = await invoke(post, 'client', [utilModule]);
+
+    // undefined lets Vite propagate through the segment self-accept, which updates in place.
+    assert.isUndefined(clientReturn);
+    assert.notInclude(
+      sent.map((m) => m.type),
+      'full-reload'
+    );
+  });
+
+  const taskHookCode = `import { useTask$ } from '@qwik.dev/core';
+export const useThing = () => {
+  useTask$(() => {
+    console.log('thing');
+  });
+};
+`;
+
+  test('task-bearing shared hook edit re-renders in place instead of reloading', async () => {
+    const { pre, post } = await setup();
+    const { server, sent } = mockServer();
+    post.configureServer!.call(configHookPluginContext, server, undefined as any);
+
+    const id = normalizePath(resolve(cwd, 'src/use-thing.ts'));
+    await (pre.transform as any).call(transformCtx, taskHookCode, id);
+
+    const hookModule = {
+      url: '/src/use-thing.ts',
+      type: 'js',
+      importers: new Set(),
+      id,
+    };
+    await invoke(post, 'ssr', [hookModule]);
+    const clientReturn = await invoke(post, 'client', [hookModule]);
+
+    assert.deepEqual(sent, [
+      {
+        type: 'custom',
+        event: 'qwik:hmr',
+        data: { files: ['/src/use-thing.ts'], t: 123 },
+      },
+    ]);
+    assert.deepEqual(clientReturn, []);
+  });
+
+  test('non-source change neither re-renders nor suppresses', async () => {
+    const { post } = await setup();
+    const { server, sent } = mockServer();
+    post.configureServer!.call(configHookPluginContext, server, undefined as any);
+
+    const assetModule = {
+      url: '/src/data.json',
+      id: '/src/data.json',
+      type: 'js',
+      importers: new Set(),
+    };
+    await invoke(post, 'ssr', [assetModule]);
+    const clientReturn = await invoke(post, 'client', [assetModule]);
+
+    assert.deepEqual(sent, []);
+    assert.isUndefined(clientReturn);
+  });
+
+  test('css module edit updates in place when the class map is unchanged, reloads when it changes', async () => {
+    const { post } = await setup();
+    const config = await resolveConfig(
+      {
+        configFile: false,
+        logLevel: 'silent',
+        css: { modules: { generateScopedName: (name: string) => `${name}_stable` } },
+      },
+      'serve',
+      'development'
+    );
+    const file = path.join(mkdtempSync(path.join(tmpdir(), 'qwik-cssmod-')), 'x.module.css');
+    const sent: any[] = [];
+    const server = {
+      config,
+      environments: {
+        client: {
+          moduleGraph: { getModulesByFile: () => [{ url: '/x.module.css' }] },
+          hot: { send: (msg: any) => sent.push(msg) },
+        },
+      },
+    };
+    const edit = (css: string) => {
+      writeFileSync(file, css);
+      return (post.hotUpdate as any).call(
+        { environment: { name: 'client' } },
+        { file, modules: [{ url: file, type: 'js', importers: new Set() }], timestamp: 7, server }
+      );
+    };
+
+    await edit('.box { color: red; }');
+    assert.deepEqual(sent.at(-1), { type: 'full-reload' });
+
+    await edit('.box { color: blue; }');
+    assert.deepEqual(sent.at(-1), {
+      type: 'custom',
+      event: 'qwik:css-module-update',
+      data: { url: '/x.module.css', t: 7 },
+    });
+
+    await edit('.box { color: blue; } .row { display: flex; }');
+    assert.deepEqual(sent.at(-1), { type: 'full-reload' });
+  });
+});
+
+describe('css module class map', () => {
+  test('isSameClassMap is true only when every local maps to the same scoped name', () => {
+    assert.isTrue(isSameClassMap({ box: '_box_1' }, { box: '_box_1' }));
+    assert.isFalse(isSameClassMap({ box: '_box_1' }, { box: '_box_2' }));
+    assert.isFalse(isSameClassMap({ box: '_box_1' }, { box: '_box_1', row: '_row_1' }));
   });
 });

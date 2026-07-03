@@ -7,12 +7,16 @@ import {
 } from '../shared/qrl/qrl-class';
 import { inlinedQrl } from '../shared/qrl/qrl';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
+import type { Container } from '../shared/types';
 import type { VNode } from '../shared/vnode/vnode';
 import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import { VNodeFlags } from '../client/types';
 import { tryGetInvokeContext } from './use-core';
 import { useOnDocument } from './use-on';
 import type { QRL } from '../shared/qrl/qrl.public';
+import { isHmrPathForFile } from '../shared/utils/hmr';
+import { ELEMENT_SEQ } from '../shared/utils/markers';
+import { isTask, TaskFlags } from './use-task';
 
 /**
  * HMR event handler. The host VNode is captured at registration time via QRL captures.
@@ -28,15 +32,16 @@ export const _hmr = function (
   event: CustomEvent<{ files: string[]; t: number }>,
   element: Element
 ) {
-  // Deserialize captures from `this` when called via qwikloader/attribute dispatch
+  const files = event.detail.files;
+  const inspectorPath = element.getAttribute('data-qwik-inspector');
   const container = getDomContainer(element);
   return whenContainerDataReady(container, () => {
     if (typeof this === 'string') {
       setCaptures(deserializeCaptureDeltas(container, this));
     }
     const devPath = _captures?.[1] as string | undefined;
-    const hmrPath = devPath ?? element.getAttribute('data-qwik-inspector');
-    if (!hmrPath || !event.detail.files.some((file) => hmrPath.startsWith(file))) {
+    const hmrPath = devPath ?? inspectorPath;
+    if (!hmrPath || !files.some((file) => isHmrPathForFile(hmrPath, file))) {
       return;
     }
     const host = _captures?.[0] as VNode | undefined;
@@ -44,11 +49,31 @@ export const _hmr = function (
       return;
     }
     markVNodeDirty(container, host, ChoreBits.COMPONENT);
-    // Mark HMR as handled
-    const doc: any = element.ownerDocument;
-    doc.__hmrDone = doc.__hmrT;
+    reRunChangedTasks(container, host, files);
   });
 };
+
+function reRunChangedTasks(container: Container, host: VNode, files: string[]): void {
+  const elementSeq = container.getHostProp<unknown[] | null>(host, ELEMENT_SEQ);
+  if (!elementSeq) {
+    return;
+  }
+  let hasChangedTask = false;
+  for (let i = 0; i < elementSeq.length; i++) {
+    const item = elementSeq[i];
+    if (!isTask(item)) {
+      continue;
+    }
+    const taskFile = item.$qrl$.dev?.file ?? item.$qrl$.$chunk$;
+    if (taskFile && files.some((file) => isHmrPathForFile(taskFile, file))) {
+      item.$flags$ |= TaskFlags.DIRTY | TaskFlags.REMOUNT_ON_THROW;
+      hasChangedTask = true;
+    }
+  }
+  if (hasChangedTask) {
+    markVNodeDirty(container, host, ChoreBits.TASKS);
+  }
+}
 
 let hmrQrl: QRL<(event: CustomEvent, element: Element) => void>;
 /**

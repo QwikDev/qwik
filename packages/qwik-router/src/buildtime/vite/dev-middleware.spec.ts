@@ -1,12 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import type { ViteDevServer } from 'vite';
 import {
+  buildRouterCssTags,
   getDevMiddlewareRequestPath,
   getRouterIndexTags,
-  sendRouterCssHotUpdate,
 } from './dev-middleware';
-
-const file = '/app/src/routes/docs/docs.css';
 
 describe('getDevMiddlewareRequestPath', () => {
   it('keeps the base prefix from originalUrl', () => {
@@ -19,59 +17,58 @@ describe('getDevMiddlewareRequestPath', () => {
   });
 });
 
-/** Minimal ViteDevServer stand-in with controllable client/SSR graphs and a spy on the HMR channel. */
-function makeServer(opts: { client?: { url: string }[]; ssr?: { url: string }[] }) {
-  const send = vi.fn();
-  const graph = (mods?: { url: string }[]) => ({
-    getModulesByFile: () => (mods ? new Set(mods) : undefined),
-  });
-  const server = {
-    environments: {
-      client: { moduleGraph: graph(opts.client), hot: { send } },
-      ssr: { moduleGraph: graph(opts.ssr) },
-    },
-  } as unknown as ViteDevServer;
-  return { server, send };
-}
-
-describe('sendRouterCssHotUpdate', () => {
-  it('ignores non-CSS files', () => {
-    const { server, send } = makeServer({ ssr: [{ url: '/x.tsx' }] });
-    expect(sendRouterCssHotUpdate(server, '/app/src/routes/index.tsx', 1)).toBe(false);
-    expect(send).not.toHaveBeenCalled();
-  });
-
-  it('emits a deduped css-update for route CSS that only lives in the SSR graph', () => {
-    const { server, send } = makeServer({
-      ssr: [{ url: '/src/routes/docs/docs.css' }, { url: '/src/routes/docs/docs.css?inline' }],
-    });
-    expect(sendRouterCssHotUpdate(server, file, 123)).toBe(true);
-    expect(send).toHaveBeenCalledWith({
-      type: 'update',
-      updates: [
-        {
-          type: 'css-update',
-          path: '/src/routes/docs/docs.css',
-          acceptedPath: '/src/routes/docs/docs.css',
-          timestamp: 123,
-        },
-      ],
-    });
+describe('buildRouterCssTags', () => {
+  it('inlines a <style> that seeds Vite dedup, plus a module import for native HMR', () => {
+    const tags = buildRouterCssTags([
+      {
+        id: '/app/src/routes/docs/docs.css',
+        url: '/src/routes/docs/docs.css',
+        css: '.a{color:red}',
+      },
+    ]);
+    expect(tags).toEqual([
+      {
+        tag: 'style',
+        attrs: { 'data-vite-dev-id': '/app/src/routes/docs/docs.css' },
+        children: '.a{color:red}',
+        injectTo: 'head',
+      },
+      {
+        tag: 'script',
+        attrs: { type: 'module' },
+        children: 'import "/src/routes/docs/docs.css"',
+        injectTo: 'head',
+      },
+    ]);
   });
 
-  it('defers to Vite when the CSS is already in the client graph', () => {
-    const { server, send } = makeServer({
-      client: [{ url: '/src/routes/docs/docs.css' }],
-      ssr: [{ url: '/src/routes/docs/docs.css' }],
+  it('falls back to a <link> when the CSS could not be inlined', () => {
+    const tags = buildRouterCssTags([
+      { id: '/app/src/routes/docs/docs.css', url: '/src/routes/docs/docs.css', css: '' },
+    ]);
+    expect(tags[0]).toEqual({
+      tag: 'link',
+      attrs: { rel: 'stylesheet', href: '/src/routes/docs/docs.css' },
+      injectTo: 'head',
     });
-    expect(sendRouterCssHotUpdate(server, file, 1)).toBe(false);
-    expect(send).not.toHaveBeenCalled();
+    // Still imports the module so Vite tracks + HMRs it.
+    expect(tags[1]).toMatchObject({ tag: 'script', attrs: { type: 'module' } });
+  });
+
+  it('emits one style + one script per CSS module', () => {
+    const tags = buildRouterCssTags([
+      { id: '/a.css', url: '/a.css', css: '.a{}' },
+      { id: '/b.css', url: '/b.css', css: '.b{}' },
+    ]);
+    expect(tags.filter((t) => t.tag === 'style')).toHaveLength(2);
+    expect(tags.filter((t) => t.tag === 'script')).toHaveLength(2);
   });
 });
 
 describe('getRouterIndexTags', () => {
-  it('prefixes CSS URLs with the Vite base', () => {
+  it('prefixes CSS URLs with the Vite base', async () => {
     const cssModule = {
+      id: '/app/src/routes/admin.css',
       url: '/@fs/app/src/routes/admin.css',
       file: '/app/src/routes/admin.css',
       importers: new Set(),
@@ -86,11 +83,15 @@ describe('getRouterIndexTags', () => {
       watcher: { add: vi.fn() },
     } as unknown as ViteDevServer;
 
-    expect(getRouterIndexTags(server)).toEqual([
-      {
-        tag: 'link',
-        attrs: { rel: 'stylesheet', href: '/admin/@fs/app/src/routes/admin.css' },
-      },
-    ]);
+    const tags = await getRouterIndexTags(server);
+    expect(tags[0]).toEqual({
+      tag: 'link',
+      attrs: { rel: 'stylesheet', href: '/admin/@fs/app/src/routes/admin.css' },
+      injectTo: 'head',
+    });
+    expect(tags[1]).toMatchObject({
+      tag: 'script',
+      children: 'import "/admin/@fs/app/src/routes/admin.css"',
+    });
   });
 });

@@ -7,7 +7,7 @@ import { findExports } from 'mlly';
 import type {
   ConfigEnv,
   EnvironmentOptions,
-  HmrContext,
+  HotUpdateOptions,
   Plugin,
   PluginOption,
   Rolldown,
@@ -45,11 +45,7 @@ import type {
   QwikRouterVitePluginOptions,
 } from './types';
 import { validatePlugin } from './validate-plugin';
-import {
-  getRouterIndexTags,
-  makeRouterDevMiddleware,
-  sendRouterCssHotUpdate,
-} from './dev-middleware';
+import { getRouterIndexTags, makeRouterDevMiddleware } from './dev-middleware';
 
 export const QWIK_ROUTER_CONFIG_ID = '@qwik-router-config';
 /**
@@ -364,12 +360,6 @@ function qwikRouterPlugin(
             'zod',
           ],
         },
-        server: {
-          watch: {
-            // needed for recursive watching of index and layout files in the src/routes directory
-            disableGlobbing: false,
-          },
-        },
       };
       return updatedViteConfig;
     },
@@ -445,14 +435,7 @@ function qwikRouterPlugin(
 
     async configureServer(server) {
       devServer = server;
-      // recursively watch all route files in the src/routes directory
-      const toWatch = [
-        join(
-          ctx!.opts.routesDir,
-          '**/{index,index!,index@*,layout,layout!,layout-*,error,404,entry,service-worker,menu}.{ts,tsx,js,jsx,md,mdx}'
-        ),
-        join(ctx!.opts.serverPluginsDir, 'plugin{,@*}.{ts,tsx,js,jsx}'),
-      ];
+      const toWatch = [ctx!.opts.routesDir, ctx!.opts.serverPluginsDir];
       server.watcher.add(toWatch);
       await new Promise((resolve) => setTimeout(resolve, 1000));
       server.watcher.on('change', (path) => {
@@ -472,10 +455,10 @@ function qwikRouterPlugin(
       }
     },
 
-    handleHotUpdate({ file, modules, server, timestamp }: HmrContext) {
-      // Route CSS is injected as a <link>; swap it in place rather than forcing a restart.
-      if (sendRouterCssHotUpdate(server, file, timestamp)) {
-        return [];
+    hotUpdate({ file, modules }: HotUpdateOptions) {
+      const server = devServer;
+      if (!server) {
+        return;
       }
       const clearedLoaderHashes = clearRouteLoaderHashes(loadersByFile, file);
       if (!ctx) {
@@ -486,21 +469,26 @@ function qwikRouterPlugin(
           clearedLoaderHashes ||
           isDiscoveredRouteLoaderSource(file, reExportedRouteLoaderSources)
         ) {
-          const configModules = invalidateRouterConfigModules(server);
-          return [...modules, ...configModules];
+          invalidateRouterConfigModules(server);
+          const configModule = this.environment.moduleGraph.getModuleById(QWIK_ROUTER_CONFIG_ID);
+          return configModule ? [...modules, configModule] : modules;
         }
         return;
       }
       ctx.isDirty = true;
-      const configModules = invalidateRouterConfigModules(server);
-      return [...modules, ...configModules];
+      invalidateRouterConfigModules(server);
+      const configModule = this.environment.moduleGraph.getModuleById(QWIK_ROUTER_CONFIG_ID);
+      return configModule ? [...modules, configModule] : modules;
     },
 
-    transformIndexHtml() {
-      if (viteCommand !== 'serve') {
-        return;
-      }
-      return getRouterIndexTags(devServer!);
+    transformIndexHtml: {
+      order: 'pre',
+      async handler() {
+        if (viteCommand !== 'serve') {
+          return;
+        }
+        return getRouterIndexTags(devServer!);
+      },
     },
 
     buildStart() {

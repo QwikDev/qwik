@@ -49,6 +49,10 @@ const errorBoundaryDigest = (err: unknown): string => {
   return (hash >>> 0).toString(36);
 };
 
+/** An `Error` or a serializable non-`undefined` value can be kept as the boundary error as-is. */
+const isKeepableBoundaryError = (v: unknown): boolean =>
+  v instanceof Error || (v !== undefined && canSerialize(v));
+
 /** Redact to a generic message + a stable `digest`, dropping the raw message and any attached props. */
 const redactToGeneric = (err: unknown): Error & { digest: string } => {
   const redacted = new Error(GENERIC_BOUNDARY_ERROR_MESSAGE) as Error & { digest: string };
@@ -74,14 +78,12 @@ export const toSerializableBoundaryError = (
     } catch {
       return redactToGeneric(err);
     }
-    return projected instanceof Error || (projected !== undefined && canSerialize(projected))
-      ? projected
-      : redactToGeneric(err);
+    return isKeepableBoundaryError(projected) ? projected : redactToGeneric(err);
   }
   if (!dev) {
     return redactToGeneric(err);
   }
-  if (err instanceof Error || (err !== undefined && canSerialize(err))) {
+  if (isKeepableBoundaryError(err)) {
     return err;
   }
   const rawMessage = (err as { message?: unknown })?.message;

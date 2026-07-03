@@ -103,12 +103,7 @@ export async function _walkJSX(
             await retryOnPromise(() => stack.push(trackFn()));
           } catch (err) {
             stack.push(
-              await resolveErrorBoundaryFallback(
-                ssr,
-                ssr.getOrCreateLastNode(),
-                err,
-                'async-signal'
-              )
+              renderErrorBoundaryFallback(ssr, ssr.getOrCreateLastNode(), err, 'async-signal')
             );
           }
           continue;
@@ -117,7 +112,11 @@ export async function _walkJSX(
           if (value === Promise) {
             const pending = stack.pop() as Promise<JSXOutput>;
             // Route to the closest boundary, else the rejection aborts the stream.
-            stack.push(await catchToErrorBoundary(ssr, ssr.getOrCreateLastNode(), () => pending));
+            stack.push(
+              __EXPERIMENTAL__.errorBoundary
+                ? await catchToErrorBoundary(ssr, ssr.getOrCreateLastNode(), () => pending)
+                : await pending
+            );
           } else {
             const result = (value as StackFn).apply(ssr);
             if (isPromise(result)) {
@@ -157,7 +156,7 @@ function renderErrorBoundaryFallback(
   host: ReturnType<SSRContainer['getOrCreateLastNode']>,
   err: unknown,
   phase: ErrorBoundaryInfo['phase'] = 'render'
-): ValueOrPromise<JSXOutput> {
+): JSXOutput {
   // A non-recoverable build/plugin error must surface, not hide in any fallback.
   if (qDev && !isRecoverable(err)) {
     throw err;
@@ -252,16 +251,6 @@ function markSubtreeInert(
   }
 }
 
-async function resolveErrorBoundaryFallback(
-  ssr: SSRContainer,
-  host: ReturnType<SSRContainer['getOrCreateLastNode']>,
-  err: unknown,
-  phase: ErrorBoundaryInfo['phase'] = 'render'
-): Promise<JSXOutput> {
-  const fallback = renderErrorBoundaryFallback(ssr, host, err, phase);
-  return isPromise(fallback) ? await fallback : fallback;
-}
-
 /** `host` is captured so a deferred rejection routes to the node that produced it. */
 function catchToErrorBoundary(
   ssr: SSRContainer,
@@ -329,7 +318,7 @@ function processJSXNode(
           }
         } catch (err) {
           // Route to the closest boundary, else a mid-stream throw aborts SSR.
-          const fallback = await resolveErrorBoundaryFallback(
+          const fallback = renderErrorBoundaryFallback(
             ssr,
             ssr.getOrCreateLastNode(),
             err,
@@ -492,9 +481,9 @@ function processJSXNode(
             options.parentComponentFrame
           );
 
-          const jsxOutput = catchToErrorBoundary(ssr, host, () =>
-            applyQwikComponentBody(ssr, jsx, type)
-          );
+          const jsxOutput = __EXPERIMENTAL__.errorBoundary
+            ? catchToErrorBoundary(ssr, host, () => applyQwikComponentBody(ssr, jsx, type))
+            : applyQwikComponentBody(ssr, jsx, type);
           enqueue(
             setParentOptions(options, options.currentStyleScoped, options.parentComponentFrame)
           );
@@ -521,9 +510,11 @@ function processJSXNode(
           ssr.openFragment(inlineComponentProps);
           enqueue(ssr.closeFragment);
           const component = ssr.getParentComponentFrame();
-          const jsxOutput = catchToErrorBoundary(ssr, ssr.getOrCreateLastNode(), () =>
-            applyInlineComponent(ssr, component && component.componentNode, type, jsx)
-          );
+          const jsxOutput = __EXPERIMENTAL__.errorBoundary
+            ? catchToErrorBoundary(ssr, ssr.getOrCreateLastNode(), () =>
+                applyInlineComponent(ssr, component && component.componentNode, type, jsx)
+              )
+            : applyInlineComponent(ssr, component && component.componentNode, type, jsx);
           enqueue(jsxOutput);
           isPromise(jsxOutput) && enqueue(Promise);
         }

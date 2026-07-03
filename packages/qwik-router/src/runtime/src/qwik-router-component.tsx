@@ -257,6 +257,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
     NoSerialize<{
       routeName: string;
       navType: NavigationType;
+      prevUrl: URL;
       replaceState: boolean | undefined;
       shouldForcePrevUrl: boolean;
       shouldForceUrl: boolean;
@@ -709,6 +710,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       navContext.value = noSerialize({
         routeName: $routeName$,
         navType,
+        prevUrl,
         replaceState,
         shouldForcePrevUrl,
         shouldForceUrl,
@@ -770,12 +772,8 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       const container = _getContextContainer();
       const navigation = routeInternal.untrackedValue;
 
-      const { navType, replaceState, routeName } = nav;
+      const { navType, prevUrl, replaceState, routeName } = nav;
       const trackUrl = routeLocation.url;
-      // prevUrl is only assigned when the path changes (see nav task). On the first SPA nav
-      // after SSR, or on same-path/hash-only navs, prevUrl is undefined — fall back to
-      // trackUrl so isSamePath() returns true and scroll/history logic no-ops correctly.
-      const prevUrl = routeLocation.prevUrl ?? trackUrl;
 
       const scroller = getScroller();
       // Scroll restore setup — must happen before navigation commits

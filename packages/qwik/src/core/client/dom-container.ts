@@ -7,6 +7,7 @@ import { QError, qError } from '../shared/error/error';
 import {
   ERROR_CONTEXT,
   fireOnError,
+  isChunkLoadError,
   isRecoverable,
   type ErrorBoundaryStore,
 } from '../shared/error/error-handling';
@@ -327,6 +328,11 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   }
 
   handleError(err: any, host: VNode | null, phase: ErrorBoundaryInfo['phase'] = 'render'): void {
+    // A handler chunk that failed to load leaves rendered UI intact; surface it for monitoring instead.
+    if (phase === 'event' && isChunkLoadError(err)) {
+      logErrorAndThrowAsync(err);
+      return;
+    }
     if (qDev && host) {
       if (typeof document !== 'undefined') {
         setErrorPayload(host, err);

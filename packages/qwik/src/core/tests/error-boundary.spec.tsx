@@ -1091,6 +1091,66 @@ describe('ErrorBoundary CSR-specific', () => {
     });
   });
 
+  describe('event handler chunk-load failures', () => {
+    it('a chunk-load failure in an event handler leaves the boundary inert and surfaces via logErrorAndThrowAsync', async () => {
+      const chunkError = new Error('chunk load failure');
+      // A QRL whose import rejects, exactly like a 404'd handler chunk.
+      const failingHandler = qrl(() => Promise.reject(chunkError), 'handler') as any;
+      const throwAsyncSpy = vi
+        .spyOn(logUtils, 'logErrorAndThrowAsync')
+        .mockImplementation((message?: any) => message as Error);
+      // Silence the raw `qrl ... failed to load` console noise from $setRef$.
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      try {
+        const { container } = await domRender(
+          <ErrorBoundary fallback$={fb()}>
+            <button id="btn" onClick$={failingHandler}>
+              x
+            </button>
+          </ErrorBoundary>,
+          { debug }
+        );
+        const el = container.element;
+        await trigger(el, '#btn', 'click');
+        await waitForDrain(container).catch(() => {});
+
+        expect(el.querySelector('#fb')).toBeFalsy();
+        expect(el.querySelector('[role="alert"]')).toBeFalsy();
+        expect(el.querySelector('#btn')).toBeTruthy();
+        expect(throwAsyncSpy).toHaveBeenCalledTimes(1);
+        expect(throwAsyncSpy).toHaveBeenCalledWith(chunkError);
+      } finally {
+        throwAsyncSpy.mockRestore();
+        consoleSpy.mockRestore();
+      }
+    });
+
+    it('a handler THROWING a fetch-like TypeError still routes to the boundary', async () => {
+      // Pins tag-at-origin: no message matching may classify user errors as chunk failures.
+      const { container } = await domRender(
+        <ErrorBoundary fallback$={fb()}>
+          <button
+            id="btn"
+            onClick$={$(() => {
+              throw new TypeError('Failed to fetch dynamically imported module');
+            })}
+          >
+            x
+          </button>
+        </ErrorBoundary>,
+        { debug }
+      );
+      const el = container.element;
+      await trigger(el, '#btn', 'click');
+      await waitForDrain(container);
+
+      expect(el.querySelector('#fb')?.textContent).toContain(
+        'Failed to fetch dynamically imported module'
+      );
+      expect(el.querySelector('#btn')).toBeFalsy();
+    });
+  });
+
   describe('unhandledrejection bridge', () => {
     const renderTwoContainers = async () => {
       setPlatform(getTestPlatform());

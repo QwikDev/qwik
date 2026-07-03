@@ -189,6 +189,10 @@ client routing (`client/dom-container.ts`); shared helpers (`shared/error/error-
 - `content-host` precedes `fallback-host`; the `qErr` executor stays independent of `qO` (gated on
   `errorBoundary`, not `suspense`).
 - Closest boundary catches; a throwing fallback escalates past detached-`$fallback$` boundaries.
+- Chunk-load failures are infrastructure noise, tagged at the throw origin (`tagChunkLoadError` in
+  qrl `$setRef$`), never by message matching. Phase `event` + tag bypasses boundary routing
+  (`logErrorAndThrowAsync` for monitoring); render/task phases keep routing. The qwikloader's own
+  import failure stays log-only via the `importError` qerror guard — the two guards are disjoint.
 
 ### False-pass traps
 - The unit harness simulates resume — back resume/interactivity claims with
@@ -201,6 +205,9 @@ client routing (`client/dom-container.ts`); shared helpers (`shared/error/error-
   exercise the in-order branch with explicit `streaming: { outOfOrder: false }`.
 - `qwik-dom` `querySelector` is document-wide — use `host.contains(el)`; build a fresh JSX tree per
   container ("props across containers").
+- Chromium's module map pins a failed dynamic import for the page's lifetime (no re-fetch), so an
+  e2e cannot show in-page network recovery of a 404'd chunk; prove the QRL-level retry (fresh
+  `qrl ... failed to load` log per attempt) instead.
 
 ## Keep This Reference Fresh
 

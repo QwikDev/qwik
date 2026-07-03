@@ -235,6 +235,30 @@ test.describe('nav', () => {
         );
       });
 
+      test('should preserve scroll when submitting routeAction$ after SPA navigation', async ({
+        page,
+      }) => {
+        await page.goto('/qwikrouter-test/scroll-restoration/action-source/');
+        await page.locator('#to-scroll-action').click();
+
+        await expect(page).toHaveURL('/qwikrouter-test/scroll-restoration/action-form/');
+        await expect(page.locator('#scroll-action-heading')).toHaveText('Action Scroll');
+
+        await scrollTo(page, 0, 700);
+        await expect.poll(async () => (await getWindowScrollXY(page))[1]).toBe(700);
+
+        await page.locator('#scroll-action-submit').click();
+
+        await expect(page.locator('#scroll-action-result')).toHaveText('submitted: keep-scroll');
+        await page.evaluate(
+          () =>
+            new Promise<void>((resolve) => {
+              requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+            })
+        );
+        expect((await getWindowScrollXY(page))[1]).toBeGreaterThan(600);
+      });
+
       test('issue4502 (link)', async ({ page }) => {
         await page.goto('/qwikrouter-test/issue4502/');
         const count = page.locator('#count');

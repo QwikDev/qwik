@@ -6,7 +6,6 @@ import { isBrowser, isDev } from '@qwik.dev/core/build';
 import { invokeApply, tryGetInvokeContext, type InvokeContext } from '../../use/use-core';
 import { assertDefined } from '../error/assert';
 import { QError, qError } from '../error/error';
-import { tagChunkLoadError } from '../error/error-handling';
 import { getQFuncs } from '../utils/markers';
 import { isPromise, maybeThen } from '../utils/promises';
 import { qDev, qTest } from '../utils/qdev';
@@ -138,8 +137,6 @@ export class LazyRef<TYPE = unknown> {
       ref.then(
         (r) => (this.$ref$ = r),
         (err) => {
-          // Every rejection here is a module-load failure; no user handler code has run yet.
-          tagChunkLoadError(err);
           console.error(`qrl ${this.$symbol$} failed to load`, err);
           // We shouldn't cache rejections, we can try again later
           this.$ref$ = null;

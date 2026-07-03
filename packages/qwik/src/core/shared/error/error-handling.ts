@@ -125,33 +125,18 @@ export const isErrorFromDeferredSegment = (store: ErrorBoundaryStore): boolean =
 
 // The SSR container rethrows through the render drain, whose catch site only knows phase 'render'.
 const ERROR_PHASE = /*#__PURE__*/ Symbol('qErrorPhase');
-const CHUNK_LOAD_ERROR = /*#__PURE__*/ Symbol('qChunkLoadError');
 
-const defineErrorTag = (err: unknown, key: symbol, value: unknown): void => {
+/** Tag the error's originating phase so a rethrow through the render drain keeps it. */
+export const tagErrorPhase = (err: unknown, phase: ErrorBoundaryInfo['phase']): void => {
   if (err === null || (typeof err !== 'object' && typeof err !== 'function')) {
     return;
   }
   try {
-    Object.defineProperty(err, key, { value, configurable: true });
+    Object.defineProperty(err, ERROR_PHASE, { value: phase, configurable: true });
   } catch {
-    // Frozen error: best-effort, the read site falls back to its untagged behavior.
+    // Frozen error: best-effort, the catch site falls back to its own phase.
   }
 };
-
-/** Tag the error's originating phase so a rethrow through the render drain keeps it. */
-export const tagErrorPhase = (err: unknown, phase: ErrorBoundaryInfo['phase']): void => {
-  defineErrorTag(err, ERROR_PHASE, phase);
-};
-
-/** Tag at the import-rejection origin only; message matching would misclassify user errors. */
-export const tagChunkLoadError = (err: unknown): void => {
-  defineErrorTag(err, CHUNK_LOAD_ERROR, true);
-};
-
-export const isChunkLoadError = (err: unknown): boolean =>
-  err !== null &&
-  (typeof err === 'object' || typeof err === 'function') &&
-  (err as { [CHUNK_LOAD_ERROR]?: boolean })[CHUNK_LOAD_ERROR] === true;
 
 const getTaggedErrorPhase = (err: unknown): ErrorBoundaryInfo['phase'] | undefined =>
   err !== null && (typeof err === 'object' || typeof err === 'function')

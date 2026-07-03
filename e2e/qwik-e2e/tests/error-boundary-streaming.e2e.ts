@@ -611,64 +611,6 @@ test.describe('ErrorBoundary last-resort & rejection bridge', () => {
     expect(pageErrors).toEqual([]);
   });
 
-  // Core-import twin of the qwikloader 404 test: here handlers.js loads fine and CORE's qrl
-  // $load$ fails to import the component handler chunk. The boundary must stay inert, but
-  // unlike the loader branch (log-only by design) the failure must reach the global handler.
-  test('a failed component handler chunk import (chunk 404) leaves the boundary inert and reaches the global error handler', async ({
-    page,
-  }) => {
-    const pageErrors: string[] = [];
-    page.on('pageerror', (err) => pageErrors.push(err.message));
-    const consoleErrors: string[] = [];
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') {
-        consoleErrors.push(msg.text());
-      }
-    });
-    // Matches core's `qrl <sym> failed to load` log, never Chromium network noise
-    // ("Failed to load resource: net::ERR_FAILED").
-    const coreImportFailureErrors = () =>
-      consoleErrors.filter((text) => /^qrl .* failed to load/.test(text));
-
-    // Abort only the component handler chunk; handlers.js stays loadable so core, not the
-    // qwikloader, performs the failing import.
-    const handlerChunkPattern =
-      /\/build\/error-boundary\.tsx_EbThrowOnClick_[^?]*q_e_click[^?]*\.js/;
-    const blockedRequests: string[] = [];
-    await page.route(handlerChunkPattern, (route) => {
-      blockedRequests.push(route.request().url());
-      return route.abort();
-    });
-
-    await page.goto('/e2e/error-boundary-streaming?scenario=happy', { waitUntil: 'commit' });
-    await expect(page.locator('#eb-content')).toBeVisible({ timeout: 10000 });
-
-    await page.locator('#eb-content-throw').click();
-
-    // Core logs the failed qrl import, and the macrotask rethrow reaches window.onerror.
-    await expect
-      .poll(() => coreImportFailureErrors().length, { timeout: 10000 })
-      .toBeGreaterThan(0);
-    await expect.poll(() => pageErrors.length, { timeout: 10000 }).toBeGreaterThan(0);
-    expect(blockedRequests.length).toBeGreaterThan(0);
-
-    // Boundary inert: no fallback, no last-resort node, content untouched.
-    await expect(page.locator('#eb-fallback')).toHaveCount(0);
-    await expect(page.locator('[role="alert"]')).toHaveCount(0);
-    await expect(page.locator('#eb-content')).toBeVisible();
-    // The handler increments before throwing, so 0 proves the import failed, not a caught throw.
-    await expect(page.locator('#eb-content-touched')).toHaveText('0');
-
-    // The QRL does not cache the rejection: a second click re-attempts the import (fresh core
-    // log) and re-surfaces globally, still without swapping. (Chromium's module map pins the
-    // failed URL for the page's lifetime, so an in-page network recovery cannot be shown here.)
-    await page.locator('#eb-content-throw').click();
-    await expect.poll(() => coreImportFailureErrors().length, { timeout: 10000 }).toBe(2);
-    await expect.poll(() => pageErrors.length, { timeout: 10000 }).toBe(2);
-    await expect(page.locator('#eb-fallback')).toHaveCount(0);
-    await expect(page.locator('#eb-content')).toBeVisible();
-  });
-
   test('a fire-and-forget Promise.reject reaches logError via the unhandledrejection bridge', async ({
     page,
   }) => {

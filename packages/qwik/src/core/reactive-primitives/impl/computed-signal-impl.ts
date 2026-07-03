@@ -326,10 +326,12 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     return !!this.$untrackedPending$;
   }
 
+  /** @deprecated Use `pending` instead */
   get loading(): boolean {
     return this.pending;
   }
 
+  /** @deprecated Use `untrackedPending` instead */
   get untrackedLoading(): boolean {
     return this.untrackedPending;
   }

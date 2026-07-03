@@ -12,6 +12,7 @@ import type { Tracker } from './use-task';
  * type of the resource correctly. The type is only used for the `previous` property, which is not
  * commonly used, and can be easily cast if needed.
  *
+ * @deprecated Use `useComputed$` with an async function instead, which auto-tracks reads.
  * @public
  */
 export type AsyncFn<T> = (ctx: ComputeCtx & { track: Tracker }) => ValueOrPromise<T>;
@@ -21,7 +22,10 @@ const creator = <T>(qrl: QRL<AsyncFn<T>>, options?: AsyncSignalOptions<T>) => {
   return createAsyncSignal(qrl, options);
 };
 
-/** @internal */
+/**
+ * @deprecated Use `useComputed$` instead, it has async support now.
+ * @internal
+ */
 export const useAsyncQrl = <T>(
   qrl: QRL<AsyncFn<T>>,
   options?: AsyncSignalOptions<T>
@@ -48,6 +52,8 @@ export const useAsyncQrl = <T>(
  * will subscribe to it and return the last resolved value until the new value is ready. As soon as
  * the new value is ready, the subscribers will be updated.
  *
+ * @deprecated Use `useComputed$` instead, it has async support now and auto-tracks reads (including
+ *   after `await`), so you no longer need to call `track()`.
  * @public
  */
 export const useAsync$ = implicit$FirstArg(useAsyncQrl);

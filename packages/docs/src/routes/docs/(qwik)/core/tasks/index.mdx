@@ -54,7 +54,7 @@ Tasks can also be used to perform work when a component state changes. In this c
 
 Sometimes a task needs to run only on the browser and after rendering, in that case, you should use [`useVisibleTask$()`](#usevisibletask).
 
-<Note>If you need to fetch data asynchronously and not block rendering, you should use [`useAsync$()`](/docs/core/state/#useasync). `useAsync$()` does not block rendering while the async value is being resolved.</Note>
+<Note>If you need to fetch data asynchronously and not block rendering, you should use [`useComputed$()`](/docs/core/state/#usecomputed) with an async function. It does not block rendering while the async value is being resolved.</Note>
 
 ## Lifecycle
 Resumability is "Lazy execution", it's the ability to build the "framework state" (component boundaries, etc) on the server, and have it exist on the client without re-executing the framework again.
@@ -232,7 +232,7 @@ Use `useTask$()` when you need to:
 - Run code only once before the component is first rendered  
 - Programmatically run side-effect code when state changes
 
-<Note>If you're thinking about loading data using `fetch()` inside of `useTask$`, consider using [`useAsync$()`](/docs/core/state/#useasync) instead. This API is more convenient.</Note>
+<Note>If you're thinking about loading data using `fetch()` inside of `useTask$`, consider using [`useComputed$()`](/docs/core/state/#usecomputed) with an async function instead. This API is more convenient.</Note>
 
 ### On mount
 
@@ -268,7 +268,7 @@ Note that deep store updates don't mutate the store itself, so `store[item].coun
 
 During SSR, each component will wait until all tasks are completed before outputting the HTML for that component. So a task can be called multiple times during SSR if the tracked state changes due to other tasks.
 
-<Note>If all you want to do is compute a new state from an existing state synchronously, use [`useComputed$()`](/docs/core/state/#usecomputed). For async derivations (like search-as-you-type), use [`useAsync$()`](/docs/core/state/#useasync) and cancel in-flight work with `cleanup()` and `AbortController`.</Note>
+<Note>Use [`useComputed$()`](/docs/core/state/#usecomputed) to compute a new state from existing state. For async derivations (like search-as-you-type), pass it an async function and cancel in-flight work with `cleanup()` or the provided `abortSignal`.</Note>
 
 <CodeSandbox src="/src/routes/demo/tasks/track/index.tsx" >
 ```tsx

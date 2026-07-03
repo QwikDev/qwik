@@ -524,8 +524,7 @@ Note the `string extends C`, this is only true when TypeScript cannot infer the 
 
 - [`useSignal(initialState)`](../state/index.mdx#usesignal) - creates a signal with a value you can set
 - [`useStore(initialStateObject)`](../state/index.mdx#usestore) - creates an object for grouped state; Qwik tracks its property reads and writes
-- [`useComputed$()`](../state/index.mdx#usecomputed) - creates a signal with a value calculated from other values
-- [`useAsync$()`](../state/index.mdx#useasync) - creates an async signal with a value that may resolve later
+- [`useComputed$()`](../state/index.mdx#usecomputed) - creates a signal with a value calculated (synchronously or asynchronously) from other values
 - [`createContextId(contextName)`](../context/index.mdx#createcontext) - creates a context reference
 - [`useContextProvider()`](../context/index.mdx#usecontextprovider) - provides a value to a given context
 - [`useContext()`](../context/index.mdx#usecontext) - reads the value of the current context

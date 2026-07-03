@@ -72,7 +72,9 @@ export interface ComputedSignal<T> extends Signal<T> {
    * Setting it will trigger listeners for `.pending`.
    */
   untrackedPending: boolean;
+  /** @deprecated Use `pending` instead */
   loading: boolean;
+  /** @deprecated Use `untrackedPending` instead */
   untrackedLoading: boolean;
   /**
    * The error that occurred while computing the signal, if any. This will be cleared when the
@@ -145,6 +147,7 @@ export interface SerializerSignal<T> extends ComputedSignal<T> {
  * If the async function threw an error, reading the `.value` will throw that same error. Read from
  * `.error` to check if there was an error.
  *
+ * @deprecated Use `ComputedSignal` instead, it has async support now.
  * @public
  */
 export type AsyncSignal<T = unknown> = ComputedSignal<T>;
@@ -182,6 +185,7 @@ export { createComputedQrl };
  * Create a signal holding a `.value` which is calculated from the given async function (QRL). The
  * standalone version of `useAsync$`.
  *
+ * @deprecated Use `createComputed$` instead, it has async support now.
  * @public
  */
 export const createAsync$: <T>(

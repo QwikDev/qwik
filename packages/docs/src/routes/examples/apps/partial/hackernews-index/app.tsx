@@ -1,12 +1,12 @@
-import { component$, useAsync$, useSignal, useStyles$, type Signal } from '@qwik.dev/core';
+import { component$, useComputed$, useSignal, useStyles$, type Signal } from '@qwik.dev/core';
 import HackerNewsCSS from './hacker-news.css?inline';
 
 export const HackerNews = component$(() => {
   useStyles$(HackerNewsCSS);
   const page = useSignal(0);
 
-  const data = useAsync$<IStory[]>(async ({ track, abortSignal }) => {
-    const pageNum = track(page);
+  const data = useComputed$<IStory[]>(async ({ abortSignal }) => {
+    const pageNum = page.value;
     const response = await fetch(`https://node-hnapi.herokuapp.com/news?page=${pageNum}`, {
       signal: abortSignal,
     });
@@ -16,7 +16,7 @@ export const HackerNews = component$(() => {
   return (
     <div class="hacker-news">
       <Nav />
-      {data.loading ? <Loading /> : <Stories stories={data.value} bind:page={page} />}
+      {data.pending ? <Loading /> : <Stories stories={data.value} bind:page={page} />}
     </div>
   );
 });

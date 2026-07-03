@@ -20,12 +20,12 @@ export function _addProjection(container: _Container, parentVNode: _VirtualVNode
 
 // Warning: (ae-forgotten-export) The symbol "ComputeCtx" needs to be exported by the entry point index.d.ts
 //
-// @public
+// @public @deprecated
 export type AsyncFn<T> = (ctx: ComputeCtx & {
     track: Tracker;
 }) => ValueOrPromise<T>;
 
-// @public
+// @public @deprecated
 export type AsyncSignal<T = unknown> = ComputedSignal<T>;
 
 // Warning: (ae-forgotten-export) The symbol "ComputedSignalImpl" needs to be exported by the entry point index.d.ts
@@ -36,7 +36,7 @@ export class _AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> impl
     constructor(container: _Container | null, fn: AsyncQRL<T>, flags?: number, options?: AsyncSignalOptions<T>);
 }
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export type AsyncSignalOptions<T> = ComputedOptions<T>;
 
 // @internal
@@ -132,13 +132,13 @@ export interface ComputedSignal<T> extends Signal<T> {
     interval: number;
     invalidate(): void;
     invalidate(info?: unknown): void;
-    // (undocumented)
+    // @deprecated (undocumented)
     loading: boolean;
     pending: boolean;
     poll: boolean;
     promise(): Promise<void>;
     untrackedError: Error | undefined;
-    // (undocumented)
+    // @deprecated (undocumented)
     untrackedLoading: boolean;
     untrackedPending: boolean;
 }
@@ -241,7 +241,7 @@ export interface CorrectedToggleEvent extends Event {
     readonly prevState: 'open' | 'closed';
 }
 
-// @public
+// @public @deprecated
 export const createAsync$: <T>(qrl: (arg: ComputeCtx<T> & {
     track: Tracker;
 }) => Promise<T>, options?: AsyncSignalOptions<T>) => AsyncSignal<T>;
@@ -2026,12 +2026,12 @@ export const unwrapStore: <T>(value: T) => T;
 // @internal
 export function _updateProjectionProps(container: _Container, vnode: _VirtualVNode, newProps: Record<string, unknown>): void;
 
-// @public
+// @public @deprecated
 export const useAsync$: <T>(qrl: AsyncFn<T>, options?: AsyncSignalOptions<T> | undefined) => AsyncSignal<T>;
 
 // Warning: (ae-internal-missing-underscore) The name "useAsyncQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
-// @internal (undocumented)
+// @internal @deprecated (undocumented)
 export const useAsyncQrl: <T>(qrl: QRL<AsyncFn<T>>, options?: AsyncSignalOptions<T>) => AsyncSignal<T>;
 
 // @public

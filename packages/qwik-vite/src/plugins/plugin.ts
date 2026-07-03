@@ -25,7 +25,7 @@ import {
   isServerOnlyModule,
   mightContainServerOnlyImport,
 } from './server-only-modules';
-import { isVirtualId, isWin, parseId, sanitizeChunkGroupName } from './vite-utils';
+import { isVirtualId, isWin, parseId, sanitizeChunkGroupName, toDevPath } from './vite-utils';
 import MagicString from 'magic-string';
 import {
   createDevWorkerQrlChunkResolver,
@@ -1012,14 +1012,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         // Fallback: if the module isn't in the graph yet (first transform),
         // compute a root-relative URL path that matches what hotUpdate sends.
         if (!devPath && opts.rootDir) {
-          const rootDir = normalizePath(opts.rootDir);
-          const normalizedId = normalizePath(pathId);
-          if (normalizedId.startsWith(rootDir)) {
-            devPath = normalizedId.slice(rootDir.length);
-            if (!devPath.startsWith('/')) {
-              devPath = '/' + devPath;
-            }
-          }
+          devPath = toDevPath(normalizePath(pathId), normalizePath(opts.rootDir));
         }
       }
       const transformOpts: TransformModulesOptions = {
@@ -1343,20 +1336,24 @@ export const isDev = ${JSON.stringify(isDev)};
   }
 
   // Only used in Vite dev mode, called per-environment
-  function hotUpdate(environment: DevEnvironment, ctx: HotUpdateOptions) {
+  function hotUpdate(environment: DevEnvironment, ctx: HotUpdateOptions): boolean {
     const isServer = environment.name === 'ssr';
     debug('hotUpdate()', ctx.file, environment.name);
 
     const outputs = isServer ? serverTransformedOutputs : clientTransformedOutputs;
 
+    let hasReRenderableSegment = false;
     for (const mod of ctx.modules) {
       const { id } = mod;
       if (id) {
         debug('hotUpdate()', `invalidate ${id}`);
         clientResults.delete(id);
-        for (const [key, [_, parentId]] of outputs) {
+        for (const [key, [transformedModule, parentId]] of outputs) {
           if (parentId === id) {
             debug('hotUpdate()', `invalidate ${id} segment ${key}`);
+            if (transformedModule.segment?.ctxName !== 'worker$') {
+              hasReRenderableSegment = true;
+            }
             outputs.delete(key);
             const segMod = environment.moduleGraph.getModuleById(key);
             if (segMod) {
@@ -1366,6 +1363,7 @@ export const isDev = ${JSON.stringify(isDev)};
         }
       }
     }
+    return hasReRenderableSegment;
   }
 
   const normalizeChunkGroupName = (entry: string | null | undefined, srcDir: string) => {

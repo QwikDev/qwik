@@ -1,10 +1,13 @@
+import { preprocessCSS } from 'vite';
 import type {
   ConfigEnv,
   EnvironmentOptions,
+  ResolvedConfig,
   UserConfig,
   ViteDevServer,
   Plugin as VitePlugin,
 } from 'vite';
+import { promises as fs } from 'node:fs';
 import type {
   EntryStrategy,
   GlobalInjections,
@@ -63,34 +66,38 @@ const DEDUPE = [
 const STYLING = ['.css', '.scss', '.sass', '.less', '.styl', '.stylus'];
 const FONTS = ['.woff', '.woff2', '.ttf'];
 
+const CSS_MODULE_RE = /\.module\.(css|scss|sass|less|styl|stylus)$/;
+const WORKER_FILE_RE = /[?&]worker_file\b/;
+
+const readCssModuleClassMap = async (
+  file: string,
+  config: ResolvedConfig
+): Promise<Record<string, string>> => {
+  const raw = await fs.readFile(file, 'utf-8');
+  const { modules } = await preprocessCSS(raw, file, config);
+  return modules ?? {};
+};
+
+export const isSameClassMap = (a: Record<string, string>, b: Record<string, string>): boolean => {
+  const aKeys = Object.keys(a);
+  if (aKeys.length !== Object.keys(b).length) {
+    return false;
+  }
+  return aKeys.every((key) => a[key] === b[key]);
+};
+
 const QWIK_HMR_BRIDGE_ID = '@qwik-hmr-bridge';
-/**
- * Client-side HMR bridge: listens for qwik:hmr events from the server and dispatches events for
- * each changed file. These events then call _hmr on the specific component that changed, causing it
- * to re-render, even if it was paused.
- */
 const QWIK_HMR_BRIDGE_CODE = `
-  // HMR bridge: connects Vite HMR events to Qwik's component re-rendering.
   if (import.meta.hot) {
-    let timeout;
     import.meta.hot.on("qwik:hmr", (data) => {
       if (data.t === document.__hmrT) {
-        console.log("Received duplicate HMR update, ignoring", data.files);
         return;
       }
-      clearTimeout(timeout);
       document.__hmrT = data.t;
-      document.__hmrDone = 0;
-      document.dispatchEvent(
-        new CustomEvent("qHmr", { detail: data })
-      );
-      timeout = setTimeout(() => {
-      console.log(document.__hmrDone, document.__hmrT);
-        if (document.__hmrDone !== document.__hmrT) {
-          console.log("HMR update did not match active code, reloading the page", location.href);
-          location.reload();
-        }
-      }, 500);
+      document.dispatchEvent(new CustomEvent("qHmr", { detail: data }));
+    });
+    import.meta.hot.on("qwik:css-module-update", ({ url, t }) => {
+      import(/* @vite-ignore */ url + (url.includes("?") ? "&" : "?") + "t=" + t);
     });
   }
 `;
@@ -124,6 +131,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   const userClientOutDir = qwikViteOpts.client?.outDir;
   // Cache the resolved plugin options from config() to reuse in configResolved()
   let cachedPluginOpts: QwikPluginOptions | null = null;
+  const cssModuleClassMaps = new Map<string, Record<string, string>>();
   const fileFilter: QwikVitePluginOptions['fileFilter'] = qwikViteOpts.fileFilter
     ? (id, type) => TRANSFORM_REGEX.test(id) || qwikViteOpts.fileFilter!(id, type)
     : () => true;
@@ -530,6 +538,19 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     name: 'vite-plugin-qwik-post',
     enforce: 'post',
 
+    async transform(_code, id) {
+      const file = id.split('?')[0];
+      if (
+        viteCommand === 'serve' &&
+        this.environment.name === 'client' &&
+        viteServer &&
+        CSS_MODULE_RE.test(file)
+      ) {
+        cssModuleClassMaps.set(file, await readCssModuleClassMap(file, viteServer.config));
+      }
+      return null;
+    },
+
     generateBundle: {
       order: 'post',
       async handler(_, rollupBundle) {
@@ -685,41 +706,80 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       };
     },
 
-    hotUpdate(ctx) {
-      qwikPlugin.hotUpdate(this.environment, ctx);
+    async hotUpdate(ctx) {
+      const qwikReRendersChange = qwikPlugin.hotUpdate(this.environment, ctx);
 
       const hmrEnabled = qwikViteOpts?.devTools?.hmr ?? true;
-      if (this.environment.name === 'ssr' && ctx.modules.length) {
-        if (hmrEnabled) {
-          // Source files live in the SSR module graph. When they change, notify the
-          // client's loaded QRL segments via the client environment's HMR channel.
-          // Some non-source imports (e.g. .css?inline) are type 'js' but their URL
-          // is not a JS/TS file. For those, emit their JS importers instead, since
-          // the component that needs to re-render is the importer.
-          const files = new Set<string>();
-          const isSourceUrl = (url: string) => /\.([mc]?[jt]sx?|mdx?)$/.test(url.split('?')[0]);
-          for (const m of ctx.modules) {
-            const url = m.url.split('?')[0];
-            if (m.type === 'js' && isSourceUrl(m.url)) {
-              files.add(url);
-            } else {
-              for (const importer of m.importers) {
-                if (importer.type === 'js' && isSourceUrl(importer.url)) {
-                  files.add(importer.url.split('?')[0]);
-                }
-              }
+
+      const isSourceUrl = (url: string) => /\.([mc]?[jt]sx?|mdx?)$/.test(url.split('?')[0]);
+      const isStyleUrl = (url: string) => {
+        const path = url.split('?')[0];
+        return STYLING.some((ext) => path.endsWith(ext));
+      };
+      const changedSourceFiles = new Set<string>();
+      let hasStyleDependent = false;
+      for (const m of ctx.modules) {
+        if (m.type === 'js' && isSourceUrl(m.url)) {
+          changedSourceFiles.add(m.url.split('?')[0]);
+        } else if (isStyleUrl(m.url)) {
+          for (const importer of m.importers) {
+            if (importer.type === 'js' && isSourceUrl(importer.url)) {
+              hasStyleDependent = true;
             }
           }
-          if (files.size > 0 && viteServer) {
-            viteServer.environments.client.hot.send({
-              type: 'custom',
-              event: 'qwik:hmr',
-              data: { files: [...files], t: ctx.timestamp },
-            });
-          }
-        } else {
+        }
+      }
+      const shouldReRender = changedSourceFiles.size > 0 && !hasStyleDependent;
+
+      if (this.environment.name === 'ssr' && ctx.modules.length) {
+        if (hmrEnabled && shouldReRender && viteServer) {
+          viteServer.environments.client.hot.send({
+            type: 'custom',
+            event: 'qwik:hmr',
+            data: { files: [...changedSourceFiles], t: ctx.timestamp },
+          });
+        } else if (!hmrEnabled) {
           viteServer?.environments.client.hot.send({ type: 'full-reload' });
         }
+      }
+
+      if (this.environment.name === 'client' && hmrEnabled && shouldReRender) {
+        if (qwikReRendersChange) {
+          return [];
+        }
+        if (ctx.modules.some((m) => WORKER_FILE_RE.test(m.url))) {
+          viteServer?.environments.client.hot.send({ type: 'full-reload' });
+          return [];
+        }
+      }
+
+      const isCssModuleEdit =
+        hmrEnabled && CSS_MODULE_RE.test(ctx.file) && ctx.modules.some((m) => isStyleUrl(m.url));
+      if (isCssModuleEdit && this.environment.name === 'client') {
+        const clientEnv = ctx.server.environments.client;
+        let nextMap: Record<string, string>;
+        try {
+          nextMap = await readCssModuleClassMap(ctx.file, ctx.server.config);
+        } catch {
+          return [];
+        }
+        const previousMap = cssModuleClassMaps.get(ctx.file);
+        cssModuleClassMaps.set(ctx.file, nextMap);
+
+        if (!previousMap || !isSameClassMap(previousMap, nextMap)) {
+          clientEnv.hot.send({ type: 'full-reload' });
+        } else {
+          for (const mod of clientEnv.moduleGraph.getModulesByFile(ctx.file) ?? []) {
+            if (mod.url) {
+              clientEnv.hot.send({
+                type: 'custom',
+                event: 'qwik:css-module-update',
+                data: { url: mod.url, t: ctx.timestamp },
+              });
+            }
+          }
+        }
+        return [];
       }
     },
 

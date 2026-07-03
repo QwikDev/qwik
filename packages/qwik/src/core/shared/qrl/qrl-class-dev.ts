@@ -5,6 +5,7 @@
  */
 import { isBrowser } from '@qwik.dev/core/build';
 import { verifySerializable } from '../serdes/verify';
+import { isHmrPathForFile } from '../utils/hmr';
 import type { LazyRef, QRLClass, QrlCaptures } from './qrl-class';
 
 /** Initialize dev properties on a LazyRef instance. */
@@ -80,7 +81,7 @@ export const setupHmr = (
     let didReload = false;
     for (const lazy of allLazyRefs.values()) {
       const devFile = lazy.dev?.file || lazy.$chunk$;
-      if (!devFile || !files.some((file) => devFile.startsWith(file))) {
+      if (!devFile || !files.some((file) => isHmrPathForFile(devFile, file))) {
         continue;
       }
       const chunk = lazy.$chunk$;

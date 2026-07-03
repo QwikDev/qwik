@@ -4,11 +4,16 @@ import {
   component$,
   useSignal,
   useStore,
+  useTask$,
+  useVisibleTask$,
 } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger, waitForDrain } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { _useHmr } from '../internal';
 import { VNodeFlags } from '../client/types';
+import { ELEMENT_SEQ } from '../../server/qwik-copy';
+import { Task } from '../use/use-task';
+import { ErrorProvider } from '../../testing/rendering.unit-util';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -72,6 +77,138 @@ describe('domRender: HMR', () => {
         </div>
       </Component>
     );
+  });
+
+  it('re-runs a visible task whose source file changed, running its prior cleanup first', async () => {
+    const log: string[] = [];
+
+    const Counter = component$(() => {
+      log.push('render');
+      const count = useSignal(0);
+      useVisibleTask$(() => {
+        log.push('task-run');
+        return () => {
+          log.push('task-cleanup');
+        };
+      });
+      _useHmr('vt.tsx');
+      return (
+        <div data-qwik-inspector="vt.tsx:1:1">
+          <span>{count.value}</span>
+        </div>
+      );
+    });
+
+    const { vNode, container } = await render(<Counter />, { debug });
+
+    // domRender runs the visible task eagerly on mount.
+    expect(log.filter((l) => l === 'task-run').length).toBe(1);
+    const rendersBeforeHmr = log.filter((l) => l === 'render').length;
+
+    // Match against the task QRL's real dev file so the changed-file check fires.
+    const seq = (container as any).getHostProp(vNode, ELEMENT_SEQ) as unknown[];
+    const task = seq.find((item) => item instanceof Task) as any;
+    const taskFile = task.$qrl$.dev.file as string;
+
+    await triggerHmr(container, ['vt.tsx', taskFile]);
+
+    expect(log.filter((l) => l === 'render').length).toBeGreaterThan(rendersBeforeHmr);
+    expect(log.filter((l) => l === 'task-cleanup').length).toBe(1);
+    expect(log.filter((l) => l === 'task-run').length).toBe(2);
+  });
+
+  it('re-runs a regular task whose source file changed', async () => {
+    const log: string[] = [];
+
+    const Counter = component$(() => {
+      log.push('render');
+      const count = useSignal(0);
+      useTask$(() => {
+        log.push('task-run');
+      });
+      _useHmr('rt.tsx');
+      return <div data-qwik-inspector="rt.tsx:1:1">{count.value}</div>;
+    });
+
+    const { vNode, container } = await render(<Counter />, { debug });
+    expect(log.filter((l) => l === 'task-run').length).toBe(1);
+
+    const seq = (container as any).getHostProp(vNode, ELEMENT_SEQ) as unknown[];
+    const task = seq.find((item) => item instanceof Task) as any;
+    const taskFile = task.$qrl$.dev.file as string;
+
+    await triggerHmr(container, ['rt.tsx', taskFile]);
+
+    expect(log.filter((l) => l === 'task-run').length).toBe(2);
+  });
+
+  it('does not re-run a task whose source file did not change', async () => {
+    const log: string[] = [];
+
+    const Counter = component$(() => {
+      log.push('render');
+      useVisibleTask$(() => {
+        log.push('task-run');
+      });
+      _useHmr('host.tsx');
+      return <div data-qwik-inspector="host.tsx:1:1">x</div>;
+    });
+
+    const { container } = await render(<Counter />, { debug });
+    expect(log.filter((l) => l === 'task-run').length).toBe(1);
+
+    // Only the component host file changed; the task's own file is unchanged, so it must not re-run.
+    await triggerHmr(container, ['host.tsx']);
+
+    expect(log.filter((l) => l === 'task-run').length).toBe(1);
+  });
+
+  it('does not re-render when a prefix-sibling file changes (foo.ts vs foo.tsx)', async () => {
+    const log: string[] = [];
+
+    const Counter = component$(() => {
+      log.push('render');
+      const count = useSignal(42);
+      _useHmr('/src/foo.tsx');
+      return (
+        <div data-qwik-inspector="/src/foo.tsx:1:1">
+          <span>{count.value}</span>
+        </div>
+      );
+    });
+
+    const { container } = await render(<Counter />, { debug });
+    const rendersBeforeHmr = log.length;
+
+    await triggerHmr(container, ['/src/foo.ts']);
+    expect(log.length).toBe(rendersBeforeHmr);
+
+    await triggerHmr(container, ['/src/foo.tsx']);
+    expect(log.length).toBeGreaterThan(rendersBeforeHmr);
+  });
+
+  it('matches a query-suffixed devPath against the bare changed file', async () => {
+    const log: string[] = [];
+
+    const Counter = component$(() => {
+      log.push('render');
+      const count = useSignal(1);
+      _useHmr('/src/bar.tsx?v=123');
+      return (
+        <div data-qwik-inspector="/src/bar.tsx:1:1">
+          <span>{count.value}</span>
+        </div>
+      );
+    });
+
+    const { container } = await render(<Counter />, { debug });
+    const rendersBeforeHmr = log.length;
+
+    await triggerHmr(container, ['/src/bar.ts']);
+    expect(log.length).toBe(rendersBeforeHmr);
+
+    await triggerHmr(container, ['/src/bar.tsx']);
+    expect(log.length).toBeGreaterThan(rendersBeforeHmr);
   });
 
   /**
@@ -188,7 +325,6 @@ describe('domRender: HMR', () => {
 
     await triggerHmr(container, ['other-file.tsx']);
 
-    // No additional render
     expect(log.length).toBe(rendersBeforeHmr);
   });
 
@@ -257,8 +393,10 @@ describe('domRender: HMR', () => {
     );
   });
 
-  it('should not ack HMR when the captured host has been deleted', async () => {
+  it('does not re-render when the captured host has been deleted', async () => {
+    const log: string[] = [];
     const Counter = component$(() => {
+      log.push('render');
       _useHmr('deleted-host.tsx');
       return <div data-qwik-inspector="deleted-host.tsx:1:1">current</div>;
     });
@@ -268,10 +406,253 @@ describe('domRender: HMR', () => {
       throw new Error('Expected rendered VNode');
     }
     vNode.flags |= VNodeFlags.Deleted;
+    const rendersBeforeHmr = log.length;
 
     await triggerHmr(container, ['deleted-host.tsx']);
 
-    expect((container.document as any).__hmrDone).not.toBe((container.document as any).__hmrT);
+    expect(log.length).toBe(rendersBeforeHmr);
+  });
+});
+
+// ── domRender: adaptive remount-on-throw ────────────────────────────────
+// A re-run task doing non-idempotent setup (e.g. a canvas already transferred to an offscreen
+// worker) throws on the reused DOM. Recovery remounts the host — fresh DOM + state — within HMR,
+// with no full reload, bounded to one remount per HMR event.
+
+describe('domRender: HMR remount-on-throw', () => {
+  const render = domRender;
+
+  /** Reads the changed-file the re-run check matches: the visible/regular task's own QRL dev file. */
+  function taskFileOf(container: any, el: Element): string {
+    const host = container.getParentHost(container.vNodeLocate(el));
+    const seq = container.getHostProp(host, ELEMENT_SEQ) as unknown[];
+    const task = seq.find((item) => item instanceof Task) as any;
+    return task.$qrl$.dev.file as string;
+  }
+
+  /** Drains repeatedly so an async remount's follow-up cursor pass also settles. */
+  async function drainAll(container: any) {
+    for (let i = 0; i < 20; i++) {
+      await Promise.resolve();
+      await waitForDrain(container);
+    }
+  }
+
+  it('remounts a component whose visible task throws on HMR re-run and recovers with fresh DOM', async () => {
+    const log: string[] = [];
+
+    const Child = component$(() => {
+      log.push('render');
+      const canvasRef = useSignal<Element>();
+      useVisibleTask$(() => {
+        log.push('task-run');
+        const el = canvasRef.value! as any;
+        if (el.transferred) {
+          throw new Error('canvas already transferred');
+        }
+        el.transferred = true;
+        log.push('transfer-ok');
+      });
+      _useHmr('child.tsx');
+      return <canvas data-qwik-inspector="child.tsx:1:1" ref={canvasRef} />;
+    });
+
+    const Parent = component$(() => <div>{<Child />}</div>);
+
+    const { container } = await render(
+      <ErrorProvider>
+        <Parent />
+      </ErrorProvider>,
+      { debug }
+    );
+
+    expect(log.filter((l) => l === 'transfer-ok').length).toBe(1);
+    const firstCanvas = container.element.querySelector('canvas');
+    expect(firstCanvas).toBeTruthy();
+
+    const taskFile = taskFileOf(container, firstCanvas!);
+    await triggerHmr(container, ['child.tsx', taskFile]);
+    await drainAll(container);
+
+    // Fresh mount succeeded on a brand-new canvas; no error surfaced, no full reload.
+    expect(log.filter((l) => l === 'transfer-ok').length).toBe(2);
+    expect(log.filter((l) => l === 'task-run').length).toBe(3);
+    expect(ErrorProvider.error).toBe(null);
+    const secondCanvas = container.element.querySelector('canvas');
+    expect(secondCanvas).toBeTruthy();
+    expect(secondCanvas).not.toBe(firstCanvas);
+  });
+
+  it('remounts at most once and surfaces the error when the fresh task also throws', async () => {
+    const log: string[] = [];
+    let runs = 0;
+
+    const Child = component$(() => {
+      log.push('render');
+      const canvasRef = useSignal<Element>();
+      useVisibleTask$(() => {
+        log.push('task-run');
+        runs++;
+        if (runs > 1) {
+          throw new Error('always throws after first run');
+        }
+      });
+      _useHmr('broken.tsx');
+      return <canvas data-qwik-inspector="broken.tsx:1:1" ref={canvasRef} />;
+    });
+
+    const Parent = component$(() => <div>{<Child />}</div>);
+
+    const { container } = await render(
+      <ErrorProvider>
+        <Parent />
+      </ErrorProvider>,
+      { debug }
+    );
+
+    expect(log.filter((l) => l === 'task-run').length).toBe(1);
+    const canvas = container.element.querySelector('canvas')!;
+    const taskFile = taskFileOf(container, canvas);
+
+    await triggerHmr(container, ['broken.tsx', taskFile]);
+    await drainAll(container);
+
+    // mount ok → HMR re-run throws → remount once → fresh run throws → error surfaced, loop stops.
+    expect(log.filter((l) => l === 'task-run').length).toBe(3);
+    expect(ErrorProvider.error).toBeInstanceOf(Error);
+  });
+
+  it('remounts only the throwing child, preserving sibling DOM and parent state', async () => {
+    const siblingLog: string[] = [];
+
+    const Sibling = component$(() => {
+      siblingLog.push('render');
+      const n = useSignal(0);
+      return <button onClick$={() => n.value++}>{n.value}</button>;
+    });
+
+    const Child = component$(() => {
+      const canvasRef = useSignal<Element>();
+      useVisibleTask$(() => {
+        const el = canvasRef.value! as any;
+        if (el.transferred) {
+          throw new Error('canvas already transferred');
+        }
+        el.transferred = true;
+      });
+      _useHmr('c.tsx');
+      return <canvas data-qwik-inspector="c.tsx:1:1" ref={canvasRef} />;
+    });
+
+    const Parent = component$(() => (
+      <div>
+        <Sibling />
+        <Child />
+      </div>
+    ));
+
+    const { container } = await render(
+      <ErrorProvider>
+        <Parent />
+      </ErrorProvider>,
+      { debug }
+    );
+
+    // Mutate sibling state so we can prove it survives the child's remount.
+    await trigger(container.element, 'button', 'click');
+    expect(container.element.querySelector('button')?.textContent).toBe('1');
+    const siblingButton = container.element.querySelector('button');
+    const firstCanvas = container.element.querySelector('canvas');
+    const siblingRendersBefore = siblingLog.length;
+
+    const taskFile = taskFileOf(container, firstCanvas!);
+    await triggerHmr(container, ['c.tsx', taskFile]);
+    await drainAll(container);
+
+    // Child got a fresh canvas; sibling was neither re-rendered nor recreated, keeping its state.
+    expect(container.element.querySelector('canvas')).not.toBe(firstCanvas);
+    expect(container.element.querySelector('button')).toBe(siblingButton);
+    expect(container.element.querySelector('button')?.textContent).toBe('1');
+    expect(siblingLog.length).toBe(siblingRendersBefore);
+    expect(ErrorProvider.error).toBe(null);
+  });
+
+  it('remounts when a non-idempotent regular task throws on HMR re-run', async () => {
+    const log: string[] = [];
+
+    const Child = component$(() => {
+      const store = useStore({ setUp: false });
+      useTask$(() => {
+        log.push('task-run');
+        if (store.setUp) {
+          throw new Error('regular setup is not repeatable');
+        }
+        store.setUp = true;
+      });
+      _useHmr('reg.tsx');
+      return <span data-qwik-inspector="reg.tsx:1:1">ok</span>;
+    });
+
+    const Parent = component$(() => <div>{<Child />}</div>);
+
+    const { container } = await render(
+      <ErrorProvider>
+        <Parent />
+      </ErrorProvider>,
+      { debug }
+    );
+
+    expect(log.filter((l) => l === 'task-run').length).toBe(1);
+    const span = container.element.querySelector('span')!;
+    const taskFile = taskFileOf(container, span);
+
+    await triggerHmr(container, ['reg.tsx', taskFile]);
+    await drainAll(container);
+
+    // mount → HMR re-run throws (store.setUp still true) → remount → fresh store, task succeeds.
+    expect(log.filter((l) => l === 'task-run').length).toBe(3);
+    expect(ErrorProvider.error).toBe(null);
+    expect(container.element.querySelector('span')?.textContent).toBe('ok');
+  });
+
+  it('remounts when a visible task rejects asynchronously on HMR re-run', async () => {
+    const log: string[] = [];
+
+    const Child = component$(() => {
+      const canvasRef = useSignal<Element>();
+      useVisibleTask$(async () => {
+        log.push('task-run');
+        const el = canvasRef.value! as any;
+        if (el.transferred) {
+          throw new Error('async canvas already transferred');
+        }
+        el.transferred = true;
+        log.push('transfer-ok');
+      });
+      _useHmr('async.tsx');
+      return <canvas data-qwik-inspector="async.tsx:1:1" ref={canvasRef} />;
+    });
+
+    const Parent = component$(() => <div>{<Child />}</div>);
+
+    const { container } = await render(
+      <ErrorProvider>
+        <Parent />
+      </ErrorProvider>,
+      { debug }
+    );
+
+    await drainAll(container);
+    expect(log.filter((l) => l === 'transfer-ok').length).toBe(1);
+    const firstCanvas = container.element.querySelector('canvas');
+    const taskFile = taskFileOf(container, firstCanvas!);
+
+    await triggerHmr(container, ['async.tsx', taskFile]);
+    await drainAll(container);
+
+    expect(log.filter((l) => l === 'transfer-ok').length).toBe(2);
+    expect(container.element.querySelector('canvas')).not.toBe(firstCanvas);
+    expect(ErrorProvider.error).toBe(null);
   });
 });
 

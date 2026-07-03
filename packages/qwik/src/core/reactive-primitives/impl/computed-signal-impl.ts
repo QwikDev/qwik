@@ -74,7 +74,7 @@ export class Job<T> implements ComputeCtx<T> {
   cache(): void {
     isDev &&
       console.error(
-        'useResource cache() method does not do anything. Use `useAsync$` instead of `useResource$`, use the `expires` option for polling behavior.'
+        'useResource cache() method does not do anything. Use `useComputed$` instead of `useResource$`, use the `expires` option for polling behavior.'
       );
   }
 
@@ -327,10 +327,12 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     return !!this.$untrackedPending$;
   }
 
+  /** @deprecated Use `pending` instead */
   get loading(): boolean {
     return this.pending;
   }
 
+  /** @deprecated Use `untrackedPending` instead */
   get untrackedLoading(): boolean {
     return this.untrackedPending;
   }

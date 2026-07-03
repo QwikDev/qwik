@@ -49,6 +49,7 @@ export type ComputeCtx<T = unknown> = {
   /** Extra info passed to `invalidate(info)` for this computation, if any. */
   readonly info?: unknown;
 };
+/** @deprecated Use `ComputeQRL` instead. */
 export type AsyncQRL<T> = QRLInternal<AsyncFn<T>>;
 
 /** @public */
@@ -124,7 +125,10 @@ export interface ComputedOptions<T = unknown> {
   timeout?: number;
 }
 
-/** @public */
+/**
+ * @deprecated Use `ComputedOptions` instead.
+ * @public
+ */
 export type AsyncSignalOptions<T> = ComputedOptions<T>;
 
 export const enum ComputedSignalFlags {

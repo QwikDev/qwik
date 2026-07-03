@@ -1329,7 +1329,7 @@ export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<
 >
   ? Signal<ValueOrPromise<VALIDATOR>>
   : Signal<TYPE>) &
-  Pick<AsyncSignal, "promise" | "loading" | "error">;
+  Pick<ComputedSignal<any>, "promise" | "pending" | "error" | "loading">;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
@@ -2469,7 +2469,7 @@ _(Optional)_ Array of routeLoader$ hashes for this node's loaders
 
 Define a route loader that fetches data before the route renders.
 
-Route loaders run on the server during SSR and return data as an `AsyncSignal`. On the client, loaders automatically re-fetch when the route changes (SPA navigation). Each loader gets its own JSON endpoint (`q-loader-{id}.{hash}.json`), so only the loaders present on the target route are fetched.
+Route loaders run on the server during SSR and return data as a `ComputedSignal`. On the client, loaders automatically re-fetch when the route changes (SPA navigation). Each loader gets its own JSON endpoint (`q-loader-{id}.{hash}.json`), so only the loaders present on the target route are fetched.
 
 \*\*Important:\*\* Route loader data uses Qwik's custom serialization format, not standard JSON. This means the data supports features like circular references, Dates, and other non-JSON types, but it cannot be consumed by external clients expecting plain JSON.
 

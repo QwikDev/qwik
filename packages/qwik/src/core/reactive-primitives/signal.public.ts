@@ -7,7 +7,6 @@ import {
   createAsyncSignal as createAsyncQrl,
 } from './signal-api';
 import type { ComputedReturnType } from '../use/use-computed';
-import type { Tracker } from '../use/use-task';
 import type { ValueOrPromise } from '../shared/utils/types';
 export { isSignal } from './utils';
 
@@ -72,7 +71,9 @@ export interface ComputedSignal<T> extends Signal<T> {
    * Setting it will trigger listeners for `.pending`.
    */
   untrackedPending: boolean;
+  /** @deprecated Use `pending` instead */
   loading: boolean;
+  /** @deprecated Use `untrackedPending` instead */
   untrackedLoading: boolean;
   /**
    * The error that occurred while computing the signal, if any. This will be cleared when the
@@ -145,6 +146,7 @@ export interface SerializerSignal<T> extends ComputedSignal<T> {
  * If the async function threw an error, reading the `.value` will throw that same error. Read from
  * `.error` to check if there was an error.
  *
+ * @deprecated Use `ComputedSignal` instead, it has async support now.
  * @public
  */
 export type AsyncSignal<T = unknown> = ComputedSignal<T>;
@@ -166,9 +168,10 @@ export const createSignal: {
  * recalculated.
  *
  * The QRL must be a function which returns the value of the signal. The function must not have side
- * effects. Every signal or store read is tracked automatically, including reads after an `await`.
- * When the function is async, the returned signal exposes the async API (`.pending`, `.error`,
- * `.promise()`), and reading an unresolved `.value` throws the computation promise.
+ * effects. Every synchronous signal or store read is tracked automatically; reads after the first
+ * `await` must use the `track()` provided on the context argument. When the function is async, the
+ * returned signal exposes the async API (`.pending`, `.error`, `.promise()`), and reading an
+ * unresolved `.value` throws the computation promise.
  *
  * @public
  */
@@ -182,14 +185,11 @@ export { createComputedQrl };
  * Create a signal holding a `.value` which is calculated from the given async function (QRL). The
  * standalone version of `useAsync$`.
  *
+ * @deprecated Use `createComputed$` instead, it has async support now.
  * @public
  */
 export const createAsync$: <T>(
-  qrl: (
-    arg: ComputeCtx<T> & {
-      track: Tracker;
-    }
-  ) => Promise<T>,
+  qrl: (arg: ComputeCtx<T>) => Promise<T>,
   options?: AsyncSignalOptions<T>
 ) => AsyncSignal<T> = /*#__PURE__*/ implicit$FirstArg(createAsyncQrl as any);
 export { createAsyncQrl };

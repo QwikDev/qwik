@@ -200,7 +200,8 @@ describe.each([
       </Component>
     );
     await (global as any).delay.resolve();
-    await waitForDrain(container);
+    // let the resource completion chain schedule the render before draining
+    await new Promise((resolve) => setTimeout(resolve, 0));
     await waitForDrain(container);
 
     expect(vNode).toMatchVDOM(

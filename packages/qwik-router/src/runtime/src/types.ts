@@ -1,5 +1,5 @@
 import type {
-  AsyncSignal,
+  ComputedSignal,
   JSXOutput,
   NoSerialize,
   QRL,
@@ -794,9 +794,9 @@ export type LoaderOptions = {
    * Time in milliseconds after which the loader data is considered stale. The server derives
    * `Cache-Control: max-age` seconds from this value on loader responses.
    *
-   * On the client, the loader's AsyncSignal `expires` is set to this value. If `poll` is true, the
-   * signal auto-refetches when expired. If `poll` is false (default), the data is marked stale but
-   * not auto-refetched.
+   * On the client, the loader's ComputedSignal `expires` is set to this value. If `poll` is true,
+   * the signal auto-refetches when expired. If `poll` is false (default), the data is marked stale
+   * but not auto-refetched.
    */
   readonly expires?: number;
   /**
@@ -1007,7 +1007,7 @@ export type ExcludeControlFlow<T> = Exclude<T, AbortMessage | ServerError>;
 export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<infer VALIDATOR>
   ? Signal<ValueOrPromise<VALIDATOR>>
   : Signal<TYPE>) &
-  Pick<AsyncSignal, 'promise' | 'loading' | 'error'>;
+  Pick<ComputedSignal<any>, 'promise' | 'pending' | 'error' | 'loading'>;
 
 /** @public */
 export type Loader<RETURN> = {

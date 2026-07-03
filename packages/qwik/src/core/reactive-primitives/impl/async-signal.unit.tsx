@@ -9,13 +9,7 @@ import type { Container, HostElement } from '../../shared/types';
 import { delay, retryOnPromise } from '../../shared/utils/promises';
 import { invoke, newInvokeContext } from '../../use/use-core';
 import { Task, TaskFlags } from '../../use/use-task';
-import {
-  type AsyncCtx,
-  AsyncSignalFlags,
-  EffectProperty,
-  NEEDS_COMPUTATION,
-  ComputedSignalFlags,
-} from '../types';
+import { AsyncSignalFlags, EffectProperty, NEEDS_COMPUTATION, ComputedSignalFlags } from '../types';
 import { clearAllEffects } from '../cleanup';
 import { createSignal, createAsync$, createAsyncQrl } from '../signal.public';
 import { getSubscriber } from '../subscriber';
@@ -328,7 +322,7 @@ describe('async signal', () => {
 
         const signal = (await retryOnPromise(() =>
           createAsyncQrl(
-            $(async ({ track, cleanup }: AsyncCtx) => {
+            $(async ({ track, cleanup }) => {
               track(() => dep.value);
               cleanup(async () => {
                 await delay(10);
@@ -360,7 +354,7 @@ describe('async signal', () => {
 
         const signal = (await retryOnPromise(() =>
           createAsyncQrl(
-            $(async ({ track, abortSignal }: AsyncCtx) => {
+            $(async ({ track, abortSignal }) => {
               track(() => dep.value);
               abortSignal.addEventListener('abort', () => {
                 ref.aborted = true;
@@ -411,7 +405,7 @@ describe('async signal', () => {
 
         const signal = (await retryOnPromise(() =>
           createAsyncQrl(
-            $(async ({ abortSignal }: AsyncCtx) => {
+            $(async ({ abortSignal }) => {
               ref.capturedSignal = abortSignal;
               return 42;
             })

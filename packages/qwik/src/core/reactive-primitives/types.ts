@@ -25,8 +25,13 @@ import type { PropsProxy } from '../shared/jsx/props-proxy';
 export const NEEDS_COMPUTATION: any = Symbol('invalid');
 
 export type ComputeQRL<T> = QRLInternal<ComputedFn<T>>;
-export type AsyncCtx<T = unknown> = {
-  track: Tracker;
+export type ComputeCtx<T = unknown> = {
+  /**
+   * Track reactive reads so the computation re-runs when they change. Computed functions track
+   * synchronous reads automatically, but after the first `await` the tracking context is lost, so
+   * later reads must go through `track()`.
+   */
+  readonly track: Tracker;
   /**
    * Register a cleanup callback to be called when the async computation is aborted or completed.
    * The next invocation will await the previous cleanup. If you do not want this, do not return a
@@ -47,15 +52,11 @@ export type AsyncCtx<T = unknown> = {
 export type AsyncQRL<T> = QRLInternal<AsyncFn<T>>;
 
 /** @public */
-export interface ComputedOptions {
+export interface ComputedOptions<T = unknown> {
   serializationStrategy?: SerializationStrategy;
   container?: Container;
-}
-
-/** @public */
-export interface AsyncSignalOptions<T> extends ComputedOptions {
   /** Like useSignal's `initial`; prevents the throw on first read when uninitialized */
-  initial?: T | (() => T);
+  initial?: Awaited<T> | (() => Awaited<T>);
   /**
    * Maximum number of concurrent computations. Use `0` for unlimited.
    *
@@ -123,6 +124,9 @@ export interface AsyncSignalOptions<T> extends ComputedOptions {
   timeout?: number;
 }
 
+/** @public */
+export type AsyncSignalOptions<T> = ComputedOptions<T>;
+
 export const enum ComputedSignalFlags {
   INVALID = 1,
   RUN_EFFECTS = 2,
@@ -142,6 +146,10 @@ export const enum AsyncSignalFlags {
   CLIENT_ONLY = 64,
   CLEAR_ON_INVALIDATE = 128,
   NO_POLL = 256,
+  /** The compute fn is async: the async engine (jobs, loading, error) is active */
+  ASYNC_MODE = 512,
+  /** Invoke the compute fn AsyncSignal-style: pass the ComputeCtx argument, no auto-tracking */
+  CTX_ARG = 1024,
 }
 
 export type AllSignalFlags = ComputedSignalFlags | SerializationSignalFlags | AsyncSignalFlags;

@@ -14,12 +14,9 @@ import {
   useSignal,
   useStore,
   useTask$,
-} from '@qwik.dev/core';
+} from '@qwik.dev/core/internal';
 import { domRender, ssrRenderToDom, trigger, waitForDrain } from '@qwik.dev/core/testing';
-import { describe, expect, it, vi } from 'vitest';
-import { ErrorProvider } from '../../testing/rendering.unit-util';
-import * as qError from '../shared/error/error';
-import { QError } from '../shared/error/error';
+import { describe, expect, it } from 'vitest';
 import { getSubscriber } from '../reactive-primitives/subscriber';
 import { EffectProperty } from '../reactive-primitives/types';
 
@@ -227,31 +224,56 @@ describe.each([
     );
   });
 
-  it('should disallow Promise in computed result', async () => {
-    const qErrorSpy = vi.spyOn(qError, 'qError');
+  it('should support async computed functions', async () => {
     const Counter = component$(() => {
       const count = useSignal(1);
       const doubleCount = useComputed$(() => Promise.resolve(count.value * 2));
-      return (
-        <button onClick$={() => count.value++}>
-          {
-            // @ts-expect-error
-            doubleCount.value
-          }
-        </button>
-      );
+      return <button onClick$={() => count.value++}>{doubleCount.value}</button>;
     });
-    try {
-      await render(
-        <ErrorProvider>
-          <Counter />
-        </ErrorProvider>,
-        { debug }
-      );
-    } catch (e) {
-      expect((e as Error).message).toBeDefined();
-      expect(qErrorSpy).toHaveBeenCalledWith(QError.computedNotSync, expect.any(Array));
-    }
+    const { vNode, document } = await render(<Counter />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <button>
+          <Signal ssr-required>2</Signal>
+        </button>
+      </Component>
+    );
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <button>
+          <Signal ssr-required>4</Signal>
+        </button>
+      </Component>
+    );
+  });
+
+  it('should track dependencies read after an await via track() in async computed', async () => {
+    const Counter = component$(() => {
+      const count = useSignal(1);
+      const doubleCount = useComputed$(async ({ track }) => {
+        await Promise.resolve();
+        // the tracking context is lost after the first await: reads must use track()
+        return track(count) * 2;
+      });
+      return <button onClick$={() => count.value++}>{doubleCount.value}</button>;
+    });
+    const { vNode, document } = await render(<Counter />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <button>
+          <Signal ssr-required>2</Signal>
+        </button>
+      </Component>
+    );
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <button>
+          <Signal ssr-required>4</Signal>
+        </button>
+      </Component>
+    );
   });
 
   it('should track when recomputing computed signal', async () => {

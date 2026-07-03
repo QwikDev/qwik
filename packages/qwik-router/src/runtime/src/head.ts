@@ -1,5 +1,5 @@
 import { withLocale } from '@qwik.dev/core';
-import type { AsyncSignal } from '@qwik.dev/core/internal';
+import type { ComputedSignal } from '@qwik.dev/core';
 import type {
   CacheKeyFn,
   ContentModule,
@@ -139,7 +139,7 @@ export const resolveRouteConfig = (
  */
 export const resolveHead = (
   actionData: { action?: string; actionResult?: unknown; status: number } | undefined,
-  loaderState: Record<string, AsyncSignal<unknown>> | undefined,
+  loaderState: Record<string, ComputedSignal<unknown>> | undefined,
   routeLocation: RouteLocation,
   contentModules: ContentModule[],
   locale: string,

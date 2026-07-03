@@ -3,7 +3,7 @@ import { assertEqual } from '../shared/error/assert';
 import { isPropsProxy } from '../shared/jsx/props-proxy';
 import { _CONST_PROPS, _IMMUTABLE, _VAR_PROPS } from '../shared/utils/constants';
 import { isObject } from '../shared/utils/types';
-import { AsyncSignalImpl } from './impl/async-signal-impl';
+import { ComputedSignalImpl } from './impl/computed-signal-impl';
 import type { SignalImpl } from './impl/signal-impl';
 import { getStoreTarget, isStore } from './impl/store';
 import { WrappedSignalImpl } from './impl/wrapped-signal-impl';
@@ -61,7 +61,7 @@ export const _wrapProp = <T extends object, P extends keyof T>(
     return obj[prop];
   }
   if (isSignal(obj)) {
-    if (!(obj instanceof AsyncSignalImpl)) {
+    if (!(obj instanceof ComputedSignalImpl)) {
       isDev && assertEqual(prop, 'value', 'Left side is a signal, prop must be value');
     }
     if (obj instanceof WrappedSignalImpl) {

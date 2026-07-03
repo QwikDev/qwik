@@ -2,22 +2,32 @@ import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
 import type { QRL } from '../shared/qrl/qrl.public';
 import type { ComputedSignal } from '../reactive-primitives/signal.public';
 import { createComputedSignal } from '../reactive-primitives/signal-api';
-import type { ComputedOptions } from '../reactive-primitives/types';
+import type { ComputeCtx, ComputedOptions } from '../reactive-primitives/types';
+import type { ValueOrPromise } from '../shared/utils/types';
 import { useConstant } from './use-signal';
 
+/**
+ * The compute function. The context provides `previous` (the last computed value), `info` (the
+ * argument of the `invalidate(info)` call that triggered this computation), `cleanup()` and
+ * `abortSignal`. All reactive state reads are tracked automatically, use `untrack()` to read
+ * signals without tracking. Return a `Promise` (or use an `async` function) for async values.
+ *
+ * @public
+ */
+// ctx is not `ComputeCtx<T>`: putting T in a parameter position breaks return-type inference, so
+// `ctx.previous` is `unknown` and must be cast if its type is needed.
+export type ComputedFn<T> = (ctx: ComputeCtx) => ValueOrPromise<T>;
 /** @public */
-export type ComputedFn<T> = () => T;
-/** @public */
-export type ComputedReturnType<T> = T extends Promise<any> ? never : ComputedSignal<T>;
+export type ComputedReturnType<T> = ComputedSignal<Awaited<T>>;
 
-const creator = <T>(qrl: QRL<ComputedFn<T>>, options?: ComputedOptions) => {
+const creator = <T>(qrl: QRL<ComputedFn<T>>, options?: ComputedOptions<T>) => {
   qrl.resolve();
-  return createComputedSignal(qrl, options);
+  return createComputedSignal<T>(qrl, options);
 };
 /** @internal */
 export const useComputedQrl = <T>(
   qrl: QRL<ComputedFn<T>>,
-  options?: ComputedOptions
+  options?: ComputedOptions<T>
 ): ComputedReturnType<T> => {
   return useConstant(creator<T>, qrl, options) as any;
 };
@@ -28,7 +38,11 @@ export const useComputedQrl = <T>(
  * recalculated, and if the result changed, all tasks which are tracking the signal will be re-run
  * and all components that read the signal will be re-rendered.
  *
- * The function must be synchronous and must not have any side effects.
+ * Every signal or store read is tracked automatically, including reads after an `await`. When the
+ * function is async, the returned signal exposes the async API: reading an unresolved `.value`
+ * throws the computation promise, and `.pending` and `.error` expose the computation state.
+ *
+ * The function must not have any side effects.
  *
  * @public
  */

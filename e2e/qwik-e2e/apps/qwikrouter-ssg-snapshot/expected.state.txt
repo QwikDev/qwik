@@ -27,74 +27,10 @@
       RootRef [omitted]
     ]
     {number} 1
-    Map [
-      {string} "pagePathname"
-      Set [
-        EffectSubscriptionNoData [
-          AsyncSignal [
-            QRL "[omitted]"
-            Set [
-              EffectSubscriptionNoData [
-                VNode "11AAA"
-                Constant ':'
-              ]
-              EffectSubscriptionNoData [
-                ComputedSignal [
-                  QRL "[omitted]"
-                  Set [
-                    RootRef [omitted]
-                  ]
-                  Object [
-                    {string} "total"
-                    {number} 18
-                    {string} "selectedCount"
-                    {number} 2
-                    {string} "clicks"
-                    {number} 2
-                  ]
-                ]
-                Constant '.'
-              ]
-              EffectSubscriptionNoData [
-                WrappedSignal [
-                  {number} 1
-                  Array [
-                    RootRef [omitted]
-                  ]
-                  {number} 3
-                  VNode "13A"
-                  EffectSubscriptionNoData [
-                    RootRef [omitted]
-                    Constant '.'
-                  ]
-                ]
-                Constant '.'
-              ]
-            ]
-            Constant undefined
-            Constant undefined
-            Constant undefined
-            {number} 260
-            Constant NEEDS_COMPUTATION
-            {number} 120000
-          ]
-          Constant ':'
-        ]
-      ]
-      {string} "pageSearch"
-      Set [
-        RootRef [omitted]
-      ]
-    ]
+    Constant undefined
     Store [
       RootRef [omitted]
       {number} 1
-      Map [
-        RootRef [omitted]
-        Set [
-          RootRef [omitted]
-        ]
-      ]
     ]
   ]
   RootRef [omitted]
@@ -342,7 +278,7 @@
     Set [
       EffectSubscriptionNoData [
         WrappedSignal [
-          {number} 2
+          {number} 1
           Array [
             RootRef [omitted]
           ]
@@ -364,172 +300,280 @@
 24 {string} "q-xxxxxxxx.js"
 25 {string} "s_TG0a9Yb7gLI"
 26 RootRef [omitted]
-27 {string} "ssg-snapshot-loader"
-28 Object 0
-29 {string} "__qwik_route_loader_value__ssg-snapshot-loader"
-30 RootRef [omitted]
-31 Array []
-32 Object [
-  RootRef [omitted]
-  Constant _UNINITIALIZED
-  RootRef [omitted]
+27 RootRef [omitted]
+28 RootRef [omitted]
+29 QRL "[omitted]"
+30 Map [
+  Constant ':'
   RootRef [omitted]
 ]
-33 {string} "q-xxxxxxxx.js"
-34 {string} "s_QL05LKnhMSo"
+31 {number} 1
+32 Array [
+  RootRef [omitted]
+]
+33 RootRef [omitted]
+34 RootRef [omitted]
 35 RootRef [omitted]
-36 QRL "[omitted]"
-37 Map [
+36 RootRef [omitted]
+37 RootRef [omitted]
+38 RootRef [omitted]
+39 RootRef [omitted]
+40 RootRef [omitted]
+41 QRL "[omitted]"
+42 Map [
   Constant ':'
   RootRef [omitted]
 ]
-38 {number} 3
-39 Array [
+43 {number} 3
+44 Array [
   RootRef [omitted]
   RootRef [omitted]
   RootRef [omitted]
 ]
-40 QRL "[omitted]"
-41 Map [
+45 QRL "[omitted]"
+46 Map [
   Constant ':'
-  RootRef [omitted]
+  EffectSubscriptionNoData [
+    VNode "11AAA"
+    Constant ':'
+  ]
 ]
-42 {number} 4
-43 Array [
-  RootRef [omitted]
+47 {number} 4
+48 Array [
+  Signal [
+    {number} 2
+    EffectSubscriptionNoData [
+      AsyncSignal [
+        QRL "[omitted]"
+        Set [
+          RootRef [omitted]
+        ]
+        Constant undefined
+        Constant undefined
+        Constant undefined
+        {number} 1536
+        Object [
+          {string} "r"
+          Store [
+            Object [
+              {string} "headline"
+              {string} "router-state:stable"
+              {string} "selected"
+              Array [
+                {string} "alpha"
+                {string} "beta"
+              ]
+              {string} "weighted"
+              Array [
+                {number} 2
+                {number} 6
+                {number} 15
+                {number} 32
+              ]
+              {string} "summary"
+              Object [
+                {string} "total"
+                {number} 18
+                {string} "selectedCount"
+                {number} 2
+                {string} "clicks"
+                {number} 2
+              ]
+            ]
+            {number} 1
+            Map [
+              {string} "then"
+              Set [
+                RootRef [omitted]
+              ]
+              {string} "toJSON"
+              Set [
+                RootRef [omitted]
+              ]
+              Constant STORE_ALL_PROPS
+              Set [
+                RootRef [omitted]
+              ]
+              RootRef [omitted]
+              Set [
+                RootRef [omitted]
+              ]
+              RootRef [omitted]
+              Set [
+                RootRef [omitted]
+              ]
+              RootRef [omitted]
+              Set [
+                RootRef [omitted]
+              ]
+              RootRef [omitted]
+              Set [
+                RootRef [omitted]
+              ]
+            ]
+            Store [
+              RootRef [omitted]
+              {number} 1
+              Map [
+                Constant STORE_ALL_PROPS
+                Set [
+                  RootRef [omitted]
+                ]
+              ]
+            ]
+            Store [
+              RootRef [omitted]
+              {number} 1
+              Map [
+                Constant STORE_ALL_PROPS
+                Set [
+                  RootRef [omitted]
+                ]
+              ]
+            ]
+            Store [
+              RootRef [omitted]
+              {number} 1
+              Map [
+                RootRef [omitted]
+                Set [
+                  RootRef [omitted]
+                ]
+                Constant STORE_ALL_PROPS
+                Set [
+                  RootRef [omitted]
+                ]
+                RootRef [omitted]
+                Set [
+                  RootRef [omitted]
+                ]
+                RootRef [omitted]
+                Set [
+                  RootRef [omitted]
+                ]
+                RootRef [omitted]
+                Set [
+                  RootRef [omitted]
+                ]
+              ]
+            ]
+          ]
+        ]
+        Constant undefined
+        {number} 0
+      ]
+      Constant ':'
+    ]
+    EffectSubscriptionNoData [
+      ComputedSignal [
+        QRL "[omitted]"
+        Set [
+          RootRef [omitted]
+        ]
+        RootRef [omitted]
+      ]
+      Constant '.'
+    ]
+  ]
   RootRef [omitted]
   RootRef [omitted]
   Object [
     {string} "__brand"
     {string} "resource"
     {string} "signal"
-    AsyncSignal [
-      QRL "[omitted]"
-      Set [
-        RootRef [omitted]
-      ]
-      Constant undefined
-      Constant undefined
-      Constant undefined
-      Constant undefined
-      Object [
-        {string} "r"
-        Store [
-          Object [
-            {string} "headline"
-            {string} "router-state:stable"
-            {string} "selected"
-            Array [
-              {string} "alpha"
-              {string} "beta"
-            ]
-            {string} "weighted"
-            Array [
-              {number} 2
-              {number} 6
-              {number} 15
-              {number} 32
-            ]
-            {string} "summary"
-            RootRef [omitted]
-          ]
-          {number} 1
-          Map [
-            {string} "then"
-            Set [
-              RootRef [omitted]
-            ]
-            {string} "toJSON"
-            Set [
-              RootRef [omitted]
-            ]
-            Constant STORE_ALL_PROPS
-            Set [
-              RootRef [omitted]
-            ]
-            RootRef [omitted]
-            Set [
-              RootRef [omitted]
-            ]
-            RootRef [omitted]
-            Set [
-              RootRef [omitted]
-            ]
-            RootRef [omitted]
-            Set [
-              RootRef [omitted]
-            ]
-            RootRef [omitted]
-            Set [
-              RootRef [omitted]
-            ]
-          ]
-          Store [
-            RootRef [omitted]
-            {number} 1
-            Map [
-              Constant STORE_ALL_PROPS
-              Set [
-                RootRef [omitted]
-              ]
-            ]
-          ]
-          Store [
-            RootRef [omitted]
-            {number} 1
-            Map [
-              Constant STORE_ALL_PROPS
-              Set [
-                RootRef [omitted]
-              ]
-            ]
-          ]
-          Store [
-            RootRef [omitted]
-            {number} 1
-            Map [
-              RootRef [omitted]
-              Set [
-                RootRef [omitted]
-              ]
-              Constant STORE_ALL_PROPS
-              Set [
-                RootRef [omitted]
-              ]
-              RootRef [omitted]
-              Set [
-                RootRef [omitted]
-              ]
-              RootRef [omitted]
-              Set [
-                RootRef [omitted]
-              ]
-              RootRef [omitted]
-              Set [
-                RootRef [omitted]
-              ]
-            ]
-          ]
-        ]
-      ]
-      Constant undefined
-      {number} 0
-    ]
+    RootRef [omitted]
     {string} "value"
     ForwardRef 0
     {string} "loading"
     Constant false
   ]
 ]
-44 Signal [
-  {number} 2
-  EffectSubscriptionNoData [
+49 RootRef [omitted]
+50 RootRef [omitted]
+51 RootRef [omitted]
+52 RootRef [omitted]
+53 RootRef [omitted]
+54 RootRef [omitted]
+55 RootRef [omitted]
+56 RootRef [omitted]
+57 Signal [
+  Object [
     RootRef [omitted]
-    Constant ':'
+    {number} 200
+    {string} "statusMessage"
+    Constant undefined
+    {string} "action"
+    Constant undefined
+    {string} "actionResult"
+    Constant undefined
+    {string} "formData"
   ]
   RootRef [omitted]
 ]
-45 Store [
+58 RootRef [omitted]
+59 RootRef [omitted]
+60 Object [
+  {string} "__qwik_route_loader_value__ssg-snapshot-loader"
+  Constant _UNINITIALIZED
+  {string} "ssg-snapshot-loader"
+  RootRef [omitted]
+]
+61 Constant undefined
+62 {string} "s_1sKEZ9Pg1ow"
+63 RootRef [omitted]
+64 RootRef [omitted]
+65 {string} "s_yw17chooOac"
+66 RootRef [omitted]
+67 Constant undefined
+68 RootRef [omitted]
+69 RootRef [omitted]
+70 Object [
+  {string} "url"
+  RootRef [omitted]
+  {string} "params"
+  Object 0
+  {string} "isNavigating"
+  Constant false
+  {string} "prevUrl"
+]
+71 {string} "s_XpalYii770E"
+72 RootRef [omitted]
+73 RootRef [omitted]
+74 {string} "s_69B0DK0eZJc"
+75 RootRef [omitted]
+76 RootRef [omitted]
+77 RootRef [omitted]
+78 Map [
+  RootRef [omitted]
+  RootRef [omitted]
+]
+79 {string} "q-xxxxxxxx.js"
+80 {string} "s_9CrWYOoCpgY"
+81 {string} "s_QwONcWD5gIg"
+82 {string} "q-xxxxxxxx.js"
+83 {string} "s_LqnNyU1Iy8c"
+84 RootRef [omitted]
+85 QRL "[omitted]"
+86 Object [
+  {string} "r"
+  RootRef [omitted]
+]
+87 {string} "q-xxxxxxxx.js"
+88 {string} "_rsc"
+89 RootRef [omitted]
+90 RootRef [omitted]
+91 RootRef [omitted]
+92 RootRef [omitted]
+93 RootRef [omitted]
+94 RootRef [omitted]
+95 RootRef [omitted]
+96 RootRef [omitted]
+97 RootRef [omitted]
+98 RootRef [omitted]
+99 RootRef [omitted]
+100 RootRef [omitted]
+101 RootRef [omitted]
+102 Store [
   Object [
     {string} "expanded"
     Constant true
@@ -564,101 +608,36 @@
     ]
   ]
 ]
-46 RootRef [omitted]
-47 {string} "q-xxxxxxxx.js"
-48 {string} "s_cgSl2l0RC14"
-49 RootRef [omitted]
-50 RootRef [omitted]
-51 Map [
-  Constant '.'
-  RootRef [omitted]
-]
-52 RootRef [omitted]
-53 RootRef [omitted]
-54 RootRef [omitted]
-55 RootRef [omitted]
-56 QRL "[omitted]"
-57 Map [
-  Constant ':'
-  RootRef [omitted]
-]
-58 {number} 1
-59 Array [
-  RootRef [omitted]
-]
-60 RootRef [omitted]
-61 RootRef [omitted]
-62 RootRef [omitted]
-63 RootRef [omitted]
-64 RootRef [omitted]
-65 RootRef [omitted]
-66 RootRef [omitted]
-67 RootRef [omitted]
-68 RootRef [omitted]
-69 RootRef [omitted]
-70 RootRef [omitted]
-71 RootRef [omitted]
-72 RootRef [omitted]
-73 RootRef [omitted]
-74 RootRef [omitted]
-75 RootRef [omitted]
-76 Signal [
-  Object [
+103 AsyncSignal [
+  QRL "[omitted]"
+  Set [
     RootRef [omitted]
-    {number} 200
-    {string} "statusMessage"
-    Constant undefined
-    {string} "action"
-    Constant undefined
-    {string} "actionResult"
-    Constant undefined
-    {string} "formData"
+    RootRef [omitted]
+    EffectSubscriptionNoData [
+      WrappedSignal [
+        {number} 2
+        Array [
+          RootRef [omitted]
+        ]
+        {number} 3
+        VNode "13A"
+        EffectSubscriptionNoData [
+          RootRef [omitted]
+          Constant '.'
+        ]
+      ]
+      Constant '.'
+    ]
   ]
-  RootRef [omitted]
+  Constant undefined
+  Constant undefined
+  Constant undefined
+  {number} 772
+  Constant NEEDS_COMPUTATION
+  {number} 120000
 ]
-77 RootRef [omitted]
-78 RootRef [omitted]
-79 Constant undefined
-80 {string} "s_1sKEZ9Pg1ow"
-81 RootRef [omitted]
-82 RootRef [omitted]
-83 {string} "s_yw17chooOac"
-84 RootRef [omitted]
-85 Constant undefined
-86 RootRef [omitted]
-87 Object [
-  {string} "url"
-  RootRef [omitted]
-  {string} "params"
-  Object 0
-  {string} "isNavigating"
-  Constant false
-  {string} "prevUrl"
-]
-88 {string} "s_XpalYii770E"
-89 RootRef [omitted]
-90 RootRef [omitted]
-91 {string} "s_69B0DK0eZJc"
-92 RootRef [omitted]
-93 RootRef [omitted]
-94 RootRef [omitted]
-95 Map [
-  RootRef [omitted]
-  RootRef [omitted]
-]
-96 {string} "s_QwONcWD5gIg"
-97 {string} "q-xxxxxxxx.js"
-98 {string} "s_LqnNyU1Iy8c"
-99 RootRef [omitted]
-100 QRL "[omitted]"
-101 Object [
-  {string} "r"
-  RootRef [omitted]
-]
-102 {string} "q-xxxxxxxx.js"
-103 {string} "_rsc"
-104 RootRef [omitted]
-105 RootRef [omitted]
+104 {string} "q-xxxxxxxx.js"
+105 {string} "s_cgSl2l0RC14"
 106 RootRef [omitted]
 107 RootRef [omitted]
 108 RootRef [omitted]
@@ -666,7 +645,7 @@
 110 RootRef [omitted]
 111 RootRef [omitted]
 112 RootRef [omitted]
-113 RootRef [omitted]
+113 {string} "s_lKDAUb7ao7U"
 114 RootRef [omitted]
 115 RootRef [omitted]
 116 RootRef [omitted]
@@ -674,19 +653,21 @@
 118 RootRef [omitted]
 119 RootRef [omitted]
 120 RootRef [omitted]
-121 {string} "q-xxxxxxxx.js"
-122 {string} "s_9CrWYOoCpgY"
-123 RootRef [omitted]
-124 RootRef [omitted]
-125 RootRef [omitted]
+121 Object 0
+122 RootRef [omitted]
+123 Array []
+124 {string} "q-xxxxxxxx.js"
+125 {string} "s_4s4ZDCYhDOA"
 126 RootRef [omitted]
-127 RootRef [omitted]
-128 {string} "s_lKDAUb7ao7U"
-129 RootRef [omitted]
-130 Promise [
+127 Map [
+  Constant '.'
+  RootRef [omitted]
+]
+128 RootRef [omitted]
+129 Promise [
   Constant true
   RootRef [omitted]
 ]
-131 ForwardRefs [
-  130
+130 ForwardRefs [
+  129
 ]

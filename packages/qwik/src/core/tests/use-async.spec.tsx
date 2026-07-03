@@ -455,10 +455,10 @@ describe.each([
         const asyncValue = useAsync$(async ({ previous }) => 6, {
           clientOnly: true,
           initial: 0,
-        }) as AsyncSignalImpl<number>;
+        }) as any as AsyncSignalImpl<number>;
         useVisibleTask$(
           () => {
-            (globalThis as any).loading = asyncValue.$untrackedLoading$;
+            (globalThis as any).loading = asyncValue.$untrackedPending$;
             (globalThis as any).value = asyncValue.$untrackedValue$;
           },
           // This fires before the document:onQIdle where clientOnly signals are resumed

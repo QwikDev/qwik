@@ -37,7 +37,18 @@ Closest tests are usually in the same subtree and named `*.unit.ts(x)` or `*.spe
 
 Current API and implementation facts:
 
-- `AsyncSignalImpl` extends `ComputedSignalImpl`.
+- The async engine (AsyncJob, loading/error, polling, cleanup) lives in `ComputedSignalImpl`;
+  `AsyncSignalImpl` only parses options and sets `AsyncSignalFlags.ASYNC_MODE | CTX_ARG`.
+- All compute fns receive the ComputeCtx argument (`previous`, `info`, `cleanup`, `abortSignal`);
+  sync computeds allocate an AsyncJob per compute and run the previous job's cleanups before
+  recomputing. `CTX_ARG` signals (useAsync$/useResource$) track only via the explicit
+  `ctx.track()`; computeds instead auto-track every read via a dedicated invoke context that
+  generator driving restores across awaits.
+- A computed whose fn returns a promise lazily switches on `ASYNC_MODE` (loading/error state stays
+  `declare`d until then) and then has the full AsyncSignal API.
+- Serialization keys off `ASYNC_MODE`, not `instanceof`: async-mode computeds round-trip as
+  `TypeIds.AsyncSignal` and resume as `AsyncSignalImpl` instances whose serialized flags (no
+  `CTX_ARG`) preserve auto-track semantics. Runtime checks must use flags, not class identity.
 - `createAsyncSignal()` passes the full `AsyncSignalOptions` object to the constructor.
 - `expires` is the current expiration duration in milliseconds.
 - `poll` controls whether expiration automatically recomputes or only marks stale.

@@ -1,5 +1,13 @@
 import * as qwikRouterConfig from '@qwik-router-config';
-import { implicit$FirstArg, isDev, isServer, type NoSerialize, type QRL } from '@qwik.dev/core';
+import {
+  createComputed$,
+  implicit$FirstArg,
+  isDev,
+  isServer,
+  type ComputedSignal,
+  type NoSerialize,
+  type QRL,
+} from '@qwik.dev/core';
 import {
   _deserialize,
   _getContextEvent,
@@ -8,9 +16,7 @@ import {
   _resolveContextWithoutSequentialScope,
   _verifySerializable,
   _UNINITIALIZED,
-  createAsync$,
   SerializerSymbol,
-  type AsyncSignal,
   type SerializationStrategy,
 } from '@qwik.dev/core/internal';
 import type {
@@ -47,7 +53,7 @@ import type {
  * They automatically update when the route changes on the client, and can also be made to poll for
  * changes.
  *
- * They are represented by an AsyncSignal.
+ * They are represented by a ComputedSignal.
  */
 
 const REQUEST_ROUTE_LOADER_STATE = '@routeLoaderState';
@@ -130,7 +136,7 @@ export type RouteLoaderCtx = {
   manifestHash?: string;
 };
 
-export type RouteLoaderState = Record<string, AsyncSignal<unknown>>;
+export type RouteLoaderState = Record<string, ComputedSignal<unknown>>;
 
 const getRouteLoaderValueStateKey = (loaderId: string) => `${ROUTE_LOADER_VALUE_PREFIX}${loaderId}`;
 
@@ -308,13 +314,10 @@ const createRouteLoaderSignal = (
     filteredSearch?: string;
     routePath?: string;
   } = {};
-  const signal = createAsync$(
+  const signal = createComputed$(
     async (ctx) => {
-      const { track, info, previous, abortSignal } = ctx;
+      const { info, previous, abortSignal } = ctx;
       const hasInjectedValue = !!info && typeof info === 'object' && '__v' in (info as object);
-      const trackedRoutePath = track(routeLoaderCtx.loaderPaths, id) as string | undefined;
-      const trackedPagePathname = track(routeLoaderCtx, 'pagePathname') as string | undefined;
-      const trackedPageSearch = track(routeLoaderCtx, 'pageSearch') as string | undefined;
       // Pre-loaded value injection (from middleware via setLoaderSignalValue, or from
       // an action response). Client-side route dependencies must already be tracked
       // here so a resumed loader can re-fetch on the first SPA navigation.
@@ -329,11 +332,11 @@ const createRouteLoaderSignal = (
         return (capture as ServerRouteLoaderCapture).load();
       }
       // Track reactive dependencies so the signal re-fetches when the route path changes
-      const routePath = trackedRoutePath;
+      const routePath = routeLoaderCtx.loaderPaths[id] as string | undefined;
       // Track the client page path/search. These fields are only assigned on SPA navigation; before
       // that, `location` is the source of truth and avoids serializing a duplicate URL in SSR state.
-      const pagePathname = trackedPagePathname || location.pathname;
-      const pageSearch = trackedPageSearch || location.search;
+      const pagePathname = routeLoaderCtx.pagePathname || location.pathname;
+      const pageSearch = routeLoaderCtx.pageSearch || location.search;
       const pageUrl = new URL(pagePathname + pageSearch, location.href);
       const mHash = routeLoaderCtx.manifestHash || 'dev';
       const basePath = (qwikRouterConfig as any).basePathname ?? '/';
@@ -391,13 +394,13 @@ const createRouteLoaderSignal = (
         } else {
           location.href = response.r;
         }
-        // Return `previous` (stale data) rather than throwing: an AsyncSignal
+        // Return `previous` (stale data) rather than throwing:  a ComputedSignal
         // in error state can drop Resource subscriptions, which would prevent
         // the redirect-target fetch from updating the UI once it arrives.
         return previous;
       }
       if (response.e) {
-        // Error — throw so AsyncSignal enters error state
+        // Error — throw so signal enters error state
         throw response.e;
       }
       if (needsResumeFetch) {
@@ -568,10 +571,10 @@ export function getRouteLoaderCtx(requestEv: RequestEventBase): RouteLoaderCtx {
  * Update the loader paths store on client-side navigation.
  *
  * Only adds/updates entries for loaders present on the new route. Entries for loaders that are NOT
- * on the new route are left untouched — their AsyncSignals keep their prior values, and no track()
- * fires to invalidate them. If the user navigates back to a route where the loader IS present, the
- * path updates and the signal re-fetches. This is the "stale is fine by default" contract: readers
- * see old data until new data arrives.
+ * on the new route are left untouched — their ComputedSignals keep their prior values, and no
+ * track() fires to invalidate them. If the user navigates back to a route where the loader IS
+ * present, the path updates and the signal re-fetches. This is the "stale is fine by default"
+ * contract: readers see old data until new data arrives.
  */
 export const updateRouteLoaderPaths = (
   ctx: RouteLoaderCtx,
@@ -651,13 +654,13 @@ export const ensureRouteLoaderSignals = (
 };
 
 /**
- * Inject a pre-loaded value into an AsyncSignal while preserving track() subscriptions. Delegates
- * to the core helper which calls invalidate({ __v }) + $computeIfNeeded$() so the compute function
- * runs synchronously, registers subscriptions via track(), and returns the pre-loaded value without
- * fetching. Must go through the core helper because $computeIfNeeded$ is mangled in core builds and
- * not directly callable from this package.
+ * Inject a pre-loaded value into a ComputedSignal while preserving subscriptions. Delegates to the
+ * core helper which calls `invalidate({__v})` + `$computeIfNeeded$()` so the compute function runs
+ * synchronously and returns the pre-loaded value without fetching. Must go through the core helper
+ * because `$computeIfNeeded$` is mangled in core builds and not directly callable from this
+ * package.
  */
-export const setLoaderSignalValue = (signal: AsyncSignal<unknown>, value: unknown) => {
+export const setLoaderSignalValue = (signal: ComputedSignal<unknown>, value: unknown) => {
   _injectAsyncSignalValue(signal, value);
 };
 
@@ -858,7 +861,7 @@ export const routeLoaderQrl = ((
 /**
  * Define a route loader that fetches data before the route renders.
  *
- * Route loaders run on the server during SSR and return data as an `AsyncSignal`. On the client,
+ * Route loaders run on the server during SSR and return data as a `ComputedSignal`. On the client,
  * loaders automatically re-fetch when the route changes (SPA navigation). Each loader gets its own
  * JSON endpoint (`q-loader-{id}.{hash}.json`), so only the loaders present on the target route are
  * fetched.

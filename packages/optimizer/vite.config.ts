@@ -15,7 +15,7 @@ export default defineConfig(({ mode }) => ({
     outDir: 'dist',
     sourcemap: false,
     target: 'safari15.4',
-    minify: mode === 'development' ? false : 'esbuild',
+    minify: mode === 'development' ? false : 'oxc',
     lib: {
       entry: 'src/index.ts',
       name: 'optimizer',

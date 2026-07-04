@@ -1,4 +1,4 @@
-// Direct `globalThis.X` accesses (no alias) so Terser's `global_defs` engages
+// Direct `globalThis.X` accesses (no alias) so the build's `define` engages
 // and folds these to literal booleans in production builds, allowing
 // `qTest ? testBranch : prodBranch` shims to tree-shake.
 export const qDev = (globalThis as any).qDev !== false;

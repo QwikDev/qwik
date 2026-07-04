@@ -1,4 +1,4 @@
-import { minify } from 'terser';
+import { transform } from 'esbuild';
 import type { Plugin } from 'vite';
 
 const isCompiledStringId = (id: string) => /[?&]compiled-string/.test(id);
@@ -63,11 +63,15 @@ export function compiledStringPlugin(): Plugin {
           if (!code) {
             throw new Error(`compiled-string: Unable to retrieve loaded code for ${originalId}`);
           }
-          const minified = await minify(code);
+          const minified = await transform(code, {
+            format: 'esm',
+            target: 'es2020',
+            minify: true,
+          });
           if (!minified.code) {
             throw new Error(`compiled-string: Unable to minify code for ${originalId}`);
           }
-          const withoutExports = minified.code.replace('export{}', '').replace(/;+$/g, '');
+          const withoutExports = minified.code.replace('export{}', '').replace(/;+\s*$/g, '');
           return {
             code: `export default ${JSON.stringify(withoutExports)};`,
             map: null,

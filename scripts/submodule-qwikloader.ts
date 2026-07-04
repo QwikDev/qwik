@@ -1,8 +1,15 @@
+import { transform } from 'esbuild';
 import { join } from 'node:path';
-import { minify } from 'terser';
 import { build } from 'vite';
 import { writeSubmodulePackageJson } from './package-json.ts';
-import { type BuildConfig, ensureDir, fileSize, readFile, writeFile } from './util.ts';
+import {
+  type BuildConfig,
+  ESBUILD_BASE,
+  ensureDir,
+  fileSize,
+  readFile,
+  writeFile,
+} from './util.ts';
 
 /**
  * Builds the qwikloader javascript files. These files can be used by other tooling, and are
@@ -30,7 +37,7 @@ export async function submoduleQwikLoader(config: BuildConfig) {
   const debugFilePath = join(config.distQwikPkgDir, 'qwikloader.debug.js');
   const debugContent = await readFile(debugFilePath, 'utf-8');
 
-  // Create the minified version using shared terser config
+  // Create the minified version using the shared esbuild config
   const minifyResult = await minifyClientScript(debugContent);
 
   // Write the minified version
@@ -43,26 +50,17 @@ export async function submoduleQwikLoader(config: BuildConfig) {
   console.log(`🐸 qwikloader:`, loaderSize);
 }
 
-export const getTerserConfig = () => ({
-  compress: {
-    global_defs: {
-      'window.BuildEvents': false,
-    },
-    keep_fargs: false,
-    unsafe: true,
-    passes: 2,
-  },
-  mangle: {
-    keep_fnames: false,
-    properties: false,
-    toplevel: true,
-  },
-  // format: { semicolons: false }, // uncomment to understand minified version better
-});
-
-/** Minify JavaScript content using the shared configuration */
+/** Minify a client script (qwikloader/backpatch) with esbuild. No property mangling. */
 export const minifyClientScript = async (content: string) => {
-  return await minify(content, getTerserConfig());
+  const result = await transform(content, {
+    ...ESBUILD_BASE,
+    minifyWhitespace: true,
+    minifySyntax: true,
+    minifyIdentifiers: true,
+    legalComments: 'none',
+    define: { 'window.BuildEvents': 'false' },
+  });
+  return { code: result.code };
 };
 
 export const getLoaderJsonString = async (config: BuildConfig, name: string) => {

@@ -1,9 +1,9 @@
-import { build, type BuildOptions } from 'esbuild';
+import { build, transform, type BuildOptions } from 'esbuild';
 import { join } from 'node:path';
 import { type InputOptions, type OutputOptions, rolldown } from 'rolldown';
-import { minify } from 'terser';
 import {
   type BuildConfig,
+  ESBUILD_BASE,
   fileSize,
   getBanner,
   readFile,
@@ -18,16 +18,47 @@ import {
  */
 export const MANGLE_PROPS_REGEX = '^\\$.+\\$$';
 
+export type MangleCache = Record<string, string | false>;
+
+const devStripDefine = (config: BuildConfig, dynamicPlatform: boolean): Record<string, string> => ({
+  'globalThis.qDev': 'false',
+  'globalThis.qInspector': 'false',
+  'globalThis.qDynamicPlatform': String(dynamicPlatform),
+  'globalThis.qTest': 'false',
+  'globalThis.qRuntimeQrl': 'false',
+  'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
+});
+
+async function esbuildMinify(
+  code: string,
+  opts: { minifyIdentifiers: boolean; mangleCache: MangleCache | undefined }
+): Promise<{ code: string; mangleCache: MangleCache | undefined }> {
+  const result = await transform(code, {
+    ...ESBUILD_BASE,
+    minifySyntax: true,
+    minifyIdentifiers: opts.minifyIdentifiers,
+    legalComments: 'none',
+    ...(opts.mangleCache
+      ? {
+          mangleProps: new RegExp(MANGLE_PROPS_REGEX),
+          mangleQuoted: true,
+          mangleCache: opts.mangleCache,
+        }
+      : {}),
+  });
+  return { code: result.code, mangleCache: result.mangleCache ?? opts.mangleCache };
+}
+
 /**
  * Build the core package which is also the root package: @qwik.dev/core
  *
- * Uses esbuild during development (cuz it's super fast) and TSC + Rollup + Terser for production,
- * because it generates smaller code that minifies better.
+ * Uses esbuild during development (cuz it's super fast) and TSC + Rolldown + esbuild for
+ * production, because it generates smaller code that minifies better.
  *
- * In production, returns a Terser nameCache so the server bundle can apply the same property
+ * In production, returns an esbuild mangleCache so the server bundle can apply the same property
  * mangling and keep $...$ names in sync across both bundles.
  */
-export async function submoduleCore(config: BuildConfig): Promise<object | undefined> {
+export async function submoduleCore(config: BuildConfig): Promise<MangleCache | undefined> {
   if (config.dev) {
     await submoduleCoreDev(config);
     return undefined;
@@ -35,7 +66,7 @@ export async function submoduleCore(config: BuildConfig): Promise<object | undef
   return submoduleCoreProd(config);
 }
 
-async function submoduleCoreProd(config: BuildConfig): Promise<object | undefined> {
+async function submoduleCoreProd(config: BuildConfig): Promise<MangleCache | undefined> {
   const input: InputOptions = {
     input: join(config.tscDir, 'packages', 'qwik', 'src', 'core', 'index.js'),
     onwarn: rollupOnWarn,
@@ -72,20 +103,18 @@ async function submoduleCoreProd(config: BuildConfig): Promise<object | undefine
 
   console.log('🦊 core.mjs:', await fileSize(join(config.distQwikPkgDir, 'core.mjs')));
 
-  // Shared nameCache so that $...$  property mangling is consistent across all Terser runs
+  // Shared esbuild mangleCache so that $...$ property mangling is consistent across all bundles
   // (core.min.mjs, core.prod.mjs) and can later be reused for the server bundle.
   // When mangle=false (--mangle=false), skip mangling.
-  const nameCache: object = {};
   const noMangle = config.mangle === false;
-  const mangle = noMangle
-    ? false
-    : { toplevel: true, module: true, properties: { regex: MANGLE_PROPS_REGEX } };
+  let mangleCache: MangleCache | undefined = noMangle ? undefined : {};
 
   const inputCore = join(config.distQwikPkgDir, 'core.mjs');
   const inputMin: InputOptions = {
     external: ['@qwik.dev/core/preloader', 'node:async_hooks'],
     input: inputCore,
     onwarn: rollupOnWarn,
+    transform: { define: devStripDefine(config, false) },
     plugins: [
       {
         name: 'build',
@@ -118,46 +147,12 @@ async function submoduleCoreProd(config: BuildConfig): Promise<object | undefine
       {
         name: 'minify',
         async renderChunk(code) {
-          const esmMinifyResult = await minify(code, {
-            module: true,
-            toplevel: true,
-            nameCache: mangle ? nameCache : undefined,
-            compress: {
-              defaults: true,
-              hoist_funs: true,
-              keep_fargs: false,
-              pure_getters: 'strict',
-              pure_new: true,
-              toplevel: true,
-              unsafe_arrows: true,
-              unsafe_math: true,
-              unsafe_symbols: true,
-              unsafe: true,
-
-              passes: 3,
-              ecma: 2020,
-              module: true,
-
-              global_defs: {
-                // special global that when set to false will remove all dev code entirely
-                // developer production builds could use core.min.js directly, or setup
-                // their own build tools to define the global `qwikDev` to false
-                'globalThis.qDev': false,
-                'globalThis.qInspector': false,
-                'globalThis.qDynamicPlatform': false,
-                'globalThis.qTest': false,
-                'globalThis.qRuntimeQrl': false,
-                'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
-              },
-            },
-            mangle,
-            format: {
-              comments: /__PURE__/,
-              preserve_annotations: true,
-              ecma: 2020,
-            },
+          const esmMinifyResult = await esbuildMinify(code, {
+            minifyIdentifiers: true,
+            mangleCache,
           });
-          const esmMinCode = esmMinifyResult.code!;
+          mangleCache = esmMinifyResult.mangleCache;
+          const esmMinCode = esmMinifyResult.code;
           const esmCleanCode = esmMinCode.replace(/__self__/g, '__SELF__');
           validateNoBareExperimentalReferences(esmCleanCode, 'core.min.mjs');
 
@@ -182,14 +177,14 @@ async function submoduleCoreProd(config: BuildConfig): Promise<object | undefine
   console.log('🐭 core.min.mjs:', await fileSize(join(config.distQwikPkgDir, 'core.min.mjs')));
 
   const prodCode = await prepareProdCode(config);
-  await submoduleCoreProduction(
+  mangleCache = await submoduleCoreProduction(
     config,
     prodCode,
     join(config.distQwikPkgDir, 'core.prod.mjs'),
-    mangle ? nameCache : undefined
+    mangleCache
   );
 
-  return mangle ? nameCache : undefined;
+  return mangleCache;
 }
 
 /**
@@ -205,6 +200,7 @@ async function prepareProdCode(config: BuildConfig): Promise<string> {
     input: join(config.distQwikPkgDir, 'core.mjs'),
     external: ['@qwik.dev/core/preloader', 'node:async_hooks'],
     onwarn: rollupOnWarn,
+    transform: { define: devStripDefine(config, true) },
     plugins: [
       {
         name: 'inlineProdIsDev',
@@ -255,68 +251,19 @@ async function submoduleCoreProduction(
   config: BuildConfig,
   code: string,
   outPath: string,
-  nameCache: object | undefined
-) {
-  const noMangle = config.mangle === false;
-  const mangle = noMangle
-    ? false
-    : { toplevel: true, module: true, properties: { regex: MANGLE_PROPS_REGEX } };
-  const result = await minify(code, {
-    nameCache: mangle ? nameCache : undefined,
-    compress: {
-      defaults: false,
-      booleans: true,
-      conditionals: true,
-      dead_code: true,
-      evaluate: true,
-      hoist_props: true,
-      keep_classnames: true,
-      keep_fargs: false,
-      keep_fnames: true,
-      keep_infinity: true,
-      loops: true,
-      properties: true,
-      pure_getters: 'strict',
-      pure_new: true,
-      reduce_funcs: true,
-      reduce_vars: true,
-      side_effects: true,
-      toplevel: true,
-      unsafe_arrows: true,
-      unsafe_math: true,
-      unsafe_symbols: true,
-      unsafe: true,
-      unused: true,
-
-      passes: 3,
-      ecma: 2020,
-      module: true,
-
-      global_defs: {
-        'globalThis.qDev': false,
-        'globalThis.qInspector': false,
-        'globalThis.qDynamicPlatform': true,
-        'globalThis.qTest': false,
-        'globalThis.qRuntimeQrl': false,
-        'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
-      },
-    },
-    format: {
-      beautify: true,
-      braces: true,
-      comments: /__PURE__/,
-      preserve_annotations: true,
-      ecma: 2020,
-      preamble: getBanner('@qwik.dev/core', config.distVersion),
-    },
-    mangle,
+  mangleCache: MangleCache | undefined
+): Promise<MangleCache | undefined> {
+  const minified = await esbuildMinify(code, {
+    minifyIdentifiers: false,
+    mangleCache,
   });
-  code = result.code!;
-  validateNoBareExperimentalReferences(code, 'core.prod.mjs');
+  const prodCode = `${getBanner('@qwik.dev/core', config.distVersion)}\n${minified.code}`;
+  validateNoBareExperimentalReferences(prodCode, 'core.prod.mjs');
 
-  await writeFile(outPath, code + '\n');
+  await writeFile(outPath, prodCode + '\n');
 
   console.log('🦝 core.prod.mjs:', await fileSize(join(config.distQwikPkgDir, 'core.prod.mjs')));
+  return minified.mangleCache;
 }
 
 function validateNoBareExperimentalReferences(code: string, filename: string) {

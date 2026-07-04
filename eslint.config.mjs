@@ -186,7 +186,7 @@ export default tseslint.config(
           message:
             'Use the `qTest` const from `<...>/shared/utils/qdev` instead of ' +
             '`import.meta.env?.TEST`. `qTest` reads `globalThis.qTest` (webpack-safe) AND ' +
-            'lets Terser fold it via `global_defs` for prod tree-shaking.',
+            'lets the build fold it via `define` for prod tree-shaking.',
         },
       ],
     },

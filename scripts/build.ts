@@ -19,7 +19,7 @@ import {
 } from './release.ts';
 import { submoduleBuild } from './submodule-build.ts';
 import { submoduleCli } from './submodule-cli.ts';
-import { submoduleCore } from './submodule-core.ts';
+import { submoduleCore, type MangleCache } from './submodule-core.ts';
 import { submoduleInsights } from './submodule-insights.ts';
 import { submoduleOptimizer } from './submodule-optimizer.ts';
 import { submoduleQwikLoader } from './submodule-qwikloader.ts';
@@ -38,8 +38,10 @@ import { submodulePreloader } from './submodule-preloader.ts';
 /**
  * Complete a full build for all of the package's submodules. Passed in config has all the correct
  * absolute paths to read from and write to. Additionally, a dev build does not empty the directory,
- * and uses esbuild for each of the submodules for speed. A production build will use TSC + Rollup +
- * Terser for the core submodule.
+ * and uses esbuild for each of the submodules for speed. A production build will use TSC +
+ * Rolldown
+ *
+ * - Esbuild for the core submodule.
  */
 export async function build(config: BuildConfig) {
   config.devRelease = config.devRelease || (!!config.release && config.setDistTag === 'dev');
@@ -89,9 +91,9 @@ export async function build(config: BuildConfig) {
       await buildWasmBinding(config);
     }
 
-    let coreNameCache: object | undefined;
+    let coreMangleCache: MangleCache | undefined;
     if (config.qwik) {
-      [coreNameCache] = await Promise.all([
+      [coreMangleCache] = await Promise.all([
         submoduleCore(config),
         submoduleBackpatch(config),
         submoduleBuild(config),
@@ -108,7 +110,10 @@ export async function build(config: BuildConfig) {
     if (config.qwik) {
       // server bundling must happen after the results from the others
       // because it inlines the qwik loader
-      await Promise.all([submoduleServer(config, coreNameCache), submodulePreloader(config)]);
+      await Promise.all([
+        submoduleServer(config, coreMangleCache),
+        submodulePreloader(config, coreMangleCache),
+      ]);
     }
 
     if (config.api || (!config.dev && config.qwik)) {

@@ -205,9 +205,6 @@ importers:
       syncpack:
         specifier: 13.0.4
         version: 13.0.4(typescript@5.9.3)
-      terser:
-        specifier: 5.46.0
-        version: 5.46.0
       tmp:
         specifier: 0.2.5
         version: 0.2.5

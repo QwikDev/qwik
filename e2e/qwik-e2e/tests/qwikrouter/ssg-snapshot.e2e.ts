@@ -193,7 +193,7 @@ async function buildFixtureApp() {
     clearScreen: false,
     logLevel: 'error',
     build: {
-      minify: 'terser',
+      minify: true,
     },
     ...extra,
   });

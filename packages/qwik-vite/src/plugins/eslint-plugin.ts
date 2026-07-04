@@ -1,6 +1,7 @@
 import type { Rolldown } from 'vite';
-import type { ESLint, Linter } from 'eslint';
+import type { ESLint } from 'eslint';
 import type { OptimizerSystem } from '../types';
+import { createRolldownError } from './vite-utils';
 
 export interface QwikLinter {
   lint(ctx: Rolldown.PluginContext, code: string, id: string): void;
@@ -54,8 +55,13 @@ export async function createLinter(
             if (message.ruleId != null && !message.ruleId.startsWith('qwik/')) {
               continue;
             }
-            const err = createBundlerError(file.filePath, message);
-            ctx.warn(err);
+            ctx.warn(
+              createRolldownError(message.message, file.filePath, 'vite-plugin-eslint', {
+                file: file.filePath,
+                column: message.column,
+                line: message.line,
+              })
+            );
           }
         });
       } catch (err) {
@@ -67,18 +73,4 @@ export async function createLinter(
 
 function parseRequest(id: string) {
   return id.split('?', 2)[0];
-}
-
-function createBundlerError(id: string, reportMessage: Linter.LintMessage) {
-  const err: Rolldown.RolldownError = Object.assign(new Error(reportMessage.message), {
-    id,
-    plugin: 'vite-plugin-eslint',
-    loc: {
-      file: id,
-      column: reportMessage.column,
-      line: reportMessage.line,
-    },
-    stack: '',
-  });
-  return err;
 }

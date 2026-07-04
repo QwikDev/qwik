@@ -18,7 +18,7 @@ import {
   type QwikPlugin,
   type QwikPluginOptions,
 } from './plugin';
-import { flattenToChunkName, isVirtualId } from './vite-utils';
+import { createRolldownError, flattenToChunkName, isVirtualId } from './vite-utils';
 
 type QwikRolldownPluginApi = {
   getOptimizer: () => Optimizer;
@@ -241,16 +241,12 @@ export async function normalizeRolldownOutputObject(
 
 export function createBundlerError(id: string, diagnostic: Diagnostic) {
   const loc = diagnostic.highlights?.[0];
-  const err: Rolldown.RolldownError = Object.assign(new Error(diagnostic.message), {
+  return createRolldownError(
+    diagnostic.message,
     id,
-    plugin: 'qwik',
-    loc: loc && {
-      column: loc.startCol,
-      line: loc.startLine,
-    },
-    stack: '',
-  });
-  return err;
+    'qwik',
+    loc && { column: loc.startCol, line: loc.startLine }
+  );
 }
 
 /** @public */

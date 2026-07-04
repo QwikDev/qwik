@@ -776,6 +776,7 @@ export type OnRenderFn<PROPS> = (props: PROPS) => ValueOrPromise<JSXOutput>;
 
 // @public (undocumented)
 export interface OnVisibleTaskOptions {
+    autoTrack?: boolean;
     strategy?: VisibleTaskStrategy;
 }
 
@@ -1995,6 +1996,7 @@ export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => ValueOrPromi
 
 // @public (undocumented)
 export interface TaskOptions {
+    autoTrack?: boolean;
     deferUpdates?: boolean;
 }
 

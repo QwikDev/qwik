@@ -6,6 +6,7 @@ export const qInspector = (globalThis as any).qInspector === true;
 export const qDynamicPlatform = (globalThis as any).qDynamicPlatform !== false;
 export const qTest = (globalThis as any).qTest === true;
 export const qRuntimeQrl = (globalThis as any).qRuntimeQrl === true;
+export const qAutoTrack = (globalThis as any).qAutoTrack === true;
 
 export const seal = (obj: any) => {
   if (qDev) {

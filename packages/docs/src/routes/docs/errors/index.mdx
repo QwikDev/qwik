@@ -183,7 +183,9 @@ You used a Signal where a primitive was expected (e.g., string concatenation, co
 
 ## Q29
 
-_This code is no longer used: `useComputed$` now supports async functions. See [Async computed values](/docs/(qwik)/core/state/index.mdx#async-computed-values)._
+**track() is not available when autoTrack is enabled**
+
+You called `track()` inside a `useTask$`/`useVisibleTask$` created with `{ autoTrack: true }`. In that mode every signal and store read is tracked automatically, so remove the `track()` call and read the value directly.
 
 ## Q30
 

@@ -2,6 +2,8 @@ import { getDomContainer, whenContainerDataReady } from '../client/dom-container
 import { BackRef } from '../reactive-primitives/backref';
 import { clearAllEffects } from '../reactive-primitives/cleanup';
 import { type Signal } from '../reactive-primitives/signal.public';
+import { getSubscriber } from '../reactive-primitives/subscriber';
+import { EffectProperty } from '../reactive-primitives/types';
 import {
   _captures,
   deserializeCaptureDeltas,
@@ -9,10 +11,12 @@ import {
   type QRLInternal,
 } from '../shared/qrl/qrl-class';
 import { assertQrl } from '../shared/qrl/qrl-utils';
+import { qError, QError } from '../shared/error/error';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { type Container, type HostElement } from '../shared/types';
 import { TaskEvent } from '../shared/utils/markers';
 import { isPromise, maybeThen, safeCall } from '../shared/utils/promises';
+import { qAutoTrack } from '../shared/utils/qdev';
 import { type ValueOrPromise } from '../shared/utils/types';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
@@ -29,6 +33,7 @@ export const enum TaskFlags {
   RENDER_BLOCKING = 1 << 3,
   NEEDS_CLEANUP = 1 << 4,
   EVENTS_REGISTERED = 1 << 5,
+  AUTO_TRACK = 1 << 6,
 }
 
 // <docs markdown="../readme.md#Tracker">
@@ -137,6 +142,14 @@ export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => ValueOrPromi
 export interface TaskOptions {
   /** Block the rendering of the component until the task completes. Default is `true` */
   deferUpdates?: boolean;
+  /**
+   * Automatically track every signal and store read by the task (including reads after an `await`),
+   * instead of requiring explicit `track()` calls. When `true`, calling the task ctx's `track()`
+   * throws.
+   *
+   * Defaults to `false`.
+   */
+  autoTrack?: boolean;
 }
 
 /** @internal */
@@ -150,7 +163,8 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: TaskOptions): void => {
 
   const taskFlags =
     // enabled by default
-    opts?.deferUpdates === false ? 0 : TaskFlags.RENDER_BLOCKING;
+    (opts?.deferUpdates === false ? 0 : TaskFlags.RENDER_BLOCKING) |
+    ((opts?.autoTrack ?? qAutoTrack) ? TaskFlags.AUTO_TRACK : 0);
 
   const task = new Task(
     TaskFlags.DIRTY | TaskFlags.TASK | taskFlags,
@@ -169,6 +183,11 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: TaskOptions): void => {
   if (isPromise(result)) {
     iCtx.$waitOn$ = result;
   }
+};
+
+/** `track()` for autoTrack tasks: reads are tracked automatically, so calling it is a mistake. */
+const autoTrackNoTrack: Tracker = () => {
+  throw qError(QError.trackInAutoTrackMode);
 };
 
 export const runTask = (
@@ -190,10 +209,16 @@ export const runTask = (
     iCtx.$container$ = container;
     const taskFn = task.$qrl$.getFn(iCtx, () => clearAllEffects(container, task)) as TaskFn;
 
-    const track = trackFn(task, container);
     const [cleanup] = cleanupFn(task, handleError);
 
-    const taskApi: TaskCtx = { track, cleanup };
+    let taskApi: TaskCtx;
+    if (task.$flags$ & TaskFlags.AUTO_TRACK) {
+      // Auto-track: every read during the task (incl. across await, via generator driving) subscribes.
+      iCtx.$effectSubscriber$ = getSubscriber(task, EffectProperty.COMPONENT);
+      taskApi = { track: autoTrackNoTrack, cleanup };
+    } else {
+      taskApi = { track: trackFn(task, container), cleanup };
+    }
     return safeCall(
       () => taskFn(taskApi),
       cleanup,

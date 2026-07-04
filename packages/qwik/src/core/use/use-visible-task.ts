@@ -1,5 +1,6 @@
 import type { EventHandler } from '../shared/jsx/types/jsx-qwik-attributes';
 import { isServerPlatform } from '../shared/platform/platform';
+import { qAutoTrack } from '../shared/utils/qdev';
 import { createQRL, type QRLInternal } from '../shared/qrl/qrl-class';
 import { assertQrl } from '../shared/qrl/qrl-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
@@ -25,6 +26,14 @@ export interface OnVisibleTaskOptions {
    *   the requestIdleCallback API.
    */
   strategy?: VisibleTaskStrategy;
+  /**
+   * Automatically track every signal and store read by the task (including reads after an `await`),
+   * instead of requiring explicit `track()` calls. When `true`, calling the task ctx's `track()`
+   * throws.
+   *
+   * Defaults to `false`.
+   */
+  autoTrack?: boolean;
 }
 
 /** @internal */
@@ -49,6 +58,9 @@ export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions)
   } else {
     // In SSR we defer execution until triggered in DOM
     flags = TaskFlags.VISIBLE_TASK;
+  }
+  if (opts?.autoTrack ?? qAutoTrack) {
+    flags |= TaskFlags.AUTO_TRACK;
   }
 
   const task = new Task(flags, i, iCtx.$hostElement$, qrl, null);

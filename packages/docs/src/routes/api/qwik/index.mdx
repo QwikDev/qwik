@@ -2897,6 +2897,23 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
+autoTrack?
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_ Automatically track every signal and store read by the task (including reads after an `await`), instead of requiring explicit `track()` calls. When `true`, calling the task ctx's `track()` throws.
+
+Defaults to `false`.
+
+</td></tr>
+<tr><td>
+
 strategy?
 
 </td><td>
@@ -9265,6 +9282,23 @@ Description
 
 </th></tr></thead>
 <tbody><tr><td>
+
+autoTrack?
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_ Automatically track every signal and store read by the task (including reads after an `await`), instead of requiring explicit `track()` calls. When `true`, calling the task ctx's `track()` throws.
+
+Defaults to `false`.
+
+</td></tr>
+<tr><td>
 
 deferUpdates?
 

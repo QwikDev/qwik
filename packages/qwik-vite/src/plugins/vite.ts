@@ -263,8 +263,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       const qDevKey = 'globalThis.qDev';
       const qTestKey = 'globalThis.qTest';
       const qInspectorKey = 'globalThis.qInspector';
+      const qAutoTrackKey = 'globalThis.qAutoTrack';
       const qDev = viteConfig?.define?.[qDevKey] ?? isDevelopment;
       const qInspector = viteConfig?.define?.[qInspectorKey] ?? isDevelopment;
+      const qAutoTrack = viteConfig?.define?.[qAutoTrackKey] ?? qwikViteOpts.autoTrack ?? false;
 
       const updatedViteConfig: UserConfig = {
         // Duplicated in configEnvironment to support legacy vite build --ssr compatibility
@@ -327,6 +329,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           [qDevKey]: qDev,
           [qInspectorKey]: qInspector,
           [qTestKey]: JSON.stringify(process.env.NODE_ENV === 'test'),
+          [qAutoTrackKey]: qAutoTrack,
         },
       };
 
@@ -381,6 +384,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             [qDevKey]: true,
             [qTestKey]: true,
             [qInspectorKey]: false,
+            [qAutoTrackKey]: qAutoTrack,
           };
         }
 
@@ -996,6 +1000,13 @@ interface QwikVitePluginCommonOptions {
    * Default `false`
    */
   debug?: boolean;
+  /**
+   * Default value for the `autoTrack` option of `useTask$` / `useVisibleTask$`. When `true`, tasks
+   * auto-track every read (no `track()`) unless a task opts out with `autoTrack: false`.
+   *
+   * Default `false`
+   */
+  autoTrack?: boolean;
   /**
    * The Qwik entry strategy to use while building for production. During development the type is
    * always `segment`.

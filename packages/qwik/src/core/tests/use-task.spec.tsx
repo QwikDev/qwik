@@ -187,6 +187,62 @@ describe.each([
       );
       await getTestPlatform().flush();
     });
+    it('should auto-track reads without track() when autoTrack is set', async () => {
+      const Counter = component$(() => {
+        const count = useSignal(10);
+        const double = useSignal(0);
+        useTask$(
+          () => {
+            // No track(): reads are auto-tracked because autoTrack is set.
+            double.value = 2 * count.value;
+          },
+          { autoTrack: true }
+        );
+        return <button onClick$={() => count.value++}>{double.value}</button>;
+      });
+
+      const { vNode, document } = await render(<Counter />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            <Signal ssr-required>20</Signal>
+          </button>
+        </Component>
+      );
+      await trigger(document.body, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            <Signal ssr-required>22</Signal>
+          </button>
+        </Component>
+      );
+      await getTestPlatform().flush();
+    });
+    it('should throw a readable error when track() is called in autoTrack mode', async () => {
+      const Cmp = component$(() => {
+        const count = useSignal(0);
+        useTask$(
+          ({ track }) => {
+            // Misuse: track() is not available in autoTrack mode.
+            track(() => count.value);
+          },
+          { autoTrack: true }
+        );
+        return <span>OK</span>;
+      });
+      try {
+        await render(
+          <ErrorProvider>
+            <Cmp />
+          </ErrorProvider>,
+          { debug }
+        );
+        expect((ErrorProvider.error as Error | null)?.message).toContain('autoTrack');
+      } catch (e) {
+        expect((e as Error).message).toContain('autoTrack');
+      }
+    });
     it('should rerun on track derived signal', async () => {
       const Counter = component$(() => {
         const countRaw = useStore({ count: 10 });

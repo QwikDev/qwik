@@ -37,7 +37,18 @@ Closest tests are usually in the same subtree and named `*.unit.ts(x)` or `*.spe
 
 Current API and implementation facts:
 
-- `AsyncSignalImpl` extends `ComputedSignalImpl`.
+- The async engine (AsyncJob, loading/error, polling, cleanup) lives in `ComputedSignalImpl`;
+  `AsyncSignalImpl` only parses options and sets `AsyncSignalFlags.ASYNC_MODE | CTX_ARG`.
+- All compute fns receive the ComputeCtx argument (`previous`, `info`, `cleanup`, `abortSignal`);
+  sync computeds allocate an AsyncJob per compute and run the previous job's cleanups before
+  recomputing. `CTX_ARG` signals (useAsync$/useResource$) track only via the explicit
+  `ctx.track()`; computeds instead auto-track every read via a dedicated invoke context that
+  generator driving restores across awaits.
+- A computed whose fn returns a promise lazily switches on `ASYNC_MODE` (loading/error state stays
+  `declare`d until then) and then has the full AsyncSignal API.
+- Serialization keys off `ASYNC_MODE`, not `instanceof`: async-mode computeds round-trip as
+  `TypeIds.AsyncSignal` and resume as `AsyncSignalImpl` instances whose serialized flags (no
+  `CTX_ARG`) preserve auto-track semantics. Runtime checks must use flags, not class identity.
 - `createAsyncSignal()` passes the full `AsyncSignalOptions` object to the constructor.
 - `expires` is the current expiration duration in milliseconds.
 - `poll` controls whether expiration automatically recomputes or only marks stale.
@@ -149,6 +160,29 @@ When touching these areas:
 - If runtime behavior relies on optimizer output, inspect the optimizer transform and snapshot too.
 - For event or JSX attribute changes, keep `event-names`, JSX runtime, qwikloader, and optimizer
   behavior aligned.
+
+## Async Segments Are Generators
+
+The optimizer converts async QRL segment functions to sync generators (`await` -> `yield`) so the
+runtime can restore the invoke context (and reactive tracking) across await points. Invariants:
+
+- Never call a resolved segment function raw and treat its result as a promise. Route calls through
+  `invokeApply` (use-core.ts), which drives generators; the qwikloader and testing
+  `element-fixture.ts` ship their own copies of the driver for capture-less serialized handlers.
+- Driving must keep async-function semantics: always return a promise, never throw synchronously,
+  and avoid extra microtask hops (tests are sensitive to completion timing).
+- User-written generator segments are marked by the optimizer with `__q_gen__`
+  (`RealGeneratorProp` in markers.ts) and must be returned as-is — `server$` streams them. The
+  marker must survive wrappers like `bindCaptures`; the property string is duplicated in the
+  optimizer (`code_move.rs`) and the qwikloader, keep them in sync.
+- Functions with a top-level `for await` and async generators are not converted and keep plain
+  promise/async-iterator behavior.
+- Only component render fns keep reactive tracking across awaits. Task contexts have no
+  `$effectSubscriber$`, and async-signal computes strip the ambient subscriber before invoking the
+  compute (`$runComputation$`) so store/signal reads there never subscribe the rendering component;
+  the SSG state snapshot (`e2e/qwik-e2e/apps/qwikrouter-ssg-snapshot`) catches leaks.
+- Test both paths in `core/tests/async-component.spec.tsx` and `use/use-core.unit.ts` when touching
+  this area.
 
 ## Focused Verification
 

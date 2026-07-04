@@ -4,8 +4,6 @@ import {
   createRelativeBuildWorkerQrlChunkResolver,
   rewriteWorkerQrlChunkPlaceholders,
 } from '../../../../qwik-vite/src/plugins/worker-qrl-chunks';
-import type { MinifyOptions } from 'terser';
-import { minify } from 'terser';
 import type { PkgUrls, ReplInputOptions } from '../types';
 import { QWIK_PKG_NAME_V1 } from '../repl-constants';
 
@@ -242,30 +240,4 @@ export const replWorkerQrlChunks = (getManifest: () => QwikManifest | undefined)
       }
     },
   };
-};
-
-export const replMinify = (buildMode: ReplInputOptions['buildMode']): Plugin => {
-  return {
-    name: 'repl-minify',
-
-    async generateBundle(_, bundle) {
-      if (buildMode === 'production') {
-        for (const fileName in bundle) {
-          const chunk = bundle[fileName];
-          if (chunk.type === 'chunk') {
-            const result = await minify(chunk.code, TERSER_OPTIONS);
-            if (result) {
-              chunk.code = result.code!;
-            }
-          }
-        }
-      }
-    },
-  };
-};
-
-const TERSER_OPTIONS: MinifyOptions = {
-  ecma: 2020,
-  module: true,
-  toplevel: true,
 };

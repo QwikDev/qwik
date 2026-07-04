@@ -1,3 +1,12 @@
+import type { Rolldown } from 'vite';
+
+export const createRolldownError = (
+  message: string,
+  id: string,
+  plugin: string,
+  loc?: Rolldown.RolldownError['loc']
+): Rolldown.RolldownError => ({ message, id, plugin, loc });
+
 export interface Loc {
   file: string;
   line: number | undefined;

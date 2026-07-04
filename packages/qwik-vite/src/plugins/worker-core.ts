@@ -29,7 +29,7 @@ export const loadQwikWorkerCore = () => {
 };
 
 export const emitQwikWorkerCoreChunk = (ctx: PluginContext) => {
-  ctx.emitFile({
+  return ctx.emitFile({
     id: QWIK_WORKER_CORE_ID,
     name: 'qwik-worker-core',
     type: 'chunk',
@@ -53,12 +53,14 @@ export const getQwikWorkerConfig = (
   };
 };
 
-export const rewriteClientWorkerCorePlaceholders = (rollupBundle: OutputBundle) => {
-  const workerCoreChunk = Object.values(rollupBundle).find(
-    (output) => output.type === 'chunk' && output.facadeModuleId === QWIK_WORKER_CORE_ID
-  );
-  const resolveWorkerCorePath = workerCoreChunk
-    ? createBuildWorkerCoreChunkResolver(workerCoreChunk.fileName)
+export const rewriteClientWorkerCorePlaceholders = (
+  ctx: PluginContext,
+  rollupBundle: OutputBundle,
+  workerCoreChunkRef: string | undefined
+) => {
+  const workerCoreFileName = workerCoreChunkRef ? ctx.getFileName(workerCoreChunkRef) : undefined;
+  const resolveWorkerCorePath = workerCoreFileName
+    ? createBuildWorkerCoreChunkResolver(workerCoreFileName)
     : undefined;
   rewriteWorkerCorePlaceholdersInBundle(rollupBundle, (fileName) =>
     resolveWorkerCorePath?.(fileName)

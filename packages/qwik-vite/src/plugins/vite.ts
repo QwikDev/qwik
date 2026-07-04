@@ -126,6 +126,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
   let ssrOutDir: string | null = null;
   let buildMode: QwikBuildMode = 'development';
+  let workerCoreChunkRef: string | undefined;
   let viteServer: ViteDevServer | undefined;
   // Cache the user-specified clientOutDir to use across multiple normalizeOptions calls
   const userClientOutDir = qwikViteOpts.client?.outDir;
@@ -450,6 +451,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
     async buildStart() {
       injections.length = 0;
+      workerCoreChunkRef = undefined;
 
       // Using vite.resolveId to check file if exist
       // for example input might be virtual file
@@ -469,7 +471,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       await qwikPlugin.buildStart(this);
       if (viteCommand === 'build' && qwikPlugin.getOptions().target === 'client') {
-        emitQwikWorkerCoreChunk(this);
+        workerCoreChunkRef = emitQwikWorkerCoreChunk(this);
       }
     },
 
@@ -619,7 +621,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
               output.code = rewriteWorkerQrlChunkPlaceholders(output.code, resolveChunkPath);
             }
           }
-          rewriteClientWorkerCorePlaceholders(rollupBundle);
+          rewriteClientWorkerCorePlaceholders(this, rollupBundle, workerCoreChunkRef);
         } else if (isSSR) {
           rewriteSsrWorkerCorePlaceholders(rollupBundle, qwikPlugin.getOptions().manifestInput);
         }

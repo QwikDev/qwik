@@ -16,10 +16,11 @@ import {
 } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type { Plugin as RolldownPlugin } from 'rolldown';
-import { minify, type MinifyOptions } from 'terser';
 import { promisify } from 'util';
 import { readPackageJson } from './package-json.ts';
+
+/** Base esbuild options shared by every minify pass (ESM output at the ES2020 syntax floor). */
+export const ESBUILD_BASE = { format: 'esm', target: 'es2020' } as const;
 
 const stringOptions = ['distVersion', 'platformTarget', 'setDistTag'] as const;
 const booleanOptions = [
@@ -167,21 +168,6 @@ export function loadConfig(args: string[] = []): BuildConfig {
     tscDir: join(tmpDir, 'tsc-out'),
     dtsDir: join(tmpDir, 'dts-out'),
     esmNode: parseInt(process.version.slice(1).split('.')[0], 10) >= 14,
-  };
-}
-
-export function terser(opts: MinifyOptions): RolldownPlugin {
-  return {
-    name: 'terser',
-    async generateBundle(_, bundle) {
-      for (const fileName in bundle) {
-        const chunk = bundle[fileName];
-        if (chunk.type === 'chunk') {
-          const result = await minify(chunk.code, opts);
-          chunk.code = result.code!;
-        }
-      }
-    },
   };
 }
 

@@ -1,11 +1,18 @@
-import { build, type BuildOptions, type Plugin } from 'esbuild';
+import { build, transform, type BuildOptions, type Plugin } from 'esbuild';
 import { join } from 'node:path';
-import { minify } from 'terser';
 import { readPackageJson } from './package-json.ts';
 import { inlineQwikScriptsEsBuild } from './submodule-qwikloader.ts';
 import { inlineBackpatchScriptsEsBuild } from './submodule-backpatch.ts';
-import { MANGLE_PROPS_REGEX } from './submodule-core.ts';
-import { type BuildConfig, getBanner, importPath, readFile, target, writeFile } from './util.ts';
+import { MANGLE_PROPS_REGEX, type MangleCache } from './submodule-core.ts';
+import {
+  type BuildConfig,
+  ESBUILD_BASE,
+  getBanner,
+  importPath,
+  readFile,
+  target,
+  writeFile,
+} from './util.ts';
 
 /**
  * Builds @qwik.dev/core/server
@@ -13,11 +20,11 @@ import { type BuildConfig, getBanner, importPath, readFile, target, writeFile } 
  * This is submodule for helping to generate server-side rendered pages, along with providing
  * utilities for prerendering and unit testing.
  *
- * @param nameCache - Terser nameCache from the core build. When provided (prod builds), server.mjs
- *   gets a property-mangling pass using the same $...$ mappings so that cross-bundle calls between
- *   core and server keep property names in sync.
+ * @param mangleCache - Esbuild mangleCache from the core build. When provided (prod builds),
+ *   server.mjs gets a property-mangling pass using the same $...$ mappings so that cross-bundle
+ *   calls between core and server keep property names in sync.
  */
-export async function submoduleServer(config: BuildConfig, nameCache?: object) {
+export async function submoduleServer(config: BuildConfig, mangleCache?: MangleCache) {
   const submodule = 'server';
   console.log('🐰 start', submodule);
 
@@ -93,28 +100,20 @@ export async function submoduleServer(config: BuildConfig, nameCache?: object) {
     const serverMjs = join(config.distQwikPkgDir, 'server.mjs');
     const code = await readFile(serverMjs, 'utf-8');
     const noMangle = config.mangle === false;
-    if (nameCache && !noMangle) {
-      // Apply property-only mangling with the same nameCache used for core so that $...$
+    if (mangleCache && !noMangle) {
+      // Apply property-only mangling with the same mangleCache used for core so that $...$
       // property accesses in server.prod.mjs resolve to the same mangled names as in core.prod.mjs.
-      const result = await minify(code, {
-        nameCache,
-        compress: false,
-        mangle: {
-          properties: {
-            regex: MANGLE_PROPS_REGEX,
-          },
-        },
-        format: {
-          beautify: true,
-          braces: true,
-          comments: 'all',
-          preserve_annotations: true,
-          ecma: 2020,
-        },
+      const result = await transform(code, {
+        ...ESBUILD_BASE,
+        minifyIdentifiers: false,
+        minifySyntax: false,
+        mangleProps: new RegExp(MANGLE_PROPS_REGEX),
+        mangleQuoted: true,
+        mangleCache,
       });
-      await writeFile(join(config.distQwikPkgDir, 'server.prod.mjs'), result.code!);
+      await writeFile(join(config.distQwikPkgDir, 'server.prod.mjs'), result.code);
     } else {
-      // noMangle or no nameCache: write server.prod.mjs without mangling (copy of server.mjs)
+      // noMangle or no mangleCache: write server.prod.mjs without mangling (copy of server.mjs)
       await writeFile(join(config.distQwikPkgDir, 'server.prod.mjs'), code);
     }
   } else if (config.dev) {

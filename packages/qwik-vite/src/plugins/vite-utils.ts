@@ -144,11 +144,14 @@ export function isWin(os: string): boolean {
 export function parseId(originalId: string) {
   const [pathId, query] = originalId.split('?');
   const queryStr = query || '';
+  let params: URLSearchParams | undefined;
   return {
     originalId,
     pathId,
     query: queryStr ? `?${query}` : '',
-    params: new URLSearchParams(queryStr),
+    get params() {
+      return (params ??= new URLSearchParams(queryStr));
+    },
   };
 }
 

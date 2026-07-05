@@ -1,0 +1,48 @@
+==INPUT==
+
+import { createContextId, useContextProvider } from '@qwik.dev/core/spark';
+
+export function App() {
+  const firstContext = createContextId<string>('first');
+  const secondContext = createContextId<number>('second');
+  useContextProvider(firstContext, 'one');
+  useContextProvider(secondContext, 2);
+  return <p>Provided</p>;
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { createContextId, useContextProvider } from '@qwik.dev/core/spark';
+
+export function App(props, ctx) {
+  const firstContext = createContextId('first');
+  const secondContext = createContextId('second');
+  useContextProvider(firstContext, 'one');
+  useContextProvider(secondContext, 2);
+  const contextScopeId = ctx.contextScopeId();
+  return '<!c=' + contextScopeId + '>' + '<p>Provided</p>' + '<!/c>';
+}
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { createContextId, useContextProvider, _first, createTemplate } from '@qwik.dev/core/spark';
+
+const App_tmpl0 = createTemplate('<p>Provided</p>');
+export function App(props, ctx) {
+  const firstContext = createContextId('first');
+  const secondContext = createContextId('second');
+  useContextProvider(firstContext, 'one');
+  useContextProvider(secondContext, 2);
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
+}
+== CSR DIAGNOSTICS ==
+
+[]

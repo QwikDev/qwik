@@ -24,6 +24,14 @@ export const fastFirstChild = (node: Node): Node | null => {
   return _fastFirstChild.call(node) ?? null;
 };
 
+let _fastLastChild: ((this: Node) => Node | null) | null = null;
+export const fastLastChild = (node: Node): Node | null => {
+  if (!_fastLastChild) {
+    _fastLastChild = fastGetter<typeof _fastLastChild>(node, 'lastChild')!;
+  }
+  return _fastLastChild.call(node) ?? null;
+};
+
 let _fastGetAttribute: ((this: Element, name: string) => string | null) | null = null;
 export const fastGetAttribute = (element: Element, key: string): string | null => {
   if (!_fastGetAttribute) {

@@ -71,7 +71,7 @@ export function collectModuleFacts(ctx: CompilerContext) {
   }
 }
 
-function createImportRecord(node: ImportDeclaration): ImportRecord | null {
+export function createImportRecord(node: ImportDeclaration): ImportRecord | null {
   if (node.attributes.length > 0 || node.phase !== null) {
     return null;
   }

@@ -17,9 +17,9 @@ import { collectModuleFacts, discoverExportedComponents } from './stages/discove
 import { emitModules } from './stages/emit';
 import { lowerStaticJsxToIr } from './stages/lower-jsx';
 import { parseModule } from './stages/parse';
+import { tryTransformJsx } from './rewrite/transform';
 
 const PIPELINE: readonly PipelineStage[] = [
-  parseModule,
   collectModuleFacts,
   discoverExportedComponents,
   analyzeCaptures,
@@ -58,26 +58,37 @@ async function transformModule(
     outputModules: null,
   };
 
-  for (const stage of PIPELINE) {
-    await stage(ctx);
-  }
-
-  if (ctx.outputModules === null) {
-    if (ctx.manifest.diagnostics.length > 0) {
+  parseModule(ctx);
+  if (ctx.manifest.diagnostics.length === 0) {
+    const modules = tryTransformJsx(ctx);
+    if (modules !== null) {
       return {
-        modules: [createModule(input.path, '')],
+        modules,
         diagnostics: ctx.manifest.diagnostics,
       };
     }
-    const fallback = await transformWithOxc(input, options);
-    return {
-      modules: [fallback],
-      diagnostics: ctx.manifest.diagnostics,
-    };
   }
 
+  // for (const stage of PIPELINE) {
+  //   await stage(ctx);
+  // }
+
+  // if (ctx.outputModules === null) {
+  //   if (ctx.manifest.diagnostics.length > 0) {
+  //     return {
+  //       modules: [createModule(input.path, '')],
+  //       diagnostics: ctx.manifest.diagnostics,
+  //     };
+  //   }
+  //   const fallback = await transformWithOxc(input, options);
+  //   return {
+  //     modules: [fallback],
+  //     diagnostics: ctx.manifest.diagnostics,
+  //   };
+  // }
+
   return {
-    modules: ctx.outputModules,
+    modules: [],
     diagnostics: ctx.manifest.diagnostics,
   };
 }

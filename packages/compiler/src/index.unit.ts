@@ -51,7 +51,10 @@ async function snapshotTransformOutput(label: string, result: TransformOutput) {
   for (const module of result.modules) {
     const isEntry = module.isEntry ? '(ENTRY POINT)' : '';
     const code = await formatSnapshotCode(module.code);
-    output += `\n============================= ${module.path} ${isEntry}==\n\n${code}\n\n${module.map}`;
+    output += `\n============================= ${module.path} ${isEntry}==\n\n${code}`;
+    if (module.map) {
+      output += `\n\n${module.map}`;
+    }
     if (module.segment) {
       output += `\n/*\n${JSON.stringify(module.segment, null, 2)}\n*/`;
     }
@@ -80,28 +83,88 @@ async function formatSnapshotCode(code: string) {
 }
 
 describe('transformModules', () => {
-  test('emits a static SSR renderer from an exported function component', async () => {
-    await testInput('static_function', {
+  test('simple function component', async () => {
+    await testInput('simple_function_component', {
       code: `export function App() {
-  return <main className="shell" hidden={true}><h1>Hello</h1><p>Qwik</p></main>;
+  return <main>Qwik</main>;
 }
 `,
     });
   });
 
-  test('emits a static CSR DOM renderer from an exported arrow component', async () => {
-    await testInput('static_arrow_fragment', {
-      code: `export const App = () => (
-  <>
-    <h1>Hello</h1>
-    <p className="copy">Qwik</p>
-  </>
-);
+  test('simple const component', async () => {
+    await testInput('simple_const_component', {
+      code: `export const App = () => {
+  return <main>Qwik</main>;
+}
 `,
     });
   });
 
-  test('emits scalar CSR output from a single-child fragment', async () => {
+  test('simple default function component', async () => {
+    await testInput('simple_default_function_component', {
+      code: `export default function App() {
+  return <main>Qwik</main>;
+}
+`,
+    });
+  });
+
+  test('component with signal', async () => {
+    await testInput('component_with_signal', {
+      code: `import { useSignal } from '@qwik.dev/core/spark';
+  export function App() {
+      const count = useSignal(0);
+  return <button>{count.value}</button>;
+}
+`,
+    });
+  });
+
+  test('component with renamed signal', async () => {
+    await testInput('component_with_renamed_signal', {
+      code: `import { useSignal as signal } from '@qwik.dev/core/spark';
+  export function App() {
+      const count = signal(0);
+  return <button>{count.value}</button>;
+}
+`,
+    });
+  });
+
+  test('simple component with attributes', async () => {
+    await testInput('simple_component_with_attributes', {
+      code: `export function App() {
+  return <main className="shell" hidden={true}></main>;
+}
+`,
+    });
+  });
+
+  test('simple component with nested elements', async () => {
+    await testInput('simple_component_nested_elements', {
+      code: `export function App() {
+  return <main className="shell" hidden={true}><h1 aria-label="Hello">Hello</h1><p>Qwik</p></main>;
+}
+`,
+    });
+  });
+
+  test('simple component with fragment', async () => {
+    await testInput('static_component_fragment', {
+      code: `export const App = () => {
+  return (
+    <>
+      <h1>Hello</h1>
+      <p className="copy">Qwik</p>
+    </>
+  )
+};
+`,
+    });
+  });
+
+  test('simple component with fragment and single child', async () => {
     await testInput('static_single_child_fragment', {
       code: `export const App = () => (
   <>
@@ -112,9 +175,20 @@ describe('transformModules', () => {
     });
   });
 
-  test('strips TypeScript syntax from generated component setup', async () => {
-    await testInput('typescript_setup', {
-      code: `import { createContextId } from '@qwik.dev/core';
+  test('component with signal as attribute', async () => {
+    await testInput('component_with_signal_attribute', {
+      code: `import { useSignal } from '@qwik.dev/core/spark';
+  export function App() {
+      const count = useSignal(0);
+  return <button test={count.value}>Click</button>;
+}
+`,
+    });
+  });
+
+  test('component with context and signal', async () => {
+    await testInput('component_with_context_and_signal', {
+      code: `import { createContextId } from '@qwik.dev/core/spark';
 import { useContextProvider, useSignal, type Signal } from '@qwik.dev/core/spark';
 
 export const App = () => {
@@ -127,18 +201,18 @@ export const App = () => {
     });
   });
 
-  test('discovers default function components', async () => {
-    await testInput('default_function', {
-      code: `export default function App() {
-  return <section>Default function</section>;
+  test('component with multiple context providers', async () => {
+    await testInput('component_with_multiple_context_providers', {
+      code: `import { createContextId, useContextProvider } from '@qwik.dev/core/spark';
+
+export function App() {
+  const firstContext = createContextId<string>('first');
+  const secondContext = createContextId<number>('second');
+  useContextProvider(firstContext, 'one');
+  useContextProvider(secondContext, 2);
+  return <p>Provided</p>;
 }
 `,
-    });
-  });
-
-  test('discovers default arrow components', async () => {
-    await testInput('default_arrow', {
-      code: `export default () => <section>Default arrow</section>;`,
     });
   });
 

@@ -226,3 +226,9 @@ export {
   type ContainerState,
   type StateChunk,
 } from './runtime/container-context';
+export {
+  fastNextSibling as _next,
+  fastPreviousSibling as _prev,
+  fastFirstChild as _first,
+  fastLastChild as _last,
+} from './runtime/fast-getters';

@@ -1,0 +1,56 @@
+==INPUT==
+
+import { useSignal } from '@qwik.dev/core/spark';
+  export function App() {
+      const count = useSignal(0);
+  return <button test={count.value}>Click</button>;
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { useSignal } from '@qwik.dev/core/spark';
+import { escapeHTML, createSsrElementTarget, renderSsrAttr, maybeThen } from '@qwik.dev/core/spark';
+
+export function App(props, ctx) {
+  const count = useSignal(0);
+  const id0 = ctx.nextId();
+  ctx.addRoot(count);
+  const attr0 = renderSsrAttr(createSsrElementTarget(id0), 'test', count);
+  return maybeThen(
+    attr0,
+    (attr0) =>
+      '<button q:id="' +
+      id0 +
+      '"' +
+      ' test="' +
+      escapeHTML(attr0) +
+      '"' +
+      '>' +
+      'Click' +
+      '</button>'
+  );
+}
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { useSignal } from '@qwik.dev/core/spark';
+import { _first, createAttrEffect, createTemplate } from '@qwik.dev/core/spark';
+
+const App_tmpl0 = createTemplate('<button>Click</button>');
+export function App(props, ctx) {
+  const count = useSignal(0);
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const effect0 = createAttrEffect(el0, 'test', count, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  return el0;
+}
+== CSR DIAGNOSTICS ==
+
+[]

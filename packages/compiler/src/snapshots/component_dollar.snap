@@ -10,12 +10,12 @@ export default component$(function Home() {
 
 ============================= src/component.tsx ==
 
-export const App = (_props, _ctx) => '<div>Hello</div>';
-export default function Home(_props, _ctx) {
+export const App = (props, ctx) => {
+  return '<div>Hello</div>';
+};
+export default function Home(props, ctx) {
   return '<section>Default wrapped</section>';
 }
-
-null
 == SSR DIAGNOSTICS ==
 
 []
@@ -23,23 +23,20 @@ null
 
 ============================= src/component.tsx ==
 
-import { component$ } from '@qwik.dev/core';
-import { createTemplate } from '@qwik.dev/core/spark';
+import { _first, createTemplate } from '@qwik.dev/core/spark';
 
-const dom_App_template0 = createTemplate('<div>Hello</div>');
-export const App = (_props, ctx) => {
-  const fragment0 = dom_App_template0(ctx.document);
-  const el1 = fragment0.firstChild;
-  return el1;
+const App_tmpl0 = createTemplate('<div>Hello</div>');
+const Home_tmpl0 = createTemplate('<section>Default wrapped</section>');
+export const App = (props, ctx) => {
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
 };
-const dom_default_template0 = createTemplate('<section>Default wrapped</section>');
-export default function Home(_props, ctx) {
-  const fragment0 = dom_default_template0(ctx.document);
-  const el1 = fragment0.firstChild;
-  return el1;
+export default function Home(props, ctx) {
+  const fragment0 = Home_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
 }
-
-null
 == CSR DIAGNOSTICS ==
 
 []

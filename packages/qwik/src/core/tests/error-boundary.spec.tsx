@@ -76,7 +76,6 @@ const ThrowingTask = component$<{ message?: string; async?: boolean }>((props) =
   return <span id="content">ok</span>;
 });
 
-// Module-scoped: captured by a `component$` QRL.
 class NonSerializableError {
   message = 'non-serializable boom';
   toJSON() {
@@ -133,16 +132,13 @@ const dispatchQError = (
 
 const fbCount = (root: any) => root.querySelectorAll('#fb').length;
 
-// Settles fire-and-forget onError$ delivery; drain may reject on escalation.
 const settleOnErrorDelivery = async (container: Parameters<typeof waitForDrain>[0]) => {
   await waitForDrain(container).catch(() => {});
   await getTestPlatform().flush();
   await delay(0);
 };
 
-// ===== Shared fixtures hoisted to module scope (used across suites) =====
-
-// Fresh QRL per call: a fallback QRL must not cross containers.
+// Fresh QRL per call: must not cross containers.
 const fb = (id = 'fb') => $((e: any) => <p id={id}>caught: {String(e?.message ?? e)}</p>);
 
 const Boxed = component$(() => {
@@ -172,7 +168,7 @@ const NamedSlotProjector = component$(() => {
   );
 });
 
-// `.plugin`-stamped build errors are non-recoverable; a boundary must not hide them.
+// `.plugin`-stamped errors are non-recoverable; boundary must not hide them.
 const PluginThrower = component$(() => {
   const err = new Error('build boom');
   (err as any).plugin = 'vite:some-plugin';
@@ -181,7 +177,7 @@ const PluginThrower = component$(() => {
 
 const boxed = (child: JSXOutput) => <ErrorBoundary fallback$={fb()}>{child}</ErrorBoundary>;
 
-// Fresh tree per test: reusing one JSX object across containers trips "props across containers".
+// Fresh tree per test: a reused JSX object trips "props across containers".
 const nestedEscalation = ({
   innerOnError,
   outerOnError,
@@ -203,10 +199,10 @@ const nestedEscalation = ({
   </ErrorBoundary>
 );
 
-// Object ref survives `$()` capture; a primitive `let` would freeze at its initial value.
+// Object ref survives `$()` capture; a `let` would freeze at its initial value.
 const onErrorLog: { errors: unknown[] } = { errors: [] };
 
-// ===== A. Core behavior: one body per test, run in both modes =====
+// ===== A. Core behavior =====
 
 const modes = [
   [
@@ -287,7 +283,7 @@ describe.each(modes)('ErrorBoundary behavior (%s)', (mode, renderMode) => {
       const contentHost = el.querySelector('[q\\:ebc]') as HTMLElement;
       expect(contentHost.style.display).toBe('none');
       expect(contentHost.contains(el.querySelector('#fb-inner'))).toBe(true);
-      // Every root must deserialize: no serialized refs into the inert region.
+      // No serialized refs may dangle into the inert region.
       const state = el.querySelector('script[type="qwik/state"]')!;
       const rootCount = (JSON.parse(state.textContent!) as unknown[]).length / 2;
       for (let i = 0; i < rootCount; i++) {
@@ -305,7 +301,7 @@ describe.each(modes)('ErrorBoundary behavior (%s)', (mode, renderMode) => {
     ));
     expect(fbCount(container.element)).toBe(1);
     if (mode === 'CSR') {
-      // Only CSR guarantees first-error-wins; SSR surfaces the last error.
+      // Only CSR guarantees first-error-wins; SSR surfaces the last.
       expect(container.element.querySelector('#fb')?.textContent).toContain('caught: boomA');
     }
   });
@@ -386,7 +382,7 @@ describe.each(modes)('ErrorBoundary behavior (%s)', (mode, renderMode) => {
     const el = container.element;
     expect(el.querySelector('#fb-outer')?.textContent).toBe('outer');
     expect(el.querySelector('#fb-inner')).toBeFalsy();
-    // A loaded-then-threw fallback escalates, not the last-resort node.
+    // A threw-after-load fallback escalates, not last-resort.
     expect(el.ownerDocument.querySelector('[role="alert"]')).toBeFalsy();
   });
 
@@ -627,7 +623,7 @@ describe('ErrorBoundary behavior', () => {
 
 // ===== B. Reset =====
 
-// Module-level counters: a `let` captured in a `component$` becomes a const.
+// Object ref: a `let` captured in a `component$` becomes a const.
 const resetRef = { flake: 0, toggle: 0 };
 const ResetFlake = component$(() => {
   resetRef.flake++;
@@ -661,7 +657,7 @@ const withResetBoundary = (child: JSXOutput) =>
     </main>
   ));
 
-// Harness can't dispatch resumed handlers, so drive reset directly; the e2e is the real path.
+// Harness can't dispatch resumed handlers; drive reset directly.
 const resetResumed = async (container: any) => {
   const c = _getDomContainer(container.element) as any;
   c.resetErrorBoundary(c.vNodeLocate(container.element.querySelector('#retry')));
@@ -746,7 +742,7 @@ describe('ErrorBoundary reset', () => {
     await trigger(el, '#retry', 'click');
     expect(el.querySelector('#alive')).toBeTruthy();
 
-    // A signal write is fine-grained (text-only), so force a full component re-render instead.
+    // A signal write is text-only; force a full re-render instead.
     await rerenderComponent(el.querySelector('#alive') as HTMLElement);
     await waitForDrain(container).catch(() => {});
     expect(el.querySelector('#retry')?.textContent).toContain('boom-3');
@@ -756,9 +752,8 @@ describe('ErrorBoundary reset', () => {
     expect(el.querySelector('#retry')).toBeFalsy();
   });
 
-  // Throws only on its FIRST call so the post-reset re-attempt can prove the inner re-arms.
   const escalationRef = { fallbackCalls: 0 };
-  // Wrapped in a component$: reset() re-renders the children's OWNER, so the boundary needs one.
+  // reset() re-renders the children's OWNER, so the boundary needs one.
   const EscalationResetApp = component$(() => (
     <ErrorBoundary
       fallback$={$((e: any, reset: any) => (
@@ -791,7 +786,6 @@ describe('ErrorBoundary reset', () => {
     await trigger(el, '#retry-outer', 'click');
     await waitForDrain(container).catch(() => {});
 
-    // The re-attempted subtree re-arms the INNER boundary: it catches its own error again.
     expect(el.querySelector('#fb-inner')?.textContent).toContain('inner recovered');
     expect(el.querySelector('#retry-outer')).toBeFalsy();
   });
@@ -839,7 +833,6 @@ describe('ErrorBoundary CSR-specific', () => {
       const el = container.element;
       const target = el.querySelector('#target')!;
       dispatchQError(target, { error: new Error('client boom'), element: target });
-      // Termination proof: drain settles instead of looping forever.
       await waitForDrain(container).catch(() => {});
       expect(el.querySelector('#target')).toBeFalsy();
       expect(el.querySelector('#fb')).toBeFalsy();
@@ -910,7 +903,6 @@ describe('ErrorBoundary CSR-specific', () => {
     await settleOnErrorDelivery(container);
 
     expect(infos).toHaveLength(1);
-    // qerror listener routes through handleError(..., 'event').
     expect(infos[0].phase).toBe('event');
     expect(infos[0].boundaryId.length).toBeGreaterThan(0);
   });
@@ -1050,7 +1042,7 @@ describe('ErrorBoundary CSR-specific', () => {
       );
       const outer = _getDomContainer(hostOuter) as any;
       const inner = _getDomContainer(hostInner);
-      // A.contains(source-in-B) is true, so a contains()-gated handler would double-handle via A.
+      // A contains()-gated handler would double-handle via outer A.
       const outerHandleError = vi.spyOn(outer, 'handleError');
 
       const innerTarget = hostInner.querySelector('#target-inner')!;
@@ -1090,7 +1082,6 @@ describe('ErrorBoundary CSR-specific', () => {
 
   describe('last-resort fallback', () => {
     it('CSR: renders a built-in role="alert" node when the fallback$ chunk fails to load', async () => {
-      // A QRL whose import rejects, exactly like a 404'd chunk.
       const failingFallback = qrl(
         () => Promise.reject(new Error('chunk load failure')),
         'fb'
@@ -1129,7 +1120,6 @@ describe('ErrorBoundary CSR-specific', () => {
       const el = container.element;
       const alert = el.querySelector('[role="alert"]');
       expect(alert?.textContent).toContain('Something went wrong');
-      // A chunk-load failure is handled locally, never escalating to the outer boundary.
       expect(el.querySelector('#fb-outer')).toBeFalsy();
     });
   });
@@ -1342,8 +1332,7 @@ describe('ErrorBoundary SSR-specific', () => {
   });
 
   it('fires once from serialized props.onError$ on a post-resume client error', async () => {
-    // A captured ref would be pushed to a DESERIALIZED copy after resume, so use a `globalThis` sink
-    // the QRL captures nothing of, observable across the serialization boundary.
+    // A captured ref lands in a deserialized copy after resume; sink via `globalThis`.
     (globalThis as any).__ebOnErrorLog = [];
     const { container } = await ssrRenderToDom(
       <ErrorBoundary
@@ -1525,7 +1514,7 @@ describe('ErrorBoundary swap mechanics (qErr)', () => {
     expect(fbEl?.textContent).toContain('caught: boom');
     expect(displayOf(contentHost)).toBe('none');
     expect(displayOf(fallbackHost)).toBe('contents');
-    // qwik-dom querySelector is document-wide, so assert placement via `contains`.
+    // qwik-dom querySelector is document-wide; assert placement via `contains`.
     expect(fallbackHost?.contains(fbEl)).toBe(true);
     expect(contentHost?.contains(document.querySelector('#before'))).toBe(true);
     expect(contentHost?.contains(fallbackHost)).toBe(false);
@@ -1572,7 +1561,7 @@ describe('ErrorBoundary swap mechanics (qErr)', () => {
     expect(fbEl?.textContent).toContain('caught: async boom');
     expect(contentHost.style.display).toBe('none');
     expect(fallbackHost.style.display).toBe('contents');
-    // qwik-dom querySelector is document-wide, so assert placement via `contains`.
+    // qwik-dom querySelector is document-wide; assert placement via `contains`.
     expect(fallbackHost.contains(fbEl)).toBe(true);
     expect(contentHost.contains(fbEl)).toBe(false);
     expect(el.outerHTML).toContain('qErr(');
@@ -1782,7 +1771,7 @@ describe('ErrorBoundary swap mechanics (qErr)', () => {
   });
 
   it('a sync throw in a boundary that is a SIBLING of a real Suspense segment still swaps in place via qErr', async () => {
-    // Resolves after the drain so the sibling <Suspense> becomes a real deferred segment.
+    // Resolves after drain so the <Suspense> stays a deferred segment.
     const SlowResolver = component$(() => {
       const pending = delay(5).then(() => <span id="deferred-ok">deferred ok</span>) as any;
       return <>{pending}</>;
@@ -1994,7 +1983,7 @@ describe('ErrorBoundary OOOS (opt-in, Suspense)', () => {
   });
 
   it('an in-place throw beside a deferred <Suspense> swaps via qErr and absorbs the late rejection', async () => {
-    // Rejects after the fallback host drained, so the swap is already done.
+    // Rejects after the swap is already done.
     const SlowRejector = component$(() => {
       const pending = delay(5).then(() => Promise.reject(new Error('late boom'))) as any;
       return <>{pending}</>;
@@ -2078,7 +2067,7 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
     expect(received[0]).toBe(original);
   });
 
-  // The e2e harness builds in dev, so this is the prod-redaction proof.
+  // The e2e builds in dev, so this is the prod-redaction proof.
   it('redactBoundaryErrorForDisplay: prod redacts a raw client error to generic + digest', () => {
     const raw = Object.assign(new Error('client secret'), { token: 'abc' });
     const out = redactBoundaryErrorForDisplay(raw, /* dev */ false) as Error & { digest?: string };
@@ -2103,7 +2092,6 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
     const original = Object.assign(new Error('secret-db-detail'), { query: 'SELECT 1' });
     const transformError = (e: unknown) =>
       new Error(`safe: ${e instanceof Error ? e.name : 'unknown'}`);
-    // Applies even in dev — a set transform owns the policy.
     const inDev = toSerializableBoundaryError(original, /* dev */ true, transformError) as Error;
     expect(inDev.message).toBe('safe: Error');
     expect((inDev as unknown as Record<string, unknown>).query).toBeUndefined();

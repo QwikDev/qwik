@@ -1,5 +1,3 @@
-// Separate from `qO` so in-order SSR errors swap without Suspense.
-
 const Q_ERROR_CONTENT_SELECTOR = '[q\\:ebc="';
 const Q_ERROR_FALLBACK_SELECTOR = '[q\\:ebf="';
 const Q_CONTAINER_SELECTOR = '[q\\:container]:not([q\\:container=html]):not([q\\:container=text])';

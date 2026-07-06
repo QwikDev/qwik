@@ -457,7 +457,7 @@ describe.each([
             (globalThis as any).loading = asyncValue.$untrackedLoading$;
             (globalThis as any).value = asyncValue.$untrackedValue$;
           },
-          // Fires before qidle resumes clientOnly signals.
+          // Runs before qidle resumes clientOnly signals.
           { strategy: 'document-ready' }
         );
         return (
@@ -618,10 +618,8 @@ describe.each([
         );
       });
       const { container } = await render(<Counter />, { debug });
-      // Server cleans up after render; client not yet.
       expect((globalThis as any).log).toEqual(render === ssrRenderToDom ? ['cleanup'] : []);
       await trigger(container.element, 'button', 'click');
-      // From here SSR and client logs converge.
       expect((globalThis as any).log).toEqual(['cleanup']);
       await trigger(container.element, 'button', 'click'); //show
       await trigger(container.element, 'button', 'click'); //hide
@@ -653,7 +651,6 @@ describe.each([
     });
 
     it('should resume polling AsyncSignal with d:qidle on SSR', async () => {
-      // Polling AsyncSignals serialize a d:qidle event to resume on idle.
       const Counter = component$(() => {
         const start = useConstant(Date.now);
         const elapsed = useAsync$(async () => Date.now() - start, { expires: 50 });

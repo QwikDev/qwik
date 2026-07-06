@@ -287,7 +287,7 @@ describe.each([
     });
 
     if (render === ssrRenderToDom) {
-      // Suspense is not an SSR error boundary; SSR propagates synchronously.
+      // Suspense is not an SSR error boundary; SSR throws synchronously.
       let caught: unknown;
       try {
         await render(
@@ -449,7 +449,6 @@ describe('domRender: Suspense client-side pause delay', () => {
       { debug }
     );
 
-    // Wait past the delay so the pause-timer fires.
     await new Promise((r) => setTimeout(r, 40));
 
     (globalThis as any).__slowResolve(<p>Done</p>);

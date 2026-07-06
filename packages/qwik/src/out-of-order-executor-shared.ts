@@ -10,7 +10,7 @@ const Q_CONTAINER_SELECTOR = '[q\\:container]:not([q\\:container=html]):not([q\\
 
 type OutOfOrderTemplate = HTMLTemplateElement | null;
 type OutOfOrderHost = Element | null;
-// [hostToReveal, hostToHide]: hostToHide is hostToReveal's previous sibling.
+// [reveal, hide]: hide is reveal's previous sibling.
 type OutOfOrderEntry = [OutOfOrderHost | 0, OutOfOrderHost];
 type OutOfOrderScope = Document | Element;
 

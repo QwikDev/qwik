@@ -111,7 +111,6 @@ export async function _walkJSX(
         if (typeof value === 'function') {
           if (value === Promise) {
             const pending = stack.pop() as Promise<JSXOutput>;
-            // Route to the closest boundary, else the rejection aborts the stream.
             stack.push(
               __EXPERIMENTAL__.errorBoundary
                 ? await catchToErrorBoundary(ssr, ssr.getOrCreateLastNode(), () => pending)
@@ -147,14 +146,12 @@ function findErrorBoundaryNode(host: ISsrNode | null): ISsrNode | null {
   return null;
 }
 
-/** First error wins: a boundary whose fallback threw has a detached `$fallback$`, so it escalates. */
 function renderErrorBoundaryFallback(
   ssr: SSRContainer,
   host: ReturnType<SSRContainer['getOrCreateLastNode']>,
   err: unknown,
   phase: ErrorBoundaryInfo['phase'] = 'render'
 ): JSXOutput {
-  // Non-recoverable build/plugin errors must surface, not hide in a fallback.
   if (qDev && !isRecoverable(err)) {
     throw err;
   }
@@ -169,7 +166,7 @@ function renderErrorBoundaryFallback(
     if (!errorStore || !errorStore.$fallback$) {
       continue;
     }
-    // Boundary outside the segment already streamed: reject so the segment tears down.
+    // Already-streamed outer boundary can't catch in place; tear down the segment.
     if (
       __EXPERIMENTAL__.errorBoundary &&
       isOutOfOrderSegmentContainer(ssr) &&
@@ -179,7 +176,6 @@ function renderErrorBoundaryFallback(
     }
     markBoundaryErrored(errorStore, err, phase, ssr.$transformError$);
     if (__EXPERIMENTAL__.errorBoundary) {
-      // An error absorbed inside a segment must keep `qO` delivery for a not-yet-drained host.
       if (isOutOfOrderSegmentContainer(ssr)) {
         markErrorFromDeferredSegment(errorStore);
       }
@@ -187,23 +183,21 @@ function renderErrorBoundaryFallback(
     }
     return null;
   }
-  // No boundary above: rethrow to the error page.
   throw err;
 }
 
-/** Mark a swapped-out boundary's content inert so the dead subtree never resumes. */
 function markErrorBoundaryContentInert(
   ssr: SSRContainer,
   boundaryNode: ReturnType<SSRContainer['getOrCreateLastNode']>
 ): void {
-  // Only the boundary + ancestors can hold a live projection ref into dead content.
+  // Only boundary + ancestors can hold a live projection ref into dead content.
   const liveOwners = new Map<string, ISsrNode>();
   for (let n: ISsrNode | null = boundaryNode; n; n = n.parentComponent) {
     if (n.id) {
       liveOwners.set(n.id, n);
     }
   }
-  // Runs before the fallback host renders, so children are only dead partial content.
+  // Runs before the fallback host renders; children are dead partial content.
   const children = boundaryNode.children;
   if (children) {
     for (let i = 0; i < children.length; i++) {
@@ -218,7 +212,7 @@ function markSubtreeInert(
   liveOwners: Map<string, ISsrNode>
 ): void {
   node.vnodeData[0] |= VNodeDataFlag.INERT;
-  // Cut the live owner's slot ref so client resume won't walk into dead content.
+  // Cut the owner's slot ref so client resume won't walk dead content.
   const ownerId = node.getProp(QSlotParent) as string | null;
   if (ownerId) {
     const owner = liveOwners.get(ownerId);
@@ -226,7 +220,6 @@ function markSubtreeInert(
       owner.removeProp((node.getProp(QSlot) as string | null) ?? QDefaultSlot);
     }
   }
-  // Dead virtual nodes can't materialize; drop subs so producer effects don't reference them.
   if (hasVirtualNodePath(node.id)) {
     clearAllEffects(ssr, node);
   }
@@ -247,7 +240,7 @@ function markSubtreeInert(
   }
 }
 
-/** `host` is captured so a deferred rejection routes to the node that produced it. */
+/** `host` captured so a deferred rejection routes to its producing node. */
 function catchToErrorBoundary(
   ssr: SSRContainer,
   host: ReturnType<SSRContainer['getOrCreateLastNode']>,
@@ -302,7 +295,7 @@ function processJSXNode(
       enqueue(() => ssr.streamHandler.flush());
     } else if (isAsyncGenerator(value)) {
       enqueue(async () => {
-        // Fresh object per walk: _walkJSX mutates its options in place.
+        // Fresh object per walk: `_walkJSX` mutates options in place.
         const freshWalkOptions = () => ({
           currentStyleScoped: options.currentStyleScoped,
           parentComponentFrame: options.parentComponentFrame,
@@ -313,7 +306,6 @@ function processJSXNode(
             await ssr.streamHandler.flush();
           }
         } catch (err) {
-          // Route to the closest boundary, else a mid-stream throw aborts SSR.
           const fallback = renderErrorBoundaryFallback(
             ssr,
             ssr.getOrCreateLastNode(),
@@ -370,7 +362,6 @@ function processJSXNode(
         const children = jsx.children as JSXOutput;
         children != null && enqueue(children);
       } else if (isFunction(type)) {
-        // `errorBoundary` reuses internal server components (the fallback host) without `suspense`.
         if (
           (__EXPERIMENTAL__.suspense || __EXPERIMENTAL__.errorBoundary) &&
           isInternalServerComponent(type)
@@ -485,7 +476,6 @@ function processJSXNode(
           );
           enqueue(() => ssr.closeComponent());
           if (isPromise(jsxOutput)) {
-            // Defer reading QScopedStyle until after the promise resolves.
             enqueue(async () => {
               const resolvedOutput = await jsxOutput;
               const compStyleComponentId = addComponentStylePrefix(host.getProp(QScopedStyle));

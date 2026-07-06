@@ -55,7 +55,6 @@ export function getQwikOutOfOrderExecutorScript(opts: { debug?: boolean } = {}) 
   return `if(!globalThis.qO||globalThis.qO.d!==document){${script}}`;
 }
 
-/** Gated on `errorBoundary`, not `suspense`, so in-order SSR errors swap. */
 export function getQwikErrorSwapExecutorScript(opts: { debug?: boolean } = {}) {
   if (!__EXPERIMENTAL__.errorBoundary) {
     return '';

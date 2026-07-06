@@ -18,7 +18,6 @@ export const releaseDeferred = async (page: Page, selector: string) => {
   expect(response.ok()).toBeTruthy();
 };
 
-// Run in both modes so in-order/out-of-order parity cannot drift.
 export const streamingModes = [
   { mode: 'in-order', outOfOrder: false },
   { mode: 'out-of-order', outOfOrder: true },

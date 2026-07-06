@@ -93,7 +93,7 @@ test.describe('ErrorBoundary streaming swap', () => {
     await expect(page.locator('#eb-fallback-count')).toHaveText('1');
   });
 
-  // Regression: unit tests passed while the real browser aborted resume ("Missing refElement").
+  // Regression: unit passed but the browser aborted resume ("Missing refElement").
   test('qErr swap as a main-flow sibling of a live deferred <Suspense> segment stays interactive', async ({
     page,
   }) => {
@@ -114,7 +114,6 @@ test.describe('ErrorBoundary streaming swap', () => {
     await expect(page.locator('#eb-fallback')).toBeVisible();
     await expect(page.locator('#eb-content')).toBeHidden();
 
-    // Liveness the unit spec can't prove: resume must survive the swap + deferred combo.
     await page.locator('#eb-fallback-button').click();
     await expect(page.locator('#eb-fallback-count')).toHaveText('1');
 
@@ -122,7 +121,6 @@ test.describe('ErrorBoundary streaming swap', () => {
     const html = await response!.text();
     expect(html).toMatch(/qErr\(/);
     expect(html).toMatch(/qO\(/);
-    // The fallback host is the inline swap host, not a deferred-segment host.
     await expect(page.locator('[q\\:ebf] #eb-fallback')).toHaveCount(1);
     await expect(page.locator('[q\\:rp] #eb-fallback')).toHaveCount(0);
   });
@@ -163,15 +161,14 @@ test.describe('ErrorBoundary streaming swap', () => {
     });
   }
 
-  // In-order streams container-ready at the END, so a mid-stream click must queue then replay after resume.
   test('in-order mid-stream click on a swapped fallback is queued and replayed after resume', async ({
     page,
     browserName,
   }) => {
     assertNoBrowserErrors(page);
-    // WebKit buffers mid-stream inline scripts; pad the stream or the qwikloader never runs.
+    // WebKit buffers mid-stream inline scripts; pad or the qwikloader never runs.
     const webkitFlush = browserName === 'webkit' ? '&webkitFlush=1' : '';
-    // 'direct': 'auto' would buffer the swap while the gate pends, so it'd never show mid-stream.
+    // 'auto' would buffer the swap while the gate pends, hiding it mid-stream.
     await page.goto(
       `${streamingUrl('midstream', false)}&release=eb&inOrderStrategy=direct${webkitFlush}`,
       {
@@ -183,9 +180,7 @@ test.describe('ErrorBoundary streaming swap', () => {
     await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: An error occurred');
     await expect(page.locator('#eb-deferred-ok')).toHaveCount(0);
 
-    // The qwikloader must be initialized or the click is lost.
     await page.waitForFunction(() => !!(window as any)._qwikEv?.roots);
-    // Premise: not resumed yet — resume flips q:container 'paused' → 'resumed'.
     await expect(page.locator('html')).toHaveAttribute('q:container', 'paused');
 
     await page.locator('#eb-reset').click();
@@ -203,11 +198,10 @@ test.describe('ErrorBoundary streaming swap', () => {
     await expect(page.locator('html')).toHaveAttribute('q:container', 'resumed');
   });
 
-  // Interaction-free throw via real qvisible on the resumed container, unlike the eager unit harness.
   test('useVisibleTask$ throw after resume is routed to the boundary without interaction', async ({
     page,
   }) => {
-    // The caught task throw may console.error in dev; only pageerror escapes matter.
+    // Caught task throw may console.error in dev; only pageerror escapes matter.
     const pageErrors: string[] = [];
     page.on('pageerror', (err) => pageErrors.push(err.message));
 
@@ -216,7 +210,7 @@ test.describe('ErrorBoundary streaming swap', () => {
     });
 
     await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-    // qDev client bundle keeps the raw message, not the redacted form.
+    // qDev client keeps the raw message, not the redacted form.
     await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: visible boom');
     await expect(page.locator('#eb-content')).toBeHidden();
 
@@ -237,7 +231,7 @@ test.describe('ErrorBoundary streaming swap', () => {
 
     await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
     await page.waitForFunction(() => (window as any).__ebOnErrorRuns >= 1);
-    // waitForFunction(===1) can't see a later double-fire, so settle then assert.
+    // waitForFunction(>=1) can't see a later double-fire; settle then assert.
     await page.waitForTimeout(100);
     expect(await page.evaluate(() => (window as any).__ebOnErrorRuns)).toBe(1);
     expect(await page.evaluate(() => (window as any).__ebOnErrorMsg)).toBe('onerror boom');
@@ -254,7 +248,6 @@ test.describe('ErrorBoundary streaming swap', () => {
 
     await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
     await page.waitForFunction(() => (window as any).__ebOnErrorPhase !== undefined);
-    // A real qwikloader event throw routes with phase 'event'; the unit suite fabricates qerror.
     expect(await page.evaluate(() => (window as any).__ebOnErrorPhase)).toBe('event');
     expect(await page.evaluate(() => (window as any).__ebOnErrorBoundaryId)).toBeTruthy();
   });
@@ -286,7 +279,7 @@ test.describe('ErrorBoundary streaming swap', () => {
 
     await expect(page.locator('#eb-outer')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#eb-outer-msg')).toHaveText('caught: An error occurred');
-    // The superseded inner fallback stays hidden inside the outer's inert content.
+    // Superseded inner fallback stays hidden inside the outer's inert content.
     await expect(page.locator('#eb-inner')).toBeHidden();
 
     await page.locator('#eb-outer-button').click();
@@ -357,7 +350,7 @@ test.describe('ErrorBoundary reset', () => {
       await page.goto(streamingUrl('reset', outOfOrder), { waitUntil: 'commit' });
       await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
       await expect(page.locator('#eb-content')).toBeHidden();
-      // Prove the swap wrappers exist so the post-reset count(0) can't be vacuous.
+      // Prove the wrappers exist so the post-reset count(0) isn't vacuous.
       await expect(page.locator('[q\\:ebc]')).toHaveCount(1);
       await expect(page.locator('[q\\:ebf]')).toHaveCount(1);
 
@@ -371,7 +364,6 @@ test.describe('ErrorBoundary reset', () => {
       await page.locator('#eb-content-button').click();
       await expect(page.locator('#eb-content-count')).toHaveText('1');
 
-      // The client re-render collapses the SSR swap wrappers: no residue.
       await expect(page.locator('[q\\:ebc]')).toHaveCount(0);
       await expect(page.locator('[q\\:ebf]')).toHaveCount(0);
     });
@@ -382,7 +374,7 @@ test.describe('ErrorBoundary reset', () => {
     await page.goto('/e2e/error-boundary-streaming?scenario=reset-csr', { waitUntil: 'commit' });
     await expect(page.locator('#eb-content')).toBeVisible({ timeout: 10000 });
 
-    // Touch state so the container resumes before the throw routes.
+    // Resume the container before the throw routes.
     await page.locator('#eb-content-button').click();
     await expect(page.locator('#eb-content-count')).toHaveText('1');
 
@@ -409,12 +401,10 @@ test.describe('ErrorBoundary reset', () => {
 
     await page.locator('#eb-reset').click();
 
-    // reset() must re-execute the async child, not re-claim the failed one.
     await expect(page.locator('#eb-wrap-recovered')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#eb-fallback')).toHaveCount(0);
   });
 
-  // 2nd reset() is a client re-render of the boundary — the case the reset Suspense-climb targets.
   test('second reset re-executes children of an ErrorBoundary inside a Suspense (re-error then recover)', async ({
     page,
   }) => {
@@ -435,7 +425,7 @@ test.describe('ErrorBoundary reset', () => {
     await expect(page.locator('#eb-fallback')).toHaveCount(0);
   });
 
-  // Client-first mount (no serialized resetOwner): reset() must resolve the owner at runtime.
+  // No serialized resetOwner: reset() resolves the owner at runtime.
   test('reset re-executes children of a client-first (SPA-nav) ErrorBoundary inside a Suspense', async ({
     page,
   }) => {
@@ -454,7 +444,6 @@ test.describe('ErrorBoundary reset', () => {
     await expect(page.locator('#eb-fallback')).toHaveCount(0);
   });
 
-  // Recovery via a dev-owned `key` bump instead of reset(), same wrapper shape as above.
   test('wrapper key-swap: key bump re-executes the async child through a Slot wrapper', async ({
     page,
   }) => {
@@ -470,7 +459,7 @@ test.describe('ErrorBoundary reset', () => {
 });
 
 test.describe('ErrorBoundary multi-container qErr scoping', () => {
-  // The inline qErr runs parser-driven (real currentScript), the only container-scoping path.
+  // Parser-driven qErr (real currentScript) is the only container-scoping path.
   test('an SSR error inside an embedded container swaps only that container boundary', async ({
     page,
   }) => {
@@ -485,7 +474,7 @@ test.describe('ErrorBoundary multi-container qErr scoping', () => {
     );
     await expect(page.locator('#eb-embed #eb-content')).toBeHidden();
 
-    // Per-container id counters make both boundaries share one id, exposing the scoping.
+    // Per-container id counters make both boundaries share one id.
     const hostBoundaryId = await page
       .locator('div[q\\:ebc]:has(#eb-host-content)')
       .getAttribute('q:ebc');
@@ -493,7 +482,7 @@ test.describe('ErrorBoundary multi-container qErr scoping', () => {
     expect(hostBoundaryId).not.toBeNull();
     expect(fragmentBoundaryId).toBe(hostBoundaryId);
 
-    // The host boundary is earlier in doc order, so an unscoped qErr would hit it first.
+    // Host boundary is earlier in doc order; unscoped qErr would hit it first.
     await expect(page.locator('#eb-host-content')).toBeVisible();
     await expect(page.locator('#eb-host-fb')).toHaveCount(0);
 
@@ -509,7 +498,6 @@ test.describe('ErrorBoundary last-resort & rejection bridge', () => {
   test('built-in last-resort node renders when the fallback$ chunk fails to load', async ({
     page,
   }) => {
-    // Abort the "fallback" chunks so `fallbackQrl()` rejects without resolving.
     const blockedFallbackChunks: string[] = [];
     await page.route(/\/build\/[^?]*[Ff]allback[^?]*\.js/, (route) => {
       blockedFallbackChunks.push(route.request().url());
@@ -532,7 +520,6 @@ test.describe('ErrorBoundary last-resort & rejection bridge', () => {
     await expect(page.locator('#eb-title')).toHaveText('EB Streaming');
   });
 
-  // On a real chunk 404 the qwikloader must tag qerror and never swap working content.
   test('a failed qwikloader dynamic import (chunk 404) leaves the boundary inert', async ({
     page,
   }) => {
@@ -544,13 +531,12 @@ test.describe('ErrorBoundary last-resort & rejection bridge', () => {
         consoleErrors.push(msg.text());
       }
     });
-    // Regex must match both chromium and webkit phrasings, not the network-noise line.
+    // Regex must match both chromium and webkit phrasings.
     const importFailureErrors = () =>
       consoleErrors.filter((text) =>
         /dynamically imported|importing a module|error loading|importerror/i.test(text)
       );
 
-    // The qerror the qwikloader dispatches must carry importError.
     await page.addInitScript(() => {
       (window as any).__ebQErrors = [];
       document.addEventListener('qerror', (e: any) => {
@@ -558,7 +544,7 @@ test.describe('ErrorBoundary last-resort & rejection bridge', () => {
       });
     });
 
-    // handlers.js is the qwikloader's own import() wrapper; abort it, not the later core import.
+    // handlers.js is qwikloader's own import() wrapper; abort it, not core.
     const blockedRequests: string[] = [];
     await page.route(/\/build\/handlers\.js/, (route) => {
       blockedRequests.push(route.request().url());
@@ -570,7 +556,7 @@ test.describe('ErrorBoundary last-resort & rejection bridge', () => {
 
     await page.locator('#eb-content-throw').click();
 
-    // Exactly once: a re-added container re-log would make it 2.
+    // Exactly once: a re-added container would re-log.
     await expect.poll(() => importFailureErrors().length, { timeout: 10000 }).toBeGreaterThan(0);
     await page.waitForTimeout(300);
     expect(importFailureErrors()).toHaveLength(1);
@@ -582,7 +568,7 @@ test.describe('ErrorBoundary last-resort & rejection bridge', () => {
     await expect(page.locator('#eb-fallback')).toHaveCount(0);
     await expect(page.locator('[role="alert"]')).toHaveCount(0);
     await expect(page.locator('#eb-content')).toBeVisible();
-    // The handler increments before throwing, so 0 proves the import failed, not a caught throw.
+    // Handler increments before throwing, so 0 proves the import failed.
     await expect(page.locator('#eb-content-touched')).toHaveText('0');
     expect(pageErrors).toEqual([]);
   });
@@ -602,11 +588,10 @@ test.describe('ErrorBoundary last-resort & rejection bridge', () => {
     });
     await expect(page.locator('#eb-reject')).toBeVisible({ timeout: 10000 });
 
-    // Touch state so the container resumes and registers the bridge before the reject.
+    // Resume so the bridge registers before the reject.
     await page.locator('#eb-reject').click();
     await expect(page.locator('#eb-reject-touched')).toHaveText('1');
 
-    // The bridge logs the reason via `logError` (qTest off in a real browser).
     await expect
       .poll(() => consoleErrors.join('\n'), { timeout: 10000 })
       .toContain('unhandled boom');

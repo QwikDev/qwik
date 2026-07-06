@@ -17,7 +17,6 @@ export const QStatePatchAttr = 'q:patch';
 export const QStatePatchAttrSelector = '[q\\:patch]';
 export const QSuspenseResolved = 'q:r';
 export const QSuspenseResultParent = 'q:rp';
-/** ErrorBoundary two-host swap: `content-host` (hidden on a throw) and sibling `fallback-host`. */
 export const QErrorContentHost = 'q:ebc';
 export const QErrorFallbackHost = 'q:ebf';
 export const QStyle = 'q:style';

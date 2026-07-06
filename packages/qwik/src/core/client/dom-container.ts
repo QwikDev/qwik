@@ -107,7 +107,6 @@ export const isDomContainer = (container: any): container is DomContainer => {
   return container instanceof DomContainer;
 };
 
-// Re-find a boundary from inside a streamed fallback segment.
 const RESET_BOUNDARY_HOST_SELECTOR = [QErrorFallbackHost, QSuspenseResultParent, QErrorContentHost]
   .map((marker) => `[${marker.replace(':', '\\:')}]`)
   .join(',');
@@ -129,10 +128,9 @@ function getOutOfOrderStreamingScript(boundaryId: number, content: Element | nul
   }
 }
 
-// One listener per window; per-container would log each shared-page rejection N times.
+// Per-window, not per-container: shared page would log each rejection N times.
 const windowsWithRejectionBridge = new WeakSet<object>();
 
-/** Route an otherwise-lost promise rejection to `logError`, once per window. */
 function registerUnhandledRejectionBridge(view: (Window & typeof globalThis) | null | undefined) {
   if (
     !view ||
@@ -191,7 +189,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     this.$setServerData$();
     element.qContainer = this;
     element.qDestroy = () => this.$destroy$();
-    // Registered synchronously (not in deferred resume) so CSR containers get it too.
+    // Synchronous, not deferred resume, so CSR containers get it too.
     this.$qErrorHandler$ = (e: Event) => {
       const detail = (e as CustomEvent<{ error: unknown; element?: Element; importError?: string }>)
         .detail;
@@ -200,7 +198,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         return;
       }
       const source = detail?.element;
-      // qerror is shared on the document; scope to this container so nested sources aren't double-handled.
+      // Scope shared-document qerror to this container; isolate nested sources.
       if (source && source.closest(QContainerSelector) === this.element) {
         const host = this.vNodeLocate(source);
         if (host) {
@@ -339,9 +337,8 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         throw err;
       }
     }
-    // `undefined` is `store.error`'s "no error" sentinel; store a keyable Error instead.
+    // `undefined` is `store.error`'s no-error sentinel; store a keyable Error.
     const storedError = err === undefined ? new Error('undefined') : err;
-    // Walk to the closest handling boundary so a 2nd throw escalates.
     let current: VNode | null = host;
     while (current) {
       const boundaryHost = this.resolveContextHost(current, ERROR_CONTEXT);
@@ -350,9 +347,9 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       }
       const store = this.resolveContext<ErrorBoundaryStore>(boundaryHost, ERROR_CONTEXT);
       if (store && store.error === undefined) {
-        // Resumed boundary never subscribed, so mark dirty to render the fallback.
+        // Resumed boundary never subscribed; mark dirty to render the fallback.
         store.error = storedError;
-        // `store.$onError$` is server-only (not serialized); read serialized `props.onError$`.
+        // `store.$onError$` is server-only; read serialized `props.onError$`.
         const boundaryProps = this.getHostProp<{
           onError$?: (error: unknown, info: ErrorBoundaryInfo) => unknown;
         }>(boundaryHost, ELEMENT_PROPS);
@@ -369,14 +366,12 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         return;
       }
       if (boundaryHost.dirty & ChoreBits.COMPONENT) {
-        // Fallback re-render still pending: first error wins, absorb this one.
         logError(err);
         return;
       }
-      // Fallback itself threw: escalate past this boundary.
       current = this.getParentHost(boundaryHost);
     }
-    // No boundary above: rethrow async to reach the global handler, not the chore loop.
+    // Rethrow async to reach the global handler, not the chore loop.
     logErrorAndThrowAsync(err);
   }
 
@@ -410,11 +405,10 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     return null;
   }
 
-  /** Clear the boundary's error and re-attempt its children. */
   resetErrorBoundary(host: VNode): void {
     let boundaryHost = this.resolveContextHost(host, ERROR_CONTEXT);
     if (!boundaryHost) {
-      // A streamed fallback segment doesn't chain to the boundary; re-resolve from the DOM.
+      // Streamed fallback segment doesn't chain to the boundary; re-resolve from DOM.
       const hostEl = (host as { node?: Element }).node?.closest?.(RESET_BOUNDARY_HOST_SELECTOR);
       boundaryHost = hostEl
         ? this.resolveContextHost(this.vNodeLocate(hostEl), ERROR_CONTEXT)
@@ -427,9 +421,8 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     if (!store || store.error === undefined) {
       return;
     }
-    // Re-render the children's owner and clear the error in the same tick to re-supply + re-execute.
+    // Re-render owner and clear error in the same tick to re-supply + re-execute.
     let owner = this.getParentHost(boundaryHost);
-    // A Suspense-projected boundary resolves to the Suspense; climb to the real children owner.
     while (
       owner &&
       (this.getHostProp(owner, OnRenderProp) as { $symbol$?: string } | null)?.$symbol$ ===
@@ -437,7 +430,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     ) {
       owner = this.getParentHost(owner);
     }
-    // `getParentHost` is null for a resumed boundary; fall back to the serialized projection owner.
+    // `getParentHost` is null for a resumed boundary; fall back to serialized projection owner.
     const resolvedOwner = owner ?? (store.resetOwner as VNode | undefined);
     if (!resolvedOwner) {
       return;

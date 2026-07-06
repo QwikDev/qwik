@@ -21,7 +21,7 @@ import { ManualOutOfOrderReleaseButton, WEBKIT_STREAMING_FLUSH } from '../suspen
 const getSearchParam = (url: string | undefined, name: string): string | null =>
   url ? new URL(url).searchParams.get(name) : null;
 
-// Shared with ooos.tsx to deterministically trigger a deferred throw.
+// Shared with ooos.tsx; keep the store shape in sync.
 type ReleaseStore = { resolved: Set<string>; resolvers: Map<string, Set<() => void>> };
 const getReleaseStore = (): ReleaseStore =>
   ((globalThis as any).__qwikOOOSReleaseStore ||= {
@@ -59,10 +59,9 @@ const EbFallback = component$((props: { msg: string; id?: string }) => {
 
 const errMsg = (e: unknown) => String((e as any)?.message ?? e);
 
-// Explicit `$()`: identifier-valued `$`-props aren't extracted, so shared fallbacks need a QRL (Q34).
+// Explicit `$()`: identifier-valued `$`-props aren't extracted (Q34).
 const defaultFallback = $((e: unknown) => <EbFallback msg={errMsg(e)} />);
 
-// Keep `onClick$={() => reset()}` so the streamed fallback stays wired after resume.
 const resetFallback = $((e: unknown, reset: QRL<() => void>) => (
   <section id="eb-fallback">
     <p id="eb-fallback-msg">caught: {errMsg(e)}</p>
@@ -92,7 +91,6 @@ const EbThrowOnClick = component$<{
   </>
 ));
 
-// Defers a tick so `<Suspense>` genuinely emits an out-of-order segment.
 const EbDeferredOk = component$(() => {
   if (isServer) {
     return new Promise<JSXOutput>((resolve) => {
@@ -146,7 +144,6 @@ const EbWrapper = component$(() => (
   </div>
 ));
 
-// SSR-fails then recovers on re-run: proves reset() re-executes children, not re-claims.
 const EbWrapAsync = component$(() => {
   if (isServer) {
     return new Promise<JSXOutput>((_resolve, reject) => {
@@ -156,7 +153,7 @@ const EbWrapAsync = component$(() => {
   return <p id="eb-wrap-recovered">recovered</p>;
 });
 
-// Counter on `window` survives boundary re-creation across resets.
+// `window` counter survives boundary re-creation across resets.
 const EbReErrorAsync = component$(() => {
   if (isServer) {
     return new Promise<JSXOutput>((_resolve, reject) => {
@@ -209,7 +206,7 @@ const EbAsyncThrower = component$(() => {
   return <span id="eb-async-client" />;
 });
 
-// useAsync$ contract: `.error` handles inline (inert); `.value` re-throws to the boundary.
+// useAsync$: `.error` handles inline; `.value` re-throws to the boundary.
 const AsyncErrorInline = component$(() => {
   const data = useAsync$(async () => {
     throw new Error('expected-async-error');
@@ -227,7 +224,7 @@ const AsyncValueThrows = component$(() => {
   return <div id="async-value">{String(data.value)}</div>;
 });
 
-// Inlined during SSR so its swap scripts run parser-driven with a real currentScript.
+// Inlined during SSR so swap scripts run with a real currentScript.
 const EbEmbeddedFragment = component$(() => {
   const fragmentHtml = useResource$<string>(async () => {
     const url = `http://localhost:${(globalThis as any).PORT}/e2e/error-boundary-streaming?fragment&loader=false&outOfOrder=false`;
@@ -244,9 +241,9 @@ const EbEmbeddedFragment = component$(() => {
 
 export const ErrorBoundaryStreamingRoot = component$(() => {
   const url = useServerData<string>('url');
-  // Serialized once so a reset()/key re-render doesn't recompute from a query-less client url.
+  // Serialized once so a reset()/key re-render keeps the query-less client url.
   const scenario = useSignal(getSearchParam(url, 'scenario')).value;
-  // WebKit buffers mid-stream inline scripts; pad the shell or the qwikloader never runs.
+  // WebKit buffers mid-stream inline scripts; pad or the qwikloader never runs.
   const webkitFlush = getSearchParam(url, 'webkitFlush') === '1';
   const touched = useSignal(0);
   const inertTrigger = useSignal(0);
@@ -262,13 +259,11 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
       ) : null}
       <h1 id="eb-title">EB Streaming</h1>
       {scenario === 'happy' ? (
-        // Touch state first so the container resumes before the client throw routes.
         <ErrorBoundary fallback$={defaultFallback}>
           <EbContent />
           <EbThrowOnClick idPrefix="eb-content" message="happy click boom" touched={touched} />
         </ErrorBoundary>
       ) : scenario === 'suspense' ? (
-        // The deferred-ok sibling forces a real out-of-order segment holding the boundary swap.
         <Suspense fallback={<span id="eb-skel">loading</span>}>
           <EbDeferredOk />
           <ErrorBoundary fallback$={defaultFallback}>
@@ -277,7 +272,7 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
           </ErrorBoundary>
         </Suspense>
       ) : scenario === 'sibling-suspense' ? (
-        // Swapped boundary sits main-flow beside a live deferred segment: qErr and qO coexist.
+        // Main-flow swap beside a live deferred segment: qErr and qO coexist.
         <>
           <ErrorBoundary fallback$={defaultFallback}>
             <EbContent />
@@ -293,7 +288,7 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
           />
         </>
       ) : scenario === 'midstream' ? (
-        // The gated sibling after the boundary holds the stream open before qwik/state arrives.
+        // Gated sibling holds the stream open before qwik/state arrives.
         <>
           <ErrorBoundary fallback$={resetFallback}>
             <EbContent />
@@ -321,7 +316,7 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
           </ErrorBoundary>
         </ErrorBoundary>
       ) : scenario === 'nested-ssr' ? (
-        // Outer's own child throw supersedes the inner swap, leaving it inside inert content.
+        // Outer's own throw supersedes the inner swap into inert content.
         <ErrorBoundary fallback$={(e) => <EbFallback id="eb-outer" msg={errMsg(e)} />}>
           <ErrorBoundary fallback$={(e) => <EbFallback id="eb-inner" msg={errMsg(e)} />}>
             <EbSyncThrower />
@@ -364,7 +359,6 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
           />
         </>
       ) : scenario === 'client' ? (
-        // Touch state first so the container resumes before the client throw routes.
         <ErrorBoundary fallback$={defaultFallback}>
           <EbThrowOnClick idPrefix="eb-client" message="client click boom" touched={touched} />
           <div id="eb-content">content ok</div>
@@ -379,7 +373,6 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
           onError$={(e, info) => {
             (window as any).__ebOnErrorRuns = ((window as any).__ebOnErrorRuns ?? 0) + 1;
             (window as any).__ebOnErrorMsg = (e as any)?.message ?? String(e);
-            // A real qwikloader event throw must route with phase 'event'.
             (window as any).__ebOnErrorPhase = info?.phase;
             (window as any).__ebOnErrorBoundaryId = info?.boundaryId;
           }}
@@ -407,7 +400,6 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
           </button>
         </ErrorBoundary>
       ) : scenario === 'reset-wrapped' ? (
-        // A <Slot>-projecting wrapper sits between the route and the boundary.
         <Suspense fallback={<span id="eb-skel">loading</span>}>
           <EbWrapper>
             <ErrorBoundary fallback$={resetFallback}>
@@ -416,7 +408,6 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
           </EbWrapper>
         </Suspense>
       ) : scenario === 'reset-wrapped-key' ? (
-        // Same shape as `reset-wrapped`, but recovery is a dev-owned `key` bump, not reset().
         <Suspense fallback={<span id="eb-skel">loading</span>}>
           <EbWrapper>
             <ErrorBoundary
@@ -435,14 +426,12 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
           </EbWrapper>
         </Suspense>
       ) : scenario === 'reset-reerror' ? (
-        // 2nd reset() is a client re-render, exercising the reset Suspense-climb.
         <Suspense fallback={<span id="eb-skel">loading</span>}>
           <ErrorBoundary fallback$={resetFallback}>
             <EbReErrorAsync />
           </ErrorBoundary>
         </Suspense>
       ) : scenario === 'reset-spa' ? (
-        // Client-first (no serialized resetOwner): reset() must resolve the owner at runtime.
         <>
           <button id="eb-spa-show" onClick$={() => (spaShow.value = true)}>
             Show
@@ -456,12 +445,10 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
           ) : null}
         </>
       ) : scenario === 'async-error-inline' ? (
-        // Expected channel: `.error` handled inline, boundary stays inert.
         <ErrorBoundary fallback$={defaultFallback}>
           <AsyncErrorInline />
         </ErrorBoundary>
       ) : scenario === 'async-error-throw' ? (
-        // Unexpected channel: `.value` re-throws, caught by the boundary.
         <ErrorBoundary fallback$={defaultFallback}>
           <Suspense fallback={<span id="async-loading">loading</span>}>
             <AsyncValueThrows />
@@ -476,13 +463,11 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
           </ErrorBoundary>
         </ErrorBoundary>
       ) : scenario === 'last-resort' ? (
-        // The test blocks the `fallback$` chunk to force core's last-resort node.
         <ErrorBoundary fallback$={defaultFallback}>
           <EbThrowOnClick idPrefix="eb-last-resort" message="last-resort boom" touched={touched} />
           <div id="eb-content">content ok</div>
         </ErrorBoundary>
       ) : scenario === 'multi-container' ? (
-        // Host boundary first in doc order: an unscoped qErr would wrongly hide it.
         <>
           <ErrorBoundary fallback$={(e) => <EbFallback id="eb-host-fb" msg={errMsg(e)} />}>
             <section id="eb-host-content">
@@ -496,7 +481,6 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
           <EbEmbeddedFragment />
         </>
       ) : scenario === 'unhandled-rejection' ? (
-        // Fire-and-forget rejection reaches `logError` via the bridge, not any boundary.
         <>
           <button
             id="eb-reject"

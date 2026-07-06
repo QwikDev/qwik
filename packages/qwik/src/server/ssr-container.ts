@@ -460,7 +460,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   nextOutOfOrderId(markUsed = true): number {
-    // In-order ErrorBoundary needs an id without arming the OOOS executor.
+    // In-order ErrorBoundary needs an id without arming OOOS.
     const ooosActive = __EXPERIMENTAL__.suspense && this.outOfOrderStreaming;
     if (!ooosActive && !__EXPERIMENTAL__.errorBoundary) {
       return 0;
@@ -1379,7 +1379,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   emitPatchDataIfNeeded(): void {
     const patches: (string | number | boolean | null)[] = [];
-    // Inline executor walks forward-only, so entries must ascend by index.
+    // Inline executor is forward-only; entries must ascend by index.
     const sortedBackpatches = [...this.backpatchMap.entries()].sort(
       ([a], [b]) => Number(a) - Number(b)
     );
@@ -1449,7 +1449,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   emitErrorSwapExecutorIfNeeded(): void {
-    // Gated on `errorBoundary` only, so in-order errors swap without Suspense.
     if (!__EXPERIMENTAL__.errorBoundary || this.isErrorSwapExecutorEmitted) {
       return;
     }

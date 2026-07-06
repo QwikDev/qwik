@@ -157,7 +157,6 @@ describe('_run', () => {
   it('should handle empty captures string', () => {
     _run.call('', mockEvent, mockElement);
 
-    // Empty string is still a string, so it deserializes.
     expect(qrlClass.deserializeCaptureDeltas).toHaveBeenCalledWith(mockContainer, '');
   });
 

@@ -9,6 +9,7 @@ import type {
 } from '@qwik.dev/core';
 import type { SerializationStrategy } from '@qwik.dev/core/internal';
 import type {
+  AbortMessage,
   EnvGetter,
   RequestEvent,
   RequestEventAction,
@@ -16,6 +17,7 @@ import type {
   RequestEventLoader,
   RequestHandler,
   ResolveSyncValue,
+  ServerError,
 } from '@qwik.dev/router/middleware/request-handler';
 import type * as v from 'valibot';
 import type * as z from 'zod';
@@ -306,10 +308,13 @@ export interface RouteData {
   _G?: string;
   /** The JS bundle names for this route (SSR only) */
   _B?: string[];
-  /** The not-found (404) module loader for this subtree */
-  _4?: ContentModuleLoader;
-  /** The error page module loader for this subtree (error.tsx, takes precedence over _4) */
-  _E?: ContentModuleLoader;
+  /**
+   * Not-found (404) boundary: single loader (runtime prepends layouts) or override chain
+   * (`404@layout`/`!`).
+   */
+  _4?: ContentModuleLoader | ModuleLoader[];
+  /** Error (error.tsx) boundary, same single-or-override-chain shape as `_4`. */
+  _E?: ContentModuleLoader | ModuleLoader[];
   /** The parameter name when this node is reached via `_W` or `_A` from the parent */
   _P?: string;
   /** Prefix for infix params (e.g. "pre" for `pre[slug]post`) — only on `_W` nodes */
@@ -434,8 +439,8 @@ export interface LoadedRoute {
   $routeBundleNames$?: string[] | undefined;
   /** Whether this route is a not-found (404) route */
   $notFound$?: boolean;
-  /** The error module loader (nearest _E ancestor), for rendering ServerErrors */
-  $errorLoader$?: ContentModuleLoader;
+  /** The nearest _E (error.tsx) boundary's chain to render on a thrown ServerError (in its layouts). */
+  $errorLoader$?: ModuleLoader[];
   /** Merged array of routeLoader$ hashes from all matched nodes (layouts + page) */
   $loaders$?: string[];
   /** Runtime-only mapping of routeLoader$ hashes to the matched pathname used for q-loader fetches */
@@ -788,7 +793,10 @@ export type ActionConstructorQRL = {
 
 /** @public */
 export type LoaderOptions = {
-  /** @deprecated Unused */
+  /**
+   * Explicit loader id, overriding the QRL hash. Pass a distinct value (e.g. `fn.getHash()`) when
+   * loaders share a wrapper QRL.
+   */
   readonly id?: string;
   readonly validation?: DataValidator[];
   readonly serializationStrategy?: SerializationStrategy;
@@ -985,6 +993,14 @@ type Failed = {
 /** @public */
 export type FailReturn<T> = T & Failed;
 
+/**
+ * Drops control-flow signals (`ev.redirect()`, `ev.error()`, etc.) from a loader/action return
+ * type: those are thrown, not surfaced as data. `ev.fail()` is plain data and is kept.
+ *
+ * @public
+ */
+export type ExcludeControlFlow<T> = Exclude<T, AbortMessage | ServerError>;
+
 /** @public */
 export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<infer VALIDATOR>
   ? Signal<ValueOrPromise<VALIDATOR>>
@@ -997,7 +1013,7 @@ export type Loader<RETURN> = {
    * Returns the `Signal` containing the data returned by the `loader$` function. Like all `use-`
    * functions and methods, it can only be invoked within a `component$()`.
    */
-  (): LoaderSignal<RETURN>;
+  (): LoaderSignal<ExcludeControlFlow<RETURN>>;
 };
 
 export interface LoaderInternal extends Loader<any> {
@@ -1022,7 +1038,7 @@ export type Action<RETURN, INPUT = Record<string, unknown>, OPTIONAL extends boo
    * component$(). Like all `use-` functions and methods, it can only be invoked within a
    * `component$()`.
    */
-  (): ActionStore<RETURN, INPUT, OPTIONAL>;
+  (): ActionStore<ExcludeControlFlow<RETURN>, INPUT, OPTIONAL>;
 };
 
 export interface ActionInternal extends Action<any, any> {

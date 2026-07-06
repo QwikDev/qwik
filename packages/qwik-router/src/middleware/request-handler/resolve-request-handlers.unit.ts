@@ -1,11 +1,15 @@
 import { describe, it, expect, vi } from 'vitest';
-import { getPathname, fixTrailingSlash, resolveRequestHandlers } from './resolve-request-handlers';
+import {
+  getPathname,
+  fixTrailingSlash,
+  resolveRequestHandlers,
+} from './resolve-request-handlers-core';
 import { RequestEvHttpStatusMessage, RequestEvSharedActionId } from './request-event-core';
-import { createRequestEvent } from './request-event';
+import { createRequestEvent } from './request-event-core';
 import { RedirectMessage } from './redirect-handler';
 import { isContentType } from './request-utils';
 import type { ServerRequestEvent } from './types';
-import { checkCSRF } from './resolve-request-handlers';
+import { checkCSRF } from './resolve-request-handlers-core';
 import type { LoadedRoute, RouteModule } from '../../runtime/src/types';
 import { ServerError } from '@qwik.dev/router/middleware/request-handler';
 import { IsQLoader, QLoaderId } from './request-path';
@@ -343,7 +347,7 @@ describe('resolve-request-handler', () => {
           } as RouteModule,
           justHiModule as RouteModule,
         ],
-        $errorLoader$: vi.fn(async () => ({ default: () => null })),
+        $errorLoader$: [vi.fn(async () => ({ default: () => null }))],
       };
       const renderHandler = vi.fn(async (requestEv: { exit: () => void }) => {
         requestEv.exit();

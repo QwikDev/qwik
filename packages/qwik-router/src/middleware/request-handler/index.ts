@@ -2,7 +2,6 @@ export { _asyncRequestStore } from './async-request-store';
 export { requestHandler } from './request-handler';
 
 export { getErrorHtml } from './error-handler';
-export { getNotFound } from './not-found-paths';
 export { isStaticPath } from './static-paths';
 
 export { mergeHeadersCookies } from './cookie';

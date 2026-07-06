@@ -5,7 +5,7 @@
  */
 import { isBrowser } from '@qwik.dev/core/build';
 import { verifySerializable } from '../serdes/verify';
-import type { LazyRef, QRLClass } from './qrl-class';
+import type { LazyRef, QRLClass, QrlCaptures } from './qrl-class';
 
 /** Initialize dev properties on a LazyRef instance. */
 export const initLazyRefDev = (lazy: LazyRef): void => {
@@ -18,10 +18,10 @@ export const initLazyRefDev = (lazy: LazyRef): void => {
 /** Validate captured scope and register WeakRef tracking on a QRLClass instance. */
 export const initQrlClassDev = (
   lazy: LazyRef,
-  captures: Readonly<unknown[]> | string | null | undefined,
+  captures: QrlCaptures | undefined,
   qrl: QRLClass<any>
 ): void => {
-  if (captures && typeof captures === 'object') {
+  if (Array.isArray(captures)) {
     for (let i = 0; i < captures.length; i++) {
       const item = captures[i];
       verifySerializable(item, 'Captured variable in the closure can not be serialized');

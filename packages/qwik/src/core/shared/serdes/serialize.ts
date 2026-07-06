@@ -10,10 +10,11 @@ import { getStoreHandler, getStoreTarget, isStore } from '../../reactive-primiti
 import { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
 import { SubscriptionData } from '../../reactive-primitives/subscription-data';
 import {
+  EffectProperty,
   EffectSubscription,
   NEEDS_COMPUTATION,
   SerializationSignalFlags,
-  SignalFlags,
+  ComputedSignalFlags,
   STORE_ALL_PROPS,
   type SerializerArg,
 } from '../../reactive-primitives/types';
@@ -24,7 +25,7 @@ import { isQwikComponent, SERIALIZABLE_STATE } from '../component.public';
 import { qError, QError } from '../error/error';
 import { isJSXNode } from '../jsx/jsx-node';
 import { Fragment, type Props } from '../jsx/jsx-runtime';
-import { isPropsProxy } from '../jsx/props-proxy';
+import { isPropsProxy, type PropsProxy } from '../jsx/props-proxy';
 import { Slot } from '../jsx/slot.public';
 import type { QRLInternal } from '../qrl/qrl-class';
 import { isQrl } from '../qrl/qrl-utils';
@@ -38,7 +39,7 @@ import {
 } from '../ssr-const';
 import { _OWNER, _PROPS_HANDLER, _UNINITIALIZED } from '../utils/constants';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
-import { ELEMENT_ID, ELEMENT_PROPS } from '../utils/markers';
+import { ELEMENT_ID, ELEMENT_PROPS, OnRenderProp, QBackRefs } from '../utils/markers';
 import { isObjectEmpty } from '../utils/objects';
 import { isPromise, maybeThen } from '../utils/promises';
 import { Constants, explicitUndefined, TypeIds } from './constants';
@@ -203,6 +204,38 @@ export class Serializer {
     return Number(key);
   }
 
+  private rebaseQrlCaptureDeltas$(baseRootId: number, captureDeltas: string): string {
+    let previousCaptureId = 0;
+    let previousOutputBase = baseRootId;
+    const deltaList = captureDeltas.split(' ');
+    for (let i = 0; i < deltaList.length; i++) {
+      const captureId = previousCaptureId + Number(deltaList[i]);
+      deltaList[i] = String(captureId - previousOutputBase);
+      previousCaptureId = captureId;
+      previousOutputBase = captureId;
+    }
+    return deltaList.join(' ');
+  }
+
+  private outputShortStringConstant$(value: string): boolean {
+    switch (value) {
+      case ':':
+        this.output(TypeIds.Constant, Constants.Colon);
+        return true;
+      case '.':
+        this.output(TypeIds.Constant, Constants.Dot);
+        return true;
+      case 'id':
+        this.output(TypeIds.Constant, Constants.Id);
+        return true;
+      case 'ref':
+        this.output(TypeIds.Constant, Constants.Ref);
+        return true;
+      default:
+        return false;
+    }
+  }
+
   private outputString(value: string): void {
     const s = this.stringNeedsJsonEscape$(value) ? JSON.stringify(value) : QUOTE + value + QUOTE;
     let angleBracketIdx: number = -1;
@@ -223,6 +256,10 @@ export class Serializer {
     this.$writer$.writeRootRefPath(path);
   }
 
+  private writeRootRefDelta(id: number, base: number): void {
+    this.$writer$.writeRootRefDelta(id, base);
+  }
+
   private outputStringChunks(chunks: SSRWriteChunk[]): void {
     this.$writer$.write(QUOTE);
     for (let i = 0; i < chunks.length; i++) {
@@ -231,6 +268,8 @@ export class Serializer {
         this.$writer$.write(chunk);
       } else if (typeof chunk === 'number') {
         this.writeRootRef(chunk);
+      } else if ('base' in chunk) {
+        this.writeRootRefDelta(chunk.id, chunk.base);
       } else {
         this.writeRootRefPath(chunk.path);
       }
@@ -361,6 +400,8 @@ export class Serializer {
         case 'string':
           if (value.length === 0) {
             this.output(TypeIds.Constant, Constants.EmptyString);
+          } else if (this.outputShortStringConstant$(value)) {
+            break;
           } else {
             // If the string is short, we output directly
             // Very short strings add overhead to tracking
@@ -394,7 +435,7 @@ export class Serializer {
             this.output(TypeIds.Constant, Constants.Fragment);
           } else if (isQrl(value)) {
             if (this.getSeenRefOrOutput(value, index)) {
-              const [chunk, symbol, captures] = qrlToString(
+              const [chunk, symbol, captureDeltasFromZero] = qrlToString(
                 this.$serializationContext$,
                 value,
                 true
@@ -402,23 +443,35 @@ export class Serializer {
               let data: string | number | SSRWriteChunk[];
               if (chunk !== '') {
                 // not a sync QRL, replace all parts with string references
-                data = [
-                  this.$serializationContext$.$addRoot$(chunk),
-                  '#',
-                  this.$serializationContext$.$addRoot$(symbol),
-                ];
-                if (captures) {
-                  const captureIds = captures.split(' ');
+                const chunkRootId = this.$serializationContext$.$addRoot$(chunk);
+                const symbolRootId = this.$serializationContext$.$addRoot$(symbol);
+                const captureDeltas = captureDeltasFromZero
+                  ? this.rebaseQrlCaptureDeltas$(symbolRootId, captureDeltasFromZero)
+                  : null;
+                data = [chunkRootId, '#', { id: symbolRootId, base: chunkRootId }];
+                if (captureDeltasFromZero) {
+                  let previousRootId = 0;
+                  let previousOutputBase = symbolRootId;
+                  let start = 0;
                   data.push('#');
-                  for (let i = 0; i < captureIds.length; i++) {
-                    if (i > 0) {
-                      data.push(' ');
+                  for (let i = 0; i <= captureDeltasFromZero.length; i++) {
+                    if (i === captureDeltasFromZero.length || captureDeltasFromZero[i] === ' ') {
+                      if (i > start) {
+                        const captureId =
+                          previousRootId + Number(captureDeltasFromZero.slice(start, i));
+                        if (start > 0) {
+                          data.push(' ');
+                        }
+                        data.push({ id: captureId, base: previousOutputBase });
+                        previousRootId = captureId;
+                        previousOutputBase = captureId;
+                      }
+                      start = i + 1;
                     }
-                    data.push(Number(captureIds[i]));
                   }
                 }
                 // Since we map QRLs to strings, we need to keep track of this secondary mapping
-                const qrlKey = data.join('');
+                const qrlKey = `${chunkRootId}#${symbolRootId - chunkRootId}${captureDeltas ? '#' + captureDeltas : ''}`;
                 const existing = this.$qrlMap$.get(qrlKey);
                 if (existing) {
                   // We encountered the same QRL again, make it a root
@@ -479,14 +532,21 @@ export class Serializer {
         value[_PROPS_HANDLER].$effects$,
       ]);
     } else if (value instanceof SubscriptionData) {
-      // TODO make everything optional or use two types
-      this.output(TypeIds.SubscriptionData, [
-        value.data.$scopedStyleIdPrefix$,
-        value.data.$isConst$,
-      ]);
+      const { $scopedStyleIdPrefix$, $isConst$ } = value.data;
+      if ($scopedStyleIdPrefix$ === null) {
+        this.output(
+          $isConst$ ? TypeIds.SubscriptionDataConstTrue : TypeIds.SubscriptionDataConstFalse,
+          0
+        );
+      } else {
+        this.output(TypeIds.SubscriptionData, [$scopedStyleIdPrefix$, $isConst$]);
+      }
     } else if (value instanceof EffectSubscription) {
-      // TODO no data if [null, true]
-      this.output(TypeIds.EffectSubscription, [value.consumer, value.property, value.data]);
+      if (value.data === null) {
+        this.output(TypeIds.EffectSubscriptionNoData, [value.consumer, value.property]);
+      } else {
+        this.output(TypeIds.EffectSubscription, [value.consumer, value.property, value.data]);
+      }
     } else if (value instanceof SubscriptionPatch) {
       this.output(TypeIds.SubscriptionPatch, [value.rootId, value.subscriptions]);
     } else if (isStore(value)) {
@@ -583,7 +643,7 @@ export class Serializer {
           value.$flags$ & SerializationSignalFlags.SERIALIZATION_STRATEGY_ALWAYS;
         const shouldNeverSerialize =
           value.$flags$ & SerializationSignalFlags.SERIALIZATION_STRATEGY_NEVER;
-        const isInvalid = value.$flags$ & SignalFlags.INVALID;
+        const isInvalid = value.$flags$ & ComputedSignalFlags.INVALID;
         const isSkippable = fastSkipSerialize(value.$untrackedValue$);
         const isAsync = value instanceof AsyncSignalImpl;
         const expires = isAsync && value.$expires$ !== 0 ? value.$expires$ : undefined;
@@ -641,22 +701,6 @@ export class Serializer {
       this.output(TypeIds.URL, value.href);
     } else if (value instanceof Date) {
       this.output(TypeIds.Date, Number.isNaN(value.valueOf()) ? '' : value.valueOf());
-    } else if (this.$hasTemporal$ && value instanceof Temporal.Duration) {
-      this.output(TypeIds.TemporalDuration, value.toJSON());
-    } else if (this.$hasTemporal$ && value instanceof Temporal.Instant) {
-      this.output(TypeIds.TemporalInstant, value.toJSON());
-    } else if (this.$hasTemporal$ && value instanceof Temporal.PlainDate) {
-      this.output(TypeIds.TemporalPlainDate, value.toJSON());
-    } else if (this.$hasTemporal$ && value instanceof Temporal.PlainDateTime) {
-      this.output(TypeIds.TemporalPlainDateTime, value.toJSON());
-    } else if (this.$hasTemporal$ && value instanceof Temporal.PlainMonthDay) {
-      this.output(TypeIds.TemporalPlainMonthDay, value.toJSON());
-    } else if (this.$hasTemporal$ && value instanceof Temporal.PlainTime) {
-      this.output(TypeIds.TemporalPlainTime, value.toJSON());
-    } else if (this.$hasTemporal$ && value instanceof Temporal.PlainYearMonth) {
-      this.output(TypeIds.TemporalPlainYearMonth, value.toJSON());
-    } else if (this.$hasTemporal$ && value instanceof Temporal.ZonedDateTime) {
-      this.output(TypeIds.TemporalZonedDateTime, value.toJSON());
     } else if (value instanceof RegExp) {
       this.output(TypeIds.Regex, value.toString());
     } else if (value instanceof Error) {
@@ -721,7 +765,7 @@ export class Serializer {
       }
       this.output(TypeIds.JSXNode, out);
     } else if (value instanceof Task) {
-      const out: unknown[] = [value.$qrl$, value.$flags$, value.$index$, value.$el$, value.$state$];
+      const out: unknown[] = [value.$qrl$, value.$flags$, value.$index$, value.$el$];
       while (out[out.length - 1] === undefined) {
         out.pop();
       }
@@ -767,6 +811,22 @@ export class Serializer {
         }
         this.output(TypeIds.ForwardRef, this.getForwardRefId(forwardRefId));
       }
+    } else if (this.$hasTemporal$ && value instanceof Temporal.Duration) {
+      this.output(TypeIds.TemporalDuration, value.toJSON());
+    } else if (this.$hasTemporal$ && value instanceof Temporal.Instant) {
+      this.output(TypeIds.TemporalInstant, value.toJSON());
+    } else if (this.$hasTemporal$ && value instanceof Temporal.PlainDate) {
+      this.output(TypeIds.TemporalPlainDate, value.toJSON());
+    } else if (this.$hasTemporal$ && value instanceof Temporal.PlainDateTime) {
+      this.output(TypeIds.TemporalPlainDateTime, value.toJSON());
+    } else if (this.$hasTemporal$ && value instanceof Temporal.PlainMonthDay) {
+      this.output(TypeIds.TemporalPlainMonthDay, value.toJSON());
+    } else if (this.$hasTemporal$ && value instanceof Temporal.PlainTime) {
+      this.output(TypeIds.TemporalPlainTime, value.toJSON());
+    } else if (this.$hasTemporal$ && value instanceof Temporal.PlainYearMonth) {
+      this.output(TypeIds.TemporalPlainYearMonth, value.toJSON());
+    } else if (this.$hasTemporal$ && value instanceof Temporal.ZonedDateTime) {
+      this.output(TypeIds.TemporalZonedDateTime, value.toJSON());
     } else if (vnode_isVNode(value)) {
       this.output(TypeIds.Constant, Constants.Undefined);
     } else {
@@ -952,7 +1012,9 @@ const discoverValuesForVNodeData = (vnodeData: VNodeData, callback: (value: unkn
           attrValue == null ||
           typeof attrValue === 'string' ||
           (typeof attrValue === 'number' && key === ELEMENT_ID) ||
-          (key === ELEMENT_PROPS && isObjectEmpty(attrValue as Record<string, unknown>))
+          (key === ELEMENT_PROPS &&
+            (isObjectEmpty(attrValue as Record<string, unknown>) ||
+              shouldSkipComponentProps(value, attrValue as PropsProxy)))
         ) {
           continue;
         }
@@ -964,6 +1026,31 @@ const discoverValuesForVNodeData = (vnodeData: VNodeData, callback: (value: unkn
 
 const isSsrAttrs = (value: number | Props): value is Props =>
   typeof value === 'object' && value !== null && !isObjectEmpty(value);
+
+export const shouldSkipComponentProps = (
+  attrs: Props,
+  value: PropsProxy,
+  isDevMode = isDev
+): boolean => {
+  if (isDevMode || !Object.prototype.hasOwnProperty.call(attrs, OnRenderProp)) {
+    return false;
+  }
+
+  const owner = value[_OWNER];
+  return (
+    isObjectEmpty(owner.varProps) &&
+    !hasPropsEffects(value) &&
+    !hasComponentBackRef(attrs[QBackRefs])
+  );
+};
+
+const hasPropsEffects = (propsProxy: PropsProxy): boolean => {
+  return !!propsProxy[_PROPS_HANDLER].$effects$?.size;
+};
+
+const hasComponentBackRef = (backRefs: unknown): boolean => {
+  return backRefs instanceof Map && backRefs.has(EffectProperty.COMPONENT);
+};
 
 /**
  * When serializing the object we need check if it is URL, RegExp, Map, Set, etc. This is time

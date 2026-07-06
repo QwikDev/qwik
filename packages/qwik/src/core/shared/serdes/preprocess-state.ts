@@ -57,6 +57,17 @@ export function preprocessState(
   segmentId?: string,
   startIndex = 0
 ) {
+  const iterator = preprocessStateIterator(data, container, startIndex);
+  while (!iterator.next().done) {
+    // Run synchronously for non-browser and non-container deserialization paths.
+  }
+}
+
+export function* preprocessStateIterator(
+  data: unknown[],
+  container: DeserializeContainer,
+  startIndex = 0
+): Generator<void, void, void> {
   const isRootDeepRef = (type: TypeIds, value: unknown) => {
     return type === TypeIds.RootRef && typeof value === 'string' && value.indexOf(' ') !== -1;
   };
@@ -107,5 +118,6 @@ export function preprocessState(
     } else if (isForwardRefsMap(data[i] as TypeIds)) {
       container.$forwardRefs$ = data[i + 1] as Array<number | string>;
     }
+    yield;
   }
 }

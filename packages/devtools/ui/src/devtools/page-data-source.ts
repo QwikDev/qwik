@@ -6,8 +6,15 @@ import {
   type QwikPreloadStoreRemembered,
   type QwikDevtoolsComponentSnapshot,
   type QwikDevtoolsSignalsSnapshot,
+  type DevtoolsVNodeTreeNode as VNodeTreeNode,
+  type DevtoolsComponentDetailEntry as ComponentDetailEntry,
+  type DevtoolsRenderEvent as RenderEvent,
 } from '@qwik.dev/devtools/kit';
 import { isBrowser } from '@qwik.dev/core';
+
+// The VNode/detail/render shapes are the shared data contract, owned by @qwik.dev/devtools/kit.
+// Re-export under the local names so feature components keep one import source and cannot drift.
+export type { VNodeTreeNode, ComponentDetailEntry, RenderEvent };
 
 /**
  * Abstraction for accessing page-level data from different contexts.
@@ -76,30 +83,6 @@ export interface PageDataSource {
 
   /** Subscribe to live render events (CSR component renders with timing). */
   subscribeRenderEvents(cb: (event: RenderEvent) => void): (() => void) | null;
-}
-
-/** A single render event emitted by the performance runtime. */
-export interface RenderEvent {
-  component: string;
-  phase: string;
-  duration: number;
-  timestamp: number;
-}
-
-/** A single hook entry with deeply serialized data. */
-export interface ComponentDetailEntry {
-  hookType: string;
-  variableName: string;
-  data: unknown;
-}
-
-/** Serializable VNode tree node (matches overlay's TreeNode shape). */
-export interface VNodeTreeNode {
-  name?: string;
-  id: string;
-  label?: string;
-  props?: Record<string, unknown>;
-  children?: VNodeTreeNode[];
 }
 
 /**

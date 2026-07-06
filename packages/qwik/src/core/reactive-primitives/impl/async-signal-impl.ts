@@ -18,7 +18,7 @@ import {
   EffectSubscription,
   NEEDS_COMPUTATION,
   SerializationSignalFlags,
-  SignalFlags,
+  ComputedSignalFlags,
   type AsyncCtx,
   type AsyncSignalOptions,
 } from '../types';
@@ -122,7 +122,7 @@ export class AsyncSignalImpl<T>
   constructor(
     container: Container | null,
     fn: AsyncQRL<T>,
-    flags: SignalFlags | SerializationSignalFlags = SignalFlags.INVALID |
+    flags: ComputedSignalFlags | SerializationSignalFlags = ComputedSignalFlags.INVALID |
       SerializationSignalFlags.SERIALIZATION_STRATEGY_ALWAYS,
     options?: AsyncSignalOptions<T>
   ) {
@@ -218,7 +218,7 @@ export class AsyncSignalImpl<T>
   }
 
   override set value(value: T) {
-    this.$flags$ &= ~SignalFlags.INVALID;
+    this.$flags$ &= ~ComputedSignalFlags.INVALID;
     this.untrackedLoading = false;
     this.untrackedError = undefined;
     this.$info$ = undefined;
@@ -365,7 +365,7 @@ export class AsyncSignalImpl<T>
   }
 
   $setInvalid$(allowRecalc: boolean, mustClear: boolean | number): void {
-    this.$flags$ |= SignalFlags.INVALID;
+    this.$flags$ |= ComputedSignalFlags.INVALID;
     this.$clearNextPoll$();
     if (mustClear) {
       this.$untrackedValue$ = NEEDS_COMPUTATION;
@@ -412,7 +412,7 @@ export class AsyncSignalImpl<T>
 
   /** Run the computation if needed */
   $computeIfNeeded$(): void {
-    if (!(this.$flags$ & SignalFlags.INVALID)) {
+    if (!(this.$flags$ & ComputedSignalFlags.INVALID)) {
       return;
     }
     // Skip computation on SSR for clientOnly signals
@@ -425,7 +425,7 @@ export class AsyncSignalImpl<T>
     this.$clearNextPoll$();
 
     // Clear flag here to make sure the cleanups don't start another compute
-    this.$flags$ &= ~SignalFlags.INVALID;
+    this.$flags$ &= ~ComputedSignalFlags.INVALID;
 
     const current = this.$current$;
     if (current) {
@@ -438,7 +438,7 @@ export class AsyncSignalImpl<T>
       DEBUG && log(`Concurrency limit ${limit} reached, not starting new computation`);
       // We requested cleanups for all the previous jobs, once one finishes it will be removed from the jobs array and trigger computeIfNeeded
       // Restore invalid state
-      this.$flags$ |= SignalFlags.INVALID;
+      this.$flags$ |= ComputedSignalFlags.INVALID;
       return;
     }
 
@@ -531,7 +531,7 @@ export class AsyncSignalImpl<T>
         this.$info$ = undefined;
       }
 
-      if (this.$flags$ & SignalFlags.INVALID) {
+      if (this.$flags$ & ComputedSignalFlags.INVALID) {
         DEBUG && log('Computation finished but signal is invalid, re-running');
         // we became invalid again while running, so we need to re-run the computation to get the new promise
         this.$computeIfNeeded$();

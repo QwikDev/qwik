@@ -1,16 +1,4 @@
-import {
-  $,
-  component$,
-  isDev,
-  Slot,
-  sync$,
-  untrack,
-  useSignal,
-  useVisibleTask$,
-  type EventHandler,
-  type QwikIntrinsicElements,
-  type QwikVisibleEvent,
-} from '@qwik.dev/core';
+import { $, component$, Slot, sync$, untrack, type QwikIntrinsicElements } from '@qwik.dev/core';
 import { prefetchRoute } from './prefetch-route';
 import { useDocumentHead, useLocation, useNavigate } from './use-functions';
 import { getClientNavPath, shouldPreload } from './utils';
@@ -21,7 +9,6 @@ export const Link = component$<LinkProps>((props) => {
   const loc = useLocation();
   const head = useDocumentHead();
   const originalHref = props.href;
-  const anchorRef = useSignal<HTMLAnchorElement>();
   const {
     onClick$,
     prefetch: prefetchProp,
@@ -39,11 +26,22 @@ export const Link = component$<LinkProps>((props) => {
 
   const shouldPrefetch = untrack(shouldPreload, clientNavPath, loc);
 
-  const shouldPrefetchBundle =
+  const shouldVisiblePrefetchBundle =
     !!clientNavPath &&
-    prefetchBundleProp !== 'off' &&
     shouldPrefetch &&
-    !isDepratedPrefetchDisabled;
+    !isDepratedPrefetchDisabled &&
+    (prefetchBundleProp === 'visible' ||
+      // deprecated prop below, remove in favor of prefetchBundle
+      prefetchProp === 'js' ||
+      prefetchProp === true);
+
+  const shouldVisiblePrefetchData =
+    !!clientNavPath &&
+    shouldPrefetch &&
+    !isDepratedPrefetchDisabled &&
+    (prefetchDataProp === 'visible' ||
+      // deprecated prop below, remove in favor of prefetchData
+      prefetchProp === true);
 
   const shouldPrefetchData =
     !!clientNavPath && prefetchDataProp !== 'off' && shouldPrefetch && !isDepratedPrefetchDisabled;
@@ -98,54 +96,20 @@ export const Link = component$<LinkProps>((props) => {
     prefetchRoute(url, false, 1);
   });
 
-  useVisibleTask$(({ track }) => {
-    track(() => loc.url.pathname);
-    // We need to trigger the onQVisible$ in the visible task for it to fire on subsequent route navigations
-    const handler = linkProps.onQVisible$;
-    if (handler) {
-      const event = new CustomEvent('qvisible') as QwikVisibleEvent;
-
-      if (Array.isArray(handler)) {
-        (handler as any)
-          .flat(10)
-          .forEach((handler: EventHandler<QwikVisibleEvent, HTMLAnchorElement>) =>
-            handler?.(event, anchorRef.value!)
-          );
-      } else {
-        handler?.(event, anchorRef.value!);
-      }
-    }
-
-    const isProdOrTest = !isDev || import.meta.env?.TEST;
-
-    if (isProdOrTest && anchorRef.value?.href && !(navigator as any).connection?.saveData) {
-      if (
-        handleDataPrefetch &&
-        (prefetchDataProp === 'visible' ||
-          // deprecated prop below, remove in favor of prefetchData
-          prefetchProp === true)
-      ) {
-        const url = new URL(anchorRef.value.href);
-        prefetchRoute(url, true, 0.8, head.manifestHash, shouldPrefetchBundle);
-      } else if (
-        shouldPrefetchBundle &&
-        (prefetchBundleProp === 'visible' ||
-          // deprecated prop below, remove in favor of prefetchBundle
-          prefetchProp === 'js' ||
-          prefetchProp === true)
-      ) {
-        const url = new URL(anchorRef.value.href);
-        prefetchRoute(url, false, 0.8);
-      }
-    }
-  });
-
   return (
     <a
-      ref={anchorRef}
       // Attr 'q:link' is used as a selector for bootstrapping into spa after context loss
       {...{ 'q:link': !!clientNavPath }}
       {...linkProps}
+      data-q-prefetch={
+        shouldVisiblePrefetchBundle && shouldVisiblePrefetchData
+          ? 'bd'
+          : shouldVisiblePrefetchBundle
+            ? 'b'
+            : shouldVisiblePrefetchData
+              ? 'd'
+              : null
+      }
       onClick$={[
         preventDefault,
         handlePreload, // needs to be in between preventDefault and onClick$ to ensure it starts asap.
@@ -162,8 +126,6 @@ export const Link = component$<LinkProps>((props) => {
         prefetchDataProp === 'commit' ? prefetchData : null,
       ]}
       onKeyDown$={[linkProps.onKeyDown$, prefetchDataProp === 'commit' ? onEnterKeyDown : null]}
-      // We need to prevent the onQVisible$ from being called twice since it is handled in the visible task
-      onQVisible$={[]}
     >
       <Slot />
     </a>

@@ -217,7 +217,7 @@ export default defineConfig(({ mode }) => {
     },
 
     plugins: [
-      qds({ icons: true }),
+      qds({ icons: true, asChild: true }),
       // some imported react code has sourcemap issues
       muteWarningsPlugin([
         ['SOURCEMAP_ERROR', "Can't resolve original location of error"],
@@ -232,6 +232,7 @@ export default defineConfig(({ mode }) => {
           rehypeAutolinkHeadings: true,
         },
         mdx: {
+          providerImportSource: '~/components/glossary/mdx-components',
           rehypePlugins: [
             [
               shikiRehype,
@@ -251,7 +252,7 @@ export default defineConfig(({ mode }) => {
       }),
       qwikVite({
         debug: false,
-        experimental: ['each', 'suspense', 'insights'],
+        experimental: ['each', 'show', 'suspense', 'insights'],
         devTools: { hmr: false },
       }),
       partytownVite({

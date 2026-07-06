@@ -35,7 +35,7 @@ import {
 } from './cursor-props';
 import { invoke, newInvokeContext, untrack } from '../../use/use-core';
 import type { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
-import { SignalFlags } from '../../reactive-primitives/types';
+import { ComputedSignalFlags } from '../../reactive-primitives/types';
 import { cleanupDestroyable } from '../../use/utils/destroyable';
 import type { ISsrNode } from '../../ssr/ssr-types';
 import type { Cursor } from './cursor';
@@ -473,8 +473,8 @@ export function executeCompute(
       invoke.call(target, ctx, (target as WrappedSignalImpl<unknown>).$computeIfNeeded$)
     ),
     () => {
-      if ((target as WrappedSignalImpl<unknown>).$flags$ & SignalFlags.RUN_EFFECTS) {
-        (target as WrappedSignalImpl<unknown>).$flags$ &= ~SignalFlags.RUN_EFFECTS;
+      if ((target as WrappedSignalImpl<unknown>).$flags$ & ComputedSignalFlags.RUN_EFFECTS) {
+        (target as WrappedSignalImpl<unknown>).$flags$ &= ~ComputedSignalFlags.RUN_EFFECTS;
         return scheduleEffects(container, target, effects);
       }
     }

@@ -109,6 +109,7 @@ export function ssrRenderToDom(jsx: JSXOutput, opts?: {
     raw?: boolean;
     qwikLoader?: boolean;
     containerTagName?: string;
+    statePrewarm?: number | false;
     stream?: StreamWriter;
     streaming?: StreamingOptions;
     resume?: boolean;
@@ -135,7 +136,7 @@ export function trigger(root: Element, queryOrElement: string | Element | keyof 
 
 // @public (undocumented)
 export function vnode_fromJSX(jsx: JSXOutput): {
-    vParent: _VirtualVNode | _ElementVNode;
+    vParent: _ElementVNode | _VirtualVNode;
     vNode: _VNode | null;
     document: _QDocument;
     container: ClientContainer_2;

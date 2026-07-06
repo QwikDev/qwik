@@ -41,15 +41,12 @@ sandbox
 
 # AI tools
 .planning
-/.claude
-/.claude/skills
-/.codex
-/.codex/skills
+/.claude/*
+!/.claude/skills/
+/.codex/*
+!/.codex/skills/
 /.cursor
-/.cursor/skills
-/AGENTS.md
 /AGENTS.md.bak
-/CLAUDE.md
 /CLAUDE.md.bak
 
 # We need to ignore this because "changesets" will try to replace it

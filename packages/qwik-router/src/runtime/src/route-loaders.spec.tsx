@@ -7,10 +7,11 @@
 // This file should be moved to packages/qwik/src/core/tests/ if it needs the rendering infra.
 // For now, test the mechanism at the unit level using the signal test infrastructure.
 
-import { createAsync$, implicit$FirstArg, type QRL } from '@qwik.dev/core';
+import { createAsync$, implicit$FirstArg, isDev, type QRL } from '@qwik.dev/core';
 import {
   _AsyncSignalImpl as AsyncSignalImpl,
   _Container as Container,
+  _createQRL as createQRL,
   _createStore as createStore,
   _delay as delay,
   _getDomContainer as getDomContainer,
@@ -26,8 +27,11 @@ import {
   _vnode_setProp as vnode_setProp,
 } from '@qwik.dev/core/internal';
 import { createDocument } from '@qwik.dev/core/testing';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { setLoaderSignalValue } from './route-loaders';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { getModuleRouteLoaders, routeLoaderQrl, setLoaderSignalValue } from './route-loaders';
+import type { LoaderInternal, RouteModule } from './types';
+
+const taskFlag = 1 << 1; // TaskFlags.TASK
 
 describe('route loader store + async signal tracking', () => {
   let container: Container = null!;
@@ -140,6 +144,37 @@ describe('route loader store + async signal tracking', () => {
     });
   });
 
+  it('should track route changes when the first value is injected', async () => {
+    await withContainer(async () => {
+      const ctx = createStore(container, { pageUrl: '/initial' }, 1 /* StoreFlags.RECURSIVE */);
+
+      const computeLog: string[] = [];
+      const signal = createAsync$(async ({ track, info }) => {
+        const url = track(ctx, 'pageUrl') as string;
+        if (info && typeof info === 'object' && '__v' in (info as object)) {
+          computeLog.push('__v');
+          return (info as { __v: string }).__v;
+        }
+        computeLog.push(`fetch:${url}`);
+        return `fetched:${url}`;
+      }) as AsyncSignalImpl<string>;
+
+      setLoaderSignalValue(signal, 'ssr-value');
+      await retryOnPromise(() => {
+        effect$(() => signal.value);
+      });
+
+      expect(signal.value).toBe('ssr-value');
+      expect(computeLog).toEqual(['__v']);
+
+      ctx.pageUrl = '/after-nav';
+      await signal.promise();
+
+      expect(signal.value).toBe('fetched:/after-nav');
+      expect(computeLog).toEqual(['__v', 'fetch:/after-nav']);
+    });
+  });
+
   it('should re-compute for TWO sequential store changes after __v', async () => {
     await withContainer(async () => {
       const ctx = createStore(container, { pageUrl: '/initial' }, 1 /* StoreFlags.RECURSIVE */);
@@ -242,7 +277,7 @@ describe('route loader store + async signal tracking', () => {
   function effectQrl(fnQrl: QRL<() => void>) {
     const qrl = fnQrl as QRLInternal<() => void>;
     const element: HostElement = vnode_newVirtual();
-    task = task || new Task(0, 0, element, fnQrl as QRLInternal, undefined, null);
+    task = task || new Task(taskFlag, 0, element, fnQrl as QRLInternal, null);
     vnode_setProp(element, 'q:seq', [task]);
     if (!qrl.resolved) {
       throw qrl.resolve();
@@ -255,4 +290,69 @@ describe('route loader store + async signal tracking', () => {
   }
 
   const effect$ = /*#__PURE__*/ implicit$FirstArg(effectQrl);
+});
+
+describe('getModuleRouteLoaders', () => {
+  const mkLoader = (id: string): LoaderInternal =>
+    Object.assign(() => {}, { __brand: 'server_loader', __id: id }) as unknown as LoaderInternal;
+  const asModule = (mod: Record<string, unknown>): RouteModule => mod as unknown as RouteModule;
+
+  let warnSpy: ReturnType<typeof vi.spyOn>;
+  beforeEach(() => {
+    warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+  afterEach(() => {
+    warnSpy.mockRestore();
+  });
+
+  it('dedups two distinct loaders that share an id, keeping the first', () => {
+    const first = mkLoader('shared');
+    const second = mkLoader('shared');
+    const loaders = getModuleRouteLoaders([asModule({ useFirst: first, useSecond: second })]);
+    expect(loaders).toHaveLength(1);
+    expect(loaders[0]).toBe(first);
+  });
+
+  it('keeps loaders with distinct ids', () => {
+    const a = mkLoader('a');
+    const b = mkLoader('b');
+    const loaders = getModuleRouteLoaders([asModule({ useA: a, useB: b })]);
+    expect(loaders).toEqual([a, b]);
+  });
+
+  it('a loader shared across modules is deduped without a false-positive warning', () => {
+    const shared = mkLoader('shared');
+    const loaders = getModuleRouteLoaders([
+      asModule({ useShared: shared }),
+      asModule({ useShared: shared }),
+    ]);
+    expect(loaders).toHaveLength(1);
+    expect(loaders[0]).toBe(shared);
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
+  it('warns when two distinct loaders collide on an id', () => {
+    getModuleRouteLoaders([asModule({ useA: mkLoader('dup'), useB: mkLoader('dup') })]);
+    if (isDev) {
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expect(warnSpy.mock.calls[0][0]).toContain('dup');
+    } else {
+      expect(warnSpy).not.toHaveBeenCalled();
+    }
+  });
+});
+
+describe('routeLoaderQrl id option', () => {
+  const mkQrl = () =>
+    createQRL(null, 'useLoader_hashAAA', () => 'data') as unknown as QRL<() => unknown>;
+
+  it('derives __id from the QRL hash by default', () => {
+    const loader = routeLoaderQrl(mkQrl() as any) as LoaderInternal;
+    expect(loader.__id).toBe('hashAAA');
+  });
+
+  it('honors an explicit id option, overriding the QRL hash', () => {
+    const loader = routeLoaderQrl(mkQrl() as any, { id: 'explicit-id' }) as LoaderInternal;
+    expect(loader.__id).toBe('explicit-id');
+  });
 });

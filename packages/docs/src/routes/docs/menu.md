@@ -18,6 +18,7 @@
 - [Slots](</docs/(qwik)/core/slots/index.mdx>)
 - [Rendering](</docs/(qwik)/core/rendering/index.mdx>)
 - [Styling](</docs/(qwik)/core/styles/index.mdx>)
+- [Suspense](</docs/(qwik)/core/suspense/index.mdx>)
 - [API Reference](/api/qwik/)
 
 ### Concepts
@@ -31,6 +32,7 @@
 
 - [The $ dollar sign](</docs/(qwik)/advanced/dollar/index.mdx>)
 - [Containers](</docs/(qwik)/advanced/containers/index.mdx>)
+- [State Prewarm](</docs/(qwik)/advanced/state-prewarm/index.mdx>)
 - [QRL](</docs/(qwik)/advanced/qrl/index.mdx>)
 - [Library mode](</docs/(qwik)/advanced/library/index.mdx>)
 - [Qwikloader](</docs/(qwik)/advanced/qwikloader/index.mdx>)
@@ -162,6 +164,7 @@
 
 - [Overview](/docs/labs/index.mdx)
 - [Each](/docs/labs/each/index.mdx)
+- [Show](/docs/labs/show/index.mdx)
 - [Suspense](/docs/labs/suspense/index.mdx)
 - [Insights](/docs/labs/insights/index.mdx)
 - [Typed Routes](/docs/labs/typed-routes/index.mdx)

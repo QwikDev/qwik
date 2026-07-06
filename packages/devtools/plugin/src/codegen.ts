@@ -1,5 +1,5 @@
 /**
- * Build-time codegen entry for the devtools hook runtimes.
+ * Build-time codegen entry for the devtools injected runtimes.
  *
  * Exposes the runtime-string builders so in-repo build steps (e.g. the browser extension) can
  * generate their injected scripts from the single canonical implementation in
@@ -10,3 +10,4 @@
  * subpath. It is also not part of the browser bundle.
  */
 export { createHookRuntime, createExtensionHookRuntime } from './runtime/create-hook-runtime';
+export { createVNodeRuntime } from './runtime/create-vnode-runtime';

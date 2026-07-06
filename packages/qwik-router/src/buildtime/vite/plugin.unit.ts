@@ -53,6 +53,16 @@ describe('qwikRouter plugin', () => {
       expect(result.resolve.external).toContain('node:async_hooks');
     });
 
+    it('should give an adapter ssg environment the same externalization as ssr', () => {
+      const plugins = qwikRouter();
+      const hook = (plugins[0] as any).configEnvironment;
+
+      const result = hook('ssg', { consumer: 'server' }, { command: 'build', mode: 'production' });
+      expect(result.resolve.noExternal).toContain('@qwik.dev/router');
+      expect(result.resolve.noExternal).toContain('zod');
+      expect(result.resolve.external).toContain('node:async_hooks');
+    });
+
     it('should return empty config for client environments', () => {
       const plugins = qwikRouter();
       const hook = (plugins[0] as any).configEnvironment;

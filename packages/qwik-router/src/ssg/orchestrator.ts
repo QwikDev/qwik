@@ -239,6 +239,17 @@ export async function mainThread(sys: System) {
           }
         }
 
+        // Force-prerender <dir>/404.html for each static-dir boundary so static hosts can serve it
+        // on a miss (opt out via `exclude`); dynamic dirs have no concrete path, so they're skipped.
+        if (node._4 || node._E) {
+          const isStaticDir = !pathParts.some((p) => p.startsWith('['));
+          if (isStaticDir) {
+            const joinedParts = pathParts.join('/');
+            const dirPathname = basePathname + (joinedParts ? ensureSlash(joinedParts) : '');
+            addToQueue(dirPathname + '404.html', undefined);
+          }
+        }
+
         // Recurse into group nodes (_M array)
         if (node._M) {
           for (const group of node._M as RouteData[]) {
@@ -302,9 +313,7 @@ export async function mainThread(sys: System) {
 }
 
 function validateOptions(opts: SsgGenerateOptions) {
-  if (!opts.render) {
-    throw new Error(`Missing "render" option`);
-  }
+  // render is worker-only; the main thread needs only the route config.
   if (!opts.qwikRouterConfig) {
     throw new Error(`Missing "qwikRouterConfig" option`);
   }

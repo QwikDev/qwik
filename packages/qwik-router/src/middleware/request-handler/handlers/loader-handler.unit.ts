@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { FULLPATH_HEADER } from '../../../runtime/src/route-loaders';
+import { FULLPATH_HEADER, routeLoaderQrl } from '../../../runtime/src/route-loaders';
 import { getLoaderName, IsQLoader, QLoaderId } from '../request-path';
 import { loaderHandler } from './loader-handler';
 
@@ -117,6 +117,21 @@ describe('loaderHandler', () => {
     expect(loaderEv.query.get('q')).toBe('shoes');
     expect(loaderEv.query.has('ignored')).toBe(false);
     expect(loaderEv.request.url).toBe(requestEv.request.url);
+    expect(requestEv.send).toHaveBeenCalledWith(200, expect.any(String));
+  });
+
+  it('runs a dev registered loader that was not exported by the route module', async () => {
+    const requestEv = createRequestEv();
+    const qrl = {
+      call: vi.fn(async () => 'registered-loader-value'),
+      getHash: () => 'loader-id',
+      getSymbol: () => 'loader-id',
+    };
+    routeLoaderQrl(qrl as any);
+
+    await loaderHandler([])(requestEv as any);
+
+    expect(qrl.call).toHaveBeenCalledOnce();
     expect(requestEv.send).toHaveBeenCalledWith(200, expect.any(String));
   });
 

@@ -171,13 +171,20 @@ test.describe('ErrorBoundary streaming swap', () => {
   // with the shell and never exercises this window.
   test('in-order mid-stream click on a swapped fallback is queued and replayed after resume', async ({
     page,
+    browserName,
   }) => {
     assertNoBrowserErrors(page);
+    // WebKit buffers a mid-stream inline script until enough early body bytes arrive, so the shell
+    // must pad the stream (webkitFlush) or the qwikloader never runs while the gate holds it open.
+    const webkitFlush = browserName === 'webkit' ? '&webkitFlush=1' : '';
     // 'direct' in-order streaming: the default 'auto' strategy keeps the swap in the server
     // buffer while the gate is pending, so the fallback would never be visible mid-stream.
-    await page.goto(`${streamingUrl('midstream', false)}&release=eb&inOrderStrategy=direct`, {
-      waitUntil: 'commit',
-    });
+    await page.goto(
+      `${streamingUrl('midstream', false)}&release=eb&inOrderStrategy=direct${webkitFlush}`,
+      {
+        waitUntil: 'commit',
+      }
+    );
 
     // The boundary already swapped while the gated in-order sibling still blocks the stream.
     await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
@@ -568,9 +575,12 @@ test.describe('ErrorBoundary last-resort & rejection bridge', () => {
         consoleErrors.push(msg.text());
       }
     });
-    // Chromium network noise ("Failed to load resource: net::ERR_FAILED") never matches this.
+    // Chromium says "Failed to fetch dynamically imported module"; WebKit says "Importing a module
+    // script failed". Network noise ("Failed to load resource: net::ERR_FAILED") matches neither.
     const importFailureErrors = () =>
-      consoleErrors.filter((text) => /dynamically imported|error loading|importerror/i.test(text));
+      consoleErrors.filter((text) =>
+        /dynamically imported|importing a module|error loading|importerror/i.test(text)
+      );
 
     // Observe the writer directly: the qerror the qwikloader dispatches must carry importError.
     await page.addInitScript(() => {

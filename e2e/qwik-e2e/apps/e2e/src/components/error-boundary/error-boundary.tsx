@@ -16,7 +16,7 @@ import {
   type QRL,
   type Signal,
 } from '@qwik.dev/core';
-import { ManualOutOfOrderReleaseButton } from '../suspense/ooos';
+import { ManualOutOfOrderReleaseButton, WEBKIT_STREAMING_FLUSH } from '../suspense/ooos';
 
 const getSearchParam = (url: string | undefined, name: string): string | null =>
   url ? new URL(url).searchParams.get(name) : null;
@@ -253,6 +253,9 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
   // Capture once into a (serialized) signal so an OWNER re-render — e.g. reset() or a key bump —
   // doesn't recompute the branch from a client-side url that lacks the query string.
   const scenario = useSignal(getSearchParam(url, 'scenario')).value;
+  // WebKit defers mid-stream inline-script execution until enough early body bytes arrive, so the
+  // qwikloader never runs while an in-order stream is gated open unless we pad the shell.
+  const webkitFlush = getSearchParam(url, 'webkitFlush') === '1';
   const touched = useSignal(0);
   const inertTrigger = useSignal(0);
   // Dev-owned key for the key-swap reset experiment (scenario `reset-wrapped-key`).
@@ -262,6 +265,11 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
 
   return (
     <main>
+      {webkitFlush ? (
+        <div aria-hidden="true" style="width:0px;height:0px;overflow:hidden">
+          {WEBKIT_STREAMING_FLUSH}
+        </div>
+      ) : null}
       <h1 id="eb-title">EB Streaming</h1>
       {scenario === 'happy' ? (
         // No SSR throw; touch state first so the container resumes before the client throw routes.

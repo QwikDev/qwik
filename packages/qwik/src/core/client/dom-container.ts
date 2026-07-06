@@ -157,7 +157,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     element.qContainer = this;
     element.qDestroy = () => this.$destroy$();
     this.$containerDataProcessState$ = ContainerDataProcessState.ProcessingVNode;
-    processVNodeData(document);
+    processVNodeData(document, element);
     onVNodeDataReady(document, () => {
       if (this.$containerDataProcessState$ === ContainerDataProcessState.ProcessingVNode) {
         processContainerStateData(this, this.$processContainerData$());

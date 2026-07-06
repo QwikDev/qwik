@@ -47,6 +47,7 @@ export {
   QScopedStyle,
   QSlot,
   QSlotParent,
+  QStatePrewarmAttr,
   QStatePatchAttr,
   QStyle,
   QSuspenseResolved,
@@ -83,6 +84,7 @@ export {
   createStringStreamWriter,
   stringifyRootRefPath,
   writeStringRootRef,
+  writeStringRootRefDelta,
   writeStringRootRefPath,
 } from '../core/ssr/stream-writer';
 export type {

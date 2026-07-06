@@ -76,7 +76,12 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
     },
 
     outputOptions(rollupOutputOpts) {
-      return normalizeRollupOutputOptionsObject(qwikPlugin, rollupOutputOpts, false) as any;
+      return normalizeRollupOutputOptionsObject(
+        qwikPlugin,
+        rollupOutputOpts,
+        false,
+        qwikPlugin.getOptions().outDir
+      ) as any;
     },
 
     async buildStart() {
@@ -130,8 +135,7 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
 export async function normalizeRollupOutputOptions(
   qwikPlugin: QwikPlugin,
   rollupOutputOpts: Rollup.OutputOptions | Rollup.OutputOptions[] | undefined,
-  useAssetsDir: boolean,
-  outDir?: string
+  useAssetsDir: boolean
 ): Promise<Rollup.OutputOptions | Rollup.OutputOptions[]> {
   if (Array.isArray(rollupOutputOpts)) {
     // make sure at least one output is present in every case
@@ -140,17 +144,13 @@ export async function normalizeRollupOutputOptions(
     }
 
     return await Promise.all(
-      rollupOutputOpts.map(async (outputOptsObj) => ({
-        ...(await normalizeRollupOutputOptionsObject(qwikPlugin, outputOptsObj, useAssetsDir)),
-        dir: outDir || outputOptsObj.dir,
-      }))
+      rollupOutputOpts.map((outputOptsObj) =>
+        normalizeRollupOutputOptionsObject(qwikPlugin, outputOptsObj, useAssetsDir)
+      )
     );
   }
 
-  return {
-    ...(await normalizeRollupOutputOptionsObject(qwikPlugin, rollupOutputOpts, useAssetsDir)),
-    dir: outDir || rollupOutputOpts?.dir,
-  };
+  return normalizeRollupOutputOptionsObject(qwikPlugin, rollupOutputOpts, useAssetsDir);
 }
 
 const normalizeChunkPathPrefix = (prefix: string) => {
@@ -197,7 +197,10 @@ const getChunkFileName = (
 export async function normalizeRollupOutputOptionsObject(
   qwikPlugin: QwikPlugin,
   rollupOutputOptsObj: Rollup.OutputOptions | undefined,
-  useAssetsDir: boolean
+  useAssetsDir: boolean,
+  // Force `dir` for the standalone Rollup plugin (no Vite to derive it). Vite passes undefined so
+  // each environment's `build.outDir` resolves it — letting a custom env (e.g. `ssg`) use its own.
+  outDir?: string
 ): Promise<Rollup.OutputOptions> {
   const outputOpts: Rollup.OutputOptions = { ...rollupOutputOptsObj };
   const opts = qwikPlugin.getOptions();
@@ -242,8 +245,8 @@ export async function normalizeRollupOutputOptionsObject(
     }
   }
 
-  if (!outputOpts.dir) {
-    outputOpts.dir = opts.outDir;
+  if (!outputOpts.dir && outDir) {
+    outputOpts.dir = outDir;
   }
 
   if (outputOpts.format === 'cjs' && typeof outputOpts.exports !== 'string') {

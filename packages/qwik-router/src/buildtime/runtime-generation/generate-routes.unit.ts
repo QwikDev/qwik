@@ -6,7 +6,6 @@ import { createRoutes } from './generate-routes';
 function makeNode(overrides?: Partial<BuildTrieNode>): BuildTrieNode {
   return {
     _files: [],
-    _dirPath: '/test',
     children: new Map(),
     ...overrides,
   };
@@ -51,7 +50,8 @@ const mockQwikPlugin = {
 function getRoutesExpr(
   trie: BuildTrieNode,
   routes: BuiltRoute[] = [],
-  loadersByFile?: Map<string, string[]>
+  loadersByFile?: Map<string, string[]>,
+  extra?: { isSSR?: boolean; serverExcludePaths?: ReadonlySet<string> }
 ): string {
   const c: string[] = [];
   const esmImports: string[] = [];
@@ -82,7 +82,15 @@ function getRoutesExpr(
     isDirty: false,
     activeBuild: null,
   } satisfies Parameters<typeof createRoutes>[0];
-  createRoutes(ctx, mockQwikPlugin, c, esmImports, false, loadersByFile);
+  createRoutes(
+    ctx,
+    mockQwikPlugin,
+    c,
+    esmImports,
+    extra?.isSSR ?? false,
+    loadersByFile,
+    extra?.serverExcludePaths
+  );
   const routesLine = c.find((line) => line.startsWith('export const routes'));
   assert.ok(routesLine, 'should have a routes export');
   return routesLine;
@@ -91,7 +99,7 @@ function getRoutesExpr(
 describe('generate-routes: empty node pruning', () => {
   test('empty leaf child is pruned from output', () => {
     const root = makeNode();
-    root.children.set('emptydir', makeNode({ _dirPath: '/test/emptydir' }));
+    root.children.set('emptydir', makeNode());
 
     const expr = getRoutesExpr(root);
     assert.include(expr, '= {}', 'root should be empty when only child is empty');
@@ -100,8 +108,8 @@ describe('generate-routes: empty node pruning', () => {
 
   test('empty intermediate node with non-empty grandchild is kept', () => {
     const root = makeNode();
-    const middle = makeNode({ _dirPath: '/test/docs' });
-    const leaf = makeNode({ _dirPath: '/test/docs/guide' });
+    const middle = makeNode();
+    const leaf = makeNode();
 
     const routeFile = makeRouteFile('/test/docs/guide');
     leaf._files = [routeFile];
@@ -116,7 +124,7 @@ describe('generate-routes: empty node pruning', () => {
 
   test('empty group child is pruned from _M array', () => {
     const root = makeNode();
-    root.children.set('(empty-group)', makeNode({ _dirPath: '/test/(empty-group)' }));
+    root.children.set('(empty-group)', makeNode());
 
     const expr = getRoutesExpr(root);
     assert.notInclude(expr, '_M', 'empty group should not produce _M');
@@ -124,7 +132,7 @@ describe('generate-routes: empty node pruning', () => {
 
   test('non-empty group is preserved in _M array', () => {
     const root = makeNode();
-    const group = makeNode({ _dirPath: '/test/(common)' });
+    const group = makeNode();
 
     const routeFile = makeRouteFile('/test/(common)');
     group._files = [routeFile];
@@ -139,7 +147,7 @@ describe('generate-routes: empty node pruning', () => {
 describe('generate-routes: loadersByFile propagation', () => {
   test('loadersByFile emits _R hashes for regular child nodes in dev mode', () => {
     const root = makeNode();
-    const child = makeNode({ _dirPath: '/test/dashboard' });
+    const child = makeNode();
     const routeFile = makeRouteFile('/test/dashboard');
     child._files = [routeFile];
     root.children.set('dashboard', child);
@@ -155,7 +163,7 @@ describe('generate-routes: loadersByFile propagation', () => {
 
   test('loadersByFile emits _R hashes for group child nodes in dev mode', () => {
     const root = makeNode();
-    const group = makeNode({ _dirPath: '/test/(common)' });
+    const group = makeNode();
     const routeFile = makeRouteFile('/test/(common)');
     group._files = [routeFile];
     root.children.set('(common)', group);
@@ -169,7 +177,7 @@ describe('generate-routes: loadersByFile propagation', () => {
 
   test('without loadersByFile regular children emit a build placeholder', () => {
     const root = makeNode();
-    const child = makeNode({ _dirPath: '/test/dashboard' });
+    const child = makeNode();
     const routeFile = makeRouteFile('/test/dashboard');
     child._files = [routeFile];
     root.children.set('dashboard', child);
@@ -183,5 +191,139 @@ describe('generate-routes: loadersByFile propagation', () => {
       'regular child should emit build placeholder without loadersByFile'
     );
     assert.notInclude(expr, 'loader-hash', 'no concrete hash expected in build mode');
+  });
+});
+
+describe('generate-routes: serverExcludePaths', () => {
+  // root → "static" (a static page) and "blog" → "[slug]" (a dynamic page)
+  function build() {
+    const root = makeNode();
+
+    const staticNode = makeNode();
+    const staticFile = makeRouteFile('/test/static');
+    staticNode._files = [staticFile];
+    root.children.set('static', staticNode);
+
+    const blogNode = makeNode();
+    const slugNode = makeNode();
+    const slugFile = makeRouteFile('/test/blog/[slug]');
+    slugNode._files = [slugFile];
+    blogNode.children.set('[slug]', slugNode);
+    root.children.set('blog', blogNode);
+
+    const routes: BuiltRoute[] = [
+      { ...makeBuiltRoute(staticFile.filePath), pathname: '/static', routeName: '/static' },
+      {
+        ...makeBuiltRoute(slugFile.filePath),
+        pathname: '/blog/[slug]',
+        routeName: '/blog/[slug]',
+        paramNames: ['slug'],
+      },
+    ];
+    return { root, routes };
+  }
+
+  test('omits a route whose file path is in serverExcludePaths', () => {
+    const { root, routes } = build();
+    const expr = getRoutesExpr(root, routes, undefined, {
+      isSSR: true,
+      serverExcludePaths: new Set([routes[0].filePath]),
+    });
+    assert.notInclude(expr, '"static"', 'excluded route should be omitted from the server plan');
+    assert.include(expr, '"blog"', 'other routes are unaffected');
+  });
+
+  test('keeps every route when serverExcludePaths is empty (SSG full plan, client, dev)', () => {
+    const { root, routes } = build();
+    const expr = getRoutesExpr(root, routes, undefined, { isSSR: true });
+    assert.include(expr, '"static"', 'with no exclusions every route is in the plan');
+    assert.include(expr, '"blog"');
+  });
+
+  test('prunes an intermediate node once its only leaf is excluded', () => {
+    // root → "docs" (no index of its own) → "guide" (its only child), plus a kept "static" leaf.
+    const root = makeNode();
+
+    const staticNode = makeNode();
+    const staticFile = makeRouteFile('/test/static');
+    staticNode._files = [staticFile];
+    root.children.set('static', staticNode);
+
+    const docsNode = makeNode();
+    const guideNode = makeNode();
+    const guideFile = makeRouteFile('/test/docs/guide');
+    guideNode._files = [guideFile];
+    docsNode.children.set('guide', guideNode);
+    root.children.set('docs', docsNode);
+
+    const routes: BuiltRoute[] = [
+      { ...makeBuiltRoute(staticFile.filePath), pathname: '/static', routeName: '/static' },
+      { ...makeBuiltRoute(guideFile.filePath), pathname: '/docs/guide', routeName: '/docs/guide' },
+    ];
+
+    const expr = getRoutesExpr(root, routes, undefined, {
+      isSSR: true,
+      serverExcludePaths: new Set([guideFile.filePath]),
+    });
+    assert.notInclude(expr, '"guide"', 'the excluded leaf is omitted');
+    assert.notInclude(
+      expr,
+      '"docs"',
+      'the now-empty intermediate node is pruned, not emitted as {}'
+    );
+    assert.include(expr, '"static"', 'unrelated routes stay in the plan');
+  });
+
+  test('keeps a shared intermediate node when a sibling leaf survives exclusion', () => {
+    // docs → "a" (excluded) + "b" (kept): the intermediate node must survive via the kept sibling.
+    const root = makeNode();
+    const docsNode = makeNode();
+
+    const aNode = makeNode();
+    const aFile = makeRouteFile('/test/docs/a');
+    aNode._files = [aFile];
+    docsNode.children.set('a', aNode);
+
+    const bNode = makeNode();
+    const bFile = makeRouteFile('/test/docs/b');
+    bNode._files = [bFile];
+    docsNode.children.set('b', bNode);
+
+    root.children.set('docs', docsNode);
+
+    const routes: BuiltRoute[] = [
+      { ...makeBuiltRoute(aFile.filePath), pathname: '/docs/a', routeName: '/docs/a' },
+      { ...makeBuiltRoute(bFile.filePath), pathname: '/docs/b', routeName: '/docs/b' },
+    ];
+
+    const expr = getRoutesExpr(root, routes, undefined, {
+      isSSR: true,
+      serverExcludePaths: new Set([aFile.filePath]),
+    });
+    assert.notInclude(expr, '"a"', 'the excluded leaf is omitted');
+    assert.include(expr, '"docs"', 'the intermediate node survives via the kept sibling');
+    assert.include(expr, '"b"', 'the kept sibling stays');
+  });
+});
+
+describe('generate-routes: error/404 boundaries', () => {
+  test('error.tsx / 404.tsx emit single _E / _4 loaders', () => {
+    const root = makeNode({
+      _files: [makeRouteFile('/test', 'error'), makeRouteFile('/test', '404')],
+    });
+    const routes = [makeBuiltRoute('/test/error.tsx'), makeBuiltRoute('/test/404.tsx')];
+    const expr = getRoutesExpr(root, routes);
+    assert.include(expr, '_E: ()=>import', '_E is a single loader');
+    assert.include(expr, '_4: ()=>import', '_4 is a single loader');
+  });
+
+  test('error! / 404! emit override arrays (layout stop)', () => {
+    const root = makeNode({
+      _files: [makeRouteFile('/test', 'error!'), makeRouteFile('/test', '404!')],
+    });
+    const routes = [makeBuiltRoute('/test/error!.tsx'), makeBuiltRoute('/test/404!.tsx')];
+    const expr = getRoutesExpr(root, routes);
+    assert.include(expr, '_E: [ ()=>import', '_E! is an override array');
+    assert.include(expr, '_4: [ ()=>import', '_4! is an override array');
   });
 });

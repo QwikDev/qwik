@@ -138,6 +138,10 @@ const getCssUrls = (server: ViteDevServer) => {
 
         if ((isEntryCSS || hasJSImporter) && !hasCSSImporter && !cssImportedByCSS.has(mod.url)) {
           cssModules.add(`${mod.url}${mod.lastHMRTimestamp ? `?t=${mod.lastHMRTimestamp}` : ''}`);
+          // SSR-only CSS isn't watched by Vite; watch it so edits fire handleHotUpdate.
+          if (mod.file) {
+            server.watcher.add(mod.file);
+          }
         }
       }
     }
@@ -151,4 +155,37 @@ export const getRouterIndexTags = (server: ViteDevServer) => {
     tag: 'link',
     attrs: { rel: 'stylesheet', href: url },
   }));
+};
+
+/**
+ * Live-reload route CSS that Qwik injects as `<link>` tags; it only lives in the SSR graph, so Vite
+ * skips HMR. Emit a `css-update` to swap the `<link>` in place. Returns `true` when handled.
+ */
+export const sendRouterCssHotUpdate = (
+  server: ViteDevServer,
+  file: string,
+  timestamp: number
+): boolean => {
+  const { client, ssr } = server.environments;
+  if (!isCssPath(file) || client.moduleGraph.getModulesByFile(file)?.size) {
+    return false;
+  }
+  const paths = new Set<string>();
+  for (const mod of ssr.moduleGraph.getModulesByFile(file) ?? []) {
+    mod.lastHMRTimestamp = timestamp; // keep getCssUrls' cache-busting query fresh on full reloads
+    paths.add(mod.url.split('?')[0]);
+  }
+  if (!paths.size) {
+    return false;
+  }
+  client.hot.send({
+    type: 'update',
+    updates: [...paths].map((path) => ({
+      type: 'css-update' as const,
+      path,
+      acceptedPath: path,
+      timestamp,
+    })),
+  });
+  return true;
 };

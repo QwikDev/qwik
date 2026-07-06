@@ -1,6 +1,7 @@
 import type { QwikManifest, QwikVitePlugin } from '@qwik.dev/core/optimizer';
 import {
   createFileId,
+  errorBoundaryName,
   isModuleExt,
   isPageExt,
   removeExtension,
@@ -37,7 +38,12 @@ export function createRoutes(
   c: string[],
   esmImports: string[],
   isSSR: boolean,
-  loadersByFile?: Map<string, string[]>
+  loadersByFile?: Map<string, string[]>,
+  /**
+   * Route file paths to drop from the production server plan (prerendered + server-free; see
+   * server-exclude.ts). Empty/undefined for the SSG full plan, the client build, and dev.
+   */
+  serverExcludePaths?: ReadonlySet<string>
 ) {
   const includeEndpoints = isSSR;
   const dynamicImports = ctx.dynamicImports;
@@ -46,10 +52,6 @@ export function createRoutes(
   const layoutIdMap = new Map<string, string>(); // filePath → varName
   const routeIdMap = new Map<string, string>(); // filePath → loader expression
   const menuIdMap = new Map<string, string>(); // filePath → varName
-
-  // Track error/404 files per trie path for precedence warnings
-  const errorFiles = new Map<string, string>();
-  const notFoundFiles = new Map<string, string>();
 
   let layoutCount = 0;
   let routeCount = 0;
@@ -107,6 +109,10 @@ export function createRoutes(
   c.push(`\n/** Qwik Router Routes (${routeCount}) */`);
   for (const route of ctx.routes) {
     if (isPageExt(route.ext)) {
+      // Skip the loader so the trie node prunes and the chunk tree-shakes out of the server bundle.
+      if (serverExcludePaths?.has(route.filePath)) {
+        continue;
+      }
       const importPath = getImportPath(route.filePath);
       let loaderExpr: string;
       if (dynamicImports) {
@@ -131,8 +137,6 @@ export function createRoutes(
     layoutIdMap,
     routeIdMap,
     menuIdMap,
-    errorFiles,
-    notFoundFiles,
     [],
     isSSR,
     '',
@@ -179,8 +183,6 @@ function serializeBuildTrie(
   layoutIdMap: Map<string, string>,
   routeIdMap: Map<string, string>,
   menuIdMap: Map<string, string>,
-  errorFiles: Map<string, string>,
-  notFoundFiles: Map<string, string>,
   ancestorLayouts: LayoutInfo[],
   isSSR: boolean,
   indent: string,
@@ -208,7 +210,6 @@ function serializeBuildTrie(
   // Process _files at this node
   let layoutExpr: string | undefined;
   let indexExpr: string | undefined;
-  let indexIsOverride = false;
   let errorExpr: string | undefined;
   let notFoundExpr: string | undefined;
   let menuExpr: string | undefined;
@@ -260,36 +261,16 @@ function serializeBuildTrie(
       continue;
     }
 
-    // Check if this is error.tsx or 404.tsx
-    const isError = file.extlessName === 'error';
-    const is404 = file.extlessName === '404';
+    const expr = buildLoaderChainExpr(file.extlessName, loaderExpr, ancestorLayouts, nodeLayouts);
 
-    if (isError) {
-      errorExpr = loaderExpr;
-      errorFiles.set(node._dirPath, file.filePath);
-    } else if (is404) {
-      notFoundExpr = loaderExpr;
-      notFoundFiles.set(node._dirPath, file.filePath);
+    // error.tsx / 404.tsx (+ optional layout modifier) are boundaries, not navigable pages.
+    const boundary = errorBoundaryName(file.extlessName);
+    if (boundary === '404') {
+      notFoundExpr = expr;
+    } else if (boundary === 'error') {
+      errorExpr = expr;
     } else {
-      // Normal route or endpoint — check for layout stop / named layout
-      const { layoutName, layoutStop } = parseRouteIndexName(file.extlessName);
-
-      if (layoutStop) {
-        // Layout stop: emit _I as array with just the page loader (no layouts)
-        indexExpr = `[ ${loaderExpr} ]`;
-        indexIsOverride = true;
-      } else if (layoutName) {
-        // Named layout: walk ancestors to build the override chain
-        const chain = resolveNamedLayoutChain(ancestorLayouts, nodeLayouts, layoutName);
-        const chainExprs = chain.map((l) => l.id);
-        chainExprs.push(loaderExpr);
-        indexExpr = `[ ${chainExprs.join(', ')} ]`;
-        indexIsOverride = true;
-      } else {
-        // Normal route: single loader, runtime prepends _L
-        indexExpr = loaderExpr;
-      }
-
+      indexExpr = expr;
       // Find the BuiltRoute for bundle names
       bundleRoute = ctx.routes.find((r) => r.filePath === file.filePath);
     }
@@ -302,11 +283,7 @@ function serializeBuildTrie(
 
   // Emit _I (index/page loader)
   if (indexExpr) {
-    if (indexIsOverride) {
-      lines.push(`${nextIndent}_I: ${indexExpr},`);
-    } else {
-      lines.push(`${nextIndent}_I: ${indexExpr},`);
-    }
+    lines.push(`${nextIndent}_I: ${indexExpr},`);
 
     // Emit _B bundle names (SSR only)
     if (isSSR && bundleRoute) {
@@ -322,7 +299,9 @@ function serializeBuildTrie(
   // In build mode, emit placeholder string for renderChunk replacement.
   {
     const routeFiles = node._files
-      .filter((f) => f.type === 'route' || f.type === 'layout')
+      // Mirror the _I pass: only count route files still in the plan, so a server-excluded route
+      // adds no _R and its emptied node prunes. Layouts always count.
+      .filter((f) => f.type === 'layout' || (f.type === 'route' && routeIdMap.has(f.filePath)))
       .map((f) => f.filePath);
     // Include server plugin files at the root trie node (they apply to all routes)
     if (node === ctx.routeTrie) {
@@ -393,8 +372,6 @@ function serializeBuildTrie(
         layoutIdMap,
         routeIdMap,
         menuIdMap,
-        errorFiles,
-        notFoundFiles,
         childAncestors,
         isSSR,
         nextIndent,
@@ -418,8 +395,6 @@ function serializeBuildTrie(
       layoutIdMap,
       routeIdMap,
       menuIdMap,
-      errorFiles,
-      notFoundFiles,
       childAncestors,
       isSSR,
       nextIndent,
@@ -435,6 +410,27 @@ function serializeBuildTrie(
     return '{}';
   }
   return `{\n${lines.join('\n')}\n${indent}}`;
+}
+
+/**
+ * The `_I`/`_E`/`_4` loader expression: a bare loader (runtime prepends gathered layouts), or an
+ * override chain for `!` (layout stop) / `@name` (named layout).
+ */
+function buildLoaderChainExpr(
+  extlessName: string,
+  loaderExpr: string,
+  ancestorLayouts: LayoutInfo[],
+  nodeLayouts: LayoutInfo[]
+): string {
+  const { layoutName, layoutStop } = parseRouteIndexName(extlessName);
+  if (layoutStop) {
+    return `[ ${loaderExpr} ]`;
+  }
+  if (layoutName) {
+    const chain = resolveNamedLayoutChain(ancestorLayouts, nodeLayouts, layoutName);
+    return `[ ${[...chain.map((l) => l.id), loaderExpr].join(', ')} ]`;
+  }
+  return loaderExpr;
 }
 
 /**

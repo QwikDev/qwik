@@ -2,10 +2,10 @@ import type { SerializationStrategy } from '@qwik.dev/core/internal';
 
 /**
  * Build-time route trie node. Mirrors the runtime RouteData shape with the same key conventions
- * (`_W`, `_A`, lowercase static) plus build-only metadata (`_files`, `_dirPath`).
+ * (`_W`, `_A`, lowercase static) plus the build-only `_files` metadata.
  *
- * During the filesystem walk, `_files` and `_dirPath` are populated. During codegen, `_L`, `_I`,
- * `_G`, `_B`, `_4`, `_E` are emitted as JS expressions.
+ * During the filesystem walk, `_files` is populated. During codegen, `_L`, `_I`, `_G`, `_B`, `_4`,
+ * `_E` are emitted as JS expressions.
  */
 export interface BuildTrieNode {
   /** Parameter name (for `_W` and `_A` nodes) */
@@ -18,8 +18,6 @@ export interface BuildTrieNode {
   _G?: string;
   /** Source files at this directory level */
   _files: RouteSourceFile[];
-  /** Filesystem path of this directory */
-  _dirPath: string;
   /** Children keyed by trie key (lowercase static, `_W`, `_A`, or `(groupName)`) */
   children: Map<string, BuildTrieNode>;
 }
@@ -135,6 +133,7 @@ export interface ParsedMenuItem {
 export interface RewriteRouteOption {
   prefix?: string;
   paths: Record<string, string>;
+  exclude?: string[];
 }
 
 /** @public */

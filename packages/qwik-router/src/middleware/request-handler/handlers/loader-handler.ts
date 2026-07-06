@@ -1,3 +1,4 @@
+import { isDev } from '@qwik.dev/core';
 import { _serialize } from '@qwik.dev/core/internal';
 import {
   FULLPATH_HEADER,
@@ -42,7 +43,9 @@ export function loaderHandler(
       return;
     }
 
-    setLoaderData(requestEv, routeLoaders, loaderPaths);
+    const activeRouteLoaders =
+      isDev && !routeLoaders.includes(loader) ? [...routeLoaders, loader] : routeLoaders;
+    setLoaderData(requestEv, activeRouteLoaders, loaderPaths);
 
     const loaderRequestEv = createLoaderRequestEventFactory(requestEv)(loader);
 
@@ -92,8 +95,10 @@ export function loaderHandler(
     );
     const data = await _serialize(responseData);
 
-    // Only successful data envelopes are cacheable; never cache redirects or errors.
-    const cacheable = cacheKey && !responseData.r && !responseData.e;
+    // Only successful data envelopes are cacheable; never cache redirects, errors, or fail() results.
+    const failed =
+      responseData.d && typeof responseData.d === 'object' && (responseData.d as any).failed;
+    const cacheable = cacheKey && !responseData.r && !responseData.e && !failed;
 
     // When caching is enabled but there's no eTag, auto-hash.
     const finalETag = normalizedETag || (cacheable ? hash(data) : '');

@@ -5,7 +5,7 @@ import { ChoreBits } from '../vnode/enums/chore-bits.enum';
 import type { VirtualVNode } from '../vnode/virtual-vnode';
 import { isCursor, type Cursor } from './cursor';
 import { getNextVNode, partitionDirtyChildren, tryDescendDirtyChildren } from './cursor-walker';
-import { getCursorData, setCursorData, type CursorData } from './cursor-props';
+import { getCursorData, setCursorData, setCursorPosition, type CursorData } from './cursor-props';
 import type { Container } from '../types';
 import { QCursorBoundary } from '../utils/markers';
 import {
@@ -652,6 +652,46 @@ describe('tryDescendDirtyChildren', () => {
 
     // Should return first dirty child after partitioning (skipping clean regular1)
     expect(result).toBe(regular2);
+  });
+});
+
+describe('setCursorPosition', () => {
+  const createMockContainer = () =>
+    ({
+      $pendingCount$: 0,
+      $renderPromise$: null,
+      $resolveRenderPromise$: null,
+      $checkPendingCount$: () => {},
+    }) as unknown as Container;
+
+  it('should keep the cursor flag when a cursor advances back to itself', () => {
+    const container = createMockContainer();
+    const cursor = vnode_newVirtual() as Cursor;
+    const cursorData: CursorData = {
+      container,
+      position: null,
+      promise: null,
+      journal: null,
+      extraPromises: null,
+      afterFlushTasks: null,
+      priority: 0,
+      boundaries: null,
+    };
+
+    setCursorData(cursor, cursorData);
+    cursor.flags |= VNodeFlags.Cursor;
+    addCursorToQueue(container, cursor);
+
+    try {
+      setCursorPosition(container, cursorData, cursor);
+
+      expect(isCursor(cursor)).toBe(true);
+      expect(getCursorData(cursor)).toBe(cursorData);
+      expect(getHighestPriorityCursor()).toBe(cursor);
+      expect(container.$pendingCount$).toBe(1);
+    } finally {
+      removeCursorFromQueue(cursor, container);
+    }
   });
 });
 

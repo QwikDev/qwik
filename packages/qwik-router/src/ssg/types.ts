@@ -78,11 +78,6 @@ export interface SsgRenderOptions extends RenderOptions {
    */
   emitData?: boolean;
   /**
-   * Set to `false` if the static build should not write custom or default `404.html` pages.
-   * Defaults to `true`.
-   */
-  emit404Pages?: boolean;
-  /**
    * Defines file system routes relative to the source `routes` directory that should be static
    * generated. Accepts wildcard behavior. This should not include the "base" pathname. If not
    * provided, all routes will be static generated. `exclude` always takes priority over `include`.
@@ -110,15 +105,12 @@ export interface SsgOptions extends SsgRenderOptions {
  * @public
  */
 export interface SsgGenerateOptions extends SsgOptions {
-  /** The SSR render function (default export from entry.ssr). */
+  /** SSR render function (default export from `entry.ssr`); worker-only — the main entry omits it. */
   render: Render;
   /** The Qwik Router Config object (default export from `@qwik-router-config`). */
   qwikRouterConfig: QwikRouterConfig;
 
-  /**
-   * Path or URL to the worker entry file. Workers are spawned using this file. When run-ssg.js
-   * serves as both main and worker entry, this should be `import.meta.url` of that file.
-   */
+  /** Path or URL to the worker entry file (`run-ssg-worker.js`); workers are spawned from it. */
   workerFilePath?: string | URL;
 }
 
@@ -151,7 +143,7 @@ export interface SsgWorkerRenderResult {
   error: { message: string; stack: string | undefined } | null;
   filePath: string | null;
   contentType: string | null;
-  resourceType: 'page' | '404' | null;
+  resourceType: 'page' | null;
 }
 
 /** @public */

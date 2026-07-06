@@ -7,30 +7,12 @@ import type { QwikPerfStoreRemembered, QwikPreloadStoreRemembered } from './glob
 import { getQwikDevtoolsGlobal } from './global-store';
 import { QWIK_DEVTOOLS_GLOBAL } from './protocol/globals';
 import { DEVTOOLS_MESSAGES, type QwikDevtoolsPageMessage } from './protocol/messages';
+import type { DevtoolsVNodeTreeNode } from './protocol/vnode';
+import type { DevtoolsRenderEvent } from './protocol/perf';
+import type { DevtoolsComponentDetailEntry } from './protocol/hooks';
 
 export interface InPageBridgeOptions {
   isBrowser: boolean;
-}
-
-export interface DevtoolsRenderEvent {
-  component: string;
-  phase: string;
-  duration: number;
-  timestamp: number;
-}
-
-export interface DevtoolsComponentDetailEntry {
-  hookType: string;
-  variableName: string;
-  data: unknown;
-}
-
-export interface DevtoolsVNodeTreeNode {
-  name?: string;
-  id: string;
-  label?: string;
-  props?: Record<string, unknown>;
-  children?: DevtoolsVNodeTreeNode[];
 }
 
 export interface InPageBridge {

@@ -51,7 +51,7 @@ export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions)
     flags = TaskFlags.VISIBLE_TASK;
   }
 
-  const task = new Task(flags, i, iCtx.$hostElement$, qrl, undefined, null);
+  const task = new Task(flags, i, iCtx.$hostElement$, qrl, null);
   set(task);
   useRegisterTaskEvents(task, eagerness);
 };

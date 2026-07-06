@@ -83,8 +83,6 @@
   "license": "MIT",
   "main": "./dist/plugin/index.mjs",
   "peerDependencies": {
-    "@qwik.dev/core": "workspace:^",
-    "@qwik.dev/router": "workspace:^",
     "@tailwindcss/postcss": "^4.2.1",
     "@tailwindcss/vite": "^4.2.1",
     "tailwindcss": "^4.2.1",

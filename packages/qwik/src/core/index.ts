@@ -183,6 +183,9 @@ export type { ComputedOptions } from './reactive-primitives/types';
 //////////////////////////////////////////////////////////////////////////////////////////
 export { eachCmpTask as _eaT, eachCmp as _eaC } from './control-flow/each';
 export { Each } from './control-flow/each';
+export { showCmpTask as _shT, showCmp as _shC } from './control-flow/show';
+export { Show } from './control-flow/show';
+export type { ShowComponent, ShowProps } from './control-flow/show';
 export {
   revealCanReveal as _reR,
   revealCleanupTask as _reT,

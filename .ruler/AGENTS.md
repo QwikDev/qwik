@@ -1,4 +1,4 @@
-# Qwik v2 AI Agent Rules
+# Qwik v2 agents reference, instructions and rules
 
 > Canonical source for repo-wide AI coding agent rules. For contributor setup, see
 > [CONTRIBUTING.md](./CONTRIBUTING.md). For package-specific workflows, load the relevant
@@ -6,16 +6,11 @@
 
 ## Source Of Truth
 
-- Shared AI guidance lives in `.ruler/`; generated assistant outputs are local artifacts.
-- Do not hand-edit or commit generated outputs such as root `AGENTS.md`, root `CLAUDE.md`,
-  `.codex/`, `.claude/`, `.cursor/`, or generated skill directories.
-- To change assistant behavior, edit `.ruler/AGENTS.md`, `.ruler/README.md`, or
-  `.ruler/rules/**` / `.ruler/skills/**`, then regenerate with Ruler when needed.
-- When building config for a specific AI tool, research that tool's current native guidance, skill,
-  config, and policy surfaces before adding output-specific instructions.
-- Map `.ruler` sources by semantic role: Markdown guidance to native AI guidance, skills to native
-  skills when supported, MCP/config to native config, and command-permission policy only to a
-  separately researched native policy format outside the Markdown guidance bundle.
+- Shared AI guidance lives in `.ruler/`.
+- Never hand-edit a generated output — edit `.ruler/` and regenerate with `ruler apply`. A CI check
+  re-runs it and fails on drift.
+- To change assistant behavior, edit `.ruler/AGENTS.md`, `.ruler/README.md`, or `.ruler/skills/**`,
+  then regenerate with Ruler when needed.
 
 ## Project Snapshot
 
@@ -28,6 +23,8 @@ Key concepts: resumability, QRLs, `$`-suffixed optimizer boundaries, fine-graine
 the cursor system, and the Rust optimizer.
 
 ## Monorepo Map
+
+- Base branch and release branch for v2 PRs: `build/v2`.
 
 | Package | Path | Notes |
 | --- | --- | --- |
@@ -45,114 +42,91 @@ Use v2 package names (`@qwik.dev/core`, `@qwik.dev/router`, etc.). Do not introd
 `@builder.io/qwik` or `@builder.io/qwik-city` imports except when working on explicit
 compatibility override code.
 
-## Environment
+## Setup And Iteration Loop
 
-- Node: `>=22.18.0`
-- pnpm: `>=10.14.0`
-- Package manager: pnpm only
+This is the canonical loop for nearly all framework work. Default to it; do not substitute broader
+commands:
 
-Install dependencies with:
+### getting started
 
 ```bash
-pnpm install
+pnpm i
 ```
 
-## Command Rules
+```bash
+pnpm build.core # for a fresh start
+pnpm build.full # for a fresh start and you are working on the docs (the docs run the optimizer)
+```
+### Iterating
 
-- Prefer focused commands over repo-wide commands.
-- Unit/spec tests: use `pnpm vitest run <path>`.
-- Never use `pnpm test.unit` for agent verification in this repo; it is too broad.
-- Do not run full `pnpm test` unless the user explicitly asks.
-- Use `pnpm build.core.dev` for fast Qwik + Router rebuilds during most framework work.
-- Use `pnpm build.local` for a fresh full local build without rebuilding Rust.
-- Use `pnpm build.full` only when Rust/optimizer changes require it.
-- Run `pnpm api.update` after public API changes.
-- Run `pnpm lint` only when the change scope justifies broad linting; otherwise prefer focused
-  tests and formatting checks.
-
-Common focused commands:
+Prefer focused commands and builds over repo-wide commands and builds.
 
 ```bash
+# Fast dev build — required once before any tests can run, and again after framework
+# source changes when the verification consumes build output (all e2e suites do)
 pnpm build.core.dev
+
+# Closest focused unit/spec test
 pnpm vitest run packages/qwik/src/core/tests/use-task.spec.tsx
+
+# Focused e2e test
 pnpm playwright test e2e/qwik-e2e/tests/events.e2e.ts --browser=chromium --config e2e/qwik-e2e/playwright.config.ts
-pnpm tsc.check
-pnpm api.update
 ```
 
-For Qwik e2e tests, use `--browser=chromium` with `e2e/qwik-e2e/playwright.config.ts`; do not use
-`--project chromium` with that config.
+`build.core.dev` also re-emits fresh Qwik and Router `.d.ts` incrementally (via `tscDevDts` + re-export shims), so editing a public signature no longer leaves stale types — `build.watch` skips the type pass to stay instant.
 
-## Source Rules
+For Qwik e2e tests, use `--browser=chromium` with `e2e/qwik-e2e/playwright.config.ts`.
 
-Dedicated source rules live under `.ruler/rules/` and are part of the always-on guidance generated
-by Ruler.
+Re-run `pnpm build.full` when you are touching the optimizer rust code.
 
-- `test-driven-development`: write or update the closest focused test before behavior changes and
-  bug fixes, then make the implementation pass it.
-- `code-quality`: use understandable names, early returns over avoidable nesting, and focused
-  modular helpers.
-- `guidance-source-of-truth`: keep `.ruler` as the canonical guidance source, separate rules from
-  skills, and map assistant outputs by semantic role.
-- `generated-output-boundaries`: edit owning sources instead of generated artifacts and regenerate
-  intentionally.
-- `security-and-supply-chain`: run focused security reasoning for vulnerable surfaces, dependency
-  changes, and GitHub Actions updates.
+### When making a PR
 
-## Engineering Rules
+```bash
+# for type-level verification when no focused test covers the change
+pnpm tsc.check
+
+# update the API
+pnpm api.update
+
+# Verify the build passes
+pnpm build.core
+
+# Verify unit tests pass
+pnpm test.unit
+
+# Verify the E2Es pass
+pnpm test.e2e.chromium
+
+# In case of html output change, update the ssg snapshot
+pnpm test.e2e.router.ssg.update
+
+# In case of a new feature, run the test.bench
+pnpm test.bench
+
+# In case of qwikloader changes
+pnpm vitest packages/qwik/src/qwikloader.unit.ts -u
+```
+
+If any of those fail, fix and push your changes.
+
+## Rules
 
 Recent Qwik v2 work by core maintainers favors small, behavior-shaped changes with regression proof.
 Follow that bias:
 
-- Start from the invariant that is broken, then find the producer and consumer that own it.
-- Prefer local semantic helpers over broad rewrites when they make state, ordering, or ownership
-  clearer.
-- When changing a serialized, streamed, optimizer, loader, or hydration protocol, update both the
-  writer and reader in the same change and add a round-trip or regression test.
-- Preserve compatibility intentionally. If an old API path remains supported, cover it with a test
-  and make the new path explicit.
-- Add tests beside the behavior that changed: unit/spec for pure logic, e2e only for browser,
-  streaming, navigation, or integration behavior.
-- Do not leave debug logging, temporary names, "fixup" code, or unexplained broad fallbacks in the
-  final diff.
-
-## Guidance Freshness
+### Guidance Freshness
 
 - If a skill or reference you used is stale, incomplete, or contradicted by current source, update
   the `.ruler` source guidance before finishing the task unless the user explicitly restricted the
   scope.
 - Keep new durable lessons in the most specific skill or reference that future agents are likely to
   load. Do not add package-specific details to these always-on rules unless they affect most tasks.
+- Write those notes **prescriptively** — the invariants to keep, the traps that cause false passes,
+  where things live, and how to verify — rather than describing how the code currently works. Omit "don't do X" prohibitions for anything a test already enforces; the
+  suite is the guardrail, so reserve notes for what it can't self-enforce.
 - When updating guidance, load the `qwik-guidance-maintenance` skill.
 
-## Generated Files And Release Gates
-
-- Follow the `generated-output-boundaries` rule before editing or relying on generated artifacts.
-- If you change public API, run `pnpm api.update`.
-- If you touch Rust optimizer code under `packages/optimizer/core/`, run the Rust/optimizer
-  verification from the optimizer skill and use `pnpm build.full` when a full JS/WASM rebuild is
-  required.
-- If a change affects published packages, create a changeset with `pnpm change` unless the user or
-  maintainer explicitly says the change is non-release-affecting.
-- Base branch and release branch for v2 PRs: `build/v2`.
-
-## Code Style
-
-Prettier and ESLint define style. Keep semicolons, single quotes, two-space indentation, trailing
-commas where configured, and always use braces for control flow.
-
-Naming conventions:
-
-| Pattern | Usage |
-| --- | --- |
-| `use*` | Hooks called in component/task scope |
-| `*$` | QRL boundary extracted by the optimizer |
-| `create*` | Factory functions |
-| `*.unit.ts(x)` | Vitest unit files |
-| `*.spec.ts(x)` | Vitest spec files |
-| `*.e2e.ts` | Playwright e2e files |
-
-## Skill Selection
+### Skill Selection
 
 Load the relevant skill before non-trivial work in that area:
 
@@ -171,10 +145,200 @@ Keep the `qwik-` prefix on committed source skill names. Ruler copies these skil
 agent-native skill directories where they may coexist with user or plugin skills, so the prefix keeps
 the skill list unambiguous outside the repo-local `.ruler` tree.
 
-## Boundaries
+### Changesets
+
+When a change affects published packages, add a changeset under `.changeset/`.
+
+- Use `patch` for bug fixes: focus on the issue rather than the solution.
+- `minor` for new features: explain the new feature.
+- `major` for API removal: may also include a new feature, but it must remove or break a public API.
+- Enforce 1 changeset per change.
+- Write the changeset summary in lowercase (e.g. `fix:`)
+- 1 short sentence (10-ish words) focused on the bug fix or feature. Don't include implementation details.
+
+### Code Quality
+
+
+#### Sanity
+
+- Remember to keep your code DRY.
+- Do not leave debug logging or temporary names in the final diff.
+- Only add comments for crucial information that is not self-explanatory. Keep your comments constrained to 1 short sentence (10-ish words) maximum. Focus on explaning the why/issue rather than implementation details.  
+- Write one changeset per patch/minor/major change. Keep the changeset message constrained to 1 short sentence or 2 maximum, focused on the bug fix, feature or breaking changes. Don't explain the internals or implementation details.
+
+#### Naming
+
+- Use names that explain the domain idea, not the implementation trick.
+- Prefer specific names over short names when the value crosses more than a few lines.
+- Name booleans as questions or states, such as `isReady`, `hasSubscribers`, or `shouldFlush`.
+- Name functions by the action they perform, such as `resolveLoaderData()` or
+  `markContainerReady()`.
+- Avoid vague names like `data`, `item`, `temp`, `handle`, `process`, or `doWork` unless the local
+  scope makes the meaning obvious.
+- Keep existing public API names unless the task is intentionally changing the API.
+
+#### Control Flow
+
+- Prefer early returns for invalid, empty, unsupported, or already-handled cases.
+- Avoid deep nesting when a guard clause can make the main path easier to read.
+- Keep the success path visible at the outer indentation level when possible.
+- Do not use clever boolean expressions when a named condition or small helper would be clearer.
+- Keep error and compatibility branches explicit so reviewers can see why they exist.
+
+#### Modularity
+
+- Keep functions focused on one responsibility.
+- Extract a helper when a block has a clear name, is reused, or hides the main path.
+- Do not extract helpers only to move complexity around; the caller should become easier to read.
+- Keep helpers close to their first use unless they are shared across files.
+- Prefer local semantic helpers over broad abstractions.
+
+#### Review Standard
+
+Before finishing, read the changed code as if you are new to the package:
+
+1. Can a junior developer explain what each name represents?
+2. Can an AI agent identify the main path without following deeply nested branches?
+3. Are edge cases handled by clear guard clauses or named helpers?
+4. Is the change modular without hiding important state or protocol boundaries?
+
+If the answer is no, simplify the code before calling the task complete.
+
+### Code Style
+
+Prettier and ESLint define style. Keep semicolons, single quotes, two-space indentation, trailing
+commas where configured, and always use braces for control flow.
+
+Naming conventions:
+
+| Pattern | Usage |
+| --- | --- |
+| `use*` | Hooks called in component/task scope |
+| `*$` | QRL boundary extracted by the optimizer |
+| `create*` | Factory functions |
+| `*.unit.ts(x)` | Vitest unit files |
+| `*.spec.ts(x)` | Vitest spec files |
+| `*.e2e.ts` | Playwright e2e files |
+
+### Security And Supply Chain
+
+Treat security-sensitive changes as behavior changes even when they look like config, dependency,
+or CI maintenance.
+
+#### Security Review Trigger
+
+Pause for a focused security pass when a change touches:
+
+- authentication, authorization, sessions, cookies, redirects, URL parsing, filesystem paths, SSR,
+  serialization, HTML/script output, request handling, or server adapters
+- dependency versions, lockfiles, package manager settings, release scripts, publishing scripts, or
+  build tooling
+- GitHub Actions, reusable workflows, workflow permissions, tokens, secrets, cache keys, artifact
+  upload/download, or deployment credentials
+
+Use the changed diff as the starting point. Check directly supporting files when needed, but do not
+turn a small change into a repository-wide security scan unless the user asks.
+
+#### What To Check
+
+- Identify the trust boundary: attacker-controlled input, untrusted dependency code, untrusted CI
+  event data, secrets, tokens, publish credentials, or generated output.
+- Find the closest existing guard and the sink it protects. Do not claim safety from a broad
+  intuition; point to the concrete validation, escaping, permission, or isolation boundary.
+- Prefer fail-closed behavior for malformed input, unknown modes, unsupported hosts, and missing
+  config.
+- Keep secrets out of logs, snapshots, artifacts, caches, generated files, browser output, and error
+  messages.
+- When changing dependencies or build tools, check for new install scripts, binary downloads,
+  network fetches, transitive tool execution, license or provenance surprises, and lockfile drift.
+
+#### GitHub Actions
+
+When editing `.github/workflows/**` or action-related scripts:
+
+- Keep `permissions:` least-privilege at the workflow or job level.
+- Do not introduce `pull_request_target` for code checkout/build/test of untrusted PR content unless
+  the workflow is explicitly designed to avoid running attacker-controlled code with secrets.
+- Avoid passing secrets to forked PRs, third-party actions, shell commands that print env, or
+  generated artifacts.
+- Prefer trusted first-party actions. For new third-party actions, pin to a full commit SHA or
+  document why a moving tag is acceptable.
+- Treat cache restore keys and artifact paths as untrusted input surfaces. Avoid broad paths that can
+  poison future jobs or expose credentials.
+- Quote shell variables and avoid `eval`, curl-piped shells, and unchecked interpolation of GitHub
+  context values into shell commands.
+
+#### Verification
+
+For security-sensitive changes, record the focused security reasoning in the final response:
+
+1. What boundary changed?
+2. What guard or invariant prevents abuse?
+3. What focused test, lint, config check, or manual inspection covered it?
+
+If you cannot verify the security property locally, say exactly what remains unverified.
+
+### Test Driven Development
+
+Use test-driven development for behavior changes and bug fixes.
+
+#### Required Workflow
+
+1. Identify the observable behavior or invariant before editing implementation code.
+2. Add or update the closest focused test that proves the behavior.
+3. Run that test before the implementation change when feasible and confirm it fails for the
+   expected reason.
+4. Make the smallest implementation change that satisfies the test.
+5. Rerun the focused test and keep iterating until it passes.
+6. Run any broader verification required by the touched surface, such as API docs, optimizer
+   snapshots, build output, or e2e coverage.
+
+#### Test Selection
+
+- Prefer unit/spec tests next to the changed code.
+- Use optimizer fixtures and snapshots for Rust transform behavior.
+- Use e2e tests only when the behavior depends on a real browser, navigation, streaming, SSR/CSR
+  integration, adapter behavior, or fixture app wiring.
+- For serialization, hydration, streaming, or loader protocol changes, test both the writer and the
+  reader path.
+- For compatibility behavior, test both the current API path and the supported deprecated path.
+
+#### Exceptions
+
+Docs-only, rules-only, formatting-only, dependency metadata, and generated-output maintenance
+changes do not need a failing product test first. They still need the narrowest relevant
+verification, such as formatting, Ruler dry-run, generated-output checks, or docs build checks.
+
+If dependencies, missing generated artifacts, or local environment constraints prevent a pre-fix
+test run, write the focused test first, record the blocker, and run the test as soon as the blocker
+is resolved.
+
+### Boundaries
 
 - Preserve user work and unrelated changes. Do not reset or revert unrelated files.
 - Keep edits scoped to the package, generated-file boundary, and verification surface implied by the
   task.
 - Do not commit `.only` tests.
 - Do not skip tests for behavior changes; use the closest focused test first.
+
+### No Hydration Terminology
+
+Never describe Qwik or any part of how Qwik works as hydration. Qwik does not hydrate. Qwik is
+resumable: the server serializes application state and listeners into the HTML, and the client
+resumes execution exactly where the server left off, without re-running component code or
+rebuilding the framework state.
+
+- Do not call any Qwik mechanism "hydration", "hydrating", "rehydration", "partial hydration",
+  "progressive hydration", "selective hydration", or "island hydration".
+- Do not describe Qwik components, containers, or apps as "hydrated" or "needing to hydrate".
+- Use the Qwik terminilogy instead: "javascript streaming", "JIT preloading", "resumability", "resume", "resuming", "serialization", "deserialization", and "lazy execution".
+- Describe client startup as Qwik resuming from serialized state, not as Qwik booting, mounting,
+  or hydrating the app.
+
+#### Allowed Mentions
+
+The word "hydration" may appear only when explicitly contrasting Qwik with hydration-based
+frameworks, and the sentence must make clear that hydration is what other frameworks do and what
+Qwik avoids. For example: "Unlike frameworks that hydrate on the client, Qwik resumes from
+serialized state." Never use hydration vocabulary, even casually or by analogy, to explain what
+Qwik itself does.

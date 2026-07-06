@@ -4,6 +4,7 @@
 
 ```ts
 
+import type { AbortMessage } from '@qwik.dev/router/middleware/request-handler';
 import type { AsyncSignal } from '@qwik.dev/core';
 import { Component } from '@qwik.dev/core';
 import { Cookie } from '@qwik.dev/router/middleware/request-handler';
@@ -28,6 +29,7 @@ import { RequestEventLoader } from '@qwik.dev/router/middleware/request-handler'
 import { RequestHandler } from '@qwik.dev/router/middleware/request-handler';
 import type { ResolveSyncValue } from '@qwik.dev/router/middleware/request-handler';
 import type { SerializationStrategy } from '@qwik.dev/core/internal';
+import type { ServerError } from '@qwik.dev/router/middleware/request-handler';
 import type { Signal } from '@qwik.dev/core';
 import type * as v from 'valibot';
 import type { ValueOrPromise } from '@qwik.dev/core';
@@ -37,7 +39,7 @@ import type * as z_2 from 'zod';
 
 // @public (undocumented)
 export type Action<RETURN, INPUT = Record<string, unknown>, OPTIONAL extends boolean = true> = {
-    (): ActionStore<RETURN, INPUT, OPTIONAL>;
+    (): ActionStore<ExcludeControlFlow<RETURN>, INPUT, OPTIONAL>;
 };
 
 // @public (undocumented)
@@ -193,6 +195,9 @@ export type DocumentStyle = Readonly<((Omit<QwikIntrinsicElements['style'], 'dan
 // @public (undocumented)
 export const ErrorBoundary: Component<ErrorBoundaryProps>;
 
+// @public
+export type ExcludeControlFlow<T> = Exclude<T, AbortMessage | ServerError>;
+
 // @public (undocumented)
 export type FailOfRest<REST extends readonly DataValidator[]> = REST extends readonly DataValidator<infer ERROR>[] ? ERROR : never;
 
@@ -221,6 +226,9 @@ export interface FormSubmitSuccessDetail<T> {
     // (undocumented)
     value: T;
 }
+
+// @public
+export const getRequestEvent: (thisArg?: unknown) => RequestEvent | undefined;
 
 // Warning: (ae-forgotten-export) The symbol "ValibotDataValidator" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "ZodDataValidator" needs to be exported by the entry point index.d.ts
@@ -282,7 +290,7 @@ export interface LinkProps extends AnchorAttributes {
 
 // @public (undocumented)
 type Loader_2<RETURN> = {
-    (): LoaderSignal<RETURN>;
+    (): LoaderSignal<ExcludeControlFlow<RETURN>>;
 };
 export { Loader_2 as Loader }
 
@@ -459,9 +467,7 @@ export type ResolvedDocumentHead<FrontMatter extends Record<string, any> = Recor
 // @public
 export const routeAction$: ActionConstructor;
 
-// Warning: (ae-internal-missing-underscore) The name "routeActionQrl" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal (undocumented)
+// @public (undocumented)
 export const routeActionQrl: ActionConstructorQRL;
 
 // @public
@@ -480,11 +486,11 @@ export interface RouteConfigValue {
 // @public
 export interface RouteData {
     _0?: string;
-    _4?: ContentModuleLoader;
+    _4?: ContentModuleLoader | ModuleLoader[];
     _9?: string;
     [part: string]: RouteData | RouteData[] | ModuleLoader[] | ContentModuleLoader | MenuModuleLoader | string[] | string | undefined;
     _B?: string[];
-    _E?: ContentModuleLoader;
+    _E?: ContentModuleLoader | ModuleLoader[];
     _G?: string;
     // Warning: (ae-forgotten-export) The symbol "ModuleLoader" needs to be exported by the entry point index.d.ts
     _I?: ContentModuleLoader | ModuleLoader[];

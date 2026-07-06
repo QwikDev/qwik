@@ -12,11 +12,11 @@ export type Action<
   INPUT = Record<string, unknown>,
   OPTIONAL extends boolean = true,
 > = {
-  (): ActionStore<RETURN, INPUT, OPTIONAL>;
+  (): ActionStore<ExcludeControlFlow<RETURN>, INPUT, OPTIONAL>;
 };
 ```
 
-**References:** [ActionStore](#actionstore)
+**References:** [ActionStore](#actionstore), [ExcludeControlFlow](#excludecontrolflow)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
@@ -783,6 +783,16 @@ ErrorBoundary: import("@qwik.dev/core").Component<ErrorBoundaryProps>;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/error-boundary.tsx)
 
+<h2 id="excludecontrolflow">ExcludeControlFlow</h2>
+
+Drops control-flow signals (`ev.redirect()`, `ev.error()`, etc.) from a loader/action return type: those are thrown, not surfaced as data. `ev.fail()` is plain data and is kept.
+
+```typescript
+export type ExcludeControlFlow<T> = Exclude<T, AbortMessage | ServerError>;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
+
 <h2 id="failofrest">FailOfRest</h2>
 
 ```typescript
@@ -1022,6 +1032,48 @@ T
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/form-component.tsx)
 
+<h2 id="getrequestevent">getRequestEvent</h2>
+
+Returns the current RequestEvent if possible. Only usable on the server, and only during request processing.
+
+```typescript
+getRequestEvent: (thisArg?: unknown) => RequestEvent | undefined;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+thisArg
+
+</td><td>
+
+unknown
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+RequestEvent \| undefined
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/route-loaders.ts)
+
 <h2 id="getvalidatorinputtype">GetValidatorInputType</h2>
 
 ```typescript
@@ -1252,11 +1304,11 @@ _(Optional)_
 
 ```typescript
 export type Loader<RETURN> = {
-  (): LoaderSignal<RETURN>;
+  (): LoaderSignal<ExcludeControlFlow<RETURN>>;
 };
 ```
 
-**References:** [LoaderSignal](#loadersignal)
+**References:** [LoaderSignal](#loadersignal), [ExcludeControlFlow](#excludecontrolflow)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
@@ -2005,9 +2057,9 @@ boolean
 
 </td><td>
 
-_(Optional)_ Enable the ViewTransition API
+_(Optional)_ Enable the ViewTransition API on SPA navigation. Opt-in: set to `true` to enable.
 
-Default: `true`
+Default: `false`
 
 </td></tr>
 </tbody></table>
@@ -2081,6 +2133,14 @@ The `strictLoaders` Vite plugin option applies `invalidate: []` globally for all
 
 ```typescript
 routeAction$: ActionConstructor;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
+
+<h2 id="routeactionqrl">routeActionQrl</h2>
+
+```typescript
+routeActionQrl: ActionConstructorQRL;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
@@ -2235,11 +2295,11 @@ _(Optional)_ Prefix for infix params (e.g. "pre" for `pre[slug]post`) — only o
 
 </td><td>
 
-ContentModuleLoader
+ContentModuleLoader \| ModuleLoader[]
 
 </td><td>
 
-_(Optional)_ The not-found (404) module loader for this subtree
+_(Optional)_ Not-found (404) boundary: single loader (runtime prepends layouts) or override chain (`404@layout`/`!`).
 
 </td></tr>
 <tr><td>
@@ -2280,11 +2340,11 @@ _(Optional)_ The JS bundle names for this route (SSR only)
 
 </td><td>
 
-ContentModuleLoader
+ContentModuleLoader \| ModuleLoader[]
 
 </td><td>
 
-_(Optional)_ The error page module loader for this subtree (error.tsx, takes precedence over \_4)
+_(Optional)_ Error (error.tsx) boundary, same single-or-override-chain shape as `_4`.
 
 </td></tr>
 <tr><td>

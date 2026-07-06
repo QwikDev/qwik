@@ -1,5 +1,5 @@
 import * as qwikRouterConfig from '@qwik-router-config';
-import { isBrowser } from '@qwik.dev/core';
+import { isBrowser, isDev } from '@qwik.dev/core';
 // @ts-expect-error no types for preloader yet
 import { p as preload } from '@qwik.dev/core/preloader';
 import { ensureSlash } from '../../utils/pathname';
@@ -25,7 +25,7 @@ export async function prefetchRoute(
   manifestHash?: string,
   prefetchBundle = true
 ) {
-  if (!isBrowser) {
+  if (!isBrowser || isDev) {
     return;
   }
 

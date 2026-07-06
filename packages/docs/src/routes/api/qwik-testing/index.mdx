@@ -618,6 +618,7 @@ export declare function ssrRenderToDom(
     raw?: boolean;
     qwikLoader?: boolean;
     containerTagName?: string;
+    statePrewarm?: number | false;
     stream?: StreamWriter;
     streaming?: StreamingOptions;
     resume?: boolean;
@@ -661,7 +662,7 @@ opts
 
 </td><td>
 
-\{ debug?: boolean; raw?: boolean; qwikLoader?: boolean; containerTagName?: string; stream?: StreamWriter; streaming?: [StreamingOptions](#streamingoptions); resume?: boolean; onBeforeResume?: (document: Document) =&gt; void; }
+\{ debug?: boolean; raw?: boolean; qwikLoader?: boolean; containerTagName?: string; statePrewarm?: number \| false; stream?: StreamWriter; streaming?: [StreamingOptions](#streamingoptions); resume?: boolean; onBeforeResume?: (document: Document) =&gt; void; }
 
 </td><td>
 
@@ -843,7 +844,7 @@ Promise&lt;Event \| null&gt;
 
 ```typescript
 export declare function vnode_fromJSX(jsx: JSXOutput): {
-  vParent: _VirtualVNode | _ElementVNode;
+  vParent: _ElementVNode | _VirtualVNode;
   vNode: _VNode | null;
   document: _QDocument;
   container: ClientContainer;
@@ -878,7 +879,7 @@ JSXOutput
 
 **Returns:**
 
-\{ vParent: \_VirtualVNode \| \_ElementVNode; vNode: \_VNode \| null; document: \_QDocument; container: ClientContainer; }
+\{ vParent: \_ElementVNode \| \_VirtualVNode; vNode: \_VNode \| null; document: \_QDocument; container: ClientContainer; }
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/vdom-diff.unit-util.ts)
 

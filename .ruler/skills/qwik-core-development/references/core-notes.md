@@ -177,10 +177,11 @@ runtime can restore the invoke context (and reactive tracking) across await poin
   optimizer (`code_move.rs`) and the qwikloader, keep them in sync.
 - Functions with a top-level `for await` and async generators are not converted and keep plain
   promise/async-iterator behavior.
-- Only component render fns keep reactive tracking across awaits. Task contexts have no
-  `$effectSubscriber$`, and async-signal computes strip the ambient subscriber before invoking the
-  compute (`$runComputation$`) so store/signal reads there never subscribe the rendering component;
-  the SSG state snapshot (`e2e/qwik-e2e/apps/qwikrouter-ssg-snapshot`) catches leaks.
+- Component render fns and auto-tracked tasks keep reactive tracking across awaits. Plain task
+  contexts have no ambient `$effectSubscriber$`; explicit `track()` remains available for async
+  helper boundaries. Async-signal computes strip the ambient subscriber before invoking the compute
+  (`$runComputation$`) so store/signal reads there never subscribe the rendering component; the SSG
+  state snapshot (`e2e/qwik-e2e/apps/qwikrouter-ssg-snapshot`) catches leaks.
 - Test both paths in `core/tests/async-component.spec.tsx` and `use/use-core.unit.ts` when touching
   this area.
 

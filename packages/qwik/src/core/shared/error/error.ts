@@ -37,7 +37,7 @@ export const codeToText = (code: number, ...parts: any[]): string => {
       'Unknown vnode type {{0}}.', // 26
       'Materialize error: missing element: {{0}} {{1}} {{2}}', // 27
       'Cannot coerce a Signal, use `.value` instead', // 28
-      'track() is not available when autoTrack is enabled; reads inside the task are tracked automatically.', // 29
+      'Reserved error code.', // 29
       '===\nQwik version {{0}} already imported while importing {{1}}.\nThis can lead to issues due to duplicated shared structures.\nVerify that the Qwik libraries you\'re using are in "resolve.noExternal[]" and in "optimizeDeps.exclude".\n===\n', // 30
       'WrappedSignal is read-only', // 31
       'Attribute value is unsafe for SSR {{0}}', // 32
@@ -91,7 +91,7 @@ export const enum QError {
   invalidVNodeType = 26,
   materializeVNodeDataError = 27,
   cannotCoerceSignal = 28,
-  trackInAutoTrackMode = 29,
+  reserved29 = 29,
   duplicateQwik = 30,
   wrappedReadOnly = 31,
   unsafeAttr = 32,

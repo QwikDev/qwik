@@ -11,7 +11,6 @@ import {
   type QRLInternal,
 } from '../shared/qrl/qrl-class';
 import { assertQrl } from '../shared/qrl/qrl-utils';
-import { qError, QError } from '../shared/error/error';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { type Container, type HostElement } from '../shared/types';
 import { TaskEvent } from '../shared/utils/markers';
@@ -144,8 +143,7 @@ export interface TaskOptions {
   deferUpdates?: boolean;
   /**
    * Automatically track every signal and store read by the task (including reads after an `await`),
-   * instead of requiring explicit `track()` calls. When `true`, calling the task ctx's `track()`
-   * throws.
+   * without requiring explicit `track()` calls.
    *
    * Defaults to `false`.
    */
@@ -185,11 +183,6 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: TaskOptions): void => {
   }
 };
 
-/** `track()` for autoTrack tasks: reads are tracked automatically, so calling it is a mistake. */
-const autoTrackNoTrack: Tracker = () => {
-  throw qError(QError.trackInAutoTrackMode);
-};
-
 export const runTask = (
   task: Task,
   container: Container,
@@ -215,10 +208,8 @@ export const runTask = (
     if (task.$flags$ & TaskFlags.AUTO_TRACK) {
       // Auto-track: every read during the task (incl. across await, via generator driving) subscribes.
       iCtx.$effectSubscriber$ = getSubscriber(task, EffectProperty.COMPONENT);
-      taskApi = { track: autoTrackNoTrack, cleanup };
-    } else {
-      taskApi = { track: trackFn(task, container), cleanup };
     }
+    taskApi = { track: trackFn(task, container), cleanup };
     return safeCall(
       () => taskFn(taskApi),
       cleanup,

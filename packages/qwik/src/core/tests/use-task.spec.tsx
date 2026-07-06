@@ -10,6 +10,7 @@ import {
   useStore,
   useTask$,
   type Signal as SignalType,
+  type Tracker,
 } from '@qwik.dev/core';
 import {
   domRender,
@@ -26,6 +27,11 @@ import { whenContainerDataReady } from '../client/dom-container';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
+
+const readTrackedCount = async (track: Tracker, count: SignalType<number>) => {
+  await Promise.resolve();
+  return track(count);
+};
 
 describe.each([
   { render: ssrRenderToDom }, //
@@ -219,29 +225,37 @@ describe.each([
       );
       await getTestPlatform().flush();
     });
-    it('should throw a readable error when track() is called in autoTrack mode', async () => {
-      const Cmp = component$(() => {
-        const count = useSignal(0);
+    it('should allow track() in autoTrack mode after an async helper resumes', async () => {
+      const Counter = component$(() => {
+        const count = useSignal(10);
+        const double = useSignal(0);
         useTask$(
-          ({ track }) => {
-            // Misuse: track() is not available in autoTrack mode.
-            track(() => count.value);
+          async ({ track }) => {
+            double.value = 2 * (await readTrackedCount(track, count));
           },
           { autoTrack: true }
         );
-        return <span>OK</span>;
+        return <button onClick$={() => count.value++}>{double.value}</button>;
       });
-      try {
-        await render(
-          <ErrorProvider>
-            <Cmp />
-          </ErrorProvider>,
-          { debug }
-        );
-        expect((ErrorProvider.error as Error | null)?.message).toContain('autoTrack');
-      } catch (e) {
-        expect((e as Error).message).toContain('autoTrack');
-      }
+
+      const { vNode, document, container } = await render(<Counter />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            <Signal ssr-required>20</Signal>
+          </button>
+        </Component>
+      );
+      await trigger(document.body, 'button', 'click');
+      await waitForDrain(container);
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            <Signal ssr-required>22</Signal>
+          </button>
+        </Component>
+      );
+      await getTestPlatform().flush();
     });
     it('should rerun on track derived signal', async () => {
       const Counter = component$(() => {

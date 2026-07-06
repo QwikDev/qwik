@@ -28,8 +28,7 @@ export interface OnVisibleTaskOptions {
   strategy?: VisibleTaskStrategy;
   /**
    * Automatically track every signal and store read by the task (including reads after an `await`),
-   * instead of requiring explicit `track()` calls. When `true`, calling the task ctx's `track()`
-   * throws.
+   * without requiring explicit `track()` calls.
    *
    * Defaults to `false`.
    */

@@ -35,10 +35,7 @@ export const isRecoverable = (err: any) => {
 
 const GENERIC_BOUNDARY_ERROR_MESSAGE = 'An error occurred';
 
-/**
- * Stable, non-reversible digest of a thrown value, to correlate a redacted client error with server
- * logs.
- */
+// Stable digest correlating a redacted client error with server logs.
 const errorBoundaryDigest = (err: unknown): string => {
   const source =
     err instanceof Error ? `${err.name}: ${err.message}\n${err.stack ?? ''}` : String(err);
@@ -49,11 +46,9 @@ const errorBoundaryDigest = (err: unknown): string => {
   return (hash >>> 0).toString(36);
 };
 
-/** An `Error` or a serializable non-`undefined` value can be kept as the boundary error as-is. */
 const isKeepableBoundaryError = (v: unknown): boolean =>
   v instanceof Error || (v !== undefined && canSerialize(v));
 
-/** Redact to a generic message + a stable `digest`, dropping the raw message and any attached props. */
 const redactToGeneric = (err: unknown): Error & { digest: string } => {
   const redacted = new Error(GENERIC_BOUNDARY_ERROR_MESSAGE) as Error & { digest: string };
   redacted.digest = errorBoundaryDigest(err);
@@ -113,7 +108,7 @@ export const fireOnError = (
   }
 };
 
-// Server-only WeakSet, kept off the store so the deferred-origin flag never serializes.
+// Off the store so the deferred-origin flag never serializes.
 const boundariesWithDeferredError = /*#__PURE__*/ new WeakSet<ErrorBoundaryStore>();
 
 /** Record that the boundary's error originated inside a deferred segment. */
@@ -125,7 +120,7 @@ export const markErrorFromDeferredSegment = (store: ErrorBoundaryStore): void =>
 export const isErrorFromDeferredSegment = (store: ErrorBoundaryStore): boolean =>
   boundariesWithDeferredError.has(store);
 
-// The SSR container rethrows through the render drain, whose catch site only knows phase 'render'.
+// The render-drain catch site only knows phase 'render', so tag the origin.
 const ERROR_PHASE = /*#__PURE__*/ Symbol('qErrorPhase');
 
 /** Tag the error's originating phase so a rethrow through the render drain keeps it. */
@@ -136,7 +131,7 @@ export const tagErrorPhase = (err: unknown, phase: ErrorBoundaryInfo['phase']): 
   try {
     Object.defineProperty(err, ERROR_PHASE, { value: phase, configurable: true });
   } catch {
-    // Frozen error: best-effort, the catch site falls back to its own phase.
+    // Frozen error: catch site falls back to its own phase.
   }
 };
 
@@ -157,7 +152,7 @@ export const markBoundaryErrored = (
 ): void => {
   store.error = toSerializableBoundaryError(error, isDev, transformError);
   fireOnError(store.$onError$, error, {
-    // A tagged origin (e.g. a task throw rethrown through the SSR drain) beats the catch site's.
+    // A tagged origin (e.g. a rethrown task throw) beats the catch site's.
     phase: getTaggedErrorPhase(error) ?? phase,
     boundaryId: store.boundaryId ?? '',
   });

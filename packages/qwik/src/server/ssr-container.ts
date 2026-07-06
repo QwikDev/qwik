@@ -460,7 +460,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   nextOutOfOrderId(markUsed = true): number {
-    // In-order ErrorBoundary needs an id but must not arm the OOOS executor.
+    // In-order ErrorBoundary needs an id without arming the OOOS executor.
     const ooosActive = __EXPERIMENTAL__.suspense && this.outOfOrderStreaming;
     if (!ooosActive && !__EXPERIMENTAL__.errorBoundary) {
       return 0;
@@ -1379,7 +1379,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   emitPatchDataIfNeeded(): void {
     const patches: (string | number | boolean | null)[] = [];
-    // The inline executor walks forward-only, so entries must ascend by element index.
+    // Inline executor walks forward-only, so entries must ascend by index.
     const sortedBackpatches = [...this.backpatchMap.entries()].sort(
       ([a], [b]) => Number(a) - Number(b)
     );
@@ -1449,7 +1449,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   emitErrorSwapExecutorIfNeeded(): void {
-    // Gated on `errorBoundary` only, so an in-order SSR error swaps without Suspense.
+    // Gated on `errorBoundary` only, so in-order errors swap without Suspense.
     if (!__EXPERIMENTAL__.errorBoundary || this.isErrorSwapExecutorEmitted) {
       return;
     }
@@ -1461,7 +1461,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   $registerErrorSwap$(_boundaryId: number): void {
-    // No-op: standalone boundaries emit `qErr` inline; only a segment defers it.
+    // No-op: standalone boundaries emit `qErr` inline; only segments defer.
   }
 
   emitInlineScript(script: string): void {
@@ -1879,7 +1879,7 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
   }
 
   override $registerErrorSwap$(boundaryId: number): void {
-    // `qErr` is inert inside the segment `<template>`, so defer the swap to the root.
+    // `qErr` is inert inside the segment `<template>`; defer swap to root.
     this.$errorSwapIds$.push(boundaryId);
   }
 

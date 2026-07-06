@@ -107,7 +107,7 @@ export const isDomContainer = (container: any): container is DomContainer => {
   return container instanceof DomContainer;
 };
 
-// Boundary host markers, to re-find a boundary from inside a streamed fallback segment.
+// Re-find a boundary from inside a streamed fallback segment.
 const RESET_BOUNDARY_HOST_SELECTOR = [QErrorFallbackHost, QSuspenseResultParent, QErrorContentHost]
   .map((marker) => `[${marker.replace(':', '\\:')}]`)
   .join(',');
@@ -129,11 +129,10 @@ function getOutOfOrderStreamingScript(boundaryId: number, content: Element | nul
   }
 }
 
-// One `unhandledrejection` listener per window: many containers share a page, so a per-container
-// listener would log the same rejection once per container (the `1+N` bug the qerror path fixed).
+// One listener per window; per-container would log each shared-page rejection N times.
 const windowsWithRejectionBridge = new WeakSet<object>();
 
-/** Route a fire-and-forget promise rejection (otherwise lost) to `logError`, once per window. */
+/** Route an otherwise-lost promise rejection to `logError`, once per window. */
 function registerUnhandledRejectionBridge(view: (Window & typeof globalThis) | null | undefined) {
   if (
     !view ||
@@ -192,17 +191,16 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     this.$setServerData$();
     element.qContainer = this;
     element.qDestroy = () => this.$destroy$();
-    // Registered synchronously here (not in deferred resume) so CSR containers get it too.
+    // Registered synchronously (not in deferred resume) so CSR containers get it too.
     this.$qErrorHandler$ = (e: Event) => {
       const detail = (e as CustomEvent<{ error: unknown; element?: Element; importError?: string }>)
         .detail;
-      // qwikloader already logged import/symbol failures; don't re-log or route them.
+      // qwikloader already logged import/symbol failures.
       if (detail?.importError) {
         return;
       }
       const source = detail?.element;
-      // Resolve to the nearest owning container; qerror is shared on the document, so a plain
-      // contains() check also matches outer containers of a nested source and double-handles it.
+      // qerror is shared on the document; scope to this container so nested sources aren't double-handled.
       if (source && source.closest(QContainerSelector) === this.element) {
         const host = this.vNodeLocate(source);
         if (host) {
@@ -341,9 +339,9 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         throw err;
       }
     }
-    // A thrown `undefined` can't key `store.error` (its "no error" sentinel); store a keyable Error.
+    // `undefined` is `store.error`'s "no error" sentinel; store a keyable Error instead.
     const storedError = err === undefined ? new Error('undefined') : err;
-    // Walk to the closest boundary that can still handle it, so a 2nd throw escalates.
+    // Walk to the closest handling boundary so a 2nd throw escalates.
     let current: VNode | null = host;
     while (current) {
       const boundaryHost = this.resolveContextHost(current, ERROR_CONTEXT);
@@ -352,10 +350,9 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       }
       const store = this.resolveContext<ErrorBoundaryStore>(boundaryHost, ERROR_CONTEXT);
       if (store && store.error === undefined) {
-        // Resumed boundary never subscribed to `store.error`, so mark dirty to render the fallback.
-        // Stored raw — client errors never serialize; errorBoundaryCmp redacts for display in prod.
+        // Resumed boundary never subscribed, so mark dirty to render the fallback.
         store.error = storedError;
-        // `store.$onError$` is server-only (not serialized); read serialized `props.onError$` instead.
+        // `store.$onError$` is server-only (not serialized); read serialized `props.onError$`.
         const boundaryProps = this.getHostProp<{
           onError$?: (error: unknown, info: ErrorBoundaryInfo) => unknown;
         }>(boundaryHost, ELEMENT_PROPS);
@@ -367,7 +364,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         return;
       }
       if (store && store.error === null) {
-        // A generic ERROR_CONTEXT consumer captures only, never re-renders.
+        // Generic ERROR_CONTEXT consumer captures only, never re-renders.
         store.error = storedError;
         return;
       }
@@ -376,10 +373,10 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         logError(err);
         return;
       }
-      // Boundary already shows its fallback (the fallback threw): escalate past it.
+      // Fallback itself threw: escalate past this boundary.
       current = this.getParentHost(boundaryHost);
     }
-    // No boundary above: rethrow async so it reaches the global error handler, not the chore loop.
+    // No boundary above: rethrow async to reach the global handler, not the chore loop.
     logErrorAndThrowAsync(err);
   }
 
@@ -402,7 +399,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     return undefined;
   }
 
-  /** Like `resolveContext`, but returns the host that provides the context, not its value. */
   resolveContextHost(host: VNode, contextId: ContextId<unknown>): VNode | null {
     while (host) {
       const ctx = this.getHostProp<Array<string | unknown>>(host, QCtxAttr);
@@ -414,11 +410,11 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     return null;
   }
 
-  /** Clear the boundary's error and re-attempt its children (`host` = the element reset fired on). */
+  /** Clear the boundary's error and re-attempt its children. */
   resetErrorBoundary(host: VNode): void {
     let boundaryHost = this.resolveContextHost(host, ERROR_CONTEXT);
     if (!boundaryHost) {
-      // Re-resolve from the host element: a streamed fallback segment doesn't chain to the boundary.
+      // A streamed fallback segment doesn't chain to the boundary; re-resolve from the DOM.
       const hostEl = (host as { node?: Element }).node?.closest?.(RESET_BOUNDARY_HOST_SELECTOR);
       boundaryHost = hostEl
         ? this.resolveContextHost(this.vNodeLocate(hostEl), ERROR_CONTEXT)
@@ -433,8 +429,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     }
     // Re-render the children's owner and clear the error in the same tick to re-supply + re-execute.
     let owner = this.getParentHost(boundaryHost);
-    // A boundary projected through a `<Suspense>` resolves to the Suspense, not the component that
-    // supplies its children; climb past it so a 2nd/CSR reset re-renders the actual owner.
+    // A Suspense-projected boundary resolves to the Suspense; climb to the real children owner.
     while (
       owner &&
       (this.getHostProp(owner, OnRenderProp) as { $symbol$?: string } | null)?.$symbol$ ===

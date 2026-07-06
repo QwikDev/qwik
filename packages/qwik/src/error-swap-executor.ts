@@ -1,4 +1,4 @@
-/** Inline script entry; logic lives in error-swap-executor-shared.ts so source tests can install it. */
+/** Inline script entry; logic is in the shared module so tests can install it. */
 
 import { installErrorSwapExecutor } from './error-swap-executor-shared';
 

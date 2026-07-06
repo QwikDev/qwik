@@ -411,8 +411,6 @@ describe.each([
 
       const { vNode, container } = await render(<Counter />, { debug });
       if (render === ssrRenderToDom) {
-        // On SSR with clientOnly: true, should NOT compute during SSR
-        // The signal should stay loading (because computation was skipped)
         expect(vNode).toMatchVDOM(
           <>
             <div>
@@ -435,8 +433,6 @@ describe.each([
           </>
         );
       } else {
-        // On pure DOM render, clientOnly doesn't prevent computation
-        // Should compute immediately and show value
         expect(vNode).toMatchVDOM(
           <>
             <div>
@@ -461,7 +457,7 @@ describe.each([
             (globalThis as any).loading = asyncValue.$untrackedLoading$;
             (globalThis as any).value = asyncValue.$untrackedValue$;
           },
-          // This fires before the document:onQIdle where clientOnly signals are resumed
+          // Fires before qidle resumes clientOnly signals.
           { strategy: 'document-ready' }
         );
         return (
@@ -481,7 +477,7 @@ describe.each([
           </div>
         );
         await trigger(container.element, null, 'd:qinit');
-        // We don't serialize value if the signal is invalid
+        // Invalid signals don't serialize their value.
         expect((globalThis as any).value).toBe(NEEDS_COMPUTATION);
         expect((globalThis as any).loading).toBe(true);
         await trigger(container.element, null, 'd:qidle');
@@ -503,7 +499,6 @@ describe.each([
     });
 
     it('should NOT compute clientOnly signals without subscribers', async () => {
-      // Track which signals computed
       (globalThis as any).__asyncComputations__ = {
         unused: false,
         used: false,
@@ -543,7 +538,6 @@ describe.each([
       const { vNode } = await render(<Counter />, { debug });
 
       if (render === ssrRenderToDom) {
-        // On SSR, both signals should be skipped
         expect((globalThis as any).__asyncComputations__.unused).toBe(false);
         expect((globalThis as any).__asyncComputations__.used).toBe(false);
         expect(vNode).toMatchVDOM(
@@ -555,11 +549,8 @@ describe.each([
           </>
         );
       } else {
-        // On client, only the used signal should compute
         await delay(10);
-        // Verify unused signal was NOT computed
         expect((globalThis as any).__asyncComputations__.unused).toBe(false);
-        // Verify used signal WAS computed
         expect((globalThis as any).__asyncComputations__.used).toBe(true);
         expect(vNode).toMatchVDOM(
           <>
@@ -578,13 +569,11 @@ describe.each([
       const Counter = component$(() => {
         const asyncValue = useAsync$(async () => 42, {
           clientOnly: true,
-          // No initial value provided
         });
         return <div>{asyncValue.value}</div>;
       });
 
       if (render === ssrRenderToDom) {
-        // During SSR, accessing .value on a clientOnly signal without initial value should throw
         let threwError = false;
         let errorMessage = '';
         try {
@@ -597,10 +586,8 @@ describe.each([
         expect(threwError).toBe(true);
         expect(errorMessage).toContain('Cannot read .value of a clientOnly async signal');
       } else {
-        // During client render, clientOnly signals compute eagerly, so it should work
-        // (or at least not throw with the "cannot read" error)
+        // Client render computes clientOnly eagerly, so no throw.
         const { vNode } = await render(<Counter />, { debug });
-        // Should render successfully with the computed value
         expect(vNode).toBeDefined();
       }
     });
@@ -631,17 +618,13 @@ describe.each([
         );
       });
       const { container } = await render(<Counter />, { debug });
-      // on server its called after render
-      // on client it is not called yet
+      // Server cleans up after render; client not yet.
       expect((globalThis as any).log).toEqual(render === ssrRenderToDom ? ['cleanup'] : []);
       await trigger(container.element, 'button', 'click');
-      // on server after resuming cleanup is not called yet
-      // on client it is called as usual
-      // so from this point the log is equal for ssr and client
+      // From here SSR and client logs converge.
       expect((globalThis as any).log).toEqual(['cleanup']);
       await trigger(container.element, 'button', 'click'); //show
       await trigger(container.element, 'button', 'click'); //hide
-      // on server and client cleanup called again
       expect((globalThis as any).log).toEqual(['cleanup', 'cleanup']);
     });
 
@@ -670,8 +653,7 @@ describe.each([
     });
 
     it('should resume polling AsyncSignal with d:qidle on SSR', async () => {
-      // This test verifies that polling AsyncSignals are tracked during serialization
-      // and a d:qidle event is added to resume polling on document idle
+      // Polling AsyncSignals serialize a d:qidle event to resume on idle.
       const Counter = component$(() => {
         const start = useConstant(Date.now);
         const elapsed = useAsync$(async () => Date.now() - start, { expires: 50 });

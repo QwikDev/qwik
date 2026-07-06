@@ -20,7 +20,6 @@ import { getNextUniqueIndex } from '../utils/unique-index-generator';
 import { getStoreTarget } from '../../reactive-primitives/impl/store';
 import { redactBoundaryErrorForDisplay, type ErrorBoundaryStore } from './error-handling';
 
-/** Minimal SSR frame shape: the projection frame holds the component that authored the children. */
 type ISsrComponentFrameLike = {
   projectionComponentFrame?: { componentNode?: unknown } | null;
 };
@@ -51,7 +50,7 @@ export interface ErrorBoundaryProps {
  * @internal
  */
 export const errorBoundaryReset = (): void => {
-  // The render-time boundary host; the reset-time host is the streamed fallback's, which doesn't chain.
+  // Render-time boundary host captured at throw site; streamed fallback's host doesn't chain.
   const [host] = useLexicalScope<[unknown]>();
   const container = tryGetInvokeContext()?.$container$ as
     | { resetErrorBoundary?: (host: unknown) => void }
@@ -63,7 +62,7 @@ export const errorBoundaryReset = (): void => {
 
 // Core isn't optimizer-processed, so ErrorBoundary is hand-built with `inlinedQrl`.
 
-// `!== undefined`, not truthiness, so a thrown falsy value still shows the fallback.
+// `!== undefined` so a thrown falsy value still shows the fallback.
 const _ebContentStyle = (store: ErrorBoundaryStore) => ({
   display: store.error !== undefined ? 'none' : 'contents',
 });
@@ -73,15 +72,11 @@ const _ebFallbackStyle = (store: ErrorBoundaryStore) => ({
 });
 const _ebFallbackStyle_str = '{display:p0.error!==undefined?"contents":"none"}';
 
-// Core-bundled last-resort for a failed `fallback$` chunk; `role="alert"` because the author
-// can't annotate it.
+// Last-resort for a failed `fallback$` chunk; `role="alert"` since the author can't annotate it.
 const buildLastResortFallback = (): JSXOutput =>
   /*#__PURE__*/ _jsxSorted('div', { role: 'alert' }, null, 'Something went wrong.', 0, null);
 
-/**
- * Render `fallback$`, or the last-resort node when its chunk fails to LOAD; a loaded-then-thrown
- * fallback still escalates to the parent.
- */
+// Last-resort only on chunk load failure; a loaded-then-thrown fallback escalates.
 const renderFallbackOrLastResort = (
   fallbackQrl: QRL<(error: unknown, reset: QRL<() => void>) => JSXOutput>,
   error: unknown,
@@ -90,7 +85,7 @@ const renderFallbackOrLastResort = (
   const rendered = fallbackQrl(error, reset) as JSXOutput | Promise<JSXOutput>;
   if (rendered && typeof (rendered as Promise<JSXOutput>).then === 'function') {
     return (rendered as Promise<JSXOutput>).catch((err) => {
-      // Loaded then threw → the QRL resolved; escalate. Never loaded → chunk failure; last resort.
+      // Resolved means loaded-then-threw → escalate; else chunk failure → last resort.
       if ((fallbackQrl as { resolved?: unknown }).resolved !== undefined) {
         throw err;
       }
@@ -114,7 +109,7 @@ const buildErrorBoundaryHosts = (store: ErrorBoundaryStore): JSXOutput => {
       1,
       null
     ),
-    // The host marker + delivery mode are chosen at drain time, when an in-place throw is known.
+    // Host marker + delivery mode are chosen at drain time, once an in-place throw is known.
     /*#__PURE__*/ _jsxSorted(
       SSRErrorFallbackHost,
       {
@@ -141,15 +136,13 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
   // Capture the boundary host so a streamed fallback's `reset()` can re-find the boundary.
   const invokeCtx = tryGetInvokeContext();
   const host = invokeCtx?.$hostElement$;
-  // Non-`$` so the `onError$` id serializes for the CSR-on-resume sink; minted on both sides so
-  // pure-CSR boundaries get one.
-  // Read the raw target (not the proxy) so the component never subscribes to `boundaryId`.
+  // Read the raw target, not the proxy, so the component never subscribes to `boundaryId`.
   const container = invokeCtx?.$container$;
   if (container && (getStoreTarget(store) ?? store).boundaryId === undefined) {
     store.boundaryId = getNextUniqueIndex(container);
   }
   const reset = /*#__PURE__*/ inlinedQrl(errorBoundaryReset, '_ebR', [host]);
-  // Server-only mirrors in fresh closures, so `noSerialize` taints them, not the serialized prop QRLs.
+  // Fresh closures so `noSerialize` taints these mirrors, not the serialized prop QRLs.
   const fallbackQrl = props.fallback$;
   store.$fallback$ = noSerialize((error: unknown) => fallbackQrl(error, reset));
   const onErrorQrl = props.onError$;
@@ -159,8 +152,7 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
 
   const isServerEnv = qTest ? isServerPlatform() : !isBrowser;
   if (__EXPERIMENTAL__.errorBoundary && isServerEnv) {
-    // Serialize the children's projection owner (not the physical parent a `<Slot>` wrapper hides)
-    // so a resumed reset() re-executes them; plain `resetOwner` because prod drops `$`-prefixed keys.
+    // Projection owner (not the Slot-hidden parent) under plain key; prod drops `$`-prefixed keys.
     const ownerFrame = (
       invokeCtx?.$container$ as
         | { getComponentFrame?: (depth: number) => ISsrComponentFrameLike | null }
@@ -173,7 +165,7 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
   }
 
   if (store.error !== undefined) {
-    // Client-side display redaction (prod) for parity with the SSR path; no-op in dev.
+    // Prod display redaction for SSR parity; no-op in dev.
     const displayError = redactBoundaryErrorForDisplay(store.error);
     return /*#__PURE__*/ _jsxSorted(
       Fragment,

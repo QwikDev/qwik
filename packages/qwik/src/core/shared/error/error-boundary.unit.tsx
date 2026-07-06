@@ -4,11 +4,11 @@ import type { ErrorBoundaryProps } from './error-boundary';
 import type { ErrorBoundaryStore } from './error-handling';
 
 describe('ErrorBoundary public types', () => {
-  // These checks run at compile time; the bodies never execute (()=>()=>).
+  // Compile-time only: the `()=>()=>` bodies never execute.
   test('fallback$ error param is exactly unknown', () => () => {
     type FallbackError = Parameters<ErrorBoundaryProps['fallback$']>[0];
     expectTypeOf<FallbackError>().toEqualTypeOf<unknown>();
-    // `unknown` (not `any`): an un-narrowed property access must fail to compile.
+    // `unknown` not `any`: un-narrowed access must fail to compile.
     expectTypeOf<FallbackError>().not.toBeAny();
   });
 

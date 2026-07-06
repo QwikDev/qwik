@@ -1,4 +1,4 @@
-// Installed independently of `qO` so an in-order SSR error swaps without Suspense.
+// Separate from `qO` so in-order SSR errors swap without Suspense.
 
 const Q_ERROR_CONTENT_SELECTOR = '[q\\:ebc="';
 const Q_ERROR_FALLBACK_SELECTOR = '[q\\:ebf="';

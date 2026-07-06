@@ -233,7 +233,7 @@ export const enum VNodeDataFlag {
   REFERENCE = 8,
   /// Should be output during serialization.
   SERIALIZE = 16,
-  /// Node is in a swapped-out ErrorBoundary subtree, so it materializes as plain, non-resumable DOM.
+  /// In a swapped-out ErrorBoundary subtree; materializes as non-resumable DOM.
   INERT = 32,
 }
 

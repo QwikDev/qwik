@@ -8,7 +8,6 @@ import * as domContainer from './dom-container';
 import { ITERATION_ITEM_MULTI, ITERATION_ITEM_SINGLE } from '../shared/utils/markers';
 import { VNodeFlags } from './types';
 
-// Mock dependencies
 vi.mock('../shared/qrl/qrl-class', async () => {
   const actual =
     await vi.importActual<typeof import('../shared/qrl/qrl-class')>('../shared/qrl/qrl-class');
@@ -77,31 +76,21 @@ describe('_run', () => {
   let mockQrl: any;
 
   beforeEach(() => {
-    // Create mock event
     mockEvent = new Event('click');
-
-    // Create mock element
     mockElement = createMockElement();
-
-    // Create mock container
     mockContainer = {
       document: {},
       handleError: vi.fn(),
       $getObjectById$: vi.fn(),
     };
-
-    // Create mock context
     mockContext = {
       $container$: mockContainer,
       $hostElement$: {
         flags: 0,
       },
     };
-
-    // Create mock QRL
     mockQrl = vi.fn();
 
-    // Setup default mocks
     vi.mocked(domContainer.getDomContainer).mockReturnValue(mockContainer);
     vi.mocked(useCore.newInvokeContextFromDOM).mockReturnValue(mockContext);
     vi.mocked(domContainer.whenContainerDataReady).mockImplementation((_container, callback) =>
@@ -109,7 +98,6 @@ describe('_run', () => {
     );
     vi.mocked(qrlClass.deserializeCaptureDeltas).mockReturnValue([mockQrl]);
 
-    // Mock _captures global
     Object.defineProperty(qrlClass, '_captures', {
       get: () => [mockQrl],
       configurable: true,
@@ -163,14 +151,13 @@ describe('_run', () => {
 
     _run.call('captures', mockEvent, mockElement);
 
-    // The function should use the QRL from _captures[0]
     expect(qrlClass._captures![0]).toBe(mockQrlFromCaptures);
   });
 
   it('should handle empty captures string', () => {
     _run.call('', mockEvent, mockElement);
 
-    // Empty string is still a string, so deserializeCaptureDeltas will be called
+    // Empty string is still a string, so it deserializes.
     expect(qrlClass.deserializeCaptureDeltas).toHaveBeenCalledWith(mockContainer, '');
   });
 
@@ -429,7 +416,6 @@ describe('runEventHandlerQRL', () => {
       mockHostElement.flags = VNodeFlags.HasIterationItems;
       const singleItem = { id: 42 };
       vi.mocked(vnodeUtils.vnode_getProp).mockReturnValueOnce(singleItem);
-      // When invokeApply runs the wrapped handler, it should call the real handler with singleItem
       vi.mocked(useCore.invokeApply).mockImplementation((_ctx, handler) => {
         (handler as any)();
         return undefined;

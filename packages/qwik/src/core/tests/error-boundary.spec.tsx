@@ -76,7 +76,7 @@ const ThrowingTask = component$<{ message?: string; async?: boolean }>((props) =
   return <span id="content">ok</span>;
 });
 
-// Must be module-scoped: it's captured by a `component$` QRL.
+// Module-scoped: captured by a `component$` QRL.
 class NonSerializableError {
   message = 'non-serializable boom';
   toJSON() {
@@ -133,7 +133,7 @@ const dispatchQError = (
 
 const fbCount = (root: any) => root.querySelectorAll('#fb').length;
 
-// Settles fire-and-forget onError$ delivery; drain may reject when the error escalates.
+// Settles fire-and-forget onError$ delivery; drain may reject on escalation.
 const settleOnErrorDelivery = async (container: Parameters<typeof waitForDrain>[0]) => {
   await waitForDrain(container).catch(() => {});
   await getTestPlatform().flush();
@@ -142,7 +142,7 @@ const settleOnErrorDelivery = async (container: Parameters<typeof waitForDrain>[
 
 // ===== Shared fixtures hoisted to module scope (used across suites) =====
 
-// Fresh QRL per call: a fallback QRL must not be shared across containers.
+// Fresh QRL per call: a fallback QRL must not cross containers.
 const fb = (id = 'fb') => $((e: any) => <p id={id}>caught: {String(e?.message ?? e)}</p>);
 
 const Boxed = component$(() => {
@@ -172,7 +172,7 @@ const NamedSlotProjector = component$(() => {
   );
 });
 
-// Vite/Rollup stamp `.plugin` on build errors, so `isRecoverable` is false: a boundary must NOT hide them.
+// `.plugin`-stamped build errors are non-recoverable; a boundary must not hide them.
 const PluginThrower = component$(() => {
   const err = new Error('build boom');
   (err as any).plugin = 'vite:some-plugin';
@@ -181,7 +181,7 @@ const PluginThrower = component$(() => {
 
 const boxed = (child: JSXOutput) => <ErrorBoundary fallback$={fb()}>{child}</ErrorBoundary>;
 
-// Fresh tree per test: rendering one JSX object in two containers trips "props across containers".
+// Fresh tree per test: reusing one JSX object across containers trips "props across containers".
 const nestedEscalation = ({
   innerOnError,
   outerOnError,
@@ -203,7 +203,7 @@ const nestedEscalation = ({
   </ErrorBoundary>
 );
 
-// Object ref survives `$()` capture; a primitive `let` would be frozen to its initial value.
+// Object ref survives `$()` capture; a primitive `let` would freeze at its initial value.
 const onErrorLog: { errors: unknown[] } = { errors: [] };
 
 // ===== A. Core behavior: one body per test, run in both modes =====
@@ -222,7 +222,6 @@ const modes = [
 ] as const;
 
 describe.each(modes)('ErrorBoundary behavior (%s)', (mode, renderMode) => {
-  // Where the original SSR twin pinned in-order streaming, keep the pin on the SSR arm.
   const modeOpts = mode === 'SSR' ? IN_ORDER : {};
 
   it('projects children when there is no error', async () => {
@@ -285,11 +284,10 @@ describe.each(modes)('ErrorBoundary behavior (%s)', (mode, renderMode) => {
     if (mode === 'CSR') {
       expect(el.querySelector('#fb-inner')).toBeFalsy();
     } else {
-      // SSR keeps the superseded inner fallback inside the hidden inert content host.
       const contentHost = el.querySelector('[q\\:ebc]') as HTMLElement;
       expect(contentHost.style.display).toBe('none');
       expect(contentHost.contains(el.querySelector('#fb-inner'))).toBe(true);
-      // Every root must deserialize: no serialized refs into the inert region ("Missing child").
+      // Every root must deserialize: no serialized refs into the inert region.
       const state = el.querySelector('script[type="qwik/state"]')!;
       const rootCount = (JSON.parse(state.textContent!) as unknown[]).length / 2;
       for (let i = 0; i < rootCount; i++) {
@@ -307,7 +305,7 @@ describe.each(modes)('ErrorBoundary behavior (%s)', (mode, renderMode) => {
     ));
     expect(fbCount(container.element)).toBe(1);
     if (mode === 'CSR') {
-      // SSR currently surfaces the LAST error (boomB); only CSR guarantees first-error-wins.
+      // Only CSR guarantees first-error-wins; SSR surfaces the last error.
       expect(container.element.querySelector('#fb')?.textContent).toContain('caught: boomA');
     }
   });
@@ -388,7 +386,7 @@ describe.each(modes)('ErrorBoundary behavior (%s)', (mode, renderMode) => {
     const el = container.element;
     expect(el.querySelector('#fb-outer')?.textContent).toBe('outer');
     expect(el.querySelector('#fb-inner')).toBeFalsy();
-    // A loaded-then-threw fallback must escalate, NOT show the last-resort node.
+    // A loaded-then-threw fallback escalates, not the last-resort node.
     expect(el.ownerDocument.querySelector('[role="alert"]')).toBeFalsy();
   });
 
@@ -841,7 +839,7 @@ describe('ErrorBoundary CSR-specific', () => {
       const el = container.element;
       const target = el.querySelector('#target')!;
       dispatchQError(target, { error: new Error('client boom'), element: target });
-      // Termination proof: the drain settles instead of looping forever.
+      // Termination proof: drain settles instead of looping forever.
       await waitForDrain(container).catch(() => {});
       expect(el.querySelector('#target')).toBeFalsy();
       expect(el.querySelector('#fb')).toBeFalsy();
@@ -912,7 +910,7 @@ describe('ErrorBoundary CSR-specific', () => {
     await settleOnErrorDelivery(container);
 
     expect(infos).toHaveLength(1);
-    // dom-container's qerror listener routes through handleError(..., 'event').
+    // qerror listener routes through handleError(..., 'event').
     expect(infos[0].phase).toBe('event');
     expect(infos[0].boundaryId.length).toBeGreaterThan(0);
   });
@@ -1027,7 +1025,6 @@ describe('ErrorBoundary CSR-specific', () => {
       const document = createDocument();
       const hostOuter = document.createElement('div');
       document.body.appendChild(hostOuter);
-      // Outer container A owns an ErrorBoundary whose subtree hosts the nested container B.
       await render(
         hostOuter,
         <ErrorBoundary
@@ -1053,8 +1050,7 @@ describe('ErrorBoundary CSR-specific', () => {
       );
       const outer = _getDomContainer(hostOuter) as any;
       const inner = _getDomContainer(hostInner);
-      // A.contains(source-in-B) is true and A's vNodeLocate resolves the foreign source into A's own
-      // boundary subtree, so a contains()-gated handler double-handles the inner error via A.
+      // A.contains(source-in-B) is true, so a contains()-gated handler would double-handle via A.
       const outerHandleError = vi.spyOn(outer, 'handleError');
 
       const innerTarget = hostInner.querySelector('#target-inner')!;
@@ -1065,7 +1061,6 @@ describe('ErrorBoundary CSR-specific', () => {
       expect(hostInner.querySelector('#fb-inner')?.textContent).toContain(
         'caught inner: boom from inner'
       );
-      // The outer container does not own the inner source; it must never handle its error.
       expect(outerHandleError).not.toHaveBeenCalled();
       expect(hostOuter.querySelector('#fb-outer')).toBeFalsy();
     });
@@ -1095,7 +1090,7 @@ describe('ErrorBoundary CSR-specific', () => {
 
   describe('last-resort fallback', () => {
     it('CSR: renders a built-in role="alert" node when the fallback$ chunk fails to load', async () => {
-      // A QRL whose import rejects: `resolved` stays undefined, exactly like a 404'd chunk.
+      // A QRL whose import rejects, exactly like a 404'd chunk.
       const failingFallback = qrl(
         () => Promise.reject(new Error('chunk load failure')),
         'fb'
@@ -1134,7 +1129,7 @@ describe('ErrorBoundary CSR-specific', () => {
       const el = container.element;
       const alert = el.querySelector('[role="alert"]');
       expect(alert?.textContent).toContain('Something went wrong');
-      // A chunk LOAD failure is handled locally; it never escalates to the outer boundary.
+      // A chunk-load failure is handled locally, never escalating to the outer boundary.
       expect(el.querySelector('#fb-outer')).toBeFalsy();
     });
   });
@@ -1143,8 +1138,7 @@ describe('ErrorBoundary CSR-specific', () => {
     const renderTwoContainers = async () => {
       setPlatform(getTestPlatform());
       const document = createDocument();
-      // The mock window's addEventListener is a noop; make it real + spyable so we can both
-      // assert single registration and capture the handler the bridge installs.
+      // Mock window's addEventListener is a noop; make it real + spyable.
       const listeners: Record<string, ((e: any) => void)[]> = {};
       const view = document.defaultView as any;
       view.addEventListener = vi.fn((type: string, cb: (e: any) => void) => {
@@ -1168,7 +1162,6 @@ describe('ErrorBoundary CSR-specific', () => {
         const registrations = (view.addEventListener as any).mock.calls.filter(
           (c: any[]) => c[0] === 'unhandledrejection'
         );
-        // Single-fire invariant: one listener for the whole page, not one per container.
         expect(registrations.length).toBe(1);
 
         const handlers = listeners['unhandledrejection'] ?? [];
@@ -1189,7 +1182,6 @@ describe('ErrorBoundary CSR-specific', () => {
     const UnboundedThrower = component$((): JSXOutput => {
       throw original;
     });
-    // The no-boundary exit logs AND re-throws async (so global reporters still see it).
     const throwAsyncSpy = vi
       .spyOn(logUtils, 'logErrorAndThrowAsync')
       .mockImplementation((message?: any) => message as Error);
@@ -1533,7 +1525,7 @@ describe('ErrorBoundary swap mechanics (qErr)', () => {
     expect(fbEl?.textContent).toContain('caught: boom');
     expect(displayOf(contentHost)).toBe('none');
     expect(displayOf(fallbackHost)).toBe('contents');
-    // qwik-dom's element.querySelector is NOT subtree-scoped, so assert placement via `contains`.
+    // qwik-dom querySelector is document-wide, so assert placement via `contains`.
     expect(fallbackHost?.contains(fbEl)).toBe(true);
     expect(contentHost?.contains(document.querySelector('#before'))).toBe(true);
     expect(contentHost?.contains(fallbackHost)).toBe(false);
@@ -1580,7 +1572,7 @@ describe('ErrorBoundary swap mechanics (qErr)', () => {
     expect(fbEl?.textContent).toContain('caught: async boom');
     expect(contentHost.style.display).toBe('none');
     expect(fallbackHost.style.display).toBe('contents');
-    // qwik-dom's element.querySelector is NOT subtree-scoped, so assert placement via `contains`.
+    // qwik-dom querySelector is document-wide, so assert placement via `contains`.
     expect(fallbackHost.contains(fbEl)).toBe(true);
     expect(contentHost.contains(fbEl)).toBe(false);
     expect(el.outerHTML).toContain('qErr(');
@@ -1651,7 +1643,7 @@ describe('ErrorBoundary swap mechanics (qErr)', () => {
   it('escalates to the outer boundary even when outOfOrder is opted in (in place via qErr)', async () => {
     const { html, document } = await streamAndResume(nestedEscalation(), OOOS_OPT_IN);
     expect(document.querySelector('#fb-outer')?.textContent).toBe('outer');
-    // First [q:ebc] in document order is the outer boundary's content host.
+    // First [q:ebc] in document order is the outer content host.
     expect(displayOf(document.querySelector('[q\\:ebc]'))).toBe('none');
     expect(document.querySelector('#fb-outer')?.closest('[q\\:ebf]')).toBeTruthy();
     expect(html).toContain('qErr(');
@@ -1790,7 +1782,7 @@ describe('ErrorBoundary swap mechanics (qErr)', () => {
   });
 
   it('a sync throw in a boundary that is a SIBLING of a real Suspense segment still swaps in place via qErr', async () => {
-    // Resolves AFTER the drain so the sibling <Suspense> produces a real deferred segment.
+    // Resolves after the drain so the sibling <Suspense> becomes a real deferred segment.
     const SlowResolver = component$(() => {
       const pending = delay(5).then(() => <span id="deferred-ok">deferred ok</span>) as any;
       return <>{pending}</>;
@@ -1813,7 +1805,6 @@ describe('ErrorBoundary swap mechanics (qErr)', () => {
     expect(fbEl?.closest('[q\\:rp]')).toBeFalsy();
     expect(displayOf(document.querySelector('#before')?.closest('[q\\:ebc]'))).toBe('none');
     expect(html).toContain('qErr(');
-    // The sibling segment still resolves through its own qO delivery.
     expect(document.querySelector('#deferred-ok')?.textContent).toBe('deferred ok');
     expect(html).toContain('qO(');
   });
@@ -2003,7 +1994,7 @@ describe('ErrorBoundary OOOS (opt-in, Suspense)', () => {
   });
 
   it('an in-place throw beside a deferred <Suspense> swaps via qErr and absorbs the late rejection', async () => {
-    // Rejects AFTER the boundary's fallback host drained, so the swap is already done in place.
+    // Rejects after the fallback host drained, so the swap is already done.
     const SlowRejector = component$(() => {
       const pending = delay(5).then(() => Promise.reject(new Error('late boom'))) as any;
       return <>{pending}</>;
@@ -2087,8 +2078,7 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
     expect(received[0]).toBe(original);
   });
 
-  // The client fallback render redacts via this helper; the e2e harness builds in dev, so this is
-  // the prod-redaction proof.
+  // The e2e harness builds in dev, so this is the prod-redaction proof.
   it('redactBoundaryErrorForDisplay: prod redacts a raw client error to generic + digest', () => {
     const raw = Object.assign(new Error('client secret'), { token: 'abc' });
     const out = redactBoundaryErrorForDisplay(raw, /* dev */ false) as Error & { digest?: string };
@@ -2113,11 +2103,10 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
     const original = Object.assign(new Error('secret-db-detail'), { query: 'SELECT 1' });
     const transformError = (e: unknown) =>
       new Error(`safe: ${e instanceof Error ? e.name : 'unknown'}`);
-    // Applies even in dev — when the app sets a transform, it owns the policy.
+    // Applies even in dev — a set transform owns the policy.
     const inDev = toSerializableBoundaryError(original, /* dev */ true, transformError) as Error;
     expect(inDev.message).toBe('safe: Error');
     expect((inDev as unknown as Record<string, unknown>).query).toBeUndefined();
-    // And in prod, replacing the default generic scrub.
     const inProd = toSerializableBoundaryError(original, /* dev */ false, transformError) as Error;
     expect(inProd.message).toBe('safe: Error');
   });
@@ -2197,7 +2186,6 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
     expect(store.error).toBe(first);
 
     markBoundaryErrored(store, second);
-    // Display and telemetry stay consistent: the new error both reports and replaces.
     expect(received).toEqual([first, second]);
     expect(store.error).toBe(second);
   });

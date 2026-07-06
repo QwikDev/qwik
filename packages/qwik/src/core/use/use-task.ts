@@ -184,7 +184,7 @@ export const runTask = (
 
   task.$flags$ &= ~TaskFlags.DIRTY;
   const handleError = (reason: unknown) => {
-    // The SSR container rethrows into the render drain; the tag keeps the origin for `onError$`.
+    // SSR rethrows into the render drain; the tag keeps the origin for `onError$`.
     tagErrorPhase(reason, 'task');
     container.handleError(reason, host, 'task');
   };

@@ -19,7 +19,6 @@ const QWIK_ERROR_SWAP_EXECUTOR_DEBUG: string = (globalThis as any).QWIK_ERROR_SW
  * @public
  */
 export function getQwikLoaderScript(opts: { debug?: boolean } = {}) {
-  // default script selector behavior
   return opts.debug ? QWIK_LOADER_DEFAULT_DEBUG : QWIK_LOADER_DEFAULT_MINIFIED;
 }
 
@@ -52,13 +51,11 @@ export function getQwikOutOfOrderExecutorScript(opts: { debug?: boolean } = {}) 
   const script = opts.debug
     ? QWIK_OUT_OF_ORDER_EXECUTOR_DEBUG
     : QWIK_OUT_OF_ORDER_EXECUTOR_MINIFIED;
-  // OOOS uses classic scripts so qO() can run synchronously in stream order. Wrap the
-  // whole executor so multiple streamed containers can include it without redeclaring
-  // top-level consts; the first installed executor services every container.
+  // Guard install so streamed containers don't redeclare top-level consts.
   return `if(!globalThis.qO||globalThis.qO.d!==document){${script}}`;
 }
 
-/** Gated on `errorBoundary`, not `suspense`, so a plain in-order SSR error still swaps. */
+/** Gated on `errorBoundary`, not `suspense`, so in-order SSR errors swap. */
 export function getQwikErrorSwapExecutorScript(opts: { debug?: boolean } = {}) {
   if (!__EXPERIMENTAL__.errorBoundary) {
     return '';

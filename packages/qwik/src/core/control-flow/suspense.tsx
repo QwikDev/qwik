@@ -294,7 +294,7 @@ const SSRDeferredSlot = __EXPERIMENTAL__.suspense
               if (errorBoundaryStore.$emitFallback$) {
                 return errorBoundaryStore.$emitFallback$(error);
               }
-              // Boundary already swapped in place: first error wins, absorb the late one.
+              // First error wins; absorb this late one.
               if (errorBoundaryStore.error !== undefined) {
                 return;
               }
@@ -399,21 +399,21 @@ export const SSRErrorFallback = __EXPERIMENTAL__.errorBoundary
         const store = jsx.varProps.store as ErrorBoundaryStore;
         const segmentId = `${boundaryId}`;
         const streamFallback = async (error: unknown): Promise<void> => {
-          // Detached `$fallback$` = teardown started; first error wins, later siblings no-op.
+          // Detached `$fallback$` = teardown started; first error wins.
           const fallback = store.$fallback$;
           if (!fallback) {
             return;
           }
           markBoundaryErrored(store, error, 'render', ssr.$transformError$);
-          // Detach so a throw from the fallback itself propagates instead of re-rendering it.
+          // Detach so a fallback throw propagates, not re-renders.
           store.$fallback$ = undefined;
-          // Render the redacted `store.error`, not raw `error`, so the streamed fallback can't leak it.
+          // Render redacted `store.error`, not raw `error`, to avoid leaks.
           const segment = await ssr.segment(segmentId, fallback(store.error) as JSXOutput, options);
           await emitErrorBoundaryFallback(ssr, boundaryId, segmentId, segment);
         };
         store.$emitFallback$ = noSerialize(streamFallback);
         writeOutOfOrderPlaceholder(ssr, boundaryId);
-        // Sync content throw streams inline (`!== undefined` so a falsy throw still streams).
+        // `!== undefined` so a falsy sync throw still streams.
         if (store.error !== undefined && store.$fallback$) {
           return streamFallback(store.error);
         }
@@ -430,14 +430,14 @@ export const SSRErrorFallbackInline = __EXPERIMENTAL__.errorBoundary
         // `!== undefined` (not truthiness) so a falsy thrown value still swaps.
         if (store.error !== undefined && store.$fallback$) {
           const fallback = store.$fallback$;
-          // Detach so a throw from the fallback itself escalates instead of being re-absorbed here.
+          // Detach so a fallback throw escalates, not re-absorbs.
           store.$fallback$ = undefined;
           if (isOutOfOrderSegmentContainer(ssr)) {
-            // Inline `qErr` is inert in the segment `<template>`; defer it to the root.
+            // Inline `qErr` is inert in the segment `<template>`; defer to root.
             ssr.$registerErrorSwap$(boundaryId);
             enqueue(fallback(store.error) as JSXOutput);
           } else {
-            // LIFO: enqueue `qErr` first so the swap runs after the fallback content renders.
+            // LIFO: enqueue `qErr` first so swap runs after content.
             enqueue(() => {
               ssr.emitErrorSwapExecutorIfNeeded();
               ssr.emitInlineScript(`qErr(${boundaryId})`);

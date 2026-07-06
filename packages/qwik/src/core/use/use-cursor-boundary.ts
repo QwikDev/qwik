@@ -33,8 +33,7 @@ export function addCursorBoundary(cursorData: CursorData, vNode: VNode): void {
   if (!__EXPERIMENTAL__.suspense) {
     return;
   }
-  // Walk up: a projected child of an intervening component (e.g. ErrorBoundary) can miss the
-  // downward boundary propagation, so the nearest boundary may be cached on an ancestor, not here.
+  // A projected child (e.g. under ErrorBoundary) may cache its boundary on an ancestor.
   let boundary: CursorBoundary | null = null;
   let current: VNode | null = vNode;
   while (current && !boundary) {

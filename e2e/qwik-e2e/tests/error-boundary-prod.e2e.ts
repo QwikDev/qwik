@@ -1,8 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { assertNoBrowserErrors, streamingUrl } from './error-boundary-helpers';
 
-// The error-boundary.prod app builds both bundles with qDev=false (dev-server.ts keys production
-// mode off the ".prod" app-name suffix), covering the prod client axis the dev app cannot.
+// The ".prod" app builds both bundles with qDev=false, covering the prod client axis.
 const prodUrl = (scenario: string | null) =>
   streamingUrl(scenario, true, '/error-boundary.prod/eb');
 
@@ -19,10 +18,9 @@ test.describe('ErrorBoundary prod build (qDev=false)', () => {
     await page.locator('#eb-client-throw').click();
 
     await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-    // qDev=false client redacts the raw client message to the generic form.
+    // qDev=false redacts the raw client message to the generic form.
     await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: An error occurred');
-    // Rendered text only: qwik/state still carries the raw string as the fixture's own
-    // serialized `message` prop (input data), not as the caught error.
+    // Rendered text only: qwik/state still carries the raw string as serialized input data.
     expect(await page.locator('body').innerText()).not.toContain('client click boom');
 
     await page.locator('#eb-fallback-button').click();

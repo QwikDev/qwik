@@ -88,7 +88,7 @@ export function processVNodeData(document: Document): void {
 export function processOutOfOrderSegmentVNodeData(
   document: Document,
   segmentId: string,
-  // The revealed node: Suspense content host, or an ErrorBoundary `q:rp` fallback host.
+  // Suspense content host, or an ErrorBoundary `q:rp` fallback host.
   contentNode: Element | null
 ): void {
   if (!__EXPERIMENTAL__.suspense || !contentNode) {

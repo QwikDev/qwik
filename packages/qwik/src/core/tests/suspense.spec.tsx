@@ -287,7 +287,7 @@ describe.each([
     });
 
     if (render === ssrRenderToDom) {
-      // SSR still propagates the error synchronously — Suspense is not an SSR error boundary.
+      // Suspense is not an SSR error boundary; SSR propagates synchronously.
       let caught: unknown;
       try {
         await render(
@@ -449,7 +449,7 @@ describe('domRender: Suspense client-side pause delay', () => {
       { debug }
     );
 
-    // Wait past the delay (10ms) so the pause-timer fires and marks fallback visible.
+    // Wait past the delay so the pause-timer fires.
     await new Promise((r) => setTimeout(r, 40));
 
     (globalThis as any).__slowResolve(<p>Done</p>);
@@ -481,9 +481,6 @@ describe('domRender: Suspense client-side pause delay', () => {
   });
 
   it('should re-show fallback when a descendant updates and blocks past delay', async () => {
-    // After initial mount, flip the signal: the child's render returns a Promise that takes
-    // longer than the Suspense delay. The new update-time cursor should inherit the
-    // boundary's hooks and re-trigger the fallback, then clear it once resolved.
     (globalThis as any).__susToggle = null as any;
     (globalThis as any).__susResolve = null as any;
 
@@ -493,7 +490,7 @@ describe('domRender: Suspense client-side pause delay', () => {
       useTask$(({ track }) => {
         const t = track(() => toggle.value);
         if (t === 0) {
-          return; // initial: sync
+          return;
         }
         return new Promise<void>((resolve) => {
           (globalThis as any).__susResolve = resolve;
@@ -511,7 +508,6 @@ describe('domRender: Suspense client-side pause delay', () => {
       { debug }
     );
 
-    // Initial render finished; children in place, no fallback.
     let html = document.querySelector('div')!.innerHTML;
     expect(html).toContain('value=0');
     expect(html).not.toContain(loading);
@@ -534,7 +530,6 @@ describe('domRender: Suspense client-side pause delay', () => {
       </div>
     );
 
-    // Trigger an update that will pause the cursor.
     const toggle = (globalThis as any).__susToggle as { value: number };
     toggle.value = 1;
 
@@ -544,7 +539,6 @@ describe('domRender: Suspense client-side pause delay', () => {
     html = document.querySelector('div')!.innerHTML;
     expect(html).toContain(loading);
 
-    // Resolve the pending task and let the render settle.
     const resolveFn = (globalThis as any).__susResolve as () => void;
     expect(resolveFn).toBeDefined();
     resolveFn();

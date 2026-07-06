@@ -147,17 +147,14 @@ function findErrorBoundaryNode(host: ISsrNode | null): ISsrNode | null {
   return null;
 }
 
-/**
- * First error wins: a boundary whose own fallback threw has a detached `$fallback$`, so it
- * escalates.
- */
+/** First error wins: a boundary whose fallback threw has a detached `$fallback$`, so it escalates. */
 function renderErrorBoundaryFallback(
   ssr: SSRContainer,
   host: ReturnType<SSRContainer['getOrCreateLastNode']>,
   err: unknown,
   phase: ErrorBoundaryInfo['phase'] = 'render'
 ): JSXOutput {
-  // A non-recoverable build/plugin error must surface, not hide in any fallback.
+  // Non-recoverable build/plugin errors must surface, not hide in a fallback.
   if (qDev && !isRecoverable(err)) {
     throw err;
   }
@@ -190,7 +187,7 @@ function renderErrorBoundaryFallback(
     }
     return null;
   }
-  // No boundary above: rethrow to abort to the error page (safety net).
+  // No boundary above: rethrow to the error page.
   throw err;
 }
 
@@ -229,8 +226,7 @@ function markSubtreeInert(
       owner.removeProp((node.getProp(QSlot) as string | null) ?? QDefaultSlot);
     }
   }
-  // Elements still materialize when inert; a dead virtual node can't, so drop
-  // its subscriptions to keep serialized producer effects from referencing it.
+  // Dead virtual nodes can't materialize; drop subs so producer effects don't reference them.
   if (hasVirtualNodePath(node.id)) {
     clearAllEffects(ssr, node);
   }

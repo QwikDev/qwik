@@ -238,7 +238,6 @@ describe('SSR Backpatching', () => {
     const CtxA = createContextId<{ early: Signal<string> }>('bp-rev-a');
     const CtxB = createContextId<{ late: Signal<string> }>('bp-rev-b');
 
-    // Streams after #late: patches the LATE element first.
     const MutateLate = component$(() => {
       const context = useContext(CtxB);
       useTask$(() => {
@@ -247,7 +246,6 @@ describe('SSR Backpatching', () => {
       return <span>mutate-late</span>;
     });
 
-    // Streams last: patches the EARLY element after the late one.
     const MutateEarly = component$(() => {
       const context = useContext(CtxA);
       useTask$(() => {

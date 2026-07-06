@@ -2,7 +2,7 @@ import { createDocument } from './testing/document';
 import { describe, expect, it } from 'vitest';
 import { installErrorSwapExecutor } from './error-swap-executor-shared';
 
-/** The `qErr(id)` swap is the in-order error reveal, independent of any Suspense/OOOS machinery. */
+/** QErr(id) is the in-order error reveal, independent of Suspense/OOOS. */
 describe('error-swap executor (qErr)', () => {
   const setup = (html: string) => {
     const document = createDocument({ html });

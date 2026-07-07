@@ -32,6 +32,7 @@ import { collapseToLibInlinedQrl } from './lib-mode-collapse.js';
 import { SignalHoister } from '../jsx/signal-analysis.js';
 import { isRelativePathInsideBase } from '../../paths.js';
 import { transformInlineSegmentBody } from './inline-body.js';
+import { deriveIsDev } from './const-replacement.js';
 import {
   hasUnderscorePlaceholderParams,
   isStrippedExtraction,
@@ -354,6 +355,9 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
       // Suppress `.w([])` on stripped child QRLs.
       inlineOptions?.stripCtxName,
       inlineOptions?.stripEventHandlers,
+      // const folding for the inline/hoist body
+      ctx.isServer,
+      deriveIsDev(ctx.mode),
     );
 
     let sigRewrittenBody = rawBody;

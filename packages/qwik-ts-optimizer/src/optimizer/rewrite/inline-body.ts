@@ -24,6 +24,7 @@ import { computeKeyPrefix } from '../jsx/key-prefix.js';
 import { SignalHoister } from '../jsx/signal-analysis.js';
 import { foldBodySimplifiableExpressions } from '../jsx/simplify.js';
 import { getQrlImportSource } from './rewrite-calls.js';
+import { foldConstantsInBodyText } from './const-replacement.js';
 import { injectCapturesUnpacking, removeDeadConstLiterals } from '../segment/segment-codegen.js';
 import {
   resolveConstLiterals,
@@ -109,6 +110,9 @@ export function transformInlineSegmentBody(
    */
   stripCtxName?: readonly string[],
   stripEventHandlers?: boolean,
+  /** Server/dev flags for isServer/isBrowser/isDev folding, applied here since this body sits outside the parent MagicString. */
+  isServer?: boolean,
+  isDev?: boolean,
 ): { transformedBody: string; additionalImports: Map<string, string>; hoistedDeclarations: string[]; keyCounterValue?: number } {
   // `body` is locally mutable plain string for slicing/concatenation
   // throughout this transform. The branded BodyText only matters at the
@@ -447,6 +451,11 @@ export function transformInlineSegmentBody(
       hoistedDeclarations.push(...bodyJsxResult.hoistedDeclarations);
       finalKeyCounterValue = bodyJsxResult.keyCounterValue;
     }
+  }
+
+  // Fold const flags before the simplify pass so dead branches collapse for DCE.
+  if (originalImports && (isServer !== undefined || isDev !== undefined)) {
+    body = foldConstantsInBodyText(body, originalImports, isServer, isDev);
   }
 
   const hasNestedExts = allExtractions.some(e => e.parent === ext.symbolName);

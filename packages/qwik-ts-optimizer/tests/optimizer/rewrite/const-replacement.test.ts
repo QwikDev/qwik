@@ -8,7 +8,7 @@
 import { describe, it, expect } from 'vitest';
 import MagicString from 'magic-string';
 import { parseSync } from 'oxc-parser';
-import { replaceConstants } from '../../../src/optimizer/rewrite/const-replacement.js';
+import { replaceConstants, foldConstantsInBodyText } from '../../../src/optimizer/rewrite/const-replacement.js';
 import { collectImports } from '../../../src/optimizer/extraction/marker-detection.js';
 import { transformModule } from '../../../src/index.js';
 import { mkFilePath, mkSourceText } from '../../../src/optimizer/types/brands.js';
@@ -19,6 +19,23 @@ function runReplace(source: string, isServer?: boolean, isDev?: boolean) {
   const importMap = collectImports(program);
   const result = replaceConstants(s, program, importMap, isServer, isDev);
   return { code: s.toString(), ...result };
+}
+
+function importMapOf(source: string) {
+  const { program } = parseSync('test.tsx', source);
+  return collectImports(program);
+}
+
+function parentCode(input: string, isServer?: boolean) {
+  const result = transformModule({
+    input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(input) }],
+    srcDir: mkFilePath('.'),
+    entryStrategy: { type: 'hoist' },
+    minify: 'simplify',
+    transpileTs: true,
+    isServer,
+  });
+  return (result.modules.find((m) => m.kind === 'parent') ?? result.modules[0]!).code;
 }
 
 describe('replaceConstants', () => {
@@ -159,5 +176,75 @@ if (isServer) { bar(); }
     expect(result.code).toContain('if (true) { foo(); }');
     expect(result.code).toContain('if (true) { bar(); }');
     expect(result.replacedCount).toBe(2);
+  });
+});
+
+describe('foldConstantsInBodyText', () => {
+  it('folds isBrowser to false in a standalone body when isServer=true', () => {
+    const importMap = importMapOf(`import { isBrowser } from '@qwik.dev/core';`);
+    const out = foldConstantsInBodyText(`() => { if (isBrowser) { load(); } return 1; }`, importMap, true, undefined);
+    expect(out).toContain('if (false)');
+    expect(/\bisBrowser\b/.test(out)).toBe(false);
+  });
+
+  it('folds isServer to true and negates isBrowser to false on a server build', () => {
+    const importMap = importMapOf(`import { isServer, isBrowser } from '@qwik.dev/core/build';`);
+    const out = foldConstantsInBodyText(`() => [isServer, isBrowser]`, importMap, true, undefined);
+    expect(out).toContain('[true, false]');
+  });
+
+  it('leaves isDev untouched when isDev is undefined', () => {
+    const importMap = importMapOf(`import { isServer, isDev } from '@qwik.dev/core';`);
+    const out = foldConstantsInBodyText(`() => [isServer, isDev]`, importMap, true, undefined);
+    expect(out).toContain('[true, isDev]');
+  });
+
+  it('does not fold a member-access property of the same name', () => {
+    const importMap = importMapOf(`import { isServer } from '@qwik.dev/core';`);
+    const out = foldConstantsInBodyText(`() => obj.isServer`, importMap, true, undefined);
+    expect(out).toContain('obj.isServer');
+  });
+
+  it('returns the body unchanged when no const-source import matches', () => {
+    const importMap = importMapOf(`import { isServer } from 'some-other-lib';`);
+    const body = `() => { if (isServer) { load(); } }`;
+    expect(foldConstantsInBodyText(body, importMap, true, undefined)).toBe(body);
+  });
+
+  it('returns the body unchanged when isServer and isDev are both undefined', () => {
+    const importMap = importMapOf(`import { isServer } from '@qwik.dev/core';`);
+    const body = `() => { if (isServer) { load(); } }`;
+    expect(foldConstantsInBodyText(body, importMap, undefined, undefined)).toBe(body);
+  });
+});
+
+describe('const folding reaches hoist/inline strategy bodies', () => {
+  it('folds isBrowser inside a hoisted marker body and drops the dead-branch-only import', () => {
+    const input = `
+import { component$, isBrowser } from '@qwik.dev/core';
+import { routes } from '@app-config';
+export const C = component$(() => {
+  if (isBrowser) { register(routes); }
+  return <div>hi</div>;
+});
+`;
+    const code = parentCode(input, true);
+    expect(/\bisBrowser\b/.test(code)).toBe(false);
+    expect(code).not.toContain('if (false)');
+    expect(code).not.toContain('@app-config');
+  });
+
+  it('keeps the client branch and drops the server branch when isServer=false', () => {
+    const input = `
+import { component$, isServer } from '@qwik.dev/core';
+export const C = component$(() => {
+  if (isServer) { serverOnly(); } else { clientOnly(); }
+  return <div>hi</div>;
+});
+`;
+    const code = parentCode(input, false);
+    expect(/\bisServer\b/.test(code)).toBe(false);
+    expect(code).toContain('clientOnly()');
+    expect(code).not.toContain('serverOnly()');
   });
 });

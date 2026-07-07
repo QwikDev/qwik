@@ -37,7 +37,7 @@ import {
   transformJsxCalls,
 } from '../jsx/jsx-call-transform.js';
 import { stripExportDeclarations } from './strip-exports.js';
-import { replaceConstants } from './const-replacement.js';
+import { replaceConstants, deriveIsDev } from './const-replacement.js';
 import type { EmitMode } from '../types/types.js';
 import { collectBindingNamesFromPattern } from '../ast/binding-pattern.js';
 import type { AstFunction, AstNode, AstProgram, ImportDeclarationSpecifier, ImportSpecifier } from '../../ast-types.js';
@@ -450,12 +450,7 @@ function applyModeTransforms(ctx: RewriteContext): void {
   if (ctx.stripExports && ctx.stripExports.length > 0) {
     stripExportDeclarations(ctx.s, ctx.program, ctx.stripExports);
   }
-  let isDev: boolean | undefined;
-  if (ctx.mode === 'dev' || ctx.mode === 'hmr') {
-    isDev = true;
-  } else if (ctx.mode === 'prod') {
-    isDev = false;
-  }
+  const isDev = deriveIsDev(ctx.mode);
   if (ctx.isServer !== undefined || isDev !== undefined) {
     replaceConstants(ctx.s, ctx.program, ctx.originalImports, ctx.isServer, isDev);
   }

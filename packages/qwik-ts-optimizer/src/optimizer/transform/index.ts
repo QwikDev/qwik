@@ -783,6 +783,26 @@ function analyzeModuleCaptures(
   };
 }
 
+/**
+ * Under inline/hoist, bodies stay at module level so a top-level extraction's
+ * module-scope refs resolve in place — drop them from captures to keep
+ * non-serializable module singletons out of `_captures`. Nested extractions
+ * (function-local captures) are left untouched.
+ */
+function dropTopLevelModuleScopeCaptures(
+  extractions: ExtractionResult[],
+  moduleLevelDeclsByName: ReadonlyMap<string, ModuleLevelDecl>,
+): void {
+  for (const ext of extractions) {
+    if (ext.parent !== null || ext.captureNames.length === 0) continue;
+    const kept = ext.captureNames.filter((name) => !moduleLevelDeclsByName.has(name));
+    if (kept.length === ext.captureNames.length) continue;
+    const mut = ext as Mutable<ExtractionResult>;
+    mut.captureNames = kept;
+    mut.captures = kept.length > 0;
+  }
+}
+
 /** Phase 3: attribute module-level decl usage and decide migrations. */
 function attributeSegmentUsage(
   mod: ModuleContext,
@@ -868,11 +888,6 @@ function attributeSegmentUsage(
     }
   }
 
-  // Under inline strategy, segment bodies stay in the parent module
-  // (inside `q_X.s(body)`), so a `move` decision would delete a decl
-  // that the body still references — broken. Run migration and keep
-  // only `reexport` decisions; SWC emits these too, presumably for
-  // API stability across the segment-file ↔ inline output forms.
   let migrationDecisions = analyzeMigration(
     moduleLevelDecls,
     segmentUsage,
@@ -881,6 +896,7 @@ function attributeSegmentUsage(
   );
   if (isInlineStrategy) {
     migrationDecisions = filterInlineStrategyMigrations(migrationDecisions);
+    dropTopLevelModuleScopeCaptures(extractions, moduleLevelDeclsByName);
   }
 
   return {

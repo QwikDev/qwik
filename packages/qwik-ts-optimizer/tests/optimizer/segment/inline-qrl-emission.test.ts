@@ -275,3 +275,29 @@ export { makeIt };
     expect(code).toMatch(/solo\(\)/);
   });
 });
+
+describe('inline strategy: top-level module-scope refs are not captured', () => {
+  it('references a module-level decl directly instead of serializing it as a capture', () => {
+    const input = `
+import { server$ } from '@qwik.dev/router';
+import { makeCache } from 'some-lib';
+
+const cache = makeCache();
+
+export const fn = server$(async () => {
+  return cache.get('x');
+});
+`;
+    const result = transformModule({
+      input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(input) }],
+      srcDir: mkFilePath('.'),
+      entryStrategy: { type: 'hoist' },
+    });
+
+    const code = findParent(result).code;
+    expect(code).toMatch(/const\s+cache\s*=\s*makeCache\(\)/);
+    expect(code).toMatch(/cache\.get\(/);
+    expect(code).not.toMatch(/\.w\(\[\s*cache/);
+    expect(code).not.toMatch(/cache\s*=\s*_captures\[/);
+  });
+});

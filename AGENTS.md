@@ -37,6 +37,7 @@ the cursor system, and the Rust optimizer.
 | `@qwik.dev/router` | `packages/qwik-router` | Routing, middleware, adapters, SSG |
 | `@qwik.dev/react` | `packages/qwik-react` | React integration |
 | `@qwik.dev/dom` | `packages/qwik-dom` | Server-side DOM implementation |
+| `@qwik.dev/qwik-vite` | `packages/qwik-vite` | `vite-plugin-qwik`, private, bundled into `@qwik.dev/core/optimizer` |
 | `@qwik.dev/optimizer` | `packages/optimizer` | Rust optimizer, WASM, NAPI bindings |
 | `eslint-plugin-qwik` | `packages/eslint-plugin-qwik` | ESLint rules |
 | `create-qwik` | `packages/create-qwik` | Project scaffolding CLI |

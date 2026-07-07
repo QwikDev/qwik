@@ -1,8 +1,10 @@
+import { isDev } from '@qwik.dev/core';
 import type { Render } from '@qwik.dev/core/server';
 import { loadRoute } from '../../runtime/src/routing';
 import { FULLPATH_HEADER } from '../../runtime/src/route-loaders';
 import type { QwikRouterConfig, RebuildRouteInfoInternal } from '../../runtime/src/types';
 import { _asyncRequestStore } from './async-request-store';
+import { devPreloadedRouteLoaders } from './dev-preloaded-route-loader';
 import {
   IsQLoader,
   recognizeRequest,
@@ -17,6 +19,9 @@ import { runQwikRouter, type QwikRouterRun } from './user-response';
 let qwikRouterConfig: QwikRouterConfig;
 
 async function getConfig(): Promise<QwikRouterConfig> {
+  if (isDev) {
+    return (await import('@qwik-router-config')) as any as QwikRouterConfig;
+  }
   if (!qwikRouterConfig) {
     // The production server build prunes this plan (drops prerendered server-free routes); full
     // when nothing is excluded. See the router config `load`.
@@ -48,7 +53,8 @@ export async function requestHandler<T = unknown>(
     pathname,
     serverRequestEv.request.method,
     checkOrigin ?? true,
-    render
+    render,
+    serverRequestEv
   );
 
   // When fallthrough is enabled and no route matched, let the adapter handle it
@@ -63,7 +69,8 @@ export async function requestHandler<T = unknown>(
       cleanPathname,
       serverRequestEv.request.method,
       checkOrigin ?? true,
-      render
+      render,
+      serverRequestEv
     );
   };
 
@@ -102,10 +109,18 @@ async function loadRequestHandlers(
   pathname: string,
   method: string,
   checkOrigin: boolean | 'lax-proto',
-  renderFn: Render
+  renderFn: Render,
+  serverRequestEv: ServerRequestEvent
 ) {
   const { routes, serverPlugins, cacheModules } = qwikRouterConfig;
   const loadedRoute = await loadRoute(routes, cacheModules, pathname);
+  const loader = isDev ? devPreloadedRouteLoaders.get(serverRequestEv.request) : undefined;
+  const lastModule = loadedRoute.$mods$[loadedRoute.$mods$.length - 1];
+  if (loader && lastModule) {
+    loadedRoute.$mods$[loadedRoute.$mods$.length - 1] = Object.assign({}, lastModule, {
+      __preloadedRouteLoader: loader,
+    });
+  }
   const requestHandlers = resolveRequestHandlers(
     serverPlugins,
     loadedRoute,

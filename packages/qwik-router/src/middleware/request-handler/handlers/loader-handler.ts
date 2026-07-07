@@ -1,4 +1,3 @@
-import { isDev } from '@qwik.dev/core';
 import { _serialize } from '@qwik.dev/core/internal';
 import {
   FULLPATH_HEADER,
@@ -43,9 +42,7 @@ export function loaderHandler(
       return;
     }
 
-    const activeRouteLoaders =
-      isDev && !routeLoaders.includes(loader) ? [...routeLoaders, loader] : routeLoaders;
-    setLoaderData(requestEv, activeRouteLoaders, loaderPaths);
+    setLoaderData(requestEv, routeLoaders, loaderPaths);
 
     const loaderRequestEv = createLoaderRequestEventFactory(requestEv)(loader);
 

@@ -130,6 +130,8 @@ export type RouteLoaderCtx = {
   manifestHash?: string;
 };
 
+type DevRouteLoaderCtx = RouteLoaderCtx & { devRouteLoaderPaths?: Record<string, true> };
+
 export type RouteLoaderState = Record<string, AsyncSignal<unknown>>;
 
 const getRouteLoaderValueStateKey = (loaderId: string) => `${ROUTE_LOADER_VALUE_PREFIX}${loaderId}`;
@@ -168,24 +170,6 @@ const isRequestEvent = (value: unknown): value is RequestEvent =>
 
 const isLoaderInternal = (value: unknown): value is LoaderInternal =>
   typeof value === 'function' && (value as LoaderInternal).__brand === 'server_loader';
-
-const getDevRouteLoaderRegistry = () => {
-  if (!isDev || !isServer) {
-    return undefined;
-  }
-  const registryKey = Symbol.for('qwik.dev.router.route-loaders');
-  return ((globalThis as any)[registryKey] ||= new Map<string, LoaderInternal>()) as Map<
-    string,
-    LoaderInternal
-  >;
-};
-
-const registerDevRouteLoader = (loader: LoaderInternal) => {
-  if (!isDev) {
-    return;
-  }
-  getDevRouteLoaderRegistry()?.set(loader.__id, loader);
-};
 
 /**
  * Fetch a single loader's data from the server.
@@ -581,10 +565,16 @@ export const updateRouteLoaderPaths = (
   if (!isServer) {
     ctx.pagePathname = pageUrl.pathname;
     ctx.pageSearch = pageUrl.search;
+    if (isDev) {
+      (ctx as DevRouteLoaderCtx).devRouteLoaderPaths = {};
+    }
   }
   if (loaderPaths) {
     for (const key in loaderPaths) {
       ctx.loaderPaths[key] = loaderPaths[key];
+      if (!isServer && isDev) {
+        (ctx as DevRouteLoaderCtx).devRouteLoaderPaths![key] = true;
+      }
     }
   }
 };
@@ -641,8 +631,9 @@ export const ensureRouteLoaderSignals = (
     // Dev-only safety net for the first SPA nav: the route module isn't transformed yet, so the
     // client trie has no _R loader hash and the loader would resolve to undefined.
     if (isDev && !isServer) {
-      if (routeLoaderCtx.pagePathname && routeLoaderCtx.loaderPaths[loader.__id] === undefined) {
-        routeLoaderCtx.loaderPaths[loader.__id] = routeLoaderCtx.pagePathname;
+      const devCtx = routeLoaderCtx as DevRouteLoaderCtx;
+      if (devCtx.pagePathname && !devCtx.devRouteLoaderPaths?.[loader.__id]) {
+        devCtx.loaderPaths[loader.__id] = devCtx.pagePathname;
       }
     }
     ensureRouteLoaderSignal(loader, state, routeLoaderCtx);
@@ -665,10 +656,13 @@ export const resolveRouteLoaderByHash = (
   routeLoaders: readonly LoaderInternal[],
   loaderId: string
 ) => {
-  // Cold dev q-loader requests can know an id before route-local scans see the loader object.
+  return routeLoaders.find((loader) => matchesRouteLoaderId(loader, loaderId));
+};
+
+export const matchesRouteLoaderId = (loader: LoaderInternal, loaderId: unknown): boolean => {
   return (
-    routeLoaders.find((loader) => loader.__id === loaderId) ??
-    (isDev ? getDevRouteLoaderRegistry()?.get(loaderId) : undefined)
+    typeof loaderId === 'string' &&
+    (loader.__id === loaderId || (isDev && loader.__qrl.getHash() === loaderId))
   );
 };
 
@@ -849,9 +843,6 @@ export const routeLoaderQrl = ((
   loader.__search = search;
   loader.__allowStale = allowStale;
   Object.freeze(loader);
-  if (isDev) {
-    registerDevRouteLoader(loader);
-  }
   return loader;
 }) as LoaderConstructorQRL;
 

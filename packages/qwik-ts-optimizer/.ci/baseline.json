@@ -935,6 +935,11 @@
       "tests/optimizer/preparsed-program.test.ts :: preParsedProgram thread-through produces structurally identical output with vs without program",
       "tests/optimizer/preparsed-program.test.ts :: preParsedProgram thread-through program survives the NAPI parity mapping — identical output with vs without",
       "tests/optimizer/preparsed-program.test.ts :: preParsedProgram thread-through rounds through createOptimizer() with a pre-parsed Program",
+      "tests/optimizer/rewrite/const-propagation.test.ts :: pre-transformed _jsxDEV shorthand prop survives const inlining expands a shorthand prop whose const is a chained member (header.tsx shape)",
+      "tests/optimizer/rewrite/const-propagation.test.ts :: pre-transformed _jsxDEV shorthand prop survives const inlining produces parseable output (no dangling member in an object literal)",
+      "tests/optimizer/rewrite/const-propagation.test.ts :: propagateConstLiteralsInBody inlining a single-use member-expression const does not add a key for a non-property reference",
+      "tests/optimizer/rewrite/const-propagation.test.ts :: propagateConstLiteralsInBody inlining a single-use member-expression const expands an object shorthand to key:value when it inlines the const",
+      "tests/optimizer/rewrite/const-propagation.test.ts :: propagateConstLiteralsInBody inlining a single-use member-expression const leaves an already-expanded property correct",
       "tests/optimizer/rewrite/const-replacement.test.ts :: const folding reaches hoist/inline strategy bodies folds isBrowser inside a hoisted marker body and drops the dead-branch-only import",
       "tests/optimizer/rewrite/const-replacement.test.ts :: const folding reaches hoist/inline strategy bodies keeps the client branch and drops the server branch when isServer=false",
       "tests/optimizer/rewrite/const-replacement.test.ts :: foldConstantsInBodyText does not fold a member-access property of the same name",
@@ -1316,6 +1321,6 @@
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) has null input",
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) parses without error"
     ],
-    "total": 1131
+    "total": 1136
   }
 }

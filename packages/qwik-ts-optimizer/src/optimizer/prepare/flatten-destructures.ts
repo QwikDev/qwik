@@ -161,7 +161,7 @@ function isDeclaringIdentifierPosition(node: AstNode, parent: AstParentNode): bo
   }
 }
 
-function isShorthandPropertyValue(node: AstNode, parent: AstParentNode): boolean {
+export function isShorthandPropertyValue(node: AstNode, parent: AstParentNode): boolean {
   return parent?.type === 'Property' && parent.shorthand === true && parent.value === node;
 }
 

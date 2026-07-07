@@ -12,6 +12,7 @@
 
 import { parseSync } from 'oxc-parser';
 import { forEachAstChild } from '../ast/guards.js';
+import { isShorthandPropertyValue } from '../prepare/flatten-destructures.js';
 import {
   RAW_TRANSFER_PARSER_OPTIONS,
   type AstCompatNode,
@@ -176,6 +177,8 @@ interface IdentRef {
   end: number;
   /** Which const declaration this ref lives inside (null if not inside any) */
   insideDeclOf: string | null;
+  /** Property key when this ref is an object-shorthand value; inlining a non-identifier there expands to `{ key: value }`. */
+  shorthandKey: string | null;
 }
 
 // ── Helpers ──
@@ -303,6 +306,7 @@ export function propagateConstLiteralsInBody(body: string): string {
           start: refStart,
           end: refEnd,
           insideDeclOf: currentDeclName,
+          shorthandKey: isShorthandPropertyValue(node, parentNode ?? null) ? node.name : null,
         });
       }
     }
@@ -439,10 +443,13 @@ export function propagateConstLiteralsInBody(body: string): string {
   for (const ref of identRefs) {
     if (!toInline.has(ref.name)) continue;
     if (ref.insideDeclOf !== null && toRemove.has(ref.insideDeclOf)) continue;
+    const value = toInline.get(ref.name)!;
+    // Re-emit the key when inlining into a shorthand `{ x }`, else the object is invalid.
+    const replacement = ref.shorthandKey !== null ? `${ref.shorthandKey}: ${value}` : value;
     edits.push({
       start: ref.start,
       end: ref.end,
-      replacement: toInline.get(ref.name)!,
+      replacement,
     });
   }
 

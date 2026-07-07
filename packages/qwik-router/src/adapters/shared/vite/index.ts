@@ -83,7 +83,7 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
         // the inherited objects are shared by reference with the top-level (ssr) config.
         environmentOptions.build = {
           ...environmentOptions.build,
-          rollupOptions: { ...environmentOptions.build?.rollupOptions, input: {} },
+          rolldownOptions: { ...environmentOptions.build?.rolldownOptions, input: {} },
         };
       }
     },

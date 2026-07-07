@@ -655,6 +655,7 @@ export class Serializer {
           (isAsync && value.$flags$ & ~SerializationSignalFlags.SERIALIZATION_ALL_STRATEGIES) ||
           undefined;
 
+        //todo: when async is errored, do not serialize the value
         if (isInvalid || isSkippable) {
           v = NEEDS_COMPUTATION;
         } else if (shouldAlwaysSerialize) {

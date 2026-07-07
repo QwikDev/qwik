@@ -90,6 +90,8 @@ export enum ExperimentalFeatures {
   noSPA = 'noSPA',
   /** Enable the ability to use the Qwik Insights vite plugin and `<Insights/>` component */
   insights = 'insights',
+  /** Enable the `blockSSR: false` route loader option */
+  blockSSR = 'blockSSR',
 }
 
 export interface QwikPackages {

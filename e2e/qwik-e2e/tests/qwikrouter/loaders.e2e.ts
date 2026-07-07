@@ -224,6 +224,15 @@ test.describe('loaders', () => {
       await expect(body).toContainText('server-error-data');
     });
 
+    test('a blockSSR:false loader is isolated from the page response', async ({ page }) => {
+      const response = await page.goto('/qwikrouter-test/loaders/non-blocking/');
+
+      // Neither the unread error() nor the read fail() leaks its status onto the page response.
+      expect(response?.status()).toEqual(200);
+      await expect(page.locator('#non-blocking-rendered')).toBeVisible();
+      await expect(page.locator('#non-blocking-fail')).toHaveText('background-fail');
+    });
+
     test('should not serialize loaders by default and serialize with serializationStrategy: always', async ({
       page,
       javaScriptEnabled,

@@ -369,6 +369,132 @@ describe('resolve-request-handler', () => {
     });
   });
 
+  describe('blockSSR loaders middleware', () => {
+    function makeLoader(
+      id: string,
+      impl: (...args: any[]) => unknown,
+      { blockSSR = true }: { blockSSR?: boolean } = {}
+    ) {
+      const loader: any = () => {};
+      loader.__brand = 'server_loader';
+      loader.__id = id;
+      loader.__qrl = { call: (_thisArg: unknown, ev: unknown) => impl(ev), getHash: () => id };
+      loader.__validators = undefined;
+      loader.__serializationStrategy = 'never';
+      loader.__search = undefined;
+      loader.__blockSSR = blockSSR;
+      return loader;
+    }
+
+    function pageRouteWithLoaders(...loaders: unknown[]): LoadedRoute {
+      const loaderModule: Record<string, unknown> = {};
+      loaders.forEach((loader, i) => (loaderModule[`useData${i}`] = loader));
+      return {
+        $routeName$: '/',
+        $params$: {},
+        $mods$: [loaderModule, { default: () => null }] as any,
+        $errorLoader$: [vi.fn(async () => ({ default: () => null }))],
+      };
+    }
+
+    function runPage(route: LoadedRoute, renderHandler: any) {
+      globalThis.__NO_TRAILING_SLASH__ = false;
+      const handlers = resolveRequestHandlers(undefined, route, 'GET', true, renderHandler);
+      const requestEv = createRequestEvent(
+        createMockServerRequestEvent('http://localhost:3000/'),
+        route,
+        handlers,
+        '/',
+        vi.fn()
+      );
+      return requestEv;
+    }
+
+    const exitRender = () =>
+      vi.fn((requestEv: { exit: () => void }) => {
+        requestEv.exit();
+      });
+
+    it('starts every loader during the request', async () => {
+      const blocking = vi.fn(() => 'a');
+      const background = vi.fn(() => 'b');
+      const route = pageRouteWithLoaders(
+        makeLoader('a', blocking),
+        makeLoader('b', background, { blockSSR: false })
+      );
+      const requestEv = runPage(route, exitRender());
+
+      await requestEv.next();
+
+      expect(blocking).toHaveBeenCalledTimes(1);
+      expect(background).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not await blockSSR:false loaders before render', async () => {
+      let release!: () => void;
+      const gate = new Promise<string>((resolve) => (release = () => resolve('late')));
+      const route = pageRouteWithLoaders(makeLoader('l1', () => gate, { blockSSR: false }));
+      const renderHandler = exitRender();
+      const requestEv = runPage(route, renderHandler);
+
+      // Resolves without awaiting the still-pending background loader.
+      await requestEv.next();
+
+      expect(renderHandler).toHaveBeenCalledOnce();
+      release();
+    });
+
+    it('errors the response when a blockSSR loader errors, before render', async () => {
+      const route = pageRouteWithLoaders(
+        makeLoader('l1', () => {
+          throw new ServerError(401, 'boom');
+        })
+      );
+      const requestEv = runPage(route, exitRender());
+
+      await requestEv.next();
+
+      expect(requestEv.status()).toBe(401);
+      expect(requestEv.sharedMap.get(RequestEvHttpStatusMessage)).toBe('boom');
+    });
+
+    it('reports the first blockSSR loader (in route order) that errors', async () => {
+      const route = pageRouteWithLoaders(
+        makeLoader('first', () => {
+          throw new ServerError(401, 'first-error');
+        }),
+        makeLoader('second', () => {
+          throw new ServerError(500, 'second-error');
+        })
+      );
+      const requestEv = runPage(route, exitRender());
+
+      await requestEv.next();
+
+      expect(requestEv.status()).toBe(401);
+      expect(requestEv.sharedMap.get(RequestEvHttpStatusMessage)).toBe('first-error');
+    });
+
+    it('a failing blockSSR:false loader does not affect the response when unread', async () => {
+      const route = pageRouteWithLoaders(
+        makeLoader(
+          'l1',
+          () => {
+            throw new ServerError(401, 'boom');
+          },
+          { blockSSR: false }
+        )
+      );
+      const renderHandler = exitRender();
+      const requestEv = runPage(route, renderHandler);
+
+      await expect(requestEv.next()).resolves.toBeUndefined();
+
+      expect(renderHandler).toHaveBeenCalledOnce();
+      expect(requestEv.status()).toBe(200);
+    });
+  });
+
   describe('action result resolution', () => {
     it('always returns undefined for actions, even when one was submitted', async () => {
       // Loaders must be a pure function of the URL — see route-loader docs and the

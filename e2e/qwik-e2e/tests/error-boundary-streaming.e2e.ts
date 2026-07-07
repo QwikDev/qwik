@@ -7,7 +7,6 @@ import {
 } from './error-boundary-helpers';
 
 test.describe('ErrorBoundary streaming swap', () => {
-  // ── happy path ──
   test('happy path: content interactive after resume, no fallback or swap script, then catches a client throw', async ({
     page,
   }) => {
@@ -31,7 +30,6 @@ test.describe('ErrorBoundary streaming swap', () => {
     await expect(page.locator('#eb-fallback-count')).toHaveText('1');
   });
 
-  // ── SSR-time swaps (simplest → most complex) ──
   for (const { mode, outOfOrder } of streamingModes) {
     test(`${mode} sync throw: streams the shell, swaps to the fallback, keeps it interactive`, async ({
       page,
@@ -117,7 +115,6 @@ test.describe('ErrorBoundary streaming swap', () => {
     await page.locator('#eb-fallback-button').click();
     await expect(page.locator('#eb-fallback-count')).toHaveText('1');
 
-    // Safe only after release closed the stream.
     const html = await response!.text();
     expect(html).toMatch(/qErr\(/);
     expect(html).toMatch(/qO\(/);
@@ -142,7 +139,6 @@ test.describe('ErrorBoundary streaming swap', () => {
     expect(await page.evaluate(() => (window as any).__ebDeadTaskClientRuns ?? 0)).toBe(0);
   });
 
-  // ── client-time errors after resume ──
   for (const { mode, outOfOrder } of streamingModes) {
     test(`client-time throw after resume re-renders the boundary to its fallback (${mode})`, async ({
       page,
@@ -221,7 +217,6 @@ test.describe('ErrorBoundary streaming swap', () => {
     expect(pageErrors.filter((message) => message.includes('visible boom'))).toEqual([]);
   });
 
-  // ── onError$ ──
   test('onError$ fires once with the error on a client-time throw', async ({ page }) => {
     assertNoBrowserErrors(page);
     await page.goto('/e2e/error-boundary-streaming?scenario=onerror', { waitUntil: 'commit' });
@@ -252,7 +247,6 @@ test.describe('ErrorBoundary streaming swap', () => {
     expect(await page.evaluate(() => (window as any).__ebOnErrorBoundaryId)).toBeTruthy();
   });
 
-  // ── cross-phase & multi-boundary ──
   test('SSR inner error, then a client throw makes the outer boundary replace the whole subtree', async ({
     page,
   }) => {
@@ -326,7 +320,6 @@ test.describe('ErrorBoundary streaming swap', () => {
     });
   }
 
-  // ── no enclosing boundary ──
   test('no boundary: a client throw still surfaces to the global error handler', async ({
     page,
   }) => {
@@ -374,7 +367,6 @@ test.describe('ErrorBoundary reset', () => {
     await page.goto('/e2e/error-boundary-streaming?scenario=reset-csr', { waitUntil: 'commit' });
     await expect(page.locator('#eb-content')).toBeVisible({ timeout: 10000 });
 
-    // Resume the container before the throw routes.
     await page.locator('#eb-content-button').click();
     await expect(page.locator('#eb-content-count')).toHaveText('1');
 
@@ -588,7 +580,6 @@ test.describe('ErrorBoundary last-resort & rejection bridge', () => {
     });
     await expect(page.locator('#eb-reject')).toBeVisible({ timeout: 10000 });
 
-    // Resume so the bridge registers before the reject.
     await page.locator('#eb-reject').click();
     await expect(page.locator('#eb-reject-touched')).toHaveText('1');
 

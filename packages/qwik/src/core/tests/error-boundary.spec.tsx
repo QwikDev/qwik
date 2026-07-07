@@ -202,8 +202,6 @@ const nestedEscalation = ({
 // Object ref survives `$()` capture; a `let` would freeze at its initial value.
 const onErrorLog: { errors: unknown[] } = { errors: [] };
 
-// ===== A. Core behavior =====
-
 const modes = [
   [
     'CSR',
@@ -620,8 +618,6 @@ describe('ErrorBoundary behavior', () => {
     );
   });
 });
-
-// ===== B. Reset =====
 
 // Object ref: a `let` captured in a `component$` becomes a const.
 const resetRef = { flake: 0, toggle: 0 };
@@ -1771,7 +1767,6 @@ describe('ErrorBoundary swap mechanics (qErr)', () => {
   });
 
   it('a sync throw in a boundary that is a SIBLING of a real Suspense segment still swaps in place via qErr', async () => {
-    // Resolves after drain so the <Suspense> stays a deferred segment.
     const SlowResolver = component$(() => {
       const pending = delay(5).then(() => <span id="deferred-ok">deferred ok</span>) as any;
       return <>{pending}</>;
@@ -1983,7 +1978,6 @@ describe('ErrorBoundary OOOS (opt-in, Suspense)', () => {
   });
 
   it('an in-place throw beside a deferred <Suspense> swaps via qErr and absorbs the late rejection', async () => {
-    // Rejects after the swap is already done.
     const SlowRejector = component$(() => {
       const pending = delay(5).then(() => Promise.reject(new Error('late boom'))) as any;
       return <>{pending}</>;

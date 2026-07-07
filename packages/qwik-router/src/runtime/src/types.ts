@@ -876,6 +876,9 @@ export type LoaderOptions = {
    * When false, the loader runs in the background without blocking SSR: rendering starts
    * immediately and reading its `.value` suspends until it resolves. A background loader cannot
    * redirect or error the initial SSR response; treat it as a separate request.
+   *
+   * Setting `false` is experimental and requires adding `experimental: ["blockSSR"]` to your
+   * qwikVite plugin options.
    */
   readonly blockSSR?: boolean;
 };

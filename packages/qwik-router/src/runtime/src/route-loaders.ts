@@ -466,6 +466,11 @@ const getLoaderOptions = (rest: (LoaderOptions | DataValidator)[]) => {
           allowStale = false;
         }
         if (options.blockSSR === false) {
+          if (!__EXPERIMENTAL__.blockSSR) {
+            throw new Error(
+              '`blockSSR: false` is an experimental feature and is not enabled. Please enable the feature flag by adding `experimental: ["blockSSR"]` to your qwikVite plugin options.'
+            );
+          }
           blockSSR = false;
         }
       }

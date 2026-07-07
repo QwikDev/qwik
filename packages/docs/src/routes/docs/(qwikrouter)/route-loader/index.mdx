@@ -263,6 +263,8 @@ By default a loader **blocks SSR**: the server awaits it before rendering, so a 
 
 Set `blockSSR: false` to run a loader in the background instead. The server starts it but does not wait: rendering begins immediately, and reading `.value` suspends only that read until the loader resolves. This starts SSR sooner, and is the recommended setting, unless you need to control the request from the loader.
 
+`blockSSR: false` is experimental — to use it, you must add `experimental: ['blockSSR']` to your `qwikVite` plugin options.
+
 ```tsx title="src/routes/product/[productId]/index.tsx"
 export const useRecommendations = routeLoader$(
   async ({ params }) => fetchRecommendations(params.productId),
@@ -359,7 +361,7 @@ export default component$(() => {
 | `poll`                  | `false`      | Auto-refetch when expired, but only while components are reading the loader.                          |
 | `allowStale`            | `true`       | Show stale data while refetching. `false` blocks readers until fresh data arrives.                    |
 | `serializationStrategy` | `'never'`    | `'never'` / `'always'` / `'auto'` — embed loader data in the SSR HTML?                                |
-| `blockSSR`              | `true`       | Await the loader before SSR (can redirect/error the response). `false` runs it in the background.     |
+| `blockSSR`              | `true`       | Await the loader before SSR (can redirect/error the response). `false` runs it in the background (experimental). |
 | `eTag`                  | —            | `true` (auto-hash), string, or `(ev) => string \| null`. Returns 304 on match.                       |
 | `search`                | `[]` *       | Allowlist of search params the loader depends on. *(default `[]` when `strictLoaders` is enabled)*    |
 | `validation`            | —            | Array of [`DataValidator`](/docs/(qwikrouter)/validator/index.mdx)s applied before the loader runs.   |

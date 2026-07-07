@@ -1,5 +1,6 @@
 import type {
   Component,
+  PageDataSource,
   QwikDevtoolsComponentSnapshot,
   QwikDevtoolsSignalsSnapshot,
   QwikPerfStoreRemembered,
@@ -172,7 +173,7 @@ export function createExtensionDataProvider() {
   };
 }
 
-export function createRemotePageDataSource() {
+export function createRemotePageDataSource(): PageDataSource {
   return {
     async readPerfData(): Promise<QwikPerfStoreRemembered | null> {
       return readJsonFromPage<QwikPerfStoreRemembered>(`${PAGE_DEVTOOLS_PERF} ?? null`);

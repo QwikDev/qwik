@@ -58,7 +58,7 @@ describe('SSG worker bundle isolation', () => {
           minify: false,
           outDir,
           ssr: true,
-          rollupOptions: {
+          rolldownOptions: {
             input: {
               'run-ssg': join(appDir, 'run-ssg.ts'),
               'run-ssg-worker': join(appDir, 'run-ssg-worker.ts'),

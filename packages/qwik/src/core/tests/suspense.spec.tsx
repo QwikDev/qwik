@@ -2,6 +2,7 @@ import {
   createDocument,
   domRender,
   emulateExecutionOfQwikFuncs,
+  getTestPlatform,
   ssrRenderToDom,
   trigger,
   waitForDrain,
@@ -15,9 +16,13 @@ import {
   Fragment as Projection,
   Fragment as Awaited,
   component$,
+  createContextId,
   getDomContainer,
   type JSXOutput,
+  render,
+  setPlatform,
   useAsync$,
+  useContextProvider,
   Slot,
   useTask$,
   useSignal,
@@ -430,6 +435,8 @@ describe('domRender: Suspense client-side pause delay', () => {
     delete (globalThis as any).__showStaleToggle;
     delete (globalThis as any).__showStaleResolve;
     delete (globalThis as any).__slowChildResolve;
+    delete (globalThis as any).__wrapperSlowContent;
+    delete (globalThis as any).__wrapperSlowResolve;
   });
 
   it('should show fallback mid-flight and swap it for children on completion', async () => {
@@ -477,6 +484,46 @@ describe('domRender: Suspense client-side pause delay', () => {
         </Component>
       </div>
     );
+  });
+
+  it('should show the fallback when the deferred child is projected through a stateful wrapper component', async () => {
+    (globalThis as any).__wrapperSlowContent = new Promise<JSXOutput>((resolve) => {
+      (globalThis as any).__wrapperSlowResolve = resolve;
+    });
+    const wrapperContext = createContextId<{ renders: number }>('test-stateful-wrapper');
+    // Stateful wrapper (like ErrorBoundary): its projection hid the Suspense boundary pre-fix.
+    const StatefulWrapper = component$(() => {
+      const state = useStore({ renders: 0 });
+      useContextProvider(wrapperContext, state);
+      return <Slot />;
+    });
+    const SlowChild = component$(() => {
+      return <>{(globalThis as any).__wrapperSlowContent}</>;
+    });
+
+    setPlatform(getTestPlatform());
+    const document = createDocument();
+    const renderPromise = render(
+      document.body,
+      <div>
+        <Suspense fallback={<span>Loading...</span>} delay={10}>
+          <StatefulWrapper>
+            <SlowChild />
+          </StatefulWrapper>
+        </Suspense>
+      </div>
+    );
+
+    // Past the delay and still unresolved: the fallback must be visible mid-flight.
+    await delay(40);
+    expect(document.querySelector('div')!.innerHTML).toContain(loading);
+
+    (globalThis as any).__wrapperSlowResolve(<p>Done</p>);
+    await renderPromise;
+
+    const html = document.querySelector('div')!.innerHTML;
+    expect(html).toContain('Done');
+    expect(html).not.toContain(loading);
   });
 
   it('should re-show fallback when a descendant updates and blocks past delay', async () => {

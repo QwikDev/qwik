@@ -122,7 +122,7 @@ describe('resolve-request-handler', () => {
       expect(pageOnRequest).not.toHaveBeenCalled();
     });
 
-    it('runs page middleware for a loader exported by that page module', async () => {
+    it('runs page middleware for a synthetic preloaded loader export on that page module', async () => {
       const pageLoader = vi.fn() as any;
       pageLoader.__brand = 'server_loader';
       pageLoader.__id = 'page-loader';
@@ -132,7 +132,7 @@ describe('resolve-request-handler', () => {
         $params$: {},
         $mods$: [
           {},
-          { default: vi.fn(), onRequest: pageOnRequest, usePageData: pageLoader },
+          { default: vi.fn(), onRequest: pageOnRequest, __preloadedRouteLoader: pageLoader },
         ] as any,
       };
 

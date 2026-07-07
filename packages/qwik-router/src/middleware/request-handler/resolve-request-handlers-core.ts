@@ -18,6 +18,7 @@ import {
   getRouteLoaderCtx,
   getRouteLoaderValues,
   loadRouteLoader,
+  matchesRouteLoaderId,
   setRouteLoaders,
 } from '../../runtime/src/route-loaders';
 import { ensureSlash } from '../../utils/pathname';
@@ -243,7 +244,10 @@ function createResolveRequestHandlers() {
       return false;
     }
     for (const value of Object.values(routeModule)) {
-      if (checkBrand(value, 'server_loader') && (value as LoaderInternal).__id === loaderId) {
+      if (
+        checkBrand(value, 'server_loader') &&
+        matchesRouteLoaderId(value as LoaderInternal, loaderId)
+      ) {
         return true;
       }
     }

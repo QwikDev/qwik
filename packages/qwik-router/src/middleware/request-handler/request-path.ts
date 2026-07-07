@@ -6,8 +6,8 @@ export const IsQAction = '@isQAction';
 export const QLoaderId = '@loaderId';
 export const QActionId = '@actionId';
 
-/** Matches `/q-loader-{loaderId}.{manifestHash}.json` */
-export const LOADER_REGEX = /\/(q-loader-([^.]+)\.([^.]+)\.json)$/;
+/** Matches the final `/q-loader-{loaderId}.{manifestHash}.json` path segment. */
+export const LOADER_REGEX = /\/(q-loader-([^/.]+)\.([^/.]+)\.json)$/;
 
 export const getLoaderName = (loaderId: string, manifestHash: string) =>
   `q-loader-${loaderId}.${manifestHash}.json`;

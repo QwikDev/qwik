@@ -10,6 +10,31 @@ test.describe('loaders', () => {
     test.use({ javaScriptEnabled: true });
     tests();
 
+    test('catch-all q-loader requests run server plugins before route loaders', async ({
+      page,
+    }) => {
+      await page.goto('/qwikrouter-test/q-loader-shared-map/one/');
+
+      await expect(page.locator('#q-loader-shared-map-value')).toHaveText('shared loader value');
+      await expect(page.locator('#q-loader-shared-map-slug')).toHaveText('one');
+
+      const qLoaderResponse = page.waitForResponse((response) => {
+        const url = response.url();
+        return (
+          url.includes('/qwikrouter-test/q-loader-shared-map/') &&
+          url.includes('/q-loader-') &&
+          url.endsWith('.json')
+        );
+      });
+
+      await page.locator('#q-loader-shared-map-link-two').click();
+      expect((await qLoaderResponse).ok()).toBe(true);
+
+      await expect(page).toHaveURL('/qwikrouter-test/q-loader-shared-map/two/nested/');
+      await expect(page.locator('#q-loader-shared-map-value')).toHaveText('shared loader value');
+      await expect(page.locator('#q-loader-shared-map-slug')).toHaveText('two/nested');
+    });
+
     test('should reuse filtered search loaders only for the same SPA route path', async ({
       page,
     }) => {

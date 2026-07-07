@@ -36,6 +36,19 @@ describe('request path helpers', () => {
     expect(trimRecognizedInternalPathname(loaderPathname, recognized!)).toBe('/');
   });
 
+  it('recognizes only the final q-loader path segment', () => {
+    const loaderPathname = `/q-loader-shared-map/two/nested/${getLoaderName(
+      'loader-id',
+      'manifest'
+    )}`;
+    const recognized = recognizeRequest(loaderPathname);
+
+    expect(recognized?.data?.loaderId).toBe('loader-id');
+    expect(trimRecognizedInternalPathname(loaderPathname, recognized!)).toBe(
+      '/q-loader-shared-map/two/nested/'
+    );
+  });
+
   it('accepts internal full pathnames below the loader pathname', () => {
     expect(resolveValidInternalFullPathname('/products/123/', '/products/123/view/')).toBe(
       '/products/123/view/'

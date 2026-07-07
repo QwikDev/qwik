@@ -1,8 +1,19 @@
 import { describe, it, expect, vi } from 'vitest';
 import type { ViteDevServer } from 'vite';
-import { sendRouterCssHotUpdate } from './dev-middleware';
+import { getDevMiddlewareRequestPath, sendRouterCssHotUpdate } from './dev-middleware';
 
 const file = '/app/src/routes/docs/docs.css';
+
+describe('getDevMiddlewareRequestPath', () => {
+  it('keeps the base prefix from originalUrl', () => {
+    expect(
+      getDevMiddlewareRequestPath({
+        originalUrl: '/admin/blog/q-loader-abc.dev.json',
+        url: '/blog/q-loader-abc.dev.json',
+      } as any)
+    ).toBe('/admin/blog/q-loader-abc.dev.json');
+  });
+});
 
 /** Minimal ViteDevServer stand-in with controllable client/SSR graphs and a spy on the HMR channel. */
 function makeServer(opts: { client?: { url: string }[]; ssr?: { url: string }[] }) {

@@ -165,6 +165,88 @@ describe('SSR Container', () => {
     );
   });
 
+  describe('lenient tag nesting', () => {
+    const nestingWarnings = (warn: { mock: { calls: unknown[][] } }) =>
+      warn.mock.calls.filter((call) => String(call[0]).includes('invalid HTML'));
+
+    it('should warn once per combination and keep parser-retained invalid nesting', async () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      try {
+        const { container, writer } = createTestContainer();
+        container.openContainer();
+        for (let i = 0; i < 2; i++) {
+          container.openElement('button', null, {}, null, null, null);
+          container.openElement('div', null, {}, null, null, null);
+          await container.closeElement();
+          await container.closeElement();
+        }
+        await container.closeContainer();
+
+        const html = writer.toString();
+        expect(html).toContain('<button');
+        expect(html).toContain('<div');
+        expect(nestingWarnings(warn)).toHaveLength(1);
+      } finally {
+        warn.mockRestore();
+      }
+    });
+
+    it('should warn for div inside pre but throw for div inside p', async () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      try {
+        const { container } = createTestContainer();
+        container.openContainer();
+        container.openElement('pre', null, {}, null, null, null);
+        container.openElement('div', null, {}, null, null, null);
+        await container.closeElement();
+        await container.closeElement();
+        expect(nestingWarnings(warn)).toHaveLength(1);
+
+        container.openElement('p', null, {}, null, null, null);
+        expect(() => container.openElement('div', null, {}, null, null, null)).toThrow(
+          /HTML rules do not allow/
+        );
+      } finally {
+        warn.mockRestore();
+      }
+    });
+
+    it('should throw when a block tag auto-closes an open p through phrasing ancestors', () => {
+      const { container } = createTestContainer();
+      container.openContainer();
+      container.openElement('p', null, {}, null, null, null);
+      container.openElement('b', null, {}, null, null, null);
+      expect(() => container.openElement('div', null, {}, null, null, null)).toThrow(
+        /HTML rules do not allow/
+      );
+    });
+
+    it('should throw for nested buttons', () => {
+      const { container } = createTestContainer();
+      container.openContainer();
+      container.openElement('button', null, {}, null, null, null);
+      expect(() => container.openElement('button', null, {}, null, null, null)).toThrow(
+        /HTML rules do not allow/
+      );
+    });
+
+    it('should still throw for table fostering and misplaced structural tags', () => {
+      const { container } = createTestContainer();
+      container.openContainer();
+      container.openElement('table', null, {}, null, null, null);
+      expect(() => container.openElement('div', null, {}, null, null, null)).toThrow(
+        /HTML rules do not allow/
+      );
+
+      const { container: buttonContainer } = createTestContainer();
+      buttonContainer.openContainer();
+      buttonContainer.openElement('button', null, {}, null, null, null);
+      expect(() => buttonContainer.openElement('td', null, {}, null, null, null)).toThrow(
+        /HTML rules do not allow/
+      );
+    });
+  });
+
   it('should encode default slot projection refs with wrapped values', () => {
     const writer = new StringSSRWriter();
 

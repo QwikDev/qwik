@@ -10,6 +10,13 @@ export default extendConfig(baseConfig, () => {
         input: ['src/entry.deno.tsx'],
       },
     },
-    plugins: [denoServerAdapter({ name: 'deno' })],
+    plugins: [
+      denoServerAdapter({
+        name: 'deno',
+        // Prerender routes with and without loaders to cover static serving of
+        // pages and loader sidecars.
+        ssg: { include: ['/profile/', '/loaders/*'] },
+      }),
+    ],
   };
 });

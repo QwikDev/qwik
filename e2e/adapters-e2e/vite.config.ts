@@ -23,6 +23,13 @@ errorOnDuplicatesPkgDeps(devDependencies, dependencies);
 export default defineConfig((): UserConfig => {
   return {
     plugins: [qwikRouter(), qwikVite(), tsconfigPaths({ root: '.' })],
+    build: {
+      // Emit imported assets as files so the e2e can assert their URLs.
+      assetsInlineLimit: 0,
+      // Set by playwright configs that cover a custom assets dir; must apply
+      // to the client and the adapter builds alike.
+      assetsDir: process.env.ADAPTERS_E2E_ASSETS_DIR || undefined,
+    },
     // This tells Vite which dependencies to pre-build in dev mode.
     optimizeDeps: {
       // Put problematic deps that break bundling here, mostly those with binaries.

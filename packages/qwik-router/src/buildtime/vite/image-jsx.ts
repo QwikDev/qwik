@@ -15,6 +15,10 @@ const VIRTUAL_IMAGE_JSX_SUFFIX = '.qwik.jsx';
 const TO_IMG_ID = '@to-img.qwik.jsx';
 const VIRTUAL_TO_IMG_ID = 'virtual:to-img.qwik.jsx';
 
+export const INTERNAL_IMAGE_JSX_IMPORT_FILTER = new RegExp(
+  `[?&]${INTERNAL_IMAGE_JSX_QUERY_PARAM}(?:=|&|$)`
+);
+
 export function createVirtualImageJsxId(pathId: string, params: URLSearchParams) {
   const query = new URLSearchParams(params);
   query.delete(INTERNAL_IMAGE_JSX_QUERY_PARAM);
@@ -111,6 +115,7 @@ export function imagePlugin(userOpts?: QwikRouterVitePluginOptions): PluginOptio
     import('vite-imagetools')
       .then(({ imagetools }) =>
         imagetools({
+          include: INTERNAL_IMAGE_JSX_IMPORT_FILTER,
           exclude: [],
           extendOutputFormats(builtins) {
             const jsx: OutputFormat = () => (metadatas) => {

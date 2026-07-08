@@ -182,8 +182,13 @@ client routing (`client/dom-container.ts`); shared helpers (`shared/error/error-
   under `q:rp` (OOOS resume hijacks it into a template); a deferred fallback's vnode-data must
   travel through a segment.
 - `markBoundaryErrored` is the only server error writer: it normalizes (never stores `undefined`)
-  and fires `onError$` per caught error with the ORIGINAL error + phase (`tagErrorPhase` survives
-  the SSR rethrow). First-wins absorption lives at the call sites, not inside it.
+  and fires `onError$` per caught error + phase (`tagErrorPhase` survives the SSR rethrow).
+  First-wins absorption lives at the call sites, not inside it.
+- Both callbacks receive an `Error` (`fireOnError`/`toSerializableBoundaryError` coerce): an Error
+  throw reaches `onError$` identity-preserved in dev AND prod; a non-Error throw is wrapped with
+  the raw value as `cause` (serialized to the dev fallback only when serializable). The
+  prod-redacted error must never carry `cause` or custom fields — that would leak the raw error
+  through serialized state. A non-Error `transformError` projection redacts to the generic.
 - `store.error === undefined` means "no error" — every writer normalizes a thrown `undefined`.
 - `store.$onError$` is server-only; the client uses the serialized `props.onError$`.
 - `content-host` precedes `fallback-host`; the `qErr` executor stays independent of `qO` (gated on

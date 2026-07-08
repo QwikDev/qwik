@@ -12,7 +12,7 @@ import {
   useVisibleTask$,
   type JSXOutput,
 } from '@qwik.dev/core';
-import { _getDomContainer } from '@qwik.dev/core/internal';
+import { _deserialize, _getDomContainer, _serialize } from '@qwik.dev/core/internal';
 import {
   createDocument,
   domRender,
@@ -2246,6 +2246,19 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
         expect(out.cause).toBe(raw);
       }
     );
+
+    it('dev: a serializable non-Error throw keeps its raw cause across an SSR→resume round-trip', async () => {
+      const raw = { code: 401 };
+      const serializable = toSerializableBoundaryError(raw, /* dev */ true);
+      // Serialization captures enumerable own props only, so a non-enumerable cause would be dropped.
+      const resumed = (await _deserialize(await _serialize(serializable))) as Error & {
+        cause?: unknown;
+      };
+      expect(resumed).toBeInstanceOf(Error);
+      expect(resumed.message).toBe(String(raw));
+      // Deserialized copy, so structural (not reference) equality.
+      expect(resumed.cause).toEqual(raw);
+    });
 
     it('an Error throw passes untouched, custom enumerable fields included', () => {
       const original = Object.assign(new Error('full-detail'), { code: 401 });

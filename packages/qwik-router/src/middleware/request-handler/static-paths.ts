@@ -2,22 +2,38 @@
 // TODO calculate this at build time from the SSG configuration
 const staticPaths = new Set(['__QWIK_ROUTER_STATIC_PATHS_ARRAY__']);
 
+// Will be replaced in post-build with the base/assetsDir-aware build and assets prefixes
+const staticPathPrefixes = ['__QWIK_ROUTER_STATIC_PATHS_PREFIXES__'];
+
+/** Decide whether a request path is static, given the injected paths and prefixes. @internal */
+export function matchesStaticPath(
+  method: string,
+  pathname: string,
+  paths: Set<string>,
+  prefixes: string[]
+) {
+  if (method.toUpperCase() !== 'GET') {
+    return false;
+  }
+  if (prefixes.some((prefix) => pathname.startsWith(prefix))) {
+    return true;
+  }
+  // Loader sidecars are listed by post-build only when SSG wrote them, so a missing one falls to SSR.
+  return paths.has(pathname);
+}
+
 /**
  * Decide whether a given request path is a static path, for optimizing file access.
  *
  * @internal
  */
 export function isStaticPath(method: string, url: URL) {
-  if (method.toUpperCase() !== 'GET') {
-    return false;
-  }
-  const p = url.pathname;
-  if (p.startsWith('/' + (globalThis.__QWIK_BUILD_DIR__ || 'build') + '/')) {
-    return true;
-  }
-  if (p.startsWith('/' + (globalThis.__QWIK_ASSETS_DIR__ || 'assets') + '/')) {
-    return true;
-  }
-  // Loader sidecars are listed by post-build only when SSG wrote them, so a missing one falls to SSR.
-  return staticPaths.has(p);
+  // Non-adapter builds keep the placeholder unreplaced; fall back to the default layout.
+  const prefixes = staticPathPrefixes[0]?.startsWith('__QWIK_ROUTER_')
+    ? [
+        '/' + (globalThis.__QWIK_BUILD_DIR__ || 'build') + '/',
+        '/' + (globalThis.__QWIK_ASSETS_DIR__ || 'assets') + '/',
+      ]
+    : staticPathPrefixes;
+  return matchesStaticPath(method, url.pathname, staticPaths, prefixes);
 }

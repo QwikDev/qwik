@@ -17,10 +17,12 @@ export async function postBuild(
   const nestedDirBase = normalizedAssetsDir
     ? pathNameBase + normalizedAssetsDir + '/'
     : pathNameBase;
-  const ignorePathnames = new Set([
+  // Also injected for the runtime isStaticPath prefix checks.
+  const staticPathPrefixes = [
     nestedDirBase + (globalThis.__QWIK_BUILD_DIR__ || 'build') + '/',
     nestedDirBase + (globalThis.__QWIK_ASSETS_DIR__ || 'assets') + '/',
-  ]);
+  ];
+  const ignorePathnames = new Set(staticPathPrefixes);
 
   // Keep the raw form too: user-listed file paths must match without a trailing slash.
   const staticPaths = new Set(userStaticPaths.flatMap((p) => [p, ensureSlash(p)]));
@@ -68,28 +70,28 @@ export async function postBuild(
     await loadDir(clientOutDir, pathNameBase);
   }
 
-  const staticPathsCode = createStaticPathsCode(staticPaths);
-
-  await injectStatics(staticPathsCode, serverOutDir);
+  const staticPathsCode = toArrayBody([...staticPaths].sort());
+  const staticPathPrefixesCode = toArrayBody(staticPathPrefixes);
+  await injectStatics(staticPathsCode, staticPathPrefixesCode, serverOutDir);
 }
 
-function createStaticPathsCode(staticPaths: Set<string>) {
-  // This is the body of the static paths array
-  return JSON.stringify(Array.from(new Set<string>(staticPaths)).sort()).slice(1, -1);
+function toArrayBody(values: string[]) {
+  // An array literal's body, without the surrounding brackets.
+  return JSON.stringify(values).slice(1, -1);
 }
 
-const injectStatics = async (staticPathsCode: string, outDir: string) => {
+const injectStatics = async (
+  staticPathsCode: string,
+  staticPathPrefixesCode: string,
+  outDir: string
+) => {
   const promises = new Set<Promise<void>>();
-  // replace the static-paths placeholder in the build output with the actual values
   const doReplace = async (path: string) => {
     const code = await fs.promises.readFile(path, 'utf-8');
-
-    let replaced = false;
-    const newCode = code.replace(/(['"])__QWIK_ROUTER_STATIC_PATHS_ARRAY__\1/g, () => {
-      replaced = true;
-      return staticPathsCode;
-    });
-    if (replaced) {
+    const newCode = code
+      .replace(/(['"])__QWIK_ROUTER_STATIC_PATHS_ARRAY__\1/g, () => staticPathsCode)
+      .replace(/(['"])__QWIK_ROUTER_STATIC_PATHS_PREFIXES__\1/g, () => staticPathPrefixesCode);
+    if (newCode !== code) {
       await fs.promises.writeFile(path, newCode);
     }
   };

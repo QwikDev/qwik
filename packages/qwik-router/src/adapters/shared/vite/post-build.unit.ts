@@ -3,6 +3,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, test } from 'vitest';
+import { matchesStaticPath } from '../../../middleware/request-handler/static-paths';
 import { postBuild } from './post-build';
 
 const dirs: string[] = [];
@@ -99,6 +100,11 @@ describe.each(matrix)('$label', ({ base, assetsDir }) => {
     }
   });
 
+  test('injects base/assetsDir-aware static path prefixes', async () => {
+    const { prefixes } = await run(distTree(assetsDir), routes, { base, assetsDir });
+    expect(prefixes).toEqual([`${nestedPrefix}build/`, `${nestedPrefix}assets/`]);
+  });
+
   test('cleanStatic keeps prerendered pages of static routes and deletes stale ones', async () => {
     const { paths, clientOutDir } = await run(distTree(assetsDir), routes, {
       base,
@@ -162,6 +168,20 @@ test('keeps user static file paths unmangled and preserves dotted directory rout
   // Platform-provided file path, absent from dist: must survive un-slashed.
   expect(paths).toContain('/sitemap.xml');
   expect(fs.existsSync(join(clientOutDir, 'docs/v1.2/index.html'))).toBe(true);
+});
+
+test('injected arrays drive the runtime matcher end to end', async () => {
+  const base = '/base/';
+  const { paths, prefixes } = await run(distTree('q'), [base, `${base}profile/`], {
+    base,
+    assetsDir: 'q',
+  });
+  const set = new Set(paths);
+  expect(matchesStaticPath('GET', '/base/robots.txt', set, prefixes!)).toBe(true);
+  expect(matchesStaticPath('GET', '/base/q/build/q-chunk.js', set, prefixes!)).toBe(true);
+  expect(matchesStaticPath('GET', '/base/q/assets/hero-abc123.svg', set, prefixes!)).toBe(true);
+  expect(matchesStaticPath('GET', '/base/unknown/', set, prefixes!)).toBe(false);
+  expect(matchesStaticPath('POST', '/base/robots.txt', set, prefixes!)).toBe(false);
 });
 
 test('lists a written loader sidecar of a static route, but not its index.html', async () => {

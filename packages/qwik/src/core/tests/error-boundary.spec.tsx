@@ -1416,6 +1416,85 @@ describe('ErrorBoundary SSR-specific', () => {
   });
 });
 
+describe('ErrorBoundary function children', () => {
+  const throwingFnChild = (message = 'jsx error') =>
+    (() => {
+      throw new Error(message);
+    }) as unknown as JSXOutput;
+
+  it('SSR: a sync function-child throw renders the fallback', async () => {
+    const { container } = await ssrRenderToDom(boxed(throwingFnChild()), { debug });
+    expect(container.element.querySelector('#fb')?.textContent).toContain('caught: jsx error');
+  });
+
+  it('SSR OOOS: a sync function-child throw inside a Suspense segment renders the fallback', async () => {
+    const { document } = await streamAndResume(
+      <main>
+        <Suspense fallback={<span id="skel">loading</span>}>
+          <ErrorBoundary fallback$={fb()}>{throwingFnChild()}</ErrorBoundary>
+        </Suspense>
+      </main>,
+      OOOS_OPT_IN
+    );
+    expect(document.querySelector('#fb')?.textContent).toContain('caught: jsx error');
+  });
+
+  it('SSR: an async function child whose promise rejects renders the fallback', async () => {
+    const asyncThrower = (async () => {
+      throw new Error('async jsx error');
+    }) as unknown as JSXOutput;
+    const { container } = await ssrRenderToDom(boxed(asyncThrower), { debug });
+    expect(container.element.querySelector('#fb')?.textContent).toContain(
+      'caught: async jsx error'
+    );
+  });
+
+  it('SSR: a function-child throw with NO boundary above still rejects the render', async () => {
+    await expect(ssrRenderToDom(<main>{throwingFnChild()}</main>, { debug })).rejects.toThrow(
+      'jsx error'
+    );
+  });
+
+  // Pins invoke-and-discard so option A cannot silently become thunk-children without the RFC.
+  it('SSR: a function child RETURNING JSX renders nothing and does not error', async () => {
+    const thunk = (() => <div id="thunk">thunk</div>) as unknown as JSXOutput;
+    const { container } = await ssrRenderToDom(boxed(thunk), { debug });
+    expect(container.element.querySelector('#thunk')).toBeFalsy();
+    expect(container.element.querySelector('#fb')).toBeFalsy();
+  });
+
+  it('CSR: a function child inside a boundary renders empty — no crash, no fallback', async () => {
+    const { container } = await domRender(boxed(throwingFnChild()), { debug });
+    expect(container.element.querySelector('#fb')).toBeFalsy();
+  });
+
+  it('SSR: routes the function-child error to onError$ once, identity-preserved, phase "render"', async () => {
+    const received: unknown[] = [];
+    const infos: Array<{ phase: string }> = [];
+    const original = new Error('jsx error');
+    const identityThrower = (() => {
+      throw original;
+    }) as unknown as JSXOutput;
+    const { container } = await ssrRenderToDom(
+      <ErrorBoundary
+        fallback$={fb()}
+        onError$={$((e: any, info: any) => {
+          received.push(e);
+          infos.push({ phase: info.phase });
+        })}
+      >
+        {identityThrower}
+      </ErrorBoundary>,
+      { debug, ...IN_ORDER }
+    );
+    await settleOnErrorDelivery(container);
+
+    expect(received).toHaveLength(1);
+    expect(received[0]).toBe(original);
+    expect(infos).toEqual([{ phase: 'render' }]);
+  });
+});
+
 describe('ErrorBoundary SSR→CSR cross-phase', () => {
   it('SSR inner error, then a client throw to the OUTER boundary replaces the whole subtree', async () => {
     const { container } = await ssrRenderToDom(

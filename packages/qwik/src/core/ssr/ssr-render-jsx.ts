@@ -62,6 +62,7 @@ import type { ISsrComponentFrame, ISsrNode, SSRContainer, SSRRenderJSXOptions } 
 import { resolveSlotName } from '../shared/utils/prop';
 
 class MaybeAsyncSignal {}
+class FunctionChild {}
 
 type StackFn = () => ValueOrPromise<void>;
 export type StackValue = ValueOrPromise<
@@ -71,6 +72,7 @@ export type StackValue = ValueOrPromise<
   | typeof Promise
   | AsyncGenerator
   | typeof MaybeAsyncSignal
+  | typeof FunctionChild
 >;
 
 function setParentOptions(
@@ -105,6 +107,19 @@ export async function _walkJSX(
             stack.push(
               renderErrorBoundaryFallback(ssr, ssr.getOrCreateLastNode(), err, 'async-signal')
             );
+          }
+          continue;
+        }
+        if (__EXPERIMENTAL__.errorBoundary && value === FunctionChild) {
+          // User fn child: keep invoke-and-discard, but route throws to the boundary.
+          const fnChild = stack.pop() as StackFn;
+          try {
+            const result = fnChild.apply(ssr);
+            if (isPromise(result)) {
+              await result;
+            }
+          } catch (err) {
+            stack.push(renderErrorBoundaryFallback(ssr, ssr.getOrCreateLastNode(), err));
           }
           continue;
         }
@@ -257,6 +272,16 @@ function catchToErrorBoundary(
   }
 }
 
+/** Stray function child: the sentinel routes its throw to the nearest boundary. */
+function enqueueChild(enqueue: (value: StackValue) => void, child: JSXOutput) {
+  if (__EXPERIMENTAL__.errorBoundary && typeof child === 'function') {
+    enqueue(child as StackValue);
+    enqueue(FunctionChild);
+  } else {
+    enqueue(child);
+  }
+}
+
 function processJSXNode(
   ssr: SSRContainer,
   enqueue: (value: StackValue) => void,
@@ -275,7 +300,7 @@ function processJSXNode(
   } else if (typeof value === 'object') {
     if (Array.isArray(value)) {
       for (let i = value.length - 1; i >= 0; i--) {
-        enqueue(value[i]);
+        enqueueChild(enqueue, value[i]);
       }
     } else if (isSignal(value)) {
       maybeAddPollingAsyncSignalToEagerResume(ssr.serializationCtx, value);
@@ -318,7 +343,7 @@ function processJSXNode(
     } else {
       const jsx = value as JSXNodeInternal;
       const type = jsx.type;
-      // Below, JSXChildren allows functions and regexes, but we assume the dev only uses those as appropriate.
+      // JSXChildren allows functions: enqueueChild marks them so throws route to the boundary.
       if (typeof type === 'string') {
         appendClassIfScopedStyleExists(jsx, options.currentStyleScoped);
         let qwikInspectorAttrValue: string | null = null;
@@ -360,7 +385,7 @@ function processJSXNode(
         }
 
         const children = jsx.children as JSXOutput;
-        children != null && enqueue(children);
+        children != null && enqueueChild(enqueue, children);
       } else if (isFunction(type)) {
         if (
           (__EXPERIMENTAL__.suspense || __EXPERIMENTAL__.errorBoundary) &&
@@ -376,9 +401,8 @@ function processJSXNode(
           }
           ssr.openFragment(attrs);
           enqueue(ssr.closeFragment);
-          // In theory we could get functions or regexes, but we assume all is well
           const children = jsx.children as JSXOutput;
-          children != null && enqueue(children);
+          children != null && enqueueChild(enqueue, children);
         } else if (type === Slot) {
           const componentFrame = options.parentComponentFrame;
           if (componentFrame) {
@@ -408,7 +432,7 @@ function processJSXNode(
             if (slotDefaultChildren && slotChildren !== slotDefaultChildren) {
               ssr.addUnclaimedProjection(componentFrame, QDefaultSlot, slotDefaultChildren);
             }
-            enqueue(slotChildren as JSXOutput);
+            enqueueChild(enqueue, slotChildren as JSXOutput);
             enqueue(
               setParentOptions(
                 options,
@@ -452,7 +476,7 @@ function processJSXNode(
         } else if (type === SSRStreamBlock) {
           ssr.streamHandler.streamBlockStart();
           enqueue(() => ssr.streamHandler.streamBlockEnd());
-          enqueue(jsx.children as JSXOutput);
+          enqueueChild(enqueue, jsx.children as JSXOutput);
         } else if (isQwikComponent(type)) {
           // prod: use new instance of an object for props, we always modify props for a component
           const componentAttrs: Record<string, string | null> = {};

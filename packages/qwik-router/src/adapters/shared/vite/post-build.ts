@@ -7,20 +7,23 @@ import { ensureSlash } from '../../../utils/pathname';
 export async function postBuild(
   clientOutDir: string,
   serverOutDir: string,
-  pathName: string,
+  basePathname: string,
+  assetsDir: string | undefined,
   userStaticPaths: string[],
   cleanStatic: boolean
 ) {
-  if (pathName && !pathName.endsWith('/')) {
-    pathName = ensureSlash(pathName);
-  }
-  const pathNameBase = pathName || '/';
+  const pathNameBase = ensureSlash(basePathname || '/');
+  const normalizedAssetsDir = assetsDir ? assetsDir.replace(/^\/+|\/+$/g, '') : '';
+  const nestedDirBase = normalizedAssetsDir
+    ? pathNameBase + normalizedAssetsDir + '/'
+    : pathNameBase;
   const ignorePathnames = new Set([
-    pathNameBase + (globalThis.__QWIK_BUILD_DIR__ || 'build') + '/',
-    pathNameBase + (globalThis.__QWIK_ASSETS_DIR__ || 'assets') + '/',
+    nestedDirBase + (globalThis.__QWIK_BUILD_DIR__ || 'build') + '/',
+    nestedDirBase + (globalThis.__QWIK_ASSETS_DIR__ || 'assets') + '/',
   ]);
 
-  const staticPaths = new Set(userStaticPaths.map(ensureSlash));
+  // Keep the raw form too: user-listed file paths must match without a trailing slash.
+  const staticPaths = new Set(userStaticPaths.flatMap((p) => [p, ensureSlash(p)]));
 
   const loadItem = async (fsDir: string, fsName: string, pathname: string) => {
     pathname = ensureSlash(pathname);
@@ -62,7 +65,7 @@ export async function postBuild(
   };
 
   if (fs.existsSync(clientOutDir)) {
-    await loadDir(clientOutDir, pathName);
+    await loadDir(clientOutDir, pathNameBase);
   }
 
   const staticPathsCode = createStaticPathsCode(staticPaths);

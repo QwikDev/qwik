@@ -302,7 +302,8 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
       await postBuild(
         clientPublicOutDir,
         serverOutDir,
-        assetsDir ? join(basePathname, assetsDir) : basePathname,
+        basePathname,
+        assetsDir,
         staticPaths,
         !!opts.cleanStaticGenerated
       );

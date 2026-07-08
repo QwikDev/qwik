@@ -331,6 +331,6 @@ function validateOptions(opts: SsgGenerateOptions) {
   try {
     new URL(siteOrigin);
   } catch (e) {
-    throw new Error(`Invalid "origin"`, { cause: e as Error });
+    throw new Error(`Invalid "origin"`, { cause: e });
   }
 }

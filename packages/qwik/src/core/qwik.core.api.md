@@ -528,8 +528,8 @@ export interface ErrorBoundaryInfo {
 
 // @public (undocumented)
 export interface ErrorBoundaryProps {
-    fallback$: QRL<(error: unknown, reset: QRL<() => void>) => JSXOutput>;
-    onError$?: QRL<(error: unknown, info: ErrorBoundaryInfo) => void>;
+    fallback$: QRL<(error: Error, reset: QRL<() => void>) => JSXOutput>;
+    onError$?: QRL<(error: Error, info: ErrorBoundaryInfo) => void>;
 }
 
 // @public (undocumented)

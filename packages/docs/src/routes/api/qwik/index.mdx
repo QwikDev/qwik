@@ -1718,11 +1718,11 @@ fallback$
 
 </td><td>
 
-[QRL](#qrl-type-alias)&lt;(error: unknown, reset: [QRL](#qrl-type-alias)&lt;() =&gt; void&gt;) =&gt; [JSXOutput](#jsxoutput)&gt;
+[QRL](#qrl-type-alias)&lt;(error: Error, reset: [QRL](#qrl-type-alias)&lt;() =&gt; void&gt;) =&gt; [JSXOutput](#jsxoutput)&gt;
 
 </td><td>
 
-Rendered when a descendant throws; receives `(error, reset)`. Add a live region for screen-reader announcement. Invoke `reset` wrapped in a handler — `onClick$={() => reset()}`, not `onClick$={reset}` — so it stays wired in a streamed fallback after resume.
+Rendered when a descendant throws; receives `(error, reset)`. The error is always an `Error` (`{error.message}` is safe): a non-Error throw is wrapped, and in production it is redacted to a generic message + `digest`. Add a live region for screen-reader announcement. Invoke `reset` wrapped in a handler — `onClick$={() => reset()}`, not `onClick$={reset}` — so it stays wired in a streamed fallback after resume.
 
 </td></tr>
 <tr><td>
@@ -1733,11 +1733,11 @@ onError$?
 
 </td><td>
 
-[QRL](#qrl-type-alias)&lt;(error: unknown, info: [ErrorBoundaryInfo](#errorboundaryinfo)) =&gt; void&gt;
+[QRL](#qrl-type-alias)&lt;(error: Error, info: [ErrorBoundaryInfo](#errorboundaryinfo)) =&gt; void&gt;
 
 </td><td>
 
-_(Optional)_ Side-effect fired once per caught error; never affects rendering.
+_(Optional)_ Side-effect fired once per caught error; never affects rendering. Receives the original `Error` instance; a non-Error throw arrives wrapped in an `Error` whose `cause` is the raw thrown value.
 
 </td></tr>
 </tbody></table>

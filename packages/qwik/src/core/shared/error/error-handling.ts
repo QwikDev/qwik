@@ -45,9 +45,28 @@ const isKeepableBoundaryError = (v: unknown): boolean =>
   v instanceof Error || (v !== undefined && canSerialize(v));
 
 const redactToGeneric = (err: unknown): Error & { digest: string } => {
+  // No cause/custom fields: redaction must never leak the raw error.
   const redacted = new Error(GENERIC_BOUNDARY_ERROR_MESSAGE) as Error & { digest: string };
   redacted.digest = errorBoundaryDigest(err);
   return redacted;
+};
+
+/** Wraps a non-Error throw; manual `cause` (repo lib is es2021) stays enumerable, so it serializes. */
+const toBoundaryError = (raw: unknown, withCause: boolean): Error => {
+  if (raw instanceof Error) {
+    return raw;
+  }
+  let message: string;
+  try {
+    message = String(raw);
+  } catch {
+    message = Object.prototype.toString.call(raw);
+  }
+  const wrapped = new Error(message);
+  if (withCause) {
+    (wrapped as Error & { cause?: unknown }).cause = raw;
+  }
+  return wrapped;
 };
 
 /** Never returns `undefined` (the store's no-error sentinel); fail-closed. */
@@ -55,7 +74,7 @@ export const toSerializableBoundaryError = (
   err: unknown,
   dev: boolean = isDev,
   transformError?: (error: unknown) => unknown
-): unknown => {
+): Error => {
   if (transformError) {
     let projected: unknown;
     try {
@@ -63,23 +82,25 @@ export const toSerializableBoundaryError = (
     } catch {
       return redactToGeneric(err);
     }
-    return isKeepableBoundaryError(projected) ? projected : redactToGeneric(err);
+    return projected instanceof Error ? projected : redactToGeneric(err);
   }
   if (!dev) {
     return redactToGeneric(err);
   }
   if (isKeepableBoundaryError(err)) {
-    return err;
+    // Dev-only: a serializable raw throw survives to the fallback via `cause`.
+    return toBoundaryError(err, true);
   }
   const rawMessage = (err as { message?: unknown })?.message;
-  return new Error(typeof rawMessage === 'string' ? rawMessage : String(err));
+  // No cause: a non-serializable raw would break dev serialization.
+  return typeof rawMessage === 'string' ? new Error(rawMessage) : toBoundaryError(err, false);
 };
 
-export const redactBoundaryErrorForDisplay = (error: unknown, dev: boolean = isDev): unknown =>
+export const redactBoundaryErrorForDisplay = (error: unknown, dev: boolean = isDev): Error =>
   error instanceof Error && 'digest' in error ? error : toSerializableBoundaryError(error, dev);
 
 export const fireOnError = (
-  onError: ((error: unknown, info: ErrorBoundaryInfo) => unknown) | undefined | null,
+  onError: ((error: Error, info: ErrorBoundaryInfo) => unknown) | undefined | null,
   error: unknown,
   info: ErrorBoundaryInfo
 ): void => {
@@ -87,7 +108,8 @@ export const fireOnError = (
     return;
   }
   try {
-    Promise.resolve(onError(error, info)).catch(logError);
+    // In-memory only: identity-preserving for Errors, `cause` carries a raw non-Error.
+    Promise.resolve(onError(toBoundaryError(error, true), info)).catch(logError);
   } catch (e) {
     logError(e);
   }

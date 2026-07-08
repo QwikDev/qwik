@@ -35,13 +35,19 @@ export interface ErrorBoundaryInfo {
 /** @public */
 export interface ErrorBoundaryProps {
   /**
-   * Rendered when a descendant throws; receives `(error, reset)`. Add a live region for
-   * screen-reader announcement. Invoke `reset` wrapped in a handler — `onClick$={() => reset()}`,
-   * not `onClick$={reset}` — so it stays wired in a streamed fallback after resume.
+   * Rendered when a descendant throws; receives `(error, reset)`. The error is always an `Error`
+   * (`{error.message}` is safe): a non-Error throw is wrapped, and in production it is redacted to
+   * a generic message + `digest`. Add a live region for screen-reader announcement. Invoke `reset`
+   * wrapped in a handler — `onClick$={() => reset()}`, not `onClick$={reset}` — so it stays wired
+   * in a streamed fallback after resume.
    */
-  fallback$: QRL<(error: unknown, reset: QRL<() => void>) => JSXOutput>;
-  /** Side-effect fired once per caught error; never affects rendering. */
-  onError$?: QRL<(error: unknown, info: ErrorBoundaryInfo) => void>;
+  fallback$: QRL<(error: Error, reset: QRL<() => void>) => JSXOutput>;
+  /**
+   * Side-effect fired once per caught error; never affects rendering. Receives the original `Error`
+   * instance; a non-Error throw arrives wrapped in an `Error` whose `cause` is the raw thrown
+   * value.
+   */
+  onError$?: QRL<(error: Error, info: ErrorBoundaryInfo) => void>;
 }
 
 /** @internal */
@@ -69,8 +75,8 @@ const buildLastResortFallback = (): JSXOutput =>
   /*#__PURE__*/ _jsxSorted('div', { role: 'alert' }, null, 'Something went wrong.', 0, null);
 
 const renderFallbackOrLastResort = (
-  fallbackQrl: QRL<(error: unknown, reset: QRL<() => void>) => JSXOutput>,
-  error: unknown,
+  fallbackQrl: ErrorBoundaryProps['fallback$'],
+  error: Error,
   reset: QRL<() => void>
 ): JSXOutput | Promise<JSXOutput> => {
   const rendered = fallbackQrl(error, reset) as JSXOutput | Promise<JSXOutput>;
@@ -133,10 +139,11 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
   const reset = /*#__PURE__*/ inlinedQrl(errorBoundaryReset, '_ebR', [host]);
   // Fresh closures so `noSerialize` taints these mirrors, not the prop QRLs.
   const fallbackQrl = props.fallback$;
-  store.$fallback$ = noSerialize((error: unknown) => fallbackQrl(error, reset));
+  // Server-only mirror: `store.error` is always coerced to an Error before display.
+  store.$fallback$ = noSerialize((error: unknown) => fallbackQrl(error as Error, reset));
   const onErrorQrl = props.onError$;
   store.$onError$ = onErrorQrl
-    ? noSerialize((error: unknown, info: ErrorBoundaryInfo) => onErrorQrl(error, info))
+    ? noSerialize((error: unknown, info: ErrorBoundaryInfo) => onErrorQrl(error as Error, info))
     : undefined;
 
   const isServerEnv = qTest ? isServerPlatform() : !isBrowser;

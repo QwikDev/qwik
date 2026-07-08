@@ -5,22 +5,22 @@ import type { ErrorBoundaryStore } from './error-handling';
 
 describe('ErrorBoundary public types', () => {
   // `()=>()=>` bodies never execute; compile-time only.
-  test('fallback$ error param is exactly unknown', () => () => {
+  test('fallback$ error param is exactly Error', () => () => {
     type FallbackError = Parameters<ErrorBoundaryProps['fallback$']>[0];
-    expectTypeOf<FallbackError>().toEqualTypeOf<unknown>();
+    expectTypeOf<FallbackError>().toEqualTypeOf<Error>();
     expectTypeOf<FallbackError>().not.toBeAny();
   });
 
-  test('fallback$ forces narrowing before touching the error', () => () => {
+  test('fallback$ allows direct message access without narrowing', () => () => {
     const _typed: ErrorBoundaryProps['fallback$'] = $((error) => {
-      // @ts-expect-error error is `unknown`, so a bare `.message` access is rejected.
-      error.message;
-      if (error instanceof Error) {
-        return <span>{error.message}</span>;
-      }
-      return <span>error</span>;
+      return <span>{error.message}</span>;
     });
     expectTypeOf(_typed).not.toBeAny();
+  });
+
+  test('onError$ error param is exactly Error', () => () => {
+    type OnError = NonNullable<ErrorBoundaryProps['onError$']>;
+    expectTypeOf<Parameters<OnError>[0]>().toEqualTypeOf<Error>();
   });
 
   test('fallback$ return accepts every JSXOutput shape', () => () => {

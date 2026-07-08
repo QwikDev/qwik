@@ -477,6 +477,51 @@ describe.each(modes)('ErrorBoundary behavior (%s)', (mode, renderMode) => {
       expect(onErrorLog.errors).toEqual(['boom']);
     });
 
+    it('receives the IDENTICAL Error instance that was thrown', async () => {
+      const received: unknown[] = [];
+      const original = new Error('identity boom');
+      const IdentityThrower = component$((): JSXOutput => {
+        throw original;
+      });
+      const { container } = await renderMode(
+        () => (
+          <ErrorBoundary fallback$={fb()} onError$={$((e: any) => received.push(e))}>
+            <IdentityThrower />
+          </ErrorBoundary>
+        ),
+        modeOpts
+      );
+      await settleOnErrorDelivery(container);
+
+      expect(received).toHaveLength(1);
+      expect(received[0]).toBe(original);
+    });
+
+    it.each([[{ code: 401 }], [0]])(
+      'wraps a non-Error throw %o in an Error carrying the raw value as cause',
+      async (raw) => {
+        const received: unknown[] = [];
+        const RawThrower = component$((): JSXOutput => {
+          throw raw;
+        });
+        const { container } = await renderMode(
+          () => (
+            <ErrorBoundary fallback$={fb()} onError$={$((e: any) => received.push(e))}>
+              <RawThrower />
+            </ErrorBoundary>
+          ),
+          modeOpts
+        );
+        await settleOnErrorDelivery(container);
+
+        expect(received).toHaveLength(1);
+        const seen = received[0] as Error & { cause?: unknown };
+        expect(seen).toBeInstanceOf(Error);
+        expect(seen.message).toBe(String(raw));
+        expect(seen.cause).toBe(raw);
+      }
+    );
+
     it('passes an info arg with phase "render" and a non-empty boundaryId for a render throw', async () => {
       const infos: Array<{ phase: string; boundaryId: string }> = [];
       const { container } = await renderMode(
@@ -904,12 +949,15 @@ describe('ErrorBoundary CSR-specific', () => {
   });
 
   describe('falsy thrown values', () => {
+    // Object ref survives `$()` capture; reset per test case.
+    const seenFalsy: { errors: unknown[] } = { errors: [] };
     const Boundary = component$(() => {
       return (
         <ErrorBoundary
-          fallback$={$((e: any) => (
-            <p id="fb">caught: {String(e)}</p>
-          ))}
+          fallback$={$((e: any) => {
+            seenFalsy.errors.push(e);
+            return <p id="fb">caught: {String(e)}</p>;
+          })}
         >
           <button id="content">x</button>
         </ErrorBoundary>
@@ -919,6 +967,7 @@ describe('ErrorBoundary CSR-specific', () => {
     it.each([0, null, '', false, undefined])(
       'shows the fallback when %s is thrown',
       async (thrown) => {
+        seenFalsy.errors = [];
         const { container } = await domRender(<Boundary />, { debug });
         const el = container.element;
         expect(el.querySelector('#content')).toBeTruthy();
@@ -931,6 +980,14 @@ describe('ErrorBoundary CSR-specific', () => {
 
         expect(el.querySelector('#fb')).toBeTruthy();
         expect(el.querySelector('#content')).toBeFalsy();
+
+        const seen = seenFalsy.errors[seenFalsy.errors.length - 1] as Error & { cause?: unknown };
+        expect(seen).toBeInstanceOf(Error);
+        expect(seen.message).toBe(String(thrown));
+        if (thrown !== undefined) {
+          // Dev-only: the raw serializable throw survives via `cause`.
+          expect(seen.cause).toBe(thrown);
+        }
       }
     );
   });
@@ -1306,7 +1363,12 @@ describe('ErrorBoundary SSR-specific', () => {
 
   it('a normal Error throw is unchanged (still renders its fallback)', async () => {
     const { container } = await ssrRenderToDom(
-      <ErrorBoundary fallback$={fb()}>
+      // Typed `Error` param: `e.message` must be safe without `String()`.
+      <ErrorBoundary
+        fallback$={$((e: Error) => (
+          <p id="fb">caught: {e.message}</p>
+        ))}
+      >
         <NormalErrorThrower />
       </ErrorBoundary>,
       { debug }
@@ -2082,6 +2144,67 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
     expect(redactBoundaryErrorForDisplay(alreadyRedacted, false)).toBe(alreadyRedacted);
   });
 
+  it('prod: the redacted error carries no cause and no custom fields', () => {
+    const original = Object.assign(new Error('secret'), { token: 'abc' });
+    (original as Error & { cause?: unknown }).cause = { db: 'internal' };
+    for (const raw of [original, { code: 401 }]) {
+      const redacted = toSerializableBoundaryError(raw, /* dev */ false) as Error & {
+        cause?: unknown;
+      };
+      expect(redacted.cause).toBeUndefined();
+      expect(Object.keys(redacted)).toEqual(['digest']);
+    }
+  });
+
+  describe('dev coercion to Error', () => {
+    it.each([[0], ['x'], [{ code: 401 }]])(
+      'a serializable non-Error throw %o becomes an Error with the raw as cause',
+      (raw) => {
+        const out = toSerializableBoundaryError(raw, /* dev */ true) as Error & { cause?: unknown };
+        expect(out).toBeInstanceOf(Error);
+        expect(out.message).toBe(String(raw));
+        expect(out.cause).toBe(raw);
+      }
+    );
+
+    it('an Error throw passes untouched, custom enumerable fields included', () => {
+      const original = Object.assign(new Error('full-detail'), { code: 401 });
+      expect(toSerializableBoundaryError(original, /* dev */ true)).toBe(original);
+    });
+
+    it('a non-serializable throw with a string message keeps the message and gets NO cause', () => {
+      const out = toSerializableBoundaryError(
+        new NonSerializableError(),
+        /* dev */ true
+      ) as Error & {
+        cause?: unknown;
+      };
+      expect(out).toBeInstanceOf(Error);
+      expect(out.message).toBe('non-serializable boom');
+      expect('cause' in out).toBe(false);
+    });
+
+    it('a non-serializable throw without a message coerces via String and gets NO cause', () => {
+      const fn = () => {};
+      const out = toSerializableBoundaryError(fn, /* dev */ true) as Error & { cause?: unknown };
+      expect(out).toBeInstanceOf(Error);
+      expect(out.message).toBe(String(fn));
+      expect('cause' in out).toBe(false);
+    });
+
+    it('markBoundaryErrored: a non-Error throw reaches onError$ wrapped with the raw as cause', () => {
+      const received: unknown[] = [];
+      const store: ErrorBoundaryStore = { error: undefined, $onError$: (e) => received.push(e) };
+      const raw = { code: 401 };
+      markBoundaryErrored(store, raw);
+      expect(received).toHaveLength(1);
+      const seen = received[0] as Error & { cause?: unknown };
+      expect(seen).toBeInstanceOf(Error);
+      expect(seen.cause).toBe(raw);
+      expect(store.error).toBeInstanceOf(Error);
+    });
+  });
+
   it('transformError: overrides the projection in both dev and prod', () => {
     const original = Object.assign(new Error('secret-db-detail'), { query: 'SELECT 1' });
     const transformError = (e: unknown) =>
@@ -2099,6 +2222,17 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
     }) as Error & { digest?: string };
     expect(out.message).toBe('An error occurred');
     expect(out.message).not.toContain('secret');
+    expect(typeof out.digest).toBe('string');
+  });
+
+  it('transformError: a non-Error projection redacts to generic + digest', () => {
+    const out = toSerializableBoundaryError(
+      new Error('secret'),
+      /* dev */ true,
+      () => 'safe message'
+    ) as Error & { digest?: string };
+    expect(out).toBeInstanceOf(Error);
+    expect(out.message).toBe('An error occurred');
     expect(typeof out.digest).toBe('string');
   });
 

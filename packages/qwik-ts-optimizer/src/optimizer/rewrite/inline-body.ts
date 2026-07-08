@@ -138,7 +138,11 @@ export function transformInlineSegmentBody(
           additionalImports.set('_qrlSync', '@qwik.dev/core');
           body = body.slice(0, relCallStart) + buildSyncTransform(child.bodyText) + body.slice(relCallEnd);
         } else if (child.isBare) {
-          body = body.slice(0, relCallStart) + childVarName + body.slice(relCallEnd);
+          let replacement = childVarName;
+          if (child.captureNames.length > 0) {
+            replacement += wCallSuffix(child.captureNames, '        ', '    ');
+          }
+          body = body.slice(0, relCallStart) + replacement + body.slice(relCallEnd);
         } else if (isEventHandlerOrJsxProp(child.ctxKind) && !child.qrlCallee) {
           // Empty passive set: passive detection is segment-codegen-path
           // only (see eventHandlerPropName's contract).

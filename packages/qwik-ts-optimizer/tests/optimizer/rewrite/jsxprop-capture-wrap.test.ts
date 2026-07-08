@@ -63,6 +63,18 @@ function transformInline(source: string, extra: Record<string, unknown> = {}) {
   } as Parameters<typeof transformModule>[0]);
 }
 
+function transformHoist(source: string, extra: Record<string, unknown> = {}) {
+  return transformModule({
+    input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(source) }],
+    srcDir: mkFilePath('.'),
+    entryStrategy: { type: 'hoist' },
+    mode: 'test',
+    transpileTs: true,
+    transpileJsx: true,
+    ...extra,
+  } as Parameters<typeof transformModule>[0]);
+}
+
 function findComponentBodySegment(result: ReturnType<typeof transformModule>) {
   return result.modules.find(
     (m) => m.kind === 'segment' && m.segment.ctxName === 'component$',
@@ -166,6 +178,41 @@ export const App = component$(() => {
       const parent = result.modules[0];
       expect(parent.code).toMatch(/captured\$:\s*q_[A-Za-z_0-9]+\.w\(\s*\[\s*state\s*\]\s*\)/);
     });
+  });
+
+  describe('.w([captures]) on bare-$() QRL refs in JSX props (inline/hoist strategy)', () => {
+    for (const [label, transform] of [
+      ['inline', transformInline],
+      ['hoist', transformHoist],
+    ] as const) {
+      it(`${label}: capturing \`ref={$((el) => props.ref.value = el)}\` → \`ref: q_X.w([props])\``, () => {
+        const result = transform(`
+import { component$, $ } from '@qwik.dev/core';
+import { Comp } from './comp';
+export const Render = component$((props) => {
+  return <Comp ref={$((el) => { if (props.ref) props.ref.value = el; })}/>;
+});
+`);
+        const parent = result.modules[0];
+        expect(parent.code).toMatch(
+          /ref:\s*q_[A-Za-z_0-9]+\.w\(\s*\[\s*props\s*\]\s*\)/,
+        );
+        expect(parent.code).not.toMatch(/ref:\s*q_[A-Za-z_0-9]+\s*[,}]/);
+      });
+
+      it(`${label}: non-capturing bare \`$()\` ref → bare q_X, no .w()`, () => {
+        const result = transform(`
+import { component$, $ } from '@qwik.dev/core';
+import { Comp } from './comp';
+export const Render = component$(() => {
+  return <Comp ref={$((el) => console.log(el))}/>;
+});
+`);
+        const parent = result.modules[0];
+        expect(parent.code).toMatch(/ref:\s*q_[A-Za-z_0-9]+\s*[,}]/);
+        expect(parent.code).not.toMatch(/ref:\s*q_[A-Za-z_0-9]+\.w\(/);
+      });
+    }
   });
 
   describe('Bonus fix: JSX flag bit 0 (static_listeners) on Component element with non-const *$', () => {

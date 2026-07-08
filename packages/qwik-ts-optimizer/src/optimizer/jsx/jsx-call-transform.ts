@@ -35,7 +35,6 @@ import {
 } from './jsx.js';
 import { transformEventPropName } from './event-handlers.js';
 import { buildCaptureProp } from './loop-hoisting.js';
-import { forEachAstChild } from '../ast/guards.js';
 import type { SegmentImportData } from '../segment/segment-codegen.js';
 
 /**
@@ -173,15 +172,11 @@ export function transformJsxCalls(
           : 'component';
       tagStack.push(kind);
 
-      // Wrap reactive accesses in this call's props bag. Limited to the
-      // immediate jsx() call's argument tree — function bodies (arrow,
-      // inlinedQrl callbacks) are separate scopes and aren't wrapped;
-      // nested jsx() calls wrap at their own enter.
       if (reactiveBindings.size === 0) return;
       if (isInSkipRange(node.start)) return;
       const propsArg = node.arguments?.[1];
       if (!propsArg || propsArg.type !== 'ObjectExpression') return;
-      walkAndWrap(propsArg, s, opts.jsxFunctions, reactiveBindings, opts.neededImports);
+      wrapReactivePropValues(propsArg, s, reactiveBindings, opts.neededImports);
     },
     leave(node: AstNode) {
       // Bail unless this is a `<jsxFunction>(tag, propsObjLiteral, ...)`
@@ -243,45 +238,46 @@ function isJsxCall(node: AstNode, jsxFunctions: ReadonlySet<string>): boolean {
   );
 }
 
-function walkAndWrap(
-  node: AstNode | null | undefined,
+function wrapReactivePropValues(
+  propsObj: AstNode,
   s: MagicString,
-  jsxFunctions: ReadonlySet<string>,
   reactiveBindings: ReadonlySet<string>,
   neededImports: Set<string>,
 ): void {
-  if (!node) return;
-  // Stop at scope/JSX boundaries — these are not part of the current jsx()
-  // call's "JSX context"; signal wrapping doesn't apply inside them.
-  if (isJsxCall(node, jsxFunctions)) return;
-  if (node.type === 'FunctionExpression' || node.type === 'ArrowFunctionExpression') return;
-  if (
-    node.type === 'CallExpression' &&
-    node.callee?.type === 'Identifier' &&
-    node.callee.name === 'inlinedQrl'
-  ) return;
-
-  if (
-    node.type === 'MemberExpression' &&
-    node.object?.type === 'Identifier' &&
-    reactiveBindings.has(node.object.name)
-  ) {
-    const propName = staticPropName(node);
-    if (propName !== null) {
-      const objText = s.slice(node.object.start, node.object.end);
-      // Signal `.value` reads wrap to the one-arg form `_wrapProp(sig)`;
-      // store field reads (`store.count`) wrap to `_wrapProp(store, "count")`.
-      // Both yield a stable reactive reference the runtime resolves per render.
-      const replacement = propName === 'value'
-        ? `_wrapProp(${objText})`
-        : `_wrapProp(${objText}, "${propName}")`;
-      s.overwrite(node.start, node.end, replacement);
-      neededImports.add('_wrapProp');
-      return;
+  if (propsObj.type !== 'ObjectExpression') return;
+  for (const prop of propsObj.properties ?? []) {
+    if (prop.type !== 'Property') continue;
+    const value = prop.value;
+    if (propertyKeyName(prop) === 'children' && value?.type === 'ArrayExpression') {
+      for (const element of value.elements ?? []) {
+        wrapReactiveMember(element, s, reactiveBindings, neededImports);
+      }
+      continue;
     }
+    wrapReactiveMember(value, s, reactiveBindings, neededImports);
   }
+}
 
-  forEachAstChild(node, (child) => walkAndWrap(child as AstNode, s, jsxFunctions, reactiveBindings, neededImports));
+function wrapReactiveMember(
+  node: AstNode | null | undefined,
+  s: MagicString,
+  reactiveBindings: ReadonlySet<string>,
+  neededImports: Set<string>,
+): void {
+  if (
+    !node ||
+    node.type !== 'MemberExpression' ||
+    node.object?.type !== 'Identifier' ||
+    !reactiveBindings.has(node.object.name)
+  ) return;
+  const propName = staticPropName(node);
+  if (propName === null) return;
+  const objText = s.slice(node.object.start, node.object.end);
+  const replacement = propName === 'value'
+    ? `_wrapProp(${objText})`
+    : `_wrapProp(${objText}, "${propName}")`;
+  s.overwrite(node.start, node.end, replacement);
+  neededImports.add('_wrapProp');
 }
 
 function staticPropName(member: AstNode): string | null {

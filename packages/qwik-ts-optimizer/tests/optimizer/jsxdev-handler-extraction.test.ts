@@ -244,3 +244,65 @@ export default component$(() => {
 		});
 	}
 });
+
+describe('pre-transformed `_jsxDEV`: reactive `.value` reads only wrap at the top of a value position', () => {
+	const CODE = `import { jsxDEV as _jsxDEV } from "@qwik.dev/core/jsx-dev-runtime";
+import { component$, useSignal, useComputed$ } from '@qwik.dev/core';
+
+export const Search = component$(() => {
+  const query = useSignal("");
+  const results = useSignal([]);
+  const sections = useComputed$(() => []);
+  return _jsxDEV("div", {
+    children: [
+      _jsxDEV("input", {
+        class: ["base", query.value ? "on" : "off"],
+        "aria-activedescendant": query.value
+      }, undefined, false, undefined, this),
+      sections.value.map((section) => _jsxDEV("span", {
+        children: section.label
+      }, undefined, false, undefined, this)),
+      results.value.length === 0 && _jsxDEV("p", {
+        children: "empty"
+      }, undefined, false, undefined, this)
+    ]
+  }, undefined, false, undefined, this);
+});
+`;
+
+	for (const env of [
+		{ label: 'client/smart', strat: { type: 'smart' as const }, isServer: false },
+		{ label: 'server/hoist', strat: { type: 'hoist' as const }, isServer: true },
+	]) {
+		test(`${env.label}: nested .value stays raw, bare .value wraps`, () => {
+			const result = transformModule({
+				srcDir: mkFilePath('/proj/src'),
+				input: [{ path: mkFilePath('/proj/src/routes/index.tsx'), code: mkSourceText(CODE) }],
+				entryStrategy: env.strat,
+				transpileTs: true,
+				transpileJsx: true,
+				explicitExtensions: true,
+				preserveFilenames: true,
+				mode: 'prod',
+				minify: 'simplify',
+				isServer: env.isServer,
+			});
+
+			assertAllModulesParse(result.modules);
+
+			const withJsx = result.modules.find(
+				(m) => m.code.includes('_jsxSorted') && m.code.includes('sections'),
+			);
+			expect(withJsx, 'expected a module with the Search JSX').toBeDefined();
+			const code = withJsx!.code;
+
+			expect(code, 'sections.value.map object left raw').toMatch(/sections\.value\.map\(/);
+			expect(code, 'sections.value not wrapped').not.toMatch(/_wrapProp\(sections\)/);
+			expect(code, 'results.value.length left raw').toMatch(/results\.value\.length/);
+			expect(code, 'results.value not wrapped').not.toMatch(/_wrapProp\(results\)/);
+			expect(code, 'query.value in ternary left raw').toMatch(/query\.value\s*\?/);
+			expect(code, 'query.value in ternary not wrapped').not.toMatch(/_wrapProp\(query\)\s*\?/);
+			expect(code, 'bare attr value wraps').toMatch(/_wrapProp\(query\)/);
+		});
+	}
+});

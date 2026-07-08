@@ -532,6 +532,20 @@ export function removeUnusedImports(
   return ms.toString();
 }
 
+function isBareScript(program: AstProgram): boolean {
+  return !program.body.some(
+    (node) =>
+      node.type === 'ImportDeclaration' ||
+      node.type === 'ExportNamedDeclaration' ||
+      node.type === 'ExportDefaultDeclaration' ||
+      node.type === 'ExportAllDeclaration',
+  );
+}
+
+function emptyParentModule(relPath: RelativePath, origPath: string): TransformModule {
+  return { kind: 'parent', path: relPath, isEntry: false, code: '', map: null, origPath };
+}
+
 export function buildPassthroughModule(
   repairedCode: string,
   relPath: RelativePath,
@@ -541,6 +555,11 @@ export function buildPassthroughModule(
   const program =
     cachedProgram ??
     parseWithRawTransfer(relPath, repairedCode).program;
+
+  if (isBareScript(program)) {
+    return emptyParentModule(relPath, origPath);
+  }
+
   const s = new MagicString(repairedCode);
 
   let lastImportEnd = -1;

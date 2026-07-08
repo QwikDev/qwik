@@ -8,6 +8,7 @@ import type { Http2ServerRequest } from 'node:http2';
 import { basename, extname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { MIME_TYPES } from '../request-handler/mime-types';
+import { devPreloadedRouteLoaders } from '../request-handler/dev-preloaded-route-loader';
 import { computeOrigin, fromNodeHttp, getUrl } from './http';
 
 // @qwik.dev/router/middleware/node
@@ -59,6 +60,13 @@ export function createQwikRouter(
       // In dev mode, inject platform from options via secret property
       if (isDev && (opts as any).platform) {
         Object.assign(serverRequestEv.platform, (opts as any).platform);
+      }
+      if (isDev) {
+        const loader = devPreloadedRouteLoaders.get(req);
+        if (loader) {
+          devPreloadedRouteLoaders.set(serverRequestEv.request, loader);
+          devPreloadedRouteLoaders.delete(req);
+        }
       }
       const handled = await requestHandler(serverRequestEv, opts);
       if (handled) {

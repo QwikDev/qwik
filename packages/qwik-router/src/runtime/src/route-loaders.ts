@@ -130,6 +130,8 @@ export type RouteLoaderCtx = {
   manifestHash?: string;
 };
 
+type DevRouteLoaderCtx = RouteLoaderCtx & { devRouteLoaderPaths?: Record<string, true> };
+
 export type RouteLoaderState = Record<string, AsyncSignal<unknown>>;
 
 const getRouteLoaderValueStateKey = (loaderId: string) => `${ROUTE_LOADER_VALUE_PREFIX}${loaderId}`;
@@ -138,7 +140,8 @@ class ServerRouteLoaderCapture {
   constructor(
     readonly hash: string,
     readonly qrl: QRL<(event: RequestEventLoader) => unknown>,
-    readonly validators: DataValidator[] | undefined
+    readonly validators: DataValidator[] | undefined,
+    readonly blockSSR: boolean
   ) {}
 
   load() {
@@ -152,7 +155,9 @@ class ServerRouteLoaderCapture {
     if (this.hash in values) {
       return values[this.hash];
     }
-    return loadRouteLoaderByQrl(this.hash, this.qrl, this.validators, requestEv);
+    // A background (blockSSR:false) loader must not touch the page response.
+    const ev = this.blockSSR ? requestEv : detachResponseFromEvent(requestEv);
+    return loadRouteLoaderByQrl(this.hash, this.qrl, this.validators, ev);
   }
 
   [SerializerSymbol]() {
@@ -168,24 +173,6 @@ const isRequestEvent = (value: unknown): value is RequestEvent =>
 
 const isLoaderInternal = (value: unknown): value is LoaderInternal =>
   typeof value === 'function' && (value as LoaderInternal).__brand === 'server_loader';
-
-const getDevRouteLoaderRegistry = () => {
-  if (!isDev || !isServer) {
-    return undefined;
-  }
-  const registryKey = Symbol.for('qwik.dev.router.route-loaders');
-  return ((globalThis as any)[registryKey] ||= new Map<string, LoaderInternal>()) as Map<
-    string,
-    LoaderInternal
-  >;
-};
-
-const registerDevRouteLoader = (loader: LoaderInternal) => {
-  if (!isDev) {
-    return;
-  }
-  getDevRouteLoaderRegistry()?.set(loader.__id, loader);
-};
 
 /**
  * Fetch a single loader's data from the server.
@@ -301,7 +288,7 @@ const createRouteLoaderSignal = (
   const stateValues = state as Record<string, unknown>;
   const resumeValueKey = getRouteLoaderValueStateKey(id);
   const capture = isServer
-    ? new ServerRouteLoaderCapture(id, loader.__qrl, loader.__validators)
+    ? new ServerRouteLoaderCapture(id, loader.__qrl, loader.__validators, loader.__blockSSR)
     : id;
   const searchFilter = loader.__search;
   const lastFetch: {
@@ -440,6 +427,7 @@ const getLoaderOptions = (rest: (LoaderOptions | DataValidator)[]) => {
   let cacheKey: LoaderOptions['cacheKey'] | undefined;
   let search: string[] | undefined;
   let allowStale = true;
+  let blockSSR = true;
   const validators: DataValidator[] = [];
 
   if (rest.length === 1) {
@@ -477,6 +465,14 @@ const getLoaderOptions = (rest: (LoaderOptions | DataValidator)[]) => {
         if (options.allowStale === false) {
           allowStale = false;
         }
+        if (options.blockSSR === false) {
+          if (!__EXPERIMENTAL__.blockSSR) {
+            throw new Error(
+              '`blockSSR: false` is an experimental feature and is not enabled. Please enable the feature flag by adding `experimental: ["blockSSR"]` to your qwikVite plugin options.'
+            );
+          }
+          blockSSR = false;
+        }
       }
     }
   } else if (rest.length > 1) {
@@ -493,6 +489,7 @@ const getLoaderOptions = (rest: (LoaderOptions | DataValidator)[]) => {
     cacheKey,
     search,
     allowStale,
+    blockSSR,
   };
 };
 
@@ -581,10 +578,16 @@ export const updateRouteLoaderPaths = (
   if (!isServer) {
     ctx.pagePathname = pageUrl.pathname;
     ctx.pageSearch = pageUrl.search;
+    if (isDev) {
+      (ctx as DevRouteLoaderCtx).devRouteLoaderPaths = {};
+    }
   }
   if (loaderPaths) {
     for (const key in loaderPaths) {
       ctx.loaderPaths[key] = loaderPaths[key];
+      if (!isServer && isDev) {
+        (ctx as DevRouteLoaderCtx).devRouteLoaderPaths![key] = true;
+      }
     }
   }
 };
@@ -641,8 +644,9 @@ export const ensureRouteLoaderSignals = (
     // Dev-only safety net for the first SPA nav: the route module isn't transformed yet, so the
     // client trie has no _R loader hash and the loader would resolve to undefined.
     if (isDev && !isServer) {
-      if (routeLoaderCtx.pagePathname && routeLoaderCtx.loaderPaths[loader.__id] === undefined) {
-        routeLoaderCtx.loaderPaths[loader.__id] = routeLoaderCtx.pagePathname;
+      const devCtx = routeLoaderCtx as DevRouteLoaderCtx;
+      if (devCtx.pagePathname && !devCtx.devRouteLoaderPaths?.[loader.__id]) {
+        devCtx.loaderPaths[loader.__id] = devCtx.pagePathname;
       }
     }
     ensureRouteLoaderSignal(loader, state, routeLoaderCtx);
@@ -665,10 +669,13 @@ export const resolveRouteLoaderByHash = (
   routeLoaders: readonly LoaderInternal[],
   loaderId: string
 ) => {
-  // Cold dev q-loader requests can know an id before route-local scans see the loader object.
+  return routeLoaders.find((loader) => matchesRouteLoaderId(loader, loaderId));
+};
+
+export const matchesRouteLoaderId = (loader: LoaderInternal, loaderId: unknown): boolean => {
   return (
-    routeLoaders.find((loader) => loader.__id === loaderId) ??
-    (isDev ? getDevRouteLoaderRegistry()?.get(loaderId) : undefined)
+    typeof loaderId === 'string' &&
+    (loader.__id === loaderId || (isDev && loader.__qrl.getHash() === loaderId))
   );
 };
 
@@ -778,13 +785,65 @@ export const getLoaderRequestEvent = (
   return loaderRequestEv;
 };
 
-export const loadRouteLoader = (loader: LoaderInternal, requestEv: RequestEvent) =>
-  loadRouteLoaderByQrl(
+/**
+ * View of a request event whose response controls (status/headers/redirect/error/fail/cacheControl)
+ * are captured locally, so a background (`blockSSR: false`) loader's status/redirect/error surfaces
+ * on its own signal instead of mutating the page response. The originals also call `check()`, which
+ * throws once SSR streaming has started — a background loader must fail on its signal, not crash.
+ */
+const detachResponseFromEvent = (requestEv: RequestEvent): RequestEvent => {
+  let status = 200;
+  const headers = new Headers();
+  return Object.create(requestEv, {
+    headers: { value: headers, enumerable: true },
+    status: {
+      value: (statusCode?: number) => {
+        if (typeof statusCode === 'number') {
+          status = statusCode;
+        }
+        return status;
+      },
+      enumerable: true,
+    },
+    error: {
+      value: (statusCode: number, message: unknown) => {
+        status = statusCode;
+        return new ServerError(statusCode, message);
+      },
+      enumerable: true,
+    },
+    redirect: {
+      value: (statusCode: number, url: string) => {
+        status = statusCode;
+        if (url) {
+          headers.set('Location', url);
+        }
+        return new RedirectMessage();
+      },
+      enumerable: true,
+    },
+    fail: {
+      value: (statusCode: number, data: Record<string, unknown>) => {
+        status = statusCode;
+        return { failed: true, ...data };
+      },
+      enumerable: true,
+    },
+    // A background loader cannot set the page's cache headers.
+    cacheControl: { value: () => {}, enumerable: true },
+  }) as RequestEvent;
+};
+
+export const loadRouteLoader = (loader: LoaderInternal, requestEv: RequestEvent) => {
+  const loaderEv = getLoaderRequestEvent(loader, requestEv);
+  return loadRouteLoaderByQrl(
     loader.__id,
     loader.__qrl,
     loader.__validators,
-    getLoaderRequestEvent(loader, requestEv)
+    // A background (blockSSR:false) loader must not touch the page response.
+    loader.__blockSSR ? loaderEv : detachResponseFromEvent(loaderEv)
   );
+};
 
 /** Run a loader and wrap the result in a LoaderResponse envelope. Catches redirects/errors. */
 export const getRouteLoaderResponse = async (
@@ -824,6 +883,7 @@ export const routeLoaderQrl = ((
     cacheKey,
     search,
     allowStale,
+    blockSSR,
   } = getLoaderOptions(rest);
 
   function loader() {
@@ -848,10 +908,8 @@ export const routeLoaderQrl = ((
   loader.__cacheKey = cacheKey;
   loader.__search = search;
   loader.__allowStale = allowStale;
+  loader.__blockSSR = blockSSR;
   Object.freeze(loader);
-  if (isDev) {
-    registerDevRouteLoader(loader);
-  }
   return loader;
 }) as LoaderConstructorQRL;
 

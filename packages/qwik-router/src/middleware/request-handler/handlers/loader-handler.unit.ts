@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { FULLPATH_HEADER, routeLoaderQrl } from '../../../runtime/src/route-loaders';
+import { FULLPATH_HEADER } from '../../../runtime/src/route-loaders';
 import { getLoaderName, IsQLoader, QLoaderId } from '../request-path';
 import { loaderHandler } from './loader-handler';
 
@@ -16,6 +16,7 @@ describe('loaderHandler', () => {
       headersSent: false,
       exited: false,
       cacheControl: vi.fn(),
+      json: vi.fn(),
       send: vi.fn(),
       status: vi.fn(() => 200),
     };
@@ -120,19 +121,13 @@ describe('loaderHandler', () => {
     expect(requestEv.send).toHaveBeenCalledWith(200, expect.any(String));
   });
 
-  it('runs a dev registered loader that was not exported by the route module', async () => {
+  it('returns 404 when the requested loader is not available on the matched route', async () => {
     const requestEv = createRequestEv();
-    const qrl = {
-      call: vi.fn(async () => 'registered-loader-value'),
-      getHash: () => 'loader-id',
-      getSymbol: () => 'loader-id',
-    };
-    routeLoaderQrl(qrl as any);
 
     await loaderHandler([])(requestEv as any);
 
-    expect(qrl.call).toHaveBeenCalledOnce();
-    expect(requestEv.send).toHaveBeenCalledWith(200, expect.any(String));
+    expect(requestEv.json).toHaveBeenCalledWith(404, { error: 'Loader not found' });
+    expect(requestEv.send).not.toHaveBeenCalled();
   });
 
   it('treats empty normalized eTags as absent', async () => {

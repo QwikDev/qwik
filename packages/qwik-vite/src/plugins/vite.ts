@@ -619,7 +619,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       },
     },
 
-    async writeBundle(_, rollupBundle) {
+    async writeBundle(outputOptions, rollupBundle) {
       const opts = qwikPlugin.getOptions();
       const isSSR = this.environment.config.consumer === 'server';
       if (isSSR) {
@@ -655,7 +655,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
                   const bundleOutDir = sys.path.dirname(bundeName);
                   const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
 
-                  const folder = sys.path.join(opts.outDir, bundleOutDir);
+                  // Write next to this bundle's own output — other environments (e.g. the
+                  // throwaway ssg build) must not clobber the deployed server entry.
+                  const folder = sys.path.join(outputOptions.dir || opts.outDir, bundleOutDir);
                   await fs.promises.mkdir(folder, { recursive: true });
                   await fs.promises.writeFile(
                     sys.path.join(folder, js),

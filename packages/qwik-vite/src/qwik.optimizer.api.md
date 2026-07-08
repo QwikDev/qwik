@@ -20,6 +20,7 @@ export type BundleGraphAdder = (manifest: QwikManifest) => Record<string, {
 
 // @public
 export enum ExperimentalFeatures {
+    blockSSR = "blockSSR",
     each = "each",
     errorBoundary = "errorBoundary",
     insights = "insights",

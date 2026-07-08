@@ -47,11 +47,13 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
         'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
         ...config.define,
       };
+      // Setting `builder` switches this build to Vite's multi-environment app build, orchestrated
+      // in `buildApp`. Always on: post-build and the adapter `generate()` must run there even when
+      // SSG is disabled.
+      config.builder ??= {};
       if (opts.ssg !== null) {
         // Render SSG in a dedicated `ssg` server environment — its own build graph — so run-ssg's
-        // `()=>import()` route loaders never enter the deployed (`ssr`) bundle. Setting `builder`
-        // switches this build to Vite's multi-environment app build, orchestrated in `buildApp`.
-        config.builder ??= {};
+        // `()=>import()` route loaders never enter the deployed (`ssr`) bundle.
         config.environments = {
           ...config.environments,
           // Same server externalization as `ssr` (via the router/qwik `configEnvironment` hooks);
@@ -64,11 +66,26 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
               ssr: true,
               outDir: ssgOutDirFor(config.root ?? process.cwd()),
               emptyOutDir: true,
+              // Throwaway output, executed once and deleted — skip minify/sourcemap work.
+              minify: false,
+              sourcemap: false,
             },
           },
         };
       }
       return config;
+    },
+
+    configEnvironment(name, environmentOptions) {
+      if (name === 'ssg') {
+        // The ssg graph only builds the run-ssg entries emitted in `buildStart`; drop the
+        // inherited deploy entry so it is not bundled a second time. Replace the containers —
+        // the inherited objects are shared by reference with the top-level (ssr) config.
+        environmentOptions.build = {
+          ...environmentOptions.build,
+          rollupOptions: { ...environmentOptions.build?.rollupOptions, input: {} },
+        };
+      }
     },
 
     configResolved(config) {

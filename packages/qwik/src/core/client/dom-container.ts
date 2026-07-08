@@ -213,7 +213,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     this.document.addEventListener?.('qerror', this.$qErrorHandler$);
     registerUnhandledRejectionBridge(document.defaultView);
     this.$containerDataProcessState$ = ContainerDataProcessState.ProcessingVNode;
-    processVNodeData(document);
+    processVNodeData(document, element);
     onVNodeDataReady(document, () => {
       if (this.$containerDataProcessState$ === ContainerDataProcessState.ProcessingVNode) {
         processContainerStateData(this, this.$processContainerData$());

@@ -75,9 +75,14 @@ interface ProcessVNodeDataState {
  * - Attach all `qwik/vnode` scripts (not the data contain within them) to the `q:container` element.
  * - Walk the tree and process each `q:container` element.
  */
-export function processVNodeData(document: Document): void {
+export function processVNodeData(document: Document, containerElement?: ContainerElement): void {
   const qDocument = document as QDocument;
-  if (qDocument.qVNodeDataStarted || qDocument.qVNodeDataProcessed) {
+  // Per-container gate: a walk already populated this container's refs → done.
+  if (containerElement?.qVNodeRefs) {
+    return;
+  }
+  // A document-wide walk is in flight; it will pick up this newly-added container too.
+  if (qDocument.qVNodeDataStarted && !qDocument.qVNodeDataProcessed) {
     return;
   }
   qDocument.qVNodeDataStarted = true;
@@ -215,7 +220,10 @@ function markVNodeDataReady(document: QDocument): void {
 
 function* processRootVNodeData(document: Document): Generator<void, void, void> {
   yield* processVNodeDataImpl(document);
-  (document as QDocument).qVNodeDataProcessed = true;
+  const qDocument = document as QDocument;
+  qDocument.qVNodeDataProcessed = true;
+  // Re-open the gate so a container added after this drain re-runs a walk.
+  qDocument.qVNodeDataStarted = false;
 }
 
 function* processOutOfOrderSegmentVNodeDataIterator(

@@ -879,6 +879,53 @@ describe('worker qrl chunk rewrites', () => {
   });
 });
 
+describe('writeBundle entry facade', () => {
+  test('writes the .js facade into the bundle output dir, not the plugin outDir', async () => {
+    const fs = await import('node:fs');
+    const os = await import('node:os');
+    const tmp = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'qwik-vite-facade-'));
+    try {
+      const serverOutDir = path.join(tmp, 'server');
+      const ssgOutDir = path.join(tmp, 'ssg-cache');
+      await fs.promises.mkdir(serverOutDir, { recursive: true });
+      await fs.promises.mkdir(ssgOutDir, { recursive: true });
+      // The real deployed entry emitted earlier by the ssr environment build.
+      const deployedEntry = path.join(serverOutDir, 'entry.cloudflare-pages.js');
+      const deployedCode = 'export const fetch = () => {};';
+      await fs.promises.writeFile(deployedEntry, deployedCode);
+
+      const plugins = qwikVite({ optimizerOptions: mockOptimizerOptions() }) as any[];
+      const [prePlugin, postPlugin] = plugins;
+      await prePlugin.config.call(
+        configHookPluginContext,
+        {
+          build: { ssr: resolve(cwd, 'src', 'entry.cloudflare-pages.tsx'), outDir: serverOutDir },
+        },
+        { command: 'build', mode: '' }
+      );
+
+      // Simulate the ssg environment writing its own bundle to a throwaway dir.
+      await postPlugin.writeBundle.call(
+        { environment: { config: { consumer: 'server' } } },
+        { dir: ssgOutDir },
+        { 'entry.cloudflare-pages.mjs': { type: 'chunk' } }
+      );
+
+      assert.equal(
+        await fs.promises.readFile(deployedEntry, 'utf-8'),
+        deployedCode,
+        'deployed server entry must not be clobbered by another environment'
+      );
+      assert.equal(
+        await fs.promises.readFile(path.join(ssgOutDir, 'entry.cloudflare-pages.js'), 'utf-8'),
+        'export * from "./entry.cloudflare-pages.mjs";'
+      );
+    } finally {
+      await fs.promises.rm(tmp, { recursive: true, force: true });
+    }
+  });
+});
+
 describe('worker core chunk rewrites', () => {
   const workerCorePlaceholderCode = () =>
     `import { setPlatform, _deserialize } from "${QWIK_WORKER_CORE_SENTINEL}";`;

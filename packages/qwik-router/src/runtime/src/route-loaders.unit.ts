@@ -91,6 +91,12 @@ describe('route loader execution', () => {
 
     expect(loader.__expires).toBe(60_000);
   });
+
+  it('rejects blockSSR: false when the experimental flag is not enabled', () => {
+    expect(() => routeLoaderQrl(createQrl('bg-loader'), { blockSSR: false })).toThrowError(
+      /experimental/
+    );
+  });
 });
 
 describe('getRouteLoaderResponse envelope', () => {

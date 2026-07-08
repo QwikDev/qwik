@@ -10,6 +10,31 @@ test.describe('loaders', () => {
     test.use({ javaScriptEnabled: true });
     tests();
 
+    test('catch-all q-loader requests run server plugins before route loaders', async ({
+      page,
+    }) => {
+      await page.goto('/qwikrouter-test/q-loader-shared-map/one/');
+
+      await expect(page.locator('#q-loader-shared-map-value')).toHaveText('shared loader value');
+      await expect(page.locator('#q-loader-shared-map-slug')).toHaveText('one');
+
+      const qLoaderResponse = page.waitForResponse((response) => {
+        const url = response.url();
+        return (
+          url.includes('/qwikrouter-test/q-loader-shared-map/') &&
+          url.includes('/q-loader-') &&
+          url.endsWith('.json')
+        );
+      });
+
+      await page.locator('#q-loader-shared-map-link-two').click();
+      expect((await qLoaderResponse).ok()).toBe(true);
+
+      await expect(page).toHaveURL('/qwikrouter-test/q-loader-shared-map/two/nested/');
+      await expect(page.locator('#q-loader-shared-map-value')).toHaveText('shared loader value');
+      await expect(page.locator('#q-loader-shared-map-slug')).toHaveText('two/nested');
+    });
+
     test('should reuse filtered search loaders only for the same SPA route path', async ({
       page,
     }) => {
@@ -197,6 +222,15 @@ test.describe('loaders', () => {
       expect(contentType).toEqual('text/html; charset=utf-8');
       const body = page.locator('body');
       await expect(body).toContainText('server-error-data');
+    });
+
+    test('a blockSSR:false loader is isolated from the page response', async ({ page }) => {
+      const response = await page.goto('/qwikrouter-test/loaders/non-blocking/');
+
+      // Neither the unread error() nor the read fail() leaks its status onto the page response.
+      expect(response?.status()).toEqual(200);
+      await expect(page.locator('#non-blocking-rendered')).toBeVisible();
+      await expect(page.locator('#non-blocking-fail')).toHaveText('background-fail');
     });
 
     test('should not serialize loaders by default and serialize with serializationStrategy: always', async ({

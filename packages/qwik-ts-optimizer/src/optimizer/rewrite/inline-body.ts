@@ -36,6 +36,9 @@ import {
   applyRawPropsTransform,
   consolidateRawPropsInWCalls,
   replacePropsFieldReferencesInBody,
+  bodyConsolidatesToRawProps,
+  consolidateQpCaptureValues,
+  extractDestructuredFieldInfo,
   type InlineSegmentJsxOptions,
 } from './raw-props.js';
 import {
@@ -122,6 +125,15 @@ export function transformInlineSegmentBody(
   const hoistedDeclarations: string[] = [];
 
   const nested = allExtractions.filter(e => e.parent === ext.symbolName);
+
+  const rawPropsFieldMap: ReadonlyMap<string, string> | undefined =
+    bodyConsolidatesToRawProps(ext.bodyText)
+      ? extractDestructuredFieldInfo(ext.bodyText).fieldMap
+      : undefined;
+  const qpValues = (params: string[]): string[] =>
+    rawPropsFieldMap === undefined
+      ? params
+      : consolidateQpCaptureValues(params, rawPropsFieldMap);
 
   if (nested.length > 0) {
     const bodyOffset = ext.argStart;
@@ -329,7 +341,7 @@ export function transformInlineSegmentBody(
               if (child.ctxKind !== 'eventHandler' && child.ctxKind !== 'jSXProp') continue;
               const params = eventHandlerQpParams(child.paramNames);
               if (params.length > 0) {
-                qpByQrl.set(qrlVarNames.get(child.symbolName) ?? `q_${child.symbolName}`, params);
+                qpByQrl.set(qrlVarNames.get(child.symbolName) ?? `q_${child.symbolName}`, qpValues(params));
               }
             }
             transformJsxCalls(wrappedBody, callS, bodyParse.program, {
@@ -391,8 +403,9 @@ export function transformInlineSegmentBody(
           const captureParams = eventHandlerQpParams(child.paramNames);
           if (captureParams.length === 0) continue;
           const childVarName = qrlVarNames.get(child.symbolName) ?? `q_${child.symbolName}`;
-          qrlParamMap.set(childVarName, captureParams);
-          qrlParamMap.set(child.symbolName, captureParams);
+          const consolidated = qpValues(captureParams);
+          qrlParamMap.set(childVarName, consolidated);
+          qrlParamMap.set(child.symbolName, consolidated);
         }
 
         // Stripped event handlers' bodies emit `= null`, so their
@@ -411,8 +424,9 @@ export function transformInlineSegmentBody(
             if (!isStripped) continue;
             const childVarName = qrlVarNames.get(child.symbolName) ?? `q_${child.symbolName}`;
             if (qrlParamMap.has(childVarName)) continue;
-            qrlParamMap.set(childVarName, [...child.captureNames]);
-            qrlParamMap.set(child.symbolName, [...child.captureNames]);
+            const consolidated = qpValues([...child.captureNames]);
+            qrlParamMap.set(childVarName, consolidated);
+            qrlParamMap.set(child.symbolName, consolidated);
           }
         }
 

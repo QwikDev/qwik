@@ -142,3 +142,37 @@ export const AtomStatus = component$(({ctx, atom}) => {
     expect(eventHandlerSeg!.code).toMatch(/\(_,\s*_1,\s*atom,\s*ctx\)\s*=>/);
   });
 });
+
+describe('q:p capture value resolves through _rawProps in the consolidated parent scope', () => {
+  const INPUT = `
+import { component$, useSignal } from '@qwik.dev/core';
+
+export const Panel = component$(({ showAll }: any) => {
+  return (
+    <button onClick$={() => { showAll.value = true; }}>
+      Show all
+    </button>
+  );
+});
+`;
+
+  for (const strat of ['smart', 'hoist'] as const) {
+    it(`${strat}: q:p delivers _rawProps.showAll, never the bare destructured name`, () => {
+      const result = transformModule({
+        input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(INPUT) }],
+        srcDir: mkFilePath('.'),
+        entryStrategy: { type: strat },
+        transpileTs: true,
+        transpileJsx: true,
+      });
+
+      const withQp = result.modules.find((m) => m.code.includes('"q:p"'));
+      expect(withQp, 'expected a module emitting a q:p prop').toBeTruthy();
+      const code = withQp!.code;
+
+      expect(code, 'q:p value reaches the field via _rawProps').toContain('"q:p": _rawProps.showAll');
+      expect(code, 'bare destructured name must not leak into the parent scope')
+        .not.toMatch(/"q:p":\s*showAll\b/);
+    });
+  }
+});

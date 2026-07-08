@@ -45,7 +45,11 @@ import {
 import { eventHandlerPropName } from "../jsx/event-handlers.js";
 import { parseArrayItems } from "../qwik/w-call.js";
 import { hoistInlinedQrlBodies } from "./hoist-inlined-qrl.js";
-import { extractDestructuredFieldInfo } from "../rewrite/index.js";
+import {
+  extractDestructuredFieldInfo,
+  bodyConsolidatesToRawProps,
+  consolidateQpCaptureValues,
+} from "../rewrite/index.js";
 import { collectSameFileSymbolInfo } from "./module-symbols.js";
 import { rewriteImportSource } from "../rewrite/rewrite-imports.js";
 import { parseWithRawTransfer } from "../ast/parse.js";
@@ -1062,7 +1066,16 @@ export function buildNestedCallSites(
   childQrlVarNames: Map<string, string>,
   elementQpParamsMap: Map<string, string[]>,
   extractionLoopMap: Map<string, LoopContext[]>,
+  parentRawPropsFieldMap?: ReadonlyMap<string, string>,
 ): NestedCallSiteInfo[] {
+  const consolidateParams = (params: string[]): string[] =>
+    parentRawPropsFieldMap === undefined
+      ? params
+      : consolidateQpCaptureValues(params, parentRawPropsFieldMap);
+  const qp = (symbolName: string): string[] | undefined => {
+    const params = elementQpParamsMap.get(symbolName);
+    return params ? consolidateParams(params) : params;
+  };
   const nestedCallSites: NestedCallSiteInfo[] = [];
   for (const child of children) {
     const qrlVarName =
@@ -1107,7 +1120,7 @@ export function buildNestedCallSites(
         child.captureNames.length > 0 &&
         (hasUnderscorePlaceholderParams(child.paramNames) || childIsInLoop);
 
-      const loopLocalParams = eventHandlerQpParams(child.paramNames);
+      const loopLocalParams = consolidateParams(eventHandlerQpParams(child.paramNames));
 
       nestedCallSites.push({
         qrlVarName,
@@ -1135,7 +1148,7 @@ export function buildNestedCallSites(
             : undefined,
         loopLocalParamNames:
           loopLocalParams.length > 0 ? loopLocalParams : undefined,
-        elementQpParams: elementQpParamsMap.get(child.symbolName),
+        elementQpParams: qp(child.symbolName),
       });
     } else {
       // An event handler extracted from a pre-transformed `_jsxDEV(...)` props
@@ -1145,13 +1158,13 @@ export function buildNestedCallSites(
       // after the `_, _1` (event, element) prefix — the same positional
       // delivery the loop-iter path uses. The peer-tool JSX-call rewriter
       // (`buildJsxSortedCall`) reads `elementQpParams` to inject the prop.
-      let qpParams: string[] | undefined = elementQpParamsMap.get(child.symbolName);
+      let qpParams: string[] | undefined = qp(child.symbolName);
       if (
         qpParams === undefined &&
         (child.ctxKind === "eventHandler" || child.ctxKind === "jSXProp")
       ) {
         const params = eventHandlerQpParams(child.paramNames);
-        if (params.length > 0) qpParams = params;
+        if (params.length > 0) qpParams = consolidateParams(params);
       }
       const explicitCaptureItems =
         child.isInlinedQrl && child.explicitCaptures
@@ -1261,8 +1274,12 @@ export function buildDefaultStrategySegment(
     wireMigration(ext, captureInfo, ctx, prep);
   }
 
+  const parentRawPropsFieldMap = bodyConsolidatesToRawProps(ext.bodyText)
+    ? extractDestructuredFieldInfo(ext.bodyText).fieldMap
+    : undefined;
   const nestedCallSites = buildNestedCallSites(
     children, childQrlVarNames, elementQpParamsMap, ctx.extractionLoopMap,
+    parentRawPropsFieldMap,
   );
 
   const effectiveCaptureInfo = resolveCaptureInfo(

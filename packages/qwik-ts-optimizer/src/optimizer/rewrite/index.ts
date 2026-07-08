@@ -70,6 +70,8 @@ export {
   extractDestructuredFieldInfo,
   consolidateRawPropsInWCalls,
   applyRawPropsTransform,
+  bodyConsolidatesToRawProps,
+  consolidateQpCaptureValues,
   type DestructuredFieldInfo,
   type RawPropsTransformResult,
 } from './raw-props.js';

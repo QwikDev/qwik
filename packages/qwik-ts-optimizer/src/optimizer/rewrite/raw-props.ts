@@ -734,13 +734,28 @@ export function applyRawPropsTransform(body: string): string {
   return session.toSource();
 }
 
+export function bodyConsolidatesToRawProps(body: string): boolean {
+  const session = createFunctionTransformSession(body);
+  if (!session) return false;
+  return analyzeRawPropsTransform(session, body)?.replacementParamRange !== undefined;
+}
+
+export function consolidateQpCaptureValues(
+  params: readonly string[],
+  fieldMap: ReadonlyMap<string, string>,
+): string[] {
+  return params.map((p) => {
+    const key = fieldMap.get(p);
+    return key === undefined ? p : `_rawProps.${key}`;
+  });
+}
+
 /**
  * Replace original field name references with _rawProps.field in a body string.
  * For child segments whose captures were consolidated into a single _rawProps capture.
  *
  * When `defaultValues` is provided, defaulted fields emit
- * `(_rawProps.<key> ?? <default>)` — see SWC's NullishCoalescing emission in
- * `transform_pat` (`swc-reference-only/props_destructuring.rs:382-388`).
+ * `(_rawProps.<key> ?? <default>)`.
  */
 export function replacePropsFieldReferencesInBody(
   body: string,

@@ -24,8 +24,10 @@ export async function postBuild(
   ];
   const ignorePathnames = new Set(staticPathPrefixes);
 
-  // Keep the raw form too: user-listed file paths must match without a trailing slash.
-  const staticPaths = new Set(userStaticPaths.flatMap((p) => [p, ensureSlash(p)]));
+  // Only file-like paths keep the raw unslashed form.
+  const staticPaths = new Set(
+    userStaticPaths.flatMap((p) => (/\.[^/]*$/.test(p) ? [p, ensureSlash(p)] : [ensureSlash(p)]))
+  );
 
   const loadItem = async (fsDir: string, fsName: string, pathname: string) => {
     pathname = ensureSlash(pathname);

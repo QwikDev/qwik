@@ -161,13 +161,21 @@ test('missing client dir leaves only the user static paths', async () => {
 });
 
 test('keeps user static file paths unmangled and preserves dotted directory routes', async () => {
-  const files = { '404.html': '<html/>', 'docs/v1.2/index.html': '<html/>' };
-  const { paths, clientOutDir } = await run(files, ['/sitemap.xml', '/docs/v1.2'], {
+  const files = {
+    '404.html': '<html/>',
+    'docs/v1.2/index.html': '<html/>',
+    'team/index.html': '<html/>',
+  };
+  const { paths, clientOutDir } = await run(files, ['/sitemap.xml', '/docs/v1.2', '/team'], {
     cleanStatic: true,
   });
   // Platform-provided file path, absent from dist: must survive un-slashed.
   expect(paths).toContain('/sitemap.xml');
+  // Extensionless route paths stay slash-normalized so fs middlewares skip them.
+  expect(paths).toContain('/team/');
+  expect(paths).not.toContain('/team');
   expect(fs.existsSync(join(clientOutDir, 'docs/v1.2/index.html'))).toBe(true);
+  expect(fs.existsSync(join(clientOutDir, 'team/index.html'))).toBe(true);
 });
 
 test('injected arrays drive the runtime matcher end to end', async () => {

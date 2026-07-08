@@ -23,7 +23,7 @@ import { eventHandlerQpParams } from '../jsx/loop-hoisting.js';
 import { computeKeyPrefix } from '../jsx/key-prefix.js';
 import { SignalHoister } from '../jsx/signal-analysis.js';
 import { foldBodySimplifiableExpressions } from '../jsx/simplify.js';
-import { getQrlImportSource } from './rewrite-calls.js';
+import { getQrlImportSource, buildSyncTransform } from './rewrite-calls.js';
 import { foldConstantsInBodyText } from './const-replacement.js';
 import { injectCapturesUnpacking, removeDeadConstLiterals } from '../segment/segment-codegen.js';
 import {
@@ -134,7 +134,10 @@ export function transformInlineSegmentBody(
       const relCallEnd = child.callEnd - bodyOffset;
 
       if (relCallStart >= 0 && relCallEnd <= body.length) {
-        if (child.isBare) {
+        if (child.isSync) {
+          additionalImports.set('_qrlSync', '@qwik.dev/core');
+          body = body.slice(0, relCallStart) + buildSyncTransform(child.bodyText) + body.slice(relCallEnd);
+        } else if (child.isBare) {
           body = body.slice(0, relCallStart) + childVarName + body.slice(relCallEnd);
         } else if (isEventHandlerOrJsxProp(child.ctxKind) && !child.qrlCallee) {
           // Empty passive set: passive detection is segment-codegen-path

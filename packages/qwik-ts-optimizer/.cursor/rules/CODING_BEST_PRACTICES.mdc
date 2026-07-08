@@ -406,6 +406,80 @@ names already say what. A comment earns its place by anchoring to an
 invariant, a precondition, or a non-obvious constraint the reader can't
 recover from the diff.
 
+**An inline comment is a smell.** When a block of code needs a comment
+to explain what it does, that need is the signal to **extract it into a
+function whose name states the intent** — the name is the documentation,
+and the extracted function carries little to no comment of its own. If
+the code's purpose is already obvious, **delete the comment** instead of
+writing it. Only when neither a better name nor extraction can carry the
+meaning does a comment survive — and then it explains a genuine *why*
+(an invariant, a precondition, a spec quirk, an external-tool bug being
+worked around) that the reader cannot recover from the code.
+
+Order of preference, most preferred first:
+
+1. **Rename** — a clearer identifier removes the need for the comment.
+2. **Extract** — a well-named `isBareScript(program)` /
+   `emptyParentModule(...)` replaces a commented inline block; the call
+   site reads as a sentence and needs no comment.
+3. **Delete** — if the logic is obvious, the comment is noise.
+4. **Comment** — a last resort, for a *why* the code genuinely can't
+   express. Keep it to **one or two lines**. A multi-line block
+   narrating how the code works is verbose by construction: the
+   narration belongs in a function name, and the rationale (parity
+   notes, failure scenarios, ticket context) belongs in the commit
+   message / PR description / Linear ticket, not the source. Prefer a
+   self-documenting function with *no* doc comment over a documented
+   block of inline logic.
+
+**The deletion test — apply it to every comment, existing or new.**
+Ask: *would deleting this comment lose something a competent reader
+cannot recover from the code, the identifier names, the nearby docs, and
+the tests?* If the answer is no, delete it. Do not rationalize narration
+as a "why" — most comments that survive a lazy first pass are a WHAT
+wearing a WHY costume. The default is deletion; a comment has to earn its
+place against this test, and "it might help someone" is not earning it.
+
+A comment is **noise — delete it** when any of these hold:
+
+- **A test already guards the behavior.** If a unit, differential, or
+  parity test proves the code correct, do not restate *why it is
+  correct* in prose. The test is the durable, executable proof; the
+  comment only rots out of sync with it. (Modules pinned by
+  differential-oracle tests lose almost all their comments to this rule
+  — the tests, not the prose, are what guard the invariants.)
+- **The fact is stated elsewhere.** A comment that repeats a nearby
+  function doc, an interface's top-level doc, or the file-header doc is
+  deleted. State each invariant *once*, at its most authoritative
+  location; do not echo it at every use site.
+- **It narrates control flow or framework mechanics.** "Fires on enter",
+  "runs after the projections", "the stack holds the innermost range",
+  "loops pop on leave" — these describe *what happens* and are recovered
+  by reading the code. Delete them.
+- **It labels a section.** `// --- setup ---`, `// Free-identifier
+  projection`, numbered `// 1.` / `// 2.` phase markers, and similar
+  navigation headers are WHAT labels. Group with a blank line or extract
+  the section into a named function; never mark it with a comment.
+
+**A doc comment must sit directly above the declaration it documents.**
+When you remove or move code, delete the doc comment that described it —
+never let it strand above an unrelated declaration. Two `/** … */`
+blocks stacked with nothing between them is always a bug: only the
+adjacent one binds the declaration, the other is dead text.
+
+**Interface and struct fields: all or none, preferring none.** Never
+document only some of an interface's fields. Either every field carries a
+doc comment or none does — and the overwhelming majority need none, so
+none is the default. A field name plus its type almost always suffices
+(`readonly usageExtractions?: ReadonlyArray<UsageExtractionRange>` needs
+no `/** the usage extractions */`). When one field genuinely has a
+non-obvious invariant — a key type that isn't what you'd expect, an
+"empty when …" contract, a mid-walk mutation rule — fold that WHY into
+the interface's single top-level doc comment, not onto the field.
+Scattered per-field docs read as "why is this one explained and not that
+one?"; keeping the field list a clean column, with the non-obvious parts
+described once at the top, is both consistent and easier to scan.
+
 Code comments (in `src/` and tests) must not reference the **SWC
 reference implementation** — not `SWC`, `swc-reference-only`,
 `@qwik.dev/optimizer`, "the Rust optimizer", nor file:line citations

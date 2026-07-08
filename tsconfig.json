@@ -3,7 +3,7 @@
     "incremental": true,
     "target": "ESNext",
     "module": "ESNext",
-    "lib": ["es2021", "DOM", "webworker", "DOM.Iterable"],
+    "lib": ["es2022", "DOM", "webworker", "DOM.Iterable"],
     "resolveJsonModule": true,
     "jsx": "react-jsx",
     "allowArbitraryExtensions": true,

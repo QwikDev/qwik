@@ -2147,8 +2147,9 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
   it('prod: the redacted error carries no cause and no custom fields', () => {
     const original = Object.assign(new Error('secret'), { token: 'abc' });
     (original as Error & { cause?: unknown }).cause = { db: 'internal' };
-    for (const raw of [original, { code: 401 }]) {
-      const redacted = toSerializableBoundaryError(raw, /* dev */ false) as Error & {
+    const raws = [original, { code: 401 }];
+    for (let i = 0; i < raws.length; i++) {
+      const redacted = toSerializableBoundaryError(raws[i], /* dev */ false) as Error & {
         cause?: unknown;
       };
       expect(redacted.cause).toBeUndefined();

@@ -194,6 +194,13 @@ client routing (`client/dom-container.ts`); shared helpers (`shared/error/error-
 - `content-host` precedes `fallback-host`; the `qErr` executor stays independent of `qO` (gated on
   `errorBoundary`, not `suspense`).
 - Closest boundary catches; a throwing fallback escalates past detached-`$fallback$` boundaries.
+- Stray function children (SSR): every child-enqueue site in `processJSXNode` sentinel-marks a
+  function so the drain routes its sync throw or awaited rejection to the boundary (phase
+  `render`); success stays invoke-and-discard, pinned by spec pending the fn-children RFC. A
+  missed enqueue site fails back to the old uncaught-throw behavior, never corruption — keep that
+  property. `SSRStream` children are consumed upstream and never reach the drain; the walk's
+  internal StackFns must keep hitting the unmarked fn branch. The client silently ignores function
+  children — leave it untouched.
 
 ### False-pass traps
 - The unit harness simulates resume — back resume/interactivity claims with

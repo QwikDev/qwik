@@ -1,8 +1,7 @@
 import { defineConfig } from '@playwright/test';
 import { adapterPlaywrightConfig, createAdapterWebServerConfig } from './playwright.shared';
 
-// The deno variant builds with a custom assets dir to cover assetsDir-aware
-// static paths through the isStaticPath-gated staticFile middleware.
+// Build with a custom assets dir to cover assetsDir-aware static paths.
 process.env.ADAPTERS_E2E_ASSETS_DIR = 'q';
 
 export default defineConfig({

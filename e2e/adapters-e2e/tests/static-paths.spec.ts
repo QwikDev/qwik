@@ -59,4 +59,16 @@ test.describe('static paths', () => {
     await page.goto('/profile/');
     await expect(page.getByRole('heading', { name: 'Profile page' })).toBeVisible();
   });
+
+  test('serves the prerendered loader sidecar', async ({ request }) => {
+    test.skip(!assetsDir, 'prerendering is configured on the assetsDir variant only');
+    const subpageDir = join(appDir, 'dist', 'loaders', 'subpage');
+    const sidecar = (await readdir(subpageDir)).find((fileName) =>
+      /^q-loader-.+\.json$/.test(fileName)
+    );
+    expect(sidecar).toBeTruthy();
+    const response = await request.get(`/loaders/subpage/${sidecar}`);
+    expect(response.ok()).toBeTruthy();
+    expect(await response.text()).toContain('42');
+  });
 });

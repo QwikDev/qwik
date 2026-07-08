@@ -13,8 +13,7 @@ export default extendConfig(baseConfig, () => {
     plugins: [
       denoServerAdapter({
         name: 'deno',
-        // Prerender routes with and without loaders to cover static serving of
-        // pages and loader sidecars.
+        // Prerender pages and a static loader sidecar for serving coverage.
         ssg: { include: ['/profile/', '/loaders/*'] },
       }),
     ],

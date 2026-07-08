@@ -51,7 +51,10 @@ const redactToGeneric = (err: unknown): Error & { digest: string } => {
   return redacted;
 };
 
-/** Wraps a non-Error throw; manual `cause` (repo lib is es2021) stays enumerable, so it serializes. */
+/**
+ * Wraps a non-Error throw; assigns `cause` (not the constructor arg) so it stays enumerable and
+ * serializes.
+ */
 const toBoundaryError = (raw: unknown, withCause: boolean): Error => {
   if (raw instanceof Error) {
     return raw;
@@ -64,7 +67,7 @@ const toBoundaryError = (raw: unknown, withCause: boolean): Error => {
   }
   const wrapped = new Error(message);
   if (withCause) {
-    (wrapped as Error & { cause?: unknown }).cause = raw;
+    wrapped.cause = raw;
   }
   return wrapped;
 };

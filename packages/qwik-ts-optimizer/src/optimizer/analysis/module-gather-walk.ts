@@ -61,10 +61,7 @@ import {
   type LoopBodyVarDeclMap,
   type ScopeEntry,
 } from '../jsx/event-capture-promotion.js';
-import {
-  collectShallowDeclarationsFromBody,
-  collectShallowDeclarationsFromStatement,
-} from './capture-analysis.js';
+import { addScopeDeclarations } from './capture-analysis.js';
 import {
   DECLARATION_TYPES,
   addDeclaredNamesFromNode,
@@ -105,14 +102,12 @@ export interface PassiveConflict {
  * the standalone extraction traversal.
  */
 export interface ExtractionGatherInputs {
-  /** Repaired source text backing `program`. */
   readonly source: string;
   readonly relPath: string;
   readonly scope?: string;
   readonly transpileJsx?: boolean;
   readonly explicitTranspileJsx?: boolean;
   readonly parserModule?: AstEcmaScriptModule;
-  /** Same out-map contract as `extractSegments`'s `closureNodesOut`. */
   readonly closureNodesOut?: Map<string, AstFunction>;
 }
 
@@ -120,6 +115,11 @@ export interface ExtractionGatherInputs {
  * Which facts to gather. A projection runs iff its input field is present —
  * passing an empty array/map still runs the projection (matching the
  * original functions, which walked regardless of how many targets they had).
+ *
+ * Each optional input enables its like-named projection; the exceptions are
+ * `closureNodes` (drives both free-identifier and lexical-scope),
+ * `usageExtractions` (segment-usage), and `loopExtractions` + `repairedCode`
+ * (loop-map).
  *
  * Two host modes:
  *   - **standalone-facts mode** — the caller already has extractions and
@@ -132,47 +132,32 @@ export interface ExtractionGatherInputs {
  */
 export interface ModuleGatherInputs {
   readonly program: AstProgram;
-  /** Hosts the Phase-1 extraction collector in this walk (fused mode). */
   readonly extraction?: ExtractionGatherInputs;
-  /** Enables the free-identifier and lexical-scope projections. */
   readonly closureNodes?: ReadonlyMap<string, AstFunction>;
-  /** Enables the segment-usage projection. */
   readonly usageExtractions?: ReadonlyArray<UsageExtractionRange>;
-  /** Enables the loop-map projection. */
   readonly loopExtractions?: ReadonlyArray<CallExtractionRange>;
-  /** Source text for `detectLoopContext`; required by the loop-map projection. */
   readonly repairedCode?: string;
-  /** Enables the scope-entry projection. */
   readonly scopeEntries?: boolean;
-  /** Enables the passive-conflict projection. */
   readonly passiveConflicts?: boolean;
-  /** Enables the scope-aware-bindings projection (the gather half of the
-   * JSX transform's `collectScopeAwareBindings`). */
   readonly scopeBindings?: boolean;
 }
 
-/** Every gathered fact. Fields for disabled projections are empty. */
+/**
+ * Every gathered fact. Fields for disabled projections are empty. The
+ * closure-keyed maps (`closureFreeIdentifiers`, `closureLexicalScopes`) key by
+ * node identity, not symbolName — names aren't final until post-walk
+ * disambiguation.
+ */
 export interface ModuleGatherFacts {
-  /** Phase-1 extraction output; empty unless fused-extraction mode. */
   readonly extractions: readonly ExtractedSegment[];
   readonly closureFreeIdentifiers: ReadonlyMap<AstFunction, readonly string[]>;
-  /**
-   * Keyed by closure-node identity, not symbolName — in fused mode the
-   * union is recorded mid-walk, before `disambiguateExtractions` finalises
-   * names.
-   */
   readonly closureLexicalScopes: Map<AstFunction, Set<string>>;
   readonly extractionLoopMap: Map<string, LoopContext[]>;
   readonly loopBodyVarDecls: LoopBodyVarDeclMap;
   readonly allScopeEntries: ScopeEntry[];
-  /** Empty (not computed) when a fused-extraction walk found zero
-   * extractions — migration is a no-op without segment usage, so the
-   * classification sweep is skipped on extraction-less modules. */
   readonly segmentUsage: Map<string, Set<string>>;
-  /** Same skip contract as `segmentUsage`. */
   readonly rootUsage: Set<string>;
   readonly passiveConflicts: PassiveConflict[];
-  /** Present iff the scope-bindings projection was enabled. */
   readonly scopeAwareBindings: ScopeAwareCollectResult | undefined;
 }
 
@@ -195,62 +180,23 @@ function isFunctionLike(node: AstNode): node is AstFunction {
   );
 }
 
-/**
- * One lexical-scope stack frame. The name set materializes lazily — only
- * when a registered closure requests the enclosing-scope union — so
- * modules (and functions) without extractions never pay the per-function
- * param/shallow-decl collection. `node === null` marks the module-scope
- * frame. Materialization is timing-independent: the collectors are pure
- * reads of the (immutable) AST, so computing the set at union time yields
- * exactly what computing it at push time would have.
- */
+/** One enclosing function scope; `node === null` is the module scope. */
 interface LexicalScopeFrame {
   readonly node: AstFunction | null;
-  set: Set<string> | null;
+  readonly set: Set<string>;
 }
 
-function materializeScopeFrame(
-  frame: LexicalScopeFrame,
-  program: AstProgram,
-): Set<string> {
-  if (frame.set) return frame.set;
-  const set = new Set<string>();
-  if (frame.node === null) {
-    // Module scope: the walk's enter fires for the program's children but
-    // not the Program node itself, so it is collected from the body here.
-    for (const stmt of program.body ?? []) {
-      collectShallowDeclarationsFromStatement(stmt, set);
-    }
-  } else {
-    for (const param of frame.node.params ?? []) {
-      addBindingNamesFromPatternToSet(param, set);
-    }
-    if (frame.node.body) {
-      collectShallowDeclarationsFromBody(frame.node.body, set);
-    }
-  }
-  frame.set = set;
-  return set;
-}
-
+/**
+ * A closure whose free identifiers are being buffered. `ownScope` (the
+ * outermost scope key it pushes) reads a `FunctionExpression`'s own name as
+ * internal — it sits above the param scope. `seen` dedups `(scopeKey, name)`
+ * pairs to bound the buffer without disturbing first-free-occurrence order.
+ */
 interface OpenClosure {
   readonly fn: AstFunction;
   readonly names: string[];
   readonly dedupe: Set<string>;
-  /**
-   * Scope key of the outermost scope this closure node pushes. A
-   * `FunctionExpression` pushes an id-holding scope above its param scope,
-   * so its own-name binding (`$(function g() { g(); })`) counts as
-   * internal — matching the closure-rooted analysis, where that binding
-   * lands inside the walked subtree.
-   */
   readonly ownScope: string;
-  /**
-   * `(scopeKey, name)` pairs already buffered for this closure. Identical
-   * pairs resolve identically, so dropping repeats keeps the buffer bounded
-   * without changing which visit is the first free occurrence — the
-   * property that fixes each closure's `names` order.
-   */
   readonly seen: Set<string>;
 }
 
@@ -264,24 +210,21 @@ interface PendingResolution {
 /** Shared mutable walk state — the gather buffers every projection fills. */
 interface GatherEnterContext {
   readonly tracker: ScopeQueryTracker;
-  // Free-identifier projection
+
   readonly freeIdentNames: ReadonlyMap<AstFunction, string[]>;
   readonly freeIdentDedupes: ReadonlyMap<AstFunction, Set<string>>;
   readonly openClosures: readonly OpenClosure[];
   readonly pushOpenClosure: (oc: OpenClosure) => void;
   readonly pendingResolutions: PendingResolution[];
-  // Lexical-scope projection
+
   readonly lexicalEnabled: boolean;
-  /** Closure nodes whose enclosing-scope union gets recorded. In fused
-   * mode this set grows mid-walk as extractions are discovered — always
-   * before the walker reaches the closure node, because discovery happens
-   * at the creation node's enter and the closure is a descendant. */
   readonly lexicalClosureNodes: ReadonlySet<AstFunction>;
   readonly program: AstProgram;
   readonly scopeStack: readonly LexicalScopeFrame[];
   readonly pushScope: (frame: LexicalScopeFrame) => void;
   readonly closureLexicalScopes: Map<AstFunction, Set<string>>;
-  // Loop-map projection
+  readonly pendingLexicalUnions: Array<{ node: AstFunction; frames: readonly LexicalScopeFrame[] }>;
+
   readonly loopEnabled: boolean;
   readonly loopExtractions: ReadonlyArray<CallExtractionRange>;
   readonly repairedCode: string;
@@ -289,22 +232,20 @@ interface GatherEnterContext {
   readonly pushLoop: (loopCtx: LoopContext) => void;
   readonly extractionLoopMap: Map<string, LoopContext[]>;
   readonly loopBodyVarDecls: LoopBodyVarDeclMap;
-  // Scope-entry projection (buffers nodes; entries build post-walk)
+
   readonly scopeEntriesEnabled: boolean;
   readonly scopeEntryNodes: AstNode[];
-  // Segment-usage projection
+
   readonly usageEnabled: boolean;
-  /** True when declaration visits must buffer — there is at least one
-   * usage extraction, or fused mode may still discover extractions. */
   readonly bufferDeclVisits: boolean;
   readonly identifierVisits: Array<{ pos: number; name: string }>;
   readonly declVisits: AstNode[];
-  // Passive-conflict projection
+
   readonly passiveEnabled: boolean;
   readonly passiveConflicts: PassiveConflict[];
-  // Scope-bindings projection
+
   readonly scopeBindingsCollector: ScopeBindingsCollector | undefined;
-  // Fused-extraction host
+
   readonly extractionCollector: ExtractionCollector | undefined;
 }
 
@@ -323,7 +264,6 @@ interface GatherExitContext extends GatherEnterContext {
 export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts {
   const { program } = inputs;
 
-  // --- Free-identifier projection setup (computeClosureFreeIdentifiers) ---
   const freeIdentNames = new Map<AstFunction, string[]>();
   const freeIdentDedupes = new Map<AstFunction, Set<string>>();
   for (const fn of inputs.closureNodes?.values() ?? []) {
@@ -332,31 +272,23 @@ export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts
       freeIdentDedupes.set(fn, new Set());
     }
   }
-  // The tracker builds DURING the gather walk (it is attached unfrozen and
-  // collects declarations as the walk traverses) — possible because
-  // free-identifier resolution is post-walk and the only mid-walk reads are
-  // `getCurrentScope()` cursor lookups, which the walker keeps current
-  // before each enter callback in build mode exactly as in replay mode.
-  // Built unconditionally: closure-bearing modules need it, and the fusion
-  // of Phase-1 extraction into this walk will discover closures mid-walk,
-  // after the build-or-not decision would have to be made.
+  // preserveExitedScopes: post-walk resolution reads scopes the walk already left.
   const tracker = new ScopeQueryTracker({ preserveExitedScopes: true });
   const openClosures: OpenClosure[] = [];
   const pendingResolutions: PendingResolution[] = [];
 
-  // --- Lexical-scope projection setup (buildClosureLexicalScopes) ---
   const lexicalEnabled =
     inputs.closureNodes !== undefined || inputs.extraction !== undefined;
   const lexicalClosureNodes = new Set<AstFunction>(
     inputs.closureNodes?.values() ?? [],
   );
   const closureLexicalScopes = new Map<AstFunction, Set<string>>();
+  const pendingLexicalUnions: Array<{ node: AstFunction; frames: readonly LexicalScopeFrame[] }> = [];
   const scopeStack: LexicalScopeFrame[] = [];
   if (lexicalEnabled) {
-    scopeStack.push({ node: null, set: null });
+    scopeStack.push({ node: null, set: new Set() });
   }
 
-  // --- Loop-map projection setup (buildExtractionLoopMap) ---
   const loopEnabled =
     inputs.loopExtractions !== undefined || inputs.extraction !== undefined;
   const loopExtractions = inputs.loopExtractions ?? [];
@@ -365,12 +297,10 @@ export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts
   const extractionLoopMap = new Map<string, LoopContext[]>();
   const loopBodyVarDecls: LoopBodyVarDeclMap = new Map();
 
-  // --- Scope-entry projection setup (collectAllScopeEntries) ---
   const scopeEntriesEnabled = inputs.scopeEntries === true;
   const scopeEntryNodes: AstNode[] = [];
   const allScopeEntries: ScopeEntry[] = [];
 
-  // --- Segment-usage projection setup (computeSegmentUsage) ---
   const usageEnabled =
     inputs.usageExtractions !== undefined || inputs.extraction !== undefined;
   const usageExtractions = inputs.usageExtractions ?? [];
@@ -379,20 +309,14 @@ export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts
   const identifierVisits: Array<{ pos: number; name: string }> = [];
   const declVisits: AstNode[] = [];
 
-  // --- Passive-conflict projection setup ---
   const passiveEnabled = inputs.passiveConflicts === true;
   const passiveConflicts: PassiveConflict[] = [];
 
-  // --- Scope-bindings projection setup (collectScopeAwareBindings) ---
   let scopeBindingsCollector: ScopeBindingsCollector | undefined;
   if (inputs.scopeBindings === true) {
     scopeBindingsCollector = createScopeBindingsCollector(program);
   }
 
-  // --- Fused-extraction host setup (Phase-1 extractSegments) ---
-  // Loop-stack snapshots key by extraction object identity:
-  // `disambiguateExtractions` rewrites symbolNames post-walk, so the
-  // symbolName-keyed `extractionLoopMap` is derived after `finish()`.
   const extractionLoopRefs = new Map<ExtractedSegment, LoopContext[]>();
   let extractionCollector: ExtractionCollector | undefined;
   if (inputs.extraction !== undefined) {
@@ -407,20 +331,11 @@ export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts
       explicitTranspileJsx: ex.explicitTranspileJsx,
       closureNodesOut: ex.closureNodesOut,
       onExtraction: (extraction, closureNode) => {
-        // Fires at the creation node's enter — before the walker descends
-        // into the closure body, so the free-identifier and lexical-scope
-        // projections see the registration when they reach the node.
         if (closureNode && !freeIdentNames.has(closureNode)) {
           freeIdentNames.set(closureNode, []);
           freeIdentDedupes.set(closureNode, new Set());
           lexicalClosureNodes.add(closureNode);
         }
-        // Snapshot of the enclosing loop stack. Equivalent to the oracle's
-        // max-depth scan over every node containing the call range: loops
-        // pop only on leave, so the stack at the creation node's enter is
-        // exactly the deepest stack any containing node observes (the
-        // creation node is never itself a loop context — marker and
-        // inlinedQrl calls have Identifier callees, never `.map`).
         if (loopStack.length > 0) {
           extractionLoopRefs.set(extraction, [...loopStack]);
         }
@@ -441,6 +356,7 @@ export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts
     scopeStack,
     pushScope: (frame) => { scopeStack.push(frame); },
     closureLexicalScopes,
+    pendingLexicalUnions,
     loopEnabled,
     loopExtractions,
     repairedCode,
@@ -472,10 +388,6 @@ export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts
       if (isFunctionLike(node)) scopeStack.pop();
     },
     popLoopIfMatches: (node) => {
-      // `detectLoopContext` always sets `loopNode` to the node it was
-      // given, and loops nest properly, so the stack top on leave is this
-      // node's own context iff a context was pushed on its enter —
-      // identity comparison replaces a second detection pass per node.
       if (
         loopStack.length > 0 &&
         loopStack[loopStack.length - 1].loopNode === node
@@ -498,10 +410,6 @@ export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts
         enterSegmentUsage(node, parent, ctx);
         enterPassiveConflicts(node, ctx);
         ctx.scopeBindingsCollector?.enter(node);
-        // The extraction collector runs after the projections so its
-        // onExtraction hook observes this node's loop-stack push (no
-        // creation node is itself a loop context, but the ordering keeps
-        // the invariant local rather than depending on that fact).
         ctx.extractionCollector?.enter(node, parent);
       },
       leave(node, _parent, ctx) {
@@ -515,17 +423,11 @@ export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts
     { scopeTracker: tracker },
   );
 
-  // Program-exit act for the fused-extraction host: disambiguate names,
-  // then derive the symbolName-keyed maps from the identity-keyed
-  // mid-walk records (names are only final after disambiguation).
   const extractions = extractionCollector?.finish() ?? [];
   for (const [ext, stack] of extractionLoopRefs) {
     extractionLoopMap.set(ext.symbolName, stack);
   }
 
-  // Program-exit act for the scope-entry projection. Skipped when a
-  // fused walk found no extractions — the entries' sole consumer
-  // (event-handler capture promotion) iterates extractions.
   if (
     scopeEntriesEnabled &&
     (inputs.extraction === undefined || extractions.length > 0)
@@ -540,22 +442,18 @@ export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts
     }
   }
 
-  // Program-exit act for the free-identifier projection: the walk has
-  // populated the full scope tree (hoisted declarations included), so
-  // freeze and resolve the buffered identifier visits, in occurrence order
-  // so each closure's name list keeps first-free-occurrence order.
   tracker.freeze();
   resolveFreeIdentifiers(pendingResolutions, tracker);
 
-  // Program-exit act for the segment-usage projection: classification must
-  // wait until the locals map has seen hoisted declarations (an identifier
-  // reference can be visited before its `function g() {}` declaration).
-  // A fused walk that discovered no extractions skips it: every rootUsage
-  // read downstream is conjunctive with segment usage (`usedByRoot &&
-  // usedByAnySegment` and the MIG-05a single-target check), so with an
-  // empty segmentUsage the migration outcome is `keep` for every decl
-  // regardless of rootUsage — sorting the identifier buffer would be pure
-  // waste on extraction-less modules.
+  // Deferred to post-walk: a later `const` in an enclosing scope is still a capture.
+  for (const { node, frames } of pendingLexicalUnions) {
+    const union = new Set<string>();
+    for (const frame of frames) {
+      for (const id of frame.set) union.add(id);
+    }
+    closureLexicalScopes.set(node, union);
+  }
+
   const classifyUsage =
     usageEnabled && (inputs.extraction === undefined || extractions.length > 0);
   if (classifyUsage) {
@@ -591,6 +489,24 @@ export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts
   };
 }
 
+// A computed key (`obj[x]`, `{ [x]: v }`) references `x`, but oxc-walker's
+// `isBindingIdentifier` ignores `computed` and reports it as a binding.
+function isComputedKeyReference(node: AstNode, parent: AstNode | null): boolean {
+  if (parent === null) return false;
+  if (parent.type === 'MemberExpression') {
+    return parent.computed === true && parent.property === node;
+  }
+  if (
+    parent.type === 'Property' ||
+    parent.type === 'MethodDefinition' ||
+    parent.type === 'PropertyDefinition' ||
+    parent.type === 'AccessorProperty'
+  ) {
+    return parent.computed === true && parent.key === node;
+  }
+  return false;
+}
+
 /** Free-identifier projection — `computeClosureFreeIdentifiers`'s gather
  * half. Pure buffering of `(name, scopeKey)` per open closure; resolution
  * happens post-walk in {@link resolveFreeIdentifiers}. The same name can
@@ -604,13 +520,10 @@ function enterFreeIdentifiers(
   const { tracker, openClosures } = ctx;
 
   if (isFunctionLike(node) && ctx.freeIdentNames.has(node)) {
-    // The tracker has already pushed this node's scope(s) — its
-    // processNodeEnter runs before this callback. Current key is the
-    // innermost own scope; for FunctionExpression strip one segment
-    // to reach the id-holding outer scope.
     const current = tracker.getCurrentScope();
     let ownScope = current;
     if (node.type === 'FunctionExpression') {
+      // A FunctionExpression's own name lives one scope out from its body.
       const cut = current.lastIndexOf('-');
       ownScope = cut === -1 ? '' : current.slice(0, cut);
     }
@@ -625,7 +538,7 @@ function enterFreeIdentifiers(
 
   if (openClosures.length === 0) return;
   if (node.type !== 'Identifier') return;
-  if (isBindingIdentifier(node, parent)) return;
+  if (isBindingIdentifier(node, parent) && !isComputedKeyReference(node, parent)) return;
 
   const name = node.name;
   const scopeKey = tracker.getCurrentScope();
@@ -658,13 +571,10 @@ function resolveFreeIdentifiers(
     }
     let free: boolean;
     if (decl === null) {
-      // No declaration anywhere on the chain — global or unresolved.
-      // Free in every enclosing closure, as in the per-closure form.
       free = true;
     } else if (decl.node === (oc.fn as unknown)) {
-      // A FunctionDeclaration closure referencing its own name: the
-      // closure-rooted tracker declares that name at its root scope,
-      // so the per-closure form treats it as internal.
+      // A FunctionDeclaration closure referencing its own name: declared at
+      // its own root scope, so it is internal, not free.
       free = false;
     } else {
       free = !isScopeWithin(decl.scope, oc.ownScope);
@@ -679,26 +589,22 @@ function resolveFreeIdentifiers(
 /** Lexical-scope projection — `buildClosureLexicalScopes`'s scope stack. */
 function enterLexicalScopes(node: AstNode, ctx: GatherEnterContext): void {
   if (!ctx.lexicalEnabled) return;
+
+  // Collect before pushing this node's own frame, so a function/class
+  // declaration name lands in the enclosing scope, not its own.
+  addScopeDeclarations(node, ctx.scopeStack[ctx.scopeStack.length - 1].set);
+
   if (!isFunctionLike(node)) return;
 
   if (ctx.lexicalClosureNodes.has(node)) {
-    // Record union of all enclosing scopes BEFORE pushing this
-    // closure's own scope. The closure's params land in
-    // `analyzeCaptures(..).paramNames` separately.
-    const union = new Set<string>();
-    for (const frame of ctx.scopeStack) {
-      for (const id of materializeScopeFrame(frame, ctx.program)) {
-        union.add(id);
-      }
-    }
-    ctx.closureLexicalScopes.set(node, union);
+    ctx.pendingLexicalUnions.push({ node, frames: [...ctx.scopeStack] });
   }
 
-  // Push this function's own scope frame so any nested closure sees it as
-  // an enclosing scope (params + shallow body decls, materialized lazily;
-  // nested function bodies are explored by the walker recursively, not by
-  // this collector).
-  ctx.pushScope({ node, set: null });
+  const set = new Set<string>();
+  for (const param of node.params ?? []) {
+    addBindingNamesFromPatternToSet(param, set);
+  }
+  ctx.pushScope({ node, set });
 }
 
 /** Loop-map projection — `buildExtractionLoopMap`'s loop stack + buckets. */
@@ -712,9 +618,6 @@ function enterLoopMap(node: AstNode, ctx: GatherEnterContext): void {
       ctx.loopBodyVarDecls.set(loopBodyKey(loopCtx.loopBodyStart, loopCtx.loopBodyEnd), []);
     }
   }
-  // VariableDeclarations encountered inside any active loop body get
-  // bucketed under the innermost loop. Skips loops' OWN init clauses
-  // (those are scoped to the loop construct, not its body).
   if (node.type === 'VariableDeclaration' && ctx.loopStack.length > 0 && node.start !== undefined) {
     const innermost = ctx.loopStack[ctx.loopStack.length - 1];
     if (node.start >= innermost.loopBodyStart && node.end !== undefined && node.end <= innermost.loopBodyEnd) {
@@ -726,7 +629,6 @@ function enterLoopMap(node: AstNode, ctx: GatherEnterContext): void {
       }
     }
   }
-  // Check if this node's range matches any extraction's call range
   if (
     node.start !== undefined &&
     node.end !== undefined &&
@@ -734,8 +636,6 @@ function enterLoopMap(node: AstNode, ctx: GatherEnterContext): void {
   ) {
     for (const ext of ctx.loopExtractions) {
       if (node.start <= ext.callStart && node.end >= ext.callEnd) {
-        // This node contains the extraction -- record current loop stack
-        // We only need the innermost, but store all for nested loop analysis
         if (
           !ctx.extractionLoopMap.has(ext.symbolName) ||
           ctx.extractionLoopMap.get(ext.symbolName)!.length < ctx.loopStack.length
@@ -874,8 +774,6 @@ function classifySegmentUsage(
   segmentUsage: Map<string, Set<string>>,
   rootUsage: Set<string>,
 ): void {
-  // 1. Locals first — every containing extraction collects the decl's
-  //    names, exactly as the oracle's per-extraction containment test did.
   const declSweep = new ExtractionRangeSweep(extractions);
   const sortedDecls = [...declVisits].sort((a, b) => a.start - b.start);
   for (const node of sortedDecls) {
@@ -886,15 +784,12 @@ function classifySegmentUsage(
     }
   }
 
-  // 2. Identifier attribution against the now-complete locals map.
   const identSweep = new ExtractionRangeSweep(extractions);
   const sortedVisits = [...identifierVisits].sort((a, b) => a.pos - b.pos);
   for (const { pos, name } of sortedVisits) {
     identSweep.advanceTo(pos);
     const { stack } = identSweep;
 
-    // When nested extractions overlap (e.g., $() inside component$()),
-    // attribute to the innermost range — the stack top.
     const innermostExt = stack.length > 0 ? stack[stack.length - 1] : null;
     if (innermostExt) {
       const locals = extractionLocals.get(innermostExt.symbolName)!;

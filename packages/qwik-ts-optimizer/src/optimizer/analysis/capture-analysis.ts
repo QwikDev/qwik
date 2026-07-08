@@ -128,25 +128,14 @@ function collectDeclarationsFromNode(
 }
 
 /**
- * For each closure node tracked in `closureNodes`, compute the union of
- * identifiers in scope at the closure's position — every enclosing
- * function/arrow scope plus the program scope, but NOT the closure's own
- * params/body.
+ * Differential oracle for the gather walk's lexical-scope projection: for each
+ * tracked closure, the flat union of every enclosing function/arrow scope plus
+ * the module scope (not the closure's own params/body) — the set capture
+ * analysis intersects against. Production routes through `module-gather-walk.ts`.
  *
- * Mirrors SWC's `decl_stack` (transform.rs:986–991): the flat union of all
- * scopes between the closure and the module root is what
- * `compute_scoped_idents` intersects against to determine captures.
- *
- * The full lexical chain matters: intermediate **non-marker** enclosing
- * functions contribute decls too. For
- * `(fn) => { const x = …; useVisibleTask$(() => x); }` at module level,
- * both `fn` and `x` must be capturable even though the outer arrow is not
- * itself an extraction — neither the enclosing extraction's body scope nor
- * the module scope alone would surface them.
- *
- * Production routes through the canonical gather walk's lexical-scope
- * projection (`module-gather-walk.ts`); this standalone form is retained
- * as the differential oracle for that projection.
+ * A single walk accumulates each scope's declarations on enter; the per-closure
+ * union is deferred until after the walk, so enclosing declarations that
+ * textually follow the closure (hoisted names, later `const`s) are included.
  */
 export function buildClosureLexicalScopes(
   program: AstProgram,
@@ -154,53 +143,29 @@ export function buildClosureLexicalScopes(
 ): Map<string, Set<string>> {
   const result = new Map<string, Set<string>>();
 
-  // Inverse map so we can recognise closure nodes by identity during the walk.
   const nodeToSymbol = new Map<AstFunction, string>();
   for (const [sym, fn] of closureNodes) {
     nodeToSymbol.set(fn, sym);
   }
 
-  // Stack of per-scope identifier sets. Index 0 is module scope; each
-  // pushed entry corresponds to one enclosing function/arrow body.
-  const scopeStack: Set<string>[] = [];
-
-  // Pre-collect module scope eagerly: walk's enter is called for the
-  // program's children (FunctionDeclaration, VariableDeclaration, …) but
-  // not for the Program node itself. Push module scope upfront so it
-  // sits beneath every function we visit.
-  const moduleScope = new Set<string>();
-  for (const stmt of program.body ?? []) {
-    collectShallowDeclarationsFromStatement(stmt, moduleScope);
-  }
-  scopeStack.push(moduleScope);
+  // Index 0 is module scope; each pushed set is one enclosing function scope.
+  const scopeStack: Set<string>[] = [new Set()];
+  const pending: Array<{ sym: string; scopes: Set<string>[] }> = [];
 
   walk(program, {
     enter(node: AstNode) {
+      addScopeDeclarations(node, scopeStack[scopeStack.length - 1]);
       if (!isFunctionLikeNode(node)) return;
 
       const fn = node as AstFunction;
       const sym = nodeToSymbol.get(fn);
-      if (sym !== undefined) {
-        // Record union of all enclosing scopes BEFORE pushing this
-        // closure's own scope. The closure's params land in
-        // `analyzeCaptures(..).paramNames` separately.
-        const union = new Set<string>();
-        for (const scope of scopeStack) {
-          for (const id of scope) union.add(id);
-        }
-        result.set(sym, union);
-      }
+      // Snapshot the enclosing scope sets by reference — they keep filling
+      // after this closure; the union is taken once the walk completes.
+      if (sym !== undefined) pending.push({ sym, scopes: [...scopeStack] });
 
-      // Push this function's own scope so any nested closure sees it as
-      // an enclosing scope. Includes params + shallow body decls; nested
-      // function bodies are explored by the walker recursively, not by
-      // this collector.
       const ownScope = new Set<string>();
       for (const param of fn.params ?? []) {
         addBindingNamesFromPatternToSet(param, ownScope);
-      }
-      if (fn.body) {
-        collectShallowDeclarationsFromBody(fn.body, ownScope);
       }
       scopeStack.push(ownScope);
     },
@@ -209,6 +174,11 @@ export function buildClosureLexicalScopes(
     },
   });
 
+  for (const { sym, scopes } of pending) {
+    const union = new Set<string>();
+    for (const scope of scopes) for (const id of scope) union.add(id);
+    result.set(sym, union);
+  }
   return result;
 }
 
@@ -221,49 +191,25 @@ function isFunctionLikeNode(node: AstNode): boolean {
 }
 
 /**
- * Collect declarations introduced by one statement at the same lexical
- * level (no recursion into nested function bodies). Used for both module
- * top-level and function body top-level collection — here and by the
- * canonical gather walk's lexical-scope projection.
+ * Add the binding names a single node contributes to its enclosing function
+ * scope. Non-recursive: the caller's walk provides traversal, so block/loop
+ * bodies are reached without a nested walk. Function/class *declaration* names
+ * belong to the enclosing scope; a nested function's params and body are a
+ * separate scope the walk visits under its own frame.
  */
-export function collectShallowDeclarationsFromStatement(
-  stmt: AstMaybeNode | Statement,
-  ids: Set<string>,
-): void {
-  if (!stmt) return;
-  if (stmt.type === 'VariableDeclaration') {
-    const decl = stmt as VariableDeclaration;
-    for (const d of decl.declarations ?? []) {
-      if (d.id) addBindingNamesFromPatternToSet(d.id, ids);
-    }
-    return;
-  }
-  if (stmt.type === 'FunctionDeclaration' && stmt.id?.type === 'Identifier') {
-    ids.add(stmt.id.name);
-    return;
-  }
-  if (stmt.type === 'ClassDeclaration' && stmt.id?.type === 'Identifier') {
-    ids.add(stmt.id.name);
-    return;
-  }
-  if (stmt.type === 'ExportNamedDeclaration' && stmt.declaration) {
-    collectShallowDeclarationsFromStatement(stmt.declaration, ids);
-    return;
-  }
-  if (stmt.type === 'ExportDefaultDeclaration' && stmt.declaration) {
-    collectShallowDeclarationsFromStatement(stmt.declaration, ids);
-    return;
-  }
-}
-
-export function collectShallowDeclarationsFromBody(
-  body: BlockStatement | FunctionBody | AstNode,
-  ids: Set<string>,
-): void {
-  if (!body) return;
-  // Expression-bodied arrow (`x => x + 1`): no own decls beyond params.
-  if (body.type !== 'BlockStatement') return;
-  for (const stmt of body.body ?? []) {
-    collectShallowDeclarationsFromStatement(stmt, ids);
+export function addScopeDeclarations(node: AstNode, ids: Set<string>): void {
+  switch (node.type) {
+    case 'VariableDeclaration':
+      for (const d of node.declarations ?? []) {
+        if (d.id) addBindingNamesFromPatternToSet(d.id, ids);
+      }
+      return;
+    case 'FunctionDeclaration':
+    case 'ClassDeclaration':
+      if (node.id?.type === 'Identifier') ids.add(node.id.name);
+      return;
+    case 'CatchClause':
+      if (node.param) addBindingNamesFromPatternToSet(node.param, ids);
+      return;
   }
 }

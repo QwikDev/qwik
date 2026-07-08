@@ -1187,6 +1187,8 @@
       "tests/optimizer/segment/rawprops-propagation.test.ts :: Inline strategy keeps captureNames intact for non-loop nested handlers default (smart) strategy keeps captureNames empty after promotion (segment-file path)",
       "tests/optimizer/segment/rawprops-propagation.test.ts :: Inline strategy keeps captureNames intact for non-loop nested handlers emits inline-style body with _captures[N] unpacking + _rawProps.X rewriting",
       "tests/optimizer/segment/rawprops-propagation.test.ts :: Inline strategy keeps captureNames intact for non-loop nested handlers keeps Hoist strategy unchanged — still pads paramNames with (_, _1, capture)",
+      "tests/optimizer/segment/rawprops-propagation.test.ts :: q:p capture value resolves through _rawProps in the consolidated parent scope hoist: q:p delivers _rawProps.showAll, never the bare destructured name",
+      "tests/optimizer/segment/rawprops-propagation.test.ts :: q:p capture value resolves through _rawProps in the consolidated parent scope smart: q:p delivers _rawProps.showAll, never the bare destructured name",
       "tests/optimizer/segment/segment-ts-strip.test.ts :: TS type annotations stripped from non-JSX segment bodies Negative scope: non-TS segments unaffected plain JS arrow (no annotations) → unchanged",
       "tests/optimizer/segment/segment-ts-strip.test.ts :: TS type annotations stripped from non-JSX segment bodies Positive: TS annotations on extracted closures are stripped arrow with multiple TS-annotated params → all stripped",
       "tests/optimizer/segment/segment-ts-strip.test.ts :: TS type annotations stripped from non-JSX segment bodies Positive: TS annotations on extracted closures are stripped arrow with single TS-annotated param → annotation stripped",
@@ -1341,6 +1343,6 @@
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) has null input",
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) parses without error"
     ],
-    "total": 1156
+    "total": 1158
   }
 }

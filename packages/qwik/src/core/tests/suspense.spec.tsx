@@ -2679,4 +2679,122 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
       delete (globalThis as any).__ooosUnitShellValue;
     }
   });
+
+  it('should resume a resolved out-of-order Suspense that is the last child of its parent', async () => {
+    let resolveSlow!: (value: JSXOutput) => void;
+    const slow = new Promise<JSXOutput>((resolve) => {
+      resolveSlow = resolve;
+    });
+    const Slow = component$(() => <>{slow}</>);
+    const App = component$(() => {
+      const count = useSignal(0);
+      return (
+        <main>
+          <div>
+            <Suspense fallback={<button>Waiting last</button>}>
+              <Slow />
+            </Suspense>
+          </div>
+          <button id="last-inc" onClick$={() => count.value++}>
+            inc
+          </button>
+          <p id="last-count">{count.value}</p>
+        </main>
+      );
+    });
+    const chunks: string[] = [];
+
+    const renderPromise = ssrRenderSuspenseStream(<App />, chunks);
+
+    await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting last'));
+    resolveSlow(<section>Done last</section>);
+    const { vNode, container } = await renderPromise;
+    expect(vNode).toMatchVDOM(
+      <main>
+        <div>
+          <Component ssr-required>
+            <div style="display: none;">
+              <button>Waiting last</button>
+            </div>
+            {/* @ts-ignore-next-line */}
+            <div q:rp="1" style="display: contents;">
+              <Projection ssr-required>
+                <Component>
+                  <Fragment ssr-required>
+                    <Awaited>
+                      <section>Done last</section>
+                    </Awaited>
+                  </Fragment>
+                </Component>
+              </Projection>
+            </div>
+          </Component>
+        </div>
+        <button id="last-inc">inc</button>
+        <p id="last-count">
+          <Signal ssr-required>0</Signal>
+        </p>
+      </main>
+    );
+
+    await trigger(container.element, '#last-inc', 'click');
+    expect(container.element.querySelector('#last-count')?.textContent).toBe('1');
+  });
+
+  it('should resume a resolved out-of-order Suspense that has a direct trailing sibling', async () => {
+    let resolveSlow!: (value: JSXOutput) => void;
+    const slow = new Promise<JSXOutput>((resolve) => {
+      resolveSlow = resolve;
+    });
+    const Slow = component$(() => <>{slow}</>);
+    const App = component$(() => {
+      const count = useSignal(0);
+      return (
+        <main>
+          <Suspense fallback={<button>Waiting mid</button>}>
+            <Slow />
+          </Suspense>
+          <button id="mid-inc" onClick$={() => count.value++}>
+            inc
+          </button>
+          <p id="mid-count">{count.value}</p>
+        </main>
+      );
+    });
+    const chunks: string[] = [];
+
+    const renderPromise = ssrRenderSuspenseStream(<App />, chunks);
+
+    await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting mid'));
+    resolveSlow(<section>Done mid</section>);
+    const { vNode, container } = await renderPromise;
+    expect(vNode).toMatchVDOM(
+      <main>
+        <Component ssr-required>
+          <div style="display: none;">
+            <button>Waiting mid</button>
+          </div>
+          {/* @ts-ignore-next-line */}
+          <div q:rp="1" style="display: contents;">
+            <Projection ssr-required>
+              <Component>
+                <Fragment ssr-required>
+                  <Awaited>
+                    <section>Done mid</section>
+                  </Awaited>
+                </Fragment>
+              </Component>
+            </Projection>
+          </div>
+        </Component>
+        <button id="mid-inc">inc</button>
+        <p id="mid-count">
+          <Signal ssr-required>0</Signal>
+        </p>
+      </main>
+    );
+
+    await trigger(container.element, '#mid-inc', 'click');
+    expect(container.element.querySelector('#mid-count')?.textContent).toBe('1');
+  });
 });

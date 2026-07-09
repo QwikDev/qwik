@@ -928,6 +928,46 @@ export const App = component$(() => {
 }
 
 #[test]
+fn reports_dynamic_import_used_only_in_stripped_segment() {
+	let output = test_input!(TestInput {
+		code: r#"
+import { component$, useVisibleTask$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+	useVisibleTask$(async () => {
+		const { ping } = await import('~/shared/visible-task-server-fn');
+		await ping();
+	});
+	return <div>hi</div>;
+});
+"#
+		.to_string(),
+		entry_strategy: EntryStrategy::Hoist,
+		strip_ctx_name: Some(vec!["useVisibleTask".into()]),
+		strip_event_handlers: true,
+		transpile_ts: true,
+		transpile_jsx: true,
+		is_server: Some(true),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+
+	let root_module = output
+		.modules
+		.iter()
+		.find(|module| !module.is_entry && module.segment.is_none())
+		.expect("root module should exist");
+	let visible_task_import: Atom = "~/shared/visible-task-server-fn".into();
+
+	assert!(
+		root_module.imports.contains(&visible_task_import),
+		"root module should report dynamic imports used before stripping, got {:?}",
+		root_module.imports
+	);
+}
+
+#[test]
 fn example_reg_ctx_name_segments_inlined() {
 	test_input!(TestInput {
 		code: r#"

@@ -597,6 +597,8 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 								.values()
 								.map(|import| import.source.clone())
 								.collect();
+							imports
+								.extend(q.options.global_collect.dynamic_imports.iter().cloned());
 							imports.sort();
 							imports.dedup();
 							imports

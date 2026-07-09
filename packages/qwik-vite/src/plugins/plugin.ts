@@ -601,9 +601,9 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     inputImports: string[],
     outputCode: string,
     importerId: string
-  ) => {
+  ): Promise<string[]> => {
     if (inputImports.length === 0) {
-      return outputCode;
+      return [];
     }
 
     const outputResolvedIds = new Set<string>();
@@ -614,20 +614,17 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       }
     }
 
-    const restoredImports: string[] = [];
+    const restoredDeps: string[] = [];
     for (const importId of inputImports) {
       const resolvedId = await resolveTransformableImport(ctx, importId, importerId);
       if (!resolvedId || outputResolvedIds.has(resolvedId)) {
         continue;
       }
-      restoredImports.push(`import ${JSON.stringify(importId)};`);
+      restoredDeps.push(resolvedId);
       outputResolvedIds.add(resolvedId);
     }
 
-    if (restoredImports.length === 0) {
-      return outputCode;
-    }
-    return `${restoredImports.join('\n')}\n${outputCode}`;
+    return restoredDeps;
   };
 
   let resolveIdCount = 0;
@@ -1094,8 +1091,14 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       // debug({ isServer, strip }, transformOpts, newOutput);
       diagnosticsCallback(newOutput.diagnostics, optimizer, srcDir);
 
+      let restoredSsrImportDeps: string[] = [];
       if (isServer && strip) {
-        module.code = await restoreSsrImportGraphEdges(ctx, module.imports ?? [], module.code, id);
+        restoredSsrImportDeps = await restoreSsrImportGraphEdges(
+          ctx,
+          module.imports ?? [],
+          module.code,
+          id
+        );
       }
 
       if (isServer) {
@@ -1136,6 +1139,9 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
             }
           }
         }
+      }
+      for (const restoredDep of restoredSsrImportDeps) {
+        deps.add(restoredDep);
       }
 
       ctx.addWatchFile(id);

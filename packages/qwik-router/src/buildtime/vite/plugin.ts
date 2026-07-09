@@ -654,7 +654,12 @@ function serverFnsPlugin(buildContextRef: BuildContextRef): Plugin {
           if (!isServerBuild || serverFnModules.size === 0) {
             return '// No server$ functions';
           }
-          return [...serverFnModules].map((mod) => `import ${JSON.stringify(mod)};`).join('\n');
+          return [...serverFnModules]
+            .map(
+              (mod, index) =>
+                `import * as serverFnModule${index} from ${JSON.stringify(mod)};\nObject.values(serverFnModule${index});`
+            )
+            .join('\n');
         }
         return null;
       },

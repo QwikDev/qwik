@@ -197,6 +197,11 @@ test.describe('server$', () => {
     expect(data.loaded).toBe(false);
   });
 
+  test('registers server$ reached through a prod visible task import', async ({ page }) => {
+    await page.goto('/qwikrouter-test.prod/server-function/eager-transitive/');
+    await expect(page.locator('#eager-transitive-result')).toHaveText('registered');
+  });
+
   for (const [alias, route, id] of [
     ['~', 'visible-task-alias-only', 'visible-task-alias-server-fn'],
     ['@', 'visible-task-at-alias-only', 'visible-task-at-alias-server-fn'],

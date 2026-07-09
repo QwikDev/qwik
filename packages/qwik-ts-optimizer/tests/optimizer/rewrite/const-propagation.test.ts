@@ -31,6 +31,23 @@ describe('propagateConstLiteralsInBody inlining a single-use member-expression c
   });
 });
 
+describe('propagateConstLiteralsInBody with a bare-identifier alias reference', () => {
+  it('inlines a single-use const into a kept declarator that aliases it', () => {
+    const body = `() => { const cur = obj.a.value; const start = cur; return start + start; }`;
+    const out = propagateConstLiteralsInBody(body);
+    expect(out).toContain('const start = obj.a.value');
+    expect(out).not.toMatch(/\bcur\b/);
+    expect(parses(out)).toBe(true);
+  });
+
+  it('keeps a multi-use const aliased by a bare-identifier declarator', () => {
+    const body = `() => { const cur = obj.a.value; const start = cur; return start + cur; }`;
+    const out = propagateConstLiteralsInBody(body);
+    expect(out).toContain('const cur = obj.a.value');
+    expect(parses(out)).toBe(true);
+  });
+});
+
 describe('pre-transformed _jsxDEV shorthand prop survives const inlining', () => {
   function parentOf(input: string) {
     const result = transformModule({

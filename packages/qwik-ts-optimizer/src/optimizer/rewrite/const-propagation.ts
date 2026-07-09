@@ -286,12 +286,7 @@ export function propagateConstLiteralsInBody(body: string): string {
             initRefersTo: collectIdentifiers(init),
           });
 
-          const savedDeclName = currentDeclName;
-          currentDeclName = decl.id.name;
-          forEachAstChild(init, (child, key, parent) => {
-            walkCollect(child, key, parent);
-          });
-          currentDeclName = savedDeclName;
+          collectReferencesInInitializer(init, decl, decl.id.name);
           return;
         }
       }
@@ -314,6 +309,13 @@ export function propagateConstLiteralsInBody(body: string): string {
     forEachAstChild(node, (child, key, parent) => {
       walkCollect(child, key, parent);
     });
+  }
+
+  function collectReferencesInInitializer(init: AstNode, declNode: AstNode, declName: string): void {
+    const savedDeclName = currentDeclName;
+    currentDeclName = declName;
+    walkCollect(init, 'init', declNode);
+    currentDeclName = savedDeclName;
   }
 
   walkCollect(parseResult.program);

@@ -242,7 +242,7 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
   } else {
     const devExt = explicitExtensions ? (outputExtension ?? '.js') : undefined;
     for (const ext of topLevelNonSync) {
-      if (movedMarkerSymbols.has(ext.symbolName)) {
+      if (movedMarkerSymbols.has(ext.symbolName) && !(isDevMode && devFilePath)) {
         const fileExt = explicitExtensions ? (outputExtension ?? '.js') : '';
         ctx.qrlDecls.push(
           `qrl(()=>import("./${ext.canonicalFilename}${fileExt}"), "${ext.symbolName}");`,

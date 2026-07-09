@@ -689,6 +689,46 @@ export function buildNestedQrlDeclarations(
 }
 
 /**
+ * The `const q_<sym> = qrl(...)` / `qrlDEV(...)` declaration a segment owns for
+ * an extraction whose source decl moved into it: dev emits the `qrlDEV(...)`
+ * form with source metadata, prod the bare `qrl(...)` form.
+ */
+function buildMovedQrlDecl(
+  ext: ConsolidatedSegment,
+  options: TransformModulesOptions,
+  isDevMode: boolean,
+  devFile: string | undefined,
+  qrlOutputExt: string | undefined,
+  sourceExtensions: Map<string, string>,
+): string {
+  if (isDevMode && devFile) {
+    const devExt = options.explicitExtensions ? (qrlOutputExt ?? ".js") : undefined;
+    return buildQrlDevDeclaration(
+      ext.symbolName,
+      ext.canonicalFilename,
+      devFile,
+      ext.loc[0],
+      ext.loc[1],
+      ext.displayName,
+      devExt,
+    );
+  }
+  const outputExt =
+    qrlOutputExt ?? sourceExtensions.get(ext.symbolName) ?? ext.extension;
+  return buildQrlDeclaration(
+    ext.symbolName,
+    ext.canonicalFilename,
+    options.explicitExtensions,
+    ext.extension,
+    outputExt,
+  );
+}
+
+function qrlDeclImportName(isDevMode: boolean, devFile: string | undefined): string {
+  return isDevMode && devFile !== undefined ? "qrlDEV" : "qrl";
+}
+
+/**
  * When a single-segment marker-call decl (`const X = component$(() => ...)`)
  * is `move`d into a sibling segment's file, the raw source text would
  * re-emit the marker call and its closure body — duplicating the body that
@@ -708,7 +748,13 @@ function tryBuildMarkerDeclMove(
   options: TransformModulesOptions,
   qrlOutputExt: string | undefined,
   sourceExtensions: Map<string, string>,
-): { qrlDecl: string; wrapDecl: string } | null {
+  isDevMode: boolean,
+  devFile: string | undefined,
+): {
+  qrlDecl: string;
+  wrapDecl: string;
+  importDeps: Array<{ localName: string; importedName: string; source: string }>;
+} | null {
   // Match the decl to its top-level marker-call extraction by displayName.
   // Format is `<fileStem>_<declName>(_<marker>...)` per `naming.ts`; positional
   // matching via `ext.loc` doesn't work here because `loc` is stored as
@@ -731,17 +777,15 @@ function tryBuildMarkerDeclMove(
   if (!match) return null;
   const qrlCallee = getQrlCalleeName(match.ctxName);
   if (!qrlCallee) return null;
-  const outputExt =
-    qrlOutputExt ?? sourceExtensions.get(match.symbolName) ?? match.extension;
-  const qrlDecl = buildQrlDeclaration(
-    match.symbolName,
-    match.canonicalFilename,
-    options.explicitExtensions,
-    match.extension,
-    outputExt,
-  );
+
+  const qrlDecl = buildMovedQrlDecl(match, options, isDevMode, devFile, qrlOutputExt, sourceExtensions);
+  const qrlImportName = qrlDeclImportName(isDevMode, devFile);
   const wrapDecl = `const ${decl.name} = /*#__PURE__*/ ${qrlCallee}(q_${match.symbolName});`;
-  return { qrlDecl, wrapDecl };
+  const importDeps = [
+    { localName: qrlImportName, importedName: qrlImportName, source: "@qwik.dev/core" },
+    { localName: qrlCallee, importedName: qrlCallee, source: "@qwik.dev/core" },
+  ];
+  return { qrlDecl, wrapDecl, importDeps };
 }
 
 /**
@@ -774,24 +818,15 @@ function buildMovedQrlSupport(
   }
   if (matched.length === 0) return { qrlDecls, importDeps };
 
-  // `qrl` first: the codegen-side import dedupe is substring-based, and a
-  // marker-Qrl specifier (`useTaskQrl`) inserted earlier would swallow the
-  // bare `qrl` one.
-  importDeps.push({ localName: "qrl", importedName: "qrl", source: "@qwik.dev/core" });
+  const isDevMode = ctx.emitMode === "dev" || ctx.emitMode === "hmr";
+  const qrlImportName = qrlDeclImportName(isDevMode, ctx.devFile);
+  importDeps.push({ localName: qrlImportName, importedName: qrlImportName, source: "@qwik.dev/core" });
 
   matched.sort((a, b) => a.symbolName.localeCompare(b.symbolName));
   for (const e of matched) {
     declared.add(e.symbolName);
-    const outputExt =
-      ctx.qrlOutputExt ?? ctx.sourceExtensions.get(e.symbolName) ?? e.extension;
     qrlDecls.push(
-      buildQrlDeclaration(
-        e.symbolName,
-        e.canonicalFilename,
-        ctx.options.explicitExtensions,
-        e.extension,
-        outputExt,
-      ),
+      buildMovedQrlDecl(e, ctx.options, isDevMode, ctx.devFile, ctx.qrlOutputExt, ctx.sourceExtensions),
     );
     const callee = getQrlCalleeName(e.ctxName);
     if (
@@ -957,6 +992,7 @@ export function wireMigration(
             source: parentModulePath,
           });
         }
+        const isDevMode = ctx.emitMode === "dev" || ctx.emitMode === "hmr";
         const markerXform = tryBuildMarkerDeclMove(
           decl,
           ctx.extractions,
@@ -964,15 +1000,13 @@ export function wireMigration(
           ctx.options,
           ctx.qrlOutputExt,
           ctx.sourceExtensions,
+          isDevMode,
+          ctx.devFile,
         );
         if (markerXform) {
-          // Replace the source-level `const X = component$(...)` with the
-          // parent-rewrite-equivalent pair: a qrl ref for the extracted body,
-          // followed by the marker-Qrl wrap. The componentQrl/qrl imports are
-          // auto-collected by the segment's import pass.
           captureInfo.movedDeclarations.push({
             text: markerXform.qrlDecl,
-            importDeps,
+            importDeps: [...importDeps, ...markerXform.importDeps],
           });
           captureInfo.movedDeclarations.push({
             text: markerXform.wrapDecl,

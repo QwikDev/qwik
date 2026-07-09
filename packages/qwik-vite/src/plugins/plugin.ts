@@ -599,29 +599,19 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
   const restoreSsrImportGraphEdges = async (
     ctx: Rollup.PluginContext,
     inputImports: string[],
-    outputCode: string,
     importerId: string
   ): Promise<string[]> => {
     if (inputImports.length === 0) {
       return [];
     }
 
-    const outputResolvedIds = new Set<string>();
-    for (const importId of getImportSpecifiers(ctx, outputCode)) {
-      const resolvedId = await resolveTransformableImport(ctx, importId, importerId);
-      if (resolvedId) {
-        outputResolvedIds.add(resolvedId);
-      }
-    }
-
     const restoredDeps: string[] = [];
     for (const importId of inputImports) {
       const resolvedId = await resolveTransformableImport(ctx, importId, importerId);
-      if (!resolvedId || outputResolvedIds.has(resolvedId)) {
+      if (!resolvedId) {
         continue;
       }
       restoredDeps.push(resolvedId);
-      outputResolvedIds.add(resolvedId);
     }
 
     return restoredDeps;
@@ -1093,12 +1083,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
       let restoredSsrImportDeps: string[] = [];
       if (isServer && strip) {
-        restoredSsrImportDeps = await restoreSsrImportGraphEdges(
-          ctx,
-          module.imports ?? [],
-          module.code,
-          id
-        );
+        restoredSsrImportDeps = await restoreSsrImportGraphEdges(ctx, module.imports ?? [], id);
       }
 
       if (isServer) {

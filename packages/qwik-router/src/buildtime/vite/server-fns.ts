@@ -56,9 +56,11 @@ export async function collectServerFnModuleIds(
       serverFnModules.add(moduleInfo.id);
     }
 
-    const resolvedImports = moduleInfo.importedIds
-      .concat(moduleInfo.dynamicallyImportedIds)
-      .concat(qwikDeps);
+    const resolvedImports = [
+      ...moduleInfo.importedIds,
+      ...moduleInfo.dynamicallyImportedIds,
+      ...qwikDeps,
+    ];
     for (let i = 0; i < resolvedImports.length; i++) {
       const resolvedImport = resolvedImports[i];
       if (resolvedImport && !seenModuleIds.has(resolvedImport)) {

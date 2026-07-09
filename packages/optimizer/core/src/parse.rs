@@ -184,6 +184,9 @@ pub struct TransformModule {
 	pub path: String,
 	pub code: String,
 
+	#[serde(default, skip_serializing_if = "Vec::is_empty")]
+	pub imports: Vec<Atom>,
+
 	pub map: Option<String>,
 
 	pub segment: Option<SegmentAnalysis>,
@@ -551,6 +554,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 								map,
 								is_entry,
 								path: segment_path,
+								imports: vec![],
 								order: h.hash,
 								segment: Some(SegmentAnalysis {
 									origin: h.data.origin,
@@ -583,6 +587,24 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 						}
 					}
 
+					let imports = qt
+						.as_ref()
+						.map(|q| {
+							let mut imports: Vec<_> = q
+								.options
+								.global_collect
+								.imports
+								.values()
+								.map(|import| import.source.clone())
+								.collect();
+							imports
+								.extend(q.options.global_collect.dynamic_imports.iter().cloned());
+							imports.sort();
+							imports.dedup();
+							imports
+						})
+						.unwrap_or_default();
+
 					let (code, map) = match program {
 						ast::Program::Module(ref mut modu) => {
 							add_section_separators(modu, &comments);
@@ -611,6 +633,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 						is_entry: false,
 						path,
 						code,
+						imports,
 						map,
 						order: hasher.finish(),
 						segment: None,

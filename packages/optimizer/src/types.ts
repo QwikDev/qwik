@@ -105,6 +105,7 @@ export interface TransformModule {
   path: string;
   isEntry: boolean;
   code: string;
+  imports?: string[];
   map: string | null;
   segment: SegmentAnalysis | null;
   origPath: string | null;

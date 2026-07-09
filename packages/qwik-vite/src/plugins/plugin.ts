@@ -574,6 +574,49 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
   };
 
+  const resolveTransformableImport = async (
+    ctx: Rollup.PluginContext,
+    importId: string,
+    importerId: string
+  ) => {
+    const resolved = await ctx.resolve(importId, importerId, { skipSelf: true });
+    if (!resolved || resolved.external || isVirtualId(resolved.id)) {
+      return;
+    }
+
+    const parsedId = parseId(resolved.id);
+    if (parsedId.query) {
+      return;
+    }
+
+    const resolvedPathId = normalizePath(parsedId.pathId);
+    const ext = getPath().extname(resolvedPathId).toLowerCase();
+    if (ext in TRANSFORM_EXTS || TRANSFORM_REGEX.test(resolvedPathId)) {
+      return resolvedPathId;
+    }
+  };
+
+  const restoreSsrImportGraphEdges = async (
+    ctx: Rollup.PluginContext,
+    inputImports: string[],
+    importerId: string
+  ): Promise<string[]> => {
+    if (inputImports.length === 0) {
+      return [];
+    }
+
+    const restoredDeps: string[] = [];
+    for (const importId of inputImports) {
+      const resolvedId = await resolveTransformableImport(ctx, importId, importerId);
+      if (!resolvedId) {
+        continue;
+      }
+      restoredDeps.push(resolvedId);
+    }
+
+    return restoredDeps;
+  };
+
   let resolveIdCount = 0;
   let doNotEdit = false;
   /**
@@ -1038,6 +1081,11 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       // debug({ isServer, strip }, transformOpts, newOutput);
       diagnosticsCallback(newOutput.diagnostics, optimizer, srcDir);
 
+      let restoredSsrImportDeps: string[] = [];
+      if (isServer && strip) {
+        restoredSsrImportDeps = await restoreSsrImportGraphEdges(ctx, module.imports ?? [], id);
+      }
+
       if (isServer) {
         if (newOutput.diagnostics.length === 0 && linter) {
           linter.lint(ctx, code, id);
@@ -1076,6 +1124,9 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
             }
           }
         }
+      }
+      for (const restoredDep of restoredSsrImportDeps) {
+        deps.add(restoredDep);
       }
 
       ctx.addWatchFile(id);

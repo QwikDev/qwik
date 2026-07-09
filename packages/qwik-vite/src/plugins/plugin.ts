@@ -574,6 +574,62 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
   };
 
+  const resolveTransformableImport = async (
+    ctx: Rollup.PluginContext,
+    importId: string,
+    importerId: string
+  ) => {
+    const resolved = await ctx.resolve(importId, importerId, { skipSelf: true });
+    if (!resolved || resolved.external || isVirtualId(resolved.id)) {
+      return;
+    }
+
+    const parsedId = parseId(resolved.id);
+    if (parsedId.query) {
+      return;
+    }
+
+    const resolvedPathId = normalizePath(parsedId.pathId);
+    const ext = getPath().extname(resolvedPathId).toLowerCase();
+    if (ext in TRANSFORM_EXTS || TRANSFORM_REGEX.test(resolvedPathId)) {
+      return resolvedPathId;
+    }
+  };
+
+  const restoreSsrImportGraphEdges = async (
+    ctx: Rollup.PluginContext,
+    inputImports: string[],
+    outputCode: string,
+    importerId: string
+  ) => {
+    if (inputImports.length === 0) {
+      return outputCode;
+    }
+
+    const outputResolvedIds = new Set<string>();
+    for (const importId of getImportSpecifiers(ctx, outputCode)) {
+      const resolvedId = await resolveTransformableImport(ctx, importId, importerId);
+      if (resolvedId) {
+        outputResolvedIds.add(resolvedId);
+      }
+    }
+
+    const restoredImports: string[] = [];
+    for (const importId of inputImports) {
+      const resolvedId = await resolveTransformableImport(ctx, importId, importerId);
+      if (!resolvedId || outputResolvedIds.has(resolvedId)) {
+        continue;
+      }
+      restoredImports.push(`import ${JSON.stringify(importId)};`);
+      outputResolvedIds.add(resolvedId);
+    }
+
+    if (restoredImports.length === 0) {
+      return outputCode;
+    }
+    return `${restoredImports.join('\n')}\n${outputCode}`;
+  };
+
   let resolveIdCount = 0;
   let doNotEdit = false;
   /**
@@ -1037,6 +1093,10 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       // uncomment to show transform results
       // debug({ isServer, strip }, transformOpts, newOutput);
       diagnosticsCallback(newOutput.diagnostics, optimizer, srcDir);
+
+      if (isServer && strip) {
+        module.code = await restoreSsrImportGraphEdges(ctx, module.imports ?? [], module.code, id);
+      }
 
       if (isServer) {
         if (newOutput.diagnostics.length === 0 && linter) {

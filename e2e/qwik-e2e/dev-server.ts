@@ -207,6 +207,10 @@ export { router }
     base: basePath,
     ...extra,
     resolve: {
+      alias: {
+        '~': appSrcDir,
+        '@': appSrcDir,
+      },
       conditions: [isProd ? 'production' : 'development'],
       mainFields: [],
     },

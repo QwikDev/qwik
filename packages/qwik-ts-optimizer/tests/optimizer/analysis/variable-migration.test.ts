@@ -440,11 +440,10 @@ describe('analyzeMigration MIG-06 (moved-decl dependencies)', () => {
     const code = [
       "const SETTINGS = { mode: 'mock' };",
       'const useHelper = (props) => { return SETTINGS.mode + props.x; };',
+      'console.log(SETTINGS.mode);',
     ].join('\n');
     const { program, decls } = declsFor(code);
 
-    // `useHelper` used by exactly one segment; SETTINGS referenced only
-    // from inside useHelper's body (root usage).
     const segmentUsage = new Map([['segA', new Set(['useHelper'])]]);
     const rootUsage = new Set(['SETTINGS']);
 
@@ -454,6 +453,25 @@ describe('analyzeMigration MIG-06 (moved-decl dependencies)', () => {
     expect(byName.get('useHelper')?.action).toBe('move');
     expect(byName.get('SETTINGS')?.action).toBe('reexport');
     expect(byName.get('SETTINGS')?.reason).toContain('MIG-06');
+  });
+
+  it('moves a keep dependency used only by movers to the same segment into it', () => {
+    const code = [
+      "const SETTINGS = { mode: 'mock' };",
+      'const useHelper = (props) => { return SETTINGS.mode + props.x; };',
+    ].join('\n');
+    const { program, decls } = declsFor(code);
+
+    const segmentUsage = new Map([['segA', new Set(['useHelper'])]]);
+    const rootUsage = new Set(['SETTINGS']);
+
+    const decisions = analyzeMigration(decls, segmentUsage, rootUsage, program);
+
+    const byName = new Map(decisions.map((d) => [d.varName, d]));
+    expect(byName.get('useHelper')?.action).toBe('move');
+    expect(byName.get('SETTINGS')?.action).toBe('move');
+    expect(byName.get('SETTINGS')?.targetSegment).toBe('segA');
+    expect(byName.get('SETTINGS')?.reason).toContain('MIG-06a');
   });
 
   it('leaves exported dependencies alone (plain import path handles them)', () => {

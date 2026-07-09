@@ -829,11 +829,11 @@ function attributeSegmentUsage(
   // happened in Phase 2 (canonical gather walk); the maps arrive pre-built.
   const { segmentUsage, rootUsage } = analysis;
 
-  // Augment segmentUsage with captureNames from scope-aware capture analysis.
-  // (For `inlinedQrl` extractions, the explicit captures are already in
-  // `captureNames` — this also folds them into `segmentUsage` so they read
-  // back consistently with `$()` extractions.)
+  // Augment segmentUsage with captured names a `$()` body references and thus
+  // needs migrated. inlinedQrl captures arrive via `_captures` (not an import),
+  // so folding them in would wrongly mark them dual-use and reexport them.
   for (const ext of extractions) {
+    if (ext.isInlinedQrl) continue;
     const usage = segmentUsage.get(ext.symbolName);
     if (usage && ext.captureNames) {
       for (const name of ext.captureNames) {

@@ -879,12 +879,16 @@ export function wireMigration(
   // `_auto_` alias. User-exported decls keep plain imports even when a
   // reexport decision also fires for them (SWC's emit shape).
   const reexportedNames = new Set<string>();
+  const movedIntoThisSegment = new Set<string>();
   for (const d of migrationDecisions) {
     if (
       d.action === "reexport" &&
       !moduleLevelDeclsByName.get(d.varName)?.isExported
     ) {
       reexportedNames.add(d.varName);
+    }
+    if (d.action === "move" && d.targetSegment === migrationKey) {
+      movedIntoThisSegment.add(d.varName);
     }
   }
   for (const decision of migrationDecisions) {
@@ -915,6 +919,12 @@ export function wireMigration(
           }
 
           if (!sameFileSymbols.has(idName) || idName === decision.varName) {
+            continue;
+          }
+
+          // Its transitive dep moves into this same segment (MIG-06a) — it is
+          // declared locally, so importing it would double-declare.
+          if (movedIntoThisSegment.has(idName)) {
             continue;
           }
 
@@ -1270,9 +1280,7 @@ export function buildDefaultStrategySegment(
   // Wire migration info for both top-level and nested segments. Per-segment
   // matching is keyed by migrationKey, so a move decision targeting a nested
   // segment lands its declaration in that nested segment's file (F4).
-  if (!ext.isInlinedQrl) {
-    wireMigration(ext, captureInfo, ctx, prep);
-  }
+  wireMigration(ext, captureInfo, ctx, prep);
 
   const parentRawPropsFieldMap = bodyConsolidatesToRawProps(ext.bodyText)
     ? extractDestructuredFieldInfo(ext.bodyText).fieldMap

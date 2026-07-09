@@ -41,6 +41,8 @@ export const Provider = component$((props) => {
   useMockRouter(props);
   return <div/>;
 });
+
+globalThis.__appMode = SETTINGS.mode;
 `;
 
 function run(): { parent: TransformModule; provider: TransformModule } {

@@ -467,6 +467,7 @@ export function computeSegmentUsage(
 export const MIG_REASON = {
   MOVE_SINGLE_SEGMENT: 'single-use safe variable (MIG-01)',
   MOVE_SHARED_DESTRUCTURE_UNIFIED: 'all bindings of shared destructure flow to same single segment (MIG-05a)',
+  MOVE_TRANSITIVE_DEP: 'dependency of a moved decl, used only by movers to the same segment (MIG-06a)',
   REEXPORT_EXPORTED: 'exported variable used by segment (MIG-03)',
   REEXPORT_DUAL_USE: 'used by both root code and segment(s)',
   REEXPORT_MULTI_SEGMENT: 'used by multiple segments (MIG-02)',
@@ -577,7 +578,7 @@ export function analyzeMigration(
 ): MigrationDecision[] {
   const decisions = decls.map(decl => decideMigration(decl, segmentUsage, rootUsage));
   promoteSharedDestructureGroups(decls, decisions, segmentUsage, rootUsage);
-  if (program) reexportMovedDeclDependencies(decls, decisions, program);
+  if (program) reexportMovedDeclDependencies(decls, decisions, program, segmentUsage);
   return decisions;
 }
 
@@ -597,6 +598,7 @@ function reexportMovedDeclDependencies(
   decls: ModuleLevelDecl[],
   decisions: MigrationDecision[],
   program: AstProgram,
+  segmentUsage: Map<string, Set<string>>,
 ): void {
   const indexByName = new Map<string, number>();
   for (let i = 0; i < decls.length; i++) indexByName.set(decls[i].name, i);
@@ -641,16 +643,81 @@ function reexportMovedDeclDependencies(
     }
   }
 
-  for (let i = 0; i < decisions.length; i++) {
-    const decision = decisions[i];
-    if (decision.action !== 'move') continue;
-    for (const dep of moverDeps(i)) {
-      if (dep === decision.varName) continue;
-      const depIdx = indexByName.get(dep);
-      if (depIdx === undefined || decls[depIdx].isExported) continue;
-      if (decisions[depIdx].action === 'keep') flipToReexport(depIdx);
+  const referencedByDecls = new Map<string, Set<number>>();
+  for (let j = 0; j < decls.length; j++) {
+    for (const dep of collectDeclIdentifiers(program, decls[j], true)) {
+      if (dep === decls[j].name) continue;
+      let refs = referencedByDecls.get(dep);
+      if (!refs) { refs = new Set(); referencedByDecls.set(dep, refs); }
+      refs.add(j);
     }
   }
+  const rootStmtRefs = collectTopLevelStatementRefs(program, decls);
+
+  // A keep-dep moves in with its consumer only when used *exclusively* by
+  // movers to the same segment; anything else (export, top-level use, another
+  // segment) keeps it in the parent to reexport.
+  const canMoveInto = (depIdx: number, segment: string): boolean => {
+    const d = decls[depIdx];
+    if (d.isExported || rootStmtRefs.has(d.name)) return false;
+    if (usingSegmentsOf(d.name, segmentUsage).some((s) => s !== segment)) return false;
+    const refs = referencedByDecls.get(d.name);
+    if (!refs || refs.size === 0) return false;
+    for (const j of refs) {
+      const dec = decisions[j];
+      if (dec.action !== 'move' || dec.targetSegment !== segment) return false;
+    }
+    return true;
+  };
+
+  let changed2 = true;
+  while (changed2) {
+    changed2 = false;
+    for (let i = 0; i < decisions.length; i++) {
+      const decision = decisions[i];
+      if (decision.action !== 'move' || decision.targetSegment === undefined) continue;
+      const targetSegment = decision.targetSegment;
+      for (const dep of moverDeps(i)) {
+        if (dep === decision.varName) continue;
+        const depIdx = indexByName.get(dep);
+        if (depIdx === undefined || decls[depIdx].isExported) continue;
+        if (decisions[depIdx].action !== 'keep') continue;
+        if (canMoveInto(depIdx, targetSegment)) {
+          decisions[depIdx] = {
+            action: 'move',
+            varName: decls[depIdx].name,
+            targetSegment,
+            reason: MIG_REASON.MOVE_TRANSITIVE_DEP,
+          };
+          changed2 = true;
+        } else {
+          flipToReexport(depIdx);
+        }
+      }
+    }
+  }
+}
+
+function collectTopLevelStatementRefs(
+  program: AstProgram,
+  decls: ModuleLevelDecl[],
+): Set<string> {
+  const ranges = decls.map((d) => [d.declStart, d.declEnd] as const);
+  const inDecl = (pos: number): boolean =>
+    ranges.some(([s, e]) => pos >= s && pos < e);
+  const refs = new Set<string>();
+  walk(program, {
+    enter(node: AstNode, parent) {
+      if (
+        (node.type === 'Identifier' || node.type === 'JSXIdentifier') &&
+        !isNonReferenceIdentifier(node, parent as AstNode | null) &&
+        !inDecl(node.start)
+      ) {
+        refs.add(node.name);
+      }
+    },
+  });
+  return refs;
 }
 
 function decideMigration(

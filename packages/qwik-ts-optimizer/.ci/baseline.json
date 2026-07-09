@@ -283,6 +283,7 @@
       "tests/optimizer/analysis/variable-migration.test.ts :: analyzeMigration MIG-06 (moved-decl dependencies) does not flip dependencies of decls that stay in the parent",
       "tests/optimizer/analysis/variable-migration.test.ts :: analyzeMigration MIG-06 (moved-decl dependencies) flips an un-exported keep dependency of a moved decl to reexport",
       "tests/optimizer/analysis/variable-migration.test.ts :: analyzeMigration MIG-06 (moved-decl dependencies) leaves exported dependencies alone (plain import path handles them)",
+      "tests/optimizer/analysis/variable-migration.test.ts :: analyzeMigration MIG-06 (moved-decl dependencies) moves a keep dependency used only by movers to the same segment into it",
       "tests/optimizer/analysis/variable-migration.test.ts :: analyzeMigration Test 10: function call as initializer => has side effects, not eligible for move",
       "tests/optimizer/analysis/variable-migration.test.ts :: analyzeMigration Test 1: single-use safe variable => move",
       "tests/optimizer/analysis/variable-migration.test.ts :: analyzeMigration Test 2: shared variable used by two segments => reexport",
@@ -1353,6 +1354,6 @@
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) has null input",
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) parses without error"
     ],
-    "total": 1168
+    "total": 1169
   }
 }

@@ -413,6 +413,7 @@ The `_auto_` prefix is the convention for compiler-generated re-exports — dist
 | MIG-01 | `usingSegments.length === 1` | `move` | `MOVE_SINGLE_SEGMENT` |
 | (implicit) | none match | `keep` | `KEEP_UNUSED` |
 | MIG-06 (post-pass) | dependency of a `move`d decl that would stay un-exported, or that `move`s to a *different* segment | `reexport` | `REEXPORT_MOVED_DECL_DEP` |
+| MIG-06a (post-pass) | dependency of a `move`d decl used *only* by movers to the same segment (no export/top-level/other-segment use) | `move` | `MOVE_TRANSITIVE_DEP` |
 
 The intuition: re-export is the safe default whenever **anyone else** still needs the binding (root code, multiple segments, side-effect chain, sibling destructure binding). Move only fires when exactly one segment is the consumer.
 
@@ -430,7 +431,7 @@ A `move`d declaration's body can still reference other module-level declarations
 
 Two related ownership rules ride the same shape (also OSS-447): when a moved helper's body references top-level `q_<symbol>` QRLs, the parent demotes every such binding to a bare `qrl(...)` registration statement (`movedMarkerSymbols` in `rewrite/output-assembly.ts`) and the consuming segment declares them itself plus the `qrl`/marker-Qrl imports (`buildMovedQrlSupport` in `segment-generation.ts`). And the segment-usage projection skips property-position identifiers (`isNonReferenceIdentifier`, shared by `computeSegmentUsage` and the gather walk) so a decl whose name collides with a property name (`document.startViewTransition`) isn't falsely demoted from MOVE to dual-use REEXPORT.
 
-Still unimplemented vs SWC: transitive dependency *migration* (`collect_transitive_dependencies` — moving a dep along with its sole consumer) and topological ordering of migrated decls (`sort_migrated_vars_topologically`); MIG-06 only re-exports. The `useQwikRouter_useTask` segment of `example_qwik_router_client` is the open fixture surface for both.
+Transitive dependency *migration* is implemented as MIG-06a (OSS-520, mirrors SWC's `collect_transitive_dependencies`): a `keep` dependency used *exclusively* by movers to one segment moves in with them instead of re-exporting, run as a fixpoint so a freshly-moved dep pulls in its own transitive deps (`canMoveInto` in `reexportMovedDeclDependencies`). The move-inline then skips importing a same-file symbol that also moves into the same segment (`movedIntoThisSegment` in `wireMigration`), which would otherwise double-declare it. `inlinedQrl` segments participate in migration wiring too — their explicit captures are *not* folded into `segmentUsage` (they arrive via `_captures`, not an import; `attributeSegmentUsage` skips them for `inlinedQrl`), so a captured-only name stays `rootUsage`/`keep` rather than dual-use `reexport`. This closed the `@qwik.dev/router` lib's `spa_init_event` case (moving `createCurrentPathTracker` + its transitive helpers into the segment), fixing client-side `<Link>` navigation under the TS optimizer. Explicit topological ordering (`sort_migrated_vars_topologically`) is still not implemented — moved decls emit in source order, which is dependency-correct in practice.
 
 ### The `usingSegmentsOf` helper (added in OSS-338)
 

@@ -98,3 +98,26 @@ export const M = component$(() => {
     expect(parses(code)).toBe(true);
   });
 });
+
+describe('propagateConstLiteralsInBody does not fold a member read across a mutation of that member', () => {
+  it('keeps `const i = ctx.n` when `ctx.n++` precedes its use', () => {
+    const body = `() => { const i = ctx.n; ctx.n++; return i; }`;
+    const out = propagateConstLiteralsInBody(body);
+    expect(out).toContain('const i = ctx.n');
+    expect(out).not.toMatch(/ctx\.n\+\+;\s*return ctx\.n/);
+  });
+
+  it('keeps a member read when the member is assigned later', () => {
+    const body = `() => { const v = obj.x; obj.x = 5; return v; }`;
+    const out = propagateConstLiteralsInBody(body);
+    expect(out).toContain('const v = obj.x');
+    expect(out).not.toMatch(/obj\.x = 5;\s*return obj\.x/);
+  });
+
+  it('still inlines a member read when the object is never mutated', () => {
+    const body = `() => { const v = sig.value; return g(v); }`;
+    const out = propagateConstLiteralsInBody(body);
+    expect(out).toContain('g(sig.value)');
+    expect(out).not.toContain('const v =');
+  });
+});

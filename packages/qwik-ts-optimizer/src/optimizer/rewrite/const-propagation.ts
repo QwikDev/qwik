@@ -234,6 +234,33 @@ function collectIdentifiers(node: AstNode): string[] {
   return ids;
 }
 
+function memberRootName(member: AstNode): string | null {
+  let obj: AstNode | null | undefined = member.type === 'MemberExpression' ? member.object : member;
+  while (obj?.type === 'MemberExpression') obj = obj.object;
+  return obj?.type === 'Identifier' ? obj.name : null;
+}
+
+/**
+ * Whether `node` reads a member of an object whose members are mutated
+ * elsewhere in the body. Inlining such a member read into a later use is
+ * unsound — a `const i = ctx.n` read before `ctx.n++` must not be folded
+ * into `return ctx.n` after it.
+ */
+function readsMutatedObject(node: AstNode, mutatedObjects: ReadonlySet<string>): boolean {
+  if (mutatedObjects.size === 0) return false;
+  let found = false;
+  function walk(n: AstNode | null | undefined): void {
+    if (!n || found) return;
+    if (n.type === 'MemberExpression') {
+      const root = memberRootName(n);
+      if (root && mutatedObjects.has(root)) { found = true; return; }
+    }
+    forEachAstChild(n, (child) => walk(child));
+  }
+  walk(node);
+  return found;
+}
+
 // ── Main: virtual graph propagation ──
 
 /**
@@ -252,6 +279,7 @@ export function propagateConstLiteralsInBody(body: string): string {
   const constDecls = new Map<string, ConstDecl>();
   const identRefs: IdentRef[] = [];
   const mutableVars = new Set<string>();
+  const mutatedObjects = new Set<string>();
 
   let currentDeclName: string | null = null;
 
@@ -262,6 +290,15 @@ export function propagateConstLiteralsInBody(body: string): string {
       for (const decl of node.declarations) {
         if (decl.id.type === 'Identifier') mutableVars.add(decl.id.name);
       }
+    }
+
+    if (node.type === 'UpdateExpression' && node.argument?.type === 'MemberExpression') {
+      const root = memberRootName(node.argument);
+      if (root) mutatedObjects.add(root);
+    }
+    if (node.type === 'AssignmentExpression' && node.left?.type === 'MemberExpression') {
+      const root = memberRootName(node.left);
+      if (root) mutatedObjects.add(root);
     }
 
     if (node.type === 'VariableDeclaration' && node.kind === 'const' &&
@@ -387,6 +424,8 @@ export function propagateConstLiteralsInBody(body: string): string {
     // Check that no identifier in the init is a mutable variable
     const referencesMutable = decl.initRefersTo.some(id => mutableVars.has(id));
     if (referencesMutable) continue;
+
+    if (readsMutatedObject(decl.initNode, mutatedObjects)) continue;
 
     const refs = externalRefCounts.get(name) ?? 0;
     if (refs <= 1) {

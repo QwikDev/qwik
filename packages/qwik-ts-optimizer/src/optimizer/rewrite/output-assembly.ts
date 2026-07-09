@@ -314,6 +314,9 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
     : undefined;
 
   const sharedHoister = jsxOptions?.enableJsx ? new SignalHoister() : undefined;
+  // Separate hoister for the `_jsxDEV(...)` path, apart from `sharedHoister`
+  // (which gets reordered) so emitted `_hf<n>` refs stay aligned with decls.
+  const sharedJsxCallHoister = new SignalHoister();
 
   const nestedExts: ExtractionResult[] = [];
   const topNonComponent: ExtractionResult[] = [];
@@ -358,6 +361,7 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
       // const folding for the inline/hoist body
       ctx.isServer,
       deriveIsDev(ctx.mode),
+      sharedJsxCallHoister,
     );
 
     let sigRewrittenBody = rawBody;
@@ -440,9 +444,11 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
   for (const ext of topNonComponent) processExtraction(ext);
   for (const ext of topComponent) processExtraction(ext);
 
-  if (sharedHoister) {
+  const jsxCallDecls = sharedJsxCallHoister.getDeclarations();
+  if (sharedHoister || jsxCallDecls.length > 0) {
     ctx.inlineHoistedDeclarations.length = 0;
-    ctx.inlineHoistedDeclarations.push(...sharedHoister.getDeclarations());
+    if (sharedHoister) ctx.inlineHoistedDeclarations.push(...sharedHoister.getDeclarations());
+    ctx.inlineHoistedDeclarations.push(...jsxCallDecls);
   }
 }
 

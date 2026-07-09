@@ -62,6 +62,19 @@ describe('raw-props', () => {
     );
   });
 
+  it('rewrites a rest-destructure of a props-derived local (not the param)', () => {
+    const body =
+      '(rawProps) => {\n  const props = usePlayground(rawProps, "x");\n  const { value: givenValue, ...rest } = props;\n  return givenValue ?? rest;\n}';
+
+    const result = applyRawPropsTransform(body);
+
+    expect(result).toContain('const props = usePlayground(rawProps, "x");');
+    expect(result).toMatch(/const rest = _restProps\(props, \[\s*"value"\s*\]\);/);
+    expect(result).not.toMatch(/\{\s*value:\s*givenValue\s*,\s*\.\.\.rest\s*\}/);
+    expect(result).toContain('return props.value ?? rest;');
+    expect(result.indexOf('_restProps')).toBeGreaterThan(result.indexOf('usePlayground'));
+  });
+
   it('rewrites rest-only destructuring in expression bodies', () => {
     const body = '({ ...rest }) => rest';
 

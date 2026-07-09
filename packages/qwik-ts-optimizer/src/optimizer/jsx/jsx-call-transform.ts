@@ -31,11 +31,17 @@ import { walk } from 'oxc-walker';
 import type { AstNode, AstProgram } from '../../ast-types.js';
 import {
   computeJsxFlags,
+  collectScopeAwareBindings,
+  isConstBindingName,
+  type ScopeAwareBindings,
   type JsxKeyCounter,
 } from './jsx.js';
 import { transformEventPropName } from './event-handlers.js';
 import { buildCaptureProp } from './loop-hoisting.js';
+import { analyzeSignalExpression, type SignalHoister } from './signal-analysis.js';
 import type { SegmentImportData } from '../segment/segment-codegen.js';
+
+const EMPTY_SET: ReadonlySet<string> = new Set();
 
 /**
  * Collect the set of identifier names in this segment's import context that
@@ -102,6 +108,21 @@ interface JsxCallTransformOptions {
    * captures through. Mirrors the raw-JSX path's `injectQpProp`.
    */
   qpByQrl?: ReadonlyMap<string, readonly string[]>;
+  /** All names imported by the module; lets the reactive classifier tell
+   * signal reads apart from references to imports. */
+  importedNames?: ReadonlySet<string>;
+  /** Accumulates `_hf<n>` functions hoisted for `_fnSignal(...)` values;
+   * threaded across bodies for stable `_hf<n>` numbering. */
+  signalHoister?: SignalHoister;
+  /** Locally declared names in this body; a dep declared locally isn't
+   * treated as a signal/store read. */
+  localNames?: ReadonlySet<string>;
+  /** Scope-aware binding lookup; a reactive prop whose deps are all stable
+   * (imported or const-bound) goes in the const bag. */
+  bindings?: ScopeAwareBindings;
+  /** The body's closure params. Member reads on them (`props.field`) are
+   * wrappable store-field reads even with no `useSignal`/`useStore` binding. */
+  paramNames?: readonly string[];
 }
 
 /**
@@ -148,6 +169,14 @@ export function transformJsxCalls(
 
   const reactiveBindings = collectReactiveBindings(program);
   opts.reactiveBindings = reactiveBindings;
+  const scopeBindings = collectScopeAwareBindings(program);
+  const localNames = scopeBindings.allLocalNames;
+  // Closure params aren't declarations in the parsed body (codegen wraps it in
+  // `(props) =>` afterward), so union them in — member reads on them are
+  // store-field reads the wrap pass must recognise.
+  for (const p of opts.paramNames ?? []) localNames.add(p);
+  opts.localNames = localNames;
+  opts.bindings = scopeBindings.bindings;
 
   // Tag kinds of the open jsx() ancestors, most-recent last; `'html'` for a
   // string-literal-tag call, `'component'` for an identifier-tag call.
@@ -172,11 +201,18 @@ export function transformJsxCalls(
           : 'component';
       tagStack.push(kind);
 
-      if (reactiveBindings.size === 0) return;
+      if (reactiveBindings.size === 0 && (opts.paramNames?.length ?? 0) === 0) return;
       if (isInSkipRange(node.start)) return;
       const propsArg = node.arguments?.[1];
       if (!propsArg || propsArg.type !== 'ObjectExpression') return;
-      wrapReactivePropValues(propsArg, s, reactiveBindings, opts.neededImports);
+      wrapReactivePropValues(propsArg, {
+        s,
+        source,
+        importedNames: opts.importedNames ?? EMPTY_SET,
+        localNames,
+        neededImports: opts.neededImports,
+        signalHoister: opts.signalHoister,
+      });
     },
     leave(node: AstNode) {
       // Bail unless this is a `<jsxFunction>(tag, propsObjLiteral, ...)`
@@ -238,46 +274,113 @@ function isJsxCall(node: AstNode, jsxFunctions: ReadonlySet<string>): boolean {
   );
 }
 
-function wrapReactivePropValues(
-  propsObj: AstNode,
-  s: MagicString,
-  reactiveBindings: ReadonlySet<string>,
-  neededImports: Set<string>,
-): void {
+interface WrapReactiveContext {
+  s: MagicString;
+  source: string;
+  importedNames: ReadonlySet<string>;
+  localNames: ReadonlySet<string> | undefined;
+  neededImports: Set<string>;
+  signalHoister: SignalHoister | undefined;
+}
+
+function wrapReactivePropValues(propsObj: AstNode, ctx: WrapReactiveContext): void {
   if (propsObj.type !== 'ObjectExpression') return;
   for (const prop of propsObj.properties ?? []) {
     if (prop.type !== 'Property') continue;
     const value = prop.value;
     if (propertyKeyName(prop) === 'children' && value?.type === 'ArrayExpression') {
       for (const element of value.elements ?? []) {
-        wrapReactiveMember(element, s, reactiveBindings, neededImports);
+        wrapReactiveValue(element, ctx);
       }
       continue;
     }
-    wrapReactiveMember(value, s, reactiveBindings, neededImports);
+    wrapReactiveValue(value, ctx);
   }
 }
 
-function wrapReactiveMember(
-  node: AstNode | null | undefined,
+/** A `$`-suffixed member read (`props.onChange$`) is a QRL/handler ref, not a
+ * reactive value — it stays raw rather than becoming `_wrapProp(...)`. */
+function isDollarSuffixedMemberRead(node: AstNode): boolean {
+  return (
+    node.type === 'MemberExpression' &&
+    !node.computed &&
+    node.property?.type === 'Identifier' &&
+    node.property.name.endsWith('$')
+  );
+}
+
+function wrapReactiveValue(node: AstNode | null | undefined, ctx: WrapReactiveContext): void {
+  if (!node) return;
+  if (isDollarSuffixedMemberRead(node)) return;
+  const result = analyzeSignalExpression(
+    node,
+    ctx.source,
+    ctx.importedNames as Set<string>,
+    ctx.localNames as Set<string> | undefined,
+  );
+  if (result.type === 'wrapProp') {
+    ctx.s.overwrite(node.start, node.end, result.code);
+    ctx.neededImports.add('_wrapProp');
+    return;
+  }
+  if (result.type === 'fnSignal' && ctx.signalHoister !== undefined && isHoistableSignalExpr(node)) {
+    const hf = ctx.signalHoister.hoist(result.hoistedFn, result.hoistedStr, node.start ?? 0);
+    ctx.s.overwrite(node.start, node.end, `_fnSignal(${hf}, [${result.deps.join(', ')}], ${hf}_str)`);
+    ctx.neededImports.add('_fnSignal');
+  }
+}
+
+/** Only scalar reactive expressions hoist to `_fnSignal`; arrays/objects and
+ * call/chain exprs (`items.map(...)`) stay verbatim — hoisting them would
+ * strand their callback bindings. */
+function isHoistableSignalExpr(node: AstNode): boolean {
+  return (
+    node.type !== 'ArrayExpression' &&
+    node.type !== 'ObjectExpression' &&
+    node.type !== 'CallExpression' &&
+    node.type !== 'ChainExpression'
+  );
+}
+
+/** Which prop bag a `_jsxDEV` prop value belongs in. A reactive-wrapped value
+ * goes in the const bag so only its wrapper subscribes, not the host (a var-bag
+ * reactive read re-renders the whole component on a mid-render write). A
+ * store-field read on an HTML element keeps its var/const split by the object's
+ * binding. Everything else — including non-reactive props carrying pre-analysed
+ * peer-tool markers (`[_IMMUTABLE]`) — stays in the var bag. */
+function classifyProp(
+  valueNode: AstNode,
+  opts: JsxCallTransformOptions,
+  isHtmlTag: boolean,
   s: MagicString,
-  reactiveBindings: ReadonlySet<string>,
-  neededImports: Set<string>,
-): void {
+): 'const' | 'var' {
+  const importedNames = (opts.importedNames ?? EMPTY_SET) as Set<string>;
+  const bindings = opts.bindings;
+  const localNames = opts.localNames as Set<string> | undefined;
+  const pos = valueNode.start ?? 0;
+  if (isDollarSuffixedMemberRead(valueNode)) return 'var';
+  const sig = analyzeSignalExpression(valueNode, s.original, importedNames, localNames);
+
+  if (sig.type === 'wrapProp') {
+    if (sig.isStoreField && isHtmlTag) {
+      const objName = sig.code.match(/_wrapProp\((\w+)/)?.[1] ?? null;
+      return isConstBindingName(objName, importedNames, bindings, pos) ? 'const' : 'var';
+    }
+    return 'const';
+  }
+
   if (
-    !node ||
-    node.type !== 'MemberExpression' ||
-    node.object?.type !== 'Identifier' ||
-    !reactiveBindings.has(node.object.name)
-  ) return;
-  const propName = staticPropName(node);
-  if (propName === null) return;
-  const objText = s.slice(node.object.start, node.object.end);
-  const replacement = propName === 'value'
-    ? `_wrapProp(${objText})`
-    : `_wrapProp(${objText}, "${propName}")`;
-  s.overwrite(node.start, node.end, replacement);
-  neededImports.add('_wrapProp');
+    sig.type === 'fnSignal' &&
+    opts.signalHoister !== undefined &&
+    isHoistableSignalExpr(valueNode)
+  ) {
+    const depsAllConst = sig.deps.every(
+      (dep) => importedNames.has(dep) || bindings?.classify(dep, pos) === 'const',
+    );
+    return depsAllConst ? 'const' : 'var';
+  }
+
+  return 'var';
 }
 
 function staticPropName(member: AstNode): string | null {
@@ -326,25 +429,22 @@ function buildJsxSortedCall(
   // the `*$` form as a JSX prop and the runtime handles wiring internally.
   const isHtmlTag = tagArg.type === 'Literal' && typeof tagArg.value === 'string';
 
-  // Partition props into `children` (positional 4th arg) and everything else
-  // (varProps bag). SpreadElement entries are preserved inline in source
-  // order — compareAst's `mergeJsxSplitProps` + `mergeGetVarConstProps`
-  // collapse SWC's `_jsxSplit(tag, {..._getVarProps(rest), ...}, _getConstProps(rest), ...)`
-  // into the same shape as `_jsxSorted(tag, {...rest, ...}, null, ...)`, so
-  // we emit the single-bag form regardless. Anything other than
-  // Property/SpreadElement (e.g. a setter) is out of scope — leave the call
-  // unchanged.
+  // Non-Property/SpreadElement props (e.g. a setter) are out of scope — bail.
   let childrenText: string | null = null;
   let childrenIsDynamic = false;
   let hasVarEventHandler = false;
   const varEntries: string[] = [];
   const constEntries: string[] = [];
+  const orderedEntries: string[] = [];
+  const spreadArgs: string[] = [];
   // Union of `q:p`/`q:ps` capture params across all const event handlers on
   // this element (an element with two capturing handlers shares one prop).
   const qpParams: string[] = [];
   for (const prop of propsArg.properties) {
     if (prop.type === 'SpreadElement') {
-      varEntries.push(s.slice(prop.start, prop.end));
+      const spreadArg = s.slice(prop.argument.start, prop.argument.end);
+      spreadArgs.push(spreadArg);
+      orderedEntries.push(`..._getVarProps(${spreadArg})`, `..._getConstProps(${spreadArg})`);
       continue;
     }
     if (prop.type !== 'Property') return null;
@@ -371,6 +471,7 @@ function buildJsxSortedCall(
         // and drops the flag bit.
         if (isConstEventHandlerValue(prop.value)) {
           constEntries.push(`"${transformed}": ${valueText}`);
+          orderedEntries.push(`"${transformed}": ${valueText}`);
           // A const handler delivers its captures positionally; record them
           // so the element emits one `q:p`/`q:ps` prop below.
           const handlerQp = opts.qpByQrl?.get(valueText);
@@ -381,12 +482,18 @@ function buildJsxSortedCall(
           }
         } else {
           varEntries.push(`"${transformed}": ${valueText}`);
+          orderedEntries.push(`"${transformed}": ${valueText}`);
           hasVarEventHandler = true;
         }
         continue;
       }
     }
-    varEntries.push(s.slice(prop.start, prop.end));
+    const entryText = s.slice(prop.start, prop.end);
+    orderedEntries.push(entryText);
+    const bag = classifyProp(prop.value, opts, isHtmlTag, s) === 'const'
+      ? constEntries
+      : varEntries;
+    bag.push(entryText);
   }
 
   // Optional 3rd arg: explicit key. Maps to the 6th `_jsxSorted` arg.
@@ -408,15 +515,32 @@ function buildJsxSortedCall(
   // matching SWC's emit order. Its presence sets the `moved_captures` flag.
   if (qpParams.length > 0) {
     const qp = buildCaptureProp(qpParams, true);
-    if (qp) varEntries.unshift(`"${qp.propName}": ${qp.propValue}`);
+    if (qp) {
+      varEntries.unshift(`"${qp.propName}": ${qp.propValue}`);
+      orderedEntries.unshift(`"${qp.propName}": ${qp.propValue}`);
+    }
   }
 
-  const varPropsText = varEntries.length > 0 ? `{ ${varEntries.join(', ')} }` : 'null';
-  const constPropsText = constEntries.length > 0 ? `{ ${constEntries.join(', ')} }` : 'null';
   const childrenSlot = childrenText ?? 'null';
   const childrenType: 'none' | 'static' | 'dynamic' = childrenText === null
     ? 'none'
     : childrenIsDynamic ? 'dynamic' : 'static';
+
+  // A `{...spread}` forwards props whose var/const split isn't statically
+  // known; `_jsxSplit` lets the runtime classify the forwarded keys. Lumping
+  // the spread into a `_jsxSorted` var bag would make every forwarded prop
+  // host-reactive (over-subscribing the host on SSR).
+  if (spreadArgs.length > 0) {
+    opts.neededImports.add('_jsxSplit');
+    opts.neededImports.add('_getVarProps');
+    opts.neededImports.add('_getConstProps');
+    const splitFlags = qpParams.length > 0 ? 4 : 0;
+    const bag = orderedEntries.length > 0 ? `{ ${orderedEntries.join(', ')} }` : 'null';
+    return `/*#__PURE__*/ _jsxSplit(${tag}, ${bag}, null, ${childrenSlot}, ${splitFlags}, ${keyText})`;
+  }
+
+  const varPropsText = varEntries.length > 0 ? `{ ${varEntries.join(', ')} }` : 'null';
+  const constPropsText = constEntries.length > 0 ? `{ ${constEntries.join(', ')} }` : 'null';
   const hasVarProps = varEntries.length > 0;
   let flags = computeJsxFlags(hasVarProps, childrenType, false, hasVarEventHandler);
   if (qpParams.length > 0) flags |= 4;

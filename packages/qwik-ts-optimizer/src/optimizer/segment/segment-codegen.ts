@@ -13,6 +13,7 @@ import { hasUnderscorePlaceholderParams } from '../rewrite/predicates.js';
 import type { ConsolidatedSegment } from '../extraction/extract.js';
 import { transformAllJsx, collectScopeAwareBindings, JsxKeyCounter, type DevSuffixOptions } from '../jsx/jsx.js';
 import { transformJsxCalls, collectJsxFunctionNames } from '../jsx/jsx-call-transform.js';
+import { SignalHoister } from '../jsx/signal-analysis.js';
 import { computeKeyPrefix } from '../jsx/key-prefix.js';
 import { rewritePropsFieldReferences } from '../rewrite/props-field-rewrite.js';
 import { walkAstForQp } from '../jsx/qp-walk.js';
@@ -318,6 +319,7 @@ function transformSegmentJsxCalls(
   importContext: SegmentImportData,
   keyCounterStartOverride: number | undefined,
   qpByQrl?: ReadonlyMap<string, readonly string[]>,
+  paramNames?: readonly string[],
 ): { bodyText: string; keyCounterValue?: number } {
   // Cheap fast-path: only parse if the body even mentions a candidate
   // jsx-function name. Most segments don't.
@@ -342,11 +344,16 @@ function transformSegmentJsxCalls(
     const keyCounter = new JsxKeyCounter(startAt, prefix);
 
     const neededImports = new Set<string>();
+    const importedNames = new Set(importContext.moduleImports.map(m => m.localName));
+    const signalHoister = new SignalHoister();
     transformJsxCalls(session.wrappedSource, session.edits, session.program, {
       jsxFunctions,
       keyCounter,
       neededImports,
       qpByQrl,
+      importedNames,
+      signalHoister,
+      paramNames,
     });
 
     const newBodyText = session.toSource();
@@ -363,6 +370,8 @@ function transformSegmentJsxCalls(
         }
       }
     }
+
+    for (const decl of signalHoister.getDeclarations()) parts.push(decl);
 
     return { bodyText: newBodyText, keyCounterValue: keyCounter.current() };
   } catch {
@@ -691,6 +700,7 @@ export function generateSegmentCode(
     const jsxCallResult = transformSegmentJsxCalls(
       bodyText, parts, extraction.origin, importContext, segmentKeyCounterValue,
       qpByQrl.size > 0 ? qpByQrl : undefined,
+      extraction.paramNames,
     );
     bodyText = jsxCallResult.bodyText;
     if (jsxCallResult.keyCounterValue !== undefined) {

@@ -116,6 +116,10 @@ export function transformInlineSegmentBody(
   /** Server/dev flags for isServer/isBrowser/isDev folding, applied here since this body sits outside the parent MagicString. */
   isServer?: boolean,
   isDev?: boolean,
+  /** Cross-body hoister for `_fnSignal(...)` values from the `_jsxDEV(...)`
+   * rewrite; separate from the JSX hoister (which gets reordered) so emitted
+   * `_hf<n>` refs stay aligned with their declarations. */
+  jsxCallHoister?: SignalHoister,
 ): { transformedBody: string; additionalImports: Map<string, string>; hoistedDeclarations: string[]; keyCounterValue?: number } {
   // `body` is locally mutable plain string for slicing/concatenation
   // throughout this transform. The branded BodyText only matters at the
@@ -344,11 +348,19 @@ export function transformInlineSegmentBody(
                 qpByQrl.set(qrlVarNames.get(child.symbolName) ?? `q_${child.symbolName}`, qpValues(params));
               }
             }
+            const bodyJsxCallHoister = jsxCallHoister ?? new SignalHoister();
+            const declsBefore = bodyJsxCallHoister.getDeclarations().length;
+            const jsxCallImportedNames = originalImports
+              ? new Set([...originalImports.values()].map(i => i.localName))
+              : new Set<string>();
             transformJsxCalls(wrappedBody, callS, bodyParse.program, {
               jsxFunctions,
               keyCounter,
               neededImports: callNeededImports,
               qpByQrl: qpByQrl.size > 0 ? qpByQrl : undefined,
+              importedNames: jsxCallImportedNames,
+              signalHoister: bodyJsxCallHoister,
+              paramNames: ext.paramNames,
             });
             const rewritten = callS.toString();
             if (rewritten !== wrappedBody) {
@@ -356,6 +368,7 @@ export function transformInlineSegmentBody(
               for (const sym of callNeededImports) {
                 additionalImports.set(sym, '@qwik.dev/core');
               }
+              hoistedDeclarations.push(...bodyJsxCallHoister.getDeclarations().slice(declsBefore));
               finalKeyCounterValue = keyCounter.current();
             }
           }

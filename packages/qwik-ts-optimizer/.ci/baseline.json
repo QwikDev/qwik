@@ -738,6 +738,8 @@
       "tests/optimizer/jsx/event-handler-transform.test.ts :: event-handler-transform transformEventPropName transforms onWindow:keyup$ to q-e:window:keyup",
       "tests/optimizer/jsx/event-handler-transform.test.ts :: event-handler-transform transformEventPropName transforms window:onClick$ to q-w:click",
       "tests/optimizer/jsx/event-handler-transform.test.ts :: event-handler-transform transformEventPropName transforms window:onScroll$ with passive:scroll to q-wp:scroll",
+      "tests/optimizer/jsx/fnsignal-computed-key.test.ts :: _fnSignal hoisting carries a computed key that is a loop-local binding leaves a literal computed key inline (no spurious extra dep)",
+      "tests/optimizer/jsx/fnsignal-computed-key.test.ts :: _fnSignal hoisting carries a computed key that is a loop-local binding parameterizes a .map callback var used as a signal computed key",
       "tests/optimizer/jsx/fnsignal-folding.test.ts :: _fnSignal lambda body folds primitive-operand subtrees does not regress _str format when the simplifiable test arm is a literal",
       "tests/optimizer/jsx/fnsignal-folding.test.ts :: _fnSignal lambda body folds primitive-operand subtrees folds BinaryExpression with literal operands in lambda body",
       "tests/optimizer/jsx/fnsignal-folding.test.ts :: _fnSignal lambda body folds primitive-operand subtrees folds nested simplifiable subtree leaving non-simplifiable parents intact",
@@ -1360,6 +1362,6 @@
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) has null input",
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) parses without error"
     ],
-    "total": 1175
+    "total": 1177
   }
 }

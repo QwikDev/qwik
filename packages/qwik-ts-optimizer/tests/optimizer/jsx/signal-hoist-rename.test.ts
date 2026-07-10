@@ -50,7 +50,7 @@ export const Console = component$(({ store }: LogProps) => {
 
 export function LogEntry({ log }: { log: { kind: string; scope: string } }) {
   return (
-    <article class={['entry', \`kind-\${log.kind.replace('console-', '')}\`]}>
+    <article class={['entry', \`kind-\${log.kind}\`]}>
       <span class={['platform', log.scope]}>{log.scope}</span>
     </article>
   );

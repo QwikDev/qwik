@@ -20,6 +20,7 @@ import {
   type RangeReplacementCollector,
 } from '../edit/range-replace.js';
 import { quoteAsStringLiteral } from '../edit/string-literal.js';
+import { addBindingNamesFromPatternToSet } from '../ast/binding-pattern.js';
 
 const trailingComma = createRegExp(
   exactly(',').and(anyOf('}', ']', ')').grouped()),
@@ -192,6 +193,44 @@ function containsImportedReference(node: AstMaybeNode, importedNames: Set<string
   return found;
 }
 
+/**
+ * True when the expression contains a call outside an optional chain. Such a
+ * call blocks hoisting: a serialized, reactively re-run `_fnSignal` body cannot
+ * carry an arbitrary call, whereas an optional-chain getter (`a?.b()`) can.
+ */
+function containsNonOptionalCall(node: AstMaybeNode): boolean {
+  return hasCallOutsideChainSpine(node, false);
+}
+
+function hasCallOutsideChainSpine(node: AstMaybeNode, inChainSpine: boolean): boolean {
+  if (node == null) return false;
+
+  if (node.type === 'ChainExpression') {
+    return hasCallOutsideChainSpine(node.expression, true);
+  }
+
+  if (node.type === 'CallExpression') {
+    if (!inChainSpine) return true;
+    if (hasCallOutsideChainSpine(node.callee, true)) return true;
+    for (const arg of node.arguments) {
+      if (hasCallOutsideChainSpine(arg, false)) return true;
+    }
+    return false;
+  }
+
+  if (node.type === 'MemberExpression') {
+    if (hasCallOutsideChainSpine(node.object, inChainSpine)) return true;
+    if (node.computed && hasCallOutsideChainSpine(node.property, false)) return true;
+    return false;
+  }
+
+  let found = false;
+  forEachAstChild(node, (child) => {
+    if (!found && hasCallOutsideChainSpine(child, false)) found = true;
+  });
+  return found;
+}
+
 // --- Reactive root detection -------------------------------------------------
 
 /** Get the root identifier name of a member expression chain. */
@@ -280,9 +319,11 @@ function collectSignalDeps(
   const bareIdents: string[] = [];
   const rootsSeen = new Set<string>();
   const allSeen = new Set<string>();
+  const boundParams = new Set<string>();
 
   function addRoot(name: string | null): void {
     if (name == null) return;
+    if (boundParams.has(name)) return;
     if (!rootsSeen.has(name)) {
       rootsSeen.add(name);
       roots.push(name);
@@ -292,6 +333,7 @@ function collectSignalDeps(
 
   function addBare(name: string): void {
     if (importedNames.has(name) || GLOBAL_NAMES.has(name)) return;
+    if (boundParams.has(name)) return;
     if (allSeen.has(name)) return;
     allSeen.add(name);
     bareIdents.push(name);
@@ -371,6 +413,25 @@ function collectSignalDeps(
       return;
     }
 
+    if (n.type === 'ArrowFunctionExpression' || n.type === 'FunctionExpression') {
+      const paramNames = new Set<string>();
+      for (const param of n.params) addBindingNamesFromPatternToSet(param, paramNames);
+      const introduced: string[] = [];
+      for (const name of paramNames) {
+        if (!boundParams.has(name)) {
+          boundParams.add(name);
+          introduced.push(name);
+        }
+      }
+      descend(n);
+      for (const name of introduced) boundParams.delete(name);
+      return;
+    }
+
+    descend(n);
+  }
+
+  function descend(n: AstNode): void {
     forEachAstChild(n, (child, key, parent) => {
       if (key === 'key' && parent.type === 'Property') return;
       if (
@@ -886,6 +947,7 @@ export function analyzeSignalExpression(
   if (exprNode.type === 'ObjectExpression') {
     const { roots, allDeps } = collectSignalDeps(exprNode, importedNames, localNames);
     if (roots.length === 0) return { type: 'none' };
+    if (containsNonOptionalCall(exprNode)) return { type: 'none' };
     const { hoistedFn, hoistedStr } = generateFnSignal(exprNode, source, allDeps);
     return { type: 'fnSignal', deps: allDeps, hoistedFn, hoistedStr, isObjectExpr: true };
   }
@@ -893,6 +955,7 @@ export function analyzeSignalExpression(
   if (exprNode.type === 'ArrayExpression') {
     const { roots, allDeps } = collectSignalDeps(exprNode, importedNames, localNames);
     if (roots.length === 0) return { type: 'none' };
+    if (containsNonOptionalCall(exprNode)) return { type: 'none' };
     const { hoistedFn, hoistedStr } = generateFnSignal(exprNode, source, allDeps);
     return { type: 'fnSignal', deps: allDeps, hoistedFn, hoistedStr };
   }
@@ -925,6 +988,7 @@ function tryBuildFnSignal(
   if (roots.length === 0) return { type: 'none' };
 
   if (containsUnknownCall(exprNode, importedNames)) return { type: 'none' };
+  if (containsNonOptionalCall(exprNode)) return { type: 'none' };
   if (containsImportedReference(exprNode, importedNames)) return { type: 'none' };
   if (containsJsx(exprNode)) return { type: 'none' };
 
@@ -1012,6 +1076,7 @@ function analyzeMemberExpression(
     if (
       allDeps.length > 0 &&
       !containsUnknownCall(exprNode, importedNames) &&
+      !containsNonOptionalCall(exprNode) &&
       !containsImportedReference(exprNode, importedNames) &&
       !containsJsx(exprNode)
     ) {

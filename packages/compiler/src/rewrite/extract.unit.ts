@@ -186,4 +186,25 @@ export function App() {
       captures: [{ name: 'count', source: 'local' }],
     });
   });
+
+  test('records await expressions on their owning qrl', () => {
+    const code = `import { $ } from '@qwik.dev/core/spark';
+export const task = $(async () => {
+  await first(await second());
+  const helper = async () => await hidden();
+  helper();
+  return $(async () => await nested());
+});
+`;
+    const extracted = extractInput(code);
+
+    expect(extracted.segments).toHaveLength(2);
+    expect(extracted.segments[0].awaits).toHaveLength(2);
+    expect(extracted.segments[1].awaits).toHaveLength(1);
+
+    const modules = emitSegmentModules(extracted.segments, code, 'src/component.tsx', false, 'csr');
+    expect(modules[0].code).toContain('(await _await(first((await _await(second()))())))();');
+    expect(modules[0].code).toContain('const helper = async () => await hidden();');
+    expect(modules[1].code).toContain('return (await _await(nested()))();');
+  });
 });

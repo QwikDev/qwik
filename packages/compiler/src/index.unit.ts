@@ -940,8 +940,8 @@ export function Parent() {
     });
   });
 
-  test('emits task setup with async generator lowering', async () => {
-    await testInput('task_async_generator', {
+  test('emits task setup with async await tracking', async () => {
+    await testInput('task_async_await', {
       code: `import { useSignal, useTask$, useVisibleTask$ } from '@qwik.dev/core/spark';
 
 export function App() {
@@ -964,8 +964,8 @@ export function App() {
     });
   });
 
-  test('emits async signal setup with async generator lowering', async () => {
-    await testInput('async_signal_generator', {
+  test('emits async signal setup with async await tracking', async () => {
+    await testInput('async_signal_await', {
       code: `import { useAsync$, useSignal } from '@qwik.dev/core/spark';
 
 export function App() {

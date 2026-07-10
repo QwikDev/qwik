@@ -1,16 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import { createOwner, runWithOwner } from '../runtime/owner';
 import { useSignal, useAsync } from './public-api';
+import { _await } from './tracking';
 
 describe('vdomless async signal', () => {
-  it('tracks generator dependencies before and after yield', async () => {
+  it('tracks async dependencies before and after await', async () => {
     const before = useSignal(0);
     const after = useSignal(10);
     const seen: string[] = [];
     const signal = createOwned(() =>
-      useAsync<number>(function* () {
+      useAsync<number>(async () => {
         seen.push(`before:${before.value}`);
-        yield Promise.resolve();
+        (await _await(Promise.resolve()))();
         seen.push(`after:${after.value}`);
         return before.value + after.value;
       })
@@ -34,11 +35,15 @@ describe('vdomless async signal', () => {
     const dep = useSignal(1);
     const signal = createOwned(() =>
       useAsync<number>(
-        function* () {
+        async () => {
           const value = dep.value;
-          yield new Promise<void>((resolve) => {
-            release = resolve;
-          });
+          (
+            await _await(
+              new Promise<void>((resolve) => {
+                release = resolve;
+              })
+            )
+          )();
           return value;
         },
         { initial: 0 }
@@ -63,8 +68,8 @@ describe('vdomless async signal', () => {
 
   it('captures errors', async () => {
     const signal = createOwned(() =>
-      useAsync<number>(function* () {
-        yield Promise.resolve();
+      useAsync<number>(async () => {
+        (await _await(Promise.resolve()))();
         throw new Error('boom');
       })
     );
@@ -82,15 +87,22 @@ describe('vdomless async signal', () => {
     let continued = false;
     let release!: () => void;
     const signal = createOwned(() =>
-      useAsync<number>(function* ({ abortSignal: signal, cleanup }) {
+      useAsync<number>(async ({ abortSignal: signal, cleanup }) => {
         abortSignal = signal;
         cleanup(() => {
           cleaned = true;
         });
         started = true;
-        yield new Promise<void>((resolve) => {
-          release = resolve;
-        });
+        (
+          await _await(
+            new Promise<void>((resolve) => {
+              release = resolve;
+            })
+          )
+        )();
+        if (signal.aborted) {
+          return 0;
+        }
         continued = true;
         return 1;
       })
@@ -110,8 +122,8 @@ describe('vdomless async signal', () => {
   it('times out pending work', async () => {
     const signal = createOwned(() =>
       useAsync<number>(
-        function* () {
-          yield new Promise(() => {});
+        async () => {
+          (await _await(new Promise(() => {})))();
           return 1;
         },
         { timeout: 1 }

@@ -103,6 +103,19 @@ function emitSegmentCode(
   if (segment.captures.length > 0) {
     qwikImports.add(QwikWord.Captures);
   }
+  if (segment.awaits.length > 0) {
+    qwikImports.add(QwikWord.Await);
+    for (const awaitExpression of segment.awaits) {
+      replacements.push(
+        { range: [awaitExpression.range[0], awaitExpression.range[0]], value: '(' },
+        {
+          range: [awaitExpression.argumentRange[0], awaitExpression.argumentRange[0]],
+          value: `${QwikWord.Await}(`,
+        },
+        { range: [awaitExpression.range[1], awaitExpression.range[1]], value: '))()' }
+      );
+    }
+  }
   if (qwikImports.size > 0) {
     imports.push(`import { ${[...qwikImports].join(', ')} } from ${JSON.stringify(QWIK_IMPORT)};`);
   }

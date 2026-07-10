@@ -21,6 +21,7 @@ export const enum QwikWord {
   PromiseAll = 'promiseAll',
   QrlWithChunk = '_qrlWithChunk',
   Captures = '_captures',
+  Await = '_await',
   CreateVisibleTaskHandlerQrl = 'createVisibleTaskHandlerQrl',
 }
 

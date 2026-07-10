@@ -1,10 +1,8 @@
-import { isGenerator } from '../../shared/utils/async-generator';
 import { cleanupDeps } from '../reactive/cleanup';
 import { SubscriberFlags } from '../reactive/flags';
 import { runWithCollector } from '../reactive/tracking';
 import { getFunctionOrResolve } from '../utils/qrl';
 import type { Task, TaskCleanupFn, VisibleTask } from './task';
-import { drainGenerator } from './generator';
 import { takeDirty, type TaskSubscriber, type VisibleTaskSubscriber } from './subscriber';
 
 export function runTaskSubscriber(
@@ -24,14 +22,13 @@ export function runTaskSubscriber(
       await runTaskCleanups(task);
       cleanupDeps(subscriber);
       const run = task.runFn ?? (await getFunctionOrResolve(task.qrl!, task.container));
-      const result = runWithCollector(subscriber, () =>
+      const cleanup = await runWithCollector(subscriber, () =>
         run({
           cleanup(callback) {
             addCleanup(task, callback);
           },
         })
       );
-      const cleanup = isGenerator(result) ? await drainGenerator(subscriber, result) : await result;
       if (typeof cleanup === 'function') {
         addCleanup(task, cleanup as TaskCleanupFn);
       }

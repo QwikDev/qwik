@@ -25,16 +25,16 @@ export function App() {
 
 import {
   useSignal,
-  _qrlWithChunk,
-  escapeHTML,
-  renderSsrTextNode,
-  createSsrElementTextTarget,
-  maybeThen,
   getActiveInvokeContextOrNull,
   invoke,
   useTaskQrl,
   runTaskSubscriber,
   createVisibleTaskHandlerQrl,
+  escapeHTML,
+  renderSsrTextNode,
+  createSsrRangeTextTarget,
+  maybeThen,
+  _qrlWithChunk,
 } from '@qwik.dev/core/spark';
 import { component_useTask$_segment_0 } from './component.tsx_component_useTask$_segment_0';
 import { component_useVisibleTask$_segment_1 } from './component.tsx_component_useVisibleTask$_segment_1';
@@ -51,8 +51,7 @@ const q_component_useVisibleTask$_segment_1 = /*#__PURE__*/ _qrlWithChunk(
   'component_useVisibleTask$_segment_1'
 );
 q_component_useVisibleTask$_segment_1.s(component_useVisibleTask$_segment_1);
-
-export async function App(_props, ctx) {
+export async function App(props, ctx) {
   const invokeCtx = getActiveInvokeContextOrNull();
   const count = useSignal(0);
   const task_segment_0 = invoke(invokeCtx, () =>
@@ -60,14 +59,13 @@ export async function App(_props, ctx) {
   );
   ctx.addRoot(task_segment_0);
   await runTaskSubscriber(task_segment_0);
-
   return invoke(invokeCtx, () => {
     const id0 = ctx.nextId();
     ctx.addRoot(count);
-    const text1 = renderSsrTextNode(createSsrElementTextTarget(id0), count);
+    const text0 = renderSsrTextNode(createSsrRangeTextTarget(id0, 0), count);
     return maybeThen(
-      text1,
-      (text1) =>
+      text0,
+      (text0) =>
         '<button q:id="' +
         id0 +
         '"' +
@@ -76,27 +74,25 @@ export async function App(_props, ctx) {
           createVisibleTaskHandlerQrl(q_component_useVisibleTask$_segment_1.w([count]))
         ) +
         '>' +
-        escapeHTML(text1) +
+        '<!t>' +
+        escapeHTML(text0) +
         '</button>'
     );
   });
 }
-
-null
 ============================= src/component.tsx_component_useTask$_segment_0.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
-export const component_useTask$_segment_0 = function* ({ cleanup }) {
+import { _captures, _await } from '@qwik.dev/core/spark';
+
+export const component_useTask$_segment_0 = async ({ cleanup }) => {
   const count = _captures[0];
   const before = count.value;
-  yield Promise.resolve();
+  (await _await(Promise.resolve()))();
   cleanup(async () => {
     await Promise.resolve(before);
   });
   count.value;
 };
-
-null
 /*
 {
   "origin": "component.tsx",
@@ -124,14 +120,13 @@ null
 */
 ============================= src/component.tsx_component_useVisibleTask$_segment_1.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
-export const component_useVisibleTask$_segment_1 = function* () {
+import { _captures, _await } from '@qwik.dev/core/spark';
+
+export const component_useVisibleTask$_segment_1 = async () => {
   const count = _captures[0];
-  yield Promise.resolve();
+  (await _await(Promise.resolve()))();
   count.value;
 };
-
-null
 /*
 {
   "origin": "component.tsx",
@@ -164,39 +159,100 @@ null
 
 import {
   useSignal,
+  _withCaptures,
   useTask,
   useVisibleTask,
-  createTemplate,
+  _first,
   createTextNodeEffect,
+  createTemplate,
 } from '@qwik.dev/core/spark';
+import { component_useTask$_segment_0 } from './component.tsx_component_useTask$_segment_0';
+import { component_useVisibleTask$_segment_1 } from './component.tsx_component_useVisibleTask$_segment_1';
 
-const dom_App_template0 = createTemplate('<button> </button>');
-export function App(_props, ctx) {
+const App_tmpl0 = createTemplate('<button> </button>');
+export function App(props, ctx) {
   const count = useSignal(0);
-  useTask(function* ({ cleanup }) {
-    const before = count.value;
-    yield Promise.resolve();
-    cleanup(async () => {
-      await Promise.resolve(before);
-    });
-    count.value;
+  useTask(_withCaptures(component_useTask$_segment_0, [count]));
+  useVisibleTask(_withCaptures(component_useVisibleTask$_segment_1, [count]), {
+    strategy: 'document-ready',
   });
-  useVisibleTask(
-    function* () {
-      yield Promise.resolve();
-      count.value;
-    },
-    { strategy: 'document-ready' }
-  );
-  const fragment0 = dom_App_template0(ctx.document);
-  const el1 = fragment0.firstChild;
-  const text2 = el1.firstChild;
-  const effect3 = createTextNodeEffect(text2, count, ctx.scheduler);
-  ctx.scheduler.notify(effect3);
-  return el1;
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const text0 = _first(el0);
+  const effect0 = createTextNodeEffect(text0, count, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  return el0;
 }
+============================= src/component.tsx_component_useTask$_segment_0.js (ENTRY POINT)==
 
-null
+import { _captures, _await } from '@qwik.dev/core/spark';
+
+export const component_useTask$_segment_0 = async ({ cleanup }) => {
+  const count = _captures[0];
+  const before = count.value;
+  (await _await(Promise.resolve()))();
+  cleanup(async () => {
+    await Promise.resolve(before);
+  });
+  count.value;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_useTask$_segment_0",
+  "entry": null,
+  "displayName": "component_useTask$_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_useTask$_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "useTask$",
+  "captures": true,
+  "loc": [
+    131,
+    304
+  ],
+  "paramNames": [
+    "_"
+  ],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_useVisibleTask$_segment_1.js (ENTRY POINT)==
+
+import { _captures, _await } from '@qwik.dev/core/spark';
+
+export const component_useVisibleTask$_segment_1 = async () => {
+  const count = _captures[0];
+  (await _await(Promise.resolve()))();
+  count.value;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_useVisibleTask$_segment_1",
+  "entry": null,
+  "displayName": "component_useVisibleTask$_segment_1",
+  "hash": "segment_1",
+  "canonicalFilename": "component.tsx_component_useVisibleTask$_segment_1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "useVisibleTask$",
+  "captures": true,
+  "loc": [
+    307,
+    414
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
 == CSR DIAGNOSTICS ==
 
 []

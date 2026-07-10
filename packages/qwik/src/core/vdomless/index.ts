@@ -10,6 +10,7 @@ export {
 } from './reactive/source';
 export { cleanupDeps, disposeSubscriber, disposeSubscribers } from './reactive/cleanup';
 export {
+  _await,
   addDependency,
   getActiveCollector,
   runWithCollector,

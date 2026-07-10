@@ -49,7 +49,8 @@ export function App() {
     );
     expect(csrMain).not.toContain('_qrlWithChunk');
     expect(csr.modules[1]?.code).toContain('export const task_useTask$_segment_0 = async () => {');
-    expect(csr.modules[1]?.code).toContain('await Promise.resolve();');
+    expect(csr.modules[1]?.code).toContain('import { _captures, _await }');
+    expect(csr.modules[1]?.code).toContain('(await _await(Promise.resolve()))();');
     expect(csr.modules[1]?.code).not.toContain('yield');
   });
 

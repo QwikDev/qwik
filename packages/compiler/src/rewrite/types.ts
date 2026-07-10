@@ -103,6 +103,7 @@ export interface Segment {
   paramRanges: SourceRange[];
   bodyRange: SourceRange;
   bodyKind: 'block' | 'expression';
+  awaits: Array<{ range: SourceRange; argumentRange: SourceRange }>;
   captures: SegmentCapture[];
   moduleReferences: string[];
 }

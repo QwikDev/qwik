@@ -22,7 +22,7 @@ export interface TaskCtx {
   cleanup(callback: TaskCleanupFn): void;
 }
 
-export type TaskResult = ValueOrPromise<unknown> | Generator<unknown, unknown, unknown>;
+export type TaskResult = ValueOrPromise<unknown>;
 export type TaskFn = (ctx: TaskCtx) => TaskResult;
 export type TaskQrlRef<T extends TaskFn = TaskFn> = QRL<T>;
 

@@ -7,6 +7,32 @@ export function getActiveCollector(): CollectorSubscriber | null {
   return activeCollector;
 }
 
+export function _await<T>(value: T | PromiseLike<T>): Promise<() => Awaited<T>> {
+  const collector = activeCollector;
+
+  const resume = (value: unknown, rejected: boolean) => () => {
+    const restored = collector?.owner === null ? null : collector;
+    activeCollector = restored;
+
+    // Keep tracking active through the current await continuation, then release the global context.
+    queueMicrotask(() => {
+      if (activeCollector === restored) {
+        activeCollector = null;
+      }
+    });
+
+    if (rejected) {
+      throw value;
+    }
+    return value as Awaited<T>;
+  };
+
+  return Promise.resolve(value).then(
+    (value) => resume(value, false),
+    (error) => resume(error, true)
+  );
+}
+
 // A collector is the subscriber currently reading sources. Reads inside this
 // frame create dependency edges (source -> collector), but they do not imply
 // lifetime ownership of subscribers created during the frame.

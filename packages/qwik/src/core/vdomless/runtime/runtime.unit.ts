@@ -11,7 +11,7 @@ import {
 import { disposeSubscriber } from '../reactive/cleanup';
 import { OwnerFlags } from '../reactive/flags';
 import { useSignal, useComputed } from '../reactive/public-api';
-import { getActiveCollector, runWithCollector } from '../reactive/tracking';
+import { _await, getActiveCollector, runWithCollector } from '../reactive/tracking';
 import { createTextNodeEffect } from '../dom/effect/effect';
 import {
   createOwner,
@@ -457,16 +457,16 @@ describe('runtime scheduler and owner lifecycle', () => {
     expect(seen).toEqual([0, 1]);
   });
 
-  it('tracks generator task dependencies before and after yield', async () => {
+  it('tracks async task dependencies before and after await', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const before = useSignal(0);
     const after = useSignal(10);
     const seen: string[] = [];
 
     runWithTestContainer(scheduler, () =>
-      useTask(function* () {
+      useTask(async () => {
         seen.push(`before:${before.value}`);
-        yield Promise.resolve();
+        (await _await(Promise.resolve()))();
         seen.push(`after:${after.value}`);
       })
     );
@@ -480,28 +480,26 @@ describe('runtime scheduler and owner lifecycle', () => {
     expect(seen).toEqual(['before:0', 'after:10', 'before:1', 'after:10', 'before:1', 'after:11']);
   });
 
-  it('throws rejected generator yields back into the task', async () => {
+  it('restores task tracking when await rejects', async () => {
     const scheduler = new Scheduler(noopSchedule);
+    const after = useSignal(0);
     const seen: string[] = [];
 
     runWithTestContainer(scheduler, () =>
-      useTask(function* () {
+      useTask(async () => {
         try {
-          yield Promise.reject(new Error('first'));
+          (await _await(Promise.reject(new Error('boom'))))();
         } catch (error) {
-          seen.push((error as Error).message);
-          try {
-            yield Promise.reject(new Error('second'));
-          } catch (error) {
-            seen.push((error as Error).message);
-          }
+          seen.push(`${(error as Error).message}:${after.value}`);
         }
       })
     );
 
     await scheduler.flushInteraction();
+    after.value = 1;
+    await scheduler.flushInteraction();
 
-    expect(seen).toEqual(['first', 'second']);
+    expect(seen).toEqual(['boom:0', 'boom:1']);
   });
 
   it('does not rerun a pending task unless it was marked dirty', async () => {

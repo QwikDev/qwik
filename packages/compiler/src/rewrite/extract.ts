@@ -7,7 +7,7 @@ import {
   jsxEventToHtmlAttribute,
   unwrapExpression,
 } from '../ast-utils';
-import type { AstFunction, AstNode, SourceRange } from '../types';
+import type { AstFunction, AstNode } from '../types';
 import type { ExtractedQrls, ModuleDeclaration, Segment, SegmentCapture } from './types';
 import { QWIK_CORE_IMPORT, QWIK_IMPORT, QwikHooks } from './words';
 
@@ -203,8 +203,11 @@ class QrlExtractor {
         return;
       case 'UpdateExpression':
       case 'UnaryExpression':
-      case 'AwaitExpression':
       case 'YieldExpression':
+        this.visit(node.argument);
+        return;
+      case 'AwaitExpression':
+        this.recordAwait(node);
         this.visit(node.argument);
         return;
       case 'BinaryExpression':
@@ -431,11 +434,24 @@ class QrlExtractor {
       paramRanges: fn.params.map(getRange).filter((range) => range !== null),
       bodyRange,
       bodyKind: unwrapExpression(fn.body)?.type === 'BlockStatement' ? 'block' : 'expression',
+      awaits: [],
       captures: [],
       moduleReferences: [],
     };
     this.segments.push(segment);
     return segment;
+  }
+
+  private recordAwait(node: Extract<AstNode, { type: 'AwaitExpression' }>) {
+    const state = this.segmentStack[this.segmentStack.length - 1];
+    if (state === undefined || state.owner !== this.owner) {
+      return;
+    }
+    const range = getRange(node);
+    const argumentRange = getRange(node.argument);
+    if (range !== null && argumentRange !== null) {
+      state.segment.awaits.push({ range, argumentRange });
+    }
   }
 
   private recordReference(name: string) {

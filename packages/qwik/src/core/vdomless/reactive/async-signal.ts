@@ -1,5 +1,4 @@
 import { isServer } from '@qwik.dev/core/build';
-import { isGenerator } from '../../shared/utils/async-generator';
 import { QError, qError } from '../../shared/error/error';
 import type { QRL } from '../../shared/qrl/qrl.public';
 import { retryOnPromise } from '../../shared/utils/promises';
@@ -16,21 +15,17 @@ import type { Source, SourceSubs } from './source';
 import { isStore } from './store';
 import { runWithCollector, track } from './tracking';
 import type { ContainerContext } from '../runtime/container-context';
-import { drainGenerator } from '../runtime/generator';
 import type { Owner } from '../runtime/owner';
 import { SubscriberKind, type ComputedSubscriber } from '../runtime/subscriber';
 import { getFunctionOrResolve } from '../utils/qrl';
 
-export type AsyncSignalFn<T> = (
-  ctx: AsyncCtx<T>
-) => ValueOrPromise<T> | Generator<unknown, T, unknown>;
+export type AsyncSignalFn<T> = (ctx: AsyncCtx<T>) => ValueOrPromise<T>;
 export type AsyncSignalQrl<T> = QRL<AsyncSignalFn<T>>;
 
 class AsyncJob<T> implements AsyncCtx<T> {
   promise: Promise<void> | null = null;
   cleanups: Array<() => ValueOrPromise<void>> | null = null;
   abortController: AbortController | null = null;
-  generator: Generator<unknown> | null = null;
   canWrite = true;
 
   constructor(
@@ -214,7 +209,6 @@ export class AsyncSignal<T>
     }
     job.canWrite = false;
     job.abortController?.abort(reason);
-    this.closeGenerator(job);
     this.current = null;
     this.setLoading(false);
     void this.runCleanups(job.cleanups);
@@ -369,7 +363,6 @@ export class AsyncSignal<T>
           timeoutId = setTimeout(() => {
             const error = new Error(`timeout ${timeout}ms`);
             job.abortController?.abort(error);
-            this.closeGenerator(job);
             reject(error);
           }, timeout);
         }),
@@ -380,20 +373,7 @@ export class AsyncSignal<T>
   }
 
   private evaluate(job: AsyncJob<T>, run: AsyncSignalFn<T>): ValueOrPromise<T> {
-    return retryOnPromise(() =>
-      this.resolveResult(
-        job,
-        runWithCollector(this, () => run(job))
-      )
-    );
-  }
-
-  private resolveResult(job: AsyncJob<T>, result: ReturnType<AsyncSignalFn<T>>): ValueOrPromise<T> {
-    if (!isGenerator(result)) {
-      return result;
-    }
-    job.generator = result;
-    return drainGenerator(this, result) as Promise<T>;
+    return retryOnPromise(() => runWithCollector(this, () => run(job)));
   }
 
   private publishValue(value: T): void {
@@ -416,12 +396,6 @@ export class AsyncSignal<T>
     this.errorValue = error;
     this.flags &= ~ComputedFlags.HasValue;
     this.notify();
-  }
-
-  private closeGenerator(job: AsyncJob<T>): void {
-    if (typeof job.generator?.return === 'function') {
-      void job.generator.return(undefined);
-    }
   }
 
   private setLoading(value: boolean): void {

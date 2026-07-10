@@ -2,6 +2,7 @@ import {
   createInPageBridge,
   getQwikDevtoolsGlobal,
   QWIK_DEVTOOLS_GLOBAL,
+  type PageDataSource,
   type QwikPerfStoreRemembered,
   type QwikPreloadStoreRemembered,
   type QwikDevtoolsComponentSnapshot,
@@ -12,78 +13,10 @@ import {
 } from '@qwik.dev/devtools/kit';
 import { isBrowser } from '@qwik.dev/core';
 
-// The VNode/detail/render shapes are the shared data contract, owned by @qwik.dev/devtools/kit.
-// Re-export under the local names so feature components keep one import source and cannot drift.
-export type { VNodeTreeNode, ComponentDetailEntry, RenderEvent };
-
-/**
- * Abstraction for accessing page-level data from different contexts.
- *
- * - In the overlay, data lives on the same `window` (direct access).
- * - In the browser extension panel, data must be read from the inspected page via
- *   `chrome.devtools.inspectedWindow.eval()`.
- *
- * Components use {@link getPageDataSource} to obtain the active source, which returns
- * {@link InPageDataSource} by default (overlay mode). The extension entry point replaces it via
- * `window.__QWIK_DEVTOOLS__.pageDataSource`.
- */
-export interface PageDataSource {
-  /** Read the performance store snapshot. */
-  readPerfData(): Promise<QwikPerfStoreRemembered | null>;
-
-  /** Read the preload store snapshot. */
-  readPreloadStore(): Promise<QwikPreloadStoreRemembered | null>;
-
-  /** Clear the preload store on the page. */
-  clearPreloadStore(): Promise<void>;
-
-  /**
-   * Subscribe to preload store updates. Returns an unsubscribe function, or `null` if live
-   * subscriptions are not supported (e.g. extension mode uses polling instead).
-   */
-  subscribePreloadUpdates(cb: () => void): (() => void) | null;
-
-  /** Read the component tree from the devtools hook. */
-  readComponentTree(): Promise<QwikDevtoolsComponentSnapshot[] | null>;
-
-  /** Read signal values from the devtools hook. */
-  readSignals(): Promise<QwikDevtoolsSignalsSnapshot | null>;
-
-  /** Read the VNode component tree from the devtools hook. */
-  readVNodeTree(): Promise<VNodeTreeNode[] | null>;
-
-  /**
-   * Subscribe to real-time VNode tree updates pushed by the page. Returns an unsubscribe function,
-   * or `null` if not supported.
-   */
-  subscribeTreeUpdates(cb: (tree: VNodeTreeNode[]) => void): (() => void) | null;
-
-  /** Read detailed hook data for a specific component (deeply serialized). */
-  readComponentDetail(
-    componentName: string,
-    qrlChunk?: string
-  ): Promise<ComponentDetailEntry[] | null>;
-
-  /** Read VNode props for a specific tree node by ID. */
-  readNodeProps(nodeId: string): Promise<Record<string, unknown> | null>;
-
-  /** Set a signal value on a component. Returns true on success. */
-  setSignalValue(
-    componentName: string,
-    qrlChunk: string | undefined,
-    variableName: string,
-    newValue: unknown
-  ): Promise<boolean>;
-
-  /** Highlight a component's DOM element on the page using its VNode tree node ID. */
-  highlightElement(nodeId: string, componentName: string): Promise<void>;
-
-  /** Remove the highlight overlay from the page. */
-  unhighlightElement(): Promise<void>;
-
-  /** Subscribe to live render events (CSR component renders with timing). */
-  subscribeRenderEvents(cb: (event: RenderEvent) => void): (() => void) | null;
-}
+// The VNode/detail/render shapes and the PageDataSource contract are owned by
+// @qwik.dev/devtools/kit. Re-export under the local names so feature components keep one import
+// source and cannot drift.
+export type { PageDataSource, VNodeTreeNode, ComponentDetailEntry, RenderEvent };
 
 /**
  * Default implementation that reads directly from `window` globals. Used when the devtools UI runs

@@ -9,10 +9,13 @@ import type {
 } from 'oxc-parser';
 import {
   getIdentifierName,
+  getJsxAttributeName,
   getJsxName,
   getRange,
   isCallExpression,
+  isFunctionLike,
   isNativeTag,
+  jsxEventToHtmlAttribute,
   normalizeJsxText,
   unwrapExpression,
 } from '../ast-utils';
@@ -20,8 +23,11 @@ import { escapeAttr, escapeText } from '../stages/emit-utils';
 import type { SourceRange } from '../types';
 import { visit } from './ast-utils';
 import { isRewriteSourceFactoryName } from './discover';
+import { isSetupQrlSegment } from './extract';
 import type {
   AttributeHtmlPart,
+  EventHtmlPart,
+  ExtractedQrls,
   HtmlHtmlPart,
   HtmlPart,
   Op,
@@ -31,6 +37,7 @@ import type {
   RewriteComponent,
   RewriteContextProviderImports,
   RewriteSourceFactoryImports,
+  Segment,
 } from './types';
 import { QwikHooks } from './words';
 
@@ -59,14 +66,22 @@ interface LowerState {
   shadowedSourceFactoryImports: Set<string>;
   shadowedContextProviderImports: Set<string>;
   trackedSources: Set<string>;
+  extractedQrls: ExtractedQrls | null;
+  segments: Map<string, Segment>;
   providesContext: boolean;
 }
 
-export function lowerRewriteComponent(component: RewriteComponent): RenderResult | null {
-  return lowerFunctionBody(component);
+export function lowerRewriteComponent(
+  component: RewriteComponent,
+  extractedQrls: ExtractedQrls | null = null
+): RenderResult | null {
+  return lowerFunctionBody(component, extractedQrls);
 }
 
-function lowerFunctionBody(component: RewriteComponent): RenderResult | null {
+function lowerFunctionBody(
+  component: RewriteComponent,
+  extractedQrls: ExtractedQrls | null
+): RenderResult | null {
   const state: LowerState = {
     nextRefId: createRefIdAllocator(),
     setup: [],
@@ -82,6 +97,8 @@ function lowerFunctionBody(component: RewriteComponent): RenderResult | null {
       component.contextProviderImports
     ),
     trackedSources: new Set(),
+    extractedQrls,
+    segments: new Map(),
     providesContext: false,
   };
   const roots: TemplateRoot[] = [];
@@ -182,7 +199,7 @@ function renderJsxElementHtml(
   if (!tag || !isNativeTag(tag)) {
     return null;
   }
-  const elementId = existingId ?? (hasDynamicAttr(opening, state) ? state.nextRefId() : undefined);
+  const elementId = existingId ?? (needsElementRef(opening, state) ? state.nextRefId() : undefined);
   const children = renderJsxChildren(node.children, state);
   const html: HtmlPart[] = [createHtmlRecord(`<${tag}`)];
   html.push(...renderJsxAttributes(opening, state, elementId));
@@ -228,7 +245,7 @@ function renderJsxAttributes(
 }
 
 function getAttrName(attr: JSXAttributeName): string | null {
-  const name = getJsxName(attr);
+  const name = getJsxAttributeName(attr);
   if (name === 'classname') {
     return 'class';
   }
@@ -242,6 +259,23 @@ function pushAttr(
   name: string,
   value: JSXAttributeValue | null
 ): void {
+  const event = getEventAttr(name, value, state);
+  if (event !== null) {
+    if (target !== undefined) {
+      const captures = event.segment.captures.map((capture) => capture.name);
+      attrs.push(createEventRecord(target, event.name, event.segment.name));
+      state.ops.push({
+        kind: 'event',
+        target,
+        name: event.name,
+        segment: event.segment.name,
+        captures,
+      });
+      retainSegment(state, event.segment);
+    }
+    return;
+  }
+
   const serialized = getStaticAttrValue(value);
   if (serialized !== undefined) {
     attrs.push(
@@ -289,15 +323,52 @@ function getStaticAttrValue(value: JSXAttributeValue | null): string | undefined
   }
 }
 
-function hasDynamicAttr(opening: JSXOpeningElement, state: LowerState): boolean {
-  return opening.attributes.some(
-    (attr) =>
-      attr.type === 'JSXAttribute' &&
-      getAttrName(attr.name) !== null &&
+function needsElementRef(opening: JSXOpeningElement, state: LowerState): boolean {
+  for (const attr of opening.attributes) {
+    if (attr.type !== 'JSXAttribute') {
+      continue;
+    }
+    const name = getAttrName(attr.name);
+    if (name === null) {
+      continue;
+    }
+    if (getEventAttr(name, attr.value ?? null, state) !== null) {
+      return true;
+    }
+    if (
       attr.value !== undefined &&
       getStaticAttrValue(attr.value) === undefined &&
       getDynamicAttrValue(attr.value, state) !== null
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function getEventAttr(
+  name: string,
+  value: JSXAttributeValue | null,
+  state: LowerState
+): { name: string; segment: Segment } | null {
+  const eventName = jsxEventToHtmlAttribute(name);
+  if (
+    eventName === null ||
+    value?.type !== 'JSXExpressionContainer' ||
+    !isFunctionLike(unwrapExpression(value.expression)) ||
+    state.extractedQrls === null
+  ) {
+    return null;
+  }
+  const fn = unwrapExpression(value.expression);
+  const range = getRange(fn);
+  if (range === null) {
+    return null;
+  }
+  const segment = state.extractedQrls.segments.find(
+    (segment) => segment.functionRange[0] === range[0] && segment.functionRange[1] === range[1]
   );
+  return segment?.kind === 'event' ? { name: eventName, segment } : null;
 }
 
 function getDynamicAttrValue(
@@ -378,7 +449,10 @@ function createRenderResult(roots: TemplateRoot[], state: LowerState): RenderRes
     root: root.id,
     refs: createRefs(roots),
     ops: state.ops,
-    segments: [],
+    segments: [...state.segments.values()],
+    visibleTasks: [...state.segments.values()].filter(
+      (segment) => segment.parentId === null && segment.ctxName === QwikHooks.UseVisibleTask
+    ),
   };
 }
 
@@ -409,6 +483,33 @@ function addSetupStatement(statement: FunctionBody['body'][number], state: Lower
   const range = getRange(statement);
   if (range !== null) {
     state.setup.push(range);
+    if (state.extractedQrls !== null) {
+      for (const segment of state.extractedQrls.segments) {
+        if (
+          isSetupQrlSegment(segment) &&
+          segment.parentId === null &&
+          segment.range[0] >= range[0] &&
+          segment.range[1] <= range[1]
+        ) {
+          retainSegment(state, segment);
+        }
+      }
+    }
+  }
+}
+
+function retainSegment(state: LowerState, segment: Segment): void {
+  if (state.segments.has(segment.id)) {
+    return;
+  }
+  state.segments.set(segment.id, segment);
+  if (state.extractedQrls === null) {
+    return;
+  }
+  for (const child of state.extractedQrls.segments) {
+    if (child.parentId === segment.id && isSetupQrlSegment(child)) {
+      retainSegment(state, child);
+    }
   }
 }
 
@@ -599,4 +700,8 @@ function createHtmlRecord(value: string): HtmlHtmlPart {
 
 function createAttributeRecord(target: number, name: string, expr: SourceRange): AttributeHtmlPart {
   return { kind: 'attr', target, name, expr };
+}
+
+function createEventRecord(target: number, name: string, segment: string): EventHtmlPart {
+  return { kind: 'event', target, name, segment };
 }

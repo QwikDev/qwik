@@ -1,0 +1,136 @@
+==INPUT==
+
+import { useSignal } from '@qwik.dev/core/spark';
+export const App = () => {
+  const count = useSignal(0);
+  return <button onClick$={() => count.value++}>{count.value}</button>;
+};
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  escapeHTML,
+  renderSsrTextNode,
+  createSsrRangeTextTarget,
+  maybeThen,
+  _qrlWithChunk,
+} from '@qwik.dev/core/spark';
+
+const q_component_q_e_click_segment_0 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_q_e_click_segment_0',
+  () => import('./component.tsx_component_q_e_click_segment_0'),
+  'component_q_e_click_segment_0'
+);
+export const App = (props, ctx) => {
+  const count = useSignal(0);
+  const id0 = ctx.nextId();
+  ctx.addRoot(count);
+  const text0 = renderSsrTextNode(createSsrRangeTextTarget(id0, 0), count);
+  return maybeThen(
+    text0,
+    (text0) =>
+      '<button q:id="' +
+      id0 +
+      '"' +
+      ctx.eventAttr('q-e:click', q_component_q_e_click_segment_0.w([count])) +
+      '>' +
+      '<!t>' +
+      escapeHTML(text0) +
+      '</button>'
+  );
+};
+============================= src/component.tsx_component_q_e_click_segment_0.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+
+export const component_q_e_click_segment_0 = () => {
+  const count = _captures[0];
+  return count.value++;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_0",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    122,
+    152
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  _first,
+  createTextNodeEffect,
+  setEvent,
+  createTemplate,
+} from '@qwik.dev/core/spark';
+import { component_q_e_click_segment_0 } from './component.tsx_component_q_e_click_segment_0';
+
+const App_tmpl0 = createTemplate('<button> </button>');
+export const App = (props, ctx) => {
+  const count = useSignal(0);
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const text0 = _first(el0);
+  const effect0 = createTextNodeEffect(text0, count, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  setEvent(el0, 'q-e:click', component_q_e_click_segment_0, [count]);
+  return el0;
+};
+============================= src/component.tsx_component_q_e_click_segment_0.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+
+export const component_q_e_click_segment_0 = () => {
+  const count = _captures[0];
+  return count.value++;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_0",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    122,
+    152
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

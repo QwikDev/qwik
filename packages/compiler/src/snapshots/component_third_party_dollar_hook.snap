@@ -1,0 +1,38 @@
+==INPUT==
+
+import { useTask$ } from 'third-party-library';
+export function App() {
+  useTask$(() => console.log('external'));
+  return <main>Ready</main>;
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { useTask$ } from 'third-party-library';
+
+export function App(props, ctx) {
+  useTask$(() => console.log('external'));
+  return '<main>Ready</main>';
+}
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { useTask$ } from 'third-party-library';
+import { _first, createTemplate } from '@qwik.dev/core/spark';
+
+const App_tmpl0 = createTemplate('<main>Ready</main>');
+export function App(props, ctx) {
+  useTask$(() => console.log('external'));
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
+}
+== CSR DIAGNOSTICS ==
+
+[]

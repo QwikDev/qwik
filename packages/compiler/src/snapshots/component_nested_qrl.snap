@@ -1,0 +1,180 @@
+==INPUT==
+
+import { useSignal, $ } from '@qwik.dev/core/spark';
+export function App() {
+  const count = useSignal(0);
+  return <button onClick$={() => $(() => count.value++)}>Run</button>;
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { useSignal, _qrlWithChunk } from '@qwik.dev/core/spark';
+
+const q_component_q_e_click_segment_0 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_q_e_click_segment_0',
+  () => import('./component.tsx_component_q_e_click_segment_0'),
+  'component_q_e_click_segment_0'
+);
+export function App(props, ctx) {
+  const count = useSignal(0);
+  return (
+    '<button' +
+    ctx.eventAttr('q-e:click', q_component_q_e_click_segment_0.w([count])) +
+    '>' +
+    'Run' +
+    '</button>'
+  );
+}
+============================= src/component.tsx_component_q_e_click_segment_0.js (ENTRY POINT)==
+
+import { _qrlWithChunk, _captures } from '@qwik.dev/core/spark';
+const q_component_$_segment_1 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_$_segment_1',
+  () => import('./component.tsx_component_$_segment_1'),
+  'component_$_segment_1'
+);
+
+export const component_q_e_click_segment_0 = () => {
+  const count = _captures[0];
+  return q_component_$_segment_1.w([count]);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_0",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    122,
+    161
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_$_segment_1.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+
+export const component_$_segment_1 = () => {
+  const count = _captures[0];
+  return count.value++;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_$_segment_1",
+  "entry": null,
+  "displayName": "component_$_segment_1",
+  "hash": "segment_1",
+  "canonicalFilename": "component.tsx_component_$_segment_1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    138,
+    160
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { useSignal, _first, setEvent, createTemplate } from '@qwik.dev/core/spark';
+import { component_q_e_click_segment_0 } from './component.tsx_component_q_e_click_segment_0';
+
+const App_tmpl0 = createTemplate('<button>Run</button>');
+export function App(props, ctx) {
+  const count = useSignal(0);
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  setEvent(el0, 'q-e:click', component_q_e_click_segment_0, [count]);
+  return el0;
+}
+============================= src/component.tsx_component_q_e_click_segment_0.js (ENTRY POINT)==
+
+import { _withCaptures, _captures } from '@qwik.dev/core/spark';
+import { component_$_segment_1 } from './component.tsx_component_$_segment_1';
+
+export const component_q_e_click_segment_0 = () => {
+  const count = _captures[0];
+  return _withCaptures(component_$_segment_1, [count]);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_0",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    122,
+    161
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_$_segment_1.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+
+export const component_$_segment_1 = () => {
+  const count = _captures[0];
+  return count.value++;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_$_segment_1",
+  "entry": null,
+  "displayName": "component_$_segment_1",
+  "hash": "segment_1",
+  "canonicalFilename": "component.tsx_component_$_segment_1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    138,
+    160
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

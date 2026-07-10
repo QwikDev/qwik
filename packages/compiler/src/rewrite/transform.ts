@@ -8,9 +8,11 @@ import { emitImports } from '../stages/emit-utils';
 import type { CompilerContext, ImportRecord } from '../types';
 import { discoverRewriteComponents } from './discover';
 import { emitCsrModule } from './emit-csr';
+import { emitSegmentModules } from './emit-segment';
 import { emitSsrModule } from './emit-ssr';
+import { extractQrls } from './extract';
 import { lowerRewriteComponent } from './lower';
-import type { RewriteOutput } from './types';
+import type { ModuleDeclaration, RewriteOutput, Segment } from './types';
 import { QWIK_CORE_IMPORT, QWIK_IMPORT, QwikHooks } from './words';
 
 export function tryTransformJsx(ctx: CompilerContext): TransformModule[] | null {
@@ -21,25 +23,89 @@ export function tryTransformJsx(ctx: CompilerContext): TransformModule[] | null 
   if (components.length === 0) {
     return null;
   }
+  const extractedQrls = extractQrls(ctx.program, ctx.input.path);
   const outputs: RewriteOutput[] = [];
   for (const component of components) {
-    const result = lowerRewriteComponent(component);
+    const result = lowerRewriteComponent(component, extractedQrls);
     if (result === null) {
       return null;
     }
     outputs.push({ component, result });
   }
+  const segments = outputs.flatMap((output) => output.result.segments);
+  const rootSegments = segments.filter((segment) => segment.parentId === null);
   const emitted =
     ctx.emitTarget === 'ssr'
-      ? emitSsrModule(outputs, ctx.input.code)
-      : emitCsrModule(outputs, ctx.input.code);
+      ? emitSsrModule(
+          outputs,
+          rootSegments,
+          ctx.input.code,
+          ctx.input.path,
+          ctx.options.explicitExtensions === true
+        )
+      : emitCsrModule(
+          outputs,
+          rootSegments,
+          ctx.input.code,
+          ctx.input.path,
+          ctx.options.explicitExtensions === true
+        );
   if (emitted === null) {
     return null;
   }
-  const imports = emitModuleImports(ctx.program, ctx.input.code, emitted.code, emitted.imports);
+  const moduleReferences = emitModuleReferences(
+    ctx.input.code,
+    segments,
+    components,
+    extractedQrls.moduleDeclarations
+  );
+  const imports = emitModuleImports(
+    ctx.program,
+    ctx.input.code,
+    [moduleReferences, emitted.code].filter(Boolean).join('\n'),
+    emitted.imports
+  );
+  const importCode = [imports, ...emitted.localImports].filter(Boolean).join('\n');
+  const code = [moduleReferences, emitted.code].filter(Boolean).join('\n');
+  const main = createModule(ctx.input.path, importCode === '' ? code : `${importCode}\n\n${code}`);
   return [
-    createModule(ctx.input.path, imports === '' ? emitted.code : `${imports}\n\n${emitted.code}`),
+    main,
+    ...emitSegmentModules(
+      segments,
+      ctx.input.code,
+      ctx.input.path,
+      ctx.options.explicitExtensions === true,
+      ctx.emitTarget
+    ),
   ];
+}
+
+function emitModuleReferences(
+  source: string,
+  segments: readonly Segment[],
+  components: ReturnType<typeof discoverRewriteComponents>,
+  declarations: readonly ModuleDeclaration[]
+): string {
+  const references = new Set(segments.flatMap((segment) => segment.moduleReferences));
+  if (references.size === 0) {
+    return '';
+  }
+  const componentNames = new Set(
+    components.flatMap((component) => (component.localName === null ? [] : [component.localName]))
+  );
+  const alreadyExported = new Set(componentNames);
+  const code = declarations
+    .filter((declaration) => declaration.names.every((name) => !componentNames.has(name)))
+    .map((declaration) => {
+      if (declaration.exported) {
+        for (const name of declaration.names) {
+          alreadyExported.add(name);
+        }
+      }
+      return source.slice(declaration.range[0], declaration.range[1]).trim();
+    });
+  const exports = [...references].filter((name) => !alreadyExported.has(name));
+  return [...code, ...(exports.length > 0 ? [`export { ${exports.join(', ')} };`] : [])].join('\n');
 }
 
 function emitModuleImports(
@@ -73,16 +139,22 @@ function emitModuleImports(
 }
 
 function removeRewriteOnlyImports(record: ImportRecord, emittedCode: string): ImportRecord | null {
-  if (record.source !== QWIK_CORE_IMPORT || record.specifiers.length === 0) {
+  if (
+    (record.source !== QWIK_CORE_IMPORT && record.source !== QWIK_IMPORT) ||
+    record.specifiers.length === 0
+  ) {
     return record;
   }
-  const specifiers = record.specifiers.filter(
-    (specifier) =>
-      specifier.kind !== 'named' ||
-      specifier.typeOnly ||
-      specifier.importedName !== QwikHooks.Component ||
-      containsIdentifier(emittedCode, specifier.localName)
-  );
+  const specifiers = record.specifiers.filter((specifier) => {
+    if (specifier.kind !== 'named' || specifier.typeOnly) {
+      return true;
+    }
+    const rewriteOnly =
+      specifier.importedName === QwikHooks.Component ||
+      specifier.importedName === QwikHooks.Dollar ||
+      specifier.importedName.endsWith('$');
+    return !rewriteOnly || containsIdentifier(emittedCode, specifier.localName);
+  });
   return specifiers.length === 0 ? null : { ...record, specifiers };
 }
 

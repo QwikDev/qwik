@@ -1,4 +1,6 @@
 import { emitComponentFunction, emitStaticHtml } from './emit-html';
+import { emitQrlReference, emitSetupQrl, getQrlVariableName } from './emit-qrl';
+import { getSegmentImportPath } from './emit-segment';
 import type {
   HtmlPart,
   Op,
@@ -6,23 +8,34 @@ import type {
   RewriteComponent,
   RewriteModule,
   RewriteOutput,
+  Segment,
 } from './types';
-import { QwikAttributes, QwikComments, QwikGenWord, QwikWord } from './words';
+import { QwikAttributes, QwikComments, QwikGenWord, QwikHooks, QwikWord } from './words';
 
 interface SsrRender {
   imports: string[];
+  setup: SsrSetup;
   statements: string[];
   value: string;
 }
 
+interface SsrSetup {
+  statements: string[];
+  hasTask: boolean;
+}
+
 export function emitSsrModule(
   outputs: readonly RewriteOutput[],
-  source: string
+  segments: readonly Segment[],
+  source: string,
+  inputPath: string,
+  explicitExtensions: boolean
 ): RewriteModule | null {
   const imports = new Set<string>();
+  const segmentByName = new Map(segments.map((segment) => [segment.name, segment]));
   const parts: string[] = [];
   for (const output of outputs) {
-    const render = emitSsrRender(output.result, source);
+    const render = emitSsrRender(output.result, source, segmentByName);
     if (render === null) {
       return null;
     }
@@ -31,60 +44,142 @@ export function emitSsrModule(
     }
     parts.push(emitSsrComponent(output.component, render));
   }
+  const hoists = segments.map((segment) => {
+    const importPath = getSegmentImportPath(inputPath, segment, explicitExtensions);
+    const qrl = getQrlVariableName(segment);
+    const declaration = `const ${qrl} = /*#__PURE__*/ ${
+      QwikWord.QrlWithChunk
+    }(${JSON.stringify(importPath)}, () => import(${JSON.stringify(importPath)}), ${JSON.stringify(
+      segment.name
+    )});`;
+    return shouldResolveSsrSegment(segment)
+      ? `${declaration}\n${qrl}.s(${segment.name});`
+      : declaration;
+  });
+  if (hoists.length > 0) {
+    imports.add(QwikWord.QrlWithChunk);
+  }
   return {
     imports: [...imports],
-    code: parts.join('\n'),
+    localImports: segments
+      .filter(shouldResolveSsrSegment)
+      .map(
+        (segment) =>
+          `import { ${segment.name} } from ${JSON.stringify(
+            getSegmentImportPath(inputPath, segment, explicitExtensions)
+          )};`
+      ),
+    code: [...hoists, ...parts].join('\n'),
   };
 }
 
-function emitSsrComponent(component: RewriteComponent, render: SsrRender): string {
-  return emitComponentFunction(component, render.statements, render.value);
+function shouldResolveSsrSegment(segment: Segment): boolean {
+  return segment.kind === 'qrl' && segment.ctxName !== QwikHooks.Dollar;
 }
 
-function emitSsrRender(result: RenderResult, source: string): SsrRender | null {
-  const html = emitStaticHtml(result);
+function emitSsrComponent(component: RewriteComponent, render: SsrRender): string {
+  if (!render.setup.hasTask) {
+    return emitComponentFunction(
+      component,
+      [...render.setup.statements, ...render.statements],
+      render.value
+    );
+  }
+  return emitComponentFunction(
+    component,
+    render.setup.statements,
+    emitInvokeRender(render.statements, render.value),
+    true
+  );
+}
+
+function emitSsrRender(
+  result: RenderResult,
+  source: string,
+  segments: ReadonlyMap<string, Segment>
+): SsrRender | null {
+  const emittedSetup = emitSsrSetup(result, source);
+  if (emittedSetup === null) {
+    return null;
+  }
+  const html = result.visibleTasks.length === 0 ? emitStaticHtml(result) : null;
   if (html !== null) {
     const value = JSON.stringify(html);
     return {
-      imports: [],
-      statements: result.providesContext ? emitSetupStatements(result, source) : [],
+      imports: emittedSetup.imports,
+      setup: emittedSetup.setup,
+      statements: emitSsrRenderPrelude(result),
       value: result.providesContext ? emitContextHtml(value) : value,
     };
   }
-  return emitDynamicRender(result, source);
+  return emitDynamicRender(result, source, segments, emittedSetup);
 }
 
-function emitDynamicRender(result: RenderResult, source: string): SsrRender | null {
+function emitDynamicRender(
+  result: RenderResult,
+  source: string,
+  segments: ReadonlyMap<string, Segment>,
+  emittedSetup: { setup: SsrSetup; imports: string[] }
+): SsrRender | null {
   if (result.root === null) {
     return null;
   }
   const next = createNameAllocator();
-  const id = next(QwikGenWord.Id);
+  const hasTargetEffects = result.ops.some(
+    (op) => op.kind === 'textEffect' || op.kind === 'attrEffect'
+  );
+  const id = hasTargetEffects ? next(QwikGenWord.Id) : null;
   const markerIndexes = createMarkerIndexes(result.html);
   const texts = new Map<number, string>();
   const attrs = new Map<string, string>();
-  const targetIds = new Map<number, string>([[result.root, id]]);
-  const statements = [...emitSetupStatements(result, source), `const ${id} = ctx.nextId();`];
+  const events = new Map<string, string>();
+  const html = emitVisibleTaskCarriers(result, source, events);
+  const targetIds = new Map<number, string>(id === null ? [] : [[result.root, id]]);
+  const statements = [
+    ...emitSsrRenderPrelude(result),
+    ...(id === null ? [] : [`const ${id} = ctx.nextId();`]),
+  ];
   for (const op of result.ops) {
-    const emitted = emitSsrOp(op, markerIndexes, texts, attrs, targetIds, source, id, next);
+    const emitted = emitSsrOp(
+      op,
+      markerIndexes,
+      texts,
+      attrs,
+      events,
+      targetIds,
+      segments,
+      source,
+      id,
+      next
+    );
     if (emitted === null) {
       return null;
     }
     statements.push(...emitted);
   }
-  const value = emitDynamicHtml(result.html, result.root, id, texts, attrs, targetIds);
+  const value = emitDynamicHtml(html, result.root, id, texts, attrs, events, targetIds);
   if (value === null) {
     return null;
   }
   const textNames = [...texts.values()];
   const attrNames = [...attrs.values()];
   const dynamicNames = [...textNames, ...attrNames];
-  if (dynamicNames.length === 0) {
-    return null;
-  }
   const renderedHtml = result.providesContext ? emitContextHtml(value) : value;
+  const setupImports = [
+    ...emittedSetup.imports,
+    ...(result.visibleTasks.length > 0 ? [QwikWord.CreateVisibleTaskHandlerQrl] : []),
+  ];
+  if (dynamicNames.length === 0) {
+    return {
+      imports: setupImports,
+      setup: emittedSetup.setup,
+      statements,
+      value: renderedHtml,
+    };
+  }
   return {
     imports: [
+      ...setupImports,
       QwikWord.EscapeHTML,
       ...(textNames.length > 0
         ? [QwikWord.RenderSsrTextNode, QwikWord.CreateSsrRangeTextTarget]
@@ -93,6 +188,7 @@ function emitDynamicRender(result: RenderResult, source: string): SsrRender | nu
       QwikWord.MaybeThen,
       ...(dynamicNames.length > 1 ? [QwikWord.PromiseAll] : []),
     ],
+    setup: emittedSetup.setup,
     statements,
     value:
       dynamicNames.length === 1
@@ -101,11 +197,109 @@ function emitDynamicRender(result: RenderResult, source: string): SsrRender | nu
   };
 }
 
-function emitSetupStatements(result: RenderResult, source: string): string[] {
-  return [
-    ...result.setup.map((range) => source.slice(range[0], range[1]).trim()),
-    ...(result.providesContext ? ['const contextScopeId = ctx.contextScopeId();'] : []),
-  ];
+function emitVisibleTaskCarriers(
+  result: RenderResult,
+  source: string,
+  events: Map<string, string>
+): HtmlPart[] {
+  if (result.root === null || result.visibleTasks.length === 0) {
+    return result.html;
+  }
+  const groups = new Map<string, Segment[]>();
+  for (const segment of result.visibleTasks) {
+    const eventName = getVisibleTaskEventName(segment, source);
+    const group = groups.get(eventName) ?? [];
+    group.push(segment);
+    groups.set(eventName, group);
+  }
+  const carriers: HtmlPart[] = [];
+  for (const [eventName, segments] of groups) {
+    const key = `visible:${eventName}`;
+    const handlers = segments.map(
+      (segment) => `${QwikWord.CreateVisibleTaskHandlerQrl}(${emitQrlReference(segment)})`
+    );
+    carriers.push({
+      kind: 'event',
+      target: result.root,
+      name: eventName,
+      segment: key,
+    });
+    events.set(
+      createEventKey(result.root, eventName, key),
+      `ctx.eventAttr(${JSON.stringify(eventName)}, ${
+        handlers.length === 1 ? handlers[0] : `[${handlers.join(', ')}]`
+      })`
+    );
+  }
+  return [result.html[0], ...carriers, ...result.html.slice(1)];
+}
+
+function getVisibleTaskEventName(segment: Segment, source: string): string {
+  const options = segment.argumentRanges[1];
+  if (options !== null && options !== undefined) {
+    const value = source.slice(options[0], options[1]);
+    if (/\bstrategy\s*:\s*['"]document-ready['"]/.test(value)) {
+      return 'q-d:qinit';
+    }
+    if (/\bstrategy\s*:\s*['"]document-idle['"]/.test(value)) {
+      return 'q-d:qidle';
+    }
+  }
+  return 'q-e:qvisible';
+}
+
+function emitSsrSetup(
+  result: RenderResult,
+  source: string
+): { setup: SsrSetup; imports: string[] } | null {
+  const statements: string[] = [];
+  const imports = new Set<string>();
+  let hasTask = false;
+  for (const range of result.setup) {
+    const emitted = emitSetupQrl(source, range, result.segments, 'ssr');
+    if (emitted === null) {
+      return null;
+    }
+    for (const name of emitted.imports) {
+      imports.add(name);
+    }
+    const part = emitted.part;
+    if (part.kind === 'code') {
+      if (part.code !== '') {
+        statements.push(part.code);
+      }
+      continue;
+    }
+    hasTask = true;
+    const task = `task_${part.segment.id}`;
+    statements.push(
+      `const ${task} = invoke(invokeCtx, () => useTaskQrl(${emitQrlReference(part.segment)}${
+        part.suffix
+      });`,
+      `ctx.addRoot(${task});`,
+      `await runTaskSubscriber(${task});`
+    );
+  }
+  if (hasTask) {
+    statements.unshift('const invokeCtx = getActiveInvokeContextOrNull();');
+  }
+  return { setup: { statements, hasTask }, imports: [...imports] };
+}
+
+function emitSsrRenderPrelude(result: RenderResult): string[] {
+  return result.providesContext ? ['const contextScopeId = ctx.contextScopeId();'] : [];
+}
+
+function emitInvokeRender(statements: readonly string[], value: string): string {
+  const body = [...statements, `return ${value};`]
+    .map((statement) =>
+      statement
+        .split('\n')
+        .map((line) => `  ${line}`)
+        .join('\n')
+    )
+    .join('\n');
+  return `invoke(invokeCtx, () => {\n${body}\n})`;
 }
 
 function emitContextHtml(html: string): string {
@@ -117,19 +311,34 @@ function emitSsrOp(
   markerIndexes: Map<number, number>,
   texts: Map<number, string>,
   attrs: Map<string, string>,
+  events: Map<string, string>,
   targetIds: Map<number, string>,
+  segments: ReadonlyMap<string, Segment>,
   source: string,
-  id: string,
+  id: string | null,
   next: (prefix: string) => string
 ): string[] | null {
   switch (op.kind) {
     case 'textEffect':
+      if (id === null) {
+        return null;
+      }
       return emitSsrTextOp(op, markerIndexes, texts, source, id, next);
     case 'attrEffect':
       return emitSsrAttrOp(op, attrs, targetIds, source, next);
-    case 'event':
-      // ponytail: valid IR, add emission here when attrs/events land.
+    case 'event': {
+      const segment = segments.get(op.segment);
+      if (segment === undefined) {
+        return null;
+      }
+      const qrl = getQrlVariableName(segment);
+      const reference = op.captures.length > 0 ? `${qrl}.w([${op.captures.join(', ')}])` : qrl;
+      events.set(
+        createEventKey(op.target, op.name, op.segment),
+        `ctx.eventAttr(${JSON.stringify(op.name)}, ${reference})`
+      );
       return [];
+    }
   }
 }
 
@@ -201,9 +410,10 @@ function createMarkerIndexes(parts: readonly HtmlPart[]) {
 function emitDynamicHtml(
   parts: readonly HtmlPart[],
   root: number,
-  id: string,
+  id: string | null,
   texts: ReadonlyMap<number, string>,
   attrs: ReadonlyMap<string, string>,
+  events: ReadonlyMap<string, string>,
   targetIds: ReadonlyMap<number, string>
 ): string | null {
   const expressions: string[] = [];
@@ -212,14 +422,17 @@ function emitDynamicHtml(
   for (const part of parts) {
     switch (part.kind) {
       case 'html': {
-        const expression = didInjectRootId
-          ? JSON.stringify(part.value)
-          : emitRootHtml(part.value, id);
+        const expression =
+          id === null || didInjectRootId
+            ? JSON.stringify(part.value)
+            : emitRootHtml(part.value, id);
         if (expression === null) {
           return null;
         }
-        didInjectRootId = true;
-        injectedTargets.add(root);
+        if (id !== null) {
+          didInjectRootId = true;
+          injectedTargets.add(root);
+        }
         expressions.push(expression);
         break;
       }
@@ -247,6 +460,14 @@ function emitDynamicHtml(
         );
         break;
       }
+      case 'event': {
+        const event = events.get(createEventKey(part.target, part.name, part.segment));
+        if (event === undefined) {
+          return null;
+        }
+        expressions.push(event);
+        break;
+      }
       case 'marker': {
         const text = texts.get(part.id);
         if (text === undefined) {
@@ -267,6 +488,10 @@ function emitDynamicHtml(
 
 function createAttrKey(target: number, name: string, expr: readonly number[]) {
   return `${target}:${name}:${expr[0]}:${expr[1]}`;
+}
+
+function createEventKey(target: number, name: string, segment: string) {
+  return `${target}:${name}:${segment}`;
 }
 
 function emitRootHtml(html: string, id: string): string | null {

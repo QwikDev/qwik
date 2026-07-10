@@ -28,6 +28,7 @@ export interface RewriteOutput {
 
 export interface RewriteModule {
   imports: string[];
+  localImports: string[];
   code: string;
 }
 
@@ -39,6 +40,7 @@ export interface RenderResult {
   refs: Ref[];
   ops: Op[];
   segments: Segment[];
+  visibleTasks: Segment[];
 }
 
 export type AttributeHtmlPart = {
@@ -47,11 +49,22 @@ export type AttributeHtmlPart = {
   name: string;
   expr: SourceRange;
 };
+export type EventHtmlPart = {
+  kind: 'event';
+  target: number;
+  name: string;
+  segment: string;
+};
 export type TextHtmlPart = { kind: 'text'; expr: SourceRange };
 export type MarkerHtmlPart = { kind: 'marker'; id: number };
 export type HtmlHtmlPart = { kind: 'html'; value: string };
 
-export type HtmlPart = HtmlHtmlPart | TextHtmlPart | AttributeHtmlPart | MarkerHtmlPart;
+export type HtmlPart =
+  | HtmlHtmlPart
+  | TextHtmlPart
+  | AttributeHtmlPart
+  | EventHtmlPart
+  | MarkerHtmlPart;
 
 export type RefStep = 'firstChild' | 'lastChild' | 'nextSibling' | 'previousSibling';
 
@@ -71,9 +84,36 @@ export type Op =
     }
   | { kind: 'event'; target: number; name: string; segment: string; captures: string[] };
 
-export interface Segment {
+export interface SegmentCapture {
   name: string;
-  kind: 'event' | 'qrl' | 'component';
-  expr: string;
-  captures: string[];
+  source: 'local' | 'param' | 'loop';
+}
+
+export interface Segment {
+  id: string;
+  parentId: string | null;
+  name: string;
+  kind: 'event' | 'qrl';
+  ctxName: string;
+  qwik: boolean;
+  range: SourceRange;
+  functionRange: SourceRange;
+  calleeRange: SourceRange | null;
+  argumentRanges: Array<SourceRange | null>;
+  paramRanges: SourceRange[];
+  bodyRange: SourceRange;
+  bodyKind: 'block' | 'expression';
+  captures: SegmentCapture[];
+  moduleReferences: string[];
+}
+
+export interface ModuleDeclaration {
+  range: SourceRange;
+  names: string[];
+  exported: boolean;
+}
+
+export interface ExtractedQrls {
+  segments: Segment[];
+  moduleDeclarations: ModuleDeclaration[];
 }

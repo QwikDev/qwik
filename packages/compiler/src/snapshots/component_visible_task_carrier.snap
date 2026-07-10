@@ -1,0 +1,126 @@
+==INPUT==
+
+import { useSignal, useVisibleTask$ } from '@qwik.dev/core/spark';
+export function App() {
+  const count = useSignal(0);
+  useVisibleTask$(() => count.value++, { strategy: 'document-ready' });
+  return <button>Ready</button>;
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { useSignal, createVisibleTaskHandlerQrl, _qrlWithChunk } from '@qwik.dev/core/spark';
+import { component_useVisibleTask$_segment_0 } from './component.tsx_component_useVisibleTask$_segment_0';
+
+const q_component_useVisibleTask$_segment_0 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_useVisibleTask$_segment_0',
+  () => import('./component.tsx_component_useVisibleTask$_segment_0'),
+  'component_useVisibleTask$_segment_0'
+);
+q_component_useVisibleTask$_segment_0.s(component_useVisibleTask$_segment_0);
+export function App(props, ctx) {
+  const count = useSignal(0);
+  return (
+    '<button' +
+    ctx.eventAttr(
+      'q-d:qinit',
+      createVisibleTaskHandlerQrl(q_component_useVisibleTask$_segment_0.w([count]))
+    ) +
+    '>' +
+    'Ready' +
+    '</button>'
+  );
+}
+============================= src/component.tsx_component_useVisibleTask$_segment_0.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+
+export const component_useVisibleTask$_segment_0 = () => {
+  const count = _captures[0];
+  return count.value++;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_useVisibleTask$_segment_0",
+  "entry": null,
+  "displayName": "component_useVisibleTask$_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_useVisibleTask$_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "useVisibleTask$",
+  "captures": true,
+  "loc": [
+    121,
+    189
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  _withCaptures,
+  useVisibleTask,
+  _first,
+  createTemplate,
+} from '@qwik.dev/core/spark';
+import { component_useVisibleTask$_segment_0 } from './component.tsx_component_useVisibleTask$_segment_0';
+
+const App_tmpl0 = createTemplate('<button>Ready</button>');
+export function App(props, ctx) {
+  const count = useSignal(0);
+  useVisibleTask(_withCaptures(component_useVisibleTask$_segment_0, [count]), {
+    strategy: 'document-ready',
+  });
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
+}
+============================= src/component.tsx_component_useVisibleTask$_segment_0.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+
+export const component_useVisibleTask$_segment_0 = () => {
+  const count = _captures[0];
+  return count.value++;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_useVisibleTask$_segment_0",
+  "entry": null,
+  "displayName": "component_useVisibleTask$_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_useVisibleTask$_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "useVisibleTask$",
+  "captures": true,
+  "loc": [
+    121,
+    189
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

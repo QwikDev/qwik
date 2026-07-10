@@ -6,6 +6,7 @@ export const enum QwikWord {
   CreateTemplate = 'createTemplate',
   CreateTextNodeEffect = 'createTextNodeEffect',
   CreateAttrEffect = 'createAttrEffect',
+  SetEvent = 'setEvent',
   NextSibling = '_next',
   PreviousSibling = '_prev',
   FirstChild = '_first',
@@ -18,6 +19,9 @@ export const enum QwikWord {
   EscapeHTML = 'escapeHTML',
   MaybeThen = 'maybeThen',
   PromiseAll = 'promiseAll',
+  QrlWithChunk = '_qrlWithChunk',
+  Captures = '_captures',
+  CreateVisibleTaskHandlerQrl = 'createVisibleTaskHandlerQrl',
 }
 
 export const enum QwikGenWord {
@@ -40,10 +44,13 @@ export const enum QwikAttributes {
 }
 
 export const enum QwikHooks {
+  Dollar = '$',
   Component = 'component$',
   UseSignal = 'useSignal',
   UseComputed = 'useComputed$',
   UseAsync = 'useAsync$',
   UseSerializer = 'useSerializer$',
+  UseTask = 'useTask$',
+  UseVisibleTask = 'useVisibleTask$',
   UseContextProvider = 'useContextProvider',
 }

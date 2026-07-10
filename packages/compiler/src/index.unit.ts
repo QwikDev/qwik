@@ -227,6 +227,64 @@ export default component$(function Home() {
     });
   });
 
+  test('component with event handler', async () => {
+    await testInput('component_event_handler', {
+      code: `import { useSignal } from '@qwik.dev/core/spark';
+export const App = () => {
+  const count = useSignal(0);
+  return <button onClick$={() => count.value++}>{count.value}</button>;
+};
+`,
+    });
+  });
+
+  test('component with visible task carrier', async () => {
+    await testInput('component_visible_task_carrier', {
+      code: `import { useSignal, useVisibleTask$ } from '@qwik.dev/core/spark';
+export function App() {
+  const count = useSignal(0);
+  useVisibleTask$(() => count.value++, { strategy: 'document-ready' });
+  return <button>Ready</button>;
+}
+`,
+    });
+  });
+
+  test('component with nested QRL', async () => {
+    await testInput('component_nested_qrl', {
+      code: `import { useSignal, $ } from '@qwik.dev/core/spark';
+export function App() {
+  const count = useSignal(0);
+  return <button onClick$={() => $(() => count.value++)}>Run</button>;
+}
+`,
+    });
+  });
+
+  test('component event module dependency closure', async () => {
+    await testInput('component_event_module_dependencies', {
+      code: `const base = 10;
+const source = { helper: () => base };
+const { helper } = source;
+
+export function App() {
+  return <button onClick$={() => helper()}>Run</button>;
+}
+`,
+    });
+  });
+
+  test('does not lower third-party dollar hooks as Qwik hooks', async () => {
+    await testInput('component_third_party_dollar_hook', {
+      code: `import { useTask$ } from 'third-party-library';
+export function App() {
+  useTask$(() => console.log('external'));
+  return <main>Ready</main>;
+}
+`,
+    });
+  });
+
   test('inlines useId calls', async () => {
     await testInput('use_id', {
       path: 'src/use-id.tsx',

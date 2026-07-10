@@ -1,4 +1,6 @@
 import { emitComponentFunction, emitTemplateHtml } from './emit-html';
+import { emitSetupQrl } from './emit-qrl';
+import { getSegmentImportPath } from './emit-segment';
 import type {
   Op,
   RefStep,
@@ -6,6 +8,7 @@ import type {
   RewriteComponent,
   RewriteModule,
   RewriteOutput,
+  Segment,
 } from './types';
 import { QwikGenWord, QwikWord } from './words';
 
@@ -24,11 +27,14 @@ const REF_STEP_HELPERS: Record<RefStep, QwikWord> = {
 
 export function emitCsrModule(
   outputs: readonly RewriteOutput[],
-  source: string
+  segments: readonly Segment[],
+  source: string,
+  inputPath: string,
+  explicitExtensions: boolean
 ): RewriteModule | null {
   const hoists: string[] = [];
   const components: string[] = [];
-  const imports = new Set<QwikWord>();
+  const imports = new Set<string>();
   for (const output of outputs) {
     const name = output.component.localName ?? output.component.exportName;
     const render = emitCsrRender(name, output.result, source, imports);
@@ -38,9 +44,16 @@ export function emitCsrModule(
     hoists.push(...render.hoists);
     components.push(emitCsrComponent(output.component, render));
   }
+  const segmentImports = segments.map(
+    (segment) =>
+      `import { ${segment.name} } from ${JSON.stringify(
+        getSegmentImportPath(inputPath, segment, explicitExtensions)
+      )};`
+  );
   return {
     imports: [...imports],
-    code: `${hoists.join('\n')}\n${components.join('\n')}\n`,
+    localImports: segmentImports,
+    code: `${[...hoists, ...components].join('\n')}\n`,
   };
 }
 
@@ -52,7 +65,7 @@ function emitCsrRender(
   name: string,
   result: RenderResult,
   source: string,
-  imports: Set<QwikWord>
+  imports: Set<string>
 ): CsrRender | null {
   if (result.root === null) {
     return null;
@@ -66,10 +79,11 @@ function emitCsrRender(
     result.ops.flatMap((op) => (op.kind === 'textEffect' ? [op.marker] : []))
   );
   const emittedRefs: { name: string; path: RefStep[] }[] = [];
-  const statements = [
-    ...result.setup.map((range) => source.slice(range[0], range[1]).trim()),
-    `const ${fragmentName} = ${templateName}(ctx.document);`,
-  ];
+  const setup = emitCsrSetupStatements(result, source, imports);
+  if (setup === null) {
+    return null;
+  }
+  const statements = [...setup, `const ${fragmentName} = ${templateName}(ctx.document);`];
   if (html === null) {
     return null;
   }
@@ -111,7 +125,7 @@ function emitCsrOp(
   refNames: Map<number, string>,
   source: string,
   next: (prefix: string) => string,
-  imports: Set<QwikWord>
+  imports: Set<string>
 ): string[] | null {
   switch (op.kind) {
     case 'textEffect': {
@@ -146,10 +160,40 @@ function emitCsrOp(
         `ctx.scheduler.notify(${effect});`,
       ];
     }
-    case 'event':
-      // ponytail: valid IR, add emission here when attrs/events land.
-      return [];
+    case 'event': {
+      const target = refNames.get(op.target);
+      if (target === undefined) {
+        return null;
+      }
+      imports.add(QwikWord.SetEvent);
+      const captures = op.captures.length > 0 ? `, [${op.captures.join(', ')}]` : '';
+      return [
+        `${QwikWord.SetEvent}(${target}, ${JSON.stringify(op.name)}, ${op.segment}${captures});`,
+      ];
+    }
   }
+}
+
+function emitCsrSetupStatements(
+  result: RenderResult,
+  source: string,
+  imports: Set<string>
+): string[] | null {
+  const statements: string[] = [];
+  for (const range of result.setup) {
+    const emitted = emitSetupQrl(source, range, result.segments, 'csr');
+    if (emitted === null) {
+      return null;
+    }
+    for (const name of emitted.imports) {
+      imports.add(name);
+    }
+    if (emitted.part.kind !== 'code') {
+      return null;
+    }
+    statements.push(emitted.part.code);
+  }
+  return statements;
 }
 
 function createNameAllocator() {

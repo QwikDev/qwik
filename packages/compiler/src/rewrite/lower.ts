@@ -241,6 +241,9 @@ function renderJsxAttributes(
 
 function getAttrName(attr: JSXAttributeName): string | null {
   const name = getJsxAttributeName(attr);
+  if (name === 'key') {
+    return null;
+  }
   if (name === 'className') {
     return 'class';
   }

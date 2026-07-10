@@ -152,6 +152,17 @@ export function App() {
     });
   });
 
+  test('ignores static and dynamic key attributes', async () => {
+    await testInput('component_key_attribute', {
+      code: `import { useSignal } from '@qwik.dev/core/spark';
+export function App() {
+  const itemKey = useSignal('dynamic');
+  return <main key="static"><button key={itemKey.value}>Button</button></main>;
+}
+`,
+    });
+  });
+
   test('simple component with nested elements', async () => {
     await testInput('simple_component_nested_elements', {
       code: `export function App() {

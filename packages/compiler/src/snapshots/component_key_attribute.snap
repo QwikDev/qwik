@@ -1,0 +1,37 @@
+==INPUT==
+
+import { useSignal } from '@qwik.dev/core/spark';
+export function App() {
+  const itemKey = useSignal('dynamic');
+  return <main key="static"><button key={itemKey.value}>Button</button></main>;
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { useSignal } from '@qwik.dev/core/spark';
+
+export function App(props, ctx) {
+  const itemKey = useSignal('dynamic');
+  return '<main><button>Button</button></main>';
+}
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { useSignal, _first, createTemplate } from '@qwik.dev/core/spark';
+
+const App_tmpl0 = createTemplate('<main><button>Button</button></main>');
+export function App(props, ctx) {
+  const itemKey = useSignal('dynamic');
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
+}
+== CSR DIAGNOSTICS ==
+
+[]

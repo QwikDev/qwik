@@ -141,6 +141,17 @@ describe('transformModules', () => {
     });
   });
 
+  test('normalizes static and dynamic className attributes', async () => {
+    await testInput('component_class_name', {
+      code: `import { useSignal } from '@qwik.dev/core/spark';
+export function App() {
+  const classes = useSignal('active');
+  return <main className="shell"><button className={classes.value}>Toggle</button></main>;
+}
+`,
+    });
+  });
+
   test('simple component with nested elements', async () => {
     await testInput('simple_component_nested_elements', {
       code: `export function App() {

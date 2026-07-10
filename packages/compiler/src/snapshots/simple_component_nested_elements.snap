@@ -9,7 +9,7 @@ export function App() {
 ============================= src/component.tsx ==
 
 export function App(props, ctx) {
-  return '<main className="shell" hidden><h1 aria-label="Hello">Hello</h1><p>Qwik</p></main>';
+  return '<main class="shell" hidden><h1 aria-label="Hello">Hello</h1><p>Qwik</p></main>';
 }
 == SSR DIAGNOSTICS ==
 
@@ -21,7 +21,7 @@ export function App(props, ctx) {
 import { _first, createTemplate } from '@qwik.dev/core/spark';
 
 const App_tmpl0 = createTemplate(
-  '<main className="shell" hidden><h1 aria-label="Hello">Hello</h1><p>Qwik</p></main>'
+  '<main class="shell" hidden><h1 aria-label="Hello">Hello</h1><p>Qwik</p></main>'
 );
 export function App(props, ctx) {
   const fragment0 = App_tmpl0(ctx.document);

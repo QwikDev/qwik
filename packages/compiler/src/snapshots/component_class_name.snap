@@ -1,0 +1,69 @@
+==INPUT==
+
+import { useSignal } from '@qwik.dev/core/spark';
+export function App() {
+  const classes = useSignal('active');
+  return <main className="shell"><button className={classes.value}>Toggle</button></main>;
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  escapeHTML,
+  createSsrElementTarget,
+  renderSsrAttr,
+  maybeThen,
+} from '@qwik.dev/core/spark';
+
+export function App(props, ctx) {
+  const classes = useSignal('active');
+  const id0 = ctx.nextId();
+  const id1 = ctx.nextId();
+  ctx.addRoot(classes);
+  const attr0 = renderSsrAttr(createSsrElementTarget(id1), 'class', classes);
+  return maybeThen(
+    attr0,
+    (attr0) =>
+      '<main q:id="' +
+      id0 +
+      '"' +
+      ' class="shell"' +
+      '>' +
+      '<button' +
+      ' q:id="' +
+      id1 +
+      '"' +
+      ' class="' +
+      escapeHTML(attr0) +
+      '"' +
+      '>' +
+      'Toggle' +
+      '</button>' +
+      '</main>'
+  );
+}
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { useSignal, _first, createAttrEffect, createTemplate } from '@qwik.dev/core/spark';
+
+const App_tmpl0 = createTemplate('<main class="shell"><button>Toggle</button></main>');
+export function App(props, ctx) {
+  const classes = useSignal('active');
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const el1 = _first(el0);
+  const effect0 = createAttrEffect(el1, 'class', classes, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  return el0;
+}
+== CSR DIAGNOSTICS ==
+
+[]

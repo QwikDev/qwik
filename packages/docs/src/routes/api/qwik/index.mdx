@@ -725,7 +725,7 @@ Error \| undefined
 
 </td><td>
 
-The error that occurred while computing the signal, if any. This will be cleared when the signal is successfully computed. It does not trigger lazy computation of the signal.
+The error that occurred while computing the signal, if any, including synchronous throws. This will be cleared when the signal is successfully computed. It also triggers lazy computation of the signal. While the error is set, reading `.value` throws it.
 
 </td></tr>
 <tr><td>
@@ -825,7 +825,7 @@ Error \| undefined
 
 </td><td>
 
-Lets you read the error state without subscribing to `.error` updates. It does not trigger lazy computation of the signal.
+Lets you read the error state without subscribing to `.error` updates. It also triggers lazy computation of the signal.
 
 Setting it will trigger listeners for `.error`.
 
@@ -9983,7 +9983,7 @@ void
 
 > Warning: This API is now obsolete.
 >
-> Use `useAsync$` instead, which is more powerful and flexible. `useResource$` is still available for backward compatibility but it is recommended to migrate to `useAsync$` for new code and when updating existing code.
+> Use `useComputed$` instead, which is more powerful and flexible. `useResource$` is still available for backward compatibility but it is recommended to migrate to `useComputed$` for new code and when updating existing code.
 
 This method works like an async memoized function that runs whenever some tracked value changes and returns some data.
 

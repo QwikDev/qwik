@@ -165,6 +165,48 @@ describe('async computed', () => {
     });
   });
 
+  it('should capture sync throws in .error and rethrow them on read', async () => {
+    await withContainer(async () => {
+      const dep = createSignal(0);
+      const signal = createComputed$(() => {
+        if (dep.value === 0) {
+          throw new Error('sync oops');
+        }
+        return dep.value;
+      }) as ComputedSignalImpl<number>;
+
+      // reading .error triggers the computation
+      const error = await retryOnPromise(() => signal.error);
+      expect(error?.message).toBe('sync oops');
+      expect(() => signal.untrackedValue).toThrow('sync oops');
+      expect(signal.pending).toBe(false);
+      expect(signal.$flags$ & AsyncSignalFlags.ASYNC_MODE).toBe(0);
+
+      // recomputing clears the error
+      dep.value = 1;
+      expect(signal.value).toBe(1);
+      expect(signal.error).toBeUndefined();
+    });
+  });
+
+  it('should capture non-Error sync throws', async () => {
+    await withContainer(async () => {
+      const signal = createComputed$(() => {
+        throw 'oops';
+      }) as ComputedSignalImpl<never>;
+
+      const error = await retryOnPromise(() => signal.error);
+      expect(error).toBe('oops');
+      let thrown: unknown;
+      try {
+        signal.untrackedValue;
+      } catch (e) {
+        thrown = e;
+      }
+      expect(thrown).toBe('oops');
+    });
+  });
+
   it('should provide the ComputeCtx argument to sync computeds', async () => {
     await withContainer(async () => {
       const dep = createSignal(1);

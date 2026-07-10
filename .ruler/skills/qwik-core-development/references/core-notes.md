@@ -44,8 +44,10 @@ Current API and implementation facts:
   cleanups before recomputing. `CTX_ARG` signals (useAsync$/useResource$) track only via the
   explicit `ctx.track()`; computeds auto-track synchronous reads via a dedicated invoke context,
   but that context is lost after the first `await` — later reads must use `ctx.track()`.
-- A computed whose fn returns a promise lazily switches on `ASYNC_MODE` (loading/error state stays
-  `declare`d until then) and then has the full AsyncSignal API.
+- A computed whose fn returns a promise lazily switches on `ASYNC_MODE` (loading state stays
+  `declare`d until then) and then has the full AsyncSignal API. Sync compute throws stay in sync
+  mode but still land in `.error`; reading `.value` rethrows until a recompute or explicit value
+  set clears it. Thrown promises must keep propagating for retry, never be captured as errors.
 - Serialization keys off `ASYNC_MODE`, not `instanceof`: async-mode computeds round-trip as
   `TypeIds.AsyncSignal` and resume as `AsyncSignalImpl` instances whose serialized flags (no
   `CTX_ARG`) preserve auto-track semantics. Runtime checks must use flags, not class identity.
@@ -80,6 +82,8 @@ When changing AsyncSignal behavior, inspect:
 - `poll` setter updates the `NO_POLL` flag and reschedules when needed.
 - `invalidate(info)` records the latest info and increments the info version.
 - AbortError is cancellation, not a user-visible `.error`.
+- Reading `.pending` or `.error` triggers computation when needed; serialization must read the
+  private `$untrackedPending$`/`$untrackedError$` fields to avoid starting computes.
 - Timeout IDs must be cleared in invalidation, destroy, and reschedule paths.
 - Browser timers must not run during SSR. Current code uses `isServer` plus the test platform check.
 - Node timers that can keep the process alive should use `.unref?.()`.

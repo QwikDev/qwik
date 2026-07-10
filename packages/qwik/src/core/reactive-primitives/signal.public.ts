@@ -76,12 +76,13 @@ export interface ComputedSignal<T> extends Signal<T> {
   /** @deprecated Use `untrackedPending` instead */
   untrackedLoading: boolean;
   /**
-   * The error that occurred while computing the signal, if any. This will be cleared when the
-   * signal is successfully computed. It does not trigger lazy computation of the signal.
+   * The error that occurred while computing the signal, if any, including synchronous throws. This
+   * will be cleared when the signal is successfully computed. It also triggers lazy computation of
+   * the signal. While the error is set, reading `.value` throws it.
    */
   error: Error | undefined;
   /**
-   * Lets you read the error state without subscribing to `.error` updates. It does not trigger lazy
+   * Lets you read the error state without subscribing to `.error` updates. It also triggers lazy
    * computation of the signal.
    *
    * Setting it will trigger listeners for `.error`.

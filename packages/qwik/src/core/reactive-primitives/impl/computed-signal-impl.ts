@@ -116,7 +116,8 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
   $flags$: number;
   [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | undefined = undefined;
 
-  // Async engine state: only populated when the compute fn is async (ASYNC_MODE)
+  // Async engine state: only populated when the compute fn is async (ASYNC_MODE),
+  // except $untrackedError$ which also captures sync compute throws
   declare $untrackedPending$: boolean | undefined;
   declare $untrackedError$: Error | undefined;
   declare $current$: Job<T> | null | undefined;
@@ -229,9 +230,9 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
 
   override set value(value: T) {
     this.$flags$ &= ~ComputedSignalFlags.INVALID;
+    this.untrackedError = undefined;
     if (this.$flags$ & AsyncSignalFlags.ASYNC_MODE) {
       this.untrackedPending = false;
-      this.untrackedError = undefined;
       this.$info$ = undefined;
       // Prevent pending computations from overwriting this value
       if (this.$jobs$) {
@@ -286,8 +287,11 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
    * Loading is true if the signal is still waiting for the promise to resolve, false if the promise
    * has resolved or rejected (or the compute function is synchronous).
    *
-   * Accessing .loading will trigger computation if needed, since it's often used like
-   * `signal.loading ? <Loading /> : signal.value`.
+   * Accessing `.pending` will trigger computation if needed, since it's often used like
+   *
+   * ```ts
+   * signal.pending ? <Loading /> : signal.value
+   * ```
    */
   get pending(): boolean {
     const val = this.untrackedPending;
@@ -341,7 +345,15 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     this.untrackedPending = value;
   }
 
-  /** The error that occurred when the signal was resolved. */
+  /**
+   * The error the compute function threw or rejected with.
+   *
+   * Accessing .error will trigger computation if needed, since it's often used like
+   *
+   * ```ts
+   * signal.error ? <Failed /> : signal.value
+   * ```
+   */
   get error(): Error | undefined {
     const val = this.untrackedError;
     const ctx = tryGetInvokeContext();
@@ -369,6 +381,11 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
   }
 
   get untrackedError() {
+    this.$computeIfNeeded$();
+    // During SSR we must render settled results
+    if ((qTest ? isServerPlatform() : isServer) && this.$current$?.$promise$) {
+      throw this.$current$?.$promise$;
+    }
     return this.$untrackedError$;
   }
 
@@ -483,7 +500,21 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     const running = new Job<T>(this, this.$info$, this.$infoVersion$);
     this.$current$ = running;
 
-    const result = this.$invokeComputeFn$(computeQrl.resolved as Function, running);
+    let result: T | Promise<T>;
+    try {
+      result = this.$invokeComputeFn$(computeQrl.resolved as Function, running);
+    } catch (err) {
+      // A thrown promise is a retry request, not a failure
+      if (isPromise(err)) {
+        throw err;
+      }
+      if (running.$infoVersion$ === this.$infoVersion$) {
+        this.$info$ = undefined;
+      }
+      this.$flags$ &= ~ComputedSignalFlags.INVALID;
+      this.$setError$(running, err as Error);
+      return;
+    }
     if (isPromise(result)) {
       // The compute fn is async: hand the in-flight computation to the async engine
       this.$flags$ |= AsyncSignalFlags.ASYNC_MODE;
@@ -505,6 +536,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       this.$info$ = undefined;
     }
     this.$flags$ &= ~ComputedSignalFlags.INVALID;
+    this.untrackedError = undefined;
     super.value = result;
   }
 

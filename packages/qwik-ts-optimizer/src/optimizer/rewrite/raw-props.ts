@@ -473,7 +473,7 @@ function analyzeBodyDestructureDeclarator(
   if (!isIdentifierNode(declarator.init) || !propsDerived.has(declarator.init.name)) return null;
   const baseName = declarator.init.name;
 
-  const bindings = collectPatternBindings(declarator.id);
+  const bindings = collectPatternBindings(declarator.id, body, offset);
   // Same SWC-gate as the param-level path — preserve the source
   // destructure verbatim when any field has an unsupported shape.
   if (bindings.unsafe) return null;
@@ -487,7 +487,7 @@ function analyzeBodyDestructureDeclarator(
       : undefined,
     restLineInPlace: baseName !== firstParamName,
     fieldLocalToKey: toFieldLocalToKey(bindings.fields),
-    fieldLocalToDefault: new Map(),
+    fieldLocalToDefault: toFieldLocalToDefault(bindings.fields),
     excludedRanges: [{ start: stmt.start, end: stmt.end }],
   };
 }

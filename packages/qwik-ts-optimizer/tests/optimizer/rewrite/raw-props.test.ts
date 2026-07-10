@@ -62,6 +62,17 @@ describe('raw-props', () => {
     );
   });
 
+  it('preserves a body-destructure default as a nullish-coalescing fallback', () => {
+    const body =
+      '(props) => {\n  const { withDefault = true, plain, ...rest } = props;\n  return { withDefault, plain, rest };\n}';
+
+    const result = applyRawPropsTransform(body);
+
+    expect(result).toContain('withDefault: props.withDefault ?? true');
+    expect(result).toContain('plain: props.plain');
+    expect(result).not.toContain('withDefault: props.withDefault,');
+  });
+
   it('rewrites a rest-destructure of a props-derived local (not the param)', () => {
     const body =
       '(rawProps) => {\n  const props = usePlayground(rawProps, "x");\n  const { value: givenValue, ...rest } = props;\n  return givenValue ?? rest;\n}';

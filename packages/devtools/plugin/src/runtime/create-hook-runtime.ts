@@ -4,7 +4,19 @@ import {
   createRuntimeInstallerSource,
   createRuntimeModule,
 } from './create-runtime-module';
-import { __qwik_install_hook_runtime__ } from './installers';
+import {
+  __qwik_derive_component_name__,
+  __qwik_find_component_key__,
+  __qwik_install_hook_runtime__,
+} from './installers';
+
+// Shared runtime utilities the hook installer references by name. They must be emitted into the
+// injected bundle alongside the installer (they are top-level functions, so `toString()` keeps
+// their names).
+const HOOK_RUNTIME_UTILS = [
+  createRuntimeInstallerSource(__qwik_derive_component_name__),
+  createRuntimeInstallerSource(__qwik_find_component_key__),
+];
 
 const HOOK_RUNTIME_OPTIONS = {
   componentStateKey: QWIK_DEVTOOLS_GLOBAL.props.componentState,
@@ -17,6 +29,7 @@ const HOOK_RUNTIME_OPTIONS = {
 export function createHookRuntime(): string {
   return createRuntimeModule([
     '// [qwik-devtools-hook] runtime (injected by @devtools/plugin)',
+    ...HOOK_RUNTIME_UTILS,
     createRuntimeInstallerSource(__qwik_install_hook_runtime__),
     createRuntimeCall('__qwik_install_hook_runtime__', [HOOK_RUNTIME_OPTIONS]),
   ]);
@@ -52,13 +65,8 @@ const indent = (source: string): string =>
 export function createExtensionHookRuntime(): string {
   const installerSource = createRuntimeInstallerSource(__qwik_install_hook_runtime__);
   const installerCall = createRuntimeCall('__qwik_install_hook_runtime__', [HOOK_RUNTIME_OPTIONS]);
-  return (
-    EXTENSION_HOOK_BANNER +
-    '\n(function () {\n' +
-    "\t'use strict';\n" +
-    indent(installerSource) +
-    '\n' +
-    indent(installerCall) +
-    '\n})();\n'
-  );
+  const body = [...HOOK_RUNTIME_UTILS, installerSource, installerCall]
+    .map((part) => indent(part))
+    .join('\n');
+  return EXTENSION_HOOK_BANNER + '\n(function () {\n' + "\t'use strict';\n" + body + '\n})();\n';
 }

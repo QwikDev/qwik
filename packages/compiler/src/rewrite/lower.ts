@@ -141,24 +141,19 @@ function visitComponentBodyNode(
 
 function addReturnRoots(node: unknown, state: LowerState, roots: TemplateRoot[]) {
   const expr = unwrapExpression(node);
-  if (
-    typeof expr !== 'object' ||
-    expr === null ||
-    (expr.type !== 'JSXElement' && expr.type !== 'JSXFragment')
-  ) {
+  if (expr?.type === 'JSXElement') {
+    const root = renderTemplateRoot(expr, state);
+    if (root !== null) {
+      roots.push(root);
+    }
     return;
   }
-  visit(expr, (child, { parent }) => {
-    if (child.type === 'JSXElement') {
-      if (child === expr || parent === expr) {
-        const root = renderTemplateRoot(child, state);
-        if (root !== null) {
-          roots.push(root);
-        }
-      }
-      return false;
+
+  if (expr?.type === 'JSXFragment') {
+    for (const child of expr.children) {
+      addReturnRoots(child, state, roots);
     }
-  });
+  }
 }
 
 function isSetupStatement(
@@ -408,6 +403,9 @@ function renderJsxChildren(children: JSXChild[], state: LowerState): RenderedJsx
         }
         break;
       }
+      case 'JSXFragment':
+        rendered.push(...renderJsxChildren(child.children, state));
+        break;
       default:
         break;
     }
@@ -438,15 +436,14 @@ function renderJsxExpression(expression: unknown, state: LowerState): RenderedJs
 }
 
 function createRenderResult(roots: TemplateRoot[], state: LowerState): RenderResult | null {
-  const root = roots[0];
-  if (root === undefined) {
+  if (roots.length === 0) {
     return null;
   }
   return {
     setup: state.setup,
     providesContext: state.providesContext,
     html: roots.flatMap((root) => root.html),
-    root: root.id,
+    roots: roots.map((root) => root.id),
     refs: createRefs(roots),
     ops: state.ops,
     segments: [...state.segments.values()],

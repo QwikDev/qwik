@@ -36,7 +36,7 @@ export interface RenderResult {
   setup: SourceRange[];
   providesContext: boolean;
   html: HtmlPart[];
-  root: number | null;
+  roots: number[];
   refs: Ref[];
   ops: Op[];
   segments: Segment[];

@@ -4,7 +4,9 @@ export const App = () => {
   return (
     <>
       <h1>Hello</h1>
-      <p className="copy">Qwik</p>
+      <>
+        <p className="copy">Qwik</p>
+      </>
     </>
   )
 };
@@ -23,13 +25,14 @@ export const App = (props, ctx) => {
 
 ============================= src/component.tsx ==
 
-import { _first, createTemplate } from '@qwik.dev/core/spark';
+import { _first, _last, createTemplate } from '@qwik.dev/core/spark';
 
 const App_tmpl0 = createTemplate('<h1>Hello</h1><p className="copy">Qwik</p>');
 export const App = (props, ctx) => {
   const fragment0 = App_tmpl0(ctx.document);
   const el0 = _first(fragment0);
-  return el0;
+  const el1 = _last(fragment0);
+  return [el0, el1];
 };
 == CSR DIAGNOSTICS ==
 

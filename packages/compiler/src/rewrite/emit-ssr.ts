@@ -121,7 +121,8 @@ function emitDynamicRender(
   segments: ReadonlyMap<string, Segment>,
   emittedSetup: { setup: SsrSetup; imports: string[] }
 ): SsrRender | null {
-  if (result.root === null) {
+  const root = result.roots[0];
+  if (root === undefined) {
     return null;
   }
   const next = createNameAllocator();
@@ -134,7 +135,7 @@ function emitDynamicRender(
   const attrs = new Map<string, string>();
   const events = new Map<string, string>();
   const html = emitVisibleTaskCarriers(result, source, events);
-  const targetIds = new Map<number, string>(id === null ? [] : [[result.root, id]]);
+  const targetIds = new Map<number, string>(id === null ? [] : [[root, id]]);
   const statements = [
     ...emitSsrRenderPrelude(result),
     ...(id === null ? [] : [`const ${id} = ctx.nextId();`]),
@@ -157,7 +158,7 @@ function emitDynamicRender(
     }
     statements.push(...emitted);
   }
-  const value = emitDynamicHtml(html, result.root, id, texts, attrs, events, targetIds);
+  const value = emitDynamicHtml(html, root, id, texts, attrs, events, targetIds);
   if (value === null) {
     return null;
   }
@@ -202,7 +203,8 @@ function emitVisibleTaskCarriers(
   source: string,
   events: Map<string, string>
 ): HtmlPart[] {
-  if (result.root === null || result.visibleTasks.length === 0) {
+  const root = result.roots[0];
+  if (root === undefined || result.visibleTasks.length === 0) {
     return result.html;
   }
   const groups = new Map<string, Segment[]>();
@@ -220,12 +222,12 @@ function emitVisibleTaskCarriers(
     );
     carriers.push({
       kind: 'event',
-      target: result.root,
+      target: root,
       name: eventName,
       segment: key,
     });
     events.set(
-      createEventKey(result.root, eventName, key),
+      createEventKey(root, eventName, key),
       `ctx.eventAttr(${JSON.stringify(eventName)}, ${
         handlers.length === 1 ? handlers[0] : `[${handlers.join(', ')}]`
       })`

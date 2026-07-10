@@ -66,7 +66,9 @@ describe('lowerRewriteComponent', () => {
   return (
     <>
       <h1>Hello</h1>
-      <p>Qwik</p>
+      <>
+        <p>Qwik</p>
+      </>
     </>
   );
 }
@@ -82,10 +84,31 @@ describe('lowerRewriteComponent', () => {
       { kind: 'html', value: 'Qwik' },
       { kind: 'html', value: '</p>' },
     ]);
-    expect(result?.root).toBe(0);
+    expect(result?.roots).toEqual([0, 1]);
     expect(result?.refs).toEqual([
       { id: 0, path: ['firstChild'] },
       { id: 1, path: ['lastChild'] },
+    ]);
+  });
+
+  test('flattens nested fragments inside elements', () => {
+    const { result } = lowerInput(`export function App() {
+  return <main><><span>First</span><span>Second</span></></main>;
+}
+`);
+
+    expect(result?.html).toEqual([
+      { kind: 'html', value: '<main' },
+      { kind: 'html', value: '>' },
+      { kind: 'html', value: '<span' },
+      { kind: 'html', value: '>' },
+      { kind: 'html', value: 'First' },
+      { kind: 'html', value: '</span>' },
+      { kind: 'html', value: '<span' },
+      { kind: 'html', value: '>' },
+      { kind: 'html', value: 'Second' },
+      { kind: 'html', value: '</span>' },
+      { kind: 'html', value: '</main>' },
     ]);
   });
 
@@ -140,7 +163,7 @@ export function App() {
       { kind: 'marker', id: 1 },
       { kind: 'html', value: '</button>' },
     ]);
-    expect(result?.root).toBe(0);
+    expect(result?.roots).toEqual([0]);
     expect(result?.refs).toEqual([
       { id: 0, path: ['firstChild'] },
       { id: 1, path: ['firstChild', 'firstChild'] },

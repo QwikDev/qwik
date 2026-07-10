@@ -67,7 +67,7 @@ function emitCsrRender(
   source: string,
   imports: Set<string>
 ): CsrRender | null {
-  if (result.root === null) {
+  if (result.roots.length === 0) {
     return null;
   }
   const html = emitTemplateHtml(result);
@@ -108,15 +108,19 @@ function emitCsrRender(
     }
     statements.push(...emitted);
   }
-  const value = refNames.get(result.root);
-  if (value === undefined) {
-    return null;
+  const values: string[] = [];
+  for (const root of result.roots) {
+    const value = refNames.get(root);
+    if (value === undefined) {
+      return null;
+    }
+    values.push(value);
   }
   imports.add(QwikWord.CreateTemplate);
   return {
     hoists: [`const ${templateName} = ${QwikWord.CreateTemplate}(${JSON.stringify(html)});`],
     statements,
-    value,
+    value: values.length === 1 ? values[0] : `[${values.join(', ')}]`,
   };
 }
 
@@ -235,7 +239,7 @@ function startsWithPath(path: readonly RefStep[], prefix: readonly RefStep[]) {
 }
 
 function getUsedRefs(result: RenderResult): Set<number> {
-  const usedRefs = new Set<number>(result.root === null ? [] : [result.root]);
+  const usedRefs = new Set<number>(result.roots);
 
   for (const op of result.ops) {
     switch (op.kind) {

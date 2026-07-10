@@ -156,7 +156,9 @@ describe('transformModules', () => {
   return (
     <>
       <h1>Hello</h1>
-      <p className="copy">Qwik</p>
+      <>
+        <p className="copy">Qwik</p>
+      </>
     </>
   )
 };

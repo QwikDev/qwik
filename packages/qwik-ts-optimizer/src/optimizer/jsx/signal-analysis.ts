@@ -306,6 +306,34 @@ function collectSignalDeps(
     forEachAstChild(n, (child) => fallbackCollectIdents(child));
   }
 
+  // A store/signal chain's computed keys (`sig.value[key]`) are dependencies:
+  // a loop-local key must be carried so the hoisted `_fnSignal` parameterizes
+  // it, while module-scope keys stay free (resolvable at the hoist site).
+  function walkComputedKeys(chainNode: AstMaybeNode): void {
+    let cur: AstMaybeNode = chainNode;
+    while (cur != null && cur.type === 'MemberExpression') {
+      if (cur.computed && cur.property != null) walkKey(cur.property);
+      cur = cur.object;
+    }
+  }
+
+  function walkKey(keyNode: AstMaybeNode): void {
+    if (keyNode == null) return;
+    if (
+      isSignalValueAccess(keyNode) ||
+      isDeepStoreAccess(keyNode, importedNames, localNames) ||
+      isStoreFieldAccess(keyNode, importedNames, localNames)
+    ) {
+      walk(keyNode);
+      return;
+    }
+    if (keyNode.type === 'Identifier') {
+      if (localNames == null || localNames.has(keyNode.name)) addBare(keyNode.name);
+      return;
+    }
+    forEachAstChild(keyNode, (child) => walkKey(child));
+  }
+
   function walk(n: AstMaybeNode): void {
     if (n == null) return;
 
@@ -313,6 +341,7 @@ function collectSignalDeps(
       const root = getMemberChainRoot(n.object);
       if (root != null) {
         addRoot(root);
+        walkComputedKeys(n.object);
         return;
       }
       fallbackCollectIdents(n.object);
@@ -321,6 +350,7 @@ function collectSignalDeps(
 
     if (isDeepStoreAccess(n, importedNames, localNames)) {
       addRoot(getMemberChainRoot(n));
+      walkComputedKeys(n);
       return;
     }
 
@@ -332,6 +362,7 @@ function collectSignalDeps(
       // same type produces `never`. The cast overrides that.
       const memberNode = n as MemberExpressionNode;
       addRoot(getMemberChainRoot(memberNode.object));
+      walkComputedKeys(memberNode.object);
       return;
     }
 
@@ -456,19 +487,53 @@ function generateFnSignal(
  * which excludes function-parameter and declarator-id positions (those
  * positions don't carry reactive root references in practice).
  */
+function collectComputedKeyRewrites(
+  chainNode: AstNode,
+  rootToParam: ReadonlyMap<string, string>,
+  exprStart: number,
+): Array<{ start: number; end: number; replacement: string }> {
+  const reps: Array<{ start: number; end: number; replacement: string }> = [];
+  function rewriteKey(node: AstMaybeNode, parentKey?: string, parentNode?: AstNode): void {
+    if (node == null) return;
+    if (node.type === 'Identifier') {
+      if (
+        parentKey === 'property' &&
+        parentNode?.type === 'MemberExpression' &&
+        !parentNode.computed
+      ) return;
+      const param = rootToParam.get(node.name);
+      if (param != null) {
+        reps.push({ start: node.start - exprStart, end: node.end - exprStart, replacement: param });
+      }
+      return;
+    }
+    forEachAstChild(node, (child, key, parent) => rewriteKey(child, key, parent));
+  }
+  let cur: AstMaybeNode = chainNode;
+  while (cur != null && cur.type === 'MemberExpression') {
+    if (cur.computed && cur.property != null) rewriteKey(cur.property, 'property', cur);
+    cur = cur.object;
+  }
+  return reps;
+}
+
 function rootReplacementsCollector(
   rootToParam: ReadonlyMap<string, string>,
 ): RangeReplacementCollector {
   return (n, ctx) => {
     if (isSignalValueAccess(n) || isDeepStoreAccess(n, new Set())) {
+      const keyRewrites = collectComputedKeyRewrites(n, rootToParam, ctx.exprStart);
       const rootId = findRootIdentifier(n);
       if (rootId && rootToParam.has(rootId.name)) {
         return {
-          replacements: [{
-            start: rootId.start - ctx.exprStart,
-            end: rootId.end - ctx.exprStart,
-            replacement: rootToParam.get(rootId.name)!,
-          }],
+          replacements: [
+            {
+              start: rootId.start - ctx.exprStart,
+              end: rootId.end - ctx.exprStart,
+              replacement: rootToParam.get(rootId.name)!,
+            },
+            ...keyRewrites,
+          ],
           skipSubtree: true,
         };
       }
@@ -479,23 +544,27 @@ function rootReplacementsCollector(
       }
       // Matched shape but rootId not a tracked dep — mirror the
       // behaviour of returning without recursing.
-      return { replacements: [], skipSubtree: true };
+      return { replacements: keyRewrites, skipSubtree: true };
     }
 
     if (isStoreFieldAccess(n, new Set())) {
       const memberNode = n as MemberExpressionNode;
+      const keyRewrites = collectComputedKeyRewrites(memberNode.object, rootToParam, ctx.exprStart);
       const rootId = findRootIdentifier(memberNode.object);
       if (rootId && rootToParam.has(rootId.name)) {
         return {
-          replacements: [{
-            start: rootId.start - ctx.exprStart,
-            end: rootId.end - ctx.exprStart,
-            replacement: rootToParam.get(rootId.name)!,
-          }],
+          replacements: [
+            {
+              start: rootId.start - ctx.exprStart,
+              end: rootId.end - ctx.exprStart,
+              replacement: rootToParam.get(rootId.name)!,
+            },
+            ...keyRewrites,
+          ],
           skipSubtree: true,
         };
       }
-      return { replacements: [], skipSubtree: true };
+      return { replacements: keyRewrites, skipSubtree: true };
     }
 
     if (

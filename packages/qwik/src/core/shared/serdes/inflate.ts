@@ -214,6 +214,10 @@ function* inflateIterator(
       const [resolved, result] = data as [boolean, unknown];
       const [resolve, reject] = resolvers.get(promise)!;
       if (resolved) {
+        // Native Promises cannot fulfill with another Promise.
+        if (resolvers.has(result as Promise<unknown>)) {
+          throw qError(QError.invalidPromiseDependency);
+        }
         resolve(result);
       } else {
         reject(result);

@@ -45,6 +45,7 @@ export const codeToText = (code: number, ...parts: any[]): string => {
       'Serialization Error: Cannot serialize function: {{0}}', // 34
       'Cannot read .value of a clientOnly async signal during SSR. Use .loading to check state, or provide an initial value.', // 35
       'Invalid element name for SSR {{0}}', // 36
+      'Invalid serialized Promise dependency', // 37
     ];
     let text = MAP[code] ?? '';
     if (parts.length) {
@@ -100,6 +101,7 @@ export const enum QError {
   serializeErrorCannotSerializeFunction = 34,
   asyncClientOnlyValueDuringSSR = 35,
   invalidElementName = 36,
+  invalidPromiseDependency = 37,
 }
 
 export const qError = (code: number, errorMessageArgs: any[] = []): Error => {

@@ -39,7 +39,7 @@ import { Fragment } from '../jsx/jsx-runtime';
 import { JSXNodeImpl } from '../jsx/jsx-node';
 import { createPropsProxy, type PropsProxy } from '../jsx/props-proxy';
 import { _OWNER, _PROPS_HANDLER } from '../utils/constants';
-import { _constants, _typeIdNames, TypeIds } from './constants';
+import { _constants, _typeIdNames, Constants, TypeIds } from './constants';
 import { _dumpState } from './dump-state';
 import { qrlToString } from './qrl-to-string';
 import { preprocessState } from './preprocess-state';
@@ -1053,6 +1053,40 @@ describe('shared-serialization', () => {
 
       expect(state[0]).toBe(state[2]);
       expect(state[0]).toEqual({ answer: 42 });
+    });
+
+    it('rejects Promise roots resolved with serialized Promises', () => {
+      const promiseRoot = (rootId: number) => [
+        TypeIds.Promise,
+        [TypeIds.Constant, Constants.True, TypeIds.RootRef, rootId],
+      ];
+      const cycles = [
+        promiseRoot(0),
+        [...promiseRoot(1), ...promiseRoot(0)],
+        [...promiseRoot(1), ...promiseRoot(2), ...promiseRoot(0)],
+        [
+          TypeIds.Promise,
+          [TypeIds.Constant, Constants.True, TypeIds.ForwardRef, 0],
+          ...promiseRoot(0),
+          TypeIds.ForwardRefs,
+          [1],
+        ],
+        [
+          TypeIds.Promise,
+          [
+            TypeIds.Constant,
+            Constants.True,
+            TypeIds.Promise,
+            [TypeIds.Constant, Constants.True, TypeIds.RootRef, 0],
+          ],
+        ],
+      ];
+
+      for (let i = 0; i < cycles.length; i++) {
+        expect(() => eagerDeserialize(cycles[i])).toThrow(
+          `Code(Q${QError.invalidPromiseDependency})`
+        );
+      }
     });
 
     it('restores signal backrefs and computed qrls', async () => {
@@ -2218,6 +2252,32 @@ describe('serializer - internal', () => {
     const ser = await _serialize({ a: 1 });
     const des = await _deserialize(ser);
     expect(des).toEqual({ a: 1 });
+  });
+  it('_deserialize rejects serialized Promise dependencies', async () => {
+    const cycle = [
+      TypeIds.Promise,
+      [TypeIds.Constant, Constants.True, TypeIds.RootRef, 1],
+      TypeIds.Promise,
+      [TypeIds.Constant, Constants.True, TypeIds.RootRef, 0],
+    ];
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    const timeout = new Promise((resolve) => {
+      timeoutId = setTimeout(resolve, 500, 'timeout');
+    });
+
+    try {
+      await expect(Promise.race([_deserialize(JSON.stringify(cycle)), timeout])).rejects.toThrow(
+        `Code(Q${QError.invalidPromiseDependency})`
+      );
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  });
+  it('_deserialize preserves settled Promises', async () => {
+    expect(await _deserialize(await _serialize(Promise.resolve('resolved')))).toBe('resolved');
+    await expect(
+      _deserialize(await _serialize(Promise.reject(new Error('rejected'))))
+    ).rejects.toThrow('rejected');
   });
   it.each([
     ['non-array', { 0: TypeIds.Plain, 1: 'key', 2: TypeIds.Plain, 3: 'value', length: 4 }],

@@ -228,3 +228,9 @@ You accessed `.value` on an async signal with `clientOnly: true` during server-s
 **Invalid element name for SSR**
 
 An element name contains characters that cannot be emitted safely during server-side rendering. Use a valid HTML, SVG, or custom element name.
+
+## Q37
+
+**Invalid serialized Promise dependency**
+
+A serialized Promise tried to resolve with another serialized Promise. Regenerate the state using Qwik's serializer instead of constructing the payload manually.

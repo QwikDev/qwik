@@ -39,7 +39,7 @@ import type { DeserializeContainer, HostElement } from '../types';
 import { _OWNER, _PROPS_HANDLER, _UNINITIALIZED } from '../utils/constants';
 import { isString } from '../utils/types';
 import type { VirtualVNode } from '../vnode/virtual-vnode';
-import { allocate, pendingStoreTargets, resolvers } from './allocate';
+import { allocate, beginDeserialization, endDeserialization, resolvers } from './allocate';
 import { TypeIds } from './constants';
 import { needsInflation } from './deser-proxy';
 import type { SubscriptionPatch } from './subscription-patch';
@@ -71,9 +71,14 @@ export const inflate = (
   typeId: TypeIds,
   data: unknown
 ): void => {
-  const iterator = inflateIterator(container, target, typeId, data);
-  while (!iterator.next().done) {
-    // Run synchronously for lazy deserialization paths.
+  const ownsPendingStoreTargets = beginDeserialization(container);
+  try {
+    const iterator = inflateIterator(container, target, typeId, data);
+    while (!iterator.next().done) {
+      // Run synchronously for lazy deserialization paths.
+    }
+  } finally {
+    endDeserialization(container, ownsPendingStoreTargets);
   }
 };
 
@@ -94,6 +99,7 @@ export function* eagerDeserializeStateIterator(
   data: unknown[],
   output: unknown[] = Array(data.length / 2)
 ): Generator<void, unknown[], void> {
+  const ownsPendingStoreTargets = beginDeserialization(container);
   const length = data.length / 2;
   const allocated = new Uint8Array(length);
   const previousGetObjectById = container.$getObjectById$;
@@ -129,6 +135,7 @@ export function* eagerDeserializeStateIterator(
     }
   } finally {
     container.$getObjectById$ = previousGetObjectById;
+    endDeserialization(container, ownsPendingStoreTargets);
   }
   return output;
 }
@@ -441,9 +448,9 @@ function* inflateIterator(
     }
     case TypeIds.Store: {
       const store = unwrapStore(target) as object;
-      const storeTarget = pendingStoreTargets.get(store);
+      const storeTarget = container.$pendingStoreTargets$!.get(store);
       if (storeTarget) {
-        pendingStoreTargets.delete(store);
+        container.$pendingStoreTargets$!.delete(store);
         yield* inflateIterator(container, store, storeTarget.t, storeTarget.v);
       }
       const [, flags, effects] = data as unknown[];

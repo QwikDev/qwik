@@ -1025,6 +1025,22 @@ describe('shared-serialization', () => {
       expect(restoredTarget.self).toBe(restoredTarget);
     });
 
+    it('releases pending store targets after allocation errors', () => {
+      const data = [TypeIds.Store, [TypeIds.Object, 0], 999, 0];
+      const state = Array(data.length / 2);
+      const container = _createDeserializeContainer(data);
+      const iterator = eagerDeserializeStateIterator(container, data, state);
+
+      expect(iterator.next().done).toBe(false);
+      expect(container.$pendingStoreTargets$?.size).toBe(1);
+      expect(() => {
+        while (!iterator.next().done) {
+          // Exhaust the iterator.
+        }
+      }).toThrow();
+      expect(container.$pendingStoreTargets$).toBeUndefined();
+    });
+
     it('resolves forward refs after root allocation', () => {
       const { state } = eagerDeserialize([
         TypeIds.ForwardRef,
@@ -1362,7 +1378,8 @@ describe('shared-serialization', () => {
       orig.a.store = storeSrc;
 
       const objs = await serialize(orig, storeSrc);
-      const [origRestored, store] = deserialize(objs) as any[];
+      const container = _createDeserializeContainer(objs);
+      const [origRestored, store] = container.$state$ as any[];
       expect(store).toHaveProperty('a');
       expect(store.a).toHaveProperty('b', true);
       expect(store).toHaveProperty('c', store);
@@ -1372,6 +1389,7 @@ describe('shared-serialization', () => {
       expect(store.a.store).toBe(store);
       store.orig.hello = 123;
       expect((origRestored as any).hello).toBe(123);
+      expect(container.$pendingStoreTargets$).toBeUndefined();
     });
     it.todo(title(TypeIds.FormData));
     it.todo(title(TypeIds.JSXNode));

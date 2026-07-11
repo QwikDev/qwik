@@ -29,7 +29,22 @@ import { createQRLWithBackChannel } from './qrl-to-string';
 import { SubscriptionPatch } from './subscription-patch';
 
 export const resolvers = new WeakMap<Promise<any>, [Function, Function]>();
-export const pendingStoreTargets = new Map<object, { t: TypeIds; v: unknown }>();
+
+export const beginDeserialization = (container: DeserializeContainer): boolean => {
+  const ownsPendingStoreTargets = container.$pendingStoreTargets$ === undefined;
+  container.$pendingStoreTargets$ ??= new Map();
+  return ownsPendingStoreTargets;
+};
+
+export const endDeserialization = (
+  container: DeserializeContainer,
+  ownsPendingStoreTargets: boolean
+): void => {
+  if (ownsPendingStoreTargets) {
+    container.$pendingStoreTargets$!.clear();
+    container.$pendingStoreTargets$ = undefined;
+  }
+};
 
 export const allocate = (container: DeserializeContainer, typeId: number, value: unknown): any => {
   switch (typeId) {
@@ -127,7 +142,7 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
       const storeValue = allocate(container, t, v);
       const store = getOrCreateStore(storeValue, StoreFlags.NONE, container as DomContainer);
       if (needsInflation(t)) {
-        pendingStoreTargets.set(storeValue, { t, v });
+        container.$pendingStoreTargets$!.set(storeValue, { t, v });
       }
       // We must store the reference so it doesn't get deserialized again in inflate()
       data[0] = TypeIds.Plain;

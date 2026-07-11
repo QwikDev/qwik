@@ -384,7 +384,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       return navResolver.p;
     }
 
-    internalState.navCount++;
+    const navCount = ++internalState.navCount;
     internalState.currentTransition?.skipTransition();
 
     if (
@@ -394,10 +394,9 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         !isSamePath(dest, lastDest) ||
         !isSameOrigin(dest, lastDest))
     ) {
-      const ourNavId = internalState.navCount;
       const prevents = await Promise.all([...preventNav.$cbs$.values()].map((cb) => cb(dest)));
-      if (ourNavId !== internalState.navCount || prevents.some(Boolean)) {
-        if (ourNavId === internalState.navCount && type === 'popstate') {
+      if (navCount !== internalState.navCount || prevents.some(Boolean)) {
+        if (navCount === internalState.navCount && type === 'popstate') {
           // Popstate events are not cancellable, so we push to undo
           // TODO keep state?
           history.pushState(null, '', lastDest);
@@ -463,8 +462,17 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       historyUpdated = true;
     }
 
-    actionState.value = undefined;
+    routeLocation.isNavigating = true;
+    const container = isBrowser ? _getContextContainer() : undefined;
+    if (container) {
+      // flush isNavigating to the DOM before awaiting the next task so that the router outlet can show a loading state
+      await _waitUntilRendered(container);
+      if (navCount !== internalState.navCount) {
+        return;
+      }
+    }
 
+    actionState.value = undefined;
     routeInternal.value = {
       type,
       dest,
@@ -478,8 +486,6 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       // Prefetch: start loading route bundles and optionally loader data
       prefetchRoute(dest, true, 0.8, manifestHash);
     }
-
-    routeLocation.isNavigating = true;
 
     navResolver.p = new Promise<void>((resolve) => {
       navResolver.r = () => {

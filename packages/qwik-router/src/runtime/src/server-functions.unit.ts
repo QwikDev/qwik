@@ -11,8 +11,26 @@ vi.mock('../../middleware/request-handler/async-request-store', () => ({
 }));
 
 import * as z from 'zod';
-import { getRequestEvent, server$ } from './server-functions';
-import type { RequestEventBase, ValidatorErrorType } from './types';
+import { getRequestEvent, routeAction$, schema$, server$ } from './server-functions';
+import type {
+  RequestEventBase,
+  StandardSchemaV1,
+  StandardSchemaValidatorErrorType,
+  ValidatorErrorType,
+} from './types';
+
+type TestStandardSchema<Input, Output = Input> = StandardSchemaV1<Input, Output>;
+
+const createStandardSchema = <Input, Output = Input>(
+  validate: StandardSchemaV1.Props<Input, Output>['validate']
+): TestStandardSchema<Input, Output> => ({
+  '~standard': {
+    version: 1 as const,
+    vendor: 'test',
+    validate,
+    types: undefined as unknown as StandardSchemaV1.Types<Input, Output>,
+  },
+});
 
 describe('types', () => {
   test('getRequestEvent returns undefined when no async request store exists', () => {
@@ -187,5 +205,158 @@ describe('types', () => {
     expectTypeOf<ErrorType>().not.toEqualTypeOf<{
       someAnyType?: string;
     }>();
+  });
+
+  test('standard schema type uses Qwik validator array paths', () => () => {
+    type Input = {
+      title: string;
+      items?: {
+        name: string;
+        tags: string[];
+      }[];
+    };
+    type ErrorType = StandardSchemaValidatorErrorType<Input>['fieldErrors'];
+    type EqualType = {
+      title?: string;
+      items?: string;
+      ['items[]']?: string[];
+      ['items[].name']?: string[];
+      ['items[].tags']?: string[];
+      ['items[].tags[]']?: string[];
+    };
+
+    expectTypeOf<ErrorType>().toEqualTypeOf<EqualType>();
+    expectTypeOf<ErrorType>().not.toEqualTypeOf<{
+      [key: `items.${number}.name`]: string[] | undefined;
+    }>();
+  });
+
+  test('standard schema error type distributes over unions', () => () => {
+    type Input = { kind: 'user'; user: { name: string } } | { kind: 'org'; org: { slug: string } };
+    type ErrorType = StandardSchemaValidatorErrorType<Input>['fieldErrors'];
+    type EqualType = {
+      kind?: string;
+      user?: string;
+      'user.name'?: string;
+      org?: string;
+      'org.slug'?: string;
+    };
+
+    expectTypeOf<ErrorType>().toEqualTypeOf<EqualType>();
+  });
+
+  test('standard schema action infers input, output, and string array errors', () => () => {
+    const action = routeAction$(
+      (data) => {
+        expectTypeOf(data).toEqualTypeOf<{ id: number }>();
+        return { ok: true };
+      },
+      schema$(() =>
+        createStandardSchema<{ id: string }, { id: number }>((value) => ({
+          value: { id: Number((value as { id: string }).id) },
+        }))
+      )
+    );
+    type ActionValue = ReturnType<typeof action>['value'];
+
+    expectTypeOf<ActionValue>().toMatchTypeOf<
+      | { ok: boolean }
+      | {
+          failed: true;
+          formErrors: string[];
+          fieldErrors: { id?: string };
+          issues: ReadonlyArray<StandardSchemaV1.Issue>;
+        }
+      | undefined
+    >();
+  });
+
+  test('standard schema validates successfully', async () => {
+    const schema = schema$(() =>
+      createStandardSchema<{ id: string }, { id: number }>((value) => ({
+        value: { id: Number((value as { id: string }).id) },
+      }))
+    );
+
+    await expect(schema.validate(undefined as any, { id: '42' })).resolves.toEqual({
+      success: true,
+      data: { id: 42 },
+    });
+  });
+
+  test('standard schema supports callable schemas', async () => {
+    const schema = schema$(
+      () =>
+        Object.assign(() => 'schema function result', {
+          '~standard': {
+            version: 1 as const,
+            vendor: 'test',
+            validate: (value: unknown) => ({ value: String(value) }),
+            types: undefined as unknown as StandardSchemaV1.Types<string>,
+          },
+        }) satisfies StandardSchemaV1<string>
+    );
+
+    await expect(schema.validate(undefined as any, 'hello')).resolves.toEqual({
+      success: true,
+      data: 'hello',
+    });
+  });
+
+  test('standard schema flattens issues to Qwik validator paths and preserves issues', async () => {
+    const schema = schema$(() =>
+      createStandardSchema<{ items: { name: string }[] }>(() => ({
+        issues: [
+          { message: 'Form issue' },
+          { message: 'Items issue', path: ['items'] },
+          { message: 'Name issue', path: ['items', 0, { key: 'name' }] },
+          { message: 'Second name issue', path: ['items', 0, 'name'] },
+        ],
+      }))
+    );
+
+    const issues = [
+      { message: 'Form issue' },
+      { message: 'Items issue', path: ['items'] },
+      { message: 'Name issue', path: ['items', 0, { key: 'name' }] },
+      { message: 'Second name issue', path: ['items', 0, 'name'] },
+    ];
+
+    await expect(schema.validate(undefined as any, { items: [{ name: '' }] })).resolves.toEqual({
+      success: false,
+      status: 400,
+      error: {
+        formErrors: ['Form issue'],
+        fieldErrors: {
+          items: 'Items issue',
+          'items[].name': ['Name issue', 'Second name issue'],
+        },
+        issues,
+      },
+    });
+  });
+
+  test('standard schema can be created from the request event and parse the request body', async () => {
+    const requestEvent = {
+      parseBody: vi.fn(async () => ({ token: 'abc' })),
+      sharedMap: new Map(),
+      cookie: {},
+    };
+    const schema = schema$((ev) =>
+      createStandardSchema<{ token: string }, { token: string; url: string }>((value) => ({
+        value: { token: (value as { token: string }).token, url: ev.url.pathname },
+      }))
+    );
+
+    await expect(
+      schema.validate(
+        { ...requestEvent, url: new URL('https://qwik.dev/submit') } as any,
+        undefined
+      )
+    ).resolves.toEqual({
+      success: true,
+      data: { token: 'abc', url: '/submit' },
+    });
+    expect(requestEvent.parseBody).toHaveBeenCalledOnce();
   });
 });

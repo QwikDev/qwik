@@ -53,6 +53,14 @@ export type {
   StaticGenerateHandler,
   ValidatorErrorKeyDotNotation,
   ValidatorErrorType,
+  GetValidatorErrorType,
+  StandardSchemaConstructor,
+  StandardSchemaConstructorQRL,
+  StandardSchemaDataValidator,
+  StandardSchemaV1,
+  StandardTypedV1,
+  StandardSchemaValidatorErrorKeyDotNotation,
+  StandardSchemaValidatorErrorType,
   ZodConstructor,
 } from './types';
 
@@ -78,6 +86,8 @@ export {
   globalActionQrl,
   routeAction$,
   routeActionQrl,
+  schema$,
+  schemaQrl,
   server$,
   serverQrl,
   valibot$,

@@ -5,8 +5,20 @@ import type {
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { Http2ServerRequest } from 'node:http2';
 import type { QwikRouterNodeRequestOptions } from '.';
+import { ServerError } from '../request-handler/server-error';
 import type { ClientConn } from '../request-handler/types';
 import { normalizeRequestUrl } from '../shared/url';
+
+const DEFAULT_REQUEST_BODY_LIMIT = 10 * 1024 * 1024;
+
+class RequestBodyLimitError extends ServerError<string> {
+  code = 'QWIK_REQUEST_BODY_LIMIT';
+  statusCode = 413;
+
+  constructor(limit: number) {
+    super(413, `Request body exceeds ${limit} bytes`);
+  }
+}
 
 export function computeOrigin(
   req: IncomingMessage | Http2ServerRequest,
@@ -252,8 +264,13 @@ export async function fromNodeHttp(
   req: IncomingMessage | Http2ServerRequest,
   res: ServerResponse,
   mode: ServerRequestMode,
-  getClientConn?: (req: IncomingMessage | Http2ServerRequest) => ClientConn
+  getClientConn?: (req: IncomingMessage | Http2ServerRequest) => ClientConn,
+  requestBodyLimit = DEFAULT_REQUEST_BODY_LIMIT
 ) {
+  if (!Number.isSafeInteger(requestBodyLimit) || requestBodyLimit <= 0) {
+    throw new TypeError('requestBodyLimit must be a positive safe integer');
+  }
+
   const requestHeaders = new Headers();
   const nodeRequestHeaders = req.headers;
 
@@ -275,7 +292,14 @@ export async function fromNodeHttp(
   }
 
   const getRequestBody = async function* () {
-    for await (const chunk of req as any) {
+    let received = 0;
+    for await (const chunk of req as AsyncIterable<string | Uint8Array>) {
+      const byteLength = typeof chunk === 'string' ? Buffer.byteLength(chunk) : chunk.byteLength;
+      if (byteLength > requestBodyLimit - received) {
+        req.resume();
+        throw new RequestBodyLimitError(requestBodyLimit);
+      }
+      received += byteLength;
       yield chunk;
     }
   };

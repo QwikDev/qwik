@@ -79,4 +79,23 @@ describe('createQwikRouter().router', () => {
     expect(next).toHaveBeenCalledWith(error);
     consoleError.mockRestore();
   });
+
+  it('should preserve a stricter host body limit', async () => {
+    const opts = createNodeOptions();
+    opts.requestBodyLimit = 4096;
+    mockFromNodeHttp.mockResolvedValue({ platform: {} });
+    mockRequestHandler.mockResolvedValue(undefined);
+    const middleware = createQwikRouter(opts);
+
+    await (middleware.router as any)({ url: '/', headers: {} }, {}, vi.fn(), { bodyLimit: 1024 });
+
+    expect(mockFromNodeHttp).toHaveBeenCalledWith(
+      expect.any(URL),
+      expect.any(Object),
+      expect.any(Object),
+      'server',
+      undefined,
+      1024
+    );
+  });
 });

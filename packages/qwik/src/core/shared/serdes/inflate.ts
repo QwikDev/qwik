@@ -158,6 +158,9 @@ function* inflateIterator(
     // Already processed
     return;
   }
+  if (typeId === TypeIds.Object && data !== 0 && (!Array.isArray(data) || data.length % 4 !== 0)) {
+    throw new Error('Invalid Object payload');
+  }
   // Restore the complex data, special case for Array
   if (typeId !== TypeIds.Array && Array.isArray(data)) {
     data = yield* eagerDeserializeArrayIterator(container, data);

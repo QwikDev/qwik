@@ -2201,6 +2201,14 @@ describe('serializer - internal', () => {
     const des = await _deserialize(ser);
     expect(des).toEqual({ a: 1 });
   });
+  it.each([
+    ['non-array', { 0: TypeIds.Plain, 1: 'key', 2: TypeIds.Plain, 3: 'value', length: 4 }],
+    ['incomplete', [TypeIds.Plain, 'key']],
+  ])('rejects %s Object payloads', async (_name, value) => {
+    await expect(_deserialize(JSON.stringify([TypeIds.Object, value]))).rejects.toThrow(
+      'Invalid Object payload'
+    );
+  });
   it('_serialize should emit short integer-like plain object keys as numbers', async () => {
     const ser = await _serialize({
       123: 'a',

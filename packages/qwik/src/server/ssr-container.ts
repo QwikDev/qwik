@@ -154,6 +154,8 @@ enum QwikLoaderInclude {
   Done,
 }
 
+const VALID_ELEMENT_NAME = /^[A-Za-z][A-Za-z0-9._:-]*$/;
+
 const NO_SCRIPT_HERE_ELEMENTS = new Set([
   'script',
   'style',
@@ -677,6 +679,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     currentFile: string | null = null,
     hasMovedCaptures: boolean = true
   ): string | undefined {
+    if (!VALID_ELEMENT_NAME.test(elementName)) {
+      throw qError(QError.invalidElementName, [JSON.stringify(elementName)]);
+    }
+
     const isQwikStyle =
       isQwikStyleElement(elementName, varAttrs) || isQwikStyleElement(elementName, constAttrs);
     // keep track of parser states/contexts where inline scripts are not safe to emit.

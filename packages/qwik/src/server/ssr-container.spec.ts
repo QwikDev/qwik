@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { ssrCreateContainer } from './ssr-container';
-import { QDefaultSlot, QStyle, VNodeDataChar, encodeVNodeDataString } from './qwik-copy';
+import { QDefaultSlot, QError, QStyle, VNodeDataChar, encodeVNodeDataString } from './qwik-copy';
 import { VNodeDataFlag, type RenderToStreamOptions } from './types';
 import { OPEN_FRAGMENT, CLOSE_FRAGMENT } from './vnode-data';
 import { StreamHandler } from './ssr-stream-handler';
@@ -37,6 +37,43 @@ const getNoScriptHereCount = (container: ReturnType<typeof ssrCreateContainer>) 
 };
 
 describe('SSR Container', () => {
+  it('should reject unsafe element names before writing markup', async () => {
+    const validElementNames = ['div', 'my-widget', 'svg:path', 'foreignObject'];
+    for (let i = 0; i < validElementNames.length; i++) {
+      const elementName = validElementNames[i];
+      const { container, writer } = createTestContainer();
+
+      container.openElement(elementName, null, {}, null, null, null);
+      await container.closeElement();
+
+      expect(writer.toString()).toBe(`<${elementName} :=""></${elementName}>`);
+    }
+
+    const invalidElementNames = [
+      '',
+      '1section',
+      'section demo',
+      'section\tdemo',
+      'section\ndemo',
+      'section/demo',
+      'section>demo',
+      'section<demo',
+      'section=demo',
+      'section"demo',
+      "section'demo",
+      'section\0demo',
+    ];
+    for (let i = 0; i < invalidElementNames.length; i++) {
+      const elementName = invalidElementNames[i];
+      const { container, writer } = createTestContainer();
+
+      expect(() => container.openElement(elementName, null, {}, null, null, null)).toThrow(
+        `Code(Q${QError.invalidElementName})`
+      );
+      expect(writer.toString()).toBe('');
+    }
+  });
+
   it('should not emit Qwik loader before style elements', async () => {
     const { container, writer } = createTestContainer();
 

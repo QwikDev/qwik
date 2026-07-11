@@ -1391,7 +1391,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       if (this.renderOptions.serverData?.nonce) {
         scriptAttrs['nonce'] = this.renderOptions.serverData.nonce;
       }
-      this.writeScript(scriptAttrs, JSON.stringify(patches));
+      this.writeScript(scriptAttrs, JSON.stringify(patches).replaceAll('<', '\\u003C'));
     }
   }
 

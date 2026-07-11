@@ -82,24 +82,39 @@ test.describe('nav', () => {
     });
 
     test('should update history and render immediately during SPA nav', async ({ page }) => {
+      let releaseRoute!: () => void;
+      let markRouteRequested!: () => void;
+      const routeRequested = new Promise<void>((resolve) => (markRouteRequested = resolve));
+      const routeReleased = new Promise<void>((resolve) => (releaseRoute = resolve));
       await page.route('**/products/jacket/q-loader-*.json', async (route) => {
-        await new Promise((resolve) => setTimeout(resolve, 600));
+        markRouteRequested();
+        await routeReleased;
         await route.continue();
       });
 
       await page.goto('/qwikrouter-test/products/hat/');
       const link = page.locator('[data-test-link="products-jacket"]');
       const heading = page.locator('h1');
+      const navigationStatus = page.locator('#navigation-status');
 
       await expect(heading).toHaveText('Product: hat');
-      await link.click();
+      await expect(navigationStatus).toHaveText('idle');
+      const click = link.click();
+      await routeRequested;
 
+      try {
+        await expect(navigationStatus).toHaveText('navigating');
+      } finally {
+        releaseRoute();
+      }
+      await click;
       // URL and params update immediately — the nav task does not wait for loaders.
       // The heading uses params.id directly so it switches right away.
       await expect
         .poll(() => new URL(page.url()).pathname)
         .toBe('/qwikrouter-test/products/jacket/');
       await expect(heading).toHaveText('Product: jacket');
+      await expect(navigationStatus).toHaveText('idle');
     });
 
     test.describe('scroll-restoration', () => {
@@ -370,6 +385,17 @@ test.describe('nav', () => {
       await btn.click();
 
       // Should end up at C (the second nav call), not B
+      await expect(page.locator('#double-nav-c')).toBeVisible();
+      expect(new URL(page.url()).pathname).toBe('/qwikrouter-test/double-nav/c/');
+      await expect(page.locator('#double-nav-c-data')).toHaveText('data-c');
+    });
+
+    test('second nav() call should win while the first waits for render', async ({ page }) => {
+      await page.goto('/qwikrouter-test/double-nav/a/');
+      await expect(page.locator('#double-nav-a')).toBeVisible();
+
+      await page.locator('#double-nav-render-btn').click();
+
       await expect(page.locator('#double-nav-c')).toBeVisible();
       expect(new URL(page.url()).pathname).toBe('/qwikrouter-test/double-nav/c/');
       await expect(page.locator('#double-nav-c-data')).toHaveText('data-c');

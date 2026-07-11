@@ -16,6 +16,15 @@ export default component$(() => {
       >
         Double Nav
       </button>
+      <button
+        id="double-nav-render-btn"
+        onClick$={() => {
+          nav('/qwikrouter-test/double-nav/b/');
+          queueMicrotask(() => nav('/qwikrouter-test/double-nav/c/'));
+        }}
+      >
+        Double Nav During Render
+      </button>
     </div>
   );
 });

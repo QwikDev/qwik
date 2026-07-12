@@ -565,9 +565,6 @@ function createResolveRequestHandlers() {
     }
   }
 
-  // Streams an async-iterator server function result to the response writable. A mid-stream
-  // client disconnect errors the writable, so write/close reject; dropping those rejections
-  // makes them unhandled, which aborts the process on Bun (Node only warns).
   async function streamServerFunctionResult(
     ev: RequestEvent,
     result: AsyncIterable<unknown>,
@@ -585,9 +582,17 @@ function createResolveRequestHandlers() {
         break;
       }
       // Swallow rejection: writable may be errored by a client disconnect.
-      await stream.write(encoder.encode(`${message}\n`)).catch(() => {});
+      await stream.write(encoder.encode(`${message}\n`)).catch((err) => {
+        if (isDev) {
+          console.error(`Server function ${qrl.getSymbol()} stream write failed:`, err);
+        }
+      });
     }
-    await stream.close().catch(() => {});
+    await stream.close().catch((err) => {
+      if (isDev) {
+        console.error(`Server function ${qrl.getSymbol()} stream close failed:`, err);
+      }
+    });
   }
 
   function fixTrailingSlash(ev: RequestEvent) {

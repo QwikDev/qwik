@@ -168,6 +168,17 @@ describe('transformModules', () => {
     });
   });
 
+  test('passes an event prop to a native element', async () => {
+    await testInput('component_props_event', {
+      code: `import type { QRL } from '@qwik.dev/core';
+
+export function App(props: { onClick$: QRL<() => void> }) {
+  return <button onClick$={props.onClick$}>Save</button>;
+}
+`,
+    });
+  });
+
   test('renders a local member expression as text', async () => {
     await testInput('component_local_text', {
       code: `export function App() {

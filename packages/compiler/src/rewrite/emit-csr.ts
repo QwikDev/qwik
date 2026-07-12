@@ -193,10 +193,23 @@ function emitCsrOp(
         return null;
       }
       imports.add(QwikWord.SetEvent);
-      const captures = op.captures.length > 0 ? `, [${op.captures.join(', ')}]` : '';
-      return [
-        `${QwikWord.SetEvent}(${target}, ${JSON.stringify(op.name)}, ${op.segment}${captures});`,
-      ];
+      switch (op.binding.kind) {
+        case 'segment': {
+          const captures =
+            op.binding.captures.length > 0 ? `, [${op.binding.captures.join(', ')}]` : '';
+          return [
+            `${QwikWord.SetEvent}(${target}, ${JSON.stringify(op.name)}, ${op.binding.segment}${captures});`,
+          ];
+        }
+        case 'value': {
+          const event = next('event');
+          const value = source.slice(op.binding.range[0], op.binding.range[1]);
+          return [
+            `const ${event} = ${value};`,
+            `if (${event}) ${QwikWord.SetEvent}(${target}, ${JSON.stringify(op.name)}, ${event});`,
+          ];
+        }
+      }
     }
   }
 }

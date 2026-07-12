@@ -13,7 +13,6 @@ import {
   getJsxName,
   getRange,
   isCallExpression,
-  isFunctionLike,
   isNativeTag,
   jsxEventToHtmlAttribute,
   normalizeJsxText,
@@ -26,6 +25,7 @@ import { isRewriteSourceFactoryName } from './discover';
 import { isSetupQrlSegment } from './extract';
 import type {
   AttributeHtmlPart,
+  EventBinding,
   EventHtmlPart,
   ExtractedQrls,
   HtmlHtmlPart,
@@ -54,6 +54,10 @@ type PendingTextEffect = Omit<Extract<Op, { kind: 'textEffect' }>, 'target'>;
 type DynamicAttrValue =
   | { kind: 'source'; expr: SourceRange; range: SourceRange }
   | { kind: 'expression'; expr: SourceRange; segment: Segment };
+
+type DynamicEvent =
+  | { kind: 'segment'; name: string; segment: Segment }
+  | { kind: 'value'; name: string; range: SourceRange };
 
 interface RenderedContent {
   kind: 'content';
@@ -315,16 +319,33 @@ function pushAttr(
   const event = getEventAttr(name, value, state);
   if (event !== null) {
     if (target !== undefined) {
-      const captures = event.segment.captures.map((capture) => capture.name);
-      attrs.push(createEventRecord(target, event.name, event.segment.name));
+      let key: string;
+      let binding: EventBinding;
+      switch (event.kind) {
+        case 'segment': {
+          const captures = event.segment.captures.map((capture) => capture.name);
+          key = event.segment.name;
+          binding = {
+            kind: 'segment',
+            segment: event.segment.name,
+            captures,
+          };
+          retainSegment(state, event.segment);
+          break;
+        }
+        case 'value':
+          key = `value:${event.range[0]}:${event.range[1]}`;
+          binding = { kind: 'value', range: event.range };
+          break;
+      }
+      attrs.push(createEventRecord(target, event.name, key));
       state.ops.push({
         kind: 'event',
         target,
         name: event.name,
-        segment: event.segment.name,
-        captures,
+        key,
+        binding,
       });
-      retainSegment(state, event.segment);
     }
     return;
   }
@@ -423,24 +444,36 @@ function getEventAttr(
   name: string,
   value: JSXAttributeValue | null,
   state: LowerState
-): { name: string; segment: Segment } | null {
+): DynamicEvent | null {
   const eventName = jsxEventToHtmlAttribute(name);
-  if (
-    eventName === null ||
-    value?.type !== 'JSXExpressionContainer' ||
-    !isFunctionLike(unwrapExpression(value.expression))
-  ) {
+  if (eventName === null || value?.type !== 'JSXExpressionContainer') {
     return null;
   }
-  const fn = unwrapExpression(value.expression);
-  const range = getRange(fn);
-  if (range === null) {
+  const expression = unwrapExpression(value.expression);
+  if (expression === null || expression === undefined) {
     return null;
   }
-  const segment = state.extractedQrls.segments.find(
-    (segment) => segment.functionRange[0] === range[0] && segment.functionRange[1] === range[1]
-  );
-  return segment?.kind === 'event' ? { name: eventName, segment } : null;
+
+  switch (expression.type) {
+    case 'ArrowFunctionExpression':
+    case 'FunctionExpression': {
+      const range = getRange(expression);
+      if (range === null) {
+        return null;
+      }
+      const segment = state.extractedQrls.segments.find(
+        (segment) => segment.functionRange[0] === range[0] && segment.functionRange[1] === range[1]
+      );
+      return segment?.kind === 'event' ? { kind: 'segment', name: eventName, segment } : null;
+    }
+    case 'Identifier':
+    case 'MemberExpression': {
+      const range = getRange(expression);
+      return range === null ? null : { kind: 'value', name: eventName, range };
+    }
+    default:
+      return null;
+  }
 }
 
 function getDynamicAttrValue(
@@ -854,6 +887,6 @@ function createAttributeRecord(target: number, name: string, expr: SourceRange):
   return { kind: 'attr', target, name, expr };
 }
 
-function createEventRecord(target: number, name: string, segment: string): EventHtmlPart {
-  return { kind: 'event', target, name, segment };
+function createEventRecord(target: number, name: string, key: string): EventHtmlPart {
+  return { kind: 'event', target, name, key };
 }

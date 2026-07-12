@@ -53,7 +53,7 @@ export type EventHtmlPart = {
   kind: 'event';
   target: number;
   name: string;
-  segment: string;
+  key: string;
 };
 export type TextHtmlPart = { kind: 'text'; expr: SourceRange };
 export type MarkerHtmlPart = { kind: 'marker'; id: number };
@@ -81,6 +81,10 @@ export type ValueEffectBinding =
 
 export type TextEffectBinding = ValueEffectBinding | { kind: 'unsupported' };
 
+export type EventBinding =
+  | { kind: 'segment'; segment: string; captures: string[] }
+  | { kind: 'value'; range: SourceRange };
+
 export type TextEffectTarget =
   | { kind: 'element'; id: number; marker: number }
   | { kind: 'range'; marker: number };
@@ -99,7 +103,7 @@ export type Op =
       expr: SourceRange;
       binding: ValueEffectBinding;
     }
-  | { kind: 'event'; target: number; name: string; segment: string; captures: string[] };
+  | { kind: 'event'; target: number; name: string; key: string; binding: EventBinding };
 
 export interface SegmentCapture {
   name: string;

@@ -272,7 +272,7 @@ function emitVisibleTaskCarriers(
       kind: 'event',
       target: root,
       name: eventName,
-      segment: key,
+      key,
     });
     events.set(
       createEventKey(root, eventName, key),
@@ -377,14 +377,24 @@ function emitSsrOp(
     case 'attrEffect':
       return emitSsrAttrOp(op, attrs, targetIds, segments, source, next);
     case 'event': {
-      const segment = segments.get(op.segment);
-      if (segment === undefined) {
-        return null;
+      let reference: string;
+      switch (op.binding.kind) {
+        case 'segment': {
+          const segment = segments.get(op.binding.segment);
+          if (segment === undefined) {
+            return null;
+          }
+          const qrl = getQrlVariableName(segment);
+          reference =
+            op.binding.captures.length > 0 ? `${qrl}.w([${op.binding.captures.join(', ')}])` : qrl;
+          break;
+        }
+        case 'value':
+          reference = source.slice(op.binding.range[0], op.binding.range[1]);
+          break;
       }
-      const qrl = getQrlVariableName(segment);
-      const reference = op.captures.length > 0 ? `${qrl}.w([${op.captures.join(', ')}])` : qrl;
       events.set(
-        createEventKey(op.target, op.name, op.segment),
+        createEventKey(op.target, op.name, op.key),
         `ctx.eventAttr(${JSON.stringify(op.name)}, ${reference})`
       );
       return [];
@@ -559,7 +569,7 @@ function emitDynamicHtml(
         break;
       }
       case 'event': {
-        const event = events.get(createEventKey(part.target, part.name, part.segment));
+        const event = events.get(createEventKey(part.target, part.name, part.key));
         if (event === undefined) {
           return null;
         }
@@ -600,8 +610,8 @@ function createAttrKey(target: number, name: string, expr: readonly number[]) {
   return `${target}:${name}:${expr[0]}:${expr[1]}`;
 }
 
-function createEventKey(target: number, name: string, segment: string) {
-  return `${target}:${name}:${segment}`;
+function createEventKey(target: number, name: string, key: string) {
+  return `${target}:${name}:${key}`;
 }
 
 function emitRootHtml(html: string, id: string): string | null {

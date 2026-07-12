@@ -38,6 +38,7 @@ import type {
   RewriteContextProviderImports,
   RewriteSourceFactoryImports,
   Segment,
+  TextEffectBinding,
 } from './types';
 import { QwikHooks } from './words';
 
@@ -83,21 +84,21 @@ interface LowerState {
   shadowedSourceFactoryImports: Set<string>;
   shadowedContextProviderImports: Set<string>;
   trackedSources: Set<string>;
-  extractedQrls: ExtractedQrls | null;
+  extractedQrls: ExtractedQrls;
   segments: Map<string, Segment>;
   providesContext: boolean;
 }
 
 export function lowerRewriteComponent(
   component: RewriteComponent,
-  extractedQrls: ExtractedQrls | null = null
+  extractedQrls: ExtractedQrls
 ): RenderResult | null {
   return lowerFunctionBody(component, extractedQrls);
 }
 
 function lowerFunctionBody(
   component: RewriteComponent,
-  extractedQrls: ExtractedQrls | null
+  extractedQrls: ExtractedQrls
 ): RenderResult | null {
   const state: LowerState = {
     nextRefId: createRefIdAllocator(),
@@ -384,8 +385,7 @@ function getEventAttr(
   if (
     eventName === null ||
     value?.type !== 'JSXExpressionContainer' ||
-    !isFunctionLike(unwrapExpression(value.expression)) ||
-    state.extractedQrls === null
+    !isFunctionLike(unwrapExpression(value.expression))
   ) {
     return null;
   }
@@ -448,21 +448,62 @@ function renderJsxChildren(children: JSXChild[], state: LowerState): RenderedJsx
 }
 
 function renderJsxExpression(expression: unknown, state: LowerState): RenderedJsx | null {
-  if (
-    typeof expression === 'object' &&
-    expression !== null &&
-    'type' in expression &&
-    expression.type === 'JSXEmptyExpression'
-  ) {
+  const expr = unwrapExpression(expression);
+  if (expr === null || expr === undefined) {
     return null;
   }
-  const range = getRange(expression);
+
+  const range = getRange(expr);
   if (range === null) {
     return null;
   }
-  const trackedSource = getDirectTrackedSourceRange(expression, state.trackedSources);
+
+  switch (expr.type) {
+    case 'JSXEmptyExpression':
+      return null;
+    case 'MemberExpression': {
+      const source = getDirectTrackedSourceRange(expr, state.trackedSources);
+      if (source !== null) {
+        return createTextEffect(range, { kind: 'source', range: source }, state);
+      }
+      return createExpressionTextEffect(range, state);
+    }
+    case 'Identifier':
+    case 'BinaryExpression':
+    case 'UnaryExpression':
+    case 'TemplateLiteral':
+      return createExpressionTextEffect(range, state);
+    default:
+      return createTextEffect(range, { kind: 'unsupported' }, state);
+  }
+}
+
+function createExpressionTextEffect(range: SourceRange, state: LowerState): RenderedJsx {
+  const segment = state.extractedQrls.segments.find(
+    (segment) =>
+      segment.kind === 'expression' &&
+      segment.bodyRange[0] === range[0] &&
+      segment.bodyRange[1] === range[1]
+  )!;
+  retainSegment(state, segment);
+  return createTextEffect(
+    range,
+    {
+      kind: 'expression',
+      segment: segment.name,
+      captures: segment.captures.map((capture) => capture.name),
+    },
+    state
+  );
+}
+
+function createTextEffect(
+  expr: SourceRange,
+  binding: TextEffectBinding,
+  state: LowerState
+): RenderedJsx {
   const marker = state.nextRefId();
-  state.ops.push({ kind: 'textEffect', marker, expr: range, trackedSource });
+  state.ops.push({ kind: 'textEffect', marker, expr, binding });
   return {
     html: [{ kind: 'marker', id: marker }],
     refs: [{ id: marker, path: [] }],
@@ -514,16 +555,14 @@ function addSetupStatement(statement: FunctionBody['body'][number], state: Lower
   const range = getRange(statement);
   if (range !== null) {
     state.setup.push(range);
-    if (state.extractedQrls !== null) {
-      for (const segment of state.extractedQrls.segments) {
-        if (
-          isSetupQrlSegment(segment) &&
-          segment.parentId === null &&
-          segment.range[0] >= range[0] &&
-          segment.range[1] <= range[1]
-        ) {
-          retainSegment(state, segment);
-        }
+    for (const segment of state.extractedQrls.segments) {
+      if (
+        isSetupQrlSegment(segment) &&
+        segment.parentId === null &&
+        segment.range[0] >= range[0] &&
+        segment.range[1] <= range[1]
+      ) {
+        retainSegment(state, segment);
       }
     }
   }
@@ -534,9 +573,6 @@ function retainSegment(state: LowerState, segment: Segment): void {
     return;
   }
   state.segments.set(segment.id, segment);
-  if (state.extractedQrls === null) {
-    return;
-  }
   for (const child of state.extractedQrls.segments) {
     if (child.parentId === segment.id && isSetupQrlSegment(child)) {
       retainSegment(state, child);

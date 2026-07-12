@@ -162,12 +162,12 @@ class QrlExtractor {
           this.visitJsxAttribute(attr);
         }
         for (const child of node.children) {
-          this.visit(child);
+          this.visitJsxChild(child);
         }
         return;
       case 'JSXFragment':
         for (const child of node.children) {
-          this.visit(child);
+          this.visitJsxChild(child);
         }
         return;
       case 'JSXAttribute':
@@ -402,6 +402,73 @@ class QrlExtractor {
       return;
     }
     this.visit(node.value);
+  }
+
+  private visitJsxChild(node: unknown) {
+    if (isNode(node) && node.type === 'JSXExpressionContainer') {
+      const expression = unwrapExpression(node.expression);
+      switch (expression?.type) {
+        case 'Identifier':
+        case 'BinaryExpression':
+        case 'UnaryExpression':
+        case 'TemplateLiteral':
+        case 'MemberExpression': {
+          const segment = this.createExpressionSegment('text', expression);
+          if (segment !== null) {
+            this.visitExpressionSegment(expression, segment);
+            return;
+          }
+          break;
+        }
+      }
+    }
+    this.visit(node);
+  }
+
+  private createExpressionSegment(ctxName: string, expression: AstNode): Segment | null {
+    const range = getRange(expression);
+    if (range === null) {
+      return null;
+    }
+    const id = `segment_${this.nextSegment++}`;
+    const segment: Segment = {
+      id,
+      parentId: this.segmentStack[this.segmentStack.length - 1]?.segment.id ?? null,
+      name: createSegmentName(this.path, ctxName, id),
+      kind: 'expression',
+      ctxName,
+      qwik: false,
+      range,
+      functionRange: range,
+      calleeRange: null,
+      argumentRanges: [],
+      paramRanges: [],
+      bodyRange: range,
+      bodyKind: 'expression',
+      awaits: [],
+      captures: [],
+      moduleReferences: [],
+    };
+    this.segments.push(segment);
+    return segment;
+  }
+
+  private visitExpressionSegment(expression: AstNode, segment: Segment) {
+    const previousOwner = this.owner;
+    const owner = this.nextOwner++;
+    this.ownerParents[owner] = previousOwner;
+    this.owner = owner;
+    const state = {
+      segment,
+      owner,
+      captures: new Set<number>(),
+      moduleReferences: new Set<number>(),
+    };
+    this.segmentStack.push(state);
+    this.visit(expression);
+    this.segmentStack.pop();
+    this.propagateCaptures(state);
+    this.owner = previousOwner;
   }
 
   private createSegment(

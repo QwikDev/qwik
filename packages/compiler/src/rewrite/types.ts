@@ -73,8 +73,18 @@ export interface Ref {
   path: RefStep[];
 }
 
+export type TextEffectBinding =
+  | { kind: 'source'; range: SourceRange }
+  | { kind: 'expression'; segment: string; captures: string[] }
+  | { kind: 'unsupported' };
+
 export type Op =
-  | { kind: 'textEffect'; marker: number; expr: SourceRange; trackedSource: SourceRange | null }
+  | {
+      kind: 'textEffect';
+      marker: number;
+      expr: SourceRange;
+      binding: TextEffectBinding;
+    }
   | {
       kind: 'attrEffect';
       target: number;
@@ -93,7 +103,7 @@ export interface Segment {
   id: string;
   parentId: string | null;
   name: string;
-  kind: 'event' | 'qrl';
+  kind: 'event' | 'qrl' | 'expression';
   ctxName: string;
   qwik: boolean;
   range: SourceRange;

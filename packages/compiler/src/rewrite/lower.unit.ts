@@ -2,6 +2,7 @@ import { describe, expect, test } from 'vitest';
 import { parseModule } from '../stages/parse';
 import type { CompilerContext } from '../types';
 import { discoverRewriteComponents } from './discover';
+import { extractQrls } from './extract';
 import { createChildRefPath, lowerRewriteComponent } from './lower';
 import type { RenderResult } from './types';
 
@@ -31,7 +32,8 @@ function lowerInput(code: string): { code: string; result: RenderResult | null }
   expect(ctx.program).not.toBeNull();
   const [component] = discoverRewriteComponents(ctx.program!);
   expect(component).not.toBeUndefined();
-  return { code, result: lowerRewriteComponent(component!) };
+  const extractedQrls = extractQrls(ctx.program!, input.path);
+  return { code, result: lowerRewriteComponent(component!, extractedQrls) };
 }
 
 function lowerTextOp(code: string) {
@@ -43,6 +45,14 @@ function lowerTextOp(code: string) {
     throw new Error('Expected textEffect op');
   }
   return { ...lowered, op };
+}
+
+function expectTextSource(code: string, op: ReturnType<typeof lowerTextOp>['op'], value: string) {
+  expect(op.binding.kind).toBe('source');
+  if (op.binding.kind !== 'source') {
+    throw new Error('Expected source text binding');
+  }
+  expect(code.slice(op.binding.range[0], op.binding.range[1])).toBe(value);
 }
 
 describe('rewrite ref paths', () => {
@@ -174,7 +184,7 @@ export function App() {
       'const count = useSignal(0);',
     ]);
     expect(code.slice(op.expr[0], op.expr[1])).toBe('count.value');
-    expect(op.trackedSource && code.slice(op.trackedSource[0], op.trackedSource[1])).toBe('count');
+    expectTextSource(code, op, 'count');
   });
 
   test.each(['useSignal', 'useComputed$', 'useAsync$', 'useSerializer$'])(
@@ -187,9 +197,7 @@ export function App() {
 }
 `);
 
-      expect(op.trackedSource && code.slice(op.trackedSource[0], op.trackedSource[1])).toBe(
-        'count'
-      );
+      expectTextSource(code, op, 'count');
     }
   );
 
@@ -201,7 +209,7 @@ export function App() {
 }
 `);
 
-    expect(op.trackedSource && code.slice(op.trackedSource[0], op.trackedSource[1])).toBe('count');
+    expectTextSource(code, op, 'count');
   });
 
   test('tracks namespace source factory imports', () => {
@@ -212,7 +220,7 @@ export function App() {
 }
 `);
 
-    expect(op.trackedSource && code.slice(op.trackedSource[0], op.trackedSource[1])).toBe('count');
+    expectTextSource(code, op, 'count');
   });
 
   test('does not track plain value objects', () => {
@@ -223,7 +231,7 @@ export function App() {
 `);
 
     expect(code.slice(op.expr[0], op.expr[1])).toBe('count.value');
-    expect(op.trackedSource).toBeNull();
+    expect(op.binding.kind).toBe('expression');
   });
 
   test('does not track source factories imported from other modules', () => {
@@ -240,8 +248,8 @@ export function App() {
 }
 `);
 
-    expect(coreOp.trackedSource).toBeNull();
-    expect(localOp.trackedSource).toBeNull();
+    expect(coreOp.binding.kind).toBe('expression');
+    expect(localOp.binding.kind).toBe('expression');
   });
 
   test('does not track shadowed source factory imports', () => {
@@ -259,8 +267,8 @@ export function App(useSignal) {
 }
 `);
 
-    expect(localOp.trackedSource).toBeNull();
-    expect(paramOp.trackedSource).toBeNull();
+    expect(localOp.binding.kind).toBe('expression');
+    expect(paramOp.binding.kind).toBe('expression');
   });
 
   test.each([
@@ -326,7 +334,7 @@ export function App() {
 `);
 
     expect(code.slice(op.expr[0], op.expr[1])).toBe('count.value + 1');
-    expect(op.trackedSource).toBeNull();
+    expect(op.binding.kind).toBe('expression');
   });
 
   test('does not direct-track computed value access yet', () => {
@@ -338,6 +346,6 @@ export function App() {
 `);
 
     expect(code.slice(op.expr[0], op.expr[1])).toBe("count['value']");
-    expect(op.trackedSource).toBeNull();
+    expect(op.binding.kind).toBe('expression');
   });
 });

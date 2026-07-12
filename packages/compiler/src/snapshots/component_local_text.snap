@@ -1,0 +1,124 @@
+==INPUT==
+
+export function App() {
+  const local = { value: 'Hello' };
+  return <p>{local.value}</p>;
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  escapeHTML,
+  renderSsrTextExpression,
+  createSsrRangeTextTarget,
+  maybeThen,
+  _qrlWithChunk,
+} from '@qwik.dev/core/spark';
+import { component_text_segment_0 } from './component.tsx_component_text_segment_0';
+
+const q_component_text_segment_0 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_text_segment_0',
+  () => import('./component.tsx_component_text_segment_0'),
+  'component_text_segment_0'
+);
+q_component_text_segment_0.s(component_text_segment_0);
+export function App(props, ctx) {
+  const local = { value: 'Hello' };
+  const id0 = ctx.nextId();
+  ctx.addRoot(local);
+  const text0 = renderSsrTextExpression(
+    createSsrRangeTextTarget(id0, 0),
+    [local],
+    q_component_text_segment_0
+  );
+  return maybeThen(
+    text0,
+    (text0) => '<p q:id="' + id0 + '"' + '>' + '<!t>' + escapeHTML(text0) + '</p>'
+  );
+}
+============================= src/component.tsx_component_text_segment_0.js (ENTRY POINT)==
+
+export const component_text_segment_0 = (local) => {
+  return local.value;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_0",
+  "entry": null,
+  "displayName": "component_text_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_text_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    71,
+    82
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "local"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { _first, createTextExpressionEffect, createTemplate } from '@qwik.dev/core/spark';
+import { component_text_segment_0 } from './component.tsx_component_text_segment_0';
+
+const App_tmpl0 = createTemplate('<p> </p>');
+export function App(props, ctx) {
+  const local = { value: 'Hello' };
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const text0 = _first(el0);
+  const effect0 = createTextExpressionEffect(
+    text0,
+    [local],
+    component_text_segment_0,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect0);
+  return el0;
+}
+============================= src/component.tsx_component_text_segment_0.js (ENTRY POINT)==
+
+export const component_text_segment_0 = (local) => {
+  return local.value;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_0",
+  "entry": null,
+  "displayName": "component_text_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_text_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    71,
+    82
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "local"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

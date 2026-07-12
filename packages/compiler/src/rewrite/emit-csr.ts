@@ -137,17 +137,30 @@ function emitCsrOp(
       if (target === undefined) {
         return null;
       }
-      if (op.trackedSource === null) {
-        // ponytail: valid IR; add expression/QRL emission when text expressions land.
-        return null;
+      switch (op.binding.kind) {
+        case 'source': {
+          const effect = next('effect');
+          const expr = source.slice(op.binding.range[0], op.binding.range[1]);
+          imports.add(QwikWord.CreateTextNodeEffect);
+          return [
+            `const ${effect} = ${QwikWord.CreateTextNodeEffect}(${target}, ${expr}, ctx.scheduler);`,
+            `ctx.scheduler.notify(${effect});`,
+          ];
+        }
+        case 'expression': {
+          const effect = next('effect');
+          imports.add(QwikWord.CreateTextExpressionEffect);
+          return [
+            `const ${effect} = ${QwikWord.CreateTextExpressionEffect}(${target}, [${op.binding.captures.join(
+              ', '
+            )}], ${op.binding.segment}, ctx.scheduler);`,
+            `ctx.scheduler.notify(${effect});`,
+          ];
+        }
+        case 'unsupported':
+          return null;
       }
-      const effect = next('effect');
-      const expr = source.slice(op.trackedSource[0], op.trackedSource[1]);
-      imports.add(QwikWord.CreateTextNodeEffect);
-      return [
-        `const ${effect} = ${QwikWord.CreateTextNodeEffect}(${target}, ${expr}, ctx.scheduler);`,
-        `ctx.scheduler.notify(${effect});`,
-      ];
+      return null;
     }
     case 'attrEffect': {
       const target = refNames.get(op.target);

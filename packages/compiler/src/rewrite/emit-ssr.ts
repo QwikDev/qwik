@@ -74,7 +74,10 @@ export function emitSsrModule(
 }
 
 function shouldResolveSsrSegment(segment: Segment): boolean {
-  return segment.kind === 'qrl' && segment.ctxName !== QwikHooks.Dollar;
+  return (
+    segment.kind === 'expression' ||
+    (segment.kind === 'qrl' && segment.ctxName !== QwikHooks.Dollar)
+  );
 }
 
 function emitSsrComponent(component: RewriteComponent, render: SsrRender, source: string): string {
@@ -180,12 +183,22 @@ function emitDynamicRender(
       value: renderedHtml,
     };
   }
+  const hasTextExpression = result.ops.some(
+    (op) => op.kind === 'textEffect' && op.binding.kind === 'expression'
+  );
+  const hasTextSource = result.ops.some(
+    (op) => op.kind === 'textEffect' && op.binding.kind === 'source'
+  );
   return {
     imports: [
       ...setupImports,
       QwikWord.EscapeHTML,
       ...(textNames.length > 0
-        ? [QwikWord.RenderSsrTextNode, QwikWord.CreateSsrRangeTextTarget]
+        ? [
+            ...(hasTextSource ? [QwikWord.RenderSsrTextNode] : []),
+            ...(hasTextExpression ? [QwikWord.RenderSsrTextExpression] : []),
+            QwikWord.CreateSsrRangeTextTarget,
+          ]
         : []),
       ...(attrNames.length > 0 ? [QwikWord.CreateSsrElementTarget, QwikWord.RenderSsrAttr] : []),
       QwikWord.MaybeThen,
@@ -327,7 +340,7 @@ function emitSsrOp(
       if (id === null) {
         return null;
       }
-      return emitSsrTextOp(op, markerIndexes, texts, source, id, next);
+      return emitSsrTextOp(op, markerIndexes, texts, segments, source, id, next);
     case 'attrEffect':
       return emitSsrAttrOp(op, attrs, targetIds, source, next);
     case 'event': {
@@ -379,6 +392,7 @@ function emitSsrTextOp(
   op: Extract<Op, { kind: 'textEffect' }>,
   markerIndexes: Map<number, number>,
   texts: Map<number, string>,
+  segments: ReadonlyMap<string, Segment>,
   source: string,
   id: string,
   next: (prefix: string) => string
@@ -387,17 +401,31 @@ function emitSsrTextOp(
   if (markerIndex === undefined) {
     return null;
   }
-  if (op.trackedSource === null) {
-    // ponytail: valid IR; add expression/QRL emission when text expressions land.
-    return null;
-  }
   const text = next(QwikGenWord.Text);
-  const expr = source.slice(op.trackedSource[0], op.trackedSource[1]);
   texts.set(op.marker, text);
-  return [
-    `ctx.addRoot(${expr});`,
-    `const ${text} = ${QwikWord.RenderSsrTextNode}(${QwikWord.CreateSsrRangeTextTarget}(${id}, ${markerIndex}), ${expr});`,
-  ];
+  switch (op.binding.kind) {
+    case 'source': {
+      const expr = source.slice(op.binding.range[0], op.binding.range[1]);
+      return [
+        `ctx.addRoot(${expr});`,
+        `const ${text} = ${QwikWord.RenderSsrTextNode}(${QwikWord.CreateSsrRangeTextTarget}(${id}, ${markerIndex}), ${expr});`,
+      ];
+    }
+    case 'expression': {
+      const segment = segments.get(op.binding.segment);
+      if (segment === undefined) {
+        return null;
+      }
+      return [
+        ...op.binding.captures.map((capture) => `ctx.addRoot(${capture});`),
+        `const ${text} = ${QwikWord.RenderSsrTextExpression}(${QwikWord.CreateSsrRangeTextTarget}(${id}, ${markerIndex}), [${op.binding.captures.join(
+          ', '
+        )}], ${getQrlVariableName(segment)});`,
+      ];
+    }
+    case 'unsupported':
+      return null;
+  }
 }
 
 function createMarkerIndexes(parts: readonly HtmlPart[]) {

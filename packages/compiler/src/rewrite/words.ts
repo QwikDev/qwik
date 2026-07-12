@@ -5,6 +5,7 @@ export const enum QwikWord {
   // csr
   CreateTemplate = 'createTemplate',
   CreateTextNodeEffect = 'createTextNodeEffect',
+  CreateTextExpressionEffect = 'createTextExpressionEffect',
   CreateAttrEffect = 'createAttrEffect',
   SetEvent = 'setEvent',
   NextSibling = '_next',
@@ -16,6 +17,7 @@ export const enum QwikWord {
   RenderSsrAttr = 'renderSsrAttr',
   CreateSsrRangeTextTarget = 'createSsrRangeTextTarget',
   RenderSsrTextNode = 'renderSsrTextNode',
+  RenderSsrTextExpression = 'renderSsrTextExpression',
   EscapeHTML = 'escapeHTML',
   MaybeThen = 'maybeThen',
   PromiseAll = 'promiseAll',

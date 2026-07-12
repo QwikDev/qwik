@@ -100,7 +100,8 @@ function emitSegmentCode(
       )};`
     );
   }
-  if (segment.captures.length > 0) {
+  const isExpression = segment.kind === 'expression';
+  if (segment.captures.length > 0 && !isExpression) {
     qwikImports.add(QwikWord.Captures);
   }
   if (segment.awaits.length > 0) {
@@ -121,7 +122,7 @@ function emitSegmentCode(
   }
 
   const captureStatement =
-    segment.captures.length === 0
+    segment.captures.length === 0 || isExpression
       ? ''
       : `const ${segment.captures
           .map((capture, index) => `${capture.name} = ${QwikWord.Captures}[${index}]`)
@@ -132,7 +133,9 @@ function emitSegmentCode(
     segment
   );
   const statements = [captureStatement, body].filter(Boolean).map(indent).join('\n');
-  const functionHead = source.slice(segment.functionRange[0], segment.bodyRange[0]);
+  const functionHead = isExpression
+    ? `(${segment.captures.map((capture) => capture.name).join(', ')}) => `
+    : source.slice(segment.functionRange[0], segment.bodyRange[0]);
   const declaration = `export const ${segment.name} = ${functionHead}{\n${statements}\n};`;
 
   const prelude = [...imports, ...childImports, ...hoists];

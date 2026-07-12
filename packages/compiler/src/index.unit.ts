@@ -150,6 +150,34 @@ describe('transformModules', () => {
     });
   });
 
+  test('renders an identifier props value as text', async () => {
+    await testInput('component_props_text', {
+      code: `export function App(props: { label: string }) {
+  return <p>{props.label}</p>;
+}
+`,
+    });
+  });
+
+  test('renders a local member expression as text', async () => {
+    await testInput('component_local_text', {
+      code: `export function App() {
+  const local = { value: 'Hello' };
+  return <p>{local.value}</p>;
+}
+`,
+    });
+  });
+
+  test('renders grouped text expressions', async () => {
+    await testInput('component_text_expressions', {
+      code: `export function App(props: { count: number; label: string; hidden: boolean }) {
+  return <p>{props.count + 1} {\`Hello \${props.label}\`} {!props.hidden}</p>;
+}
+`,
+    });
+  });
+
   test('simple component with attributes', async () => {
     await testInput('simple_component_with_attributes', {
       code: `export function App() {

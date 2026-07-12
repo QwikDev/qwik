@@ -2336,13 +2336,15 @@ describe('serializer - internal', () => {
       _deserialize(await _serialize(Promise.reject(new Error('rejected'))))
     ).rejects.toThrow('rejected');
   });
-  it.each([
-    ['non-array', { 0: TypeIds.Plain, 1: 'key', 2: TypeIds.Plain, 3: 'value', length: 4 }],
-    ['incomplete', [TypeIds.Plain, 'key']],
-  ])('rejects %s Object payloads', async (_name, value) => {
+  it('rejects non-array Object payloads', async () => {
+    const value = { 0: TypeIds.Plain, 1: 'key', 2: TypeIds.Plain, 3: 'value', length: 4 };
     await expect(_deserialize(JSON.stringify([TypeIds.Object, value]))).rejects.toThrow(
       'Invalid Object payload'
     );
+  });
+  it('preserves trailing undefined Object properties', async () => {
+    const value = await _deserialize(JSON.stringify([TypeIds.Object, [TypeIds.Plain, 'key']]));
+    expect(value).toStrictEqual({ key: undefined });
   });
   it.each([
     ['non-string', { length: 4 }],

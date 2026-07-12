@@ -165,7 +165,7 @@ function* inflateIterator(
     // Already processed
     return;
   }
-  if (typeId === TypeIds.Object && data !== 0 && (!Array.isArray(data) || data.length % 4 !== 0)) {
+  if (typeId === TypeIds.Object && data !== 0 && !Array.isArray(data)) {
     throw new Error('Invalid Object payload');
   }
   // Restore the complex data, special case for Array

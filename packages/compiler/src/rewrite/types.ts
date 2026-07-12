@@ -57,6 +57,7 @@ export type EventHtmlPart = {
 };
 export type TextHtmlPart = { kind: 'text'; expr: SourceRange };
 export type MarkerHtmlPart = { kind: 'marker'; id: number };
+export type TargetHtmlPart = { kind: 'target'; id: number };
 export type HtmlHtmlPart = { kind: 'html'; value: string };
 
 export type HtmlPart =
@@ -64,7 +65,8 @@ export type HtmlPart =
   | TextHtmlPart
   | AttributeHtmlPart
   | EventHtmlPart
-  | MarkerHtmlPart;
+  | MarkerHtmlPart
+  | TargetHtmlPart;
 
 export type RefStep = 'firstChild' | 'lastChild' | 'nextSibling' | 'previousSibling';
 
@@ -78,10 +80,14 @@ export type TextEffectBinding =
   | { kind: 'expression'; segment: string; captures: string[] }
   | { kind: 'unsupported' };
 
+export type TextEffectTarget =
+  | { kind: 'element'; id: number; marker: number }
+  | { kind: 'range'; marker: number };
+
 export type Op =
   | {
       kind: 'textEffect';
-      marker: number;
+      target: TextEffectTarget;
       expr: SourceRange;
       binding: TextEffectBinding;
     }

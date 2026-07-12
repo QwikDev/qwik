@@ -76,7 +76,7 @@ function emitCsrRender(
   const fragmentName = next(QwikGenWord.Fragment);
   const refNames = new Map<number, string>();
   const textMarkers = new Set(
-    result.ops.flatMap((op) => (op.kind === 'textEffect' ? [op.marker] : []))
+    result.ops.flatMap((op) => (op.kind === 'textEffect' ? [op.target.marker] : []))
   );
   const emittedRefs: { name: string; path: RefStep[] }[] = [];
   const setup = emitCsrSetupStatements(result, source, imports);
@@ -133,7 +133,7 @@ function emitCsrOp(
 ): string[] | null {
   switch (op.kind) {
     case 'textEffect': {
-      const target = refNames.get(op.marker);
+      const target = refNames.get(op.target.marker);
       if (target === undefined) {
         return null;
       }
@@ -257,7 +257,7 @@ function getUsedRefs(result: RenderResult): Set<number> {
   for (const op of result.ops) {
     switch (op.kind) {
       case 'textEffect':
-        usedRefs.add(op.marker);
+        usedRefs.add(op.target.marker);
         break;
       case 'attrEffect':
       case 'event':

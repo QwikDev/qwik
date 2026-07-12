@@ -12,7 +12,7 @@ export function App() {
 import {
   escapeHTML,
   renderSsrTextExpression,
-  createSsrRangeTextTarget,
+  createSsrElementTextTarget,
   maybeThen,
   _qrlWithChunk,
 } from '@qwik.dev/core/spark';
@@ -29,14 +29,11 @@ export function App(props, ctx) {
   const id0 = ctx.nextId();
   ctx.addRoot(local);
   const text0 = renderSsrTextExpression(
-    createSsrRangeTextTarget(id0, 0),
+    createSsrElementTextTarget(id0),
     [local],
     q_component_text_segment_0
   );
-  return maybeThen(
-    text0,
-    (text0) => '<p q:id="' + id0 + '"' + '>' + '<!t>' + escapeHTML(text0) + '</p>'
-  );
+  return maybeThen(text0, (text0) => '<p q:id="' + id0 + '"' + '>' + escapeHTML(text0) + '</p>');
 }
 ============================= src/component.tsx_component_text_segment_0.js (ENTRY POINT)==
 

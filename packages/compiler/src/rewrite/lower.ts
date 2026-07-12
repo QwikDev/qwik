@@ -48,10 +48,23 @@ interface TemplateRoot {
   refs: RefInRoot[];
 }
 
-interface RenderedJsx {
+type PendingTextEffect = Omit<Extract<Op, { kind: 'textEffect' }>, 'target'>;
+
+interface RenderedContent {
+  kind: 'content';
   html: HtmlPart[];
   refs: RefInRoot[];
 }
+
+interface RenderedText {
+  kind: 'text';
+  html: HtmlPart[];
+  refs: RefInRoot[];
+  marker: number;
+  effect: PendingTextEffect;
+}
+
+type RenderedJsx = RenderedContent | RenderedText;
 
 interface RefInRoot {
   id: number;
@@ -213,9 +226,25 @@ function renderJsxElementHtml(
     return null;
   }
   const isVoid = VOID_ELEMENTS.has(tag);
-  const elementId = existingId ?? (needsElementRef(opening, state) ? state.nextRefId() : undefined);
   const children = isVoid ? [] : renderJsxChildren(node.children, state);
+  const elementText = children.length === 1 && children[0].kind === 'text' ? children[0] : null;
+  const elementId =
+    existingId ??
+    (elementText !== null || needsElementRef(opening, state) ? state.nextRefId() : undefined);
+  for (const child of children) {
+    if (child.kind === 'text') {
+      // A single dynamic child targets the parent element, so SSR does not need a <!t> marker.
+      const target =
+        child === elementText
+          ? { kind: 'element' as const, id: elementId!, marker: child.marker }
+          : { kind: 'range' as const, marker: child.marker };
+      state.ops.push({ ...child.effect, target });
+    }
+  }
   const html: HtmlPart[] = [createHtmlRecord(`<${tag}`)];
+  if (elementText !== null && elementId !== undefined && elementId !== existingId) {
+    html.push({ kind: 'target', id: elementId });
+  }
   html.push(...renderJsxAttributes(opening, state, elementId));
   html.push(createHtmlRecord('>'));
 
@@ -230,7 +259,7 @@ function renderJsxElementHtml(
   if (!isVoid) {
     html.push(createHtmlRecord(`</${tag}>`));
   }
-  return { html, refs };
+  return { kind: 'content', html, refs };
 }
 
 function renderJsxAttributes(
@@ -419,7 +448,11 @@ function renderJsxChildren(children: JSXChild[], state: LowerState): RenderedJsx
       case 'JSXText': {
         const text = normalizeJsxText(child.value);
         if (text !== '') {
-          rendered.push({ html: [createHtmlRecord(escapeText(text))], refs: [] });
+          rendered.push({
+            kind: 'content',
+            html: [createHtmlRecord(escapeText(text))],
+            refs: [],
+          });
         }
         break;
       }
@@ -503,10 +536,17 @@ function createTextEffect(
   state: LowerState
 ): RenderedJsx {
   const marker = state.nextRefId();
-  state.ops.push({ kind: 'textEffect', marker, expr, binding });
+  const effect: PendingTextEffect = {
+    kind: 'textEffect',
+    expr,
+    binding,
+  };
   return {
+    kind: 'text',
     html: [{ kind: 'marker', id: marker }],
     refs: [{ id: marker, path: [] }],
+    marker,
+    effect,
   };
 }
 

@@ -22,6 +22,7 @@ function emitHtmlParts(parts: readonly HtmlPart[], markers: boolean): string | n
         }
         html += ' ';
         break;
+      case 'target':
       case 'attr':
       case 'event':
         if (!markers) {

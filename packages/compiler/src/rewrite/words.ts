@@ -14,6 +14,7 @@ export const enum QwikWord {
   LastChild = '_last',
   // ssr
   CreateSsrElementTarget = 'createSsrElementTarget',
+  CreateSsrElementTextTarget = 'createSsrElementTextTarget',
   RenderSsrAttr = 'renderSsrAttr',
   CreateSsrRangeTextTarget = 'createSsrRangeTextTarget',
   RenderSsrTextNode = 'renderSsrTextNode',

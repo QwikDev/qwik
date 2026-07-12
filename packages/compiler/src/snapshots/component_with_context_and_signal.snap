@@ -20,7 +20,7 @@ import {
   useSignal,
   escapeHTML,
   renderSsrTextNode,
-  createSsrRangeTextTarget,
+  createSsrElementTextTarget,
   maybeThen,
 } from '@qwik.dev/core/spark';
 
@@ -31,7 +31,7 @@ export const App = (props, ctx) => {
   const contextScopeId = ctx.contextScopeId();
   const id0 = ctx.nextId();
   ctx.addRoot(source);
-  const text0 = renderSsrTextNode(createSsrRangeTextTarget(id0, 0), source);
+  const text0 = renderSsrTextNode(createSsrElementTextTarget(id0), source);
   return maybeThen(
     text0,
     (text0) =>
@@ -42,7 +42,6 @@ export const App = (props, ctx) => {
       id0 +
       '"' +
       '>' +
-      '<!t>' +
       escapeHTML(text0) +
       '</p>' +
       '<!/c>'

@@ -179,7 +179,7 @@ export function App() {
       { id: 1, path: ['firstChild', 'firstChild'] },
     ]);
     expect(result?.ops).toHaveLength(1);
-    expect(op.marker).toBe(1);
+    expect(op.target).toEqual({ kind: 'element', id: 0, marker: 1 });
     expect(result?.setup.map((range) => code.slice(range[0], range[1]))).toEqual([
       'const count = useSignal(0);',
     ]);

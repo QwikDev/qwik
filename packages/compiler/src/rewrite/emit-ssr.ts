@@ -135,7 +135,12 @@ function emitDynamicRender(
     (op) => op.kind === 'textEffect' || op.kind === 'attrEffect'
   );
   const id = hasTargetEffects ? next(QwikGenWord.Id) : null;
-  const markerIndexes = createMarkerIndexes(result.html);
+  const elementTextMarkers = new Set(
+    result.ops.flatMap((op) =>
+      op.kind === 'textEffect' && op.target.kind === 'element' ? [op.target.marker] : []
+    )
+  );
+  const markerIndexes = createMarkerIndexes(result.html, elementTextMarkers);
   const texts = new Map<number, string>();
   const attrs = new Map<string, string>();
   const events = new Map<string, string>();
@@ -163,7 +168,16 @@ function emitDynamicRender(
     }
     statements.push(...emitted);
   }
-  const value = emitDynamicHtml(html, root, id, texts, attrs, events, targetIds);
+  const value = emitDynamicHtml(
+    html,
+    root,
+    id,
+    texts,
+    attrs,
+    events,
+    targetIds,
+    elementTextMarkers
+  );
   if (value === null) {
     return null;
   }
@@ -189,6 +203,12 @@ function emitDynamicRender(
   const hasTextSource = result.ops.some(
     (op) => op.kind === 'textEffect' && op.binding.kind === 'source'
   );
+  const hasElementText = result.ops.some(
+    (op) => op.kind === 'textEffect' && op.target.kind === 'element'
+  );
+  const hasRangeText = result.ops.some(
+    (op) => op.kind === 'textEffect' && op.target.kind === 'range'
+  );
   return {
     imports: [
       ...setupImports,
@@ -197,7 +217,8 @@ function emitDynamicRender(
         ? [
             ...(hasTextSource ? [QwikWord.RenderSsrTextNode] : []),
             ...(hasTextExpression ? [QwikWord.RenderSsrTextExpression] : []),
-            QwikWord.CreateSsrRangeTextTarget,
+            ...(hasElementText ? [QwikWord.CreateSsrElementTextTarget] : []),
+            ...(hasRangeText ? [QwikWord.CreateSsrRangeTextTarget] : []),
           ]
         : []),
       ...(attrNames.length > 0 ? [QwikWord.CreateSsrElementTarget, QwikWord.RenderSsrAttr] : []),
@@ -340,7 +361,7 @@ function emitSsrOp(
       if (id === null) {
         return null;
       }
-      return emitSsrTextOp(op, markerIndexes, texts, segments, source, id, next);
+      return emitSsrTextOp(op, markerIndexes, texts, targetIds, segments, source, id, next);
     case 'attrEffect':
       return emitSsrAttrOp(op, attrs, targetIds, source, next);
     case 'event': {
@@ -392,23 +413,38 @@ function emitSsrTextOp(
   op: Extract<Op, { kind: 'textEffect' }>,
   markerIndexes: Map<number, number>,
   texts: Map<number, string>,
+  targetIds: Map<number, string>,
   segments: ReadonlyMap<string, Segment>,
   source: string,
   id: string,
   next: (prefix: string) => string
 ): string[] | null {
-  const markerIndex = markerIndexes.get(op.marker);
-  if (markerIndex === undefined) {
-    return null;
+  const statements: string[] = [];
+  let target: string;
+  if (op.target.kind === 'element') {
+    let targetId = targetIds.get(op.target.id);
+    if (targetId === undefined) {
+      targetId = next(QwikGenWord.Id);
+      targetIds.set(op.target.id, targetId);
+      statements.push(`const ${targetId} = ctx.nextId();`);
+    }
+    target = `${QwikWord.CreateSsrElementTextTarget}(${targetId})`;
+  } else {
+    const markerIndex = markerIndexes.get(op.target.marker);
+    if (markerIndex === undefined) {
+      return null;
+    }
+    target = `${QwikWord.CreateSsrRangeTextTarget}(${id}, ${markerIndex})`;
   }
   const text = next(QwikGenWord.Text);
-  texts.set(op.marker, text);
+  texts.set(op.target.marker, text);
   switch (op.binding.kind) {
     case 'source': {
       const expr = source.slice(op.binding.range[0], op.binding.range[1]);
       return [
+        ...statements,
         `ctx.addRoot(${expr});`,
-        `const ${text} = ${QwikWord.RenderSsrTextNode}(${QwikWord.CreateSsrRangeTextTarget}(${id}, ${markerIndex}), ${expr});`,
+        `const ${text} = ${QwikWord.RenderSsrTextNode}(${target}, ${expr});`,
       ];
     }
     case 'expression': {
@@ -417,8 +453,9 @@ function emitSsrTextOp(
         return null;
       }
       return [
+        ...statements,
         ...op.binding.captures.map((capture) => `ctx.addRoot(${capture});`),
-        `const ${text} = ${QwikWord.RenderSsrTextExpression}(${QwikWord.CreateSsrRangeTextTarget}(${id}, ${markerIndex}), [${op.binding.captures.join(
+        `const ${text} = ${QwikWord.RenderSsrTextExpression}(${target}, [${op.binding.captures.join(
           ', '
         )}], ${getQrlVariableName(segment)});`,
       ];
@@ -428,11 +465,11 @@ function emitSsrTextOp(
   }
 }
 
-function createMarkerIndexes(parts: readonly HtmlPart[]) {
+function createMarkerIndexes(parts: readonly HtmlPart[], elementTextMarkers: ReadonlySet<number>) {
   const indexes = new Map<number, number>();
   let index = 0;
   for (const part of parts) {
-    if (part.kind === 'marker') {
+    if (part.kind === 'marker' && !elementTextMarkers.has(part.id)) {
       indexes.set(part.id, index++);
     }
   }
@@ -446,7 +483,8 @@ function emitDynamicHtml(
   texts: ReadonlyMap<number, string>,
   attrs: ReadonlyMap<string, string>,
   events: ReadonlyMap<string, string>,
-  targetIds: ReadonlyMap<number, string>
+  targetIds: ReadonlyMap<number, string>,
+  elementTextMarkers: ReadonlySet<number>
 ): string | null {
   const expressions: string[] = [];
   let didInjectRootId = false;
@@ -500,15 +538,27 @@ function emitDynamicHtml(
         expressions.push(event);
         break;
       }
+      case 'target': {
+        if (injectedTargets.has(part.id)) {
+          break;
+        }
+        const targetId = targetIds.get(part.id);
+        if (targetId === undefined) {
+          return null;
+        }
+        injectedTargets.add(part.id);
+        expressions.push(JSON.stringify(` ${QwikAttributes.Id}="`), targetId, JSON.stringify('"'));
+        break;
+      }
       case 'marker': {
         const text = texts.get(part.id);
         if (text === undefined) {
           return null;
         }
-        expressions.push(
-          JSON.stringify(QwikComments.TextMarker),
-          `${QwikWord.EscapeHTML}(${text})`
-        );
+        if (!elementTextMarkers.has(part.id)) {
+          expressions.push(JSON.stringify(QwikComments.TextMarker));
+        }
+        expressions.push(`${QwikWord.EscapeHTML}(${text})`);
         break;
       }
       default:

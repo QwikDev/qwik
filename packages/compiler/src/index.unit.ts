@@ -132,6 +132,15 @@ describe('transformModules', () => {
     });
   });
 
+  test('preserves an identifier props parameter', async () => {
+    await testInput('component_props_identifier', {
+      code: `export function App(input: { value: string }) {
+  return <button onClick$={() => input.value}>Save</button>;
+}
+`,
+    });
+  });
+
   test('simple component with attributes', async () => {
     await testInput('simple_component_with_attributes', {
       code: `export function App() {

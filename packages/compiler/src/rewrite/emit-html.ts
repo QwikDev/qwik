@@ -1,3 +1,4 @@
+import { getIdentifierName } from '../ast-utils';
 import type { HtmlPart, RenderResult, RewriteComponent } from './types';
 import { QwikGenWord } from './words';
 
@@ -41,7 +42,10 @@ export function emitComponentFunction(
   value: string,
   async = false
 ) {
-  const params = `${QwikGenWord.ComponentProps}, ${QwikGenWord.ComponentContext}`;
+  const props =
+    (component.params.length === 1 ? getIdentifierName(component.params[0]) : null) ??
+    QwikGenWord.ComponentProps;
+  const params = `${props}, ${QwikGenWord.ComponentContext}`;
   const body = [...statements.map((statement) => `  ${statement}`), `  return ${value};`].join(
     '\n'
   );

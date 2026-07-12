@@ -141,6 +141,15 @@ describe('transformModules', () => {
     });
   });
 
+  test('destructures an object props parameter', async () => {
+    await testInput('component_props_destructured', {
+      code: `export function App({ label: text, count = 0, ...rest } = { label: 'Save' }) {
+  return <button onClick$={() => [text, count, rest]}>Save</button>;
+}
+`,
+    });
+  });
+
   test('simple component with attributes', async () => {
     await testInput('simple_component_with_attributes', {
       code: `export function App() {

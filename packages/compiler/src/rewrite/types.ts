@@ -1,5 +1,5 @@
-import type { Expression, FunctionBody, ParamPattern } from 'oxc-parser';
-import type { SourceRange } from '../types';
+import type { Expression, FunctionBody } from 'oxc-parser';
+import type { ParamRecord, SourceRange } from '../types';
 
 export interface RewriteSourceFactoryImports {
   named: Set<string>;
@@ -15,7 +15,7 @@ export interface RewriteComponent {
   declarationKind: 'function' | 'const' | 'defaultFunction' | 'defaultArrow';
   exportName: string | 'default';
   localName: string | null;
-  params: ParamPattern[];
+  params: ParamRecord[];
   body: FunctionBody | Expression;
   sourceFactoryImports: RewriteSourceFactoryImports;
   contextProviderImports: RewriteContextProviderImports;

@@ -555,7 +555,7 @@ function createParamSourceFactoryShadows(
 ) {
   const shadowed = new Set<string>();
   for (const param of params) {
-    const name = getIdentifierName(param);
+    const name = param.name;
     if (name !== null && isSourceFactoryImport(name, imports)) {
       shadowed.add(name);
     }
@@ -569,7 +569,7 @@ function createParamContextProviderShadows(
 ) {
   const shadowed = new Set<string>();
   for (const param of params) {
-    const name = getIdentifierName(param);
+    const name = param.name;
     if (name !== null && isContextProviderImport(name, imports)) {
       shadowed.add(name);
     }

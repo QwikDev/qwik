@@ -1,4 +1,3 @@
-import { getIdentifierName } from '../ast-utils';
 import type { HtmlPart, RenderResult, RewriteComponent } from './types';
 import { QwikGenWord } from './words';
 
@@ -40,15 +39,16 @@ export function emitComponentFunction(
   component: RewriteComponent,
   statements: readonly string[],
   value: string,
+  source: string,
   async = false
 ) {
-  const props =
-    (component.params.length === 1 ? getIdentifierName(component.params[0]) : null) ??
-    QwikGenWord.ComponentProps;
+  const param = component.params.length === 1 ? component.params[0] : null;
+  const props = param?.name ?? QwikGenWord.ComponentProps;
   const params = `${props}, ${QwikGenWord.ComponentContext}`;
-  const body = [...statements.map((statement) => `  ${statement}`), `  return ${value};`].join(
-    '\n'
-  );
+  const paramSetup = emitComponentParamSetup(param, props, source);
+  const body = [...(paramSetup === null ? [] : [paramSetup]), ...statements, `return ${value};`]
+    .map((statement) => `  ${statement}`)
+    .join('\n');
   if (component.declarationKind === 'const') {
     return `export const ${component.exportName} = ${async ? 'async ' : ''}(${params}) => {\n${body}\n};`;
   }
@@ -56,6 +56,22 @@ export function emitComponentFunction(
     return `export default ${async ? 'async ' : ''}(${params}) => {\n${body}\n};`;
   }
   return `${emitFunctionHead(component, async)}(${params}) {\n${body}\n}`;
+}
+
+function emitComponentParamSetup(
+  param: RewriteComponent['params'][number] | null,
+  props: string,
+  source: string
+): string | null {
+  if (param?.name !== null || param.bindingRange === null) {
+    return null;
+  }
+  const binding = source.slice(param.bindingRange[0], param.bindingRange[1]);
+  const fallback =
+    param.defaultRange === null
+      ? ''
+      : ` ?? ${source.slice(param.defaultRange[0], param.defaultRange[1])}`;
+  return `const ${binding} = ${props}${fallback};`;
 }
 
 function emitFunctionHead(component: RewriteComponent, async: boolean) {

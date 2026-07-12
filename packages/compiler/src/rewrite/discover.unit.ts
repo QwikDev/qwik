@@ -47,6 +47,33 @@ export function App() {
     expect(components.map((component) => component.exportName)).toEqual(['Header', 'App']);
   });
 
+  test('analyzes object props parameters', () => {
+    const code = `export function App({ label: text }) {
+  return <main>{text}</main>;
+}
+
+export const Rest = ({ count, ...rest } = defaults) => {
+  return <main>{count}</main>;
+};
+`;
+    const [app, rest] = discoverInput(code);
+
+    expect(app.params[0]).toMatchObject({
+      name: null,
+      defaultRange: null,
+      propAliases: [{ localName: 'text', propName: 'label' }],
+      canRewriteProps: true,
+    });
+    expect(code.slice(...app.params[0].bindingRange!)).toBe('{ label: text }');
+    expect(rest.params[0]).toMatchObject({
+      name: null,
+      propAliases: [{ localName: 'count', propName: 'count' }],
+      canRewriteProps: false,
+    });
+    expect(code.slice(...rest.params[0].bindingRange!)).toBe('{ count, ...rest }');
+    expect(code.slice(...rest.params[0].defaultRange!)).toBe('defaults');
+  });
+
   test('unwraps component$ named exports from core imports', () => {
     const components = discoverInput(`import { component$ as component } from '@qwik.dev/core';
 

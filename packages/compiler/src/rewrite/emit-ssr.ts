@@ -42,7 +42,7 @@ export function emitSsrModule(
     for (const name of render.imports) {
       imports.add(name);
     }
-    parts.push(emitSsrComponent(output.component, render));
+    parts.push(emitSsrComponent(output.component, render, source));
   }
   const hoists = segments.map((segment) => {
     const importPath = getSegmentImportPath(inputPath, segment, explicitExtensions);
@@ -77,18 +77,20 @@ function shouldResolveSsrSegment(segment: Segment): boolean {
   return segment.kind === 'qrl' && segment.ctxName !== QwikHooks.Dollar;
 }
 
-function emitSsrComponent(component: RewriteComponent, render: SsrRender): string {
+function emitSsrComponent(component: RewriteComponent, render: SsrRender, source: string): string {
   if (!render.setup.hasTask) {
     return emitComponentFunction(
       component,
       [...render.setup.statements, ...render.statements],
-      render.value
+      render.value,
+      source
     );
   }
   return emitComponentFunction(
     component,
     render.setup.statements,
     emitInvokeRender(render.statements, render.value),
+    source,
     true
   );
 }

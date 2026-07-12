@@ -42,7 +42,7 @@ export function emitCsrModule(
       return null;
     }
     hoists.push(...render.hoists);
-    components.push(emitCsrComponent(output.component, render));
+    components.push(emitCsrComponent(output.component, render, source));
   }
   const segmentImports = segments.map(
     (segment) =>
@@ -57,8 +57,8 @@ export function emitCsrModule(
   };
 }
 
-function emitCsrComponent(component: RewriteComponent, render: CsrRender): string {
-  return emitComponentFunction(component, render.statements, render.value);
+function emitCsrComponent(component: RewriteComponent, render: CsrRender, source: string): string {
+  return emitComponentFunction(component, render.statements, render.value, source);
 }
 
 function emitCsrRender(

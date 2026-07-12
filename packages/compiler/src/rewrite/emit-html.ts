@@ -17,6 +17,7 @@ function emitHtmlParts(parts: readonly HtmlPart[], markers: boolean): string | n
         html += part.value;
         break;
       case 'marker':
+      case 'dynamicJsx':
         if (!markers) {
           return null;
         }

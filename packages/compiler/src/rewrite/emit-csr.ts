@@ -75,9 +75,10 @@ function emitCsrRender(
   const templateName = `${name}_${next(QwikGenWord.Template)}`;
   const fragmentName = next(QwikGenWord.Fragment);
   const refNames = new Map<number, string>();
-  const textMarkers = new Set(
-    result.ops.flatMap((op) => (op.kind === 'textEffect' ? [op.target.marker] : []))
-  );
+  const textMarkers = new Set([
+    ...result.ops.flatMap((op) => (op.kind === 'textEffect' ? [op.target.marker] : [])),
+    ...result.html.flatMap((part) => (part.kind === 'dynamicJsx' ? [part.target] : [])),
+  ]);
   const emittedRefs: { name: string; path: RefStep[] }[] = [];
   const setup = emitCsrSetupStatements(result, source, imports);
   if (setup === null) {
@@ -100,6 +101,20 @@ function emitCsrRender(
     }
     statements.push(`const ${refName} = ${path};`);
     emittedRefs.push({ name: refName, path: ref.path });
+  }
+  for (const part of result.html) {
+    if (part.kind !== 'dynamicJsx') {
+      continue;
+    }
+    const target = refNames.get(part.target);
+    if (target === undefined) {
+      return null;
+    }
+    const jsx = next('jsx');
+    statements.push(
+      `const ${jsx} = ${source.slice(part.expr[0], part.expr[1])};`,
+      `${target}.replaceWith(...(Array.isArray(${jsx}) ? ${jsx} : ${jsx} == null ? [] : [${jsx}]));`
+    );
   }
   for (const op of result.ops) {
     const emitted = emitCsrOp(op, refNames, source, next, imports);
@@ -290,6 +305,12 @@ function startsWithPath(path: readonly RefStep[], prefix: readonly RefStep[]) {
 
 function getUsedRefs(result: RenderResult): Set<number> {
   const usedRefs = new Set<number>(result.roots);
+
+  for (const part of result.html) {
+    if (part.kind === 'dynamicJsx') {
+      usedRefs.add(part.target);
+    }
+  }
 
   for (const op of result.ops) {
     switch (op.kind) {

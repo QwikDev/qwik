@@ -55,14 +55,14 @@ export type EventHtmlPart = {
   name: string;
   key: string;
 };
-export type TextHtmlPart = { kind: 'text'; expr: SourceRange };
+export type DynamicJsxHtmlPart = { kind: 'dynamicJsx'; target: number; expr: SourceRange };
 export type MarkerHtmlPart = { kind: 'marker'; id: number };
 export type TargetHtmlPart = { kind: 'target'; id: number };
 export type HtmlHtmlPart = { kind: 'html'; value: string };
 
 export type HtmlPart =
   | HtmlHtmlPart
-  | TextHtmlPart
+  | DynamicJsxHtmlPart
   | AttributeHtmlPart
   | { kind: 'props'; target: number }
   | EventHtmlPart

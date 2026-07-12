@@ -203,6 +203,17 @@ export function Logical(props: { label?: string }) {
     });
   });
 
+  test('renders a direct function call as a JSX child', async () => {
+    await testInput('component_call_child', {
+      code: `import { renderItem } from './render-item';
+
+export function App(props: { value: string }) {
+  return <section><b>Before</b>{renderItem(props.value)}<i>After</i></section>;
+}
+`,
+    });
+  });
+
   test('passes an event prop to a native element', async () => {
     await testInput('component_props_event', {
       code: `import type { QRL } from '@qwik.dev/core';

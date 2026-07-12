@@ -770,6 +770,14 @@ function renderJsxExpression(expression: unknown, state: LowerState): RenderedJs
   switch (expr.type) {
     case 'JSXEmptyExpression':
       return null;
+    case 'CallExpression': {
+      const target = state.nextRefId();
+      return {
+        kind: 'content',
+        html: [{ kind: 'dynamicJsx', target, expr: range }],
+        refs: [{ id: target, path: [] }],
+      };
+    }
     case 'MemberExpression': {
       const source = getDirectTrackedSourceRange(expr, state.trackedSources);
       if (source !== null) {

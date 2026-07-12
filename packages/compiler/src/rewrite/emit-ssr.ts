@@ -144,6 +144,7 @@ function emitDynamicRender(
   const texts = new Map<number, string>();
   const attrs = new Map<string, string>();
   const props = new Map<number, string>();
+  const jsx = new Map<number, string>();
   const events = new Map<string, string>();
   const html = emitVisibleTaskCarriers(result, source, events);
   const targetIds = new Map<number, string>(id === null ? [] : [[root, id]]);
@@ -151,6 +152,13 @@ function emitDynamicRender(
     ...emitSsrRenderPrelude(result),
     ...(id === null ? [] : [`const ${id} = ctx.nextId();`]),
   ];
+  for (const part of html) {
+    if (part.kind === 'dynamicJsx') {
+      const value = next('jsx');
+      jsx.set(part.target, value);
+      statements.push(`const ${value} = ${source.slice(part.expr[0], part.expr[1])};`);
+    }
+  }
   for (const op of result.ops) {
     const emitted = emitSsrOp(
       op,
@@ -177,6 +185,7 @@ function emitDynamicRender(
     texts,
     attrs,
     props,
+    jsx,
     events,
     targetIds,
     elementTextMarkers
@@ -187,7 +196,8 @@ function emitDynamicRender(
   const textNames = [...texts.values()];
   const attrNames = [...attrs.values()];
   const propsNames = [...props.values()];
-  const dynamicNames = [...textNames, ...attrNames, ...propsNames];
+  const jsxNames = [...jsx.values()];
+  const dynamicNames = [...textNames, ...attrNames, ...propsNames, ...jsxNames];
   const renderedHtml = result.providesContext ? emitContextHtml(value) : value;
   const setupImports = [
     ...emittedSetup.imports,
@@ -558,6 +568,7 @@ function emitDynamicHtml(
   texts: ReadonlyMap<number, string>,
   attrs: ReadonlyMap<string, string>,
   props: ReadonlyMap<number, string>,
+  jsx: ReadonlyMap<number, string>,
   events: ReadonlyMap<string, string>,
   targetIds: ReadonlyMap<number, string>,
   elementTextMarkers: ReadonlySet<number>
@@ -626,6 +637,14 @@ function emitDynamicHtml(
           return null;
         }
         expressions.push(event);
+        break;
+      }
+      case 'dynamicJsx': {
+        const value = jsx.get(part.target);
+        if (value === undefined) {
+          return null;
+        }
+        expressions.push(value);
         break;
       }
       case 'target': {

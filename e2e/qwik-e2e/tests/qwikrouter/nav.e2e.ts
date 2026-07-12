@@ -98,6 +98,7 @@ test.describe('nav', () => {
       const navigationStatus = page.locator('#navigation-status');
 
       await expect(heading).toHaveText('Product: hat');
+      await expect(page.getByText('Price: $21.96')).toBeVisible();
       await expect(navigationStatus).toHaveText('idle');
       const click = link.click();
       await routeRequested;
@@ -114,6 +115,7 @@ test.describe('nav', () => {
         .poll(() => new URL(page.url()).pathname)
         .toBe('/qwikrouter-test/products/jacket/');
       await expect(heading).toHaveText('Product: jacket');
+      await expect(page.getByText('Price: $48.96')).toBeVisible();
       await expect(navigationStatus).toHaveText('idle');
     });
 

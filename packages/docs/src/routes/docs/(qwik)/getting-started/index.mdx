@@ -203,10 +203,13 @@ To declare an action, add this code:
 ```tsx /routeAction\$/ title="src/routes/joke/index.tsx"
 import { routeLoader$, Form, routeAction$ } from '@qwik.dev/router';
 
-export const useJokeVoteAction = routeAction$((props) => {
-  // Leave it as an exercise for the reader to implement this.
-  console.log('VOTE', props);
-});
+export const useJokeVoteAction = routeAction$(
+  (props) => {
+    // Leave it as an exercise for the reader to implement this.
+    console.log('VOTE', props);
+  },
+  { invalidate: [useDadJoke] }
+);
 ```
 
 2. Update the `export default` component to use the `useJokeVoteAction` hook with `<Form>`.
@@ -234,6 +237,7 @@ Code explanation:
 
 - `routeAction$` receives the data.
   - The function passed to `routeAction$` is invoked on the server whenever the form is posted.
+  - The `invalidate` option tells Qwik to re-run `useDadJoke` after the action completes.
   - The `routeAction$` returns a use-hook, `useJokeVoteAction`, that you can use in the component to post the form data.
 - `Form` is a convenience component that wraps the browser's native `<form>` element.
 
@@ -246,7 +250,7 @@ Things to note:
 For reference, the complete code snippet for this section is as follows:
 
 <CodeSandbox src="/src/routes/demo/getting-started/03-posting-data/index.tsx" style={{ height: '8em' }}>
-```tsx {21,25-29} /favoriteJokeAction/ title="src/routes/joke/index.tsx"
+```tsx /favoriteJokeAction/ /invalidate/ title="src/routes/joke/index.tsx"
 import { component$ } from '@qwik.dev/core';
 import { routeLoader$, Form, routeAction$ } from '@qwik.dev/router';
 
@@ -261,9 +265,12 @@ export const useDadJoke = routeLoader$(async () => {
   };
 });
 
-export const useJokeVoteAction = routeAction$((props) => {
-  console.log('VOTE', props);
-});
+export const useJokeVoteAction = routeAction$(
+  (props) => {
+    console.log('VOTE', props);
+  },
+  { invalidate: [useDadJoke] }
+);
 
 export default component$(() => {
   // Calling our `useDadJoke` hook, will return a reactive signal to the loaded data.
@@ -331,9 +338,12 @@ export const useDadJoke = routeLoader$(async () => {
   };
 });
 
-export const useJokeVoteAction = routeAction$((props) => {
-  console.log('VOTE', props);
-});
+export const useJokeVoteAction = routeAction$(
+  (props) => {
+    console.log('VOTE', props);
+  },
+  { invalidate: [useDadJoke] }
+);
 
 export default component$(() => {
   const isFavoriteSignal = useSignal(false);
@@ -416,7 +426,7 @@ NOTE:
 For reference, the complete code snippet for this section is as follows:
 
 <CodeSandbox src="/src/routes/demo/getting-started/05-tasks/index.tsx" style={{ height: '10em' }} maxHeight={500}>
-```tsx {28-34} title="src/routes/joke/index.tsx"
+```tsx {32-38} title="src/routes/joke/index.tsx"
 import { component$, useSignal, useTask$ } from '@qwik.dev/core';
 import {
   routeLoader$,
@@ -436,9 +446,12 @@ export const useDadJoke = routeLoader$(async () => {
   };
 });
 
-export const useJokeVoteAction = routeAction$((props) => {
-  console.log('VOTE', props);
-});
+export const useJokeVoteAction = routeAction$(
+  (props) => {
+    console.log('VOTE', props);
+  },
+  { invalidate: [useDadJoke] }
+);
 
 export default component$(() => {
   const isFavoriteSignal = useSignal(false);
@@ -540,9 +553,12 @@ export const useDadJoke = routeLoader$(async () => {
   };
 });
 
-export const useJokeVoteAction = routeAction$((props) => {
-  console.log('VOTE', props);
-});
+export const useJokeVoteAction = routeAction$(
+  (props) => {
+    console.log('VOTE', props);
+  },
+  { invalidate: [useDadJoke] }
+);
 
 export default component$(() => {
   useStylesScoped$(styles);

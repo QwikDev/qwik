@@ -35,6 +35,7 @@ import { ensureSlash } from '../../utils/pathname';
 import {
   $,
   component$,
+  createComputed$,
   getLocale,
   isBrowser,
   isDev,
@@ -52,9 +53,8 @@ import {
   _getContextContainer,
   _hasStoreEffects,
   _waitUntilRendered,
-  createAsync$,
   forceStoreEffects,
-  type AsyncSignal,
+  type ComputedSignal,
   type ClientContainer,
   type NoSerialize,
   type ValueOrPromise,
@@ -216,12 +216,12 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
   const routeLocation = useStore<MutableRouteLocation>(routeLocationTarget, { deep: false });
   const navResolver: { r?: () => void; p?: Promise<void> } = {};
   // deep: true so that changes to loaderPaths and page path/search properties are tracked by
-  // AsyncSignal QRLs.
+  // ComputedSignal QRLs.
   const routeLoaderCtx = useStore(env.routeLoaderCtx);
   routeLoaderCtx.manifestHash = manifestHash;
-  // Create AsyncSignals whose QRL closures capture the store proxy for client-side reactivity.
+  // Create ComputedSignals whose QRL closures capture the store proxy for client-side reactivity.
   // Then set .value from middleware-computed loader values (inert, non-reactive data).
-  const loaderState = {} as Record<string, AsyncSignal<unknown>>;
+  const loaderState = {} as Record<string, ComputedSignal<unknown>>;
   const contentModulesForInit = env.loadedRoute.$mods$ as ContentModule[];
   const loaders = ensureRouteLoaderSignals(contentModulesForInit, loaderState, routeLoaderCtx);
   for (const loader of loaders) {
@@ -628,7 +628,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         for (let i = 0; i < routeLoaders.length; i++) {
           const loader = routeLoaders[i];
           // trigger load
-          loaderState[loader.__id].untrackedLoading;
+          loaderState[loader.__id].untrackedPending;
         }
       }
       if (internalState.navCount !== navCountBefore) {
@@ -997,9 +997,9 @@ const useQwikMockRouter = (props: QwikRouterMockProps) => {
     },
     {} as Record<string, QwikRouterMockLoaderProp['data']>
   );
-  const loadersState = useStore<Record<string, AsyncSignal<unknown>>>({}, { deep: false });
+  const loadersState = useStore<Record<string, ComputedSignal<unknown>>>({}, { deep: false });
   for (const [loaderId, data] of Object.entries(loadersData ?? {})) {
-    loadersState[loaderId] ||= createAsync$(async () => data, { initial: data });
+    loadersState[loaderId] ||= createComputed$(() => data);
   }
 
   const goto: RouteNavigate =

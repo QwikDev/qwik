@@ -1,16 +1,16 @@
 // @ts-ignore: Unused import
-import { component$, useSignal, useAsync$ } from '@qwik.dev/core';
+import { component$, useSignal, useComputed$ } from '@qwik.dev/core';
 
 export default component$(() => {
   const githubOrg = useSignal('QwikDev');
 
-  // Use useAsync$() to set up how the data is fetched from the server.
+  // Use useComputed$() to set up how the data is fetched from the server.
   // See the example for Fetching Data in the text on the left.
   // @ts-ignore: Unused declaration
-  const repos = useAsync$(({ track, abortSignal }) => {
-    // We need a way to re-run fetching data whenever sthe `github.org` changes.
-    // Use `track` to trigger re-running of the this data fetching function.
-    const org = track(githubOrg);
+  const repos = useComputed$(({ abortSignal }) => {
+    // We need a way to re-run fetching data whenever the `github.org` changes.
+    // Reading githubOrg.value re-runs this function whenever it changes.
+    const org = githubOrg.value;
 
     // The abortSignal is automatically aborted when this function re-runs,
     // canceling any pending fetch requests.
@@ -31,7 +31,7 @@ export default component$(() => {
       <section>
         {/* Display the async signal data using its properties. */}
         {/* To help, here's a callback function to display the data: */}
-        {/* repos.loading && <div>Loading...</div> */}
+        {/* repos.pending && <div>Loading...</div> */}
         {/* repos.error && <div>Error: {repos.error.message}</div> */}
         {/* repos.value && (
             <ul>

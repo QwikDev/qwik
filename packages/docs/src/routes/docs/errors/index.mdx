@@ -234,3 +234,9 @@ An element name contains characters that cannot be emitted safely during server-
 **Invalid serialized Promise dependency**
 
 A serialized Promise tried to resolve with another serialized Promise. Regenerate the state using Qwik's serializer instead of constructing the payload manually.
+
+## Q38
+
+**Invalid serialized Uint8Array payload**
+
+A serialized Uint8Array contained malformed base64 data. Regenerate the state using Qwik's serializer instead of constructing the payload manually.

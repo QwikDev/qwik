@@ -1362,9 +1362,13 @@ describe('shared-serialization', () => {
       const arr = deserialize(objs);
       expect(arr[0]).toBeInstanceOf(Uint8Array);
       expect(Array.from(arr[0] as any)).toEqual([0, 20, 128, 255]);
+      expect(deserialize(await serialize(new Uint8Array()))).toEqual([new Uint8Array()]);
       expect(deserialize(await serialize(new Uint8Array([0])))).toEqual([new Uint8Array([0])]);
       expect(deserialize(await serialize(new Uint8Array([127, 129])))).toEqual([
         new Uint8Array([127, 129]),
+      ]);
+      expect(deserialize(await serialize(new Uint8Array([1, 2, 3])))).toEqual([
+        new Uint8Array([1, 2, 3]),
       ]);
     });
     it(title(TypeIds.QRL), async () => {
@@ -2338,6 +2342,16 @@ describe('serializer - internal', () => {
   ])('rejects %s Object payloads', async (_name, value) => {
     await expect(_deserialize(JSON.stringify([TypeIds.Object, value]))).rejects.toThrow(
       'Invalid Object payload'
+    );
+  });
+  it.each([
+    ['non-string', { length: 4 }],
+    ['invalid alphabet', '****'],
+    ['invalid length', 'A'],
+    ['noncanonical trailing bits', 'AB'],
+  ])('rejects %s Uint8Array payloads', async (_name, value) => {
+    await expect(_deserialize(JSON.stringify([TypeIds.Uint8Array, value]))).rejects.toThrow(
+      `Code(Q${QError.invalidUint8ArrayPayload})`
     );
   });
   it('_serialize should emit short integer-like plain object keys as numbers', async () => {

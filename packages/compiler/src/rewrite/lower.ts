@@ -274,7 +274,7 @@ function pushAttr(
     return;
   }
 
-  const serialized = getStaticAttrValue(value);
+  const serialized = getStaticAttrValue(name, value);
   if (serialized !== undefined) {
     attrs.push(
       createHtmlRecord(serialized === '' ? ` ${name}` : ` ${name}="${escapeAttr(serialized)}"`)
@@ -299,7 +299,7 @@ function pushAttr(
   }
 }
 
-function getStaticAttrValue(value: JSXAttributeValue | null): string | undefined {
+function getStaticAttrValue(name: string, value: JSXAttributeValue | null): string | undefined {
   if (value === null) {
     return '';
   }
@@ -309,7 +309,18 @@ function getStaticAttrValue(value: JSXAttributeValue | null): string | undefined
       return String(value.value);
     case 'JSXExpressionContainer':
       if (value.expression.type === 'Literal') {
+        if (value.expression.value === null) {
+          return undefined;
+        }
         if (typeof value.expression.value === 'boolean') {
+          if (
+            name.startsWith('aria-') ||
+            name === 'spellcheck' ||
+            name === 'draggable' ||
+            name === 'contenteditable'
+          ) {
+            return String(value.expression.value);
+          }
           return value.expression.value ? '' : undefined;
         }
         return String(value.expression.value);
@@ -335,7 +346,7 @@ function needsElementRef(opening: JSXOpeningElement, state: LowerState): boolean
     }
     if (
       attr.value !== undefined &&
-      getStaticAttrValue(attr.value) === undefined &&
+      getStaticAttrValue(name, attr.value) === undefined &&
       getDynamicAttrValue(attr.value, state) !== null
     ) {
       return true;

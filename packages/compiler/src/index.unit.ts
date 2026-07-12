@@ -163,6 +163,15 @@ export function App() {
     });
   });
 
+  test('serializes null and boolean attributes', async () => {
+    await testInput('component_null_attribute', {
+      code: `export function App() {
+  return <main title={null} hidden={false} aria-hidden={false} aria-busy={true} draggable={false}>Qwik</main>;
+}
+`,
+    });
+  });
+
   test('simple component with nested elements', async () => {
     await testInput('simple_component_nested_elements', {
       code: `export function App() {

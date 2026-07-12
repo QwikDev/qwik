@@ -1315,7 +1315,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   private emitStateData(): ValueOrPromise<void> {
-    if (!this.serializationCtx.$roots$.length) {
+    // eagerResume signals become roots when the qidle QRL captures are serialized
+    if (!this.serializationCtx.$roots$.length && !this.serializationCtx.$eagerResume$.size) {
       return;
     }
 

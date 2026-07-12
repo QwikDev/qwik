@@ -574,6 +574,43 @@ describe.each([
       }
     });
 
+    it('should resume clientOnly signals subscribed only via task .loading', async () => {
+      (globalThis as any).log = [];
+      const Counter = component$(() => {
+        const result = useSignal('no');
+        const asyncValue = useAsync$(
+          async () => {
+            (globalThis as any).log.push('compute');
+            return 'yes';
+          },
+          { clientOnly: true }
+        );
+        useTask$(({ track }) => {
+          track(() => asyncValue.loading);
+          if (asyncValue.loading) {
+            return;
+          }
+          result.value = asyncValue.value;
+        });
+        return <div>{result.value}</div>;
+      });
+
+      const { container } = await render(<Counter />, { debug });
+      const renderedText = () => container.document.querySelector('div')!.textContent;
+      if (render === ssrRenderToDom) {
+        expect((globalThis as any).log).toEqual([]);
+        expect(renderedText()).toBe('no');
+        await trigger(container.element, null, 'd:qidle');
+        await waitForDrain(container);
+      } else {
+        await delay(10);
+        await waitForDrain(container);
+      }
+      expect((globalThis as any).log).toEqual(['compute']);
+      expect(renderedText()).toBe('yes');
+      (globalThis as any).log = undefined;
+    });
+
     it('should throw when reading .value from clientOnly signal without initial value during SSR', async () => {
       const Counter = component$(() => {
         const asyncValue = useAsync$(async () => 42, {

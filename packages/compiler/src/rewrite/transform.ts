@@ -7,9 +7,9 @@ import { createImportRecord } from '../stages/discover';
 import { emitImports } from '../stages/emit-utils';
 import type { CompilerContext, ImportRecord } from '../types';
 import { discoverRewriteComponents } from './discover';
-import { emitCsrModule } from './emit-csr';
+import { emitCsrBranchRender, emitCsrModule } from './emit-csr';
 import { emitSegmentModules } from './emit-segment';
-import { emitSsrModule } from './emit-ssr';
+import { emitSsrBranchRender, emitSsrModule } from './emit-ssr';
 import { extractQrls } from './extract';
 import { lowerRewriteComponent } from './lower';
 import type { ModuleDeclaration, RewriteOutput, Segment } from './types';
@@ -68,16 +68,15 @@ export function tryTransformJsx(ctx: CompilerContext): TransformModule[] | null 
   const importCode = [imports, ...emitted.localImports].filter(Boolean).join('\n');
   const code = [moduleReferences, emitted.code].filter(Boolean).join('\n');
   const main = createModule(ctx.input.path, importCode === '' ? code : `${importCode}\n\n${code}`);
-  return [
-    main,
-    ...emitSegmentModules(
-      segments,
-      ctx.input.code,
-      ctx.input.path,
-      ctx.options.explicitExtensions === true,
-      ctx.emitTarget
-    ),
-  ];
+  const segmentModules = emitSegmentModules(
+    segments,
+    ctx.input.code,
+    ctx.input.path,
+    ctx.options.explicitExtensions === true,
+    ctx.emitTarget,
+    ctx.emitTarget === 'ssr' ? emitSsrBranchRender : emitCsrBranchRender
+  );
+  return segmentModules === null ? null : [main, ...segmentModules];
 }
 
 function emitModuleReferences(

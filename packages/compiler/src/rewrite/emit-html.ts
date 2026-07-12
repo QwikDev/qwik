@@ -18,6 +18,7 @@ function emitHtmlParts(parts: readonly HtmlPart[], markers: boolean): string | n
         break;
       case 'marker':
       case 'dynamicJsx':
+      case 'branch':
         if (!markers) {
           return null;
         }

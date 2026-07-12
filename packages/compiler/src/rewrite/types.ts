@@ -56,6 +56,13 @@ export type EventHtmlPart = {
   key: string;
 };
 export type DynamicJsxHtmlPart = { kind: 'dynamicJsx'; target: number; expr: SourceRange };
+export type BranchHtmlPart = {
+  kind: 'branch';
+  target: number;
+  condition: SegmentBinding;
+  then: SegmentBinding;
+  else: SegmentBinding | null;
+};
 export type MarkerHtmlPart = { kind: 'marker'; id: number };
 export type TargetHtmlPart = { kind: 'target'; id: number };
 export type HtmlHtmlPart = { kind: 'html'; value: string };
@@ -63,6 +70,7 @@ export type HtmlHtmlPart = { kind: 'html'; value: string };
 export type HtmlPart =
   | HtmlHtmlPart
   | DynamicJsxHtmlPart
+  | BranchHtmlPart
   | AttributeHtmlPart
   | { kind: 'props'; target: number }
   | EventHtmlPart
@@ -76,11 +84,12 @@ export interface Ref {
   path: RefStep[];
 }
 
-export type ExpressionEffectBinding = {
-  kind: 'expression';
+export interface SegmentBinding {
   segment: string;
   captures: string[];
-};
+}
+
+export type ExpressionEffectBinding = SegmentBinding & { kind: 'expression' };
 
 export interface StaticProp {
   name: string;
@@ -133,7 +142,7 @@ export interface Segment {
   id: string;
   parentId: string | null;
   name: string;
-  kind: 'event' | 'qrl' | 'expression';
+  kind: 'event' | 'qrl' | 'expression' | 'branchCondition' | 'branchRender';
   ctxName: string;
   qwik: boolean;
   range: SourceRange;
@@ -148,6 +157,8 @@ export interface Segment {
   awaits: Array<{ range: SourceRange; argumentRange: SourceRange }>;
   captures: SegmentCapture[];
   moduleReferences: string[];
+  // `null` is an intentionally empty branch renderer; `undefined` uses the source expression.
+  render?: RenderResult | null;
 }
 
 export interface ModuleDeclaration {

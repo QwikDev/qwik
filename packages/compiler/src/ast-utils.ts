@@ -9,7 +9,12 @@ import type {
 
 export type StaticSourceTextPart =
   | { kind: 'text'; value: string }
-  | { kind: 'source'; sourceName: string; expressionRange: SourceRange };
+  | {
+      kind: 'source';
+      sourceName: string;
+      sourceRange: SourceRange;
+      expressionRange: SourceRange;
+    };
 
 export type SourceNamePredicate = (sourceName: string) => boolean;
 
@@ -367,10 +372,16 @@ function analyzeStaticSourceTextExpression(
     return null;
   }
   const sourceName = getSignalValueSourceName(expr);
+  const sourceRange = expr.type === 'MemberExpression' ? getRange(expr.object) : null;
   const expressionRange = getRange(expr);
-  if (sourceName !== null && isKnownSourceName(sourceName) && expressionRange !== null) {
+  if (
+    sourceName !== null &&
+    isKnownSourceName(sourceName) &&
+    sourceRange !== null &&
+    expressionRange !== null
+  ) {
     return {
-      parts: [{ kind: 'source', sourceName, expressionRange }],
+      parts: [{ kind: 'source', sourceName, sourceRange, expressionRange }],
       guaranteedString: false,
     };
   }

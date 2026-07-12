@@ -11,26 +11,50 @@ import { isSetupQrlSegment } from './extract';
 import type { PropsExpressionPart, Segment } from './types';
 import { QWIK_IMPORT, QwikHooks, QwikWord } from './words';
 
+export interface EmittedBranchRender {
+  hoists: string[];
+  statements: string[];
+  value: string;
+}
+
+export type BranchRenderEmitter = (
+  segment: Segment,
+  source: string,
+  imports: Set<string>
+) => EmittedBranchRender | null;
+
 export function emitSegmentModules(
   segments: readonly Segment[],
   source: string,
   inputPath: string,
   explicitExtensions: boolean,
-  target: 'csr' | 'ssr'
-): TransformModule[] {
-  return segments.map((segment) => {
+  target: 'csr' | 'ssr',
+  emitBranchRender: BranchRenderEmitter
+): TransformModule[] | null {
+  const modules: TransformModule[] = [];
+  for (const segment of segments) {
     const modulePath = getSegmentModulePath(inputPath, segment);
-    return createModule(
-      modulePath,
-      emitSegmentCode(segment, segments, source, inputPath, explicitExtensions, target),
-      null,
-      {
+    const code = emitSegmentCode(
+      segment,
+      segments,
+      source,
+      inputPath,
+      explicitExtensions,
+      target,
+      emitBranchRender
+    );
+    if (code === null) {
+      return null;
+    }
+    modules.push(
+      createModule(modulePath, code, null, {
         isEntry: true,
         origPath: inputPath,
         segment: createSegmentAnalysis(segment, inputPath, source),
-      }
+      })
     );
-  });
+  }
+  return modules;
 }
 
 export function getSegmentImportPath(
@@ -52,13 +76,13 @@ function emitSegmentCode(
   source: string,
   inputPath: string,
   explicitExtensions: boolean,
-  target: 'csr' | 'ssr'
-): string {
+  target: 'csr' | 'ssr',
+  emitBranchRender: BranchRenderEmitter
+): string | null {
   const imports: string[] = [];
   const qwikImports = new Set<string>();
-  const children = segments.filter(
-    (candidate) => candidate.parentId === segment.id && isSetupQrlSegment(candidate)
-  );
+  const childSegments = segments.filter((candidate) => candidate.parentId === segment.id);
+  const children = childSegments.filter(isSetupQrlSegment);
   const replacements: Array<{ range: Segment['range']; value: string }> = [];
   const childImports: string[] = [];
   const hoists: string[] = [];
@@ -93,6 +117,29 @@ function emitSegmentCode(
       );
     }
   }
+  if (segment.render !== undefined) {
+    for (const child of childSegments) {
+      if (isSetupQrlSegment(child)) {
+        continue;
+      }
+      const importPath = getSegmentImportPath(inputPath, child, explicitExtensions);
+      if (target === 'csr') {
+        childImports.push(`import { ${child.name} } from ${JSON.stringify(importPath)};`);
+        continue;
+      }
+      const qrl = getQrlVariableName(child);
+      qwikImports.add(QwikWord.QrlWithChunk);
+      const declaration = `const ${qrl} = /*#__PURE__*/ ${QwikWord.QrlWithChunk}(${JSON.stringify(
+        importPath
+      )}, () => import(${JSON.stringify(importPath)}), ${JSON.stringify(child.name)});`;
+      if (shouldResolveSsrSegment(child)) {
+        childImports.push(`import { ${child.name} } from ${JSON.stringify(importPath)};`);
+        hoists.push(`${declaration}\n${qrl}.s(${child.name});`);
+      } else {
+        hoists.push(declaration);
+      }
+    }
+  }
   if (segment.moduleReferences.length > 0) {
     imports.push(
       `import { ${segment.moduleReferences.join(', ')} } from ${JSON.stringify(
@@ -117,6 +164,11 @@ function emitSegmentCode(
       );
     }
   }
+  const rendered =
+    segment.render === undefined ? undefined : emitBranchRender(segment, source, qwikImports);
+  if (rendered === null) {
+    return null;
+  }
   if (qwikImports.size > 0) {
     imports.push(`import { ${[...qwikImports].join(', ')} } from ${JSON.stringify(QWIK_IMPORT)};`);
   }
@@ -127,25 +179,60 @@ function emitSegmentCode(
       : `const ${segment.captures
           .map((capture, index) => `${capture.name} = ${QwikWord.Captures}[${index}]`)
           .join(', ')};`;
-  const rawBody = applyReplacements(source, segment.bodyRange, replacements);
-  const expressionBody =
-    segment.propsParts === undefined
-      ? rawBody
-      : `{ ${segment.propsParts
-          .map((part) => emitPropsPart(part, source, replacements))
-          .join(', ')} }`;
-  const body = rewriteLoopCaptures(
-    segment.bodyKind === 'block' ? rawBody.slice(1, -1).trim() : `return ${expressionBody};`,
-    segment
-  );
-  const statements = [captureStatement, body].filter(Boolean).map(indent).join('\n');
-  const functionHead = isExpression
-    ? `(${segment.captures.map((capture) => capture.name).join(', ')}) => `
-    : source.slice(segment.functionRange[0], segment.bodyRange[0]);
+  let statements: string;
+  if (rendered === undefined) {
+    const rawBody = applyReplacements(source, segment.bodyRange, replacements);
+    const expressionBody =
+      segment.propsParts === undefined
+        ? rawBody
+        : `{ ${segment.propsParts
+            .map((part) => emitPropsPart(part, source, replacements))
+            .join(', ')} }`;
+    const body = rewriteLoopCaptures(
+      segment.bodyKind === 'block' ? rawBody.slice(1, -1).trim() : `return ${expressionBody};`,
+      segment
+    );
+    statements = [captureStatement, body].filter(Boolean).map(indent).join('\n');
+  } else {
+    statements = [captureStatement, ...rendered.statements, `return ${rendered.value};`]
+      .filter(Boolean)
+      .map(indent)
+      .join('\n');
+  }
+  let functionHead: string;
+  switch (segment.kind) {
+    case 'expression':
+      functionHead = `(${segment.captures.map((capture) => capture.name).join(', ')}) => `;
+      break;
+    case 'branchCondition':
+      functionHead = '() => ';
+      break;
+    case 'branchRender':
+      functionHead =
+        target === 'ssr' && segment.render !== undefined ? '(ctx, rangeId) => ' : '(ctx) => ';
+      break;
+    case 'event':
+    case 'qrl':
+      functionHead = source.slice(segment.functionRange[0], segment.bodyRange[0]);
+      break;
+  }
   const declaration = `export const ${segment.name} = ${functionHead}{\n${statements}\n};`;
 
-  const prelude = [...imports, ...childImports, ...hoists];
+  const prelude = [...imports, ...childImports, ...hoists, ...(rendered?.hoists ?? [])];
   return `${prelude.length > 0 ? `${prelude.join('\n')}\n\n` : ''}${declaration}\n`;
+}
+
+export function shouldResolveSsrSegment(segment: Segment): boolean {
+  switch (segment.kind) {
+    case 'expression':
+    case 'branchCondition':
+      return true;
+    case 'qrl':
+      return segment.ctxName !== QwikHooks.Dollar;
+    case 'branchRender':
+    case 'event':
+      return false;
+  }
 }
 
 function emitPropsPart(

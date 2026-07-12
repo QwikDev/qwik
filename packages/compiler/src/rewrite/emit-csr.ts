@@ -1,5 +1,5 @@
 import { emitComponentFunction, emitTemplateHtml } from './emit-html';
-import { emitSetupQrl } from './emit-qrl';
+import { emitCapturedFunctionReference, emitSetupQrl } from './emit-qrl';
 import { getSegmentImportPath } from './emit-segment';
 import type {
   Op,
@@ -65,7 +65,8 @@ function emitCsrRender(
   name: string,
   result: RenderResult,
   source: string,
-  imports: Set<string>
+  imports: Set<string>,
+  returnFragment = false
 ): CsrRender | null {
   if (result.roots.length === 0) {
     return null;
@@ -77,7 +78,9 @@ function emitCsrRender(
   const refNames = new Map<number, string>();
   const textMarkers = new Set([
     ...result.ops.flatMap((op) => (op.kind === 'textEffect' ? [op.target.marker] : [])),
-    ...result.html.flatMap((part) => (part.kind === 'dynamicJsx' ? [part.target] : [])),
+    ...result.html.flatMap((part) =>
+      part.kind === 'dynamicJsx' || part.kind === 'branch' ? [part.target] : []
+    ),
   ]);
   const emittedRefs: { name: string; path: RefStep[] }[] = [];
   const setup = emitCsrSetupStatements(result, source, imports);
@@ -88,7 +91,7 @@ function emitCsrRender(
   if (html === null) {
     return null;
   }
-  const usedRefs = getUsedRefs(result);
+  const usedRefs = getUsedRefs(result, textMarkers);
   for (const ref of result.refs) {
     if (!usedRefs.has(ref.id)) {
       continue;
@@ -103,18 +106,45 @@ function emitCsrRender(
     emittedRefs.push({ name: refName, path: ref.path });
   }
   for (const part of result.html) {
-    if (part.kind !== 'dynamicJsx') {
-      continue;
+    switch (part.kind) {
+      case 'dynamicJsx': {
+        const target = refNames.get(part.target);
+        if (target === undefined) {
+          return null;
+        }
+        const jsx = next('jsx');
+        statements.push(
+          `const ${jsx} = ${source.slice(part.expr[0], part.expr[1])};`,
+          `${target}.replaceWith(...(Array.isArray(${jsx}) ? ${jsx} : ${jsx} == null ? [] : [${jsx}]));`
+        );
+        break;
+      }
+      case 'branch': {
+        const target = refNames.get(part.target);
+        if (target === undefined) {
+          return null;
+        }
+        const start = next('comment');
+        const end = next('comment');
+        const branch = next('branch');
+        imports.add(QwikWord.BranchRange);
+        imports.add(QwikWord.CreateBranch);
+        const elseRenderer =
+          part.else === null
+            ? 'undefined'
+            : emitCapturedFunctionReference(part.else.segment, part.else.captures, imports);
+        statements.push(
+          `const ${start} = ctx.document.createComment('b');`,
+          `const ${end} = ctx.document.createComment('/b');`,
+          `${target}.replaceWith(${start}, ${end});`,
+          `const ${branch} = ${QwikWord.CreateBranch}(ctx, new ${QwikWord.BranchRange}(ctx.document, ${start}, ${end}), ${emitCapturedFunctionReference(part.condition.segment, part.condition.captures, imports)}, ${emitCapturedFunctionReference(part.then.segment, part.then.captures, imports)}, ${elseRenderer});`,
+          `ctx.scheduler.notify(${branch});`
+        );
+        break;
+      }
+      default:
+        break;
     }
-    const target = refNames.get(part.target);
-    if (target === undefined) {
-      return null;
-    }
-    const jsx = next('jsx');
-    statements.push(
-      `const ${jsx} = ${source.slice(part.expr[0], part.expr[1])};`,
-      `${target}.replaceWith(...(Array.isArray(${jsx}) ? ${jsx} : ${jsx} == null ? [] : [${jsx}]));`
-    );
   }
   for (const op of result.ops) {
     const emitted = emitCsrOp(op, refNames, source, next, imports);
@@ -135,8 +165,26 @@ function emitCsrRender(
   return {
     hoists: [`const ${templateName} = ${QwikWord.CreateTemplate}(${JSON.stringify(html)});`],
     statements,
-    value: values.length === 1 ? values[0] : `[${values.join(', ')}]`,
+    value: returnFragment
+      ? fragmentName
+      : values.length === 1
+        ? values[0]
+        : `[${values.join(', ')}]`,
   };
+}
+
+export function emitCsrBranchRender(
+  segment: Segment,
+  source: string,
+  imports: Set<string>
+): CsrRender | null {
+  const result = segment.render;
+  if (result === undefined) {
+    return null;
+  }
+  return result === null
+    ? { hoists: [], statements: [], value: '[]' }
+    : emitCsrRender(segment.name, result, source, imports, true);
 }
 
 function emitCsrOp(
@@ -303,14 +351,8 @@ function startsWithPath(path: readonly RefStep[], prefix: readonly RefStep[]) {
   return prefix.every((step, index) => path[index] === step);
 }
 
-function getUsedRefs(result: RenderResult): Set<number> {
-  const usedRefs = new Set<number>(result.roots);
-
-  for (const part of result.html) {
-    if (part.kind === 'dynamicJsx') {
-      usedRefs.add(part.target);
-    }
-  }
+function getUsedRefs(result: RenderResult, textMarkers: ReadonlySet<number>): Set<number> {
+  const usedRefs = new Set<number>([...result.roots, ...textMarkers]);
 
   for (const op of result.ops) {
     switch (op.kind) {

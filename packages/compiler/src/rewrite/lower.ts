@@ -13,6 +13,7 @@ import {
   getJsxName,
   getRange,
   getStaticExpressionValue,
+  getStaticSourceTextExpressionParts,
   isCallExpression,
   isEventProp,
   isNativeTag,
@@ -22,7 +23,7 @@ import {
 } from '../ast-utils';
 import { escapeAttr, escapeText, serializeAttrValue } from '../stages/emit-utils';
 import type { SourceRange } from '../types';
-import { visit } from './ast-utils';
+import { getJsxBranchExpression, isEmptyBranchExpression, visit } from './ast-utils';
 import { isRewriteSourceFactoryName } from './discover';
 import { isSetupQrlSegment } from './extract';
 import type {
@@ -42,6 +43,7 @@ import type {
   RewriteContextProviderImports,
   RewriteSourceFactoryImports,
   Segment,
+  SegmentBinding,
   StaticProp,
   TextEffectBinding,
   ValueEffectBinding,
@@ -361,7 +363,7 @@ function renderJsxSpreadAttributes(
   }
   const range =
     spreadCount > 1 ? getRange(opening) : parts.find((part) => part.kind === 'spread')?.range;
-  const segment = range == null ? undefined : getExpressionSegment(range, state);
+  const segment = range == null ? undefined : getSegment('expression', range, state);
   if (segment === undefined) {
     return null;
   }
@@ -713,7 +715,7 @@ function createDynamicAttrExpression(
   expr: SourceRange,
   state: LowerState
 ): DynamicAttrValue | null {
-  const segment = getExpressionSegment(expr, state);
+  const segment = getSegment('expression', expr, state);
   return segment === undefined ? null : { kind: 'expression', expr, segment };
 }
 
@@ -733,10 +735,7 @@ function renderJsxChildren(children: JSXChild[], state: LowerState): RenderedJsx
         break;
       }
       case 'JSXExpressionContainer': {
-        const expression = renderJsxExpression(child.expression, state);
-        if (expression !== null) {
-          rendered.push(expression);
-        }
+        rendered.push(...renderJsxExpression(child.expression, state));
         break;
       }
       case 'JSXElement': {
@@ -756,56 +755,219 @@ function renderJsxChildren(children: JSXChild[], state: LowerState): RenderedJsx
   return rendered;
 }
 
-function renderJsxExpression(expression: unknown, state: LowerState): RenderedJsx | null {
+function renderJsxExpression(expression: unknown, state: LowerState): RenderedJsx[] {
   const expr = unwrapExpression(expression);
   if (expr === null || expr === undefined) {
-    return null;
+    return [];
   }
 
   const range = getRange(expr);
   if (range === null) {
-    return null;
+    return [];
+  }
+
+  const textParts = renderStaticSourceTextExpression(expr, state);
+  if (textParts !== null) {
+    return textParts;
   }
 
   switch (expr.type) {
     case 'JSXEmptyExpression':
-      return null;
+      return [];
     case 'CallExpression': {
       const target = state.nextRefId();
-      return {
-        kind: 'content',
-        html: [{ kind: 'dynamicJsx', target, expr: range }],
-        refs: [{ id: target, path: [] }],
-      };
+      return [
+        {
+          kind: 'content',
+          html: [{ kind: 'dynamicJsx', target, expr: range }],
+          refs: [{ id: target, path: [] }],
+        },
+      ];
+    }
+    case 'ConditionalExpression':
+    case 'LogicalExpression': {
+      const branch = getJsxBranchExpression(expr);
+      if (branch === null) {
+        return [createExpressionTextEffect(range, state)];
+      }
+      const conditionRange = getRange(branch.condition);
+      const thenRange = getRange(branch.then);
+      const elseRange = branch.else === null ? null : getRange(branch.else);
+      if (
+        conditionRange === null ||
+        thenRange === null ||
+        (branch.else !== null && elseRange === null)
+      ) {
+        return [];
+      }
+      const condition = getSegment('branchCondition', conditionRange, state);
+      const thenSegment = getSegment('branchRender', thenRange, state);
+      const elseSegment =
+        elseRange === null ? undefined : getSegment('branchRender', elseRange, state);
+      if (
+        condition === undefined ||
+        thenSegment === undefined ||
+        (branch.else !== null && elseSegment === undefined)
+      ) {
+        return [];
+      }
+      attachBranchRender(thenSegment, branch.then, state);
+      if (elseSegment !== undefined && branch.else !== null) {
+        attachBranchRender(elseSegment, branch.else, state);
+      }
+      const target = state.nextRefId();
+      return [
+        {
+          kind: 'content',
+          html: [
+            {
+              kind: 'branch',
+              target,
+              condition: createSegmentBinding(state, condition),
+              then: createSegmentBinding(state, thenSegment),
+              else: elseSegment === undefined ? null : createSegmentBinding(state, elseSegment),
+            },
+          ],
+          refs: [{ id: target, path: [] }],
+        },
+      ];
     }
     case 'MemberExpression': {
       const source = getDirectTrackedSourceRange(expr, state.trackedSources);
       if (source !== null) {
-        return createTextEffect(range, { kind: 'source', range: source }, state);
+        return [createTextEffect(range, { kind: 'source', range: source }, state)];
       }
-      return createExpressionTextEffect(range, state);
+      return [createExpressionTextEffect(range, state)];
     }
     case 'Identifier':
     case 'BinaryExpression':
-    case 'ConditionalExpression':
-    case 'LogicalExpression':
     case 'UnaryExpression':
     case 'TemplateLiteral':
-      return createExpressionTextEffect(range, state);
+      return [createExpressionTextEffect(range, state)];
     default:
-      return createTextEffect(range, { kind: 'unsupported' }, state);
+      return [createTextEffect(range, { kind: 'unsupported' }, state)];
   }
 }
 
+function renderStaticSourceTextExpression(
+  expression: unknown,
+  state: LowerState
+): RenderedJsx[] | null {
+  const parts = getStaticSourceTextExpressionParts(expression, (name) =>
+    state.trackedSources.has(name)
+  );
+  return (
+    parts?.map((part) =>
+      part.kind === 'text'
+        ? {
+            kind: 'content' as const,
+            html: [createHtmlRecord(escapeText(part.value))],
+            refs: [],
+          }
+        : createTextEffect(part.expressionRange, { kind: 'source', range: part.sourceRange }, state)
+    ) ?? null
+  );
+}
+
+function attachBranchRender(segment: Segment, expression: unknown, state: LowerState): void {
+  if (isEmptyBranchExpression(expression)) {
+    segment.render = null;
+    return;
+  }
+  if (unwrapExpression(expression)?.type === 'CallExpression') {
+    return;
+  }
+  const branchState: LowerState = {
+    ...state,
+    nextRefId: createRefIdAllocator(),
+    setup: [],
+    ops: [],
+    segments: new Map(),
+    providesContext: false,
+  };
+  const roots: TemplateRoot[] = [];
+  addBranchRenderRoots(expression, branchState, roots);
+  const render = createRenderResult(roots, branchState);
+  if (render !== null) {
+    segment.render = render;
+  }
+}
+
+function addBranchRenderRoots(node: unknown, state: LowerState, roots: TemplateRoot[]): void {
+  const expr = unwrapExpression(node);
+  if (expr === null || expr === undefined || isEmptyBranchExpression(expr)) {
+    return;
+  }
+  switch (expr.type) {
+    case 'JSXElement': {
+      const root = renderTemplateRoot(expr, state);
+      if (root !== null) {
+        roots.push(root);
+      }
+      return;
+    }
+    case 'JSXFragment':
+      for (const child of expr.children) {
+        addBranchRenderRoots(child, state, roots);
+      }
+      return;
+    case 'JSXText': {
+      const text = normalizeJsxText(expr.value);
+      if (text !== '') {
+        addStaticTextRoot(text, state, roots);
+      }
+      return;
+    }
+    case 'JSXExpressionContainer':
+      addBranchRenderRoots(expr.expression, state, roots);
+      return;
+  }
+  const staticValue = getStaticExpressionValue(expr);
+  if (staticValue.supported) {
+    addStaticTextRoot(String(staticValue.value), state, roots);
+    return;
+  }
+  for (const rendered of renderJsxExpression(expr, state)) {
+    const root = rendered.refs.find((ref) => ref.path.length === 0);
+    if (root === undefined) {
+      roots.push({ id: state.nextRefId(), html: rendered.html, refs: [] });
+      continue;
+    }
+    if (rendered.kind === 'text') {
+      state.ops.push({
+        ...rendered.effect,
+        target: { kind: 'range', marker: rendered.marker },
+      });
+    }
+    roots.push({
+      id: root.id,
+      html: rendered.html,
+      refs: rendered.refs.filter((ref) => ref !== root),
+    });
+  }
+}
+
+function addStaticTextRoot(value: string, state: LowerState, roots: TemplateRoot[]): void {
+  roots.push({
+    id: state.nextRefId(),
+    html: [createHtmlRecord(escapeText(value))],
+    refs: [],
+  });
+}
+
 function createExpressionTextEffect(range: SourceRange, state: LowerState): RenderedJsx {
-  const segment = getExpressionSegment(range, state)!;
+  const segment = getSegment('expression', range, state)!;
   return createTextEffect(range, createExpressionEffectBinding(state, segment), state);
 }
 
-function getExpressionSegment(range: SourceRange, state: LowerState): Segment | undefined {
+function getSegment(
+  kind: Segment['kind'],
+  range: SourceRange,
+  state: LowerState
+): Segment | undefined {
   return state.extractedQrls.segments.find(
     (segment) =>
-      segment.kind === 'expression' &&
+      segment.kind === kind &&
       segment.bodyRange[0] === range[0] &&
       segment.bodyRange[1] === range[1]
   );
@@ -815,9 +977,12 @@ function createExpressionEffectBinding(
   state: LowerState,
   segment: Segment
 ): ExpressionEffectBinding {
+  return { kind: 'expression', ...createSegmentBinding(state, segment) };
+}
+
+function createSegmentBinding(state: LowerState, segment: Segment): SegmentBinding {
   retainSegment(state, segment);
   return {
-    kind: 'expression',
     segment: segment.name,
     captures: segment.captures.map((capture) => capture.name),
   };
@@ -906,6 +1071,9 @@ function retainSegment(state: LowerState, segment: Segment): void {
     return;
   }
   state.segments.set(segment.id, segment);
+  for (const child of segment.render?.segments ?? []) {
+    retainSegment(state, child);
+  }
   for (const child of state.extractedQrls.segments) {
     if (child.parentId === segment.id && isSetupQrlSegment(child)) {
       retainSegment(state, child);

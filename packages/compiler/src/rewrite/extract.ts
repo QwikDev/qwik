@@ -8,6 +8,7 @@ import {
   unwrapExpression,
 } from '../ast-utils';
 import type { AstFunction, AstNode } from '../types';
+import { getJsxBranchExpression } from './ast-utils';
 import type { ExtractedQrls, ModuleDeclaration, Segment, SegmentCapture } from './types';
 import { QWIK_CORE_IMPORT, QWIK_IMPORT, QwikHooks } from './words';
 
@@ -436,14 +437,47 @@ class QrlExtractor {
   }
 
   private visitJsxChild(node: unknown) {
-    if (
-      isNode(node) &&
-      node.type === 'JSXExpressionContainer' &&
-      this.visitJsxExpressionSegment('text', unwrapExpression(node.expression))
-    ) {
-      return;
+    if (isNode(node) && node.type === 'JSXExpressionContainer') {
+      const expression = unwrapExpression(node.expression);
+      if (
+        this.visitJsxBranchSegments(expression) ||
+        this.visitJsxExpressionSegment('text', expression)
+      ) {
+        return;
+      }
     }
     this.visit(node);
+  }
+
+  private visitJsxBranchSegments(expression: AstNode | null | undefined): boolean {
+    const branch = getJsxBranchExpression(expression);
+    if (branch === null) {
+      return false;
+    }
+    const parts = [
+      ['branch:condition', 'branchCondition', branch.condition],
+      ['branch:then', 'branchRender', branch.then],
+      ...(branch.else === null ? [] : ([['branch:else', 'branchRender', branch.else]] as const)),
+    ] as const;
+    if (parts.some(([, , part]) => getRange(part) === null)) {
+      return false;
+    }
+    for (const [ctxName, kind, part] of parts) {
+      const segment = this.createExpressionSegment(ctxName, part, kind)!;
+      if (kind === 'branchRender') {
+        this.visitExpressionsSegment([part], segment, (expression) => {
+          if (
+            !this.visitJsxBranchSegments(expression) &&
+            !this.visitJsxExpressionSegment('text', expression)
+          ) {
+            this.visit(expression);
+          }
+        });
+      } else {
+        this.visitExpressionsSegment([part], segment);
+      }
+    }
+    return true;
   }
 
   private visitJsxExpressionSegment(
@@ -476,7 +510,11 @@ class QrlExtractor {
     return true;
   }
 
-  private createExpressionSegment(ctxName: string, expression: AstNode): Segment | null {
+  private createExpressionSegment(
+    ctxName: string,
+    expression: AstNode,
+    kind: 'expression' | 'branchCondition' | 'branchRender' = 'expression'
+  ): Segment | null {
     const range = getRange(expression);
     if (range === null) {
       return null;
@@ -486,7 +524,7 @@ class QrlExtractor {
       id,
       parentId: this.segmentStack[this.segmentStack.length - 1]?.segment.id ?? null,
       name: createSegmentName(this.path, ctxName, id),
-      kind: 'expression',
+      kind,
       ctxName,
       qwik: false,
       range,
@@ -504,7 +542,11 @@ class QrlExtractor {
     return segment;
   }
 
-  private visitExpressionsSegment(expressions: readonly AstNode[], segment: Segment) {
+  private visitExpressionsSegment(
+    expressions: readonly AstNode[],
+    segment: Segment,
+    visitor: (expression: AstNode) => void = (expression) => this.visit(expression)
+  ) {
     const previousOwner = this.owner;
     const owner = this.nextOwner++;
     this.ownerParents[owner] = previousOwner;
@@ -517,7 +559,7 @@ class QrlExtractor {
     };
     this.segmentStack.push(state);
     for (const expression of expressions) {
-      this.visit(expression);
+      visitor(expression);
     }
     this.segmentStack.pop();
     this.propagateCaptures(state);

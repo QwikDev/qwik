@@ -1,6 +1,6 @@
 import { emitComponentFunction, emitStaticHtml } from './emit-html';
 import { emitQrlReference, emitSetupQrl, getQrlVariableName } from './emit-qrl';
-import { getSegmentImportPath } from './emit-segment';
+import { getSegmentImportPath, shouldResolveSsrSegment } from './emit-segment';
 import type {
   HtmlPart,
   Op,
@@ -73,13 +73,6 @@ export function emitSsrModule(
   };
 }
 
-function shouldResolveSsrSegment(segment: Segment): boolean {
-  return (
-    segment.kind === 'expression' ||
-    (segment.kind === 'qrl' && segment.ctxName !== QwikHooks.Dollar)
-  );
-}
-
 function emitSsrComponent(component: RewriteComponent, render: SsrRender, source: string): string {
   if (!render.setup.hasTask) {
     return emitComponentFunction(
@@ -98,10 +91,42 @@ function emitSsrComponent(component: RewriteComponent, render: SsrRender, source
   );
 }
 
+export function emitSsrBranchRender(
+  segment: Segment,
+  source: string,
+  imports: Set<string>
+): { hoists: string[]; statements: string[]; value: string } | null {
+  const result = segment.render;
+  if (result === undefined) {
+    return null;
+  }
+  if (result === null) {
+    return { hoists: [], statements: [], value: "''" };
+  }
+  const render = emitSsrRender(
+    result,
+    source,
+    new Map(result.segments.map((segment) => [segment.name, segment])),
+    'rangeId'
+  );
+  if (render === null) {
+    return null;
+  }
+  for (const name of render.imports) {
+    imports.add(name);
+  }
+  return {
+    hoists: [],
+    statements: render.statements,
+    value: render.value,
+  };
+}
+
 function emitSsrRender(
   result: RenderResult,
   source: string,
-  segments: ReadonlyMap<string, Segment>
+  segments: ReadonlyMap<string, Segment>,
+  branchRangeId: string | null = null
 ): SsrRender | null {
   const emittedSetup = emitSsrSetup(result, source);
   if (emittedSetup === null) {
@@ -117,14 +142,15 @@ function emitSsrRender(
       value: result.providesContext ? emitContextHtml(value) : value,
     };
   }
-  return emitDynamicRender(result, source, segments, emittedSetup);
+  return emitDynamicRender(result, source, segments, emittedSetup, branchRangeId);
 }
 
 function emitDynamicRender(
   result: RenderResult,
   source: string,
   segments: ReadonlyMap<string, Segment>,
-  emittedSetup: { setup: SsrSetup; imports: string[] }
+  emittedSetup: { setup: SsrSetup; imports: string[] },
+  branchRangeId: string | null
 ): SsrRender | null {
   const root = result.roots[0];
   if (root === undefined) {
@@ -134,7 +160,16 @@ function emitDynamicRender(
   const hasTargetEffects = result.ops.some(
     (op) => op.kind === 'textEffect' || op.kind === 'attrEffect' || op.kind === 'propsEffect'
   );
-  const id = hasTargetEffects ? next(QwikGenWord.Id) : null;
+  const usesBranchRange =
+    branchRangeId !== null &&
+    hasTargetEffects &&
+    result.ops.every(
+      (op) =>
+        op.kind === 'textEffect' &&
+        op.target.kind === 'range' &&
+        result.roots.includes(op.target.marker)
+    );
+  const id = hasTargetEffects ? (usesBranchRange ? branchRangeId : next(QwikGenWord.Id)) : null;
   const elementTextMarkers = new Set(
     result.ops.flatMap((op) =>
       op.kind === 'textEffect' && op.target.kind === 'element' ? [op.target.marker] : []
@@ -145,18 +180,50 @@ function emitDynamicRender(
   const attrs = new Map<string, string>();
   const props = new Map<number, string>();
   const jsx = new Map<number, string>();
+  const branches = new Map<number, { id: string; value: string }>();
   const events = new Map<string, string>();
   const html = emitVisibleTaskCarriers(result, source, events);
   const targetIds = new Map<number, string>(id === null ? [] : [[root, id]]);
   const statements = [
     ...emitSsrRenderPrelude(result),
-    ...(id === null ? [] : [`const ${id} = ctx.nextId();`]),
+    ...(id === null || usesBranchRange ? [] : [`const ${id} = ctx.nextId();`]),
   ];
   for (const part of html) {
-    if (part.kind === 'dynamicJsx') {
-      const value = next('jsx');
-      jsx.set(part.target, value);
-      statements.push(`const ${value} = ${source.slice(part.expr[0], part.expr[1])};`);
+    switch (part.kind) {
+      case 'dynamicJsx': {
+        const value = next('jsx');
+        jsx.set(part.target, value);
+        statements.push(`const ${value} = ${source.slice(part.expr[0], part.expr[1])};`);
+        break;
+      }
+      case 'branch': {
+        const condition = segments.get(part.condition.segment);
+        const thenSegment = segments.get(part.then.segment);
+        const elseSegment = part.else === null ? undefined : segments.get(part.else.segment);
+        if (
+          condition === undefined ||
+          thenSegment === undefined ||
+          (part.else !== null && elseSegment === undefined)
+        ) {
+          return null;
+        }
+        const rangeId = next(QwikGenWord.Id);
+        const value = next('branch');
+        const captures = new Set([
+          ...part.condition.captures,
+          ...part.then.captures,
+          ...(part.else?.captures ?? []),
+        ]);
+        branches.set(part.target, { id: rangeId, value });
+        statements.push(
+          `const ${rangeId} = ctx.nextId();`,
+          ...[...captures].map((capture) => `ctx.addRoot(${capture});`),
+          `const ${value} = ${QwikWord.RenderSsrBranch}(ctx, ${rangeId}, ${emitQrlReference(condition)}, ${emitQrlReference(thenSegment)}, ${elseSegment === undefined ? 'undefined' : emitQrlReference(elseSegment)});`
+        );
+        break;
+      }
+      default:
+        break;
     }
   }
   for (const op of result.ops) {
@@ -181,11 +248,12 @@ function emitDynamicRender(
   const value = emitDynamicHtml(
     html,
     root,
-    id,
+    usesBranchRange ? null : id,
     texts,
     attrs,
     props,
     jsx,
+    branches,
     events,
     targetIds,
     elementTextMarkers
@@ -197,7 +265,8 @@ function emitDynamicRender(
   const attrNames = [...attrs.values()];
   const propsNames = [...props.values()];
   const jsxNames = [...jsx.values()];
-  const dynamicNames = [...textNames, ...attrNames, ...propsNames, ...jsxNames];
+  const branchNames = [...branches.values()].map((branch) => branch.value);
+  const dynamicNames = [...textNames, ...attrNames, ...propsNames, ...jsxNames, ...branchNames];
   const renderedHtml = result.providesContext ? emitContextHtml(value) : value;
   const setupImports = [
     ...emittedSetup.imports,
@@ -249,6 +318,7 @@ function emitDynamicRender(
           ]
         : []),
       ...(propsNames.length > 0 ? [QwikWord.RenderSsrProps] : []),
+      ...(branchNames.length > 0 ? [QwikWord.RenderSsrBranch] : []),
       QwikWord.MaybeThen,
       ...(dynamicNames.length > 1 ? [QwikWord.PromiseAll] : []),
     ],
@@ -569,6 +639,7 @@ function emitDynamicHtml(
   attrs: ReadonlyMap<string, string>,
   props: ReadonlyMap<number, string>,
   jsx: ReadonlyMap<number, string>,
+  branches: ReadonlyMap<number, { id: string; value: string }>,
   events: ReadonlyMap<string, string>,
   targetIds: ReadonlyMap<number, string>,
   elementTextMarkers: ReadonlySet<number>
@@ -645,6 +716,20 @@ function emitDynamicHtml(
           return null;
         }
         expressions.push(value);
+        break;
+      }
+      case 'branch': {
+        const branch = branches.get(part.target);
+        if (branch === undefined) {
+          return null;
+        }
+        expressions.push(
+          JSON.stringify('<!b='),
+          branch.id,
+          JSON.stringify('>'),
+          branch.value,
+          JSON.stringify('<!/b>')
+        );
         break;
       }
       case 'target': {

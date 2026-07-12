@@ -1,0 +1,875 @@
+==INPUT==
+
+export function App(props: { enabled: boolean; alternate: boolean }) {
+  return (
+    <main>
+      {props.enabled ? <strong>On</strong> : <em>Off</em>}
+      {props.enabled && <>{props.alternate ? <span>A</span> : <span>B</span>}<i>Tail</i></>}
+      {props.enabled ? null : <small>Disabled</small>}
+    </main>
+  );
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { renderSsrBranch, maybeThen, promiseAll, _qrlWithChunk } from '@qwik.dev/core/spark';
+import { component_branch_condition_segment_0 } from './component.tsx_component_branch_condition_segment_0';
+import { component_branch_condition_segment_3 } from './component.tsx_component_branch_condition_segment_3';
+import { component_branch_condition_segment_8 } from './component.tsx_component_branch_condition_segment_8';
+
+const q_component_branch_condition_segment_0 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_branch_condition_segment_0',
+  () => import('./component.tsx_component_branch_condition_segment_0'),
+  'component_branch_condition_segment_0'
+);
+q_component_branch_condition_segment_0.s(component_branch_condition_segment_0);
+const q_component_branch_then_segment_1 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_branch_then_segment_1',
+  () => import('./component.tsx_component_branch_then_segment_1'),
+  'component_branch_then_segment_1'
+);
+const q_component_branch_else_segment_2 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_branch_else_segment_2',
+  () => import('./component.tsx_component_branch_else_segment_2'),
+  'component_branch_else_segment_2'
+);
+const q_component_branch_condition_segment_3 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_branch_condition_segment_3',
+  () => import('./component.tsx_component_branch_condition_segment_3'),
+  'component_branch_condition_segment_3'
+);
+q_component_branch_condition_segment_3.s(component_branch_condition_segment_3);
+const q_component_branch_then_segment_4 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_branch_then_segment_4',
+  () => import('./component.tsx_component_branch_then_segment_4'),
+  'component_branch_then_segment_4'
+);
+const q_component_branch_condition_segment_8 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_branch_condition_segment_8',
+  () => import('./component.tsx_component_branch_condition_segment_8'),
+  'component_branch_condition_segment_8'
+);
+q_component_branch_condition_segment_8.s(component_branch_condition_segment_8);
+const q_component_branch_then_segment_9 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_branch_then_segment_9',
+  () => import('./component.tsx_component_branch_then_segment_9'),
+  'component_branch_then_segment_9'
+);
+const q_component_branch_else_segment_10 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_branch_else_segment_10',
+  () => import('./component.tsx_component_branch_else_segment_10'),
+  'component_branch_else_segment_10'
+);
+export function App(props, ctx) {
+  const id0 = ctx.nextId();
+  ctx.addRoot(props);
+  const branch0 = renderSsrBranch(
+    ctx,
+    id0,
+    q_component_branch_condition_segment_0.w([props]),
+    q_component_branch_then_segment_1,
+    q_component_branch_else_segment_2
+  );
+  const id1 = ctx.nextId();
+  ctx.addRoot(props);
+  const branch1 = renderSsrBranch(
+    ctx,
+    id1,
+    q_component_branch_condition_segment_3.w([props]),
+    q_component_branch_then_segment_4.w([props]),
+    undefined
+  );
+  const id2 = ctx.nextId();
+  ctx.addRoot(props);
+  const branch2 = renderSsrBranch(
+    ctx,
+    id2,
+    q_component_branch_condition_segment_8.w([props]),
+    q_component_branch_then_segment_9,
+    q_component_branch_else_segment_10
+  );
+  return maybeThen(
+    promiseAll([branch0, branch1, branch2]),
+    ([branch0, branch1, branch2]) =>
+      '<main' +
+      '>' +
+      '<!b=' +
+      id0 +
+      '>' +
+      branch0 +
+      '<!/b>' +
+      '<!b=' +
+      id1 +
+      '>' +
+      branch1 +
+      '<!/b>' +
+      '<!b=' +
+      id2 +
+      '>' +
+      branch2 +
+      '<!/b>' +
+      '</main>'
+  );
+}
+============================= src/component.tsx_component_branch_condition_segment_0.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+
+export const component_branch_condition_segment_0 = () => {
+  const props = _captures[0];
+  return props.enabled;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_condition_segment_0",
+  "entry": null,
+  "displayName": "component_branch_condition_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_branch_condition_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:condition",
+  "captures": true,
+  "loc": [
+    51,
+    64
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_branch_then_segment_1.js (ENTRY POINT)==
+
+export const component_branch_then_segment_1 = (ctx, rangeId) => {
+  return '<strong>On</strong>';
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_then_segment_1",
+  "entry": null,
+  "displayName": "component_branch_then_segment_1",
+  "hash": "segment_1",
+  "canonicalFilename": "component.tsx_component_branch_then_segment_1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:then",
+  "captures": false,
+  "loc": [
+    67,
+    86
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_branch_else_segment_2.js (ENTRY POINT)==
+
+export const component_branch_else_segment_2 = (ctx, rangeId) => {
+  return '<em>Off</em>';
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_else_segment_2",
+  "entry": null,
+  "displayName": "component_branch_else_segment_2",
+  "hash": "segment_2",
+  "canonicalFilename": "component.tsx_component_branch_else_segment_2",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:else",
+  "captures": false,
+  "loc": [
+    89,
+    101
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_branch_condition_segment_3.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+
+export const component_branch_condition_segment_3 = () => {
+  const props = _captures[0];
+  return props.enabled;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_condition_segment_3",
+  "entry": null,
+  "displayName": "component_branch_condition_segment_3",
+  "hash": "segment_3",
+  "canonicalFilename": "component.tsx_component_branch_condition_segment_3",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:condition",
+  "captures": true,
+  "loc": [
+    110,
+    123
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_branch_then_segment_4.js (ENTRY POINT)==
+
+import { _qrlWithChunk, _captures, renderSsrBranch, maybeThen } from '@qwik.dev/core/spark';
+import { component_branch_condition_segment_5 } from './component.tsx_component_branch_condition_segment_5';
+const q_component_branch_condition_segment_5 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_branch_condition_segment_5',
+  () => import('./component.tsx_component_branch_condition_segment_5'),
+  'component_branch_condition_segment_5'
+);
+q_component_branch_condition_segment_5.s(component_branch_condition_segment_5);
+const q_component_branch_then_segment_6 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_branch_then_segment_6',
+  () => import('./component.tsx_component_branch_then_segment_6'),
+  'component_branch_then_segment_6'
+);
+const q_component_branch_else_segment_7 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_branch_else_segment_7',
+  () => import('./component.tsx_component_branch_else_segment_7'),
+  'component_branch_else_segment_7'
+);
+
+export const component_branch_then_segment_4 = (ctx, rangeId) => {
+  const props = _captures[0];
+  const id0 = ctx.nextId();
+  ctx.addRoot(props);
+  const branch0 = renderSsrBranch(
+    ctx,
+    id0,
+    q_component_branch_condition_segment_5.w([props]),
+    q_component_branch_then_segment_6,
+    q_component_branch_else_segment_7
+  );
+  return maybeThen(
+    branch0,
+    (branch0) => '<!b=' + id0 + '>' + branch0 + '<!/b>' + '<i' + '>' + 'Tail' + '</i>'
+  );
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_then_segment_4",
+  "entry": null,
+  "displayName": "component_branch_then_segment_4",
+  "hash": "segment_4",
+  "canonicalFilename": "component.tsx_component_branch_then_segment_4",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:then",
+  "captures": true,
+  "loc": [
+    127,
+    194
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_branch_condition_segment_5.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+
+export const component_branch_condition_segment_5 = () => {
+  const props = _captures[0];
+  return props.alternate;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_condition_segment_5",
+  "entry": null,
+  "displayName": "component_branch_condition_segment_5",
+  "hash": "segment_5",
+  "canonicalFilename": "component.tsx_component_branch_condition_segment_5",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:condition",
+  "captures": true,
+  "loc": [
+    130,
+    145
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_branch_then_segment_6.js (ENTRY POINT)==
+
+export const component_branch_then_segment_6 = (ctx, rangeId) => {
+  return '<span>A</span>';
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_then_segment_6",
+  "entry": null,
+  "displayName": "component_branch_then_segment_6",
+  "hash": "segment_6",
+  "canonicalFilename": "component.tsx_component_branch_then_segment_6",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:then",
+  "captures": false,
+  "loc": [
+    148,
+    162
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_branch_else_segment_7.js (ENTRY POINT)==
+
+export const component_branch_else_segment_7 = (ctx, rangeId) => {
+  return '<span>B</span>';
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_else_segment_7",
+  "entry": null,
+  "displayName": "component_branch_else_segment_7",
+  "hash": "segment_7",
+  "canonicalFilename": "component.tsx_component_branch_else_segment_7",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:else",
+  "captures": false,
+  "loc": [
+    165,
+    179
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_branch_condition_segment_8.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+
+export const component_branch_condition_segment_8 = () => {
+  const props = _captures[0];
+  return props.enabled;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_condition_segment_8",
+  "entry": null,
+  "displayName": "component_branch_condition_segment_8",
+  "hash": "segment_8",
+  "canonicalFilename": "component.tsx_component_branch_condition_segment_8",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:condition",
+  "captures": true,
+  "loc": [
+    203,
+    216
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_branch_then_segment_9.js (ENTRY POINT)==
+
+export const component_branch_then_segment_9 = (ctx, rangeId) => {
+  return '';
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_then_segment_9",
+  "entry": null,
+  "displayName": "component_branch_then_segment_9",
+  "hash": "segment_9",
+  "canonicalFilename": "component.tsx_component_branch_then_segment_9",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:then",
+  "captures": false,
+  "loc": [
+    219,
+    223
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_branch_else_segment_10.js (ENTRY POINT)==
+
+export const component_branch_else_segment_10 = (ctx, rangeId) => {
+  return '<small>Disabled</small>';
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_else_segment_10",
+  "entry": null,
+  "displayName": "component_branch_else_segment_10",
+  "hash": "segment_10",
+  "canonicalFilename": "component.tsx_component_branch_else_segment_10",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:else",
+  "captures": false,
+  "loc": [
+    226,
+    249
+  ],
+  "paramNames": []
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  _first,
+  _next,
+  _last,
+  BranchRange,
+  createBranch,
+  _withCaptures,
+  createTemplate,
+} from '@qwik.dev/core/spark';
+import { component_branch_condition_segment_0 } from './component.tsx_component_branch_condition_segment_0';
+import { component_branch_then_segment_1 } from './component.tsx_component_branch_then_segment_1';
+import { component_branch_else_segment_2 } from './component.tsx_component_branch_else_segment_2';
+import { component_branch_condition_segment_3 } from './component.tsx_component_branch_condition_segment_3';
+import { component_branch_then_segment_4 } from './component.tsx_component_branch_then_segment_4';
+import { component_branch_condition_segment_8 } from './component.tsx_component_branch_condition_segment_8';
+import { component_branch_then_segment_9 } from './component.tsx_component_branch_then_segment_9';
+import { component_branch_else_segment_10 } from './component.tsx_component_branch_else_segment_10';
+
+const App_tmpl0 = createTemplate('<main>   </main>');
+export function App(props, ctx) {
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const text0 = _first(el0);
+  const text1 = _next(text0);
+  const text2 = _last(el0);
+  const comment0 = ctx.document.createComment('b');
+  const comment1 = ctx.document.createComment('/b');
+  text0.replaceWith(comment0, comment1);
+  const branch0 = createBranch(
+    ctx,
+    new BranchRange(ctx.document, comment0, comment1),
+    _withCaptures(component_branch_condition_segment_0, [props]),
+    component_branch_then_segment_1,
+    component_branch_else_segment_2
+  );
+  ctx.scheduler.notify(branch0);
+  const comment2 = ctx.document.createComment('b');
+  const comment3 = ctx.document.createComment('/b');
+  text1.replaceWith(comment2, comment3);
+  const branch1 = createBranch(
+    ctx,
+    new BranchRange(ctx.document, comment2, comment3),
+    _withCaptures(component_branch_condition_segment_3, [props]),
+    _withCaptures(component_branch_then_segment_4, [props]),
+    undefined
+  );
+  ctx.scheduler.notify(branch1);
+  const comment4 = ctx.document.createComment('b');
+  const comment5 = ctx.document.createComment('/b');
+  text2.replaceWith(comment4, comment5);
+  const branch2 = createBranch(
+    ctx,
+    new BranchRange(ctx.document, comment4, comment5),
+    _withCaptures(component_branch_condition_segment_8, [props]),
+    component_branch_then_segment_9,
+    component_branch_else_segment_10
+  );
+  ctx.scheduler.notify(branch2);
+  return el0;
+}
+============================= src/component.tsx_component_branch_condition_segment_0.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+
+export const component_branch_condition_segment_0 = () => {
+  const props = _captures[0];
+  return props.enabled;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_condition_segment_0",
+  "entry": null,
+  "displayName": "component_branch_condition_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_branch_condition_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:condition",
+  "captures": true,
+  "loc": [
+    51,
+    64
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_branch_then_segment_1.js (ENTRY POINT)==
+
+import { _first, createTemplate } from '@qwik.dev/core/spark';
+const component_branch_then_segment_1_tmpl0 = createTemplate('<strong>On</strong>');
+
+export const component_branch_then_segment_1 = (ctx) => {
+  const fragment0 = component_branch_then_segment_1_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return fragment0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_then_segment_1",
+  "entry": null,
+  "displayName": "component_branch_then_segment_1",
+  "hash": "segment_1",
+  "canonicalFilename": "component.tsx_component_branch_then_segment_1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:then",
+  "captures": false,
+  "loc": [
+    67,
+    86
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_branch_else_segment_2.js (ENTRY POINT)==
+
+import { _first, createTemplate } from '@qwik.dev/core/spark';
+const component_branch_else_segment_2_tmpl0 = createTemplate('<em>Off</em>');
+
+export const component_branch_else_segment_2 = (ctx) => {
+  const fragment0 = component_branch_else_segment_2_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return fragment0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_else_segment_2",
+  "entry": null,
+  "displayName": "component_branch_else_segment_2",
+  "hash": "segment_2",
+  "canonicalFilename": "component.tsx_component_branch_else_segment_2",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:else",
+  "captures": false,
+  "loc": [
+    89,
+    101
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_branch_condition_segment_3.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+
+export const component_branch_condition_segment_3 = () => {
+  const props = _captures[0];
+  return props.enabled;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_condition_segment_3",
+  "entry": null,
+  "displayName": "component_branch_condition_segment_3",
+  "hash": "segment_3",
+  "canonicalFilename": "component.tsx_component_branch_condition_segment_3",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:condition",
+  "captures": true,
+  "loc": [
+    110,
+    123
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_branch_then_segment_4.js (ENTRY POINT)==
+
+import {
+  _captures,
+  _first,
+  _last,
+  BranchRange,
+  createBranch,
+  _withCaptures,
+  createTemplate,
+} from '@qwik.dev/core/spark';
+import { component_branch_condition_segment_5 } from './component.tsx_component_branch_condition_segment_5';
+import { component_branch_then_segment_6 } from './component.tsx_component_branch_then_segment_6';
+import { component_branch_else_segment_7 } from './component.tsx_component_branch_else_segment_7';
+const component_branch_then_segment_4_tmpl0 = createTemplate(' <i>Tail</i>');
+
+export const component_branch_then_segment_4 = (ctx) => {
+  const props = _captures[0];
+  const fragment0 = component_branch_then_segment_4_tmpl0(ctx.document);
+  const text0 = _first(fragment0);
+  const el0 = _last(fragment0);
+  const comment0 = ctx.document.createComment('b');
+  const comment1 = ctx.document.createComment('/b');
+  text0.replaceWith(comment0, comment1);
+  const branch0 = createBranch(
+    ctx,
+    new BranchRange(ctx.document, comment0, comment1),
+    _withCaptures(component_branch_condition_segment_5, [props]),
+    component_branch_then_segment_6,
+    component_branch_else_segment_7
+  );
+  ctx.scheduler.notify(branch0);
+  return fragment0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_then_segment_4",
+  "entry": null,
+  "displayName": "component_branch_then_segment_4",
+  "hash": "segment_4",
+  "canonicalFilename": "component.tsx_component_branch_then_segment_4",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:then",
+  "captures": true,
+  "loc": [
+    127,
+    194
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_branch_condition_segment_5.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+
+export const component_branch_condition_segment_5 = () => {
+  const props = _captures[0];
+  return props.alternate;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_condition_segment_5",
+  "entry": null,
+  "displayName": "component_branch_condition_segment_5",
+  "hash": "segment_5",
+  "canonicalFilename": "component.tsx_component_branch_condition_segment_5",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:condition",
+  "captures": true,
+  "loc": [
+    130,
+    145
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_branch_then_segment_6.js (ENTRY POINT)==
+
+import { _first, createTemplate } from '@qwik.dev/core/spark';
+const component_branch_then_segment_6_tmpl0 = createTemplate('<span>A</span>');
+
+export const component_branch_then_segment_6 = (ctx) => {
+  const fragment0 = component_branch_then_segment_6_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return fragment0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_then_segment_6",
+  "entry": null,
+  "displayName": "component_branch_then_segment_6",
+  "hash": "segment_6",
+  "canonicalFilename": "component.tsx_component_branch_then_segment_6",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:then",
+  "captures": false,
+  "loc": [
+    148,
+    162
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_branch_else_segment_7.js (ENTRY POINT)==
+
+import { _first, createTemplate } from '@qwik.dev/core/spark';
+const component_branch_else_segment_7_tmpl0 = createTemplate('<span>B</span>');
+
+export const component_branch_else_segment_7 = (ctx) => {
+  const fragment0 = component_branch_else_segment_7_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return fragment0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_else_segment_7",
+  "entry": null,
+  "displayName": "component_branch_else_segment_7",
+  "hash": "segment_7",
+  "canonicalFilename": "component.tsx_component_branch_else_segment_7",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:else",
+  "captures": false,
+  "loc": [
+    165,
+    179
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_branch_condition_segment_8.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+
+export const component_branch_condition_segment_8 = () => {
+  const props = _captures[0];
+  return props.enabled;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_condition_segment_8",
+  "entry": null,
+  "displayName": "component_branch_condition_segment_8",
+  "hash": "segment_8",
+  "canonicalFilename": "component.tsx_component_branch_condition_segment_8",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:condition",
+  "captures": true,
+  "loc": [
+    203,
+    216
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_branch_then_segment_9.js (ENTRY POINT)==
+
+export const component_branch_then_segment_9 = (ctx) => {
+  return [];
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_then_segment_9",
+  "entry": null,
+  "displayName": "component_branch_then_segment_9",
+  "hash": "segment_9",
+  "canonicalFilename": "component.tsx_component_branch_then_segment_9",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:then",
+  "captures": false,
+  "loc": [
+    219,
+    223
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_branch_else_segment_10.js (ENTRY POINT)==
+
+import { _first, createTemplate } from '@qwik.dev/core/spark';
+const component_branch_else_segment_10_tmpl0 = createTemplate('<small>Disabled</small>');
+
+export const component_branch_else_segment_10 = (ctx) => {
+  const fragment0 = component_branch_else_segment_10_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return fragment0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_else_segment_10",
+  "entry": null,
+  "displayName": "component_branch_else_segment_10",
+  "hash": "segment_10",
+  "canonicalFilename": "component.tsx_component_branch_else_segment_10",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:else",
+  "captures": false,
+  "loc": [
+    226,
+    249
+  ],
+  "paramNames": []
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

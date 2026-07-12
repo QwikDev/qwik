@@ -1,7 +1,7 @@
 import type { SourceRange } from '../types';
 import { isSetupQrlSegment } from './extract';
 import type { Segment } from './types';
-import { QwikHooks } from './words';
+import { QwikHooks, QwikWord } from './words';
 
 export type SetupQrlPart =
   | { kind: 'code'; code: string }
@@ -112,13 +112,23 @@ export function getQrlVariableName(segment: Segment): string {
 }
 
 export function emitFunctionReference(segment: Segment, imports: Set<string>): string {
-  if (segment.captures.length === 0) {
-    return segment.name;
+  return emitCapturedFunctionReference(
+    segment.name,
+    segment.captures.map((capture) => capture.name),
+    imports
+  );
+}
+
+export function emitCapturedFunctionReference(
+  name: string,
+  captures: readonly string[],
+  imports: Set<string>
+): string {
+  if (captures.length === 0) {
+    return name;
   }
-  imports.add('_withCaptures');
-  return `_withCaptures(${segment.name}, [${segment.captures
-    .map((capture) => capture.name)
-    .join(', ')}])`;
+  imports.add(QwikWord.WithCaptures);
+  return `${QwikWord.WithCaptures}(${name}, [${captures.join(', ')}])`;
 }
 
 export function getTargetCallee(ctxName: string, target: 'csr' | 'ssr'): string {

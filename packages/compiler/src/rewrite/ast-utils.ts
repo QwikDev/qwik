@@ -1,4 +1,61 @@
 import type { Node } from 'oxc-parser';
+import { unwrapExpression } from '../ast-utils';
+
+export interface JsxBranchExpression {
+  condition: Node;
+  then: Node;
+  else: Node | null;
+}
+
+export function getJsxBranchExpression(node: unknown): JsxBranchExpression | null {
+  const expr = unwrapExpression(node);
+  if (!isObjectNode(expr)) {
+    return null;
+  }
+  switch (expr.type) {
+    case 'ConditionalExpression':
+      if (!isBranchOutput(expr.consequent) && !isBranchOutput(expr.alternate)) {
+        return null;
+      }
+      return {
+        condition: expr.test,
+        then: expr.consequent,
+        else: isEmptyBranchExpression(expr.alternate) ? null : expr.alternate,
+      };
+    case 'LogicalExpression':
+      return expr.operator === '&&' ? { condition: expr.left, then: expr.right, else: null } : null;
+    default:
+      return null;
+  }
+}
+
+export function isEmptyBranchExpression(node: unknown): boolean {
+  const expr = unwrapExpression(node);
+  return (
+    isObjectNode(expr) &&
+    expr.type === 'Literal' &&
+    (expr.value === null || expr.value === false || expr.value === true)
+  );
+}
+
+function isBranchOutput(node: unknown): boolean {
+  const expr = unwrapExpression(node);
+  if (!isObjectNode(expr)) {
+    return false;
+  }
+  switch (expr.type) {
+    case 'JSXElement':
+    case 'JSXFragment':
+    case 'CallExpression':
+      return true;
+    case 'ConditionalExpression':
+      return isBranchOutput(expr.consequent) || isBranchOutput(expr.alternate);
+    case 'LogicalExpression':
+      return expr.operator === '&&';
+    default:
+      return false;
+  }
+}
 
 interface VisitContext {
   parent: Node | null;

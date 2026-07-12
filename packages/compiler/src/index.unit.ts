@@ -214,6 +214,32 @@ export function App(props: { value: string }) {
     });
   });
 
+  test('renders conditional function calls as a JSX branch', async () => {
+    await testInput('component_branch_call', {
+      code: `import { renderActive, renderInactive } from './renderers';
+
+export function App(props: { enabled: boolean; value: string }) {
+  return <section><b>Before</b>{props.enabled ? renderActive(props.value) : renderInactive(props.value)}<i>After</i></section>;
+}
+`,
+    });
+  });
+
+  test('renders JSX and nested logical branches', async () => {
+    await testInput('component_branch_jsx', {
+      code: `export function App(props: { enabled: boolean; alternate: boolean }) {
+  return (
+    <main>
+      {props.enabled ? <strong>On</strong> : <em>Off</em>}
+      {props.enabled && <>{props.alternate ? <span>A</span> : <span>B</span>}<i>Tail</i></>}
+      {props.enabled ? null : <small>Disabled</small>}
+    </main>
+  );
+}
+`,
+    });
+  });
+
   test('passes an event prop to a native element', async () => {
     await testInput('component_props_event', {
       code: `import type { QRL } from '@qwik.dev/core';

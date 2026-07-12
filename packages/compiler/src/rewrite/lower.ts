@@ -12,13 +12,15 @@ import {
   getJsxAttributeName,
   getJsxName,
   getRange,
+  getStaticExpressionValue,
   isCallExpression,
+  isEventProp,
   isNativeTag,
   jsxEventToHtmlAttribute,
   normalizeJsxText,
   unwrapExpression,
 } from '../ast-utils';
-import { escapeAttr, escapeText } from '../stages/emit-utils';
+import { escapeAttr, escapeText, serializeAttrValue } from '../stages/emit-utils';
 import type { SourceRange } from '../types';
 import { visit } from './ast-utils';
 import { isRewriteSourceFactoryName } from './discover';
@@ -32,6 +34,7 @@ import type {
   HtmlHtmlPart,
   HtmlPart,
   Op,
+  PropsExpressionPart,
   Ref,
   RefStep,
   RenderResult,
@@ -39,10 +42,11 @@ import type {
   RewriteContextProviderImports,
   RewriteSourceFactoryImports,
   Segment,
+  StaticProp,
   TextEffectBinding,
   ValueEffectBinding,
 } from './types';
-import { QwikHooks } from './words';
+import { QwikAttributes, QwikHooks } from './words';
 
 interface TemplateRoot {
   id: number;
@@ -281,6 +285,10 @@ function renderJsxAttributes(
   state: LowerState,
   target: number | undefined
 ): HtmlPart[] | null {
+  if (opening.attributes.some((attr) => attr.type === 'JSXSpreadAttribute')) {
+    return renderJsxSpreadAttributes(opening, state, target);
+  }
+
   const attrs: HtmlPart[] = [];
   for (const attr of opening.attributes) {
     switch (attr.type) {
@@ -294,31 +302,86 @@ function renderJsxAttributes(
         pushAttr(state, attrs, target, name, value);
         break;
       }
-
-      case 'JSXSpreadAttribute': {
-        if (opening.attributes.length !== 1 || target === undefined) {
-          return null;
-        }
-        const range = getRange(unwrapExpression(attr.argument));
-        const segment = range === null ? undefined : getExpressionSegment(range, state);
-        if (segment === undefined) {
-          return null;
-        }
-        attrs.push({ kind: 'props', target });
-        state.ops.push({
-          kind: 'propsEffect',
-          target,
-          binding: createExpressionEffectBinding(state, segment),
-        });
-        break;
-      }
+      case 'JSXSpreadAttribute':
+        return null;
     }
   }
   return attrs;
 }
 
+function renderJsxSpreadAttributes(
+  opening: JSXOpeningElement,
+  state: LowerState,
+  target: number | undefined
+): HtmlPart[] | null {
+  const parts: PropsExpressionPart[] = [];
+  const staticProps: StaticProp[] = [];
+  let spreadCount = 0;
+  let dynamicSpreadCount = 0;
+
+  for (const attr of opening.attributes) {
+    switch (attr.type) {
+      case 'JSXSpreadAttribute': {
+        spreadCount++;
+        const spreadProps = getStaticObjectSpreadProps(attr.argument);
+        if (spreadProps !== null) {
+          for (const prop of spreadProps) {
+            staticProps.push(prop);
+            parts.push({ kind: 'static', prop });
+          }
+          break;
+        }
+        const range = getRange(unwrapExpression(attr.argument));
+        if (range === null) {
+          return null;
+        }
+        dynamicSpreadCount++;
+        parts.push({ kind: 'spread', range });
+        break;
+      }
+      case 'JSXAttribute': {
+        const prop = getStaticJsxProp(attr);
+        if (prop === null) {
+          return null;
+        }
+        if (prop !== undefined) {
+          staticProps.push(prop);
+          parts.push({ kind: 'static', prop });
+        }
+        break;
+      }
+    }
+  }
+
+  if (dynamicSpreadCount === 0) {
+    return renderStaticProps(staticProps);
+  }
+  if (target === undefined) {
+    return null;
+  }
+  const range =
+    spreadCount > 1 ? getRange(opening) : parts.find((part) => part.kind === 'spread')?.range;
+  const segment = range == null ? undefined : getExpressionSegment(range, state);
+  if (segment === undefined) {
+    return null;
+  }
+  if (spreadCount > 1 || parts.length > 1) {
+    segment.propsParts = parts;
+  }
+  state.ops.push({
+    kind: 'propsEffect',
+    target,
+    binding: createExpressionEffectBinding(state, segment),
+  });
+  return [{ kind: 'props', target }];
+}
+
 function getAttrName(attr: JSXAttributeName): string | null {
   const name = getJsxAttributeName(attr);
+  return name === null ? null : normalizeAttrName(name);
+}
+
+function normalizeAttrName(name: string): string | null {
   if (name === 'key') {
     return null;
   }
@@ -326,6 +389,97 @@ function getAttrName(attr: JSXAttributeName): string | null {
     return 'class';
   }
   return name;
+}
+
+function getStaticJsxProp(
+  attr: Extract<JSXOpeningElement['attributes'][number], { type: 'JSXAttribute' }>
+): StaticProp | null | undefined {
+  const rawName = getJsxAttributeName(attr.name);
+  if (rawName === null || isSpecialPropName(rawName)) {
+    return null;
+  }
+  const name = normalizeAttrName(rawName);
+  if (name === null || attr.value === undefined) {
+    return undefined;
+  }
+  const value = getStaticJsxAttrValue(attr.value);
+  return value === undefined ? null : { name, value };
+}
+
+function getStaticObjectSpreadProps(expression: unknown): StaticProp[] | null {
+  const object = unwrapExpression(expression);
+  if (object?.type !== 'ObjectExpression') {
+    return null;
+  }
+
+  const props: StaticProp[] = [];
+  for (const property of object.properties) {
+    switch (property.type) {
+      case 'SpreadElement':
+        return null;
+      case 'Property':
+        if (property.computed || property.value.type !== 'Literal' || 'regex' in property.value) {
+          return null;
+        }
+        break;
+    }
+
+    let rawName: string | null;
+    switch (property.key.type) {
+      case 'Identifier':
+        rawName = property.key.name;
+        break;
+      case 'Literal':
+        rawName = typeof property.key.value === 'string' ? property.key.value : null;
+        break;
+      default:
+        rawName = null;
+    }
+    if (
+      rawName === null ||
+      !/^[A-Za-z_:][A-Za-z0-9:._-]*$/.test(rawName) ||
+      isSpecialPropName(rawName)
+    ) {
+      return null;
+    }
+    const name = normalizeAttrName(rawName);
+    if (name !== null) {
+      const value = getStaticLiteralValue(property.value);
+      if (value === undefined) {
+        return null;
+      }
+      props.push({ name, value });
+    }
+  }
+  return props;
+}
+
+function renderStaticProps(props: readonly StaticProp[]): HtmlPart[] {
+  const attrs = new Map(props.map((prop) => [prop.name, prop.value]));
+  return [...attrs].flatMap(([name, value]) => {
+    const serialized = serializeStaticAttrValue(name, value);
+    return serialized === undefined
+      ? []
+      : [createHtmlRecord(serialized === '' ? ` ${name}` : ` ${name}="${escapeAttr(serialized)}"`)];
+  });
+}
+
+function isSpecialPropName(name: string): boolean {
+  switch (name) {
+    case '__proto__':
+    case 'children':
+    case 'ref':
+    case 'dangerouslySetInnerHTML':
+      return true;
+    default:
+      return (
+        name.startsWith(QwikAttributes.BindPrefix) ||
+        name.startsWith(QwikAttributes.PassivePrefix) ||
+        name.startsWith(QwikAttributes.PreventDefaultPrefix) ||
+        name.startsWith(QwikAttributes.StopPropagationPrefix) ||
+        isEventProp(name)
+      );
+  }
 }
 
 function pushAttr(
@@ -404,43 +558,65 @@ function pushAttr(
 }
 
 function getStaticAttrValue(name: string, value: JSXAttributeValue | null): string | undefined {
-  if (value === null) {
-    return '';
+  const staticValue = getStaticJsxAttrValue(value);
+  if (staticValue !== undefined) {
+    return serializeStaticAttrValue(name, staticValue);
   }
+  const literal =
+    value?.type === 'Literal'
+      ? value
+      : value?.type === 'JSXExpressionContainer' && value.expression.type === 'Literal'
+        ? value.expression
+        : null;
+  return literal === null || ('regex' in literal && literal.value === null)
+    ? undefined
+    : String(literal.value);
+}
 
+function getStaticJsxAttrValue(value: JSXAttributeValue | null): StaticProp['value'] | undefined {
+  if (value === null) {
+    return true;
+  }
   switch (value.type) {
     case 'Literal':
-      return String(value.value);
+      return getStaticLiteralValue(value);
     case 'JSXExpressionContainer':
-      if (value.expression.type === 'Literal') {
-        if (value.expression.value === null) {
-          return undefined;
-        }
-        if (typeof value.expression.value === 'boolean') {
-          if (
-            name.startsWith('aria-') ||
-            name === 'spellcheck' ||
-            name === 'draggable' ||
-            name === 'contenteditable'
-          ) {
-            return String(value.expression.value);
-          }
-          return value.expression.value ? '' : undefined;
-        }
-        return String(value.expression.value);
-      }
-      return undefined;
-
+      return value.expression.type === 'Literal'
+        ? getStaticLiteralValue(value.expression)
+        : undefined;
     default:
       return undefined;
   }
+}
+
+function getStaticLiteralValue(
+  value: Extract<Node, { type: 'Literal' }>
+): StaticProp['value'] | undefined {
+  const staticValue = getStaticExpressionValue(value);
+  return staticValue.supported ? staticValue.value : undefined;
+}
+
+function serializeStaticAttrValue(name: string, value: StaticProp['value']): string | undefined {
+  if (
+    typeof value === 'boolean' &&
+    (name.startsWith('aria-') ||
+      name === 'spellcheck' ||
+      name === 'draggable' ||
+      name === 'contenteditable')
+  ) {
+    return String(value);
+  }
+  return serializeAttrValue(value) ?? undefined;
 }
 
 function needsElementRef(opening: JSXOpeningElement, state: LowerState): boolean {
   for (const attr of opening.attributes) {
     switch (attr.type) {
       case 'JSXSpreadAttribute':
-        return true;
+        if (getStaticObjectSpreadProps(attr.argument) === null) {
+          return true;
+        }
+        break;
       case 'JSXAttribute': {
         const name = getAttrName(attr.name);
         if (name === null) {

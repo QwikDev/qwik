@@ -188,6 +188,64 @@ export function App(props: { onClick$: QRL<() => void> }) {
     });
   });
 
+  test('spreads props returned by a call expression', async () => {
+    await testInput('component_props_call_spread', {
+      code: `export function App(props: { getAttrs: () => { title: string } }) {
+  return <button {...props.getAttrs()}>Save</button>;
+}
+`,
+    });
+  });
+
+  test('spreads props selected by conditional and logical expressions', async () => {
+    await testInput('component_props_branch_spread', {
+      code: `export function Conditional(props: { enabled: boolean; active: object; inactive: object }) {
+  return <button {...(props.enabled ? props.active : props.inactive)}>Conditional</button>;
+}
+
+export function Logical(props: { attrs: object | null }) {
+  return <button {...(props.attrs ?? {})}>Logical</button>;
+}
+`,
+    });
+  });
+
+  test('preserves static attribute overrides around a spread', async () => {
+    await testInput('component_props_spread_override', {
+      code: `export function App(props: { title: string; hidden: boolean }) {
+  return <button title="before" data-before="base" {...props} title="after" hidden={false} data-after="final">Save</button>;
+}
+`,
+    });
+  });
+
+  test('preserves source order across multiple dynamic spreads', async () => {
+    await testInput('component_props_multiple_spreads', {
+      code: `export function App(props: { base: object; overrides: object }) {
+  return <button title="before" {...props.base} hidden {...props.overrides} title="after">Save</button>;
+}
+`,
+    });
+  });
+
+  test('spreads an object literal onto a native element', async () => {
+    await testInput('component_object_spread', {
+      code: `export function App() {
+  return <button title="before" {...{ title: 'spread', hidden: true }} {...{ 'aria-disabled': false }} title="after" hidden={false}>Save</button>;
+}
+`,
+    });
+  });
+
+  test('keeps a dynamic object literal spread reactive', async () => {
+    await testInput('component_dynamic_object_spread', {
+      code: `export function App(props: { title: string }) {
+  return <button {...{ title: props.title }}>Save</button>;
+}
+`,
+    });
+  });
+
   test('renders a local member expression as text', async () => {
     await testInput('component_local_text', {
       code: `export function App() {

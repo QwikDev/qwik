@@ -82,6 +82,15 @@ export type ExpressionEffectBinding = {
   captures: string[];
 };
 
+export interface StaticProp {
+  name: string;
+  value: string | number | boolean | null;
+}
+
+export type PropsExpressionPart =
+  | { kind: 'static'; prop: StaticProp }
+  | { kind: 'spread'; range: SourceRange };
+
 export type ValueEffectBinding = { kind: 'source'; range: SourceRange } | ExpressionEffectBinding;
 
 export type TextEffectBinding = ValueEffectBinding | { kind: 'unsupported' };
@@ -134,6 +143,8 @@ export interface Segment {
   paramRanges: SourceRange[];
   bodyRange: SourceRange;
   bodyKind: 'block' | 'expression';
+  // Ordered JSX attributes for a props expression. Later entries override earlier ones.
+  propsParts?: PropsExpressionPart[];
   awaits: Array<{ range: SourceRange; argumentRange: SourceRange }>;
   captures: SegmentCapture[];
   moduleReferences: string[];

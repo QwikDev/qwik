@@ -49,6 +49,10 @@ export const enum QwikComments {
 
 export const enum QwikAttributes {
   Id = 'q:id',
+  BindPrefix = 'bind:',
+  PassivePrefix = 'passive:',
+  PreventDefaultPrefix = 'preventdefault:',
+  StopPropagationPrefix = 'stoppropagation:',
 }
 
 export const enum QwikHooks {

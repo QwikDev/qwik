@@ -1,0 +1,115 @@
+==INPUT==
+
+export function App(props: { getAttrs: () => { title: string } }) {
+  return <button {...props.getAttrs()}>Save</button>;
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  createSsrElementTarget,
+  renderSsrProps,
+  maybeThen,
+  _qrlWithChunk,
+} from '@qwik.dev/core/spark';
+import { component_props_segment_0 } from './component.tsx_component_props_segment_0';
+
+const q_component_props_segment_0 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_props_segment_0',
+  () => import('./component.tsx_component_props_segment_0'),
+  'component_props_segment_0'
+);
+q_component_props_segment_0.s(component_props_segment_0);
+export function App(props, ctx) {
+  const id0 = ctx.nextId();
+  ctx.addRoot(props);
+  const props0 = renderSsrProps(
+    createSsrElementTarget(id0),
+    [props],
+    q_component_props_segment_0,
+    ctx.eventAttr
+  );
+  return maybeThen(
+    props0,
+    (props0) => '<button q:id="' + id0 + '"' + props0.attrs + '>' + 'Save' + '</button>'
+  );
+}
+============================= src/component.tsx_component_props_segment_0.js (ENTRY POINT)==
+
+export const component_props_segment_0 = (props) => {
+  return props.getAttrs();
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_0",
+  "entry": null,
+  "displayName": "component_props_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_props_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    49,
+    65
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { _first, createPropsEffect, createTemplate } from '@qwik.dev/core/spark';
+import { component_props_segment_0 } from './component.tsx_component_props_segment_0';
+
+const App_tmpl0 = createTemplate('<button>Save</button>');
+export function App(props, ctx) {
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const effect0 = createPropsEffect(el0, [props], component_props_segment_0, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  return el0;
+}
+============================= src/component.tsx_component_props_segment_0.js (ENTRY POINT)==
+
+export const component_props_segment_0 = (props) => {
+  return props.getAttrs();
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_0",
+  "entry": null,
+  "displayName": "component_props_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_props_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    49,
+    65
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

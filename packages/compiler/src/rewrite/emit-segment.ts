@@ -8,7 +8,7 @@ import {
   getTargetCallee,
 } from './emit-qrl';
 import { isSetupQrlSegment } from './extract';
-import type { Segment } from './types';
+import type { PropsExpressionPart, Segment } from './types';
 import { QWIK_IMPORT, QwikHooks, QwikWord } from './words';
 
 export function emitSegmentModules(
@@ -128,8 +128,14 @@ function emitSegmentCode(
           .map((capture, index) => `${capture.name} = ${QwikWord.Captures}[${index}]`)
           .join(', ')};`;
   const rawBody = applyReplacements(source, segment.bodyRange, replacements);
+  const expressionBody =
+    segment.propsParts === undefined
+      ? rawBody
+      : `{ ${segment.propsParts
+          .map((part) => emitPropsPart(part, source, replacements))
+          .join(', ')} }`;
   const body = rewriteLoopCaptures(
-    segment.bodyKind === 'block' ? rawBody.slice(1, -1).trim() : `return ${rawBody};`,
+    segment.bodyKind === 'block' ? rawBody.slice(1, -1).trim() : `return ${expressionBody};`,
     segment
   );
   const statements = [captureStatement, body].filter(Boolean).map(indent).join('\n');
@@ -140,6 +146,26 @@ function emitSegmentCode(
 
   const prelude = [...imports, ...childImports, ...hoists];
   return `${prelude.length > 0 ? `${prelude.join('\n')}\n\n` : ''}${declaration}\n`;
+}
+
+function emitPropsPart(
+  part: PropsExpressionPart,
+  source: string,
+  replacements: readonly { range: Segment['range']; value: string }[]
+): string {
+  switch (part.kind) {
+    case 'static':
+      return `${JSON.stringify(part.prop.name)}: ${JSON.stringify(part.prop.value)}`;
+    case 'spread':
+      return `...(${applyReplacements(
+        source,
+        part.range,
+        replacements.filter(
+          (replacement) =>
+            replacement.range[0] >= part.range[0] && replacement.range[1] <= part.range[1]
+        )
+      )})`;
+  }
 }
 
 function rewriteLoopCaptures(body: string, segment: Segment): string {

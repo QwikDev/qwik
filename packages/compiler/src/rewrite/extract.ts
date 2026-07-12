@@ -158,9 +158,7 @@ class QrlExtractor {
         this.recordReference(node.name);
         return;
       case 'JSXElement':
-        for (const attr of node.openingElement.attributes) {
-          this.visitJsxAttribute(attr);
-        }
+        this.visitJsxAttributes(node.openingElement.attributes, node.openingElement);
         for (const child of node.children) {
           this.visitJsxChild(child);
         }
@@ -414,6 +412,29 @@ class QrlExtractor {
     this.visit(node.value);
   }
 
+  private visitJsxAttributes(attributes: JSXAttributeItem[], boundary: AstNode) {
+    const spreads = attributes.filter((attr) => attr.type === 'JSXSpreadAttribute');
+    if (spreads.length >= 2) {
+      const segment = this.createExpressionSegment('props', boundary);
+      if (segment !== null) {
+        for (const attr of attributes) {
+          if (attr.type === 'JSXAttribute') {
+            this.visitJsxAttribute(attr);
+          }
+        }
+        this.visitExpressionsSegment(
+          spreads.map((spread) => unwrapExpression(spread.argument)).filter(isNode),
+          segment
+        );
+        return;
+      }
+    }
+
+    for (const attr of attributes) {
+      this.visitJsxAttribute(attr);
+    }
+  }
+
   private visitJsxChild(node: unknown) {
     if (
       isNode(node) &&
@@ -430,21 +451,29 @@ class QrlExtractor {
     expression: AstNode | null | undefined
   ): boolean {
     switch (expression?.type) {
+      case 'CallExpression':
+      case 'ConditionalExpression':
+      case 'LogicalExpression':
+        if (ctxName !== 'props') {
+          return false;
+        }
+        break;
       case 'Identifier':
       case 'BinaryExpression':
       case 'UnaryExpression':
       case 'TemplateLiteral':
-      case 'MemberExpression': {
-        const segment = this.createExpressionSegment(ctxName, expression);
-        if (segment === null) {
-          return false;
-        }
-        this.visitExpressionSegment(expression, segment);
-        return true;
-      }
+      case 'MemberExpression':
+      case 'ObjectExpression':
+        break;
       default:
         return false;
     }
+    const segment = this.createExpressionSegment(ctxName, expression);
+    if (segment === null) {
+      return false;
+    }
+    this.visitExpressionsSegment([expression], segment);
+    return true;
   }
 
   private createExpressionSegment(ctxName: string, expression: AstNode): Segment | null {
@@ -475,7 +504,7 @@ class QrlExtractor {
     return segment;
   }
 
-  private visitExpressionSegment(expression: AstNode, segment: Segment) {
+  private visitExpressionsSegment(expressions: readonly AstNode[], segment: Segment) {
     const previousOwner = this.owner;
     const owner = this.nextOwner++;
     this.ownerParents[owner] = previousOwner;
@@ -487,7 +516,9 @@ class QrlExtractor {
       moduleReferences: new Set<number>(),
     };
     this.segmentStack.push(state);
-    this.visit(expression);
+    for (const expression of expressions) {
+      this.visit(expression);
+    }
     this.segmentStack.pop();
     this.propagateCaptures(state);
     this.owner = previousOwner;

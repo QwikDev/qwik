@@ -1,0 +1,205 @@
+==INPUT==
+
+export function Conditional(props: { enabled: boolean; active: object; inactive: object }) {
+  return <button {...(props.enabled ? props.active : props.inactive)}>Conditional</button>;
+}
+
+export function Logical(props: { attrs: object | null }) {
+  return <button {...(props.attrs ?? {})}>Logical</button>;
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  createSsrElementTarget,
+  renderSsrProps,
+  maybeThen,
+  _qrlWithChunk,
+} from '@qwik.dev/core/spark';
+import { component_props_segment_0 } from './component.tsx_component_props_segment_0';
+import { component_props_segment_1 } from './component.tsx_component_props_segment_1';
+
+const q_component_props_segment_0 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_props_segment_0',
+  () => import('./component.tsx_component_props_segment_0'),
+  'component_props_segment_0'
+);
+q_component_props_segment_0.s(component_props_segment_0);
+const q_component_props_segment_1 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_props_segment_1',
+  () => import('./component.tsx_component_props_segment_1'),
+  'component_props_segment_1'
+);
+q_component_props_segment_1.s(component_props_segment_1);
+export function Conditional(props, ctx) {
+  const id0 = ctx.nextId();
+  ctx.addRoot(props);
+  const props0 = renderSsrProps(
+    createSsrElementTarget(id0),
+    [props],
+    q_component_props_segment_0,
+    ctx.eventAttr
+  );
+  return maybeThen(
+    props0,
+    (props0) => '<button q:id="' + id0 + '"' + props0.attrs + '>' + 'Conditional' + '</button>'
+  );
+}
+export function Logical(props, ctx) {
+  const id0 = ctx.nextId();
+  ctx.addRoot(props);
+  const props0 = renderSsrProps(
+    createSsrElementTarget(id0),
+    [props],
+    q_component_props_segment_1,
+    ctx.eventAttr
+  );
+  return maybeThen(
+    props0,
+    (props0) => '<button q:id="' + id0 + '"' + props0.attrs + '>' + 'Logical' + '</button>'
+  );
+}
+============================= src/component.tsx_component_props_segment_0.js (ENTRY POINT)==
+
+export const component_props_segment_0 = (props) => {
+  return props.enabled ? props.active : props.inactive;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_0",
+  "entry": null,
+  "displayName": "component_props_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_props_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    57,
+    102
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_props_segment_1.js (ENTRY POINT)==
+
+export const component_props_segment_1 = (props) => {
+  return props.attrs ?? {};
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_1",
+  "entry": null,
+  "displayName": "component_props_segment_1",
+  "hash": "segment_1",
+  "canonicalFilename": "component.tsx_component_props_segment_1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    181,
+    198
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { _first, createPropsEffect, createTemplate } from '@qwik.dev/core/spark';
+import { component_props_segment_0 } from './component.tsx_component_props_segment_0';
+import { component_props_segment_1 } from './component.tsx_component_props_segment_1';
+
+const Conditional_tmpl0 = createTemplate('<button>Conditional</button>');
+const Logical_tmpl0 = createTemplate('<button>Logical</button>');
+export function Conditional(props, ctx) {
+  const fragment0 = Conditional_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const effect0 = createPropsEffect(el0, [props], component_props_segment_0, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  return el0;
+}
+export function Logical(props, ctx) {
+  const fragment0 = Logical_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const effect0 = createPropsEffect(el0, [props], component_props_segment_1, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  return el0;
+}
+============================= src/component.tsx_component_props_segment_0.js (ENTRY POINT)==
+
+export const component_props_segment_0 = (props) => {
+  return props.enabled ? props.active : props.inactive;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_0",
+  "entry": null,
+  "displayName": "component_props_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_props_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    57,
+    102
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_props_segment_1.js (ENTRY POINT)==
+
+export const component_props_segment_1 = (props) => {
+  return props.attrs ?? {};
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_1",
+  "entry": null,
+  "displayName": "component_props_segment_1",
+  "hash": "segment_1",
+  "canonicalFilename": "component.tsx_component_props_segment_1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    181,
+    198
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

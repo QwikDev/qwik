@@ -1,6 +1,14 @@
 import { describe, it, expect, vi } from 'vitest';
 import { ssrCreateContainer } from './ssr-container';
-import { QDefaultSlot, QError, QStyle, VNodeDataChar, encodeVNodeDataString } from './qwik-copy';
+import {
+  QDefaultSlot,
+  QError,
+  QSlot,
+  QStyle,
+  VNodeDataChar,
+  encodeVNodeDataKey,
+  encodeVNodeDataString,
+} from './qwik-copy';
 import { VNodeDataFlag, type RenderToStreamOptions } from './types';
 import { OPEN_FRAGMENT, CLOSE_FRAGMENT } from './vnode-data';
 import { StreamHandler } from './ssr-stream-handler';
@@ -199,6 +207,32 @@ describe('SSR Container', () => {
     );
     expect(vnodeContent).toContain(
       `${VNodeDataChar.SEPARATOR_CHAR}${encodedValue}${VNodeDataChar.SEPARATOR_CHAR}`
+    );
+  });
+
+  it('should encode slot names in emitVNodeData', () => {
+    const { container, writer } = createTestContainer();
+    container.openContainer();
+    container.serializationCtx.$roots$.push({});
+
+    const slotName = '</script>|~;=?@ zażółć';
+    (container as any).vNodeDatas = [
+      [
+        VNodeDataFlag.SERIALIZE | VNodeDataFlag.VIRTUAL_NODE,
+        { [QSlot]: slotName },
+        OPEN_FRAGMENT,
+        CLOSE_FRAGMENT,
+      ],
+    ];
+
+    (container as any).emitVNodeData();
+
+    const output = writer.toString();
+    const encodedSlotName = encodeVNodeDataString(encodeVNodeDataKey(slotName));
+
+    expect(output).not.toContain(slotName);
+    expect(output).toContain(
+      `${VNodeDataChar.SLOT_CHAR}${VNodeDataChar.SEPARATOR_CHAR}${encodedSlotName}${VNodeDataChar.SEPARATOR_CHAR}`
     );
   });
 

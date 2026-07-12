@@ -1296,6 +1296,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           this.write(VNodeDataChar.CONTEXT_CHAR);
           break;
         case QSlot:
+          encodeValue = encodeVNodeDataKey;
           this.write(VNodeDataChar.SLOT_CHAR);
           break;
         default: {

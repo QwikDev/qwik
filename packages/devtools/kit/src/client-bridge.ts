@@ -70,11 +70,19 @@ export interface PageDataSource {
   subscribeRenderEvents(cb: (event: DevtoolsRenderEvent) => void): (() => void) | null;
 }
 
-interface QwikDevtoolsHookExtended extends QwikDevtoolsHook {
+/** Full page-side hook surface (runtime hook plus vnode bridge methods) callers reference by name. */
+export interface QwikDevtoolsHookExtended extends QwikDevtoolsHook {
+  getComponentDetail(name: string, chunk?: string): DevtoolsComponentDetailEntry[] | null;
+  setSignalValue(name: string, chunk: string | undefined, varName: string, val: unknown): boolean;
+  // Added by the vnode bridge once it loads, so optional on the base hook.
   getVNodeTree?(): DevtoolsVNodeTreeNode[] | null;
   getNodeProps?(nodeId: string): Record<string, unknown> | null;
-  getComponentDetail?(name: string, chunk?: string): DevtoolsComponentDetailEntry[] | null;
-  setSignalValue?(name: string, chunk: string | undefined, varName: string, val: unknown): boolean;
+  resolveElementToComponent?(el: Element | null): string | null;
+  getElementRect?(
+    nodeId: string
+  ): { top: number; left: number; width: number; height: number } | null;
+  highlightNode?(nodeId: string, componentName: string): void;
+  unhighlightNode?(): void;
 }
 
 function getPageWindow(isBrowser: boolean): Window | null {

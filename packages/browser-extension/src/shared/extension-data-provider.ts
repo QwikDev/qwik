@@ -2,6 +2,7 @@ import type {
   Component,
   PageDataSource,
   QwikDevtoolsComponentSnapshot,
+  QwikDevtoolsHookExtended,
   QwikDevtoolsSignalsSnapshot,
   QwikPerfStoreRemembered,
   QwikPreloadStoreRemembered,
@@ -42,6 +43,18 @@ function getDevtoolsPort(): DevtoolsPort | null {
 
 function toLiteral(value: unknown): string {
   return JSON.stringify(value ?? null);
+}
+
+type HookMethod = keyof QwikDevtoolsHookExtended;
+
+// Type-checked hook method name, so a typo or rename is a compile error, not a silent no-op.
+function hookCall(method: HookMethod, ...args: unknown[]): string {
+  return `${PAGE_DEVTOOLS_HOOK}?.${method}?.(${args.map(toLiteral).join(', ')})`;
+}
+
+/** Reads and JSON-parses the result of a page-side hook method call. */
+function readHookJson<T>(method: HookMethod, ...args: unknown[]): Promise<T | null> {
+  return readJsonFromPage<T>(hookCall(method, ...args));
 }
 
 function delay(ms: number): Promise<void> {
@@ -193,21 +206,17 @@ export function createRemotePageDataSource(): PageDataSource {
 
     async readComponentTree(): Promise<QwikDevtoolsComponentSnapshot[] | null> {
       await ensurePageHooks();
-      return readJsonFromPage<QwikDevtoolsComponentSnapshot[]>(
-        `${PAGE_DEVTOOLS_HOOK}?.getComponentTreeSnapshot?.() ?? null`
-      );
+      return readHookJson<QwikDevtoolsComponentSnapshot[]>('getComponentTreeSnapshot');
     },
 
     async readSignals(): Promise<QwikDevtoolsSignalsSnapshot | null> {
       await ensurePageHooks();
-      return readJsonFromPage<QwikDevtoolsSignalsSnapshot>(
-        `${PAGE_DEVTOOLS_HOOK}?.getSignalsSnapshot?.() ?? null`
-      );
+      return readHookJson<QwikDevtoolsSignalsSnapshot>('getSignalsSnapshot');
     },
 
     async readVNodeTree(): Promise<VNodeTreeNode[] | null> {
       await ensurePageHooks();
-      return readJsonFromPage<VNodeTreeNode[]>(`${PAGE_DEVTOOLS_HOOK}?.getVNodeTree?.() ?? null`);
+      return readHookJson<VNodeTreeNode[]>('getVNodeTree');
     },
 
     subscribeTreeUpdates(cb: (tree: VNodeTreeNode[]) => void): (() => void) | null {
@@ -235,18 +244,12 @@ export function createRemotePageDataSource(): PageDataSource {
       qrlChunk?: string
     ): Promise<ComponentDetailEntry[] | null> {
       await ensurePageHooks();
-      return readJsonFromPage<ComponentDetailEntry[]>(
-        `${PAGE_DEVTOOLS_HOOK}?.getComponentDetail?.(${toLiteral(
-          componentName
-        )}, ${toLiteral(qrlChunk)}) ?? null`
-      );
+      return readHookJson<ComponentDetailEntry[]>('getComponentDetail', componentName, qrlChunk);
     },
 
     async readNodeProps(nodeId: string): Promise<Record<string, unknown> | null> {
       await ensurePageHooks();
-      return readJsonFromPage<Record<string, unknown>>(
-        `${PAGE_DEVTOOLS_HOOK}?.getNodeProps?.(${toLiteral(nodeId)}) ?? null`
-      );
+      return readHookJson<Record<string, unknown>>('getNodeProps', nodeId);
     },
 
     async setSignalValue(
@@ -258,22 +261,18 @@ export function createRemotePageDataSource(): PageDataSource {
       await ensurePageHooks();
       return (
         (await evalInPage<boolean>(
-          `!!${PAGE_DEVTOOLS_HOOK}?.setSignalValue?.(${toLiteral(
-            componentName
-          )}, ${toLiteral(qrlChunk)}, ${toLiteral(variableName)}, ${toLiteral(newValue)})`
+          `!!${hookCall('setSignalValue', componentName, qrlChunk, variableName, newValue)}`
         )) ?? false
       );
     },
 
     async highlightElement(nodeId: string, componentName: string): Promise<void> {
       await ensurePageHooks();
-      await evalInPage<void>(
-        `${PAGE_DEVTOOLS_HOOK}?.highlightNode?.(${toLiteral(nodeId)}, ${toLiteral(componentName)})`
-      );
+      await evalInPage<void>(hookCall('highlightNode', nodeId, componentName));
     },
 
     async unhighlightElement(): Promise<void> {
-      await evalInPage<void>(`${PAGE_DEVTOOLS_HOOK}?.unhighlightNode?.()`);
+      await evalInPage<void>(hookCall('unhighlightNode'));
     },
 
     subscribeRenderEvents(cb: (event: RenderEvent) => void): (() => void) | null {

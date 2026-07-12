@@ -1,3 +1,5 @@
+import type { QwikDevtoolsHookExtended } from '@qwik.dev/devtools/kit';
+
 export interface HookRuntimeOptions {
   componentStateKey: string;
   devtoolsGlobalKey: string;
@@ -326,7 +328,7 @@ export function __qwik_install_hook_runtime__(options: HookRuntimeOptions) {
   root[options.hookKey] = {
     version: 1,
     ...methods,
-  };
+  } satisfies QwikDevtoolsHookExtended;
 }
 
 export interface PerfRuntimeOptions {
@@ -732,7 +734,9 @@ export function __qwik_install_vnode_runtime__(
     if (typeof window === 'undefined') {
       return;
     }
-    const hook = (window as any)[options.devtoolsGlobalKey]?.[options.hookKey];
+    const hook = (window as any)[options.devtoolsGlobalKey]?.[options.hookKey] as
+      | QwikDevtoolsHookExtended
+      | undefined;
     if (!hook) {
       return;
     }

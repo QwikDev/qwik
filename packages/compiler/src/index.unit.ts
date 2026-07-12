@@ -181,6 +181,15 @@ export function App() {
     });
   });
 
+  test('supports void elements', async () => {
+    await testInput('component_void_elements', {
+      code: `export function App() {
+  return <main><input disabled /><br /><img src="/logo.png" alt="Qwik" /></main>;
+}
+`,
+    });
+  });
+
   test('simple component with fragment', async () => {
     await testInput('static_component_fragment', {
       code: `export const App = () => {

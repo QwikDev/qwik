@@ -57,6 +57,23 @@ interface RefInRoot {
   path: RefStep[];
 }
 
+const VOID_ELEMENTS = new Set([
+  'area',
+  'base',
+  'br',
+  'col',
+  'embed',
+  'hr',
+  'img',
+  'input',
+  'link',
+  'meta',
+  'param',
+  'source',
+  'track',
+  'wbr',
+]);
+
 interface LowerState {
   nextRefId: () => number;
   setup: SourceRange[];
@@ -194,8 +211,9 @@ function renderJsxElementHtml(
   if (!tag || !isNativeTag(tag)) {
     return null;
   }
+  const isVoid = VOID_ELEMENTS.has(tag);
   const elementId = existingId ?? (needsElementRef(opening, state) ? state.nextRefId() : undefined);
-  const children = renderJsxChildren(node.children, state);
+  const children = isVoid ? [] : renderJsxChildren(node.children, state);
   const html: HtmlPart[] = [createHtmlRecord(`<${tag}`)];
   html.push(...renderJsxAttributes(opening, state, elementId));
   html.push(createHtmlRecord('>'));
@@ -208,7 +226,9 @@ function renderJsxElementHtml(
     html.push(...child.html);
     refs.push(...child.refs.map((ref) => ({ id: ref.id, path: [...path, ...ref.path] })));
   }
-  html.push(createHtmlRecord(`</${tag}>`));
+  if (!isVoid) {
+    html.push(createHtmlRecord(`</${tag}>`));
+  }
   return { html, refs };
 }
 

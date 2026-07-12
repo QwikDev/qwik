@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
+import { createDocument } from '../testing/document';
 import { ssrCreateContainer } from './ssr-container';
 import {
   QDefaultSlot,
@@ -79,6 +80,39 @@ describe('SSR Container', () => {
         `Code(Q${QError.invalidElementName})`
       );
       expect(writer.toString()).toBe('');
+    }
+  });
+
+  it('should preserve element keys in quoted attributes', async () => {
+    const keys = [
+      'plain',
+      '42',
+      'quote"key',
+      'amp&key',
+      '<tag>',
+      "apostrophe'key",
+      'white space',
+      'żółć',
+    ];
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i];
+      const { container, writer } = createTestContainer();
+
+      container.openElement(
+        'div',
+        key,
+        { 'data-before': 'before' },
+        { 'data-after': 'after' },
+        null,
+        null
+      );
+      await container.closeElement();
+
+      const element = createDocument({ html: writer.toString() }).querySelector('div')!;
+
+      expect(element.getAttribute(':')).toBe(key);
+      expect(element.getAttribute('data-before')).toBe('before');
+      expect(element.getAttribute('data-after')).toBe('after');
     }
   });
 

@@ -64,6 +64,7 @@ export type HtmlPart =
   | HtmlHtmlPart
   | TextHtmlPart
   | AttributeHtmlPart
+  | { kind: 'props'; target: number }
   | EventHtmlPart
   | MarkerHtmlPart
   | TargetHtmlPart;
@@ -75,9 +76,13 @@ export interface Ref {
   path: RefStep[];
 }
 
-export type ValueEffectBinding =
-  | { kind: 'source'; range: SourceRange }
-  | { kind: 'expression'; segment: string; captures: string[] };
+export type ExpressionEffectBinding = {
+  kind: 'expression';
+  segment: string;
+  captures: string[];
+};
+
+export type ValueEffectBinding = { kind: 'source'; range: SourceRange } | ExpressionEffectBinding;
 
 export type TextEffectBinding = ValueEffectBinding | { kind: 'unsupported' };
 
@@ -102,6 +107,11 @@ export type Op =
       name: string;
       expr: SourceRange;
       binding: ValueEffectBinding;
+    }
+  | {
+      kind: 'propsEffect';
+      target: number;
+      binding: ExpressionEffectBinding;
     }
   | { kind: 'event'; target: number; name: string; key: string; binding: EventBinding };
 

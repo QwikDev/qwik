@@ -27,6 +27,7 @@ import type {
   AttributeHtmlPart,
   EventBinding,
   EventHtmlPart,
+  ExpressionEffectBinding,
   ExtractedQrls,
   HtmlHtmlPart,
   HtmlPart,
@@ -254,7 +255,11 @@ function renderJsxElementHtml(
   if (elementText !== null && elementId !== undefined && elementId !== existingId) {
     html.push({ kind: 'target', id: elementId });
   }
-  html.push(...renderJsxAttributes(opening, state, elementId));
+  const attrs = renderJsxAttributes(opening, state, elementId);
+  if (attrs === null) {
+    return null;
+  }
+  html.push(...attrs);
   html.push(createHtmlRecord('>'));
 
   const refs: RefInRoot[] =
@@ -275,7 +280,7 @@ function renderJsxAttributes(
   opening: JSXOpeningElement,
   state: LowerState,
   target: number | undefined
-): HtmlPart[] {
+): HtmlPart[] | null {
   const attrs: HtmlPart[] = [];
   for (const attr of opening.attributes) {
     switch (attr.type) {
@@ -290,9 +295,23 @@ function renderJsxAttributes(
         break;
       }
 
-      case 'JSXSpreadAttribute':
-        // TODO: valid future case
+      case 'JSXSpreadAttribute': {
+        if (opening.attributes.length !== 1 || target === undefined) {
+          return null;
+        }
+        const range = getRange(unwrapExpression(attr.argument));
+        const segment = range === null ? undefined : getExpressionSegment(range, state);
+        if (segment === undefined) {
+          return null;
+        }
+        attrs.push({ kind: 'props', target });
+        state.ops.push({
+          kind: 'propsEffect',
+          target,
+          binding: createExpressionEffectBinding(state, segment),
+        });
         break;
+      }
     }
   }
   return attrs;
@@ -419,22 +438,26 @@ function getStaticAttrValue(name: string, value: JSXAttributeValue | null): stri
 
 function needsElementRef(opening: JSXOpeningElement, state: LowerState): boolean {
   for (const attr of opening.attributes) {
-    if (attr.type !== 'JSXAttribute') {
-      continue;
-    }
-    const name = getAttrName(attr.name);
-    if (name === null) {
-      continue;
-    }
-    if (getEventAttr(name, attr.value ?? null, state) !== null) {
-      return true;
-    }
-    if (
-      attr.value !== undefined &&
-      getStaticAttrValue(name, attr.value) === undefined &&
-      getDynamicAttrValue(attr.value, state) !== null
-    ) {
-      return true;
+    switch (attr.type) {
+      case 'JSXSpreadAttribute':
+        return true;
+      case 'JSXAttribute': {
+        const name = getAttrName(attr.name);
+        if (name === null) {
+          break;
+        }
+        if (getEventAttr(name, attr.value ?? null, state) !== null) {
+          return true;
+        }
+        if (
+          attr.value !== undefined &&
+          getStaticAttrValue(name, attr.value) === undefined &&
+          getDynamicAttrValue(attr.value, state) !== null
+        ) {
+          return true;
+        }
+        break;
+      }
     }
   }
   return false;
@@ -599,7 +622,10 @@ function getExpressionSegment(range: SourceRange, state: LowerState): Segment | 
   );
 }
 
-function createExpressionEffectBinding(state: LowerState, segment: Segment): ValueEffectBinding {
+function createExpressionEffectBinding(
+  state: LowerState,
+  segment: Segment
+): ExpressionEffectBinding {
   retainSegment(state, segment);
   return {
     kind: 'expression',

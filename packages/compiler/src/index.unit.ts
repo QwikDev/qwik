@@ -179,6 +179,15 @@ export function App(props: { onClick$: QRL<() => void> }) {
     });
   });
 
+  test('spreads props onto a native element', async () => {
+    await testInput('component_props_spread', {
+      code: `export function App(props: { title: string; hidden: boolean }) {
+  return <button {...props}>Save</button>;
+}
+`,
+    });
+  });
+
   test('renders a local member expression as text', async () => {
     await testInput('component_local_text', {
       code: `export function App() {

@@ -187,6 +187,20 @@ function emitCsrOp(
       }
       return [`const ${effect} = ${declaration};`, `ctx.scheduler.notify(${effect});`];
     }
+    case 'propsEffect': {
+      const target = refNames.get(op.target);
+      if (target === undefined) {
+        return null;
+      }
+      const effect = next(QwikGenWord.Effect);
+      imports.add(QwikWord.CreatePropsEffect);
+      return [
+        `const ${effect} = ${QwikWord.CreatePropsEffect}(${target}, [${op.binding.captures.join(
+          ', '
+        )}], ${op.binding.segment}, ctx.scheduler);`,
+        `ctx.scheduler.notify(${effect});`,
+      ];
+    }
     case 'event': {
       const target = refNames.get(op.target);
       if (target === undefined) {
@@ -283,6 +297,7 @@ function getUsedRefs(result: RenderResult): Set<number> {
         usedRefs.add(op.target.marker);
         break;
       case 'attrEffect':
+      case 'propsEffect':
       case 'event':
         usedRefs.add(op.target);
         break;

@@ -24,6 +24,7 @@ function emitHtmlParts(parts: readonly HtmlPart[], markers: boolean): string | n
         break;
       case 'target':
       case 'attr':
+      case 'props':
       case 'event':
         if (!markers) {
           return null;

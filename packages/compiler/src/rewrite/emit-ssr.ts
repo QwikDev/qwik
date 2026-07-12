@@ -132,7 +132,7 @@ function emitDynamicRender(
   }
   const next = createNameAllocator();
   const hasTargetEffects = result.ops.some(
-    (op) => op.kind === 'textEffect' || op.kind === 'attrEffect'
+    (op) => op.kind === 'textEffect' || op.kind === 'attrEffect' || op.kind === 'propsEffect'
   );
   const id = hasTargetEffects ? next(QwikGenWord.Id) : null;
   const elementTextMarkers = new Set(
@@ -143,6 +143,7 @@ function emitDynamicRender(
   const markerIndexes = createMarkerIndexes(result.html, elementTextMarkers);
   const texts = new Map<number, string>();
   const attrs = new Map<string, string>();
+  const props = new Map<number, string>();
   const events = new Map<string, string>();
   const html = emitVisibleTaskCarriers(result, source, events);
   const targetIds = new Map<number, string>(id === null ? [] : [[root, id]]);
@@ -156,6 +157,7 @@ function emitDynamicRender(
       markerIndexes,
       texts,
       attrs,
+      props,
       events,
       targetIds,
       segments,
@@ -174,6 +176,7 @@ function emitDynamicRender(
     id,
     texts,
     attrs,
+    props,
     events,
     targetIds,
     elementTextMarkers
@@ -183,7 +186,8 @@ function emitDynamicRender(
   }
   const textNames = [...texts.values()];
   const attrNames = [...attrs.values()];
-  const dynamicNames = [...textNames, ...attrNames];
+  const propsNames = [...props.values()];
+  const dynamicNames = [...textNames, ...attrNames, ...propsNames];
   const renderedHtml = result.providesContext ? emitContextHtml(value) : value;
   const setupImports = [
     ...emittedSetup.imports,
@@ -218,7 +222,7 @@ function emitDynamicRender(
   return {
     imports: [
       ...setupImports,
-      QwikWord.EscapeHTML,
+      ...(textNames.length > 0 || attrNames.length > 0 ? [QwikWord.EscapeHTML] : []),
       ...(textNames.length > 0
         ? [
             ...(hasTextSource ? [QwikWord.RenderSsrTextNode] : []),
@@ -227,13 +231,14 @@ function emitDynamicRender(
             ...(hasRangeText ? [QwikWord.CreateSsrRangeTextTarget] : []),
           ]
         : []),
+      ...(attrNames.length > 0 || propsNames.length > 0 ? [QwikWord.CreateSsrElementTarget] : []),
       ...(attrNames.length > 0
         ? [
-            QwikWord.CreateSsrElementTarget,
             ...(hasAttrSource ? [QwikWord.RenderSsrAttr] : []),
             ...(hasAttrExpression ? [QwikWord.RenderSsrAttrExpression] : []),
           ]
         : []),
+      ...(propsNames.length > 0 ? [QwikWord.RenderSsrProps] : []),
       QwikWord.MaybeThen,
       ...(dynamicNames.length > 1 ? [QwikWord.PromiseAll] : []),
     ],
@@ -361,6 +366,7 @@ function emitSsrOp(
   markerIndexes: Map<number, number>,
   texts: Map<number, string>,
   attrs: Map<string, string>,
+  props: Map<number, string>,
   events: Map<string, string>,
   targetIds: Map<number, string>,
   segments: ReadonlyMap<string, Segment>,
@@ -376,6 +382,8 @@ function emitSsrOp(
       return emitSsrTextOp(op, markerIndexes, texts, targetIds, segments, source, id, next);
     case 'attrEffect':
       return emitSsrAttrOp(op, attrs, targetIds, segments, source, next);
+    case 'propsEffect':
+      return emitSsrPropsOp(op, props, targetIds, segments, next);
     case 'event': {
       let reference: string;
       switch (op.binding.kind) {
@@ -400,6 +408,35 @@ function emitSsrOp(
       return [];
     }
   }
+}
+
+function emitSsrPropsOp(
+  op: Extract<Op, { kind: 'propsEffect' }>,
+  props: Map<number, string>,
+  targetIds: Map<number, string>,
+  segments: ReadonlyMap<string, Segment>,
+  next: (prefix: string) => string
+): string[] | null {
+  const segment = segments.get(op.binding.segment);
+  if (segment === undefined) {
+    return null;
+  }
+  let targetId = targetIds.get(op.target);
+  const statements: string[] = [];
+  if (targetId === undefined) {
+    targetId = next(QwikGenWord.Id);
+    targetIds.set(op.target, targetId);
+    statements.push(`const ${targetId} = ctx.nextId();`);
+  }
+  const value = next('props');
+  props.set(op.target, value);
+  return [
+    ...statements,
+    ...op.binding.captures.map((capture) => `ctx.addRoot(${capture});`),
+    `const ${value} = ${QwikWord.RenderSsrProps}(${QwikWord.CreateSsrElementTarget}(${targetId}), [${op.binding.captures.join(
+      ', '
+    )}], ${getQrlVariableName(segment)}, ctx.eventAttr);`,
+  ];
 }
 
 function emitSsrAttrOp(
@@ -520,6 +557,7 @@ function emitDynamicHtml(
   id: string | null,
   texts: ReadonlyMap<number, string>,
   attrs: ReadonlyMap<string, string>,
+  props: ReadonlyMap<number, string>,
   events: ReadonlyMap<string, string>,
   targetIds: ReadonlyMap<number, string>,
   elementTextMarkers: ReadonlySet<number>
@@ -544,11 +582,8 @@ function emitDynamicHtml(
         expressions.push(expression);
         break;
       }
-      case 'attr': {
-        const attr = attrs.get(createAttrKey(part.target, part.name, part.expr));
-        if (attr === undefined) {
-          return null;
-        }
+      case 'attr':
+      case 'props': {
         if (!injectedTargets.has(part.target)) {
           const targetId = targetIds.get(part.target);
           if (targetId === undefined) {
@@ -561,11 +596,28 @@ function emitDynamicHtml(
             JSON.stringify('"')
           );
         }
-        expressions.push(
-          JSON.stringify(` ${part.name}="`),
-          `${QwikWord.EscapeHTML}(${attr})`,
-          JSON.stringify('"')
-        );
+        switch (part.kind) {
+          case 'attr': {
+            const attr = attrs.get(createAttrKey(part.target, part.name, part.expr));
+            if (attr === undefined) {
+              return null;
+            }
+            expressions.push(
+              JSON.stringify(` ${part.name}="`),
+              `${QwikWord.EscapeHTML}(${attr})`,
+              JSON.stringify('"')
+            );
+            break;
+          }
+          case 'props': {
+            const value = props.get(part.target);
+            if (value === undefined) {
+              return null;
+            }
+            expressions.push(`${value}.attrs`);
+            break;
+          }
+        }
         break;
       }
       case 'event': {

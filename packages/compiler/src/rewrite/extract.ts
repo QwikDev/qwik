@@ -378,6 +378,9 @@ class QrlExtractor {
 
   private visitJsxAttribute(node: JSXAttributeItem) {
     if (node.type === 'JSXSpreadAttribute') {
+      if (this.visitJsxExpressionSegment('props', unwrapExpression(node.argument))) {
+        return;
+      }
       this.visit(node.argument);
       return;
     }

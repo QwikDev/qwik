@@ -168,7 +168,8 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       this.$flags$ |= AsyncSignalFlags.EAGER_CLEANUP;
     }
     if (options.clientOnly) {
-      this.$flags$ |= AsyncSignalFlags.CLIENT_ONLY;
+      // clientOnly can never resolve during SSR, so it must be async from the start
+      this.$flags$ |= AsyncSignalFlags.CLIENT_ONLY | AsyncSignalFlags.ASYNC_MODE;
     }
     if (options.allowStale === false) {
       if (isDev && initial !== undefined) {

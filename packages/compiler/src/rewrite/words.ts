@@ -9,6 +9,8 @@ export const enum QwikWord {
   CreateAttrEffect = 'createAttrEffect',
   CreateAttrExpressionEffect = 'createAttrExpressionEffect',
   CreatePropsEffect = 'createPropsEffect',
+  CreateComponent = 'createComponent',
+  MergeProps = 'mergeProps',
   BranchRange = 'BranchRange',
   CreateBranch = 'createBranch',
   SetEvent = 'setEvent',

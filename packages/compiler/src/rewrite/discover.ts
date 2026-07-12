@@ -28,17 +28,41 @@ interface RewriteQwikImports {
   componentImports: Set<string>;
 }
 
-export function discoverRewriteComponents(program: Program): RewriteComponent[] {
+export function discoverRewriteComponents(
+  program: Program,
+  componentReferences: readonly string[] = []
+): RewriteComponent[] {
   const components: RewriteComponent[] = [];
   const { sourceFactoryImports, contextProviderImports, componentImports } =
     collectQwikImports(program);
+  const localComponentNames = new Set(componentReferences);
   for (const statement of program.body) {
     switch (statement.type) {
+      case 'FunctionDeclaration':
+      case 'VariableDeclaration': {
+        const names =
+          statement.type === 'FunctionDeclaration'
+            ? [getIdentifierName(statement.id)]
+            : statement.declarations.map((declarator) => getIdentifierName(declarator.id));
+        if (names.some((name) => name !== null && localComponentNames.has(name))) {
+          handleComponentDeclaration(
+            statement,
+            false,
+            sourceFactoryImports,
+            contextProviderImports,
+            componentImports,
+            (name) => name,
+            components
+          );
+        }
+        break;
+      }
       case 'ExportNamedDeclaration': {
         const declaration = statement.declaration;
         if (declaration) {
           handleComponentDeclaration(
             declaration,
+            true,
             sourceFactoryImports,
             contextProviderImports,
             componentImports,
@@ -53,6 +77,7 @@ export function discoverRewriteComponents(program: Program): RewriteComponent[] 
         if (declaration) {
           handleComponentDeclaration(
             declaration,
+            true,
             sourceFactoryImports,
             contextProviderImports,
             componentImports,
@@ -71,6 +96,7 @@ export function discoverRewriteComponents(program: Program): RewriteComponent[] 
 
 function handleComponentDeclaration(
   declaration: Declaration | ExportDefaultDeclarationKind,
+  exported: boolean,
   sourceFactoryImports: RewriteSourceFactoryImports,
   contextProviderImports: RewriteContextProviderImports,
   componentImports: ReadonlySet<string>,
@@ -82,6 +108,7 @@ function handleComponentDeclaration(
       const name = getIdentifierName(declaration.id);
       if (name && declaration.body) {
         components.push({
+          exported,
           declarationKind: getExportName(name) === 'default' ? 'defaultFunction' : 'function',
           exportName: getExportName(name),
           localName: name,
@@ -105,6 +132,7 @@ function handleComponentDeclaration(
         const fn = getComponentFunction(declarator.init, componentImports);
         if (fn?.body) {
           components.push({
+            exported,
             declarationKind: 'const',
             exportName: getExportName(name),
             localName: name,
@@ -120,6 +148,7 @@ function handleComponentDeclaration(
       const fn = getComponentFunction(declaration, componentImports);
       if (fn?.body) {
         components.push({
+          exported,
           declarationKind:
             fn.type === 'ArrowFunctionExpression' ? 'defaultArrow' : 'defaultFunction',
           exportName: 'default',

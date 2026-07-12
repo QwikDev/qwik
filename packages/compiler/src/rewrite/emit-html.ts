@@ -1,5 +1,5 @@
-import type { HtmlPart, RenderResult, RewriteComponent } from './types';
-import { QwikGenWord } from './words';
+import type { ComponentPropPart, HtmlPart, RenderResult, RewriteComponent } from './types';
+import { QwikGenWord, QwikWord } from './words';
 
 export function emitStaticHtml(result: RenderResult): string | null {
   return emitHtmlParts(result.html, false);
@@ -18,6 +18,7 @@ function emitHtmlParts(parts: readonly HtmlPart[], markers: boolean): string | n
         break;
       case 'marker':
       case 'dynamicJsx':
+      case 'component':
       case 'branch':
         if (!markers) {
           return null;
@@ -37,6 +38,46 @@ function emitHtmlParts(parts: readonly HtmlPart[], markers: boolean): string | n
     }
   }
   return html;
+}
+
+export function emitComponentProps(
+  props: readonly ComponentPropPart[],
+  source: string,
+  imports: Set<string>
+): string {
+  const sources: string[] = [];
+  let entries: string[] = [];
+  const flushEntries = () => {
+    if (entries.length > 0) {
+      sources.push(`{ ${entries.join(', ')} }`);
+      entries = [];
+    }
+  };
+  for (const prop of props) {
+    switch (prop.kind) {
+      case 'static':
+        entries.push(`${JSON.stringify(prop.name)}: ${JSON.stringify(prop.value)}`);
+        break;
+      case 'expression':
+        entries.push(
+          `get ${JSON.stringify(prop.name)}() { return ${source.slice(prop.expr[0], prop.expr[1])}; }`
+        );
+        break;
+      case 'spread':
+        flushEntries();
+        sources.push(source.slice(prop.expr[0], prop.expr[1]));
+        break;
+    }
+  }
+  flushEntries();
+  if (sources.length === 0) {
+    return '{}';
+  }
+  if (sources.length === 1) {
+    return sources[0];
+  }
+  imports.add(QwikWord.MergeProps);
+  return `${QwikWord.MergeProps}(${sources.join(', ')})`;
 }
 
 export function emitComponentFunction(

@@ -28,6 +28,7 @@ export function emitSegmentModules(
   source: string,
   inputPath: string,
   explicitExtensions: boolean,
+  componentImportPaths: ReadonlyMap<string, string>,
   target: 'csr' | 'ssr',
   emitBranchRender: BranchRenderEmitter
 ): TransformModule[] | null {
@@ -40,6 +41,7 @@ export function emitSegmentModules(
       source,
       inputPath,
       explicitExtensions,
+      componentImportPaths,
       target,
       emitBranchRender
     );
@@ -76,6 +78,7 @@ function emitSegmentCode(
   source: string,
   inputPath: string,
   explicitExtensions: boolean,
+  componentImportPaths: ReadonlyMap<string, string>,
   target: 'csr' | 'ssr',
   emitBranchRender: BranchRenderEmitter
 ): string | null {
@@ -141,11 +144,13 @@ function emitSegmentCode(
     }
   }
   if (segment.moduleReferences.length > 0) {
-    imports.push(
-      `import { ${segment.moduleReferences.join(', ')} } from ${JSON.stringify(
-        getInputImportPath(inputPath, explicitExtensions)
-      )};`
-    );
+    for (const name of segment.moduleReferences) {
+      imports.push(
+        `import { ${name} } from ${JSON.stringify(
+          componentImportPaths.get(name) ?? getInputImportPath(inputPath, explicitExtensions)
+        )};`
+      );
+    }
   }
   const isExpression = segment.kind === 'expression';
   if (segment.captures.length > 0 && !isExpression) {

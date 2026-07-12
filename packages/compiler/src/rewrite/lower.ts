@@ -28,6 +28,7 @@ import { isRewriteSourceFactoryName } from './discover';
 import { isSetupQrlSegment } from './extract';
 import type {
   AttributeHtmlPart,
+  ComponentPropPart,
   EventBinding,
   EventHtmlPart,
   ExpressionEffectBinding,
@@ -154,7 +155,7 @@ function lowerFunctionBody(
       visitComponentBodyNode(node, parent, key, state, roots)
     );
   } else {
-    addReturnRoots(component.body, state, roots);
+    addRenderedRoots(component.body, state, roots);
   }
 
   return createRenderResult(roots, state);
@@ -169,7 +170,7 @@ function visitComponentBodyNode(
 ) {
   switch (node.type) {
     case 'ReturnStatement': {
-      addReturnRoots(node.argument, state, roots);
+      addRenderedRoots(node.argument, state, roots);
       return false;
     }
     case 'BlockStatement':
@@ -183,23 +184,6 @@ function visitComponentBodyNode(
         addSetupStatement(node, state);
         return false;
       }
-  }
-}
-
-function addReturnRoots(node: unknown, state: LowerState, roots: TemplateRoot[]) {
-  const expr = unwrapExpression(node);
-  if (expr?.type === 'JSXElement') {
-    const root = renderTemplateRoot(expr, state);
-    if (root !== null) {
-      roots.push(root);
-    }
-    return;
-  }
-
-  if (expr?.type === 'JSXFragment') {
-    for (const child of expr.children) {
-      addReturnRoots(child, state, roots);
-    }
   }
 }
 
@@ -238,8 +222,11 @@ function renderJsxElementHtml(
 ): RenderedJsx | null {
   const opening = node.openingElement;
   const tag = getJsxName(opening.name);
-  if (!tag || !isNativeTag(tag)) {
+  if (!tag) {
     return null;
+  }
+  if (!isNativeTag(tag)) {
+    return renderComponent(node, tag, state, existingId);
   }
   const isVoid = VOID_ELEMENTS.has(tag);
   const children = isVoid ? [] : renderJsxChildren(node.children, state);
@@ -280,6 +267,60 @@ function renderJsxElementHtml(
     html.push(createHtmlRecord(`</${tag}>`));
   }
   return { kind: 'content', html, refs };
+}
+
+function renderComponent(
+  node: JSXElement,
+  name: string,
+  state: LowerState,
+  existingId: number | undefined
+): RenderedJsx | null {
+  if (
+    node.children.some((child) => child.type !== 'JSXText' || normalizeJsxText(child.value) !== '')
+  ) {
+    return null;
+  }
+  const props: ComponentPropPart[] = [];
+  for (const attr of node.openingElement.attributes) {
+    switch (attr.type) {
+      case 'JSXSpreadAttribute': {
+        const expr = getRange(attr.argument);
+        if (expr === null) {
+          return null;
+        }
+        props.push({ kind: 'spread', expr });
+        break;
+      }
+      case 'JSXAttribute': {
+        const propName = getJsxAttributeName(attr.name);
+        if (propName === null || propName === 'key') {
+          break;
+        }
+        const value = attr.value ?? null;
+        const staticValue = getStaticJsxAttrValue(value);
+        if (staticValue !== undefined) {
+          props.push({ kind: 'static', name: propName, value: staticValue });
+          break;
+        }
+        if (value.type !== 'JSXExpressionContainer') {
+          return null;
+        }
+        const expression = unwrapExpression(value.expression);
+        const expr = getRange(expression);
+        if (expr === null) {
+          return null;
+        }
+        props.push({ kind: 'expression', name: propName, expr });
+        break;
+      }
+    }
+  }
+  const target = existingId ?? state.nextRefId();
+  return {
+    kind: 'content',
+    html: [{ kind: 'component', target, name, props }],
+    refs: existingId === undefined ? [{ id: target, path: [] }] : [],
+  };
 }
 
 function renderJsxAttributes(
@@ -886,14 +927,14 @@ function attachBranchRender(segment: Segment, expression: unknown, state: LowerS
     providesContext: false,
   };
   const roots: TemplateRoot[] = [];
-  addBranchRenderRoots(expression, branchState, roots);
+  addRenderedRoots(expression, branchState, roots);
   const render = createRenderResult(roots, branchState);
   if (render !== null) {
     segment.render = render;
   }
 }
 
-function addBranchRenderRoots(node: unknown, state: LowerState, roots: TemplateRoot[]): void {
+function addRenderedRoots(node: unknown, state: LowerState, roots: TemplateRoot[]): void {
   const expr = unwrapExpression(node);
   if (expr === null || expr === undefined || isEmptyBranchExpression(expr)) {
     return;
@@ -908,7 +949,7 @@ function addBranchRenderRoots(node: unknown, state: LowerState, roots: TemplateR
     }
     case 'JSXFragment':
       for (const child of expr.children) {
-        addBranchRenderRoots(child, state, roots);
+        addRenderedRoots(child, state, roots);
       }
       return;
     case 'JSXText': {
@@ -919,7 +960,7 @@ function addBranchRenderRoots(node: unknown, state: LowerState, roots: TemplateR
       return;
     }
     case 'JSXExpressionContainer':
-      addBranchRenderRoots(expr.expression, state, roots);
+      addRenderedRoots(expr.expression, state, roots);
       return;
   }
   const staticValue = getStaticExpressionValue(expr);

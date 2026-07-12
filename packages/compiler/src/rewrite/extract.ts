@@ -2,7 +2,9 @@ import type { JSXAttributeItem, Program, VariableDeclaration } from 'oxc-parser'
 import {
   getIdentifierName,
   getJsxAttributeName,
+  getJsxName,
   getRange,
+  isNativeTag,
   isFunctionLike,
   jsxEventToHtmlAttribute,
   unwrapExpression,
@@ -67,6 +69,7 @@ class QrlExtractor {
   private readonly bindings = new Map<number, Binding>();
   private readonly segments: Segment[] = [];
   private readonly moduleDeclarations: ModuleDeclaration[] = [];
+  private readonly componentReferences = new Set<string>();
   private readonly segmentStack: SegmentState[] = [];
   private scope = -1;
   private owner = 0;
@@ -89,6 +92,7 @@ class QrlExtractor {
     return {
       segments: this.segments,
       moduleDeclarations: this.moduleDeclarations,
+      componentReferences: [...this.componentReferences],
     };
   }
 
@@ -158,12 +162,18 @@ class QrlExtractor {
       case 'Identifier':
         this.recordReference(node.name);
         return;
-      case 'JSXElement':
+      case 'JSXElement': {
+        const name = getJsxName(node.openingElement.name);
+        if (name !== null && !isNativeTag(name)) {
+          this.componentReferences.add(name);
+          this.recordReference(name);
+        }
         this.visitJsxAttributes(node.openingElement.attributes, node.openingElement);
         for (const child of node.children) {
           this.visitJsxChild(child);
         }
         return;
+      }
       case 'JSXFragment':
         for (const child of node.children) {
           this.visitJsxChild(child);

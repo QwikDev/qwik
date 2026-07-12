@@ -1,4 +1,4 @@
-import { emitComponentFunction, emitStaticHtml } from './emit-html';
+import { emitComponentFunction, emitComponentProps, emitStaticHtml } from './emit-html';
 import { emitQrlReference, emitSetupQrl, getQrlVariableName } from './emit-qrl';
 import { getSegmentImportPath, shouldResolveSsrSegment } from './emit-segment';
 import type {
@@ -179,9 +179,10 @@ function emitDynamicRender(
   const texts = new Map<number, string>();
   const attrs = new Map<string, string>();
   const props = new Map<number, string>();
-  const jsx = new Map<number, string>();
+  const dynamicValues = new Map<number, string>();
   const branches = new Map<number, { id: string; value: string }>();
   const events = new Map<string, string>();
+  const componentImports = new Set<string>();
   const html = emitVisibleTaskCarriers(result, source, events);
   const targetIds = new Map<number, string>(id === null ? [] : [[root, id]]);
   const statements = [
@@ -192,8 +193,17 @@ function emitDynamicRender(
     switch (part.kind) {
       case 'dynamicJsx': {
         const value = next('jsx');
-        jsx.set(part.target, value);
+        dynamicValues.set(part.target, value);
         statements.push(`const ${value} = ${source.slice(part.expr[0], part.expr[1])};`);
+        break;
+      }
+      case 'component': {
+        const value = next('component');
+        dynamicValues.set(part.target, value);
+        componentImports.add(QwikWord.CreateComponent);
+        statements.push(
+          `const ${value} = ${QwikWord.CreateComponent}(${emitComponentProps(part.props, source, componentImports)}, (props) => ${part.name}(props, ctx));`
+        );
         break;
       }
       case 'branch': {
@@ -252,7 +262,7 @@ function emitDynamicRender(
     texts,
     attrs,
     props,
-    jsx,
+    dynamicValues,
     branches,
     events,
     targetIds,
@@ -264,9 +274,15 @@ function emitDynamicRender(
   const textNames = [...texts.values()];
   const attrNames = [...attrs.values()];
   const propsNames = [...props.values()];
-  const jsxNames = [...jsx.values()];
+  const dynamicValueNames = [...dynamicValues.values()];
   const branchNames = [...branches.values()].map((branch) => branch.value);
-  const dynamicNames = [...textNames, ...attrNames, ...propsNames, ...jsxNames, ...branchNames];
+  const dynamicNames = [
+    ...textNames,
+    ...attrNames,
+    ...propsNames,
+    ...dynamicValueNames,
+    ...branchNames,
+  ];
   const renderedHtml = result.providesContext ? emitContextHtml(value) : value;
   const setupImports = [
     ...emittedSetup.imports,
@@ -301,6 +317,7 @@ function emitDynamicRender(
   return {
     imports: [
       ...setupImports,
+      ...componentImports,
       ...(textNames.length > 0 || attrNames.length > 0 ? [QwikWord.EscapeHTML] : []),
       ...(textNames.length > 0
         ? [
@@ -638,7 +655,7 @@ function emitDynamicHtml(
   texts: ReadonlyMap<number, string>,
   attrs: ReadonlyMap<string, string>,
   props: ReadonlyMap<number, string>,
-  jsx: ReadonlyMap<number, string>,
+  dynamicValues: ReadonlyMap<number, string>,
   branches: ReadonlyMap<number, { id: string; value: string }>,
   events: ReadonlyMap<string, string>,
   targetIds: ReadonlyMap<number, string>,
@@ -710,8 +727,9 @@ function emitDynamicHtml(
         expressions.push(event);
         break;
       }
-      case 'dynamicJsx': {
-        const value = jsx.get(part.target);
+      case 'dynamicJsx':
+      case 'component': {
+        const value = dynamicValues.get(part.target);
         if (value === undefined) {
           return null;
         }

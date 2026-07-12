@@ -26,6 +26,21 @@ function extractInput(code: string) {
 }
 
 describe('extractQrls', () => {
+  test('collects component references inside and outside segments', () => {
+    const extracted = extractInput(`function Child() {
+  return <span />;
+}
+function BranchChild() {
+  return <span />;
+}
+export function App({ visible }) {
+  return <main><Child />{visible && <BranchChild />}</main>;
+}
+`);
+
+    expect(extracted.componentReferences).toEqual(['Child', 'BranchChild']);
+  });
+
   test('extracts an event handler with a local capture', () => {
     const extracted = extractInput(`import { useSignal } from '@qwik.dev/core/spark';
 export const App = () => {
@@ -57,7 +72,14 @@ export const App = () => {
 
     expect(extracted.segments).toHaveLength(1);
     expect(extracted.segments[0].captures).toEqual([{ name: 'row', source: 'loop' }]);
-    const modules = emitSegmentModules(extracted.segments, code, 'src/component.tsx', false, 'ssr');
+    const modules = emitSegmentModules(
+      extracted.segments,
+      code,
+      'src/component.tsx',
+      false,
+      new Map(),
+      'ssr'
+    );
     expect(modules).toHaveLength(1);
     expect(modules[0].code).toContain('const row = _captures[0];');
     expect(modules[0].code).toContain('row.value.selected = true');
@@ -202,7 +224,14 @@ export const task = $(async () => {
     expect(extracted.segments[0].awaits).toHaveLength(2);
     expect(extracted.segments[1].awaits).toHaveLength(1);
 
-    const modules = emitSegmentModules(extracted.segments, code, 'src/component.tsx', false, 'csr');
+    const modules = emitSegmentModules(
+      extracted.segments,
+      code,
+      'src/component.tsx',
+      false,
+      new Map(),
+      'csr'
+    );
     expect(modules[0].code).toContain('(await _await(first((await _await(second()))())))();');
     expect(modules[0].code).toContain('const helper = async () => await hidden();');
     expect(modules[1].code).toContain('return (await _await(nested()))();');

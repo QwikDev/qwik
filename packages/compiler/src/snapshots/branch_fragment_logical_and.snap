@@ -21,13 +21,7 @@ export function App() {
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  createComponent,
-  _qrlWithChunk,
-  renderSsrBranch,
-  maybeThen,
-} from '@qwik.dev/core/spark';
+import { useSignal, renderSsrBranch, maybeThen, _qrlWithChunk } from '@qwik.dev/core/spark';
 import { component_branch_condition_segment_1 } from './component.tsx_component_branch_condition_segment_1';
 
 const q_component_q_e_click_segment_0 = /*#__PURE__*/ _qrlWithChunk(
@@ -46,12 +40,11 @@ const q_component_branch_then_segment_2 = /*#__PURE__*/ _qrlWithChunk(
   () => import('./component.tsx_component_branch_then_segment_2'),
   'component_branch_then_segment_2'
 );
-
-export function App(_props, ctx) {
+export function App(props, ctx) {
   const groupSig = useSignal('1');
   const id0 = ctx.nextId();
   ctx.addRoot(groupSig);
-  const branch1 = renderSsrBranch(
+  const branch0 = renderSsrBranch(
     ctx,
     id0,
     q_component_branch_condition_segment_1.w([groupSig]),
@@ -59,55 +52,35 @@ export function App(_props, ctx) {
     undefined
   );
   return maybeThen(
-    branch1,
-    (branch1) =>
-      'Some text:  <button' +
+    branch0,
+    (branch0) =>
+      'Some text:' +
+      '  ' +
+      '<button' +
       ctx.eventAttr('q-e:click', q_component_q_e_click_segment_0.w([groupSig])) +
-      '>click</button><!b=' +
+      '>' +
+      'click' +
+      '</button>' +
+      '<!b=' +
       id0 +
       '>' +
-      branch1 +
+      branch0 +
       '<!/b>'
   );
 }
-
-null
 ============================= src/component.tsx_component_InnerCmp.js (ENTRY POINT)==
 
-export function InnerCmp(_props, _ctx) {
+export function InnerCmp(props, ctx) {
   return '<div>Hello world</div>';
 }
-
-null
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_InnerCmp",
-  "entry": null,
-  "displayName": "component_InnerCmp",
-  "hash": "component_InnerCmp",
-  "canonicalFilename": "component.tsx_component_InnerCmp",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component",
-  "captures": false,
-  "loc": [
-    50,
-    105
-  ],
-  "paramNames": []
-}
-*/
 ============================= src/component.tsx_component_q_e_click_segment_0.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core/spark';
+
 export const component_q_e_click_segment_0 = () => {
   const groupSig = _captures[0];
   return (groupSig.value = '2');
 };
-
-null
 /*
 {
   "origin": "component.tsx",
@@ -134,12 +107,11 @@ null
 ============================= src/component.tsx_component_branch_condition_segment_1.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core/spark';
+
 export const component_branch_condition_segment_1 = () => {
   const groupSig = _captures[0];
   return groupSig.value === '2';
 };
-
-null
 /*
 {
   "origin": "component.tsx",
@@ -167,12 +139,11 @@ null
 
 import { InnerCmp } from './component.tsx_component_InnerCmp';
 import { createComponent, maybeThen } from '@qwik.dev/core/spark';
-export const component_branch_then_segment_2 = (ctx) => {
+
+export const component_branch_then_segment_2 = (ctx, rangeId) => {
   const component0 = createComponent({}, (props) => InnerCmp(props, ctx));
   return maybeThen(component0, (component0) => component0);
 };
-
-null
 /*
 {
   "origin": "component.tsx",
@@ -202,80 +173,60 @@ null
 
 import {
   useSignal,
-  setEvent,
-  _withCaptures,
+  _first,
+  _next,
+  _last,
+  _prev,
   BranchRange,
   createBranch,
+  _withCaptures,
+  setEvent,
+  createTemplate,
 } from '@qwik.dev/core/spark';
 import { component_q_e_click_segment_0 } from './component.tsx_component_q_e_click_segment_0';
 import { component_branch_condition_segment_1 } from './component.tsx_component_branch_condition_segment_1';
 import { component_branch_then_segment_2 } from './component.tsx_component_branch_then_segment_2';
 
-export function App(_props, ctx) {
+const App_tmpl0 = createTemplate('Some text:  <button>click</button> ');
+export function App(props, ctx) {
   const groupSig = useSignal('1');
-  const text0 = ctx.document.createTextNode('Some text:');
-  const text1 = ctx.document.createTextNode('  ');
-  const el2 = ctx.document.createElement('button');
-  setEvent(el2, 'q-e:click', component_q_e_click_segment_0, [groupSig]);
-  const text3 = ctx.document.createTextNode('click');
-  el2.appendChild(text3);
-  const fragment4 = ctx.document.createDocumentFragment();
-  const comment5 = ctx.document.createComment('b');
-  const comment6 = ctx.document.createComment('/b');
-  fragment4.appendChild(comment5);
-  fragment4.appendChild(comment6);
-  const branch7 = createBranch(
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const el1 = _next(el0);
+  const el2 = _prev(_last(fragment0));
+  const text0 = _last(fragment0);
+  const comment0 = ctx.document.createComment('b');
+  const comment1 = ctx.document.createComment('/b');
+  text0.replaceWith(comment0, comment1);
+  const branch0 = createBranch(
     ctx,
-    new BranchRange(ctx.document, comment5, comment6),
+    new BranchRange(ctx.document, comment0, comment1),
     _withCaptures(component_branch_condition_segment_1, [groupSig]),
     component_branch_then_segment_2,
     undefined
   );
-  ctx.scheduler.notify(branch7);
-  return [text0, text1, el2, fragment4];
+  ctx.scheduler.notify(branch0);
+  setEvent(el2, 'q-e:click', component_q_e_click_segment_0, [groupSig]);
+  return [el0, el1, el2, text0];
 }
-
-null
 ============================= src/component.tsx_component_InnerCmp.js (ENTRY POINT)==
 
-import { createTemplate } from '@qwik.dev/core/spark';
-const dom_InnerCmp_template0 = createTemplate('<div>Hello world</div>');
-export function InnerCmp(_props, ctx) {
-  const fragment0 = dom_InnerCmp_template0(ctx.document);
-  const el1 = fragment0.firstChild;
-  return el1;
-}
+import { _first, createTemplate } from '@qwik.dev/core/spark';
 
-null
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_InnerCmp",
-  "entry": null,
-  "displayName": "component_InnerCmp",
-  "hash": "component_InnerCmp",
-  "canonicalFilename": "component.tsx_component_InnerCmp",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component",
-  "captures": false,
-  "loc": [
-    50,
-    105
-  ],
-  "paramNames": []
+const InnerCmp_tmpl0 = createTemplate('<div>Hello world</div>');
+export function InnerCmp(props, ctx) {
+  const fragment0 = InnerCmp_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
 }
-*/
 ============================= src/component.tsx_component_q_e_click_segment_0.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core/spark';
+
 export const component_q_e_click_segment_0 = () => {
   const groupSig = _captures[0];
   return (groupSig.value = '2');
 };
-
-null
 /*
 {
   "origin": "component.tsx",
@@ -302,12 +253,11 @@ null
 ============================= src/component.tsx_component_branch_condition_segment_1.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core/spark';
+
 export const component_branch_condition_segment_1 = () => {
   const groupSig = _captures[0];
   return groupSig.value === '2';
 };
-
-null
 /*
 {
   "origin": "component.tsx",
@@ -335,12 +285,11 @@ null
 
 import { InnerCmp } from './component.tsx_component_InnerCmp';
 import { createComponent } from '@qwik.dev/core/spark';
-export const component_branch_then_segment_2 = (ctx) => {
-  const cmp0 = createComponent({}, (props) => InnerCmp(props, ctx), { container: ctx });
-  return cmp0;
-};
 
-null
+export const component_branch_then_segment_2 = (ctx) => {
+  const component0 = createComponent({}, (props) => InnerCmp(props, ctx), { container: ctx });
+  return component0;
+};
 /*
 {
   "origin": "component.tsx",

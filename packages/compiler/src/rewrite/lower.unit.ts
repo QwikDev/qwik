@@ -30,9 +30,9 @@ function lowerInput(code: string): { code: string; result: RenderResult | null }
   parseModule(ctx);
   expect(ctx.manifest.diagnostics).toEqual([]);
   expect(ctx.program).not.toBeNull();
-  const [component] = discoverRewriteComponents(ctx.program!);
-  expect(component).not.toBeUndefined();
   const extractedQrls = extractQrls(ctx.program!, input.path);
+  const [component] = discoverRewriteComponents(ctx.program!, extractedQrls.componentReferences);
+  expect(component).not.toBeUndefined();
   return { code, result: lowerRewriteComponent(component!, extractedQrls) };
 }
 

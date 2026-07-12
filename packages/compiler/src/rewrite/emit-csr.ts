@@ -1,4 +1,4 @@
-import { emitComponentFunction, emitTemplateHtml } from './emit-html';
+import { emitComponentFunction, emitComponentProps, emitTemplateHtml } from './emit-html';
 import { emitCapturedFunctionReference, emitSetupQrl } from './emit-qrl';
 import { getSegmentImportPath } from './emit-segment';
 import type {
@@ -71,6 +71,33 @@ function emitCsrRender(
   if (result.roots.length === 0) {
     return null;
   }
+  const components = new Map(
+    result.html.flatMap((part) =>
+      part.kind === 'component' ? ([[part.target, part]] as const) : []
+    )
+  );
+  if (result.roots.every((root) => components.has(root))) {
+    const setup = emitCsrSetupStatements(result, source, imports);
+    if (setup === null) {
+      return null;
+    }
+    imports.add(QwikWord.CreateComponent);
+    const next = createNameAllocator();
+    const statements = [...setup];
+    const values = result.roots.map((root) => {
+      const component = components.get(root)!;
+      const name = next('component');
+      statements.push(
+        `const ${name} = ${QwikWord.CreateComponent}(${emitComponentProps(component.props, source, imports)}, (props) => ${component.name}(props, ctx), { container: ctx });`
+      );
+      return name;
+    });
+    return {
+      hoists: [],
+      statements,
+      value: values.length === 1 ? values[0] : `[${values.join(', ')}]`,
+    };
+  }
   const html = emitTemplateHtml(result);
   const next = createNameAllocator();
   const templateName = `${name}_${next(QwikGenWord.Template)}`;
@@ -79,7 +106,9 @@ function emitCsrRender(
   const textMarkers = new Set([
     ...result.ops.flatMap((op) => (op.kind === 'textEffect' ? [op.target.marker] : [])),
     ...result.html.flatMap((part) =>
-      part.kind === 'dynamicJsx' || part.kind === 'branch' ? [part.target] : []
+      part.kind === 'dynamicJsx' || part.kind === 'component' || part.kind === 'branch'
+        ? [part.target]
+        : []
     ),
   ]);
   const emittedRefs: { name: string; path: RefStep[] }[] = [];
@@ -116,6 +145,19 @@ function emitCsrRender(
         statements.push(
           `const ${jsx} = ${source.slice(part.expr[0], part.expr[1])};`,
           `${target}.replaceWith(...(Array.isArray(${jsx}) ? ${jsx} : ${jsx} == null ? [] : [${jsx}]));`
+        );
+        break;
+      }
+      case 'component': {
+        const target = refNames.get(part.target);
+        if (target === undefined) {
+          return null;
+        }
+        const component = next('component');
+        imports.add(QwikWord.CreateComponent);
+        statements.push(
+          `const ${component} = ${QwikWord.CreateComponent}(${emitComponentProps(part.props, source, imports)}, (props) => ${part.name}(props, ctx), { container: ctx });`,
+          `${target}.replaceWith(...(Array.isArray(${component}) ? ${component} : ${component} == null ? [] : [${component}]));`
         );
         break;
       }

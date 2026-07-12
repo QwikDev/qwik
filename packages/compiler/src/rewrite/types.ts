@@ -12,6 +12,7 @@ export interface RewriteContextProviderImports {
 }
 
 export interface RewriteComponent {
+  exported: boolean;
   declarationKind: 'function' | 'const' | 'defaultFunction' | 'defaultArrow';
   exportName: string | 'default';
   localName: string | null;
@@ -56,6 +57,16 @@ export type EventHtmlPart = {
   key: string;
 };
 export type DynamicJsxHtmlPart = { kind: 'dynamicJsx'; target: number; expr: SourceRange };
+export type ComponentPropPart =
+  | { kind: 'static'; name: string; value: StaticProp['value'] }
+  | { kind: 'expression'; name: string; expr: SourceRange }
+  | { kind: 'spread'; expr: SourceRange };
+export type ComponentHtmlPart = {
+  kind: 'component';
+  target: number;
+  name: string;
+  props: ComponentPropPart[];
+};
 export type BranchHtmlPart = {
   kind: 'branch';
   target: number;
@@ -70,6 +81,7 @@ export type HtmlHtmlPart = { kind: 'html'; value: string };
 export type HtmlPart =
   | HtmlHtmlPart
   | DynamicJsxHtmlPart
+  | ComponentHtmlPart
   | BranchHtmlPart
   | AttributeHtmlPart
   | { kind: 'props'; target: number }
@@ -170,4 +182,5 @@ export interface ModuleDeclaration {
 export interface ExtractedQrls {
   segments: Segment[];
   moduleDeclarations: ModuleDeclaration[];
+  componentReferences: string[];
 }

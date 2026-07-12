@@ -452,12 +452,12 @@ class QrlExtractor {
   ): boolean {
     switch (expression?.type) {
       case 'CallExpression':
-      case 'ConditionalExpression':
-      case 'LogicalExpression':
-        if (ctxName !== 'props') {
+        if (ctxName === 'text') {
           return false;
         }
         break;
+      case 'ConditionalExpression':
+      case 'LogicalExpression':
       case 'Identifier':
       case 'BinaryExpression':
       case 'UnaryExpression':

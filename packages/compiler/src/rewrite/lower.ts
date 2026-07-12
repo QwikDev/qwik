@@ -698,6 +698,9 @@ function getDynamicAttrValue(
     }
     case 'Identifier':
     case 'BinaryExpression':
+    case 'CallExpression':
+    case 'ConditionalExpression':
+    case 'LogicalExpression':
     case 'UnaryExpression':
     case 'TemplateLiteral':
       return createDynamicAttrExpression(expr, state);
@@ -776,6 +779,8 @@ function renderJsxExpression(expression: unknown, state: LowerState): RenderedJs
     }
     case 'Identifier':
     case 'BinaryExpression':
+    case 'ConditionalExpression':
+    case 'LogicalExpression':
     case 'UnaryExpression':
     case 'TemplateLiteral':
       return createExpressionTextEffect(range, state);

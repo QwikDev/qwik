@@ -159,10 +159,45 @@ describe('transformModules', () => {
     });
   });
 
+  test('renders conditional and logical props values as text', async () => {
+    await testInput('component_props_branch_text', {
+      code: `export function Conditional(props: { enabled: boolean }) {
+  return <p>{props.enabled ? 'On' : 'Off'}</p>;
+}
+
+export function Logical(props: { label?: string }) {
+  return <p>{props.label ?? 'Fallback'}</p>;
+}
+`,
+    });
+  });
+
   test('renders an identifier props value as an attribute', async () => {
     await testInput('component_props_attribute', {
       code: `export function App(props: { title: string }) {
   return <button title={props.title}>Save</button>;
+}
+`,
+    });
+  });
+
+  test('renders conditional and logical props values as attributes', async () => {
+    await testInput('component_props_branch_attribute', {
+      code: `export function Conditional(props: { enabled: boolean }) {
+  return <button title={props.enabled ? 'On' : 'Off'}>Save</button>;
+}
+
+export function Logical(props: { label?: string }) {
+  return <button aria-label={props.label ?? 'Fallback'}>Save</button>;
+}
+`,
+    });
+  });
+
+  test('renders a props call expression as an attribute', async () => {
+    await testInput('component_props_call_attribute', {
+      code: `export function App(props: { label: string }) {
+  return <button title={props.label.toUpperCase()}>Save</button>;
 }
 `,
     });

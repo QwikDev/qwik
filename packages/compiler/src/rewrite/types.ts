@@ -75,10 +75,11 @@ export interface Ref {
   path: RefStep[];
 }
 
-export type TextEffectBinding =
+export type ValueEffectBinding =
   | { kind: 'source'; range: SourceRange }
-  | { kind: 'expression'; segment: string; captures: string[] }
-  | { kind: 'unsupported' };
+  | { kind: 'expression'; segment: string; captures: string[] };
+
+export type TextEffectBinding = ValueEffectBinding | { kind: 'unsupported' };
 
 export type TextEffectTarget =
   | { kind: 'element'; id: number; marker: number }
@@ -96,7 +97,7 @@ export type Op =
       target: number;
       name: string;
       expr: SourceRange;
-      trackedSource: SourceRange | null;
+      binding: ValueEffectBinding;
     }
   | { kind: 'event'; target: number; name: string; segment: string; captures: string[] };
 

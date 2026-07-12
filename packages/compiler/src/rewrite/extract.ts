@@ -401,28 +401,47 @@ class QrlExtractor {
       }
       return;
     }
+    if (
+      ctxName !== null &&
+      !ctxName.endsWith('$') &&
+      this.visitJsxExpressionSegment(ctxName, expression)
+    ) {
+      return;
+    }
     this.visit(node.value);
   }
 
   private visitJsxChild(node: unknown) {
-    if (isNode(node) && node.type === 'JSXExpressionContainer') {
-      const expression = unwrapExpression(node.expression);
-      switch (expression?.type) {
-        case 'Identifier':
-        case 'BinaryExpression':
-        case 'UnaryExpression':
-        case 'TemplateLiteral':
-        case 'MemberExpression': {
-          const segment = this.createExpressionSegment('text', expression);
-          if (segment !== null) {
-            this.visitExpressionSegment(expression, segment);
-            return;
-          }
-          break;
-        }
-      }
+    if (
+      isNode(node) &&
+      node.type === 'JSXExpressionContainer' &&
+      this.visitJsxExpressionSegment('text', unwrapExpression(node.expression))
+    ) {
+      return;
     }
     this.visit(node);
+  }
+
+  private visitJsxExpressionSegment(
+    ctxName: string,
+    expression: AstNode | null | undefined
+  ): boolean {
+    switch (expression?.type) {
+      case 'Identifier':
+      case 'BinaryExpression':
+      case 'UnaryExpression':
+      case 'TemplateLiteral':
+      case 'MemberExpression': {
+        const segment = this.createExpressionSegment(ctxName, expression);
+        if (segment === null) {
+          return false;
+        }
+        this.visitExpressionSegment(expression, segment);
+        return true;
+      }
+      default:
+        return false;
+    }
   }
 
   private createExpressionSegment(ctxName: string, expression: AstNode): Segment | null {

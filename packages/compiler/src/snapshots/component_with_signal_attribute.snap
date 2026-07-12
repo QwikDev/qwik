@@ -10,8 +10,13 @@ import { useSignal } from '@qwik.dev/core/spark';
 
 ============================= src/component.tsx ==
 
-import { useSignal } from '@qwik.dev/core/spark';
-import { escapeHTML, createSsrElementTarget, renderSsrAttr, maybeThen } from '@qwik.dev/core/spark';
+import {
+  useSignal,
+  escapeHTML,
+  createSsrElementTarget,
+  renderSsrAttr,
+  maybeThen,
+} from '@qwik.dev/core/spark';
 
 export function App(props, ctx) {
   const count = useSignal(0);
@@ -39,8 +44,7 @@ export function App(props, ctx) {
 
 ============================= src/component.tsx ==
 
-import { useSignal } from '@qwik.dev/core/spark';
-import { _first, createAttrEffect, createTemplate } from '@qwik.dev/core/spark';
+import { useSignal, _first, createAttrEffect, createTemplate } from '@qwik.dev/core/spark';
 
 const App_tmpl0 = createTemplate('<button>Click</button>');
 export function App(props, ctx) {

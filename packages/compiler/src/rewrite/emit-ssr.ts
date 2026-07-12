@@ -209,6 +209,12 @@ function emitDynamicRender(
   const hasRangeText = result.ops.some(
     (op) => op.kind === 'textEffect' && op.target.kind === 'range'
   );
+  const hasAttrSource = result.ops.some(
+    (op) => op.kind === 'attrEffect' && op.binding.kind === 'source'
+  );
+  const hasAttrExpression = result.ops.some(
+    (op) => op.kind === 'attrEffect' && op.binding.kind === 'expression'
+  );
   return {
     imports: [
       ...setupImports,
@@ -221,7 +227,13 @@ function emitDynamicRender(
             ...(hasRangeText ? [QwikWord.CreateSsrRangeTextTarget] : []),
           ]
         : []),
-      ...(attrNames.length > 0 ? [QwikWord.CreateSsrElementTarget, QwikWord.RenderSsrAttr] : []),
+      ...(attrNames.length > 0
+        ? [
+            QwikWord.CreateSsrElementTarget,
+            ...(hasAttrSource ? [QwikWord.RenderSsrAttr] : []),
+            ...(hasAttrExpression ? [QwikWord.RenderSsrAttrExpression] : []),
+          ]
+        : []),
       QwikWord.MaybeThen,
       ...(dynamicNames.length > 1 ? [QwikWord.PromiseAll] : []),
     ],
@@ -363,7 +375,7 @@ function emitSsrOp(
       }
       return emitSsrTextOp(op, markerIndexes, texts, targetIds, segments, source, id, next);
     case 'attrEffect':
-      return emitSsrAttrOp(op, attrs, targetIds, source, next);
+      return emitSsrAttrOp(op, attrs, targetIds, segments, source, next);
     case 'event': {
       const segment = segments.get(op.segment);
       if (segment === undefined) {
@@ -384,12 +396,10 @@ function emitSsrAttrOp(
   op: Extract<Op, { kind: 'attrEffect' }>,
   attrs: Map<string, string>,
   targetIds: Map<number, string>,
+  segments: ReadonlyMap<string, Segment>,
   source: string,
   next: (prefix: string) => string
 ): string[] | null {
-  if (op.trackedSource === null) {
-    return null;
-  }
   let targetId = targetIds.get(op.target);
   const statements: string[] = [];
   if (targetId === undefined) {
@@ -397,16 +407,34 @@ function emitSsrAttrOp(
     targetIds.set(op.target, targetId);
     statements.push(`const ${targetId} = ctx.nextId();`);
   }
-  const sourceExpr = source.slice(op.trackedSource[0], op.trackedSource[1]);
   const attr = next('attr');
   attrs.set(createAttrKey(op.target, op.name, op.expr), attr);
-  return [
-    ...statements,
-    `ctx.addRoot(${sourceExpr});`,
-    `const ${attr} = ${QwikWord.RenderSsrAttr}(${QwikWord.CreateSsrElementTarget}(${targetId}), ${JSON.stringify(
-      op.name
-    )}, ${sourceExpr});`,
-  ];
+  const target = `${QwikWord.CreateSsrElementTarget}(${targetId})`;
+  switch (op.binding.kind) {
+    case 'source': {
+      const sourceExpr = source.slice(op.binding.range[0], op.binding.range[1]);
+      return [
+        ...statements,
+        `ctx.addRoot(${sourceExpr});`,
+        `const ${attr} = ${QwikWord.RenderSsrAttr}(${target}, ${JSON.stringify(
+          op.name
+        )}, ${sourceExpr});`,
+      ];
+    }
+    case 'expression': {
+      const segment = segments.get(op.binding.segment);
+      if (segment === undefined) {
+        return null;
+      }
+      return [
+        ...statements,
+        ...op.binding.captures.map((capture) => `ctx.addRoot(${capture});`),
+        `const ${attr} = ${QwikWord.RenderSsrAttrExpression}(${target}, ${JSON.stringify(
+          op.name
+        )}, [${op.binding.captures.join(', ')}], ${getQrlVariableName(segment)});`,
+      ];
+    }
+  }
 }
 
 function emitSsrTextOp(

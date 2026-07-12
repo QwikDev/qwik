@@ -164,18 +164,28 @@ function emitCsrOp(
     }
     case 'attrEffect': {
       const target = refNames.get(op.target);
-      if (target === undefined || op.trackedSource === null) {
+      if (target === undefined) {
         return null;
       }
       const effect = next(QwikGenWord.Effect);
-      const sourceExpr = source.slice(op.trackedSource[0], op.trackedSource[1]);
-      imports.add(QwikWord.CreateAttrEffect);
-      return [
-        `const ${effect} = ${QwikWord.CreateAttrEffect}(${target}, ${JSON.stringify(
-          op.name
-        )}, ${sourceExpr}, ctx.scheduler);`,
-        `ctx.scheduler.notify(${effect});`,
-      ];
+      let declaration: string;
+      switch (op.binding.kind) {
+        case 'source': {
+          const sourceExpr = source.slice(op.binding.range[0], op.binding.range[1]);
+          imports.add(QwikWord.CreateAttrEffect);
+          declaration = `${QwikWord.CreateAttrEffect}(${target}, ${JSON.stringify(
+            op.name
+          )}, ${sourceExpr}, ctx.scheduler)`;
+          break;
+        }
+        case 'expression':
+          imports.add(QwikWord.CreateAttrExpressionEffect);
+          declaration = `${QwikWord.CreateAttrExpressionEffect}(${target}, ${JSON.stringify(
+            op.name
+          )}, [${op.binding.captures.join(', ')}], ${op.binding.segment}, ctx.scheduler)`;
+          break;
+      }
+      return [`const ${effect} = ${declaration};`, `ctx.scheduler.notify(${effect});`];
     }
     case 'event': {
       const target = refNames.get(op.target);

@@ -39,6 +39,7 @@ import type {
   RewriteSourceFactoryImports,
   Segment,
   TextEffectBinding,
+  ValueEffectBinding,
 } from './types';
 import { QwikHooks } from './words';
 
@@ -49,6 +50,10 @@ interface TemplateRoot {
 }
 
 type PendingTextEffect = Omit<Extract<Op, { kind: 'textEffect' }>, 'target'>;
+
+type DynamicAttrValue =
+  | { kind: 'source'; expr: SourceRange; range: SourceRange }
+  | { kind: 'expression'; expr: SourceRange; segment: Segment };
 
 interface RenderedContent {
   kind: 'content';
@@ -339,12 +344,21 @@ function pushAttr(
   const dynamic = getDynamicAttrValue(value, state);
   if (dynamic !== null) {
     attrs.push(createAttributeRecord(target, name, dynamic.expr));
+    let binding: ValueEffectBinding;
+    switch (dynamic.kind) {
+      case 'source':
+        binding = { kind: 'source', range: dynamic.range };
+        break;
+      case 'expression':
+        binding = createExpressionEffectBinding(state, dynamic.segment);
+        break;
+    }
     state.ops.push({
       kind: 'attrEffect',
       target,
       name,
       expr: dynamic.expr,
-      trackedSource: dynamic.trackedSource,
+      binding,
     });
   }
 }
@@ -432,13 +446,40 @@ function getEventAttr(
 function getDynamicAttrValue(
   value: JSXAttributeValue | null,
   state: LowerState
-): { expr: SourceRange; trackedSource: SourceRange } | null {
+): DynamicAttrValue | null {
   if (value === null || value.type !== 'JSXExpressionContainer') {
     return null;
   }
-  const expr = getRange(value.expression);
-  const trackedSource = getDirectTrackedSourceRange(value.expression, state.trackedSources);
-  return expr === null || trackedSource === null ? null : { expr, trackedSource };
+  const expression = unwrapExpression(value.expression);
+  const expr = getRange(expression);
+  if (expression === null || expression === undefined || expr === null) {
+    return null;
+  }
+
+  switch (expression.type) {
+    case 'MemberExpression': {
+      const range = getDirectTrackedSourceRange(expression, state.trackedSources);
+      if (range !== null) {
+        return { kind: 'source', expr, range };
+      }
+      return createDynamicAttrExpression(expr, state);
+    }
+    case 'Identifier':
+    case 'BinaryExpression':
+    case 'UnaryExpression':
+    case 'TemplateLiteral':
+      return createDynamicAttrExpression(expr, state);
+    default:
+      return null;
+  }
+}
+
+function createDynamicAttrExpression(
+  expr: SourceRange,
+  state: LowerState
+): DynamicAttrValue | null {
+  const segment = getExpressionSegment(expr, state);
+  return segment === undefined ? null : { kind: 'expression', expr, segment };
 }
 
 function renderJsxChildren(children: JSXChild[], state: LowerState): RenderedJsx[] {
@@ -512,22 +553,26 @@ function renderJsxExpression(expression: unknown, state: LowerState): RenderedJs
 }
 
 function createExpressionTextEffect(range: SourceRange, state: LowerState): RenderedJsx {
-  const segment = state.extractedQrls.segments.find(
+  const segment = getExpressionSegment(range, state)!;
+  return createTextEffect(range, createExpressionEffectBinding(state, segment), state);
+}
+
+function getExpressionSegment(range: SourceRange, state: LowerState): Segment | undefined {
+  return state.extractedQrls.segments.find(
     (segment) =>
       segment.kind === 'expression' &&
       segment.bodyRange[0] === range[0] &&
       segment.bodyRange[1] === range[1]
-  )!;
-  retainSegment(state, segment);
-  return createTextEffect(
-    range,
-    {
-      kind: 'expression',
-      segment: segment.name,
-      captures: segment.captures.map((capture) => capture.name),
-    },
-    state
   );
+}
+
+function createExpressionEffectBinding(state: LowerState, segment: Segment): ValueEffectBinding {
+  retainSegment(state, segment);
+  return {
+    kind: 'expression',
+    segment: segment.name,
+    captures: segment.captures.map((capture) => capture.name),
+  };
 }
 
 function createTextEffect(

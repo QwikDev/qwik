@@ -159,6 +159,15 @@ describe('transformModules', () => {
     });
   });
 
+  test('renders an identifier props value as an attribute', async () => {
+    await testInput('component_props_attribute', {
+      code: `export function App(props: { title: string }) {
+  return <button title={props.title}>Save</button>;
+}
+`,
+    });
+  });
+
   test('renders a local member expression as text', async () => {
     await testInput('component_local_text', {
       code: `export function App() {

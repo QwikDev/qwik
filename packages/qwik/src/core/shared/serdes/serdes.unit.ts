@@ -1284,6 +1284,43 @@ describe('shared-serialization', () => {
       expect(err).toBeInstanceOf(Error);
       expect(err.message).toBe('hi');
     });
+    it('filters callable Error properties', () => {
+      const { state } = eagerDeserialize([
+        TypeIds.Error,
+        [
+          TypeIds.Plain,
+          'boom',
+          TypeIds.Plain,
+          'then',
+          TypeIds.QRL,
+          '1#1',
+          TypeIds.Plain,
+          '__proto__',
+          TypeIds.Object,
+          [TypeIds.Plain, 'then', TypeIds.QRL, '1#1'],
+          TypeIds.Plain,
+          'code',
+          TypeIds.Plain,
+          500,
+        ],
+        TypeIds.Plain,
+        'ignored.js',
+        TypeIds.Plain,
+        'selected_demoHash',
+      ]);
+      const error = state[0] as Error & { code: number; then?: unknown };
+
+      expect(error.message).toBe('boom');
+      expect(error.code).toBe(500);
+      expect(Object.hasOwn(error, 'then')).toBe(false);
+      expect(Object.getPrototypeOf(error)).toBe(Error.prototype);
+
+      const safeError = eagerDeserialize([
+        TypeIds.Error,
+        [TypeIds.Plain, 'safe', TypeIds.Plain, 'then', TypeIds.Plain, 'value'],
+      ]).state[0] as Error & { then: string };
+      expect(safeError.then).toBe('value');
+    });
     it(title(TypeIds.Promise), async () => {
       const objs = await serialize(Promise.resolve(shared1), Promise.reject(shared1), shared1);
       const [p1, p2, shared] = deserialize(objs);
@@ -2252,6 +2289,22 @@ describe('serializer - internal', () => {
     const ser = await _serialize({ a: 1 });
     const des = await _deserialize(ser);
     expect(des).toEqual({ a: 1 });
+  });
+  it('_deserialize filters callable Error properties before Promise resolution', async () => {
+    const error = await _deserialize<Error & { then?: unknown }>(
+      JSON.stringify([
+        TypeIds.Error,
+        [TypeIds.Plain, 'boom', TypeIds.Plain, 'then', TypeIds.QRL, '1#1'],
+        TypeIds.Plain,
+        'ignored.js',
+        TypeIds.Plain,
+        'selected_demoHash',
+      ])
+    );
+
+    expect(error).toBeInstanceOf(Error);
+    expect(error.message).toBe('boom');
+    expect(Object.hasOwn(error, 'then')).toBe(false);
   });
   it('_deserialize rejects serialized Promise dependencies', async () => {
     const cycle = [

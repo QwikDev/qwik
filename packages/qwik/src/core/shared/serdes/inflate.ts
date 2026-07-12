@@ -228,7 +228,11 @@ function* inflateIterator(
       const d = data as string[];
       (target as Error).message = d[0] as string;
       for (let i = 1; i < d.length; i += 2) {
-        (target as any)[d[i]] = d[i + 1];
+        const key = d[i];
+        const value = d[i + 1];
+        if (isSafeObjectKV(key, value)) {
+          (target as any)[key] = value;
+        }
         yield;
       }
       break;

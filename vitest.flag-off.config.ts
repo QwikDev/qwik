@@ -5,8 +5,8 @@ import { defineConfig } from 'vitest/config';
 
 const fromRoot = (path: string) => fileURLToPath(new URL(path, import.meta.url));
 
+// Mirrors vitest.config.ts WITHOUT the `errorBoundary` flag: pins the flag-off runtime path.
 export default defineConfig({
-  // temporary fix to allow tests to run without the kit package, remove this once we have a proper kit package
   resolve: {
     alias: {
       '@qwik.dev/devtools/kit': fromRoot('./packages/devtools/kit/src/index.ts'),
@@ -17,22 +17,15 @@ export default defineConfig({
       debug: !true,
       srcDir: fromRoot('./packages/qwik/src'),
       devTools: { hmr: false },
-      experimental: ['each', 'show', 'suspense', 'errorBoundary'],
+      experimental: ['each', 'show', 'suspense'],
     }),
     tsconfigPaths({ ignoreConfigErrors: true }),
   ],
   test: {
+    name: 'flag-off',
     root: fromRoot('./packages'),
-    include: [
-      '**/*.spec.*',
-      '**/*.unit.*',
-      // Flag-off specs run in the vitest.flag-off.config.ts project.
-      '!**/*.flag-off.spec.*',
-      '!*/(lib|dist|build|server|target)/**',
-      '!**/node_modules/**',
-    ],
+    include: ['**/*.flag-off.spec.*', '!**/node_modules/**'],
     setupFiles: [fromRoot('./vitest-setup.ts')],
-    projects: ['..', fromRoot('./vitest.flag-off.config.ts')],
     testTimeout: 10000,
   },
 });

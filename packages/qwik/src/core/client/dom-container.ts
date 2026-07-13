@@ -189,29 +189,32 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     this.$setServerData$();
     element.qContainer = this;
     element.qDestroy = () => this.$destroy$();
-    // Synchronous, not deferred resume, so CSR containers get it too.
-    this.$qErrorHandler$ = (e: Event) => {
-      const detail = (e as CustomEvent<{ error: unknown; element?: Element; importError?: string }>)
-        .detail;
-      // qwikloader already logged import/symbol failures.
-      if (detail?.importError) {
-        return;
-      }
-      const source = detail?.element;
-      // Scope shared-document qerror to this container; isolate nested sources.
-      if (source && source.closest(QContainerSelector) === this.element) {
-        const host = this.vNodeLocate(source);
-        if (host) {
-          try {
-            this.handleError(detail.error, host, 'event');
-          } catch (handlerError) {
-            logError(handlerError);
+    if (__EXPERIMENTAL__.errorBoundary) {
+      // Synchronous, not deferred resume, so CSR containers get it too.
+      this.$qErrorHandler$ = (e: Event) => {
+        const detail = (
+          e as CustomEvent<{ error: unknown; element?: Element; importError?: string }>
+        ).detail;
+        // qwikloader already logged import/symbol failures.
+        if (detail?.importError) {
+          return;
+        }
+        const source = detail?.element;
+        // Scope shared-document qerror to this container; isolate nested sources.
+        if (source && source.closest(QContainerSelector) === this.element) {
+          const host = this.vNodeLocate(source);
+          if (host) {
+            try {
+              this.handleError(detail.error, host, 'event');
+            } catch (handlerError) {
+              logError(handlerError);
+            }
           }
         }
-      }
-    };
-    this.document.addEventListener?.('qerror', this.$qErrorHandler$);
-    registerUnhandledRejectionBridge(document.defaultView);
+      };
+      this.document.addEventListener?.('qerror', this.$qErrorHandler$);
+      registerUnhandledRejectionBridge(document.defaultView);
+    }
     this.$containerDataProcessState$ = ContainerDataProcessState.ProcessingVNode;
     processVNodeData(document, element);
     onVNodeDataReady(document, () => {
@@ -340,6 +343,15 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       if (!isRecoverable(err)) {
         throw err;
       }
+    }
+    if (!__EXPERIMENTAL__.errorBoundary) {
+      // Pre-feature behavior: no boundary walk, synchronous rethrow.
+      const errorStore = host && this.resolveContext(host, ERROR_CONTEXT);
+      if (!errorStore) {
+        throw err;
+      }
+      errorStore.error = err;
+      return;
     }
     // `undefined` is `store.error`'s no-error sentinel; store a keyable Error.
     const storedError = err === undefined ? new Error('undefined') : err;

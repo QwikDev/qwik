@@ -25,6 +25,11 @@ export function getAvailableTabIds(visibleTabIds: DevtoolsTabId[]): DevtoolsTabI
   return devtoolsTabs.map((tab) => tab.id).filter((id) => !visible.has(id));
 }
 
+/** Hidden tabs resolved to their configs (the More panel contents), in registry order. */
+export function getAvailableTabs(visibleTabIds: DevtoolsTabId[]): DevtoolsTabConfig[] {
+  return resolveTabs(getAvailableTabIds(visibleTabIds));
+}
+
 /** Adds (appends) or removes a tab from the ordered visible list, returning a new list. */
 export function setTabVisible(
   visibleTabIds: DevtoolsTabId[],

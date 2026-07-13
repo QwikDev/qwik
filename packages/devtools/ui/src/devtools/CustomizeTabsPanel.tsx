@@ -2,7 +2,7 @@ import { $, component$, Slot, useSignal, type QRL } from '@qwik.dev/core';
 import { IconXMark } from '../components/Icons/Icons';
 import { IconButton } from '../components/IconButton/IconButton';
 import type { DevtoolsState, DevtoolsTabId } from './state';
-import { getAvailableTabIds, resolveTabs, saveVisibleTabIds, setTabVisible } from './sidebar-tabs';
+import { getAvailableTabs, resolveTabs, saveVisibleTabIds, setTabVisible } from './sidebar-tabs';
 
 interface TabRowProps {
   id: DevtoolsTabId;
@@ -43,7 +43,7 @@ export const CustomizeTabsPanel = component$<CustomizeTabsPanelProps>(({ state }
   const pendingVisibleIds = useSignal<DevtoolsTabId[]>([...state.visibleTabIds]);
 
   const visibleTabs = resolveTabs(pendingVisibleIds.value);
-  const availableTabs = resolveTabs(getAvailableTabIds(pendingVisibleIds.value));
+  const availableTabs = getAvailableTabs(pendingVisibleIds.value);
 
   const toggle$ = $((id: DevtoolsTabId, checked: boolean) => {
     pendingVisibleIds.value = setTabVisible(pendingVisibleIds.value, id, checked);

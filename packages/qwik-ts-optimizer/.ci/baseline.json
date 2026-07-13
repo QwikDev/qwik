@@ -1037,6 +1037,8 @@
       "tests/optimizer/rewrite/raw-props.test.ts :: raw-props rewrites body-level destructuring and keeps the original param name",
       "tests/optimizer/rewrite/raw-props.test.ts :: raw-props rewrites destructured params without reparsing the edited body",
       "tests/optimizer/rewrite/raw-props.test.ts :: raw-props rewrites rest-only destructuring in expression bodies",
+      "tests/optimizer/rewrite/rawprops-gate.test.ts :: bug 1: consolidation gate preserves unsafe destructures preserves a default that references a sibling binding (no dangling ref)",
+      "tests/optimizer/rewrite/rawprops-gate.test.ts :: bug 1: consolidation gate preserves unsafe destructures preserves a member-access default (non-const)",
       "tests/optimizer/rewrite/rawprops-gate.test.ts :: bug 1: consolidation gate preserves unsafe destructures preserves call-expression default (NoWorks3 shape)",
       "tests/optimizer/rewrite/rawprops-gate.test.ts :: bug 1: consolidation gate preserves unsafe destructures preserves nested ObjectPattern field (NoWorks2 shape)",
       "tests/optimizer/rewrite/rawprops-gate.test.ts :: bug 1: consolidation gate preserves unsafe destructures still consolidates flat destructure with const defaults (parity-safe)",
@@ -1368,6 +1370,6 @@
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) has null input",
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) parses without error"
     ],
-    "total": 1183
+    "total": 1185
   }
 }

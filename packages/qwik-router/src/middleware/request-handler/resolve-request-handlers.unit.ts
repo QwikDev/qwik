@@ -412,12 +412,13 @@ describe('resolve-request-handler', () => {
     }
 
     it('does not leak an unhandled rejection when close() rejects on a disconnected client', async () => {
+      const fakeQrl = { getHash: () => 'streamServerFn', getSymbol: () => 'streamServerFn' } as any;
       const rejections: unknown[] = [];
       const onUnhandled = (reason: unknown) => rejections.push(reason);
       process.on('unhandledRejection', onUnhandled);
       try {
         const ev = makeStreamingEvent(makeDisconnectedWritable());
-        await streamServerFunctionResult(ev, twoItems(), null as any);
+        await streamServerFunctionResult(ev, twoItems(), fakeQrl);
         // Let a macrotask elapse so a dropped rejection surfaces before we assert.
         await new Promise((resolve) => setTimeout(resolve, 10));
       } finally {

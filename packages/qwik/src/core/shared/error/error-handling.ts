@@ -21,10 +21,14 @@ export interface ErrorBoundaryStore {
 export const ERROR_CONTEXT = /*#__PURE__*/ createContextId<ErrorBoundaryStore>('qk-error');
 
 export const isRecoverable = (err: any) => {
-  if (err && err instanceof Error) {
-    if ('plugin' in err) {
-      return false;
+  try {
+    if (err && err instanceof Error) {
+      if ('plugin' in err) {
+        return false;
+      }
     }
+  } catch {
+    // Hostile value (revoked Proxy/throwing trap): treat as recoverable.
   }
   return true;
 };
@@ -32,8 +36,13 @@ export const isRecoverable = (err: any) => {
 const GENERIC_BOUNDARY_ERROR_MESSAGE = 'An error occurred';
 
 const errorBoundaryDigest = (err: unknown): string => {
-  const source =
-    err instanceof Error ? `${err.name}: ${err.message}\n${err.stack ?? ''}` : String(err);
+  let source: string;
+  try {
+    source = err instanceof Error ? `${err.name}: ${err.message}\n${err.stack ?? ''}` : String(err);
+  } catch {
+    // Hostile value: hash a constant rather than touching it again.
+    source = 'unknown';
+  }
   let hash = 0;
   for (let i = 0; i < source.length; i++) {
     hash = (Math.imul(31, hash) + source.charCodeAt(i)) | 0;
@@ -41,8 +50,8 @@ const errorBoundaryDigest = (err: unknown): string => {
   return (hash >>> 0).toString(36);
 };
 
-const isKeepableBoundaryError = (v: unknown): boolean =>
-  v instanceof Error || (v !== undefined && canSerialize(v));
+// No `instanceof Error` shortcut: an Error's own fields must serialize too.
+const isKeepableBoundaryError = (v: unknown): boolean => v !== undefined && canSerialize(v);
 
 const redactToGeneric = (err: unknown): Error & { digest: string } => {
   // No cause/custom fields: redaction must never leak the raw error.
@@ -63,7 +72,12 @@ const toBoundaryError = (raw: unknown, withCause: boolean): Error => {
   try {
     message = String(raw);
   } catch {
-    message = Object.prototype.toString.call(raw);
+    try {
+      message = Object.prototype.toString.call(raw);
+    } catch {
+      // Even the tag read throws (revoked Proxy): give up on the raw value.
+      message = GENERIC_BOUNDARY_ERROR_MESSAGE;
+    }
   }
   const wrapped = new Error(message);
   if (withCause) {
@@ -78,29 +92,46 @@ export const toSerializableBoundaryError = (
   dev: boolean = isDev,
   transformError?: (error: unknown) => unknown
 ): Error => {
-  if (transformError) {
-    let projected: unknown;
-    try {
-      projected = transformError(err);
-    } catch {
+  try {
+    if (transformError) {
+      let projected: unknown;
+      try {
+        projected = transformError(err);
+      } catch {
+        return redactToGeneric(err);
+      }
+      // The projection's own fields serialize later; validate them now, fail-closed.
+      return projected instanceof Error && canSerialize(projected)
+        ? projected
+        : redactToGeneric(err);
+    }
+    if (!dev) {
       return redactToGeneric(err);
     }
-    return projected instanceof Error ? projected : redactToGeneric(err);
-  }
-  if (!dev) {
+    if (isKeepableBoundaryError(err)) {
+      // Dev-only: a serializable raw throw survives to the fallback via `cause`.
+      return toBoundaryError(err, true);
+    }
+    const rawMessage = (err as { message?: unknown })?.message;
+    // No cause: a non-serializable raw would break dev serialization.
+    return typeof rawMessage === 'string' ? new Error(rawMessage) : toBoundaryError(err, false);
+  } catch {
+    // A hostile raw value threw during inspection: redact without touching it again.
     return redactToGeneric(err);
   }
-  if (isKeepableBoundaryError(err)) {
-    // Dev-only: a serializable raw throw survives to the fallback via `cause`.
-    return toBoundaryError(err, true);
-  }
-  const rawMessage = (err as { message?: unknown })?.message;
-  // No cause: a non-serializable raw would break dev serialization.
-  return typeof rawMessage === 'string' ? new Error(rawMessage) : toBoundaryError(err, false);
 };
 
-export const redactBoundaryErrorForDisplay = (error: unknown, dev: boolean = isDev): Error =>
-  error instanceof Error && 'digest' in error ? error : toSerializableBoundaryError(error, dev);
+export const redactBoundaryErrorForDisplay = (error: unknown, dev: boolean = isDev): Error => {
+  try {
+    if (error instanceof Error && 'digest' in error) {
+      // Framework-projected (server-redacted) errors pass through untouched.
+      return error;
+    }
+  } catch {
+    // Hostile value: normalize below without trusting it.
+  }
+  return toSerializableBoundaryError(error, dev);
+};
 
 export const fireOnError = (
   onError: ((error: Error, info: ErrorBoundaryInfo) => unknown) | undefined | null,
@@ -143,10 +174,17 @@ export const tagErrorPhase = (err: unknown, phase: ErrorBoundaryInfo['phase']): 
   }
 };
 
-const getTaggedErrorPhase = (err: unknown): ErrorBoundaryInfo['phase'] | undefined =>
-  err !== null && (typeof err === 'object' || typeof err === 'function')
-    ? (err as { [ERROR_PHASE]?: ErrorBoundaryInfo['phase'] })[ERROR_PHASE]
-    : undefined;
+const getTaggedErrorPhase = (err: unknown): ErrorBoundaryInfo['phase'] | undefined => {
+  if (err === null || (typeof err !== 'object' && typeof err !== 'function')) {
+    return undefined;
+  }
+  try {
+    return (err as { [ERROR_PHASE]?: ErrorBoundaryInfo['phase'] })[ERROR_PHASE];
+  } catch {
+    // Hostile get trap: the catch site's phase wins.
+    return undefined;
+  }
+};
 
 export const markBoundaryErrored = (
   store: ErrorBoundaryStore,

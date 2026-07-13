@@ -330,8 +330,12 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         setErrorPayload(host, err);
         markVNodeDirty(this, host, ChoreBits.ERROR_WRAP);
       }
-      if (err && err instanceof Error && !('hostElement' in err)) {
-        (err as any)['hostElement'] = String(host);
+      try {
+        if (err && err instanceof Error && !('hostElement' in err)) {
+          (err as any)['hostElement'] = String(host);
+        }
+      } catch {
+        // Hostile thrown value: skip the dev annotation.
       }
       if (!isRecoverable(err)) {
         throw err;

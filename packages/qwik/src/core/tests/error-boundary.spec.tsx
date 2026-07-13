@@ -2369,6 +2369,65 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
     expect(text).not.toContain('SECRET');
   });
 
+  it.each([
+    ['function-valued field', () => Object.assign(new Error('leaky'), { retry: () => {} })],
+    [
+      'nested unserializable field',
+      () => Object.assign(new Error('leaky'), { meta: { cb: () => {} } }),
+    ],
+    [
+      'throwing getter field',
+      () => {
+        const projected = new Error('leaky');
+        Object.defineProperty(projected, 'trap', {
+          enumerable: true,
+          get() {
+            throw new Error('getter trap');
+          },
+        });
+        return projected;
+      },
+    ],
+  ] as Array<[string, () => Error]>)(
+    'transformError: an Error projection with an unserializable %s redacts to generic + digest',
+    (_, makeProjection) => {
+      const out = toSerializableBoundaryError(
+        new Error('secret'),
+        /* dev */ false,
+        makeProjection
+      ) as Error & { digest?: string };
+      expect(out.message).toBe('An error occurred');
+      expect(typeof out.digest).toBe('string');
+    }
+  );
+
+  it('transformError: an Error projection with serializable custom fields is kept by identity', () => {
+    const projected = Object.assign(new Error('safe'), { code: 401, meta: { retryable: true } });
+    expect(toSerializableBoundaryError(new Error('secret'), /* dev */ false, () => projected)).toBe(
+      projected
+    );
+  });
+
+  it('transformError (render option): an unserializable projection still completes SSR with the generic fallback', async () => {
+    const SecretThrower = component$((): JSXOutput => {
+      throw new Error('SECRET-db-detail');
+    });
+    const { container } = await ssrRenderToDom(
+      <ErrorBoundary
+        fallback$={$((e: any) => (
+          <p id="fb">shown: {e instanceof Error ? e.message : String(e)}</p>
+        ))}
+      >
+        <SecretThrower />
+      </ErrorBoundary>,
+      { debug, transformError: () => Object.assign(new Error('leaky'), { retry: () => {} }) }
+    );
+    const text = container.element.querySelector('#fb')?.textContent;
+    expect(text).toContain('An error occurred');
+    expect(text).not.toContain('SECRET');
+    expect(text).not.toContain('leaky');
+  });
+
   it('digest is produced and deterministic for non-Error thrown values', () => {
     const digestOf = (thrown: unknown) => {
       const projected = toSerializableBoundaryError(thrown, false) as Error & { digest: string };
@@ -2397,5 +2456,126 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
     markBoundaryErrored(store, second);
     expect(received).toEqual([first, second]);
     expect(store.error).toBe(second);
+  });
+});
+
+describe('hostile thrown values (fail-closed normalization)', () => {
+  const makeRevokedProxy = () => {
+    const { proxy, revoke } = Proxy.revocable({}, {});
+    revoke();
+    return proxy;
+  };
+  const hostileRows: Array<[string, () => unknown]> = [
+    ['revoked Proxy', makeRevokedProxy],
+    [
+      'throwing getPrototypeOf trap',
+      () =>
+        new Proxy(
+          {},
+          {
+            getPrototypeOf() {
+              throw new Error('proto trap');
+            },
+          }
+        ),
+    ],
+    [
+      'Error wrapped in a throwing has trap',
+      () =>
+        new Proxy(new Error('trapped'), {
+          has() {
+            throw new Error('has trap');
+          },
+        }),
+    ],
+    [
+      'throwing toString',
+      () => ({
+        toString() {
+          throw new Error('toString trap');
+        },
+      }),
+    ],
+    [
+      'Error subclass with a throwing message getter',
+      () => {
+        class Evil extends Error {
+          // eslint-disable-next-line getter-return
+          get message(): string {
+            throw new Error('message trap');
+          }
+        }
+        return new Evil();
+      },
+    ],
+    [
+      'cyclic object',
+      () => {
+        const cyclic: Record<string, unknown> = { name: 'cycle' };
+        cyclic.self = cyclic;
+        return cyclic;
+      },
+    ],
+  ];
+
+  it.each(hostileRows)('toSerializableBoundaryError never throws: %s', (_, makeHostile) => {
+    for (const dev of [true, false]) {
+      const out = toSerializableBoundaryError(makeHostile(), dev) as Error & { digest?: string };
+      expect(out).toBeInstanceOf(Error);
+      if (!dev) {
+        expect(out.message).toBe('An error occurred');
+        expect(typeof out.digest).toBe('string');
+      }
+    }
+  });
+
+  it.each(hostileRows)('redactBoundaryErrorForDisplay never throws: %s', (_, makeHostile) => {
+    expect(redactBoundaryErrorForDisplay(makeHostile(), false)).toBeInstanceOf(Error);
+  });
+
+  it.each(hostileRows)(
+    'markBoundaryErrored absorbs it and still stores an Error: %s',
+    (_, makeHostile) => {
+      const store: ErrorBoundaryStore = { error: undefined };
+      expect(() => markBoundaryErrored(store, makeHostile())).not.toThrow();
+      expect(store.error).toBeInstanceOf(Error);
+    }
+  );
+
+  it('SSR: a component throwing a revoked Proxy still renders the fallback', async () => {
+    const HostileThrower = component$((): JSXOutput => {
+      const { proxy, revoke } = Proxy.revocable({}, {});
+      revoke();
+      throw proxy;
+    });
+    const { container } = await ssrRenderToDom(
+      <ErrorBoundary fallback$={fb()}>
+        <HostileThrower />
+      </ErrorBoundary>,
+      { debug }
+    );
+    expect(container.element.querySelector('#fb')).toBeTruthy();
+  });
+
+  it('CSR: an event handler throwing a revoked Proxy still renders the fallback', async () => {
+    const HostileClicker = component$(() => (
+      <button
+        onClick$={() => {
+          const { proxy, revoke } = Proxy.revocable({}, {});
+          revoke();
+          throw proxy;
+        }}
+      >
+        go
+      </button>
+    ));
+    const { container } = await domRender(
+      <ErrorBoundary fallback$={fb()}>
+        <HostileClicker />
+      </ErrorBoundary>,
+      { debug }
+    );
+    await trigger(container.element, 'button', 'click');
+    expect(container.element.querySelector('#fb')).toBeTruthy();
   });
 });

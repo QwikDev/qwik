@@ -216,6 +216,9 @@ function emitSegmentCode(
       functionHead =
         target === 'ssr' && segment.render !== undefined ? '(ctx, rangeId) => ' : '(ctx) => ';
       break;
+    case 'slotRender':
+      functionHead = target === 'ssr' ? '(ctx, rangeId) => ' : '(ctx) => ';
+      break;
     case 'forKey':
       functionHead = `(${segment.paramRanges.map((range) => getParamName(range, source)).join(', ')}) => `;
       break;
@@ -252,6 +255,7 @@ export function shouldResolveSsrSegment(segment: Segment): boolean {
       return false;
     case 'forKey':
     case 'forRender':
+    case 'slotRender':
       return true;
   }
 }

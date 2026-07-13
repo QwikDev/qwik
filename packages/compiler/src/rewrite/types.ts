@@ -11,6 +11,10 @@ export interface RewriteContextProviderImports {
   namespaces: Set<string>;
 }
 
+export interface RewriteSlotImports {
+  named: Set<string>;
+}
+
 export interface RewriteComponent {
   exported: boolean;
   declarationKind: 'function' | 'const' | 'defaultFunction' | 'defaultArrow';
@@ -21,6 +25,7 @@ export interface RewriteComponent {
   body: FunctionBody | Expression;
   sourceFactoryImports: RewriteSourceFactoryImports;
   contextProviderImports: RewriteContextProviderImports;
+  slotImports: RewriteSlotImports;
 }
 
 export interface RewriteOutput {
@@ -61,12 +66,21 @@ export type DynamicJsxHtmlPart = { kind: 'dynamicJsx'; target: number; expr: Sou
 export type ComponentPropPart =
   | { kind: 'static'; name: string; value: StaticProp['value'] }
   | { kind: 'expression'; name: string; expr: SourceRange }
+  | { kind: 'event'; name: string; binding: SegmentBinding }
   | { kind: 'spread'; expr: SourceRange };
 export type ComponentHtmlPart = {
   kind: 'component';
   target: number;
   name: string;
   props: ComponentPropPart[];
+  slots: ComponentSlotPart[];
+};
+export type ComponentSlotPart = { name: string; render: SegmentBinding };
+export type SlotHtmlPart = {
+  kind: 'slot';
+  target: number;
+  name: string;
+  fallback: SegmentBinding | null;
 };
 export type BranchHtmlPart = {
   kind: 'branch';
@@ -93,6 +107,7 @@ export type HtmlPart =
   | HtmlHtmlPart
   | DynamicJsxHtmlPart
   | ComponentHtmlPart
+  | SlotHtmlPart
   | BranchHtmlPart
   | ForHtmlPart
   | AttributeHtmlPart
@@ -176,7 +191,8 @@ export interface Segment {
     | 'branchCondition'
     | 'branchRender'
     | 'forKey'
-    | 'forRender';
+    | 'forRender'
+    | 'slotRender';
   ctxName: string;
   qwik: boolean;
   range: SourceRange;

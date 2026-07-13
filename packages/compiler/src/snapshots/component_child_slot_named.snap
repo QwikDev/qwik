@@ -14,18 +14,18 @@ export function Parent() {
 
 ============================= src/component.tsx ==
 
-import { Slot } from '@qwik.dev/core';
-import { Wrapper } from './component.tsx_component_Wrapper';
 import {
-  createComponent,
   createSlotScope,
   registerProjection,
-  _qrlWithChunk,
+  createComponent,
   maybeThen,
+  _qrlWithChunk,
 } from '@qwik.dev/core/spark';
 import { component_slot_render_segment_0 } from './component.tsx_component_slot_render_segment_0';
 import { component_slot_render_segment_1 } from './component.tsx_component_slot_render_segment_1';
+import { Wrapper } from './component.tsx_component_Wrapper';
 
+export { Wrapper } from './component.tsx_component_Wrapper';
 const q_component_slot_render_segment_0 = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_slot_render_segment_0',
   () => import('./component.tsx_component_slot_render_segment_0'),
@@ -38,39 +38,43 @@ const q_component_slot_render_segment_1 = /*#__PURE__*/ _qrlWithChunk(
   'component_slot_render_segment_1'
 );
 q_component_slot_render_segment_1.s(component_slot_render_segment_1);
-
-export { Wrapper } from './component.tsx_component_Wrapper';
-
-export function Parent(_props, ctx) {
-  const slotScope1 = createSlotScope();
-  ctx.addRoot(slotScope1);
-  registerProjection(slotScope1, 'header', q_component_slot_render_segment_0);
-  registerProjection(slotScope1, '', q_component_slot_render_segment_1);
-  const component0 = createComponent({}, (props) => Wrapper(props, ctx), { slotScope: slotScope1 });
+export function Parent(props, ctx) {
+  const slotScope0 = createSlotScope();
+  ctx.addRoot(slotScope0);
+  registerProjection(slotScope0, 'header', q_component_slot_render_segment_0);
+  registerProjection(slotScope0, '', q_component_slot_render_segment_1);
+  const component0 = createComponent({}, (props) => Wrapper(props, ctx), { slotScope: slotScope0 });
   return maybeThen(component0, (component0) => component0);
 }
-
-null
 ============================= src/component.tsx_component_Wrapper.js (ENTRY POINT)==
 
 import {
+  getActiveInvokeContextOrNull,
   renderSsrSlot,
   maybeThen,
   promiseAll,
-  getActiveInvokeContextOrNull,
 } from '@qwik.dev/core/spark';
-export function Wrapper(_props, ctx) {
+
+export function Wrapper(props, ctx) {
   const slotCtx0 = getActiveInvokeContextOrNull();
-  const slot1 = renderSsrSlot(ctx, 'header', undefined, slotCtx0);
-  const slot2 = renderSsrSlot(ctx, '', undefined, slotCtx0);
+  const slot0 = renderSsrSlot(ctx, 'header', undefined, slotCtx0);
+  const slot1 = renderSsrSlot(ctx, '', undefined, slotCtx0);
   return maybeThen(
-    promiseAll([slot1, slot2]),
-    ([slot1, slot2]) =>
-      '<section><header>' + slot1 + '</header><main>' + slot2 + '</main></section>'
+    promiseAll([slot0, slot1]),
+    ([slot0, slot1]) =>
+      '<section' +
+      '>' +
+      '<header' +
+      '>' +
+      slot0 +
+      '</header>' +
+      '<main' +
+      '>' +
+      slot1 +
+      '</main>' +
+      '</section>'
   );
 }
-
-null
 /*
 {
   "origin": "component.tsx",
@@ -96,8 +100,6 @@ null
 export const component_slot_render_segment_0 = (ctx, rangeId) => {
   return '<h1 q:slot="header">Title</h1>';
 };
-
-null
 /*
 {
   "origin": "component.tsx",
@@ -123,8 +125,6 @@ null
 export const component_slot_render_segment_1 = (ctx, rangeId) => {
   return '<p>Body</p>';
 };
-
-null
 /*
 {
   "origin": "component.tsx",
@@ -152,45 +152,38 @@ null
 
 ============================= src/component.tsx ==
 
-import { Slot } from '@qwik.dev/core';
-import { Wrapper } from './component.tsx_component_Wrapper';
 import { createComponent, createSlotScope, registerProjection } from '@qwik.dev/core/spark';
 import { component_slot_render_segment_0 } from './component.tsx_component_slot_render_segment_0';
 import { component_slot_render_segment_1 } from './component.tsx_component_slot_render_segment_1';
+import { Wrapper } from './component.tsx_component_Wrapper';
 
 export { Wrapper } from './component.tsx_component_Wrapper';
-
-export function Parent(_props, ctx) {
-  const slotScope1 = createSlotScope();
-  registerProjection(slotScope1, 'header', component_slot_render_segment_0);
-  registerProjection(slotScope1, '', component_slot_render_segment_1);
-  const cmp0 = createComponent({}, (props) => Wrapper(props, ctx), {
+export function Parent(props, ctx) {
+  const slotScope0 = createSlotScope();
+  registerProjection(slotScope0, 'header', component_slot_render_segment_0);
+  registerProjection(slotScope0, '', component_slot_render_segment_1);
+  const component0 = createComponent({}, (props) => Wrapper(props, ctx), {
     container: ctx,
-    slotScope: slotScope1,
+    slotScope: slotScope0,
   });
-  return cmp0;
+  return component0;
 }
-
-null
 ============================= src/component.tsx_component_Wrapper.js (ENTRY POINT)==
 
-import { createSlot } from '@qwik.dev/core/spark';
-export function Wrapper(_props, ctx) {
-  const el0 = ctx.document.createElement('section');
-  const el1 = ctx.document.createElement('header');
-  const slot2 = createSlot('header', undefined);
-  if (Array.isArray(slot2)) for (let i = 0; i < slot2.length; i++) el1.appendChild(slot2[i]);
-  else el1.appendChild(slot2);
-  el0.appendChild(el1);
-  const el3 = ctx.document.createElement('main');
-  const slot4 = createSlot('', undefined);
-  if (Array.isArray(slot4)) for (let i = 0; i < slot4.length; i++) el3.appendChild(slot4[i]);
-  else el3.appendChild(slot4);
-  el0.appendChild(el3);
+import { _first, _last, createSlot, createTemplate } from '@qwik.dev/core/spark';
+
+const Wrapper_tmpl0 = createTemplate('<section><header> </header><main> </main></section>');
+export function Wrapper(props, ctx) {
+  const fragment0 = Wrapper_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const text0 = _first(_first(el0));
+  const text1 = _first(_last(el0));
+  const slot0 = createSlot('header', undefined);
+  text0.replaceWith(...(Array.isArray(slot0) ? slot0 : slot0 == null ? [] : [slot0]));
+  const slot1 = createSlot('', undefined);
+  text1.replaceWith(...(Array.isArray(slot1) ? slot1 : slot1 == null ? [] : [slot1]));
   return el0;
 }
-
-null
 /*
 {
   "origin": "component.tsx",
@@ -213,15 +206,14 @@ null
 */
 ============================= src/component.tsx_component_slot_render_segment_0.js (ENTRY POINT)==
 
-import { createTemplate } from '@qwik.dev/core/spark';
-const component_slot_render_segment_0_template0 = createTemplate('<h1 q:slot="header">Title</h1>');
-export const component_slot_render_segment_0 = (ctx) => {
-  const fragment0 = component_slot_render_segment_0_template0(ctx.document);
-  const el1 = fragment0.firstChild;
-  return el1;
-};
+import { _first, createTemplate } from '@qwik.dev/core/spark';
+const component_slot_render_segment_0_tmpl0 = createTemplate('<h1 q:slot="header">Title</h1>');
 
-null
+export const component_slot_render_segment_0 = (ctx) => {
+  const fragment0 = component_slot_render_segment_0_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
+};
 /*
 {
   "origin": "component.tsx",
@@ -244,15 +236,14 @@ null
 */
 ============================= src/component.tsx_component_slot_render_segment_1.js (ENTRY POINT)==
 
-import { createTemplate } from '@qwik.dev/core/spark';
-const component_slot_render_segment_1_template0 = createTemplate('<p>Body</p>');
-export const component_slot_render_segment_1 = (ctx) => {
-  const fragment0 = component_slot_render_segment_1_template0(ctx.document);
-  const el1 = fragment0.firstChild;
-  return el1;
-};
+import { _first, createTemplate } from '@qwik.dev/core/spark';
+const component_slot_render_segment_1_tmpl0 = createTemplate('<p>Body</p>');
 
-null
+export const component_slot_render_segment_1 = (ctx) => {
+  const fragment0 = component_slot_render_segment_1_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
+};
 /*
 {
   "origin": "component.tsx",

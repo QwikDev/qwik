@@ -11,7 +11,7 @@ import type {
   RewriteOutput,
   Segment,
 } from './types';
-import { QwikAttributes, QwikComments, QwikGenWord, QwikHooks, QwikWord } from './words';
+import { QwikAttributes, QwikComments, QwikGenWord, QwikWord } from './words';
 
 interface SsrRender {
   imports: string[];
@@ -115,6 +115,17 @@ export function emitSsrSegmentRender(
         'rangeId'
       );
       break;
+    case 'slotRender':
+      if (result === null) {
+        return null;
+      }
+      render = emitSsrRender(
+        result,
+        source,
+        new Map(result.segments.map((child) => [child.name, child])),
+        'rangeId'
+      );
+      break;
     case 'forRender':
       if (result === null) {
         return null;
@@ -158,6 +169,7 @@ function hasSingleDomRoot(result: RenderResult): boolean {
     switch (part.kind) {
       case 'dynamicJsx':
       case 'component':
+      case 'slot':
       case 'branch':
       case 'for':
         return part.target === root;
@@ -232,6 +244,7 @@ function emitDynamicRender(
   const events = new Map<string, string>();
   const componentImports = new Set<string>();
   const addedRoots = new Set<string>();
+  let slotContext: string | null = null;
   const html = emitVisibleTaskCarriers(result, source, events);
   const targetIds = new Map<number, string>(id === null ? [] : [[root, id]]);
   const statements = [
@@ -254,11 +267,41 @@ function emitDynamicRender(
         break;
       }
       case 'component': {
+        const options = emitSsrComponentOptions(
+          part,
+          segments,
+          componentImports,
+          statements,
+          addedRoots,
+          next
+        );
+        if (options === null) {
+          return null;
+        }
         const value = next('component');
         dynamicValues.set(part.target, value);
         componentImports.add(QwikWord.CreateComponent);
         statements.push(
-          `const ${value} = ${QwikWord.CreateComponent}(${emitComponentProps(part.props, source, componentImports)}, (props) => ${part.name}(props, ctx));`
+          `const ${value} = ${QwikWord.CreateComponent}(${emitComponentProps(part.props, source, componentImports, 'ssr')}, (props) => ${part.name}(props, ctx)${options});`
+        );
+        break;
+      }
+      case 'slot': {
+        const fallback = part.fallback === null ? undefined : segments.get(part.fallback.segment);
+        if (part.fallback !== null && fallback === undefined) {
+          return null;
+        }
+        if (slotContext === null) {
+          slotContext = next('slotCtx');
+          componentImports.add(QwikWord.GetActiveInvokeContextOrNull);
+          statements.push(`const ${slotContext} = ${QwikWord.GetActiveInvokeContextOrNull}();`);
+        }
+        const value = next('slot');
+        dynamicValues.set(part.target, value);
+        componentImports.add(QwikWord.RenderSsrSlot);
+        statements.push(
+          ...(part.fallback === null ? [] : emitSsrRoots(addedRoots, part.fallback.captures)),
+          `const ${value} = ${QwikWord.RenderSsrSlot}(ctx, ${JSON.stringify(part.name)}, ${fallback === undefined ? 'undefined' : emitQrlReference(fallback)}, ${slotContext});`
         );
         break;
       }
@@ -427,6 +470,37 @@ function emitDynamicRender(
         ? `${QwikWord.MaybeThen}(${dynamicNames[0]}, (${dynamicNames[0]}) => ${renderedHtml})`
         : `${QwikWord.MaybeThen}(${QwikWord.PromiseAll}([${dynamicNames.join(', ')}]), ([${dynamicNames.join(', ')}]) => ${renderedHtml})`,
   };
+}
+
+function emitSsrComponentOptions(
+  component: Extract<HtmlPart, { kind: 'component' }>,
+  segments: ReadonlyMap<string, Segment>,
+  imports: Set<string>,
+  statements: string[],
+  addedRoots: Set<string>,
+  next: (prefix: string) => string
+): string | null {
+  if (component.slots.length === 0) {
+    return '';
+  }
+  const slotScope = next('slotScope');
+  imports.add(QwikWord.CreateSlotScope);
+  imports.add(QwikWord.RegisterProjection);
+  statements.push(
+    `const ${slotScope} = ${QwikWord.CreateSlotScope}();`,
+    ...emitSsrRoots(addedRoots, [slotScope])
+  );
+  for (const slot of component.slots) {
+    const segment = segments.get(slot.render.segment);
+    if (segment === undefined) {
+      return null;
+    }
+    statements.push(
+      ...emitSsrRoots(addedRoots, slot.render.captures),
+      `${QwikWord.RegisterProjection}(${slotScope}, ${JSON.stringify(slot.name)}, ${emitQrlReference(segment)});`
+    );
+  }
+  return `, { slotScope: ${slotScope} }`;
 }
 
 function emitVisibleTaskCarriers(
@@ -846,7 +920,8 @@ function emitDynamicHtml(
         break;
       }
       case 'dynamicJsx':
-      case 'component': {
+      case 'component':
+      case 'slot': {
         const value = dynamicValues.get(part.target);
         if (value === undefined) {
           return null;
@@ -939,7 +1014,7 @@ function emitDynamicHtml(
 }
 
 function isStaticTextPart(part: HtmlPart | undefined): boolean {
-  return part?.kind === 'html' && part.isStaticText && part.value.length > 0;
+  return part?.kind === 'html' && part.isStaticText === true && part.value.length > 0;
 }
 
 function createAttrKey(target: number, name: string, expr: readonly number[]) {

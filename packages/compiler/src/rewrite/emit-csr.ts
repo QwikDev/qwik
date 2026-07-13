@@ -93,11 +93,7 @@ function emitCsrRender(
     const statements = [...setup];
     const values = result.roots.map((root) => {
       const component = components.get(root)!;
-      const name = next('component');
-      statements.push(
-        `const ${name} = ${QwikWord.CreateComponent}(${emitComponentProps(component.props, source, imports)}, (props) => ${component.name}(props, ctx), { container: ctx });`
-      );
-      return name;
+      return emitCsrComponentInstance(component, source, imports, statements, next);
     });
     return {
       hoists: [],
@@ -122,6 +118,7 @@ function emitCsrRender(
         break;
       case 'dynamicJsx':
       case 'component':
+      case 'slot':
       case 'branch':
       case 'for':
         placeholderRefs.add(part.target);
@@ -178,12 +175,28 @@ function emitCsrRender(
         if (target === undefined) {
           return null;
         }
-        const component = next('component');
-        imports.add(QwikWord.CreateComponent);
+        const component = emitCsrComponentInstance(part, source, imports, statements, next);
         statements.push(
-          `const ${component} = ${QwikWord.CreateComponent}(${emitComponentProps(part.props, source, imports)}, (props) => ${part.name}(props, ctx), { container: ctx });`,
           `${target}.replaceWith(...(Array.isArray(${component}) ? ${component} : ${component} == null ? [] : [${component}]));`
         );
+        break;
+      }
+      case 'slot': {
+        const target = refNames.get(part.target);
+        if (target === undefined) {
+          return null;
+        }
+        const slot = next('slot');
+        const fallback =
+          part.fallback === null
+            ? 'undefined'
+            : emitCapturedFunctionReference(part.fallback.segment, part.fallback.captures, imports);
+        imports.add(QwikWord.CreateSlot);
+        statements.push(
+          `const ${slot} = ${QwikWord.CreateSlot}(${JSON.stringify(part.name)}, ${fallback});`,
+          `${target}.replaceWith(...(Array.isArray(${slot}) ? ${slot} : ${slot} == null ? [] : [${slot}]));`
+        );
+        refNames.set(part.target, slot);
         break;
       }
       case 'branch': {
@@ -275,6 +288,43 @@ function emitCsrRender(
   };
 }
 
+function emitCsrComponentInstance(
+  component: Extract<RenderResult['html'][number], { kind: 'component' }>,
+  source: string,
+  imports: Set<string>,
+  statements: string[],
+  next: (prefix: string) => string
+): string {
+  const slotScope = emitCsrSlotScope(component, imports, statements, next);
+  const name = next('component');
+  imports.add(QwikWord.CreateComponent);
+  statements.push(
+    `const ${name} = ${QwikWord.CreateComponent}(${emitComponentProps(component.props, source, imports, 'csr')}, (props) => ${component.name}(props, ctx), { container: ctx${slotScope === null ? '' : `, slotScope: ${slotScope}`} });`
+  );
+  return name;
+}
+
+function emitCsrSlotScope(
+  component: Extract<RenderResult['html'][number], { kind: 'component' }>,
+  imports: Set<string>,
+  statements: string[],
+  next: (prefix: string) => string
+): string | null {
+  if (component.slots.length === 0) {
+    return null;
+  }
+  const slotScope = next('slotScope');
+  imports.add(QwikWord.CreateSlotScope);
+  imports.add(QwikWord.RegisterProjection);
+  statements.push(`const ${slotScope} = ${QwikWord.CreateSlotScope}();`);
+  for (const slot of component.slots) {
+    statements.push(
+      `${QwikWord.RegisterProjection}(${slotScope}, ${JSON.stringify(slot.name)}, ${emitCapturedFunctionReference(slot.render.segment, slot.render.captures, imports)});`
+    );
+  }
+  return slotScope;
+}
+
 function getCsrBatch(
   key: string,
   batches: Map<string, CsrDomBatch>,
@@ -302,6 +352,8 @@ export function emitCsrSegmentRender(
       return result === null
         ? { hoists: [], statements: [], value: '[]' }
         : emitCsrRender(segment.name, result, source, imports, true);
+    case 'slotRender':
+      return result === null ? null : emitCsrRender(segment.name, result, source, imports);
     case 'forRender':
       return result === null ? null : emitCsrRender(segment.name, result, source, imports);
     default:

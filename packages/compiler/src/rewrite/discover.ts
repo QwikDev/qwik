@@ -15,6 +15,7 @@ import {
 import type {
   RewriteComponent,
   RewriteContextProviderImports,
+  RewriteSlotImports,
   RewriteSourceFactoryImports,
 } from './types';
 import { QWIK_CORE_IMPORT, QWIK_IMPORT, QwikHooks } from './words';
@@ -31,6 +32,7 @@ const SOURCE_FACTORY_NAMES = new Set<string>([
 interface RewriteQwikImports {
   sourceFactoryImports: RewriteSourceFactoryImports;
   contextProviderImports: RewriteContextProviderImports;
+  slotImports: RewriteSlotImports;
   componentImports: Set<string>;
 }
 
@@ -39,7 +41,7 @@ export function discoverRewriteComponents(
   componentReferences: readonly string[] = []
 ): RewriteComponent[] {
   const components: RewriteComponent[] = [];
-  const { sourceFactoryImports, contextProviderImports, componentImports } =
+  const { sourceFactoryImports, contextProviderImports, slotImports, componentImports } =
     collectQwikImports(program);
   const localComponentNames = new Set(componentReferences);
   for (const statement of program.body) {
@@ -47,15 +49,16 @@ export function discoverRewriteComponents(
       case 'FunctionDeclaration':
       case 'VariableDeclaration': {
         const names =
-          statement.type === 'FunctionDeclaration'
-            ? [getIdentifierName(statement.id)]
-            : statement.declarations.map((declarator) => getIdentifierName(declarator.id));
+          statement.type === 'VariableDeclaration'
+            ? statement.declarations.map((declarator) => getIdentifierName(declarator.id))
+            : [getIdentifierName(statement.id)];
         if (names.some((name) => name !== null && localComponentNames.has(name))) {
           handleComponentDeclaration(
             statement,
             false,
             sourceFactoryImports,
             contextProviderImports,
+            slotImports,
             componentImports,
             (name) => name,
             components
@@ -71,6 +74,7 @@ export function discoverRewriteComponents(
             true,
             sourceFactoryImports,
             contextProviderImports,
+            slotImports,
             componentImports,
             (name) => name,
             components
@@ -86,6 +90,7 @@ export function discoverRewriteComponents(
             true,
             sourceFactoryImports,
             contextProviderImports,
+            slotImports,
             componentImports,
             () => 'default',
             components
@@ -105,6 +110,7 @@ function handleComponentDeclaration(
   exported: boolean,
   sourceFactoryImports: RewriteSourceFactoryImports,
   contextProviderImports: RewriteContextProviderImports,
+  slotImports: RewriteSlotImports,
   componentImports: ReadonlySet<string>,
   getExportName: (localName: string) => string | 'default',
   components: RewriteComponent[]
@@ -123,6 +129,7 @@ function handleComponentDeclaration(
           body: declaration.body,
           sourceFactoryImports,
           contextProviderImports,
+          slotImports,
         });
       }
       break;
@@ -148,6 +155,7 @@ function handleComponentDeclaration(
             body: fn.body,
             sourceFactoryImports,
             contextProviderImports,
+            slotImports,
           });
         }
       }
@@ -166,6 +174,7 @@ function handleComponentDeclaration(
           body: fn.body,
           sourceFactoryImports,
           contextProviderImports,
+          slotImports,
         });
       }
       break;
@@ -182,6 +191,7 @@ function collectQwikImports(program: Program): RewriteQwikImports {
     named: new Set(),
     namespaces: new Set(),
   };
+  const slotImports: RewriteSlotImports = { named: new Set() };
   const componentImports = new Set<string>();
   for (const statement of program.body) {
     if (statement.type === 'ImportDeclaration') {
@@ -196,6 +206,14 @@ function collectQwikImports(program: Program): RewriteQwikImports {
         switch (specifier.type) {
           case 'ImportSpecifier': {
             const importedName = getIdentifierName(specifier.imported);
+            if (
+              (statement.source.value === QWIK_CORE_IMPORT ||
+                statement.source.value === QWIK_IMPORT) &&
+              specifier.importKind !== 'type' &&
+              importedName === QwikHooks.Slot
+            ) {
+              slotImports.named.add(localName);
+            }
             if (statement.source.value === QWIK_CORE_IMPORT) {
               if (specifier.importKind !== 'type' && importedName === QwikHooks.Component) {
                 componentImports.add(localName);
@@ -228,7 +246,7 @@ function collectQwikImports(program: Program): RewriteQwikImports {
       }
     }
   }
-  return { sourceFactoryImports, contextProviderImports, componentImports };
+  return { sourceFactoryImports, contextProviderImports, slotImports, componentImports };
 }
 
 export function isRewriteSourceFactoryName(name: string): boolean {

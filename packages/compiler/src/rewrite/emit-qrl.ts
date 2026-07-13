@@ -101,10 +101,15 @@ export function emitSetupQrl(
 }
 
 export function emitQrlReference(segment: Segment): string {
-  const qrl = getQrlVariableName(segment);
-  return segment.captures.length === 0
-    ? qrl
-    : `${qrl}.w([${segment.captures.map((capture) => capture.name).join(', ')}])`;
+  return emitCapturedQrlReference(
+    segment.name,
+    segment.captures.map((capture) => capture.name)
+  );
+}
+
+export function emitCapturedQrlReference(name: string, captures: readonly string[]): string {
+  const qrl = `q_${name}`;
+  return captures.length === 0 ? qrl : `${qrl}.w([${captures.join(', ')}])`;
 }
 
 export function getQrlVariableName(segment: Segment): string {

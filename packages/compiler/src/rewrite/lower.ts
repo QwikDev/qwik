@@ -35,6 +35,7 @@ import { isSetupQrlSegment } from './extract';
 import type {
   AttributeHtmlPart,
   ComponentPropPart,
+  ComponentSlotPart,
   EventBinding,
   EventHtmlPart,
   ExpressionEffectBinding,
@@ -49,6 +50,7 @@ import type {
   RenderResult,
   RewriteComponent,
   RewriteContextProviderImports,
+  RewriteSlotImports,
   RewriteSourceFactoryImports,
   Segment,
   SegmentBinding,
@@ -118,6 +120,7 @@ interface LowerState {
   ops: Op[];
   sourceFactoryImports: RewriteSourceFactoryImports;
   contextProviderImports: RewriteContextProviderImports;
+  slotImports: RewriteSlotImports;
   shadowedSourceFactoryImports: Set<string>;
   shadowedContextProviderImports: Set<string>;
   trackedSources: Set<string>;
@@ -143,6 +146,7 @@ function lowerFunctionBody(
     ops: [],
     sourceFactoryImports: component.sourceFactoryImports,
     contextProviderImports: component.contextProviderImports,
+    slotImports: component.slotImports,
     shadowedSourceFactoryImports: createParamSourceFactoryShadows(
       component.params,
       component.sourceFactoryImports
@@ -233,6 +237,9 @@ function renderJsxElementHtml(
     return null;
   }
   if (!isNativeTag(tag)) {
+    if (state.slotImports.named.has(tag)) {
+      return renderSlot(node, state, existingId);
+    }
     return renderComponent(node, tag, state, existingId);
   }
   const isVoid = VOID_ELEMENTS.has(tag);
@@ -294,11 +301,6 @@ function renderComponent(
   state: LowerState,
   existingId: number | undefined
 ): RenderedJsx | null {
-  if (
-    node.children.some((child) => child.type !== 'JSXText' || normalizeJsxText(child.value) !== '')
-  ) {
-    return null;
-  }
   const props: ComponentPropPart[] = [];
   for (const attr of node.openingElement.attributes) {
     switch (attr.type) {
@@ -316,12 +318,21 @@ function renderComponent(
           break;
         }
         const value = attr.value ?? null;
+        const event = getEventAttr(propName, value, state);
+        if (event?.kind === 'segment') {
+          props.push({
+            kind: 'event',
+            name: propName,
+            binding: createSegmentBinding(state, event.segment),
+          });
+          break;
+        }
         const staticValue = getStaticJsxAttrValue(value);
         if (staticValue !== undefined) {
           props.push({ kind: 'static', name: propName, value: staticValue });
           break;
         }
-        if (value.type !== 'JSXExpressionContainer') {
+        if (value === null || value.type !== 'JSXExpressionContainer') {
           return null;
         }
         const expression = unwrapExpression(value.expression);
@@ -334,12 +345,95 @@ function renderComponent(
       }
     }
   }
+  const slots: ComponentSlotPart[] = [];
+  for (const child of node.children) {
+    if (isEmptyJsxChild(child)) {
+      continue;
+    }
+    const range = getRange(child);
+    if (range === null) {
+      return null;
+    }
+    const segment = getSegment('slotRender', range, state);
+    const name = getProjectionSlotName(child);
+    if (segment === undefined || name === null) {
+      return null;
+    }
+    attachRender(segment, child, state);
+    slots.push({ name, render: createSegmentBinding(state, segment) });
+  }
   const target = existingId ?? state.nextRefId();
   return {
     kind: 'content',
-    html: [{ kind: 'component', target, name, props }],
+    html: [{ kind: 'component', target, name, props, slots }],
     refs: existingId === undefined ? [{ id: target, path: [] }] : [],
   };
+}
+
+function renderSlot(
+  node: JSXElement,
+  state: LowerState,
+  existingId: number | undefined
+): RenderedJsx | null {
+  const name = getSlotName(node.openingElement);
+  if (name === null) {
+    return null;
+  }
+  const children = node.children.filter((child) => !isEmptyJsxChild(child));
+  let fallback: SegmentBinding | null = null;
+  if (children.length > 0) {
+    const range = getRange(node);
+    if (range === null) {
+      return null;
+    }
+    const segment = getSegment('slotRender', range, state);
+    if (segment === undefined) {
+      return null;
+    }
+    attachRenderChildren(segment, children, state);
+    fallback = createSegmentBinding(state, segment);
+  }
+  const target = existingId ?? state.nextRefId();
+  return {
+    kind: 'content',
+    html: [{ kind: 'slot', target, name, fallback }],
+    refs: existingId === undefined ? [{ id: target, path: [] }] : [],
+  };
+}
+
+function getSlotName(opening: JSXOpeningElement): string | null {
+  for (const attr of opening.attributes) {
+    if (attr.type === 'JSXAttribute' && getJsxAttributeName(attr.name) === 'name') {
+      return readSlotName(attr.value);
+    }
+  }
+  return '';
+}
+
+function getProjectionSlotName(child: JSXChild): string | null {
+  if (child.type === 'JSXElement') {
+    for (const attr of child.openingElement.attributes) {
+      if (attr.type === 'JSXAttribute' && getJsxAttributeName(attr.name) === 'q:slot') {
+        return readSlotName(attr.value);
+      }
+    }
+  }
+  return '';
+}
+
+function readSlotName(value: JSXAttributeValue | null | undefined): string | null {
+  if (value === null || value === undefined) {
+    return '';
+  }
+  const name = getStaticJsxAttrValue(value);
+  return typeof name === 'string' ? name : null;
+}
+
+function isEmptyJsxChild(child: JSXChild): boolean {
+  return (
+    (child.type === 'JSXText' && normalizeJsxText(child.value) === '') ||
+    (child.type === 'JSXExpressionContainer' && child.expression.type === 'JSXEmptyExpression')
+  );
 }
 
 function renderJsxAttributes(
@@ -472,14 +566,15 @@ function getJsxProp(
   if (name === null || attr.value === undefined) {
     return undefined;
   }
-  const value = getStaticJsxAttrValue(attr.value);
-  if (value !== undefined) {
-    return { kind: 'static', prop: { name, value } };
+  const attrValue = attr.value ?? null;
+  const staticValue = getStaticJsxAttrValue(attrValue);
+  if (staticValue !== undefined) {
+    return { kind: 'static', prop: { name, value: staticValue } };
   }
-  if (attr.value.type !== 'JSXExpressionContainer') {
+  if (attrValue === null || attrValue.type !== 'JSXExpressionContainer') {
     return null;
   }
-  const range = getRange(unwrapExpression(attr.value.expression));
+  const range = getRange(unwrapExpression(attrValue.expression));
   return range === null ? null : { kind: 'expression', name, range };
 }
 
@@ -1031,6 +1126,29 @@ function attachRender(segment: Segment, expression: unknown, state: LowerState):
   const roots: TemplateRoot[] = [];
   addRenderedRoots(expression, branchState, roots);
   const render = createRenderResult(roots, branchState);
+  if (render !== null) {
+    segment.render = render;
+  }
+}
+
+function attachRenderChildren(
+  segment: Segment,
+  children: readonly JSXChild[],
+  state: LowerState
+): void {
+  const slotState: LowerState = {
+    ...state,
+    nextRefId: createRefIdAllocator(),
+    setup: [],
+    ops: [],
+    segments: new Map(),
+    providesContext: false,
+  };
+  const roots: TemplateRoot[] = [];
+  for (const child of children) {
+    addRenderedRoots(child, slotState, roots);
+  }
+  const render = createRenderResult(roots, slotState);
   if (render !== null) {
     segment.render = render;
   }

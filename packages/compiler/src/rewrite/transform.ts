@@ -285,6 +285,7 @@ function removeRewriteOnlyImports(
     const rewriteOnly =
       specifier.importedName === QwikHooks.Component ||
       specifier.importedName === QwikHooks.Dollar ||
+      specifier.importedName === QwikHooks.Slot ||
       specifier.importedName.endsWith('$');
     return !rewriteOnly || containsIdentifier(emittedCode, specifier.localName);
   });

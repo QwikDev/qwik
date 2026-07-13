@@ -891,12 +891,13 @@ export function Parent() {
     await testInput('component_event_prop_passthrough', {
       code: `import type { QRL } from '@qwik.dev/core';
 
-export function Button(props: { onClick$: QRL<() => any> }) {
-  return <button onClick$={props.onClick$}>Click</button>;
+export function Button({ onClick$ }: { onClick$: QRL<() => any> }) {
+  return <button onClick$={onClick$}>Click</button>;
 }
 
 export function Parent() {
-  return <Button onClick$={() => 1} />;
+  const value = 1;
+  return <Button onClick$={() => value} />;
 }
 `,
     });
@@ -1008,6 +1009,23 @@ export function App() {
 export function App() {
   const items = useSignal([{ id: 'a' }]);
   return <ul>{items.value.map((item) => <li key={item.id}>Item</li>)}</ul>;
+}
+`,
+    });
+  });
+
+  test('supports keyed JSX loops with block callbacks', async () => {
+    await testInput('jsx_loop_block_row', {
+      code: `import { useSignal } from '@qwik.dev/core/spark';
+export function App() {
+  const items = useSignal([{ id: 'a', label: 'Alpha' }]);
+  return (
+    <ul>
+      {items.value.map((item) => {
+        return <li key={item.id}>{item.label}</li>;
+      })}
+    </ul>
+  );
 }
 `,
     });

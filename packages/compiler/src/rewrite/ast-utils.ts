@@ -44,8 +44,8 @@ export function getJsxMapExpression(node: unknown): JsxMapExpression | null {
   if (itemName === null || (callback.params[1] !== undefined && indexName === null)) {
     return null;
   }
-  const row = unwrapExpression(callback.body);
-  if (row?.type !== 'JSXElement' && row?.type !== 'JSXFragment') {
+  const row = getCallbackReturnedJsx(callback);
+  if (row === null) {
     return null;
   }
   const key = getRowKey(row);
@@ -60,6 +60,27 @@ export function getJsxMapExpression(node: unknown): JsxMapExpression | null {
     itemName,
     indexName,
   };
+}
+
+function getCallbackReturnedJsx(callback: AstFunction): AstJsxNode | null {
+  const body = unwrapExpression(callback.body);
+  switch (body?.type) {
+    case 'JSXElement':
+    case 'JSXFragment':
+      return body;
+    case 'BlockStatement':
+      for (const statement of body.body) {
+        if (statement.type === 'ReturnStatement') {
+          const returned = unwrapExpression(statement.argument);
+          return returned?.type === 'JSXElement' || returned?.type === 'JSXFragment'
+            ? returned
+            : null;
+        }
+      }
+      return null;
+    default:
+      return null;
+  }
 }
 
 function getRowKey(row: AstJsxNode): Node | null {

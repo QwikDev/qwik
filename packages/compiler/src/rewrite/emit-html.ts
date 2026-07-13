@@ -1,4 +1,5 @@
 import type { ComponentPropPart, HtmlPart, RenderResult, RewriteComponent } from './types';
+import { emitCapturedFunctionReference, emitCapturedQrlReference } from './emit-qrl';
 import { QwikComments, QwikGenWord, QwikWord } from './words';
 
 export function emitStaticHtml(result: RenderResult): string | null {
@@ -30,6 +31,7 @@ function emitHtmlParts(parts: readonly HtmlPart[], markers: boolean): string | n
         break;
       case 'dynamicJsx':
       case 'component':
+      case 'slot':
       case 'branch':
       case 'for':
         if (!markers) {
@@ -58,7 +60,8 @@ function emitHtmlParts(parts: readonly HtmlPart[], markers: boolean): string | n
 export function emitComponentProps(
   props: readonly ComponentPropPart[],
   source: string,
-  imports: Set<string>
+  imports: Set<string>,
+  target: 'csr' | 'ssr'
 ): string {
   const sources: string[] = [];
   let entries: string[] = [];
@@ -76,6 +79,15 @@ export function emitComponentProps(
       case 'expression':
         entries.push(
           `get ${JSON.stringify(prop.name)}() { return ${source.slice(prop.expr[0], prop.expr[1])}; }`
+        );
+        break;
+      case 'event':
+        entries.push(
+          `${JSON.stringify(prop.name)}: ${
+            target === 'ssr'
+              ? emitCapturedQrlReference(prop.binding.segment, prop.binding.captures)
+              : emitCapturedFunctionReference(prop.binding.segment, prop.binding.captures, imports)
+          }`
         );
         break;
       case 'spread':

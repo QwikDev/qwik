@@ -7,6 +7,7 @@ import {
   isNativeTag,
   isFunctionLike,
   jsxEventToHtmlAttribute,
+  normalizeJsxText,
   unwrapExpression,
 } from '../ast-utils';
 import type { AstFunction, AstNode } from '../types';
@@ -70,6 +71,7 @@ class QrlExtractor {
   private readonly segments: Segment[] = [];
   private readonly moduleDeclarations: ModuleDeclaration[] = [];
   private readonly componentReferences = new Set<string>();
+  private readonly slotImports = new Set<string>();
   private readonly segmentStack: SegmentState[] = [];
   private scope = -1;
   private owner = 0;
@@ -164,11 +166,25 @@ class QrlExtractor {
         return;
       case 'JSXElement': {
         const name = getJsxName(node.openingElement.name);
-        if (name !== null && !isNativeTag(name)) {
+        const slot = name !== null && this.isQwikSlot(name);
+        if (name !== null && !isNativeTag(name) && !slot) {
           this.componentReferences.add(name);
           this.recordReference(name);
         }
         this.visitJsxAttributes(node.openingElement.attributes, node.openingElement);
+        const children = node.children.filter((child) => !isEmptyJsxChild(child));
+        if (slot) {
+          if (children.length > 0) {
+            this.visitSlotRender(node, children);
+          }
+          return;
+        }
+        if (name !== null && !isNativeTag(name)) {
+          for (const child of children) {
+            this.visitSlotRender(child, [child]);
+          }
+          return;
+        }
         for (const child of node.children) {
           this.visitJsxChild(child);
         }
@@ -500,6 +516,13 @@ class QrlExtractor {
     }
   }
 
+  private visitSlotRender(boundary: AstNode, children: readonly AstNode[]) {
+    const segment = this.createExpressionSegment('slot:render', boundary, 'slotRender');
+    if (segment !== null) {
+      this.visitExpressionsSegment(children, segment, (child) => this.visitJsxChild(child));
+    }
+  }
+
   private visitJsxForSegments(expression: AstNode | null | undefined): boolean {
     const loop = getJsxMapExpression(expression);
     if (loop === null) {
@@ -623,7 +646,13 @@ class QrlExtractor {
   private createExpressionSegment(
     ctxName: string,
     expression: AstNode,
-    kind: 'expression' | 'branchCondition' | 'branchRender' | 'forKey' | 'forRender' = 'expression'
+    kind:
+      | 'expression'
+      | 'branchCondition'
+      | 'branchRender'
+      | 'forKey'
+      | 'forRender'
+      | 'slotRender' = 'expression'
   ): Segment | null {
     const range = getRange(expression);
     if (range === null) {
@@ -778,6 +807,13 @@ class QrlExtractor {
       for (const specifier of statement.specifiers) {
         const name = getIdentifierName(specifier.local);
         if (name !== null) {
+          if (
+            getIdentifierName(specifier.type === 'ImportSpecifier' ? specifier.imported : null) ===
+              QwikHooks.Slot &&
+            isQwikImport(statement.source.value)
+          ) {
+            this.slotImports.add(name);
+          }
           this.defineBinding(
             name,
             'local',
@@ -970,6 +1006,10 @@ class QrlExtractor {
     return null;
   }
 
+  private isQwikSlot(name: string): boolean {
+    return this.slotImports.has(name);
+  }
+
   private createModuleDeclaration(statement: AstNode): ModuleDeclaration | null {
     const declaration =
       statement.type === 'ExportNamedDeclaration' || statement.type === 'ExportDefaultDeclaration'
@@ -1115,4 +1155,11 @@ function sanitizeIdentifier(value: string): string {
 
 function isNode(node: unknown): node is AstNode {
   return !!node && typeof node === 'object' && 'type' in node && typeof node.type === 'string';
+}
+
+function isEmptyJsxChild(child: AstNode): boolean {
+  if (child.type === 'JSXText') {
+    return normalizeJsxText(child.value) === '';
+  }
+  return child.type === 'JSXExpressionContainer' && child.expression.type === 'JSXEmptyExpression';
 }

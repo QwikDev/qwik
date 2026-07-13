@@ -406,3 +406,17 @@ export const IconEllipsisHorizontal = component$((props: IconProps) => {
     </svg>
   );
 });
+
+export const IconGripVertical = component$((props: IconProps) => {
+  return (
+    <svg {...baseSvgProps({ ...props, viewBox: '0 0 24 24' })} fill="currentColor" stroke="none">
+      {props.title ? <title>{props.title}</title> : null}
+      <circle cx="9" cy="5" r="1.5" />
+      <circle cx="15" cy="5" r="1.5" />
+      <circle cx="9" cy="12" r="1.5" />
+      <circle cx="15" cy="12" r="1.5" />
+      <circle cx="9" cy="19" r="1.5" />
+      <circle cx="15" cy="19" r="1.5" />
+    </svg>
+  );
+});

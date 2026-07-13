@@ -4,6 +4,7 @@ import {
   getDefaultVisibleTabIds,
   getVisibleTabs,
   loadVisibleTabIds,
+  reorderVisibleTabs,
   saveVisibleTabIds,
   setTabVisible,
 } from './sidebar-tabs';
@@ -46,6 +47,26 @@ describe('sidebar tabs model', () => {
     expect(setTabVisible(['overview', 'performance'], 'overview', false)).toEqual(['performance']);
     expect(setTabVisible(['overview'], 'performance', true)).toEqual(['overview', 'performance']);
     expect(setTabVisible(['overview'], 'overview', true)).toEqual(['overview']);
+  });
+
+  test('reorderVisibleTabs moves a tab before the target, in both directions', () => {
+    expect(
+      reorderVisibleTabs(['overview', 'performance', 'preloads'], 'preloads', 'overview')
+    ).toEqual(['preloads', 'overview', 'performance']);
+    expect(
+      reorderVisibleTabs(['overview', 'performance', 'preloads'], 'overview', 'preloads')
+    ).toEqual(['performance', 'overview', 'preloads']);
+  });
+
+  test('reorderVisibleTabs is a no-op for the same tab or a target not in the list', () => {
+    expect(reorderVisibleTabs(['overview', 'performance'], 'overview', 'overview')).toEqual([
+      'overview',
+      'performance',
+    ]);
+    expect(reorderVisibleTabs(['overview', 'performance'], 'overview', 'routes')).toEqual([
+      'overview',
+      'performance',
+    ]);
   });
 });
 

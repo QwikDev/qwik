@@ -30,6 +30,24 @@ export function getAvailableTabs(visibleTabIds: DevtoolsTabId[]): DevtoolsTabCon
   return resolveTabs(getAvailableTabIds(visibleTabIds));
 }
 
+/** Moves `draggedId` to sit just before `targetId` in the list, returning a new list. */
+export function reorderVisibleTabs(
+  visibleTabIds: DevtoolsTabId[],
+  draggedId: DevtoolsTabId,
+  targetId: DevtoolsTabId
+): DevtoolsTabId[] {
+  if (draggedId === targetId) {
+    return visibleTabIds;
+  }
+  const without = visibleTabIds.filter((id) => id !== draggedId);
+  const targetIndex = without.indexOf(targetId);
+  if (targetIndex < 0) {
+    return visibleTabIds;
+  }
+  without.splice(targetIndex, 0, draggedId);
+  return without;
+}
+
 /** Adds (appends) or removes a tab from the ordered visible list, returning a new list. */
 export function setTabVisible(
   visibleTabIds: DevtoolsTabId[],

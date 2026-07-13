@@ -12,7 +12,7 @@ import {
 import { AsyncSignalImpl } from './impl/async-signal-impl';
 import { getComputedSignalFlags } from './utils';
 import type { AsyncFn } from '../use/use-async';
-import { createSerializerQrl } from '../vdomless/reactive/serializer-signal';
+import { useSerializerQrl } from '../vdomless/';
 
 /** @internal */
 export const createSignal = <T>(value?: T): Signal<T> => {
@@ -48,5 +48,5 @@ export const createAsyncSignal = <T>(
 
 /** @internal */
 export const createSerializerSignal = <T, S>(arg: QRL<SerializerArg<T, S>>) => {
-  return createSerializerQrl<T, S>(arg);
+  return useSerializerQrl<T, S>(arg);
 };

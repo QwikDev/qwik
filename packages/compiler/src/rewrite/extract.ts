@@ -424,17 +424,49 @@ class QrlExtractor {
   }
 
   private visitJsxAttributes(attributes: JSXAttributeItem[], boundary: AstNode) {
-    const spreads = attributes.filter((attr) => attr.type === 'JSXSpreadAttribute');
-    if (spreads.length >= 2) {
+    let spreadCount = 0;
+    const spreadExpressions: AstNode[] = [];
+    const dynamicAttributes = new Map<JSXAttributeItem, AstNode>();
+    for (const attr of attributes) {
+      switch (attr.type) {
+        case 'JSXSpreadAttribute': {
+          spreadCount++;
+          const expression = unwrapExpression(attr.argument);
+          if (isNode(expression)) {
+            spreadExpressions.push(expression);
+          }
+          break;
+        }
+        case 'JSXAttribute': {
+          const name = getJsxAttributeName(attr.name);
+          const expression =
+            attr.value?.type === 'JSXExpressionContainer'
+              ? unwrapExpression(attr.value.expression)
+              : null;
+          if (
+            name !== null &&
+            jsxEventToHtmlAttribute(name) === null &&
+            expression !== null &&
+            expression !== undefined &&
+            expression.type !== 'Literal' &&
+            expression.type !== 'JSXEmptyExpression'
+          ) {
+            dynamicAttributes.set(attr, expression);
+          }
+          break;
+        }
+      }
+    }
+    if (spreadCount >= 2 || (spreadCount > 0 && dynamicAttributes.size > 0)) {
       const segment = this.createExpressionSegment('props', boundary);
       if (segment !== null) {
         for (const attr of attributes) {
-          if (attr.type === 'JSXAttribute') {
+          if (attr.type === 'JSXAttribute' && !dynamicAttributes.has(attr)) {
             this.visitJsxAttribute(attr);
           }
         }
         this.visitExpressionsSegment(
-          spreads.map((spread) => unwrapExpression(spread.argument)).filter(isNode),
+          [...spreadExpressions, ...dynamicAttributes.values()],
           segment
         );
         return;

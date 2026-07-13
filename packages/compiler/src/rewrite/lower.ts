@@ -360,7 +360,8 @@ function renderJsxSpreadAttributes(
   const parts: PropsExpressionPart[] = [];
   const staticProps: StaticProp[] = [];
   let spreadCount = 0;
-  let dynamicSpreadCount = 0;
+  let dynamicSpreadRange: SourceRange | undefined;
+  let hasDynamicAttribute = false;
 
   for (const attr of opening.attributes) {
     switch (attr.type) {
@@ -378,37 +379,44 @@ function renderJsxSpreadAttributes(
         if (range === null) {
           return null;
         }
-        dynamicSpreadCount++;
+        dynamicSpreadRange = range;
         parts.push({ kind: 'spread', range });
         break;
       }
       case 'JSXAttribute': {
-        const prop = getStaticJsxProp(attr);
+        const prop = getJsxProp(attr);
         if (prop === null) {
           return null;
         }
         if (prop !== undefined) {
-          staticProps.push(prop);
-          parts.push({ kind: 'static', prop });
+          parts.push(prop);
+          switch (prop.kind) {
+            case 'static':
+              staticProps.push(prop.prop);
+              break;
+            case 'expression':
+              hasDynamicAttribute = true;
+              break;
+          }
         }
         break;
       }
     }
   }
 
-  if (dynamicSpreadCount === 0) {
+  if (dynamicSpreadRange === undefined && !hasDynamicAttribute) {
     return renderStaticProps(staticProps);
   }
   if (target === undefined) {
     return null;
   }
-  const range =
-    spreadCount > 1 ? getRange(opening) : parts.find((part) => part.kind === 'spread')?.range;
+  const usesCombinedSegment = spreadCount > 1 || hasDynamicAttribute;
+  const range = usesCombinedSegment ? getRange(opening) : dynamicSpreadRange;
   const segment = range == null ? undefined : getSegment('expression', range, state);
   if (segment === undefined) {
     return null;
   }
-  if (spreadCount > 1 || parts.length > 1) {
+  if (usesCombinedSegment || parts.length > 1) {
     segment.propsParts = parts;
   }
   state.ops.push({
@@ -434,9 +442,9 @@ function normalizeAttrName(name: string): string | null {
   return name;
 }
 
-function getStaticJsxProp(
+function getJsxProp(
   attr: Extract<JSXOpeningElement['attributes'][number], { type: 'JSXAttribute' }>
-): StaticProp | null | undefined {
+): Exclude<PropsExpressionPart, { kind: 'spread' }> | null | undefined {
   const rawName = getJsxAttributeName(attr.name);
   if (rawName === null || isSpecialPropName(rawName)) {
     return null;
@@ -446,7 +454,14 @@ function getStaticJsxProp(
     return undefined;
   }
   const value = getStaticJsxAttrValue(attr.value);
-  return value === undefined ? null : { name, value };
+  if (value !== undefined) {
+    return { kind: 'static', prop: { name, value } };
+  }
+  if (attr.value.type !== 'JSXExpressionContainer') {
+    return null;
+  }
+  const range = getRange(unwrapExpression(attr.value.expression));
+  return range === null ? null : { kind: 'expression', name, range };
 }
 
 function getStaticObjectSpreadProps(expression: unknown): StaticProp[] | null {

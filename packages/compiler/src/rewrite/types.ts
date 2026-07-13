@@ -110,6 +110,7 @@ export interface StaticProp {
 
 export type PropsExpressionPart =
   | { kind: 'static'; prop: StaticProp }
+  | { kind: 'expression'; name: string; range: SourceRange }
   | { kind: 'spread'; range: SourceRange };
 
 export type ValueEffectBinding = { kind: 'source'; range: SourceRange } | ExpressionEffectBinding;

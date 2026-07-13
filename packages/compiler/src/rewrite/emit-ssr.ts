@@ -183,6 +183,7 @@ function emitDynamicRender(
   const branches = new Map<number, { id: string; value: string }>();
   const events = new Map<string, string>();
   const componentImports = new Set<string>();
+  const addedRoots = new Set<string>();
   const html = emitVisibleTaskCarriers(result, source, events);
   const targetIds = new Map<number, string>(id === null ? [] : [[root, id]]);
   const statements = [
@@ -227,7 +228,7 @@ function emitDynamicRender(
         branches.set(part.target, { id: rangeId, value });
         statements.push(
           `const ${rangeId} = ctx.nextId();`,
-          ...[...captures].map((capture) => `ctx.addRoot(${capture});`),
+          ...emitSsrRoots(addedRoots, captures),
           `const ${value} = ${QwikWord.RenderSsrBranch}(ctx, ${rangeId}, ${emitQrlReference(condition)}, ${emitQrlReference(thenSegment)}, ${elseSegment === undefined ? 'undefined' : emitQrlReference(elseSegment)});`
         );
         break;
@@ -245,6 +246,7 @@ function emitDynamicRender(
       props,
       events,
       targetIds,
+      addedRoots,
       segments,
       source,
       id,
@@ -466,6 +468,7 @@ function emitSsrOp(
   props: Map<number, string>,
   events: Map<string, string>,
   targetIds: Map<number, string>,
+  addedRoots: Set<string>,
   segments: ReadonlyMap<string, Segment>,
   source: string,
   id: string | null,
@@ -476,11 +479,21 @@ function emitSsrOp(
       if (id === null) {
         return null;
       }
-      return emitSsrTextOp(op, markerIndexes, texts, targetIds, segments, source, id, next);
+      return emitSsrTextOp(
+        op,
+        markerIndexes,
+        texts,
+        targetIds,
+        addedRoots,
+        segments,
+        source,
+        id,
+        next
+      );
     case 'attrEffect':
-      return emitSsrAttrOp(op, attrs, targetIds, segments, source, next);
+      return emitSsrAttrOp(op, attrs, targetIds, addedRoots, segments, source, next);
     case 'propsEffect':
-      return emitSsrPropsOp(op, props, targetIds, segments, next);
+      return emitSsrPropsOp(op, props, targetIds, addedRoots, segments, next);
     case 'event': {
       let reference: string;
       switch (op.binding.kind) {
@@ -511,6 +524,7 @@ function emitSsrPropsOp(
   op: Extract<Op, { kind: 'propsEffect' }>,
   props: Map<number, string>,
   targetIds: Map<number, string>,
+  addedRoots: Set<string>,
   segments: ReadonlyMap<string, Segment>,
   next: (prefix: string) => string
 ): string[] | null {
@@ -529,7 +543,7 @@ function emitSsrPropsOp(
   props.set(op.target, value);
   return [
     ...statements,
-    ...op.binding.captures.map((capture) => `ctx.addRoot(${capture});`),
+    ...emitSsrRoots(addedRoots, op.binding.captures),
     `const ${value} = ${QwikWord.RenderSsrProps}(${QwikWord.CreateSsrElementTarget}(${targetId}), [${op.binding.captures.join(
       ', '
     )}], ${getQrlVariableName(segment)}, ctx.eventAttr);`,
@@ -540,6 +554,7 @@ function emitSsrAttrOp(
   op: Extract<Op, { kind: 'attrEffect' }>,
   attrs: Map<string, string>,
   targetIds: Map<number, string>,
+  addedRoots: Set<string>,
   segments: ReadonlyMap<string, Segment>,
   source: string,
   next: (prefix: string) => string
@@ -559,7 +574,7 @@ function emitSsrAttrOp(
       const sourceExpr = source.slice(op.binding.range[0], op.binding.range[1]);
       return [
         ...statements,
-        `ctx.addRoot(${sourceExpr});`,
+        ...emitSsrRoots(addedRoots, [sourceExpr]),
         `const ${attr} = ${QwikWord.RenderSsrAttr}(${target}, ${JSON.stringify(
           op.name
         )}, ${sourceExpr});`,
@@ -572,7 +587,7 @@ function emitSsrAttrOp(
       }
       return [
         ...statements,
-        ...op.binding.captures.map((capture) => `ctx.addRoot(${capture});`),
+        ...emitSsrRoots(addedRoots, op.binding.captures),
         `const ${attr} = ${QwikWord.RenderSsrAttrExpression}(${target}, ${JSON.stringify(
           op.name
         )}, [${op.binding.captures.join(', ')}], ${getQrlVariableName(segment)});`,
@@ -586,6 +601,7 @@ function emitSsrTextOp(
   markerIndexes: Map<number, number>,
   texts: Map<number, string>,
   targetIds: Map<number, string>,
+  addedRoots: Set<string>,
   segments: ReadonlyMap<string, Segment>,
   source: string,
   id: string,
@@ -615,7 +631,7 @@ function emitSsrTextOp(
       const expr = source.slice(op.binding.range[0], op.binding.range[1]);
       return [
         ...statements,
-        `ctx.addRoot(${expr});`,
+        ...emitSsrRoots(addedRoots, [expr]),
         `const ${text} = ${QwikWord.RenderSsrTextNode}(${target}, ${expr});`,
       ];
     }
@@ -626,7 +642,7 @@ function emitSsrTextOp(
       }
       return [
         ...statements,
-        ...op.binding.captures.map((capture) => `ctx.addRoot(${capture});`),
+        ...emitSsrRoots(addedRoots, op.binding.captures),
         `const ${text} = ${QwikWord.RenderSsrTextExpression}(${target}, [${op.binding.captures.join(
           ', '
         )}], ${getQrlVariableName(segment)});`,
@@ -635,6 +651,17 @@ function emitSsrTextOp(
     case 'unsupported':
       return null;
   }
+}
+
+function emitSsrRoots(addedRoots: Set<string>, roots: Iterable<string>): string[] {
+  const statements: string[] = [];
+  for (const root of roots) {
+    if (!addedRoots.has(root)) {
+      addedRoots.add(root);
+      statements.push(`ctx.addRoot(${root});`);
+    }
+  }
+  return statements;
 }
 
 function createMarkerIndexes(parts: readonly HtmlPart[], elementTextMarkers: ReadonlySet<number>) {

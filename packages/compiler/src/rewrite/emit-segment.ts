@@ -248,16 +248,25 @@ function emitPropsPart(
   switch (part.kind) {
     case 'static':
       return `${JSON.stringify(part.prop.name)}: ${JSON.stringify(part.prop.value)}`;
+    case 'expression':
+      return `get ${JSON.stringify(part.name)}() { return ${emitPropsExpression(part.range, source, replacements)}; }`;
     case 'spread':
-      return `...(${applyReplacements(
-        source,
-        part.range,
-        replacements.filter(
-          (replacement) =>
-            replacement.range[0] >= part.range[0] && replacement.range[1] <= part.range[1]
-        )
-      )})`;
+      return `...(${emitPropsExpression(part.range, source, replacements)})`;
   }
+}
+
+function emitPropsExpression(
+  range: Segment['range'],
+  source: string,
+  replacements: readonly { range: Segment['range']; value: string }[]
+): string {
+  return applyReplacements(
+    source,
+    range,
+    replacements.filter(
+      (replacement) => replacement.range[0] >= range[0] && replacement.range[1] <= range[1]
+    )
+  );
 }
 
 function rewriteLoopCaptures(body: string, segment: Segment): string {

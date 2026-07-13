@@ -62,17 +62,7 @@ export function Wrapper(props, ctx) {
   return maybeThen(
     promiseAll([slot0, slot1]),
     ([slot0, slot1]) =>
-      '<section' +
-      '>' +
-      '<header' +
-      '>' +
-      slot0 +
-      '</header>' +
-      '<main' +
-      '>' +
-      slot1 +
-      '</main>' +
-      '</section>'
+      '<section><header>' + slot0 + '</header><main>' + slot1 + '</main></section>'
   );
 }
 /*

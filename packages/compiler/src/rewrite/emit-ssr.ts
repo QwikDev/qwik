@@ -851,11 +851,25 @@ function emitDynamicHtml(
   targetIds: ReadonlyMap<number, string>,
   rootElementAttr: string | null
 ): string | null {
-  const frames: Array<{ target: number; props: string; expressions: string[] }> = [
-    { target: -1, props: '', expressions: [] },
-  ];
+  const frames: Array<{
+    target: number;
+    props: string;
+    expressions: string[];
+    staticHtml: string;
+  }> = [{ target: -1, props: '', expressions: [], staticHtml: '' }];
+  const flushStaticHtml = (frame: (typeof frames)[number]) => {
+    if (frame.staticHtml !== '') {
+      frame.expressions.push(JSON.stringify(frame.staticHtml));
+      frame.staticHtml = '';
+    }
+  };
   const pushExpression = (...expressions: string[]) => {
-    frames[frames.length - 1].expressions.push(...expressions);
+    const frame = frames[frames.length - 1];
+    flushStaticHtml(frame);
+    frame.expressions.push(...expressions);
+  };
+  const pushStaticHtml = (html: string) => {
+    frames[frames.length - 1].staticHtml += html;
   };
   let didInjectRoot = false;
   const injectedTargets = new Set<number>();
@@ -863,18 +877,17 @@ function emitDynamicHtml(
     const part = parts[i];
     switch (part.kind) {
       case 'html': {
-        const expression =
-          (id === null && rootElementAttr === null) || didInjectRoot
-            ? JSON.stringify(part.value)
-            : emitRootHtml(part.value, id, rootElementAttr);
-        if (expression === null) {
-          return null;
-        }
-        if (id !== null || rootElementAttr !== null) {
+        if ((id === null && rootElementAttr === null) || didInjectRoot) {
+          pushStaticHtml(part.value);
+        } else {
+          const expression = emitRootHtml(part.value, id, rootElementAttr);
+          if (expression === null) {
+            return null;
+          }
+          pushExpression(expression);
           didInjectRoot = true;
           injectedTargets.add(root);
         }
-        pushExpression(expression);
         break;
       }
       case 'attr':
@@ -885,7 +898,9 @@ function emitDynamicHtml(
             return null;
           }
           injectedTargets.add(part.target);
-          pushExpression(JSON.stringify(` ${QwikAttributes.Id}="`), targetId, JSON.stringify('"'));
+          pushStaticHtml(` ${QwikAttributes.Id}="`);
+          pushExpression(targetId);
+          pushStaticHtml('"');
         }
         switch (part.kind) {
           case 'attr': {
@@ -893,11 +908,9 @@ function emitDynamicHtml(
             if (attr === undefined) {
               return null;
             }
-            pushExpression(
-              JSON.stringify(` ${part.name}="`),
-              `${QwikWord.EscapeHTML}(${attr})`,
-              JSON.stringify('"')
-            );
+            pushStaticHtml(` ${part.name}="`);
+            pushExpression(`${QwikWord.EscapeHTML}(${attr})`);
+            pushStaticHtml('"');
             break;
           }
           case 'props': {
@@ -934,13 +947,11 @@ function emitDynamicHtml(
         if (branch === undefined) {
           return null;
         }
-        pushExpression(
-          JSON.stringify('<!b='),
-          branch.id,
-          JSON.stringify('>'),
-          branch.value,
-          JSON.stringify('<!/b>')
-        );
+        pushStaticHtml('<!b=');
+        pushExpression(branch.id);
+        pushStaticHtml('>');
+        pushExpression(branch.value);
+        pushStaticHtml('<!/b>');
         break;
       }
       case 'for': {
@@ -948,13 +959,11 @@ function emitDynamicHtml(
         if (loop === undefined) {
           return null;
         }
-        pushExpression(
-          JSON.stringify('<!f='),
-          loop.id,
-          JSON.stringify('>'),
-          loop.value,
-          JSON.stringify('<!/f>')
-        );
+        pushStaticHtml('<!f=');
+        pushExpression(loop.id);
+        pushStaticHtml('>');
+        pushExpression(loop.value);
+        pushStaticHtml('<!/f>');
         break;
       }
       case 'target': {
@@ -966,7 +975,9 @@ function emitDynamicHtml(
           return null;
         }
         injectedTargets.add(part.id);
-        pushExpression(JSON.stringify(` ${QwikAttributes.Id}="`), targetId, JSON.stringify('"'));
+        pushStaticHtml(` ${QwikAttributes.Id}="`);
+        pushExpression(targetId);
+        pushStaticHtml('"');
         break;
       }
       case 'elementText': {
@@ -982,10 +993,10 @@ function emitDynamicHtml(
         if (text === undefined) {
           return null;
         }
-        pushExpression(JSON.stringify(QwikComments.TextMarker));
+        pushStaticHtml(QwikComments.TextMarker);
         pushExpression(`${QwikWord.EscapeHTML}(${text})`);
         if (isStaticTextPart(parts[i + 1])) {
-          pushExpression(JSON.stringify(QwikComments.TextMarkerEnd));
+          pushStaticHtml(QwikComments.TextMarkerEnd);
         }
         break;
       }
@@ -994,7 +1005,7 @@ function emitDynamicHtml(
         if (value === undefined) {
           return null;
         }
-        frames.push({ target: part.target, props: value, expressions: [] });
+        frames.push({ target: part.target, props: value, expressions: [], staticHtml: '' });
         break;
       }
       case 'childrenEnd': {
@@ -1002,6 +1013,7 @@ function emitDynamicHtml(
         if (frame === undefined || frame.target !== part.target || frames.length === 0) {
           return null;
         }
+        flushStaticHtml(frame);
         const fallback = frame.expressions.length === 0 ? "''" : frame.expressions.join(' + ');
         pushExpression(`(${frame.props}.innerHTML ?? (${fallback}))`);
         break;
@@ -1010,7 +1022,11 @@ function emitDynamicHtml(
         return null;
     }
   }
-  return frames.length === 1 ? frames[0].expressions.join(' + ') : null;
+  if (frames.length !== 1) {
+    return null;
+  }
+  flushStaticHtml(frames[0]);
+  return frames[0].expressions.join(' + ');
 }
 
 function isStaticTextPart(part: HtmlPart | undefined): boolean {

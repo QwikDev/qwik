@@ -45,7 +45,7 @@ import { getActiveInvokeContextOrNull, renderSsrSlot, maybeThen } from '@qwik.de
 export function Wrapper(props, ctx) {
   const slotCtx0 = getActiveInvokeContextOrNull();
   const slot0 = renderSsrSlot(ctx, '', undefined, slotCtx0);
-  return maybeThen(slot0, (slot0) => '<section' + '>' + slot0 + '</section>');
+  return maybeThen(slot0, (slot0) => '<section>' + slot0 + '</section>');
 }
 /*
 {

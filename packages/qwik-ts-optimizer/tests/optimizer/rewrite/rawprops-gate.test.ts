@@ -108,6 +108,52 @@ export const C = component$(({count, stuff = hola()}) => {
     expect(code).toMatch(/\.w\(\[\s*count\s*\]\)/);
   });
 
+  it('preserves a default that references a sibling binding (no dangling ref)', () => {
+    // Consolidating would strand `prefetchProp` (a sibling binding) inside
+    // `data`'s inlined default once the destructure is gone — a ReferenceError.
+    const input = `
+import { component$, useVisibleTask$ } from '@qwik.dev/core';
+
+export const C = component$(({ prefetch: prefetchProp, data: dataProp = prefetchProp === "js" ? "off" : "intent" }) => {
+  useVisibleTask$(() => {
+    console.log(prefetchProp, dataProp);
+  });
+  return <div>{dataProp}</div>;
+});
+`;
+    const result = transformModule({
+      input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(input) }],
+      srcDir: mkFilePath('.'),
+      entryStrategy: { type: 'inline' },
+    });
+
+    const code = findParent(result).code;
+    expect(code).not.toMatch(/\(_rawProps\)\s*=>/);
+    expect(code).toMatch(/prefetch:\s*prefetchProp/);
+    expect(code).not.toMatch(/props\.data\s*\?\?\s*prefetchProp/);
+    expectAllModulesParse(result);
+  });
+
+  it('preserves a member-access default (non-const)', () => {
+    const input = `
+import { component$ } from '@qwik.dev/core';
+import { config } from './config';
+
+export const C = component$(({ mode = config.mode }) => {
+  return <div>{mode}</div>;
+});
+`;
+    const result = transformModule({
+      input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(input) }],
+      srcDir: mkFilePath('.'),
+      entryStrategy: { type: 'inline' },
+    });
+
+    const code = findParent(result).code;
+    expect(code).not.toMatch(/\(_rawProps\)\s*=>/);
+    expect(code).toMatch(/mode\s*=\s*config\.mode/);
+  });
+
   it('still consolidates flat destructure with const defaults (parity-safe)', () => {
     // Counter-test: ensure the gate change doesn't over-broaden — Works's
     // shape (flat destructure with literal/Identifier defaults) MUST still

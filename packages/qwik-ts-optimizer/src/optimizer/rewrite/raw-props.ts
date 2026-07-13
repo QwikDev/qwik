@@ -125,14 +125,13 @@ interface RawPropsBindingInfo {
   fields: RawPropsField[];
   restElementName: string | null;
   /**
-   * True when the pattern contains a shape that consolidation cannot
-   * safely express via `_rawProps.<key>` rewrites. Mirrors SWC's
-   * `transform_pat` `skip = true` cases in
-   * `swc-reference-only/props_destructuring.rs:371-470`:
+   * True when the pattern contains a shape consolidation cannot safely
+   * express via `_rawProps.<key>` rewrites:
    *   - Property value is a nested ObjectPattern / ArrayPattern
    *     (e.g. `{ stuff: { hey } }`)
-   *   - Property has an AssignmentPattern default whose right side
-   *     contains a CallExpression (e.g. `{ stuff = hola() }`)
+   *   - Property has an AssignmentPattern default that is non-const —
+   *     a call, a member access, or a sibling-binding reference
+   *     (e.g. `{ stuff = hola() }`, `{ b: y = x === 1 }`)
    *   - RestElement argument is not a plain Identifier
    * When `unsafe`, the caller MUST abort consolidation and preserve
    * the original destructure pattern verbatim.
@@ -242,6 +241,7 @@ function collectPatternBindings(
   offset = 0,
 ): RawPropsBindingInfo {
   const fields: RawPropsField[] = [];
+  const defaultNodes: (unknown | undefined)[] = [];
   let restElementName: string | null = null;
   let unsafe = false;
 
@@ -257,19 +257,12 @@ function collectPatternBindings(
     const keyName = getObjectPropertyKeyName(prop.key);
     if (!keyName) continue;
 
-    // Detect the shapes SWC's `transform_pat` flags as `skip = true`:
-    // (a) value is a nested ObjectPattern / ArrayPattern, or
-    // (b) value is an AssignmentPattern with a non-const default
-    //     (CallExpression in the default's expression tree).
-    // See `swc-reference-only/props_destructuring.rs:371-470` and the
-    // `is_const_expr` heuristic in `swc-reference-only/is_const.rs:43`.
+    // A nested ObjectPattern / ArrayPattern value (`{ stuff: { hey } }`)
+    // has no `_rawProps.<key>` accessor the field-rewrite walker can emit,
+    // so consolidation cannot express it — preserve the source destructure.
     if (isAstNode(prop.value)) {
       const vt = prop.value.type;
       if (vt === 'ObjectPattern' || vt === 'ArrayPattern') {
-        unsafe = true;
-        continue;
-      }
-      if (isAssignmentPatternNode(prop.value) && containsCallExpression(prop.value.right)) {
         unsafe = true;
         continue;
       }
@@ -279,40 +272,63 @@ function collectPatternBindings(
     if (!local) continue;
 
     let defaultValue: string | undefined;
-    if (
-      sourceText &&
-      isAssignmentPatternNode(prop.value) &&
-      hasRange(prop.value.right)
-    ) {
-      const defStart = prop.value.right.start - offset;
-      const defEnd = prop.value.right.end - offset;
-      if (defStart >= 0 && defEnd <= sourceText.length) {
-        defaultValue = sourceText.slice(defStart, defEnd);
+    let defaultNode: unknown | undefined;
+    if (isAssignmentPatternNode(prop.value)) {
+      defaultNode = prop.value.right;
+      if (sourceText && hasRange(prop.value.right)) {
+        const defStart = prop.value.right.start - offset;
+        const defEnd = prop.value.right.end - offset;
+        if (defStart >= 0 && defEnd <= sourceText.length) {
+          defaultValue = sourceText.slice(defStart, defEnd);
+        }
       }
     }
 
     fields.push({ key: String(keyName), local, defaultValue });
+    defaultNodes.push(defaultNode);
+  }
+
+  // Runs after the loop because it needs the full binding set; any
+  // non-const default aborts the whole rewrite.
+  if (!unsafe) {
+    const bindingLocals = new Set<string>(fields.map((f) => f.local));
+    if (restElementName) bindingLocals.add(restElementName);
+    for (const node of defaultNodes) {
+      if (node !== undefined && defaultExprIsNonConst(node, bindingLocals)) {
+        unsafe = true;
+        break;
+      }
+    }
   }
 
   return { fields, restElementName, unsafe };
 }
 
 /**
- * Walk an expression subtree looking for any CallExpression. Mirrors the
- * `visit_call_expr` arm of SWC's `is_const_expr` (`swc-reference-only/
- * is_const.rs:46-48`) — calls are the bright-line "not const" signal we
- * gate destructure consolidation on. Arrow function bodies are skipped
- * (matches SWC's `visit_arrow_expr` no-op at `is_const.rs:54`).
+ * A destructure default is non-const — hence not inline-safe — when its
+ * expression tree contains a call, a member access, or a reference to one
+ * of `bindingLocals` (the sibling destructured bindings). Calls and member
+ * reads are not statically relocatable; a sibling reference would dangle
+ * once the destructure is eliminated. Arrow/function bodies are not
+ * descended (their free references resolve at call time, not inline).
+ * Object-literal property keys are not references and are skipped.
  */
-function containsCallExpression(node: unknown): boolean {
+function defaultExprIsNonConst(node: unknown, bindingLocals: ReadonlySet<string>): boolean {
   if (!isAstNode(node)) return false;
-  if (node.type === 'CallExpression') return true;
-  if (node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression') {
-    return false;
-  }
+  const t = node.type;
+  if (t === 'CallExpression') return true;
+  if (t === 'MemberExpression' || t === 'StaticMemberExpression') return true;
+  if (t === 'ArrowFunctionExpression' || t === 'FunctionExpression') return false;
+  if (isIdentifierNode(node)) return bindingLocals.has(node.name);
+
   let found = false;
-  forEachAstChild(node, (child) => {
-    if (!found && containsCallExpression(child)) found = true;
+  forEachAstChild(node, (child, key, parent) => {
+    if (found) return;
+    const parentComputed = (parent as { computed?: boolean }).computed;
+    const isPropertyKey =
+      key === 'key' && parent.type === 'Property' && parentComputed !== true;
+    if (isPropertyKey) return;
+    if (defaultExprIsNonConst(child, bindingLocals)) found = true;
   });
   return found;
 }

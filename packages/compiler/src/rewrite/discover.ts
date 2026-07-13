@@ -5,7 +5,13 @@ import type {
   Function as OxcFunction,
   Program,
 } from 'oxc-parser';
-import { getIdentifierName, getParams, isCallExpression, unwrapExpression } from '../ast-utils';
+import {
+  getIdentifierName,
+  getParams,
+  getRange,
+  isCallExpression,
+  unwrapExpression,
+} from '../ast-utils';
 import type {
   RewriteComponent,
   RewriteContextProviderImports,
@@ -112,6 +118,7 @@ function handleComponentDeclaration(
           declarationKind: getExportName(name) === 'default' ? 'defaultFunction' : 'function',
           exportName: getExportName(name),
           localName: name,
+          functionRange: getRange(declaration),
           params: getParams(declaration),
           body: declaration.body,
           sourceFactoryImports,
@@ -136,6 +143,7 @@ function handleComponentDeclaration(
             declarationKind: 'const',
             exportName: getExportName(name),
             localName: name,
+            functionRange: getRange(fn),
             params: getParams(fn),
             body: fn.body,
             sourceFactoryImports,
@@ -153,6 +161,7 @@ function handleComponentDeclaration(
             fn.type === 'ArrowFunctionExpression' ? 'defaultArrow' : 'defaultFunction',
           exportName: 'default',
           localName: getComponentFunctionName(fn),
+          functionRange: getRange(fn),
           params: getParams(fn),
           body: fn.body,
           sourceFactoryImports,

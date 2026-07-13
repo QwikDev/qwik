@@ -11,21 +11,9 @@ import {
   isTypeScriptPath,
   transformWithOxc,
 } from './module-utils';
-import type { CompilerContext, CompilerResult, PipelineStage } from './types';
-import { analyzeCaptures } from './stages/analyze-captures';
-import { collectModuleFacts, discoverExportedComponents } from './stages/discover';
-import { emitModules } from './stages/emit';
-import { lowerStaticJsxToIr } from './stages/lower-jsx';
+import type { CompilerContext, CompilerResult } from './types';
 import { parseModule } from './stages/parse';
 import { tryTransformJsx } from './rewrite/transform';
-
-const PIPELINE: readonly PipelineStage[] = [
-  collectModuleFacts,
-  discoverExportedComponents,
-  analyzeCaptures,
-  lowerStaticJsxToIr,
-  emitModules,
-];
 
 /** @public */
 export async function transformModules(options: TransformModulesOptions): Promise<TransformOutput> {
@@ -69,26 +57,16 @@ async function transformModule(
     }
   }
 
-  // for (const stage of PIPELINE) {
-  //   await stage(ctx);
-  // }
+  if (ctx.manifest.diagnostics.length > 0) {
+    return {
+      modules: [createModule(input.path, '')],
+      diagnostics: ctx.manifest.diagnostics,
+    };
+  }
 
-  // if (ctx.outputModules === null) {
-  //   if (ctx.manifest.diagnostics.length > 0) {
-  //     return {
-  //       modules: [createModule(input.path, '')],
-  //       diagnostics: ctx.manifest.diagnostics,
-  //     };
-  //   }
-  //   const fallback = await transformWithOxc(input, options);
-  //   return {
-  //     modules: [fallback],
-  //     diagnostics: ctx.manifest.diagnostics,
-  //   };
-  // }
-
+  const fallback = await transformWithOxc(input, options);
   return {
-    modules: [],
+    modules: [fallback],
     diagnostics: ctx.manifest.diagnostics,
   };
 }

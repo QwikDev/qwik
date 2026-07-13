@@ -1,4 +1,4 @@
-import type { TransformModule } from '@qwik.dev/optimizer';
+import type { SegmentAnalysis, TransformModule } from '@qwik.dev/optimizer';
 import type { Program } from 'oxc-parser';
 import { createNamedImport, normalizeImports } from '../imports';
 import { getRange } from '../ast-utils';
@@ -12,7 +12,13 @@ import { emitSegmentModules } from './emit-segment';
 import { emitSsrModule, emitSsrSegmentRender } from './emit-ssr';
 import { extractQrls } from './extract';
 import { lowerRewriteComponent } from './lower';
-import type { ModuleDeclaration, RewriteModule, RewriteOutput, Segment } from './types';
+import type {
+  ModuleDeclaration,
+  RewriteComponent,
+  RewriteModule,
+  RewriteOutput,
+  Segment,
+} from './types';
 import { QWIK_CORE_IMPORT, QWIK_IMPORT, QwikHooks } from './words';
 
 export function tryTransformJsx(ctx: CompilerContext): TransformModule[] | null {
@@ -116,7 +122,11 @@ export function tryTransformJsx(ctx: CompilerContext): TransformModule[] | null 
         component.path,
         importCode === '' ? emitted.code : `${importCode}\n\n${emitted.code}`,
         null,
-        { isEntry: true, origPath: ctx.input.path }
+        {
+          isEntry: true,
+          origPath: ctx.input.path,
+          segment: createComponentAnalysis(component.output.component, ctx.input.path),
+        }
       )
     );
   }
@@ -130,6 +140,29 @@ export function tryTransformJsx(ctx: CompilerContext): TransformModule[] | null 
     ctx.emitTarget === 'ssr' ? emitSsrSegmentRender : emitCsrSegmentRender
   );
   return segmentModules === null ? null : [main, ...localModules, ...segmentModules];
+}
+
+function createComponentAnalysis(component: RewriteComponent, inputPath: string): SegmentAnalysis {
+  const inputName = basename(inputPath);
+  const sourceName = inputName.replace(/\.[cm]?[jt]sx?$/, '');
+  const componentName =
+    component.exportName === 'default' ? (component.localName ?? 'default') : component.exportName;
+  const name = sanitizeIdentifier(`${sourceName}_${componentName}`);
+  return {
+    origin: inputName,
+    name,
+    entry: null,
+    displayName: name,
+    hash: name,
+    canonicalFilename: `${inputName}_${name}`,
+    extension: 'js',
+    parent: null,
+    ctxKind: 'function',
+    ctxName: 'component',
+    captures: false,
+    loc: component.functionRange ?? [0, 0],
+    paramNames: component.params.map((param) => param.name ?? '_'),
+  };
 }
 
 function emitRewriteModule(
@@ -261,4 +294,14 @@ function removeRewriteOnlyImports(
 function containsIdentifier(code: string, name: string): boolean {
   const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   return new RegExp(`(^|[^A-Za-z0-9_$])${escaped}([^A-Za-z0-9_$]|$)`).test(code);
+}
+
+function sanitizeIdentifier(value: string): string {
+  const sanitized = value.replace(/[^A-Za-z0-9_$]/g, '_');
+  return /^[A-Za-z_$]/.test(sanitized) ? sanitized : `_${sanitized}`;
+}
+
+function basename(path: string): string {
+  const slash = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
+  return slash === -1 ? path : path.slice(slash + 1);
 }

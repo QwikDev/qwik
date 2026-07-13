@@ -16,6 +16,7 @@ export interface RewriteComponent {
   declarationKind: 'function' | 'const' | 'defaultFunction' | 'defaultArrow';
   exportName: string | 'default';
   localName: string | null;
+  functionRange: SourceRange | null;
   params: ParamRecord[];
   body: FunctionBody | Expression;
   sourceFactoryImports: RewriteSourceFactoryImports;

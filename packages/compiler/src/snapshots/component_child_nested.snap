@@ -25,6 +25,26 @@ export function Parent(props, ctx) {
 export function Child(props, ctx) {
   return '<span>Child</span>';
 }
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_Child",
+  "entry": null,
+  "displayName": "component_Child",
+  "hash": "component_Child",
+  "canonicalFilename": "component.tsx_component_Child",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component",
+  "captures": false,
+  "loc": [
+    7,
+    55
+  ],
+  "paramNames": []
+}
+*/
 == SSR DIAGNOSTICS ==
 
 []
@@ -57,6 +77,26 @@ export function Child(props, ctx) {
   const el0 = _first(fragment0);
   return el0;
 }
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_Child",
+  "entry": null,
+  "displayName": "component_Child",
+  "hash": "component_Child",
+  "canonicalFilename": "component.tsx_component_Child",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component",
+  "captures": false,
+  "loc": [
+    7,
+    55
+  ],
+  "paramNames": []
+}
+*/
 == CSR DIAGNOSTICS ==
 
 []

@@ -83,6 +83,15 @@ async function formatSnapshotCode(code: string) {
 }
 
 describe('transformModules', () => {
+  test('passes through modules without components', async () => {
+    await testInput('module_without_component', {
+      path: 'src/plain.ts',
+      code: `const value: number = 1;
+export default value;
+`,
+    });
+  });
+
   test('simple function component', async () => {
     await testInput('simple_function_component', {
       code: `export function App() {

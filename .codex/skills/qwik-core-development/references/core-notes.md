@@ -196,6 +196,16 @@ client routing (`client/dom-container.ts`); shared helpers (`shared/error/error-
 ### Invariants
 - The boundary never buffers streaming: the SSR catch only sets `store.error`, fires `onError$`,
   marks content inert, and returns `null` — the sibling `fallback-host` renders the fallback.
+- Queued frames inside an INERT content host are DISCARDED at drain time
+  (`openBoundaryContentScopes` in `ssr-render-jsx.ts`): post-catch siblings, fn children, signals,
+  and generators never run, and a superseded promise is never awaited — observe it with
+  `.catch(noop)` or a late rejection becomes unhandled. Pre-catch content keeps hide-don't-unwind.
+  A discard site must never skip StackFns (structural close frames keep HTML balanced).
+- Every probe of a raw thrown value must be fail-closed against hostile objects (revoked Proxy,
+  throwing traps/getters): `toSerializableBoundaryError`/digest/redact are try/catch-wrapped, and
+  `isPromise`, `checkError`, `getStoreTarget`, and the recursive store-get wrap are guarded.
+  `canSerialize` validates an Error's own enumerable fields plus `message`/`stack` reads; a
+  `transformError` projection must pass `canSerialize` or it redacts to the generic.
 - The swap is decided at fallback-host drain time by error ORIGIN: in-place → inline + `qErr`
   (`q:ebf`), even under OOOS; deferred-segment → `qO` shell (`q:rp`). Inline content must never sit
   under `q:rp` (OOOS resume hijacks it into a template); a deferred fallback's vnode-data must
@@ -230,6 +240,11 @@ client routing (`client/dom-container.ts`); shared helpers (`shared/error/error-
   `q:prewarm` makes real resume eager.
 - Flags are build-time-replaced and ON suite-wide; the unit env defaults `outOfOrder: true`, so
   exercise the in-order branch with explicit `streaming: { outOfOrder: false }`.
+- Flag-OFF behavior cannot be asserted in the main suite (compile-time replacement makes it a
+  false pass). Put flag-off pins in `*.flag-off.spec.*` — the `vitest.flag-off.config.ts` project
+  compiles without `errorBoundary`; the main config excludes that pattern. The client `qerror`
+  listener, `unhandledrejection` bridge, and `handleError` boundary walk are flag-gated: flag-off
+  `handleError` must rethrow synchronously.
 - `qwik-dom` `querySelector` is document-wide — use `host.contains(el)`; build a fresh JSX tree per
   container ("props across containers").
 

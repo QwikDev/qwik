@@ -26,7 +26,7 @@ Error.stackTraceLimit = 100;
 
 type LinkPrefetchProps = {
   prefetch?: boolean | 'js';
-  prefetchBundle?: PrefetchStrategy;
+  prefetchBundles?: PrefetchStrategy;
   prefetchData?: PrefetchStrategy;
 };
 
@@ -36,7 +36,7 @@ const Root = component$((props: LinkPrefetchProps) => {
       <Link
         href="/test"
         prefetch={props.prefetch}
-        prefetchBundle={props.prefetchBundle}
+        prefetchBundles={props.prefetchBundles}
         prefetchData={props.prefetchData}
       >
         Test Link
@@ -125,14 +125,20 @@ describe.each([
   });
 
   it('prefetches route data when visible strategy is enabled', async () => {
-    const { anchor } = await renderLink(render, { prefetchBundle: 'off', prefetchData: 'visible' });
+    const { anchor } = await renderLink(render, {
+      prefetchBundles: 'off',
+      prefetchData: 'visible',
+    });
 
     expect(anchor.getAttribute('data-q-prefetch')).toBe('d');
     expect(prefetchRouteMock).not.toHaveBeenCalled();
   });
 
   it('prefetches bundles when visible strategy is enabled', async () => {
-    const { anchor } = await renderLink(render, { prefetchBundle: 'visible', prefetchData: 'off' });
+    const { anchor } = await renderLink(render, {
+      prefetchBundles: 'visible',
+      prefetchData: 'off',
+    });
 
     expect(anchor.getAttribute('data-q-prefetch')).toBe('b');
     expect(prefetchRouteMock).not.toHaveBeenCalled();
@@ -140,7 +146,7 @@ describe.each([
 
   it('prefetches bundles and route data when visible strategy is enabled for both', async () => {
     const { anchor } = await renderLink(render, {
-      prefetchBundle: 'visible',
+      prefetchBundles: 'visible',
       prefetchData: 'visible',
     });
 
@@ -178,7 +184,7 @@ describe.each([
     const DeprecatedRoot = component$(() => {
       return (
         <QwikRouterMockProvider>
-          <Link href="/test" prefetch={false} prefetchBundle="visible" prefetchData="visible">
+          <Link href="/test" prefetch={false} prefetchBundles="visible" prefetchData="visible">
             Test Link
           </Link>
         </QwikRouterMockProvider>

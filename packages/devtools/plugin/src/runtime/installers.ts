@@ -9,6 +9,45 @@ export interface HookRuntimeOptions {
 type RuntimeCallback = (...args: any[]) => any;
 type RuntimeRecord = Record<string, any>;
 
+/**
+ * Derives a component's display name from its state key (the last path segment after the final
+ * underscore, e.g. `src/foo_Counter` -> `Counter`).
+ *
+ * Declared as a top-level function so it is emitted by name into the injected runtime bundle
+ * (`Function.prototype.toString()`) and shared by the hook installer below.
+ */
+export function __qwik_derive_component_name__(path: string): string {
+  const lastSeg = path.split('/').pop() || path;
+  const underIdx = lastSeg.lastIndexOf('_');
+  return underIdx > 0 ? lastSeg.substring(underIdx + 1) : lastSeg;
+}
+
+/**
+ * Finds the component-state key matching a component, preferring an exact QRL chunk suffix and
+ * falling back to a case-insensitive name match. Pure: it takes the state record rather than
+ * closing over it, so it can be unit tested and emitted as a shared runtime utility.
+ */
+export function __qwik_find_component_key__(
+  state: RuntimeRecord,
+  componentName: string,
+  qrlChunk: string | null
+): string | null {
+  const keys = Object.keys(state);
+  if (qrlChunk) {
+    const byChunk = keys.find((key) => key.endsWith(qrlChunk));
+    if (byChunk) {
+      return byChunk;
+    }
+  }
+  const lowerName = componentName.toLowerCase();
+  for (const key of keys) {
+    if (__qwik_derive_component_name__(key).toLowerCase() === lowerName) {
+      return key;
+    }
+  }
+  return null;
+}
+
 export function __qwik_install_hook_runtime__(options: HookRuntimeOptions) {
   const renderListeners: RuntimeCallback[] = [];
   const signalTypes: Record<string, boolean> = {};
@@ -132,30 +171,6 @@ export function __qwik_install_hook_runtime__(options: HookRuntimeOptions) {
     return getOrCreateRoot()?.[options.componentStateKey];
   };
 
-  const findComponentKey = (componentName: string, qrlChunk: string | null): string | null => {
-    const state = getState();
-    if (!state) {
-      return null;
-    }
-    const keys = Object.keys(state);
-    if (qrlChunk) {
-      const byChunk = keys.find((key) => key.endsWith(qrlChunk));
-      if (byChunk) {
-        return byChunk;
-      }
-    }
-    const lowerName = componentName.toLowerCase();
-    for (const key of keys) {
-      const lastSeg = key.split('/').pop() || key;
-      const underIdx = lastSeg.lastIndexOf('_');
-      const name = underIdx > 0 ? lastSeg.substring(underIdx + 1) : lastSeg;
-      if (name.toLowerCase() === lowerName) {
-        return key;
-      }
-    }
-    return null;
-  };
-
   const methods = {
     _emitRender(info: any) {
       for (let i = 0; i < renderListeners.length; i++) {
@@ -208,9 +223,7 @@ export function __qwik_install_hook_runtime__(options: HookRuntimeOptions) {
       return Object.keys(state).map((path) => {
         const comp = state[path];
         const hooks = comp.hooks || [];
-        const lastSeg = path.split('/').pop() || path;
-        const underIdx = lastSeg.lastIndexOf('_');
-        const name = underIdx > 0 ? lastSeg.substring(underIdx + 1) : lastSeg;
+        const name = __qwik_derive_component_name__(path);
 
         const signals: RuntimeRecord[] = [];
         const hookEntries: RuntimeRecord[] = [];
@@ -245,8 +258,11 @@ export function __qwik_install_hook_runtime__(options: HookRuntimeOptions) {
 
     getComponentDetail(componentName: string, qrlChunk: string | null) {
       const state = getState();
-      const matchingKey = findComponentKey(componentName, qrlChunk);
-      if (!state || !matchingKey) {
+      if (!state) {
+        return null;
+      }
+      const matchingKey = __qwik_find_component_key__(state, componentName, qrlChunk);
+      if (!matchingKey) {
         return null;
       }
       const comp = state[matchingKey];
@@ -270,8 +286,11 @@ export function __qwik_install_hook_runtime__(options: HookRuntimeOptions) {
       newValue: any
     ) {
       const state = getState();
-      const matchingKey = findComponentKey(componentName, qrlChunk);
-      if (!state || !matchingKey) {
+      if (!state) {
+        return false;
+      }
+      const matchingKey = __qwik_find_component_key__(state, componentName, qrlChunk);
+      if (!matchingKey) {
         return false;
       }
 

@@ -146,7 +146,7 @@ Tracks `routeInternal` (destination signal) and `actionState`.
 - Calls `loadRoute(...)` to load route modules for the new URL.
 - If an action is pending, calls `submitAction(...)` and processes the result.
 - Calls `updateRouteLoaderPaths` + `ensureRouteLoaderSignals`.
-- **Triggers** loader signals without awaiting: `loaderState[id].untrackedLoading`.
+- **Triggers** loader signals without awaiting: `loaderState[id].untrackedPending`.
   This starts the fetch but doesn't block navigation.
 - Updates `routeLocation`, `contentInternal.untrackedValue`, `actionDataSignal`.
 - Sets `navContext.value` — a `noSerialize`'d object with navigation metadata:

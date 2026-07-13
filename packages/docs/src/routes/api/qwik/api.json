@@ -222,20 +222,20 @@
     },
     {
       "name": "abort",
-      "id": "asyncsignal-abort",
+      "id": "computedsignal-abort",
       "hierarchy": [
         {
-          "name": "AsyncSignal",
-          "id": "asyncsignal-abort"
+          "name": "ComputedSignal",
+          "id": "computedsignal-abort"
         },
         {
           "name": "abort",
-          "id": "asyncsignal-abort"
+          "id": "computedsignal-abort"
         }
       ],
       "kind": "MethodSignature",
       "content": "Abort the current computation and run cleanups if needed.\n\n\n```typescript\nabort(reason?: any): void;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nreason\n\n\n</td><td>\n\nany\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
-      "mdFile": "core.asyncsignal.abort.md"
+      "mdFile": "core.computedsignal.abort.md"
     },
     {
       "name": "AsyncFn",
@@ -247,7 +247,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "Note, we don't pass the generic type to AsyncCtx because it causes TypeScript to not infer the type of the resource correctly. The type is only used for the `previous` property, which is not commonly used, and can be easily cast if needed.\n\n\n```typescript\nexport type AsyncFn<T> = (ctx: AsyncCtx) => ValueOrPromise<T>;\n```\n**References:** [ValueOrPromise](#valueorpromise)",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `useComputed$` with an async function instead.\n> \n\nNote, we don't pass the generic type to ComputeCtx because it causes TypeScript to not infer the type of the resource correctly. The type is only used for the `previous` property, which is not commonly used, and can be easily cast if needed.\n\n\n```typescript\nexport type AsyncFn<T> = (ctx: ComputeCtx) => ValueOrPromise<T>;\n```\n**References:** [ValueOrPromise](#valueorpromise)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async.ts",
       "mdFile": "core.asyncfn.md"
     },
@@ -260,8 +260,8 @@
           "id": "asyncsignal"
         }
       ],
-      "kind": "Interface",
-      "content": "An AsyncSignal holds the result of the given async function. If the function uses `track()` to track reactive state, and that state changes, the AsyncSignal is recalculated, and if the result changed, all tasks which are tracking the AsyncSignal will be re-run and all subscribers (components, tasks etc) that read the AsyncSignal will be updated.\n\nIf the async function throws an error, the AsyncSignal will capture the error and set the `error` property. The error can be cleared by re-running the async function successfully.\n\nWhile the async function is running, the `.loading` property will be set to `true`<!-- -->. Once the function completes, `loading` will be set to `false`<!-- -->.\n\nIf the value has not yet been resolved, reading the AsyncSignal will throw a Promise, which will retry the component or task once the value resolves.\n\nIf the value has been resolved, but the async function is re-running, reading the AsyncSignal will subscribe to it and return the last resolved value until the new value is ready. As soon as the new value is ready, the subscribers will be updated.\n\nIf the async function threw an error, reading the `.value` will throw that same error. Read from `.error` to check if there was an error.\n\n\n```typescript\nexport interface AsyncSignal<T = unknown> extends ComputedSignal<T> \n```\n**Extends:** [ComputedSignal](#computedsignal)<!-- -->&lt;T&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nerror\n\n\n</td><td>\n\n\n</td><td>\n\nError \\| undefined\n\n\n</td><td>\n\nThe error that occurred while computing the signal, if any. This will be cleared when the signal is successfully computed. It does not trigger lazy loading of the signal.\n\n\n</td></tr>\n<tr><td>\n\nexpires\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\nExpiration time in ms. Writable and immediately effective.\n\nWhen set, the signal is invalidated after this many ms. Whether it auto-recomputes depends on the `poll` property. `0` means no expiration.\n\n\n</td></tr>\n<tr><td>\n\ninterval\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nloading\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\nWhether the signal is currently loading. This will trigger lazy loading of the signal, so you can use it like this:\n\n```tsx\nsignal.loading ? <Loading /> : signal.error ? <Error /> : <Component\nvalue={signal.value} />\n```\n\n\n</td></tr>\n<tr><td>\n\npoll\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\nWhether to automatically re-run the function when the value expires. Writable and immediately effective. Only relevant when `expires` is set.\n\nDefaults to `true`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\nuntrackedError\n\n\n</td><td>\n\n\n</td><td>\n\nError \\| undefined\n\n\n</td><td>\n\nLets you read the error state without subscribing to `.error` updates. It does not trigger lazy loading of the signal.\n\nSetting it will trigger listeners for `.error`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\nuntrackedLoading\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\nLets you read the loading state without subscribing to `.loading` updates. It also triggers lazy loading of the signal.\n\nSetting it will trigger listeners for `.loading`<!-- -->.\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[abort(reason)](#asyncsignal-abort)\n\n\n</td><td>\n\nAbort the current computation and run cleanups if needed.\n\n\n</td></tr>\n<tr><td>\n\n[invalidate(info)](#asyncsignal-invalidate)\n\n\n</td><td>\n\nUse this to force recalculation. If you pass `info`<!-- -->, it will be provided to the calculation function.\n\n\n</td></tr>\n<tr><td>\n\n[promise()](#asyncsignal-promise)\n\n\n</td><td>\n\nA promise that resolves when the value is computed or rejected.\n\n\n</td></tr>\n</tbody></table>",
+      "kind": "TypeAlias",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `ComputedSignal` instead, it has async support now.\n> \n\nAn AsyncSignal holds the result of the given async function. If the function uses `track()` to track reactive state, and that state changes, the AsyncSignal is recalculated, and if the result changed, all tasks which are tracking the AsyncSignal will be re-run and all subscribers (components, tasks etc) that read the AsyncSignal will be updated.\n\nIf the async function throws an error, the AsyncSignal will capture the error and set the `error` property. The error can be cleared by re-running the async function successfully.\n\nWhile the async function is running, the `.loading` property will be set to `true`<!-- -->. Once the function completes, `loading` will be set to `false`<!-- -->.\n\nIf the value has not yet been resolved, reading the AsyncSignal will throw a Promise, which will retry the component or task once the value resolves.\n\nIf the value has been resolved, but the async function is re-running, reading the AsyncSignal will subscribe to it and return the last resolved value until the new value is ready. As soon as the new value is ready, the subscribers will be updated.\n\nIf the async function threw an error, reading the `.value` will throw that same error. Read from `.error` to check if there was an error.\n\n\n```typescript\nexport type AsyncSignal<T = unknown> = ComputedSignal<T>;\n```\n**References:** [ComputedSignal](#computedsignal)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts",
       "mdFile": "core.asyncsignal.md"
     },
@@ -274,8 +274,8 @@
           "id": "asyncsignaloptions"
         }
       ],
-      "kind": "Interface",
-      "content": "```typescript\nexport interface AsyncSignalOptions<T> extends ComputedOptions \n```\n**Extends:** [ComputedOptions](#computedoptions)\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nallowStale?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ When true (default), the previous value is kept while the signal re-computes after invalidation, so reads return stale data instead of throwing a promise. Reactivity will then update the readers when the new value is ready.\n\nWhen false, invalidation clears the value so reads throw the computation promise (like the initial load), which is useful for navigations where showing old data would be confusing.\n\nNote that polling invalidations (`expires` with `poll: true`<!-- -->) are not affected by this option and will keep the old value while the new value is loading, to avoid flashing loaders.\n\nThis option only affects manual invalidations via `invalidate()`<!-- -->, and non-polling expirations (`poll: false`<!-- -->, or there are no subscribers).\n\nDefaults to `true`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\nclientOnly?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ When true, the async computation is postponed to the browser. On SSR, the signal remains INVALID and does not execute the function. On the client, it will compute on first read.\n\nDefaults to `false`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\nconcurrency?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_ Maximum number of concurrent computations. Use `0` for unlimited.\n\nDefaults to `1`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\neagerCleanup?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ When subscribers drop to 0, run cleanup in the next tick, instead of waiting for the function inputs to change.\n\nDefaults to `false`<!-- -->, meaning cleanup happens only when inputs change.\n\n\n</td></tr>\n<tr><td>\n\nexpires?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_ Time in milliseconds after which the value expires.\n\nWhen the value expires and subscribers exist, the signal is invalidated. If `poll` is `true` (default), the function is re-run automatically. If `poll` is `false`<!-- -->, the value is marked stale and recomputation happens when reading `.value` or `.loading`<!-- -->.\n\n`0` (default) means no expiration.\n\n\n</td></tr>\n<tr><td>\n\ninitial?\n\n\n</td><td>\n\n\n</td><td>\n\nT \\| (() =&gt; T)\n\n\n</td><td>\n\n_(Optional)_ Like useSignal's `initial`<!-- -->; prevents the throw on first read when uninitialized\n\n\n</td></tr>\n<tr><td>\n\ninterval?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\npoll?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ Whether to automatically re-run the function when the value expires. Only relevant when `expires` is set.\n\nDefaults to `true`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\ntimeout?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_ Maximum time in milliseconds to wait for the async computation to complete. If exceeded, the computation is aborted and an error is thrown.\n\nIf `0`<!-- -->, no timeout is applied.\n\nDefaults to `0`<!-- -->.\n\n\n</td></tr>\n</tbody></table>",
+      "kind": "TypeAlias",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `ComputedOptions` instead.\n> \n\n\n```typescript\nexport type AsyncSignalOptions<T> = ComputedOptions<T>;\n```\n**References:** [ComputedOptions](#computedoptions)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/types.ts",
       "mdFile": "core.asyncsignaloptions.md"
     },
@@ -379,7 +379,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type ComputedFn<T> = () => T;\n```",
+      "content": "The compute function. The context provides `track()`<!-- -->, `previous` (the last computed value), `info` (the argument of the `invalidate(info)` call that triggered this computation), `cleanup()` and `abortSignal`<!-- -->. Synchronous reactive state reads are tracked automatically, use `untrack()` to read signals without tracking. Return a `Promise` (or use an `async` function) for async values. After the first `await`<!-- -->, reads are no longer tracked automatically and must use `track()`<!-- -->.\n\n\n```typescript\nexport type ComputedFn<T> = (ctx: ComputeCtx) => ValueOrPromise<T>;\n```\n**References:** [ValueOrPromise](#valueorpromise)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-computed.ts",
       "mdFile": "core.computedfn.md"
     },
@@ -393,7 +393,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface ComputedOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ncontainer?\n\n\n</td><td>\n\n\n</td><td>\n\nContainer\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nserializationStrategy?\n\n\n</td><td>\n\n\n</td><td>\n\n[SerializationStrategy](#serializationstrategy)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface ComputedOptions<T = unknown> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nallowStale?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ When true (default), the previous value is kept while the signal re-computes after invalidation, so reads return stale data instead of throwing a promise. Reactivity will then update the readers when the new value is ready.\n\nWhen false, invalidation clears the value so reads throw the computation promise (like the initial load), which is useful for navigations where showing old data would be confusing.\n\nNote that polling invalidations (`expires` with `poll: true`<!-- -->) are not affected by this option and will keep the old value while the new value is loading, to avoid flashing loaders.\n\nThis option only affects manual invalidations via `invalidate()`<!-- -->, and non-polling expirations (`poll: false`<!-- -->, or there are no subscribers).\n\nDefaults to `true`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\nclientOnly?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ When true, the async computation is postponed to the browser. On SSR, the signal remains INVALID and does not execute the function. On the client, it will compute on first read.\n\nDefaults to `false`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\nconcurrency?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_ Maximum number of concurrent computations. Use `0` for unlimited.\n\nDefaults to `1`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\ncontainer?\n\n\n</td><td>\n\n\n</td><td>\n\nContainer\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\neagerCleanup?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ When subscribers drop to 0, run cleanup in the next tick, instead of waiting for the function inputs to change.\n\nDefaults to `false`<!-- -->, meaning cleanup happens only when inputs change.\n\n\n</td></tr>\n<tr><td>\n\nexpires?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_ Time in milliseconds after which the value expires.\n\nWhen the value expires and subscribers exist, the signal is invalidated. If `poll` is `true` (default), the function is re-run automatically. If `poll` is `false`<!-- -->, the value is marked stale and recomputation happens when reading `.value` or `.loading`<!-- -->.\n\n`0` (default) means no expiration.\n\n\n</td></tr>\n<tr><td>\n\ninitial?\n\n\n</td><td>\n\n\n</td><td>\n\nAwaited&lt;T&gt; \\| (() =&gt; Awaited&lt;T&gt;)\n\n\n</td><td>\n\n_(Optional)_ Like useSignal's `initial`<!-- -->; prevents the throw on first read when uninitialized\n\n\n</td></tr>\n<tr><td>\n\ninterval?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\npoll?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ Whether to automatically re-run the function when the value expires. Only relevant when `expires` is set.\n\nDefaults to `true`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\nserializationStrategy?\n\n\n</td><td>\n\n\n</td><td>\n\n[SerializationStrategy](#serializationstrategy)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ntimeout?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_ Maximum time in milliseconds to wait for the async computation to complete. If exceeded, the computation is aborted and an error is thrown.\n\nIf `0`<!-- -->, no timeout is applied.\n\nDefaults to `0`<!-- -->.\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/types.ts",
       "mdFile": "core.computedoptions.md"
     },
@@ -407,7 +407,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type ComputedReturnType<T> = T extends Promise<any> ? never : ComputedSignal<T>;\n```\n**References:** [ComputedSignal](#computedsignal)",
+      "content": "```typescript\nexport type ComputedReturnType<T> = ComputedSignal<Awaited<T>>;\n```\n**References:** [ComputedSignal](#computedsignal)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-computed.ts",
       "mdFile": "core.computedreturntype.md"
     },
@@ -421,7 +421,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated, and if the result changed, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.\n\n\n```typescript\nexport interface ComputedSignal<T> extends Signal<T> \n```\n**Extends:** [Signal](#signal)<!-- -->&lt;T&gt;\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[force()](#computedsignal-force)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\ninvalidate()\n\n\n</td><td>\n\nUse this to force recalculation.\n\n\n</td></tr>\n</tbody></table>",
+      "content": "A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated, and if the result changed, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.\n\n\n```typescript\nexport interface ComputedSignal<T> extends Signal<T> \n```\n**Extends:** [Signal](#signal)<!-- -->&lt;T&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nerror\n\n\n</td><td>\n\n\n</td><td>\n\nError \\| undefined\n\n\n</td><td>\n\nThe error that occurred while computing the signal, if any, including synchronous throws. This will be cleared when the signal is successfully computed. It also triggers lazy computation of the signal. While the error is set, reading `.value` throws it.\n\n\n</td></tr>\n<tr><td>\n\nexpires\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\nExpiration time in ms. Writable and immediately effective.\n\nWhen set, the signal is invalidated after this many ms. Whether it auto-recomputes depends on the `poll` property. `0` means no expiration.\n\n\n</td></tr>\n<tr><td>\n\ninterval\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nloading\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\npending\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\nWhether the signal is currently loading. This will trigger lazy computation of the signal, so you can use it like this:\n\n```tsx\nsignal.pending ? <Loading /> : signal.error ? <Error /> : <Component\nvalue={signal.value} />\n```\n\n\n</td></tr>\n<tr><td>\n\npoll\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\nWhether to automatically re-run the function when the value expires. Writable and immediately effective. Only relevant when `expires` is set.\n\nDefaults to `true`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\nuntrackedError\n\n\n</td><td>\n\n\n</td><td>\n\nError \\| undefined\n\n\n</td><td>\n\nLets you read the error state without subscribing to `.error` updates. It also triggers lazy computation of the signal.\n\nSetting it will trigger listeners for `.error`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\nuntrackedLoading\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nuntrackedPending\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\nLets you read the pending state without subscribing to `.pending` updates. It also triggers lazy computation of the signal.\n\nSetting it will trigger listeners for `.pending`<!-- -->.\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[abort(reason)](#computedsignal-abort)\n\n\n</td><td>\n\nAbort the current computation and run cleanups if needed.\n\n\n</td></tr>\n<tr><td>\n\n[force()](#computedsignal-force)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[invalidate()](#computedsignal-invalidate)\n\n\n</td><td>\n\nUse this to force recalculation.\n\n\n</td></tr>\n<tr><td>\n\ninvalidate(info)\n\n\n</td><td>\n\nUse this to force recalculation. If you pass `info`<!-- -->, it will be provided to the calculation function.\n\n\n</td></tr>\n<tr><td>\n\n[promise()](#computedsignal-promise)\n\n\n</td><td>\n\nA promise that resolves when the value is computed or rejected.\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts",
       "mdFile": "core.computedsignal.md"
     },
@@ -477,7 +477,7 @@
         }
       ],
       "kind": "Function",
-      "content": "Create a signal holding a `.value` which is calculated from the given async function (QRL). The standalone version of `useAsync$`<!-- -->.\n\n\n```typescript\ncreateAsync$: <T>(qrl: (arg: AsyncCtx<T>) => Promise<T>, options?: AsyncSignalOptions<T>) => AsyncSignal<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n(arg: AsyncCtx&lt;T&gt;) =&gt; Promise&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[AsyncSignalOptions](#asyncsignaloptions)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[AsyncSignal](#asyncsignal)<!-- -->&lt;T&gt;",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `createComputed$` instead, it has async support now.\n> \n\nCreate a signal holding a `.value` which is calculated from the given async function (QRL). The standalone version of `useAsync$`<!-- -->.\n\n\n```typescript\ncreateAsync$: <T>(qrl: (arg: ComputeCtx<T>) => Promise<T>, options?: AsyncSignalOptions<T>) => AsyncSignal<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n(arg: ComputeCtx&lt;T&gt;) =&gt; Promise&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[AsyncSignalOptions](#asyncsignaloptions)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[AsyncSignal](#asyncsignal)<!-- -->&lt;T&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts",
       "mdFile": "core.createasync_.md"
     },
@@ -491,7 +491,7 @@
         }
       ],
       "kind": "Function",
-      "content": "Create a computed signal which is calculated from the given QRL. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated.\n\nThe QRL must be a function which returns the value of the signal. The function must not have side effects, and it must be synchronous.\n\nIf you need the function to be async, use `createAsync$` instead (don't forget to use `track()`<!-- -->).\n\n\n```typescript\ncreateComputed$: <T>(qrl: () => T, options?: ComputedOptions) => ComputedReturnType<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n() =&gt; T\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[ComputedOptions](#computedoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[ComputedReturnType](#computedreturntype)<!-- -->&lt;T&gt;",
+      "content": "Create a computed signal which is calculated from the given QRL. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated.\n\nThe QRL must be a function which returns the value of the signal. The function must not have side effects. Every synchronous signal or store read is tracked automatically; reads after the first `await` must use the `track()` provided on the context argument. When the function is async, the returned signal exposes the async API (`.pending`<!-- -->, `.error`<!-- -->, `.promise()`<!-- -->), and reading an unresolved `.value` throws the computation promise.\n\n\n```typescript\ncreateComputed$: <T>(qrl: (ctx: ComputeCtx) => ValueOrPromise<T>, options?: ComputedOptions<T>) => ComputedReturnType<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n(ctx: ComputeCtx) =&gt; [ValueOrPromise](#valueorpromise)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[ComputedOptions](#computedoptions)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[ComputedReturnType](#computedreturntype)<!-- -->&lt;T&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts",
       "mdFile": "core.createcomputed_.md"
     },
@@ -921,20 +921,20 @@
     },
     {
       "name": "invalidate",
-      "id": "asyncsignal-invalidate",
+      "id": "computedsignal-invalidate",
       "hierarchy": [
         {
-          "name": "AsyncSignal",
-          "id": "asyncsignal-invalidate"
+          "name": "ComputedSignal",
+          "id": "computedsignal-invalidate"
         },
         {
           "name": "invalidate",
-          "id": "asyncsignal-invalidate"
+          "id": "computedsignal-invalidate"
         }
       ],
       "kind": "MethodSignature",
-      "content": "Use this to force recalculation. If you pass `info`<!-- -->, it will be provided to the calculation function.\n\n\n```typescript\ninvalidate(info?: unknown): void;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ninfo\n\n\n</td><td>\n\nunknown\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
-      "mdFile": "core.asyncsignal.invalidate.md"
+      "content": "Use this to force recalculation.\n\n\n```typescript\ninvalidate(): void;\n```\n**Returns:**\n\nvoid",
+      "mdFile": "core.computedsignal.invalidate.md"
     },
     {
       "name": "isSignal",
@@ -1330,20 +1330,20 @@
     },
     {
       "name": "promise",
-      "id": "asyncsignal-promise",
+      "id": "computedsignal-promise",
       "hierarchy": [
         {
-          "name": "AsyncSignal",
-          "id": "asyncsignal-promise"
+          "name": "ComputedSignal",
+          "id": "computedsignal-promise"
         },
         {
           "name": "promise",
-          "id": "asyncsignal-promise"
+          "id": "computedsignal-promise"
         }
       ],
       "kind": "MethodSignature",
       "content": "A promise that resolves when the value is computed or rejected.\n\n\n```typescript\npromise(): Promise<void>;\n```\n**Returns:**\n\nPromise&lt;void&gt;",
-      "mdFile": "core.asyncsignal.promise.md"
+      "mdFile": "core.computedsignal.promise.md"
     },
     {
       "name": "PropFunction",
@@ -1915,7 +1915,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface ResourceCtx<T = unknown> extends AsyncCtx<T> \n```\n**Extends:** AsyncCtx&lt;T&gt;\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[cache(policyOrMilliseconds)](#resourcectx-cache)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface ResourceCtx<T = unknown> extends ComputeCtx<T> \n```\n**Extends:** ComputeCtx&lt;T&gt;\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[cache(policyOrMilliseconds)](#resourcectx-cache)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts",
       "mdFile": "core.resourcectx.md"
     },
@@ -2562,7 +2562,7 @@
         }
       ],
       "kind": "Function",
-      "content": "Creates an AsyncSignal which holds the result of the given async function. If the function uses `track()` to track reactive state, and that state changes, the AsyncSignal is recalculated, and if the result changed, all tasks which are tracking the AsyncSignal will be re-run and all subscribers (components, tasks etc) that read the AsyncSignal will be updated.\n\nIf the async function throws an error, the AsyncSignal will capture the error and set the `error` property. The error can be cleared by re-running the async function successfully.\n\nWhile the async function is running, the `loading` property will be set to `true`<!-- -->. Once the function completes, `loading` will be set to `false`<!-- -->.\n\nIf the value has not yet been resolved, reading the AsyncSignal will throw a Promise, which will retry the component or task once the value resolves.\n\nIf the value has been resolved, but the async function is re-running, reading the AsyncSignal will subscribe to it and return the last resolved value until the new value is ready. As soon as the new value is ready, the subscribers will be updated.\n\n\n```typescript\nuseAsync$: <T>(qrl: AsyncFn<T>, options?: AsyncSignalOptions<T> | undefined) => AsyncSignal<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n[AsyncFn](#asyncfn)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[AsyncSignalOptions](#asyncsignaloptions)<!-- -->&lt;T&gt; \\| undefined\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[AsyncSignal](#asyncsignal)<!-- -->&lt;T&gt;",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `useComputed$` instead, it has async support now. It auto-tracks synchronous reads; after the first `await`<!-- -->, use the provided `track()` like before.\n> \n\nCreates an AsyncSignal which holds the result of the given async function. If the function uses `track()` to track reactive state, and that state changes, the AsyncSignal is recalculated, and if the result changed, all tasks which are tracking the AsyncSignal will be re-run and all subscribers (components, tasks etc) that read the AsyncSignal will be updated.\n\nIf the async function throws an error, the AsyncSignal will capture the error and set the `error` property. The error can be cleared by re-running the async function successfully.\n\nWhile the async function is running, the `loading` property will be set to `true`<!-- -->. Once the function completes, `loading` will be set to `false`<!-- -->.\n\nIf the value has not yet been resolved, reading the AsyncSignal will throw a Promise, which will retry the component or task once the value resolves.\n\nIf the value has been resolved, but the async function is re-running, reading the AsyncSignal will subscribe to it and return the last resolved value until the new value is ready. As soon as the new value is ready, the subscribers will be updated.\n\n\n```typescript\nuseAsync$: <T>(qrl: AsyncFn<T>, options?: AsyncSignalOptions<T> | undefined) => AsyncSignal<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n[AsyncFn](#asyncfn)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[AsyncSignalOptions](#asyncsignaloptions)<!-- -->&lt;T&gt; \\| undefined\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[AsyncSignal](#asyncsignal)<!-- -->&lt;T&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async.ts",
       "mdFile": "core.useasync_.md"
     },
@@ -2576,7 +2576,7 @@
         }
       ],
       "kind": "Function",
-      "content": "Creates a computed signal which is calculated from the given function. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated, and if the result changed, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.\n\nThe function must be synchronous and must not have any side effects.\n\n\n```typescript\nuseComputed$: <T>(qrl: ComputedFn<T>, options?: ComputedOptions | undefined) => ComputedReturnType<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n[ComputedFn](#computedfn)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[ComputedOptions](#computedoptions) \\| undefined\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[ComputedReturnType](#computedreturntype)<!-- -->&lt;T&gt;",
+      "content": "Creates a computed signal which is calculated from the given function. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated, and if the result changed, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.\n\nEvery synchronous signal or store read is tracked automatically. Reads after an `await` are not: the tracking context is lost, so track them explicitly with the `track()` provided on the context argument. When the function is async, the returned signal exposes the async API: reading an unresolved `.value` throws the computation promise, and `.pending` and `.error` expose the computation state.\n\nThe function must not have any side effects.\n\n\n```typescript\nuseComputed$: <T>(qrl: ComputedFn<T>, options?: ComputedOptions<T> | undefined) => ComputedReturnType<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n[ComputedFn](#computedfn)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[ComputedOptions](#computedoptions)<!-- -->&lt;T&gt; \\| undefined\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[ComputedReturnType](#computedreturntype)<!-- -->&lt;T&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-computed.ts",
       "mdFile": "core.usecomputed_.md"
     },
@@ -2702,7 +2702,7 @@
         }
       ],
       "kind": "Function",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `useAsync$` instead, which is more powerful and flexible. `useResource$` is still available for backward compatibility but it is recommended to migrate to `useAsync$` for new code and when updating existing code.\n> \n\nThis method works like an async memoized function that runs whenever some tracked value changes and returns some data.\n\n`useResource` however returns immediate a `ResourceReturn` object that contains the data and a state that indicates if the data is available or not.\n\nThe status can be one of the following:\n\n- `pending` - the data is not yet available. - `resolved` - the data is available. - `rejected` - the data is not available due to an error or timeout.\n\nBe careful when using a `try/catch` statement in `useResource$`<!-- -->. If you catch the error and don't re-throw it (or a new Error), the resource status will never be `rejected`<!-- -->.\n\n\n```typescript\nuseResource$: <T>(qrl: import(\"./use-resource\").ResourceFn<T>, opts?: import(\"./use-resource\").ResourceOptions | undefined) => import(\"./use-resource\").ResourceReturn<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\nimport(\"./use-resource\").[ResourceFn](#resourcefn)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nopts\n\n\n</td><td>\n\nimport(\"./use-resource\").[ResourceOptions](#resourceoptions) \\| undefined\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nimport(\"./use-resource\").[ResourceReturn](#resourcereturn)<!-- -->&lt;T&gt;",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `useComputed$` instead, which is more powerful and flexible. `useResource$` is still available for backward compatibility but it is recommended to migrate to `useComputed$` for new code and when updating existing code.\n> \n\nThis method works like an async memoized function that runs whenever some tracked value changes and returns some data.\n\n`useResource` however returns immediate a `ResourceReturn` object that contains the data and a state that indicates if the data is available or not.\n\nThe status can be one of the following:\n\n- `pending` - the data is not yet available. - `resolved` - the data is available. - `rejected` - the data is not available due to an error or timeout.\n\nBe careful when using a `try/catch` statement in `useResource$`<!-- -->. If you catch the error and don't re-throw it (or a new Error), the resource status will never be `rejected`<!-- -->.\n\n\n```typescript\nuseResource$: <T>(qrl: import(\"./use-resource\").ResourceFn<T>, opts?: import(\"./use-resource\").ResourceOptions | undefined) => import(\"./use-resource\").ResourceReturn<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\nimport(\"./use-resource\").[ResourceFn](#resourcefn)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nopts\n\n\n</td><td>\n\nimport(\"./use-resource\").[ResourceOptions](#resourceoptions) \\| undefined\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nimport(\"./use-resource\").[ResourceReturn](#resourcereturn)<!-- -->&lt;T&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource-dollar.ts",
       "mdFile": "core.useresource_.md"
     },

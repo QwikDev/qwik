@@ -37,7 +37,7 @@ export const useProductDetails = routeLoader$(async ({ params }) => {
 });
 
 export default component$(() => {
-  // AsyncSignal<Product> — read .value, watch .loading, check .error
+  // ComputedSignal<Product> — read .value, watch .pending, check .error
   const product = useProductDetails();
   return <p>Product name: {product.value.name}</p>;
 });
@@ -53,7 +53,7 @@ A few properties of route loaders:
 
 - **Server-only.** The loader function only runs on the server; the browser never sees the closure body.
 - **Keyed by route, not by call site.** Two visits to the same URL share one logical "result" per "route + url params + search params" set, not one per `useProductDetails()` call.
-- **Result is an `AsyncSignal`.** Components read `.value`, watch `.loading`, and check `.error`. Reading `.value` while the signal is in error state re-throws the error.
+- **Result is a `ComputedSignal`.** Components read `.value`, watch `.pending`, and check `.error`. Reading `.value` while the signal is in error state re-throws the error.
 - **Each loader has its own JSON endpoint.** The client fetches `q-loader-{id}.{hash}.json` for navigation, polling, and post-action invalidation. Browser HTTP cache, ETags, and the `expires` option all apply.
 - **Blocks SSR by default.** The server awaits the loader before rendering the page, so a `throw redirect()` or `throw error()` controls the response. Opt out with `blockSSR: false` to run it in the background — see [Background loaders](#background-loaders-blockssr).
 
@@ -61,9 +61,9 @@ This means a `routeLoader$()` should be a **pure function of the URL**: same `pa
 
 ## Reading the result in a component
 
-Hooks return an `AsyncSignal<T>`. Branch on `.loading` and `.error` before reading `.value`:
+Hooks return a `ComputedSignal<T>`. Branch on `.pending` and `.error` before reading `.value`:
 
-```tsx /product.loading/ /product.error/ /product.value/#a title="src/routes/product/[productId]/index.tsx"
+```tsx /product.pending/ /product.error/ /product.value/#a title="src/routes/product/[productId]/index.tsx"
 import { component$ } from '@qwik.dev/core';
 import { routeLoader$ } from '@qwik.dev/router';
 
@@ -78,7 +78,7 @@ export const useProductDetails = routeLoader$(async ({ params, fail }) => {
 export default component$(() => {
   const product = useProductDetails();
 
-  if (product.loading) {
+  if (product.pending) {
     return <div>Loading…</div>;
   }
   if (product.error) {
@@ -177,7 +177,7 @@ Loader responses come from per-loader JSON endpoints, so ordinary HTTP caching a
 
 ### `expires`
 
-Time in milliseconds before the data is considered stale. Sets `Cache-Control` on the JSON response and the AsyncSignal's expiry. When the data expires, the next read triggers a refetch and components update reactively when the new data arrives.
+Time in milliseconds before the data is considered stale. Sets `Cache-Control` on the JSON response and the signal's expiry. When the data expires, the next read triggers a refetch and components update reactively when the new data arrives.
 
 ```tsx title="src/routes/product/[productId]/index.tsx"
 export const useProductDetails = routeLoader$(
@@ -226,7 +226,7 @@ export const useSubscription = routeLoader$(
 
 ### `serializationStrategy`
 
-By default the HTML response does **not** embed loader data. On hydration, the loader signal is empty until the browser fetches the JSON endpoint — meaning fast first paint, but a brief loading state for code that reads `.value` immediately.
+By default the HTML response does **not** embed loader data. When the client resumes, the loader signal is empty until the browser fetches the JSON endpoint — meaning fast first paint, but a brief pending state for code that reads `.value` immediately.
 
 | Value      | Behavior                                                                |
 | ---------- | ----------------------------------------------------------------------- |
@@ -255,7 +255,7 @@ export default () => ({
 });
 ```
 
-When using lazy-loaded data, branch on `.loading` to show a placeholder until it arrives — see [Reading the result in a component](#reading-the-result-in-a-component).
+When using lazy-loaded data, branch on `.pending` to show a placeholder until it arrives — see [Reading the result in a component](#reading-the-result-in-a-component).
 
 ## Background loaders (`blockSSR`)
 
@@ -357,7 +357,7 @@ export default component$(() => {
 
 | Option                  | Default      | Effect                                                                                                |
 | ----------------------- | ------------ | ----------------------------------------------------------------------------------------------------- |
-| `expires`               | `0` (static) | Time-to-live in ms. Sets `Cache-Control` and the AsyncSignal expiry. `0` means never refetched.        |
+| `expires`               | `0` (static) | Time-to-live in ms. Sets `Cache-Control` and the signal expiry. `0` means never refetched.             |
 | `poll`                  | `false`      | Auto-refetch when expired, but only while components are reading the loader.                          |
 | `allowStale`            | `true`       | Show stale data while refetching. `false` blocks readers until fresh data arrives.                    |
 | `serializationStrategy` | `'never'`    | `'never'` / `'always'` / `'auto'` — embed loader data in the SSR HTML?                                |

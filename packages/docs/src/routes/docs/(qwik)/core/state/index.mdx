@@ -243,18 +243,15 @@ This example uses `this.count` to update the store. Use the `function` keyword h
 
 Sometimes you do not need to store state directly. You can calculate it from existing state, or resolve it from async work.
 
-`useComputed$()` and `useAsync$()` both create signals for those values:
-
-1. `useComputed$()`: creates a signal from a synchronous calculation, such as formatting a name.
-2. `useAsync$()`: creates a signal from async work, such as fetched data or Web Worker output.
+`useComputed$()` creates a signal for those values. The calculation can be synchronous, such as formatting a name, or asynchronous, such as fetched data or Web Worker output. Qwik automatically tracks every signal and store the function reads and re-runs it when they change (in async functions, reads after the first `await` need [`track()`](#async-computed-values)).
 
 If you do not need a new signal, try [`useTask$()`](/docs/(qwik)/core/tasks/index.mdx#usetask) instead. A task runs code during component setup or when tracked state changes, and you write any result to existing state yourself.
 
 ### `useComputed$()`
 
-Create a signal for a value that can be calculated immediately from other state.
+Create a signal for a value that is calculated from other state.
 
-Qwik keeps the result and runs the function again only when one of the signals it reads changes.
+Qwik keeps the result and runs the function again only when one of the signals it reads changes. The function can be synchronous (shown here) or asynchronous (see [Async computed values](#async-computed-values) below).
 
 <CodeSandbox src="/src/routes/demo/state/computed/index.tsx" style={{ height: '8em' }}>
 ```tsx {5} /useComputed$/
@@ -282,25 +279,38 @@ export default component$(() => {
 You do not need to list dependencies for `useComputed$()`. Qwik automatically tracks the signals read inside the function.
 </Note>
 
-### `useAsync$()`
+#### Async computed values
 
-Create a signal for a value that comes from async work, such as fetching data, calling `server$()`, reading from a Web Worker, or running a long calculation.
+The function passed to `useComputed$()` can be `async` (or return a Promise), for values that come from fetching data, calling `server$()`, reading from a Web Worker, or running a long calculation.
 
-Like `useComputed$()`, the function can run again when the state it tracks changes.
+Auto-tracking only covers reads before the first `await`: read `signal.value` or `store.prop` at the top of the function and Qwik re-runs it when they change. After the first `await` the tracking context is gone, so reads there are not tracked. To track those, use the `track()` function provided on the context argument:
 
-Unlike `useComputed$()`, the result can be pending. While the async work is running, the signal exposes `.loading`; when it finishes, it exposes either `.value` or `.error`.
+```tsx
+const user = useComputed$(async ({ track }) => {
+  // Tracked automatically: read before the first await.
+  const id = userId.value;
+  const res = await fetch(`/api/users/${id}`);
+  // Tracked explicitly: after an await, use track().
+  const locale = track(localeSignal);
+  return formatUser(await res.json(), locale);
+});
+```
 
-Read `.value` when you need the result. If the result is not ready yet, that part of the UI can wait and a [`<Suspense>`](/docs/labs/suspense/index.mdx) boundary can show fallback UI.
+While the async work is running, the signal is pending. Read `.pending` for the state, and `.value` or `.error` for the result. If you read `.value` before it is ready, that part of the UI can wait and a [`<Suspense>`](/docs/labs/suspense/index.mdx) boundary can show fallback UI.
 
-The async work can run during SSR and in the browser. `useAsync$()` also supports polling for values that need to stay up to date.
+The async work can run during SSR and in the browser. `useComputed$()` also supports polling for values that need to stay up to date.
+
+<Note title="Migrating from useAsync$">
+`useAsync$()`, `createAsync$()`, and the `AsyncSignal` type are deprecated. Use `useComputed$()`, `createComputed$()`, and `ComputedSignal` instead. Synchronous reads before the first `await` are now tracked automatically; `track()` is still provided on the context argument for reads after an `await`.
+</Note>
 
 #### Example
 
-Below, `useAsync$()` fetches programming jokes for the current query. `track(query)` reruns the async function when the query changes, and `abortSignal` cancels any previous request.
+Below, `useComputed$()` fetches programming jokes for the current query. Reading `query.value` reruns the function when the query changes, and `abortSignal` cancels any previous request.
 
 <CodeSandbox src="/src/routes/demo/state/async-joke/index.tsx" style={{ height: '20em' }}>
-```tsx /useAsync$/ /track(query)/ /abortSignal/
-import { component$, useAsync$, useSignal } from '@qwik.dev/core';
+```tsx /useComputed$/ /query.value/ /abortSignal/
+import { component$, useComputed$, useSignal } from '@qwik.dev/core';
 
 type Joke = {
   joke?: string;
@@ -311,9 +321,9 @@ type Joke = {
 export default component$(() => {
   const query = useSignal('');
 
-  const jokes = useAsync$(async ({ track, abortSignal }) => {
-    // Re-run when query changes.
-    const search = track(query).trim();
+  const jokes = useComputed$(async ({ abortSignal }) => {
+    // Re-run when query.value changes.
+    const search = query.value.trim();
     const url = new URL(
       'https://v2.jokeapi.dev/joke/Programming?safe-mode&amount=2'
     );
@@ -331,7 +341,7 @@ export default component$(() => {
   });
 
   let content;
-  if (jokes.loading) {
+  if (jokes.pending) {
     content = <p>Loading...</p>;
   } else if (jokes.error) {
     content = <div>Error: {jokes.error.message}</div>;
@@ -363,22 +373,22 @@ export default component$(() => {
 ```
 </CodeSandbox>
 
-The code handles loading and errors inline with `.loading` and `.error`. During SSR, Qwik waits for the async work before rendering the result.
+The code handles pending and error states inline with `.pending` and `.error`. During SSR, Qwik waits for the async work before rendering the result.
 
-<Note title="useAsync$ and Suspense">
+<Note title="Async computed values and Suspense">
 The jokes example handles several UI states inline: loading, error, no results, and results.
 
 That is useful when each state needs its own markup. If you only need fallback UI while `.value` is not ready, wrap that part of the UI in [`<Suspense>`](/docs/labs/suspense/index.mdx).
 </Note>
 
 <LongNote title="Advanced: channel example">
-`useAsync$()` can also keep its own value updated after the first result. For example, a Server-Sent Events connection can write new messages into the async signal.
+`useComputed$()` can also keep its own value updated after the first result. For example, a Server-Sent Events connection can write new messages into the signal.
 
 ```tsx
-import { component$, useAsync$ } from '@qwik.dev/core';
+import { component$, useComputed$ } from '@qwik.dev/core';
 
 export default component$(() => {
-  const state = useAsync$<string>(
+  const state = useComputed$<string>(
     ({ abortSignal }) => {
       const eventSource = new EventSource('/api/state-channel');
 
@@ -399,16 +409,16 @@ export default component$(() => {
 });
 ```
 
-`eagerCleanup` closes the connection as soon as nothing is reading the async signal.
+`eagerCleanup` closes the connection as soon as nothing is reading the signal.
 </LongNote>
 
 <LongNote title="API reference">
-Most apps only need `.value`, `.loading`, and `.error`. The full API also includes options for cleanup, polling, cancellation, timeouts, and manual invalidation.
+Most apps only need `.value`, `.pending`, and `.error`. The full API also includes options for cleanup, polling, cancellation, timeouts, and manual invalidation.
 
 ```tsx
-function useAsync$<T>(
-  asyncFn: (opts: {
-    track: Tracker;
+function useComputed$<T>(
+  computeFn: (ctx: {
+    readonly track: Tracker;
     cleanup: (fn: () => void | Promise<void>) => void;
     readonly abortSignal: AbortSignal;
     readonly previous: T | undefined;
@@ -418,38 +428,41 @@ function useAsync$<T>(
     initial?: T | (() => T);
     concurrency?: number;
     eagerCleanup?: boolean;
-    interval?: number;
+    expires?: number;
+    poll?: boolean;
     clientOnly?: boolean;
     timeout?: number;
   }
-): AsyncSignal<T>;
+): ComputedSignal<T>;
 ```
 
-Callback options:
+The function reads reactive state directly (`signal.value`, `store.prop`); Qwik tracks those reads automatically until the first `await`. Context:
 
-- `track`: tracks reactive state used by the async function.
+- `track`: tracks reads explicitly. Required for reads after the first `await`, where automatic tracking stops.
 - `cleanup`: runs cleanup when the function re-runs or the component is destroyed.
 - `abortSignal`: aborts when the function re-runs or is destroyed. Pass it to APIs like `fetch()`.
 - `previous`: the previous resolved value, if one exists.
-- `info`: the value passed to `asyncSignal.invalidate(info)`.
+- `info`: the value passed to `signal.invalidate(info)`.
 
 Options:
 
 - `initial`: value to use before the async function resolves.
 - `concurrency`: number of computations that can run at the same time. Defaults to `1`; `0` means no limit.
 - `eagerCleanup`: cleanup as soon as nothing is reading the signal.
-- `interval`: polling or stale interval in milliseconds.
+- `expires`: time in milliseconds after which the value is stale.
+- `poll`: when `expires` is set, re-run automatically once stale. Defaults to `true`.
 - `clientOnly`: skip SSR and only run in the browser.
 - `timeout`: abort if the function takes longer than this many milliseconds.
 
 Returned signal:
 
 ```ts
-interface AsyncSignal<T> {
+interface ComputedSignal<T> {
   value: T;
-  loading: boolean;
+  pending: boolean;
   error: Error | undefined;
-  interval: number;
+  expires: number;
+  poll: boolean;
   promise(): Promise<void>;
   abort(reason?: any): void;
   invalidate(info?: unknown): void;
@@ -457,9 +470,9 @@ interface AsyncSignal<T> {
 ```
 
 - `value`: the resolved value, or `initial` if provided.
-- `loading`: whether the async function is running.
+- `pending`: whether the async function is running.
 - `error`: the error if the async function failed.
-- `interval`: current polling or stale interval.
+- `expires` / `poll`: current staleness interval and whether it re-runs automatically.
 - `promise()`: starts the async function if needed and waits for it to finish.
 - `abort()`: aborts the current async function.
 - `invalidate()`: marks the signal to run again.

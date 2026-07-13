@@ -1,13 +1,12 @@
 /* eslint-disable no-console */
-import { component$, useSignal, useAsync$ } from '@qwik.dev/core';
+import { component$, useSignal, useComputed$ } from '@qwik.dev/core';
 
 export default component$(() => {
   const githubOrg = useSignal('QwikDev');
 
-  const reposResource = useAsync$<string[]>(({ track, abortSignal }) => {
-    // We need a way to re-run fetching data whenever the `github.org` changes.
-    // Use `track` to trigger re-running of this data fetching function.
-    const org = track(githubOrg);
+  const reposResource = useComputed$<string[]>(({ abortSignal }) => {
+    // Reading githubOrg.value re-runs this function whenever it changes.
+    const org = githubOrg.value;
 
     // Fetch the data and return the promises.
     return getRepositories(org, abortSignal);
@@ -23,7 +22,7 @@ export default component$(() => {
         </label>
       </p>
       <section>
-        {reposResource.loading ? (
+        {reposResource.pending ? (
           <>Loading...</>
         ) : reposResource.error ? (
           <>Error: {reposResource.error.message}</>

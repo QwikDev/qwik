@@ -38,6 +38,38 @@ export interface InPageBridge {
   subscribeRenderEvents(cb: (event: DevtoolsRenderEvent) => void): (() => void) | null;
 }
 
+/**
+ * Page-level data access contract shared by the in-app overlay (same window) and the browser
+ * extension panel (reads the inspected page via chrome.devtools eval). Both implementations depend
+ * on this shape so a change to one side is type-checked against the other.
+ */
+export interface PageDataSource {
+  readPerfData(): Promise<QwikPerfStoreRemembered | null>;
+  readPreloadStore(): Promise<QwikPreloadStoreRemembered | null>;
+  clearPreloadStore(): Promise<void>;
+  /** Returns an unsubscribe fn, or null when live subscriptions are unsupported (extension polls). */
+  subscribePreloadUpdates(cb: () => void): (() => void) | null;
+  readComponentTree(): Promise<QwikDevtoolsComponentSnapshot[] | null>;
+  readSignals(): Promise<QwikDevtoolsSignalsSnapshot | null>;
+  readVNodeTree(): Promise<DevtoolsVNodeTreeNode[] | null>;
+  subscribeTreeUpdates(cb: (tree: DevtoolsVNodeTreeNode[]) => void): (() => void) | null;
+  readComponentDetail(
+    componentName: string,
+    qrlChunk?: string
+  ): Promise<DevtoolsComponentDetailEntry[] | null>;
+  readNodeProps(nodeId: string): Promise<Record<string, unknown> | null>;
+  setSignalValue(
+    componentName: string,
+    qrlChunk: string | undefined,
+    variableName: string,
+    newValue: unknown
+  ): Promise<boolean>;
+  /** Highlight a component's DOM element on the page by its VNode tree node id. */
+  highlightElement(nodeId: string, componentName: string): Promise<void>;
+  unhighlightElement(): Promise<void>;
+  subscribeRenderEvents(cb: (event: DevtoolsRenderEvent) => void): (() => void) | null;
+}
+
 interface QwikDevtoolsHookExtended extends QwikDevtoolsHook {
   getVNodeTree?(): DevtoolsVNodeTreeNode[] | null;
   getNodeProps?(nodeId: string): Record<string, unknown> | null;

@@ -1,7 +1,9 @@
 import { Resource, component$, useResource$, useStore } from '@qwik.dev/core';
-import { server$, useLocation } from '@qwik.dev/router';
+import { getRequestEvent, server$, useLocation, type RequestEvent } from '@qwik.dev/router';
 import { and, eq } from 'drizzle-orm';
 import { getDB, symbolDetailTable } from '~/db';
+import type { InsightsUser } from '~/db/sql-user';
+import { getInsightUser } from '~/routes/app/layout';
 import { SymbolIcon } from '../icons/symbol';
 import { type PopupEvent } from '../popup-manager';
 
@@ -26,7 +28,7 @@ export const SymbolSource = component$<{ symbolHash: string }>(({ symbolHash }) 
     if (state.symbolHash) {
       state.fullName = '...';
       state.origin = '...';
-      const data = await serverGetSourceSnippet(location.params.publicApiKey, state.symbolHash);
+      const data = await serverGetSourceSnippet(state.symbolHash);
       state.fullName = data.fullName;
       state.origin = data.origin;
       state.originUrl = data.originUrl;
@@ -96,7 +98,23 @@ export const SymbolTile = component$<{ symbol: string }>(({ symbol }) => {
   );
 });
 
-const serverGetSourceSnippet = server$(async function (publicApiKey: string, symbolHash: string) {
+export function getAuthorizedPublicApiKey(
+  requestEvent: Pick<RequestEvent, 'params' | 'sharedMap' | 'error'>
+) {
+  const publicApiKey = requestEvent.params.publicApiKey;
+  const insightUser = getInsightUser(requestEvent.sharedMap) as InsightsUser | undefined;
+  if (!publicApiKey || !insightUser?.isAuthorizedForApp(publicApiKey)) {
+    throw requestEvent.error(403, 'Forbidden');
+  }
+  return publicApiKey;
+}
+
+const serverGetSourceSnippet = server$(async function (symbolHash: string) {
+  const requestEvent = getRequestEvent(this);
+  if (!requestEvent) {
+    throw new Error('Missing request context');
+  }
+  const publicApiKey = getAuthorizedPublicApiKey(requestEvent);
   const db = getDB();
   let [symbolDetail] = await Promise.all([
     db

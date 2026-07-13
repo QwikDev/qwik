@@ -126,6 +126,8 @@ Follow that bias:
   scope.
 - Keep new durable lessons in the most specific skill or reference that future agents are likely to
   load. Do not add package-specific details to these always-on rules unless they affect most tasks.
+- Only add a lesson to a skill when it generalizes to future tasks. Keep single-PR specifics (one
+  module's protocol, one fix's mechanics) in the code and its tests, not in a skill.
 - Write those notes **prescriptively** — the invariants to keep, the traps that cause false passes,
   where things live, and how to verify — rather than describing how the code currently works. Omit "don't do X" prohibitions for anything a test already enforces; the
   suite is the guardrail, so reserve notes for what it can't self-enforce.
@@ -197,6 +199,8 @@ When a change affects published packages, add a changeset under `.changeset/`.
 - Do not extract helpers only to move complexity around; the caller should become easier to read.
 - Keep helpers close to their first use unless they are shared across files.
 - Prefer local semantic helpers over broad abstractions.
+- Keep consumer- or framework-specific carve-outs (magic values, special cases) at the boundary that
+  owns that knowledge; do not push them into a generic lower-level utility that should stay agnostic.
 
 #### Review Standard
 

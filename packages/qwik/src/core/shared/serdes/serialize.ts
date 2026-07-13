@@ -3,7 +3,6 @@ import { hasVirtualNodePath } from '../vnode-data-types';
 import { VNodeDataFlag } from '../../../server/types';
 import type { VNodeData } from '../../../server/vnode-data';
 import { vnode_isVNode } from '../../client/vnode-utils';
-import { AsyncSignalImpl } from '../../reactive-primitives/impl/async-signal-impl';
 import { ComputedSignalImpl } from '../../reactive-primitives/impl/computed-signal-impl';
 import { SerializerSignalImpl } from '../../reactive-primitives/impl/serializer-signal-impl';
 import { SignalImpl } from '../../reactive-primitives/impl/signal-impl';
@@ -11,6 +10,7 @@ import { getStoreHandler, getStoreTarget, isStore } from '../../reactive-primiti
 import { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
 import { SubscriptionData } from '../../reactive-primitives/subscription-data';
 import {
+  AsyncSignalFlags,
   EffectProperty,
   EffectSubscription,
   NEEDS_COMPUTATION,
@@ -646,7 +646,9 @@ export class Serializer {
           value.$flags$ & SerializationSignalFlags.SERIALIZATION_STRATEGY_NEVER;
         const isInvalid = value.$flags$ & ComputedSignalFlags.INVALID;
         const isSkippable = fastSkipSerialize(value.$untrackedValue$);
-        const isAsync = value instanceof AsyncSignalImpl;
+        // async-mode computeds carry the same engine state and must round-trip like AsyncSignals
+        const isAsync = !!(value.$flags$ & AsyncSignalFlags.ASYNC_MODE);
+        const isErrored = isAsync && !!value.$untrackedError$;
         const expires = isAsync && value.$expires$ !== 0 ? value.$expires$ : undefined;
         const concurrency = isAsync && value.$concurrency$ !== 1 ? value.$concurrency$ : undefined;
         const timeout = isAsync && value.$timeoutMs$ !== 0 ? value.$timeoutMs$ : undefined;
@@ -656,8 +658,7 @@ export class Serializer {
           (isAsync && value.$flags$ & ~SerializationSignalFlags.SERIALIZATION_ALL_STRATEGIES) ||
           undefined;
 
-        //todo: when async is errored, do not serialize the value
-        if (isInvalid || isSkippable) {
+        if (isInvalid || isSkippable || isErrored) {
           v = NEEDS_COMPUTATION;
         } else if (shouldAlwaysSerialize) {
           v = value.$untrackedValue$;

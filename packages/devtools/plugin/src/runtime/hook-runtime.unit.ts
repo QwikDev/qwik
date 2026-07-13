@@ -2,7 +2,41 @@ import { runInThisContext } from 'node:vm';
 import { QWIK_DEVTOOLS_GLOBAL, SIGNAL_HOOK_TYPES } from '@qwik.dev/devtools/kit';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { createExtensionHookRuntime } from './create-hook-runtime';
-import { __qwik_install_hook_runtime__, type HookRuntimeOptions } from './installers';
+import {
+  __qwik_derive_component_name__,
+  __qwik_find_component_key__,
+  __qwik_install_hook_runtime__,
+  type HookRuntimeOptions,
+} from './installers';
+
+describe('__qwik_derive_component_name__', () => {
+  test('returns the segment after the last underscore of the last path part', () => {
+    expect(__qwik_derive_component_name__('src/routes/foo_Counter')).toBe('Counter');
+    expect(__qwik_derive_component_name__('a/b/chunk_Button_Widget')).toBe('Widget');
+  });
+
+  test('falls back to the last path segment when there is no underscore', () => {
+    expect(__qwik_derive_component_name__('src/routes/Plain')).toBe('Plain');
+    expect(__qwik_derive_component_name__('Bare')).toBe('Bare');
+  });
+});
+
+describe('__qwik_find_component_key__', () => {
+  const state = { '/src/app/header_Nav': {}, '/src/foo_Counter': {} };
+
+  test('prefers an exact QRL chunk suffix match', () => {
+    expect(__qwik_find_component_key__(state, 'anything', 'foo_Counter')).toBe('/src/foo_Counter');
+  });
+
+  test('falls back to a case-insensitive component name match', () => {
+    expect(__qwik_find_component_key__(state, 'nav', null)).toBe('/src/app/header_Nav');
+  });
+
+  test('returns null when nothing matches', () => {
+    expect(__qwik_find_component_key__(state, 'Missing', null)).toBeNull();
+    expect(__qwik_find_component_key__({}, 'Nav', null)).toBeNull();
+  });
+});
 
 const OPTIONS: HookRuntimeOptions = {
   componentStateKey: QWIK_DEVTOOLS_GLOBAL.props.componentState,

@@ -524,6 +524,45 @@ describe('resolveId', () => {
   });
 });
 
+test('transform exposes SSR imports restored after client-only stripping as qwik deps', async () => {
+  const plugin = await mockPlugin(process.platform, true);
+  await plugin.normalizeOptions({
+    target: 'ssr',
+    rootDir: '/root',
+    srcDir: '/root/src',
+  });
+
+  const result = await plugin.transform(
+    {
+      addWatchFile: () => undefined,
+      emitFile: () => undefined,
+      parse: parseImportsOnly,
+      resolve: async (id: string) => {
+        if (id === '@qwik.dev/core' || id === '@qwik.dev/core/jsx-runtime') {
+          return { id: `/root/node_modules/${id}/index.mjs` };
+        }
+        if (id === '@example/server-fn') {
+          return { id: '/root/libs/server-fn.ts' };
+        }
+      },
+    } as any,
+    `import { component$, useVisibleTask$ } from '@qwik.dev/core';
+import { callServer } from '@example/server-fn';
+
+export default component$(() => {
+  useVisibleTask$(() => {
+    callServer();
+  });
+  return <span>ready</span>;
+});
+`,
+    '/root/src/routes/index.tsx'
+  );
+
+  expect(result?.code).not.toContain('import "@example/server-fn";');
+  expect(result?.meta?.qwikdeps).toContain('/root/libs/server-fn.ts');
+});
+
 test('load skips HMR wrapper for worker$ segments', async () => {
   const plugin = await mockPlugin(process.platform, true);
   await plugin.normalizeOptions({ rootDir: '/root' });
@@ -674,6 +713,17 @@ async function mockPlugin(os = process.platform, useRealOptimizer = false) {
   });
   await plugin.init();
   return plugin;
+}
+
+function parseImportsOnly(code: string) {
+  const body = Array.from(
+    code.matchAll(/(?:import|export)\s+(?:[^'"]*?\s+from\s+)?['"]([^'"]+)['"]/g)
+  ).map(([, value]) => ({
+    type: 'ImportDeclaration',
+    importKind: 'value',
+    source: { value },
+  }));
+  return { type: 'Program', body };
 }
 
 describe('transform: globalThis.__QWIK_MANIFEST__ replacement', () => {

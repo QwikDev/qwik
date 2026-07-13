@@ -33,8 +33,7 @@ export type ActionConstructor = {
       data: GetValidatorOutputType<VALIDATOR>,
       event: RequestEventAction,
     ) => ValueOrPromise<OBJ>,
-    options: {
-      readonly id?: string;
+    options: ActionOptions & {
       readonly validation: [VALIDATOR, ...REST];
     },
   ): Action<
@@ -54,8 +53,7 @@ export type ActionConstructor = {
       data: GetValidatorOutputType<VALIDATOR>,
       event: RequestEventAction,
     ) => ValueOrPromise<OBJ>,
-    options: {
-      readonly id?: string;
+    options: ActionOptions & {
       readonly validation: [VALIDATOR];
     },
   ): Action<
@@ -73,8 +71,7 @@ export type ActionConstructor = {
       data: JSONObject,
       event: RequestEventAction,
     ) => ValueOrPromise<OBJ>,
-    options: {
-      readonly id?: string;
+    options: ActionOptions & {
       readonly validation: REST;
     },
   ): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;
@@ -129,14 +126,26 @@ export type ActionConstructor = {
       form: JSONObject,
       event: RequestEventAction,
     ) => ValueOrPromise<OBJ>,
-    options?: {
-      readonly id?: string;
-    },
+    options?: ActionOptions,
   ): Action<StrictUnion<OBJ>>;
 };
 ```
 
-**References:** [TypedDataValidator](#typeddatavalidator), [DataValidator](#datavalidator), [GetValidatorOutputType](#getvalidatoroutputtype), [Action](#action), [StrictUnion](#strictunion), [FailReturn](#failreturn), [ValidatorErrorType](#validatorerrortype), [GetValidatorInputType](#getvalidatorinputtype), [FailOfRest](#failofrest), [JSONObject](#jsonobject)
+**References:** [TypedDataValidator](#typeddatavalidator), [DataValidator](#datavalidator), [GetValidatorOutputType](#getvalidatoroutputtype), [ActionOptions](#actionoptions), [Action](#action), [StrictUnion](#strictunion), [FailReturn](#failreturn), [ValidatorErrorType](#validatorerrortype), [GetValidatorInputType](#getvalidatorinputtype), [FailOfRest](#failofrest), [JSONObject](#jsonobject)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
+
+<h2 id="actionoptions">ActionOptions</h2>
+
+```typescript
+export type ActionOptions = {
+  readonly id?: string;
+  readonly validation?: DataValidator[];
+  readonly invalidate?: Loader<any>[];
+};
+```
+
+**References:** [DataValidator](#datavalidator), [Loader](#loader_2)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
@@ -1312,7 +1321,7 @@ export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<
 >
   ? Signal<ValueOrPromise<VALIDATOR>>
   : Signal<TYPE>) &
-  Pick<AsyncSignal, "promise" | "loading" | "error">;
+  Pick<ComputedSignal<any>, "promise" | "pending" | "error" | "loading">;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
@@ -2452,7 +2461,7 @@ _(Optional)_ Array of routeLoader$ hashes for this node's loaders
 
 Define a route loader that fetches data before the route renders.
 
-Route loaders run on the server during SSR and return data as an `AsyncSignal`. On the client, loaders automatically re-fetch when the route changes (SPA navigation). Each loader gets its own JSON endpoint (`q-loader-{id}.{hash}.json`), so only the loaders present on the target route are fetched.
+Route loaders run on the server during SSR and return data as a `ComputedSignal`. On the client, loaders automatically re-fetch when the route changes (SPA navigation). Each loader gets its own JSON endpoint (`q-loader-{id}.{hash}.json`), so only the loaders present on the target route are fetched.
 
 \*\*Important:\*\* Route loader data uses Qwik's custom serialization format, not standard JSON. This means the data supports features like circular references, Dates, and other non-JSON types, but it cannot be consumed by external clients expecting plain JSON.
 

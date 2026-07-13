@@ -4,6 +4,7 @@ export type { Q_ROUTE } from './constants';
 export type {
   Action,
   ActionConstructor,
+  ActionOptions,
   ActionStore,
   CacheKeyFn,
   ContentHeading,

@@ -29,6 +29,17 @@ export function getJsxBranchExpression(node: unknown): JsxBranchExpression | nul
   }
 }
 
+export function getStaticBranchCondition(node: unknown): boolean | null {
+  const expr = unwrapExpression(node);
+  if (!isObjectNode(expr) || expr.type !== 'Literal') {
+    return null;
+  }
+  if (expr.value === true) {
+    return true;
+  }
+  return expr.value === false || expr.value === null ? false : null;
+}
+
 export function isEmptyBranchExpression(node: unknown): boolean {
   const expr = unwrapExpression(node);
   return (

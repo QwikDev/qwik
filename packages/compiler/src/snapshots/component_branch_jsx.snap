@@ -73,7 +73,6 @@ export function App(props, ctx) {
     q_component_branch_else_segment_2
   );
   const id1 = ctx.nextId();
-  ctx.addRoot(props);
   const branch1 = renderSsrBranch(
     ctx,
     id1,
@@ -82,7 +81,6 @@ export function App(props, ctx) {
     undefined
   );
   const id2 = ctx.nextId();
-  ctx.addRoot(props);
   const branch2 = renderSsrBranch(
     ctx,
     id2,

@@ -23,7 +23,12 @@ import {
 } from '../ast-utils';
 import { escapeAttr, escapeText, serializeAttrValue } from '../stages/emit-utils';
 import type { SourceRange } from '../types';
-import { getJsxBranchExpression, isEmptyBranchExpression, visit } from './ast-utils';
+import {
+  getJsxBranchExpression,
+  getStaticBranchCondition,
+  isEmptyBranchExpression,
+  visit,
+} from './ast-utils';
 import { isRewriteSourceFactoryName } from './discover';
 import { isSetupQrlSegment } from './extract';
 import type {
@@ -813,7 +818,7 @@ function renderJsxChildren(children: JSXChild[], state: LowerState): RenderedJsx
 
 function renderJsxExpression(expression: unknown, state: LowerState): RenderedJsx[] {
   const expr = unwrapExpression(expression);
-  if (expr === null || expr === undefined) {
+  if (expr === null || expr === undefined || isEmptyBranchExpression(expr)) {
     return [];
   }
 
@@ -830,6 +835,12 @@ function renderJsxExpression(expression: unknown, state: LowerState): RenderedJs
   switch (expr.type) {
     case 'JSXEmptyExpression':
       return [];
+    case 'JSXElement': {
+      const rendered = renderJsxElementHtml(expr, state);
+      return rendered === null ? [] : [rendered];
+    }
+    case 'JSXFragment':
+      return renderJsxChildren(expr.children, state);
     case 'CallExpression': {
       const target = state.nextRefId();
       return [
@@ -845,6 +856,10 @@ function renderJsxExpression(expression: unknown, state: LowerState): RenderedJs
       const branch = getJsxBranchExpression(expr);
       if (branch === null) {
         return [createExpressionTextEffect(range, state)];
+      }
+      const staticCondition = getStaticBranchCondition(branch.condition);
+      if (staticCondition !== null) {
+        return renderJsxExpression(staticCondition ? branch.then : branch.else, state);
       }
       const conditionRange = getRange(branch.condition);
       const thenRange = getRange(branch.then);

@@ -10,7 +10,7 @@ import {
   unwrapExpression,
 } from '../ast-utils';
 import type { AstFunction, AstNode } from '../types';
-import { getJsxBranchExpression } from './ast-utils';
+import { getJsxBranchExpression, getStaticBranchCondition } from './ast-utils';
 import type { ExtractedQrls, ModuleDeclaration, Segment, SegmentCapture } from './types';
 import { QWIK_CORE_IMPORT, QWIK_IMPORT, QwikHooks } from './words';
 
@@ -480,21 +480,30 @@ class QrlExtractor {
 
   private visitJsxChild(node: unknown) {
     if (isNode(node) && node.type === 'JSXExpressionContainer') {
-      const expression = unwrapExpression(node.expression);
-      if (
-        this.visitJsxBranchSegments(expression) ||
-        this.visitJsxExpressionSegment('text', expression)
-      ) {
-        return;
-      }
+      this.visitJsxExpression(unwrapExpression(node.expression));
+      return;
     }
     this.visit(node);
+  }
+
+  private visitJsxExpression(expression: AstNode | null | undefined) {
+    if (
+      !this.visitJsxBranchSegments(expression) &&
+      !this.visitJsxExpressionSegment('text', expression)
+    ) {
+      this.visit(expression);
+    }
   }
 
   private visitJsxBranchSegments(expression: AstNode | null | undefined): boolean {
     const branch = getJsxBranchExpression(expression);
     if (branch === null) {
       return false;
+    }
+    const staticCondition = getStaticBranchCondition(branch.condition);
+    if (staticCondition !== null) {
+      this.visitJsxExpression(staticCondition ? branch.then : branch.else);
+      return true;
     }
     const parts = [
       ['branch:condition', 'branchCondition', branch.condition],
@@ -507,14 +516,9 @@ class QrlExtractor {
     for (const [ctxName, kind, part] of parts) {
       const segment = this.createExpressionSegment(ctxName, part, kind)!;
       if (kind === 'branchRender') {
-        this.visitExpressionsSegment([part], segment, (expression) => {
-          if (
-            !this.visitJsxBranchSegments(expression) &&
-            !this.visitJsxExpressionSegment('text', expression)
-          ) {
-            this.visit(expression);
-          }
-        });
+        this.visitExpressionsSegment([part], segment, (expression) =>
+          this.visitJsxExpression(expression)
+        );
       } else {
         this.visitExpressionsSegment([part], segment);
       }

@@ -14,11 +14,9 @@ export function App() {
 
 ============================= src/component.tsx ==
 
-export function App(_props, _ctx) {
+export function App(props, ctx) {
   return '<section><span>Shown</span></section>';
 }
-
-null
 == SSR DIAGNOSTICS ==
 
 []
@@ -26,16 +24,14 @@ null
 
 ============================= src/component.tsx ==
 
-import { createTemplate } from '@qwik.dev/core/spark';
+import { _first, createTemplate } from '@qwik.dev/core/spark';
 
-const dom_App_template0 = createTemplate('<section><span>Shown</span></section>');
-export function App(_props, ctx) {
-  const fragment0 = dom_App_template0(ctx.document);
-  const el1 = fragment0.firstChild;
-  return el1;
+const App_tmpl0 = createTemplate('<section><span>Shown</span></section>');
+export function App(props, ctx) {
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
 }
-
-null
 == CSR DIAGNOSTICS ==
 
 []

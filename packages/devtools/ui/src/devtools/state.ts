@@ -41,6 +41,8 @@ export interface DevtoolsState {
   lastPanelBounds: DevtoolsPanelBounds | null;
   /** Ordered ids of the tabs shown in the sidebar; the rest live in the More panel. */
   visibleTabIds: DevtoolsTabId[];
+  /** Whether the Customize Tabs overlay is open (Vite overlay only). */
+  isCustomizeOpen: boolean;
   /** Whether the Vite devtools plugin overlay is also active on the page. */
   vitePluginDetected?: boolean;
   /** True when running inside the browser extension panel (no Vite server). */
@@ -66,6 +68,7 @@ export function createDevtoolsState(opts?: { isExtension?: boolean }): DevtoolsS
     },
     lastPanelBounds: null,
     visibleTabIds: getDefaultVisibleTabIds(),
+    isCustomizeOpen: false,
     isExtension: opts?.isExtension ?? false,
   };
 }

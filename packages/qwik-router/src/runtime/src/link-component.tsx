@@ -15,7 +15,7 @@ export const Link = component$<LinkProps>((props) => {
     reload,
     replaceState,
     scroll,
-    prefetchBundle: prefetchBundleProp = 'visible',
+    prefetchBundles: prefetchBundlesProp = 'visible',
     prefetchData: prefetchDataProp = prefetchProp === 'js' ? 'off' : 'intent',
     ...linkProps
   } = props;
@@ -26,12 +26,12 @@ export const Link = component$<LinkProps>((props) => {
 
   const shouldPrefetch = untrack(shouldPreload, clientNavPath, loc);
 
-  const shouldVisiblePrefetchBundle =
+  const shouldVisiblePrefetchBundles =
     !!clientNavPath &&
     shouldPrefetch &&
     !isDepratedPrefetchDisabled &&
-    (prefetchBundleProp === 'visible' ||
-      // deprecated prop below, remove in favor of prefetchBundle
+    (prefetchBundlesProp === 'visible' ||
+      // deprecated prop below, remove in favor of prefetchBundles
       prefetchProp === 'js' ||
       prefetchProp === true);
 
@@ -102,9 +102,9 @@ export const Link = component$<LinkProps>((props) => {
       {...{ 'q:link': !!clientNavPath }}
       {...linkProps}
       data-q-prefetch={
-        shouldVisiblePrefetchBundle && shouldVisiblePrefetchData
+        shouldVisiblePrefetchBundles && shouldVisiblePrefetchData
           ? 'bd'
-          : shouldVisiblePrefetchBundle
+          : shouldVisiblePrefetchBundles
             ? 'b'
             : shouldVisiblePrefetchData
               ? 'd'
@@ -137,8 +137,8 @@ type AnchorAttributes = QwikIntrinsicElements['a'];
 /** @public */
 export interface LinkProps extends AnchorAttributes {
   /**
-   * @deprecated Use `prefetchBundle` and `prefetchData` instead for more granular control over what
-   *   is prefetched and when. This prop will be removed in a future major version.
+   * @deprecated Use `prefetchBundles` and `prefetchData` instead for more granular control over
+   *   what is prefetched and when. This prop will be removed in a future major version.
    *
    *   Legacy prefetch control for this **`Link`**.
    *
@@ -157,7 +157,7 @@ export interface LinkProps extends AnchorAttributes {
    *
    * Prefetching will not occur if the user has the **data saver** setting enabled.
    */
-  prefetchBundle?: PrefetchStrategy;
+  prefetchBundles?: PrefetchStrategy;
 
   /**
    * Controls when Qwik should prefetch and cache route data for this **`Link`** target, including

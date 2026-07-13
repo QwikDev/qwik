@@ -280,7 +280,7 @@ export const Link: Component<LinkProps>;
 export interface LinkProps extends AnchorAttributes {
     // @deprecated (undocumented)
     prefetch?: boolean | 'js';
-    prefetchBundle?: PrefetchStrategy;
+    prefetchBundles?: PrefetchStrategy;
     prefetchData?: PrefetchStrategy;
     // (undocumented)
     reload?: boolean;

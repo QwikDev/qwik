@@ -29,6 +29,7 @@ import {
   QCtxAttr,
   QCursorBoundary,
   QDefaultSlot,
+  QErrorContentHost,
   QScopedStyle,
   QSlot,
   QSlotParent,
@@ -63,6 +64,34 @@ import { resolveSlotName } from '../shared/utils/prop';
 
 class MaybeAsyncSignal {}
 class FunctionChild {}
+
+// Open ErrorBoundary content hosts per container: once a host is INERT (its boundary
+// caught), still-queued frames inside it are superseded and must not run.
+const openBoundaryContentScopes = /*#__PURE__*/ new WeakMap<SSRContainer, ISsrNode[]>();
+
+const pushBoundaryContentScope = (ssr: SSRContainer, contentHost: ISsrNode): StackFn => {
+  let scopes = openBoundaryContentScopes.get(ssr);
+  if (!scopes) {
+    openBoundaryContentScopes.set(ssr, (scopes = []));
+  }
+  scopes.push(contentHost);
+  return () => {
+    scopes.pop();
+  };
+};
+
+const isInsideFailedBoundaryContent = (ssr: SSRContainer): boolean => {
+  const scopes = openBoundaryContentScopes.get(ssr);
+  if (!scopes || scopes.length === 0) {
+    return false;
+  }
+  for (let i = scopes.length - 1; i >= 0; i--) {
+    if (scopes[i].vnodeData[0] & VNodeDataFlag.INERT) {
+      return true;
+    }
+  }
+  return false;
+};
 
 type StackFn = () => ValueOrPromise<void>;
 export type StackValue = ValueOrPromise<
@@ -101,6 +130,9 @@ export async function _walkJSX(
         // Reference equality first (no prototype walk), then typeof
         if (value === MaybeAsyncSignal) {
           const trackFn = stack.pop() as () => StackValue;
+          if (__EXPERIMENTAL__.errorBoundary && isInsideFailedBoundaryContent(ssr)) {
+            continue;
+          }
           try {
             await retryOnPromise(() => stack.push(trackFn()));
           } catch (err) {
@@ -113,6 +145,9 @@ export async function _walkJSX(
         if (__EXPERIMENTAL__.errorBoundary && value === FunctionChild) {
           // User fn child: keep invoke-and-discard, but route throws to the boundary.
           const fnChild = stack.pop() as StackFn;
+          if (isInsideFailedBoundaryContent(ssr)) {
+            continue;
+          }
           try {
             const result = fnChild.apply(ssr);
             if (isPromise(result)) {
@@ -126,6 +161,11 @@ export async function _walkJSX(
         if (typeof value === 'function') {
           if (value === Promise) {
             const pending = stack.pop() as Promise<JSXOutput>;
+            if (__EXPERIMENTAL__.errorBoundary && isInsideFailedBoundaryContent(ssr)) {
+              // Never await superseded content; keep the promise observed.
+              pending.catch(() => {});
+              continue;
+            }
             stack.push(
               __EXPERIMENTAL__.errorBoundary
                 ? await catchToErrorBoundary(ssr, ssr.getOrCreateLastNode(), () => pending)
@@ -136,6 +176,13 @@ export async function _walkJSX(
             if (isPromise(result)) {
               await result;
             }
+          }
+          continue;
+        }
+        if (__EXPERIMENTAL__.errorBoundary && isInsideFailedBoundaryContent(ssr)) {
+          // Superseded value frame: discard, but keep a raw promise child observed.
+          if (isPromise(value)) {
+            value.catch(() => {});
           }
           continue;
         }
@@ -320,6 +367,10 @@ function processJSXNode(
       enqueue(() => ssr.streamHandler.flush());
     } else if (isAsyncGenerator(value)) {
       enqueue(async () => {
+        if (__EXPERIMENTAL__.errorBoundary && isInsideFailedBoundaryContent(ssr)) {
+          // Superseded before iteration started: never run the generator.
+          return;
+        }
         // Fresh object per walk: `_walkJSX` mutates options in place.
         const freshWalkOptions = () => ({
           currentStyleScoped: options.currentStyleScoped,
@@ -367,6 +418,10 @@ function processJSXNode(
           ssr.htmlNode(innerHTML);
         }
 
+        if (__EXPERIMENTAL__.errorBoundary && directGetPropsProxyProp(jsx, QErrorContentHost)) {
+          // Scope the content host so queued frames after a catch can be discarded.
+          enqueue(pushBoundaryContentScope(ssr, ssr.getOrCreateLastNode()));
+        }
         enqueue(ssr.closeElement);
 
         if (type === 'head') {

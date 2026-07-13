@@ -1935,6 +1935,97 @@ describe('ErrorBoundary swap mechanics (qErr)', () => {
   });
 });
 
+describe('ErrorBoundary discards queued content after a catch', () => {
+  it('a queued sibling component after the throw never executes and emits no HTML', async () => {
+    const executed: string[] = [];
+    const AfterSibling = component$(() => {
+      executed.push('after');
+      return <div id="after-cmp">after</div>;
+    });
+    const { container } = await ssrRenderToDom(
+      <ErrorBoundary fallback$={fb()}>
+        <div id="before">before</div>
+        <Thrower />
+        <AfterSibling />
+        <div id="after-static">after-static</div>
+      </ErrorBoundary>,
+      { debug, ...IN_ORDER }
+    );
+    const el = container.element;
+    expect(el.querySelector('#fb')?.textContent).toContain('caught: boom');
+    expect(executed).toEqual([]);
+    expect(el.querySelector('#after-cmp')).toBeFalsy();
+    expect(el.querySelector('#after-static')).toBeFalsy();
+    // Pre-catch content keeps the hide-don't-unwind contract.
+    expect(el.querySelector('#before')).toBeTruthy();
+  });
+
+  it('a never-settling promise sibling after the throw does not block SSR', async () => {
+    const neverSettles = new Promise<JSXOutput>(() => {});
+    const { container } = await ssrRenderToDom(
+      <ErrorBoundary fallback$={fb()}>
+        <Thrower />
+        {neverSettles}
+      </ErrorBoundary>,
+      { debug, ...IN_ORDER }
+    );
+    expect(container.element.querySelector('#fb')?.textContent).toContain('caught: boom');
+  });
+
+  it('a later-rejecting promise sibling after the throw is discarded but stays observed', async () => {
+    let rejectLate!: (e: unknown) => void;
+    const late = new Promise<JSXOutput>((_, reject) => (rejectLate = reject));
+    const { container } = await ssrRenderToDom(
+      <ErrorBoundary fallback$={fb()}>
+        <Thrower />
+        {late}
+      </ErrorBoundary>,
+      { debug, ...IN_ORDER }
+    );
+    expect(container.element.querySelector('#fb')?.textContent).toContain('caught: boom');
+    rejectLate(new Error('late boom'));
+    // An unobserved rejection here fails the run as an unhandled error.
+    await delay(5);
+  });
+
+  it('an inner-boundary catch discards only inner queued content', async () => {
+    const { container } = await ssrRenderToDom(
+      <ErrorBoundary fallback$={fb('fb-outer')}>
+        <div id="outer-before">outer-before</div>
+        <ErrorBoundary fallback$={fb('fb-inner')}>
+          <Thrower />
+          <div id="inner-after">inner-after</div>
+        </ErrorBoundary>
+        <div id="outer-after">outer-after</div>
+      </ErrorBoundary>,
+      { debug, ...IN_ORDER }
+    );
+    const el = container.element;
+    expect(el.querySelector('#fb-inner')?.textContent).toContain('caught: boom');
+    expect(el.querySelector('#fb-outer')).toBeFalsy();
+    expect(el.querySelector('#inner-after')).toBeFalsy();
+    expect(el.querySelector('#outer-after')).toBeTruthy();
+  });
+
+  it('a function child after the throw is not invoked', async () => {
+    const invoked: string[] = [];
+    const { container } = await ssrRenderToDom(
+      <ErrorBoundary fallback$={fb()}>
+        <Thrower />
+        {
+          (() => {
+            invoked.push('fn-child');
+            return null;
+          }) as any
+        }
+      </ErrorBoundary>,
+      { debug, ...IN_ORDER }
+    );
+    expect(container.element.querySelector('#fb')?.textContent).toContain('caught: boom');
+    expect(invoked).toEqual([]);
+  });
+});
+
 describe('ErrorBoundary OOOS (opt-in, Suspense)', () => {
   it('two adjacent boundaries that both throw each swap in their own fallback', async () => {
     const { document } = await streamAndResume(

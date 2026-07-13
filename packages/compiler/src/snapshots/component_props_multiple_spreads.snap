@@ -33,7 +33,8 @@ export function App(props, ctx) {
   );
   return maybeThen(
     props0,
-    (props0) => '<button q:id="' + id0 + '"' + props0.attrs + '>' + 'Save' + '</button>'
+    (props0) =>
+      '<button q:id="' + id0 + '"' + props0.attrs + '>' + (props0.innerHTML ?? 'Save') + '</button>'
   );
 }
 ============================= src/component.tsx_component_props_segment_0.js (ENTRY POINT)==

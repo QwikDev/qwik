@@ -1,4 +1,5 @@
 import { emitComponentFunction, emitComponentProps, emitStaticHtml } from './emit-html';
+import { getDomEffectBatchKey, getDomEffectBatchKeys } from './emit-dom';
 import { emitQrlReference, emitSetupQrl, getQrlVariableName } from './emit-qrl';
 import { getSegmentImportPath, shouldResolveSsrSegment } from './emit-segment';
 import type {
@@ -91,7 +92,7 @@ function emitSsrComponent(component: RewriteComponent, render: SsrRender, source
   );
 }
 
-export function emitSsrBranchRender(
+export function emitSsrSegmentRender(
   segment: Segment,
   source: string,
   imports: Set<string>
@@ -100,15 +101,34 @@ export function emitSsrBranchRender(
   if (result === undefined) {
     return null;
   }
-  if (result === null) {
-    return { hoists: [], statements: [], value: "''" };
+  let render: SsrRender | null;
+  switch (segment.kind) {
+    case 'branchRender':
+      if (result === null) {
+        return { hoists: [], statements: [], value: "''" };
+      }
+      render = emitSsrRender(
+        result,
+        source,
+        new Map(result.segments.map((child) => [child.name, child])),
+        'rangeId'
+      );
+      break;
+    case 'forRender':
+      if (result === null) {
+        return null;
+      }
+      render = emitSsrRender(
+        result,
+        source,
+        new Map(result.segments.map((child) => [child.name, child])),
+        null,
+        QwikAttributes.Row
+      );
+      break;
+    default:
+      return null;
   }
-  const render = emitSsrRender(
-    result,
-    source,
-    new Map(result.segments.map((segment) => [segment.name, segment])),
-    'rangeId'
-  );
   if (render === null) {
     return null;
   }
@@ -126,13 +146,18 @@ function emitSsrRender(
   result: RenderResult,
   source: string,
   segments: ReadonlyMap<string, Segment>,
-  branchRangeId: string | null = null
+  branchRangeId: string | null = null,
+  rootElementAttr: string | null = null
 ): SsrRender | null {
   const emittedSetup = emitSsrSetup(result, source);
   if (emittedSetup === null) {
     return null;
   }
-  const html = result.visibleTasks.length === 0 ? emitStaticHtml(result) : null;
+  const staticHtml = result.visibleTasks.length === 0 ? emitStaticHtml(result) : null;
+  const html =
+    staticHtml === null || rootElementAttr === null
+      ? staticHtml
+      : addStaticRootAttribute(staticHtml, rootElementAttr);
   if (html !== null) {
     const value = JSON.stringify(html);
     return {
@@ -142,7 +167,7 @@ function emitSsrRender(
       value: result.providesContext ? emitContextHtml(value) : value,
     };
   }
-  return emitDynamicRender(result, source, segments, emittedSetup, branchRangeId);
+  return emitDynamicRender(result, source, segments, emittedSetup, branchRangeId, rootElementAttr);
 }
 
 function emitDynamicRender(
@@ -150,7 +175,8 @@ function emitDynamicRender(
   source: string,
   segments: ReadonlyMap<string, Segment>,
   emittedSetup: { setup: SsrSetup; imports: string[] },
-  branchRangeId: string | null
+  branchRangeId: string | null,
+  rootElementAttr: string | null
 ): SsrRender | null {
   const root = result.roots[0];
   if (root === undefined) {
@@ -181,6 +207,7 @@ function emitDynamicRender(
   const props = new Map<number, string>();
   const dynamicValues = new Map<number, string>();
   const branches = new Map<number, { id: string; value: string }>();
+  const loops = new Map<number, { id: string; value: string }>();
   const events = new Map<string, string>();
   const componentImports = new Set<string>();
   const addedRoots = new Set<string>();
@@ -190,6 +217,13 @@ function emitDynamicRender(
     ...emitSsrRenderPrelude(result),
     ...(id === null || usesBranchRange ? [] : [`const ${id} = ctx.nextId();`]),
   ];
+  const batchKeys = getDomEffectBatchKeys(result.ops, source);
+  const batches = new Map<string, string>();
+  for (const key of batchKeys) {
+    const batch = next('batch');
+    batches.set(key, batch);
+    statements.push(`const ${batch} = ${QwikWord.CreateSsrDomBatchEffect}();`);
+  }
   for (const part of html) {
     switch (part.kind) {
       case 'dynamicJsx': {
@@ -233,6 +267,24 @@ function emitDynamicRender(
         );
         break;
       }
+      case 'for': {
+        const keySegment = segments.get(part.key.segment);
+        const renderSegment = segments.get(part.render.segment);
+        if (keySegment === undefined || renderSegment === undefined) {
+          return null;
+        }
+        const rangeId = next(QwikGenWord.Id);
+        const value = next('forBlock');
+        const sourceExpression = source.slice(part.source[0], part.source[1]);
+        const roots = new Set([sourceExpression, ...part.key.captures, ...part.render.captures]);
+        loops.set(part.target, { id: rangeId, value });
+        statements.push(
+          `const ${rangeId} = ctx.nextId();`,
+          ...emitSsrRoots(addedRoots, roots),
+          `const ${value} = ${QwikWord.RenderSsrForBlock}(ctx, ${rangeId}, ${sourceExpression}, ${emitQrlReference(keySegment)}, ${emitQrlReference(renderSegment)}, ${part.usesItemSignal}, ${part.usesIndexSignal});`
+        );
+        break;
+      }
       default:
         break;
     }
@@ -250,7 +302,8 @@ function emitDynamicRender(
       segments,
       source,
       id,
-      next
+      next,
+      batches
     );
     if (emitted === null) {
       return null;
@@ -266,9 +319,11 @@ function emitDynamicRender(
     props,
     dynamicValues,
     branches,
+    loops,
     events,
     targetIds,
-    elementTextMarkers
+    elementTextMarkers,
+    rootElementAttr
   );
   if (value === null) {
     return null;
@@ -278,12 +333,14 @@ function emitDynamicRender(
   const propsNames = [...props.values()];
   const dynamicValueNames = [...dynamicValues.values()];
   const branchNames = [...branches.values()].map((branch) => branch.value);
+  const loopNames = [...loops.values()].map((loop) => loop.value);
   const dynamicNames = [
     ...textNames,
     ...attrNames,
     ...propsNames,
     ...dynamicValueNames,
     ...branchNames,
+    ...loopNames,
   ];
   const renderedHtml = result.providesContext ? emitContextHtml(value) : value;
   const setupImports = [
@@ -337,7 +394,9 @@ function emitDynamicRender(
           ]
         : []),
       ...(propsNames.length > 0 ? [QwikWord.RenderSsrProps] : []),
+      ...(batches.size > 0 ? [QwikWord.CreateSsrDomBatchEffect] : []),
       ...(branchNames.length > 0 ? [QwikWord.RenderSsrBranch] : []),
+      ...(loopNames.length > 0 ? [QwikWord.RenderSsrForBlock] : []),
       QwikWord.MaybeThen,
       ...(dynamicNames.length > 1 ? [QwikWord.PromiseAll] : []),
     ],
@@ -472,8 +531,10 @@ function emitSsrOp(
   segments: ReadonlyMap<string, Segment>,
   source: string,
   id: string | null,
-  next: (prefix: string) => string
+  next: (prefix: string) => string,
+  batches: ReadonlyMap<string, string>
 ): string[] | null {
+  const batch = getSsrBatchArg(op, source, batches);
   switch (op.kind) {
     case 'textEffect':
       if (id === null) {
@@ -488,12 +549,13 @@ function emitSsrOp(
         segments,
         source,
         id,
-        next
+        next,
+        batch
       );
     case 'attrEffect':
-      return emitSsrAttrOp(op, attrs, targetIds, addedRoots, segments, source, next);
+      return emitSsrAttrOp(op, attrs, targetIds, addedRoots, segments, source, next, batch);
     case 'propsEffect':
-      return emitSsrPropsOp(op, props, targetIds, addedRoots, segments, next);
+      return emitSsrPropsOp(op, props, targetIds, addedRoots, segments, next, batch);
     case 'event': {
       let reference: string;
       switch (op.binding.kind) {
@@ -526,7 +588,8 @@ function emitSsrPropsOp(
   targetIds: Map<number, string>,
   addedRoots: Set<string>,
   segments: ReadonlyMap<string, Segment>,
-  next: (prefix: string) => string
+  next: (prefix: string) => string,
+  batch: string
 ): string[] | null {
   const segment = segments.get(op.binding.segment);
   if (segment === undefined) {
@@ -546,7 +609,7 @@ function emitSsrPropsOp(
     ...emitSsrRoots(addedRoots, op.binding.captures),
     `const ${value} = ${QwikWord.RenderSsrProps}(${QwikWord.CreateSsrElementTarget}(${targetId}), [${op.binding.captures.join(
       ', '
-    )}], ${getQrlVariableName(segment)}, ctx.eventAttr);`,
+    )}], ${getQrlVariableName(segment)}, ctx.eventAttr${batch});`,
   ];
 }
 
@@ -557,7 +620,8 @@ function emitSsrAttrOp(
   addedRoots: Set<string>,
   segments: ReadonlyMap<string, Segment>,
   source: string,
-  next: (prefix: string) => string
+  next: (prefix: string) => string,
+  batch: string
 ): string[] | null {
   let targetId = targetIds.get(op.target);
   const statements: string[] = [];
@@ -577,7 +641,7 @@ function emitSsrAttrOp(
         ...emitSsrRoots(addedRoots, [sourceExpr]),
         `const ${attr} = ${QwikWord.RenderSsrAttr}(${target}, ${JSON.stringify(
           op.name
-        )}, ${sourceExpr});`,
+        )}, ${sourceExpr}${batch});`,
       ];
     }
     case 'expression': {
@@ -590,7 +654,7 @@ function emitSsrAttrOp(
         ...emitSsrRoots(addedRoots, op.binding.captures),
         `const ${attr} = ${QwikWord.RenderSsrAttrExpression}(${target}, ${JSON.stringify(
           op.name
-        )}, [${op.binding.captures.join(', ')}], ${getQrlVariableName(segment)});`,
+        )}, [${op.binding.captures.join(', ')}], ${getQrlVariableName(segment)}${batch});`,
       ];
     }
   }
@@ -605,7 +669,8 @@ function emitSsrTextOp(
   segments: ReadonlyMap<string, Segment>,
   source: string,
   id: string,
-  next: (prefix: string) => string
+  next: (prefix: string) => string,
+  batch: string
 ): string[] | null {
   const statements: string[] = [];
   let target: string;
@@ -632,7 +697,7 @@ function emitSsrTextOp(
       return [
         ...statements,
         ...emitSsrRoots(addedRoots, [expr]),
-        `const ${text} = ${QwikWord.RenderSsrTextNode}(${target}, ${expr});`,
+        `const ${text} = ${QwikWord.RenderSsrTextNode}(${target}, ${expr}${batch});`,
       ];
     }
     case 'expression': {
@@ -645,12 +710,18 @@ function emitSsrTextOp(
         ...emitSsrRoots(addedRoots, op.binding.captures),
         `const ${text} = ${QwikWord.RenderSsrTextExpression}(${target}, [${op.binding.captures.join(
           ', '
-        )}], ${getQrlVariableName(segment)});`,
+        )}], ${getQrlVariableName(segment)}${batch});`,
       ];
     }
     case 'unsupported':
       return null;
   }
+}
+
+function getSsrBatchArg(op: Op, source: string, batches: ReadonlyMap<string, string>): string {
+  const key = getDomEffectBatchKey(op, source);
+  const batch = key === null ? undefined : batches.get(key);
+  return batch === undefined ? '' : `, ${batch}`;
 }
 
 function emitSsrRoots(addedRoots: Set<string>, roots: Iterable<string>): string[] {
@@ -684,28 +755,35 @@ function emitDynamicHtml(
   props: ReadonlyMap<number, string>,
   dynamicValues: ReadonlyMap<number, string>,
   branches: ReadonlyMap<number, { id: string; value: string }>,
+  loops: ReadonlyMap<number, { id: string; value: string }>,
   events: ReadonlyMap<string, string>,
   targetIds: ReadonlyMap<number, string>,
-  elementTextMarkers: ReadonlySet<number>
+  elementTextMarkers: ReadonlySet<number>,
+  rootElementAttr: string | null
 ): string | null {
-  const expressions: string[] = [];
-  let didInjectRootId = false;
+  const frames: Array<{ target: number; props: string; expressions: string[] }> = [
+    { target: -1, props: '', expressions: [] },
+  ];
+  const pushExpression = (...expressions: string[]) => {
+    frames[frames.length - 1].expressions.push(...expressions);
+  };
+  let didInjectRoot = false;
   const injectedTargets = new Set<number>();
   for (const part of parts) {
     switch (part.kind) {
       case 'html': {
         const expression =
-          id === null || didInjectRootId
+          (id === null && rootElementAttr === null) || didInjectRoot
             ? JSON.stringify(part.value)
-            : emitRootHtml(part.value, id);
+            : emitRootHtml(part.value, id, rootElementAttr);
         if (expression === null) {
           return null;
         }
-        if (id !== null) {
-          didInjectRootId = true;
+        if (id !== null || rootElementAttr !== null) {
+          didInjectRoot = true;
           injectedTargets.add(root);
         }
-        expressions.push(expression);
+        pushExpression(expression);
         break;
       }
       case 'attr':
@@ -716,11 +794,7 @@ function emitDynamicHtml(
             return null;
           }
           injectedTargets.add(part.target);
-          expressions.push(
-            JSON.stringify(` ${QwikAttributes.Id}="`),
-            targetId,
-            JSON.stringify('"')
-          );
+          pushExpression(JSON.stringify(` ${QwikAttributes.Id}="`), targetId, JSON.stringify('"'));
         }
         switch (part.kind) {
           case 'attr': {
@@ -728,7 +802,7 @@ function emitDynamicHtml(
             if (attr === undefined) {
               return null;
             }
-            expressions.push(
+            pushExpression(
               JSON.stringify(` ${part.name}="`),
               `${QwikWord.EscapeHTML}(${attr})`,
               JSON.stringify('"')
@@ -740,7 +814,7 @@ function emitDynamicHtml(
             if (value === undefined) {
               return null;
             }
-            expressions.push(`${value}.attrs`);
+            pushExpression(`${value}.attrs`);
             break;
           }
         }
@@ -751,7 +825,7 @@ function emitDynamicHtml(
         if (event === undefined) {
           return null;
         }
-        expressions.push(event);
+        pushExpression(event);
         break;
       }
       case 'dynamicJsx':
@@ -760,7 +834,7 @@ function emitDynamicHtml(
         if (value === undefined) {
           return null;
         }
-        expressions.push(value);
+        pushExpression(value);
         break;
       }
       case 'branch': {
@@ -768,12 +842,26 @@ function emitDynamicHtml(
         if (branch === undefined) {
           return null;
         }
-        expressions.push(
+        pushExpression(
           JSON.stringify('<!b='),
           branch.id,
           JSON.stringify('>'),
           branch.value,
           JSON.stringify('<!/b>')
+        );
+        break;
+      }
+      case 'for': {
+        const loop = loops.get(part.target);
+        if (loop === undefined) {
+          return null;
+        }
+        pushExpression(
+          JSON.stringify('<!f='),
+          loop.id,
+          JSON.stringify('>'),
+          loop.value,
+          JSON.stringify('<!/f>')
         );
         break;
       }
@@ -786,7 +874,7 @@ function emitDynamicHtml(
           return null;
         }
         injectedTargets.add(part.id);
-        expressions.push(JSON.stringify(` ${QwikAttributes.Id}="`), targetId, JSON.stringify('"'));
+        pushExpression(JSON.stringify(` ${QwikAttributes.Id}="`), targetId, JSON.stringify('"'));
         break;
       }
       case 'marker': {
@@ -795,16 +883,33 @@ function emitDynamicHtml(
           return null;
         }
         if (!elementTextMarkers.has(part.id)) {
-          expressions.push(JSON.stringify(QwikComments.TextMarker));
+          pushExpression(JSON.stringify(QwikComments.TextMarker));
         }
-        expressions.push(`${QwikWord.EscapeHTML}(${text})`);
+        pushExpression(`${QwikWord.EscapeHTML}(${text})`);
+        break;
+      }
+      case 'childrenStart': {
+        const value = props.get(part.target);
+        if (value === undefined) {
+          return null;
+        }
+        frames.push({ target: part.target, props: value, expressions: [] });
+        break;
+      }
+      case 'childrenEnd': {
+        const frame = frames.pop();
+        if (frame === undefined || frame.target !== part.target || frames.length === 0) {
+          return null;
+        }
+        const fallback = frame.expressions.length === 0 ? "''" : frame.expressions.join(' + ');
+        pushExpression(`(${frame.props}.innerHTML ?? (${fallback}))`);
         break;
       }
       default:
         return null;
     }
   }
-  return expressions.join(' + ');
+  return frames.length === 1 ? frames[0].expressions.join(' + ') : null;
 }
 
 function createAttrKey(target: number, name: string, expr: readonly number[]) {
@@ -815,14 +920,25 @@ function createEventKey(target: number, name: string, key: string) {
   return `${target}:${name}:${key}`;
 }
 
-function emitRootHtml(html: string, id: string): string | null {
+function addStaticRootAttribute(html: string, attribute: string): string {
+  const insert = html.indexOf('>');
+  return insert === -1
+    ? `${html} ${attribute}`
+    : `${html.slice(0, insert)} ${attribute}${html.slice(insert)}`;
+}
+
+function emitRootHtml(html: string, id: string | null, attribute: string | null): string | null {
+  const staticAttribute = attribute === null ? '' : ` ${attribute}`;
   const insert = html.lastIndexOf('>');
   if (insert === -1) {
-    return `${JSON.stringify(`${html} ${QwikAttributes.Id}="`)} + ${id} + ${JSON.stringify('"')}`;
+    return id === null
+      ? JSON.stringify(`${html}${staticAttribute}`)
+      : `${JSON.stringify(`${html} ${QwikAttributes.Id}="`)} + ${id} + ${JSON.stringify(`"${staticAttribute}`)}`;
   }
-  return `${JSON.stringify(`${html.slice(0, insert)} ${QwikAttributes.Id}="`)} + ${id} + ${JSON.stringify(
-    `"${html.slice(insert)}`
-  )}`;
+  const suffix = `${staticAttribute}${html.slice(insert)}`;
+  return id === null
+    ? JSON.stringify(`${html.slice(0, insert)}${suffix}`)
+    : `${JSON.stringify(`${html.slice(0, insert)} ${QwikAttributes.Id}="`)} + ${id} + ${JSON.stringify(`"${suffix}`)}`;
 }
 
 function createNameAllocator() {

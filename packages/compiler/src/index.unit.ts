@@ -993,6 +993,17 @@ export function App() {
     });
   });
 
+  test('supports static keyed JSX loops', async () => {
+    await testInput('jsx_loop_static_row', {
+      code: `import { useSignal } from '@qwik.dev/core/spark';
+export function App() {
+  const items = useSignal([{ id: 'a' }]);
+  return <ul>{items.value.map((item) => <li key={item.id}>Item</li>)}</ul>;
+}
+`,
+    });
+  });
+
   test('supports keyed JSX loops', async () => {
     await testInput('jsx_loops_keyed', {
       code: `import { useSignal } from '@qwik.dev/core/spark';

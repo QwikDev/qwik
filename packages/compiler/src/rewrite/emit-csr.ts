@@ -1,4 +1,5 @@
 import { emitComponentFunction, emitComponentProps, emitTemplateHtml } from './emit-html';
+import { getDomEffectBatchKey, getDomEffectBatchKeys } from './emit-dom';
 import { emitCapturedFunctionReference, emitSetupQrl } from './emit-qrl';
 import { getSegmentImportPath } from './emit-segment';
 import type {
@@ -16,6 +17,12 @@ interface CsrRender {
   hoists: string[];
   statements: string[];
   value: string;
+}
+
+interface CsrDomBatch {
+  effect: string;
+  update: string;
+  operations: string[];
 }
 
 const REF_STEP_HELPERS: Record<RefStep, QwikWord> = {
@@ -106,7 +113,10 @@ function emitCsrRender(
   const textMarkers = new Set([
     ...result.ops.flatMap((op) => (op.kind === 'textEffect' ? [op.target.marker] : [])),
     ...result.html.flatMap((part) =>
-      part.kind === 'dynamicJsx' || part.kind === 'component' || part.kind === 'branch'
+      part.kind === 'dynamicJsx' ||
+      part.kind === 'component' ||
+      part.kind === 'branch' ||
+      part.kind === 'for'
         ? [part.target]
         : []
     ),
@@ -184,16 +194,51 @@ function emitCsrRender(
         );
         break;
       }
+      case 'for': {
+        const target = refNames.get(part.target);
+        if (target === undefined) {
+          return null;
+        }
+        const start = next('comment');
+        const end = next('comment');
+        const block = next('forBlock');
+        imports.add(QwikWord.ForRange);
+        imports.add(QwikWord.CreateForBlock);
+        statements.push(
+          `const ${start} = ctx.document.createComment('f');`,
+          `const ${end} = ctx.document.createComment('/f');`,
+          `${target}.replaceWith(${start}, ${end});`,
+          `const ${block} = ${QwikWord.CreateForBlock}(ctx, new ${QwikWord.ForRange}(ctx.document, ${start}, ${end}), ${source.slice(part.source[0], part.source[1])}, ${emitCapturedFunctionReference(part.key.segment, part.key.captures, imports)}, ${emitCapturedFunctionReference(part.render.segment, part.render.captures, imports)}, ${part.usesItemSignal}, ${part.usesIndexSignal});`,
+          `${block}.run();`
+        );
+        break;
+      }
       default:
         break;
     }
   }
+  const batchKeys = getDomEffectBatchKeys(result.ops, source);
+  const batches = new Map<string, CsrDomBatch>();
   for (const op of result.ops) {
-    const emitted = emitCsrOp(op, refNames, source, next, imports);
+    const batchKey = getDomEffectBatchKey(op, source);
+    const batch =
+      batchKey !== null && batchKeys.has(batchKey)
+        ? getCsrBatch(batchKey, batches, next)
+        : undefined;
+    const emitted = emitCsrOp(op, refNames, source, next, imports, batch);
     if (emitted === null) {
       return null;
     }
     statements.push(...emitted);
+  }
+  for (const batch of batches.values()) {
+    imports.add(QwikWord.CreateDomBatchEffect);
+    imports.add(QwikWord.RunDomBatchEffect);
+    statements.push(
+      `function ${batch.update}() { ${batch.operations.join(' ')} }`,
+      `const ${batch.effect} = ${QwikWord.CreateDomBatchEffect}(${batch.update}, ctx.scheduler);`,
+      `${QwikWord.RunDomBatchEffect}(${batch.effect}, ${batch.update});`
+    );
   }
   const values: string[] = [];
   for (const root of result.roots) {
@@ -215,7 +260,20 @@ function emitCsrRender(
   };
 }
 
-export function emitCsrBranchRender(
+function getCsrBatch(
+  key: string,
+  batches: Map<string, CsrDomBatch>,
+  next: (prefix: string) => string
+) {
+  let batch = batches.get(key);
+  if (batch === undefined) {
+    batch = { effect: next('effect'), update: next('batch'), operations: [] };
+    batches.set(key, batch);
+  }
+  return batch;
+}
+
+export function emitCsrSegmentRender(
   segment: Segment,
   source: string,
   imports: Set<string>
@@ -224,9 +282,16 @@ export function emitCsrBranchRender(
   if (result === undefined) {
     return null;
   }
-  return result === null
-    ? { hoists: [], statements: [], value: '[]' }
-    : emitCsrRender(segment.name, result, source, imports, true);
+  switch (segment.kind) {
+    case 'branchRender':
+      return result === null
+        ? { hoists: [], statements: [], value: '[]' }
+        : emitCsrRender(segment.name, result, source, imports, true);
+    case 'forRender':
+      return result === null ? null : emitCsrRender(segment.name, result, source, imports);
+    default:
+      return null;
+  }
 }
 
 function emitCsrOp(
@@ -234,7 +299,8 @@ function emitCsrOp(
   refNames: Map<number, string>,
   source: string,
   next: (prefix: string) => string,
-  imports: Set<string>
+  imports: Set<string>,
+  batch?: CsrDomBatch
 ): string[] | null {
   switch (op.kind) {
     case 'textEffect': {
@@ -244,8 +310,16 @@ function emitCsrOp(
       }
       switch (op.binding.kind) {
         case 'source': {
-          const effect = next('effect');
           const expr = source.slice(op.binding.range[0], op.binding.range[1]);
+          if (batch !== undefined) {
+            imports.add(QwikWord.PatchTextValue);
+            imports.add(QwikWord.ReadTrackedSourceValue);
+            batch.operations.push(
+              `${QwikWord.PatchTextValue}(${target}, ${QwikWord.ReadTrackedSourceValue}(${expr}));`
+            );
+            return [];
+          }
+          const effect = next('effect');
           imports.add(QwikWord.CreateTextNodeEffect);
           return [
             `const ${effect} = ${QwikWord.CreateTextNodeEffect}(${target}, ${expr}, ctx.scheduler);`,
@@ -253,6 +327,13 @@ function emitCsrOp(
           ];
         }
         case 'expression': {
+          if (batch !== undefined) {
+            imports.add(QwikWord.PatchTextValue);
+            batch.operations.push(
+              `${QwikWord.PatchTextValue}(${target}, ${op.binding.segment}(${op.binding.captures.join(', ')}));`
+            );
+            return [];
+          }
           const effect = next('effect');
           imports.add(QwikWord.CreateTextExpressionEffect);
           return [
@@ -271,6 +352,25 @@ function emitCsrOp(
       const target = refNames.get(op.target);
       if (target === undefined) {
         return null;
+      }
+      if (batch !== undefined) {
+        imports.add(QwikWord.PatchAttrValue);
+        switch (op.binding.kind) {
+          case 'source': {
+            const value = source.slice(op.binding.range[0], op.binding.range[1]);
+            imports.add(QwikWord.ReadTrackedSourceValue);
+            batch.operations.push(
+              `${QwikWord.PatchAttrValue}(${target}, ${JSON.stringify(op.name)}, ${QwikWord.ReadTrackedSourceValue}(${value}));`
+            );
+            break;
+          }
+          case 'expression':
+            batch.operations.push(
+              `${QwikWord.PatchAttrValue}(${target}, ${JSON.stringify(op.name)}, ${op.binding.segment}(${op.binding.captures.join(', ')}));`
+            );
+            break;
+        }
+        return [];
       }
       const effect = next(QwikGenWord.Effect);
       let declaration: string;
@@ -296,6 +396,14 @@ function emitCsrOp(
       const target = refNames.get(op.target);
       if (target === undefined) {
         return null;
+      }
+      if (batch !== undefined) {
+        const previous = next('prevProps');
+        imports.add(QwikWord.ApplyDomProps);
+        batch.operations.push(
+          `${previous} = ${QwikWord.ApplyDomProps}(${target}, ${op.binding.segment}(${op.binding.captures.join(', ')}), ${previous});`
+        );
+        return [`let ${previous} = null;`];
       }
       const effect = next(QwikGenWord.Effect);
       imports.add(QwikWord.CreatePropsEffect);

@@ -7,9 +7,9 @@ import { createImportRecord } from '../stages/discover';
 import { emitImports } from '../stages/emit-utils';
 import type { CompilerContext, ImportRecord } from '../types';
 import { discoverRewriteComponents } from './discover';
-import { emitCsrBranchRender, emitCsrModule } from './emit-csr';
+import { emitCsrModule, emitCsrSegmentRender } from './emit-csr';
 import { emitSegmentModules } from './emit-segment';
-import { emitSsrBranchRender, emitSsrModule } from './emit-ssr';
+import { emitSsrModule, emitSsrSegmentRender } from './emit-ssr';
 import { extractQrls } from './extract';
 import { lowerRewriteComponent } from './lower';
 import type { ModuleDeclaration, RewriteModule, RewriteOutput, Segment } from './types';
@@ -127,7 +127,7 @@ export function tryTransformJsx(ctx: CompilerContext): TransformModule[] | null 
     explicitExtensions,
     componentImportPaths,
     ctx.emitTarget,
-    ctx.emitTarget === 'ssr' ? emitSsrBranchRender : emitCsrBranchRender
+    ctx.emitTarget === 'ssr' ? emitSsrSegmentRender : emitCsrSegmentRender
   );
   return segmentModules === null ? null : [main, ...localModules, ...segmentModules];
 }

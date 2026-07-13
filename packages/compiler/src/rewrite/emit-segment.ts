@@ -11,17 +11,17 @@ import { isSetupQrlSegment } from './extract';
 import type { PropsExpressionPart, Segment } from './types';
 import { QWIK_IMPORT, QwikHooks, QwikWord } from './words';
 
-export interface EmittedBranchRender {
+export interface EmittedSegmentRender {
   hoists: string[];
   statements: string[];
   value: string;
 }
 
-export type BranchRenderEmitter = (
+export type SegmentRenderEmitter = (
   segment: Segment,
   source: string,
   imports: Set<string>
-) => EmittedBranchRender | null;
+) => EmittedSegmentRender | null;
 
 export function emitSegmentModules(
   segments: readonly Segment[],
@@ -30,7 +30,7 @@ export function emitSegmentModules(
   explicitExtensions: boolean,
   componentImportPaths: ReadonlyMap<string, string>,
   target: 'csr' | 'ssr',
-  emitBranchRender: BranchRenderEmitter
+  emitSegmentRender: SegmentRenderEmitter
 ): TransformModule[] | null {
   const modules: TransformModule[] = [];
   for (const segment of segments) {
@@ -43,7 +43,7 @@ export function emitSegmentModules(
       explicitExtensions,
       componentImportPaths,
       target,
-      emitBranchRender
+      emitSegmentRender
     );
     if (code === null) {
       return null;
@@ -80,7 +80,7 @@ function emitSegmentCode(
   explicitExtensions: boolean,
   componentImportPaths: ReadonlyMap<string, string>,
   target: 'csr' | 'ssr',
-  emitBranchRender: BranchRenderEmitter
+  emitSegmentRender: SegmentRenderEmitter
 ): string | null {
   const imports: string[] = [];
   const qwikImports = new Set<string>();
@@ -170,7 +170,7 @@ function emitSegmentCode(
     }
   }
   const rendered =
-    segment.render === undefined ? undefined : emitBranchRender(segment, source, qwikImports);
+    segment.render === undefined ? undefined : emitSegmentRender(segment, source, qwikImports);
   if (rendered === null) {
     return null;
   }
@@ -216,6 +216,19 @@ function emitSegmentCode(
       functionHead =
         target === 'ssr' && segment.render !== undefined ? '(ctx, rangeId) => ' : '(ctx) => ';
       break;
+    case 'forKey':
+      functionHead = `(${segment.paramRanges.map((range) => getParamName(range, source)).join(', ')}) => `;
+      break;
+    case 'forRender': {
+      const params = segment.paramRanges.map((range) => getParamName(range, source));
+      const item = params[0] ?? 'item';
+      const index = params[1] ?? 'index';
+      functionHead =
+        target === 'ssr'
+          ? `(ctx, rangeId, rowId, ${item}, ${index}) => `
+          : `(ctx, ${item}, ${index}) => `;
+      break;
+    }
     case 'event':
     case 'qrl':
       functionHead = source.slice(segment.functionRange[0], segment.bodyRange[0]);
@@ -237,6 +250,9 @@ export function shouldResolveSsrSegment(segment: Segment): boolean {
     case 'branchRender':
     case 'event':
       return false;
+    case 'forKey':
+    case 'forRender':
+      return true;
   }
 }
 
@@ -301,13 +317,15 @@ function createSegmentAnalysis(
     ctxName: segment.ctxName,
     captures: segment.captures.length > 0,
     loc: segment.range,
-    paramNames: segment.paramRanges.map((range) => {
-      const param = source.slice(range[0], range[1]).trim();
-      return /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(param) ? param : '_';
-    }),
+    paramNames: segment.paramRanges.map((range) => getParamName(range, source)),
     captureNames:
       segment.captures.length > 0 ? segment.captures.map((capture) => capture.name) : undefined,
   };
+}
+
+function getParamName(range: Segment['range'], source: string): string {
+  const param = source.slice(range[0], range[1]).trim();
+  return /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(param) ? param : '_';
 }
 
 function getInputImportPath(inputPath: string, explicitExtensions: boolean): string {

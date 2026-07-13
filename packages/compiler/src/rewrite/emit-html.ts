@@ -20,6 +20,7 @@ function emitHtmlParts(parts: readonly HtmlPart[], markers: boolean): string | n
       case 'dynamicJsx':
       case 'component':
       case 'branch':
+      case 'for':
         if (!markers) {
           return null;
         }
@@ -32,6 +33,9 @@ function emitHtmlParts(parts: readonly HtmlPart[], markers: boolean): string | n
         if (!markers) {
           return null;
         }
+        break;
+      case 'childrenStart':
+      case 'childrenEnd':
         break;
       default:
         return null;

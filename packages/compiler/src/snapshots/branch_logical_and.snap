@@ -114,7 +114,13 @@ export const component_branch_then_segment_1 = (ctx, rangeId) => {
   return maybeThen(
     promiseAll([text0, props0]),
     ([text0, props0]) =>
-      '<span q:id="' + id0 + '"' + props0.attrs + '>' + '<!t>' + escapeHTML(text0) + '!' + '</span>'
+      '<span q:id="' +
+      id0 +
+      '"' +
+      props0.attrs +
+      '>' +
+      (props0.innerHTML ?? '<!t>' + escapeHTML(text0) + '!') +
+      '</span>'
   );
 };
 /*

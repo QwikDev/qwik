@@ -22,9 +22,10 @@ import {
   unwrapExpression,
 } from '../ast-utils';
 import { escapeAttr, escapeText, serializeAttrValue } from '../stages/emit-utils';
-import type { SourceRange } from '../types';
+import type { AstNode, SourceRange } from '../types';
 import {
   getJsxBranchExpression,
+  getJsxMapExpression,
   getStaticBranchCondition,
   isEmptyBranchExpression,
   visit,
@@ -38,6 +39,7 @@ import type {
   EventHtmlPart,
   ExpressionEffectBinding,
   ExtractedQrls,
+  ForHtmlPart,
   HtmlHtmlPart,
   HtmlPart,
   Op,
@@ -259,6 +261,10 @@ function renderJsxElementHtml(
   }
   html.push(...attrs);
   html.push(createHtmlRecord('>'));
+  const dynamicPropsTarget = attrs.find((part) => part.kind === 'props')?.target;
+  if (!isVoid && dynamicPropsTarget !== undefined) {
+    html.push({ kind: 'childrenStart', target: dynamicPropsTarget });
+  }
 
   const refs: RefInRoot[] =
     elementId === undefined || elementId === existingId ? [] : [{ id: elementId, path: [] }];
@@ -269,6 +275,9 @@ function renderJsxElementHtml(
     refs.push(...child.refs.map((ref) => ({ id: ref.id, path: [...path, ...ref.path] })));
   }
   if (!isVoid) {
+    if (dynamicPropsTarget !== undefined) {
+      html.push({ kind: 'childrenEnd', target: dynamicPropsTarget });
+    }
     html.push(createHtmlRecord(`</${tag}>`));
   }
   return { kind: 'content', html, refs };
@@ -764,6 +773,7 @@ function getDynamicAttrValue(
     case 'CallExpression':
     case 'ConditionalExpression':
     case 'LogicalExpression':
+    case 'ObjectExpression':
     case 'UnaryExpression':
     case 'TemplateLiteral':
       return createDynamicAttrExpression(expr, state);
@@ -842,6 +852,10 @@ function renderJsxExpression(expression: unknown, state: LowerState): RenderedJs
     case 'JSXFragment':
       return renderJsxChildren(expr.children, state);
     case 'CallExpression': {
+      const loop = renderJsxFor(expr, state);
+      if (loop !== null) {
+        return [loop];
+      }
       const target = state.nextRefId();
       return [
         {
@@ -882,9 +896,9 @@ function renderJsxExpression(expression: unknown, state: LowerState): RenderedJs
       ) {
         return [];
       }
-      attachBranchRender(thenSegment, branch.then, state);
+      attachRender(thenSegment, branch.then, state);
       if (elseSegment !== undefined && branch.else !== null) {
-        attachBranchRender(elseSegment, branch.else, state);
+        attachRender(elseSegment, branch.else, state);
       }
       const target = state.nextRefId();
       return [
@@ -920,6 +934,59 @@ function renderJsxExpression(expression: unknown, state: LowerState): RenderedJs
   }
 }
 
+function renderJsxFor(expression: AstNode, state: LowerState): RenderedJsx | null {
+  const loop = getJsxMapExpression(expression);
+  if (loop === null) {
+    return null;
+  }
+  const source = getDirectTrackedSourceRange(loop.source, state.trackedSources);
+  const keyRange = getRange(loop.key);
+  const rowRange = getRange(loop.row);
+  if (source === null || keyRange === null || rowRange === null) {
+    return null;
+  }
+  const key = getSegment('forKey', keyRange, state);
+  const render = getSegment('forRender', rowRange, state);
+  if (key === undefined || render === undefined) {
+    return null;
+  }
+  attachRender(render, loop.row, state);
+  if (render.render === undefined || render.render === null) {
+    return null;
+  }
+  const usage = getLoopParamUsage(loop.row, loop.itemName, loop.indexName);
+  const target = state.nextRefId();
+  const part: ForHtmlPart = {
+    kind: 'for',
+    target,
+    source,
+    key: createSegmentBinding(state, key),
+    render: createSegmentBinding(state, render),
+    usesItemSignal: usage.item,
+    usesIndexSignal: usage.index,
+  };
+  return {
+    kind: 'content',
+    html: [part],
+    refs: [{ id: target, path: [] }],
+  };
+}
+
+function getLoopParamUsage(row: JSXElement, itemName: string, indexName: string | null) {
+  let item = false;
+  let index = false;
+  visit(row, (node) => {
+    if (node.type === 'JSXAttribute' && getJsxAttributeName(node.name) === 'key') {
+      return false;
+    }
+    if (node.type === 'Identifier') {
+      item ||= node.name === itemName;
+      index ||= indexName !== null && node.name === indexName;
+    }
+  });
+  return { item, index };
+}
+
 function renderStaticSourceTextExpression(
   expression: unknown,
   state: LowerState
@@ -940,7 +1007,7 @@ function renderStaticSourceTextExpression(
   );
 }
 
-function attachBranchRender(segment: Segment, expression: unknown, state: LowerState): void {
+function attachRender(segment: Segment, expression: unknown, state: LowerState): void {
   if (isEmptyBranchExpression(expression)) {
     segment.render = null;
     return;

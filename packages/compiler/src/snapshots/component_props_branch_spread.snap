@@ -44,7 +44,14 @@ export function Conditional(props, ctx) {
   );
   return maybeThen(
     props0,
-    (props0) => '<button q:id="' + id0 + '"' + props0.attrs + '>' + 'Conditional' + '</button>'
+    (props0) =>
+      '<button q:id="' +
+      id0 +
+      '"' +
+      props0.attrs +
+      '>' +
+      (props0.innerHTML ?? 'Conditional') +
+      '</button>'
   );
 }
 export function Logical(props, ctx) {
@@ -58,7 +65,14 @@ export function Logical(props, ctx) {
   );
   return maybeThen(
     props0,
-    (props0) => '<button q:id="' + id0 + '"' + props0.attrs + '>' + 'Logical' + '</button>'
+    (props0) =>
+      '<button q:id="' +
+      id0 +
+      '"' +
+      props0.attrs +
+      '>' +
+      (props0.innerHTML ?? 'Logical') +
+      '</button>'
   );
 }
 ============================= src/component.tsx_component_props_segment_0.js (ENTRY POINT)==

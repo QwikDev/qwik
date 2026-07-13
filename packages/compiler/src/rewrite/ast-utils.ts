@@ -1,10 +1,71 @@
-import type { Node } from 'oxc-parser';
-import { unwrapExpression } from '../ast-utils';
+import type { JSXElement, Node } from 'oxc-parser';
+import {
+  getIdentifierName,
+  getJsxAttributeName,
+  isFunctionLike,
+  unwrapExpression,
+} from '../ast-utils';
+import type { AstFunction } from '../types';
 
 export interface JsxBranchExpression {
   condition: Node;
   then: Node;
   else: Node | null;
+}
+
+export interface JsxMapExpression {
+  source: Node;
+  callback: AstFunction;
+  row: JSXElement;
+  key: Node;
+  itemName: string;
+  indexName: string | null;
+}
+
+export function getJsxMapExpression(node: unknown): JsxMapExpression | null {
+  const expr = unwrapExpression(node);
+  if (expr?.type !== 'CallExpression') {
+    return null;
+  }
+  const callee = unwrapExpression(expr.callee);
+  if (
+    callee?.type !== 'MemberExpression' ||
+    callee.computed ||
+    getIdentifierName(callee.property) !== 'map'
+  ) {
+    return null;
+  }
+  const callback = unwrapExpression(expr.arguments[0]);
+  if (!isFunctionLike(callback) || callback.async || callback.params.length > 2) {
+    return null;
+  }
+  const itemName = getIdentifierName(callback.params[0]);
+  const indexName = callback.params[1] === undefined ? null : getIdentifierName(callback.params[1]);
+  if (itemName === null || (callback.params[1] !== undefined && indexName === null)) {
+    return null;
+  }
+  const row = unwrapExpression(callback.body);
+  if (row?.type !== 'JSXElement') {
+    return null;
+  }
+  const keyAttr = row.openingElement.attributes.find(
+    (attr) => attr.type === 'JSXAttribute' && getJsxAttributeName(attr.name) === 'key'
+  );
+  const key =
+    keyAttr?.type === 'JSXAttribute' && keyAttr.value?.type === 'JSXExpressionContainer'
+      ? unwrapExpression(keyAttr.value.expression)
+      : null;
+  if (key === null) {
+    return null;
+  }
+  return {
+    source: callee.object,
+    callback,
+    row,
+    key,
+    itemName,
+    indexName,
+  };
 }
 
 export function getJsxBranchExpression(node: unknown): JsxBranchExpression | null {

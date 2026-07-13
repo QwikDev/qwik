@@ -10,7 +10,7 @@ import {
   unwrapExpression,
 } from '../ast-utils';
 import type { AstFunction, AstNode } from '../types';
-import { getJsxBranchExpression, getStaticBranchCondition } from './ast-utils';
+import { getJsxBranchExpression, getJsxMapExpression, getStaticBranchCondition } from './ast-utils';
 import type { ExtractedQrls, ModuleDeclaration, Segment, SegmentCapture } from './types';
 import { QWIK_CORE_IMPORT, QWIK_IMPORT, QwikHooks } from './words';
 
@@ -394,6 +394,9 @@ class QrlExtractor {
       return;
     }
     const ctxName = getJsxAttributeName(node.name);
+    if (ctxName === 'key') {
+      return;
+    }
     const expression =
       node.value?.type === 'JSXExpressionContainer'
         ? unwrapExpression(node.value.expression)
@@ -445,6 +448,7 @@ class QrlExtractor {
               : null;
           if (
             name !== null &&
+            name !== 'key' &&
             jsxEventToHtmlAttribute(name) === null &&
             expression !== null &&
             expression !== undefined &&
@@ -489,10 +493,70 @@ class QrlExtractor {
   private visitJsxExpression(expression: AstNode | null | undefined) {
     if (
       !this.visitJsxBranchSegments(expression) &&
+      !this.visitJsxForSegments(expression) &&
       !this.visitJsxExpressionSegment('text', expression)
     ) {
       this.visit(expression);
     }
+  }
+
+  private visitJsxForSegments(expression: AstNode | null | undefined): boolean {
+    const loop = getJsxMapExpression(expression);
+    if (loop === null) {
+      return false;
+    }
+    const renderSegment = this.createForSegment('forRender', 'for:render', loop.callback, loop.row);
+    const keySegment = this.createForSegment('forKey', 'for:key', loop.callback, loop.key);
+    if (renderSegment === null || keySegment === null) {
+      return false;
+    }
+    const previousScope = this.scope;
+    const previousOwner = this.owner;
+    const owner = this.nextOwner++;
+    this.ownerParents[owner] = previousOwner;
+    this.scope = this.createScope(previousScope, owner, 'function');
+    this.owner = owner;
+    for (const param of loop.callback.params) {
+      this.definePatternBindings(param, 'loop', this.scope);
+      this.visitPatternExpressions(param);
+    }
+    this.visitForSegment(keySegment, loop.key);
+    this.visitForSegment(renderSegment, loop.row);
+    this.scope = previousScope;
+    this.owner = previousOwner;
+    return true;
+  }
+
+  private createForSegment(
+    kind: 'forKey' | 'forRender',
+    ctxName: string,
+    callback: AstFunction,
+    body: AstNode
+  ): Segment | null {
+    const functionRange = getRange(callback);
+    if (functionRange === null) {
+      return null;
+    }
+    const segment = this.createExpressionSegment(ctxName, body, kind);
+    if (segment === null) {
+      return null;
+    }
+    segment.functionRange = functionRange;
+    segment.paramRanges = callback.params.map(getRange).filter((range) => range !== null);
+    return segment;
+  }
+
+  private visitForSegment(segment: Segment, expression: AstNode) {
+    const state = {
+      segment,
+      owner: this.owner,
+      captures: new Set<number>(),
+      moduleReferences: new Set<number>(),
+    };
+    this.segmentStack.push(state);
+    this.visit(expression);
+    this.segmentStack.pop();
+    this.propagateCaptures(state);
   }
 
   private visitJsxBranchSegments(expression: AstNode | null | undefined): boolean {
@@ -559,7 +623,7 @@ class QrlExtractor {
   private createExpressionSegment(
     ctxName: string,
     expression: AstNode,
-    kind: 'expression' | 'branchCondition' | 'branchRender' = 'expression'
+    kind: 'expression' | 'branchCondition' | 'branchRender' | 'forKey' | 'forRender' = 'expression'
   ): Segment | null {
     const range = getRange(expression);
     if (range === null) {

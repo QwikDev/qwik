@@ -74,8 +74,18 @@ export type BranchHtmlPart = {
   then: SegmentBinding;
   else: SegmentBinding | null;
 };
+export type ForHtmlPart = {
+  kind: 'for';
+  target: number;
+  source: SourceRange;
+  key: SegmentBinding;
+  render: SegmentBinding;
+  usesItemSignal: boolean;
+  usesIndexSignal: boolean;
+};
 export type MarkerHtmlPart = { kind: 'marker'; id: number };
 export type TargetHtmlPart = { kind: 'target'; id: number };
+export type ChildrenHtmlPart = { kind: 'childrenStart' | 'childrenEnd'; target: number };
 export type HtmlHtmlPart = { kind: 'html'; value: string };
 
 export type HtmlPart =
@@ -83,11 +93,13 @@ export type HtmlPart =
   | DynamicJsxHtmlPart
   | ComponentHtmlPart
   | BranchHtmlPart
+  | ForHtmlPart
   | AttributeHtmlPart
   | { kind: 'props'; target: number }
   | EventHtmlPart
   | MarkerHtmlPart
-  | TargetHtmlPart;
+  | TargetHtmlPart
+  | ChildrenHtmlPart;
 
 export type RefStep = 'firstChild' | 'lastChild' | 'nextSibling' | 'previousSibling';
 
@@ -155,7 +167,14 @@ export interface Segment {
   id: string;
   parentId: string | null;
   name: string;
-  kind: 'event' | 'qrl' | 'expression' | 'branchCondition' | 'branchRender';
+  kind:
+    | 'event'
+    | 'qrl'
+    | 'expression'
+    | 'branchCondition'
+    | 'branchRender'
+    | 'forKey'
+    | 'forRender';
   ctxName: string;
   qwik: boolean;
   range: SourceRange;

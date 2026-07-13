@@ -21,13 +21,13 @@ export function App() {
 
 import {
   useSignal,
-  createSsrDomBatchEffect,
-  createSsrElementTarget,
-  _qrlWithChunk,
   escapeHTML,
+  createSsrElementTarget,
   renderSsrAttrExpression,
+  createSsrDomBatchEffect,
   maybeThen,
   promiseAll,
+  _qrlWithChunk,
 } from '@qwik.dev/core/spark';
 import { component_title_segment_0 } from './component.tsx_component_title_segment_0';
 import { component_className_segment_1 } from './component.tsx_component_className_segment_1';
@@ -51,56 +51,58 @@ const q_component_style_segment_2 = /*#__PURE__*/ _qrlWithChunk(
   'component_style_segment_2'
 );
 q_component_style_segment_2.s(component_style_segment_2);
-
-export function App(_props, ctx) {
+export function App(props, ctx) {
   const count = useSignal(0);
   const id0 = ctx.nextId();
+  const batch0 = createSsrDomBatchEffect();
   ctx.addRoot(count);
-  const batch2 = createSsrDomBatchEffect();
-  const attr1 = renderSsrAttrExpression(
+  const attr0 = renderSsrAttrExpression(
     createSsrElementTarget(id0),
     'title',
     [count],
     q_component_title_segment_0,
-    batch2
+    batch0
   );
-  const attr3 = renderSsrAttrExpression(
+  const attr1 = renderSsrAttrExpression(
     createSsrElementTarget(id0),
     'class',
     [count],
     q_component_className_segment_1,
-    batch2
+    batch0
   );
-  const attr4 = renderSsrAttrExpression(
+  const attr2 = renderSsrAttrExpression(
     createSsrElementTarget(id0),
     'style',
     [count],
     q_component_style_segment_2,
-    batch2
+    batch0
   );
   return maybeThen(
-    promiseAll([attr1, attr3, attr4]),
-    ([attr1, attr3, attr4]) =>
+    promiseAll([attr0, attr1, attr2]),
+    ([attr0, attr1, attr2]) =>
       '<div q:id="' +
       id0 +
-      '" title="' +
+      '"' +
+      ' title="' +
+      escapeHTML(attr0) +
+      '"' +
+      ' class="' +
       escapeHTML(attr1) +
-      '" class="' +
-      escapeHTML(attr3) +
-      '" style="' +
-      escapeHTML(attr4) +
-      '" data-kind="counter">Attrs</div>'
+      '"' +
+      ' style="' +
+      escapeHTML(attr2) +
+      '"' +
+      ' data-kind="counter"' +
+      '>' +
+      'Attrs' +
+      '</div>'
   );
 }
-
-null
 ============================= src/component.tsx_component_title_segment_0.js (ENTRY POINT)==
 
 export const component_title_segment_0 = (count) => {
   return `count ${count.value}`;
 };
-
-null
 /*
 {
   "origin": "component.tsx",
@@ -129,8 +131,6 @@ null
 export const component_className_segment_1 = (count) => {
   return { active: count.value > 0 };
 };
-
-null
 /*
 {
   "origin": "component.tsx",
@@ -159,8 +159,6 @@ null
 export const component_style_segment_2 = (count) => {
   return { color: count.value % 2 === 0 ? 'green' : 'blue' };
 };
-
-null
 /*
 {
   "origin": "component.tsx",
@@ -193,39 +191,35 @@ null
 
 import {
   useSignal,
-  createTemplate,
-  createDomBatchEffect,
+  _first,
   patchAttrValue,
+  createDomBatchEffect,
+  runDomBatchEffect,
+  createTemplate,
 } from '@qwik.dev/core/spark';
+import { component_title_segment_0 } from './component.tsx_component_title_segment_0';
+import { component_className_segment_1 } from './component.tsx_component_className_segment_1';
+import { component_style_segment_2 } from './component.tsx_component_style_segment_2';
 
-const dom_App_template0 = createTemplate('<div data-kind="counter">Attrs</div>');
-const dom_App_expr1 = (count) => `count ${count.value}`;
-const dom_App_expr2 = (count) => ({ active: count.value > 0 });
-const dom_App_expr3 = (count) => ({ color: count.value % 2 === 0 ? 'green' : 'blue' });
-export function App(_props, ctx) {
+const App_tmpl0 = createTemplate('<div data-kind="counter">Attrs</div>');
+export function App(props, ctx) {
   const count = useSignal(0);
-  const fragment0 = dom_App_template0(ctx.document);
-  const el1 = fragment0.firstChild;
-  function batch3() {
-    patchAttrValue(el1, 'title', dom_App_expr1(count));
-    patchAttrValue(el1, 'class', dom_App_expr2(count));
-    patchAttrValue(el1, 'style', dom_App_expr3(count));
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  function batch0() {
+    patchAttrValue(el0, 'title', component_title_segment_0(count));
+    patchAttrValue(el0, 'class', component_className_segment_1(count));
+    patchAttrValue(el0, 'style', component_style_segment_2(count));
   }
-  const effect2 = createDomBatchEffect(batch3, ctx.scheduler);
-  ctx.scheduler.notify(effect2);
-  return el1;
+  const effect0 = createDomBatchEffect(batch0, ctx.scheduler);
+  runDomBatchEffect(effect0, batch0);
+  return el0;
 }
-
-null
 ============================= src/component.tsx_component_title_segment_0.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
-export const component_title_segment_0 = () => {
-  const count = _captures[0];
+export const component_title_segment_0 = (count) => {
   return `count ${count.value}`;
 };
-
-null
 /*
 {
   "origin": "component.tsx",
@@ -251,13 +245,9 @@ null
 */
 ============================= src/component.tsx_component_className_segment_1.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
-export const component_className_segment_1 = () => {
-  const count = _captures[0];
+export const component_className_segment_1 = (count) => {
   return { active: count.value > 0 };
 };
-
-null
 /*
 {
   "origin": "component.tsx",
@@ -283,13 +273,9 @@ null
 */
 ============================= src/component.tsx_component_style_segment_2.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
-export const component_style_segment_2 = () => {
-  const count = _captures[0];
+export const component_style_segment_2 = (count) => {
   return { color: count.value % 2 === 0 ? 'green' : 'blue' };
 };
-
-null
 /*
 {
   "origin": "component.tsx",

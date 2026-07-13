@@ -116,6 +116,7 @@ const VOID_ELEMENTS = new Set([
 
 interface LowerState {
   nextRefId: () => number;
+  propsName: string | null;
   setup: SourceRange[];
   ops: Op[];
   sourceFactoryImports: RewriteSourceFactoryImports;
@@ -142,6 +143,7 @@ function lowerFunctionBody(
 ): RenderResult | null {
   const state: LowerState = {
     nextRefId: createRefIdAllocator(),
+    propsName: component.params.length === 1 ? component.params[0].name : null,
     setup: [],
     ops: [],
     sourceFactoryImports: component.sourceFactoryImports,
@@ -393,6 +395,15 @@ function renderSlot(
     attachRenderChildren(segment, children, state);
     fallback = createSegmentBinding(state, segment);
   }
+  return createSlotContent(name, fallback, state, existingId);
+}
+
+function createSlotContent(
+  name: string,
+  fallback: SegmentBinding | null,
+  state: LowerState,
+  existingId?: number
+): RenderedContent {
   const target = existingId ?? state.nextRefId();
   return {
     kind: 'content',
@@ -932,6 +943,10 @@ function renderJsxExpression(expression: unknown, state: LowerState): RenderedJs
     return [];
   }
 
+  if (isPropsChildrenExpression(expr, state.propsName)) {
+    return [createSlotContent('', null, state)];
+  }
+
   const range = getRange(expr);
   if (range === null) {
     return [];
@@ -1032,6 +1047,16 @@ function renderJsxExpression(expression: unknown, state: LowerState): RenderedJs
     default:
       return [createTextEffect(range, { kind: 'unsupported' }, state)];
   }
+}
+
+function isPropsChildrenExpression(expression: AstNode, propsName: string | null): boolean {
+  return (
+    propsName !== null &&
+    expression.type === 'MemberExpression' &&
+    !expression.computed &&
+    getIdentifierName(expression.object) === propsName &&
+    getIdentifierName(expression.property) === 'children'
+  );
 }
 
 function renderJsxFor(expression: AstNode, state: LowerState): RenderedJsx | null {

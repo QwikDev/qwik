@@ -24,7 +24,7 @@ type ISsrComponentFrameLike = {
   projectionComponentFrame?: { componentNode?: unknown } | null;
 };
 
-/** Structured metadata about a caught error, passed to `onError$`. @public */
+/** Structured metadata about a caught error, passed to `onError$`. @public @experimental */
 export interface ErrorBoundaryInfo {
   /** Where the caught error originated. */
   phase: 'render' | 'task' | 'event' | 'async-generator' | 'async-signal';
@@ -32,7 +32,7 @@ export interface ErrorBoundaryInfo {
   boundaryId: string;
 }
 
-/** @public */
+/** @public @experimental */
 export interface ErrorBoundaryProps {
   /**
    * Rendered when a descendant throws; receives `(error, reset)`. The error is always an `Error`
@@ -175,7 +175,7 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
   return /*#__PURE__*/ _jsxSorted(Slot, null, null, null, 0, null);
 };
 
-/** @public */
+/** @public @experimental */
 export const ErrorBoundary: Component<ErrorBoundaryProps> =
   /*#__PURE__*/ componentQrl<ErrorBoundaryProps>(
     /*#__PURE__*/ inlinedQrl(errorBoundaryCmp, '_ebC')

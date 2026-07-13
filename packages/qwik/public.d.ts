@@ -14,6 +14,7 @@ export {
   CSSProperties,
   Each,
   ErrorBoundary,
+  ErrorBoundaryInfo,
   ErrorBoundaryProps,
   // TODO remove this
   event$,

@@ -40,7 +40,7 @@ import { _OWNER, _PROPS_HANDLER, _UNINITIALIZED } from '../utils/constants';
 import { isString } from '../utils/types';
 import type { VirtualVNode } from '../vnode/virtual-vnode';
 import { allocate, beginDeserialization, endDeserialization, resolvers } from './allocate';
-import { TypeIds } from './constants';
+import { EMPTY_OBJECT_PAYLOAD, TypeIds } from './constants';
 import { needsInflation } from './deser-proxy';
 import type { SubscriptionPatch } from './subscription-patch';
 
@@ -165,7 +165,7 @@ function* inflateIterator(
     // Already processed
     return;
   }
-  if (typeId === TypeIds.Object && data !== 0 && !Array.isArray(data)) {
+  if (typeId === TypeIds.Object && data !== EMPTY_OBJECT_PAYLOAD && !Array.isArray(data)) {
     throw new Error('Invalid Object payload');
   }
   // Restore the complex data, special case for Array
@@ -178,8 +178,7 @@ function* inflateIterator(
       yield* eagerDeserializeArrayIterator(container, data as unknown[], target as unknown[]);
       break;
     case TypeIds.Object:
-      if (data === 0) {
-        // Special case, was an empty object
+      if (data === EMPTY_OBJECT_PAYLOAD) {
         break;
       }
       for (let i = 0; i < (data as any[]).length; i += 2) {

@@ -5,20 +5,13 @@ import type {
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { Http2ServerRequest } from 'node:http2';
 import type { QwikRouterNodeRequestOptions } from '.';
-import { ServerError } from '../request-handler/server-error';
+import {
+  DEFAULT_REQUEST_BODY_LIMIT,
+  RequestBodyLimitError,
+  validateRequestBodyLimit,
+} from '../request-handler/request-body-limit';
 import type { ClientConn } from '../request-handler/types';
 import { normalizeRequestUrl } from '../shared/url';
-
-const DEFAULT_REQUEST_BODY_LIMIT = 10 * 1024 * 1024;
-
-class RequestBodyLimitError extends ServerError<string> {
-  code = 'QWIK_REQUEST_BODY_LIMIT';
-  statusCode = 413;
-
-  constructor(limit: number) {
-    super(413, `Request body exceeds ${limit} bytes`);
-  }
-}
 
 export function computeOrigin(
   req: IncomingMessage | Http2ServerRequest,
@@ -267,9 +260,7 @@ export async function fromNodeHttp(
   getClientConn?: (req: IncomingMessage | Http2ServerRequest) => ClientConn,
   requestBodyLimit = DEFAULT_REQUEST_BODY_LIMIT
 ) {
-  if (!Number.isSafeInteger(requestBodyLimit) || requestBodyLimit <= 0) {
-    throw new TypeError('requestBodyLimit must be a positive safe integer');
-  }
+  validateRequestBodyLimit(requestBodyLimit);
 
   const requestHeaders = new Headers();
   const nodeRequestHeaders = req.headers;

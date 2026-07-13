@@ -13,6 +13,7 @@ permissions:
   actions: read
   deployments: write
   contents: read
+  pull-requests: write
 
 jobs:
   deploy:
@@ -20,9 +21,17 @@ jobs:
     if: >
       github.repository == 'QwikDev/qwik' &&
       github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_repository.full_name == github.repository &&
-      github.event.workflow_run.head_branch == 'main'
+      (
+        (
+          github.event.workflow_run.event == 'push' &&
+          github.event.workflow_run.head_branch == 'main'
+        ) ||
+        (
+          github.event.workflow_run.event == 'pull_request' &&
+          github.event.workflow_run.pull_requests[0].number > 0
+        )
+      )
     runs-on: ubuntu-latest
     steps:
       - name: Check for docs artifact
@@ -70,7 +79,7 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           projectName: 'qwik-docs'
           directory: packages/docs/dist
-          branch: main
+          branch: ${{ github.event.workflow_run.event == 'pull_request' && format('pr-{0}', github.event.workflow_run.pull_requests[0].number) || 'main' }}
           githubToken: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Skip message when no docs artifact

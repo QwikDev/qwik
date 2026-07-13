@@ -39,7 +39,7 @@ import { Fragment } from '../jsx/jsx-runtime';
 import { JSXNodeImpl } from '../jsx/jsx-node';
 import { createPropsProxy, type PropsProxy } from '../jsx/props-proxy';
 import { _OWNER, _PROPS_HANDLER } from '../utils/constants';
-import { _constants, _typeIdNames, Constants, TypeIds } from './constants';
+import { _constants, _typeIdNames, Constants, EMPTY_OBJECT_PAYLOAD, TypeIds } from './constants';
 import { _dumpState } from './dump-state';
 import { qrlToString } from './qrl-to-string';
 import { preprocessState } from './preprocess-state';
@@ -1026,7 +1026,7 @@ describe('shared-serialization', () => {
     });
 
     it('releases pending store targets after allocation errors', () => {
-      const data = [TypeIds.Store, [TypeIds.Object, 0], 999, 0];
+      const data = [TypeIds.Store, [TypeIds.Object, EMPTY_OBJECT_PAYLOAD], 999, 0];
       const state = Array(data.length / 2);
       const container = _createDeserializeContainer(data);
       const iterator = eagerDeserializeStateIterator(container, data, state);

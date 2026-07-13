@@ -8,7 +8,7 @@ export function App() {
       {items.value.map((row, index) => (
         <li key={row.id} {...row.attrs}>
           <span data-index={index} className={{ active: row.selected }}>
-            {row.label}
+            {row.label}:{index}
           </span>
           <button onClick$={() => (row.selected = !row.selected)}>Toggle</button>
         </li>
@@ -96,7 +96,7 @@ import {
   _qrlWithChunk,
   escapeHTML,
   renderSsrTextExpression,
-  createSsrElementTextTarget,
+  createSsrRangeTextTarget,
   createSsrElementTarget,
   renderSsrAttrExpression,
   renderSsrProps,
@@ -105,6 +105,7 @@ import {
   promiseAll,
 } from '@qwik.dev/core/spark';
 import { component_text_segment_5 } from './component.tsx_component_text_segment_5';
+import { component_text_segment_6 } from './component.tsx_component_text_segment_6';
 import { component_data_index_segment_3 } from './component.tsx_component_data_index_segment_3';
 import { component_className_segment_4 } from './component.tsx_component_className_segment_4';
 import { component_props_segment_2 } from './component.tsx_component_props_segment_2';
@@ -114,6 +115,12 @@ const q_component_text_segment_5 = /*#__PURE__*/ _qrlWithChunk(
   'component_text_segment_5'
 );
 q_component_text_segment_5.s(component_text_segment_5);
+const q_component_text_segment_6 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_text_segment_6',
+  () => import('./component.tsx_component_text_segment_6'),
+  'component_text_segment_6'
+);
+q_component_text_segment_6.s(component_text_segment_6);
 const q_component_data_index_segment_3 = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_data_index_segment_3',
   () => import('./component.tsx_component_data_index_segment_3'),
@@ -126,10 +133,10 @@ const q_component_className_segment_4 = /*#__PURE__*/ _qrlWithChunk(
   'component_className_segment_4'
 );
 q_component_className_segment_4.s(component_className_segment_4);
-const q_component_q_e_click_segment_6 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_q_e_click_segment_6',
-  () => import('./component.tsx_component_q_e_click_segment_6'),
-  'component_q_e_click_segment_6'
+const q_component_q_e_click_segment_7 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_q_e_click_segment_7',
+  () => import('./component.tsx_component_q_e_click_segment_7'),
+  'component_q_e_click_segment_7'
 );
 const q_component_props_segment_2 = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_props_segment_2',
@@ -141,38 +148,46 @@ q_component_props_segment_2.s(component_props_segment_2);
 export const component_for_render_segment_0 = (ctx, rangeId, rowId, row, index) => {
   const id0 = ctx.nextId();
   const batch0 = createSsrDomBatchEffect();
+  const batch1 = createSsrDomBatchEffect();
   const id1 = ctx.nextId();
   ctx.addRoot(row);
   const text0 = renderSsrTextExpression(
-    createSsrElementTextTarget(id1),
+    createSsrRangeTextTarget(id1, 0),
     [row],
     q_component_text_segment_5,
-    batch0
+    batch1
   );
   ctx.addRoot(index);
+  const text1 = renderSsrTextExpression(
+    createSsrRangeTextTarget(id1, 1),
+    [index],
+    q_component_text_segment_6,
+    batch0
+  );
   const attr0 = renderSsrAttrExpression(
     createSsrElementTarget(id1),
     'data-index',
     [index],
-    q_component_data_index_segment_3
+    q_component_data_index_segment_3,
+    batch0
   );
   const attr1 = renderSsrAttrExpression(
     createSsrElementTarget(id1),
     'class',
     [row],
     q_component_className_segment_4,
-    batch0
+    batch1
   );
   const props0 = renderSsrProps(
     createSsrElementTarget(id0),
     [row],
     q_component_props_segment_2,
     ctx.eventAttr,
-    batch0
+    batch1
   );
   return maybeThen(
-    promiseAll([text0, attr0, attr1, props0]),
-    ([text0, attr0, attr1, props0]) =>
+    promiseAll([text0, text1, attr0, attr1, props0]),
+    ([text0, text1, attr0, attr1, props0]) =>
       '<li q:id="' +
       id0 +
       '" q:row' +
@@ -190,10 +205,15 @@ export const component_for_render_segment_0 = (ctx, rangeId, rowId, row, index) 
           escapeHTML(attr1) +
           '"' +
           '>' +
+          '<!t>' +
           escapeHTML(text0) +
+          '<!/t>' +
+          ':' +
+          '<!t>' +
+          escapeHTML(text1) +
           '</span>' +
           '<button' +
-          ctx.eventAttr('q-e:click', q_component_q_e_click_segment_6.w([row])) +
+          ctx.eventAttr('q-e:click', q_component_q_e_click_segment_7.w([row])) +
           '>' +
           'Toggle' +
           '</button>') +
@@ -215,7 +235,7 @@ export const component_for_render_segment_0 = (ctx, rangeId, rowId, row, index) 
   "captures": false,
   "loc": [
     235,
-    476
+    484
   ],
   "paramNames": [
     "row",
@@ -248,6 +268,34 @@ export const component_text_segment_5 = (row) => {
   "paramNames": [],
   "captureNames": [
     "row"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_6.js (ENTRY POINT)==
+
+export const component_text_segment_6 = (index) => {
+  return index.value;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_6",
+  "entry": null,
+  "displayName": "component_text_segment_6",
+  "hash": "segment_6",
+  "canonicalFilename": "component.tsx_component_text_segment_6",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    366,
+    371
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "index"
   ]
 }
 */
@@ -307,30 +355,30 @@ export const component_className_segment_4 = (row) => {
   ]
 }
 */
-============================= src/component.tsx_component_q_e_click_segment_6.js (ENTRY POINT)==
+============================= src/component.tsx_component_q_e_click_segment_7.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core/spark';
 
-export const component_q_e_click_segment_6 = () => {
+export const component_q_e_click_segment_7 = () => {
   const row = _captures[0];
   return (row.value.selected = !row.value.selected);
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_q_e_click_segment_6",
+  "name": "component_q_e_click_segment_7",
   "entry": null,
-  "displayName": "component_q_e_click_segment_6",
-  "hash": "segment_6",
-  "canonicalFilename": "component.tsx_component_q_e_click_segment_6",
+  "displayName": "component_q_e_click_segment_7",
+  "hash": "segment_7",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_7",
   "extension": "js",
   "parent": null,
   "ctxKind": "eventHandler",
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    401,
-    446
+    409,
+    454
   ],
   "paramNames": [],
   "captureNames": [
@@ -439,7 +487,6 @@ import {
   _first,
   _last,
   patchTextValue,
-  createAttrExpressionEffect,
   patchAttrValue,
   setEvent,
   applyDomProps,
@@ -448,29 +495,25 @@ import {
   createTemplate,
 } from '@qwik.dev/core/spark';
 import { component_text_segment_5 } from './component.tsx_component_text_segment_5';
+import { component_text_segment_6 } from './component.tsx_component_text_segment_6';
 import { component_data_index_segment_3 } from './component.tsx_component_data_index_segment_3';
 import { component_className_segment_4 } from './component.tsx_component_className_segment_4';
-import { component_q_e_click_segment_6 } from './component.tsx_component_q_e_click_segment_6';
+import { component_q_e_click_segment_7 } from './component.tsx_component_q_e_click_segment_7';
 import { component_props_segment_2 } from './component.tsx_component_props_segment_2';
 const component_for_render_segment_0_tmpl0 = createTemplate(
-  '<li><span> </span><button>Toggle</button></li>'
+  '<li><span><!t>:<!t></span><button>Toggle</button></li>'
 );
 
 export const component_for_render_segment_0 = (ctx, row, index) => {
   const fragment0 = component_for_render_segment_0_tmpl0(ctx.document);
   const el0 = _first(fragment0);
   const el1 = _first(el0);
-  const text0 = _first(el1);
+  const text0 = ctx.document.createTextNode('');
+  _first(el1).replaceWith(text0);
+  const text1 = ctx.document.createTextNode('');
+  _last(el1).replaceWith(text1);
   const el2 = _last(el0);
-  const effect1 = createAttrExpressionEffect(
-    el1,
-    'data-index',
-    [index],
-    component_data_index_segment_3,
-    ctx.scheduler
-  );
-  ctx.scheduler.notify(effect1);
-  setEvent(el2, 'q-e:click', component_q_e_click_segment_6, [row]);
+  setEvent(el2, 'q-e:click', component_q_e_click_segment_7, [row]);
   let prevProps0 = null;
   function batch0() {
     patchTextValue(text0, component_text_segment_5(row));
@@ -479,6 +522,12 @@ export const component_for_render_segment_0 = (ctx, row, index) => {
   }
   const effect0 = createDomBatchEffect(batch0, ctx.scheduler);
   runDomBatchEffect(effect0, batch0);
+  function batch1() {
+    patchTextValue(text1, component_text_segment_6(index));
+    patchAttrValue(el1, 'data-index', component_data_index_segment_3(index));
+  }
+  const effect1 = createDomBatchEffect(batch1, ctx.scheduler);
+  runDomBatchEffect(effect1, batch1);
   return el0;
 };
 /*
@@ -496,7 +545,7 @@ export const component_for_render_segment_0 = (ctx, row, index) => {
   "captures": false,
   "loc": [
     235,
-    476
+    484
   ],
   "paramNames": [
     "row",
@@ -529,6 +578,34 @@ export const component_text_segment_5 = (row) => {
   "paramNames": [],
   "captureNames": [
     "row"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_6.js (ENTRY POINT)==
+
+export const component_text_segment_6 = (index) => {
+  return index.value;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_6",
+  "entry": null,
+  "displayName": "component_text_segment_6",
+  "hash": "segment_6",
+  "canonicalFilename": "component.tsx_component_text_segment_6",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    366,
+    371
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "index"
   ]
 }
 */
@@ -588,30 +665,30 @@ export const component_className_segment_4 = (row) => {
   ]
 }
 */
-============================= src/component.tsx_component_q_e_click_segment_6.js (ENTRY POINT)==
+============================= src/component.tsx_component_q_e_click_segment_7.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core/spark';
 
-export const component_q_e_click_segment_6 = () => {
+export const component_q_e_click_segment_7 = () => {
   const row = _captures[0];
   return (row.value.selected = !row.value.selected);
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_q_e_click_segment_6",
+  "name": "component_q_e_click_segment_7",
   "entry": null,
-  "displayName": "component_q_e_click_segment_6",
-  "hash": "segment_6",
-  "canonicalFilename": "component.tsx_component_q_e_click_segment_6",
+  "displayName": "component_q_e_click_segment_7",
+  "hash": "segment_7",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_7",
   "extension": "js",
   "parent": null,
   "ctxKind": "eventHandler",
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    401,
-    446
+    409,
+    454
   ],
   "paramNames": [],
   "captureNames": [

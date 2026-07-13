@@ -61,6 +61,7 @@ export const enum QwikGenWord {
 
 export const enum QwikComments {
   TextMarker = '<!t>',
+  TextMarkerEnd = '<!/t>',
 }
 
 export const enum QwikAttributes {

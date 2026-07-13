@@ -1,11 +1,11 @@
-import type { JSXElement, Node } from 'oxc-parser';
+import type { Node } from 'oxc-parser';
 import {
   getIdentifierName,
   getJsxAttributeName,
   isFunctionLike,
   unwrapExpression,
 } from '../ast-utils';
-import type { AstFunction } from '../types';
+import type { AstFunction, AstJsxNode } from '../types';
 
 export interface JsxBranchExpression {
   condition: Node;
@@ -16,7 +16,7 @@ export interface JsxBranchExpression {
 export interface JsxMapExpression {
   source: Node;
   callback: AstFunction;
-  row: JSXElement;
+  row: AstJsxNode;
   key: Node;
   itemName: string;
   indexName: string | null;
@@ -45,16 +45,10 @@ export function getJsxMapExpression(node: unknown): JsxMapExpression | null {
     return null;
   }
   const row = unwrapExpression(callback.body);
-  if (row?.type !== 'JSXElement') {
+  if (row?.type !== 'JSXElement' && row?.type !== 'JSXFragment') {
     return null;
   }
-  const keyAttr = row.openingElement.attributes.find(
-    (attr) => attr.type === 'JSXAttribute' && getJsxAttributeName(attr.name) === 'key'
-  );
-  const key =
-    keyAttr?.type === 'JSXAttribute' && keyAttr.value?.type === 'JSXExpressionContainer'
-      ? unwrapExpression(keyAttr.value.expression)
-      : null;
+  const key = getRowKey(row);
   if (key === null) {
     return null;
   }
@@ -66,6 +60,22 @@ export function getJsxMapExpression(node: unknown): JsxMapExpression | null {
     itemName,
     indexName,
   };
+}
+
+function getRowKey(row: AstJsxNode): Node | null {
+  const children = row.type === 'JSXElement' ? [row] : row.children;
+  for (const child of children) {
+    if (child.type !== 'JSXElement') {
+      continue;
+    }
+    const key = child.openingElement.attributes.find(
+      (attr) => attr.type === 'JSXAttribute' && getJsxAttributeName(attr.name) === 'key'
+    );
+    if (key?.type === 'JSXAttribute' && key.value?.type === 'JSXExpressionContainer') {
+      return unwrapExpression(key.value.expression) ?? null;
+    }
+  }
+  return null;
 }
 
 export function getJsxBranchExpression(node: unknown): JsxBranchExpression | null {

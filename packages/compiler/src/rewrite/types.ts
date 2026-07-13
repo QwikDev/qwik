@@ -83,10 +83,10 @@ export type ForHtmlPart = {
   usesItemSignal: boolean;
   usesIndexSignal: boolean;
 };
-export type MarkerHtmlPart = { kind: 'marker'; id: number };
+export type TextHtmlPart = { kind: 'elementText'; id: number } | { kind: 'rangeText'; id: number };
 export type TargetHtmlPart = { kind: 'target'; id: number };
 export type ChildrenHtmlPart = { kind: 'childrenStart' | 'childrenEnd'; target: number };
-export type HtmlHtmlPart = { kind: 'html'; value: string };
+export type HtmlHtmlPart = { kind: 'html'; value: string; isStaticText?: true };
 
 export type HtmlPart =
   | HtmlHtmlPart
@@ -97,7 +97,7 @@ export type HtmlPart =
   | AttributeHtmlPart
   | { kind: 'props'; target: number }
   | EventHtmlPart
-  | MarkerHtmlPart
+  | TextHtmlPart
   | TargetHtmlPart
   | ChildrenHtmlPart;
 
@@ -135,7 +135,8 @@ export type EventBinding =
 
 export type TextEffectTarget =
   | { kind: 'element'; id: number; marker: number }
-  | { kind: 'range'; marker: number };
+  // A null id targets the surrounding branch or root range.
+  | { kind: 'range'; id: number | null; marker: number };
 
 export type Op =
   | {

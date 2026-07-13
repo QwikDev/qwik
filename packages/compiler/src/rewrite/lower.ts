@@ -22,7 +22,7 @@ import {
   unwrapExpression,
 } from '../ast-utils';
 import { escapeAttr, escapeText, serializeAttrValue } from '../stages/emit-utils';
-import type { AstNode, SourceRange } from '../types';
+import type { AstJsxNode, AstNode, SourceRange } from '../types';
 import {
   getJsxBranchExpression,
   getJsxMapExpression,
@@ -238,21 +238,22 @@ function renderJsxElementHtml(
   const isVoid = VOID_ELEMENTS.has(tag);
   const children = isVoid ? [] : renderJsxChildren(node.children, state);
   const elementText = children.length === 1 && children[0].kind === 'text' ? children[0] : null;
+  const hasDynamicText = children.some((child) => child.kind === 'text');
   const elementId =
     existingId ??
-    (elementText !== null || needsElementRef(opening, state) ? state.nextRefId() : undefined);
+    (hasDynamicText || needsElementRef(opening, state) ? state.nextRefId() : undefined);
   for (const child of children) {
     if (child.kind === 'text') {
       // A single dynamic child targets the parent element, so SSR does not need a <!t> marker.
       const target =
         child === elementText
           ? { kind: 'element' as const, id: elementId!, marker: child.marker }
-          : { kind: 'range' as const, marker: child.marker };
+          : { kind: 'range' as const, id: elementId!, marker: child.marker };
       state.ops.push({ ...child.effect, target });
     }
   }
   const html: HtmlPart[] = [createHtmlRecord(`<${tag}`)];
-  if (elementText !== null && elementId !== undefined && elementId !== existingId) {
+  if (hasDynamicText && elementId !== undefined && elementId !== existingId) {
     html.push({ kind: 'target', id: elementId });
   }
   const attrs = renderJsxAttributes(opening, state, elementId);
@@ -271,7 +272,11 @@ function renderJsxElementHtml(
   for (let i = 0; i < children.length; i++) {
     const child = children[i];
     const path = createChildRefPath({ childIndex: i, siblingCount: children.length });
-    html.push(...child.html);
+    if (child === elementText) {
+      html.push({ kind: 'elementText', id: child.marker });
+    } else {
+      html.push(...child.html);
+    }
     refs.push(...child.refs.map((ref) => ({ id: ref.id, path: [...path, ...ref.path] })));
   }
   if (!isVoid) {
@@ -799,7 +804,7 @@ function renderJsxChildren(children: JSXChild[], state: LowerState): RenderedJsx
         if (text !== '') {
           rendered.push({
             kind: 'content',
-            html: [createHtmlRecord(escapeText(text))],
+            html: [createHtmlRecord(escapeText(text), true)],
             refs: [],
           });
         }
@@ -972,7 +977,7 @@ function renderJsxFor(expression: AstNode, state: LowerState): RenderedJsx | nul
   };
 }
 
-function getLoopParamUsage(row: JSXElement, itemName: string, indexName: string | null) {
+function getLoopParamUsage(row: AstJsxNode, itemName: string, indexName: string | null) {
   let item = false;
   let index = false;
   visit(row, (node) => {
@@ -999,7 +1004,7 @@ function renderStaticSourceTextExpression(
       part.kind === 'text'
         ? {
             kind: 'content' as const,
-            html: [createHtmlRecord(escapeText(part.value))],
+            html: [createHtmlRecord(escapeText(part.value), true)],
             refs: [],
           }
         : createTextEffect(part.expressionRange, { kind: 'source', range: part.sourceRange }, state)
@@ -1074,7 +1079,7 @@ function addRenderedRoots(node: unknown, state: LowerState, roots: TemplateRoot[
     if (rendered.kind === 'text') {
       state.ops.push({
         ...rendered.effect,
-        target: { kind: 'range', marker: rendered.marker },
+        target: { kind: 'range', id: null, marker: rendered.marker },
       });
     }
     roots.push({
@@ -1088,7 +1093,7 @@ function addRenderedRoots(node: unknown, state: LowerState, roots: TemplateRoot[
 function addStaticTextRoot(value: string, state: LowerState, roots: TemplateRoot[]): void {
   roots.push({
     id: state.nextRefId(),
-    html: [createHtmlRecord(escapeText(value))],
+    html: [createHtmlRecord(escapeText(value), true)],
     refs: [],
   });
 }
@@ -1139,7 +1144,7 @@ function createTextEffect(
   };
   return {
     kind: 'text',
-    html: [{ kind: 'marker', id: marker }],
+    html: [{ kind: 'rangeText', id: marker }],
     refs: [{ id: marker, path: [] }],
     marker,
     effect,
@@ -1400,8 +1405,8 @@ function createSiblingRefPath(firstStep: RefStep, siblingStep: RefStep, count: n
   return path;
 }
 
-function createHtmlRecord(value: string): HtmlHtmlPart {
-  return { kind: 'html', value };
+function createHtmlRecord(value: string, isStaticText = false): HtmlHtmlPart {
+  return isStaticText ? { kind: 'html', value, isStaticText: true } : { kind: 'html', value };
 }
 
 function createAttributeRecord(target: number, name: string, expr: SourceRange): AttributeHtmlPart {

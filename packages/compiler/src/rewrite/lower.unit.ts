@@ -87,11 +87,11 @@ describe('lowerRewriteComponent', () => {
     expect(result?.html).toEqual([
       { kind: 'html', value: '<h1' },
       { kind: 'html', value: '>' },
-      { kind: 'html', value: 'Hello' },
+      { kind: 'html', value: 'Hello', isStaticText: true },
       { kind: 'html', value: '</h1>' },
       { kind: 'html', value: '<p' },
       { kind: 'html', value: '>' },
-      { kind: 'html', value: 'Qwik' },
+      { kind: 'html', value: 'Qwik', isStaticText: true },
       { kind: 'html', value: '</p>' },
     ]);
     expect(result?.roots).toEqual([0, 1]);
@@ -112,11 +112,11 @@ describe('lowerRewriteComponent', () => {
       { kind: 'html', value: '>' },
       { kind: 'html', value: '<span' },
       { kind: 'html', value: '>' },
-      { kind: 'html', value: 'First' },
+      { kind: 'html', value: 'First', isStaticText: true },
       { kind: 'html', value: '</span>' },
       { kind: 'html', value: '<span' },
       { kind: 'html', value: '>' },
-      { kind: 'html', value: 'Second' },
+      { kind: 'html', value: 'Second', isStaticText: true },
       { kind: 'html', value: '</span>' },
       { kind: 'html', value: '</main>' },
     ]);
@@ -133,7 +133,7 @@ describe('lowerRewriteComponent', () => {
       { kind: 'html', value: '>' },
       { kind: 'html', value: '<span' },
       { kind: 'html', value: '>' },
-      { kind: 'html', value: 'Inner' },
+      { kind: 'html', value: 'Inner', isStaticText: true },
       { kind: 'html', value: '</span>' },
       { kind: 'html', value: '</main>' },
     ]);
@@ -150,7 +150,7 @@ describe('lowerRewriteComponent', () => {
     expect(result?.html).toEqual([
       { kind: 'html', value: '<main' },
       { kind: 'html', value: '>' },
-      { kind: 'html', value: 'Visible' },
+      { kind: 'html', value: 'Visible', isStaticText: true },
       { kind: 'html', value: '</main>' },
     ]);
     expect(result?.setup.map((range) => code.slice(range[0], range[1]))).toEqual([
@@ -170,7 +170,7 @@ export function App() {
     expect(result?.html).toEqual([
       { kind: 'html', value: '<button' },
       { kind: 'html', value: '>' },
-      { kind: 'marker', id: 1 },
+      { kind: 'elementText', id: 1 },
       { kind: 'html', value: '</button>' },
     ]);
     expect(result?.roots).toEqual([0]);

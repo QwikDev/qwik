@@ -1014,12 +1014,32 @@ export function App() {
       {items.value.map((row, index) => (
         <li key={row.id} {...row.attrs}>
           <span data-index={index} className={{ active: row.selected }}>
-            {row.label}
+            {row.label}:{index}
           </span>
           <button onClick$={() => (row.selected = !row.selected)}>Toggle</button>
         </li>
       ))}
     </ul>
+  );
+}
+`,
+    });
+  });
+
+  test('supports keyed JSX fragment rows', async () => {
+    await testInput('jsx_loop_fragment_row', {
+      code: `import { useSignal } from '@qwik.dev/core/spark';
+export function App() {
+  const items = useSignal([{ id: 'a', label: 'Alpha' }]);
+  return (
+    <p>
+      {items.value.map((item) => (
+        <>
+          <span key={item.id}>{item.label}</span>
+          <em>!</em>
+        </>
+      ))}
+    </p>
   );
 }
 `,

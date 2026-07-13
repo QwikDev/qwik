@@ -105,22 +105,30 @@ function emitCsrRender(
       value: values.length === 1 ? values[0] : `[${values.join(', ')}]`,
     };
   }
-  const html = emitTemplateHtml(result);
   const next = createNameAllocator();
   const templateName = `${name}_${next(QwikGenWord.Template)}`;
   const fragmentName = next(QwikGenWord.Fragment);
   const refNames = new Map<number, string>();
-  const textMarkers = new Set([
-    ...result.ops.flatMap((op) => (op.kind === 'textEffect' ? [op.target.marker] : [])),
-    ...result.html.flatMap((part) =>
-      part.kind === 'dynamicJsx' ||
-      part.kind === 'component' ||
-      part.kind === 'branch' ||
-      part.kind === 'for'
-        ? [part.target]
-        : []
-    ),
-  ]);
+  const placeholderRefs = new Set<number>();
+  const rangeTextRefs = new Set<number>();
+  for (const part of result.html) {
+    switch (part.kind) {
+      case 'elementText':
+        placeholderRefs.add(part.id);
+        break;
+      case 'rangeText':
+        placeholderRefs.add(part.id);
+        rangeTextRefs.add(part.id);
+        break;
+      case 'dynamicJsx':
+      case 'component':
+      case 'branch':
+      case 'for':
+        placeholderRefs.add(part.target);
+        break;
+    }
+  }
+  const html = emitTemplateHtml(result);
   const emittedRefs: { name: string; path: RefStep[] }[] = [];
   const setup = emitCsrSetupStatements(result, source, imports);
   if (setup === null) {
@@ -130,18 +138,25 @@ function emitCsrRender(
   if (html === null) {
     return null;
   }
-  const usedRefs = getUsedRefs(result, textMarkers);
+  const usedRefs = getUsedRefs(result, placeholderRefs);
   for (const ref of result.refs) {
     if (!usedRefs.has(ref.id)) {
       continue;
     }
-    const refName = next(textMarkers.has(ref.id) ? 'text' : 'el');
+    const refName = next(placeholderRefs.has(ref.id) ? 'text' : 'el');
     refNames.set(ref.id, refName);
     const { path, steps } = emitShortestRefPath(fragmentName, ref.path, emittedRefs);
     for (const step of steps) {
       imports.add(REF_STEP_HELPERS[step]);
     }
-    statements.push(`const ${refName} = ${path};`);
+    if (rangeTextRefs.has(ref.id)) {
+      statements.push(
+        `const ${refName} = ctx.document.createTextNode('');`,
+        `${path}.replaceWith(${refName});`
+      );
+    } else {
+      statements.push(`const ${refName} = ${path};`);
+    }
     emittedRefs.push({ name: refName, path: ref.path });
   }
   for (const part of result.html) {
@@ -501,8 +516,8 @@ function startsWithPath(path: readonly RefStep[], prefix: readonly RefStep[]) {
   return prefix.every((step, index) => path[index] === step);
 }
 
-function getUsedRefs(result: RenderResult, textMarkers: ReadonlySet<number>): Set<number> {
-  const usedRefs = new Set<number>([...result.roots, ...textMarkers]);
+function getUsedRefs(result: RenderResult, placeholderRefs: ReadonlySet<number>): Set<number> {
+  const usedRefs = new Set<number>([...result.roots, ...placeholderRefs]);
 
   for (const op of result.ops) {
     switch (op.kind) {

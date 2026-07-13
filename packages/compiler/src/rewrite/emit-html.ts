@@ -1,5 +1,5 @@
 import type { ComponentPropPart, HtmlPart, RenderResult, RewriteComponent } from './types';
-import { QwikGenWord, QwikWord } from './words';
+import { QwikComments, QwikGenWord, QwikWord } from './words';
 
 export function emitStaticHtml(result: RenderResult): string | null {
   return emitHtmlParts(result.html, false);
@@ -16,7 +16,18 @@ function emitHtmlParts(parts: readonly HtmlPart[], markers: boolean): string | n
       case 'html':
         html += part.value;
         break;
-      case 'marker':
+      case 'elementText':
+        if (!markers) {
+          return null;
+        }
+        html += ' ';
+        break;
+      case 'rangeText':
+        if (!markers) {
+          return null;
+        }
+        html += QwikComments.TextMarker;
+        break;
       case 'dynamicJsx':
       case 'component':
       case 'branch':

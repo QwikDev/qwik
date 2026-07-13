@@ -102,6 +102,7 @@ export function emitSsrSegmentRender(
     return null;
   }
   let render: SsrRender | null;
+  let rowRange = false;
   switch (segment.kind) {
     case 'branchRender':
       if (result === null) {
@@ -118,12 +119,13 @@ export function emitSsrSegmentRender(
       if (result === null) {
         return null;
       }
+      rowRange = !hasSingleDomRoot(result);
       render = emitSsrRender(
         result,
         source,
         new Map(result.segments.map((child) => [child.name, child])),
         null,
-        QwikAttributes.Row
+        rowRange ? null : QwikAttributes.Row
       );
       break;
     default:
@@ -135,11 +137,34 @@ export function emitSsrSegmentRender(
   for (const name of render.imports) {
     imports.add(name);
   }
+  if (rowRange) {
+    imports.add(QwikWord.MaybeThen);
+  }
   return {
     hoists: [],
     statements: render.statements,
-    value: render.value,
+    value: rowRange
+      ? `${QwikWord.MaybeThen}(${render.value}, (html) => '<!r=' + rowId + '>' + html + '<!/r>')`
+      : render.value,
   };
+}
+
+function hasSingleDomRoot(result: RenderResult): boolean {
+  if (result.roots.length !== 1) {
+    return false;
+  }
+  const root = result.roots[0];
+  return !result.html.some((part) => {
+    switch (part.kind) {
+      case 'dynamicJsx':
+      case 'component':
+      case 'branch':
+      case 'for':
+        return part.target === root;
+      default:
+        return false;
+    }
+  });
 }
 
 function emitSsrRender(
@@ -193,15 +218,11 @@ function emitDynamicRender(
       (op) =>
         op.kind === 'textEffect' &&
         op.target.kind === 'range' &&
+        op.target.id === null &&
         result.roots.includes(op.target.marker)
     );
   const id = hasTargetEffects ? (usesBranchRange ? branchRangeId : next(QwikGenWord.Id)) : null;
-  const elementTextMarkers = new Set(
-    result.ops.flatMap((op) =>
-      op.kind === 'textEffect' && op.target.kind === 'element' ? [op.target.marker] : []
-    )
-  );
-  const markerIndexes = createMarkerIndexes(result.html, elementTextMarkers);
+  const rangeTextIndexes = new Map<number | null, number>();
   const texts = new Map<number, string>();
   const attrs = new Map<string, string>();
   const props = new Map<number, string>();
@@ -292,7 +313,7 @@ function emitDynamicRender(
   for (const op of result.ops) {
     const emitted = emitSsrOp(
       op,
-      markerIndexes,
+      rangeTextIndexes,
       texts,
       attrs,
       props,
@@ -322,7 +343,6 @@ function emitDynamicRender(
     loops,
     events,
     targetIds,
-    elementTextMarkers,
     rootElementAttr
   );
   if (value === null) {
@@ -521,7 +541,7 @@ function emitContextHtml(html: string): string {
 
 function emitSsrOp(
   op: Op,
-  markerIndexes: Map<number, number>,
+  rangeTextIndexes: Map<number | null, number>,
   texts: Map<number, string>,
   attrs: Map<string, string>,
   props: Map<number, string>,
@@ -542,7 +562,7 @@ function emitSsrOp(
       }
       return emitSsrTextOp(
         op,
-        markerIndexes,
+        rangeTextIndexes,
         texts,
         targetIds,
         addedRoots,
@@ -662,7 +682,7 @@ function emitSsrAttrOp(
 
 function emitSsrTextOp(
   op: Extract<Op, { kind: 'textEffect' }>,
-  markerIndexes: Map<number, number>,
+  rangeTextIndexes: Map<number | null, number>,
   texts: Map<number, string>,
   targetIds: Map<number, string>,
   addedRoots: Set<string>,
@@ -683,11 +703,19 @@ function emitSsrTextOp(
     }
     target = `${QwikWord.CreateSsrElementTextTarget}(${targetId})`;
   } else {
-    const markerIndex = markerIndexes.get(op.target.marker);
-    if (markerIndex === undefined) {
-      return null;
+    const markerIndex = rangeTextIndexes.get(op.target.id) ?? 0;
+    rangeTextIndexes.set(op.target.id, markerIndex + 1);
+    if (op.target.id === null) {
+      target = `${QwikWord.CreateSsrRangeTextTarget}(${id}, ${markerIndex})`;
+    } else {
+      let targetId = targetIds.get(op.target.id);
+      if (targetId === undefined) {
+        targetId = next(QwikGenWord.Id);
+        targetIds.set(op.target.id, targetId);
+        statements.push(`const ${targetId} = ctx.nextId();`);
+      }
+      target = `${QwikWord.CreateSsrRangeTextTarget}(${targetId}, ${markerIndex})`;
     }
-    target = `${QwikWord.CreateSsrRangeTextTarget}(${id}, ${markerIndex})`;
   }
   const text = next(QwikGenWord.Text);
   texts.set(op.target.marker, text);
@@ -735,17 +763,6 @@ function emitSsrRoots(addedRoots: Set<string>, roots: Iterable<string>): string[
   return statements;
 }
 
-function createMarkerIndexes(parts: readonly HtmlPart[], elementTextMarkers: ReadonlySet<number>) {
-  const indexes = new Map<number, number>();
-  let index = 0;
-  for (const part of parts) {
-    if (part.kind === 'marker' && !elementTextMarkers.has(part.id)) {
-      indexes.set(part.id, index++);
-    }
-  }
-  return indexes;
-}
-
 function emitDynamicHtml(
   parts: readonly HtmlPart[],
   root: number,
@@ -758,7 +775,6 @@ function emitDynamicHtml(
   loops: ReadonlyMap<number, { id: string; value: string }>,
   events: ReadonlyMap<string, string>,
   targetIds: ReadonlyMap<number, string>,
-  elementTextMarkers: ReadonlySet<number>,
   rootElementAttr: string | null
 ): string | null {
   const frames: Array<{ target: number; props: string; expressions: string[] }> = [
@@ -769,7 +785,8 @@ function emitDynamicHtml(
   };
   let didInjectRoot = false;
   const injectedTargets = new Set<number>();
-  for (const part of parts) {
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i];
     switch (part.kind) {
       case 'html': {
         const expression =
@@ -877,15 +894,24 @@ function emitDynamicHtml(
         pushExpression(JSON.stringify(` ${QwikAttributes.Id}="`), targetId, JSON.stringify('"'));
         break;
       }
-      case 'marker': {
+      case 'elementText': {
         const text = texts.get(part.id);
         if (text === undefined) {
           return null;
         }
-        if (!elementTextMarkers.has(part.id)) {
-          pushExpression(JSON.stringify(QwikComments.TextMarker));
-        }
         pushExpression(`${QwikWord.EscapeHTML}(${text})`);
+        break;
+      }
+      case 'rangeText': {
+        const text = texts.get(part.id);
+        if (text === undefined) {
+          return null;
+        }
+        pushExpression(JSON.stringify(QwikComments.TextMarker));
+        pushExpression(`${QwikWord.EscapeHTML}(${text})`);
+        if (isStaticTextPart(parts[i + 1])) {
+          pushExpression(JSON.stringify(QwikComments.TextMarkerEnd));
+        }
         break;
       }
       case 'childrenStart': {
@@ -910,6 +936,10 @@ function emitDynamicHtml(
     }
   }
   return frames.length === 1 ? frames[0].expressions.join(' + ') : null;
+}
+
+function isStaticTextPart(part: HtmlPart | undefined): boolean {
+  return part?.kind === 'html' && part.isStaticText && part.value.length > 0;
 }
 
 function createAttrKey(target: number, name: string, expr: readonly number[]) {

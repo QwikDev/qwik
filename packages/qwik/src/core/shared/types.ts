@@ -160,4 +160,5 @@ export type SerializationStrategy =
 
 export const enum SsrNodeFlags {
   Updatable = 1,
+  WarnedStreamedChore = 2,
 }

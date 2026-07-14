@@ -556,6 +556,7 @@ function processJSXNode(
           enqueue(() => ssr.closeComponent());
           if (isPromise(jsxOutput)) {
             enqueue(async () => {
+              await ssr.streamHandler.flush();
               const resolvedOutput = await jsxOutput;
               const compStyleComponentId = addComponentStylePrefix(host.getProp(QScopedStyle));
 

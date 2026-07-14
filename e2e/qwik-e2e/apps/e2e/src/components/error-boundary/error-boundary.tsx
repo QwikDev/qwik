@@ -16,32 +16,12 @@ import {
   type QRL,
   type Signal,
 } from '@qwik.dev/core';
-import { ManualOutOfOrderReleaseButton, WEBKIT_STREAMING_FLUSH } from '../suspense/ooos';
-
-const getSearchParam = (url: string | undefined, name: string): string | null =>
-  url ? new URL(url).searchParams.get(name) : null;
-
-// Shared with ooos.tsx; keep the store shape in sync.
-type ReleaseStore = { resolved: Set<string>; resolvers: Map<string, Set<() => void>> };
-const getReleaseStore = (): ReleaseStore =>
-  ((globalThis as any).__qwikOOOSReleaseStore ||= {
-    resolved: new Set<string>(),
-    resolvers: new Map<string, Set<() => void>>(),
-  });
-const waitForRelease = (requestId: string, releaseId: string): Promise<void> =>
-  new Promise<void>((resolve) => {
-    const store = getReleaseStore();
-    const key = `${requestId}:${releaseId}`;
-    if (store.resolved.has(key)) {
-      resolve();
-      return;
-    }
-    let resolvers = store.resolvers.get(key);
-    if (!resolvers) {
-      store.resolvers.set(key, (resolvers = new Set()));
-    }
-    resolvers.add(resolve);
-  });
+import {
+  getSearchParam,
+  ManualOutOfOrderReleaseButton,
+  waitForRelease,
+  WEBKIT_STREAMING_FLUSH,
+} from '../suspense/ooos';
 
 const EbFallback = component$((props: { msg: string; id?: string }) => {
   const id = props.id ?? 'eb-fallback';

@@ -1,4 +1,4 @@
-import { $, component$, Slot, useSignal, type QRL } from '@qwik.dev/core';
+import { $, component$, Slot, sync$, useSignal, type QRL } from '@qwik.dev/core';
 import { IconGripVertical, IconXMark } from '../components/Icons/Icons';
 import { IconButton } from '../components/IconButton/IconButton';
 import type { DevtoolsState, DevtoolsTabId } from './state';
@@ -27,7 +27,6 @@ interface TabRowProps {
 const TabRow = component$<TabRowProps>((props) => (
   <li
     draggable={props.draggable}
-    preventdefault:dragover={props.draggable}
     onDragStart$={props.onDragStart$}
     onDragEnter$={props.onDragEnter$}
     onDragEnd$={props.onDragEnd$}
@@ -95,7 +94,12 @@ export const CustomizeTabsPanel = component$<CustomizeTabsPanelProps>(({ state }
         </div>
 
         <div class="custom-scrollbar flex flex-1 flex-col gap-4 overflow-y-auto px-4 pb-3">
-          <section>
+          <section
+            preventdefault:dragover
+            preventdefault:drop
+            onDragOver$={sync$((event: DragEvent) => event.preventDefault())}
+            onDrop$={sync$((event: DragEvent) => event.preventDefault())}
+          >
             <h3 class="text-foreground text-sm font-medium">Visible in Sidebar</h3>
             <p class="text-muted-foreground text-xs">Drag to reorder.</p>
             <ul class="mt-2 flex flex-col gap-1">

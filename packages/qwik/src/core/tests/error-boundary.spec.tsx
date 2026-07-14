@@ -2591,7 +2591,6 @@ describe('hostile thrown values (fail-closed normalization)', () => {
       'Error subclass with a throwing message getter',
       () => {
         class Evil extends Error {
-          // eslint-disable-next-line getter-return
           get message(): string {
             throw new Error('message trap');
           }
@@ -2610,14 +2609,14 @@ describe('hostile thrown values (fail-closed normalization)', () => {
   ];
 
   it.each(hostileRows)('toSerializableBoundaryError never throws: %s', (_, makeHostile) => {
-    for (const dev of [true, false]) {
-      const out = toSerializableBoundaryError(makeHostile(), dev) as Error & { digest?: string };
-      expect(out).toBeInstanceOf(Error);
-      if (!dev) {
-        expect(out.message).toBe('An error occurred');
-        expect(typeof out.digest).toBe('string');
-      }
-    }
+    const inDev = toSerializableBoundaryError(makeHostile(), /* dev */ true);
+    expect(inDev).toBeInstanceOf(Error);
+    const inProd = toSerializableBoundaryError(makeHostile(), /* dev */ false) as Error & {
+      digest?: string;
+    };
+    expect(inProd).toBeInstanceOf(Error);
+    expect(inProd.message).toBe('An error occurred');
+    expect(typeof inProd.digest).toBe('string');
   });
 
   it.each(hostileRows)('redactBoundaryErrorForDisplay never throws: %s', (_, makeHostile) => {

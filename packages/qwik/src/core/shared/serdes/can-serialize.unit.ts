@@ -17,7 +17,6 @@ describe('canSerialize: Error fields', () => {
 
   it('rejects an Error whose message getter throws', () => {
     class Evil extends Error {
-      // eslint-disable-next-line getter-return
       get message(): string {
         throw new Error('trap');
       }

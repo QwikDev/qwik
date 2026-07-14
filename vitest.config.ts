@@ -26,13 +26,11 @@ export default defineConfig({
     include: [
       '**/*.spec.*',
       '**/*.unit.*',
-      // Flag-off specs run in the vitest.flag-off.config.ts project.
-      '!**/*.flag-off.spec.*',
       '!*/(lib|dist|build|server|target)/**',
       '!**/node_modules/**',
     ],
     setupFiles: [fromRoot('./vitest-setup.ts')],
-    projects: ['..', fromRoot('./vitest.flag-off.config.ts')],
+    projects: ['..'],
     testTimeout: 10000,
   },
 });

@@ -240,11 +240,6 @@ client routing (`client/dom-container.ts`); shared helpers (`shared/error/error-
   `q:prewarm` makes real resume eager.
 - Flags are build-time-replaced and ON suite-wide; the unit env defaults `outOfOrder: true`, so
   exercise the in-order branch with explicit `streaming: { outOfOrder: false }`.
-- Flag-OFF behavior cannot be asserted in the main suite (compile-time replacement makes it a
-  false pass). Put flag-off pins in `*.flag-off.spec.*` — the `vitest.flag-off.config.ts` project
-  compiles without `errorBoundary`; the main config excludes that pattern. The client `qerror`
-  listener, `unhandledrejection` bridge, and `handleError` boundary walk are flag-gated: flag-off
-  `handleError` must rethrow synchronously.
 - `qwik-dom` `querySelector` is document-wide — use `host.contains(el)`; build a fresh JSX tree per
   container ("props across containers").
 

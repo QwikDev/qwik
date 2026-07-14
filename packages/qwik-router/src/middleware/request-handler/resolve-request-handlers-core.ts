@@ -570,20 +570,7 @@ function createResolveRequestHandlers() {
       }
       throwIfControlFlowSignal(result);
       if (isAsyncIterator(result)) {
-        ev.headers.set('Content-Type', 'text/qwik-json-stream');
-        const writable = ev.getWritableStream();
-        const stream = writable.getWriter();
-        for await (const item of result) {
-          if (isDev) {
-            verifySerializable(item, qrl);
-          }
-          const message = await _serialize(item);
-          if (ev.signal.aborted) {
-            break;
-          }
-          await stream.write(encoder.encode(`${message}\n`));
-        }
-        stream.close();
+        await streamServerFunctionResult(ev, result, qrl);
       } else {
         verifySerializable(result, qrl);
         ev.headers.set('Content-Type', 'application/qwik-json');
@@ -592,6 +579,36 @@ function createResolveRequestHandlers() {
       }
       return;
     }
+  }
+
+  async function streamServerFunctionResult(
+    ev: RequestEvent,
+    result: AsyncIterable<unknown>,
+    qrl: QRL
+  ) {
+    ev.headers.set('Content-Type', 'text/qwik-json-stream');
+    const writable = ev.getWritableStream();
+    const stream = writable.getWriter();
+    for await (const item of result) {
+      if (isDev) {
+        verifySerializable(item, qrl);
+      }
+      const message = await _serialize(item);
+      if (ev.signal.aborted) {
+        break;
+      }
+      // Swallow rejection: writable may be errored by a client disconnect.
+      await stream.write(encoder.encode(`${message}\n`)).catch((err) => {
+        if (isDev) {
+          console.error(`Server function ${qrl.getSymbol()} stream write failed:`, err);
+        }
+      });
+    }
+    await stream.close().catch((err) => {
+      if (isDev) {
+        console.error(`Server function ${qrl.getSymbol()} stream close failed:`, err);
+      }
+    });
   }
 
   function fixTrailingSlash(ev: RequestEvent) {
@@ -814,6 +831,7 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
     measure,
     renderQwikMiddleware,
     resolveRequestHandlers,
+    streamServerFunctionResult,
     verifySerializable,
   };
 }
@@ -830,5 +848,6 @@ export const {
   measure,
   renderQwikMiddleware,
   resolveRequestHandlers,
+  streamServerFunctionResult,
   verifySerializable,
 } = createResolveRequestHandlers();

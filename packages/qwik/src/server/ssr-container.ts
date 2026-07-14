@@ -1454,10 +1454,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       return;
     }
     this.isErrorSwapExecutorEmitted = true;
-    this.writeScript(
-      { type: 'text/javascript', nonce: this.renderOptions.serverData?.nonce },
-      getQwikErrorSwapExecutorScript({ debug: isDev })
-    );
+    this.emitInlineScript(getQwikErrorSwapExecutorScript({ debug: isDev }));
   }
 
   $registerErrorSwap$(_boundaryId: number): void {

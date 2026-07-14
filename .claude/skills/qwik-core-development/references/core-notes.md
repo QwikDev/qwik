@@ -231,18 +231,6 @@ client routing (`client/dom-container.ts`); shared helpers (`shared/error/error-
   internal StackFns must keep hitting the unmarked fn branch. The client silently ignores function
   children — leave it untouched.
 
-### False-pass traps
-- The unit harness simulates resume — back resume/interactivity claims with
-  `error-boundary-streaming.e2e.ts`. Only `streamAndResume` executes `qErr` scripts; a display
-  toggle under plain `ssrRenderToDom` came from the backpatch, not the swap.
-- Deserialization is lazy: a poisoned ref into an inert region passes render-only asserts.
-  Deserialize every root (`container.$getObjectById$`) to pin the writer protocol;
-  `q:prewarm` makes real resume eager.
-- Flags are build-time-replaced and ON suite-wide; the unit env defaults `outOfOrder: true`, so
-  exercise the in-order branch with explicit `streaming: { outOfOrder: false }`.
-- `qwik-dom` `querySelector` is document-wide — use `host.contains(el)`; build a fresh JSX tree per
-  container ("props across containers").
-
 ## Keep This Reference Fresh
 
 Before finishing a core task, ask:

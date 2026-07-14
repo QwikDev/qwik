@@ -20,29 +20,25 @@ export interface ErrorBoundaryStore {
 
 export const ERROR_CONTEXT = /*#__PURE__*/ createContextId<ErrorBoundaryStore>('qk-error');
 
-export const isRecoverable = (err: any) => {
+/** Reads from a possibly-hostile raw value; a throwing trap/getter yields the fallback. */
+const safeRead = <T>(read: () => T, fallback: T): T => {
   try {
-    if (err && err instanceof Error) {
-      if ('plugin' in err) {
-        return false;
-      }
-    }
+    return read();
   } catch {
-    // Hostile value (revoked Proxy/throwing trap): treat as recoverable.
+    return fallback;
   }
-  return true;
 };
+
+export const isRecoverable = (err: any) =>
+  safeRead(() => !(err && err instanceof Error && 'plugin' in err), true);
 
 const GENERIC_BOUNDARY_ERROR_MESSAGE = 'An error occurred';
 
 const errorBoundaryDigest = (err: unknown): string => {
-  let source: string;
-  try {
-    source = err instanceof Error ? `${err.name}: ${err.message}\n${err.stack ?? ''}` : String(err);
-  } catch {
-    // Hostile value: hash a constant rather than touching it again.
-    source = 'unknown';
-  }
+  const source = safeRead(
+    () => (err instanceof Error ? `${err.name}: ${err.message}\n${err.stack ?? ''}` : String(err)),
+    'unknown'
+  );
   let hash = 0;
   for (let i = 0; i < source.length; i++) {
     hash = (Math.imul(31, hash) + source.charCodeAt(i)) | 0;
@@ -94,13 +90,9 @@ export const toSerializableBoundaryError = (
 ): Error => {
   try {
     if (transformError) {
-      let projected: unknown;
-      try {
-        projected = transformError(err);
-      } catch {
-        return redactToGeneric(err);
-      }
-      // The projection's own fields serialize later; validate them now, fail-closed.
+      // A throwing transform lands in the outer catch. The projection's own
+      // fields serialize later; validate them now, fail-closed.
+      const projected = transformError(err);
       return projected instanceof Error && canSerialize(projected)
         ? projected
         : redactToGeneric(err);
@@ -121,17 +113,11 @@ export const toSerializableBoundaryError = (
   }
 };
 
-export const redactBoundaryErrorForDisplay = (error: unknown, dev: boolean = isDev): Error => {
-  try {
-    if (error instanceof Error && 'digest' in error) {
-      // Framework-projected (server-redacted) errors pass through untouched.
-      return error;
-    }
-  } catch {
-    // Hostile value: normalize below without trusting it.
-  }
-  return toSerializableBoundaryError(error, dev);
-};
+export const redactBoundaryErrorForDisplay = (error: unknown, dev: boolean = isDev): Error =>
+  // Framework-projected (server-redacted) errors pass through untouched.
+  safeRead(() => error instanceof Error && 'digest' in error, false)
+    ? (error as Error)
+    : toSerializableBoundaryError(error, dev);
 
 export const fireOnError = (
   onError: ((error: Error, info: ErrorBoundaryInfo) => unknown) | undefined | null,
@@ -174,17 +160,13 @@ export const tagErrorPhase = (err: unknown, phase: ErrorBoundaryInfo['phase']): 
   }
 };
 
-const getTaggedErrorPhase = (err: unknown): ErrorBoundaryInfo['phase'] | undefined => {
-  if (err === null || (typeof err !== 'object' && typeof err !== 'function')) {
-    return undefined;
-  }
-  try {
-    return (err as { [ERROR_PHASE]?: ErrorBoundaryInfo['phase'] })[ERROR_PHASE];
-  } catch {
-    // Hostile get trap: the catch site's phase wins.
-    return undefined;
-  }
-};
+const getTaggedErrorPhase = (err: unknown): ErrorBoundaryInfo['phase'] | undefined =>
+  err !== null && (typeof err === 'object' || typeof err === 'function')
+    ? safeRead(
+        () => (err as { [ERROR_PHASE]?: ErrorBoundaryInfo['phase'] })[ERROR_PHASE],
+        undefined
+      )
+    : undefined;
 
 export const markBoundaryErrored = (
   store: ErrorBoundaryStore,

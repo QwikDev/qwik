@@ -120,7 +120,9 @@ import { renderSSRChunks, StringBufferSegmentWriter, StringSSRWriter } from './s
 import {
   TagNesting,
   allowedContent,
+  closesPTag,
   initialTag,
+  isRetainedWhenInvalid,
   isSelfClosingTag,
   isTagAllowed,
 } from './tag-nesting';
@@ -286,6 +288,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private backpatchMap = new Map<number | string, BackpatchEntry[]>();
 
   private currentElementFrame: ElementFrame | null = null;
+  /** Dev-only: parent>child combos already warned about, so each warns once per render. */
+  private warnedNestingCombos: Set<string> | null = null;
 
   private renderTimer: ReturnType<typeof createTimer>;
   /**
@@ -1597,6 +1601,15 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         let frame: ElementFrame | null = this.currentElementFrame;
         const previousTagNesting = frame!.tagNesting;
         tagNesting = isTagAllowed(previousTagNesting, elementName);
+        if (
+          tagNesting === TagNesting.NOT_ALLOWED &&
+          this.isNestingRetainedByParser(previousTagNesting, elementName)
+        ) {
+          if (isDev) {
+            this.warnInvalidNesting(elementName, currentFile);
+          }
+          tagNesting = isTagAllowed(TagNesting.ANYTHING, elementName);
+        }
         if (tagNesting === TagNesting.NOT_ALLOWED) {
           const frames: ElementFrame[] = [];
           while (frame) {
@@ -1653,6 +1666,63 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     const closingFrame = this.currentElementFrame!;
     this.currentElementFrame = closingFrame.parent;
     return closingFrame;
+  }
+
+  /** True when the HTML parser keeps this invalid nesting in the DOM as-is instead of rewriting it. */
+  private isNestingRetainedByParser(parentState: TagNesting, elementName: string): boolean {
+    if (!isRetainedWhenInvalid(parentState, elementName)) {
+      return false;
+    }
+    if (closesPTag(elementName) && this.hasOpenTagInScope('p')) {
+      return false;
+    }
+    if (elementName === 'button' && this.hasOpenTagInScope('button')) {
+      return false;
+    }
+    return true;
+  }
+
+  /** Mirrors the parser's "has an element in scope" check over the open element frames. */
+  private hasOpenTagInScope(tagName: string): boolean {
+    let frame = this.currentElementFrame;
+    while (frame) {
+      if (frame.elementName === tagName) {
+        return true;
+      }
+      switch (frame.elementName) {
+        case 'applet':
+        case 'button':
+        case 'caption':
+        case 'html':
+        case 'marquee':
+        case 'object':
+        case 'table':
+        case 'td':
+        case 'template':
+        case 'th':
+          return false;
+      }
+      frame = frame.parent;
+    }
+    return false;
+  }
+
+  private warnInvalidNesting(elementName: string, currentFile: string | null | undefined) {
+    if (!isDev) {
+      return;
+    }
+    const parentName = this.currentElementFrame!.elementName;
+    const combo = `${parentName}>${elementName}`;
+    const warnedCombos = (this.warnedNestingCombos ||= new Set());
+    if (warnedCombos.has(combo)) {
+      return;
+    }
+    warnedCombos.add(combo);
+    console.warn(
+      `Qwik SSR: '<${elementName}>' inside '<${parentName}>' is invalid HTML. ` +
+        `Browsers keep it in the DOM so rendering continues, but fix the markup to emit valid HTML.` +
+        (currentFile ? ` Found in ${currentFile}` : '')
+    );
   }
 
   ////////////////////////////////////

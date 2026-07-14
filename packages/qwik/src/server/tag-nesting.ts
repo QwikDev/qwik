@@ -3,6 +3,10 @@
  *
  *   This file contains element tag nesting rules of HTML.
  *
+ *   The nesting states encode the HTML authoring spec. A violation only breaks Qwik when the parsing
+ *   spec rewrites the DOM (auto-closing, foster parenting, ignored tags); violations the parser
+ *   keeps as-is are classified by `isRetainedWhenInvalid` and only warrant a dev warning.
+ *
  *   The rules are encoded as switch statements rather than as object literal lookups because:
  *
  *   1. Switch statements are faster than object literal lookups.
@@ -190,6 +194,7 @@ function isInAnything(text: string): TagNesting {
     case 'style':
     case 'noscript':
     case 'noframes':
+    case 'textarea': // rawtext element; element children would be parsed as text
       return TagNesting.TEXT;
     case 'p':
     case 'pre':
@@ -203,7 +208,6 @@ function isInAnything(text: string): TagNesting {
     case 'button':
       return TagNesting.BUTTON;
     case 'input':
-    case 'textarea':
       return TagNesting.PHRASING_INSIDE_INPUT;
     case 'picture':
       return TagNesting.PICTURE;
@@ -298,8 +302,9 @@ function isInPhrasing(text: string, allowInput: boolean): TagNesting {
     case 'math':
       return TagNesting.PHRASING_CONTAINER;
     case 'input':
-    case 'textarea':
       return allowInput ? TagNesting.PHRASING_INSIDE_INPUT : TagNesting.NOT_ALLOWED;
+    case 'textarea':
+      return allowInput ? TagNesting.TEXT : TagNesting.NOT_ALLOWED;
     case 'a':
     case 'abbr':
     case 'area':
@@ -362,5 +367,94 @@ function isInPhrasing(text: string, allowInput: boolean): TagNesting {
       return TagNesting.PICTURE;
     default:
       return TagNesting.NOT_ALLOWED;
+  }
+}
+
+/** Start tags that make the parser auto-close an open `<p>` element in button scope. */
+export function closesPTag(tag: string): boolean {
+  switch (tag) {
+    case 'address':
+    case 'article':
+    case 'aside':
+    case 'blockquote':
+    case 'center':
+    case 'details':
+    case 'dialog':
+    case 'dir':
+    case 'div':
+    case 'dl':
+    case 'fieldset':
+    case 'figcaption':
+    case 'figure':
+    case 'footer':
+    case 'form':
+    case 'h1':
+    case 'h2':
+    case 'h3':
+    case 'h4':
+    case 'h5':
+    case 'h6':
+    case 'header':
+    case 'hgroup':
+    case 'hr':
+    case 'listing':
+    case 'main':
+    case 'menu':
+    case 'nav':
+    case 'ol':
+    case 'p':
+    case 'plaintext':
+    case 'pre':
+    case 'section':
+    case 'summary':
+    case 'table':
+    case 'ul':
+    case 'xmp':
+      return true;
+    default:
+      return false;
+  }
+}
+
+/** Tags the parser ignores or relocates when misplaced, so the DOM never keeps them as-is. */
+function isStructuralTag(tag: string): boolean {
+  switch (tag) {
+    case 'html':
+    case 'head':
+    case 'body':
+    case 'frame':
+    case 'frameset':
+    case 'caption':
+    case 'col':
+    case 'colgroup':
+    case 'tbody':
+    case 'thead':
+    case 'tfoot':
+    case 'tr':
+    case 'td':
+    case 'th':
+      return true;
+    default:
+      return false;
+  }
+}
+
+/**
+ * True when the parsing spec keeps this authoring-invalid child in the DOM as-is. Callers must
+ * still check recovery that depends on open ancestors: `closesPTag` with an open `<p>` in button
+ * scope, and a `<button>` start tag with an open `<button>` in scope.
+ */
+export function isRetainedWhenInvalid(parentState: TagNesting, tag: string): boolean {
+  if (isStructuralTag(tag)) {
+    return false;
+  }
+  switch (parentState) {
+    case TagNesting.BUTTON:
+    case TagNesting.PHRASING_ANY:
+    case TagNesting.PHRASING_INSIDE_INPUT:
+    case TagNesting.PICTURE:
+      return true;
+    default:
+      return false;
   }
 }

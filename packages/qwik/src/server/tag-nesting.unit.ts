@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { TagNesting, isTagAllowed } from './tag-nesting';
+import { TagNesting, closesPTag, isRetainedWhenInvalid, isTagAllowed } from './tag-nesting';
 
 describe('tag-nesting', () => {
   // Head element tests
@@ -223,6 +223,52 @@ describe('tag-nesting', () => {
 
     it('should not allow anchor elements in button elements', () => {
       expect(isValidNesting('html>body>button>a')).toBe('a');
+    });
+  });
+
+  describe('rawtext elements', () => {
+    it('should allow text content in textarea elements', () => {
+      expect(isValidNesting('html>body>textarea>#text')).toBe(true);
+    });
+
+    it('should not allow element children in textarea elements', () => {
+      expect(isValidNesting('html>body>textarea>span')).toBe('span');
+    });
+  });
+
+  describe('parser leniency classification', () => {
+    it('should keep invalid flow content in button/phrasing/picture contexts', () => {
+      expect(isRetainedWhenInvalid(TagNesting.BUTTON, 'div')).toBe(true);
+      expect(isRetainedWhenInvalid(TagNesting.BUTTON, 'a')).toBe(true);
+      expect(isRetainedWhenInvalid(TagNesting.BUTTON, 'input')).toBe(true);
+      expect(isRetainedWhenInvalid(TagNesting.PHRASING_ANY, 'div')).toBe(true);
+      expect(isRetainedWhenInvalid(TagNesting.PHRASING_INSIDE_INPUT, 'input')).toBe(true);
+      expect(isRetainedWhenInvalid(TagNesting.PICTURE, 'div')).toBe(true);
+    });
+
+    it('should not keep children where the parser rewrites the DOM', () => {
+      expect(isRetainedWhenInvalid(TagNesting.TEXT, 'div')).toBe(false);
+      expect(isRetainedWhenInvalid(TagNesting.EMPTY, 'div')).toBe(false);
+      expect(isRetainedWhenInvalid(TagNesting.TABLE, 'div')).toBe(false);
+      expect(isRetainedWhenInvalid(TagNesting.TABLE_ROW, 'div')).toBe(false);
+      expect(isRetainedWhenInvalid(TagNesting.HEAD, 'div')).toBe(false);
+      expect(isRetainedWhenInvalid(TagNesting.DOCUMENT, 'div')).toBe(false);
+    });
+
+    it('should not keep structural tags outside their required context', () => {
+      expect(isRetainedWhenInvalid(TagNesting.BUTTON, 'td')).toBe(false);
+      expect(isRetainedWhenInvalid(TagNesting.PHRASING_ANY, 'tr')).toBe(false);
+      expect(isRetainedWhenInvalid(TagNesting.PICTURE, 'body')).toBe(false);
+    });
+
+    it('should know which start tags auto-close an open p element', () => {
+      expect(closesPTag('div')).toBe(true);
+      expect(closesPTag('p')).toBe(true);
+      expect(closesPTag('table')).toBe(true);
+      expect(closesPTag('ul')).toBe(true);
+      expect(closesPTag('h1')).toBe(true);
+      expect(closesPTag('span')).toBe(false);
+      expect(closesPTag('marquee')).toBe(false);
     });
   });
 

@@ -24,8 +24,10 @@ import {
 import { describe, expect, it, vi } from 'vitest';
 import * as logUtils from '../shared/utils/log';
 import { qrl } from '../shared/qrl/qrl';
-import { processOutOfOrderSegmentVNodeData } from '../client/process-vnode-data';
-import { rerenderComponent } from '../../testing/rendering.unit-util';
+import {
+  emulateExecutionOfStreamingOutOfOrderScripts,
+  rerenderComponent,
+} from '../../testing/rendering.unit-util';
 import { delay } from '../shared/utils/promises';
 import {
   markBoundaryErrored,
@@ -100,20 +102,7 @@ const streamAndResume = async (jsx: JSXOutput, opts: Record<string, unknown> = {
   });
   const html = chunks.join('');
   const document = createDocument({ html });
-  (document as any).qProcessOOOS = (boundaryId: number, content: Element | null) =>
-    processOutOfOrderSegmentVNodeData(document, String(boundaryId), content);
-  const scripts = Array.from(
-    document.querySelectorAll('script[type="text/javascript"]'),
-    (s) => s.textContent || ''
-  ).filter(
-    (code) =>
-      code.includes('qO') ||
-      code.includes('qInstallOOOS') ||
-      code.includes('qErr') ||
-      code.includes('qInstallErrorSwap')
-  );
-  // eslint-disable-next-line no-new-func
-  new Function('document', scripts.join('\n'))(document);
+  emulateExecutionOfStreamingOutOfOrderScripts(document, ['qErr', 'qInstallErrorSwap']);
   return { html, document };
 };
 

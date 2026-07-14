@@ -126,7 +126,6 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     tsconfigFileNames: ['./tsconfig.json'],
     input: undefined as any,
     outDir: undefined as any,
-    assetsDir: undefined as any,
     resolveQwikBuild: true,
     entryStrategy: undefined as any,
     srcDir: undefined as any,
@@ -216,10 +215,6 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         ...updatedOpts.devTools,
       };
     }
-    if (updatedOpts.assetsDir) {
-      opts.assetsDir = updatedOpts.assetsDir;
-    }
-
     if (
       updatedOpts.target === 'ssr' ||
       updatedOpts.target === 'client' ||
@@ -1598,7 +1593,6 @@ export interface QwikPluginOptions {
   outDir?: string;
   ssrOutDir?: string;
   clientOutDir?: string;
-  assetsDir?: string;
   srcDir?: string | null;
   scope?: string | null;
   /** @deprecated Not used */

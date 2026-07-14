@@ -79,7 +79,6 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
       return normalizeRollupOutputOptionsObject(
         qwikPlugin,
         rollupOutputOpts,
-        false,
         qwikPlugin.getOptions().outDir
       ) as any;
     },
@@ -134,8 +133,7 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
 
 export async function normalizeRollupOutputOptions(
   qwikPlugin: QwikPlugin,
-  rollupOutputOpts: Rollup.OutputOptions | Rollup.OutputOptions[] | undefined,
-  useAssetsDir: boolean
+  rollupOutputOpts: Rollup.OutputOptions | Rollup.OutputOptions[] | undefined
 ): Promise<Rollup.OutputOptions | Rollup.OutputOptions[]> {
   if (Array.isArray(rollupOutputOpts)) {
     // make sure at least one output is present in every case
@@ -145,12 +143,12 @@ export async function normalizeRollupOutputOptions(
 
     return await Promise.all(
       rollupOutputOpts.map((outputOptsObj) =>
-        normalizeRollupOutputOptionsObject(qwikPlugin, outputOptsObj, useAssetsDir)
+        normalizeRollupOutputOptionsObject(qwikPlugin, outputOptsObj)
       )
     );
   }
 
-  return normalizeRollupOutputOptionsObject(qwikPlugin, rollupOutputOpts, useAssetsDir);
+  return normalizeRollupOutputOptionsObject(qwikPlugin, rollupOutputOpts);
 }
 
 const normalizeChunkPathPrefix = (prefix: string) => {
@@ -197,7 +195,6 @@ const getChunkFileName = (
 export async function normalizeRollupOutputOptionsObject(
   qwikPlugin: QwikPlugin,
   rollupOutputOptsObj: Rollup.OutputOptions | undefined,
-  useAssetsDir: boolean,
   // Force `dir` for the standalone Rollup plugin (no Vite to derive it). Vite passes undefined so
   // each environment's `build.outDir` resolves it — letting a custom env (e.g. `ssg`) use its own.
   outDir?: string
@@ -208,12 +205,12 @@ export async function normalizeRollupOutputOptionsObject(
   const manualChunks = qwikPlugin.manualChunks;
 
   if (!outputOpts.assetFileNames) {
-    // SEO likes readable asset names
-    // assetsDir allows assets to be in a deeper directory for serving, e.g. Astro
-    outputOpts.assetFileNames = `${useAssetsDir ? `${opts.assetsDir}/` : ''}assets/[hash]-[name].[ext]`;
+    // SEO likes readable asset names. Set `output.assetFileNames` to relocate assets.
+    outputOpts.assetFileNames = 'assets/[hash]-[name].[ext]';
   }
 
-  const chunkFileName = getChunkFileName(useAssetsDir ? `${opts.assetsDir}` : '', opts, optimizer);
+  // Qwik's lazy JS chunks stay at `build/` (the preloader's fixed home) regardless of asset config.
+  const chunkFileName = getChunkFileName('', opts, optimizer);
   if (opts.target === 'client') {
     // client output
     if (!outputOpts.entryFileNames) {

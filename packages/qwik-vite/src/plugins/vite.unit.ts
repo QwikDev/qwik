@@ -389,7 +389,7 @@ test('should use the dist/ fallback with client target', async () => {
   const plugin = getPlugin(initOpts);
   const c: any = (await plugin.config.call(
     configHookPluginContext,
-    { build: { assetsDir: 'my-assets-dir/' } },
+    { build: {} },
     { command: 'serve', mode: 'development' }
   ))!;
 
@@ -403,28 +403,55 @@ test('should use build.outDir config with client target', async () => {
   const plugin = getPlugin(initOpts);
   const c: any = (await plugin.config.call(
     configHookPluginContext,
-    { build: { outDir: 'my-dist/', assetsDir: 'my-assets-dir' } },
+    { build: { outDir: 'my-dist/' } },
     { command: 'serve', mode: 'development' }
   ))!;
 
   assert.equal(c.build.outDir, normalizePath(resolve(cwd, `my-dist`)));
 });
 
-test('should use build.outDir config when assetsDir is _astro', async () => {
-  const initOpts = {
-    optimizerOptions: mockOptimizerOptions(),
-  };
-
-  const plugin = getPlugin(initOpts);
-
-  // Astro sets a build.assetsDir of _astro, but we don't want to change that
+test('build.assetsDir is ignored: it no longer relocates Qwik output', async () => {
+  const plugin = getPlugin({ optimizerOptions: mockOptimizerOptions() });
   const c: any = (await plugin.config.call(
     configHookPluginContext,
-    { build: { assetsDir: '_astro' } },
-    { command: 'serve', mode: 'development' }
+    { build: { assetsDir: 'q' } },
+    { command: 'build', mode: 'production' }
   ))!;
+  const outputOptions = c.build.rollupOptions.output as Rollup.OutputOptions;
+  // assets stay at the default dir and chunks stay at build/ — assetsDir has no effect on Qwik output
+  assert.deepEqual(outputOptions.assetFileNames, 'assets/[hash]-[name].[ext]');
+  assert.deepEqual(outputOptions.chunkFileNames, 'build/q-[hash].js');
+});
 
-  assert.equal(c.build.outDir, normalizePath(resolve(cwd, `dist/`)));
+test('user output.assetFileNames relocates assets but keeps chunks at build/', async () => {
+  const plugin = getPlugin({ optimizerOptions: mockOptimizerOptions() });
+  const c: any = (await plugin.config.call(
+    configHookPluginContext,
+    { build: { rollupOptions: { output: { assetFileNames: 'q/assets/[hash]-[name][extname]' } } } },
+    { command: 'build', mode: 'production' }
+  ))!;
+  const outputOptions = c.build.rollupOptions.output as Rollup.OutputOptions;
+  assert.deepEqual(outputOptions.assetFileNames, 'q/assets/[hash]-[name][extname]');
+  assert.deepEqual(outputOptions.chunkFileNames, 'build/q-[hash].js');
+  assert.deepEqual(outputOptions.entryFileNames, 'build/q-[hash].js');
+});
+
+test('user output.assetFileNames also applies to the SSR build (client/SSR stay in sync)', async () => {
+  const initOpts = {
+    optimizerOptions: mockOptimizerOptions(),
+    ssr: {
+      input: resolve(cwd, 'src', 'entry.ssr.tsx'),
+      outDir: resolve(cwd, 'server'),
+    },
+  };
+  const plugin = getPlugin(initOpts);
+  const c: any = (await plugin.config.call(
+    configHookPluginContext,
+    { build: { rollupOptions: { output: { assetFileNames: 'q/assets/[hash]-[name][extname]' } } } },
+    { command: 'serve', mode: 'ssr' }
+  ))!;
+  const outputOptions = c.build.rollupOptions.output as Rollup.OutputOptions;
+  assert.deepEqual(outputOptions.assetFileNames, 'q/assets/[hash]-[name][extname]');
 });
 
 test('command: build, mode: production (deno)', async () => {

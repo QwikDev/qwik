@@ -1,6 +1,7 @@
 import { isDev } from '@qwik.dev/core/build';
 import { canSerialize } from '../serdes/can-serialize';
 import { createContextId } from '../../use/use-context';
+import { hashCode } from '../utils/hash_code';
 import { logError } from '../utils/log';
 import type { ErrorBoundaryInfo } from './error-boundary';
 
@@ -34,17 +35,14 @@ export const isRecoverable = (err: any) =>
 
 const GENERIC_BOUNDARY_ERROR_MESSAGE = 'An error occurred';
 
-const errorBoundaryDigest = (err: unknown): string => {
-  const source = safeRead(
-    () => (err instanceof Error ? `${err.name}: ${err.message}\n${err.stack ?? ''}` : String(err)),
-    'unknown'
+const errorBoundaryDigest = (err: unknown): string =>
+  hashCode(
+    safeRead(
+      () =>
+        err instanceof Error ? `${err.name}: ${err.message}\n${err.stack ?? ''}` : String(err),
+      'unknown'
+    )
   );
-  let hash = 0;
-  for (let i = 0; i < source.length; i++) {
-    hash = (Math.imul(31, hash) + source.charCodeAt(i)) | 0;
-  }
-  return (hash >>> 0).toString(36);
-};
 
 // No `instanceof Error` shortcut: an Error's own fields must serialize too.
 const isKeepableBoundaryError = (v: unknown): boolean => v !== undefined && canSerialize(v);

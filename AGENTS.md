@@ -5,6 +5,14 @@
 
 # Qwik v2 agents reference, instructions and rules
 
+> [!IMPORTANT]
+> **ALWAYS RUN `ruler apply` AT THE START OF A SESSION.** The agent skills are gitignored, not
+> committed, so a fresh clone/worktree has none until you generate them (once per worktree):
+>
+> ```bash
+> pnpm dlx @intellectronica/ruler@0.3.42 apply --no-gitignore --no-mcp
+> ```
+
 > Canonical source for repo-wide AI coding agent rules. For contributor setup, see
 > [CONTRIBUTING.md](./CONTRIBUTING.md). For package-specific workflows, load the relevant
 > `.ruler/skills/*/SKILL.md` file.

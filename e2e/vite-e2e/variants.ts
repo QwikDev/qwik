@@ -9,6 +9,10 @@ export type BuildVariant = {
   port: number;
   base?: string;
   assetsDir?: string;
+  buildOutputDir?: string;
+  assetOutputDir?: string;
+  buildPublicDir?: string;
+  assetPublicDir?: string;
 };
 
 export const variants: BuildVariant[] = [
@@ -44,6 +48,17 @@ export const variants: BuildVariant[] = [
     base: '/base/',
     assetsDir: 'assets-dir',
   },
+  {
+    name: 'vite with custom rollup asset and build output directories',
+    slug: 'vite-with-custom-rollup-output',
+    clientConfig: 'custom-rollup-output.vite.config.ts',
+    serverConfig: 'custom-rollup-output.vite.config.ts',
+    port: 4604,
+    buildOutputDir: 'q/build',
+    assetOutputDir: 'q/assets',
+    buildPublicDir: 'q/build',
+    assetPublicDir: 'q/assets',
+  },
 ];
 
 const variantsDir = fileURLToPath(new URL('.', import.meta.url));
@@ -64,14 +79,28 @@ export const toPathPrefix = (variant: BuildVariant) => {
 };
 
 export const toBuildOutputDir = (variantDir: string, variant: BuildVariant) => {
-  const buildSegment = variant.assetsDir ? join(variant.assetsDir, 'build') : 'build';
+  const buildSegment =
+    variant.buildOutputDir ?? (variant.assetsDir ? join(variant.assetsDir, 'build') : 'build');
   return join(variantDir, 'dist', buildSegment);
 };
 
 export const toAssetsOutputDir = (variantDir: string, variant: BuildVariant) => {
-  const assetsSegment = variant.assetsDir ? join(variant.assetsDir, 'assets') : 'assets';
+  const assetsSegment =
+    variant.assetOutputDir ?? (variant.assetsDir ? join(variant.assetsDir, 'assets') : 'assets');
   return join(variantDir, 'dist', assetsSegment);
 };
+
+const toPublicDirPrefix = (basePath: string, dir: string) => {
+  const basePrefix = basePath === '/' ? '/' : basePath;
+  const normalizedDir = trimSlashes(dir);
+  return normalizedDir ? `${basePrefix}${normalizedDir}/` : basePrefix;
+};
+
+export const toBuildPublicPath = (variant: BuildVariant) =>
+  toPublicDirPrefix(variant.base ?? '/', variant.buildPublicDir ?? 'build');
+
+export const toAssetPublicPath = (variant: BuildVariant) =>
+  toPublicDirPrefix(variant.base ?? '/', variant.assetPublicDir ?? 'assets');
 
 export const toClientConfigPath = (variant: BuildVariant) =>
   join(configDir, 'client', variant.clientConfig);

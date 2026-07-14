@@ -2,7 +2,9 @@ import { expect, test } from '@playwright/test';
 import { access, readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import {
+  toAssetPublicPath,
   findVariantBySlug,
+  toBuildPublicPath,
   outputRootDir,
   toAssetsOutputDir,
   toBuildOutputDir,
@@ -78,20 +80,19 @@ function getVariantContext(projectName: string) {
 
 function toCanonicalAssetPathname(
   pathname: string,
-  basePrefix: string,
-  pathPrefix: string,
-  hasAssetsDir: boolean
+  basePath: string,
+  publicAssetDir: string,
+  outputAssetDir: string
 ) {
-  if (!hasAssetsDir) {
-    return pathname;
+  const distPathname = toDistPathname(pathname, basePath);
+  const publicPrefix = `/${trimSlashes(publicAssetDir)}/`;
+  const outputPrefix = `/${trimSlashes(outputAssetDir)}/`;
+
+  if (!distPathname.startsWith(publicPrefix)) {
+    return distPathname;
   }
 
-  const baseAssetsPrefix = `${basePrefix}assets/`;
-  if (!pathname.startsWith(baseAssetsPrefix)) {
-    return pathname;
-  }
-
-  return `${pathPrefix}assets/${pathname.slice(baseAssetsPrefix.length)}`;
+  return `${outputPrefix}${distPathname.slice(publicPrefix.length)}`;
 }
 
 function toDistPathname(pathname: string, basePath: string) {
@@ -152,35 +153,44 @@ test.describe('vite build matrix for static paths', () => {
   });
 
   test('SSR html references emitted circle asset path', async ({ page }, testInfo) => {
-    const { requiredVariant, variantDir, basePath, basePrefix, pathPrefix } = getVariantContext(
-      testInfo.project.name
-    );
+    const { requiredVariant, variantDir, basePath } = getVariantContext(testInfo.project.name);
     const circleAssetFileName = await getExpectedCircleAssetFileName(variantDir, requiredVariant);
+    const assetPublicPath = toAssetPublicPath(requiredVariant);
 
     await page.goto(basePath);
 
     const circleSrc = await page.getAttribute('img', 'src');
     expect(circleSrc).toBeTruthy();
     expect(circleSrc!).not.toContain('data:');
-    const expectedSrcPrefix = requiredVariant.assetsDir ? basePrefix : pathPrefix;
-    expect(circleSrc!).toBe(`${expectedSrcPrefix}assets/${circleAssetFileName}`);
+    expect(circleSrc!).toBe(`${assetPublicPath}${circleAssetFileName}`);
     const circlePathname = new URL(circleSrc!, 'http://127.0.0.1').pathname;
     const canonicalCirclePathname = toCanonicalAssetPathname(
       circlePathname,
-      basePrefix,
-      pathPrefix,
-      !!requiredVariant.assetsDir
+      basePath,
+      requiredVariant.assetPublicDir ?? 'assets',
+      requiredVariant.assetOutputDir ??
+        (requiredVariant.assetsDir ? `${requiredVariant.assetsDir}/assets` : 'assets')
     );
 
-    const distPathname = toDistPathname(canonicalCirclePathname, basePath);
-    const circleBuiltFilePath = join(variantDir, 'dist', trimSlashes(distPathname));
+    const circleBuiltFilePath = join(variantDir, 'dist', trimSlashes(canonicalCirclePathname));
     await expect(readFile(circleBuiltFilePath, 'utf-8')).resolves.toBe(expectedCircleSvg);
   });
 
+  test('SSR html references emitted build chunk path', async ({ request }, testInfo) => {
+    const { requiredVariant, basePath } = getVariantContext(testInfo.project.name);
+    const buildPublicPath = toBuildPublicPath(requiredVariant);
+
+    const response = await request.get(basePath);
+    await expect(response.ok()).toBeTruthy();
+
+    const html = await response.text();
+    expect(html).toContain(buildPublicPath);
+  });
+
   test('serves robots.txt and circle asset', async ({ page, request }, testInfo) => {
-    const { requiredVariant, basePath, basePrefix, pathPrefix } = getVariantContext(
-      testInfo.project.name
-    );
+    const { requiredVariant, basePath } = getVariantContext(testInfo.project.name);
+    const assetPublicPath = toAssetPublicPath(requiredVariant);
+    const basePrefix = trimSlashes(basePath).length > 0 ? basePath : '/';
 
     await page.goto(basePath);
     const circleSrc = await page.getAttribute('img', 'src');
@@ -189,14 +199,14 @@ test.describe('vite build matrix for static paths', () => {
       join(outputRootDir, requiredVariant.slug),
       requiredVariant
     );
-    const expectedSrcPrefix = requiredVariant.assetsDir ? basePrefix : pathPrefix;
-    expect(circleSrc!).toBe(`${expectedSrcPrefix}assets/${circleAssetFileName}`);
+    expect(circleSrc!).toBe(`${assetPublicPath}${circleAssetFileName}`);
     const circlePathname = new URL(circleSrc!, 'http://127.0.0.1').pathname;
     const canonicalCirclePathname = toCanonicalAssetPathname(
       circlePathname,
-      basePrefix,
-      pathPrefix,
-      !!requiredVariant.assetsDir
+      basePath,
+      requiredVariant.assetPublicDir ?? 'assets',
+      requiredVariant.assetOutputDir ??
+        (requiredVariant.assetsDir ? `${requiredVariant.assetsDir}/assets` : 'assets')
     );
 
     let robotsResponse = await request.get(`${basePrefix}robots.txt`);

@@ -9,6 +9,8 @@ import { DevtoolsContent } from './DevtoolsContent';
 import { loadDevtoolsData } from './rpc';
 import { createDevtoolsState, type DevtoolsState } from './state';
 import { DevtoolsSidebar } from './DevtoolsSidebar';
+import { CustomizeTabsPanel } from './CustomizeTabsPanel';
+import { loadVisibleTabIds } from './sidebar-tabs';
 import { ensurePreloadRuntime } from '../runtime/preloads';
 import { isExcludedPathname, normalizeExcludePathnames } from '../../../kit/src/overlay-paths';
 
@@ -29,6 +31,14 @@ export const QwikDevtools = component$<QwikDevtoolsProps>((props) => {
       }
 
       shouldRender.value = true;
+
+      // Restore the customized sidebar order/visibility (Vite overlay only).
+      if (!state.isExtension) {
+        const storedVisibleTabIds = loadVisibleTabIds();
+        if (storedVisibleTabIds) {
+          state.visibleTabIds = storedVisibleTabIds;
+        }
+      }
 
       if (!getQwikDevtoolsGlobal(window)?.[QWIK_DEVTOOLS_GLOBAL.props.dataProvider]) {
         ensurePreloadRuntime();
@@ -51,8 +61,11 @@ export const QwikDevtools = component$<QwikDevtoolsProps>((props) => {
         {state.isOpen && (
           <DevtoolsPanel state={state}>
             <DevtoolsSidebar state={state} />
-            <div class="custom-scrollbar min-h-0 flex-1 overflow-y-auto p-4">
-              <DevtoolsContent state={state} />
+            <div class="relative min-h-0 flex-1">
+              <div class="custom-scrollbar h-full overflow-y-auto p-4">
+                <DevtoolsContent state={state} />
+              </div>
+              {!state.isExtension && state.isCustomizeOpen && <CustomizeTabsPanel state={state} />}
             </div>
           </DevtoolsPanel>
         )}

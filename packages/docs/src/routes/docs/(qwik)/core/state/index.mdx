@@ -248,6 +248,8 @@ export default component$(() => {
 
 Incrementing the counter updates the `count` signal, but `componentId` keeps its original value: `useConstant()` runs its factory only on the first render and returns that same value every time afterwards.
 
+> **NOTE** A factory that returns `undefined` is re-run on every render. Only defined values are retained — including `null`. If you need to cache the absence of a value, return `null` rather than `undefined`.
+
 > **NOTE** `useConstant()` returns the raw value directly, not a signal. Reach for `useSignal()` when the value needs to change over time, or `useComputed$()` when it should be derived from other state and kept in sync with it. Use `useConstant()` only when the value must be calculated a single time and then stay fixed.
 
 ## Computed state

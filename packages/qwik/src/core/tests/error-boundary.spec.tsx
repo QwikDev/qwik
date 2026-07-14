@@ -2442,16 +2442,9 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
   });
 
   it('transformError (render option): redacts the SSR-serialized boundary error end-to-end', async () => {
-    const SecretThrower = component$((): JSXOutput => {
-      throw new Error('SECRET-db-detail');
-    });
     const { container } = await ssrRenderToDom(
-      <ErrorBoundary
-        fallback$={$((e: any) => (
-          <p id="fb">shown: {e instanceof Error ? e.message : String(e)}</p>
-        ))}
-      >
-        <SecretThrower />
+      <ErrorBoundary fallback$={fb()}>
+        <Thrower message="SECRET-db-detail" />
       </ErrorBoundary>,
       { debug, transformError: () => new Error('redacted-by-app') }
     );
@@ -2500,16 +2493,9 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
   });
 
   it('transformError (render option): an unserializable projection still completes SSR with the generic fallback', async () => {
-    const SecretThrower = component$((): JSXOutput => {
-      throw new Error('SECRET-db-detail');
-    });
     const { container } = await ssrRenderToDom(
-      <ErrorBoundary
-        fallback$={$((e: any) => (
-          <p id="fb">shown: {e instanceof Error ? e.message : String(e)}</p>
-        ))}
-      >
-        <SecretThrower />
+      <ErrorBoundary fallback$={fb()}>
+        <Thrower message="SECRET-db-detail" />
       </ErrorBoundary>,
       { debug, transformError: () => Object.assign(new Error('leaky'), { retry: () => {} }) }
     );

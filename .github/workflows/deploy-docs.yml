@@ -19,19 +19,7 @@ jobs:
   deploy:
     name: Cloudflare Pages Deployment
     if: >
-      github.repository == 'QwikDev/qwik' &&
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.head_repository.full_name == github.repository &&
-      (
-        (
-          github.event.workflow_run.event == 'push' &&
-          github.event.workflow_run.head_branch == 'main'
-        ) ||
-        (
-          github.event.workflow_run.event == 'pull_request' &&
-          github.event.workflow_run.pull_requests[0].number > 0
-        )
-      )
+      github.repository == 'QwikDev/qwik'
     runs-on: ubuntu-latest
     steps:
       - name: Check for docs artifact

@@ -154,7 +154,7 @@ export const CommandPalette = component$<CommandPaletteProps>(({ state }) => {
   let optionIndex = 0;
 
   return (
-    <div class="fixed inset-0 z-[9992] flex items-start justify-center p-4 pt-16">
+    <div class="absolute inset-0 z-30 flex items-start justify-center p-4">
       <div
         class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
         onClick$={() => (state.isPaletteOpen = false)}

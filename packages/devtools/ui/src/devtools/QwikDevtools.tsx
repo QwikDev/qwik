@@ -49,19 +49,17 @@ export const QwikDevtools = component$<QwikDevtoolsProps>((props) => {
     { strategy: 'document-ready' }
   );
 
-  // Cmd/Ctrl+K toggles the palette from anywhere, opening the panel if needed. Uses document-ready
+  // Cmd/Ctrl+K toggles the palette, but only while the devtools panel is open. Uses document-ready
   // (not the default intersection strategy) because the root has no layout size to observe.
   useVisibleTask$(
     ({ cleanup }) => {
       const handleShortcut = (event: KeyboardEvent) => {
         if ((event.metaKey || event.ctrlKey) && (event.key === 'k' || event.key === 'K')) {
-          event.preventDefault();
-          if (state.isPaletteOpen) {
-            state.isPaletteOpen = false;
-          } else {
-            state.isOpen = true;
-            state.isPaletteOpen = true;
+          if (!state.isOpen) {
+            return;
           }
+          event.preventDefault();
+          state.isPaletteOpen = !state.isPaletteOpen;
         }
       };
       window.addEventListener('keydown', handleShortcut);
@@ -88,11 +86,10 @@ export const QwikDevtools = component$<QwikDevtoolsProps>((props) => {
                 <DevtoolsContent state={state} />
               </div>
               {!state.isExtension && state.isCustomizeOpen && <CustomizeTabsPanel state={state} />}
+              {state.isPaletteOpen && <CommandPalette state={state} />}
             </div>
           </DevtoolsPanel>
         )}
-
-        {state.isOpen && state.isPaletteOpen && <CommandPalette state={state} />}
       </DevtoolsContainer>
     </div>
   );

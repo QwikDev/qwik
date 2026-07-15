@@ -299,7 +299,15 @@ export function processProps(
     }
 
     if (isBindProp(propName) && !tagIsHtml) {
-      pushNamed(constEntries, `"${propName}": ${valueText}`, 'const', attr.start);
+      let bindValue = valueText;
+      if (valueNode && !skipSignalAnalysis) {
+        const bindSignal = analyzeSignalExpression(valueNode, source, importedNames, allDeclaredNames);
+        if (bindSignal.type === 'wrapProp' && bindSignal.isStoreField) {
+          bindValue = bindSignal.code;
+          neededImports.add('_wrapProp');
+        }
+      }
+      pushNamed(constEntries, `"${propName}": ${bindValue}`, 'const', attr.start);
       continue;
     }
 

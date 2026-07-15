@@ -13,6 +13,22 @@ import {
   isBindProp,
   mergeEventHandlers,
 } from '../../../src/optimizer/jsx/bind.js';
+import { transformModule } from '../../../src/index.js';
+import { mkFilePath, mkSourceText } from '../../../src/optimizer/types/brands.js';
+
+function transformComponentBind(code: string): string {
+  const result = transformModule({
+    srcDir: mkFilePath('/proj/src'),
+    input: [{ path: mkFilePath('/proj/src/c.tsx'), code: mkSourceText(code) }],
+    transpileTs: true,
+    transpileJsx: true,
+    minify: 'simplify',
+    mode: 'dev',
+    isServer: false,
+    entryStrategy: { type: 'segment' },
+  });
+  return result.modules.map((m) => m.code).join('\n');
+}
 
 describe('bind-transform', () => {
   describe('isBindProp', () => {
@@ -128,6 +144,33 @@ describe('bind-transform', () => {
       expect(result).toBe(
         `[${bindHandler}, ${existingHandler}]`
       );
+    });
+  });
+
+  describe('bind: on a component with a store-field value', () => {
+    it('wraps a member-access bind value in _wrapProp(obj, "field")', () => {
+      const out = transformComponentBind(`import { component$ } from '@qwik.dev/core';
+import { Inner } from './inner';
+import { useBindings } from './bindings';
+export const C = component$((props) => {
+  const b = useBindings(props, { open: false });
+  return <Inner bind:open={b.openSig} />;
+});
+`);
+      expect(out).toMatch(/"bind:open":\s*_wrapProp\(b,\s*"openSig"\)/);
+      expect(out).not.toMatch(/"bind:open":\s*b\.openSig\b/);
+    });
+
+    it('leaves a plain-identifier bind value raw', () => {
+      const out = transformComponentBind(`import { component$, useSignal } from '@qwik.dev/core';
+import { Inner } from './inner';
+export const C = component$(() => {
+  const open = useSignal(false);
+  return <Inner bind:open={open} />;
+});
+`);
+      expect(out).toMatch(/"bind:open":\s*open\b/);
+      expect(out).not.toMatch(/_wrapProp\(open/);
     });
   });
 });

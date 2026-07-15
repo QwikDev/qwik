@@ -326,7 +326,16 @@ function buildJsxSplitCall(
     beforeSpreadEntries.length > 0 || additionalSpreads.length > 0
   );
 
-  if (componentHasExtras) {
+  const partitionableComponentSpread =
+    componentHasExtras && additionalSpreads.length === 0 && constEntries.length > 0;
+
+  if (partitionableComponentSpread) {
+    const hasVarAfterSpread = varEntries.length > 0;
+    const getConstInVar = hasVarAfterSpread ? `, ..._getConstProps(${spreadArg})` : '';
+    varPropsPart = `{ ${beforePart}..._getVarProps(${spreadArg})${getConstInVar}${afterPart} }`;
+    const getConstInConst = hasVarAfterSpread ? '' : `..._getConstProps(${spreadArg}), `;
+    constPropsPart = `{ ${getConstInConst}${constEntries.join(', ')} }`;
+  } else if (componentHasExtras) {
     const constPart = constEntries.length > 0 ? `, ${constEntries.join(', ')}` : '';
     varPropsPart = `{ ${beforePart}..._getVarProps(${spreadArg}), ..._getConstProps(${spreadArg})${afterPart}${constPart}${additionalSpreadsPart} }`;
     constPropsPart = 'null';

@@ -124,6 +124,22 @@ describe('signal-analysis', () => {
       }
     });
 
+    it('generates fnSignal for negated signal: !signal.value', () => {
+      const { node, source } = parseExpr('!signal.value');
+      const result = analyzeSignalExpression(node, source, importedNames);
+      expect(result.type).toBe('fnSignal');
+      if (result.type === 'fnSignal') {
+        expect(result.deps).toEqual(['signal']);
+        expect(result.hoistedFn).toBe('(p0)=>!p0.value');
+      }
+    });
+
+    it('does NOT hoist a non-reactive unary: !plainVar', () => {
+      const { node, source } = parseExpr('!plainVar');
+      const result = analyzeSignalExpression(node, source, importedNames);
+      expect(result.type).toBe('none');
+    });
+
     it('generates fnSignal for deep store access: store.address.city.name', () => {
       const { node, source } = parseExpr('store.address.city.name');
       const result = analyzeSignalExpression(node, source, importedNames);

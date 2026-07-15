@@ -960,11 +960,11 @@ export function analyzeSignalExpression(
     return { type: 'fnSignal', deps: allDeps, hoistedFn, hoistedStr };
   }
 
-  // Compound expressions (binary, conditional, logical, template)
   if (
     exprNode.type === 'BinaryExpression' ||
     exprNode.type === 'ConditionalExpression' ||
     exprNode.type === 'LogicalExpression' ||
+    exprNode.type === 'UnaryExpression' ||
     exprNode.type === 'TemplateLiteral'
   ) {
     return tryBuildFnSignal(exprNode, source, importedNames, localNames);

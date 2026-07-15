@@ -114,20 +114,17 @@ interface JsxCallTransformOptions {
  * declaration can appear after the first jsx() call in document order, so
  * the set must be complete before any wrap decision), then one act walk
  * whose enter phase wraps reactive accesses (`X.prop` →
- * `_wrapProp(X, "prop")`, mirroring SWC's signal analysis on JSX prop
- * values + children) and maintains the nested-call tag stack, and whose
- * leave phase rewrites calls bottom-up — inner calls are rewritten before
- * outer calls, so when the outer's source text is sliced (for tag /
- * children), it contains the already-rewritten inner call text. Same
- * pattern as `transformAllJsx` uses for nested JSX.
+ * `_wrapProp(X, "prop")`) and records each call's direct jsx children, and
+ * whose leave phase rewrites calls bottom-up — inner calls are rewritten
+ * before outer calls, so when the outer's source text is sliced (for tag /
+ * children), it contains the already-rewritten inner call text.
  *
- * Nested-call keying follows SWC's `handle_jsx`: only the outermost jsx()
- * call in a body auto-keys; calls whose NEAREST jsx() ancestor is an
- * HTML-tag call (string-literal tag arg) take `null`, while calls under
- * COMPONENT parents (identifier tag arg) keep auto-keys all the way down.
- * The tag stack tracks every jsx() call regardless of skip ranges —
- * ancestry doesn't stop being ancestry because the ancestor belongs to
- * another transform.
+ * Keying: a component element is always keyed; an HTML element is keyed only
+ * when it is not a direct jsx child of another jsx element — a render root,
+ * or an element reached through an expression boundary (`&&` / ternary /
+ * `.map` / an arrow or loop body). A direct HTML child takes `null`. An
+ * explicit key is reused only from the 3-argument `jsx(tag, props, key)`
+ * form; the 6-argument dev form's trailing key/source arguments are ignored.
  *
  * Mutates `s` (the MagicString of the parsed source) and `opts.neededImports`.
  */
@@ -158,28 +155,13 @@ export function transformJsxCalls(
   opts.localNames = localNames;
   opts.bindings = scopeBindings.bindings;
 
-  // Tag kinds of the open jsx() ancestors, most-recent last; `'html'` for a
-  // string-literal-tag call, `'component'` for an identifier-tag call.
-  const tagStack: ('html' | 'component')[] = [];
-  // Calls marked nested-under-HTML at enter; consumed at the same node's
-  // leave (the stack has already moved on by then).
-  const nestedJsxStarts = new Set<number>();
+  const directJsxChildStarts = new Set<number>();
 
   walk(program, {
     enter(node: AstNode) {
-      // The enter gate matches the leave gate below: a
-      // `<jsxFunction>(tag, propsObjLiteral, ...)` call.
       if (!isJsxCall(node, opts.jsxFunctions) || node.type !== 'CallExpression') return;
 
-      if (tagStack.length > 0 && tagStack[tagStack.length - 1] === 'html') {
-        nestedJsxStarts.add(node.start);
-      }
-      const tagArg = node.arguments?.[0];
-      const kind: 'html' | 'component' =
-        tagArg && tagArg.type === 'Literal' && typeof tagArg.value === 'string'
-          ? 'html'
-          : 'component';
-      tagStack.push(kind);
+      markDirectJsxChildren(node, opts.jsxFunctions, directJsxChildStarts);
 
       if (reactiveBindings.size === 0 && (opts.paramNames?.length ?? 0) === 0) return;
       if (isInSkipRange(node.start)) return;
@@ -195,20 +177,12 @@ export function transformJsxCalls(
       });
     },
     leave(node: AstNode) {
-      // Bail unless this is a `<jsxFunction>(tag, propsObjLiteral, ...)`
-      // call. Per SWC `transform.rs:1166-1168`, non-ObjectExpression props
-      // (e.g. a passed-through variable) leave the call unchanged.
       if (!isJsxCall(node, opts.jsxFunctions) || node.type !== 'CallExpression') return;
 
-      tagStack.pop();
-
-      // Skip ranges occupied by another transform (e.g. parent rewrite
-      // for $() / inlinedQrl arguments — segment-side codegen handles
-      // those jsx() calls separately).
       if (isInSkipRange(node.start)) return;
 
-      const isNested = nestedJsxStarts.has(node.start);
-      const rewritten = buildJsxSortedCall(s, node, opts, isNested);
+      const isDirectJsxChild = directJsxChildStarts.has(node.start);
+      const rewritten = buildJsxSortedCall(s, node, opts, isDirectJsxChild);
       if (rewritten !== null) {
         s.overwrite(node.start, node.end, rewritten);
       }
@@ -252,6 +226,29 @@ function isJsxCall(node: AstNode, jsxFunctions: ReadonlySet<string>): boolean {
     node.arguments.length >= 2 &&
     node.arguments[1]?.type === 'ObjectExpression'
   );
+}
+
+function markDirectJsxChildren(
+  node: AstNode,
+  jsxFunctions: ReadonlySet<string>,
+  out: Set<number>,
+): void {
+  if (node.type !== 'CallExpression') return;
+  const propsArg = node.arguments?.[1];
+  if (!propsArg || propsArg.type !== 'ObjectExpression') return;
+  for (const prop of propsArg.properties ?? []) {
+    if (prop.type !== 'Property' || prop.computed) continue;
+    if (propertyKeyName(prop) !== 'children') continue;
+    const value = prop.value;
+    if (isJsxCall(value, jsxFunctions)) {
+      out.add(value.start);
+    } else if (value?.type === 'ArrayExpression') {
+      for (const el of value.elements ?? []) {
+        if (el && isJsxCall(el, jsxFunctions)) out.add(el.start);
+      }
+    }
+    return;
+  }
 }
 
 interface WrapReactiveContext {
@@ -473,7 +470,7 @@ function buildJsxSortedCall(
   s: MagicString,
   callNode: AstNode,
   opts: JsxCallTransformOptions,
-  isNested: boolean,
+  isDirectJsxChild: boolean,
 ): string | null {
   // Caller already gates on `callNode.type === 'CallExpression'` and
   // `arguments[1].type === 'ObjectExpression'`. The CallExpression check
@@ -594,18 +591,16 @@ function buildJsxSortedCall(
     });
   }
 
-  // Optional 3rd arg: explicit key. Maps to the 6th `_jsxSorted` arg.
-  // Fall back to an auto-generated key per `JsxKeyCounter` — but only for
-  // OUTERMOST calls. Nested jsx() calls (those inside another jsx() call's
-  // argument tree) get `null` per SWC's `handle_jsx`.
+  const shouldEmitKey = !isHtmlTag || !isDirectJsxChild;
   let keyText: string;
-  if (args.length >= 3 && args[2] && args[2].type !== 'SpreadElement') {
-    const keyArg = args[2];
-    keyText = s.slice(keyArg.start, keyArg.end);
-  } else if (isNested) {
-    keyText = 'null';
-  } else {
+  if (args.length === 3 && args[2] && args[2].type !== 'SpreadElement') {
+    // An explicit user key rides only on the 3-arg call form; the dev form's
+    // trailing key/source arguments are synthetic and carry no key.
+    keyText = s.slice(args[2].start, args[2].end);
+  } else if (shouldEmitKey) {
     keyText = `"${opts.keyCounter.next()}"`;
+  } else {
+    keyText = 'null';
   }
 
   // The element's `q:p`/`q:ps` capture prop goes in the VAR bag (the captured

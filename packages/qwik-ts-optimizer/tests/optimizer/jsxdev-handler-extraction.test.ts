@@ -306,3 +306,119 @@ export const Search = component$(() => {
 		});
 	}
 });
+
+describe('pre-transformed `_jsxDEV` key generation', () => {
+	const SELECT = `import { jsxDEV as _jsxDEV } from "@qwik.dev/core/jsx-dev-runtime";
+import { component$ } from '@qwik.dev/core';
+import { SelectItem } from './item';
+
+export const Select = component$(() => {
+  return _jsxDEV("div", {
+    children: [
+      _jsxDEV("label", { children: "Pick" }, undefined, false, undefined, this),
+      _jsxDEV(SelectItem, { value: "a" }, undefined, false, undefined, this)
+    ]
+  }, undefined, false, undefined, this);
+});
+`;
+
+	const BOUNDARY = `import { jsxDEV as _jsxDEV, Fragment as _Fragment } from "@qwik.dev/core/jsx-dev-runtime";
+import { component$ } from '@qwik.dev/core';
+
+export const List = component$(() => {
+  const cond = true;
+  const items = [1, 2];
+  return _jsxDEV(_Fragment, {
+    children: [
+      cond && _jsxDEV("title", { children: "T" }, undefined, false, undefined, this),
+      items.map((m) => _jsxDEV("meta", { children: m }, undefined, false, undefined, this))
+    ]
+  }, undefined, false, undefined, this);
+});
+`;
+
+	const EXPLICIT_KEY = `import { jsx as _jsx } from "@qwik.dev/core/jsx-runtime";
+import { component$ } from '@qwik.dev/core';
+
+export const Item = component$(() => {
+  return _jsx("li", { children: "x" }, "explicit-key");
+});
+`;
+
+	const ROOT = `import { jsxDEV as _jsxDEV } from "@qwik.dev/core/jsx-dev-runtime";
+import { component$ } from '@qwik.dev/core';
+
+export const Root = component$(() => {
+  return _jsxDEV("section", { children: "hi" }, undefined, false, undefined, this);
+});
+`;
+
+	function transform(code: string, isServer: boolean) {
+		return transformModule({
+			srcDir: mkFilePath('/proj/src'),
+			input: [{ path: mkFilePath('/proj/src/routes/index.tsx'), code: mkSourceText(code) }],
+			entryStrategy: isServer ? { type: 'hoist' } : { type: 'smart' },
+			transpileTs: true,
+			transpileJsx: true,
+			explicitExtensions: true,
+			preserveFilenames: true,
+			mode: 'prod',
+			minify: 'simplify',
+			isServer,
+			...(isServer ? { stripEventHandlers: true, regCtxName: ['server'] } : {}),
+		});
+	}
+
+	function jsxModule(result: ReturnType<typeof transform>): string {
+		const m = result.modules.find((x) => x.code.includes('_jsxSorted'));
+		expect(m, 'expected a module containing the transformed JSX').toBeDefined();
+		return m!.code;
+	}
+
+	const POSITIONAL_KEY = /"[A-Za-z0-9]+_\d+"/g;
+
+	function positionalKeys(code: string): string[] {
+		return code.match(POSITIONAL_KEY) ?? [];
+	}
+
+	function nullKeyCount(code: string): number {
+		return (code.match(/,\s*null\)/g) ?? []).length;
+	}
+
+	test('no element in a 6-arg dev tree carries an `undefined` key', () => {
+		const code = jsxModule(transform(SELECT, false));
+		expect(code).not.toMatch(/,\s*undefined\)/);
+	});
+
+	test('a nested component is keyed while its sibling direct HTML child takes null', () => {
+		const code = jsxModule(transform(SELECT, false));
+		expect(code, 'component child keyed').toMatch(/_jsxSorted\(SelectItem,[^)]*"[A-Za-z0-9]+_\d+"\)/);
+		expect(code, 'direct HTML child null-keyed').toMatch(/_jsxSorted\("label",[^)]*,\s*null\)/);
+	});
+
+	test('the render-root element is keyed', () => {
+		const code = jsxModule(transform(ROOT, false));
+		expect(code).toMatch(/_jsxSorted\("section",[^)]*"[A-Za-z0-9]+_\d+"\)/);
+		expect(code).not.toMatch(/,\s*undefined\)/);
+		expect(code, 'root not null-keyed').not.toMatch(/_jsxSorted\("section",[^)]*,\s*null\)/);
+	});
+
+	test('HTML reached through an expression boundary is keyed', () => {
+		const code = jsxModule(transform(BOUNDARY, false));
+		expect(code, 'HTML behind `&&` keyed').toMatch(/_jsxSorted\("title",[^)]*"[A-Za-z0-9]+_\d+"\)/);
+		expect(code, 'HTML behind `.map` keyed').toMatch(/_jsxSorted\("meta",[^)]*"[A-Za-z0-9]+_\d+"\)/);
+	});
+
+	test('an explicit key on the 3-arg form is passed through verbatim', () => {
+		const code = jsxModule(transform(EXPLICIT_KEY, false));
+		expect(code).toMatch(/_jsxSorted\("li",[^)]*"explicit-key"\)/);
+	});
+
+	test('the key list is identical between server and client renders', () => {
+		const clientCode = jsxModule(transform(SELECT, false));
+		const serverCode = jsxModule(transform(SELECT, true));
+		expect(positionalKeys(clientCode).length).toBeGreaterThan(0);
+		expect(positionalKeys(clientCode)).toEqual(positionalKeys(serverCode));
+		expect(nullKeyCount(clientCode)).toBe(nullKeyCount(serverCode));
+	});
+});

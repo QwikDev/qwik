@@ -61,6 +61,49 @@ describe('buildSyncTransform', () => {
     expect(result).toContain('"(event,target)=>');
     expect(parseSync('t.tsx', result, { lang: 'tsx' }).errors).toHaveLength(0);
   });
+
+  const serializedArg = (originalFnText: string): string => {
+    const result = buildSyncTransform(originalFnText);
+    const prefix = `_qrlSync(${originalFnText}, `;
+    const inner = result.slice(prefix.length, -1);
+    return inner.slice(1, -1);
+  };
+
+  it('strips TS annotations from the serialized string of a block-body arrow', () => {
+    const serialized = serializedArg('(e: KeyboardEvent): void => { e.preventDefault(); }');
+    expect(serialized).not.toContain('KeyboardEvent');
+    expect(serialized).not.toMatch(/:\s*void/);
+    expect(serialized).toBe(serializedArg('(e) => { e.preventDefault(); }'));
+  });
+
+  it('strips TS annotations from the serialized string of an expression-body arrow', () => {
+    const serialized = serializedArg('(e: MouseEvent): void => e.preventDefault()');
+    expect(serialized).not.toContain('MouseEvent');
+    expect(serialized).not.toMatch(/:\s*void/);
+    expect(serialized).toBe(serializedArg('(e) => e.preventDefault()'));
+  });
+
+  it('strips TS annotations from the serialized string of a function expression', () => {
+    const serialized = serializedArg('function(e: Event, t: EventTarget): void { e.preventDefault(); }');
+    expect(serialized).not.toContain('Event');
+    expect(serialized).not.toContain('EventTarget');
+    expect(serialized).not.toMatch(/:\s*void/);
+    expect(serialized).toBe(serializedArg('function(e, t) { e.preventDefault(); }'));
+  });
+
+  it('keeps the live first argument raw, including its TS annotation', () => {
+    const originalFn = '(e: KeyboardEvent): void => { e.preventDefault(); }';
+    expect(buildSyncTransform(originalFn)).toContain(`_qrlSync(${originalFn},`);
+  });
+
+  it('leaves a TS-free body unchanged (no-op guard)', () => {
+    expect(serializedArg('(event, target) => { event.preventDefault(); }')).toBe(
+      '(event,target)=>{event.preventDefault();}',
+    );
+    expect(serializedArg('(event) => { event.preventDefault(); }')).toBe(
+      'event=>{event.preventDefault();}',
+    );
+  });
 });
 
 describe('needsPureAnnotation', () => {

@@ -9,10 +9,12 @@
  */
 
 import { createRegExp, exactly, oneOrMore, whitespace, wordChar, charIn, charNotIn, global } from 'magic-regexp';
+import { transformSync as oxcTransformSync } from 'oxc-transform';
 import { rewriteImportSource } from './rewrite-imports.js';
 import { isQwikPackageSource } from '../qwik/qwik-packages.js';
 import { getQrlCalleeName } from '../qwik/qrl-naming.js';
 import { quoteAsStringLiteral } from '../edit/string-literal.js';
+import { scanMatchingParenForward } from '../edit/text-scanning.js';
 
 // Keep this as a raw RegExp because the lazy quantifier is the clearest way
 // to preserve the current non-greedy block comment stripping behavior.
@@ -75,12 +77,25 @@ function minifyFunctionText(text: string): string {
   return result;
 }
 
-/**
- * Build the sync$ transformation.
- * sync$ does NOT extract a segment -- it wraps with _qrlSync instead.
- */
+function stripTypesForSerialization(fnText: string): string {
+  try {
+    const wrapped = `const __qs = (${fnText});`;
+    const out = oxcTransformSync('__sync__.tsx', wrapped, {
+      typescript: { onlyRemoveTypeImports: false },
+      jsx: 'preserve',
+    });
+    if (!out.code) return fnText;
+    const openIdx = out.code.indexOf('(', out.code.indexOf('='));
+    if (openIdx < 0) return fnText;
+    const closeIdx = scanMatchingParenForward(out.code, openIdx + 1);
+    return out.code.slice(openIdx + 1, closeIdx - 1);
+  } catch {
+    return fnText;
+  }
+}
+
 export function buildSyncTransform(originalFnText: string): string {
-  const minified = minifyFunctionText(originalFnText);
+  const minified = minifyFunctionText(stripTypesForSerialization(originalFnText));
   return `_qrlSync(${originalFnText}, ${quoteAsStringLiteral(minified)})`;
 }
 

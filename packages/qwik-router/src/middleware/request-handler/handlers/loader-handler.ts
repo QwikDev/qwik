@@ -111,7 +111,7 @@ export function loaderHandler(
       return;
     }
 
-    await sendLoaderResponse(requestEv, data, loader);
+    await sendLoaderResponse(requestEv, data, loader, !responseData.r && !responseData.e);
   };
 }
 
@@ -141,11 +141,12 @@ function resolvePreETag(
 async function sendLoaderResponse(
   requestEv: RequestEventInternal,
   data: string,
-  loader?: LoaderInternal
+  loader?: LoaderInternal,
+  cacheable = true
 ) {
   requestEv.headers.set('Content-Type', 'application/json; charset=utf-8');
   addVaryHeader(requestEv, FULLPATH_HEADER);
-  if (loader?.__expires && loader.__expires > 0) {
+  if (cacheable && loader?.__expires && loader.__expires > 0) {
     requestEv.cacheControl({ maxAge: Math.ceil(loader.__expires / 1000) });
   }
   requestEv.send(200, data);

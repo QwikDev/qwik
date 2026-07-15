@@ -132,6 +132,7 @@
 - [Cloudflare Pages](deployments/cloudflare-pages/index.mdx)
 - [Cloudflare Workers](deployments/cloudflare-workers/index.mdx)
 - [Deno](deployments/deno/index.mdx)
+- [DeployHQ](deployments/deployhq/index.mdx)
 - [Bun](deployments/bun/index.mdx)
 - [Netlify Edge](deployments/netlify-edge/index.mdx)
 - [Node](deployments/node/index.mdx)

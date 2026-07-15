@@ -1,0 +1,117 @@
+---
+title: DeployHQ | Deployments
+contributors:
+  - facundofarias
+updated_at: '2026-06-07T00:00:00Z'
+created_at: '2026-06-07T00:00:00Z'
+---
+
+import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+
+# DeployHQ
+
+[DeployHQ](https://www.deployhq.com) is a Git-based deployment platform that builds your Qwik City application on its build pipeline and transfers the output to your own infrastructure over SSH, SFTP, or FTP. It also supports Amazon S3, Azure Blob Storage, and Rackspace Cloud Files as deployment targets.
+
+Because DeployHQ deploys to a server you control, the recommended adapter is [Node](/docs/deployments/node/) (Express or Fastify) for SSR apps, or the [Static Site](/docs/deployments/static/) adapter for fully pre-rendered apps.
+
+## Installation
+
+Install the Node adapter for SSR (Express shown here):
+
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm run qwik add express
+```
+</span>
+<span q:slot="npm">
+```shell
+npm run qwik add express
+```
+</span>
+<span q:slot="yarn">
+```shell
+yarn run qwik add express
+```
+</span>
+<span q:slot="bun">
+```shell
+bun run qwik add express
+```
+</span>
+</PackageManagerTabs>
+
+Or, for a fully static build:
+
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm run qwik add static
+```
+</span>
+<span q:slot="npm">
+```shell
+npm run qwik add static
+```
+</span>
+<span q:slot="yarn">
+```shell
+yarn run qwik add static
+```
+</span>
+<span q:slot="bun">
+```shell
+bun run qwik add static
+```
+</span>
+</PackageManagerTabs>
+
+## Production build
+
+DeployHQ runs your build command on its own build infrastructure. In your DeployHQ project's **Build Pipeline**, add a step that runs:
+
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm install --frozen-lockfile && pnpm run build
+```
+</span>
+<span q:slot="npm">
+```shell
+npm ci && npm run build
+```
+</span>
+<span q:slot="yarn">
+```shell
+yarn install --frozen-lockfile && yarn build
+```
+</span>
+<span q:slot="bun">
+```shell
+bun install --frozen-lockfile && bun run build
+```
+</span>
+</PackageManagerTabs>
+
+This produces the `dist/` directory (client assets) and, for SSR adapters, the `server/` directory containing `entry.express.js` or `entry.fastify.js`.
+
+## Production deploy
+
+1. Connect your Git repository (GitHub, GitLab, or Bitbucket) to a DeployHQ project.
+2. Configure one or more **servers** for the environments you want to deploy to (e.g. `staging`, `production`). Each server can deploy over SSH, SFTP, FTP, S3, Azure Blob, or Rackspace Cloud Files.
+3. Add the build command above to the project's build pipeline so the `dist/` and `server/` folders are produced before transfer.
+4. On the target server, install production dependencies and start the Node entry file. For Express:
+
+```shell
+ORIGIN=https://your-domain.com node server/entry.express.js
+```
+
+It's **very important to correctly configure the `ORIGIN` environment variable**, which is used to check against [CSRF attacks](https://owasp.org/www-community/attacks/csrf). The origin must match the origin of the client application. A process manager such as PM2 or a systemd unit is recommended for keeping the server running — see the [Self-Hosting guide](/docs/deployments/self-hosting/) for examples.
+
+For static builds, point the deployment target at the contents of `dist/` and serve it with any static web server.
+
+## Atomic releases, rollback, and environments
+
+Each deployment creates an immutable release on the target server, so a one-click rollback restores the previous build instantly. Separate DeployHQ projects (or separate servers within the same project) let you keep `staging` and `production` isolated, and config-file injection lets you keep environment-specific values like `ORIGIN` out of the repository.
+
+A free tier is available — sign up at [deployhq.com/signup](https://www.deployhq.com/signup) to get started.

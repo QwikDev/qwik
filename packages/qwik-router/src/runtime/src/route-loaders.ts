@@ -255,10 +255,21 @@ export const fetchRouteLoaderData = async (
     return (await _deserialize<LoaderResponse>(text)) ?? undefined;
   };
 
-  if (opts?.ignoreCache || opts?.signal) {
-    // Never cache these requests, since they're either one-off or have abort signals that can't be shared
-    // The browser cache will still apply
+  if (opts?.ignoreCache) {
     return request();
+  }
+
+  if (opts?.signal) {
+    // Don't share an abortable request while pending, but reuse it after completion.
+    return request().then((value) => {
+      if (value !== undefined && !fetchCache.has(cacheKey)) {
+        setCache(cacheKey, {
+          value,
+          expires: perfNow() + LOADER_FETCH_CACHE_TTL,
+        });
+      }
+      return value;
+    });
   }
 
   const promise = request().then(

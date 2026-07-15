@@ -261,20 +261,20 @@ describe('fetchRouteLoaderData', () => {
     expect(fetchSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('does not let abortable requests populate the shared loader fetch cache', async () => {
-    const body = await _serialize({ d: 'uncached' });
+  it('reuses a completed abortable loader request', async () => {
+    const body = await _serialize({ d: 'cached' });
     const fetchSpy = vi.fn().mockImplementation(() => Promise.resolve(new Response(body)));
     vi.stubGlobal('fetch', fetchSpy);
 
     const url = new URL('http://localhost/products/123/?view=full');
-    await fetchRouteLoaderData('abort-uncached', '/products/123/', 'manifest-hash', {
+    await fetchRouteLoaderData('abort-cached', '/products/123/', 'manifest-hash', {
       pageUrl: url,
       signal: new AbortController().signal,
     });
-    await fetchRouteLoaderData('abort-uncached', '/products/123/', 'manifest-hash', {
+    await fetchRouteLoaderData('abort-cached', '/products/123/', 'manifest-hash', {
       pageUrl: url,
     });
 
-    expect(fetchSpy).toHaveBeenCalledTimes(2);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
   });
 });

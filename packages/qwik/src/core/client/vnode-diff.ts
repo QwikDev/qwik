@@ -682,8 +682,13 @@ function descendContentToProject(
   }
 
   /// STEP 1: Bucketize the children based on the projection name.
-  for (let i = 0; i < projectionChildren.length; i++) {
-    const child = projectionChildren[i];
+  const bucketize = (child: JSXChildren) => {
+    if (Array.isArray(child)) {
+      for (let i = 0; i < child.length; i++) {
+        bucketize(child[i]);
+      }
+      return;
+    }
     const slotName = String(
       (isJSXNode(child) && directGetPropsProxyProp(child, QSlot)) || QDefaultSlot
     );
@@ -698,6 +703,9 @@ function descendContentToProject(
     if (!removeProjection) {
       (jsxBucket.children as JSXChildren[]).push(child);
     }
+  };
+  for (let i = 0; i < projectionChildren.length; i++) {
+    bucketize(projectionChildren[i]);
   }
   /// STEP 2: remove the names
   for (let i = projections.length - 2; i >= 0; i = i - 2) {

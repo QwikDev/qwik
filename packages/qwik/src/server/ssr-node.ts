@@ -180,10 +180,13 @@ export class SsrComponentFrame implements ISsrComponentFrame {
       const slotName = this.getSlotName(children);
       mapArray_set(this.slots, slotName, children, 0);
     } else if (Array.isArray(children) && children.length > 0) {
-      const defaultSlot = [];
-      for (let i = 0; i < children.length; i++) {
-        const child = children[i];
-        if (isJSXNode(child)) {
+      const defaultSlot: JSXChildren[] = [];
+      const bucketize = (child: JSXChildren) => {
+        if (Array.isArray(child)) {
+          for (let i = 0; i < child.length; i++) {
+            bucketize(child[i]);
+          }
+        } else if (isJSXNode(child)) {
           const slotName = this.getSlotName(child);
           if (slotName === QDefaultSlot) {
             defaultSlot.push(child);
@@ -193,7 +196,8 @@ export class SsrComponentFrame implements ISsrComponentFrame {
         } else {
           defaultSlot.push(child);
         }
-      }
+      };
+      bucketize(children);
       defaultSlot.length > 0 && mapArray_set(this.slots, QDefaultSlot, defaultSlot, 0);
     } else {
       mapArray_set(this.slots, QDefaultSlot, children, 0);

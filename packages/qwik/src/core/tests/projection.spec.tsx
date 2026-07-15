@@ -3484,6 +3484,157 @@ describe.each([
       expect(document.querySelector('q\\:template')).toBeFalsy();
     });
   });
+
+  describe('dynamic .map() projection', () => {
+    it('should project .map()-produced q:slot children when they are the sole child', async () => {
+      const Child = component$(() => {
+        return (
+          <div>
+            <Slot name="extra" />
+          </div>
+        );
+      });
+      const Parent = component$(() => {
+        return (
+          <Child>
+            {['a', 'b'].map((t) => (
+              <span q:slot="extra" key={t}>
+                {t}
+              </span>
+            ))}
+          </Child>
+        );
+      });
+      const { vNode } = await render(<Parent />, { debug: DEBUG });
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <Component ssr-required>
+            <div>
+              <Projection ssr-required>
+                <span q:slot="extra">a</span>
+                <span q:slot="extra">b</span>
+              </Projection>
+            </div>
+          </Component>
+        </Component>
+      );
+    });
+
+    it('should project .map()-produced q:slot children alongside a sibling', async () => {
+      const Child = component$(() => {
+        return (
+          <div>
+            <Slot name="extra" />
+          </div>
+        );
+      });
+      const Parent = component$(() => {
+        return (
+          <Child>
+            <span q:slot="extra" key="static">
+              static
+            </span>
+            {['a', 'b'].map((t) => (
+              <span q:slot="extra" key={t}>
+                {t}
+              </span>
+            ))}
+          </Child>
+        );
+      });
+      const { vNode } = await render(<Parent />, { debug: DEBUG });
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <Component ssr-required>
+            <div>
+              <Projection ssr-required>
+                <span q:slot="extra">static</span>
+                <span q:slot="extra">a</span>
+                <span q:slot="extra">b</span>
+              </Projection>
+            </div>
+          </Component>
+        </Component>
+      );
+    });
+
+    it('should re-project .map() q:slot children on add/remove/reorder', async () => {
+      const Child = component$(() => {
+        return (
+          <div>
+            <Slot name="extra" />
+          </div>
+        );
+      });
+      const Parent = component$(() => {
+        const items = useSignal(['a', 'b', 'c']);
+        return (
+          <>
+            <button
+              id="reverse"
+              onClick$={() => (items.value = [...items.value].reverse())}
+            ></button>
+            <button
+              id="remove-b"
+              onClick$={() => (items.value = items.value.filter((t) => t !== 'b'))}
+            ></button>
+            <button id="add-d" onClick$={() => (items.value = [...items.value, 'd'])}></button>
+            <Child>
+              <span q:slot="extra" key="static">
+                static
+              </span>
+              {items.value.map((t) => (
+                <span q:slot="extra" key={t}>
+                  {t}
+                </span>
+              ))}
+            </Child>
+          </>
+        );
+      });
+      const { document } = await render(<Parent />, { debug: DEBUG });
+
+      const extra = () => document.querySelector('div')!;
+      await expect(extra()).toMatchDOM(
+        <div>
+          <span q:slot="extra">static</span>
+          <span q:slot="extra">a</span>
+          <span q:slot="extra">b</span>
+          <span q:slot="extra">c</span>
+        </div>
+      );
+
+      await trigger(document.body, '#reverse', 'click');
+      await expect(extra()).toMatchDOM(
+        <div>
+          <span q:slot="extra">static</span>
+          <span q:slot="extra">c</span>
+          <span q:slot="extra">b</span>
+          <span q:slot="extra">a</span>
+        </div>
+      );
+
+      await trigger(document.body, '#remove-b', 'click');
+      await expect(extra()).toMatchDOM(
+        <div>
+          <span q:slot="extra">static</span>
+          <span q:slot="extra">c</span>
+          <span q:slot="extra">a</span>
+        </div>
+      );
+
+      await trigger(document.body, '#add-d', 'click');
+      await expect(extra()).toMatchDOM(
+        <div>
+          <span q:slot="extra">static</span>
+          <span q:slot="extra">c</span>
+          <span q:slot="extra">a</span>
+          <span q:slot="extra">d</span>
+        </div>
+      );
+      expect(document.querySelectorAll('span').length).toBe(4);
+    });
+  });
 });
 
 describe('slot-projected head/body', () => {

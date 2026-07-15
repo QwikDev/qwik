@@ -10,9 +10,9 @@ import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
 
 # DeployHQ
 
-[DeployHQ](https://www.deployhq.com) is a Git-based deployment platform that builds your Qwik City application on its build pipeline and transfers the output to your own infrastructure over SSH, SFTP, or FTP. It also supports Amazon S3, Azure Blob Storage, and Rackspace Cloud Files as deployment targets.
+[DeployHQ](https://www.deployhq.com) is a Git-based deployment platform that builds your Qwik Router application on its build pipeline and transfers the output to your own infrastructure over SSH, SFTP, or FTP. It also supports Amazon S3, Azure Blob Storage, and Rackspace Cloud Files as deployment targets.
 
-Because DeployHQ deploys to a server you control, the recommended adapter is [Node](/docs/deployments/node/) (Express or Fastify) for SSR apps, or the [Static Site](/docs/deployments/static/) adapter for fully pre-rendered apps.
+Because DeployHQ deploys to a server you control, the recommended adapter is [Node](/docs/deployments/node/index.mdx) (Express or Fastify) for SSR apps, or the [Static Site](/docs/deployments/static/index.mdx) adapter for fully pre-rendered apps.
 
 ## Installation
 
@@ -106,7 +106,7 @@ This produces the `dist/` directory (client assets) and, for SSR adapters, the `
 ORIGIN=https://your-domain.com node server/entry.express.js
 ```
 
-It's **very important to correctly configure the `ORIGIN` environment variable**, which is used to check against [CSRF attacks](https://owasp.org/www-community/attacks/csrf). The origin must match the origin of the client application. A process manager such as PM2 or a systemd unit is recommended for keeping the server running — see the [Self-Hosting guide](/docs/deployments/self-hosting/) for examples.
+It's **very important to correctly configure the `ORIGIN` environment variable**, which is used to check against [CSRF attacks](https://owasp.org/www-community/attacks/csrf). The origin must match the origin of the client application. A process manager such as PM2 or a systemd unit is recommended for keeping the server running — see the [Self-Hosting guide](/docs/deployments/self-hosting/index.mdx) for examples.
 
 For static builds, point the deployment target at the contents of `dist/` and serve it with any static web server.
 

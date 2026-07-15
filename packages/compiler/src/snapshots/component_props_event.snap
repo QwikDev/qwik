@@ -10,8 +10,12 @@ export function App(props: { onClick$: QRL<() => void> }) {
 
 ============================= src/component.tsx ==
 
+import { createSsrElementRecord } from '@qwik.dev/core';
 export function App(props, ctx) {
-  return '<button' + ctx.eventAttr('q-e:click', props.onClick$) + '>' + 'Save' + '</button>';
+  return [
+    createSsrElementRecord('button', '<button', ctx.eventAttr('q-e:click', props.onClick$), '>'),
+    'Save</button>',
+  ];
 }
 == SSR DIAGNOSTICS ==
 
@@ -20,7 +24,7 @@ export function App(props, ctx) {
 
 ============================= src/component.tsx ==
 
-import { _first, setEvent, createTemplate } from '@qwik.dev/core/spark';
+import { _first, setEvent, createTemplate } from '@qwik.dev/core';
 
 const App_tmpl0 = createTemplate('<button>Save</button>');
 export function App(props, ctx) {

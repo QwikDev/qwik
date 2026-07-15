@@ -1,8 +1,0 @@
-{
-  "description": "Minimal vdomless compiler/runtime counter fixture.",
-  "type": "module",
-  "__qwik__": {
-    "priority": 0,
-    "vdomless": true
-  }
-}

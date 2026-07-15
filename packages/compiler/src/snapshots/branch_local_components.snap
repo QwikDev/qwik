@@ -1,6 +1,6 @@
 ==INPUT==
 
-import { useSignal } from '@qwik.dev/core/spark';
+import { useSignal } from '@qwik.dev/core';
 
 function Counter({ count }: { count: number }) {
   return <p>Count: {count}</p>;
@@ -19,7 +19,15 @@ export function App() {
 
 ============================= src/component.tsx ==
 
-import { useSignal, renderSsrBranch, maybeThen, _qrlWithChunk } from '@qwik.dev/core/spark';
+import {
+  useSignal,
+  createSsrElementRecord,
+  renderSsrBranch,
+  createSsrRecord,
+  createSsrNodeId,
+  maybeThen,
+  _qrlWithChunk,
+} from '@qwik.dev/core';
 import { component_branch_condition_segment_2 } from './component.tsx_component_branch_condition_segment_2';
 
 const q_component_branch_condition_segment_2 = /*#__PURE__*/ _qrlWithChunk(
@@ -38,31 +46,36 @@ const q_component_branch_else_segment_4 = /*#__PURE__*/ _qrlWithChunk(
   () => import('./component.tsx_component_branch_else_segment_4'),
   'component_branch_else_segment_4'
 );
+
 export function App(props, ctx) {
   const count = useSignal(0);
-  const id0 = ctx.nextId();
+  const branchId0 = ctx.nextId();
   ctx.addRoot(count);
-  const branch0 = renderSsrBranch(
+  const branch1 = renderSsrBranch(
     ctx,
-    id0,
+    branchId0,
     q_component_branch_condition_segment_2.w([count]),
     q_component_branch_then_segment_3,
     q_component_branch_else_segment_4.w([count])
   );
-  return maybeThen(
-    branch0,
-    (branch0) => '<section' + '>' + '<!b=' + id0 + '>' + branch0 + '<!/b>' + '</section>'
-  );
+  return maybeThen(branch1, (branch1) => [
+    createSsrElementRecord('section', '<section', '>'),
+    createSsrRecord('<!b=', createSsrNodeId(branchId0), '>'),
+    branch1,
+    '<!/b></section>',
+  ]);
 }
 ============================= src/component.tsx_component_Counter.js (ENTRY POINT)==
 
 import {
-  escapeHTML,
-  renderSsrTextExpression,
+  createSsrNodeId,
+  createSsrElementRecord,
   createSsrRangeTextTarget,
+  renderSsrTextExpression,
+  escapeHTML,
   maybeThen,
   _qrlWithChunk,
-} from '@qwik.dev/core/spark';
+} from '@qwik.dev/core';
 import { component_text_segment_0 } from './component.tsx_component_text_segment_0';
 
 const q_component_text_segment_0 = /*#__PURE__*/ _qrlWithChunk(
@@ -71,29 +84,56 @@ const q_component_text_segment_0 = /*#__PURE__*/ _qrlWithChunk(
   'component_text_segment_0'
 );
 q_component_text_segment_0.s(component_text_segment_0);
+
 export function Counter(props, ctx) {
   const { count } = props;
   const id0 = ctx.nextId();
-  ctx.addRoot(count);
-  const text0 = renderSsrTextExpression(
+  ctx.addRoot(props);
+  const text1 = renderSsrTextExpression(
     createSsrRangeTextTarget(id0, 0),
-    [count],
+    [props],
     q_component_text_segment_0
   );
-  return maybeThen(
-    text0,
-    (text0) => '<p q:id="' + id0 + '"' + '>' + 'Count: ' + '<!t>' + escapeHTML(text0) + '</p>'
-  );
+  return maybeThen(text1, (text1) => [
+    createSsrElementRecord('p', '<p q:id="', createSsrNodeId(id0), '"', '>'),
+    'Count: <!t>',
+    escapeHTML(text1),
+    '<!/t></p>',
+  ]);
 }
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_Counter",
+  "entry": null,
+  "displayName": "component_Counter",
+  "hash": "component_Counter",
+  "canonicalFilename": "component.tsx_component_Counter",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component",
+  "captures": false,
+  "loc": [
+    44,
+    106
+  ],
+  "paramNames": [
+    "_"
+  ]
+}
+*/
 ============================= src/component.tsx_component_Hello.js (ENTRY POINT)==
 
 import {
-  escapeHTML,
-  renderSsrTextExpression,
+  createSsrNodeId,
+  createSsrElementRecord,
   createSsrRangeTextTarget,
+  renderSsrTextExpression,
+  escapeHTML,
   maybeThen,
   _qrlWithChunk,
-} from '@qwik.dev/core/spark';
+} from '@qwik.dev/core';
 import { component_text_segment_1 } from './component.tsx_component_text_segment_1';
 
 const q_component_text_segment_1 = /*#__PURE__*/ _qrlWithChunk(
@@ -102,23 +142,49 @@ const q_component_text_segment_1 = /*#__PURE__*/ _qrlWithChunk(
   'component_text_segment_1'
 );
 q_component_text_segment_1.s(component_text_segment_1);
+
 export function Hello(props, ctx) {
   const { name } = props;
   const id0 = ctx.nextId();
-  ctx.addRoot(name);
-  const text0 = renderSsrTextExpression(
+  ctx.addRoot(props);
+  const text1 = renderSsrTextExpression(
     createSsrRangeTextTarget(id0, 0),
-    [name],
+    [props],
     q_component_text_segment_1
   );
-  return maybeThen(
-    text0,
-    (text0) => '<p q:id="' + id0 + '"' + '>' + 'Hello, ' + '<!t>' + escapeHTML(text0) + '!' + '</p>'
-  );
+  return maybeThen(text1, (text1) => [
+    createSsrElementRecord('p', '<p q:id="', createSsrNodeId(id0), '"', '>'),
+    'Hello, <!t>',
+    escapeHTML(text1),
+    '<!/t>!</p>',
+  ]);
 }
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_Hello",
+  "entry": null,
+  "displayName": "component_Hello",
+  "hash": "component_Hello",
+  "canonicalFilename": "component.tsx_component_Hello",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component",
+  "captures": false,
+  "loc": [
+    107,
+    166
+  ],
+  "paramNames": [
+    "_"
+  ]
+}
+*/
 ============================= src/component.tsx_component_text_segment_0.js (ENTRY POINT)==
 
-export const component_text_segment_0 = (count) => {
+export const component_text_segment_0 = (props) => {
+  const { count } = props;
   return count;
 };
 /*
@@ -135,8 +201,8 @@ export const component_text_segment_0 = (count) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    99,
-    104
+    93,
+    98
   ],
   "paramNames": [],
   "captureNames": [
@@ -146,7 +212,8 @@ export const component_text_segment_0 = (count) => {
 */
 ============================= src/component.tsx_component_text_segment_1.js (ENTRY POINT)==
 
-export const component_text_segment_1 = (name) => {
+export const component_text_segment_1 = (props) => {
+  const { name } = props;
   return name;
 };
 /*
@@ -163,8 +230,8 @@ export const component_text_segment_1 = (name) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    159,
-    163
+    153,
+    157
   ],
   "paramNames": [],
   "captureNames": [
@@ -174,7 +241,7 @@ export const component_text_segment_1 = (name) => {
 */
 ============================= src/component.tsx_component_branch_condition_segment_2.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
+import { _captures } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_2 = () => {
   const count = _captures[0];
@@ -194,8 +261,8 @@ export const component_branch_condition_segment_2 = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    244,
-    259
+    238,
+    253
   ],
   "paramNames": [],
   "captureNames": [
@@ -206,11 +273,10 @@ export const component_branch_condition_segment_2 = () => {
 ============================= src/component.tsx_component_branch_then_segment_3.js (ENTRY POINT)==
 
 import { Hello } from './component.tsx_component_Hello';
-import { createComponent, maybeThen } from '@qwik.dev/core/spark';
+import { createComponent } from '@qwik.dev/core';
 
-export const component_branch_then_segment_3 = (ctx, rangeId) => {
-  const component0 = createComponent({ name: 'Qwik' }, (props) => Hello(props, ctx));
-  return maybeThen(component0, (component0) => component0);
+export const component_branch_then_segment_3 = (ctx) => {
+  return createComponent({ name: 'Qwik' }, (props) => Hello(props, ctx));
 };
 /*
 {
@@ -226,8 +292,8 @@ export const component_branch_then_segment_3 = (ctx, rangeId) => {
   "ctxName": "branch:then",
   "captures": false,
   "loc": [
-    262,
-    283
+    256,
+    277
   ],
   "paramNames": []
 }
@@ -235,11 +301,11 @@ export const component_branch_then_segment_3 = (ctx, rangeId) => {
 ============================= src/component.tsx_component_branch_else_segment_4.js (ENTRY POINT)==
 
 import { Counter } from './component.tsx_component_Counter';
-import { _captures, createComponent, maybeThen } from '@qwik.dev/core/spark';
+import { _captures, createComponent } from '@qwik.dev/core';
 
-export const component_branch_else_segment_4 = (ctx, rangeId) => {
+export const component_branch_else_segment_4 = (ctx) => {
   const count = _captures[0];
-  const component0 = createComponent(
+  return createComponent(
     {
       get count() {
         return count.value;
@@ -247,7 +313,6 @@ export const component_branch_else_segment_4 = (ctx, rangeId) => {
     },
     (props) => Counter(props, ctx)
   );
-  return maybeThen(component0, (component0) => component0);
 };
 /*
 {
@@ -263,8 +328,8 @@ export const component_branch_else_segment_4 = (ctx, rangeId) => {
   "ctxName": "branch:else",
   "captures": true,
   "loc": [
-    286,
-    317
+    280,
+    311
   ],
   "paramNames": [],
   "captureNames": [
@@ -282,77 +347,137 @@ export const component_branch_else_segment_4 = (ctx, rangeId) => {
 import {
   useSignal,
   _first,
+  _next,
   BranchRange,
   createBranch,
   _withCaptures,
+  _qrlWithChunk,
   createTemplate,
-} from '@qwik.dev/core/spark';
+} from '@qwik.dev/core';
 import { component_branch_condition_segment_2 } from './component.tsx_component_branch_condition_segment_2';
-import { component_branch_then_segment_3 } from './component.tsx_component_branch_then_segment_3';
-import { component_branch_else_segment_4 } from './component.tsx_component_branch_else_segment_4';
 
-const App_tmpl0 = createTemplate('<section> </section>');
+const q_component_branch_then_segment_3 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_branch_then_segment_3',
+  () => import('./component.tsx_component_branch_then_segment_3'),
+  'component_branch_then_segment_3'
+);
+const q_component_branch_else_segment_4 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_branch_else_segment_4',
+  () => import('./component.tsx_component_branch_else_segment_4'),
+  'component_branch_else_segment_4'
+);
+const App_tmpl0 = createTemplate('<section><!----><!----></section>');
+
 export function App(props, ctx) {
   const count = useSignal(0);
   const fragment0 = App_tmpl0(ctx.document);
   const el0 = _first(fragment0);
-  const text0 = _first(el0);
-  const comment0 = ctx.document.createComment('b');
-  const comment1 = ctx.document.createComment('/b');
-  text0.replaceWith(comment0, comment1);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
   const branch0 = createBranch(
     ctx,
-    new BranchRange(ctx.document, comment0, comment1),
+    new BranchRange(ctx.document, start0, end0),
     _withCaptures(component_branch_condition_segment_2, [count]),
-    component_branch_then_segment_3,
-    _withCaptures(component_branch_else_segment_4, [count])
+    q_component_branch_then_segment_3,
+    q_component_branch_else_segment_4.w([count])
   );
   ctx.scheduler.notify(branch0);
   return el0;
 }
 ============================= src/component.tsx_component_Counter.js (ENTRY POINT)==
 
-import { _first, _last, createTextExpressionEffect, createTemplate } from '@qwik.dev/core/spark';
+import { _first, _next, createTextExpressionEffect, createTemplate } from '@qwik.dev/core';
 import { component_text_segment_0 } from './component.tsx_component_text_segment_0';
 
-const Counter_tmpl0 = createTemplate('<p>Count:  </p>');
+const Counter_tmpl0 = createTemplate('<p>Count: <!----></p>');
+
 export function Counter(props, ctx) {
   const { count } = props;
   const fragment0 = Counter_tmpl0(ctx.document);
   const el0 = _first(fragment0);
-  const text0 = _last(el0);
+  const marker0 = _next(_first(el0));
+  const text0 = ctx.document.createTextNode('');
+  marker0.replaceWith(text0);
   const effect0 = createTextExpressionEffect(
     text0,
-    [count],
+    [props],
     component_text_segment_0,
     ctx.scheduler
   );
   ctx.scheduler.notify(effect0);
   return el0;
 }
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_Counter",
+  "entry": null,
+  "displayName": "component_Counter",
+  "hash": "component_Counter",
+  "canonicalFilename": "component.tsx_component_Counter",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component",
+  "captures": false,
+  "loc": [
+    44,
+    106
+  ],
+  "paramNames": [
+    "_"
+  ]
+}
+*/
 ============================= src/component.tsx_component_Hello.js (ENTRY POINT)==
 
-import { _first, _next, createTextExpressionEffect, createTemplate } from '@qwik.dev/core/spark';
+import { _first, _next, createTextExpressionEffect, createTemplate } from '@qwik.dev/core';
 import { component_text_segment_1 } from './component.tsx_component_text_segment_1';
 
-const Hello_tmpl0 = createTemplate('<p>Hello,  !</p>');
+const Hello_tmpl0 = createTemplate('<p>Hello, <!---->!</p>');
+
 export function Hello(props, ctx) {
   const { name } = props;
   const fragment0 = Hello_tmpl0(ctx.document);
   const el0 = _first(fragment0);
-  const text0 = _next(_first(el0));
+  const marker0 = _next(_first(el0));
+  const text0 = ctx.document.createTextNode('');
+  marker0.replaceWith(text0);
   const effect0 = createTextExpressionEffect(
     text0,
-    [name],
+    [props],
     component_text_segment_1,
     ctx.scheduler
   );
   ctx.scheduler.notify(effect0);
   return el0;
 }
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_Hello",
+  "entry": null,
+  "displayName": "component_Hello",
+  "hash": "component_Hello",
+  "canonicalFilename": "component.tsx_component_Hello",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component",
+  "captures": false,
+  "loc": [
+    107,
+    166
+  ],
+  "paramNames": [
+    "_"
+  ]
+}
+*/
 ============================= src/component.tsx_component_text_segment_0.js (ENTRY POINT)==
 
-export const component_text_segment_0 = (count) => {
+export const component_text_segment_0 = (props) => {
+  const { count } = props;
   return count;
 };
 /*
@@ -369,8 +494,8 @@ export const component_text_segment_0 = (count) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    99,
-    104
+    93,
+    98
   ],
   "paramNames": [],
   "captureNames": [
@@ -380,7 +505,8 @@ export const component_text_segment_0 = (count) => {
 */
 ============================= src/component.tsx_component_text_segment_1.js (ENTRY POINT)==
 
-export const component_text_segment_1 = (name) => {
+export const component_text_segment_1 = (props) => {
+  const { name } = props;
   return name;
 };
 /*
@@ -397,8 +523,8 @@ export const component_text_segment_1 = (name) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    159,
-    163
+    153,
+    157
   ],
   "paramNames": [],
   "captureNames": [
@@ -408,7 +534,7 @@ export const component_text_segment_1 = (name) => {
 */
 ============================= src/component.tsx_component_branch_condition_segment_2.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
+import { _captures } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_2 = () => {
   const count = _captures[0];
@@ -428,8 +554,8 @@ export const component_branch_condition_segment_2 = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    244,
-    259
+    238,
+    253
   ],
   "paramNames": [],
   "captureNames": [
@@ -440,13 +566,10 @@ export const component_branch_condition_segment_2 = () => {
 ============================= src/component.tsx_component_branch_then_segment_3.js (ENTRY POINT)==
 
 import { Hello } from './component.tsx_component_Hello';
-import { createComponent } from '@qwik.dev/core/spark';
+import { createComponent } from '@qwik.dev/core';
 
 export const component_branch_then_segment_3 = (ctx) => {
-  const component0 = createComponent({ name: 'Qwik' }, (props) => Hello(props, ctx), {
-    container: ctx,
-  });
-  return component0;
+  return createComponent({ name: 'Qwik' }, (props) => Hello(props, ctx));
 };
 /*
 {
@@ -462,8 +585,8 @@ export const component_branch_then_segment_3 = (ctx) => {
   "ctxName": "branch:then",
   "captures": false,
   "loc": [
-    262,
-    283
+    256,
+    277
   ],
   "paramNames": []
 }
@@ -471,20 +594,18 @@ export const component_branch_then_segment_3 = (ctx) => {
 ============================= src/component.tsx_component_branch_else_segment_4.js (ENTRY POINT)==
 
 import { Counter } from './component.tsx_component_Counter';
-import { _captures, createComponent } from '@qwik.dev/core/spark';
+import { _captures, createComponent } from '@qwik.dev/core';
 
 export const component_branch_else_segment_4 = (ctx) => {
   const count = _captures[0];
-  const component0 = createComponent(
+  return createComponent(
     {
       get count() {
         return count.value;
       },
     },
-    (props) => Counter(props, ctx),
-    { container: ctx }
+    (props) => Counter(props, ctx)
   );
-  return component0;
 };
 /*
 {
@@ -500,8 +621,8 @@ export const component_branch_else_segment_4 = (ctx) => {
   "ctxName": "branch:else",
   "captures": true,
   "loc": [
-    286,
-    317
+    280,
+    311
   ],
   "paramNames": [],
   "captureNames": [

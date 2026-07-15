@@ -1,0 +1,258 @@
+==INPUT==
+
+export function App({ items }) {
+  return <ul>{items.map((item, index) => <li key={item.id} onClick$={() => console.log(index)}>{item.label}:{index}</li>)}</ul>;
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  createSsrElementRecord,
+  createSsrNodeId,
+  createSsrRangeTextTarget,
+  renderSsrTextExpression,
+  escapeHTML,
+  maybeThen,
+  renderSsrCollection,
+  _qrlWithChunk,
+} from '@qwik.dev/core';
+import { component_text_segment_3 } from './component.tsx_component_text_segment_3';
+
+const q_component_q_e_click_segment_2 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_q_e_click_segment_2',
+  () => import('./component.tsx_component_q_e_click_segment_2'),
+  'component_q_e_click_segment_2'
+);
+const q_component_text_segment_3 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_text_segment_3',
+  () => import('./component.tsx_component_text_segment_3'),
+  'component_text_segment_3'
+);
+q_component_text_segment_3.s(component_text_segment_3);
+export function App(props, ctx) {
+  const { items } = props;
+  function component_for_render_segment_0(ctx, __rangeId, __rowId, item, index) {
+    const id0 = ctx.nextId();
+    ctx.addRoot(item);
+    const text1 = renderSsrTextExpression(
+      createSsrRangeTextTarget(id0, 0),
+      [item],
+      q_component_text_segment_3
+    );
+    return maybeThen(text1, (text1) => [
+      createSsrElementRecord(
+        'li',
+        '<li q:id="',
+        createSsrNodeId(id0),
+        '"',
+        ctx.eventAttr('q-e:click', q_component_q_e_click_segment_2.w([index])),
+        '>'
+      ),
+      '<!t>',
+      escapeHTML(text1),
+      '<!/t>:',
+      escapeHTML(String(index ?? '')),
+      '</li>',
+    ]);
+  }
+  const collectionResult0 = renderSsrCollection(
+    ctx,
+    undefined,
+    items,
+    undefined,
+    component_for_render_segment_0,
+    false,
+    '',
+    false,
+    0
+  );
+  return maybeThen(collectionResult0, (collectionResult0) => [
+    createSsrElementRecord('ul', '<ul', '>'),
+    collectionResult0,
+    '</ul>',
+  ]);
+}
+============================= src/component.tsx_component_q_e_click_segment_2.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_q_e_click_segment_2 = () => {
+  const index = _captures[0];
+  return console.log(index);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_2",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_2",
+  "hash": "segment_2",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_2",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    91,
+    126
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "index"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_3.js (ENTRY POINT)==
+
+export const component_text_segment_3 = (item) => {
+  return item.label;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_3",
+  "entry": null,
+  "displayName": "component_text_segment_3",
+  "hash": "segment_3",
+  "canonicalFilename": "component.tsx_component_text_segment_3",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    128,
+    138
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "item"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  _first,
+  _next,
+  createCollection,
+  setEvent,
+  createTextExpressionEffect,
+  patchTextValue,
+  createTemplate,
+} from '@qwik.dev/core';
+import { component_q_e_click_segment_2 } from './component.tsx_component_q_e_click_segment_2';
+import { component_text_segment_3 } from './component.tsx_component_text_segment_3';
+
+const component_for_render_segment_0_tmpl0 = createTemplate('<li><!---->:<!----></li>');
+const App_tmpl0 = createTemplate('<ul><!----><!----></ul>');
+export function App(props, ctx) {
+  const { items } = props;
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  function component_for_render_segment_0(ctx, item, index) {
+    const fragment0 = component_for_render_segment_0_tmpl0(ctx.document);
+    const el0 = _first(fragment0);
+    const marker0 = _first(el0);
+    const marker1 = _next(_next(marker0));
+    setEvent(el0, 'q-e:click', component_q_e_click_segment_2, [index]);
+    const text0 = ctx.document.createTextNode('');
+    marker0.replaceWith(text0);
+    const effect0 = createTextExpressionEffect(
+      text0,
+      [item],
+      component_text_segment_3,
+      ctx.scheduler
+    );
+    ctx.scheduler.notify(effect0);
+    const text1 = ctx.document.createTextNode('');
+    marker1.replaceWith(text1);
+    patchTextValue(text1, index);
+    return el0;
+  }
+  createCollection(
+    ctx,
+    start0,
+    end0,
+    items,
+    null,
+    component_for_render_segment_0,
+    false,
+    '',
+    0,
+    true
+  );
+  return el0;
+}
+============================= src/component.tsx_component_q_e_click_segment_2.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_q_e_click_segment_2 = () => {
+  const index = _captures[0];
+  return console.log(index);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_2",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_2",
+  "hash": "segment_2",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_2",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    91,
+    126
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "index"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_3.js (ENTRY POINT)==
+
+export const component_text_segment_3 = (item) => {
+  return item.label;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_3",
+  "entry": null,
+  "displayName": "component_text_segment_3",
+  "hash": "segment_3",
+  "canonicalFilename": "component.tsx_component_text_segment_3",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    128,
+    138
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "item"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

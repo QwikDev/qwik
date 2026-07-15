@@ -1,7 +1,7 @@
 ==INPUT==
 
-import { createContextId } from '@qwik.dev/core/spark';
-import { useContextProvider, useSignal, type Signal } from '@qwik.dev/core/spark';
+import { createContextId } from '@qwik.dev/core';
+import { useContextProvider, useSignal, type Signal } from '@qwik.dev/core';
 
 export const App = () => {
   const contextId = createContextId<Signal<string>>('context');
@@ -16,36 +16,28 @@ export const App = () => {
 
 import {
   createContextId,
-  useContextProvider,
-  useSignal,
-  escapeHTML,
-  renderSsrTextNode,
+  createSsrNodeId,
+  createSsrElementRecord,
   createSsrElementTextTarget,
+  renderSsrTextNode,
+  escapeHTML,
+  createSsrRecord,
   maybeThen,
-} from '@qwik.dev/core/spark';
-
+} from '@qwik.dev/core';
+import { useContextProvider, useSignal } from '@qwik.dev/core';
 export const App = (props, ctx) => {
   const contextId = createContextId('context');
   const source = useSignal('hello');
   useContextProvider(contextId, source);
-  const contextScopeId = ctx.contextScopeId();
   const id0 = ctx.nextId();
   ctx.addRoot(source);
-  const text0 = renderSsrTextNode(createSsrElementTextTarget(id0), source);
-  return maybeThen(
-    text0,
-    (text0) =>
-      '<!c=' +
-      contextScopeId +
-      '>' +
-      '<p q:id="' +
-      id0 +
-      '"' +
-      '>' +
-      escapeHTML(text0) +
-      '</p>' +
-      '<!/c>'
-  );
+  const text1 = renderSsrTextNode(createSsrElementTextTarget(id0), source);
+  return maybeThen(text1, (text1) => [
+    createSsrRecord('<!c=', ctx.contextScopeRef(), '>'),
+    createSsrElementRecord('p', '<p q:id="', createSsrNodeId(id0), '"', '>'),
+    escapeHTML(text1),
+    '</p><!/c>',
+  ]);
 };
 == SSR DIAGNOSTICS ==
 
@@ -54,15 +46,8 @@ export const App = (props, ctx) => {
 
 ============================= src/component.tsx ==
 
-import {
-  createContextId,
-  useContextProvider,
-  useSignal,
-  _first,
-  createTextNodeEffect,
-  createTemplate,
-} from '@qwik.dev/core/spark';
-
+import { createContextId, _first, createTextNodeEffect, createTemplate } from '@qwik.dev/core';
+import { useContextProvider, useSignal } from '@qwik.dev/core';
 const App_tmpl0 = createTemplate('<p> </p>');
 export const App = (props, ctx) => {
   const contextId = createContextId('context');

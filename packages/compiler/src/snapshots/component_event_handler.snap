@@ -1,6 +1,6 @@
 ==INPUT==
 
-import { useSignal } from '@qwik.dev/core/spark';
+import { useSignal } from '@qwik.dev/core';
 export const App = () => {
   const count = useSignal(0);
   return <button onClick$={() => count.value++}>{count.value}</button>;
@@ -12,13 +12,14 @@ export const App = () => {
 
 import {
   useSignal,
-  escapeHTML,
-  renderSsrTextNode,
+  createSsrNodeId,
+  createSsrElementRecord,
   createSsrElementTextTarget,
+  renderSsrTextNode,
+  escapeHTML,
   maybeThen,
   _qrlWithChunk,
-} from '@qwik.dev/core/spark';
-
+} from '@qwik.dev/core';
 const q_component_q_e_click_segment_0 = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_q_e_click_segment_0',
   () => import('./component.tsx_component_q_e_click_segment_0'),
@@ -28,22 +29,23 @@ export const App = (props, ctx) => {
   const count = useSignal(0);
   const id0 = ctx.nextId();
   ctx.addRoot(count);
-  const text0 = renderSsrTextNode(createSsrElementTextTarget(id0), count);
-  return maybeThen(
-    text0,
-    (text0) =>
-      '<button q:id="' +
-      id0 +
-      '"' +
-      ctx.eventAttr('q-e:click', q_component_q_e_click_segment_0.w([count])) +
-      '>' +
-      escapeHTML(text0) +
-      '</button>'
-  );
+  const text1 = renderSsrTextNode(createSsrElementTextTarget(id0), count);
+  return maybeThen(text1, (text1) => [
+    createSsrElementRecord(
+      'button',
+      '<button q:id="',
+      createSsrNodeId(id0),
+      '"',
+      ctx.eventAttr('q-e:click', q_component_q_e_click_segment_0.w([count])),
+      '>'
+    ),
+    escapeHTML(text1),
+    '</button>',
+  ]);
 };
 ============================= src/component.tsx_component_q_e_click_segment_0.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
+import { _captures } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_0 = () => {
   const count = _captures[0];
@@ -63,8 +65,8 @@ export const component_q_e_click_segment_0 = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    122,
-    152
+    116,
+    146
   ],
   "paramNames": [],
   "captureNames": [
@@ -79,13 +81,7 @@ export const component_q_e_click_segment_0 = () => {
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  _first,
-  createTextNodeEffect,
-  setEvent,
-  createTemplate,
-} from '@qwik.dev/core/spark';
+import { useSignal, _first, setEvent, createTextNodeEffect, createTemplate } from '@qwik.dev/core';
 import { component_q_e_click_segment_0 } from './component.tsx_component_q_e_click_segment_0';
 
 const App_tmpl0 = createTemplate('<button> </button>');
@@ -94,14 +90,14 @@ export const App = (props, ctx) => {
   const fragment0 = App_tmpl0(ctx.document);
   const el0 = _first(fragment0);
   const text0 = _first(el0);
+  setEvent(el0, 'q-e:click', component_q_e_click_segment_0, [count]);
   const effect0 = createTextNodeEffect(text0, count, ctx.scheduler);
   ctx.scheduler.notify(effect0);
-  setEvent(el0, 'q-e:click', component_q_e_click_segment_0, [count]);
   return el0;
 };
 ============================= src/component.tsx_component_q_e_click_segment_0.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
+import { _captures } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_0 = () => {
   const count = _captures[0];
@@ -121,8 +117,8 @@ export const component_q_e_click_segment_0 = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    122,
-    152
+    116,
+    146
   ],
   "paramNames": [],
   "captureNames": [

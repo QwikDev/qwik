@@ -1,6 +1,6 @@
 ==INPUT==
 
-import { useSignal } from '@qwik.dev/core/spark';
+import { useSignal } from '@qwik.dev/core';
 export function App() {
   const count = useSignal(0);
   return <p>{count.value}</p>;
@@ -12,21 +12,24 @@ export function App() {
 
 import {
   useSignal,
-  escapeHTML,
-  renderSsrTextNode,
+  createSsrNodeId,
+  createSsrElementRecord,
   createSsrElementTextTarget,
+  renderSsrTextNode,
+  escapeHTML,
   maybeThen,
-} from '@qwik.dev/core/spark';
-
-export function App(_props, ctx) {
+} from '@qwik.dev/core';
+export function App(props, ctx) {
   const count = useSignal(0);
   const id0 = ctx.nextId();
   ctx.addRoot(count);
   const text1 = renderSsrTextNode(createSsrElementTextTarget(id0), count);
-  return maybeThen(text1, (text1) => '<p q:id="' + id0 + '">' + escapeHTML(text1) + '</p>');
+  return maybeThen(text1, (text1) => [
+    createSsrElementRecord('p', '<p q:id="', createSsrNodeId(id0), '"', '>'),
+    escapeHTML(text1),
+    '</p>',
+  ]);
 }
-
-null
 == SSR DIAGNOSTICS ==
 
 []
@@ -34,20 +37,17 @@ null
 
 ============================= src/component.tsx ==
 
-import { useSignal, createTemplate, createTextNodeEffect } from '@qwik.dev/core/spark';
-
-const dom_App_template0 = createTemplate('<p> </p>');
-export function App(_props, ctx) {
+import { useSignal, _first, createTextNodeEffect, createTemplate } from '@qwik.dev/core';
+const App_tmpl0 = createTemplate('<p> </p>');
+export function App(props, ctx) {
   const count = useSignal(0);
-  const fragment0 = dom_App_template0(ctx.document);
-  const el1 = fragment0.firstChild;
-  const text2 = el1.firstChild;
-  const effect3 = createTextNodeEffect(text2, count, ctx.scheduler);
-  ctx.scheduler.notify(effect3);
-  return el1;
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const text0 = _first(el0);
+  const effect0 = createTextNodeEffect(text0, count, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  return el0;
 }
-
-null
 == CSR DIAGNOSTICS ==
 
 []

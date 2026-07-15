@@ -1,6 +1,5 @@
 import { $ } from '@qwik.dev/core';
 import { assert, assertType, describe, expectTypeOf, test } from 'vitest';
-import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { createSerializationContext, parseQRL, qrlToString } from '../serdes/index';
 import { _regSymbol, inlinedQrl, qrl } from './qrl';
 import { _captures, createQRL, withCaptures } from './qrl-class';
@@ -92,7 +91,6 @@ describe('serialization', () => {
   test('serialize qrls', () => {
     const serializationContext = createSerializationContext(
       null,
-      null,
       () => '',
       () => {},
       new WeakMap<any, any>()
@@ -177,7 +175,7 @@ describe('createQRL', () => {
     assert.equal(q.resolved, fn);
   });
 
-  const capFn = () => useLexicalScope();
+  const capFn = () => _captures;
   test('should have .resolved: given function with captures', async () => {
     const q = createQRL('chunk', 'symbol', capFn, null, ['hi']);
     assert.isDefined(q.resolved);

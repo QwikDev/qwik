@@ -1,16 +1,17 @@
-import { DomSubscription, ForBlockSubscription } from '../../vdomless/dom/effect/effect';
-import { BranchSubscription } from '../../vdomless/dom/branch/branch';
-import { EffectKind } from '../../vdomless/dom/effect/effect-kind.enum';
-import { ComputedQrl } from '../../vdomless/reactive/computed-qrl';
-import { AsyncSignal } from '../../vdomless/reactive/async-signal';
-import { SerializerSignal } from '../../vdomless/reactive/serializer-signal';
-import { Signal } from '../../vdomless/reactive/signal';
-import { useStore, StorePropSource, unwrapStore } from '../../vdomless/reactive/store';
-import type { ContainerContext } from '../../vdomless/runtime/container-context';
-import { createContextScope } from '../../vdomless/runtime/context-scope';
-import { createProjection, createSlotScope } from '../../vdomless/dom/slot/slot';
-import { Task, TaskSubscription } from '../../vdomless/runtime/task';
-import { Phase } from '../../vdomless/runtime/scheduler';
+import { DomSubscription, ForBlockSubscription } from '../../dom/effect/effect';
+import { BranchSubscription } from '../../dom/branch/branch';
+import { ContentSubscription } from '../../dom/content/content';
+import { EffectKind } from '../../dom/effect/effect-kind.enum';
+import { ComputedQrl } from '../../reactive/computed-qrl';
+import { AsyncSignal } from '../../reactive/async-signal';
+import { SerializerSignal } from '../../reactive/serializer-signal';
+import { Signal } from '../../reactive/signal';
+import { useStore, StorePropSource, unwrapStore } from '../../reactive/store';
+import type { ContainerContext } from '../../runtime/container-context';
+import { createContextScope } from '../../runtime/context-scope';
+import { createProjection, createSlotScope } from '../../dom/slot/slot';
+import { Task, TaskSubscription } from '../../runtime/task';
+import { Phase } from '../../runtime/scheduler';
 import { qError, QError } from '../error/error';
 import type { QRLInternal } from '../qrl/qrl-class';
 import { _UNINITIALIZED } from '../utils/constants';
@@ -18,6 +19,7 @@ import { maybeThen } from '../utils/promises';
 import type { ValueOrPromise } from '../utils/types';
 import { _constants, TypeIds, type Constants } from './constants';
 import { createQRLWithBackChannel } from './qrl-to-string';
+import { findQwikElement } from '../../runtime/node-walker';
 
 export const resolvers = new WeakMap<Promise<any>, [Function, Function]>();
 export const pendingStoreTargets = new WeakMap<object, { t: TypeIds; v: unknown }>();
@@ -43,6 +45,13 @@ export const allocate = (
     }
     case TypeIds.ForwardRefs:
       return value;
+    case TypeIds.RefVNode: {
+      const element = findQwikElement(context.element, value as string | number);
+      if (element === null) {
+        throw new Error(`Missing element ref ${String(value)}.`);
+      }
+      return element;
+    }
     case TypeIds.Constant:
       return _constants[value as Constants];
     case TypeIds.Array:
@@ -99,8 +108,10 @@ export const allocate = (
       const data = value as unknown[];
       const t = data[0] as TypeIds;
       const v = data[1];
+      const shallow =
+        data.length > 5 && data[4] === TypeIds.Constant && _constants[data[5] as number] === false;
       return maybeThen(allocate(context, t, v), (raw) => {
-        const store = useStore(raw as object);
+        const store = useStore(raw as object, shallow ? { deep: false } : undefined);
         const target = unwrapStore(store) as object;
         if (t >= TypeIds.Error || t === TypeIds.Array || t === TypeIds.Object) {
           pendingStoreTargets.set(target, { t, v });
@@ -145,6 +156,9 @@ export const allocate = (
       }
       if (Array.isArray(value) && value[1] === EffectKind.ForBlock) {
         return new ForBlockSubscription(null!, context.scheduler);
+      }
+      if (Array.isArray(value) && value[1] === EffectKind.Content) {
+        return new ContentSubscription(null!, context.scheduler);
       }
       return new DomSubscription(null!, context.scheduler);
     }

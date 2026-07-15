@@ -1,305 +1,291 @@
-import {
-  $,
-  Fragment as Awaited,
-  Fragment as Component,
-  Fragment as InlineComponent,
-  Fragment as Projection,
-  component$,
-  Fragment,
-  Fragment as Signal,
-  Slot,
-  useOn,
-  useOnDocument,
-  useOnWindow,
-  useSignal,
-  useTask$,
-  useVisibleTask$,
-} from '@qwik.dev/core';
-import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
+import { $, component$ } from '@qwik.dev/core';
+import { useOn, useOnDocument, useOnWindow } from '@qwik.dev/core';
+import { useSignal } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
+import { csrRender, ssrRender } from '../test-utils';
 
-const debug = false; //true;
-Error.stackTraceLimit = 100;
+const useClick = (handler: any): void => {
+  useOn('click', handler);
+};
 
-const InlineComponentNoChildren = (props: { count: number }) => <>Count: {props.count}!</>;
+const debug = false;
 
 describe.each([
-  { render: ssrRenderToDom }, //
-  { render: domRender }, //
-])('$render.name: useOn', ({ render }) => {
-  it('should update value', async () => {
-    const Counter = component$((props: { initial: number }) => {
-      const count = useSignal(props.initial);
-      useOn(
-        'click',
-        $(() => count.value++)
-      );
-      return <button>Count: {count.value}!</button>;
-    });
+  { name: 'ssrRender', render: ssrRender },
+  { name: 'csrRender', render: csrRender },
+])('$name: useOn', ({ name, render }) => {
+  it('attaches element events to the first rendered element', async () => {
+    const App = component$(() => {
+      const count = useSignal(0);
 
-    const { vNode, container } = await render(<Counter initial={123} />, { debug });
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <button>
-          Count: <Signal ssr-required>{'123'}</Signal>!
-        </button>
-      </Component>
-    );
-    await trigger(container.element, 'button', 'click');
-    expect(vNode).toMatchVDOM(
-      <>
-        <button>
-          Count: <Signal ssr-required>{'124'}</Signal>!
-        </button>
-      </>
-    );
-  });
-
-  it('should update value for passive option', async () => {
-    const Counter = component$((props: { initial: number }) => {
-      const count = useSignal(props.initial);
-      useOn(
-        'click',
-        $(() => count.value++),
-        {
-          passive: true,
-        }
-      );
-      return <button>Count: {count.value}!</button>;
-    });
-
-    const { vNode, container } = await render(<Counter initial={123} />, { debug });
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <button>
-          Count: <Signal ssr-required>{'123'}</Signal>!
-        </button>
-      </Component>
-    );
-    await trigger(container.element, 'button', 'click');
-    expect(vNode).toMatchVDOM(
-      <>
-        <button>
-          Count: <Signal ssr-required>{'124'}</Signal>!
-        </button>
-      </>
-    );
-  });
-
-  it('should support capture option', async () => {
-    (globalThis as any).logs = [];
-    const Counter = component$(() => {
       useOn(
         'click',
         $(() => {
-          (globalThis as any).logs.push('parent capture');
-        }),
-        {
-          capture: true,
-        }
-      );
-      return (
-        <div>
-          <button
-            onClick$={() => {
-              (globalThis as any).logs.push('button bubble');
-            }}
-          ></button>
-        </div>
-      );
-    });
-
-    const { container } = await render(<Counter />, { debug });
-    await trigger(container.element, 'button', 'click');
-    expect((globalThis as any).logs).toEqual(['parent capture', 'button bubble']);
-    (globalThis as any).logs = undefined;
-  });
-
-  it('should merge useOn handlers and modifiers for the same event', async () => {
-    (globalThis as any).logs = [];
-    const Counter = component$(() => {
-      useOn(
-        'click',
-        $(() => {
-          (globalThis as any).logs.push('first');
-        }),
-        {
-          capture: true,
-        }
-      );
-      useOn(
-        'click',
-        $(() => {
-          (globalThis as any).logs.push('second');
-        }),
-        {
-          preventdefault: true,
-          stoppropagation: true,
-        }
-      );
-      return (
-        <div>
-          <button
-            onClick$={() => {
-              (globalThis as any).logs.push('button bubble');
-            }}
-          ></button>
-        </div>
-      );
-    });
-
-    const { container } = await render(<Counter />, { debug });
-    const event = await trigger(container.element, 'button', 'click');
-    expect((globalThis as any).logs).toEqual(['first', 'second']);
-    expect(event!.defaultPrevented).toBe(true);
-    expect(event!.cancelBubble).toBe(true);
-    (globalThis as any).logs = undefined;
-  });
-
-  it('should support preventdefault option when listener is not passive', async () => {
-    const Counter = component$(() => {
-      useOn(
-        'touchmove',
-        $(() => {}),
-        {
-          preventdefault: true,
-        }
-      );
-      return <div></div>;
-    });
-
-    const { container } = await render(<Counter />, { debug });
-    const event = await trigger(container.element, 'div', 'touchmove');
-    expect(event!.defaultPrevented).toBe(true);
-  });
-
-  it('should update value with multiple useOn', async () => {
-    const Counter = component$((props: { initial: number }) => {
-      const count = useSignal(props.initial);
-      useOn(
-        'click',
-        $(() => count.value++)
-      );
-      useOn(
-        'focus',
-        $(() => {
-          count.value += 2;
+          count.value++;
         })
       );
-      useVisibleTask$(() => {
-        count.value += 2;
-      });
-      return <button>Count: {count.value}!</button>;
+
+      return <button>{count.value}</button>;
     });
 
-    const { vNode, container } = await render(<Counter initial={123} />, { debug });
-    if (render === ssrRenderToDom) {
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <button>
-            Count: <Signal ssr-required>{'123'}</Signal>!
-          </button>
-        </Component>
-      );
-      await trigger(container.element, 'button', 'qvisible');
-    }
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <button>
-          Count: <Signal ssr-required>{'125'}</Signal>!
-        </button>
-      </Component>
-    );
-    await trigger(container.element, 'button', 'click');
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <button>
-          Count: <Signal ssr-required>{'126'}</Signal>!
-        </button>
-      </Component>
-    );
-    await trigger(container.element, 'button', 'focus');
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <button>
-          Count: <Signal ssr-required>{'128'}</Signal>!
-        </button>
-      </Component>
-    );
+    const { container, cleanup, qwikLoader } = await render(App, { debug });
+    const button = container.querySelector('button')!;
+
+    expect(button.textContent).toBe('0');
+    await qwikLoader?.dispatch(button, 'click');
+    expect(button.textContent).toBe('1');
+
+    cleanup();
   });
 
-  it('should update value with mixed listeners', async () => {
-    const Counter = component$((props: { initial: number }) => {
-      const count = useSignal(props.initial);
-      useOn(
-        'click',
-        $(() => count.value++)
+  it('records useOn from a custom hook', async () => {
+    const App = component$(() => {
+      const count = useSignal(0);
+      useClick(
+        $(() => {
+          count.value++;
+        })
       );
-      return <button onFocus$={() => (count.value += 2)}>Count: {count.value}!</button>;
+      return <button>{count.value}</button>;
     });
 
-    const { vNode, container } = await render(<Counter initial={123} />, { debug });
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <button>
-          Count: <Signal ssr-required>{'123'}</Signal>!
-        </button>
-      </Component>
-    );
-    await trigger(container.element, 'button', 'click');
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <button>
-          Count: <Signal ssr-required>{'124'}</Signal>!
-        </button>
-      </Component>
-    );
-    await trigger(container.element, 'button', 'focus');
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <button>
-          Count: <Signal ssr-required>{'126'}</Signal>!
-        </button>
-      </Component>
-    );
+    const { container, cleanup, qwikLoader } = await render(App, { debug });
+    const button = container.querySelector('button')!;
+
+    await qwikLoader?.dispatch(button, 'click');
+    expect(button.textContent).toBe('1');
+
+    cleanup();
+  });
+
+  it('updates for passive option', async () => {
+    const App = component$(() => {
+      const count = useSignal(0);
+
+      useOn(
+        'click',
+        $(() => {
+          count.value++;
+        }),
+        { passive: true }
+      );
+
+      return <button>{count.value}</button>;
+    });
+
+    const { container, cleanup, qwikLoader } = await render(App, { debug });
+    const button = container.querySelector('button')!;
+
+    await qwikLoader?.dispatch(button, 'click');
+    expect(button.textContent).toBe('1');
+
+    cleanup();
+  });
+
+  it('supports multiple event names', async () => {
+    const App = component$(() => {
+      const count = useSignal(0);
+
+      useOn(
+        ['click', 'focus'],
+        $(() => {
+          count.value++;
+        })
+      );
+
+      return <button>{count.value}</button>;
+    });
+
+    const { container, cleanup, qwikLoader } = await render(App, { debug });
+    const button = container.querySelector('button')!;
+
+    await qwikLoader?.dispatch(button, 'click');
+    await qwikLoader?.dispatch(button, 'focus');
+    expect(button.textContent).toBe('2');
+
+    cleanup();
+  });
+
+  it('supports capture option', async () => {
+    (globalThis as any).__useOnLogs = [];
+
+    const App = component$(() => {
+      useOn(
+        'click',
+        $(() => {
+          (globalThis as any).__useOnLogs.push('parent capture');
+        }),
+        { capture: true }
+      );
+
+      return (
+        <div>
+          <button
+            onClick$={() => {
+              (globalThis as any).__useOnLogs.push('button bubble');
+            }}
+          />
+        </div>
+      );
+    });
+
+    const { container, cleanup, qwikLoader } = await render(App, { debug });
+    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+    expect((globalThis as any).__useOnLogs).toEqual(['parent capture', 'button bubble']);
+
+    cleanup();
+    delete (globalThis as any).__useOnLogs;
+  });
+
+  it('merges handlers and modifiers for the same event', async () => {
+    (globalThis as any).__useOnLogs = [];
+
+    const App = component$(() => {
+      useOn(
+        'click',
+        $(() => {
+          (globalThis as any).__useOnLogs.push('first');
+        }),
+        { capture: true }
+      );
+      useOn(
+        'click',
+        $(() => {
+          (globalThis as any).__useOnLogs.push('second');
+        }),
+        { preventdefault: true, stoppropagation: true }
+      );
+
+      return (
+        <div>
+          <button
+            onClick$={() => {
+              (globalThis as any).__useOnLogs.push('button bubble');
+            }}
+          />
+        </div>
+      );
+    });
+
+    const { container, cleanup, qwikLoader } = await render(App, { debug });
+    const div = container.querySelector('div')!;
+
+    expect(div.hasAttribute('capture:click')).toBe(true);
+    expect(div.hasAttribute('preventdefault:click')).toBe(true);
+    expect(div.hasAttribute('stoppropagation:click')).toBe(true);
+
+    const event = await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+    expect((globalThis as any).__useOnLogs).toEqual(['first', 'second']);
+    expect(event?.defaultPrevented).toBe(true);
+    expect(event?.cancelBubble).toBe(true);
+
+    cleanup();
+    delete (globalThis as any).__useOnLogs;
+  });
+
+  it('merges with JSX listeners for the same element event', async () => {
+    const App = component$(() => {
+      const count = useSignal(0);
+
+      useOn(
+        'click',
+        $(() => {
+          count.value++;
+        })
+      );
+
+      return <button onClick$={() => (count.value += 2)}>{count.value}</button>;
+    });
+
+    const { container, cleanup, qwikLoader } = await render(App, { debug });
+    const button = container.querySelector('button')!;
+
+    await qwikLoader?.dispatch(button, 'click');
+    expect(button.textContent).toBe('3');
+
+    cleanup();
+  });
+
+  it('updates with mixed listeners', async () => {
+    const App = component$(() => {
+      const count = useSignal(0);
+
+      useOn(
+        'click',
+        $(() => {
+          count.value++;
+        })
+      );
+
+      return <button onFocus$={() => (count.value += 2)}>{count.value}</button>;
+    });
+
+    const { container, cleanup, qwikLoader } = await render(App, { debug });
+    const button = container.querySelector('button')!;
+
+    await qwikLoader?.dispatch(button, 'click');
+    await qwikLoader?.dispatch(button, 'focus');
+    expect(button.textContent).toBe('3');
+
+    cleanup();
+  });
+
+  it('moves the carrier when a structural root is replaced', async () => {
+    const App = component$(() => {
+      const button = useSignal(true);
+      useOn(
+        'click',
+        $(() => {
+          button.value = !button.value;
+        })
+      );
+      return <>{button.value ? <button>button</button> : <a>link</a>}</>;
+    });
+
+    const { container, cleanup, qwikLoader } = await render(App, { debug });
+    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+    const link = container.querySelector('a')!;
+    expect(link).not.toBeNull();
+
+    await qwikLoader?.dispatch(link, 'click');
+    expect(container.querySelector('button')).not.toBeNull();
+
+    cleanup();
   });
 
   describe('useOnDocument', () => {
-    it('should update value', async () => {
-      const Counter = component$((props: { initial: number }) => {
-        const count = useSignal(props.initial);
+    it('updates value', async () => {
+      const App = component$(() => {
+        const count = useSignal(0);
+
         useOnDocument(
           'click',
-          $(() => count.value++)
+          $(() => {
+            count.value++;
+          })
         );
-        return <button>Count: {count.value}!</button>;
+
+        return <button>{count.value}</button>;
       });
 
-      const { vNode, container } = await render(<Counter initial={123} />, { debug });
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <button>
-            Count: <Signal ssr-required>{'123'}</Signal>!
-          </button>
-        </Component>
-      );
+      const { container, cleanup, qwikLoader } = await render(App, { debug });
+      const button = container.querySelector('button')!;
 
-      await trigger(container.element, 'button', 'd:click');
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <button>
-            Count: <Signal ssr-required>{'124'}</Signal>!
-          </button>
-        </Component>
-      );
+      await qwikLoader?.dispatch(button, 'd:click');
+      expect(button.textContent).toBe('1');
+
+      cleanup();
     });
 
-    it('should update value with multiple useOnDocument', async () => {
-      const Counter = component$((props: { initial: number }) => {
-        const count = useSignal(props.initial);
+    it('updates value with multiple events', async () => {
+      const App = component$(() => {
+        const count = useSignal(0);
+
         useOnDocument(
           'click',
-          $(() => count.value++)
+          $(() => {
+            count.value++;
+          })
         );
         useOnDocument(
           'focus',
@@ -307,543 +293,164 @@ describe.each([
             count.value += 2;
           })
         );
-        useVisibleTask$(() => {
-          count.value += 2;
-        });
-        return <button>Count: {count.value}!</button>;
+
+        return <button>{count.value}</button>;
       });
 
-      const { vNode, container } = await render(<Counter initial={123} />, { debug });
-      if (render === ssrRenderToDom) {
-        expect(vNode).toMatchVDOM(
-          <Component>
-            <button>
-              Count: <Signal ssr-required>{'123'}</Signal>!
-            </button>
-          </Component>
-        );
-        await trigger(container.element, 'button', 'qvisible');
-      }
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <button>
-            Count: <Signal ssr-required>{'125'}</Signal>!
-          </button>
-        </Component>
-      );
-      await trigger(container.element, 'button', 'd:click');
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <button>
-            Count: <Signal ssr-required>{'126'}</Signal>!
-          </button>
-        </Component>
-      );
-      await trigger(container.element, 'button', 'd:focus');
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <button>
-            Count: <Signal ssr-required>{'128'}</Signal>!
-          </button>
-        </Component>
-      );
+      const { container, cleanup, qwikLoader } = await render(App, { debug });
+      const button = container.querySelector('button')!;
+
+      await qwikLoader?.dispatch(button, 'd:click');
+      await qwikLoader?.dispatch(button, 'focus');
+      expect(button.textContent).toBe('3');
+
+      cleanup();
     });
 
-    it('should work with empty component', async () => {
-      const Counter = component$((props: { initial: number }) => {
-        const count = useSignal(props.initial);
-        useOnDocument(
-          'click',
-          $(() => count.value++)
-        );
-        return <>Count: {count.value}!</>;
-      });
+    it('supports DOMContentLoaded event', async () => {
+      const App = component$(() => {
+        const count = useSignal(0);
 
-      const { vNode, container } = await render(<Counter initial={123} />, { debug });
-      expect(vNode).toMatchVDOM(
-        <Component ssr-required>
-          <Fragment ssr-required>
-            Count: <Signal ssr-required>{'123'}</Signal>!<script hidden></script>
-          </Fragment>
-        </Component>
-      );
-
-      await trigger(container.element, 'script', 'd:click');
-      expect(vNode).toMatchVDOM(
-        <Component ssr-required>
-          <Fragment ssr-required>
-            Count: <Signal ssr-required>{'124'}</Signal>!<script hidden></script>
-          </Fragment>
-        </Component>
-      );
-    });
-
-    it('should support modifiers on placeholder script nodes', async () => {
-      const Counter = component$((props: { initial: number }) => {
-        const count = useSignal(props.initial);
-        useOnDocument(
-          'click',
-          $(() => count.value++),
-          {
-            preventdefault: true,
-          }
-        );
-        return <>Count: {count.value}!</>;
-      });
-
-      const { container } = await render(<Counter initial={123} />, { debug });
-      expect(container.element.querySelector('script')?.hasAttribute('preventdefault:click')).toBe(
-        true
-      );
-      const event = await trigger(container.element, 'script', 'd:click');
-      expect(event!.defaultPrevented).toBe(true);
-    });
-
-    it('should work with inline component not rendering children', async () => {
-      const Counter = component$((props: { initial: number }) => {
-        const count = useSignal(props.initial);
-        useOnDocument(
-          'click',
-          $(() => count.value++)
-        );
-        return <InlineComponentNoChildren count={count.value} />;
-      });
-
-      const { vNode, container } = await render(<Counter initial={123} />, { debug });
-      expect(vNode).toMatchVDOM(
-        <Component ssr-required>
-          <Fragment ssr-required>
-            <InlineComponent ssr-required>
-              <Fragment ssr-required>
-                Count: <Signal ssr-required>{'123'}</Signal>!
-              </Fragment>
-            </InlineComponent>
-            <script hidden />
-          </Fragment>
-        </Component>
-      );
-
-      await trigger(container.element, 'script', 'd:click');
-      expect(vNode).toMatchVDOM(
-        <Component ssr-required>
-          <Fragment ssr-required>
-            <InlineComponent ssr-required>
-              <Fragment ssr-required>
-                Count: <Signal ssr-required>{'124'}</Signal>!
-              </Fragment>
-            </InlineComponent>
-            <script hidden />
-          </Fragment>
-        </Component>
-      );
-    });
-
-    it('should update value with mixed listeners', async () => {
-      const Counter = component$((props: { initial: number }) => {
-        const count = useSignal(props.initial);
-        useOnWindow(
-          'click',
-          $(() => count.value++)
-        );
-        return <button onFocus$={() => (count.value += 2)}>Count: {count.value}!</button>;
-      });
-
-      const { vNode, container } = await render(<Counter initial={123} />, { debug });
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <button>
-            Count: <Signal ssr-required>{'123'}</Signal>!
-          </button>
-        </Component>
-      );
-      await trigger(container.element, 'button', 'w:click');
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <button>
-            Count: <Signal ssr-required>{'124'}</Signal>!
-          </button>
-        </Component>
-      );
-      await trigger(container.element, 'button', 'focus');
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <button>
-            Count: <Signal ssr-required>{'126'}</Signal>!
-          </button>
-        </Component>
-      );
-    });
-
-    it('should update value for DOMContentLoaded event', async () => {
-      const Counter = component$((props: { initial: number }) => {
-        const count = useSignal(props.initial);
         useOnDocument(
           'DOMContentLoaded',
-          $(() => count.value++)
-        );
-        return <button>Count: {count.value}!</button>;
-      });
-
-      const { vNode, container } = await render(<Counter initial={123} />, { debug });
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <button>
-            Count: <Signal ssr-required>{'123'}</Signal>!
-          </button>
-        </Component>
-      );
-      await trigger(container.element, 'button', 'd:DOMContentLoaded');
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <button>
-            Count: <Signal ssr-required>{'124'}</Signal>!
-          </button>
-        </Component>
-      );
-    });
-
-    it('should update value for DOMContentLoaded jsx event', async () => {
-      const Counter = component$((props: { initial: number }) => {
-        const count = useSignal(props.initial);
-        return (
-          <button document:onDOMContentLoaded$={() => count.value++}>Count: {count.value}!</button>
-        );
-      });
-
-      const { vNode, container } = await render(<Counter initial={123} />, { debug });
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <button>
-            Count: <Signal ssr-required>{'123'}</Signal>!
-          </button>
-        </Component>
-      );
-      await trigger(container.element, 'button', 'd:DOMContentLoaded');
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <button>
-            Count: <Signal ssr-required>{'124'}</Signal>!
-          </button>
-        </Component>
-      );
-    });
-
-    it('should not execute custom event QRL for deleted vnode', async () => {
-      (globalThis as any).dispatchCustomEvent = () => {};
-      (globalThis as any).receivedLog = [];
-      const DispatchChild = component$(() => {
-        useTask$(() => {
-          (globalThis as any).dispatchCustomEvent();
-        });
-        return <></>;
-      });
-      const ReceiveChild = component$(() => {
-        const toggle = useSignal(true);
-        useOnDocument(
-          'child',
           $(() => {
-            // grab some scope to go via scheduler
-            toggle.value = false;
-            (globalThis as any).receivedLog.push('child event');
+            count.value++;
           })
         );
-        return <></>;
-      });
-      const Parent = component$(() => {
-        const toggle = useSignal(true);
-        return (
-          <>
-            <button onClick$={() => (toggle.value = !toggle.value)}></button>
-            {toggle.value ? (
-              <>
-                <DispatchChild key={1} />
-                <ReceiveChild key={2} />
-              </>
-            ) : (
-              <>
-                <DispatchChild key={3} />
-                <ReceiveChild key={3} />
-              </>
-            )}
-          </>
-        );
+
+        return <button>{count.value}</button>;
       });
 
-      const { container, document } = await render(<Parent />, { debug });
-      (globalThis as any).dispatchCustomEvent = () => {
-        // don't await for this event
-        trigger(document.documentElement, '[on-document\\:child]', 'd:child');
-      };
-      // trigger the change
-      await trigger(container.element, 'button', 'click');
-      // event should not be executed for deleted vnodes
-      expect((globalThis as any).receivedLog).toEqual([]);
+      const { container, cleanup, qwikLoader } = await render(App, { debug });
+      const button = container.querySelector('button')!;
+
+      await qwikLoader?.dispatch(button, 'DOMContentLoaded');
+      expect(button.textContent).toBe('1');
+
+      cleanup();
+    });
+
+    it('supports modifiers on hidden script carriers', async () => {
+      const App = component$(() => {
+        useOnDocument(
+          'click',
+          $(() => {}),
+          { preventdefault: true }
+        );
+
+        return <>headless</>;
+      });
+
+      const { container, document, cleanup } = await render(App, { debug });
+      const script = (name === 'ssrRender' ? document : container).querySelector('script[hidden]')!;
+
+      expect(script.hasAttribute('preventdefault:click')).toBe(true);
+
+      cleanup();
     });
   });
 
   describe('useOnWindow', () => {
-    it('should update value', async () => {
-      const Counter = component$((props: { initial: number }) => {
-        const count = useSignal(props.initial);
+    it('updates value', async () => {
+      const App = component$(() => {
+        const count = useSignal(0);
+
         useOnWindow(
           'click',
-          $(() => count.value++)
-        );
-        return <button>Count: {count.value}!</button>;
-      });
-
-      const { vNode, container } = await render(<Counter initial={123} />, { debug });
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <button>
-            Count: <Signal ssr-required>{'123'}</Signal>!
-          </button>
-        </Component>
-      );
-
-      await trigger(container.element, 'button', 'w:click');
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <button>
-            Count: <Signal ssr-required>{'124'}</Signal>!
-          </button>
-        </Component>
-      );
-    });
-
-    it('should work with empty component', async () => {
-      const Counter = component$((props: { initial: number }) => {
-        const count = useSignal(props.initial);
-        useOnWindow(
-          'click',
-          $(() => count.value++)
-        );
-        return <>Count: {count.value}!</>;
-      });
-
-      const { vNode, container } = await render(<Counter initial={123} />, { debug });
-      expect(vNode).toMatchVDOM(
-        <Component ssr-required>
-          <Fragment ssr-required>
-            Count: <Signal ssr-required>{'123'}</Signal>!<script hidden></script>
-          </Fragment>
-        </Component>
-      );
-
-      await trigger(container.element, 'script', 'w:click');
-      expect(vNode).toMatchVDOM(
-        <Component ssr-required>
-          <Fragment ssr-required>
-            Count: <Signal ssr-required>{'124'}</Signal>!<script hidden></script>
-          </Fragment>
-        </Component>
-      );
-    });
-
-    it('should support modifiers on placeholder script nodes', async () => {
-      const Counter = component$((props: { initial: number }) => {
-        const count = useSignal(props.initial);
-        useOnWindow(
-          'click',
-          $(() => count.value++),
-          {
-            stoppropagation: true,
-          }
-        );
-        return <>Count: {count.value}!</>;
-      });
-
-      const { container } = await render(<Counter initial={123} />, { debug });
-      expect(container.element.querySelector('script')?.hasAttribute('stoppropagation:click')).toBe(
-        true
-      );
-      const event = await trigger(container.element, 'script', 'w:click');
-      expect(event!.cancelBubble).toBe(true);
-    });
-
-    it('should update value for window event on element and useOnWindow', async () => {
-      const Counter = component$((props: { initial: number }) => {
-        const count = useSignal(props.initial);
-        useOnWindow(
-          'dblclick',
-          $(() => count.value++)
-        );
-        return <button window:onDblClick$={() => count.value++}>Count: {count.value}!</button>;
-      });
-
-      const { vNode, container } = await render(<Counter initial={123} />, { debug });
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <button>
-            Count: <Signal ssr-required>{'123'}</Signal>!
-          </button>
-        </Component>
-      );
-
-      await trigger(container.element, 'button', 'w:dblclick');
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <button>
-            Count: <Signal ssr-required>{'125'}</Signal>!
-          </button>
-        </Component>
-      );
-    });
-
-    it('should update value with multiple useOnWindow', async () => {
-      const Counter = component$((props: { initial: number }) => {
-        const count = useSignal(props.initial);
-        useOnWindow(
-          'click',
-          $(() => count.value++)
-        );
-        useOnWindow(
-          'focus',
           $(() => {
-            count.value += 2;
+            count.value++;
           })
         );
-        useVisibleTask$(() => {
-          count.value += 2;
-        });
-        return <button>Count: {count.value}!</button>;
+
+        return <button>{count.value}</button>;
       });
 
-      const { vNode, container } = await render(<Counter initial={123} />, { debug });
-      if (render === ssrRenderToDom) {
-        expect(vNode).toMatchVDOM(
-          <Component>
-            <button>
-              Count: <Signal ssr-required>{'123'}</Signal>!
-            </button>
-          </Component>
-        );
-        await trigger(container.element, 'button', 'qvisible');
-      }
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <button>
-            Count: <Signal ssr-required>{'125'}</Signal>!
-          </button>
-        </Component>
-      );
-      await trigger(container.element, 'button', 'w:click');
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <button>
-            Count: <Signal ssr-required>{'126'}</Signal>!
-          </button>
-        </Component>
-      );
-      await trigger(container.element, 'button', 'w:focus');
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <button>
-            Count: <Signal ssr-required>{'128'}</Signal>!
-          </button>
-        </Component>
-      );
+      const { container, cleanup, qwikLoader } = await render(App, { debug });
+      const button = container.querySelector('button')!;
+
+      await qwikLoader?.dispatch(button, 'w:click');
+      expect(button.textContent).toBe('1');
+
+      cleanup();
     });
 
-    it('should update value with mixed listeners', async () => {
-      const Counter = component$((props: { initial: number }) => {
-        const count = useSignal(props.initial);
-        useOnDocument(
-          'click',
-          $(() => count.value++)
+    it('supports modifiers on hidden script carriers', async () => {
+      const App = component$(() => {
+        useOnWindow(
+          'resize',
+          $(() => {}),
+          { stoppropagation: true }
         );
-        return <button onFocus$={() => (count.value += 2)}>Count: {count.value}!</button>;
+
+        return <>headless</>;
       });
 
-      const { vNode, container } = await render(<Counter initial={123} />, { debug });
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <button>
-            Count: <Signal ssr-required>{'123'}</Signal>!
-          </button>
-        </Component>
-      );
-      await trigger(container.element, 'button', 'd:click');
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <button>
-            Count: <Signal ssr-required>{'124'}</Signal>!
-          </button>
-        </Component>
-      );
-      await trigger(container.element, 'button', 'focus');
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <button>
-            Count: <Signal ssr-required>{'126'}</Signal>!
-          </button>
-        </Component>
-      );
+      const { container, document, cleanup } = await render(App, { debug });
+      const script = (name === 'ssrRender' ? document : container).querySelector('script[hidden]')!;
+
+      expect(script.hasAttribute('stoppropagation:resize')).toBe(true);
+
+      cleanup();
+    });
+
+    it('merges with JSX listeners for the same window event', async () => {
+      const App = component$(() => {
+        const count = useSignal(0);
+
+        useOnWindow(
+          'dblclick',
+          $(() => {
+            count.value++;
+          })
+        );
+
+        return <button window:onDblClick$={() => count.value++}>{count.value}</button>;
+      });
+
+      const { container, cleanup, qwikLoader } = await render(App, { debug });
+      const button = container.querySelector('button')!;
+
+      await qwikLoader?.dispatch(button, 'w:dblclick');
+      expect(button.textContent).toBe('2');
+
+      cleanup();
     });
   });
 
   describe('custom events', () => {
-    it('should update counter for useOn', async () => {
-      const Counter = component$((props: { initial: number }) => {
-        const count = useSignal(props.initial);
+    it('updates for useOn custom event', async () => {
+      const App = component$(() => {
+        const count = useSignal(0);
+
         useOn(
           'SomeCustomEvent',
-          $(() => count.value++)
+          $(() => {
+            count.value++;
+          })
         );
-        return <button>Count: {count.value}!</button>;
+
+        return <button>{count.value}</button>;
       });
 
-      const { vNode, container } = await render(<Counter initial={123} />, { debug });
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <button>
-            Count: <Signal ssr-required>{'123'}</Signal>!
-          </button>
-        </Component>
-      );
+      const { container, cleanup, qwikLoader } = await render(App, { debug });
+      const button = container.querySelector('button')!;
 
-      await trigger(container.element, 'button', 'SomeCustomEvent');
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <button>
-            Count: <Signal ssr-required>{'124'}</Signal>!
-          </button>
-        </Component>
-      );
-    });
+      await qwikLoader?.dispatch(button, 'SomeCustomEvent');
+      expect(button.textContent).toBe('1');
 
-    it('should update counter for jsx event', async () => {
-      const Counter = component$((props: { initial: number }) => {
-        const count = useSignal(props.initial);
-        return <button on-SomeCustomEvent$={() => count.value++}>Count: {count.value}!</button>;
-      });
-
-      const { vNode, container } = await render(<Counter initial={123} />, { debug });
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <button>
-            Count: <Signal ssr-required>{'123'}</Signal>!
-          </button>
-        </Component>
-      );
-
-      await trigger(container.element, 'button', 'SomeCustomEvent');
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <button>
-            Count: <Signal ssr-required>{'124'}</Signal>!
-          </button>
-        </Component>
-      );
+      cleanup();
     });
   });
 
-  it('should update value with useOn, useOnDocument and useOnWindow', async () => {
-    const Counter = component$((props: { initial: number }) => {
-      const count = useSignal(props.initial);
+  it('updates with element, document, window, and JSX listeners together', async () => {
+    const App = component$(() => {
+      const count = useSignal(0);
+
       useOn(
         'click',
-        $(() => count.value++)
+        $(() => {
+          count.value++;
+        })
       );
       useOnWindow(
         'focus',
@@ -857,247 +464,96 @@ describe.each([
           count.value += 3;
         })
       );
-      useVisibleTask$(() => {
-        count.value += 2;
-      });
-      return <button onResize$={() => (count.value += 4)}>Count: {count.value}!</button>;
+
+      return <button onResize$={() => (count.value += 4)}>{count.value}</button>;
     });
 
-    const { vNode, container } = await render(<Counter initial={123} />, { debug });
-    if (render === ssrRenderToDom) {
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <button>
-            Count: <Signal ssr-required>{'123'}</Signal>!
-          </button>
-        </Component>
-      );
-      await trigger(container.element, 'button', 'qvisible');
-    }
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <button>
-          Count: <Signal ssr-required>{'125'}</Signal>!
-        </button>
-      </Component>
-    );
-    await trigger(container.element, 'button', 'click');
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <button>
-          Count: <Signal ssr-required>{'126'}</Signal>!
-        </button>
-      </Component>
-    );
-    await trigger(container.element, 'button', 'w:focus');
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <button>
-          Count: <Signal ssr-required>{'128'}</Signal>!
-        </button>
-      </Component>
-    );
-    await trigger(container.element, 'button', 'd:blur');
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <button>
-          Count: <Signal ssr-required>{'131'}</Signal>!
-        </button>
-      </Component>
-    );
-    await trigger(container.element, 'button', 'resize');
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <button>
-          Count: <Signal ssr-required>{'135'}</Signal>!
-        </button>
-      </Component>
-    );
+    const { container, cleanup, qwikLoader } = await render(App, { debug });
+    const button = container.querySelector('button')!;
+
+    await qwikLoader?.dispatch(button, 'click');
+    await qwikLoader?.dispatch(button, 'w:focus');
+    await qwikLoader?.dispatch(button, 'd:blur');
+    await qwikLoader?.dispatch(button, 'resize');
+    expect(button.textContent).toBe('10');
+
+    cleanup();
   });
 
-  it('should not add script node in empty components for specific events', async () => {
-    const Cmp = component$(() => {
-      const signal = useSignal('empty');
+  it('does not add a hidden script carrier for headless element events', async () => {
+    const App = component$(() => {
       useOn(
         'click',
-        $(() => {
-          signal.value = 'run';
-        })
+        $(() => {})
       );
-      return <>{signal.value}</>;
+
+      return <>headless</>;
     });
-    const { vNode, document } = await render(<Cmp />, { debug });
-    await trigger(document.body, 'script', 'click');
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <Fragment>
-          <Signal>{'empty'}</Signal>
-        </Fragment>
-      </Component>
-    );
+
+    const { container, document, cleanup } = await render(App, { debug });
+
+    expect(
+      (name === 'ssrRender' ? document : container).querySelector('script[hidden]')
+    ).toBeFalsy();
+
+    cleanup();
   });
 
-  it('should add event to element returned by promise', async () => {
-    const Cmp = component$(() => {
-      const signal = useSignal('empty');
-      useOn(
-        'click',
+  it('uses a hidden script carrier for headless document events', async () => {
+    const App = component$(() => {
+      useOnDocument(
+        'qinit',
         $(() => {
-          signal.value = 'run';
-        })
-      );
-      return <>{Promise.resolve(<div>{signal.value}</div>)}</>;
-    });
-    const { vNode, document } = await render(<Cmp />, { debug });
-    await trigger(document.body, 'div', 'click');
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <Fragment>
-          <Awaited>
-            <div>
-              <Signal ssr-required>{'run'}</Signal>
-            </div>
-          </Awaited>
-        </Fragment>
-      </Component>
-    );
-  });
-
-  it('should add event to element returned by signal', async () => {
-    const Cmp = component$(() => {
-      const signal = useSignal('empty');
-      const jsx = useSignal(<div>{signal.value}</div>);
-      useOn(
-        'click',
-        $(() => {
-          signal.value = 'run';
-        })
-      );
-      return <>{jsx.value}</>;
-    });
-    const { vNode, document } = await render(<Cmp />, { debug });
-    await trigger(document.body, 'div', 'click');
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <Fragment>
-          <Awaited>
-            <div>
-              <Signal ssr-required>{'run'}</Signal>
-            </div>
-          </Awaited>
-        </Fragment>
-      </Component>
-    );
-  });
-
-  it('should add only one event', async () => {
-    const Cmp = component$(() => {
-      const signal = useSignal(0);
-      useOn(
-        'click',
-        $(() => {
-          signal.value++;
+          (globalThis as any).__useOnDocument = ((globalThis as any).__useOnDocument ?? 0) + 1;
         })
       );
 
-      useTask$(async ({ track }) => {
-        track(() => signal);
-        // rerender component twice
-        await Promise.resolve();
-        await Promise.resolve();
-      });
-      return <>{Promise.resolve(<div>{signal.value}</div>)}</>;
+      return <>headless</>;
     });
-    const { document } = await render(<Cmp />, { debug });
-    await trigger(document.body, 'div', 'click');
-    await expect(document.querySelector('div')).toMatchDOM(<div>1</div>);
+
+    (globalThis as any).__useOnDocument = 0;
+    const { container, document, cleanup, qwikLoader } = await render(App, { debug });
+    const script = (name === 'ssrRender' ? document : container).querySelector('script[hidden]')!;
+
+    expect(container.innerHTML).toContain('headless');
+    expect(script).not.toBeNull();
+    await qwikLoader?.dispatch(script, 'qinit');
+    expect((globalThis as any).__useOnDocument).toBe(1);
+
+    cleanup();
+    delete (globalThis as any).__useOnDocument;
   });
 
-  describe('regression', () => {
-    it('#7230 - when multiple useOn are used in a component that is headless, it should still execute the events', async () => {
-      (globalThis as any).counter = 0;
-
-      const Cmp = component$(() => {
-        useOnDocument(
-          'click',
-          $(() => {
-            (globalThis as any).counter++;
-          })
-        );
-
-        useOnWindow(
-          'resize',
-          $(() => {
-            (globalThis as any).counter++;
-          })
-        );
-
-        useVisibleTask$(() => {
-          (globalThis as any).counter++;
-        });
-
-        return <Slot />;
-      });
-
-      const LayoutTest = component$(() => {
-        return (
-          <Cmp>
-            <div>test</div>
-          </Cmp>
-        );
-      });
-      const { vNode, document } = await render(<LayoutTest />, { debug });
-      if (render === ssrRenderToDom) {
-        await trigger(document.body, 'script', 'd:qinit');
-      }
-      await trigger(document.body, 'script', 'd:click');
-      await trigger(document.body, 'script', 'w:resize');
-      expect((globalThis as any).counter).toBe(3);
-
-      (globalThis as any).counter = undefined;
-      expect(vNode).toMatchVDOM(
-        <Component ssr-required>
-          <Component ssr-required>
-            <Component ssr-required>
-              <Component ssr-required>
-                <div>test</div>
-              </Component>
-              <script hidden></script>
-            </Component>
-          </Component>
-        </Component>
+  it('executes multiple headless document and window events from one carrier', async () => {
+    const App = component$(() => {
+      useOnDocument(
+        'click',
+        $(() => {
+          (globalThis as any).__useOnGlobal++;
+        })
       );
-    });
-    it('#7230 - when useOnDocument is used in a component that is not rendered, it should add a script node', async () => {
-      const BreakpointProvider = component$(() => {
-        useOnDocument(
-          'click',
-          $(() => {})
-        );
-
-        return <Slot />;
-      });
-
-      const Layout = component$(() => {
-        return (
-          <BreakpointProvider>
-            <div>test</div>
-          </BreakpointProvider>
-        );
-      });
-      const { vNode } = await render(<Layout />, { debug });
-      expect(vNode).toMatchVDOM(
-        <Component ssr-required>
-          <Component ssr-required>
-            <Component ssr-required>
-              <Projection ssr-required>
-                <div>test</div>
-              </Projection>
-              <script hidden></script>
-            </Component>
-          </Component>
-        </Component>
+      useOnWindow(
+        'resize',
+        $(() => {
+          (globalThis as any).__useOnGlobal++;
+        })
       );
+
+      return <>headless</>;
     });
+
+    (globalThis as any).__useOnGlobal = 0;
+    const { container, document, cleanup, qwikLoader } = await render(App, { debug });
+    const script = (name === 'ssrRender' ? document : container).querySelector('script[hidden]')!;
+
+    expect(script.hasAttribute('q-d:click')).toBe(true);
+    expect(script.hasAttribute('q-w:resize')).toBe(true);
+
+    await qwikLoader?.dispatch(script, 'click');
+    await qwikLoader?.dispatch(script, 'w:resize');
+    expect((globalThis as any).__useOnGlobal).toBe(2);
+
+    cleanup();
+    delete (globalThis as any).__useOnGlobal;
   });
 });

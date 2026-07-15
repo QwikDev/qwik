@@ -13,39 +13,38 @@ export function App() {
 
 ============================= src/component.tsx ==
 
-import { _qrlWithChunk } from '@qwik.dev/core/spark';
+import { createSsrElementRecord, _qrlWithChunk } from '@qwik.dev/core';
 
 const q_component_q_e_click_segment_0 = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_q_e_click_segment_0',
   () => import('./component.tsx_component_q_e_click_segment_0'),
   'component_q_e_click_segment_0'
 );
-
 function buildData(count) {
   return Array.from({ length: count }, (_, i) => i);
 }
 export { buildData };
-
-export function App(_props, ctx) {
+export function App(props, ctx) {
   const rows = { value: [] };
-  return (
-    '<button' +
-    ctx.eventAttr('q-e:click', q_component_q_e_click_segment_0.w([rows])) +
-    '>Create</button>'
-  );
+  return [
+    createSsrElementRecord(
+      'button',
+      '<button',
+      ctx.eventAttr('q-e:click', q_component_q_e_click_segment_0.w([rows])),
+      '>'
+    ),
+    'Create</button>',
+  ];
 }
-
-null
 ============================= src/component.tsx_component_q_e_click_segment_0.js (ENTRY POINT)==
 
 import { buildData } from './component';
-import { _captures } from '@qwik.dev/core/spark';
+import { _captures } from '@qwik.dev/core';
+
 export const component_q_e_click_segment_0 = () => {
   const rows = _captures[0];
   return (rows.value = buildData(3));
 };
-
-null
 /*
 {
   "origin": "component.tsx",
@@ -76,34 +75,30 @@ null
 
 ============================= src/component.tsx ==
 
-import { createTemplate, setEvent } from '@qwik.dev/core/spark';
+import { _first, setEvent, createTemplate } from '@qwik.dev/core';
 import { component_q_e_click_segment_0 } from './component.tsx_component_q_e_click_segment_0';
 
+const App_tmpl0 = createTemplate('<button>Create</button>');
 function buildData(count) {
   return Array.from({ length: count }, (_, i) => i);
 }
 export { buildData };
-
-const dom_App_template0 = createTemplate('<button>Create</button>');
-export function App(_props, ctx) {
+export function App(props, ctx) {
   const rows = { value: [] };
-  const fragment0 = dom_App_template0(ctx.document);
-  const el1 = fragment0.firstChild;
-  setEvent(el1, 'q-e:click', component_q_e_click_segment_0, [rows]);
-  return el1;
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  setEvent(el0, 'q-e:click', component_q_e_click_segment_0, [rows]);
+  return el0;
 }
-
-null
 ============================= src/component.tsx_component_q_e_click_segment_0.js (ENTRY POINT)==
 
 import { buildData } from './component';
-import { _captures } from '@qwik.dev/core/spark';
+import { _captures } from '@qwik.dev/core';
+
 export const component_q_e_click_segment_0 = () => {
   const rows = _captures[0];
   return (rows.value = buildData(3));
 };
-
-null
 /*
 {
   "origin": "component.tsx",

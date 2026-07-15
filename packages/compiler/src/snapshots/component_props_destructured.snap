@@ -8,7 +8,7 @@ export function App({ label: text, count = 0, ...rest } = { label: 'Save' }) {
 
 ============================= src/component.tsx ==
 
-import { _qrlWithChunk } from '@qwik.dev/core/spark';
+import { createSsrElementRecord, _qrlWithChunk } from '@qwik.dev/core';
 
 const q_component_q_e_click_segment_0 = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_q_e_click_segment_0',
@@ -17,17 +17,19 @@ const q_component_q_e_click_segment_0 = /*#__PURE__*/ _qrlWithChunk(
 );
 export function App(props, ctx) {
   const { label: text, count = 0, ...rest } = props ?? { label: 'Save' };
-  return (
-    '<button' +
-    ctx.eventAttr('q-e:click', q_component_q_e_click_segment_0.w([text, count, rest])) +
-    '>' +
-    'Save' +
-    '</button>'
-  );
+  return [
+    createSsrElementRecord(
+      'button',
+      '<button',
+      ctx.eventAttr('q-e:click', q_component_q_e_click_segment_0.w([text, count, rest])),
+      '>'
+    ),
+    'Save</button>',
+  ];
 }
 ============================= src/component.tsx_component_q_e_click_segment_0.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
+import { _captures } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_0 = () => {
   const text = _captures[0],
@@ -67,7 +69,7 @@ export const component_q_e_click_segment_0 = () => {
 
 ============================= src/component.tsx ==
 
-import { _first, setEvent, createTemplate } from '@qwik.dev/core/spark';
+import { _first, setEvent, createTemplate } from '@qwik.dev/core';
 import { component_q_e_click_segment_0 } from './component.tsx_component_q_e_click_segment_0';
 
 const App_tmpl0 = createTemplate('<button>Save</button>');
@@ -80,7 +82,7 @@ export function App(props, ctx) {
 }
 ============================= src/component.tsx_component_q_e_click_segment_0.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
+import { _captures } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_0 = () => {
   const text = _captures[0],

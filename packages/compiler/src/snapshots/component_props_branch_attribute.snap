@@ -13,12 +13,14 @@ export function Logical(props: { label?: string }) {
 ============================= src/component.tsx ==
 
 import {
-  escapeHTML,
+  createSsrNodeId,
   createSsrElementTarget,
   renderSsrAttrExpression,
+  escapeHTML,
+  createSsrElementRecord,
   maybeThen,
   _qrlWithChunk,
-} from '@qwik.dev/core/spark';
+} from '@qwik.dev/core';
 import { component_title_segment_0 } from './component.tsx_component_title_segment_0';
 import { component_aria_label_segment_1 } from './component.tsx_component_aria_label_segment_1';
 
@@ -37,48 +39,44 @@ q_component_aria_label_segment_1.s(component_aria_label_segment_1);
 export function Conditional(props, ctx) {
   const id0 = ctx.nextId();
   ctx.addRoot(props);
-  const attr0 = renderSsrAttrExpression(
+  const attr1 = renderSsrAttrExpression(
     createSsrElementTarget(id0),
     'title',
     [props],
     q_component_title_segment_0
   );
-  return maybeThen(
-    attr0,
-    (attr0) =>
-      '<button q:id="' +
-      id0 +
-      '"' +
-      ' title="' +
-      escapeHTML(attr0) +
-      '"' +
-      '>' +
-      'Save' +
-      '</button>'
-  );
+  return maybeThen(attr1, (attr1) => [
+    createSsrElementRecord(
+      'button',
+      '<button q:id="',
+      createSsrNodeId(id0),
+      '"',
+      attr1 === null ? '' : ' title' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
+      '>'
+    ),
+    'Save</button>',
+  ]);
 }
 export function Logical(props, ctx) {
   const id0 = ctx.nextId();
   ctx.addRoot(props);
-  const attr0 = renderSsrAttrExpression(
+  const attr1 = renderSsrAttrExpression(
     createSsrElementTarget(id0),
     'aria-label',
     [props],
     q_component_aria_label_segment_1
   );
-  return maybeThen(
-    attr0,
-    (attr0) =>
-      '<button q:id="' +
-      id0 +
-      '"' +
-      ' aria-label="' +
-      escapeHTML(attr0) +
-      '"' +
-      '>' +
-      'Save' +
-      '</button>'
-  );
+  return maybeThen(attr1, (attr1) => [
+    createSsrElementRecord(
+      'button',
+      '<button q:id="',
+      createSsrNodeId(id0),
+      '"',
+      attr1 === null ? '' : ' aria-label' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
+      '>'
+    ),
+    'Save</button>',
+  ]);
 }
 ============================= src/component.tsx_component_title_segment_0.js (ENTRY POINT)==
 
@@ -143,7 +141,7 @@ export const component_aria_label_segment_1 = (props) => {
 
 ============================= src/component.tsx ==
 
-import { _first, createAttrExpressionEffect, createTemplate } from '@qwik.dev/core/spark';
+import { _first, createAttrExpressionEffect, createTemplate } from '@qwik.dev/core';
 import { component_title_segment_0 } from './component.tsx_component_title_segment_0';
 import { component_aria_label_segment_1 } from './component.tsx_component_aria_label_segment_1';
 

@@ -3,21 +3,15 @@ import type {
   TransformModulesOptions,
   TransformOutput,
 } from '@qwik.dev/optimizer';
-import { transform } from 'oxc-transform';
-import {
-  createModule,
-  getLang,
-  isJsxPath,
-  isTypeScriptPath,
-  transformWithOxc,
-} from './module-utils';
+import { createModule, isJsxPath, isTypeScriptPath, transformWithOxc } from './module-utils';
+import { mapDiagnosticsToOriginal, normalizeTransformInput } from './normalization';
+import { parseModule } from './parse';
 import type { CompilerContext, CompilerResult } from './types';
-import { parseModule } from './stages/parse';
-import { tryTransformJsx } from './rewrite/transform';
+import { transformModule } from './transform';
 
 /** @public */
 export async function transformModules(options: TransformModulesOptions): Promise<TransformOutput> {
-  const results = await Promise.all(options.input.map((input) => transformModule(input, options)));
+  const results = await Promise.all(options.input.map((input) => transformInput(input, options)));
 
   return {
     modules: results.flatMap((result) => result.modules),
@@ -27,7 +21,7 @@ export async function transformModules(options: TransformModulesOptions): Promis
   };
 }
 
-async function transformModule(
+async function transformInput(
   input: TransformModuleInput,
   options: TransformModulesOptions
 ): Promise<CompilerResult> {
@@ -37,58 +31,41 @@ async function transformModule(
     options,
     emitTarget: options.isServer === false ? 'csr' : 'ssr',
     program: null,
-    manifest: {
-      components: [],
-      segments: [],
-      imports: [],
-      diagnostics: [],
-    },
-    outputModules: null,
+    diagnostics: [],
   };
 
   parseModule(ctx);
-  if (ctx.manifest.diagnostics.length === 0) {
-    const modules = tryTransformJsx(ctx);
-    if (modules !== null) {
-      return {
-        modules,
-        diagnostics: ctx.manifest.diagnostics,
-      };
+  if (ctx.diagnostics.length === 0) {
+    const result = transformModule(ctx);
+    switch (result.kind) {
+      case 'success':
+        return {
+          modules: result.modules,
+          diagnostics: ctx.diagnostics,
+        };
+      case 'failure':
+        return {
+          modules: [createModule(input.path, '')],
+          diagnostics: await mapDiagnosticsToOriginal(normalizedInput, options, [
+            ...ctx.diagnostics,
+            ...result.diagnostics,
+          ]),
+        };
+      case 'not-applicable':
+        break;
     }
   }
 
-  if (ctx.manifest.diagnostics.length > 0) {
+  if (ctx.diagnostics.length > 0) {
     return {
       modules: [createModule(input.path, '')],
-      diagnostics: ctx.manifest.diagnostics,
+      diagnostics: await mapDiagnosticsToOriginal(normalizedInput, options, ctx.diagnostics),
     };
   }
 
   const fallback = await transformWithOxc(input, options);
   return {
     modules: [fallback],
-    diagnostics: ctx.manifest.diagnostics,
-  };
-}
-
-async function normalizeTransformInput(
-  input: TransformModuleInput,
-  options: TransformModulesOptions
-): Promise<TransformModuleInput> {
-  if (options.transpileTs !== true || !isTypeScriptPath(input.path)) {
-    return input;
-  }
-
-  const transformed = await transform(input.path, input.code, {
-    lang: getLang(input.path),
-    sourceType: 'module',
-    cwd: options.rootDir,
-    sourcemap: false,
-    jsx: isJsxPath(input.path) ? 'preserve' : undefined,
-  });
-
-  return {
-    ...input,
-    code: transformed.code,
+    diagnostics: ctx.diagnostics,
   };
 }

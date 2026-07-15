@@ -9,19 +9,13 @@ export function App() {
 
 ============================= src/component.tsx ==
 
-import { maybeThen, promiseAll } from '@qwik.dev/core/spark';
-
-export function App(_props, _ctx) {
-  const __jsxValue0 = () => {
+import { createSsrElementRecord } from '@qwik.dev/core';
+export function App(props, ctx) {
+  const item = () => {
     return '<span>Item</span>';
   };
-  const item = __jsxValue0;
-  const jsx0 = item();
-  const jsx1 = item();
-  return maybeThen(promiseAll([jsx0, jsx1]), ([jsx0, jsx1]) => '<div>' + jsx0 + jsx1 + '</div>');
+  return [createSsrElementRecord('div', '<div', '>'), item(), item(), '</div>'];
 }
-
-null
 == SSR DIAGNOSTICS ==
 
 []
@@ -29,27 +23,28 @@ null
 
 ============================= src/component.tsx ==
 
-import { createTemplate } from '@qwik.dev/core/spark';
+import { _first, createTemplate, _next } from '@qwik.dev/core';
 
-export function App(_props, ctx) {
-  const dom_App___jsxValue0_template0 = createTemplate('<span>Item</span>');
-  const __jsxValue0 = () => {
-    const fragment0 = dom_App___jsxValue0_template0(ctx.document);
-    const el1 = fragment0.firstChild;
-    return el1;
+const item_tmpl0 = createTemplate('<span>Item</span>');
+const App_tmpl0 = createTemplate('<div><!----><!----><!----><!----></div>');
+export function App(props, ctx) {
+  const item = () => {
+    const fragment0 = item_tmpl0(ctx.document);
+    const el0 = _first(fragment0);
+    return el0;
   };
-  const item = __jsxValue0;
-  const el0 = ctx.document.createElement('div');
-  const jsx1 = item();
-  if (Array.isArray(jsx1)) for (let i = 0; i < jsx1.length; i++) el0.appendChild(jsx1[i]);
-  else el0.appendChild(jsx1);
-  const jsx2 = item();
-  if (Array.isArray(jsx2)) for (let i = 0; i < jsx2.length; i++) el0.appendChild(jsx2[i]);
-  else el0.appendChild(jsx2);
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  const start1 = _next(end0);
+  const end1 = _next(start1);
+  const content0 = item();
+  end0.parentNode.insertBefore(content0, end0);
+  const content1 = item();
+  end1.parentNode.insertBefore(content1, end1);
   return el0;
 }
-
-null
 == CSR DIAGNOSTICS ==
 
 []

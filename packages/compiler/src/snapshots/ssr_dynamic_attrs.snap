@@ -1,6 +1,6 @@
 ==INPUT==
 
-import { useSignal } from '@qwik.dev/core/spark';
+import { useSignal } from '@qwik.dev/core';
 export function App() {
   const title = useSignal('hello');
   const classes = useSignal('active');
@@ -14,40 +14,52 @@ export function App() {
 
 import {
   useSignal,
-  escapeHTML,
+  createSsrNodeId,
   createSsrElementTarget,
   renderSsrAttr,
+  escapeHTML,
+  createSsrElementRecord,
+  getActiveInvokeContextOrNull,
+  invoke,
   maybeThen,
-  promiseAll,
-} from '@qwik.dev/core/spark';
-
-export function App(_props, ctx) {
+} from '@qwik.dev/core';
+export function App(props, ctx) {
   const title = useSignal('hello');
   const classes = useSignal('active');
   const style = useSignal('color:red');
   const id0 = ctx.nextId();
+  let target1;
+  const invokeCtx5 = getActiveInvokeContextOrNull();
   ctx.addRoot(title);
-  const attr1 = renderSsrAttr(createSsrElementTarget(id0), 'title', title);
-  ctx.addRoot(classes);
-  const attr2 = renderSsrAttr(createSsrElementTarget(id0), 'class', classes);
-  ctx.addRoot(style);
-  const attr3 = renderSsrAttr(createSsrElementTarget(id0), 'style', style);
-  return maybeThen(
-    promiseAll([attr1, attr2, attr3]),
-    ([attr1, attr2, attr3]) =>
-      '<div q:id="' +
-      id0 +
-      '" title="' +
-      escapeHTML(attr1) +
-      '" class="' +
-      escapeHTML(attr2) +
-      '" style="' +
-      escapeHTML(attr3) +
-      '">Attrs</div>'
+  const attr2 = renderSsrAttr((target1 ??= createSsrElementTarget(id0)), 'title', title);
+  const attr3 = () =>
+    invoke(invokeCtx5, () => {
+      ctx.addRoot(classes);
+      return renderSsrAttr((target1 ??= createSsrElementTarget(id0)), 'class', classes);
+    });
+  const attr4 = () =>
+    invoke(invokeCtx5, () => {
+      ctx.addRoot(style);
+      return renderSsrAttr((target1 ??= createSsrElementTarget(id0)), 'style', style);
+    });
+  return maybeThen(attr2, (attr2) =>
+    maybeThen(attr3(), (attr3) =>
+      maybeThen(attr4(), (attr4) => [
+        createSsrElementRecord(
+          'div',
+          '<div q:id="',
+          createSsrNodeId(id0),
+          '"',
+          attr2 === null ? '' : ' title' + (attr2 === '' ? '' : '="' + escapeHTML(attr2) + '"'),
+          attr3 === null ? '' : ' class' + (attr3 === '' ? '' : '="' + escapeHTML(attr3) + '"'),
+          attr4 === null ? '' : ' style' + (attr4 === '' ? '' : '="' + escapeHTML(attr4) + '"'),
+          '>'
+        ),
+        'Attrs</div>',
+      ])
+    )
   );
 }
-
-null
 == SSR DIAGNOSTICS ==
 
 []
@@ -55,25 +67,22 @@ null
 
 ============================= src/component.tsx ==
 
-import { useSignal, createTemplate, createAttrEffect } from '@qwik.dev/core/spark';
-
-const dom_App_template0 = createTemplate('<div>Attrs</div>');
-export function App(_props, ctx) {
+import { useSignal, _first, createAttrEffect, createTemplate } from '@qwik.dev/core';
+const App_tmpl0 = createTemplate('<div>Attrs</div>');
+export function App(props, ctx) {
   const title = useSignal('hello');
   const classes = useSignal('active');
   const style = useSignal('color:red');
-  const fragment0 = dom_App_template0(ctx.document);
-  const el1 = fragment0.firstChild;
-  const effect2 = createAttrEffect(el1, 'title', title, ctx.scheduler);
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const effect0 = createAttrEffect(el0, 'title', title, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  const effect1 = createAttrEffect(el0, 'class', classes, ctx.scheduler);
+  ctx.scheduler.notify(effect1);
+  const effect2 = createAttrEffect(el0, 'style', style, ctx.scheduler);
   ctx.scheduler.notify(effect2);
-  const effect3 = createAttrEffect(el1, 'class', classes, ctx.scheduler);
-  ctx.scheduler.notify(effect3);
-  const effect4 = createAttrEffect(el1, 'style', style, ctx.scheduler);
-  ctx.scheduler.notify(effect4);
-  return el1;
+  return el0;
 }
-
-null
 == CSR DIAGNOSTICS ==
 
 []

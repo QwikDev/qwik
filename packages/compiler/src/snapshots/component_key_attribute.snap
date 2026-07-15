@@ -1,6 +1,6 @@
 ==INPUT==
 
-import { useSignal } from '@qwik.dev/core/spark';
+import { useSignal } from '@qwik.dev/core';
 export function App() {
   const itemKey = useSignal('dynamic');
   return <main key="static"><button key={itemKey.value}>Button</button></main>;
@@ -10,11 +10,10 @@ export function App() {
 
 ============================= src/component.tsx ==
 
-import { useSignal } from '@qwik.dev/core/spark';
-
+import { useSignal, createSsrElementRecord } from '@qwik.dev/core';
 export function App(props, ctx) {
   const itemKey = useSignal('dynamic');
-  return '<main><button>Button</button></main>';
+  return [createSsrElementRecord('main', '<main', '>'), '<button>Button</button></main>'];
 }
 == SSR DIAGNOSTICS ==
 
@@ -23,8 +22,7 @@ export function App(props, ctx) {
 
 ============================= src/component.tsx ==
 
-import { useSignal, _first, createTemplate } from '@qwik.dev/core/spark';
-
+import { useSignal, _first, createTemplate } from '@qwik.dev/core';
 const App_tmpl0 = createTemplate('<main><button>Button</button></main>');
 export function App(props, ctx) {
   const itemKey = useSignal('dynamic');

@@ -1,6 +1,6 @@
 ==INPUT==
 
-import { useSignal } from '@qwik.dev/core/spark';
+import { useSignal } from '@qwik.dev/core';
 export function App() {
   const attrs = useSignal({
     title: 'from-spread',
@@ -17,11 +17,13 @@ export function App() {
 
 import {
   useSignal,
-  _qrlWithChunk,
-  createSsrElementTarget,
+  createSsrNodeId,
   renderSsrProps,
+  createSsrElementTarget,
+  createSsrElementRecord,
   maybeThen,
-} from '@qwik.dev/core/spark';
+  _qrlWithChunk,
+} from '@qwik.dev/core';
 import { component_props_segment_0 } from './component.tsx_component_props_segment_0';
 
 const q_component_props_segment_0 = /*#__PURE__*/ _qrlWithChunk(
@@ -30,13 +32,7 @@ const q_component_props_segment_0 = /*#__PURE__*/ _qrlWithChunk(
   'component_props_segment_0'
 );
 q_component_props_segment_0.s(component_props_segment_0);
-const q_component_q_e_click_segment_1 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_q_e_click_segment_1',
-  () => import('./component.tsx_component_q_e_click_segment_1'),
-  'component_q_e_click_segment_1'
-);
-
-export function App(_props, ctx) {
+export function App(props, ctx) {
   const attrs = useSignal({
     title: 'from-spread',
     children: 'ignored',
@@ -52,34 +48,36 @@ export function App(_props, ctx) {
     q_component_props_segment_0,
     ctx.eventAttr
   );
-  return maybeThen(
-    props1,
-    (props1) =>
-      '<div q:id="' + id0 + '"' + props1.attrs + '>' + (props1.innerHTML ?? 'Child') + '</div>'
-  );
+  return maybeThen(props1, (props1) => {
+    props1.ref !== undefined && ctx.setRef(props1.ref, id0);
+    return [
+      createSsrElementRecord('div', '<div q:id="', createSsrNodeId(id0), '"', ...props1.attrs, '>'),
+      props1.innerHTML ?? 'Child',
+      '</div>',
+    ];
+  });
 }
-
-null
 ============================= src/component.tsx_component_props_segment_0.js (ENTRY POINT)==
 
-import { _qrlWithChunk } from '@qwik.dev/core/spark';
-const q_component_q_e_click_segment_1 = /* @__PURE__ */ _qrlWithChunk(
+import { _qrlWithChunk } from '@qwik.dev/core';
+const q_component_q_e_click_segment_1 = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_q_e_click_segment_1',
   () => import('./component.tsx_component_q_e_click_segment_1'),
   'component_q_e_click_segment_1'
 );
+
 export const component_props_segment_0 = (attrs, title) => {
   return {
     ...attrs.value,
     get title() {
       return title.value;
     },
-    onClick$: q_component_q_e_click_segment_1.w([title]),
+    get onClick$() {
+      return q_component_q_e_click_segment_1.w([title]);
+    },
     'data-id': 'static',
   };
 };
-
-null
 /*
 {
   "origin": "component.tsx",
@@ -94,8 +92,8 @@ null
   "ctxName": "props",
   "captures": true,
   "loc": [
-    226,
-    326
+    220,
+    320
   ],
   "paramNames": [],
   "captureNames": [
@@ -106,13 +104,12 @@ null
 */
 ============================= src/component.tsx_component_q_e_click_segment_1.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
+import { _captures } from '@qwik.dev/core';
+
 export const component_q_e_click_segment_1 = () => {
   const title = _captures[0];
   return (title.value = 'clicked');
 };
-
-null
 /*
 {
   "origin": "component.tsx",
@@ -127,8 +124,8 @@ null
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    268,
-    308
+    262,
+    302
   ],
   "paramNames": [],
   "captureNames": [
@@ -143,53 +140,49 @@ null
 
 ============================= src/component.tsx ==
 
-import { useSignal, createPropsEffect, createCapturedEvent } from '@qwik.dev/core/spark';
+import {
+  useSignal,
+  _first,
+  _withCaptures,
+  createPropsEffect,
+  createTemplate,
+} from '@qwik.dev/core';
+import { component_props_segment_0 } from './component.tsx_component_props_segment_0';
 import { component_q_e_click_segment_1 } from './component.tsx_component_q_e_click_segment_1';
 
-const dom_App_expr0 = (attrs, title) => ({
-  ...attrs.value,
-  get title() {
-    return title.value;
-  },
-  onClick$: createCapturedEvent(component_q_e_click_segment_1, [title]),
-  'data-id': 'static',
-});
-export function App(_props, ctx) {
+const App_tmpl0 = createTemplate('<div>Child</div>');
+export function App(props, ctx) {
   const attrs = useSignal({
     title: 'from-spread',
     children: 'ignored',
     className: { active: true },
   });
   const title = useSignal('final');
-  const el0 = ctx.document.createElement('div');
-  const effect1 = createPropsEffect(el0, [attrs, title], dom_App_expr0, ctx.scheduler);
-  ctx.scheduler.notify(effect1);
-  const text2 = ctx.document.createTextNode('Child');
-  el0.appendChild(text2);
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const effect0 = createPropsEffect(
+    el0,
+    [attrs, title, _withCaptures(component_q_e_click_segment_1, [title])],
+    component_props_segment_0,
+    ctx.scheduler
+  );
+  ctx.scheduler.waitFor(effect0.run());
   return el0;
 }
-
-null
 ============================= src/component.tsx_component_props_segment_0.js (ENTRY POINT)==
 
-import { _qrlWithChunk } from '@qwik.dev/core/spark';
-const q_component_q_e_click_segment_1 = /* @__PURE__ */ _qrlWithChunk(
-  './component.tsx_component_q_e_click_segment_1',
-  () => import('./component.tsx_component_q_e_click_segment_1'),
-  'component_q_e_click_segment_1'
-);
-export const component_props_segment_0 = (attrs, title) => {
+export const component_props_segment_0 = (attrs, title, __qwikBoundary) => {
   return {
     ...attrs.value,
     get title() {
       return title.value;
     },
-    onClick$: q_component_q_e_click_segment_1.w([title]),
+    get onClick$() {
+      return __qwikBoundary;
+    },
     'data-id': 'static',
   };
 };
-
-null
 /*
 {
   "origin": "component.tsx",
@@ -204,8 +197,8 @@ null
   "ctxName": "props",
   "captures": true,
   "loc": [
-    226,
-    326
+    220,
+    320
   ],
   "paramNames": [],
   "captureNames": [
@@ -216,13 +209,12 @@ null
 */
 ============================= src/component.tsx_component_q_e_click_segment_1.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
+import { _captures } from '@qwik.dev/core';
+
 export const component_q_e_click_segment_1 = () => {
   const title = _captures[0];
   return (title.value = 'clicked');
 };
-
-null
 /*
 {
   "origin": "component.tsx",
@@ -237,8 +229,8 @@ null
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    268,
-    308
+    262,
+    302
   ],
   "paramNames": [],
   "captureNames": [

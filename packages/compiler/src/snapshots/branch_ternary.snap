@@ -1,6 +1,6 @@
 ==INPUT==
 
-import { useSignal } from '@qwik.dev/core/spark';
+import { useSignal } from '@qwik.dev/core';
 export function App() {
   const count = useSignal(0);
   return (
@@ -18,7 +18,15 @@ export function App() {
 
 ============================= src/component.tsx ==
 
-import { useSignal, renderSsrBranch, maybeThen, _qrlWithChunk } from '@qwik.dev/core/spark';
+import {
+  useSignal,
+  createSsrElementRecord,
+  renderSsrBranch,
+  createSsrRecord,
+  createSsrNodeId,
+  maybeThen,
+  _qrlWithChunk,
+} from '@qwik.dev/core';
 import { component_branch_condition_segment_0 } from './component.tsx_component_branch_condition_segment_0';
 
 const q_component_branch_condition_segment_0 = /*#__PURE__*/ _qrlWithChunk(
@@ -39,23 +47,25 @@ const q_component_branch_else_segment_3 = /*#__PURE__*/ _qrlWithChunk(
 );
 export function App(props, ctx) {
   const count = useSignal(0);
-  const id0 = ctx.nextId();
+  const branchId0 = ctx.nextId();
   ctx.addRoot(count);
-  const branch0 = renderSsrBranch(
+  const branch1 = renderSsrBranch(
     ctx,
-    id0,
+    branchId0,
     q_component_branch_condition_segment_0.w([count]),
     q_component_branch_then_segment_1.w([count]),
     q_component_branch_else_segment_3.w([count])
   );
-  return maybeThen(
-    branch0,
-    (branch0) => '<section' + '>' + '<!b=' + id0 + '>' + branch0 + '<!/b>' + '</section>'
-  );
+  return maybeThen(branch1, (branch1) => [
+    createSsrElementRecord('section', '<section', '>'),
+    createSsrRecord('<!b=', createSsrNodeId(branchId0), '>'),
+    branch1,
+    '<!/b></section>',
+  ]);
 }
 ============================= src/component.tsx_component_branch_condition_segment_0.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
+import { _captures } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_0 = () => {
   const count = _captures[0];
@@ -75,8 +85,8 @@ export const component_branch_condition_segment_0 = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    128,
-    149
+    122,
+    143
   ],
   "paramNames": [],
   "captureNames": [
@@ -88,30 +98,24 @@ export const component_branch_condition_segment_0 = () => {
 
 import {
   _captures,
-  escapeHTML,
-  renderSsrTextNode,
+  createSsrNodeId,
+  createSsrElementRecord,
   createSsrRangeTextTarget,
+  renderSsrTextNode,
+  escapeHTML,
   maybeThen,
-} from '@qwik.dev/core/spark';
+} from '@qwik.dev/core';
 
-export const component_branch_then_segment_1 = (ctx, rangeId) => {
+export const component_branch_then_segment_1 = (ctx) => {
   const count = _captures[0];
   const id0 = ctx.nextId();
-  ctx.addRoot(count);
-  const text0 = renderSsrTextNode(createSsrRangeTextTarget(id0, 0), count);
-  return maybeThen(
-    text0,
-    (text0) =>
-      '<p q:id="' +
-      id0 +
-      '"' +
-      ' class="even"' +
-      '>' +
-      'Even ' +
-      '<!t>' +
-      escapeHTML(text0) +
-      '</p>'
-  );
+  const text1 = renderSsrTextNode(createSsrRangeTextTarget(id0, 0), count);
+  return maybeThen(text1, (text1) => [
+    createSsrElementRecord('p', '<p q:id="', createSsrNodeId(id0), '" class="even"', '>'),
+    'Even <!t>',
+    escapeHTML(text1),
+    '<!/t></p>',
+  ]);
 };
 /*
 {
@@ -127,8 +131,8 @@ export const component_branch_then_segment_1 = (ctx, rangeId) => {
   "ctxName": "branch:then",
   "captures": true,
   "loc": [
-    152,
-    194
+    146,
+    188
   ],
   "paramNames": [],
   "captureNames": [
@@ -141,35 +145,36 @@ export const component_branch_then_segment_1 = (ctx, rangeId) => {
 import {
   _qrlWithChunk,
   _captures,
-  escapeHTML,
-  renderSsrTextNode,
+  createSsrNodeId,
+  createSsrElementRecord,
   createSsrRangeTextTarget,
+  renderSsrTextNode,
+  escapeHTML,
   maybeThen,
-} from '@qwik.dev/core/spark';
+} from '@qwik.dev/core';
 const q_component_q_e_click_segment_4 = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_q_e_click_segment_4',
   () => import('./component.tsx_component_q_e_click_segment_4'),
   'component_q_e_click_segment_4'
 );
 
-export const component_branch_else_segment_3 = (ctx, rangeId) => {
+export const component_branch_else_segment_3 = (ctx) => {
   const count = _captures[0];
   const id0 = ctx.nextId();
-  ctx.addRoot(count);
-  const text0 = renderSsrTextNode(createSsrRangeTextTarget(id0, 0), count);
-  return maybeThen(
-    text0,
-    (text0) =>
-      '<button q:id="' +
-      id0 +
-      '"' +
-      ctx.eventAttr('q-e:click', q_component_q_e_click_segment_4.w([count])) +
-      '>' +
-      'Odd ' +
-      '<!t>' +
-      escapeHTML(text0) +
-      '</button>'
-  );
+  const text1 = renderSsrTextNode(createSsrRangeTextTarget(id0, 0), count);
+  return maybeThen(text1, (text1) => [
+    createSsrElementRecord(
+      'button',
+      '<button q:id="',
+      createSsrNodeId(id0),
+      '"',
+      ctx.eventAttr('q-e:click', q_component_q_e_click_segment_4.w([count])),
+      '>'
+    ),
+    'Odd <!t>',
+    escapeHTML(text1),
+    '<!/t></button>',
+  ]);
 };
 /*
 {
@@ -185,8 +190,8 @@ export const component_branch_else_segment_3 = (ctx, rangeId) => {
   "ctxName": "branch:else",
   "captures": true,
   "loc": [
-    197,
-    262
+    191,
+    256
   ],
   "paramNames": [],
   "captureNames": [
@@ -196,7 +201,7 @@ export const component_branch_else_segment_3 = (ctx, rangeId) => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_4.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
+import { _captures } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_4 = () => {
   const count = _captures[0];
@@ -216,8 +221,8 @@ export const component_q_e_click_segment_4 = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    205,
-    235
+    199,
+    229
   ],
   "paramNames": [],
   "captureNames": [
@@ -235,37 +240,45 @@ export const component_q_e_click_segment_4 = () => {
 import {
   useSignal,
   _first,
+  _next,
   BranchRange,
   createBranch,
   _withCaptures,
+  _qrlWithChunk,
   createTemplate,
-} from '@qwik.dev/core/spark';
+} from '@qwik.dev/core';
 import { component_branch_condition_segment_0 } from './component.tsx_component_branch_condition_segment_0';
-import { component_branch_then_segment_1 } from './component.tsx_component_branch_then_segment_1';
-import { component_branch_else_segment_3 } from './component.tsx_component_branch_else_segment_3';
 
-const App_tmpl0 = createTemplate('<section> </section>');
+const q_component_branch_then_segment_1 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_branch_then_segment_1',
+  () => import('./component.tsx_component_branch_then_segment_1'),
+  'component_branch_then_segment_1'
+);
+const q_component_branch_else_segment_3 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_branch_else_segment_3',
+  () => import('./component.tsx_component_branch_else_segment_3'),
+  'component_branch_else_segment_3'
+);
+const App_tmpl0 = createTemplate('<section><!----><!----></section>');
 export function App(props, ctx) {
   const count = useSignal(0);
   const fragment0 = App_tmpl0(ctx.document);
   const el0 = _first(fragment0);
-  const text0 = _first(el0);
-  const comment0 = ctx.document.createComment('b');
-  const comment1 = ctx.document.createComment('/b');
-  text0.replaceWith(comment0, comment1);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
   const branch0 = createBranch(
     ctx,
-    new BranchRange(ctx.document, comment0, comment1),
+    new BranchRange(ctx.document, start0, end0),
     _withCaptures(component_branch_condition_segment_0, [count]),
-    _withCaptures(component_branch_then_segment_1, [count]),
-    _withCaptures(component_branch_else_segment_3, [count])
+    q_component_branch_then_segment_1.w([count]),
+    q_component_branch_else_segment_3.w([count])
   );
   ctx.scheduler.notify(branch0);
   return el0;
 }
 ============================= src/component.tsx_component_branch_condition_segment_0.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
+import { _captures } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_0 = () => {
   const count = _captures[0];
@@ -285,8 +298,8 @@ export const component_branch_condition_segment_0 = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    128,
-    149
+    122,
+    143
   ],
   "paramNames": [],
   "captureNames": [
@@ -296,23 +309,19 @@ export const component_branch_condition_segment_0 = () => {
 */
 ============================= src/component.tsx_component_branch_then_segment_1.js (ENTRY POINT)==
 
-import {
-  _captures,
-  _first,
-  _last,
-  createTextNodeEffect,
-  createTemplate,
-} from '@qwik.dev/core/spark';
-const component_branch_then_segment_1_tmpl0 = createTemplate('<p class="even">Even  </p>');
+import { _captures, _first, _next, createTextNodeEffect, createTemplate } from '@qwik.dev/core';
+const component_branch_then_segment_1_tmpl0 = createTemplate('<p class="even">Even <!----></p>');
 
 export const component_branch_then_segment_1 = (ctx) => {
   const count = _captures[0];
   const fragment0 = component_branch_then_segment_1_tmpl0(ctx.document);
   const el0 = _first(fragment0);
-  const text0 = _last(el0);
+  const marker0 = _next(_first(el0));
+  const text0 = ctx.document.createTextNode('');
+  marker0.replaceWith(text0);
   const effect0 = createTextNodeEffect(text0, count, ctx.scheduler);
   ctx.scheduler.notify(effect0);
-  return fragment0;
+  return el0;
 };
 /*
 {
@@ -328,8 +337,8 @@ export const component_branch_then_segment_1 = (ctx) => {
   "ctxName": "branch:then",
   "captures": true,
   "loc": [
-    152,
-    194
+    146,
+    188
   ],
   "paramNames": [],
   "captureNames": [
@@ -342,23 +351,25 @@ export const component_branch_then_segment_1 = (ctx) => {
 import {
   _captures,
   _first,
-  _last,
-  createTextNodeEffect,
+  _next,
   setEvent,
+  createTextNodeEffect,
   createTemplate,
-} from '@qwik.dev/core/spark';
+} from '@qwik.dev/core';
 import { component_q_e_click_segment_4 } from './component.tsx_component_q_e_click_segment_4';
-const component_branch_else_segment_3_tmpl0 = createTemplate('<button>Odd  </button>');
+const component_branch_else_segment_3_tmpl0 = createTemplate('<button>Odd <!----></button>');
 
 export const component_branch_else_segment_3 = (ctx) => {
   const count = _captures[0];
   const fragment0 = component_branch_else_segment_3_tmpl0(ctx.document);
   const el0 = _first(fragment0);
-  const text0 = _last(el0);
+  const marker0 = _next(_first(el0));
+  setEvent(el0, 'q-e:click', component_q_e_click_segment_4, [count]);
+  const text0 = ctx.document.createTextNode('');
+  marker0.replaceWith(text0);
   const effect0 = createTextNodeEffect(text0, count, ctx.scheduler);
   ctx.scheduler.notify(effect0);
-  setEvent(el0, 'q-e:click', component_q_e_click_segment_4, [count]);
-  return fragment0;
+  return el0;
 };
 /*
 {
@@ -374,8 +385,8 @@ export const component_branch_else_segment_3 = (ctx) => {
   "ctxName": "branch:else",
   "captures": true,
   "loc": [
-    197,
-    262
+    191,
+    256
   ],
   "paramNames": [],
   "captureNames": [
@@ -385,7 +396,7 @@ export const component_branch_else_segment_3 = (ctx) => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_4.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
+import { _captures } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_4 = () => {
   const count = _captures[0];
@@ -405,8 +416,8 @@ export const component_q_e_click_segment_4 = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    205,
-    235
+    199,
+    229
   ],
   "paramNames": [],
   "captureNames": [

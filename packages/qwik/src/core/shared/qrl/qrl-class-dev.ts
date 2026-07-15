@@ -6,7 +6,7 @@
 import { isBrowser } from '@qwik.dev/core/build';
 import { verifySerializable } from '../serdes/verify';
 import type { LazyRef, QRLClass } from './qrl-class';
-import type { ContainerContext } from '../../vdomless/runtime/container-context';
+import type { ContainerContext } from '../../runtime/container-context';
 
 /** Initialize dev properties on a LazyRef instance. */
 export const initLazyRefDev = (lazy: LazyRef): void => {

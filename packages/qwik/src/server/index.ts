@@ -1,12 +1,10 @@
 import { setPlatform } from '@qwik.dev/core';
 import { createPlatform } from './platform';
 import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
-import { resolveManifest } from './ssr-render';
+import { resolveManifest } from './manifest';
 import type { QwikManifest } from './types';
 
 export type {
-  PrefetchResource,
-  PreloaderOptions,
   RenderToStringOptions,
   RenderToStringResult,
   Render,
@@ -14,23 +12,20 @@ export type {
   RenderToString,
   RenderOptions,
   RenderResult,
+  SnapshotResult,
   RenderToStreamOptions,
   SerializeDocumentOptions,
   RenderToStreamResult,
   QwikLoaderOptions,
-  StreamingOptions,
-  InOrderAuto,
-  InOrderDisabled,
-  InOrderStreaming,
-  OutOfOrderStreaming,
 } from './types';
-export { resolveManifest, renderToString, renderToStream } from './ssr-render';
-export { versions } from './utils';
+export { resolveManifest } from './manifest';
+export { renderToString, renderToStream } from './ssr-render';
 export {
-  getQwikLoaderScript,
-  getQwikPrefetchWorkerScript,
-  getQwikBackpatchExecutorScript,
-} from './scripts';
+  renderToStringCompiled as _renderToStringCompiled,
+  type SsrRenderRoot as _SsrRenderRoot,
+} from './ssr-render';
+export { versions } from './utils';
+export { getQwikLoaderScript } from './scripts';
 
 /** @public */
 export async function setServerPlatform(manifest?: Partial<QwikManifest | ResolvedManifest>) {

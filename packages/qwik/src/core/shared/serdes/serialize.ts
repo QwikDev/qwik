@@ -1,8 +1,9 @@
 import { isDev, isServer } from '@qwik.dev/core/build';
-import { NEEDS_COMPUTATION } from '../../reactive-primitives/types';
-import { EffectKind } from '../../vdomless/dom/effect/effect-kind.enum';
-import { SSRBranchSubscription as SsrBranchSubscription } from '../../vdomless/dom/branch/branch';
-import { SSRForBlockSubscription as SsrForBlockSubscription } from '../../vdomless/dom/effect/ssr-effect';
+import { NEEDS_COMPUTATION } from '../../reactive/constants';
+import { EffectKind } from '../../dom/effect/effect-kind.enum';
+import { SSRBranchSubscription as SsrBranchSubscription } from '../../dom/branch/branch';
+import { SSRContentSubscription as SsrContentSubscription } from '../../dom/content/content';
+import { SSRForBlockSubscription as SsrForBlockSubscription } from '../../dom/effect/ssr-effect';
 import {
   EffectTargetKind,
   SsrAttrEffect,
@@ -10,31 +11,28 @@ import {
   SsrDomSubscription,
   type SsrScalarDomEffect,
   type SsrDomEffect,
-} from '../../vdomless/dom/effect/ssr-effect';
-import { ComputedFlags } from '../../vdomless/reactive/flags';
-import { AsyncSignal } from '../../vdomless/reactive/async-signal';
-import { ComputedQrl } from '../../vdomless/reactive/computed-qrl';
-import { SerializerSignal } from '../../vdomless/reactive/serializer-signal';
-import { Signal } from '../../vdomless/reactive/signal';
+} from '../../dom/effect/ssr-effect';
+import { ComputedFlags } from '../../reactive/flags';
+import { AsyncSignal } from '../../reactive/async-signal';
+import { ComputedQrl } from '../../reactive/computed-qrl';
+import { SerializerSignal } from '../../reactive/serializer-signal';
+import { Signal } from '../../reactive/signal';
 import {
   getStoreSources,
+  isDeepStore,
   isStore,
   StorePropSource,
   unwrapStore,
-} from '../../vdomless/reactive/store';
-import { isLazySerialized } from '../../vdomless/reactive/lazy-serialized';
-import type { Source, SourceSubs } from '../../vdomless/reactive/source';
-import { isContextScope } from '../../vdomless/runtime/context-scope';
-import { TaskSubscription } from '../../vdomless/runtime/task';
-import {
-  isProjection,
-  isSlotScope,
-  type Projection,
-  type SlotScope,
-} from '../../vdomless/dom/slot/slot';
-import { Owner } from '../../vdomless/runtime/owner';
-import type { Subscriber } from '../../vdomless/runtime/subscriber';
-import type { SSRInternalStreamWriter, SSRWriteChunk } from '../../ssr/ssr-types';
+} from '../../reactive/store';
+import { isLazySerialized } from '../../reactive/lazy-serialized';
+import type { Source, SourceSubs } from '../../reactive/source';
+import { isContextScope } from '../../runtime/context-scope';
+import { TaskSubscription } from '../../runtime/task';
+import { isProjection, isSlotScope, type Projection, type SlotScope } from '../../dom/slot/slot';
+import { Owner } from '../../runtime/owner';
+import type { Subscriber } from '../../runtime/subscriber';
+import type { RuntimeInvokeContext } from '../../runtime/invoke-context';
+import type { SerdesWriter, SsrWriteChunk } from './writer';
 import { qError, QError } from '../error/error';
 import type { QRLInternal } from '../qrl/qrl-class';
 import { isQrl } from '../qrl/qrl-utils';
@@ -78,7 +76,7 @@ export class Serializer {
   private $parent$: SeenRef | undefined;
   private $qrlMap$ = new Map<string, QRLInternal>();
   private $streamedRootLimit$ = 0;
-  private $writer$: SSRInternalStreamWriter;
+  private $writer$: SerdesWriter;
   /** We need to determine this at runtime because polyfills may not be loaded a module load time */
   private $hasTemporal$ = typeof Temporal !== 'undefined';
 
@@ -140,7 +138,7 @@ export class Serializer {
     this.$writer$.write(BRACKET_CLOSE);
   }
 
-  $setWriter$(writer: SSRInternalStreamWriter): void {
+  $setWriter$(writer: SerdesWriter): void {
     this.$writer$ = writer;
   }
 
@@ -232,7 +230,7 @@ export class Serializer {
     this.$writer$.writeRootRefPath(path);
   }
 
-  private outputStringChunks(chunks: SSRWriteChunk[]): void {
+  private outputStringChunks(chunks: SsrWriteChunk[]): void {
     this.$writer$.write(QUOTE);
     for (let i = 0; i < chunks.length; i++) {
       const chunk = chunks[i];
@@ -262,7 +260,7 @@ export class Serializer {
       }
     } else if (type === TypeIds.QRL && Array.isArray(value)) {
       this.$writer$.write(type + COMMA);
-      this.outputStringChunks(value as SSRWriteChunk[]);
+      this.outputStringChunks(value as SsrWriteChunk[]);
     } else if (typeof value === 'number') {
       this.$writer$.write(type + COMMA + value);
     } else if (typeof value === 'string') {
@@ -416,7 +414,7 @@ export class Serializer {
                 value,
                 true
               );
-              let data: string | number | SSRWriteChunk[];
+              let data: string | number | SsrWriteChunk[];
               if (chunk !== '') {
                 // not a sync QRL, replace all parts with string references
                 data = [
@@ -506,7 +504,8 @@ export class Serializer {
     } else if (
       value instanceof SsrDomSubscription ||
       value instanceof SsrBranchSubscription ||
-      value instanceof SsrForBlockSubscription
+      value instanceof SsrForBlockSubscription ||
+      value instanceof SsrContentSubscription
     ) {
       this.output(TypeIds.EffectSubscription, serializeEffectSubscription(value));
     } else if (value instanceof TaskSubscription) {
@@ -522,6 +521,8 @@ export class Serializer {
       this.output(TypeIds.SlotScope, serializeSlotScope(value));
     } else if (isProjection(value)) {
       this.output(TypeIds.Projection, serializeProjection(value));
+    } else if (this.$serializationContext$.$isDomRef$(value)) {
+      this.output(TypeIds.RefVNode, value.$nodeId$);
     } else if (isObjectLiteral(value)) {
       if (Array.isArray(value)) {
         this.output(
@@ -635,7 +636,11 @@ export class Serializer {
   private serializeStore(store: object): unknown[] {
     const raw = unwrapStore(store);
     const records: unknown[] = [];
-    collectStoreSourceRecords(raw, records, []);
+    const deep = isDeepStore(store);
+    collectStoreSourceRecords(raw, records, [], deep);
+    if (!deep) {
+      return [raw, records.length > 0 ? records : null, false];
+    }
     return records.length > 0 ? [raw, records] : [raw];
   }
 
@@ -803,6 +808,7 @@ function collectStoreSourceRecords(
   raw: object,
   records: unknown[],
   path: Array<string | number>,
+  recursive = true,
   seen = new WeakSet<object>()
 ) {
   if (seen.has(raw)) {
@@ -821,6 +827,10 @@ function collectStoreSourceRecords(
     }
   }
 
+  if (!recursive) {
+    return;
+  }
+
   const proto = Object.getPrototypeOf(raw);
   if (!Array.isArray(raw) && proto !== Object.prototype && proto !== null) {
     return;
@@ -830,7 +840,7 @@ function collectStoreSourceRecords(
   for (const [key, value] of entries) {
     if (value !== null && typeof value === 'object') {
       path.push(key);
-      collectStoreSourceRecords(unwrapStore(value) as object, records, path, seen);
+      collectStoreSourceRecords(unwrapStore(value) as object, records, path, true, seen);
       path.pop();
     }
   }
@@ -945,13 +955,20 @@ function serializeAsyncSignalOptions(signal: AsyncSignal<unknown>): Record<strin
 }
 
 function serializeEffectSubscription(
-  subscription: SsrDomSubscription | SsrBranchSubscription | SsrForBlockSubscription
+  subscription:
+    | SsrDomSubscription
+    | SsrBranchSubscription
+    | SsrForBlockSubscription
+    | SsrContentSubscription
 ): unknown[] {
   if (subscription instanceof SsrBranchSubscription) {
     return serializeBranchSubscription(subscription);
   }
   if (subscription instanceof SsrForBlockSubscription) {
     return serializeForBlockSubscription(subscription);
+  }
+  if (subscription instanceof SsrContentSubscription) {
+    return serializeContentSubscription(subscription);
   }
 
   return serializeDomSubscription(subscription);
@@ -972,13 +989,15 @@ function serializeBranchSubscription(subscription: SsrBranchSubscription): unkno
     effect.conditionQrl,
     effect.thenQrl,
     effect.elseQrl ?? null,
-    getSsrBranchOwnedSubscribers(subscription),
+    getSsrOwnedSubscribers(subscription.effect.currentOwner),
     effect.invokeContext?.slotScope ?? null,
+    effect.useOnRoot ? serializeUseOnScopes(effect.invokeContext) : null,
+    effect.idBase,
   ];
 }
 
-function getSsrBranchOwnedSubscribers(subscription: SsrBranchSubscription): readonly Subscriber[] {
-  const items = subscription.effect.currentOwner?.items;
+function getSsrOwnedSubscribers(owner: Owner | null): readonly Subscriber[] {
+  const items = owner?.items;
   if (items === null || items === undefined) {
     return EMPTY_ARRAY;
   }
@@ -993,6 +1012,20 @@ function getSsrBranchOwnedSubscribers(subscription: SsrBranchSubscription): read
   return subscribers;
 }
 
+function serializeContentSubscription(subscription: SsrContentSubscription): unknown[] {
+  const content = subscription.content;
+  return [
+    EffectKind.Content,
+    content.rangeId,
+    serializeDeps(subscription.deps),
+    content.args,
+    content.qrl,
+    getSsrOwnedSubscribers(content.currentOwner),
+    content.invokeContext?.slotScope ?? null,
+    content.useOnRoot ? serializeUseOnScopes(content.invokeContext) : null,
+  ];
+}
+
 function serializeForBlockSubscription(subscription: SsrForBlockSubscription): unknown[] {
   const effect = subscription.effect;
 
@@ -1002,10 +1035,24 @@ function serializeForBlockSubscription(subscription: SsrForBlockSubscription): u
     serializeDeps(subscription.deps),
     effect.keyQrl,
     effect.renderQrl,
-    effect.usesItemSignal,
     effect.usesIndexSignal,
     effect.invokeContext?.slotScope ?? null,
+    null,
+    effect.indexSignals,
+    effect.idBase,
+    effect.rowShape,
   ];
+}
+
+function serializeUseOnScopes(context: RuntimeInvokeContext | null): unknown {
+  if (context === null) {
+    return null;
+  }
+  const scopes = [
+    ...(context.useOnEvents === undefined ? [] : [context.useOnEvents]),
+    ...(context.inheritedUseOnEvents ?? []),
+  ];
+  return scopes.length === 0 ? null : scopes;
 }
 
 function serializeSlotScope(scope: SlotScope): unknown[] {
@@ -1017,7 +1064,7 @@ function serializeSlotScope(scope: SlotScope): unknown[] {
 }
 
 function serializeProjection(projection: Projection): unknown[] {
-  return [projection.renderQrl, projection.slotScope];
+  return [projection.renderQrl, projection.slotScope, projection.idBase];
 }
 
 function serializeDomSubscription(subscription: SsrDomSubscription): unknown[] {

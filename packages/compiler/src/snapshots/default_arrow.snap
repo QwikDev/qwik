@@ -1,13 +1,14 @@
 ==INPUT==
 
 export default () => <section>Default arrow</section>;
+
 == SSR OUTPUT ==
 
 ============================= src/component.tsx ==
 
-export default (_props, _ctx) => '<section>Default arrow</section>';
-
-null
+export default (props, ctx) => {
+  return '<section>Default arrow</section>';
+};
 == SSR DIAGNOSTICS ==
 
 []
@@ -15,16 +16,14 @@ null
 
 ============================= src/component.tsx ==
 
-import { createTemplate } from '@qwik.dev/core/spark';
+import { _first, createTemplate } from '@qwik.dev/core';
 
-const dom_default_template0 = createTemplate('<section>Default arrow</section>');
-export default (_props, ctx) => {
-  const fragment0 = dom_default_template0(ctx.document);
-  const el1 = fragment0.firstChild;
-  return el1;
+const default_tmpl0 = createTemplate('<section>Default arrow</section>');
+export default (props, ctx) => {
+  const fragment0 = default_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
 };
-
-null
 == CSR DIAGNOSTICS ==
 
 []

@@ -4,11 +4,15 @@ title: \@qwik.dev/qwik/testing API Reference
 
 # [API](/api) &rsaquo; @qwik.dev/qwik/testing
 
-<h2 id="elementfixture-child">child</h2>
+<h2 id="domharness-cleanup">cleanup</h2>
 
 ```typescript
-child: HTMLElement;
+cleanup(): void;
 ```
+
+**Returns:**
+
+void
 
 <h2 id="createdocument">createDocument</h2>
 
@@ -37,7 +41,7 @@ opts
 
 </td><td>
 
-MockDocumentOptions
+[MockDocumentOptions](#mockdocumentoptions)
 
 </td><td>
 
@@ -54,21 +58,12 @@ Document
 
 <h2 id="createdom">createDOM</h2>
 
-CreatePlatform and CreateDocument
+Creates a compiler-backed DOM harness.
 
 ```typescript
-createDOM: (input?: { html?: string }) =>
-  Promise<{
-    render: (
-      jsxElement: JSXOutput,
-    ) => Promise<import("@qwik.dev/core").RenderResult>;
-    screen: HTMLElement;
-    userEvent: (
-      queryOrElement: string | Element | keyof HTMLElementTagNameMap | null,
-      eventNameCamel: string | keyof WindowEventMap,
-      eventPayload?: any,
-    ) => Promise<Event | null>;
-  }>;
+export declare function createDOM(options?: {
+  html?: string;
+}): Promise<DOMHarness>;
 ```
 
 <table><thead><tr><th>
@@ -86,20 +81,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-\{ html }
-
-</td><td>
-
-(not declared)
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-input
+options
 
 </td><td>
 
@@ -114,30 +96,16 @@ _(Optional)_
 
 **Returns:**
 
-Promise&lt;\{ render: (jsxElement: JSXOutput) =&gt; Promise&lt;import("@qwik.dev/core").RenderResult&gt;; screen: HTMLElement; userEvent: (queryOrElement: string \| Element \| keyof HTMLElementTagNameMap \| null, eventNameCamel: string \| keyof WindowEventMap, eventPayload?: any) =&gt; Promise&lt;Event \| null&gt;; }&gt;
+Promise&lt;[DOMHarness](#domharness)&gt;
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/library.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/index.ts)
 
-<h2 id="elementfixture-document">document</h2>
+<h2 id="createwindow">createWindow</h2>
 
-```typescript
-document: MockDocument;
-```
-
-<h2 id="domrender">domRender</h2>
+Create emulated `window` useful for testing.
 
 ```typescript
-export declare function domRender(
-  jsx: JSXOutput,
-  opts?: {
-    debug?: boolean;
-  },
-): Promise<{
-  document: Document;
-  container: import("@qwik.dev/core").ClientContainer;
-  vNode: _VNode | null;
-  getStyles: () => Record<string, string | string[]>;
-}>;
+export declare function createWindow(opts?: MockDocumentOptions): MockWindow;
 ```
 
 <table><thead><tr><th>
@@ -155,22 +123,11 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-jsx
-
-</td><td>
-
-JSXOutput
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
 opts
 
 </td><td>
 
-\{ debug?: boolean; }
+[MockDocumentOptions](#mockdocumentoptions)
 
 </td><td>
 
@@ -181,155 +138,14 @@ _(Optional)_
 
 **Returns:**
 
-Promise&lt;\{ document: Document; container: import("@qwik.dev/core").ClientContainer; vNode: \_VNode \| null; getStyles: () =&gt; Record&lt;string, string \| string[]&gt;; }&gt;
+[MockWindow](#mockwindow)
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/rendering.unit-util.tsx)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/document.ts)
 
-<h2 id="elementfixture">ElementFixture</h2>
-
-Creates a simple DOM structure for testing components.
-
-By default `EntityFixture` creates:
-
-```html
-<host q:view="./component_fixture.noop">
-  <child></child>
-</host>
-```
+<h2 id="qwikloadertestdriver-dispatch">dispatch</h2>
 
 ```typescript
-export declare class ElementFixture
-```
-
-<table><thead><tr><th>
-
-Constructor
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-(constructor)(options)
-
-</td><td>
-
-</td><td>
-
-Constructs a new instance of the `ElementFixture` class
-
-</td></tr>
-</tbody></table>
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[child](#elementfixture-child)
-
-</td><td>
-
-</td><td>
-
-HTMLElement
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[document](#elementfixture-document)
-
-</td><td>
-
-</td><td>
-
-MockDocument
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[host](#elementfixture-host)
-
-</td><td>
-
-</td><td>
-
-HTMLElement
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[parent](#elementfixture-parent)
-
-</td><td>
-
-</td><td>
-
-HTMLElement
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[superParent](#elementfixture-superparent)
-
-</td><td>
-
-</td><td>
-
-HTMLElement
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[window](#elementfixture-window)
-
-</td><td>
-
-</td><td>
-
-MockWindow
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/element-fixture.ts)
-
-<h2 id="emulateexecutionofqwikfuncs">emulateExecutionOfQwikFuncs</h2>
-
-```typescript
-export declare function emulateExecutionOfQwikFuncs(document: Document): void;
+dispatch(target: Element, type: string, payload?: QwikLoaderEventPayload): Promise<Event>;
 ```
 
 <table><thead><tr><th>
@@ -347,48 +163,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-document
-
-</td><td>
-
-Document
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-**Returns:**
-
-void
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/rendering.unit-util.tsx)
-
-<h2 id="expectdom">expectDOM</h2>
-
-```typescript
-export declare function expectDOM(
-  actual: Element,
-  expected: string,
-): Promise<void>;
-```
-
-<table><thead><tr><th>
-
-Parameter
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-actual
+target
 
 </td><td>
 
@@ -399,7 +174,7 @@ Element
 </td></tr>
 <tr><td>
 
-expected
+type
 
 </td><td>
 
@@ -408,260 +183,13 @@ string
 </td><td>
 
 </td></tr>
-</tbody></table>
-
-**Returns:**
-
-Promise&lt;void&gt;
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/expect-dom.tsx)
-
-<h2 id="gettestplatform">getTestPlatform</h2>
-
-```typescript
-export declare function getTestPlatform(): TestPlatform;
-```
-
-**Returns:**
-
-TestPlatform
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/platform.ts)
-
-<h2 id="elementfixture-host">host</h2>
-
-```typescript
-host: HTMLElement;
-```
-
-<h2 id="inorderauto">InOrderAuto</h2>
-
-```typescript
-export interface InOrderAuto
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-maximumChunk?
-
-</td><td>
-
-</td><td>
-
-number
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
 <tr><td>
 
-maximumInitialChunk?
+payload
 
 </td><td>
 
-</td><td>
-
-number
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-strategy
-
-</td><td>
-
-</td><td>
-
-'auto'
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
-
-<h2 id="inorderdirect">InOrderDirect</h2>
-
-```typescript
-export interface InOrderDirect
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-strategy
-
-</td><td>
-
-</td><td>
-
-'direct'
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
-
-<h2 id="inorderdisabled">InOrderDisabled</h2>
-
-```typescript
-export interface InOrderDisabled
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-strategy
-
-</td><td>
-
-</td><td>
-
-'disabled'
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
-
-<h2 id="inorderstreaming">InOrderStreaming</h2>
-
-```typescript
-export type InOrderStreaming = InOrderAuto | InOrderDisabled | InOrderDirect;
-```
-
-**References:** [InOrderAuto](#inorderauto), [InOrderDisabled](#inorderdisabled), [InOrderDirect](#inorderdirect)
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
-
-<h2 id="outoforderstreaming">OutOfOrderStreaming</h2>
-
-```typescript
-export type OutOfOrderStreaming = boolean;
-```
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
-
-<h2 id="elementfixture-parent">parent</h2>
-
-```typescript
-parent: HTMLElement;
-```
-
-<h2 id="ssrrendertodom">ssrRenderToDom</h2>
-
-```typescript
-export declare function ssrRenderToDom(
-  jsx: JSXOutput,
-  opts?: {
-    debug?: boolean;
-    raw?: boolean;
-    qwikLoader?: boolean;
-    containerTagName?: string;
-    stream?: StreamWriter;
-    streaming?: StreamingOptions;
-    resume?: boolean;
-    onBeforeResume?: (document: Document) => void;
-  },
-): Promise<{
-  container: _DomContainer;
-  document: Document;
-  vNode: _VNode | null;
-  getStyles: () => Record<string, string | string[]>;
-}>;
-```
-
-<table><thead><tr><th>
-
-Parameter
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-jsx
-
-</td><td>
-
-JSXOutput
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-opts
-
-</td><td>
-
-\{ debug?: boolean; raw?: boolean; qwikLoader?: boolean; containerTagName?: string; stream?: StreamWriter; streaming?: [StreamingOptions](#streamingoptions); resume?: boolean; onBeforeResume?: (document: Document) =&gt; void; }
+[QwikLoaderEventPayload](#qwikloadereventpayload)
 
 </td><td>
 
@@ -672,14 +200,12 @@ _(Optional)_
 
 **Returns:**
 
-Promise&lt;\{ container: \_DomContainer; document: Document; vNode: \_VNode \| null; getStyles: () =&gt; Record&lt;string, string \| string[]&gt;; }&gt;
+Promise&lt;Event&gt;
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/rendering.unit-util.tsx)
-
-<h2 id="streamingoptions">StreamingOptions</h2>
+<h2 id="domharness">DOMHarness</h2>
 
 ```typescript
-export interface StreamingOptions
+export interface DOMHarness
 ```
 
 <table><thead><tr><th>
@@ -701,62 +227,62 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-inOrder?
+screen
 
 </td><td>
 
-</td><td>
-
-[InOrderStreaming](#inorderstreaming)
+`readonly`
 
 </td><td>
 
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-outOfOrder?
+HTMLElement
 
 </td><td>
-
-</td><td>
-
-[OutOfOrderStreaming](#outoforderstreaming)
-
-</td><td>
-
-_(Optional)_
 
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
+<table><thead><tr><th>
 
-<h2 id="elementfixture-superparent">superParent</h2>
+Method
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[cleanup()](#domharness-cleanup)
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[render(root, options)](#domharness-render)
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[userEvent(target, type, payload)](#domharness-userevent)
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/index.ts)
+
+<h2 id="domrender">domRender</h2>
 
 ```typescript
-superParent: HTMLElement;
-```
-
-<h2 id="trigger">trigger</h2>
-
-Trigger an event in unit tests on an element. Needs to be kept in sync with the Qwik Loader event dispatching.
-
-Events can be either case sensitive element-scoped events or scoped kebab-case.
-
-Future deprecation candidate.
-
-```typescript
-export declare function trigger(
-  root: Element,
-  queryOrElement: string | Element | keyof HTMLElementTagNameMap | null,
-  eventName: string,
-  eventPayload?: any,
-  options?: {
-    waitForIdle?: boolean;
-  },
-): Promise<Event | null>;
+export declare function csrRender<Props>(
+  root: RenderRoot<Props>,
+  options?: RenderOptions<Props>,
+): Promise<RenderResult>;
 ```
 
 <table><thead><tr><th>
@@ -778,25 +304,469 @@ root
 
 </td><td>
 
-Element
+RenderRoot&lt;Props&gt;
 
 </td><td>
 
 </td></tr>
 <tr><td>
 
-queryOrElement
+options
 
 </td><td>
 
-string \| Element \| keyof HTMLElementTagNameMap \| null
+[RenderOptions](#renderoptions)&lt;Props&gt;
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+Promise&lt;[RenderResult](#renderresult)&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/test-utils.ts)
+
+<h2 id="gettestplatform">getTestPlatform</h2>
+
+```typescript
+getTestPlatform: () => TestPlatform;
+```
+
+**Returns:**
+
+[TestPlatform](#testplatform)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/platform.ts)
+
+<h2 id="mockdocument">MockDocument</h2>
+
+```typescript
+export interface MockDocument extends Document
+```
+
+**Extends:** Document
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/types.ts)
+
+<h2 id="mockdocumentoptions">MockDocumentOptions</h2>
+
+Options when creating a mock Qwik Document object.
+
+```typescript
+export interface MockDocumentOptions
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+html?
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+url?
+
+</td><td>
+
+</td><td>
+
+URL \| string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/types.ts)
+
+<h2 id="mockwindow">MockWindow</h2>
+
+```typescript
+export interface MockWindow extends Window
+```
+
+**Extends:** Window
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+document
+
+</td><td>
+
+</td><td>
+
+[MockDocument](#mockdocument)
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/types.ts)
+
+<h2 id="mockwindowoptions">MockWindowOptions</h2>
+
+Options when creating a mock Qwik Window object.
+
+```typescript
+export interface MockWindowOptions extends MockDocumentOptions
+```
+
+**Extends:** [MockDocumentOptions](#mockdocumentoptions)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/types.ts)
+
+<h2 id="qwikloadereventpayload">QwikLoaderEventPayload</h2>
+
+```typescript
+export type QwikLoaderEventPayload = EventInit & Record<string, unknown>;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/qwikloader-test-driver.ts)
+
+<h2 id="qwikloadertestdriver">QwikLoaderTestDriver</h2>
+
+```typescript
+export interface QwikLoaderTestDriver
+```
+
+<table><thead><tr><th>
+
+Method
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+cleanup()
 
 </td><td>
 
 </td></tr>
 <tr><td>
 
-eventName
+[dispatch(target, type, payload)](#qwikloadertestdriver-dispatch)
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/qwikloader-test-driver.ts)
+
+<h2 id="domharness-render">render</h2>
+
+```typescript
+render<Props>(root: RenderRoot<Props>, options?: RenderOptions<Props>): Promise<RenderResult>;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+root
+
+</td><td>
+
+RenderRoot&lt;Props&gt;
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+options
+
+</td><td>
+
+[RenderOptions](#renderoptions)&lt;Props&gt;
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+Promise&lt;[RenderResult](#renderresult)&gt;
+
+<h2 id="renderoptions">RenderOptions</h2>
+
+```typescript
+export interface RenderOptions<Props = undefined>
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+base?
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+debug?
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+locale?
+
+</td><td>
+
+</td><td>
+
+RenderToStringOptions&lt;Props&gt;['locale']
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+props?
+
+</td><td>
+
+</td><td>
+
+Props
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+qwikLoader?
+
+</td><td>
+
+</td><td>
+
+QwikLoaderOptions
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+scheduler?
+
+</td><td>
+
+</td><td>
+
+Scheduler
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+serverData?
+
+</td><td>
+
+</td><td>
+
+Record&lt;string, unknown&gt;
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/test-utils.ts)
+
+<h2 id="renderresult">RenderResult</h2>
+
+```typescript
+export interface RenderResult
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+cleanup
+
+</td><td>
+
+</td><td>
+
+() =&gt; void
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+container
+
+</td><td>
+
+</td><td>
+
+HTMLElement
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+document
+
+</td><td>
+
+</td><td>
+
+Document
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+flush
+
+</td><td>
+
+</td><td>
+
+() =&gt; Promise&lt;void&gt;
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+html
+
+</td><td>
 
 </td><td>
 
@@ -807,15 +777,80 @@ string
 </td></tr>
 <tr><td>
 
-eventPayload
+nodes
 
 </td><td>
 
-any
+</td><td>
+
+readonly Node[]
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+qwikLoader?
+
+</td><td>
+
+</td><td>
+
+[QwikLoaderTestDriver](#qwikloadertestdriver)
 
 </td><td>
 
 _(Optional)_
+
+</td></tr>
+<tr><td>
+
+scheduler
+
+</td><td>
+
+</td><td>
+
+Scheduler
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/test-utils.ts)
+
+<h2 id="ssrrendertodom">ssrRenderToDom</h2>
+
+```typescript
+export declare function ssrRender<Props>(
+  root: RenderRoot<Props>,
+  options?: RenderOptions<Props>,
+): Promise<RenderResult>;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+root
+
+</td><td>
+
+RenderRoot&lt;Props&gt;
+
+</td><td>
 
 </td></tr>
 <tr><td>
@@ -824,7 +859,7 @@ options
 
 </td><td>
 
-\{ waitForIdle?: boolean; }
+[RenderOptions](#renderoptions)&lt;Props&gt;
 
 </td><td>
 
@@ -835,24 +870,25 @@ _(Optional)_
 
 **Returns:**
 
-Promise&lt;Event \| null&gt;
+Promise&lt;[RenderResult](#renderresult)&gt;
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/element-fixture.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/test-utils.ts)
 
-<h2 id="vnode_fromjsx">vnode_fromJSX</h2>
+<h2 id="testplatform">TestPlatform</h2>
 
 ```typescript
-export declare function vnode_fromJSX(jsx: JSXOutput): {
-  vParent: _VirtualVNode | _ElementVNode;
-  vNode: _VNode | null;
-  document: _QDocument;
-  container: ClientContainer;
-};
+export interface TestPlatform extends CorePlatform
 ```
+
+**Extends:** CorePlatform
 
 <table><thead><tr><th>
 
-Parameter
+Property
+
+</th><th>
+
+Modifiers
 
 </th><th>
 
@@ -865,31 +901,32 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-jsx
+flush
 
 </td><td>
 
-JSXOutput
+</td><td>
+
+() =&gt; Promise&lt;void&gt;
 
 </td><td>
+
+Flushes work scheduled by the test platform.
 
 </td></tr>
 </tbody></table>
 
-**Returns:**
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/types.ts)
 
-\{ vParent: \_VirtualVNode \| \_ElementVNode; vNode: \_VNode \| null; document: \_QDocument; container: ClientContainer; }
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/vdom-diff.unit-util.ts)
-
-<h2 id="waitfordrain">waitForDrain</h2>
-
-Wait for the scheduler to drain.
-
-This is useful when testing async code.
+<h2 id="trigger">trigger</h2>
 
 ```typescript
-export declare function waitForDrain(container: Container): Promise<void>;
+export declare function trigger(
+  parent: Element,
+  target: string | Element | keyof HTMLElementTagNameMap,
+  type: string,
+  payload?: Record<string, unknown>,
+): Promise<Event>;
 ```
 
 <table><thead><tr><th>
@@ -907,83 +944,114 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-container
+parent
 
 </td><td>
 
-Container
-
-</td><td>
-
-The application container.
-
-</td></tr>
-</tbody></table>
-
-**Returns:**
-
-Promise&lt;void&gt;
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/util.ts)
-
-<h2 id="walkjsx">walkJSX</h2>
-
-```typescript
-export declare function walkJSX(
-  jsx: JSXOutput,
-  apply: {
-    enter: (jsx: JSXNodeInternal) => void;
-    leave: (jsx: JSXNodeInternal) => void;
-    text: (text: _Stringifiable) => void;
-  },
-): void;
-```
-
-<table><thead><tr><th>
-
-Parameter
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-jsx
-
-</td><td>
-
-JSXOutput
+Element
 
 </td><td>
 
 </td></tr>
 <tr><td>
 
-apply
+target
 
 </td><td>
 
-\{ enter: (jsx: JSXNodeInternal) =&gt; void; leave: (jsx: JSXNodeInternal) =&gt; void; text: (text: \_Stringifiable) =&gt; void; }
+string \| Element \| keyof HTMLElementTagNameMap
 
 </td><td>
+
+</td></tr>
+<tr><td>
+
+type
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+payload
+
+</td><td>
+
+Record&lt;string, unknown&gt;
+
+</td><td>
+
+_(Optional)_
 
 </td></tr>
 </tbody></table>
 
 **Returns:**
 
-void
+Promise&lt;Event&gt;
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/vdom-diff.unit-util.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/index.ts)
 
-<h2 id="elementfixture-window">window</h2>
+<h2 id="domharness-userevent">userEvent</h2>
 
 ```typescript
-window: MockWindow;
+userEvent(target: string | Element | keyof HTMLElementTagNameMap, type: string, payload?: Record<string, unknown>): Promise<Event>;
 ```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+target
+
+</td><td>
+
+string \| Element \| keyof HTMLElementTagNameMap
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+type
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+payload
+
+</td><td>
+
+Record&lt;string, unknown&gt;
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+Promise&lt;Event&gt;

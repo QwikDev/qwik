@@ -1,0 +1,280 @@
+==INPUT==
+
+import { useSignal } from '@qwik.dev/core';
+
+export function App(props) {
+  const first = useSignal('first');
+  const second = useSignal('second');
+  return <>
+    <input {...{ 'bind:value': first, title: 'known' }} />
+    <input bind:value={first} {...props.rest} />
+    <input {...props.rest} bind:value={second} />
+  </>;
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  createSsrNodeId,
+  createSsrElementTarget,
+  renderSsrAttr,
+  escapeHTML,
+  inlinedQrl,
+  _val,
+  createSsrElementRecord,
+  renderSsrProps,
+  createSsrRecord,
+  getActiveInvokeContextOrNull,
+  invoke,
+  maybeThen,
+  _qrlWithChunk,
+} from '@qwik.dev/core';
+import { component_props_segment_0 } from './component.tsx_component_props_segment_0';
+import { component_props_segment_1 } from './component.tsx_component_props_segment_1';
+
+const q_component_props_segment_0 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_props_segment_0',
+  () => import('./component.tsx_component_props_segment_0'),
+  'component_props_segment_0'
+);
+q_component_props_segment_0.s(component_props_segment_0);
+const q_component_props_segment_1 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_props_segment_1',
+  () => import('./component.tsx_component_props_segment_1'),
+  'component_props_segment_1'
+);
+q_component_props_segment_1.s(component_props_segment_1);
+export function App(props, ctx) {
+  const first = useSignal('first');
+  const second = useSignal('second');
+  const id0 = ctx.nextId();
+  let id2;
+  let id4;
+  const invokeCtx6 = getActiveInvokeContextOrNull();
+  ctx.addRoot(first);
+  const attr1 = renderSsrAttr(createSsrElementTarget(id0), 'value', first);
+  const props3 = () =>
+    invoke(invokeCtx6, () => {
+      id2 ??= ctx.nextId();
+      ctx.addRoot(props);
+      return renderSsrProps(
+        createSsrElementTarget(id2),
+        [first, props],
+        q_component_props_segment_0,
+        ctx.eventAttr
+      );
+    });
+  const props5 = () =>
+    invoke(invokeCtx6, () => {
+      id4 ??= ctx.nextId();
+      ctx.addRoot(second);
+      return renderSsrProps(
+        createSsrElementTarget(id4),
+        [props, second],
+        q_component_props_segment_1,
+        ctx.eventAttr
+      );
+    });
+  return maybeThen(attr1, (attr1) =>
+    maybeThen(props3(), (props3) => {
+      props3.ref !== undefined && ctx.setRef(props3.ref, id2);
+      return maybeThen(props5(), (props5) => {
+        props5.ref !== undefined && ctx.setRef(props5.ref, id4);
+        return [
+          createSsrElementRecord(
+            'input',
+            '<input q:id="',
+            createSsrNodeId(id0),
+            '"',
+            attr1 === null ? '' : ' value' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
+            ctx.eventAttr('q-e:input', inlinedQrl(_val, '_val', [first])),
+            ' title="known"',
+            '>'
+          ),
+          createSsrRecord('<input q:id="', createSsrNodeId(id2), '"', ...props3.attrs, '>'),
+          createSsrRecord('<input q:id="', createSsrNodeId(id4), '"', ...props5.attrs, '>'),
+        ];
+      });
+    })
+  );
+}
+============================= src/component.tsx_component_props_segment_0.js (ENTRY POINT)==
+
+export const component_props_segment_0 = (first, props) => {
+  return {
+    get 'bind:value'() {
+      return first;
+    },
+    ...props.rest,
+  };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_0",
+  "entry": null,
+  "displayName": "component_props_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_props_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    224,
+    268
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "first",
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_props_segment_1.js (ENTRY POINT)==
+
+export const component_props_segment_1 = (props, second) => {
+  return {
+    ...props.rest,
+    get 'bind:value'() {
+      return second;
+    },
+  };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_1",
+  "entry": null,
+  "displayName": "component_props_segment_1",
+  "hash": "segment_1",
+  "canonicalFilename": "component.tsx_component_props_segment_1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    273,
+    318
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props",
+    "second"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  _first,
+  _next,
+  createAttrEffect,
+  setEvent,
+  inlinedQrl,
+  _val,
+  createPropsEffect,
+  createTemplate,
+} from '@qwik.dev/core';
+import { component_props_segment_0 } from './component.tsx_component_props_segment_0';
+import { component_props_segment_1 } from './component.tsx_component_props_segment_1';
+
+const App_tmpl0 = createTemplate('<input title="known"><input><input>');
+export function App(props, ctx) {
+  const first = useSignal('first');
+  const second = useSignal('second');
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const el1 = _next(el0);
+  const el2 = _next(el1);
+  const effect0 = createAttrEffect(el0, 'value', first, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  setEvent(el0, 'q-e:input', inlinedQrl(_val, '_val', [first]));
+  const effect1 = createPropsEffect(el1, [first, props], component_props_segment_0, ctx.scheduler);
+  ctx.scheduler.waitFor(effect1.run());
+  const effect2 = createPropsEffect(el2, [props, second], component_props_segment_1, ctx.scheduler);
+  ctx.scheduler.waitFor(effect2.run());
+  return [el0, el1, el2];
+}
+============================= src/component.tsx_component_props_segment_0.js (ENTRY POINT)==
+
+export const component_props_segment_0 = (first, props) => {
+  return {
+    get 'bind:value'() {
+      return first;
+    },
+    ...props.rest,
+  };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_0",
+  "entry": null,
+  "displayName": "component_props_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_props_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    224,
+    268
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "first",
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_props_segment_1.js (ENTRY POINT)==
+
+export const component_props_segment_1 = (props, second) => {
+  return {
+    ...props.rest,
+    get 'bind:value'() {
+      return second;
+    },
+  };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_1",
+  "entry": null,
+  "displayName": "component_props_segment_1",
+  "hash": "segment_1",
+  "canonicalFilename": "component.tsx_component_props_segment_1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    273,
+    318
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props",
+    "second"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

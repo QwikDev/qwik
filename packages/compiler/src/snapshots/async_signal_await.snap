@@ -1,6 +1,6 @@
 ==INPUT==
 
-import { useAsync$, useSignal } from '@qwik.dev/core/spark';
+import { useAsync$, useSignal } from '@qwik.dev/core';
 
 export function App() {
   const count = useSignal(0);
@@ -17,14 +17,16 @@ export function App() {
 ============================= src/component.tsx ==
 
 import {
-  useSignal,
   useAsyncQrl,
-  escapeHTML,
+  useSignal,
+  createSsrNodeId,
+  createSsrElementRecord,
+  createSsrElementTextTarget,
   renderSsrTextNode,
-  createSsrRangeTextTarget,
+  escapeHTML,
   maybeThen,
   _qrlWithChunk,
-} from '@qwik.dev/core/spark';
+} from '@qwik.dev/core';
 import { component_useAsync$_segment_0 } from './component.tsx_component_useAsync$_segment_0';
 
 const q_component_useAsync$_segment_0 = /*#__PURE__*/ _qrlWithChunk(
@@ -38,15 +40,16 @@ export function App(props, ctx) {
   const data = useAsyncQrl(q_component_useAsync$_segment_0.w([count]), { initial: 0 });
   const id0 = ctx.nextId();
   ctx.addRoot(data);
-  const text0 = renderSsrTextNode(createSsrRangeTextTarget(id0, 0), data);
-  return maybeThen(
-    text0,
-    (text0) => '<button q:id="' + id0 + '"' + '>' + '<!t>' + escapeHTML(text0) + '</button>'
-  );
+  const text1 = renderSsrTextNode(createSsrElementTextTarget(id0), data);
+  return maybeThen(text1, (text1) => [
+    createSsrElementRecord('button', '<button q:id="', createSsrNodeId(id0), '"', '>'),
+    escapeHTML(text1),
+    '</button>',
+  ]);
 }
 ============================= src/component.tsx_component_useAsync$_segment_0.js (ENTRY POINT)==
 
-import { _captures, _await } from '@qwik.dev/core/spark';
+import { _captures, _await } from '@qwik.dev/core';
 
 export const component_useAsync$_segment_0 = async () => {
   const count = _captures[0];
@@ -68,8 +71,8 @@ export const component_useAsync$_segment_0 = async () => {
   "ctxName": "useAsync$",
   "captures": true,
   "loc": [
-    128,
-    259
+    122,
+    253
   ],
   "paramNames": [],
   "captureNames": [
@@ -85,13 +88,13 @@ export const component_useAsync$_segment_0 = async () => {
 ============================= src/component.tsx ==
 
 import {
+  useAsync,
   useSignal,
   _withCaptures,
-  useAsync,
   _first,
   createTextNodeEffect,
   createTemplate,
-} from '@qwik.dev/core/spark';
+} from '@qwik.dev/core';
 import { component_useAsync$_segment_0 } from './component.tsx_component_useAsync$_segment_0';
 
 const App_tmpl0 = createTemplate('<button> </button>');
@@ -107,7 +110,7 @@ export function App(props, ctx) {
 }
 ============================= src/component.tsx_component_useAsync$_segment_0.js (ENTRY POINT)==
 
-import { _captures, _await } from '@qwik.dev/core/spark';
+import { _captures, _await } from '@qwik.dev/core';
 
 export const component_useAsync$_segment_0 = async () => {
   const count = _captures[0];
@@ -129,8 +132,8 @@ export const component_useAsync$_segment_0 = async () => {
   "ctxName": "useAsync$",
   "captures": true,
   "loc": [
-    128,
-    259
+    122,
+    253
   ],
   "paramNames": [],
   "captureNames": [

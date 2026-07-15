@@ -194,7 +194,7 @@ export type PropFunction<T> = QRL<T>;
  * );
  * ```
  *
- * In this code, the Qwik Optimizer detects `$(...)` and transforms the code into:
+ * In this code, the Qwik compiler detects `$(...)` and transforms the code into:
  *
  * ```tsx
  * // FILE: <current file>
@@ -206,7 +206,7 @@ export type PropFunction<T> = QRL<T>;
  *
  * ## Special Rules
  *
- * The Qwik Optimizer places special rules on functions that can be lazy-loaded.
+ * The Qwik compiler places special rules on functions that can be lazy-loaded.
  *
  * 1. The expression of the `$(expression)` function must be importable by the system.
  * (expression shows up in `import` or has `export`)
@@ -219,10 +219,7 @@ export type PropFunction<T> = QRL<T>;
  *
  * ```tsx
  *
- * import { createContextId, useContext, useContextProvider } from './use/use-context';
- * import { Resource } from './use/use-resource';
- * import { useResource$ } from './use/use-resource-dollar';
- * import { useSignal } from './use/use-signal';
+ * import { $, useSignal, useStore } from '@qwik.dev/core';
  *
  * export const greet = () => console.log('greet');
  * function topLevelFn() {}

@@ -4,154 +4,122 @@
 
 ```ts
 
-import { ClientContainer } from '@qwik.dev/core';
-import type { ClientContainer as ClientContainer_2 } from '@qwik.dev/core/internal';
 import type { CorePlatform } from '@qwik.dev/core';
-import type { _DomContainer } from '@qwik.dev/core/internal';
-import type { _ElementVNode } from '@qwik.dev/core/internal';
-import type { JSXNodeInternal } from '@qwik.dev/core/internal';
-import { JSXOutput } from '@qwik.dev/core';
-import type { _QDocument } from '@qwik.dev/core/internal';
-import { RenderResult } from '@qwik.dev/core';
-import { StreamWriter } from '@qwik.dev/core';
-import type { _Stringifiable } from '@qwik.dev/core/internal';
-import type { _VirtualVNode } from '@qwik.dev/core/internal';
-import type { _VNode } from '@qwik.dev/core/internal';
+import { QwikLoaderOptions } from '@qwik.dev/core/server';
+import type { RenderRoot } from '@qwik.dev/core';
+import { RenderToStringOptions } from '@qwik.dev/core/server';
+import { Scheduler } from '@qwik.dev/core/internal';
 
-// Warning: (ae-forgotten-export) The symbol "MockDocumentOptions" needs to be exported by the entry point index.d.ts
-//
 // @public
 export function createDocument(opts?: MockDocumentOptions): Document;
 
 // @public
-export const createDOM: (input?: {
+export function createDOM(options?: {
     html?: string;
-}) => Promise<{
-    render: (jsxElement: JSXOutput) => Promise<RenderResult>;
-    screen: HTMLElement;
-    userEvent: (queryOrElement: string | Element | keyof HTMLElementTagNameMap | null, eventNameCamel: string | keyof WindowEventMap, eventPayload?: any) => Promise<Event | null>;
-}>;
-
-// @public (undocumented)
-export function domRender(jsx: JSXOutput, opts?: {
-    debug?: boolean;
-}): Promise<{
-    document: Document;
-    container: ClientContainer;
-    vNode: _VNode | null;
-    getStyles: () => Record<string, string | string[]>;
-}>;
+}): Promise<DOMHarness>;
 
 // @public
-export class ElementFixture {
-    // Warning: (ae-forgotten-export) The symbol "ElementFixtureOptions" needs to be exported by the entry point index.d.ts
-    constructor(options?: ElementFixtureOptions);
+export function createWindow(opts?: MockDocumentOptions): MockWindow;
+
+// @public (undocumented)
+export interface DOMHarness {
     // (undocumented)
-    child: HTMLElement;
-    // Warning: (ae-forgotten-export) The symbol "MockDocument" needs to be exported by the entry point index.d.ts
-    //
+    cleanup(): void;
+    // (undocumented)
+    render<Props>(root: RenderRoot<Props>, options?: RenderOptions<Props>): Promise<RenderResult>;
+    // (undocumented)
+    readonly screen: HTMLElement;
+    // (undocumented)
+    userEvent(target: string | Element | keyof HTMLElementTagNameMap, type: string, payload?: Record<string, unknown>): Promise<Event>;
+}
+
+// @public (undocumented)
+export function domRender<Props>(root: RenderRoot<Props>, options?: RenderOptions<Props>): Promise<RenderResult>;
+
+// @public (undocumented)
+export const getTestPlatform: () => TestPlatform;
+
+// @public (undocumented)
+export interface MockDocument extends Document {
+}
+
+// @public
+export interface MockDocumentOptions {
+    // (undocumented)
+    html?: string;
+    // (undocumented)
+    url?: URL | string;
+}
+
+// @public (undocumented)
+export interface MockWindow extends Window {
     // (undocumented)
     document: MockDocument;
-    // (undocumented)
-    host: HTMLElement;
-    // (undocumented)
-    parent: HTMLElement;
-    // (undocumented)
-    superParent: HTMLElement;
-    // Warning: (ae-forgotten-export) The symbol "MockWindow" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    window: MockWindow;
+}
+
+// @public
+export interface MockWindowOptions extends MockDocumentOptions {
 }
 
 // @public (undocumented)
-export function emulateExecutionOfQwikFuncs(document: Document): void;
+export type QwikLoaderEventPayload = EventInit & Record<string, unknown>;
 
 // @public (undocumented)
-export function expectDOM(actual: Element, expected: string): Promise<void>;
-
-// Warning: (ae-forgotten-export) The symbol "TestPlatform" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export function getTestPlatform(): TestPlatform;
-
-// @public (undocumented)
-export interface InOrderAuto {
+export interface QwikLoaderTestDriver {
     // (undocumented)
-    maximumChunk?: number;
+    cleanup(): void;
     // (undocumented)
-    maximumInitialChunk?: number;
-    // (undocumented)
-    strategy: 'auto';
+    dispatch(target: Element, type: string, payload?: QwikLoaderEventPayload): Promise<Event>;
 }
 
 // @public (undocumented)
-export interface InOrderDirect {
+export interface RenderOptions<Props = undefined> {
     // (undocumented)
-    strategy: 'direct';
-}
-
-// @public (undocumented)
-export interface InOrderDisabled {
+    base?: string;
     // (undocumented)
-    strategy: 'disabled';
-}
-
-// @public (undocumented)
-export type InOrderStreaming = InOrderAuto | InOrderDisabled | InOrderDirect;
-
-// @public (undocumented)
-export type OutOfOrderStreaming = boolean;
-
-// @public (undocumented)
-export function ssrRenderToDom(jsx: JSXOutput, opts?: {
     debug?: boolean;
-    raw?: boolean;
-    qwikLoader?: boolean;
-    containerTagName?: string;
-    stream?: StreamWriter;
-    streaming?: StreamingOptions;
-    resume?: boolean;
-    onBeforeResume?: (document: Document) => void;
-}): Promise<{
-    container: _DomContainer;
-    document: Document;
-    vNode: _VNode | null;
-    getStyles: () => Record<string, string | string[]>;
-}>;
-
-// @public (undocumented)
-export interface StreamingOptions {
     // (undocumented)
-    inOrder?: InOrderStreaming;
+    locale?: RenderToStringOptions<Props>['locale'];
     // (undocumented)
-    outOfOrder?: OutOfOrderStreaming;
+    props?: Props;
+    // (undocumented)
+    qwikLoader?: QwikLoaderOptions;
+    // (undocumented)
+    scheduler?: Scheduler;
+    // (undocumented)
+    serverData?: Record<string, unknown>;
 }
 
-// @public
-export function trigger(root: Element, queryOrElement: string | Element | keyof HTMLElementTagNameMap | null, eventName: string, eventPayload?: any, options?: {
-    waitForIdle?: boolean;
-}): Promise<Event | null>;
+// @public (undocumented)
+export interface RenderResult {
+    // (undocumented)
+    cleanup: () => void;
+    // (undocumented)
+    container: HTMLElement;
+    // (undocumented)
+    document: Document;
+    // (undocumented)
+    flush: () => Promise<void>;
+    // (undocumented)
+    html: string;
+    // (undocumented)
+    nodes: readonly Node[];
+    // (undocumented)
+    qwikLoader?: QwikLoaderTestDriver;
+    // (undocumented)
+    scheduler: Scheduler;
+}
 
 // @public (undocumented)
-export function vnode_fromJSX(jsx: JSXOutput): {
-    vParent: _VirtualVNode | _ElementVNode;
-    vNode: _VNode | null;
-    document: _QDocument;
-    container: ClientContainer_2;
-};
-
-// Warning: (ae-forgotten-export) The symbol "Container" needs to be exported by the entry point index.d.ts
-//
-// @public
-export function waitForDrain(container: Container): Promise<void>;
+export function ssrRenderToDom<Props>(root: RenderRoot<Props>, options?: RenderOptions<Props>): Promise<RenderResult>;
 
 // @public (undocumented)
-export function walkJSX(jsx: JSXOutput, apply: {
-    enter: (jsx: JSXNodeInternal) => void;
-    leave: (jsx: JSXNodeInternal) => void;
-    text: (text: _Stringifiable) => void;
-}): void;
+export interface TestPlatform extends CorePlatform {
+    flush: () => Promise<void>;
+}
+
+// @public (undocumented)
+export function trigger(parent: Element, target: string | Element | keyof HTMLElementTagNameMap, type: string, payload?: Record<string, unknown>): Promise<Event>;
 
 // (No @packageDocumentation comment for this package)
 

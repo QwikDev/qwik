@@ -10,34 +10,32 @@ export function App() {
 
 ============================= src/component.tsx ==
 
-import { useSignal } from '@qwik.dev/core';
-import { _qrlWithChunk } from '@qwik.dev/core/spark';
-
+import { useSignal, createSsrElementRecord, _qrlWithChunk } from '@qwik.dev/core';
 const q_component_q_e_click_segment_0 = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_q_e_click_segment_0',
   () => import('./component.tsx_component_q_e_click_segment_0'),
   'component_q_e_click_segment_0'
 );
-
-export function App(_props, ctx) {
+export function App(props, ctx) {
   const count = useSignal(1);
-  return (
-    '<button' +
-    ctx.eventAttr('q-e:click', q_component_q_e_click_segment_0.w([count])) +
-    '>Count</button>'
-  );
+  return [
+    createSsrElementRecord(
+      'button',
+      '<button',
+      ctx.eventAttr('q-e:click', q_component_q_e_click_segment_0.w([count])),
+      '>'
+    ),
+    'Count</button>',
+  ];
 }
-
-null
 ============================= src/component.tsx_component_q_e_click_segment_0.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
+import { _captures } from '@qwik.dev/core';
+
 export const component_q_e_click_segment_0 = () => {
   const count = _captures[0];
   return count.value++;
 };
-
-null
 /*
 {
   "origin": "component.tsx",
@@ -68,29 +66,25 @@ null
 
 ============================= src/component.tsx ==
 
-import { useSignal } from '@qwik.dev/core';
-import { createTemplate, setEvent } from '@qwik.dev/core/spark';
+import { useSignal, _first, setEvent, createTemplate } from '@qwik.dev/core';
 import { component_q_e_click_segment_0 } from './component.tsx_component_q_e_click_segment_0';
 
-const dom_App_template0 = createTemplate('<button>Count</button>');
-export function App(_props, ctx) {
+const App_tmpl0 = createTemplate('<button>Count</button>');
+export function App(props, ctx) {
   const count = useSignal(1);
-  const fragment0 = dom_App_template0(ctx.document);
-  const el1 = fragment0.firstChild;
-  setEvent(el1, 'q-e:click', component_q_e_click_segment_0, [count]);
-  return el1;
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  setEvent(el0, 'q-e:click', component_q_e_click_segment_0, [count]);
+  return el0;
 }
-
-null
 ============================= src/component.tsx_component_q_e_click_segment_0.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
+import { _captures } from '@qwik.dev/core';
+
 export const component_q_e_click_segment_0 = () => {
   const count = _captures[0];
   return count.value++;
 };
-
-null
 /*
 {
   "origin": "component.tsx",

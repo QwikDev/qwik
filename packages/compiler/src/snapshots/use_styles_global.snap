@@ -13,14 +13,11 @@ export function App() {
 ============================= src/use-styles.tsx ==
 
 import styles from './app.css?inline';
-import { appendStyle } from '@qwik.dev/core/spark';
-
-export function App(_props, _ctx) {
-  appendStyle(styles, 'mx5j1a-0');
-  return '<div class="container">Hello</div>';
+import { useStyles, createSsrElementRecord } from '@qwik.dev/core';
+export function App(props, ctx) {
+  useStyles(styles, 'gtgvab-0');
+  return [createSsrElementRecord('div', '<div class="container"', '>'), 'Hello</div>'];
 }
-
-null
 == SSR DIAGNOSTICS ==
 
 []
@@ -29,17 +26,15 @@ null
 ============================= src/use-styles.tsx ==
 
 import styles from './app.css?inline';
-import { createTemplate, appendStyle } from '@qwik.dev/core/spark';
+import { useStyles, _first, createTemplate } from '@qwik.dev/core';
 
-const dom_App_template0 = createTemplate('<div class="container">Hello</div>');
-export function App(_props, ctx) {
-  appendStyle(styles, 'mx5j1a-0');
-  const fragment0 = dom_App_template0(ctx.document);
-  const el1 = fragment0.firstChild;
-  return el1;
+const App_tmpl0 = createTemplate('<div class="container">Hello</div>');
+export function App(props, ctx) {
+  useStyles(styles, 'gtgvab-0');
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
 }
-
-null
 == CSR DIAGNOSTICS ==
 
 []

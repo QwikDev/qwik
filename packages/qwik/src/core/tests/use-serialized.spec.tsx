@@ -1,28 +1,19 @@
-import {
-  SerializerSymbol,
-  Fragment,
-  Fragment as Signal,
-  Fragment as Component,
-  component$,
-  useSignal,
-  useAsync$,
-} from '@qwik.dev/core';
-import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
-import { useSerializer$ } from '../use/use-serializer';
+import { useAsync$, useSerializer$, useSignal } from '@qwik.dev/core';
+import { csrRender, ssrRender } from '../test-utils';
 
-const debug = false; //true;
-Error.stackTraceLimit = 100;
+const debug = false;
 
-// This is almost the same as useComputed, so we only test the custom serialization
 describe.each([
-  { render: ssrRenderToDom }, //
-  { render: domRender }, //
-])('$render.name: useSerializer$', ({ render }) => {
+  { render: ssrRender }, //
+  { render: csrRender }, //
+])('$render.name: serializer signals', ({ render }) => {
   it('should do custom serialization', async () => {
-    const Counter = component$(() => {
+    const Counter = () => {
       const myCount = useSerializer$({
-        deserialize: (count) => new CustomSerialized(count),
+        deserialize: (count = 0) => ({
+          count,
+        }),
         serialize: (data) => data.count,
         initial: 2,
       });
@@ -30,167 +21,118 @@ describe.each([
       return (
         <button
           onClick$={() => {
-            myCount.value.inc();
+            myCount.value.count++;
             spy.value = myCount.value.count;
           }}
         >
           {spy.value}
         </button>
       );
-    });
+    };
 
-    const { vNode, container } = await render(<Counter />, { debug });
-    expect(vNode).toMatchVDOM(
-      <>
-        <button>
-          <Signal ssr-required>{'2'}</Signal>
-        </button>
-      </>
-    );
-    await trigger(container.element, 'button', 'click');
-    expect(vNode).toMatchVDOM(
-      <>
-        <button>
-          <Signal ssr-required>{'3'}</Signal>
-        </button>
-      </>
-    );
+    const { container, cleanup, qwikLoader } = await render(Counter, { debug });
+    const button = container.querySelector('button')!;
+
+    expect(button.textContent).toBe('2');
+    await qwikLoader?.dispatch(button, 'click');
+    expect(button.textContent).toBe('3');
+
+    cleanup();
   });
+
   it('should update reactively', async () => {
-    const Counter = component$(() => {
+    const Counter = () => {
       const sig = useSignal(1);
       const myCount = useSerializer$(() => ({
-        deserialize: () => new CustomSerialized(sig.value * 2),
+        deserialize: () => ({
+          count: sig.value * 2,
+        }),
         update: (current) => {
           current.count = sig.value * 2;
           return current;
         },
       }));
-      return (
-        <button
-          onClick$={() => {
-            sig.value++;
-          }}
-        >
-          {myCount.value.count}
-        </button>
-      );
-    });
+      return <button onClick$={() => sig.value++}>{myCount.value.count}</button>;
+    };
 
-    const { vNode, container } = await render(<Counter />, { debug });
-    expect(vNode).toMatchVDOM(
-      <>
-        <button>
-          <Signal ssr-required>{'2'}</Signal>
-        </button>
-      </>
-    );
-    await trigger(container.element, 'button', 'click');
-    expect(vNode).toMatchVDOM(
-      <>
-        <button>
-          <Signal ssr-required>{'4'}</Signal>
-        </button>
-      </>
-    );
-    // We need to click again because after SSR the first click will run the deserialize, not the update
-    await trigger(container.element, 'button', 'click');
-    expect(vNode).toMatchVDOM(
-      <>
-        <button>
-          <Signal ssr-required>{'6'}</Signal>
-        </button>
-      </>
-    );
+    const { container, cleanup, qwikLoader } = await render(Counter, { debug });
+    const button = container.querySelector('button')!;
+
+    expect(button.textContent).toBe('2');
+    await qwikLoader?.dispatch(button, 'click');
+    expect(button.textContent).toBe('4');
+    await qwikLoader?.dispatch(button, 'click');
+    expect(button.textContent).toBe('6');
+
+    cleanup();
   });
-  it('should support [SerializerSymbol]', async () => {
-    const Counter = component$(() => {
+
+  it('should support custom serialize function', async () => {
+    const Counter = () => {
       const count = useSerializer$({
-        deserialize: (data: number) => new WithSerialize(data),
+        deserialize: (data: number = 0) => ({
+          count: data,
+        }),
+        serialize: (obj) => obj.count,
       });
       return (
         <button
           onClick$={() => {
-            count.value.inc();
+            count.value.count++;
             count.trigger();
           }}
         >
           {count.value.count}
         </button>
       );
-    });
+    };
 
-    const { vNode, container } = await render(<Counter />, { debug });
-    expect(vNode).toMatchVDOM(
-      <>
-        <button>
-          <Signal ssr-required>{'0'}</Signal>
-        </button>
-      </>
-    );
-    await trigger(container.element, 'button', 'click');
-    expect(vNode).toMatchVDOM(
-      <>
-        <button>
-          <Signal ssr-required>{'1'}</Signal>
-        </button>
-      </>
-    );
-    await trigger(container.element, 'button', 'click');
-    expect(vNode).toMatchVDOM(
-      <>
-        <button>
-          <Signal ssr-required>{'2'}</Signal>
-        </button>
-      </>
-    );
+    const { container, cleanup, qwikLoader } = await render(Counter, { debug });
+    const button = container.querySelector('button')!;
+
+    expect(button.textContent).toBe('0');
+    await qwikLoader?.dispatch(button, 'click');
+    expect(button.textContent).toBe('1');
+    await qwikLoader?.dispatch(button, 'click');
+    expect(button.textContent).toBe('2');
+
+    cleanup();
   });
 
   it('should recalculate value without update function', async () => {
-    const Counter = component$(() => {
+    const Counter = () => {
       const count = useSerializer$({
-        deserialize: (data: number) => new WithSerialize(data),
+        deserialize: (data: number = 0) => ({
+          count: data,
+        }),
+        serialize: (obj) => obj.count,
       });
       return (
         <button
           onClick$={() => {
-            count.value.inc();
+            count.value.count++;
             count.invalidate();
           }}
         >
           {count.value.count}
         </button>
       );
-    });
+    };
 
-    const { vNode, container } = await render(<Counter />, { debug });
-    expect(vNode).toMatchVDOM(
-      <>
-        <button>
-          <Signal ssr-required>{'0'}</Signal>
-        </button>
-      </>
-    );
-    await trigger(container.element, 'button', 'click');
-    expect(vNode).toMatchVDOM(
-      <>
-        <button>
-          <Signal ssr-required>{'1'}</Signal>
-        </button>
-      </>
-    );
-    await trigger(container.element, 'button', 'click');
-    expect(vNode).toMatchVDOM(
-      <>
-        <button>
-          <Signal ssr-required>{'2'}</Signal>
-        </button>
-      </>
-    );
+    const { container, cleanup, qwikLoader } = await render(Counter, { debug });
+    const button = container.querySelector('button')!;
+
+    expect(button.textContent).toBe('0');
+    await qwikLoader?.dispatch(button, 'click');
+    expect(button.textContent).toBe('1');
+    await qwikLoader?.dispatch(button, 'click');
+    expect(button.textContent).toBe('2');
+
+    cleanup();
   });
 
   it('should deserialize a Promise initial value as Date', async () => {
-    const DateDisplay = component$(() => {
+    const DateDisplay = () => {
       const dateStr = useAsync$(() => Promise.resolve('2025-01-15T12:00:00.000Z'));
       const date = useSerializer$(() => ({
         deserialize: (str: string) => new Date(str),
@@ -198,25 +140,23 @@ describe.each([
         initial: dateStr.value,
       }));
       return <span>{date.value.toISOString()}</span>;
-    });
+    };
 
-    const { vNode } = await render(<DateDisplay />, { debug });
-    expect(vNode).toMatchVDOM(
-      <>
-        <span>2025-01-15T12:00:00.000Z</span>
-      </>
-    );
+    const { container, cleanup, flush } = await render(DateDisplay, { debug });
+
+    await flush();
+    expect(container.querySelector('span')!.textContent).toBe('2025-01-15T12:00:00.000Z');
+
+    cleanup();
   });
 
   it('should not crash when used many times', async () => {
-    // We don't have the Signal type here
-    const MyComponent = component$(({ foo }: { foo: { value: number } }) => {
+    const App = () => {
+      const foo = useSignal(0);
       const custom = useSerializer$(() => ({
         initial: { bar: 'bar' },
-        serialize: (c: Custom) => {
-          return { foo: c.foo, bar: c.bar };
-        },
-        deserialize: (d) => new Custom(foo.value, d.bar),
+        serialize: (c: { foo: number; bar: string }) => ({ foo: c.foo, bar: c.bar }),
+        deserialize: (d) => ({ foo: foo.value, bar: d.bar }),
         update: (c) => {
           c.foo = foo.value;
           return c;
@@ -228,82 +168,17 @@ describe.each([
           {foo.value} - {custom.value.foo} - {custom.value.bar}
         </button>
       );
-    });
+    };
 
-    const App = component$(() => {
-      const foo = useSignal(0);
-      return <MyComponent foo={foo} />;
-    });
+    const { container, cleanup, qwikLoader } = await render(App, { debug });
+    const button = container.querySelector('button')!;
 
-    const { vNode, container } = await render(<App />, { debug });
-    expect(vNode).toMatchVDOM(
-      <Component ssr-required>
-        <Fragment>
-          <button>
-            <Signal ssr-required>{'0'}</Signal> - <Signal ssr-required>{'0'}</Signal>
-            {' - '}
-            <Signal ssr-required>bar</Signal>
-          </button>
-        </Fragment>
-      </Component>
-    );
-    await trigger(container.element, 'button', 'click');
-    expect(vNode).toMatchVDOM(
-      <Component ssr-required>
-        <Fragment>
-          <button>
-            <Signal ssr-required>{'1'}</Signal> - <Signal ssr-required>{'1'}</Signal> -{' '}
-            <Signal ssr-required>bar</Signal>
-          </button>
-        </Fragment>
-      </Component>
-    );
-    await trigger(container.element, 'button', 'click');
-    expect(vNode).toMatchVDOM(
-      <Component ssr-required>
-        <Fragment>
-          <button>
-            <Signal ssr-required>{'2'}</Signal> - <Signal ssr-required>{'2'}</Signal> -{' '}
-            <Signal ssr-required>bar</Signal>
-          </button>
-        </Fragment>
-      </Component>
-    );
+    expect(button.textContent).toBe('0 - 0 - bar');
+    await qwikLoader?.dispatch(button, 'click');
+    expect(button.textContent).toBe('1 - 1 - bar');
+    await qwikLoader?.dispatch(button, 'click');
+    expect(button.textContent).toBe('2 - 2 - bar');
+
+    cleanup();
   });
 });
-
-class CustomSerialized {
-  constructor(public count = 0) {}
-  inc() {
-    this.count++;
-  }
-}
-
-class WithSerialize {
-  constructor(public count = 0) {}
-  inc() {
-    this.count++;
-  }
-  [SerializerSymbol](obj: this) {
-    return obj.count;
-  }
-}
-
-class Custom {
-  constructor(
-    private _foo: number,
-    private _bar: string
-  ) {}
-  get foo() {
-    return this._foo;
-  }
-  set foo(value) {
-    this._foo = value;
-  }
-  get bar() {
-    return this._bar;
-  }
-  set bar(value) {
-    this._bar = value;
-  }
-}

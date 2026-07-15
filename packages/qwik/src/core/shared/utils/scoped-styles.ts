@@ -1,5 +1,6 @@
-import type { Props } from '../jsx/jsx-runtime';
 import { ComponentStylesPrefixContent } from './markers';
+
+type Props = Record<string, unknown>;
 
 export const styleContent = (styleId: string): string => {
   return ComponentStylesPrefixContent + styleId;

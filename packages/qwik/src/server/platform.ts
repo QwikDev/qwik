@@ -1,8 +1,8 @@
 import { setPlatform } from '@qwik.dev/core';
 import { isDev } from '@qwik.dev/core/build';
 import type { ResolvedManifest, SymbolMapperFn } from '@qwik.dev/core/optimizer';
-import { QError, qError, SYNC_QRL } from './qwik-copy';
-import type { CorePlatformServer, SymbolMapper } from './qwik-types';
+import { QError, qError, SYNC_QRL, type CorePlatformServer } from './qwik-copy';
+import type { SymbolMapper } from '@qwik.dev/core/optimizer';
 import type { SerializeDocumentOptions } from './types';
 
 declare const require: (module: string) => Record<string, any>;

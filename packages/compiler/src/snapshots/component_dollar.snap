@@ -23,7 +23,7 @@ export default function Home(props, ctx) {
 
 ============================= src/component.tsx ==
 
-import { _first, createTemplate } from '@qwik.dev/core/spark';
+import { _first, createTemplate } from '@qwik.dev/core';
 
 const App_tmpl0 = createTemplate('<div>Hello</div>');
 const Home_tmpl0 = createTemplate('<section>Default wrapped</section>');

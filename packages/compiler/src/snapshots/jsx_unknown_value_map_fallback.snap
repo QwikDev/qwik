@@ -19,8 +19,37 @@ export function App() {
 
 ============================= src/component.tsx ==
 
-import { maybeThen } from '@qwik.dev/core/spark';
+import {
+  createSsrElementRecord,
+  _wrapArray,
+  renderSsrCollection,
+  createSsrRecord,
+  createSsrNodeId,
+  maybeThen,
+  _qrlWithChunk,
+} from '@qwik.dev/core';
+import { component_for_render_segment_0 } from './component.tsx_component_for_render_segment_0';
+import { component_for_key_segment_1 } from './component.tsx_component_for_key_segment_1';
+import { semantic_collectionSource_150_161 } from './component.tsx_semantic_collectionSource_150_161';
 
+const q_component_for_render_segment_0 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_for_render_segment_0',
+  () => import('./component.tsx_component_for_render_segment_0'),
+  'component_for_render_segment_0'
+);
+q_component_for_render_segment_0.s(component_for_render_segment_0);
+const q_component_for_key_segment_1 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_for_key_segment_1',
+  () => import('./component.tsx_component_for_key_segment_1'),
+  'component_for_key_segment_1'
+);
+q_component_for_key_segment_1.s(component_for_key_segment_1);
+const q_semantic_collectionSource_150_161 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_semantic_collectionSource_150_161',
+  () => import('./component.tsx_semantic_collectionSource_150_161'),
+  'semantic_collectionSource_150_161'
+);
+q_semantic_collectionSource_150_161.s(semantic_collectionSource_150_161);
 function getItems() {
   return {
     value: [
@@ -31,14 +60,171 @@ function getItems() {
     ],
   };
 }
-
-export function App(_props, _ctx) {
+export function App(props, ctx) {
   const items = getItems();
-  const jsx0 = items.value.map((row) => <li key={row.id}>{row.label}</li>);
-  return maybeThen(jsx0, (jsx0) => '<ul>' + jsx0 + '</ul>');
+  const collectionId0 = ctx.nextId();
+  ctx.addRoot(items);
+  const collection1 = _wrapArray(q_semantic_collectionSource_150_161.w([items]));
+  if (!Array.isArray(collection1)) ctx.addRoot(collection1);
+  const collectionResult2 = renderSsrCollection(
+    ctx,
+    collectionId0,
+    collection1,
+    q_component_for_key_segment_1,
+    q_component_for_render_segment_0,
+    false,
+    '',
+    false,
+    0
+  );
+  return maybeThen(collectionResult2, (collectionResult2) => [
+    createSsrElementRecord('ul', '<ul', '>'),
+    createSsrRecord('<!f=', createSsrNodeId(collectionId0), '>'),
+    collectionResult2,
+    '<!/f></ul>',
+  ]);
 }
+============================= src/component.tsx_component_for_render_segment_0.js (ENTRY POINT)==
 
-null
+import {
+  _qrlWithChunk,
+  createSsrNodeId,
+  createSsrElementRecord,
+  createSsrElementTextTarget,
+  renderSsrTextExpression,
+  escapeHTML,
+  maybeThen,
+} from '@qwik.dev/core';
+import { component_text_segment_2 } from './component.tsx_component_text_segment_2';
+const q_component_text_segment_2 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_text_segment_2',
+  () => import('./component.tsx_component_text_segment_2'),
+  'component_text_segment_2'
+);
+q_component_text_segment_2.s(component_text_segment_2);
+
+export const component_for_render_segment_0 = (ctx, __rangeId, __rowId, row) => {
+  const id0 = ctx.nextId();
+  ctx.addRoot(row);
+  const text1 = renderSsrTextExpression(
+    createSsrElementTextTarget(id0),
+    [row],
+    q_component_text_segment_2
+  );
+  return maybeThen(text1, (text1) => [
+    createSsrElementRecord('li', '<li q:id="', createSsrNodeId(id0), '" q:row', '>'),
+    escapeHTML(text1),
+    '</li>',
+  ]);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_for_render_segment_0",
+  "entry": null,
+  "displayName": "component_for_render_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_for_render_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "for:render",
+  "captures": false,
+  "loc": [
+    175,
+    208
+  ],
+  "paramNames": [
+    "row"
+  ]
+}
+*/
+============================= src/component.tsx_component_for_key_segment_1.js (ENTRY POINT)==
+
+export const component_for_key_segment_1 = (row) => {
+  return row.id;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_for_key_segment_1",
+  "entry": null,
+  "displayName": "component_for_key_segment_1",
+  "hash": "segment_1",
+  "canonicalFilename": "component.tsx_component_for_key_segment_1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "for:key",
+  "captures": false,
+  "loc": [
+    184,
+    190
+  ],
+  "paramNames": [
+    "row"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_2.js (ENTRY POINT)==
+
+export const component_text_segment_2 = (row) => {
+  return row.label;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_2",
+  "entry": null,
+  "displayName": "component_text_segment_2",
+  "hash": "segment_2",
+  "canonicalFilename": "component.tsx_component_text_segment_2",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    193,
+    202
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "row"
+  ]
+}
+*/
+============================= src/component.tsx_semantic_collectionSource_150_161.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const semantic_collectionSource_150_161 = () => {
+  const items = _captures[0];
+  return items.value;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "semantic_collectionSource_150_161",
+  "entry": null,
+  "displayName": "semantic_collectionSource_150_161",
+  "hash": "semantic_collectionSource_150_161",
+  "canonicalFilename": "component.tsx_semantic_collectionSource_150_161",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "collection:source",
+  "captures": true,
+  "loc": [
+    150,
+    161
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "items"
+  ]
+}
+*/
 == SSR DIAGNOSTICS ==
 
 []
@@ -46,6 +232,23 @@ null
 
 ============================= src/component.tsx ==
 
+import {
+  _first,
+  _next,
+  _wrapArray,
+  createCollection,
+  _qrlWithChunk,
+  createTemplate,
+} from '@qwik.dev/core';
+import { component_for_render_segment_0 } from './component.tsx_component_for_render_segment_0';
+import { component_for_key_segment_1 } from './component.tsx_component_for_key_segment_1';
+
+const q_semantic_collectionSource_150_161 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_semantic_collectionSource_150_161',
+  () => import('./component.tsx_semantic_collectionSource_150_161'),
+  'semantic_collectionSource_150_161'
+);
+const App_tmpl0 = createTemplate('<ul><!----><!----></ul>');
 function getItems() {
   return {
     value: [
@@ -56,17 +259,150 @@ function getItems() {
     ],
   };
 }
-
-export function App(_props, ctx) {
+export function App(props, ctx) {
   const items = getItems();
-  const el0 = ctx.document.createElement('ul');
-  const jsx1 = items.value.map((row) => <li key={row.id}>{row.label}</li>);
-  if (Array.isArray(jsx1)) for (let i = 0; i < jsx1.length; i++) el0.appendChild(jsx1[i]);
-  else el0.appendChild(jsx1);
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  const collection0 = _wrapArray(q_semantic_collectionSource_150_161.w([items]));
+  ctx.scheduler.waitFor(
+    createCollection(
+      ctx,
+      start0,
+      end0,
+      collection0,
+      component_for_key_segment_1,
+      component_for_render_segment_0,
+      false,
+      '',
+      0
+    )
+  );
   return el0;
 }
+============================= src/component.tsx_component_for_render_segment_0.js (ENTRY POINT)==
 
-null
+import { _first, createTextExpressionEffect, createTemplate } from '@qwik.dev/core';
+import { component_text_segment_2 } from './component.tsx_component_text_segment_2';
+const component_for_render_segment_0_tmpl0 = createTemplate('<li> </li>');
+
+export const component_for_render_segment_0 = (ctx, row) => {
+  const fragment0 = component_for_render_segment_0_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const text0 = _first(el0);
+  const effect0 = createTextExpressionEffect(text0, [row], component_text_segment_2, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  return el0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_for_render_segment_0",
+  "entry": null,
+  "displayName": "component_for_render_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_for_render_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "for:render",
+  "captures": false,
+  "loc": [
+    175,
+    208
+  ],
+  "paramNames": [
+    "row"
+  ]
+}
+*/
+============================= src/component.tsx_component_for_key_segment_1.js (ENTRY POINT)==
+
+export const component_for_key_segment_1 = (row) => {
+  return row.id;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_for_key_segment_1",
+  "entry": null,
+  "displayName": "component_for_key_segment_1",
+  "hash": "segment_1",
+  "canonicalFilename": "component.tsx_component_for_key_segment_1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "for:key",
+  "captures": false,
+  "loc": [
+    184,
+    190
+  ],
+  "paramNames": [
+    "row"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_2.js (ENTRY POINT)==
+
+export const component_text_segment_2 = (row) => {
+  return row.label;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_2",
+  "entry": null,
+  "displayName": "component_text_segment_2",
+  "hash": "segment_2",
+  "canonicalFilename": "component.tsx_component_text_segment_2",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    193,
+    202
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "row"
+  ]
+}
+*/
+============================= src/component.tsx_semantic_collectionSource_150_161.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const semantic_collectionSource_150_161 = () => {
+  const items = _captures[0];
+  return items.value;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "semantic_collectionSource_150_161",
+  "entry": null,
+  "displayName": "semantic_collectionSource_150_161",
+  "hash": "semantic_collectionSource_150_161",
+  "canonicalFilename": "component.tsx_semantic_collectionSource_150_161",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "collection:source",
+  "captures": true,
+  "loc": [
+    150,
+    161
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "items"
+  ]
+}
+*/
 == CSR DIAGNOSTICS ==
 
 []

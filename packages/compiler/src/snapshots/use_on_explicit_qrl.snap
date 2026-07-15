@@ -1,0 +1,215 @@
+==INPUT==
+
+import { $ } from '@qwik.dev/core';
+import { useOn, useOnDocument, useSignal } from '@qwik.dev/core';
+
+export function App() {
+  const count = useSignal(0);
+  useOn('click', $(() => count.value++));
+  useOnDocument('qinit', $(() => count.value += 2), { capture: true, preventdefault: true });
+  return <button>{count.value}</button>;
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useOn,
+  useOnDocument,
+  useSignal,
+  createSsrNodeId,
+  createSsrElementRecord,
+  createSsrElementTextTarget,
+  renderSsrTextNode,
+  escapeHTML,
+  maybeThen,
+  _qrlWithChunk,
+} from '@qwik.dev/core';
+const q_component_$_segment_0 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_$_segment_0',
+  () => import('./component.tsx_component_$_segment_0'),
+  'component_$_segment_0'
+);
+const q_component_$_segment_1 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_$_segment_1',
+  () => import('./component.tsx_component_$_segment_1'),
+  'component_$_segment_1'
+);
+export function App(props, ctx) {
+  const count = useSignal(0);
+  useOn('click', q_component_$_segment_0.w([count]));
+  useOnDocument('qinit', q_component_$_segment_1.w([count]), {
+    capture: true,
+    preventdefault: true,
+  });
+  const id0 = ctx.nextId();
+  ctx.addRoot(count);
+  const text1 = renderSsrTextNode(createSsrElementTextTarget(id0), count);
+  return maybeThen(text1, (text1) => [
+    createSsrElementRecord('button', '<button q:id="', createSsrNodeId(id0), '"', '>'),
+    escapeHTML(text1),
+    '</button>',
+  ]);
+}
+============================= src/component.tsx_component_$_segment_0.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_$_segment_0 = () => {
+  const count = _captures[0];
+  return count.value++;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_$_segment_0",
+  "entry": null,
+  "displayName": "component_$_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_$_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    171,
+    193
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_$_segment_1.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_$_segment_1 = () => {
+  const count = _captures[0];
+  return (count.value += 2);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_$_segment_1",
+  "entry": null,
+  "displayName": "component_$_segment_1",
+  "hash": "segment_1",
+  "canonicalFilename": "component.tsx_component_$_segment_1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    220,
+    245
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useOn,
+  useOnDocument,
+  useSignal,
+  _withCaptures,
+  _first,
+  createTextNodeEffect,
+  createTemplate,
+} from '@qwik.dev/core';
+import { component_$_segment_0 } from './component.tsx_component_$_segment_0';
+import { component_$_segment_1 } from './component.tsx_component_$_segment_1';
+
+const App_tmpl0 = createTemplate('<button> </button>');
+export function App(props, ctx) {
+  const count = useSignal(0);
+  useOn('click', _withCaptures(component_$_segment_0, [count]));
+  useOnDocument('qinit', _withCaptures(component_$_segment_1, [count]), {
+    capture: true,
+    preventdefault: true,
+  });
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const text0 = _first(el0);
+  const effect0 = createTextNodeEffect(text0, count, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  return el0;
+}
+============================= src/component.tsx_component_$_segment_0.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_$_segment_0 = () => {
+  const count = _captures[0];
+  return count.value++;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_$_segment_0",
+  "entry": null,
+  "displayName": "component_$_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_$_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    171,
+    193
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_$_segment_1.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_$_segment_1 = () => {
+  const count = _captures[0];
+  return (count.value += 2);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_$_segment_1",
+  "entry": null,
+  "displayName": "component_$_segment_1",
+  "hash": "segment_1",
+  "canonicalFilename": "component.tsx_component_$_segment_1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    220,
+    245
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

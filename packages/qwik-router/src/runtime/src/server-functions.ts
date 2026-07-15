@@ -12,10 +12,9 @@ import {
 } from '@qwik.dev/core';
 import {
   _deserialize,
-  _getContextHostElement,
-  _getContextEvent,
-  _resolveContextWithoutSequentialScope,
+  _resolveContext,
   _serialize,
+  getActiveInvokeContextOrNull,
   type SerializationStrategy,
 } from '@qwik.dev/core/internal';
 import { _asyncRequestStore } from '@qwik.dev/router/middleware/request-handler';
@@ -200,7 +199,7 @@ export const routeLoaderQrl = ((
 ): LoaderInternal => {
   const { id, validators, serializationStrategy } = getValidators(rest, loaderQrl);
   function loader() {
-    const state = _resolveContextWithoutSequentialScope(RouteStateContext)!;
+    const state = _resolveContext(RouteStateContext);
 
     if (!(id in state)) {
       throw new Error(`routeLoader$ "${loaderQrl.getSymbol()}" was invoked in a route where it was not declared.
@@ -400,7 +399,7 @@ export const serverQrl = <T extends ServerFunction>(
 ): ServerQRL<T> => {
   if (isServer) {
     const captured = qrl.getCaptured();
-    if (captured && captured.length > 0 && !_getContextHostElement()) {
+    if (captured && captured.length > 0 && !getActiveInvokeContextOrNull()?.ownerHost) {
       throw new Error('For security reasons, we cannot serialize QRLs that capture lexical scope.');
     }
   }
@@ -420,7 +419,7 @@ export const serverQrl = <T extends ServerFunction>(
       let requestEvent = _asyncRequestStore?.getStore() as RequestEvent | undefined;
 
       if (!requestEvent) {
-        const contexts = [useQwikRouterEnv()?.ev, this, _getContextEvent()] as RequestEvent[];
+        const contexts = [useQwikRouterEnv()?.ev, this] as RequestEvent[];
         requestEvent = contexts.find(
           (v) =>
             v &&

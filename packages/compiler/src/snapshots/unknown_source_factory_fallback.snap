@@ -14,16 +14,18 @@ export function App() {
 ============================= src/component.tsx ==
 
 import {
-  createSsrDomBatchEffect,
+  createSsrNodeId,
   createSsrElementTarget,
-  _qrlWithChunk,
+  renderSsrAttrExpression,
   escapeHTML,
+  createSsrElementRecord,
   createSsrElementTextTarget,
   renderSsrTextExpression,
-  renderSsrAttrExpression,
+  getActiveInvokeContextOrNull,
+  invoke,
   maybeThen,
-  promiseAll,
-} from '@qwik.dev/core/spark';
+  _qrlWithChunk,
+} from '@qwik.dev/core';
 import { component_title_segment_0 } from './component.tsx_component_title_segment_0';
 import { component_text_segment_1 } from './component.tsx_component_text_segment_1';
 
@@ -39,44 +41,48 @@ const q_component_text_segment_1 = /*#__PURE__*/ _qrlWithChunk(
   'component_text_segment_1'
 );
 q_component_text_segment_1.s(component_text_segment_1);
-
 function maybeSignal() {
   return { value: 'maybe' };
 }
-
-export function App(_props, ctx) {
+export function App(props, ctx) {
   const foo = maybeSignal();
   const id0 = ctx.nextId();
+  const invokeCtx3 = getActiveInvokeContextOrNull();
   ctx.addRoot(foo);
-  const batch2 = createSsrDomBatchEffect();
   const attr1 = renderSsrAttrExpression(
     createSsrElementTarget(id0),
     'title',
     [foo],
-    q_component_title_segment_0,
-    batch2
+    q_component_title_segment_0
   );
-  const text3 = renderSsrTextExpression(
-    createSsrElementTextTarget(id0),
-    [foo],
-    q_component_text_segment_1,
-    batch2
-  );
-  return maybeThen(
-    promiseAll([attr1, text3]),
-    ([attr1, text3]) =>
-      '<div q:id="' + id0 + '" title="' + escapeHTML(attr1) + '">' + escapeHTML(text3) + '</div>'
+  const text2 = () =>
+    invoke(invokeCtx3, () => {
+      return renderSsrTextExpression(
+        createSsrElementTextTarget(id0),
+        [foo],
+        q_component_text_segment_1
+      );
+    });
+  return maybeThen(attr1, (attr1) =>
+    maybeThen(text2(), (text2) => [
+      createSsrElementRecord(
+        'div',
+        '<div q:id="',
+        createSsrNodeId(id0),
+        '"',
+        attr1 === null ? '' : ' title' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
+        '>'
+      ),
+      escapeHTML(text2),
+      '</div>',
+    ])
   );
 }
-
-null
 ============================= src/component.tsx_component_title_segment_0.js (ENTRY POINT)==
 
 export const component_title_segment_0 = (foo) => {
   return foo.value;
 };
-
-null
 /*
 {
   "origin": "component.tsx",
@@ -105,8 +111,6 @@ null
 export const component_text_segment_1 = (foo) => {
   return foo.value;
 };
-
-null
 /*
 {
   "origin": "component.tsx",
@@ -138,43 +142,36 @@ null
 ============================= src/component.tsx ==
 
 import {
-  createTemplate,
-  createDomBatchEffect,
-  patchTextValue,
+  _first,
   patchAttrValue,
-} from '@qwik.dev/core/spark';
+  patchTextValue,
+  createDomBatchEffect,
+  createTemplate,
+} from '@qwik.dev/core';
+import { component_title_segment_0 } from './component.tsx_component_title_segment_0';
+import { component_text_segment_1 } from './component.tsx_component_text_segment_1';
 
+const App_tmpl0 = createTemplate('<div> </div>');
 function maybeSignal() {
   return { value: 'maybe' };
 }
-
-const dom_App_template0 = createTemplate('<div> </div>');
-const dom_App_expr1 = (foo) => foo.value;
-const dom_App_expr2 = (foo) => foo.value;
-export function App(_props, ctx) {
+export function App(props, ctx) {
   const foo = maybeSignal();
-  const fragment0 = dom_App_template0(ctx.document);
-  const el1 = fragment0.firstChild;
-  const text4 = el1.firstChild;
-  function batch3() {
-    patchAttrValue(el1, 'title', dom_App_expr1(foo));
-    patchTextValue(text4, dom_App_expr2(foo));
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const text0 = _first(el0);
+  function batch0() {
+    patchAttrValue(el0, 'title', component_title_segment_0(foo));
+    patchTextValue(text0, component_text_segment_1(foo));
   }
-  const effect2 = createDomBatchEffect(batch3, ctx.scheduler);
-  ctx.scheduler.notify(effect2);
-  return el1;
+  const effect0 = createDomBatchEffect(batch0, ctx.scheduler);
+  return el0;
 }
-
-null
 ============================= src/component.tsx_component_title_segment_0.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
-export const component_title_segment_0 = () => {
-  const foo = _captures[0];
+export const component_title_segment_0 = (foo) => {
   return foo.value;
 };
-
-null
 /*
 {
   "origin": "component.tsx",
@@ -200,13 +197,9 @@ null
 */
 ============================= src/component.tsx_component_text_segment_1.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
-export const component_text_segment_1 = () => {
-  const foo = _captures[0];
+export const component_text_segment_1 = (foo) => {
   return foo.value;
 };
-
-null
 /*
 {
   "origin": "component.tsx",

@@ -17,9 +17,21 @@ export async function apiExtractorQwik(config: BuildConfig) {
     join(config.distQwikPkgDir, 'core.d.ts'),
     '.'
   );
+  createTypesApi(
+    config,
+    join(config.srcQwikDir, 'core'),
+    join(config.distQwikPkgDir, 'core-internal.d.ts'),
+    '.',
+    'internal-api-extractor.json'
+  );
   // Special case for jsx-runtime:
   // It only re-exports JSX. Don't duplicate the types
-  const jsxContent = readFileSync(join(config.srcQwikDir, 'jsx-runtime.ts'), 'utf-8');
+  const jsxContent = `export declare const Fragment: symbol;
+export declare const jsx: (_type: unknown, _props: unknown) => never;
+export declare const jsxs: (_type: unknown, _props: unknown) => never;
+export declare const jsxDEV: (_type: unknown, _props: unknown) => never;
+export type { JSX } from '..';
+`;
   writeFileSync(
     join(config.distQwikPkgDir, 'jsx-runtime.d.ts'),
     `// re-export to make TS happy when not using nodenext import resolution\n${jsxContent}`
@@ -44,12 +56,6 @@ export async function apiExtractorQwik(config: BuildConfig) {
   );
   createTypesApi(
     config,
-    join(config.srcQwikDir, 'spark'),
-    join(config.distQwikPkgDir, 'spark', 'index.d.ts'),
-    '..'
-  );
-  createTypesApi(
-    config,
     join(config.srcQwikDir, 'build'),
     join(config.distQwikPkgDir, 'build', 'index.d.ts'),
     '..'
@@ -58,7 +64,7 @@ export async function apiExtractorQwik(config: BuildConfig) {
     config,
     join(config.srcQwikDir, 'web-worker'),
     join(config.distQwikPkgDir, 'worker', 'index.d.mts'),
-    '../core-internal.js'
+    '../core.js'
   );
   createTypesApi(
     config,
@@ -232,9 +238,10 @@ function createTypesApi(
   config: BuildConfig,
   inPath: string,
   outPath: string,
-  relativePath?: string
+  relativePath?: string,
+  configFile = 'api-extractor.json'
 ) {
-  const extractorConfigPath = join(inPath, 'api-extractor.json');
+  const extractorConfigPath = join(inPath, configFile);
   const extractorConfig = ExtractorConfig.loadFileAndPrepare(extractorConfigPath);
   const result = Extractor.invoke(extractorConfig, {
     localBuild: !!config.dev,

@@ -1,11 +1,7 @@
 import type { SimpleURL } from './types';
 
-import { createAsync$, isBrowser } from '@qwik.dev/core';
-import {
-  _UNINITIALIZED,
-  type _Container,
-  type SerializationStrategy,
-} from '@qwik.dev/core/internal';
+import { $, isBrowser } from '@qwik.dev/core';
+import { _AsyncSignal, _UNINITIALIZED, type _Container } from '@qwik.dev/core/internal';
 import { QACTION_KEY, QLOADER_KEY } from './constants';
 import { loadClientData } from './use-endpoint';
 
@@ -92,22 +88,18 @@ export const createLoaderSignal = (
   loadersObject: Record<string, unknown>,
   loaderId: string,
   url: URL,
-  serializationStrategy: SerializationStrategy,
   container?: _Container
 ) => {
-  return createAsync$(
-    async () => {
-      if (isBrowser && loadersObject[loaderId] === _UNINITIALIZED) {
-        const data = await loadClientData(url, {
-          loaderIds: [loaderId],
-        });
-        loadersObject[loaderId] = data?.loaders[loaderId] ?? _UNINITIALIZED;
-      }
-      return loadersObject[loaderId];
-    },
-    {
-      container: container as _Container,
-      serializationStrategy,
+  const computeQrl = $(async () => {
+    if (isBrowser && loadersObject[loaderId] === _UNINITIALIZED) {
+      const data = await loadClientData(url, {
+        loaderIds: [loaderId],
+      });
+      loadersObject[loaderId] = data?.loaders[loaderId] ?? _UNINITIALIZED;
     }
-  );
+    return loadersObject[loaderId];
+  });
+  const signal = new _AsyncSignal(computeQrl, null, container);
+  void computeQrl.resolve(container).catch(() => {});
+  return signal;
 };

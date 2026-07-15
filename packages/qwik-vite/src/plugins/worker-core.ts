@@ -1,7 +1,7 @@
 import type { OutputBundle, PluginContext } from 'rollup';
 import type { Plugin as VitePlugin, UserConfig } from 'vite';
 import type { QwikManifest } from '../types';
-import { QWIK_CORE_ID, QWIK_CORE_INTERNAL_ID, type QwikBuildTarget } from './plugin';
+import { QWIK_CORE_ID, type QwikBuildTarget } from './plugin';
 import {
   createBuildWorkerCoreChunkResolver,
   QWIK_WORKER_CORE_SENTINEL,
@@ -13,8 +13,7 @@ export const QWIK_WORKER_CORE_ID = '@qwik-worker-core';
 type WorkerConfig = NonNullable<UserConfig['worker']>;
 
 const QWIK_WORKER_CORE_CODE = `
-export { setPlatform } from '@qwik.dev/core';
-export { _deserialize } from '@qwik.dev/core/internal';
+export { setPlatform, _deserialize } from '@qwik.dev/core';
 `;
 
 export const isQwikWorkerCoreId = (id: string) => {
@@ -83,7 +82,7 @@ const createQwikWorkerCoreExternalPlugin = (): VitePlugin => {
     name: 'vite-plugin-qwik-worker-core-external',
     enforce: 'pre',
     resolveId(id) {
-      if (id === QWIK_CORE_ID || id === QWIK_CORE_INTERNAL_ID) {
+      if (id === QWIK_CORE_ID) {
         return {
           id: QWIK_WORKER_CORE_SENTINEL,
           external: true,

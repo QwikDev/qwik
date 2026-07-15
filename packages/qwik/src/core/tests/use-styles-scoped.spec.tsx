@@ -1,107 +1,87 @@
-import {
-  Fragment as Component,
-  component$,
-  Fragment,
-  Fragment as Projection,
-  Fragment as Signal,
-  Slot,
-  useAsync$,
-  useSignal,
-  useStylesScoped$,
-} from '@qwik.dev/core';
-import { renderToString } from '@qwik.dev/core/server';
-import { createDocument, domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
-import { cleanupAttrs } from 'packages/qwik/src/testing/element-fixture';
-import { afterEach, describe, expect, it } from 'vitest';
-import { useStore } from '..';
-import { getPlatform, setPlatform } from '../shared/platform/platform';
-import { QStyleSelector } from '../shared/utils/markers';
+import { component$, Slot } from '@qwik.dev/core';
+import { useAsync$, useSignal, useStylesScoped$ } from '@qwik.dev/core';
+import { describe, expect, it } from 'vitest';
+import { QStyle, QStyleSelector } from '../shared/utils/markers';
 import { getScopedStyles } from '../shared/utils/scoped-stylesheet';
+import { csrRender, ssrRender } from '../test-utils';
 
-const debug = false; //true;
-Error.stackTraceLimit = 100;
-
-const STYLE_RED = `.container {background-color: red;}`;
-const STYLE_BLUE = `.container {background-color: blue;}`;
+const debug = false;
+const STYLE_RED = `.container { color: red; }`;
+const STYLE_BLUE = `.container { color: blue; }`;
+const STYLE_CHILD = `.child { color: green; }`;
 
 describe.each([
-  { render: ssrRenderToDom }, //
-  { render: domRender }, //
-])('$render.name: useStylesScoped', ({ render }) => {
-  afterEach(() => {
-    (globalThis as any).rawStyleId = undefined;
-    (globalThis as any).rawStyleId1 = undefined;
-    (globalThis as any).rawStyleId2 = undefined;
-    (globalThis as any).rawStyleId3 = undefined;
-    (globalThis as any).rawStyleId4 = undefined;
-  });
-
-  it('should render style', async () => {
-    (globalThis as any).rawStyleId = '';
-
-    const StyledComponent = component$(() => {
-      const stylesScopedData = useStylesScoped$(STYLE_RED);
-      (globalThis as any).rawStyleId = stylesScopedData.scopeId;
-      return <div class="container">Hello world</div>;
+  { name: 'ssrRender', render: ssrRender },
+  { name: 'csrRender', render: csrRender },
+])('$name: useStylesScoped$', ({ render }) => {
+  it('appends scoped style and prefixes static classes', async () => {
+    const App = component$(() => {
+      useStylesScoped$(STYLE_RED);
+      return <div class="container">Hello</div>;
     });
 
-    const { vNode, getStyles } = await render(<StyledComponent />, { debug });
-    const styleId = (globalThis as any).rawStyleId.substring(2);
-    const scopeStyle = getScopedStyles(STYLE_RED, styleId);
-    expect(getStyles()).toEqual({
-      [styleId]: scopeStyle,
-    });
-    expect(vNode).toMatchVDOM(
-      <>
-        <div class={(globalThis as any).rawStyleId + ' container'}>Hello world</div>
-      </>
-    );
+    const { document, container, cleanup } = await render(App, { debug });
+    const style = document.querySelector(QStyleSelector)!;
+    const styleId = style.getAttribute(QStyle)!;
+    const scopeId = `⚡️${styleId}`;
+    const div = container.querySelector('div')!;
+
+    expect(style.textContent).toBe(getScopedStyles(STYLE_RED, styleId));
+    expect(div.className).toBe(`${scopeId} container`);
+    cleanup();
   });
 
-  it('should render object style', async () => {
-    (globalThis as any).rawStyleId = '';
-
-    const StyledComponent = component$(() => {
-      const stylesScopedData = useStylesScoped$(STYLE_RED);
-      (globalThis as any).rawStyleId = stylesScopedData.scopeId;
-
-      const store = useStore({
-        count: 10,
-      });
-
+  it('keeps scoped class when object class updates', async () => {
+    const App = component$(() => {
+      useStylesScoped$(STYLE_RED);
+      const active = useSignal(false);
       return (
-        <button class={['container', `count-${store.count}`]} onClick$={() => store.count++}>
-          Hello world
+        <button
+          class={{ container: true, active: active.value }}
+          onClick$={() => (active.value = true)}
+        >
+          Toggle
         </button>
       );
     });
 
-    const { vNode, getStyles, document } = await render(<StyledComponent />, { debug });
-    const styleId = (globalThis as any).rawStyleId.substring(2);
-    const scopeStyle = getScopedStyles(STYLE_RED, styleId);
-    expect(getStyles()).toEqual({
-      [styleId]: scopeStyle,
-    });
-    expect(vNode).toMatchVDOM(
-      <>
-        <button class={(globalThis as any).rawStyleId + ' container count-10'}>Hello world</button>
-      </>
-    );
-    await trigger(document.body, 'button', 'click');
-    expect(vNode).toMatchVDOM(
-      <>
-        <button class={(globalThis as any).rawStyleId + ' container count-11'}>Hello world</button>
-      </>
-    );
+    const { document, container, cleanup, qwikLoader } = await render(App, { debug });
+    const styleId = document.querySelector(QStyleSelector)!.getAttribute(QStyle)!;
+    const scopeId = `⚡️${styleId}`;
+    const button = container.querySelector('button')!;
+
+    expect(button.className).toBe(`${scopeId} container`);
+    await qwikLoader?.dispatch(button, 'click');
+    expect(button.className).toBe(`${scopeId} container active`);
+    cleanup();
   });
 
-  it('should move style to <head> on rerender', async () => {
-    (globalThis as any).rawStyleId = '';
+  it('keeps scoped class when array class updates', async () => {
+    const App = component$(() => {
+      useStylesScoped$(STYLE_RED);
+      const count = useSignal(10);
+      return (
+        <button class={['container', `count-${count.value}`]} onClick$={() => count.value++}>
+          Hello
+        </button>
+      );
+    });
 
-    const StyledComponent = component$(() => {
-      const stylesScopedData = useStylesScoped$(STYLE_RED);
+    const { document, container, cleanup, qwikLoader } = await render(App, { debug });
+    const styleId = document.querySelector(QStyleSelector)!.getAttribute(QStyle)!;
+    const scopeId = `⚡️${styleId}`;
+    const button = container.querySelector('button')!;
+
+    expect(button.className).toBe(`${scopeId} container count-10`);
+    await qwikLoader?.dispatch(button, 'click');
+    expect(button.className).toBe(`${scopeId} container count-11`);
+    cleanup();
+  });
+
+  it('keeps scoped style in head after a signal update', async () => {
+    const App = component$(() => {
+      useStylesScoped$(STYLE_RED);
       const count = useSignal(0);
-      (globalThis as any).rawStyleId = stylesScopedData.scopeId;
       return (
         <button class="container" onClick$={() => count.value++}>
           {count.value}
@@ -109,631 +89,419 @@ describe.each([
       );
     });
 
-    const { vNode, container } = await render(<StyledComponent />, { debug });
-    const styleId = (globalThis as any).rawStyleId.substring(2);
-    const scopeStyle = getScopedStyles(STYLE_RED, styleId);
-    await trigger(container.element, 'button', 'click');
-    expect(vNode).toMatchVDOM(
-      <>
-        <button class={`${(globalThis as any).rawStyleId} container`}>
-          <Signal ssr-required>1</Signal>
-        </button>
-      </>
-    );
-    const style = container.document.querySelector(QStyleSelector);
-    expect(cleanupAttrs(style?.outerHTML)).toEqual(
-      `<style q:style="${styleId}">${scopeStyle}</style>`
-    );
+    const { document, container, cleanup, qwikLoader } = await render(App, { debug });
+    const button = container.querySelector('button')!;
+    await qwikLoader?.dispatch(button, 'click');
+    const style = document.querySelector(QStyleSelector)!;
+    const styleId = style.getAttribute(QStyle)!;
+
+    expect(style.textContent).toBe(getScopedStyles(STYLE_RED, styleId));
+    expect(button.className).toBe(`⚡️${styleId} container`);
+    expect(button.textContent).toBe('1');
+    cleanup();
   });
 
-  it('should save styles when JSX deleted', async () => {
-    (globalThis as any).rawStyleId = '';
-
-    const StyledComponent = component$(() => {
-      const stylesScopedData = useStylesScoped$(STYLE_RED);
-      (globalThis as any).rawStyleId = stylesScopedData.scopeId;
-      return <div>Hello world</div>;
-    });
-
-    const Parent = component$(() => {
-      const show = useSignal(true);
-      return (
-        <div class="parent" onClick$={() => (show.value = false)}>
-          {show.value && <StyledComponent />}
-        </div>
-      );
-    });
-
-    const { vNode, container } = await render(<Parent />, { debug });
-    const styleId = (globalThis as any).rawStyleId.substring(2);
-    const scopeStyle = getScopedStyles(STYLE_RED, styleId);
-    await trigger(container.element, 'div.parent', 'click');
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <div class="parent">{''}</div>
-      </Component>
-    );
-    const style = container.document.querySelector(QStyleSelector);
-    expect(cleanupAttrs(style?.outerHTML)).toEqual(
-      `<style q:style="${styleId}">${scopeStyle}</style>`
-    );
-  });
-
-  it('style node should contain q:style attribute', async () => {
-    const StyledComponent = component$(() => {
+  it('adds multiple scoped classes before user classes', async () => {
+    const App = component$(() => {
       useStylesScoped$(STYLE_RED);
-      return <div>Hello world</div>;
+      useStylesScoped$(STYLE_BLUE);
+      return <div class="container">Hello</div>;
     });
-    const { container } = await render(<StyledComponent />, { debug });
-    const allStyles = container.document.querySelectorAll('style');
-    const qStyles = container.document.querySelectorAll(QStyleSelector);
-    expect(allStyles.length).toBe(qStyles.length);
+
+    const { document, container, cleanup } = await render(App, { debug });
+    const styleIds = Array.from(document.querySelectorAll(QStyleSelector), (style) =>
+      style.getAttribute(QStyle)
+    );
+
+    expect(styleIds).toHaveLength(2);
+    expect(container.querySelector('div')!.className).toBe(
+      `⚡️${styleIds[0]} ⚡️${styleIds[1]} container`
+    );
+    cleanup();
   });
 
-  it('should render styles for multiple components', async () => {
-    (globalThis as any).rawStyleId1 = '';
-    (globalThis as any).rawStyleId2 = '';
-    const StyledComponent1 = component$(() => {
-      const stylesScopedData = useStylesScoped$(STYLE_RED);
-      (globalThis as any).rawStyleId1 = stylesScopedData.scopeId;
-      return <div class="container">Hello world 1</div>;
-    });
-    const StyledComponent2 = component$(() => {
-      const stylesScopedData = useStylesScoped$(STYLE_BLUE);
-      (globalThis as any).rawStyleId2 = stylesScopedData.scopeId;
-      return <div class="container">Hello world 2</div>;
-    });
-    const Parent = component$(() => {
+  it('keeps projected children scoped to the component that authored them', async () => {
+    const Frame = component$(() => {
+      useStylesScoped$(STYLE_CHILD);
       return (
-        <div>
-          <StyledComponent1 />
-          <StyledComponent2 />
-        </div>
+        <section id="frame" class="child">
+          <Slot />
+        </section>
       );
     });
-    const { vNode, getStyles } = await render(<Parent />, { debug });
-    const firstStyleId = (globalThis as any).rawStyleId1.substring(2);
-    const firstScopeStyle = getScopedStyles(STYLE_RED, firstStyleId);
-    const secondStyleId = (globalThis as any).rawStyleId2.substring(2);
-    const secondScopeStyle = getScopedStyles(STYLE_BLUE, secondStyleId);
-    expect(getStyles()).toEqual({
-      [firstStyleId]: firstScopeStyle,
-      [secondStyleId]: secondScopeStyle,
-    });
-    expect(vNode).toMatchVDOM(
-      <>
-        <div>
-          <Component>
-            <div class={`${(globalThis as any).rawStyleId1} container`}>Hello world 1</div>
-          </Component>
-          <Component>
-            <div class={`${(globalThis as any).rawStyleId2} container`}>Hello world 2</div>
-          </Component>
-        </div>
-      </>
-    );
-  });
-
-  it('should save styles for all child components', async () => {
-    (globalThis as any).rawStyleId1 = '';
-    (globalThis as any).rawStyleId2 = '';
-    const StyledComponent1 = component$(() => {
-      const stylesScopedData = useStylesScoped$(STYLE_RED);
-      (globalThis as any).rawStyleId1 = stylesScopedData.scopeId;
-      return <div class="container">Hello world 1</div>;
-    });
-    const StyledComponent2 = component$(() => {
-      const stylesScopedData = useStylesScoped$(STYLE_BLUE);
-      (globalThis as any).rawStyleId2 = stylesScopedData.scopeId;
-      return <div class="container">Hello world 2</div>;
-    });
-    const Parent = component$(() => {
-      const show = useSignal(true);
-      return (
-        <div class="parent" onClick$={() => (show.value = false)}>
-          {show.value && <StyledComponent1 />}
-          <StyledComponent2 />
-        </div>
-      );
-    });
-    const { vNode, container } = await render(<Parent />, { debug });
-    const firstStyleId = (globalThis as any).rawStyleId1.substring(2);
-    const firstScopeStyle = getScopedStyles(STYLE_RED, firstStyleId);
-    const secondStyleId = (globalThis as any).rawStyleId2.substring(2);
-    const secondScopeStyle = getScopedStyles(STYLE_BLUE, secondStyleId);
-    await trigger(container.element, 'div.parent', 'click');
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <div class="parent">
-          {''}
-          <Component>
-            <div class={`${(globalThis as any).rawStyleId2} container`}>Hello world 2</div>
-          </Component>
-        </div>
-      </Component>
-    );
-    const qStyles = container.document.querySelectorAll(QStyleSelector);
-    expect(qStyles).toHaveLength(2);
-    expect(Array.from(qStyles).map((style) => cleanupAttrs(style.outerHTML))).toEqual(
-      expect.arrayContaining([
-        `<style q:style="${firstStyleId}">${firstScopeStyle}</style>`,
-        `<style q:style="${secondStyleId}">${secondScopeStyle}</style>`,
-      ])
-    );
-  });
-
-  it('should generate different styleIds for components', async () => {
-    (globalThis as any).rawStyleId1 = '';
-    (globalThis as any).rawStyleId2 = '';
-    const StyledComponent1 = component$(() => {
-      const stylesScopedData = useStylesScoped$(STYLE_RED);
-      (globalThis as any).rawStyleId1 = stylesScopedData.scopeId;
-      return <div>Hello world 1</div>;
-    });
-    const StyledComponent2 = component$(() => {
-      const stylesScopedData = useStylesScoped$(STYLE_RED);
-      (globalThis as any).rawStyleId2 = stylesScopedData.scopeId;
-      return <div>Hello world 2</div>;
-    });
-    const Parent = component$(() => {
-      return (
-        <>
-          <StyledComponent1 />
-          <StyledComponent2 />
-        </>
-      );
-    });
-    await render(<Parent />, { debug });
-    const firstStyleId = (globalThis as any).rawStyleId1.substring(2);
-    const secondStyleId = (globalThis as any).rawStyleId2.substring(2);
-    expect(firstStyleId).not.toEqual(secondStyleId);
-  });
-
-  it('should render styles with multiple useStylesScoped', async () => {
-    (globalThis as any).rawStyleId1 = '';
-    (globalThis as any).rawStyleId2 = '';
-    const StyledComponent = component$(() => {
-      const stylesScopedData = useStylesScoped$(STYLE_RED);
-      (globalThis as any).rawStyleId1 = stylesScopedData.scopeId;
-      const stylesScopedData2 = useStylesScoped$(STYLE_BLUE);
-      (globalThis as any).rawStyleId2 = stylesScopedData2.scopeId;
-      return <div class="container">Hello world</div>;
-    });
-    const { vNode, getStyles } = await render(<StyledComponent />, { debug });
-    const firstStyleId = (globalThis as any).rawStyleId1.substring(2);
-    const firstScopeStyle = getScopedStyles(STYLE_RED, firstStyleId);
-    const secondStyleId = (globalThis as any).rawStyleId2.substring(2);
-    const secondScopeStyle = getScopedStyles(STYLE_BLUE, secondStyleId);
-    expect(getStyles()).toEqual({
-      [firstStyleId]: firstScopeStyle,
-      [secondStyleId]: secondScopeStyle,
-    });
-    expect(vNode).toMatchVDOM(
-      <>
-        <div
-          class={`${(globalThis as any).rawStyleId1} ${(globalThis as any).rawStyleId2} container`}
-        >
-          Hello world
-        </div>
-      </>
-    );
-  });
-
-  it('should generate only one style for the same components', async () => {
-    const StyledComponent1 = component$(() => {
+    const App = component$(() => {
       useStylesScoped$(STYLE_RED);
-      return <div>Hello world 1</div>;
-    });
-    const Parent = component$(() => {
       return (
-        <>
-          <StyledComponent1 />
-          <StyledComponent1 />
-        </>
+        <Frame>
+          <span id="projected" class="container">
+            Projected
+          </span>
+        </Frame>
       );
     });
-    const { container } = await render(<Parent />, { debug });
-    const qStyles = container.document.querySelectorAll(QStyleSelector);
-    expect(qStyles).toHaveLength(1);
+
+    const { document, container, cleanup } = await render(App, { debug });
+    const styles = Array.from(document.querySelectorAll(QStyleSelector));
+    const frameStyle = styles.find((style) => style.textContent?.includes('.child'))!;
+    const appStyle = styles.find((style) => style.textContent?.includes('.container'))!;
+    const frameScope = `⚡️${frameStyle.getAttribute(QStyle)}`;
+    const appScope = `⚡️${appStyle.getAttribute(QStyle)}`;
+
+    expect(container.querySelector('#frame')!.className).toBe(`${frameScope} child`);
+    expect(container.querySelector('#projected')!.className).toBe(`${appScope} container`);
+    cleanup();
   });
 
-  it('should render styles for component inside slot', async () => {
-    (globalThis as any).rawStyleId1 = '';
-    (globalThis as any).rawStyleId2 = '';
-
+  it('keeps component scoped classes inside slot content', async () => {
     const Child = component$(() => {
-      const stylesScopedData = useStylesScoped$(STYLE_BLUE);
-      (globalThis as any).rawStyleId2 = stylesScopedData.scopeId;
-      return <div class="container">Hello world 2</div>;
-    });
-
-    const Parent = component$(() => {
-      const stylesScopedData = useStylesScoped$(STYLE_RED);
-      (globalThis as any).rawStyleId1 = stylesScopedData.scopeId;
+      useStylesScoped$(STYLE_BLUE);
       return (
-        <div class="container">
+        <div id="child" class="container">
+          Child
+        </div>
+      );
+    });
+    const Parent = component$(() => {
+      useStylesScoped$(STYLE_RED);
+      return (
+        <div id="parent" class="container">
           <Slot />
         </div>
       );
     });
-
-    const { vNode, getStyles } = await render(
+    const App = component$(() => (
       <Parent>
         <Child />
-      </Parent>,
-      { debug }
+      </Parent>
+    ));
+
+    const { document, container, cleanup } = await render(App, { debug });
+    const styles = Array.from(document.querySelectorAll(QStyleSelector));
+    const parentStyle = styles.find((style) => style.textContent?.includes('red'))!;
+    const childStyle = styles.find((style) => style.textContent?.includes('blue'))!;
+
+    expect(container.querySelector('#parent')!.className).toBe(
+      `⚡️${parentStyle.getAttribute(QStyle)} container`
     );
-    const firstStyleId = (globalThis as any).rawStyleId1.substring(2);
-    const firstScopeStyle = getScopedStyles(STYLE_RED, firstStyleId);
-    const secondStyleId = (globalThis as any).rawStyleId2.substring(2);
-    const secondScopeStyle = getScopedStyles(STYLE_BLUE, secondStyleId);
-    expect(getStyles()).toEqual({
-      [firstStyleId]: firstScopeStyle,
-      [secondStyleId]: secondScopeStyle,
-    });
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <div class={`${(globalThis as any).rawStyleId1} container`}>
-          <Fragment ssr-required>
-            <Component ssr-required>
-              <div class={`${(globalThis as any).rawStyleId2} container`}>Hello world 2</div>
-            </Component>
-          </Fragment>
-        </div>
-      </Component>
+    expect(container.querySelector('#child')!.className).toBe(
+      `⚡️${childStyle.getAttribute(QStyle)} container`
     );
+    cleanup();
   });
 
-  it('should render styles for multiple slots', async () => {
-    (globalThis as any).rawStyleId1 = '';
-    (globalThis as any).rawStyleId2 = '';
-    (globalThis as any).rawStyleId3 = '';
-
+  it('keeps authored scoped classes through multiple named slots', async () => {
     const ComponentA = component$(() => {
-      const stylesScopedData = useStylesScoped$(STYLE_BLUE);
-
-      (globalThis as any).rawStyleId2 = stylesScopedData.scopeId;
+      useStylesScoped$(STYLE_BLUE);
       return (
-        <div class="containerA">
+        <div id="a" class="containerA">
           <Slot name="one" />
           <Slot name="two" />
         </div>
       );
     });
-
     const ComponentB = component$(() => {
-      const stylesScopedData = useStylesScoped$(STYLE_RED);
-
-      (globalThis as any).rawStyleId3 = stylesScopedData.scopeId;
+      useStylesScoped$(STYLE_RED);
       return (
-        <div class="containerB">
+        <div id="b" class="containerB">
           <Slot name="three" />
           <Slot name="four" />
         </div>
       );
     });
-
-    const RootStyles = component$(() => {
-      const stylesScopedData = useStylesScoped$(STYLE_RED);
-      (globalThis as any).rawStyleId1 = stylesScopedData.scopeId;
+    const App = component$(() => {
+      useStylesScoped$(STYLE_RED);
       return (
         <ComponentB>
           <ComponentA q:slot="three">
-            <div q:slot="one">One</div>
-            <div q:slot="two">Two</div>
+            <div id="one" q:slot="one">
+              One
+            </div>
+            <div id="two" q:slot="two">
+              Two
+            </div>
           </ComponentA>
-          <div q:slot="four">
-            <span class="container">Four</span>
+          <div id="four" q:slot="four">
+            <span id="four-span" class="container">
+              Four
+            </span>
           </div>
         </ComponentB>
       );
     });
 
-    const { vNode, getStyles } = await render(<RootStyles />, { debug });
+    const { document, container, cleanup } = await render(App, { debug });
+    const styles = document.querySelectorAll(QStyleSelector);
+    const appScope = container.querySelector('#four')!.className;
 
-    const firstStyleId = (globalThis as any).rawStyleId1.substring(2);
-    const firstScopeStyle = getScopedStyles(STYLE_RED, firstStyleId);
-    const secondStyleId = (globalThis as any).rawStyleId2.substring(2);
-    const secondScopeStyle = getScopedStyles(STYLE_BLUE, secondStyleId);
-    const thirdStyleId = (globalThis as any).rawStyleId3.substring(2);
-    const thirdScopeStyle = getScopedStyles(STYLE_RED, thirdStyleId);
-    expect(getStyles()).toEqual({
-      [firstStyleId]: firstScopeStyle,
-      [secondStyleId]: secondScopeStyle,
-      [thirdStyleId]: thirdScopeStyle,
-    });
-
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <Component>
-          <div class={`${(globalThis as any).rawStyleId3} containerB`}>
-            <Projection>
-              <Component>
-                <div class={`${(globalThis as any).rawStyleId2} containerA`}>
-                  <Projection>
-                    <div class={(globalThis as any).rawStyleId1} q:slot="one">
-                      One
-                    </div>
-                  </Projection>
-                  <Projection>
-                    <div class={(globalThis as any).rawStyleId1} q:slot="two">
-                      Two
-                    </div>
-                  </Projection>
-                </div>
-              </Component>
-            </Projection>
-            <Projection>
-              <div class={(globalThis as any).rawStyleId1} q:slot="four">
-                <span class={`${(globalThis as any).rawStyleId1} container`}>Four</span>
-              </div>
-            </Projection>
-          </div>
-        </Component>
-      </Component>
-    );
+    expect(styles).toHaveLength(3);
+    expect(container.querySelector('#a')!.className).toMatch(/^⚡️.+ containerA$/);
+    expect(container.querySelector('#b')!.className).toMatch(/^⚡️.+ containerB$/);
+    expect(container.querySelector('#one')!.className).toBe(appScope);
+    expect(container.querySelector('#two')!.className).toBe(appScope);
+    expect(container.querySelector('#four-span')!.className).toBe(`${appScope} container`);
+    cleanup();
   });
 
-  it('should render styles for all nested components and elements', async () => {
-    (globalThis as any).rawStyleId1 = '';
-    (globalThis as any).rawStyleId2 = '';
-    (globalThis as any).rawStyleId3 = '';
-    (globalThis as any).rawStyleId4 = '';
-
-    const StyledComponent2 = component$(() => {
-      const stylesScopedData = useStylesScoped$(STYLE_BLUE);
-      (globalThis as any).rawStyleId2 = stylesScopedData.scopeId;
-      return (
-        <div class="container">
-          <span>Hello world 2</span>
-          <div class="container">Nested 2</div>
-        </div>
-      );
+  it('keeps scoped style after the styled JSX is removed', async () => {
+    const Styled = component$(() => {
+      useStylesScoped$(STYLE_RED);
+      return <div>Hello</div>;
     });
-    const StyledComponent3 = component$(() => {
-      const stylesScopedData = useStylesScoped$(STYLE_RED);
-      (globalThis as any).rawStyleId3 = stylesScopedData.scopeId;
+    const App = component$(() => {
+      const show = useSignal(true);
       return (
-        <div class="container">
-          Hello world 3
-          <Slot />
-        </div>
-      );
-    });
-    const StyledComponent4 = component$(() => {
-      const stylesScopedData = useStylesScoped$(STYLE_BLUE);
-      (globalThis as any).rawStyleId4 = stylesScopedData.scopeId;
-      return <div class="container">Hello world 4</div>;
-    });
-
-    const StyledComponent1 = component$(() => {
-      const stylesScopedData = useStylesScoped$(STYLE_RED);
-      (globalThis as any).rawStyleId1 = stylesScopedData.scopeId;
-      return (
-        <div class="container">
-          <span>Hello world 1</span>
-          <div class="container">Nested 1</div>
-          <StyledComponent2 />
-          <StyledComponent3>
-            <StyledComponent4 />
-          </StyledComponent3>
+        <div class="parent" onClick$={() => (show.value = false)}>
+          {show.value && <Styled />}
         </div>
       );
     });
 
-    const Parent = component$(() => {
-      return (
-        <div class="parent">
-          <StyledComponent1 />
-        </div>
-      );
-    });
-    const { vNode, getStyles } = await render(<Parent />, { debug });
-    const firstStyleId = (globalThis as any).rawStyleId1.substring(2);
-    const firstScopeStyle = getScopedStyles(STYLE_RED, firstStyleId);
-    const secondStyleId = (globalThis as any).rawStyleId2.substring(2);
-    const secondScopeStyle = getScopedStyles(STYLE_BLUE, secondStyleId);
-    const thirdStyleId = (globalThis as any).rawStyleId3.substring(2);
-    const thirdScopeStyle = getScopedStyles(STYLE_RED, thirdStyleId);
-    const fourthStyleId = (globalThis as any).rawStyleId4.substring(2);
-    const fourthScopeStyle = getScopedStyles(STYLE_BLUE, fourthStyleId);
-    expect(getStyles()).toEqual({
-      [firstStyleId]: firstScopeStyle,
-      [secondStyleId]: secondScopeStyle,
-      [thirdStyleId]: thirdScopeStyle,
-      [fourthStyleId]: fourthScopeStyle,
-    });
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <div class="parent">
-          <Component>
-            <div class={`${(globalThis as any).rawStyleId1} container`}>
-              <span class={(globalThis as any).rawStyleId1}>Hello world 1</span>
-              <div class={`${(globalThis as any).rawStyleId1} container`}>Nested 1</div>
-              <Component>
-                <div class={`${(globalThis as any).rawStyleId2} container`}>
-                  <span class={(globalThis as any).rawStyleId2}>Hello world 2</span>
-                  <div class={`${(globalThis as any).rawStyleId2} container`}>Nested 2</div>
-                </div>
-              </Component>
-              <Component>
-                <div class={`${(globalThis as any).rawStyleId3} container`}>
-                  Hello world 3
-                  <Fragment>
-                    <Component>
-                      <div class={`${(globalThis as any).rawStyleId4} container`}>
-                        Hello world 4
-                      </div>
-                    </Component>
-                  </Fragment>
-                </div>
-              </Component>
-            </div>
-          </Component>
-        </div>
-      </Component>
-    );
+    const { document, container, cleanup, qwikLoader } = await render(App, { debug });
+    await qwikLoader?.dispatch(container.querySelector('.parent')!, 'click');
+    const style = document.querySelector(QStyleSelector)!;
+    const styleId = style.getAttribute(QStyle)!;
+
+    expect(style.textContent).toBe(getScopedStyles(STYLE_RED, styleId));
+    expect(container.querySelector('.parent')!.textContent).toBe('');
+    cleanup();
   });
 
-  it('should render style scoped id for element without class attribute', async () => {
-    (globalThis as any).rawStyleId = '';
-
-    const StyledComponent = component$(() => {
-      const stylesScopedData = useStylesScoped$(STYLE_RED);
-      (globalThis as any).rawStyleId = stylesScopedData.scopeId;
-      return <div>Hello world</div>;
+  it('adds q:style to every scoped style node', async () => {
+    const App = component$(() => {
+      useStylesScoped$(STYLE_RED);
+      return <div>Hello</div>;
     });
 
-    const { vNode, getStyles } = await render(<StyledComponent />, { debug });
-    const styleId = (globalThis as any).rawStyleId.substring(2);
-    const scopeStyle = getScopedStyles(STYLE_RED, styleId);
-    expect(getStyles()).toEqual({
-      [styleId]: scopeStyle,
+    const { document, cleanup } = await render(App, { debug });
+
+    expect(document.querySelectorAll('style')).toHaveLength(
+      document.querySelectorAll(QStyleSelector).length
+    );
+    cleanup();
+  });
+
+  it('renders scoped styles for multiple components', async () => {
+    const Red = component$(() => {
+      useStylesScoped$(STYLE_RED);
+      return <div class="container">Red</div>;
     });
-    expect(vNode).toMatchVDOM(
+    const Blue = component$(() => {
+      useStylesScoped$(STYLE_BLUE);
+      return <div class="container">Blue</div>;
+    });
+    const App = component$(() => (
+      <div>
+        <Red />
+        <Blue />
+      </div>
+    ));
+
+    const { document, container, cleanup } = await render(App, { debug });
+    const styles = Array.from(document.querySelectorAll(QStyleSelector));
+    const redStyle = styles.find((style) => style.textContent?.includes('red'))!;
+    const blueStyle = styles.find((style) => style.textContent?.includes('blue'))!;
+
+    expect(styles).toHaveLength(2);
+    expect(container.querySelectorAll('.container')[0].className).toBe(
+      `⚡️${redStyle.getAttribute(QStyle)} container`
+    );
+    expect(container.querySelectorAll('.container')[1].className).toBe(
+      `⚡️${blueStyle.getAttribute(QStyle)} container`
+    );
+    cleanup();
+  });
+
+  it('keeps all child scoped styles after one child is removed', async () => {
+    const Red = component$(() => {
+      useStylesScoped$(STYLE_RED);
+      return <div class="container">Red</div>;
+    });
+    const Blue = component$(() => {
+      useStylesScoped$(STYLE_BLUE);
+      return <div class="container">Blue</div>;
+    });
+    const App = component$(() => {
+      const show = useSignal(true);
+      return (
+        <div class="parent" onClick$={() => (show.value = false)}>
+          {show.value && <Red />}
+          <Blue />
+        </div>
+      );
+    });
+
+    const { document, container, cleanup, qwikLoader } = await render(App, { debug });
+    await qwikLoader?.dispatch(container.querySelector('.parent')!, 'click');
+    const styles = document.querySelectorAll(QStyleSelector);
+
+    expect(styles).toHaveLength(2);
+    expect(container.querySelector('.parent')!.textContent).toBe('Blue');
+    cleanup();
+  });
+
+  it('generates different scoped style ids for different components', async () => {
+    const First = component$(() => {
+      useStylesScoped$(STYLE_RED);
+      return <div>First</div>;
+    });
+    const Second = component$(() => {
+      useStylesScoped$(STYLE_RED);
+      return <div>Second</div>;
+    });
+    const App = component$(() => (
       <>
-        <div class={(globalThis as any).rawStyleId}>Hello world</div>
+        <First />
+        <Second />
       </>
+    ));
+
+    const { document, cleanup } = await render(App, { debug });
+    const styleIds = Array.from(document.querySelectorAll(QStyleSelector), (style) =>
+      style.getAttribute(QStyle)
     );
+
+    expect(styleIds).toHaveLength(2);
+    expect(styleIds[0]).not.toBe(styleIds[1]);
+    cleanup();
   });
 
-  it('should await for async component jsx output before setting style scoped id', async () => {
-    (globalThis as any).rawStyleId = '';
-    const Cmp = component$(() => {
-      const sig = useAsync$(async () => {
-        return 'computed';
-      });
-      sig.value;
-      (globalThis as any).rawStyleId = useStylesScoped$(`.red {color: red;}`).scopeId;
-
-      return <div class="red">this should be red</div>;
+  it('dedupes scoped style for the same component', async () => {
+    const Styled = component$(() => {
+      useStylesScoped$(STYLE_RED);
+      return <div>Hello</div>;
     });
+    const App = component$(() => (
+      <>
+        <Styled />
+        <Styled />
+      </>
+    ));
 
-    const { vNode } = await render(<Cmp />, { debug });
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <div class={(globalThis as any).rawStyleId + ' red'}>this should be red</div>
-      </Component>
-    );
+    const { document, cleanup } = await render(App, { debug });
+
+    expect(document.querySelectorAll(QStyleSelector)).toHaveLength(1);
+    cleanup();
   });
 
-  describe('regression', () => {
-    it('#1945 - should add styles to conditionally rendered slots', async () => {
-      (globalThis as any).rawStyleId1 = '';
-      (globalThis as any).rawStyleId2 = '';
+  it('adds scoped class to elements without a class attribute', async () => {
+    const App = component$(() => {
+      useStylesScoped$(STYLE_RED);
+      return <div>Hello</div>;
+    });
 
-      const Child = component$(() => {
-        const stylesScopedData = useStylesScoped$(STYLE_BLUE);
-        (globalThis as any).rawStyleId2 = stylesScopedData.scopeId;
-        const show = useSignal(false);
-        return (
-          <>
-            <button onClick$={() => (show.value = !show.value)}>toggle slot</button>
-            {show.value ? <Slot /> : null}
-          </>
-        );
-      });
+    const { document, container, cleanup } = await render(App, { debug });
+    const styleId = document.querySelector(QStyleSelector)!.getAttribute(QStyle)!;
 
-      const Parent = component$(() => {
-        const stylesScopedData = useStylesScoped$(STYLE_RED);
-        (globalThis as any).rawStyleId1 = stylesScopedData.scopeId;
-        return (
-          <Child>
-            <span>content</span>
-          </Child>
-        );
-      });
+    expect(container.querySelector('div')!.className).toBe(`⚡️${styleId}`);
+    cleanup();
+  });
 
-      const { vNode, getStyles, document } = await render(<Parent />, { debug });
-      const styleId1 = (globalThis as any).rawStyleId1.substring(2);
-      const scopeStyle1 = getScopedStyles(STYLE_RED, styleId1);
-      const styleId2 = (globalThis as any).rawStyleId2.substring(2);
-      const scopeStyle2 = getScopedStyles(STYLE_BLUE, styleId2);
-      expect(getStyles()).toEqual({
-        [styleId1]: scopeStyle1,
-        [styleId2]: scopeStyle2,
-      });
-      expect(vNode).toMatchVDOM(
-        <Component ssr-required>
-          <Component ssr-required>
-            <Fragment ssr-required>
-              <button class={(globalThis as any).rawStyleId2}>toggle slot</button>
-              {''}
-            </Fragment>
-          </Component>
-        </Component>
-      );
-      await trigger(document.body, 'button', 'click');
-      expect(vNode).toMatchVDOM(
-        <Component ssr-required>
-          <Component ssr-required>
-            <Fragment ssr-required>
-              <button class={(globalThis as any).rawStyleId2}>toggle slot</button>
-              <Projection ssr-required>
-                <span class={(globalThis as any).rawStyleId1}>content</span>
-              </Projection>
-            </Fragment>
-          </Component>
-        </Component>
-      );
-      await trigger(document.body, 'button', 'click');
-      expect(vNode).toMatchVDOM(
-        <Component ssr-required>
-          <Component ssr-required>
-            <Fragment ssr-required>
-              <button class={(globalThis as any).rawStyleId2}>toggle slot</button>
-              {''}
-            </Fragment>
-          </Component>
-        </Component>
-      );
-      await trigger(document.body, 'button', 'click');
-      expect(vNode).toMatchVDOM(
-        <Component ssr-required>
-          <Component ssr-required>
-            <Fragment ssr-required>
-              <button class={(globalThis as any).rawStyleId2}>toggle slot</button>
-              <Projection ssr-required>
-                <span class={(globalThis as any).rawStyleId1}>content</span>
-              </Projection>
-            </Fragment>
-          </Component>
-        </Component>
+  it('scopes nested component elements independently', async () => {
+    const Child = component$(() => {
+      useStylesScoped$(STYLE_BLUE);
+      return (
+        <div id="child" class="container">
+          <span id="child-span">Child</span>
+        </div>
       );
     });
+    const Parent = component$(() => {
+      useStylesScoped$(STYLE_RED);
+      return (
+        <div id="parent" class="container">
+          <span id="parent-span">Parent</span>
+          <Child />
+        </div>
+      );
+    });
+
+    const { document, container, cleanup } = await render(Parent, { debug });
+    const styles = Array.from(document.querySelectorAll(QStyleSelector));
+    const parentStyle = styles.find((style) => style.textContent?.includes('red'))!;
+    const childStyle = styles.find((style) => style.textContent?.includes('blue'))!;
+    const parentScope = `⚡️${parentStyle.getAttribute(QStyle)}`;
+    const childScope = `⚡️${childStyle.getAttribute(QStyle)}`;
+
+    expect(container.querySelector('#parent')!.className).toBe(`${parentScope} container`);
+    expect(container.querySelector('#parent-span')!.className).toBe(parentScope);
+    expect(container.querySelector('#child')!.className).toBe(`${childScope} container`);
+    expect(container.querySelector('#child-span')!.className).toBe(childScope);
+    cleanup();
+  });
+
+  it('awaits async component output before applying scoped class', async () => {
+    const App = component$(() => {
+      const value = useAsync$(async () => 'ready');
+      useStylesScoped$(`.red { color: red; }`);
+      return <div class="red">{value.value}</div>;
+    });
+
+    const { document, container, cleanup } = await render(App, { debug });
+    const styleId = document.querySelector(QStyleSelector)!.getAttribute(QStyle)!;
+
+    expect(container.querySelector('div')!.className).toBe(`⚡️${styleId} red`);
+    expect(container.querySelector('div')!.textContent).toBe('ready');
+    cleanup();
+  });
+
+  it('keeps projected scoped classes when toggling a slot', async () => {
+    const Child = component$(() => {
+      useStylesScoped$(STYLE_BLUE);
+      const show = useSignal(false);
+      return (
+        <section>
+          <button onClick$={() => (show.value = !show.value)}>toggle slot</button>
+          {show.value && <Slot />}
+        </section>
+      );
+    });
+    const App = component$(() => {
+      useStylesScoped$(STYLE_RED);
+      return (
+        <Child>
+          <span id="content">content</span>
+        </Child>
+      );
+    });
+
+    const { document, container, cleanup, qwikLoader } = await render(App, { debug });
+    const button = container.querySelector('button')!;
+    const styles = Array.from(document.querySelectorAll(QStyleSelector));
+    const appStyle = styles.find((style) => style.textContent?.includes('red'))!;
+    const childStyle = styles.find((style) => style.textContent?.includes('blue'))!;
+    const appScope = `⚡️${appStyle.getAttribute(QStyle)}`;
+    const childScope = `⚡️${childStyle.getAttribute(QStyle)}`;
+
+    expect(button.className).toBe(childScope);
+    expect(container.querySelector('#content')).toBeFalsy();
+    await qwikLoader?.dispatch(button, 'click');
+    expect(container.querySelector('#content')!.className).toBe(appScope);
+    await qwikLoader?.dispatch(button, 'click');
+    expect(container.querySelector('#content')).toBeFalsy();
+    cleanup();
   });
 });
 
-const STYLE = `.container{color: blue;}`;
-describe('html wrapper', () => {
-  it('should append scoped style to head', async () => {
-    (globalThis as any).rawStyleId = '';
-    const Wrapper = component$(() => {
-      const stylesScopedData = useStylesScoped$(STYLE);
-      (globalThis as any).rawStyleId = stylesScopedData.scopeId;
-      return <Slot />;
-    });
-    let document = createDocument();
-    const platform = getPlatform();
-    try {
-      const result = await renderToString(
-        <Wrapper>
-          <head>
-            <script></script>
-          </head>
-          <body>
-            <div>content</div>
-          </body>
-        </Wrapper>
-      );
-      document = createDocument({ html: result.html });
-    } finally {
-      setPlatform(platform);
-    }
-
-    const styleId = (globalThis as any).rawStyleId.substring(2);
-    const scopeStyle = getScopedStyles(STYLE, styleId);
-    const styleElement = document.head.lastChild as HTMLElement;
-    expect(styleElement.textContent).toContain(scopeStyle);
+it('ssrRender: appends scoped style to head when rendering document sections', async () => {
+  const Wrapper = component$(() => {
+    useStylesScoped$(STYLE_RED);
+    return <Slot />;
   });
+  const App = component$(() => (
+    <Wrapper>
+      <head>
+        <script></script>
+      </head>
+      <body>
+        <div>content</div>
+      </body>
+    </Wrapper>
+  ));
+
+  const { document, cleanup } = await ssrRender(App, { debug });
+  const style = document.head.querySelector(QStyleSelector)!;
+  const styleId = style.getAttribute(QStyle)!;
+
+  expect(style.textContent).toBe(getScopedStyles(STYLE_RED, styleId));
+  cleanup();
 });

@@ -1,108 +1,44 @@
-import type { TestPlatform } from './types';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { getSymbolHash } from '../core/shared/qrl/qrl-utils';
+import type { TestPlatform } from './types';
 
-function createPlatform() {
-  const moduleCache = new Map<string, { [symbol: string]: any }>();
-  const testPlatform: TestPlatform = {
-    isServer: false,
-    importSymbol(containerEl, url, symbolName) {
-      const hash = getSymbolHash(symbolName);
-      const regSym = (globalThis as any).__qwik_reg_symbols?.get(hash);
-      if (regSym) {
-        return regSym;
-      }
-      if (!url) {
-        console.error('Q-ERROR: importSymbol missing url for', symbolName);
-        throw new Error('Missing URL');
-      }
-      if (!containerEl) {
-        throw new Error('Missing Container');
-      }
-      const urlDoc = toUrl(containerEl.ownerDocument, containerEl, url);
-      const importPath = toPath(urlDoc);
-      const mod = moduleCache.get(importPath);
-      if (mod) {
-        if (!mod || !(symbolName in mod)) {
-          throw new Error(`Q-ERROR: missing symbol '${symbolName}' in module '${url}'.`);
-        }
-        return mod[symbolName];
-      }
-      return import(importPath).then((mod) => {
-        moduleCache.set(importPath, mod);
-        if (!mod || !(symbolName in mod)) {
-          throw new Error(`Q-ERROR: missing symbol '${symbolName}' in module '${url}'.`);
-        }
-        return mod[symbolName];
-      });
-    },
-    raf: (fn) => {
-      return new Promise((resolve) => {
-        // Do not use process.nextTick, as this will execute at same priority as promises.
-        // We need to execute after promises.
-        setTimeout(() => {
-          resolve(fn());
-        });
-      });
-    },
-    flush: async () => {
-      await Promise.resolve();
-    },
-    chunkForSymbol() {
-      return undefined;
-    },
-  };
-  return testPlatform;
-}
+const extensions = ['.ts', '.tsx', '.js', '.cjs', '.mjs', '.jsx'];
 
-export function setTestPlatform(_setPlatform: Function) {
-  _setPlatform(testPlatform);
-}
-
-/**
- * Convert relative base URI and relative URL into a fully qualified URL.
- *
- * @param base -`QRL`s are relative, and therefore they need a base for resolution.
- *
- *   - `Element` use `base.ownerDocument.baseURI`
- *   - `Document` use `base.baseURI`
- *   - `string` use `base` as is
- *   - `QConfig` use `base.baseURI`
- *
- * @param url - Relative URL
- * @returns Fully qualified URL.
- */
-export function toUrl(doc: Document, containerEl: Element, url: string | URL): URL {
-  const base = new URL(containerEl?.getAttribute('q:base') ?? doc.baseURI, doc.baseURI);
-  return new URL(url, base);
-}
-
-function toPath(url: URL) {
-  const normalizedUrl = new URL(String(url));
-  normalizedUrl.hash = '';
-  normalizedUrl.search = '';
-  if (normalizedUrl.protocol !== 'file:') {
-    throw new Error(`Only file: protocol is supported in tests, got: ${normalizedUrl.href}`);
+const toPath = (url: URL) => {
+  url.hash = '';
+  url.search = '';
+  if (url.protocol !== 'file:') {
+    throw new Error(`Only file: protocol is supported in tests, got: ${url.href}`);
   }
-  const path = fileURLToPath(String(normalizedUrl));
-  const importPaths = [path, ...testExts.map((ext) => path + ext)];
-
-  for (let i = 0; i < importPaths.length; i++) {
-    const importPath = importPaths[i];
-    if (existsSync(importPath)) {
-      return importPath;
+  const path = fileURLToPath(url);
+  for (const candidate of [path, ...extensions.map((extension) => path + extension)]) {
+    if (existsSync(candidate)) {
+      return candidate;
     }
   }
-
   throw new Error(`Unable to find path for import "${url}"`);
-}
+};
 
-const testPlatform = createPlatform();
+const platform: TestPlatform = {
+  isServer: false,
+  importSymbol(container, url, symbol) {
+    const registered = (globalThis as any).__qwik_reg_symbols?.get(getSymbolHash(symbol));
+    if (registered) {
+      return registered;
+    }
+    if (!container || !url) {
+      throw new Error(`Unable to import symbol "${symbol}" without a container and URL.`);
+    }
+    const base = new URL(container.getAttribute('q:base') ?? container.ownerDocument.baseURI);
+    return import(toPath(new URL(url, base))).then((module) => module[symbol]);
+  },
+  raf: (fn) => new Promise((resolve) => setTimeout(() => resolve(fn()))),
+  flush: async () => {
+    await Promise.resolve();
+  },
+  chunkForSymbol: () => undefined,
+};
 
 /** @public */
-export function getTestPlatform(): TestPlatform {
-  return testPlatform;
-}
-
-const testExts = ['.ts', '.tsx', '.js', '.cjs', '.mjs', '.jsx'];
+export const getTestPlatform = (): TestPlatform => platform;

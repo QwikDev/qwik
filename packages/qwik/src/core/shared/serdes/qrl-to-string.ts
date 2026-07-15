@@ -5,8 +5,8 @@ import { getPlatform } from '../platform/platform';
 import { createQRL, type QRLInternal, type SyncQRLInternal } from '../qrl/qrl-class';
 import { isSyncQrl } from '../qrl/qrl-utils';
 import { assertDefined } from '../error/assert';
-import type { SSRWriteChunk } from '../../ssr/ssr-types';
-import type { ContainerContext } from '../../vdomless/runtime/container-context';
+import type { SsrWriteChunk } from './writer';
+import type { ContainerContext } from '../../runtime/container-context';
 
 /** @internal */
 export function qrlToString(
@@ -89,13 +89,13 @@ export function qrlToString(
 export function qrlToChunks(
   serializationContext: SerializationContext,
   qrl: QRLInternal | SyncQRLInternal
-): string | SSRWriteChunk[] {
+): string | SsrWriteChunk[] {
   const [chunk, symbol, captures] = qrlToString(serializationContext, qrl, true);
   const prefix = `${chunk}#${symbol}`;
   if (!captures) {
     return prefix;
   }
-  const chunks: SSRWriteChunk[] = [prefix, '#'];
+  const chunks: SsrWriteChunk[] = [prefix, '#'];
   const captureIds = captures.split(' ');
   for (let i = 0; i < captureIds.length; i++) {
     if (i > 0) {

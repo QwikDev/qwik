@@ -1,21 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import { createWindow } from '../../../testing/document';
-import { EffectKind } from '../../vdomless/dom/effect/effect-kind.enum';
-import { DomSubscription, TextNodeEffect } from '../../vdomless/dom/effect/effect';
-import { EffectTargetKind } from '../../vdomless/dom/effect/ssr-effect';
-import { ComputedQrl } from '../../vdomless/reactive/computed-qrl';
-import { ComputedFlags } from '../../vdomless/reactive/flags';
+import { EffectKind } from '../../dom/effect/effect-kind.enum';
+import { DomSubscription, TextNodeEffect } from '../../dom/effect/effect';
+import { EffectTargetKind } from '../../dom/effect/ssr-effect';
+import { ComputedQrl } from '../../reactive/computed-qrl';
+import { ComputedFlags } from '../../reactive/flags';
 import {
   createLazySourceSubs,
   isLazySerialized,
   LazySerialized,
-} from '../../vdomless/reactive/lazy-serialized';
-import { useSignal, type Signal } from '../../vdomless/reactive/signal';
-import {
-  createContainerContext,
-  type ContainerContext,
-} from '../../vdomless/runtime/container-context';
-import { createContextScope, isContextScope } from '../../vdomless/runtime/context-scope';
+} from '../../reactive/lazy-serialized';
+import { useSignal } from '../../reactive/public-api';
+import type { Signal } from '../../reactive/signal';
+import { createContainerContext, type ContainerContext } from '../../runtime/container-context';
+import { createContextScope, isContextScope } from '../../runtime/context-scope';
 import { Constants, TypeIds } from './constants';
 import { inflate } from './inflate';
 

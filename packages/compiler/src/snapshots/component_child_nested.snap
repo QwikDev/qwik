@@ -12,13 +12,15 @@ export function Parent() {
 
 ============================= src/component.tsx ==
 
-import { createComponent, maybeThen } from '@qwik.dev/core/spark';
+import { createSsrElementRecord, createComponent } from '@qwik.dev/core';
 import { Child } from './component.tsx_component_Child';
-
-export { Child } from './component.tsx_component_Child';
+export { Child };
 export function Parent(props, ctx) {
-  const component0 = createComponent({}, (props) => Child(props, ctx));
-  return maybeThen(component0, (component0) => '<section' + '>' + component0 + '</section>');
+  return [
+    createSsrElementRecord('section', '<section', '>'),
+    createComponent({}, (props) => Child(props, ctx)),
+    '</section>',
+  ];
 }
 ============================= src/component.tsx_component_Child.js (ENTRY POINT)==
 
@@ -52,26 +54,28 @@ export function Child(props, ctx) {
 
 ============================= src/component.tsx ==
 
-import { _first, createComponent, createTemplate } from '@qwik.dev/core/spark';
+import { _first, _next, createComponent, createTemplate } from '@qwik.dev/core';
 import { Child } from './component.tsx_component_Child';
 
-export { Child } from './component.tsx_component_Child';
-const Parent_tmpl0 = createTemplate('<section> </section>');
+const Parent_tmpl0 = createTemplate('<section><!----><!----></section>');
+export { Child };
 export function Parent(props, ctx) {
   const fragment0 = Parent_tmpl0(ctx.document);
   const el0 = _first(fragment0);
-  const text0 = _first(el0);
-  const component0 = createComponent({}, (props) => Child(props, ctx), { container: ctx });
-  text0.replaceWith(
-    ...(Array.isArray(component0) ? component0 : component0 == null ? [] : [component0])
-  );
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  const component0 = createComponent({}, (props) => Child(props, ctx));
+  end0.parentNode.insertBefore(component0, end0);
+  start0.remove();
+  end0.remove();
   return el0;
 }
 ============================= src/component.tsx_component_Child.js (ENTRY POINT)==
 
-import { _first, createTemplate } from '@qwik.dev/core/spark';
+import { _first, createTemplate } from '@qwik.dev/core';
 
 const Child_tmpl0 = createTemplate('<span>Child</span>');
+
 export function Child(props, ctx) {
   const fragment0 = Child_tmpl0(ctx.document);
   const el0 = _first(fragment0);

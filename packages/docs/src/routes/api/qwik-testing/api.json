@@ -3,21 +3,21 @@
   "package": "@qwik.dev/qwik/testing",
   "members": [
     {
-      "name": "child",
-      "id": "elementfixture-child",
+      "name": "cleanup",
+      "id": "domharness-cleanup",
       "hierarchy": [
         {
-          "name": "ElementFixture",
-          "id": "elementfixture-child"
+          "name": "DOMHarness",
+          "id": "domharness-cleanup"
         },
         {
-          "name": "child",
-          "id": "elementfixture-child"
+          "name": "cleanup",
+          "id": "domharness-cleanup"
         }
       ],
-      "kind": "Property",
-      "content": "```typescript\nchild: HTMLElement;\n```",
-      "mdFile": "core.elementfixture.child.md"
+      "kind": "MethodSignature",
+      "content": "```typescript\ncleanup(): void;\n```\n**Returns:**\n\nvoid",
+      "mdFile": "core.domharness.cleanup.md"
     },
     {
       "name": "createDocument",
@@ -29,7 +29,7 @@
         }
       ],
       "kind": "Function",
-      "content": "Create emulated `Document` for server environment. Does not implement the full browser `document` and `window` API. This api may be removed in the future.\n\n\n```typescript\nexport declare function createDocument(opts?: MockDocumentOptions): Document;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\nMockDocumentOptions\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nDocument",
+      "content": "Create emulated `Document` for server environment. Does not implement the full browser `document` and `window` API. This api may be removed in the future.\n\n\n```typescript\nexport declare function createDocument(opts?: MockDocumentOptions): Document;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n[MockDocumentOptions](#mockdocumentoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nDocument",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/document.ts",
       "mdFile": "core.createdocument.md"
     },
@@ -43,26 +43,54 @@
         }
       ],
       "kind": "Function",
-      "content": "CreatePlatform and CreateDocument\n\n\n```typescript\ncreateDOM: (input?: {\n    html?: string;\n}) => Promise<{\n    render: (jsxElement: JSXOutput) => Promise<import(\"@qwik.dev/core\").RenderResult>;\n    screen: HTMLElement;\n    userEvent: (queryOrElement: string | Element | keyof HTMLElementTagNameMap | null, eventNameCamel: string | keyof WindowEventMap, eventPayload?: any) => Promise<Event | null>;\n}>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n{ html }\n\n\n</td><td>\n\n(not declared)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ninput\n\n\n</td><td>\n\n{ html?: string; }\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nPromise&lt;{ render: (jsxElement: JSXOutput) =&gt; Promise&lt;import(\"@qwik.dev/core\").RenderResult&gt;; screen: HTMLElement; userEvent: (queryOrElement: string \\| Element \\| keyof HTMLElementTagNameMap \\| null, eventNameCamel: string \\| keyof WindowEventMap, eventPayload?: any) =&gt; Promise&lt;Event \\| null&gt;; }&gt;",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/library.ts",
+      "content": "Creates a compiler-backed DOM harness.\n\n\n```typescript\nexport declare function createDOM(options?: {\n    html?: string;\n}): Promise<DOMHarness>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\noptions\n\n\n</td><td>\n\n{ html?: string; }\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nPromise&lt;[DOMHarness](#domharness)<!-- -->&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/index.ts",
       "mdFile": "core.createdom.md"
     },
     {
-      "name": "document",
-      "id": "elementfixture-document",
+      "name": "createWindow",
+      "id": "createwindow",
       "hierarchy": [
         {
-          "name": "ElementFixture",
-          "id": "elementfixture-document"
-        },
-        {
-          "name": "document",
-          "id": "elementfixture-document"
+          "name": "createWindow",
+          "id": "createwindow"
         }
       ],
-      "kind": "Property",
-      "content": "```typescript\ndocument: MockDocument;\n```",
-      "mdFile": "core.elementfixture.document.md"
+      "kind": "Function",
+      "content": "Create emulated `window` useful for testing.\n\n\n```typescript\nexport declare function createWindow(opts?: MockDocumentOptions): MockWindow;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n[MockDocumentOptions](#mockdocumentoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[MockWindow](#mockwindow)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/document.ts",
+      "mdFile": "core.createwindow.md"
+    },
+    {
+      "name": "dispatch",
+      "id": "qwikloadertestdriver-dispatch",
+      "hierarchy": [
+        {
+          "name": "QwikLoaderTestDriver",
+          "id": "qwikloadertestdriver-dispatch"
+        },
+        {
+          "name": "dispatch",
+          "id": "qwikloadertestdriver-dispatch"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "```typescript\ndispatch(target: Element, type: string, payload?: QwikLoaderEventPayload): Promise<Event>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ntarget\n\n\n</td><td>\n\nElement\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\ntype\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\npayload\n\n\n</td><td>\n\n[QwikLoaderEventPayload](#qwikloadereventpayload)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nPromise&lt;Event&gt;",
+      "mdFile": "core.qwikloadertestdriver.dispatch.md"
+    },
+    {
+      "name": "DOMHarness",
+      "id": "domharness",
+      "hierarchy": [
+        {
+          "name": "DOMHarness",
+          "id": "domharness"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface DOMHarness \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nscreen\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nHTMLElement\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[cleanup()](#domharness-cleanup)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[render(root, options)](#domharness-render)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[userEvent(target, type, payload)](#domharness-userevent)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/index.ts",
+      "mdFile": "core.domharness.md"
     },
     {
       "name": "domRender",
@@ -74,51 +102,9 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nexport declare function domRender(jsx: JSXOutput, opts?: {\n    debug?: boolean;\n}): Promise<{\n    document: Document;\n    container: import(\"@qwik.dev/core\").ClientContainer;\n    vNode: _VNode | null;\n    getStyles: () => Record<string, string | string[]>;\n}>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\njsx\n\n\n</td><td>\n\nJSXOutput\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nopts\n\n\n</td><td>\n\n{ debug?: boolean; }\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nPromise&lt;{ document: Document; container: import(\"@qwik.dev/core\").ClientContainer; vNode: \\_VNode \\| null; getStyles: () =&gt; Record&lt;string, string \\| string\\[\\]&gt;; }&gt;",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/rendering.unit-util.tsx",
+      "content": "```typescript\nexport declare function csrRender<Props>(root: RenderRoot<Props>, options?: RenderOptions<Props>): Promise<RenderResult>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nroot\n\n\n</td><td>\n\nRenderRoot&lt;Props&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[RenderOptions](#renderoptions)<!-- -->&lt;Props&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nPromise&lt;[RenderResult](#renderresult)<!-- -->&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/test-utils.ts",
       "mdFile": "core.domrender.md"
-    },
-    {
-      "name": "ElementFixture",
-      "id": "elementfixture",
-      "hierarchy": [
-        {
-          "name": "ElementFixture",
-          "id": "elementfixture"
-        }
-      ],
-      "kind": "Class",
-      "content": "Creates a simple DOM structure for testing components.\n\nBy default `EntityFixture` creates:\n\n```html\n<host q:view=\"./component_fixture.noop\">\n  <child></child>\n</host>\n```\n\n\n```typescript\nexport declare class ElementFixture \n```\n\n\n<table><thead><tr><th>\n\nConstructor\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n(constructor)(options)\n\n\n</td><td>\n\n\n</td><td>\n\nConstructs a new instance of the `ElementFixture` class\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[child](#elementfixture-child)\n\n\n</td><td>\n\n\n</td><td>\n\nHTMLElement\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[document](#elementfixture-document)\n\n\n</td><td>\n\n\n</td><td>\n\nMockDocument\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[host](#elementfixture-host)\n\n\n</td><td>\n\n\n</td><td>\n\nHTMLElement\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[parent](#elementfixture-parent)\n\n\n</td><td>\n\n\n</td><td>\n\nHTMLElement\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[superParent](#elementfixture-superparent)\n\n\n</td><td>\n\n\n</td><td>\n\nHTMLElement\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[window](#elementfixture-window)\n\n\n</td><td>\n\n\n</td><td>\n\nMockWindow\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/element-fixture.ts",
-      "mdFile": "core.elementfixture.md"
-    },
-    {
-      "name": "emulateExecutionOfQwikFuncs",
-      "id": "emulateexecutionofqwikfuncs",
-      "hierarchy": [
-        {
-          "name": "emulateExecutionOfQwikFuncs",
-          "id": "emulateexecutionofqwikfuncs"
-        }
-      ],
-      "kind": "Function",
-      "content": "```typescript\nexport declare function emulateExecutionOfQwikFuncs(document: Document): void;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ndocument\n\n\n</td><td>\n\nDocument\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/rendering.unit-util.tsx",
-      "mdFile": "core.emulateexecutionofqwikfuncs.md"
-    },
-    {
-      "name": "expectDOM",
-      "id": "expectdom",
-      "hierarchy": [
-        {
-          "name": "expectDOM",
-          "id": "expectdom"
-        }
-      ],
-      "kind": "Function",
-      "content": "```typescript\nexport declare function expectDOM(actual: Element, expected: string): Promise<void>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nactual\n\n\n</td><td>\n\nElement\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nexpected\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nPromise&lt;void&gt;",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/expect-dom.tsx",
-      "mdFile": "core.expectdom.md"
     },
     {
       "name": "getTestPlatform",
@@ -130,113 +116,138 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nexport declare function getTestPlatform(): TestPlatform;\n```\n**Returns:**\n\nTestPlatform",
+      "content": "```typescript\ngetTestPlatform: () => TestPlatform\n```\n**Returns:**\n\n[TestPlatform](#testplatform)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/platform.ts",
       "mdFile": "core.gettestplatform.md"
     },
     {
-      "name": "host",
-      "id": "elementfixture-host",
+      "name": "MockDocument",
+      "id": "mockdocument",
       "hierarchy": [
         {
-          "name": "ElementFixture",
-          "id": "elementfixture-host"
-        },
-        {
-          "name": "host",
-          "id": "elementfixture-host"
-        }
-      ],
-      "kind": "Property",
-      "content": "```typescript\nhost: HTMLElement;\n```",
-      "mdFile": "core.elementfixture.host.md"
-    },
-    {
-      "name": "InOrderAuto",
-      "id": "inorderauto",
-      "hierarchy": [
-        {
-          "name": "InOrderAuto",
-          "id": "inorderauto"
+          "name": "MockDocument",
+          "id": "mockdocument"
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface InOrderAuto \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nmaximumChunk?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nmaximumInitialChunk?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nstrategy\n\n\n</td><td>\n\n\n</td><td>\n\n'auto'\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
-      "mdFile": "core.inorderauto.md"
+      "content": "```typescript\nexport interface MockDocument extends Document \n```\n**Extends:** Document",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/types.ts",
+      "mdFile": "core.mockdocument.md"
     },
     {
-      "name": "InOrderDirect",
-      "id": "inorderdirect",
+      "name": "MockDocumentOptions",
+      "id": "mockdocumentoptions",
       "hierarchy": [
         {
-          "name": "InOrderDirect",
-          "id": "inorderdirect"
+          "name": "MockDocumentOptions",
+          "id": "mockdocumentoptions"
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface InOrderDirect \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nstrategy\n\n\n</td><td>\n\n\n</td><td>\n\n'direct'\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
-      "mdFile": "core.inorderdirect.md"
+      "content": "Options when creating a mock Qwik Document object.\n\n\n```typescript\nexport interface MockDocumentOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nhtml?\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nurl?\n\n\n</td><td>\n\n\n</td><td>\n\nURL \\| string\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/types.ts",
+      "mdFile": "core.mockdocumentoptions.md"
     },
     {
-      "name": "InOrderDisabled",
-      "id": "inorderdisabled",
+      "name": "MockWindow",
+      "id": "mockwindow",
       "hierarchy": [
         {
-          "name": "InOrderDisabled",
-          "id": "inorderdisabled"
+          "name": "MockWindow",
+          "id": "mockwindow"
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface InOrderDisabled \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nstrategy\n\n\n</td><td>\n\n\n</td><td>\n\n'disabled'\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
-      "mdFile": "core.inorderdisabled.md"
+      "content": "```typescript\nexport interface MockWindow extends Window \n```\n**Extends:** Window\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ndocument\n\n\n</td><td>\n\n\n</td><td>\n\n[MockDocument](#mockdocument)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/types.ts",
+      "mdFile": "core.mockwindow.md"
     },
     {
-      "name": "InOrderStreaming",
-      "id": "inorderstreaming",
+      "name": "MockWindowOptions",
+      "id": "mockwindowoptions",
       "hierarchy": [
         {
-          "name": "InOrderStreaming",
-          "id": "inorderstreaming"
+          "name": "MockWindowOptions",
+          "id": "mockwindowoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "Options when creating a mock Qwik Window object.\n\n\n```typescript\nexport interface MockWindowOptions extends MockDocumentOptions \n```\n**Extends:** [MockDocumentOptions](#mockdocumentoptions)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/types.ts",
+      "mdFile": "core.mockwindowoptions.md"
+    },
+    {
+      "name": "QwikLoaderEventPayload",
+      "id": "qwikloadereventpayload",
+      "hierarchy": [
+        {
+          "name": "QwikLoaderEventPayload",
+          "id": "qwikloadereventpayload"
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type InOrderStreaming = InOrderAuto | InOrderDisabled | InOrderDirect;\n```\n**References:** [InOrderAuto](#inorderauto)<!-- -->, [InOrderDisabled](#inorderdisabled)<!-- -->, [InOrderDirect](#inorderdirect)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
-      "mdFile": "core.inorderstreaming.md"
+      "content": "```typescript\nexport type QwikLoaderEventPayload = EventInit & Record<string, unknown>;\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/qwikloader-test-driver.ts",
+      "mdFile": "core.qwikloadereventpayload.md"
     },
     {
-      "name": "OutOfOrderStreaming",
-      "id": "outoforderstreaming",
+      "name": "QwikLoaderTestDriver",
+      "id": "qwikloadertestdriver",
       "hierarchy": [
         {
-          "name": "OutOfOrderStreaming",
-          "id": "outoforderstreaming"
+          "name": "QwikLoaderTestDriver",
+          "id": "qwikloadertestdriver"
         }
       ],
-      "kind": "TypeAlias",
-      "content": "```typescript\nexport type OutOfOrderStreaming = boolean;\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
-      "mdFile": "core.outoforderstreaming.md"
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikLoaderTestDriver \n```\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ncleanup()\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[dispatch(target, type, payload)](#qwikloadertestdriver-dispatch)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/qwikloader-test-driver.ts",
+      "mdFile": "core.qwikloadertestdriver.md"
     },
     {
-      "name": "parent",
-      "id": "elementfixture-parent",
+      "name": "render",
+      "id": "domharness-render",
       "hierarchy": [
         {
-          "name": "ElementFixture",
-          "id": "elementfixture-parent"
+          "name": "DOMHarness",
+          "id": "domharness-render"
         },
         {
-          "name": "parent",
-          "id": "elementfixture-parent"
+          "name": "render",
+          "id": "domharness-render"
         }
       ],
-      "kind": "Property",
-      "content": "```typescript\nparent: HTMLElement;\n```",
-      "mdFile": "core.elementfixture.parent.md"
+      "kind": "MethodSignature",
+      "content": "```typescript\nrender<Props>(root: RenderRoot<Props>, options?: RenderOptions<Props>): Promise<RenderResult>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nroot\n\n\n</td><td>\n\nRenderRoot&lt;Props&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[RenderOptions](#renderoptions)<!-- -->&lt;Props&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nPromise&lt;[RenderResult](#renderresult)<!-- -->&gt;",
+      "mdFile": "core.domharness.render.md"
+    },
+    {
+      "name": "RenderOptions",
+      "id": "renderoptions",
+      "hierarchy": [
+        {
+          "name": "RenderOptions",
+          "id": "renderoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface RenderOptions<Props = undefined> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nbase?\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ndebug?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nlocale?\n\n\n</td><td>\n\n\n</td><td>\n\nRenderToStringOptions&lt;Props&gt;\\['locale'\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nprops?\n\n\n</td><td>\n\n\n</td><td>\n\nProps\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nqwikLoader?\n\n\n</td><td>\n\n\n</td><td>\n\nQwikLoaderOptions\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nscheduler?\n\n\n</td><td>\n\n\n</td><td>\n\nScheduler\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nserverData?\n\n\n</td><td>\n\n\n</td><td>\n\nRecord&lt;string, unknown&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/test-utils.ts",
+      "mdFile": "core.renderoptions.md"
+    },
+    {
+      "name": "RenderResult",
+      "id": "renderresult",
+      "hierarchy": [
+        {
+          "name": "RenderResult",
+          "id": "renderresult"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface RenderResult \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ncleanup\n\n\n</td><td>\n\n\n</td><td>\n\n() =&gt; void\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\ncontainer\n\n\n</td><td>\n\n\n</td><td>\n\nHTMLElement\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\ndocument\n\n\n</td><td>\n\n\n</td><td>\n\nDocument\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nflush\n\n\n</td><td>\n\n\n</td><td>\n\n() =&gt; Promise&lt;void&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nhtml\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nnodes\n\n\n</td><td>\n\n\n</td><td>\n\nreadonly Node\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nqwikLoader?\n\n\n</td><td>\n\n\n</td><td>\n\n[QwikLoaderTestDriver](#qwikloadertestdriver)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nscheduler\n\n\n</td><td>\n\n\n</td><td>\n\nScheduler\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/test-utils.ts",
+      "mdFile": "core.renderresult.md"
     },
     {
       "name": "ssrRenderToDom",
@@ -248,40 +259,23 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nexport declare function ssrRenderToDom(jsx: JSXOutput, opts?: {\n    debug?: boolean;\n    raw?: boolean;\n    qwikLoader?: boolean;\n    containerTagName?: string;\n    stream?: StreamWriter;\n    streaming?: StreamingOptions;\n    resume?: boolean;\n    onBeforeResume?: (document: Document) => void;\n}): Promise<{\n    container: _DomContainer;\n    document: Document;\n    vNode: _VNode | null;\n    getStyles: () => Record<string, string | string[]>;\n}>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\njsx\n\n\n</td><td>\n\nJSXOutput\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nopts\n\n\n</td><td>\n\n{ debug?: boolean; raw?: boolean; qwikLoader?: boolean; containerTagName?: string; stream?: StreamWriter; streaming?: [StreamingOptions](#streamingoptions)<!-- -->; resume?: boolean; onBeforeResume?: (document: Document) =&gt; void; }\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nPromise&lt;{ container: \\_DomContainer; document: Document; vNode: \\_VNode \\| null; getStyles: () =&gt; Record&lt;string, string \\| string\\[\\]&gt;; }&gt;",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/rendering.unit-util.tsx",
+      "content": "```typescript\nexport declare function ssrRender<Props>(root: RenderRoot<Props>, options?: RenderOptions<Props>): Promise<RenderResult>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nroot\n\n\n</td><td>\n\nRenderRoot&lt;Props&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[RenderOptions](#renderoptions)<!-- -->&lt;Props&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nPromise&lt;[RenderResult](#renderresult)<!-- -->&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/test-utils.ts",
       "mdFile": "core.ssrrendertodom.md"
     },
     {
-      "name": "StreamingOptions",
-      "id": "streamingoptions",
+      "name": "TestPlatform",
+      "id": "testplatform",
       "hierarchy": [
         {
-          "name": "StreamingOptions",
-          "id": "streamingoptions"
+          "name": "TestPlatform",
+          "id": "testplatform"
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface StreamingOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ninOrder?\n\n\n</td><td>\n\n\n</td><td>\n\n[InOrderStreaming](#inorderstreaming)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\noutOfOrder?\n\n\n</td><td>\n\n\n</td><td>\n\n[OutOfOrderStreaming](#outoforderstreaming)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
-      "mdFile": "core.streamingoptions.md"
-    },
-    {
-      "name": "superParent",
-      "id": "elementfixture-superparent",
-      "hierarchy": [
-        {
-          "name": "ElementFixture",
-          "id": "elementfixture-superparent"
-        },
-        {
-          "name": "superParent",
-          "id": "elementfixture-superparent"
-        }
-      ],
-      "kind": "Property",
-      "content": "```typescript\nsuperParent: HTMLElement;\n```",
-      "mdFile": "core.elementfixture.superparent.md"
+      "content": "```typescript\nexport interface TestPlatform extends CorePlatform \n```\n**Extends:** CorePlatform\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nflush\n\n\n</td><td>\n\n\n</td><td>\n\n() =&gt; Promise&lt;void&gt;\n\n\n</td><td>\n\nFlushes work scheduled by the test platform.\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/types.ts",
+      "mdFile": "core.testplatform.md"
     },
     {
       "name": "trigger",
@@ -293,68 +287,26 @@
         }
       ],
       "kind": "Function",
-      "content": "Trigger an event in unit tests on an element. Needs to be kept in sync with the Qwik Loader event dispatching.\n\nEvents can be either case sensitive element-scoped events or scoped kebab-case.\n\nFuture deprecation candidate.\n\n\n```typescript\nexport declare function trigger(root: Element, queryOrElement: string | Element | keyof HTMLElementTagNameMap | null, eventName: string, eventPayload?: any, options?: {\n    waitForIdle?: boolean;\n}): Promise<Event | null>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nroot\n\n\n</td><td>\n\nElement\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nqueryOrElement\n\n\n</td><td>\n\nstring \\| Element \\| keyof HTMLElementTagNameMap \\| null\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\neventName\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\neventPayload\n\n\n</td><td>\n\nany\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n{ waitForIdle?: boolean; }\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nPromise&lt;Event \\| null&gt;",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/element-fixture.ts",
+      "content": "```typescript\nexport declare function trigger(parent: Element, target: string | Element | keyof HTMLElementTagNameMap, type: string, payload?: Record<string, unknown>): Promise<Event>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nparent\n\n\n</td><td>\n\nElement\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\ntarget\n\n\n</td><td>\n\nstring \\| Element \\| keyof HTMLElementTagNameMap\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\ntype\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\npayload\n\n\n</td><td>\n\nRecord&lt;string, unknown&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nPromise&lt;Event&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/index.ts",
       "mdFile": "core.trigger.md"
     },
     {
-      "name": "vnode_fromJSX",
-      "id": "vnode_fromjsx",
+      "name": "userEvent",
+      "id": "domharness-userevent",
       "hierarchy": [
         {
-          "name": "vnode_fromJSX",
-          "id": "vnode_fromjsx"
-        }
-      ],
-      "kind": "Function",
-      "content": "```typescript\nexport declare function vnode_fromJSX(jsx: JSXOutput): {\n    vParent: _VirtualVNode | _ElementVNode;\n    vNode: _VNode | null;\n    document: _QDocument;\n    container: ClientContainer;\n};\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\njsx\n\n\n</td><td>\n\nJSXOutput\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n{ vParent: \\_VirtualVNode \\| \\_ElementVNode; vNode: \\_VNode \\| null; document: \\_QDocument; container: ClientContainer; }",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/vdom-diff.unit-util.ts",
-      "mdFile": "core.vnode_fromjsx.md"
-    },
-    {
-      "name": "waitForDrain",
-      "id": "waitfordrain",
-      "hierarchy": [
-        {
-          "name": "waitForDrain",
-          "id": "waitfordrain"
-        }
-      ],
-      "kind": "Function",
-      "content": "Wait for the scheduler to drain.\n\nThis is useful when testing async code.\n\n\n```typescript\nexport declare function waitForDrain(container: Container): Promise<void>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ncontainer\n\n\n</td><td>\n\nContainer\n\n\n</td><td>\n\nThe application container.\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nPromise&lt;void&gt;",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/util.ts",
-      "mdFile": "core.waitfordrain.md"
-    },
-    {
-      "name": "walkJSX",
-      "id": "walkjsx",
-      "hierarchy": [
-        {
-          "name": "walkJSX",
-          "id": "walkjsx"
-        }
-      ],
-      "kind": "Function",
-      "content": "```typescript\nexport declare function walkJSX(jsx: JSXOutput, apply: {\n    enter: (jsx: JSXNodeInternal) => void;\n    leave: (jsx: JSXNodeInternal) => void;\n    text: (text: _Stringifiable) => void;\n}): void;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\njsx\n\n\n</td><td>\n\nJSXOutput\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\napply\n\n\n</td><td>\n\n{ enter: (jsx: JSXNodeInternal) =&gt; void; leave: (jsx: JSXNodeInternal) =&gt; void; text: (text: \\_Stringifiable) =&gt; void; }\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/vdom-diff.unit-util.ts",
-      "mdFile": "core.walkjsx.md"
-    },
-    {
-      "name": "window",
-      "id": "elementfixture-window",
-      "hierarchy": [
-        {
-          "name": "ElementFixture",
-          "id": "elementfixture-window"
+          "name": "DOMHarness",
+          "id": "domharness-userevent"
         },
         {
-          "name": "window",
-          "id": "elementfixture-window"
+          "name": "userEvent",
+          "id": "domharness-userevent"
         }
       ],
-      "kind": "Property",
-      "content": "```typescript\nwindow: MockWindow;\n```",
-      "mdFile": "core.elementfixture.window.md"
+      "kind": "MethodSignature",
+      "content": "```typescript\nuserEvent(target: string | Element | keyof HTMLElementTagNameMap, type: string, payload?: Record<string, unknown>): Promise<Event>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ntarget\n\n\n</td><td>\n\nstring \\| Element \\| keyof HTMLElementTagNameMap\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\ntype\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\npayload\n\n\n</td><td>\n\nRecord&lt;string, unknown&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nPromise&lt;Event&gt;",
+      "mdFile": "core.domharness.userevent.md"
     }
   ]
 }

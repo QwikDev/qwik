@@ -1,107 +1,45 @@
-export {
-  _noopQrl,
-  _noopQrlDEV,
-  _qrlWithChunk,
-  _qrlWithChunkDEV,
-  _regSymbol,
-} from './shared/qrl/qrl';
-export type { QRLInternal as _QRLInternal } from './shared/qrl/qrl-class';
-export { createQRL as _createQRL } from './shared/qrl/qrl-class';
-export { qrlToString as _qrlToString } from './shared/serdes/qrl-to-string';
-// ^ keep this above to avoid circular dependency issues
+import type { ContainerContext } from './runtime/container-context';
+import { getActiveInvokeContext } from './runtime/invoke-context';
 
-export {
-  DomContainer as _DomContainer,
-  getDomContainer as _getDomContainer,
-} from './client/dom-container';
-export { _run } from './client/run-qrl';
-export type {
-  ContainerElement as _ContainerElement,
-  QDocument as _QDocument,
-  VNodeFlags as _VNodeFlags,
-} from './client/types';
-export {
-  mapApp_findIndx as _mapApp_findIndx,
-  mapArray_get as _mapArray_get,
-  mapArray_set as _mapArray_set,
-} from './client/util-mapArray';
-export {
-  vnode_ensureElementInflated as _vnode_ensureElementInflated,
-  vnode_getAttrKeys as _vnode_getAttrKeys,
-  vnode_getFirstChild as _vnode_getFirstChild,
-  vnode_isMaterialized as _vnode_isMaterialized,
-  vnode_isTextVNode as _vnode_isTextVNode,
-  vnode_isVirtualVNode as _vnode_isVirtualVNode,
-  vnode_toString as _vnode_toString,
-} from './client/vnode-utils';
-export { _executeSsrChores } from './shared/cursor/ssr-chore-execution';
+export { isDev, isServer } from '@qwik.dev/core/build';
+export { getPlatform, setPlatform } from './shared/platform/platform';
 export { getAsyncLocalStorage as _getAsyncLocalStorage } from './shared/platform/async-local-storage';
-export type { Container as _Container } from './shared/types';
-export type { ElementVNode as _ElementVNode } from './shared/vnode/element-vnode';
-export type { TextVNode as _TextVNode } from './shared/vnode/text-vnode';
-export type { VirtualVNode as _VirtualVNode } from './shared/vnode/virtual-vnode';
-export type { VNode as _VNode } from './shared/vnode/vnode';
+export { _deserialize, _serialize } from './shared/serdes/standalone';
+export {
+  SerializerSymbol,
+  verifySerializable as _verifySerializable,
+} from './shared/serdes/verify';
+export { _UNINITIALIZED } from './shared/utils/constants';
+export { QContainerSelector } from './shared/utils/markers';
+export type { SerializationStrategy } from './shared/types';
+export type { StreamWriter } from './shared/utils/stream-writer';
+export type { ValueOrPromise } from './shared/utils/types';
+export type { JSXOutput } from './shared/jsx/types/jsx-node';
+export type { QwikSymbolEvent } from './shared/jsx/types/jsx-qwik-events';
+export type { PublicAsyncSignal as AsyncSignal } from './reactive/public-types';
+export { AsyncSignal as _AsyncSignal } from './reactive/async-signal';
+export { useContext as _resolveContext } from './runtime/context';
+export { getActiveInvokeContextOrNull } from './runtime/invoke-context';
+export {
+  forceStoreEffects,
+  hasStoreEffects as _hasStoreEffects,
+  unwrapStore,
+} from './reactive/store';
+export { renderCompiled as _renderCompiled } from './csr-render';
+export type { CsrRenderRoot as _CsrRenderRoot } from './csr-render';
+export { createContainerContext, getOrCreateContainerContext } from './runtime/container-context';
+export type {
+  ContainerContext,
+  ContainerContext as ClientContainer,
+  ContainerContext as DomContainer,
+  ContainerContext as _Container,
+} from './runtime/container-context';
+export { Scheduler } from './runtime/scheduler';
 
-export { _EFFECT_BACK_REF } from './reactive-primitives/backref';
-export { _hasStoreEffects, isStore as _isStore } from './reactive-primitives/impl/store';
-export { isSignal } from './reactive-primitives/utils';
-export { _wrapProp, _wrapSignal } from './reactive-primitives/internal-api';
-export { SubscriptionData as _SubscriptionData } from './reactive-primitives/subscription-data';
-export {
-  isStringifiable as _isStringifiable,
-  type Stringifiable as _Stringifiable,
-} from './shared-types';
-export { _chk, _res, _val } from './shared/jsx/bind-handlers';
-export { _jsxC, _jsxQ, _jsxS, _jsxSorted, _jsxSplit } from './shared/jsx/jsx-internal';
-export { isJSXNode as _isJSXNode } from './shared/jsx/jsx-node';
-export { _getConstProps, _getVarProps } from './shared/jsx/props-proxy';
-export { _fnSignal } from './shared/qrl/inlined-fn';
-export {
-  _deserialize,
-  _dumpState,
-  preprocessState as _preprocessState,
-  _serialize,
-} from './shared/serdes/index';
-export { SubscriptionPatch as _SubscriptionPatch } from './shared/serdes/subscription-patch';
-export { verifySerializable as _verifySerializable } from './shared/serdes/verify';
-export { _SharedContainer } from './shared/shared-container';
-export { _CONST_PROPS, _IMMUTABLE, _UNINITIALIZED, _VAR_PROPS } from './shared/utils/constants';
-export { EMPTY_ARRAY as _EMPTY_ARRAY, EMPTY_OBJ as _EMPTY_OBJ } from './shared/utils/flyweight';
-export { _restProps } from './shared/utils/prop';
-export { _walkJSX } from './ssr/ssr-render-jsx';
-export { _resolveContextWithoutSequentialScope } from './use/use-context';
-export {
-  _getContextContainer,
-  _getContextEvent,
-  _getContextHostElement,
-  _jsxBranch,
-  _waitUntilRendered,
-} from './use/use-core';
-export { useLexicalScope } from './use/use-lexical-scope.public';
-export { isTask as _isTask, scheduleTask as _task } from './use/use-task';
-export { _captures, withCaptures as _withCaptures } from './shared/qrl/qrl-class';
-export { _rsc } from './use/use-resource';
-export type { AsyncSignalOptions } from './reactive-primitives/types';
-export { setEvent } from './vdomless/dom/event/event';
-export { setEvent as _setEvent } from './ssr/ssr-events';
-export { _useHmr, _hmr } from './use/use-hmr';
-export {
-  _addProjection,
-  _setProjectionTarget,
-  _updateProjectionProps,
-  _removeProjection,
-} from './shared/projection/external-projection';
-export { _createDeserializeContainer } from './shared/serdes/serdes.public';
+/** @internal */
+export const _getContextContainer = (): ContainerContext | undefined =>
+  getActiveInvokeContext().container;
 
-/** TESTING */
-export {
-  type VNodeJournal as _VNodeJournal,
-  vnode_getElementName as _vnode_getElementName,
-  vnode_getProp as _vnode_getProp,
-  vnode_getVNodeForChildNode as _vnode_getVNodeForChildNode,
-  vnode_insertBefore as _vnode_insertBefore,
-  vnode_newVirtual as _vnode_newVirtual,
-  vnode_remove as _vnode_remove,
-  vnode_setProp as _vnode_setProp,
-  vnode_isElementVNode as _vnode_isElementVNode,
-} from './client/vnode-utils';
+/** @internal */
+export const _waitUntilRendered = (container: ContainerContext): Promise<void> =>
+  container.scheduler.flushInteraction();

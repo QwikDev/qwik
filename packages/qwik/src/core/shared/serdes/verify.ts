@@ -3,9 +3,9 @@ import { isNode } from '../utils/element';
 import { isPromise } from '../utils/promises';
 import { isArray, isFunction, isObject, isSerializableObject } from '../utils/types';
 import { isQrl } from '../qrl/qrl-utils';
-import { Computed } from '../../vdomless/reactive/computed';
-import { Signal } from '../../vdomless/reactive/signal';
-import { isStore, StorePropSource } from '../../vdomless/reactive/store';
+import { Computed } from '../../reactive/computed';
+import { Signal } from '../../reactive/signal';
+import { isStore, StorePropSource } from '../../reactive/store';
 
 /** @internal */
 export const verifySerializable = <T>(value: T, preMessage?: string): T => {

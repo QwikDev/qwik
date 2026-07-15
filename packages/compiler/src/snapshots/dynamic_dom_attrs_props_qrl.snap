@@ -1,6 +1,6 @@
 ==INPUT==
 
-import { useSignal } from '@qwik.dev/core/spark';
+import { useSignal } from '@qwik.dev/core';
 export function App() {
   const count = useSignal(0);
   return (
@@ -21,14 +21,16 @@ export function App() {
 
 import {
   useSignal,
-  escapeHTML,
+  createSsrNodeId,
   createSsrElementTarget,
   renderSsrAttrExpression,
-  createSsrDomBatchEffect,
+  escapeHTML,
+  createSsrElementRecord,
+  getActiveInvokeContextOrNull,
+  invoke,
   maybeThen,
-  promiseAll,
   _qrlWithChunk,
-} from '@qwik.dev/core/spark';
+} from '@qwik.dev/core';
 import { component_title_segment_0 } from './component.tsx_component_title_segment_0';
 import { component_className_segment_1 } from './component.tsx_component_className_segment_1';
 import { component_style_segment_2 } from './component.tsx_component_style_segment_2';
@@ -54,48 +56,50 @@ q_component_style_segment_2.s(component_style_segment_2);
 export function App(props, ctx) {
   const count = useSignal(0);
   const id0 = ctx.nextId();
-  const batch0 = createSsrDomBatchEffect();
+  let target1;
+  const invokeCtx5 = getActiveInvokeContextOrNull();
   ctx.addRoot(count);
-  const attr0 = renderSsrAttrExpression(
-    createSsrElementTarget(id0),
+  const attr2 = renderSsrAttrExpression(
+    (target1 ??= createSsrElementTarget(id0)),
     'title',
     [count],
-    q_component_title_segment_0,
-    batch0
+    q_component_title_segment_0
   );
-  const attr1 = renderSsrAttrExpression(
-    createSsrElementTarget(id0),
-    'class',
-    [count],
-    q_component_className_segment_1,
-    batch0
-  );
-  const attr2 = renderSsrAttrExpression(
-    createSsrElementTarget(id0),
-    'style',
-    [count],
-    q_component_style_segment_2,
-    batch0
-  );
-  return maybeThen(
-    promiseAll([attr0, attr1, attr2]),
-    ([attr0, attr1, attr2]) =>
-      '<div q:id="' +
-      id0 +
-      '"' +
-      ' title="' +
-      escapeHTML(attr0) +
-      '"' +
-      ' class="' +
-      escapeHTML(attr1) +
-      '"' +
-      ' style="' +
-      escapeHTML(attr2) +
-      '"' +
-      ' data-kind="counter"' +
-      '>' +
-      'Attrs' +
-      '</div>'
+  const attr3 = () =>
+    invoke(invokeCtx5, () => {
+      return renderSsrAttrExpression(
+        (target1 ??= createSsrElementTarget(id0)),
+        'class',
+        [count],
+        q_component_className_segment_1
+      );
+    });
+  const attr4 = () =>
+    invoke(invokeCtx5, () => {
+      return renderSsrAttrExpression(
+        (target1 ??= createSsrElementTarget(id0)),
+        'style',
+        [count],
+        q_component_style_segment_2
+      );
+    });
+  return maybeThen(attr2, (attr2) =>
+    maybeThen(attr3(), (attr3) =>
+      maybeThen(attr4(), (attr4) => [
+        createSsrElementRecord(
+          'div',
+          '<div q:id="',
+          createSsrNodeId(id0),
+          '"',
+          attr2 === null ? '' : ' title' + (attr2 === '' ? '' : '="' + escapeHTML(attr2) + '"'),
+          attr3 === null ? '' : ' class' + (attr3 === '' ? '' : '="' + escapeHTML(attr3) + '"'),
+          attr4 === null ? '' : ' style' + (attr4 === '' ? '' : '="' + escapeHTML(attr4) + '"'),
+          ' data-kind="counter"',
+          '>'
+        ),
+        'Attrs</div>',
+      ])
+    )
   );
 }
 ============================= src/component.tsx_component_title_segment_0.js (ENTRY POINT)==
@@ -117,8 +121,8 @@ export const component_title_segment_0 = (count) => {
   "ctxName": "title",
   "captures": true,
   "loc": [
-    123,
-    145
+    117,
+    139
   ],
   "paramNames": [],
   "captureNames": [
@@ -145,8 +149,8 @@ export const component_className_segment_1 = (count) => {
   "ctxName": "className",
   "captures": true,
   "loc": [
-    158,
-    185
+    152,
+    179
   ],
   "paramNames": [],
   "captureNames": [
@@ -173,8 +177,8 @@ export const component_style_segment_2 = (count) => {
   "ctxName": "style",
   "captures": true,
   "loc": [
-    194,
-    245
+    188,
+    239
   ],
   "paramNames": [],
   "captureNames": [
@@ -194,9 +198,8 @@ import {
   _first,
   patchAttrValue,
   createDomBatchEffect,
-  runDomBatchEffect,
   createTemplate,
-} from '@qwik.dev/core/spark';
+} from '@qwik.dev/core';
 import { component_title_segment_0 } from './component.tsx_component_title_segment_0';
 import { component_className_segment_1 } from './component.tsx_component_className_segment_1';
 import { component_style_segment_2 } from './component.tsx_component_style_segment_2';
@@ -212,7 +215,6 @@ export function App(props, ctx) {
     patchAttrValue(el0, 'style', component_style_segment_2(count));
   }
   const effect0 = createDomBatchEffect(batch0, ctx.scheduler);
-  runDomBatchEffect(effect0, batch0);
   return el0;
 }
 ============================= src/component.tsx_component_title_segment_0.js (ENTRY POINT)==
@@ -234,8 +236,8 @@ export const component_title_segment_0 = (count) => {
   "ctxName": "title",
   "captures": true,
   "loc": [
-    123,
-    145
+    117,
+    139
   ],
   "paramNames": [],
   "captureNames": [
@@ -262,8 +264,8 @@ export const component_className_segment_1 = (count) => {
   "ctxName": "className",
   "captures": true,
   "loc": [
-    158,
-    185
+    152,
+    179
   ],
   "paramNames": [],
   "captureNames": [
@@ -290,8 +292,8 @@ export const component_style_segment_2 = (count) => {
   "ctxName": "style",
   "captures": true,
   "loc": [
-    194,
-    245
+    188,
+    239
   ],
   "paramNames": [],
   "captureNames": [

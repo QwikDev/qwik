@@ -1,5 +1,5 @@
-import { dollar, type QRL } from './qrl/qrl.public';
-import type { JSXNodeInternal, JSXOutput } from './jsx/types/jsx-node';
+import type { QRL } from './qrl/qrl.public';
+import type { JSXOutput } from './jsx/types/jsx-node';
 import type {
   ComponentBaseProps,
   EventHandler,
@@ -7,13 +7,7 @@ import type {
   QRLEventHandlerMulti,
 } from './jsx/types/jsx-qwik-attributes';
 import type { FunctionComponent } from './jsx/types/jsx-node';
-import { _jsxSplit } from '../internal';
 import type { QwikIntrinsicElements } from './jsx/types/jsx-qwik-elements';
-import { assertNumber } from './error/assert';
-import { qTest } from './utils/qdev';
-import { assertQrl } from './qrl/qrl-utils';
-import { isDev } from '@qwik.dev/core/build';
-import type { QRLInternal } from './qrl/qrl-class';
 
 // TS way to check for any
 type IsAny<T> = 0 extends T & 1 ? true : false;
@@ -130,22 +124,8 @@ type _Only$<P> = {
 export const componentQrl = <PROPS extends Record<any, any>>(
   componentQrl: QRL<OnRenderFn<PROPS>>
 ): Component<PROPS> => {
-  // Return a QComponent Factory function.
-  function QwikComponent(
-    props: PublicProps<PROPS>,
-    key: string | null,
-    flags: number = 0
-  ): JSXNodeInternal {
-    isDev && assertQrl(componentQrl);
-    isDev && assertNumber(flags, 'The Qwik Component was not invoked correctly');
-    const hash = qTest ? 'sX' : (componentQrl as QRLInternal).$hash$.slice(0, 4);
-    const finalKey = hash + ':' + (key ? key : '');
-    const InnerCmp = () => {};
-    (InnerCmp as any)[SERIALIZABLE_STATE] = [componentQrl];
-    return _jsxSplit(InnerCmp as any, props, null, props.children, flags, finalKey);
-  }
-  (QwikComponent as any)[SERIALIZABLE_STATE] = [componentQrl];
-  return QwikComponent as any;
+  (componentQrl as any)[SERIALIZABLE_STATE] = [componentQrl];
+  return componentQrl as unknown as Component<PROPS>;
 };
 
 /** @internal */
@@ -210,7 +190,8 @@ export const isQwikComponent = <T extends Component<any>>(component: unknown): c
  */
 // </docs>
 export const component$ = <PROPS = unknown>(onMount: OnRenderFn<PROPS>): Component<PROPS> => {
-  return componentQrl(dollar(onMount));
+  (onMount as any)[SERIALIZABLE_STATE] = [onMount];
+  return onMount as Component<PROPS>;
 };
 
 /** @public */

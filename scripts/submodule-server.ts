@@ -3,7 +3,6 @@ import { join } from 'node:path';
 import { minify } from 'terser';
 import { readPackageJson } from './package-json.ts';
 import { inlineQwikScriptsEsBuild } from './submodule-qwikloader.ts';
-import { inlineBackpatchScriptsEsBuild } from './submodule-backpatch.ts';
 import { MANGLE_PROPS_REGEX } from './submodule-core.ts';
 import { type BuildConfig, getBanner, importPath, readFile, target, writeFile } from './util.ts';
 
@@ -61,11 +60,24 @@ export async function submoduleServer(config: BuildConfig, nameCache?: object) {
         // throws an error if files from src/core are loaded, except for some allowed imports
         name: 'forbid-core',
         setup(build) {
+          build.onResolve({ filter: /^(?:\.\.\/)+core\// }, (args) => {
+            if (
+              args.importer.includes(`${join('src', 'server')}`) &&
+              !args.importer.endsWith(join('server', 'qwik-copy.ts'))
+            ) {
+              throw new Error(
+                `Server code must import stateful runtime from @qwik.dev/core and stateless copies through qwik-copy.ts: ${args.path}`
+              );
+            }
+            return null;
+          });
           build.onLoad({ filter: /src[\\/]core[\\/]/ }, (args) => {
             if (
               args.path.includes('util') ||
               args.path.includes('shared') ||
               args.path.includes('ssr') ||
+              args.path.endsWith(join('core', 'reactive', 'flags.ts')) ||
+              args.path.endsWith(join('core', 'runtime', 'subscriber.ts')) ||
               // we allow building preloader into server builds
               args.path.includes('preloader')
             ) {
@@ -81,7 +93,6 @@ export async function submoduleServer(config: BuildConfig, nameCache?: object) {
     ],
     define: {
       ...(await inlineQwikScriptsEsBuild(config)),
-      ...(await inlineBackpatchScriptsEsBuild(config)),
       'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
       'globalThis.QWIK_DOM_VERSION': JSON.stringify(qwikDomVersion),
     },

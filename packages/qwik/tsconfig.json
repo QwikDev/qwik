@@ -3,7 +3,7 @@
   "compilerOptions": {
     "paths": {
       "@qwik.dev/core": ["packages/qwik/src/core"],
-      "@qwik.dev/core/internal": ["packages/qwik/src/core"],
+      "@qwik.dev/core/internal": ["packages/qwik/src/core/internal"],
       "@qwik.dev/core/jsx-runtime": ["packages/qwik/src/jsx-runtime"],
       "@qwik.dev/core/jsx-dev-runtime": ["packages/qwik/src/jsx-runtime"],
       "@qwik.dev/core/build": ["packages/qwik/src/build"],
@@ -12,8 +12,6 @@
       "@qwik.dev/core/optimizer": ["packages/qwik-vite/src"],
       "@qwik.dev/core/preloader": ["packages/qwik/src/preloader"],
       "@qwik.dev/core/server": ["packages/qwik/src/server"],
-      "@qwik.dev/core/spark": ["packages/qwik/src/spark"],
-      "@qwik.dev/core/spark/handlers": ["packages/qwik/src/spark/handlers"],
       "@qwik.dev/core/testing": ["packages/qwik/src/testing"],
       "@qwik.dev/core/worker": ["packages/qwik/src/web-worker"],
       "@qwik.dev/core/devtools": ["packages/qwik/src/devtools"],

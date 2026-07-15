@@ -1,6 +1,6 @@
 ==INPUT==
 
-import { useSignal } from '@qwik.dev/core/spark';
+import { useSignal } from '@qwik.dev/core';
       import { fun } from './utils';
 
 function renderItem(value: number) {
@@ -28,482 +28,53 @@ export function App() {
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  _qrlWithChunk,
-  renderSsrBranch,
-  maybeThen,
-  promiseAll,
-} from '@qwik.dev/core/spark';
-import { fun } from './utils';
-import { component_branch_condition_segment_0 } from './component.tsx_component_branch_condition_segment_0';
-import { component_branch_condition_segment_3 } from './component.tsx_component_branch_condition_segment_3';
 
-const q_component_branch_condition_segment_0 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_condition_segment_0',
-  () => import('./component.tsx_component_branch_condition_segment_0'),
-  'component_branch_condition_segment_0'
-);
-q_component_branch_condition_segment_0.s(component_branch_condition_segment_0);
-const q_component_branch_then_segment_1 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_then_segment_1',
-  () => import('./component.tsx_component_branch_then_segment_1'),
-  'component_branch_then_segment_1'
-);
-const q_component_branch_else_segment_2 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_else_segment_2',
-  () => import('./component.tsx_component_branch_else_segment_2'),
-  'component_branch_else_segment_2'
-);
-const q_component_branch_condition_segment_3 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_condition_segment_3',
-  () => import('./component.tsx_component_branch_condition_segment_3'),
-  'component_branch_condition_segment_3'
-);
-q_component_branch_condition_segment_3.s(component_branch_condition_segment_3);
-const q_component_branch_then_segment_4 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_then_segment_4',
-  () => import('./component.tsx_component_branch_then_segment_4'),
-  'component_branch_then_segment_4'
-);
-
-function renderItem(value) {
-  return fun(value);
-}
-function renderFallback(value) {
-  return fun(value);
-}
-export { renderItem, renderFallback };
-
-export function App(_props, ctx) {
-  const count = useSignal(1);
-  const renderers = { item: fun };
-  const jsx0 = fun(count.value);
-  const jsx1 = renderers.item(count.value + 1);
-  const id2 = ctx.nextId();
-  ctx.addRoot(count);
-  const branch3 = renderSsrBranch(
-    ctx,
-    id2,
-    q_component_branch_condition_segment_0.w([count]),
-    q_component_branch_then_segment_1.w([count]),
-    q_component_branch_else_segment_2
-  );
-  const id4 = ctx.nextId();
-  const branch5 = renderSsrBranch(
-    ctx,
-    id4,
-    q_component_branch_condition_segment_3.w([count]),
-    q_component_branch_then_segment_4.w([count]),
-    undefined
-  );
-  return maybeThen(
-    promiseAll([jsx0, jsx1, branch3, branch5]),
-    ([jsx0, jsx1, branch3, branch5]) =>
-      '<section>' +
-      jsx0 +
-      jsx1 +
-      '<!b=' +
-      id2 +
-      '>' +
-      branch3 +
-      '<!/b><!b=' +
-      id4 +
-      '>' +
-      branch5 +
-      '<!/b></section>'
-  );
-}
-
-null
-============================= src/component.tsx_component_branch_condition_segment_0.js (ENTRY POINT)==
-
-import { _captures } from '@qwik.dev/core/spark';
-export const component_branch_condition_segment_0 = () => {
-  const count = _captures[0];
-  return count.value > 1;
-};
-
-null
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_branch_condition_segment_0",
-  "entry": null,
-  "displayName": "component_branch_condition_segment_0",
-  "hash": "segment_0",
-  "canonicalFilename": "component.tsx_component_branch_condition_segment_0",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "branch:condition",
-  "captures": true,
-  "loc": [
-    364,
-    379
-  ],
-  "paramNames": [],
-  "captureNames": [
-    "count"
-  ]
-}
-*/
-============================= src/component.tsx_component_branch_then_segment_1.js (ENTRY POINT)==
-
-import { renderItem } from './component';
-import { _captures, maybeThen } from '@qwik.dev/core/spark';
-export const component_branch_then_segment_1 = (ctx) => {
-  const count = _captures[0];
-  const jsx0 = renderItem(count.value);
-  return maybeThen(jsx0, (jsx0) => jsx0);
-};
-
-null
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_branch_then_segment_1",
-  "entry": null,
-  "displayName": "component_branch_then_segment_1",
-  "hash": "segment_1",
-  "canonicalFilename": "component.tsx_component_branch_then_segment_1",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "branch:then",
-  "captures": true,
-  "loc": [
-    382,
-    405
-  ],
-  "paramNames": [],
-  "captureNames": [
-    "count"
-  ]
-}
-*/
-============================= src/component.tsx_component_branch_else_segment_2.js (ENTRY POINT)==
-
-import { renderFallback } from './component';
-import { maybeThen } from '@qwik.dev/core/spark';
-export const component_branch_else_segment_2 = (ctx) => {
-  const jsx0 = renderFallback(0);
-  return maybeThen(jsx0, (jsx0) => jsx0);
-};
-
-null
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_branch_else_segment_2",
-  "entry": null,
-  "displayName": "component_branch_else_segment_2",
-  "hash": "segment_2",
-  "canonicalFilename": "component.tsx_component_branch_else_segment_2",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "branch:else",
-  "captures": false,
-  "loc": [
-    408,
-    425
-  ],
-  "paramNames": []
-}
-*/
-============================= src/component.tsx_component_branch_condition_segment_3.js (ENTRY POINT)==
-
-import { _captures } from '@qwik.dev/core/spark';
-export const component_branch_condition_segment_3 = () => {
-  const count = _captures[0];
-  return count.value;
-};
-
-null
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_branch_condition_segment_3",
-  "entry": null,
-  "displayName": "component_branch_condition_segment_3",
-  "hash": "segment_3",
-  "canonicalFilename": "component.tsx_component_branch_condition_segment_3",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "branch:condition",
-  "captures": true,
-  "loc": [
-    434,
-    445
-  ],
-  "paramNames": [],
-  "captureNames": [
-    "count"
-  ]
-}
-*/
-============================= src/component.tsx_component_branch_then_segment_4.js (ENTRY POINT)==
-
-import { renderItem } from './component';
-import { _captures, maybeThen } from '@qwik.dev/core/spark';
-export const component_branch_then_segment_4 = (ctx) => {
-  const count = _captures[0];
-  const jsx0 = renderItem(count.value);
-  return maybeThen(jsx0, (jsx0) => jsx0);
-};
-
-null
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_branch_then_segment_4",
-  "entry": null,
-  "displayName": "component_branch_then_segment_4",
-  "hash": "segment_4",
-  "canonicalFilename": "component.tsx_component_branch_then_segment_4",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "branch:then",
-  "captures": true,
-  "loc": [
-    449,
-    472
-  ],
-  "paramNames": [],
-  "captureNames": [
-    "count"
-  ]
-}
-*/
 == SSR DIAGNOSTICS ==
 
-[]
+[
+  {
+    "scope": "compiler",
+    "category": "error",
+    "code": "non-serializable-capture",
+    "file": "src/component.tsx",
+    "message": "A resumable segment cannot capture a plain function through a local object or array.",
+    "highlights": [
+      {
+        "lo": 290,
+        "hi": 293,
+        "startLine": 14,
+        "startCol": 29,
+        "endLine": 14,
+        "endCol": 31
+      }
+    ],
+    "suggestions": null
+  }
+]
 == CSR OUTPUT ==
 
 ============================= src/component.tsx ==
 
-import { useSignal, _withCaptures, BranchRange, createBranch } from '@qwik.dev/core/spark';
-import { fun } from './utils';
-import { component_branch_condition_segment_0 } from './component.tsx_component_branch_condition_segment_0';
-import { component_branch_then_segment_1 } from './component.tsx_component_branch_then_segment_1';
-import { component_branch_else_segment_2 } from './component.tsx_component_branch_else_segment_2';
-import { component_branch_condition_segment_3 } from './component.tsx_component_branch_condition_segment_3';
-import { component_branch_then_segment_4 } from './component.tsx_component_branch_then_segment_4';
 
-function renderItem(value) {
-  return fun(value);
-}
-function renderFallback(value) {
-  return fun(value);
-}
-export { renderItem, renderFallback };
-
-export function App(_props, ctx) {
-  const count = useSignal(1);
-  const renderers = { item: fun };
-  const el0 = ctx.document.createElement('section');
-  const jsx1 = fun(count.value);
-  if (Array.isArray(jsx1)) for (let i = 0; i < jsx1.length; i++) el0.appendChild(jsx1[i]);
-  else el0.appendChild(jsx1);
-  const jsx2 = renderers.item(count.value + 1);
-  if (Array.isArray(jsx2)) for (let i = 0; i < jsx2.length; i++) el0.appendChild(jsx2[i]);
-  else el0.appendChild(jsx2);
-  const fragment3 = ctx.document.createDocumentFragment();
-  const comment4 = ctx.document.createComment('b');
-  const comment5 = ctx.document.createComment('/b');
-  fragment3.appendChild(comment4);
-  fragment3.appendChild(comment5);
-  const branch6 = createBranch(
-    ctx,
-    new BranchRange(ctx.document, comment4, comment5),
-    _withCaptures(component_branch_condition_segment_0, [count]),
-    _withCaptures(component_branch_then_segment_1, [count]),
-    component_branch_else_segment_2
-  );
-  ctx.scheduler.notify(branch6);
-  el0.appendChild(fragment3);
-  const fragment7 = ctx.document.createDocumentFragment();
-  const comment8 = ctx.document.createComment('b');
-  const comment9 = ctx.document.createComment('/b');
-  fragment7.appendChild(comment8);
-  fragment7.appendChild(comment9);
-  const branch10 = createBranch(
-    ctx,
-    new BranchRange(ctx.document, comment8, comment9),
-    _withCaptures(component_branch_condition_segment_3, [count]),
-    _withCaptures(component_branch_then_segment_4, [count]),
-    undefined
-  );
-  ctx.scheduler.notify(branch10);
-  el0.appendChild(fragment7);
-  return el0;
-}
-
-null
-============================= src/component.tsx_component_branch_condition_segment_0.js (ENTRY POINT)==
-
-import { _captures } from '@qwik.dev/core/spark';
-export const component_branch_condition_segment_0 = () => {
-  const count = _captures[0];
-  return count.value > 1;
-};
-
-null
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_branch_condition_segment_0",
-  "entry": null,
-  "displayName": "component_branch_condition_segment_0",
-  "hash": "segment_0",
-  "canonicalFilename": "component.tsx_component_branch_condition_segment_0",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "branch:condition",
-  "captures": true,
-  "loc": [
-    364,
-    379
-  ],
-  "paramNames": [],
-  "captureNames": [
-    "count"
-  ]
-}
-*/
-============================= src/component.tsx_component_branch_then_segment_1.js (ENTRY POINT)==
-
-import { renderItem } from './component';
-import { _captures } from '@qwik.dev/core/spark';
-export const component_branch_then_segment_1 = (ctx) => {
-  const count = _captures[0];
-  const jsx0 = renderItem(count.value);
-  return jsx0;
-};
-
-null
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_branch_then_segment_1",
-  "entry": null,
-  "displayName": "component_branch_then_segment_1",
-  "hash": "segment_1",
-  "canonicalFilename": "component.tsx_component_branch_then_segment_1",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "branch:then",
-  "captures": true,
-  "loc": [
-    382,
-    405
-  ],
-  "paramNames": [],
-  "captureNames": [
-    "count"
-  ]
-}
-*/
-============================= src/component.tsx_component_branch_else_segment_2.js (ENTRY POINT)==
-
-import { renderFallback } from './component';
-export const component_branch_else_segment_2 = (ctx) => {
-  const jsx0 = renderFallback(0);
-  return jsx0;
-};
-
-null
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_branch_else_segment_2",
-  "entry": null,
-  "displayName": "component_branch_else_segment_2",
-  "hash": "segment_2",
-  "canonicalFilename": "component.tsx_component_branch_else_segment_2",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "branch:else",
-  "captures": false,
-  "loc": [
-    408,
-    425
-  ],
-  "paramNames": []
-}
-*/
-============================= src/component.tsx_component_branch_condition_segment_3.js (ENTRY POINT)==
-
-import { _captures } from '@qwik.dev/core/spark';
-export const component_branch_condition_segment_3 = () => {
-  const count = _captures[0];
-  return count.value;
-};
-
-null
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_branch_condition_segment_3",
-  "entry": null,
-  "displayName": "component_branch_condition_segment_3",
-  "hash": "segment_3",
-  "canonicalFilename": "component.tsx_component_branch_condition_segment_3",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "branch:condition",
-  "captures": true,
-  "loc": [
-    434,
-    445
-  ],
-  "paramNames": [],
-  "captureNames": [
-    "count"
-  ]
-}
-*/
-============================= src/component.tsx_component_branch_then_segment_4.js (ENTRY POINT)==
-
-import { renderItem } from './component';
-import { _captures } from '@qwik.dev/core/spark';
-export const component_branch_then_segment_4 = (ctx) => {
-  const count = _captures[0];
-  const jsx0 = renderItem(count.value);
-  return jsx0;
-};
-
-null
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_branch_then_segment_4",
-  "entry": null,
-  "displayName": "component_branch_then_segment_4",
-  "hash": "segment_4",
-  "canonicalFilename": "component.tsx_component_branch_then_segment_4",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "branch:then",
-  "captures": true,
-  "loc": [
-    449,
-    472
-  ],
-  "paramNames": [],
-  "captureNames": [
-    "count"
-  ]
-}
-*/
 == CSR DIAGNOSTICS ==
 
-[]
+[
+  {
+    "scope": "compiler",
+    "category": "error",
+    "code": "non-serializable-capture",
+    "file": "src/component.tsx",
+    "message": "A resumable segment cannot capture a plain function through a local object or array.",
+    "highlights": [
+      {
+        "lo": 290,
+        "hi": 293,
+        "startLine": 14,
+        "startCol": 29,
+        "endLine": 14,
+        "endCol": 31
+      }
+    ],
+    "suggestions": null
+  }
+]

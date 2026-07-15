@@ -1,4 +1,4 @@
-import { jsx, component$, Slot, $, type QRLEventHandlerMulti, type QwikJSX } from '@qwik.dev/core';
+import { component$, Slot, $, type QRLEventHandlerMulti, type QwikJSX } from '@qwik.dev/core';
 import type { ActionStore } from './types';
 import { useNavigate } from './use-functions';
 
@@ -39,66 +39,45 @@ export interface FormProps<O, I> extends Omit<
 }
 
 /** @public */
-export const Form = <O, I>(
-  { action, spaReset, reloadDocument, onSubmit$, ...rest }: FormProps<O, I>,
-  key: string | null
-) => {
-  if (action) {
-    const isArrayApi = Array.isArray(onSubmit$);
-    // if you pass an array you can choose where you want action.submit in it
-    if (isArrayApi) {
-      return jsx(
-        'form',
-        {
-          ...rest,
-          action: action.actionPath,
-          'preventdefault:submit': !reloadDocument,
-          onSubmit$: [
-            ...onSubmit$,
-            // action.submit "submitcompleted" event for onSubmitCompleted$ events
-            !reloadDocument
-              ? $((evt: SubmitEvent) => {
-                  if (!action.submitted) {
-                    return action.submit(evt);
-                  }
-                })
-              : undefined,
-          ],
-          method: 'post',
-          ['data-spa-reset']: spaReset ? 'true' : undefined,
-        },
-        key
-      );
-    }
-    return jsx(
-      'form',
-      {
-        ...rest,
-        action: action.actionPath,
-        'preventdefault:submit': !reloadDocument,
-        onSubmit$: [
-          // Since v2, this fires before the action is executed so it can be prevented
-          onSubmit$,
-          // action.submit "submitcompleted" event for onSubmitCompleted$ events
-          !reloadDocument ? action.submit : undefined,
-        ],
-        method: 'post',
-        ['data-spa-reset']: spaReset ? 'true' : undefined,
-      },
-      key
-    );
-  } else {
-    return (
-      <GetForm
-        key={key}
-        spaReset={spaReset}
-        reloadDocument={reloadDocument}
-        onSubmit$={onSubmit$}
-        {...(rest as any)}
-      />
-    );
-  }
-};
+export const Form = <O, I>({
+  action,
+  spaReset,
+  reloadDocument,
+  onSubmit$,
+  ...rest
+}: FormProps<O, I>) =>
+  action ? (
+    <form
+      {...rest}
+      action={action.actionPath}
+      preventdefault:submit={!reloadDocument}
+      onSubmit$={
+        Array.isArray(onSubmit$)
+          ? [
+              ...onSubmit$,
+              !reloadDocument
+                ? $((evt: SubmitEvent) => {
+                    if (!action.submitted) {
+                      return action.submit(evt);
+                    }
+                  })
+                : undefined,
+            ]
+          : [onSubmit$, !reloadDocument ? action.submit : undefined]
+      }
+      method="post"
+      data-spa-reset={spaReset ? 'true' : undefined}
+    >
+      <Slot />
+    </form>
+  ) : (
+    <GetForm
+      spaReset={spaReset}
+      reloadDocument={reloadDocument}
+      onSubmit$={onSubmit$}
+      {...(rest as any)}
+    />
+  );
 
 export const GetForm = component$<FormProps<undefined, undefined>>(
   ({ action: _0, spaReset, reloadDocument, onSubmit$, ...rest }) => {

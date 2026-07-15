@@ -10,28 +10,64 @@ export function App(props: { value: string }) {
 
 ============================= src/component.tsx ==
 
-import { renderItem } from './render-item';
-import { maybeThen } from '@qwik.dev/core/spark';
+import {
+  createSsrElementRecord,
+  renderSsrContent,
+  createSsrRecord,
+  createSsrNodeId,
+  maybeThen,
+  _qrlWithChunk,
+} from '@qwik.dev/core';
+import { semantic_expression_104_127 } from './component.tsx_semantic_expression_104_127';
 
+const q_semantic_expression_104_127 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_semantic_expression_104_127',
+  () => import('./component.tsx_semantic_expression_104_127'),
+  'semantic_expression_104_127'
+);
+q_semantic_expression_104_127.s(semantic_expression_104_127);
 export function App(props, ctx) {
-  const jsx0 = renderItem(props.value);
-  return maybeThen(
-    jsx0,
-    (jsx0) =>
-      '<section' +
-      '>' +
-      '<b' +
-      '>' +
-      'Before' +
-      '</b>' +
-      jsx0 +
-      '<i' +
-      '>' +
-      'After' +
-      '</i>' +
-      '</section>'
-  );
+  const contentId0 = ctx.nextId();
+  ctx.addRoot(props);
+  const content1 = renderSsrContent(ctx, contentId0, [props], q_semantic_expression_104_127);
+  return maybeThen(content1, (content1) => [
+    createSsrElementRecord('section', '<section', '>'),
+    '<b>Before</b>',
+    createSsrRecord('<!d=', createSsrNodeId(contentId0), '>'),
+    content1,
+    '<!/d><i>After</i></section>',
+  ]);
 }
+============================= src/component.tsx_semantic_expression_104_127.js (ENTRY POINT)==
+
+import { renderItem } from './render-item';
+
+export const semantic_expression_104_127 = (props) => {
+  return renderItem(props.value);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "semantic_expression_104_127",
+  "entry": null,
+  "displayName": "semantic_expression_104_127",
+  "hash": "semantic_expression_104_127",
+  "canonicalFilename": "component.tsx_semantic_expression_104_127",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "expression",
+  "captures": true,
+  "loc": [
+    104,
+    127
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
 == SSR DIAGNOSTICS ==
 
 []
@@ -39,18 +75,49 @@ export function App(props, ctx) {
 
 ============================= src/component.tsx ==
 
-import { renderItem } from './render-item';
-import { _first, _next, createTemplate } from '@qwik.dev/core/spark';
+import { _first, _next, createContentBlock, createTemplate } from '@qwik.dev/core';
+import { semantic_expression_104_127 } from './component.tsx_semantic_expression_104_127';
 
-const App_tmpl0 = createTemplate('<section><b>Before</b> <i>After</i></section>');
+const App_tmpl0 = createTemplate('<section><b>Before</b><!----><!----><i>After</i></section>');
 export function App(props, ctx) {
   const fragment0 = App_tmpl0(ctx.document);
   const el0 = _first(fragment0);
-  const text0 = _next(_first(el0));
-  const jsx0 = renderItem(props.value);
-  text0.replaceWith(...(Array.isArray(jsx0) ? jsx0 : jsx0 == null ? [] : [jsx0]));
+  const start0 = _next(_first(el0));
+  const end0 = _next(start0);
+  const content0 = createContentBlock(ctx, start0, end0, [props], semantic_expression_104_127);
+  ctx.scheduler.notify(content0);
   return el0;
 }
+============================= src/component.tsx_semantic_expression_104_127.js (ENTRY POINT)==
+
+import { renderItem } from './render-item';
+
+export const semantic_expression_104_127 = (props) => {
+  return renderItem(props.value);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "semantic_expression_104_127",
+  "entry": null,
+  "displayName": "semantic_expression_104_127",
+  "hash": "semantic_expression_104_127",
+  "canonicalFilename": "component.tsx_semantic_expression_104_127",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "expression",
+  "captures": true,
+  "loc": [
+    104,
+    127
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
 == CSR DIAGNOSTICS ==
 
 []

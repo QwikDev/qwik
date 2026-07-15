@@ -1,0 +1,72 @@
+==INPUT==
+
+export function App() {
+  const items = ['first', 'second'];
+  return <ul>{items.map(() => <li>Item</li>)}</ul>;
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { createSsrElementRecord, renderSsrCollection } from '@qwik.dev/core';
+export function App(props, ctx) {
+  const items = ['first', 'second'];
+  function semantic_collectionRender_83_102() {
+    return '<li>Item</li>';
+  }
+  return [
+    createSsrElementRecord('ul', '<ul', '>'),
+    renderSsrCollection(
+      ctx,
+      undefined,
+      items,
+      undefined,
+      semantic_collectionRender_83_102,
+      false,
+      '',
+      false,
+      0
+    ),
+    '</ul>',
+  ];
+}
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { _first, _next, createCollection, createTemplate } from '@qwik.dev/core';
+
+const semantic_collectionRender_83_102_tmpl0 = createTemplate('<li>Item</li>');
+const App_tmpl0 = createTemplate('<ul><!----><!----></ul>');
+export function App(props, ctx) {
+  const items = ['first', 'second'];
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  function semantic_collectionRender_83_102(ctx) {
+    const fragment0 = semantic_collectionRender_83_102_tmpl0(ctx.document);
+    const el0 = _first(fragment0);
+    return el0;
+  }
+  createCollection(
+    ctx,
+    start0,
+    end0,
+    items,
+    null,
+    semantic_collectionRender_83_102,
+    false,
+    '',
+    0,
+    true
+  );
+  return el0;
+}
+== CSR DIAGNOSTICS ==
+
+[]

@@ -3,7 +3,11 @@ import { getPlatform, isServerPlatform } from '../platform/platform';
 // ^^^ keep these imports above the rest to prevent circular dep issues
 
 import { isBrowser, isDev } from '@qwik.dev/core/build';
-import { invokeApply, tryGetInvokeContext, type InvokeContext } from '../../use/use-core';
+import {
+  getActiveInvokeContextOrNull,
+  setActiveInvokeContext,
+  type RuntimeInvokeContext,
+} from '../../runtime/invoke-context';
 import { assertDefined } from '../error/assert';
 import { QError, qError } from '../error/error';
 import { getQFuncs, QInstanceAttr } from '../utils/markers';
@@ -17,8 +21,7 @@ import { getSymbolHash, SYNC_QRL } from './qrl-utils';
 import type { QRL, QrlArgs, QrlReturn } from './qrl.public';
 // @ts-expect-error we don't have types for the preloader
 import { p as preload } from '@qwik.dev/core/preloader';
-import { ElementVNode } from '../vnode/element-vnode';
-import type { ContainerContext } from '../../vdomless';
+import type { ContainerContext } from '../../runtime/container-context';
 
 interface SyncQRLSymbol {
   $symbol$: typeof SYNC_QRL;
@@ -44,7 +47,7 @@ export type QRLInternalMethods<TYPE> = {
   getHash(): string;
   getCaptured(): unknown[] | null;
   getFn(
-    currentCtx?: InvokeContext,
+    currentCtx?: RuntimeInvokeContext,
     /** If this returns false, the function execution will be skipped */
     beforeFn?: () => void | false
   ): TYPE extends (...args: any) => any
@@ -245,11 +248,9 @@ const qrlCallFn = function <TYPE>(
   // Not resolved yet: we'll return a promise
 
   // grab the context while we are sync
-  const ctx = tryGetInvokeContext();
+  const ctx = getActiveInvokeContextOrNull();
 
-  return qrlResolve
-    .call(qrl)
-    .then(() => invokeApply.call(withThis, ctx, qrl.resolved as any, args));
+  return qrlResolve.call(qrl).then(() => invokeQrlApply(withThis, ctx, qrl.resolved as any, args));
 };
 
 const qrlWithCaptures = function <TYPE>(
@@ -303,7 +304,7 @@ const qrlGetCaptured = function <TYPE>(this: QRLClass<TYPE> | QRLCallable<TYPE>)
 
 const qrlGetFn = function <TYPE>(
   this: QRLClass<TYPE> | QRLCallable<TYPE>,
-  currentCtx?: InvokeContext,
+  currentCtx?: RuntimeInvokeContext,
   beforeFn?: () => void | false
 ): TYPE extends (...args: any) => any
   ? (...args: Parameters<TYPE>) => ValueOrPromise<ReturnType<TYPE> | undefined>
@@ -322,7 +323,7 @@ const qrlGetFn = function <TYPE>(
     if (beforeFn && beforeFn() === false) {
       return undefined;
     }
-    return invokeApply(currentCtx, qrl.resolved as any, args);
+    return invokeQrlApply(undefined, currentCtx ?? null, qrl.resolved as any, args);
   };
   return bound as any;
 };
@@ -459,7 +460,7 @@ const $resolve$ = <TYPE>(
 
   // Capture context while still sync
   const start = now();
-  const ctx = tryGetInvokeContext();
+  const ctx = getActiveInvokeContextOrNull();
 
   // Load raw value via LazyRef - may be sync (e.g. sync QRLs) or async
   const rawOrPromise = lazy.$load$();
@@ -474,15 +475,26 @@ const $resolve$ = <TYPE>(
   if (isPromise(rawOrPromise)) {
     // We're importing; emit symbol usage event
     const symbol = lazy.$symbol$;
-    emitUsedSymbol(
-      symbol,
-      ctx?.$hostElement$ instanceof ElementVNode ? ctx?.$hostElement$.node : undefined,
-      start
-    );
+    emitUsedSymbol(symbol, ctx?.container?.element, start);
   }
 
   return maybePromise;
 };
+
+function invokeQrlApply<T>(
+  thisArg: unknown,
+  context: RuntimeInvokeContext | null,
+  fn: (...args: any[]) => T,
+  args: any[]
+): T {
+  const previous = getActiveInvokeContextOrNull();
+  setActiveInvokeContext(context);
+  try {
+    return fn.apply(thisArg, args);
+  } finally {
+    setActiveInvokeContext(previous);
+  }
+}
 
 /**
  * Creates a QRL instance to represent a lazily loaded value. Normally this is a function, but it

@@ -15,28 +15,31 @@ export function Parent() {
 
 ============================= src/component.tsx ==
 
-import { createComponent, maybeThen, _qrlWithChunk } from '@qwik.dev/core/spark';
+import { createComponent, _qrlWithChunk } from '@qwik.dev/core';
 import { Button } from './component.tsx_component_Button';
 
-export { Button } from './component.tsx_component_Button';
 const q_component_q_e_click_segment_0 = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_q_e_click_segment_0',
   () => import('./component.tsx_component_q_e_click_segment_0'),
   'component_q_e_click_segment_0'
 );
+export { Button };
 export function Parent(props, ctx) {
   const value = 1;
-  const component0 = createComponent(
-    { onClick$: q_component_q_e_click_segment_0.w([value]) },
-    (props) => Button(props, ctx)
+  return createComponent({ onClick$: q_component_q_e_click_segment_0.w([value]) }, (props) =>
+    Button(props, ctx)
   );
-  return maybeThen(component0, (component0) => component0);
 }
 ============================= src/component.tsx_component_Button.js (ENTRY POINT)==
 
+import { createSsrElementRecord } from '@qwik.dev/core';
+
 export function Button(props, ctx) {
   const { onClick$ } = props;
-  return '<button' + ctx.eventAttr('q-e:click', onClick$) + '>' + 'Click' + '</button>';
+  return [
+    createSsrElementRecord('button', '<button', ctx.eventAttr('q-e:click', onClick$), '>'),
+    'Click</button>',
+  ];
 }
 /*
 {
@@ -62,7 +65,7 @@ export function Button(props, ctx) {
 */
 ============================= src/component.tsx_component_q_e_click_segment_0.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
+import { _captures } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_0 = () => {
   const value = _captures[0];
@@ -98,25 +101,23 @@ export const component_q_e_click_segment_0 = () => {
 
 ============================= src/component.tsx ==
 
-import { createComponent, _withCaptures } from '@qwik.dev/core/spark';
+import { createComponent, _withCaptures } from '@qwik.dev/core';
 import { component_q_e_click_segment_0 } from './component.tsx_component_q_e_click_segment_0';
 import { Button } from './component.tsx_component_Button';
-
-export { Button } from './component.tsx_component_Button';
+export { Button };
 export function Parent(props, ctx) {
   const value = 1;
-  const component0 = createComponent(
+  return createComponent(
     { onClick$: _withCaptures(component_q_e_click_segment_0, [value]) },
-    (props) => Button(props, ctx),
-    { container: ctx }
+    (props) => Button(props, ctx)
   );
-  return component0;
 }
 ============================= src/component.tsx_component_Button.js (ENTRY POINT)==
 
-import { _first, setEvent, createTemplate } from '@qwik.dev/core/spark';
+import { _first, setEvent, createTemplate } from '@qwik.dev/core';
 
 const Button_tmpl0 = createTemplate('<button>Click</button>');
+
 export function Button(props, ctx) {
   const { onClick$ } = props;
   const fragment0 = Button_tmpl0(ctx.document);
@@ -149,7 +150,7 @@ export function Button(props, ctx) {
 */
 ============================= src/component.tsx_component_q_e_click_segment_0.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
+import { _captures } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_0 = () => {
   const value = _captures[0];

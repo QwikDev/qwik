@@ -16,15 +16,15 @@ export function App() {
 
 import red from './red.css?inline';
 import blue from './blue.css?inline';
-import { appendScopedStyle } from '@qwik.dev/core/spark';
-
-export function App(_props, _ctx) {
-  appendScopedStyle(red, 'hbhupu-0');
-  appendScopedStyle(blue, 'hbhupv-1');
-  return '<div class="⚡️hbhupu-0 ⚡️hbhupv-1 container">Hello</div>';
+import { useStylesScoped, createSsrElementRecord } from '@qwik.dev/core';
+export function App(props, ctx) {
+  useStylesScoped(red, 'gtgvab-0');
+  useStylesScoped(blue, 'gtgvaa-1');
+  return [
+    createSsrElementRecord('div', '<div class="⚡️gtgvab-0 ⚡️gtgvaa-1 container"', '>'),
+    'Hello</div>',
+  ];
 }
-
-null
 == SSR DIAGNOSTICS ==
 
 []
@@ -34,20 +34,16 @@ null
 
 import red from './red.css?inline';
 import blue from './blue.css?inline';
-import { createTemplate, appendScopedStyle } from '@qwik.dev/core/spark';
+import { useStylesScoped, _first, createTemplate } from '@qwik.dev/core';
 
-const dom_App_template0 = createTemplate(
-  '<div class="⚡️hbhupu-0 ⚡️hbhupv-1 container">Hello</div>'
-);
-export function App(_props, ctx) {
-  appendScopedStyle(red, 'hbhupu-0');
-  appendScopedStyle(blue, 'hbhupv-1');
-  const fragment0 = dom_App_template0(ctx.document);
-  const el1 = fragment0.firstChild;
-  return el1;
+const App_tmpl0 = createTemplate('<div class="⚡️gtgvab-0 ⚡️gtgvaa-1 container">Hello</div>');
+export function App(props, ctx) {
+  useStylesScoped(red, 'gtgvab-0');
+  useStylesScoped(blue, 'gtgvaa-1');
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
 }
-
-null
 == CSR DIAGNOSTICS ==
 
 []

@@ -4,86 +4,50 @@
 
 ```ts
 
+import { PhaseSubscriber } from '@qwik.dev/core';
+import type { QRL } from '@qwik.dev/core';
 import type { QwikManifest } from '@qwik.dev/core/optimizer';
-import { ResolvedManifest } from '@qwik.dev/core/optimizer';
+import type { RenderRoot } from '@qwik.dev/core';
+import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
+import { SerializationContext } from '@qwik.dev/core';
+import { ServerDataContext } from '@qwik.dev/core';
 import type { ServerQwikManifest } from '@qwik.dev/core/optimizer';
-import type { SnapshotResult } from '@qwik.dev/core';
-import type { StreamWriter } from '@qwik.dev/core/internal';
+import { SsrEventAttrChunk } from '@qwik.dev/core';
+import { SsrOutput } from '@qwik.dev/core';
+import { SsrReferenceChunk } from '@qwik.dev/core';
+import type { StreamWriter } from '@qwik.dev/core';
 import type { SymbolMapperFn } from '@qwik.dev/core/optimizer';
-
-// @public
-export function getQwikBackpatchExecutorScript(opts?: {
-    debug?: boolean;
-}): string;
+import { TaskScheduler } from '@qwik.dev/core';
 
 // @public
 export function getQwikLoaderScript(opts?: {
     debug?: boolean;
 }): string;
 
-// @public
-export function getQwikPrefetchWorkerScript(opts?: {
-    debug?: boolean;
-}): string;
-
-// @public (undocumented)
-export interface InOrderAuto {
-    // (undocumented)
-    maximumChunk?: number;
-    // (undocumented)
-    maximumInitialChunk?: number;
-    // (undocumented)
-    strategy: 'auto';
-}
-
-// @public (undocumented)
-export interface InOrderDisabled {
-    // (undocumented)
-    strategy: 'disabled';
-}
-
-// Warning: (ae-forgotten-export) The symbol "InOrderDirect" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export type InOrderStreaming = InOrderAuto | InOrderDisabled | InOrderDirect;
-
-// @public (undocumented)
-export type OutOfOrderStreaming = boolean;
-
-// @public (undocumented)
-export interface PrefetchResource {
-    // (undocumented)
-    imports: PrefetchResource[];
-    // (undocumented)
-    url: string;
-}
-
-// @public (undocumented)
-export interface PreloaderOptions {
-    maxIdlePreloads?: number;
-    ssrPreloads?: number;
-}
-
 // @public (undocumented)
 export type QwikLoaderOptions = 'module' | 'inline' | 'never' | {
     include?: 'always' | 'never' | 'auto';
-    position?: 'top' | 'bottom';
 };
 
 // @public (undocumented)
 export type Render = RenderToString | RenderToStream;
 
 // @public (undocumented)
-export interface RenderOptions extends SerializeDocumentOptions {
-    base?: string | ((options: RenderOptions) => string);
+export interface RenderOptions<Props = undefined> extends SerializeDocumentOptions {
+    // (undocumented)
+    base?: string | ((options: RenderOptions<Props>) => string);
     // (undocumented)
     containerAttributes?: Record<string, string>;
+    // (undocumented)
     containerTagName?: string;
-    locale?: string | ((options: RenderOptions) => string);
-    preloader?: PreloaderOptions | false;
+    // (undocumented)
+    locale?: string | ((options: RenderOptions<Props>) => string);
+    // (undocumented)
+    props?: Props;
+    // (undocumented)
     qwikLoader?: QwikLoaderOptions;
+    // (undocumented)
     serverData?: Record<string, any>;
-    snapshot?: boolean;
 }
 
 // @public (undocumented)
@@ -92,24 +56,20 @@ export interface RenderResult {
     isStatic: boolean;
     // (undocumented)
     manifest?: ServerQwikManifest;
-    // @deprecated (undocumented)
-    snapshotResult?: SnapshotResult | undefined;
+    // (undocumented)
+    snapshotResult?: SnapshotResult;
 }
 
 // @public (undocumented)
-export type RenderToStream = (opts: RenderToStreamOptions) => Promise<RenderToStreamResult>;
-
-// Warning: (ae-forgotten-export) The symbol "JSXOutput" needs to be exported by the entry point index.d.ts
-//
-// @public
-export const renderToStream: (jsx: JSXOutput, opts: RenderToStreamOptions) => Promise<RenderToStreamResult>;
+export type RenderToStream = <Props = undefined>(root: RenderRoot<Props>, opts: RenderToStreamOptions<Props>) => Promise<RenderToStreamResult>;
 
 // @public (undocumented)
-export interface RenderToStreamOptions extends RenderOptions {
+export const renderToStream: RenderToStream;
+
+// @public (undocumented)
+export interface RenderToStreamOptions<Props = undefined> extends RenderOptions<Props> {
     // (undocumented)
     stream: StreamWriter;
-    // (undocumented)
-    streaming?: StreamingOptions;
 }
 
 // @public (undocumented)
@@ -127,13 +87,16 @@ export interface RenderToStreamResult extends RenderResult {
 }
 
 // @public (undocumented)
-export type RenderToString = (opts: RenderToStringOptions) => Promise<RenderToStringResult>;
-
-// @public
-export const renderToString: (jsx: JSXOutput, opts?: RenderToStringOptions) => Promise<RenderToStringResult>;
+export type RenderToString = <Props = undefined>(root: RenderRoot<Props>, opts?: RenderToStringOptions<Props>) => Promise<RenderToStringResult>;
 
 // @public (undocumented)
-export interface RenderToStringOptions extends RenderOptions {
+export const renderToString: RenderToString;
+
+// @internal (undocumented)
+export const _renderToStringCompiled: <Props = undefined>(root: _SsrRenderRoot<Props>, opts?: RenderToStringOptions<Props>) => Promise<RenderToStringResult>;
+
+// @public (undocumented)
+export interface RenderToStringOptions<Props = undefined> extends RenderOptions<Props> {
 }
 
 // @public (undocumented)
@@ -141,15 +104,11 @@ export interface RenderToStringResult extends RenderResult {
     // (undocumented)
     html: string;
     // (undocumented)
-    timing: {
-        firstFlush: number;
-        render: number;
-        snapshot: number;
-    };
+    timing: RenderToStreamResult['timing'];
 }
 
-// @public
-export function resolveManifest(manifest?: Partial<QwikManifest | ResolvedManifest> | undefined): ResolvedManifest | undefined;
+// @public (undocumented)
+export function resolveManifest(manifest?: Partial<QwikManifest | ResolvedManifest>): ResolvedManifest | undefined;
 
 // @public (undocumented)
 export interface SerializeDocumentOptions {
@@ -165,12 +124,20 @@ export interface SerializeDocumentOptions {
 export function setServerPlatform(manifest?: Partial<QwikManifest | ResolvedManifest>): Promise<void>;
 
 // @public (undocumented)
-export interface StreamingOptions {
+export interface SnapshotResult {
     // (undocumented)
-    inOrder?: InOrderStreaming;
+    funcs: string[];
     // (undocumented)
-    outOfOrder?: OutOfOrderStreaming;
+    mode: 'render' | 'listeners' | 'static';
+    // (undocumented)
+    qrls: QRL[];
 }
+
+// Warning: (ae-forgotten-export) The symbol "SsrRenderContext" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ValueOrPromise" needs to be exported by the entry point index.d.ts
+//
+// @internal (undocumented)
+export type _SsrRenderRoot<Props = undefined> = (props: Props, ctx: SsrRenderContext) => ValueOrPromise<SsrOutput>;
 
 // @public (undocumented)
 export const versions: {

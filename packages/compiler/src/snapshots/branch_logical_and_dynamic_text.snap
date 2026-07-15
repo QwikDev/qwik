@@ -1,6 +1,6 @@
 ==INPUT==
 
-import { useSignal } from '@qwik.dev/core/spark';
+import { useSignal } from '@qwik.dev/core';
 export function App() {
   const count = useSignal(0);
   return <p>{count.value > 2 && 'Count is greater than 2 and equal to ' + count.value}</p>;
@@ -10,7 +10,15 @@ export function App() {
 
 ============================= src/component.tsx ==
 
-import { useSignal, renderSsrBranch, maybeThen, _qrlWithChunk } from '@qwik.dev/core/spark';
+import {
+  useSignal,
+  createSsrElementRecord,
+  renderSsrBranch,
+  createSsrRecord,
+  createSsrNodeId,
+  maybeThen,
+  _qrlWithChunk,
+} from '@qwik.dev/core';
 import { component_branch_condition_segment_0 } from './component.tsx_component_branch_condition_segment_0';
 
 const q_component_branch_condition_segment_0 = /*#__PURE__*/ _qrlWithChunk(
@@ -26,23 +34,25 @@ const q_component_branch_then_segment_1 = /*#__PURE__*/ _qrlWithChunk(
 );
 export function App(props, ctx) {
   const count = useSignal(0);
-  const id0 = ctx.nextId();
+  const branchId0 = ctx.nextId();
   ctx.addRoot(count);
-  const branch0 = renderSsrBranch(
+  const branch1 = renderSsrBranch(
     ctx,
-    id0,
+    branchId0,
     q_component_branch_condition_segment_0.w([count]),
     q_component_branch_then_segment_1.w([count]),
     undefined
   );
-  return maybeThen(
-    branch0,
-    (branch0) => '<p' + '>' + '<!b=' + id0 + '>' + branch0 + '<!/b>' + '</p>'
-  );
+  return maybeThen(branch1, (branch1) => [
+    createSsrElementRecord('p', '<p', '>'),
+    createSsrRecord('<!b=', createSsrNodeId(branchId0), '>'),
+    branch1,
+    '<!/b></p>',
+  ]);
 }
 ============================= src/component.tsx_component_branch_condition_segment_0.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
+import { _captures } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_0 = () => {
   const count = _captures[0];
@@ -62,8 +72,8 @@ export const component_branch_condition_segment_0 = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    115,
-    130
+    109,
+    124
   ],
   "paramNames": [],
   "captureNames": [
@@ -75,20 +85,20 @@ export const component_branch_condition_segment_0 = () => {
 
 import {
   _captures,
-  escapeHTML,
-  renderSsrTextNode,
   createSsrRangeTextTarget,
+  renderSsrTextNode,
+  escapeHTML,
   maybeThen,
-} from '@qwik.dev/core/spark';
+} from '@qwik.dev/core';
 
 export const component_branch_then_segment_1 = (ctx, rangeId) => {
   const count = _captures[0];
-  ctx.addRoot(count);
   const text0 = renderSsrTextNode(createSsrRangeTextTarget(rangeId, 0), count);
-  return maybeThen(
-    text0,
-    (text0) => 'Count is greater than 2 and equal to ' + '<!t>' + escapeHTML(text0)
-  );
+  return maybeThen(text0, (text0) => [
+    'Count is greater than 2 and equal to <!t>',
+    escapeHTML(text0),
+    '<!/t>',
+  ]);
 };
 /*
 {
@@ -104,8 +114,8 @@ export const component_branch_then_segment_1 = (ctx, rangeId) => {
   "ctxName": "branch:then",
   "captures": true,
   "loc": [
-    134,
-    187
+    128,
+    181
   ],
   "paramNames": [],
   "captureNames": [
@@ -123,28 +133,32 @@ export const component_branch_then_segment_1 = (ctx, rangeId) => {
 import {
   useSignal,
   _first,
+  _next,
   BranchRange,
   createBranch,
   _withCaptures,
+  _qrlWithChunk,
   createTemplate,
-} from '@qwik.dev/core/spark';
+} from '@qwik.dev/core';
 import { component_branch_condition_segment_0 } from './component.tsx_component_branch_condition_segment_0';
-import { component_branch_then_segment_1 } from './component.tsx_component_branch_then_segment_1';
 
-const App_tmpl0 = createTemplate('<p> </p>');
+const q_component_branch_then_segment_1 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_branch_then_segment_1',
+  () => import('./component.tsx_component_branch_then_segment_1'),
+  'component_branch_then_segment_1'
+);
+const App_tmpl0 = createTemplate('<p><!----><!----></p>');
 export function App(props, ctx) {
   const count = useSignal(0);
   const fragment0 = App_tmpl0(ctx.document);
   const el0 = _first(fragment0);
-  const text0 = _first(el0);
-  const comment0 = ctx.document.createComment('b');
-  const comment1 = ctx.document.createComment('/b');
-  text0.replaceWith(comment0, comment1);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
   const branch0 = createBranch(
     ctx,
-    new BranchRange(ctx.document, comment0, comment1),
+    new BranchRange(ctx.document, start0, end0),
     _withCaptures(component_branch_condition_segment_0, [count]),
-    _withCaptures(component_branch_then_segment_1, [count]),
+    q_component_branch_then_segment_1.w([count]),
     undefined
   );
   ctx.scheduler.notify(branch0);
@@ -152,7 +166,7 @@ export function App(props, ctx) {
 }
 ============================= src/component.tsx_component_branch_condition_segment_0.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
+import { _captures } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_0 = () => {
   const count = _captures[0];
@@ -172,8 +186,8 @@ export const component_branch_condition_segment_0 = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    115,
-    130
+    109,
+    124
   ],
   "paramNames": [],
   "captureNames": [
@@ -183,25 +197,21 @@ export const component_branch_condition_segment_0 = () => {
 */
 ============================= src/component.tsx_component_branch_then_segment_1.js (ENTRY POINT)==
 
-import {
-  _captures,
-  _first,
-  _last,
-  createTextNodeEffect,
-  createTemplate,
-} from '@qwik.dev/core/spark';
+import { _captures, _first, _next, createTextNodeEffect, createTemplate } from '@qwik.dev/core';
 const component_branch_then_segment_1_tmpl0 = createTemplate(
-  'Count is greater than 2 and equal to  '
+  'Count is greater than 2 and equal to <!---->'
 );
 
 export const component_branch_then_segment_1 = (ctx) => {
   const count = _captures[0];
   const fragment0 = component_branch_then_segment_1_tmpl0(ctx.document);
-  const el0 = _first(fragment0);
-  const text0 = _last(fragment0);
-  const effect0 = createTextNodeEffect(text0, count, ctx.scheduler);
+  const text0 = _first(fragment0);
+  const marker0 = _next(text0);
+  const text1 = ctx.document.createTextNode('');
+  marker0.replaceWith(text1);
+  const effect0 = createTextNodeEffect(text1, count, ctx.scheduler);
   ctx.scheduler.notify(effect0);
-  return fragment0;
+  return [text0, text1];
 };
 /*
 {
@@ -217,8 +227,8 @@ export const component_branch_then_segment_1 = (ctx) => {
   "ctxName": "branch:then",
   "captures": true,
   "loc": [
-    134,
-    187
+    128,
+    181
   ],
   "paramNames": [],
   "captureNames": [

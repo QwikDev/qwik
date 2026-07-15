@@ -244,9 +244,20 @@ describe('qwikloader behavior', () => {
     const { doc } = createLoaderEnvironment(['e:click']);
     const handler = vi.fn();
     const button = createMockElement(null, {});
-    const captured = ['row'] as any[];
+    const captured = ['row'] as any[] & {
+      _qHandler: typeof handler;
+      _qRun: (
+        captures: any[] & { _qHandler: typeof handler },
+        event: Event,
+        element: Element
+      ) => unknown;
+    };
     captured._qHandler = handler;
-    captured._qRun = (captures: any[], event: Event, element: Element) => {
+    captured._qRun = (
+      captures: any[] & { _qHandler: typeof handler },
+      event: Event,
+      element: Element
+    ) => {
       expect(captures).toBe(captured);
       return captures._qHandler(event, element);
     };

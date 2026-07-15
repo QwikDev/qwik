@@ -1,6 +1,5 @@
-import type { Signal } from '../../../reactive-primitives/signal.public';
+import type { PublicSignal as Signal } from '../../../reactive/public-types';
 import type { QRL } from '../../qrl/qrl.public';
-import type { JSXNode } from './jsx-node';
 import type {
   QwikIdleEvent,
   QwikInitEvent,
@@ -242,8 +241,7 @@ export type JSXChildren =
   | RegExp
   | JSXChildren[]
   | Promise<JSXChildren>
-  | Signal<JSXChildren>
-  | JSXNode;
+  | Signal<JSXChildren>;
 
 /** @public */
 export interface QwikIntrinsicAttributes {

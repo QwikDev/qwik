@@ -53,6 +53,9 @@ export function getLang(path: string): 'js' | 'jsx' | 'ts' | 'tsx' {
   if (path.endsWith('.jsx')) {
     return 'jsx';
   }
+  if (/\.qwik\.[mc]?js$/.test(path)) {
+    return 'jsx';
+  }
   return 'js';
 }
 
@@ -61,5 +64,5 @@ export function isTypeScriptPath(path: string) {
 }
 
 export function isJsxPath(path: string) {
-  return path.endsWith('.jsx') || path.endsWith('.tsx');
+  return path.endsWith('.jsx') || path.endsWith('.tsx') || /\.qwik\.[mc]?js$/.test(path);
 }

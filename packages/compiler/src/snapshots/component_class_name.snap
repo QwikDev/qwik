@@ -1,6 +1,6 @@
 ==INPUT==
 
-import { useSignal } from '@qwik.dev/core/spark';
+import { useSignal } from '@qwik.dev/core';
 export function App() {
   const classes = useSignal('active');
   return <main className="shell"><button className={classes.value}>Toggle</button></main>;
@@ -12,38 +12,30 @@ export function App() {
 
 import {
   useSignal,
-  escapeHTML,
+  createSsrElementRecord,
+  createSsrNodeId,
   createSsrElementTarget,
   renderSsrAttr,
+  escapeHTML,
+  createSsrRecord,
   maybeThen,
-} from '@qwik.dev/core/spark';
-
+} from '@qwik.dev/core';
 export function App(props, ctx) {
   const classes = useSignal('active');
   const id0 = ctx.nextId();
-  const id1 = ctx.nextId();
   ctx.addRoot(classes);
-  const attr0 = renderSsrAttr(createSsrElementTarget(id1), 'class', classes);
-  return maybeThen(
-    attr0,
-    (attr0) =>
-      '<main q:id="' +
-      id0 +
-      '"' +
-      ' class="shell"' +
-      '>' +
-      '<button' +
-      ' q:id="' +
-      id1 +
-      '"' +
-      ' class="' +
-      escapeHTML(attr0) +
-      '"' +
-      '>' +
-      'Toggle' +
-      '</button>' +
-      '</main>'
-  );
+  const attr1 = renderSsrAttr(createSsrElementTarget(id0), 'class', classes);
+  return maybeThen(attr1, (attr1) => [
+    createSsrElementRecord('main', '<main class="shell"', '>'),
+    createSsrRecord(
+      '<button q:id="',
+      createSsrNodeId(id0),
+      '"',
+      attr1 === null ? '' : ' class' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
+      '>'
+    ),
+    'Toggle</button></main>',
+  ]);
 }
 == SSR DIAGNOSTICS ==
 
@@ -52,8 +44,7 @@ export function App(props, ctx) {
 
 ============================= src/component.tsx ==
 
-import { useSignal, _first, createAttrEffect, createTemplate } from '@qwik.dev/core/spark';
-
+import { useSignal, _first, createAttrEffect, createTemplate } from '@qwik.dev/core';
 const App_tmpl0 = createTemplate('<main class="shell"><button>Toggle</button></main>');
 export function App(props, ctx) {
   const classes = useSignal('active');

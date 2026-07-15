@@ -1,0 +1,339 @@
+import type { JSXAttributeValue, Node } from 'oxc-parser';
+import {
+  getIdentifierName,
+  getJsxAttributeName,
+  getStaticExpressionValue,
+  isFunctionLike,
+  unwrapExpression,
+} from './ast-utils';
+import type { AstFunction, AstJsxNode, AstNode } from './types';
+import type { StaticProp } from './plan-types';
+
+export interface JsxBranchExpression {
+  condition: Node;
+  then: Node;
+  else: Node | null;
+}
+
+export interface JsxMapExpression {
+  source: Node;
+  callback: AstFunction;
+  row: AstJsxNode;
+  key: Node;
+  itemName: string;
+  indexName: string | null;
+}
+
+export function getStaticJsxAttributeValue(
+  value: JSXAttributeValue | null
+): StaticProp['value'] | undefined {
+  if (value === null) {
+    return true;
+  }
+  const expression =
+    value.type === 'JSXExpressionContainer' ? unwrapExpression(value.expression) : value;
+  const staticValue = getStaticExpressionValue(expression);
+  return staticValue.supported ? staticValue.value : undefined;
+}
+
+export function getStaticObjectProperties(
+  value: unknown
+): readonly { readonly name: string; readonly value: StaticProp['value'] }[] | null {
+  const expression = unwrapExpression(value);
+  if (!isObjectNode(expression) || expression.type !== 'ObjectExpression') {
+    return null;
+  }
+  const output: { name: string; value: StaticProp['value'] }[] = [];
+  for (const property of expression.properties) {
+    if (property.type === 'SpreadElement') {
+      const nested = getStaticObjectProperties(property.argument);
+      if (nested === null) {
+        return null;
+      }
+      output.push(...nested);
+      continue;
+    }
+    if (
+      property.type !== 'Property' ||
+      property.kind !== 'init' ||
+      property.computed ||
+      property.method ||
+      property.shorthand
+    ) {
+      return null;
+    }
+    const name =
+      property.key.type === 'Identifier'
+        ? property.key.name
+        : property.key.type === 'Literal' &&
+            (typeof property.key.value === 'string' || typeof property.key.value === 'number')
+          ? String(property.key.value)
+          : null;
+    const staticValue = getStaticExpressionValue(property.value);
+    if (name === null || name === '__proto__' || !staticValue.supported) {
+      return null;
+    }
+    output.push({ name, value: staticValue.value });
+  }
+  return output;
+}
+
+export type ExpandableObjectProperty =
+  | { readonly kind: 'static'; readonly name: string; readonly value: StaticProp['value'] }
+  | {
+      readonly kind: 'bind';
+      readonly name: 'bind:value' | 'bind:checked';
+      readonly value: AstNode;
+    }
+  | {
+      readonly kind: 'ref';
+      readonly name: 'ref';
+      readonly value: AstNode;
+    };
+
+/**
+ * Expands the same side-effect-free object literals as getStaticObjectProperties, plus direct bind
+ * and ref values. Other dynamic values stay opaque so their object-evaluation semantics are kept.
+ */
+export function getExpandableObjectProperties(
+  value: unknown
+): readonly ExpandableObjectProperty[] | null {
+  const expression = unwrapExpression(value);
+  if (!isObjectNode(expression) || expression.type !== 'ObjectExpression') {
+    return null;
+  }
+  const output: ExpandableObjectProperty[] = [];
+  for (const property of expression.properties) {
+    if (property.type === 'SpreadElement') {
+      const nested = getExpandableObjectProperties(property.argument);
+      if (nested === null) {
+        return null;
+      }
+      output.push(...nested);
+      continue;
+    }
+    if (
+      property.type !== 'Property' ||
+      property.kind !== 'init' ||
+      property.computed ||
+      property.method ||
+      property.shorthand
+    ) {
+      return null;
+    }
+    const name =
+      property.key.type === 'Identifier'
+        ? property.key.name
+        : property.key.type === 'Literal' &&
+            (typeof property.key.value === 'string' || typeof property.key.value === 'number')
+          ? String(property.key.value)
+          : null;
+    if (name === null || name === '__proto__') {
+      return null;
+    }
+    const dynamicValue = unwrapExpression(property.value);
+    if (
+      name === 'ref' &&
+      isObjectNode(dynamicValue) &&
+      (dynamicValue.type === 'Identifier' ||
+        dynamicValue.type === 'Literal' ||
+        isFunctionLike(dynamicValue))
+    ) {
+      output.push({ kind: 'ref', name, value: dynamicValue });
+      continue;
+    }
+    if ((name === 'bind:value' || name === 'bind:checked') && isObjectNode(dynamicValue)) {
+      output.push({ kind: 'bind', name, value: dynamicValue });
+      continue;
+    }
+    const staticValue = getStaticExpressionValue(property.value);
+    if (staticValue.supported) {
+      output.push({ kind: 'static', name, value: staticValue.value });
+      continue;
+    }
+    return null;
+  }
+  return output;
+}
+
+export function getJsxAttributeExpression(
+  value: JSXAttributeValue | null | undefined
+): AstNode | null {
+  return value?.type === 'JSXExpressionContainer'
+    ? (unwrapExpression(value.expression) ?? null)
+    : null;
+}
+
+export function getJsxMapExpression(node: unknown): JsxMapExpression | null {
+  const expr = unwrapExpression(node);
+  if (expr?.type !== 'CallExpression') {
+    return null;
+  }
+  const callee = unwrapExpression(expr.callee);
+  if (
+    callee?.type !== 'MemberExpression' ||
+    callee.computed ||
+    getIdentifierName(callee.property) !== 'map'
+  ) {
+    return null;
+  }
+  const callback = unwrapExpression(expr.arguments[0]);
+  if (!isFunctionLike(callback) || callback.async || callback.params.length > 2) {
+    return null;
+  }
+  const itemName = getIdentifierName(callback.params[0]);
+  const indexName = callback.params[1] === undefined ? null : getIdentifierName(callback.params[1]);
+  if (itemName === null || (callback.params[1] !== undefined && indexName === null)) {
+    return null;
+  }
+  const row = getCallbackReturnedJsx(callback);
+  if (row === null) {
+    return null;
+  }
+  const key = getRowKey(row);
+  if (key === null) {
+    return null;
+  }
+  return {
+    source: callee.object,
+    callback,
+    row,
+    key,
+    itemName,
+    indexName,
+  };
+}
+
+function getCallbackReturnedJsx(callback: AstFunction): AstJsxNode | null {
+  const body = unwrapExpression(callback.body);
+  switch (body?.type) {
+    case 'JSXElement':
+    case 'JSXFragment':
+      return body;
+    case 'BlockStatement':
+      for (const statement of body.body) {
+        if (statement.type === 'ReturnStatement') {
+          const returned = unwrapExpression(statement.argument);
+          return returned?.type === 'JSXElement' || returned?.type === 'JSXFragment'
+            ? returned
+            : null;
+        }
+      }
+      return null;
+    default:
+      return null;
+  }
+}
+
+function getRowKey(row: AstJsxNode): Node | null {
+  const children = row.type === 'JSXElement' ? [row] : row.children;
+  for (const child of children) {
+    if (child.type !== 'JSXElement') {
+      continue;
+    }
+    const key = child.openingElement.attributes.find(
+      (attr) => attr.type === 'JSXAttribute' && getJsxAttributeName(attr.name) === 'key'
+    );
+    if (key?.type === 'JSXAttribute' && key.value?.type === 'JSXExpressionContainer') {
+      return unwrapExpression(key.value.expression) ?? null;
+    }
+  }
+  return null;
+}
+
+export function getJsxBranchExpression(node: unknown): JsxBranchExpression | null {
+  const expr = unwrapExpression(node);
+  if (!isObjectNode(expr)) {
+    return null;
+  }
+  switch (expr.type) {
+    case 'ConditionalExpression':
+      if (!isBranchOutput(expr.consequent) && !isBranchOutput(expr.alternate)) {
+        return null;
+      }
+      return {
+        condition: expr.test,
+        then: expr.consequent,
+        else: isEmptyBranchExpression(expr.alternate) ? null : expr.alternate,
+      };
+    case 'LogicalExpression':
+      return expr.operator === '&&' ? { condition: expr.left, then: expr.right, else: null } : null;
+    default:
+      return null;
+  }
+}
+
+export function getStaticBranchCondition(node: unknown): boolean | null {
+  const expr = unwrapExpression(node);
+  if (!isObjectNode(expr) || expr.type !== 'Literal') {
+    return null;
+  }
+  if (expr.value === true) {
+    return true;
+  }
+  return expr.value === false || expr.value === null ? false : null;
+}
+
+export function isEmptyBranchExpression(node: unknown): boolean {
+  const expr = unwrapExpression(node);
+  return (
+    isObjectNode(expr) &&
+    expr.type === 'Literal' &&
+    (expr.value === null || expr.value === false || expr.value === true)
+  );
+}
+
+function isBranchOutput(node: unknown): boolean {
+  const expr = unwrapExpression(node);
+  if (!isObjectNode(expr)) {
+    return false;
+  }
+  switch (expr.type) {
+    case 'JSXElement':
+    case 'JSXFragment':
+    case 'CallExpression':
+      return true;
+    case 'ConditionalExpression':
+      return isBranchOutput(expr.consequent) || isBranchOutput(expr.alternate);
+    case 'LogicalExpression':
+      return expr.operator === '&&';
+    default:
+      return false;
+  }
+}
+
+interface VisitContext {
+  parent: Node | null;
+  key: string | null;
+}
+
+export function visit(node: unknown, visitor: (node: Node, context: VisitContext) => false | void) {
+  visitNode(node, visitor, null, null);
+}
+
+function visitNode(
+  node: unknown,
+  visitor: (node: Node, context: VisitContext) => false | void,
+  parent: Node | null,
+  key: string | null
+) {
+  if (!isObjectNode(node)) {
+    return;
+  }
+  if (visitor(node, { parent, key }) === false) {
+    return;
+  }
+  for (const [key, value] of Object.entries(node)) {
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        visitNode(item, visitor, node, key);
+      }
+    } else if (isObjectNode(value)) {
+      visitNode(value, visitor, node, key);
+    }
+  }
+}
+
+function isObjectNode(node: unknown): node is Node {
+  return !!node && typeof node === 'object' && 'type' in node && typeof node.type === 'string';
+}

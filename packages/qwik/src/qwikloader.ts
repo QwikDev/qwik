@@ -32,7 +32,7 @@ type Handler = (this: string | undefined, ev: Event, el: Element) => void | Prom
 type CapturedHandler = unknown[] & {
   _qRun?: (captures: CapturedHandler, ev: Event, el: Element) => void | Promise<void>;
 };
-type DispatchHandler = Handler | CapturedHandler;
+type DispatchHandler = ((ev: Event, el: Element) => void | Promise<void>) | CapturedHandler;
 type Task = () => void | Promise<void>;
 
 const doc = document as Document;

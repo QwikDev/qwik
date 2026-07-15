@@ -1,2 +1,2 @@
-// re-export for typescript in old resolution mode
+// Re-export for TypeScript configurations using classic module resolution.
 export * from './dist/testing';

@@ -1,104 +1,30 @@
 /**
- * @file
+ * Stateless core primitives that are safe to duplicate in the server bundle.
  *
- *   Importing directly from `qwik` is not allowed because the SSR package would end up with two
- *   copies of the code. Instead, the SSR package should import from `@qwik.dev/core`.
- *
- *   The exception to this rule is importing types, because those get elided by TypeScript. To make
- *   ensuring that this rule is followed, this file is the only place where relative `../` imports
- *   of types only are allowed.
- *
- *   Some code is OK to import and make a copy of because it will have no adverse affect. This file
- *   lists code which we are OK to have duplicated.
+ * Stateful runtime values must be imported from `@qwik.dev/core` so SSR and compiled components
+ * operate on the same Signals, QRLs, owners and serialization context.
  */
-
-export {
-  mapApp_remove,
-  mapArray_get,
-  mapArray_set,
-  mapArray_has,
-} from '../core/client/util-mapArray';
 export { QError, qError } from '../core/shared/error/error';
+export { OwnerFlags, SubscriberFlags } from '../core/reactive/flags';
+export { SubscriberKind } from '../core/runtime/subscriber';
 export { SYNC_QRL } from '../core/shared/qrl/qrl-utils';
-export { DEBUG_TYPE, QContainerValue, VirtualType } from '../core/shared/types';
+export { QContainerValue } from '../core/shared/types';
+export { escapeHTML } from '../core/shared/utils/character-escaping';
 export {
-  escapeHTML,
-  encodeVNodeDataKey,
-  encodeVNodeDataString,
-} from '../core/shared/utils/character-escaping';
+  EventNameHtmlScope,
+  getEventDataFromHtmlAttribute,
+  getScopedEventName,
+} from '../core/shared/utils/event-names';
 export {
-  ELEMENT_ID,
-  ELEMENT_KEY,
-  ELEMENT_PROPS,
-  ELEMENT_SEQ,
-  ELEMENT_SEQ_IDX,
-  NON_SERIALIZABLE_MARKER_PREFIX,
-  OnRenderProp,
-  QBackRefs,
   QBaseAttr,
   QContainerAttr,
-  QCtxAttr,
-  QDefaultSlot,
   QInstanceAttr,
   QLocaleAttr,
   QManifestHashAttr,
   QRenderAttr,
   QRuntimeAttr,
-  QScopedStyle,
-  QSlot,
-  QSlotParent,
-  QStatePatchAttr,
-  QStyle,
-  QSuspenseResolved,
-  QSuspenseResultParent,
-  QTemplate,
   QVersionAttr,
-  Q_PROPS_SEPARATOR,
-  ELEMENT_BACKPATCH_DATA,
-  dangerouslySetInnerHTML,
 } from '../core/shared/utils/markers';
-export { maybeThen } from '../core/shared/utils/promises';
-export {
-  convertStyleIdsToString,
-  getScopedStyleIdsAsPrefix,
-  isClassAttr,
-} from '../core/shared/utils/scoped-styles';
-export { serializeAttribute } from '../core/shared/utils/styles';
-export {
-  VNodeDataChar,
-  VNodeDataSeparator,
-  getSegmentVNodeRefId,
-} from '../core/shared/vnode-data-types';
-export { preload } from '../core/preloader/queue';
-export { initPreloader } from '../core/preloader/bundle-graph';
-export { qTest } from '../core/shared/utils/qdev';
-export { SsrNodeFlags } from '../core/shared/types';
-export { isPromise, retryOnPromise } from '../core/shared/utils/promises';
-export { ChoreBits } from '../core/shared/vnode/enums/chore-bits.enum';
-export { isHtmlAttributeAnEventName, isPreventDefault } from '../core/shared/utils/event-names';
-export { ITERATION_ITEM_SINGLE, ITERATION_ITEM_MULTI } from '../core/shared/utils/markers';
-export { isObjectEmpty } from '../core/shared/utils/objects';
-export {
-  createStringStreamWriter,
-  stringifyRootRefPath,
-  writeStringRootRef,
-  writeStringRootRefPath,
-} from '../core/ssr/stream-writer';
-export type {
-  OutOfOrderRevealBoundary,
-  OutOfOrderRevealCoordinator,
-} from '../core/control-flow/suspense-utils';
-export {
-  LT,
-  GT,
-  CLOSE_TAG,
-  ESCAPED_CLOSE_TAG,
-  SPACE,
-  ATTR_EQUALS_QUOTE,
-  QUOTE,
-  EMPTY_ATTR,
-  BRACKET_OPEN,
-  BRACKET_CLOSE,
-  PAREN_CLOSE,
-  COMMA,
-} from '../core/shared/ssr-const';
+export { TypeIds } from '../core/shared/serdes/type-id';
+export type { CorePlatformServer } from '../core/shared/platform/types';
+export type { ValueOrPromise } from '../core/shared/utils/types';

@@ -9,12 +9,14 @@ export function App(props: { title: string }) {
 ============================= src/component.tsx ==
 
 import {
-  escapeHTML,
+  createSsrNodeId,
   createSsrElementTarget,
   renderSsrAttrExpression,
+  escapeHTML,
+  createSsrElementRecord,
   maybeThen,
   _qrlWithChunk,
-} from '@qwik.dev/core/spark';
+} from '@qwik.dev/core';
 import { component_title_segment_0 } from './component.tsx_component_title_segment_0';
 
 const q_component_title_segment_0 = /*#__PURE__*/ _qrlWithChunk(
@@ -26,25 +28,23 @@ q_component_title_segment_0.s(component_title_segment_0);
 export function App(props, ctx) {
   const id0 = ctx.nextId();
   ctx.addRoot(props);
-  const attr0 = renderSsrAttrExpression(
+  const attr1 = renderSsrAttrExpression(
     createSsrElementTarget(id0),
     'title',
     [props],
     q_component_title_segment_0
   );
-  return maybeThen(
-    attr0,
-    (attr0) =>
-      '<button q:id="' +
-      id0 +
-      '"' +
-      ' title="' +
-      escapeHTML(attr0) +
-      '"' +
-      '>' +
-      'Save' +
-      '</button>'
-  );
+  return maybeThen(attr1, (attr1) => [
+    createSsrElementRecord(
+      'button',
+      '<button q:id="',
+      createSsrNodeId(id0),
+      '"',
+      attr1 === null ? '' : ' title' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
+      '>'
+    ),
+    'Save</button>',
+  ]);
 }
 ============================= src/component.tsx_component_title_segment_0.js (ENTRY POINT)==
 
@@ -81,7 +81,7 @@ export const component_title_segment_0 = (props) => {
 
 ============================= src/component.tsx ==
 
-import { _first, createAttrExpressionEffect, createTemplate } from '@qwik.dev/core/spark';
+import { _first, createAttrExpressionEffect, createTemplate } from '@qwik.dev/core';
 import { component_title_segment_0 } from './component.tsx_component_title_segment_0';
 
 const App_tmpl0 = createTemplate('<button>Save</button>');

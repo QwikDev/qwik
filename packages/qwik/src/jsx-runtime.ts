@@ -1,1 +1,2 @@
-export { jsx, jsx as jsxs, jsxDEV, Fragment, type QwikJSX as JSX } from '@qwik.dev/core';
+export { jsx, jsxs, jsxDEV, Fragment } from './core/shared/jsx/compiler-runtime';
+export type { QwikJSX as JSX } from './core/shared/jsx/types/jsx-qwik';

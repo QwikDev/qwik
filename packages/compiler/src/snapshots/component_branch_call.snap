@@ -10,11 +10,16 @@ export function App(props: { enabled: boolean; value: string }) {
 
 ============================= src/component.tsx ==
 
-import { renderActive, renderInactive } from './renderers';
-import { renderSsrBranch, maybeThen, _qrlWithChunk } from '@qwik.dev/core/spark';
+import {
+  createSsrElementRecord,
+  renderSsrBranch,
+  createSsrRecord,
+  createSsrNodeId,
+  maybeThen,
+  _qrlWithChunk,
+} from '@qwik.dev/core';
 import { component_branch_condition_segment_0 } from './component.tsx_component_branch_condition_segment_0';
 
-export { renderActive, renderInactive };
 const q_component_branch_condition_segment_0 = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_branch_condition_segment_0',
   () => import('./component.tsx_component_branch_condition_segment_0'),
@@ -32,39 +37,26 @@ const q_component_branch_else_segment_2 = /*#__PURE__*/ _qrlWithChunk(
   'component_branch_else_segment_2'
 );
 export function App(props, ctx) {
-  const id0 = ctx.nextId();
+  const branchId0 = ctx.nextId();
   ctx.addRoot(props);
-  const branch0 = renderSsrBranch(
+  const branch1 = renderSsrBranch(
     ctx,
-    id0,
+    branchId0,
     q_component_branch_condition_segment_0.w([props]),
     q_component_branch_then_segment_1.w([props]),
     q_component_branch_else_segment_2.w([props])
   );
-  return maybeThen(
-    branch0,
-    (branch0) =>
-      '<section' +
-      '>' +
-      '<b' +
-      '>' +
-      'Before' +
-      '</b>' +
-      '<!b=' +
-      id0 +
-      '>' +
-      branch0 +
-      '<!/b>' +
-      '<i' +
-      '>' +
-      'After' +
-      '</i>' +
-      '</section>'
-  );
+  return maybeThen(branch1, (branch1) => [
+    createSsrElementRecord('section', '<section', '>'),
+    '<b>Before</b>',
+    createSsrRecord('<!b=', createSsrNodeId(branchId0), '>'),
+    branch1,
+    '<!/b><i>After</i></section>',
+  ]);
 }
 ============================= src/component.tsx_component_branch_condition_segment_0.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
+import { _captures } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_0 = () => {
   const props = _captures[0];
@@ -95,12 +87,31 @@ export const component_branch_condition_segment_0 = () => {
 */
 ============================= src/component.tsx_component_branch_then_segment_1.js (ENTRY POINT)==
 
-import { renderActive } from './component';
-import { _captures } from '@qwik.dev/core/spark';
+import {
+  _qrlWithChunk,
+  _captures,
+  renderSsrContent,
+  createSsrRecord,
+  createSsrNodeId,
+  maybeThen,
+} from '@qwik.dev/core';
+import { semantic_expression_136_161 } from './component.tsx_semantic_expression_136_161';
+const q_semantic_expression_136_161 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_semantic_expression_136_161',
+  () => import('./component.tsx_semantic_expression_136_161'),
+  'semantic_expression_136_161'
+);
+q_semantic_expression_136_161.s(semantic_expression_136_161);
 
 export const component_branch_then_segment_1 = (ctx) => {
   const props = _captures[0];
-  return renderActive(props.value);
+  const contentId0 = ctx.nextId();
+  const content1 = renderSsrContent(ctx, contentId0, [props], q_semantic_expression_136_161, true);
+  return maybeThen(content1, (content1) => [
+    createSsrRecord('<!d=', createSsrNodeId(contentId0), '>'),
+    content1,
+    '<!/d>',
+  ]);
 };
 /*
 {
@@ -127,12 +138,31 @@ export const component_branch_then_segment_1 = (ctx) => {
 */
 ============================= src/component.tsx_component_branch_else_segment_2.js (ENTRY POINT)==
 
-import { renderInactive } from './component';
-import { _captures } from '@qwik.dev/core/spark';
+import {
+  _qrlWithChunk,
+  _captures,
+  renderSsrContent,
+  createSsrRecord,
+  createSsrNodeId,
+  maybeThen,
+} from '@qwik.dev/core';
+import { semantic_expression_164_191 } from './component.tsx_semantic_expression_164_191';
+const q_semantic_expression_164_191 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_semantic_expression_164_191',
+  () => import('./component.tsx_semantic_expression_164_191'),
+  'semantic_expression_164_191'
+);
+q_semantic_expression_164_191.s(semantic_expression_164_191);
 
 export const component_branch_else_segment_2 = (ctx) => {
   const props = _captures[0];
-  return renderInactive(props.value);
+  const contentId0 = ctx.nextId();
+  const content1 = renderSsrContent(ctx, contentId0, [props], q_semantic_expression_164_191, true);
+  return maybeThen(content1, (content1) => [
+    createSsrRecord('<!d=', createSsrNodeId(contentId0), '>'),
+    content1,
+    '<!/d>',
+  ]);
 };
 /*
 {
@@ -157,6 +187,66 @@ export const component_branch_else_segment_2 = (ctx) => {
   ]
 }
 */
+============================= src/component.tsx_semantic_expression_136_161.js (ENTRY POINT)==
+
+import { renderActive } from './renderers';
+
+export const semantic_expression_136_161 = (props) => {
+  return renderActive(props.value);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "semantic_expression_136_161",
+  "entry": null,
+  "displayName": "semantic_expression_136_161",
+  "hash": "semantic_expression_136_161",
+  "canonicalFilename": "component.tsx_semantic_expression_136_161",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "expression",
+  "captures": true,
+  "loc": [
+    136,
+    161
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_semantic_expression_164_191.js (ENTRY POINT)==
+
+import { renderInactive } from './renderers';
+
+export const semantic_expression_164_191 = (props) => {
+  return renderInactive(props.value);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "semantic_expression_164_191",
+  "entry": null,
+  "displayName": "semantic_expression_164_191",
+  "hash": "semantic_expression_164_191",
+  "canonicalFilename": "component.tsx_semantic_expression_164_191",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "expression",
+  "captures": true,
+  "loc": [
+    164,
+    191
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
 == SSR DIAGNOSTICS ==
 
 []
@@ -164,41 +254,46 @@ export const component_branch_else_segment_2 = (ctx) => {
 
 ============================= src/component.tsx ==
 
-import { renderActive, renderInactive } from './renderers';
 import {
   _first,
   _next,
   BranchRange,
   createBranch,
   _withCaptures,
+  _qrlWithChunk,
   createTemplate,
-} from '@qwik.dev/core/spark';
+} from '@qwik.dev/core';
 import { component_branch_condition_segment_0 } from './component.tsx_component_branch_condition_segment_0';
-import { component_branch_then_segment_1 } from './component.tsx_component_branch_then_segment_1';
-import { component_branch_else_segment_2 } from './component.tsx_component_branch_else_segment_2';
 
-export { renderActive, renderInactive };
-const App_tmpl0 = createTemplate('<section><b>Before</b> <i>After</i></section>');
+const q_component_branch_then_segment_1 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_branch_then_segment_1',
+  () => import('./component.tsx_component_branch_then_segment_1'),
+  'component_branch_then_segment_1'
+);
+const q_component_branch_else_segment_2 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_branch_else_segment_2',
+  () => import('./component.tsx_component_branch_else_segment_2'),
+  'component_branch_else_segment_2'
+);
+const App_tmpl0 = createTemplate('<section><b>Before</b><!----><!----><i>After</i></section>');
 export function App(props, ctx) {
   const fragment0 = App_tmpl0(ctx.document);
   const el0 = _first(fragment0);
-  const text0 = _next(_first(el0));
-  const comment0 = ctx.document.createComment('b');
-  const comment1 = ctx.document.createComment('/b');
-  text0.replaceWith(comment0, comment1);
+  const start0 = _next(_first(el0));
+  const end0 = _next(start0);
   const branch0 = createBranch(
     ctx,
-    new BranchRange(ctx.document, comment0, comment1),
+    new BranchRange(ctx.document, start0, end0),
     _withCaptures(component_branch_condition_segment_0, [props]),
-    _withCaptures(component_branch_then_segment_1, [props]),
-    _withCaptures(component_branch_else_segment_2, [props])
+    q_component_branch_then_segment_1.w([props]),
+    q_component_branch_else_segment_2.w([props])
   );
   ctx.scheduler.notify(branch0);
   return el0;
 }
 ============================= src/component.tsx_component_branch_condition_segment_0.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
+import { _captures } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_0 = () => {
   const props = _captures[0];
@@ -229,12 +324,25 @@ export const component_branch_condition_segment_0 = () => {
 */
 ============================= src/component.tsx_component_branch_then_segment_1.js (ENTRY POINT)==
 
-import { renderActive } from './component';
-import { _captures } from '@qwik.dev/core/spark';
+import { _captures, _first, _next, createContentBlock, createTemplate } from '@qwik.dev/core';
+import { semantic_expression_136_161 } from './component.tsx_semantic_expression_136_161';
+const component_branch_then_segment_1_tmpl0 = createTemplate('<!----><!---->');
 
 export const component_branch_then_segment_1 = (ctx) => {
   const props = _captures[0];
-  return renderActive(props.value);
+  const fragment0 = component_branch_then_segment_1_tmpl0(ctx.document);
+  const start0 = _first(fragment0);
+  const end0 = _next(start0);
+  const content0 = createContentBlock(
+    ctx,
+    start0,
+    end0,
+    [props],
+    semantic_expression_136_161,
+    true
+  );
+  ctx.scheduler.notify(content0);
+  return [start0, end0];
 };
 /*
 {
@@ -261,12 +369,25 @@ export const component_branch_then_segment_1 = (ctx) => {
 */
 ============================= src/component.tsx_component_branch_else_segment_2.js (ENTRY POINT)==
 
-import { renderInactive } from './component';
-import { _captures } from '@qwik.dev/core/spark';
+import { _captures, _first, _next, createContentBlock, createTemplate } from '@qwik.dev/core';
+import { semantic_expression_164_191 } from './component.tsx_semantic_expression_164_191';
+const component_branch_else_segment_2_tmpl0 = createTemplate('<!----><!---->');
 
 export const component_branch_else_segment_2 = (ctx) => {
   const props = _captures[0];
-  return renderInactive(props.value);
+  const fragment0 = component_branch_else_segment_2_tmpl0(ctx.document);
+  const start0 = _first(fragment0);
+  const end0 = _next(start0);
+  const content0 = createContentBlock(
+    ctx,
+    start0,
+    end0,
+    [props],
+    semantic_expression_164_191,
+    true
+  );
+  ctx.scheduler.notify(content0);
+  return [start0, end0];
 };
 /*
 {
@@ -280,6 +401,66 @@ export const component_branch_else_segment_2 = (ctx) => {
   "parent": null,
   "ctxKind": "function",
   "ctxName": "branch:else",
+  "captures": true,
+  "loc": [
+    164,
+    191
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_semantic_expression_136_161.js (ENTRY POINT)==
+
+import { renderActive } from './renderers';
+
+export const semantic_expression_136_161 = (props) => {
+  return renderActive(props.value);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "semantic_expression_136_161",
+  "entry": null,
+  "displayName": "semantic_expression_136_161",
+  "hash": "semantic_expression_136_161",
+  "canonicalFilename": "component.tsx_semantic_expression_136_161",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "expression",
+  "captures": true,
+  "loc": [
+    136,
+    161
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_semantic_expression_164_191.js (ENTRY POINT)==
+
+import { renderInactive } from './renderers';
+
+export const semantic_expression_164_191 = (props) => {
+  return renderInactive(props.value);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "semantic_expression_164_191",
+  "entry": null,
+  "displayName": "semantic_expression_164_191",
+  "hash": "semantic_expression_164_191",
+  "canonicalFilename": "component.tsx_semantic_expression_164_191",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "expression",
   "captures": true,
   "loc": [
     164,

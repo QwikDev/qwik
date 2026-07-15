@@ -1,0 +1,224 @@
+==INPUT==
+
+import { useSignal } from '@qwik.dev/core';
+
+export function App() {
+  const value = useSignal('');
+  const checked = useSignal(false);
+  return <>
+    <input bind:value={value} onInput$={() => console.log('after')} />
+    <input onInput$={() => console.log('before')} bind:checked={checked} />
+  </>;
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  createSsrNodeId,
+  createSsrElementTarget,
+  renderSsrAttr,
+  escapeHTML,
+  inlinedQrl,
+  _val,
+  createSsrElementRecord,
+  _chk,
+  createSsrRecord,
+  getActiveInvokeContextOrNull,
+  invoke,
+  maybeThen,
+  _qrlWithChunk,
+} from '@qwik.dev/core';
+const q_component_q_e_input_segment_1 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_q_e_input_segment_1',
+  () => import('./component.tsx_component_q_e_input_segment_1'),
+  'component_q_e_input_segment_1'
+);
+const q_component_q_e_input_segment_2 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_q_e_input_segment_2',
+  () => import('./component.tsx_component_q_e_input_segment_2'),
+  'component_q_e_input_segment_2'
+);
+export function App(props, ctx) {
+  const value = useSignal('');
+  const checked = useSignal(false);
+  const id0 = ctx.nextId();
+  let id2;
+  const invokeCtx4 = getActiveInvokeContextOrNull();
+  ctx.addRoot(value);
+  const attr1 = renderSsrAttr(createSsrElementTarget(id0), 'value', value);
+  const attr3 = () =>
+    invoke(invokeCtx4, () => {
+      id2 ??= ctx.nextId();
+      ctx.addRoot(checked);
+      return renderSsrAttr(createSsrElementTarget(id2), 'checked', checked);
+    });
+  return maybeThen(attr1, (attr1) =>
+    maybeThen(attr3(), (attr3) => [
+      createSsrElementRecord(
+        'input',
+        '<input q:id="',
+        createSsrNodeId(id0),
+        '"',
+        attr1 === null ? '' : ' value' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
+        ctx.eventAttr('q-e:input', [
+          inlinedQrl(_val, '_val', [value]),
+          q_component_q_e_input_segment_1,
+        ]),
+        '>'
+      ),
+      createSsrRecord(
+        '<input q:id="',
+        createSsrNodeId(id2),
+        '"',
+        ctx.eventAttr('q-e:input', [
+          q_component_q_e_input_segment_2,
+          inlinedQrl(_chk, '_chk', [checked]),
+        ]),
+        attr3 === null ? '' : ' checked' + (attr3 === '' ? '' : '="' + escapeHTML(attr3) + '"'),
+        '>'
+      ),
+    ])
+  );
+}
+============================= src/component.tsx_component_q_e_input_segment_1.js (ENTRY POINT)==
+
+export const component_q_e_input_segment_1 = () => {
+  return console.log('after');
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_input_segment_1",
+  "entry": null,
+  "displayName": "component_q_e_input_segment_1",
+  "hash": "segment_1",
+  "canonicalFilename": "component.tsx_component_q_e_input_segment_1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onInput$",
+  "captures": false,
+  "loc": [
+    174,
+    211
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_q_e_input_segment_2.js (ENTRY POINT)==
+
+export const component_q_e_input_segment_2 = () => {
+  return console.log('before');
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_input_segment_2",
+  "entry": null,
+  "displayName": "component_q_e_input_segment_2",
+  "hash": "segment_2",
+  "canonicalFilename": "component.tsx_component_q_e_input_segment_2",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onInput$",
+  "captures": false,
+  "loc": [
+    226,
+    264
+  ],
+  "paramNames": []
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  _first,
+  _next,
+  createAttrEffect,
+  setEvent,
+  inlinedQrl,
+  _val,
+  _chk,
+  createTemplate,
+} from '@qwik.dev/core';
+import { component_q_e_input_segment_1 } from './component.tsx_component_q_e_input_segment_1';
+import { component_q_e_input_segment_2 } from './component.tsx_component_q_e_input_segment_2';
+
+const App_tmpl0 = createTemplate('<input><input>');
+export function App(props, ctx) {
+  const value = useSignal('');
+  const checked = useSignal(false);
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const el1 = _next(el0);
+  const effect0 = createAttrEffect(el0, 'value', value, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  setEvent(el0, 'q-e:input', [inlinedQrl(_val, '_val', [value]), component_q_e_input_segment_1]);
+  setEvent(el1, 'q-e:input', [component_q_e_input_segment_2, inlinedQrl(_chk, '_chk', [checked])]);
+  const effect1 = createAttrEffect(el1, 'checked', checked, ctx.scheduler);
+  ctx.scheduler.notify(effect1);
+  return [el0, el1];
+}
+============================= src/component.tsx_component_q_e_input_segment_1.js (ENTRY POINT)==
+
+export const component_q_e_input_segment_1 = () => {
+  return console.log('after');
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_input_segment_1",
+  "entry": null,
+  "displayName": "component_q_e_input_segment_1",
+  "hash": "segment_1",
+  "canonicalFilename": "component.tsx_component_q_e_input_segment_1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onInput$",
+  "captures": false,
+  "loc": [
+    174,
+    211
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_q_e_input_segment_2.js (ENTRY POINT)==
+
+export const component_q_e_input_segment_2 = () => {
+  return console.log('before');
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_input_segment_2",
+  "entry": null,
+  "displayName": "component_q_e_input_segment_2",
+  "hash": "segment_2",
+  "canonicalFilename": "component.tsx_component_q_e_input_segment_2",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onInput$",
+  "captures": false,
+  "loc": [
+    226,
+    264
+  ],
+  "paramNames": []
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

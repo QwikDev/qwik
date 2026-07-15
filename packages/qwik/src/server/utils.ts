@@ -1,4 +1,4 @@
-import type { RenderToStringOptions } from './types';
+import type { RenderOptions } from './types';
 
 /**
  * Utility timer function for performance profiling. Returns a duration of 0 in environments that do
@@ -16,7 +16,7 @@ export function createTimer() {
   };
 }
 
-export function getBuildBase(opts: RenderToStringOptions) {
+export function getBuildBase(opts: RenderOptions<any>) {
   let base = opts.base;
   if (typeof opts.base === 'function') {
     base = opts.base(opts);

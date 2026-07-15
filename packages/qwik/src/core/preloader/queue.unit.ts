@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
-import { createDocument } from '@qwik.dev/core/testing';
+import { createDocument } from '../../testing/document';
 
 const originalWindow = globalThis.window;
 const originalDocument = globalThis.document;

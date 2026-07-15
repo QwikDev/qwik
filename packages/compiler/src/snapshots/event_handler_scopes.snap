@@ -8,7 +8,7 @@ export function App() {
 
 ============================= src/component.tsx ==
 
-import { _qrlWithChunk } from '@qwik.dev/core/spark';
+import { createSsrElementRecord, _qrlWithChunk } from '@qwik.dev/core';
 
 const q_component_q_e_click_segment_0 = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_q_e_click_segment_0',
@@ -30,26 +30,25 @@ const q_component_q_d_keydown_segment_3 = /*#__PURE__*/ _qrlWithChunk(
   () => import('./component.tsx_component_q_d_keydown_segment_3'),
   'component_q_d_keydown_segment_3'
 );
-
-export function App(_props, ctx) {
-  return (
-    '<div' +
-    ctx.eventAttr('q-e:click', q_component_q_e_click_segment_0) +
-    ctx.eventAttr('q-e:dblclick', q_component_q_e_dblclick_segment_1) +
-    ctx.eventAttr('q-w:scroll', q_component_q_w_scroll_segment_2) +
-    ctx.eventAttr('q-d:keydown', q_component_q_d_keydown_segment_3) +
-    '></div>'
-  );
+export function App(props, ctx) {
+  return [
+    createSsrElementRecord(
+      'div',
+      '<div',
+      ctx.eventAttr('q-e:click', q_component_q_e_click_segment_0),
+      ctx.eventAttr('q-e:dblclick', q_component_q_e_dblclick_segment_1),
+      ctx.eventAttr('q-w:scroll', q_component_q_w_scroll_segment_2),
+      ctx.eventAttr('q-d:keydown', q_component_q_d_keydown_segment_3),
+      '>'
+    ),
+    '</div>',
+  ];
 }
-
-null
 ============================= src/component.tsx_component_q_e_click_segment_0.js (ENTRY POINT)==
 
 export const component_q_e_click_segment_0 = () => {
   return 1;
 };
-
-null
 /*
 {
   "origin": "component.tsx",
@@ -75,8 +74,6 @@ null
 export const component_q_e_dblclick_segment_1 = () => {
   return 2;
 };
-
-null
 /*
 {
   "origin": "component.tsx",
@@ -102,8 +99,6 @@ null
 export const component_q_w_scroll_segment_2 = () => {
   return 3;
 };
-
-null
 /*
 {
   "origin": "component.tsx",
@@ -129,8 +124,6 @@ null
 export const component_q_d_keydown_segment_3 = () => {
   return 4;
 };
-
-null
 /*
 {
   "origin": "component.tsx",
@@ -158,31 +151,27 @@ null
 
 ============================= src/component.tsx ==
 
-import { createTemplate, setEvent } from '@qwik.dev/core/spark';
+import { _first, setEvent, createTemplate } from '@qwik.dev/core';
 import { component_q_e_click_segment_0 } from './component.tsx_component_q_e_click_segment_0';
 import { component_q_e_dblclick_segment_1 } from './component.tsx_component_q_e_dblclick_segment_1';
 import { component_q_w_scroll_segment_2 } from './component.tsx_component_q_w_scroll_segment_2';
 import { component_q_d_keydown_segment_3 } from './component.tsx_component_q_d_keydown_segment_3';
 
-const dom_App_template0 = createTemplate('<div></div>');
-export function App(_props, ctx) {
-  const fragment0 = dom_App_template0(ctx.document);
-  const el1 = fragment0.firstChild;
-  setEvent(el1, 'q-e:click', component_q_e_click_segment_0);
-  setEvent(el1, 'q-e:dblclick', component_q_e_dblclick_segment_1);
-  setEvent(el1, 'q-w:scroll', component_q_w_scroll_segment_2);
-  setEvent(el1, 'q-d:keydown', component_q_d_keydown_segment_3);
-  return el1;
+const App_tmpl0 = createTemplate('<div></div>');
+export function App(props, ctx) {
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  setEvent(el0, 'q-e:click', component_q_e_click_segment_0);
+  setEvent(el0, 'q-e:dblclick', component_q_e_dblclick_segment_1);
+  setEvent(el0, 'q-w:scroll', component_q_w_scroll_segment_2);
+  setEvent(el0, 'q-d:keydown', component_q_d_keydown_segment_3);
+  return el0;
 }
-
-null
 ============================= src/component.tsx_component_q_e_click_segment_0.js (ENTRY POINT)==
 
 export const component_q_e_click_segment_0 = () => {
   return 1;
 };
-
-null
 /*
 {
   "origin": "component.tsx",
@@ -208,8 +197,6 @@ null
 export const component_q_e_dblclick_segment_1 = () => {
   return 2;
 };
-
-null
 /*
 {
   "origin": "component.tsx",
@@ -235,8 +222,6 @@ null
 export const component_q_w_scroll_segment_2 = () => {
   return 3;
 };
-
-null
 /*
 {
   "origin": "component.tsx",
@@ -262,8 +247,6 @@ null
 export const component_q_d_keydown_segment_3 = () => {
   return 4;
 };
-
-null
 /*
 {
   "origin": "component.tsx",

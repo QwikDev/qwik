@@ -216,7 +216,7 @@
         }
       ],
       "kind": "Function",
-      "content": "Qwik Optimizer marker function.\n\nUse `$(...)` to tell Qwik Optimizer to extract the expression in `$(...)` into a lazy-loadable resource referenced by `QRL`<!-- -->.\n\n\n```typescript\n$: <T>(expression: T) => QRL<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nexpression\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\nExpression which should be lazy loaded\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[QRL](#qrl-type-alias)<!-- -->&lt;T&gt;",
+      "content": "Qwik Optimizer marker function.\n\nUse `$(...)` to tell Qwik Optimizer to extract the expression in `$(...)` into a lazy-loadable resource referenced by `QRL`<!-- -->.\n\n\n```typescript\n$: <T>(expression: T) => QRL<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nexpression\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\nExpression which should be lazy loaded\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[QRL](#qrl)<!-- -->&lt;T&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/qrl/qrl.public.ts",
       "mdFile": "core._.md"
     },
@@ -234,22 +234,22 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "Abort the current computation and run cleanups if needed.\n\n\n```typescript\nabort(reason?: any): void;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nreason\n\n\n</td><td>\n\nany\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
+      "content": "```typescript\nabort(reason?: unknown): void;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nreason\n\n\n</td><td>\n\nunknown\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
       "mdFile": "core.asyncsignal.abort.md"
     },
     {
-      "name": "AsyncFn",
-      "id": "asyncfn",
+      "name": "AsyncCtx",
+      "id": "asyncctx",
       "hierarchy": [
         {
-          "name": "AsyncFn",
-          "id": "asyncfn"
+          "name": "AsyncCtx",
+          "id": "asyncctx"
         }
       ],
       "kind": "TypeAlias",
-      "content": "Note, we don't pass the generic type to AsyncCtx because it causes TypeScript to not infer the type of the resource correctly. The type is only used for the `previous` property, which is not commonly used, and can be easily cast if needed.\n\n\n```typescript\nexport type AsyncFn<T> = (ctx: AsyncCtx) => ValueOrPromise<T>;\n```\n**References:** [ValueOrPromise](#valueorpromise)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async.ts",
-      "mdFile": "core.asyncfn.md"
+      "content": "```typescript\nexport type AsyncCtx<T = unknown> = {\n    track: Tracker;\n    cleanup(callback: () => ValueOrPromise<void>): void;\n    readonly abortSignal: AbortSignal;\n    readonly previous: T | undefined;\n    readonly info?: unknown;\n};\n```\n**References:** [Tracker](#tracker)<!-- -->, [ValueOrPromise](#valueorpromise)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/public-types.ts",
+      "mdFile": "core.asyncctx.md"
     },
     {
       "name": "AsyncSignal",
@@ -261,8 +261,8 @@
         }
       ],
       "kind": "Interface",
-      "content": "An AsyncSignal holds the result of the given async function. If the function uses `track()` to track reactive state, and that state changes, the AsyncSignal is recalculated, and if the result changed, all tasks which are tracking the AsyncSignal will be re-run and all subscribers (components, tasks etc) that read the AsyncSignal will be updated.\n\nIf the async function throws an error, the AsyncSignal will capture the error and set the `error` property. The error can be cleared by re-running the async function successfully.\n\nWhile the async function is running, the `.loading` property will be set to `true`<!-- -->. Once the function completes, `loading` will be set to `false`<!-- -->.\n\nIf the value has not yet been resolved, reading the AsyncSignal will throw a Promise, which will retry the component or task once the value resolves.\n\nIf the value has been resolved, but the async function is re-running, reading the AsyncSignal will subscribe to it and return the last resolved value until the new value is ready. As soon as the new value is ready, the subscribers will be updated.\n\nIf the async function threw an error, reading the `.value` will throw that same error. Read from `.error` to check if there was an error.\n\n\n```typescript\nexport interface AsyncSignal<T = unknown> extends ComputedSignal<T> \n```\n**Extends:** [ComputedSignal](#computedsignal)<!-- -->&lt;T&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nerror\n\n\n</td><td>\n\n\n</td><td>\n\nError \\| undefined\n\n\n</td><td>\n\nThe error that occurred while computing the signal, if any. This will be cleared when the signal is successfully computed. It does not trigger lazy loading of the signal.\n\n\n</td></tr>\n<tr><td>\n\nexpires\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\nExpiration time in ms. Writable and immediately effective.\n\nWhen set, the signal is invalidated after this many ms. Whether it auto-recomputes depends on the `poll` property. `0` means no expiration.\n\n\n</td></tr>\n<tr><td>\n\ninterval\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nloading\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\nWhether the signal is currently loading. This will trigger lazy loading of the signal, so you can use it like this:\n\n```tsx\nsignal.loading ? <Loading /> : signal.error ? <Error /> : <Component\nvalue={signal.value} />\n```\n\n\n</td></tr>\n<tr><td>\n\npoll\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\nWhether to automatically re-run the function when the value expires. Writable and immediately effective. Only relevant when `expires` is set.\n\nDefaults to `true`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\nuntrackedError\n\n\n</td><td>\n\n\n</td><td>\n\nError \\| undefined\n\n\n</td><td>\n\nLets you read the error state without subscribing to `.error` updates. It does not trigger lazy loading of the signal.\n\nSetting it will trigger listeners for `.error`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\nuntrackedLoading\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\nLets you read the loading state without subscribing to `.loading` updates. It also triggers lazy loading of the signal.\n\nSetting it will trigger listeners for `.loading`<!-- -->.\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[abort(reason)](#asyncsignal-abort)\n\n\n</td><td>\n\nAbort the current computation and run cleanups if needed.\n\n\n</td></tr>\n<tr><td>\n\n[invalidate(info)](#asyncsignal-invalidate)\n\n\n</td><td>\n\nUse this to force recalculation. If you pass `info`<!-- -->, it will be provided to the calculation function.\n\n\n</td></tr>\n<tr><td>\n\n[promise()](#asyncsignal-promise)\n\n\n</td><td>\n\nA promise that resolves when the value is computed or rejected.\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts",
+      "content": "```typescript\nexport interface PublicAsyncSignal<T = unknown> extends PublicSignal<T> \n```\n**Extends:** [PublicSignal](#signal)<!-- -->&lt;T&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nerror\n\n\n</td><td>\n\n\n</td><td>\n\nError \\| undefined\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nexpires\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\ninterval\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nloading\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\npoll\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nuntrackedError\n\n\n</td><td>\n\n\n</td><td>\n\nError \\| undefined\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nuntrackedLoading\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[abort(reason)](#asyncsignal-abort)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[invalidate(info)](#asyncsignal-invalidate)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[promise()](#asyncsignal-promise)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/public-types.ts",
       "mdFile": "core.asyncsignal.md"
     },
     {
@@ -275,26 +275,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface AsyncSignalOptions<T> extends ComputedOptions \n```\n**Extends:** [ComputedOptions](#computedoptions)\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nallowStale?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ When true (default), the previous value is kept while the signal re-computes after invalidation, so reads return stale data instead of throwing a promise. Reactivity will then update the readers when the new value is ready.\n\nWhen false, invalidation clears the value so reads throw the computation promise (like the initial load), which is useful for navigations where showing old data would be confusing.\n\nNote that polling invalidations (`expires` with `poll: true`<!-- -->) are not affected by this option and will keep the old value while the new value is loading, to avoid flashing loaders.\n\nThis option only affects manual invalidations via `invalidate()`<!-- -->, and non-polling expirations (`poll: false`<!-- -->, or there are no subscribers).\n\nDefaults to `true`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\nclientOnly?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ When true, the async computation is postponed to the browser. On SSR, the signal remains INVALID and does not execute the function. On the client, it will compute on first read.\n\nDefaults to `false`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\nconcurrency?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_ Maximum number of concurrent computations. Use `0` for unlimited.\n\nDefaults to `1`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\neagerCleanup?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ When subscribers drop to 0, run cleanup in the next tick, instead of waiting for the function inputs to change.\n\nDefaults to `false`<!-- -->, meaning cleanup happens only when inputs change.\n\n\n</td></tr>\n<tr><td>\n\nexpires?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_ Time in milliseconds after which the value expires.\n\nWhen the value expires and subscribers exist, the signal is invalidated. If `poll` is `true` (default), the function is re-run automatically. If `poll` is `false`<!-- -->, the value is marked stale and recomputation happens when reading `.value` or `.loading`<!-- -->.\n\n`0` (default) means no expiration.\n\n\n</td></tr>\n<tr><td>\n\ninitial?\n\n\n</td><td>\n\n\n</td><td>\n\nT \\| (() =&gt; T)\n\n\n</td><td>\n\n_(Optional)_ Like useSignal's `initial`<!-- -->; prevents the throw on first read when uninitialized\n\n\n</td></tr>\n<tr><td>\n\ninterval?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\npoll?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ Whether to automatically re-run the function when the value expires. Only relevant when `expires` is set.\n\nDefaults to `true`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\ntimeout?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_ Maximum time in milliseconds to wait for the async computation to complete. If exceeded, the computation is aborted and an error is thrown.\n\nIf `0`<!-- -->, no timeout is applied.\n\nDefaults to `0`<!-- -->.\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/types.ts",
+      "content": "```typescript\nexport interface AsyncSignalOptions<T> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nallowStale?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nclientOnly?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nconcurrency?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\neagerCleanup?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nexpires?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ninitial?\n\n\n</td><td>\n\n\n</td><td>\n\nT \\| (() =&gt; T)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ninterval?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\npoll?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ntimeout?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/public-types.ts",
       "mdFile": "core.asyncsignaloptions.md"
-    },
-    {
-      "name": "cache",
-      "id": "resourcectx-cache",
-      "hierarchy": [
-        {
-          "name": "ResourceCtx",
-          "id": "resourcectx-cache"
-        },
-        {
-          "name": "cache",
-          "id": "resourcectx-cache"
-        }
-      ],
-      "kind": "MethodSignature",
-      "content": "> Warning: This API is now obsolete.\n> \n> Does not do anything\n> \n\n\n```typescript\ncache(policyOrMilliseconds: number | 'immutable'): void;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\npolicyOrMilliseconds\n\n\n</td><td>\n\nnumber \\| 'immutable'\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
-      "mdFile": "core.resourcectx.cache.md"
     },
     {
       "name": "ClassList",
@@ -370,48 +353,6 @@
       "mdFile": "core.componentbaseprops.md"
     },
     {
-      "name": "ComputedFn",
-      "id": "computedfn",
-      "hierarchy": [
-        {
-          "name": "ComputedFn",
-          "id": "computedfn"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "```typescript\nexport type ComputedFn<T> = () => T;\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-computed.ts",
-      "mdFile": "core.computedfn.md"
-    },
-    {
-      "name": "ComputedOptions",
-      "id": "computedoptions",
-      "hierarchy": [
-        {
-          "name": "ComputedOptions",
-          "id": "computedoptions"
-        }
-      ],
-      "kind": "Interface",
-      "content": "```typescript\nexport interface ComputedOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ncontainer?\n\n\n</td><td>\n\n\n</td><td>\n\nContainer\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nserializationStrategy?\n\n\n</td><td>\n\n\n</td><td>\n\n[SerializationStrategy](#serializationstrategy)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/types.ts",
-      "mdFile": "core.computedoptions.md"
-    },
-    {
-      "name": "ComputedReturnType",
-      "id": "computedreturntype",
-      "hierarchy": [
-        {
-          "name": "ComputedReturnType",
-          "id": "computedreturntype"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "```typescript\nexport type ComputedReturnType<T> = T extends Promise<any> ? never : ComputedSignal<T>;\n```\n**References:** [ComputedSignal](#computedsignal)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-computed.ts",
-      "mdFile": "core.computedreturntype.md"
-    },
-    {
       "name": "ComputedSignal",
       "id": "computedsignal",
       "hierarchy": [
@@ -420,9 +361,9 @@
           "id": "computedsignal"
         }
       ],
-      "kind": "Interface",
-      "content": "A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated, and if the result changed, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.\n\n\n```typescript\nexport interface ComputedSignal<T> extends Signal<T> \n```\n**Extends:** [Signal](#signal)<!-- -->&lt;T&gt;\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[force()](#computedsignal-force)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\ninvalidate()\n\n\n</td><td>\n\nUse this to force recalculation.\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts",
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type ComputedSignal<T = unknown> = ReadonlySignal<T>;\n```\n**References:** [ReadonlySignal](#readonlysignal)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/public-types.ts",
       "mdFile": "core.computedsignal.md"
     },
     {
@@ -435,8 +376,8 @@
         }
       ],
       "kind": "Interface",
-      "content": "ContextId is a typesafe ID for your context.\n\nContext is a way to pass stores to the child components without prop-drilling.\n\nUse `createContextId()` to create a `ContextId`<!-- -->. A `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.\n\n\\#\\#\\# Example\n\n```tsx\n// Declare the Context type.\ninterface TodosStore {\n  items: string[];\n}\n// Create a Context ID (no data is saved here.)\n// You will use this ID to both create and retrieve the Context.\nexport const TodosContext = createContextId<TodosStore>('Todos');\n\n// Example of providing context to child components.\nexport const App = component$(() => {\n  useContextProvider(\n    TodosContext,\n    useStore<TodosStore>({\n      items: ['Learn Qwik', 'Build Qwik app', 'Profit'],\n    })\n  );\n\n  return <Items />;\n});\n\n// Example of retrieving the context provided by a parent component.\nexport const Items = component$(() => {\n  const todos = useContext(TodosContext);\n  return (\n    <ul>\n      {todos.items.map((item) => (\n        <li>{item}</li>\n      ))}\n    </ul>\n  );\n});\n\n```\n\n\n```typescript\nexport interface ContextId<STATE> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n\\_\\_brand\\_context\\_type\\_\\_\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nSTATE\n\n\n</td><td>\n\nDesign-time property to store type information for the context.\n\n\n</td></tr>\n<tr><td>\n\nid\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\nA unique ID for the context.\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-context.ts",
+      "content": "```typescript\nexport interface ContextId<STATE> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n\\_\\_brand\\_context\\_type\\_\\_\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nSTATE\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nid\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/runtime/context.ts",
       "mdFile": "core.contextid.md"
     },
     {
@@ -454,48 +395,6 @@
       "mdFile": "core.coreplatform.md"
     },
     {
-      "name": "CorrectedToggleEvent",
-      "id": "correctedtoggleevent",
-      "hierarchy": [
-        {
-          "name": "CorrectedToggleEvent",
-          "id": "correctedtoggleevent"
-        }
-      ],
-      "kind": "Interface",
-      "content": "This corrects the TS definition for ToggleEvent\n\n\n```typescript\nexport interface CorrectedToggleEvent extends Event \n```\n**Extends:** Event\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nnewState\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n'open' \\| 'closed'\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nprevState\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n'open' \\| 'closed'\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-attributes.ts",
-      "mdFile": "core.correctedtoggleevent.md"
-    },
-    {
-      "name": "createAsync$",
-      "id": "createasync_",
-      "hierarchy": [
-        {
-          "name": "createAsync$",
-          "id": "createasync_"
-        }
-      ],
-      "kind": "Function",
-      "content": "Create a signal holding a `.value` which is calculated from the given async function (QRL). The standalone version of `useAsync$`<!-- -->.\n\n\n```typescript\ncreateAsync$: <T>(qrl: (arg: AsyncCtx<T>) => Promise<T>, options?: AsyncSignalOptions<T>) => AsyncSignal<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n(arg: AsyncCtx&lt;T&gt;) =&gt; Promise&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[AsyncSignalOptions](#asyncsignaloptions)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[AsyncSignal](#asyncsignal)<!-- -->&lt;T&gt;",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts",
-      "mdFile": "core.createasync_.md"
-    },
-    {
-      "name": "createComputed$",
-      "id": "createcomputed_",
-      "hierarchy": [
-        {
-          "name": "createComputed$",
-          "id": "createcomputed_"
-        }
-      ],
-      "kind": "Function",
-      "content": "Create a computed signal which is calculated from the given QRL. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated.\n\nThe QRL must be a function which returns the value of the signal. The function must not have side effects, and it must be synchronous.\n\nIf you need the function to be async, use `createAsync$` instead (don't forget to use `track()`<!-- -->).\n\n\n```typescript\ncreateComputed$: <T>(qrl: () => T, options?: ComputedOptions) => ComputedReturnType<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n() =&gt; T\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[ComputedOptions](#computedoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[ComputedReturnType](#computedreturntype)<!-- -->&lt;T&gt;",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts",
-      "mdFile": "core.createcomputed_.md"
-    },
-    {
       "name": "createContextId",
       "id": "createcontextid",
       "hierarchy": [
@@ -505,37 +404,9 @@
         }
       ],
       "kind": "Function",
-      "content": "Create a context ID to be used in your application. The name should be written with no spaces.\n\nContext is a way to pass stores to the child components without prop-drilling.\n\nUse `createContextId()` to create a `ContextId`<!-- -->. A `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.\n\n\\#\\#\\# Example\n\n```tsx\n// Declare the Context type.\ninterface TodosStore {\n  items: string[];\n}\n// Create a Context ID (no data is saved here.)\n// You will use this ID to both create and retrieve the Context.\nexport const TodosContext = createContextId<TodosStore>('Todos');\n\n// Example of providing context to child components.\nexport const App = component$(() => {\n  useContextProvider(\n    TodosContext,\n    useStore<TodosStore>({\n      items: ['Learn Qwik', 'Build Qwik app', 'Profit'],\n    })\n  );\n\n  return <Items />;\n});\n\n// Example of retrieving the context provided by a parent component.\nexport const Items = component$(() => {\n  const todos = useContext(TodosContext);\n  return (\n    <ul>\n      {todos.items.map((item) => (\n        <li>{item}</li>\n      ))}\n    </ul>\n  );\n});\n\n```\n\n\n```typescript\ncreateContextId: <STATE = unknown>(name: string) => ContextId<STATE>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nname\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\nThe name of the context.\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[ContextId](#contextid)<!-- -->&lt;STATE&gt;",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-context.ts",
+      "content": "```typescript\ncreateContextId: <STATE = unknown>(name: string) => ContextId<STATE>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nname\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[ContextId](#contextid)<!-- -->&lt;STATE&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/runtime/context.ts",
       "mdFile": "core.createcontextid.md"
-    },
-    {
-      "name": "createSerializer$",
-      "id": "createserializer_",
-      "hierarchy": [
-        {
-          "name": "createSerializer$",
-          "id": "createserializer_"
-        }
-      ],
-      "kind": "Function",
-      "content": "Create a signal that holds a custom serializable value. See [useSerializer$](#useserializer_) for more details.\n\n\n```typescript\ncreateSerializer$: <T, S>(arg: SerializerArg<T, S>) => T extends Promise<any> ? never : SerializerSignal<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\narg\n\n\n</td><td>\n\nSerializerArg&lt;T, S&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nT extends Promise&lt;any&gt; ? never : SerializerSignal&lt;T&gt;",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts",
-      "mdFile": "core.createserializer_.md"
-    },
-    {
-      "name": "createSignal",
-      "id": "createsignal",
-      "hierarchy": [
-        {
-          "name": "createSignal",
-          "id": "createsignal"
-        }
-      ],
-      "kind": "Variable",
-      "content": "Creates a Signal with the given value. If no value is given, the signal is created with `undefined`<!-- -->.\n\n\n```typescript\ncreateSignal: {\n    <T>(): Signal<T | undefined>;\n    <T>(value: T): Signal<T>;\n}\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts",
-      "mdFile": "core.createsignal.md"
     },
     {
       "name": "CSSProperties",
@@ -552,20 +423,6 @@
       "mdFile": "core.cssproperties.md"
     },
     {
-      "name": "DevJSX",
-      "id": "devjsx",
-      "hierarchy": [
-        {
-          "name": "DevJSX",
-          "id": "devjsx"
-        }
-      ],
-      "kind": "Interface",
-      "content": "```typescript\nexport interface DevJSX \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ncolumnNumber\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nfileName\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nlineNumber\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nstack?\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-node.ts",
-      "mdFile": "core.devjsx.md"
-    },
-    {
       "name": "DOMAttributes",
       "id": "domattributes",
       "hierarchy": [
@@ -578,20 +435,6 @@
       "content": "The Qwik-specific attributes that DOM elements accept\n\n\n```typescript\nexport interface DOMAttributes<EL extends Element> extends DOMAttributesBase<EL>, QwikEvents<EL> \n```\n**Extends:** DOMAttributesBase&lt;EL&gt;, QwikEvents&lt;EL&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nclass?\n\n\n</td><td>\n\n\n</td><td>\n\n[ClassList](#classlist) \\| [Signal](#signal)<!-- -->&lt;[ClassList](#classlist)<!-- -->&gt; \\| undefined\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-attributes.ts",
       "mdFile": "core.domattributes.md"
-    },
-    {
-      "name": "Each",
-      "id": "each",
-      "hierarchy": [
-        {
-          "name": "Each",
-          "id": "each"
-        }
-      ],
-      "kind": "Variable",
-      "content": "```typescript\nEach: EachComponent\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/each.ts",
-      "mdFile": "core.each.md"
     },
     {
       "name": "Element",
@@ -641,22 +484,8 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\ntype ElementType = string | FunctionComponent<Record<any, any>>;\n```\n**References:** [FunctionComponent](#functioncomponent)",
+      "content": "```typescript\ntype ElementType = string | FunctionComponent<any>;\n```\n**References:** [FunctionComponent](#functioncomponent)",
       "mdFile": "core.qwikjsx.elementtype.md"
-    },
-    {
-      "name": "ErrorBoundaryStore",
-      "id": "errorboundarystore",
-      "hierarchy": [
-        {
-          "name": "ErrorBoundaryStore",
-          "id": "errorboundarystore"
-        }
-      ],
-      "kind": "Interface",
-      "content": "```typescript\nexport interface ErrorBoundaryStore \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nerror\n\n\n</td><td>\n\n\n</td><td>\n\nany \\| undefined\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/error/error-handling.ts",
-      "mdFile": "core.errorboundarystore.md"
     },
     {
       "name": "event$",
@@ -668,7 +497,7 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nevent$: <T>(qrl: T) => import(\"./qrl.public\").QRL<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nimport(\"./qrl.public\").[QRL](#qrl-type-alias)<!-- -->&lt;T&gt;",
+      "content": "```typescript\nevent$: <T>(qrl: T) => import(\"./qrl.public\").QRL<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nimport(\"./qrl.public\").[QRL](#qrl)<!-- -->&lt;T&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/qrl/qrl.public.dollar.ts",
       "mdFile": "core.event_.md"
     },
@@ -687,23 +516,6 @@
       "mdFile": "core.eventhandler.md"
     },
     {
-      "name": "force",
-      "id": "computedsignal-force",
-      "hierarchy": [
-        {
-          "name": "ComputedSignal",
-          "id": "computedsignal-force"
-        },
-        {
-          "name": "force",
-          "id": "computedsignal-force"
-        }
-      ],
-      "kind": "MethodSignature",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `trigger()` instead\n> \n\n\n```typescript\nforce(): void;\n```\n**Returns:**\n\nvoid",
-      "mdFile": "core.computedsignal.force.md"
-    },
-    {
       "name": "forceStoreEffects",
       "id": "forcestoreeffects",
       "hierarchy": [
@@ -713,23 +525,9 @@
         }
       ],
       "kind": "Function",
-      "content": "Force a store to recompute and schedule effects.\n\n\n```typescript\nforceStoreEffects: (value: StoreTarget, prop: keyof StoreTarget) => void\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nvalue\n\n\n</td><td>\n\nStoreTarget\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nprop\n\n\n</td><td>\n\nkeyof StoreTarget\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/impl/store.ts",
+      "content": "```typescript\nexport declare function forceStoreEffects<T extends object>(value: T, prop: keyof T): void;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nvalue\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nprop\n\n\n</td><td>\n\nkeyof T\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/store.ts",
       "mdFile": "core.forcestoreeffects.md"
-    },
-    {
-      "name": "Fragment",
-      "id": "fragment",
-      "hierarchy": [
-        {
-          "name": "Fragment",
-          "id": "fragment"
-        }
-      ],
-      "kind": "Variable",
-      "content": "```typescript\nFragment: FunctionComponent<{\n    children?: any;\n    key?: string | number | null;\n}>\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/jsx-runtime.ts",
-      "mdFile": "core.fragment.md"
     },
     {
       "name": "FunctionComponent",
@@ -741,7 +539,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "Any function taking a props object that returns JSXOutput.\n\nThe `key`<!-- -->, `flags` and `dev` parameters are for internal use.\n\n\n```typescript\nexport type FunctionComponent<P = unknown> = {\n    renderFn(props: P, key: string | null, flags: number, dev?: DevJSX): JSXOutput;\n}['renderFn'];\n```\n**References:** [DevJSX](#devjsx)<!-- -->, [JSXOutput](#jsxoutput)",
+      "content": "Any source component taking a props object and returning JSX output.\n\n\n```typescript\nexport type FunctionComponent<P = unknown> = {\n    bivarianceHack(props: P): JSXOutput;\n}['bivarianceHack'];\n```\n**References:** [JSXOutput](#jsxoutput)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-node.ts",
       "mdFile": "core.functioncomponent.md"
     },
@@ -760,20 +558,6 @@
       "mdFile": "core.getclientmanifest.md"
     },
     {
-      "name": "getDomContainer",
-      "id": "getdomcontainer",
-      "hierarchy": [
-        {
-          "name": "getDomContainer",
-          "id": "getdomcontainer"
-        }
-      ],
-      "kind": "Function",
-      "content": "```typescript\nexport declare function getDomContainer(element: Element): IClientContainer;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nelement\n\n\n</td><td>\n\nElement\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nIClientContainer",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/client/dom-container.ts",
-      "mdFile": "core.getdomcontainer.md"
-    },
-    {
       "name": "getLocale",
       "id": "getlocale",
       "hierarchy": [
@@ -784,7 +568,7 @@
       ],
       "kind": "Function",
       "content": "Retrieve the current locale.\n\nIf no current locale and there is no `defaultLocale` the function throws an error.\n\n\n```typescript\nexport declare function getLocale(defaultLocale?: string): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ndefaultLocale\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nstring\n\nThe locale.",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-locale.ts",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/runtime/use-locale.ts",
       "mdFile": "core.getlocale.md"
     },
     {
@@ -800,20 +584,6 @@
       "content": "Retrieve the `CorePlatform`<!-- -->.\n\nThe `CorePlatform` is also responsible for retrieving the Manifest, that contains mappings from symbols to javascript import chunks. For this reason, `CorePlatform` can't be global, but is specific to the application currently running. On server it is possible that many different applications are running in a single server instance, and for this reason the `CorePlatform` is associated with the application document.\n\n\n```typescript\ngetPlatform: () => CorePlatform\n```\n**Returns:**\n\n[CorePlatform](#coreplatform)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/platform/platform.ts",
       "mdFile": "core.getplatform.md"
-    },
-    {
-      "name": "h",
-      "id": "h",
-      "hierarchy": [
-        {
-          "name": "h",
-          "id": "h"
-        }
-      ],
-      "kind": "Function",
-      "content": "The legacy transform, used by some JSX transpilers. The optimizer normally replaces this with optimized calls, with the same caveat as `jsx()`<!-- -->.\n\n\n```typescript\nexport declare function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}>(type: TYPE, props?: PROPS | null, ...children: any[]): JSXNode<TYPE>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ntype\n\n\n</td><td>\n\nTYPE\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nprops\n\n\n</td><td>\n\nPROPS \\| null\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nchildren\n\n\n</td><td>\n\nany\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[JSXNode](#jsxnode)<!-- -->&lt;TYPE&gt;",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/jsx-runtime.ts",
-      "mdFile": "core.h.md"
     },
     {
       "name": "HTMLElementAttrs",
@@ -839,7 +609,7 @@
         }
       ],
       "kind": "Function",
-      "content": "Create a `____$(...)` convenience method from `___(...)`<!-- -->.\n\nIt is very common for functions to take a lazy-loadable resource as a first argument. For this reason, the Qwik Optimizer automatically extracts the first argument from any function which ends in `$`<!-- -->.\n\nThis means that `foo$(arg0)` and `foo($(arg0))` are equivalent with respect to Qwik Optimizer. The former is just a shorthand for the latter.\n\nFor example, these function calls are equivalent:\n\n- `component$(() => {...})` is same as `component($(() => {...}))`\n\n```tsx\nexport function myApi(callback: QRL<() => void>): void {\n  // ...\n}\n\nexport const myApi$ = implicit$FirstArg(myApi);\n// type of myApi$: (callback: () => void): void\n\n// can be used as:\nmyApi$(() => console.log('callback'));\n\n// will be transpiled to:\n// FILE: <current file>\nmyApi(qrl('./chunk-abc.js', 'callback'));\n\n// FILE: chunk-abc.js\nexport const callback = () => console.log('callback');\n```\n\n\n```typescript\nimplicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (qrl: QRL<FIRST>, ...rest: REST) => RET) => ((qrl: FIRST, ...rest: REST) => RET)\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfn\n\n\n</td><td>\n\n(qrl: [QRL](#qrl-type-alias)<!-- -->&lt;FIRST&gt;, ...rest: REST) =&gt; RET\n\n\n</td><td>\n\nA function that should have its first argument automatically `$`<!-- -->.\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n((qrl: FIRST, ...rest: REST) =&gt; RET)",
+      "content": "Create a `____$(...)` convenience method from `___(...)`<!-- -->.\n\nIt is very common for functions to take a lazy-loadable resource as a first argument. For this reason, the Qwik Optimizer automatically extracts the first argument from any function which ends in `$`<!-- -->.\n\nThis means that `foo$(arg0)` and `foo($(arg0))` are equivalent with respect to Qwik Optimizer. The former is just a shorthand for the latter.\n\nFor example, these function calls are equivalent:\n\n- `component$(() => {...})` is same as `component($(() => {...}))`\n\n```tsx\nexport function myApi(callback: QRL<() => void>): void {\n  // ...\n}\n\nexport const myApi$ = implicit$FirstArg(myApi);\n// type of myApi$: (callback: () => void): void\n\n// can be used as:\nmyApi$(() => console.log('callback'));\n\n// will be transpiled to:\n// FILE: <current file>\nmyApi(qrl('./chunk-abc.js', 'callback'));\n\n// FILE: chunk-abc.js\nexport const callback = () => console.log('callback');\n```\n\n\n```typescript\nexport declare function implicit$FirstArg<FIRST, REST extends any[], RET>(fn: (qrl: QRL<FIRST>, ...rest: REST) => RET): (qrl: FIRST, ...rest: REST) => RET;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfn\n\n\n</td><td>\n\n(qrl: [QRL](#qrl)<!-- -->&lt;FIRST&gt;, ...rest: REST) =&gt; RET\n\n\n</td><td>\n\nA function that should have its first argument automatically `$`<!-- -->.\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n(qrl: FIRST, ...rest: REST) =&gt; RET",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/qrl/implicit_dollar.ts",
       "mdFile": "core.implicit_firstarg.md"
     },
@@ -853,7 +623,7 @@
         }
       ],
       "kind": "Function",
-      "content": "Create an inlined QRL. This is mostly useful on the server side for serialization.\n\n\n```typescript\ninlinedQrl: <T>(symbol: T | null, symbolName: string, lexicalScopeCapture?: Readonly<unknown[]>) => QRL<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nsymbol\n\n\n</td><td>\n\nT \\| null\n\n\n</td><td>\n\nThe object/function to register, or `null` to retrieve a previously registered one by hash\n\n\n</td></tr>\n<tr><td>\n\nsymbolName\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\nThe name of the symbol.\n\n\n</td></tr>\n<tr><td>\n\nlexicalScopeCapture\n\n\n</td><td>\n\nReadonly&lt;unknown\\[\\]&gt;\n\n\n</td><td>\n\n_(Optional)_ A set of lexically scoped variables to capture.\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[QRL](#qrl-type-alias)<!-- -->&lt;T&gt;",
+      "content": "Create an inlined QRL. This is mostly useful on the server side for serialization.\n\n\n```typescript\ninlinedQrl: <T>(symbol: T | null, symbolName: string, lexicalScopeCapture?: Readonly<unknown[]>) => QRL<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nsymbol\n\n\n</td><td>\n\nT \\| null\n\n\n</td><td>\n\nThe object/function to register, or `null` to retrieve a previously registered one by hash\n\n\n</td></tr>\n<tr><td>\n\nsymbolName\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\nThe name of the symbol.\n\n\n</td></tr>\n<tr><td>\n\nlexicalScopeCapture\n\n\n</td><td>\n\nReadonly&lt;unknown\\[\\]&gt;\n\n\n</td><td>\n\n_(Optional)_ A set of lexically scoped variables to capture.\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[QRL](#qrl)<!-- -->&lt;T&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/qrl/qrl.ts",
       "mdFile": "core.inlinedqrl.md"
     },
@@ -905,36 +675,8 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "Use this to force recalculation. If you pass `info`<!-- -->, it will be provided to the calculation function.\n\n\n```typescript\ninvalidate(info?: unknown): void;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ninfo\n\n\n</td><td>\n\nunknown\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
+      "content": "```typescript\ninvalidate(info?: unknown): void;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ninfo\n\n\n</td><td>\n\nunknown\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
       "mdFile": "core.asyncsignal.invalidate.md"
-    },
-    {
-      "name": "isSignal",
-      "id": "issignal",
-      "hierarchy": [
-        {
-          "name": "isSignal",
-          "id": "issignal"
-        }
-      ],
-      "kind": "Function",
-      "content": "```typescript\nisSignal: (value: any) => value is Signal<unknown>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nvalue\n\n\n</td><td>\n\nany\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvalue is [Signal](#signal)<!-- -->&lt;unknown&gt;",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/utils.ts",
-      "mdFile": "core.issignal.md"
-    },
-    {
-      "name": "jsx",
-      "id": "jsx",
-      "hierarchy": [
-        {
-          "name": "jsx",
-          "id": "jsx"
-        }
-      ],
-      "kind": "Function",
-      "content": "Used by the JSX transpilers to create a JSXNode. Note that the optimizer will normally not use this, instead using \\_jsxSplit and \\_jsxSorted directly.\n\nThe optimizer will also replace all `jsx()` calls with the more optimized versions.\n\nThe exception is when the props are not a literal object, which can only happen when the `jsx` call is written directly.\n\n\n```typescript\njsx: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Props, key?: string | number | null, _isStatic?: boolean, dev?: JsxDevOpts) => JSXNode<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ntype\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nprops\n\n\n</td><td>\n\nT extends [FunctionComponent](#functioncomponent)<!-- -->&lt;infer PROPS&gt; ? PROPS : Props\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nkey\n\n\n</td><td>\n\nstring \\| number \\| null\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n\\_isStatic\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ndev\n\n\n</td><td>\n\nJsxDevOpts\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[JSXNode](#jsxnode)<!-- -->&lt;T&gt;",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/jsx-runtime.ts",
-      "mdFile": "core.jsx.md"
     },
     {
       "name": "JSXChildren",
@@ -946,37 +688,9 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | JSXChildren[] | Promise<JSXChildren> | Signal<JSXChildren> | JSXNode;\n```\n**References:** [JSXChildren](#jsxchildren)<!-- -->, [Signal](#signal)<!-- -->, [JSXNode](#jsxnode)",
+      "content": "```typescript\nexport type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | JSXChildren[] | Promise<JSXChildren> | Signal<JSXChildren>;\n```\n**References:** [JSXChildren](#jsxchildren)<!-- -->, [Signal](#signal)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-attributes.ts",
       "mdFile": "core.jsxchildren.md"
-    },
-    {
-      "name": "jsxDEV",
-      "id": "jsxdev",
-      "hierarchy": [
-        {
-          "name": "jsxDEV",
-          "id": "jsxdev"
-        }
-      ],
-      "kind": "Function",
-      "content": "Alias of `jsx` for development purposes.\n\n\n```typescript\njsxDEV: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Props, key?: string | number | null, _isStatic?: boolean, dev?: JsxDevOpts) => JSXNode<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ntype\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nprops\n\n\n</td><td>\n\nT extends [FunctionComponent](#functioncomponent)<!-- -->&lt;infer PROPS&gt; ? PROPS : Props\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nkey\n\n\n</td><td>\n\nstring \\| number \\| null\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n\\_isStatic\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ndev\n\n\n</td><td>\n\nJsxDevOpts\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[JSXNode](#jsxnode)<!-- -->&lt;T&gt;",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/jsx-runtime.ts",
-      "mdFile": "core.jsxdev.md"
-    },
-    {
-      "name": "JSXNode",
-      "id": "jsxnode",
-      "hierarchy": [
-        {
-          "name": "JSXNode",
-          "id": "jsxnode"
-        }
-      ],
-      "kind": "Interface",
-      "content": "A JSX Node, an internal structure. You probably want to use `JSXOutput` instead.\n\n\n```typescript\nexport interface JSXNode<T extends string | FunctionComponent | unknown = unknown> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nchildren\n\n\n</td><td>\n\n\n</td><td>\n\n[JSXChildren](#jsxchildren) \\| null\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\ndev?\n\n\n</td><td>\n\n\n</td><td>\n\n[DevJSX](#devjsx)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nkey\n\n\n</td><td>\n\n\n</td><td>\n\nstring \\| null\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nprops\n\n\n</td><td>\n\n\n</td><td>\n\nT extends [FunctionComponent](#functioncomponent)<!-- -->&lt;infer P&gt; ? P : Record&lt;any, unknown&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\ntype\n\n\n</td><td>\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-node.ts",
-      "mdFile": "core.jsxnode.md"
     },
     {
       "name": "JSXOutput",
@@ -988,23 +702,9 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "Any valid output for a component\n\n\n```typescript\nexport type JSXOutput = JSXNode | string | number | boolean | null | undefined | JSXOutput[];\n```\n**References:** [JSXNode](#jsxnode)<!-- -->, [JSXOutput](#jsxoutput)",
+      "content": "Any valid source-level output for a component.\n\n\n```typescript\nexport type JSXOutput = string | number | boolean | null | undefined | JSXOutput[];\n```\n**References:** [JSXOutput](#jsxoutput)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-node.ts",
       "mdFile": "core.jsxoutput.md"
-    },
-    {
-      "name": "jsxs",
-      "id": "jsxs",
-      "hierarchy": [
-        {
-          "name": "jsxs",
-          "id": "jsxs"
-        }
-      ],
-      "kind": "Function",
-      "content": "Alias of `jsx` to support JSX syntax.\n\n\n```typescript\njsxs: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Props, key?: string | number | null, _isStatic?: boolean, dev?: JsxDevOpts) => JSXNode<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ntype\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nprops\n\n\n</td><td>\n\nT extends [FunctionComponent](#functioncomponent)<!-- -->&lt;infer PROPS&gt; ? PROPS : Props\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nkey\n\n\n</td><td>\n\nstring \\| number \\| null\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n\\_isStatic\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ndev\n\n\n</td><td>\n\nJsxDevOpts\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[JSXNode](#jsxnode)<!-- -->&lt;T&gt;",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/jsx-runtime.ts",
-      "mdFile": "core.jsxs.md"
     },
     {
       "name": "JSXTagName",
@@ -1033,174 +733,6 @@
       "content": "The names of events that Qwik knows about. They are all lowercase, but on the JSX side, they are PascalCase for nicer DX. (`onAuxClick$` vs `onauxclick$`<!-- -->)\n\n\n```typescript\nexport type KnownEventNames = LiteralUnion<AllEventKeys, string>;\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
       "mdFile": "core.knowneventnames.md"
-    },
-    {
-      "name": "NativeAnimationEvent",
-      "id": "nativeanimationevent",
-      "hierarchy": [
-        {
-          "name": "NativeAnimationEvent",
-          "id": "nativeanimationevent"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `AnimationEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type NativeAnimationEvent = AnimationEvent;\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
-      "mdFile": "core.nativeanimationevent.md"
-    },
-    {
-      "name": "NativeClipboardEvent",
-      "id": "nativeclipboardevent",
-      "hierarchy": [
-        {
-          "name": "NativeClipboardEvent",
-          "id": "nativeclipboardevent"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `ClipboardEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type NativeClipboardEvent = ClipboardEvent;\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
-      "mdFile": "core.nativeclipboardevent.md"
-    },
-    {
-      "name": "NativeCompositionEvent",
-      "id": "nativecompositionevent",
-      "hierarchy": [
-        {
-          "name": "NativeCompositionEvent",
-          "id": "nativecompositionevent"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `CompositionEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type NativeCompositionEvent = CompositionEvent;\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
-      "mdFile": "core.nativecompositionevent.md"
-    },
-    {
-      "name": "NativeDragEvent",
-      "id": "nativedragevent",
-      "hierarchy": [
-        {
-          "name": "NativeDragEvent",
-          "id": "nativedragevent"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `DragEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type NativeDragEvent = DragEvent;\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
-      "mdFile": "core.nativedragevent.md"
-    },
-    {
-      "name": "NativeFocusEvent",
-      "id": "nativefocusevent",
-      "hierarchy": [
-        {
-          "name": "NativeFocusEvent",
-          "id": "nativefocusevent"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `FocusEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type NativeFocusEvent = FocusEvent;\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
-      "mdFile": "core.nativefocusevent.md"
-    },
-    {
-      "name": "NativeKeyboardEvent",
-      "id": "nativekeyboardevent",
-      "hierarchy": [
-        {
-          "name": "NativeKeyboardEvent",
-          "id": "nativekeyboardevent"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `KeyboardEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type NativeKeyboardEvent = KeyboardEvent;\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
-      "mdFile": "core.nativekeyboardevent.md"
-    },
-    {
-      "name": "NativeMouseEvent",
-      "id": "nativemouseevent",
-      "hierarchy": [
-        {
-          "name": "NativeMouseEvent",
-          "id": "nativemouseevent"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `MouseEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type NativeMouseEvent = MouseEvent;\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
-      "mdFile": "core.nativemouseevent.md"
-    },
-    {
-      "name": "NativePointerEvent",
-      "id": "nativepointerevent",
-      "hierarchy": [
-        {
-          "name": "NativePointerEvent",
-          "id": "nativepointerevent"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `PointerEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type NativePointerEvent = PointerEvent;\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
-      "mdFile": "core.nativepointerevent.md"
-    },
-    {
-      "name": "NativeTouchEvent",
-      "id": "nativetouchevent",
-      "hierarchy": [
-        {
-          "name": "NativeTouchEvent",
-          "id": "nativetouchevent"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `TouchEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type NativeTouchEvent = TouchEvent;\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
-      "mdFile": "core.nativetouchevent.md"
-    },
-    {
-      "name": "NativeTransitionEvent",
-      "id": "nativetransitionevent",
-      "hierarchy": [
-        {
-          "name": "NativeTransitionEvent",
-          "id": "nativetransitionevent"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `TransitionEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type NativeTransitionEvent = TransitionEvent;\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
-      "mdFile": "core.nativetransitionevent.md"
-    },
-    {
-      "name": "NativeUIEvent",
-      "id": "nativeuievent",
-      "hierarchy": [
-        {
-          "name": "NativeUIEvent",
-          "id": "nativeuievent"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `UIEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type NativeUIEvent = UIEvent;\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
-      "mdFile": "core.nativeuievent.md"
-    },
-    {
-      "name": "NativeWheelEvent",
-      "id": "nativewheelevent",
-      "hierarchy": [
-        {
-          "name": "NativeWheelEvent",
-          "id": "nativewheelevent"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `WheelEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type NativeWheelEvent = WheelEvent;\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
-      "mdFile": "core.nativewheelevent.md"
     },
     {
       "name": "noSerialize",
@@ -1259,48 +791,6 @@
       "mdFile": "core.onrenderfn.md"
     },
     {
-      "name": "OnVisibleTaskOptions",
-      "id": "onvisibletaskoptions",
-      "hierarchy": [
-        {
-          "name": "OnVisibleTaskOptions",
-          "id": "onvisibletaskoptions"
-        }
-      ],
-      "kind": "Interface",
-      "content": "```typescript\nexport interface OnVisibleTaskOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nstrategy?\n\n\n</td><td>\n\n\n</td><td>\n\n[VisibleTaskStrategy](#visibletaskstrategy)\n\n\n</td><td>\n\n_(Optional)_ The strategy to use to determine when the \"VisibleTask\" should first execute.\n\n- `intersection-observer`<!-- -->: the task will first execute when the element is visible in the viewport, under the hood it uses the IntersectionObserver API. - `document-ready`<!-- -->: the task will first execute when the document is ready, under the hood it uses the document `load` event. - `document-idle`<!-- -->: the task will first execute when the document is idle, under the hood it uses the requestIdleCallback API.\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-visible-task.ts",
-      "mdFile": "core.onvisibletaskoptions.md"
-    },
-    {
-      "name": "PrefetchGraph",
-      "id": "prefetchgraph",
-      "hierarchy": [
-        {
-          "name": "PrefetchGraph",
-          "id": "prefetchgraph"
-        }
-      ],
-      "kind": "Function",
-      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n> Warning: This API is now obsolete.\n> \n> This is no longer needed as the preloading happens automatically in qrl-class. You can remove this component from your app.\n> \n\n\n```typescript\nPrefetchGraph: (_opts?: {\n    base?: string;\n    manifestHash?: string;\n    manifestURL?: string;\n    nonce?: string;\n}) => JSXOutput\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n\\_opts\n\n\n</td><td>\n\n{ base?: string; manifestHash?: string; manifestURL?: string; nonce?: string; }\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[JSXOutput](#jsxoutput)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/prefetch-service-worker/prefetch.ts",
-      "mdFile": "core.prefetchgraph.md"
-    },
-    {
-      "name": "PrefetchServiceWorker",
-      "id": "prefetchserviceworker",
-      "hierarchy": [
-        {
-          "name": "PrefetchServiceWorker",
-          "id": "prefetchserviceworker"
-        }
-      ],
-      "kind": "Function",
-      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n> Warning: This API is now obsolete.\n> \n> This is no longer needed as the preloading happens automatically in qrl-class.ts. Leave this in your app for a while so it uninstalls existing service workers, but don't use it for new projects.\n> \n\n\n```typescript\nPrefetchServiceWorker: (opts: {\n    base?: string;\n    scope?: string;\n    path?: string;\n    verbose?: boolean;\n    fetchBundleGraph?: boolean;\n    nonce?: string;\n}) => JSXOutput\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n{ base?: string; scope?: string; path?: string; verbose?: boolean; fetchBundleGraph?: boolean; nonce?: string; }\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[JSXOutput](#jsxoutput)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/prefetch-service-worker/prefetch.ts",
-      "mdFile": "core.prefetchserviceworker.md"
-    },
-    {
       "name": "promise",
       "id": "asyncsignal-promise",
       "hierarchy": [
@@ -1314,7 +804,7 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "A promise that resolves when the value is computed or rejected.\n\n\n```typescript\npromise(): Promise<void>;\n```\n**Returns:**\n\nPromise&lt;void&gt;",
+      "content": "```typescript\npromise(): Promise<void>;\n```\n**Returns:**\n\nPromise&lt;void&gt;",
       "mdFile": "core.asyncsignal.promise.md"
     },
     {
@@ -1327,7 +817,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "Alias for `QRL<T>`<!-- -->. Of historic relevance only.\n\n\n```typescript\nexport type PropFunction<T> = QRL<T>;\n```\n**References:** [QRL](#qrl-type-alias)",
+      "content": "Alias for `QRL<T>`<!-- -->. Of historic relevance only.\n\n\n```typescript\nexport type PropFunction<T> = QRL<T>;\n```\n**References:** [QRL](#qrl)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/qrl/qrl.public.ts",
       "mdFile": "core.propfunction.md"
     },
@@ -1360,20 +850,6 @@
       "mdFile": "core.publicprops.md"
     },
     {
-      "name": "qrl",
-      "id": "qrl",
-      "hierarchy": [
-        {
-          "name": "qrl",
-          "id": "qrl"
-        }
-      ],
-      "kind": "Function",
-      "content": "The `QRL` type represents a lazy-loadable AND serializable resource.\n\nQRL stands for Qwik URL.\n\nUse `QRL` when you want to refer to a lazy-loaded resource. `QRL`<!-- -->s are most often used for code (functions) but can also be used for other resources such as `string`<!-- -->s in the case of styles.\n\n`QRL` is an opaque token that is generated by the Qwik Optimizer. (Do not rely on any properties in `QRL` as it may change between versions.)\n\n\\#\\# Creating `QRL` references\n\nCreating `QRL` is done using `$(...)` function. `$(...)` is a special marker for the Qwik Optimizer that marks that the code should be extracted into a lazy-loaded symbol.\n\n```tsx\nuseOnDocument(\n  'mousemove',\n  $((event) => console.log('mousemove', event))\n);\n```\nIn the above code, the Qwik Optimizer detects `$(...)` and transforms the code as shown below:\n\n```tsx\n// FILE: <current file>\nuseOnDocument('mousemove', qrl('./chunk-abc.js', 'onMousemove'));\n\n// FILE: chunk-abc.js\nexport const onMousemove = () => console.log('mousemove');\n```\nNOTE: `qrl(...)` is a result of Qwik Optimizer transformation. You should never have to invoke this function directly in your application. The `qrl(...)` function should be invoked only after the Qwik Optimizer transformation.\n\n\\#\\# Using `QRL`<!-- -->s\n\nUse `QRL` type in your application when you want to get a lazy-loadable reference to a resource (most likely a function).\n\n```tsx\n// Example of declaring a custom functions which takes callback as QRL.\nexport function useMyFunction(callback: QRL<() => void>) {\n  doExtraStuff();\n  // The callback passed to `onDocument` requires `QRL`.\n  useOnDocument('mousemove', callback);\n}\n```\nIn the above example, the way to think about the code is that you are not asking for a callback function but rather a reference to a lazy-loadable callback function. Specifically, the function loading should be delayed until it is actually needed. In the above example, the function would not load until after a `mousemove` event on `document` fires.\n\n\\#\\# Resolving `QRL` references\n\nAt times it may be necessary to resolve a `QRL` reference to the actual value. This can be performed using `QRL.resolve(..)` function.\n\n```tsx\n// Assume you have QRL reference to a greet function\nconst lazyGreet: QRL<() => void> = $(() => console.log('Hello World!'));\n\n// Use `qrlImport` to load / resolve the reference.\nconst greet: () => void = await lazyGreet.resolve();\n\n//  Invoke it\ngreet();\n```\nNOTE: `element` is needed because `QRL`<!-- -->s are relative and need a base location to resolve against. The base location is encoded in the HTML in the form of `<div q:base=\"/url\">`<!-- -->.\n\n\\#\\# `QRL.resolved`\n\nOnce `QRL.resolve()` returns, the value is stored under `QRL.resolved`<!-- -->. This allows the value to be used without having to await `QRL.resolve()` again.\n\n\\#\\# Question: Why not just use `import()`<!-- -->?\n\nAt first glance, `QRL` serves the same purpose as `import()`<!-- -->. However, there are three subtle differences that need to be taken into account.\n\n1. `QRL`<!-- -->s must be serializable into HTML. 2. `QRL`<!-- -->s must be resolved by framework relative to `q:base`<!-- -->. 3. `QRL`<!-- -->s must be able to capture lexically scoped variables. 4. `QRL`<!-- -->s encapsulate the difference between running with and without Qwik Optimizer. 5. `QRL`<!-- -->s allow expressing lazy-loaded boundaries without thinking about chunk and symbol names.\n\nLet's assume that you intend to write code such as this:\n\n```tsx\nreturn <button onClick={() => (await import('./chunk-abc.js')).onClick}>\n```\nThe above code needs to be serialized into DOM such as:\n\n```\n<div q:base=\"/build/\">\n  <button q-e:click=\"./chunk-abc.js#onClick\">...</button>\n</div>\n```\n1. Notice there is no easy way to extract chunk (`./chunk-abc.js`<!-- -->) and symbol (`onClick`<!-- -->) into HTML. 2. Notice that even if you could extract it, the `import('./chunk-abc.js')` would become relative to where the `import()` file is declared. Because it is our framework doing the load, the `./chunk-abc.js` would become relative to the framework file. This is not correct, as it should be relative to the original file generated by the bundler. 3. Next, the framework needs to resolve the `./chunk-abc.js` and needs a base location that is encoded in the HTML. 4. The QRL needs to be able to capture lexically scoped variables. (`import()` only allows loading top-level symbols which don't capture variables.) 5. As a developer, you don't want to think about `import` and naming the chunks and symbols. You just want to say: \"this should be lazy.\"\n\nThese are the main reasons why Qwik introduces its own concept of `QRL`<!-- -->.\n\n\n```typescript\nexport type QRL<TYPE = unknown> = {\n    __qwik_serializable__?: any;\n    __brand__QRL__?: TYPE;\n    resolve(): Promise<TYPE>;\n    resolved: undefined | TYPE;\n    getCaptured(): unknown[] | null;\n    getSymbol(): string;\n    getHash(): string;\n    dev?: QRLDev | null;\n} & BivariantQrlFn<QrlArgs<TYPE>, QrlReturn<TYPE>>;\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/qrl/qrl.ts",
-      "mdFile": "core.qrl.md"
-    },
-    {
       "name": "QRL",
       "id": "qrl",
       "hierarchy": [
@@ -1383,9 +859,23 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "The `QRL` type represents a lazy-loadable AND serializable resource.\n\nQRL stands for Qwik URL.\n\nUse `QRL` when you want to refer to a lazy-loaded resource. `QRL`<!-- -->s are most often used for code (functions) but can also be used for other resources such as `string`<!-- -->s in the case of styles.\n\n`QRL` is an opaque token that is generated by the Qwik Optimizer. (Do not rely on any properties in `QRL` as it may change between versions.)\n\n\\#\\# Creating `QRL` references\n\nCreating `QRL` is done using `$(...)` function. `$(...)` is a special marker for the Qwik Optimizer that marks that the code should be extracted into a lazy-loaded symbol.\n\n```tsx\nuseOnDocument(\n  'mousemove',\n  $((event) => console.log('mousemove', event))\n);\n```\nIn the above code, the Qwik Optimizer detects `$(...)` and transforms the code as shown below:\n\n```tsx\n// FILE: <current file>\nuseOnDocument('mousemove', qrl('./chunk-abc.js', 'onMousemove'));\n\n// FILE: chunk-abc.js\nexport const onMousemove = () => console.log('mousemove');\n```\nNOTE: `qrl(...)` is a result of Qwik Optimizer transformation. You should never have to invoke this function directly in your application. The `qrl(...)` function should be invoked only after the Qwik Optimizer transformation.\n\n\\#\\# Using `QRL`<!-- -->s\n\nUse `QRL` type in your application when you want to get a lazy-loadable reference to a resource (most likely a function).\n\n```tsx\n// Example of declaring a custom functions which takes callback as QRL.\nexport function useMyFunction(callback: QRL<() => void>) {\n  doExtraStuff();\n  // The callback passed to `onDocument` requires `QRL`.\n  useOnDocument('mousemove', callback);\n}\n```\nIn the above example, the way to think about the code is that you are not asking for a callback function but rather a reference to a lazy-loadable callback function. Specifically, the function loading should be delayed until it is actually needed. In the above example, the function would not load until after a `mousemove` event on `document` fires.\n\n\\#\\# Resolving `QRL` references\n\nAt times it may be necessary to resolve a `QRL` reference to the actual value. This can be performed using `QRL.resolve(..)` function.\n\n```tsx\n// Assume you have QRL reference to a greet function\nconst lazyGreet: QRL<() => void> = $(() => console.log('Hello World!'));\n\n// Use `qrlImport` to load / resolve the reference.\nconst greet: () => void = await lazyGreet.resolve();\n\n//  Invoke it\ngreet();\n```\nNOTE: `element` is needed because `QRL`<!-- -->s are relative and need a base location to resolve against. The base location is encoded in the HTML in the form of `<div q:base=\"/url\">`<!-- -->.\n\n\\#\\# `QRL.resolved`\n\nOnce `QRL.resolve()` returns, the value is stored under `QRL.resolved`<!-- -->. This allows the value to be used without having to await `QRL.resolve()` again.\n\n\\#\\# Question: Why not just use `import()`<!-- -->?\n\nAt first glance, `QRL` serves the same purpose as `import()`<!-- -->. However, there are three subtle differences that need to be taken into account.\n\n1. `QRL`<!-- -->s must be serializable into HTML. 2. `QRL`<!-- -->s must be resolved by framework relative to `q:base`<!-- -->. 3. `QRL`<!-- -->s must be able to capture lexically scoped variables. 4. `QRL`<!-- -->s encapsulate the difference between running with and without Qwik Optimizer. 5. `QRL`<!-- -->s allow expressing lazy-loaded boundaries without thinking about chunk and symbol names.\n\nLet's assume that you intend to write code such as this:\n\n```tsx\nreturn <button onClick={() => (await import('./chunk-abc.js')).onClick}>\n```\nThe above code needs to be serialized into DOM such as:\n\n```\n<div q:base=\"/build/\">\n  <button q-e:click=\"./chunk-abc.js#onClick\">...</button>\n</div>\n```\n1. Notice there is no easy way to extract chunk (`./chunk-abc.js`<!-- -->) and symbol (`onClick`<!-- -->) into HTML. 2. Notice that even if you could extract it, the `import('./chunk-abc.js')` would become relative to where the `import()` file is declared. Because it is our framework doing the load, the `./chunk-abc.js` would become relative to the framework file. This is not correct, as it should be relative to the original file generated by the bundler. 3. Next, the framework needs to resolve the `./chunk-abc.js` and needs a base location that is encoded in the HTML. 4. The QRL needs to be able to capture lexically scoped variables. (`import()` only allows loading top-level symbols which don't capture variables.) 5. As a developer, you don't want to think about `import` and naming the chunks and symbols. You just want to say: \"this should be lazy.\"\n\nThese are the main reasons why Qwik introduces its own concept of `QRL`<!-- -->.\n\n\n```typescript\nexport type QRL<TYPE = unknown> = {\n    __qwik_serializable__?: any;\n    __brand__QRL__?: TYPE;\n    resolve(): Promise<TYPE>;\n    resolved: undefined | TYPE;\n    getCaptured(): unknown[] | null;\n    getSymbol(): string;\n    getHash(): string;\n    dev?: QRLDev | null;\n} & BivariantQrlFn<QrlArgs<TYPE>, QrlReturn<TYPE>>;\n```",
+      "content": "The `QRL` type represents a lazy-loadable AND serializable resource.\n\nQRL stands for Qwik URL.\n\nUse `QRL` when you want to refer to a lazy-loaded resource. `QRL`<!-- -->s are most often used for code (functions) but can also be used for other resources such as `string`<!-- -->s in the case of styles.\n\n`QRL` is an opaque token that is generated by the Qwik Optimizer. (Do not rely on any properties in `QRL` as it may change between versions.)\n\n\\#\\# Creating `QRL` references\n\nCreating `QRL` is done using `$(...)` function. `$(...)` is a special marker for the Qwik Optimizer that marks that the code should be extracted into a lazy-loaded symbol.\n\n```tsx\nuseOnDocument(\n  'mousemove',\n  $((event) => console.log('mousemove', event))\n);\n```\nIn the above code, the Qwik Optimizer detects `$(...)` and transforms the code as shown below:\n\n```tsx\n// FILE: <current file>\nuseOnDocument('mousemove', qrl('./chunk-abc.js', 'onMousemove'));\n\n// FILE: chunk-abc.js\nexport const onMousemove = () => console.log('mousemove');\n```\nNOTE: `qrl(...)` is a result of Qwik Optimizer transformation. You should never have to invoke this function directly in your application. The `qrl(...)` function should be invoked only after the Qwik Optimizer transformation.\n\n\\#\\# Using `QRL`<!-- -->s\n\nUse `QRL` type in your application when you want to get a lazy-loadable reference to a resource (most likely a function).\n\n```tsx\n// Example of declaring a custom functions which takes callback as QRL.\nexport function useMyFunction(callback: QRL<() => void>) {\n  doExtraStuff();\n  // The callback passed to `onDocument` requires `QRL`.\n  useOnDocument('mousemove', callback);\n}\n```\nIn the above example, the way to think about the code is that you are not asking for a callback function but rather a reference to a lazy-loadable callback function. Specifically, the function loading should be delayed until it is actually needed. In the above example, the function would not load until after a `mousemove` event on `document` fires.\n\n\\#\\# Resolving `QRL` references\n\nAt times it may be necessary to resolve a `QRL` reference to the actual value. This can be performed using `QRL.resolve(..)` function.\n\n```tsx\n// Assume you have QRL reference to a greet function\nconst lazyGreet: QRL<() => void> = $(() => console.log('Hello World!'));\n\n// Use `qrlImport` to load / resolve the reference.\nconst greet: () => void = await lazyGreet.resolve();\n\n//  Invoke it\ngreet();\n```\nNOTE: `element` is needed because `QRL`<!-- -->s are relative and need a base location to resolve against. The base location is encoded in the HTML in the form of `<div q:base=\"/url\">`<!-- -->.\n\n\\#\\# `QRL.resolved`\n\nOnce `QRL.resolve()` returns, the value is stored under `QRL.resolved`<!-- -->. This allows the value to be used without having to await `QRL.resolve()` again.\n\n\\#\\# Question: Why not just use `import()`<!-- -->?\n\nAt first glance, `QRL` serves the same purpose as `import()`<!-- -->. However, there are three subtle differences that need to be taken into account.\n\n1. `QRL`<!-- -->s must be serializable into HTML. 2. `QRL`<!-- -->s must be resolved by framework relative to `q:base`<!-- -->. 3. `QRL`<!-- -->s must be able to capture lexically scoped variables. 4. `QRL`<!-- -->s encapsulate the difference between running with and without Qwik Optimizer. 5. `QRL`<!-- -->s allow expressing lazy-loaded boundaries without thinking about chunk and symbol names.\n\nLet's assume that you intend to write code such as this:\n\n```tsx\nreturn <button onClick={() => (await import('./chunk-abc.js')).onClick}>\n```\nThe above code needs to be serialized into DOM such as:\n\n```\n<div q:base=\"/build/\">\n  <button q-e:click=\"./chunk-abc.js#onClick\">...</button>\n</div>\n```\n1. Notice there is no easy way to extract chunk (`./chunk-abc.js`<!-- -->) and symbol (`onClick`<!-- -->) into HTML. 2. Notice that even if you could extract it, the `import('./chunk-abc.js')` would become relative to where the `import()` file is declared. Because it is our framework doing the load, the `./chunk-abc.js` would become relative to the framework file. This is not correct, as it should be relative to the original file generated by the bundler. 3. Next, the framework needs to resolve the `./chunk-abc.js` and needs a base location that is encoded in the HTML. 4. The QRL needs to be able to capture lexically scoped variables. (`import()` only allows loading top-level symbols which don't capture variables.) 5. As a developer, you don't want to think about `import` and naming the chunks and symbols. You just want to say: \"this should be lazy.\"\n\nThese are the main reasons why Qwik introduces its own concept of `QRL`<!-- -->.\n\n\n```typescript\nexport type QRL<TYPE = unknown> = {\n    __qwik_serializable__?: any;\n    __brand__QRL__?: TYPE;\n    resolve(): Promise<TYPE>;\n    resolved: undefined | TYPE;\n    getCaptured(): unknown[] | null;\n    getSymbol(): string;\n    getHash(): string;\n    dev?: QRLDev | null;\n} & BivariantQrlFn<QrlArgs<TYPE>, QrlReturn<TYPE>>;\n```\n**References:** [QRLDev](#qrldev)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/qrl/qrl.public.ts",
       "mdFile": "core.qrl.md"
+    },
+    {
+      "name": "QRLDev",
+      "id": "qrldev",
+      "hierarchy": [
+        {
+          "name": "QRLDev",
+          "id": "qrldev"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QRLDev \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfile\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nhi\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nlo\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/qrl/qrl.ts",
+      "mdFile": "core.qrldev.md"
     },
     {
       "name": "QRLEventHandlerMulti",
@@ -1397,23 +887,9 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "An event handler for Qwik events, can be a handler QRL or an array of handler QRLs.\n\n\n```typescript\nexport type QRLEventHandlerMulti<EV extends Event, EL> = QRL<EventHandler<EV, EL>> | undefined | null | QRLEventHandlerMulti<EV, EL>[];\n```\n**References:** [QRL](#qrl-type-alias)<!-- -->, [EventHandler](#eventhandler)<!-- -->, [QRLEventHandlerMulti](#qrleventhandlermulti)",
+      "content": "An event handler for Qwik events, can be a handler QRL or an array of handler QRLs.\n\n\n```typescript\nexport type QRLEventHandlerMulti<EV extends Event, EL> = QRL<EventHandler<EV, EL>> | undefined | null | QRLEventHandlerMulti<EV, EL>[];\n```\n**References:** [QRL](#qrl)<!-- -->, [EventHandler](#eventhandler)<!-- -->, [QRLEventHandlerMulti](#qrleventhandlermulti)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-attributes.ts",
       "mdFile": "core.qrleventhandlermulti.md"
-    },
-    {
-      "name": "QwikAnimationEvent",
-      "id": "qwikanimationevent",
-      "hierarchy": [
-        {
-          "name": "QwikAnimationEvent",
-          "id": "qwikanimationevent"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `AnimationEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type QwikAnimationEvent<T = Element> = NativeAnimationEvent;\n```\n**References:** [NativeAnimationEvent](#nativeanimationevent)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
-      "mdFile": "core.qwikanimationevent.md"
     },
     {
       "name": "QwikAttributes",
@@ -1430,48 +906,6 @@
       "mdFile": "core.qwikattributes.md"
     },
     {
-      "name": "QwikChangeEvent",
-      "id": "qwikchangeevent",
-      "hierarchy": [
-        {
-          "name": "QwikChangeEvent",
-          "id": "qwikchangeevent"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `Event` and use the second argument to the handler function for the current event target. Also note that in Qwik, onInput$ with the InputEvent is the event that behaves like onChange in React.\n> \n\n\n```typescript\nexport type QwikChangeEvent<T = Element> = Event;\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
-      "mdFile": "core.qwikchangeevent.md"
-    },
-    {
-      "name": "QwikClipboardEvent",
-      "id": "qwikclipboardevent",
-      "hierarchy": [
-        {
-          "name": "QwikClipboardEvent",
-          "id": "qwikclipboardevent"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `ClipboardEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type QwikClipboardEvent<T = Element> = NativeClipboardEvent;\n```\n**References:** [NativeClipboardEvent](#nativeclipboardevent)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
-      "mdFile": "core.qwikclipboardevent.md"
-    },
-    {
-      "name": "QwikCompositionEvent",
-      "id": "qwikcompositionevent",
-      "hierarchy": [
-        {
-          "name": "QwikCompositionEvent",
-          "id": "qwikcompositionevent"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `CompositionEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type QwikCompositionEvent<T = Element> = NativeCompositionEvent;\n```\n**References:** [NativeCompositionEvent](#nativecompositionevent)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
-      "mdFile": "core.qwikcompositionevent.md"
-    },
-    {
       "name": "QwikDOMAttributes",
       "id": "qwikdomattributes",
       "hierarchy": [
@@ -1484,34 +918,6 @@
       "content": "```typescript\nexport interface QwikDOMAttributes extends DOMAttributes<Element> \n```\n**Extends:** [DOMAttributes](#domattributes)<!-- -->&lt;Element&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik.ts",
       "mdFile": "core.qwikdomattributes.md"
-    },
-    {
-      "name": "QwikDragEvent",
-      "id": "qwikdragevent",
-      "hierarchy": [
-        {
-          "name": "QwikDragEvent",
-          "id": "qwikdragevent"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `DragEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type QwikDragEvent<T = Element> = NativeDragEvent;\n```\n**References:** [NativeDragEvent](#nativedragevent)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
-      "mdFile": "core.qwikdragevent.md"
-    },
-    {
-      "name": "QwikFocusEvent",
-      "id": "qwikfocusevent",
-      "hierarchy": [
-        {
-          "name": "QwikFocusEvent",
-          "id": "qwikfocusevent"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `FocusEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type QwikFocusEvent<T = Element> = NativeFocusEvent;\n```\n**References:** [NativeFocusEvent](#nativefocusevent)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
-      "mdFile": "core.qwikfocusevent.md"
     },
     {
       "name": "QwikHTMLElements",
@@ -1528,34 +934,6 @@
       "mdFile": "core.qwikhtmlelements.md"
     },
     {
-      "name": "QwikIdleEvent",
-      "id": "qwikidleevent",
-      "hierarchy": [
-        {
-          "name": "QwikIdleEvent",
-          "id": "qwikidleevent"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "Emitted by qwik-loader on document when the document first becomes idle\n\n\n```typescript\nexport type QwikIdleEvent = CustomEvent<{}>;\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
-      "mdFile": "core.qwikidleevent.md"
-    },
-    {
-      "name": "QwikInitEvent",
-      "id": "qwikinitevent",
-      "hierarchy": [
-        {
-          "name": "QwikInitEvent",
-          "id": "qwikinitevent"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "Emitted by qwik-loader on document when the document first becomes interactive\n\n\n```typescript\nexport type QwikInitEvent = CustomEvent<{}>;\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
-      "mdFile": "core.qwikinitevent.md"
-    },
-    {
       "name": "QwikIntrinsicElements",
       "id": "qwikintrinsicelements",
       "hierarchy": [
@@ -1568,20 +946,6 @@
       "content": "The interface holds available attributes of both native DOM elements and custom Qwik elements. An example showing how to define a customizable wrapper component:\n\n```tsx\nimport { component$, Slot, type QwikIntrinsicElements } from \"@qwik.dev/core\";\n\ntype WrapperProps = {\n  attributes?: QwikIntrinsicElements[\"div\"];\n};\n\nexport default component$<WrapperProps>(({ attributes }) => {\n  return (\n    <div {...attributes} class=\"p-2\">\n      <Slot />\n    </div>\n  );\n});\n```\nNote: It is shorter to use `PropsOf<'div'>`\n\n\n```typescript\nexport interface QwikIntrinsicElements extends QwikHTMLElements, QwikSVGElements \n```\n**Extends:** [QwikHTMLElements](#qwikhtmlelements)<!-- -->, [QwikSVGElements](#qwiksvgelements)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-elements.ts",
       "mdFile": "core.qwikintrinsicelements.md"
-    },
-    {
-      "name": "QwikInvalidEvent",
-      "id": "qwikinvalidevent",
-      "hierarchy": [
-        {
-          "name": "QwikInvalidEvent",
-          "id": "qwikinvalidevent"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `Event` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type QwikInvalidEvent<T = Element> = Event;\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
-      "mdFile": "core.qwikinvalidevent.md"
     },
     {
       "name": "QwikJSX",
@@ -1598,76 +962,6 @@
       "mdFile": "core.qwikjsx.md"
     },
     {
-      "name": "QwikKeyboardEvent",
-      "id": "qwikkeyboardevent",
-      "hierarchy": [
-        {
-          "name": "QwikKeyboardEvent",
-          "id": "qwikkeyboardevent"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `KeyboardEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type QwikKeyboardEvent<T = Element> = NativeKeyboardEvent;\n```\n**References:** [NativeKeyboardEvent](#nativekeyboardevent)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
-      "mdFile": "core.qwikkeyboardevent.md"
-    },
-    {
-      "name": "QwikMouseEvent",
-      "id": "qwikmouseevent",
-      "hierarchy": [
-        {
-          "name": "QwikMouseEvent",
-          "id": "qwikmouseevent"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `MouseEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type QwikMouseEvent<T = Element, E = NativeMouseEvent> = E;\n```\n**References:** [NativeMouseEvent](#nativemouseevent)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
-      "mdFile": "core.qwikmouseevent.md"
-    },
-    {
-      "name": "QwikPointerEvent",
-      "id": "qwikpointerevent",
-      "hierarchy": [
-        {
-          "name": "QwikPointerEvent",
-          "id": "qwikpointerevent"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `PointerEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type QwikPointerEvent<T = Element> = NativePointerEvent;\n```\n**References:** [NativePointerEvent](#nativepointerevent)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
-      "mdFile": "core.qwikpointerevent.md"
-    },
-    {
-      "name": "QwikResumeEvent",
-      "id": "qwikresumeevent",
-      "hierarchy": [
-        {
-          "name": "QwikResumeEvent",
-          "id": "qwikresumeevent"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "Emitted by qwik-core on the container element when it resumes from a paused state. You cannot put a Qwik event handler on the container so you must listen on the document instead.\n\n\n```typescript\nexport type QwikResumeEvent = CustomEvent<{}>;\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
-      "mdFile": "core.qwikresumeevent.md"
-    },
-    {
-      "name": "QwikSubmitEvent",
-      "id": "qwiksubmitevent",
-      "hierarchy": [
-        {
-          "name": "QwikSubmitEvent",
-          "id": "qwiksubmitevent"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `SubmitEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type QwikSubmitEvent<T = Element> = SubmitEvent;\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
-      "mdFile": "core.qwiksubmitevent.md"
-    },
-    {
       "name": "QwikSVGElements",
       "id": "qwiksvgelements",
       "hierarchy": [
@@ -1680,76 +974,6 @@
       "content": "The SVG props without plain handlers, for use inside functions\n\n\n```typescript\nexport type QwikSVGElements = {\n    [K in keyof Omit<SVGElementTagNameMap, keyof HTMLElementTagNameMap>]: SVGProps<SVGElementTagNameMap[K]>;\n};\n```\n**References:** [SVGProps](#svgprops)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-generated.ts",
       "mdFile": "core.qwiksvgelements.md"
-    },
-    {
-      "name": "QwikSymbolEvent",
-      "id": "qwiksymbolevent",
-      "hierarchy": [
-        {
-          "name": "QwikSymbolEvent",
-          "id": "qwiksymbolevent"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "Emitted by qwik-loader on document when a module was lazily loaded\n\n\n```typescript\nexport type QwikSymbolEvent = CustomEvent<{\n    symbol: string;\n    element: Element;\n    reqTime: number;\n    qBase?: string;\n    href?: string;\n}>;\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
-      "mdFile": "core.qwiksymbolevent.md"
-    },
-    {
-      "name": "QwikTouchEvent",
-      "id": "qwiktouchevent",
-      "hierarchy": [
-        {
-          "name": "QwikTouchEvent",
-          "id": "qwiktouchevent"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `TouchEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type QwikTouchEvent<T = Element> = NativeTouchEvent;\n```\n**References:** [NativeTouchEvent](#nativetouchevent)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
-      "mdFile": "core.qwiktouchevent.md"
-    },
-    {
-      "name": "QwikTransitionEvent",
-      "id": "qwiktransitionevent",
-      "hierarchy": [
-        {
-          "name": "QwikTransitionEvent",
-          "id": "qwiktransitionevent"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `TransitionEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type QwikTransitionEvent<T = Element> = NativeTransitionEvent;\n```\n**References:** [NativeTransitionEvent](#nativetransitionevent)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
-      "mdFile": "core.qwiktransitionevent.md"
-    },
-    {
-      "name": "QwikUIEvent",
-      "id": "qwikuievent",
-      "hierarchy": [
-        {
-          "name": "QwikUIEvent",
-          "id": "qwikuievent"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `UIEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type QwikUIEvent<T = Element> = NativeUIEvent;\n```\n**References:** [NativeUIEvent](#nativeuievent)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
-      "mdFile": "core.qwikuievent.md"
-    },
-    {
-      "name": "QwikViewTransitionEvent",
-      "id": "qwikviewtransitionevent",
-      "hierarchy": [
-        {
-          "name": "QwikViewTransitionEvent",
-          "id": "qwikviewtransitionevent"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "Emitted by qwik-core on document when the a view transition start\n\n\n```typescript\nexport type QwikViewTransitionEvent = CustomEvent<ViewTransition>;\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
-      "mdFile": "core.qwikviewtransitionevent.md"
     },
     {
       "name": "QwikVisibleEvent",
@@ -1766,20 +990,6 @@
       "mdFile": "core.qwikvisibleevent.md"
     },
     {
-      "name": "QwikWheelEvent",
-      "id": "qwikwheelevent",
-      "hierarchy": [
-        {
-          "name": "QwikWheelEvent",
-          "id": "qwikwheelevent"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `WheelEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type QwikWheelEvent<T = Element> = NativeWheelEvent;\n```\n**References:** [NativeWheelEvent](#nativewheelevent)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
-      "mdFile": "core.qwikwheelevent.md"
-    },
-    {
       "name": "ReadonlySignal",
       "id": "readonlysignal",
       "hierarchy": [
@@ -1789,8 +999,8 @@
         }
       ],
       "kind": "Interface",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `Readonly<Signal<T>>` instead.\n> \n\n\n```typescript\nexport interface ReadonlySignal<T = unknown> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nvalue\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts",
+      "content": "```typescript\nexport interface ReadonlySignal<T = unknown> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nuntrackedValue\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nvalue\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/public-types.ts",
       "mdFile": "core.readonlysignal.md"
     },
     {
@@ -1802,24 +1012,10 @@
           "id": "render"
         }
       ],
-      "kind": "Function",
-      "content": "Render JSX.\n\nUse this method to render JSX. This function does reconciling which means it always tries to reuse what is already in the DOM (rather then destroy and recreate content.) It returns a cleanup function you could use for cleaning up subscriptions.\n\n\n```typescript\nrender: (parent: Element | Document, jsxNode: JSXOutput | FunctionComponent<any>, opts?: RenderOptions) => Promise<RenderResult>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nparent\n\n\n</td><td>\n\nElement \\| Document\n\n\n</td><td>\n\nElement which will act as a parent to `jsxNode`<!-- -->. When possible the rendering will try to reuse existing nodes.\n\n\n</td></tr>\n<tr><td>\n\njsxNode\n\n\n</td><td>\n\n[JSXOutput](#jsxoutput) \\| [FunctionComponent](#functioncomponent)<!-- -->&lt;any&gt;\n\n\n</td><td>\n\nJSX to render\n\n\n</td></tr>\n<tr><td>\n\nopts\n\n\n</td><td>\n\n[RenderOptions](#renderoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nPromise&lt;[RenderResult](#renderresult)<!-- -->&gt;\n\nAn object containing a cleanup function.",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/client/dom-render.ts",
-      "mdFile": "core.render.md"
-    },
-    {
-      "name": "RenderOnce",
-      "id": "renderonce",
-      "hierarchy": [
-        {
-          "name": "RenderOnce",
-          "id": "renderonce"
-        }
-      ],
       "kind": "Variable",
-      "content": "```typescript\nRenderOnce: FunctionComponent<{\n    children?: unknown;\n    key?: string | number | null | undefined;\n}>\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/jsx-runtime.ts",
-      "mdFile": "core.renderonce.md"
+      "content": "```typescript\nrender: Render\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/csr-render.ts",
+      "mdFile": "core.render.md"
     },
     {
       "name": "RenderOptions",
@@ -1831,8 +1027,8 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface RenderOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nserverData?\n\n\n</td><td>\n\n\n</td><td>\n\nRecord&lt;string, any&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/client/types.ts",
+      "content": "```typescript\nexport interface RenderOptions<Props = undefined> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nprops?\n\n\n</td><td>\n\n\n</td><td>\n\nProps\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nserverData?\n\n\n</td><td>\n\n\n</td><td>\n\nRecord&lt;string, any&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render-types.ts",
       "mdFile": "core.renderoptions.md"
     },
     {
@@ -1846,190 +1042,22 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface RenderResult \n```\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[cleanup()](#renderresult-cleanup)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/client/types.ts",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render-types.ts",
       "mdFile": "core.renderresult.md"
     },
     {
-      "name": "RenderSSROptions",
-      "id": "renderssroptions",
+      "name": "RenderRoot",
+      "id": "renderroot",
       "hierarchy": [
         {
-          "name": "RenderSSROptions",
-          "id": "renderssroptions"
-        }
-      ],
-      "kind": "Interface",
-      "content": "```typescript\nexport interface RenderSSROptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nbase?\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ncontainerAttributes\n\n\n</td><td>\n\n\n</td><td>\n\nRecord&lt;string, string&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\ncontainerTagName\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nmanifestHash\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nserverData?\n\n\n</td><td>\n\n\n</td><td>\n\nRecord&lt;string, any&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nstream\n\n\n</td><td>\n\n\n</td><td>\n\nStreamWriter\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/ssr/ssr-types.ts",
-      "mdFile": "core.renderssroptions.md"
-    },
-    {
-      "name": "Resource",
-      "id": "resource",
-      "hierarchy": [
-        {
-          "name": "Resource",
-          "id": "resource"
-        }
-      ],
-      "kind": "Function",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `useAsync$` instead, which is more efficient, and has a more flexible API. Just read the `loading` and `error` properties from the returned signal to determine the status.\n> \n\n```tsx\nconst Cmp = component$(() => {\n  const city = useSignal('');\n\n  const weather = useAsync$(async ({ track, cleanup, abortSignal }) => {\n    const cityName = track(city);\n    const res = await fetch(`http://weatherdata.com?city=${cityName}`, {\n      signal: abortSignal,\n    });\n    const temp = (await res.json()) as { temp: number };\n    return temp;\n  });\n\n  return (\n    <div>\n      <input name=\"city\" bind:value={city} />\n      <div>\n        Temperature:{' '}\n        {weather.loading\n          ? 'Loading...'\n          : weather.error\n            ? `Error: ${weather.error.message}`\n            : weather.value.temp}\n      </div>\n    </div>\n  );\n});\n```\n\n\n```typescript\nResource: <T>(input: ResourceProps<T>) => JSXOutput\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n{ value, onResolved, onPending, onRejected, }\n\n\n</td><td>\n\n(not declared)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\ninput\n\n\n</td><td>\n\n[ResourceProps](#resourceprops)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[JSXOutput](#jsxoutput)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts",
-      "mdFile": "core.resource.md"
-    },
-    {
-      "name": "ResourceCtx",
-      "id": "resourcectx",
-      "hierarchy": [
-        {
-          "name": "ResourceCtx",
-          "id": "resourcectx"
-        }
-      ],
-      "kind": "Interface",
-      "content": "```typescript\nexport interface ResourceCtx<T = unknown> extends AsyncCtx<T> \n```\n**Extends:** AsyncCtx&lt;T&gt;\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[cache(policyOrMilliseconds)](#resourcectx-cache)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts",
-      "mdFile": "core.resourcectx.md"
-    },
-    {
-      "name": "ResourceFn",
-      "id": "resourcefn",
-      "hierarchy": [
-        {
-          "name": "ResourceFn",
-          "id": "resourcefn"
+          "name": "RenderRoot",
+          "id": "renderroot"
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type ResourceFn<T> = (ctx: ResourceCtx) => ValueOrPromise<T>;\n```\n**References:** [ResourceCtx](#resourcectx)<!-- -->, [ValueOrPromise](#valueorpromise)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts",
-      "mdFile": "core.resourcefn.md"
-    },
-    {
-      "name": "ResourceOptions",
-      "id": "resourceoptions",
-      "hierarchy": [
-        {
-          "name": "ResourceOptions",
-          "id": "resourceoptions"
-        }
-      ],
-      "kind": "Interface",
-      "content": "Options to pass to `useResource$()`\n\n\n```typescript\nexport interface ResourceOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ntimeout?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_ Timeout in milliseconds. If the resource takes more than the specified millisecond, it will timeout. Resulting on a rejected resource.\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts",
-      "mdFile": "core.resourceoptions.md"
-    },
-    {
-      "name": "ResourcePending",
-      "id": "resourcepending",
-      "hierarchy": [
-        {
-          "name": "ResourcePending",
-          "id": "resourcepending"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "```typescript\nexport type ResourcePending<T> = ResourceReturn<T>;\n```\n**References:** [ResourceReturn](#resourcereturn)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts",
-      "mdFile": "core.resourcepending.md"
-    },
-    {
-      "name": "ResourceProps",
-      "id": "resourceprops",
-      "hierarchy": [
-        {
-          "name": "ResourceProps",
-          "id": "resourceprops"
-        }
-      ],
-      "kind": "Interface",
-      "content": "```typescript\nexport interface ResourceProps<T> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nonPending?\n\n\n</td><td>\n\n\n</td><td>\n\n() =&gt; [JSXOutput](#jsxoutput) \\| Promise&lt;[JSXOutput](#jsxoutput)<!-- -->&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nonRejected?\n\n\n</td><td>\n\n\n</td><td>\n\n(reason: Error) =&gt; [JSXOutput](#jsxoutput) \\| Promise&lt;[JSXOutput](#jsxoutput)<!-- -->&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nonResolved\n\n\n</td><td>\n\n\n</td><td>\n\n(value: T) =&gt; [JSXOutput](#jsxoutput) \\| Promise&lt;[JSXOutput](#jsxoutput)<!-- -->&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nvalue\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[ResourceReturn](#resourcereturn)<!-- -->&lt;T&gt; \\| [Signal](#signal)<!-- -->&lt;Promise&lt;T&gt; \\| T&gt; \\| Promise&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts",
-      "mdFile": "core.resourceprops.md"
-    },
-    {
-      "name": "ResourceRejected",
-      "id": "resourcerejected",
-      "hierarchy": [
-        {
-          "name": "ResourceRejected",
-          "id": "resourcerejected"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "```typescript\nexport type ResourceRejected<T> = ResourceReturn<T>;\n```\n**References:** [ResourceReturn](#resourcereturn)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts",
-      "mdFile": "core.resourcerejected.md"
-    },
-    {
-      "name": "ResourceResolved",
-      "id": "resourceresolved",
-      "hierarchy": [
-        {
-          "name": "ResourceResolved",
-          "id": "resourceresolved"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "```typescript\nexport type ResourceResolved<T> = ResourceReturn<T>;\n```\n**References:** [ResourceReturn](#resourcereturn)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts",
-      "mdFile": "core.resourceresolved.md"
-    },
-    {
-      "name": "ResourceReturn",
-      "id": "resourcereturn",
-      "hierarchy": [
-        {
-          "name": "ResourceReturn",
-          "id": "resourcereturn"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "```typescript\nexport type ResourceReturn<T> = {\n    readonly value: Promise<T>;\n    readonly loading: boolean;\n};\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts",
-      "mdFile": "core.resourcereturn.md"
-    },
-    {
-      "name": "Reveal",
-      "id": "reveal",
-      "hierarchy": [
-        {
-          "name": "Reveal",
-          "id": "reveal"
-        }
-      ],
-      "kind": "Variable",
-      "content": "```typescript\nReveal: typeof revealCmp\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/reveal.tsx",
-      "mdFile": "core.reveal.md"
-    },
-    {
-      "name": "RevealOrder",
-      "id": "revealorder",
-      "hierarchy": [
-        {
-          "name": "RevealOrder",
-          "id": "revealorder"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "```typescript\nexport type RevealOrder = 'parallel' | 'sequential' | 'reverse' | 'together';\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/utils/reveal.ts",
-      "mdFile": "core.revealorder.md"
-    },
-    {
-      "name": "RevealProps",
-      "id": "revealprops",
-      "hierarchy": [
-        {
-          "name": "RevealProps",
-          "id": "revealprops"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "```typescript\nexport type RevealProps = {\n    order?: RevealOrder;\n    collapsed?: boolean;\n};\n```\n**References:** [RevealOrder](#revealorder)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/reveal.tsx",
-      "mdFile": "core.revealprops.md"
+      "content": "```typescript\nexport type RenderRoot<Props = undefined> = (props: Props) => JSXOutput;\n```\n**References:** [JSXOutput](#jsxoutput)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render-types.ts",
+      "mdFile": "core.renderroot.md"
     },
     {
       "name": "SerializationStrategy",
@@ -2041,9 +1069,37 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "Serialization strategy for computed and async signals. This determines whether to serialize their value during SSR.\n\n- `never`<!-- -->: The value is never serialized. When the component is resumed, the value will be recalculated when it is first read. - `always`<!-- -->: The value is always serialized. This is the default.\n\n\\*\\*IMPORTANT\\*\\*: When you use `never`<!-- -->, your serialized HTML is smaller, but the recalculation will trigger subscriptions, meaning that other signals using this signal will recalculate, even if this signal didn't change.\n\nThis is normally not a problem, but for async signals it may mean fetching something again.\n\n\n```typescript\nexport type SerializationStrategy = 'never' | 'always';\n```",
+      "content": "```typescript\nexport type SerializationStrategy = 'never' | 'always';\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/types.ts",
       "mdFile": "core.serializationstrategy.md"
+    },
+    {
+      "name": "SerializerArg",
+      "id": "serializerarg",
+      "hierarchy": [
+        {
+          "name": "SerializerArg",
+          "id": "serializerarg"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type SerializerArg<T, S> = SerializerArgObject<T, S> | (() => SerializerArgObject<T, S> & {\n    update?(current: T): T | void;\n});\n```\n**References:** [SerializerArgObject](#serializerargobject)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/public-types.ts",
+      "mdFile": "core.serializerarg.md"
+    },
+    {
+      "name": "SerializerArgObject",
+      "id": "serializerargobject",
+      "hierarchy": [
+        {
+          "name": "SerializerArgObject",
+          "id": "serializerargobject"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type SerializerArgObject<T, S> = {\n    deserialize(data: Awaited<S>): T;\n    initial?: S;\n    serialize?(obj: T): S;\n};\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/public-types.ts",
+      "mdFile": "core.serializerargobject.md"
     },
     {
       "name": "SerializerSymbol",
@@ -2060,32 +1116,18 @@
       "mdFile": "core.serializersymbol.md"
     },
     {
-      "name": "setEvent",
-      "id": "setevent",
+      "name": "setLocale",
+      "id": "setlocale",
       "hierarchy": [
         {
-          "name": "setEvent",
-          "id": "setevent"
+          "name": "setLocale",
+          "id": "setlocale"
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nexport declare function setEvent(element: Element, key: string, handler: (event: Event, element: Element) => unknown): void;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nelement\n\n\n</td><td>\n\nElement\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nkey\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nhandler\n\n\n</td><td>\n\n(event: Event, element: Element) =&gt; unknown\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/vdomless/dom/event/event.ts",
-      "mdFile": "core.setevent.md"
-    },
-    {
-      "name": "setPlatform",
-      "id": "setplatform",
-      "hierarchy": [
-        {
-          "name": "setPlatform",
-          "id": "setplatform"
-        }
-      ],
-      "kind": "Function",
-      "content": "Sets the `CorePlatform`<!-- -->.\n\nThis is useful to override the platform in tests to change the behavior of, `requestAnimationFrame`<!-- -->, and import resolution.\n\n\n```typescript\nsetPlatform: (plt: CorePlatform) => CorePlatform\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nplt\n\n\n</td><td>\n\n[CorePlatform](#coreplatform)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[CorePlatform](#coreplatform)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/platform/platform.ts",
-      "mdFile": "core.setplatform.md"
+      "content": "Globally set a lang.\n\nThis can be used only in browser. Server execution requires that each request could potentially be a different lang, therefore setting a global lang would produce incorrect responses.\n\n\n```typescript\nexport declare function setLocale(locale: string): void;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nlocale\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/runtime/use-locale.ts",
+      "mdFile": "core.setlocale.md"
     },
     {
       "name": "Signal",
@@ -2097,23 +1139,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "A signal is a reactive value which can be read and written. When the signal is written, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.\n\nFurthermore, when a signal value is passed as a prop to a component, the optimizer will automatically forward the signal. This means that `return <div title={signal.value}>hi</div>` will update the `title` attribute when the signal changes without having to re-render the component.\n\n\n```typescript\nexport interface Signal<T = any> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nuntrackedValue\n\n\n</td><td>\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\nReading from this does not subscribe to updates; writing to this does not trigger updates.\n\n\n</td></tr>\n<tr><td>\n\nvalue\n\n\n</td><td>\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\nReading from this subscribes to updates; writing to this triggers updates.\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[trigger()](#signal-trigger)\n\n\n</td><td>\n\nUse this to trigger running subscribers, for example when the value mutated but remained the same object.\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts",
+      "content": "```typescript\nexport interface PublicSignal<T = unknown> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nuntrackedValue\n\n\n</td><td>\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nvalue\n\n\n</td><td>\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[trigger()](#signal-trigger)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/public-types.ts",
       "mdFile": "core.signal.md"
-    },
-    {
-      "name": "SkipRender",
-      "id": "skiprender",
-      "hierarchy": [
-        {
-          "name": "SkipRender",
-          "id": "skiprender"
-        }
-      ],
-      "kind": "Variable",
-      "content": "```typescript\nSkipRender: JSXNode\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/utils.public.ts",
-      "mdFile": "core.skiprender.md"
     },
     {
       "name": "Slot",
@@ -2126,218 +1154,22 @@
       ],
       "kind": "Variable",
       "content": "Allows to project the children of the current component. `<Slot/>` can only be used within the context of a component defined with `component$`<!-- -->.\n\n\n```typescript\nSlot: FunctionComponent<{\n    name?: string;\n    children?: JSXChildren;\n}>\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/slot.public.ts",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/dom/slot/slot.ts",
       "mdFile": "core.slot.md"
     },
     {
-      "name": "SnapshotListener",
-      "id": "snapshotlistener",
+      "name": "Store",
+      "id": "store",
       "hierarchy": [
         {
-          "name": "SnapshotListener",
-          "id": "snapshotlistener"
-        }
-      ],
-      "kind": "Interface",
-      "content": "```typescript\nexport interface SnapshotListener \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nel\n\n\n</td><td>\n\n\n</td><td>\n\nElement\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nkey\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nqrl\n\n\n</td><td>\n\n\n</td><td>\n\n[QRL](#qrl-type-alias)<!-- -->&lt;any&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/ssr/ssr-types.ts",
-      "mdFile": "core.snapshotlistener.md"
-    },
-    {
-      "name": "SnapshotMeta",
-      "id": "snapshotmeta",
-      "hierarchy": [
-        {
-          "name": "SnapshotMeta",
-          "id": "snapshotmeta"
+          "name": "Store",
+          "id": "store"
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type SnapshotMeta = Record<string, SnapshotMetaValue>;\n```\n**References:** [SnapshotMetaValue](#snapshotmetavalue)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/ssr/ssr-types.ts",
-      "mdFile": "core.snapshotmeta.md"
-    },
-    {
-      "name": "SnapshotMetaValue",
-      "id": "snapshotmetavalue",
-      "hierarchy": [
-        {
-          "name": "SnapshotMetaValue",
-          "id": "snapshotmetavalue"
-        }
-      ],
-      "kind": "Interface",
-      "content": "```typescript\nexport interface SnapshotMetaValue \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nc?\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nh?\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ns?\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nw?\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/ssr/ssr-types.ts",
-      "mdFile": "core.snapshotmetavalue.md"
-    },
-    {
-      "name": "SnapshotResult",
-      "id": "snapshotresult",
-      "hierarchy": [
-        {
-          "name": "SnapshotResult",
-          "id": "snapshotresult"
-        }
-      ],
-      "kind": "Interface",
-      "content": "```typescript\nexport interface SnapshotResult \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfuncs\n\n\n</td><td>\n\n\n</td><td>\n\nstring\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nmode\n\n\n</td><td>\n\n\n</td><td>\n\n'render' \\| 'listeners' \\| 'static'\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nobjs?\n\n\n</td><td>\n\n\n</td><td>\n\nany\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nqrls\n\n\n</td><td>\n\n\n</td><td>\n\n[QRL](#qrl-type-alias)<!-- -->\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nresources\n\n\n</td><td>\n\n\n</td><td>\n\nResourceReturnInternal&lt;any&gt;\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nstate?\n\n\n</td><td>\n\n\n</td><td>\n\n[SnapshotState](#snapshotstate)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/ssr/ssr-types.ts",
-      "mdFile": "core.snapshotresult.md"
-    },
-    {
-      "name": "SnapshotState",
-      "id": "snapshotstate",
-      "hierarchy": [
-        {
-          "name": "SnapshotState",
-          "id": "snapshotstate"
-        }
-      ],
-      "kind": "Interface",
-      "content": "> Warning: This API is now obsolete.\n> \n> not longer used in v2\n> \n\n\n```typescript\nexport interface SnapshotState \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nctx\n\n\n</td><td>\n\n\n</td><td>\n\n[SnapshotMeta](#snapshotmeta)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nobjs\n\n\n</td><td>\n\n\n</td><td>\n\nany\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nrefs\n\n\n</td><td>\n\n\n</td><td>\n\nRecord&lt;string, string&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nsubs\n\n\n</td><td>\n\n\n</td><td>\n\nany\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/ssr/ssr-types.ts",
-      "mdFile": "core.snapshotstate.md"
-    },
-    {
-      "name": "SSRComment",
-      "id": "ssrcomment",
-      "hierarchy": [
-        {
-          "name": "SSRComment",
-          "id": "ssrcomment"
-        }
-      ],
-      "kind": "Variable",
-      "content": "```typescript\nSSRComment: FunctionComponent<{\n    data: string;\n}>\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/utils.public.ts",
-      "mdFile": "core.ssrcomment.md"
-    },
-    {
-      "name": "SSRHintProps",
-      "id": "ssrhintprops",
-      "hierarchy": [
-        {
-          "name": "SSRHintProps",
-          "id": "ssrhintprops"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "```typescript\nexport type SSRHintProps = {\n    dynamic?: boolean;\n};\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/utils.public.ts",
-      "mdFile": "core.ssrhintprops.md"
-    },
-    {
-      "name": "SSRRaw",
-      "id": "ssrraw",
-      "hierarchy": [
-        {
-          "name": "SSRRaw",
-          "id": "ssrraw"
-        }
-      ],
-      "kind": "Variable",
-      "content": "```typescript\nSSRRaw: FunctionComponent<{\n    data: string;\n}>\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/utils.public.ts",
-      "mdFile": "core.ssrraw.md"
-    },
-    {
-      "name": "SSRStream",
-      "id": "ssrstream",
-      "hierarchy": [
-        {
-          "name": "SSRStream",
-          "id": "ssrstream"
-        }
-      ],
-      "kind": "Variable",
-      "content": "```typescript\nSSRStream: FunctionComponent<SSRStreamProps>\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/utils.public.ts",
-      "mdFile": "core.ssrstream.md"
-    },
-    {
-      "name": "SSRStreamBlock",
-      "id": "ssrstreamblock",
-      "hierarchy": [
-        {
-          "name": "SSRStreamBlock",
-          "id": "ssrstreamblock"
-        }
-      ],
-      "kind": "Variable",
-      "content": "```typescript\nSSRStreamBlock: FunctionComponent<{\n    children?: JSXOutput;\n}>\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/utils.public.ts",
-      "mdFile": "core.ssrstreamblock.md"
-    },
-    {
-      "name": "SSRStreamChildren",
-      "id": "ssrstreamchildren",
-      "hierarchy": [
-        {
-          "name": "SSRStreamChildren",
-          "id": "ssrstreamchildren"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "```typescript\nexport type SSRStreamChildren = AsyncGenerator<JSXChildren, void, any> | ((stream: SSRStreamWriter) => Promise<void>) | (() => AsyncGenerator<JSXChildren, void, any>);\n```\n**References:** [JSXChildren](#jsxchildren)<!-- -->, [SSRStreamWriter](#ssrstreamwriter)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/utils.public.ts",
-      "mdFile": "core.ssrstreamchildren.md"
-    },
-    {
-      "name": "SSRStreamProps",
-      "id": "ssrstreamprops",
-      "hierarchy": [
-        {
-          "name": "SSRStreamProps",
-          "id": "ssrstreamprops"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "```typescript\nexport type SSRStreamProps = {\n    children: SSRStreamChildren;\n};\n```\n**References:** [SSRStreamChildren](#ssrstreamchildren)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/utils.public.ts",
-      "mdFile": "core.ssrstreamprops.md"
-    },
-    {
-      "name": "SSRStreamWriter",
-      "id": "ssrstreamwriter",
-      "hierarchy": [
-        {
-          "name": "SSRStreamWriter",
-          "id": "ssrstreamwriter"
-        }
-      ],
-      "kind": "Interface",
-      "content": "```typescript\nexport interface SSRStreamWriter \n```\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[write(chunk)](#ssrstreamwriter-write)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/utils.public.ts",
-      "mdFile": "core.ssrstreamwriter.md"
-    },
-    {
-      "name": "Suspense",
-      "id": "suspense",
-      "hierarchy": [
-        {
-          "name": "Suspense",
-          "id": "suspense"
-        }
-      ],
-      "kind": "Variable",
-      "content": "```typescript\nSuspense: typeof suspenseCmp\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/suspense.tsx",
-      "mdFile": "core.suspense.md"
-    },
-    {
-      "name": "SuspenseProps",
-      "id": "suspenseprops",
-      "hierarchy": [
-        {
-          "name": "SuspenseProps",
-          "id": "suspenseprops"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "```typescript\nexport type SuspenseProps = {\n    fallback?: JSXOutput;\n    showStale?: boolean;\n    delay?: number;\n};\n```\n**References:** [JSXOutput](#jsxoutput)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/suspense.tsx",
-      "mdFile": "core.suspenseprops.md"
+      "content": "```typescript\nexport type Store<T extends object> = T;\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/store.ts",
+      "mdFile": "core.store.md"
     },
     {
       "name": "SVGAttributes",
@@ -2391,7 +1223,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type SyncQRL<TYPE extends Function> = QRL<TYPE> & {\n    __brand__SyncQRL__: TYPE;\n    resolved: TYPE;\n    dev?: QRLDev | null;\n} & BivariantQrlFn<QrlArgs<TYPE>, QrlReturn<TYPE>>;\n```\n**References:** [QRL](#qrl-type-alias)",
+      "content": "```typescript\nexport type SyncQRL<TYPE extends Function> = QRL<TYPE> & {\n    __brand__SyncQRL__: TYPE;\n    resolved: TYPE;\n    dev?: QRLDev | null;\n} & BivariantQrlFn<QrlArgs<TYPE>, QrlReturn<TYPE>>;\n```\n**References:** [QRL](#qrl)<!-- -->, [QRLDev](#qrldev)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/qrl/qrl.public.ts",
       "mdFile": "core.syncqrl.md"
     },
@@ -2405,8 +1237,8 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface TaskCtx \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ncleanup\n\n\n</td><td>\n\n\n</td><td>\n\n(callback: () =&gt; [ValueOrPromise](#valueorpromise)<!-- -->&lt;void&gt;) =&gt; void\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\ntrack\n\n\n</td><td>\n\n\n</td><td>\n\n[Tracker](#tracker)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
+      "content": "```typescript\nexport interface TaskCtx \n```\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ncleanup(callback)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/runtime/task.ts",
       "mdFile": "core.taskctx.md"
     },
     {
@@ -2419,8 +1251,8 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => ValueOrPromise<void>)>;\n```\n**References:** [TaskCtx](#taskctx)<!-- -->, [ValueOrPromise](#valueorpromise)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
+      "content": "```typescript\nexport type TaskFn = (ctx: TaskCtx) => TaskResult;\n```\n**References:** [TaskCtx](#taskctx)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/runtime/task.ts",
       "mdFile": "core.taskfn.md"
     },
     {
@@ -2433,8 +1265,8 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface TaskOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ndeferUpdates?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ Block the rendering of the component until the task completes. Default is `true`\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
+      "content": "```typescript\nexport interface TaskOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ndeferUpdates?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/runtime/task.ts",
       "mdFile": "core.taskoptions.md"
     },
     {
@@ -2447,8 +1279,8 @@
         }
       ],
       "kind": "Interface",
-      "content": "Used to signal to Qwik which state should be watched for changes.\n\nThe `Tracker` is passed into the `taskFn` of `useTask`<!-- -->. It is intended to be used to wrap state objects in a read proxy which signals to Qwik which properties should be watched for changes. A change to any of the properties causes the `taskFn` to rerun.\n\n\\#\\#\\# Example\n\nThe `obs` passed into the `taskFn` is used to mark `state.count` as a property of interest. Any changes to the `state.count` property will cause the `taskFn` to rerun.\n\n```tsx\nconst Cmp = component$(() => {\n  const store = useStore({ count: 0, doubleCount: 0 });\n  const signal = useSignal(0);\n  useTask$(({ track }) => {\n    // Any signals or stores accessed inside the task will be tracked\n    const count = track(() => store.count);\n    // For stores you can also pass the store and specify the property\n    track(store, 'count');\n    // You can also pass a signal to track() directly\n    const signalCount = track(signal);\n    store.doubleCount = count + signalCount;\n  });\n  return (\n    <div>\n      <span>\n        {store.count} / {store.doubleCount}\n      </span>\n      <button\n        onClick$={() => {\n          store.count++;\n          signal.value++;\n        }}\n      >\n        +\n      </button>\n    </div>\n  );\n});\n```\n\n\n```typescript\nexport interface Tracker \n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
+      "content": "```typescript\nexport interface Tracker \n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/public-types.ts",
       "mdFile": "core.tracker.md"
     },
     {
@@ -2465,7 +1297,7 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "Use this to trigger running subscribers, for example when the value mutated but remained the same object.\n\n\n```typescript\ntrigger(): void;\n```\n**Returns:**\n\nvoid",
+      "content": "```typescript\ntrigger(): void;\n```\n**Returns:**\n\nvoid",
       "mdFile": "core.signal.trigger.md"
     },
     {
@@ -2478,8 +1310,8 @@
         }
       ],
       "kind": "Function",
-      "content": "Get the value of the expression without tracking listeners. A function will be invoked, signals will return their value, and stores will be unwrapped (they return the backing object).\n\nWhen you pass a function, you can also pass additional arguments that the function will receive.\n\nNote that stores are not unwrapped recursively.\n\n\n```typescript\nuntrack: <T, A extends any[]>(expr: ((...args: A) => T) | Signal<T> | T, ...args: A) => T\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nexpr\n\n\n</td><td>\n\n((...args: A) =&gt; T) \\| [Signal](#signal)<!-- -->&lt;T&gt; \\| T\n\n\n</td><td>\n\nThe function or object to evaluate without tracking.\n\n\n</td></tr>\n<tr><td>\n\nargs\n\n\n</td><td>\n\nA\n\n\n</td><td>\n\nAdditional arguments to pass when `expr` is a function.\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nT",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-core.ts",
+      "content": "```typescript\nexport declare function untrack<T, TArgs extends unknown[]>(run: (...args: TArgs) => T, ...args: TArgs): T;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nrun\n\n\n</td><td>\n\n(...args: TArgs) =&gt; T\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nargs\n\n\n</td><td>\n\nTArgs\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nT",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/tracking.ts",
       "mdFile": "core.untrack.md"
     },
     {
@@ -2492,8 +1324,8 @@
         }
       ],
       "kind": "Function",
-      "content": "Get the original object that was wrapped by the store. Useful if you want to clone a store (structuredClone, IndexedDB,...)\n\n\n```typescript\nunwrapStore: <T>(value: T) => T\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nvalue\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nT",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/impl/store.ts",
+      "content": "```typescript\nexport declare function unwrapStore<T>(value: T): T;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nvalue\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nT",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/store.ts",
       "mdFile": "core.unwrapstore.md"
     },
     {
@@ -2506,8 +1338,8 @@
         }
       ],
       "kind": "Function",
-      "content": "Creates an AsyncSignal which holds the result of the given async function. If the function uses `track()` to track reactive state, and that state changes, the AsyncSignal is recalculated, and if the result changed, all tasks which are tracking the AsyncSignal will be re-run and all subscribers (components, tasks etc) that read the AsyncSignal will be updated.\n\nIf the async function throws an error, the AsyncSignal will capture the error and set the `error` property. The error can be cleared by re-running the async function successfully.\n\nWhile the async function is running, the `loading` property will be set to `true`<!-- -->. Once the function completes, `loading` will be set to `false`<!-- -->.\n\nIf the value has not yet been resolved, reading the AsyncSignal will throw a Promise, which will retry the component or task once the value resolves.\n\nIf the value has been resolved, but the async function is re-running, reading the AsyncSignal will subscribe to it and return the last resolved value until the new value is ready. As soon as the new value is ready, the subscribers will be updated.\n\n\n```typescript\nuseAsync$: <T>(qrl: AsyncFn<T>, options?: AsyncSignalOptions<T> | undefined) => AsyncSignal<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n[AsyncFn](#asyncfn)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[AsyncSignalOptions](#asyncsignaloptions)<!-- -->&lt;T&gt; \\| undefined\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[AsyncSignal](#asyncsignal)<!-- -->&lt;T&gt;",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async.ts",
+      "content": "```typescript\nuseAsync$: <T>(qrl: (ctx: AsyncCtx<T>) => ValueOrPromise<T>, options?: AsyncSignalOptions<T>) => PublicAsyncSignal<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n(ctx: [AsyncCtx](#asyncctx)<!-- -->&lt;T&gt;) =&gt; [ValueOrPromise](#valueorpromise)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[AsyncSignalOptions](#asyncsignaloptions)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[PublicAsyncSignal](#asyncsignal)<!-- -->&lt;T&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/public-api.ts",
       "mdFile": "core.useasync_.md"
     },
     {
@@ -2520,8 +1352,8 @@
         }
       ],
       "kind": "Function",
-      "content": "Creates a computed signal which is calculated from the given function. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated, and if the result changed, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.\n\nThe function must be synchronous and must not have any side effects.\n\n\n```typescript\nuseComputed$: <T>(qrl: ComputedFn<T>, options?: ComputedOptions | undefined) => ComputedReturnType<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n[ComputedFn](#computedfn)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[ComputedOptions](#computedoptions) \\| undefined\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[ComputedReturnType](#computedreturntype)<!-- -->&lt;T&gt;",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-computed.ts",
+      "content": "```typescript\nuseComputed$: <T>(qrl: () => T) => ComputedSignal<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n() =&gt; T\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[ComputedSignal](#computedsignal)<!-- -->&lt;T&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/public-api.ts",
       "mdFile": "core.usecomputed_.md"
     },
     {
@@ -2534,8 +1366,8 @@
         }
       ],
       "kind": "Function",
-      "content": "Stores a value which is retained for the lifetime of the component. Subsequent calls to `useConstant` will always return the first value given.\n\nIf the value is a function, the function is invoked once to calculate the actual value. You can then also pass arguments to call the function with, so that you don't need to create a new function on every render.\n\n\n```typescript\nuseConstant: <T, A extends any[]>(value: ((...args: A) => T) | T, ...args: A) => T\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nvalue\n\n\n</td><td>\n\n((...args: A) =&gt; T) \\| T\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nargs\n\n\n</td><td>\n\nA\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nT\n\n\n\n```tsx\nconst fixedRandomValue = useConstant(() => Math.random);\nconst otherFixedRandomValue = useConstant(Math.random);\n\nconst getConfig = (env: string) => { ... }\nconst config = useConstant(getConfig, environment);\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-signal.ts",
+      "content": "```typescript\nexport declare function useConstant<T, A extends unknown[]>(value: T | ((...args: A) => T), ...args: A): T;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nvalue\n\n\n</td><td>\n\nT \\| ((...args: A) =&gt; T)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nargs\n\n\n</td><td>\n\nA\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nT",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/public-api.ts",
       "mdFile": "core.useconstant.md"
     },
     {
@@ -2548,8 +1380,22 @@
         }
       ],
       "kind": "Variable",
-      "content": "Retrieve Context value.\n\nUse `useContext()` to retrieve the value of context in a component. To retrieve a value a parent component needs to invoke `useContextProvider()` to assign a value.\n\n\\#\\#\\# Example\n\n```tsx\n// Declare the Context type.\ninterface TodosStore {\n  items: string[];\n}\n// Create a Context ID (no data is saved here.)\n// You will use this ID to both create and retrieve the Context.\nexport const TodosContext = createContextId<TodosStore>('Todos');\n\n// Example of providing context to child components.\nexport const App = component$(() => {\n  useContextProvider(\n    TodosContext,\n    useStore<TodosStore>({\n      items: ['Learn Qwik', 'Build Qwik app', 'Profit'],\n    })\n  );\n\n  return <Items />;\n});\n\n// Example of retrieving the context provided by a parent component.\nexport const Items = component$(() => {\n  const todos = useContext(TodosContext);\n  return (\n    <ul>\n      {todos.items.map((item) => (\n        <li>{item}</li>\n      ))}\n    </ul>\n  );\n});\n\n```\n\n\n```typescript\nuseContext: UseContext\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-context.ts",
+      "content": "```typescript\nuseContext: UseContext\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/runtime/context.ts",
+      "mdFile": "core.usecontext.md"
+    },
+    {
+      "name": "UseContext",
+      "id": "usecontext",
+      "hierarchy": [
+        {
+          "name": "UseContext",
+          "id": "usecontext"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nuseContext: UseContext\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/runtime/context.ts",
       "mdFile": "core.usecontext.md"
     },
     {
@@ -2562,23 +1408,9 @@
         }
       ],
       "kind": "Function",
-      "content": "Assign a value to a Context.\n\nUse `useContextProvider()` to assign a value to a context. The assignment happens in the component's function. Once assigned, use `useContext()` in any child component to retrieve the value.\n\nContext is a way to pass stores to the child components without prop-drilling. Note that scalar values are allowed, but for reactivity you need signals or stores.\n\n\\#\\#\\# Example\n\n```tsx\n// Declare the Context type.\ninterface TodosStore {\n  items: string[];\n}\n// Create a Context ID (no data is saved here.)\n// You will use this ID to both create and retrieve the Context.\nexport const TodosContext = createContextId<TodosStore>('Todos');\n\n// Example of providing context to child components.\nexport const App = component$(() => {\n  useContextProvider(\n    TodosContext,\n    useStore<TodosStore>({\n      items: ['Learn Qwik', 'Build Qwik app', 'Profit'],\n    })\n  );\n\n  return <Items />;\n});\n\n// Example of retrieving the context provided by a parent component.\nexport const Items = component$(() => {\n  const todos = useContext(TodosContext);\n  return (\n    <ul>\n      {todos.items.map((item) => (\n        <li>{item}</li>\n      ))}\n    </ul>\n  );\n});\n\n```\n\n\n```typescript\nuseContextProvider: <STATE>(context: ContextId<STATE>, newValue: STATE) => void\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ncontext\n\n\n</td><td>\n\n[ContextId](#contextid)<!-- -->&lt;STATE&gt;\n\n\n</td><td>\n\nThe context to assign a value to.\n\n\n</td></tr>\n<tr><td>\n\nnewValue\n\n\n</td><td>\n\nSTATE\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-context.ts",
+      "content": "```typescript\nuseContextProvider: <STATE>(context: ContextId<STATE>, value: STATE) => void\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ncontext\n\n\n</td><td>\n\n[ContextId](#contextid)<!-- -->&lt;STATE&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nvalue\n\n\n</td><td>\n\nSTATE\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/runtime/context.ts",
       "mdFile": "core.usecontextprovider.md"
-    },
-    {
-      "name": "useErrorBoundary",
-      "id": "useerrorboundary",
-      "hierarchy": [
-        {
-          "name": "useErrorBoundary",
-          "id": "useerrorboundary"
-        }
-      ],
-      "kind": "Function",
-      "content": "```typescript\nuseErrorBoundary: () => ErrorBoundaryStore\n```\n**Returns:**\n\n[ErrorBoundaryStore](#errorboundarystore)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-error-boundary.ts",
-      "mdFile": "core.useerrorboundary.md"
     },
     {
       "name": "useId",
@@ -2591,7 +1423,7 @@
       ],
       "kind": "Function",
       "content": "```typescript\nuseId: () => string\n```\n**Returns:**\n\nstring",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-id.ts",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/runtime/use-id.ts",
       "mdFile": "core.useid.md"
     },
     {
@@ -2604,8 +1436,8 @@
         }
       ],
       "kind": "Function",
-      "content": "Register a listener on the current component's host element.\n\nUsed to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX. Otherwise, it's adding a JSX listener in the `<div>` is a better idea.\n\nEvents are case sensitive.\n\n\n```typescript\nuseOn: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>, options?: UseOnOptions) => void\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nevent\n\n\n</td><td>\n\nT \\| T\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\neventQrl\n\n\n</td><td>\n\nEventQRL&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[UseOnOptions](#useonoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-on.ts",
+      "content": "```typescript\nuseOn: <T extends KnownEventNames>(event: T | T[], eventQrl: OnHandler<T>, options?: UseOnOptions) => void\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nevent\n\n\n</td><td>\n\nT \\| T\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\neventQrl\n\n\n</td><td>\n\nOnHandler&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[UseOnOptions](#useonoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/runtime/use-on.ts",
       "mdFile": "core.useon.md"
     },
     {
@@ -2618,8 +1450,8 @@
         }
       ],
       "kind": "Function",
-      "content": "Register a listener on `document`<!-- -->.\n\nUsed to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX.\n\nEvents are case sensitive.\n\n\n```typescript\nuseOnDocument: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>, options?: UseOnOptions) => void\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nevent\n\n\n</td><td>\n\nT \\| T\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\neventQrl\n\n\n</td><td>\n\nEventQRL&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[UseOnOptions](#useonoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-on.ts",
+      "content": "```typescript\nuseOnDocument: <T extends KnownEventNames>(event: T | T[], eventQrl: OnHandler<T>, options?: UseOnOptions) => void\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nevent\n\n\n</td><td>\n\nT \\| T\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\neventQrl\n\n\n</td><td>\n\nOnHandler&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[UseOnOptions](#useonoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/runtime/use-on.ts",
       "mdFile": "core.useondocument.md"
     },
     {
@@ -2633,7 +1465,7 @@
       ],
       "kind": "TypeAlias",
       "content": "```typescript\nexport type UseOnOptions = UseOnOptionsBase & ({\n    passive?: boolean;\n    preventdefault?: never;\n} | {\n    passive?: never;\n    preventdefault?: boolean;\n});\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-on.ts",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/runtime/use-on.ts",
       "mdFile": "core.useonoptions.md"
     },
     {
@@ -2646,23 +1478,9 @@
         }
       ],
       "kind": "Function",
-      "content": "Register a listener on `window`<!-- -->.\n\nUsed to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX.\n\nEvents are case sensitive.\n\n\n```typescript\nuseOnWindow: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>, options?: UseOnOptions) => void\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nevent\n\n\n</td><td>\n\nT \\| T\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\neventQrl\n\n\n</td><td>\n\nEventQRL&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[UseOnOptions](#useonoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-on.ts",
+      "content": "```typescript\nuseOnWindow: <T extends KnownEventNames>(event: T | T[], eventQrl: OnHandler<T>, options?: UseOnOptions) => void\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nevent\n\n\n</td><td>\n\nT \\| T\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\neventQrl\n\n\n</td><td>\n\nOnHandler&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[UseOnOptions](#useonoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/runtime/use-on.ts",
       "mdFile": "core.useonwindow.md"
-    },
-    {
-      "name": "useResource$",
-      "id": "useresource_",
-      "hierarchy": [
-        {
-          "name": "useResource$",
-          "id": "useresource_"
-        }
-      ],
-      "kind": "Function",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `useAsync$` instead, which is more powerful and flexible. `useResource$` is still available for backward compatibility but it is recommended to migrate to `useAsync$` for new code and when updating existing code.\n> \n\nThis method works like an async memoized function that runs whenever some tracked value changes and returns some data.\n\n`useResource` however returns immediate a `ResourceReturn` object that contains the data and a state that indicates if the data is available or not.\n\nThe status can be one of the following:\n\n- `pending` - the data is not yet available. - `resolved` - the data is available. - `rejected` - the data is not available due to an error or timeout.\n\nBe careful when using a `try/catch` statement in `useResource$`<!-- -->. If you catch the error and don't re-throw it (or a new Error), the resource status will never be `rejected`<!-- -->.\n\n\n```typescript\nuseResource$: <T>(qrl: import(\"./use-resource\").ResourceFn<T>, opts?: import(\"./use-resource\").ResourceOptions | undefined) => import(\"./use-resource\").ResourceReturn<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\nimport(\"./use-resource\").[ResourceFn](#resourcefn)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nopts\n\n\n</td><td>\n\nimport(\"./use-resource\").[ResourceOptions](#resourceoptions) \\| undefined\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nimport(\"./use-resource\").[ResourceReturn](#resourcereturn)<!-- -->&lt;T&gt;",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource-dollar.ts",
-      "mdFile": "core.useresource_.md"
     },
     {
       "name": "useSerializer$",
@@ -2674,8 +1492,8 @@
         }
       ],
       "kind": "Variable",
-      "content": "Creates a signal which holds a custom serializable value. It requires that the value implements the `CustomSerializable` type, which means having a function under the `[SerializeSymbol]` property that returns a serializable value when called.\n\nThe `fn` you pass is called with the result of the serialization (in the browser, only when the value is needed), or `undefined` when not yet initialized. If you refer to other signals, `fn` will be called when those change just like computed signals, and then the argument will be the previous output, not the serialized result.\n\nThis is useful when using third party libraries that use custom objects that are not serializable.\n\nNote that the `fn` is called lazily, so it won't impact container resume.\n\n\n```typescript\nuseSerializer$: typeof createSerializer$\n```\n\n\n\n```tsx\nclass MyCustomSerializable {\n  constructor(public n: number) {}\n  inc() {\n    this.n++;\n  }\n}\nconst Cmp = component$(() => {\n  const custom = useSerializer$({\n    deserialize: (data) => new MyCustomSerializable(data),\n    serialize: (data) => data.n,\n    initial: 2,\n  });\n  return <div onClick$={() => custom.value.inc()}>{custom.value.n}</div>;\n});\n```\n\n\nWhen using a Signal as the data to create the object, you need to pass the configuration as a function, and you can then also provide the `update` function to update the object when the signal changes.\n\nBy returning an object from `update`<!-- -->, you signal that the listeners have to be notified. You can mutate the current object but you should return it so that it will trigger listeners.\n\n```tsx\nconst Cmp = component$(() => {\n  const n = useSignal(2);\n  const custom = useSerializer$(() =>\n    ({\n      deserialize: () => new MyCustomSerializable(n.value),\n      update: (current) => {\n        current.n = n.value;\n        return current;\n      }\n    })\n  );\n  return <div onClick$={() => n.value++}>{custom.value.n}</div>;\n});\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-serializer.ts",
+      "content": "```typescript\nuseSerializer$: UseSerializerDollar\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/public-api.ts",
       "mdFile": "core.useserializer_.md"
     },
     {
@@ -2689,7 +1507,7 @@
       ],
       "kind": "Function",
       "content": "```typescript\nexport declare function useServerData<T>(key: string): T | undefined;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nkey\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nT \\| undefined",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-env-data.ts",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/runtime/use-server-data.ts",
       "mdFile": "core.useserverdata.md"
     },
     {
@@ -2702,22 +1520,8 @@
         }
       ],
       "kind": "Variable",
-      "content": "Creates an object with a single reactive `.value` property, that Qwik can track across serializations.\n\nUse it to create state for your application. The object has a getter and setter to track reads and writes of the `.value` property. When the value changes, any functions that read from it will re-run.\n\nPrefer `useSignal` over `useStore` when possible, as it is more efficient.\n\n\\#\\#\\# Example\n\n```tsx\nconst Signals = component$(() => {\n  const counter = useSignal(1);\n  const text = useSignal('changeme');\n  const toggle = useSignal(false);\n\n  // useSignal() can also accept a function to calculate the initial value\n  const state = useSignal(() => {\n    return expensiveInitialValue();\n  });\n\n  return (\n    <div>\n      <button onClick$={() => counter.value++}>Counter: {counter.value}</button>\n      {\n        // pass signal values as the value, the optimizer will make it pass the signal\n      }\n      <Child state={state.value} />\n      {\n        // signals can be bound to inputs. A property named `bind:x` implies that the property\nis a signal\n      }\n      <input type=\"text\" bind:value={text} />\n      <input type=\"checkbox\" bind:checked={toggle} />\n    </div>\n  );\n});\n```\n\n\n```typescript\nuseSignal: UseSignal\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-signal.ts",
-      "mdFile": "core.usesignal.md"
-    },
-    {
-      "name": "UseSignal",
-      "id": "usesignal",
-      "hierarchy": [
-        {
-          "name": "UseSignal",
-          "id": "usesignal"
-        }
-      ],
-      "kind": "Interface",
-      "content": "Creates an object with a single reactive `.value` property, that Qwik can track across serializations.\n\nUse it to create state for your application. The object has a getter and setter to track reads and writes of the `.value` property. When the value changes, any functions that read from it will re-run.\n\nPrefer `useSignal` over `useStore` when possible, as it is more efficient.\n\n\\#\\#\\# Example\n\n```tsx\nconst Signals = component$(() => {\n  const counter = useSignal(1);\n  const text = useSignal('changeme');\n  const toggle = useSignal(false);\n\n  // useSignal() can also accept a function to calculate the initial value\n  const state = useSignal(() => {\n    return expensiveInitialValue();\n  });\n\n  return (\n    <div>\n      <button onClick$={() => counter.value++}>Counter: {counter.value}</button>\n      {\n        // pass signal values as the value, the optimizer will make it pass the signal\n      }\n      <Child state={state.value} />\n      {\n        // signals can be bound to inputs. A property named `bind:x` implies that the property\nis a signal\n      }\n      <input type=\"text\" bind:value={text} />\n      <input type=\"checkbox\" bind:checked={toggle} />\n    </div>\n  );\n});\n```\n\n\n```typescript\nuseSignal: UseSignal\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-signal.ts",
+      "content": "```typescript\nuseSignal: {\n    <T>(): PublicSignal<T | undefined>;\n    <T>(value: T): PublicSignal<T>;\n}\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/public.ts",
       "mdFile": "core.usesignal.md"
     },
     {
@@ -2730,8 +1534,8 @@
         }
       ],
       "kind": "Function",
-      "content": "Creates a reactive object that Qwik can track across serialization.\n\nUse it to create state for your application. The returned object is a Proxy that tracks reads and writes. When any of the properties change, the functions that read those properties will re-run.\n\n`Store`<!-- -->s are deep by default, meaning that any objects assigned to properties will also become `Store`<!-- -->s. This includes arrays.\n\nPrefer `useSignal` over `useStore` when possible, as it is more efficient.\n\n\\#\\#\\# Example\n\nExample showing how `useStore` is used in Counter example to keep track of the count.\n\n```tsx\nconst Stores = component$(() => {\n  const counter = useCounter(1);\n\n  // Reactivity happens even for nested objects and arrays\n  const userData = useStore({\n    name: 'Manu',\n    address: {\n      address: '',\n      city: '',\n    },\n    orgs: [],\n  });\n\n  // useStore() can also accept a function to calculate the initial value\n  const state = useStore(() => {\n    return {\n      value: expensiveInitialValue(),\n    };\n  });\n\n  return (\n    <div>\n      <div>Counter: {counter.value}</div>\n      <Child userData={userData} state={state} />\n    </div>\n  );\n});\n\nfunction useCounter(step: number) {\n  // Multiple stores can be created in custom hooks for convenience and composability\n  const counterStore = useStore({\n    value: 0,\n  });\n  useVisibleTask$(() => {\n    // Only runs in the client\n    const timer = setInterval(() => {\n      counterStore.value += step;\n    }, 500);\n    return () => {\n      clearInterval(timer);\n    };\n  });\n  return counterStore;\n}\n```\n\n\n```typescript\nuseStore: <STATE extends object>(initialState: STATE | (() => STATE), opts?: UseStoreOptions) => STATE\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ninitialState\n\n\n</td><td>\n\nSTATE \\| (() =&gt; STATE)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nopts\n\n\n</td><td>\n\n[UseStoreOptions](#usestoreoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nSTATE",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-store.public.ts",
+      "content": "```typescript\nexport declare function useStore<T extends object>(initialState: T | (() => T), options?: UseStoreOptions): Store<T>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ninitialState\n\n\n</td><td>\n\nT \\| (() =&gt; T)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[UseStoreOptions](#usestoreoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[Store](#store)<!-- -->&lt;T&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/store.ts",
       "mdFile": "core.usestore.md"
     },
     {
@@ -2744,8 +1548,8 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface UseStoreOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ndeep?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ If `true` then all nested objects and arrays will be tracked as well. Default is `true`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\nreactive?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ If `false` then the object will not be tracked for changes. Default is `true`<!-- -->.\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-store.public.ts",
+      "content": "```typescript\nexport interface UseStoreOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ndeep?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nreactive?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/store.ts",
       "mdFile": "core.usestoreoptions.md"
     },
     {
@@ -2758,23 +1562,9 @@
         }
       ],
       "kind": "Function",
-      "content": "A lazy-loadable reference to a component's styles.\n\nComponent styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)\n\n```tsx\nimport styles from './code-block.css?inline';\n\nexport const CmpStyles = component$(() => {\n  useStyles$(styles);\n\n  return <div>Some text</div>;\n});\n```\n\n\n```typescript\nuseStyles$: (qrl: string) => UseStyles\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nUseStyles",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts",
+      "content": "```typescript\nuseStyles$: (style: string) => string\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nstyle\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nstring",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/runtime/use-styles.ts",
       "mdFile": "core.usestyles_.md"
-    },
-    {
-      "name": "UseStylesScoped",
-      "id": "usestylesscoped",
-      "hierarchy": [
-        {
-          "name": "UseStylesScoped",
-          "id": "usestylesscoped"
-        }
-      ],
-      "kind": "Interface",
-      "content": "```typescript\nexport interface UseStylesScoped \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nscopeId\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts",
-      "mdFile": "core.usestylesscoped.md"
     },
     {
       "name": "useStylesScoped$",
@@ -2786,8 +1576,8 @@
         }
       ],
       "kind": "Function",
-      "content": "A lazy-loadable reference to a component's styles, that is scoped to the component.\n\nComponent styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)\n\n```tsx\nimport scoped from './code-block.css?inline';\n\nexport const CmpScopedStyles = component$(() => {\n  useStylesScoped$(scoped);\n\n  return <div>Some text</div>;\n});\n```\n\n\n```typescript\nuseStylesScoped$: (qrl: string) => UseStylesScoped\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[UseStylesScoped](#usestylesscoped)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts",
+      "content": "```typescript\nuseStylesScoped$: (style: string) => string\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nstyle\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nstring",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/runtime/use-styles.ts",
       "mdFile": "core.usestylesscoped_.md"
     },
     {
@@ -2800,8 +1590,8 @@
         }
       ],
       "kind": "Function",
-      "content": "Reruns the `taskFn` when the observed inputs change.\n\nUse `useTask` to observe changes on a set of inputs, and then re-execute the `taskFn` when those inputs change.\n\nThe `taskFn` only executes if the observed inputs change. To observe the inputs, use the `obs` function to wrap property reads. This creates subscriptions that will trigger the `taskFn` to rerun.\n\n\n```typescript\nuseTask$: (fn: TaskFn, opts?: TaskOptions) => void\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfn\n\n\n</td><td>\n\n[TaskFn](#taskfn)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nopts\n\n\n</td><td>\n\n[TaskOptions](#taskoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task-dollar.ts",
+      "content": "```typescript\nuseTask$: (task: TaskFn, options?: TaskOptions) => void\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ntask\n\n\n</td><td>\n\n[TaskFn](#taskfn)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[TaskOptions](#taskoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/runtime/task.ts",
       "mdFile": "core.usetask_.md"
     },
     {
@@ -2814,8 +1604,8 @@
         }
       ],
       "kind": "Function",
-      "content": "```tsx\nconst Timer = component$(() => {\n  const store = useStore({\n    count: 0,\n  });\n\n  useVisibleTask$(() => {\n    // Only runs in the client\n    const timer = setInterval(() => {\n      store.count++;\n    }, 500);\n    return () => {\n      clearInterval(timer);\n    };\n  });\n\n  return <div>{store.count}</div>;\n});\n```\n\n\n```typescript\nuseVisibleTask$: (fn: TaskFn, opts?: OnVisibleTaskOptions) => void\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfn\n\n\n</td><td>\n\n[TaskFn](#taskfn)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nopts\n\n\n</td><td>\n\n[OnVisibleTaskOptions](#onvisibletaskoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-visible-task-dollar.ts",
+      "content": "```typescript\nuseVisibleTask$: (task: TaskFn, options?: VisibleTaskOptions) => void\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ntask\n\n\n</td><td>\n\n[TaskFn](#taskfn)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[VisibleTaskOptions](#visibletaskoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/runtime/task.ts",
       "mdFile": "core.usevisibletask_.md"
     },
     {
@@ -2847,6 +1637,20 @@
       "mdFile": "core.version.md"
     },
     {
+      "name": "VisibleTaskOptions",
+      "id": "visibletaskoptions",
+      "hierarchy": [
+        {
+          "name": "VisibleTaskOptions",
+          "id": "visibletaskoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface VisibleTaskOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nstrategy?\n\n\n</td><td>\n\n\n</td><td>\n\n[VisibleTaskStrategy](#visibletaskstrategy)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/runtime/task.ts",
+      "mdFile": "core.visibletaskoptions.md"
+    },
+    {
       "name": "VisibleTaskStrategy",
       "id": "visibletaskstrategy",
       "hierarchy": [
@@ -2857,7 +1661,7 @@
       ],
       "kind": "TypeAlias",
       "content": "```typescript\nexport type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | 'document-idle';\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-visible-task.ts",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/runtime/task.ts",
       "mdFile": "core.visibletaskstrategy.md"
     },
     {
@@ -2871,25 +1675,8 @@
       ],
       "kind": "Function",
       "content": "Override the `getLocale` with `lang` within the `fn` execution.\n\n\n```typescript\nexport declare function withLocale<T>(locale: string, fn: () => T): T;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nlocale\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nfn\n\n\n</td><td>\n\n() =&gt; T\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nT",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-locale.ts",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/runtime/use-locale.ts",
       "mdFile": "core.withlocale.md"
-    },
-    {
-      "name": "write",
-      "id": "ssrstreamwriter-write",
-      "hierarchy": [
-        {
-          "name": "SSRStreamWriter",
-          "id": "ssrstreamwriter-write"
-        },
-        {
-          "name": "write",
-          "id": "ssrstreamwriter-write"
-        }
-      ],
-      "kind": "MethodSignature",
-      "content": "```typescript\nwrite(chunk: JSXOutput): void;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nchunk\n\n\n</td><td>\n\n[JSXOutput](#jsxoutput)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
-      "mdFile": "core.ssrstreamwriter.write.md"
     }
   ]
 }

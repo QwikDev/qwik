@@ -1,64 +1,58 @@
-import {
-  Fragment as Component,
-  component$,
-  Fragment,
-  Fragment as Signal,
-  Slot,
-  useSignal,
-  useStyles$,
-  useStylesQrl,
-} from '@qwik.dev/core';
-import { renderToString } from '@qwik.dev/core/server';
-import { createDocument, domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
-import { afterEach, describe, expect, it } from 'vitest';
-import { getPlatform, setPlatform } from '../shared/platform/platform';
-import { QStyleSelector } from '../shared/utils/markers';
-import { inlinedQrl } from '../shared/qrl/qrl';
-import type { QRLInternal } from '../shared/qrl/qrl-class';
-import { _useHmr } from '../internal';
-import { waitForDrain } from '@qwik.dev/core/testing';
+import { component$, Slot } from '@qwik.dev/core';
+import { useSignal, useStyles$ } from '@qwik.dev/core';
+import { describe, expect, it } from 'vitest';
+import { QStyle, QStyleSelector } from '../shared/utils/markers';
+import { csrRender, ssrRender } from '../test-utils';
 
-const debug = false; //true;
-Error.stackTraceLimit = 100;
-
-const STYLE_RED = `.container {background-color: red;}`;
-const STYLE_BLUE = `.container {background-color: blue;}`;
+const debug = false;
+const STYLE_RED = `.container { color: red; }`;
+const STYLE_BLUE = `.container { color: blue; }`;
 const STYLE = `.container{color: blue;}`;
 
 describe.each([
-  { render: ssrRenderToDom }, //
-  { render: domRender }, //
-])('$render.name: useStyles', ({ render }) => {
-  afterEach(() => {
-    (globalThis as any).rawStyleId = undefined;
-    (globalThis as any).rawStyleId1 = undefined;
-    (globalThis as any).rawStyleId2 = undefined;
-  });
-
-  it('should render style', async () => {
-    (globalThis as any).rawStyleId = '';
-    const StyledComponent = component$(() => {
-      const styleData = useStyles$(STYLE_RED);
-      (globalThis as any).rawStyleId = styleData.styleId;
-      return <div class="container">Hello world</div>;
+  { name: 'ssrRender', render: ssrRender },
+  { name: 'csrRender', render: csrRender },
+])('$name: useStyles$', ({ render }) => {
+  it('appends a global style once and leaves element classes unchanged', async () => {
+    const App = component$(() => {
+      useStyles$(STYLE_RED);
+      return <div class="container">Hello</div>;
     });
 
-    const { vNode, getStyles } = await render(<StyledComponent />, { debug });
-    expect(getStyles()).toEqual({
-      [(globalThis as any).rawStyleId]: STYLE_RED,
-    });
-    expect(vNode).toMatchVDOM(
-      <>
-        <div class={'container'}>Hello world</div>
-      </>
-    );
+    const { document, container, cleanup } = await render(App, { debug });
+    const styles = document.querySelectorAll(QStyleSelector);
+    const div = container.querySelector('div')!;
+
+    expect(styles).toHaveLength(1);
+    expect(styles[0].getAttribute(QStyle)).toBeTruthy();
+    expect(styles[0].textContent).toBe(STYLE_RED);
+    expect(div.className).toBe('container');
+    cleanup();
   });
 
-  it('should move style to <head> on rerender', async () => {
-    (globalThis as any).rawStyleId = '';
-    const StyledComponent = component$(() => {
-      const styleData = useStyles$(STYLE_RED);
-      (globalThis as any).rawStyleId = styleData.styleId;
+  it('dedupes the same component style in one document', async () => {
+    const Styled = component$(() => {
+      useStyles$(STYLE_RED);
+      return <span class="container">Item</span>;
+    });
+    const App = component$(() => (
+      <div>
+        <Styled />
+        <Styled />
+      </div>
+    ));
+
+    const { document, cleanup } = await render(App, { debug });
+    const styles = document.querySelectorAll(QStyleSelector);
+
+    expect(styles).toHaveLength(1);
+    expect(styles[0].textContent).toBe(STYLE_RED);
+    cleanup();
+  });
+
+  it('keeps the style after a signal update', async () => {
+    const App = component$(() => {
+      useStyles$(STYLE_RED);
       const count = useSignal(0);
       return (
         <button class="container" onClick$={() => count.value++}>
@@ -67,228 +61,155 @@ describe.each([
       );
     });
 
-    const { vNode, container } = await render(<StyledComponent />, { debug });
-    await trigger(container.element, 'button', 'click');
-    expect(vNode).toMatchVDOM(
-      <>
-        <button class="container">
-          <Signal ssr-required>1</Signal>
-        </button>
-      </>
-    );
-    const style = container.document.querySelector(QStyleSelector);
-    const attrs = { 'q:style': (globalThis as any).rawStyleId };
-    await expect(style).toMatchDOM(<style {...attrs}>{STYLE_RED}</style>);
+    const { document, container, cleanup, qwikLoader } = await render(App, { debug });
+    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+
+    const styles = document.querySelectorAll(QStyleSelector);
+    expect(styles).toHaveLength(1);
+    expect(styles[0].textContent).toBe(STYLE_RED);
+    expect(container.querySelector('button')!.className).toBe('container');
+    cleanup();
   });
 
-  it('should save styles when JSX deleted', async () => {
-    (globalThis as any).rawStyleId = '';
-    const StyledComponent = component$(() => {
-      const styleData = useStyles$(STYLE_RED);
-      (globalThis as any).rawStyleId = styleData.styleId;
-      return <div>Hello world</div>;
+  it('keeps the style after the styled JSX is removed', async () => {
+    const Styled = component$(() => {
+      useStyles$(STYLE_RED);
+      return <div>Hello</div>;
     });
-
-    const Parent = component$(() => {
+    const App = component$(() => {
       const show = useSignal(true);
       return (
         <div class="parent" onClick$={() => (show.value = false)}>
-          {show.value && <StyledComponent />}
+          {show.value && <Styled />}
         </div>
       );
     });
 
-    const { vNode, container } = await render(<Parent />, { debug });
-    await trigger(container.element, 'div.parent', 'click');
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <div class="parent">{''}</div>
-      </Component>
-    );
-    const style = container.document.querySelector(QStyleSelector);
-    const attrs = { 'q:style': (globalThis as any).rawStyleId };
-    await expect(style).toMatchDOM(<style {...attrs}>{STYLE_RED}</style>);
+    const { document, container, cleanup, qwikLoader } = await render(App, { debug });
+    await qwikLoader?.dispatch(container.querySelector('.parent')!, 'click');
+
+    const styles = document.querySelectorAll(QStyleSelector);
+    expect(styles).toHaveLength(1);
+    expect(styles[0].textContent).toBe(STYLE_RED);
+    expect(container.querySelector('.parent')!.textContent).toBe('');
+    cleanup();
   });
 
-  it('style node should contain q:style attribute', async () => {
-    const StyledComponent = component$(() => {
+  it('adds q:style to every style node', async () => {
+    const App = component$(() => {
       useStyles$(STYLE_RED);
-      return <div>Hello world</div>;
+      return <div>Hello</div>;
     });
-    const { container } = await render(<StyledComponent />, { debug });
-    const allStyles = container.document.querySelectorAll('style');
-    const qStyles = container.document.querySelectorAll(QStyleSelector);
-    expect(allStyles.length).toBe(qStyles.length);
-  });
 
-  it('should render styles for multiple components', async () => {
-    (globalThis as any).rawStyleId1 = '';
-    (globalThis as any).rawStyleId2 = '';
-    const StyledComponent1 = component$(() => {
-      const styleData = useStyles$(STYLE_RED);
-      (globalThis as any).rawStyleId1 = styleData.styleId;
-      return <div class="container">Hello world 1</div>;
-    });
-    const StyledComponent2 = component$(() => {
-      const styleData = useStyles$(STYLE_BLUE);
-      (globalThis as any).rawStyleId2 = styleData.styleId;
-      return <div class="container">Hello world 2</div>;
-    });
-    const Parent = component$(() => {
-      return (
-        <div>
-          <StyledComponent1 />
-          <StyledComponent2 />
-        </div>
-      );
-    });
-    const { vNode, getStyles } = await render(<Parent />, { debug });
+    const { document, cleanup } = await render(App, { debug });
 
-    expect(getStyles()).toEqual({
-      [(globalThis as any).rawStyleId1]: STYLE_RED,
-      [(globalThis as any).rawStyleId2]: STYLE_BLUE,
-    });
-    expect(vNode).toMatchVDOM(
-      <>
-        <div>
-          <Component>
-            <div class="container">Hello world 1</div>
-          </Component>
-          <Component>
-            <div class="container">Hello world 2</div>
-          </Component>
-        </div>
-      </>
+    expect(document.querySelectorAll('style')).toHaveLength(
+      document.querySelectorAll(QStyleSelector).length
     );
+    cleanup();
   });
 
-  it('should save styles for all child components', async () => {
-    const StyledComponent1 = component$(() => {
+  it('renders styles for multiple components', async () => {
+    const Red = component$(() => {
       useStyles$(STYLE_RED);
-      return <div class="container">Hello world 1</div>;
+      return <div class="container">Red</div>;
     });
-    const StyledComponent2 = component$(() => {
+    const Blue = component$(() => {
       useStyles$(STYLE_BLUE);
-      return <div class="container">Hello world 2</div>;
+      return <div class="container">Blue</div>;
     });
-    const Parent = component$(() => {
+    const App = component$(() => (
+      <div>
+        <Red />
+        <Blue />
+      </div>
+    ));
+
+    const { document, container, cleanup } = await render(App, { debug });
+    const styles = Array.from(
+      document.querySelectorAll(QStyleSelector),
+      (style) => style.textContent
+    );
+
+    expect(styles).toEqual(expect.arrayContaining([STYLE_RED, STYLE_BLUE]));
+    expect(container.querySelectorAll('.container')).toHaveLength(2);
+    cleanup();
+  });
+
+  it('keeps all child component styles after one child is removed', async () => {
+    const Red = component$(() => {
+      useStyles$(STYLE_RED);
+      return <div class="container">Red</div>;
+    });
+    const Blue = component$(() => {
+      useStyles$(STYLE_BLUE);
+      return <div class="container">Blue</div>;
+    });
+    const App = component$(() => {
       const show = useSignal(true);
       return (
         <div class="parent" onClick$={() => (show.value = false)}>
-          {show.value && <StyledComponent1 />}
-          <StyledComponent2 />
+          {show.value && <Red />}
+          <Blue />
         </div>
       );
     });
-    const { vNode, container } = await render(<Parent />, { debug });
-    await trigger(container.element, 'div.parent', 'click');
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <div class="parent">
-          {''}
-          <Component>
-            <div class="container">Hello world 2</div>
-          </Component>
-        </div>
-      </Component>
+
+    const { document, container, cleanup, qwikLoader } = await render(App, { debug });
+    await qwikLoader?.dispatch(container.querySelector('.parent')!, 'click');
+    const styles = Array.from(
+      document.querySelectorAll(QStyleSelector),
+      (style) => style.textContent
     );
-    const qStyles = container.document.querySelectorAll(QStyleSelector);
-    expect(qStyles).toHaveLength(2);
-  });
-  it.skipIf(render !== domRender)('should update style content on HMR re-render', async () => {
-    const INITIAL_CSS = `.hmr-test { color: red; }`;
-    const UPDATED_CSS = `.hmr-test { color: green; }`;
 
-    // Create a QRL we can mutate to simulate HMR updating the module
-    const styleQrl = inlinedQrl(INITIAL_CSS, 'hmrStyleQrl') as QRLInternal<string>;
-
-    const StyledComponent = component$(() => {
-      useStylesQrl(styleQrl);
-      _useHmr('hmr-styles.tsx');
-      return (
-        <div class="hmr-test" data-qwik-inspector="hmr-styles.tsx:1:1">
-          styled
-        </div>
-      );
-    });
-
-    const { container } = await render(<StyledComponent />, { debug });
-
-    // Verify initial style content
-    const styleEl = container.document.querySelector(QStyleSelector) as HTMLStyleElement;
-    expect(styleEl).toBeTruthy();
-    expect(styleEl.textContent).toBe(INITIAL_CSS);
-
-    // Simulate HMR: update the QRL's resolved value (as Vite would do)
-    styleQrl.resolved = UPDATED_CSS;
-
-    // Trigger HMR re-render (component body re-executes with new resolved value)
-    const t = Date.now();
-    (container.document as any).__hmrT = t; // Simulate Vite's HMR timestamp update
-    await trigger(container.element, null, 'd:q-hmr', {
-      detail: { files: ['hmr-styles.tsx'], t },
-    });
-    await new Promise((r) => setTimeout(r, 0));
-    await waitForDrain(container);
-
-    // The style element content should have been updated in-place
-    expect(styleEl.textContent).toBe(UPDATED_CSS);
+    expect(styles).toEqual(expect.arrayContaining([STYLE_RED, STYLE_BLUE]));
+    expect(container.querySelector('.parent')!.textContent).toBe('Blue');
+    cleanup();
   });
 
-  it('should skip style node in front of text node', async () => {
+  it('does not render style nodes before text output', async () => {
     const InnerCmp = component$(() => {
       return <div>Hello world</div>;
     });
 
-    const Cmp = component$(() => {
+    const App = component$(() => {
       useStyles$(STYLE);
       const groupSig = useSignal('1');
       return (
         <>
           Some text:{'  '}
           <button onClick$={() => (groupSig.value = '2')}>click</button>
-          {/* Enforce Cmp component materialization, because of dynamic content */}
           {groupSig.value === '2' && <InnerCmp />}
         </>
       );
     });
-    const { vNode } = await render(<Cmp />, { debug });
-    expect(vNode).toMatchVDOM(
-      <Component ssr-required>
-        <Fragment ssr-required>
-          {'Some text:'}
-          {'  '}
-          <button>click</button>
-        </Fragment>
-      </Component>
-    );
+
+    const { document, container, cleanup } = await render(App, { debug });
+
+    expect(document.querySelectorAll(QStyleSelector)).toHaveLength(1);
+    expect(container.textContent).toMatch(/^Some text: {2}click/);
+    cleanup();
   });
 });
 
-describe('html wrapper', () => {
-  it('should append style to head', async () => {
-    const Wrapper = component$(() => {
-      useStyles$(STYLE);
-      return <Slot />;
-    });
-    let document = createDocument();
-    const platform = getPlatform();
-    try {
-      const result = await renderToString(
-        <Wrapper>
-          <head>
-            <script></script>
-          </head>
-          <body>
-            <div>content</div>
-          </body>
-        </Wrapper>
-      );
-      document = createDocument({ html: result.html });
-    } finally {
-      setPlatform(platform);
-    }
-    const styleElement = document.head.lastChild as HTMLElement;
-    expect(styleElement.textContent).toContain(STYLE);
+it('ssrRender: appends style to head when rendering document sections', async () => {
+  const Wrapper = component$(() => {
+    useStyles$(STYLE);
+    return <Slot />;
   });
+  const App = component$(() => (
+    <Wrapper>
+      <head>
+        <script></script>
+      </head>
+      <body>
+        <div>content</div>
+      </body>
+    </Wrapper>
+  ));
+
+  const { document, cleanup } = await ssrRender(App, { debug });
+
+  expect(document.head.querySelector(QStyleSelector)?.textContent).toBe(STYLE);
+  cleanup();
 });

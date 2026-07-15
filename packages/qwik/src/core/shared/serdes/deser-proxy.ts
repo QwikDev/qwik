@@ -1,5 +1,5 @@
 import { TypeIds } from './constants';
-import type { ContainerContext } from '../../vdomless/runtime/container-context';
+import type { ContainerContext } from '../../runtime/container-context';
 import { isObject } from '../utils/types';
 import { allocate } from './allocate';
 import { inflate } from './inflate';

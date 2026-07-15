@@ -106,38 +106,44 @@ const QWIK_DOC = Symbol();
 
 function createMockRange(): Range {
   let start: Node | null = null;
+  let startAfter = false;
   let end: Node | null = null;
+  let endAfter = false;
 
   return {
     setStartBefore(node: Node): void {
-      start = node.previousSibling;
+      start = node;
+      startAfter = false;
     },
     setStartAfter(node: Node): void {
       start = node;
+      startAfter = true;
     },
     setEndAfter(node: Node): void {
-      end = node.nextSibling;
+      end = node;
+      endAfter = true;
     },
     setEndBefore(node: Node): void {
       end = node;
+      endAfter = false;
     },
     deleteContents(): void {
       if (start === null || end === null) {
         throw new Error('Range boundary not set');
       }
-
       const parent = start.parentNode;
       if (parent === null || parent !== end.parentNode) {
         throw new Error('Range markers must share a parent');
       }
 
-      let child = start.nextSibling;
-      while (child !== null && child !== end) {
+      let child = startAfter ? start.nextSibling : start;
+      const boundary = endAfter ? end.nextSibling : end;
+      while (child !== null && child !== boundary) {
         const next = child.nextSibling;
         parent.removeChild(child);
         child = next;
       }
-      if (child !== end) {
+      if (child !== boundary) {
         throw new Error('Range end marker not found');
       }
     },
@@ -145,7 +151,7 @@ function createMockRange(): Range {
       if (end === null || end.parentNode === null) {
         throw new Error('Range boundary not set');
       }
-      end.parentNode.insertBefore(node, end);
+      end.parentNode.insertBefore(node, endAfter ? end.nextSibling : end);
     },
   } as Range;
 }

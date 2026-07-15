@@ -1,7 +1,7 @@
 ==INPUT==
 
 import { useStylesScoped$ } from '@qwik.dev/core';
-import { useSignal } from '@qwik.dev/core/spark';
+import { useSignal } from '@qwik.dev/core';
 import styles from './app.css?inline';
 
 export function App() {
@@ -16,30 +16,31 @@ export function App() {
 
 import {
   useSignal,
-  _qrlWithChunk,
-  escapeHTML,
+  useStylesScoped,
+  createSsrNodeId,
   createSsrElementTarget,
   renderSsrAttrExpression,
+  escapeHTML,
+  createSsrElementRecord,
   maybeThen,
-  appendScopedStyle,
-} from '@qwik.dev/core/spark';
+  _qrlWithChunk,
+} from '@qwik.dev/core';
 import styles from './app.css?inline';
-import { use_styles_scoped_dynamic_class_segment_0 } from './use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_0';
+import { use_styles_scoped_dynamic_class_segment_1 } from './use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_1';
 
-const q_use_styles_scoped_dynamic_class_segment_0 = /*#__PURE__*/ _qrlWithChunk(
-  './use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_0',
-  () => import('./use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_0'),
-  'use_styles_scoped_dynamic_class_segment_0'
+const q_use_styles_scoped_dynamic_class_segment_1 = /*#__PURE__*/ _qrlWithChunk(
+  './use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_1',
+  () => import('./use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_1'),
+  'use_styles_scoped_dynamic_class_segment_1'
 );
-q_use_styles_scoped_dynamic_class_segment_0.s(use_styles_scoped_dynamic_class_segment_0);
-const q_use_styles_scoped_dynamic_q_e_click_segment_1 = /*#__PURE__*/ _qrlWithChunk(
-  './use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_q_e_click_segment_1',
-  () => import('./use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_q_e_click_segment_1'),
-  'use_styles_scoped_dynamic_q_e_click_segment_1'
+q_use_styles_scoped_dynamic_class_segment_1.s(use_styles_scoped_dynamic_class_segment_1);
+const q_use_styles_scoped_dynamic_q_e_click_segment_2 = /*#__PURE__*/ _qrlWithChunk(
+  './use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_q_e_click_segment_2',
+  () => import('./use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_q_e_click_segment_2'),
+  'use_styles_scoped_dynamic_q_e_click_segment_2'
 );
-
-export function App(_props, ctx) {
-  appendScopedStyle(styles, 'z0ce9z-0');
+export function App(props, ctx) {
+  useStylesScoped(styles, 'gtgvab-0');
   const active = useSignal(false);
   const id0 = ctx.nextId();
   ctx.addRoot(active);
@@ -47,50 +48,47 @@ export function App(_props, ctx) {
     createSsrElementTarget(id0),
     'class',
     [active],
-    q_use_styles_scoped_dynamic_class_segment_0,
+    q_use_styles_scoped_dynamic_class_segment_1,
     undefined,
-    '⚡️z0ce9z-0'
+    '⚡️gtgvab-0'
   );
-  return maybeThen(
-    attr1,
-    (attr1) =>
-      '<button q:id="' +
-      id0 +
-      '" class="' +
-      escapeHTML(attr1) +
-      '"' +
-      ctx.eventAttr('q-e:click', q_use_styles_scoped_dynamic_q_e_click_segment_1.w([active])) +
-      '>Toggle</button>'
-  );
+  return maybeThen(attr1, (attr1) => [
+    createSsrElementRecord(
+      'button',
+      '<button q:id="',
+      createSsrNodeId(id0),
+      '"',
+      attr1 === null ? '' : ' class' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
+      ctx.eventAttr('q-e:click', q_use_styles_scoped_dynamic_q_e_click_segment_2.w([active])),
+      '>'
+    ),
+    'Toggle</button>',
+  ]);
 }
+============================= src/use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_1.js (ENTRY POINT)==
 
-null
-============================= src/use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_0.js (ENTRY POINT)==
-
-export const use_styles_scoped_dynamic_class_segment_0 = (active) => {
+export const use_styles_scoped_dynamic_class_segment_1 = (active) => {
   return {
     container: true,
     active: active.value,
   };
 };
-
-null
 /*
 {
   "origin": "use-styles-scoped-dynamic.tsx",
-  "name": "use_styles_scoped_dynamic_class_segment_0",
+  "name": "use_styles_scoped_dynamic_class_segment_1",
   "entry": null,
-  "displayName": "use_styles_scoped_dynamic_class_segment_0",
-  "hash": "segment_0",
-  "canonicalFilename": "use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_0",
+  "displayName": "use_styles_scoped_dynamic_class_segment_1",
+  "hash": "segment_1",
+  "canonicalFilename": "use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_1",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
   "ctxName": "class",
   "captures": true,
   "loc": [
-    248,
-    294
+    242,
+    288
   ],
   "paramNames": [],
   "captureNames": [
@@ -98,31 +96,30 @@ null
   ]
 }
 */
-============================= src/use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_q_e_click_segment_1.js (ENTRY POINT)==
+============================= src/use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_q_e_click_segment_2.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
-export const use_styles_scoped_dynamic_q_e_click_segment_1 = () => {
+import { _captures } from '@qwik.dev/core';
+
+export const use_styles_scoped_dynamic_q_e_click_segment_2 = () => {
   const active = _captures[0];
   return (active.value = true);
 };
-
-null
 /*
 {
   "origin": "use-styles-scoped-dynamic.tsx",
-  "name": "use_styles_scoped_dynamic_q_e_click_segment_1",
+  "name": "use_styles_scoped_dynamic_q_e_click_segment_2",
   "entry": null,
-  "displayName": "use_styles_scoped_dynamic_q_e_click_segment_1",
-  "hash": "segment_1",
-  "canonicalFilename": "use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_q_e_click_segment_1",
+  "displayName": "use_styles_scoped_dynamic_q_e_click_segment_2",
+  "hash": "segment_2",
+  "canonicalFilename": "use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_q_e_click_segment_2",
   "extension": "js",
   "parent": null,
   "ctxKind": "eventHandler",
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    296,
-    332
+    290,
+    326
   ],
   "paramNames": [],
   "captureNames": [
@@ -139,66 +136,58 @@ null
 
 import {
   useSignal,
-  createTemplate,
+  useStylesScoped,
+  _first,
   createAttrExpressionEffect,
   setEvent,
-  appendScopedStyle,
-} from '@qwik.dev/core/spark';
+  createTemplate,
+} from '@qwik.dev/core';
 import styles from './app.css?inline';
-import { use_styles_scoped_dynamic_q_e_click_segment_1 } from './use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_q_e_click_segment_1';
+import { use_styles_scoped_dynamic_class_segment_1 } from './use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_1';
+import { use_styles_scoped_dynamic_q_e_click_segment_2 } from './use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_q_e_click_segment_2';
 
-const dom_App_template0 = createTemplate('<button class="⚡️z0ce9z-0">Toggle</button>');
-const dom_App_expr1 = (active) => ({
-  container: true,
-  active: active.value,
-});
-export function App(_props, ctx) {
-  appendScopedStyle(styles, 'z0ce9z-0');
+const App_tmpl0 = createTemplate('<button class="⚡️gtgvab-0">Toggle</button>');
+export function App(props, ctx) {
+  useStylesScoped(styles, 'gtgvab-0');
   const active = useSignal(false);
-  const fragment0 = dom_App_template0(ctx.document);
-  const el1 = fragment0.firstChild;
-  const effect2 = createAttrExpressionEffect(
-    el1,
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const effect0 = createAttrExpressionEffect(
+    el0,
     'class',
     [active],
-    dom_App_expr1,
+    use_styles_scoped_dynamic_class_segment_1,
     ctx.scheduler,
-    '⚡️z0ce9z-0'
+    '⚡️gtgvab-0'
   );
-  ctx.scheduler.notify(effect2);
-  setEvent(el1, 'q-e:click', use_styles_scoped_dynamic_q_e_click_segment_1, [active]);
-  return el1;
+  ctx.scheduler.notify(effect0);
+  setEvent(el0, 'q-e:click', use_styles_scoped_dynamic_q_e_click_segment_2, [active]);
+  return el0;
 }
+============================= src/use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_1.js (ENTRY POINT)==
 
-null
-============================= src/use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_0.js (ENTRY POINT)==
-
-import { _captures } from '@qwik.dev/core/spark';
-export const use_styles_scoped_dynamic_class_segment_0 = () => {
-  const active = _captures[0];
+export const use_styles_scoped_dynamic_class_segment_1 = (active) => {
   return {
     container: true,
     active: active.value,
   };
 };
-
-null
 /*
 {
   "origin": "use-styles-scoped-dynamic.tsx",
-  "name": "use_styles_scoped_dynamic_class_segment_0",
+  "name": "use_styles_scoped_dynamic_class_segment_1",
   "entry": null,
-  "displayName": "use_styles_scoped_dynamic_class_segment_0",
-  "hash": "segment_0",
-  "canonicalFilename": "use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_0",
+  "displayName": "use_styles_scoped_dynamic_class_segment_1",
+  "hash": "segment_1",
+  "canonicalFilename": "use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_1",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
   "ctxName": "class",
   "captures": true,
   "loc": [
-    248,
-    294
+    242,
+    288
   ],
   "paramNames": [],
   "captureNames": [
@@ -206,31 +195,30 @@ null
   ]
 }
 */
-============================= src/use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_q_e_click_segment_1.js (ENTRY POINT)==
+============================= src/use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_q_e_click_segment_2.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
-export const use_styles_scoped_dynamic_q_e_click_segment_1 = () => {
+import { _captures } from '@qwik.dev/core';
+
+export const use_styles_scoped_dynamic_q_e_click_segment_2 = () => {
   const active = _captures[0];
   return (active.value = true);
 };
-
-null
 /*
 {
   "origin": "use-styles-scoped-dynamic.tsx",
-  "name": "use_styles_scoped_dynamic_q_e_click_segment_1",
+  "name": "use_styles_scoped_dynamic_q_e_click_segment_2",
   "entry": null,
-  "displayName": "use_styles_scoped_dynamic_q_e_click_segment_1",
-  "hash": "segment_1",
-  "canonicalFilename": "use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_q_e_click_segment_1",
+  "displayName": "use_styles_scoped_dynamic_q_e_click_segment_2",
+  "hash": "segment_2",
+  "canonicalFilename": "use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_q_e_click_segment_2",
   "extension": "js",
   "parent": null,
   "ctxKind": "eventHandler",
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    296,
-    332
+    290,
+    326
   ],
   "paramNames": [],
   "captureNames": [

@@ -1,113 +1,86 @@
-import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
+import { useSignal } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
-import { component$, useSignal, Fragment as Component } from '@qwik.dev/core';
+import { csrRender, ssrRender } from '../test-utils';
 
-const debug = false; //true;
-Error.stackTraceLimit = 100;
+const debug = false;
 
 describe.each([
-  { render: ssrRenderToDom }, //
-  { render: domRender }, //
-])('$render.name: loops', ({ render }) => {
-  it('should correctly extract qrls from loop items', async () => {
-    (globalThis as any).log = [];
-    const Cmp = component$(() => {
-      const loop: string[] = ['abcd', 'xyz'];
+  { name: 'ssrRender', render: ssrRender },
+  { name: 'csrRender', render: csrRender },
+])('$name: loops', ({ render }) => {
+  it('updates retained keyed rows and row event captures', async () => {
+    const MyComp = () => {
+      const items = useSignal([
+        { id: 'a', label: 'Alpha' },
+        { id: 'b', label: 'Beta' },
+      ]);
+      const selected = useSignal('');
       return (
-        <div>
-          {loop.map((item, index) => {
-            return (
-              <div
-                id={`item-${index}`}
-                onClick$={() => (globalThis as any).log.push(item)}
-                onMouseOver$={() => (globalThis as any).log.push(index)}
-              >
-                {item}
-              </div>
-            );
-          })}
-        </div>
+        <section>
+          <button
+            id="swap"
+            onClick$={() => {
+              items.value = [items.value[1], { ...items.value[0], label: 'Alpha*' }];
+            }}
+          >
+            swap
+          </button>
+          <ul>
+            {items.value.map((item, index) => (
+              <li key={item.id}>
+                <button onClick$={() => (selected.value = item.label + ':' + index)}>pick</button>
+                <span>
+                  {item.label}:{index}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p id="selected">{selected.value}</p>
+        </section>
       );
-    });
+    };
 
-    const { document } = await render(<Cmp />, { debug });
-    await trigger(document.body, document.getElementById('item-0'), 'click');
-    expect((globalThis as any).log).toEqual(['abcd']);
-    await trigger(document.body, document.getElementById('item-0'), 'mouseover');
-    expect((globalThis as any).log).toEqual(['abcd', 0]);
-    (globalThis as any).log = [];
-    await trigger(document.body, document.getElementById('item-1'), 'click');
-    expect((globalThis as any).log).toEqual(['xyz']);
-    await trigger(document.body, document.getElementById('item-1'), 'mouseover');
-    expect((globalThis as any).log).toEqual(['xyz', 1]);
-    (globalThis as any).log = undefined;
+    const { container, cleanup, qwikLoader } = await render(MyComp, { debug });
+
+    expect([...container.querySelectorAll('li span')].map((node) => node.textContent)).toEqual([
+      'Alpha:0',
+      'Beta:1',
+    ]);
+
+    await qwikLoader?.dispatch(container.querySelector('#swap')!, 'click');
+
+    expect([...container.querySelectorAll('li span')].map((node) => node.textContent)).toEqual([
+      'Beta:0',
+      'Alpha:1',
+    ]);
+
+    await qwikLoader?.dispatch(container.querySelectorAll('li button')[1]!, 'click');
+
+    expect(container.querySelector('#selected')?.textContent).toBe('Alpha:1');
+    cleanup();
   });
 
-  it('should correctly extract qrls from loop items and capture refs', async () => {
-    (globalThis as any).log = [];
-    const Cmp = component$(() => {
-      const foo = useSignal('hi');
-      const bar = useSignal('ho');
-      const loop: string[] = ['abcd', 'xyz'];
+  it('renders keyed fragment rows', async () => {
+    const MyComp = () => {
+      const items = useSignal([
+        { id: 'a', label: 'Alpha' },
+        { id: 'b', label: 'Beta' },
+      ]);
       return (
-        <div>
-          {loop.map((item, index) => {
-            return (
-              <div
-                id={`item-${index}`}
-                onClick$={() => (globalThis as any).log.push(item, foo.value)}
-                onMouseOver$={() => (globalThis as any).log.push(index, bar.value)}
-              >
-                {item}
-              </div>
-            );
-          })}
-        </div>
+        <p>
+          {items.value.map((item) => (
+            <>
+              <span key={item.id}>{item.label}</span>
+              <em>!</em>
+            </>
+          ))}
+        </p>
       );
-    });
+    };
 
-    const { document } = await render(<Cmp />, { debug });
-    await trigger(document.body, document.getElementById('item-0'), 'click');
-    expect((globalThis as any).log).toEqual(['abcd', 'hi']);
-    await trigger(document.body, document.getElementById('item-0'), 'mouseover');
-    expect((globalThis as any).log).toEqual(['abcd', 'hi', 0, 'ho']);
-    (globalThis as any).log = [];
-    await trigger(document.body, document.getElementById('item-1'), 'click');
-    expect((globalThis as any).log).toEqual(['xyz', 'hi']);
-    await trigger(document.body, document.getElementById('item-1'), 'mouseover');
-    expect((globalThis as any).log).toEqual(['xyz', 'hi', 1, 'ho']);
-    (globalThis as any).log = undefined;
-  });
+    const { container, cleanup } = await render(MyComp, { debug });
 
-  it('should transform block scoped variables in loops', async () => {
-    (globalThis as any).log = [];
-    const Cmp = component$(() => {
-      const arr = useSignal(['a', 'b']);
-      return (
-        <div>
-          {arr.value.map((val, i) => {
-            const index = i + 1;
-            return <div onClick$={() => (globalThis as any).log.push(index)}>{val}</div>;
-          })}
-        </div>
-      );
-    });
-
-    const { vNode, document } = await render(<Cmp />, { debug });
-
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <div>
-          <div>a</div>
-          <div>b</div>
-        </div>
-      </Component>
-    );
-
-    await trigger(document.body, 'div', 'click');
-
-    expect((globalThis as any).log).toEqual([1, 2]);
-
-    (globalThis as any).log = undefined;
+    expect(container.querySelector('p')?.textContent).toBe('Alpha!Beta!');
+    cleanup();
   });
 });

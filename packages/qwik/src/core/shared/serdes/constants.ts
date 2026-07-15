@@ -1,9 +1,10 @@
-import { NEEDS_COMPUTATION, STORE_ALL_PROPS } from '../../reactive-primitives/types';
+import { NEEDS_COMPUTATION, STORE_ALL_PROPS } from '../../reactive/constants';
 import { _UNINITIALIZED } from '../utils/constants';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
 // Keep last
-import { Slot } from '../jsx/slot.public';
-import { Fragment } from '../jsx/jsx-runtime';
+import { Slot } from '../../dom/slot/slot';
+import { Fragment } from '../jsx/compiler-runtime';
+export { TypeIds } from './type-id';
 
 /** Used to represent an undefined value that must be serialized */
 export const explicitUndefined = Symbol('undefined');
@@ -73,59 +74,6 @@ export const _constantNames = [
   'MAX_SAFE_INTEGER-1',
   'MIN_SAFE_INTEGER',
 ] as const;
-
-export const enum TypeIds {
-  Plain,
-  RootRef,
-  ForwardRef,
-  /** Undefined, null, true, false, NaN, +Inf, -Inf, Slot, Fragment */
-  Constant,
-  Array,
-  Object,
-  URL,
-  Date,
-  Regex,
-  QRL,
-  /// ^ single-digit types ^
-  VNode,
-  RefVNode,
-  BigInt,
-  URLSearchParams,
-  ForwardRefs,
-  TemporalDuration,
-  TemporalInstant,
-  TemporalPlainDate,
-  TemporalPlainDateTime,
-  TemporalPlainMonthDay,
-  TemporalPlainTime,
-  TemporalPlainYearMonth,
-  TemporalZonedDateTime,
-  /// All types below will be inflate()d
-  Error,
-  Promise,
-  Set,
-  Map,
-  Uint8Array,
-  Task,
-  Component,
-  Signal,
-  WrappedSignal,
-  ComputedSignal,
-  AsyncSignal,
-  SerializerSignal,
-  Store,
-  FormData,
-  JSXNode,
-  PropsProxy,
-  SubscriptionData,
-  EffectSubscription,
-  SubscriptionPatch,
-  ContextScope,
-  SlotScope,
-  Projection,
-  BigArray,
-  StoreProp,
-}
 
 // Used for dumpState, make sure they are in sync with TypeIds
 export const _typeIdNames = [

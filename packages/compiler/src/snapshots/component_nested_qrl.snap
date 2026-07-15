@@ -1,6 +1,6 @@
 ==INPUT==
 
-import { useSignal, $ } from '@qwik.dev/core/spark';
+import { useSignal, $ } from '@qwik.dev/core';
 export function App() {
   const count = useSignal(0);
   return <button onClick$={() => $(() => count.value++)}>Run</button>;
@@ -10,8 +10,7 @@ export function App() {
 
 ============================= src/component.tsx ==
 
-import { useSignal, _qrlWithChunk } from '@qwik.dev/core/spark';
-
+import { useSignal, createSsrElementRecord, _qrlWithChunk } from '@qwik.dev/core';
 const q_component_q_e_click_segment_0 = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_q_e_click_segment_0',
   () => import('./component.tsx_component_q_e_click_segment_0'),
@@ -19,17 +18,19 @@ const q_component_q_e_click_segment_0 = /*#__PURE__*/ _qrlWithChunk(
 );
 export function App(props, ctx) {
   const count = useSignal(0);
-  return (
-    '<button' +
-    ctx.eventAttr('q-e:click', q_component_q_e_click_segment_0.w([count])) +
-    '>' +
-    'Run' +
-    '</button>'
-  );
+  return [
+    createSsrElementRecord(
+      'button',
+      '<button',
+      ctx.eventAttr('q-e:click', q_component_q_e_click_segment_0.w([count])),
+      '>'
+    ),
+    'Run</button>',
+  ];
 }
 ============================= src/component.tsx_component_q_e_click_segment_0.js (ENTRY POINT)==
 
-import { _qrlWithChunk, _captures } from '@qwik.dev/core/spark';
+import { _qrlWithChunk, _captures } from '@qwik.dev/core';
 const q_component_$_segment_1 = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_$_segment_1',
   () => import('./component.tsx_component_$_segment_1'),
@@ -54,8 +55,8 @@ export const component_q_e_click_segment_0 = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    122,
-    161
+    116,
+    155
   ],
   "paramNames": [],
   "captureNames": [
@@ -65,7 +66,7 @@ export const component_q_e_click_segment_0 = () => {
 */
 ============================= src/component.tsx_component_$_segment_1.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
+import { _captures } from '@qwik.dev/core';
 
 export const component_$_segment_1 = () => {
   const count = _captures[0];
@@ -85,8 +86,8 @@ export const component_$_segment_1 = () => {
   "ctxName": "$",
   "captures": true,
   "loc": [
-    138,
-    160
+    132,
+    154
   ],
   "paramNames": [],
   "captureNames": [
@@ -101,7 +102,7 @@ export const component_$_segment_1 = () => {
 
 ============================= src/component.tsx ==
 
-import { useSignal, _first, setEvent, createTemplate } from '@qwik.dev/core/spark';
+import { useSignal, _first, setEvent, createTemplate } from '@qwik.dev/core';
 import { component_q_e_click_segment_0 } from './component.tsx_component_q_e_click_segment_0';
 
 const App_tmpl0 = createTemplate('<button>Run</button>');
@@ -114,7 +115,7 @@ export function App(props, ctx) {
 }
 ============================= src/component.tsx_component_q_e_click_segment_0.js (ENTRY POINT)==
 
-import { _withCaptures, _captures } from '@qwik.dev/core/spark';
+import { _withCaptures, _captures } from '@qwik.dev/core';
 import { component_$_segment_1 } from './component.tsx_component_$_segment_1';
 
 export const component_q_e_click_segment_0 = () => {
@@ -135,8 +136,8 @@ export const component_q_e_click_segment_0 = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    122,
-    161
+    116,
+    155
   ],
   "paramNames": [],
   "captureNames": [
@@ -146,7 +147,7 @@ export const component_q_e_click_segment_0 = () => {
 */
 ============================= src/component.tsx_component_$_segment_1.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
+import { _captures } from '@qwik.dev/core';
 
 export const component_$_segment_1 = () => {
   const count = _captures[0];
@@ -166,8 +167,8 @@ export const component_$_segment_1 = () => {
   "ctxName": "$",
   "captures": true,
   "loc": [
-    138,
-    160
+    132,
+    154
   ],
   "paramNames": [],
   "captureNames": [

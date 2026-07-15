@@ -1,48 +1,59 @@
-import { component$, componentQrl, inlinedQrl, useId, useSignal } from '@qwik.dev/core';
+import { component$ } from '@qwik.dev/core';
+import { useId, useSignal } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
-import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
+import { csrRender, ssrRender } from '../test-utils';
 
-const debug = false; //true;
-Error.stackTraceLimit = 100;
+const debug = false;
 
 describe.each([
-  { render: ssrRenderToDom }, //
-  { render: domRender }, //
-])('$render.name: useId', ({ render }) => {
+  { name: 'ssrRender', render: ssrRender },
+  { name: 'csrRender', render: csrRender },
+])('$name: useId', ({ render }) => {
   it('should generate id', async () => {
-    const Cmp = componentQrl(
-      inlinedQrl(() => {
-        const id = useId();
-        return <div id="cmp1">{id}</div>;
-      }, 's_cmpHash')
-    );
-    const Cmp2 = componentQrl(
-      inlinedQrl(() => {
-        const id = useId();
-        return <div id="cmp2">{id}</div>;
-      }, 's_2cmpHash')
-    );
+    const App = component$(() => {
+      const id = useId();
+      return <div id={id}>{id}</div>;
+    });
 
-    const Parent = component$(() => {
+    const { container, cleanup } = await render(App, { debug });
+    const div = container.querySelector('div')!;
+
+    expect(div.id).toBeTruthy();
+    expect(div.textContent).toBe(div.id);
+
+    cleanup();
+  });
+
+  it('should generate different ids for two components', async () => {
+    const First = component$(() => {
+      const id = useId();
+      return <div id="first">{id}</div>;
+    });
+    const Second = component$(() => {
+      const id = useId();
+      return <div id="second">{id}</div>;
+    });
+    const App = component$(() => {
       return (
         <>
-          <Cmp />
-          <Cmp2 />
+          <First />
+          <Second />
         </>
       );
     });
 
-    const { document } = await render(<Parent />, { debug });
-    if (render === ssrRenderToDom) {
-      expect(document.querySelector('#cmp1')?.textContent).toMatch(/^\w{3}cmp255s$/);
-      expect(document.querySelector('#cmp2')?.textContent).toMatch(/^\w{3}2cm255t$/);
-    } else {
-      expect(document.querySelector('#cmp1')?.textContent).toMatch(/^cmp0$/);
-      expect(document.querySelector('#cmp2')?.textContent).toMatch(/^Ccm1$/);
-    }
+    const { container, cleanup } = await render(App, { debug });
+    const first = container.querySelector('#first')!.textContent;
+    const second = container.querySelector('#second')!.textContent;
+
+    expect(first).toBeTruthy();
+    expect(second).toBeTruthy();
+    expect(first).not.toBe(second);
+
+    cleanup();
   });
 
-  it('should generate different ids for csr and ssr', async () => {
+  it('should generate different ids for dynamically added component instances', async () => {
     const Checkbox = component$((props: { label: string }) => {
       const id = useId();
       return (
@@ -53,28 +64,71 @@ describe.each([
       );
     });
 
-    const Cmp = component$(() => {
+    const App = component$(() => {
       const enabled = useSignal(false);
 
       return (
         <div>
-          <h1>useId Example</h1>
           <Checkbox label="Item 1" />
-          <button
-            onClick$={() => {
-              enabled.value = !enabled.value;
-            }}
-          ></button>
-
-          {enabled.value && <Checkbox label="Subitem 1" />}
+          <button onClick$={() => (enabled.value = !enabled.value)}>Toggle</button>
+          {enabled.value && <Checkbox label="Item 2" />}
         </div>
       );
     });
 
-    const { document } = await render(<Cmp />, { debug });
-    await trigger(document.body, 'button', 'click');
-    const inputs = document.querySelectorAll('input');
-    expect(inputs.length).toBe(2);
+    const { container, cleanup, qwikLoader } = await render(App, { debug });
+    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+
+    const inputs = container.querySelectorAll('input');
+    expect(inputs).toHaveLength(2);
+    expect(inputs[0].id).toBeTruthy();
+    expect(inputs[1].id).toBeTruthy();
     expect(inputs[0].id).not.toBe(inputs[1].id);
+
+    cleanup();
+  });
+
+  it('should match label for with input id', async () => {
+    const Field = component$(() => {
+      const id = useId();
+      return (
+        <div>
+          <label for={id}>Name</label>
+          <input id={id} />
+        </div>
+      );
+    });
+
+    const { container, cleanup } = await render(Field, { debug });
+    const label = container.querySelector('label')!;
+    const input = container.querySelector('input')!;
+
+    expect(input.id).toBeTruthy();
+    expect(label.getAttribute('for')).toBe(input.id);
+
+    cleanup();
+  });
+
+  it('should generate stable ids for direct-array rows', async () => {
+    const App = component$(() => {
+      const items = ['first', 'second'];
+      return (
+        <div>
+          {items.map((item) => {
+            const id = useId();
+            return <span id={id}>{item}</span>;
+          })}
+        </div>
+      );
+    });
+
+    const { container, cleanup } = await render(App, { debug });
+    const ids = Array.from(container.querySelectorAll('span'), (span) => span.id);
+
+    expect(ids[0]).toBeTruthy();
+    expect(ids[1]).toBeTruthy();
+    expect(ids[0]).not.toBe(ids[1]);
+
+    cleanup();
   });
 });

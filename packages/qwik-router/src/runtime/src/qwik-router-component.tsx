@@ -178,13 +178,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
 
   for (const [key, value] of Object.entries(env.response.loaders)) {
     loadersObject[key] = value;
-    loaderState[key] = createLoaderSignal(
-      loadersObject,
-      key,
-      url,
-      getSerializationStrategy(key),
-      container
-    );
+    loaderState[key] = createLoaderSignal(loadersObject, key, url, container);
   }
   // Serialize it as keys and _UNINITIALIZED as values
   (loadersObject as any)[SerializerSymbol] = (obj: Record<string, unknown>) => {
@@ -586,13 +580,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
             const awaitedValue = await value;
             loadersObject[key] = awaitedValue;
             if (!signal) {
-              loaderState[key] = createLoaderSignal(
-                loadersObject,
-                key,
-                trackUrl,
-                DEFAULT_LOADERS_SERIALIZATION_STRATEGY,
-                container
-              );
+              loaderState[key] = createLoaderSignal(loadersObject, key, trackUrl, container);
             } else {
               signal.invalidate();
             }
@@ -952,13 +940,7 @@ const useQwikMockRouter = (props: QwikRouterMockProps) => {
     for (const { loader, data } of props.loaders) {
       const id = (loader as LoaderInternal).__id;
       loadersObject[id] = data;
-      loadersState[id] = createLoaderSignal(
-        loadersObject,
-        id,
-        url,
-        DEFAULT_LOADERS_SERIALIZATION_STRATEGY,
-        container
-      );
+      loadersState[id] = createLoaderSignal(loadersObject, id, url, container);
     }
   }
 

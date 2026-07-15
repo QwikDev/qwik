@@ -1,6 +1,6 @@
 ==INPUT==
 
-import { useSignal } from '@qwik.dev/core/spark';
+import { useSignal } from '@qwik.dev/core';
 
 export function Child(props: { label: string; count: number }) {
   return <p>{props.label}: {props.count}</p>;
@@ -15,13 +15,12 @@ export function Parent() {
 
 ============================= src/component.tsx ==
 
-import { useSignal, createComponent, maybeThen } from '@qwik.dev/core/spark';
+import { useSignal, createComponent } from '@qwik.dev/core';
 import { Child } from './component.tsx_component_Child';
-
-export { Child } from './component.tsx_component_Child';
+export { Child };
 export function Parent(props, ctx) {
   const count = useSignal(1);
-  const component0 = createComponent(
+  return createComponent(
     {
       label: 'Hi',
       get count() {
@@ -30,18 +29,20 @@ export function Parent(props, ctx) {
     },
     (props) => Child(props, ctx)
   );
-  return maybeThen(component0, (component0) => component0);
 }
 ============================= src/component.tsx_component_Child.js (ENTRY POINT)==
 
 import {
-  escapeHTML,
-  renderSsrTextExpression,
+  createSsrNodeId,
+  createSsrElementRecord,
   createSsrRangeTextTarget,
+  renderSsrTextExpression,
+  escapeHTML,
+  getActiveInvokeContextOrNull,
+  invoke,
   maybeThen,
-  promiseAll,
   _qrlWithChunk,
-} from '@qwik.dev/core/spark';
+} from '@qwik.dev/core';
 import { component_text_segment_0 } from './component.tsx_component_text_segment_0';
 import { component_text_segment_1 } from './component.tsx_component_text_segment_1';
 
@@ -57,35 +58,57 @@ const q_component_text_segment_1 = /*#__PURE__*/ _qrlWithChunk(
   'component_text_segment_1'
 );
 q_component_text_segment_1.s(component_text_segment_1);
+
 export function Child(props, ctx) {
   const id0 = ctx.nextId();
+  const invokeCtx3 = getActiveInvokeContextOrNull();
   ctx.addRoot(props);
-  const text0 = renderSsrTextExpression(
+  const text1 = renderSsrTextExpression(
     createSsrRangeTextTarget(id0, 0),
     [props],
     q_component_text_segment_0
   );
-  ctx.addRoot(props);
-  const text1 = renderSsrTextExpression(
-    createSsrRangeTextTarget(id0, 1),
-    [props],
-    q_component_text_segment_1
-  );
-  return maybeThen(
-    promiseAll([text0, text1]),
-    ([text0, text1]) =>
-      '<p q:id="' +
-      id0 +
-      '"' +
-      '>' +
-      '<!t>' +
-      escapeHTML(text0) +
-      ': ' +
-      '<!t>' +
-      escapeHTML(text1) +
-      '</p>'
+  const text2 = () =>
+    invoke(invokeCtx3, () => {
+      return renderSsrTextExpression(
+        createSsrRangeTextTarget(id0, 1),
+        [props],
+        q_component_text_segment_1
+      );
+    });
+  return maybeThen(text1, (text1) =>
+    maybeThen(text2(), (text2) => [
+      createSsrElementRecord('p', '<p q:id="', createSsrNodeId(id0), '"', '>'),
+      '<!t>',
+      escapeHTML(text1),
+      '<!/t>: <!t>',
+      escapeHTML(text2),
+      '<!/t></p>',
+    ])
   );
 }
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_Child",
+  "entry": null,
+  "displayName": "component_Child",
+  "hash": "component_Child",
+  "canonicalFilename": "component.tsx_component_Child",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component",
+  "captures": false,
+  "loc": [
+    51,
+    121
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
 ============================= src/component.tsx_component_text_segment_0.js (ENTRY POINT)==
 
 export const component_text_segment_0 = (props) => {
@@ -105,8 +128,8 @@ export const component_text_segment_0 = (props) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    93,
-    104
+    87,
+    98
   ],
   "paramNames": [],
   "captureNames": [
@@ -133,8 +156,8 @@ export const component_text_segment_1 = (props) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    108,
-    119
+    102,
+    113
   ],
   "paramNames": [],
   "captureNames": [
@@ -149,52 +172,73 @@ export const component_text_segment_1 = (props) => {
 
 ============================= src/component.tsx ==
 
-import { useSignal, createComponent } from '@qwik.dev/core/spark';
+import { useSignal, createComponent } from '@qwik.dev/core';
 import { Child } from './component.tsx_component_Child';
-
-export { Child } from './component.tsx_component_Child';
+export { Child };
 export function Parent(props, ctx) {
   const count = useSignal(1);
-  const component0 = createComponent(
+  return createComponent(
     {
       label: 'Hi',
       get count() {
         return count.value;
       },
     },
-    (props) => Child(props, ctx),
-    { container: ctx }
+    (props) => Child(props, ctx)
   );
-  return component0;
 }
 ============================= src/component.tsx_component_Child.js (ENTRY POINT)==
 
-import { _first, _last, createTextExpressionEffect, createTemplate } from '@qwik.dev/core/spark';
+import {
+  _first,
+  _next,
+  patchTextValue,
+  createDomBatchEffect,
+  createTemplate,
+} from '@qwik.dev/core';
 import { component_text_segment_0 } from './component.tsx_component_text_segment_0';
 import { component_text_segment_1 } from './component.tsx_component_text_segment_1';
 
-const Child_tmpl0 = createTemplate('<p> :  </p>');
+const Child_tmpl0 = createTemplate('<p><!---->: <!----></p>');
+
 export function Child(props, ctx) {
   const fragment0 = Child_tmpl0(ctx.document);
   const el0 = _first(fragment0);
-  const text0 = _first(el0);
-  const text1 = _last(el0);
-  const effect0 = createTextExpressionEffect(
-    text0,
-    [props],
-    component_text_segment_0,
-    ctx.scheduler
-  );
-  ctx.scheduler.notify(effect0);
-  const effect1 = createTextExpressionEffect(
-    text1,
-    [props],
-    component_text_segment_1,
-    ctx.scheduler
-  );
-  ctx.scheduler.notify(effect1);
+  const marker0 = _first(el0);
+  const marker1 = _next(_next(marker0));
+  const text0 = ctx.document.createTextNode('');
+  marker0.replaceWith(text0);
+  const text1 = ctx.document.createTextNode('');
+  marker1.replaceWith(text1);
+  function batch0() {
+    patchTextValue(text0, component_text_segment_0(props));
+    patchTextValue(text1, component_text_segment_1(props));
+  }
+  const effect0 = createDomBatchEffect(batch0, ctx.scheduler);
   return el0;
 }
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_Child",
+  "entry": null,
+  "displayName": "component_Child",
+  "hash": "component_Child",
+  "canonicalFilename": "component.tsx_component_Child",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component",
+  "captures": false,
+  "loc": [
+    51,
+    121
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
 ============================= src/component.tsx_component_text_segment_0.js (ENTRY POINT)==
 
 export const component_text_segment_0 = (props) => {
@@ -214,8 +258,8 @@ export const component_text_segment_0 = (props) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    93,
-    104
+    87,
+    98
   ],
   "paramNames": [],
   "captureNames": [
@@ -242,8 +286,8 @@ export const component_text_segment_1 = (props) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    108,
-    119
+    102,
+    113
   ],
   "paramNames": [],
   "captureNames": [

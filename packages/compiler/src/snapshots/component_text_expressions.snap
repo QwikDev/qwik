@@ -9,13 +9,16 @@ export function App(props: { count: number; label: string; hidden: boolean }) {
 ============================= src/component.tsx ==
 
 import {
-  escapeHTML,
-  renderSsrTextExpression,
+  createSsrNodeId,
+  createSsrElementRecord,
   createSsrRangeTextTarget,
+  renderSsrTextExpression,
+  escapeHTML,
+  getActiveInvokeContextOrNull,
+  invoke,
   maybeThen,
-  promiseAll,
   _qrlWithChunk,
-} from '@qwik.dev/core/spark';
+} from '@qwik.dev/core';
 import { component_text_segment_0 } from './component.tsx_component_text_segment_0';
 import { component_text_segment_1 } from './component.tsx_component_text_segment_1';
 import { component_text_segment_2 } from './component.tsx_component_text_segment_2';
@@ -40,40 +43,42 @@ const q_component_text_segment_2 = /*#__PURE__*/ _qrlWithChunk(
 q_component_text_segment_2.s(component_text_segment_2);
 export function App(props, ctx) {
   const id0 = ctx.nextId();
+  const invokeCtx4 = getActiveInvokeContextOrNull();
   ctx.addRoot(props);
-  const text0 = renderSsrTextExpression(
+  const text1 = renderSsrTextExpression(
     createSsrRangeTextTarget(id0, 0),
     [props],
     q_component_text_segment_0
   );
-  ctx.addRoot(props);
-  const text1 = renderSsrTextExpression(
-    createSsrRangeTextTarget(id0, 1),
-    [props],
-    q_component_text_segment_1
-  );
-  ctx.addRoot(props);
-  const text2 = renderSsrTextExpression(
-    createSsrRangeTextTarget(id0, 2),
-    [props],
-    q_component_text_segment_2
-  );
-  return maybeThen(
-    promiseAll([text0, text1, text2]),
-    ([text0, text1, text2]) =>
-      '<p q:id="' +
-      id0 +
-      '"' +
-      '>' +
-      '<!t>' +
-      escapeHTML(text0) +
-      ' ' +
-      '<!t>' +
-      escapeHTML(text1) +
-      ' ' +
-      '<!t>' +
-      escapeHTML(text2) +
-      '</p>'
+  const text2 = () =>
+    invoke(invokeCtx4, () => {
+      return renderSsrTextExpression(
+        createSsrRangeTextTarget(id0, 1),
+        [props],
+        q_component_text_segment_1
+      );
+    });
+  const text3 = () =>
+    invoke(invokeCtx4, () => {
+      return renderSsrTextExpression(
+        createSsrRangeTextTarget(id0, 2),
+        [props],
+        q_component_text_segment_2
+      );
+    });
+  return maybeThen(text1, (text1) =>
+    maybeThen(text2(), (text2) =>
+      maybeThen(text3(), (text3) => [
+        createSsrElementRecord('p', '<p q:id="', createSsrNodeId(id0), '"', '>'),
+        '<!t>',
+        escapeHTML(text1),
+        '<!/t> <!t>',
+        escapeHTML(text2),
+        '<!/t> <!t>',
+        escapeHTML(text3),
+        '<!/t></p>',
+      ])
+    )
   );
 }
 ============================= src/component.tsx_component_text_segment_0.js (ENTRY POINT)==
@@ -170,42 +175,33 @@ export const component_text_segment_2 = (props) => {
 import {
   _first,
   _next,
-  _last,
-  createTextExpressionEffect,
+  patchTextValue,
+  createDomBatchEffect,
   createTemplate,
-} from '@qwik.dev/core/spark';
+} from '@qwik.dev/core';
 import { component_text_segment_0 } from './component.tsx_component_text_segment_0';
 import { component_text_segment_1 } from './component.tsx_component_text_segment_1';
 import { component_text_segment_2 } from './component.tsx_component_text_segment_2';
 
-const App_tmpl0 = createTemplate('<p>     </p>');
+const App_tmpl0 = createTemplate('<p><!----> <!----> <!----></p>');
 export function App(props, ctx) {
   const fragment0 = App_tmpl0(ctx.document);
   const el0 = _first(fragment0);
-  const text0 = _first(el0);
-  const text1 = _next(_next(text0));
-  const text2 = _last(el0);
-  const effect0 = createTextExpressionEffect(
-    text0,
-    [props],
-    component_text_segment_0,
-    ctx.scheduler
-  );
-  ctx.scheduler.notify(effect0);
-  const effect1 = createTextExpressionEffect(
-    text1,
-    [props],
-    component_text_segment_1,
-    ctx.scheduler
-  );
-  ctx.scheduler.notify(effect1);
-  const effect2 = createTextExpressionEffect(
-    text2,
-    [props],
-    component_text_segment_2,
-    ctx.scheduler
-  );
-  ctx.scheduler.notify(effect2);
+  const marker0 = _first(el0);
+  const marker1 = _next(_next(marker0));
+  const marker2 = _next(_next(marker1));
+  const text0 = ctx.document.createTextNode('');
+  marker0.replaceWith(text0);
+  const text1 = ctx.document.createTextNode('');
+  marker1.replaceWith(text1);
+  const text2 = ctx.document.createTextNode('');
+  marker2.replaceWith(text2);
+  function batch0() {
+    patchTextValue(text0, component_text_segment_0(props));
+    patchTextValue(text1, component_text_segment_1(props));
+    patchTextValue(text2, component_text_segment_2(props));
+  }
+  const effect0 = createDomBatchEffect(batch0, ctx.scheduler);
   return el0;
 }
 ============================= src/component.tsx_component_text_segment_0.js (ENTRY POINT)==

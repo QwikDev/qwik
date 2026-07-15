@@ -1,6 +1,7 @@
 ==INPUT==
 
-import { createContextId, useContextProvider } from '@qwik.dev/core/spark';
+import { createContextId } from '@qwik.dev/core';
+import { useContextProvider } from '@qwik.dev/core';
 
 export function App() {
   const firstContext = createContextId<string>('first');
@@ -14,15 +15,18 @@ export function App() {
 
 ============================= src/component.tsx ==
 
-import { createContextId, useContextProvider } from '@qwik.dev/core/spark';
-
+import { createContextId, createSsrElementRecord, createSsrRecord } from '@qwik.dev/core';
+import { useContextProvider } from '@qwik.dev/core';
 export function App(props, ctx) {
   const firstContext = createContextId('first');
   const secondContext = createContextId('second');
   useContextProvider(firstContext, 'one');
   useContextProvider(secondContext, 2);
-  const contextScopeId = ctx.contextScopeId();
-  return '<!c=' + contextScopeId + '>' + '<p>Provided</p>' + '<!/c>';
+  return [
+    createSsrRecord('<!c=', ctx.contextScopeRef(), '>'),
+    createSsrElementRecord('p', '<p', '>'),
+    'Provided</p><!/c>',
+  ];
 }
 == SSR DIAGNOSTICS ==
 
@@ -31,8 +35,8 @@ export function App(props, ctx) {
 
 ============================= src/component.tsx ==
 
-import { createContextId, useContextProvider, _first, createTemplate } from '@qwik.dev/core/spark';
-
+import { createContextId, _first, createTemplate } from '@qwik.dev/core';
+import { useContextProvider } from '@qwik.dev/core';
 const App_tmpl0 = createTemplate('<p>Provided</p>');
 export function App(props, ctx) {
   const firstContext = createContextId('first');

@@ -1,0 +1,221 @@
+==INPUT==
+
+import { useSignal } from '@qwik.dev/core';
+
+export function Pager(props) {
+  return <button>{props['bind:page'].value}</button>;
+}
+
+export function App() {
+  const page = useSignal(1);
+  return <Pager bind:page={page} bind:value={page} bind:checked={page} />;
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { useSignal, createComponent } from '@qwik.dev/core';
+import { Pager } from './component.tsx_component_Pager';
+export { Pager };
+export function App(props, ctx) {
+  const page = useSignal(1);
+  return createComponent(
+    {
+      get 'bind:page'() {
+        return page;
+      },
+      get 'bind:value'() {
+        return page;
+      },
+      get 'bind:checked'() {
+        return page;
+      },
+    },
+    (props) => Pager(props, ctx)
+  );
+}
+============================= src/component.tsx_component_Pager.js (ENTRY POINT)==
+
+import {
+  createSsrNodeId,
+  createSsrElementRecord,
+  createSsrElementTextTarget,
+  renderSsrTextExpression,
+  escapeHTML,
+  maybeThen,
+  _qrlWithChunk,
+} from '@qwik.dev/core';
+import { component_text_segment_0 } from './component.tsx_component_text_segment_0';
+
+const q_component_text_segment_0 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_text_segment_0',
+  () => import('./component.tsx_component_text_segment_0'),
+  'component_text_segment_0'
+);
+q_component_text_segment_0.s(component_text_segment_0);
+
+export function Pager(props, ctx) {
+  const id0 = ctx.nextId();
+  ctx.addRoot(props);
+  const text1 = renderSsrTextExpression(
+    createSsrElementTextTarget(id0),
+    [props],
+    q_component_text_segment_0
+  );
+  return maybeThen(text1, (text1) => [
+    createSsrElementRecord('button', '<button q:id="', createSsrNodeId(id0), '"', '>'),
+    escapeHTML(text1),
+    '</button>',
+  ]);
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_Pager",
+  "entry": null,
+  "displayName": "component_Pager",
+  "hash": "component_Pager",
+  "canonicalFilename": "component.tsx_component_Pager",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component",
+  "captures": false,
+  "loc": [
+    51,
+    129
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_0.js (ENTRY POINT)==
+
+export const component_text_segment_0 = (props) => {
+  return props['bind:page'].value;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_0",
+  "entry": null,
+  "displayName": "component_text_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_text_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    92,
+    116
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { useSignal, createComponent } from '@qwik.dev/core';
+import { Pager } from './component.tsx_component_Pager';
+export { Pager };
+export function App(props, ctx) {
+  const page = useSignal(1);
+  return createComponent(
+    {
+      get 'bind:page'() {
+        return page;
+      },
+      get 'bind:value'() {
+        return page;
+      },
+      get 'bind:checked'() {
+        return page;
+      },
+    },
+    (props) => Pager(props, ctx)
+  );
+}
+============================= src/component.tsx_component_Pager.js (ENTRY POINT)==
+
+import { _first, createTextExpressionEffect, createTemplate } from '@qwik.dev/core';
+import { component_text_segment_0 } from './component.tsx_component_text_segment_0';
+
+const Pager_tmpl0 = createTemplate('<button> </button>');
+
+export function Pager(props, ctx) {
+  const fragment0 = Pager_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const text0 = _first(el0);
+  const effect0 = createTextExpressionEffect(
+    text0,
+    [props],
+    component_text_segment_0,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect0);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_Pager",
+  "entry": null,
+  "displayName": "component_Pager",
+  "hash": "component_Pager",
+  "canonicalFilename": "component.tsx_component_Pager",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component",
+  "captures": false,
+  "loc": [
+    51,
+    129
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_0.js (ENTRY POINT)==
+
+export const component_text_segment_0 = (props) => {
+  return props['bind:page'].value;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_0",
+  "entry": null,
+  "displayName": "component_text_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_text_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    92,
+    116
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

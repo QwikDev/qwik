@@ -1,8 +1,10 @@
 import { isDev } from '@qwik.dev/core/build';
-import { NEEDS_COMPUTATION, type AsyncSignalOptions } from '../../reactive-primitives/types';
-import { Branch, BranchRange, BranchSubscription } from '../../vdomless/dom/branch/branch';
-import { ForBlockSubscription } from '../../vdomless/dom/effect/effect';
-import { ForBlock, ForRange } from '../../vdomless/dom/for/for';
+import { NEEDS_COMPUTATION } from '../../reactive/constants';
+import type { AsyncSignalOptions } from '../../reactive/public-types';
+import { Branch, BranchRange, BranchSubscription } from '../../dom/branch/branch';
+import { ContentBlock, ContentSubscription } from '../../dom/content/content';
+import { ForBlockSubscription } from '../../dom/effect/effect';
+import { ForBlock, ForRange } from '../../dom/for/for';
 import {
   AttrEffect,
   AttrExpressionEffect,
@@ -13,50 +15,51 @@ import {
   type AttrExpressionFn,
   type DomEffect,
   type TextExpressionFn,
-} from '../../vdomless/dom/effect/effect';
-import { EffectKind } from '../../vdomless/dom/effect/effect-kind.enum';
-import { EffectTargetKind } from '../../vdomless/dom/effect/ssr-effect';
-import { ComputedFlags } from '../../vdomless/reactive/flags';
-import { AsyncSignal } from '../../vdomless/reactive/async-signal';
-import { SerializerSignal } from '../../vdomless/reactive/serializer-signal';
-import { createLazySourceSubs, LazySerialized } from '../../vdomless/reactive/lazy-serialized';
-import { Signal as VdomlessSignal } from '../../vdomless/reactive/signal';
+  type TextExpressionValue,
+} from '../../dom/effect/effect';
+import { EffectKind } from '../../dom/effect/effect-kind.enum';
+import { EffectTargetKind } from '../../dom/effect/ssr-effect';
+import { ComputedFlags } from '../../reactive/flags';
+import { AsyncSignal } from '../../reactive/async-signal';
+import { SerializerSignal } from '../../reactive/serializer-signal';
+import { createLazySourceSubs, LazySerialized } from '../../reactive/lazy-serialized';
+import { Signal as ReactiveSignal } from '../../reactive/signal';
 import {
   bindStoreSource,
   getStoreSource,
   StorePropSource,
   unwrapStore,
-} from '../../vdomless/reactive/store';
-import { readSourceValue, type Source, type SourceSub } from '../../vdomless/reactive/source';
-import { addDependency } from '../../vdomless/reactive/tracking';
-import {
-  getContextScopeForNode,
-  type ContainerContext,
-} from '../../vdomless/runtime/container-context';
-import type { ContextScope } from '../../vdomless/runtime/context-scope';
-import { newInvokeContext, type RuntimeInvokeContext } from '../../vdomless/runtime/invoke-context';
-import type { Projection, SlotScope } from '../../vdomless/dom/slot/slot';
-import { createOwner, registerSubscriberToOwner } from '../../vdomless/runtime/owner';
-import { Phase } from '../../vdomless/runtime/scheduler';
-import { Task, TaskSubscription, type TaskQrlRef } from '../../vdomless/runtime/task';
+} from '../../reactive/store';
+import { readSourceValue, type Source, type SourceSub } from '../../reactive/source';
+import { addDependency } from '../../reactive/tracking';
+import { getContextScopeForNode, type ContainerContext } from '../../runtime/container-context';
+import type { ContextScope } from '../../runtime/context-scope';
+import { newInvokeContext, type RuntimeInvokeContext } from '../../runtime/invoke-context';
+import type { UseOnMap } from '../../runtime/use-on';
+import type { Projection, SlotScope } from '../../dom/slot/slot';
+import { createOwner, registerSubscriberToOwner } from '../../runtime/owner';
+import { Phase } from '../../runtime/scheduler';
+import { Task, TaskSubscription, type TaskQrlRef } from '../../runtime/task';
 import {
   findBranchRange,
   findBranchTextNode,
+  findContentRange,
   findElementText,
   findForRange,
   findForRowRange,
   findQwikElement,
   findSlotRange,
   findTextNode,
-} from '../../vdomless/runtime/node-walker';
+} from '../../runtime/node-walker';
 import {
   SubscriberKind,
   type ComputedSubscriber,
   type DomSubscriber,
   type Subscriber,
   type TaskSubscriber,
-} from '../../vdomless/runtime/subscriber';
-import { getFunctionOrResolve } from '../../vdomless/utils/qrl';
+} from '../../runtime/subscriber';
+import { getFunctionOrResolve } from '../../utils/qrl';
+import type { MaybeNodeOutput } from '../../utils/nodes';
 import { assertDefined, assertNumber } from '../error/assert';
 import { qError, QError } from '../error/error';
 import { withCaptures } from '../qrl/qrl-captures';
@@ -147,7 +150,7 @@ const inflateResolved = (
       }
       break;
     case TypeIds.Signal: {
-      const signal = target as VdomlessSignal<unknown>;
+      const signal = target as ReactiveSignal<unknown>;
       const d = data as unknown[];
       return maybeThen(deserializeData(container, d[0] as TypeIds, d[1]), (value) => {
         signal.v = value;
@@ -315,6 +318,7 @@ const inflateResolved = (
       projection.owner = null;
       projection.nodes = null;
       projection.slotScope = (d[1] as SlotScope | null) ?? null;
+      projection.idBase = (d[2] as string | null | undefined) ?? '';
       break;
     }
     case TypeIds.Promise: {
@@ -353,6 +357,13 @@ const inflateResolved = (
           return restoreForBlockSubscription(
             container,
             target as Writeable<ForBlockSubscription>,
+            parts
+          );
+        }
+        case EffectKind.Content: {
+          return restoreContentSubscription(
+            container,
+            target as Writeable<ContentSubscription>,
             parts
           );
         }
@@ -400,6 +411,8 @@ async function restoreBranchSubscription(
     (parts[6] as QRLInternal<(ctx: ContainerContext) => readonly Node[]> | null) ?? undefined;
   const ownedSubscribers = parts[7] as Subscriber[] | undefined;
   const slotScope = (parts[8] as SlotScope | null | undefined) ?? null;
+  const useOnScopes = parts[9] as UseOnMap[] | null | undefined;
+  const idBase = (parts[10] as string | null | undefined) ?? '';
   const markerRange = findBranchRange(container.element, rangeId);
   isDev && assertDefined(markerRange, `Missing branch range ${rangeId}.`);
   if (markerRange === null) {
@@ -408,6 +421,7 @@ async function restoreBranchSubscription(
 
   const invokeContext = await restoreInvokeContext(container, markerRange[0]);
   invokeContext.slotScope = slotScope;
+  restoreUseOnScopes(invokeContext, useOnScopes);
   subscription.branch = new Branch(
     new BranchRange(container.document, markerRange[0], markerRange[1]),
     conditionQrl,
@@ -415,7 +429,9 @@ async function restoreBranchSubscription(
     elseQrl,
     mountedBranch ?? null,
     invokeContext,
-    container
+    container,
+    idBase,
+    useOnScopes != null
   );
   restoreDependencies(subscription, deps);
 
@@ -439,9 +455,13 @@ async function restoreForBlockSubscription(
   const renderQrl = parts[4] as QRLInternal<
     (ctx: ContainerContext, item: unknown, index: unknown) => readonly Node[]
   >;
-  const usesItemSignal = parts[5] as boolean;
-  const usesIndexSignal = parts[6] as boolean;
-  const slotScope = (parts[7] as SlotScope | null | undefined) ?? null;
+  const usesIndexSignal = parts[5] as boolean;
+  const slotScope = (parts[6] as SlotScope | null | undefined) ?? null;
+  const useOnScopes = parts[7] as UseOnMap[] | null | undefined;
+  const indexSignals =
+    (parts[8] as Array<ReactiveSignal<number> | null> | null | undefined) ?? null;
+  const idBase = (parts[9] as string | null | undefined) ?? '';
+  const rowShape = (parts[10] as 0 | 1 | 2 | 3 | null | undefined) ?? 3;
   const markerRange = findForRange(container.element, rangeId);
   isDev && assertDefined(markerRange, `Missing for range ${rangeId}.`);
   if (markerRange === null) {
@@ -454,21 +474,69 @@ async function restoreForBlockSubscription(
   const listOwner = createOwner(subscription.owner);
   const invokeContext = await restoreInvokeContext(container, markerRange[0]);
   invokeContext.slotScope = slotScope;
+  restoreUseOnScopes(invokeContext, useOnScopes);
   const block = new ForBlock(
     new ForRange(container.document, markerRange[0], markerRange[1]),
     deps[0] as Source<readonly unknown[]>,
     keyQrl,
     renderQrl,
-    usesItemSignal,
     usesIndexSignal,
     listOwner,
     invokeContext,
-    container
+    container,
+    idBase,
+    rowShape
   );
   block.resumeItems = readSourceValue(deps[0] as Source<readonly unknown[]>) ?? [];
+  block.resumeIndexSignals = indexSignals;
 
   subscription.block = block;
   restoreDependencies(subscription, deps);
+}
+
+async function restoreContentSubscription(
+  container: ContainerContext,
+  subscription: Writeable<ContentSubscription>,
+  parts: unknown[]
+): Promise<void> {
+  const rangeId = parts[1] as number;
+  const deps = parts[2] as Source[];
+  const args = parts[3] as unknown[];
+  const renderQrl = parts[4] as QRLInternal<
+    (...args: unknown[]) => ValueOrPromise<MaybeNodeOutput>
+  >;
+  const ownedSubscribers = parts[5] as Subscriber[] | undefined;
+  const slotScope = (parts[6] as SlotScope | null | undefined) ?? null;
+  const useOnScopes = parts[7] as UseOnMap[] | null | undefined;
+  const markerRange = findContentRange(container.element, rangeId);
+  isDev && assertDefined(markerRange, `Missing content range ${rangeId}.`);
+  if (markerRange === null) {
+    throw new Error(`Missing content range ${rangeId}.`);
+  }
+
+  const invokeContext = await restoreInvokeContext(container, markerRange[0]);
+  invokeContext.slotScope = slotScope;
+  restoreUseOnScopes(invokeContext, useOnScopes);
+  subscription.block = new ContentBlock(
+    container.document,
+    markerRange[0],
+    markerRange[1],
+    args,
+    renderQrl,
+    invokeContext,
+    container,
+    useOnScopes != null,
+    true
+  );
+  restoreDependencies(subscription, deps);
+
+  if (Array.isArray(ownedSubscribers) && ownedSubscribers.length > 0) {
+    const owner = createOwner(subscription.owner);
+    subscription.block.currentOwner = owner;
+    for (let i = 0; i < ownedSubscribers.length; i++) {
+      registerSubscriberToOwner(ownedSubscribers[i], owner);
+    }
+  }
 }
 
 async function restoreInvokeContext(
@@ -479,6 +547,19 @@ async function restoreInvokeContext(
     container,
     contextScope: (await getContextScopeForNode(container, node)) as ContextScope | null,
   });
+}
+
+function restoreUseOnScopes(
+  context: RuntimeInvokeContext,
+  scopes: UseOnMap[] | null | undefined
+): void {
+  if (!Array.isArray(scopes) || scopes.length === 0) {
+    return;
+  }
+  context.useOnEvents = scopes[0];
+  if (scopes.length > 1) {
+    context.inheritedUseOnEvents = scopes.slice(1);
+  }
 }
 
 function createLazySourceSubscribers(
@@ -587,14 +668,14 @@ async function restoreDomBatchSubscription(
   }
 
   subscription.effect = new DomBatchEffect(() => {
-    let pending: unknown;
+    let pending: Promise<void>[] | undefined;
     for (let i = 0; i < effects.length; i++) {
       const value = effects[i].run();
-      if (pending === undefined && isPromise(value)) {
-        pending = value;
+      if (isPromise(value)) {
+        (pending ??= []).push(value);
       }
     }
-    return pending;
+    return pending === undefined ? undefined : Promise.all(pending).then(() => undefined);
   });
   restoreDependencies(subscription, deps);
 }
@@ -613,7 +694,7 @@ async function restoreDomEffect(
         target.targetId,
         target.markerIndex
       );
-      const source = readRequiredSource(target.deps);
+      const source = readRequiredSource(target.deps) as Source<TextExpressionValue>;
       return { deps: target.deps, effect: new TextNodeEffect(text, source) };
     }
     case EffectKind.TextExpression: {
@@ -763,6 +844,7 @@ function restoreDependencies(
     | DomSubscriber
     | BranchSubscription
     | ForBlockSubscription
+    | ContentSubscription
     | TaskSubscriber
     | AsyncSignal<unknown>
     | SerializerSignal<unknown, unknown>,

@@ -1,6 +1,5 @@
 /**
- * This file re-exports the internal types of Qwik. It is not part of the NPM package and so
- * internal types can not be accidentally used by external code.
+ * This file re-exports Qwik's internal types. They are not covered by the public API stability
+ * contract.
  */
-
 export * from './dist/core-internal';

@@ -1,26 +1,28 @@
-import { getBanner, importPath, target, externalImportNoEffects } from './util.ts';
 import { build, type BuildOptions } from 'esbuild';
-import { type BuildConfig } from './util.ts';
 import { join } from 'node:path';
 import { writeSubmodulePackageJson } from './package-json.ts';
+import {
+  externalImportNoEffects,
+  getBanner,
+  importPath,
+  target,
+  type BuildConfig,
+} from './util.ts';
 
-/** Builds @qwik.dev/core/testing */
+/** Builds @qwik.dev/core/testing. */
 export async function submoduleTesting(config: BuildConfig) {
-  const submodule = 'testing';
-
   const opts: BuildOptions = {
-    entryPoints: [join(config.srcQwikDir, submodule, 'index.ts')],
-    outdir: join(config.distQwikPkgDir, submodule),
+    entryPoints: [join(config.srcQwikDir, 'testing', 'index.ts')],
+    outdir: join(config.distQwikPkgDir, 'testing'),
     sourcemap: config.dev,
     bundle: true,
     target,
     external: [
-      'prettier',
-      'vitest',
+      '@qwik.dev/compiler',
       '@qwik.dev/core',
-      '@qwik.dev/core/build',
-      '@qwik.dev/core/preloader',
-      '@qwik-client-manifest',
+      '@qwik.dev/core/internal',
+      '@qwik.dev/core/server',
+      'prettier',
     ],
     platform: 'node',
   };
@@ -32,25 +34,23 @@ export async function submoduleTesting(config: BuildConfig) {
     outExtension: { '.js': '.mjs' },
     plugins: [
       importPath(/^@qwik\.dev\/core$/, '../core.mjs'),
-      importPath(/^@qwik\.dev\/core\/optimizer$/, '../optimizer.mjs'),
+      importPath(/^@qwik\.dev\/core\/internal$/, '../core.mjs'),
       importPath(/^@qwik\.dev\/core\/server$/, '../server.mjs'),
-      externalImportNoEffects(/^(@qwik\.dev\/core\/build|prettier|vitest)$/),
+      externalImportNoEffects(/^(@qwik\.dev\/compiler|prettier)$/),
     ],
     define: {
-      'globalThis.MODULE_EXT': `"mjs"`,
-      'globalThis.RUNNER': `false`,
+      'globalThis.MODULE_EXT': '"mjs"',
+      'globalThis.RUNNER': 'false',
     },
-    target: 'es2020' /* needed for import.meta */,
+    target: 'es2020',
   });
 
-  await generateTestingPackageJson(config);
+  await writeSubmodulePackageJson(
+    join(config.distQwikPkgDir, 'testing'),
+    '@qwik.dev/core/testing',
+    config.distVersion,
+    { sideEffects: false }
+  );
 
-  console.log('🦁', submodule);
-}
-
-async function generateTestingPackageJson(config: BuildConfig) {
-  const testingDistDir = join(config.distQwikPkgDir, 'testing');
-  await writeSubmodulePackageJson(testingDistDir, '@qwik.dev/core/testing', config.distVersion, {
-    sideEffects: true,
-  });
+  console.log('🦁 testing');
 }

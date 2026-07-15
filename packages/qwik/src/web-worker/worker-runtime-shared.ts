@@ -1,5 +1,5 @@
 import type { QRL } from '@qwik.dev/core';
-import { _serialize } from '@qwik.dev/core/internal';
+import { _serialize } from '@qwik.dev/core';
 
 export type WorkerMessageHandler = (data: unknown) => void;
 export type WorkerErrorHandler = (error: unknown) => void;

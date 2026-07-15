@@ -9,12 +9,14 @@ export function App(props: { label: string }) {
 ============================= src/component.tsx ==
 
 import {
-  escapeHTML,
-  renderSsrTextExpression,
+  createSsrNodeId,
+  createSsrElementRecord,
   createSsrElementTextTarget,
+  renderSsrTextExpression,
+  escapeHTML,
   maybeThen,
   _qrlWithChunk,
-} from '@qwik.dev/core/spark';
+} from '@qwik.dev/core';
 import { component_text_segment_0 } from './component.tsx_component_text_segment_0';
 
 const q_component_text_segment_0 = /*#__PURE__*/ _qrlWithChunk(
@@ -26,12 +28,16 @@ q_component_text_segment_0.s(component_text_segment_0);
 export function App(props, ctx) {
   const id0 = ctx.nextId();
   ctx.addRoot(props);
-  const text0 = renderSsrTextExpression(
+  const text1 = renderSsrTextExpression(
     createSsrElementTextTarget(id0),
     [props],
     q_component_text_segment_0
   );
-  return maybeThen(text0, (text0) => '<p q:id="' + id0 + '"' + '>' + escapeHTML(text0) + '</p>');
+  return maybeThen(text1, (text1) => [
+    createSsrElementRecord('p', '<p q:id="', createSsrNodeId(id0), '"', '>'),
+    escapeHTML(text1),
+    '</p>',
+  ]);
 }
 ============================= src/component.tsx_component_text_segment_0.js (ENTRY POINT)==
 
@@ -68,7 +74,7 @@ export const component_text_segment_0 = (props) => {
 
 ============================= src/component.tsx ==
 
-import { _first, createTextExpressionEffect, createTemplate } from '@qwik.dev/core/spark';
+import { _first, createTextExpressionEffect, createTemplate } from '@qwik.dev/core';
 import { component_text_segment_0 } from './component.tsx_component_text_segment_0';
 
 const App_tmpl0 = createTemplate('<p> </p>');

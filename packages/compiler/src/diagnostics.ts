@@ -4,7 +4,7 @@ export function createDiagnostic(file: string, message: string): Diagnostic {
   return {
     scope: 'compiler',
     category: 'error',
-    code: 'vdomless-unsupported',
+    code: 'unsupported',
     file,
     message,
     highlights: null,

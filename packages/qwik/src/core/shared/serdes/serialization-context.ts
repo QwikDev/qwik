@@ -1,13 +1,11 @@
-import type { ISsrNode, SSRInternalStreamWriter, SymbolToChunkResolver } from '../../ssr/ssr-types';
-import { createStringStreamWriter } from '../../ssr/stream-writer';
 import type { QRL } from '../qrl/qrl.public';
-import type { ObjToProxyMap } from '../types';
 import type { ValueOrPromise } from '../utils/types';
 import { Serializer } from './serialize';
+import { createStringSerdesWriter, type SerdesWriter } from './writer';
 
-type DomRef = {
-  $ssrNode$: ISsrNode;
-};
+type DomRef = { $nodeId$: string | number };
+type SymbolToChunkResolver = (symbol: string) => string;
+type ObjToProxyMap = WeakMap<object, object>;
 
 /** Stores the location of an object. If no parent, it's a root. */
 export type SeenRef = {
@@ -86,12 +84,10 @@ export interface SerializationContext {
   $addSyncFn$($funcStr$: string | null, argsCount: number, fn: Function): number;
   $setSyncFnOffset$(offset: number, existingFns?: string[]): void;
 
-  $isSsrNode$: (obj: unknown) => obj is ISsrNode;
   $isDomRef$: (obj: unknown) => obj is DomRef;
-  $markSsrNodeForSerialization$: (node: ISsrNode, flags: number) => void;
 
-  $writer$: SSRInternalStreamWriter;
-  $setWriter$(writer: SSRInternalStreamWriter): void;
+  $writer$: SerdesWriter;
+  $setWriter$(writer: SerdesWriter): void;
   $syncFns$: string[];
 
   $eventQrls$: Set<QRL>;
@@ -121,20 +117,7 @@ class SerializationContextImpl implements SerializationContext {
   public $eventNames$: Set<string> = new Set();
   public $renderSymbols$: Set<string> = new Set();
   private $serializer$: Serializer;
-  public $markSsrNodeForSerialization$ = (node: ISsrNode, flags: number): void => {
-    node.vnodeData[0] |= flags;
-  };
-
   constructor(
-    /**
-     * Node constructor, for instanceof checks.
-     *
-     * A node constructor can be null. For example on the client we can't serialize DOM nodes as
-     * server will not know what to do with them.
-     */
-    public NodeConstructor: {
-      new (...rest: any[]): { __brand__: 'SsrNode' };
-    } | null,
     /** DomRef constructor, for instanceof checks. */
     public DomRefConstructor: {
       new (...rest: any[]): { __brand__: 'DomRef' };
@@ -142,7 +125,7 @@ class SerializationContextImpl implements SerializationContext {
     public $symbolToChunkResolver$: SymbolToChunkResolver,
     public $setProp$: (obj: any, prop: string, value: any) => void,
     public $storeProxyMap$: ObjToProxyMap,
-    public $writer$: SSRInternalStreamWriter
+    public $writer$: SerdesWriter
   ) {
     this.$serializer$ = new Serializer(this);
   }
@@ -160,7 +143,7 @@ class SerializationContextImpl implements SerializationContext {
     await this.$serializer$.serializePatch(rootStart, rootIds, extraRootId, streamedRootLimit);
   }
 
-  $setWriter$(writer: SSRInternalStreamWriter): void {
+  $setWriter$(writer: SerdesWriter): void {
     this.$writer$ = writer;
     this.$serializer$.$setWriter$(writer);
   }
@@ -255,10 +238,6 @@ class SerializationContextImpl implements SerializationContext {
     return index;
   }
 
-  $isSsrNode$(obj: unknown): obj is ISsrNode {
-    return this.NodeConstructor ? obj instanceof this.NodeConstructor : false;
-  }
-
   $isDomRef$(obj: unknown): obj is DomRef {
     return this.DomRefConstructor ? obj instanceof this.DomRefConstructor : false;
   }
@@ -302,15 +281,6 @@ class SerializationContextImpl implements SerializationContext {
 }
 
 export const createSerializationContext = (
-  /**
-   * Node constructor, for instanceof checks.
-   *
-   * A node constructor can be null. For example on the client we can't serialize DOM nodes as
-   * server will not know what to do with them.
-   */
-  NodeConstructor: {
-    new (...rest: any[]): { __brand__: 'SsrNode' };
-  } | null,
   /** DomRef constructor, for instanceof checks. */
   DomRefConstructor: {
     new (...rest: any[]): { __brand__: 'DomRef' };
@@ -318,12 +288,12 @@ export const createSerializationContext = (
   symbolToChunkResolver: SymbolToChunkResolver,
   setProp: (obj: any, prop: string, value: any) => void,
   storeProxyMap: ObjToProxyMap,
-  writer?: SSRInternalStreamWriter
+  writer?: SerdesWriter
 ): SerializationContext => {
   if (!writer) {
     const buffer: string[] = [];
     writer = Object.assign(
-      createStringStreamWriter((text: string) => {
+      createStringSerdesWriter((text: string) => {
         buffer.push(text);
       }),
       {
@@ -337,7 +307,6 @@ export const createSerializationContext = (
   ) as (obj: unknown) => obj is DomRef;
 
   return new SerializationContextImpl(
-    NodeConstructor,
     DomRefConstructor,
     symbolToChunkResolver,
     setProp,

@@ -1,7 +1,7 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
   "extends": "../api-extractor.json",
-  "mainEntryPointFilePath": "<projectFolder>/../../dist-dev/dts-out/packages/qwik/src/core/index.d.ts",
+  "mainEntryPointFilePath": "<projectFolder>/../../dist-dev/dts-out/packages/qwik/src/core/public.d.ts",
   "newlineKind": "lf",
   "apiReport": {
     "enabled": true,
@@ -11,7 +11,7 @@
   },
   "dtsRollup": {
     "enabled": true,
-    "untrimmedFilePath": "<projectFolder>/dist/core-internal.d.ts"
+    "untrimmedFilePath": "<projectFolder>/dist/core.d.ts"
   },
   "docModel": {
     "enabled": true,

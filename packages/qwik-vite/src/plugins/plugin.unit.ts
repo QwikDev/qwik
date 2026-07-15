@@ -29,7 +29,6 @@ test('defaults', async () => {
   assert.deepEqual(opts.manifestInput, null);
   assert.deepEqual(opts.manifestOutput, null);
   assert.deepEqual(opts.srcDir, normalizePath(resolve(cwd, 'src')));
-  assert.deepEqual(opts.compiler, 'optimizer');
 });
 
 test('defaults (buildMode: production)', async () => {
@@ -100,12 +99,6 @@ test('csr', async () => {
   const plugin = await mockPlugin();
   const opts = await plugin.normalizeOptions({ csr: true });
   assert.deepEqual(opts.outDir, normalizePath(resolve(cwd, 'dist')));
-});
-
-test('compiler option', async () => {
-  const plugin = await mockPlugin();
-  const opts = await plugin.normalizeOptions({ compiler: 'vdomless' });
-  assert.deepEqual(opts.compiler, 'vdomless');
 });
 
 test('override entryStrategy', async () => {
@@ -342,7 +335,7 @@ export const runInWorker = worker$(() => 'hello');
   expect((loaded as { code: string }).code).not.toContain("typeof document !== 'undefined'");
 });
 
-test('load preserves worker chunk markers inside event segments', async () => {
+test('load keeps worker calls as module references inside event segments', async () => {
   const plugin = await mockPlugin(process.platform, false);
   await plugin.normalizeOptions({ rootDir: '/root' });
   plugin.configureServer({
@@ -388,9 +381,9 @@ export default component$(() => {
 
   const loaded = await plugin.load({} as any, eventSegmentId!);
   const code = (loaded as { code: string }).code;
-  expect(code).toContain('_qrlWithChunkDEV(');
-  const workerQrlSentinel = '"__QWIK' + '_WORKER_QRL__:';
-  expect(code.includes(workerQrlSentinel) || code.includes('?worker_file&type=module')).toBe(true);
+  expect(code).toContain('import { incrementInWorker } from "./index.js"');
+  expect(code).toContain('await _await(incrementInWorker(count.value))');
+  expect(code).not.toContain('_qrlWithChunkDEV(');
 });
 
 test('load wraps non-worker QRL segment HMR with a runtime document guard', async () => {
@@ -441,7 +434,8 @@ test('transform omits sourcemaps for public virtual modules', async () => {
   );
 
   expect(result).toBeTruthy();
-  expect(result!.code).toContain('_jsxSplit');
+  expect(result!.code).toContain('createPropsEffect');
+  expect(result!.code).not.toContain('_jsxSplit');
   expect(result!.map).toBeNull();
 });
 
@@ -462,7 +456,7 @@ test('transform uses compiler for core test path', async () => {
   return <p>Hello Qwik</p>;
 }
 `,
-    '/root/packages/qwik/src/core/vdomless/tests/component.spec.tsx'
+    '/root/packages/qwik/src/core/tests/component.spec.tsx'
   );
 
   expect({
@@ -471,11 +465,13 @@ test('transform uses compiler for core test path', async () => {
     meta: result!.meta,
   }).toMatchInlineSnapshot(`
     {
-      "code": "export function view(_props, ctx) {
-    const el0 = ctx.document.createElement("p");
-    const text1 = ctx.document.createTextNode("Hello Qwik");
-    el0.appendChild(text1);
-    return [el0];
+      "code": "import { _first, createTemplate } from "@qwik.dev/core";
+
+    const view_tmpl0 = createTemplate("<p>Hello Qwik</p>");
+    export function view(props, ctx) {
+      const fragment0 = view_tmpl0(ctx.document);
+      const el0 = _first(fragment0);
+      return el0;
     }
     ",
       "map": null,
@@ -485,6 +481,35 @@ test('transform uses compiler for core test path', async () => {
       },
     }
   `);
+});
+
+test('compiler transforms boundary-only modules', async () => {
+  const plugin = await mockPlugin(process.platform, false);
+  await plugin.normalizeOptions({
+    rootDir: '/root',
+    srcDir: '/root/src',
+    buildMode: 'production',
+  });
+
+  const result = await plugin.transform(
+    {
+      addWatchFile: () => undefined,
+      emitFile: () => undefined,
+    } as any,
+    `import { useComputed$, useSignal } from '@qwik.dev/core';
+export function useCounter() {
+  const count = useSignal(0);
+  return useComputed$(() => count.value * 2);
+}
+`,
+    '/root/src/use-counter.ts'
+  );
+
+  expect(result?.code).toContain('useComputed(_withCaptures(');
+  expect(result?.code).not.toContain('useComputed$(');
+  const segmentId = result?.meta?.qwikdeps?.find((dep) => dep.includes('useComputed$_segment'));
+  expect(segmentId).toBeTruthy();
+  expect((await plugin.load({} as any, segmentId!)) as { code: string }).toHaveProperty('code');
 });
 
 async function mockPlugin(os = process.platform, useMockBinding = true) {

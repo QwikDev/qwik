@@ -6,8 +6,8 @@ import {
   NoSerializeSymbol,
   SerializerSymbol,
 } from './verify';
-import { useComputed } from '../../vdomless/reactive/computed';
-import { useSignal } from '../../vdomless/reactive/signal';
+import { useComputed, useSignal } from '../../reactive/public-api';
+import { createOwner, runWithOwner } from '../../runtime/owner';
 
 describe('verifySerializable', () => {
   describe('serializable values', () => {
@@ -45,7 +45,7 @@ describe('verifySerializable', () => {
 
     it('should allow reactive sources by instance', () => {
       const count = useSignal(1);
-      const doubled = useComputed(() => count.value * 2);
+      const doubled = runWithOwner(createOwner(null), () => useComputed(() => count.value * 2));
 
       expect(verifySerializable(count)).toBe(count);
       expect(verifySerializable(doubled)).toBe(doubled);

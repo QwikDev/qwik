@@ -15,25 +15,19 @@ export function App() {
 
 ============================= src/use-id-child.tsx ==
 
-import { Child } from './use-id-child.tsx_use_id_child_Child';
-import { createComponent, maybeThen } from '@qwik.dev/core/spark';
-
-export { Child } from './use-id-child.tsx_use_id_child_Child';
-
-export function App(_props, ctx, _id = 'quse_id_child_App-') {
-  const component0 = createComponent({}, (props) => Child(props, ctx, _id + 'c0-'));
-  return maybeThen(component0, (component0) => component0);
+import { createComponent } from '@qwik.dev/core';
+import { Child } from './use-id-child.tsx_component_Child';
+export { Child };
+export function App(props, ctx, _id = 'qApp-') {
+  return createComponent({}, (props) => Child(props, ctx, _id + 'c0-'));
 }
+============================= src/use-id-child.tsx_component_Child.js (ENTRY POINT)==
 
-null
-============================= src/use-id-child.tsx_use_id_child_Child.js (ENTRY POINT)==
+import { createSsrElementRecord } from '@qwik.dev/core';
 
-export function Child(_props, _ctx, _id = 'quse_id_child_Child-') {
-  _id + 'u0';
-  return '<span></span>';
+export function Child(props, ctx, _id = 'qChild-') {
+  return [createSsrElementRecord('span', '<span', '>'), '</span>'];
 }
-
-null
 /*
 {
   "origin": "use-id-child.tsx",
@@ -61,29 +55,23 @@ null
 
 ============================= src/use-id-child.tsx ==
 
-import { Child } from './use-id-child.tsx_use_id_child_Child';
-import { createComponent } from '@qwik.dev/core/spark';
-
-export { Child } from './use-id-child.tsx_use_id_child_Child';
-
-export function App(_props, ctx, _id = 'quse_id_child_App-') {
-  const cmp0 = createComponent({}, (props) => Child(props, ctx, _id + 'c0-'), { container: ctx });
-  return cmp0;
+import { createComponent } from '@qwik.dev/core';
+import { Child } from './use-id-child.tsx_component_Child';
+export { Child };
+export function App(props, ctx, _id = 'qApp-') {
+  return createComponent({}, (props) => Child(props, ctx, _id + 'c0-'));
 }
+============================= src/use-id-child.tsx_component_Child.js (ENTRY POINT)==
 
-null
-============================= src/use-id-child.tsx_use_id_child_Child.js (ENTRY POINT)==
+import { _first, createTemplate } from '@qwik.dev/core';
 
-import { createTemplate } from '@qwik.dev/core/spark';
-const dom_Child_template0 = createTemplate('<span></span>');
-export function Child(_props, ctx, _id = 'quse_id_child_Child-') {
-  _id + 'u0';
-  const fragment0 = dom_Child_template0(ctx.document);
-  const el1 = fragment0.firstChild;
-  return el1;
+const Child_tmpl0 = createTemplate('<span></span>');
+
+export function Child(props, ctx, _id = 'qChild-') {
+  const fragment0 = Child_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
 }
-
-null
 /*
 {
   "origin": "use-id-child.tsx",

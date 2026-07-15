@@ -2,7 +2,7 @@ import { renderToStream, type RenderToStreamOptions } from '@qwik.dev/core/serve
 import Root from './root';
 
 export default function (opts: RenderToStreamOptions) {
-  return renderToStream(<Root />, {
+  return renderToStream(Root, {
     base: '/qwikrouter-test.prod/build/',
     ...opts,
   });

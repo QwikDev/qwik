@@ -25,13 +25,13 @@ export const App = (props, ctx) => {
 
 ============================= src/component.tsx ==
 
-import { _first, _last, createTemplate } from '@qwik.dev/core/spark';
+import { _first, _next, createTemplate } from '@qwik.dev/core';
 
 const App_tmpl0 = createTemplate('<h1>Hello</h1><p class="copy">Qwik</p>');
 export const App = (props, ctx) => {
   const fragment0 = App_tmpl0(ctx.document);
   const el0 = _first(fragment0);
-  const el1 = _last(fragment0);
+  const el1 = _next(el0);
   return [el0, el1];
 };
 == CSR DIAGNOSTICS ==

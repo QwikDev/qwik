@@ -1,11 +1,4 @@
-import type {
-  AstFunction,
-  AstJsxNode,
-  AstNode,
-  NamedPropRecord,
-  ParamRecord,
-  SourceRange,
-} from './types';
+import type { AstFunction, AstNode, ParamRecord, SourceRange } from './types';
 
 export type StaticSourceTextPart =
   | { kind: 'text'; value: string }
@@ -16,23 +9,43 @@ export type StaticSourceTextPart =
       expressionRange: SourceRange;
     };
 
-export type SourceNamePredicate = (sourceName: string) => boolean;
+export type SourceExpressionPredicate = (
+  sourceName: string,
+  sourceRange: SourceRange,
+  expressionRange: SourceRange
+) => boolean;
 
-export const SOURCE_FACTORY_NAMES = new Set([
-  'useSignal',
-  'useComputed',
-  'useComputedQrl',
-  'useComputed$',
-  'useAsync',
-  'useAsyncQrl',
-  'useAsync$',
-  'useSerializer',
-  'useSerializerQrl',
-  'useSerializer$',
-]);
+const PROMISE_STATIC_METHODS = new Set(['all', 'allSettled', 'any', 'race', 'reject', 'resolve']);
 
-export function isKnownSourceFactoryName(name: string): boolean {
-  return SOURCE_FACTORY_NAMES.has(name);
+export function isObviousPromiseExpression(
+  expression: AstNode,
+  isGlobalPromise: (node: AstNode) => boolean
+): boolean {
+  if (expression.type === 'ImportExpression') {
+    return true;
+  }
+  if (expression.type === 'NewExpression') {
+    const callee = unwrapExpression(expression.callee);
+    return callee != null && isGlobalPromise(callee);
+  }
+  if (expression.type !== 'CallExpression') {
+    return false;
+  }
+  const callee = unwrapExpression(expression.callee);
+  if (callee?.type === 'ArrowFunctionExpression' || callee?.type === 'FunctionExpression') {
+    return callee.async;
+  }
+  if (callee?.type !== 'MemberExpression' || callee.computed) {
+    return false;
+  }
+  const object = unwrapExpression(callee.object);
+  const method = getIdentifierName(callee.property);
+  return (
+    object != null &&
+    isGlobalPromise(object) &&
+    method !== null &&
+    PROMISE_STATIC_METHODS.has(method)
+  );
 }
 
 export function visit(node: unknown, visitor: (node: AstNode) => void) {
@@ -61,7 +74,7 @@ export function getParams(fn: AstFunction): ParamRecord[] {
         bindingRange: getRange(expr.left),
         defaultRange: getRange(expr.right),
         propAliases: props.aliases,
-        canRewriteProps: props.canRewrite,
+        canProjectProps: props.canProject,
       };
     }
     const props = getParamPropAnalysis(param);
@@ -70,14 +83,14 @@ export function getParams(fn: AstFunction): ParamRecord[] {
       bindingRange: getRange(param),
       defaultRange: null,
       propAliases: props.aliases,
-      canRewriteProps: props.canRewrite,
+      canProjectProps: props.canProject,
     };
   });
 }
 
 export function getStaticExpressionValue(
   expr: unknown
-): { supported: true; value: NamedPropRecord['value'] } | { supported: false } {
+): { supported: true; value: string | number | boolean | null } | { supported: false } {
   if (!isObjectNode(expr)) {
     return { supported: false };
   }
@@ -129,17 +142,17 @@ export function getIdentifierName(node: unknown): string | null {
 
 function getParamPropAnalysis(node: unknown): {
   aliases: ParamRecord['propAliases'];
-  canRewrite: boolean;
+  canProject: boolean;
 } {
   const pattern = unwrapAssignmentLeft(node);
   if (!isObjectNode(pattern) || pattern.type !== 'ObjectPattern') {
-    return { aliases: [], canRewrite: false };
+    return { aliases: [], canProject: false };
   }
   const aliases: ParamRecord['propAliases'] = [];
-  let canRewrite = true;
+  let canProject = true;
   for (const prop of pattern.properties ?? []) {
     if (!isObjectNode(prop) || prop.type !== 'Property' || prop.computed) {
-      canRewrite = false;
+      canProject = false;
       continue;
     }
     const propName = getStaticPropertyName(prop.key);
@@ -147,10 +160,10 @@ function getParamPropAnalysis(node: unknown): {
     if (propName !== null && localName !== null) {
       aliases.push({ localName, propName });
     } else {
-      canRewrite = false;
+      canProject = false;
     }
   }
-  return { aliases, canRewrite };
+  return { aliases, canProject };
 }
 
 function unwrapAssignmentLeft(node: unknown): unknown {
@@ -203,20 +216,6 @@ export function isFunctionLike(node: unknown): node is AstFunction {
   );
 }
 
-export function isCallExpression(
-  node: unknown
-): node is Extract<AstNode, { type: 'CallExpression' }> {
-  return isObjectNode(node) && node.type === 'CallExpression';
-}
-
-export function isIdentifierNamed(node: unknown, name: string) {
-  return isObjectNode(node) && node.type === 'Identifier' && node.name === name;
-}
-
-export function isJsxNode(node: unknown): node is AstJsxNode {
-  return isObjectNode(node) && (node.type === 'JSXElement' || node.type === 'JSXFragment');
-}
-
 export function unwrapExpression(node: unknown): AstNode | null | undefined {
   let current = node;
   while (isObjectNode(current) && current.type === 'ParenthesizedExpression') {
@@ -225,7 +224,7 @@ export function unwrapExpression(node: unknown): AstNode | null | undefined {
   return isObjectNode(current) ? current : null;
 }
 
-export function getSignalValueSourceName(node: unknown): string | null {
+function getSignalValueSourceName(node: unknown): string | null {
   const expr = unwrapExpression(node);
   if (!isObjectNode(expr) || expr.type !== 'MemberExpression') {
     return null;
@@ -241,32 +240,9 @@ export function getSignalValueSourceName(node: unknown): string | null {
   return isObjectNode(object) && object.type === 'Identifier' ? object.name : null;
 }
 
-export function isSignalValueMethodCallExpression(
-  node: unknown,
-  isKnownSourceName: SourceNamePredicate = acceptAnySourceName
-): boolean {
-  const expr = unwrapExpression(node);
-  if (!isObjectNode(expr) || expr.type !== 'CallExpression') {
-    return false;
-  }
-  const callee = unwrapExpression(expr.callee);
-  if (!isObjectNode(callee) || callee.type !== 'MemberExpression' || callee.computed) {
-    return false;
-  }
-  const sourceName = getSignalValueSourceName(callee.object);
-  return sourceName !== null && isKnownSourceName(sourceName);
-}
-
-export function isStaticSourceTextExpression(
-  node: unknown,
-  isKnownSourceName: SourceNamePredicate = acceptAnySourceName
-): boolean {
-  return getStaticSourceTextExpressionParts(node, isKnownSourceName) !== null;
-}
-
 export function getStaticSourceTextExpressionParts(
   node: unknown,
-  isKnownSourceName: SourceNamePredicate = acceptAnySourceName
+  isKnownSourceName: SourceExpressionPredicate = acceptAnySourceName
 ): StaticSourceTextPart[] | null {
   const analysis = analyzeStaticSourceTextExpression(node, isKnownSourceName);
   return analysis?.guaranteedString ? analysis.parts : null;
@@ -355,7 +331,7 @@ function fromCamelToKebabCase(value: string) {
 
 function analyzeStaticSourceTextExpression(
   node: unknown,
-  isKnownSourceName: SourceNamePredicate
+  isKnownSourceName: SourceExpressionPredicate
 ): { parts: StaticSourceTextPart[]; guaranteedString: boolean } | null {
   const expr = unwrapExpression(node);
   if (!isObjectNode(expr)) {
@@ -376,9 +352,9 @@ function analyzeStaticSourceTextExpression(
   const expressionRange = getRange(expr);
   if (
     sourceName !== null &&
-    isKnownSourceName(sourceName) &&
     sourceRange !== null &&
-    expressionRange !== null
+    expressionRange !== null &&
+    isKnownSourceName(sourceName, sourceRange, expressionRange)
   ) {
     return {
       parts: [{ kind: 'source', sourceName, sourceRange, expressionRange }],

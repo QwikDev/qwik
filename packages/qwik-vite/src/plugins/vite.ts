@@ -22,7 +22,6 @@ import {
   QWIK_BUILD_ID,
   QWIK_CLIENT_MANIFEST_ID,
   QWIK_CORE_ID,
-  QWIK_CORE_INTERNAL_ID,
   QWIK_CORE_SERVER,
   QWIK_JSX_DEV_RUNTIME_ID,
   QWIK_JSX_RUNTIME_ID,
@@ -55,7 +54,6 @@ const DEDUPE = [
   QWIK_CORE_ID,
   QWIK_JSX_RUNTIME_ID,
   QWIK_JSX_DEV_RUNTIME_ID,
-  QWIK_CORE_INTERNAL_ID,
   '@builder.io/qwik',
   '@builder.io/qwik/jsx-runtime',
   '@builder.io/qwik/jsx-dev-runtime',
@@ -232,7 +230,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         devTools: qwikViteOpts.devTools,
         sourcemap: !!viteConfig.build?.sourcemap,
         lint: qwikViteOpts.lint,
-        compiler: qwikViteOpts.compiler,
         experimental: qwikViteOpts.experimental,
         input,
         manifestInput: qwikViteOpts.ssr?.manifestInput,
@@ -269,7 +266,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       const updatedViteConfig: UserConfig = {
         // Duplicated in configEnvironment to support legacy vite build --ssr compatibility
         ssr: {
-          noExternal: [QWIK_CORE_ID, QWIK_CORE_INTERNAL_ID, QWIK_CORE_SERVER, QWIK_BUILD_ID],
+          noExternal: [QWIK_CORE_ID, QWIK_CORE_SERVER, QWIK_BUILD_ID],
         },
         envPrefix: ['VITE_', 'PUBLIC_'],
         resolve: {
@@ -283,9 +280,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             '@builder.io/qwik/jsx-dev-runtime': '@qwik.dev/core/jsx-dev-runtime',
             '@builder.io/qwik/optimizer': '@qwik.dev/core/optimizer',
             '@builder.io/qwik/loader': '@qwik.dev/core/loader',
-            '@builder.io/qwik/backpatch': '@qwik.dev/core/backpatch',
             '@builder.io/qwik/cli': '@qwik.dev/core/cli',
-            '@builder.io/qwik/testing': '@qwik.dev/core/testing',
           },
         },
         optimizeDeps: {
@@ -293,7 +288,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             // using optimized deps for qwik libraries will lead to duplicate imports
             // this breaks Qwik because it relies a lot on module scoped symbols
             QWIK_CORE_ID,
-            QWIK_CORE_INTERNAL_ID,
             QWIK_CORE_SERVER,
             QWIK_JSX_RUNTIME_ID,
             QWIK_JSX_DEV_RUNTIME_ID,
@@ -369,7 +363,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           updatedViteConfig.build!.minify = false;
           updatedViteConfig.build!.rollupOptions.external = [
             QWIK_CORE_ID,
-            QWIK_CORE_INTERNAL_ID,
             QWIK_CORE_SERVER,
             QWIK_JSX_RUNTIME_ID,
             QWIK_JSX_DEV_RUNTIME_ID,
@@ -400,7 +393,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       if (isServer) {
         return {
           resolve: {
-            noExternal: [QWIK_CORE_ID, QWIK_CORE_INTERNAL_ID, QWIK_CORE_SERVER, QWIK_BUILD_ID],
+            noExternal: [QWIK_CORE_ID, QWIK_CORE_SERVER, QWIK_BUILD_ID],
           },
         } satisfies EnvironmentOptions;
       }
@@ -1053,11 +1046,6 @@ interface QwikVitePluginCommonOptions {
    * large projects. Defaults to `true`
    */
   lint?: boolean;
-  /**
-   * Selects the transform/runtime pipeline. `optimizer` keeps the current Qwik optimizer path;
-   * `vdomless` uses the new compiler and vdomless runtime.
-   */
-  compiler?: 'optimizer' | 'vdomless';
   /**
    * Experimental features. These can come and go in patch releases, and their API is not guaranteed
    * to be stable between releases

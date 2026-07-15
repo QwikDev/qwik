@@ -54,7 +54,6 @@ export type {
   ZodConstructor,
 } from './types';
 
-export { ErrorBoundary } from './error-boundary';
 export { Link, type LinkProps, type PrefetchStrategy } from './link-component';
 export {
   QWIK_CITY_SCROLLER,

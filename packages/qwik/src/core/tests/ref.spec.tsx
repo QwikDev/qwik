@@ -1,269 +1,90 @@
-import {
-  Fragment as Component,
-  Fragment as Signal,
-  component$,
-  createContextId,
-  useContext,
-  useContextProvider,
-  useSignal,
-  useStore,
-  useVisibleTask$,
-} from '@qwik.dev/core';
-import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
+import { component$ } from '@qwik.dev/core';
+import { useSignal } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
-import { isElement } from '../../testing/html';
-
-const debug = false; //true;
-Error.stackTraceLimit = 100;
+import { csrRender, ssrRender } from '../test-utils';
 
 describe.each([
-  { render: ssrRenderToDom }, //
-  { render: domRender }, //
-])('$render.name: ref', ({ render }) => {
-  describe('useVisibleTask$', () => {
-    it('should handle ref prop', async () => {
-      const Cmp = component$(() => {
-        const v = useSignal<Element>();
-        useVisibleTask$(() => {
-          v.value!.textContent = 'Abcd';
-        });
-        return <p ref={v}>Hello Qwik</p>;
-      });
-
-      const { document } = await render(<Cmp />, { debug });
-
-      if (render === ssrRenderToDom) {
-        await trigger(document.body, 'p', 'qvisible');
-      }
-
-      await expect(document.querySelector('p')).toMatchDOM(<p>Abcd</p>);
-    });
-  });
-
-  it('should execute function', async () => {
-    (global as any).logs = [] as string[];
-    const Cmp = component$(() => {
+  { name: 'ssrRender', render: ssrRender },
+  { name: 'csrRender', render: csrRender },
+])('$name: ref', ({ render }) => {
+  it('runs a function ref once when its element is created', async () => {
+    const App = component$(() => {
+      const calls: string[] = [];
       return (
-        <div
-          ref={(element) => {
-            (global as any).logs.push('ref function', element);
-          }}
-        ></div>
+        <section>
+          <div ref={() => calls.push('ref')}>target</div>
+          <span>{calls.length}</span>
+        </section>
       );
     });
 
-    const { vNode } = await render(<Cmp />, { debug });
+    const { container, cleanup } = await render(App);
 
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <div></div>
-      </Component>
-    );
-
-    expect((global as any).logs[0]).toEqual('ref function');
-    expect((global as any).logs[1]).toBeDefined();
-    (global as any).logs = undefined;
+    expect(container.querySelector('span')?.textContent).toBe('1');
+    cleanup();
   });
 
-  it('should serialize array of refs', async () => {
-    (globalThis as any).element = [] as HTMLElement[];
-
-    const Parent = component$(() => {
-      const childElements = useSignal<HTMLElement[]>([]);
-
-      useVisibleTask$(() => {
-        (globalThis as any).element.push(childElements.value[0]);
-      });
-
-      return <div ref={(element) => childElements.value.push(element)}></div>;
-    });
-
-    const { document } = await render(<Parent />, { debug });
-
-    if (ssrRenderToDom === render) {
-      await trigger(document.body, 'div', 'qvisible');
-    }
-
-    expect(isElement((globalThis as any).element[0])).toBeTruthy();
-    (globalThis as any).element = undefined;
-  });
-
-  it('should serialize object of refs', async () => {
-    (globalThis as any).element = [] as HTMLElement[];
-
-    const Parent = component$(() => {
-      const childElements = useSignal<{ obj: HTMLElement[] }>({ obj: [] });
-
-      useVisibleTask$(() => {
-        (globalThis as any).element.push(childElements.value.obj[0]);
-      });
-
-      return <div ref={(element) => childElements.value.obj.push(element)}></div>;
-    });
-
-    const { document } = await render(<Parent />, { debug });
-
-    if (ssrRenderToDom === render) {
-      await trigger(document.body, 'div', 'qvisible');
-    }
-
-    expect(isElement((globalThis as any).element[0])).toBeTruthy();
-    (globalThis as any).element = undefined;
-  });
-
-  it('should serialize refs inside store', async () => {
-    (globalThis as any).element = [] as HTMLElement[];
-
-    const Parent = component$(() => {
-      const childElements = useStore<{ obj: HTMLElement[] }>({ obj: [] });
-
-      useVisibleTask$(() => {
-        (globalThis as any).element.push(childElements.obj[0]);
-      });
-
-      return <div ref={(element) => childElements.obj.push(element)}></div>;
-    });
-
-    const { document } = await render(<Parent />, { debug });
-
-    if (ssrRenderToDom === render) {
-      await trigger(document.body, 'div', 'qvisible');
-    }
-
-    expect(isElement((globalThis as any).element[0])).toBeTruthy();
-    (globalThis as any).element = undefined;
-  });
-
-  describe('should serialize refs inside context', () => {
-    it('should serialize refs from child component', async () => {
-      (globalThis as any).element = [] as HTMLElement[];
-
-      const contextId = createContextId('test');
-
-      const Child = component$(() => {
-        const store = useContext<any>(contextId);
-        return <span ref={(element) => store.refs.push(element)}></span>;
-      });
-
-      const Parent = component$(() => {
-        const store = useStore({
-          refs: [],
-        });
-        useContextProvider(contextId, store);
-        useVisibleTask$(() => {
-          (globalThis as any).element.push(store.refs[0]);
-        });
-        return (
-          <div>
-            <Child />
-          </div>
-        );
-      });
-
-      const { document } = await render(<Parent />, { debug });
-
-      if (ssrRenderToDom === render) {
-        await trigger(document.body, 'div', 'qvisible');
-      }
-
-      expect(isElement((globalThis as any).element[0])).toBeTruthy();
-      (globalThis as any).element = undefined;
-    });
-
-    it('should serialize refs from parent component', async () => {
-      (globalThis as any).element = [] as HTMLElement[];
-
-      const contextId = createContextId('test');
-
-      const Child = component$(() => {
-        useContext<any>(contextId);
-        return <span></span>;
-      });
-
-      const Parent = component$(() => {
-        const store = useStore<any>({
-          refs: [],
-        });
-        useContextProvider(contextId, store);
-        useVisibleTask$(() => {
-          (globalThis as any).element.push(store.refs[0]);
-        });
-        return (
-          <div ref={(element) => store.refs.push(element)}>
-            <Child />
-          </div>
-        );
-      });
-
-      const { document } = await render(<Parent />, { debug });
-
-      if (ssrRenderToDom === render) {
-        await trigger(document.body, 'div', 'qvisible');
-      }
-
-      expect(isElement((globalThis as any).element[0])).toBeTruthy();
-      (globalThis as any).element = undefined;
-    });
-  });
-
-  it('should skip null refs', async () => {
-    const Cmp = component$(() => {
-      return <div ref={null!}></div>;
-    });
-
-    const { vNode } = await render(<Cmp />, { debug });
-
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <div></div>
-      </Component>
-    );
-  });
-
-  it('should skip undefined refs', async () => {
-    const Cmp = component$(() => {
-      return <div ref={undefined}></div>;
-    });
-
-    const { vNode } = await render(<Cmp />, { debug });
-
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <div></div>
-      </Component>
-    );
-  });
-
-  it('should track element ref', async () => {
-    const Cmp = component$(() => {
-      const element = useSignal<HTMLDivElement>();
-      const signal = useSignal(0);
-
-      useVisibleTask$(({ track }) => {
-        track(element);
-        signal.value++;
-      });
-
+  it('restores a forwarded signal ref as the matching DOM element', async () => {
+    const App = component$(() => {
+      const input = useSignal<Element>();
+      const tag = useSignal('pending');
       return (
-        <div id="ref-test">
-          <div ref={element}>Test</div>
-          {signal.value}
-        </div>
+        <section>
+          <input ref={input} />
+          <button onClick$={() => (tag.value = input.value?.tagName ?? 'missing')}>read</button>
+          <span>{tag.value}</span>
+        </section>
       );
     });
 
-    const { vNode, document } = await render(<Cmp />, { debug });
-    if (render === ssrRenderToDom) {
-      await trigger(document.body, '[id="ref-test"]', 'qvisible');
-    }
+    const { container, cleanup, qwikLoader } = await render(App);
+    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
 
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <div id="ref-test">
-          <div>Test</div>
-          <Signal ssr-required>1</Signal>
-        </div>
-      </Component>
-    );
+    expect(container.querySelector('span')?.textContent).toBe('INPUT');
+    cleanup();
+  });
+
+  it('applies a ref forwarded through opaque component props', async () => {
+    const Field = component$((props: Record<string, unknown>) => <input {...props} />);
+    const App = component$(() => {
+      const input = useSignal<Element>();
+      const tag = useSignal('pending');
+      return (
+        <section>
+          <Field ref={input} />
+          <button onClick$={() => (tag.value = input.value?.tagName ?? 'missing')}>read</button>
+          <span>{tag.value}</span>
+        </section>
+      );
+    });
+
+    const { container, cleanup, qwikLoader } = await render(App);
+    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+
+    expect(container.querySelector('span')?.textContent).toBe('INPUT');
+    cleanup();
+  });
+
+  it('runs a ref when a branch creates a new element', async () => {
+    const App = component$(() => {
+      const visible = useSignal(false);
+      const calls = useSignal(0);
+      return (
+        <section>
+          <button onClick$={() => (visible.value = true)}>show</button>
+          {visible.value && <i ref={() => calls.value++}>target</i>}
+          <span>{calls.value}</span>
+        </section>
+      );
+    });
+
+    const { container, cleanup, qwikLoader } = await render(App);
+    expect(container.querySelector('span')?.textContent).toBe('0');
+
+    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+
+    expect(container.querySelector('i')?.textContent).toBe('target');
+    expect(container.querySelector('span')?.textContent).toBe('1');
+    cleanup();
   });
 });

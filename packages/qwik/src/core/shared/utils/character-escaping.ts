@@ -1,5 +1,3 @@
-import { VNodeDataSeparator } from '../vnode-data-types';
-
 export function escapeHTML(html: string): string {
   let escapedHTML = '';
   const length = html.length;
@@ -42,7 +40,7 @@ export function encodeVNodeDataString(str: string): string {
     // We get the charCode NOT string. String would allocate memory.
     const ch = str.charCodeAt(idx);
     // Every time we concat a string we allocate memory. We want to minimize that.
-    if (ch >= VNodeDataSeparator.ADVANCE_1 && ch <= VNodeDataSeparator.ADVANCE_8192) {
+    if (ch >= 33 && ch <= 46) {
       escapedHTML += str.substring(lastIdx, idx) + '\\' + str.charAt(idx);
     } else {
       continue;

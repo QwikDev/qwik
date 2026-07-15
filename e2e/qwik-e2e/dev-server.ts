@@ -78,7 +78,7 @@ const qwikRouterVirtualEntry = '@router-ssr-entry';
 const entryDevFileName = 'entry.dev.tsx';
 const entrySsrFileName = 'entry.ssr.tsx';
 
-const isVdomlessApp = (pkgJson: PackageJSON) => {
+const usesCompiler = (pkgJson: PackageJSON) => {
   return !!(pkgJson.__qwik__ as E2EQwikPackageConfig | undefined)?.vdomless;
 };
 
@@ -129,11 +129,11 @@ async function handleApp(req: Request, res: Response, next: NextFunction) {
     const pkgPath = join(appDir, 'package.json');
     const pkgJson: PackageJSON = JSON.parse(readFileSync(pkgPath, 'utf-8'));
     const enableRouterServer = !!pkgJson.__qwik__?.qwikRouter;
-    const enableVdomless = isVdomlessApp(pkgJson);
+    const enableCompiler = usesCompiler(pkgJson);
 
     let clientManifest = cache.get(appDir);
     if (!clientManifest) {
-      clientManifest = buildApp(appDir, appName, enableRouterServer, enableVdomless);
+      clientManifest = buildApp(appDir, appName, enableRouterServer, enableCompiler);
       cache.set(appDir, clientManifest);
     }
 
@@ -164,19 +164,17 @@ async function buildApp(
   appDir: string,
   appName: string,
   enableRouterServer: boolean,
-  enableVdomless: boolean
+  enableCompiler: boolean
 ) {
   const optimizer = await import('@qwik.dev/core/optimizer');
   const appSrcDir = join(appDir, 'src');
   const appDistDir = join(appDir, 'dist');
   const appServerDir = join(appDir, 'server');
   const entryDevPath = join(appSrcDir, entryDevFileName);
-  const sparkSourcePath = join(repoRoot, 'packages', 'qwik', 'src', 'spark', 'index.ts');
-  const sparkHandlersSourcePath = join(repoRoot, 'packages', 'qwik', 'src', 'spark', 'handlers.ts');
   const basePath = `/${appName}/`;
   const isProd = appName.includes('.prod');
   const clientInput =
-    (appName === 'e2e' || enableVdomless) && existsSync(entryDevPath) ? entryDevPath : undefined;
+    (appName === 'e2e' || enableCompiler) && existsSync(entryDevPath) ? entryDevPath : undefined;
 
   // always clean the build directory
   removeDir(appDistDir);
@@ -239,18 +237,6 @@ export { router }
     resolve: {
       conditions: [isProd ? 'production' : 'development'],
       mainFields: [],
-      alias: enableVdomless
-        ? [
-            {
-              find: '@qwik.dev/core/spark/handlers',
-              replacement: sparkHandlersSourcePath,
-            },
-            {
-              find: '@qwik.dev/core/spark',
-              replacement: sparkSourcePath,
-            },
-          ]
-        : [],
     },
   });
 
@@ -277,7 +263,6 @@ export { router }
       plugins: [
         ...plugins,
         optimizer.qwikVite({
-          compiler: enableVdomless ? 'vdomless' : 'optimizer',
           entryStrategy: { type: 'segment' },
           client: {
             outDir: join(appDistDir, appName),
@@ -301,7 +286,6 @@ export { router }
       plugins: [
         ...plugins,
         optimizer.qwikVite({
-          compiler: enableVdomless ? 'vdomless' : 'optimizer',
           experimental: ['each', 'suspense'],
           ssr: {
             manifestInput: clientManifest,
@@ -462,9 +446,9 @@ async function main() {
       const pkgPath = join(appDir, 'package.json');
       const pkgJson: PackageJSON = JSON.parse(readFileSync(pkgPath, 'utf-8'));
       const enableRouterServer = !!pkgJson.__qwik__?.qwikRouter;
-      const enableVdomless = isVdomlessApp(pkgJson);
+      const enableCompiler = usesCompiler(pkgJson);
 
-      await buildApp(appDir, buildTarget, enableRouterServer, enableVdomless);
+      await buildApp(appDir, buildTarget, enableRouterServer, enableCompiler);
       console.log(`\n✅ Successfully built ${buildTarget}\n`);
       process.exit(0);
     } catch (error: any) {

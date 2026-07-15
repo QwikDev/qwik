@@ -1,0 +1,390 @@
+==INPUT==
+
+import { useSignal } from '@qwik.dev/core';
+
+export function Field({ label, ...rest }) {
+  return <label>{label}<input onInput$={() => console.log('input')} {...rest} /></label>;
+}
+
+export function App() {
+  const value = useSignal('');
+  return <Field label="Name" bind:value={value} />;
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { useSignal, createComponent } from '@qwik.dev/core';
+import { Field } from './component.tsx_component_Field';
+export { Field };
+export function App(props, ctx) {
+  const value = useSignal('');
+  return createComponent(
+    {
+      label: 'Name',
+      get 'bind:value'() {
+        return value;
+      },
+    },
+    (props) => Field(props, ctx)
+  );
+}
+============================= src/component.tsx_component_Field.js (ENTRY POINT)==
+
+import {
+  createSsrNodeId,
+  createSsrElementRecord,
+  createSsrRangeTextTarget,
+  renderSsrTextExpression,
+  escapeHTML,
+  renderSsrProps,
+  createSsrElementTarget,
+  createSsrRecord,
+  getActiveInvokeContextOrNull,
+  invoke,
+  maybeThen,
+  _qrlWithChunk,
+} from '@qwik.dev/core';
+import { component_text_segment_0 } from './component.tsx_component_text_segment_0';
+import { component_props_segment_1 } from './component.tsx_component_props_segment_1';
+
+const q_component_text_segment_0 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_text_segment_0',
+  () => import('./component.tsx_component_text_segment_0'),
+  'component_text_segment_0'
+);
+q_component_text_segment_0.s(component_text_segment_0);
+const q_component_props_segment_1 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_props_segment_1',
+  () => import('./component.tsx_component_props_segment_1'),
+  'component_props_segment_1'
+);
+q_component_props_segment_1.s(component_props_segment_1);
+
+export function Field(props, ctx) {
+  const { label, ...rest } = props;
+  const id0 = ctx.nextId();
+  let id2;
+  const invokeCtx4 = getActiveInvokeContextOrNull();
+  ctx.addRoot(props);
+  const text1 = renderSsrTextExpression(
+    createSsrRangeTextTarget(id0, 0),
+    [props],
+    q_component_text_segment_0
+  );
+  const props3 = () =>
+    invoke(invokeCtx4, () => {
+      id2 ??= ctx.nextId();
+      return renderSsrProps(
+        createSsrElementTarget(id2),
+        [props],
+        q_component_props_segment_1,
+        ctx.eventAttr
+      );
+    });
+  return maybeThen(text1, (text1) =>
+    maybeThen(props3(), (props3) => {
+      props3.ref !== undefined && ctx.setRef(props3.ref, id2);
+      return [
+        createSsrElementRecord('label', '<label q:id="', createSsrNodeId(id0), '"', '>'),
+        '<!t>',
+        escapeHTML(text1),
+        '<!/t>',
+        createSsrRecord('<input q:id="', createSsrNodeId(id2), '"', ...props3.attrs, '>'),
+        '</label>',
+      ];
+    })
+  );
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_Field",
+  "entry": null,
+  "displayName": "component_Field",
+  "hash": "component_Field",
+  "canonicalFilename": "component.tsx_component_Field",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component",
+  "captures": false,
+  "loc": [
+    51,
+    178
+  ],
+  "paramNames": [
+    "_"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_0.js (ENTRY POINT)==
+
+export const component_text_segment_0 = (props) => {
+  const { label, ...rest } = props;
+  return label;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_0",
+  "entry": null,
+  "displayName": "component_text_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_text_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    104,
+    109
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "label"
+  ]
+}
+*/
+============================= src/component.tsx_component_props_segment_1.js (ENTRY POINT)==
+
+import { _qrlWithChunk } from '@qwik.dev/core';
+const q_component_q_e_input_segment_2 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_q_e_input_segment_2',
+  () => import('./component.tsx_component_q_e_input_segment_2'),
+  'component_q_e_input_segment_2'
+);
+
+export const component_props_segment_1 = (props) => {
+  const { label, ...rest } = props;
+  return {
+    get onInput$() {
+      return q_component_q_e_input_segment_2;
+    },
+    ...rest,
+  };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_1",
+  "entry": null,
+  "displayName": "component_props_segment_1",
+  "hash": "segment_1",
+  "canonicalFilename": "component.tsx_component_props_segment_1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    110,
+    167
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "rest"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_input_segment_2.js (ENTRY POINT)==
+
+export const component_q_e_input_segment_2 = () => {
+  return console.log('input');
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_input_segment_2",
+  "entry": null,
+  "displayName": "component_q_e_input_segment_2",
+  "hash": "segment_2",
+  "canonicalFilename": "component.tsx_component_q_e_input_segment_2",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onInput$",
+  "captures": false,
+  "loc": [
+    117,
+    154
+  ],
+  "paramNames": []
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { useSignal, createComponent } from '@qwik.dev/core';
+import { Field } from './component.tsx_component_Field';
+export { Field };
+export function App(props, ctx) {
+  const value = useSignal('');
+  return createComponent(
+    {
+      label: 'Name',
+      get 'bind:value'() {
+        return value;
+      },
+    },
+    (props) => Field(props, ctx)
+  );
+}
+============================= src/component.tsx_component_Field.js (ENTRY POINT)==
+
+import {
+  _first,
+  _next,
+  createTextExpressionEffect,
+  createPropsEffect,
+  createTemplate,
+} from '@qwik.dev/core';
+import { component_text_segment_0 } from './component.tsx_component_text_segment_0';
+import { component_props_segment_1 } from './component.tsx_component_props_segment_1';
+import { component_q_e_input_segment_2 } from './component.tsx_component_q_e_input_segment_2';
+
+const Field_tmpl0 = createTemplate('<label><!----><input></label>');
+
+export function Field(props, ctx) {
+  const { label, ...rest } = props;
+  const fragment0 = Field_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const marker0 = _first(el0);
+  const el1 = _next(marker0);
+  const text0 = ctx.document.createTextNode('');
+  marker0.replaceWith(text0);
+  const effect0 = createTextExpressionEffect(
+    text0,
+    [props],
+    component_text_segment_0,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect0);
+  const effect1 = createPropsEffect(
+    el1,
+    [props, component_q_e_input_segment_2],
+    component_props_segment_1,
+    ctx.scheduler
+  );
+  ctx.scheduler.waitFor(effect1.run());
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_Field",
+  "entry": null,
+  "displayName": "component_Field",
+  "hash": "component_Field",
+  "canonicalFilename": "component.tsx_component_Field",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component",
+  "captures": false,
+  "loc": [
+    51,
+    178
+  ],
+  "paramNames": [
+    "_"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_0.js (ENTRY POINT)==
+
+export const component_text_segment_0 = (props) => {
+  const { label, ...rest } = props;
+  return label;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_0",
+  "entry": null,
+  "displayName": "component_text_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_text_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    104,
+    109
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "label"
+  ]
+}
+*/
+============================= src/component.tsx_component_props_segment_1.js (ENTRY POINT)==
+
+export const component_props_segment_1 = (props, __qwikBoundary) => {
+  const { label, ...rest } = props;
+  return {
+    get onInput$() {
+      return __qwikBoundary;
+    },
+    ...rest,
+  };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_1",
+  "entry": null,
+  "displayName": "component_props_segment_1",
+  "hash": "segment_1",
+  "canonicalFilename": "component.tsx_component_props_segment_1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    110,
+    167
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "rest"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_input_segment_2.js (ENTRY POINT)==
+
+export const component_q_e_input_segment_2 = () => {
+  return console.log('input');
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_input_segment_2",
+  "entry": null,
+  "displayName": "component_q_e_input_segment_2",
+  "hash": "segment_2",
+  "canonicalFilename": "component.tsx_component_q_e_input_segment_2",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onInput$",
+  "captures": false,
+  "loc": [
+    117,
+    154
+  ],
+  "paramNames": []
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

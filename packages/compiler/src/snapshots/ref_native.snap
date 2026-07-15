@@ -1,0 +1,380 @@
+==INPUT==
+
+import { useSignal } from '@qwik.dev/core';
+
+function Child(props) {
+  return <span>{props.ref ? 'ref' : 'none'}</span>;
+}
+
+export function App({ forwarded, rest }) {
+  const signalRef = useSignal();
+  const elements = [];
+  const namedRef = (element) => elements.push(element);
+  return <section>
+    <div ref={signalRef}>Signal</div>
+    <div ref={(element) => elements.push(element)}>Inline</div>
+    <div ref={namedRef}>Named</div>
+    <div ref={forwarded}>Forwarded</div>
+    <div {...{ ref: signalRef }}>Spread</div>
+    <div {...rest}>Opaque</div>
+    <Child ref={signalRef} />
+  </section>;
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  createSsrElementRecord,
+  createSsrNodeId,
+  createSsrRecord,
+  renderSsrProps,
+  createSsrElementTarget,
+  createComponent,
+  getActiveInvokeContextOrNull,
+  invoke,
+  maybeThen,
+  _qrlWithChunk,
+} from '@qwik.dev/core';
+import { component_props_segment_4 } from './component.tsx_component_props_segment_4';
+import { Child } from './component.tsx_component_Child';
+
+const q_component_props_segment_4 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_props_segment_4',
+  () => import('./component.tsx_component_props_segment_4'),
+  'component_props_segment_4'
+);
+q_component_props_segment_4.s(component_props_segment_4);
+
+export function App(props0, ctx) {
+  const { forwarded, rest } = props0;
+  const signalRef = useSignal();
+  const elements = [];
+  const namedRef = (element) => elements.push(element);
+  const id0 = ctx.nextId();
+  const id1 = ctx.nextId();
+  const id2 = ctx.nextId();
+  const id3 = ctx.nextId();
+  const id4 = ctx.nextId();
+  const id5 = ctx.nextId();
+  ctx.setRef(signalRef, id0);
+  ctx.setRef((element) => elements.push(element), id1);
+  ctx.setRef(namedRef, id2);
+  ctx.setRef(forwarded, id3);
+  ctx.setRef(signalRef, id4);
+  const invokeCtx8 = getActiveInvokeContextOrNull();
+  ctx.addRoot(props0);
+  const props6 = renderSsrProps(
+    createSsrElementTarget(id5),
+    [props0],
+    q_component_props_segment_4,
+    ctx.eventAttr
+  );
+  const component7 = () =>
+    invoke(invokeCtx8, () => {
+      return createComponent(
+        {
+          get ref() {
+            return signalRef;
+          },
+        },
+        (props) => Child(props, ctx)
+      );
+    });
+  return maybeThen(props6, (props6) => {
+    props6.ref !== undefined && ctx.setRef(props6.ref, id5);
+    return maybeThen(component7(), (component7) => [
+      createSsrElementRecord('section', '<section', '>'),
+      createSsrRecord('<div q:id="', createSsrNodeId(id0), '">'),
+      'Signal</div>',
+      createSsrRecord('<div q:id="', createSsrNodeId(id1), '">'),
+      'Inline</div>',
+      createSsrRecord('<div q:id="', createSsrNodeId(id2), '">'),
+      'Named</div>',
+      createSsrRecord('<div q:id="', createSsrNodeId(id3), '">'),
+      'Forwarded</div>',
+      createSsrRecord('<div q:id="', createSsrNodeId(id4), '">'),
+      'Spread</div>',
+      createSsrRecord('<div q:id="', createSsrNodeId(id5), '"', ...props6.attrs, '>'),
+      props6.innerHTML ?? 'Opaque',
+      '</div>',
+      component7,
+      '</section>',
+    ]);
+  });
+}
+============================= src/component.tsx_component_Child.js (ENTRY POINT)==
+
+import {
+  createSsrNodeId,
+  createSsrElementRecord,
+  createSsrElementTextTarget,
+  renderSsrTextExpression,
+  escapeHTML,
+  maybeThen,
+  _qrlWithChunk,
+} from '@qwik.dev/core';
+import { component_text_segment_0 } from './component.tsx_component_text_segment_0';
+
+const q_component_text_segment_0 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_text_segment_0',
+  () => import('./component.tsx_component_text_segment_0'),
+  'component_text_segment_0'
+);
+q_component_text_segment_0.s(component_text_segment_0);
+
+export function Child(props, ctx) {
+  const id0 = ctx.nextId();
+  ctx.addRoot(props);
+  const text1 = renderSsrTextExpression(
+    createSsrElementTextTarget(id0),
+    [props],
+    q_component_text_segment_0
+  );
+  return maybeThen(text1, (text1) => [
+    createSsrElementRecord('span', '<span q:id="', createSsrNodeId(id0), '"', '>'),
+    escapeHTML(text1),
+    '</span>',
+  ]);
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_Child",
+  "entry": null,
+  "displayName": "component_Child",
+  "hash": "component_Child",
+  "canonicalFilename": "component.tsx_component_Child",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component",
+  "captures": false,
+  "loc": [
+    44,
+    120
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_0.js (ENTRY POINT)==
+
+export const component_text_segment_0 = (props) => {
+  return props.ref ? 'ref' : 'none';
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_0",
+  "entry": null,
+  "displayName": "component_text_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_text_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    83,
+    109
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_props_segment_4.js (ENTRY POINT)==
+
+export const component_props_segment_4 = (props0) => {
+  const { forwarded, rest } = props0;
+  return rest;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_4",
+  "entry": null,
+  "displayName": "component_props_segment_4",
+  "hash": "segment_4",
+  "canonicalFilename": "component.tsx_component_props_segment_4",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    529,
+    533
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "rest"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  _first,
+  _next,
+  setRef,
+  createPropsEffect,
+  createComponent,
+  createTemplate,
+} from '@qwik.dev/core';
+import { component_props_segment_4 } from './component.tsx_component_props_segment_4';
+import { Child } from './component.tsx_component_Child';
+
+const App_tmpl0 = createTemplate(
+  '<section><div>Signal</div><div>Inline</div><div>Named</div><div>Forwarded</div><div>Spread</div><div>Opaque</div><!----><!----></section>'
+);
+
+export function App(props0, ctx) {
+  const { forwarded, rest } = props0;
+  const signalRef = useSignal();
+  const elements = [];
+  const namedRef = (element) => elements.push(element);
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const el1 = _first(el0);
+  const el2 = _next(el1);
+  const el3 = _next(el2);
+  const el4 = _next(el3);
+  const el5 = _next(el4);
+  const el6 = _next(el5);
+  const start0 = _next(el6);
+  const end0 = _next(start0);
+  signalRef.value = el1;
+  ((element) => elements.push(element))(el2);
+  namedRef(el3);
+  setRef(forwarded, el4);
+  signalRef.value = el5;
+  const effect0 = createPropsEffect(el6, [props0], component_props_segment_4, ctx.scheduler);
+  ctx.scheduler.waitFor(effect0.run());
+  const component0 = createComponent(
+    {
+      get ref() {
+        return signalRef;
+      },
+    },
+    (props) => Child(props, ctx)
+  );
+  end0.parentNode.insertBefore(component0, end0);
+  start0.remove();
+  end0.remove();
+  return el0;
+}
+============================= src/component.tsx_component_Child.js (ENTRY POINT)==
+
+import { _first, createTextExpressionEffect, createTemplate } from '@qwik.dev/core';
+import { component_text_segment_0 } from './component.tsx_component_text_segment_0';
+
+const Child_tmpl0 = createTemplate('<span> </span>');
+
+export function Child(props, ctx) {
+  const fragment0 = Child_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const text0 = _first(el0);
+  const effect0 = createTextExpressionEffect(
+    text0,
+    [props],
+    component_text_segment_0,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect0);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_Child",
+  "entry": null,
+  "displayName": "component_Child",
+  "hash": "component_Child",
+  "canonicalFilename": "component.tsx_component_Child",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component",
+  "captures": false,
+  "loc": [
+    44,
+    120
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_0.js (ENTRY POINT)==
+
+export const component_text_segment_0 = (props) => {
+  return props.ref ? 'ref' : 'none';
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_0",
+  "entry": null,
+  "displayName": "component_text_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_text_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    83,
+    109
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_props_segment_4.js (ENTRY POINT)==
+
+export const component_props_segment_4 = (props0) => {
+  const { forwarded, rest } = props0;
+  return rest;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_4",
+  "entry": null,
+  "displayName": "component_props_segment_4",
+  "hash": "segment_4",
+  "canonicalFilename": "component.tsx_component_props_segment_4",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    529,
+    533
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "rest"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

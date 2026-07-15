@@ -20,7 +20,7 @@ export const App = (props, ctx) => {
 
 ============================= src/component.tsx ==
 
-import { _first, createTemplate } from '@qwik.dev/core/spark';
+import { _first, createTemplate } from '@qwik.dev/core';
 
 const App_tmpl0 = createTemplate('<span>One</span>');
 export const App = (props, ctx) => {

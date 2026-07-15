@@ -1,6 +1,6 @@
 ==INPUT==
 
-import { useSignal } from '@qwik.dev/core/spark';
+import { useSignal } from '@qwik.dev/core';
 export function App() {
   const items = useSignal([{ id: 'a', label: 'Alpha' }]);
   return (
@@ -16,22 +16,30 @@ export function App() {
 
 ============================= src/component.tsx ==
 
-import { useSignal, renderSsrForBlock, maybeThen, _qrlWithChunk } from '@qwik.dev/core/spark';
-import { component_for_key_segment_1 } from './component.tsx_component_for_key_segment_1';
+import {
+  useSignal,
+  createSsrElementRecord,
+  renderSsrCollection,
+  createSsrRecord,
+  createSsrNodeId,
+  maybeThen,
+  _qrlWithChunk,
+} from '@qwik.dev/core';
 import { component_for_render_segment_0 } from './component.tsx_component_for_render_segment_0';
+import { component_for_key_segment_1 } from './component.tsx_component_for_key_segment_1';
 
-const q_component_for_key_segment_1 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_for_key_segment_1',
-  () => import('./component.tsx_component_for_key_segment_1'),
-  'component_for_key_segment_1'
-);
-q_component_for_key_segment_1.s(component_for_key_segment_1);
 const q_component_for_render_segment_0 = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_for_render_segment_0',
   () => import('./component.tsx_component_for_render_segment_0'),
   'component_for_render_segment_0'
 );
 q_component_for_render_segment_0.s(component_for_render_segment_0);
+const q_component_for_key_segment_1 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_for_key_segment_1',
+  () => import('./component.tsx_component_for_key_segment_1'),
+  'component_for_key_segment_1'
+);
+q_component_for_key_segment_1.s(component_for_key_segment_1);
 export function App(props, ctx) {
   const items = useSignal([
     {
@@ -39,58 +47,37 @@ export function App(props, ctx) {
       label: 'Alpha',
     },
   ]);
-  const id0 = ctx.nextId();
+  const collectionId0 = ctx.nextId();
   ctx.addRoot(items);
-  const forBlock0 = renderSsrForBlock(
+  const collectionResult1 = renderSsrCollection(
     ctx,
-    id0,
+    collectionId0,
     items,
     q_component_for_key_segment_1,
     q_component_for_render_segment_0,
-    true,
-    false
+    false,
+    '',
+    false,
+    0
   );
-  return maybeThen(
-    forBlock0,
-    (forBlock0) => '<ul' + '>' + '<!f=' + id0 + '>' + forBlock0 + '<!/f>' + '</ul>'
-  );
+  return maybeThen(collectionResult1, (collectionResult1) => [
+    createSsrElementRecord('ul', '<ul', '>'),
+    createSsrRecord('<!f=', createSsrNodeId(collectionId0), '>'),
+    collectionResult1,
+    '<!/f></ul>',
+  ]);
 }
-============================= src/component.tsx_component_for_key_segment_1.js (ENTRY POINT)==
-
-export const component_for_key_segment_1 = (item) => {
-  return item.id;
-};
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_for_key_segment_1",
-  "entry": null,
-  "displayName": "component_for_key_segment_1",
-  "hash": "segment_1",
-  "canonicalFilename": "component.tsx_component_for_key_segment_1",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "for:key",
-  "captures": false,
-  "loc": [
-    202,
-    209
-  ],
-  "paramNames": [
-    "item"
-  ]
-}
-*/
 ============================= src/component.tsx_component_for_render_segment_0.js (ENTRY POINT)==
 
 import {
   _qrlWithChunk,
-  escapeHTML,
-  renderSsrTextExpression,
+  createSsrNodeId,
+  createSsrElementRecord,
   createSsrElementTextTarget,
+  renderSsrTextExpression,
+  escapeHTML,
   maybeThen,
-} from '@qwik.dev/core/spark';
+} from '@qwik.dev/core';
 import { component_text_segment_2 } from './component.tsx_component_text_segment_2';
 const q_component_text_segment_2 = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_text_segment_2',
@@ -99,18 +86,19 @@ const q_component_text_segment_2 = /*#__PURE__*/ _qrlWithChunk(
 );
 q_component_text_segment_2.s(component_text_segment_2);
 
-export const component_for_render_segment_0 = (ctx, rangeId, rowId, item, index) => {
+export const component_for_render_segment_0 = (ctx, __rangeId, __rowId, item) => {
   const id0 = ctx.nextId();
   ctx.addRoot(item);
-  const text0 = renderSsrTextExpression(
+  const text1 = renderSsrTextExpression(
     createSsrElementTextTarget(id0),
     [item],
     q_component_text_segment_2
   );
-  return maybeThen(
-    text0,
-    (text0) => '<li q:id="' + id0 + '" q:row' + '>' + escapeHTML(text0) + '</li>'
-  );
+  return maybeThen(text1, (text1) => [
+    createSsrElementRecord('li', '<li q:id="', createSsrNodeId(id0), '" q:row', '>'),
+    escapeHTML(text1),
+    '</li>',
+  ]);
 };
 /*
 {
@@ -126,79 +114,14 @@ export const component_for_render_segment_0 = (ctx, rangeId, rowId, item, index)
   "ctxName": "for:render",
   "captures": false,
   "loc": [
-    193,
-    228
+    187,
+    222
   ],
   "paramNames": [
     "item"
   ]
 }
 */
-============================= src/component.tsx_component_text_segment_2.js (ENTRY POINT)==
-
-export const component_text_segment_2 = (item) => {
-  return item.value.label;
-};
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_text_segment_2",
-  "entry": null,
-  "displayName": "component_text_segment_2",
-  "hash": "segment_2",
-  "canonicalFilename": "component.tsx_component_text_segment_2",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "text",
-  "captures": true,
-  "loc": [
-    212,
-    222
-  ],
-  "paramNames": [],
-  "captureNames": [
-    "item"
-  ]
-}
-*/
-== SSR DIAGNOSTICS ==
-
-[]
-== CSR OUTPUT ==
-
-============================= src/component.tsx ==
-
-import { useSignal, _first, ForRange, createForBlock, createTemplate } from '@qwik.dev/core/spark';
-import { component_for_key_segment_1 } from './component.tsx_component_for_key_segment_1';
-import { component_for_render_segment_0 } from './component.tsx_component_for_render_segment_0';
-
-const App_tmpl0 = createTemplate('<ul> </ul>');
-export function App(props, ctx) {
-  const items = useSignal([
-    {
-      id: 'a',
-      label: 'Alpha',
-    },
-  ]);
-  const fragment0 = App_tmpl0(ctx.document);
-  const el0 = _first(fragment0);
-  const text0 = _first(el0);
-  const comment0 = ctx.document.createComment('f');
-  const comment1 = ctx.document.createComment('/f');
-  text0.replaceWith(comment0, comment1);
-  const forBlock0 = createForBlock(
-    ctx,
-    new ForRange(ctx.document, comment0, comment1),
-    items,
-    component_for_key_segment_1,
-    component_for_render_segment_0,
-    true,
-    false
-  );
-  forBlock0.run();
-  return el0;
-}
 ============================= src/component.tsx_component_for_key_segment_1.js (ENTRY POINT)==
 
 export const component_for_key_segment_1 = (item) => {
@@ -218,21 +141,87 @@ export const component_for_key_segment_1 = (item) => {
   "ctxName": "for:key",
   "captures": false,
   "loc": [
-    202,
-    209
+    196,
+    203
   ],
   "paramNames": [
     "item"
   ]
 }
 */
+============================= src/component.tsx_component_text_segment_2.js (ENTRY POINT)==
+
+export const component_text_segment_2 = (item) => {
+  return item.label;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_2",
+  "entry": null,
+  "displayName": "component_text_segment_2",
+  "hash": "segment_2",
+  "canonicalFilename": "component.tsx_component_text_segment_2",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    206,
+    216
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "item"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { useSignal, _first, _next, createCollection, createTemplate } from '@qwik.dev/core';
+import { component_for_render_segment_0 } from './component.tsx_component_for_render_segment_0';
+import { component_for_key_segment_1 } from './component.tsx_component_for_key_segment_1';
+
+const App_tmpl0 = createTemplate('<ul><!----><!----></ul>');
+export function App(props, ctx) {
+  const items = useSignal([
+    {
+      id: 'a',
+      label: 'Alpha',
+    },
+  ]);
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  ctx.scheduler.waitFor(
+    createCollection(
+      ctx,
+      start0,
+      end0,
+      items,
+      component_for_key_segment_1,
+      component_for_render_segment_0,
+      false,
+      '',
+      0
+    )
+  );
+  return el0;
+}
 ============================= src/component.tsx_component_for_render_segment_0.js (ENTRY POINT)==
 
-import { _first, createTextExpressionEffect, createTemplate } from '@qwik.dev/core/spark';
+import { _first, createTextExpressionEffect, createTemplate } from '@qwik.dev/core';
 import { component_text_segment_2 } from './component.tsx_component_text_segment_2';
 const component_for_render_segment_0_tmpl0 = createTemplate('<li> </li>');
 
-export const component_for_render_segment_0 = (ctx, item, index) => {
+export const component_for_render_segment_0 = (ctx, item) => {
   const fragment0 = component_for_render_segment_0_tmpl0(ctx.document);
   const el0 = _first(fragment0);
   const text0 = _first(el0);
@@ -259,8 +248,35 @@ export const component_for_render_segment_0 = (ctx, item, index) => {
   "ctxName": "for:render",
   "captures": false,
   "loc": [
-    193,
-    228
+    187,
+    222
+  ],
+  "paramNames": [
+    "item"
+  ]
+}
+*/
+============================= src/component.tsx_component_for_key_segment_1.js (ENTRY POINT)==
+
+export const component_for_key_segment_1 = (item) => {
+  return item.id;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_for_key_segment_1",
+  "entry": null,
+  "displayName": "component_for_key_segment_1",
+  "hash": "segment_1",
+  "canonicalFilename": "component.tsx_component_for_key_segment_1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "for:key",
+  "captures": false,
+  "loc": [
+    196,
+    203
   ],
   "paramNames": [
     "item"
@@ -270,7 +286,7 @@ export const component_for_render_segment_0 = (ctx, item, index) => {
 ============================= src/component.tsx_component_text_segment_2.js (ENTRY POINT)==
 
 export const component_text_segment_2 = (item) => {
-  return item.value.label;
+  return item.label;
 };
 /*
 {
@@ -286,8 +302,8 @@ export const component_text_segment_2 = (item) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    212,
-    222
+    206,
+    216
   ],
   "paramNames": [],
   "captureNames": [

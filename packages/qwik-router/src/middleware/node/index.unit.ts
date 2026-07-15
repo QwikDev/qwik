@@ -38,6 +38,12 @@ describe('createQwikRouter().router', () => {
     vi.clearAllMocks();
   });
 
+  it('should preserve three-argument middleware arity for Express', () => {
+    const middleware = createQwikRouter(createNodeOptions());
+
+    expect(middleware.router).toHaveLength(3);
+  });
+
   it('should not forward handled completion errors after headers are sent', async () => {
     const requestEv = {
       headersSent: true,

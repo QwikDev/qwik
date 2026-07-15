@@ -48,7 +48,7 @@ export function createQwikRouter(
     req: IncomingMessage | Http2ServerRequest,
     res: ServerResponse,
     next: NodeRequestNextFunction,
-    limits?: QwikRouterNodeRequestLimits
+    limits: QwikRouterNodeRequestLimits = {}
   ) => {
     try {
       const origin = computeOrigin(req, opts);

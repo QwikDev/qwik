@@ -1181,14 +1181,22 @@ function diffProps(
     vnode_ensureElementInflated(diffContext.$container$, vnode);
   }
   const oldAttrs = vnode.props;
+  const isHtml = (vnode.flags & VNodeFlags.NAMESPACE_MASK) === VNodeFlags.NS_html;
 
   // Actual diffing logic
   // Apply all new attributes
   for (const key in newAttrs) {
     const newValue = newAttrs[key];
+    // HTML parsers lowercase attribute names.
+    const oldKey =
+      oldAttrs && isHtml && !_hasOwnProperty.call(oldAttrs, key) ? key.toLowerCase() : key;
 
-    if (oldAttrs && _hasOwnProperty.call(oldAttrs, key)) {
-      const oldValue = oldAttrs[key];
+    if (oldAttrs && _hasOwnProperty.call(oldAttrs, oldKey)) {
+      const oldValue = oldAttrs[oldKey];
+      if (oldKey !== key) {
+        vnode_setProp(vnode, oldKey, null);
+        vnode_setProp(vnode, key, oldValue);
+      }
       if (!areDiffValuesEqual(newValue, oldValue)) {
         patchProperty(diffContext, vnode, key, newValue, currentFile);
       }

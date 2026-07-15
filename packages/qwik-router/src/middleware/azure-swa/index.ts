@@ -74,23 +74,27 @@ export function createQwikRouter(opts: QwikRouterAzureOptions): AzureFunction {
         },
         request: new Request(url, options),
         getWritableStream: (status, headers, cookies, resolve) => {
+          const chunks: Uint8Array[] = [];
+          let bodyLength = 0;
           const response: AzureResponse = {
             status,
-            body: new Uint8Array(),
             headers: {},
             cookies: cookies.headers().map((header) => parseString(header)),
           };
           headers.forEach((value, key) => (response.headers[key] = value));
           return new WritableStream({
             write(chunk: Uint8Array) {
-              if (response.body instanceof Uint8Array) {
-                const newBuffer = new Uint8Array(response.body.length + chunk.length);
-                newBuffer.set(response.body);
-                newBuffer.set(chunk, response.body.length);
-                response.body = newBuffer;
-              }
+              chunks.push(chunk.slice());
+              bodyLength += chunk.length;
             },
             close() {
+              const body = new Uint8Array(bodyLength);
+              let offset = 0;
+              for (const chunk of chunks) {
+                body.set(chunk, offset);
+                offset += chunk.length;
+              }
+              response.body = body;
               resolve(response);
             },
           });

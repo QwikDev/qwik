@@ -420,8 +420,15 @@ const parseRequest = async (
 const isDangerousKey = (k: string) => k === '__proto__' || k === 'constructor' || k === 'prototype';
 const isArrayIndexKey = (k: string) => /^(0|[1-9]\d*)$/.test(k);
 
-const getArrayPaths = (formData: FormData) => {
-  const arrayCandidates = new Map<string, boolean>();
+interface FormPathNode {
+  children: Map<string, FormPathNode>;
+  isArray: boolean;
+}
+
+const createFormPathNode = (): FormPathNode => ({ children: new Map(), isArray: true });
+
+const getFormPathTree = (formData: FormData) => {
+  const root = createFormPathNode();
 
   for (const [name] of formData) {
     const keys = name.split('.');
@@ -438,28 +445,26 @@ const getArrayPaths = (formData: FormData) => {
       continue;
     }
 
-    let path = '';
+    let pathNode = root;
     for (let i = 0; i < keys.length - 1; i++) {
       const key = keys[i];
       if (key.endsWith('[]')) {
         break;
       }
 
-      path = path ? `${path}.${key}` : key;
-      if (!arrayCandidates.has(path)) {
-        arrayCandidates.set(path, true);
+      let childNode = pathNode.children.get(key);
+      if (!childNode) {
+        childNode = createFormPathNode();
+        pathNode.children.set(key, childNode);
       }
       if (!isArrayIndexKey(keys[i + 1])) {
-        arrayCandidates.set(path, false);
+        childNode.isArray = false;
       }
+      pathNode = childNode;
     }
   }
 
-  return new Set(
-    Array.from(arrayCandidates.entries())
-      .filter(([, isArrayPath]) => isArrayPath)
-      .map(([path]) => path)
-  );
+  return root;
 };
 
 export const formToObj = (formData: FormData): Record<string, any> => {
@@ -469,7 +474,7 @@ export const formToObj = (formData: FormData): Record<string, any> => {
    * multiselects Create values object by form data entries
    */
   const values = Object.create(null);
-  const arrayPaths = getArrayPaths(formData);
+  const pathTree = getFormPathTree(formData);
 
   for (const [name, value] of formData) {
     const keys = name.split('.');
@@ -487,7 +492,7 @@ export const formToObj = (formData: FormData): Record<string, any> => {
     }
 
     let object = values;
-    let path = '';
+    let pathNode = pathTree;
     for (let i = 0; i < keys.length; i++) {
       const key = keys[i];
 
@@ -512,14 +517,16 @@ export const formToObj = (formData: FormData): Record<string, any> => {
 
       // If it is not last index, return nested object or array
       if (i < keys.length - 1) {
-        path = path ? `${path}.${key}` : key;
+        const childNode = pathNode.children.get(key)!;
         const nextValue = object[key];
         if (nextValue !== undefined) {
           object = nextValue;
+          pathNode = childNode;
           continue;
         }
 
-        object = object[key] = arrayPaths.has(path) ? [] : Object.create(null);
+        object = object[key] = childNode.isArray ? [] : Object.create(null);
+        pathNode = childNode;
       } else {
         object[key] = value;
       }

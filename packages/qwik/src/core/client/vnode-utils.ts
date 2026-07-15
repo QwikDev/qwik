@@ -1850,7 +1850,8 @@ const processVNodeData = (
     consumeValue: () => string,
     consume: () => number,
     getChar: (idx: number) => number,
-    nextToConsumeIdx: number
+    nextToConsumeIdx: number,
+    consumeEncodedValue: () => string
   ) => void
 ) => {
   let nextToConsumeIdx = 0;
@@ -1888,8 +1889,18 @@ const processVNodeData = (
     return vData.substring(start, nextToConsumeIdx);
   };
 
+  const consumeEncodedValue = () => {
+    if (getChar(nextToConsumeIdx + 1) !== VNodeDataChar.SEPARATOR) {
+      return consumeValue();
+    }
+    consume();
+    const value = decodeURIComponent(decodeVNodeDataString(consumeValue()));
+    consume();
+    return value;
+  };
+
   while (peek() !== 0) {
-    callback(peek, consumeValue, consume, getChar, nextToConsumeIdx);
+    callback(peek, consumeValue, consume, getChar, nextToConsumeIdx, consumeEncodedValue);
   }
 };
 
@@ -2116,13 +2127,13 @@ function materializeFromVNodeData(
 
   let components: VirtualVNode[] | null = null;
 
-  processVNodeData(vData, (peek, consumeValue, consume, getChar, nextToConsumeIdx) => {
+  processVNodeData(vData, (peek, consumeValue, consume, getChar, dataIdx, consumeEncodedValue) => {
     if (isNumber(peek())) {
       // Element counts get encoded as numbers.
       while (shouldSkipNode(child)) {
         child = fastNextSibling(child);
         if (!child) {
-          throw qError(QError.materializeVNodeDataError, [vData, peek(), nextToConsumeIdx]);
+          throw qError(QError.materializeVNodeDataError, [vData, peek(), dataIdx]);
         }
       }
       combinedText = null;
@@ -2144,7 +2155,7 @@ function materializeFromVNodeData(
         ) {
           child = fastNextSibling(child);
           if (!child && value > 0) {
-            throw qError(QError.materializeVNodeDataError, [vData, peek(), nextToConsumeIdx]);
+            throw qError(QError.materializeVNodeDataError, [vData, peek(), dataIdx]);
           }
         }
       }
@@ -2164,16 +2175,7 @@ function materializeFromVNodeData(
     } else if (peek() === VNodeDataChar.PROPS) {
       vnode_setProp(vParent, ELEMENT_PROPS, consumeValue());
     } else if (peek() === VNodeDataChar.KEY) {
-      const isEscapedValue = getChar(nextToConsumeIdx + 1) === VNodeDataChar.SEPARATOR;
-      let value;
-      if (isEscapedValue) {
-        consume();
-        value = decodeURIComponent(decodeVNodeDataString(consumeValue()));
-        consume();
-      } else {
-        value = consumeValue();
-      }
-      vParent.key = value;
+      vParent.key = consumeEncodedValue();
     } else if (peek() === VNodeDataChar.SEQ) {
       vnode_setProp(vParent, ELEMENT_SEQ, consumeValue());
     } else if (peek() === VNodeDataChar.SEQ_IDX) {
@@ -2201,7 +2203,7 @@ function materializeFromVNodeData(
       // Custom attribute: |key|value
       const keyValue = consumeValue();
       const key = decodeVNodeDataString(keyValue);
-      const valueSeparatorIdx = nextToConsumeIdx + keyValue.length + 1;
+      const valueSeparatorIdx = dataIdx + keyValue.length + 1;
       const isEscapedValue = getChar(valueSeparatorIdx + 1) === VNodeDataChar.SEPARATOR;
       let value;
       if (isEscapedValue) {
@@ -2221,8 +2223,7 @@ function materializeFromVNodeData(
       vFirst = stack.pop();
       vParent = stack.pop();
     } else if (peek() === VNodeDataChar.SLOT) {
-      const value = decodeVNodeDataString(consumeValue());
-      vnode_setProp(vParent, QSlot, value);
+      vnode_setProp(vParent, QSlot, consumeEncodedValue());
     } else {
       // skip over style or non-qwik elements in front of text nodes, where text node is the first child (except the style node)
       while (isElement(child) && shouldSkipElement(child)) {

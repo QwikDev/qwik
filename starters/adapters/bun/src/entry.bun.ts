@@ -60,6 +60,7 @@ process.on("unhandledRejection", (reason) => {
 });
 
 Bun.serve({
+  maxRequestBodySize: 10 * 1024 * 1024,
   async fetch(request: Request) {
     const staticResponse = await staticFile(request);
     if (staticResponse) {

@@ -43,6 +43,12 @@ export interface DevtoolsState {
   visibleTabIds: DevtoolsTabId[];
   /** Whether the Customize Tabs overlay is open (Vite overlay only). */
   isCustomizeOpen: boolean;
+  /** Whether the command palette overlay is open. */
+  isPaletteOpen: boolean;
+  /** Name of a component the palette asked the active tree to reveal; cleared once revealed. */
+  componentReveal: string | null;
+  /** Set by the palette to ask the Performance panel to clear its events; the panel resets it. */
+  clearPerformanceRequested: boolean;
   /** Whether the Vite devtools plugin overlay is also active on the page. */
   vitePluginDetected?: boolean;
   /** True when running inside the browser extension panel (no Vite server). */
@@ -69,6 +75,9 @@ export function createDevtoolsState(opts?: { isExtension?: boolean }): DevtoolsS
     lastPanelBounds: null,
     visibleTabIds: getDefaultVisibleTabIds(),
     isCustomizeOpen: false,
+    isPaletteOpen: false,
+    componentReveal: null,
+    clearPerformanceRequested: false,
     isExtension: opts?.isExtension ?? false,
   };
 }

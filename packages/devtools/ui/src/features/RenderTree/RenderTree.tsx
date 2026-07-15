@@ -186,7 +186,11 @@ export const RenderTree = component$(() => {
   return (
     <div class="border-glass-border bg-card-item-bg h-full w-full flex-1 overflow-hidden rounded-2xl border">
       <div class="flex h-full w-full">
-        <div class="custom-scrollbar w-1/2 overflow-hidden p-3" style={{ minWidth: '360px' }}>
+        <div
+          id="render-tree-left"
+          class="custom-scrollbar w-1/2 overflow-hidden p-3"
+          style={{ minWidth: '360px' }}
+        >
           <Tree data={data} onNodeClick={onNodeClick}></Tree>
         </div>
         <div class="border-glass-border border-l"></div>

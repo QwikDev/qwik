@@ -1,5 +1,6 @@
-import { component$ } from '@qwik.dev/core';
+import { component$, useVisibleTask$ } from '@qwik.dev/core';
 import type { AssetInfo } from '@qwik.dev/devtools/kit';
+import { revealTreeNodeByName } from '../components/Tree/reveal';
 import { IconMonitor, QwikLogo } from '../components/Icons/Icons';
 import { TabContent } from '../components/TabContent/TabContent';
 import { TabTitle } from '../components/TabTitle/TabTitle';
@@ -50,6 +51,32 @@ const ViteOnlyPlaceholder = component$<{ feature: string }>(({ feature }) => {
 export const DevtoolsContent = component$<DevtoolsContentProps>(({ state }) => {
   const isExtensionMode = state.isExtension;
   const assetSummary = formatAssetSummary(state.assets);
+
+  // The palette switches to the tree tab and sets componentReveal; retry until the tree row exists
+  // (the tree loads asynchronously), then clear the request.
+  useVisibleTask$(({ track, cleanup }) => {
+    const name = track(() => state.componentReveal);
+    if (!name) {
+      return;
+    }
+    let attempts = 0;
+    let timer: ReturnType<typeof setTimeout>;
+    const tryReveal = () => {
+      const container =
+        document.getElementById('render-tree-left') ?? document.getElementById('hook-tree-left');
+      if (container && revealTreeNodeByName(container, name)) {
+        state.componentReveal = null;
+        return;
+      }
+      if (++attempts < 12) {
+        timer = setTimeout(tryReveal, 120);
+      } else {
+        state.componentReveal = null;
+      }
+    };
+    timer = setTimeout(tryReveal, 60);
+    cleanup(() => clearTimeout(timer));
+  });
 
   switch (state.activeTab) {
     case 'overview':
@@ -129,7 +156,7 @@ export const DevtoolsContent = component$<DevtoolsContentProps>(({ state }) => {
       return (
         <TabContent>
           <TabTitle title="Performance" q:slot="title" />
-          <Performance q:slot="content" />
+          <Performance state={state} q:slot="content" />
         </TabContent>
       );
     case 'preloads':

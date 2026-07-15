@@ -294,7 +294,9 @@ export const DevtoolsPanel = component$((props: DevtoolsPanelProps) => {
         props.state.isOpen = !props.state.isOpen;
       }
 
-      if (e.key === 'Escape' && props.state.isOpen) {
+      if (e.key === 'Escape' && props.state.isPaletteOpen) {
+        props.state.isPaletteOpen = false;
+      } else if (e.key === 'Escape' && props.state.isOpen) {
         props.state.isOpen = false;
       }
     };

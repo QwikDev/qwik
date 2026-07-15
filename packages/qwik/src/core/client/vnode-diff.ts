@@ -2,11 +2,15 @@ import { isDev } from '@qwik.dev/core/build';
 import { qTest } from '../shared/utils/qdev';
 import { _EFFECT_BACK_REF } from '../reactive-primitives/backref';
 import { clearAllEffects, clearEffectSubscription } from '../reactive-primitives/cleanup';
-import { AsyncSignalImpl } from '../reactive-primitives/impl/async-signal-impl';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 import type { Signal } from '../reactive-primitives/signal.public';
 import { SubscriptionData } from '../reactive-primitives/subscription-data';
-import { ComputedSignalFlags, EffectProperty, type Consumer } from '../reactive-primitives/types';
+import {
+  AsyncSignalFlags,
+  ComputedSignalFlags,
+  EffectProperty,
+  type Consumer,
+} from '../reactive-primitives/types';
 import { isSignal } from '../reactive-primitives/utils';
 import { SERIALIZABLE_STATE, type OnRenderFn } from '../shared/component.public';
 import { isCursor, type Cursor } from '../shared/cursor/cursor';
@@ -1971,7 +1975,11 @@ export function cleanup(
                 }
               }
 
-              if (objIsTask || obj instanceof AsyncSignalImpl) {
+              if (
+                objIsTask ||
+                (obj instanceof ComputedSignalImpl &&
+                  (obj.$flags$ & AsyncSignalFlags.ASYNC_MODE || obj.$current$))
+              ) {
                 cleanupDestroyable(obj);
               }
             }

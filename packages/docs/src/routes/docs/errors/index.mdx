@@ -183,9 +183,7 @@ You used a Signal where a primitive was expected (e.g., string concatenation, co
 
 ## Q29
 
-**useComputed$ QRL cannot return a Promise**
-
-The function inside `useComputed$` must be synchronous. If you need an async signal with a value that may resolve later, use `useAsync$` instead. If the UI reads the value before it is ready, wrap that UI in `<Suspense>` or handle `.loading` and `.error` inline.
+_This code is no longer used: `useComputed$` now supports async functions. See [Async computed values](/docs/(qwik)/core/state/index.mdx#async-computed-values)._
 
 ## Q30
 
@@ -221,7 +219,7 @@ A plain function (not wrapped in `$()`) was found in serializable state. Wrap it
 
 **Cannot read .value of a clientOnly async signal during SSR**
 
-You accessed `.value` on an async signal with `clientOnly: true` during server-side rendering. Since `clientOnly` signals skip computation on the server, there is no value available. Use `.loading` to show a loading state, or provide an `initial` value in the options.
+You accessed `.value` on an async signal with `clientOnly: true` during server-side rendering. Since `clientOnly` signals skip computation on the server, there is no value available. Use `.pending` to show a loading state, or provide an `initial` value in the options.
 
 ## Q36
 

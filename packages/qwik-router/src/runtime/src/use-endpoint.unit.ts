@@ -1,7 +1,7 @@
 import { _serialize } from '@qwik.dev/core/internal';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { getLoaderName } from '../../middleware/request-handler/request-path';
-import { FULLPATH_HEADER, fetchRouteLoaderData } from './route-loaders';
+import { FULLPATH_HEADER, ROUTE_PATH_HEADER, fetchRouteLoaderData } from './route-loaders';
 import { submitAction } from './use-endpoint';
 
 const previousStrictLoaders = globalThis.__STRICT_LOADERS__;
@@ -132,7 +132,7 @@ describe('fetchRouteLoaderData', () => {
     );
   });
 
-  it('sends X-Qwik-fullpath for strict root loader requests on deeper page paths', async () => {
+  it('keeps strict loader paths out of X-Qwik-fullpath', async () => {
     globalThis.__STRICT_LOADERS__ = true;
     const fetchSpy = vi.fn().mockResolvedValue(
       new Response('', {
@@ -149,7 +149,7 @@ describe('fetchRouteLoaderData', () => {
       `/${getLoaderName('root-loader', 'manifest-hash')}?view=full`,
       expect.objectContaining({
         headers: {
-          [FULLPATH_HEADER]: '/products/123/',
+          [ROUTE_PATH_HEADER]: '/products/123/',
         },
       })
     );
@@ -261,20 +261,20 @@ describe('fetchRouteLoaderData', () => {
     expect(fetchSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('does not let abortable requests populate the shared loader fetch cache', async () => {
-    const body = await _serialize({ d: 'uncached' });
+  it('reuses a completed abortable loader request', async () => {
+    const body = await _serialize({ d: 'cached' });
     const fetchSpy = vi.fn().mockImplementation(() => Promise.resolve(new Response(body)));
     vi.stubGlobal('fetch', fetchSpy);
 
     const url = new URL('http://localhost/products/123/?view=full');
-    await fetchRouteLoaderData('abort-uncached', '/products/123/', 'manifest-hash', {
+    await fetchRouteLoaderData('abort-cached', '/products/123/', 'manifest-hash', {
       pageUrl: url,
       signal: new AbortController().signal,
     });
-    await fetchRouteLoaderData('abort-uncached', '/products/123/', 'manifest-hash', {
+    await fetchRouteLoaderData('abort-cached', '/products/123/', 'manifest-hash', {
       pageUrl: url,
     });
 
-    expect(fetchSpy).toHaveBeenCalledTimes(2);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
   });
 });

@@ -302,7 +302,7 @@ function* inflateIterator(
 
       if (asyncSignal.$flags$ & AsyncSignalFlags.CLIENT_ONLY) {
         // If it's client only, it was serialized because it pretended to be loading
-        asyncSignal.$untrackedLoading$ = true;
+        asyncSignal.$untrackedPending$ = true;
       }
 
       const hasValue = d.length > 6;

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { createDocument } from '../testing/document';
+import { createDocument } from '@qwik.dev/core/testing';
 import { ssrCreateContainer } from './ssr-container';
 import {
   QDefaultSlot,

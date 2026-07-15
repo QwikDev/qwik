@@ -609,10 +609,10 @@ export default component$(() => {
 This **improves UX performance** for client-side (**SPA**) navigations, especially for pages that
 wait on `routeLoader$`, `onGet`, databases, or API calls.
 
-Use `prefetchBundle` to control when Qwik prefetches the javascript bundles required for the target
+Use `prefetchBundles` to control when Qwik prefetches the javascript bundles required for the target
 route. Use `prefetchData` to control when Qwik prefetches and caches route data for the target route.
 
-By default, `prefetchBundle` uses `visible`, while `prefetchData` uses `intent`. This means route
+By default, `prefetchBundles` uses `visible`, while `prefetchData` uses `intent`. This means route
 bundles are prefetched when the link enters the viewport, and route data is prefetched when the
 user shows navigation intent with `pointerenter`, hover, or focus.
 
@@ -639,13 +639,13 @@ import { Link } from '@qwik.dev/router';
 export default component$(() => {
   return (
     <div>
-      <Link href="/a" prefetchBundle="visible">
+      <Link href="/a" prefetchBundles="visible">
         route bundles will be prefetched when visible
       </Link>
       <Link href="/b" prefetchData="intent">
         route data will be prefetched on intent
       </Link>
-      <Link href="/c" prefetchBundle="visible" prefetchData="commit">
+      <Link href="/c" prefetchBundles="visible" prefetchData="commit">
         bundle and data prefetching use different strategies
       </Link>
       <Link href="/d" prefetch={false}>

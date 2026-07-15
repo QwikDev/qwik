@@ -637,6 +637,18 @@ describe('shared-serialization', () => {
         ]
         5 Signal [
           {number} 0
+          EffectSubscriptionNoData [
+            RootRef 1
+            Constant '.'
+          ]
+          EffectSubscriptionNoData [
+            RootRef 2
+            Constant '.'
+          ]
+          EffectSubscriptionNoData [
+            RootRef 3
+            Constant '.'
+          ]
         ]
         6 {string} "mock-chunk"
         7 {string} "describe_describe_it_dirty_createComputed_ahnh0V4rf6g"
@@ -644,7 +656,7 @@ describe('shared-serialization', () => {
         9 {string} "describe_describe_it_never_createComputed_1HbLed7JXyo"
         10 {string} "describe_describe_it_always_createComputed_4nMmgHlUOog"
         11 {string} "describe_describe_it_noSer_createComputed_pXwl00hYYQQ"
-        (412 chars)"
+        (454 chars)"
       `);
     });
     it(title(TypeIds.SerializerSignal), async () => {
@@ -784,7 +796,7 @@ describe('shared-serialization', () => {
         { timeout: 5000 }
       );
       const undefinedSignal = createAsyncSignal(inlinedQrl(() => {}, 'undefinedSignal'));
-      undefinedSignal.untrackedLoading;
+      undefinedSignal.untrackedPending;
 
       await retryOnPromise(() => {
         // note that this won't subscribe because we're not setting up the context
@@ -811,7 +823,7 @@ describe('shared-serialization', () => {
           Constant undefined
           Constant undefined
           Constant undefined
-          {number} 1
+          {number} 1537
         ]
         1 AsyncSignal [
           QRL "9#2#-3"
@@ -819,11 +831,16 @@ describe('shared-serialization', () => {
           Constant undefined
           Constant undefined
           Constant undefined
-          Constant undefined
+          {number} 1536
           {number} 2
         ]
         2 AsyncSignal [
           QRL "9#3#-4"
+          Constant undefined
+          Constant undefined
+          Constant undefined
+          Constant undefined
+          {number} 1536
         ]
         3 AsyncSignal [
           QRL "9#4#-5"
@@ -831,7 +848,7 @@ describe('shared-serialization', () => {
           Constant undefined
           Constant undefined
           Constant undefined
-          Constant undefined
+          {number} 1536
           {number} 2
         ]
         4 AsyncSignal [
@@ -840,7 +857,7 @@ describe('shared-serialization', () => {
           Constant undefined
           Constant undefined
           Constant undefined
-          {number} 1
+          {number} 1537
           Constant NEEDS_COMPUTATION
           {number} 100
         ]
@@ -850,7 +867,7 @@ describe('shared-serialization', () => {
           Constant undefined
           Constant undefined
           Constant undefined
-          {number} 1
+          {number} 1537
           Constant NEEDS_COMPUTATION
           Constant undefined
           {number} 23
@@ -861,7 +878,7 @@ describe('shared-serialization', () => {
           Constant undefined
           Constant undefined
           Constant undefined
-          {number} 1
+          {number} 1537
           Constant NEEDS_COMPUTATION
           Constant undefined
           Constant undefined
@@ -873,7 +890,7 @@ describe('shared-serialization', () => {
           Constant undefined
           Constant undefined
           Constant undefined
-          Constant undefined
+          {number} 1536
           Constant undefined
         ]
         8 Signal [
@@ -900,7 +917,7 @@ describe('shared-serialization', () => {
         15 {string} "concurrent"
         16 {string} "timeout"
         17 {string} "undefinedSignal"
-        (486 chars)"
+        (530 chars)"
       `);
     });
     it(title(TypeIds.Store), async () => {

@@ -33,13 +33,23 @@ export interface SymbolPairs {
   latency: number[];
 }
 
+export interface SymbolPairCounts {
+  from: string | null;
+  to: string;
+  relatedCount: number;
+  unrelatedCount: number;
+}
+
 export interface SymbolDetail {
   hash: string;
   fullName: string;
   origin: string;
 }
 
-export function computeSymbolGraph(rows: SymbolPairs[], details?: SymbolDetail[]): Symbol[] {
+export function computeSymbolGraph(
+  rows: (SymbolPairs | SymbolPairCounts)[],
+  details?: SymbolDetail[]
+): Symbol[] {
   const detailMap = new Map<string, SymbolDetail>();
   const edgeMap = new Map<string, Edge>();
   const symbols: Symbol[] = [];
@@ -48,12 +58,15 @@ export function computeSymbolGraph(rows: SymbolPairs[], details?: SymbolDetail[]
   const rootSymbol = getSymbol('<synthetic.root.symbol>');
   for (const row of rows) {
     fixNames(row);
-    const [countRelated, countUnrelated] = vectorSum2(
-      row.delay,
-      // If previous symbol occurred less than x ms than assume that they are related.
-      // if more than x ms than assume that they are unrelated (parent is null).
-      250
-    );
+    const [countRelated, countUnrelated] =
+      'delay' in row
+        ? vectorSum2(
+            row.delay,
+            // If previous symbol occurred less than x ms than assume that they are related.
+            // if more than x ms than assume that they are unrelated (parent is null).
+            250
+          )
+        : [row.relatedCount, row.unrelatedCount];
     const self = getSymbol(row.to);
     self.count += countRelated + countUnrelated;
     if (countRelated) {
@@ -107,7 +120,7 @@ export function computeSymbolGraph(rows: SymbolPairs[], details?: SymbolDetail[]
     return edge;
   }
 
-  function fixNames(row: SymbolPairs) {
+  function fixNames(row: { from: string | null; to: string }) {
     row.to = row.to.split('_').pop()!;
     row.from = row.from == null ? null : row.from.split('_').pop()!;
     if (row.from === 'hW') {
@@ -134,6 +147,29 @@ export function computeSymbolGraph(rows: SymbolPairs[], details?: SymbolDetail[]
       symbols.push(symbol);
     }
     return symbol;
+  }
+}
+
+export type SymbolTreeNode = Omit<Symbol, 'children'> & {
+  children: { count: number; to: SymbolTreeNode }[];
+};
+
+export function computeSymbolTree(root: Symbol): SymbolTreeNode {
+  const expandedSymbols = new Set<Symbol>();
+  return visit(root, 0);
+
+  function visit(symbol: Symbol, depth: number): SymbolTreeNode {
+    const shouldExpand = symbol.depth === depth && !expandedSymbols.has(symbol);
+    if (shouldExpand) {
+      expandedSymbols.add(symbol);
+    }
+    const { children, ...node } = symbol;
+    return {
+      ...node,
+      children: shouldExpand
+        ? children.map((edge) => ({ count: edge.count, to: visit(edge.to, depth + 1) }))
+        : [],
+    };
   }
 }
 
@@ -192,7 +228,9 @@ export function computeSymbolVectors(symbols: Symbol[]): SymbolVectors {
       symbolVectorIdxMap.set(symbols[i], i);
       vector.push(0);
     }
-    vectors.push(vector);
+    if (vector.length > 0) {
+      vectors.push(vector);
+    }
     for (let i = 1; i < vector.length; i++) {
       vectors.push(vector.slice());
     }

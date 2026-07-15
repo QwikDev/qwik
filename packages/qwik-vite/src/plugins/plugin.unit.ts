@@ -699,6 +699,61 @@ test('transform omits sourcemaps for public virtual modules', async () => {
   expect(result!.map).toBeNull();
 });
 
+test('load bootstraps a cold QRL segment whose parent is not in the module graph', async () => {
+  // Absolute, pre-normalized paths so parentId matches the optimizer's segment
+  // keys on every platform (including Windows drive letters).
+  const root = normalizePath(resolve(cwd, 'cold-test'));
+  const parentId = `${root}/src/cold.tsx`;
+  const code = `import { component$ } from '@qwik.dev/core';
+export const Cold = component$(() => <div>hi</div>);
+`;
+  const transformCtx = {
+    addWatchFile: () => undefined,
+    emitFile: () => undefined,
+  } as any;
+
+  // Discover the real segment id the optimizer produces for this parent.
+  const discovery = await mockPlugin(process.platform, true);
+  await discovery.normalizeOptions({ rootDir: root });
+  discovery.configureServer({
+    hot: {},
+    moduleGraph: { getModuleById: () => undefined, invalidateModule: () => undefined },
+  } as any);
+  const discovered = await discovery.transform(transformCtx, code, parentId);
+  const segmentId: string = discovered!.meta!.qwikdeps![0];
+  expect(segmentId).toContain('cold.tsx_');
+
+  // Fresh plugin whose module graph never loaded the parent — the split
+  // server/browser SSR case (SSR rendered in a different vite server).
+  const plugin = await mockPlugin(process.platform, true);
+  await plugin.normalizeOptions({ rootDir: root });
+  const transformRequested: string[] = [];
+  plugin.configureServer({
+    hot: {},
+    moduleGraph: { getModuleById: () => undefined, invalidateModule: () => undefined },
+    // vite would transform the requested parent, populating the plugin's outputs
+    transformRequest: async (reqId: string) => {
+      transformRequested.push(reqId);
+      await plugin.transform(transformCtx, code, parentId);
+      return null;
+    },
+  } as any);
+
+  // A browser fetch of the segment: resolveId records segment -> parent, no transform.
+  await plugin.resolveId(
+    { resolve: async () => ({ id: parentId }) } as any,
+    segmentId,
+    `${root}/index.html`
+  );
+
+  // Cold load must bootstrap the never-loaded parent by id and resolve the segment,
+  // instead of erroring with "module does not exist in the build graph".
+  const loaded = await plugin.load({} as any, segmentId);
+
+  expect(transformRequested).toContain(parentId);
+  expect((loaded as { code: string })?.code).toBeTypeOf('string');
+});
+
 async function mockPlugin(os = process.platform, useRealOptimizer = false) {
   const plugin = createQwikPlugin({
     sys: {

@@ -7,7 +7,7 @@ import {
   type AsyncSignal,
   type Signal,
 } from '../reactive-primitives/signal.public';
-import type { AsyncCtx } from '../reactive-primitives/types';
+import type { ComputeCtx } from '../reactive-primitives/types';
 import { StoreFlags } from '../reactive-primitives/types';
 import type { JSXOutput } from '../shared/jsx/types/jsx-node';
 import { createQRL } from '../shared/qrl/qrl-class';
@@ -21,7 +21,7 @@ const DEBUG = false;
 const log = (...args: any[]) => console.log('RESOURCE', ...args.map(qwikDebugToString));
 
 /** @public */
-export interface ResourceCtx<T = unknown> extends AsyncCtx<T> {
+export interface ResourceCtx<T = unknown> extends ComputeCtx<T> {
   /** @deprecated Does not do anything */
   cache(policyOrMilliseconds: number | 'immutable'): void;
 }

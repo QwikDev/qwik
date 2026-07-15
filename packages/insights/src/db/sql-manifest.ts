@@ -1,7 +1,7 @@
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and, inArray, sql } from 'drizzle-orm';
 import { type AppDatabase } from './index';
 import { type ManifestRow, edgeTable, manifestTable } from './schema';
-import { latencyColumnSums, latencyCount, toVector } from './query-helpers';
+import { latencyColumnSums, toVector } from './query-helpers';
 
 export async function dbGetManifests(
   db: AppDatabase,
@@ -27,6 +27,10 @@ export async function dbGetManifestStats(
   db: AppDatabase,
   publicApiKey: string
 ): Promise<ManifestStatsRow[]> {
+  const manifestHashes = await dbGetManifestHashes(db, publicApiKey);
+  if (manifestHashes.length === 0) {
+    return [];
+  }
   const manifests = await db
     .select({
       hash: manifestTable.hash,
@@ -34,11 +38,19 @@ export async function dbGetManifestStats(
       ...latencyColumnSums,
     })
     .from(manifestTable)
-    .innerJoin(edgeTable, eq(edgeTable.manifestHash, manifestTable.hash))
-    .where(and(eq(manifestTable.publicApiKey, publicApiKey)))
+    .innerJoin(
+      edgeTable,
+      and(
+        eq(edgeTable.publicApiKey, manifestTable.publicApiKey),
+        eq(edgeTable.manifestHash, manifestTable.hash)
+      )
+    )
+    .where(
+      and(eq(manifestTable.publicApiKey, publicApiKey), inArray(manifestTable.hash, manifestHashes))
+    )
     .groupBy(manifestTable.hash)
     .orderBy(sql`${manifestTable.timestamp} DESC`)
-    .limit(1000)
+    .limit(100)
     .all();
   return manifests.map((manifest) => {
     return {
@@ -78,35 +90,15 @@ export async function dbGetManifestInfo(
 export async function dbGetManifestHashes(
   db: AppDatabase,
   publicApiKey: string,
-  { sampleSize }: { sampleSize?: number } = {}
+  { limit = 100, offset = 0 }: { limit?: number; offset?: number } = {}
 ): Promise<string[]> {
-  if (typeof sampleSize !== 'number') {
-    sampleSize = 100000;
-  }
   const manifests = await db
-    .select({ hash: manifestTable.hash, ...latencyCount })
+    .select({ hash: manifestTable.hash })
     .from(manifestTable)
-    .innerJoin(
-      edgeTable,
-      and(
-        eq(edgeTable.publicApiKey, manifestTable.publicApiKey),
-        eq(edgeTable.manifestHash, manifestTable.hash)
-      )
-    )
     .where(eq(manifestTable.publicApiKey, publicApiKey))
-    .groupBy(manifestTable.hash)
     .orderBy(sql`${manifestTable.timestamp} DESC`)
-    .limit(1000)
+    .limit(limit)
+    .offset(offset)
     .all();
-  const hashes: string[] = [];
-  let sum = 0;
-  for (let i = 0; i < manifests.length; i++) {
-    const row = manifests[i];
-    hashes.push(row.hash);
-    sum += row.latencyCount;
-    if (sum > sampleSize) {
-      break;
-    }
-  }
-  return hashes;
+  return manifests.map((manifest) => manifest.hash);
 }

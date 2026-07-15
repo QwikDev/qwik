@@ -1,4 +1,4 @@
-import { component$, Suspense, useAsync$, useSignal } from '@qwik.dev/core';
+import { component$, Suspense, useComputed$, useSignal } from '@qwik.dev/core';
 
 type User = {
   name: {
@@ -9,7 +9,7 @@ type User = {
 };
 
 const UserCard = component$(() => {
-  const user = useAsync$(async ({ abortSignal }) => {
+  const user = useComputed$(async ({ abortSignal }) => {
     const response = await fetch('https://randomuser.me/api/', {
       signal: abortSignal,
     });

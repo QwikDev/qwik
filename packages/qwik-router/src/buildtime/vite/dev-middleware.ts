@@ -248,7 +248,7 @@ export const getRouterIndexTags = (server: ViteDevServer) => {
   const cssUrls = getCssUrls(server);
   return cssUrls.map((url) => ({
     tag: 'link',
-    attrs: { rel: 'stylesheet', href: url },
+    attrs: { rel: 'stylesheet', href: server.config.base + url.slice(1) },
   }));
 };
 

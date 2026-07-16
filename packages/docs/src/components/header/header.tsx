@@ -73,6 +73,38 @@ export const Header = component$(() => {
           'home-page-header': pathname === '/',
         }}
       >
+        <a class="v2-docs-super-header" href="https://next.qwik.dev/">
+          <span class="v2-docs-super-header-inner">
+            <span class="v2-docs-super-header-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M12 2.75 13.83 8.4 19.5 10.2l-5.67 1.8L12 17.65 10.17 12 4.5 10.2l5.67-1.8L12 2.75Z"
+                  fill="currentColor"
+                />
+                <path
+                  d="m18.5 15.25.65 2.1 2.1.65-2.1.65-.65 2.1-.65-2.1-2.1-.65 2.1-.65.65-2.1ZM5.5 3.25l.5 1.5 1.5.5-1.5.5-.5 1.5-.5-1.5-1.5-.5 1.5-.5.5-1.5Z"
+                  fill="white"
+                  fill-opacity=".9"
+                />
+              </svg>
+            </span>
+            <span class="v2-docs-super-header-copy">
+              <strong>Qwik v2 beta</strong>
+              <span>Lighter, faster, better.</span>
+            </span>
+            <span class="v2-docs-super-header-arrow" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path
+                  d="M3.25 8h8.5m0 0L8.5 4.75M11.75 8 8.5 11.25"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.7"
+                />
+              </svg>
+            </span>
+          </span>
+        </a>
         <div class="header-inner">
           <div class="header-logo">
             <Link href="/">

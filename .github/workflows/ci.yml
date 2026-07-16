@@ -20,7 +20,7 @@ on:
   pull_request:
   push:
     branches:
-      - main
+      - v1
       - upcoming
       - next
       - qwik-labs

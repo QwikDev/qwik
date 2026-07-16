@@ -1,7 +1,7 @@
-export { requestHandler, _asyncRequestStore } from './request-handler';
+export { _asyncRequestStore } from './async-request-store';
+export { requestHandler } from './request-handler';
 
 export { getErrorHtml } from './error-handler';
-export { getNotFound } from './not-found-paths';
 export { isStaticPath } from './static-paths';
 
 export { mergeHeadersCookies } from './cookie';
@@ -10,7 +10,7 @@ export { ServerError } from './server-error';
 export { AbortMessage, RedirectMessage } from './redirect-handler';
 export { RewriteMessage } from './rewrite-handler';
 
-export { RequestEvShareQData } from './request-event';
+export { clearSsrCache, clearLoaderCache } from './etag';
 export { _TextEncoderStream_polyfill } from './polyfill';
 
 export type {
@@ -18,6 +18,7 @@ export type {
   Cookie,
   CookieOptions,
   CookieValue,
+  InternalRequest,
   ResolveValue,
   ResolveSyncValue,
   RequestEvent,

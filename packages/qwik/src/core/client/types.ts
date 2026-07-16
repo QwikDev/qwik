@@ -4,6 +4,7 @@ import type { QRL } from '../shared/qrl/qrl.public';
 import type { Container } from '../shared/types';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
 import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
+import type { VNode } from '../shared/vnode/vnode';
 
 export type ClientAttrKey = string;
 export type ClientAttrValue = string | null;
@@ -17,8 +18,10 @@ export interface ClientContainer extends Container {
   $locale$: string;
   qManifestHash: string;
   rootVNode: ElementVNode;
-  $forwardRefs$: Array<number> | null;
+  $forwardRefs$: Array<number | string> | null;
+  vNodeLocate(id: string | Element): VNode;
   parseQRL<T = unknown>(qrl: string): QRL<T>;
+  $getForwardRef$(id: number): number | string | undefined;
   $setRawState$(id: number, vParent: ElementVNode | VirtualVNode): void;
 }
 
@@ -40,6 +43,10 @@ export interface ContainerElement extends HTMLElement {
 
   /** String from `<script type="qwik/vnode">` tag. */
   qVnodeData?: string;
+  qDestroy?: () => void;
+
+  /** Segment-local strings from `<script type="qwik/vnode" q:r="...">` tags. */
+  qSegmentVnodeData?: Map<string, string>;
 }
 
 /** @internal */
@@ -50,6 +57,27 @@ export interface QDocument extends Document {
    * This map is used to rebuild virtual nodes from the HTML. Missing extra text nodes, and Fragments.
    */
   qVNodeData: WeakMap<Element, string>;
+
+  /** True once root document VNode data has been scheduled at least once. */
+  qVNodeDataStarted?: boolean;
+
+  /** True when root, segment, and patch VNode data work is fully drained. */
+  qVNodeDataReady?: boolean;
+
+  /** Internal yielding state for queued VNode data jobs. */
+  qVNodeDataState?: unknown;
+
+  /** Callbacks waiting for root, segment, and patch VNode data work to drain. */
+  qVNodeDataCallbacks?: Array<() => void>;
+
+  /** True once the root document VNode data has been fully processed. */
+  qVNodeDataProcessed?: boolean;
+
+  /** Processes one vnode patch script. */
+  qProcessVNodeDataPatch?: (script: Element | null) => void;
+
+  /** Processes an out-of-order Suspense segment after its resolved HTML is swapped in. */
+  qProcessOOOS?: (boundaryId: number, content: Element | null) => void;
 }
 
 /**
@@ -72,32 +100,36 @@ export interface QDocument extends Document {
  * @internal
  */
 export const enum VNodeFlags {
-  Element /* ****************** */ = 0b00_0000001,
-  Virtual /* ****************** */ = 0b00_0000010,
-  ELEMENT_OR_VIRTUAL_MASK /* ** */ = 0b00_0000011,
-  Text /* ********************* */ = 0b00_0000100,
-  ELEMENT_OR_TEXT_MASK /* ***** */ = 0b00_0000101,
-  TYPE_MASK /* **************** */ = 0b00_0000111,
-  INFLATED_TYPE_MASK /* ******* */ = 0b00_0001111,
+  Element /* ****************** */ = 0b000_000000001,
+  Virtual /* ****************** */ = 0b000_000000010,
+  ELEMENT_OR_VIRTUAL_MASK /* ** */ = 0b000_000000011,
+  Text /* ********************* */ = 0b000_000000100,
+  ELEMENT_OR_TEXT_MASK /* ***** */ = 0b000_000000101,
+  TYPE_MASK /* **************** */ = 0b000_000000111,
+  INFLATED_TYPE_MASK /* ******* */ = 0b000_000001111,
   /// Extra flag which marks if a node needs to be inflated.
-  Inflated /* ***************** */ = 0b00_0001000,
+  Inflated /* ***************** */ = 0b000_000001000,
   /// Marks if the `ensureProjectionResolved` has been called on the node.
-  Resolved /* ***************** */ = 0b00_0010000,
+  Resolved /* ***************** */ = 0b000_000010000,
   /// Marks if the vnode is deleted.
-  Deleted /* ****************** */ = 0b00_0100000,
+  Deleted /* ****************** */ = 0b000_000100000,
+  HasIterationItems /* ******** */ = 0b000_001000000,
+  InflatedIterationItems /* *** */ = 0b000_010000000,
   /// Marks if the vnode is a cursor (has priority set).
-  Cursor /* ******************* */ = 0b00_1000000,
+  Cursor /* ******************* */ = 0b000_100000000,
   /// Flags for Namespace
-  NAMESPACE_MASK /* *********** */ = 0b11_0000000,
-  NEGATED_NAMESPACE_MASK /* ** */ = ~0b11_0000000,
-  NS_html /* ****************** */ = 0b00_0000000, // http://www.w3.org/1999/xhtml
-  NS_svg /* ******************* */ = 0b01_0000000, // http://www.w3.org/2000/svg
-  NS_math /* ****************** */ = 0b10_0000000, // http://www.w3.org/1998/Math/MathML
+  NAMESPACE_MASK /* *********** */ = 0b011_000000000,
+  NEGATED_NAMESPACE_MASK /* ** */ = ~0b011_000000000,
+  NS_html /* ****************** */ = 0b000_000000000, // http://www.w3.org/1999/xhtml
+  NS_svg /* ******************* */ = 0b001_000000000, // http://www.w3.org/2000/svg
+  NS_math /* ****************** */ = 0b010_000000000, // http://www.w3.org/1998/Math/MathML
+  /// Marks if the vnode has a target element for external projection rendering.
+  HasTargetElement /* ********* */ = 0b100_000000000,
 }
 
 export const enum VNodeFlagsIndex {
-  mask /* ************** */ = 0b11_1111111,
-  shift /* ************* */ = 9,
+  mask /* ************** */ = 0b111_111111111,
+  shift /* ************* */ = 12,
 }
 
 export const enum VNodeProps {

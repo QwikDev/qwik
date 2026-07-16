@@ -1,0 +1,108 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 1794
+expression: output
+---
+==INPUT==
+
+
+import { component$, useResource$ } from '@qwik.dev/core';
+import mongodb from 'mongodb';
+
+export const onGet = () => {
+	const data = mongodb.collection.whatever;
+	return {
+		body: {
+		data
+		}
+	}
+};
+
+export default component$(()=> {
+	useResource$(() => {
+		return onGet();
+	})
+	return <div>cmp</div>
+});
+
+============================= test.tsx_test_component_useResource_4a8wVY7wh38.tsx (ENTRY POINT)==
+
+import { onGet } from "./test";
+//
+export const test_component_useResource_4a8wVY7wh38 = ()=>{
+    return onGet();
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;sDAcc;IACZ,OAAO;AACR\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_useResource_4a8wVY7wh38",
+  "entry": null,
+  "displayName": "test.tsx_test_component_useResource",
+  "hash": "4a8wVY7wh38",
+  "canonicalFilename": "test.tsx_test_component_useResource_4a8wVY7wh38",
+  "path": "",
+  "extension": "tsx",
+  "parent": "test_component_LUXeXe0DQrg",
+  "ctxKind": "function",
+  "ctxName": "useResource$",
+  "captures": false,
+  "loc": [
+    250,
+    278
+  ]
+}
+*/
+============================= test.tsx ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+//
+export const onGet = ()=>{
+    throw "Symbol removed by Qwik Optimizer, it can not be called from current platform";
+};
+export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;aAIa;;;AASb,6BAAe,2CAKZ\"}")
+============================= test.tsx_test_component_LUXeXe0DQrg.tsx (ENTRY POINT)==
+
+import { qrl } from "@qwik.dev/core";
+import { useResourceQrl } from "@qwik.dev/core";
+//
+const q_test_component_useResource_4a8wVY7wh38 = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_useResource_4a8wVY7wh38"), "test_component_useResource_4a8wVY7wh38");
+//
+export const test_component_LUXeXe0DQrg = ()=>{
+    useResourceQrl(q_test_component_useResource_4a8wVY7wh38);
+    return <div>cmp</div>;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;0CAa0B;IACzB;IAGA,QAAQ,IAAI,GAAG,EAAE;AAClB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_LUXeXe0DQrg",
+  "entry": null,
+  "displayName": "test.tsx_test_component",
+  "hash": "LUXeXe0DQrg",
+  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
+  "path": "",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    229,
+    304
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

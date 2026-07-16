@@ -1,7 +1,5 @@
 import { component$ } from '@qwik.dev/core';
-import { EditIcon } from '../svgs/edit-icon';
-import { AlertIcon } from '../svgs/alert-icon';
-import { ChatIcon } from '../svgs/chat-icon';
+import { lucide } from '@qds.dev/ui';
 import { GithubLogo } from '../svgs/github-logo';
 import { TwitterLogo } from '../svgs/twitter-logo';
 
@@ -10,51 +8,34 @@ type OnThisPageMoreProps = {
 };
 
 export const OnThisPageMore = component$<OnThisPageMoreProps>(({ editUrl }) => {
-  const OnThisPageMore = [
-    {
-      href: editUrl,
-      text: 'Edit this Page',
-      icon: EditIcon,
-    },
-    {
-      href: 'https://github.com/QwikDev/qwik/issues/new/choose',
-      text: 'Create an issue',
-      icon: AlertIcon,
-    },
-    {
-      href: 'https://qwik.dev/chat',
-      text: 'Join our community',
-      icon: ChatIcon,
-    },
-    {
-      href: 'https://github.com/QwikDev/qwik',
-      text: 'GitHub',
-      icon: GithubLogo,
-    },
-    {
-      href: 'https://twitter.com/QwikDev',
-      text: '@QwikDev',
-      icon: TwitterLogo,
-    },
-  ];
   return (
-    <>
-      <h6>More</h6>
-      <ul class="px-2 font-medium text-[var(--interactive-text-color)]">
-        {OnThisPageMore.map((el, index) => {
-          return (
-            <li
-              class="hover:bg-(--on-this-page-hover-bg-color) rounded-lg"
-              key={`more-items-on-this-page-${index}`}
-            >
-              <a class="more-item" href={el.href} rel="noopener" target="_blank">
-                <el.icon width={20} height={20} />
-                <span>{el.text}</span>
-              </a>
-            </li>
-          );
-        })}
-      </ul>
-    </>
+    <div class="more-section">
+      <h6 class="on-this-page-more-heading">More</h6>
+      <a class="more-item" href={editUrl} rel="noopener" target="_blank">
+        <lucide.pencil class="size-4" />
+        <span>Edit this page</span>
+      </a>
+      <a
+        class="more-item"
+        href="https://github.com/QwikDev/qwik/issues/new/choose"
+        rel="noopener"
+        target="_blank"
+      >
+        <lucide.circlealert class="size-4" />
+        <span>Create an issue</span>
+      </a>
+      <a class="more-item" href="https://qwik.dev/chat" rel="noopener" target="_blank">
+        <lucide.messagesquare class="size-4" />
+        <span>Join our community</span>
+      </a>
+      <a class="more-item" href="https://github.com/QwikDev/qwik" rel="noopener" target="_blank">
+        <GithubLogo width={20} height={20} />
+        <span>GitHub</span>
+      </a>
+      <a class="more-item" href="https://twitter.com/QwikDev" rel="noopener" target="_blank">
+        <TwitterLogo width={20} height={20} />
+        <span>@QwikDev</span>
+      </a>
+    </div>
   );
 });

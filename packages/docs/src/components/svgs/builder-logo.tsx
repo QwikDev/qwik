@@ -1,10 +1,13 @@
-interface BuilderLogoProps {
+import { type PropsOf } from '@qwik.dev/core';
+
+interface BuilderLogoProps extends PropsOf<'svg'> {
   width: number;
   height: number;
 }
 
-export const BuilderLogo = ({ width, height }: BuilderLogoProps) => (
+export const BuilderLogo = ({ width, height, class: className, ...props }: BuilderLogoProps) => (
   <svg
+    {...props}
     width={width}
     height={height}
     viewBox="0 0 312 67"
@@ -12,6 +15,7 @@ export const BuilderLogo = ({ width, height }: BuilderLogoProps) => (
     xmlns="http://www.w3.org/2000/svg"
     role="img"
     aria-label="Builder Logo"
+    class={className}
   >
     <g clip-path="url(#clip0_2_46)">
       <path

@@ -27,6 +27,12 @@ export interface DevJSX {
   stack?: string;
 }
 
+export const enum JSXNodeFlags {
+  None = 0,
+  StaticSubtree = 1 << 1,
+  HasCapturedProps = 1 << 2,
+}
+
 /**
  * A JSX Node, an internal structure. You probably want to use `JSXOutput` instead.
  *
@@ -45,14 +51,17 @@ export interface JSXNode<T extends string | FunctionComponent | unknown = unknow
  *
  * @internal
  */
-export interface JSXNodeInternal<T extends string | FunctionComponent | unknown = unknown>
-  extends JSXNode<T> {
+export interface JSXNodeInternal<
+  T extends string | FunctionComponent | unknown = unknown,
+> extends JSXNode<T> {
   /** The type of node */
   type: T;
   /** Do the varProps need sorting */
   toSort: boolean;
   /** The key property */
   key: string | null;
+  /** Flags */
+  flags: JSXNodeFlags;
   /**
    * Props that are not guaranteed shallow equal across runs.
    *
@@ -60,7 +69,7 @@ export interface JSXNodeInternal<T extends string | FunctionComponent | unknown 
    *
    * Does not contain `children` or `key`.
    *
-   * `onEvent$` props are normalized to the html `on:event` version
+   * `onEvent$` props are normalized to the html `q-x:event` version
    */
   varProps: Props;
   /**
@@ -70,7 +79,7 @@ export interface JSXNodeInternal<T extends string | FunctionComponent | unknown 
    *
    * Does not contain `children` or `key`.
    *
-   * `onEvent$` props are normalized to the html `on:event` version
+   * `onEvent$` props are normalized to the html `q-x:event` version
    */
   constProps: Props | null;
   /** The children of the node */

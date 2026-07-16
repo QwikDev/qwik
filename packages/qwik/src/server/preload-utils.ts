@@ -4,7 +4,8 @@ export function flattenPrefetchResources(prefetchResources: PrefetchResource[]) 
   const urls: string[] = [];
   const addPrefetchResource = (prefetchResources?: PrefetchResource[]) => {
     if (prefetchResources) {
-      for (const prefetchResource of prefetchResources) {
+      for (let i = 0; i < prefetchResources.length; i++) {
+        const prefetchResource = prefetchResources[i];
         if (!urls.includes(prefetchResource.url)) {
           urls.push(prefetchResource.url);
           if (prefetchResource.imports) {
@@ -24,7 +25,8 @@ export function getMostReferenced(prefetchResources: PrefetchResource[]) {
   let total = 0;
   const addPrefetchResource = (prefetchResources: PrefetchResource[], visited: Set<string>) => {
     if (prefetchResources) {
-      for (const prefetchResource of prefetchResources) {
+      for (let i = 0; i < prefetchResources.length; i++) {
+        const prefetchResource = prefetchResources[i];
         const count = common.get(prefetchResource.url) || 0;
         common.set(prefetchResource.url, count + 1);
         total++;
@@ -37,7 +39,8 @@ export function getMostReferenced(prefetchResources: PrefetchResource[]) {
     }
   };
   const visited = new Set<string>();
-  for (const resource of prefetchResources) {
+  for (let i = 0; i < prefetchResources.length; i++) {
+    const resource = prefetchResources[i];
     visited.clear();
     addPrefetchResource(resource.imports, visited);
   }

@@ -34,6 +34,4 @@ export const applyQwikComponentBody = (
     host.setProp(ELEMENT_KEY, jsx.key);
   }
   return executeComponent(ssr, host, host, componentQrl, srcProps);
-  // const componentChore = ssr.$scheduler$(ChoreType.COMPONENT, host, componentQrl, srcProps);
-  // return getChorePromise(componentChore);
 };

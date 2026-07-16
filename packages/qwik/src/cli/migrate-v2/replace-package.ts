@@ -29,12 +29,14 @@ function replacePackageInDependencies(oldPackageName: string, newPackageName: st
 
     try {
       const packageJson = JSON.parse(readFileSync(path, 'utf-8'));
-      for (const deps of [
+      const dependencies = [
         packageJson.dependencies ?? {},
         packageJson.devDependencies ?? {},
         packageJson.peerDependencies ?? {},
         packageJson.optionalDependencies ?? {},
-      ]) {
+      ];
+      for (let i = 0; i < dependencies.length; i++) {
+        const deps = dependencies[i];
         if (oldPackageName in deps) {
           // We keep the old version intentionally. It will be updated later within another step of the migration.
           deps[newPackageName] = deps[oldPackageName];

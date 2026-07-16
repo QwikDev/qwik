@@ -1,3 +1,5 @@
+import transitionCss from './qwik-view-transition.css?inline';
+
 // This types are missing in current typescript version: 5.4.5
 
 interface StartViewTransitionOptions {
@@ -13,7 +15,7 @@ interface DocumentViewTransition extends Omit<Document, 'startViewTransition'> {
 }
 
 /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/ViewTransition) */
-interface ViewTransition {
+export interface ViewTransition {
   /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/ViewTransition/finished) */
   readonly finished: Promise<undefined>;
   /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/ViewTransition/ready) */
@@ -25,11 +27,29 @@ interface ViewTransition {
   types?: Set<string>;
 }
 
-export const startViewTransition = (params: StartViewTransitionOptions) => {
-  if (!params.update) {
+/** View transitions are opt-in and require browser support. */
+export const shouldStartViewTransition = (viewTransition: boolean | undefined): boolean =>
+  viewTransition === true && 'startViewTransition' in document;
+
+const VIEW_TRANSITION_STYLE_ID = 'qwik-view-transition';
+
+/** Inject the view-transition stylesheet once, only when a transition actually runs. */
+export const ensureViewTransitionStyles = (): void => {
+  if (document.getElementById(VIEW_TRANSITION_STYLE_ID)) {
     return;
   }
+  const style = document.createElement('style');
+  style.id = VIEW_TRANSITION_STYLE_ID;
+  style.textContent = transitionCss;
+  document.head.appendChild(style);
+};
+
+export const startViewTransition = (params: {
+  types: string[];
+  update: () => Promise<void>;
+}): { ready: Promise<void>; transition?: ViewTransition } => {
   if ('startViewTransition' in document) {
+    ensureViewTransitionStyles();
     let transition: ViewTransition;
     try {
       // Typed transition starts with Chrome 125 & Safari 18
@@ -40,8 +60,8 @@ export const startViewTransition = (params: StartViewTransitionOptions) => {
     }
     const event = new CustomEvent('qviewtransition', { detail: transition });
     document.dispatchEvent(event);
-    return transition;
+    return { ready: transition.ready as Promise<void>, transition };
   } else {
-    params.update?.();
+    return { ready: params.update() };
   }
 };

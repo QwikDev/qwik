@@ -1,21 +1,22 @@
 import type { VNodeFlags } from '../../client/types';
 import type { Props } from '../jsx/jsx-runtime';
+import { VirtualVNode } from './virtual-vnode';
 import { VNode } from './vnode';
 
 /** @internal */
-export class ElementVNode extends VNode {
+export class ElementVNode extends VirtualVNode {
   constructor(
-    public key: string | null,
+    key: string | null,
     flags: VNodeFlags,
-    parent: VNode | null,
+    parent: ElementVNode | VirtualVNode | null,
     previousSibling: VNode | null | undefined,
     nextSibling: VNode | null | undefined,
     props: Props | null,
-    public firstChild: VNode | null | undefined,
-    public lastChild: VNode | null | undefined,
+    firstChild: VNode | null | undefined,
+    lastChild: VNode | null | undefined,
     public node: Element,
     public elementName: string | undefined
   ) {
-    super(flags, parent, previousSibling, nextSibling, props);
+    super(key, flags, parent, previousSibling, nextSibling, props, firstChild, lastChild);
   }
 }

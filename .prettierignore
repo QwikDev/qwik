@@ -14,7 +14,13 @@ dist-dev
 lib
 target
 starters/apps/**/dist
+starters/apps/**/server
+e2e/**/dist
+e2e/**/server
 node_modules
+
+# E2E snapshot
+e2e/**/*.ssg.html
 
 tsconfig.tsbuildinfo
 
@@ -25,6 +31,7 @@ packages/docs/public/repl/repl-sw.js*
 packages/*/lib
 packages/*/dist
 packages/*/server
+packages/*/bindings
 
 # API output files
 packages/docs/src/routes/api
@@ -42,3 +49,12 @@ packages/insights/**/*.gen.d.ts
 
 # Exclude builder js files from formatting - delete after migration
 packages/docs/public/builder
+
+# Generated from packages/devtools/plugin/src/runtime/installers.ts by the
+# browser-extension build/dev scripts. Do not format or edit by hand.
+packages/browser-extension/public/devtools-hook.js
+
+# Ruler-generated and committed; must stay byte-identical to `ruler apply` output (guarded by the
+# ruler-check CI). Edit .ruler/ and regenerate instead of letting Prettier reformat these.
+/AGENTS.md
+/CLAUDE.md

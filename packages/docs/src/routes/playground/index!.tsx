@@ -1,6 +1,5 @@
 import playgroundApp from '@playground-data';
 import {
-  $,
   component$,
   isBrowser,
   useSignal,
@@ -20,15 +19,14 @@ import styles from './playground.css?inline';
 
 export default component$(() => {
   useStyles$(styles);
-  const colResizeActive = useSignal(false);
-  const colLeft = useSignal(50);
-  const shareUrlTmr = useSignal<any>(null);
+  const shareUrlTmr = useSignal<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const store = useStore<ReplAppInput>(() => ({
     files: playgroundApp.inputs,
     version: '',
     buildMode: 'development',
     entryStrategy: 'segment',
+    outOfOrderStreaming: true,
   }));
 
   const panelStore = useStore(() => ({
@@ -43,6 +41,7 @@ export default component$(() => {
       store.version = shareData.version;
       store.buildMode = shareData.buildMode;
       store.entryStrategy = shareData.entryStrategy;
+      store.outOfOrderStreaming = shareData.outOfOrderStreaming;
       store.files = shareData.files;
     }
   });
@@ -50,6 +49,7 @@ export default component$(() => {
   useTask$(({ track }) => {
     track(() => store.buildMode);
     track(() => store.entryStrategy);
+    track(() => store.outOfOrderStreaming);
     track(() => store.version);
     track(() => store.files.forEach((f) => f.code));
 
@@ -65,62 +65,37 @@ export default component$(() => {
     }
   });
 
-  const pointerDown = $(() => {
-    colResizeActive.value = true;
-  });
-
-  const pointerMove = $((ev: PointerEvent) => {
-    if (colResizeActive.value) {
-      colLeft.value = (ev.clientX / window.innerWidth) * 100;
-      colLeft.value = Math.max(25, colLeft.value);
-      colLeft.value = Math.min(75, colLeft.value);
-    }
-  });
-
-  const pointerUp = $(() => {
-    colResizeActive.value = false;
-  });
-
   return (
     <div
       class={{
         playground: true,
         'full-width': true,
         'fixed-header': true,
-        'repl-resize-active': colResizeActive.value,
+        'repl-theme-docs': true,
       }}
     >
       <Header />
-
-      <div
-        class={{
-          'repl-panel-output': panelStore.active === 'Output',
-          'repl-panel-console': panelStore.active === 'Console',
-          repl: true,
-        }}
-        style={{
-          gridTemplateColumns: `${colLeft.value}% ${100 - colLeft.value}%`,
-        }}
-      >
-        <Repl
-          input={store}
-          enableCopyToPlayground={false}
-          enableDownload={true}
-          enableInputDelete={true}
-        />
-      </div>
-
-      <div
-        class="repl-col-resize-bar"
-        onPointerDown$={pointerDown}
-        onPointerMove$={pointerMove}
-        onPointerUp$={pointerUp}
-        onPointerOut$={pointerUp}
-        style={{
-          left: `calc(${colLeft.value}% - 6px)`,
-        }}
-      />
       <PanelToggle panelStore={panelStore} />
+      <main class="playground-main">
+        <div
+          class={{
+            repl: true,
+            'repl-mobile-paged': true,
+            'repl-mobile-paged-3': true,
+            'repl-mobile-panel-output': panelStore.active === 'Output',
+            'repl-mobile-panel-console': panelStore.active === 'Console',
+          }}
+        >
+          <Repl
+            input={store}
+            enableCopyToPlayground={false}
+            enableDownload={true}
+            enableInputDelete={true}
+            enableMainSplitter={true}
+            editorTheme="github-light"
+          />
+        </div>
+      </main>
     </div>
   );
 });

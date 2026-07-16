@@ -1,80 +1,91 @@
 import { createSerializationContext } from './index';
 import { assertTrue } from '../error/assert';
 import type { DeserializeContainer } from '../types';
-import { isNode, isElement } from '../utils/element';
 import { wrapDeserializerProxy } from './deser-proxy';
-import { deserializeData } from './inflate';
+import { eagerDeserializeStateIterator } from './inflate';
 import { preprocessState } from './preprocess-state';
+import { isDev } from '@qwik.dev/core/build';
+import {
+  createYieldingIteratorState,
+  scheduleYieldingIterator,
+} from '../../client/yielding-iterator';
 
 /**
  * Serialize data to string using SerializationContext.
  *
- * @param data - Data to serialize
  * @internal
  */
 
-export async function _serialize(data: unknown[]): Promise<string> {
+export async function _serialize<T>(data: T): Promise<string> {
   const serializationContext = createSerializationContext(
     null,
     null,
-    () => '',
     () => '',
     () => {},
     new WeakMap<any, any>()
   );
 
-  for (const root of data) {
-    serializationContext.$addRoot$(root);
-  }
+  serializationContext.$addRoot$(data);
   await serializationContext.$serialize$();
   return serializationContext.$writer$.toString();
 }
 /**
- * Deserialize data from string to an array of objects.
+ * Deserialize data from string.
  *
  * @param rawStateData - Data to deserialize
- * @param element - Container element
  * @internal
  */
 
-export function _deserialize(rawStateData: string | null, element?: unknown): unknown[] {
+export async function _deserialize<T>(rawStateData: string): Promise<T> {
   if (rawStateData == null) {
-    return [];
+    throw new Error('No state data to deserialize');
   }
   const stateData = JSON.parse(rawStateData);
-  if (!Array.isArray(stateData)) {
-    return [];
+  if (!Array.isArray(stateData) || stateData.length < 2 || typeof stateData[0] !== 'number') {
+    throw new Error('Invalid state data');
   }
 
-  let container: DeserializeContainer | undefined;
-  if (isNode(element) && isElement(element)) {
-    container = _createDeserializeContainer(stateData, element as HTMLElement);
-  } else {
-    container = _createDeserializeContainer(stateData);
-  }
-  const output = [];
-  for (let i = 0; i < stateData.length; i += 2) {
-    output[i / 2] = deserializeData(container, stateData[i], stateData[i + 1]);
-  }
-  return output;
+  const state = Array(stateData.length / 2);
+  const container = createBaseDeserializeContainer(stateData, () => state);
+  container.$state$ = state;
+  await runDeserializeIterator(eagerDeserializeStateIterator(container, stateData, state));
+  return state[0] as T;
 }
+
+const runDeserializeIterator = <T>(iterator: Generator<void, T, void>): Promise<T> => {
+  return new Promise<T>((resolve, reject) => {
+    const state = createYieldingIteratorState(iterator, resolve, reject);
+    scheduleYieldingIterator(state);
+  });
+};
 
 export function getObjectById(id: number | string, stateData: unknown[]): unknown {
   if (typeof id === 'string') {
     id = parseInt(id, 10);
+    // This return statement is needed to prevent the function from turning megamorphic
+    return stateData[id];
   }
-  assertTrue(id < stateData.length, `Invalid reference ${id} >= ${stateData.length}`);
+  isDev && assertTrue(id < stateData.length, `Invalid reference ${id} >= ${stateData.length}`);
   return stateData[id];
 }
 
-export function _createDeserializeContainer(
-  stateData: unknown[],
-  element?: HTMLElement
-): DeserializeContainer {
+/** @internal */
+export function _createDeserializeContainer(stateData: unknown[]): DeserializeContainer {
   // eslint-disable-next-line prefer-const
   let state: unknown[];
+  const container = createBaseDeserializeContainer(stateData, () => state);
+  state = wrapDeserializerProxy(container as any, stateData);
+  container.$state$ = state;
+  return container;
+}
+
+function createBaseDeserializeContainer(
+  stateData: unknown[],
+  getState: () => unknown[]
+): DeserializeContainer {
   const container: DeserializeContainer = {
-    $getObjectById$: (id: number | string) => getObjectById(id, state),
+    $getObjectById$: (id: number | string) => getObjectById(id, getState()),
+    $getForwardRef$: (id: number | string) => container.$forwardRefs$?.[Number(id)],
     getSyncFn: (_: number) => {
       const fn = () => {};
       return fn;
@@ -84,10 +95,5 @@ export function _createDeserializeContainer(
     $forwardRefs$: null,
   };
   preprocessState(stateData, container);
-  state = wrapDeserializerProxy(container as any, stateData);
-  container.$state$ = state;
-  if (element) {
-    container.element = element;
-  }
   return container;
 }

@@ -30,11 +30,29 @@ See also: `component`, `useCleanup`, `onResume`, `onPause`, `useOn`, `useOnDocum
 
 @public
 
+# `useSignal`
+
+Creates an object with a single reactive `.value` property, that Qwik can track across serializations.
+
+Use it to create state for your application. The object has a getter and setter to track reads and writes of the `.value` property. When the value changes, any functions that read from it will re-run.
+
+Prefer `useSignal` over `useStore` when possible, as it is more efficient.
+
+### Example
+
+<docs code="./examples.tsx#use-signal"/>
+
+@public
+
 # `useStore`
 
-Creates an object that Qwik can track across serializations.
+Creates a reactive object that Qwik can track across serialization.
 
-Use `useStore` to create a state for your application. The returned object is a proxy that has a unique ID. The ID of the object is used in the `QRL`s to refer to the store.
+Use it to create state for your application. The returned object is a Proxy that tracks reads and writes. When any of the properties change, the functions that read those properties will re-run.
+
+`Store`s are deep by default, meaning that any objects assigned to properties will also become `Store`s. This includes arrays.
+
+Prefer `useSignal` over `useStore` when possible, as it is more efficient.
 
 ### Example
 
@@ -58,16 +76,12 @@ The status can be one of the following:
 
 Be careful when using a `try/catch` statement in `useResource$`. If you catch the error and don't re-throw it (or a new Error), the resource status will never be `rejected`.
 
-### Example
-
-Example showing how `useResource` to perform a fetch to request the weather, whenever the input city name changes.
-
-<docs code="./examples.tsx#use-resource"/>
-
+@see useComputed$
 @see Resource
 @see ResourceReturn
 
 @public
+@deprecated Use `useComputed$` instead, which is more powerful and flexible. `useResource$` is still available for backward compatibility but it is recommended to migrate to `useComputed$` for new code and when updating existing code.
 
 # `useTask`
 
@@ -76,6 +90,10 @@ Reruns the `taskFn` when the observed inputs change.
 Use `useTask` to observe changes on a set of inputs, and then re-execute the `taskFn` when those inputs change.
 
 The `taskFn` only executes if the observed inputs change. To observe the inputs, use the `obs` function to wrap property reads. This creates subscriptions that will trigger the `taskFn` to rerun.
+
+Cleanup callbacks registered with `cleanup()` or returned from the task may be async. When a task reruns, Qwik waits for the previous cleanup to finish before starting the next invocation.
+
+During SSR, the cleanup function is called immediately after SSR completes. Therefore, it is not called on the client side after resuming, but only the second time the task runs on the client.
 
 @see `Tracker`
 
@@ -111,6 +129,10 @@ const Timer = component$(() => {
   return <div>{store.count}</div>;
 });
 ```
+
+Visible Tasks are a variant of Tasks that only run in the browser, and are registered but not executed during SSR. They are useful for running code that should only execute in the browser, such as code that interacts with the DOM or browser APIs.
+
+Cleanup callbacks registered with `cleanup()` or returned from the task may be async. When a visible task reruns, Qwik waits for the previous cleanup to finish before starting the next invocation.
 
 @public
 
@@ -214,6 +236,7 @@ This method should not be present in the application source code.
 
 NOTE: `useLexicalScope` method can only be used in the synchronous portion of the callback (before any `await` statements.)
 
+@deprecated Use `_captures` instead.
 @internal
 
 # `QRL`
@@ -278,7 +301,7 @@ The above code needs to be serialized into DOM such as:
 
 ```
 <div q:base="/build/">
-  <button on:click="./chunk-abc.js#onClick">...</button>
+  <button q-e:click="./chunk-abc.js#onClick">...</button>
 </div>
 ```
 

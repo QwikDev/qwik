@@ -1,6 +1,6 @@
 import { addStoreEffect } from '../../reactive-primitives/impl/store';
 import { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
-import { WrappedSignalFlags, type EffectSubscription } from '../../reactive-primitives/types';
+import { type EffectSubscription } from '../../reactive-primitives/types';
 import { tryGetInvokeContext } from '../../use/use-core';
 import { _CONST_PROPS, _VAR_PROPS, _OWNER, _PROPS_HANDLER } from '../utils/constants';
 import { jsxEventToHtmlAttribute } from '../utils/event-names';
@@ -11,6 +11,7 @@ import type { JSXNodeInternal } from './types/jsx-node';
 import type { Container } from '../types';
 import { assertTrue } from '../error/assert';
 import { scheduleEffects } from '../../reactive-primitives/utils';
+import { isDev } from '@qwik.dev/core/build';
 
 export function createPropsProxy(owner: JSXNodeImpl): Props {
   // TODO don't make a proxy but populate getters? benchmark
@@ -48,9 +49,7 @@ export class PropsProxyHandler implements ProxyHandler<any> {
       }
     }
     // a proxied value that the optimizer made
-    return value instanceof WrappedSignalImpl && value.$flags$ & WrappedSignalFlags.UNWRAP
-      ? value.value
-      : value;
+    return value instanceof WrappedSignalImpl ? value.value : value;
   }
   set(_: any, prop: string | symbol, value: any) {
     if (prop === _OWNER) {
@@ -159,10 +158,11 @@ const addPropsProxyEffect = (propsProxy: PropsProxyHandler, prop: string | symbo
         propsProxy.$container$ = ctx.$container$;
       }
     } else {
-      assertTrue(
-        !ctx.$container$ || ctx.$container$ === propsProxy.$container$,
-        'Do not use props across containers'
-      );
+      isDev &&
+        assertTrue(
+          !ctx.$container$ || ctx.$container$ === propsProxy.$container$,
+          'Do not use props across containers'
+        );
     }
   }
   const effectSubscriber = ctx?.$effectSubscriber$;
@@ -171,11 +171,15 @@ const addPropsProxyEffect = (propsProxy: PropsProxyHandler, prop: string | symbo
   }
 };
 
-export const triggerPropsProxyEffect = (propsProxy: PropsProxyHandler, prop: string | symbol) => {
+export const triggerPropsProxyEffect = (
+  propsProxy: PropsProxyHandler,
+  prop: string | symbol
+): boolean => {
   const effects = getEffects(propsProxy.$effects$, prop);
   if (effects) {
     scheduleEffects(propsProxy.$container$, propsProxy, effects);
   }
+  return !!effects;
 };
 
 function getEffects(
@@ -196,6 +200,13 @@ export const directGetPropsProxyProp = <T, JSX>(jsx: JSXNodeInternal<JSX>, prop:
   return (
     jsx.constProps && prop in jsx.constProps ? jsx.constProps[prop] : jsx.varProps[prop]
   ) as T;
+};
+
+export const _getProps = (
+  props: PropsProxy | Record<string, unknown> | null | undefined,
+  prop: string
+): unknown => {
+  return _getVarProps(props)?.[prop] || _getConstProps(props)?.[prop] || null;
 };
 
 /** Used by the optimizer for spread props operations @internal */

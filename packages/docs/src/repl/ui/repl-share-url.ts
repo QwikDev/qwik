@@ -1,4 +1,4 @@
-import { BUILD_MODE_OPTIONS, ENTRY_STRATEGY_OPTIONS } from './repl-options';
+import { BUILD_MODE_OPTIONS, ENTRY_STRATEGY_OPTIONS } from './repl-option-values';
 // We use deflate because it has no metadata, just raw compression
 import { deflateSync, inflateSync, strFromU8, strToU8 } from 'fflate';
 
@@ -6,6 +6,7 @@ const dataDefaults: PlaygroundShareUrl = {
   version: '',
   buildMode: 'development',
   entryStrategy: 'segment',
+  outOfOrderStreaming: true,
   files: [],
 };
 export const parsePlaygroundShareUrl = (shareable: string) => {
@@ -27,6 +28,9 @@ export const parsePlaygroundShareUrl = (shareable: string) => {
       if (ENTRY_STRATEGY_OPTIONS.includes(entryStrategy)) {
         data.entryStrategy = entryStrategy;
       }
+
+      const outOfOrderStreaming = params.get('ooos') ?? params.get('outOfOrder');
+      data.outOfOrderStreaming = outOfOrderStreaming === null || outOfOrderStreaming === '1';
 
       if (params.has('files')) {
         // Old URLs that didn't compress
@@ -129,6 +133,9 @@ export const createPlaygroundShareUrl = (data: PlaygroundShareUrl, pathname = '/
   if (data.entryStrategy !== dataDefaults.entryStrategy) {
     params.set('entryStrategy', data.entryStrategy);
   }
+  if (data.outOfOrderStreaming === false) {
+    params.set('ooos', '0');
+  }
 
   params.set('f', compressFiles(data.files));
 
@@ -184,5 +191,6 @@ interface PlaygroundShareUrl {
   version: any;
   buildMode: any;
   entryStrategy: any;
+  outOfOrderStreaming?: boolean;
   files: any[];
 }

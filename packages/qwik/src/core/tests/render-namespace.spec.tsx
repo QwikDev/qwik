@@ -96,7 +96,7 @@ describe.each([
         </Component>
       );
 
-      await expect(container.document.querySelector('button')).toMatchDOM(<button></button>);
+      expect(container.document.querySelector('button')?.innerHTML).toEqual('');
       await trigger(container.element, 'button', 'click');
       expect(vNode).toMatchVDOM(
         <Component>
@@ -123,7 +123,7 @@ describe.each([
         </Component>
       );
 
-      await expect(container.document.body.querySelector('button')).toMatchDOM(<button></button>);
+      expect(container.document.body.querySelector('button')?.innerHTML).toEqual('');
     });
 
     it('should rerender svg nested children', async () => {
@@ -213,8 +213,8 @@ describe.each([
             <Component ssr-required>
               <svg key="hi" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="15" cy="15" r="50"></circle>
-                <Signal ssr-required>
-                  <Fragment ssr-required></Fragment>
+                <Signal>
+                  <Fragment></Fragment>
                 </Signal>
               </svg>
             </Component>
@@ -372,6 +372,44 @@ describe.each([
                 </mask>
               </g>
               <text xml:lang="en-US">This is some English text</text>
+            </svg>
+          );
+        });
+        const { vNode, document } = await render(<SvgComp />, { debug });
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <svg xmlns="http://www.w3.org/2000/svg" xlink:href="http://www.w3.org/1999/xlink">
+              <g>
+                <mask id="logo-d" fill="#fff">
+                  <use xlink:href="#logo-c"></use>
+                </mask>
+              </g>
+              <text xml:lang="en-US">This is some English text</text>
+            </svg>
+          </Component>
+        );
+
+        const useElement = document.querySelector('use');
+        const xLinkHref = useElement?.attributes.getNamedItem('xlink:href');
+        expect(xLinkHref?.namespaceURI).toEqual(XLINK_NS);
+
+        const textElement = document.querySelector('text');
+        const xmlLang = textElement?.attributes.getNamedItem('xml:lang');
+        expect(xmlLang?.namespaceURI).toEqual(XML_NS);
+      });
+
+      it('should render xlink:href and xml:lang as var props', async () => {
+        const SvgComp = component$(() => {
+          const useProps = { 'xlink:href': '#logo-c' };
+          const textProps = { 'xml:lang': 'en-US' };
+          return (
+            <svg xmlns="http://www.w3.org/2000/svg" xlink:href="http://www.w3.org/1999/xlink">
+              <g>
+                <mask id="logo-d" fill="#fff">
+                  <use {...useProps}></use>
+                </mask>
+              </g>
+              <text {...textProps}>This is some English text</text>
             </svg>
           );
         });

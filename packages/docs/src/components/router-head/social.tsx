@@ -10,8 +10,8 @@ export const Social = ({ title, description, href, ogImage }: SocialProps) => {
       <meta property="og:description" content={description} />
       <meta property="og:image" content={ogImage} />
       <meta property="og:image:alt" content={imgAlt} />
-      <meta property="og:image:width" content="800" />
-      <meta property="og:image:height" content="418" />
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="630" />
       <meta property="og:type" content="website" />
       <meta property="og:site_name" content="Qwik" />
       <meta property="og:locale" content="en_US" />

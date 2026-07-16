@@ -1,4 +1,4 @@
-import { component$, type ReadonlySignal } from '@qwik.dev/core';
+import { component$ } from '@qwik.dev/core';
 import { routeLoader$, useLocation } from '@qwik.dev/router';
 import Histogram from '~/components/histogram';
 import { RoutesIcon } from '~/components/icons/routes';
@@ -11,15 +11,15 @@ import { TIMELINE_BUCKETS, vectorAvg, vectorSum } from '~/stats/vector';
 export const useRouteData = routeLoader$(async ({ params }) => {
   const db = getDB();
   const publicApiKey = params.publicApiKey;
-  const route = decodeURIComponent(params.route);
+  const route = params.route;
   const manifestHashes = await dbGetManifestHashes(db, publicApiKey);
   const routes = await getRouteTimeline(db, publicApiKey, route, manifestHashes);
   return routeRowsToRouteTree(routes);
 });
 
 export default component$(() => {
-  const symbolData: ReadonlySignal<SymbolData[]> = useRouteData();
-  const route = decodeURIComponent(useLocation().params.route);
+  const symbolData = useRouteData();
+  const route = useLocation().params.route;
   return (
     <div>
       <h1 class="h3">

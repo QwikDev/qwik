@@ -5,6 +5,10 @@ import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
 import { Slot } from '../jsx/slot.public';
 import { Fragment } from '../jsx/jsx-runtime';
 
+/** Used to represent an undefined value that must be serialized */
+export const explicitUndefined = Symbol('undefined');
+export const EMPTY_OBJECT_PAYLOAD = 0;
+
 export const enum Constants {
   Undefined,
   Null,
@@ -25,6 +29,10 @@ export const enum Constants {
   // used for close fragment
   AlmostMaxSafeInt,
   MinSafeInt,
+  Colon,
+  Dot,
+  Id,
+  Ref,
 }
 
 // Used for allocate, make sure they are in sync with Constants
@@ -47,6 +55,10 @@ export const _constants = [
   Number.MAX_SAFE_INTEGER,
   Number.MAX_SAFE_INTEGER - 1,
   Number.MIN_SAFE_INTEGER,
+  ':',
+  '.',
+  'id',
+  'ref',
 ] as const;
 
 // Used for dumpState, make sure they are in sync with Constants
@@ -69,6 +81,10 @@ export const _constantNames = [
   'MAX_SAFE_INTEGER',
   'MAX_SAFE_INTEGER-1',
   'MIN_SAFE_INTEGER',
+  "':'",
+  "'.'",
+  "'id'",
+  "'ref'",
 ] as const;
 
 export const enum TypeIds {
@@ -82,33 +98,44 @@ export const enum TypeIds {
   URL,
   Date,
   Regex,
-  VNode,
+  QRL,
   /// ^ single-digit types ^
+  VNode,
   RefVNode,
   BigInt,
   URLSearchParams,
   ForwardRefs,
+  TemporalDuration,
+  TemporalInstant,
+  TemporalPlainDate,
+  TemporalPlainDateTime,
+  TemporalPlainMonthDay,
+  TemporalPlainTime,
+  TemporalPlainYearMonth,
+  TemporalZonedDateTime,
   /// All types below will be inflate()d
   Error,
   Promise,
   Set,
   Map,
   Uint8Array,
-  QRL,
-  PreloadQRL,
   Task,
-  Resource,
   Component,
   Signal,
   WrappedSignal,
   ComputedSignal,
-  AsyncComputedSignal,
+  AsyncSignal,
   SerializerSignal,
   Store,
   FormData,
   JSXNode,
   PropsProxy,
   SubscriptionData,
+  EffectSubscription,
+  SubscriptionPatch,
+  SubscriptionDataConstTrue,
+  SubscriptionDataConstFalse,
+  EffectSubscriptionNoData,
 }
 
 // Used for dumpState, make sure they are in sync with TypeIds
@@ -122,29 +149,40 @@ export const _typeIdNames = [
   'URL',
   'Date',
   'Regex',
+  'QRL',
   'VNode',
   'RefVNode',
   'BigInt',
   'URLSearchParams',
   'ForwardRefs',
+  'TemporalDuration',
+  'TemporalInstant',
+  'TemporalPlainDate',
+  'TemporalPlainDateTime',
+  'TemporalPlainMonthDay',
+  'TemporalPlainTime',
+  'TemporalPlainYearMonth',
+  'TemporalZonedDateTime',
   'Error',
   'Promise',
   'Set',
   'Map',
   'Uint8Array',
-  'QRL',
-  'PreloadQRL',
   'Task',
-  'Resource',
   'Component',
   'Signal',
   'WrappedSignal',
   'ComputedSignal',
-  'AsyncComputedSignal',
+  'AsyncSignal',
   'SerializerSignal',
   'Store',
   'FormData',
   'JSXNode',
   'PropsProxy',
   'SubscriptionData',
+  'EffectSubscription',
+  'SubscriptionPatch',
+  'SubscriptionDataConstTrue',
+  'SubscriptionDataConstFalse',
+  'EffectSubscriptionNoData',
 ];

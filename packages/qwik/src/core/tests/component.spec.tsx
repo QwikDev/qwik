@@ -4,8 +4,9 @@ import {
   Fragment,
   Fragment as InlineComponent,
   Fragment as Projection,
-  SSRComment,
   Fragment as Signal,
+  Fragment as Awaited,
+  SSRComment,
   SkipRender,
   Slot,
   _jsxSorted,
@@ -13,12 +14,14 @@ import {
   h,
   jsx,
   useComputed$,
+  useConstant,
   useSignal,
   useStore,
   useTask$,
   useVisibleTask$,
   type JSXOutput,
   type PropsOf,
+  type QRL,
   type Signal as SignalType,
 } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
@@ -239,19 +242,19 @@ describe.each([
           <Component ssr-required>
             <div>
               <span>Component 1</span>
-              <Signal ssr-required>1</Signal>
+              <Signal>1</Signal>
             </div>
           </Component>
           <Component ssr-required>
             <div>
               <span>Component 1</span>
-              <Signal ssr-required>1</Signal>
+              <Signal>1</Signal>
             </div>
           </Component>
           <Component ssr-required>
             <div>
               <span>Component 2</span>
-              <Signal ssr-required>2</Signal>
+              <Signal>2</Signal>
             </div>
           </Component>
         </main>
@@ -266,7 +269,7 @@ describe.each([
           <Component ssr-required>
             <div>
               <span>Component 2</span>
-              <Signal ssr-required>2</Signal>
+              <Signal>2</Signal>
             </div>
           </Component>
         </main>
@@ -313,13 +316,13 @@ describe.each([
           <Component ssr-required>
             <div>
               <span>Component 1</span>
-              <Signal ssr-required>1</Signal>
+              <Signal>1</Signal>
             </div>
           </Component>
           <Component ssr-required>
             <div>
               <span>Component 2</span>
-              <Signal ssr-required>2</Signal>
+              <Signal>2</Signal>
             </div>
           </Component>
         </main>
@@ -340,7 +343,7 @@ describe.each([
           <Component ssr-required>
             <div>
               <span>Component 2</span>
-              <Signal ssr-required>2</Signal>
+              <Signal>2</Signal>
             </div>
           </Component>
         </main>
@@ -351,8 +354,11 @@ describe.each([
   it('should not rerender component with empty props', async () => {
     (globalThis as any).componentExecuted = [];
     const Component1 = component$<PropsOf<any>>(() => {
+      const sig = useSignal(8);
+      // be reactive
+      sig.value;
       (globalThis as any).componentExecuted.push('Component1');
-      return <div></div>;
+      return <div onClick$={() => sig.value}></div>;
     });
     const Parent = component$(() => {
       (globalThis as any).componentExecuted.push('Parent');
@@ -831,39 +837,43 @@ describe.each([
     const Cmp = component$(() => {
       const signal = useSignal<number>(0);
       return (
-        <p onClick$={() => (signal.value = 123)}>
-          <b>Test</b>
-          {signal.value + 1}xx<span>{signal.value}</span>XXX<a></a>
-        </p>
+        <button onClick$={() => (signal.value = 123)}>
+          <i>
+            <b>Test</b>
+            {signal.value + 1}xx<span>{signal.value}</span>XXX<a></a>
+          </i>
+        </button>
       );
     });
 
     const { vNode, document } = await render(<Cmp />, { debug });
-    await trigger(document.body, 'p', 'click');
+    await trigger(document.body, 'button', 'click');
     expect(vNode).toMatchVDOM(
       <Component>
-        <p>
-          <b>Test</b>
-          <Signal ssr-required>124</Signal>
-          {'xx'}
-          <span>
-            <Signal ssr-required>123</Signal>
-          </span>
-          {'XXX'}
-          <a></a>
-        </p>
+        <button>
+          <i>
+            <b>Test</b>
+            <Signal ssr-required>124</Signal>
+            {'xx'}
+            <span>
+              <Signal ssr-required>123</Signal>
+            </span>
+            {'XXX'}
+            <a></a>
+          </i>
+        </button>
       </Component>
     );
-    await expect(document.querySelector('p')).toMatchDOM(
-      <p>
+    await expect(document.querySelector('i')).toMatchDOM(
+      <i>
         <b>Test</b>
         {'124xx'}
         <span>123</span>
         {'XXX'}
         <a></a>
-      </p>
+      </i>
     );
-    expect(cleanupAttrs(document.querySelector('p')?.innerHTML)).toEqual(
+    expect(cleanupAttrs(document.querySelector('i')?.innerHTML)).toEqual(
       '<b>Test</b>124xx<span>123</span>XXX<a></a>'
     );
   });
@@ -1594,7 +1604,7 @@ describe.each([
       </Component>
     );
 
-    expect(document.querySelector('#container')).toMatchDOM(
+    await expect(document.querySelector('#container')).toMatchDOM(
       <div id="container">
         <div>Item 1</div>
         <div>Item 2</div>
@@ -2491,7 +2501,7 @@ describe.each([
         </main>
       </Component>
     );
-    expect(document.querySelector('main')).toMatchDOM(
+    await expect(document.querySelector('main')).toMatchDOM(
       <main>
         <button>Remove</button>
       </main>
@@ -2502,41 +2512,46 @@ describe.each([
     const Cmp = component$(() => {
       const list = useSignal([1, 2, 3]);
       return (
-        <main>
+        <>
           <button onClick$={() => (list.value = [])}>Remove</button>
-          <div>
-            {list.value.map((item) => (
-              <div>{item}</div>
-            ))}
-          </div>
-        </main>
+          <main>
+            <div>
+              {list.value.map((item) => (
+                <div>{item}</div>
+              ))}
+            </div>
+          </main>
+        </>
       );
     });
     const { vNode, document } = await render(<Cmp />, { debug });
     expect(vNode).toMatchVDOM(
       <Component>
-        <main>
+        <Fragment ssr-required>
           <button>Remove</button>
-          <div>
-            <div>1</div>
-            <div>2</div>
-            <div>3</div>
-          </div>
-        </main>
+          <main>
+            <div>
+              <div>1</div>
+              <div>2</div>
+              <div>3</div>
+            </div>
+          </main>
+        </Fragment>
       </Component>
     );
     await trigger(document.body, 'button', 'click');
     expect(vNode).toMatchVDOM(
       <Component>
-        <main>
+        <Fragment ssr-required>
           <button>Remove</button>
-          <div></div>
-        </main>
+          <main>
+            <div></div>
+          </main>
+        </Fragment>
       </Component>
     );
-    expect(document.querySelector('main')).toMatchDOM(
+    await expect(document.querySelector('main')).toMatchDOM(
       <main>
-        <button>Remove</button>
         <div></div>
       </main>
     );
@@ -2597,7 +2612,7 @@ describe.each([
       });
       (globalThis as any).logs.push('ResponsiveImage render');
       return (
-        <span>
+        <span onClick$={() => fullImage.value}>
           {props.image}
           {fullImage.value}
           {computedImage.value}
@@ -2818,6 +2833,549 @@ describe.each([
         </div>
       </Component>
     );
+  });
+
+  it('should register multiple events for var props', async () => {
+    const Cmp = component$<any>((props) => {
+      const clickCount = useSignal(0);
+      const mouseOverCount = useSignal(0);
+      return (
+        <div
+          onClick$={() => clickCount.value++}
+          onMouseOver$={() => mouseOverCount.value++}
+          // ensure it is var prop
+          {...props}
+        >
+          {`clicks: ${clickCount.value}, mouseovers: ${mouseOverCount.value}`}
+        </div>
+      );
+    });
+
+    const { vNode, container } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <Signal ssr-required>{'clicks: 0, mouseovers: 0'}</Signal>
+        </div>
+      </Component>
+    );
+
+    await trigger(container.element, 'div', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <Signal ssr-required>{'clicks: 1, mouseovers: 0'}</Signal>
+        </div>
+      </Component>
+    );
+
+    await trigger(container.element, 'div', 'mouseover');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <Signal ssr-required>{'clicks: 1, mouseovers: 1'}</Signal>
+        </div>
+      </Component>
+    );
+  });
+
+  it('should correctly rerender array without keys', async () => {
+    const Cmp = component$(() => {
+      const arrData = useSignal<number[]>([1, 2, 3, 4, 5]);
+      return (
+        <div>
+          {arrData.value.map((item) => (
+            <div>Item: {item}</div>
+          ))}
+
+          <button
+            onClick$={() => {
+              arrData.value = [3, 4, 5];
+            }}
+          ></button>
+        </div>
+      );
+    });
+    const { vNode, document } = await render(<Cmp />, { debug });
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <div>Item: 1</div>
+          <div>Item: 2</div>
+          <div>Item: 3</div>
+          <div>Item: 4</div>
+          <div>Item: 5</div>
+          <button></button>
+        </div>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <div>Item: 3</div>
+          <div>Item: 4</div>
+          <div>Item: 5</div>
+          <button></button>
+        </div>
+      </Component>
+    );
+  });
+
+  it('should correctly rerender content in the same component with slot', async () => {
+    const CustomLink = component$(() => {
+      return (
+        <a>
+          <Slot />
+        </a>
+      );
+    });
+
+    const Cmp1 = component$(() => {
+      const arrData = useSignal<number[]>([]);
+      useTask$(async () => {
+        await delay(1);
+        arrData.value = [1, 2, 3, 4, 5];
+      });
+      return (
+        <div>
+          <CustomLink>Navigate to other page</CustomLink>
+          <div>
+            {arrData.value.map((item) => (
+              <div>Item: {item}</div>
+            ))}
+          </div>
+        </div>
+      );
+    });
+
+    const Cmp2 = component$(() => {
+      return (
+        <div>
+          <CustomLink>Navigate to home page</CustomLink>
+        </div>
+      );
+    });
+
+    const Cmp = component$(() => {
+      const toggle = useSignal(false);
+
+      return (
+        <div>
+          {toggle.value ? <Cmp1 /> : <Cmp2 />}
+          <button onClick$={() => (toggle.value = !toggle.value)}></button>
+        </div>
+      );
+    });
+    const { vNode, document } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <Component>
+            <div>
+              <Component>
+                <a>
+                  <Projection>Navigate to home page</Projection>
+                </a>
+              </Component>
+            </div>
+          </Component>
+          <button></button>
+        </div>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <Component>
+            <div>
+              <Component>
+                <a>
+                  <Projection>Navigate to other page</Projection>
+                </a>
+              </Component>
+              <div>
+                <div>Item: 1</div>
+                <div>Item: 2</div>
+                <div>Item: 3</div>
+                <div>Item: 4</div>
+                <div>Item: 5</div>
+              </div>
+            </div>
+          </Component>
+          <button></button>
+        </div>
+      </Component>
+    );
+  });
+
+  it('should correctly unsubscribe from store inside wrapped signal', async () => {
+    interface Store {
+      to: {
+        country?: string;
+        error?: string;
+      };
+    }
+
+    interface InputOptions extends Omit<PropsOf<'input'>, 'children' | 'size'> {
+      error?: string;
+    }
+
+    const Input = component$<InputOptions>(({ error, onInput$ }) => {
+      return (
+        <div class={[!!error && 'text-red-500']}>
+          <p id="error">{error}</p>
+        </div>
+      );
+    });
+
+    const Cmp = component$(() => {
+      const store = useStore<Store>({
+        to: {},
+      });
+
+      const tick = useSignal<number>(0);
+      const world = useSignal<string>('Stress-free');
+
+      const words = useConstant(() => {
+        return ['Stress-free', 'Fast', 'Secure', 'Online'];
+      });
+
+      return (
+        <header>
+          <span key={tick.value}>{world.value}</span>
+
+          <Input error={store.to.error} value={store.to.country} />
+
+          <button
+            id="fill"
+            onClick$={() => {
+              store.to.country = store.to.country ? undefined : 'aaa';
+            }}
+          >
+            fill
+          </button>
+
+          <button
+            id="next"
+            onClick$={() => {
+              let nextIndex = words.indexOf(world.value) + 1;
+
+              if (nextIndex >= words.length) {
+                nextIndex = 0;
+              }
+
+              world.value = words[nextIndex] ?? 'Stress-free';
+
+              tick.value += 1;
+            }}
+          >
+            Next
+          </button>
+
+          <button
+            id="apply"
+            onClick$={() => {
+              if (!store.to.country) {
+                store.to.error = 'Please select a destination country.';
+                return;
+              }
+
+              store.to.error = undefined;
+            }}
+          >
+            Apply now
+          </button>
+        </header>
+      );
+    });
+
+    const { document } = await render(<Cmp />, { debug });
+    await trigger(document.body, 'button#next', 'click');
+    await trigger(document.body, 'button#apply', 'click');
+    await expect(document.body.querySelector('#error')).toMatchDOM(
+      '<p id="error">Please select a destination country.</p>'
+    );
+    await trigger(document.body, 'button#fill', 'click');
+
+    await trigger(document.body, 'button#next', 'click');
+    await trigger(document.body, 'button#apply', 'click');
+
+    await expect(document.body.querySelector('#error')).not.toMatchDOM('<p id="error"></p>');
+  });
+
+  it('should correctly diff 2 empty texts with element node', async () => {
+    const Cmp = component$(() => {
+      const counter = useSignal(0);
+      const QrlComponent = $(() => <div>Outside Component</div>);
+
+      const componentSignal = useSignal<QRL<any>>($(() => <div>Hello</div>));
+      return (
+        <>
+          <button
+            onClick$={() => {
+              counter.value++;
+            }}
+          >
+            Import Button {counter.value}
+          </button>
+          <br />
+          {counter.value > 0 && <div>Hi there</div>}
+          {counter.value > 0 && QrlComponent()}
+          {counter.value > 0 && componentSignal.value}
+        </>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button>
+            {'Import Button '}
+            <Signal ssr-required>0</Signal>
+          </button>
+          <br />
+          {''}
+          {''}
+          <Signal ssr-required>{''}</Signal>
+        </Fragment>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button>
+            {'Import Button '}
+            <Signal ssr-required>1</Signal>
+          </button>
+          <br />
+          <div>Hi there</div>
+          <Awaited ssr-required>
+            <div>Outside Component</div>
+          </Awaited>
+          <Signal ssr-required>
+            <Awaited ssr-required>
+              <div>Hello</div>
+            </Awaited>
+          </Signal>
+        </Fragment>
+      </Component>
+    );
+  });
+  it('should correctly diff 2 empty texts with virtual node', async () => {
+    const Cmp = component$(() => {
+      const counter = useSignal(0);
+      const QrlComponent = $(() => <div>Outside Component</div>);
+
+      const componentSignal = useSignal<QRL<any>>($(() => <div>Hello</div>));
+      return (
+        <>
+          <button
+            onClick$={() => {
+              counter.value++;
+            }}
+          >
+            Import Button {counter.value}
+          </button>
+          <br />
+          {counter.value > 0 && <>Hi there</>}
+          {counter.value > 0 && QrlComponent()}
+          {counter.value > 0 && componentSignal.value}
+        </>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button>
+            {'Import Button '}
+            <Signal ssr-required>0</Signal>
+          </button>
+          <br />
+          {''}
+          {''}
+          <Signal ssr-required>{''}</Signal>
+        </Fragment>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button>
+            {'Import Button '}
+            <Signal ssr-required>1</Signal>
+          </button>
+          <br />
+          <Fragment ssr-required>Hi there</Fragment>
+          <Awaited ssr-required>
+            <div>Outside Component</div>
+          </Awaited>
+          <Signal ssr-required>
+            <Awaited ssr-required>
+              <div>Hello</div>
+            </Awaited>
+          </Signal>
+        </Fragment>
+      </Component>
+    );
+  });
+
+  it('should not rerender child component with null key when parent component is rerendered', async () => {
+    (globalThis as any).count = 0;
+    const Child = component$(() => {
+      (globalThis as any).count++;
+      return <div>Child</div>;
+    });
+
+    const Cmp = component$(() => {
+      const toggle = useSignal(false);
+      // component subscription
+      toggle.value;
+      return (
+        <>
+          <button onClick$={() => (toggle.value = !toggle.value)}>Toggle</button>
+          <Child key={null} />
+        </>
+      );
+    });
+    const { vNode, document } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment ssr-required>
+          <button>Toggle</button>
+          <Component ssr-required>
+            <div>Child</div>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+    expect((globalThis as any).count).toBe(1);
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment ssr-required>
+          <button>Toggle</button>
+          <Component ssr-required>
+            <div>Child</div>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+    expect((globalThis as any).count).toBe(1);
+
+    (globalThis as any).count = undefined;
+  });
+
+  it('should not duplicate siblings when toggling element with dangerouslySetInnerHTML', async () => {
+    const Cmp = component$(() => {
+      const toggle = useSignal(false);
+      return (
+        <div>
+          <button onClick$={() => (toggle.value = !toggle.value)}>Toggle</button>
+          {toggle.value && <style dangerouslySetInnerHTML={''} />}
+          <span>{'aaa'}</span>
+        </div>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <button>Toggle</button>
+          {''}
+          <span>{'aaa'}</span>
+        </div>
+      </Component>
+    );
+
+    await expect(document.body.querySelector('div')).toMatchDOM(
+      <div>
+        <button>Toggle</button>
+        <span>{'aaa'}</span>
+      </div>
+    );
+
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <button>Toggle</button>
+          <style />
+          <span>{'aaa'}</span>
+        </div>
+      </Component>
+    );
+
+    await expect(document.body.querySelector('div')).toMatchDOM(
+      <div>
+        <button>Toggle</button>
+        <style />
+        <span>{'aaa'}</span>
+      </div>
+    );
+
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <button>Toggle</button>
+          {''}
+          <span>{'aaa'}</span>
+        </div>
+      </Component>
+    );
+
+    await expect(document.body.querySelector('div')).toMatchDOM(
+      <div>
+        <button>Toggle</button>
+        <span>{'aaa'}</span>
+      </div>
+    );
+  });
+
+  it('keeps const props on a captured props proxy after eager SSR resume', async () => {
+    const Test = component$(() => <div />);
+
+    const Child = component$((props: any) => {
+      useTask$(({ track }) => {
+        track(() => props.isOpened.value);
+      });
+
+      return <Test {...props} />;
+    });
+
+    const Parent = component$(() => {
+      const isOpened = useSignal(false);
+
+      return (
+        <>
+          <button onClick$={() => (isOpened.value = !isOpened.value)}>Toggle</button>
+          <Child isOpened={isOpened} />
+        </>
+      );
+    });
+
+    const { container } = await ssrRenderToDom(<Parent />, {
+      debug,
+      statePrewarm: 0,
+    });
+
+    await trigger(container.element, 'button', 'click');
   });
 
   describe('regression', () => {
@@ -3326,6 +3884,31 @@ describe.each([
       const { document } = await render(<Cmp />, { debug });
 
       await trigger(document.body, 'button', 'click');
+    });
+
+    it('should materialize q:vnode component keys containing vnode-data directive characters', async () => {
+      const ChildComp = component$(() => {
+        useVisibleTask$(() => {});
+        return <i>child</i>;
+      });
+
+      const Cmp = component$(() => {
+        const count = useSignal(0);
+
+        return (
+          <div>
+            <button onClick$={() => count.value++}>{count.value}</button>
+            <ChildComp key="?=;@~" />
+          </div>
+        );
+      });
+
+      const { document } = await render(<Cmp />, { debug });
+
+      await trigger(document.body, 'button', 'click');
+
+      expect(document.querySelector('button')!.textContent).toBe('1');
+      expect(document.querySelector('i')!.textContent).toBe('child');
     });
   });
 });

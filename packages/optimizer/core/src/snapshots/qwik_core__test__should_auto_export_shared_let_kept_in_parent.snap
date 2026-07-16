@@ -1,0 +1,68 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 7318
+expression: output
+---
+==INPUT==
+
+
+import { $ } from '@qwik.dev/core';
+
+let counter = 0;
+
+export function bumpFromRoot() {
+  counter++;
+}
+
+export const readFromSegment = $(() => {
+  console.log(counter);
+});
+		
+============================= test.js ==
+
+import { qrl } from "@qwik.dev/core";
+//
+const q_readFromSegment_gyZ53wYYLXs = /*#__PURE__*/ qrl(()=>import("./test.tsx_readFromSegment_gyZ53wYYLXs"), "readFromSegment_gyZ53wYYLXs");
+//
+let counter = 0;
+export function bumpFromRoot() {
+    counter++;
+}
+export const readFromSegment = q_readFromSegment_gyZ53wYYLXs;
+export { counter as _auto_counter };
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAGA,IAAI,UAAU;AAEd,OAAO,SAAS;IACd;AACF;AAEA,OAAO,MAAM,gDAEV\"}")
+============================= test.tsx_readFromSegment_gyZ53wYYLXs.js (ENTRY POINT)==
+
+import { _auto_counter as counter } from "./test";
+//
+export const readFromSegment_gyZ53wYYLXs = ()=>{
+    console.log(counter);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;2CASiC;IAC/B,QAAQ,GAAG,CAAC;AACd\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "readFromSegment_gyZ53wYYLXs",
+  "entry": null,
+  "displayName": "test.tsx_readFromSegment",
+  "hash": "gyZ53wYYLXs",
+  "canonicalFilename": "test.tsx_readFromSegment_gyZ53wYYLXs",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    139,
+    172
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

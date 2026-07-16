@@ -1,6 +1,7 @@
 import type { Rule } from 'eslint';
 import type { CallExpression } from 'estree';
 import type { QwikEslintExamples } from '../examples';
+import { hasJsxImportSourceComment } from './utils';
 
 export const useMethodUsage: Rule.RuleModule = {
   meta: {
@@ -16,11 +17,7 @@ export const useMethodUsage: Rule.RuleModule = {
     },
   },
   create(context) {
-    const sourceCode = context.sourceCode ?? context.getSourceCode();
-    const modifyJsxSource = sourceCode
-      .getAllComments()
-      .some((c) => c.value.includes('@jsxImportSource'));
-    if (modifyJsxSource) {
+    if (hasJsxImportSourceComment(context)) {
       return {};
     }
     return {
@@ -56,7 +53,8 @@ export const useMethodUsage: Rule.RuleModule = {
               if (parent.parent.type === 'CallExpression') {
                 if (
                   parent.parent.callee.type === 'Identifier' &&
-                  parent.parent.callee.name === 'component$'
+                  (parent.parent.callee.name === 'component$' ||
+                    parent.parent.callee.name === 'renderHook')
                 ) {
                   return;
                 }

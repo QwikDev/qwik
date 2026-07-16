@@ -15,6 +15,7 @@ created_at: '2023-04-28T22:00:03Z'
 
 import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
 import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+import { Note } from '~/components/note/note';
 
 # Modular Forms
 
@@ -22,9 +23,7 @@ import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
 
 To get started, install the `@modular-forms/qwik` package:
 
->⚠️ Warning:  
->Make sure to install @modular-forms/qwik as a devDependency, since it only runs at build/SSR time.
->Putting it in your regular dependencies will trigger Vite plugin errors.
+<Note title="Warning">Make sure to install @modular-forms/qwik as a devDependency, since it only runs at build/SSR time. Putting it in your regular dependencies will trigger Vite plugin errors.</Note>
 
 <PackageManagerTabs>
 <span q:slot="pnpm">
@@ -148,7 +147,7 @@ This API design results in a fully type-safe form. Furthermore, it gives you ful
 
 One of the core functionalities of Modular Forms is input validation. You can use a Valibot or Zod schema for this or our internal validation functions. To keep this guide simple, we use the Valibot schema we created earlier and pass it to the `useForm` hook.
 
-> `valiForm$` is an adapter that converts Valibot's error messages to the format expected by Modular Forms. For Zod use `zodForm$` instead.
+<Note>`valiForm$` is an adapter that converts Valibot's error messages to the format expected by Modular Forms. For Zod use `zodForm$` instead.</Note>
 
 ```ts
 const [loginForm, { Form, Field, FieldArray }] = useForm<LoginForm>({
@@ -362,6 +361,5 @@ By tracking props.login with useTask$, the form fields are dynamically updated w
 
 You have learned the basics of Modular Forms and are ready to create your first simple form. For more info and details you can find more guides and the API reference on our website: [modularforms.dev](https://modularforms.dev/)
 
-> Do you like Modular Forms so far? It would be a great honor for us to get a star from you on [GitHub](https://github.com/fabian-hiller/modular-forms)!import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
-import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
+<Note>Do you like Modular Forms so far? It would be a great honor for us to get a star from you on [GitHub](https://github.com/fabian-hiller/modular-forms)!</Note>
 

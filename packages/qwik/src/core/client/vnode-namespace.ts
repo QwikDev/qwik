@@ -13,17 +13,13 @@ import {
   ensureElementVNode,
   fastNamespaceURI,
   shouldIgnoreChildren,
-  vnode_getDOMChildNodes,
   vnode_getDomParentVNode,
   vnode_getElementName,
   vnode_getFirstChild,
   vnode_isElementVNode,
-  vnode_isTextVNode,
-  type VNodeJournal,
 } from './vnode-utils';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
 import type { VNode } from '../shared/vnode/vnode';
-import type { TextVNode } from '../shared/vnode/text-vnode';
 
 export const isForeignObjectElement = (elementName: string) => {
   return isDev ? elementName.toLowerCase() === 'foreignobject' : elementName === 'foreignObject';
@@ -51,58 +47,6 @@ export const vnode_getElementNamespaceFlags = (element: Element) => {
   }
 };
 
-export function vnode_getDomChildrenWithCorrectNamespacesToInsert(
-  journal: VNodeJournal,
-  domParentVNode: ElementVNode,
-  newChild: VNode
-): (ElementVNode | TextVNode)[] {
-  const { elementNamespace, elementNamespaceFlag } = getNewElementNamespaceData(
-    domParentVNode,
-    newChild
-  );
-
-  let domChildren: (ElementVNode | TextVNode)[] = [];
-  if (elementNamespace === HTML_NS) {
-    // parent is in the default namespace, so just get the dom children. This is the fast path.
-    domChildren = vnode_getDOMChildNodes(journal, newChild, true);
-  } else {
-    // parent is in a different namespace, so we need to clone the children with the correct namespace.
-    // The namespace cannot be changed on nodes, so we need to clone these nodes
-    const children = vnode_getDOMChildNodes(journal, newChild, true);
-
-    for (let i = 0; i < children.length; i++) {
-      const childVNode = children[i];
-      if (vnode_isTextVNode(childVNode)) {
-        // text nodes are always in the default namespace
-        domChildren.push(childVNode);
-        continue;
-      }
-      if (
-        (childVNode.flags & VNodeFlags.NAMESPACE_MASK) ===
-        (domParentVNode.flags & VNodeFlags.NAMESPACE_MASK)
-      ) {
-        // if the child and parent have the same namespace, we don't need to clone the element
-        domChildren.push(childVNode);
-        continue;
-      }
-
-      // clone the element with the correct namespace
-      const newChildElement = vnode_cloneElementWithNamespace(
-        childVNode,
-        domParentVNode,
-        elementNamespace,
-        elementNamespaceFlag
-      );
-
-      if (newChildElement) {
-        childVNode.node = newChildElement;
-        domChildren.push(childVNode);
-      }
-    }
-  }
-  return domChildren;
-}
-
 /** This function clones an element with a different namespace, including the children */
 function cloneDomTreeWithNamespace(
   element: Element,
@@ -113,7 +57,8 @@ function cloneDomTreeWithNamespace(
   const newElement = element.ownerDocument.createElementNS(namespace, elementName);
 
   // Copy all attributes
-  for (const attr of element.attributes) {
+  for (let i = 0; i < element.attributes.length; i++) {
+    const attr = element.attributes[i];
     if (attr.name !== Q_PROPS_SEPARATOR) {
       newElement.setAttribute(attr.name, attr.value);
     }
@@ -121,7 +66,8 @@ function cloneDomTreeWithNamespace(
 
   if (deep) {
     // Recursively clone all child nodes
-    for (const child of element.childNodes) {
+    for (let i = 0; i < element.childNodes.length; i++) {
+      const child = element.childNodes[i];
       const nodeType = child.nodeType;
       if (nodeType === 3 /* Node.TEXT_NODE */) {
         newElement.appendChild(child.cloneNode());
@@ -141,7 +87,7 @@ function cloneDomTreeWithNamespace(
  * traverse the tree using depth-first search and clones the elements using
  * `cloneElementWithNamespace`.
  */
-function vnode_cloneElementWithNamespace(
+export function vnode_cloneElementWithNamespace(
   elementVNode: ElementVNode,
   parentVNode: ElementVNode,
   namespace: string,
@@ -257,17 +203,11 @@ function vnode_cloneElementWithNamespace(
   return rootElement;
 }
 
-function isSvg(tagOrVNode: string | ElementVNode): boolean {
-  return typeof tagOrVNode === 'string'
-    ? isSvgElement(tagOrVNode)
-    : (tagOrVNode.flags & VNodeFlags.NS_svg) !== 0;
-}
-
-function isMath(tagOrVNode: string | ElementVNode): boolean {
-  return typeof tagOrVNode === 'string'
-    ? isMathElement(tagOrVNode)
-    : (tagOrVNode.flags & VNodeFlags.NS_math) !== 0;
-}
+// reuse the same object to avoid creating new objects on every call
+const NEW_NAMESPACE_DATA: NewElementNamespaceData = {
+  elementNamespace: HTML_NS,
+  elementNamespaceFlag: VNodeFlags.NS_html,
+};
 
 export function getNewElementNamespaceData(
   domParentVNode: ElementVNode | null,
@@ -277,7 +217,6 @@ export function getNewElementNamespaceData(
   domParentVNode: ElementVNode | null,
   vnode: VNode
 ): NewElementNamespaceData;
-
 export function getNewElementNamespaceData(
   domParentVNode: ElementVNode | null,
   tagOrVNode: string | VNode
@@ -308,10 +247,34 @@ export function getNewElementNamespaceData(
     elementNamespaceFlag = domParentVNode.flags & VNodeFlags.NAMESPACE_MASK;
   }
 
-  return {
-    elementNamespace,
-    elementNamespaceFlag,
-  };
+  NEW_NAMESPACE_DATA.elementNamespace = elementNamespace;
+  NEW_NAMESPACE_DATA.elementNamespaceFlag = elementNamespaceFlag;
+  return NEW_NAMESPACE_DATA;
+}
+
+function isSvg(tagOrVNode: string | VNode): boolean {
+  if (typeof tagOrVNode === 'string') {
+    return isSvgElement(tagOrVNode);
+  }
+  if (vnode_isElementVNode(tagOrVNode)) {
+    return (
+      isSvgElement(vnode_getElementName(tagOrVNode)) || (tagOrVNode.flags & VNodeFlags.NS_svg) !== 0
+    );
+  }
+  return false;
+}
+
+function isMath(tagOrVNode: string | VNode): boolean {
+  if (typeof tagOrVNode === 'string') {
+    return isMathElement(tagOrVNode);
+  }
+  if (vnode_isElementVNode(tagOrVNode)) {
+    return (
+      isMathElement(vnode_getElementName(tagOrVNode)) ||
+      (tagOrVNode.flags & VNodeFlags.NS_math) !== 0
+    );
+  }
+  return false;
 }
 
 interface NewElementNamespaceData {

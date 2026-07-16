@@ -11,7 +11,7 @@ export interface FastifyQwikOptions {
   assetsDir: string;
 }
 
-const { router, notFound } = createQwikRouter({ render });
+const { router } = createQwikRouter({ render });
 
 const qwikPlugin: FastifyPluginAsync<FastifyQwikOptions> = async (
   fastify,
@@ -43,8 +43,16 @@ const qwikPlugin: FastifyPluginAsync<FastifyQwikOptions> = async (
   fastify.removeAllContentTypeParsers();
 
   fastify.setNotFoundHandler(async (request, response) => {
-    await router(request.raw, response.raw, (err) => fastify.log.error(err));
-    await notFound(request.raw, response.raw, (err) => fastify.log.error(err));
+    await router(
+      request.raw,
+      response.raw,
+      (err) => {
+        if (err) {
+          response.send(err);
+        }
+      },
+      { bodyLimit: request.routeOptions.bodyLimit },
+    );
   });
 };
 

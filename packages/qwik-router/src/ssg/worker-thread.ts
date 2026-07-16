@@ -1,64 +1,120 @@
-import { _serialize } from '@qwik.dev/core/internal';
-import type { ServerRequestEvent } from '@qwik.dev/router/middleware/request-handler';
+import { _serialize as serialize } from '@qwik.dev/core/internal';
+import { parentPort } from 'node:worker_threads';
 import {
-  RedirectMessage,
-  RequestEvShareQData,
-  requestHandler,
-} from '@qwik.dev/router/middleware/request-handler';
-import { WritableStream } from 'node:stream/web';
-import { pathToFileURL } from 'node:url';
-import type { ClientPageData } from '../runtime/src/types';
+  renderQwikMiddleware,
+  resolveRequestHandlers,
+} from '../middleware/request-handler/resolve-request-handlers-core';
+import { trimInternalPathname } from '../middleware/request-handler/request-path';
+import type { ServerRequestEvent } from '../middleware/request-handler/types';
+import { runQwikRouter } from '../middleware/request-handler/user-response';
+import { getRouteLoaderValues, getRouteLoaders } from '../runtime/src/route-loaders';
+import { loadRoute } from '../runtime/src/routing';
 import type {
   SsgHandlerOptions,
   SsgRoute,
   SsgWorkerRenderResult,
   StaticStreamWriter,
   System,
+  WorkerInputMessage,
+  WorkerOutputMessage,
 } from './types';
 
-export async function workerThread(sys: System) {
-  // Special case: we allow importing qwik again in the same process, it's ok because we just needed the serializer
-  // TODO: remove this once we have vite environment API and no longer need the serializer separately
-  delete (globalThis as any).__qwik;
-  const ssgOpts = sys.getOptions();
-  const pendingPromises = new Set<Promise<any>>();
-  const log = await sys.createLogger();
+interface StaticWorkerThreadDeps {
+  loadRoute: typeof loadRoute;
+  renderQwikMiddleware: typeof renderQwikMiddleware;
+  resolveRequestHandlers: typeof resolveRequestHandlers;
+  trimInternalPathname: typeof trimInternalPathname;
+  runQwikRouter: typeof runQwikRouter;
+}
 
-  const opts: SsgHandlerOptions = {
-    ...ssgOpts,
-    // TODO export this from server
-    render: (await import(pathToFileURL(ssgOpts.renderModulePath).href)).default,
-    // TODO this should be built-in
-    qwikRouterConfig: (await import(pathToFileURL(ssgOpts.qwikRouterConfigModulePath).href))
-      .default,
+interface WorkerThreadDeps extends StaticWorkerThreadDeps {
+  serialize: typeof serialize;
+}
+
+const staticWorkerThreadDeps: StaticWorkerThreadDeps = {
+  loadRoute,
+  renderQwikMiddleware,
+  resolveRequestHandlers,
+  trimInternalPathname,
+  runQwikRouter,
+};
+
+export async function workerThread(sys: System) {
+  const opts = sys.getOptions();
+  const pendingPromises = new Set<Promise<any>>();
+  const deps: WorkerThreadDeps = {
+    ...staticWorkerThreadDeps,
+    serialize,
   };
 
-  sys
-    .createWorkerProcess(async (msg) => {
-      switch (msg.type) {
-        case 'render': {
-          log.debug(`Worker thread rendering: ${msg.pathname}`);
-          return new Promise<SsgWorkerRenderResult>((resolve) => {
-            workerRender(sys, opts, msg, pendingPromises, resolve).catch((e) => {
-              console.error('Error during render', msg.pathname, e);
+  // Prevent unhandled errors/rejections from crashing the worker thread.
+  // SSR rendering can throw asynchronously (e.g., qwik's logErrorAndStop)
+  // in microtasks not connected to any promise chain.
+  process.on('uncaughtException', (e) => {
+    console.error('Worker uncaught exception (suppressed):', e.message);
+  });
+  process.on('unhandledRejection', (e) => {
+    console.error('Worker unhandled rejection (suppressed):', e instanceof Error ? e.message : e);
+  });
+
+  const onMessage = async (msg: WorkerInputMessage): Promise<WorkerOutputMessage> => {
+    switch (msg.type) {
+      case 'render': {
+        return new Promise<SsgWorkerRenderResult>((resolve) => {
+          workerRender(sys, opts, msg, pendingPromises, resolve, deps).catch((e) => {
+            console.error('Error during render', msg.pathname, e);
+            resolve({
+              type: 'render',
+              pathname: msg.pathname,
+              url: '',
+              ok: false,
+              error: {
+                message: e instanceof Error ? e.message : String(e),
+                stack: e instanceof Error ? e.stack : undefined,
+              },
+              filePath: null,
+              contentType: null,
+              resourceType: null,
             });
           });
-        }
-        case 'close': {
-          if (pendingPromises.size) {
-            log.debug(`Worker thread closing, waiting for ${pendingPromises.size} pending renders`);
-            const promises = Array.from(pendingPromises);
-            pendingPromises.clear();
-            await Promise.all(promises);
-          }
-          log.debug(`Worker thread closed`);
-          return { type: 'close' };
-        }
+        });
       }
-    })
-    ?.catch((e) => {
-      console.error('Worker process creation failed', e);
-    });
+      case 'close': {
+        if (pendingPromises.size) {
+          const promises = Array.from(pendingPromises);
+          pendingPromises.clear();
+          await Promise.all(promises);
+        }
+        return { type: 'close' };
+      }
+    }
+  };
+
+  parentPort?.on('message', async (msg: WorkerInputMessage) => {
+    try {
+      parentPort?.postMessage(await onMessage(msg));
+    } catch (e) {
+      // Send error result back instead of crashing the worker
+      if (msg.type === 'render') {
+        const error = e instanceof Error ? e : new Error(String(e));
+        parentPort?.postMessage({
+          type: 'render',
+          pathname: msg.pathname,
+          url: '',
+          ok: false,
+          error: { message: error.message, stack: error.stack },
+          filePath: null,
+          contentType: null,
+          resourceType: null,
+        } satisfies WorkerOutputMessage);
+      } else {
+        console.error('Worker message handler error', e);
+      }
+    }
+    if (msg.type === 'close') {
+      parentPort?.close();
+    }
+  });
 }
 
 async function workerRender(
@@ -66,7 +122,8 @@ async function workerRender(
   opts: SsgHandlerOptions,
   staticRoute: SsgRoute,
   pendingPromises: Set<Promise<any>>,
-  callback: (result: SsgWorkerRenderResult) => void
+  callback: (result: SsgWorkerRenderResult) => void,
+  deps: WorkerThreadDeps
 ) {
   // pathname and origin already normalized at this point
   const url = new URL(staticRoute.pathname, opts.origin);
@@ -106,32 +163,30 @@ async function workerRender(
         return {};
       },
       getWritableStream: (status, headers, _, _r, requestEv) => {
-        result.ok = status >= 200 && status < 300;
+        // The not-found page renders with a 404 status but is still written as a static asset.
+        const isNotFoundPage = url.pathname.endsWith('/404.html');
+        result.ok = (status >= 200 && status < 300) || (isNotFoundPage && status === 404);
 
         if (!result.ok) {
           // not ok, don't write anything
-          return noopWritableStream as any;
+          return createNoopWritableStream() as any;
         }
 
         result.contentType = (headers.get('Content-Type') || '').toLowerCase();
         const isHtml = result.contentType.includes('text/html');
-        const is404ErrorPage = url.pathname.endsWith('/404.html');
         const routeFilePath = sys.getRouteFilePath(url.pathname, isHtml);
 
-        if (is404ErrorPage) {
-          result.resourceType = '404';
-        } else if (isHtml) {
+        if (isHtml) {
           result.resourceType = 'page';
         }
 
         const hasRouteWriter = isHtml ? opts.emitHtml !== false : true;
-        const writeQDataEnabled = isHtml && opts.emitData !== false;
+        const writeLoaderDataEnabled = isHtml && opts.emitData !== false;
 
         const stream = new WritableStream<Uint8Array>({
           async start() {
             try {
-              if (hasRouteWriter || writeQDataEnabled) {
-                // for html pages, endpoints or q-data.json
+              if (hasRouteWriter || writeLoaderDataEnabled) {
                 // ensure the containing directory is created
                 await sys.ensureDir(routeFilePath);
               }
@@ -176,13 +231,26 @@ async function workerRender(
             const writePromises: Promise<any>[] = [];
 
             try {
-              if (writeQDataEnabled) {
-                const qData: ClientPageData = requestEv.sharedMap.get(RequestEvShareQData);
-                if (qData && !is404ErrorPage) {
-                  // write q-data.json file when enabled and qData is set
-                  const qDataFilePath = sys.getDataFilePath(url.pathname);
-                  const dataWriter = sys.createWriteStream(qDataFilePath);
-                  dataWriter.on('error', (e) => {
+              if (writeLoaderDataEnabled && !isNotFoundPage) {
+                const routeLoaders = getRouteLoaders(requestEv);
+                const loaderValues = getRouteLoaderValues(requestEv);
+                const manifestHash = (opts.manifest as any)?.manifestHash || 'dev';
+                // Write individual per-loader files for static loaders (expires === 0)
+                for (const loader of routeLoaders) {
+                  if (loader.__expires !== 0) {
+                    continue;
+                  }
+                  const data = loaderValues[loader.__id];
+                  if (data === undefined) {
+                    continue;
+                  }
+                  const loaderFilePath = sys.getLoaderFilePath(
+                    url.pathname,
+                    loader.__id,
+                    manifestHash
+                  );
+                  const loaderWriter = sys.createWriteStream(loaderFilePath);
+                  loaderWriter.on('error', (e) => {
                     console.error(e);
                     result.error = {
                       message: e.message,
@@ -190,14 +258,15 @@ async function workerRender(
                     };
                   });
 
-                  const serialized = await _serialize([qData]);
-                  dataWriter.write(serialized);
+                  // Match the LoaderResponse envelope { d, r, e } produced by loaderHandler
+                  // so the client deserializer reads the same shape from static and dynamic responses.
+                  const serialized = await deps.serialize({ d: data });
+                  loaderWriter.write(serialized);
 
                   writePromises.push(
                     new Promise<void>((resolve) => {
-                      // set the static file path for the result
                       result.filePath = routeFilePath;
-                      dataWriter.end(resolve);
+                      loaderWriter.end(resolve);
                     })
                   );
                 }
@@ -231,7 +300,7 @@ async function workerRender(
       },
     };
 
-    const promise = requestHandler(requestCtx, opts)
+    const promise = requestHandlerForSsg(requestCtx, opts, deps)
       .then((rsp) => {
         if (rsp != null) {
           return rsp.completion.then((r) => {
@@ -244,7 +313,7 @@ async function workerRender(
       })
       .then((e: any) => {
         if (e !== undefined) {
-          if (e instanceof RedirectMessage) {
+          if (isRedirectMessage(e)) {
             // TODO We should render a html page for redirects too
             // that would require refactoring redirects
             return;
@@ -293,24 +362,70 @@ async function workerRender(
   }
 }
 
-const noopWriter: WritableStreamDefaultWriter<any> = {
-  closed: Promise.resolve(undefined),
-  ready: Promise.resolve(undefined),
-  desiredSize: 0,
-  async close() {},
-  async abort() {},
-  async write() {},
-  releaseLock() {},
-};
+/** Create a fresh no-op WritableStream (must be a real instance for pipeTo checks). */
+const createNoopWritableStream = () => new WritableStream();
 
-const noopWritableStream = {
-  get locked() {
-    return false;
-  },
-  set locked(_: boolean) {},
-  async abort() {},
-  async close() {},
-  getWriter() {
-    return noopWriter;
-  },
-};
+function isRedirectMessage(value: unknown) {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    (value as { constructor?: { name?: string } }).constructor?.name === 'RedirectMessage'
+  );
+}
+
+async function requestHandlerForSsg<T>(
+  serverRequestEv: ServerRequestEvent<T>,
+  opts: SsgHandlerOptions,
+  deps: WorkerThreadDeps
+) {
+  const { render, checkOrigin, qwikRouterConfig } = opts;
+
+  if (!qwikRouterConfig) {
+    throw new Error('qwikRouterConfig is required.');
+  }
+
+  const pathname = deps.trimInternalPathname(serverRequestEv.url.pathname);
+  if (pathname === '/.well-known' || pathname.startsWith('/.well-known/')) {
+    return null;
+  }
+
+  const { routes, serverPlugins, cacheModules } = qwikRouterConfig;
+  const loadedRoute = await deps.loadRoute(routes, cacheModules, pathname);
+  const requestHandlers = deps.resolveRequestHandlers(
+    serverPlugins,
+    loadedRoute,
+    serverRequestEv.request.method,
+    checkOrigin ?? true,
+    deps.renderQwikMiddleware(render)
+  );
+
+  // The forced 404.html prerender is a miss by design — render it even under fallthrough so the
+  // static asset exists for the adapter/host to serve.
+  if (qwikRouterConfig.fallthrough && loadedRoute.$notFound$ && !pathname.endsWith('/404.html')) {
+    return null;
+  }
+
+  const rebuildRouteInfo = async (url: URL) => {
+    const cleanPathname = deps.trimInternalPathname(url.pathname);
+    const loadedRoute = await deps.loadRoute(routes, cacheModules, cleanPathname);
+    const requestHandlers = deps.resolveRequestHandlers(
+      serverPlugins,
+      loadedRoute,
+      serverRequestEv.request.method,
+      checkOrigin ?? true,
+      deps.renderQwikMiddleware(render)
+    );
+    return {
+      loadedRoute,
+      requestHandlers,
+    };
+  };
+
+  return deps.runQwikRouter(
+    serverRequestEv,
+    loadedRoute,
+    requestHandlers,
+    rebuildRouteInfo,
+    qwikRouterConfig.basePathname
+  );
+}

@@ -161,6 +161,31 @@ Furthermore, to build the optimizer you optionally need Rust.
 > On Windows, Rust requires [C++ build tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/). You can also select _Desktop development with C++_
 > while installing Visual Studio.
 
+### AI Assistants
+
+AI assistant instructions are managed with [Ruler](https://github.com/intellectronica/ruler)
+so shared guidance lives in one place instead of being copied across assistant-specific files.
+
+Some examples of configured assistants are Claude, Codex, Cursor, and GitHub Copilot. Ruler supports many additional harnesses.
+
+Start by reading [.ruler/README.md](./.ruler/README.md). It explains how Ruler source files become
+each assistant's native instruction, rule, skill, and config files.
+
+To generate the local files for your assistant, run one of:
+
+```sh
+ruler apply
+ruler apply --agents codex
+ruler apply --agents claude,cursor
+```
+
+Use `.ruler/AGENTS.md` for short repo-wide AI instructions, `.ruler/rules/` for dedicated always-on
+rules, `.ruler/skills/` for reusable prompts or task-specific skills, and `~/.config/ruler/` for
+personal settings such as local MCP servers or workflow preferences.
+
+Do not edit generated files like `AGENTS.md`, `CLAUDE.md`, `.codex/`, `.claude/`, or `.cursor/`
+by hand. Update `.ruler/` and rerun `ruler apply`.
+
 ---
 
 ## Development

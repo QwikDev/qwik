@@ -57,6 +57,7 @@ export interface QwikRouterVitePluginOptions extends Omit<PluginOptions, 'basePa
     mdxPlugins?: MdxPlugins;
     // (undocumented)
     platform?: Record<string, unknown>;
+    ssrCacheSize?: number;
     staticImportRoutes?: boolean;
 }
 

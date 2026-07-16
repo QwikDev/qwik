@@ -13,8 +13,12 @@ import { isPromise } from '../utils/promises';
 import { isDomRef } from './serialization-context';
 // Keep last
 import { Fragment } from '../jsx/jsx-runtime';
+import { isSerializerObj } from '../../reactive-primitives/utils';
 
-export const canSerialize = (value: any, seen: WeakSet<any> = new WeakSet()): boolean => {
+const getKeyVal = <T>(value: T, key: keyof T) => value[key];
+
+export const canSerialize = (value: unknown, seen: WeakSet<any> = new WeakSet()): boolean => {
+  const hasTemporal = typeof Temporal !== 'undefined';
   if (
     value == null ||
     typeof value === 'string' ||
@@ -33,22 +37,21 @@ export const canSerialize = (value: any, seen: WeakSet<any> = new WeakSet()): bo
       value = getStoreTarget(value);
     }
     if (proto == Object.prototype) {
-      for (const key in value) {
+      for (const key in value as object) {
         // if the value is a props proxy, then sometimes we could create a component-level subscription,
         // so we should call untrack here to avoid tracking the value
-        if (
-          !canSerialize(
-            untrack(() => value[key]),
-            seen
-          )
-        ) {
+        if (!canSerialize(untrack(getKeyVal, value, key as keyof typeof value), seen)) {
           return false;
         }
       }
       return true;
     } else if (proto == Array.prototype) {
-      for (let i = 0; i < value.length; i++) {
-        if (!canSerialize(value[i], seen)) {
+      for (let i = 0; i < (value as unknown[]).length; i++) {
+        // ignore sparse array holes
+        if (!(i in (value as unknown[]))) {
+          return false;
+        }
+        if (!canSerialize((value as unknown[])[i], seen)) {
           return false;
         }
       }
@@ -61,11 +64,29 @@ export const canSerialize = (value: any, seen: WeakSet<any> = new WeakSet()): bo
       return true;
     } else if (isJSXNode(value)) {
       return true;
+    } else if (isSerializerObj(value)) {
+      return true;
     } else if (value instanceof Error) {
       return true;
     } else if (value instanceof URL) {
       return true;
     } else if (value instanceof Date) {
+      return true;
+    } else if (hasTemporal && value instanceof Temporal.Duration) {
+      return true;
+    } else if (hasTemporal && value instanceof Temporal.Instant) {
+      return true;
+    } else if (hasTemporal && value instanceof Temporal.PlainDate) {
+      return true;
+    } else if (hasTemporal && value instanceof Temporal.PlainDateTime) {
+      return true;
+    } else if (hasTemporal && value instanceof Temporal.PlainMonthDay) {
+      return true;
+    } else if (hasTemporal && value instanceof Temporal.PlainTime) {
+      return true;
+    } else if (hasTemporal && value instanceof Temporal.PlainYearMonth) {
+      return true;
+    } else if (hasTemporal && value instanceof Temporal.ZonedDateTime) {
       return true;
     } else if (value instanceof RegExp) {
       return true;

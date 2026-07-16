@@ -1,5 +1,13 @@
-export { _noopQrl, _noopQrlDEV, _regSymbol } from './shared/qrl/qrl';
+export {
+  _noopQrl,
+  _noopQrlDEV,
+  _qrlWithChunk,
+  _qrlWithChunkDEV,
+  _regSymbol,
+} from './shared/qrl/qrl';
 export type { QRLInternal as _QRLInternal } from './shared/qrl/qrl-class';
+export { createQRL as _createQRL } from './shared/qrl/qrl-class';
+export { qrlToString as _qrlToString } from './shared/serdes/qrl-to-string';
 // ^ keep this above to avoid circular dependency issues
 
 export {
@@ -24,23 +32,33 @@ export {
   vnode_isMaterialized as _vnode_isMaterialized,
   vnode_isTextVNode as _vnode_isTextVNode,
   vnode_isVirtualVNode as _vnode_isVirtualVNode,
+  vnode_newVirtual as _vnode_newVirtual,
+  vnode_setProp as _vnode_setProp,
   vnode_toString as _vnode_toString,
 } from './client/vnode-utils';
-export type { VNode as _VNode } from './shared/vnode/vnode';
+export { _executeSsrChores } from './shared/cursor/ssr-chore-execution';
+export { getAsyncLocalStorage as _getAsyncLocalStorage } from './shared/platform/async-local-storage';
+export type { Container as _Container, HostElement as _HostElement } from './shared/types';
 export type { ElementVNode as _ElementVNode } from './shared/vnode/element-vnode';
 export type { TextVNode as _TextVNode } from './shared/vnode/text-vnode';
 export type { VirtualVNode as _VirtualVNode } from './shared/vnode/virtual-vnode';
-export { _executeSsrChores } from './shared/cursor/ssr-chore-execution';
+export type { VNode as _VNode } from './shared/vnode/vnode';
 
-export { _hasStoreEffects, isStore as _isStore } from './reactive-primitives/impl/store';
-export { _wrapProp, _wrapSignal } from './reactive-primitives/internal-api';
-export { SubscriptionData as _SubscriptionData } from './reactive-primitives/subscription-data';
 export { _EFFECT_BACK_REF } from './reactive-primitives/backref';
+export {
+  _hasStoreEffects,
+  createStore as _createStore,
+  isStore as _isStore,
+} from './reactive-primitives/impl/store';
+export { _markSignalAsExternallyOwned, isSignal } from './reactive-primitives/utils';
+export { _wrapProp, _wrapSignal } from './reactive-primitives/internal-api';
+export { getSubscriber as _getSubscriber } from './reactive-primitives/subscriber';
+export { SubscriptionData as _SubscriptionData } from './reactive-primitives/subscription-data';
 export {
   isStringifiable as _isStringifiable,
   type Stringifiable as _Stringifiable,
 } from './shared-types';
-export { _chk, _val } from './shared/jsx/bind-handlers';
+export { _chk, _res, _val } from './shared/jsx/bind-handlers';
 export { _jsxC, _jsxQ, _jsxS, _jsxSorted, _jsxSplit } from './shared/jsx/jsx-internal';
 export { isJSXNode as _isJSXNode } from './shared/jsx/jsx-node';
 export { _getConstProps, _getVarProps } from './shared/jsx/props-proxy';
@@ -51,18 +69,53 @@ export {
   preprocessState as _preprocessState,
   _serialize,
 } from './shared/serdes/index';
+export { SubscriptionPatch as _SubscriptionPatch } from './shared/serdes/subscription-patch';
+export { verifySerializable as _verifySerializable } from './shared/serdes/verify';
 export { _SharedContainer } from './shared/shared-container';
 export { _CONST_PROPS, _IMMUTABLE, _UNINITIALIZED, _VAR_PROPS } from './shared/utils/constants';
-export { EMPTY_ARRAY as _EMPTY_ARRAY } from './shared/utils/flyweight';
+export { EMPTY_ARRAY as _EMPTY_ARRAY, EMPTY_OBJ as _EMPTY_OBJ } from './shared/utils/flyweight';
+export { ELEMENT_SEQ as _ELEMENT_SEQ } from './shared/utils/markers';
 export { _restProps } from './shared/utils/prop';
-export { verifySerializable as _verifySerializable } from './shared/serdes/verify';
 export { _walkJSX } from './ssr/ssr-render-jsx';
 export { _resolveContextWithoutSequentialScope } from './use/use-context';
 export {
   _getContextContainer,
-  _getContextElement,
   _getContextEvent,
+  _getContextHostElement,
   _jsxBranch,
   _waitUntilRendered,
+  invoke as _invoke,
+  newInvokeContext as _newInvokeContext,
 } from './use/use-core';
-export { isTask as _isTask, scheduleTask as _task } from './use/use-task';
+export { useLexicalScope } from './use/use-lexical-scope.public';
+export { isTask as _isTask, scheduleTask as _task, Task as _Task } from './use/use-task';
+export { _captures } from './shared/qrl/qrl-class';
+export { _rsc } from './use/use-resource';
+export type { AsyncSignalImpl as _AsyncSignalImpl } from './reactive-primitives/impl/async-signal-impl';
+export { _injectAsyncSignalValue } from './reactive-primitives/impl/async-signal-impl';
+export {
+  EffectProperty as _EffectProperty,
+  StoreFlags as _StoreFlags,
+  type AsyncSignalOptions,
+} from './reactive-primitives/types';
+export { setEvent as _setEvent } from './ssr/ssr-events';
+export { _useHmr, _hmr } from './use/use-hmr';
+export {
+  _addProjection,
+  _setProjectionTarget,
+  _updateProjectionProps,
+  _removeProjection,
+} from './shared/projection/external-projection';
+export { delay as _delay, retryOnPromise as _retryOnPromise } from './shared/utils/promises';
+export { _createDeserializeContainer } from './shared/serdes/serdes.public';
+
+/** TESTING */
+export {
+  type VNodeJournal as _VNodeJournal,
+  vnode_getElementName as _vnode_getElementName,
+  vnode_getProp as _vnode_getProp,
+  vnode_getVNodeForChildNode as _vnode_getVNodeForChildNode,
+  vnode_insertBefore as _vnode_insertBefore,
+  vnode_remove as _vnode_remove,
+  vnode_isElementVNode as _vnode_isElementVNode,
+} from './client/vnode-utils';

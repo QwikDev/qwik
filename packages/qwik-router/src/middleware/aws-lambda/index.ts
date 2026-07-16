@@ -1,28 +1,44 @@
 import type { QwikManifest } from '@qwik.dev/core/optimizer';
 import type { Render } from '@qwik.dev/core/server';
-import type { QwikCityPlan, QwikRouterConfig } from '@qwik.dev/router';
 import { createQwikRouter as createQwikRouterNode } from '@qwik.dev/router/middleware/node';
+import type { NodeRequestNextFunction } from '@qwik.dev/router/middleware/node';
 import type { ServerRenderOptions } from '@qwik.dev/router/middleware/request-handler';
+import type { Http2ServerRequest } from 'node:http2';
+import type { IncomingMessage, ServerResponse } from 'node:http';
+import { ensureSlash } from '../../utils/pathname';
 
 interface AwsOpt {
   render: Render;
   manifest?: QwikManifest;
-  /** @deprecated Not used */
-  qwikRouterConfig?: QwikRouterConfig;
-  /** @deprecated Not used */
-  qwikCityPlan?: QwikCityPlan;
 }
 
 /** @public */
-export function createQwikRouter(opts: AwsOpt) {
-  if (opts.qwikCityPlan && !opts.qwikRouterConfig) {
-    console.warn('qwikCityPlan is deprecated. Simply remove it.');
-    opts.qwikRouterConfig = opts.qwikCityPlan;
-  }
+export interface QwikRouterAwsLambdaMiddleware {
+  fixPath: (pathT: string) => string;
+  router: (
+    req: IncomingMessage | Http2ServerRequest,
+    res: ServerResponse,
+    next: NodeRequestNextFunction
+  ) => Promise<void>;
+  staticFile: (
+    req: IncomingMessage | Http2ServerRequest,
+    res: ServerResponse,
+    next: (e?: any) => void
+  ) => Promise<void>;
+  /** @deprecated `router` handles 404 responses. Will be removed in V3. */
+  notFound: (
+    req: IncomingMessage | Http2ServerRequest,
+    res: ServerResponse,
+    next: (e?: any) => void
+  ) => Promise<void>;
+  handle: (req: any, res: any) => void;
+}
+
+/** @public */
+export function createQwikRouter(opts: AwsOpt): QwikRouterAwsLambdaMiddleware {
   try {
-    const { router, staticFile, notFound } = createQwikRouterNode({
+    const { router, staticFile } = createQwikRouterNode({
       render: opts.render,
-      qwikRouterConfig: opts.qwikRouterConfig,
       manifest: opts.manifest,
       static: {
         cacheControl: 'public, max-age=31557600',
@@ -42,7 +58,7 @@ export function createQwikRouter(opts: AwsOpt) {
           return pathT;
         }
         if (!url.pathname.endsWith('/')) {
-          return url.pathname + '/' + url.search;
+          return ensureSlash(url.pathname) + url.search;
         }
       }
       return pathT;
@@ -51,10 +67,13 @@ export function createQwikRouter(opts: AwsOpt) {
     const handle = (req: any, res: any) => {
       req.url = fixPath(req.url);
       staticFile(req, res, () => {
-        router(req, res, () => {
-          notFound(req, res, () => {});
-        });
+        router(req, res, () => {});
       });
+    };
+
+    /** @deprecated `router` handles 404 responses. Will be removed in V3. */
+    const notFound = async (_req: any, _res: any, next: (e?: any) => void) => {
+      next();
     };
 
     return { fixPath, router, staticFile, notFound, handle };

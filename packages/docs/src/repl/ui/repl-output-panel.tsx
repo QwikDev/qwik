@@ -12,47 +12,225 @@ import {
   _vnode_toString,
 } from '@qwik.dev/core/internal';
 
-export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProps) => {
-  const diagnosticsLen = store.diagnostics.length + store.monacoDiagnostics.length;
+const getDiagnosticCategoryLabel = (category: string) => {
+  if (category === 'sourceError') {
+    return 'Source Error';
+  }
+  return category.charAt(0).toUpperCase() + category.slice(1);
+};
 
-  const domContainerFromResultHtml = useComputed$(() => {
-    try {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(store.html, 'text/html');
-      return _getDomContainer(doc.documentElement);
-    } catch (err) {
-      console.error(err);
-      return null;
+const formatDiagnosticFile = (file: string) => {
+  if (!file) {
+    return 'Unknown source';
+  }
+  return file.replace(/\\/g, '/');
+};
+
+const formatDiagnosticLocation = (startLine?: number, startCol?: number) => {
+  if (!startLine || !startCol) {
+    return null;
+  }
+  return `L${startLine}:C${startCol}`;
+};
+
+const parseHtml = (html: string) => {
+  if (!html) {
+    return null;
+  }
+  return new DOMParser().parseFromString(html, 'text/html');
+};
+
+const TYPE_ID_FORWARD_REFS = 14;
+
+const getStateScriptData = (doc: Document) => {
+  const containerElement = doc.querySelector('[q\\:container][q\\:instance]');
+  const instanceHash = containerElement?.getAttribute('q:instance');
+  const stateScope = containerElement || doc;
+  const stateScriptSelector = instanceHash
+    ? `script[type="qwik/state"][q\\:instance="${instanceHash}"]`
+    : 'script[type="qwik/state"]';
+  const rootStateScript = stateScope.querySelector(`${stateScriptSelector}:not([q\\:patch])`);
+  const patchStateScripts = stateScope.querySelectorAll(`${stateScriptSelector}[q\\:patch]`);
+
+  if (!rootStateScript && patchStateScripts.length === 0) {
+    return null;
+  }
+
+  const patchForwardRefs: Array<number | string> = [];
+  const stateData = JSON.parse(rootStateScript?.textContent || '[]') as unknown[];
+  for (let i = 0; i < patchStateScripts.length; i++) {
+    const patchStateText = patchStateScripts[i].textContent;
+    if (!patchStateText) {
+      continue;
     }
-  });
+    const [rootStart, rawStateData, forwardRefs] = JSON.parse(patchStateText) as [
+      number,
+      unknown[],
+      Array<number | string> | 0 | undefined,
+    ];
+    for (let j = 0; j < rawStateData.length; j++) {
+      stateData[rootStart * 2 + j] = rawStateData[j];
+    }
+    if (forwardRefs) {
+      for (let j = 0; j < forwardRefs.length; j++) {
+        const ref = forwardRefs[j];
+        if (ref !== undefined) {
+          patchForwardRefs.push(ref);
+        }
+      }
+    }
+  }
+
+  if (patchForwardRefs.length > 0) {
+    let forwardRefsIndex = -1;
+    for (let i = 0; i < stateData.length; i += 2) {
+      if (stateData[i] === TYPE_ID_FORWARD_REFS) {
+        forwardRefsIndex = i + 1;
+        break;
+      }
+    }
+    if (forwardRefsIndex === -1) {
+      stateData.push(TYPE_ID_FORWARD_REFS, patchForwardRefs);
+    } else {
+      const rootForwardRefs = stateData[forwardRefsIndex];
+      stateData[forwardRefsIndex] = Array.isArray(rootForwardRefs)
+        ? [...rootForwardRefs, ...patchForwardRefs]
+        : patchForwardRefs;
+    }
+  }
+
+  return { instanceHash, patchStateScripts, rootStateScript, stateData, stateScope };
+};
+
+const getParsedSerializedState = (doc: Document) => {
+  const state = getStateScriptData(doc);
+  if (!state) {
+    return null;
+  }
+  const stateContainer = { $forwardRefs$: null as Array<number | string> | null };
+  _preprocessState(state.stateData, stateContainer as any);
+
+  return state.stateData;
+};
+
+const emulateExecutionOfQwikFuncs = (doc: Document) => {
+  const qFuncs = doc.body.querySelectorAll('[q\\:func]');
+  for (let i = 0; i < qFuncs.length; i++) {
+    const code = qFuncs[i].textContent || '';
+    if (code) {
+      // eslint-disable-next-line no-new-func
+      new Function('document', code)(doc);
+    }
+  }
+};
+
+const normalizeStateScriptsForDebug = (doc: Document) => {
+  const state = getStateScriptData(doc);
+  if (!state) {
+    return;
+  }
+  let rootStateScript = state.rootStateScript;
+  if (!rootStateScript) {
+    rootStateScript = doc.createElement('script');
+    rootStateScript.setAttribute('type', 'qwik/state');
+    if (state.instanceHash) {
+      rootStateScript.setAttribute('q:instance', state.instanceHash);
+    }
+    if (state.stateScope instanceof Document) {
+      state.stateScope.body.appendChild(rootStateScript);
+    } else {
+      state.stateScope.appendChild(rootStateScript);
+    }
+  }
+  rootStateScript.textContent = JSON.stringify(state.stateData);
+  for (let i = 0; i < state.patchStateScripts.length; i++) {
+    state.patchStateScripts[i].remove();
+  }
+};
+
+const applyOutOfOrderResolvedTemplates = (doc: Document) => {
+  const templates = doc.querySelectorAll<HTMLTemplateElement>('template[q\\:r]');
+  for (let i = 0; i < templates.length; i++) {
+    const template = templates[i];
+    const boundaryId = template.getAttribute('q:r');
+    if (!boundaryId || !template.content.firstChild || template.closest('[q\\:rp]')) {
+      continue;
+    }
+    const scope = template.closest('[q\\:container]') || doc;
+    const content = scope.querySelector<HTMLElement>(`[q\\:rp="${boundaryId}"]`);
+    const placeholder = content?.querySelector<HTMLTemplateElement>(
+      `template[q\\:r="${boundaryId}"]`
+    );
+    const parent = placeholder?.parentNode;
+    if (!content || !placeholder || !parent) {
+      continue;
+    }
+    const fallback = content.previousElementSibling as HTMLElement | null;
+    if (fallback?.style) {
+      fallback.style.display = 'none';
+    }
+    content.style.display = 'contents';
+    parent.insertBefore(template.content, placeholder);
+    placeholder.remove();
+    template.remove();
+  }
+};
+
+const getDomContainerFromDebugHtml = (html: string) => {
+  const doc = parseHtml(html);
+  if (!doc) {
+    return null;
+  }
+  emulateExecutionOfQwikFuncs(doc);
+  applyOutOfOrderResolvedTemplates(doc);
+  normalizeStateScriptsForDebug(doc);
+  return _getDomContainer(doc.documentElement);
+};
+
+const ReplOutputSectionLoading = component$(({ text }: { text: string }) => {
+  return (
+    <div class="repl-output-section-loading" role="status" aria-live="polite">
+      <span class="repl-output-section-loading-title">{text}</span>
+      <span class="repl-loading-line repl-loading-line-strong" aria-hidden="true" />
+      <span class="repl-loading-line" aria-hidden="true" />
+      <span class="repl-loading-line repl-loading-line-short" aria-hidden="true" />
+    </div>
+  );
+});
+
+export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProps) => {
+  const diagnostics = [...store.diagnostics, ...store.monacoDiagnostics];
+  const diagnosticsLen = diagnostics.length;
+  const errorCount = diagnostics.filter(
+    (diagnostic) => diagnostic.category === 'error' || diagnostic.category === 'sourceError'
+  ).length;
+  const warningCount = diagnostics.filter((diagnostic) => diagnostic.category === 'warning').length;
 
   const parsedState = useComputed$(() => {
     try {
-      const container = domContainerFromResultHtml.value;
-      const doc = container!.element;
-      const qwikStates = doc.querySelectorAll('script[type="qwik/state"]');
-      if (qwikStates.length !== 0) {
-        const data = qwikStates[qwikStates.length - 1];
-        const origState = JSON.parse(data?.textContent || '[]');
-        _preprocessState(origState, container as any);
-        return origState
-          ? _dumpState(origState, false, '', null)
-              //remove first new line
-              .replace(/\n/, '')
-          : 'No state found';
-      }
-      return 'No state found';
+      const doc = parseHtml(store.html);
+      const stateData = doc ? getParsedSerializedState(doc) : null;
+      return stateData
+        ? _dumpState(stateData, false, '', null)
+            //remove first new line
+            .replace(/\n/, '')
+        : 'No state found';
     } catch (err) {
-      console.error(err);
       return null;
     }
   });
 
   const vdomTree = useComputed$(() => {
     try {
-      const container = domContainerFromResultHtml.value;
+      if (store.selectedOutputPanel !== 'html' || store.isLoading || !store.html) {
+        return null;
+      }
+      const container = getDomContainerFromDebugHtml(store.html);
+      if (!container) {
+        return null;
+      }
       return _vnode_toString.call(
-        container!.rootVNode as any,
+        container.rootVNode as any,
         Number.MAX_SAFE_INTEGER,
         '',
         true,
@@ -60,10 +238,14 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
         false
       );
     } catch (err) {
-      console.error(err);
-      return null;
+      return `Unable to parse VNode tree: ${err instanceof Error ? err.message : String(err)}`;
     }
   });
+
+  const htmlLoading = useComputed$(() => store.selectedOutputPanel === 'html' && store.isLoading);
+  const htmlReady = useComputed$(
+    () => store.selectedOutputPanel === 'html' && !store.isLoading && store.html.length > 0
+  );
 
   return (
     <div class="repl-panel repl-output-panel">
@@ -74,6 +256,7 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
           onClick$={async () => {
             store.selectedOutputPanel = 'app';
           }}
+          order={6}
         />
 
         {store.enableHtmlOutput ? (
@@ -83,6 +266,7 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
             onClick$={async () => {
               store.selectedOutputPanel = 'html';
             }}
+            order={5}
           />
         ) : null}
 
@@ -93,6 +277,7 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
             onClick$={async () => {
               store.selectedOutputPanel = 'segments';
             }}
+            order={4}
           />
         ) : null}
 
@@ -103,6 +288,7 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
             onClick$={async () => {
               store.selectedOutputPanel = 'clientBundles';
             }}
+            order={3}
           />
         ) : null}
 
@@ -113,6 +299,7 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
             onClick$={async () => {
               store.selectedOutputPanel = 'serverModules';
             }}
+            order={2}
           />
         ) : null}
 
@@ -123,6 +310,7 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
           onClick$={async () => {
             store.selectedOutputPanel = 'diagnostics';
           }}
+          order={1}
         />
       </ReplTabButtons>
 
@@ -141,18 +329,37 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
           }}
         >
           {store.isLoading && (
-            <div class="repl-loading">
-              <svg class="repl-spinner" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="24"
-                  stroke-width="4"
-                  stroke-dasharray="37.69911184307752 37.69911184307752"
-                  fill="none"
-                  stroke-linecap="round"
-                />
-              </svg>
+            <div class="repl-loading" role="status" aria-live="polite">
+              <div class="repl-loading-shell">
+                <div class="repl-loading-meta">
+                  <span class="repl-loading-badge">Building preview</span>
+                  <svg
+                    class="repl-spinner"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 100 100"
+                    aria-hidden="true"
+                  >
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="24"
+                      stroke-width="4"
+                      stroke-dasharray="37.69911184307752 37.69911184307752"
+                      fill="none"
+                      stroke-linecap="round"
+                    />
+                  </svg>
+                </div>
+                <p class="repl-loading-title">Refreshing App output</p>
+                <p class="repl-loading-copy">
+                  Compiling the latest client and SSR result for your current code.
+                </p>
+                <div class="repl-loading-skeleton" aria-hidden="true">
+                  <span class="repl-loading-line repl-loading-line-strong" />
+                  <span class="repl-loading-line" />
+                  <span class="repl-loading-line repl-loading-line-short" />
+                </div>
+              </div>
             </div>
           )}
           {store.reload > 0 && (
@@ -166,19 +373,42 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
         </div>
 
         {store.selectedOutputPanel === 'html' ? (
-          <div class="output-result output-html flex flex-col gap-2">
-            <span class="code-block-info">HTML</span>
-            <CodeBlock language="markup" format code={store.html} />
-            {parsedState.value ? (
-              <div>
-                <span class="code-block-info">Parsed State</span>
-                <CodeBlock language="clike" code={parsedState.value} />
+          <div class="output-result output-code-theme output-panel-stack output-html">
+            <div class="output-panel-section">
+              <div class="output-panel-section-header">HTML</div>
+              <div class="output-panel-section-body">
+                {htmlLoading.value ? (
+                  <ReplOutputSectionLoading text="Loading HTML output" />
+                ) : (
+                  <CodeBlock language="markup" format code={store.html} />
+                )}
+              </div>
+            </div>
+            {htmlLoading.value || parsedState.value ? (
+              <div class="output-panel-section">
+                <div class="output-panel-section-header">Parsed State</div>
+                <div class="output-panel-section-body">
+                  {htmlLoading.value ? (
+                    <ReplOutputSectionLoading text="Loading parsed state" />
+                  ) : (
+                    <CodeBlock language="clike" code={parsedState.value || 'No state found'} />
+                  )}
+                </div>
               </div>
             ) : null}
-            {vdomTree.value ? (
-              <div>
-                <span class="code-block-info">VNode Tree</span>
-                <CodeBlock language="markup" code={vdomTree.value} />
+            {htmlLoading.value ? (
+              <div class="output-panel-section">
+                <div class="output-panel-section-header">VNode Tree</div>
+                <div class="output-panel-section-body">
+                  <ReplOutputSectionLoading text="Loading VNode tree" />
+                </div>
+              </div>
+            ) : htmlReady.value ? (
+              <div class="output-panel-section">
+                <div class="output-panel-section-header">VNode Tree</div>
+                <div class="output-panel-section-body">
+                  <CodeBlock language="markup" code={vdomTree.value || 'No VNode tree found'} />
+                </div>
               </div>
             ) : null}
           </div>
@@ -197,14 +427,87 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
         ) : null}
 
         {store.selectedOutputPanel === 'diagnostics' ? (
-          <div class="output-result output-diagnostics">
-            {diagnosticsLen === 0 ? (
-              <p class="no-diagnostics">- No Reported Diagnostics -</p>
-            ) : (
-              [...store.diagnostics, ...store.monacoDiagnostics].map((d, key) => (
-                <p key={key}>{d.message}</p>
-              ))
-            )}
+          <div class="output-result output-panel-stack output-diagnostics">
+            <div class="output-diagnostics-body">
+              <div class="diagnostics-summary">
+                <div class="diagnostics-summary-pill diagnostics-summary-total">
+                  <span class="diagnostics-summary-label">Total</span>
+                  <strong>{diagnosticsLen}</strong>
+                </div>
+                <div class="diagnostics-summary-pill diagnostics-summary-errors">
+                  <span class="diagnostics-summary-label">Errors</span>
+                  <strong>{errorCount}</strong>
+                </div>
+                <div class="diagnostics-summary-pill diagnostics-summary-warnings">
+                  <span class="diagnostics-summary-label">Warnings</span>
+                  <strong>{warningCount}</strong>
+                </div>
+              </div>
+
+              {diagnosticsLen === 0 ? (
+                <div class="diagnostics-empty-state">
+                  <p class="diagnostics-empty-title">No reported diagnostics</p>
+                  <p class="diagnostics-empty-copy">
+                    Your current input compiled cleanly and Monaco did not report any editor errors.
+                  </p>
+                </div>
+              ) : (
+                <div class="diagnostics-list">
+                  {diagnostics.map((diagnostic, key) => {
+                    const firstHighlight = diagnostic.highlights?.[0];
+                    const location = formatDiagnosticLocation(
+                      firstHighlight?.startLine,
+                      firstHighlight?.startCol
+                    );
+
+                    return (
+                      <article
+                        key={key}
+                        class={{
+                          'diagnostic-item': true,
+                          'diagnostic-item-error':
+                            diagnostic.category === 'error' ||
+                            diagnostic.category === 'sourceError',
+                          'diagnostic-item-warning': diagnostic.category === 'warning',
+                        }}
+                      >
+                        <div class="diagnostic-item-header">
+                          <span class="diagnostic-item-badge">
+                            {getDiagnosticCategoryLabel(diagnostic.category)}
+                          </span>
+                          {diagnostic.code ? (
+                            <code class="diagnostic-item-code">{diagnostic.code}</code>
+                          ) : null}
+                          <span class="diagnostic-item-scope">{diagnostic.scope}</span>
+                        </div>
+
+                        <p class="diagnostic-item-message">{diagnostic.message}</p>
+
+                        <div class="diagnostic-item-meta">
+                          <code class="diagnostic-item-file">
+                            {formatDiagnosticFile(diagnostic.file)}
+                          </code>
+                          {location ? (
+                            <span class="diagnostic-item-location">{location}</span>
+                          ) : null}
+                        </div>
+
+                        {diagnostic.suggestions?.length ? (
+                          <div class="diagnostic-item-suggestions">
+                            <p class="diagnostic-item-suggestions-title">Suggestions</p>
+                            <ul>
+                              {diagnostic.suggestions.map((suggestion, suggestionKey) => (
+                                <li key={suggestionKey}>{suggestion}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        ) : null}
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         ) : null}
       </div>

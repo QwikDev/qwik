@@ -739,7 +739,7 @@ export default component$((props) => {
 <div class="code-wrapper">
 <span class="badge good">✓</span>
 ```tsx
-<button onClick$={() => alert('open the door please')>ring</button>
+<button onClick$={() => alert('open the door please')}>ring</button>
 ```
 </div>
 <p>Examples of <b>incorrect</b> code for this rule:</p>
@@ -776,7 +776,7 @@ export const Person = component$(() => {
     <ul>
       {Object.keys(person).map((color) => (
         <li key={`person-${key}`}>{person[key]}</li>
-      )}
+      ))}
     </ul>
   );
 });
@@ -799,7 +799,7 @@ export const Person = component$(() => {
     <ul>
       {Object.keys(person).map((color) => (
         <li>{person[key]}</li>
-      )}
+      ))}
     </ul>
   );
 });
@@ -829,7 +829,7 @@ export const Person = component$(() => {
         <Card value={person[key]} />
         <Summary value={person[key]} />
       </Fragment>
-    )}
+    ))}
   );
 });
 ```
@@ -855,7 +855,7 @@ export const Person = component$(() => {
         <Card value={person[key]} />
         <Summary value={person[key]} />
       </>
-    )}
+    ))}
   );
 });
 ```
@@ -876,7 +876,7 @@ export const ColorList = component$(() => {
     <ul>
       {colors.map((color) => (
         <li key={`color-${color}`}>{color}</li>
-      )}
+      ))}
     </ul>
   );
 });
@@ -895,7 +895,7 @@ export const ColorList = component$(() => {
     <ul>
       {colors.map((color) => (
         <li>{color}</li>
-      )}
+      ))}
     </ul>
   );
 });
@@ -919,7 +919,7 @@ export const ColorList = component$(() => {
         <h2>{color}</h2>
         <p>The color "${color}" is a great color.</p>
       </Fragment>
-    )}
+    ))}
   );
 });
 ```
@@ -939,7 +939,7 @@ export const ColorList = component$(() => {
         <h2>{color}</h2>
         <p>The color "${color}" is a great color.</p>
       </>
-    )}
+    ))}
   );
 });
 ```
@@ -960,7 +960,7 @@ export const ColorList = component$(() => {
     <ul>
       {colors.map((color) => (
         <li key={`color-${color}`}>{color}</li>
-      )}
+      ))}
     </ul>
   );
 });
@@ -979,7 +979,7 @@ export const ColorList = component$(() => {
     <ul>
       {colors.map((color) => (
         <li key="not-a-good-idea">{color}</li>
-      )}
+      ))}
     </ul>
   );
 });
@@ -1009,16 +1009,15 @@ const serverGreeter = server$((firstName: string, lastName: string) => {
 });
  
 export default component$(() => (
-    <button
-      onClick$={async () => {
-        const greeting = await serverGreeter('John', 'Doe');
-        alert(greeting);
-      }}
-    >
-      greet
-    </button>
-  );
-);
+  <button
+    onClick$={async () => {
+      const greeting = await serverGreeter('John', 'Doe');
+      alert(greeting);
+    }}
+  >
+    greet
+  </button>
+));
 ```
 </div>
 <p>Examples of <b>incorrect</b> code for this rule:</p>
@@ -1034,16 +1033,15 @@ const serverGreeter = server$((firstName: string, lastName: string) => {
 });
  
 export default component$(() => (
-    <button
-      onClick$={async () => {
-        const greeting = 'not using the server$ function';
-        alert(greeting);
-      }}
-    >
-      greet
-    </button>
-  );
-);
+  <button
+    onClick$={async () => {
+      const greeting = 'not using the server$ function';
+      alert(greeting);
+    }}
+  >
+    greet
+  </button>
+));
 ```
 <p class="code-description">A `server$` function is declared, but never used.</p>
 </div>
@@ -1111,6 +1109,62 @@ import Image from '~/media/image.png';
   
 <h4>noUseVisibleTask</h4>
 <div class="edit-examples-wrapper"><a href="https://github.com/QwikDev/qwik/edit/main/packages/eslint-plugin-qwik/src/noUseVisibleTask.ts" target="_blank" class="edit-btn">Edit examples</a></div>
+
+    </div>
+  
+
+    <div class="rule-wrapper">
+      <h3 id="serializer-signal-usage">serializer-signal-usage</h3>
+      <span>Ensure signals used in update() are also used in deserialize()</span>
+  
+<h4>serializerSignalMismatch</h4>
+<p>Examples of <b>correct</b> code for this rule:</p>
+<div class="code-wrapper">
+<span class="badge good">✓</span>
+```tsx /countSignal/#a
+import { useSignal, useSerializer$ } from '@qwik.dev/core';
+import MyClass from './my-class';
+
+export default component$(() => {
+  const countSignal = useSignal(0);
+  
+  useSerializer$(() => ({
+    deserialize: () => new MyClass(countSignal.value),
+    update: (myClass) => {
+      myClass.count = countSignal.value;
+      return myClass;
+    }
+  }));
+
+  return <div>{myClass.count}</div>;
+});
+```
+</div>
+<p>Examples of <b>incorrect</b> code for this rule:</p>
+<div class="code-wrapper">
+<span class="badge bad">✕</span>
+```tsx /countSignal/#a
+import { useSignal, useSerializer$ } from '@qwik.dev/core';
+import MyClass from './my-class';
+
+export default component$(() => {
+  const countSignal = useSignal(0);
+  
+  useSerializer$(() => ({
+    deserialize: (count) => new MyClass(count),
+		initial: 2,
+    update: (myClass) => {
+      myClass.count = countSignal.value;
+      return myClass;
+    }
+  }));
+
+  return <div>{myClass.count}</div>;
+});
+```
+<p class="code-description">The countSignal is used in update() but not in deserialize()</p>
+</div>
+<div class="edit-examples-wrapper"><a href="https://github.com/QwikDev/qwik/edit/main/packages/eslint-plugin-qwik/src/serializerSignalUsage.ts" target="_blank" class="edit-btn">Edit examples</a></div>
 
     </div>
   

@@ -2,7 +2,7 @@ import { execa } from 'execa';
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { format } from 'prettier';
-import { type BuildConfig } from './util.ts';
+import { type BuildConfig, toSnakeCase } from './util.ts';
 
 export async function generateQwikApiMarkdownDocs(config: BuildConfig, apiJsonInputDir: string) {
   await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik']);
@@ -80,6 +80,7 @@ async function createApiData(
   subPkgName: string
 ) {
   const apiExtractedJson = JSON.parse(readFileSync(docsApiJsonPath, 'utf-8'));
+  const mdPrefix = getMdPrefix(apiExtractedJson, subPkgName);
 
   const apiData: ApiData = {
     id: subPkgName.replace('@qwik.dev/', '').replace(/\//g, '-'),
@@ -114,7 +115,7 @@ async function createApiData(
 
     const id = getCanonical(hierarchySplit);
 
-    const mdFile = getMdFile(subPkgName, hierarchySplit);
+    const mdFile = getMdFile(mdPrefix, hierarchySplit);
     const mdPath = join(apiOuputDir, mdFile);
 
     const content: string[] = [];
@@ -169,16 +170,14 @@ async function createApiData(
 
   addMembers(apiExtractedJson, '');
 
-  apiData.members.forEach((m1) => {
-    apiData.members.forEach((m2) => {
-      while (m1.content.includes(`./${m2.mdFile}`)) {
-        m1.content = m1.content.replace(`./${m2.mdFile}`, `#${m2.id}`);
-      }
-    });
+  const memberNameCounts = getMemberNameCounts(apiData.members);
+
+  apiData.members.forEach((m) => {
+    m.anchorId = getMemberAnchorId(m, memberNameCounts);
   });
 
   apiData.members.forEach((m) => {
-    m.content = m.content.replace(/\.\/core(.*)\.md/g, '#');
+    m.content = replaceMemberLinks(m.content, apiData.members);
   });
 
   apiData.members.sort((a, b) => {
@@ -189,7 +188,7 @@ async function createApiData(
   mkdirSync(docsDir, { recursive: true });
 
   const apiJsonPath = join(docsDir, `api.json`);
-  writeFileSync(apiJsonPath, JSON.stringify(apiData, null, 2));
+  writeFileSync(apiJsonPath, JSON.stringify(createApiJsonData(apiData), null, 2));
 
   const apiMdPath = join(docsDir, `index.mdx`);
   writeFileSync(apiMdPath, await createApiMarkdown(apiData));
@@ -197,6 +196,8 @@ async function createApiData(
 
 async function createApiMarkdown(a: ApiData) {
   let md: string[] = [];
+
+  const memberNameCounts = getMemberNameCounts(a.members);
 
   md.push(`---`);
   md.push(`title: \\${a.package} API Reference`);
@@ -207,7 +208,9 @@ async function createApiMarkdown(a: ApiData) {
 
   for (const m of a.members) {
     // const title = `${toSnakeCase(m.kind)} - ${m.name.replace(/"/g, '')}`;
-    md.push(`## ${m.name}`);
+    const anchorId = m.anchorId ?? getMemberAnchorId(m, memberNameCounts);
+
+    md.push(`<h2 id="${anchorId}">${m.name}</h2>`);
     md.push(``);
 
     // sanitize / adjust output
@@ -290,19 +293,80 @@ interface ApiMember {
   content: string;
   editUrl?: string;
   mdFile: string;
+  anchorId?: string;
+}
+
+function createApiJsonData(apiData: ApiData) {
+  return {
+    ...apiData,
+    members: apiData.members.map(({ anchorId, ...member }) => member),
+  };
+}
+
+function getMemberNameCounts(members: Pick<ApiMember, 'name'>[]) {
+  return members.reduce((acc: Record<string, number>, m) => {
+    const normalizedName = m.name.toLowerCase();
+    acc[normalizedName] = (acc[normalizedName] || 0) + 1;
+    return acc;
+  }, {});
+}
+
+function getMemberAnchorId(
+  m: Pick<ApiMember, 'id' | 'kind' | 'name'>,
+  memberNameCounts: Record<string, number>
+) {
+  const isDuplicateName = memberNameCounts[m.name.toLowerCase()] > 1;
+  return isDuplicateName ? `${m.id}-${toSnakeCase(m.kind)}` : m.id;
+}
+
+function replaceMemberLinks(content: string, members: ApiMember[]) {
+  return content.replace(/\[([^\]]+)\]\(\.\/([^)]+)\)/g, (_match, linkText, mdFile) => {
+    const anchorId = getLinkedMemberAnchorId(members, mdFile, linkText);
+    return anchorId ? `[${linkText}](#${anchorId})` : linkText;
+  });
+}
+
+function getLinkedMemberAnchorId(members: ApiMember[], mdFile: string, linkText: string) {
+  const sameFileMembers = members.filter((m) => m.mdFile === mdFile);
+  if (sameFileMembers.length === 0) {
+    return undefined;
+  }
+
+  const normalizedLinkText = normalizeApiLinkText(linkText);
+  const matchingMember =
+    sameFileMembers.find((m) => m.name === normalizedLinkText) ??
+    sameFileMembers.find((m) => m.name.toLowerCase() === normalizedLinkText.toLowerCase());
+
+  return (matchingMember ?? sameFileMembers[0]).anchorId;
+}
+
+function normalizeApiLinkText(linkText: string) {
+  return linkText
+    .replace(/\\([_$[\]])/g, '$1')
+    .replace(/<[^>]+>/g, '')
+    .replace(/`/g, '')
+    .trim();
 }
 
 function getCanonical(hierarchy: string[]) {
   return hierarchy.map((h) => getSafeFilenameForName(h)).join('-');
 }
 
-function getMdFile(subPkgName: string, hierarchy: string[]) {
+function getMdPrefix(apiExtractedJson: any, subPkgName: string) {
+  if (typeof apiExtractedJson?.name === 'string' && apiExtractedJson.name.length > 0) {
+    return getSafeFilenameForName(apiExtractedJson.name.split('/').pop()!);
+  }
+
+  return subPkgName.includes('router') ? 'router' : 'core';
+}
+
+function getMdFile(mdPrefix: string, hierarchy: string[]) {
   let mdFile = '';
   for (const h of hierarchy) {
     mdFile += '.' + getSafeFilenameForName(h);
   }
 
-  return `${subPkgName.includes('router') ? 'router' : 'core'}${mdFile}.md`;
+  return `${mdPrefix}${mdFile}.md`;
 }
 
 function getSafeFilenameForName(name: string): string {

@@ -1,11 +1,16 @@
 export type { FormSubmitCompletedDetail as FormSubmitSuccessDetail } from './form-component';
 
+export type { Q_ROUTE } from './constants';
 export type {
   Action,
   ActionConstructor,
+  ActionOptions,
   ActionStore,
+  CacheKeyFn,
   ContentHeading,
   ContentMenu,
+  ContentModuleETag,
+  ContentModuleHead,
   Cookie,
   CookieOptions,
   CookieValue,
@@ -17,12 +22,14 @@ export type {
   DocumentMeta,
   DocumentScript,
   DocumentStyle,
+  ExcludeControlFlow,
   FailReturn,
+  HttpStatus as HttpErrorProps,
+  InternalRequest,
   JSONObject,
   JSONValue,
   Loader,
   LoaderSignal,
-  MenuData,
   NavigationType,
   PageModule,
   PathParams,
@@ -30,6 +37,8 @@ export type {
   QwikCityPlan,
   QwikRouterConfig,
   QwikRouterEnvData,
+  RouteConfig,
+  RouteConfigValue,
   RequestEvent,
   RequestEventAction,
   RequestEventBase,
@@ -47,10 +56,9 @@ export type {
   ValidatorErrorType,
   ZodConstructor,
 } from './types';
-export type { Q_ROUTE } from './constants';
 
 export { ErrorBoundary } from './error-boundary';
-export { Link, type LinkProps } from './link-component';
+export { Link, type LinkProps, type PrefetchStrategy } from './link-component';
 export {
   QWIK_CITY_SCROLLER,
   QWIK_ROUTER_SCROLLER,
@@ -59,8 +67,9 @@ export {
   QwikRouterMockProvider,
   QwikRouterProvider,
   useQwikRouter,
-  type QwikCityMockProps,
   type QwikCityProps,
+  type QwikRouterMockActionProp,
+  type QwikRouterMockLoaderProp,
   type QwikRouterMockProps,
   type QwikRouterProps,
 } from './qwik-router-component';
@@ -70,8 +79,6 @@ export {
   globalActionQrl,
   routeAction$,
   routeActionQrl,
-  routeLoader$,
-  routeLoaderQrl,
   server$,
   serverQrl,
   valibot$,
@@ -80,11 +87,14 @@ export {
   validatorQrl,
   zod$,
   zodQrl,
+  getRequestEvent,
 } from './server-functions';
+export { routeLoader$, routeLoaderQrl } from './route-loaders';
 export { ServiceWorkerRegister } from './sw-component';
 export {
   useContent,
   useDocumentHead,
+  useHttpStatus,
   useLocation,
   useNavigate,
   usePreventNavigate$,

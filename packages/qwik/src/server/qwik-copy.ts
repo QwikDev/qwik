@@ -21,14 +21,17 @@ export {
 export { QError, qError } from '../core/shared/error/error';
 export { SYNC_QRL } from '../core/shared/qrl/qrl-utils';
 export { DEBUG_TYPE, QContainerValue, VirtualType } from '../core/shared/types';
-export { escapeHTML, encodeVNodeDataString } from '../core/shared/utils/character-escaping';
+export {
+  escapeHTML,
+  encodeVNodeDataKey,
+  encodeVNodeDataString,
+} from '../core/shared/utils/character-escaping';
 export {
   ELEMENT_ID,
   ELEMENT_KEY,
   ELEMENT_PROPS,
   ELEMENT_SEQ,
   ELEMENT_SEQ_IDX,
-  FLUSH_COMMENT,
   NON_SERIALIZABLE_MARKER_PREFIX,
   OnRenderProp,
   QBackRefs,
@@ -44,13 +47,16 @@ export {
   QScopedStyle,
   QSlot,
   QSlotParent,
+  QStatePrewarmAttr,
+  QStatePatchAttr,
   QStyle,
+  QSuspenseResolved,
+  QSuspenseResultParent,
   QTemplate,
   QVersionAttr,
+  QwikEvContainerReady,
   Q_PROPS_SEPARATOR,
   ELEMENT_BACKPATCH_DATA,
-  STREAM_BLOCK_END_COMMENT,
-  STREAM_BLOCK_START_COMMENT,
   dangerouslySetInnerHTML,
 } from '../core/shared/utils/markers';
 export { maybeThen } from '../core/shared/utils/promises';
@@ -60,9 +66,42 @@ export {
   isClassAttr,
 } from '../core/shared/utils/scoped-styles';
 export { serializeAttribute } from '../core/shared/utils/styles';
-export { VNodeDataChar, VNodeDataSeparator } from '../core/shared/vnode-data-types';
-export { getQueue, preload, resetQueue } from '../core/preloader/queue';
+export {
+  VNodeDataChar,
+  VNodeDataSeparator,
+  getSegmentVNodeRefId,
+} from '../core/shared/vnode-data-types';
+export { preload } from '../core/preloader/queue';
 export { initPreloader } from '../core/preloader/bundle-graph';
+export { qTest } from '../core/shared/utils/qdev';
 export { SsrNodeFlags } from '../core/shared/types';
 export { isPromise, retryOnPromise } from '../core/shared/utils/promises';
 export { ChoreBits } from '../core/shared/vnode/enums/chore-bits.enum';
+export { isHtmlAttributeAnEventName, isPreventDefault } from '../core/shared/utils/event-names';
+export { ITERATION_ITEM_SINGLE, ITERATION_ITEM_MULTI } from '../core/shared/utils/markers';
+export { isObjectEmpty } from '../core/shared/utils/objects';
+export {
+  createStringStreamWriter,
+  stringifyRootRefPath,
+  writeStringRootRef,
+  writeStringRootRefDelta,
+  writeStringRootRefPath,
+} from '../core/ssr/stream-writer';
+export type {
+  OutOfOrderRevealBoundary,
+  OutOfOrderRevealCoordinator,
+} from '../core/control-flow/suspense-utils';
+export {
+  LT,
+  GT,
+  CLOSE_TAG,
+  ESCAPED_CLOSE_TAG,
+  SPACE,
+  ATTR_EQUALS_QUOTE,
+  QUOTE,
+  EMPTY_ATTR,
+  BRACKET_OPEN,
+  BRACKET_CLOSE,
+  PAREN_CLOSE,
+  COMMA,
+} from '../core/shared/ssr-const';

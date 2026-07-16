@@ -1,5 +1,49 @@
 # create-qwik
 
+## 2.0.0-beta.38
+
+## 2.0.0-beta.37
+
+## 2.0.0-beta.36
+
+## 2.0.0-beta.35
+
+## 2.0.0-beta.34
+
+## 2.0.0-beta.33
+
+## 2.0.0-beta.32
+
+## 2.0.0-beta.31
+
+## 2.0.0-beta.30
+
+## 2.0.0-beta.29
+
+## 2.0.0-beta.28
+
+## 2.0.0-beta.27
+
+## 2.0.0-beta.26
+
+## 2.0.0-beta.25
+
+## 2.0.0-beta.24
+
+## 2.0.0-beta.23
+
+## 2.0.0-beta.22
+
+## 2.0.0-beta.21
+
+## 2.0.0-beta.20
+
+## 2.0.0-beta.19
+
+## 2.0.0-beta.18
+
+## 2.0.0-beta.17
+
 ## 2.0.0-beta.16
 
 - FIX: add missing execa dependency
@@ -59,6 +103,20 @@
 ## 2.0.0-alpha.1
 
 ## 2.0.0-alpha.0
+
+## 1.19.0
+
+### Patch Changes
+
+- ✨ cloudflare workers deployment adapter (by [@LazyClicks](https://github.com/LazyClicks) in [#8214](https://github.com/QwikDev/qwik/pull/8214))
+
+## 1.18.0
+
+### Patch Changes
+
+- execute cleanup cb for all component tree while calling dispose.cleanup method returned by render fn (by [@sashkashishka](https://github.com/sashkashishka) in [#8164](https://github.com/QwikDev/qwik/pull/8164))
+
+## 1.17.2
 
 ## 1.17.1
 

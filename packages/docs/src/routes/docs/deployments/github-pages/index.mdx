@@ -7,6 +7,7 @@ created_at: '2025-08-29T00:00:00Z'
 ---
 
 import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+import { Note } from '~/components/note/note';
 
 # GitHub Pages With Static Site Adapter
 
@@ -60,7 +61,7 @@ export default extendConfig(baseConfig, () => {
 });
 ```
 
-> Remember to change the `origin` in this file to your domain.
+<Note>Remember to change the `origin` in this file to your domain.</Note>
 
 In the main `vite.config.ts` you should add the base property and set the value with the name of your repository.
 

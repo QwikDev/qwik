@@ -24,9 +24,6 @@ export function assertQrl<T>(qrl: QRL<T>): asserts qrl is QRLInternal<T> {
 }
 
 export const getSymbolHash = (symbolName: string) => {
-  const index = symbolName.lastIndexOf('_');
-  if (index > -1) {
-    return symbolName.slice(index + 1);
-  }
-  return symbolName;
+  const index = symbolName.lastIndexOf('_') + 1;
+  return symbolName.slice(index);
 };

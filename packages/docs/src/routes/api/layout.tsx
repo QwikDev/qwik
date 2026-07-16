@@ -14,7 +14,7 @@ export default component$(() => {
       <Header />
       <main>
         <div class="docs-container">
-          <article>
+          <article data-pagefind-body data-pagefind-weight="0.5">
             <Slot />
           </article>
           <ContentNav />

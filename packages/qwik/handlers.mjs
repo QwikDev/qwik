@@ -6,4 +6,24 @@
  *
  * Make sure that these handlers are listed in manifest.ts
  */
-export { _chk, _run, _task, _val } from '@qwik.dev/core';
+export {
+  _chk,
+  _rsc,
+  _res,
+  _run,
+  _task,
+  _val,
+  // Each
+  _eaC,
+  _eaT,
+  // Show
+  _shC,
+  _shT,
+  // Suspense
+  _suC,
+  _suT,
+  // Reveal
+  _reR,
+  _reC,
+  _reT,
+} from '@qwik.dev/core/internal';

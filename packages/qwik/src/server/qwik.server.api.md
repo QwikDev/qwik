@@ -5,7 +5,7 @@
 ```ts
 
 import type { QwikManifest } from '@qwik.dev/core/optimizer';
-import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
+import { ResolvedManifest } from '@qwik.dev/core/optimizer';
 import type { ServerQwikManifest } from '@qwik.dev/core/optimizer';
 import type { SnapshotResult } from '@qwik.dev/core';
 import type { StreamWriter } from '@qwik.dev/core/internal';
@@ -47,19 +47,8 @@ export interface InOrderDisabled {
 // @public (undocumented)
 export type InOrderStreaming = InOrderAuto | InOrderDisabled | InOrderDirect;
 
-// @public @deprecated (undocumented)
-export interface PrefetchImplementation {
-    // @deprecated (undocumented)
-    linkFetchPriority?: 'auto' | 'low' | 'high' | null;
-    // @deprecated (undocumented)
-    linkInsert?: 'js-append' | 'html-append' | null;
-    // @deprecated (undocumented)
-    linkRel?: 'prefetch' | 'preload' | 'modulepreload' | null;
-    // @deprecated (undocumented)
-    prefetchEvent?: 'always' | null;
-    // @deprecated (undocumented)
-    workerFetchInsert?: 'always' | 'no-link-support' | null;
-}
+// @public (undocumented)
+export type OutOfOrderStreaming = boolean;
 
 // @public (undocumented)
 export interface PrefetchResource {
@@ -70,20 +59,8 @@ export interface PrefetchResource {
 }
 
 // @public (undocumented)
-export interface PrefetchStrategy {
-    // (undocumented)
-    implementation?: PrefetchImplementation;
-    // (undocumented)
-    symbolsToPrefetch?: SymbolsToPrefetch;
-}
-
-// @public (undocumented)
 export interface PreloaderOptions {
-    debug?: boolean;
     maxIdlePreloads?: number;
-    // @deprecated (undocumented)
-    preloadProbability?: number;
-    ssrPreloadProbability?: number;
     ssrPreloads?: number;
 }
 
@@ -103,12 +80,11 @@ export interface RenderOptions extends SerializeDocumentOptions {
     containerAttributes?: Record<string, string>;
     containerTagName?: string;
     locale?: string | ((options: RenderOptions) => string);
-    // @deprecated (undocumented)
-    prefetchStrategy?: PrefetchStrategy | null;
     preloader?: PreloaderOptions | false;
     qwikLoader?: QwikLoaderOptions;
     serverData?: Record<string, any>;
     snapshot?: boolean;
+    statePrewarm?: number | false;
 }
 
 // @public (undocumented)
@@ -117,8 +93,8 @@ export interface RenderResult {
     isStatic: boolean;
     // (undocumented)
     manifest?: ServerQwikManifest;
-    // (undocumented)
-    snapshotResult: SnapshotResult | undefined;
+    // @deprecated (undocumented)
+    snapshotResult?: SnapshotResult | undefined;
 }
 
 // @public (undocumented)
@@ -173,10 +149,8 @@ export interface RenderToStringResult extends RenderResult {
     };
 }
 
-// Warning: (ae-forgotten-export) The symbol "ResolvedManifest_2" needs to be exported by the entry point index.d.ts
-//
 // @public
-export function resolveManifest(manifest?: Partial<QwikManifest | ResolvedManifest_2> | undefined): ResolvedManifest_2 | undefined;
+export function resolveManifest(manifest?: Partial<QwikManifest | ResolvedManifest> | undefined): ResolvedManifest | undefined;
 
 // @public (undocumented)
 export interface SerializeDocumentOptions {
@@ -195,12 +169,9 @@ export function setServerPlatform(manifest?: Partial<QwikManifest | ResolvedMani
 export interface StreamingOptions {
     // (undocumented)
     inOrder?: InOrderStreaming;
+    // (undocumented)
+    outOfOrder?: OutOfOrderStreaming;
 }
-
-// @public
-export type SymbolsToPrefetch = 'auto' | ((opts: {
-    manifest: ServerQwikManifest;
-}) => PrefetchResource[]);
 
 // @public (undocumented)
 export const versions: {

@@ -1,0 +1,150 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 4850
+expression: output
+---
+==INPUT==
+
+
+		import { component$ } from '@qwik.dev/core';
+
+		const PassiveOnlyComponent = component$(() => {
+			return (
+				<div>
+					{/* @qwik-disable-next-line preventdefault-passive-check */}
+					<button passive:click preventdefault:click onClick$={() => {}}>
+						click
+					</button>
+					<button passive:click preventdefault:click onClick$={() => {}}>
+						click
+					</button>
+				</div>
+			);
+		});
+		
+============================= test.tsx_PassiveOnlyComponent_component_div_button_q_ep_click_1_6Gurw67eshM.js (ENTRY POINT)==
+
+export const PassiveOnlyComponent_component_div_button_q_ep_click_1_6Gurw67eshM = ()=>{};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"kFAU0D,KAAO\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "PassiveOnlyComponent_component_div_button_q_ep_click_1_6Gurw67eshM",
+  "entry": null,
+  "displayName": "test.tsx_PassiveOnlyComponent_component_div_button_q_ep_click_1",
+  "hash": "6Gurw67eshM",
+  "canonicalFilename": "test.tsx_PassiveOnlyComponent_component_div_button_q_ep_click_1_6Gurw67eshM",
+  "path": "",
+  "extension": "js",
+  "parent": "PassiveOnlyComponent_component_LuEXQIZuHLw",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    342,
+    350
+  ]
+}
+*/
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_PassiveOnlyComponent_component_LuEXQIZuHLw = /*#__PURE__*/ qrl(()=>import("./test.tsx_PassiveOnlyComponent_component_LuEXQIZuHLw"), "PassiveOnlyComponent_component_LuEXQIZuHLw");
+//
+/*#__PURE__*/ componentQrl(q_PassiveOnlyComponent_component_LuEXQIZuHLw);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;cAG+B\"}")
+============================= test.tsx_PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA.js (ENTRY POINT)==
+
+export const PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA = ()=>{};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"gFAO0D,KAAO\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA",
+  "entry": null,
+  "displayName": "test.tsx_PassiveOnlyComponent_component_div_button_q_ep_click",
+  "hash": "w9du90RdaGA",
+  "canonicalFilename": "test.tsx_PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA",
+  "path": "",
+  "extension": "js",
+  "parent": "PassiveOnlyComponent_component_LuEXQIZuHLw",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    246,
+    254
+  ]
+}
+*/
+============================= test.tsx_PassiveOnlyComponent_component_LuEXQIZuHLw.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_PassiveOnlyComponent_component_div_button_q_ep_click_1_6Gurw67eshM = /*#__PURE__*/ qrl(()=>import("./test.tsx_PassiveOnlyComponent_component_div_button_q_ep_click_1_6Gurw67eshM"), "PassiveOnlyComponent_component_div_button_q_ep_click_1_6Gurw67eshM");
+const q_PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA = /*#__PURE__*/ qrl(()=>import("./test.tsx_PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA"), "PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA");
+//
+export const PassiveOnlyComponent_component_LuEXQIZuHLw = ()=>{
+    return /*#__PURE__*/ _jsxSorted("div", null, null, [
+        /*#__PURE__*/ _jsxSorted("button", null, {
+            "q-ep:click": q_PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA
+        }, "click", 3, null),
+        /*#__PURE__*/ _jsxSorted("button", null, {
+            "q-ep:click": q_PassiveOnlyComponent_component_div_button_q_ep_click_1_6Gurw67eshM
+        }, "click", 3, null)
+    ], 3, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;0DAG0C;IACvC,qBACC,WAAC;sBAEA,WAAC;YAA0C,YAAQ;WAAY;sBAG/D,WAAC;YAA0C,YAAQ;WAAY;;AAKlE\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "PassiveOnlyComponent_component_LuEXQIZuHLw",
+  "entry": null,
+  "displayName": "test.tsx_PassiveOnlyComponent_component",
+  "hash": "LuEXQIZuHLw",
+  "canonicalFilename": "test.tsx_PassiveOnlyComponent_component_LuEXQIZuHLw",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    92,
+    400
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[
+  {
+    "category": "warning",
+    "code": "preventdefault-passive-check",
+    "file": "test.tsx",
+    "message": "preventdefault:click has no effect when passive:click is also set; passive event listeners cannot call preventDefault()",
+    "highlights": [
+      {
+        "lo": 289,
+        "hi": 379,
+        "startLine": 11,
+        "startCol": 21,
+        "endLine": 13,
+        "endCol": 29
+      }
+    ],
+    "suggestions": null,
+    "scope": "optimizer"
+  }
+]

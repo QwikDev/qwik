@@ -24,7 +24,6 @@ const serverPluginsDir = normalizePath(join(tmpdir(), 'src', 'routes'));
 test('isGroupedLayoutName', () => {
   const t = [
     { ext: '(abc)', expect: true },
-    { ext: '__abc', expect: true }, // deprecated
     { ext: '(abc)xyz', expect: false },
     { ext: 'xyz(abc)', expect: false },
     { ext: '(abc', expect: false },
@@ -265,6 +264,7 @@ test('createFileId, Menu', () => {
       platform: {},
       rewriteRoutes: [],
       defaultLoadersSerializationStrategy: 'never',
+      strictLoaders: true,
     };
     globalThis.__NO_TRAILING_SLASH__ = !t.trailingSlash;
     const pathname = getPathnameFromDirPath(opts, t.dirPath);
@@ -367,6 +367,7 @@ test('parseRouteIndexName', () => {
       platform: {},
       rewriteRoutes: [],
       defaultLoadersSerializationStrategy: 'never',
+      strictLoaders: true,
     };
     globalThis.__NO_TRAILING_SLASH__ = !t.trailingSlash;
     const pathname = getMenuPathname(opts, t.filePath);

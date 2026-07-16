@@ -2,6 +2,7 @@ import {
   Fragment as Awaited,
   Fragment as Component,
   Fragment,
+  jsx,
   Fragment as Projection,
   Fragment as Signal,
   useVisibleTask$,
@@ -11,7 +12,6 @@ import { trigger, domRender, ssrRenderToDom } from '@qwik.dev/core/testing';
 import { component$, Slot, type Signal as SignalType, untrack, useSignal } from '@qwik.dev/core';
 import { _EFFECT_BACK_REF } from '@qwik.dev/core/internal';
 import { vnode_getFirstChild, vnode_locate } from '../client/vnode-utils';
-import { EffectSubscriptionProp } from '../reactive-primitives/types';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -158,7 +158,9 @@ describe.each([
         </button>
       </Component>
     );
-    await expect(document.querySelector('button')).toMatchDOM(<button key="0">const 0</button>);
+    await expect(document.querySelector('button')).toMatchDOM(
+      jsx('button', { children: 'const 0' })
+    );
     await trigger(container.element, 'button', 'click');
     expect(vNode).toMatchVDOM(
       <Component>
@@ -170,7 +172,9 @@ describe.each([
         </button>
       </Component>
     );
-    await expect(document.querySelector('button')).toMatchDOM(<button key="0">const 1</button>);
+    await expect(document.querySelector('button')).toMatchDOM(
+      jsx('button', { children: 'const 1' })
+    );
   });
   it('should handle all ClassList cases', async () => {
     const Cmp = component$(() => {
@@ -348,8 +352,7 @@ describe.each([
 
       expect(
         // wrapped signal on the pre element
-        (globalThis as any).signal.$effects$.values().next().value[EffectSubscriptionProp.CONSUMER]
-          .$effects$
+        (globalThis as any).signal.$effects$.values().next().value.consumer.$effects$
       ).toHaveLength(1);
       expect((globalThis as any).signal.$effects$).toHaveLength(1);
 
@@ -359,8 +362,7 @@ describe.each([
       await trigger(container.element, 'button', 'click'); // <-- this should not add another subscriber
       expect((globalThis as any).signal.$effects$).toHaveLength(1);
       expect(
-        (globalThis as any).signal.$effects$.values().next().value[EffectSubscriptionProp.CONSUMER]
-          .$effects$
+        (globalThis as any).signal.$effects$.values().next().value.consumer.$effects$
       ).toHaveLength(1);
 
       await trigger(container.element, 'button', 'click');
@@ -369,8 +371,7 @@ describe.each([
       await trigger(container.element, 'button', 'click'); // <-- this should not add another subscriber
       expect((globalThis as any).signal.$effects$).toHaveLength(1);
       expect(
-        (globalThis as any).signal.$effects$.values().next().value[EffectSubscriptionProp.CONSUMER]
-          .$effects$
+        (globalThis as any).signal.$effects$.values().next().value.consumer.$effects$
       ).toHaveLength(1);
 
       (globalThis as any).signal = undefined;

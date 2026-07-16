@@ -1,10 +1,10 @@
 import {
+  Fragment as Awaited,
   Fragment as Component,
   component$,
   createContextId,
   Fragment,
   Fragment as Projection,
-  Fragment as Awaited,
   Fragment as Signal,
   type Signal as SignalType,
   Slot,
@@ -14,15 +14,24 @@ import {
   useSignal,
   useStore,
   useVisibleTask$,
+  useTask$,
 } from '@qwik.dev/core';
-import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
-import { describe, expect, it } from 'vitest';
-import { ErrorProvider } from '../../testing/rendering.unit-util';
-import { delay } from '../shared/utils/promises';
+import {
+  createDocument,
+  domRender,
+  getTestPlatform,
+  ssrRenderToDom,
+  trigger,
+  waitForDrain,
+} from '@qwik.dev/core/testing';
+import { render, setPlatform } from '@qwik.dev/core';
+import { _getDomContainer } from '@qwik.dev/core/internal';
+import { describe, expect, it, vi } from 'vitest';
 import { ELEMENT_SEQ } from '../../server/qwik-copy';
-import { Task, TaskFlags } from '../use/use-task';
-import { USE_ON_LOCAL } from '../shared/utils/markers';
+import { ErrorProvider } from '../../testing/rendering.unit-util';
 import { vnode_getProp } from '../client/vnode-utils';
+import { USE_ON_LOCAL } from '../shared/utils/markers';
+import { Task, TaskFlags } from '../use/use-task';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -76,7 +85,7 @@ describe.each([
     });
 
     const { vNode, document } = await render(<VisibleCmp />, { debug });
-    await trigger(document.body, 'span', ':document:qinit');
+    await trigger(document.body, 'span', 'd:qinit');
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
         <span>
@@ -101,7 +110,7 @@ describe.each([
     });
 
     const { vNode, document } = await render(<VisibleCmp />, { debug });
-    await trigger(document.body, 'span', ':document:qidle');
+    await trigger(document.body, 'span', 'd:qidle');
 
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
@@ -120,7 +129,6 @@ describe.each([
 
       useVisibleTask$(async () => {
         (globalThis as any).log.push('task');
-        await delay(10);
         (globalThis as any).log.push('resolved');
         state.value = 'CSR';
       });
@@ -132,14 +140,16 @@ describe.each([
     if (render === ssrRenderToDom) {
       await trigger(document.body, 'span', 'qvisible');
     }
-    expect((globalThis as any).log).toEqual(['VisibleCmp', 'render', 'task', 'resolved']);
-    expect(vNode).toMatchVDOM(
-      <Component ssr-required>
-        <span>
-          <Signal ssr-required>CSR</Signal>
-        </span>
-      </Component>
-    );
+    await vi.waitFor(() => {
+      expect((globalThis as any).log).toEqual(['VisibleCmp', 'render', 'task', 'resolved']);
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <span>
+            <Signal ssr-required>CSR</Signal>
+          </span>
+        </Component>
+      );
+    });
     (globalThis as any).log = undefined;
   });
 
@@ -169,7 +179,6 @@ describe.each([
     const VisibleCmp = component$(() => {
       const state = useSignal('SSR');
       useVisibleTask$(async () => {
-        await delay(1);
         throw error;
       });
       return <span>{state.value}</span>;
@@ -183,54 +192,66 @@ describe.each([
     );
     if (render === ssrRenderToDom) {
       await trigger(document.body, 'span', 'qvisible');
+      expect(ErrorProvider.error).toBe(null);
+      return;
     }
-    expect(ErrorProvider.error).toBe(render === domRender ? error : null);
+
+    await vi.waitFor(() => expect(ErrorProvider.error).toBe(error));
   });
 
-  it('should not run next visible task until previous async visible task is finished', async () => {
-    (globalThis as any).log = [] as string[];
-    (globalThis as any).delay = () =>
-      new Promise<void>((res) => ((global as any).delay.resolve = res));
-
-    const Counter = component$(() => {
-      (globalThis as any).log.push('Counter');
-      const count = useSignal('');
-
-      useVisibleTask$(async () => {
-        (globalThis as any).log.push('1:task');
-        await delay(10);
-        (globalThis as any).log.push('1:resolved');
-        count.value += 'A';
-      });
-
-      useVisibleTask$(async () => {
-        (globalThis as any).log.push('2:task');
-        await delay(10);
-        (globalThis as any).log.push('2:resolved');
-        count.value += 'B';
-        (globalThis as any).delay.resolve();
-      });
-      (globalThis as any).log.push('render');
-      return <span>{count.value}</span>;
+  it('should run visible tasks in parallel', async () => {
+    const allDone = new Promise<void>((res) => {
+      (globalThis as any).resolveNoNextVisTask = res;
     });
 
-    const { vNode, document } = await render(<Counter />, { debug });
+    const Counter = component$(() => {
+      const log = useSignal('counter\n');
+
+      useVisibleTask$(() => {
+        log.value += 'start\n';
+      });
+      useVisibleTask$(async () => {
+        log.value += '1:start\n';
+        // Make sure to wait longer than the second task
+        await new Promise((res) => setTimeout(res, 50));
+        log.value += '1:done\n';
+        (globalThis as any).resolveNoNextVisTask();
+      });
+
+      useVisibleTask$(async () => {
+        log.value += '2:start\n';
+        await new Promise((res) => setTimeout(res, 10));
+        log.value += '2:done\n';
+      });
+
+      useVisibleTask$(() => {
+        log.value += 'last\n';
+      });
+
+      return <span>{log.value}</span>;
+    });
+
+    const { vNode, document, container } = await render(<Counter />, { debug });
+
     if (render === ssrRenderToDom) {
       await trigger(document.body, 'span', 'qvisible');
     }
-    await (global as any).delay();
-    expect((globalThis as any).log).toEqual([
-      'Counter',
-      'render',
-      '1:task',
-      '2:task',
-      '1:resolved',
-      '2:resolved',
-    ]);
+    await allDone;
+    await waitForDrain(container);
+
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
         <span>
-          <Signal ssr-required>AB</Signal>
+          <Signal ssr-required>
+            {`counter
+          start
+          1:start
+          2:start
+          last
+          2:done
+          1:done
+          `.replace(/\n\s+/g, '\n')}
+          </Signal>
         </span>
       </Component>
     );
@@ -246,7 +267,7 @@ describe.each([
     });
     const { vNode, document } = await render(<Cmp />, { debug });
     if (render === ssrRenderToDom) {
-      await trigger(document.body, 'script', ':document:qinit');
+      await trigger(document.body, 'script', 'd:qinit');
     }
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
@@ -268,7 +289,7 @@ describe.each([
     });
     const { vNode, document } = await render(<Cmp />, { debug });
     if (render === ssrRenderToDom) {
-      await trigger(document.body, 'script', ':document:qinit');
+      await trigger(document.body, 'script', 'd:qinit');
     }
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
@@ -293,11 +314,57 @@ describe.each([
     });
     const { vNode, document } = await render(<Cmp />, { debug });
     if (render === ssrRenderToDom) {
-      await trigger(document.body, 'script', ':document:qinit');
+      await trigger(document.body, 'script', 'd:qinit');
     }
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
         <Fragment ssr-required>
+          <script hidden></script>
+        </Fragment>
+      </Component>
+    );
+  });
+
+  it('should trigger when returning null', async () => {
+    (globalThis as any).log = [] as string[];
+    const Cmp = component$(() => {
+      useVisibleTask$(() => {
+        (globalThis as any).log.push('task');
+      });
+      return null;
+    });
+    const { vNode, document } = await render(<Cmp />, { debug });
+    if (render === ssrRenderToDom) {
+      await trigger(document.body, 'script', 'd:qinit');
+    }
+    expect((globalThis as any).log).toEqual(['task']);
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          {''}
+          <script hidden></script>
+        </Fragment>
+      </Component>
+    );
+  });
+
+  it('should trigger when returning undefined', async () => {
+    (globalThis as any).log = [] as string[];
+    const Cmp = component$(() => {
+      useVisibleTask$(() => {
+        (globalThis as any).log.push('task');
+      });
+      return undefined;
+    });
+    const { vNode, document } = await render(<Cmp />, { debug });
+    if (render === ssrRenderToDom) {
+      await trigger(document.body, 'script', 'd:qinit');
+    }
+    expect((globalThis as any).log).toEqual(['task']);
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          {''}
           <script hidden></script>
         </Fragment>
       </Component>
@@ -320,7 +387,7 @@ describe.each([
     });
     const { document } = await render(<Cmp />, { debug });
     if (render === ssrRenderToDom) {
-      await trigger(document.body, 'script', ':document:qinit');
+      await trigger(document.body, 'script', 'd:qinit');
     }
     expect((globalThis as any).log).toEqual(['task1', 'task2']);
   });
@@ -409,7 +476,7 @@ describe.each([
 
     const { document } = await render(<Cmp />, { debug });
     if (render === ssrRenderToDom) {
-      await trigger(document.body, 'script', ':document:qinit');
+      await trigger(document.body, 'script', 'd:qinit');
     }
 
     expect((globalThis as any).counter).toBe(1);
@@ -428,7 +495,7 @@ describe.each([
 
     const { document } = await render(<Cmp />, { debug });
     if (render === ssrRenderToDom) {
-      await trigger(document.body, 'script[hidden]', ':document:qinit');
+      await trigger(document.body, 'script[hidden]', 'd:qinit');
     }
 
     expect((globalThis as any).counter).toBe(1);
@@ -452,7 +519,7 @@ describe.each([
     });
 
     const { document } = await render(<Cmp />, { debug });
-    await trigger(document.body, 'script', ':document:qinit');
+    await trigger(document.body, 'script', 'd:qinit');
 
     expect((globalThis as any).counter).toBe(
       render === ssrRenderToDom
@@ -707,30 +774,20 @@ describe.each([
     });
 
     it('should handle promises and visible tasks', async () => {
-      // vi.useFakeTimers();
       const MyComp = component$(() => {
         const promise = useSignal<Promise<number>>(Promise.resolve(0));
 
         useVisibleTask$(() => {
-          promise.value = promise.value
-            .then(() => {
-              return delay(10);
-            })
-            .then(() => {
-              return 1;
-            });
+          promise.value = promise.value.then(() => Promise.resolve()).then(() => 1);
         });
 
         useVisibleTask$(() => {
-          promise.value = promise.value.then(() => {
-            return 2;
-          });
+          promise.value = promise.value.then(() => 2);
         });
 
         return <p>Should have a number: "{promise.value}"</p>;
       });
       const { vNode, document } = await render(<MyComp />, { debug });
-
       if (render === ssrRenderToDom) {
         await trigger(document.body, 'p', 'qvisible');
       }
@@ -746,6 +803,48 @@ describe.each([
         </Component>
       );
     });
+  });
+
+  it('should not run visible task after SSR until visible again', async () => {
+    const MyComp = component$(() => {
+      const log = useStore<string[]>([]);
+      const update = useSignal(0);
+      useTask$(({ track }) => {
+        track(update);
+        log.push(`task 1`);
+      });
+      useVisibleTask$(async () => {
+        log.push(`visible task`);
+      });
+      useTask$(({ track }) => {
+        track(update);
+        log.push(`task 2`);
+      });
+
+      return <button onClick$={() => update.value++}>{log.join(' | ')}</button>;
+    });
+    const { vNode, document } = await render(<MyComp />, { debug });
+
+    if (render === ssrRenderToDom) {
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <button>task 1 | task 2</button>
+        </Component>
+      );
+
+      await trigger(document.body, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <button>task 1 | task 2 | task 1 | task 2</button>
+        </Component>
+      );
+    } else {
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <button>task 1 | task 2 | visible task</button>
+        </Component>
+      );
+    }
   });
 
   it('should not add useOn props as slot name', async () => {
@@ -883,7 +982,7 @@ describe.each([
         const pathname = useComputed$(() => state.url.pathname);
 
         useVisibleTask$(({ track, cleanup }) => {
-          track(() => pathname.value);
+          track(pathname);
 
           // This should only run on page load for path '/'
           state.logs += `VisibleTask ChildA ${pathname.value}\n`;
@@ -906,7 +1005,11 @@ describe.each([
 
         return (
           <>
-            <button onClick$={() => (loc.url = new URL('http://localhost:3000/other'))}>
+            <button
+              onClick$={() => {
+                loc.url = new URL('http://localhost:3000/other');
+              }}
+            >
               Change
             </button>
             <pre>{loc.logs}</pre>
@@ -949,5 +1052,201 @@ describe.each([
         </Component>
       );
     });
+
+    it('#8309 -should run visible cleanup on unmount', async () => {
+      (globalThis as any).log = [] as string[];
+      const Foo = component$(() => {
+        useVisibleTask$(({ cleanup }) => {
+          (globalThis as any).log.push('entry /foo');
+          cleanup(() => {
+            (globalThis as any).log.push('cleanup /foo');
+          });
+          return () => {
+            (globalThis as any).log.push('return /foo');
+          };
+        });
+
+        return (
+          <div>
+            <p>You are in /foo</p>
+          </div>
+        );
+      });
+
+      const Layout = component$(() => {
+        return <Slot />;
+      });
+
+      const Main = component$(() => {
+        useVisibleTask$(({ cleanup }) => {
+          (globalThis as any).log.push('entry /');
+          cleanup(() => {
+            (globalThis as any).log.push('cleanup /');
+          });
+          return () => {
+            (globalThis as any).log.push('return /');
+          };
+        });
+
+        return (
+          <div>
+            <p>You are in /</p>
+          </div>
+        );
+      });
+
+      const Cmp = component$(() => {
+        const toggle = useSignal(true);
+        return (
+          <div>
+            <h1>Hello from Qwik!</h1>
+            <button
+              onClick$={() => {
+                toggle.value = !toggle.value;
+              }}
+            >
+              toggle
+            </button>
+            {toggle.value ? (
+              <Main />
+            ) : (
+              <Layout>
+                <Foo />
+              </Layout>
+            )}
+          </div>
+        );
+      });
+
+      const { container } = await render(<Cmp />, { debug });
+      if (render === ssrRenderToDom) {
+        await trigger(container.document.body, 'div', 'qvisible');
+      }
+      expect((globalThis as any).log).toEqual(['entry /']);
+      await trigger(container.document.body, 'button', 'click');
+      expect((globalThis as any).log).toEqual(['entry /', 'cleanup /', 'return /', 'entry /foo']);
+      await trigger(container.document.body, 'button', 'click');
+      expect((globalThis as any).log).toEqual([
+        'entry /',
+        'cleanup /',
+        'return /',
+        'entry /foo',
+        'cleanup /foo',
+        'return /foo',
+        'entry /',
+      ]);
+    });
+  });
+  it('should await returned async cleanup before rerun', async () => {
+    vi.useFakeTimers();
+    try {
+      (globalThis as any).log = [] as string[];
+      const Counter = component$(() => {
+        const count = useSignal(0);
+        useVisibleTask$(({ track }) => {
+          const current = track(count);
+          (globalThis as any).log.push(`task:${current}`);
+          return async () => {
+            (globalThis as any).log.push(`cleanup:${current}:start`);
+            await new Promise((resolve) => setTimeout(resolve, 10));
+            (globalThis as any).log.push(`cleanup:${current}:end`);
+          };
+        });
+        return <button onClick$={() => count.value++}>{count.value}</button>;
+      });
+
+      const { document, container } = await render(<Counter />, { debug });
+      if (render === ssrRenderToDom) {
+        await trigger(document.body, 'button', 'qvisible');
+        await waitForDrain(container);
+      }
+      expect((globalThis as any).log).toEqual(['task:0']);
+
+      await trigger(document.body, 'button', 'click');
+      await vi.advanceTimersByTimeAsync(1);
+      expect((globalThis as any).log).toEqual(['task:0', 'cleanup:0:start']);
+      expect((globalThis as any).log).not.toContain('task:1');
+
+      await vi.advanceTimersByTimeAsync(9);
+      expect((globalThis as any).log).toEqual([
+        'task:0',
+        'cleanup:0:start',
+        'cleanup:0:end',
+        'task:1',
+      ]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
+describe('render() does not wait for visible tasks', () => {
+  it('should resolve render() before a slow visible task completes', async () => {
+    let resolveVisibleTask!: () => void;
+    const visibleTaskDone = new Promise<void>((resolve) => {
+      resolveVisibleTask = resolve;
+    });
+    (globalThis as any).log = [] as string[];
+    try {
+      const Cmp = component$(() => {
+        const state = useSignal('initial');
+        useVisibleTask$(async () => {
+          (globalThis as any).log.push('task-start');
+          await visibleTaskDone;
+          state.value = 'after-task';
+          (globalThis as any).log.push('task-done');
+        });
+        return <span>{state.value}</span>;
+      });
+
+      const { vNode } = await domRender(<Cmp />);
+
+      expect((globalThis as any).log).toEqual(['task-start']);
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <span>
+            <Signal ssr-required>initial</Signal>
+          </span>
+        </Component>
+      );
+
+      resolveVisibleTask();
+      await vi.waitFor(() => {
+        expect((globalThis as any).log).toContain('task-done');
+        expect(vNode).toMatchVDOM(
+          <Component ssr-required>
+            <span>
+              <Signal ssr-required>after-task</Signal>
+            </span>
+          </Component>
+        );
+      });
+    } finally {
+      resolveVisibleTask();
+      (globalThis as any).log = undefined;
+    }
+  });
+
+  it('cleanup() should still tear down a pending visible task', async () => {
+    (globalThis as any).log = [] as string[];
+    const Cmp = component$(() => {
+      useVisibleTask$(({ cleanup }) => {
+        (globalThis as any).log.push('task');
+        cleanup(() => (globalThis as any).log.push('cleanup'));
+      });
+      return <span>hello</span>;
+    });
+
+    // domRender doesn't expose cleanup; replicate its setup so we can call cleanup ourselves.
+    setPlatform(getTestPlatform());
+    const document = createDocument();
+    const result = await render(document.body, <Cmp />);
+    expect((globalThis as any).log).toContain('task');
+    const container = _getDomContainer(document.body);
+    result.cleanup();
+    // Visible-task cleanups are scheduled via CLEANUP chore — wait for the queue to drain.
+    await waitForDrain(container);
+    expect((globalThis as any).log).toContain('cleanup');
+    (globalThis as any).log = undefined;
   });
 });

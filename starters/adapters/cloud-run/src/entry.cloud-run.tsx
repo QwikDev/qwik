@@ -7,6 +7,7 @@
  * - https://qwik.dev/docs/deployments/gcp-cloud-run/
  *
  */
+import { getRequestEvent } from "@qwik.dev/router";
 import {
   createQwikRouter,
   type PlatformNode,
@@ -47,7 +48,7 @@ const DEFAULT_HEADERS = {
   "X-XSS-Protection": "0",
 };
 
-const { router, notFound, staticFile } = createQwikRouter({
+const { router, staticFile } = createQwikRouter({
   render,
   static: {
     cacheControl: "public, max-age=31536000, immutable",
@@ -77,15 +78,32 @@ const { router, notFound, staticFile } = createQwikRouter({
 
 const server = createServer();
 
+// Optional request-aware diagnostics for crashes that escape request boundaries.
+// This does not prevent Node from crashing, but it does provide better diagnostics for uncaught exceptions.
+// See the Node documentation to handle uncaught exceptions and unhandled rejections in your app.
+process.on("uncaughtExceptionMonitor", (error, origin) => {
+  const requestEv = getRequestEvent();
+  if (requestEv) {
+    console.error("Unhandled exception during request", {
+      origin,
+      method: requestEv.method,
+      url: requestEv.url.href,
+      headersSent: requestEv.headersSent,
+      error,
+    });
+    return;
+  }
+
+  console.error("Unhandled exception outside request", { origin, error });
+});
+
 server.on("request", (req, res) => {
   for (const header of Object.entries(DEFAULT_HEADERS)) {
     res.setHeader(...header);
   }
 
   staticFile(req, res, () => {
-    router(req, res, () => {
-      notFound(req, res, () => {});
-    });
+    router(req, res, () => {});
   });
 });
 

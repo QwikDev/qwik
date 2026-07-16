@@ -1,0 +1,166 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 6512
+expression: output
+---
+==INPUT==
+
+
+		import { inlinedQrl,$,component$,jsx,useStylesScoped$ } from '@qwik.dev/core';
+			export default () => {
+				const serverFnHash = globalThis.foo();
+				const data = globalThis.bar();
+				const qrl = inlinedQrl(null, serverFnHash, data.slice(1));
+				console.log(qrl);
+			}
+
+			function Lifecycle(props, key, flags) {
+				return component$(() => {
+					return /* @__PURE__ */ jsx(Slot, {});
+				})(props, key, flags);
+			}
+			export const rawFn = (event, element) => {
+						handleFieldEvent(form, field, name, event, element, [
+							"touched",
+							"input"
+						], getElementInput(element, field, type));
+					}
+			export function Field({ children, name, type, ...props }) {
+				const { of: form } = props;
+				const field = getFieldStore(form, name);
+				return /* @__PURE__ */ jsx(Lifecycle, {
+					store: field,
+					...props,
+					children: children(field, {
+						name,
+						autoFocus: isServer && !!field.error,
+						ref: $((element) => {
+							field.internal.elements.push(element);
+						}),
+						onInput$: $(rawFn),
+					})
+				}, name);
+			}
+
+			const STYLE_RED = `.container {background-color: red;}`;
+			describe.each([])('$render.name: useStylesScoped', ({ render }) => {
+
+				it('should render object style', async () => {
+					const StyledComponent = component$(() => {
+						const stylesScopedData = useStylesScoped$(STYLE_RED);
+						const store = useStore({
+							count: 10,
+						});
+
+						return (
+							<button class={['container', `count-${store.count}`]} onClick$={() => store.count++}>
+								Hello world
+							</button>
+						);
+					});
+
+					const { vNode, getStyles, document } = await render(<StyledComponent />, { debug });
+				})
+			})
+
+			
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { _noopQrl } from "@qwik.dev/core";
+import { _getVarProps } from "@qwik.dev/core";
+import { _getConstProps } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
+import { _jsxSplit } from "@qwik.dev/core";
+import { useStylesScopedQrl } from "@qwik.dev/core";
+import { _fnSignal } from "@qwik.dev/core";
+import { inlinedQrl } from '@qwik.dev/core';
+//
+const _hf0 = (p0)=>[
+        'container',
+        `count-${p0.count}`
+    ];
+const _hf0_str = '["container",`count-${p0.count}`]';
+//
+const q_Field_Lifecycle_children_1_Bk3lkC2Z00U = /*#__PURE__*/ _noopQrl("Field_Lifecycle_children_1_Bk3lkC2Z00U");
+const q_Field_Lifecycle_children_4aZ3omfUAIs = /*#__PURE__*/ _noopQrl("Field_Lifecycle_children_4aZ3omfUAIs");
+const q_Lifecycle_component_r7jPBpjrWLc = /*#__PURE__*/ _noopQrl("Lifecycle_component_r7jPBpjrWLc");
+const q_it_StyledComponent_component_F9AGTDZHx8I = /*#__PURE__*/ _noopQrl("it_StyledComponent_component_F9AGTDZHx8I");
+const q_it_StyledComponent_component_button_q_e_click_CEp5mVjiu08 = /*#__PURE__*/ _noopQrl("it_StyledComponent_component_button_q_e_click_CEp5mVjiu08");
+const q_it_StyledComponent_component_stylesScopedData_useStylesScoped_423B3OJhrRs = /*#__PURE__*/ _noopQrl("it_StyledComponent_component_stylesScopedData_useStylesScoped_423B3OJhrRs");
+//
+export default (()=>{
+    const serverFnHash = globalThis.foo();
+    const data = globalThis.bar();
+    const qrl = inlinedQrl(null, serverFnHash, data.slice(1));
+    console.log(qrl);
+});
+const Lifecycle_component_r7jPBpjrWLc = ()=>{
+    return /* @__PURE__ */ _jsxSorted(Slot, null, null, null, 3, "u6_0");
+};
+q_Lifecycle_component_r7jPBpjrWLc.s(Lifecycle_component_r7jPBpjrWLc);
+function Lifecycle(props, key, flags) {
+    return /*#__PURE__*/ componentQrl(q_Lifecycle_component_r7jPBpjrWLc)(props, key, flags);
+}
+export const rawFn = (event, element)=>{
+    handleFieldEvent(form, field, name, event, element, [
+        "touched",
+        "input"
+    ], getElementInput(element, field, type));
+};
+q_Field_Lifecycle_children_1_Bk3lkC2Z00U.s(rawFn);
+const Field_Lifecycle_children_4aZ3omfUAIs = (element)=>{
+    const field1 = _captures[0];
+    field1.internal.elements.push(element);
+};
+q_Field_Lifecycle_children_4aZ3omfUAIs.s(Field_Lifecycle_children_4aZ3omfUAIs);
+export function Field({ children, name: name1, type: type1, ...props }) {
+    const { of: form1 } = props;
+    const field1 = getFieldStore(form1, name1);
+    return /* @__PURE__ */ _jsxSplit(Lifecycle, {
+        store: field1,
+        ..._getVarProps(props)
+    }, _getConstProps(props), children(field1, {
+        name: name1,
+        autoFocus: isServer && !!field1.error,
+        ref: q_Field_Lifecycle_children_4aZ3omfUAIs.w([
+            field1
+        ]),
+        onInput$: q_Field_Lifecycle_children_1_Bk3lkC2Z00U
+    }), 0, name1);
+}
+const STYLE_RED = `.container {background-color: red;}`;
+q_it_StyledComponent_component_stylesScopedData_useStylesScoped_423B3OJhrRs.s(STYLE_RED);
+const it_StyledComponent_component_button_q_e_click_CEp5mVjiu08 = (_, _1, store)=>store.count++;
+q_it_StyledComponent_component_button_q_e_click_CEp5mVjiu08.s(it_StyledComponent_component_button_q_e_click_CEp5mVjiu08);
+const it_StyledComponent_component_F9AGTDZHx8I = ()=>{
+    useStylesScopedQrl(q_it_StyledComponent_component_stylesScopedData_useStylesScoped_423B3OJhrRs);
+    const store = useStore({
+        count: 10
+    });
+    return /*#__PURE__*/ _jsxSorted("button", {
+        "q:p": store
+    }, {
+        class: _fnSignal(_hf0, [
+            store
+        ], _hf0_str),
+        "q-e:click": q_it_StyledComponent_component_button_q_e_click_CEp5mVjiu08
+    }, "Hello world", 7, "u6_1");
+};
+q_it_StyledComponent_component_F9AGTDZHx8I.s(it_StyledComponent_component_F9AGTDZHx8I);
+describe.each([])('$render.name: useStylesScoped', ({ render })=>{
+    it('should render object style', async ()=>{
+        const StyledComponent = /*#__PURE__*/ componentQrl(q_it_StyledComponent_component_F9AGTDZHx8I);
+        const { vNode, getStyles, document } = await render(/*#__PURE__*/ _jsxSorted(StyledComponent, null, null, null, 3, "u6_2"), {
+            debug
+        });
+    });
+});
+export { STYLE_RED as _auto_STYLE_RED };
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;AACE,SAAS,UAAU,QAA0C,iBAAiB;;mBA+C1D;QAAC;QAAa,CAAC,MAAM,EAAE,GAAM,KAAK,EAAE;KAAC;;;;;;;;;;AA9CxD,eAAe,CAAA;IACd,MAAM,eAAe,WAAW,GAAG;IACnC,MAAM,OAAO,WAAW,GAAG;IAC3B,MAAM,MAAM,WAAW,MAAM,cAAc,KAAK,KAAK,CAAC;IACtD,QAAQ,GAAG,CAAC;AACb,CAAA,EAAC;wCAGkB;IACjB,OAAO,aAAa,GAAG,WAAI;AAC5B;;AAHD,SAAS,UAAU,KAAK,EAAE,GAAG,EAAE,KAAK;IACnC,qBAAO,gDAEJ,OAAO,KAAK;AAChB;AACA,OAAO,MAAM,QAAQ,CAAC,OAAO;IAC1B,iBAAiB,MAAM,OAAO,MAAM,OAAO,SAAS;QACnD;QACA;KACA,EAAE,gBAAgB,SAAS,OAAO;AACpC,EAAC;2CAaY;6CAHL,CAAC;;IACP,OAAM,QAAQ,CAAC,QAAQ,CAAC,IAAI,CAAC;;;AAVjC,OAAO,SAAS,MAAM,EAAE,QAAQ,EAAE,MAAA,KAAI,EAAE,MAAA,KAAI,EAAE,GAAG,OAAO;IACvD,MAAM,EAAE,IAAI,KAAI,EAAE,GAAG;IACrB,MAAM,SAAQ,cAAc,OAAM;IAClC,OAAO,aAAa,GAAG,UAAI;QAC1B,OAAO;wBACJ;sBAAA,QACO,SAAS,QAAO;QACzB,MAAA;QACA,WAAW,YAAY,CAAC,CAAC,OAAM,KAAK;QACpC,GAAG;;;QAGH,QAAQ;IACT,OACE;AACJ;AAEA,MAAM,YAAY,CAAC,mCAAmC,CAAC;8EAKV;kEAMuB,gBAAM,MAAM,KAAK;;iDAPhD;IACT;IACzB,MAAM,QAAQ,SAAS;QACtB,OAAO;IACR;IAEA,qBACC,WAAC;;;QAAO,KAAK;;;QAAyC,WAAQ;OAAuB;AAIvF;;AAdF,SAAS,IAAI,CAAC,EAAE,EAAE,iCAAiC,CAAC,EAAE,MAAM,EAAE;IAE7D,GAAG,8BAA8B;QAChC,MAAM,gCAAkB;QAaxB,MAAM,EAAE,KAAK,EAAE,SAAS,EAAE,QAAQ,EAAE,GAAG,MAAM,qBAAO,WAAC,+CAAoB;YAAE;QAAM;IAClF;AACD\"}")
+== DIAGNOSTICS ==
+
+[]

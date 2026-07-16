@@ -4,7 +4,7 @@ contributors:
   - mhevery
   - manucorporat
   - AnthonyPAlicea
-  - the-r3aper7
+  - saisrikardumpeti
   - igorbabko
   - RaeesBhatti
   - mrhoodz
@@ -18,17 +18,44 @@ updated_at: '2024-05-11T17:00:00Z'
 created_at: '2023-03-29T02:35:29Z'
 ---
 
+import { Note, LongNote } from '~/components/note/note';
+
 # `server$()`
 
 `server$()` allows you to define functions that execute exclusively on the server, making it ideal for server-only operations and database access. It functions as an RPC (Remote Procedure Call) mechanism between the client and server. This is similar to a traditional HTTP endpoint, but strongly typed with TypeScript and easier to maintain.
 
-> `server$` can accept any number of arguments and return any value that can be serialized by Qwik. This includes primitives, objects, arrays, bigint, JSX nodes, and even Promises, just to name a few.
+<Note>`server$` can accept any number of arguments and return any value that can be serialized by Qwik. This includes primitives, objects, arrays, bigint, JSX nodes, and even Promises, just to name a few.</Note>
 
+## Server-only modules
+
+Qwik treats files named `.server.*`, such as `db.server.ts`, and files inside
+`src/**/server/**` folders as server-only modules. These modules can be imported by SSR code,
+route loaders, route actions, endpoint handlers, and `server$` implementations, but the client
+build will fail if client code imports them.
+
+```ts title="src/db.server.ts"
+export const loadSecret = async () => {
+  return process.env.API_KEY;
+};
+```
+
+```tsx title="src/routes/index.tsx"
+import { routeLoader$ } from '@qwik.dev/router';
+import { loadSecret } from '../db.server';
+
+export const useSecret = routeLoader$(async () => {
+  return loadSecret();
+});
+```
+
+Do not import server-only modules from browser code such as components, event handlers, or visible
+tasks. If client code needs to trigger server work, expose that work through `server$`, a route
+action, or an endpoint.
 
 `AbortSignal` is optional, and allows you to cancel a long running request by terminating the connection.  
 Your new function will have the following signature:  
 `([AbortSignal, ...yourOtherArgs]): Promise<T>`  
-> Please note that depending on your server runtime, the function on the server may not terminate immediately. It depends on how client disconnections are handled by the runtime.
+<Note>Depending on your server runtime, the function on the server may not terminate immediately. It depends on how client disconnections are handled by the runtime.</Note>
 
 ```tsx
 import { component$, useSignal, $  } from '@qwik.dev/core';
@@ -90,7 +117,7 @@ export const getEnvVariable = server$(
 
 You can read cookies using `this.cookie.get()` and `this.cookie.set()`.
 
-> When using `handleCookies` (in our example below) if it's used within a `useTask$` function that runs during the initial request, setting cookies won’t work as expected. This is because, during server-side rendering (SSR), the response is streamed, and HTTP requires all headers to be set before sending the first response. However, if handleCookies is used in useVisibleTask$, this issue doesn’t occur. If you need to set cookies for the initial document request you can use `plugin@<name>.ts` or Middleware.
+<Note>When using `handleCookies` (in our example below) if it’s used within a `useTask$` function that runs during the initial request, setting cookies won’t work as expected. This is because, during server-side rendering (SSR), the response is streamed, and HTTP requires all headers to be set before sending the first response. However, if handleCookies is used in useVisibleTask$, this issue doesn’t occur. If you need to set cookies for the initial document request you can use `plugin@<name>.ts` or Middleware.</Note>
 
 ```tsx
 export const handleCookies = server$(
@@ -232,14 +259,15 @@ This API is actually used to implement QwikGPT streaming responses in our docs s
 
 On the client, the proxy function invokes the wrapped function via an HTTP request, using `fetch()`.
 
-> Note: The `server$()` function must ensure that the server and client have the same version of the code executing. If there is a version skew the behavior is undefined and may result in an error. If version skew is a common problem then a more formal RPC mechanism should be used such as a tRPC or other library.
+<Note>The `server$()` function must ensure that the server and client have the same version of the code executing. If there is a version skew the behavior is undefined and may result in an error. If version skew is a common problem then a more formal RPC mechanism should be used such as a tRPC or other library.</Note>
 
-> **Important Gotcha**
-> When defining and calling `server$()` inside an `onClick$`, be aware that this can lead to potential errors. To avoid them, make sure the handlers have `$` wrapped around them.  
-> Don't do this  
-> `onClick$={() => server$(() => // some server code!)}`  
-> Do this  
-> `onClick$={$(() => server$(() => // some server code!))}`
+<LongNote title="Important Gotcha">
+When defining and calling `server$()` inside an `onClick$`, be aware that this can lead to potential errors. To avoid them, make sure the handlers have `$` wrapped around them.
+
+Don't do this: `onClick$={() => server$(() => // some server code!)}`
+
+Do this: `onClick$={$(() => server$(() => // some server code!))}`
+</LongNote>
 
 ## Middleware and `server$`
 
@@ -248,6 +276,3 @@ When using `server$`, it's important to understand how [middleware functions](/d
 To ensure that a middleware function runs for both types of requests, it should be defined in the `plugin.ts` file. This ensures that the middleware is executed consistently for all incoming requests, regardless of whether they are normal page requests or `server$` requests.
 
 By [defining middleware in the `plugin.ts`](/docs/advanced/plugins) file, developers can maintain a centralized location for shared middleware logic, ensuring consistency and reducing potential errors or oversights.
-
-
-

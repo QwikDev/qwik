@@ -1,8 +1,7 @@
 import type { ISsrNode, SSRContainer } from '../../ssr/ssr-types';
-import { runResource, type ResourceDescriptor } from '../../use/use-resource';
 import { runTask, Task, TaskFlags, type TaskFn } from '../../use/use-task';
 import { SsrNodeFlags, type Container } from '../types';
-import { ELEMENT_SEQ } from '../utils/markers';
+import { ELEMENT_PROPS, ELEMENT_SEQ } from '../utils/markers';
 import type { ValueOrPromise } from '../utils/types';
 import { ChoreBits } from '../vnode/enums/chore-bits.enum';
 import { logWarn } from '../utils/log';
@@ -12,6 +11,14 @@ import type { NodeProp } from '../../reactive-primitives/subscription-data';
 import { isSignal, type Signal } from '../../reactive-primitives/signal.public';
 import { executeCompute } from './chore-execution';
 import { isPromise } from '../utils/promises';
+import { type Props } from '../jsx/jsx-runtime';
+import type { EachProps } from '../../control-flow/each';
+import { _getProps } from '../jsx/props-proxy';
+import type { QRLInternal } from '../qrl/qrl-class';
+import type { JSXNode } from '../jsx/types/jsx-node';
+import { _jsxSorted } from '../../internal';
+import { untrack } from '../../use/use-core';
+import { isDev } from '@qwik.dev/core/build';
 
 /** @internal */
 export function _executeSsrChores(
@@ -25,7 +32,13 @@ export function _executeSsrChores(
     if (ssrNode.dirty & ChoreBits.COMPUTE) {
       executeCompute(ssrNode, container);
     }
-    if (ssrNode.dirty & ChoreBits.DIRTY_MASK) {
+    if (
+      isDev &&
+      ssrNode.dirty & ChoreBits.DIRTY_MASK &&
+      !(ssrNode.flags & SsrNodeFlags.WarnedStreamedChore)
+    ) {
+      // Warn once per host; a re-dirtied streamed host would otherwise spam every tick.
+      ssrNode.flags |= SsrNodeFlags.WarnedStreamedChore;
       // We are running on the server.
       // On server we can't schedule task for a different host!
       // Server is SSR, and therefore scheduling for anything but the current host
@@ -51,10 +64,21 @@ export function _executeSsrChores(
       promise = result;
     }
   }
-  if (ssrNode.dirty & ChoreBits.COMPONENT) {
-    // should not happen on SSR with non-streamed node
+
+  if (ssrNode.dirty & ChoreBits.RECONCILE) {
+    const result = executeReconcileChore(container, ssrNode);
+    promise = promise ? promise.then(() => result) : result;
   }
-  ssrNode.dirty &= ~ChoreBits.DIRTY_MASK;
+
+  // In SSR, we don't handle the COMPONENT bit here.
+  // During initial render, if a task completes and marks the component dirty,
+  // we want to leave the COMPONENT bit set so that executeComponent can detect
+  // it after $waitOn$ completes and re-execute the component function.
+  // executeComponent will clear the bit after re-executing.
+
+  // Clear all dirty bits EXCEPT COMPONENT
+  ssrNode.dirty &= ~(ChoreBits.DIRTY_MASK & ~ChoreBits.COMPONENT);
+
   if (promise) {
     return promise;
   }
@@ -68,7 +92,8 @@ function executeTasksChore(container: Container, ssrNode: ISsrNode): ValueOrProm
     return null;
   }
   let promise: ValueOrPromise<void> | null = null;
-  for (const item of elementSeq) {
+  for (let i = 0; i < elementSeq.length; i++) {
+    const item = elementSeq[i];
     if (item instanceof Task) {
       const task = item as Task<TaskFn, TaskFn>;
 
@@ -77,13 +102,7 @@ function executeTasksChore(container: Container, ssrNode: ISsrNode): ValueOrProm
         continue;
       }
 
-      let result: ValueOrPromise<void>;
-      // Check if it's a resource
-      if (task.$flags$ & TaskFlags.RESOURCE) {
-        result = runResource(task as ResourceDescriptor<TaskFn>, container, ssrNode);
-      } else {
-        result = runTask(task, container, ssrNode);
-      }
+      const result = runTask(task, container, ssrNode);
       promise = promise ? promise.then(() => result as Promise<void>) : (result as Promise<void>);
     }
   }
@@ -107,4 +126,42 @@ export function executeNodePropChore(container: SSRContainer, ssrNode: ISsrNode)
     const serializedValue = serializeAttribute(property, value, nodeProp.scopedStyleIdPrefix);
     container.addBackpatchEntry(ssrNode.id, property, serializedValue);
   }
+}
+
+export async function executeReconcileChore(
+  container: SSRContainer,
+  ssrNode: ISsrNode
+): Promise<void> {
+  ssrNode.dirty &= ~ChoreBits.RECONCILE;
+  const host = ssrNode;
+  const props = container.getHostProp<Props | null>(host, ELEMENT_PROPS) || null;
+  if (!props) {
+    return;
+  }
+  let items = _getProps(props, 'items' satisfies keyof EachProps<any>) as any[];
+  if (isSignal(items)) {
+    items = untrack(items) as any[];
+  }
+  const keyOf = (await (
+    _getProps(props, 'key$' satisfies keyof EachProps<any>) as QRLInternal<
+      (item: any, index: number) => string
+    >
+  ).resolve()) as (item: any, index: number) => string;
+  const itemFn = (await (
+    _getProps(props, 'item$' satisfies keyof EachProps<any>) as QRLInternal<
+      (item: any, index: number) => JSXNode
+    >
+  ).resolve()) as (item: any, index: number) => JSXNode;
+  const children: JSXNode[] = [];
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    const jsx = itemFn(item, i)!;
+    const key = keyOf(item, i);
+    jsx.key = key;
+    children.push(jsx);
+  }
+  await container.renderJSX(children, {
+    currentStyleScoped: null,
+    parentComponentFrame: container.getComponentFrame(0),
+  });
 }

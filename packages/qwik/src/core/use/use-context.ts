@@ -1,11 +1,12 @@
 import { assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import { verifySerializable } from '../shared/serdes/verify';
-import { qDev, qSerialize } from '../shared/utils/qdev';
+import { qDev } from '../shared/utils/qdev';
 import { isObject } from '../shared/utils/types';
 import { getInvokeContext, invoke } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
 import { fromCamelToKebabCase } from '../shared/utils/event-names';
+import { isDev } from '@qwik.dev/core/build';
 
 // <docs markdown="../readme.md#ContextId">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -122,7 +123,8 @@ export interface ContextId<STATE> {
  */
 // </docs>
 export const createContextId = <STATE = unknown>(name: string): ContextId<STATE> => {
-  assertTrue(/^[\w/.-]+$/.test(name), 'Context name must only contain A-Z,a-z,0-9,_,.,-', name);
+  isDev &&
+    assertTrue(/^[\w/.-]+$/.test(name), 'Context name must only contain A-Z,a-z,0-9,_,.,-', name);
   return /*#__PURE__*/ Object.freeze({
     id: fromCamelToKebabCase(name),
   } as any);
@@ -191,7 +193,7 @@ export const useContextProvider = <STATE>(context: ContextId<STATE>, newValue: S
   if (qDev) {
     validateContext(context);
   }
-  if (qDev && qSerialize) {
+  if (qDev) {
     verifySerializable(newValue);
   }
   iCtx.$container$.setContext(iCtx.$hostElement$, context, newValue);

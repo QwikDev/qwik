@@ -3,7 +3,11 @@ import { trackSignalAndAssignHost } from '../use/use-core';
 import { version } from '../version';
 import type { SubscriptionData } from '../reactive-primitives/subscription-data';
 import type { Signal } from '../reactive-primitives/signal.public';
-import type { StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-types';
+import type {
+  SSRInternalStreamWriter,
+  StreamWriter,
+  SymbolToChunkResolver,
+} from '../ssr/ssr-types';
 import {
   createSerializationContext,
   type SerializationContext,
@@ -14,6 +18,8 @@ import type { Container, HostElement, ObjToProxyMap } from './types';
 export abstract class _SharedContainer implements Container {
   readonly $version$: string;
   readonly $storeProxyMap$: ObjToProxyMap;
+  $rootContainer$: Container | null = null;
+  $isOutOfOrderSegment$ = false;
   /// Current language locale
   readonly $locale$: string;
   /// Retrieve Object from paused serialized state.
@@ -24,7 +30,7 @@ export abstract class _SharedContainer implements Container {
   $buildBase$: string | null = null;
   $renderPromise$: Promise<void> | null = null;
   $resolveRenderPromise$: (() => void) | null = null;
-  $cursorCount$: number = 0;
+  $pendingCount$: number = 0;
 
   constructor(serverData: Record<string, any>, locale: string) {
     this.$serverData$ = serverData;
@@ -59,11 +65,17 @@ export abstract class _SharedContainer implements Container {
       NodeConstructor,
       DomRefConstructor,
       symbolToChunkResolver,
-      this.getHostProp.bind(this),
       this.setHostProp.bind(this),
       this.$storeProxyMap$,
-      writer
+      writer as SSRInternalStreamWriter | undefined
     );
+  }
+
+  $checkPendingCount$(): void {
+    if (this.$pendingCount$ === 0) {
+      this.$resolveRenderPromise$?.();
+      this.$renderPromise$ = null;
+    }
   }
 
   abstract ensureProjectionResolved(host: HostElement): void;

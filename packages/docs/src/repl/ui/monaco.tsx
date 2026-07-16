@@ -13,9 +13,10 @@ export const initMonacoEditor = async (
   props: EditorProps,
   editorStore: EditorStore,
   replStore: ReplStore,
-  theme: ThemePreference
+  theme: EditorThemeName
 ) => {
   const monaco = await getMonaco();
+  ensureThemes(monaco);
   const ts = monaco.languages.typescript;
 
   ts.typescriptDefaults.setCompilerOptions({
@@ -46,6 +47,9 @@ export const initMonacoEditor = async (
 
   const editor = monaco.editor.create(containerElm, {
     ...defaultEditorOpts,
+    fontFamily:
+      'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, DejaVu Sans Mono, monospace',
+    fontSize: 14,
     ariaLabel: props.ariaLabel,
     lineNumbers: props.lineNumbers,
     wordWrap: props.wordWrap,
@@ -136,7 +140,10 @@ export const updateMonacoEditor = async (props: EditorProps, editorStore: Editor
   }
 };
 
-export const getEditorTheme = (theme: ThemePreference) => {
+export const getEditorTheme = (theme: EditorThemeName) => {
+  if (theme === 'github-light') {
+    return 'github-light';
+  }
   return theme === 'light' ? 'vs' : 'vs-dark';
 };
 
@@ -213,6 +220,7 @@ export const addQwikLibs = async (version: string) => {
     `declare module '@qwik.dev/core/jsx-runtime' { export * from '@qwik.dev/core' }`,
     '/node_modules/@qwik.dev/core/dist/jsx-runtime.d.ts'
   );
+  typescriptDefaults.addExtraLib(WORKER_LIB, '/node_modules/@qwik.dev/core/worker.d.ts');
   typescriptDefaults.addExtraLib(CLIENT_LIB);
   typescriptDefaults.addExtraLib(cssTypes, '/node_modules/csstype/index.d.ts');
 };
@@ -314,7 +322,9 @@ export const getMonaco = async (): Promise<Monaco> => {
 
         // https://cdn.jsdelivr.net/npm/monaco-editor@0.33.0/min/vs/editor/editor.main.js
         require(['vs/editor/editor.main'], () => {
-          resolve((globalThis as any).monaco);
+          const monaco = (globalThis as any).monaco as Monaco;
+          ensureThemes(monaco);
+          resolve(monaco);
         });
       });
       script.async = true;
@@ -339,8 +349,47 @@ const defaultEditorOpts: IStandaloneEditorConstructionOptions = {
   tabSize: 2,
 };
 
+const ensureThemes = (monaco: Monaco) => {
+  if (monacoCtx.hasRegisteredThemes) {
+    return;
+  }
+
+  monaco.editor.defineTheme('github-light', {
+    base: 'vs',
+    inherit: true,
+    rules: [
+      { token: 'comment', foreground: '6e7781' },
+      { token: 'keyword', foreground: 'cf222e' },
+      { token: 'string', foreground: '0a3069' },
+      { token: 'number', foreground: '0550ae' },
+      { token: 'type', foreground: '953800' },
+      { token: 'delimiter', foreground: '1f2328' },
+      { token: 'tag', foreground: '116329' },
+      { token: 'attribute.name', foreground: '6639ba' },
+      { token: 'attribute.value', foreground: '0a3069' },
+    ],
+    colors: {
+      'editor.background': '#ffffff',
+      'editor.foreground': '#1f2328',
+      'editor.lineHighlightBackground': '#f6f8fa',
+      'editor.selectionBackground': '#0969da26',
+      'editor.selectionHighlightBackground': '#0969da14',
+      'editor.inactiveSelectionBackground': '#afb8c133',
+      'editorCursor.foreground': '#1f2328',
+      'editorWhitespace.foreground': '#d0d7de',
+      'editorIndentGuide.background1': '#d0d7de',
+      'editorLineNumber.foreground': '#8c959f',
+      'editorLineNumber.activeForeground': '#1f2328',
+      'editorGutter.background': '#ffffff',
+    },
+  });
+
+  monacoCtx.hasRegisteredThemes = true;
+};
+
 const monacoCtx: MonacoContext = {
   deps: [],
+  hasRegisteredThemes: false,
   loader: null,
   tsWorker: null,
 };
@@ -357,6 +406,23 @@ declare module '*.css?inline' {
 }
 `;
 
+const WORKER_LIB = `
+declare module '@qwik.dev/core/worker' {
+  import type { QRL } from '@qwik.dev/core';
+
+  export interface WorkerFunction {
+    (...args: any[]): any;
+  }
+
+  export interface WorkerConstructorQRL {
+    <T extends WorkerFunction>(fnQrl: QRL<T>): QRL<T>;
+  }
+
+  export const workerQrl: WorkerConstructorQRL;
+  export const worker$: <T extends WorkerFunction>(qrl: T) => QRL<T>;
+}
+`;
+
 export type Monaco = typeof MonacoTypes;
 export type IStandaloneCodeEditor = MonacoTypes.editor.IStandaloneCodeEditor;
 export type ICodeEditorViewState = MonacoTypes.editor.ICodeEditorViewState;
@@ -366,9 +432,11 @@ export type IModelContentChangedEvent = MonacoTypes.editor.IModelContentChangedE
 export type TypeScriptWorker = MonacoTypes.languages.typescript.TypeScriptWorker;
 export type TypeScriptDiagnostic = MonacoTypes.languages.typescript.Diagnostic;
 export type DiagnosticMessageChain = MonacoTypes.languages.typescript.DiagnosticMessageChain;
+export type EditorThemeName = ThemePreference | 'github-light';
 
 interface MonacoContext {
   deps: NodeModuleDep[];
+  hasRegisteredThemes: boolean;
   loader: Promise<Monaco> | null;
   tsWorker: null | TypeScriptWorker;
 }

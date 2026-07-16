@@ -1,13 +1,13 @@
+import { isDev } from '@qwik.dev/core/build';
 import { assertEqual } from '../shared/error/assert';
 import { isPropsProxy } from '../shared/jsx/props-proxy';
 import { _CONST_PROPS, _IMMUTABLE, _VAR_PROPS } from '../shared/utils/constants';
 import { isObject } from '../shared/utils/types';
-import { AsyncComputedSignalImpl } from './impl/async-computed-signal-impl';
+import { ComputedSignalImpl } from './impl/computed-signal-impl';
 import type { SignalImpl } from './impl/signal-impl';
 import { getStoreTarget, isStore } from './impl/store';
 import { WrappedSignalImpl } from './impl/wrapped-signal-impl';
 import { isSignal, type Signal } from './signal.public';
-import { WrappedSignalFlags } from './types';
 
 // Keep these properties named like this so they're the same as from wrapSignal
 export const getValueProp = <T>(p0: { value: T }) => p0.value;
@@ -61,10 +61,10 @@ export const _wrapProp = <T extends object, P extends keyof T>(
     return obj[prop];
   }
   if (isSignal(obj)) {
-    if (!(obj instanceof AsyncComputedSignalImpl)) {
-      assertEqual(prop, 'value', 'Left side is a signal, prop must be value');
+    if (!(obj instanceof ComputedSignalImpl)) {
+      isDev && assertEqual(prop, 'value', 'Left side is a signal, prop must be value');
     }
-    if (obj instanceof WrappedSignalImpl && obj.$flags$ & WrappedSignalFlags.UNWRAP) {
+    if (obj instanceof WrappedSignalImpl) {
       return obj as WrappedProp<T, P>;
     }
     return getWrapped(args) as WrappedProp<T, P>;
@@ -72,10 +72,10 @@ export const _wrapProp = <T extends object, P extends keyof T>(
   if (isPropsProxy(obj)) {
     const constProps = obj[_CONST_PROPS];
     const varProps = obj[_VAR_PROPS];
-    if (constProps && prop in constProps) {
+    if (constProps && Object.prototype.hasOwnProperty.call(constProps, prop)) {
       // Const props don't need wrapping
       return constProps[prop as keyof typeof constProps] as WrappedProp<T, P>;
-    } else if (prop in varProps) {
+    } else if (Object.prototype.hasOwnProperty.call(varProps, prop)) {
       const value = varProps[prop as keyof typeof varProps];
       return wrapIfNotSignal(value as T[P], args);
     }

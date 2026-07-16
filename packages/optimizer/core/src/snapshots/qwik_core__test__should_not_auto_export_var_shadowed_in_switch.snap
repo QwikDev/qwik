@@ -1,0 +1,82 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 6975
+expression: output
+---
+==INPUT==
+
+
+import { formAction$ } from 'forms';
+const x = 'module-level';
+export const action = formAction$((data) => {
+  switch (data.kind) {
+    case 'a': {
+      const x = 'shadowed-in-block';
+      return x;
+    }
+    case 'b': {
+      const x = 'shadowed-in-case';
+      return x;
+    }
+  }
+  return x;
+});
+		
+============================= test.js ==
+
+import { formActionQrl } from "forms";
+import { qrl } from "@qwik.dev/core";
+//
+const q_action_formAction_dIQV5vh1He4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_action_formAction_dIQV5vh1He4"), "action_formAction_dIQV5vh1He4");
+//
+export const action = formActionQrl(q_action_formAction_dIQV5vh1He4);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,SAAS,+CAYnB\"}")
+============================= test.tsx_action_formAction_dIQV5vh1He4.js (ENTRY POINT)==
+
+const x = 'module-level';
+export const action_formAction_dIQV5vh1He4 = (data)=>{
+    switch(data.kind){
+        case 'a':
+            {
+                const x = 'shadowed-in-block';
+                return x;
+            }
+        case 'b':
+            {
+                const x = 'shadowed-in-case';
+                return x;
+            }
+    }
+    return x;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"MAEM,IAAI;6CACwB,CAAC;IACjC,OAAQ,KAAK,IAAI;QACf,KAAK;YAAK;gBACR,MAAM,IAAI;gBACV,OAAO;YACT;QACA,KAAK;YAAK;gBACR,MAAM,IAAI;gBACV,OAAO;YACT;IACF;IACA,OAAO;AACT\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "action_formAction_dIQV5vh1He4",
+  "entry": null,
+  "displayName": "test.tsx_action_formAction",
+  "hash": "dIQV5vh1He4",
+  "canonicalFilename": "test.tsx_action_formAction_dIQV5vh1He4",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "formAction$",
+  "captures": false,
+  "loc": [
+    99,
+    300
+  ],
+  "paramNames": [
+    "data"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

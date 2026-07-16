@@ -4,7 +4,7 @@ title: \@qwik.dev/qwik/server API Reference
 
 # [API](/api) &rsaquo; @qwik.dev/qwik/server
 
-## getQwikBackpatchExecutorScript
+<h2 id="getqwikbackpatchexecutorscript">getQwikBackpatchExecutorScript</h2>
 
 Provides the `backpatch-executor.js` executor script as a string.
 
@@ -48,7 +48,7 @@ string
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/scripts.ts)
 
-## getQwikLoaderScript
+<h2 id="getqwikloaderscript">getQwikLoaderScript</h2>
 
 Provides the `qwikloader.js` file as a string. Useful for tooling to inline the qwikloader script into HTML.
 
@@ -90,7 +90,7 @@ string
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/scripts.ts)
 
-## getQwikPrefetchWorkerScript
+<h2 id="getqwikprefetchworkerscript">getQwikPrefetchWorkerScript</h2>
 
 Provides the `qwik-prefetch-service-worker.js` file as a string. Useful for tooling to inline the qwik-prefetch-service-worker script into HTML.
 
@@ -134,7 +134,7 @@ string
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/scripts.ts)
 
-## InOrderAuto
+<h2 id="inorderauto">InOrderAuto</h2>
 
 ```typescript
 export interface InOrderAuto
@@ -159,7 +159,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[maximumChunk?](#)
+maximumChunk?
 
 </td><td>
 
@@ -174,7 +174,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[maximumInitialChunk?](#)
+maximumInitialChunk?
 
 </td><td>
 
@@ -189,7 +189,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[strategy](#)
+strategy
 
 </td><td>
 
@@ -204,7 +204,7 @@ _(Optional)_
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
-## InOrderDisabled
+<h2 id="inorderdisabled">InOrderDisabled</h2>
 
 ```typescript
 export interface InOrderDisabled
@@ -229,7 +229,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[strategy](#)
+strategy
 
 </td><td>
 
@@ -244,7 +244,7 @@ Description
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
-## InOrderStreaming
+<h2 id="inorderstreaming">InOrderStreaming</h2>
 
 ```typescript
 export type InOrderStreaming = InOrderAuto | InOrderDisabled | InOrderDirect;
@@ -254,113 +254,15 @@ export type InOrderStreaming = InOrderAuto | InOrderDisabled | InOrderDirect;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
-## PrefetchImplementation
-
-> Warning: This API is now obsolete.
->
-> Use `preloader` instead
+<h2 id="outoforderstreaming">OutOfOrderStreaming</h2>
 
 ```typescript
-export interface PrefetchImplementation
+export type OutOfOrderStreaming = boolean;
 ```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[linkFetchPriority?](#)
-
-</td><td>
-
-</td><td>
-
-'auto' \| 'low' \| 'high' \| null
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[linkInsert?](#)
-
-</td><td>
-
-</td><td>
-
-'js-append' \| 'html-append' \| null
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[linkRel?](#)
-
-</td><td>
-
-</td><td>
-
-'prefetch' \| 'preload' \| 'modulepreload' \| null
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[prefetchEvent?](#)
-
-</td><td>
-
-</td><td>
-
-'always' \| null
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[workerFetchInsert?](#)
-
-</td><td>
-
-</td><td>
-
-'always' \| 'no-link-support' \| null
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-</tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
-## PrefetchResource
+<h2 id="prefetchresource">PrefetchResource</h2>
 
 ```typescript
 export interface PrefetchResource
@@ -385,7 +287,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[imports](#)
+imports
 
 </td><td>
 
@@ -398,7 +300,7 @@ Description
 </td></tr>
 <tr><td>
 
-[url](#)
+url
 
 </td><td>
 
@@ -413,64 +315,7 @@ string
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
-## PrefetchStrategy
-
-```typescript
-export interface PrefetchStrategy
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[implementation?](#)
-
-</td><td>
-
-</td><td>
-
-[PrefetchImplementation](#prefetchimplementation)
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[symbolsToPrefetch?](#)
-
-</td><td>
-
-</td><td>
-
-[SymbolsToPrefetch](#symbolstoprefetch)
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
-
-## PreloaderOptions
+<h2 id="preloaderoptions">PreloaderOptions</h2>
 
 ```typescript
 export interface PreloaderOptions
@@ -495,24 +340,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[debug?](#)
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-_(Optional)_ Log preloader debug information to the console.
-
-Defaults to `false`
-
-</td></tr>
-<tr><td>
-
-[maxIdlePreloads?](#)
+maxIdlePreloads?
 
 </td><td>
 
@@ -531,41 +359,7 @@ Defaults to `25`
 </td></tr>
 <tr><td>
 
-[preloadProbability?](#)
-
-</td><td>
-
-</td><td>
-
-number
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[ssrPreloadProbability?](#)
-
-</td><td>
-
-</td><td>
-
-number
-
-</td><td>
-
-_(Optional)_ The minimum probability for a bundle to be added as a preload link during SSR.
-
-Defaults to `0.7` (70% probability)
-
-This makes sure that the most likely bundles are preloaded ahead of time.
-
-</td></tr>
-<tr><td>
-
-[ssrPreloads?](#)
+ssrPreloads?
 
 </td><td>
 
@@ -586,7 +380,7 @@ Defaults to `5`
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
-## QwikLoaderOptions
+<h2 id="qwikloaderoptions">QwikLoaderOptions</h2>
 
 ```typescript
 export type QwikLoaderOptions =
@@ -601,17 +395,17 @@ export type QwikLoaderOptions =
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
-## Render
+<h2 id="render">Render</h2>
 
 ```typescript
 export type Render = RenderToString | RenderToStream;
 ```
 
-**References:** [RenderToString](#rendertostring), [RenderToStream](#rendertostream)
+**References:** [RenderToString](#rendertostring-type-alias), [RenderToStream](#rendertostream-type-alias)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
-## RenderOptions
+<h2 id="renderoptions">RenderOptions</h2>
 
 ```typescript
 export interface RenderOptions extends SerializeDocumentOptions
@@ -638,7 +432,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[base?](#)
+base?
 
 </td><td>
 
@@ -653,7 +447,7 @@ _(Optional)_ Specifies the root of the JS files of the client build. Setting a b
 </td></tr>
 <tr><td>
 
-[containerAttributes?](#)
+containerAttributes?
 
 </td><td>
 
@@ -668,7 +462,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[containerTagName?](#)
+containerTagName?
 
 </td><td>
 
@@ -683,7 +477,7 @@ _(Optional)_ When set, the app is serialized into a fragment. And the returned h
 </td></tr>
 <tr><td>
 
-[locale?](#)
+locale?
 
 </td><td>
 
@@ -698,22 +492,7 @@ _(Optional)_ Language to use when rendering the document.
 </td></tr>
 <tr><td>
 
-[prefetchStrategy?](#)
-
-</td><td>
-
-</td><td>
-
-[PrefetchStrategy](#prefetchstrategy) \| null
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[preloader?](#)
+preloader?
 
 </td><td>
 
@@ -728,7 +507,7 @@ _(Optional)_ Specifies how preloading is handled. This ensures that code is inst
 </td></tr>
 <tr><td>
 
-[qwikLoader?](#)
+qwikLoader?
 
 </td><td>
 
@@ -753,7 +532,7 @@ Note that the Qwik Loader is absolutely required for Qwik to work. There must be
 </td></tr>
 <tr><td>
 
-[serverData?](#)
+serverData?
 
 </td><td>
 
@@ -768,7 +547,7 @@ _(Optional)_ Metadata that can be retrieved during SSR with `useServerData()`.
 </td></tr>
 <tr><td>
 
-[snapshot?](#)
+snapshot?
 
 </td><td>
 
@@ -781,11 +560,28 @@ boolean
 _(Optional)_ Defaults to `true`
 
 </td></tr>
+<tr><td>
+
+statePrewarm?
+
+</td><td>
+
+</td><td>
+
+number \| false
+
+</td><td>
+
+_(Optional)_ Root-count threshold for eager yielded state prewarm during client resume.
+
+Defaults to `false`, keeping state fully lazy. Set to a number to enable eager prewarm when serialized state has at least that many roots.
+
+</td></tr>
 </tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
-## RenderResult
+<h2 id="renderresult">RenderResult</h2>
 
 ```typescript
 export interface RenderResult
@@ -810,7 +606,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[isStatic](#)
+isStatic
 
 </td><td>
 
@@ -823,7 +619,7 @@ boolean
 </td></tr>
 <tr><td>
 
-[manifest?](#)
+manifest?
 
 </td><td>
 
@@ -838,7 +634,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[snapshotResult](#)
+snapshotResult?
 
 </td><td>
 
@@ -848,12 +644,14 @@ SnapshotResult \| undefined
 
 </td><td>
 
+_(Optional)_
+
 </td></tr>
 </tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
-## renderToStream
+<h2 id="rendertostream-function">renderToStream</h2>
 
 ```typescript
 export type RenderToStream = (
@@ -865,7 +663,7 @@ export type RenderToStream = (
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/ssr-render.ts)
 
-## RenderToStream
+<h2 id="rendertostream-type-alias">RenderToStream</h2>
 
 ```typescript
 export type RenderToStream = (
@@ -877,7 +675,7 @@ export type RenderToStream = (
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
-## RenderToStreamOptions
+<h2 id="rendertostreamoptions">RenderToStreamOptions</h2>
 
 ```typescript
 export interface RenderToStreamOptions extends RenderOptions
@@ -904,7 +702,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[stream](#)
+stream
 
 </td><td>
 
@@ -917,7 +715,7 @@ StreamWriter
 </td></tr>
 <tr><td>
 
-[streaming?](#)
+streaming?
 
 </td><td>
 
@@ -934,7 +732,7 @@ _(Optional)_
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
-## RenderToStreamResult
+<h2 id="rendertostreamresult">RenderToStreamResult</h2>
 
 ```typescript
 export interface RenderToStreamResult extends RenderResult
@@ -961,7 +759,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[flushes](#)
+flushes
 
 </td><td>
 
@@ -974,7 +772,7 @@ number
 </td></tr>
 <tr><td>
 
-[size](#)
+size
 
 </td><td>
 
@@ -987,7 +785,7 @@ number
 </td></tr>
 <tr><td>
 
-[timing](#)
+timing
 
 </td><td>
 
@@ -1002,7 +800,7 @@ number
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
-## renderToString
+<h2 id="rendertostring-function">renderToString</h2>
 
 ```typescript
 export type RenderToString = (
@@ -1014,7 +812,7 @@ export type RenderToString = (
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/ssr-render.ts)
 
-## RenderToString
+<h2 id="rendertostring-type-alias">RenderToString</h2>
 
 ```typescript
 export type RenderToString = (
@@ -1026,7 +824,7 @@ export type RenderToString = (
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
-## RenderToStringOptions
+<h2 id="rendertostringoptions">RenderToStringOptions</h2>
 
 ```typescript
 export interface RenderToStringOptions extends RenderOptions
@@ -1036,7 +834,7 @@ export interface RenderToStringOptions extends RenderOptions
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
-## RenderToStringResult
+<h2 id="rendertostringresult">RenderToStringResult</h2>
 
 ```typescript
 export interface RenderToStringResult extends RenderResult
@@ -1063,7 +861,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[html](#)
+html
 
 </td><td>
 
@@ -1076,7 +874,7 @@ string
 </td></tr>
 <tr><td>
 
-[timing](#)
+timing
 
 </td><td>
 
@@ -1091,7 +889,7 @@ string
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
-## resolveManifest
+<h2 id="resolvemanifest">resolveManifest</h2>
 
 Merges a given manifest with the built manifest and provides mappings for symbols.
 
@@ -1135,7 +933,7 @@ ResolvedManifest \| undefined
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/ssr-render.ts)
 
-## SerializeDocumentOptions
+<h2 id="serializedocumentoptions">SerializeDocumentOptions</h2>
 
 ```typescript
 export interface SerializeDocumentOptions
@@ -1160,7 +958,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[debug?](#)
+debug?
 
 </td><td>
 
@@ -1175,7 +973,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[manifest?](#)
+manifest?
 
 </td><td>
 
@@ -1190,7 +988,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[symbolMapper?](#)
+symbolMapper?
 
 </td><td>
 
@@ -1207,7 +1005,7 @@ _(Optional)_
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
-## setServerPlatform
+<h2 id="setserverplatform">setServerPlatform</h2>
 
 ```typescript
 export declare function setServerPlatform(
@@ -1249,7 +1047,7 @@ Promise&lt;void&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/index.ts)
 
-## StreamingOptions
+<h2 id="streamingoptions">StreamingOptions</h2>
 
 ```typescript
 export interface StreamingOptions
@@ -1274,7 +1072,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[inOrder?](#)
+inOrder?
 
 </td><td>
 
@@ -1287,25 +1085,26 @@ Description
 _(Optional)_
 
 </td></tr>
+<tr><td>
+
+outOfOrder?
+
+</td><td>
+
+</td><td>
+
+[OutOfOrderStreaming](#outoforderstreaming)
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
 </tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
-## SymbolsToPrefetch
-
-Auto: Prefetch all possible QRLs used by the document. Default
-
-```typescript
-export type SymbolsToPrefetch =
-  | "auto"
-  | ((opts: { manifest: ServerQwikManifest }) => PrefetchResource[]);
-```
-
-**References:** [PrefetchResource](#prefetchresource)
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
-
-## versions
+<h2 id="versions">versions</h2>
 
 ```typescript
 versions: {

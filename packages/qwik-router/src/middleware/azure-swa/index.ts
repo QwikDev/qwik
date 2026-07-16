@@ -5,7 +5,7 @@ import type {
   ServerRequestEvent,
 } from '@qwik.dev/router/middleware/request-handler';
 import {
-  getNotFound,
+  getErrorHtml,
   isStaticPath,
   requestHandler,
 } from '@qwik.dev/router/middleware/request-handler';
@@ -50,10 +50,6 @@ interface AzureCookie {
 
 /** @public */
 export function createQwikRouter(opts: QwikRouterAzureOptions): AzureFunction {
-  if (opts.qwikCityPlan && !opts.qwikRouterConfig) {
-    console.warn('qwikCityPlan is deprecated. Simply remove it.');
-    opts.qwikRouterConfig = opts.qwikCityPlan;
-  }
   if (opts.manifest) {
     setServerPlatform(opts.manifest);
   }
@@ -78,23 +74,27 @@ export function createQwikRouter(opts: QwikRouterAzureOptions): AzureFunction {
         },
         request: new Request(url, options),
         getWritableStream: (status, headers, cookies, resolve) => {
+          const chunks: Uint8Array[] = [];
+          let bodyLength = 0;
           const response: AzureResponse = {
             status,
-            body: new Uint8Array(),
             headers: {},
             cookies: cookies.headers().map((header) => parseString(header)),
           };
           headers.forEach((value, key) => (response.headers[key] = value));
           return new WritableStream({
             write(chunk: Uint8Array) {
-              if (response.body instanceof Uint8Array) {
-                const newBuffer = new Uint8Array(response.body.length + chunk.length);
-                newBuffer.set(response.body);
-                newBuffer.set(chunk, response.body.length);
-                response.body = newBuffer;
-              }
+              chunks.push(chunk.slice());
+              bodyLength += chunk.length;
             },
             close() {
+              const body = new Uint8Array(bodyLength);
+              let offset = 0;
+              for (const chunk of chunks) {
+                body.set(chunk, offset);
+                offset += chunk.length;
+              }
+              response.body = body;
               resolve(response);
             },
           });
@@ -122,16 +122,11 @@ export function createQwikRouter(opts: QwikRouterAzureOptions): AzureFunction {
         }
       }
 
-      // qwik router did not have a route for this request
-      // response with 404 for this pathname
-
-      // In the development server, we replace the getNotFound function
-      // For static paths, we assign a static "Not Found" message.
-      // This ensures consistency between development and production environments for specific URLs.
+      // No matching route: respond with a minimal 404 (static paths get a plain message).
       const notFoundHtml =
         !req.headers.accept?.includes('text/html') || isStaticPath(req.method || 'GET', url)
           ? 'Not Found'
-          : getNotFound(url.pathname);
+          : getErrorHtml(404, 'Not Found');
       return {
         status: 404,
         headers: { 'Content-Type': 'text/html; charset=utf-8', 'X-Not-Found': url.pathname },

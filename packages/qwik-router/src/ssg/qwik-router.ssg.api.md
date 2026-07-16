@@ -4,19 +4,39 @@
 
 ```ts
 
+import type { QwikRouterConfig } from '@qwik.dev/router';
+import type { Render } from '@qwik.dev/core/server';
 import type { RenderOptions } from '@qwik.dev/core/server';
 
 // @public
-export function generate(opts: StaticGenerateOptions): Promise<StaticGenerateResult>;
+export function generate(opts: SsgInternalOptions): Promise<StaticGenerateResult>;
+
+// @public
+export function runSsg(opts: SsgInternalOptions): Promise<never>;
+
+// @public
+export interface SsgInternalOptions extends SsgOptions {
+    qwikRouterConfig: QwikRouterConfig;
+    render: Render;
+    workerFilePath?: string | URL;
+}
+
+// @public (undocumented)
+interface SsgOptions extends SsgRenderOptions {
+    basePathname?: string;
+    // (undocumented)
+    rootDir?: string;
+}
+export { SsgOptions }
+export { SsgOptions as StaticGenerateOptions }
 
 // @public (undocumented)
 export interface SsgRenderOptions extends RenderOptions {
-    emit404Pages?: boolean;
     emitData?: boolean;
     emitHtml?: boolean;
     exclude?: string[];
     include?: string[];
-    log?: 'debug';
+    log?: 'debug' | 'quiet';
     maxTasksPerWorker?: number;
     maxWorkers?: number;
     origin: string;
@@ -24,16 +44,8 @@ export interface SsgRenderOptions extends RenderOptions {
     sitemapOutFile?: string | null;
 }
 
-// @public (undocumented)
-export interface StaticGenerateOptions extends SsgRenderOptions {
-    basePathname?: string;
-    // @deprecated (undocumented)
-    qwikCityPlanModulePath?: string;
-    qwikRouterConfigModulePath: string;
-    renderModulePath: string;
-    // (undocumented)
-    rootDir?: string;
-}
+// @public
+export function startWorker(opts: Pick<SsgInternalOptions, 'render' | 'qwikRouterConfig'>): Promise<void>;
 
 // @public (undocumented)
 export interface StaticGenerateResult {

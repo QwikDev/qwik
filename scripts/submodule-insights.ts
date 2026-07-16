@@ -23,7 +23,7 @@ async function buildComponents(config: BuildConfig) {
       outDir: distBase,
       emptyOutDir: false,
       target: 'es2022',
-      minify: true,
+      minify: false,
       rollupOptions: {
         external: (id) => /^(@|node:)/i.test(id),
       },

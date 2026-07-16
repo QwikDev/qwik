@@ -1,44 +1,17 @@
+@reference "../../global.css";
+
 .panel-toggle {
-  position: -webkit-sticky;
-  position: sticky;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: var(--panel-toggle-background-color);
-  width: 100vw;
-  height: var(--panel-toggle-height);
+  @apply grid h-[36px] min-h-[36px] border-b-[1.6px] border-base 2xl:hidden bg-background-base;
 }
 
-.panel-toggle button {
-  background-color: var(--tutorial-nav-button-bg-color);
-  color: var(--tutorial-nav-button-text-color);
-  border: 1px solid var(--tutorial-nav-button-text-color);
-  border-radius: 3px;
-  min-width: 60px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  padding: 4px 6px;
-  margin: 0 8px;
-  font-size: 12px;
+.underlined-tab {
+  @apply text-body-xs text-foreground-soft;
 }
 
-.panel-toggle button.active,
-.panel-toggle button:hover {
-  background-color: var(--tutorial-nav-button-hover-bg-color);
-  color: var(--qwik-blue);
+.underlined-tab:hover {
+  @apply text-standalone-accent;
 }
 
-@media (min-width: 380px) {
-  .panel-toggle button {
-    padding: 4px 8px;
-    margin: 0 10px;
-    min-width: 70px;
-    font-size: 14px;
-  }
-}
-
-@media (min-width: 768px) {
-  .panel-toggle {
-    display: none;
-  }
+.underlined-tab.active {
+  @apply text-label-sm border-b-2 border-standalone-accent;
 }

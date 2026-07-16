@@ -1,5 +1,67 @@
 # eslint-plugin-qwik
 
+## 2.0.0-beta.38
+
+## 2.0.0-beta.37
+
+## 2.0.0-beta.36
+
+### Patch Changes
+
+- 🛠 refactor(eslint): modernize plugin deps and rule typing (by [@JerryWu1234](https://github.com/JerryWu1234) in [#8621](https://github.com/QwikDev/qwik/pull/8621))
+
+## 2.0.0-beta.35
+
+## 2.0.0-beta.34
+
+### Patch Changes
+
+- Allow `Temporal`-types in `valid-lexical-scope`-lint (as they can be serialized) (by [@FloezeTv](https://github.com/FloezeTv) in [#8578](https://github.com/QwikDev/qwik/pull/8578))
+
+## 2.0.0-beta.33
+
+### Patch Changes
+
+- Add `no-await-navigate-in-use-task` ESLint rule to catch awaiting `useNavigate()` inside blocking `useTask$` callbacks. (by [@VedantMadane](https://github.com/VedantMadane) in [#8549](https://github.com/QwikDev/qwik/pull/8549))
+
+- fix(valid-lexical-scope): recognize `Readonly<Signal<T>>` and other Signal-derived types (by [@maiieul](https://github.com/maiieul) in [#8582](https://github.com/QwikDev/qwik/pull/8582))
+
+## 2.0.0-beta.32
+
+## 2.0.0-beta.31
+
+## 2.0.0-beta.30
+
+## 2.0.0-beta.29
+
+## 2.0.0-beta.28
+
+## 2.0.0-beta.27
+
+## 2.0.0-beta.26
+
+## 2.0.0-beta.25
+
+## 2.0.0-beta.24
+
+## 2.0.0-beta.23
+
+### Patch Changes
+
+- 🐞🩹 eslint-plugin: detect node API usage more accurately (by [@JerryWu1234](https://github.com/JerryWu1234) in [#7664](https://github.com/QwikDev/qwik/pull/7664))
+
+## 2.0.0-beta.22
+
+## 2.0.0-beta.21
+
+## 2.0.0-beta.20
+
+## 2.0.0-beta.19
+
+## 2.0.0-beta.18
+
+## 2.0.0-beta.17
+
 ## 2.0.0-beta.16
 
 ## 2.0.0-beta.15
@@ -57,6 +119,16 @@
 ## 2.0.0-alpha.1
 
 ## 2.0.0-alpha.0
+
+## 1.19.0
+
+## 1.18.0
+
+### Patch Changes
+
+- execute cleanup cb for all component tree while calling dispose.cleanup method returned by render fn (by [@sashkashishka](https://github.com/sashkashishka) in [#8164](https://github.com/QwikDev/qwik/pull/8164))
+
+## 1.17.2
 
 ## 1.17.1
 

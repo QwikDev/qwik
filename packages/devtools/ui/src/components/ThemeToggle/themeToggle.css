@@ -1,0 +1,10 @@
+.themeIcon {
+  opacity: 0;
+  transition: opacity 400ms ease-in-out;
+}
+
+html[data-theme='light'] .themeIcon.light,
+html[data-theme='dark'] .themeIcon.dark,
+html:not([data-theme]) .themeIcon.auto {
+  opacity: 1;
+}

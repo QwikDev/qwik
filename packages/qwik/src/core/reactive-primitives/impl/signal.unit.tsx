@@ -2,32 +2,29 @@ import { $, _wrapProp, isBrowser } from '@qwik.dev/core';
 import { createDocument } from '@qwik.dev/core/testing';
 import { afterEach, beforeEach, describe, expect, expectTypeOf, it } from 'vitest';
 import { getDomContainer } from '../../client/dom-container';
+import { vnode_newVirtual, vnode_setProp } from '../../client/vnode-utils';
 import { implicit$FirstArg } from '../../shared/qrl/implicit_dollar';
 import { inlinedQrl } from '../../shared/qrl/qrl';
 import { type QRLInternal } from '../../shared/qrl/qrl-class';
 import { type QRL } from '../../shared/qrl/qrl.public';
 import type { Container, HostElement } from '../../shared/types';
+import { ELEMENT_SEQ } from '../../shared/utils/markers';
 import { retryOnPromise } from '../../shared/utils/promises';
 import { invoke, newInvokeContext } from '../../use/use-core';
-import { Task } from '../../use/use-task';
+import { Task, TaskFlags } from '../../use/use-task';
 import {
-  EffectProperty,
-  SignalFlags,
-  type InternalReadonlySignal,
-  type InternalSignal,
-} from '../types';
-import {
+  createAsync$,
   createComputed$,
   createComputedQrl,
   createSerializer$,
   createSignal,
+  type AsyncSignal,
   type ComputedSignal,
   type SerializerSignal,
   type Signal,
 } from '../signal.public';
 import { getSubscriber } from '../subscriber';
-import { vnode_newVirtual, vnode_setProp } from '../../client/vnode-utils';
-import { ELEMENT_SEQ } from '../../shared/utils/markers';
+import { EffectProperty, ComputedSignalFlags } from '../types';
 import type { ComputedSignalImpl } from './computed-signal-impl';
 
 class Foo {
@@ -106,6 +103,21 @@ describe('signal types', () => {
       expectTypeOf(signal.value).toEqualTypeOf<Foo>();
     }
   });
+  it('AsyncSignal<T>', () => async () => {
+    const signal = createAsync$(() => Promise.resolve(42));
+    expectTypeOf(signal).toEqualTypeOf<AsyncSignal<number>>();
+    expectTypeOf(signal).toExtend<Signal<number>>();
+    expectTypeOf(signal.trigger()).toEqualTypeOf<void>();
+    expectTypeOf(await signal.promise()).toEqualTypeOf<void>();
+    expectTypeOf(signal.value).toEqualTypeOf<number>();
+    expectTypeOf(signal.loading).toEqualTypeOf<boolean>();
+    expectTypeOf(signal.error).toEqualTypeOf<Error | undefined>();
+    expectTypeOf(signal.interval).toEqualTypeOf<number>();
+    expectTypeOf(signal.untrackedValue).toEqualTypeOf<number>();
+    expectTypeOf(signal.abort()).toEqualTypeOf<void>();
+    expectTypeOf(signal.invalidate()).toEqualTypeOf<void>();
+    expectTypeOf(signal.invalidate('info')).toEqualTypeOf<void>();
+  });
 });
 
 describe('signal', () => {
@@ -158,10 +170,10 @@ describe('signal', () => {
 
     it('basic subscription operation', async () => {
       await withContainer(async () => {
-        const a = createSignal(2) as InternalSignal<number>;
-        const b = createSignal(10) as InternalSignal<number>;
+        const a = createSignal(2) as Signal<number>;
+        const b = createSignal(10) as Signal<number>;
         await retryOnPromise(() => {
-          let signal!: InternalReadonlySignal<number>;
+          let signal!: Signal<number>;
           effect$(() => {
             signal =
               signal ||
@@ -190,8 +202,8 @@ describe('signal', () => {
 
     it('should track when recomputing computed signal', async () => {
       await withContainer(async () => {
-        const a = createSignal(true) as InternalSignal<boolean>;
-        const b = createSignal(true) as InternalSignal<boolean>;
+        const a = createSignal(true) as Signal<boolean>;
+        const b = createSignal(true) as Signal<boolean>;
         let signal!: ComputedSignalImpl<boolean>;
 
         (globalThis as any).waitPromiseResolve = null;
@@ -229,18 +241,12 @@ describe('signal', () => {
       });
     });
 
-    it('force', async () => {
+    it('trigger', async () => {
       await withContainer(async () => {
         const obj = { count: 0 };
-        const computed = await retryOnPromise(() => {
-          return createComputedQrl(
-            delayQrl(
-              $(() => {
-                obj.count++;
-                return obj;
-              })
-            )
-          );
+        const computed = createComputed$(() => {
+          obj.count++;
+          return obj;
         });
         expect(computed.value).toBe(obj);
         expect(obj.count).toBe(1);
@@ -249,13 +255,13 @@ describe('signal', () => {
         expect(log).toEqual([1]);
         expect(obj.count).toBe(1);
         // mark dirty but value remains shallow same after calc
-        computed.$flags$ |= SignalFlags.INVALID;
+        (computed as ComputedSignalImpl<typeof obj>).$flags$ |= ComputedSignalFlags.INVALID;
         computed.value.count;
         await flushSignals();
         expect(log).toEqual([1]);
         expect(obj.count).toBe(2);
-        // force notify
-        computed.force();
+        // trigger notify
+        computed.trigger();
         await flushSignals();
         expect(log).toEqual([1, 2]);
       });
@@ -270,6 +276,7 @@ describe('signal', () => {
         expect(wrapped2).toBe(wrapped);
       });
     });
+    // Async signal tests are in async-signal.unit.tsx
   });
   ////////////////////////////////////////
 
@@ -293,7 +300,7 @@ describe('signal', () => {
       delayQrl = inlinedQrl(
         Promise.resolve(iQrl.resolve()),
         'd_' + iQrl.$symbol$,
-        iQrl.$captureRef$ as any
+        iQrl.$captures$ as any
       ) as any;
       delayMap.set(hash, delayQrl);
     }
@@ -303,7 +310,7 @@ describe('signal', () => {
   function effectQrl(fnQrl: QRL<() => void>) {
     const qrl = fnQrl as QRLInternal<() => void>;
     const element: HostElement = vnode_newVirtual();
-    task = task || new Task(0, 0, element, fnQrl as QRLInternal, undefined, null);
+    task = task || new Task(TaskFlags.TASK, 0, element, fnQrl as QRLInternal, null);
     vnode_setProp(element, ELEMENT_SEQ, [task]);
     if (!qrl.resolved) {
       throw qrl.resolve();

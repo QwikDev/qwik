@@ -1,10 +1,12 @@
+import { isDev } from '@qwik.dev/core/build';
 import { logErrorAndStop } from '../utils/log';
-import { qDev } from '../utils/qdev';
 import { isObject } from '../utils/types';
 
+const baseUrl = 'https://qwikdev-build-v2.qwik-8nx.pages.dev/docs/errors/#q';
 export const codeToText = (code: number, ...parts: any[]): string => {
-  if (qDev) {
+  if (isDev) {
     // Keep one error, one line to make it easier to search for the error message.
+    // Keep in sync with packages/docs/src/routes/docs/errors/index.mdx
     const MAP = [
       'Error while serializing class or style attributes', // 0
       'Scheduler not found', // 1
@@ -12,7 +14,7 @@ export const codeToText = (code: number, ...parts: any[]): string => {
       'Only primitive and object literals can be serialized. {{0}}', // 3
       'You can render over a existing q:container. Skipping render().', // 4
       'QRL is not a function', // 5
-      'Dynamic import not found', // 6
+      'Dynamic import {{0}} not found', // 6
       'Unknown type argument', // 7
       `Actual value for useContext({{0}}) can not be found, make sure some ancestor component has set a value using useContextProvider(). In the browser make sure that the context was used during SSR so its state was serialized.`, // 8
       "Invoking 'use*()' method outside of invocation context.", // 9
@@ -35,12 +37,16 @@ export const codeToText = (code: number, ...parts: any[]): string => {
       'Unknown vnode type {{0}}.', // 26
       'Materialize error: missing element: {{0}} {{1}} {{2}}', // 27
       'Cannot coerce a Signal, use `.value` instead', // 28
-      'useComputed$ QRL {{0}} {{1}} cannot return a Promise', // 29
-      'ComputedSignal is read-only', // 30
+      '', // 29 (cleared: useComputed$ now supports async functions)
+      '===\nQwik version {{0}} already imported while importing {{1}}.\nThis can lead to issues due to duplicated shared structures.\nVerify that the Qwik libraries you\'re using are in "resolve.noExternal[]" and in "optimizeDeps.exclude".\n===\n', // 30
       'WrappedSignal is read-only', // 31
       'Attribute value is unsafe for SSR {{0}}', // 32
       'SerializerSymbol function returned rejected promise', // 33
       'Serialization Error: Cannot serialize function: {{0}}', // 34
+      'Cannot read .value of a clientOnly async signal during SSR. Use .loading to check state, or provide an initial value.', // 35
+      'Invalid element name for SSR {{0}}', // 36
+      'Invalid serialized Promise dependency', // 37
+      'Invalid serialized Uint8Array payload', // 38
     ];
     let text = MAP[code] ?? '';
     if (parts.length) {
@@ -54,8 +60,7 @@ export const codeToText = (code: number, ...parts: any[]): string => {
     }
     return `Code(Q${code}): ${text}`;
   } else {
-    // cute little hack to give roughly the correct line number. Update the line number if it shifts.
-    return `Code(Q${code}) https://github.com/QwikDev/qwik/blob/main/packages/qwik/src/core/error/error.ts#L${8 + code}`;
+    return `Code(Q${code}) ${baseUrl}${code}`;
   }
 };
 
@@ -90,11 +95,15 @@ export const enum QError {
   materializeVNodeDataError = 27,
   cannotCoerceSignal = 28,
   computedNotSync = 29,
-  computedReadOnly = 30,
+  duplicateQwik = 30,
   wrappedReadOnly = 31,
   unsafeAttr = 32,
   serializerSymbolRejectedPromise = 33,
   serializeErrorCannotSerializeFunction = 34,
+  asyncClientOnlyValueDuringSSR = 35,
+  invalidElementName = 36,
+  invalidPromiseDependency = 37,
+  invalidUint8ArrayPayload = 38,
 }
 
 export const qError = (code: number, errorMessageArgs: any[] = []): Error => {

@@ -1,14 +1,14 @@
 import type { Task, Tracker } from '../use/use-task';
 import type { SubscriptionData } from './subscription-data';
-import type { ReadonlySignal } from './signal.public';
 import type { SignalImpl } from './impl/signal-impl';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { SerializerSymbol } from '../shared/serdes/verify';
 import type { ComputedFn } from '../use/use-computed';
-import type { AsyncComputedFn } from '../use/use-async-computed';
+import type { AsyncFn } from '../use/use-async';
 import type { Container, SerializationStrategy } from '../shared/types';
 import type { VNode } from '../shared/vnode/vnode';
 import type { ISsrNode } from '../ssr/ssr-types';
+import type { PropsProxy } from '../shared/jsx/props-proxy';
 
 /**
  * # ================================
@@ -24,46 +24,139 @@ import type { ISsrNode } from '../ssr/ssr-types';
  */
 export const NEEDS_COMPUTATION: any = Symbol('invalid');
 
-export interface InternalReadonlySignal<T = unknown> extends ReadonlySignal<T> {
-  readonly untrackedValue: T;
-}
-
-export interface InternalSignal<T = any> extends InternalReadonlySignal<T> {
-  value: T;
-  untrackedValue: T;
-}
-
 export type ComputeQRL<T> = QRLInternal<ComputedFn<T>>;
-export type AsyncComputedCtx = {
-  track: Tracker;
-  cleanup: (callback: () => void) => void;
+export type ComputeCtx<T = unknown> = {
+  /**
+   * Track reactive reads so the computation re-runs when they change. Computed functions track
+   * synchronous reads automatically, but after the first `await` the tracking context is lost, so
+   * later reads must go through `track()`.
+   */
+  readonly track: Tracker;
+  /**
+   * Register a cleanup callback to be called when the async computation is aborted or completed.
+   * The next invocation will await the previous cleanup. If you do not want this, do not return a
+   * Promise.
+   */
+  cleanup: (callback: () => void | Promise<void>) => void;
+  /**
+   * A lazily created AbortSignal, for interrupting the async computation when needed, e.g. when the
+   * component is unmounted or the computation is invalidated. Pass it to `fetch` or other APIs that
+   * support it to ensure that unnecessary work is not performed.
+   */
+  readonly abortSignal: AbortSignal;
+  /** The result of the previous computation, if any */
+  readonly previous: T | undefined;
+  /** Extra info passed to `invalidate(info)` for this computation, if any. */
+  readonly info?: unknown;
 };
-export type AsyncComputeQRL<T> = QRLInternal<AsyncComputedFn<T>>;
+/** @deprecated Use `ComputeQRL` instead. */
+export type AsyncQRL<T> = QRLInternal<AsyncFn<T>>;
 
 /** @public */
-export interface ComputedOptions {
+export interface ComputedOptions<T = unknown> {
   serializationStrategy?: SerializationStrategy;
   container?: Container;
+  /** Like useSignal's `initial`; prevents the throw on first read when uninitialized */
+  initial?: Awaited<T> | (() => Awaited<T>);
+  /**
+   * Maximum number of concurrent computations. Use `0` for unlimited.
+   *
+   * Defaults to `1`.
+   */
+  concurrency?: number;
+  /**
+   * When subscribers drop to 0, run cleanup in the next tick, instead of waiting for the function
+   * inputs to change.
+   *
+   * Defaults to `false`, meaning cleanup happens only when inputs change.
+   */
+  eagerCleanup?: boolean;
+  /**
+   * Time in milliseconds after which the value expires.
+   *
+   * When the value expires and subscribers exist, the signal is invalidated. If `poll` is `true`
+   * (default), the function is re-run automatically. If `poll` is `false`, the value is marked
+   * stale and recomputation happens when reading `.value` or `.loading`.
+   *
+   * `0` (default) means no expiration.
+   */
+  expires?: number;
+  /**
+   * Whether to automatically re-run the function when the value expires. Only relevant when
+   * `expires` is set.
+   *
+   * Defaults to `true`.
+   */
+  poll?: boolean;
+  /** @deprecated Use `expires` and `poll` instead. Will be removed before v2 */
+  interval?: number;
+  /**
+   * When true, the async computation is postponed to the browser. On SSR, the signal remains
+   * INVALID and does not execute the function. On the client, it will compute on first read.
+   *
+   * Defaults to `false`.
+   */
+  clientOnly?: boolean;
+  /**
+   * When true (default), the previous value is kept while the signal re-computes after
+   * invalidation, so reads return stale data instead of throwing a promise. Reactivity will then
+   * update the readers when the new value is ready.
+   *
+   * When false, invalidation clears the value so reads throw the computation promise (like the
+   * initial load), which is useful for navigations where showing old data would be confusing.
+   *
+   * Note that polling invalidations (`expires` with `poll: true`) are not affected by this option
+   * and will keep the old value while the new value is loading, to avoid flashing loaders.
+   *
+   * This option only affects manual invalidations via `invalidate()`, and non-polling expirations
+   * (`poll: false`, or there are no subscribers).
+   *
+   * Defaults to `true`.
+   */
+  allowStale?: boolean;
+  /**
+   * Maximum time in milliseconds to wait for the async computation to complete. If exceeded, the
+   * computation is aborted and an error is thrown.
+   *
+   * If `0`, no timeout is applied.
+   *
+   * Defaults to `0`.
+   */
+  timeout?: number;
 }
 
-export const enum SignalFlags {
+/**
+ * @deprecated Use `ComputedOptions` instead.
+ * @public
+ */
+export type AsyncSignalOptions<T> = ComputedOptions<T>;
+
+export const enum ComputedSignalFlags {
   INVALID = 1,
   RUN_EFFECTS = 2,
-}
-
-export const enum WrappedSignalFlags {
-  // should subscribe to value and be unwrapped for PropsProxy
-  UNWRAP = 4,
+  PRESERVE_ON_SEQ_CLEANUP = 4,
 }
 
 export const enum SerializationSignalFlags {
+  SERIALIZATION_STRATEGY_NEVER = 8,
+  SERIALIZATION_STRATEGY_ALWAYS = 16,
+  SERIALIZATION_ALL_STRATEGIES = SERIALIZATION_STRATEGY_NEVER | SERIALIZATION_STRATEGY_ALWAYS,
   // TODO: implement this in the future
-  // SERIALIZATION_STRATEGY_AUTO = 8,
-  SERIALIZATION_STRATEGY_NEVER = 16,
-  SERIALIZATION_STRATEGY_ALWAYS = 32,
+  // SERIALIZATION_STRATEGY_AUTO = SERIALIZATION_STRATEGY_NEVER | SERIALIZATION_STRATEGY_ALWAYS,
 }
 
-export type AllSignalFlags = SignalFlags | WrappedSignalFlags | SerializationSignalFlags;
+export const enum AsyncSignalFlags {
+  EAGER_CLEANUP = 32,
+  CLIENT_ONLY = 64,
+  CLEAR_ON_INVALIDATE = 128,
+  NO_POLL = 256,
+  /** The compute fn is async: the async engine (jobs, loading, error) is active */
+  ASYNC_MODE = 512,
+  /** Invoke the compute fn AsyncSignal-style: pass the ComputeCtx argument, no auto-tracking */
+  CTX_ARG = 1024,
+}
+
+export type AllSignalFlags = ComputedSignalFlags | SerializationSignalFlags | AsyncSignalFlags;
 
 /**
  * Effect is something which needs to happen (side-effect) due to signal value change.
@@ -112,20 +205,18 @@ export type Consumer = Task | VNode | SignalImpl | ISsrNode;
  * - `EffectProperty.COMPONENT` if component
  * - `EffectProperty.VNODE` if VNode
  */
-export type EffectSubscription = [
-  Consumer, // EffectSubscriptionProp.CONSUMER
-  EffectProperty | string, // EffectSubscriptionProp.PROPERTY or string for attributes
-  Set<SignalImpl | StoreTarget> | null, // EffectSubscriptionProp.BACK_REF
-  SubscriptionData | null, // EffectSubscriptionProp.DATA
-];
-
-export const enum EffectSubscriptionProp {
-  CONSUMER = 0,
-  PROPERTY = 1,
-  BACK_REF = 2,
-  DATA = 3,
+export class EffectSubscription {
+  constructor(
+    public consumer: Consumer,
+    public property: EffectProperty | string,
+    public backRef: Set<EffectBackRef> | null = null,
+    public data: SubscriptionData | null = null
+  ) {}
 }
 
+export type EffectBackRef = SignalImpl | StoreTarget | PropsProxy;
+
+/** @internal */
 export const enum EffectProperty {
   COMPONENT = ':',
   VNODE = '.',
@@ -195,6 +286,7 @@ export const STORE_ALL_PROPS = Symbol('store.all');
 
 export type StoreTarget = Record<string | symbol, any>;
 
+/** @internal */
 export const enum StoreFlags {
   NONE = 0,
   RECURSIVE = 1,

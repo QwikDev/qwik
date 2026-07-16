@@ -1,5 +1,6 @@
 import type { SnapshotResult } from '@qwik.dev/core';
 import type { StreamWriter } from '@qwik.dev/core/internal';
+import type { SSRInternalStreamWriter } from './qwik-types';
 import type {
   QwikManifest,
   ServerQwikManifest,
@@ -7,18 +8,13 @@ import type {
   SymbolMapper,
   SymbolMapperFn,
 } from '@qwik.dev/core/optimizer';
+import type { StreamHandler } from './ssr-stream-handler';
 
 /** @public */
 export interface SerializeDocumentOptions {
   manifest?: Partial<QwikManifest | ResolvedManifest>;
   symbolMapper?: SymbolMapperFn;
   debug?: boolean;
-}
-
-/** @public */
-export interface PrefetchStrategy {
-  implementation?: PrefetchImplementation;
-  symbolsToPrefetch?: SymbolsToPrefetch;
 }
 
 /** @public */
@@ -35,20 +31,6 @@ export interface PreloaderOptions {
    */
   ssrPreloads?: number;
   /**
-   * The minimum probability for a bundle to be added as a preload link during SSR.
-   *
-   * Defaults to `0.7` (70% probability)
-   *
-   * This makes sure that the most likely bundles are preloaded ahead of time.
-   */
-  ssrPreloadProbability?: number;
-  /**
-   * Log preloader debug information to the console.
-   *
-   * Defaults to `false`
-   */
-  debug?: boolean;
-  /**
    * Maximum number of simultaneous preload links that the preloader will maintain. If you set this
    * higher, the browser will have all JS files in memory sooner, but it will contend with other
    * resource downloads. Furthermore, if a bundle suddenly becomes more likely, it will have to wait
@@ -60,39 +42,7 @@ export interface PreloaderOptions {
    * Defaults to `25`
    */
   maxIdlePreloads?: number;
-  /**
-   * @deprecated The minimum probability for a bundle to be added to the preload queue.
-   *
-   *   Defaulted to `0.35` (35% probability).
-   *
-   *   Deprecated because this could cause performance issues with bundles fetched on on click instead
-   *   of being preloaded ahead of time.
-   */
-  preloadProbability?: number;
 }
-
-/** @public @deprecated Use `preloader` instead */
-export interface PrefetchImplementation {
-  /** @deprecated No longer used. */
-  linkRel?: 'prefetch' | 'preload' | 'modulepreload' | null;
-  /** @deprecated No longer used. */
-  linkFetchPriority?: 'auto' | 'low' | 'high' | null;
-  /** @deprecated No longer used. */
-  linkInsert?: 'js-append' | 'html-append' | null;
-  /** @deprecated No longer used. */
-  workerFetchInsert?: 'always' | 'no-link-support' | null;
-  /** @deprecated No longer used. */
-  prefetchEvent?: 'always' | null;
-}
-
-/**
- * Auto: Prefetch all possible QRLs used by the document. Default
- *
- * @public
- */
-export type SymbolsToPrefetch =
-  | 'auto'
-  | ((opts: { manifest: ServerQwikManifest }) => PrefetchResource[]);
 
 /** @public */
 export interface PrefetchResource {
@@ -123,7 +73,8 @@ export interface RenderToStringResult extends RenderResult {
 
 /** @public */
 export interface RenderResult {
-  snapshotResult: SnapshotResult | undefined;
+  /** @deprecated Not longer used in v2 */
+  snapshotResult?: SnapshotResult | undefined;
   isStatic: boolean;
   manifest?: ServerQwikManifest;
 }
@@ -139,6 +90,19 @@ export type QwikLoaderOptions =
       /** @deprecated No longer used. */
       position?: 'top' | 'bottom';
     };
+
+export interface SSRRenderOptions {
+  streamHandler: StreamHandler;
+  locale?: string;
+  tagName?: string;
+  writer?: SSRInternalStreamWriter;
+  timing?: RenderToStreamResult['timing'];
+  buildBase?: string;
+  resolvedManifest?: ResolvedManifest;
+  renderOptions?: RenderOptions;
+}
+
+export type SSRContainerOptions = Required<SSRRenderOptions>;
 
 /** @public */
 export interface RenderOptions extends SerializeDocumentOptions {
@@ -177,8 +141,13 @@ export interface RenderOptions extends SerializeDocumentOptions {
   /** Specifies how preloading is handled. This ensures that code is instantly available when needed. */
   preloader?: PreloaderOptions | false;
 
-  /** @deprecated Use `preloader` instead */
-  prefetchStrategy?: PrefetchStrategy | null;
+  /**
+   * Root-count threshold for eager yielded state prewarm during client resume.
+   *
+   * Defaults to `false`, keeping state fully lazy. Set to a number to enable eager prewarm when
+   * serialized state has at least that many roots.
+   */
+  statePrewarm?: number | false;
 
   /**
    * When set, the app is serialized into a fragment. And the returned html is not a complete
@@ -214,8 +183,12 @@ export interface InOrderDirect {
 export type InOrderStreaming = InOrderAuto | InOrderDisabled | InOrderDirect;
 
 /** @public */
+export type OutOfOrderStreaming = boolean;
+
+/** @public */
 export interface StreamingOptions {
   inOrder?: InOrderStreaming;
+  outOfOrder?: OutOfOrderStreaming;
 }
 
 /** @public */
@@ -255,7 +228,7 @@ export const enum VNodeDataFlag {
 
 export type BackpatchEntry = {
   attrName: string;
-  value: string | boolean | null;
+  value: Awaited<string | boolean | null>;
 };
 
 export type { QwikManifest, ServerQwikManifest, SnapshotResult, StreamWriter, SymbolMapper };

@@ -12,6 +12,8 @@ import type { QwikIntrinsicElements } from './jsx/types/jsx-qwik-elements';
 import { assertNumber } from './error/assert';
 import { qTest } from './utils/qdev';
 import { assertQrl } from './qrl/qrl-utils';
+import { isDev } from '@qwik.dev/core/build';
+import type { QRLInternal } from './qrl/qrl-class';
 
 // TS way to check for any
 type IsAny<T> = 0 extends T & 1 ? true : false;
@@ -134,9 +136,9 @@ export const componentQrl = <PROPS extends Record<any, any>>(
     key: string | null,
     flags: number = 0
   ): JSXNodeInternal {
-    assertQrl(componentQrl);
-    assertNumber(flags, 'The Qwik Component was not invoked correctly');
-    const hash = qTest ? 'sX' : componentQrl.$hash$.slice(0, 4);
+    isDev && assertQrl(componentQrl);
+    isDev && assertNumber(flags, 'The Qwik Component was not invoked correctly');
+    const hash = qTest ? 'sX' : (componentQrl as QRLInternal).$hash$.slice(0, 4);
     const finalKey = hash + ':' + (key ? key : '');
     const InnerCmp = () => {};
     (InnerCmp as any)[SERIALIZABLE_STATE] = [componentQrl];
@@ -146,6 +148,7 @@ export const componentQrl = <PROPS extends Record<any, any>>(
   return QwikComponent as any;
 };
 
+/** @internal */
 export const SERIALIZABLE_STATE = Symbol('serializable-data');
 
 export const isQwikComponent = <T extends Component<any>>(component: unknown): component is T => {
@@ -178,11 +181,11 @@ export const isQwikComponent = <T extends Component<any>>(component: unknown): c
  *   step?: number;
  * }
  * export const Counter = component$((props: CounterProps) => {
- *   const state = useStore({ count: props.initialValue || 0 });
+ *   const state = useSignal(props.initialValue || 0);
  *   return (
  *     <div>
- *       <span>{state.count}</span>
- *       <button onClick$={() => (state.count += props.step || 1)}>+</button>
+ *       <span>{state.value}</span>
+ *       <button onClick$={() => (state.value += props.step || 1)}>+</button>
  *     </div>
  *   );
  * });

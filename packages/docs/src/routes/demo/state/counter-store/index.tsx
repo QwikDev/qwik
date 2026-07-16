@@ -11,6 +11,7 @@ export default component$(() => {
         value={state.name}
         onInput$={(_, el) => (state.name = el.value)}
       />
+      <p>Name: {state.name}</p>
     </>
   );
 });

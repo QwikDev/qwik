@@ -12,29 +12,17 @@ temp
 **/*.log
 *.node
 
-# Application
-qwik-app/
-/server/
-/starters/**/server/
-/packages/*/server/
-!/packages/qwik/server/
-/packages/*/src/styled-system/
-todo-express/
-target
-!/packages/docs/src/routes/demo/events/target
-src/napi/package-*
-
 # Node
 node_modules
 
 # Artifacts
 tsc-out
 dist
-dist-dev
+/dist-dev
 external
 lib
 tsdoc-metadata.json
-packages/qwik/bindings
+/target
 
 # IDE and local environment
 .idea
@@ -51,8 +39,20 @@ test-results
 .netlify
 sandbox
 
+# AI tools
+.planning
+# Generated agent skills are regenerated locally via `ruler apply`, not committed (only .ruler/ source
+# and the root AGENTS.md/CLAUDE.md are). Keeps skill/note edits from tripling every PR diff.
+/.claude
+/.codex
+/.cursor
+/AGENTS.md.bak
+/CLAUDE.md.bak
+
 # We need to ignore this because "changesets" will try to replace it
 /CHANGELOG.md
 
 # Vitest coverage
 packages/coverage/*
+visualizer.html
+**/lib-types/**/*

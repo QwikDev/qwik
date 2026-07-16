@@ -94,10 +94,12 @@ test('pseudo elements', () => {
 
   assert.equal(scopeStylesheet('a.red::before {}', '_'), 'a.red.⚡️_::before {}');
   assert.equal(scopeStylesheet('a.red span::before {}', '_'), 'a.red.⚡️_ span.⚡️_::before {}');
-  ['before', 'after', 'first-letter', 'first-line'].forEach((selector) => {
+  const pseudoElements = ['before', 'after', 'first-letter', 'first-line'];
+  for (let i = 0; i < pseudoElements.length; i++) {
+    const selector = pseudoElements[i];
     assert.equal(scopeStylesheet(`:${selector} {}`, '_'), `.⚡️_:${selector} {}`);
     assert.equal(scopeStylesheet(`a:${selector} {}`, '_'), `a.⚡️_:${selector} {}`);
-  });
+  }
 });
 
 test('complex properties', () => {
@@ -259,10 +261,7 @@ test('global with pseudo element', () => {
   // assert.equal(scopeStylesheet(':global(a)::before{}', '_'), 'a::before{}');
 
   assert.equal(scopeStylesheet(':global(a).red::before {}', '_'), 'a.red.⚡️_::before {}');
-  assert.equal(
-    scopeStylesheet(':global(a.red) span::before {}', '_'),
-    'a.red span.⚡️_::before {}'
-  );
+  assert.equal(scopeStylesheet(':global(a.red) span::before {}', '_'), 'a.red span.⚡️_::before {}');
 });
 
 test('global with pseudo element', () => {

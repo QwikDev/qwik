@@ -4,7 +4,7 @@ title: \@qwik.dev/qwik/insights API Reference
 
 # [API](/api) &rsaquo; @qwik.dev/qwik/insights
 
-## Insights
+<h2 id="insights">Insights</h2>
 
 > This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 
@@ -14,7 +14,7 @@ Insights: import("@qwik.dev/core").Component<unknown>;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/insights/insights.ts)
 
-## InsightsError
+<h2 id="insightserror">InsightsError</h2>
 
 ```typescript
 export interface InsightsError
@@ -39,7 +39,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[column](#)
+column
 
 </td><td>
 
@@ -52,7 +52,7 @@ number
 </td></tr>
 <tr><td>
 
-[error](#)
+error
 
 </td><td>
 
@@ -65,7 +65,7 @@ string
 </td></tr>
 <tr><td>
 
-[line](#)
+line
 
 </td><td>
 
@@ -78,7 +78,7 @@ number
 </td></tr>
 <tr><td>
 
-[manifestHash](#)
+manifestHash
 
 </td><td>
 
@@ -93,7 +93,7 @@ Manifest Hash of the container.
 </td></tr>
 <tr><td>
 
-[message](#)
+message
 
 </td><td>
 
@@ -106,7 +106,7 @@ string
 </td></tr>
 <tr><td>
 
-[source](#)
+source
 
 </td><td>
 
@@ -119,7 +119,7 @@ string
 </td></tr>
 <tr><td>
 
-[stack](#)
+stack
 
 </td><td>
 
@@ -132,7 +132,7 @@ string
 </td></tr>
 <tr><td>
 
-[timestamp](#)
+timestamp
 
 </td><td>
 
@@ -145,7 +145,7 @@ number
 </td></tr>
 <tr><td>
 
-[url](#)
+url
 
 </td><td>
 
@@ -160,7 +160,7 @@ string
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/insights/insights.ts)
 
-## InsightsPayload
+<h2 id="insightspayload">InsightsPayload</h2>
 
 ```typescript
 export interface InsightsPayload
@@ -185,7 +185,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[manifestHash](#)
+manifestHash
 
 </td><td>
 
@@ -200,7 +200,7 @@ Manifest Hash of the container.
 </td></tr>
 <tr><td>
 
-[previousSymbol?](#)
+previousSymbol?
 
 </td><td>
 
@@ -217,7 +217,7 @@ Client periodically sends symbol log to the server. Being able to connect the or
 </td></tr>
 <tr><td>
 
-[publicApiKey](#)
+publicApiKey
 
 </td><td>
 
@@ -234,7 +234,7 @@ This key can be used for sharding the data.
 </td></tr>
 <tr><td>
 
-[qVersion](#)
+qVersion
 
 </td><td>
 
@@ -249,7 +249,7 @@ Qwik version
 </td></tr>
 <tr><td>
 
-[symbols](#)
+symbols
 
 </td><td>
 
@@ -266,7 +266,7 @@ List of symbols which have been received since last update.
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/insights/insights.ts)
 
-## InsightSymbol
+<h2 id="insightsymbol">InsightSymbol</h2>
 
 ```typescript
 export interface InsightSymbol
@@ -291,7 +291,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[delay](#)
+delay
 
 </td><td>
 
@@ -306,7 +306,7 @@ Time delta since last symbol. Can be used to stich symbol requests together
 </td></tr>
 <tr><td>
 
-[interaction](#)
+interaction
 
 </td><td>
 
@@ -321,7 +321,7 @@ Was this symbol as a result of user interaction. User interactions represent roo
 </td></tr>
 <tr><td>
 
-[latency](#)
+latency
 
 </td><td>
 
@@ -336,7 +336,7 @@ Number of ms between the time the symbol was requested and it was loaded.
 </td></tr>
 <tr><td>
 
-[route](#)
+route
 
 </td><td>
 
@@ -351,7 +351,7 @@ Current route so we can have a better understanding of which symbols are needed 
 </td></tr>
 <tr><td>
 
-[symbol](#)
+symbol
 
 </td><td>
 
@@ -366,7 +366,7 @@ Symbol name
 </td></tr>
 <tr><td>
 
-[timeline](#)
+timeline
 
 </td><td>
 

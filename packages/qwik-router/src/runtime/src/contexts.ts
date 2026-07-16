@@ -1,8 +1,9 @@
 import { createContextId, type Signal } from '@qwik.dev/core';
-import type { AsyncComputedReadonlySignal } from '@qwik.dev/core/internal';
+import type { RouteLoaderCtx, RouteLoaderState } from './route-loaders';
 import type {
   ContentState,
   ContentStateInternal,
+  HttpStatus,
   ResolvedDocumentHead,
   RouteAction,
   RouteLocation,
@@ -10,20 +11,23 @@ import type {
   RoutePreventNavigate,
 } from './types';
 
-export const RouteStateContext =
-  /*#__PURE__*/ createContextId<Record<string, AsyncComputedReadonlySignal<unknown>>>('qc-s');
+export const RouteStateContext = /*#__PURE__*/ createContextId<RouteLoaderState>('qr-s');
 
-export const ContentContext = /*#__PURE__*/ createContextId<ContentState>('qc-c');
+export const RouteLoaderCtxContext = /*#__PURE__*/ createContextId<RouteLoaderCtx>('qr-lc');
+
+export const ContentContext = /*#__PURE__*/ createContextId<ContentState>('qr-c');
 export const ContentInternalContext =
-  /*#__PURE__*/ createContextId<Signal<ContentStateInternal>>('qc-ic');
+  /*#__PURE__*/ createContextId<Signal<ContentStateInternal>>('qr-ic');
 
 export const DocumentHeadContext =
-  /*#__PURE__*/ createContextId<Required<ResolvedDocumentHead>>('qc-h');
-export const RouteLocationContext = /*#__PURE__*/ createContextId<RouteLocation>('qc-l');
+  /*#__PURE__*/ createContextId<Required<ResolvedDocumentHead>>('qr-h');
+export const RouteLocationContext = /*#__PURE__*/ createContextId<RouteLocation>('qr-l');
 
-export const RouteNavigateContext = /*#__PURE__*/ createContextId<RouteNavigate>('qc-n');
+export const RouteNavigateContext = /*#__PURE__*/ createContextId<RouteNavigate>('qr-n');
 
-export const RouteActionContext = /*#__PURE__*/ createContextId<RouteAction>('qc-a');
+export const RouteActionContext = /*#__PURE__*/ createContextId<RouteAction>('qr-a');
 
 export const RoutePreventNavigateContext =
-  /*#__PURE__*/ createContextId<RoutePreventNavigate>('qc-p');
+  /*#__PURE__*/ createContextId<RoutePreventNavigate>('qr-p');
+
+export const HttpStatusContext = /*#__PURE__*/ createContextId<Signal<HttpStatus>>('qr-hs');

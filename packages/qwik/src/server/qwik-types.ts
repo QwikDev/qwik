@@ -18,18 +18,27 @@ export type { JSXOutput, JSXNodeInternal } from '../core/shared/jsx/types/jsx-no
 export type { JSXChildren } from '../core/shared/jsx/types/jsx-qwik-attributes';
 export type { ContextId } from '../core/use/use-context';
 export type { ValueOrPromise } from '../core/shared/utils/types';
+export type { InnerContainer } from '../core/shared/utils/container';
 export type { SerializationContext } from '../core/shared/serdes/index';
 export type { Container, HostElement, ObjToProxyMap } from '../core/shared/types';
 export type {
   ISsrComponentFrame,
   ISsrNode,
+  SSRRootRefPathChunk,
+  SSRSegmentWriteChunk,
   SSRContainer,
-  SsrAttrs,
-  SsrAttrKey,
-  SsrAttrValue,
+  SSRSegmentContainer,
+  SSRInternalStreamWriter,
+  SegmentRenderContext,
+  SSROutOfOrderSegment,
+  SSRRenderJSXOptions,
+  SSRWriteChunk,
   StreamWriter,
+  IStreamHandler,
 } from '../core/ssr/ssr-types';
-export type { ResolvedManifest, SymbolMapper } from '../optimizer/src/types';
+export type { ResolvedManifest, SymbolMapper } from '@qwik.dev/core/optimizer';
 export type { SymbolToChunkResolver } from '../core/ssr/ssr-types';
 export type { NodePropData } from '../core/reactive-primitives/subscription-data';
+export type { EffectSubscription } from '../core/reactive-primitives/types';
 export type { SignalImpl } from '../core/reactive-primitives/impl/signal-impl';
+export type { Props } from '../core/shared/jsx/jsx-runtime';

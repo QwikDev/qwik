@@ -1,18 +1,16 @@
-import { type ReadonlySignal, component$ } from '@qwik.dev/core';
-import { routeLoader$ } from '@qwik.dev/router';
+import { component$ } from '@qwik.dev/core';
+import { Link, routeLoader$ } from '@qwik.dev/router';
 import Histogram, { delayColors, latencyColors } from '~/components/histogram';
 import { ManifestIcon } from '~/components/icons/manifest';
 import { SymbolIcon } from '~/components/icons/symbol';
 import { SymbolTile } from '~/components/symbol-tile';
 import { getDB } from '~/db';
-import { getEdges, getSymbolDetails } from '~/db/query';
+import { getEdges } from '~/db/query';
 import { dbGetManifestHashes } from '~/db/sql-manifest';
 import { BUCKETS, vectorAdd, vectorNew } from '~/stats/vector';
 
 interface Symbol {
   hash: string;
-  fullName: string;
-  origin: string;
   manifests: Record<string, Manifest>;
   delay: number[];
   latency: number[];
@@ -28,18 +26,25 @@ interface SymbolsInfo {
   symbols: Symbol[];
   manifests: Manifest[];
   buckets: typeof BUCKETS;
+  page: number;
+  hasNext: boolean;
 }
 
 export const useData = routeLoader$<SymbolsInfo>(async ({ params, url }) => {
   const db = getDB();
+  const page = Math.max(1, parseInt(url.searchParams.get('page') ?? '', 10) || 1);
   const limit = url.searchParams.get('limit')
     ? parseInt(url.searchParams.get('limit')!)
     : undefined;
-  const manifestHashes = await dbGetManifestHashes(db, params.publicApiKey);
-  const [edges, details] = await Promise.all([
-    getEdges(db, params.publicApiKey, { limit, manifestHashes }),
-    getSymbolDetails(db, params.publicApiKey, { manifestHashes }),
-  ]);
+  const manifestHashes = await dbGetManifestHashes(db, params.publicApiKey, {
+    limit: 101,
+    offset: (page - 1) * 100,
+  });
+  const hasNext = manifestHashes.length > 100;
+  const pageManifestHashes = manifestHashes.slice(0, 100);
+  const edges = pageManifestHashes.length
+    ? await getEdges(db, params.publicApiKey, { limit, manifestHashes: pageManifestHashes })
+    : [];
 
   const symbolMap = new Map<string, Symbol>();
   const manifests = new Map<string, Manifest>();
@@ -54,17 +59,12 @@ export const useData = routeLoader$<SymbolsInfo>(async ({ params, url }) => {
     vectorAdd(symbol.delay, edge.delay);
     vectorAdd(symbol.latency, edge.latency);
   });
-  details.forEach((detail) => {
-    const symbol = symbolMap.get(detail.hash);
-    if (symbol) {
-      symbol.fullName = detail.fullName;
-      symbol.origin = detail.origin;
-    }
-  });
   return {
     symbols: Array.from(symbolMap.values()),
     manifests: Array.from(manifests.values()),
     buckets: BUCKETS,
+    page,
+    hasNext,
   };
   ////////////////////////////////////////////////////////
   function getSymbol(name: string) {
@@ -72,8 +72,6 @@ export const useData = routeLoader$<SymbolsInfo>(async ({ params, url }) => {
     if (!symbol) {
       symbol = {
         hash: name,
-        fullName: '',
-        origin: '',
         manifests: {} as Symbol['manifests'],
         delay: vectorNew(),
         latency: vectorNew(),
@@ -111,7 +109,7 @@ export const useData = routeLoader$<SymbolsInfo>(async ({ params, url }) => {
 });
 
 export default component$(() => {
-  const data: ReadonlySignal<SymbolsInfo> = useData();
+  const data = useData();
   return (
     <div>
       <h1 class="h3">
@@ -199,15 +197,15 @@ export default component$(() => {
               </td>
               <td scope="col" class="px-6 py-3 bg-slate-50">
                 <SymbolTile symbol={symbol.hash} />
-                <span class="block text-slate-500">
-                  {symbol.origin}
-                  {symbol.fullName}
-                </span>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+      <nav class="flex gap-4 mt-6">
+        {data.value.page > 1 && <Link href={`?page=${data.value.page - 1}`}>Previous</Link>}
+        {data.value.hasNext && <Link href={`?page=${data.value.page + 1}`}>Next</Link>}
+      </nav>
     </div>
   );
 });

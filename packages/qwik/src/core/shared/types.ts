@@ -1,31 +1,38 @@
-import type { ContextId } from '../use/use-context';
 import type { ISsrNode, StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-types';
+import type { ContextId } from '../use/use-context';
+import type { EventHandler } from './jsx/types/jsx-qwik-attributes';
 import type { SerializationContext } from './serdes/index';
-import type { ValueOrPromise } from './utils/types';
 import type { VNode } from './vnode/vnode';
 
 export interface DeserializeContainer {
   $getObjectById$: (id: number | string) => unknown;
+  $getForwardRef$: (id: number) => number | string | undefined;
+  $pendingStoreTargets$?: Map<object, { t: number; v: unknown }>;
   element: HTMLElement | null;
   getSyncFn: (id: number) => (...args: unknown[]) => unknown;
   $state$?: unknown[];
   $storeProxyMap$: ObjToProxyMap;
-  $forwardRefs$: Array<number> | null;
+  $forwardRefs$: Array<number | string> | null;
 }
 
+/** @internal */
 export interface Container {
   readonly $version$: string;
   readonly $storeProxyMap$: ObjToProxyMap;
+  $rootContainer$: Container | null;
+  $isOutOfOrderSegment$: boolean;
   /// Current language locale
   readonly $locale$: string;
   /// Retrieve Object from paused serialized state.
   readonly $getObjectById$: (id: number | string) => any;
   readonly $serverData$: Record<string, any>;
+  readonly $instanceHash$: string | null;
   $currentUniqueId$: number;
   $buildBase$: string | null;
   $renderPromise$: Promise<void> | null;
   $resolveRenderPromise$: (() => void) | null;
-  $cursorCount$: number;
+  $pendingCount$: number;
+  $checkPendingCount$(): void;
 
   handleError(err: any, $host$: HostElement | null): void;
   getParentHost(host: HostElement): HostElement | null;
@@ -55,22 +62,34 @@ export interface Container {
   ): SerializationContext;
 }
 
+/** @internal */
 export type HostElement = VNode | ISsrNode;
 
 export interface QElement extends Element {
-  qDispatchEvent?: (event: Event, scope: QwikLoaderEventScope) => ValueOrPromise<unknown>;
+  _qDispatch?: Record<string, EventHandler | EventHandler[]>;
+  _qSegment?: string;
   vNode?: VNode;
 }
 
 export type qWindow = Window & {
-  qwikevents: {
+  /**
+   * QwikLoader communication channel. Starts out as a regular array and is then replaced with this
+   * object. We use kebab-case property names to avoid converting to camelCase during DOM rendering
+   * while we add new events to qwikloader.
+   */
+  _qwikEv: {
+    /** The scoped kebabcase names of events, e.g. `"e:my-event"`, `"ep:touchstart"` or `"w:load"` */
     events: Set<string>;
+    /** The known root nodes (document, shadow roots) */
     roots: Set<Node>;
-    push: (...e: (string | (EventTarget & ParentNode))[]) => void;
+    /** Add loader commands, new root nodes, or scoped kebabcase eventnames to listen to. */
+    push: (...e: (string | (EventTarget & ParentNode) | QwikEvContainerReadyCommand)[]) => void;
   };
 };
 
-export type QwikLoaderEventScope = '-document' | '-window' | '';
+export type QwikEvContainerReadyCommand = 0;
+
+export type QwikLoaderEventScope = 'd' | 'dp' | 'w' | 'wp' | 'e' | 'ep';
 
 /**
  * A friendly name tag for a VirtualVNode.
@@ -118,7 +137,22 @@ export interface QContainerElement extends Element {
   _qwikjson_?: any;
 }
 
-/** @public */
+/**
+ * Serialization strategy for computed and async signals. This determines whether to serialize their
+ * value during SSR.
+ *
+ * - `never`: The value is never serialized. When the component is resumed, the value will be
+ *   recalculated when it is first read.
+ * - `always`: The value is always serialized. This is the default.
+ *
+ * **IMPORTANT**: When you use `never`, your serialized HTML is smaller, but the recalculation will
+ * trigger subscriptions, meaning that other signals using this signal will recalculate, even if
+ * this signal didn't change.
+ *
+ * This is normally not a problem, but for async signals it may mean fetching something again.
+ *
+ * @public
+ */
 export type SerializationStrategy =
   // TODO: implement this in the future
   // 'auto' |
@@ -126,4 +160,5 @@ export type SerializationStrategy =
 
 export const enum SsrNodeFlags {
   Updatable = 1,
+  WarnedStreamedChore = 2,
 }

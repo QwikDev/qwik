@@ -26,7 +26,7 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nexport declare function createQwikRouter(opts: AwsOpt): {\n    fixPath: (pathT: string) => string;\n    router: (req: import(\"http\").IncomingMessage | import(\"http2\").Http2ServerRequest, res: import(\"http\").ServerResponse, next: import(\"@qwik.dev/router/middleware/node\").NodeRequestNextFunction) => Promise<void>;\n    staticFile: (req: import(\"http\").IncomingMessage | import(\"http2\").Http2ServerRequest, res: import(\"http\").ServerResponse, next: (e?: any) => void) => Promise<void>;\n    notFound: (req: import(\"http\").IncomingMessage | import(\"http2\").Http2ServerRequest, res: import(\"http\").ServerResponse, next: (e: any) => void) => Promise<void>;\n    handle: (req: any, res: any) => void;\n};\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\nAwsOpt\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n{ fixPath: (pathT: string) =&gt; string; router: (req: import(\"http\").IncomingMessage \\| import(\"http2\").Http2ServerRequest, res: import(\"http\").ServerResponse, next: import(\"@qwik.dev/router/middleware/node\").NodeRequestNextFunction) =&gt; Promise&lt;void&gt;; staticFile: (req: import(\"http\").IncomingMessage \\| import(\"http2\").Http2ServerRequest, res: import(\"http\").ServerResponse, next: (e?: any) =&gt; void) =&gt; Promise&lt;void&gt;; notFound: (req: import(\"http\").IncomingMessage \\| import(\"http2\").Http2ServerRequest, res: import(\"http\").ServerResponse, next: (e: any) =&gt; void) =&gt; Promise&lt;void&gt;; handle: (req: any, res: any) =&gt; void; }",
+      "content": "```typescript\nexport declare function createQwikRouter(opts: AwsOpt): QwikRouterAwsLambdaMiddleware;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\nAwsOpt\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[QwikRouterAwsLambdaMiddleware](#qwikrouterawslambdamiddleware)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/aws-lambda/index.ts",
       "mdFile": "router.createqwikrouter.md"
     },
@@ -57,6 +57,20 @@
       "content": "> Warning: This API is now obsolete.\n> \n> Use `QwikRouterAwsLambdaOptions` instead. Will be removed in V3\n> \n\n\n```typescript\nexport type QwikCityAwsLambdaOptions = QwikRouterAwsLambdaOptions;\n```\n**References:** [QwikRouterAwsLambdaOptions](#qwikrouterawslambdaoptions)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/aws-lambda/index.ts",
       "mdFile": "router.qwikcityawslambdaoptions.md"
+    },
+    {
+      "name": "QwikRouterAwsLambdaMiddleware",
+      "id": "qwikrouterawslambdamiddleware",
+      "hierarchy": [
+        {
+          "name": "QwikRouterAwsLambdaMiddleware",
+          "id": "qwikrouterawslambdamiddleware"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikRouterAwsLambdaMiddleware \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfixPath\n\n\n</td><td>\n\n\n</td><td>\n\n(pathT: string) =&gt; string\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nhandle\n\n\n</td><td>\n\n\n</td><td>\n\n(req: any, res: any) =&gt; void\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nnotFound\n\n\n</td><td>\n\n\n</td><td>\n\n(req: IncomingMessage \\| Http2ServerRequest, res: ServerResponse, next: (e?: any) =&gt; void) =&gt; Promise&lt;void&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nrouter\n\n\n</td><td>\n\n\n</td><td>\n\n(req: IncomingMessage \\| Http2ServerRequest, res: ServerResponse, next: NodeRequestNextFunction) =&gt; Promise&lt;void&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nstaticFile\n\n\n</td><td>\n\n\n</td><td>\n\n(req: IncomingMessage \\| Http2ServerRequest, res: ServerResponse, next: (e?: any) =&gt; void) =&gt; Promise&lt;void&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/aws-lambda/index.ts",
+      "mdFile": "router.qwikrouterawslambdamiddleware.md"
     },
     {
       "name": "QwikRouterAwsLambdaOptions",

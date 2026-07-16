@@ -1,11 +1,15 @@
-import { getDomContainer } from '../client/dom-container';
+import { getDomContainer, whenContainerDataReady } from '../client/dom-container';
 import { BackRef } from '../reactive-primitives/backref';
 import { clearAllEffects } from '../reactive-primitives/cleanup';
 import { type Signal } from '../reactive-primitives/signal.public';
-import { type QRLInternal } from '../shared/qrl/qrl-class';
+import {
+  _captures,
+  deserializeCaptureDeltas,
+  setCaptures,
+  type QRLInternal,
+} from '../shared/qrl/qrl-class';
 import { assertQrl } from '../shared/qrl/qrl-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { type NoSerialize } from '../shared/serdes/verify';
 import { type Container, type HostElement } from '../shared/types';
 import { TaskEvent } from '../shared/utils/markers';
 import { isPromise, maybeThen, safeCall } from '../shared/utils/promises';
@@ -13,20 +17,18 @@ import { type ValueOrPromise } from '../shared/utils/types';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import { newInvokeContext } from './use-core';
-import { useLexicalScope } from './use-lexical-scope.public';
-import type { ResourceReturnInternal } from './use-resource';
 import { useSequentialScope } from './use-sequential-scope';
-import { cleanupDestroyable } from './utils/destroyable';
+import { cleanupAsyncDestroyable } from './utils/destroyable';
 import { cleanupFn, trackFn } from './utils/tracker';
 
+/** @internal */
 export const enum TaskFlags {
   VISIBLE_TASK = 1 << 0,
   TASK = 1 << 1,
-  RESOURCE = 1 << 2,
-  DIRTY = 1 << 3,
-  RENDER_BLOCKING = 1 << 4,
-  NEEDS_CLEANUP = 1 << 5,
-  EVENTS_REGISTERED = 1 << 6,
+  DIRTY = 1 << 2,
+  RENDER_BLOCKING = 1 << 3,
+  NEEDS_CLEANUP = 1 << 4,
+  EVENTS_REGISTERED = 1 << 5,
 }
 
 // <docs markdown="../readme.md#Tracker">
@@ -51,6 +53,8 @@ export const enum TaskFlags {
  *   useTask$(({ track }) => {
  *     // Any signals or stores accessed inside the task will be tracked
  *     const count = track(() => store.count);
+ *     // For stores you can also pass the store and specify the property
+ *     track(store, 'count');
  *     // You can also pass a signal to track() directly
  *     const signalCount = track(signal);
  *     store.doubleCount = count + signalCount;
@@ -123,20 +127,11 @@ export interface Tracker {
 /** @public */
 export interface TaskCtx {
   track: Tracker;
-  cleanup: (callback: () => void) => void;
+  cleanup: (callback: () => ValueOrPromise<void>) => void;
 }
 
 /** @public */
-export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => void)>;
-
-export interface DescriptorBase<T = unknown, B = unknown> extends BackRef {
-  $flags$: number;
-  $index$: number;
-  $el$: HostElement;
-  $qrl$: QRLInternal<T>;
-  $state$: B | undefined;
-  $destroy$: NoSerialize<() => void> | null;
-}
+export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => ValueOrPromise<void>)>;
 
 /** @public */
 export interface TaskOptions {
@@ -162,7 +157,6 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: TaskOptions): void => {
     i,
     iCtx.$hostElement$,
     qrl,
-    undefined,
     null
   );
   // In V2 we add the task to the sequential scope. We need to do this
@@ -182,41 +176,67 @@ export const runTask = (
   container: Container,
   host: HostElement
 ): ValueOrPromise<void> => {
+  const pendingTask = task.$taskPromise$;
+  if (pendingTask) {
+    return pendingTask;
+  }
+
   task.$flags$ &= ~TaskFlags.DIRTY;
-  cleanupDestroyable(task);
-  const iCtx = newInvokeContext(container.$locale$, host, TaskEvent);
-  iCtx.$container$ = container;
-  const taskFn = task.$qrl$.getFn(iCtx, () => clearAllEffects(container, task)) as TaskFn;
+  const handleError = (reason: unknown) => container.handleError(reason, host);
 
-  const track = trackFn(task, container);
-  const [cleanup] = cleanupFn(task, (reason: unknown) => container.handleError(reason, host));
+  let taskPromise: Promise<void> | null = null;
+  const result = maybeThen(cleanupAsyncDestroyable(task, handleError), () => {
+    const iCtx = newInvokeContext(container.$locale$, host, TaskEvent);
+    iCtx.$container$ = container;
+    const taskFn = task.$qrl$.getFn(iCtx, () => clearAllEffects(container, task)) as TaskFn;
 
-  const taskApi: TaskCtx = { track, cleanup };
-  return safeCall(
-    () => taskFn(taskApi),
-    cleanup,
-    (err: unknown) => {
-      // If a Promise is thrown, that means we need to re-run the task.
-      if (isPromise(err)) {
-        return err.then(() => runTask(task, container, host));
-      } else {
-        container.handleError(err, host);
+    const track = trackFn(task, container);
+    const [cleanup] = cleanupFn(task, handleError);
+
+    const taskApi: TaskCtx = { track, cleanup };
+    return safeCall(
+      () => taskFn(taskApi),
+      cleanup,
+      (err: unknown) => {
+        // If a Promise is thrown, that means we need to re-run the task.
+        if (isPromise(err)) {
+          return err.then(() => {
+            if (task.$taskPromise$ === taskPromise) {
+              task.$taskPromise$ = null;
+            }
+            return runTask(task, container, host);
+          });
+        } else {
+          handleError(err);
+        }
       }
-    }
-  );
+    );
+  });
+
+  if (isPromise(result)) {
+    taskPromise = result.finally(() => {
+      if (task.$taskPromise$ === taskPromise) {
+        task.$taskPromise$ = null;
+      }
+    });
+    task.$taskPromise$ = taskPromise;
+    return taskPromise;
+  }
+
+  return result;
 };
 
-export class Task<T = unknown, B = T>
-  extends BackRef
-  implements DescriptorBase<unknown, Signal<B> | ResourceReturnInternal<B>>
-{
+/** @internal */
+export class Task<T = unknown, B = T> extends BackRef {
+  $destroyPromise$: Promise<void> | undefined;
+  $taskPromise$: Promise<void> | null = null;
+
   constructor(
-    public $flags$: number,
+    public $flags$: TaskFlags,
     public $index$: number,
     public $el$: HostElement,
     public $qrl$: QRLInternal<T>,
-    public $state$: Signal<B> | ResourceReturnInternal<B> | undefined,
-    public $destroy$: NoSerialize<() => void> | null
+    public $destroy$: (() => void) | null
   ) {
     super();
   }
@@ -227,13 +247,19 @@ export const isTask = (value: any): value is Task => {
 };
 
 /**
- * Used internally as a qrl event handler to schedule a task.
+ * Used internally as a qwikloader event handler to schedule a task. The `this` context is the
+ * captures part of the QRL, provided by qwikloader.
  *
  * @internal
  */
-export const scheduleTask = (_event: Event, element: Element) => {
-  const [task] = useLexicalScope<[Task]>();
+export function scheduleTask(this: string, _event: Event, element: Element) {
   const container = getDomContainer(element);
-  task.$flags$ |= TaskFlags.DIRTY;
-  markVNodeDirty(container, task.$el$, ChoreBits.TASKS);
-};
+  return whenContainerDataReady(container, () => {
+    if (typeof this === 'string') {
+      setCaptures(deserializeCaptureDeltas(container, this));
+    }
+    const task = _captures![0] as Task;
+    task.$flags$ |= TaskFlags.DIRTY;
+    markVNodeDirty(container, task.$el$, ChoreBits.TASKS);
+  });
+}

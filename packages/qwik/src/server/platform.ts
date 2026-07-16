@@ -1,7 +1,7 @@
 import { setPlatform } from '@qwik.dev/core';
 import { isDev } from '@qwik.dev/core/build';
 import type { ResolvedManifest, SymbolMapperFn } from '@qwik.dev/core/optimizer';
-import { SYNC_QRL } from './qwik-copy';
+import { QError, qError, SYNC_QRL } from './qwik-copy';
 import type { CorePlatformServer, SymbolMapper } from './qwik-types';
 import type { SerializeDocumentOptions } from './types';
 
@@ -27,14 +27,14 @@ const getDevSegmentPath = (
   if (!parent) {
     // Core symbols
     if (symbolName.startsWith('_') && symbolName.length < 6) {
-      return [symbolName, `${import.meta.env.BASE_URL}@qwik-handlers`];
+      return [symbolName, `${import.meta.env?.BASE_URL}@qwik-handlers`];
     }
     console.error('qwik symbolMapper: unknown qrl requested without parent:', symbolName);
-    return [symbolName, `${import.meta.env.BASE_URL}${symbolName}.js`];
+    return [symbolName, `${import.meta.env?.BASE_URL}${symbolName}.js`];
   }
   // In dev mode, the `parent` is the Vite URL for the parent, not the real absolute path.
   // It is always absolute but when on Windows that's without a /
-  const qrlFile = `${import.meta.env.BASE_URL}${parent.startsWith('/') ? parent.slice(1) : parent}_${symbolName}.js`;
+  const qrlFile = `${import.meta.env?.BASE_URL}${parent.startsWith('/') ? parent.slice(1) : parent}_${symbolName}.js`;
   return [symbolName, qrlFile];
 };
 
@@ -46,7 +46,7 @@ export function createPlatform(
   const mapperFn = opts.symbolMapper
     ? opts.symbolMapper
     : (symbolName: string, _chunk: any, parent?: string): readonly [string, string] | undefined => {
-        if (mapper || (isDev && import.meta.env.MODE !== 'test')) {
+        if (mapper || (isDev && import.meta.env?.MODE !== 'test')) {
           const hash = getSymbolHash(symbolName);
           const result = !isDev
             ? mapper![hash]
@@ -73,16 +73,8 @@ export function createPlatform(
       if (regSym) {
         return regSym;
       }
-
-      let modulePath = String(url);
-      if (!modulePath.endsWith('.js')) {
-        modulePath += '.js';
-      }
-      const module = require(modulePath);
-      if (!(symbolName in module)) {
-        throw new Error(`Q-ERROR: missing symbol '${symbolName}' in module '${modulePath}'.`);
-      }
-      return module[symbolName];
+      // we never lazy import QRLs on the server
+      throw qError(QError.dynamicImportFailed, [symbolName]);
     },
     raf: () => {
       console.error('server can not rerender');

@@ -55,6 +55,124 @@ describe.each([
     );
   });
 
+  it('should update value for passive option', async () => {
+    const Counter = component$((props: { initial: number }) => {
+      const count = useSignal(props.initial);
+      useOn(
+        'click',
+        $(() => count.value++),
+        {
+          passive: true,
+        }
+      );
+      return <button>Count: {count.value}!</button>;
+    });
+
+    const { vNode, container } = await render(<Counter initial={123} />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <button>
+          Count: <Signal ssr-required>{'123'}</Signal>!
+        </button>
+      </Component>
+    );
+    await trigger(container.element, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <>
+        <button>
+          Count: <Signal ssr-required>{'124'}</Signal>!
+        </button>
+      </>
+    );
+  });
+
+  it('should support capture option', async () => {
+    (globalThis as any).logs = [];
+    const Counter = component$(() => {
+      useOn(
+        'click',
+        $(() => {
+          (globalThis as any).logs.push('parent capture');
+        }),
+        {
+          capture: true,
+        }
+      );
+      return (
+        <div>
+          <button
+            onClick$={() => {
+              (globalThis as any).logs.push('button bubble');
+            }}
+          ></button>
+        </div>
+      );
+    });
+
+    const { container } = await render(<Counter />, { debug });
+    await trigger(container.element, 'button', 'click');
+    expect((globalThis as any).logs).toEqual(['parent capture', 'button bubble']);
+    (globalThis as any).logs = undefined;
+  });
+
+  it('should merge useOn handlers and modifiers for the same event', async () => {
+    (globalThis as any).logs = [];
+    const Counter = component$(() => {
+      useOn(
+        'click',
+        $(() => {
+          (globalThis as any).logs.push('first');
+        }),
+        {
+          capture: true,
+        }
+      );
+      useOn(
+        'click',
+        $(() => {
+          (globalThis as any).logs.push('second');
+        }),
+        {
+          preventdefault: true,
+          stoppropagation: true,
+        }
+      );
+      return (
+        <div>
+          <button
+            onClick$={() => {
+              (globalThis as any).logs.push('button bubble');
+            }}
+          ></button>
+        </div>
+      );
+    });
+
+    const { container } = await render(<Counter />, { debug });
+    const event = await trigger(container.element, 'button', 'click');
+    expect((globalThis as any).logs).toEqual(['first', 'second']);
+    expect(event!.defaultPrevented).toBe(true);
+    expect(event!.cancelBubble).toBe(true);
+    (globalThis as any).logs = undefined;
+  });
+
+  it('should support preventdefault option when listener is not passive', async () => {
+    const Counter = component$(() => {
+      useOn(
+        'touchmove',
+        $(() => {}),
+        {
+          preventdefault: true,
+        }
+      );
+      return <div></div>;
+    });
+
+    const { container } = await render(<Counter />, { debug });
+    const event = await trigger(container.element, 'div', 'touchmove');
+    expect(event!.defaultPrevented).toBe(true);
+  });
+
   it('should update value with multiple useOn', async () => {
     const Counter = component$((props: { initial: number }) => {
       const count = useSignal(props.initial);
@@ -166,7 +284,7 @@ describe.each([
         </Component>
       );
 
-      await trigger(container.element, 'button', ':document:click');
+      await trigger(container.element, 'button', 'd:click');
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
@@ -213,7 +331,7 @@ describe.each([
           </button>
         </Component>
       );
-      await trigger(container.element, 'button', ':document:click');
+      await trigger(container.element, 'button', 'd:click');
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
@@ -221,7 +339,7 @@ describe.each([
           </button>
         </Component>
       );
-      await trigger(container.element, 'button', ':document:focus');
+      await trigger(container.element, 'button', 'd:focus');
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
@@ -250,7 +368,7 @@ describe.each([
         </Component>
       );
 
-      await trigger(container.element, 'script', ':document:click');
+      await trigger(container.element, 'script', 'd:click');
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
           <Fragment ssr-required>
@@ -258,6 +376,27 @@ describe.each([
           </Fragment>
         </Component>
       );
+    });
+
+    it('should support modifiers on placeholder script nodes', async () => {
+      const Counter = component$((props: { initial: number }) => {
+        const count = useSignal(props.initial);
+        useOnDocument(
+          'click',
+          $(() => count.value++),
+          {
+            preventdefault: true,
+          }
+        );
+        return <>Count: {count.value}!</>;
+      });
+
+      const { container } = await render(<Counter initial={123} />, { debug });
+      expect(container.element.querySelector('script')?.hasAttribute('preventdefault:click')).toBe(
+        true
+      );
+      const event = await trigger(container.element, 'script', 'd:click');
+      expect(event!.defaultPrevented).toBe(true);
     });
 
     it('should work with inline component not rendering children', async () => {
@@ -284,7 +423,7 @@ describe.each([
         </Component>
       );
 
-      await trigger(container.element, 'script', ':document:click');
+      await trigger(container.element, 'script', 'd:click');
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
           <Fragment ssr-required>
@@ -317,7 +456,7 @@ describe.each([
           </button>
         </Component>
       );
-      await trigger(container.element, 'button', ':window:click');
+      await trigger(container.element, 'button', 'w:click');
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
@@ -353,7 +492,7 @@ describe.each([
           </button>
         </Component>
       );
-      await trigger(container.element, 'button', ':document:DOMContentLoaded');
+      await trigger(container.element, 'button', 'd:DOMContentLoaded');
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
@@ -379,7 +518,7 @@ describe.each([
           </button>
         </Component>
       );
-      await trigger(container.element, 'button', ':document:DOMContentLoaded');
+      await trigger(container.element, 'button', 'd:DOMContentLoaded');
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
@@ -433,7 +572,7 @@ describe.each([
       const { container, document } = await render(<Parent />, { debug });
       (globalThis as any).dispatchCustomEvent = () => {
         // don't await for this event
-        trigger(document.documentElement, '[on-document\\:child]', ':document:child');
+        trigger(document.documentElement, '[on-document\\:child]', 'd:child');
       };
       // trigger the change
       await trigger(container.element, 'button', 'click');
@@ -462,7 +601,7 @@ describe.each([
         </Component>
       );
 
-      await trigger(container.element, 'button', ':window:click');
+      await trigger(container.element, 'button', 'w:click');
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
@@ -491,7 +630,7 @@ describe.each([
         </Component>
       );
 
-      await trigger(container.element, 'script', ':window:click');
+      await trigger(container.element, 'script', 'w:click');
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
           <Fragment ssr-required>
@@ -499,6 +638,27 @@ describe.each([
           </Fragment>
         </Component>
       );
+    });
+
+    it('should support modifiers on placeholder script nodes', async () => {
+      const Counter = component$((props: { initial: number }) => {
+        const count = useSignal(props.initial);
+        useOnWindow(
+          'click',
+          $(() => count.value++),
+          {
+            stoppropagation: true,
+          }
+        );
+        return <>Count: {count.value}!</>;
+      });
+
+      const { container } = await render(<Counter initial={123} />, { debug });
+      expect(container.element.querySelector('script')?.hasAttribute('stoppropagation:click')).toBe(
+        true
+      );
+      const event = await trigger(container.element, 'script', 'w:click');
+      expect(event!.cancelBubble).toBe(true);
     });
 
     it('should update value for window event on element and useOnWindow', async () => {
@@ -520,7 +680,7 @@ describe.each([
         </Component>
       );
 
-      await trigger(container.element, 'button', ':window:dblclick');
+      await trigger(container.element, 'button', 'w:dblclick');
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
@@ -567,7 +727,7 @@ describe.each([
           </button>
         </Component>
       );
-      await trigger(container.element, 'button', ':window:click');
+      await trigger(container.element, 'button', 'w:click');
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
@@ -575,7 +735,7 @@ describe.each([
           </button>
         </Component>
       );
-      await trigger(container.element, 'button', ':window:focus');
+      await trigger(container.element, 'button', 'w:focus');
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
@@ -603,7 +763,7 @@ describe.each([
           </button>
         </Component>
       );
-      await trigger(container.element, 'button', ':document:click');
+      await trigger(container.element, 'button', 'd:click');
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
@@ -729,7 +889,7 @@ describe.each([
         </button>
       </Component>
     );
-    await trigger(container.element, 'button', ':window:focus');
+    await trigger(container.element, 'button', 'w:focus');
     expect(vNode).toMatchVDOM(
       <Component>
         <button>
@@ -737,7 +897,7 @@ describe.each([
         </button>
       </Component>
     );
-    await trigger(container.element, 'button', ':document:blur');
+    await trigger(container.element, 'button', 'd:blur');
     expect(vNode).toMatchVDOM(
       <Component>
         <button>
@@ -888,10 +1048,10 @@ describe.each([
       });
       const { vNode, document } = await render(<LayoutTest />, { debug });
       if (render === ssrRenderToDom) {
-        await trigger(document.body, 'script', ':document:qinit');
+        await trigger(document.body, 'script', 'd:qinit');
       }
-      await trigger(document.body, 'script', ':document:click');
-      await trigger(document.body, 'script', ':window:resize');
+      await trigger(document.body, 'script', 'd:click');
+      await trigger(document.body, 'script', 'w:resize');
       expect((globalThis as any).counter).toBe(3);
 
       (globalThis as any).counter = undefined;

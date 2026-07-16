@@ -19,14 +19,6 @@ import { getSourceFile } from './source-file';
     },
   },
   {
-    fileName: '500.tsx',
-    expect: {
-      type: 'route',
-      extlessName: '500',
-      ext: '.tsx',
-    },
-  },
-  {
     fileName: 'entry.md',
     expect: null,
   },

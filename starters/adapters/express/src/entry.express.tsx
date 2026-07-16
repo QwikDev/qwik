@@ -7,6 +7,7 @@
  * - https://qwik.dev/docs/deployments/node/
  *
  */
+import { getRequestEvent } from "@qwik.dev/router";
 import {
   createQwikRouter,
   type PlatformNode,
@@ -30,7 +31,7 @@ const assetsDir = join(distDir, "assets");
 const PORT = process.env.PORT ?? 3000;
 
 // Create the Qwik Router Node middleware
-const { router, notFound } = createQwikRouter({
+const { router } = createQwikRouter({
   render,
   // getOrigin(req) {
   //   // If deploying under a proxy, you may need to build the origin from the request headers
@@ -46,6 +47,25 @@ const { router, notFound } = createQwikRouter({
 // https://expressjs.com/
 const app = express();
 
+// Optional request-aware diagnostics for crashes that escape request boundaries.
+// This does not prevent Node from crashing, but it does provide better diagnostics for uncaught exceptions.
+// See the Node documentation to handle uncaught exceptions and unhandled rejections in your app.
+process.on("uncaughtExceptionMonitor", (error, origin) => {
+  const requestEv = getRequestEvent();
+  if (requestEv) {
+    console.error("Unhandled exception during request", {
+      origin,
+      method: requestEv.method,
+      url: requestEv.url.href,
+      headersSent: requestEv.headersSent,
+      error,
+    });
+    return;
+  }
+
+  console.error("Unhandled exception outside request", { origin, error });
+});
+
 // Enable gzip compression
 // app.use(compression());
 
@@ -60,9 +80,6 @@ app.use(express.static(distDir, { redirect: false }));
 
 // Use Qwik Router's page and endpoint request handler
 app.use(router);
-
-// Use Qwik Router's 404 handler
-app.use(notFound);
 
 // Start the express server
 app.listen(PORT, () => {

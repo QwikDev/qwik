@@ -3,7 +3,7 @@ title: Best Practices | Guides
 description: Learn the best practices for Qwik, a guide for understanding how to use Qwik to its full potential.
 contributors:
   - mhevery
-  - the-r3aper7
+  - saisrikardumpeti
   - manucorporat
   - jakovljevic-mladen
   - kerbelp
@@ -23,6 +23,8 @@ contributors:
 updated_at: '2024-04-02T18:38:38Z'
 created_at: '2023-03-30T17:37:51Z'
 ---
+
+import { Note } from '~/components/note/note';
 
 # Best Practices
 
@@ -102,6 +104,23 @@ export default component$(() => {
   return (
     <div>{doubleCount.value}</div>
   );
+});
+```
+
+For async derived values (like search suggestions), use `useComputed$` with an async function and abort in-flight work on each keystroke:
+
+```tsx title="Async derived value with cancellation"
+export default component$(() => {
+  const query = useSignal('');
+  const results = useComputed$(async ({ abortSignal }) => {
+    const q = query.value;
+    const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`, {
+      signal: abortSignal,
+    });
+    return res.json();
+  }, { initial: [] });
+
+  return <div>{results.value.length} results</div>;
 });
 ```
 
@@ -197,7 +216,7 @@ However, exercise caution! If the required information (such as query parameters
 
 This approach helps to prevent eager loading of JavaScript and improves performance.
 
-> See: [useLocation() Docs](/docs/(qwikrouter)/api/index.mdx#uselocation)
+<Note>See: [useLocation() Docs](/docs/(qwikrouter)/api/index.mdx#uselocation)</Note>
 
 
 ## Delaying Core Execution

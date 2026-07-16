@@ -12,7 +12,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type Action<RETURN, INPUT = Record<string, unknown>, OPTIONAL extends boolean = true> = {\n    (): ActionStore<RETURN, INPUT, OPTIONAL>;\n};\n```\n**References:** [ActionStore](#actionstore)",
+      "content": "```typescript\nexport type Action<RETURN, INPUT = Record<string, unknown>, OPTIONAL extends boolean = true> = {\n    (): ActionStore<ExcludeControlFlow<RETURN>, INPUT, OPTIONAL>;\n};\n```\n**References:** [ActionStore](#actionstore)<!-- -->, [ExcludeControlFlow](#excludecontrolflow)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.action.md"
     },
@@ -26,9 +26,23 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type ActionConstructor = {\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: {\n        readonly id?: string;\n        readonly validation: [VALIDATOR, ...REST];\n    }): Action<StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>> | FailReturn<FailOfRest<REST>>>, GetValidatorInputType<VALIDATOR>, false>;\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: {\n        readonly id?: string;\n        readonly validation: [VALIDATOR];\n    }): Action<StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>>, GetValidatorInputType<VALIDATOR>, false>;\n    <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, options: {\n        readonly id?: string;\n        readonly validation: REST;\n    }): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: VALIDATOR, ...rest: REST): Action<StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>> | FailReturn<FailOfRest<REST>>>, GetValidatorInputType<VALIDATOR>, false>;\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: VALIDATOR): Action<StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>>, GetValidatorInputType<VALIDATOR>, false>;\n    <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, ...rest: REST): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;\n    <OBJ>(actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, options?: {\n        readonly id?: string;\n    }): Action<StrictUnion<OBJ>>;\n};\n```\n**References:** [TypedDataValidator](#typeddatavalidator)<!-- -->, [DataValidator](#datavalidator)<!-- -->, [GetValidatorOutputType](#getvalidatoroutputtype)<!-- -->, [Action](#action)<!-- -->, [StrictUnion](#strictunion)<!-- -->, [FailReturn](#failreturn)<!-- -->, [ValidatorErrorType](#validatorerrortype)<!-- -->, [GetValidatorInputType](#getvalidatorinputtype)<!-- -->, [FailOfRest](#failofrest)<!-- -->, [JSONObject](#jsonobject)",
+      "content": "```typescript\nexport type ActionConstructor = {\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: ActionOptions & {\n        readonly validation: [VALIDATOR, ...REST];\n    }): Action<StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>> | FailReturn<FailOfRest<REST>>>, GetValidatorInputType<VALIDATOR>, false>;\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: ActionOptions & {\n        readonly validation: [VALIDATOR];\n    }): Action<StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>>, GetValidatorInputType<VALIDATOR>, false>;\n    <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, options: ActionOptions & {\n        readonly validation: REST;\n    }): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: VALIDATOR, ...rest: REST): Action<StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>> | FailReturn<FailOfRest<REST>>>, GetValidatorInputType<VALIDATOR>, false>;\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: VALIDATOR): Action<StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>>, GetValidatorInputType<VALIDATOR>, false>;\n    <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, ...rest: REST): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;\n    <OBJ>(actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, options?: ActionOptions): Action<StrictUnion<OBJ>>;\n};\n```\n**References:** [TypedDataValidator](#typeddatavalidator)<!-- -->, [DataValidator](#datavalidator)<!-- -->, [GetValidatorOutputType](#getvalidatoroutputtype)<!-- -->, [ActionOptions](#actionoptions)<!-- -->, [Action](#action)<!-- -->, [StrictUnion](#strictunion)<!-- -->, [FailReturn](#failreturn)<!-- -->, [ValidatorErrorType](#validatorerrortype)<!-- -->, [GetValidatorInputType](#getvalidatorinputtype)<!-- -->, [FailOfRest](#failofrest)<!-- -->, [JSONObject](#jsonobject)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.actionconstructor.md"
+    },
+    {
+      "name": "ActionOptions",
+      "id": "actionoptions",
+      "hierarchy": [
+        {
+          "name": "ActionOptions",
+          "id": "actionoptions"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type ActionOptions = {\n    readonly id?: string;\n    readonly validation?: DataValidator[];\n    readonly invalidate?: Loader<any>[];\n};\n```\n**References:** [DataValidator](#datavalidator)<!-- -->, [Loader](#loader_2)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
+      "mdFile": "router.actionoptions.md"
     },
     {
       "name": "ActionReturn",
@@ -59,6 +73,20 @@
       "mdFile": "router.actionstore.md"
     },
     {
+      "name": "CacheKeyFn",
+      "id": "cachekeyfn",
+      "hierarchy": [
+        {
+          "name": "CacheKeyFn",
+          "id": "cachekeyfn"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "Cache key function. Used by `routeConfig.cacheKey` (SSR HTML cache) and by `routeLoader$`<!-- -->'s `cacheKey` option (per-loader JSON cache).\n\n- `true`<!-- -->: use the surface's default key.\n\n- SSR default: `${status}|${eTag}|${pathname}` when an eTag is set, otherwise `${status}|${pathname}`<!-- -->. - Loader default: `${pathname}|${filteredSearch}|${loaderId}|${eTag}` when an eTag is set, otherwise `${pathname}|${filteredSearch}|${loaderId}`<!-- -->. - Function: receives the request event and the normalized, unquoted eTag (or an empty string when none was provided). Return the cache key string, or `null` or `''` to skip caching for this request. Loader callbacks receive the loader-scoped request event, with `url`<!-- -->, `query`<!-- -->, and `request.url` filtered by the loader's `search` allowlist.\n\nNote: valid cacheKeys are non-empty strings.\n\n\n```typescript\nexport type CacheKeyFn = true | ((requestEv: RequestEvent, eTag: string) => string | null);\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
+      "mdFile": "router.cachekeyfn.md"
+    },
+    {
       "name": "ContentHeading",
       "id": "contentheading",
       "hierarchy": [
@@ -68,7 +96,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface ContentHeading \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[id](./router.contentheading.id.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[level](./router.contentheading.level.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[text](./router.contentheading.text.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface ContentHeading \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nid\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nlevel\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\ntext\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.contentheading.md"
     },
@@ -82,9 +110,37 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface ContentMenu \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[href?](./router.contentmenu.href.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[items?](./router.contentmenu.items.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[ContentMenu](#contentmenu)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[text](./router.contentmenu.text.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface ContentMenu \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nhref?\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nitems?\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[ContentMenu](#contentmenu)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ntext\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.contentmenu.md"
+    },
+    {
+      "name": "ContentModuleETag",
+      "id": "contentmoduleetag",
+      "hierarchy": [
+        {
+          "name": "ContentModuleETag",
+          "id": "contentmoduleetag"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "The eTag export type for routeConfig.\n\n- `string` — static ETag value. - `(props: DocumentHeadProps) => string | null` — compute the ETag from route context (params, URL, loaded data via `resolveValue`<!-- -->, etc.). Return `null` to skip eTag for this request.\n\nQwik normalizes eTag values by stripping weak-form `W/` prefixes, quotes, and forbidden chars, then sends a strong `ETag` header. Values that normalize to an empty string are treated as absent.\n\nWhen set (and a value is produced), the server includes an `ETag` header and returns `304` if `If-None-Match` matches.\n\n\n```typescript\nexport type ContentModuleETag = string | ((props: DocumentHeadProps) => string | null);\n```\n**References:** [DocumentHeadProps](#documentheadprops)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
+      "mdFile": "router.contentmoduleetag.md"
+    },
+    {
+      "name": "ContentModuleHead",
+      "id": "contentmodulehead",
+      "hierarchy": [
+        {
+          "name": "ContentModuleHead",
+          "id": "contentmodulehead"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type ContentModuleHead = DocumentHead | ResolvedDocumentHead;\n```\n**References:** [DocumentHead](#documenthead)<!-- -->, [ResolvedDocumentHead](#resolveddocumenthead)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
+      "mdFile": "router.contentmodulehead.md"
     },
     {
       "name": "createRenderer",
@@ -138,7 +194,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface DocumentHeadProps extends RouteLocation \n```\n**Extends:** [RouteLocation](#routelocation)\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[head](./router.documentheadprops.head.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[ResolvedDocumentHead](#resolveddocumenthead)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[resolveValue](./router.documentheadprops.resolvevalue.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nResolveSyncValue\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[withLocale](./router.documentheadprops.withlocale.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n&lt;T&gt;(fn: () =&gt; T) =&gt; T\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface DocumentHeadProps extends RouteLocation \n```\n**Extends:** [RouteLocation](#routelocation)\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nhead\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[ResolvedDocumentHead](#resolveddocumenthead)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nresolveValue\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nResolveSyncValue\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nstatus\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\nThe HTTP status code of the response (e.g. 200, 404).\n\n\n</td></tr>\n<tr><td>\n\nwithLocale\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n&lt;T&gt;(fn: () =&gt; T) =&gt; T\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.documentheadprops.md"
     },
@@ -166,7 +222,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface DocumentHeadValue<FrontMatter extends Record<string, any> = Record<string, unknown>> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[frontmatter?](./router.documentheadvalue.frontmatter.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nReadonly&lt;FrontMatter&gt;\n\n\n</td><td>\n\n_(Optional)_ Arbitrary object containing custom data. When the document head is created from markdown files, the frontmatter attributes that are not recognized as a well-known meta names (such as title, description, author, etc...), are stored in this property.\n\n\n</td></tr>\n<tr><td>\n\n[links?](./router.documentheadvalue.links.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nreadonly [DocumentLink](#documentlink)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Used to manually append `<link>` elements to the `<head>`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\n[meta?](./router.documentheadvalue.meta.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nreadonly [DocumentMeta](#documentmeta)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Used to manually set meta tags in the head.\n\n\n</td></tr>\n<tr><td>\n\n[scripts?](./router.documentheadvalue.scripts.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nreadonly [DocumentScript](#documentscript)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Used to manually append `<script>` elements to the `<head>`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\n[styles?](./router.documentheadvalue.styles.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nreadonly [DocumentStyle](#documentstyle)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Used to manually append `<style>` elements to the `<head>`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\n[title?](./router.documentheadvalue.title.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_ Sets `document.title`<!-- -->.\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface DocumentHeadValue<FrontMatter extends Record<string, any> = Record<string, unknown>> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfrontmatter?\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nReadonly&lt;FrontMatter&gt;\n\n\n</td><td>\n\n_(Optional)_ Arbitrary object containing custom data. When the document head is created from markdown files, the frontmatter attributes that are not recognized as a well-known meta names (such as title, description, author, etc...), are stored in this property.\n\n\n</td></tr>\n<tr><td>\n\nlinks?\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nreadonly [DocumentLink](#documentlink)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Used to manually append `<link>` elements to the `<head>`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\nmeta?\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nreadonly [DocumentMeta](#documentmeta)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Used to manually set meta tags in the head.\n\n\n</td></tr>\n<tr><td>\n\nscripts?\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nreadonly [DocumentScript](#documentscript)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Used to manually append `<script>` elements to the `<head>`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\nstyles?\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nreadonly [DocumentStyle](#documentstyle)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Used to manually append `<style>` elements to the `<head>`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\ntitle?\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_ Sets `document.title`<!-- -->.\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.documentheadvalue.md"
     },
@@ -241,6 +297,20 @@
       "mdFile": "router.errorboundary.md"
     },
     {
+      "name": "ExcludeControlFlow",
+      "id": "excludecontrolflow",
+      "hierarchy": [
+        {
+          "name": "ExcludeControlFlow",
+          "id": "excludecontrolflow"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "Drops control-flow signals (`ev.redirect()`<!-- -->, `ev.error()`<!-- -->, etc.) from a loader/action return type: those are thrown, not surfaced as data. `ev.fail()` is plain data and is kept.\n\n\n```typescript\nexport type ExcludeControlFlow<T> = Exclude<T, AbortMessage | ServerError>;\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
+      "mdFile": "router.excludecontrolflow.md"
+    },
+    {
       "name": "FailOfRest",
       "id": "failofrest",
       "hierarchy": [
@@ -278,7 +348,7 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nForm: <O, I>({ action, spaReset, reloadDocument, onSubmit$, ...rest }: FormProps<O, I>, key: string | null) => import(\"@qwik.dev/core\").JSXOutput\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n{ action, spaReset, reloadDocument, onSubmit$, ...rest }\n\n\n</td><td>\n\n[FormProps](#formprops)<!-- -->&lt;O, I&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nkey\n\n\n</td><td>\n\nstring \\| null\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nimport(\"@qwik.dev/core\").JSXOutput",
+      "content": "```typescript\nForm: <O, I>(input: FormProps<O, I>, key: string | null) => import(\"@qwik.dev/core\").JSXOutput\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n{ action, spaReset, reloadDocument, onSubmit$, ...rest }\n\n\n</td><td>\n\n(not declared)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\ninput\n\n\n</td><td>\n\n[FormProps](#formprops)<!-- -->&lt;O, I&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nkey\n\n\n</td><td>\n\nstring \\| null\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nimport(\"@qwik.dev/core\").JSXOutput",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/form-component.tsx",
       "mdFile": "router.form.md"
     },
@@ -292,7 +362,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface FormProps<O, I> extends Omit<QwikJSX.IntrinsicElements['form'], 'action' | 'method'> \n```\n**Extends:** Omit&lt;QwikJSX.IntrinsicElements\\['form'\\], 'action' \\| 'method'&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[action?](./router.formprops.action.md)\n\n\n</td><td>\n\n\n</td><td>\n\n[ActionStore](#actionstore)<!-- -->&lt;O, I, true \\| false&gt;\n\n\n</td><td>\n\n_(Optional)_ Reference to the action returned by `action()`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\n[key?](./router.formprops.key.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring \\| number \\| null\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[onSubmit$?](./router.formprops.onsubmit_.md)\n\n\n</td><td>\n\n\n</td><td>\n\nQRLEventHandlerMulti&lt;SubmitEvent, HTMLFormElement&gt; \\| undefined\n\n\n</td><td>\n\n_(Optional)_ Event handler executed right when the form is submitted.\n\n\n</td></tr>\n<tr><td>\n\n[onSubmitCompleted$?](./router.formprops.onsubmitcompleted_.md)\n\n\n</td><td>\n\n\n</td><td>\n\nQRLEventHandlerMulti&lt;CustomEvent&lt;[FormSubmitCompletedDetail](#formsubmitsuccessdetail)<!-- -->&lt;O&gt;&gt;, HTMLFormElement&gt; \\| undefined\n\n\n</td><td>\n\n_(Optional)_ Event handler executed right after the action is executed successfully and returns some data.\n\n\n</td></tr>\n<tr><td>\n\n[reloadDocument?](./router.formprops.reloaddocument.md)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ When `true` the form submission will cause a full page reload, even if SPA mode is enabled and JS is available.\n\n\n</td></tr>\n<tr><td>\n\n[spaReset?](./router.formprops.spareset.md)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ When `true` all the form inputs will be reset in SPA mode, just like happens in a full page form submission.\n\nDefaults to `false`\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface FormProps<O, I> extends Omit<QwikJSX.IntrinsicElements['form'], 'action' | 'method'> \n```\n**Extends:** Omit&lt;QwikJSX.IntrinsicElements\\['form'\\], 'action' \\| 'method'&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\naction?\n\n\n</td><td>\n\n\n</td><td>\n\n[ActionStore](#actionstore)<!-- -->&lt;O, I, true \\| false&gt;\n\n\n</td><td>\n\n_(Optional)_ Reference to the action returned by `action()`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\nkey?\n\n\n</td><td>\n\n\n</td><td>\n\nstring \\| number \\| null\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nonSubmitCompleted$?\n\n\n</td><td>\n\n\n</td><td>\n\nQRLEventHandlerMulti&lt;CustomEvent&lt;[FormSubmitCompletedDetail](#formsubmitsuccessdetail)<!-- -->&lt;O&gt;&gt;, HTMLFormElement&gt; \\| undefined\n\n\n</td><td>\n\n_(Optional)_ Event handler executed right after the action is executed successfully and returns some data.\n\n\n</td></tr>\n<tr><td>\n\nreloadDocument?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ When `true` the form submission will cause a full page reload, even if SPA mode is enabled and JS is available.\n\n\n</td></tr>\n<tr><td>\n\nspaReset?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ When `true` all the form inputs will be reset in SPA mode, just like happens in a full page form submission.\n\nDefaults to `false`\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/form-component.tsx",
       "mdFile": "router.formprops.md"
     },
@@ -306,9 +376,23 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface FormSubmitCompletedDetail<T> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[status](./router.formsubmitsuccessdetail.status.md)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[value](./router.formsubmitsuccessdetail.value.md)\n\n\n</td><td>\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface FormSubmitCompletedDetail<T> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nstatus\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nvalue\n\n\n</td><td>\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/form-component.tsx",
       "mdFile": "router.formsubmitsuccessdetail.md"
+    },
+    {
+      "name": "getRequestEvent",
+      "id": "getrequestevent",
+      "hierarchy": [
+        {
+          "name": "getRequestEvent",
+          "id": "getrequestevent"
+        }
+      ],
+      "kind": "Function",
+      "content": "Returns the current RequestEvent if possible. Only usable on the server, and only during request processing.\n\n\n```typescript\ngetRequestEvent: (thisArg?: unknown) => RequestEvent | undefined\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nthisArg\n\n\n</td><td>\n\nunknown\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nRequestEvent \\| undefined",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/route-loaders.ts",
+      "mdFile": "router.getrequestevent.md"
     },
     {
       "name": "GetValidatorInputType",
@@ -367,6 +451,20 @@
       "mdFile": "router.globalaction_.md"
     },
     {
+      "name": "HttpErrorProps",
+      "id": "httperrorprops",
+      "hierarchy": [
+        {
+          "name": "HttpErrorProps",
+          "id": "httperrorprops"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type HttpStatus = {\n    status: number;\n    message: string;\n};\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
+      "mdFile": "router.httperrorprops.md"
+    },
+    {
       "name": "JSONObject",
       "id": "jsonobject",
       "hierarchy": [
@@ -418,7 +516,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface LinkProps extends AnchorAttributes \n```\n**Extends:** AnchorAttributes\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[prefetch?](./router.linkprops.prefetch.md)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean \\| 'js'\n\n\n</td><td>\n\n_(Optional)_ \\*\\*Defaults to \\_true\\_.\\*\\*\n\nWhether Qwik should prefetch and cache the target page of this \\*\\*`Link`<!-- -->\\*\\*, this includes invoking any \\*\\*`routeLoader$`<!-- -->\\*\\*, \\*\\*`onGet`<!-- -->\\*\\*, etc.\n\nThis \\*\\*improves UX performance\\*\\* for client-side (\\*\\*SPA\\*\\*) navigations.\n\nPrefetching occurs when a the Link enters the viewport in production (\\*\\*`on:qvisible`<!-- -->\\*\\*), or with \\*\\*`mouseover`<!-- -->/`focus`<!-- -->\\*\\* during dev.\n\nPrefetching will not occur if the user has the \\*\\*data saver\\*\\* setting enabled.\n\nSetting this value to \\*\\*`\"js\"`<!-- -->\\*\\* will prefetch only javascript bundles required to render this page on the client, \\*\\*`false`<!-- -->\\*\\* will disable prefetching altogether.\n\n\n</td></tr>\n<tr><td>\n\n[reload?](./router.linkprops.reload.md)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[replaceState?](./router.linkprops.replacestate.md)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[scroll?](./router.linkprops.scroll.md)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface LinkProps extends AnchorAttributes \n```\n**Extends:** AnchorAttributes\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nprefetch?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean \\| 'js'\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nprefetchBundles?\n\n\n</td><td>\n\n\n</td><td>\n\n[PrefetchStrategy](#prefetchstrategy)\n\n\n</td><td>\n\n_(Optional)_ Controls when Qwik should prefetch the javascript bundles required to render this \\*\\*`Link`<!-- -->\\*\\* target during client-side navigation.\n\nDefaults to \\*\\*`\"visible\"`<!-- -->\\*\\*.\n\nPrefetching will not occur if the user has the \\*\\*data saver\\*\\* setting enabled.\n\n\n</td></tr>\n<tr><td>\n\nprefetchData?\n\n\n</td><td>\n\n\n</td><td>\n\n[PrefetchStrategy](#prefetchstrategy)\n\n\n</td><td>\n\n_(Optional)_ Controls when Qwik should prefetch and cache route data for this \\*\\*`Link`<!-- -->\\*\\* target, including invoking any \\*\\*`routeLoader$`<!-- -->\\*\\*, \\*\\*`onGet`<!-- -->\\*\\*, etc.\n\nDefaults to \\*\\*`\"intent\"`<!-- -->\\*\\*. When using the deprecated \\*\\*`prefetch=\"js\"`<!-- -->\\*\\* prop, route data prefetching defaults to \\*\\*`\"off\"`<!-- -->\\*\\*.\n\nPrefetching route data can improve client-side navigation performance for pages that wait on loaders, server handlers, databases, or API calls.\n\nPrefetching will not occur if the user has the \\*\\*data saver\\*\\* setting enabled.\n\n\n</td></tr>\n<tr><td>\n\nreload?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nreplaceState?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nscroll?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/link-component.tsx",
       "mdFile": "router.linkprops.md"
     },
@@ -432,7 +530,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type Loader<RETURN> = {\n    (): LoaderSignal<RETURN>;\n};\n```\n**References:** [LoaderSignal](#loadersignal)",
+      "content": "```typescript\nexport type Loader<RETURN> = {\n    (): LoaderSignal<ExcludeControlFlow<RETURN>>;\n};\n```\n**References:** [LoaderSignal](#loadersignal)<!-- -->, [ExcludeControlFlow](#excludecontrolflow)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.loader_2.md"
     },
@@ -446,23 +544,9 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<infer VALIDATOR> ? ReadonlySignal<ValueOrPromise<VALIDATOR>> : ReadonlySignal<TYPE>) & Pick<AsyncComputedReadonlySignal, 'promise' | 'loading' | 'error'>;\n```",
+      "content": "```typescript\nexport type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<infer VALIDATOR> ? Signal<ValueOrPromise<VALIDATOR>> : Signal<TYPE>) & Pick<ComputedSignal<any>, 'promise' | 'pending' | 'error' | 'loading'>;\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.loadersignal.md"
-    },
-    {
-      "name": "MenuData",
-      "id": "menudata",
-      "hierarchy": [
-        {
-          "name": "MenuData",
-          "id": "menudata"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "```typescript\nexport type MenuData = [pathname: string, menuLoader: MenuModuleLoader];\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
-      "mdFile": "router.menudata.md"
     },
     {
       "name": "NavigationType_2",
@@ -501,8 +585,8 @@
           "id": "pagemodule"
         }
       ],
-      "kind": "Interface",
-      "content": "```typescript\nexport interface PageModule extends RouteModule \n```\n**Extends:** RouteModule\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[default](./router.pagemodule.default.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nunknown\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[head?](./router.pagemodule.head.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nContentModuleHead\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[headings?](./router.pagemodule.headings.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[ContentHeading](#contentheading)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[onStaticGenerate?](./router.pagemodule.onstaticgenerate.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[StaticGenerateHandler](#staticgeneratehandler)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type PageModule = RouteModule & {\n    readonly default: (props: Record<string, never>) => JSXOutput;\n    readonly routeConfig?: RouteConfig;\n    readonly head?: ContentModuleHead;\n    readonly eTag?: ContentModuleETag;\n    readonly cacheKey?: CacheKeyFn;\n    readonly headings?: ContentHeading[];\n    readonly onStaticGenerate?: StaticGenerateHandler;\n};\n```\n**References:** [RouteConfig](#routeconfig)<!-- -->, [ContentModuleHead](#contentmodulehead)<!-- -->, [ContentModuleETag](#contentmoduleetag)<!-- -->, [CacheKeyFn](#cachekeyfn)<!-- -->, [ContentHeading](#contentheading)<!-- -->, [StaticGenerateHandler](#staticgeneratehandler)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.pagemodule.md"
     },
@@ -519,6 +603,20 @@
       "content": "```typescript\nexport declare type PathParams = Record<string, string>;\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.pathparams.md"
+    },
+    {
+      "name": "PrefetchStrategy",
+      "id": "prefetchstrategy",
+      "hierarchy": [
+        {
+          "name": "PrefetchStrategy",
+          "id": "prefetchstrategy"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "Defines when link prefetching should be triggered.\n\n\n```typescript\nexport type PrefetchStrategy = \n/**\n * Prefetch when the user commits to navigating.\n *\n * Triggered by `pointerdown` or the `Enter` key.\n */\n'commit'\n/**\n * Prefetch when the user shows navigation intent.\n *\n * Triggered by `pointerenter`, hover, or focus.\n */\n | 'intent'\n/** Prefetch when the link becomes visible in the viewport. */\n | 'visible'\n/** Disable link prefetching. */\n | 'off';\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/link-component.tsx",
+      "mdFile": "router.prefetchstrategy.md"
     },
     {
       "name": "PreventNavigateCallback",
@@ -575,20 +673,6 @@
       "content": "```typescript\nQWIK_ROUTER_SCROLLER = \"_qRouterScroller\"\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx",
       "mdFile": "router.qwik_router_scroller.md"
-    },
-    {
-      "name": "QwikCityMockProps",
-      "id": "qwikcitymockprops",
-      "hierarchy": [
-        {
-          "name": "QwikCityMockProps",
-          "id": "qwikcitymockprops"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `QwikRouterMockProps` instead. will be removed in V3\n> \n\n\n```typescript\nexport type QwikCityMockProps = QwikRouterMockProps;\n```\n**References:** [QwikRouterMockProps](#qwikroutermockprops)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx",
-      "mdFile": "router.qwikcitymockprops.md"
     },
     {
       "name": "QwikCityMockProvider",
@@ -656,7 +740,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikRouterConfig \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[basePathname?](./router.qwikrouterconfig.basepathname.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[cacheModules?](./router.qwikrouterconfig.cachemodules.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[menus?](./router.qwikrouterconfig.menus.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[MenuData](#menudata)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[routes](./router.qwikrouterconfig.routes.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[RouteData](#routedata)<!-- -->\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[serverPlugins?](./router.qwikrouterconfig.serverplugins.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nRouteModule\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[trailingSlash?](./router.qwikrouterconfig.trailingslash.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface QwikRouterConfig \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nbasePathname?\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ncacheModules?\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nfallthrough?\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ When true, return null instead of rendering the 404 page, letting the adapter handle it\n\n\n</td></tr>\n<tr><td>\n\nroutes\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[RouteData](#routedata)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nserverPlugins?\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nRouteModule\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ntrailingSlash?\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.qwikrouterconfig.md"
     },
@@ -670,9 +754,37 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikRouterEnvData \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[ev](./router.qwikrouterenvdata.ev.md)\n\n\n</td><td>\n\n\n</td><td>\n\nRequestEvent\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[loadedRoute](./router.qwikrouterenvdata.loadedroute.md)\n\n\n</td><td>\n\n\n</td><td>\n\nLoadedRoute \\| null\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[params](./router.qwikrouterenvdata.params.md)\n\n\n</td><td>\n\n\n</td><td>\n\n[PathParams](#pathparams)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[response](./router.qwikrouterenvdata.response.md)\n\n\n</td><td>\n\n\n</td><td>\n\nEndpointResponse\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[routeName](./router.qwikrouterenvdata.routename.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface QwikRouterEnvData \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nev\n\n\n</td><td>\n\n\n</td><td>\n\nRequestEvent\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nloadedRoute\n\n\n</td><td>\n\n\n</td><td>\n\nLoadedRoute\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nloaderValues\n\n\n</td><td>\n\n\n</td><td>\n\nRecord&lt;string, unknown&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nparams\n\n\n</td><td>\n\n\n</td><td>\n\n[PathParams](#pathparams)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nresponse\n\n\n</td><td>\n\n\n</td><td>\n\nEndpointResponse\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nrouteLoaderCtx\n\n\n</td><td>\n\n\n</td><td>\n\nRouteLoaderCtx\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nrouteName\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.qwikrouterenvdata.md"
+    },
+    {
+      "name": "QwikRouterMockActionProp",
+      "id": "qwikroutermockactionprop",
+      "hierarchy": [
+        {
+          "name": "QwikRouterMockActionProp",
+          "id": "qwikroutermockactionprop"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikRouterMockActionProp<T = any> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\naction\n\n\n</td><td>\n\n\n</td><td>\n\n[Action](#action)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\nThe action function to mock.\n\n\n</td></tr>\n<tr><td>\n\nhandler\n\n\n</td><td>\n\n\n</td><td>\n\nQRL&lt;(data: T) =&gt; ValueOrPromise&lt;RouteActionResolver&gt;&gt;\n\n\n</td><td>\n\nThe QRL function that will be called when the action is submitted.\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx",
+      "mdFile": "router.qwikroutermockactionprop.md"
+    },
+    {
+      "name": "QwikRouterMockLoaderProp",
+      "id": "qwikroutermockloaderprop",
+      "hierarchy": [
+        {
+          "name": "QwikRouterMockLoaderProp",
+          "id": "qwikroutermockloaderprop"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikRouterMockLoaderProp<T = any> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ndata\n\n\n</td><td>\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\nThe data to return when the loader is called.\n\n\n</td></tr>\n<tr><td>\n\nloader\n\n\n</td><td>\n\n\n</td><td>\n\n[Loader](#loader_2)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\nThe loader function to mock.\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx",
+      "mdFile": "router.qwikroutermockloaderprop.md"
     },
     {
       "name": "QwikRouterMockProps",
@@ -684,7 +796,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikRouterMockProps \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[goto?](./router.qwikroutermockprops.goto.md)\n\n\n</td><td>\n\n\n</td><td>\n\n[RouteNavigate](#routenavigate)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[params?](./router.qwikroutermockprops.params.md)\n\n\n</td><td>\n\n\n</td><td>\n\nRecord&lt;string, string&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[url?](./router.qwikroutermockprops.url.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface QwikRouterMockProps \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nactions?\n\n\n</td><td>\n\n\n</td><td>\n\nArray&lt;[QwikRouterMockActionProp](#qwikroutermockactionprop)<!-- -->&lt;any&gt;&gt;\n\n\n</td><td>\n\n_(Optional)_ Allow mocking actions defined with `routeAction$` function.\n\n```\n[\n  {\n    action: useAddUser,\n    handler: $(async (data) => {\n      console.log('useAddUser action called with data:', data);\n    }),\n  },\n];\n```\n\n\n</td></tr>\n<tr><td>\n\ngoto?\n\n\n</td><td>\n\n\n</td><td>\n\n[RouteNavigate](#routenavigate)\n\n\n</td><td>\n\n_(Optional)_ Allow mocking the `goto` function returned by `useNavigate` hook.\n\n\n</td></tr>\n<tr><td>\n\nloaders?\n\n\n</td><td>\n\n\n</td><td>\n\nArray&lt;[QwikRouterMockLoaderProp](#qwikroutermockloaderprop)<!-- -->&lt;any&gt;&gt;\n\n\n</td><td>\n\n_(Optional)_ Allow mocking data for loaders defined with `routeLoader$` function.\n\n```\n[\n  {\n    loader: useProductData,\n    data: { product: { name: 'Test Product' } },\n  },\n];\n```\n\n\n</td></tr>\n<tr><td>\n\nparams?\n\n\n</td><td>\n\n\n</td><td>\n\nRecord&lt;string, string&gt;\n\n\n</td><td>\n\n_(Optional)_ Allow mocking the route params returned by `useLocation` hook.\n\n\n</td></tr>\n<tr><td>\n\nurl?\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_ Allow mocking the url returned by `useLocation` hook.\n\nDefault: `http://localhost/`\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx",
       "mdFile": "router.qwikroutermockprops.md"
     },
@@ -712,7 +824,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikRouterProps \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[viewTransition?](./router.qwikrouterprops.viewtransition.md)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ Enable the ViewTransition API\n\nDefault: `true`\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface QwikRouterProps \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nviewTransition?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ Enable the ViewTransition API on SPA navigation. Opt-in: set to `true` to enable.\n\nDefault: `false`\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx",
       "mdFile": "router.qwikrouterprops.md"
     },
@@ -740,7 +852,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type RendererOptions = Omit<RenderOptions, 'serverData'> & {\n    serverData: ServerData;\n};\n```\n**References:** [ServerData](#serverdata)",
+      "content": "```typescript\nexport type RendererOptions = Omit<RenderToStreamOptions, 'serverData'> & {\n    serverData: ServerData;\n};\n```\n**References:** [ServerData](#serverdata)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/create-renderer.ts",
       "mdFile": "router.rendereroptions.md"
     },
@@ -754,7 +866,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type RendererOutputOptions = Omit<RenderOptions, 'serverData'> & {\n    serverData: ServerData & {\n        documentHead?: DocumentHeadValue;\n    } & Record<string, unknown>;\n};\n```\n**References:** [ServerData](#serverdata)<!-- -->, [DocumentHeadValue](#documentheadvalue)",
+      "content": "```typescript\nexport type RendererOutputOptions = Omit<RenderToStreamOptions, 'serverData'> & {\n    serverData: ServerData & {\n        documentHead?: DocumentHeadValue;\n    } & Record<string, unknown>;\n};\n```\n**References:** [ServerData](#serverdata)<!-- -->, [DocumentHeadValue](#documentheadvalue)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/create-renderer.ts",
       "mdFile": "router.rendereroutputoptions.md"
     },
@@ -768,7 +880,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type ResolvedDocumentHead<FrontMatter extends Record<string, any> = Record<string, unknown>> = Required<DocumentHeadValue<FrontMatter>>;\n```\n**References:** [DocumentHeadValue](#documentheadvalue)",
+      "content": "```typescript\nexport type ResolvedDocumentHead<FrontMatter extends Record<string, any> = Record<string, unknown>> = Required<DocumentHeadValue<FrontMatter>> & {\n    readonly manifestHash: string;\n};\n```\n**References:** [DocumentHeadValue](#documentheadvalue)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.resolveddocumenthead.md"
     },
@@ -782,9 +894,51 @@
         }
       ],
       "kind": "Variable",
-      "content": "```typescript\nrouteAction$: ActionConstructor\n```",
+      "content": "Define a route action that handles form submissions or programmatic invocations.\n\nActions run on the server when submitted from the client. The result is returned as an `ActionStore` with `.value` for success data and `.error` for errors (including validation errors from `zod$`<!-- -->/`valibot$` where `.fieldErrors` etc. are accessible directly on `.error`<!-- -->).\n\nBy default, after an action completes, ALL current route loaders are invalidated on the client and re-fetched as needed (so that the browser cache is correct). This can be controlled with:\n\n- `invalidate: [loader1, loader2]`<!-- -->: Only invalidate specific loaders. The client re-fetches them individually. Other loaders keep their current data. - `invalidate: []`<!-- -->: No loaders are invalidated. The action response only contains the action result. Use this when the action doesn't affect any loader data.\n\nThe `strictLoaders` Vite plugin option applies `invalidate: []` globally for all actions that don't specify an explicit `invalidate` option.\n\n\n```typescript\nrouteAction$: ActionConstructor\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts",
       "mdFile": "router.routeaction_.md"
+    },
+    {
+      "name": "routeActionQrl",
+      "id": "routeactionqrl",
+      "hierarchy": [
+        {
+          "name": "routeActionQrl",
+          "id": "routeactionqrl"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nrouteActionQrl: ActionConstructorQRL\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts",
+      "mdFile": "router.routeactionqrl.md"
+    },
+    {
+      "name": "RouteConfig",
+      "id": "routeconfig",
+      "hierarchy": [
+        {
+          "name": "RouteConfig",
+          "id": "routeconfig"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "Unified route configuration export. Groups head, eTag, and cacheKey with the same resolution rules as DocumentHead: can be a static object or a function receiving DocumentHeadProps.\n\nWhen a module exports `routeConfig`<!-- -->, the separate `head`<!-- -->, `eTag`<!-- -->, and `cacheKey` exports are ignored for that module.\n\n\n```typescript\nexport type RouteConfig = RouteConfigValue | ((props: DocumentHeadProps) => RouteConfigValue);\n```\n**References:** [RouteConfigValue](#routeconfigvalue)<!-- -->, [DocumentHeadProps](#documentheadprops)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
+      "mdFile": "router.routeconfig.md"
+    },
+    {
+      "name": "RouteConfigValue",
+      "id": "routeconfigvalue",
+      "hierarchy": [
+        {
+          "name": "RouteConfigValue",
+          "id": "routeconfigvalue"
+        }
+      ],
+      "kind": "Interface",
+      "content": "The value shape returned by a routeConfig export (object form or function return).\n\n\n```typescript\nexport interface RouteConfigValue \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ncacheKey?\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[CacheKeyFn](#cachekeyfn)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\neTag?\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[ContentModuleETag](#contentmoduleetag)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nhead?\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[DocumentHeadValue](#documentheadvalue)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
+      "mdFile": "router.routeconfigvalue.md"
     },
     {
       "name": "RouteData",
@@ -795,8 +949,8 @@
           "id": "routedata"
         }
       ],
-      "kind": "TypeAlias",
-      "content": "```typescript\nexport type RouteData = [\n    routeName: string,\n    moduleLoaders: ModuleLoader[]\n] | [\n    routeName: string,\n    moduleLoaders: ModuleLoader[],\n    originalPathname: string,\n    routeBundleNames: string[]\n];\n```",
+      "kind": "Interface",
+      "content": "A nested route trie structure. The root represents `/` and each level represents a URL segment.\n\nKeys starting with `_` are metadata; all other keys are child route segments.\n\n- Use `_W` as the key for a single dynamic segment (param); `_P` on that node names the param. - Use `_A` as the key for a rest/catch-all segment; `_P` on that node names the param. - For infix params like `pre[slug]post`<!-- -->, use `_W` with `_0` (prefix) and `_9` (suffix). - Use `_M` for an array of group (pathless layout) nodes, sorted by group name.\n\nWhen matching, exact segments are tried first (case-insensitive), then `_W` (with optional prefix/suffix), then `_A`<!-- -->. When no route matches, the closest `_E` (error.tsx) or `_4` (404.tsx) loader in the ancestor chain is used to render the error page.\n\n\n```typescript\nexport interface RouteData \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n\\_0?\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_ Prefix for infix params (e.g. \"pre\" for `pre[slug]post`<!-- -->) — only on `_W` nodes\n\n\n</td></tr>\n<tr><td>\n\n\\_4?\n\n\n</td><td>\n\n\n</td><td>\n\nContentModuleLoader \\| ModuleLoader\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Not-found (404) boundary: single loader (runtime prepends layouts) or override chain (`404@layout`<!-- -->/`!`<!-- -->).\n\n\n</td></tr>\n<tr><td>\n\n\\_9?\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_ Suffix for infix params (e.g. \"post\" for `pre[slug]post`<!-- -->) — only on `_W` nodes\n\n\n</td></tr>\n<tr><td>\n\n\\_B?\n\n\n</td><td>\n\n\n</td><td>\n\nstring\\[\\]\n\n\n</td><td>\n\n_(Optional)_ The JS bundle names for this route (SSR only)\n\n\n</td></tr>\n<tr><td>\n\n\\_E?\n\n\n</td><td>\n\n\n</td><td>\n\nContentModuleLoader \\| ModuleLoader\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Error (error.tsx) boundary, same single-or-override-chain shape as `_4`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\n\\_G?\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_ Rewrite/goto target path. Matcher re-walks trie from root using this path's keys.\n\n\n</td></tr>\n<tr><td>\n\n\\_I?\n\n\n</td><td>\n\n\n</td><td>\n\nContentModuleLoader \\| ModuleLoader\\[\\]\n\n\n</td><td>\n\n_(Optional)_ This node's index/page loader. Single = normal (runtime prepends gathered \\_L). Array = override (layout stop / named layout — IS the complete chain).\n\n\n</td></tr>\n<tr><td>\n\n\\_L?\n\n\n</td><td>\n\n\n</td><td>\n\nContentModuleLoader\n\n\n</td><td>\n\n_(Optional)_ This node's layout loader (single). Runtime accumulates these during trie traversal.\n\n\n</td></tr>\n<tr><td>\n\n\\_M?\n\n\n</td><td>\n\n\n</td><td>\n\n[RouteData](#routedata)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Group (pathless layout) nodes merged into this level, sorted by group name\n\n\n</td></tr>\n<tr><td>\n\n\\_N?\n\n\n</td><td>\n\n\n</td><td>\n\nMenuModuleLoader\n\n\n</td><td>\n\n_(Optional)_ Menu loader for this subtree (from menu.md). Runtime uses nearest ancestor during traversal.\n\n\n</td></tr>\n<tr><td>\n\n\\_P?\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_ The parameter name when this node is reached via `_W` or `_A` from the parent\n\n\n</td></tr>\n<tr><td>\n\n\\_R?\n\n\n</td><td>\n\n\n</td><td>\n\nstring\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Array of routeLoader$ hashes for this node's loaders\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.routedata.md"
     },
@@ -810,8 +964,8 @@
         }
       ],
       "kind": "Variable",
-      "content": "```typescript\nrouteLoader$: LoaderConstructor\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts",
+      "content": "Define a route loader that fetches data before the route renders.\n\nRoute loaders run on the server during SSR and return data as a `ComputedSignal`<!-- -->. On the client, loaders automatically re-fetch when the route changes (SPA navigation). Each loader gets its own JSON endpoint (`q-loader-{id}.{hash}.json`<!-- -->), so only the loaders present on the target route are fetched.\n\n\\*\\*Important:\\*\\* Route loader data uses Qwik's custom serialization format, not standard JSON. This means the data supports features like circular references, Dates, and other non-JSON types, but it cannot be consumed by external clients expecting plain JSON.\n\n\\#\\# Options\n\n- `search: string[]`<!-- -->: Allowlist of URL search params the loader depends on. Only listed params are sent in the request and changes to other params are ignored. During SSR and loader JSON requests, the loader's request event is filtered to those params too. `search: []` means no search params are sent and only route path changes trigger a re-fetch. - `allowStale: false`<!-- -->: Clears the previous value when re-fetching, so components see a loading state instead of stale data during navigation. Useful when old data would be confusing. - `eTag`<!-- -->: Enable ETag-based caching. Can be `true` (auto-hash), a string, or a function. - `expires` / `poll`<!-- -->: Control client-side caching and polling behavior.\n\nThe `strictLoaders` Vite plugin option applies `search: []` globally for all loaders that don't specify an explicit `search` option.\n\n\n```typescript\nrouteLoader$: LoaderConstructor\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/route-loaders.ts",
       "mdFile": "router.routeloader_.md"
     },
     {
@@ -824,7 +978,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface RouteLocation \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[isNavigating](./router.routelocation.isnavigating.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[params](./router.routelocation.params.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nReadonly&lt;Record&lt;string, string&gt;&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[prevUrl](./router.routelocation.prevurl.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nURL \\| undefined\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[url](./router.routelocation.url.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nURL\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface RouteLocation \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nisNavigating\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nparams\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nReadonly&lt;Record&lt;string, string&gt;&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nprevUrl\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nURL \\| undefined\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nurl\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nURL\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.routelocation.md"
     },
@@ -880,7 +1034,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "The server data that is provided by Qwik Router during SSR rendering. It can be retrieved with `useServerData(key)` in the server, but it is not available in the client.\n\n\n```typescript\nexport type ServerData = {\n    url: string;\n    requestHeaders: Record<string, string>;\n    locale: string | undefined;\n    nonce: string | undefined;\n    containerAttributes: Record<string, string> & {\n        [Q_ROUTE]: string;\n    };\n    qwikrouter: QwikRouterEnvData;\n};\n```\n**References:** [Q\\_ROUTE](#q_route)<!-- -->, [QwikRouterEnvData](#qwikrouterenvdata)",
+      "content": "The server data that is provided by Qwik Router during SSR rendering. It can be retrieved with `useServerData(key)` in the server, but it is not available in the client.\n\n\n```typescript\nexport type ServerData = {\n    url: string;\n    requestHeaders: Record<string, string>;\n    renderMode: 'static' | 'server';\n    locale: string | undefined;\n    nonce: string | undefined;\n    containerAttributes: Record<string, string> & {\n        [Q_ROUTE]: string;\n    };\n    qwikrouter: QwikRouterEnvData;\n};\n```\n**References:** [Q\\_ROUTE](#q_route)<!-- -->, [QwikRouterEnvData](#qwikrouterenvdata)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.serverdata.md"
     },
@@ -922,7 +1076,7 @@
         }
       ],
       "kind": "Function",
-      "content": "Loads the service workers that are defined in the routes. Any file named `service-worker.*` (all JS extensions are allowed) will be picked up, bundled into a separate file, and registered as a service worker.\n\nQwik 1.14.0 and above now use `<link rel=\"modulepreload\">` by default. If you didn't add custom service-worker logic, you should remove your service-worker.ts file(s) for the `ServiceWorkerRegister` Component to actually unregister the service-worker.js and delete its related cache. Make sure to keep the `ServiceWorkerRegister` Component in your app (without any service-worker.ts file) as long as you want to unregister the service-worker.js for your users.\n\n\n```typescript\nServiceWorkerRegister: (props: {\n    nonce?: string;\n}) => import(\"packages/qwik/public\").JSXOutput\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nprops\n\n\n</td><td>\n\n{ nonce?: string; }\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nimport(\"packages/qwik/public\").JSXOutput",
+      "content": "Loads the service workers that are defined in the routes. Any file named `service-worker.*` (all JS extensions are allowed) will be picked up, bundled into a separate file, and registered as a service worker.\n\nQwik 1.14.0 and above now use `<link rel=\"modulepreload\">` by default. If you didn't add custom service-worker logic, you should remove your service-worker.ts file(s) for the `ServiceWorkerRegister` Component to actually unregister the service-worker.js and delete its related cache. Make sure to keep the `ServiceWorkerRegister` Component in your app (without any service-worker.ts file) as long as you want to unregister the service-worker.js for your users.\n\n\n```typescript\nServiceWorkerRegister: (props: {\n    nonce?: string;\n}) => JSXOutput\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nprops\n\n\n</td><td>\n\n{ nonce?: string; }\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nJSXOutput",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/sw-component.tsx",
       "mdFile": "router.serviceworkerregister.md"
     },
@@ -936,7 +1090,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface StaticGenerate \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[params?](./router.staticgenerate.params.md)\n\n\n</td><td>\n\n\n</td><td>\n\n[PathParams](#pathparams)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface StaticGenerate \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nparams?\n\n\n</td><td>\n\n\n</td><td>\n\n[PathParams](#pathparams)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.staticgenerate.md"
     },
@@ -1023,6 +1177,20 @@
       "content": "Returns the document head for the current page. The generic type describes the front matter.\n\n\n```typescript\nuseDocumentHead: <FrontMatter extends Record<string, unknown> = Record<string, any>>() => Required<ResolvedDocumentHead<FrontMatter>>\n```\n**Returns:**\n\nRequired&lt;[ResolvedDocumentHead](#resolveddocumenthead)<!-- -->&lt;FrontMatter&gt;&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/use-functions.ts",
       "mdFile": "router.usedocumenthead.md"
+    },
+    {
+      "name": "useHttpStatus",
+      "id": "usehttpstatus",
+      "hierarchy": [
+        {
+          "name": "useHttpStatus",
+          "id": "usehttpstatus"
+        }
+      ],
+      "kind": "Function",
+      "content": "```typescript\nuseHttpStatus: () => import(\"./types\").HttpStatus\n```\n**Returns:**\n\nimport(\"./types\").[HttpStatus](#httperrorprops)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/use-functions.ts",
+      "mdFile": "router.usehttpstatus.md"
     },
     {
       "name": "useLocation",

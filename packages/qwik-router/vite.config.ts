@@ -1,3 +1,4 @@
+import { qwikVite } from '@qwik.dev/core/optimizer';
 import { defineConfig } from 'vite';
 import { compiledStringPlugin } from '../../scripts/compiled-string-plugin.js';
 import pkg from './package.json' with { type: 'json' };
@@ -54,6 +55,8 @@ export default defineConfig(() => {
           'fsevents',
           'zod',
           '@qwik-router-sw-register',
+          // Virtual module resolved at the app build (the SSR plan is pruned in `load`, not a
+          // separate importable id).
           '@qwik-router-config',
           /@qwik\.dev\/core/,
           /@qwik\.dev\/router\//,
@@ -62,7 +65,7 @@ export default defineConfig(() => {
         ],
       },
     },
-    plugins: [compiledStringPlugin()],
+    plugins: [qwikVite(), compiledStringPlugin()],
     clearScreen: false,
     optimizeDeps: {
       force: true,

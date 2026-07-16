@@ -7,6 +7,7 @@ created_at: '2025-06-17T11:37:18Z'
 ---
 
 import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+import { Note } from '~/components/note/note';
 
 # Azion Web Platform
 
@@ -62,7 +63,7 @@ export default extendConfig(baseConfig, () => {
 });
 ```
 
-> Remember to change the `origin` in this file to your domain.
+<Note>Remember to change the `origin` in this file to your domain.</Note>
 
 Now, you can generate static site while using `Qwik`'s rich ecosystem, file based routing and many more.
 
@@ -109,7 +110,7 @@ azion deploy
 
 3. Wait while the project is built and deployed to the Azion Web Platform.
 
-> Once the deployment is triggered, Azion will open the browser and take you to a page on the Azion Console where the deployment logs and process can be monitored. If it doesn't open automatically, just click on the provided link.
+<Note>Once the deployment is triggered, Azion will open the browser and take you to a page on the Azion Console where the deployment logs and process can be monitored. If it doesn't open automatically, just click on the provided link.</Note>
 After the deployment is complete, you'll receive a domain to access your Qwik project on the Azion Platform.
 
 Wait a few minutes for propagation to take place, and then access your application using the provided domain, which should be similar to `https://xxxxxxx.map.azionedge.net`.

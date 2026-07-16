@@ -15,6 +15,7 @@ import type { ReplStore, ReplAppInput } from '../types';
 import { ReplDetailPanel } from './repl-detail-panel';
 import { getReplVersion } from './repl-version';
 import { ReplInstance } from '../repl-instance';
+import { ReplMainResizer } from './repl-main-resizer';
 
 export const Repl = component$((props: ReplProps) => {
   useStyles$(styles);
@@ -130,7 +131,10 @@ export const Repl = component$((props: ReplProps) => {
         onInputDelete$={onInputDelete$}
         enableCopyToPlayground={props.enableCopyToPlayground}
         enableDownload={props.enableDownload}
+        enableInputDelete={props.enableInputDelete}
+        editorTheme={props.editorTheme}
       />
+      {props.enableMainSplitter ? <ReplMainResizer /> : null}
       <ReplOutputPanel input={input} store={store} />
       <ReplDetailPanel input={input} store={store} />
     </>
@@ -147,4 +151,6 @@ export interface ReplProps {
   enableInputDelete?: boolean;
   enableDownload?: boolean;
   enableCopyToPlayground?: boolean;
+  enableMainSplitter?: boolean;
+  editorTheme?: import('./monaco').EditorThemeName;
 }

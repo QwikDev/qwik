@@ -296,13 +296,13 @@ type StateArc = [
   ...string[],
 ];
 
-const STRINGS_COMMENTS: StateArc[] = /*__PURE__*/ (() => [
+const STRINGS_COMMENTS: StateArc[] = /*@__PURE__*/ (() => [
   [ANY, SINGLE_QUOTE, stringSingle],
   [ANY, DOUBLE_QUOTE, stringDouble],
   [ANY, FORWARD_SLASH, commentMultiline, '*'],
 ])();
 
-const STATE_MACHINE: StateArc[][] = /*__PURE__*/ (() => [
+const STATE_MACHINE: StateArc[][] = /*@__PURE__*/ (() => [
   [
     /// rule
     [ANY, STAR, starSelector],

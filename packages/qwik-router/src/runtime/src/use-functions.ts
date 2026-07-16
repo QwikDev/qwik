@@ -9,6 +9,7 @@ import {
 import {
   ContentContext,
   DocumentHeadContext,
+  HttpStatusContext,
   RouteActionContext,
   RouteLocationContext,
   RouteNavigateContext,
@@ -22,6 +23,9 @@ import type {
   RouteLocation,
   RouteNavigate,
 } from './types';
+
+/** @public */
+export const useHttpStatus = () => useContext(HttpStatusContext).value;
 
 /** @public */
 export const useContent = () => useContext(ContentContext);
@@ -43,11 +47,6 @@ export const useNavigate = (): RouteNavigate => useContext(RouteNavigateContext)
 
 /** @internal Implementation of usePreventNavigate$ */
 export const usePreventNavigateQrl = (fn: QRL<PreventNavigateCallback>): void => {
-  if (!__EXPERIMENTAL__.preventNavigate) {
-    throw new Error(
-      'usePreventNavigate$ is experimental and must be enabled with `experimental: ["preventNavigate"]` in the `qwikVite` plugin.'
-    );
-  }
   const registerPreventNav = useContext(RoutePreventNavigateContext);
   // Note: we have to use a visible task because:
   // - the onbeforeunload event is synchronous, so we need to preload the callbacks

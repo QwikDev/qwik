@@ -5,8 +5,8 @@
     "deploy": "netlify deploy --build"
   },
   "devDependencies": {
-    "@netlify/edge-functions": "^2.0.0",
-    "netlify-cli": "^15.0.0"
+    "@netlify/edge-functions": "^3.0.6",
+    "netlify-cli": "^24.5.1"
   },
   "__qwik__": {
     "priority": 30,

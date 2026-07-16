@@ -41,14 +41,15 @@ export function testAppSuite(
 ): TestAPI<TestAppBuildContext> {
   let buildCtx: RoutingContext;
 
-  beforeAll(async (testCtx) => {
+  beforeAll(async () => {
     const testAppRootDir = join(
       __dirname,
       '..',
       '..',
       '..',
       '..',
-      'starters',
+      'e2e',
+      'qwik-e2e',
       'apps',
       'qwikrouter-test'
     );
@@ -63,7 +64,6 @@ export function testAppSuite(
     assert.deepEqual(ctx.diagnostics, []);
 
     buildCtx = ctx;
-    Object.assign(testCtx, ctx);
   });
 
   const assertRoute = (p: string) => {

@@ -1,6 +1,7 @@
 import {
   $,
   Fragment,
+  Slot,
   _fnSignal,
   _jsxSorted,
   component$,
@@ -29,11 +30,12 @@ import {
   vnode_setProp,
   type VNodeJournal,
 } from './vnode-utils';
-import { vnode_diff } from './vnode-diff';
 import { _flushJournal } from '../shared/cursor/cursor-flush';
 import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import { NODE_DIFF_DATA_KEY } from '../shared/cursor/cursor-props';
+import type { ElementVNode } from '../shared/vnode/element-vnode';
+import { vnode_diff } from './vnode-diff';
 
 describe('vNode-diff', () => {
   it('should find no difference', () => {
@@ -96,6 +98,112 @@ describe('vNode-diff', () => {
       _flushJournal(journal);
       expect(vNode).toMatchVDOM(<div></div>);
     });
+
+    describe('2 empty texts', () => {
+      it('should correctly diff 2 empty texts with element node', () => {
+        const { vNode, vParent, container } = vnode_fromJSX(
+          _jsxSorted('div', null, null, ['', ''], 0, 'KA_0')
+        );
+        const emptyFragment = (vNode as ElementVNode).firstChild?.nextSibling;
+        expect(emptyFragment).toBeDefined();
+        const journal: VNodeJournal = [];
+        vnode_diff(
+          container,
+          journal,
+          _jsxSorted(
+            'div',
+            null,
+            null,
+            [_jsxSorted('div', null, null, 'Child 1', 0, null), ''],
+            0,
+            'KA_0'
+          ),
+          vParent,
+          vParent,
+          null
+        );
+        _flushJournal(journal);
+        expect((vNode as ElementVNode).firstChild?.nextSibling === emptyFragment).toBeTruthy();
+      });
+
+      it('should correctly diff 2 empty texts with fragment node', () => {
+        const { vNode, vParent, container } = vnode_fromJSX(
+          _jsxSorted('div', null, null, ['', ''], 0, 'KA_0')
+        );
+        const emptyFragment = (vNode as ElementVNode).firstChild?.nextSibling;
+        expect(emptyFragment).toBeDefined();
+        const journal: VNodeJournal = [];
+        vnode_diff(
+          container,
+          journal,
+          _jsxSorted(
+            'div',
+            null,
+            null,
+            [_jsxSorted(Fragment, null, null, 'Child 1', 0, null), ''],
+            0,
+            'KA_0'
+          ),
+          vParent,
+          vParent,
+          null
+        );
+        _flushJournal(journal);
+        expect((vNode as ElementVNode).firstChild?.nextSibling === emptyFragment).toBeTruthy();
+      });
+
+      it('should correctly diff 2 empty texts with slot node', () => {
+        const { vNode, vParent, container } = vnode_fromJSX(
+          _jsxSorted('div', null, null, ['', ''], 0, 'KA_0')
+        );
+        const emptyFragment = (vNode as ElementVNode).firstChild?.nextSibling;
+        expect(emptyFragment).toBeDefined();
+        const journal: VNodeJournal = [];
+        vnode_diff(
+          container,
+          journal,
+          _jsxSorted(
+            'div',
+            null,
+            null,
+            [_jsxSorted(Slot, null, null, null, 0, null), ''],
+            0,
+            'KA_0'
+          ),
+          vParent,
+          vParent,
+          null
+        );
+        _flushJournal(journal);
+        expect((vNode as ElementVNode).firstChild?.nextSibling === emptyFragment).toBeTruthy();
+      });
+      it('should correctly diff 2 empty texts with component node', () => {
+        const { vNode, vParent, container } = vnode_fromJSX(
+          _jsxSorted('div', null, null, ['', ''], 0, 'KA_0')
+        );
+        const emptyFragment = (vNode as ElementVNode).firstChild?.nextSibling;
+        expect(emptyFragment).toBeDefined();
+        const journal: VNodeJournal = [];
+        const Cmp = component$(() => <div>Hello</div>);
+        vnode_diff(
+          container,
+          journal,
+          _jsxSorted(
+            'div',
+            null,
+            null,
+            [_jsxSorted(Cmp as JSXChildren, null, null, [], 0, null), ''],
+            0,
+            'KA_0'
+          ),
+          vParent,
+          vParent,
+          null
+        );
+        _flushJournal(journal);
+        expect((vNode as ElementVNode).firstChild?.nextSibling === emptyFragment).toBeTruthy();
+      });
+    });
   });
   describe('element', () => {
     it('should do nothing on same', () => {
@@ -157,7 +265,7 @@ describe('vNode-diff', () => {
           {
             about: 'foo',
             id: 'a',
-            'on:click': () => null,
+            'q-e:click': () => null,
           },
           null,
           [],
@@ -688,12 +796,12 @@ describe('vNode-diff', () => {
 
       it('should skip props starting with handler prefix (colon)', () => {
         const { vParent, container } = vnode_fromJSX(
-          _jsxSorted('span', { ':::onClick$': () => null }, null, [], 0, null)
+          _jsxSorted('span', { 'q-e:click': () => null }, null, [], 0, null)
         );
         const test = _jsxSorted(
           'span',
           {
-            ':::onClick$': () => null,
+            'q-e:click': () => null,
             id: 'a',
           },
           null,
@@ -728,9 +836,9 @@ describe('vNode-diff', () => {
         expect(vnode_getFirstChild(vParent)).toMatchVDOM(<span id="a"></span>);
       });
 
-      it('should not add qDispatchEvent for removed html event attribute', () => {
+      it('should not add _qDispatch for removed html event attribute', () => {
         const { vParent, container } = vnode_fromJSX(
-          _jsxSorted('span', { id: 'a', 'on:click': 'abcd' }, null, [], 0, null)
+          _jsxSorted('span', { id: 'a', 'q-e:click': 'abcd' }, null, [], 0, null)
         );
         const test = _jsxSorted('span', { id: 'a' }, null, [], 0, null);
         const journal: VNodeJournal = [];
@@ -739,49 +847,49 @@ describe('vNode-diff', () => {
         const firstChild = vnode_getFirstChild(vParent);
         expect(firstChild).toMatchVDOM(test);
         const element = vnode_getNode(firstChild) as QElement;
-        expect(element.qDispatchEvent).not.toBeDefined();
+        expect(element._qDispatch).not.toBeDefined();
       });
 
-      it('should add qDispatchEvent for existing html event attribute', () => {
+      it('should add _qDispatch for existing html event attribute', () => {
         const { vParent, container } = vnode_fromJSX(
-          _jsxSorted('span', { id: 'a', 'on:click': 'abcd' }, null, [], 0, null)
+          _jsxSorted('span', { id: 'a', 'q-e:click': 'abcd' }, null, [], 0, null)
         );
-        const test = _jsxSorted('span', { id: 'a', onClick$: $(() => {}) }, null, [], 0, null);
+        const test = _jsxSorted('span', { id: 'a', 'q-e:click': $(() => {}) }, null, [], 0, null);
         const journal: VNodeJournal = [];
         vnode_diff(container, journal, test, vParent, vParent, null);
         _flushJournal(journal);
         const firstChild = vnode_getFirstChild(vParent);
         expect(firstChild).toMatchVDOM(test);
         const element = vnode_getNode(firstChild) as QElement;
-        expect(element.qDispatchEvent).toBeDefined();
+        expect(element._qDispatch).toBeDefined();
       });
 
-      it('should add qDispatchEvent for new jsx event attribute', () => {
+      it('should add _qDispatch for new jsx event attribute', () => {
         const { vParent, container } = vnode_fromJSX(
           _jsxSorted('span', { id: 'a' }, null, [], 0, null)
         );
-        const test = _jsxSorted('span', { id: 'a', onClick$: () => null }, null, [], 0, null);
+        const test = _jsxSorted('span', { id: 'a', 'q-e:click': () => null }, null, [], 0, null);
         const journal: VNodeJournal = [];
         vnode_diff(container, journal, test, vParent, vParent, null);
         _flushJournal(journal);
         const firstChild = vnode_getFirstChild(vParent);
         expect(firstChild).toMatchVDOM(test);
         const element = vnode_getNode(firstChild) as QElement;
-        expect(element.qDispatchEvent).toBeDefined();
+        expect(element._qDispatch).toBeDefined();
       });
 
-      it('should add qDispatchEvent for existing html event attribute and new jsx event attribute', () => {
+      it('should add _qDispatch for existing html event attribute and new jsx event attribute', () => {
         const { vParent, container } = vnode_fromJSX(
-          _jsxSorted('span', { id: 'a', 'on:click': 'abcd' }, null, [], 0, null)
+          _jsxSorted('span', { id: 'a', 'q-e:click': 'abcd' }, null, [], 0, null)
         );
-        const test = _jsxSorted('span', { id: 'a', onClick$: () => null }, null, [], 0, null);
+        const test = _jsxSorted('span', { id: 'a', 'q-e:click': () => null }, null, [], 0, null);
         const journal: VNodeJournal = [];
         vnode_diff(container, journal, test, vParent, vParent, null);
         _flushJournal(journal);
         const firstChild = vnode_getFirstChild(vParent);
         expect(firstChild).toMatchVDOM(test);
         const element = vnode_getNode(firstChild) as QElement;
-        expect(element.qDispatchEvent).toBeDefined();
+        expect(element._qDispatch).toBeDefined();
       });
 
       it('should change to alphabetically later attribute', () => {
@@ -856,44 +964,44 @@ describe('vNode-diff', () => {
         expect(firstChild).toMatchVDOM(test);
       });
 
-      it('should change to alphabetically later event attribute and add qDispatchEvent', () => {
+      it('should change to alphabetically later event attribute and add _qDispatch', () => {
         const { vParent, container } = vnode_fromJSX(
           _jsxSorted('span', { onDblClick$: 'aaa' }, null, [], 0, null)
         );
-        const test = _jsxSorted('span', { onClick$: 'bbb' }, null, [], 0, null);
+        const test = _jsxSorted('span', { 'q-e:click': 'bbb' }, null, [], 0, null);
         const journal: VNodeJournal = [];
         vnode_diff(container, journal, test, vParent, vParent, null);
         _flushJournal(journal);
         const firstChild = vnode_getFirstChild(vParent);
         expect(firstChild).toMatchVDOM(test);
         const element = vnode_getNode(firstChild) as QElement;
-        expect(element.qDispatchEvent).toBeDefined();
+        expect(element._qDispatch).toBeDefined();
       });
 
-      it('should change to alphabetically earlier event attribute and add qDispatchEvent', () => {
+      it('should change to alphabetically earlier event attribute and add _qDispatch', () => {
         const { vParent, container } = vnode_fromJSX(
-          _jsxSorted('span', { onClick$: 'aaa' }, null, [], 0, null)
+          _jsxSorted('span', { 'q-e:click': 'aaa' }, null, [], 0, null)
         );
-        const test = _jsxSorted('span', { onDblClick$: 'bbb' }, null, [], 0, null);
+        const test = _jsxSorted('span', { 'q-e:dblclick': 'bbb' }, null, [], 0, null);
         const journal: VNodeJournal = [];
         vnode_diff(container, journal, test, vParent, vParent, null);
         _flushJournal(journal);
         const firstChild = vnode_getFirstChild(vParent);
         expect(firstChild).toMatchVDOM(test);
         const element = vnode_getNode(firstChild) as QElement;
-        expect(element.qDispatchEvent).toBeDefined();
+        expect(element._qDispatch).toBeDefined();
       });
 
-      it('should add event scope to element add qDispatchEvent', () => {
+      it('should add event scope to element add _qDispatch', () => {
         const { vParent, container } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));
-        const test = _jsxSorted('span', { 'window:onClick$': 'bbb' }, null, [], 0, null);
+        const test = _jsxSorted('span', { 'q-w:click': 'bbb' }, null, [], 0, null);
         const journal: VNodeJournal = [];
         vnode_diff(container, journal, test, vParent, vParent, null);
         _flushJournal(journal);
         const firstChild = vnode_getFirstChild(vParent);
-        expect(firstChild).toMatchVDOM(<span on-window:click></span>);
+        expect(firstChild).toMatchVDOM(<span q-w:click></span>);
         const element = vnode_getNode(firstChild) as QElement;
-        expect(element.qDispatchEvent).toBeDefined();
+        expect(element._qDispatch).toBeDefined();
       });
 
       describe('ref', () => {
@@ -1046,11 +1154,8 @@ describe('vNode-diff', () => {
           it('should cleanup effects when wrapped signal attribute is replaced with non-signal', () => {
             const { vParent, container } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));
             const inner = createSignal('initial') as SignalImpl;
-            const wrapped1 = _fnSignal(
-              () => inner.value,
-              [],
-              '() => inner.value'
-            ) as WrappedSignalImpl<any>;
+            const fn = () => inner.value;
+            const wrapped1 = _fnSignal(fn, [], '() => inner.value') as WrappedSignalImpl<any>;
             const test1 = _jsxSorted('span', { class: wrapped1 }, null, [], 0, null);
             const journal: VNodeJournal = [];
             vnode_diff(container, journal, test1, vParent, vParent, null);
@@ -1081,11 +1186,8 @@ describe('vNode-diff', () => {
           it('should cleanup effects when wrapped signal attribute is replaced with another wrapped signal', () => {
             const { vParent, container } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));
             const inner1 = createSignal('first') as SignalImpl;
-            const wrapped1 = _fnSignal(
-              () => inner1.value,
-              [],
-              '() => inner1.value'
-            ) as WrappedSignalImpl<any>;
+            const fn1 = () => inner1.value;
+            const wrapped1 = _fnSignal(fn1, [], '() => inner1.value') as WrappedSignalImpl<any>;
             const test1 = _jsxSorted('span', { class: wrapped1 }, null, [], 0, null);
             const journal: VNodeJournal = [];
             vnode_diff(container, journal, test1, vParent, vParent, null);
@@ -1102,11 +1204,8 @@ describe('vNode-diff', () => {
 
             // Replace with another wrapped signal using a different inner signal
             const inner2 = createSignal('second') as SignalImpl;
-            const wrapped2 = _fnSignal(
-              () => inner2.value,
-              [],
-              '() => inner2.value'
-            ) as WrappedSignalImpl<any>;
+            const fn2 = () => inner2.value;
+            const wrapped2 = _fnSignal(fn2, [], '() => inner2.value') as WrappedSignalImpl<any>;
             const test2 = _jsxSorted('span', { class: wrapped2 }, null, [], 0, null);
             const journal2: VNodeJournal = [];
             vnode_diff(container, journal2, test2, vParent, vParent, null);
@@ -1128,11 +1227,8 @@ describe('vNode-diff', () => {
           it('should cleanup effects when wrapped signal attribute is removed', () => {
             const { vParent, container } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));
             const inner = createSignal('test') as SignalImpl;
-            const wrapped = _fnSignal(
-              () => inner.value,
-              [],
-              '() => inner.value'
-            ) as WrappedSignalImpl<any>;
+            const fn = () => inner.value;
+            const wrapped = _fnSignal(fn, [], '() => inner.value') as WrappedSignalImpl<any>;
             const test1 = _jsxSorted('span', { class: wrapped }, null, [], 0, null);
             const journal: VNodeJournal = [];
             vnode_diff(container, journal, test1, vParent, vParent, null);
@@ -1164,11 +1260,8 @@ describe('vNode-diff', () => {
           it('should cleanup effects when store wrapped attribute is replaced with non-signal', () => {
             const { vParent, container } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));
             const store = getOrCreateStore({ cls: 'initial' }, StoreFlags.RECURSIVE, container);
-            const wrapped1 = _fnSignal(
-              () => store.cls,
-              [],
-              '() => store.cls'
-            ) as WrappedSignalImpl<any>;
+            const fn = () => store.cls;
+            const wrapped1 = _fnSignal(fn, [], '() => store.cls') as WrappedSignalImpl<any>;
             const test1 = _jsxSorted('span', { class: wrapped1 }, null, [], 0, null);
             const journal: VNodeJournal = [];
             vnode_diff(container, journal, test1, vParent, vParent, null);
@@ -1198,11 +1291,8 @@ describe('vNode-diff', () => {
           it('should cleanup effects when store wrapped attribute is replaced with another store wrapped attribute', () => {
             const { vParent, container } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));
             const store1 = getOrCreateStore({ cls: 'first' }, StoreFlags.RECURSIVE, container);
-            const wrapped1 = _fnSignal(
-              () => store1.cls,
-              [],
-              '() => store1.cls'
-            ) as WrappedSignalImpl<any>;
+            const fn1 = () => store1.cls;
+            const wrapped1 = _fnSignal(fn1, [], '() => store1.cls') as WrappedSignalImpl<any>;
             const test1 = _jsxSorted('span', { class: wrapped1 }, null, [], 0, null);
             const journal: VNodeJournal = [];
             vnode_diff(container, journal, test1, vParent, vParent, null);
@@ -1217,11 +1307,8 @@ describe('vNode-diff', () => {
 
             // Replace with another wrapped signal using a different store
             const store2 = getOrCreateStore({ cls: 'second' }, StoreFlags.RECURSIVE, container);
-            const wrapped2 = _fnSignal(
-              () => store2.cls,
-              [],
-              '() => store2.cls'
-            ) as WrappedSignalImpl<any>;
+            const fn2 = () => store2.cls;
+            const wrapped2 = _fnSignal(fn2, [], '() => store2.cls') as WrappedSignalImpl<any>;
             const test2 = _jsxSorted('span', { class: wrapped2 }, null, [], 0, null);
             const journal2: VNodeJournal = [];
             vnode_diff(container, journal2, test2, vParent, vParent, null);
@@ -1240,11 +1327,8 @@ describe('vNode-diff', () => {
           it('should cleanup effects when store wrapped attribute is removed', () => {
             const { vParent, container } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));
             const store = getOrCreateStore({ cls: 'test' }, StoreFlags.RECURSIVE, container);
-            const wrapped = _fnSignal(
-              () => store.cls,
-              [],
-              '() => store.cls'
-            ) as WrappedSignalImpl<any>;
+            const fn = () => store.cls;
+            const wrapped = _fnSignal(fn, [], '() => store.cls') as WrappedSignalImpl<any>;
             const test1 = _jsxSorted('span', { class: wrapped }, null, [], 0, null);
             const journal: VNodeJournal = [];
             vnode_diff(container, journal, test1, vParent, vParent, null);
@@ -1275,11 +1359,8 @@ describe('vNode-diff', () => {
             const { vParent, container } = vnode_fromJSX(_jsxSorted('div', {}, null, [], 0, null));
 
             const inner = createSignal('cls') as SignalImpl<string>;
-            const wrapped = _fnSignal(
-              () => inner.value,
-              [],
-              '() => inner.value'
-            ) as WrappedSignalImpl<any>;
+            const fn = () => inner.value;
+            const wrapped = _fnSignal(fn, [], '() => inner.value') as WrappedSignalImpl<any>;
 
             const Child = component$((props: any) => {
               return <span class={props.cls.value}></span>;
@@ -1301,10 +1382,10 @@ describe('vNode-diff', () => {
             await container.$renderPromise$;
 
             // Ensure one subscription exists for both wrapped and inner
-            expect(wrapped.$effects$).not.toBeNull();
+            expect(wrapped.$effects$).toBeDefined();
             const wrappedEffectsAfterFirst = wrapped.$effects$!.size;
             expect(wrappedEffectsAfterFirst).toBeGreaterThan(0);
-            expect(inner.$effects$).not.toBeNull();
+            expect(inner.$effects$).toBeDefined();
             const innerEffectsAfterFirst = inner.$effects$!.size;
             expect(innerEffectsAfterFirst).toBeGreaterThan(0);
 
@@ -1326,6 +1407,146 @@ describe('vNode-diff', () => {
             // The number of effects should not increase (no duplicate subscriptions)
             expect(wrapped.$effects$!.size).toBe(wrappedEffectsAfterFirst);
             expect(inner.$effects$!.size).toBe(innerEffectsAfterFirst);
+          });
+
+          it('should not rerender component when wrapped signal props are equivalent', async () => {
+            const { vParent, container } = vnode_fromJSX(_jsxSorted('div', {}, null, [], 0, null));
+
+            const inner = createSignal('cls') as SignalImpl<string>;
+            const fn = () => inner.value;
+            const wrapped1 = _fnSignal(fn, [], '() => inner.value') as WrappedSignalImpl<any>;
+            const wrapped2 = _fnSignal(fn, [], '() => inner.value') as WrappedSignalImpl<any>;
+            (globalThis as any).childRenderCount = 0;
+
+            const Child = component$((props: any) => {
+              (globalThis as any).childRenderCount++;
+              return <span>{props.cls}</span>;
+            });
+
+            const test1 = _jsxSorted(
+              Child as unknown as any,
+              null,
+              { cls: wrapped1 } as any,
+              null,
+              3,
+              null
+            ) as any;
+            const journal: VNodeJournal = [];
+            vnode_setProp(vParent, NODE_DIFF_DATA_KEY, test1);
+            markVNodeDirty(container, vParent, ChoreBits.NODE_DIFF);
+            _flushJournal(journal);
+            await container.$renderPromise$;
+
+            expect((globalThis as any).childRenderCount).toBe(1);
+            expect(wrapped1.$effects$).toBeDefined();
+            expect(wrapped1.$effects$!.size).toBeGreaterThan(0);
+
+            const test2 = _jsxSorted(
+              Child as unknown as any,
+              null,
+              { cls: wrapped2 } as any,
+              null,
+              3,
+              null
+            ) as any;
+            const journal2: VNodeJournal = [];
+            vnode_setProp(vParent, NODE_DIFF_DATA_KEY, test2);
+            markVNodeDirty(container, vParent, ChoreBits.NODE_DIFF);
+            _flushJournal(journal2);
+            await container.$renderPromise$;
+
+            expect((globalThis as any).childRenderCount).toBe(1);
+            expect(wrapped2.$effects$).toBeUndefined();
+
+            delete (globalThis as any).childRenderCount;
+          });
+
+          it('should not rerender component when class arrays are equivalent', async () => {
+            const { vParent, container } = vnode_fromJSX(_jsxSorted('div', {}, null, [], 0, null));
+            (globalThis as any).classPropRenderCount = 0;
+
+            const Child = component$((props: any) => {
+              (globalThis as any).classPropRenderCount++;
+              return <span class={props.class}></span>;
+            });
+
+            const test1 = _jsxSorted(
+              Child as unknown as any,
+              null,
+              { class: ['test', 'active'] } as any,
+              null,
+              3,
+              null
+            ) as any;
+            const journal: VNodeJournal = [];
+            vnode_setProp(vParent, NODE_DIFF_DATA_KEY, test1);
+            markVNodeDirty(container, vParent, ChoreBits.NODE_DIFF);
+            _flushJournal(journal);
+            await container.$renderPromise$;
+
+            expect((globalThis as any).classPropRenderCount).toBe(1);
+
+            const test2 = _jsxSorted(
+              Child as unknown as any,
+              null,
+              { class: ['test', 'active'] } as any,
+              null,
+              3,
+              null
+            ) as any;
+            const journal2: VNodeJournal = [];
+            vnode_setProp(vParent, NODE_DIFF_DATA_KEY, test2);
+            markVNodeDirty(container, vParent, ChoreBits.NODE_DIFF);
+            _flushJournal(journal2);
+            await container.$renderPromise$;
+
+            expect((globalThis as any).classPropRenderCount).toBe(1);
+
+            delete (globalThis as any).classPropRenderCount;
+          });
+
+          it('should not rerender component when style values are equivalent', async () => {
+            const { vParent, container } = vnode_fromJSX(_jsxSorted('div', {}, null, [], 0, null));
+            (globalThis as any).stylePropRenderCount = 0;
+
+            const Child = component$((props: any) => {
+              (globalThis as any).stylePropRenderCount++;
+              return <span style={props.style}></span>;
+            });
+
+            const test1 = _jsxSorted(
+              Child as unknown as any,
+              null,
+              { style: { color: 'red', width: 10 } } as any,
+              null,
+              3,
+              null
+            ) as any;
+            const journal: VNodeJournal = [];
+            vnode_setProp(vParent, NODE_DIFF_DATA_KEY, test1);
+            markVNodeDirty(container, vParent, ChoreBits.NODE_DIFF);
+            _flushJournal(journal);
+            await container.$renderPromise$;
+
+            expect((globalThis as any).stylePropRenderCount).toBe(1);
+
+            const test2 = _jsxSorted(
+              Child as unknown as any,
+              null,
+              { style: 'color:red;width:10px' } as any,
+              null,
+              3,
+              null
+            ) as any;
+            const journal2: VNodeJournal = [];
+            vnode_setProp(vParent, NODE_DIFF_DATA_KEY, test2);
+            markVNodeDirty(container, vParent, ChoreBits.NODE_DIFF);
+            _flushJournal(journal2);
+            await container.$renderPromise$;
+
+            expect((globalThis as any).stylePropRenderCount).toBe(1);
+
+            delete (globalThis as any).stylePropRenderCount;
           });
         });
       });
@@ -1456,7 +1677,7 @@ describe('vNode-diff', () => {
           const { vParent, container } = vnode_fromJSX(
             _jsxSorted(
               'span',
-              { about: 'a', class: 'old', onClick$: () => null },
+              { about: 'a', class: 'old', 'q-e:click': () => null },
               null,
               [],
               0,
@@ -1465,7 +1686,7 @@ describe('vNode-diff', () => {
           );
           const test = _jsxSorted(
             'span',
-            { class: 'new', id: 'b', onMouseOver$: () => null },
+            { class: 'new', id: 'b', 'q-e:mouseover': () => null },
             null,
             [],
             0,
@@ -1477,14 +1698,14 @@ describe('vNode-diff', () => {
           const firstChild = vnode_getFirstChild(vParent);
           expect(firstChild).toMatchVDOM(<span class="new" id="b"></span>);
           const element = vnode_getNode(firstChild) as QElement;
-          expect(element.qDispatchEvent).toBeDefined();
+          expect(element._qDispatch).toBeDefined();
         });
 
         it('should handle multiple HTML event attributes being removed', () => {
           const { vParent, container } = vnode_fromJSX(
             _jsxSorted(
               'span',
-              { 'on:click': 'a', 'on:focus': 'b', 'on:mouseover': 'c', id: 'test' },
+              { 'q-e:click': 'a', 'q-e:focus': 'b', 'q-e:mouseover': 'c', id: 'test' },
               null,
               [],
               0,
@@ -1498,16 +1719,16 @@ describe('vNode-diff', () => {
           const firstChild = vnode_getFirstChild(vParent);
           expect(firstChild).toMatchVDOM(test);
           const element = vnode_getNode(firstChild) as QElement;
-          expect(element.qDispatchEvent).not.toBeDefined();
+          expect(element._qDispatch).not.toBeDefined();
         });
 
         it('should handle replacing HTML events with JSX events', () => {
           const { vParent, container } = vnode_fromJSX(
-            _jsxSorted('span', { 'on:click': 'a', 'on:mouseover': 'b' }, null, [], 0, null)
+            _jsxSorted('span', { 'q-e:click': 'a', 'q-e:mouseover': 'b' }, null, [], 0, null)
           );
           const test = _jsxSorted(
             'span',
-            { onClick$: () => null, onMouseOver$: () => null },
+            { 'q-e:click': () => null, 'q-e:mouseover': () => null },
             null,
             [],
             0,
@@ -1518,7 +1739,7 @@ describe('vNode-diff', () => {
           _flushJournal(journal);
           const firstChild = vnode_getFirstChild(vParent);
           const element = vnode_getNode(firstChild) as QElement;
-          expect(element.qDispatchEvent).toBeDefined();
+          expect(element._qDispatch).toBeDefined();
         });
 
         it('should handle all attributes being updated to different values', () => {
@@ -1580,7 +1801,7 @@ describe('vNode-diff', () => {
           const { vParent, container } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));
           const test = _jsxSorted(
             'span',
-            { 'document:onClick$': () => null, 'window:onScroll$': () => null },
+            { 'q-d:click': () => null, 'q-w:scroll': () => null },
             null,
             [],
             0,
@@ -1590,9 +1811,9 @@ describe('vNode-diff', () => {
           vnode_diff(container, journal, test, vParent, vParent, null);
           _flushJournal(journal);
           const firstChild = vnode_getFirstChild(vParent);
-          expect(firstChild).toMatchVDOM(<span on-document:click on-window:scroll></span>);
+          expect(firstChild).toMatchVDOM(<span q-d:click q-w:scroll></span>);
           const element = vnode_getNode(firstChild) as QElement;
-          expect(element.qDispatchEvent).toBeDefined();
+          expect(element._qDispatch).toBeDefined();
         });
 
         it('should handle complex mix: add/remove/update/keep', () => {
@@ -1616,7 +1837,7 @@ describe('vNode-diff', () => {
             {
               class: 'update-new',
               id: 'keep',
-              onClick$: () => null,
+              'q-e:click': () => null,
               title: 'add',
             },
             null,
@@ -1630,7 +1851,7 @@ describe('vNode-diff', () => {
           const firstChild = vnode_getFirstChild(vParent);
           expect(firstChild).toMatchVDOM(<span class="update-new" id="keep" title="add"></span>);
           const element = vnode_getNode(firstChild) as QElement;
-          expect(element.qDispatchEvent).toBeDefined();
+          expect(element._qDispatch).toBeDefined();
         });
 
         it('should handle updating signal attribute values', () => {

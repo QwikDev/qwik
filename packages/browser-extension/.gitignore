@@ -1,0 +1,7 @@
+.output/
+node_modules/
+
+# Generated from packages/devtools/plugin/src/runtime/installers.ts by
+# scripts/gen-injected-scripts.mjs (runs as part of build/dev). Not committed.
+public/devtools-hook.js
+public/vnode-bridge.js

@@ -14,11 +14,7 @@ import type { ServerResponse } from 'node:http';
 export const createQwikCity: typeof createQwikRouter;
 
 // @public (undocumented)
-export function createQwikRouter(opts: QwikRouterNodeRequestOptions | QwikCityNodeRequestOptions): {
-    router: (req: IncomingMessage | Http2ServerRequest, res: ServerResponse, next: NodeRequestNextFunction) => Promise<void>;
-    notFound: (req: IncomingMessage | Http2ServerRequest, res: ServerResponse, next: (e: any) => void) => Promise<void>;
-    staticFile: (req: IncomingMessage | Http2ServerRequest, res: ServerResponse, next: (e?: any) => void) => Promise<void>;
-};
+export function createQwikRouter(opts: QwikRouterNodeRequestOptions | QwikCityNodeRequestOptions): QwikRouterNodeMiddleware;
 
 // @public (undocumented)
 export interface NodeRequestNextFunction {
@@ -40,11 +36,27 @@ export interface PlatformNode {
 export type QwikCityNodeRequestOptions = QwikRouterNodeRequestOptions;
 
 // @public (undocumented)
+export interface QwikRouterNodeMiddleware {
+    // @deprecated (undocumented)
+    notFound: (req: IncomingMessage | Http2ServerRequest, res: ServerResponse, next: (e: any) => void) => Promise<void>;
+    // (undocumented)
+    router: (req: IncomingMessage | Http2ServerRequest, res: ServerResponse, next: NodeRequestNextFunction, limits?: QwikRouterNodeRequestLimits) => Promise<void>;
+    // (undocumented)
+    staticFile: (req: IncomingMessage | Http2ServerRequest, res: ServerResponse, next: (e?: any) => void) => Promise<void>;
+}
+
+// @public (undocumented)
+export interface QwikRouterNodeRequestLimits {
+    bodyLimit?: number;
+}
+
+// @public (undocumented)
 export interface QwikRouterNodeRequestOptions extends ServerRenderOptions {
     getClientConn?: (req: IncomingMessage | Http2ServerRequest) => ClientConn;
     getOrigin?: (req: IncomingMessage | Http2ServerRequest) => string | null;
     // @deprecated (undocumented)
     origin?: string;
+    requestBodyLimit?: number;
     static?: {
         root?: string;
         cacheControl?: string;

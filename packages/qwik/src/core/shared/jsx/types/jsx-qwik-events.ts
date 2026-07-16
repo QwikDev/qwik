@@ -11,8 +11,6 @@ export type QwikSymbolEvent = CustomEvent<{
   element: Element;
   reqTime: number;
   qBase?: string;
-  qManifest?: string;
-  qVersion?: string;
   href?: string;
 }>;
 /** Emitted by qwik-loader on document when the document first becomes interactive @public */

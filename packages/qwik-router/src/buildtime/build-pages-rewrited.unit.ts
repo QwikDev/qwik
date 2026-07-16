@@ -32,11 +32,15 @@ test('translated pathname / with prefix', ({ assertRoute }) => {
   assert.equal(r.paramNames.length, 0);
   assert.equal(r.segments[0][0].content, 'it');
   assert.equal(r.layouts.length, 2);
-  assert.ok(r.layouts[0].filePath.endsWith('starters/apps/qwikrouter-test/src/routes/layout.tsx'));
   assert.ok(
-    r.layouts[1].filePath.endsWith('starters/apps/qwikrouter-test/src/routes/(common)/layout.tsx')
+    r.layouts[0].filePath.endsWith('e2e/qwik-e2e/apps/qwikrouter-test/src/routes/layout.tsx')
   );
-  assert.ok(r.filePath.endsWith('starters/apps/qwikrouter-test/src/routes/(common)/index.tsx'));
+  assert.ok(
+    r.layouts[1].filePath.endsWith(
+      'e2e/qwik-e2e/apps/qwikrouter-test/src/routes/(common)/layout.tsx'
+    )
+  );
+  assert.ok(r.filePath.endsWith('e2e/qwik-e2e/apps/qwikrouter-test/src/routes/(common)/index.tsx'));
 });
 
 test('translated pathname /docs/getting-started with prefix', ({ assertRoute }) => {
@@ -50,12 +54,16 @@ test('translated pathname /docs/getting-started with prefix', ({ assertRoute }) 
   assert.equal(r.segments[1][0].content, 'documentazione');
   assert.equal(r.segments[2][0].content, 'per-iniziare');
   assert.equal(r.layouts.length, 2);
-  assert.ok(r.layouts[0].filePath.endsWith('starters/apps/qwikrouter-test/src/routes/layout.tsx'));
   assert.ok(
-    r.layouts[1].filePath.endsWith('starters/apps/qwikrouter-test/src/routes/docs/layout.tsx')
+    r.layouts[0].filePath.endsWith('e2e/qwik-e2e/apps/qwikrouter-test/src/routes/layout.tsx')
   );
   assert.ok(
-    r.filePath.endsWith('starters/apps/qwikrouter-test/src/routes/docs/getting-started/index.md')
+    r.layouts[1].filePath.endsWith('e2e/qwik-e2e/apps/qwikrouter-test/src/routes/docs/layout.tsx')
+  );
+  assert.ok(
+    r.filePath.endsWith(
+      'e2e/qwik-e2e/apps/qwikrouter-test/src/routes/docs/getting-started/index.md'
+    )
   );
 });
 
@@ -72,12 +80,16 @@ test('translated pathname /docs/[category]/[id] with prefix', ({ assertRoute }) 
   assert.equal(r.segments[2][0].content, 'category');
   assert.equal(r.segments[3][0].content, 'id');
   assert.equal(r.layouts.length, 2);
-  assert.ok(r.layouts[0].filePath.endsWith('starters/apps/qwikrouter-test/src/routes/layout.tsx'));
   assert.ok(
-    r.layouts[1].filePath.endsWith('starters/apps/qwikrouter-test/src/routes/docs/layout.tsx')
+    r.layouts[0].filePath.endsWith('e2e/qwik-e2e/apps/qwikrouter-test/src/routes/layout.tsx')
   );
   assert.ok(
-    r.filePath.endsWith('starters/apps/qwikrouter-test/src/routes/docs/[category]/[id]/index.tsx')
+    r.layouts[1].filePath.endsWith('e2e/qwik-e2e/apps/qwikrouter-test/src/routes/docs/layout.tsx')
+  );
+  assert.ok(
+    r.filePath.endsWith(
+      'e2e/qwik-e2e/apps/qwikrouter-test/src/routes/docs/[category]/[id]/index.tsx'
+    )
   );
 });
 
@@ -91,12 +103,16 @@ test('translated pathname /about-us with prefix', ({ assertRoute }) => {
   assert.equal(r.segments[0][0].content, 'it');
   assert.equal(r.segments[1][0].content, 'informazioni');
   assert.equal(r.layouts.length, 2);
-  assert.ok(r.layouts[0].filePath.endsWith('starters/apps/qwikrouter-test/src/routes/layout.tsx'));
   assert.ok(
-    r.layouts[1].filePath.endsWith('starters/apps/qwikrouter-test/src/routes/(common)/layout.tsx')
+    r.layouts[0].filePath.endsWith('e2e/qwik-e2e/apps/qwikrouter-test/src/routes/layout.tsx')
   );
   assert.ok(
-    r.filePath.endsWith('starters/apps/qwikrouter-test/src/routes/(common)/about-us/index.tsx')
+    r.layouts[1].filePath.endsWith(
+      'e2e/qwik-e2e/apps/qwikrouter-test/src/routes/(common)/layout.tsx'
+    )
+  );
+  assert.ok(
+    r.filePath.endsWith('e2e/qwik-e2e/apps/qwikrouter-test/src/routes/(common)/about-us/index.tsx')
   );
 });
 
@@ -111,12 +127,18 @@ test('translated pathname /products/[id] with prefix', ({ assertRoute }) => {
   assert.equal(r.segments[1][0].content, 'prodotti');
   assert.equal(r.segments[2][0].content, 'id');
   assert.equal(r.layouts.length, 2);
-  assert.ok(r.layouts[0].filePath.endsWith('starters/apps/qwikrouter-test/src/routes/layout.tsx'));
   assert.ok(
-    r.layouts[1].filePath.endsWith('starters/apps/qwikrouter-test/src/routes/(common)/layout.tsx')
+    r.layouts[0].filePath.endsWith('e2e/qwik-e2e/apps/qwikrouter-test/src/routes/layout.tsx')
   );
   assert.ok(
-    r.filePath.endsWith('starters/apps/qwikrouter-test/src/routes/(common)/products/[id]/index.tsx')
+    r.layouts[1].filePath.endsWith(
+      'e2e/qwik-e2e/apps/qwikrouter-test/src/routes/(common)/layout.tsx'
+    )
+  );
+  assert.ok(
+    r.filePath.endsWith(
+      'e2e/qwik-e2e/apps/qwikrouter-test/src/routes/(common)/products/[id]/index.tsx'
+    )
   );
 });
 
@@ -130,12 +152,16 @@ test('translated pathname /docs/getting-started', ({ assertRoute }) => {
   assert.equal(r.segments[0][0].content, 'documentazione');
   assert.equal(r.segments[1][0].content, 'per-iniziare');
   assert.equal(r.layouts.length, 2);
-  assert.ok(r.layouts[0].filePath.endsWith('starters/apps/qwikrouter-test/src/routes/layout.tsx'));
   assert.ok(
-    r.layouts[1].filePath.endsWith('starters/apps/qwikrouter-test/src/routes/docs/layout.tsx')
+    r.layouts[0].filePath.endsWith('e2e/qwik-e2e/apps/qwikrouter-test/src/routes/layout.tsx')
   );
   assert.ok(
-    r.filePath.endsWith('starters/apps/qwikrouter-test/src/routes/docs/getting-started/index.md')
+    r.layouts[1].filePath.endsWith('e2e/qwik-e2e/apps/qwikrouter-test/src/routes/docs/layout.tsx')
+  );
+  assert.ok(
+    r.filePath.endsWith(
+      'e2e/qwik-e2e/apps/qwikrouter-test/src/routes/docs/getting-started/index.md'
+    )
   );
 });
 
@@ -151,12 +177,16 @@ test('translated pathname /docs/[category]/[id]', ({ assertRoute }) => {
   assert.equal(r.segments[1][0].content, 'category');
   assert.equal(r.segments[2][0].content, 'id');
   assert.equal(r.layouts.length, 2);
-  assert.ok(r.layouts[0].filePath.endsWith('starters/apps/qwikrouter-test/src/routes/layout.tsx'));
   assert.ok(
-    r.layouts[1].filePath.endsWith('starters/apps/qwikrouter-test/src/routes/docs/layout.tsx')
+    r.layouts[0].filePath.endsWith('e2e/qwik-e2e/apps/qwikrouter-test/src/routes/layout.tsx')
   );
   assert.ok(
-    r.filePath.endsWith('starters/apps/qwikrouter-test/src/routes/docs/[category]/[id]/index.tsx')
+    r.layouts[1].filePath.endsWith('e2e/qwik-e2e/apps/qwikrouter-test/src/routes/docs/layout.tsx')
+  );
+  assert.ok(
+    r.filePath.endsWith(
+      'e2e/qwik-e2e/apps/qwikrouter-test/src/routes/docs/[category]/[id]/index.tsx'
+    )
   );
 });
 
@@ -169,12 +199,16 @@ test('translated pathname /about-us', ({ assertRoute }) => {
   assert.equal(r.paramNames.length, 0);
   assert.equal(r.segments[0][0].content, 'informazioni');
   assert.equal(r.layouts.length, 2);
-  assert.ok(r.layouts[0].filePath.endsWith('starters/apps/qwikrouter-test/src/routes/layout.tsx'));
   assert.ok(
-    r.layouts[1].filePath.endsWith('starters/apps/qwikrouter-test/src/routes/(common)/layout.tsx')
+    r.layouts[0].filePath.endsWith('e2e/qwik-e2e/apps/qwikrouter-test/src/routes/layout.tsx')
   );
   assert.ok(
-    r.filePath.endsWith('starters/apps/qwikrouter-test/src/routes/(common)/about-us/index.tsx')
+    r.layouts[1].filePath.endsWith(
+      'e2e/qwik-e2e/apps/qwikrouter-test/src/routes/(common)/layout.tsx'
+    )
+  );
+  assert.ok(
+    r.filePath.endsWith('e2e/qwik-e2e/apps/qwikrouter-test/src/routes/(common)/about-us/index.tsx')
   );
 });
 
@@ -188,13 +222,55 @@ test('translated pathname /products/[id]', ({ assertRoute }) => {
   assert.equal(r.segments[0][0].content, 'prodotti');
   assert.equal(r.segments[1][0].content, 'id');
   assert.equal(r.layouts.length, 2);
-  assert.ok(r.layouts[0].filePath.endsWith('starters/apps/qwikrouter-test/src/routes/layout.tsx'));
   assert.ok(
-    r.layouts[1].filePath.endsWith('starters/apps/qwikrouter-test/src/routes/(common)/layout.tsx')
+    r.layouts[0].filePath.endsWith('e2e/qwik-e2e/apps/qwikrouter-test/src/routes/layout.tsx')
   );
   assert.ok(
-    r.filePath.endsWith('starters/apps/qwikrouter-test/src/routes/(common)/products/[id]/index.tsx')
+    r.layouts[1].filePath.endsWith(
+      'e2e/qwik-e2e/apps/qwikrouter-test/src/routes/(common)/layout.tsx'
+    )
   );
+  assert.ok(
+    r.filePath.endsWith(
+      'e2e/qwik-e2e/apps/qwikrouter-test/src/routes/(common)/products/[id]/index.tsx'
+    )
+  );
+});
+
+test('trie has _G nodes for translated routes', ({ ctx }) => {
+  const trie = ctx.routeTrie;
+
+  // Without prefix: 'documentazione' should be a child of root with _G pointing to 'docs'
+  const documentazione = trie.children.get('documentazione');
+  assert.ok(documentazione, 'trie should have "documentazione" child');
+  const perIniziare = documentazione!.children.get('per-iniziare');
+  assert.ok(perIniziare, 'trie should have "per-iniziare" under "documentazione"');
+  assert.equal(perIniziare!._G, 'docs/getting-started');
+
+  // Without prefix: 'informazioni' should point to about-us
+  const informazioni = trie.children.get('informazioni');
+  assert.ok(informazioni, 'trie should have "informazioni" child');
+  assert.equal(informazioni!._G, 'about-us');
+
+  // Without prefix: 'prodotti' should have _W child with _G pointing to products/_W
+  const prodotti = trie.children.get('prodotti');
+  assert.ok(prodotti, 'trie should have "prodotti" child');
+  const prodottiW = prodotti!.children.get('_W');
+  assert.ok(prodottiW, 'trie should have "_W" under "prodotti"');
+  assert.equal(prodottiW!._G, 'products/_W');
+  assert.equal(prodottiW!._P, 'id');
+
+  // With prefix: 'it' should contain translated children
+  const it = trie.children.get('it');
+  assert.ok(it, 'trie should have "it" child');
+  // 'it' root index rewrite
+  assert.equal(it!._G, '');
+  // 'it/documentazione/per-iniziare'
+  const itDoc = it!.children.get('documentazione');
+  assert.ok(itDoc, 'trie should have "documentazione" under "it"');
+  const itDocGs = itDoc!.children.get('per-iniziare');
+  assert.ok(itDocGs, 'trie should have "per-iniziare" under "it/documentazione"');
+  assert.equal(itDocGs!._G, 'docs/getting-started');
 });
 
 const testWithDuplicatedRoutes = testAppSuite('Duplicated segments with multiple prefixes', {
@@ -257,3 +333,14 @@ testSameRoutes(
     assert.equal(r.pathname, '/produkt/');
   }
 );
+
+const testExclude = testAppSuite('Rewrite routes with exclude', {
+  rewriteRoutes: [{ prefix: 'it', paths: {}, exclude: ['/docs/*'] }],
+});
+
+testExclude('exclude skips localized mirrors for matched routes', ({ ctx }) => {
+  const it = ctx.routeTrie.children.get('it');
+  assert.ok(it, 'prefix mirror "it" should exist for non-excluded routes');
+  assert.ok(it!.children.get('about-us'), 'non-excluded route is mirrored under "it"');
+  assert.is(it!.children.get('docs'), undefined, '"/docs/*" is excluded from the "it" mirror');
+});

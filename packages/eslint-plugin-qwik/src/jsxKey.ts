@@ -1,12 +1,16 @@
 import jsxAstUtils from 'jsx-ast-utils';
+import type { TSESTree } from '@typescript-eslint/utils';
 import { QwikEslintExamples } from '../examples';
+import { hasJsxImportSourceComment } from './utils';
 
 // ------------------------------------------------------------------------------
 // Rule Definition
 // ------------------------------------------------------------------------------
 
-function isFunctionLikeExpression(node) {
-  return node.type === 'FunctionExpression' || node.type === 'ArrowFunctionExpression';
+function isFunctionLikeExpression(
+  node: TSESTree.Node | false | null | undefined
+): node is TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression {
+  return node?.type === 'FunctionExpression' || node?.type === 'ArrowFunctionExpression';
 }
 
 const defaultOptions = {
@@ -60,19 +64,14 @@ export const jsxKey = {
   },
 
   create(context) {
-    const sourceCode = context.sourceCode ?? context.getSourceCode();
-    const modifyJsxSource = sourceCode
-      .getAllComments()
-      .some((c) => c.value.includes('@jsxImportSource'));
-    if (modifyJsxSource) {
+    if (hasJsxImportSourceComment(context)) {
       return {};
     }
     const options = Object.assign({}, defaultOptions, context.options[0]);
     const checkFragmentShorthand = options.checkFragmentShorthand;
-    const checkKeyMustBeforeSpread = options.checkKeyMustBeforeSpread;
     const warnOnDuplicates = options.warnOnDuplicates;
 
-    function checkIteratorElement(node) {
+    function checkIteratorElement(node: TSESTree.Node) {
       if (
         node.type === 'JSXElement' &&
         !jsxAstUtils.hasProp(node.openingElement.attributes, 'key')
@@ -89,7 +88,10 @@ export const jsxKey = {
       }
     }
 
-    function getReturnStatements(node, returnStatements: any[] = []) {
+    function getReturnStatements(
+      node: TSESTree.Node,
+      returnStatements: TSESTree.ReturnStatement[] = []
+    ) {
       if (node.type === 'IfStatement') {
         if (node.consequent) {
           getReturnStatements(node.consequent, returnStatements);
@@ -97,7 +99,7 @@ export const jsxKey = {
         if (node.alternate) {
           getReturnStatements(node.alternate, returnStatements);
         }
-      } else if (Array.isArray(node.body)) {
+      } else if (node.type === 'BlockStatement') {
         node.body.forEach((item) => {
           if (item.type === 'IfStatement') {
             getReturnStatements(item, returnStatements);
@@ -112,27 +114,15 @@ export const jsxKey = {
       return returnStatements;
     }
 
-    function isKeyAfterSpread(attributes) {
-      let hasFoundSpread = false;
-      return attributes.some((attribute) => {
-        if (attribute.type === 'JSXSpreadAttribute') {
-          hasFoundSpread = true;
-          return false;
-        }
-        if (attribute.type !== 'JSXAttribute') {
-          return false;
-        }
-        return hasFoundSpread && jsxAstUtils.propName(attribute) === 'key';
-      });
-    }
-
     /**
      * Checks if the given node is a function expression or arrow function, and checks if there is a
      * missing key prop in return statement's arguments
      *
      * @param {ASTNode} node
      */
-    function checkFunctionsBlockStatement(node) {
+    function checkFunctionsBlockStatement(
+      node: TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression
+    ) {
       if (isFunctionLikeExpression(node)) {
         if (node.body.type === 'BlockStatement') {
           getReturnStatements(node.body)
@@ -150,9 +140,12 @@ export const jsxKey = {
      *
      * @param {ASTNode} node
      */
-    function checkArrowFunctionWithJSX(node) {
-      const isArrFn = node && node.type === 'ArrowFunctionExpression';
-      const shouldCheckNode = (n) => n && (n.type === 'JSXElement' || n.type === 'JSXFragment');
+    function checkArrowFunctionWithJSX(
+      node: TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression
+    ) {
+      const isArrFn = node.type === 'ArrowFunctionExpression';
+      const shouldCheckNode = (n: TSESTree.Node | null | undefined) =>
+        !!n && (n.type === 'JSXElement' || n.type === 'JSXFragment');
       if (isArrFn && shouldCheckNode(node.body)) {
         checkIteratorElement(node.body);
       }
@@ -196,16 +189,19 @@ export const jsxKey = {
         }
 
         const jsx = (node.type === 'ArrayExpression' ? node.elements : node.parent.children).filter(
-          (x) => x && x.type === 'JSXElement'
+          (x): x is TSESTree.JSXElement => !!x && x.type === 'JSXElement'
         );
         if (jsx.length === 0) {
           return;
         }
 
-        const map = {};
+        const keyGroups = new Map<string, TSESTree.JSXElement[]>();
         jsx.forEach((element) => {
           const attrs = element.openingElement.attributes;
-          const keys = attrs.filter((x) => x.name && x.name.name === 'key');
+          const keys = attrs.filter(
+            (x): x is TSESTree.JSXAttribute =>
+              x.type === 'JSXAttribute' && x.name.type === 'JSXIdentifier' && x.name.name === 'key'
+          );
 
           if (keys.length === 0) {
             if (node.type === 'ArrayExpression') {
@@ -218,10 +214,9 @@ export const jsxKey = {
         });
 
         if (warnOnDuplicates) {
-          Object.values(map)
-            .filter((v: any) => v.length > 1)
-            .forEach((v: any) => {
-              v.forEach((n) => {
+          for (const group of keyGroups.values()) {
+            if (group.length > 1) {
+              group.forEach((n) => {
                 if (!seen.has(n)) {
                   seen.add(n);
                   context.report({
@@ -230,7 +225,8 @@ export const jsxKey = {
                   });
                 }
               });
-            });
+            }
+          }
         }
       },
 
@@ -302,7 +298,7 @@ export const Person = component$(() => {
     <ul>
       {Object.keys(person).map((color) => (
         <li key={\`person-\${key}\`}>{person[key]}</li>
-      )}
+      ))}
     </ul>
   );
 });`.trim();
@@ -321,7 +317,7 @@ export const Person = component$(() => {
     <ul>
       {Object.keys(person).map((color) => (
         <li>{person[key]}</li>
-      )}
+      ))}
     </ul>
   );
 });`.trim();
@@ -344,7 +340,7 @@ export const Person = component$(() => {
         <Card value={person[key]} />
         <Summary value={person[key]} />
       </Fragment>
-    )}
+    ))}
   );
 });`.trim();
 
@@ -366,7 +362,7 @@ export const Person = component$(() => {
         <Card value={person[key]} />
         <Summary value={person[key]} />
       </>
-    )}
+    ))}
   );
 });`.trim();
 
@@ -380,7 +376,7 @@ export const ColorList = component$(() => {
     <ul>
       {colors.map((color) => (
         <li key={\`color-\${color}\`}>{color}</li>
-      )}
+      ))}
     </ul>
   );
 });`.trim();
@@ -395,7 +391,7 @@ export const ColorList = component$(() => {
     <ul>
       {colors.map((color) => (
         <li>{color}</li>
-      )}
+      ))}
     </ul>
   );
 });`.trim();
@@ -412,7 +408,7 @@ export const ColorList = component$(() => {
         <h2>{color}</h2>
         <p>The color "\${color}" is a great color.</p>
       </Fragment>
-    )}
+    ))}
   );
 });`.trim();
 
@@ -428,7 +424,7 @@ export const ColorList = component$(() => {
         <h2>{color}</h2>
         <p>The color "\${color}" is a great color.</p>
       </>
-    )}
+    ))}
   );
 });`.trim();
 
@@ -444,7 +440,7 @@ export const ColorList = component$(() => {
     <ul>
       {colors.map((color) => (
         <li key="not-a-good-idea">{color}</li>
-      )}
+      ))}
     </ul>
   );
 });`.trim();

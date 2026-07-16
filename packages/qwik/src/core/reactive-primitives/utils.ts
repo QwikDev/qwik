@@ -1,24 +1,24 @@
-import { isDomContainer } from '../client/dom-container';
 import { qwikDebugToString } from '../debug';
+import { qTest } from '../shared/utils/qdev';
 import { assertDefined } from '../shared/error/assert';
 import { isServerPlatform } from '../shared/platform/platform';
 import type { QRL } from '../shared/qrl/qrl.public';
 import type { Container, SerializationStrategy } from '../shared/types';
+import { isOutOfOrderSegmentContainer } from '../shared/utils/container';
 import { OnRenderProp } from '../shared/utils/markers';
 import { SerializerSymbol } from '../shared/serdes/verify';
 import { isObject } from '../shared/utils/types';
 import type { ISsrNode, SSRContainer } from '../ssr/ssr-types';
-import { TaskFlags, isTask, type Task } from '../use/use-task';
+import { TaskFlags, isTask } from '../use/use-task';
 import { ComputedSignalImpl } from './impl/computed-signal-impl';
 import { SignalImpl } from './impl/signal-impl';
 import type { WrappedSignalImpl } from './impl/wrapped-signal-impl';
-import type { Signal } from './signal.public';
+import type { ComputedSignal, Signal } from './signal.public';
 import { SubscriptionData, type NodeProp } from './subscription-data';
 import {
   SerializationSignalFlags,
   EffectProperty,
-  EffectSubscriptionProp,
-  SignalFlags,
+  ComputedSignalFlags,
   type CustomSerializable,
   type EffectSubscription,
   type StoreTarget,
@@ -28,6 +28,7 @@ import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import { setNodeDiffPayload, setNodePropData } from '../shared/cursor/chore-execution';
 import type { VNode } from '../shared/vnode/vnode';
 import { NODE_PROPS_DATA_KEY } from '../shared/cursor/cursor-props';
+import { isBrowser, isDev } from '@qwik.dev/core/build';
 
 const DEBUG = false;
 
@@ -55,30 +56,28 @@ export const ensureContainsSubscription = (
   array: Set<EffectSubscription>,
   effectSubscription: EffectSubscription
 ) => {
-  !array.has(effectSubscription) && array.add(effectSubscription);
+  array.add(effectSubscription);
 };
 
 /** Ensure the item is in back refs set */
 export const ensureContainsBackRef = (array: EffectSubscription, value: any) => {
-  array[EffectSubscriptionProp.BACK_REF] ||= new Set();
-  !array[EffectSubscriptionProp.BACK_REF].has(value) &&
-    array[EffectSubscriptionProp.BACK_REF].add(value);
+  (array.backRef ||= new Set()).add(value);
 };
 
 export const addQrlToSerializationCtx = (
   effectSubscriber: EffectSubscription,
   container: Container | null
 ) => {
-  if (!!container && !isDomContainer(container)) {
-    const effect = effectSubscriber[EffectSubscriptionProp.CONSUMER];
-    const property = effectSubscriber[EffectSubscriptionProp.PROPERTY];
+  if ((container as SSRContainer | null)?.serializationCtx) {
+    const effect = effectSubscriber.consumer;
+    const property = effectSubscriber.property;
     let qrl: QRL | null = null;
     if (isTask(effect)) {
       qrl = effect.$qrl$;
     } else if (effect instanceof ComputedSignalImpl) {
       qrl = effect.$computeQrl$;
     } else if (property === EffectProperty.COMPONENT) {
-      qrl = container.getHostProp<QRL>(effect as VNode, OnRenderProp);
+      qrl = container!.getHostProp<QRL>(effect as VNode, OnRenderProp);
     }
     if (qrl) {
       (container as SSRContainer).serializationCtx.$eventQrls$.add(qrl);
@@ -86,39 +85,46 @@ export const addQrlToSerializationCtx = (
   }
 };
 
+export const getEffectSerializationContainer = (
+  renderContainer: Container | undefined,
+  ownerContainer: Container | null
+): Container | null => {
+  if (
+    renderContainer &&
+    (!ownerContainer ||
+      renderContainer === ownerContainer ||
+      isOutOfOrderSegmentContainer(renderContainer))
+  ) {
+    return renderContainer;
+  }
+  return ownerContainer;
+};
+
 export const scheduleEffects = (
   container: Container | null,
   signal: SignalImpl | StoreTarget,
   effects: Set<EffectSubscription> | undefined
 ) => {
-  const isBrowser = !isServerPlatform();
+  const isRunningOnBrowser = qTest ? !isServerPlatform() : isBrowser;
   if (effects) {
-    let tasksToTrigger: Task[] | null = null;
     const scheduleEffect = (effectSubscription: EffectSubscription) => {
-      const consumer = effectSubscription[EffectSubscriptionProp.CONSUMER];
-      const property = effectSubscription[EffectSubscriptionProp.PROPERTY];
-      assertDefined(container, 'Container must be defined.');
+      const consumer = effectSubscription.consumer;
+      const property = effectSubscription.property;
+      isDev && assertDefined(container, 'Container must be defined.');
       if (isTask(consumer)) {
         consumer.$flags$ |= TaskFlags.DIRTY;
-        if (isBrowser) {
-          markVNodeDirty(container, consumer.$el$, ChoreBits.TASKS);
-        } else {
-          // for server we run tasks sync, so they can change currently running effects
-          // in this case we could have infinite loop if we trigger tasks here
-          // so instead we collect them and trigger them after the effects are scheduled
-          (tasksToTrigger ||= []).push(consumer);
-        }
+        markVNodeDirty(container!, consumer.$el$, ChoreBits.TASKS);
       } else if (consumer instanceof SignalImpl) {
         (consumer as ComputedSignalImpl<unknown> | WrappedSignalImpl<unknown>).invalidate();
       } else if (property === EffectProperty.COMPONENT) {
-        markVNodeDirty(container, consumer, ChoreBits.COMPONENT);
+        markVNodeDirty(container!, consumer, ChoreBits.COMPONENT);
       } else if (property === EffectProperty.VNODE) {
-        if (isBrowser) {
+        if (isRunningOnBrowser) {
           setNodeDiffPayload(consumer as VNode, signal as Signal);
-          markVNodeDirty(container, consumer, ChoreBits.NODE_DIFF);
+          markVNodeDirty(container!, consumer, ChoreBits.NODE_DIFF);
         }
       } else {
-        const effectData = effectSubscription[EffectSubscriptionProp.DATA];
+        const effectData = effectSubscription.data;
         if (effectData instanceof SubscriptionData) {
           const data = effectData.data;
           const payload: NodeProp = {
@@ -126,7 +132,7 @@ export const scheduleEffects = (
             scopedStyleIdPrefix: data.$scopedStyleIdPrefix$,
             value: signal as SignalImpl,
           };
-          if (isBrowser) {
+          if (isRunningOnBrowser) {
             setNodePropData(consumer as VNode, property, payload);
           } else {
             const node = consumer as ISsrNode;
@@ -136,20 +142,15 @@ export const scheduleEffects = (
               node.setProp(NODE_PROPS_DATA_KEY, data);
             }
             data.set(property, payload);
-            (consumer as ISsrNode).setProp(property, payload);
           }
-          markVNodeDirty(container, consumer, ChoreBits.NODE_PROPS);
+          markVNodeDirty(container!, consumer, ChoreBits.NODE_PROPS);
         }
       }
     };
-    for (const effect of effects) {
-      scheduleEffect(effect);
-    }
 
-    if (!isBrowser && container && tasksToTrigger) {
-      for (const task of tasksToTrigger as Task[]) {
-        markVNodeDirty(container, task.$el$, ChoreBits.TASKS);
-      }
+    const effectsSnapshot = Array.from(effects);
+    for (let i = 0; i < effectsSnapshot.length; i++) {
+      scheduleEffect(effectsSnapshot[i]);
     }
   }
 
@@ -165,8 +166,8 @@ export const isSerializerObj = <T extends { [SerializerSymbol]: (obj: any) => an
 
 export const getComputedSignalFlags = (
   serializationStrategy: SerializationStrategy
-): SerializationSignalFlags | SignalFlags => {
-  let flags = SignalFlags.INVALID;
+): SerializationSignalFlags | ComputedSignalFlags => {
+  let flags = ComputedSignalFlags.INVALID;
   switch (serializationStrategy) {
     // TODO: implement this in the future
     // case 'auto':
@@ -180,4 +181,17 @@ export const getComputedSignalFlags = (
       break;
   }
   return flags;
+};
+
+/**
+ * Mark this signal as owned outside of the component that read it.
+ *
+ * Externally owned signals are preserved when found in a component's sequential scope during
+ * component cleanup.
+ *
+ * @internal
+ */
+export const _markSignalAsExternallyOwned = (signal: ComputedSignal<unknown>) => {
+  (signal as ComputedSignalImpl<unknown> | WrappedSignalImpl<unknown>).$flags$ |=
+    ComputedSignalFlags.PRESERVE_ON_SEQ_CLEANUP;
 };

@@ -11,11 +11,18 @@ import {
   useTask$,
   type Signal as SignalType,
 } from '@qwik.dev/core';
-import { domRender, getTestPlatform, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
+import {
+  domRender,
+  getTestPlatform,
+  ssrRenderToDom,
+  trigger,
+  waitForDrain,
+} from '@qwik.dev/core/testing';
 import { describe, expect, it, vi } from 'vitest';
 import { ErrorProvider } from '../../testing/rendering.unit-util';
 import { delay } from '../shared/utils/promises';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
+import { whenContainerDataReady } from '../client/dom-container';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -647,6 +654,44 @@ describe.each([
     );
   });
 
+  it('should update signal in async task', async () => {
+    const Cmp = component$(() => {
+      const basicData = useSignal(1);
+      const arrData = useSignal<number[]>([]);
+      useTask$(async () => {
+        await delay(100);
+        arrData.value = [1, 2, 3];
+        basicData.value++;
+      });
+      return (
+        <div>
+          <span>{basicData.value}</span>
+          <div>
+            {arrData.value.map((item) => (
+              <div>Item: {item}</div>
+            ))}
+          </div>
+        </div>
+      );
+    });
+    const { vNode } = await render(<Cmp />, { debug });
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <span>
+            <Signal>2</Signal>
+          </span>
+          <div>
+            <div>Item: 1</div>
+            <div>Item: 2</div>
+            <div>Item: 3</div>
+          </div>
+        </div>
+      </Component>
+    );
+  });
+
   describe('blockRender', () => {
     it('should execute task and block render until finish', async () => {
       vi.useFakeTimers();
@@ -1088,6 +1133,109 @@ describe.each([
       );
     } catch (error) {
       expect((error as Error).message).toBe('HANDLE ME');
+    }
+  });
+  it('should await async cleanup before rerun', async () => {
+    vi.useFakeTimers();
+    try {
+      (globalThis as any).log = [];
+      const isSsr = render === ssrRenderToDom;
+      const Counter = component$(() => {
+        const count = useSignal(0);
+        useTask$(({ track, cleanup }) => {
+          const current = track(count);
+          (globalThis as any).log.push(`task:${current}`);
+          cleanup(async () => {
+            (globalThis as any).log.push(`cleanup:${current}:start`);
+            await delay(100);
+            (globalThis as any).log.push(`cleanup:${current}:end`);
+          });
+        });
+        return <button onClick$={() => count.value++}>{count.value}</button>;
+      });
+
+      const { document, container } = await render(<Counter />, { debug });
+      if (!isSsr) {
+        await whenContainerDataReady(container, () => undefined);
+      }
+      expect((globalThis as any).log).toEqual(isSsr ? ['task:0', 'cleanup:0:start'] : ['task:0']);
+      await vi.advanceTimersByTimeAsync(100);
+      expect((globalThis as any).log).toEqual(
+        isSsr ? ['task:0', 'cleanup:0:start', 'cleanup:0:end'] : ['task:0']
+      );
+
+      const triggerPromise = trigger(document.body, 'button', 'click');
+      await vi.advanceTimersByTimeAsync(99);
+      expect((globalThis as any).log).toEqual(
+        isSsr
+          ? ['task:0', 'cleanup:0:start', 'cleanup:0:end', 'task:1']
+          : ['task:0', 'cleanup:0:start']
+      );
+
+      await vi.advanceTimersByTimeAsync(1);
+      await triggerPromise;
+      await waitForDrain(container);
+      expect((globalThis as any).log).toEqual([
+        'task:0',
+        'cleanup:0:start',
+        'cleanup:0:end',
+        'task:1',
+      ]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('should keep non-blocking updates visible while cleanup is pending', async () => {
+    vi.useFakeTimers();
+    try {
+      (globalThis as any).log = [];
+      const isSsr = render === ssrRenderToDom;
+      const Counter = component$(() => {
+        const count = useSignal(0);
+        useTask$(
+          ({ track, cleanup }) => {
+            const current = track(count);
+            (globalThis as any).log.push(`task:${current}`);
+            cleanup(async () => {
+              (globalThis as any).log.push(`cleanup:${current}:start`);
+              await delay(100);
+              (globalThis as any).log.push(`cleanup:${current}:end`);
+            });
+          },
+          { deferUpdates: false }
+        );
+        return <button onClick$={() => count.value++}>{count.value}</button>;
+      });
+
+      const { document, container } = await render(<Counter />, { debug });
+      if (!isSsr) {
+        await whenContainerDataReady(container, () => undefined);
+      }
+      await vi.advanceTimersByTimeAsync(100);
+      expect((globalThis as any).log).toEqual(
+        isSsr ? ['task:0', 'cleanup:0:start', 'cleanup:0:end'] : ['task:0']
+      );
+
+      const triggerPromise = trigger(document.body, 'button', 'click');
+      await vi.advanceTimersByTimeAsync(99);
+      await expect(document.body.firstChild).toMatchDOM(<button>1</button>);
+      expect((globalThis as any).log).toEqual(
+        isSsr
+          ? ['task:0', 'cleanup:0:start', 'cleanup:0:end', 'task:1']
+          : ['task:0', 'cleanup:0:start']
+      );
+
+      await vi.advanceTimersByTimeAsync(1);
+      await triggerPromise;
+      expect((globalThis as any).log).toEqual([
+        'task:0',
+        'cleanup:0:start',
+        'cleanup:0:end',
+        'task:1',
+      ]);
+    } finally {
+      vi.useRealTimers();
     }
   });
 });

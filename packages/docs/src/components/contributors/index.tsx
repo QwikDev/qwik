@@ -12,7 +12,7 @@ export default component$(() => {
   }
 
   return (
-    <div class="wrapper card">
+    <div class="wrapper">
       <h3>Contributors</h3>
       <p>Thanks to all the contributors who have helped make this documentation better!</p>
       <ul class="list">

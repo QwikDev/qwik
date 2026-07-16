@@ -1,41 +1,42 @@
 {
   "name": "@qwik.dev/router",
   "description": "The router for Qwik.",
-  "version": "2.0.0-beta.16",
+  "version": "2.0.0-beta.38",
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
     "@azure/functions": "3.5.1",
     "@mdx-js/mdx": "^3.1.1",
-    "@netlify/edge-functions": "^2.17.0",
+    "@netlify/edge-functions": "^3.0.6",
     "@types/mdx": "^2.0.13",
-    "estree-util-value-to-estree": "^3.4.0",
+    "estree-util-value-to-estree": "^3.5.0",
     "github-slugger": "^2.0.0",
     "hast-util-heading-rank": "^2.1.1",
     "hast-util-to-string": "^2.0.0",
     "kleur": "^4.1.5",
     "marked": "^12.0.2",
     "mdast-util-mdx": "^3.0.0",
+    "mlly": "^1.8.2",
     "refractor": "^4.8.1",
     "rehype-autolink-headings": "^7.1.0",
     "remark-frontmatter": "^5.0.0",
     "remark-gfm": "^4.0.1",
-    "set-cookie-parser": "^2.7.1",
+    "set-cookie-parser": "^2.7.2",
     "source-map": "^0.7.6",
-    "svgo": "^3.3.2",
+    "svgo": "^3.3.3",
     "unified": "^11.0.5",
     "unist-util-visit": "^5.0.0",
     "valibot": ">=0.36.0 <2",
     "vfile": "6.0.3",
-    "vite": ">=5 <8",
-    "vite-imagetools": "^9.0.0",
-    "yaml": "^2.8.1",
+    "vite": ">=6 <9",
+    "vite-imagetools": "10.0.0",
+    "yaml": "^2.8.2",
     "zod": "^3.25.48"
   },
   "devDependencies": {
-    "@microsoft/api-extractor": "7.52.10",
+    "@microsoft/api-extractor": "7.57.6",
     "@qwik.dev/core": "workspace:*",
     "@types/mdast": "4.0.4",
-    "@types/node": "24.3.0",
+    "@types/node": "24.10.0",
     "@types/refractor": "4.0.0",
     "@types/set-cookie-parser": "2.4.10",
     "tsm": "2.3.0",
@@ -169,7 +170,7 @@
   "main": "./lib/index.qwik.mjs",
   "peerDependencies": {
     "@qwik.dev/core": "workspace:^",
-    "vite": ">=5 <8"
+    "vite": ">=6 <9"
   },
   "publishConfig": {
     "access": "public"
@@ -181,7 +182,7 @@
     "directory": "packages/qwik-router"
   },
   "scripts": {
-    "build": "vite build"
+    "build": "vite build --mode lib"
   },
   "sideEffects": false,
   "type": "module",

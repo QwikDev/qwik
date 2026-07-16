@@ -6,10 +6,14 @@ import {
   Fragment as Signal,
   Slot,
   component$,
+  createContextId,
   jsx,
+  useContext,
+  useContextProvider,
   useSignal,
   useStore,
   useVisibleTask$,
+  type Signal as SignalType,
   type FunctionComponent,
   type PublicProps,
 } from '@qwik.dev/core';
@@ -36,7 +40,15 @@ const InlineWrapper = () => {
   return <MyComp />;
 };
 
+const ChildrenWrapper = (props: { children?: any }) => props.children;
+
 const Id = (props: any) => <div>Id: {props.id}</div>;
+
+const inlineProjectionContext = createContextId<{ value: string }>('inline-projection');
+const InlineReadsContext = () => {
+  const ctx = useContext(inlineProjectionContext, { value: 'default' });
+  return <span>{ctx.value}</span>;
+};
 
 const ChildInline = () => {
   return <div>Child inline</div>;
@@ -94,6 +106,21 @@ describe.each([
           </Component>
         </Fragment>
       </Component>
+    );
+  });
+
+  it('should render inline component with null key', async () => {
+    const { vNode } = await render(<MyComp key={null} />, { debug });
+    expect(vNode).toMatchVDOM(
+      <InlineComponent>
+        <Fragment>
+          <h1>Test</h1>
+          <p>Lorem</p>
+          <h2>ipsum</h2>
+          <p>foo</p>
+          <h2>bar</h2>
+        </Fragment>
+      </InlineComponent>
     );
   });
 
@@ -717,6 +744,56 @@ describe.each([
     );
   });
 
+  it('should preserve table cell spans after inline component rerender', async () => {
+    const Cmp = component$(() => {
+      const sig = useSignal(true);
+      const valA = [3, 6, 12, 24];
+      const valB = [12, 24];
+      sig.value;
+
+      return (
+        <div>
+          <ChildrenWrapper>
+            <table>
+              <thead>
+                <tr>
+                  <th rowSpan={3}>ZZZ</th>
+                  <th colSpan={1 + valA.length + valB.length}>AAA</th>
+                </tr>
+                <tr>
+                  <th colSpan={valA.length + 1}>CCC</th>
+                  <th colSpan={valB.length}>DDD</th>
+                </tr>
+                <tr>
+                  <th>EEE</th>
+                  {valA.map((value, index) => (
+                    <th key={index}>{value}</th>
+                  ))}
+                  {valB.map((value, index) => (
+                    <th key={index}>{value}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+            <button onClick$={() => (sig.value = !sig.value)}>submit</button>
+          </ChildrenWrapper>
+        </div>
+      );
+    });
+
+    const { document } = await render(<Cmp />, { debug });
+    const getColSpans = () =>
+      Array.from(
+        document.querySelectorAll<HTMLTableCellElement>('th[colspan]'),
+        (cell) => cell.colSpan
+      );
+
+    expect(getColSpans()).toEqual([7, 5, 2]);
+    await trigger(document.body, 'button', 'click');
+    expect(getColSpans()).toEqual([7, 5, 2]);
+  });
+
   it('should allow to modify children component props', async () => {
     const Child = component$((props: { name: string }) => {
       return <>{props.name}</>;
@@ -754,5 +831,107 @@ describe.each([
     });
 
     await expect(render(<Cmp />, { debug })).resolves.not.toThrow();
+  });
+
+  it('should rerender inline component in projection', async () => {
+    const Link = component$(() => {
+      return (
+        <a>
+          <Slot />
+        </a>
+      );
+    });
+
+    const Cmp = component$(() => {
+      const bool = useSignal(false);
+
+      const FnComp: FunctionComponent<{ bool: SignalType<boolean> }> = (props) => {
+        return (
+          <button
+            onClick$={() => {
+              props.bool.value = !props.bool.value;
+            }}
+          >
+            Change {JSON.stringify(props.bool.value)}
+          </button>
+        );
+      };
+
+      return (
+        <Link>
+          <FnComp bool={bool} />
+        </Link>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Component>
+          <a>
+            <Projection>
+              <InlineComponent>
+                <button>{'Change false'}</button>
+              </InlineComponent>
+            </Projection>
+          </a>
+        </Component>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Component>
+          <a>
+            <Projection>
+              <InlineComponent>
+                <button>{'Change true'}</button>
+              </InlineComponent>
+            </Projection>
+          </a>
+        </Component>
+      </Component>
+    );
+  });
+
+  it('should resolve context when projected into a context provider', async () => {
+    const Provider = component$(() => {
+      useContextProvider(inlineProjectionContext, { value: 'provided' });
+      return <Slot />;
+    });
+    const Layout = component$(() => {
+      return (
+        <Provider>
+          <Slot />
+        </Provider>
+      );
+    });
+    const App = component$(() => {
+      return (
+        <Layout>
+          <InlineReadsContext />
+        </Layout>
+      );
+    });
+
+    const { vNode } = await render(<App />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Component ssr-required>
+          <Component ssr-required>
+            <Projection ssr-required>
+              <Projection ssr-required>
+                <InlineComponent ssr-required>
+                  <span>provided</span>
+                </InlineComponent>
+              </Projection>
+            </Projection>
+          </Component>
+        </Component>
+      </Component>
+    );
   });
 });

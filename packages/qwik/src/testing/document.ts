@@ -102,10 +102,13 @@ class MockShadowRoot extends (domino as any).impl.DocumentFragment {
   }
 
   append(...nodes: any[]) {
-    for (const node of nodes) {
+    for (let i = 0; i < nodes.length; i++) {
+      const node = nodes[i];
       if (node.nodeType === 11) {
         // document fragment
-        for (const child of Array.from(node.childNodes)) {
+        const childNodes = Array.from(node.childNodes);
+        for (let j = 0; j < childNodes.length; j++) {
+          const child = childNodes[j];
           this.appendChild(child as any);
         }
       } else {

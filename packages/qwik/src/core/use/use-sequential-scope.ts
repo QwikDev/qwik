@@ -1,6 +1,6 @@
 import { verifySerializable } from '../shared/serdes/verify';
 import { ELEMENT_SEQ, ELEMENT_SEQ_IDX } from '../shared/utils/markers';
-import { qDev, qSerialize } from '../shared/utils/qdev';
+import { qDev } from '../shared/utils/qdev';
 import type { HostElement } from '../shared/types';
 import { useInvokeContext, type RenderInvokeContext } from './use-core';
 
@@ -36,7 +36,7 @@ export const useSequentialScope = <T>(): SequentialScope<T> => {
     seq.push(undefined);
   }
   const set = (value: T) => {
-    if (qDev && qSerialize) {
+    if (qDev) {
       verifySerializable(value);
     }
     return (seq![seqIdx!] = value);

@@ -1,14 +1,10 @@
-import { isDev } from '@qwik.dev/core/build';
+import { isDev, isServer } from '@qwik.dev/core/build';
+import { qTest } from './utils/qdev';
 import { vnode_isVNode } from '../client/vnode-utils';
 import { isSignal } from '../reactive-primitives/utils';
 import { clearAllEffects } from '../reactive-primitives/cleanup';
-import {
-  invokeApply,
-  newRenderInvokeContext,
-  untrack,
-  type RenderInvokeContext,
-} from '../use/use-core';
-import { type EventQRL, type UseOnMap } from '../use/use-on';
+import { invokeApply, newRenderInvokeContext, type RenderInvokeContext } from '../use/use-core';
+import { type EventQRL, type UseOnEvent, type UseOnMap } from '../use/use-on';
 import { isQwikComponent, type OnRenderFn } from './component.public';
 import { assertDefined } from './error/assert';
 import { Fragment, type Props } from './jsx/jsx-runtime';
@@ -29,10 +25,15 @@ import {
   USE_ON_LOCAL_SEQ_IDX,
 } from './utils/markers';
 import { MAX_RETRY_ON_PROMISE_COUNT, isPromise, maybeThen, safeCall } from './utils/promises';
-import { isArray, isPrimitive, type ValueOrPromise } from './utils/types';
+import { isArray, isPrimitiveOrNullUndefined, type ValueOrPromise } from './utils/types';
 import { getSubscriber } from '../reactive-primitives/subscriber';
 import { EffectProperty } from '../reactive-primitives/types';
-import { EventNameHtmlScope } from './utils/event-names';
+import { EventNameHtmlScope, getEventDataFromHtmlAttribute } from './utils/event-names';
+import { isServerPlatform } from './platform/platform';
+import type { ISsrNode, SSRContainer } from '../ssr/ssr-types';
+import { ChoreBits } from './vnode/enums/chore-bits.enum';
+import type { SignalImpl } from '../reactive-primitives/impl/signal-impl';
+import { isTask } from '../use/use-task';
 
 /**
  * Use `executeComponent` to execute a component.
@@ -64,7 +65,7 @@ export const executeComponent = (
 ): ValueOrPromise<JSXOutput> => {
   const iCtx = newRenderInvokeContext(
     container.$locale$,
-    subscriptionHost || renderHost,
+    renderHost,
     container
   ) as RenderInvokeContext;
   if (subscriptionHost) {
@@ -76,7 +77,7 @@ export const executeComponent = (
   let isInlineComponent = false;
   if (componentQRL === null) {
     componentQRL = container.getHostProp(renderHost, OnRenderProp)!;
-    assertDefined(componentQRL, 'No Component found at this location');
+    isDev && assertDefined(componentQRL, 'No Component found at this location');
   }
   if (isQrl(componentQRL)) {
     props = props || container.getHostProp(renderHost, ELEMENT_PROPS) || EMPTY_OBJ;
@@ -98,6 +99,8 @@ export const executeComponent = (
     componentFn = () => invokeApply(iCtx, inlineComponent, [props || EMPTY_OBJ]);
   }
 
+  const isSsr = qTest ? isServerPlatform() : isServer;
+
   const executeComponentWithPromiseExceptionRetry = (retryCount = 0): ValueOrPromise<JSXOutput> =>
     safeCall<JSXOutput, JSXOutput, JSXOutput>(
       () => {
@@ -113,9 +116,23 @@ export const executeComponent = (
         return maybeThen(componentFn(props), (jsx) => maybeThen(iCtx.$waitOn$, () => jsx));
       },
       (jsx) => {
+        // In SSR, check if the component was marked dirty (COMPONENT bit) during execution.
+        // This happens when something completes and updates reactive primitives
+        // while we're waiting on $waitOn$. If so, we need to re-execute the component
+        // to get fresh JSX with updated values.
+        if (isSsr && !isInlineComponent) {
+          const ssrNode = renderHost as ISsrNode;
+          if (ssrNode.dirty & ChoreBits.COMPONENT) {
+            ssrNode.dirty &= ~ChoreBits.COMPONENT;
+            if (retryCount < MAX_RETRY_ON_PROMISE_COUNT) {
+              return executeComponentWithPromiseExceptionRetry(retryCount + 1);
+            }
+          }
+        }
+
         const useOnEvents = container.getHostProp<UseOnMap>(renderHost, USE_ON_LOCAL);
         if (useOnEvents) {
-          return addUseOnEvents(jsx, useOnEvents);
+          return addUseOnEvents(container, jsx, useOnEvents);
         }
         return jsx;
       },
@@ -143,12 +160,13 @@ export const executeComponent = (
  * @returns The modified JSX output.
  */
 function addUseOnEvents(
+  container: Container,
   jsx: JSXOutput,
   useOnEvents: UseOnMap
 ): ValueOrPromise<JSXNodeInternal<string> | null | JSXOutput> {
   const jsxElement = findFirstElementNode(jsx);
   let jsxResult = jsx;
-  const qVisibleEvent = 'on:qvisible';
+  const qVisibleEvent = 'q-e:qvisible';
   return maybeThen(jsxElement, (jsxElement) => {
     // headless components are components that don't render a real DOM element
     const isHeadless = !jsxElement;
@@ -167,19 +185,28 @@ function addUseOnEvents(
             key.startsWith(EventNameHtmlScope.window)
           ) {
             if (!placeholderElement) {
-              const [createdElement, newJsx] = injectPlaceholderElement(jsxResult);
-              jsxResult = newJsx;
-              placeholderElement = createdElement;
+              placeholderElement = createPlaceholderScriptNode();
+              // A headless component that projects the document root (e.g. wrapping `<head>`/`<body>`
+              // in a `<Slot/>`) would otherwise place the placeholder `<script>` as a direct child of
+              // `<html>`, which is invalid. On the server let the container defer it into `<head>`.
+              const isSsr = qTest ? isServerPlatform() : isServer;
+              if (
+                !(isSsr && (container as SSRContainer).$deferRootPlaceholder$(placeholderElement))
+              ) {
+                jsxResult = injectPlaceholderElement(jsxResult, placeholderElement);
+              }
             }
             targetElement = placeholderElement;
           } else {
             if (isDev) {
+              const sourceLocation = getUseOnSourceLocation(useOnEvents[key].qrls);
               logWarn(
                 'You are trying to add an event "' +
                   key +
                   '" using `useOn` hook, ' +
                   'but a node to which you can add an event is not found. ' +
-                  'Please make sure that the component has a valid element node. '
+                  'Please make sure that the component outputs a DOM element.' +
+                  (sourceLocation ? ` Offending \`useOn\`: ${sourceLocation}.` : '')
               );
             }
             continue;
@@ -187,14 +214,15 @@ function addUseOnEvents(
         }
         if (targetElement) {
           if (targetElement.type === 'script' && key === qVisibleEvent) {
-            eventKey = 'on-document:qinit';
+            eventKey = 'q-d:qinit';
             if (isDev) {
+              const sourceLocation = getUseOnSourceLocation(useOnEvents[key].qrls);
               logWarn(
-                'You are trying to add an event "' +
-                  key +
-                  '" using the `useVisibleTask$` hook with the "intersection-observer" strategy, ' +
-                  'but a node to which you can add an event is not found. ' +
-                  'Using "document-ready" or "document-idle" instead.'
+                `You are trying to add the event "${key}" ` +
+                  'using the `useVisibleTask$` hook with the "intersection-observer" strategy, ' +
+                  'but this only works when the component outputs a DOM element. Falling back to ' +
+                  '"document-ready" instead.' +
+                  (sourceLocation ? ` Offending \`useVisibleTask$\`: ${sourceLocation}.` : '')
               );
             }
           }
@@ -206,6 +234,22 @@ function addUseOnEvents(
   });
 }
 
+function getUseOnSourceLocation(eventQrls: EventQRL<KnownEventNames>[]): string | null {
+  for (let i = 0; i < eventQrls.length; i++) {
+    const eventQrl = eventQrls[i];
+    const task = eventQrl?.getCaptured()?.[0];
+    if (isTask(task)) {
+      const dev = task.$qrl$.dev;
+      if (dev?.file) {
+        return typeof dev.lo === 'number' && typeof dev.hi === 'number'
+          ? `${dev.file}:${dev.lo}-${dev.hi}`
+          : dev.file;
+      }
+    }
+  }
+  return null;
+}
+
 /**
  * Adds an event to the JSX element.
  *
@@ -213,20 +257,20 @@ function addUseOnEvents(
  * @param key The event name.
  * @param value The event value.
  */
-function addUseOnEvent(
-  jsxElement: JSXNodeInternal,
-  key: string,
-  value: EventQRL<KnownEventNames>[]
-) {
+function addUseOnEvent(jsxElement: JSXNodeInternal, key: string, value: UseOnEvent) {
   // These handlers are always there, so they go in constProps
   const props = (jsxElement.constProps ||= {} as Props);
-  const propValue = props[key] as UseOnMap['any'] | UseOnMap['any'][0] | undefined;
+  const propValue = props[key] as
+    | EventQRL<KnownEventNames>[]
+    | EventQRL<KnownEventNames>
+    | undefined;
+  const qrls = value.qrls;
   if (propValue == null) {
-    props[key] = value;
+    props[key] = qrls;
   } else if (Array.isArray(propValue)) {
-    propValue.push(...value);
+    propValue.push(...qrls);
   } else {
-    props[key] = [propValue, ...value];
+    props[key] = [propValue, ...qrls];
   }
   const varProp = jsxElement.varProps[key];
   if (varProp) {
@@ -234,10 +278,34 @@ function addUseOnEvent(
     if (Array.isArray(propValue)) {
       propValue.push(...(props[key] as any));
     } else {
-      jsxElement.varProps[key] = [propValue, ...value];
+      jsxElement.varProps[key] = [propValue, ...qrls];
     }
     props[key] = undefined;
   }
+
+  const capture = value.capture;
+  const preventdefault = value.preventdefault;
+  const stoppropagation = value.stoppropagation;
+  if (!capture && !preventdefault && !stoppropagation) {
+    return;
+  }
+  const [, eventName] = getEventDataFromHtmlAttribute(key);
+  capture && addUseOnModifier(jsxElement, eventName, 'capture');
+  preventdefault && addUseOnModifier(jsxElement, eventName, 'preventdefault');
+  stoppropagation && addUseOnModifier(jsxElement, eventName, 'stoppropagation');
+}
+
+function addUseOnModifier(
+  jsxElement: JSXNodeInternal,
+  eventName: string,
+  modifier: keyof Omit<UseOnEvent, 'qrls'>
+) {
+  const key = `${modifier}:${eventName}`;
+  const varProps = jsxElement.varProps;
+  if (varProps === EMPTY_OBJ) {
+    jsxElement.varProps = {};
+  }
+  jsxElement.varProps[key] = true;
 }
 
 /**
@@ -257,12 +325,10 @@ function findFirstElementNode(jsx: JSXOutput): ValueOrPromise<JSXNodeInternal<st
       queue.push(jsx.children);
     } else if (isArray(jsx)) {
       queue.push(...jsx);
-    } else if (isPromise(jsx)) {
-      return maybeThen<JSXOutput, JSXNodeInternal<string> | null>(jsx, (jsx) =>
-        findFirstElementNode(jsx)
-      );
+    } else if (isPromise<JSXOutput>(jsx)) {
+      return maybeThen(jsx, (jsx) => findFirstElementNode(jsx));
     } else if (isSignal(jsx)) {
-      return findFirstElementNode(untrack(() => jsx.value as JSXOutput));
+      return findFirstElementNode((jsx as SignalImpl).untrackedValue);
     }
   }
   return null;
@@ -275,17 +341,15 @@ function findFirstElementNode(jsx: JSXOutput): ValueOrPromise<JSXNodeInternal<st
  * have an anchor point for `useOn` event listeners that target the document or window.
  *
  * @param jsx The JSX output to modify.
- * @returns A tuple containing the created placeholder element and the modified JSX output.
+ * @param placeholder The placeholder element to inject.
+ * @returns The modified JSX output.
  */
-function injectPlaceholderElement(
-  jsx: JSXOutput
-): [JSXNodeInternal<string> | null, JSXOutput | null] {
+function injectPlaceholderElement(jsx: JSXOutput, placeholder: JSXNodeInternal<string>): JSXOutput {
   // For regular JSX nodes, we can append the placeholder to its children.
   if (isJSXNode(jsx)) {
-    const placeholder = createPlaceholderScriptNode();
     // Inline components don't always render children, so we wrap them in Fragment which does.
     if (jsx.type !== Fragment && !isQwikComponent(jsx.type)) {
-      return [placeholder, _jsxSorted(Fragment, null, null, [jsx, placeholder], 0, null)];
+      return _jsxSorted(Fragment, null, null, [jsx, placeholder], 0, null);
     }
 
     if (jsx.children == null) {
@@ -295,26 +359,25 @@ function injectPlaceholderElement(
     } else {
       jsx.children = [jsx.children, placeholder];
     }
-    return [placeholder, jsx];
+    return jsx;
   }
 
   // For primitives, we can't add children, so we wrap them in a fragment.
-  if (isPrimitive(jsx)) {
-    const placeholder = createPlaceholderScriptNode();
-    return [placeholder, _jsxSorted(Fragment, null, null, [jsx, placeholder], 0, null)];
+  if (isPrimitiveOrNullUndefined(jsx)) {
+    return _jsxSorted(Fragment, null, null, [jsx, placeholder], 0, null);
   }
 
   // For an array of nodes, we inject the placeholder into the first element.
   if (isArray(jsx) && jsx.length > 0) {
-    const [createdElement, _] = injectPlaceholderElement(jsx[0]);
-    return [createdElement, jsx];
+    injectPlaceholderElement(jsx[0], placeholder);
+    return jsx;
   }
 
   // For anything else we do nothing.
-  return [null, jsx];
+  return jsx;
 }
 
 /** @returns An empty <script> element for adding qwik metadata attributes to */
 function createPlaceholderScriptNode(): JSXNodeInternal<string> {
-  return new JSXNodeImpl('script', null, { hidden: '' });
+  return new JSXNodeImpl('script', null, { hidden: '' }, null, 0, null);
 }

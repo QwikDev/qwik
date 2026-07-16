@@ -8,11 +8,12 @@
  * - https://bun.sh/docs/api/http
  *
  */
+import { getRequestEvent } from "@qwik.dev/router";
 import { createQwikRouter } from "@qwik.dev/router/middleware/bun";
 import render from "./entry.ssr";
 
 // Create the Qwik Router Bun middleware
-const { router, notFound, staticFile } = createQwikRouter({
+const { router, staticFile } = createQwikRouter({
   render,
   static: {
     cacheControl: "public, max-age=31536000, immutable",
@@ -25,7 +26,41 @@ const port = Number(Bun.env.PORT ?? 3000);
 // eslint-disable-next-line no-console
 console.log(`Server started: http://localhost:${port}/`);
 
+// Optional request-aware diagnostics for crashes that escape request boundaries.
+// This does not prevent Bun from crashing, but it does provide better diagnostics.
+// See Bun and Node process event docs for runtime-specific behavior.
+process.on("uncaughtException", (error) => {
+  const requestEv = getRequestEvent();
+  if (requestEv) {
+    console.error("Unhandled exception during request", {
+      method: requestEv.method,
+      url: requestEv.url.href,
+      headersSent: requestEv.headersSent,
+      error,
+    });
+    return;
+  }
+
+  console.error("Unhandled exception outside request", { error });
+});
+
+process.on("unhandledRejection", (reason) => {
+  const requestEv = getRequestEvent();
+  if (requestEv) {
+    console.error("Unhandled rejection during request", {
+      method: requestEv.method,
+      url: requestEv.url.href,
+      headersSent: requestEv.headersSent,
+      reason,
+    });
+    return;
+  }
+
+  console.error("Unhandled rejection outside request", { reason });
+});
+
 Bun.serve({
+  maxRequestBodySize: 10 * 1024 * 1024,
   async fetch(request: Request) {
     const staticResponse = await staticFile(request);
     if (staticResponse) {
@@ -33,13 +68,7 @@ Bun.serve({
     }
 
     // Server-side render this request with Qwik Router
-    const qwikRouterResponse = await router(request);
-    if (qwikRouterResponse) {
-      return qwikRouterResponse;
-    }
-
-    // Path not found
-    return notFound(request);
+    return (await router(request))!;
   },
   port,
 });

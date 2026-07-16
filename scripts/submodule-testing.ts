@@ -1,8 +1,8 @@
 import { getBanner, importPath, target, externalImportNoEffects } from './util.ts';
 import { build, type BuildOptions } from 'esbuild';
-import { type BuildConfig, type PackageJSON } from './util.ts';
+import { type BuildConfig } from './util.ts';
 import { join } from 'node:path';
-import { writePackageJson } from './package-json.ts';
+import { writeSubmodulePackageJson } from './package-json.ts';
 
 /** Builds @qwik.dev/core/testing */
 export async function submoduleTesting(config: BuildConfig) {
@@ -49,15 +49,8 @@ export async function submoduleTesting(config: BuildConfig) {
 }
 
 async function generateTestingPackageJson(config: BuildConfig) {
-  const pkg: PackageJSON = {
-    name: '@qwik.dev/core/testing',
-    version: config.distVersion,
-    main: 'index.mjs',
-    types: 'index.d.ts',
-    private: true,
-    type: 'module',
-    sideEffects: true,
-  };
   const testingDistDir = join(config.distQwikPkgDir, 'testing');
-  await writePackageJson(testingDistDir, pkg);
+  await writeSubmodulePackageJson(testingDistDir, '@qwik.dev/core/testing', config.distVersion, {
+    sideEffects: true,
+  });
 }

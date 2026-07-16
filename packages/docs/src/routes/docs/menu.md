@@ -6,8 +6,9 @@
 - [Getting Started](</docs/(qwik)/getting-started/index.mdx>)
 - [Project structure](</docs/(qwikrouter)/project-structure/index.mdx>)
 - [FAQ](</docs/(qwik)/faq/index.mdx>)
+- [Upgrade](/docs/upgrade/index.mdx)
 
-## Components
+## Foundation
 
 - [Overview](</docs/(qwik)/core/overview/index.mdx>)
 - [State](</docs/(qwik)/core/state/index.mdx>)
@@ -17,9 +18,44 @@
 - [Slots](</docs/(qwik)/core/slots/index.mdx>)
 - [Rendering](</docs/(qwik)/core/rendering/index.mdx>)
 - [Styling](</docs/(qwik)/core/styles/index.mdx>)
+- [Suspense](</docs/(qwik)/core/suspense/index.mdx>)
 - [API Reference](/api/qwik/)
 
-## Qwik Router
+### Concepts
+
+- [Think Qwik](</docs/(qwik)/concepts/think-qwik/index.mdx>)
+- [Resumable](</docs/(qwik)/concepts/resumable/index.mdx>)
+- [Progressive](</docs/(qwik)/concepts/progressive/index.mdx>)
+- [Reactivity](</docs/(qwik)/concepts/reactivity/index.mdx>)
+
+### Advanced
+
+- [The $ dollar sign](</docs/(qwik)/advanced/dollar/index.mdx>)
+- [Containers](</docs/(qwik)/advanced/containers/index.mdx>)
+- [State Prewarm](</docs/(qwik)/advanced/state-prewarm/index.mdx>)
+- [QRL](</docs/(qwik)/advanced/qrl/index.mdx>)
+- [Library mode](</docs/(qwik)/advanced/library/index.mdx>)
+- [Qwikloader](</docs/(qwik)/advanced/qwikloader/index.mdx>)
+- [Optimizer](</docs/(qwik)/advanced/optimizer/index.mdx>)
+- [Optimizer Hints](</docs/(qwik)/advanced/optimizer-hints/index.mdx>)
+- [Modules Prefetching](</docs/(qwik)/advanced/modules-prefetching/index.mdx>)
+- [Web Workers](</docs/(qwik)/advanced/worker/index.mdx>)
+- [Build Directory](</docs/(qwik)/advanced/custom-build-dir/index.mdx>)
+- [Vite](</docs/(qwik)/advanced/vite/index.mdx>)
+- [Synchronous Events with State](</docs/(qwik)/advanced/sync-events/index.mdx>)
+- [Advanced Routing](</docs/(qwikrouter)/advanced/routing/index.mdx>)
+- [Qwik Plugins](</docs/(qwikrouter)/advanced/plugins/index.mdx>)
+- [Request Handling](</docs/(qwikrouter)/advanced/request-handling/index.mdx>)
+- [Speculative Module Fetching](</docs/(qwikrouter)/advanced/speculative-module-fetching/index.mdx>)
+- [Menus](</docs/(qwikrouter)/advanced/menu/index.mdx>)
+- [Static Assets](</docs/(qwikrouter)/advanced/static-assets/index.mdx>)
+- [Sitemaps](</docs/(qwikrouter)/advanced/sitemaps/index.mdx>)
+- [ESLint-Rules](</docs/(qwik)/advanced/eslint/index.mdx>)
+- [Content Security Policy](</docs/(qwikrouter)/advanced/content-security-policy/index.mdx>)
+- [Complex Forms](</docs/(qwikrouter)/advanced/complex-forms/index.mdx>)
+- [Backpatching](</docs/(qwik)/advanced/backpatching/index.mdx>)
+
+## Router
 
 - [Overview](</docs/(qwikrouter)/qwikrouter/index.mdx>)
 - [Routing](</docs/(qwikrouter)/routing/index.mdx>)
@@ -50,7 +86,6 @@
 - [Node Docker deploy](/docs/cookbook/node-docker-deploy/index.mdx)
 - [Portals](/docs/cookbook/portals/index.mdx)
 - [Streaming loaders](/docs/cookbook/streaming-deferred-loaders/index.mdx)
-- [Sync events w state](/docs/cookbook/sync-events/index.mdx)
 - [Theme Management](/docs/cookbook/theme-management/index.mdx)
 - [Drag & Drop](/docs/cookbook/drag&drop/index.mdx)
 - [View Transition](/docs/cookbook/view-transition/index.mdx)
@@ -95,7 +130,9 @@
 - [Firebase](deployments/firebase/index.mdx)
 - [Google Cloud Run](deployments/gcp-cloud-run/index.mdx)
 - [Cloudflare Pages](deployments/cloudflare-pages/index.mdx)
+- [Cloudflare Workers](deployments/cloudflare-workers/index.mdx)
 - [Deno](deployments/deno/index.mdx)
+- [DeployHQ](deployments/deployhq/index.mdx)
 - [Bun](deployments/bun/index.mdx)
 - [Netlify Edge](deployments/netlify-edge/index.mdx)
 - [Node](deployments/node/index.mdx)
@@ -116,55 +153,20 @@
 - [Best Practices](</docs/(qwikrouter)/guides/best-practices/index.mdx>)
 - [Bundle Optimization](</docs/(qwikrouter)/guides/bundle/index.mdx>)
 - [Env variables](</docs/(qwikrouter)/guides/env-variables/index.mdx>)
-- [Rewrites](<docs/(qwikrouter)/guides/rewrites/index.mdx>)
-
-## Concepts
-
-- [Think Qwik](</docs/(qwik)/concepts/think-qwik/index.mdx>)
-- [Resumable](</docs/(qwik)/concepts/resumable/index.mdx>)
-- [Progressive](</docs/(qwik)/concepts/progressive/index.mdx>)
-- [Reactivity](</docs/(qwik)/concepts/reactivity/index.mdx>)
-
-## Advanced
-
-- [The $ dollar sign](</docs/(qwik)/advanced/dollar/index.mdx>)
-- [Containers](</docs/(qwik)/advanced/containers/index.mdx>)
-- [QRL](</docs/(qwik)/advanced/qrl/index.mdx>)
-- [Library mode](</docs/(qwik)/advanced/library/index.mdx>)
-- [Qwikloader](</docs/(qwik)/advanced/qwikloader/index.mdx>)
-- [Optimizer](</docs/(qwik)/advanced/optimizer/index.mdx>)
-- [Modules Prefetching](</docs/(qwik)/advanced/modules-prefetching/index.mdx>)
-- [Build Directory](</docs/(qwik)/advanced/custom-build-dir/index.mdx>)
-- [Vite](</docs/(qwik)/advanced/vite/index.mdx>)
-- [Advanced Routing](</docs/(qwikrouter)/advanced/routing/index.mdx>)
-- [Qwik Plugins](</docs/(qwikrouter)/advanced/plugins/index.mdx>)
-- [Request Handling](</docs/(qwikrouter)/advanced/request-handling/index.mdx>)
-- [Speculative Module Fetching](</docs/(qwikrouter)/advanced/speculative-module-fetching/index.mdx>)
-- [Menus](</docs/(qwikrouter)/advanced/menu/index.mdx>)
-- [Static Assets](</docs/(qwikrouter)/advanced/static-assets/index.mdx>)
-- [Sitemaps](</docs/(qwikrouter)/advanced/sitemaps/index.mdx>)
-- [ESLint-Rules](</docs/(qwik)/advanced/eslint/index.mdx>)
-- [Content Security Policy](</docs/(qwikrouter)/advanced/content-security-policy/index.mdx>)
-- [Complex Forms](</docs/(qwikrouter)/advanced/complex-forms/index.mdx>)
-- [Backpatching](</docs/(qwik)/advanced/backpatching/index.mdx>)
+- [Rewrites](</docs/(qwikrouter)/guides/rewrites/index.mdx>)
 
 ## Reference
 
 - [API Reference](/api/)
+- [Error Codes](/docs/errors/index.mdx)
 - [Deprecated Features](</docs/(qwik)/deprecated-features/index.mdx>)
 
 ## Experimental 🧪
 
 - [Overview](/docs/labs/index.mdx)
+- [Each](/docs/labs/each/index.mdx)
+- [Show](/docs/labs/show/index.mdx)
+- [Suspense](/docs/labs/suspense/index.mdx)
 - [Insights](/docs/labs/insights/index.mdx)
 - [Typed Routes](/docs/labs/typed-routes/index.mdx)
 - [Devtools](/docs/labs/devtools/index.mdx)
-- [usePreventNavigate](/docs/labs/usePreventNavigate/index.mdx)
-
-## Community
-
-- [GitHub](https://github.com/QwikDev/qwik)
-- [@QwikDev](https://twitter.com/QwikDev)
-- [Discord](https://qwik.dev/chat)
-- [Community Projects](/community/projects/index.mdx)
-- [Values](/community/values/index.mdx)

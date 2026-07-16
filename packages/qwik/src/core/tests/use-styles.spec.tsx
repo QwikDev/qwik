@@ -2,10 +2,10 @@ import {
   Fragment as Component,
   component$,
   Fragment,
-  inlinedQrl,
   Fragment as Signal,
   Slot,
   useSignal,
+  useStyles$,
   useStylesQrl,
 } from '@qwik.dev/core';
 import { renderToString } from '@qwik.dev/core/server';
@@ -13,9 +13,17 @@ import { createDocument, domRender, ssrRenderToDom, trigger } from '@qwik.dev/co
 import { afterEach, describe, expect, it } from 'vitest';
 import { getPlatform, setPlatform } from '../shared/platform/platform';
 import { QStyleSelector } from '../shared/utils/markers';
+import { inlinedQrl } from '../shared/qrl/qrl';
+import type { QRLInternal } from '../shared/qrl/qrl-class';
+import { _useHmr } from '../internal';
+import { waitForDrain } from '@qwik.dev/core/testing';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
+
+const STYLE_RED = `.container {background-color: red;}`;
+const STYLE_BLUE = `.container {background-color: blue;}`;
+const STYLE = `.container{color: blue;}`;
 
 describe.each([
   { render: ssrRenderToDom }, //
@@ -27,13 +35,10 @@ describe.each([
     (globalThis as any).rawStyleId2 = undefined;
   });
 
-  const STYLE_RED = `.container {background-color: red;}`;
-  const STYLE_BLUE = `.container {background-color: blue;}`;
-
   it('should render style', async () => {
     (globalThis as any).rawStyleId = '';
     const StyledComponent = component$(() => {
-      const styleData = useStylesQrl(inlinedQrl(STYLE_RED, 's_styles'));
+      const styleData = useStyles$(STYLE_RED);
       (globalThis as any).rawStyleId = styleData.styleId;
       return <div class="container">Hello world</div>;
     });
@@ -52,7 +57,7 @@ describe.each([
   it('should move style to <head> on rerender', async () => {
     (globalThis as any).rawStyleId = '';
     const StyledComponent = component$(() => {
-      const styleData = useStylesQrl(inlinedQrl(STYLE_RED, 's_styles'));
+      const styleData = useStyles$(STYLE_RED);
       (globalThis as any).rawStyleId = styleData.styleId;
       const count = useSignal(0);
       return (
@@ -79,7 +84,7 @@ describe.each([
   it('should save styles when JSX deleted', async () => {
     (globalThis as any).rawStyleId = '';
     const StyledComponent = component$(() => {
-      const styleData = useStylesQrl(inlinedQrl(STYLE_RED, 's_styles'));
+      const styleData = useStyles$(STYLE_RED);
       (globalThis as any).rawStyleId = styleData.styleId;
       return <div>Hello world</div>;
     });
@@ -107,7 +112,7 @@ describe.each([
 
   it('style node should contain q:style attribute', async () => {
     const StyledComponent = component$(() => {
-      useStylesQrl(inlinedQrl(STYLE_RED, 's_styles'));
+      useStyles$(STYLE_RED);
       return <div>Hello world</div>;
     });
     const { container } = await render(<StyledComponent />, { debug });
@@ -120,12 +125,12 @@ describe.each([
     (globalThis as any).rawStyleId1 = '';
     (globalThis as any).rawStyleId2 = '';
     const StyledComponent1 = component$(() => {
-      const styleData = useStylesQrl(inlinedQrl(STYLE_RED, 's_styles1'));
+      const styleData = useStyles$(STYLE_RED);
       (globalThis as any).rawStyleId1 = styleData.styleId;
       return <div class="container">Hello world 1</div>;
     });
     const StyledComponent2 = component$(() => {
-      const styleData = useStylesQrl(inlinedQrl(STYLE_BLUE, 's_styles2'));
+      const styleData = useStyles$(STYLE_BLUE);
       (globalThis as any).rawStyleId2 = styleData.styleId;
       return <div class="container">Hello world 2</div>;
     });
@@ -159,11 +164,11 @@ describe.each([
 
   it('should save styles for all child components', async () => {
     const StyledComponent1 = component$(() => {
-      useStylesQrl(inlinedQrl(STYLE_RED, 's_styles1'));
+      useStyles$(STYLE_RED);
       return <div class="container">Hello world 1</div>;
     });
     const StyledComponent2 = component$(() => {
-      useStylesQrl(inlinedQrl(STYLE_BLUE, 's_styles2'));
+      useStyles$(STYLE_BLUE);
       return <div class="container">Hello world 2</div>;
     });
     const Parent = component$(() => {
@@ -190,14 +195,53 @@ describe.each([
     const qStyles = container.document.querySelectorAll(QStyleSelector);
     expect(qStyles).toHaveLength(2);
   });
+  it.skipIf(render !== domRender)('should update style content on HMR re-render', async () => {
+    const INITIAL_CSS = `.hmr-test { color: red; }`;
+    const UPDATED_CSS = `.hmr-test { color: green; }`;
+
+    // Create a QRL we can mutate to simulate HMR updating the module
+    const styleQrl = inlinedQrl(INITIAL_CSS, 'hmrStyleQrl') as QRLInternal<string>;
+
+    const StyledComponent = component$(() => {
+      useStylesQrl(styleQrl);
+      _useHmr('hmr-styles.tsx');
+      return (
+        <div class="hmr-test" data-qwik-inspector="hmr-styles.tsx:1:1">
+          styled
+        </div>
+      );
+    });
+
+    const { container } = await render(<StyledComponent />, { debug });
+
+    // Verify initial style content
+    const styleEl = container.document.querySelector(QStyleSelector) as HTMLStyleElement;
+    expect(styleEl).toBeTruthy();
+    expect(styleEl.textContent).toBe(INITIAL_CSS);
+
+    // Simulate HMR: update the QRL's resolved value (as Vite would do)
+    styleQrl.resolved = UPDATED_CSS;
+
+    // Trigger HMR re-render (component body re-executes with new resolved value)
+    const t = Date.now();
+    (container.document as any).__hmrT = t; // Simulate Vite's HMR timestamp update
+    await trigger(container.element, null, 'd:q-hmr', {
+      detail: { files: ['hmr-styles.tsx'], t },
+    });
+    await new Promise((r) => setTimeout(r, 0));
+    await waitForDrain(container);
+
+    // The style element content should have been updated in-place
+    expect(styleEl.textContent).toBe(UPDATED_CSS);
+  });
+
   it('should skip style node in front of text node', async () => {
     const InnerCmp = component$(() => {
       return <div>Hello world</div>;
     });
 
-    const STYLE = `.container{color: blue;}`;
     const Cmp = component$(() => {
-      useStylesQrl(inlinedQrl(STYLE, 's_styles1'));
+      useStyles$(STYLE);
       const groupSig = useSignal('1');
       return (
         <>
@@ -223,9 +267,8 @@ describe.each([
 
 describe('html wrapper', () => {
   it('should append style to head', async () => {
-    const STYLE = `.container{color: blue;}`;
     const Wrapper = component$(() => {
-      useStylesQrl(inlinedQrl(STYLE, 's_styles1'));
+      useStyles$(STYLE);
       return <Slot />;
     });
     let document = createDocument();

@@ -4,14 +4,9 @@ import type { ServerRenderOptions } from '@qwik.dev/router/middleware/request-ha
 
 /** @public */
 export function createQwikRouter(opts: QwikRouterFirebaseOptions) {
-  if (opts.qwikCityPlan && !opts.qwikRouterConfig) {
-    console.warn('qwikCityPlan is deprecated. Simply remove it.');
-    opts.qwikRouterConfig = opts.qwikCityPlan;
-  }
-  const { staticFile, notFound, router } = createQwikRouterNode({
+  const { staticFile, router } = createQwikRouterNode({
     render: opts.render,
     manifest: opts.manifest,
-    qwikRouterConfig: opts.qwikRouterConfig,
     static: {
       cacheControl: 'public, max-age=31557600',
     },
@@ -25,7 +20,7 @@ export function createQwikRouter(opts: QwikRouterFirebaseOptions) {
 
   const qwikApp = (req: any, res: any) => {
     return staticFile(req, res, () => {
-      router(req, res, () => notFound(req, res, () => {}));
+      router(req, res, () => {});
     });
   };
 

@@ -1,54 +1,36 @@
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
-import { assertQrl } from '../shared/qrl/qrl-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
-import { throwIfQRLNotResolved } from '../reactive-primitives/utils';
-import type { ComputedSignal, Signal } from '../reactive-primitives/signal.public';
-import { useSequentialScope } from './use-sequential-scope';
+import type { ComputedSignal } from '../reactive-primitives/signal.public';
 import { createComputedSignal } from '../reactive-primitives/signal-api';
-import type { AsyncComputedSignalImpl } from '../reactive-primitives/impl/async-computed-signal-impl';
-import type { SerializerSignalImpl } from '../reactive-primitives/impl/serializer-signal-impl';
-import type { ComputedOptions } from '../reactive-primitives/types';
+import type { ComputeCtx, ComputedOptions } from '../reactive-primitives/types';
+import type { ValueOrPromise } from '../shared/utils/types';
+import { useConstant } from './use-signal';
 
+/**
+ * The compute function. The context provides `track()`, `previous` (the last computed value),
+ * `info` (the argument of the `invalidate(info)` call that triggered this computation), `cleanup()`
+ * and `abortSignal`. Synchronous reactive state reads are tracked automatically, use `untrack()` to
+ * read signals without tracking. Return a `Promise` (or use an `async` function) for async values.
+ * After the first `await`, reads are no longer tracked automatically and must use `track()`.
+ *
+ * @public
+ */
+// ctx is not `ComputeCtx<T>`: putting T in a parameter position breaks return-type inference, so
+// `ctx.previous` is `unknown` and must be cast if its type is needed.
+export type ComputedFn<T> = (ctx: ComputeCtx) => ValueOrPromise<T>;
 /** @public */
-export type ComputedFn<T> = () => T;
-/** @public */
-export type ComputedReturnType<T> = T extends Promise<any> ? never : ComputedSignal<T>;
+export type ComputedReturnType<T> = ComputedSignal<Awaited<T>>;
 
-export const useComputedCommon = <
-  T,
-  S,
-  FUNC extends Function = ComputedFn<T>,
-  RETURN = ComputedReturnType<T>,
->(
-  qrl: QRL<FUNC>,
-  createFn: (
-    qrl: QRL<any>,
-    options?: ComputedOptions
-  ) => ComputedSignalImpl<T> | AsyncComputedSignalImpl<T> | SerializerSignalImpl<T, S>,
-  options?: ComputedOptions
-): RETURN => {
-  const { val, set } = useSequentialScope<Signal<T>>();
-  if (val) {
-    return val as any;
-  }
-  assertQrl(qrl);
-  const signal = createFn(qrl, options);
-  set(signal);
-
-  // Note that we first save the signal
-  // and then we throw to load the qrl
-  // This is why we can't use useConstant, we need to keep using the same qrl object
-  throwIfQRLNotResolved(qrl);
-  return signal as any;
+const creator = <T>(qrl: QRL<ComputedFn<T>>, options?: ComputedOptions<T>) => {
+  qrl.resolve();
+  return createComputedSignal<T>(qrl, options);
 };
-
 /** @internal */
 export const useComputedQrl = <T>(
   qrl: QRL<ComputedFn<T>>,
-  options?: ComputedOptions
+  options?: ComputedOptions<T>
 ): ComputedReturnType<T> => {
-  return useComputedCommon(qrl, createComputedSignal, options);
+  return useConstant(creator<T>, qrl, options) as any;
 };
 
 /**
@@ -57,7 +39,13 @@ export const useComputedQrl = <T>(
  * recalculated, and if the result changed, all tasks which are tracking the signal will be re-run
  * and all components that read the signal will be re-rendered.
  *
- * The function must be synchronous and must not have any side effects.
+ * Every synchronous signal or store read is tracked automatically. Reads after an `await` are not:
+ * the tracking context is lost, so track them explicitly with the `track()` provided on the context
+ * argument. When the function is async, the returned signal exposes the async API: reading an
+ * unresolved `.value` throws the computation promise, and `.pending` and `.error` expose the
+ * computation state.
+ *
+ * The function must not have any side effects.
  *
  * @public
  */

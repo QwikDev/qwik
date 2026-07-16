@@ -1,6 +1,12 @@
 import { rolldown, type OutputAsset, type OutputChunk } from '@rolldown/browser';
 import type { PkgUrls, ReplInputOptions, ReplModuleOutput, ReplResult } from '../types';
-import { definesPlugin, replCss, replMinify, replResolver } from './rollup-plugins';
+import {
+  definesPlugin,
+  replCss,
+  replMinify,
+  replResolver,
+  replWorkerQrlChunks,
+} from './rollup-plugins';
 import { QWIK_PKG_NAME_V1 } from '../repl-constants';
 
 // Worker message types
@@ -40,7 +46,8 @@ export interface ErrorMessage extends MessageBase {
 type IncomingMessage = InitMessage | BundleMessage;
 export type OutgoingMessage = ReadyMessage | ResultMessage | ErrorMessage;
 
-let qwikOptimizer: typeof import('@qwik.dev/core/optimizer') | null = null;
+let qwikOptimizerModule: typeof import('@qwik.dev/optimizer') | null = null;
+let qwikViteModule: typeof import('@qwik.dev/core/optimizer') | null = null;
 let binding: any = null;
 let loaded: Promise<void> | null = null;
 let deps: PkgUrls;
@@ -85,17 +92,20 @@ let version: number[];
 async function loadOptimizer() {
   const qwikDeps = deps[QWIK_PKG_NAME_V1];
   version = qwikDeps.version.split('.').map((v) => parseInt(v, 10));
-  const wasmLoader = await import(/* @vite-ignore */ qwikDeps['/bindings/qwik.wasm.mjs']);
+  const optimizerDeps = deps['@qwik.dev/optimizer'];
+  const wasmLoader = await import(/* @vite-ignore */ optimizerDeps['/bindings/qwik.wasm.mjs']);
 
-  const wasmBuffer = await fetch(qwikDeps['/bindings/qwik_wasm_bg.wasm']).then((r) =>
+  const wasmBuffer = await fetch(optimizerDeps['/bindings/qwik_wasm_bg.wasm']).then((r) =>
     r.arrayBuffer()
   );
   const wasm = await WebAssembly.compile(wasmBuffer);
   await wasmLoader.default(wasm);
   binding = wasmLoader;
 
-  qwikOptimizer = await import(/* @vite-ignore */ qwikDeps['/dist/optimizer.mjs']);
-  console.warn(`Bundler for ${qwikDeps.version} ready`);
+  qwikOptimizerModule = await import(/* @vite-ignore */ optimizerDeps['/dist/index.mjs']);
+
+  qwikViteModule = await import(/* @vite-ignore */ qwikDeps['/dist/optimizer.mjs']);
+  console.warn(`Bundler for ${qwikDeps.version} ready (optimizer ${optimizerDeps.version})`);
 }
 
 const getOutput = (o: OutputChunk | OutputAsset) => {
@@ -128,7 +138,7 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
   const baseUrl = `/repl/client/${replId}/`;
   const defines = {
     'import.meta.env.BASE_URL': JSON.stringify(baseUrl),
-    'import.meta.env': JSON.stringify({}),
+    'import.meta.env': '({})',
   };
 
   const onwarn = (warning: any) => {
@@ -169,13 +179,14 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
     plugins: [
       definesPlugin(defines),
       replCss({ srcInputs }),
-      qwikOptimizer!.qwikRollup({
-        optimizerOptions: { binding },
+      qwikViteModule!.qwikRollup({
+        optimizerOptions: { binding, _optimizer: qwikOptimizerModule },
         target: 'client',
         buildMode,
         debug,
         srcInputs,
         entryStrategy,
+        experimental: ['suspense'],
         manifestOutput: (m: any) => {
           result.manifest = m;
         },
@@ -183,7 +194,8 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
           result.transformedModules = t;
         },
       }),
-      replResolver(deps, { srcInputs, buildMode }, 'client'),
+      replWorkerQrlChunks(() => result.manifest),
+      replResolver(deps, { srcInputs, buildMode, replId }, 'client'),
       replMinify(buildMode),
     ],
     onwarn,
@@ -214,15 +226,16 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
     plugins: [
       definesPlugin(defines),
       replCss({ srcInputs }),
-      qwikOptimizer!.qwikRollup({
-        optimizerOptions: { binding },
+      qwikViteModule!.qwikRollup({
+        optimizerOptions: { binding, _optimizer: qwikOptimizerModule },
         target: 'ssr',
         buildMode,
         debug,
         srcInputs,
         entryStrategy,
+        experimental: ['suspense'],
       }),
-      replResolver(deps, { srcInputs, buildMode }, 'ssr'),
+      replResolver(deps, { srcInputs, buildMode, replId }, 'ssr'),
       replMinify(buildMode),
     ],
     onwarn,

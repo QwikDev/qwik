@@ -4,33 +4,17 @@ import {
   isDev,
   isServer,
   noSerialize,
-  untrack,
   useStore,
   withLocale,
   type QRL,
   type ValueOrPromise,
 } from '@qwik.dev/core';
-import {
-  _deserialize,
-  _getContextElement,
-  _getContextEvent,
-  _resolveContextWithoutSequentialScope,
-  _serialize,
-  type SerializationStrategy,
-} from '@qwik.dev/core/internal';
-import { _asyncRequestStore } from '@qwik.dev/router/middleware/request-handler';
+import { _deserialize, _getContextHostElement, _serialize } from '@qwik.dev/core/internal';
 import * as v from 'valibot';
 import * as z from 'zod';
-import type { RequestEventLoader } from '../../middleware/request-handler/types';
-import {
-  DEFAULT_LOADERS_SERIALIZATION_STRATEGY,
-  QACTION_KEY,
-  QDATA_KEY,
-  QFN_KEY,
-} from './constants';
-import { RouteStateContext } from './contexts';
-import { deepFreeze } from './deepFreeze';
+import { QACTION_KEY, QDATA_KEY, QFN_KEY } from './constants';
 import type { FormSubmitCompletedDetail } from './form-component';
+import { getRequestEvent } from './route-loaders';
 import type {
   ActionConstructor,
   ActionConstructorQRL,
@@ -40,10 +24,6 @@ import type {
   DataValidator,
   Editable,
   JSONObject,
-  LoaderConstructor,
-  LoaderConstructorQRL,
-  LoaderInternal,
-  LoaderOptions,
   RequestEvent,
   RequestEventAction,
   RequestEventBase,
@@ -62,14 +42,16 @@ import type {
   ZodConstructorQRL,
   ZodDataValidator,
 } from './types';
-import { useAction, useLocation, useQwikRouterEnv } from './use-functions';
+import { useAction, useLocation } from './use-functions';
+import { _asyncRequestStore } from '../../middleware/request-handler';
+export { getRequestEvent } from './route-loaders';
 
-/** @internal */
+/** @public */
 export const routeActionQrl = ((
   actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => unknown>,
   ...rest: (ActionOptions | DataValidator)[]
 ) => {
-  const { id, validators } = getValidators(rest, actionQrl);
+  const { id, validators, invalidate } = getValidators(rest, actionQrl);
   function action() {
     const loc = useLocation() as Editable<RouteLocation>;
     const currentAction = useAction();
@@ -163,6 +145,7 @@ Action.run() can only be called on the browser, for example when a user clicks a
   action.__validators = validators;
   action.__qrl = actionQrl;
   action.__id = id;
+  action.__invalidate = invalidate;
   Object.freeze(action);
 
   return action satisfies ActionInternal;
@@ -183,7 +166,26 @@ export const globalActionQrl = ((
   return action;
 }) as ActionConstructorQRL;
 
-/** @public */
+/**
+ * Define a route action that handles form submissions or programmatic invocations.
+ *
+ * Actions run on the server when submitted from the client. The result is returned as an
+ * `ActionStore` with `.value` for success data and `.error` for errors (including validation errors
+ * from `zod$`/`valibot$` where `.fieldErrors` etc. are accessible directly on `.error`).
+ *
+ * By default, after an action completes, ALL current route loaders are invalidated on the client
+ * and re-fetched as needed (so that the browser cache is correct). This can be controlled with:
+ *
+ * - `invalidate: [loader1, loader2]`: Only invalidate specific loaders. The client re-fetches them
+ *   individually. Other loaders keep their current data.
+ * - `invalidate: []`: No loaders are invalidated. The action response only contains the action
+ *   result. Use this when the action doesn't affect any loader data.
+ *
+ * The `strictLoaders` Vite plugin option applies `invalidate: []` globally for all actions that
+ * don't specify an explicit `invalidate` option.
+ *
+ * @public
+ */
 export const routeAction$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(
   routeActionQrl
 ) as any;
@@ -192,47 +194,6 @@ export const routeAction$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(
 export const globalAction$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(
   globalActionQrl
 ) as any;
-
-/** @internal */
-export const routeLoaderQrl = ((
-  loaderQrl: QRL<(event: RequestEventLoader) => unknown>,
-  ...rest: (LoaderOptions | DataValidator)[]
-): LoaderInternal => {
-  const { id, validators, serializationStrategy } = getValidators(rest, loaderQrl);
-  function loader() {
-    const state = _resolveContextWithoutSequentialScope(RouteStateContext)!;
-
-    if (!(id in state)) {
-      throw new Error(`routeLoader$ "${loaderQrl.getSymbol()}" was invoked in a route where it was not declared.
-    This is because the routeLoader$ was not exported in a 'layout.tsx' or 'index.tsx' file of the existing route.
-    For more information check: https://qwik.dev/docs/route-loader/
-
-    If your are managing reusable logic or a library it is essential that this function is re-exported from within 'layout.tsx' or 'index.tsx file of the existing route otherwise it will not run or throw exception.
-    For more information check: https://qwik.dev/docs/re-exporting-loaders/`);
-    }
-    // Force the signal to be initialized.
-    // It is an async computed signal.
-    // We have two options:
-    // - we already have data from signal or from previous fetch
-    // - we don't have data yet, so we need to fetch it from the server
-    // Calling it will trigger fetch the data from the server.
-    // Under the hood, it will throw a promise and await for it, so the client will load the data synchronously.
-    untrack(() => state[id].value);
-    return state[id];
-  }
-  loader.__brand = 'server_loader' as const;
-  loader.__qrl = loaderQrl;
-  loader.__validators = validators;
-  loader.__id = id;
-  loader.__serializationStrategy = serializationStrategy;
-  loader.__expires = -1; // -1 means no expiration
-  Object.freeze(loader);
-
-  return loader;
-}) as LoaderConstructorQRL;
-
-/** @public */
-export const routeLoader$: LoaderConstructor = /*#__PURE__*/ implicit$FirstArg(routeLoaderQrl);
 
 /** @internal */
 export const validatorQrl = ((
@@ -399,7 +360,7 @@ export const serverQrl = <T extends ServerFunction>(
 ): ServerQRL<T> => {
   if (isServer) {
     const captured = qrl.getCaptured();
-    if (captured && captured.length > 0 && !_getContextElement()) {
+    if (captured && captured.length > 0 && !_getContextHostElement()) {
       throw new Error('For security reasons, we cannot serialize QRLs that capture lexical scope.');
     }
   }
@@ -416,23 +377,10 @@ export const serverQrl = <T extends ServerFunction>(
 
     if (isServer) {
       // Running during SSR, we can call the function directly
-      let requestEvent = _asyncRequestStore?.getStore() as RequestEvent | undefined;
-
-      if (!requestEvent) {
-        const contexts = [useQwikRouterEnv()?.ev, this, _getContextEvent()] as RequestEvent[];
-        requestEvent = contexts.find(
-          (v) =>
-            v &&
-            Object.prototype.hasOwnProperty.call(v, 'sharedMap') &&
-            Object.prototype.hasOwnProperty.call(v, 'cookie')
-        );
-      }
-
-      return qrl.apply(requestEvent, isDev ? deepFreeze(args) : args);
+      return qrl.apply(getRequestEvent(this), args);
     } else {
       // Running on the client, we need to call the function via HTTP
-      const ctxElm = _getContextElement();
-      const filteredArgs = args.map((arg: unknown) => {
+      let filteredArgs: unknown[] | undefined = args.map((arg: unknown) => {
         if (arg instanceof SubmitEvent && arg.target instanceof HTMLFormElement) {
           return new FormData(arg.target);
         } else if (arg instanceof Event) {
@@ -442,6 +390,9 @@ export const serverQrl = <T extends ServerFunction>(
         }
         return arg;
       });
+      if (!filteredArgs.length) {
+        filteredArgs = undefined;
+      }
       const qrlHash = qrl.getHash();
       // Handled by `pureServerFunction` middleware
       let query = '';
@@ -459,12 +410,13 @@ export const serverQrl = <T extends ServerFunction>(
       };
       // Serialize the arguments in an array so they don't deduplicate
       // If there is captured scope, include it in the serialization
+      // This is deserialized by runServerFunction()
       const captured = qrl.getCaptured();
-      let toSend: unknown[];
+      let toSend: [] | [typeof filteredArgs] | [typeof filteredArgs, ...unknown[]] = [filteredArgs];
       if (captured?.length) {
-        toSend = [filteredArgs, captured];
+        toSend = [filteredArgs, ...captured];
       } else {
-        toSend = filteredArgs.length ? [filteredArgs] : [];
+        toSend = filteredArgs ? [filteredArgs] : [];
       }
       const body = await _serialize(toSend);
       if (method === 'GET') {
@@ -478,11 +430,7 @@ export const serverQrl = <T extends ServerFunction>(
       if (res.ok && contentType === 'text/qwik-json-stream' && res.body) {
         return (async function* () {
           try {
-            for await (const result of deserializeStream(
-              res.body!,
-              ctxElm ?? document.documentElement,
-              abortSignal
-            )) {
+            for await (const result of deserializeStream(res.body!, abortSignal)) {
               yield result;
             }
           } finally {
@@ -493,7 +441,7 @@ export const serverQrl = <T extends ServerFunction>(
         })();
       } else if (contentType === 'application/qwik-json') {
         const str = await res.text();
-        const [obj] = _deserialize(str, ctxElm ?? document.documentElement);
+        const obj = await _deserialize(str);
         if (res.status >= 400) {
           throw obj;
         }
@@ -518,9 +466,9 @@ export const serverQrl = <T extends ServerFunction>(
 /** @public */
 export const server$ = /*#__PURE__*/ implicit$FirstArg(serverQrl);
 
-const getValidators = (rest: (LoaderOptions | DataValidator)[], qrl: QRL) => {
+const getValidators = (rest: (ActionOptions | DataValidator)[], qrl: QRL) => {
   let id: string | undefined;
-  let serializationStrategy: SerializationStrategy = DEFAULT_LOADERS_SERIALIZATION_STRATEGY;
+  let invalidate: string[] | undefined;
   const validators: DataValidator[] = [];
   if (rest.length === 1) {
     const options = rest[0];
@@ -529,11 +477,13 @@ const getValidators = (rest: (LoaderOptions | DataValidator)[], qrl: QRL) => {
         validators.push(options);
       } else {
         id = options.id;
-        if (options.serializationStrategy) {
-          serializationStrategy = options.serializationStrategy;
-        }
         if (options.validation) {
           validators.push(...options.validation);
+        }
+        if ((options as ActionOptions).invalidate) {
+          invalidate = (options as ActionOptions).invalidate!.map(
+            (loader: any) => loader.__id as string
+          );
         }
       }
     }
@@ -554,13 +504,12 @@ const getValidators = (rest: (LoaderOptions | DataValidator)[], qrl: QRL) => {
   return {
     validators: validators.reverse(),
     id,
-    serializationStrategy,
+    invalidate,
   };
 };
 
 const deserializeStream = async function* (
   stream: ReadableStream<Uint8Array>,
-  ctxElm: unknown,
   abortSignal?: AbortSignal
 ) {
   const reader = stream.getReader();
@@ -576,7 +525,7 @@ const deserializeStream = async function* (
       const lines = buffer.split(/\n/);
       buffer = lines.pop()!;
       for (const line of lines) {
-        const [deserializedData] = _deserialize(line, ctxElm);
+        const deserializedData = await _deserialize(line);
         yield deserializedData;
       }
     }

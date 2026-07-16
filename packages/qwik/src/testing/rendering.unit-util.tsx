@@ -1,47 +1,50 @@
 /* eslint-disable no-console */
-import { Slot, component$, render, type JSXOutput } from '@qwik.dev/core';
-import { _getDomContainer } from '@qwik.dev/core/internal';
+import {
+  Slot,
+  componentQrl,
+  inlinedQrl,
+  render,
+  getPlatform,
+  setPlatform,
+  type JSXOutput,
+  type StreamWriter,
+} from '@qwik.dev/core';
+import {
+  _getDomContainer,
+  _vnode_getElementName,
+  _vnode_getFirstChild,
+  _vnode_getProp,
+  _vnode_getVNodeForChildNode,
+  _vnode_insertBefore,
+  _vnode_isElementVNode,
+  _vnode_isVirtualVNode,
+  _vnode_newVirtual,
+  _vnode_remove,
+  _vnode_setProp,
+  _vnode_toString,
+} from '@qwik.dev/core/internal';
 import type {
   _ContainerElement,
   _DomContainer,
   _VNode,
   _VirtualVNode,
+  _VNodeJournal,
 } from '@qwik.dev/core/internal';
-import { transformSync } from 'esbuild';
-import { readFileSync } from 'fs';
-import { join } from 'path';
-import { fileURLToPath } from 'url';
 import { expect } from 'vitest';
-import {
-  type VNodeJournal,
-  vnode_getElementName,
-  vnode_getFirstChild,
-  vnode_getProp,
-  vnode_getVNodeForChildNode,
-  vnode_insertBefore,
-  vnode_isElementVNode,
-  vnode_isVirtualVNode,
-  vnode_locate,
-  vnode_newVirtual,
-  vnode_remove,
-  vnode_setProp,
-  vnode_toString,
-} from '../core/client/vnode-utils';
 import { ERROR_CONTEXT } from '../core/shared/error/error-handling';
-import { getPlatform, setPlatform } from '../core/shared/platform/platform';
-import { _dumpState, preprocessState } from '../core/shared/serdes/index';
+import { _dumpState, _preprocessState as preprocessState } from '@qwik.dev/core/internal';
 import {
   OnRenderProp,
   QContainerSelector,
-  QFuncsPrefix,
-  QInstanceAttr,
   QScopedStyle,
+  QStatePatchAttrSelector,
   QStyle,
 } from '../core/shared/utils/markers';
-import { useContextProvider } from '../core/use/use-context';
+import { useContextProvider } from '@qwik.dev/core';
 import { DEBUG_TYPE, ELEMENT_BACKPATCH_DATA, VirtualType } from '../server/qwik-copy';
 import type { HostElement } from '../server/qwik-types';
-import { Q_FUNCS_PREFIX, renderToString } from '../server/ssr-render';
+import { renderToStream, renderToString } from '../server/ssr-render';
+import type { StreamingOptions } from '../server/types';
 import { createDocument } from './document';
 import './vdom-diff.unit-util';
 import type { VNode } from '../core/shared/vnode/vnode';
@@ -49,6 +52,10 @@ import type { VirtualVNode } from '../core/shared/vnode/virtual-vnode';
 import { ChoreBits } from '../core/shared/vnode/enums/chore-bits.enum';
 import { markVNodeDirty } from '../core/shared/vnode/vnode-dirty';
 import type { ElementVNode } from '../core/shared/vnode/element-vnode';
+import { processOutOfOrderSegmentVNodeData } from '../core/client/process-vnode-data';
+import { executeBackpatch } from '../backpatch-executor-shared';
+import { getTestPlatform } from '@qwik.dev/core/testing';
+import { whenContainerDataReady } from '../core/client/dom-container';
 
 /** @public */
 export async function domRender(
@@ -58,6 +65,7 @@ export async function domRender(
     debug?: boolean;
   } = {}
 ) {
+  setPlatform(getTestPlatform());
   const document = createDocument();
   await render(document.body, jsx);
   const getStyles = getStylesFactory(document);
@@ -72,7 +80,7 @@ export async function domRender(
   return {
     document,
     container,
-    vNode: vnode_getFirstChild(container.rootVNode),
+    vNode: _vnode_getFirstChild(container.rootVNode),
     getStyles: getStylesFactory(document),
   };
 }
@@ -80,7 +88,9 @@ export async function domRender(
 function getStylesFactory(document: Document) {
   return () => {
     const styles: Record<string, string | string[]> = {};
-    Array.from(document.querySelectorAll('style')).forEach((style) => {
+    const styleElements = document.querySelectorAll('style');
+    for (let i = 0; i < styleElements.length; i++) {
+      const style = styleElements[i];
       const id = style.hasAttribute(QStyle)
         ? style.getAttribute(QStyle)
         : style.getAttribute(QScopedStyle)
@@ -95,7 +105,7 @@ function getStylesFactory(document: Document) {
           styles[id] = text;
         }
       }
-    });
+    }
     return styles;
   };
 }
@@ -110,11 +120,23 @@ export async function ssrRenderToDom(
     raw?: boolean;
     /** Include QwikLoader */
     qwikLoader?: boolean;
+    /** Override the SSR container tag name. */
+    containerTagName?: string;
+    /** Root-count threshold for eager yielded state prewarm during client resume. */
+    statePrewarm?: number | false;
+    /** Stream rendered chunks while still collecting the final HTML. */
+    stream?: StreamWriter;
+    /** Configure SSR streaming. */
+    streaming?: StreamingOptions;
+    /** Skip client resume emulation after SSR. */
+    resume?: boolean;
     /** Inject nodes into the document before test runs (for testing purposes) */
     onBeforeResume?: (document: Document) => void;
   } = {}
 ) {
+  setPlatform(getTestPlatform());
   let html = '';
+  const isStreaming = !!(opts.stream || opts.streaming);
   const platform = getPlatform();
   try {
     const jsxToRender = opts.raw
@@ -125,18 +147,47 @@ export async function ssrRenderToDom(
           </head>,
           <body>{jsx}</body>,
         ];
-    const result = await renderToString(jsxToRender, {
+    const renderOptions = {
+      containerTagName: opts.containerTagName,
       qwikLoader: opts.qwikLoader ? 'inline' : 'never',
-    });
-    html = result.html;
+      statePrewarm: opts.statePrewarm,
+    } as const;
+    if (opts.stream || opts.streaming) {
+      const stream: StreamWriter = {
+        write(chunk) {
+          html += chunk;
+          return opts.stream?.write(chunk);
+        },
+      };
+      if (opts.stream?.waitForDrain) {
+        stream.waitForDrain = () => opts.stream!.waitForDrain!();
+      }
+      await renderToStream(jsxToRender, {
+        ...renderOptions,
+        stream,
+        streaming: opts.streaming,
+      });
+    } else {
+      const result = await renderToString(jsxToRender, renderOptions);
+      html = result.html;
+    }
   } finally {
     setPlatform(platform);
   }
 
   const document = createDocument({ html });
   const containerElement = document.querySelector(QContainerSelector) as _ContainerElement;
+  const getStyles = getStylesFactory(document);
+
+  if (opts.resume === false) {
+    return { container: null as unknown as _DomContainer, document, vNode: null, getStyles };
+  }
 
   emulateExecutionOfQwikFuncs(document);
+
+  if (isStreaming) {
+    emulateExecutionOfStreamingOutOfOrderScripts(document);
+  }
 
   if (opts.onBeforeResume) {
     opts.onBeforeResume(document);
@@ -144,21 +195,21 @@ export async function ssrRenderToDom(
 
   emulateExecutionOfBackpatch(document);
   const container = _getDomContainer(containerElement) as _DomContainer;
-  const getStyles = getStylesFactory(document);
+  if (!isStreaming) {
+    emulateExecutionOfOutOfOrderScripts(document);
+  }
+  await whenContainerDataReady(container, () => undefined);
   if (opts.debug) {
     console.log('========================================================');
     console.log('------------------------- SSR --------------------------');
     console.log(html);
     renderStyles(getStyles);
     console.log('--------------------------------------------------------');
-    console.log(vnode_toString.call(container.rootVNode, Number.MAX_SAFE_INTEGER, '', true));
+    console.log(_vnode_toString.call(container.rootVNode, Number.MAX_SAFE_INTEGER, '', true));
     console.log('------------------- SERIALIZED STATE -------------------');
-    // We use the original state so we don't get deserialized data
-    const origState = JSON.parse(
-      container.element.querySelector('script[type="qwik/state"]')?.textContent || '[]'
-    );
-    preprocessState(origState, container);
-    console.log(origState ? _dumpState(origState, true, '', null) : 'No state found', '\n');
+    // We use the serialized state so we don't get deserialized data.
+    const debugState = getDebugSerializedState(container);
+    console.log(debugState ? _dumpState(debugState, true, '', null) : 'No state found', '\n');
     const funcs = container.$qFuncs$;
     console.log('------------------- SERIALIZED QFUNCS -------------------');
     for (let i = 0; i < funcs.length; i++) {
@@ -171,22 +222,22 @@ export async function ssrRenderToDom(
   }
   const containerVNode = opts.raw
     ? container.rootVNode
-    : vnode_getVNodeForChildNode(container.rootVNode, document.body);
+    : _vnode_getVNodeForChildNode(container.rootVNode, document.body);
 
-  const firstContainerChild = vnode_getFirstChild(containerVNode);
+  const firstContainerChild = _vnode_getFirstChild(containerVNode);
 
-  const journal: VNodeJournal = [];
+  const journal: _VNodeJournal = [];
   let vNode: VNode | null = null;
   if (!firstContainerChild) {
     // No children, so we can't get the first child
     vNode = null;
-  } else if (!vnode_isVirtualVNode(firstContainerChild)) {
+  } else if (!_vnode_isVirtualVNode(firstContainerChild)) {
     // First child is an element or a text, so we can't just use it as the vNode, because it might have siblings.
     // We need to wrap it in a fragment.
 
     // Create a fragment
-    const fragment = vnode_newVirtual();
-    vnode_setProp(fragment, DEBUG_TYPE, VirtualType.Fragment);
+    const fragment = _vnode_newVirtual();
+    _vnode_setProp(fragment, DEBUG_TYPE, VirtualType.Fragment);
 
     const childrenToMove = [];
 
@@ -196,8 +247,8 @@ export async function ssrRenderToDom(
     while (child) {
       // Stop when we reach the state script tag
       if (
-        vnode_isElementVNode(child) &&
-        (isQwikScript(child) || vnode_getElementName(child) === 'q:template')
+        _vnode_isElementVNode(child) &&
+        (isQwikScript(child) || _vnode_getElementName(child) === 'q:template')
       ) {
         insertBefore = child;
         break;
@@ -207,10 +258,11 @@ export async function ssrRenderToDom(
     }
 
     // Set the container vnode as a parent of the fragment
-    vnode_insertBefore(journal, containerVNode, fragment, insertBefore);
+    _vnode_insertBefore(journal, containerVNode, fragment, insertBefore);
     // Set the fragment as a parent of the children
-    for (const child of childrenToMove) {
-      vnode_moveToVirtual(fragment, child, null);
+    for (let i = 0; i < childrenToMove.length; i++) {
+      const child = childrenToMove[i];
+      _vnode_moveToVirtual(fragment, child, null);
     }
     vNode = fragment;
   } else {
@@ -224,25 +276,76 @@ export async function ssrRenderToDom(
   return { container, document, vNode, getStyles };
 }
 
+function getDebugSerializedState(container: _DomContainer) {
+  const stateScriptSelector = `script[type="qwik/state"][q\\:instance="${container.$instanceHash$}"]`;
+  const rootStateScript = container.element.querySelector(
+    `${stateScriptSelector}:not(${QStatePatchAttrSelector})`
+  );
+  const patchStateScripts = container.element.querySelectorAll(
+    `${stateScriptSelector}${QStatePatchAttrSelector}`
+  );
+
+  if (!rootStateScript && patchStateScripts.length === 0) {
+    return null;
+  }
+
+  const state = JSON.parse(rootStateScript?.textContent || '[]') as unknown[];
+  const patchForwardRefs: Array<Array<number | string>> = [];
+  for (let i = 0; i < patchStateScripts.length; i++) {
+    const patchStateText = patchStateScripts[i].textContent;
+    if (!patchStateText) {
+      continue;
+    }
+    const [rootStart, rawStateData, forwardRefs] = JSON.parse(patchStateText) as [
+      number,
+      unknown[],
+      Array<number | string> | 0 | undefined,
+    ];
+    for (let j = 0; j < rawStateData.length; j++) {
+      state[rootStart * 2 + j] = rawStateData[j];
+    }
+    if (forwardRefs) {
+      patchForwardRefs.push(forwardRefs);
+    }
+  }
+
+  // Preprocess a copy without mutating the live container's forward-ref bookkeeping.
+  const debugContainer = { $forwardRefs$: null } as _DomContainer;
+  preprocessState(state, debugContainer);
+  for (let i = 0; i < patchForwardRefs.length; i++) {
+    const rootForwardRefs = (debugContainer.$forwardRefs$ ||= []);
+    const forwardRefs = patchForwardRefs[i];
+    for (let j = 0; j < forwardRefs.length; j++) {
+      const ref = forwardRefs[j];
+      if (ref !== undefined) {
+        rootForwardRefs.push(ref);
+      }
+    }
+  }
+
+  return state;
+}
+
 function isQwikScript(node: ElementVNode): boolean {
   const element = node.node;
   return (
-    vnode_getElementName(node) === 'script' &&
-    (vnode_getProp(node, 'type', null) === 'qwik/state' ||
-      vnode_getProp(node, 'type', null) === ELEMENT_BACKPATCH_DATA ||
-      vnode_getProp(node, 'id', null) === 'qwikloader' ||
+    _vnode_getElementName(node) === 'script' &&
+    (_vnode_getProp(node, 'type', null) === 'qwik/state' ||
+      _vnode_getProp(node, 'type', null) === ELEMENT_BACKPATCH_DATA ||
+      _vnode_getProp(node, 'id', null) === 'qwikloader' ||
       element.getAttribute('type') === 'qwik/state' ||
       element.getAttribute('type') === ELEMENT_BACKPATCH_DATA ||
-      element.getAttribute('id') === 'qwikloader')
+      element.getAttribute('id') === 'qwikloader' ||
+      element.innerHTML.includes('window._qwikEv'))
   );
 }
 
-function vnode_moveToVirtual(parent: VirtualVNode, newChild: VNode, insertBefore: VNode | null) {
-  const journal: VNodeJournal = [];
+function _vnode_moveToVirtual(parent: VirtualVNode, newChild: VNode, insertBefore: VNode | null) {
+  const journal: _VNodeJournal = [];
   // ensure that the previous node is unlinked.
   const newChildCurrentParent = newChild.parent;
   if (newChildCurrentParent && (newChild.previousSibling || newChild.nextSibling)) {
-    vnode_remove(journal, newChildCurrentParent as ElementVNode | VirtualVNode, newChild, false);
+    _vnode_remove(journal, newChildCurrentParent as ElementVNode | VirtualVNode, newChild, false);
   }
   if (journal.length > 0) {
     throw new Error('Journal not empty after removing node.');
@@ -268,14 +371,11 @@ function vnode_moveToVirtual(parent: VirtualVNode, newChild: VNode, insertBefore
 
 /** @public */
 export function emulateExecutionOfQwikFuncs(document: Document) {
-  const qFuncs = document.body.querySelector('[q\\:func]');
-  const containerElement = document.querySelector(QContainerSelector) as _ContainerElement;
-  const hash = containerElement.getAttribute(QInstanceAttr);
-  if (qFuncs && hash) {
-    let code = qFuncs.textContent || '';
-    code = code.replace(Q_FUNCS_PREFIX.replace('HASH', hash), '');
+  const qFuncs = document.body.querySelectorAll('[q\\:func]');
+  for (let i = 0; i < qFuncs.length; i++) {
+    const code = qFuncs[i].textContent || '';
     if (code) {
-      (document as any)[QFuncsPrefix + hash] = eval(code);
+      eval(code);
     }
   }
 }
@@ -300,34 +400,35 @@ export function emulateExecutionOfBackpatch(document: Document) {
     };
   }
 
-  // we need esbuild to transpile from ts to js for the test environment
-  const __dirname = fileURLToPath(new URL('.', import.meta.url));
-  const tsPath = join(__dirname, '../backpatch-executor.ts');
-  const tsSource = readFileSync(tsPath, 'utf8');
+  // Use the shared backpatch executor function
+  executeBackpatch(document);
+}
 
-  const result = transformSync(tsSource, {
-    loader: 'ts',
-    target: 'es2020',
-    format: 'esm',
-    minify: false,
-    sourcemap: false,
-  });
-
-  const code = `try {${result.code}} catch (e) { console.error(e); }`;
-  const script = document.createElement('script');
-  document.body.appendChild(script);
-  (document as any).currentScript = script;
-  try {
-    eval(code);
-  } finally {
-    (document as any).currentScript = null;
-    document.body.removeChild(script);
+export function emulateExecutionOfOutOfOrderScripts(document: Document) {
+  const scripts = Array.from(
+    document.querySelectorAll('script[type="text/javascript"]'),
+    (script) => script.textContent || ''
+  ).filter((code) => code.includes('qO') || code.includes('qInstallOOOS'));
+  if (scripts.length > 0) {
+    // eslint-disable-next-line no-new-func
+    new Function('document', scripts.join('\n'))(document);
   }
+}
+
+function emulateExecutionOfStreamingOutOfOrderScripts(document: Document) {
+  const qDocument = document as Document & {
+    qProcessOOOS?: (boundaryId: number, content: Element | null) => void;
+  };
+  qDocument.qProcessOOOS = (boundaryId, content) => {
+    processOutOfOrderSegmentVNodeData(document, String(boundaryId), content);
+  };
+  emulateExecutionOfOutOfOrderScripts(document);
 }
 
 function renderStyles(getStyles: () => Record<string, string | string[]>) {
   const START = '\x1b[34m';
   const END = '\x1b[0m';
+  // eslint-disable-next-line qwik-local/loop-style
   Object.entries(getStyles()).forEach(([key, value], idx) => {
     if (idx == 0) {
       console.log('-  -  -  -  -  -  -  <style>  -  -  -  -  -  -  -  -  -');
@@ -337,15 +438,16 @@ function renderStyles(getStyles: () => Record<string, string | string[]>) {
 }
 
 export async function rerenderComponent(element: HTMLElement) {
-  const container = _getDomContainer(element);
-  const vElement = vnode_locate(container.rootVNode, element);
+  const container = _getDomContainer(element) as _DomContainer;
+  await whenContainerDataReady(container, () => undefined);
+  const vElement = container.vNodeLocate(element);
   const host = getHostVNode(vElement) as HostElement;
   markVNodeDirty(container, host, ChoreBits.COMPONENT);
 }
 
 function getHostVNode(vElement: _VNode | null) {
   while (vElement != null) {
-    if (vnode_getProp(vElement, OnRenderProp, null) != null) {
+    if (_vnode_getProp(vElement, OnRenderProp, null) != null) {
       return vElement as _VirtualVNode;
     }
     vElement = vElement.parent;
@@ -354,10 +456,12 @@ function getHostVNode(vElement: _VNode | null) {
 }
 
 export const ErrorProvider = Object.assign(
-  component$(() => {
-    (ErrorProvider as any).error = null;
-    useContextProvider(ERROR_CONTEXT, ErrorProvider as any);
-    return <Slot />;
-  }),
+  componentQrl(
+    inlinedQrl(() => {
+      (ErrorProvider as any).error = null;
+      useContextProvider(ERROR_CONTEXT, ErrorProvider as any);
+      return <Slot />;
+    }, 's_ErrorProvider')
+  ),
   { error: null as any }
 );

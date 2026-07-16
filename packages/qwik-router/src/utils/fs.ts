@@ -1,7 +1,7 @@
 import { basename, dirname, normalize, relative } from 'node:path';
 import type { NormalizedPluginOptions } from '../buildtime/types';
 import { toTitleCase } from './format';
-import { normalizePathname } from './pathname';
+import { ensureSlash, normalizePathname } from './pathname';
 
 export function parseRouteIndexName(extlessName: string) {
   let layoutName = '';
@@ -42,11 +42,8 @@ export function getPathnameFromDirPath(opts: NormalizedPluginOptions, dirPath: s
 export function getMenuPathname(opts: NormalizedPluginOptions, filePath: string) {
   let pathname = normalizePath(relative(opts.routesDir, filePath));
   pathname = `/` + normalizePath(dirname(pathname));
-  let result = normalizePathname(pathname, opts.basePathname)!;
-  if (!result.endsWith('/')) {
-    result += '/';
-  }
-  return result;
+  const result = normalizePathname(pathname, opts.basePathname)!;
+  return ensureSlash(result);
 }
 
 export function getExtension(fileName: string) {
@@ -156,7 +153,7 @@ export function isIndexModule(extlessName: string) {
 }
 
 export function isPluginModule(extlessName: string) {
-  return /^plugin(|@.+)$/.test(extlessName);
+  return /^plugin(|@.+)$/.test(extlessName) && !/\.(test|unit|spec)(\.[jt]s)?$/.test(extlessName);
 }
 
 export function isLayoutModule(extlessName: string) {
@@ -191,20 +188,16 @@ export function isEntryName(extlessName: string) {
   return extlessName === 'entry';
 }
 
+/** The boundary kind, ignoring any `@x`/`!` modifier: `'404'`, `'error'`, or undefined. */
+export function errorBoundaryName(extlessName: string): '404' | 'error' | undefined {
+  const match = /^(error|404)(?:|!|@.+)$/.exec(extlessName);
+  return match ? (match[1] as '404' | 'error') : undefined;
+}
+
 export function isErrorName(extlessName: string) {
-  return /^[45][0-9]{2}$/.test(extlessName);
+  return errorBoundaryName(extlessName) !== undefined;
 }
 
 export function isGroupedLayoutName(dirName: string, warn = true) {
-  if (dirName.startsWith('__')) {
-    if (warn) {
-      console.warn(
-        `Grouped (pathless) layout "${dirName}" should use the "(${dirName.slice(
-          2
-        )})" directory name instead. Prefixing a directory with "__" has been deprecated and will be removed in future versions.`
-      );
-    }
-    return true;
-  }
   return dirName.startsWith('(') && dirName.endsWith(')');
 }

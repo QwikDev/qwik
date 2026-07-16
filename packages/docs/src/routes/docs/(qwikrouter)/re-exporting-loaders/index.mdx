@@ -9,6 +9,7 @@ created_at: '2023-12-15T11:00:00Z'
 ---
 
 import CodeSandbox, {CodeFile} from '../../../../components/code-sandbox/index.tsx';
+import { Note, LongNote } from '~/components/note/note';
 
 # Re-exporting loaders
 
@@ -94,10 +95,11 @@ We are provided with a component to integrate into the page, but we have no cont
 If these third-party components rely on `routeLoader$` or `routeAction$` functions, we must manually re-export and register those inside 
 a component that exists within the route boundary. This is necessary so the Qwik optimizer can detect and include them during the build.
 
-> **Note:** Starting in Qwik v2.0, manual registration will no longer be needed. However, until then, the optimizer may **miss** 
-> `routeLoader$` functions if they’re used inside components that are **conditionally rendered** (e.g., toggled with a signal).
->
-> If you don’t manually register the loader in these cases, you may encounter undefined behavior. <u>Avoid skipping this step</u>.
+<LongNote title="Manual Registration Required Before v2.0">
+Starting in Qwik v2.0, manual registration will no longer be needed. However, until then, the optimizer may **miss** `routeLoader$` functions if they’re used inside components that are **conditionally rendered** (e.g., toggled with a signal).
+
+If you don’t manually register the loader in these cases, you may encounter undefined behavior. <u>Avoid skipping this step</u>.
+</LongNote>
 
 
 #### Here is our code:

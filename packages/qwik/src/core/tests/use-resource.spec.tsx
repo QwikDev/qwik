@@ -1,5 +1,4 @@
 import {
-  Fragment as Awaited,
   Fragment as Component,
   Fragment,
   Fragment as InlineComponent,
@@ -40,11 +39,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component>
         <div>
-          <InlineComponent>
-            <Fragment>
-              <Awaited>{result}</Awaited>
-            </Fragment>
-          </InlineComponent>
+          <InlineComponent>{result}</InlineComponent>
         </div>
       </Component>
     );
@@ -53,7 +48,7 @@ describe.each([
   it('should update resource task', async () => {
     const TestCmp = component$(() => {
       const count = useSignal(0);
-      const rsrc = useResource$(async ({ track }) => {
+      const rsrc = useResource$<number>(async ({ track }) => {
         return track(count);
       });
       return (
@@ -68,25 +63,21 @@ describe.each([
       <Component ssr-required>
         <button>
           <InlineComponent ssr-required>
-            <Fragment ssr-required>
-              <Awaited ssr-required>
-                <span>0</span>
-              </Awaited>
-            </Fragment>
+            <span>0</span>
           </InlineComponent>
         </button>
       </Component>
     );
     await trigger(container.element, 'button', 'click');
+    await waitForDrain(container);
+    await waitForDrain(container);
+    await waitForDrain(container);
+    await waitForDrain(container);
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
         <button>
           <InlineComponent ssr-required>
-            <Fragment ssr-required>
-              <Awaited ssr-required>
-                <span>1</span>
-              </Awaited>
-            </Fragment>
+            <span>1</span>
           </InlineComponent>
         </button>
       </Component>
@@ -94,13 +85,14 @@ describe.each([
   });
 
   it('should show loading state', async () => {
-    (global as any).delay = () => new Promise<void>((res) => ((global as any).delay.resolve = res));
+    (global as any)._resDelay = () =>
+      new Promise<void>((res) => ((global as any)._resDelay.resolve = res));
     const ResourceCmp = component$(() => {
       const count = useSignal(0);
       const rsrc = useResource$(async ({ track }) => {
         const value = track(() => count.value);
         if (count.value === 1) {
-          await (global as any).delay();
+          await (global as any)._resDelay();
         }
         return value;
       });
@@ -110,17 +102,24 @@ describe.each([
         </button>
       );
     });
+
     const { vNode, container } = await render(<ResourceCmp />, { debug });
 
+    if (render === domRender) {
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            <InlineComponent>...</InlineComponent>
+          </button>
+        </Component>
+      );
+      await waitForDrain(container);
+    }
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
         <button>
           <InlineComponent ssr-required>
-            <Fragment ssr-required>
-              <Awaited ssr-required>
-                <span>0</span>
-              </Awaited>
-            </Fragment>
+            <span>0</span>
           </InlineComponent>
         </button>
       </Component>
@@ -130,31 +129,26 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
         <button>
-          <InlineComponent ssr-required>
-            <Fragment ssr-required>
-              <Awaited ssr-required>...</Awaited>
-            </Fragment>
-          </InlineComponent>
+          <InlineComponent ssr-required>...</InlineComponent>
         </button>
       </Component>
     );
-    await (global as any).delay.resolve();
+
+    await (global as any)._resDelay.resolve();
+    // Give the resource a tick to resolve
+    await waitForDrain(container);
     await waitForDrain(container);
 
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
         <button>
           <InlineComponent ssr-required>
-            <Fragment ssr-required>
-              <Awaited ssr-required>
-                <span>1</span>
-              </Awaited>
-            </Fragment>
+            <span>1</span>
           </InlineComponent>
         </button>
       </Component>
     );
-    (global as any).delay = undefined;
+    (global as any)._resDelay = undefined;
   });
 
   it('should immediately increment button count', async () => {
@@ -186,11 +180,7 @@ describe.each([
             <Signal ssr-required>0</Signal>
           </button>
           <InlineComponent ssr-required>
-            <Fragment ssr-required>
-              <Awaited ssr-required>
-                <div>0</div>
-              </Awaited>
-            </Fragment>
+            <div>0</div>
           </InlineComponent>
         </Fragment>
       </Component>
@@ -204,17 +194,14 @@ describe.each([
             <Signal ssr-required>1</Signal>
           </button>
           <InlineComponent ssr-required>
-            <Fragment ssr-required>
-              <Awaited ssr-required>
-                <div>0</div>
-              </Awaited>
-            </Fragment>
+            <div>0</div>
           </InlineComponent>
         </Fragment>
       </Component>
     );
     await (global as any).delay.resolve();
-    await waitForDrain(container);
+    // let the resource completion chain schedule the render before draining
+    await new Promise((resolve) => setTimeout(resolve, 0));
     await waitForDrain(container);
 
     expect(vNode).toMatchVDOM(
@@ -224,11 +211,7 @@ describe.each([
             <Signal ssr-required>1</Signal>
           </button>
           <InlineComponent ssr-required>
-            <Fragment ssr-required>
-              <Awaited ssr-required>
-                <div>1</div>
-              </Awaited>
-            </Fragment>
+            <div>1</div>
           </InlineComponent>
         </Fragment>
       </Component>
@@ -266,20 +249,15 @@ describe.each([
             <Signal ssr-required>0</Signal>
           </button>
           <InlineComponent ssr-required>
-            <Fragment ssr-required>
-              <Awaited ssr-required>
-                <div>0</div>
-              </Awaited>
-            </Fragment>
+            <div>0</div>
           </InlineComponent>
         </Fragment>
       </Component>
     );
-    // double click
+    // click twice
     await trigger(container.element, 'button', 'click');
     await trigger(container.element, 'button', 'click');
     await (global as any).delay.resolve();
-    await waitForDrain(container);
 
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
@@ -288,11 +266,7 @@ describe.each([
             <Signal ssr-required>2</Signal>
           </button>
           <InlineComponent ssr-required>
-            <Fragment ssr-required>
-              <Awaited ssr-required>
-                <div>2</div>
-              </Awaited>
-            </Fragment>
+            <div>2</div>
           </InlineComponent>
         </Fragment>
       </Component>
@@ -332,13 +306,9 @@ describe.each([
         <Fragment>
           <InlineComponent>
             <Fragment>
-              <Awaited>
-                <Fragment>
-                  <Component>
-                    <div></div>
-                  </Component>
-                </Fragment>
-              </Awaited>
+              <Component>
+                <div></div>
+              </Component>
             </Fragment>
           </InlineComponent>
         </Fragment>
@@ -382,12 +352,8 @@ describe.each([
           </button>
           <InlineComponent ssr-required>
             <Fragment ssr-required>
-              <Awaited ssr-required>
-                <Fragment ssr-required>
-                  <div>10</div>
-                  <input value="10" />
-                </Fragment>
-              </Awaited>
+              <div>10</div>
+              <input value="10" />
             </Fragment>
           </InlineComponent>
         </Fragment>
@@ -405,12 +371,8 @@ describe.each([
           </button>
           <InlineComponent ssr-required>
             <Fragment ssr-required>
-              <Awaited ssr-required>
-                <Fragment ssr-required>
-                  <div>11</div>
-                  <input value="11" />
-                </Fragment>
-              </Awaited>
+              <div>11</div>
+              <input value="11" />
             </Fragment>
           </InlineComponent>
         </Fragment>
@@ -452,20 +414,36 @@ describe.each([
 
     const { vNode, document } = await render(<ResourceApp />, { debug });
     expect(vNode).toMatchVDOM(
-      <Component>
-        <Component>
+      <InlineComponent>
+        <InlineComponent>
           <div>
             <InlineComponent>
               <Fragment>
-                <Awaited>
-                  <Fragment>
-                    <div>
-                      {'resource 1 is '}
-                      {'0'}
-                    </div>
-                    <button>{'count is '}0</button>
-                  </Fragment>
-                </Awaited>
+                <div>
+                  {'resource 1 is '}
+                  {'0'}
+                </div>
+                <button>{'count is '}0</button>
+              </Fragment>
+            </InlineComponent>
+          </div>
+        </InlineComponent>
+      </InlineComponent>
+    );
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Component>
+          <div>
+            <InlineComponent ssr-required>
+              <Fragment ssr-required>
+                <div>
+                  {'resource 1 is '}
+                  {'0'}
+                </div>
+                <button>{'count is '}1</button>
               </Fragment>
             </InlineComponent>
           </div>
@@ -481,39 +459,11 @@ describe.each([
           <div>
             <InlineComponent>
               <Fragment>
-                <Awaited>
-                  <Fragment>
-                    <div>
-                      {'resource 1 is '}
-                      {'0'}
-                    </div>
-                    <button>{'count is '}1</button>
-                  </Fragment>
-                </Awaited>
-              </Fragment>
-            </InlineComponent>
-          </div>
-        </Component>
-      </Component>
-    );
-
-    await trigger(document.body, 'button', 'click');
-
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <Component>
-          <div>
-            <InlineComponent>
-              <Fragment>
-                <Awaited>
-                  <Fragment>
-                    <div>
-                      {'resource 1 is '}
-                      {'0'}
-                    </div>
-                    <button>{'count is '}2</button>
-                  </Fragment>
-                </Awaited>
+                <div>
+                  {'resource 1 is '}
+                  {'0'}
+                </div>
+                <button>{'count is '}2</button>
               </Fragment>
             </InlineComponent>
           </div>
@@ -559,32 +509,28 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
         <InlineComponent>
-          <Fragment>
-            <Awaited>
-              <div>
-                <p>
-                  <Signal>1</Signal>
-                </p>
-                <p>
-                  <Signal>John Doe</Signal>
-                </p>
-                <p>
-                  <Signal>30</Signal>
-                </p>
-              </div>
-              <div>
-                <p>
-                  <Signal>2</Signal>
-                </p>
-                <p>
-                  <Signal>Jane Smith</Signal>
-                </p>
-                <p>
-                  <Signal>25</Signal>
-                </p>
-              </div>
-            </Awaited>
-          </Fragment>
+          <div>
+            <p>
+              <Signal>1</Signal>
+            </p>
+            <p>
+              <Signal>John Doe</Signal>
+            </p>
+            <p>
+              <Signal>30</Signal>
+            </p>
+          </div>
+          <div>
+            <p>
+              <Signal>2</Signal>
+            </p>
+            <p>
+              <Signal>Jane Smith</Signal>
+            </p>
+            <p>
+              <Signal>25</Signal>
+            </p>
+          </div>
         </InlineComponent>
       </Component>
     );

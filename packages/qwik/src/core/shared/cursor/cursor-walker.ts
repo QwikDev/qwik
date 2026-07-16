@@ -6,16 +6,20 @@
  */
 
 import { isServerPlatform } from '../platform/platform';
+import { qTest } from '../utils/qdev';
 import type { VNode } from '../vnode/vnode';
 import {
   executeCleanup,
   executeComponentChore,
   executeCompute,
+  executeErrorWrap,
+  executeInlineComponentChore,
   executeNodeDiff,
   executeNodeProps,
+  executeReconcile,
   executeTasks,
 } from './chore-execution';
-import { type Cursor } from './cursor';
+import { addCursor, isCursor, type Cursor } from './cursor';
 import { setCursorPosition, getCursorData, type CursorData } from './cursor-props';
 import { ChoreBits } from '../vnode/enums/chore-bits.enum';
 import {
@@ -31,6 +35,14 @@ import type { ValueOrPromise } from '../utils/types';
 import { assertDefined, assertFalse } from '../error/assert';
 import type { Container } from '../types';
 import { VNodeFlags } from '../../client/types';
+import { isDev, isServer } from '@qwik.dev/core/build';
+import { QCursorBoundary } from '../utils/markers';
+import {
+  addCursorBoundary,
+  clearNearestCursorBoundary,
+  resolveCursorBoundaries,
+  type CursorBoundary,
+} from '../../use/use-cursor-boundary';
 
 const DEBUG = false;
 
@@ -53,27 +65,24 @@ function scheduleYield(): void {
   }
 }
 
-/** Options for walking a cursor. */
-export interface WalkOptions {
-  /** Time budget in milliseconds (for DOM time-slicing). If exceeded, walk pauses. */
-  timeBudget: number;
-}
-
 /**
  * Processes the cursor queue, walking each cursor in turn.
  *
  * @param options - Walk options (time budget, etc.)
  */
-export function processCursorQueue(
-  options: WalkOptions = {
-    timeBudget: 1000 / 60, // 60fps
-  }
-): void {
+export function processCursorQueue(): void {
   isNextTickScheduled = false;
+  const startTime = performance.now();
+  const yieldTime = startTime + 15; // 16 ms = 60 FPS, use 15 to yield slightly before next frame
 
   let cursor: Cursor | null = null;
   while ((cursor = getHighestPriorityCursor())) {
-    walkCursor(cursor, options);
+    if (walkCursor(cursor, yieldTime)) {
+      // Cursor overran time budget, yield to browser
+      // Note that each tick we process at least one thing
+      scheduleYield();
+      return;
+    }
   }
 }
 
@@ -93,13 +102,12 @@ export function processCursorQueue(
  * Note that there is only one walker for all containers in the app with the same Qwik version.
  *
  * @param cursor - The cursor to walk
- * @param options - Walk options (time budget, etc.)
- * @returns Walk result indicating completion status
+ * @param until - Time budget (timestamp to yield by)
+ * @returns `true` if the walk was paused due to time budget (do not process more cursors in this
+ *   tick)
  */
-export function walkCursor(cursor: Cursor, options: WalkOptions): void {
-  const { timeBudget } = options;
-  const isServer = isServerPlatform();
-  const startTime = performance.now();
+export function walkCursor(cursor: Cursor, until: number): boolean | void {
+  const isRunningOnServer = qTest ? isServerPlatform() : isServer;
 
   const cursorData = getCursorData(cursor)!;
 
@@ -110,11 +118,11 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
   }
 
   const container = cursorData.container;
-  assertDefined(container, 'Cursor container not found');
+  isDev && assertDefined(container, 'Cursor container not found');
 
   // Check if cursor is already complete
   if (!cursor.dirty) {
-    finishWalk(container, cursor, cursorData, isServer);
+    finishWalk(container, cursor, cursorData, isRunningOnServer);
     return;
   }
 
@@ -129,16 +137,6 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
     if (DEBUG && count++ > 1000) {
       throw new Error('Infinite loop detected in cursor walker');
     }
-    // Check time budget (only for DOM, not SSR)
-    if (!isServer && !import.meta.env.TEST) {
-      const elapsed = performance.now() - startTime;
-      if (elapsed >= timeBudget) {
-        // Schedule continuation as macrotask to actually yield to browser
-        scheduleYield();
-        return;
-      }
-    }
-
     if (cursorData.promise) {
       return;
     }
@@ -146,7 +144,8 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
     // Skip if the vNode is not dirty
     if (!(currentVNode.dirty & ChoreBits.DIRTY_MASK)) {
       // Move to next node
-      setCursorPosition(container, cursorData, getNextVNode(currentVNode, cursor));
+      __EXPERIMENTAL__.suspense && clearNearestCursorBoundary(currentVNode);
+      setCursorPosition(container, cursorData, getNextVNode(currentVNode, cursor, container));
       continue;
     }
 
@@ -155,10 +154,16 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
       // if deleted, run cleanup if needed
       if (currentVNode.dirty & ChoreBits.CLEANUP) {
         executeCleanup(currentVNode, container);
+      } else if (currentVNode.dirty & ChoreBits.CHILDREN) {
+        const next = tryDescendDirtyChildren(container, cursorData, currentVNode, cursor);
+        if (next !== null) {
+          currentVNode = next;
+          continue;
+        }
       }
       // Clear dirty bits and move to next node
       currentVNode.dirty &= ~ChoreBits.DIRTY_MASK;
-      setCursorPosition(container, cursorData, getNextVNode(currentVNode, cursor));
+      setCursorPosition(container, cursorData, getNextVNode(currentVNode, cursor, container));
       continue;
     }
 
@@ -170,24 +175,26 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
       } else if (currentVNode.dirty & ChoreBits.NODE_DIFF) {
         result = executeNodeDiff(currentVNode, container, journal, cursor);
       } else if (currentVNode.dirty & ChoreBits.COMPONENT) {
-        result = executeComponentChore(currentVNode, container, journal, cursor);
+        result = executeComponentChore(currentVNode, container, journal, cursor) as Promise<void>;
+      } else if (currentVNode.dirty & ChoreBits.INLINE_COMPONENT) {
+        result = executeInlineComponentChore(currentVNode, container, journal, cursor);
+      } else if (currentVNode.dirty & ChoreBits.RECONCILE) {
+        result = executeReconcile(currentVNode, container, journal, cursor);
       } else if (currentVNode.dirty & ChoreBits.NODE_PROPS) {
         executeNodeProps(currentVNode, journal);
       } else if (currentVNode.dirty & ChoreBits.COMPUTE) {
         result = executeCompute(currentVNode, container);
       } else if (currentVNode.dirty & ChoreBits.CHILDREN) {
-        const dirtyChildren = currentVNode.dirtyChildren;
-        if (!dirtyChildren || dirtyChildren.length === 0) {
-          // No dirty children
-          currentVNode.dirty &= ~ChoreBits.CHILDREN;
-        } else {
-          partitionDirtyChildren(dirtyChildren, currentVNode);
-          currentVNode.nextDirtyChildIndex = 0;
-          // descend
-          currentVNode = getNextVNode(dirtyChildren[0], cursor)!;
-          setCursorPosition(container, cursorData, currentVNode);
+        const next = tryDescendDirtyChildren(container, cursorData, currentVNode, cursor);
+        if (next !== null) {
+          currentVNode = next;
           continue;
         }
+      } else if (currentVNode.dirty & ChoreBits.ERROR_WRAP) {
+        // Must run after CHILDREN so that all descendant chores (e.g. signal text
+        // NODE_DIFF updates) are flushed before we reparent children into the
+        // errored-host wrapper element.
+        executeErrorWrap(currentVNode, journal);
       }
     } catch (error) {
       container.handleError(error, currentVNode);
@@ -196,28 +203,41 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
     // Handle blocking promise
     if (result && isPromise(result)) {
       DEBUG && console.warn('walkCursor: blocking promise', currentVNode.toString());
+      addCursorBoundary(cursorData, currentVNode);
       // Store promise on cursor and pause
-      cursorData.promise = result;
+      const blockingPromise = result;
+      cursorData.promise = blockingPromise;
       pauseCursor(cursor, container);
 
       const host = currentVNode;
-      result
+      blockingPromise
         .catch((error) => {
-          container.handleError(error, host);
+          if (cursorData.promise === blockingPromise) {
+            container.handleError(error, host);
+          }
         })
         .finally(() => {
+          if (cursorData.promise !== blockingPromise) {
+            return;
+          }
           cursorData.promise = null;
           resumeCursor(cursor, container);
           triggerCursors();
         });
       return;
     }
+
+    // Check time budget (only for DOM, not SSR)
+    if (performance.now() >= until) {
+      return true;
+    }
   }
-  assertFalse(
-    !!(cursor.dirty & ChoreBits.DIRTY_MASK && !cursorData.position),
-    'Cursor is still dirty and position is not set after walking'
-  );
-  finishWalk(container, cursor, cursorData, isServer);
+  isDev &&
+    assertFalse(
+      !!(cursor.dirty & ChoreBits.DIRTY_MASK && !cursorData.position),
+      'Cursor is still dirty and position is not set after walking'
+    );
+  finishWalk(container, cursor, cursorData, isRunningOnServer);
 }
 
 function finishWalk(
@@ -228,9 +248,12 @@ function finishWalk(
 ): void {
   if (!(cursor.dirty & ChoreBits.DIRTY_MASK)) {
     removeCursorFromQueue(cursor, container);
+    DEBUG && console.warn('walkCursor: cursor done', cursor.toString());
     if (!isServer) {
       executeFlushPhase(cursor, container);
     }
+
+    resolveCursorBoundaries(cursorData);
 
     if (cursorData.extraPromises) {
       Promise.all(cursorData.extraPromises).then(() => {
@@ -244,19 +267,38 @@ function finishWalk(
 }
 
 export function resolveCursor(container: Container): void {
-  // TODO streaming as a cursor? otherwise we need to wait separately for it
-  // or just ignore and resolve manually
-  if (container.$cursorCount$ === 0) {
-    container.$resolveRenderPromise$!();
-    container.$renderPromise$ = null;
+  DEBUG && console.warn(`walkCursor: cursor resolved, ${container.$pendingCount$} remaining`);
+  container.$checkPendingCount$();
+}
+
+/**
+ * If the vNode has dirty children, partitions them, sets cursor to first dirty child, and returns
+ * that child. Otherwise clears CHILDREN bit and returns null.
+ */
+export function tryDescendDirtyChildren(
+  container: Container,
+  cursorData: CursorData,
+  currentVNode: VNode,
+  cursor: Cursor
+): VNode | null {
+  const dirtyChildren = currentVNode.dirtyChildren;
+  if (!dirtyChildren || dirtyChildren.length === 0) {
+    currentVNode.dirty &= ~ChoreBits.CHILDREN;
+    clearNearestCursorBoundary(currentVNode);
+    return null;
   }
+  partitionDirtyChildren(dirtyChildren, currentVNode);
+  currentVNode.nextDirtyChildIndex = 0;
+  const next = getNextVNode(dirtyChildren[0], cursor, container)!;
+  setCursorPosition(container, cursorData, next);
+  return next;
 }
 
 /**
  * Partitions dirtyChildren array so non-projections come first, projections last. Uses in-place
  * swapping to avoid allocations.
  */
-function partitionDirtyChildren(dirtyChildren: VNode[], parent: VNode): void {
+export function partitionDirtyChildren(dirtyChildren: VNode[], parent: VNode): void {
   let writeIndex = 0;
   for (let readIndex = 0; readIndex < dirtyChildren.length; readIndex++) {
     const child = dirtyChildren[readIndex];
@@ -273,19 +315,19 @@ function partitionDirtyChildren(dirtyChildren: VNode[], parent: VNode): void {
 }
 
 /** @returns Next vNode to process, or null if traversal is complete */
-function getNextVNode(vNode: VNode, cursor: Cursor): VNode | null {
+export function getNextVNode(vNode: VNode, cursor: Cursor, container?: Container): VNode | null {
   if (vNode === cursor) {
     if (cursor.dirty & ChoreBits.DIRTY_MASK) {
       return cursor;
     }
     return null;
   }
-  // Prefer parent if it's dirty, otherwise try slotParent
+  // Prefer slotParent (logical owner) for Projections, fall back to parent
   let parent: VNode | null = null;
-  if (vNode.parent && vNode.parent.dirty & ChoreBits.CHILDREN) {
-    parent = vNode.parent;
-  } else if (vNode.slotParent && vNode.slotParent.dirty & ChoreBits.CHILDREN) {
+  if (vNode.slotParent && vNode.slotParent.dirty & ChoreBits.CHILDREN) {
     parent = vNode.slotParent;
+  } else if (vNode.parent && vNode.parent.dirty & ChoreBits.CHILDREN) {
+    parent = vNode.parent;
   }
 
   if (!parent) {
@@ -302,6 +344,13 @@ function getNextVNode(vNode: VNode, cursor: Cursor): VNode | null {
   while (count-- > 0) {
     const nextVNode = dirtyChildren[index];
     if (nextVNode.dirty & ChoreBits.DIRTY_MASK) {
+      if (container && splitCursorBoundary(container, nextVNode)) {
+        index++;
+        if (index === len) {
+          index = 0;
+        }
+        continue;
+      }
       parent.nextDirtyChildIndex = (index + 1) % len;
       return nextVNode;
     }
@@ -313,5 +362,25 @@ function getNextVNode(vNode: VNode, cursor: Cursor): VNode | null {
   // all array items checked, children are no longer dirty
   parent!.dirty &= ~ChoreBits.CHILDREN;
   parent!.dirtyChildren = null;
-  return getNextVNode(parent!, cursor);
+  parent!.nextDirtyChildIndex = 0;
+  __EXPERIMENTAL__.suspense && clearNearestCursorBoundary(parent!);
+  return getNextVNode(parent!, cursor, container);
+}
+
+function splitCursorBoundary(container: Container, vNode: VNode): boolean {
+  if (!__EXPERIMENTAL__.suspense) {
+    return false;
+  }
+  if (
+    !vNode.props ||
+    !(QCursorBoundary in vNode.props) ||
+    !container.getHostProp<CursorBoundary>(vNode as any, QCursorBoundary)
+  ) {
+    return false;
+  }
+
+  if (!isCursor(vNode)) {
+    addCursor(container, vNode, 0);
+  }
+  return true;
 }

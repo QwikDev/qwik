@@ -13,6 +13,7 @@ created_at: '2023-04-06T21:28:28Z'
 ---
 
 import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+import { Note } from '~/components/note/note';
 
 # Vercel Edge Adapter
 
@@ -46,7 +47,7 @@ bun run qwik add vercel-edge
 </span>
 </PackageManagerTabs>
 
-> It will automatically install the required dependencies, including the [Vercel CLI](https://vercel.com/docs/cli).
+<Note>It will automatically install the required dependencies, including the [Vercel CLI](https://vercel.com/docs/cli).</Note>
 
 The adapter will add a new `vite.config.ts` within the `adapters/` directory, and a new entry file will be created, such as:
 

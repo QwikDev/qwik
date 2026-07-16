@@ -1,15 +1,17 @@
 import type { QwikVitePlugin } from '@qwik.dev/core/optimizer';
 import type { RoutingContext } from '../types';
 import { createEntries } from './generate-entries';
-import { createMenus } from './generate-menus';
-import { createRoutes } from './generate-routes';
+import { createRoutes, type RouteLoaderSourceFiles } from './generate-routes';
 import { createServerPlugins } from './generate-server-plugins';
 
 /** Generates the Qwik Router Config runtime code */
 export function generateQwikRouterConfig(
   ctx: RoutingContext,
   qwikPlugin: QwikVitePlugin,
-  isSSR: boolean
+  isSSR: boolean,
+  loadersByFile?: Map<string, string[]>,
+  serverExcludePaths?: ReadonlySet<string>,
+  routeLoaderSourceFiles?: RouteLoaderSourceFiles
 ) {
   const esmImports: string[] = [];
   const c: string[] = [];
@@ -17,11 +19,24 @@ export function generateQwikRouterConfig(
   c.push(`\n/** Qwik Router Config */`);
   c.push(`\nimport { isDev } from '@qwik.dev/core/build';`);
 
+  if (isSSR) {
+    // Eagerly import all modules containing server$ functions so their _regSymbol
+    // side effects run before any RPC request arrives
+    esmImports.push(`import 'virtual:qwik-router-server-fns';`);
+  }
+
   createServerPlugins(ctx, qwikPlugin, c, esmImports, isSSR);
 
-  createRoutes(ctx, qwikPlugin, c, esmImports, isSSR);
-
-  createMenus(ctx, c, esmImports, isSSR);
+  createRoutes(
+    ctx,
+    qwikPlugin,
+    c,
+    esmImports,
+    isSSR,
+    loadersByFile,
+    serverExcludePaths,
+    routeLoaderSourceFiles
+  );
 
   createEntries(ctx, c);
 
@@ -31,8 +46,6 @@ export function generateQwikRouterConfig(
 
   c.push(`export const cacheModules = !isDev;`);
 
-  c.push(
-    `export default { routes, serverPlugins, menus, trailingSlash, basePathname, cacheModules };`
-  );
+  c.push(`export default { routes, serverPlugins, trailingSlash, basePathname, cacheModules };`);
   return esmImports.join('\n') + c.join('\n');
 }

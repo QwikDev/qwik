@@ -1,0 +1,74 @@
+import type {
+  AssetInfo,
+  Component,
+  DependencyInfo,
+  NpmInfo,
+  RoutesInfo,
+} from '@qwik.dev/devtools/kit';
+import type { NoSerialize } from '@qwik.dev/core';
+import { getDefaultVisibleTabIds } from './sidebar-tabs';
+
+export type DevtoolsTabId =
+  | 'overview'
+  | 'packages'
+  | 'renderTree'
+  | 'routes'
+  | 'assets'
+  | 'inspect'
+  | 'codeBreak'
+  | 'performance'
+  | 'preloads'
+  | 'buildAnalysis';
+
+export interface DevtoolsPanelBounds {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export interface DevtoolsState {
+  isOpen: boolean;
+  isPanelFullscreen: boolean;
+  activeTab: DevtoolsTabId;
+  npmPackages: NpmInfo;
+  assets: AssetInfo[];
+  components: Component[];
+  routes: NoSerialize<RoutesInfo[]> | undefined;
+  allDependencies: DependencyInfo[];
+  isLoadingDependencies: boolean;
+  panelBounds: DevtoolsPanelBounds;
+  lastPanelBounds: DevtoolsPanelBounds | null;
+  /** Ordered ids of the tabs shown in the sidebar; the rest live in the More panel. */
+  visibleTabIds: DevtoolsTabId[];
+  /** Whether the Customize Tabs overlay is open (Vite overlay only). */
+  isCustomizeOpen: boolean;
+  /** Whether the Vite devtools plugin overlay is also active on the page. */
+  vitePluginDetected?: boolean;
+  /** True when running inside the browser extension panel (no Vite server). */
+  isExtension: boolean;
+}
+
+export function createDevtoolsState(opts?: { isExtension?: boolean }): DevtoolsState {
+  return {
+    isOpen: false,
+    isPanelFullscreen: false,
+    activeTab: 'overview',
+    npmPackages: [],
+    assets: [],
+    components: [],
+    routes: undefined,
+    allDependencies: [],
+    isLoadingDependencies: false,
+    panelBounds: {
+      x: 0,
+      y: 0,
+      width: 0,
+      height: 0,
+    },
+    lastPanelBounds: null,
+    visibleTabIds: getDefaultVisibleTabIds(),
+    isCustomizeOpen: false,
+    isExtension: opts?.isExtension ?? false,
+  };
+}

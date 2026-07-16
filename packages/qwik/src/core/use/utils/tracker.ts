@@ -9,9 +9,9 @@ import { getSubscriber } from '../../reactive-primitives/subscriber';
 import { EffectProperty, STORE_ALL_PROPS, type Consumer } from '../../reactive-primitives/types';
 import { isSignal } from '../../reactive-primitives/utils';
 import { qError, QError } from '../../shared/error/error';
-import { noSerialize } from '../../shared/serdes/verify';
 import type { Container } from '../../shared/types';
-import { isFunction, isObject } from '../../shared/utils/types';
+import { isPromise } from '../../shared/utils/promises';
+import { isFunction, isObject, type ValueOrPromise } from '../../shared/utils/types';
 import { invoke, newInvokeContext } from '../use-core';
 import { type Tracker } from '../use-task';
 import type { Destroyable } from './destroyable';
@@ -46,25 +46,38 @@ export const trackFn =
     });
   };
 
+/**
+ * This adds $destroy$ to the target if a cleanup function is registered. It must be called before
+ * running any computations again.
+ */
 export const cleanupFn = <T extends Destroyable>(
   target: T,
   handleError: (err: unknown) => void
-): [(callback: () => void) => void, (() => void)[]] => {
-  let cleanupFns: (() => void)[] | null = null;
-  const cleanup = (fn: () => void) => {
+): [(callback: () => ValueOrPromise<void>) => void, (() => ValueOrPromise<void>)[]] => {
+  let cleanupFns: (() => ValueOrPromise<void>)[] | null = null;
+  const cleanup = (fn: () => ValueOrPromise<void>) => {
     if (typeof fn == 'function') {
       if (!cleanupFns) {
         cleanupFns = [];
-        target.$destroy$ = noSerialize(() => {
+        target.$destroy$ = () => {
           target.$destroy$ = null;
-          for (const fn of cleanupFns!) {
+          let cleanupPromises: Promise<void>[] | null = null;
+          for (let i = 0; i < cleanupFns!.length; i++) {
+            const fn = cleanupFns![i];
             try {
-              fn();
+              const result = fn();
+              if (isPromise(result)) {
+                (cleanupPromises ||= []).push(result.catch(handleError));
+              }
             } catch (err) {
               handleError(err);
             }
           }
-        });
+          cleanupFns = null;
+          if (cleanupPromises?.length) {
+            return Promise.all(cleanupPromises).then(() => undefined);
+          }
+        };
       }
       cleanupFns.push(fn);
     }

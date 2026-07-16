@@ -5,20 +5,17 @@ import type {
 } from '@qwik.dev/router/middleware/request-handler';
 import {
   _TextEncoderStream_polyfill,
-  getNotFound,
+  getErrorHtml,
   isStaticPath,
   mergeHeadersCookies,
   requestHandler,
 } from '@qwik.dev/router/middleware/request-handler';
+import { isDev } from '@qwik.dev/core/build';
 
 // @qwik.dev/router/middleware/cloudflare-pages
 
 /** @public */
 export function createQwikRouter(opts: QwikRouterCloudflarePagesOptions) {
-  if (opts.qwikCityPlan && !opts.qwikRouterConfig) {
-    console.warn('qwikCityPlan is deprecated. Simply remove it.');
-    opts.qwikRouterConfig = opts.qwikCityPlan;
-  }
   try {
     // https://developers.cloudflare.com/workers/configuration/compatibility-dates/#streams-constructors
     // this will throw if CF compatibility_date < 2022-11-30
@@ -92,9 +89,9 @@ export function createQwikRouter(opts: QwikRouterCloudflarePagesOptions) {
       // send request to qwik router request handler
       const handledResponse = await requestHandler(serverRequestEv, opts);
       if (handledResponse) {
-        handledResponse.completion.then((v) => {
-          if (v) {
-            console.error(v);
+        handledResponse.completion.then((completion) => {
+          if (completion) {
+            console.error(completion);
           }
         });
         const response = await handledResponse.response;
@@ -109,24 +106,19 @@ export function createQwikRouter(opts: QwikRouterCloudflarePagesOptions) {
         }
       }
 
-      // qwik router did not have a route for this request
-      // response with 404 for this pathname
-
-      // In the development server, we replace the getNotFound function
-      // For static paths, we assign a static "Not Found" message.
-      // This ensures consistency between development and production environments for specific URLs.
+      // No matching route: respond with a minimal 404 (static paths get a plain message).
       const notFoundHtml =
         !request.headers.get('accept')?.includes('text/html') ||
         isStaticPath(request.method || 'GET', url)
           ? 'Not Found'
-          : getNotFound(url.pathname);
+          : getErrorHtml(404, 'Not Found');
       return new Response(notFoundHtml, {
         status: 404,
         headers: { 'Content-Type': 'text/html; charset=utf-8', 'X-Not-Found': url.pathname },
       });
     } catch (e: any) {
       console.error(e);
-      return new Response(String(e || 'Error'), {
+      return new Response(isDev ? String(e || 'Error') : 'Internal Server Error', {
         status: 500,
         headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Error': 'cloudflare-pages' },
       });

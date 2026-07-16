@@ -1,36 +1,55 @@
-import { $, componentQrl, noSerialize } from '@qwik.dev/core';
-import { describe, expect, it, vi } from 'vitest';
-import { _fnSignal, _wrapProp } from '../../internal';
-import type { SerializerSignalImpl } from '../../reactive-primitives/impl/serializer-signal-impl';
-import { type SignalImpl } from '../../reactive-primitives/impl/signal-impl';
-import { createStore } from '../../reactive-primitives/impl/store';
-import { createAsyncComputedSignal } from '../../reactive-primitives/signal-api';
 import {
-  createComputedQrl,
+  $,
+  _verifySerializable,
+  componentQrl,
+  createAsync$,
+  createComputed$,
   createSerializer$,
   createSignal,
   isSignal,
-} from '../../reactive-primitives/signal.public';
+  noSerialize,
+  NoSerializeSymbol,
+  SerializerSymbol,
+  type AsyncSignal,
+} from '@qwik.dev/core';
+import { describe, expect, it, vi } from 'vitest';
+import { _deserialize, _EFFECT_BACK_REF, _fnSignal, _serialize, _wrapProp } from '../../internal';
+import type { SerializerSignalImpl } from '../../reactive-primitives/impl/serializer-signal-impl';
+import { type SignalImpl } from '../../reactive-primitives/impl/signal-impl';
+import type { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
+import type { ComputedSignalImpl } from '../../reactive-primitives/impl/computed-signal-impl';
+import { createStore, getStoreHandler, unwrapStore } from '../../reactive-primitives/impl/store';
+import { createAsyncSignal } from '../../reactive-primitives/signal-api';
 import { SubscriptionData } from '../../reactive-primitives/subscription-data';
 import {
   EffectProperty,
+  EffectSubscription,
+  ComputedSignalFlags,
   StoreFlags,
-  type EffectSubscription,
 } from '../../reactive-primitives/types';
-import { createResourceReturn } from '../../use/use-resource';
-import { Task } from '../../use/use-task';
+import { Task, TaskFlags } from '../../use/use-task';
 import { QError } from '../error/error';
-import { inlinedQrl } from '../qrl/qrl';
+import { _qrlWithChunk, inlinedQrl } from '../qrl/qrl';
 import { createQRL, type QRLInternal } from '../qrl/qrl-class';
-import { isQrl } from '../qrl/qrl-utils';
+import { isQrl, SYNC_QRL } from '../qrl/qrl-utils';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
+import { OnRenderProp, QBackRefs } from '../utils/markers';
 import { retryOnPromise } from '../utils/promises';
-import { _constants, _typeIdNames, TypeIds } from './constants';
+import { Fragment } from '../jsx/jsx-runtime';
+import { JSXNodeImpl } from '../jsx/jsx-node';
+import { createPropsProxy, type PropsProxy } from '../jsx/props-proxy';
+import { _OWNER, _PROPS_HANDLER } from '../utils/constants';
+import { _constants, _typeIdNames, Constants, EMPTY_OBJECT_PAYLOAD, TypeIds } from './constants';
 import { _dumpState } from './dump-state';
-import { _createDeserializeContainer } from './serdes.public';
+import { qrlToString } from './qrl-to-string';
+import { preprocessState } from './preprocess-state';
+import { _createDeserializeContainer, getObjectById } from './serdes.public';
 import { createSerializationContext } from './serialization-context';
-import { _serializationWeakRef } from './serialize';
-import { NoSerializeSymbol, SerializerSymbol, verifySerializable } from './verify';
+import { _serializationWeakRef, shouldSkipComponentProps } from './serialize';
+import { SubscriptionPatch } from './subscription-patch';
+import type { AsyncSignalImpl } from '../../reactive-primitives/impl/async-signal-impl';
+import type { DeserializeContainer } from '../types';
+import { eagerDeserializeStateIterator } from './inflate';
 
 const DEBUG = false;
 
@@ -42,7 +61,8 @@ describe('shared-serialization', () => {
   const shared2 = { shared: 2 };
 
   describe('serialize types', () => {
-    const dump = async (...value: any) => _dumpState(await serialize(...verifySerializable(value)));
+    const dump = async (...value: any) =>
+      _dumpState(await serialize(..._verifySerializable(value)));
     it(title(TypeIds.Plain), async () => {
       expect(await dump('hi', 123.456)).toMatchInlineSnapshot(`
         "
@@ -95,7 +115,11 @@ describe('shared-serialization', () => {
         15 Constant MAX_SAFE_INTEGER
         16 Constant MAX_SAFE_INTEGER-1
         17 Constant MIN_SAFE_INTEGER
-        (81 chars)"
+        18 Constant ':'
+        19 Constant '.'
+        20 Constant 'id'
+        21 ...
+        (101 chars)"
       `);
     });
     it(title(TypeIds.Array), async () => {
@@ -132,6 +156,27 @@ describe('shared-serialization', () => {
       `);
       expect(objs).toHaveLength(8);
     });
+    it('should serialize short integer-like plain object keys as numbers', async () => {
+      expect(await dump({ 123: 'a', '-45': 'b', '012': 'c', 1234567: 'd', 12345678: 'f', 0: 'e' }))
+        .toMatchInlineSnapshot(`
+        "
+        0 Object [
+          {string} "0"
+          {string} "e"
+          {number} 123
+          {string} "a"
+          {number} 1234567
+          {string} "d"
+          {string} "12345678"
+          {string} "f"
+          {number} -45
+          {string} "b"
+          {string} "012"
+          {string} "c"
+        ]
+        (90 chars)"
+      `);
+    });
     it(title(TypeIds.URL), async () => {
       expect(await dump(new URL('http://example.com:80/'))).toMatchInlineSnapshot(`
         "
@@ -149,6 +194,63 @@ describe('shared-serialization', () => {
         "
         0 Date ""
         (6 chars)"
+      `);
+    });
+    it.skipIf(typeof Temporal === 'undefined')(title(TypeIds.TemporalDuration), async () => {
+      expect(await dump(Temporal.Duration.from('PT194972H22M2.783S'))).toMatchInlineSnapshot(`
+        "
+        0 TemporalDuration "PT194972H22M2.783S"
+        (25 chars)"
+      `);
+    });
+    it.skipIf(typeof Temporal === 'undefined')(title(TypeIds.TemporalInstant), async () => {
+      expect(await dump(Temporal.Instant.from('2003-12-29T00:00:00Z'))).toMatchInlineSnapshot(`
+        "
+        0 TemporalInstant "2003-12-29T00:00:00Z"
+        (27 chars)"
+      `);
+    });
+    it.skipIf(typeof Temporal === 'undefined')(title(TypeIds.TemporalPlainDate), async () => {
+      expect(await dump(Temporal.PlainDate.from('2003-12-29'))).toMatchInlineSnapshot(`
+        "
+        0 TemporalPlainDate "2003-12-29"
+        (17 chars)"
+      `);
+    });
+    it.skipIf(typeof Temporal === 'undefined')(title(TypeIds.TemporalPlainDateTime), async () => {
+      expect(await dump(Temporal.PlainDateTime.from('2003-12-29T04:20:00'))).toMatchInlineSnapshot(`
+        "
+        0 TemporalPlainDateTime "2003-12-29T04:20:00"
+        (26 chars)"
+      `);
+    });
+    it.skipIf(typeof Temporal === 'undefined')(title(TypeIds.TemporalPlainMonthDay), async () => {
+      expect(await dump(Temporal.PlainMonthDay.from('12-29'))).toMatchInlineSnapshot(`
+        "
+        0 TemporalPlainMonthDay "12-29"
+        (12 chars)"
+      `);
+    });
+    it.skipIf(typeof Temporal === 'undefined')(title(TypeIds.TemporalPlainTime), async () => {
+      expect(await dump(Temporal.PlainTime.from('04:20:00'))).toMatchInlineSnapshot(`
+        "
+        0 TemporalPlainTime "04:20:00"
+        (15 chars)"
+      `);
+    });
+    it.skipIf(typeof Temporal === 'undefined')(title(TypeIds.TemporalPlainYearMonth), async () => {
+      expect(await dump(Temporal.PlainYearMonth.from('2003-12'))).toMatchInlineSnapshot(`
+        "
+        0 TemporalPlainYearMonth "2003-12"
+        (14 chars)"
+      `);
+    });
+    it.skipIf(typeof Temporal === 'undefined')(title(TypeIds.TemporalZonedDateTime), async () => {
+      expect(await dump(Temporal.ZonedDateTime.from('2003-12-29T04:20:00+01:00[Europe/Berlin]')))
+        .toMatchInlineSnapshot(`
+        "
+        0 TemporalZonedDateTime "2003-12-29T04:20:00+01:00[Europe/Berlin]"
+        (47 chars)"
       `);
     });
     it(title(TypeIds.Regex), async () => {
@@ -189,7 +291,7 @@ describe('shared-serialization', () => {
         0 Error [
           {string} "hi"
           {string} "stack"
-          {string} "Error: hi\\n    at /...path/file.ts:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\n    at new Promise (<anonymous>)\\n    at runWithTimeout (file:/...path/file.js:123:456)\\n    at runTest (file:/...path/file.js:123:456)\\n    at processTicksAndRejections (node:internal/process/task_queues:123:456)\\n    at runSuite (file:/...path/file.js:123:456)\\n    at runSuite (file:/...path/file.js:123:456)"
+          {string} "Error: hi\\n    at /...path/file.ts:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\n    at new Promise (<anonymous>)\\n    at runWithCancel (file:/...path/file.js:123:456)\\n    at file:/...path/file.js:123:456\\n    at new Promise (<anonymous>)\\n    at runWithTimeout (file:/...path/file.js:123:456)\\n    at file:/...path/file.js:123:456"
         ]
         (x chars)"
       `);
@@ -201,7 +303,7 @@ describe('shared-serialization', () => {
           {string} "extra"
           {string} "yey"
           {string} "stack"
-          {string} "Error: hi\\n    at /...path/file.ts:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\n    at new Promise (<anonymous>)\\n    at runWithTimeout (file:/...path/file.js:123:456)\\n    at runTest (file:/...path/file.js:123:456)\\n    at processTicksAndRejections (node:internal/process/task_queues:123:456)\\n    at runSuite (file:/...path/file.js:123:456)\\n    at runSuite (file:/...path/file.js:123:456)"
+          {string} "Error: hi\\n    at /...path/file.ts:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\n    at new Promise (<anonymous>)\\n    at runWithCancel (file:/...path/file.js:123:456)\\n    at file:/...path/file.js:123:456\\n    at new Promise (<anonymous>)\\n    at runWithTimeout (file:/...path/file.js:123:456)\\n    at file:/...path/file.js:123:456"
         ]
         (x chars)"
       `);
@@ -326,7 +428,7 @@ describe('shared-serialization', () => {
       expect(await dump(inlinedQrl(() => myVar + other, 'dump_qrl', [myVar, other])))
         .toMatchInlineSnapshot(`
           "
-          0 QRL "3 4 1 2"
+          0 QRL "3#1#-3 1"
           1 {number} 123
           2 {string} "hello"
           3 {string} "mock-chunk"
@@ -334,57 +436,51 @@ describe('shared-serialization', () => {
           (58 chars)"
         `);
     });
+    it('serializes QRL root ids as deltas', async () => {
+      const myVar = 123;
+      const other = 'hello';
+      const objs = await serialize(inlinedQrl(() => myVar + other, 'dump_qrl', [myVar, other]));
+      expect(objs[0]).toBe(TypeIds.QRL);
+      expect(objs[1]).toBe('3#1#-3 1');
+    });
+    it('serializes positive QRL capture deltas', async () => {
+      const capture = { value: 123 };
+      const qrl = inlinedQrl(() => capture.value, 'capture_qrl', [capture]);
+      const objs = await serialize('mock-chunk', 'capture_qrl', qrl);
+      expect(objs[4]).toBe(TypeIds.QRL);
+      expect(objs[5]).toBe('0#1#2');
+    });
+    it('keeps sync QRL serialization numeric', async () => {
+      const objs = await serialize(createQRL('', SYNC_QRL, () => 'hi', null, null));
+      expect(objs[0]).toBe(TypeIds.QRL);
+      expect(objs[1]).toBe(0);
+    });
     it(title(TypeIds.Task), async () => {
       expect(
         await dump(
           new Task(
-            0,
+            TaskFlags.TASK,
             0,
             shared1 as any,
             inlinedQrl(() => shared1, 'task_qrl', [shared1]) as QRLInternal,
-            shared2 as any,
             null
           )
         )
       ).toMatchInlineSnapshot(`
         "
         0 Task [
-          QRL "2 3 1"
-          {number} 0
+          QRL "2#1#-2"
+          {number} 2
           {number} 0
           RootRef 1
-          Constant undefined
-          Object [
-            {string} "shared"
-            {number} 2
-          ]
         ]
         1 Object [
-          RootRef 4
+          {string} "shared"
           {number} 1
         ]
         2 {string} "mock-chunk"
         3 {string} "task_qrl"
-        4 RootRef "0 5 0"
-        (102 chars)"
-      `);
-    });
-    it(title(TypeIds.Resource), async () => {
-      // Note: we just serialize as a store
-      const res = createResourceReturn(null!, undefined, Promise.resolve(123));
-      res._state = 'resolved';
-      res._resolved = 123;
-      expect(await dump(res)).toMatchInlineSnapshot(`
-        "
-        0 ForwardRef 0
-        1 Resource [
-          Constant true
-          {number} 123
-        ]
-        2 ForwardRefs [
-          1
-        ]
-        (27 chars)"
+        (76 chars)"
       `);
     });
     it(title(TypeIds.Component), async () => {
@@ -394,11 +490,11 @@ describe('shared-serialization', () => {
         `
         "
         0 Component [
-          QRL "1 2"
+          QRL "1#1"
         ]
         1 {string} "mock-chunk"
         2 {string} "dump_component"
-        (49 chars)"
+        (48 chars)"
       `
       );
     });
@@ -443,12 +539,12 @@ describe('shared-serialization', () => {
 
       // undefined signal with effects
       const ctxSignal = createSignal('test');
-      const effectSubscription: EffectSubscription = [
+      const effectSubscription = new EffectSubscription(
         ctxSignal as SignalImpl,
         EffectProperty.COMPONENT,
         null,
-        null,
-      ];
+        null
+      );
       (undefinedSignal as SignalImpl).$effects$ = new Set([effectSubscription]);
 
       const objsUndefinedWithEffects = await serialize({ foo: undefinedSignal });
@@ -458,17 +554,15 @@ describe('shared-serialization', () => {
           {string} "foo"
           Signal [
             Constant undefined
-            Array [
+            EffectSubscriptionNoData [
               Signal [
                 {string} "test"
               ]
-              {string} ":"
-              Constant null
-              Constant null
+              Constant ':'
             ]
           ]
         ]
-        (54 chars)"
+        (46 chars)"
       `);
     });
     it(title(TypeIds.WrappedSignal), async () => {
@@ -488,77 +582,81 @@ describe('shared-serialization', () => {
           Array [
             {number} 3
           ]
-          Constant undefined
-          {number} 5
+          {number} 1
         ]
         1 WrappedSignal [
           {number} 1
           Array [
             Signal [
               {number} 3
+              EffectSubscriptionNoData [
+                RootRef 1
+                Constant '.'
+              ]
             ]
             {string} "value"
           ]
-          Constant undefined
-          {number} 7
+          {number} 3
         ]
-        (66 chars)"
+        (72 chars)"
       `);
     });
     it(title(TypeIds.ComputedSignal), async () => {
-      const foo = createSignal(1);
-      const dirty = createComputedQrl(inlinedQrl(() => foo.value + 1, 'dirty', [foo]));
-      const clean = createComputedQrl(inlinedQrl(() => foo.value + 1, 'clean', [foo]));
-      const never = createComputedQrl(
-        inlinedQrl(() => foo.value + 1, 'never', [foo]),
-        {
-          serializationStrategy: 'never',
-        }
-      );
-      const always = createComputedQrl(
-        inlinedQrl(() => foo.value + 1, 'always', [foo]),
-        {
-          serializationStrategy: 'always',
-        }
-      );
+      const foo = createSignal(0);
+      const dirty = createComputed$(() => foo.value + 1, { serializationStrategy: 'always' });
+      const clean = createComputed$(() => foo.value + 2, { serializationStrategy: 'always' });
+      const never = createComputed$(() => foo.value + 3, { serializationStrategy: 'never' });
+      const always = createComputed$(() => foo.value + 4, { serializationStrategy: 'always' });
+      const noSer = createComputed$(() => noSerialize({ foo }));
       // note that this won't subscribe because we're not setting up the context
+      // do not read `dirty` to keep it dirty
       expect(clean.value).toBe(2);
-      expect(never.value).toBe(2);
-      expect(always.value).toBe(2);
-      const objs = await serialize(dirty, clean, never, always);
+      expect(never.value).toBe(3);
+      expect(always.value).toBe(4);
+      const objs = await serialize(dirty, clean, never, always, noSer);
       expect(_dumpState(objs)).toMatchInlineSnapshot(`
         "
         0 ComputedSignal [
-          RootRef 4
+          QRL "6#1#-2"
         ]
         1 ComputedSignal [
-          RootRef 5
-          Constant undefined
+          QRL "6#2#-3"
           Constant undefined
           {number} 2
         ]
         2 ComputedSignal [
-          RootRef 6
+          QRL "6#3#-4"
         ]
         3 ComputedSignal [
-          RootRef 7
+          QRL "6#4#-5"
           Constant undefined
-          Constant undefined
-          {number} 2
+          {number} 4
         ]
-        4 PreloadQRL "9 10 8"
-        5 PreloadQRL "9 11 8"
-        6 PreloadQRL "9 12 8"
-        7 PreloadQRL "9 13 8"
-        8 Signal [
-          {number} 1
+        4 ComputedSignal [
+          QRL "6#5#-6"
         ]
-        9 {string} "mock-chunk"
-        10 {string} "dirty"
-        11 {string} "clean"
-        12 {string} "never"
-        13 {string} "always"
-        (174 chars)"
+        5 Signal [
+          {number} 0
+          EffectSubscriptionNoData [
+            RootRef 1
+            Constant '.'
+          ]
+          EffectSubscriptionNoData [
+            RootRef 2
+            Constant '.'
+          ]
+          EffectSubscriptionNoData [
+            RootRef 3
+            Constant '.'
+          ]
+        ]
+        6 {string} "mock-chunk"
+        7 {string} "describe_describe_it_dirty_createComputed_ahnh0V4rf6g"
+        8 {string} "describe_describe_it_clean_createComputed_0ZTfN4iJ0tg"
+        9 {string} "describe_describe_it_never_createComputed_1HbLed7JXyo"
+        10 {string} "describe_describe_it_always_createComputed_4nMmgHlUOog"
+        11 {string} "describe_describe_it_noSer_createComputed_pXwl00hYYQQ"
+        (454 chars)"
       `);
     });
     it(title(TypeIds.SerializerSignal), async () => {
@@ -581,7 +679,7 @@ describe('shared-serialization', () => {
       const promised = createSerializer$(() => ({
         deserialize: (n?: number) => new MyCustomSerializable(n || 3),
         serialize: (obj) => obj.n,
-      })) as any as SerializerSignalImpl<number, MyCustomSerializable>;
+      })) as any as SerializerSignalImpl<MyCustomSerializable, number>;
       promised.value.inc();
       // Fake promise
       promised.$computeQrl$.resolved = Promise.resolve(promised.$computeQrl$.resolved) as any;
@@ -589,7 +687,7 @@ describe('shared-serialization', () => {
         deserialize: (n?: number) => new MyCustomSerializable(n || 3),
         serialize: (obj) => obj.n,
         initial: 7,
-      }) as any as SerializerSignalImpl<number, MyCustomSerializable>;
+      }) as any as SerializerSignalImpl<MyCustomSerializable, number>;
       unreadPromise.$computeQrl$.resolved = Promise.resolve(promised.$computeQrl$.resolved) as any;
 
       const objs = await serialize([plain, unread, thunked, promised, unreadPromise]);
@@ -597,63 +695,54 @@ describe('shared-serialization', () => {
         "
         0 Array [
           SerializerSignal [
-            RootRef 1
-            Constant undefined
+            QRL "1#1"
             Constant undefined
             {number} 4
           ]
           SerializerSignal [
-            RootRef 2
-            Constant undefined
+            QRL "1#2"
             Constant undefined
             Constant NEEDS_COMPUTATION
           ]
           SerializerSignal [
-            RootRef 3
-            Constant undefined
+            QRL "1#3"
             Constant undefined
             {number} 4
           ]
           ForwardRef 0
           SerializerSignal [
-            RootRef 5
-            Constant undefined
+            QRL "1#4"
             Constant undefined
             Constant NEEDS_COMPUTATION
           ]
         ]
-        1 PreloadQRL "6 7"
-        2 PreloadQRL "6 8"
-        3 PreloadQRL "6 9"
-        4 PreloadQRL "6 10"
-        5 PreloadQRL "6 11"
-        6 {string} "mock-chunk"
-        7 {string} "describe_describe_it_plain_createSerializer_IrZN04alftE"
-        8 {string} "describe_describe_it_unread_createSerializer_oYdaCRjw9Q0"
-        9 {string} "describe_describe_it_thunked_createSerializer_ufw7hr9vFDo"
-        10 {string} "describe_describe_it_promised_createSerializer_YCkDOYPyCO0"
-        11 {string} "describe_describe_it_unreadPromise_createSerializer_8vLYtMSnQio"
-        12 SerializerSignal [
-          RootRef 4
+        1 {string} "mock-chunk"
+        2 {string} "describe_describe_it_plain_createSerializer_IrZN04alftE"
+        3 {string} "describe_describe_it_unread_createSerializer_oYdaCRjw9Q0"
+        4 {string} "describe_describe_it_thunked_createSerializer_ufw7hr9vFDo"
+        5 {string} "describe_describe_it_unreadPromise_createSerializer_8vLYtMSnQio"
+        6 SerializerSignal [
+          QRL "1#6"
           Constant undefined
           {number} 4
         ]
-        13 ForwardRefs [
-          12
+        7 {string} "describe_describe_it_promised_createSerializer_YCkDOYPyCO0"
+        8 ForwardRefs [
+          6
         ]
-        (494 chars)"
+        (450 chars)"
       `);
     });
-    it(title(TypeIds.AsyncComputedSignal), async () => {
+    it(title(TypeIds.AsyncSignal), async () => {
       const foo = createSignal(1);
-      const dirty = createAsyncComputedSignal(
+      const dirty = createAsyncSignal(
         inlinedQrl(
           ({ track }) => Promise.resolve(track(() => (foo as SignalImpl).value) + 1),
           'dirty',
           [foo]
         )
       );
-      const clean = createAsyncComputedSignal(
+      const clean = createAsyncSignal(
         inlinedQrl(
           ({ track }) => Promise.resolve(track(() => (foo as SignalImpl).value) + 1),
           'clean',
@@ -661,7 +750,7 @@ describe('shared-serialization', () => {
         )
       );
 
-      const never = createAsyncComputedSignal(
+      const never = createAsyncSignal(
         inlinedQrl(
           ({ track }) => Promise.resolve(track(() => (foo as SignalImpl).value) + 1),
           'never',
@@ -672,7 +761,7 @@ describe('shared-serialization', () => {
         }
       );
 
-      const always = createAsyncComputedSignal(
+      const always = createAsyncSignal(
         inlinedQrl(
           ({ track }) => Promise.resolve(track(() => (foo as SignalImpl).value) + 1),
           'always',
@@ -682,6 +771,32 @@ describe('shared-serialization', () => {
           serializationStrategy: 'always',
         }
       );
+      const polling = createAsyncSignal(
+        inlinedQrl(
+          ({ track }) => Promise.resolve(track(() => (foo as SignalImpl).value) + 1),
+          'polling',
+          [foo]
+        ),
+        { expires: 100 }
+      );
+      const concurrent = createAsyncSignal(
+        inlinedQrl(
+          ({ track }) => Promise.resolve(track(() => (foo as SignalImpl).value) + 1),
+          'concurrent',
+          [foo]
+        ),
+        { concurrency: 23 }
+      );
+      const timeout = createAsyncSignal(
+        inlinedQrl(
+          ({ track }) => Promise.resolve(track(() => (foo as SignalImpl).value) + 1),
+          'timeout',
+          [foo]
+        ),
+        { timeout: 5000 }
+      );
+      const undefinedSignal = createAsyncSignal(inlinedQrl(() => {}, 'undefinedSignal'));
+      undefinedSignal.untrackedPending;
 
       await retryOnPromise(() => {
         // note that this won't subscribe because we're not setting up the context
@@ -690,56 +805,119 @@ describe('shared-serialization', () => {
         expect(always.value).toBe(2);
       });
 
-      const objs = await serialize(dirty, clean, never, always);
+      const objs = await serialize(
+        dirty,
+        clean,
+        never,
+        always,
+        polling,
+        concurrent,
+        timeout,
+        undefinedSignal
+      );
       expect(_dumpState(objs)).toMatchInlineSnapshot(`
         "
-        0 AsyncComputedSignal [
-          RootRef 4
+        0 AsyncSignal [
+          QRL "9#1#-2"
           Constant undefined
           Constant undefined
           Constant undefined
           Constant undefined
-          Constant false
+          {number} 1537
         ]
-        1 AsyncComputedSignal [
-          RootRef 5
+        1 AsyncSignal [
+          QRL "9#2#-3"
           Constant undefined
           Constant undefined
           Constant undefined
           Constant undefined
-          Constant false
-        ]
-        2 AsyncComputedSignal [
-          RootRef 6
-          Constant undefined
-          Constant undefined
-          Constant undefined
-          Constant undefined
-          Constant false
-        ]
-        3 AsyncComputedSignal [
-          RootRef 7
-          Constant undefined
-          Constant undefined
-          Constant undefined
-          Constant undefined
-          Constant false
-          Constant undefined
+          {number} 1536
           {number} 2
         ]
-        4 PreloadQRL "9 10 8"
-        5 PreloadQRL "9 11 8"
-        6 PreloadQRL "9 12 8"
-        7 PreloadQRL "9 13 8"
+        2 AsyncSignal [
+          QRL "9#3#-4"
+          Constant undefined
+          Constant undefined
+          Constant undefined
+          Constant undefined
+          {number} 1536
+        ]
+        3 AsyncSignal [
+          QRL "9#4#-5"
+          Constant undefined
+          Constant undefined
+          Constant undefined
+          Constant undefined
+          {number} 1536
+          {number} 2
+        ]
+        4 AsyncSignal [
+          QRL "9#5#-6"
+          Constant undefined
+          Constant undefined
+          Constant undefined
+          Constant undefined
+          {number} 1537
+          Constant NEEDS_COMPUTATION
+          {number} 100
+        ]
+        5 AsyncSignal [
+          QRL "9#6#-7"
+          Constant undefined
+          Constant undefined
+          Constant undefined
+          Constant undefined
+          {number} 1537
+          Constant NEEDS_COMPUTATION
+          Constant undefined
+          {number} 23
+        ]
+        6 AsyncSignal [
+          QRL "9#7#-8"
+          Constant undefined
+          Constant undefined
+          Constant undefined
+          Constant undefined
+          {number} 1537
+          Constant NEEDS_COMPUTATION
+          Constant undefined
+          Constant undefined
+          {number} 5000
+        ]
+        7 AsyncSignal [
+          QRL "9#8"
+          Constant undefined
+          Constant undefined
+          Constant undefined
+          Constant undefined
+          {number} 1536
+          Constant undefined
+        ]
         8 Signal [
           {number} 1
+          EffectSubscriptionNoData [
+            RootRef 1
+            Constant ':'
+          ]
+          EffectSubscriptionNoData [
+            RootRef 2
+            Constant ':'
+          ]
+          EffectSubscriptionNoData [
+            RootRef 3
+            Constant ':'
+          ]
         ]
         9 {string} "mock-chunk"
         10 {string} "dirty"
         11 {string} "clean"
         12 {string} "never"
         13 {string} "always"
-        (238 chars)"
+        14 {string} "polling"
+        15 {string} "concurrent"
+        16 {string} "timeout"
+        17 {string} "undefinedSignal"
+        (530 chars)"
       `);
     });
     it(title(TypeIds.Store), async () => {
@@ -780,13 +958,18 @@ describe('shared-serialization', () => {
     it(title(TypeIds.SubscriptionData), async () => {
       expect(await dump(new SubscriptionData({ $isConst$: true, $scopedStyleIdPrefix$: null })))
         .toMatchInlineSnapshot(`
-        "
-        0 SubscriptionData [
-          Constant null
-          Constant true
-        ]
-        (14 chars)"
-      `);
+          "
+          0 SubscriptionDataConstTrue 0
+          (6 chars)"
+        `);
+    });
+    it(title(TypeIds.SubscriptionData) + ' const false', async () => {
+      expect(await dump(new SubscriptionData({ $isConst$: false, $scopedStyleIdPrefix$: null })))
+        .toMatchInlineSnapshot(`
+          "
+          0 SubscriptionDataConstFalse 0
+          (6 chars)"
+        `);
     });
   });
 
@@ -794,6 +977,164 @@ describe('shared-serialization', () => {
     const container = _createDeserializeContainer(data);
     return container.$state$!;
   };
+
+  const eagerDeserialize = (data: unknown[]) => {
+    const state = Array(data.length / 2);
+    const container: DeserializeContainer = {
+      $getObjectById$: (id) => getObjectById(id, state),
+      $getForwardRef$: (id) => container.$forwardRefs$?.[Number(id)],
+      getSyncFn: (_: number) => {
+        const fn = () => {};
+        return fn;
+      },
+      $storeProxyMap$: new WeakMap(),
+      element: null,
+      $forwardRefs$: null,
+    };
+    preprocessState(data, container);
+    const iterator = eagerDeserializeStateIterator(container, data, state);
+    let yields = 0;
+    while (!iterator.next().done) {
+      yields++;
+    }
+    return { state, yields };
+  };
+
+  describe('chunked eager deserialize', () => {
+    const makeEffect = () =>
+      new EffectSubscription(
+        new Task(TaskFlags.TASK, 0, {} as any, inlinedQrl(0, 's_zero') as any, null),
+        EffectProperty.COMPONENT,
+        null,
+        null
+      );
+
+    it('restores arrays, objects, maps, sets, and root refs', async () => {
+      const shared = { value: 1 };
+      const root = [
+        shared,
+        { shared },
+        new Map<unknown, unknown>([[shared, new Set([shared, 'x'])]]),
+        new Set([shared]),
+      ];
+      const sync = deserialize(await serialize(root, shared));
+      const { state, yields } = eagerDeserialize(await serialize(root, shared));
+      const restoredRoot = state[0] as any[];
+      const restoredShared = state[1] as Record<string, unknown>;
+
+      expect(yields).toBeGreaterThan(0);
+      expect(state).toEqual(sync);
+      expect(restoredRoot[0]).toBe(restoredShared);
+      expect(restoredRoot[1].shared).toBe(restoredShared);
+      expect([...restoredRoot[2].keys()][0]).toBe(restoredShared);
+      expect(restoredRoot[3].has(restoredShared)).toBe(true);
+    });
+
+    it('restores stores with cycles', async () => {
+      const target: any = { count: 1 };
+      target.self = target;
+      const store = createStore(null, target, StoreFlags.RECURSIVE);
+      const { state } = eagerDeserialize(await serialize(store));
+      const restoredStore = state[0] as typeof store;
+      const restoredTarget = unwrapStore(restoredStore) as typeof target;
+
+      expect(restoredTarget.count).toBe(1);
+      expect(restoredTarget.self).toBe(restoredTarget);
+    });
+
+    it('releases pending store targets after allocation errors', () => {
+      const data = [TypeIds.Store, [TypeIds.Object, EMPTY_OBJECT_PAYLOAD], 999, 0];
+      const state = Array(data.length / 2);
+      const container = _createDeserializeContainer(data);
+      const iterator = eagerDeserializeStateIterator(container, data, state);
+
+      expect(iterator.next().done).toBe(false);
+      expect(container.$pendingStoreTargets$?.size).toBe(1);
+      expect(() => {
+        while (!iterator.next().done) {
+          // Exhaust the iterator.
+        }
+      }).toThrow();
+      expect(container.$pendingStoreTargets$).toBeUndefined();
+    });
+
+    it('resolves forward refs after root allocation', () => {
+      const { state } = eagerDeserialize([
+        TypeIds.ForwardRef,
+        0,
+        TypeIds.ForwardRefs,
+        [2],
+        TypeIds.Object,
+        [TypeIds.Plain, 'answer', TypeIds.Plain, 42],
+      ]);
+
+      expect(state[0]).toBe(state[2]);
+      expect(state[0]).toEqual({ answer: 42 });
+    });
+
+    it('rejects Promise roots resolved with serialized Promises', () => {
+      const promiseRoot = (rootId: number) => [
+        TypeIds.Promise,
+        [TypeIds.Constant, Constants.True, TypeIds.RootRef, rootId],
+      ];
+      const cycles = [
+        promiseRoot(0),
+        [...promiseRoot(1), ...promiseRoot(0)],
+        [...promiseRoot(1), ...promiseRoot(2), ...promiseRoot(0)],
+        [
+          TypeIds.Promise,
+          [TypeIds.Constant, Constants.True, TypeIds.ForwardRef, 0],
+          ...promiseRoot(0),
+          TypeIds.ForwardRefs,
+          [1],
+        ],
+        [
+          TypeIds.Promise,
+          [
+            TypeIds.Constant,
+            Constants.True,
+            TypeIds.Promise,
+            [TypeIds.Constant, Constants.True, TypeIds.RootRef, 0],
+          ],
+        ],
+      ];
+
+      for (let i = 0; i < cycles.length; i++) {
+        expect(() => eagerDeserialize(cycles[i])).toThrow(
+          `Code(Q${QError.invalidPromiseDependency})`
+        );
+      }
+    });
+
+    it('restores signal backrefs and computed qrls', async () => {
+      const sig = createSignal(42) as SignalImpl;
+      sig.$effects$ = new Set([makeEffect()]);
+      const computed = createComputed$(() => 1, { serializationStrategy: 'always' });
+      const computedImpl = computed as unknown as ComputedSignalImpl<number>;
+      computedImpl.$effects$ = new Set([makeEffect()]);
+      const serializer = createSerializer$({
+        deserialize: (n?: number) => new MyCustomSerializable(n ?? 3),
+        serialize: (obj) => obj.n,
+      }) as unknown as SerializerSignalImpl<MyCustomSerializable, number>;
+      serializer.$effects$ = new Set([makeEffect()]);
+
+      const { state } = eagerDeserialize(await serialize(sig, computedImpl, serializer));
+      const restoredSignal = state[0] as SignalImpl;
+      const restoredComputed = state[1] as ComputedSignalImpl<number>;
+      const restoredSerializer = state[2] as SerializerSignalImpl<MyCustomSerializable, number>;
+
+      const signals = [restoredSignal, restoredComputed, restoredSerializer];
+      for (let i = 0; i < signals.length; i++) {
+        const restored = signals[i];
+        const effect = [...restored.$effects$!][0];
+        expect(effect.backRef).toBeDefined();
+        expect(effect.backRef!.has(restored)).toBe(true);
+      }
+
+      expect(restoredComputed.$computeQrl$).toBeDefined();
+      expect(restoredSerializer.$computeQrl$).toBeDefined();
+    });
+  });
 
   describe('deserialize types', () => {
     it(title(TypeIds.Plain), async () => {
@@ -909,6 +1250,32 @@ describe('shared-serialization', () => {
       expect(date).toBeInstanceOf(Date);
       expect(date.toISOString()).toBe('2009-02-13T23:31:30.000Z');
     });
+    const testTemporal = (id: TypeIds, T_: () => typeof __TemporalStub<unknown>, value: string) => {
+      it.skipIf(typeof Temporal === 'undefined')(title(id), async () => {
+        const T = T_();
+        const original = T.from(value);
+        const objs = await serialize(original);
+        const deserialized = deserialize(objs)[0];
+        expect(deserialized).toBeInstanceOf(T);
+        expect(original).toEqual(deserialized);
+      });
+    };
+    testTemporal(TypeIds.TemporalDuration, () => Temporal.Duration, 'PT194972H22M2.783S');
+    testTemporal(TypeIds.TemporalInstant, () => Temporal.Instant, '2003-12-29T00:00:00Z');
+    testTemporal(TypeIds.TemporalPlainDate, () => Temporal.PlainDate, '2003-12-29');
+    testTemporal(
+      TypeIds.TemporalPlainDateTime,
+      () => Temporal.PlainDateTime,
+      '2003-12-29T04:20:00'
+    );
+    testTemporal(TypeIds.TemporalPlainMonthDay, () => Temporal.PlainMonthDay, '12-29');
+    testTemporal(TypeIds.TemporalPlainTime, () => Temporal.PlainTime, '04:20:00');
+    testTemporal(TypeIds.TemporalPlainYearMonth, () => Temporal.PlainYearMonth, '2003-12');
+    testTemporal(
+      TypeIds.TemporalZonedDateTime,
+      () => Temporal.ZonedDateTime,
+      '2003-12-29T04:20:00+01:00[Europe/Berlin]'
+    );
     it(title(TypeIds.Regex), async () => {
       const objs = await serialize(/abc/gm);
       const regex = deserialize(objs)[0] as RegExp;
@@ -933,6 +1300,43 @@ describe('shared-serialization', () => {
       const err = deserialize(objs)[0] as Error;
       expect(err).toBeInstanceOf(Error);
       expect(err.message).toBe('hi');
+    });
+    it('filters callable Error properties', () => {
+      const { state } = eagerDeserialize([
+        TypeIds.Error,
+        [
+          TypeIds.Plain,
+          'boom',
+          TypeIds.Plain,
+          'then',
+          TypeIds.QRL,
+          '1#1',
+          TypeIds.Plain,
+          '__proto__',
+          TypeIds.Object,
+          [TypeIds.Plain, 'then', TypeIds.QRL, '1#1'],
+          TypeIds.Plain,
+          'code',
+          TypeIds.Plain,
+          500,
+        ],
+        TypeIds.Plain,
+        'ignored.js',
+        TypeIds.Plain,
+        'selected_demoHash',
+      ]);
+      const error = state[0] as Error & { code: number; then?: unknown };
+
+      expect(error.message).toBe('boom');
+      expect(error.code).toBe(500);
+      expect(Object.hasOwn(error, 'then')).toBe(false);
+      expect(Object.getPrototypeOf(error)).toBe(Error.prototype);
+
+      const safeError = eagerDeserialize([
+        TypeIds.Error,
+        [TypeIds.Plain, 'safe', TypeIds.Plain, 'then', TypeIds.Plain, 'value'],
+      ]).state[0] as Error & { then: string };
+      expect(safeError.then).toBe('value');
     });
     it(title(TypeIds.Promise), async () => {
       const objs = await serialize(Promise.resolve(shared1), Promise.reject(shared1), shared1);
@@ -975,9 +1379,13 @@ describe('shared-serialization', () => {
       const arr = deserialize(objs);
       expect(arr[0]).toBeInstanceOf(Uint8Array);
       expect(Array.from(arr[0] as any)).toEqual([0, 20, 128, 255]);
+      expect(deserialize(await serialize(new Uint8Array()))).toEqual([new Uint8Array()]);
       expect(deserialize(await serialize(new Uint8Array([0])))).toEqual([new Uint8Array([0])]);
       expect(deserialize(await serialize(new Uint8Array([127, 129])))).toEqual([
         new Uint8Array([127, 129]),
+      ]);
+      expect(deserialize(await serialize(new Uint8Array([1, 2, 3])))).toEqual([
+        new Uint8Array([1, 2, 3]),
       ]);
     });
     it(title(TypeIds.QRL), async () => {
@@ -988,28 +1396,27 @@ describe('shared-serialization', () => {
       expect(isQrl(qrl)).toBeTruthy();
       expect(await (qrl.getFn() as any)()).toBe(myVar + other);
     });
+    it('deserializes QRL delta captures lazily', async () => {
+      const capture = { value: 123 };
+      const objs = await serialize(inlinedQrl(() => capture.value, 'capture_qrl', [capture]));
+      const state = deserialize(objs);
+      const qrl = state[0] as QRLInternal;
+      const restoredCapture = state[1];
+
+      expect(isQrl(qrl)).toBeTruthy();
+      expect(qrl.$captures$).toBe('2#1#-2');
+      expect(qrl.$captures$).not.toBe(restoredCapture);
+
+      const captures = qrl.getCaptured();
+      expect(captures![0]).toBe(restoredCapture);
+      expect(qrl.$captures$).toBe(captures);
+    });
     it(title(TypeIds.Task), async () => {
       const qrl = inlinedQrl(0, 's_zero') as any;
-      const objs = await serialize(new Task(0, 0, shared1 as any, qrl, shared2 as any, null));
+      const objs = await serialize(new Task(TaskFlags.TASK, 0, shared1 as any, qrl, null));
       const [task] = deserialize(objs) as Task[];
       expect(task.$qrl$.$symbol$).toEqual(qrl.$symbol$);
       expect(task.$el$).toEqual(shared1);
-      expect(task.$state$).toEqual(shared2);
-    });
-    it(title(TypeIds.Resource), async () => {
-      const res = createResourceReturn(null!, undefined, Promise.resolve(shared1));
-      res._state = 'resolved';
-      res._resolved = shared1;
-      const objs = await serialize(res);
-      const restored = deserialize(objs)[0] as any;
-      const value = await restored.value;
-      expect(value).toEqual(shared1);
-      expect(restored._state).toBe('resolved');
-      // TODO requires a domcontainer
-      // also not sure if this holds true
-      // the promise result isn't a store
-      // but the resource is
-      // expect(restored._resolved).toBe(value);
     });
     it.todo(title(TypeIds.Component));
     it(title(TypeIds.Signal), async () => {
@@ -1021,6 +1428,39 @@ describe('shared-serialization', () => {
     it.todo(title(TypeIds.WrappedSignal));
     it.todo(title(TypeIds.ComputedSignal));
     it.todo(title(TypeIds.SerializerSignal));
+    it(`${title(TypeIds.AsyncSignal)} valid`, async () => {
+      const asyncSignal = createAsync$(async () => 123);
+      expect(
+        (asyncSignal as AsyncSignalImpl<number>).$flags$ & ComputedSignalFlags.INVALID
+      ).toBeTruthy();
+      await asyncSignal.promise();
+      expect((asyncSignal as AsyncSignalImpl<number>).$untrackedValue$).toBe(123);
+      const objs = await serialize(asyncSignal);
+      const restored = deserialize(objs)[0] as AsyncSignal<number>;
+      expect(isSignal(restored)).toBeTruthy();
+      expect((restored as AsyncSignalImpl<number>).$untrackedValue$).toBe(123);
+      expect(
+        (restored as AsyncSignalImpl<number>).$flags$ & ComputedSignalFlags.INVALID
+      ).toBeFalsy();
+    });
+    it(`${title(TypeIds.AsyncSignal)} invalid`, async () => {
+      const asyncSignal = createAsync$(async () => 123, {
+        expires: 50,
+        timeout: 1000,
+        concurrency: 3,
+      });
+      const objs = await serialize(asyncSignal);
+      const restored = deserialize(objs)[0] as AsyncSignal<number>;
+      expect(isSignal(restored)).toBeTruthy();
+      expect((restored as AsyncSignalImpl<number>).$expires$).toBe(50);
+      expect(
+        (restored as AsyncSignalImpl<number>).$flags$ & ComputedSignalFlags.INVALID
+      ).toBeTruthy();
+      await restored.promise();
+      expect((restored as AsyncSignalImpl<number>).$untrackedValue$).toBe(123);
+      expect((restored as AsyncSignalImpl<number>).$concurrency$).toBe(3);
+      expect((restored as AsyncSignalImpl<number>).$timeoutMs$).toBe(1000);
+    });
     // this requires a domcontainer
     it(title(TypeIds.Store), async () => {
       const orig: any = { a: { b: true } };
@@ -1030,7 +1470,8 @@ describe('shared-serialization', () => {
       orig.a.store = storeSrc;
 
       const objs = await serialize(orig, storeSrc);
-      const [origRestored, store] = deserialize(objs) as any[];
+      const container = _createDeserializeContainer(objs);
+      const [origRestored, store] = container.$state$ as any[];
       expect(store).toHaveProperty('a');
       expect(store.a).toHaveProperty('b', true);
       expect(store).toHaveProperty('c', store);
@@ -1040,6 +1481,7 @@ describe('shared-serialization', () => {
       expect(store.a.store).toBe(store);
       store.orig.hello = 123;
       expect((origRestored as any).hello).toBe(123);
+      expect(container.$pendingStoreTargets$).toBeUndefined();
     });
     it.todo(title(TypeIds.FormData));
     it.todo(title(TypeIds.JSXNode));
@@ -1051,6 +1493,288 @@ describe('shared-serialization', () => {
       const effect = deserialize(objs)[0] as SubscriptionData;
       expect(effect).toBeInstanceOf(SubscriptionData);
       expect(effect.data).toEqual({ $isConst$: true, $scopedStyleIdPrefix$: null });
+    });
+    it(title(TypeIds.SubscriptionPatch), async () => {
+      const qrl = inlinedQrl(0, 's_zero') as any;
+      const signalTask = new Task(TaskFlags.TASK, 0, {} as any, qrl, null);
+      const storeTask = new Task(TaskFlags.TASK, 0, {} as any, qrl, null);
+      const signalEffect = new EffectSubscription(signalTask, EffectProperty.COMPONENT, null, null);
+      const storeEffect = new EffectSubscription(storeTask, EffectProperty.COMPONENT, null, null);
+      const objs = await serialize([
+        new SubscriptionPatch(7, new Set([signalEffect])),
+        new SubscriptionPatch(8, new Map([['count', new Set([storeEffect])]])),
+      ]);
+      const [signalPatch, storePatch] = deserialize(objs)[0] as SubscriptionPatch[];
+
+      expect(signalPatch).toBeInstanceOf(SubscriptionPatch);
+      expect(signalPatch.rootId).toBe(7);
+      expect(signalPatch.subscriptions).toBeInstanceOf(Set);
+      const restoredSignalEffect = [...(signalPatch.subscriptions as Set<EffectSubscription>)][0];
+      expect(restoredSignalEffect.consumer).toBeInstanceOf(Task);
+      expect(
+        (restoredSignalEffect.consumer as Task)[_EFFECT_BACK_REF]!.get(EffectProperty.COMPONENT)
+      ).toBe(restoredSignalEffect);
+
+      expect(storePatch).toBeInstanceOf(SubscriptionPatch);
+      expect(storePatch.rootId).toBe(8);
+      expect(storePatch.subscriptions).toBeInstanceOf(Map);
+      const restoredStoreEffects = (
+        storePatch.subscriptions as Map<string, Set<EffectSubscription>>
+      ).get('count')!;
+      expect(restoredStoreEffects.size).toBe(1);
+      expect([...restoredStoreEffects][0].consumer).toBeInstanceOf(Task);
+    });
+    it(title(TypeIds.SubscriptionData) + ' const false', async () => {
+      const objs = await serialize(
+        new SubscriptionData({ $isConst$: false, $scopedStyleIdPrefix$: null })
+      );
+      const effect = deserialize(objs)[0] as SubscriptionData;
+      expect(effect).toBeInstanceOf(SubscriptionData);
+      expect(effect.data).toEqual({ $isConst$: false, $scopedStyleIdPrefix$: null });
+    });
+  });
+
+  describe('effect backref restoration', () => {
+    /**
+     * _EFFECT_BACK_REF is not serialized; it is restored during inflate These tests serialize
+     * different consumers (Task, Signal, ComputedSignal) with effect subscriptions, then assert
+     * that after deserialize each consumer has the same effect backrefs (map from property ->
+     * EffectSubscription).
+     */
+    it('restores effect backref when consumer is Task', async () => {
+      const qrl = inlinedQrl(0, 's_zero') as any;
+      const shared = { x: 1 };
+      const task = new Task(TaskFlags.TASK, 0, shared as any, qrl, null);
+      const effect = new EffectSubscription(task, EffectProperty.COMPONENT, null, null);
+      const carrier = createSignal(0);
+      (carrier as SignalImpl).$effects$ = new Set([effect]);
+
+      const objs = await serialize(task, carrier);
+      const [restoredTask, restoredCarrier] = deserialize(objs) as [Task, SignalImpl];
+      const restoredEffect = [...restoredCarrier.$effects$!][0];
+
+      expect(restoredTask[_EFFECT_BACK_REF]).toBeDefined();
+      expect(restoredTask[_EFFECT_BACK_REF]!.get(EffectProperty.COMPONENT)).toBe(restoredEffect);
+      expect(restoredEffect.consumer).toBe(restoredTask);
+      expect(restoredEffect.property).toBe(EffectProperty.COMPONENT);
+    });
+
+    it('restores effect backref when consumer is SignalImpl', async () => {
+      const consumerSignal = createSignal('hi');
+      const effect = new EffectSubscription(
+        consumerSignal as SignalImpl,
+        EffectProperty.VNODE,
+        null,
+        null
+      );
+      const carrier = createSignal(0);
+      (carrier as SignalImpl).$effects$ = new Set([effect]);
+
+      const objs = await serialize(consumerSignal, carrier);
+      const [restoredConsumer, restoredCarrier] = deserialize(objs) as [SignalImpl, SignalImpl];
+      const restoredEffect = [...restoredCarrier.$effects$!][0];
+
+      expect((restoredConsumer as any)[_EFFECT_BACK_REF]).toBeDefined();
+      expect((restoredConsumer as any)[_EFFECT_BACK_REF].get(EffectProperty.VNODE)).toBe(
+        restoredEffect
+      );
+      expect(restoredEffect.consumer).toBe(restoredConsumer);
+      expect(restoredEffect.property).toBe(EffectProperty.VNODE);
+    });
+
+    it('restores effect backref when consumer is ComputedSignalImpl', async () => {
+      const computed = createComputed$(() => 1, { serializationStrategy: 'always' });
+      const impl = computed as unknown as ComputedSignalImpl<number>;
+      const effect = new EffectSubscription(impl, EffectProperty.VNODE, null, null);
+      const carrier = createSignal(0);
+      (carrier as SignalImpl).$effects$ = new Set([effect]);
+
+      const objs = await serialize(impl, carrier);
+      const [restoredComputed, restoredCarrier] = deserialize(objs) as [
+        ComputedSignalImpl<number>,
+        SignalImpl,
+      ];
+      const restoredEffect = [...restoredCarrier.$effects$!][0];
+
+      expect(restoredComputed[_EFFECT_BACK_REF]).toBeDefined();
+      expect(restoredComputed[_EFFECT_BACK_REF]!.get(EffectProperty.VNODE)).toBe(restoredEffect);
+      expect(restoredEffect.consumer).toBe(restoredComputed);
+      expect(restoredEffect.property).toBe(EffectProperty.VNODE);
+    });
+
+    it('restores multiple effect backrefs on the same consumer (Task)', async () => {
+      const qrl = inlinedQrl(0, 's_zero') as any;
+      const shared = {} as any;
+      const task = new Task(TaskFlags.TASK, 0, shared, qrl, null);
+      const effect1 = new EffectSubscription(task, EffectProperty.COMPONENT, null, null);
+      const effect2 = new EffectSubscription(task, 'customProp', null, null);
+      const carrier = createSignal(0);
+      (carrier as SignalImpl).$effects$ = new Set([effect1, effect2]);
+
+      const objs = await serialize(task, carrier);
+      const [restoredTask, restoredCarrier] = deserialize(objs) as [Task, SignalImpl];
+      const effects = [...restoredCarrier.$effects$!];
+
+      expect(restoredTask[_EFFECT_BACK_REF]).toBeDefined();
+      expect(restoredTask[_EFFECT_BACK_REF]!.size).toBe(2);
+      expect(restoredTask[_EFFECT_BACK_REF]!.get(EffectProperty.COMPONENT)).toBe(effects[0]);
+      expect(restoredTask[_EFFECT_BACK_REF]!.get('customProp')).toBe(effects[1]);
+      expect(effects[0].consumer).toBe(restoredTask);
+      expect(effects[1].consumer).toBe(restoredTask);
+    });
+
+    it('restores effect backref with string property (e.g. attribute name)', async () => {
+      const consumerSignal = createSignal(0);
+      const effect = new EffectSubscription(consumerSignal as SignalImpl, 'data-value', null, null);
+      const carrier = createSignal(null);
+      (carrier as SignalImpl).$effects$ = new Set([effect]);
+
+      const objs = await serialize(consumerSignal, carrier);
+      const [restoredConsumer, restoredCarrier] = deserialize(objs) as [SignalImpl, SignalImpl];
+      const restoredEffect = [...restoredCarrier.$effects$!][0];
+
+      expect((restoredConsumer as any)[_EFFECT_BACK_REF].get('data-value')).toBe(restoredEffect);
+      expect(restoredEffect.property).toBe('data-value');
+    });
+  });
+
+  describe('reactive primitives: effect backRef after deserialize', () => {
+    /**
+     * When we serialize Signal/Store/PropsProxy and deserialize, inflate restores each effect's
+     * backRef to point at the producer (signal, store target, or props proxy). These tests assert
+     * that every effect in the producer's $effects$ has that producer in effect.backRef.
+     */
+    const makeEffect = () =>
+      new EffectSubscription(
+        new Task(TaskFlags.TASK, 0, {} as any, inlinedQrl(0, 's_zero') as any, null),
+        EffectProperty.COMPONENT,
+        null,
+        null
+      );
+
+    it('SignalImpl: all effects have signal in backRef after deserialize', async () => {
+      const sig = createSignal(42) as SignalImpl;
+      sig.$effects$ = new Set([makeEffect()]);
+
+      const objs = await serialize(sig);
+      const restored = deserialize(objs)[0] as SignalImpl;
+
+      expect(restored.$effects$).toBeDefined();
+      expect(restored.$effects$!.size).toBe(1);
+      const restoredEffect = [...restored.$effects$!][0];
+      expect(restoredEffect.backRef).toBeDefined();
+      expect(restoredEffect.backRef!.has(restored)).toBe(true);
+    });
+
+    it('WrappedSignalImpl: all effects have signal in backRef after deserialize', async () => {
+      const wrapped = _fnSignal(
+        (p0: number) => p0 + 1,
+        [3],
+        '(p0)=>p0+1'
+      ) as WrappedSignalImpl<number>;
+      wrapped.$effects$ = new Set([makeEffect()]);
+
+      const objs = await serialize(wrapped);
+      const restored = deserialize(objs)[0] as WrappedSignalImpl<number>;
+
+      expect(restored.$effects$).toBeDefined();
+      expect(restored.$effects$!.size).toBe(1);
+      const restoredEffect = [...restored.$effects$!][0];
+      expect(restoredEffect.backRef).toBeDefined();
+      expect(restoredEffect.backRef!.has(restored)).toBe(true);
+    });
+
+    it('ComputedSignalImpl: all effects have signal in backRef after deserialize', async () => {
+      const computed = createComputed$(() => 1, { serializationStrategy: 'always' });
+      const impl = computed as unknown as ComputedSignalImpl<number>;
+      impl.$effects$ = new Set([makeEffect()]);
+
+      const objs = await serialize(impl);
+      const restored = deserialize(objs)[0] as ComputedSignalImpl<number>;
+
+      expect(restored.$effects$).toBeDefined();
+      expect(restored.$effects$!.size).toBe(1);
+      const restoredEffect = [...restored.$effects$!][0];
+      expect(restoredEffect.backRef).toBeDefined();
+      expect(restoredEffect.backRef!.has(restored)).toBe(true);
+    });
+
+    it('AsyncSignalImpl: all effects (value/loading/error) have signal in backRef after deserialize', async () => {
+      const asyncSig = createAsyncSignal(
+        inlinedQrl(() => Promise.resolve(1), 'async_one', [])
+      ) as AsyncSignalImpl<number>;
+      asyncSig.$effects$ = new Set([makeEffect()]);
+      asyncSig.$loadingEffects$ = new Set([makeEffect()]);
+      asyncSig.$errorEffects$ = new Set([makeEffect()]);
+
+      const objs = await serialize(asyncSig);
+      const restored = deserialize(objs)[0] as AsyncSignalImpl<number>;
+
+      const effectSets = [restored.$effects$, restored.$loadingEffects$, restored.$errorEffects$];
+
+      for (let i = 0; i < effectSets.length; i++) {
+        const effectSet = effectSets[i];
+        expect(effectSet).toBeDefined();
+        expect(effectSet!.size).toBe(1);
+        const restoredEffect = [...effectSet!][0];
+        expect(restoredEffect.backRef).toBeDefined();
+        expect(restoredEffect.backRef!.has(restored)).toBe(true);
+      }
+    });
+
+    it('SerializerSignalImpl: all effects have signal in backRef after deserialize', async () => {
+      const serializer = createSerializer$({
+        deserialize: (n?: number) => new MyCustomSerializable(n ?? 3),
+        serialize: (obj) => obj.n,
+      }) as unknown as SerializerSignalImpl<MyCustomSerializable, number>;
+      serializer.$effects$ = new Set([makeEffect()]);
+
+      const objs = await serialize(serializer);
+      const restored = deserialize(objs)[0] as SerializerSignalImpl<MyCustomSerializable, number>;
+
+      expect(restored.$effects$).toBeDefined();
+      expect(restored.$effects$!.size).toBe(1);
+      const restoredEffect = [...restored.$effects$!][0];
+      expect(restoredEffect.backRef).toBeDefined();
+      expect(restoredEffect.backRef!.has(restored)).toBe(true);
+    });
+
+    it('store: all effects have store target in backRef after deserialize', async () => {
+      const target = { count: 0 };
+      const store = createStore(null, target, StoreFlags.RECURSIVE);
+      const handler = getStoreHandler(store)!;
+      handler.$effects$ = new Map([['count', new Set([makeEffect()])]]);
+
+      const objs = await serialize(store);
+      const restoredStore = deserialize(objs)[0] as typeof store;
+      const restoredTarget = unwrapStore(restoredStore);
+      const restoredHandler = getStoreHandler(restoredStore)!;
+
+      expect(restoredHandler.$effects$).toBeDefined();
+      const effectsSet = restoredHandler.$effects$!.get('count');
+      expect(effectsSet).toBeDefined();
+      expect(effectsSet!.size).toBe(1);
+      const restoredEffect = [...effectsSet!][0];
+      expect(restoredEffect.backRef).toBeDefined();
+      expect(restoredEffect.backRef!.has(restoredTarget)).toBe(true);
+    });
+
+    it('props-proxy: all effects have props proxy in backRef after deserialize', async () => {
+      const owner = new JSXNodeImpl(Fragment, {}, null, null, 0, null);
+      const propsProxy = createPropsProxy(owner);
+      const handler = (propsProxy as any)[_PROPS_HANDLER];
+      handler.$effects$ = new Map([['x', new Set([makeEffect()])]]);
+
+      const objs = await serialize(propsProxy);
+      const restored = deserialize(objs)[0] as typeof propsProxy;
+
+      expect((restored as any)[_PROPS_HANDLER].$effects$).toBeDefined();
+      const effectsSet = (restored as any)[_PROPS_HANDLER].$effects$.get('x');
+      expect(effectsSet).toBeDefined();
+      expect(effectsSet.size).toBe(1);
+      const restoredEffect = [...effectsSet][0];
+      expect(restoredEffect.backRef).toBeDefined();
+      expect(restoredEffect.backRef!.has(restored)).toBe(true);
     });
   });
 
@@ -1119,7 +1843,7 @@ describe('shared-serialization', () => {
       const objs = await serialize(qrl1, [qrl2]);
       expect(_dumpState(objs)).toMatchInlineSnapshot(`
         "
-        0 QRL "3 4 2"
+        0 QRL "3#1#-2"
         1 Array [
           RootRef 0
         ]
@@ -1138,7 +1862,7 @@ describe('shared-serialization', () => {
       const objs = await serialize(qrl1, qrl2);
       expect(_dumpState(objs)).toMatchInlineSnapshot(`
         "
-        0 QRL "3 4 2"
+        0 QRL "3#1#-2"
         1 RootRef 0
         2 Object 0
         3 {string} "mock-chunk"
@@ -1184,7 +1908,7 @@ describe('shared-serialization', () => {
           {string} "child"
           ForwardRef 0
         ]
-        1 QRL "3 4 2"
+        1 QRL "3#1#-2"
         2 Object [
           {string} "should"
           {string} "serialize"
@@ -1213,7 +1937,7 @@ describe('shared-serialization', () => {
           {string} "child"
           ForwardRef 0
         ]
-        1 QRL "3 4 2"
+        1 QRL "3#1#-2"
         2 Object [
           {string} "should"
           {string} "serialize"
@@ -1349,7 +2073,7 @@ describe('shared-serialization', () => {
       `);
     });
     it('should dedupe function sub-data', async () => {
-      const objs = await serialize([shared1], createQRL(null, 'foo', 123, null, null, [shared1]));
+      const objs = await serialize([shared1], createQRL(null, 'foo', 123, null, [shared1]));
       expect(_dumpState(objs)).toMatchInlineSnapshot(`
         "
         0 Array [
@@ -1358,7 +2082,7 @@ describe('shared-serialization', () => {
             {number} 1
           ]
         ]
-        1 QRL "3 4 2"
+        1 QRL "3#1#-2"
         2 RootRef "0 0"
         3 {string} "mock-chunk"
         4 {string} "foo"
@@ -1393,6 +2117,20 @@ describe('shared-serialization', () => {
       const newValue = { shared2 };
       (obj as any).shared = newValue;
       expect((obj as any).shared).toBe(newValue);
+    });
+  });
+
+  describe('malformed JSON guards', () => {
+    it('should reject unsupported roots after writing a previous root', async () => {
+      await expect(serializeRaw('ok', Symbol('unsupported'))).rejects.toThrow(
+        'Q' + QError.serializeErrorUnknownType
+      );
+    });
+
+    it('should reject unsupported selected patch roots after writing a previous root', async () => {
+      await expect(serializePatchRaw([0, 1], 'ok', Symbol('unsupported'))).rejects.toThrow(
+        'Q' + QError.serializeErrorUnknownType
+      );
     });
   });
 
@@ -1544,24 +2282,216 @@ describe('shared-serialization', () => {
   });
 });
 
+describe('serializer - internal', () => {
+  it('qrlToString keeps explicit worker chunk paths', () => {
+    const sCtx = createSerializationContext(
+      null,
+      null,
+      () => '',
+      () => '',
+      new WeakMap(),
+      null!
+    );
+    const qrl = _qrlWithChunk(
+      '/build/worker-entry.js',
+      () => Promise.resolve({ workerSymbol: () => 'hi' }),
+      'workerSymbol'
+    ) as QRLInternal;
+
+    expect(qrlToString(sCtx, qrl)).toBe('/build/worker-entry.js#workerSymbol');
+  });
+
+  it('_serialize', async () => {
+    const a = { a: 1 };
+    const ser = await _serialize({ a, b: [a] });
+    expect(ser).toMatchInlineSnapshot(`"[5,[0,"a",5,[0,"a",0,1],0,"b",4,[1,1]],1,"0 1"]"`);
+  });
+  it('_deserialize', async () => {
+    const ser = await _serialize({ a: 1 });
+    const des = await _deserialize(ser);
+    expect(des).toEqual({ a: 1 });
+  });
+  it('_deserialize filters callable Error properties before Promise resolution', async () => {
+    const error = await _deserialize<Error & { then?: unknown }>(
+      JSON.stringify([
+        TypeIds.Error,
+        [TypeIds.Plain, 'boom', TypeIds.Plain, 'then', TypeIds.QRL, '1#1'],
+        TypeIds.Plain,
+        'ignored.js',
+        TypeIds.Plain,
+        'selected_demoHash',
+      ])
+    );
+
+    expect(error).toBeInstanceOf(Error);
+    expect(error.message).toBe('boom');
+    expect(Object.hasOwn(error, 'then')).toBe(false);
+  });
+  it('_deserialize rejects serialized Promise dependencies', async () => {
+    const cycle = [
+      TypeIds.Promise,
+      [TypeIds.Constant, Constants.True, TypeIds.RootRef, 1],
+      TypeIds.Promise,
+      [TypeIds.Constant, Constants.True, TypeIds.RootRef, 0],
+    ];
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    const timeout = new Promise((resolve) => {
+      timeoutId = setTimeout(resolve, 500, 'timeout');
+    });
+
+    try {
+      await expect(Promise.race([_deserialize(JSON.stringify(cycle)), timeout])).rejects.toThrow(
+        `Code(Q${QError.invalidPromiseDependency})`
+      );
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  });
+  it('_deserialize preserves settled Promises', async () => {
+    expect(await _deserialize(await _serialize(Promise.resolve('resolved')))).toBe('resolved');
+    await expect(
+      _deserialize(await _serialize(Promise.reject(new Error('rejected'))))
+    ).rejects.toThrow('rejected');
+  });
+  it('rejects non-array Object payloads', async () => {
+    const value = { 0: TypeIds.Plain, 1: 'key', 2: TypeIds.Plain, 3: 'value', length: 4 };
+    await expect(_deserialize(JSON.stringify([TypeIds.Object, value]))).rejects.toThrow(
+      'Invalid Object payload'
+    );
+  });
+  it('preserves trailing undefined Object properties', async () => {
+    const value = await _deserialize(JSON.stringify([TypeIds.Object, [TypeIds.Plain, 'key']]));
+    expect(value).toStrictEqual({ key: undefined });
+  });
+  it.each([
+    ['non-string', { length: 4 }],
+    ['invalid alphabet', '****'],
+    ['invalid length', 'A'],
+    ['noncanonical trailing bits', 'AB'],
+  ])('rejects %s Uint8Array payloads', async (_name, value) => {
+    await expect(_deserialize(JSON.stringify([TypeIds.Uint8Array, value]))).rejects.toThrow(
+      `Code(Q${QError.invalidUint8ArrayPayload})`
+    );
+  });
+  it('_serialize should emit short integer-like plain object keys as numbers', async () => {
+    const ser = await _serialize({
+      123: 'a',
+      '-45': 'b',
+      '012': 'c',
+      1234567: 'd',
+      12345678: 'f',
+      0: 'e',
+    });
+    expect(ser).toBe(
+      '[5,[0,"0",0,"e",0,123,0,"a",0,1234567,0,"d",0,"12345678",0,"f",0,-45,0,"b",0,"012",0,"c"]]'
+    );
+    expect(await _deserialize(ser)).toEqual({
+      123: 'a',
+      '-45': 'b',
+      '012': 'c',
+      1234567: 'd',
+      12345678: 'f',
+      0: 'e',
+    });
+  });
+
+  it('keeps const-only cold component q:props in dev mode', () => {
+    const owner = new JSXNodeImpl(Fragment, {}, { label: 'static' }, null, 0, null);
+    const propsProxy = createPropsProxy(owner);
+
+    expect(shouldSkipComponentProps({ [OnRenderProp]: {} }, propsProxy as PropsProxy)).toBeFalsy();
+  });
+
+  it('omits const-only cold component q:props in production', () => {
+    expect(
+      shouldSkipComponentProps(
+        componentAttrs(),
+        createComponentProps({}, { label: 'static' }) as PropsProxy,
+        false
+      )
+    ).toBeTruthy();
+  });
+
+  it('keeps dynamic varProps component q:props in production', () => {
+    expect(
+      shouldSkipComponentProps(
+        componentAttrs(),
+        createComponentProps({ label: 'dynamic' }, null) as PropsProxy,
+        false
+      )
+    ).toBeFalsy();
+  });
+
+  it('keeps component q:props with component backref in production', () => {
+    expect(
+      shouldSkipComponentProps(
+        componentAttrs(componentBackRefs()),
+        createComponentProps({}, { label: 'observed by component' }) as PropsProxy,
+        false
+      )
+    ).toBeFalsy();
+  });
+
+  it('keeps component q:props with prop-level effects in production', () => {
+    const propsProxy = createComponentProps({}, { label: 'observed prop' });
+    setPropsEffects(propsProxy);
+
+    expect(shouldSkipComponentProps(componentAttrs(), propsProxy as PropsProxy, false)).toBeFalsy();
+  });
+});
+
+const componentAttrs = (backRefs?: unknown) => ({
+  [OnRenderProp]: {},
+  ...(backRefs === undefined ? {} : { [QBackRefs]: backRefs }),
+});
+
+const componentBackRefs = () => new Map([[EffectProperty.COMPONENT, {}]]);
+
+const createComponentProps = (
+  varProps: Record<string, unknown> | null,
+  constProps: Record<string, unknown> | null
+) => createPropsProxy(new JSXNodeImpl(Fragment, varProps, constProps, null, 0, null));
+
+const setPropsEffects = (propsProxy: any) => {
+  propsProxy[_PROPS_HANDLER].$effects$ = new Map([['label', new Set([{}])]]);
+};
+
+async function serializeRaw(...roots: any[]): Promise<string> {
+  const sCtx = createTestSerializationContext();
+  for (let i = 0; i < roots.length; i++) {
+    sCtx.$addRoot$(roots[i]);
+  }
+  await sCtx.$serialize$();
+  return sCtx.$writer$.toString();
+}
+
+async function serializePatchRaw(rootIds: number[], ...roots: any[]): Promise<string> {
+  const sCtx = createTestSerializationContext();
+  for (let i = 0; i < roots.length; i++) {
+    sCtx.$addRoot$(roots[i]);
+  }
+  await sCtx.$serializePatch$(0, rootIds);
+  return sCtx.$writer$.toString();
+}
+
 async function serialize(...roots: any[]): Promise<any[]> {
+  const raw = await serializeRaw(...roots);
+  const objs = JSON.parse(raw);
+  // eslint-disable-next-line no-console
+  DEBUG && console.log(objs);
+  return objs;
+}
+
+function createTestSerializationContext() {
   const sCtx = createSerializationContext(
     null,
     null,
     () => '',
     () => '',
-    () => '',
     new WeakMap<any, any>(),
     null!
   );
-  for (const root of roots) {
-    sCtx.$addRoot$(root);
-  }
-  await sCtx.$serialize$();
-  const objs = JSON.parse(sCtx.$writer$.toString());
-  // eslint-disable-next-line no-console
-  DEBUG && console.log(objs);
-  return objs;
+  return sCtx;
 }
 
 class MyCustomSerializable {

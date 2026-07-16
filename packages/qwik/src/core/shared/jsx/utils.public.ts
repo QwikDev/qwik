@@ -1,4 +1,3 @@
-import { STREAM_BLOCK_END_COMMENT, STREAM_BLOCK_START_COMMENT } from '../utils/markers';
 import { jsx, RenderOnce } from './jsx-runtime';
 import type { FunctionComponent, JSXNode, JSXOutput } from './types/jsx-node';
 import type { JSXChildren } from './types/jsx-qwik-attributes';
@@ -14,11 +13,7 @@ export const SSRComment: FunctionComponent<{ data: string }> = () => null;
 
 /** @public */
 export const SSRStreamBlock: FunctionComponent<{ children?: JSXOutput }> = (props) => {
-  return [
-    jsx(SSRComment, { data: STREAM_BLOCK_START_COMMENT }),
-    props.children,
-    jsx(SSRComment, { data: STREAM_BLOCK_END_COMMENT }),
-  ];
+  return props.children;
 };
 
 /** @public */

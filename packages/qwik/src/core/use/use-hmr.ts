@@ -1,0 +1,70 @@
+import { getDomContainer, whenContainerDataReady } from '../client/dom-container';
+import {
+  _captures,
+  deserializeCaptureDeltas,
+  setCaptures,
+  type QRLInternal,
+} from '../shared/qrl/qrl-class';
+import { inlinedQrl } from '../shared/qrl/qrl';
+import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
+import type { VNode } from '../shared/vnode/vnode';
+import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
+import { VNodeFlags } from '../client/types';
+import { tryGetInvokeContext } from './use-core';
+import { useOnDocument } from './use-on';
+import type { QRL } from '../shared/qrl/qrl.public';
+
+/**
+ * HMR event handler. The host VNode is captured at registration time via QRL captures.
+ *
+ * When called by the qwikloader or the test dispatch, `this` is the serialized captures string
+ * which we deserialize to get the host VNode. When called through `_qDispatch` (client-rendered),
+ * `_captures` is already set by `ensureQrlCaptures` in the QRL call chain.
+ *
+ * @internal
+ */
+export const _hmr = function (
+  this: string | undefined,
+  event: CustomEvent<{ files: string[]; t: number }>,
+  element: Element
+) {
+  // Deserialize captures from `this` when called via qwikloader/attribute dispatch
+  const container = getDomContainer(element);
+  return whenContainerDataReady(container, () => {
+    if (typeof this === 'string') {
+      setCaptures(deserializeCaptureDeltas(container, this));
+    }
+    const devPath = _captures?.[1] as string | undefined;
+    const hmrPath = devPath ?? element.getAttribute('data-qwik-inspector');
+    if (!hmrPath || !event.detail.files.some((file) => hmrPath.startsWith(file))) {
+      return;
+    }
+    const host = _captures?.[0] as VNode | undefined;
+    if (!host || host.flags & VNodeFlags.Deleted) {
+      return;
+    }
+    markVNodeDirty(container, host, ChoreBits.COMPONENT);
+    // Mark HMR as handled
+    const doc: any = element.ownerDocument;
+    doc.__hmrDone = doc.__hmrT;
+  });
+};
+
+let hmrQrl: QRL<(event: CustomEvent, element: Element) => void>;
+/**
+ * Injected by the optimizer into component$ bodies in HMR mode. Registers a document event listener
+ * that triggers component re-render on HMR updates.
+ *
+ * @internal
+ */
+export function _useHmr(devPath: string): void {
+  const iCtx = tryGetInvokeContext();
+  if (!iCtx) {
+    return;
+  }
+  hmrQrl ||= inlinedQrl(_hmr, '_hmr');
+  const hostElement = iCtx.$hostElement$;
+  // We must capture the vnode to be able to re-render
+  const qrl = (hmrQrl as QRLInternal).w([hostElement, devPath]) as typeof hmrQrl;
+  useOnDocument('qHmr', qrl);
+}

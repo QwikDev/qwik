@@ -2,6 +2,7 @@ import { assert, expect, vi, beforeEach, describe, it } from 'vitest';
 import {
   executeTasks,
   executeNodeDiff,
+  executeReconcile,
   executeComponentChore,
   executeNodeProps,
   executeCleanup,
@@ -19,20 +20,38 @@ import type { CursorData } from './cursor-props';
 import type { Cursor } from './cursor';
 import { ELEMENT_SEQ, ELEMENT_PROPS, OnRenderProp, QScopedStyle } from '../utils/markers';
 import type { Props } from '../jsx/jsx-runtime';
-import { VNodeOperationType } from '../vnode/enums/vnode-operation-type.enum';
-import { SignalFlags } from '../../reactive-primitives/types';
+import { ComputedSignalFlags } from '../../reactive-primitives/types';
 import type { ElementVNode } from '../vnode/element-vnode';
-import { runResource } from '../../use/use-resource';
 import { runTask } from '../../use/use-task';
 import { vnode_diff } from '../../client/vnode-diff';
+import { reconcileKeyedLoopToParent } from '../../client/reconcile-keyed-loop';
 import { executeComponent } from '../component-execution';
-import { serializeAttribute } from '../utils/styles';
 import { isSignal, scheduleEffects } from '../../reactive-primitives/utils';
 import { invoke, newInvokeContext } from '../../use/use-core';
 import { cleanupDestroyable } from '../../use/utils/destroyable';
+import { createSetAttributeOperation } from '../vnode/types/dom-vnode-operation';
+import type { Signal } from '../../reactive-primitives/signal.public';
+import type { QRLInternal } from '../qrl/qrl-class';
+import type { JSXOutput } from '../jsx/types/jsx-node';
 
-vi.mock('../../use/use-resource', () => ({
-  runResource: vi.fn(),
+vi.mock('../../client/vnode-utils', () => ({
+  vnode_createErrorDiv: vi.fn(() => {
+    // Return a mock ElementVNode
+    const node = { tagName: 'ERRORED-HOST' } as any;
+    return {
+      flags: 1, // VNodeFlags.Element
+      dirty: 0,
+      parent: null,
+      previousSibling: null,
+      nextSibling: null,
+      lastChild: null,
+      firstChild: null,
+      node,
+      props: {},
+    };
+  }),
+  vnode_insertElementBefore: vi.fn(),
+  vnode_isElementVNode: vi.fn((vNode: any) => !!(vNode?.flags & 1)),
 }));
 
 vi.mock('../../use/use-task', async () => {
@@ -45,6 +64,10 @@ vi.mock('../../use/use-task', async () => {
 
 vi.mock('../../client/vnode-diff', () => ({
   vnode_diff: vi.fn(),
+}));
+
+vi.mock('../../client/reconcile-keyed-loop', () => ({
+  reconcileKeyedLoopToParent: vi.fn(),
 }));
 
 vi.mock('../component-execution', () => ({
@@ -60,6 +83,16 @@ vi.mock('../utils/styles', () => ({
   }),
 }));
 
+vi.mock('../vnode/types/dom-vnode-operation', async () => {
+  const actual = await vi.importActual<typeof import('../vnode/types/dom-vnode-operation')>(
+    '../vnode/types/dom-vnode-operation'
+  );
+  return {
+    ...actual,
+    createSetAttributeOperation: vi.fn(actual.createSetAttributeOperation),
+  };
+});
+
 vi.mock('../../reactive-primitives/utils', () => ({
   isSignal: vi.fn((value: any) => value && typeof value === 'object' && 'value' in value),
   scheduleEffects: vi.fn(),
@@ -72,10 +105,16 @@ vi.mock('../../use/use-core', () => ({
   newInvokeContext: vi.fn(() => ({
     $container$: null,
   })),
+  untrack: vi.fn((value: any) => value?.untrackedValue ?? value?.value ?? value),
 }));
 
 vi.mock('../../use/utils/destroyable', () => ({
   cleanupDestroyable: vi.fn(),
+}));
+
+vi.mock('../../reactive-primitives/cleanup', () => ({
+  clearEffectSubscription: vi.fn(),
+  clearAllEffects: vi.fn(),
 }));
 
 function createMockVNode(
@@ -124,7 +163,7 @@ function createMockCursorData(container: Container): CursorData {
     position: null,
     priority: 0,
     promise: null,
-    isBlocking: false,
+    boundaries: null,
   };
 }
 
@@ -134,9 +173,22 @@ function createMockTask(flags: TaskFlags, el: HostElement): Task {
   task.$index$ = 0;
   task.$el$ = el;
   task.$qrl$ = {} as any;
-  task.$state$ = undefined;
   task.$destroy$ = null;
   return task;
+}
+
+function createResolvedQrl<T>(value: T): QRLInternal<T> {
+  return {
+    resolved: value,
+    resolve: vi.fn().mockResolvedValue(value),
+  } as any;
+}
+
+function createUnresolvedQrl<T>(value: T): QRLInternal<T> {
+  return {
+    resolved: undefined,
+    resolve: vi.fn().mockResolvedValue(value),
+  } as any;
 }
 
 describe('executeTasks', () => {
@@ -159,14 +211,12 @@ describe('executeTasks', () => {
   it('should return early if no elementSeq', () => {
     executeTasks(vNode, container, cursorData);
     expect(runTask).not.toHaveBeenCalled();
-    expect(runResource).not.toHaveBeenCalled();
   });
 
   it('should return early if elementSeq is empty', () => {
     container.setHostProp(vNode, ELEMENT_SEQ, []);
     executeTasks(vNode, container, cursorData);
     expect(runTask).not.toHaveBeenCalled();
-    expect(runResource).not.toHaveBeenCalled();
   });
 
   it('should skip task if not dirty', () => {
@@ -176,17 +226,6 @@ describe('executeTasks', () => {
 
     executeTasks(vNode, container, cursorData);
     expect(runTask).not.toHaveBeenCalled();
-  });
-
-  it('should run resource task without saving promise', () => {
-    const task = createMockTask(TaskFlags.RESOURCE | TaskFlags.DIRTY, vNode as any);
-    container.setHostProp(vNode, ELEMENT_SEQ, [task]);
-
-    executeTasks(vNode, container, cursorData);
-
-    expect(runResource).toHaveBeenCalledWith(task, container, vNode);
-    expect(cursorData.afterFlushTasks).toBe(null);
-    expect(cursorData.extraPromises).toBe(null);
   });
 
   it('should store visible task in afterFlushTasks', () => {
@@ -228,7 +267,6 @@ describe('executeTasks', () => {
     const result = executeTasks(vNode, container, cursorData);
 
     expect(result).toBeInstanceOf(Promise);
-    expect(cursorData.isBlocking).toBe(true);
   });
 
   it('should add non-blocking task promises to extraPromises', () => {
@@ -243,30 +281,15 @@ describe('executeTasks', () => {
     expect(cursorData.extraPromises).toEqual([promise]);
   });
 
-  it('should clear blocking flag after render-blocking task completes synchronously', () => {
-    const task = createMockTask(
-      TaskFlags.TASK | TaskFlags.DIRTY | TaskFlags.RENDER_BLOCKING,
-      vNode as any
-    );
-    container.setHostProp(vNode, ELEMENT_SEQ, [task]);
-    vi.mocked(runTask).mockReturnValue(undefined);
-
-    executeTasks(vNode, container, cursorData);
-
-    expect(cursorData.isBlocking).toBe(false);
-  });
-
   it('should handle multiple tasks of different types', () => {
-    const resourceTask = createMockTask(TaskFlags.RESOURCE | TaskFlags.DIRTY, vNode as any);
     const visibleTask = createMockTask(TaskFlags.VISIBLE_TASK | TaskFlags.DIRTY, vNode as any);
     const regularTask = createMockTask(TaskFlags.TASK | TaskFlags.DIRTY, vNode as any);
 
-    container.setHostProp(vNode, ELEMENT_SEQ, [resourceTask, visibleTask, regularTask]);
+    container.setHostProp(vNode, ELEMENT_SEQ, [visibleTask, regularTask]);
     vi.mocked(runTask).mockReturnValue(undefined);
 
     executeTasks(vNode, container, cursorData);
 
-    expect(runResource).toHaveBeenCalledWith(resourceTask, container, vNode);
     expect(cursorData.afterFlushTasks).toEqual([visibleTask]);
     expect(runTask).toHaveBeenCalledWith(regularTask, container, vNode);
   });
@@ -308,7 +331,6 @@ describe('executeNodeDiff', () => {
   it('should unwrap signal payload', () => {
     const jsx = { type: 'div', props: {}, children: [] };
     const signal = { value: jsx };
-    vi.mocked(isSignal).mockReturnValue(true);
     setNodeDiffPayload(vNode, signal as any);
 
     executeNodeDiff(vNode, container, journal, cursor);
@@ -327,6 +349,132 @@ describe('executeNodeDiff', () => {
 
     expect(result).toBeInstanceOf(Promise);
     await result;
+  });
+});
+
+describe('executeReconcile', () => {
+  let container: Container;
+  let journal: VNodeJournal;
+  let cursor: Cursor;
+  let vNode: VNode;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    container = createMockContainer();
+    journal = [] as VNodeJournal;
+    cursor = {} as Cursor;
+    vNode = createMockVNode(VNodeFlags.Element, ChoreBits.RECONCILE);
+  });
+
+  it('should clear RECONCILE dirty bit', () => {
+    executeReconcile(vNode, container, journal, cursor);
+    assert.equal(vNode.dirty & ChoreBits.RECONCILE, 0);
+  });
+
+  it('should return early if no props', () => {
+    executeReconcile(vNode, container, journal, cursor);
+    expect(reconcileKeyedLoopToParent).not.toHaveBeenCalled();
+  });
+
+  it('should reconcile synchronously when key$ and item$ are already resolved', () => {
+    const items = [{ id: '1' }];
+    const keyOf = vi.fn((item: { id: string }) => item.id);
+    const itemFn = vi.fn((item: { id: string }) => ({
+      type: 'tr',
+      props: {},
+      children: [item.id],
+    }));
+
+    container.setHostProp(vNode, ELEMENT_PROPS, {
+      items,
+      key$: createResolvedQrl(keyOf),
+      item$: createResolvedQrl(itemFn),
+    } as Props);
+
+    vi.mocked(reconcileKeyedLoopToParent).mockReturnValue(undefined as any);
+
+    const result = executeReconcile(vNode, container, journal, cursor);
+
+    expect(result).toBe(undefined);
+    expect(reconcileKeyedLoopToParent).toHaveBeenCalledWith(
+      container,
+      journal,
+      vNode,
+      cursor,
+      items,
+      keyOf,
+      itemFn
+    );
+  });
+
+  it('should return a promise when key$ or item$ needs resolution', async () => {
+    const items = [{ id: '1' }];
+    const keyOf = vi.fn((item: { id: string }) => item.id);
+    const itemFn = vi.fn((item: { id: string }) => ({
+      type: 'tr',
+      props: {},
+      children: [item.id],
+    }));
+    const keyQrl = createUnresolvedQrl(keyOf);
+    const itemQrl = createUnresolvedQrl(itemFn);
+
+    container.setHostProp(vNode, ELEMENT_PROPS, {
+      items,
+      key$: keyQrl,
+      item$: itemQrl,
+    } as Props);
+
+    vi.mocked(reconcileKeyedLoopToParent).mockReturnValue(undefined as any);
+
+    const result = executeReconcile(vNode, container, journal, cursor);
+
+    expect(result).toBeInstanceOf(Promise);
+    await result;
+
+    expect(keyQrl.resolve).toHaveBeenCalledTimes(1);
+    expect(itemQrl.resolve).toHaveBeenCalledTimes(1);
+    expect(reconcileKeyedLoopToParent).toHaveBeenCalledWith(
+      container,
+      journal,
+      vNode,
+      cursor,
+      items,
+      keyOf,
+      itemFn
+    );
+  });
+
+  it('should unwrap signal-backed items before reconciling', () => {
+    const items = [{ id: '1' }];
+    const keyOf = vi.fn((item: { id: string }) => item.id);
+    const itemFn = vi.fn(
+      (item: { id: string }): JSXOutput =>
+        ({
+          type: 'tr',
+          props: {},
+          children: [item.id],
+        }) as any
+    );
+
+    container.setHostProp(vNode, ELEMENT_PROPS, {
+      items: { value: items },
+      key$: createResolvedQrl(keyOf),
+      item$: createResolvedQrl(itemFn),
+    } as Props);
+
+    vi.mocked(reconcileKeyedLoopToParent).mockReturnValue(undefined as any);
+
+    executeReconcile(vNode, container, journal, cursor);
+
+    expect(reconcileKeyedLoopToParent).toHaveBeenCalledWith(
+      container,
+      journal,
+      vNode,
+      cursor,
+      items,
+      keyOf,
+      itemFn
+    );
   });
 });
 
@@ -355,7 +503,7 @@ describe('executeComponentChore', () => {
   });
 
   it('should execute component and diff result', () => {
-    const componentQRL = { getSymbol: () => 'component' } as any;
+    const componentQRL = { getSymbol: () => 'component', resolved: () => {} } as any;
     const props = { id: 'test' } as Props;
     const jsx = { type: 'div', props: {}, children: [] };
 
@@ -372,7 +520,7 @@ describe('executeComponentChore', () => {
   });
 
   it('should apply scoped style prefix if present', () => {
-    const componentQRL = { getSymbol: () => 'component' } as any;
+    const componentQRL = { getSymbol: () => 'component', resolved: () => {} } as any;
     const jsx = { type: 'div', props: {}, children: [] };
     const scopedStyleId = 'scope-123';
 
@@ -390,7 +538,7 @@ describe('executeComponentChore', () => {
   });
 
   it('should handle component execution error', () => {
-    const componentQRL = { getSymbol: () => 'component' } as any;
+    const componentQRL = { getSymbol: () => 'component', resolved: () => {} } as any;
     const error = new Error('Component error');
 
     container.setHostProp(vNode, OnRenderProp, componentQRL);
@@ -409,7 +557,7 @@ describe('executeComponentChore', () => {
   });
 
   it('should return promise if execution is async', async () => {
-    const componentQRL = { getSymbol: () => 'component' } as any;
+    const componentQRL = { getSymbol: () => 'component', resolved: () => {} } as any;
     const jsx = { type: 'div', props: {}, children: [] };
 
     container.setHostProp(vNode, OnRenderProp, componentQRL);
@@ -421,6 +569,41 @@ describe('executeComponentChore', () => {
 
     expect(result).toBeInstanceOf(Promise);
     await result;
+  });
+
+  it('should not mark component execution clean until it has actually started', async () => {
+    let resolveQrl!: () => void;
+    const componentQRL = {
+      getSymbol: () => 'fake_component',
+      resolve: () =>
+        new Promise((resolve) => {
+          resolveQrl = () => {
+            const fn = () => 'hi';
+            componentQRL.resolved = fn;
+            resolve(fn);
+          };
+        }),
+      resolved: undefined,
+    } as any;
+    const theJsx = { type: 'span', props: {}, children: [] };
+
+    container.setHostProp(vNode, OnRenderProp, componentQRL);
+
+    vi.mocked(executeComponent).mockReturnValueOnce(theJsx as any);
+    vi.mocked(vnode_diff).mockReturnValue(undefined);
+
+    const staleResult = executeComponentChore(vNode, container, journal, cursor);
+    expect(vNode.dirty & ChoreBits.COMPONENT).toBeTruthy();
+    expect(executeComponent).toHaveBeenCalledTimes(0);
+    resolveQrl();
+    await 1;
+    expect(executeComponent).toHaveBeenCalledTimes(0);
+    const freshResult = executeComponentChore(vNode, container, journal, cursor);
+    await freshResult;
+    await staleResult;
+
+    expect(executeComponent).toHaveBeenCalledTimes(1);
+    expect(vnode_diff).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -461,16 +644,15 @@ describe('executeNodeProps', () => {
       scopedStyleIdPrefix: null,
     });
 
-    vi.mocked(serializeAttribute).mockReturnValue('test-id');
-
     executeNodeProps(vNode, journal);
 
     expect(journal.length).toBe(1);
     expect(journal[0]).toEqual({
-      operationType: VNodeOperationType.SetAttribute,
       target: vNode.node,
       attrName: 'id',
       attrValue: 'test-id',
+      scopedStyleIdPrefix: null,
+      isSvg: false,
     });
     expect(vNode.props!['id']).toBe('test-id');
   });
@@ -487,8 +669,6 @@ describe('executeNodeProps', () => {
       scopedStyleIdPrefix: null,
     });
 
-    vi.mocked(serializeAttribute).mockImplementation((prop: string, value: any) => String(value));
-
     executeNodeProps(vNode, journal);
 
     expect(journal.length).toBe(2);
@@ -504,31 +684,36 @@ describe('executeNodeProps', () => {
       scopedStyleIdPrefix: null,
     });
 
-    vi.mocked(serializeAttribute).mockReturnValue('signal-value');
-
     executeNodeProps(vNode, journal);
 
-    expect(serializeAttribute).toHaveBeenCalledWith('data-test', 'signal-value', null);
+    expect(createSetAttributeOperation).toHaveBeenCalledWith(
+      vNode.node,
+      'data-test',
+      'signal-value',
+      null,
+      false
+    );
   });
 
   it('should handle null attribute values', () => {
     vNode.props = { id: 'old-id' };
 
     setNodePropData(vNode, 'id', {
-      value: '',
+      value: {
+        value: null,
+      } as Signal<any>,
       isConst: false,
       scopedStyleIdPrefix: null,
     });
 
-    vi.mocked(serializeAttribute).mockReturnValue(null);
-
     executeNodeProps(vNode, journal);
 
     expect(journal[0]).toEqual({
-      operationType: VNodeOperationType.SetAttribute,
       target: vNode.node,
       attrName: 'id',
       attrValue: null,
+      scopedStyleIdPrefix: null,
+      isSvg: false,
     });
     expect(vNode.props!['id']).toBeUndefined();
   });
@@ -539,8 +724,6 @@ describe('executeNodeProps', () => {
       isConst: true,
       scopedStyleIdPrefix: null,
     });
-
-    vi.mocked(serializeAttribute).mockReturnValue('const-id');
 
     executeNodeProps(vNode, journal);
 
@@ -556,11 +739,15 @@ describe('executeNodeProps', () => {
       scopedStyleIdPrefix: 'scope-123',
     });
 
-    vi.mocked(serializeAttribute).mockReturnValue('my-class');
-
     executeNodeProps(vNode, journal);
 
-    expect(serializeAttribute).toHaveBeenCalledWith('class', 'my-class', 'scope-123');
+    expect(createSetAttributeOperation).toHaveBeenCalledWith(
+      vNode.node,
+      'class',
+      'my-class',
+      'scope-123',
+      false
+    );
   });
 });
 
@@ -674,7 +861,7 @@ describe('executeCompute', () => {
   it('should schedule effects if RUN_EFFECTS flag is set', async () => {
     const effects = [vi.fn()];
     const signal = {
-      $flags$: SignalFlags.RUN_EFFECTS,
+      $flags$: ComputedSignalFlags.RUN_EFFECTS,
       $effects$: effects,
       $computeIfNeeded$: vi.fn(),
     };
@@ -684,7 +871,7 @@ describe('executeCompute', () => {
     await executeCompute(vNode, container);
 
     expect(scheduleEffects).toHaveBeenCalledWith(container, signal, effects);
-    expect(signal.$flags$ & SignalFlags.RUN_EFFECTS).toBe(0);
+    expect(signal.$flags$ & ComputedSignalFlags.RUN_EFFECTS).toBe(0);
   });
 
   it('should not schedule effects if flag is not set', async () => {
@@ -721,7 +908,7 @@ describe('executeCompute', () => {
   it('should handle computation that returns a promise', async () => {
     const effects = [vi.fn()];
     const signal = {
-      $flags$: SignalFlags.RUN_EFFECTS,
+      $flags$: ComputedSignalFlags.RUN_EFFECTS,
       $effects$: effects,
       $computeIfNeeded$: vi.fn(),
     };

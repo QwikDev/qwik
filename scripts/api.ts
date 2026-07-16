@@ -4,6 +4,20 @@ import { join } from 'node:path';
 import { generateQwikApiMarkdownDocs, generateQwikRouterApiMarkdownDocs } from './api-docs.ts';
 import { type BuildConfig, copyFile, ensureDir, panic } from './util.ts';
 
+// jsx-runtime just re-exports JSX, so skip api-extractor.
+export function writeJsxRuntimeDts(config: BuildConfig) {
+  const jsxContent = readFileSync(join(config.srcQwikDir, 'jsx-runtime.ts'), 'utf-8');
+  writeFileSync(
+    join(config.distQwikPkgDir, 'jsx-runtime.d.ts'),
+    `// re-export to make TS happy when not using nodenext import resolution\n${jsxContent}`
+  );
+  ensureDir(join(config.distQwikPkgDir, 'jsx-runtime'));
+  writeFileSync(
+    join(config.distQwikPkgDir, 'jsx-runtime', 'index.d.ts'),
+    `// re-export to make TS happy when not using nodenext import resolution\nexport * from '../jsx-runtime';`
+  );
+}
+
 /**
  * Create each submodule's bundled dts file, and ensure the public API has not changed for a
  * production build.
@@ -19,22 +33,8 @@ export async function apiExtractorQwik(config: BuildConfig) {
   );
   // Special case for jsx-runtime:
   // It only re-exports JSX. Don't duplicate the types
-  const jsxContent = readFileSync(join(config.srcQwikDir, 'jsx-runtime.ts'), 'utf-8');
-  writeFileSync(
-    join(config.distQwikPkgDir, 'jsx-runtime.d.ts'),
-    `// re-export to make TS happy when not using nodenext import resolution\n${jsxContent}`
-  );
-  ensureDir(join(config.distQwikPkgDir, 'jsx-runtime'));
-  writeFileSync(
-    join(config.distQwikPkgDir, 'jsx-runtime', 'index.d.ts'),
-    `// re-export to make TS happy when not using nodenext import resolution\nexport * from '../jsx-runtime';`
-  );
-  createTypesApi(
-    config,
-    join(config.srcQwikDir, 'optimizer'),
-    join(config.distQwikPkgDir, 'optimizer.d.ts'),
-    '.'
-  );
+  writeJsxRuntimeDts(config);
+  createTypesApi(config, config.qwikVitePkgDir, join(config.distQwikPkgDir, 'optimizer.d.ts'), '.');
   createTypesApi(
     config,
     join(config.srcQwikDir, 'server'),
@@ -55,6 +55,12 @@ export async function apiExtractorQwik(config: BuildConfig) {
   );
   createTypesApi(
     config,
+    join(config.srcQwikDir, 'web-worker'),
+    join(config.distQwikPkgDir, 'worker', 'index.d.mts'),
+    '../core-internal.js'
+  );
+  createTypesApi(
+    config,
     join(config.srcQwikDir, 'insights'),
     join(config.distQwikPkgDir, 'insights', 'index.d.ts'),
     '..'
@@ -72,6 +78,15 @@ export async function apiExtractorQwik(config: BuildConfig) {
   await generateQwikApiMarkdownDocs(config, apiJsonInputDir);
 
   console.log('🥶', 'qwik d.ts API files generated');
+}
+
+export async function apiExtractorOptimizer(config: BuildConfig) {
+  createTypesApi(
+    config,
+    config.optimizerPkgDir,
+    join(config.optimizerPkgDir, 'dist', 'index.d.ts')
+  );
+  console.log('🥶', 'optimizer d.ts API files generated');
 }
 
 export async function apiExtractorQwikRouter(config: BuildConfig) {
@@ -274,7 +289,7 @@ function createTypesApi(
   }
 }
 
-function generateQwikRouterReferenceModules(config: BuildConfig) {
+export function generateQwikRouterReferenceModules(config: BuildConfig) {
   const srcModulesPath = join(config.packagesDir, 'qwik-router', 'lib');
 
   const destModulesPath = join(srcModulesPath, 'modules.d.ts');
@@ -288,10 +303,11 @@ function generateQwikRouterReferenceModules(config: BuildConfig) {
   writeFileSync(distIndexPath, serverDts);
 }
 
-function generateServerReferenceModules(config: BuildConfig) {
+export function generateServerReferenceModules(config: BuildConfig) {
   // server-modules.d.ts
   const referenceDts = `/// <reference types="./server" />
 declare module '@qwik-client-manifest' {
+  /** @deprecated Use \`getClientManifest()\` instead */
   const manifest: import('./optimizer').QwikManifest;
   export { manifest };
 }

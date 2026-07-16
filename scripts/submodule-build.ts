@@ -1,7 +1,7 @@
 import { build, type BuildOptions } from 'esbuild';
 import { join } from 'node:path';
-import { writePackageJson } from './package-json.ts';
-import { type BuildConfig, copyFile, ensureDir, type PackageJSON, target } from './util.ts';
+import { writeSubmodulePackageJson } from './package-json.ts';
+import { type BuildConfig, copyFile, ensureDir, target } from './util.ts';
 
 export async function submoduleBuild(config: BuildConfig) {
   const submodule = 'build';
@@ -18,15 +18,7 @@ export async function submoduleBuild(config: BuildConfig) {
 
   await copyFile(join(buildSrcDtsDir, 'index.d.ts'), join(buildDestDir, 'index.d.ts'));
 
-  const loaderPkg: PackageJSON = {
-    name: `@qwik.dev/core/build`,
-    version: config.distVersion,
-    main: `index.mjs`,
-    types: `index.d.ts`,
-    private: true,
-    type: 'module',
-  };
-  await writePackageJson(buildDestDir, loaderPkg);
+  await writeSubmodulePackageJson(buildDestDir, '@qwik.dev/core/build', config.distVersion);
 }
 
 export async function bundleIndex(config: BuildConfig, entryName: string) {

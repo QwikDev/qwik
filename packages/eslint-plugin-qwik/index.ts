@@ -11,9 +11,11 @@ import { unusedServer } from './src/unusedServer';
 import { useMethodUsage } from './src/useMethodUsage';
 import { validLexicalScope } from './src/validLexicalScope';
 import { serializerSignalUsage } from './src/serializerSignalUsage';
+import { noAsyncPreventDefault } from './src/noAsyncPreventDefault';
+import { noAwaitNavigateInUseTask } from './src/noAwaitNavigateInUseTask';
 import pkg from './package.json';
 import { scopeUseTask } from './src/scope-use-task';
-import { asyncComputedTop } from './src/asyncComputedTop';
+import { asyncComputedTop } from './src/useAsyncTop';
 
 type Rules = NonNullable<TSESLint.FlatConfig.Plugin['rules']>;
 
@@ -31,7 +33,9 @@ const rules = {
   'no-use-visible-task': noUseVisibleTask,
   'serializer-signal-usage': serializerSignalUsage,
   'scope-use-task': scopeUseTask,
-  'async-computed-top': asyncComputedTop,
+  'use-async-top': asyncComputedTop,
+  'no-async-prevent-default': noAsyncPreventDefault,
+  'no-await-navigate-in-use-task': noAwaitNavigateInUseTask,
 } satisfies Rules;
 
 const recommendedRulesLevels = {
@@ -48,7 +52,9 @@ const recommendedRulesLevels = {
   'qwik/no-use-visible-task': 'warn',
   'qwik/serializer-signal-usage': 'error',
   'qwik/scope-use-task': 'error',
-  'qwik/async-computed-top': 'warn',
+  'qwik/use-async-top': 'warn',
+  'qwik/no-async-prevent-default': 'warn',
+  'qwik/no-await-navigate-in-use-task': 'warn',
 } satisfies TSESLint.FlatConfig.Rules;
 
 const strictRulesLevels = {
@@ -65,7 +71,9 @@ const strictRulesLevels = {
   'qwik/no-use-visible-task': 'warn',
   'qwik/serializer-signal-usage': 'error',
   'qwik/scope-use-task': 'error',
-  'qwik/async-computed-top': 'warn',
+  'qwik/use-async-top': 'warn',
+  'qwik/no-async-prevent-default': 'warn',
+  'qwik/no-await-navigate-in-use-task': 'warn',
 } satisfies TSESLint.FlatConfig.Rules;
 
 const configs = {
@@ -95,22 +103,17 @@ const qwikEslint9Plugin = {
   rules,
 } as const;
 
-const recommendedConfig = [
-  {
-    plugins: {
-      qwik: qwikEslint9Plugin,
+const createFlatConfig = (rules: TSESLint.FlatConfig.Rules) =>
+  [
+    {
+      plugins: {
+        qwik: qwikEslint9Plugin,
+      },
+      rules,
     },
-    rules: recommendedRulesLevels,
-  },
-] satisfies TSESLint.FlatConfig.ConfigArray;
+  ] satisfies TSESLint.FlatConfig.ConfigArray;
 
-const strictConfig = [
-  {
-    plugins: {
-      qwik: qwikEslint9Plugin,
-    },
-    rules: strictRulesLevels,
-  },
-] satisfies TSESLint.FlatConfig.ConfigArray;
+const recommendedConfig = createFlatConfig(recommendedRulesLevels);
+const strictConfig = createFlatConfig(strictRulesLevels);
 
 export { configs, qwikEslint9Plugin, rules };

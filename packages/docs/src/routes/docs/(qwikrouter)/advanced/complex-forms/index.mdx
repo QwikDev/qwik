@@ -10,6 +10,8 @@ updated_at: '2023-08-21T21:04:20Z'
 created_at: '2023-08-21T21:04:20Z'
 ---
 
+import { Note } from '~/components/note/note';
+
 # Complex Forms
 
 ## What are Complex Forms?
@@ -164,8 +166,7 @@ If you make person an array, the error messages will switch to a slightly differ
 }
 ```
 
-> If you completely forget to assign a value to an array type, lets say you completely forget person in the form.
-> The error is then in `fieldErrors["person[]"]`.
+<Note>If you completely forget to assign a value to an array type, lets say you completely forget person in the form. The error is then in `fieldErrors["person[]"]`.</Note>
 
 This way you can easily match the error messages to the input names like this:
 

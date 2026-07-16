@@ -6,13 +6,15 @@ updated_at: '2025-01-11T18:00:00Z'
 created_at: '2025-01-11T18:00:00Z'
 ---
 
+import { Note } from '~/components/note/note';
+
 # Error handling
 
 When an error is thrown in a loader or `server$` function, a 500 error is returned to the client along with the error. This is useful during development but isn't always desirable for production systems. Qwik provides the tools necessary to customise how errors are handled.
 
 Throwing a `ServerError` instance allows you to return custom errors to the browser with a different status code and serialised data.
 
-> Loaders also provide a helper function on the event object to easily create new ServerErrors.
+<Note>Loaders also provide a helper function on the event object to easily create new ServerErrors.</Note>
 
 ```tsx
 // Throw ServerErrors from a routerLoader$

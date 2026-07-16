@@ -1,7 +1,8 @@
-import { Fragment, Slot, _getDomContainer, isSignal, untrack } from '@qwik.dev/core';
-import { _isJSXNode, _isStringifiable } from '@qwik.dev/core/internal';
 import type { JSXChildren, JSXNode, JSXOutput } from '@qwik.dev/core';
+import { Fragment, Slot, _getDomContainer, isSignal, untrack } from '@qwik.dev/core';
 import type {
+  ClientContainer,
+  JSXNodeInternal,
   _ContainerElement,
   _ElementVNode,
   _QDocument,
@@ -9,9 +10,8 @@ import type {
   _TextVNode,
   _VNode,
   _VirtualVNode,
-  JSXNodeInternal,
-  ClientContainer,
 } from '@qwik.dev/core/internal';
+import { _isJSXNode, _isStringifiable } from '@qwik.dev/core/internal';
 import { expect } from 'vitest';
 import {
   type VNodeJournal,
@@ -31,31 +31,35 @@ import {
   vnode_newVirtual,
   vnode_setAttr,
   vnode_setProp,
+  vnode_toString,
 } from '../core/client/vnode-utils';
 
 import { format } from 'prettier';
-import { serializeBooleanOrNumberAttribute } from '../core/shared/utils/styles';
+import { _flushJournal } from '../core/shared/cursor/cursor-flush';
+import { QContainerValue } from '../core/shared/types';
 import {
   isHtmlAttributeAnEventName,
   isJsxPropertyAnEventName,
 } from '../core/shared/utils/event-names';
-import { createDocument } from './document';
 import {
   ELEMENT_ID,
   ELEMENT_KEY,
-  QRenderAttr,
+  ITERATION_ITEM_MULTI,
+  ITERATION_ITEM_SINGLE,
   QBackRefs,
-  Q_PROPS_SEPARATOR,
   QContainerAttr,
+  QRenderAttr,
+  QTemplate,
+  Q_PROPS_SEPARATOR,
+  debugStyleScopeIdPrefixAttr,
 } from '../core/shared/utils/markers';
-import { HANDLER_PREFIX } from '../core/client/vnode-diff';
-import { prettyJSX } from './jsx';
-import { isElement, prettyHtml } from './html';
-import { QContainerValue } from '../core/shared/types';
-import type { VNode } from '../core/shared/vnode/vnode';
+import { serializeAttribute, serializeBooleanOrNumberAttribute } from '../core/shared/utils/styles';
 import { ElementVNode } from '../core/shared/vnode/element-vnode';
 import type { VirtualVNode } from '../core/shared/vnode/virtual-vnode';
-import { _flushJournal } from '../core/shared/cursor/cursor-flush';
+import type { VNode } from '../core/shared/vnode/vnode';
+import { createDocument } from './document';
+import { isElement, prettyHtml } from './html';
+import { prettyJSX } from './jsx';
 
 expect.extend({
   toMatchVDOM(
@@ -99,7 +103,15 @@ expect.extend({
   },
 });
 
-const ignoredAttributes = [QBackRefs, ELEMENT_ID, '', Q_PROPS_SEPARATOR];
+const ignoredAttributes = [
+  QBackRefs,
+  ELEMENT_ID,
+  '',
+  Q_PROPS_SEPARATOR,
+  debugStyleScopeIdPrefixAttr,
+  ITERATION_ITEM_MULTI,
+  ITERATION_ITEM_SINGLE,
+];
 
 function getContainerElement(vNode: _VNode) {
   let maybeParent: _VNode | null;
@@ -130,6 +142,10 @@ function diffJsxVNode(
   if (!received) {
     return [path.join(' > ') + ' missing'];
   }
+  if (!container.qContainer) {
+    _getDomContainer(container);
+  }
+
   const diffs: string[] = [];
   if (typeof expected === 'string') {
     const receivedText = vnode_isTextVNode(received) ? vnode_getText(received as _TextVNode) : null;
@@ -177,7 +193,7 @@ function diffJsxVNode(
     propsAdd(
       allProps,
       vnode_isElementVNode(received)
-        ? vnode_getAttrKeys(received)
+        ? vnode_getAttrKeys(container.qContainer!, received)
             .filter((key) => !ignoredAttributes.includes(key))
             .sort()
         : []
@@ -187,15 +203,22 @@ function diffJsxVNode(
     path.push(tagToString(expected.type));
 
     allProps.sort();
-    allProps.forEach((prop) => {
+    for (let i = 0; i < allProps.length; i++) {
+      const prop = allProps[i];
       if (isJsxPropertyAnEventName(prop) || isHtmlAttributeAnEventName(prop)) {
-        return;
+        continue;
       }
       // we need this, because Domino lowercases all attributes for `element.attributes`
       const propLowerCased = prop.toLowerCase();
-      let receivedValue =
-        vnode_getProp(received, prop, null) ||
-        vnode_getProp(received, propLowerCased, null) ||
+      let convertNullToUndefined = false;
+      const vnodePropValue =
+        stringifyAttribute(received, prop, vnode_getProp(received, prop, null)) ||
+        stringifyAttribute(received, propLowerCased, vnode_getProp(received, propLowerCased, null));
+      if (vnodePropValue === null) {
+        convertNullToUndefined = true;
+      }
+      let receivedValue: string | boolean | undefined | null =
+        vnodePropValue ||
         receivedElement?.getAttribute(prop) ||
         receivedElement?.getAttribute(propLowerCased);
       let expectedValue =
@@ -205,6 +228,9 @@ function diffJsxVNode(
       if (typeof receivedValue === 'boolean' || typeof receivedValue === 'number') {
         receivedValue = serializeBooleanOrNumberAttribute(receivedValue);
       }
+      if (convertNullToUndefined && receivedValue === null) {
+        receivedValue = undefined;
+      }
       if (typeof expectedValue === 'number') {
         expectedValue = serializeBooleanOrNumberAttribute(expectedValue);
       }
@@ -213,7 +239,7 @@ function diffJsxVNode(
         diffs.push('  EXPECTED: ' + JSON.stringify(expectedValue));
         diffs.push('  RECEIVED: ' + JSON.stringify(receivedValue));
       }
-    });
+    }
     diffJsxVNodeChildren(received, expected, path, container, isSsr, diffs);
   } else if (isSsr && isSkippableNode(expected)) {
     diffJsxVNodeChildren(received, expected, path, container, isSsr, diffs);
@@ -264,7 +290,10 @@ function diffJsxVNodeChildren(
       }`
     );
     diffs.push('EXPECTED', jsxToHTML(expected, '  '));
-    diffs.push('RECEIVED', received.toString());
+    diffs.push(
+      'RECEIVED',
+      vnode_toString.call(received, 20, '  ', true, false, false, container as any)
+    );
   }
   path.pop();
 }
@@ -286,7 +315,8 @@ function getFilteredJSXChildren(
   };
 
   function processChildren(children: JSXChildren[]) {
-    for (const child of children) {
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i];
       if (typeof child === 'string' || typeof child === 'number') {
         // skip empty strings
         if (child !== '') {
@@ -356,9 +386,11 @@ export function jsxToHTML(jsx: JSXNode, pad: string = ''): string {
   const html: string[] = [];
   if (jsx.type) {
     html.push(pad, '<', tagToString(jsx.type), '>\n');
-    getJSXChildren(jsx).forEach((jsx) => {
+    const children = getJSXChildren(jsx);
+    for (let i = 0; i < children.length; i++) {
+      const jsx = children[i];
       html.push(jsxToHTML(jsx as JSXNode, pad + '  '));
-    });
+    }
     html.push(pad, '</', tagToString(jsx.type), '>\n');
   } else {
     html.push(pad, JSON.stringify(jsx), '\n');
@@ -396,12 +428,18 @@ function tagToString(tag: any): string {
 function shouldSkip(vNode: _VNode | null) {
   if (vNode && vnode_isElementVNode(vNode)) {
     const tag = vnode_getElementName(vNode);
+
+    // Skip script tags with qwik types
     if (
       tag === 'script' &&
       (vnode_getProp(vNode, 'type', null) === 'qwik/vnode' ||
         vnode_getProp(vNode, 'type', null) === 'x-qwik/vnode' ||
         vnode_getProp(vNode, 'type', null) === 'qwik/state')
     ) {
+      return true;
+    }
+
+    if (tag === QTemplate) {
       return true;
     }
   }
@@ -420,7 +458,8 @@ export function walkJSX(
   if (_isJSXNode(jsx)) {
     apply.enter(jsx);
     if (Array.isArray(jsx.children)) {
-      for (const child of jsx.children) {
+      for (let i = 0; i < jsx.children.length; i++) {
+        const child = jsx.children[i];
         processChild(child);
       }
     } else if (jsx.children) {
@@ -481,7 +520,7 @@ export function vnode_fromJSX(jsx: JSXOutput) {
           if (isJsxPropertyAnEventName(key)) {
             continue;
           }
-          if (key.startsWith(HANDLER_PREFIX) || isHtmlAttributeAnEventName(key)) {
+          if (isHtmlAttributeAnEventName(key)) {
             vnode_setProp(child, key, props[key]);
           } else {
             vnode_setAttr(journal, child, key, String(props[key]));
@@ -521,11 +560,12 @@ function constPropsFromElement(element: Element) {
 }
 
 function propsAdd(existing: string[], incoming: string[]) {
-  for (const prop of incoming) {
+  for (let i = 0; i < incoming.length; i++) {
+    const prop = incoming[i];
     if (prop !== 'children') {
       let found = false;
-      for (let i = 0; i < existing.length; i++) {
-        if (existing[i].toLowerCase() === prop.toLowerCase()) {
+      for (let j = 0; j < existing.length; j++) {
+        if (existing[j].toLowerCase() === prop.toLowerCase()) {
           found = true;
           break;
         }
@@ -543,8 +583,16 @@ function attrsEqual(expectedValue: any, receivedValue: any) {
     typeof expectedValue == 'boolean'
       ? expectedValue
         ? receivedValue !== null
-        : receivedValue === null || receivedValue === 'false'
-      : expectedValue == receivedValue;
+        : receivedValue == null || receivedValue === 'false'
+      : expectedValue === receivedValue;
   // console.log('attrsEqual', expectedValue, receivedValue, isEqual);
   return isEqual;
+}
+
+function stringifyAttribute(vnode: VNode, key: string, value: any): string | null | boolean {
+  if (isSignal(value)) {
+    value = untrack(() => value.value);
+  }
+  const styleScopedId = vnode_getProp<string | null>(vnode, debugStyleScopeIdPrefixAttr, null);
+  return serializeAttribute(key, value, styleScopedId);
 }

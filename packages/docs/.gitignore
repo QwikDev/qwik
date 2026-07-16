@@ -6,6 +6,7 @@ functions/**/*.js
 # This is used in dev mode because service
 # workers don't support imports
 public/repl/repl-sw.js*
+public/pagefind/
 
 !src/routes/api/qwik/server/
 
@@ -40,5 +41,5 @@ lerna-debug.log*
 *.sw?
 
 # Cloudflare
-
+.wrangler
 *.local

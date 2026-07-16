@@ -5,6 +5,7 @@ import {
   access as fsAccess,
   copyFile as fsCopyFile,
   mkdir as fsMkdir,
+  readFileSync,
   readdir as fsReaddir,
   readFile as fsReadFile,
   stat as fsStat,
@@ -23,14 +24,18 @@ import { readPackageJson } from './package-json.ts';
 const stringOptions = ['distVersion', 'platformTarget', 'setDistTag'] as const;
 const booleanOptions = [
   'api',
+  'browserExtension',
   'cli',
   'commit',
   'dev',
+  'devtools',
   'devRelease',
   'dryRun',
   'eslint',
   'esmNode',
   'insights',
+  'mangle',
+  'optimizer',
   'platformBinding',
   'platformBindingWasmCopy',
   'prepareRelease',
@@ -55,14 +60,23 @@ const booleanOptions = [
 export type BuildConfig = { [key in (typeof stringOptions)[number]]: string } & {
   [key in (typeof booleanOptions)[number]]?: boolean;
 } & {
+  browserExtensionPkgDir: string;
   distBindingsDir: string;
+  distDevtoolsPkgDir: string;
   distQwikRouterPkgDir: string;
   distQwikPkgDir: string;
+  devtoolsPkgDir: string;
   dtsDir: string;
+  optimizerPkgDir: string;
+  optimizerVersion: string;
+  optimizerRustPkgDir: string;
   packagesDir: string;
+  qwikViteDir: string;
+  qwikVitePkgDir: string;
   rootDir: string;
   scriptsDir: string;
   srcNapiDir: string;
+  srcWasmDir: string;
   optimizerDir: string;
   srcQwikRouterDir: string;
   srcQwikDir: string;
@@ -82,8 +96,16 @@ export function loadConfig(args: string[] = []): BuildConfig {
   const rootDir = join(__dirname, '..');
   const packagesDir = join(rootDir, 'packages');
   const srcQwikDir = join(packagesDir, 'qwik', 'src');
-  const optimizerDir = join(packagesDir, 'qwik', 'src', 'optimizer', 'src');
+  const optimizerPkgDir = join(packagesDir, 'optimizer');
+  const devtoolsPkgDir = join(packagesDir, 'devtools');
+  const browserExtensionPkgDir = join(packagesDir, 'browser-extension');
+  const optimizerRustPkgDir = join(packagesDir, 'optimizer');
+  const qwikVitePkgDir = join(packagesDir, 'qwik-vite');
+  const optimizerDir = join(optimizerPkgDir, 'src');
+  const qwikViteDir = join(qwikVitePkgDir, 'src');
   const distQwikPkgDir = join(packagesDir, 'qwik', 'dist');
+  const optimizerVersion = JSON.parse(readFileSync(join(optimizerPkgDir, 'package.json'), 'utf-8'))
+    .version as string;
   const tmpDir = join(rootDir, 'dist-dev');
   const knownOptions = [...stringOptions, ...booleanOptions] as const;
   const kebabOptions = knownOptions.map(kebab);
@@ -124,15 +146,24 @@ export function loadConfig(args: string[] = []): BuildConfig {
     rootDir,
     packagesDir,
     optimizerDir,
+    optimizerPkgDir,
+    optimizerVersion,
+    optimizerRustPkgDir,
+    qwikViteDir,
+    qwikVitePkgDir,
+    devtoolsPkgDir,
+    browserExtensionPkgDir,
     srcQwikDir,
     tmpDir,
     srcQwikRouterDir: join(packagesDir, 'qwik-router', 'src'),
-    srcNapiDir: join(srcQwikDir, 'napi'),
+    srcNapiDir: join(optimizerRustPkgDir, 'napi'),
+    srcWasmDir: join(optimizerRustPkgDir, 'wasm'),
     scriptsDir: join(rootDir, 'scripts'),
     startersDir: join(rootDir, 'starters'),
     distQwikPkgDir,
+    distDevtoolsPkgDir: join(devtoolsPkgDir, 'dist'),
     distQwikRouterPkgDir: join(packagesDir, 'qwik-router', 'lib'),
-    distBindingsDir: join(packagesDir, 'qwik', 'bindings'),
+    distBindingsDir: join(optimizerPkgDir, 'bindings'),
     tscDir: join(tmpDir, 'tsc-out'),
     dtsDir: join(tmpDir, 'dts-out'),
     esmNode: parseInt(process.version.slice(1).split('.')[0], 10) >= 14,
@@ -201,25 +232,9 @@ export const getBanner = (moduleName: string, version: string) => {
  * The JavaScript target we're going for. Reusing a constant just to make sure all the builds are
  * using the same target.
  */
-export const target = 'es2020';
+export const target = 'safari15.4';
 
-export const nodeTarget = 'es2020';
-
-/** Helper just to know which Node.js modules that should stay external. */
-export const nodeBuiltIns = [
-  'assert',
-  'async_hooks',
-  'child_process',
-  'crypto',
-  'fs',
-  'module',
-  'net',
-  'os',
-  'path',
-  'tty',
-  'url',
-  'util',
-];
+export const nodeTarget = 'es2024';
 
 /** Utility just to ignore certain rollup warns we already know aren't issues. */
 export function rollupOnWarn(warning: any, warn: any) {
@@ -380,3 +395,10 @@ export async function getQwikVersion(config: BuildConfig) {
   const qwikPkgJson = await readPackageJson(qwikDir);
   return qwikPkgJson.version;
 }
+
+// pascal to snake case
+export const toSnakeCase = (str: string) =>
+  str
+    .split(/\.?(?=[A-Z])/)
+    .join('-')
+    .toLowerCase();

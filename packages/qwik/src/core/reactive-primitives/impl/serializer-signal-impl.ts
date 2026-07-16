@@ -1,16 +1,16 @@
 import { qwikDebugToString } from '../../debug';
 import type { QRLInternal } from '../../shared/qrl/qrl-class';
 import type { Container } from '../../shared/types';
-import { trackSignal } from '../../use/use-core';
-import { throwIfQRLNotResolved } from '../utils';
+import { trackSignal, untrack } from '../../use/use-core';
 import type { SerializerArg } from '../types';
 import {
-  SerializationSignalFlags,
   EffectProperty,
   NEEDS_COMPUTATION,
-  SignalFlags,
+  SerializationSignalFlags,
+  ComputedSignalFlags,
   type ComputeQRL,
 } from '../types';
+import { scheduleEffects, throwIfQRLNotResolved } from '../utils';
 import { ComputedSignalImpl } from './computed-signal-impl';
 
 const DEBUG = false;
@@ -28,24 +28,24 @@ export class SerializerSignalImpl<T, S> extends ComputedSignalImpl<T> {
     super(
       container,
       argQrl as unknown as ComputeQRL<T>,
-      SignalFlags.INVALID | SerializationSignalFlags.SERIALIZATION_STRATEGY_ALWAYS
+      ComputedSignalFlags.INVALID | SerializationSignalFlags.SERIALIZATION_STRATEGY_ALWAYS
     );
   }
   $didInitialize$: boolean = false;
 
   $computeIfNeeded$() {
-    if (!(this.$flags$ & SignalFlags.INVALID)) {
+    if (!(this.$flags$ & ComputedSignalFlags.INVALID)) {
       return;
     }
     throwIfQRLNotResolved(this.$computeQrl$);
-    let arg = (this.$computeQrl$ as any as QRLInternal<SerializerArg<T, S>>).resolved!;
-    if (typeof arg === 'function') {
-      arg = arg();
-    }
+
+    const arg = untrack((this.$computeQrl$ as any as QRLInternal<SerializerArg<T, S>>).resolved!);
+
     const { deserialize, initial } = arg;
     const update = (arg as any).update as ((current: T) => T) | undefined;
     const currentValue =
       this.$untrackedValue$ === NEEDS_COMPUTATION ? initial : this.$untrackedValue$;
+
     const untrackedValue = trackSignal(
       () =>
         this.$didInitialize$
@@ -55,15 +55,19 @@ export class SerializerSignalImpl<T, S> extends ComputedSignalImpl<T> {
       EffectProperty.VNODE,
       this.$container$!
     );
+    this.$didInitialize$ = true;
+
+    // Needs to invalidate only after all possible Promise throws happened
+    this.$flags$ &= ~ComputedSignalFlags.INVALID;
+
     DEBUG && log('SerializerSignal.$compute$', untrackedValue);
+    // We allow forcing the update of the signal without changing the value, for example when the deserialized value is the same reference as the old value but its internals have changed. In that case we want to trigger effects that depend on this signal, even though the value is the same.
     const didChange =
       (this.$didInitialize$ && untrackedValue !== 'undefined') ||
       untrackedValue !== this.$untrackedValue$;
-    this.$flags$ &= ~SignalFlags.INVALID;
-    this.$didInitialize$ = true;
     if (didChange) {
-      this.$flags$ |= SignalFlags.RUN_EFFECTS;
       this.$untrackedValue$ = untrackedValue as T;
+      scheduleEffects(this.$container$, this, this.$effects$);
     }
   }
 }

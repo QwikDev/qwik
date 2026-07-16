@@ -1,12 +1,15 @@
 import { pad, qwikDebugToString } from '../../debug';
+import { qTest } from '../../shared/utils/qdev';
 import { assertTrue } from '../../shared/error/assert';
 import { tryGetInvokeContext } from '../../use/use-core';
 import { isObject, isSerializableObject } from '../../shared/utils/types';
 import type { Container } from '../../shared/types';
+import { isSameContainer } from '../../shared/utils/container';
 import {
   addQrlToSerializationCtx,
   ensureContainsBackRef,
   ensureContainsSubscription,
+  getEffectSerializationContainer,
   scheduleEffects,
 } from '../utils';
 import {
@@ -18,6 +21,9 @@ import {
   type StoreTarget,
 } from '../types';
 import type { PropsProxy, PropsProxyHandler } from '../../shared/jsx/props-proxy';
+import { isDev, isServer } from '@qwik.dev/core/build';
+import { isServerPlatform } from '../../shared/platform/platform';
+import type { SSRSegmentContainer } from '../../ssr/ssr-types';
 
 const DEBUG = false;
 
@@ -67,10 +73,11 @@ export const unwrapStore = <T>(value: T): T => {
 };
 
 /** @internal */
-export const isStore = (value: StoreTarget): boolean => {
+export const isStore = (value: object): boolean => {
   return STORE_TARGET in value;
 };
 
+/** @internal */
 export function createStore<T extends object>(
   container: Container | null | undefined,
   obj: T,
@@ -133,10 +140,11 @@ export class StoreHandler implements ProxyHandler<StoreTarget> {
         // Grab the container now we have access to it
         this.$container$ = ctx.$container$;
       } else {
-        assertTrue(
-          !ctx.$container$ || ctx.$container$ === this.$container$,
-          'Do not use signals across containers'
-        );
+        isDev &&
+          assertTrue(
+            !ctx.$container$ || isSameContainer(ctx.$container$, this.$container$),
+            'Do not use signals across containers'
+          );
       }
       const effectSubscriber = ctx.$effectSubscriber$;
       if (effectSubscriber) {
@@ -144,7 +152,8 @@ export class StoreHandler implements ProxyHandler<StoreTarget> {
           target,
           Array.isArray(target) ? STORE_ALL_PROPS : prop,
           this,
-          effectSubscriber
+          effectSubscriber,
+          ctx.$container$
         );
       }
     }
@@ -212,7 +221,8 @@ export class StoreHandler implements ProxyHandler<StoreTarget> {
             target,
             Array.isArray(target) ? STORE_ALL_PROPS : prop,
             this,
-            effectSubscriber
+            effectSubscriber,
+            ctx.$container$
           );
         }
       }
@@ -224,7 +234,7 @@ export class StoreHandler implements ProxyHandler<StoreTarget> {
     const ctx = tryGetInvokeContext();
     const effectSubscriber = ctx?.$effectSubscriber$;
     if (effectSubscriber) {
-      addStoreEffect(target, STORE_ALL_PROPS, this, effectSubscriber);
+      addStoreEffect(target, STORE_ALL_PROPS, this, effectSubscriber, ctx.$container$);
     }
     return Reflect.ownKeys(target);
   }
@@ -251,7 +261,8 @@ export function addStoreEffect(
   target: StoreTarget | PropsProxy,
   prop: string | symbol,
   store: StoreHandler | PropsProxyHandler,
-  effectSubscription: EffectSubscription
+  effectSubscription: EffectSubscription,
+  renderContainer?: Container
 ) {
   const effectsMap = (store.$effects$ ||= new Map());
   let effects = effectsMap.get(prop);
@@ -262,25 +273,52 @@ export function addStoreEffect(
   // Let's make sure that we have a reference to this effect.
   // Adding reference is essentially adding a subscription, so if the signal
   // changes we know who to notify.
+  const isOnServer = qTest ? isServerPlatform() : isServer;
+  const shouldRecordExternalRootEffect =
+    __EXPERIMENTAL__.suspense && store instanceof StoreHandler && isOnServer;
   ensureContainsSubscription(effects, effectSubscription);
   // But when effect is scheduled in needs to be able to know which signals
   // to unsubscribe from. So we need to store the reference from the effect back
   // to this signal.
   ensureContainsBackRef(effectSubscription, target);
-  // TODO is this needed with the preloader?
-  addQrlToSerializationCtx(effectSubscription, store.$container$);
+  if (isOnServer) {
+    const serializationContainer = getEffectSerializationContainer(
+      renderContainer,
+      store.$container$
+    );
+    if (shouldRecordExternalRootEffect) {
+      (serializationContainer as SSRSegmentContainer | null)?.$recordExternalRootEffect$?.(
+        target,
+        effectSubscription,
+        prop,
+        effectsMap
+      );
+    }
+    // TODO is this needed with the preloader?
+    addQrlToSerializationCtx(effectSubscription, serializationContainer);
+  }
 
-  DEBUG && log('sub', pad('\n' + store.$effects$?.entries.toString(), '  '));
+  DEBUG &&
+    log(
+      'sub',
+      pad(
+        '\n' +
+          [...(store.$effects$?.entries() || [])]
+            .map(([key, value]) => `${String(key)}: ${String(value)}`)
+            .join(','),
+        '  '
+      )
+    );
 }
 
 function setNewValueAndTriggerEffects<T extends Record<string | symbol, any>>(
-  prop: string | symbol,
+  prop: keyof T,
   value: any,
   target: T,
   currentStore: StoreHandler
 ): void {
-  (target as any)[prop] = value;
-  const effects = getEffects(target, prop, currentStore.$effects$);
+  target[prop] = value;
+  const effects = getEffects(target, prop as string | symbol, currentStore.$effects$);
   if (effects) {
     scheduleEffects(currentStore.$container$, currentStore, effects);
   }

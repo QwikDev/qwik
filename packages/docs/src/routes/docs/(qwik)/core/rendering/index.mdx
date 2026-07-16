@@ -1,7 +1,7 @@
 ---
 title: Rendering | Components
 contributors:
-  - the-r3aper7
+  - saisrikardumpeti
   - RATIU5
   - manucorporat
   - forresst
@@ -22,6 +22,8 @@ contributors:
 updated_at: '2023-09-19T17:37:26Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
+
+import { Note } from '~/components/note/note';
 
 # Rendering
 
@@ -93,12 +95,13 @@ export const Child = component$((props: { name: string }) => {
 });
 ```
 
-> In the above example, the Parent component passes a changing `name` property to the Child component. The Child component will only re-render when the count signal changes.
-
+<Note>In the above example, the Parent component passes a changing `name` property to the Child component. The Child component will only re-render when the count signal changes.</Note>
 
 ### Rendering a list of items
 
-In many cases you'll want to render components by mapping an array in the render function with `items.map()`. It is required for every item of the list to have a unique `key` property passed to the first child of the mapping function. The `key` must be a string or number and must be unique within the list.
+Qwik supports rendering lists with either `items.map()` or the experimental [`Each`](/docs/labs/each/) component.
+
+For keyed collections, prefer [`Each`](/docs/labs/each/) once you have enabled it with `experimental: ['each']`. If you render with `items.map()`, every item in the list must have a unique `key` property on the first child returned by the mapping function. The `key` must be a string or number and must be unique within the list.
 
 ```tsx {6} /data.map/ /key/#a
 import { component$ } from '@qwik.dev/core';
@@ -116,11 +119,14 @@ export const Parent = component$(() => {
 });
 ```
 
-> **Note:** it is not recommended to use the array's index as the key unless you can guarantee that the data for a given key will always be the same. It is always preferred to use some unique identifier from the data as the key.
+<Note>It is not recommended to use the array's index as the key unless you can guarantee that the data for a given key will always be the same. It is always preferred to use some unique identifier from the data as the key.</Note>
 
 ### Rendering Conditionally
 
 Conditional rendering is done with the Javascipt [ternary operator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Conditional_Operator) `?`, the `&&` operator, or just by using `if` statements.
+
+Qwik also provides the experimental [`Show`](/docs/labs/show/) component for QRL-based
+conditional control flow once it is enabled with `experimental: ['show']`.
 
 ```tsx
 import { component$ } from '@qwik.dev/core';
@@ -172,7 +178,7 @@ export default component$(() => {
 })
 ```
 
-> The API does not work with `useStore` since it does not return a signal. You can still use the manual approach, combining value and onInput$ as shown below.
+<Note>The API does not work with `useStore` since it does not return a signal. You can still use the manual approach, combining value and onInput$ as shown below.</Note>
 
 The `bind:` is compiled away by the Qwik optimizer to a property set and an event handler, ie, it is just syntax sugar.
 
@@ -205,7 +211,7 @@ export default component$(() => {
 })
 ```
 
-> This API ensures that the `value` of the input is always in sync with the value of the signal, no matter where the change comes from.
+<Note>This API ensures that the `value` of the input is always in sync with the value of the signal, no matter where the change comes from.</Note>
 
 
 ## Async Rendering
@@ -221,6 +227,26 @@ Whenever the state of the application changes, Qwik will schedule a render opera
 In addition, because of the asynchronous nature of Qwik, all DOM writes are buffered and only flushed once all of the components have been downloaded and their JSX functions executed. The result is that the UI will update as an atomic operation, and the user will not see the intermediate steps, even if the application is slow to render.
 
 The end goal is to enable performance and consistent rendering, even in the context of fast changing state and slow network.
+
+## Rendering Work That Waits
+
+Sometimes part of the UI needs to wait before it can show content, such as showing a fallback while a profile card, search result, or other section is still being prepared.
+
+Wrap that part of the UI in [`<Suspense>`](/docs/labs/suspense/) when you want a fallback boundary:
+
+```tsx /Suspense/
+import { component$, Suspense } from '@qwik.dev/core';
+
+export default component$(() => {
+  return (
+    <Suspense fallback={<p>Loading...</p>}>
+      <UserCard />
+    </Suspense>
+  );
+});
+```
+
+`<Suspense>` does not define the work. It only controls what renders while that part of the UI waits.
 
 ## Fine-grained Reactivity
 

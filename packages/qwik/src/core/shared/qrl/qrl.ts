@@ -1,19 +1,8 @@
 import { QError, qError } from '../error/error';
-import { EMPTY_ARRAY } from '../utils/flyweight';
-import { qSerialize } from '../utils/qdev';
+import { qDev } from '../utils/qdev';
 import { isFunction, isString } from '../utils/types';
 import { createQRL, type QRLInternal } from './qrl-class';
 import type { QRL } from './qrl.public';
-
-// https://regexr.com/68v72
-// @ts-expect-error this is a valid regex
-const EXTRACT_IMPORT_PATH = /\(\s*(['"])([^\1]+)\1\s*\)/;
-
-// https://regexr.com/690ds
-const EXTRACT_SELF_IMPORT = /Promise\s*\.\s*resolve/;
-
-// https://regexr.com/6a83h
-const EXTRACT_FILE_NAME = /[\\/(]([\w\d.\-_]+\.(js|ts)x?):/;
 
 /** @public */
 export interface QRLDev {
@@ -41,33 +30,13 @@ export interface QRLDev {
 export const qrl = <T = any>(
   chunkOrFn: string | (() => Promise<any>),
   symbol: string,
-  lexicalScopeCapture: any[] = EMPTY_ARRAY,
+  lexicalScopeCapture?: Readonly<unknown[]> | null,
   stackOffset = 0
 ): QRL<T> => {
   let chunk: string | null = null;
   let symbolFn: null | (() => Promise<Record<string, any>>) = null;
   if (isFunction(chunkOrFn)) {
     symbolFn = chunkOrFn;
-    if (qSerialize) {
-      let match: RegExpMatchArray | null;
-      const srcCode = String(chunkOrFn);
-      if ((match = srcCode.match(EXTRACT_IMPORT_PATH)) && match[2]) {
-        chunk = match[2];
-      } else if ((match = srcCode.match(EXTRACT_SELF_IMPORT))) {
-        const ref = 'QWIK-SELF';
-        const frames = new Error(ref).stack!.split('\n');
-        const start = frames.findIndex((f) => f.includes(ref));
-        const frame = frames[start + 2 + stackOffset];
-        match = frame.match(EXTRACT_FILE_NAME);
-        if (!match) {
-          chunk = 'main';
-        } else {
-          chunk = match[1];
-        }
-      } else {
-        throw qError(QError.dynamicImportFailed, [srcCode]);
-      }
-    }
   } else if (isString(chunkOrFn)) {
     chunk = chunkOrFn;
   } else {
@@ -75,7 +44,7 @@ export const qrl = <T = any>(
   }
 
   // Unwrap subscribers
-  return createQRL<T>(chunk, symbol, null, symbolFn, null, lexicalScopeCapture);
+  return createQRL<T>(chunk, symbol, null, symbolFn, lexicalScopeCapture);
 };
 
 /**
@@ -90,28 +59,51 @@ export const qrl = <T = any>(
 export const inlinedQrl = <T>(
   symbol: T | null,
   symbolName: string,
-  lexicalScopeCapture: any[] = EMPTY_ARRAY
+  lexicalScopeCapture?: Readonly<unknown[]>
 ): QRL<T> => {
   // Unwrap subscribers
-  return createQRL<T>(null, symbolName, symbol, null, null, lexicalScopeCapture);
+  return createQRL<T>(null, symbolName, symbol, null, lexicalScopeCapture);
 };
 
 /** @internal */
 export const _noopQrl = <T>(
   symbolName: string,
-  lexicalScopeCapture: any[] = EMPTY_ARRAY
+  lexicalScopeCapture?: Readonly<unknown[]>
 ): QRL<T> => {
-  return createQRL<T>(null, symbolName, null, null, null, lexicalScopeCapture);
+  return createQRL<T>(null, symbolName, null, null, lexicalScopeCapture);
 };
 
 /** @internal */
 export const _noopQrlDEV = <T>(
   symbolName: string,
   opts: QRLDev,
-  lexicalScopeCapture: any[] = EMPTY_ARRAY
+  lexicalScopeCapture?: Readonly<unknown[]>
 ): QRL<T> => {
   const newQrl = _noopQrl(symbolName, lexicalScopeCapture) as QRLInternal<T>;
-  newQrl.dev = opts;
+  qDev && newQrl.$setDev$(opts);
+  return newQrl;
+};
+
+/** @internal */
+export const _qrlWithChunk = <T = any>(
+  chunk: string,
+  importer: () => Promise<any>,
+  symbol: string,
+  lexicalScopeCapture?: Readonly<unknown[]>
+): QRL<T> => {
+  return createQRL<T>(chunk, symbol, null, importer, lexicalScopeCapture);
+};
+
+/** @internal */
+export const _qrlWithChunkDEV = <T = any>(
+  chunk: string,
+  importer: () => Promise<any>,
+  symbol: string,
+  opts: QRLDev,
+  lexicalScopeCapture?: Readonly<unknown[]>
+): QRL<T> => {
+  const newQrl = _qrlWithChunk(chunk, importer, symbol, lexicalScopeCapture) as QRLInternal<T>;
+  newQrl.$setDev$(opts);
   return newQrl;
 };
 
@@ -120,10 +112,10 @@ export const qrlDEV = <T = any>(
   chunkOrFn: string | (() => Promise<any>),
   symbol: string,
   opts: QRLDev,
-  lexicalScopeCapture: any[] = EMPTY_ARRAY
+  lexicalScopeCapture?: Readonly<unknown[]>
 ): QRL<T> => {
   const newQrl = qrl(chunkOrFn, symbol, lexicalScopeCapture, 1) as QRLInternal<T>;
-  newQrl.dev = opts;
+  qDev && newQrl.$setDev$(opts);
   return newQrl;
 };
 
@@ -132,10 +124,10 @@ export const inlinedQrlDEV = <T = any>(
   symbol: T,
   symbolName: string,
   opts: QRLDev,
-  lexicalScopeCapture: any[] = EMPTY_ARRAY
+  lexicalScopeCapture?: Readonly<unknown[]>
 ): QRL<T> => {
   const qrl = inlinedQrl(symbol, symbolName, lexicalScopeCapture) as QRLInternal<T>;
-  qrl.dev = opts;
+  qDev && qrl.$setDev$(opts);
   return qrl;
 };
 

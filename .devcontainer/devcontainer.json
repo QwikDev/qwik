@@ -21,7 +21,7 @@
     "dockerfile": "Dockerfile"
   },
   "waitFor": "updateContentCommand",
-  "updateContentCommand": "corepack prepare & pnpm install",
+  "updateContentCommand": "corepack install && pnpm install",
   "forwardPorts": [3300, 9229],
   "customizations": {
     "codespaces": {

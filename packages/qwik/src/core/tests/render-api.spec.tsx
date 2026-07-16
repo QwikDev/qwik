@@ -1,20 +1,15 @@
 import {
   Fragment as Component,
-  Resource,
   Fragment as Signal,
   component$,
   componentQrl,
-  createContextId,
   getDomContainer,
   getPlatform,
   inlinedQrl,
   render,
   setPlatform,
-  useContextProvider,
   useLexicalScope,
   useOn,
-  useResource$,
-  useResourceQrl,
   useServerData,
   useSignal,
   useTask$,
@@ -35,18 +30,14 @@ import type {
   RenderToStreamResult,
   RenderToStringOptions,
   RenderToStringResult,
-  StreamWriter,
   StreamingOptions,
+  StreamWriter,
 } from '../../server/types';
-import {
-  _fnSignal,
-  _getDomContainer,
-  type _ContainerElement,
-  type _DomContainer,
-} from '../internal';
+import { whenContainerDataReady } from '../client/dom-container';
 import { vnode_getFirstChild } from '../client/vnode-utils';
+import { _fnSignal, type _ContainerElement } from '../internal';
 import { QContainerValue } from '../shared/types';
-import { QContainerAttr } from '../shared/utils/markers';
+import { QContainerAttr, QwikEvContainerReady, QStatePrewarmAttr } from '../shared/utils/markers';
 
 vi.hoisted(() => {
   vi.stubGlobal('QWIK_LOADER_DEFAULT_MINIFIED', 'min');
@@ -115,16 +106,16 @@ const Counter = componentQrl(
       <button
         onClick$={inlinedQrl(
           () => {
-            useLexicalScope()[0].value++;
+            useLexicalScope()[0].value += 1;
           },
-          's_click',
+          's_click4',
           [count]
         )}
       >
         {count.value}
       </button>
     );
-  }, 's_counter')
+  }, 's_counter1')
 );
 
 const renderToStringAndSetPlatform = async (jsx: JSXOutput, opts: RenderToStringOptions = {}) => {
@@ -148,6 +139,16 @@ const renderToStreamAndSetPlatform = async (jsx: JSXOutput, opts: RenderToStream
   }
   return result;
 };
+
+const createDeferred = () => {
+  let resolve!: () => void;
+  const promise = new Promise<void>((res) => {
+    resolve = res;
+  });
+  return { promise, resolve };
+};
+
+const createTestStream = (write: StreamWriter['write']): StreamWriter => ({ write });
 
 describe('render api', () => {
   let document: Document;
@@ -227,9 +228,9 @@ describe('render api', () => {
           <button
             onClick$={inlinedQrl(
               () => {
-                useLexicalScope()[0].value++;
+                useLexicalScope()[0].value += 2;
               },
-              's_click',
+              's_click5',
               [count]
             )}
           >
@@ -243,6 +244,7 @@ describe('render api', () => {
       document = createDocument({ html: result.html });
       emulateExecutionOfQwikFuncs(document);
       const container = getDomContainer(document.body.firstChild as HTMLElement);
+      await whenContainerDataReady(container, () => undefined);
       const vNode = vnode_getFirstChild(container.rootVNode);
       expect(vNode).toMatchVDOM(
         <button>
@@ -252,7 +254,7 @@ describe('render api', () => {
       await trigger(container.element, 'button', 'click');
       expect(vNode).toMatchVDOM(
         <button>
-          <Signal ssr-required>124</Signal>
+          <Signal ssr-required>125</Signal>
         </button>
       );
     });
@@ -263,10 +265,9 @@ describe('render api', () => {
           manifest: defaultManifest,
         });
         expect(result).toMatchObject({
-          isStatic: true,
+          isStatic: false,
           timing: expect.any(Object),
           manifest: expect.any(Object),
-          snapshotResult: expect.any(Object),
           html: expect.any(String),
         });
       });
@@ -299,7 +300,7 @@ describe('render api', () => {
                 {JSON.stringify(obj)}
               </div>
             );
-          }, 's_counter')
+          }, 's_counter2')
         );
         const result = await renderToStringAndSetPlatform(<Cmp />, {
           containerTagName: 'div',
@@ -408,7 +409,7 @@ describe('render api', () => {
           // qwik events should be the last script of body
           const eventsScriptElement = document.body.lastChild as HTMLElement;
           expect(eventsScriptElement.textContent).toContain(
-            '(window.qwikevents||(window.qwikevents=[]))'
+            '(window._qwikEv||(window._qwikEv=[]))'
           );
         });
         it('should not render for static content and auto include', async () => {
@@ -418,9 +419,7 @@ describe('render api', () => {
           });
           const document = createDocument({ html: result.html });
           // should not contain qwik events script for top position
-          expect(document.head.lastChild?.textContent ?? '').not.toContain(
-            'window.qwikevents.push'
-          );
+          expect(document.head.lastChild?.textContent ?? '').not.toContain('window._qwikEv.push');
           expect(document.querySelectorAll('script[id=qwikloader]')).toHaveLength(0);
         });
         it('should render after 30kB of SSR', async () => {
@@ -444,7 +443,7 @@ describe('render api', () => {
           // qwik events should still be the last script of body
           const eventsScriptElement = document.body.lastChild as HTMLElement;
           expect(eventsScriptElement.textContent).toContain(
-            '(window.qwikevents||(window.qwikevents=[]))'
+            '(window._qwikEv||(window._qwikEv=[]))'
           );
         });
         it('should only render inside body', async () => {
@@ -503,7 +502,7 @@ describe('render api', () => {
           // qwik events should still be the last script of body
           const eventsScriptElement = document.body.lastChild as HTMLElement;
           expect(eventsScriptElement.textContent).toContain(
-            '(window.qwikevents||(window.qwikevents=[]))'
+            '(window._qwikEv||(window._qwikEv=[]))'
           );
         });
       });
@@ -516,15 +515,16 @@ describe('render api', () => {
         expect(document.querySelectorAll('script[id=qwikloader]')).toHaveLength(0);
       });
     });
-    describe('qwikEvents', () => {
+    describe('_qwikEv', () => {
       it('should render', async () => {
         const result = await renderToStringAndSetPlatform(<ManyEventsComponent />, {
           containerTagName: 'div',
           qwikLoader: 'module',
         });
-        expect(result.html).toContain(
-          '(window.qwikevents||(window.qwikevents=[])).push(' +
-            '":focus", ":-my---custom", ":click", ":dblclick", "-document:focus", ":another-custom", ":blur", "-window:click")'
+        expect(result.html).toMatch(
+          new RegExp(
+            `\\(window\\._qwikEv\\|\\|\\(window\\._qwikEv=\\[\\]\\)\\)\\.push\\("e:focus","e:-my---custom","e:click","e:dblclick","d:focus","e:another-custom","e:blur","w:click",${QwikEvContainerReady},"[^"]+"\\)`
+          )
         );
       });
     });
@@ -533,7 +533,9 @@ describe('render api', () => {
         const CounterDerived = component$((props: { initial: number }) => {
           const count = useSignal(props.initial);
           return (
-            <button onClick$={inlinedQrl(() => useLexicalScope()[0].value++, 's_onClick', [count])}>
+            <button
+              onClick$={inlinedQrl(() => (useLexicalScope()[0].value += 3), 's_onClick', [count])}
+            >
               Count: {_fnSignal((p0) => p0.value, [count], 'p0.value')}!
             </button>
           );
@@ -551,17 +553,14 @@ describe('render api', () => {
     });
     describe('preloader', () => {
       // we need a test with a built manifest
-      it('should render', async () => {
+      it('should not render in dev mode', async () => {
         const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: 'div',
           manifest: defaultManifest,
         });
         const document = createDocument({ html: result.html });
         const preloadScript = document.querySelectorAll('script[q\\:type=preload]');
-        expect(preloadScript).toHaveLength(1);
-        expect(preloadScript[0]?.textContent).toContain(`import(`);
-        // no bundlegraph because no manifest
-        // expect(preloadScript[0]?.textContent).toContain(`bundle-graph`);
+        expect(preloadScript).toHaveLength(0);
         expect(document.querySelectorAll('link')).toHaveLength(0);
       });
     });
@@ -574,7 +573,7 @@ describe('render api', () => {
         const document = createDocument({ html: result.html });
         expect(document.body.firstChild?.nodeName.toLowerCase()).toEqual(testTag);
       });
-      it('should render qwik loader and preloader for custom tag name', async () => {
+      it('should render qwik loader but no preloader in dev mode for custom tag name', async () => {
         const testTag = 'test-tag';
         const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: testTag,
@@ -584,21 +583,16 @@ describe('render api', () => {
         const document = createDocument({ html: result.html });
         const containerElement = document.body.firstChild;
         expect(containerElement?.nodeName.toLowerCase()).toEqual(testTag);
-        expect(containerElement?.lastChild?.textContent ?? '').toContain('window.qwikevents');
+        expect(containerElement?.lastChild?.textContent ?? '').toContain('window._qwikEv');
         const scripts = document.querySelectorAll('script');
         expect(scripts[0]?.getAttribute('src')).toEqual('/build/qwik-loader.js');
-        expect(scripts[1]?.innerHTML).toContain('/build/preloader.js');
-        expect(scripts[4]?.innerHTML).toContain('/build/preloader.js');
+        for (let i = 0; i < scripts.length; i++) {
+          expect(scripts[i]?.innerHTML).not.toContain('/build/preloader.js');
+        }
         const links = document.querySelectorAll('link');
         expect(links[0]?.getAttribute('href')).toEqual('/build/qwik-loader.js');
         expect(links[0]?.getAttribute('rel')).toEqual('modulepreload');
-        expect(links[1]?.getAttribute('href')).toEqual('/build/preloader.js');
-        expect(links[1]?.getAttribute('rel')).toEqual('modulepreload');
-        expect(links[2]?.getAttribute('href')).toEqual('/assets/bundle-graph.json');
-        expect(links[2]?.getAttribute('rel')).toEqual('preload');
-        expect(links[2]?.getAttribute('as')).toEqual('fetch');
-        expect(links[3]?.getAttribute('href')).toEqual('/build/core.js');
-        expect(links[3]?.getAttribute('rel')).toEqual('modulepreload');
+        expect(links).toHaveLength(1);
       });
       it('should render custom container attributes', async () => {
         const testAttrName = 'test-attr';
@@ -610,6 +604,45 @@ describe('render api', () => {
           },
         });
         expect(result.html.includes(`${testAttrName}="${testAttrValue}"`)).toBeTruthy();
+      });
+      describe('statePrewarm', () => {
+        it('should omit state prewarm attribute by default', async () => {
+          const result = await renderToStringAndSetPlatform(<Counter />, {
+            containerTagName: 'div',
+          });
+
+          expect(result.html.includes(QStatePrewarmAttr)).toBe(false);
+        });
+
+        it('should omit state prewarm attribute when disabled explicitly', async () => {
+          const result = await renderToStringAndSetPlatform(<Counter />, {
+            containerTagName: 'div',
+            statePrewarm: false,
+          });
+
+          expect(result.html.includes(QStatePrewarmAttr)).toBe(false);
+        });
+
+        it('should render numeric state prewarm threshold', async () => {
+          const result = await renderToStringAndSetPlatform(<Counter />, {
+            containerTagName: 'div',
+            statePrewarm: 512,
+          });
+
+          expect(result.html.includes(`${QStatePrewarmAttr}="512"`)).toBe(true);
+        });
+
+        it('should prefer disabled state prewarm option over custom container attribute', async () => {
+          const result = await renderToStringAndSetPlatform(<Counter />, {
+            containerTagName: 'div',
+            containerAttributes: {
+              [QStatePrewarmAttr]: '512',
+            },
+            statePrewarm: false,
+          });
+
+          expect(result.html.includes(QStatePrewarmAttr)).toBe(false);
+        });
       });
       describe('qRender', () => {
         afterEach(async () => {
@@ -735,9 +768,6 @@ describe('render api', () => {
           </>,
           {
             containerTagName: 'html',
-            prefetchStrategy: {
-              symbolsToPrefetch: 'auto',
-            },
             manifest: {
               ...defaultManifest,
               injections: [
@@ -795,175 +825,16 @@ describe('render api', () => {
         );
       });
     });
-    describe('snapshotResult', () => {
-      it('should contain resources', async () => {
-        const ctxId = createContextId<any>('foo');
-        const ResourceComponent = component$(() => {
-          const rsrc = useResourceQrl(inlinedQrl(() => 'RESOURCE_VALUE', 's_resource'));
-          // refer to the resource so it's not optimized away
-          useContextProvider(ctxId, rsrc);
-          return (
-            <div>
-              <Resource value={rsrc} onResolved={(v) => <span>{v}</span>} />
-            </div>
-          );
-        });
-        const result = await renderToStringAndSetPlatform(
-          <body>
-            <ResourceComponent />
-          </body>,
-          {
-            containerTagName: 'html',
-          }
-        );
-        expect(result.snapshotResult?.qrls).toHaveLength(1);
-        expect(result.snapshotResult?.resources).toHaveLength(1);
-        expect(result.snapshotResult?.funcs).toHaveLength(0);
-      });
-      it('should contain qrls and resources', async () => {
-        const ResourceAndSignalComponent = component$(() => {
-          const sig = useSignal(0);
-          // the resource should be dynamic to be added to the snapshot,
-          // so we use the track function for that
-          const rsrc = useResource$(({ track }) => track(sig));
-          return (
-            <button
-              onClick$={() => {
-                sig.value++;
-              }}
-            >
-              <Resource value={rsrc} onResolved={(v) => <span>{v}</span>} />
-              {sig.value + 'test'}
-            </button>
-          );
-        });
-        const result = await renderToStringAndSetPlatform(
-          <body>
-            <ResourceAndSignalComponent />
-          </body>,
-          {
-            containerTagName: 'html',
-          }
-        );
-        expect(result.snapshotResult?.qrls).toHaveLength(3);
-        expect(result.snapshotResult?.resources).toHaveLength(1);
-        expect(result.snapshotResult?.funcs).toHaveLength(1);
-      });
-      it('should contain qrls', async () => {
-        const FunctionComponent = componentQrl(
-          inlinedQrl(() => {
-            const sig = useSignal(0);
-            const fn = (v: number) => 'aaa' + v;
-            return (
-              <button
-                onClick$={inlinedQrl(
-                  () => {
-                    const [sig] = useLexicalScope();
-                    sig.value++;
-                  },
-                  's_click',
-                  [sig]
-                )}
-              >
-                {fn(sig.value)}
-              </button>
-            );
-          }, 's_cmpFunction')
-        );
-        const result = await renderToStringAndSetPlatform(<FunctionComponent />, {
-          containerTagName: 'div',
-        });
-        expect(result.snapshotResult?.qrls).toHaveLength(2);
-        expect(result.snapshotResult?.resources).toHaveLength(0);
-        expect(result.snapshotResult?.funcs).toHaveLength(0);
-      });
-      it('should contain qrls and funcs', async () => {
-        const CounterDerived = component$((props: { initial: number }) => {
-          const count = useSignal(props.initial);
-          return (
-            <button onClick$={inlinedQrl(() => useLexicalScope()[0].value++, 's_onClick', [count])}>
-              Count: {_fnSignal((p0) => p0.value, [count], 'p0.value')}!
-            </button>
-          );
-        });
-        const result = await renderToStringAndSetPlatform(
-          <body>
-            <CounterDerived initial={123} />
-          </body>,
-          {
-            containerTagName: 'html',
-          }
-        );
-        expect(result.snapshotResult?.qrls).toHaveLength(1);
-        expect(result.snapshotResult?.resources).toHaveLength(0);
-        expect(result.snapshotResult?.funcs).toHaveLength(1);
-      });
-      it('should set static mode', async () => {
-        let result = await renderToStringAndSetPlatform(<div>static content</div>, {
-          containerTagName: 'div',
-        });
-        expect(result.snapshotResult?.mode).toEqual('static');
-
-        const StaticComponent = componentQrl(
-          inlinedQrl(() => {
-            return <div>static content</div>;
-          }, 's_static')
-        );
-
-        result = await renderToStringAndSetPlatform(<StaticComponent />, {
-          containerTagName: 'div',
-        });
-        expect(result.snapshotResult?.mode).toEqual('static');
-      });
-      it('should set listeners mode', async () => {
-        const result = await renderToStringAndSetPlatform(<Counter />, {
-          containerTagName: 'div',
-        });
-        expect(result.snapshotResult?.mode).toEqual('listeners');
-      });
-      it.todo('should set render mode', async () => {
-        const ComponentA = componentQrl(
-          inlinedQrl(() => {
-            const test = useSignal(0);
-            const fn = (a: number) => a + 'abcd';
-
-            return (
-              <div>
-                <button
-                  onClick$={inlinedQrl(
-                    () => {
-                      const [test] = useLexicalScope();
-                      test.value++;
-                    },
-                    's_click',
-                    [test]
-                  )}
-                >
-                  Test
-                </button>
-                {fn(test.value)}
-              </div>
-            );
-          }, 's_comp')
-        );
-
-        const result = await renderToStringAndSetPlatform(<ComponentA />, {
-          containerTagName: 'div',
-        });
-        expect(result.snapshotResult?.mode).toEqual('render');
-      });
-    });
   });
 
   describe('renderToStream()', () => {
     describe('render result', () => {
       it('should renderToStream', async () => {
         const chunks: string[] = [];
-        const stream: StreamWriter = {
-          write(chunk) {
-            chunks.push(chunk);
-          },
+        const write = (chunk: string) => {
+          chunks.push(chunk);
         };
+        const stream = createTestStream(write);
         await renderToStreamAndSetPlatform(<Counter />, {
           containerTagName: 'div',
           stream,
@@ -971,6 +842,7 @@ describe('render api', () => {
         document = createDocument({ html: chunks.join('') });
         emulateExecutionOfQwikFuncs(document);
         const container = getDomContainer(document.body.firstChild as HTMLElement);
+        await whenContainerDataReady(container, () => undefined);
         const vNode = vnode_getFirstChild(container.rootVNode);
         expect(vNode).toMatchVDOM(
           <button>
@@ -987,9 +859,7 @@ describe('render api', () => {
     });
     describe('stream', () => {
       it('should render', async () => {
-        const stream: StreamWriter = {
-          write: vi.fn(),
-        };
+        const stream = createTestStream(vi.fn());
         await renderToStreamAndSetPlatform(<Counter />, {
           containerTagName: 'div',
           stream,
@@ -1000,7 +870,7 @@ describe('render api', () => {
     describe('streaming', () => {
       it('should render all at once', async () => {
         const write = vi.fn();
-        const stream: StreamWriter = { write };
+        const stream = createTestStream(write);
         const streaming: StreamingOptions = {
           inOrder: {
             strategy: 'disabled',
@@ -1015,7 +885,7 @@ describe('render api', () => {
       });
       it('should render by direct streaming', async () => {
         const write = vi.fn();
-        const stream: StreamWriter = { write };
+        const stream = createTestStream(write);
         const streaming: StreamingOptions = {
           inOrder: {
             strategy: 'direct',
@@ -1028,10 +898,50 @@ describe('render api', () => {
         });
         expect(write.mock.calls.length).toBeGreaterThan(100);
       });
-      it('should render chunk by chunk with auto streaming', async () => {
-        const stream: StreamWriter = {
-          write: vi.fn(),
+      it('should wait for an async direct write before emitting the next one', async () => {
+        const firstWrite = createDeferred();
+        let writeCount = 0;
+        const stream = createTestStream(() => {
+          writeCount++;
+          if (writeCount === 1) {
+            return firstWrite.promise;
+          }
+          return Promise.resolve();
+        });
+        const streaming: StreamingOptions = {
+          inOrder: {
+            strategy: 'direct',
+          },
         };
+        const LargeOutput = component$(() => (
+          <div>
+            {Array.from({ length: 40 }, (_, i) => (
+              <span key={i}>{`chunk-${i}-` + 'x'.repeat(20)}</span>
+            ))}
+          </div>
+        ));
+
+        const renderPromise = renderToStreamAndSetPlatform(<LargeOutput />, {
+          containerTagName: 'div',
+          stream,
+          streaming,
+        });
+
+        await vi.waitFor(() => expect(writeCount).toBeGreaterThan(0));
+        await Promise.resolve();
+        await Promise.resolve();
+        // Direct mode should also serialize async writes. If this becomes > 1
+        // before the first promise resolves, direct streaming is still
+        // ignoring downstream backpressure.
+        expect(writeCount).toBe(1);
+
+        firstWrite.resolve();
+        await renderPromise;
+
+        expect(writeCount).toBeGreaterThan(1);
+      });
+      it('should render chunk by chunk with auto streaming', async () => {
+        const stream = createTestStream(vi.fn());
         const streaming: StreamingOptions = {
           inOrder: {
             strategy: 'auto',
@@ -1045,7 +955,52 @@ describe('render api', () => {
           streaming,
         });
         // This can change when the size of the output changes
-        expect(stream.write).toHaveBeenCalledTimes(4);
+        expect(stream.write).toHaveBeenCalledTimes(5);
+      });
+
+      it('should wait for an async flush before emitting the next chunk', async () => {
+        const firstWrite = createDeferred();
+        let writeCount = 0;
+        const stream = createTestStream(() => {
+          writeCount++;
+          if (writeCount === 1) {
+            return firstWrite.promise;
+          }
+          return Promise.resolve();
+        });
+        const streaming: StreamingOptions = {
+          inOrder: {
+            strategy: 'auto',
+            maximumInitialChunk: 50,
+            maximumChunk: 50,
+          },
+        };
+        const LargeOutput = component$(() => (
+          <div>
+            {Array.from({ length: 40 }, (_, i) => (
+              <span key={i}>{`chunk-${i}-` + 'x'.repeat(20)}</span>
+            ))}
+          </div>
+        ));
+
+        const renderPromise = renderToStreamAndSetPlatform(<LargeOutput />, {
+          containerTagName: 'div',
+          stream,
+          streaming,
+        });
+
+        await vi.waitFor(() => expect(writeCount).toBeGreaterThan(0));
+        await Promise.resolve();
+        await Promise.resolve();
+        // The first async write is still unresolved here, so starting a second
+        // write would mean the renderer ignored downstream backpressure and let
+        // multiple flushes overlap in flight.
+        expect(writeCount).toBe(1);
+
+        firstWrite.resolve();
+        await renderPromise;
+
+        expect(writeCount).toBeGreaterThan(1);
       });
     });
   });

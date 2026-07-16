@@ -4,7 +4,7 @@ title: \@qwik.dev/qwik-router/middleware/node API Reference
 
 # [API](/api) &rsaquo; @qwik.dev/qwik-router/middleware/node
 
-## createQwikCity
+<h2 id="createqwikcity">createQwikCity</h2>
 
 > Warning: This API is now obsolete.
 >
@@ -16,28 +16,12 @@ createQwikCity: typeof createQwikRouter;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/node/index.ts)
 
-## createQwikRouter
+<h2 id="createqwikrouter">createQwikRouter</h2>
 
 ```typescript
 export declare function createQwikRouter(
   opts: QwikRouterNodeRequestOptions | QwikCityNodeRequestOptions,
-): {
-  router: (
-    req: IncomingMessage | Http2ServerRequest,
-    res: ServerResponse,
-    next: NodeRequestNextFunction,
-  ) => Promise<void>;
-  notFound: (
-    req: IncomingMessage | Http2ServerRequest,
-    res: ServerResponse,
-    next: (e: any) => void,
-  ) => Promise<void>;
-  staticFile: (
-    req: IncomingMessage | Http2ServerRequest,
-    res: ServerResponse,
-    next: (e?: any) => void,
-  ) => Promise<void>;
-};
+): QwikRouterNodeMiddleware;
 ```
 
 <table><thead><tr><th>
@@ -68,11 +52,11 @@ opts
 
 **Returns:**
 
-\{ router: (req: IncomingMessage \| Http2ServerRequest, res: ServerResponse, next: [NodeRequestNextFunction](#noderequestnextfunction)) =&gt; Promise&lt;void&gt;; notFound: (req: IncomingMessage \| Http2ServerRequest, res: ServerResponse, next: (e: any) =&gt; void) =&gt; Promise&lt;void&gt;; staticFile: (req: IncomingMessage \| Http2ServerRequest, res: ServerResponse, next: (e?: any) =&gt; void) =&gt; Promise&lt;void&gt;; }
+[QwikRouterNodeMiddleware](#qwikrouternodemiddleware)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/node/index.ts)
 
-## NodeRequestNextFunction
+<h2 id="noderequestnextfunction">NodeRequestNextFunction</h2>
 
 ```typescript
 export interface NodeRequestNextFunction
@@ -80,7 +64,7 @@ export interface NodeRequestNextFunction
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/node/index.ts)
 
-## PlatformNode
+<h2 id="platformnode">PlatformNode</h2>
 
 ```typescript
 export interface PlatformNode
@@ -105,7 +89,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[incomingMessage?](./router.platformnode.incomingmessage.md)
+incomingMessage?
 
 </td><td>
 
@@ -120,7 +104,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[node?](./router.platformnode.node.md)
+node?
 
 </td><td>
 
@@ -135,7 +119,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[ssr?](./router.platformnode.ssr.md)
+ssr?
 
 </td><td>
 
@@ -152,7 +136,7 @@ _(Optional)_
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/node/index.ts)
 
-## QwikCityNodeRequestOptions
+<h2 id="qwikcitynoderequestoptions">QwikCityNodeRequestOptions</h2>
 
 > Warning: This API is now obsolete.
 >
@@ -166,7 +150,115 @@ export type QwikCityNodeRequestOptions = QwikRouterNodeRequestOptions;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/node/index.ts)
 
-## QwikRouterNodeRequestOptions
+<h2 id="qwikrouternodemiddleware">QwikRouterNodeMiddleware</h2>
+
+```typescript
+export interface QwikRouterNodeMiddleware
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+notFound
+
+</td><td>
+
+</td><td>
+
+(req: IncomingMessage \| Http2ServerRequest, res: ServerResponse, next: (e: any) =&gt; void) =&gt; Promise&lt;void&gt;
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+router
+
+</td><td>
+
+</td><td>
+
+(req: IncomingMessage \| Http2ServerRequest, res: ServerResponse, next: [NodeRequestNextFunction](#noderequestnextfunction), limits?: [QwikRouterNodeRequestLimits](#qwikrouternoderequestlimits)) =&gt; Promise&lt;void&gt;
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+staticFile
+
+</td><td>
+
+</td><td>
+
+(req: IncomingMessage \| Http2ServerRequest, res: ServerResponse, next: (e?: any) =&gt; void) =&gt; Promise&lt;void&gt;
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/node/index.ts)
+
+<h2 id="qwikrouternoderequestlimits">QwikRouterNodeRequestLimits</h2>
+
+```typescript
+export interface QwikRouterNodeRequestLimits
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+bodyLimit?
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+_(Optional)_ Maximum request body size in bytes imposed by the host.
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/node/index.ts)
+
+<h2 id="qwikrouternoderequestoptions">QwikRouterNodeRequestOptions</h2>
 
 ```typescript
 export interface QwikRouterNodeRequestOptions extends ServerRenderOptions
@@ -193,7 +285,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[getClientConn?](./router.qwikrouternoderequestoptions.getclientconn.md)
+getClientConn?
 
 </td><td>
 
@@ -208,7 +300,7 @@ _(Optional)_ Provide a function that returns a `ClientConn` for the given reques
 </td></tr>
 <tr><td>
 
-[getOrigin?](./router.qwikrouternoderequestoptions.getorigin.md)
+getOrigin?
 
 </td><td>
 
@@ -227,7 +319,7 @@ If `ORIGIN` is not set, it's derived from the incoming request, which is not rec
 </td></tr>
 <tr><td>
 
-[origin?](./router.qwikrouternoderequestoptions.origin.md)
+origin?
 
 </td><td>
 
@@ -242,7 +334,22 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[static?](./router.qwikrouternoderequestoptions.static.md)
+requestBodyLimit?
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+_(Optional)_ Maximum request body size in bytes. Defaults to 10 MiB.
+
+</td></tr>
+<tr><td>
+
+static?
 
 </td><td>
 

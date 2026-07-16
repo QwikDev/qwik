@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "allowJs": true,
-    "target": "ES2020",
-    "module": "ES2020",
+    "target": "es2020",
+    "module": "esnext",
     "lib": ["es2020", "DOM"],
     "jsx": "react-jsx",
     "jsxImportSource": "@qwik.dev/core",

@@ -24,17 +24,17 @@ export const onGet = ({ url, redirect }: RequestEvent) => {
 };
 
 const tempRedirects: Record<string, string> = {
-  '/chat': ' https://discord.gg/TsNCMd6uGW',
-  '/chat/': ' https://discord.gg/TsNCMd6uGW',
+  '/chat': 'https://discord.gg/TsNCMd6uGW',
+  '/chat/': 'https://discord.gg/TsNCMd6uGW',
 
-  '/examples ': '/examples/introduction/hello-world/',
-  '/examples/ ': '/examples/introduction/hello-world/',
-  '/guide ': '/docs/',
-  '/guide/ ': '/docs/',
-  '/tutorial ': '/tutorial/welcome/overview/',
-  '/tutorial/ ': '/tutorial/welcome/overview/',
-  '/tutorials ': '/tutorial/welcome/overview/',
-  '/tutorials/ ': '/tutorial/welcome/overview/',
+  '/examples': '/examples/introduction/hello-world/',
+  '/examples/': '/examples/introduction/hello-world/',
+  '/guide': '/docs/',
+  '/guide/': '/docs/',
+  '/tutorial': '/tutorial/welcome/overview/',
+  '/tutorial/': '/tutorial/welcome/overview/',
+  '/tutorials': '/tutorial/welcome/overview/',
+  '/tutorials/': '/tutorial/welcome/overview/',
 };
 
 const redirects: Record<string, string> = {
@@ -92,6 +92,8 @@ const redirects: Record<string, string> = {
   '/docs/components/resource/': '/docs/core/state/',
   '/docs/cookbook/re-exporting-loaders/': '/docs/re-exporting-loaders/',
   '/docs/env-variables/': '/docs/guides/env-variables/',
+  '/docs/labs/usePreventNavigate': '/docs/advanced/prevent-navigation/',
+  '/docs/labs/usePreventNavigate/': '/docs/advanced/prevent-navigation/',
   '/docs/overview': '/docs/',
   '/docs/overview/': '/docs/',
   '/docs/think-qwik/': '/docs/concepts/think-qwik/',

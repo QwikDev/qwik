@@ -1,15 +1,11 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 // Protect against duplicate imports
 //////////////////////////////////////////////////////////////////////////////////////////
+import { QError, qError } from '../server/qwik-copy';
 import { version } from './version';
+
 if ((globalThis as any).__qwik) {
-  console.error(
-    `==============================================\n` +
-      `Qwik version ${(globalThis as any).__qwik} already imported while importing ${version}.\n` +
-      `This can lead to issues due to duplicated shared structures.\n` +
-      `Verify that the Qwik libraries you're using are in "resolve.noExternal[]" and in "optimizeDeps.exclude".\n` +
-      `==============================================\n`
-  );
+  qError(QError.duplicateQwik, [(globalThis as any).__qwik, version]);
 }
 (globalThis as any).__qwik = version;
 
@@ -58,6 +54,7 @@ export { getPlatform, setPlatform } from './shared/platform/platform';
 export type { CorePlatform } from './shared/platform/types';
 export type { ClientContainer } from './client/types';
 export type { DomContainer } from './client/dom-container';
+export { getClientManifest } from './shared/get-client-manifest';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // JSX Runtime
@@ -123,14 +120,13 @@ export type { SerializationStrategy } from './shared/types';
 //////////////////////////////////////////////////////////////////////////////////////////
 // use API
 //////////////////////////////////////////////////////////////////////////////////////////
-export { useLexicalScope } from './use/use-lexical-scope.public';
 export { useStore, unwrapStore, forceStoreEffects } from './use/use-store.public';
 export { untrack } from './use/use-core';
 export { useId } from './use/use-id';
 export { useContext, useContextProvider, createContextId } from './use/use-context';
 export { useServerData } from './use/use-env-data';
 export { useStylesQrl, useStyles$, useStylesScopedQrl, useStylesScoped$ } from './use/use-styles';
-export { useOn, useOnDocument, useOnWindow } from './use/use-on';
+export { useOn, useOnDocument, useOnWindow, type UseOnOptions } from './use/use-on';
 export { useSignal, useConstant } from './use/use-signal';
 export { withLocale, getLocale } from './use/use-locale';
 
@@ -160,13 +156,13 @@ export { useTaskQrl } from './use/use-task';
 export { useTask$ } from './use/use-task-dollar';
 export { useVisibleTask$ } from './use/use-visible-task-dollar';
 export { useComputed$ } from './use/use-computed';
-export type { AsyncComputedFn, AsyncComputedReturnType } from './use/use-async-computed';
-export { useAsyncComputedQrl, useAsyncComputed$ } from './use/use-async-computed';
+export type { AsyncFn } from './use/use-async';
+export { useAsyncQrl, useAsync$ } from './use/use-async';
 export { useErrorBoundary } from './use/use-error-boundary';
 export type { ErrorBoundaryStore } from './shared/error/error-handling';
 export {
   type ReadonlySignal,
-  type AsyncComputedReadonlySignal,
+  type AsyncSignal,
   type Signal,
   type ComputedSignal,
 } from './reactive-primitives/signal.public';
@@ -177,10 +173,29 @@ export {
   createComputed$,
   createSerializerQrl,
   createSerializer$,
-  createAsyncComputedQrl,
-  createAsyncComputed$,
+  createAsyncQrl,
+  createAsync$,
 } from './reactive-primitives/signal.public';
 export type { ComputedOptions } from './reactive-primitives/types';
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Control flow
+//////////////////////////////////////////////////////////////////////////////////////////
+export { eachCmpTask as _eaT, eachCmp as _eaC } from './control-flow/each';
+export { Each } from './control-flow/each';
+export { showCmpTask as _shT, showCmp as _shC } from './control-flow/show';
+export { Show } from './control-flow/show';
+export type { ShowComponent, ShowProps } from './control-flow/show';
+export {
+  revealCanReveal as _reR,
+  revealCleanupTask as _reT,
+  revealCmp as _reC,
+} from './control-flow/reveal';
+export { Reveal } from './control-flow/reveal';
+export type { RevealOrder, RevealProps } from './control-flow/reveal';
+export { suspenseTask as _suT, suspenseCmp as _suC } from './control-flow/suspense';
+export { Suspense } from './control-flow/suspense';
+export type { SuspenseProps } from './control-flow/suspense';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API

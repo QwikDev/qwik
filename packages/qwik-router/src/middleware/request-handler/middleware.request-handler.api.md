@@ -8,21 +8,19 @@ import type { Action } from '@qwik.dev/router';
 import type { AsyncLocalStorage } from 'node:async_hooks';
 import type { EnvGetter as EnvGetter_2 } from '@qwik.dev/router/middleware/request-handler';
 import type { FailReturn } from '@qwik.dev/router';
+import type { JSXOutput } from '@qwik.dev/core';
 import type { Loader as Loader_2 } from '@qwik.dev/router';
-import type { QwikCityPlan } from '@qwik.dev/router';
 import type { QwikIntrinsicElements } from '@qwik.dev/core';
-import type { QwikRouterConfig } from '@qwik.dev/router';
-import { RedirectMessage as RedirectMessage_2 } from '@qwik.dev/router/middleware/request-handler';
 import type { Render } from '@qwik.dev/core/server';
 import type { RenderOptions } from '@qwik.dev/core/server';
 import { RequestEvent as RequestEvent_2 } from '@qwik.dev/router/middleware/request-handler';
 import type { RequestHandler as RequestHandler_2 } from '@qwik.dev/router/middleware/request-handler';
 import type { ResolveSyncValue as ResolveSyncValue_2 } from '@qwik.dev/router/middleware/request-handler';
-import { SerializationStrategy } from '@qwik.dev/core/internal';
 import type { ValueOrPromise } from '@qwik.dev/core';
 
 // @public (undocumented)
 export class AbortMessage {
+    readonly __controlFlow: true;
 }
 
 // Warning: (ae-forgotten-export) The symbol "RequestEventInternal" needs to be exported by the entry point index.d.ts
@@ -34,6 +32,12 @@ export let _asyncRequestStore: AsyncLocalStorage<RequestEventInternal> | undefin
 //
 // @public (undocumented)
 export type CacheControl = CacheControlOptions | number | 'day' | 'week' | 'month' | 'year' | 'no-cache' | 'immutable' | 'private';
+
+// @public
+export function clearLoaderCache(cacheKey?: string): void;
+
+// @public
+export function clearSsrCache(cacheKey?: string): void;
 
 // @public (undocumented)
 export interface ClientConn {
@@ -87,10 +91,8 @@ export interface EnvGetter {
 // @public (undocumented)
 export function getErrorHtml(status: number, e: any): string;
 
-// Warning: (ae-internal-missing-underscore) The name "getNotFound" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function getNotFound(prefix: string): string;
+// @public
+export type InternalRequest = false | 'loader' | 'action';
 
 // Warning: (ae-internal-missing-underscore) The name "isStaticPath" should be prefixed with an underscore because the declaration is marked as @internal
 //
@@ -127,6 +129,7 @@ export interface RequestEventBase<PLATFORM = QwikRouterPlatform> {
     readonly cookie: Cookie;
     readonly env: EnvGetter;
     readonly headers: Headers;
+    readonly internalRequest: InternalRequest;
     readonly method: string;
     readonly originalUrl: URL;
     readonly params: Readonly<Record<string, string>>;
@@ -167,13 +170,8 @@ export interface RequestEventLoader<PLATFORM = QwikRouterPlatform> extends Reque
     resolveValue: ResolveValue;
 }
 
-// Warning: (ae-internal-missing-underscore) The name "RequestEvShareQData" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal (undocumented)
-export const RequestEvShareQData = "qData";
-
 // @public (undocumented)
-export type RequestHandler<PLATFORM = QwikRouterPlatform> = (ev: RequestEvent<PLATFORM>) => Promise<void> | void;
+export type RequestHandler<PLATFORM = QwikRouterPlatform> = (ev: RequestEvent<PLATFORM>) => Promise<void | AbortMessage | ServerError> | void | AbortMessage | ServerError;
 
 // Warning: (ae-forgotten-export) The symbol "QwikRouterRun" needs to be exported by the entry point index.d.ts
 //
@@ -215,10 +213,6 @@ export class ServerError<T = any> extends Error {
 // @public (undocumented)
 export interface ServerRenderOptions extends RenderOptions {
     checkOrigin?: boolean | 'lax-proto';
-    // @deprecated (undocumented)
-    qwikCityPlan?: QwikCityPlan;
-    // @deprecated (undocumented)
-    qwikRouterConfig?: QwikRouterConfig;
     // (undocumented)
     render: Render;
 }
@@ -244,10 +238,10 @@ export interface ServerRequestEvent<T = unknown> {
 }
 
 // @public (undocumented)
-export type ServerRequestMode = 'dev' | 'static' | 'server';
+export type ServerRequestMode = 'static' | 'server';
 
 // @public (undocumented)
-export type ServerResponseHandler<T = any> = (status: number, headers: Headers, cookies: Cookie, resolve: (response: T) => void, requestEv: RequestEventInternal) => WritableStream<Uint8Array>;
+export type ServerResponseHandler<T = any> = (status: number, headers: Headers, cookies: Cookie, resolve: (response: T) => void, requestEv: RequestEvent) => WritableStream<Uint8Array>;
 
 // @internal (undocumented)
 export class _TextEncoderStream_polyfill {

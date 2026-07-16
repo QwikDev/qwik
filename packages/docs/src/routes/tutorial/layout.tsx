@@ -1,7 +1,7 @@
 import { component$, Slot, useStore, useStyles$, useTask$ } from '@qwik.dev/core';
 import type { RequestHandler } from '@qwik.dev/router';
-import { Link, useLocation } from '@qwik.dev/router';
-import tutorialSections, { type TutorialApp } from '@tutorial-data';
+import { useLocation, useNavigate } from '@qwik.dev/router';
+import tutorialSections, { type TutorialApp, type TutorialSection } from '@tutorial-data';
 import { setReplCorsHeaders } from '~/utils/utils';
 import { Header } from '../../components/header/header';
 import { PanelToggle } from '../../components/panel-toggle/panel-toggle';
@@ -9,17 +9,20 @@ import { EditIcon } from '../../components/svgs/edit-icon';
 import type { ReplAppInput, ReplModuleInput } from '../../repl/types';
 import { Repl } from '../../repl/ui';
 import { TutorialContentFooter } from './tutorial-content-footer';
-import { TutorialContentHeader } from './tutorial-content-header';
 import styles from './tutorial.css?inline';
+import { lucide } from '@qds.dev/ui';
+
+export type ActivePanel = 'Tutorial' | 'Input' | 'Output';
 
 export default component$(() => {
   useStyles$(styles);
 
   const { url } = useLocation();
-  const panelStore = useStore(() => ({
+  const nav = useNavigate();
+  const panelStore = useStore<{ active: ActivePanel; list: string[] }>({
     active: 'Tutorial',
     list: PANELS,
-  }));
+  });
 
   const store = useStore<TutorialStore>(() => {
     const initStore: TutorialStore = {
@@ -31,6 +34,7 @@ export default component$(() => {
       entryStrategy: 'segment',
       files: [],
       version: '',
+      isShowingSolution: false,
     };
     return initStore;
   });
@@ -47,11 +51,13 @@ export default component$(() => {
     store.appId = t.app.id;
     store.prev = t.prev;
     store.next = t.next;
+    store.isShowingSolution = false;
   });
 
   return (
-    <div class="tutorial full-width fixed-header">
+    <div class="tutorial full-width fixed-header repl-theme-docs">
       <Header />
+      <PanelToggle panelStore={panelStore} />
       <main
         class={{
           'tutorial-panel-input': panelStore.active === 'Input',
@@ -59,47 +65,79 @@ export default component$(() => {
         }}
       >
         <article class="tutorial-content-panel">
-          <TutorialContentHeader store={store} />
-
           <div class="content-main">
-            <div>
-              <Slot />
-              {store.next ? (
-                <p class="next-link">
-                  <Link href={`/tutorial/${store.next.id}/`} class="next">
-                    Next: {store.next.title}
-                  </Link>
-                </p>
-              ) : null}
-              <a
-                class="edit-tutorial"
-                href={`https://github.com/QwikDev/qwik/edit/main/packages/docs/src/routes/tutorial/${store.appId}`}
-                target="_blank"
-              >
-                <EditIcon width={16} height={16} />
-                <span>Edit Tutorial</span>
-              </a>
+            <div class="tutorial-content-shell">
+              <div class="tutorial-toolbar">
+                <label class="tutorial-lesson-picker repl-select-field repl-select-field-inline">
+                  <span class="repl-select-label">Lesson</span>
+                  <div class="repl-select-wrapper">
+                    <select
+                      class="repl-select"
+                      aria-label="Select tutorial lesson"
+                      onChange$={(_, elm) => {
+                        if (url.pathname !== `/tutorial/${elm.value}/`) {
+                          nav(`/tutorial/${elm.value}/`);
+                        }
+                      }}
+                    >
+                      {(tutorialSections as TutorialSection[]).map((section) => (
+                        <optgroup key={section.id} label={section.title}>
+                          {section.apps.map((tutorial) => (
+                            <option
+                              selected={tutorial.id === store.appId}
+                              value={tutorial.id}
+                              key={tutorial.id}
+                            >
+                              {tutorial.title}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))}
+                    </select>
+                    <span class="repl-select-icon">
+                      <lucide.chevrondown class="size-4" />
+                    </span>
+                  </div>
+                </label>
+
+                <a
+                  class="edit-tutorial"
+                  href={`https://github.com/QwikDev/qwik/edit/main/packages/docs/src/routes/tutorial/${store.appId}`}
+                  target="_blank"
+                >
+                  <EditIcon width={16} height={16} />
+                  <span>Edit tutorial</span>
+                </a>
+              </div>
+
+              <div class="tutorial-copy">
+                <h1>{store.app.title}</h1>
+
+                <div class="tutorial-copy-body">
+                  <Slot />
+                </div>
+              </div>
             </div>
           </div>
-
-          <TutorialContentFooter store={store} />
         </article>
         <div class="tutorial-repl-panel">
-          <div class="repl">
-            <Repl
-              input={store}
-              enableHtmlOutput={store.app.enableHtmlOutput}
-              enableClientOutput={store.app.enableClientOutput}
-              enableSsrOutput={store.app.enableSsrOutput}
-              enableCopyToPlayground={true}
-              enableDownload={true}
-              enableInputDelete={false}
-            />
+          <div class="tutorial-repl-shell">
+            <div class="repl repl-mobile-paged repl-mobile-paged-2">
+              <Repl
+                input={store}
+                enableHtmlOutput={store.app.enableHtmlOutput}
+                enableClientOutput={store.app.enableClientOutput}
+                enableSsrOutput={store.app.enableSsrOutput}
+                enableCopyToPlayground={false}
+                enableDownload={false}
+                enableInputDelete={false}
+                editorTheme="github-light"
+              />
+            </div>
           </div>
-          <div class="tutorial-repl-footer" />
         </div>
+        <TutorialContentFooter store={store} />
       </main>
-      <PanelToggle panelStore={panelStore} />
     </div>
   );
 });
@@ -125,11 +163,11 @@ export const ensureDefaultFiles = (appFiles: ReplModuleInput[]) => {
   const files: ReplModuleInput[] = JSON.parse(JSON.stringify(appFiles));
 
   const DEFAULT_ENTRY_SERVER = `
-import { renderToString, RenderOptions } from '@qwik.dev/core/server';
+import { renderToStream, RenderToStreamOptions } from '@qwik.dev/core/server';
 import { Root } from './root';
 
-export default function (opts: RenderOptions) {
-  return renderToString(<Root />, opts);
+export default function (opts: RenderToStreamOptions) {
+  return renderToStream(<Root />, opts);
 }
 `;
 
@@ -166,6 +204,7 @@ export interface TutorialStore extends ReplAppInput {
   app: TutorialApp;
   prev: TutorialApp | undefined;
   next: TutorialApp | undefined;
+  isShowingSolution: boolean;
 }
 
 export const PANELS = ['Tutorial', 'Input', 'Output'];

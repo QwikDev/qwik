@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { jsxEventToHtmlAttribute } from './event-names';
+import { getEventDataFromHtmlAttribute, jsxEventToHtmlAttribute } from './event-names';
 
 /**
  * Test cases for event conversion utilities.
@@ -10,23 +10,29 @@ import { jsxEventToHtmlAttribute } from './event-names';
  */
 const testCases = [
   // default scope
-  { jsx: 'onClick$', html: 'on:click', eventName: 'click' },
-  { jsx: 'onDblClick$', html: 'on:dblclick' },
-  { jsx: 'on--CustomEvent$', html: 'on:---custom-event' },
-  { jsx: 'on-Custom-Event$', html: 'on:-custom---event' },
-  { jsx: 'on-custom-event$', html: 'on:custom--event' },
-  { jsx: 'on-CustomEvent$', html: 'on:-custom-event' },
-  { jsx: 'on-customEvent$', html: 'on:custom-event' },
-  { jsx: 'onCustom-event$', html: 'on:custom--event' },
-  { jsx: 'onCustom-Event$', html: 'on:custom--event' },
+  { jsx: 'onClick$', html: 'q-e:click', eventName: 'click' },
+  { jsx: 'onDblClick$', html: 'q-e:dblclick' },
+  { jsx: 'on--CustomEvent$', html: 'q-e:---custom-event' },
+  { jsx: 'on-Custom-Event$', html: 'q-e:-custom---event' },
+  { jsx: 'on-custom-event$', html: 'q-e:custom--event' },
+  { jsx: 'on-CustomEvent$', html: 'q-e:-custom-event' },
+  { jsx: 'on-customEvent$', html: 'q-e:custom-event' },
+  { jsx: 'onCustom-event$', html: 'q-e:custom--event' },
+  { jsx: 'onCustom-Event$', html: 'q-e:custom--event' },
   // exception for DOMContentLoaded
-  { jsx: 'onDOMContentLoaded$', html: 'on:-d-o-m-content-loaded' },
+  { jsx: 'onDOMContentLoaded$', html: 'q-e:-d-o-m-content-loaded' },
   // window scope
-  { jsx: 'window:onLoad$', html: 'on-window:load' },
-  { jsx: 'window:onUnload$', html: 'on-window:unload' },
+  { jsx: 'window:onLoad$', html: 'q-w:load' },
+  { jsx: 'window:onUnload$', html: 'q-w:unload' },
   // document scope
-  { jsx: 'document:onLoad$', html: 'on-document:load' },
-  { jsx: 'document:onUnload$', html: 'on-document:unload' },
+  { jsx: 'document:onLoad$', html: 'q-d:load' },
+  { jsx: 'document:onUnload$', html: 'q-d:unload' },
+];
+
+const passiveTestCases = [
+  { jsx: 'onClick$', html: 'q-ep:click' },
+  { jsx: 'window:onScroll$', html: 'q-wp:scroll' },
+  { jsx: 'document:onTouchStart$', html: 'q-dp:touchstart' },
 ];
 
 describe('Event conversion utilities', () => {
@@ -34,5 +40,17 @@ describe('Event conversion utilities', () => {
     it(`should convert ${test.jsx} to ${test.html}`, () => {
       expect(jsxEventToHtmlAttribute(test.jsx)).toBe(test.html);
     });
+  });
+
+  describe.each(passiveTestCases)('jsxEventToHtmlAttribute passive', (test) => {
+    it(`should convert ${test.jsx} to ${test.html} when passive`, () => {
+      expect(jsxEventToHtmlAttribute(test.jsx, true)).toBe(test.html);
+    });
+  });
+
+  it('should parse passive html event attributes', () => {
+    expect(getEventDataFromHtmlAttribute('q-ep:click')).toEqual(['ep', 'click']);
+    expect(getEventDataFromHtmlAttribute('q-dp:touchstart')).toEqual(['dp', 'touchstart']);
+    expect(getEventDataFromHtmlAttribute('q-wp:scroll')).toEqual(['wp', 'scroll']);
   });
 });

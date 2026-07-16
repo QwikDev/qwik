@@ -191,7 +191,7 @@
     "qwikrouter",
     "qwikdeps",
     "qwikdom",
-    "qwikevents",
+    "_qwikEv",
     "qwikfy",
     "qwikify",
     "qwikjson",

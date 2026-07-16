@@ -2,12 +2,17 @@ import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
 import type { QRL } from '../shared/qrl/qrl.public';
 import type { SerializerArg } from '../reactive-primitives/types';
 import type { createSerializer$ } from '../reactive-primitives/signal.public';
-import { useComputedCommon } from './use-computed';
 import { createSerializerSignal } from '../reactive-primitives/signal-api';
+import { useConstant } from './use-signal';
+
+const creator = <T, S>(qrl: QRL<SerializerArg<T, S>>) => {
+  qrl.resolve();
+  return createSerializerSignal<T, S>(qrl as any);
+};
 
 /** @internal */
 export const useSerializerQrl = <T, S>(qrl: QRL<SerializerArg<T, S>>) =>
-  useComputedCommon(qrl as any, createSerializerSignal);
+  useConstant(creator<T, S>, qrl);
 
 /**
  * Creates a signal which holds a custom serializable value. It requires that the value implements

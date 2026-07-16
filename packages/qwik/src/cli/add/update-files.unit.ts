@@ -129,7 +129,9 @@ describe('mergeIntegrationDir', () => {
         '{ \n          // Comment Foo\n          "css.lint.unknownAtRules": "ignore",\n          // Comment\n          "name": "John Doe",\n          "age": 42,\n      }\n',
       'destDir/subDestDir/apps/subpackage/src/global.css': 'p{color: red}\n\n/* CSS */\n',
     };
-    for (const [fileName, content] of Object.entries(tests)) {
+    const testEntries = Object.entries(tests);
+    for (let i = 0; i < testEntries.length; i++) {
+      const [fileName, content] = testEntries[i];
       const file = fakeFileUpdates.files.find((f) => normalizePath(f.path) === fileName);
       if (!file) {
         console.error(`File %s not found:`, fakeFileUpdates.files);

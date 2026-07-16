@@ -26,21 +26,21 @@ lint:
 
 # We only test core because there are no other tests and qwik-napi breaks the build
 test:
-	cargo test --manifest-path packages/qwik/src/optimizer/core/Cargo.toml
+	cargo test --manifest-path packages/optimizer/core/Cargo.toml
 
 benchmark:
-	cargo bench --manifest-path packages/qwik/src/optimizer/core/Cargo.toml
+	cargo bench --manifest-path packages/optimizer/core/Cargo.toml
 
 test-update:
-	if ! cargo test --manifest-path packages/qwik/src/optimizer/core/Cargo.toml; then \
-		cd packages/qwik/src/optimizer/core/src/snapshots/; \
+	if ! cargo test --manifest-path packages/optimizer/core/Cargo.toml; then \
+		cd packages/optimizer/core/src/snapshots/; \
 		for i in *.new; do f=$$(basename $$i .new); mv $$i $$f; done; \
 		cd -; \
-		cargo test --manifest-path packages/qwik/src/optimizer/core/Cargo.toml; \
+		cargo test --manifest-path packages/optimizer/core/Cargo.toml; \
 	fi
 
 publish-core:
-	cd src/optimizer/core && cargo publish --all-features
+	cd packages/optimizer/core && cargo publish --all-features
 
 publish-cli:
 	cd src/optimizer/cli && cargo publish

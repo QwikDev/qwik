@@ -5,14 +5,16 @@ import type {
   ServerRequestEvent,
 } from '@qwik.dev/router/middleware/request-handler';
 import {
-  getNotFound,
   isStaticPath,
   mergeHeadersCookies,
   requestHandler,
 } from '@qwik.dev/router/middleware/request-handler';
 import { MIME_TYPES } from '../request-handler/mime-types';
+import { limitRequestBody } from '../request-handler/request-body-limit';
+import { normalizeRequestUrl } from '../shared/url';
 // @ts-ignore
 import { extname, fromFileUrl, join } from 'https://deno.land/std/path/mod.ts';
+import { isDev } from '@qwik.dev/core/build';
 
 // @qwik.dev/router/middleware/deno
 
@@ -29,11 +31,24 @@ export interface ServeHandlerInfo {
 }
 
 /** @public */
-export function createQwikRouter(opts: QwikRouterDenoOptions) {
-  if (opts.qwikCityPlan && !opts.qwikRouterConfig) {
-    console.warn('qwikCityPlan is deprecated. Simply remove it.');
-    opts.qwikRouterConfig = opts.qwikCityPlan;
+export interface QwikRouterDenoMiddleware {
+  router: (request: Request, info: ServeHandlerInfo) => Promise<Response | null>;
+  /** @deprecated `router` handles 404 responses. Will be removed in V3. */
+  notFound: (request: Request) => Promise<Response>;
+  staticFile: (request: Request) => Promise<Response | null>;
+}
+
+function getRequestUrl(request: Request, opts: QwikCityDenoOptions, info?: ServeHandlerInfo) {
+  const url = new URL(request.url);
+  const origin = opts.getOrigin?.(request, info) ?? Deno.env?.get?.('ORIGIN');
+  if (!origin) {
+    return url;
   }
+  return normalizeRequestUrl(`${url.pathname}${url.search}${url.hash}`, origin);
+}
+
+/** @public */
+export function createQwikRouter(opts: QwikRouterDenoOptions): QwikRouterDenoMiddleware {
   if (opts.manifest) {
     setServerPlatform(opts.manifest);
   }
@@ -42,7 +57,7 @@ export function createQwikRouter(opts: QwikRouterDenoOptions) {
 
   async function router(request: Request, info: ServeHandlerInfo) {
     try {
-      const url = new URL(request.url);
+      const url = getRequestUrl(request, opts, info);
 
       const serverRequestEv: ServerRequestEvent<Response> = {
         mode: 'server',
@@ -50,7 +65,7 @@ export function createQwikRouter(opts: QwikRouterDenoOptions) {
         url,
         // @ts-ignore
         env: Deno.env,
-        request,
+        request: limitRequestBody(request, opts.requestBodyLimit),
         getWritableStream: (status, headers, cookies, resolve) => {
           const { readable, writable } = new TransformStream<Uint8Array>();
           const response = new Response(readable, {
@@ -75,9 +90,9 @@ export function createQwikRouter(opts: QwikRouterDenoOptions) {
       // send request to qwik router request handler
       const handledResponse = await requestHandler(serverRequestEv, opts);
       if (handledResponse) {
-        handledResponse.completion.then((v) => {
-          if (v) {
-            console.error(v);
+        handledResponse.completion.then((completion) => {
+          if (completion) {
+            console.error(completion);
           }
         });
         const response = await handledResponse.response;
@@ -90,36 +105,16 @@ export function createQwikRouter(opts: QwikRouterDenoOptions) {
       return null;
     } catch (e: any) {
       console.error(e);
-      return new Response(String(e || 'Error'), {
+      return new Response(isDev ? String(e || 'Error') : 'Internal Server Error', {
         status: 500,
         headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Error': 'deno-server' },
       });
     }
   }
 
-  const notFound = async (request: Request) => {
-    try {
-      const url = new URL(request.url);
-
-      // In the development server, we replace the getNotFound function
-      // For static paths, we assign a static "Not Found" message.
-      // This ensures consistency between development and production environments for specific URLs.
-      const notFoundHtml =
-        !request.headers.get('accept')?.includes('text/html') ||
-        isStaticPath(request.method || 'GET', url)
-          ? 'Not Found'
-          : getNotFound(url.pathname);
-      return new Response(notFoundHtml, {
-        status: 404,
-        headers: { 'Content-Type': 'text/html; charset=utf-8', 'X-Not-Found': url.pathname },
-      });
-    } catch (e) {
-      console.error(e);
-      return new Response(String(e || 'Error'), {
-        status: 500,
-        headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Error': 'deno-server' },
-      });
-    }
+  /** @deprecated `router` handles 404 responses. Will be removed in V3. */
+  const notFound = async (_request: Request) => {
+    return null as never;
   };
 
   const openStaticFile = async (url: URL) => {
@@ -142,7 +137,7 @@ export function createQwikRouter(opts: QwikRouterDenoOptions) {
 
   const staticFile = async (request: Request) => {
     try {
-      const url = new URL(request.url);
+      const url = getRequestUrl(request, opts);
 
       if (isStaticPath(request.method || 'GET', url)) {
         const { filePath, content } = await openStaticFile(url);
@@ -160,7 +155,7 @@ export function createQwikRouter(opts: QwikRouterDenoOptions) {
       return null;
     } catch (e) {
       console.error(e);
-      return new Response(String(e || 'Error'), {
+      return new Response(isDev ? String(e || 'Error') : 'Internal Server Error', {
         status: 500,
         headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Error': 'deno-server' },
       });
@@ -182,6 +177,9 @@ export const createQwikCity = createQwikRouter;
 
 /** @public */
 export interface QwikRouterDenoOptions extends ServerRenderOptions {
+  /** Maximum request body size in bytes. Defaults to 10 MiB. */
+  requestBodyLimit?: number;
+
   /** Options for serving static files */
   static?: {
     /** The root folder for statics files. Defaults to /dist */
@@ -189,6 +187,19 @@ export interface QwikRouterDenoOptions extends ServerRenderOptions {
     /** Set the Cache-Control header for all static files */
     cacheControl?: string;
   };
+
+  /**
+   * Provide a function that computes the origin of the server, used to resolve relative URLs and
+   * validate the request origin against CSRF attacks.
+   *
+   * When not specified, it defaults to the `ORIGIN` environment variable (if set).
+   *
+   * If `ORIGIN` is not set, it's derived from the incoming request, which is not recommended for
+   * production use.
+   */
+  getOrigin?: (request: Request, info?: ServeHandlerInfo) => string | null;
+
+  /** Provide a function that returns a `ClientConn` for the given request. */
   getClientConn?: (request: Request, info: ServeHandlerInfo) => ClientConn;
 }
 
@@ -197,3 +208,5 @@ export interface QwikRouterDenoOptions extends ServerRenderOptions {
  * @public
  */
 export type QwikCityDenoOptions = QwikRouterDenoOptions;
+
+declare const Deno: any;

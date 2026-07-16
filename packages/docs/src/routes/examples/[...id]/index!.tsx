@@ -32,6 +32,7 @@ export default component$(() => {
       appId: app ? app.id : '',
       buildMode: 'development',
       entryStrategy: 'segment',
+      outOfOrderStreaming: true,
       files: app?.inputs || [],
       version: '',
       shareUrlTmr: undefined,
@@ -48,6 +49,7 @@ export default component$(() => {
         store.version = shareData.version;
         store.buildMode = shareData.buildMode;
         store.entryStrategy = shareData.entryStrategy;
+        store.outOfOrderStreaming = shareData.outOfOrderStreaming;
         store.files = shareData.files;
         document.title = `REPL Playground - Qwik`;
         return;
@@ -65,6 +67,7 @@ export default component$(() => {
       store.version = shareData.version;
       store.buildMode = shareData.buildMode;
       store.entryStrategy = shareData.entryStrategy;
+      store.outOfOrderStreaming = shareData.outOfOrderStreaming;
       store.files = shareData.files;
       document.title = `REPL Playground - Qwik`;
       return;
@@ -74,6 +77,7 @@ export default component$(() => {
   useTask$(({ track }) => {
     track(() => store.buildMode);
     track(() => store.entryStrategy);
+    track(() => store.outOfOrderStreaming);
     track(() => store.version);
     track(() => store.files.forEach((f) => f.code));
 
@@ -90,9 +94,21 @@ export default component$(() => {
   });
 
   return (
-    <div class="examples full-width fixed-header">
+    <div
+      class={{
+        examples: true,
+        'full-width': true,
+        'fixed-header': true,
+        'repl-theme-docs': true,
+        'examples-active-examples': panelStore.active === 'Examples',
+        'examples-active-input': panelStore.active === 'Input',
+        'examples-active-output': panelStore.active === 'Output',
+        'examples-active-console': panelStore.active === 'Console',
+      }}
+    >
       <Header />
 
+      <PanelToggle panelStore={panelStore} />
       <div
         class={{
           'examples-menu-container': true,
@@ -113,7 +129,7 @@ export default component$(() => {
                   preventdefault:click
                   onClick$={() => {
                     store.appId = app.id;
-                    panelStore.active === 'Input';
+                    panelStore.active = 'Input';
                     history.replaceState({}, '', `/examples/${app.id}/`);
                   }}
                   class={{
@@ -140,12 +156,18 @@ export default component$(() => {
         </div>
 
         <main class="examples-repl">
-          <div class="repl">
-            <Repl input={store} enableDownload={true} />
+          <div class="examples-repl-shell">
+            <div class="repl">
+              <Repl
+                input={store}
+                enableDownload={true}
+                enableMainSplitter={true}
+                editorTheme="github-light"
+              />
+            </div>
           </div>
         </main>
       </div>
-      <PanelToggle panelStore={panelStore} />
     </div>
   );
 });

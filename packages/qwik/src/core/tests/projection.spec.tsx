@@ -4,10 +4,12 @@ import {
   createContextId,
   Fragment as WrappedSignal,
   Fragment,
+  getPlatform,
   Fragment as InlineComponent,
   jsx,
   Fragment as Projection,
   Fragment as Awaited,
+  setPlatform,
   Slot,
   useContext,
   useContextProvider,
@@ -17,8 +19,11 @@ import {
   useVisibleTask$,
   type JSXNode,
   type Signal,
+  $,
 } from '@qwik.dev/core';
-import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
+import { renderToString } from '@qwik.dev/core/server';
+import { createDocument, domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
+import { _useHmr } from '../internal';
 import { cleanupAttrs } from 'packages/qwik/src/testing/element-fixture';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { vnode_getProp, vnode_locate } from '../client/vnode-utils';
@@ -92,7 +97,12 @@ describe.each([
     if (render === ssrRenderToDom) {
       expect(vNode!.nextSibling).toMatchVDOM(
         <q:template hidden aria-hidden="true">
-          parent-contentrender-content
+          parent-content
+        </q:template>
+      );
+      expect(vNode!.nextSibling!.nextSibling).toMatchVDOM(
+        <q:template hidden aria-hidden="true">
+          render-content
         </q:template>
       );
     }
@@ -165,6 +175,107 @@ describe.each([
       </Component>
     );
   });
+  it('should project to named slot', async () => {
+    const Child = component$(() => {
+      return (
+        <div>
+          <Slot name="header" />
+          <Slot />
+        </div>
+      );
+    });
+    const Parent = component$(() => {
+      return (
+        <Child>
+          <h1 q:slot="header">Title</h1>
+          body-content
+        </Child>
+      );
+    });
+    const { vNode } = await render(<Parent />, { debug: DEBUG });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Component>
+          <div>
+            <Projection>
+              <h1 q:slot="header">Title</h1>
+            </Projection>
+            <Projection>body-content</Projection>
+          </div>
+        </Component>
+      </Component>
+    );
+  });
+  it('should project to named slot with separator character', async () => {
+    const Child = component$(() => {
+      return (
+        <div>
+          <Slot name="main-header" />
+          <Slot />
+        </div>
+      );
+    });
+    const Parent = component$(() => {
+      const toggle = useSignal(true);
+      return (
+        <>
+          <button onClick$={() => (toggle.value = !toggle.value)}></button>
+          <Child>
+            {toggle.value && <h1 q:slot="main-header">Title</h1>}
+            body-content
+          </Child>
+        </>
+      );
+    });
+    const { vNode, document } = await render(<Parent />, { debug: DEBUG });
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button></button>
+          <Component ssr-required>
+            <div>
+              <Projection ssr-required>
+                <h1 q:slot="main-header">Title</h1>
+              </Projection>
+              <Projection ssr-required>body-content</Projection>
+            </div>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button></button>
+          <Component ssr-required>
+            <div>
+              <Projection ssr-required></Projection>
+              <Projection ssr-required>body-content</Projection>
+            </div>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button></button>
+          <Component ssr-required>
+            <div>
+              <Projection ssr-required>
+                <h1 q:slot="main-header">Title</h1>
+              </Projection>
+              <Projection ssr-required>body-content</Projection>
+            </div>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+  });
+
   it('should project projected', async () => {
     const Child = component$(() => {
       return (
@@ -262,6 +373,47 @@ describe.each([
         </Fragment>
       </Fragment>
     );
+  });
+
+  it('should correctly inflate shared text nodes when inline component before Slot disappears', async () => {
+    const Child = component$<{ show: boolean }>((props) => {
+      const InlineIcon = () => <span>*</span>;
+      return (
+        <button>
+          {props.show && <InlineIcon />}
+          <Slot />
+          {''}
+        </button>
+      );
+    });
+    const Parent = component$(() => {
+      const show = useSignal(true);
+      return (
+        <>
+          <button id="toggle" onClick$={() => (show.value = false)} />
+          <Child show={show.value}>test</Child>
+        </>
+      );
+    });
+    const { vNode, document } = await render(<Parent />, { debug: DEBUG });
+    expect(vNode).toMatchVDOM(
+      <Fragment ssr-required>
+        <Fragment ssr-required>
+          <button id="toggle" />
+          <Fragment ssr-required>
+            <button>
+              <InlineComponent ssr-required>
+                <span ssr-required>*</span>
+              </InlineComponent>
+              <Projection ssr-required>{'test'}</Projection>
+              {''}
+            </button>
+          </Fragment>
+        </Fragment>
+      </Fragment>
+    );
+    await trigger(document.body, '#toggle', 'click');
+    expect(document.querySelector('button:not(#toggle)')!.textContent).toBe('test');
   });
 
   it('should replace projection content with undefined', async () => {
@@ -1219,9 +1371,12 @@ describe.each([
 
     const Parent = component$(() => {
       const toggle = useSignal(true);
+      const handler = $(() => {
+        toggle.value = !toggle.value;
+      });
       return (
         <div>
-          <button onClick$={() => (toggle.value = !toggle.value)}>toggle</button>
+          <button onClick$={handler}>toggle</button>
           <Cmp2 toggle={toggle.value}>
             <Cmp1 />
           </Cmp2>
@@ -1311,14 +1466,12 @@ describe.each([
     const Child = component$<{ show: boolean }>((props) => {
       (globalThis as any).log.push('render:Child');
       const show = useSignal(props.show);
+      const handler = $(() => {
+        (globalThis as any).log.push('click:Child');
+        show.value = !show.value;
+      });
       return (
-        <span
-          class="child"
-          onClick$={() => {
-            (globalThis as any).log.push('click:Child');
-            show.value = !show.value;
-          }}
-        >
+        <span class="child" onClick$={handler}>
           {show.value && <Slot />}
         </span>
       );
@@ -1326,14 +1479,12 @@ describe.each([
     const Parent = component$<{ content: boolean; slot: boolean }>((props) => {
       (globalThis as any).log.push('render:Parent');
       const show = useSignal(props.content);
+      const handler = $(() => {
+        (globalThis as any).log.push('click:Parent');
+        show.value = !show.value;
+      });
       return (
-        <div
-          class="parent"
-          onClick$={() => {
-            (globalThis as any).log.push('click:Parent');
-            show.value = !show.value;
-          }}
-        >
+        <div class="parent" onClick$={handler}>
           <Child show={props.slot}>{show.value && 'child-content'}</Child>
         </div>
       );
@@ -1396,7 +1547,7 @@ describe.each([
       );
       (globalThis as any).log.length = 0;
       // console.log('--- HIDE PROJECTION ---');
-      await trigger(document.body, '.child', 'click'); // hide projection
+      await trigger(document.body, '.child', 'click', { bubbles: false }); // hide projection
       // console.log('---');
       expect((globalThis as any).log).toEqual(['click:Child', 'render:Child']);
       expect(vNode).toMatchVDOM(
@@ -1434,7 +1585,7 @@ describe.each([
       );
       (globalThis as any).log.length = 0;
       // console.log('--- UN-HIDE PROJECTION (no content) ---');
-      await trigger(document.body, '.child', 'click'); // un-hide projection (no content)
+      await trigger(document.body, '.child', 'click', { bubbles: false }); // un-hide projection (no content)
       // console.log('---');
       expect((globalThis as any).log).toEqual(['click:Child', 'render:Child']);
       expect(vNode).toMatchVDOM(
@@ -1522,7 +1673,7 @@ describe.each([
         </Component>
       );
       (globalThis as any).log.length = 0;
-      await trigger(document.body, '.child', 'click');
+      await trigger(document.body, '.child', 'click', { bubbles: false });
       expect(vNode).toMatchVDOM(
         <Component>
           <div class="parent">
@@ -1672,6 +1823,151 @@ describe.each([
       expect(document.querySelector('q\\:template')).toBeUndefined();
     });
 
+    it('should render projection after hidden child rerenders', async () => {
+      const Child = component$((props: { counter: Signal<number> }) => {
+        return (
+          <>
+            {props.counter.value > 1 && (
+              <section>
+                <Slot />
+              </section>
+            )}
+          </>
+        );
+      });
+      const Parent = component$(() => {
+        const counter = useSignal(0);
+        const innerCounter = useSignal(0);
+        return (
+          <div>
+            <button id="counter" onClick$={() => counter.value++}>
+              Increment
+            </button>
+            <Child counter={counter}>
+              <span>
+                <button id="inner-counter" onClick$={() => innerCounter.value++}>
+                  Increment inner {innerCounter.value}
+                </button>
+              </span>
+            </Child>
+          </div>
+        );
+      });
+
+      const { document } = await render(<Parent />, { debug: DEBUG });
+      const content = (
+        <span>
+          <button id="inner-counter">Increment inner 0</button>
+        </span>
+      );
+
+      if (render === ssrRenderToDom) {
+        await expect(document.querySelector('q\\:template')).toMatchDOM(
+          <q:template hidden aria-hidden="true">
+            {content}
+          </q:template>
+        );
+      } else {
+        expect(document.querySelector('q\\:template')).toBeUndefined();
+      }
+
+      await trigger(document.body, '#counter', 'click');
+      await trigger(document.body, '#counter', 'click');
+      await trigger(document.body, '#inner-counter', 'click');
+      await trigger(document.body, '#inner-counter', 'click');
+      await expect(document.querySelector('button#inner-counter')).toMatchDOM(
+        <button id="inner-counter">Increment inner 2</button>
+      );
+    });
+
+    it('should render projection after child removes and restores slot', async () => {
+      const Child = component$(() => {
+        const show = useSignal(true);
+        return (
+          <section>
+            <button id="toggle-slot" onClick$={() => (show.value = !show.value)}>
+              Toggle slot
+            </button>
+            {show.value && <Slot />}
+          </section>
+        );
+      });
+      const Parent = component$(() => {
+        const counter = useSignal(0);
+        return (
+          <Child>
+            <button id="projected-counter" onClick$={() => counter.value++}>
+              Projected {counter.value}
+            </button>
+          </Child>
+        );
+      });
+
+      const { document } = await render(<Parent />, { debug: DEBUG });
+      await expect(document.querySelector('section')).toMatchDOM(
+        <section>
+          <button id="toggle-slot">Toggle slot</button>
+          <button id="projected-counter">Projected 0</button>
+        </section>
+      );
+
+      await trigger(document.body, '#toggle-slot', 'click');
+      await expect(document.querySelector('section')).toMatchDOM(
+        <section>
+          <button id="toggle-slot">Toggle slot</button>
+          {''}
+        </section>
+      );
+
+      await trigger(document.body, '#toggle-slot', 'click');
+      await trigger(document.body, '#projected-counter', 'click');
+      await trigger(document.body, '#projected-counter', 'click');
+      await expect(document.querySelector('#projected-counter')).toMatchDOM(
+        <button id="projected-counter">Projected 2</button>
+      );
+    });
+
+    it('should cleanup unclaimed projection q:template when component is removed', async () => {
+      const Child = component$(() => {
+        return <span>child</span>;
+      });
+      const Parent = component$(() => {
+        const show = useSignal(true);
+        return (
+          <div>
+            <button id="remove" onClick$={() => (show.value = false)}>
+              Remove
+            </button>
+            {show.value && (
+              <Child>
+                <span>projected</span>
+              </Child>
+            )}
+          </div>
+        );
+      });
+
+      const { document } = await render(<Parent />, { debug: DEBUG });
+      if (render === ssrRenderToDom) {
+        await expect(document.querySelector('q\\:template')).toMatchDOM(
+          <q:template hidden aria-hidden="true">
+            <span>projected</span>
+          </q:template>
+        );
+      } else {
+        expect(document.querySelector('q\\:template')).toBeUndefined();
+      }
+
+      await trigger(document.body, '#remove', 'click');
+      expect(document.querySelector('q\\:template')).toBeUndefined();
+      await expect(document.querySelector('div')).toMatchDOM(
+        <div>
+          <button id="remove">Remove</button>
+          {''}
+        </div>
+      );
+    });
+
     it('should add and delete projection content inside q:template for CSR rerender after SSR', async () => {
       const Child = component$(() => {
         const show = useSignal(false);
@@ -1709,9 +2005,7 @@ describe.each([
       await trigger(document.body, '#reload', 'click');
       await trigger(document.body, '#slot', 'click');
       if (render == ssrRenderToDom) {
-        await expect(document.querySelector('q\\:template')).toMatchDOM(
-          <q:template key={undefined} hidden aria-hidden="true"></q:template>
-        );
+        expect(document.querySelector('q\\:template')).toBeUndefined();
       }
     });
 
@@ -2561,13 +2855,12 @@ describe.each([
       ));
       const Issue1630 = component$(() => {
         const store = useStore({ open: true });
+        const handler = $(() => {
+          store.open = !store.open;
+        });
         return (
           <div>
-            <button
-              onClick$={() => {
-                store.open = !store.open;
-              }}
-            ></button>
+            <button onClick$={handler}></button>
             <Slot name="static" />
             {store.open && <Slot />}
           </div>
@@ -2664,9 +2957,18 @@ describe.each([
         </Component>
       );
       await expect(document.querySelector('div')).toMatchDOM(
-        <div>
-          <div q:slot="a">Alpha 123</div>
-        </div>
+        render === ssrRenderToDom ? (
+          <div>
+            <div q:slot="a">Alpha 123</div>
+            <q:template aria-hidden="true" hidden>
+              <div q:slot="b">Bravo 123</div>
+            </q:template>
+          </div>
+        ) : (
+          <div>
+            <div q:slot="a">Alpha 123</div>
+          </div>
+        )
       );
       await trigger(document.body, '#flip', 'click');
       await trigger(document.body, '#counter', 'click');
@@ -2951,7 +3253,7 @@ describe.each([
         { debug: DEBUG }
       );
       if (render === ssrRenderToDom) {
-        await trigger(document.body, 'div', ':document:qinit');
+        await trigger(document.body, 'div', 'd:qinit');
       }
       expect(vNode).toMatchVDOM(
         <Component>
@@ -3023,7 +3325,7 @@ describe.each([
 
       const { vNode, document } = await render(<SlotParent />, { debug: DEBUG });
       if (render === ssrRenderToDom) {
-        await trigger(document.body, 'div', ':document:qinit');
+        await trigger(document.body, 'div', 'd:qinit');
       }
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
@@ -3153,5 +3455,40 @@ describe.each([
         </Component>
       );
     });
+  });
+});
+
+describe('slot-projected head/body', () => {
+  it('defers the useOn placeholder into <head> instead of under <html>', async () => {
+    const Provider = component$(() => {
+      _useHmr('provider.tsx');
+      return <Slot />;
+    });
+
+    const platform = getPlatform();
+    let html: string;
+    try {
+      const result = await renderToString(
+        <Provider>
+          <head>
+            <title>Test</title>
+          </head>
+          <body>test</body>
+        </Provider>,
+        { qwikLoader: 'never', containerTagName: 'html' }
+      );
+      html = result.html;
+    } finally {
+      setPlatform(platform);
+    }
+
+    const document = createDocument({ html });
+    const scripts = document.querySelectorAll('script');
+    for (let i = 0; i < scripts.length; i++) {
+      expect(scripts[i].parentNode?.nodeName.toLowerCase()).not.toEqual('html');
+    }
+    expect(document.querySelector('script[hidden]')?.parentNode?.nodeName.toLowerCase()).toEqual(
+      'head'
+    );
   });
 });

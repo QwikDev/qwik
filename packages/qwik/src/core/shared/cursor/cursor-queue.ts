@@ -8,7 +8,7 @@ import { VNodeFlags } from '../../client/types';
 import { vnode_isDescendantOf } from '../../client/vnode-utils';
 import type { Container } from '../types';
 import type { Cursor } from './cursor';
-import { getCursorData } from './cursor-props';
+import { getCursorData, mergeCursorJournalAndBoundaries, type CursorData } from './cursor-props';
 
 /** Global cursor queue array. Cursors are sorted by priority. */
 const globalCursorQueue: Cursor[] = [];
@@ -16,8 +16,7 @@ const globalCursorQueue: Cursor[] = [];
 const pausedCursorQueue: Cursor[] = [];
 
 /**
- * Adds a cursor to the global queue. If the cursor already exists, it's removed and re-added to
- * maintain correct priority order.
+ * Adds a cursor to the global queue.
  *
  * @param cursor - The cursor to add
  */
@@ -35,7 +34,7 @@ export function addCursorToQueue(container: Container, cursor: Cursor): void {
 
   globalCursorQueue.splice(insertIndex, 0, cursor);
 
-  container.$cursorCount$++;
+  container.$pendingCount$++;
   container.$renderPromise$ ||= new Promise((r) => (container.$resolveRenderPromise$ = r));
 }
 
@@ -68,18 +67,37 @@ export function getHighestPriorityCursor(): Cursor | null {
 export function pauseCursor(cursor: Cursor, container: Container): void {
   pausedCursorQueue.push(cursor);
   removeCursorFromQueue(cursor, container, true);
+  container.$pendingCount$++;
 }
 
 export function resumeCursor(cursor: Cursor, container: Container): void {
-  const index = pausedCursorQueue.indexOf(cursor);
-  if (index !== -1) {
-    const lastIndex = pausedCursorQueue.length - 1;
-    if (index !== lastIndex) {
-      pausedCursorQueue[index] = pausedCursorQueue[lastIndex];
-    }
-    pausedCursorQueue.pop();
+  removeCursorFromPausedQueue(cursor, container);
+  if (!(cursor.flags & VNodeFlags.Cursor)) {
+    return;
   }
   addCursorToQueue(container, cursor);
+}
+
+export function abandonCursor(
+  container: Container,
+  targetCursorData: CursorData,
+  cursor: Cursor
+): void {
+  const oldCursorData = getCursorData(cursor);
+  if (!oldCursorData || oldCursorData === targetCursorData) {
+    return;
+  }
+
+  removeCursorFromQueue(cursor, container, false);
+  removeCursorFromPausedQueue(cursor, container);
+  mergeCursorJournalAndBoundaries(targetCursorData, oldCursorData);
+
+  oldCursorData.afterFlushTasks = null;
+  oldCursorData.extraPromises = null;
+  oldCursorData.journal = null;
+  oldCursorData.boundaries = null;
+  oldCursorData.position = null;
+  oldCursorData.promise = null;
 }
 
 /**
@@ -91,10 +109,7 @@ export function removeCursorFromQueue(
   cursor: Cursor,
   container: Container,
   keepCursorFlag?: boolean
-): void {
-  if (container.$cursorCount$ > 0) {
-    container.$cursorCount$--;
-  }
+): boolean {
   if (!keepCursorFlag) {
     cursor.flags &= ~VNodeFlags.Cursor;
   }
@@ -108,5 +123,22 @@ export function removeCursorFromQueue(
     // }
     // globalCursorQueue.pop();
     globalCursorQueue.splice(index, 1);
+    container.$pendingCount$--;
+    return true;
   }
+  return false;
+}
+
+function removeCursorFromPausedQueue(cursor: Cursor, container: Container): boolean {
+  const index = pausedCursorQueue.indexOf(cursor);
+  if (index === -1) {
+    return false;
+  }
+  const lastIndex = pausedCursorQueue.length - 1;
+  if (index !== lastIndex) {
+    pausedCursorQueue[index] = pausedCursorQueue[lastIndex];
+  }
+  pausedCursorQueue.pop();
+  container.$pendingCount$--;
+  return true;
 }

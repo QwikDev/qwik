@@ -6,11 +6,12 @@ import { canSerialize } from './index';
 import { isSignal } from '../../reactive-primitives/utils';
 import { unwrapStore } from '../../reactive-primitives/impl/store';
 import { untrack } from '../../use/use-core';
+import { VNode } from '../vnode/vnode';
 
 /** @internal */
 export const verifySerializable = <T>(value: T, preMessage?: string): T => {
   const seen = new WeakSet();
-  return untrack(() => _verifySerializable(value, seen, '_', preMessage));
+  return untrack(_verifySerializable, value, seen, '_', preMessage) as T;
 };
 
 const _verifySerializable = <T>(
@@ -36,6 +37,14 @@ const _verifySerializable = <T>(
     if (canSerialize(unwrapped)) {
       return value;
     }
+    // Framework-internal branded values (e.g. route loaders/actions, validators)
+    // are callables or objects that stamp __brand / __brand__ to opt out of the
+    // serializer walking their internals. Honor that for both objects and
+    // functions — loader/action refs are functions with __brand = 'server_loader'
+    // / 'server_action' and should not be rejected as unserializable.
+    if ((unwrapped as any).__brand || (unwrapped as any).__brand__) {
+      return value;
+    }
     const typeObj = typeof unwrapped;
     switch (typeObj) {
       case 'object':
@@ -48,13 +57,21 @@ const _verifySerializable = <T>(
         if (isArray(unwrapped)) {
           let expectIndex = 0;
           // Make sure the array has no holes
-          unwrapped.forEach((v, i) => {
+          for (let i = 0; i < unwrapped.length; i++) {
+            if (!(i in unwrapped)) {
+              throw qError(QError.verifySerializable, [unwrapped]);
+            }
+            const v = unwrapped[i];
             if (i !== expectIndex) {
               throw qError(QError.verifySerializable, [unwrapped]);
             }
             _verifySerializable(v, seen, ctx + '[' + i + ']');
             expectIndex = i + 1;
-          });
+          }
+          return value;
+        }
+        // We don't want to walk internal framework objects
+        if (unwrapped instanceof VNode) {
           return value;
         }
         if (isSerializableObject(unwrapped)) {
@@ -100,7 +117,7 @@ export const fastSkipSerialize = (obj: unknown): boolean => {
   return (
     !!obj &&
     (isObject(obj) || typeof obj === 'function') &&
-    (NoSerializeSymbol in obj || noSerializeSet.has(obj))
+    (noSerializeSet.has(obj) || NoSerializeSymbol in obj)
   );
 };
 
@@ -110,7 +127,7 @@ export const fastSkipSerialize = (obj: unknown): boolean => {
  * @public
  * @see noSerialize
  */
-export type NoSerialize<T> = (T & { __no_serialize__: true }) | undefined;
+export type NoSerialize<T> = (T & { __no_serialize__?: true }) | undefined;
 
 // <docs markdown="../../readme.md#noSerialize">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!

@@ -18,17 +18,6 @@ export function isStaticPath(method: string, url: URL) {
   if (p.startsWith('/' + (globalThis.__QWIK_ASSETS_DIR__ || 'assets') + '/')) {
     return true;
   }
-  if (staticPaths.has(p)) {
-    return true;
-  }
-  if (p.endsWith('/q-data.json')) {
-    const pWithoutQdata = p.replace(/\/q-data.json$/, '');
-    if (staticPaths.has(pWithoutQdata + '/')) {
-      return true;
-    }
-    if (staticPaths.has(pWithoutQdata)) {
-      return true;
-    }
-  }
-  return false;
+  // Loader sidecars are listed by post-build only when SSG wrote them, so a missing one falls to SSR.
+  return staticPaths.has(p);
 }

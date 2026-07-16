@@ -14,7 +14,30 @@ import type { Props } from '../shared/jsx/jsx-runtime';
 import type { JSXNodeInternal } from '../shared/jsx/types/jsx-node';
 import type { QRL } from '../shared/qrl/qrl.public';
 import type { SsrNodeFlags } from '../shared/types';
+import type { _EFFECT_BACK_REF } from '../reactive-primitives/backref';
+import type { EffectProperty, EffectSubscription } from '../reactive-primitives/types';
 import type { ResourceReturnInternal } from '../use/use-resource';
+
+/** @internal */
+export interface SSRRootRefPathChunk {
+  readonly path: number[];
+}
+
+/** @internal */
+export interface SSRRootRefDeltaChunk {
+  readonly id: number;
+  readonly base: number;
+}
+
+/** @internal */
+export type SSRWriteChunk = string | number | SSRRootRefPathChunk | SSRRootRefDeltaChunk;
+
+/** @internal */
+export type SSRSegmentWriteChunk =
+  | string
+  | { readonly type: 'root-ref'; readonly localId: number }
+  | { readonly type: 'root-ref-path'; readonly localPath: number[] }
+  | { readonly type: 'root-ref-delta'; readonly localId: number; readonly localBaseId: number };
 
 /** @internal */
 export interface StreamWriter {
@@ -22,13 +45,23 @@ export interface StreamWriter {
   waitForDrain?(): ValueOrPromise<void>;
 }
 
+/** @internal */
+export interface SSRInternalStreamWriter extends StreamWriter {
+  writeRootRef(id: number): ValueOrPromise<void>;
+  writeRootRefPath(path: number[]): ValueOrPromise<void>;
+  writeRootRefDelta(id: number, base: number): ValueOrPromise<void>;
+  toString(remap?: number[]): string;
+}
+
 export interface ISsrNode {
   id: string;
   flags: SsrNodeFlags;
   dirty: ChoreBits;
   parentComponent: ISsrNode | null;
+  children: ISsrNode[] | null;
   vnodeData: VNodeData;
   currentFile: string | null;
+  readonly [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | null;
   setProp(name: string, value: any): void;
   getProp(name: string): any;
   removeProp(name: string): void;
@@ -55,18 +88,39 @@ export interface ISsrComponentFrame {
 
 export type SymbolToChunkResolver = (symbol: string) => string;
 
+export interface SSRRenderJSXOptions {
+  currentStyleScoped: string | null;
+  parentComponentFrame: ISsrComponentFrame | null;
+}
+
+export interface SegmentRenderContext {
+  container: SSRSegmentContainer;
+  writer: SSRInternalStreamWriter;
+  htmlChunks: SSRSegmentWriteChunk[];
+}
+
+export type SSROutOfOrderSegment = SegmentRenderContext;
+
 export interface SSRContainer extends Container {
   readonly tag: string;
   readonly isHtml: boolean;
   readonly size: number;
-  readonly writer: StreamWriter;
+  readonly writer: SSRInternalStreamWriter;
   readonly streamHandler: IStreamHandler;
   readonly serializationCtx: SerializationContext;
   readonly symbolToChunkResolver: SymbolToChunkResolver;
   readonly resolvedManifest: ResolvedManifest;
+  readonly outOfOrderStreaming: boolean;
   additionalHeadNodes: Array<JSXNodeInternal>;
   additionalBodyNodes: Array<JSXNodeInternal>;
   $noScriptHere$: number;
+
+  /**
+   * Lets the container place a root-level `useOn` placeholder `<script>` itself when injecting it
+   * inline would put it at an illegal position. Returns `true` if the container took the node, in
+   * which case the caller must not inject it into the component's JSX.
+   */
+  $deferRootPlaceholder$(scriptNode: JSXNodeInternal<string>): boolean;
 
   write(text: string): void;
 
@@ -98,30 +152,51 @@ export interface SSRContainer extends Container {
   textNode(text: string): void;
   htmlNode(rawHtml: string): void;
   commentNode(text: string): void;
-  addRoot(obj: any): number | undefined;
+  addRoot(obj: any): number | string | undefined;
   getOrCreateLastNode(): ISsrNode;
   addUnclaimedProjection(frame: ISsrComponentFrame, name: string, children: JSXChildren): void;
   isStatic(): boolean;
   render(jsx: JSXOutput): Promise<void>;
-  renderJSX(
+  renderJSX(jsx: JSXOutput, options: SSRRenderJSXOptions): Promise<void>;
+  $runQueuedRender$<T>(render: () => ValueOrPromise<T>): ValueOrPromise<T>;
+  nextOutOfOrderId(): number;
+  emitOutOfOrderSegmentScripts(scripts: string): void;
+  segment(
+    segmentId: string,
     jsx: JSXOutput,
-    options: {
-      currentStyleScoped: string | null;
-      parentComponentFrame: ISsrComponentFrame | null;
-    }
-  ): Promise<void>;
+    options: SSRRenderJSXOptions
+  ): Promise<SSROutOfOrderSegment>;
+  queueOutOfOrderSegment(segment: Promise<void>): void;
+  emitOutOfOrderExecutorIfNeeded(): void;
+  emitInlineScript(script: string): void;
+  writeScript(attrs: Props, body?: string): void;
 
   emitPreloaderPre(): void;
 
   emitQwikLoaderAtTopIfNeeded(): void;
 
   emitPatchDataIfNeeded(): void;
+  emitBackpatchDataAndExecutorIfNeeded(): void;
 
   addBackpatchEntry(
     ssrNodeId: string,
     attrName: string,
     serializedValue: string | boolean | null
   ): void;
+}
+
+export interface SSRSegmentContainer extends SSRContainer {
+  $rootContainer$: SSRContainer;
+  $recordExternalRootEffect$(
+    producer: unknown,
+    effect: EffectSubscription,
+    prop: string | symbol | null,
+    sourceEffects?: Map<string | symbol, Set<EffectSubscription>>
+  ): void;
+  $finalizeOutOfOrderSegment$(
+    segmentId: string,
+    segment: SSROutOfOrderSegment
+  ): Promise<{ html: string; scripts: string }>;
 }
 
 /** @internal */

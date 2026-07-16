@@ -140,7 +140,7 @@ Render
 
 </td><td>
 
-The SSR render function (default export from entry.ssr).
+SSR render function (default export from `entry.ssr`); worker-only — the main entry omits it.
 
 </td></tr>
 <tr><td>
@@ -155,7 +155,7 @@ string \| URL
 
 </td><td>
 
-_(Optional)_ Path or URL to the worker entry file. Workers are spawned using this file. When run-ssg.js serves as both main and worker entry, this should be `import.meta.url` of that file.
+_(Optional)_ Path or URL to the worker entry file (`run-ssg-worker.js`); workers are spawned from it.
 
 </td></tr>
 </tbody></table>
@@ -248,21 +248,6 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-emit404Pages?
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-_(Optional)_ Set to `false` if the static build should not write custom or default `404.html` pages. Defaults to `true`.
-
-</td></tr>
-<tr><td>
-
 emitData?
 
 </td><td>
@@ -273,7 +258,7 @@ boolean
 
 </td><td>
 
-_(Optional)_ Set to `false` if the generated `q-data.json` data files should not be written to disk. Defaults to `true`.
+_(Optional)_ Set to `false` if the generated per-loader data files should not be written to disk. Defaults to `true`.
 
 </td></tr>
 <tr><td>
@@ -288,7 +273,7 @@ boolean
 
 </td><td>
 
-_(Optional)_ Set to `false` if the generated static HTML files should not be written to disk. Setting to `false` is useful if the SSG should only write the `q-data.json` files to disk. Defaults to `true`.
+_(Optional)_ Set to `false` if the generated static HTML files should not be written to disk. Setting to `false` is useful if the SSG should only write the per-loader data files to disk. Defaults to `true`.
 
 </td></tr>
 <tr><td>

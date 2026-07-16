@@ -1,14 +1,17 @@
 import type { QwikVitePlugin } from '@qwik.dev/core/optimizer';
 import type { RoutingContext } from '../types';
 import { createEntries } from './generate-entries';
-import { createRoutes } from './generate-routes';
+import { createRoutes, type RouteLoaderSourceFiles } from './generate-routes';
 import { createServerPlugins } from './generate-server-plugins';
 
 /** Generates the Qwik Router Config runtime code */
 export function generateQwikRouterConfig(
   ctx: RoutingContext,
   qwikPlugin: QwikVitePlugin,
-  isSSR: boolean
+  isSSR: boolean,
+  loadersByFile?: Map<string, string[]>,
+  serverExcludePaths?: ReadonlySet<string>,
+  routeLoaderSourceFiles?: RouteLoaderSourceFiles
 ) {
   const esmImports: string[] = [];
   const c: string[] = [];
@@ -24,7 +27,16 @@ export function generateQwikRouterConfig(
 
   createServerPlugins(ctx, qwikPlugin, c, esmImports, isSSR);
 
-  createRoutes(ctx, qwikPlugin, c, esmImports, isSSR);
+  createRoutes(
+    ctx,
+    qwikPlugin,
+    c,
+    esmImports,
+    isSSR,
+    loadersByFile,
+    serverExcludePaths,
+    routeLoaderSourceFiles
+  );
 
   createEntries(ctx, c);
 

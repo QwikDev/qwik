@@ -8,7 +8,16 @@ import { Note } from '~/components/note/note';
 
 # View Transition API
 
-By default Qwik will start a view transition when SPA navigation. We can run animation either with CSS or WAAPI.
+View transitions on SPA navigation are opt-in. Enable them by passing `viewTransition` to `QwikRouterProvider`, then run animation with either CSS or WAAPI.
+
+```tsx
+// src/root.tsx
+export default component$(() => {
+  return (
+    <QwikRouterProvider viewTransition={true}>{/* ... */}</QwikRouterProvider>
+  );
+});
+```
 
 ## CSS
 

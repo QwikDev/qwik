@@ -1,4 +1,4 @@
-import { test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { assertPage, getPage, linkNavigate, load } from './util.js';
 
 test.describe('Qwik Router Auth', () => {
@@ -14,7 +14,11 @@ test.describe('Qwik Router Auth', () => {
 });
 
 function tests() {
-  test('Qwik Router Auth', async ({ context, javaScriptEnabled }) => {
+  test('Qwik Router Auth', async ({ context, javaScriptEnabled, browserName }) => {
+    test.slow(
+      browserName === 'firefox',
+      'Firefox auth navigations can be slow under parallel e2e load'
+    );
     const ctx = await load(context, javaScriptEnabled, '/qwikrouter-test/sign-in/');
 
     /** Sign In ********** */
@@ -38,6 +42,7 @@ function tests() {
 
     /** Unsuccessful Sign In ********** */
     await linkNavigate(ctx, '[data-test-sign-in]', 403);
+    await expect(page.locator('input[name="username"]')).toHaveValue('');
 
     page = getPage(ctx);
     await page.focus('input[name="username"]');
@@ -51,6 +56,7 @@ function tests() {
 
     /** Unsuccessful Sign In ********** */
     await linkNavigate(ctx, '[data-test-sign-in]', 400);
+    await expect(page.locator('input[name="username"]')).toHaveValue('');
 
     page = getPage(ctx);
     await page.focus('input[name="username"]');
@@ -64,6 +70,7 @@ function tests() {
 
     /** Successful Sign In, Dashboard ********** */
     await linkNavigate(ctx, '[data-test-sign-in]', 302);
+    await page.waitForURL('/qwikrouter-test/dashboard/');
 
     await assertPage(ctx, {
       pathname: '/qwikrouter-test/dashboard/',

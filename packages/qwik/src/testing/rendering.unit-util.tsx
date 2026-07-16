@@ -7,6 +7,7 @@ import {
   getPlatform,
   setPlatform,
   type JSXOutput,
+  type StreamWriter,
 } from '@qwik.dev/core';
 import {
   _getDomContainer,
@@ -35,15 +36,15 @@ import { _dumpState, _preprocessState as preprocessState } from '@qwik.dev/core/
 import {
   OnRenderProp,
   QContainerSelector,
-  QFuncsPrefix,
-  QInstanceAttr,
   QScopedStyle,
+  QStatePatchAttrSelector,
   QStyle,
 } from '../core/shared/utils/markers';
 import { useContextProvider } from '@qwik.dev/core';
 import { DEBUG_TYPE, ELEMENT_BACKPATCH_DATA, VirtualType } from '../server/qwik-copy';
 import type { HostElement } from '../server/qwik-types';
-import { Q_FUNCS_PREFIX, renderToString } from '../server/ssr-render';
+import { renderToStream, renderToString } from '../server/ssr-render';
+import type { StreamingOptions } from '../server/types';
 import { createDocument } from './document';
 import './vdom-diff.unit-util';
 import type { VNode } from '../core/shared/vnode/vnode';
@@ -51,8 +52,10 @@ import type { VirtualVNode } from '../core/shared/vnode/virtual-vnode';
 import { ChoreBits } from '../core/shared/vnode/enums/chore-bits.enum';
 import { markVNodeDirty } from '../core/shared/vnode/vnode-dirty';
 import type { ElementVNode } from '../core/shared/vnode/element-vnode';
+import { processOutOfOrderSegmentVNodeData } from '../core/client/process-vnode-data';
 import { executeBackpatch } from '../backpatch-executor-shared';
 import { getTestPlatform } from '@qwik.dev/core/testing';
+import { whenContainerDataReady } from '../core/client/dom-container';
 
 /** @public */
 export async function domRender(
@@ -117,12 +120,23 @@ export async function ssrRenderToDom(
     raw?: boolean;
     /** Include QwikLoader */
     qwikLoader?: boolean;
+    /** Override the SSR container tag name. */
+    containerTagName?: string;
+    /** Root-count threshold for eager yielded state prewarm during client resume. */
+    statePrewarm?: number | false;
+    /** Stream rendered chunks while still collecting the final HTML. */
+    stream?: StreamWriter;
+    /** Configure SSR streaming. */
+    streaming?: StreamingOptions;
+    /** Skip client resume emulation after SSR. */
+    resume?: boolean;
     /** Inject nodes into the document before test runs (for testing purposes) */
     onBeforeResume?: (document: Document) => void;
   } = {}
 ) {
   setPlatform(getTestPlatform());
   let html = '';
+  const isStreaming = !!(opts.stream || opts.streaming);
   const platform = getPlatform();
   try {
     const jsxToRender = opts.raw
@@ -133,18 +147,47 @@ export async function ssrRenderToDom(
           </head>,
           <body>{jsx}</body>,
         ];
-    const result = await renderToString(jsxToRender, {
+    const renderOptions = {
+      containerTagName: opts.containerTagName,
       qwikLoader: opts.qwikLoader ? 'inline' : 'never',
-    });
-    html = result.html;
+      statePrewarm: opts.statePrewarm,
+    } as const;
+    if (opts.stream || opts.streaming) {
+      const stream: StreamWriter = {
+        write(chunk) {
+          html += chunk;
+          return opts.stream?.write(chunk);
+        },
+      };
+      if (opts.stream?.waitForDrain) {
+        stream.waitForDrain = () => opts.stream!.waitForDrain!();
+      }
+      await renderToStream(jsxToRender, {
+        ...renderOptions,
+        stream,
+        streaming: opts.streaming,
+      });
+    } else {
+      const result = await renderToString(jsxToRender, renderOptions);
+      html = result.html;
+    }
   } finally {
     setPlatform(platform);
   }
 
   const document = createDocument({ html });
   const containerElement = document.querySelector(QContainerSelector) as _ContainerElement;
+  const getStyles = getStylesFactory(document);
+
+  if (opts.resume === false) {
+    return { container: null as unknown as _DomContainer, document, vNode: null, getStyles };
+  }
 
   emulateExecutionOfQwikFuncs(document);
+
+  if (isStreaming) {
+    emulateExecutionOfStreamingOutOfOrderScripts(document);
+  }
 
   if (opts.onBeforeResume) {
     opts.onBeforeResume(document);
@@ -152,7 +195,10 @@ export async function ssrRenderToDom(
 
   emulateExecutionOfBackpatch(document);
   const container = _getDomContainer(containerElement) as _DomContainer;
-  const getStyles = getStylesFactory(document);
+  if (!isStreaming) {
+    emulateExecutionOfOutOfOrderScripts(document);
+  }
+  await whenContainerDataReady(container, () => undefined);
   if (opts.debug) {
     console.log('========================================================');
     console.log('------------------------- SSR --------------------------');
@@ -161,12 +207,9 @@ export async function ssrRenderToDom(
     console.log('--------------------------------------------------------');
     console.log(_vnode_toString.call(container.rootVNode, Number.MAX_SAFE_INTEGER, '', true));
     console.log('------------------- SERIALIZED STATE -------------------');
-    // We use the original state so we don't get deserialized data
-    const origState = JSON.parse(
-      container.element.querySelector('script[type="qwik/state"]')?.textContent || '[]'
-    );
-    preprocessState(origState, container);
-    console.log(origState ? _dumpState(origState, true, '', null) : 'No state found', '\n');
+    // We use the serialized state so we don't get deserialized data.
+    const debugState = getDebugSerializedState(container);
+    console.log(debugState ? _dumpState(debugState, true, '', null) : 'No state found', '\n');
     const funcs = container.$qFuncs$;
     console.log('------------------- SERIALIZED QFUNCS -------------------');
     for (let i = 0; i < funcs.length; i++) {
@@ -233,6 +276,56 @@ export async function ssrRenderToDom(
   return { container, document, vNode, getStyles };
 }
 
+function getDebugSerializedState(container: _DomContainer) {
+  const stateScriptSelector = `script[type="qwik/state"][q\\:instance="${container.$instanceHash$}"]`;
+  const rootStateScript = container.element.querySelector(
+    `${stateScriptSelector}:not(${QStatePatchAttrSelector})`
+  );
+  const patchStateScripts = container.element.querySelectorAll(
+    `${stateScriptSelector}${QStatePatchAttrSelector}`
+  );
+
+  if (!rootStateScript && patchStateScripts.length === 0) {
+    return null;
+  }
+
+  const state = JSON.parse(rootStateScript?.textContent || '[]') as unknown[];
+  const patchForwardRefs: Array<Array<number | string>> = [];
+  for (let i = 0; i < patchStateScripts.length; i++) {
+    const patchStateText = patchStateScripts[i].textContent;
+    if (!patchStateText) {
+      continue;
+    }
+    const [rootStart, rawStateData, forwardRefs] = JSON.parse(patchStateText) as [
+      number,
+      unknown[],
+      Array<number | string> | 0 | undefined,
+    ];
+    for (let j = 0; j < rawStateData.length; j++) {
+      state[rootStart * 2 + j] = rawStateData[j];
+    }
+    if (forwardRefs) {
+      patchForwardRefs.push(forwardRefs);
+    }
+  }
+
+  // Preprocess a copy without mutating the live container's forward-ref bookkeeping.
+  const debugContainer = { $forwardRefs$: null } as _DomContainer;
+  preprocessState(state, debugContainer);
+  for (let i = 0; i < patchForwardRefs.length; i++) {
+    const rootForwardRefs = (debugContainer.$forwardRefs$ ||= []);
+    const forwardRefs = patchForwardRefs[i];
+    for (let j = 0; j < forwardRefs.length; j++) {
+      const ref = forwardRefs[j];
+      if (ref !== undefined) {
+        rootForwardRefs.push(ref);
+      }
+    }
+  }
+
+  return state;
+}
+
 function isQwikScript(node: ElementVNode): boolean {
   const element = node.node;
   return (
@@ -278,14 +371,11 @@ function _vnode_moveToVirtual(parent: VirtualVNode, newChild: VNode, insertBefor
 
 /** @public */
 export function emulateExecutionOfQwikFuncs(document: Document) {
-  const qFuncs = document.body.querySelector('[q\\:func]');
-  const containerElement = document.querySelector(QContainerSelector) as _ContainerElement;
-  const hash = containerElement.getAttribute(QInstanceAttr);
-  if (qFuncs && hash) {
-    let code = qFuncs.textContent || '';
-    code = code.replace(Q_FUNCS_PREFIX.replace('HASH', hash), '');
+  const qFuncs = document.body.querySelectorAll('[q\\:func]');
+  for (let i = 0; i < qFuncs.length; i++) {
+    const code = qFuncs[i].textContent || '';
     if (code) {
-      (document as any)[QFuncsPrefix + hash] = eval(code);
+      eval(code);
     }
   }
 }
@@ -314,6 +404,27 @@ export function emulateExecutionOfBackpatch(document: Document) {
   executeBackpatch(document);
 }
 
+export function emulateExecutionOfOutOfOrderScripts(document: Document) {
+  const scripts = Array.from(
+    document.querySelectorAll('script[type="text/javascript"]'),
+    (script) => script.textContent || ''
+  ).filter((code) => code.includes('qO') || code.includes('qInstallOOOS'));
+  if (scripts.length > 0) {
+    // eslint-disable-next-line no-new-func
+    new Function('document', scripts.join('\n'))(document);
+  }
+}
+
+function emulateExecutionOfStreamingOutOfOrderScripts(document: Document) {
+  const qDocument = document as Document & {
+    qProcessOOOS?: (boundaryId: number, content: Element | null) => void;
+  };
+  qDocument.qProcessOOOS = (boundaryId, content) => {
+    processOutOfOrderSegmentVNodeData(document, String(boundaryId), content);
+  };
+  emulateExecutionOfOutOfOrderScripts(document);
+}
+
 function renderStyles(getStyles: () => Record<string, string | string[]>) {
   const START = '\x1b[34m';
   const END = '\x1b[0m';
@@ -328,6 +439,7 @@ function renderStyles(getStyles: () => Record<string, string | string[]>) {
 
 export async function rerenderComponent(element: HTMLElement) {
   const container = _getDomContainer(element) as _DomContainer;
+  await whenContainerDataReady(container, () => undefined);
   const vElement = container.vNodeLocate(element);
   const host = getHostVNode(vElement) as HostElement;
   markVNodeDirty(container, host, ChoreBits.COMPONENT);

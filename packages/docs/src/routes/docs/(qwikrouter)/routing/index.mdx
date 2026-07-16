@@ -4,7 +4,7 @@ description: Learn about routing in Qwik Router which is like other file-system 
 contributors:
   - manucorporat
   - nnelgxorz
-  - the-r3aper7
+  - saisrikardumpeti
   - Oyemade
   - mhevery
   - adamdbradley
@@ -257,7 +257,7 @@ export default component$(() => {
 
 ### Preventing navigation
 
-We have an experimental API to prevent navigation while your app's state is unsaved. See the [usePreventNavigate](/docs/labs/usePreventNavigate) documentation for more information.
+Use [`usePreventNavigate$`](/docs/advanced/prevent-navigation/) to prevent navigation while your app's state is unsaved.
 
 ### `<Link reload>`
 
@@ -293,9 +293,9 @@ export default component$(() => {
 
 ### `<Link>` prefetching
 
-Use `prefetchBundle` and `prefetchData` to control what a link prefetches and when it starts.
+Use `prefetchBundles` and `prefetchData` to control what a link prefetches and when it starts.
 
-By default, `prefetchBundle` uses `visible`, while `prefetchData` uses `intent`, so route bundles
+By default, `prefetchBundles` uses `visible`, while `prefetchData` uses `intent`, so route bundles
 are prefetched when the link enters the viewport and route data is prefetched when the user shows
 navigation intent.
 
@@ -355,6 +355,7 @@ Each request handler, such as `onRequest`, `onGet`, `onPost`, etc., are passed i
 - `getWritableStream`: Low-level access to write to the HTTP response stream. Once `getWritableStream()` is called, the status and headers can no longer be modified and will be sent over the network.
 - `headers`: HTTP [response headers](https://developer.mozilla.org/en-US/docs/Glossary/Response_header).
 - `html`: Convenience method to send an HTML body response. The response will be automatically set the `Content-Type` header to`text/html; charset=utf-8`. An `html()` response can only be called once.
+- `internalRequest`: Identifies Qwik Router internal JSON requests as `'loader'` or `'action'`. Returns `false` for normal page requests. Check this before applying broad rewrite rules.
 - `json`: Convenience method to JSON stringify the data and send it in the response. The response will be automatically set the `Content-Type` header to`application/json; charset=utf-8`. A `json()` response can only be called once.
 - `locale`: Which locale the content is in. The locale value can be retrieved from selected methods using `getLocale()`.
 - `method`: HTTP request [method](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) value.
@@ -425,6 +426,22 @@ export default defineConfig(async () => {
     ],
   };
 });
+```
+
+By default a config rewrites every matching route. Add `exclude` to skip routes that should not be rewritten under that config. The patterns use the same glob syntax as the SSG `include`/`exclude` and are matched per config:
+
+```tsx
+rewriteRoutes: [
+  {
+    prefix: 'it',
+    paths: {
+      'docs': 'documentazione',
+      'products': 'prodotti',
+    },
+    // `/blog` stays English-only: no `/it` mirror is generated for it.
+    exclude: ['/blog/*'],
+  },
+],
 ```
 
 ## Advanced routing

@@ -32,7 +32,13 @@ export function _executeSsrChores(
     if (ssrNode.dirty & ChoreBits.COMPUTE) {
       executeCompute(ssrNode, container);
     }
-    if (isDev && ssrNode.dirty & ChoreBits.DIRTY_MASK) {
+    if (
+      isDev &&
+      ssrNode.dirty & ChoreBits.DIRTY_MASK &&
+      !(ssrNode.flags & SsrNodeFlags.WarnedStreamedChore)
+    ) {
+      // Warn once per host; a re-dirtied streamed host would otherwise spam every tick.
+      ssrNode.flags |= SsrNodeFlags.WarnedStreamedChore;
       // We are running on the server.
       // On server we can't schedule task for a different host!
       // Server is SSR, and therefore scheduling for anything but the current host

@@ -4,6 +4,7 @@ export type { Q_ROUTE } from './constants';
 export type {
   Action,
   ActionConstructor,
+  ActionOptions,
   ActionStore,
   CacheKeyFn,
   ContentHeading,
@@ -21,8 +22,10 @@ export type {
   DocumentMeta,
   DocumentScript,
   DocumentStyle,
+  ExcludeControlFlow,
   FailReturn,
   HttpStatus as HttpErrorProps,
+  InternalRequest,
   JSONObject,
   JSONValue,
   Loader,
@@ -76,8 +79,6 @@ export {
   globalActionQrl,
   routeAction$,
   routeActionQrl,
-  routeLoader$,
-  routeLoaderQrl,
   server$,
   serverQrl,
   valibot$,
@@ -86,7 +87,9 @@ export {
   validatorQrl,
   zod$,
   zodQrl,
+  getRequestEvent,
 } from './server-functions';
+export { routeLoader$, routeLoaderQrl } from './route-loaders';
 export { ServiceWorkerRegister } from './sw-component';
 export {
   useContent,

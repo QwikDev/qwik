@@ -1,13 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import { vnode_newVirtual, vnode_setProp } from '../../client/vnode-utils';
+import { VNodeFlags } from '../../client/types';
 import { ChoreBits } from '../vnode/enums/chore-bits.enum';
 import type { VirtualVNode } from '../vnode/virtual-vnode';
 import { isCursor, type Cursor } from './cursor';
 import { getNextVNode, partitionDirtyChildren, tryDescendDirtyChildren } from './cursor-walker';
-import { getCursorData, setCursorData, type CursorData } from './cursor-props';
+import { getCursorData, setCursorData, setCursorPosition, type CursorData } from './cursor-props';
 import type { Container } from '../types';
 import { QCursorBoundary } from '../utils/markers';
-import { removeCursorFromQueue } from './cursor-queue';
+import {
+  abandonCursor,
+  addCursorToQueue,
+  getHighestPriorityCursor,
+  pauseCursor,
+  removeCursorFromQueue,
+  resumeCursor,
+} from './cursor-queue';
 import type { CursorBoundary } from '../../use/use-cursor-boundary';
 
 describe('getNextVNode', () => {
@@ -644,5 +652,133 @@ describe('tryDescendDirtyChildren', () => {
 
     // Should return first dirty child after partitioning (skipping clean regular1)
     expect(result).toBe(regular2);
+  });
+});
+
+describe('setCursorPosition', () => {
+  const createMockContainer = () =>
+    ({
+      $pendingCount$: 0,
+      $renderPromise$: null,
+      $resolveRenderPromise$: null,
+      $checkPendingCount$: () => {},
+    }) as unknown as Container;
+
+  it('should keep the cursor flag when a cursor advances back to itself', () => {
+    const container = createMockContainer();
+    const cursor = vnode_newVirtual() as Cursor;
+    const cursorData: CursorData = {
+      container,
+      position: null,
+      promise: null,
+      journal: null,
+      extraPromises: null,
+      afterFlushTasks: null,
+      priority: 0,
+      boundaries: null,
+    };
+
+    setCursorData(cursor, cursorData);
+    cursor.flags |= VNodeFlags.Cursor;
+    addCursorToQueue(container, cursor);
+
+    try {
+      setCursorPosition(container, cursorData, cursor);
+
+      expect(isCursor(cursor)).toBe(true);
+      expect(getCursorData(cursor)).toBe(cursorData);
+      expect(getHighestPriorityCursor()).toBe(cursor);
+      expect(container.$pendingCount$).toBe(1);
+    } finally {
+      removeCursorFromQueue(cursor, container);
+    }
+  });
+});
+
+describe('abandonCursor', () => {
+  const createMockContainer = () =>
+    ({
+      $pendingCount$: 0,
+      $renderPromise$: null,
+      $resolveRenderPromise$: null,
+      $checkPendingCount$: () => {},
+    }) as unknown as Container;
+
+  const createCursorData = (
+    container: Container,
+    cursor: Cursor,
+    journal: CursorData['journal'] = null
+  ): CursorData => {
+    const cursorData: CursorData = {
+      container,
+      position: cursor,
+      promise: null,
+      journal,
+      extraPromises: null,
+      afterFlushTasks: null,
+      priority: 0,
+      boundaries: null,
+    };
+    setCursorData(cursor, cursorData);
+    cursor.flags |= VNodeFlags.Cursor;
+    return cursorData;
+  };
+
+  it('should adopt journal and boundaries from a paused cursor without resuming it later', () => {
+    const container = createMockContainer();
+    const target = vnode_newVirtual() as Cursor;
+    const source = vnode_newVirtual() as Cursor;
+    const targetJournal = [] as CursorData['journal'];
+    const sourceOperation = {} as any;
+    const sourceJournal = [sourceOperation] as CursorData['journal'];
+    const boundary = {
+      pending: { value: 1 },
+      version: { value: 0 },
+    } as CursorBoundary;
+
+    const targetData = createCursorData(container, target, targetJournal);
+    const sourceData = createCursorData(container, source, sourceJournal);
+    sourceData.afterFlushTasks = [{} as any];
+    sourceData.extraPromises = [Promise.resolve()];
+    sourceData.boundaries = [boundary];
+    sourceData.promise = Promise.resolve();
+
+    addCursorToQueue(container, source);
+    pauseCursor(source, container);
+    expect(container.$pendingCount$).toBe(1);
+
+    abandonCursor(container, targetData, source);
+
+    expect(container.$pendingCount$).toBe(0);
+    expect(targetData.journal).toEqual([sourceOperation]);
+    expect(targetData.afterFlushTasks).toBeNull();
+    expect(targetData.extraPromises).toBeNull();
+    expect(targetData.boundaries).toEqual([boundary]);
+    expect(sourceData.journal).toBeNull();
+    expect(sourceData.afterFlushTasks).toBeNull();
+    expect(sourceData.extraPromises).toBeNull();
+    expect(sourceData.boundaries).toBeNull();
+    expect(sourceData.promise).toBeNull();
+    expect(source.flags & VNodeFlags.Cursor).toBe(0);
+
+    resumeCursor(source, container);
+    expect(container.$pendingCount$).toBe(0);
+    expect(getHighestPriorityCursor()).toBeNull();
+  });
+
+  it('should release a paused cursor that lost its cursor flag before resuming', () => {
+    const container = createMockContainer();
+    const source = vnode_newVirtual() as Cursor;
+
+    createCursorData(container, source);
+    addCursorToQueue(container, source);
+    pauseCursor(source, container);
+    expect(container.$pendingCount$).toBe(1);
+
+    source.flags &= ~VNodeFlags.Cursor;
+    resumeCursor(source, container);
+
+    expect(container.$pendingCount$).toBe(0);
+    expect(getHighestPriorityCursor()).toBeNull();
   });
 });

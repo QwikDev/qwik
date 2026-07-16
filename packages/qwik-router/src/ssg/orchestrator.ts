@@ -2,7 +2,7 @@ import type { PageModule, PathParams, RouteData } from '@qwik.dev/router';
 import { bold, dim, green, magenta, red } from 'kleur/colors';
 import { relative } from 'node:path';
 import { msToString } from '../utils/format';
-import { getPathnameForDynamicRoute } from '../utils/pathname';
+import { ensureSlash, getPathnameForDynamicRoute } from '../utils/pathname';
 import { createRouteTester } from './routes';
 import type { SsgGenerateOptions, SsgResult, SsgRoute, System } from './types';
 
@@ -157,7 +157,7 @@ export async function mainThread(sys: System) {
                 const lastSegment = segments[segments.length - 1];
 
                 if (!lastSegment.includes('.')) {
-                  pathname += '/';
+                  pathname = ensureSlash(pathname);
                 }
               }
             } else {
@@ -202,7 +202,7 @@ export async function mainThread(sys: System) {
 
           // Reconstruct the original pathname from path parts
           const joinedParts = pathParts.join('/');
-          const originalPathname = basePathname + (joinedParts ? joinedParts + '/' : '');
+          const originalPathname = basePathname + (joinedParts ? ensureSlash(joinedParts) : '');
           const paramNames = pathParts
             .filter((p) => p.startsWith('[') && p.endsWith(']'))
             .map((p) => (p.startsWith('[...') ? p.slice(4, -1) : p.slice(1, -1)));
@@ -236,6 +236,17 @@ export async function mainThread(sys: System) {
                 }
               }
             }
+          }
+        }
+
+        // Force-prerender <dir>/404.html for each static-dir boundary so static hosts can serve it
+        // on a miss (opt out via `exclude`); dynamic dirs have no concrete path, so they're skipped.
+        if (node._4 || node._E) {
+          const isStaticDir = !pathParts.some((p) => p.startsWith('['));
+          if (isStaticDir) {
+            const joinedParts = pathParts.join('/');
+            const dirPathname = basePathname + (joinedParts ? ensureSlash(joinedParts) : '');
+            addToQueue(dirPathname + '404.html', undefined);
           }
         }
 
@@ -302,9 +313,7 @@ export async function mainThread(sys: System) {
 }
 
 function validateOptions(opts: SsgGenerateOptions) {
-  if (!opts.render) {
-    throw new Error(`Missing "render" option`);
-  }
+  // render is worker-only; the main thread needs only the route config.
   if (!opts.qwikRouterConfig) {
     throw new Error(`Missing "qwikRouterConfig" option`);
   }
@@ -322,6 +331,6 @@ function validateOptions(opts: SsgGenerateOptions) {
   try {
     new URL(siteOrigin);
   } catch (e) {
-    throw new Error(`Invalid "origin"`, { cause: e as Error });
+    throw new Error(`Invalid "origin"`, { cause: e });
   }
 }

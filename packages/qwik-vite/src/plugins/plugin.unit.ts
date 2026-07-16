@@ -3,6 +3,7 @@ import { assert, describe, expect, test } from 'vitest';
 import { normalizePath } from '../../../qwik/src/testing/util';
 import type { QwikManifest } from '../types';
 import { ExperimentalFeatures, createQwikPlugin } from './plugin';
+import { isServerOnlyModule } from './server-only-modules';
 import { qwikVite } from './vite';
 import type { ResolvedId } from 'rollup';
 
@@ -227,6 +228,39 @@ test('experimental[]', async () => {
   assert.deepEqual(opts.experimental, { [flag]: true } as any);
 });
 
+describe('server-only module detection', () => {
+  test('detects absolute and root-relative src/server module paths', () => {
+    const opts = {
+      rootDir: '/repo/app',
+      srcDir: '/repo/app/src',
+    };
+
+    expect(isServerOnlyModule('/repo/app/src/server/db.ts', opts)).toBe(true);
+    expect(isServerOnlyModule('/src/server/db.ts', opts)).toBe(true);
+    expect(isServerOnlyModule('/repo/app/src/routes/admin/server/session.ts', opts)).toBe(true);
+    expect(isServerOnlyModule('/src/server-functions.ts', opts)).toBe(false);
+    expect(isServerOnlyModule('@qwik.dev/core/server', opts)).toBe(false);
+  });
+
+  test('does not rewrite unrelated posix absolute paths as root-relative dev urls', () => {
+    expect(
+      isServerOnlyModule('/other/app/src/server/db.ts', {
+        rootDir: '/repo/app',
+        srcDir: '/repo/app/src',
+      })
+    ).toBe(false);
+  });
+
+  test('detects windows src/server module paths', () => {
+    expect(
+      isServerOnlyModule('C:\\repo\\app\\src\\server\\db.ts', {
+        rootDir: 'C:\\repo\\app',
+        srcDir: 'C:\\repo\\app\\src',
+      })
+    ).toBe(true);
+  });
+});
+
 describe('resolveId', () => {
   test('qrls', async () => {
     const plugin = await mockPlugin();
@@ -300,10 +334,237 @@ describe('resolveId', () => {
       await plugin.resolveId({} as any, '@qwik-client-manifest', '/foo/bar/core')
     ).toHaveProperty('id', '@qwik-client-manifest');
   });
+  test('rejects server-only modules from the client graph', async () => {
+    const plugin = await mockPlugin();
+    await plugin.normalizeOptions({
+      target: 'client',
+      rootDir: cwd,
+      srcDir: resolve(cwd, 'src'),
+    });
+    const srcDir = normalizePath(resolve(cwd, 'src'));
+    const importer = `${srcDir}/entry.client.tsx`;
+
+    await expect(plugin.resolveId({} as any, `${srcDir}/db.server.ts`, importer)).rejects.toThrow(
+      /Server-only module cannot be imported by client code/
+    );
+    await expect(
+      plugin.resolveId({} as any, `${srcDir}/db.server.ts?raw`, importer)
+    ).rejects.toThrow(/Server-only module cannot be imported by client code/);
+    await expect(plugin.resolveId({} as any, `${srcDir}/server/db.ts`, importer)).rejects.toThrow(
+      /Server-only module cannot be imported by client code/
+    );
+    await expect(plugin.resolveId({} as any, `/src/server/db.ts`, importer)).rejects.toThrow(
+      /Server-only module cannot be imported by client code/
+    );
+    await expect(
+      plugin.resolveId({} as any, `${srcDir}/routes/admin/server/session.ts`, importer)
+    ).rejects.toThrow(/Server-only module cannot be imported by client code/);
+  });
+  test('allows server-only imports stripped by isServer guards in client transforms', async () => {
+    const plugin = await mockPlugin(process.platform, true);
+    await plugin.normalizeOptions({
+      target: 'client',
+      rootDir: cwd,
+      srcDir: resolve(cwd, 'src'),
+    });
+    const srcDir = normalizePath(resolve(cwd, 'src'));
+    const importer = `${srcDir}/routes/index.ts`;
+    const code = `
+      import { isServer } from '@qwik.dev/core';
+
+      export const secret = async () => {
+        if (isServer) {
+          const { readSecret } = await import('../server/db');
+          return readSecret();
+        }
+        return undefined;
+      };
+    `;
+    const ctx = {
+      addWatchFile: () => {},
+      parse: () => {
+        throw new Error('client output still contains the server-only import');
+      },
+      resolve: async (id: string) => {
+        throw new Error(`client output resolved unexpected import ${id}`);
+      },
+    };
+
+    await expect(plugin.transform(ctx as any, code, importer)).resolves.toMatchObject({
+      code: expect.not.stringContaining('../server/db'),
+    });
+  });
+  test('allows non-server-only paths that contain server in the filename', async () => {
+    const plugin = await mockPlugin();
+    await plugin.normalizeOptions({
+      target: 'client',
+      rootDir: cwd,
+      srcDir: resolve(cwd, 'src'),
+    });
+    const srcDir = normalizePath(resolve(cwd, 'src'));
+
+    await expect(
+      plugin.resolveId({} as any, `${srcDir}/server-functions.ts`, `${srcDir}/entry.client.tsx`)
+    ).resolves.toBeFalsy();
+    await expect(
+      plugin.resolveId({} as any, '@qwik.dev/core/server', `${srcDir}/entry.client.tsx`)
+    ).resolves.toBeFalsy();
+  });
+  test('allows server-only modules during vite dev dependency scanning', async () => {
+    const plugin = await mockPlugin();
+    await plugin.normalizeOptions({
+      target: 'client',
+      rootDir: cwd,
+      srcDir: resolve(cwd, 'src'),
+    });
+    plugin.configureServer({ moduleGraph: { getModuleById: () => undefined } } as any);
+    const srcDir = normalizePath(resolve(cwd, 'src'));
+
+    await expect(
+      plugin.resolveId({} as any, `${srcDir}/db.server.ts`, `${srcDir}/routes/index.tsx`, {
+        scan: true,
+      })
+    ).resolves.toBeFalsy();
+  });
+  test('rejects server-only modules during vite dev resolution outside dependency scanning', async () => {
+    const plugin = await mockPlugin();
+    await plugin.normalizeOptions({
+      target: 'client',
+      rootDir: cwd,
+      srcDir: resolve(cwd, 'src'),
+    });
+    plugin.configureServer({} as any);
+    const srcDir = normalizePath(resolve(cwd, 'src'));
+
+    await expect(
+      plugin.resolveId({} as any, `${srcDir}/db.server.ts`, `${srcDir}/routes/index.tsx`)
+    ).rejects.toThrow(/Server-only module cannot be imported by client code/);
+  });
+  test('rejects server-only modules during non-dev dependency scanning', async () => {
+    const plugin = await mockPlugin();
+    await plugin.normalizeOptions({
+      target: 'client',
+      rootDir: cwd,
+      srcDir: resolve(cwd, 'src'),
+    });
+    const srcDir = normalizePath(resolve(cwd, 'src'));
+
+    await expect(
+      plugin.resolveId({} as any, `${srcDir}/db.server.ts`, `${srcDir}/routes/index.tsx`, {
+        scan: true,
+      })
+    ).rejects.toThrow(/Server-only module cannot be imported by client code/);
+  });
+  test('allows server-only modules from the ssr graph', async () => {
+    const plugin = await mockPlugin();
+    await plugin.normalizeOptions({
+      target: 'ssr',
+      rootDir: cwd,
+      srcDir: resolve(cwd, 'src'),
+    });
+    const srcDir = normalizePath(resolve(cwd, 'src'));
+
+    await expect(
+      plugin.resolveId({} as any, `${srcDir}/db.server.ts`, `${srcDir}/entry.ssr.tsx`)
+    ).resolves.toBeFalsy();
+    await expect(plugin.load({} as any, `${srcDir}/server/db.ts`)).resolves.toBeFalsy();
+    await expect(
+      plugin.transform({} as any, 'export const value = 1;', `${srcDir}/db.server.ts_symbol.js`)
+    ).resolves.toBeFalsy();
+  });
+  test('allows server-only modules from vite server environments', async () => {
+    const plugin = await mockPlugin();
+    await plugin.normalizeOptions({
+      target: 'client',
+      rootDir: cwd,
+      srcDir: resolve(cwd, 'src'),
+    });
+    const srcDir = normalizePath(resolve(cwd, 'src'));
+    const serverCtx = { environment: { config: { consumer: 'server' } } } as any;
+
+    await expect(
+      plugin.resolveId(serverCtx, `${srcDir}/db.server.ts`, `${srcDir}/entry.ssr.tsx`)
+    ).resolves.toBeFalsy();
+  });
+  test('rejects server-only modules from vite client environments during ssr dev mode', async () => {
+    const plugin = await mockPlugin();
+    await plugin.normalizeOptions({
+      target: 'ssr',
+      rootDir: cwd,
+      srcDir: resolve(cwd, 'src'),
+    });
+    plugin.configureServer({ moduleGraph: { getModuleById: () => undefined } } as any);
+    const srcDir = normalizePath(resolve(cwd, 'src'));
+    const clientCtx = { environment: { config: { consumer: 'client' } } } as any;
+
+    await expect(
+      plugin.resolveId(clientCtx, `${srcDir}/db.server.ts`, `${srcDir}/routes/index.tsx`)
+    ).rejects.toThrow(/Server-only module cannot be imported by client code/);
+  });
+  test('allows server-only modules during lib builds', async () => {
+    const plugin = await mockPlugin();
+    await plugin.normalizeOptions({
+      target: 'lib',
+      rootDir: cwd,
+      srcDir: resolve(cwd, 'src'),
+    });
+    const srcDir = normalizePath(resolve(cwd, 'src'));
+
+    await expect(
+      plugin.resolveId({} as any, `${srcDir}/db.server.ts`, `${srcDir}/entry.tsx`)
+    ).resolves.toBeFalsy();
+  });
+  test('rejects windows server-only paths from the client graph', async () => {
+    const plugin = await mockPlugin('win32');
+    await plugin.normalizeOptions({ target: 'client' });
+
+    await expect(
+      plugin.resolveId({} as any, 'C:\\project\\src\\db.server.ts', 'C:\\project\\src\\app.tsx')
+    ).rejects.toThrow('C:/project/src/db.server.ts');
+  });
+});
+
+test('transform exposes SSR imports restored after client-only stripping as qwik deps', async () => {
+  const plugin = await mockPlugin(process.platform, true);
+  await plugin.normalizeOptions({
+    target: 'ssr',
+    rootDir: '/root',
+    srcDir: '/root/src',
+  });
+
+  const result = await plugin.transform(
+    {
+      addWatchFile: () => undefined,
+      emitFile: () => undefined,
+      parse: parseImportsOnly,
+      resolve: async (id: string) => {
+        if (id === '@qwik.dev/core' || id === '@qwik.dev/core/jsx-runtime') {
+          return { id: `/root/node_modules/${id}/index.mjs` };
+        }
+        if (id === '@example/server-fn') {
+          return { id: '/root/libs/server-fn.ts' };
+        }
+      },
+    } as any,
+    `import { component$, useVisibleTask$ } from '@qwik.dev/core';
+import { callServer } from '@example/server-fn';
+
+export default component$(() => {
+  useVisibleTask$(() => {
+    callServer();
+  });
+  return <span>ready</span>;
+});
+`,
+    '/root/src/routes/index.tsx'
+  );
+
+  expect(result?.code).not.toContain('import "@example/server-fn";');
+  expect(result?.meta?.qwikdeps).toContain('/root/libs/server-fn.ts');
 });
 
 test('load skips HMR wrapper for worker$ segments', async () => {
-  const plugin = await mockPlugin(process.platform, false);
+  const plugin = await mockPlugin(process.platform, true);
   await plugin.normalizeOptions({ rootDir: '/root' });
   plugin.configureServer({
     hot: {},
@@ -336,7 +597,7 @@ export const runInWorker = worker$(() => 'hello');
 });
 
 test('load preserves worker chunk markers inside event segments', async () => {
-  const plugin = await mockPlugin(process.platform, false);
+  const plugin = await mockPlugin(process.platform, true);
   await plugin.normalizeOptions({ rootDir: '/root' });
   plugin.configureServer({
     hot: {},
@@ -376,7 +637,7 @@ export default component$(() => {
   const deps = result?.meta?.qwikdeps;
   expect(deps?.length).toBeGreaterThan(0);
 
-  const eventSegmentId = deps!.find((dep) => dep.includes('_q_e_click_'));
+  const eventSegmentId = deps!.find((dep: any) => dep.includes('_q_e_click_'));
   expect(eventSegmentId).toBeTruthy();
 
   const loaded = await plugin.load({} as any, eventSegmentId!);
@@ -387,7 +648,7 @@ export default component$(() => {
 });
 
 test('load wraps non-worker QRL segment HMR with a runtime document guard', async () => {
-  const plugin = await mockPlugin(process.platform, false);
+  const plugin = await mockPlugin(process.platform, true);
   await plugin.normalizeOptions({ rootDir: '/root' });
   plugin.configureServer({
     hot: {},
@@ -411,7 +672,7 @@ export default component$(() => <button onClick$={() => 'hello'}>hi</button>);
   const deps = result?.meta?.qwikdeps;
   expect(deps?.length).toBeGreaterThan(0);
 
-  const eventSegmentId = deps!.find((dep) => dep.includes('_q_e_click_'));
+  const eventSegmentId = deps!.find((dep: any) => dep.includes('_q_e_click_'));
   expect(eventSegmentId).toBeTruthy();
 
   const loaded = await plugin.load({} as any, eventSegmentId!);
@@ -420,7 +681,80 @@ export default component$(() => <button onClick$={() => 'hello'}>hi</button>);
   );
 });
 
-async function mockPlugin(os = process.platform, useMockBinding = true) {
+test('transform omits sourcemaps for public virtual modules', async () => {
+  const plugin = await mockPlugin(process.platform, true);
+  await plugin.normalizeOptions({ rootDir: '/root', srcDir: '/root/src' });
+
+  const result = await plugin.transform(
+    {
+      addWatchFile: () => undefined,
+      emitFile: () => undefined,
+    } as any,
+    `export default p => <svg {...p} viewBox="0 0 1 1" />;`,
+    'virtual:/root/src/components/favicon.svg.qwik.jsx'
+  );
+
+  expect(result).toBeTruthy();
+  expect(result!.code).toContain('_jsxSplit');
+  expect(result!.map).toBeNull();
+});
+
+test('load bootstraps a cold QRL segment whose parent is not in the module graph', async () => {
+  // Absolute, pre-normalized paths so parentId matches the optimizer's segment
+  // keys on every platform (including Windows drive letters).
+  const root = normalizePath(resolve(cwd, 'cold-test'));
+  const parentId = `${root}/src/cold.tsx`;
+  const code = `import { component$ } from '@qwik.dev/core';
+export const Cold = component$(() => <div>hi</div>);
+`;
+  const transformCtx = {
+    addWatchFile: () => undefined,
+    emitFile: () => undefined,
+  } as any;
+
+  // Discover the real segment id the optimizer produces for this parent.
+  const discovery = await mockPlugin(process.platform, true);
+  await discovery.normalizeOptions({ rootDir: root });
+  discovery.configureServer({
+    hot: {},
+    moduleGraph: { getModuleById: () => undefined, invalidateModule: () => undefined },
+  } as any);
+  const discovered = await discovery.transform(transformCtx, code, parentId);
+  const segmentId: string = discovered!.meta!.qwikdeps![0];
+  expect(segmentId).toContain('cold.tsx_');
+
+  // Fresh plugin whose module graph never loaded the parent — the split
+  // server/browser SSR case (SSR rendered in a different vite server).
+  const plugin = await mockPlugin(process.platform, true);
+  await plugin.normalizeOptions({ rootDir: root });
+  const transformRequested: string[] = [];
+  plugin.configureServer({
+    hot: {},
+    moduleGraph: { getModuleById: () => undefined, invalidateModule: () => undefined },
+    // vite would transform the requested parent, populating the plugin's outputs
+    transformRequest: async (reqId: string) => {
+      transformRequested.push(reqId);
+      await plugin.transform(transformCtx, code, parentId);
+      return null;
+    },
+  } as any);
+
+  // A browser fetch of the segment: resolveId records segment -> parent, no transform.
+  await plugin.resolveId(
+    { resolve: async () => ({ id: parentId }) } as any,
+    segmentId,
+    `${root}/index.html`
+  );
+
+  // Cold load must bootstrap the never-loaded parent by id and resolve the segment,
+  // instead of erroring with "module does not exist in the build graph".
+  const loaded = await plugin.load({} as any, segmentId);
+
+  expect(transformRequested).toContain(parentId);
+  expect((loaded as { code: string })?.code).toBeTypeOf('string');
+});
+
+async function mockPlugin(os = process.platform, useRealOptimizer = false) {
   const plugin = createQwikPlugin({
     sys: {
       cwd: () => process.cwd(),
@@ -430,10 +764,21 @@ async function mockPlugin(os = process.platform, useMockBinding = true) {
       strictDynamicImport: async (path) => import(path),
       path: path as any,
     },
-    ...(useMockBinding ? { binding: { mockBinding: true } } : {}),
+    ...(useRealOptimizer ? {} : { binding: { mockBinding: true } }),
   });
   await plugin.init();
   return plugin;
+}
+
+function parseImportsOnly(code: string) {
+  const body = Array.from(
+    code.matchAll(/(?:import|export)\s+(?:[^'"]*?\s+from\s+)?['"]([^'"]+)['"]/g)
+  ).map(([, value]) => ({
+    type: 'ImportDeclaration',
+    importKind: 'value',
+    source: { value },
+  }));
+  return { type: 'Program', body };
 }
 
 describe('transform: globalThis.__QWIK_MANIFEST__ replacement', () => {

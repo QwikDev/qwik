@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { QwikEvContainerReady } from './core/shared/utils/markers';
 import { describe, expect, test, vi } from 'vitest';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -13,6 +14,7 @@ type Listener = {
     passive: boolean;
   };
 };
+type QwikEventItem = string | typeof QwikEvContainerReady;
 
 function createEventTarget() {
   const listeners = new Map<string, Listener[]>();
@@ -29,12 +31,26 @@ function createEventTarget() {
         listeners.set(eventName, registrations);
       }
     ),
-    dispatchEvent: vi.fn(),
+    removeEventListener: vi.fn((eventName: string, handler: (ev: any) => unknown) => {
+      const registrations = listeners.get(eventName) ?? [];
+      listeners.set(
+        eventName,
+        registrations.filter((registration) => registration.handler !== handler)
+      );
+    }),
+    dispatchEvent: vi.fn((ev: any) => {
+      const registrations = listeners.get(ev.type) ?? [];
+      for (let i = 0; i < registrations.length; i++) {
+        registrations[i]!.handler(ev);
+      }
+      return true;
+    }),
     querySelectorAll: vi.fn(() => [] as any[]),
   };
 }
 
 function bootLoader(document: any, window: any) {
+  const loaderScript = qwikLoader.replace(/\bimport\(/g, '__import__(');
   const CustomEventImpl = class<T = unknown> {
     type: string;
     detail: T | undefined;
@@ -60,11 +76,19 @@ function bootLoader(document: any, window: any) {
     'CustomEvent',
     'IntersectionObserver',
     'performance',
-    qwikLoader
-  )(window, document, CustomEventImpl, IntersectionObserverImpl, { now: () => 1 });
+    '__import__',
+    loaderScript
+  )(
+    window,
+    document,
+    CustomEventImpl,
+    IntersectionObserverImpl,
+    { now: () => 1 },
+    (href: string) => import(/* @vite-ignore */ href)
+  );
 }
 
-function createLoaderEnvironment(initialEvents: string[]) {
+function createLoaderEnvironment(initialEvents: QwikEventItem[]) {
   const doc = createEventTarget() as any;
   doc.readyState = 'loading';
   doc.baseURI = 'http://qwik.dev/';
@@ -156,6 +180,12 @@ function createMockEvent(target: any, type = 'click', overrides: Partial<any> = 
     },
     ...overrides,
   };
+}
+
+async function flushQueuedTasks() {
+  for (let i = 0; i < 6; i++) {
+    await Promise.resolve();
+  }
 }
 
 describe('qwikloader behavior', () => {
@@ -342,5 +372,145 @@ describe('qwikloader behavior', () => {
 
     resolveChild();
     await result;
+  });
+
+  test('waits for streamed container data before running qrl attributes', async () => {
+    const { doc, win } = createLoaderEnvironment(['e:click']);
+    const logs: string[] = [];
+    const container = createMockElement(null, {
+      'q:container': 'paused',
+      'q:base': './',
+      'q:instance': 'sync',
+    });
+    const button = createMockElement(container, {
+      'q-e:click': '#0#',
+    });
+
+    getSingleListener(doc, 'click').handler(createMockEvent(button));
+
+    expect(logs).toEqual([]);
+    expect(doc.dispatchEvent).not.toHaveBeenCalledWith(expect.objectContaining({ type: 'qerror' }));
+
+    doc.qFuncs_sync = [
+      () => {
+        logs.push('clicked');
+      },
+    ];
+    win._qwikEv.push(QwikEvContainerReady, 'sync');
+    await flushQueuedTasks();
+
+    expect(logs).toEqual(['clicked']);
+  });
+
+  test('waits for streamed container data before running chunked qrl attributes', async () => {
+    const { doc, win } = createLoaderEnvironment(['e:click']);
+    const logs: string[] = [];
+    const previousLogs = (globalThis as any).__qwikLoaderChunkLogs;
+    const moduleUrl = `data:text/javascript;charset=utf-8,${encodeURIComponent(
+      'export const handler = () => globalThis.__qwikLoaderChunkLogs.push("clicked");'
+    )}`;
+    const container = createMockElement(null, {
+      'q:container': 'paused',
+      'q:base': './',
+      'q:instance': 'chunked',
+    });
+    const button = createMockElement(container, {
+      'q-e:click': `${moduleUrl}#handler#`,
+    });
+
+    (globalThis as any).__qwikLoaderChunkLogs = logs;
+    try {
+      getSingleListener(doc, 'click').handler(createMockEvent(button));
+      await flushQueuedTasks();
+
+      expect(logs).toEqual([]);
+
+      win._qwikEv.push(QwikEvContainerReady, 'chunked');
+      await vi.waitFor(() => {
+        expect(logs).toEqual(['clicked']);
+      });
+    } finally {
+      (globalThis as any).__qwikLoaderChunkLogs = previousLogs;
+    }
+  });
+
+  test('falls back to readystatechange while waiting for streamed container data', async () => {
+    const { doc } = createLoaderEnvironment(['e:click']);
+    const logs: string[] = [];
+    const container = createMockElement(null, {
+      'q:container': 'paused',
+      'q:base': './',
+      'q:instance': 'sync',
+    });
+    const button = createMockElement(container, {
+      'q-e:click': '#0#',
+    });
+
+    getSingleListener(doc, 'click').handler(createMockEvent(button));
+
+    expect(logs).toEqual([]);
+
+    doc.qFuncs_sync = [
+      () => {
+        logs.push('clicked');
+      },
+    ];
+    doc.readyState = 'interactive';
+    const listeners = getListeners(doc, 'readystatechange');
+    for (let i = 0; i < listeners.length; i++) {
+      listeners[i]!.handler(createMockEvent(doc, 'readystatechange'));
+    }
+    await flushQueuedTasks();
+
+    expect(logs).toEqual(['clicked']);
+  });
+
+  test('waits only for the streamed container that owns the qready command', async () => {
+    const { doc, win } = createLoaderEnvironment(['e:click']);
+    const logs: string[] = [];
+    const firstContainer = createMockElement(null, {
+      'q:container': 'paused',
+      'q:base': './',
+      'q:instance': 'first',
+    });
+    const secondContainer = createMockElement(null, {
+      'q:container': 'paused',
+      'q:base': './',
+      'q:instance': 'second',
+    });
+    const firstButton = createMockElement(firstContainer, {
+      'q-e:click': '#0#',
+    });
+    const secondButton = createMockElement(secondContainer, {
+      'q-e:click': '#0#',
+    });
+
+    getSingleListener(doc, 'click').handler(createMockEvent(firstButton));
+    getSingleListener(doc, 'click').handler(createMockEvent(secondButton));
+
+    expect(logs).toEqual([]);
+    expect(doc.dispatchEvent).not.toHaveBeenCalledWith(expect.objectContaining({ type: 'qerror' }));
+
+    doc.qFuncs_first = [
+      () => {
+        logs.push('first');
+      },
+    ];
+    doc.qFuncs_second = [
+      () => {
+        logs.push('second');
+      },
+    ];
+
+    win._qwikEv.push(QwikEvContainerReady, 'first');
+    await flushQueuedTasks();
+
+    expect(logs).toEqual(['first']);
+    expect(doc.dispatchEvent).not.toHaveBeenCalledWith(expect.objectContaining({ type: 'qerror' }));
+
+    win._qwikEv.push(QwikEvContainerReady, 'second');
+    await flushQueuedTasks();
+
+    expect(logs).toEqual(['first', 'second']);
   });
 });

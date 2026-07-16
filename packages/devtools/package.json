@@ -1,7 +1,7 @@
 {
   "name": "@qwik.dev/devtools",
   "description": "Qwik devtools package",
-  "version": "0.2.8",
+  "version": "0.3.0-beta.2",
   "bugs": "https://github.com/QwikDev/devtools/issues",
   "dependencies": {
     "birpc": "^4.0.0",
@@ -12,7 +12,8 @@
     "rollup-plugin-visualizer": "^6.0.3",
     "superjson": "^2.2.6",
     "vite-hot-client": "^2.1.0",
-    "vite-plugin-inspect": "^11.3.3"
+    "vite-plugin-inspect": "^11.3.3",
+    "yaml": "^2.8.2"
   },
   "devDependencies": {
     "@babel/types": "7.29.0",
@@ -35,19 +36,19 @@
     "eslint-plugin-qwik": "workspace:*",
     "nodemon": "3.1.14",
     "np": "11.0.2",
-    "postcss": "8.5.8",
+    "postcss": "8.5.10",
     "prettier": "3.7.4",
     "prettier-plugin-tailwindcss": "0.7.2",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "shiki": "4.0.2",
     "tailwindcss": "4.2.4",
-    "tsdown": "0.21.10",
+    "tsdown": "0.22.0",
     "tsx": "4.21.0",
     "typescript": "5.9.3",
-    "vite": "7.3.1",
+    "vite": "7.3.5",
     "vite-tsconfig-paths": "6.1.1",
-    "vitest": "4.1.0"
+    "vitest": "4.1.10"
   },
   "exports": {
     ".": {
@@ -83,8 +84,6 @@
   "license": "MIT",
   "main": "./dist/plugin/index.mjs",
   "peerDependencies": {
-    "@qwik.dev/core": "workspace:^",
-    "@qwik.dev/router": "workspace:^",
     "@tailwindcss/postcss": "^4.2.1",
     "@tailwindcss/vite": "^4.2.1",
     "tailwindcss": "^4.2.1",

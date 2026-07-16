@@ -1,4 +1,8 @@
-import type { PathParams } from '../runtime/src';
+import type { PathParams } from '../runtime/src/types';
+
+/** Ensures the pathname ends with a slash */
+export const ensureSlash = (pathname: string) =>
+  pathname.endsWith('/') ? pathname : pathname + '/';
 
 export function normalizePathname(pathname: string | undefined | null, basePathname: string) {
   if (typeof pathname === 'string') {
@@ -24,7 +28,7 @@ export function normalizePathname(pathname: string | undefined | null, basePathn
               const lastSegment = segments[segments.length - 1];
 
               if (!lastSegment.includes('.')) {
-                pathname += '/';
+                pathname = ensureSlash(pathname);
               }
             }
           } else {

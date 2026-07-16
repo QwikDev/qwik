@@ -13,7 +13,7 @@ import { getOrCreateStore } from '../../reactive-primitives/impl/store';
 import { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
 import { SubscriptionData, type NodePropData } from '../../reactive-primitives/subscription-data';
 import { EffectSubscription, StoreFlags } from '../../reactive-primitives/types';
-import { Task } from '../../use/use-task';
+import { Task, TaskFlags } from '../../use/use-task';
 import { componentQrl } from '../component.public';
 import { qError, QError } from '../error/error';
 import { JSXNodeImpl } from '../jsx/jsx-node';
@@ -26,9 +26,43 @@ import type { VNode } from '../vnode/vnode';
 import { _constants, TypeIds, type Constants } from './constants';
 import { needsInflation } from './deser-proxy';
 import { createQRLWithBackChannel } from './qrl-to-string';
+import { SubscriptionPatch } from './subscription-patch';
 
 export const resolvers = new WeakMap<Promise<any>, [Function, Function]>();
-export const pendingStoreTargets = new Map<object, { t: TypeIds; v: unknown }>();
+
+const BASE64_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+const BASE64_REGEXP = /^[A-Za-z0-9+/]*$/;
+// Validate canonical unpadded base64 before its length controls allocation.
+const isCanonicalBase64 = (value: unknown): value is string => {
+  if (typeof value !== 'string' || !BASE64_REGEXP.test(value)) {
+    return false;
+  }
+  const rest = value.length % 4;
+  if (rest === 0) {
+    return true;
+  }
+  if (rest === 1) {
+    return false;
+  }
+  const lastValue = BASE64_ALPHABET.indexOf(value[value.length - 1]);
+  return (lastValue & (rest === 2 ? 15 : 3)) === 0;
+};
+
+export const beginDeserialization = (container: DeserializeContainer): boolean => {
+  const ownsPendingStoreTargets = container.$pendingStoreTargets$ === undefined;
+  container.$pendingStoreTargets$ ??= new Map();
+  return ownsPendingStoreTargets;
+};
+
+export const endDeserialization = (
+  container: DeserializeContainer,
+  ownsPendingStoreTargets: boolean
+): void => {
+  if (ownsPendingStoreTargets) {
+    container.$pendingStoreTargets$!.clear();
+    container.$pendingStoreTargets$ = undefined;
+  }
+};
 
 export const allocate = (container: DeserializeContainer, typeId: number, value: unknown): any => {
   switch (typeId) {
@@ -37,10 +71,7 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
     case TypeIds.RootRef:
       return container.$getObjectById$(value as number);
     case TypeIds.ForwardRef:
-      if (!container.$forwardRefs$) {
-        return _UNINITIALIZED;
-      }
-      const rootRef = container.$forwardRefs$[value as number];
+      const rootRef = container.$getForwardRef$(value as number);
       if (rootRef === -1 || rootRef === undefined) {
         return _UNINITIALIZED;
       } else {
@@ -57,13 +88,21 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
     case TypeIds.QRL: {
       let qrl: QRLInternal;
       if (typeof value === 'string') {
-        const [chunkId, symbolId, captureIds] = value.split('#');
-        const chunk = container.$getObjectById$(chunkId) as string;
-        const symbol = container.$getObjectById$(symbolId) as string;
+        const serializedQrl = value;
+        const firstHash = serializedQrl.indexOf('#');
+        const secondHash = serializedQrl.indexOf('#', firstHash + 1);
+        const chunkRootId = Number(serializedQrl.slice(0, firstHash));
+        const symbolDelta =
+          secondHash === -1
+            ? Number(serializedQrl.slice(firstHash + 1))
+            : Number(serializedQrl.slice(firstHash + 1, secondHash));
+        const symbolRootId = chunkRootId + symbolDelta;
+        const chunk = container.$getObjectById$(chunkRootId) as string;
+        const symbol = container.$getObjectById$(symbolRootId) as string;
         qrl = createQRLWithBackChannel(
           chunk,
           symbol,
-          captureIds || null,
+          secondHash !== -1 ? serializedQrl : null,
           container as DomContainer
         );
       } else {
@@ -73,7 +112,7 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
       return qrl;
     }
     case TypeIds.Task:
-      return new Task(-1, -1, null!, null!, null!, null);
+      return new Task(-1 as TaskFlags, -1, null!, null!, null);
     case TypeIds.URL:
       return new URL(value as string);
     case TypeIds.Date:
@@ -121,7 +160,7 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
       const storeValue = allocate(container, t, v);
       const store = getOrCreateStore(storeValue, StoreFlags.NONE, container as DomContainer);
       if (needsInflation(t)) {
-        pendingStoreTargets.set(storeValue, { t, v });
+        container.$pendingStoreTargets$!.set(storeValue, { t, v });
       }
       // We must store the reference so it doesn't get deserialized again in inflate()
       data[0] = TypeIds.Plain;
@@ -151,12 +190,16 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
       // Don't leave unhandled promise rejections
       promise.catch(() => {});
       return promise;
-    case TypeIds.Uint8Array:
-      const encodedLength = (value as string).length;
-      const blocks = encodedLength >>> 2;
-      const rest = encodedLength & 3;
+    case TypeIds.Uint8Array: {
+      if (!isCanonicalBase64(value)) {
+        throw qError(QError.invalidUint8ArrayPayload);
+      }
+      const encodedLength = value.length;
+      const blocks = Math.floor(encodedLength / 4);
+      const rest = encodedLength % 4;
       const decodedLength = blocks * 3 + (rest ? rest - 1 : 0);
       return new Uint8Array(decodedLength);
+    }
     case TypeIds.PropsProxy:
       return createPropsProxy(null!);
     case TypeIds.VNode:
@@ -196,8 +239,15 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
       }
     case TypeIds.SubscriptionData:
       return new SubscriptionData({} as NodePropData);
+    case TypeIds.SubscriptionDataConstTrue:
+      return new SubscriptionData({ $scopedStyleIdPrefix$: null, $isConst$: true });
+    case TypeIds.SubscriptionDataConstFalse:
+      return new SubscriptionData({ $scopedStyleIdPrefix$: null, $isConst$: false });
     case TypeIds.EffectSubscription:
+    case TypeIds.EffectSubscriptionNoData:
       return new EffectSubscription(null!, null!, null, null);
+    case TypeIds.SubscriptionPatch:
+      return new SubscriptionPatch();
     default:
       throw qError(QError.serializeErrorCannotAllocate, [typeId]);
   }

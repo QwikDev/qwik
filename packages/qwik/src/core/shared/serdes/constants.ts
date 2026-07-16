@@ -7,6 +7,7 @@ import { Fragment } from '../jsx/jsx-runtime';
 
 /** Used to represent an undefined value that must be serialized */
 export const explicitUndefined = Symbol('undefined');
+export const EMPTY_OBJECT_PAYLOAD = 0;
 
 export const enum Constants {
   Undefined,
@@ -28,6 +29,10 @@ export const enum Constants {
   // used for close fragment
   AlmostMaxSafeInt,
   MinSafeInt,
+  Colon,
+  Dot,
+  Id,
+  Ref,
 }
 
 // Used for allocate, make sure they are in sync with Constants
@@ -50,6 +55,10 @@ export const _constants = [
   Number.MAX_SAFE_INTEGER,
   Number.MAX_SAFE_INTEGER - 1,
   Number.MIN_SAFE_INTEGER,
+  ':',
+  '.',
+  'id',
+  'ref',
 ] as const;
 
 // Used for dumpState, make sure they are in sync with Constants
@@ -72,6 +81,10 @@ export const _constantNames = [
   'MAX_SAFE_INTEGER',
   'MAX_SAFE_INTEGER-1',
   'MIN_SAFE_INTEGER',
+  "':'",
+  "'.'",
+  "'id'",
+  "'ref'",
 ] as const;
 
 export const enum TypeIds {
@@ -119,6 +132,10 @@ export const enum TypeIds {
   PropsProxy,
   SubscriptionData,
   EffectSubscription,
+  SubscriptionPatch,
+  SubscriptionDataConstTrue,
+  SubscriptionDataConstFalse,
+  EffectSubscriptionNoData,
 }
 
 // Used for dumpState, make sure they are in sync with TypeIds
@@ -164,4 +181,8 @@ export const _typeIdNames = [
   'PropsProxy',
   'SubscriptionData',
   'EffectSubscription',
+  'SubscriptionPatch',
+  'SubscriptionDataConstTrue',
+  'SubscriptionDataConstFalse',
+  'EffectSubscriptionNoData',
 ];

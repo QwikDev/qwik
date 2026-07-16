@@ -99,8 +99,8 @@ export const Preloads = component$(() => {
   });
 
   return (
-    <div class="h-full w-full flex-1 overflow-hidden">
-      <div class="flex h-full min-h-0 flex-col gap-4">
+    <div class="h-full w-full flex-1 overflow-auto">
+      <div class="flex min-h-full flex-col gap-4">
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
           <StatCard
             label="Visible QRLs"

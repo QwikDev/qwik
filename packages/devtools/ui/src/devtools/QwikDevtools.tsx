@@ -1,4 +1,5 @@
-import { component$, useStore, useVisibleTask$ } from '@qwik.dev/core';
+import { component$, useSignal, useStore, useVisibleTask$ } from '@qwik.dev/core';
+import { getQwikDevtoolsGlobal, QWIK_DEVTOOLS_GLOBAL } from '@qwik.dev/devtools/kit';
 import { DevtoolsButton } from '../components/DevtoolsButton/DevtoolsButton';
 import { DevtoolsContainer } from '../components/DevtoolsContainer/DevtoolsContainer';
 import { DevtoolsPanel } from '../components/DevtoolsPanel/DevtoolsPanel';
@@ -8,17 +9,48 @@ import { DevtoolsContent } from './DevtoolsContent';
 import { loadDevtoolsData } from './rpc';
 import { createDevtoolsState, type DevtoolsState } from './state';
 import { DevtoolsSidebar } from './DevtoolsSidebar';
+import { CustomizeTabsPanel } from './CustomizeTabsPanel';
+import { loadVisibleTabIds } from './sidebar-tabs';
 import { ensurePreloadRuntime } from '../runtime/preloads';
+import { isExcludedPathname, normalizeExcludePathnames } from '../../../kit/src/overlay-paths';
 
-export const QwikDevtools = component$(() => {
+interface QwikDevtoolsProps {
+  excludePathnames?: string[];
+}
+
+export const QwikDevtools = component$<QwikDevtoolsProps>((props) => {
   const state = useStore<DevtoolsState>(createDevtoolsState());
+  const excludePathnames = normalizeExcludePathnames(props.excludePathnames);
+  const shouldRender = useSignal(excludePathnames.length === 0);
 
-  useVisibleTask$(async () => {
-    if (!window.__QWIK_DEVTOOLS_DATA_PROVIDER__) {
-      ensurePreloadRuntime();
-    }
-    await loadDevtoolsData(state);
-  });
+  useVisibleTask$(
+    async () => {
+      if (isExcludedPathname(location.pathname, excludePathnames)) {
+        shouldRender.value = false;
+        return;
+      }
+
+      shouldRender.value = true;
+
+      // Restore the customized sidebar order/visibility (Vite overlay only).
+      if (!state.isExtension) {
+        const storedVisibleTabIds = loadVisibleTabIds();
+        if (storedVisibleTabIds) {
+          state.visibleTabIds = storedVisibleTabIds;
+        }
+      }
+
+      if (!getQwikDevtoolsGlobal(window)?.[QWIK_DEVTOOLS_GLOBAL.props.dataProvider]) {
+        ensurePreloadRuntime();
+      }
+      await loadDevtoolsData(state);
+    },
+    { strategy: 'document-ready' }
+  );
+
+  if (!shouldRender.value) {
+    return <span style={{ display: 'contents' }} />;
+  }
 
   return (
     <div class="qwik-devtools">
@@ -29,8 +61,11 @@ export const QwikDevtools = component$(() => {
         {state.isOpen && (
           <DevtoolsPanel state={state}>
             <DevtoolsSidebar state={state} />
-            <div class="custom-scrollbar min-h-0 flex-1 overflow-y-auto p-4">
-              <DevtoolsContent state={state} />
+            <div class="relative min-h-0 flex-1">
+              <div class="custom-scrollbar h-full overflow-y-auto p-4">
+                <DevtoolsContent state={state} />
+              </div>
+              {!state.isExtension && state.isCustomizeOpen && <CustomizeTabsPanel state={state} />}
             </div>
           </DevtoolsPanel>
         )}

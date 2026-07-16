@@ -1,5 +1,158 @@
 # @qwik.dev/city
 
+## 2.0.0-beta.38
+
+### Major Changes
+
+- BREAKING: 404.tsx and error.tsx now render inside their layouts (with `@layout`/`!` modifiers), a route miss resolves the nearest 404.tsx, and the 404 page is prerendered for static hosts. Rename `404.tsx` to `404!.tsx` if you do not want to add the layout. (by [@briancarbone](https://github.com/briancarbone) in [#8762](https://github.com/QwikDev/qwik/pull/8762))
+
+- BREAKING: SPA view transitions are now opt-in; set `viewTransition={true}` on `QwikRouterProvider` to re-enable them. (by [@maiieul](https://github.com/maiieul) in [#8778](https://github.com/QwikDev/qwik/pull/8778))
+
+- ✨ relocate built assets with output.assetFileNames; remove build.assetsDir handling (by [@maiieul](https://github.com/maiieul) in [#8817](https://github.com/QwikDev/qwik/pull/8817))
+
+- ✨ rename the `Link` `prefetchBundle` prop to `prefetchBundles` (by [@maiieul](https://github.com/maiieul) in [#8828](https://github.com/QwikDev/qwik/pull/8828))
+
+### Minor Changes
+
+- feat(router): automatically omit fully-prerendered, server-free routes from the production SSR route plan so their chunks tree-shake out of size-capped server bundles. (by [@briancarbone](https://github.com/briancarbone) in [#8742](https://github.com/QwikDev/qwik/pull/8742))
+
+- ✨ route loaders gain a `blockSSR` option (default `true`); set `blockSSR: false` to run a loader in the background without blocking SSR (experimental, requires the `blockSSR` feature flag) (by [@wmertens](https://github.com/wmertens) in [#8793](https://github.com/QwikDev/qwik/pull/8793))
+
+- ✨ returning `ev.redirect()`, `ev.error()` or `ev.rewrite()` from a loader, action, request handler or server function now behaves the same as throwing them (by [@wmertens](https://github.com/wmertens) in [#8775](https://github.com/QwikDev/qwik/pull/8775))
+
+- feat(router): add an `exclude` option to `rewriteRoutes` to skip generating localized routes for matching path patterns. (by [@briancarbone](https://github.com/briancarbone) in [#8751](https://github.com/QwikDev/qwik/pull/8751))
+
+- ✨ render SSG in a dedicated Vite build environment, so prerendered route code stays out of the deployed server bundle (by [@briancarbone](https://github.com/briancarbone) in [#8760](https://github.com/QwikDev/qwik/pull/8760))
+
+  SSG now runs from the `buildApp` step of the Vite builder. The Qwik CLI and adapters already build via `createBuilder().buildApp()`, so they need no change. Code that prerenders by calling Vite's programmatic `build()` directly must switch to `builder.buildApp()`, otherwise the SSG step is silently skipped.
+
+- ✨ add configurable server request body limits (by [@Varixo](https://github.com/Varixo) in [#8839](https://github.com/QwikDev/qwik/pull/8839))
+
+### Patch Changes
+
+- 🐞🩹 render navigation state before loading the next route (by [@Varixo](https://github.com/Varixo) in [#8821](https://github.com/QwikDev/qwik/pull/8821))
+
+- 🐞🩹 prerendered routes are now correctly excluded from the server route plan (by [@briancarbone](https://github.com/briancarbone) in [#8759](https://github.com/QwikDev/qwik/pull/8759))
+
+- fix(router): honor the `routeLoader$` `id` option so loaders created through a shared wrapper (which share one optimizer-assigned QRL hash) get distinct ids instead of all but the first being silently deduped in `getModuleRouteLoaders`. A dev-mode warning is now logged when two distinct loaders share an id. (by [@maiieul](https://github.com/maiieul) in [#8749](https://github.com/QwikDev/qwik/pull/8749))
+
+- 🐞🩹 prevent cold dev route loader requests from failing during SPA navigation (by [@Varixo](https://github.com/Varixo) in [#8787](https://github.com/QwikDev/qwik/pull/8787))
+
+- 🐞🩹 keep expiring loader responses private by default (by [@Varixo](https://github.com/Varixo) in [#8839](https://github.com/QwikDev/qwik/pull/8839))
+
+- 🐞🩹 action redirects work again (by [@wmertens](https://github.com/wmertens) in [#8780](https://github.com/QwikDev/qwik/pull/8780))
+
+- 🐞🩹 resolve image jsx imports with extra query parameters. (by [@Varixo](https://github.com/Varixo) in [#8753](https://github.com/QwikDev/qwik/pull/8753))
+
+- 🐞🩹 avoid prefetching loader data already fetched by route loaders (by [@wmertens](https://github.com/wmertens) in [#8836](https://github.com/QwikDev/qwik/pull/8836))
+
+- 🐞🩹 keep Azure response collection work proportional to output size (by [@Varixo](https://github.com/Varixo) in [#8839](https://github.com/QwikDev/qwik/pull/8839))
+
+- 🐞🩹 keep deeply nested form parsing work proportional (by [@Varixo](https://github.com/Varixo) in [#8839](https://github.com/QwikDev/qwik/pull/8839))
+
+- 🐞🩹 ensure SPA navigation correctly refreshes route loader data for catch-all routes, including when loader data is shared through context (by [@Varixo](https://github.com/Varixo) in [#8748](https://github.com/QwikDev/qwik/pull/8748))
+
+- 🐞🩹 routeLoader$ fail() now sets the loader value to { failed } instead of throwing an error, as it was before. (by [@wmertens](https://github.com/wmertens) in [#8756](https://github.com/QwikDev/qwik/pull/8756))
+
+- 🐞🩹 prerendered route loaders no longer 404 when the client and server are built as separate processes (by [@briancarbone](https://github.com/briancarbone) in [#8760](https://github.com/QwikDev/qwik/pull/8760))
+
+- 🐞🩹 route loader no longer resolves to undefined on the first dev SPA navigation (by [@briancarbone](https://github.com/briancarbone) in [#8770](https://github.com/QwikDev/qwik/pull/8770))
+
+- 🐞🩹 `routeLoader$` not re-running during SPA navigation between URLs that match the same catchall route (by [@Varixo](https://github.com/Varixo) in [#8730](https://github.com/QwikDev/qwik/pull/8730))
+
+- 🐞🩹 prefix dev CSS and HMR URLs with Vite base (by [@Varixo](https://github.com/Varixo) in [#8837](https://github.com/QwikDev/qwik/pull/8837))
+
+- 🐞🩹 refetch re-exported route loaders after navigation (by [@wmertens](https://github.com/wmertens) in [#8792](https://github.com/QwikDev/qwik/pull/8792))
+
+- 🐞🩹 route action type allows `invalidate` without validators (by [@wmertens](https://github.com/wmertens) in [#8807](https://github.com/QwikDev/qwik/pull/8807))
+
+- 🐞🩹 preserve scroll after spa action submits (by [@Varixo](https://github.com/Varixo) in [#8797](https://github.com/QwikDev/qwik/pull/8797))
+
+- 🐞🩹 hot-reload route-imported CSS in dev without a server restart (by [@briancarbone](https://github.com/briancarbone) in [#8725](https://github.com/QwikDev/qwik/pull/8725))
+
+- 🐞🩹 streaming server$ no longer crashes the Bun server on client disconnect (by [@aggyomfg](https://github.com/aggyomfg) in [#8798](https://github.com/QwikDev/qwik/pull/8798))
+
+- 🐞🩹 register aliased server functions used only in client code like visible tasks (by [@Varixo](https://github.com/Varixo) in [#8818](https://github.com/QwikDev/qwik/pull/8818))
+
+- 🐞🩹 adapter post-build runs with ssg disabled, and the ssg build skips minify/sourcemaps (by [@wmertens](https://github.com/wmertens) in [#8806](https://github.com/QwikDev/qwik/pull/8806))
+
+- 🐞🩹 the ssg build no longer bundles the unused deploy server entry (by [@wmertens](https://github.com/wmertens) in [#8806](https://github.com/QwikDev/qwik/pull/8806))
+
+- 🐞🩹 a prerendered route's loader with no static sidecar now falls through to SSR instead of failing as a missing static asset (by [@briancarbone](https://github.com/briancarbone) in [#8760](https://github.com/QwikDev/qwik/pull/8760))
+
+- 🐞🩹 preserve strict loader URL isolation during route resolution (by [@wmertens](https://github.com/wmertens) in [#8836](https://github.com/QwikDev/qwik/pull/8836))
+
+- 🐞🩹 ensure dev SPA navigation loads route loader data correctly for catch-all and base-prefixed routes (by [@Varixo](https://github.com/Varixo) in [#8805](https://github.com/QwikDev/qwik/pull/8805))
+
+- Updated dependencies [[`96fe9e1`](https://github.com/QwikDev/qwik/commit/96fe9e1ab0364a335eb6c73f29c52c7919222045), [`b0bdbf3`](https://github.com/QwikDev/qwik/commit/b0bdbf39b06f1319e65bd2d1927404eac52d02d6), [`77ae28f`](https://github.com/QwikDev/qwik/commit/77ae28fc2c489ae189627d7a8f16b6af55577318), [`dbdf85f`](https://github.com/QwikDev/qwik/commit/dbdf85f43e387cdc22c36ce37a7364af5935139e), [`570aec5`](https://github.com/QwikDev/qwik/commit/570aec54af282e4082eb48898fa5d79e236157a4), [`b5a74df`](https://github.com/QwikDev/qwik/commit/b5a74df3364a8eaca6dcda9a911b07da7d318e5c), [`3672ae5`](https://github.com/QwikDev/qwik/commit/3672ae5684d50ecaeea6e41a77d9c54b8a9abf74), [`2e2a913`](https://github.com/QwikDev/qwik/commit/2e2a913b9f2e41a7fe0ece00b23f5583579dfd62), [`1921d7a`](https://github.com/QwikDev/qwik/commit/1921d7aab649dadb9983219f1ea2a82ef6f8854f), [`8e75051`](https://github.com/QwikDev/qwik/commit/8e75051373365379c3d60e62962e8cf58efa7bc2), [`e28ae7c`](https://github.com/QwikDev/qwik/commit/e28ae7cf6f42b15b3bb17986c1cd7d7ffd91adee), [`3710734`](https://github.com/QwikDev/qwik/commit/371073430d82ee63e5e7ea45099d8982d4b0ce62), [`e9d5d98`](https://github.com/QwikDev/qwik/commit/e9d5d987e31a94dc485270c57a17ffcba4d77cb6), [`12387da`](https://github.com/QwikDev/qwik/commit/12387daadac9e4500d3ecd30337cfe6efa1d2958), [`e70b299`](https://github.com/QwikDev/qwik/commit/e70b2990e0d2d790330c2f9f09cec1c976b8a9cc), [`9fd1303`](https://github.com/QwikDev/qwik/commit/9fd13034deb207dac109892d26a4721ae84914a9), [`bed0127`](https://github.com/QwikDev/qwik/commit/bed01275184b3c4c0cd5b2cc371bb8edfb8e8994), [`1da9aa6`](https://github.com/QwikDev/qwik/commit/1da9aa6922bd6f8d2a55880aca96e44195e26351), [`f9a0e83`](https://github.com/QwikDev/qwik/commit/f9a0e8341aaf97050938d0ba902ff50e1daf6a18), [`2a47192`](https://github.com/QwikDev/qwik/commit/2a4719239b12e208d02d47e65d460330493c3997), [`3a0df67`](https://github.com/QwikDev/qwik/commit/3a0df6762362ed51e360d0d01d6ec6e669c22b18), [`ee013ae`](https://github.com/QwikDev/qwik/commit/ee013ae349671a7801e29efbcce248c026cb949f), [`d3b6678`](https://github.com/QwikDev/qwik/commit/d3b6678e20e4c7686f06d9bc29d53f50d78e703f), [`885367a`](https://github.com/QwikDev/qwik/commit/885367a31146c6c79c60b908b9eaa755375749a7), [`8fc5762`](https://github.com/QwikDev/qwik/commit/8fc576269a4c3fb77026bcbdf589f2cdc329ee9c), [`03fae8a`](https://github.com/QwikDev/qwik/commit/03fae8a49437d96b7ad7883750307ec7499a18ea), [`fd9f197`](https://github.com/QwikDev/qwik/commit/fd9f197c2774fbad8adb2b007dfa46a0b4698533), [`4917019`](https://github.com/QwikDev/qwik/commit/491701965da5d529d9a6b26686c7fff43529c1ed), [`abaae23`](https://github.com/QwikDev/qwik/commit/abaae232518707219a69e1247a6400cf569f5dd7), [`15ea2d8`](https://github.com/QwikDev/qwik/commit/15ea2d88f0cae45e81f5b1dea231b5f7349da28d)]:
+  - @qwik.dev/core@2.0.0-beta.38
+
+## 2.0.0-beta.37
+
+### Major Changes
+
+- BREAKING: Route loaders are now AsyncSignals. This means that `value.failed` is no longer used to indicate a loader failure. Instead, if a loader fails, the error will be stored in `error`, and reading `value` will throw that error. (by [@wmertens](https://github.com/wmertens) in [#8501](https://github.com/QwikDev/qwik/pull/8501))
+
+  This also means that you can now pass `expires`, `poll`, and `allowStale` options to route loaders. See the documentation for more details on these options and how to use them.
+
+- BREAKING: `routeLoader$` cannot read action state any more, so that they are cacheable and predictable. All use cases can be achieved in other ways, like reading the action signal directly in the component or having the loader read from URL-derived state that the action updates. (by [@wmertens](https://github.com/wmertens) in [#8501](https://github.com/QwikDev/qwik/pull/8501))
+
+- BREAKING: Qwik Router no longer retrieves `q-data.json` files on every SPA navigation. You can remove any caching rules for these. (by [@wmertens](https://github.com/wmertens) in [#8501](https://github.com/QwikDev/qwik/pull/8501))
+
+  Instead, Qwik Router now retrieves `q-loader-${hash}.${manifestHash}.json` for RouteLoader data. You can specify expiry for each RouteLoader individually, and it is automatically used to set browser caching headers. The `manifestHash` ensures that when you build a new version of your app, the old cached data will be invalidated and the new data will be fetched.
+
+  The default expiry for RouteLoader data is 2 minutes, so that prefetching and caching of RouteLoader data is useful. You control this with the `expiry` option on each RouteLoader, and you can set it to `0` to disable caching.
+
+  Furthermore, any RouteLoader that has `expiry: 0` will be generated as a file during SSG, which allows SPA navigation to work even without a server.
+
+  Note: Be careful with caching for RouteLoaders that return user-specific data, especially regarding logout and CDN caching. Use low expiry times for these and use `eTag` to still allow caching benefits.
+
+- BREAKING: `cacheKey` functions now get `(requestEv: RequestEvent, eTag: string)` as arguments, instead of `(status: number, eTag: string, pathname: string)` (by [@wmertens](https://github.com/wmertens) in [#8699](https://github.com/QwikDev/qwik/pull/8699))
+
+### Minor Changes
+
+- 🐞🩹 Route loaders now redirect in their JSON response instead of using HTTP redirect (by [@wmertens](https://github.com/wmertens) in [#8501](https://github.com/QwikDev/qwik/pull/8501))
+
+- ✨ route loaders now accept `eTag` to shortcut data retrieval when the data has not changed. See the documentation for more details on this option and how to use it. (by [@wmertens](https://github.com/wmertens) in [#8501](https://github.com/QwikDev/qwik/pull/8501))
+
+- ✨ Routeloaders now support a `cacheKey` and `eTag` property, similar to SSR `pageConfig`. The only difference is that the full value is known before sending, so cached entries generate an ETag before returning the initial request instead of after rendering as with SSR. (by [@wmertens](https://github.com/wmertens) in [#8699](https://github.com/QwikDev/qwik/pull/8699))
+
+- ✨ When `routeConfig` provides a `cacheKey` but no `eTag`, SSR will determine an ETag value by hashing the rendered output. When the cache entry is later retrieved, the ETag is provided to the client and later requests can use the ETag for conditional requests. (by [@wmertens](https://github.com/wmertens) in [#8699](https://github.com/QwikDev/qwik/pull/8699))
+
+- ✨ route loaders now accept `search` to only allow certain query parameters to trigger the loader. This means that random search parameters won't cause the loader to re-run. If you do not pass `search`, then all search parameters will be passed to the loader and will trigger it when they change. (by [@wmertens](https://github.com/wmertens) in [#8501](https://github.com/QwikDev/qwik/pull/8501))
+
+  However, `qwikRouter` now has the option `strictLoaders` which is `true` by default, which means that if you do not specify `search` for a loader, then it will not receive any search parameters and will not re-run when the search parameters change.
+
+### Patch Changes
+
+- fix(router): Update route loader metadata in the dev route trie when route source files change. (by [@wmertens](https://github.com/wmertens) in [#8501](https://github.com/QwikDev/qwik/pull/8501))
+
+- ✨ expose `RequestEvent.internalRequest` for framework-internal JSON requests. (by [@wmertens](https://github.com/wmertens) in [#8698](https://github.com/QwikDev/qwik/pull/8698))
+
+- fix(router): run q-loader requests through the full page middleware chain and handle unfollowed HTTP redirects. (by [@wmertens](https://github.com/wmertens) in [#8698](https://github.com/QwikDev/qwik/pull/8698))
+
+- fix(router): fetch non-serialized route loader data after resume (by [@Varixo](https://github.com/Varixo) in [#8706](https://github.com/QwikDev/qwik/pull/8706))
+
+- 🐞🩹 don't run middleware defined in index.\* for a routeloader on the same path, unless the routeloader is defined in index (by [@wmertens](https://github.com/wmertens) in [#8697](https://github.com/QwikDev/qwik/pull/8697))
+
+- 🐞🩹 fix "assignment to constant variable" errors when route loaders cache filtered search state across SPA navigations (by [@Varixo](https://github.com/Varixo) in [#8709](https://github.com/QwikDev/qwik/pull/8709))
+
+- Updated dependencies [[`d4f40ac`](https://github.com/QwikDev/qwik/commit/d4f40acdcbd437095c34255e878338f1e88f207b), [`a8509c1`](https://github.com/QwikDev/qwik/commit/a8509c1c312a3c9c9434b4050650970807ca38e0), [`9ff0dd4`](https://github.com/QwikDev/qwik/commit/9ff0dd4351154098ae098358089a510ed2e0d770), [`3dcb29b`](https://github.com/QwikDev/qwik/commit/3dcb29b803acb9de1d124fb1ac685b68d647be6c)]:
+  - @qwik.dev/core@2.0.0-beta.37
+
+## 2.0.0-beta.36
+
+### Minor Changes
+
+- ✨ make `usePreventNavigate$` and `request.rewrite()` stable by removing their experimental feature flags. (by [@Varixo](https://github.com/Varixo) in [#8631](https://github.com/QwikDev/qwik/pull/8631))
+
+### Patch Changes
+
+- fix(router): SSG builds with edge/worker adapters no longer crash on Rollup (by [@maiieul](https://github.com/maiieul) in [#8673](https://github.com/QwikDev/qwik/pull/8673))
+
+- Updated dependencies [[`f58ad60`](https://github.com/QwikDev/qwik/commit/f58ad60517d41e6886a952e0e52c2219bc64fec8), [`85905cf`](https://github.com/QwikDev/qwik/commit/85905cf2f08bc7b633eb2b376831e0180715dbef), [`612b3bd`](https://github.com/QwikDev/qwik/commit/612b3bd645b065eaf1469416c9096b44ae2daebb), [`d7d965d`](https://github.com/QwikDev/qwik/commit/d7d965d31e58dffd22d17e938847f7fb064e4cbc), [`b9cd8fa`](https://github.com/QwikDev/qwik/commit/b9cd8fa3def420b878023cb7d7ba2e840aa3d467), [`93cdfe5`](https://github.com/QwikDev/qwik/commit/93cdfe5e5d0c095197354ebaf69560dbfd46b9b1), [`bdbd076`](https://github.com/QwikDev/qwik/commit/bdbd07647760a230015a0fe3842b4a00e1a12094), [`5098ffa`](https://github.com/QwikDev/qwik/commit/5098ffa3899418570f7ceb18b27f6b38f22812db), [`6e00744`](https://github.com/QwikDev/qwik/commit/6e00744fb604943ee15930b57960954e74000299), [`ce6a45e`](https://github.com/QwikDev/qwik/commit/ce6a45e8908645a6ce0be3faa260824ae26c0fb7), [`137c075`](https://github.com/QwikDev/qwik/commit/137c0753547fb768524e00a19e972545b988d55c), [`5fd7174`](https://github.com/QwikDev/qwik/commit/5fd71742091c703d37c786a3650705a4d0af7221), [`23af20e`](https://github.com/QwikDev/qwik/commit/23af20e3662b060b2210eb8efa3d5857b9c752a9), [`42104ec`](https://github.com/QwikDev/qwik/commit/42104ec3d184955ea8f1299df3df20a3d754334f), [`0b52ad2`](https://github.com/QwikDev/qwik/commit/0b52ad2ec06d89779caabd9726eaa80118f08b1b)]:
+  - @qwik.dev/core@2.0.0-beta.36
+
 ## 2.0.0-beta.35
 
 ### Minor Changes

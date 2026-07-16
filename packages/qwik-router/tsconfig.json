@@ -2,7 +2,6 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "paths": {
-      "@qwik.dev/optimizer": ["packages/optimizer/src"],
       "@qwik.dev/router": ["packages/qwik-router/src/runtime/src/index.ts"],
       "@qwik.dev/router/service-worker": [
         "packages/qwik-router/src/runtime/src/service-worker/index.ts"
@@ -37,7 +36,6 @@
       ],
       "@qwik.dev/router/ssg": ["packages/qwik-router/src/ssg"],
       "@qwik.dev/router/vite": ["packages/qwik-router/src/buildtime/vite"],
-      "@qwik-router-ssg-worker/*": ["packages/qwik-router/src/*"],
 
       "@qwik-router-config": ["packages/qwik-router/src/runtime/src/qwik-router-config.ts"],
       "@qwik-router-sw-register-build": [
@@ -46,6 +44,6 @@
       "@qwik-router-sw-register": ["packages/qwik-router/src/runtime/src/sw-register-runtime.ts"]
     }
   },
-  "include": ["."],
-  "exclude": ["dist"]
+  "include": ["src", "global.d.ts"],
+  "exclude": ["dist", "lib"]
 }

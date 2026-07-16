@@ -1,7 +1,7 @@
 ---
 title: Rendering | Components
 contributors:
-  - the-r3aper7
+  - saisrikardumpeti
   - RATIU5
   - manucorporat
   - forresst
@@ -125,6 +125,9 @@ export const Parent = component$(() => {
 
 Conditional rendering is done with the Javascipt [ternary operator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Conditional_Operator) `?`, the `&&` operator, or just by using `if` statements.
 
+Qwik also provides the experimental [`Show`](/docs/labs/show/) component for QRL-based
+conditional control flow once it is enabled with `experimental: ['show']`.
+
 ```tsx
 import { component$ } from '@qwik.dev/core';
 
@@ -229,7 +232,7 @@ The end goal is to enable performance and consistent rendering, even in the cont
 
 Sometimes part of the UI needs to wait before it can show content, such as showing a fallback while a profile card, search result, or other section is still being prepared.
 
-Wrap that part of the UI in [`<Suspense>`](/docs/core/suspense/) when you want a fallback boundary:
+Wrap that part of the UI in [`<Suspense>`](/docs/labs/suspense/) when you want a fallback boundary:
 
 ```tsx /Suspense/
 import { component$, Suspense } from '@qwik.dev/core';

@@ -83,7 +83,7 @@ export function vNodeData_openElement(vNodeData: VNodeData) {
 export function vNodeData_createSsrNodeReference(
   currentComponentNode: ISsrNode | null,
   vNodeData: VNodeData,
-  depthFirstElementIdx: number,
+  depthFirstElementIdx: number | string,
   cleanupQueue: CleanupQueue,
   currentFile: string | null
 ): ISsrNode {
@@ -114,7 +114,7 @@ export function vNodeData_createSsrNodeReference(
       stack[stack.length - 1]++;
     }
   }
-  let refId = depthFirstElementIdx + '';
+  let refId = String(depthFirstElementIdx);
   if (vNodeData[0] & (VNodeDataFlag.VIRTUAL_NODE | VNodeDataFlag.TEXT_DATA)) {
     // encode as alphanumeric only for virtual and text nodes
     for (let i = 0; i < stack.length; i++) {

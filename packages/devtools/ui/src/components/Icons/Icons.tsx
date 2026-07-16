@@ -352,3 +352,71 @@ export const IconArrowsPointingIn = component$((props: IconProps) => {
     </svg>
   );
 });
+
+export const QwikLogo = component$((props: IconProps) => {
+  const { class: className, style, title } = props;
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 500 506"
+      class={className}
+      style={style}
+      aria-hidden={title ? undefined : true}
+      role={title ? 'img' : undefined}
+    >
+      {title ? <title>{title}</title> : null}
+      <path
+        fill="white"
+        d="M370.826 224.859 156.157 16.117l23.021 158.743-50.004 49.999 213.863 198.793-12.209-158.792 39.998-40.001Z"
+      />
+      <path
+        fill="#18b6f6"
+        d="m250 449.707 181.102 55.804-88.065-81.859-213.863-198.793 50.004-49.999-23.021-158.743L8.348 193.702a62.314 62.314 0 0 0 0 62.314l93.843 162.535a62.314 62.314 0 0 0 53.965 31.156H250Z"
+      />
+      <path
+        fill="#ac7ef4"
+        d="M343.843 0H156.157a62.312 62.312 0 0 0-53.965 31.157L8.348 193.702 156.157 16.117l214.669 208.742-39.998 40.001 12.209 158.792 88.065 81.859c5.078 1.564 9.533-3.756 7.102-8.48l-40.395-78.48 93.842-162.535a62.313 62.313 0 0 0 .001-62.314L397.808 31.157A62.312 62.312 0 0 0 343.843 0Z"
+      />
+    </svg>
+  );
+});
+
+export const IconAdjustmentsHorizontal = component$((props: IconProps) => {
+  return (
+    <svg {...baseSvgProps({ ...props, viewBox: '0 0 24 24' })}>
+      {props.title ? <title>{props.title}</title> : null}
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75"
+      />
+    </svg>
+  );
+});
+
+export const IconEllipsisHorizontal = component$((props: IconProps) => {
+  return (
+    <svg {...baseSvgProps({ ...props, viewBox: '0 0 24 24' })}>
+      {props.title ? <title>{props.title}</title> : null}
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"
+      />
+    </svg>
+  );
+});
+
+export const IconGripVertical = component$((props: IconProps) => {
+  return (
+    <svg {...baseSvgProps({ ...props, viewBox: '0 0 24 24' })} fill="currentColor" stroke="none">
+      {props.title ? <title>{props.title}</title> : null}
+      <circle cx="9" cy="5" r="1.5" />
+      <circle cx="15" cy="5" r="1.5" />
+      <circle cx="9" cy="12" r="1.5" />
+      <circle cx="15" cy="12" r="1.5" />
+      <circle cx="9" cy="19" r="1.5" />
+      <circle cx="15" cy="19" r="1.5" />
+    </svg>
+  );
+});

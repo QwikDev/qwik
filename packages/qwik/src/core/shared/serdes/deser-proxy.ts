@@ -2,7 +2,7 @@ import { TypeIds } from './constants';
 import type { DomContainer } from '../../client/dom-container';
 import { vnode_isVNode } from '../../client/vnode-utils';
 import { isObject } from '../utils/types';
-import { allocate } from './allocate';
+import { allocate, beginDeserialization, endDeserialization } from './allocate';
 import { inflate } from './inflate';
 
 /** Arrays/Objects are special-cased so their identifiers is a single digit. */
@@ -34,14 +34,10 @@ export const wrapDeserializerProxy = (container: DomContainer, data: unknown): u
   return proxy;
 };
 class DeserializationHandler implements ProxyHandler<object> {
-  public $length$: number;
-
   constructor(
     public $container$: DomContainer,
     public $data$: unknown[]
-  ) {
-    this.$length$ = this.$data$.length / 2;
-  }
+  ) {}
 
   get(target: unknown[], property: PropertyKey, receiver: object) {
     if (property === SERIALIZER_PROXY_UNWRAP) {
@@ -54,7 +50,7 @@ class DeserializationHandler implements ProxyHandler<object> {
         : typeof property === 'string'
           ? parseInt(property as string, 10)
           : NaN;
-    if (Number.isNaN(i) || i < 0 || i >= this.$length$) {
+    if (Number.isNaN(i) || i < 0 || i >= this.$data$.length / 2) {
       return Reflect.get(target, property, receiver);
     }
     // The serialized data is an array with 2 values for each item
@@ -67,18 +63,23 @@ class DeserializationHandler implements ProxyHandler<object> {
     }
 
     const container = this.$container$;
-    const propValue = allocate(container, typeId, value);
+    const ownsPendingStoreTargets = beginDeserialization(container);
+    try {
+      const propValue = allocate(container, typeId, value);
 
-    Reflect.set(target, property, propValue);
-    this.$data$[idx] = TypeIds.Plain;
-    this.$data$[idx + 1] = propValue;
+      Reflect.set(target, property, propValue);
+      this.$data$[idx] = TypeIds.Plain;
+      this.$data$[idx + 1] = propValue;
 
-    /** We stored the reference, so now we can inflate, allowing cycles */
-    if (needsInflation(typeId)) {
-      inflate(container, propValue, typeId, value);
+      /** We stored the reference, so now we can inflate, allowing cycles */
+      if (needsInflation(typeId)) {
+        inflate(container, propValue, typeId, value);
+      }
+
+      return propValue;
+    } finally {
+      endDeserialization(container, ownsPendingStoreTargets);
     }
-
-    return propValue;
   }
 
   has(target: object, property: PropertyKey) {

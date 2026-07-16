@@ -13,6 +13,7 @@ import type { JSXNodeInternal } from '@qwik.dev/core/internal';
 import { JSXOutput } from '@qwik.dev/core';
 import type { _QDocument } from '@qwik.dev/core/internal';
 import { RenderResult } from '@qwik.dev/core';
+import { StreamWriter } from '@qwik.dev/core';
 import type { _Stringifiable } from '@qwik.dev/core/internal';
 import type { _VirtualVNode } from '@qwik.dev/core/internal';
 import type { _VNode } from '@qwik.dev/core/internal';
@@ -75,10 +76,43 @@ export function expectDOM(actual: Element, expected: string): Promise<void>;
 export function getTestPlatform(): TestPlatform;
 
 // @public (undocumented)
+export interface InOrderAuto {
+    // (undocumented)
+    maximumChunk?: number;
+    // (undocumented)
+    maximumInitialChunk?: number;
+    // (undocumented)
+    strategy: 'auto';
+}
+
+// @public (undocumented)
+export interface InOrderDirect {
+    // (undocumented)
+    strategy: 'direct';
+}
+
+// @public (undocumented)
+export interface InOrderDisabled {
+    // (undocumented)
+    strategy: 'disabled';
+}
+
+// @public (undocumented)
+export type InOrderStreaming = InOrderAuto | InOrderDisabled | InOrderDirect;
+
+// @public (undocumented)
+export type OutOfOrderStreaming = boolean;
+
+// @public (undocumented)
 export function ssrRenderToDom(jsx: JSXOutput, opts?: {
     debug?: boolean;
     raw?: boolean;
     qwikLoader?: boolean;
+    containerTagName?: string;
+    statePrewarm?: number | false;
+    stream?: StreamWriter;
+    streaming?: StreamingOptions;
+    resume?: boolean;
     onBeforeResume?: (document: Document) => void;
 }): Promise<{
     container: _DomContainer;
@@ -87,6 +121,14 @@ export function ssrRenderToDom(jsx: JSXOutput, opts?: {
     getStyles: () => Record<string, string | string[]>;
 }>;
 
+// @public (undocumented)
+export interface StreamingOptions {
+    // (undocumented)
+    inOrder?: InOrderStreaming;
+    // (undocumented)
+    outOfOrder?: OutOfOrderStreaming;
+}
+
 // @public
 export function trigger(root: Element, queryOrElement: string | Element | keyof HTMLElementTagNameMap | null, eventName: string, eventPayload?: any, options?: {
     waitForIdle?: boolean;
@@ -94,7 +136,7 @@ export function trigger(root: Element, queryOrElement: string | Element | keyof 
 
 // @public (undocumented)
 export function vnode_fromJSX(jsx: JSXOutput): {
-    vParent: _VirtualVNode | _ElementVNode;
+    vParent: _ElementVNode | _VirtualVNode;
     vNode: _VNode | null;
     document: _QDocument;
     container: ClientContainer_2;

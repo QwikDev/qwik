@@ -1,5 +1,6 @@
 import type { SnapshotResult } from '@qwik.dev/core';
 import type { StreamWriter } from '@qwik.dev/core/internal';
+import type { SSRInternalStreamWriter } from './qwik-types';
 import type {
   QwikManifest,
   ServerQwikManifest,
@@ -94,7 +95,7 @@ export interface SSRRenderOptions {
   streamHandler: StreamHandler;
   locale?: string;
   tagName?: string;
-  writer?: StreamWriter;
+  writer?: SSRInternalStreamWriter;
   timing?: RenderToStreamResult['timing'];
   buildBase?: string;
   resolvedManifest?: ResolvedManifest;
@@ -141,6 +142,14 @@ export interface RenderOptions extends SerializeDocumentOptions {
   preloader?: PreloaderOptions | false;
 
   /**
+   * Root-count threshold for eager yielded state prewarm during client resume.
+   *
+   * Defaults to `false`, keeping state fully lazy. Set to a number to enable eager prewarm when
+   * serialized state has at least that many roots.
+   */
+  statePrewarm?: number | false;
+
+  /**
    * When set, the app is serialized into a fragment. And the returned html is not a complete
    * document. Defaults to `html`
    */
@@ -174,8 +183,12 @@ export interface InOrderDirect {
 export type InOrderStreaming = InOrderAuto | InOrderDisabled | InOrderDirect;
 
 /** @public */
+export type OutOfOrderStreaming = boolean;
+
+/** @public */
 export interface StreamingOptions {
   inOrder?: InOrderStreaming;
+  outOfOrder?: OutOfOrderStreaming;
 }
 
 /** @public */

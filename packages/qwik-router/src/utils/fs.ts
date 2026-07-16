@@ -1,7 +1,7 @@
 import { basename, dirname, normalize, relative } from 'node:path';
 import type { NormalizedPluginOptions } from '../buildtime/types';
 import { toTitleCase } from './format';
-import { normalizePathname } from './pathname';
+import { ensureSlash, normalizePathname } from './pathname';
 
 export function parseRouteIndexName(extlessName: string) {
   let layoutName = '';
@@ -42,11 +42,8 @@ export function getPathnameFromDirPath(opts: NormalizedPluginOptions, dirPath: s
 export function getMenuPathname(opts: NormalizedPluginOptions, filePath: string) {
   let pathname = normalizePath(relative(opts.routesDir, filePath));
   pathname = `/` + normalizePath(dirname(pathname));
-  let result = normalizePathname(pathname, opts.basePathname)!;
-  if (!result.endsWith('/')) {
-    result += '/';
-  }
-  return result;
+  const result = normalizePathname(pathname, opts.basePathname)!;
+  return ensureSlash(result);
 }
 
 export function getExtension(fileName: string) {
@@ -191,8 +188,14 @@ export function isEntryName(extlessName: string) {
   return extlessName === 'entry';
 }
 
+/** The boundary kind, ignoring any `@x`/`!` modifier: `'404'`, `'error'`, or undefined. */
+export function errorBoundaryName(extlessName: string): '404' | 'error' | undefined {
+  const match = /^(error|404)(?:|!|@.+)$/.exec(extlessName);
+  return match ? (match[1] as '404' | 'error') : undefined;
+}
+
 export function isErrorName(extlessName: string) {
-  return extlessName === 'error' || extlessName === '404';
+  return errorBoundaryName(extlessName) !== undefined;
 }
 
 export function isGroupedLayoutName(dirName: string, warn = true) {

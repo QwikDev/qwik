@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 const root = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
-  entry: [resolve(root, 'src/index.ts')],
+  entry: [resolve(root, 'src/index.ts'), resolve(root, 'src/codegen.ts')],
   clean: true,
   outDir: resolve(root, 'dist'),
   target: 'esnext',

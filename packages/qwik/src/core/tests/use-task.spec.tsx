@@ -22,6 +22,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { ErrorProvider } from '../../testing/rendering.unit-util';
 import { delay } from '../shared/utils/promises';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
+import { whenContainerDataReady } from '../client/dom-container';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -1154,6 +1155,9 @@ describe.each([
       });
 
       const { document, container } = await render(<Counter />, { debug });
+      if (!isSsr) {
+        await whenContainerDataReady(container, () => undefined);
+      }
       expect((globalThis as any).log).toEqual(isSsr ? ['task:0', 'cleanup:0:start'] : ['task:0']);
       await vi.advanceTimersByTimeAsync(100);
       expect((globalThis as any).log).toEqual(
@@ -1204,7 +1208,10 @@ describe.each([
         return <button onClick$={() => count.value++}>{count.value}</button>;
       });
 
-      const { document } = await render(<Counter />, { debug });
+      const { document, container } = await render(<Counter />, { debug });
+      if (!isSsr) {
+        await whenContainerDataReady(container, () => undefined);
+      }
       await vi.advanceTimersByTimeAsync(100);
       expect((globalThis as any).log).toEqual(
         isSsr ? ['task:0', 'cleanup:0:start', 'cleanup:0:end'] : ['task:0']

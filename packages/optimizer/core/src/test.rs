@@ -888,6 +888,86 @@ export const Works = component$((props) => {
 }
 
 #[test]
+fn reports_import_used_only_in_stripped_segment() {
+	let output = test_input!(TestInput {
+		code: r#"
+import { component$, useVisibleTask$ } from '@qwik.dev/core';
+import { ping } from '~/shared/visible-task-server-fn';
+
+export const App = component$(() => {
+	useVisibleTask$(async () => {
+		await ping();
+	});
+	return <div>hi</div>;
+});
+"#
+		.to_string(),
+		entry_strategy: EntryStrategy::Hoist,
+		strip_ctx_name: Some(vec!["useVisibleTask".into()]),
+		strip_event_handlers: true,
+		transpile_ts: true,
+		transpile_jsx: true,
+		is_server: Some(true),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+
+	let root_module = output
+		.modules
+		.iter()
+		.find(|module| !module.is_entry && module.segment.is_none())
+		.expect("root module should exist");
+	let visible_task_import: Atom = "~/shared/visible-task-server-fn".into();
+
+	assert!(
+		root_module.imports.contains(&visible_task_import),
+		"root module should report imports used before stripping, got {:?}",
+		root_module.imports
+	);
+}
+
+#[test]
+fn reports_dynamic_import_used_only_in_stripped_segment() {
+	let output = test_input!(TestInput {
+		code: r#"
+import { component$, useVisibleTask$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+	useVisibleTask$(async () => {
+		const { ping } = await import('~/shared/visible-task-server-fn');
+		await ping();
+	});
+	return <div>hi</div>;
+});
+"#
+		.to_string(),
+		entry_strategy: EntryStrategy::Hoist,
+		strip_ctx_name: Some(vec!["useVisibleTask".into()]),
+		strip_event_handlers: true,
+		transpile_ts: true,
+		transpile_jsx: true,
+		is_server: Some(true),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+
+	let root_module = output
+		.modules
+		.iter()
+		.find(|module| !module.is_entry && module.segment.is_none())
+		.expect("root module should exist");
+	let visible_task_import: Atom = "~/shared/visible-task-server-fn".into();
+
+	assert!(
+		root_module.imports.contains(&visible_task_import),
+		"root module should report dynamic imports used before stripping, got {:?}",
+		root_module.imports
+	);
+}
+
+#[test]
 fn example_reg_ctx_name_segments_inlined() {
 	test_input!(TestInput {
 		code: r#"
@@ -3772,6 +3852,176 @@ fn destructure_args_colon_props3() {
 		transpile_jsx: true,
 		..TestInput::default()
 	});
+}
+
+// Regression for #8638: when a helper arrow destructures a parameter and
+// reassigns one of those bindings, the props-destructuring pass must refuse
+// the rewrite. Pre-fix the param was renamed to `_rawProps` and reads were
+// rewritten, but assignment LHSs were left dangling — strict-mode
+// `ReferenceError` at runtime (and in some shapes the assignment was
+// silently dropped by a downstream simplifier).
+//
+// Each row exercises a different LHS shape: bare AssignExpr, compound /
+// nullish, UpdateExpr, object- and array-destructuring assignment, and
+// `for-of` / `for-in` heads (including a nested destructuring pattern).
+// The signal is direct: the emitted code must not contain `_rawProps`
+// (transform refused) and must still contain the original destructured
+// name (helper not dropped).
+#[test]
+fn destructure_args_helper_reassigns_refuses_transform() {
+	let cases: &[(&str, &str, &str)] = &[
+		(
+			"template_literal",
+			"ogImage",
+			r#"
+			export const buildHead = ({ ogImage }: { ogImage?: string }) => {
+				if (!ogImage) { ogImage = `fallback-image-url`; }
+				return { meta: [{ property: "og:image", content: ogImage }] };
+			};
+			"#,
+		),
+		(
+			"string_literal",
+			"ogImage",
+			r#"
+			export const buildHead = ({ ogImage }: { ogImage?: string }) => {
+				if (!ogImage) { ogImage = "fallback-image-url"; }
+				return { meta: [{ property: "og:image", content: ogImage }] };
+			};
+			"#,
+		),
+		(
+			"nullish_assign",
+			"ogImage",
+			r#"
+			export const buildHead = ({ ogImage }: { ogImage?: string }) => {
+				ogImage ??= `fallback-image-url`;
+				return { ogImage };
+			};
+			"#,
+		),
+		(
+			"update_expr",
+			"count",
+			r#"
+			export const bump = ({ count }: { count: number }) => {
+				count++;
+				return { count };
+			};
+			"#,
+		),
+		(
+			"object_destructure_assign",
+			"ogImage",
+			r#"
+			export const buildHead = ({ ogImage }: { ogImage?: string }) => {
+				({ ogImage } = { ogImage: "fallback-image-url" });
+				return { meta: [{ property: "og:image", content: ogImage }] };
+			};
+			"#,
+		),
+		(
+			"array_destructure_assign",
+			"count",
+			r#"
+			export const bump = ({ count }: { count: number }) => {
+				[count] = [42];
+				return { count };
+			};
+			"#,
+		),
+		(
+			"for_of",
+			"ogImage",
+			r#"
+			export const buildHead = ({ ogImage }: { ogImage?: string }) => {
+				for (ogImage of ["fallback-image-url"]) {}
+				return { meta: [{ property: "og:image", content: ogImage }] };
+			};
+			"#,
+		),
+		(
+			"for_in",
+			"ogImage",
+			r#"
+			export const buildHead = ({ ogImage }: { ogImage?: string }) => {
+				for (ogImage in { "fallback-image-url": 1 }) {}
+				return { meta: [{ property: "og:image", content: ogImage }] };
+			};
+			"#,
+		),
+		(
+			"for_of_destructure",
+			"ogImage",
+			r#"
+			export const buildHead = ({ ogImage }: { ogImage?: string }) => {
+				for ({ ogImage } of [{ ogImage: "fallback-image-url" }]) {}
+				return { meta: [{ property: "og:image", content: ogImage }] };
+			};
+			"#,
+		),
+	];
+
+	for (label, binding, code) in cases {
+		let output = test_input!(TestInput {
+			code: code.to_string(),
+			snapshot: false,
+			transpile_ts: true,
+			transpile_jsx: true,
+			..TestInput::default()
+		})
+		.unwrap_or_else(|e| panic!("[{}] transform failed: {}", label, e));
+
+		let emitted = &output.modules[0].code;
+		assert!(
+			!emitted.contains("_rawProps"),
+			"[{}] props-destructuring rewrite must be refused on reassignment, but `_rawProps` was injected.\n--- emitted ---\n{}",
+			label,
+			emitted
+		);
+		assert!(
+			emitted.contains(binding),
+			"[{}] expected destructured binding `{}` to be preserved in the emitted code, got:\n{}",
+			label,
+			binding,
+			emitted
+		);
+	}
+}
+
+// Positive control — `for (const it of …)` introduces a fresh inner binding
+// that shadows nothing; the refusal guard must NOT over-trigger on for-head
+// declarators. Verified by checking that the extracted component body still
+// receives the rewrite (`_rawProps.items`).
+#[test]
+fn destructure_args_inline_cmp_for_of_declarator_no_refusal() {
+	let output = test_input!(TestInput {
+		code: r#"
+		import { component$ } from "@qwik.dev/core";
+		export const Cmp = component$(({ items }: { items: string[] }) => {
+			const out = [];
+			for (const it of items) { out.push(it); }
+			return <div>{out.join(",")}</div>;
+		});
+		"#
+		.to_string(),
+		snapshot: false,
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	})
+	.unwrap();
+
+	let entry = output
+		.modules
+		.iter()
+		.find(|m| m.is_entry)
+		.expect("expected an entry-point module for the component body");
+	assert!(
+		entry.code.contains("_rawProps.items"),
+		"expected `items` read to be rewritten to `_rawProps.items` in the extracted body, got:\n{}",
+		entry.code
+	);
 }
 
 #[test]

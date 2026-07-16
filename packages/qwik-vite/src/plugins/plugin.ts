@@ -19,6 +19,11 @@ import type {
 } from '../types';
 import { convertManifestToBundleGraph, type BundleGraphAdder } from './bundle-graph';
 import { createLinter, type QwikLinter } from './eslint-plugin';
+import {
+  createServerOnlyImportError,
+  isServerOnlyModule,
+  mightContainServerOnlyImport,
+} from './server-only-modules';
 import { isVirtualId, isWin, parseId } from './vite-utils';
 import MagicString from 'magic-string';
 import {
@@ -59,6 +64,11 @@ const CLIENT_STRIP_CTX_NAME = [
   'event$',
 ];
 
+type ViteResolveIdOptions = NonNullable<Parameters<Extract<Plugin['resolveId'], Function>>[2]>;
+type QwikResolveIdOptions = Partial<ViteResolveIdOptions> & {
+  scan?: boolean;
+};
+
 /**
  * Use `__EXPERIMENTAL__.x` to check if feature `x` is enabled. It will be replaced with `true` or
  * `false` via an exact string replacement.
@@ -70,18 +80,18 @@ const CLIENT_STRIP_CTX_NAME = [
 export enum ExperimentalFeatures {
   /** Enable the Each keyed-list primitive */
   each = 'each',
+  /** Enable the Show conditional primitive */
+  show = 'show',
   /** Enable the Suspense fallback primitive */
   suspense = 'suspense',
-  /** Enable the usePreventNavigate hook */
-  preventNavigate = 'preventNavigate',
   /** Enable the Valibot form validation */
   valibot = 'valibot',
   /** Disable SPA navigation handler in Qwik Router */
   noSPA = 'noSPA',
-  /** Enable request.rewrite() */
-  enableRequestRewrite = 'enableRequestRewrite',
   /** Enable the ability to use the Qwik Insights vite plugin and `<Insights/>` component */
   insights = 'insights',
+  /** Enable the `blockSSR: false` route loader option */
+  blockSSR = 'blockSSR',
 }
 
 export interface QwikPackages {
@@ -97,6 +107,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   const serverTransformedOutputs = new Map<string, [TransformModule, string]>();
   const parentIds = new Map<string, string>();
+  const segmentCallbacks = new Set<(parentId: string, segment: SegmentAnalysis) => void>();
 
   let internalOptimizer: Optimizer | null = null;
   let linter: QwikLinter | undefined = undefined;
@@ -115,7 +126,6 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     tsconfigFileNames: ['./tsconfig.json'],
     input: undefined as any,
     outDir: undefined as any,
-    assetsDir: undefined as any,
     resolveQwikBuild: true,
     entryStrategy: undefined as any,
     srcDir: undefined as any,
@@ -205,10 +215,6 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         ...updatedOpts.devTools,
       };
     }
-    if (updatedOpts.assetsDir) {
-      opts.assetsDir = updatedOpts.assetsDir;
-    }
-
     if (
       updatedOpts.target === 'ssr' ||
       updatedOpts.target === 'client' ||
@@ -459,6 +465,153 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         : opts.target === 'ssr' || opts.target === 'test';
   };
 
+  const shouldAssertClientImports = (isServer: boolean) => {
+    return !isServer && (opts.target === 'client' || (!!devServer && opts.target === 'ssr'));
+  };
+
+  const shouldValidateDevSsrClientOutput = (isServer: boolean) => {
+    return !!devServer && isServer && (opts.target === 'client' || opts.target === 'ssr');
+  };
+
+  const assertClientCanImport = (pathId: string, importerId?: string | null, isServer = false) => {
+    if (shouldAssertClientImports(isServer) && isServerOnlyModule(pathId, opts)) {
+      throw new Error(createServerOnlyImportError(pathId, importerId));
+    }
+  };
+
+  const isServerOnlyImportCandidate = (importId: string) => {
+    const normalizedImportId = importId.replace(/\\/g, '/');
+    return normalizedImportId.includes('.server') || /(^|\/)server(\/|$)/.test(normalizedImportId);
+  };
+
+  const getImportSpecifiers = (ctx: Rollup.PluginContext, code: string): string[] => {
+    const imports = new Set<string>();
+
+    const addSource = (source: any) => {
+      if (typeof source?.value === 'string') {
+        imports.add(source.value);
+      }
+    };
+
+    const stack = [ctx.parse(code) as any];
+    while (stack.length > 0) {
+      const node = stack.pop();
+      if (!node || typeof node !== 'object' || typeof node.type !== 'string') {
+        continue;
+      }
+
+      if (node.type === 'ImportDeclaration' && node.importKind !== 'type') {
+        addSource(node.source);
+      } else if (
+        (node.type === 'ExportNamedDeclaration' || node.type === 'ExportAllDeclaration') &&
+        node.exportKind !== 'type'
+      ) {
+        addSource(node.source);
+      } else if (node.type === 'ImportExpression') {
+        addSource(node.source);
+      } else if (node.type === 'CallExpression' && node.callee?.type === 'Import') {
+        addSource(node.arguments?.[0]);
+      }
+
+      for (const key of Object.keys(node)) {
+        if (key === 'parent') {
+          continue;
+        }
+        const value = node[key];
+        if (Array.isArray(value)) {
+          for (const child of value) {
+            stack.push(child);
+          }
+        } else {
+          stack.push(value);
+        }
+      }
+    }
+
+    return Array.from(imports);
+  };
+
+  const assertClientTransformCanImport = async (
+    ctx: Rollup.PluginContext,
+    code: string,
+    resolveImporterId: string,
+    importerId = resolveImporterId
+  ) => {
+    if (!mightContainServerOnlyImport(code)) {
+      return;
+    }
+    for (const importId of getImportSpecifiers(ctx, code)) {
+      if (!isServerOnlyImportCandidate(importId)) {
+        continue;
+      }
+      assertClientCanImport(importId, importerId);
+      const resolved = await ctx.resolve(importId, resolveImporterId, { skipSelf: true });
+      if (resolved) {
+        assertClientCanImport(normalizePath(parseId(resolved.id).pathId), importerId);
+      }
+    }
+  };
+
+  const assertClientTransformOutputCanImport = async (
+    ctx: Rollup.PluginContext,
+    output: TransformOutput,
+    srcDir: string,
+    importerId?: string,
+    additionalOnly = false
+  ) => {
+    const path = getPath();
+    for (const mod of output.modules) {
+      if (additionalOnly && !isAdditionalFile(mod)) {
+        continue;
+      }
+      const outputPath = normalizePath(path.join(srcDir, mod.path));
+      await assertClientTransformCanImport(ctx, mod.code, outputPath, importerId ?? outputPath);
+    }
+  };
+
+  const resolveTransformableImport = async (
+    ctx: Rollup.PluginContext,
+    importId: string,
+    importerId: string
+  ) => {
+    const resolved = await ctx.resolve(importId, importerId, { skipSelf: true });
+    if (!resolved || resolved.external || isVirtualId(resolved.id)) {
+      return;
+    }
+
+    const parsedId = parseId(resolved.id);
+    if (parsedId.query) {
+      return;
+    }
+
+    const resolvedPathId = normalizePath(parsedId.pathId);
+    const ext = getPath().extname(resolvedPathId).toLowerCase();
+    if (ext in TRANSFORM_EXTS || TRANSFORM_REGEX.test(resolvedPathId)) {
+      return resolvedPathId;
+    }
+  };
+
+  const restoreSsrImportGraphEdges = async (
+    ctx: Rollup.PluginContext,
+    inputImports: string[],
+    importerId: string
+  ): Promise<string[]> => {
+    if (inputImports.length === 0) {
+      return [];
+    }
+
+    const restoredDeps: string[] = [];
+    for (const importId of inputImports) {
+      const resolvedId = await resolveTransformableImport(ctx, importId, importerId);
+      if (!resolvedId) {
+        continue;
+      }
+      restoredDeps.push(resolvedId);
+    }
+
+    return restoredDeps;
+  };
+
   let resolveIdCount = 0;
   let doNotEdit = false;
   /**
@@ -474,7 +627,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     ctx: Rollup.PluginContext,
     id: string,
     importerId: string | undefined,
-    resolveOpts?: Parameters<Extract<Plugin['resolveId'], Function>>[2]
+    resolveOpts?: QwikResolveIdOptions
   ) => {
     if (isVirtualId(id)) {
       return;
@@ -532,6 +685,9 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     let result: Rollup.ResolveIdResult;
 
     /** At this point, the request has been normalized. */
+    if (!(devServer && resolveOpts?.scan)) {
+      assertClientCanImport(pathId, importerId, isServer);
+    }
 
     if (
       /**
@@ -670,11 +826,18 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       // This doesn't get used, but we need to return something
       return '"opening in editor"';
     }
-    if (isVirtualId(id) || id.startsWith('/@fs/')) {
+    if (isVirtualId(id)) {
       return;
     }
     const count = loadCount++;
     const isServer = getIsServer(ctx, loadOpts);
+
+    const parsedId = parseId(id);
+    const pathId = normalizePath(parsedId.pathId);
+    assertClientCanImport(pathId, undefined, isServer);
+    if (id.startsWith('/@fs/')) {
+      return;
+    }
 
     // Virtual modules
     if (opts.resolveQwikBuild && id === QWIK_BUILD_ID) {
@@ -705,25 +868,33 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
 
     // QRL segments
-    const parsedId = parseId(id);
-    id = normalizePath(parsedId.pathId);
+    id = pathId;
     const outputs = isServer ? serverTransformedOutputs : clientTransformedOutputs;
     if (devServer && !outputs.has(id)) {
       // in dev mode, it could be that the id is a QRL segment that wasn't transformed yet
       const parentId = parentIds.get(id);
       if (parentId) {
+        // building here via ctx.load doesn't seem to work (no transform), instead we use the devserver directly
+        debug(`load(${count})`, 'transforming QRL parent', parentId);
         const parentModule = devServer.moduleGraph.getModuleById(parentId);
         if (parentModule) {
-          // building here via ctx.load doesn't seem to work (no transform), instead we use the devserver directly
-          debug(`load(${count})`, 'transforming QRL parent', parentId);
           await devServer.transformRequest(parentModule.url);
-          // The QRL segment should exist now
-          if (!outputs.has(id)) {
-            debug(`load(${count})`, `QRL segment ${id} not found in ${parentId}`);
-            return null;
-          }
         } else {
-          console.error(`load(${count})`, `module ${parentId} does not exist in the build graph!`);
+          // The parent isn't in THIS server's graph — e.g. SSR was rendered in a
+          // different vite server (test tooling, split server/browser SSR). Bootstrap
+          // it by id so its QRL segments populate `outputs`. If it genuinely can't be
+          // transformed, fall through to the graceful "not found" below rather than
+          // throwing (id-vs-url resolution can differ on Windows / with a non-root base).
+          try {
+            await devServer.transformRequest(parentId);
+          } catch (err) {
+            console.error(`load(${count})`, `could not transform QRL parent ${parentId}:`, err);
+          }
+        }
+        // The QRL segment should exist now
+        if (!outputs.has(id)) {
+          debug(`load(${count})`, `QRL segment ${id} not found in ${parentId}`);
+          return null;
         }
       }
     }
@@ -783,6 +954,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     const path = getPath();
 
     const { pathId } = parseId(id);
+    const normalizedPathId = normalizePath(pathId);
+    assertClientCanImport(normalizedPathId, undefined, isServer);
     const parsedPathId = path.parse(pathId);
     const dir = parsedPathId.dir;
     const base = parsedPathId.base;
@@ -885,9 +1058,37 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       }
       const module = newOutput.modules.find((mod) => !isAdditionalFile(mod))!;
 
+      if (shouldAssertClientImports(isServer)) {
+        await assertClientTransformOutputCanImport(ctx, newOutput, srcDir, normalizedPathId);
+      } else if (shouldValidateDevSsrClientOutput(isServer) && mightContainServerOnlyImport(code)) {
+        const clientTransformOpts: TransformModulesOptions = {
+          ...transformOpts,
+          entryStrategy,
+          isServer: false,
+        };
+        if (strip) {
+          clientTransformOpts.stripCtxName = SERVER_STRIP_CTX_NAME;
+          clientTransformOpts.stripExports = SERVER_STRIP_EXPORTS;
+          clientTransformOpts.stripEventHandlers = undefined;
+          clientTransformOpts.regCtxName = undefined;
+        }
+        await assertClientTransformOutputCanImport(
+          ctx,
+          await optimizer.transformModules(clientTransformOpts),
+          srcDir,
+          normalizedPathId,
+          true
+        );
+      }
+
       // uncomment to show transform results
       // debug({ isServer, strip }, transformOpts, newOutput);
       diagnosticsCallback(newOutput.diagnostics, optimizer, srcDir);
+
+      let restoredSsrImportDeps: string[] = [];
+      if (isServer && strip) {
+        restoredSsrImportDeps = await restoreSsrImportGraphEdges(ctx, module.imports ?? [], id);
+      }
 
       if (isServer) {
         if (newOutput.diagnostics.length === 0 && linter) {
@@ -920,7 +1121,16 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
               preserveSignature: 'allow-extension',
             });
           }
+          // Notify segment callbacks
+          if (mod.segment && segmentCallbacks.size > 0) {
+            for (const cb of segmentCallbacks) {
+              cb(id, mod.segment);
+            }
+          }
         }
+      }
+      for (const restoredDep of restoredSsrImportDeps) {
+        deps.add(restoredDep);
       }
 
       ctx.addWatchFile(id);
@@ -952,6 +1162,9 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
 
     if (shouldReturn) {
+      if (isPublicVirtualId(id)) {
+        map = null;
+      }
       return { code, map, meta };
     }
     debug(`transform(${count})`, 'Not transforming', id);
@@ -1253,6 +1466,7 @@ export const isDev = ${JSON.stringify(isDev)};
     normalizePath,
     onDiagnostics,
     resolveId,
+    segmentCallbacks,
     transform,
     validateSource,
     setSourceMapSupport,
@@ -1288,6 +1502,8 @@ export const makeNormalizePath = (sys: OptimizerSystem) => (id: string) => {
 function isAdditionalFile(mod: TransformModule) {
   return mod.isEntry || mod.segment;
 }
+
+const isPublicVirtualId = (id: string) => id.startsWith('virtual:');
 
 const TRANSFORM_EXTS = {
   '.jsx': true,
@@ -1377,7 +1593,6 @@ export interface QwikPluginOptions {
   outDir?: string;
   ssrOutDir?: string;
   clientOutDir?: string;
-  assetsDir?: string;
   srcDir?: string | null;
   scope?: string | null;
   /** @deprecated Not used */

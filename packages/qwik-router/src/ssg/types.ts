@@ -12,7 +12,7 @@ export interface System {
   createWriteStream: (filePath: string) => StaticStreamWriter;
   createTimer: () => () => number;
   getRouteFilePath: (pathname: string, isHtml: boolean) => string;
-  getDataFilePath: (pathname: string) => string;
+  getLoaderFilePath: (pathname: string, loaderId: string, manifestHash: string) => string;
   getEnv: (key: string) => string | undefined;
   platform: { [key: string]: any };
 }
@@ -68,20 +68,15 @@ export interface SsgRenderOptions extends RenderOptions {
   log?: 'debug' | 'quiet';
   /**
    * Set to `false` if the generated static HTML files should not be written to disk. Setting to
-   * `false` is useful if the SSG should only write the `q-data.json` files to disk. Defaults to
+   * `false` is useful if the SSG should only write the per-loader data files to disk. Defaults to
    * `true`.
    */
   emitHtml?: boolean;
   /**
-   * Set to `false` if the generated `q-data.json` data files should not be written to disk.
-   * Defaults to `true`.
+   * Set to `false` if the generated per-loader data files should not be written to disk. Defaults
+   * to `true`.
    */
   emitData?: boolean;
-  /**
-   * Set to `false` if the static build should not write custom or default `404.html` pages.
-   * Defaults to `true`.
-   */
-  emit404Pages?: boolean;
   /**
    * Defines file system routes relative to the source `routes` directory that should be static
    * generated. Accepts wildcard behavior. This should not include the "base" pathname. If not
@@ -110,15 +105,12 @@ export interface SsgOptions extends SsgRenderOptions {
  * @public
  */
 export interface SsgGenerateOptions extends SsgOptions {
-  /** The SSR render function (default export from entry.ssr). */
+  /** SSR render function (default export from `entry.ssr`); worker-only — the main entry omits it. */
   render: Render;
   /** The Qwik Router Config object (default export from `@qwik-router-config`). */
   qwikRouterConfig: QwikRouterConfig;
 
-  /**
-   * Path or URL to the worker entry file. Workers are spawned using this file. When run-ssg.js
-   * serves as both main and worker entry, this should be `import.meta.url` of that file.
-   */
+  /** Path or URL to the worker entry file (`run-ssg-worker.js`); workers are spawned from it. */
   workerFilePath?: string | URL;
 }
 
@@ -151,7 +143,7 @@ export interface SsgWorkerRenderResult {
   error: { message: string; stack: string | undefined } | null;
   filePath: string | null;
   contentType: string | null;
-  resourceType: 'page' | '404' | null;
+  resourceType: 'page' | null;
 }
 
 /** @public */

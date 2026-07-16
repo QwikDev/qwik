@@ -103,22 +103,17 @@ const qwikEslint9Plugin = {
   rules,
 } as const;
 
-const recommendedConfig = [
-  {
-    plugins: {
-      qwik: qwikEslint9Plugin,
+const createFlatConfig = (rules: TSESLint.FlatConfig.Rules) =>
+  [
+    {
+      plugins: {
+        qwik: qwikEslint9Plugin,
+      },
+      rules,
     },
-    rules: recommendedRulesLevels,
-  },
-] satisfies TSESLint.FlatConfig.ConfigArray;
+  ] satisfies TSESLint.FlatConfig.ConfigArray;
 
-const strictConfig = [
-  {
-    plugins: {
-      qwik: qwikEslint9Plugin,
-    },
-    rules: strictRulesLevels,
-  },
-] satisfies TSESLint.FlatConfig.ConfigArray;
+const recommendedConfig = createFlatConfig(recommendedRulesLevels);
+const strictConfig = createFlatConfig(strictRulesLevels);
 
 export { configs, qwikEslint9Plugin, rules };

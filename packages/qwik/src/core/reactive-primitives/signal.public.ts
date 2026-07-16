@@ -1,5 +1,5 @@
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
-import type { AsyncCtx, AsyncSignalOptions, ComputedOptions, SerializerArg } from './types';
+import type { ComputeCtx, AsyncSignalOptions, ComputedOptions, SerializerArg } from './types';
 import {
   createSignal as _createSignal,
   createComputedSignal as createComputedQrl,
@@ -7,6 +7,7 @@ import {
   createAsyncSignal as createAsyncQrl,
 } from './signal-api';
 import type { ComputedReturnType } from '../use/use-computed';
+import type { ValueOrPromise } from '../shared/utils/types';
 export { isSignal } from './utils';
 
 /**
@@ -53,6 +54,65 @@ export interface ComputedSignal<T> extends Signal<T> {
   force(): void;
   /** Use this to force recalculation. */
   invalidate(): void;
+  /**
+   * Whether the signal is currently loading. This will trigger lazy computation of the signal, so
+   * you can use it like this:
+   *
+   * ```tsx
+   * signal.pending ? <Loading /> : signal.error ? <Error /> : <Component
+   * value={signal.value} />
+   * ```
+   */
+  pending: boolean;
+  /**
+   * Lets you read the pending state without subscribing to `.pending` updates. It also triggers
+   * lazy computation of the signal.
+   *
+   * Setting it will trigger listeners for `.pending`.
+   */
+  untrackedPending: boolean;
+  /** @deprecated Use `pending` instead */
+  loading: boolean;
+  /** @deprecated Use `untrackedPending` instead */
+  untrackedLoading: boolean;
+  /**
+   * The error that occurred while computing the signal, if any, including synchronous throws. This
+   * will be cleared when the signal is successfully computed. It also triggers lazy computation of
+   * the signal. While the error is set, reading `.value` throws it.
+   */
+  error: Error | undefined;
+  /**
+   * Lets you read the error state without subscribing to `.error` updates. It also triggers lazy
+   * computation of the signal.
+   *
+   * Setting it will trigger listeners for `.error`.
+   */
+  untrackedError: Error | undefined;
+  /**
+   * Expiration time in ms. Writable and immediately effective.
+   *
+   * When set, the signal is invalidated after this many ms. Whether it auto-recomputes depends on
+   * the `poll` property. `0` means no expiration.
+   */
+  expires: number;
+  /**
+   * Whether to automatically re-run the function when the value expires. Writable and immediately
+   * effective. Only relevant when `expires` is set.
+   *
+   * Defaults to `true`.
+   */
+  poll: boolean;
+  /** @deprecated Use `expires` and `poll` instead. Will be removed before v2 */
+  interval: number;
+  /** A promise that resolves when the value is computed or rejected. */
+  promise(): Promise<void>;
+  /** Abort the current computation and run cleanups if needed. */
+  abort(reason?: any): void;
+  /**
+   * Use this to force recalculation. If you pass `info`, it will be provided to the calculation
+   * function.
+   */
+  invalidate(info?: unknown): void;
 }
 
 /**
@@ -87,64 +147,10 @@ export interface SerializerSignal<T> extends ComputedSignal<T> {
  * If the async function threw an error, reading the `.value` will throw that same error. Read from
  * `.error` to check if there was an error.
  *
+ * @deprecated Use `ComputedSignal` instead, it has async support now.
  * @public
  */
-export interface AsyncSignal<T = unknown> extends ComputedSignal<T> {
-  /**
-   * Whether the signal is currently loading. This will trigger lazy loading of the signal, so you
-   * can use it like this:
-   *
-   * ```tsx
-   * signal.loading ? <Loading /> : signal.error ? <Error /> : <Component
-   * value={signal.value} />
-   * ```
-   */
-  loading: boolean;
-  /**
-   * Lets you read the loading state without subscribing to `.loading` updates. It also triggers
-   * lazy loading of the signal.
-   *
-   * Setting it will trigger listeners for `.loading`.
-   */
-  untrackedLoading: boolean;
-  /**
-   * The error that occurred while computing the signal, if any. This will be cleared when the
-   * signal is successfully computed. It does not trigger lazy loading of the signal.
-   */
-  error: Error | undefined;
-  /**
-   * Lets you read the error state without subscribing to `.error` updates. It does not trigger lazy
-   * loading of the signal.
-   *
-   * Setting it will trigger listeners for `.error`.
-   */
-  untrackedError: Error | undefined;
-  /**
-   * Expiration time in ms. Writable and immediately effective.
-   *
-   * When set, the signal is invalidated after this many ms. Whether it auto-recomputes depends on
-   * the `poll` property. `0` means no expiration.
-   */
-  expires: number;
-  /**
-   * Whether to automatically re-run the function when the value expires. Writable and immediately
-   * effective. Only relevant when `expires` is set.
-   *
-   * Defaults to `true`.
-   */
-  poll: boolean;
-  /** @deprecated Use `expires` and `poll` instead. Will be removed before v2 */
-  interval: number;
-  /** A promise that resolves when the value is computed or rejected. */
-  promise(): Promise<void>;
-  /** Abort the current computation and run cleanups if needed. */
-  abort(reason?: any): void;
-  /**
-   * Use this to force recalculation. If you pass `info`, it will be provided to the calculation
-   * function.
-   */
-  invalidate(info?: unknown): void;
-}
+export type AsyncSignal<T = unknown> = ComputedSignal<T>;
 
 /**
  * Creates a Signal with the given value. If no value is given, the signal is created with
@@ -163,15 +169,16 @@ export const createSignal: {
  * recalculated.
  *
  * The QRL must be a function which returns the value of the signal. The function must not have side
- * effects, and it must be synchronous.
- *
- * If you need the function to be async, use `createAsync$` instead (don't forget to use `track()`).
+ * effects. Every synchronous signal or store read is tracked automatically; reads after the first
+ * `await` must use the `track()` provided on the context argument. When the function is async, the
+ * returned signal exposes the async API (`.pending`, `.error`, `.promise()`), and reading an
+ * unresolved `.value` throws the computation promise.
  *
  * @public
  */
 export const createComputed$: <T>(
-  qrl: () => T,
-  options?: ComputedOptions
+  qrl: (ctx: ComputeCtx) => ValueOrPromise<T>,
+  options?: ComputedOptions<T>
 ) => ComputedReturnType<T> = /*#__PURE__*/ implicit$FirstArg(createComputedQrl as any);
 export { createComputedQrl };
 
@@ -179,10 +186,11 @@ export { createComputedQrl };
  * Create a signal holding a `.value` which is calculated from the given async function (QRL). The
  * standalone version of `useAsync$`.
  *
+ * @deprecated Use `createComputed$` instead, it has async support now.
  * @public
  */
 export const createAsync$: <T>(
-  qrl: (arg: AsyncCtx<T>) => Promise<T>,
+  qrl: (arg: ComputeCtx<T>) => Promise<T>,
   options?: AsyncSignalOptions<T>
 ) => AsyncSignal<T> = /*#__PURE__*/ implicit$FirstArg(createAsyncQrl as any);
 export { createAsyncQrl };

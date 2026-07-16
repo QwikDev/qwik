@@ -254,6 +254,14 @@ export type InOrderStreaming = InOrderAuto | InOrderDisabled | InOrderDirect;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
+<h2 id="outoforderstreaming">OutOfOrderStreaming</h2>
+
+```typescript
+export type OutOfOrderStreaming = boolean;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
+
 <h2 id="prefetchresource">PrefetchResource</h2>
 
 ```typescript
@@ -550,6 +558,23 @@ boolean
 </td><td>
 
 _(Optional)_ Defaults to `true`
+
+</td></tr>
+<tr><td>
+
+statePrewarm?
+
+</td><td>
+
+</td><td>
+
+number \| false
+
+</td><td>
+
+_(Optional)_ Root-count threshold for eager yielded state prewarm during client resume.
+
+Defaults to `false`, keeping state fully lazy. Set to a number to enable eager prewarm when serialized state has at least that many roots.
 
 </td></tr>
 </tbody></table>
@@ -1054,6 +1079,21 @@ inOrder?
 </td><td>
 
 [InOrderStreaming](#inorderstreaming)
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+outOfOrder?
+
+</td><td>
+
+</td><td>
+
+[OutOfOrderStreaming](#outoforderstreaming)
 
 </td><td>
 

@@ -2,7 +2,7 @@
 import { getPlatform, isServerPlatform } from '../platform/platform';
 // ^^^ keep these imports above the rest to prevent circular dep issues
 
-import { isBrowser, isDev } from '@qwik.dev/core/build';
+import { isBrowser, isDev, isServer } from '@qwik.dev/core/build';
 import { invokeApply, tryGetInvokeContext, type InvokeContext } from '../../use/use-core';
 import { assertDefined } from '../error/assert';
 import { QError, qError } from '../error/error';
@@ -26,6 +26,9 @@ interface SyncQRLSymbol {
 }
 
 export type SyncQRLInternal = QRLInternal & SyncQRLSymbol;
+
+export type QrlCaptures = Readonly<unknown[]> | string | null;
+
 /** @internal */
 export type QRLInternal<TYPE = unknown> = QRL<TYPE> & QRLInternalMethods<TYPE>;
 
@@ -34,8 +37,8 @@ export type QRLInternalMethods<TYPE> = {
   readonly $symbol$: string;
   readonly $hash$: string;
 
-  /** If it's a string it's serialized */
-  readonly $captures$?: Readonly<unknown[]> | string | null;
+  /** Captures are stored lazily after deserialization. */
+  readonly $captures$?: QrlCaptures;
   dev?: QRLDev | null;
 
   resolve(container?: Container): Promise<TYPE>;
@@ -61,7 +64,7 @@ export type QRLInternalMethods<TYPE> = {
    * method but we need to have a stable name because it gets called in user code by the optimizer,
    * after the $name$ props are mangled
    */
-  w(captures: Readonly<unknown[]> | string | null): QRLInternal<TYPE>;
+  w(captures: QrlCaptures): QRLInternal<TYPE>;
 
   /**
    * "set ref" - Set the ref of the QRL. It's an internal method but we need to have a stable name
@@ -78,6 +81,8 @@ export type QRLInternalMethods<TYPE> = {
   /** The shared lazy-loading reference */
   readonly $lazy$: LazyRef<TYPE>;
 };
+
+let reportedChunkFailures: WeakMap<Container, Set<string>> | undefined;
 
 let getLazyRef: <TYPE>(
   chunk: string | null,
@@ -134,7 +139,27 @@ export class LazyRef<TYPE = unknown> {
       ref.then(
         (r) => (this.$ref$ = r),
         (err) => {
-          console.error(`qrl ${this.$symbol$} failed to load`, err);
+          const errorMessage = `qrl ${this.$symbol$} failed to load`;
+
+          if (qTest ? isServerPlatform() : isServer) {
+            console.error(errorMessage, err);
+          } else if (qTest ? !isServerPlatform() : isBrowser) {
+            const failureKey =
+              this.$chunk$ === null ? `symbol:${this.$symbol$}` : `chunk:${this.$chunk$}`;
+            const container = this.$container$;
+            let containerFailures = container && reportedChunkFailures?.get(container);
+            if (!containerFailures?.has(failureKey)) {
+              if (container) {
+                if (!containerFailures) {
+                  containerFailures = new Set();
+                  (reportedChunkFailures ||= new WeakMap()).set(container, containerFailures);
+                }
+                containerFailures.add(failureKey);
+              }
+              console.error(errorMessage, err);
+            }
+          }
+
           // We shouldn't cache rejections, we can try again later
           this.$ref$ = null;
         }
@@ -205,12 +230,12 @@ const getInstance = <TYPE>(instance: any): QRLClass<TYPE> => {
 export class QRLClass<TYPE> {
   resolved: undefined | TYPE = undefined;
   // This is defined or undefined for the lifetime of the QRL, so we set it lazily
-  $captures$?: Readonly<unknown[]> | string | null;
+  $captures$?: QrlCaptures;
   $container$?: Container | null;
 
   constructor(
     readonly $lazy$: LazyRef<TYPE>,
-    $captures$?: Readonly<unknown[]> | string | null,
+    $captures$?: QrlCaptures,
     container?: Container | null
   ) {
     if (qDev) {
@@ -226,7 +251,11 @@ export class QRLClass<TYPE> {
 
     // If it is plain value with deserialized or missing captures, resolve it immediately
     // Otherwise we keep using the async path so we can wait for qrls to load
-    if ($lazy$.$ref$ != null && typeof this.$captures$ !== 'string' && !isPromise($lazy$.$ref$)) {
+    if (
+      $lazy$.$ref$ != null &&
+      (!this.$captures$ || typeof this.$captures$ !== 'string') &&
+      !isPromise($lazy$.$ref$)
+    ) {
       this.resolved = bindCaptures(this, $lazy$.$ref$ as TYPE);
     }
   }
@@ -254,7 +283,7 @@ const qrlCallFn = function <TYPE>(
 
 const qrlWithCaptures = function <TYPE>(
   this: QRLClass<TYPE> | QRLCallable<TYPE>,
-  captures: Readonly<unknown[]> | string | null
+  captures: QrlCaptures
 ): QRLInternal<TYPE> {
   const qrl = getInstance<TYPE>(this);
   const newQrl = new QRLClass<TYPE>(
@@ -335,7 +364,7 @@ const QRL_FUNCTION_PROTO: QRLInternalMethods<any> = Object.create(Function.proto
     get(this: QRLCallable<any>) {
       return this[QRL_STATE].$captures$;
     },
-    set(this: QRLCallable<any>, value: Readonly<unknown[]> | string | null | undefined) {
+    set(this: QRLCallable<any>, value: QrlCaptures | undefined) {
       this[QRL_STATE].$captures$ = value;
     },
   },
@@ -419,31 +448,57 @@ export const setCaptures = (captures: Readonly<unknown[]> | null) => {
   _captures = captures;
 };
 
-export const deserializeCaptures = (container: Container, captures: string) => {
+export const deserializeCaptureDeltas = (
+  container: Container,
+  deltaString: string,
+  startIndex = 0,
+  previousRootId?: number
+) => {
   const refs = [];
-  const captureIds = captures.split(' ');
-  for (let i = 0; i < captureIds.length; i++) {
-    const id = captureIds[i];
-    refs.push(container.$getObjectById$(id));
+  let previous = previousRootId;
+  let start = startIndex;
+  for (let i = startIndex; i <= deltaString.length; i++) {
+    if (i === deltaString.length || deltaString.charCodeAt(i) === 32) {
+      if (i > start) {
+        const delta = Number(deltaString.slice(start, i));
+        previous = previous === undefined ? delta : previous + delta;
+        refs.push(container.$getObjectById$(previous));
+      }
+      start = i + 1;
+    }
   }
   return refs;
+};
+
+const deserializeQrlCaptureDeltas = (container: Container, qrlString: string) => {
+  const firstHash = qrlString.indexOf('#');
+  if (firstHash === -1) {
+    return deserializeCaptureDeltas(container, qrlString);
+  }
+
+  const secondHash = qrlString.indexOf('#', firstHash + 1);
+  const previousRootId =
+    Number(qrlString.slice(0, firstHash)) + Number(qrlString.slice(firstHash + 1, secondHash));
+  return deserializeCaptureDeltas(container, qrlString, secondHash + 1, previousRootId);
 };
 
 /** Puts the qrl captures into `_captures`, and returns a Promise that should be awaited if possible */
 const ensureQrlCaptures = (qrl: QRLClass<unknown>) => {
   // We read the captures once, synchronously, so no need to keep previous
-  _captures = qrl.$captures$ as any;
+  const serializedCaptures = qrl.$captures$;
   const container = qrl.$container$;
-  if (typeof _captures === 'string') {
+  if (typeof serializedCaptures === 'string') {
     if (!container) {
       throw qError(QError.qrlMissingContainer);
     }
     const prevLoading = loading;
-    _captures = qrl.$captures$ = deserializeCaptures(container, _captures);
+    _captures = qrl.$captures$ = deserializeQrlCaptureDeltas(container, serializedCaptures);
     if (loading !== prevLoading) {
       // return the loading promise so callers can await it
       return loading;
     }
+  } else {
+    _captures = serializedCaptures || null;
   }
 };
 
@@ -524,7 +579,7 @@ export const createQRL = <TYPE>(
   symbol: string,
   symbolRef?: null | ValueOrPromise<TYPE>,
   symbolFn?: null | (() => Promise<Record<string, TYPE>>),
-  captures?: Readonly<unknown[]> | string | null,
+  captures?: QrlCaptures,
   container?: Container
 ): QRLInternal<TYPE> => {
   const lazy = getLazyRef<TYPE>(chunk, symbol, symbolFn!, symbolRef!, container);

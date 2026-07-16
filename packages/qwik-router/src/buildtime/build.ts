@@ -1,5 +1,7 @@
 import { addError, addWarning } from '../utils/format';
-import { createFileId, getPathnameFromDirPath } from '../utils/fs';
+import { createFileId, getPathnameFromDirPath, isErrorName } from '../utils/fs';
+import { ensureSlash } from '../utils/pathname';
+import { createRouteTester } from '../ssg/routes';
 import { resolveMenu } from './markdown/menu';
 import { resolveLayout, resolveRoute } from './routing/resolve-source-file';
 import { routeSortCompare } from './routing/sort-routes';
@@ -219,7 +221,7 @@ function translateRoute(
   const replacePath = (part: string) => (config.paths || {})[part] ?? part;
 
   const pathnamePrefix = config.prefix ? '/' + config.prefix : '';
-  const routeNamePrefix = config.prefix ? config.prefix + '/' : '';
+  const routeNamePrefix = config.prefix ? ensureSlash(config.prefix) : '';
   const idSuffix = config.prefix?.toUpperCase().replace(/-/g, '');
   const patternInfix = config.prefix ? [config.prefix] : [];
 
@@ -292,9 +294,8 @@ function applyRewriteRoutes(root: BuildTrieNode, rewriteConfigs: RewriteRouteOpt
   const routables: { steps: TriePathStep[]; node: BuildTrieNode }[] = [];
 
   function walk(node: BuildTrieNode, steps: TriePathStep[]) {
-    const hasRoute = node._files.some(
-      (f) => f.type === 'route' && f.extlessName !== 'error' && f.extlessName !== '404'
-    );
+    // error.tsx / 404.tsx (and their @layout/! variants) are boundaries, not navigable routes.
+    const hasRoute = node._files.some((f) => f.type === 'route' && !isErrorName(f.extlessName));
     if (hasRoute) {
       routables.push({ steps: [...steps], node });
     }
@@ -322,8 +323,15 @@ function applyRewriteRoutes(root: BuildTrieNode, rewriteConfigs: RewriteRouteOpt
   for (const config of rewriteConfigs) {
     const translations = config.paths || {};
     const translatable = new Set(Object.keys(translations).map((k) => k.toLowerCase()));
+    const isExcluded = config.exclude?.length
+      ? createRouteTester('/', config.exclude, undefined)
+      : undefined;
 
     for (const { steps } of routables) {
+      const originalKeyPath = steps.map((s) => s.key).join('/');
+      if (isExcluded?.('/' + originalKeyPath)) {
+        continue;
+      }
       // Check if any segment is translatable or if there's a prefix
       const hasTranslatable = steps.some((s) => translatable.has(s.key));
       if (!hasTranslatable && !config.prefix) {
@@ -333,9 +341,6 @@ function applyRewriteRoutes(root: BuildTrieNode, rewriteConfigs: RewriteRouteOpt
       if (steps.length === 0 && !config.prefix) {
         continue;
       }
-
-      // Build the original key path
-      const originalKeyPath = steps.map((s) => s.key).join('/');
 
       // Build translated steps
       const translatedSteps: TriePathStep[] = [];
@@ -365,7 +370,6 @@ function applyRewriteRoutes(root: BuildTrieNode, rewriteConfigs: RewriteRouteOpt
         if (!child) {
           child = {
             _files: [],
-            _dirPath: '',
             children: new Map(),
           };
           if (step.paramName) {

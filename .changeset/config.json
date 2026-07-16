@@ -7,7 +7,7 @@
   ],
   "linked": [],
   "access": "public",
-  "baseBranch": "origin/build/v2",
+  "baseBranch": "origin/main",
   "updateInternalDependencies": "minor",
   "ignore": [
     "@qwik.dev/qwik-vite",

@@ -52,8 +52,26 @@ const repoRoot = resolve(__dirname, '..', '..');
 const appsDir = join(e2eDir, 'apps');
 const appNames = readdirSync(appsDir).filter((p) => statSync(join(appsDir, p)).isDirectory());
 
+type OOOSReleaseStore = {
+  resolved: Set<string>;
+  resolvers: Map<string, Set<() => void>>;
+};
+
+const getOOOSReleaseStore = (): OOOSReleaseStore =>
+  ((globalThis as any).__qwikOOOSReleaseStore ||= {
+    resolved: new Set<string>(),
+    resolvers: new Map<string, Set<() => void>>(),
+  });
+
+const getOOOSReleaseKey = (requestId: string, releaseId: string): string => {
+  return `${requestId}:${releaseId}`;
+};
+
+let ooosRequestCounter = 0;
+
 /** Used when qwik-router server is enabled */
 const qwikRouterVirtualEntry = '@router-ssr-entry';
+const entryDevFileName = 'entry.dev.tsx';
 const entrySsrFileName = 'entry.ssr.tsx';
 
 Error.stackTraceLimit = 1000;
@@ -103,6 +121,8 @@ async function handleApp(req: Request, res: Response, next: NextFunction) {
     }
     if (enableRouterServer) {
       await routerApp(req, res, next, appDir);
+    } else if (url.searchParams.get('csr') === '1') {
+      csrApp(res, appName);
     } else {
       await ssrApp(req, res, appName, appDir, resolved);
       res.end();
@@ -121,8 +141,10 @@ async function buildApp(appDir: string, appName: string, enableRouterServer: boo
   const appSrcDir = join(appDir, 'src');
   const appDistDir = join(appDir, 'dist');
   const appServerDir = join(appDir, 'server');
+  const entryDevPath = join(appSrcDir, entryDevFileName);
   const basePath = `/${appName}/`;
   const isProd = appName.includes('.prod');
+  const clientInput = appName === 'e2e' && existsSync(entryDevPath) ? entryDevPath : undefined;
 
   // always clean the build directory
   removeDir(appDistDir);
@@ -169,6 +191,8 @@ export { router }
             },
           },
         ],
+        // Legacy e2e tests rely on actions re-running all loaders
+        strictLoaders: false,
       }) as PluginOption
       // qwikRouterSsg.nodeServerAdapter({
       //   ssg: null,
@@ -183,6 +207,10 @@ export { router }
     base: basePath,
     ...extra,
     resolve: {
+      alias: {
+        '~': appSrcDir,
+        '@': appSrcDir,
+      },
       conditions: [isProd ? 'production' : 'development'],
       mainFields: [],
     },
@@ -192,6 +220,16 @@ export { router }
     getInlineConf({
       build: {
         minify: false,
+        rollupOptions: clientInput
+          ? {
+              input: {
+                'entry.dev': clientInput,
+              },
+              output: {
+                entryFileNames: 'build/[name].js',
+              },
+            }
+          : undefined,
       },
       define: {
         'globalThis.qDev': !isProd,
@@ -208,7 +246,7 @@ export { router }
               clientManifest = manifest;
             },
           },
-          experimental: ['each', 'suspense', 'preventNavigate', 'enableRequestRewrite'],
+          experimental: ['each', 'show', 'suspense', 'blockSSR'],
         }),
       ],
     })
@@ -224,7 +262,7 @@ export { router }
       plugins: [
         ...plugins,
         optimizer.qwikVite({
-          experimental: ['each', 'suspense', 'preventNavigate', 'enableRequestRewrite'],
+          experimental: ['each', 'show', 'suspense', 'blockSSR'],
           ssr: {
             manifestInput: clientManifest,
           },
@@ -239,6 +277,20 @@ export { router }
   );
 
   return clientManifest!;
+}
+
+function csrApp(res: Response, appName: string) {
+  res.set('Content-Type', 'text/html; charset=utf-8');
+  res.send(`<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Qwik CSR E2E</title>
+    <script type="module" src="/${appName}/build/qwikloader.js"></script>
+    <script type="module" src="/${appName}/build/entry.dev.js"></script>
+  </head>
+  <body></body>
+</html>`);
 }
 
 function removeDir(dir: string) {
@@ -283,6 +335,7 @@ async function ssrApp(
   // ssr the document
   const base = `/${appName}/build/`;
   const url = new URL(`${req.protocol}://${req.hostname}${req.url}`).href;
+  const ooosRequestId = `${process.pid}-${++ooosRequestCounter}`;
 
   const opts: RenderToStreamOptions = {
     stream: res,
@@ -291,6 +344,7 @@ async function ssrApp(
     base,
     serverData: {
       url,
+      ooosRequestId,
     },
   };
   await render(opts);
@@ -393,6 +447,20 @@ async function main() {
   // Debug logging backchannel: browser sends errors/logs here
   app.post('/__log', express.text(), (req, res) => {
     console.error(`[BROWSER] ${req.body}`);
+    res.status(204).end();
+  });
+
+  app.post('/__ooos-release/:requestId/:id', (req, res) => {
+    const requestId = req.params.requestId;
+    const id = req.params.id;
+    const store = getOOOSReleaseStore();
+    const key = getOOOSReleaseKey(requestId, id);
+    const resolvers = store.resolvers.get(key);
+    store.resolved.add(key);
+    if (resolvers) {
+      store.resolvers.delete(key);
+      resolvers.forEach((resolve) => resolve());
+    }
     res.status(204).end();
   });
 

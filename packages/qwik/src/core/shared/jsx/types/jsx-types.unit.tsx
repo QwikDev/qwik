@@ -116,6 +116,7 @@ describe('types', () => {
       </p>
     );
   });
+
   test('PropFunction', () => () => {
     const CmpButton = component$<{
       onClick$?: PropFunction<() => void>;

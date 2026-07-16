@@ -21,7 +21,7 @@ Qwik v2 is a ground-up rewrite of the framework. This guide covers what's new, h
 - **Vite 8 / Rolldown** — Out of the box compatibility
 - **Smaller serialized state** — Up to 30% smaller HTML
 - **HMR** — Instant browser updates without losing state
-- **`useAsync$`** — Replaces `useResource$` with polling, concurrency control, and abort
+- **Async `useComputed$`** — Replaces `useResource$` with auto-tracking, polling, concurrency control, and abort
 - **`<Suspense>`** — Shows fallback UI while part of the page waits
 
 ## Quick Start
@@ -165,34 +165,26 @@ export default defineConfig({
 
 These won't cause compile errors but will break runtime behavior if not addressed.
 
-### useComputed$ is sync-only
+### useComputed$ now supports async
 
-`useComputed$` rejects async functions in v2. Error Q29 fires at runtime.
-
-```typescript
-// v1 (no longer supported in v2)
-const data = useComputed$(async () => {
-  const result = await fetch('/api/data');
-  return result.json();
-});
-```
+In v1 `useComputed$` rejected async functions. In v2 it accepts them: pass an `async` function (or return a Promise) and the signal exposes `.pending`, `.error`, and `.value`. Qwik auto-tracks the signals and stores the function reads before the first `await`; reads after an `await` must use the `track()` provided on the context argument.
 
 ```typescript
-// v2
-const data = useAsync$(async ({ abortSignal }) => {
+// v2 — useComputed$ handles async directly
+const data = useComputed$(async ({ abortSignal }) => {
   const result = await fetch('/api/data', { signal: abortSignal });
   return result.json();
 });
 ```
 
-<Note title="READING ASYNCSIGNAL.VALUE">
-`.value` throws while unresolved. Always branch on `.loading` / `.error` first, or provide an `initial` value.
+<Note title="READING COMPUTEDSIGNAL.VALUE">
+`.value` throws while unresolved. Always branch on `.pending` / `.error` first, or provide an `initial` value.
 </Note>
 
 ```tsx
 let content: JSXOutput;
 
-if (data.loading) {
+if (data.pending) {
   content = <p>Loading...</p>;
 } else if (data.error) {
   content = <p>Error: {data.error.message}</p>;
@@ -261,17 +253,17 @@ v1 serialized state into `<script type="qwik/json">` tags. v2 uses `<script type
 
 Still compile in v2, removed in v3.
 
-### useResource$ → useAsync$
+### useResource$ → async useComputed$
 
-| Aspect | v1 `useResource$` | v2 `useAsync$` |
+| Aspect | v1 `useResource$` | v2 async `useComputed$` |
 |---|---|---|
 | Return type | `.value: Promise<T>` | `.value: T` |
-| Track deps | `ctx.track(() => sig.value)` | `ctx.track(sig)` (both forms work) |
+| Track deps | `ctx.track(() => sig.value)` | read `sig.value` directly before the first `await` (auto-tracked); use `ctx.track()` after an `await` |
 | Abort | Manual `AbortController` | `ctx.abortSignal` |
 | Previous value | - | `ctx.previous` |
-| Polling | - | `options.interval` |
+| Polling | - | `options.expires` + `options.poll` |
 | Initial value | - | `options.initial` |
-| Rendering | `<Resource onResolved={} />` | `.loading`/`.error` branching or `<Suspense>` |
+| Rendering | `<Resource onResolved={} />` | `.pending`/`.error` branching or `<Suspense>` |
 
 <LongNote title="Full before/after example">
 
@@ -310,13 +302,13 @@ const Cmp = component$(() => {
 v2:
 
 ```tsx
-import { useAsync$ } from '@qwik.dev/core';
+import { useComputed$ } from '@qwik.dev/core';
 
 const Cmp = component$(() => {
   const city = useSignal('');
 
-  const weather = useAsync$(async ({ track, abortSignal }) => {
-    const cityName = track(city);
+  const weather = useComputed$(async ({ abortSignal }) => {
+    const cityName = city.value;
     const res = await fetch(`/api/weather?city=${cityName}`, {
       signal: abortSignal,
     });
@@ -325,7 +317,7 @@ const Cmp = component$(() => {
 
   let content: JSXOutput;
 
-  if (weather.loading) {
+  if (weather.pending) {
     content = <div>Loading...</div>;
   } else if (weather.error) {
     content = <div>Error: {weather.error.message}</div>;
@@ -344,11 +336,11 @@ const Cmp = component$(() => {
 
 </LongNote>
 
-`useAsync$()` owns the work that creates the value. [`<Suspense>`](/docs/(qwik)/core/suspense/index.mdx) owns the fallback UI if you want to read `.value` directly while the value may still be pending.
+`useComputed$()` owns the work that creates the value. [`<Suspense>`](/docs/labs/suspense/index.mdx) owns the fallback UI if you want to read `.value` directly while the value may still be pending.
 
 What changed:
 
-- `track(() => signal.value)` → `track(signal)` (shorthand, old form still works)
+- `track(() => signal.value)` → read `signal.value` directly before the first `await` (auto-tracked); after an `await`, keep using the provided `track()`
 - Manual `AbortController` + `cleanup()` → `ctx.abortSignal`
 - `<Resource onResolved={} />` → `if`/`else` branching
 - `.value` is `T` directly, not `Promise<T>`
@@ -402,7 +394,7 @@ Find your error message below.
 
 ### useComputed$ QRL ... cannot return a Promise
 
-Replace with `useAsync$`. See [useComputed$ is sync-only](#usecomputed-is-sync-only).
+No longer thrown in v2: `useComputed$` now supports async functions. See [useComputed$ now supports async](#usecomputed-now-supports-async).
 
 ### Only primitive and object literals can be serialized
 

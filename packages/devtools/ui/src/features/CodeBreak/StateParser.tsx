@@ -108,31 +108,31 @@ export const StateParser = component$(() => {
   return (
     <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
       <div class="border-glass-border bg-card-item-bg flex h-[60vh] min-h-0 flex-col rounded-xl border">
-        <div class="border-glass-border flex items-center justify-between border-b p-3">
-          <div class="text-sm font-medium">Input State</div>
-          {parsingTime.value !== null && (
-            <span class="border-glass-border text-muted-foreground rounded-full border px-2 py-0.5 text-xs">
-              {parsingTime.value}ms
-            </span>
-          )}
+        <div class="border-glass-border flex items-center justify-between gap-3 border-b p-3">
+          <div class="flex items-center gap-3">
+            <div class="text-sm font-medium">Input State</div>
+            {parsingTime.value !== null && (
+              <span class="border-glass-border text-muted-foreground rounded-full border px-2 py-0.5 text-xs">
+                {parsingTime.value}ms
+              </span>
+            )}
+          </div>
+          <button
+            onClick$={onParseState$}
+            class="bg-accent rounded-md px-3 py-1.5 text-sm text-white hover:opacity-90"
+          >
+            Parse State
+          </button>
         </div>
-        <div class="min-h-0 flex-1 flex-col space-y-3 p-3">
+        <div class="flex min-h-0 flex-1 flex-col p-3">
           <textarea
             value={inputState.value}
             onInput$={(e: InputEvent, t: HTMLTextAreaElement) =>
               (inputState.value = (t as HTMLTextAreaElement).value)
             }
             placeholder="Paste Qwik state and click to parse/format."
-            class="border-glass-border bg-card-item-bg text-foreground placeholder:text-muted-foreground h-full min-h-0 w-full flex-1 resize-none rounded-md border p-3 font-mono text-sm"
+            class="border-glass-border bg-card-item-bg text-foreground placeholder:text-muted-foreground min-h-0 w-full flex-1 resize-none rounded-md border p-3 font-mono text-sm"
           />
-          <div class="flex items-center gap-3">
-            <button
-              onClick$={onParseState$}
-              class="bg-accent rounded-md px-3 py-1.5 text-sm text-white hover:opacity-90"
-            >
-              Parse State
-            </button>
-          </div>
         </div>
       </div>
 

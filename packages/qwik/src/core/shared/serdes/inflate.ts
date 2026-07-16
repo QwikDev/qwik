@@ -19,7 +19,7 @@ import {
   AsyncSignalFlags,
   EffectProperty,
   NEEDS_COMPUTATION,
-  SignalFlags,
+  ComputedSignalFlags,
   type AllSignalFlags,
   type AsyncQRL,
   type Consumer,
@@ -39,9 +39,10 @@ import type { DeserializeContainer, HostElement } from '../types';
 import { _OWNER, _PROPS_HANDLER, _UNINITIALIZED } from '../utils/constants';
 import { isString } from '../utils/types';
 import type { VirtualVNode } from '../vnode/virtual-vnode';
-import { allocate, pendingStoreTargets, resolvers } from './allocate';
-import { TypeIds } from './constants';
+import { allocate, beginDeserialization, endDeserialization, resolvers } from './allocate';
+import { EMPTY_OBJECT_PAYLOAD, TypeIds } from './constants';
 import { needsInflation } from './deser-proxy';
+import type { SubscriptionPatch } from './subscription-patch';
 
 export let loading = Promise.resolve();
 
@@ -70,22 +71,114 @@ export const inflate = (
   typeId: TypeIds,
   data: unknown
 ): void => {
+  const ownsPendingStoreTargets = beginDeserialization(container);
+  try {
+    const iterator = inflateIterator(container, target, typeId, data);
+    while (!iterator.next().done) {
+      // Run synchronously for lazy deserialization paths.
+    }
+  } finally {
+    endDeserialization(container, ownsPendingStoreTargets);
+  }
+};
+
+function* eagerDeserializeArrayIterator(
+  container: DeserializeContainer,
+  data: unknown[],
+  output: unknown[] = Array(data.length / 2)
+): Generator<void, unknown[], void> {
+  for (let i = 0; i < data.length; i += 2) {
+    output[i / 2] = yield* deserializeDataIterator(container, data[i] as TypeIds, data[i + 1]);
+    yield;
+  }
+  return output;
+}
+
+export function* eagerDeserializeStateIterator(
+  container: DeserializeContainer,
+  data: unknown[],
+  output: unknown[] = Array(data.length / 2)
+): Generator<void, unknown[], void> {
+  const ownsPendingStoreTargets = beginDeserialization(container);
+  const length = data.length / 2;
+  const allocated = new Uint8Array(length);
+  const previousGetObjectById = container.$getObjectById$;
+
+  const allocateRoot = (index: number): unknown => {
+    if (!allocated[index]) {
+      allocated[index] = 1;
+      const typeIndex = index * 2;
+      const typeId = data[typeIndex] as TypeIds;
+      const value = data[typeIndex + 1];
+      output[index] = typeId === TypeIds.Plain ? value : allocate(container, typeId, value);
+    }
+    return output[index];
+  };
+
+  container.$getObjectById$ = (id) => allocateRoot(typeof id === 'string' ? parseInt(id, 10) : id);
+  try {
+    for (let i = 0; i < length; i++) {
+      allocateRoot(i);
+      yield;
+    }
+    for (let i = 0; i < length; i++) {
+      const typeIndex = i * 2;
+      const typeId = data[typeIndex] as TypeIds;
+      const value = data[typeIndex + 1];
+      const propValue = output[i];
+      data[typeIndex] = TypeIds.Plain;
+      data[typeIndex + 1] = propValue;
+      if (needsInflation(typeId)) {
+        yield* inflateIterator(container, propValue, typeId, value);
+      }
+      yield;
+    }
+  } finally {
+    container.$getObjectById$ = previousGetObjectById;
+    endDeserialization(container, ownsPendingStoreTargets);
+  }
+  return output;
+}
+
+function* deserializeDataIterator(
+  container: DeserializeContainer,
+  typeId: number,
+  value: unknown
+): Generator<void, unknown, void> {
+  if (typeId === TypeIds.Plain) {
+    return value;
+  }
+  const propValue = allocate(container, typeId, value);
+  if (needsInflation(typeId)) {
+    yield* inflateIterator(container, propValue, typeId, value);
+  }
+  return propValue;
+}
+
+function* inflateIterator(
+  container: DeserializeContainer,
+  target: unknown,
+  typeId: TypeIds,
+  data: unknown
+): Generator<void, void, void> {
   if (typeId === TypeIds.Plain) {
     // Already processed
     return;
   }
+  if (typeId === TypeIds.Object && data !== EMPTY_OBJECT_PAYLOAD && !Array.isArray(data)) {
+    throw new Error('Invalid Object payload');
+  }
   // Restore the complex data, special case for Array
   if (typeId !== TypeIds.Array && Array.isArray(data)) {
-    data = _eagerDeserializeArray(container, data);
+    data = yield* eagerDeserializeArrayIterator(container, data);
   }
   switch (typeId) {
     case TypeIds.Array:
       // Arrays are special, we need to fill the array in place
-      _eagerDeserializeArray(container, data as unknown[], target as unknown[]);
+      yield* eagerDeserializeArrayIterator(container, data as unknown[], target as unknown[]);
       break;
     case TypeIds.Object:
-      if (data === 0) {
-        // Special case, was an empty object
+      if (data === EMPTY_OBJECT_PAYLOAD) {
         break;
       }
       for (let i = 0; i < (data as any[]).length; i += 2) {
@@ -97,37 +190,64 @@ export const inflate = (
         (target as Record<string, unknown>)[key] = value;
       }
       break;
-    case TypeIds.Task:
+    case TypeIds.Set: {
+      const set = target as Set<unknown>;
+      const d = data as any[];
+      for (let i = 0; i < d.length; i++) {
+        set.add(d[i]);
+        yield;
+      }
+      break;
+    }
+    case TypeIds.Map: {
+      const map = target as Map<unknown, unknown>;
+      const d = data as any[];
+      for (let i = 0; i < d.length; i++) {
+        map.set(d[i++], d[i]);
+        yield;
+      }
+      break;
+    }
+    case TypeIds.Promise: {
+      const promise = target as Promise<unknown>;
+      const [resolved, result] = data as [boolean, unknown];
+      const [resolve, reject] = resolvers.get(promise)!;
+      if (resolved) {
+        // Native Promises cannot fulfill with another Promise.
+        if (resolvers.has(result as Promise<unknown>)) {
+          throw qError(QError.invalidPromiseDependency);
+        }
+        resolve(result);
+      } else {
+        reject(result);
+      }
+      break;
+    }
+    case TypeIds.Error: {
+      const d = data as string[];
+      (target as Error).message = d[0] as string;
+      for (let i = 1; i < d.length; i += 2) {
+        const key = d[i];
+        const value = d[i + 1];
+        if (isSafeObjectKV(key, value)) {
+          (target as any)[key] = value;
+        }
+        yield;
+      }
+      break;
+    }
+    case TypeIds.Task: {
       const task = target as Task;
       const v = data as any[];
       task.$qrl$ = v[0];
       task.$flags$ = v[1];
       task.$index$ = v[2];
       task.$el$ = v[3] as HostElement;
-      task.$state$ = v[4];
       break;
+    }
     case TypeIds.Component:
       (target as any)[SERIALIZABLE_STATE][0] = (data as any[])[0];
       break;
-    case TypeIds.Store: {
-      // Inflate the store target
-      const store = unwrapStore(target) as object;
-      const storeTarget = pendingStoreTargets.get(store);
-      if (storeTarget) {
-        pendingStoreTargets.delete(store);
-        inflate(container, store, storeTarget.t, storeTarget.v);
-      }
-      /**
-       * Note that we don't do anything with the innerstores we added during serialization, because
-       * they are already inflated in the deserialize of the data, above.
-       */
-      const [, flags, effects] = data as unknown[];
-      const storeHandler = getStoreHandler(target as object)!;
-      storeHandler.$flags$ = flags as StoreFlags;
-      storeHandler.$effects$ = effects as any;
-      restoreEffectBackRefForEffectsMap(storeHandler.$effects$, store);
-      break;
-    }
     case TypeIds.Signal: {
       const signal = target as SignalImpl<unknown>;
       const d = data as [unknown, ...EffectSubscription[]];
@@ -143,7 +263,7 @@ export const inflate = (
       signal.$args$ = d[1];
       signal.$untrackedValue$ = NEEDS_COMPUTATION;
       signal.$flags$ = d[2];
-      signal.$flags$ |= SignalFlags.INVALID;
+      signal.$flags$ |= ComputedSignalFlags.INVALID;
       signal.$hostElement$ = d[3];
       signal.$effects$ = new Set(d.slice(4) as EffectSubscription[]);
       inflateWrappedSignalValue(signal);
@@ -182,7 +302,7 @@ export const inflate = (
 
       if (asyncSignal.$flags$ & AsyncSignalFlags.CLIENT_ONLY) {
         // If it's client only, it was serialized because it pretended to be loading
-        asyncSignal.$untrackedLoading$ = true;
+        asyncSignal.$untrackedPending$ = true;
       }
 
       const hasValue = d.length > 6;
@@ -191,7 +311,7 @@ export const inflate = (
       }
       // can happen when never serialize etc
       if (asyncSignal.$untrackedValue$ === NEEDS_COMPUTATION) {
-        asyncSignal.$flags$ |= SignalFlags.INVALID;
+        asyncSignal.$flags$ |= ComputedSignalFlags.INVALID;
       }
 
       // Handle old format (negative = no poll) and new format (always positive, flag in d[5])
@@ -236,17 +356,9 @@ export const inflate = (
       if (typeId !== TypeIds.SerializerSignal && computed.$untrackedValue$ !== NEEDS_COMPUTATION) {
         // If we have a value after SSR, it will always be mean the signal was not invalid
         // The serialized signal is always left invalid so it can recreate the custom object
-        computed.$flags$ &= ~SignalFlags.INVALID;
+        computed.$flags$ &= ~ComputedSignalFlags.INVALID;
       }
       restoreEffectBackRefForEffects(computed.$effects$, computed);
-      break;
-    }
-    case TypeIds.Error: {
-      const d = data as string[];
-      (target as Error).message = d[0] as string;
-      for (let i = 1; i < d.length; i += 2) {
-        (target as any)[d[i]] = d[i + 1];
-      }
       break;
     }
     case TypeIds.FormData: {
@@ -254,6 +366,7 @@ export const inflate = (
       const d = data as any[];
       for (let i = 0; i < d.length; i++) {
         formData.append(d[i++], d[i]);
+        yield;
       }
       break;
     }
@@ -268,43 +381,7 @@ export const inflate = (
       jsx.toSort = !!toSort;
       break;
     }
-    case TypeIds.Set: {
-      const set = target as Set<unknown>;
-      const d = data as any[];
-      for (let i = 0; i < d.length; i++) {
-        set.add(d[i]);
-      }
-      break;
-    }
-    case TypeIds.Map: {
-      const map = target as Map<unknown, unknown>;
-      const d = data as any[];
-      for (let i = 0; i < d.length; i++) {
-        map.set(d[i++], d[i]);
-      }
-      break;
-    }
-    case TypeIds.Promise: {
-      const promise = target as Promise<unknown>;
-      const [resolved, result] = data as [boolean, unknown];
-      const [resolve, reject] = resolvers.get(promise)!;
-      if (resolved) {
-        resolve(result);
-      } else {
-        reject(result);
-      }
-      break;
-    }
-    case TypeIds.Uint8Array:
-      const bytes = target as Uint8Array;
-      const buf = atob(data as string);
-      let i = 0;
-      for (let j = 0; j < buf.length; j++) {
-        const s = buf[j];
-        bytes[i++] = s.charCodeAt(0);
-      }
-      break;
-    case TypeIds.PropsProxy:
+    case TypeIds.PropsProxy: {
       const propsProxy = target as PropsProxy;
       const d = data as [
         JSXNodeImpl | typeof _UNINITIALIZED,
@@ -314,7 +391,12 @@ export const inflate = (
       ];
       let owner = d[0];
       if (owner === _UNINITIALIZED) {
-        owner = new JSXNodeImpl(Fragment, d[1], d[2], null, 0, null);
+        owner = new JSXNodeImpl(Fragment, null, null, null, 0, null);
+        // Important: var/const props can be eager-deserialization placeholders. (empty objects)
+        // Do not let JSXNodeImpl constructor normalize {} to EMPTY_OBJ/null.
+        owner.varProps = d[1];
+        owner.constProps = d[2];
+
         owner._proxy = propsProxy;
       }
       propsProxy[_OWNER] = owner;
@@ -322,12 +404,16 @@ export const inflate = (
       propsHandler.$effects$ = d[3];
       restoreEffectBackRefForEffectsMap(propsHandler.$effects$, propsProxy);
       break;
+    }
     case TypeIds.SubscriptionData: {
       const effectData = target as SubscriptionData;
       effectData.data.$scopedStyleIdPrefix$ = (data as any[])[0];
       effectData.data.$isConst$ = (data as any[])[1];
       break;
     }
+    case TypeIds.SubscriptionDataConstTrue:
+    case TypeIds.SubscriptionDataConstFalse:
+      break;
     case TypeIds.EffectSubscription: {
       const effectSub = target as EffectSubscription;
       const d = data as [Consumer, EffectProperty | string, SubscriptionData | null];
@@ -337,35 +423,53 @@ export const inflate = (
       restoreEffectBackRefForConsumer(effectSub);
       break;
     }
+    case TypeIds.SubscriptionPatch: {
+      const patch = target as SubscriptionPatch;
+      const d = data as [
+        number,
+        Set<EffectSubscription> | Map<string | symbol, Set<EffectSubscription>>,
+      ];
+      patch.rootId = d[0];
+      patch.subscriptions = d[1];
+      break;
+    }
+    case TypeIds.EffectSubscriptionNoData: {
+      const effectSub = target as EffectSubscription;
+      const d = data as [Consumer, EffectProperty | string];
+      effectSub.consumer = d[0];
+      effectSub.property = d[1];
+      effectSub.data = null;
+      restoreEffectBackRefForConsumer(effectSub);
+      break;
+    }
+    case TypeIds.Uint8Array: {
+      const bytes = target as Uint8Array;
+      const buf = atob(data as string);
+      for (let j = 0; j < buf.length; j++) {
+        bytes[j] = buf.charCodeAt(j);
+        if ((j & 31) === 31) {
+          yield;
+        }
+      }
+      break;
+    }
+    case TypeIds.Store: {
+      const store = unwrapStore(target) as object;
+      const storeTarget = container.$pendingStoreTargets$!.get(store);
+      if (storeTarget) {
+        container.$pendingStoreTargets$!.delete(store);
+        yield* inflateIterator(container, store, storeTarget.t, storeTarget.v);
+      }
+      const [, flags, effects] = data as unknown[];
+      const storeHandler = getStoreHandler(target as object)!;
+      storeHandler.$flags$ = flags as StoreFlags;
+      storeHandler.$effects$ = effects as any;
+      restoreEffectBackRefForEffectsMap(storeHandler.$effects$, store);
+      break;
+    }
     default:
       throw qError(QError.serializeErrorNotImplemented, [typeId]);
   }
-};
-
-/**
- * Restores an array eagerly. If you need it lazily, use `deserializeData(container, TypeIds.Array,
- * array)` instead
- */
-export const _eagerDeserializeArray = (
-  container: DeserializeContainer,
-  data: unknown[],
-  output: unknown[] = Array(data.length / 2)
-): unknown[] => {
-  for (let i = 0; i < data.length; i += 2) {
-    output[i / 2] = deserializeData(container, data[i] as TypeIds, data[i + 1]);
-  }
-  return output;
-};
-
-export function deserializeData(container: DeserializeContainer, typeId: number, value: unknown) {
-  if (typeId === TypeIds.Plain) {
-    return value;
-  }
-  const propValue = allocate(container, typeId, value);
-  if (needsInflation(typeId)) {
-    inflate(container, propValue, typeId, value);
-  }
-  return propValue;
 }
 
 export function inflateWrappedSignalValue(signal: WrappedSignalImpl<unknown>) {

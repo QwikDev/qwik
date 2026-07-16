@@ -3348,6 +3348,36 @@ describe.each([
     );
   });
 
+  it('keeps const props on a captured props proxy after eager SSR resume', async () => {
+    const Test = component$(() => <div />);
+
+    const Child = component$((props: any) => {
+      useTask$(({ track }) => {
+        track(() => props.isOpened.value);
+      });
+
+      return <Test {...props} />;
+    });
+
+    const Parent = component$(() => {
+      const isOpened = useSignal(false);
+
+      return (
+        <>
+          <button onClick$={() => (isOpened.value = !isOpened.value)}>Toggle</button>
+          <Child isOpened={isOpened} />
+        </>
+      );
+    });
+
+    const { container } = await ssrRenderToDom(<Parent />, {
+      debug,
+      statePrewarm: 0,
+    });
+
+    await trigger(container.element, 'button', 'click');
+  });
+
   describe('regression', () => {
     it('#3643', async () => {
       const Issue3643 = component$(() => {
@@ -3854,6 +3884,31 @@ describe.each([
       const { document } = await render(<Cmp />, { debug });
 
       await trigger(document.body, 'button', 'click');
+    });
+
+    it('should materialize q:vnode component keys containing vnode-data directive characters', async () => {
+      const ChildComp = component$(() => {
+        useVisibleTask$(() => {});
+        return <i>child</i>;
+      });
+
+      const Cmp = component$(() => {
+        const count = useSignal(0);
+
+        return (
+          <div>
+            <button onClick$={() => count.value++}>{count.value}</button>
+            <ChildComp key="?=;@~" />
+          </div>
+        );
+      });
+
+      const { document } = await render(<Cmp />, { debug });
+
+      await trigger(document.body, 'button', 'click');
+
+      expect(document.querySelector('button')!.textContent).toBe('1');
+      expect(document.querySelector('i')!.textContent).toBe('child');
     });
   });
 });

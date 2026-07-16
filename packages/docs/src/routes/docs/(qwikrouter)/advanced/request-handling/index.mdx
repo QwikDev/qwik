@@ -56,6 +56,7 @@ The request handler functions receive a `RequestEvent` argument which has the fo
 | `abort`    | Request abort function                                                        |
 | `params`   | Custom user params found within the URL                                       |
 | `cookie`   | Get and set cookies.                                                          |
+| `internalRequest` | Internal JSON request kind (`'loader'` or `'action'`) or `false` for normal page requests. |
 | `platform` | Platform data object (useful for Cloudflare, Netlify, etc)                    |
 
 ### Cookie

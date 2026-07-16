@@ -2,17 +2,20 @@ import { isDev } from '@qwik.dev/core/build';
 import { qTest } from '../shared/utils/qdev';
 import { _EFFECT_BACK_REF } from '../reactive-primitives/backref';
 import { clearAllEffects, clearEffectSubscription } from '../reactive-primitives/cleanup';
-import { AsyncSignalImpl } from '../reactive-primitives/impl/async-signal-impl';
-import { SignalImpl } from '../reactive-primitives/impl/signal-impl';
-import { isStore } from '../reactive-primitives/impl/store';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 import type { Signal } from '../reactive-primitives/signal.public';
 import { SubscriptionData } from '../reactive-primitives/subscription-data';
-import { EffectProperty, type Consumer } from '../reactive-primitives/types';
+import {
+  AsyncSignalFlags,
+  ComputedSignalFlags,
+  EffectProperty,
+  type Consumer,
+} from '../reactive-primitives/types';
 import { isSignal } from '../reactive-primitives/utils';
-import { executeComponent } from '../shared/component-execution';
 import { SERIALIZABLE_STATE, type OnRenderFn } from '../shared/component.public';
-import type { Cursor } from '../shared/cursor/cursor';
+import { isCursor, type Cursor } from '../shared/cursor/cursor';
+import { abandonCursor } from '../shared/cursor/cursor-queue';
+import { getCursorData } from '../shared/cursor/cursor-props';
 import { assertDefined, assertFalse, assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import { JSXNodeImpl, isJSXNode } from '../shared/jsx/jsx-node';
@@ -28,7 +31,7 @@ import type { JSXNodeInternal } from '../shared/jsx/types/jsx-node';
 import type { EventHandler, JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SkipRender } from '../shared/jsx/utils.public';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
-import type { HostElement, QElement, qWindow } from '../shared/types';
+import type { QElement, qWindow } from '../shared/types';
 import { DEBUG_TYPE, QContainerValue, VirtualType } from '../shared/types';
 import { directSetAttribute } from '../shared/utils/attribute';
 import { escapeHTML } from '../shared/utils/character-escaping';
@@ -51,8 +54,8 @@ import {
   debugStyleScopeIdPrefixAttr,
 } from '../shared/utils/markers';
 import { isPromise, retryOnPromise } from '../shared/utils/promises';
-import { isSlotProp } from '../shared/utils/prop';
-import { serializeAttribute } from '../shared/utils/styles';
+import { isSlotProp, resolveSlotName } from '../shared/utils/prop';
+import { serializeAttribute, serializeClass, stringifyStyle } from '../shared/utils/styles';
 import { isArray, isObject, type ValueOrPromise } from '../shared/utils/types';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
@@ -62,7 +65,7 @@ import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
 import type { VNode } from '../shared/vnode/vnode';
 import { addVNodeOperation, markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import { updateDirtySubtreeCursorBoundary, type CursorBoundary } from '../use/use-cursor-boundary';
-import { trackSignalAndAssignHost } from '../use/use-core';
+import { trackSignalAndAssignHost, untrack } from '../use/use-core';
 import { TaskFlags, isTask } from '../use/use-task';
 import { cleanupDestroyable } from '../use/utils/destroyable';
 import { runEventHandlerQRL } from '../client/run-qrl';
@@ -100,6 +103,8 @@ import {
   type VNodeJournal,
 } from './vnode-utils';
 import { isObjectEmpty } from '../shared/utils/objects';
+import { setInlineComponentData } from '../shared/cursor/chore-execution';
+import { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
 
 export interface DiffContext {
   $container$: ClientContainer;
@@ -407,9 +412,7 @@ function diff(
                   diffContext,
                   diffContext.$jsxValue$.children,
                   true,
-                  // special case for projection, we don't want to expect no children
-                  // because the projection's children are not removed
-                  false
+                  /* isProjection */ true
                 );
               } else if (type === SSRComment) {
                 expectNoMore(diffContext);
@@ -536,15 +539,17 @@ function advance(diffContext: DiffContext) {
  *
  *   In the above example all nodes are on same level so we don't `descendVNode` even thought there is
  *   an array produced by the `map` function.
+ * @param isProjection - True when descending into a Projection, whose children survive re-renders:
+ *   they are diffed against (never re-created) and kept when the new JSX has no children.
  */
 function descend(
   diffContext: DiffContext,
   children: JSXChildren,
   descendVNode: boolean,
-  shouldExpectNoChildren: boolean = true
+  isProjection: boolean = false
 ) {
   if (
-    shouldExpectNoChildren &&
+    !isProjection &&
     (children == null || (descendVNode && isArray(children) && children.length === 0))
   ) {
     expectNoChildren(diffContext);
@@ -558,7 +563,9 @@ function descend(
         'Expecting vCurrent to be defined.'
       );
     const creationMode =
-      diffContext.$isCreationMode$ ||
+      // a projection keeps its children across re-renders, so it never inherits
+      // creation mode from a not-yet-rendered host; create only if new or empty
+      (!isProjection && diffContext.$isCreationMode$) ||
       !!diffContext.$vNewNode$ ||
       !vnode_getFirstChild(diffContext.$vCurrent$!);
 
@@ -733,7 +740,7 @@ function expectSlot(diffContext: DiffContext) {
   const jsxNode = diffContext.$jsxValue$ as JSXNodeInternal;
   const vHost = vnode_getProjectionParentComponent(diffContext.$vParent$);
 
-  const slotNameKey = getSlotNameKey(diffContext, vHost);
+  const slotNameKey = resolveSlotName(vHost, jsxNode, diffContext.$container$);
   const cursorBoundary =
     directGetPropsProxyProp<CursorBoundary | null, any>(jsxNode, QCursorBoundary) || null;
 
@@ -809,23 +816,6 @@ function expectSlot(diffContext: DiffContext) {
     }
   }
   return true;
-}
-
-function getSlotNameKey(diffContext: DiffContext, vHost: VNode | null) {
-  const jsxNode = diffContext.$jsxValue$ as JSXNodeInternal;
-  const constProps = jsxNode.constProps;
-  if (constProps && typeof constProps == 'object' && _hasOwnProperty.call(constProps, 'name')) {
-    const constValue = constProps.name;
-    if (vHost && constValue instanceof WrappedSignalImpl) {
-      return trackSignalAndAssignHost(
-        constValue,
-        vHost,
-        EffectProperty.COMPONENT,
-        diffContext.$container$
-      );
-    }
-  }
-  return directGetPropsProxyProp(jsxNode, 'name') || QDefaultSlot;
 }
 
 function cleanupSideBuffer(diffContext: DiffContext) {
@@ -1191,22 +1181,23 @@ function diffProps(
     vnode_ensureElementInflated(diffContext.$container$, vnode);
   }
   const oldAttrs = vnode.props;
+  const isHtml = (vnode.flags & VNodeFlags.NAMESPACE_MASK) === VNodeFlags.NS_html;
 
   // Actual diffing logic
   // Apply all new attributes
   for (const key in newAttrs) {
     const newValue = newAttrs[key];
+    // HTML parsers lowercase attribute names.
+    const oldKey =
+      oldAttrs && isHtml && !_hasOwnProperty.call(oldAttrs, key) ? key.toLowerCase() : key;
 
-    if (oldAttrs && _hasOwnProperty.call(oldAttrs, key)) {
-      const oldValue = oldAttrs[key];
-      if (newValue !== oldValue) {
-        if (
-          newValue instanceof WrappedSignalImpl &&
-          oldValue instanceof WrappedSignalImpl &&
-          areWrappedSignalsEqual(newValue, oldValue)
-        ) {
-          continue;
-        }
+    if (oldAttrs && _hasOwnProperty.call(oldAttrs, oldKey)) {
+      const oldValue = oldAttrs[oldKey];
+      if (oldKey !== key) {
+        vnode_setProp(vnode, oldKey, null);
+        vnode_setProp(vnode, key, oldValue);
+      }
+      if (!areDiffValuesEqual(newValue, oldValue)) {
         patchProperty(diffContext, vnode, key, newValue, currentFile);
       }
     } else if (newValue != null) {
@@ -1669,7 +1660,6 @@ function expectComponent(diffContext: DiffContext, component: Function) {
       // delete the key from the side buffer if it is the same component
       deleteFromSideBuffer(diffContext, null, lookupKey);
     }
-
     if (host) {
       let componentHost: VNode | null = host;
       // Find the closest component host which has `OnRender` prop. This is need for subscriptions context.
@@ -1686,15 +1676,13 @@ function expectComponent(diffContext: DiffContext, component: Function) {
         componentHost = componentHost.parent || vnode_getProjectionParentComponent(componentHost);
       }
 
-      const jsxOutput = executeComponent(
+      setInlineComponentData(host, component, componentHost, jsxNode.props as Props | null);
+      markVNodeDirty(
         diffContext.$container$,
         host,
-        (componentHost || diffContext.$container$.rootVNode) as HostElement,
-        component as OnRenderFn<unknown>,
-        jsxNode.props
+        ChoreBits.INLINE_COMPONENT,
+        diffContext.$cursor$
       );
-
-      diffContext.$asyncQueue$.push(jsxOutput, host);
     }
   }
 }
@@ -1869,13 +1857,27 @@ function handleChangedProps(
       if (key === 'children' || key === QBackRefs) {
         continue;
       }
-      if (!dst || src[key] !== dst[key]) {
+      const newValue = src[key];
+      const oldValue = dst?.[key];
+      if (
+        !dst ||
+        !(areDiffValuesEqual(newValue, oldValue) || areSignalValuesEqual(newValue, oldValue))
+      ) {
+        if (key === 'class') {
+          if (areClassValuesEqual(newValue, oldValue)) {
+            continue;
+          }
+        } else if (key === 'style') {
+          if (areStyleValuesEqual(newValue, oldValue)) {
+            continue;
+          }
+        }
         if (triggerEffects) {
           if (dst) {
             // Update the value in dst BEFORE triggering effects
             // so effects see the new value
             // Note: Value is not triggering effects, because we are modyfing direct VAR_PROPS object
-            dst[key] = src[key];
+            dst[key] = newValue;
           }
           const didTigger = triggerPropsProxyEffect(propsHandler, key);
           if (!didTigger) {
@@ -1938,6 +1940,7 @@ export function cleanup(
   cursorRoot: VNode | null = null
 ) {
   let vCursor: VNode | null = vNode;
+  const cursorRootData = cursorRoot && isCursor(cursorRoot) ? getCursorData(cursorRoot) : null;
   // Depth first traversal
   if (vnode_isTextVNode(vNode)) {
     markVNodeAsDeleted(vCursor);
@@ -1946,6 +1949,9 @@ export function cleanup(
   }
   let vParent: VNode | null = null;
   do {
+    if (cursorRootData && vCursor !== cursorRoot && isCursor(vCursor)) {
+      abandonCursor(container, cursorRootData, vCursor);
+    }
     const type = vCursor.flags;
     if (type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) {
       clearAllEffects(container, vCursor);
@@ -1968,11 +1974,20 @@ export function cleanup(
 
                 // don't call cleanupDestroyable yet, do it by the scheduler
                 continue;
-              } else if (obj instanceof SignalImpl || isStore(obj)) {
-                clearAllEffects(container, obj as Consumer);
+              }
+              // Stores and plain signals are only producers; their subscriptions are removed
+              // when cleaning the consumers that read them. They don't own reactive backrefs.
+              else if (obj instanceof ComputedSignalImpl || obj instanceof WrappedSignalImpl) {
+                if (!(obj.$flags$ & ComputedSignalFlags.PRESERVE_ON_SEQ_CLEANUP)) {
+                  clearAllEffects(container, obj as Consumer);
+                }
               }
 
-              if (objIsTask || obj instanceof AsyncSignalImpl) {
+              if (
+                objIsTask ||
+                (obj instanceof ComputedSignalImpl &&
+                  (obj.$flags$ & AsyncSignalFlags.ASYNC_MODE || obj.$current$))
+              ) {
                 cleanupDestroyable(obj);
               }
             }
@@ -1999,7 +2014,7 @@ export function cleanup(
                   projectionChild = projectionChild.nextSibling as VNode | null;
                 }
 
-                cleanupStaleUnclaimedProjection(journal, projection);
+                cleanupStaleUnclaimedProjection(container, journal, projection);
               }
             }
           }
@@ -2025,18 +2040,10 @@ export function cleanup(
          */
         const vFirstChild = vnode_getFirstChild(vCursor);
         if (vFirstChild) {
-          vnode_walkVNode(vFirstChild, (vNode) => {
-            /**
-             * Instead of an ID, we store a direct reference to the VNode. This is necessary to
-             * locate the slot's parent in a detached subtree, as the ID would become invalid.
-             */
-            if (vNode.flags & VNodeFlags.Virtual) {
-              // The QSlotParent is used to find the slot parent during scheduling
-              vNode.slotParent;
-            }
-          });
+          vnode_walkVNode(vFirstChild);
           return;
         }
+        clearProjectionFromSlotParent(container, vCursor);
       }
     } else if (type & VNodeFlags.Text) {
       markVNodeAsDeleted(vCursor);
@@ -2074,7 +2081,21 @@ export function cleanup(
   } while (true as boolean);
 }
 
-function cleanupStaleUnclaimedProjection(journal: VNodeJournal, projection: VNode) {
+function clearProjectionFromSlotParent(container: ClientContainer, vNode: VNode) {
+  if (!vNode.slotParent) {
+    return;
+  }
+  const slotName = container.getHostProp<string>(vNode, QSlot);
+  if (slotName != null && container.getHostProp(vNode.slotParent, slotName) === vNode) {
+    vnode_setProp(vNode.slotParent, slotName, null);
+  }
+}
+
+function cleanupStaleUnclaimedProjection(
+  container: ClientContainer,
+  journal: VNodeJournal,
+  projection: VNode
+) {
   // we are removing a node where the projection would go after slot render.
   // This is not needed, so we need to cleanup still unclaimed projection
   const projectionParent = projection.parent;
@@ -2085,6 +2106,7 @@ function cleanupStaleUnclaimedProjection(journal: VNodeJournal, projection: VNod
       vnode_getElementName(projectionParent as ElementVNode) === QTemplate
     ) {
       // if parent is the q:template element then projection is still unclaimed - remove it
+      clearProjectionFromSlotParent(container, projection);
       vnode_remove(journal, projectionParent as ElementVNode | VirtualVNode, projection, true);
     }
   }
@@ -2097,6 +2119,45 @@ function markVNodeAsDeleted(vCursor: VNode) {
    */
 
   vCursor.flags |= VNodeFlags.Deleted;
+}
+
+function areDiffValuesEqual(newValue: any, oldValue: any): boolean {
+  if (newValue === oldValue) {
+    return true;
+  }
+  return (
+    newValue instanceof WrappedSignalImpl &&
+    oldValue instanceof WrappedSignalImpl &&
+    areWrappedSignalsEqual(oldValue, newValue)
+  );
+}
+
+function areSignalValuesEqual(newValue: any, oldValue: any): boolean {
+  if (newValue === oldValue) {
+    return true;
+  }
+  if (isSignal(newValue) && isSignal(oldValue)) {
+    const unwrappedNew =
+      newValue instanceof WrappedSignalImpl ? newValue.$unwrapIfSignal$() : newValue;
+    const unwrappedOld =
+      oldValue instanceof WrappedSignalImpl ? oldValue.$unwrapIfSignal$() : oldValue;
+    return untrack(() => unwrappedNew.value === unwrappedOld.value);
+  }
+  return false;
+}
+
+function areStyleValuesEqual(newValue: any, oldValue: any): boolean {
+  if (newValue === oldValue) {
+    return true;
+  }
+  return stringifyStyle(newValue) === stringifyStyle(oldValue);
+}
+
+function areClassValuesEqual(newValue: any, oldValue: any): boolean {
+  if (newValue === oldValue) {
+    return true;
+  }
+  return serializeClass(newValue) === serializeClass(oldValue);
 }
 
 function areWrappedSignalsEqual(

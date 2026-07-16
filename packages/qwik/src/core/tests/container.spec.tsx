@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { ssrCreateContainer } from '../../server/ssr-container';
 import { SsrNode } from '../../server/ssr-node';
 import { createDocument } from '../../testing/document';
-import { getDomContainer } from '../client/dom-container';
+import { getDomContainer, whenContainerDataReady } from '../client/dom-container';
 import type { ClientContainer } from '../client/types';
 import {
   vnode_ensureElementInflated,
@@ -13,7 +13,7 @@ import {
   vnode_getText,
 } from '../client/vnode-utils';
 import { createComputed$, createSignal } from '../reactive-primitives/signal.public';
-import { SignalFlags } from '../reactive-primitives/types';
+import { ComputedSignalFlags } from '../reactive-primitives/types';
 import { SERIALIZABLE_STATE, component$ } from '../shared/component.public';
 import { JSXNodeImpl } from '../shared/jsx/jsx-node';
 import { Fragment } from '../shared/jsx/jsx-runtime';
@@ -35,7 +35,7 @@ describe('serializer v2', () => {
   describe('rendering', () => {
     it('should do basic serialize/deserialize', async () => {
       const input = <span>test</span>;
-      const output = toVNode(toDOM(await toHTML(input)));
+      const output = await toVNode(toDOM(await toHTML(input)));
       expect(output).toMatchVDOM(input);
     });
 
@@ -45,7 +45,7 @@ describe('serializer v2', () => {
           {'Hello'} <b>{'world'}</b>!
         </>
       );
-      const output = toVNode(toDOM(await toHTML(input)));
+      const output = await toVNode(toDOM(await toHTML(input)));
       expect(output).toMatchVDOM('Hello ');
     });
 
@@ -60,7 +60,7 @@ describe('serializer v2', () => {
           </>
         </main>
       );
-      const output = toVNode(toDOM(await toHTML(input)));
+      const output = await toVNode(toDOM(await toHTML(input)));
       expect(output).toMatchVDOM(
         <main class="">
           Count: 123!
@@ -82,7 +82,7 @@ describe('serializer v2', () => {
           </>
         </div>
       );
-      const output = toVNode(toDOM(await toHTML(input)));
+      const output = await toVNode(toDOM(await toHTML(input)));
       expect(output).toMatchVDOM(
         <div class="">
           <span class="">A</span>
@@ -100,7 +100,7 @@ describe('serializer v2', () => {
           <span>C{'D'}</span>
         </div>
       );
-      const output = toVNode(toDOM(await toHTML(input)));
+      const output = await toVNode(toDOM(await toHTML(input)));
       expect(output).toMatchVDOM(input);
     });
 
@@ -113,7 +113,7 @@ describe('serializer v2', () => {
           {string(26)}
         </div>
       );
-      const output = toVNode(toDOM(await toHTML(input)));
+      const output = await toVNode(toDOM(await toHTML(input)));
       expect(output).toMatchVDOM(input);
     });
 
@@ -185,8 +185,32 @@ describe('serializer v2', () => {
   describe('attributes', () => {
     it('should serialize attributes', async () => {
       const input = <span id="test" class="test" />;
-      const output = toVNode(toDOM(await toHTML(input)));
+      const output = await toVNode(toDOM(await toHTML(input)));
       expect(output).toMatchVDOM(input);
+    });
+  });
+
+  describe('state scripts', () => {
+    it('should only deserialize state owned by the current container', async () => {
+      const document = createDocument();
+      document.body.innerHTML = `
+        <div q:container="paused" q:locale="" q:base="" q:manifest-hash="" q:instance="root" :>
+          <section :>
+            <container q:container="paused" q:locale="" q:base="" q:manifest-hash="" q:instance="nested" :>
+              <script type="qwik/state" q:instance="nested" :>[0,"nested"]</script>
+            </container>
+          </section>
+          <script type="qwik/state" q:instance="root" :>[0,"root"]</script>
+        </div>
+      `;
+
+      const rootContainer = getDomContainer(document.body.firstElementChild!);
+      const nestedContainer = getDomContainer(document.querySelector('container')!);
+      await whenContainerDataReady(rootContainer, () => undefined);
+      await whenContainerDataReady(nestedContainer, () => undefined);
+
+      expect(rootContainer.$getObjectById$(0)).toBe('root');
+      expect(nestedContainer.$getObjectById$(0)).toBe('nested');
     });
   });
 
@@ -404,13 +428,13 @@ describe('serializer v2', () => {
         const container = await withContainer((ssr) => ssr.addRoot(obj));
         const [qrl0, qrl1, qrl2] = container.$getObjectById$(0) as QRLInternal[];
         expect(qrl0.$hash$).toEqual(obj[0].$hash$);
-        expect(qrl0.$captures$).toEqual('1 2');
+        expect(qrl0.$captures$).toEqual('3#1#-3 1');
         expect(qrl0.resolved).toEqual((obj[0] as any).resolved);
         expect(qrl1.$hash$).toEqual(obj[1].$hash$);
-        expect(qrl1.$captures$).toEqual('1 2');
+        expect(qrl1.$captures$).toEqual('3#1#-3 1');
         expect(qrl1.resolved).toEqual((obj[1] as any).resolved);
         expect(qrl2.$hash$).toEqual(obj[2].$hash$);
-        expect(qrl2.$captures$).toEqual('1');
+        expect(qrl2.$captures$).toEqual('6#1#-6');
         await qrl2.resolve();
         expect((qrl2.resolved as any).toString()).toEqual((obj[2] as any).resolved.toString());
       });
@@ -456,7 +480,7 @@ describe('serializer v2', () => {
         });
         const got = container.$getObjectById$(0);
         expect(got.$untrackedValue$).toMatchInlineSnapshot(`Symbol(invalid)`);
-        expect(!!(got.$flags$ & SignalFlags.INVALID)).toBe(true);
+        expect(!!(got.$flags$ & ComputedSignalFlags.INVALID)).toBe(true);
         expect(await retryOnPromise(() => got.value)).toBe('test!');
       });
     });
@@ -535,15 +559,15 @@ describe('serializer v2', () => {
       ).rejects.toThrowError(
         [
           `Code(Q12): SsrError(tag): Error found in file: ${filePath}`,
-          `HTML rules do not allow &#39;&lt;div&gt;&#39; at this location.`,
+          `HTML rules do not allow '<div>' at this location.`,
           `  (The HTML parser will try to recover by auto-closing or inserting additional tags which will confuse Qwik when it resumes.)`,
-          `  Offending tag: &lt;div&gt;`,
+          `  Offending tag: <div>`,
           `  Existing tag context:`,
-          `    &lt;html&gt; [html content] -&gt; &lt;head&gt;, &lt;body&gt;`,
-          `     &lt;body&gt; [body content] -&gt; all tags allowed here`,
-          `      &lt;p&gt; [phrasing content] -&gt; &lt;a&gt;, &lt;b&gt;, &lt;img&gt;, &lt;input&gt; ... (no &lt;div&gt;, &lt;p&gt; ...)`,
-          `       &lt;b&gt;`,
-          `        &lt;div&gt; &lt;= is not allowed as a child of phrasing content.`,
+          `    <html> [html content] -> <head>, <body>`,
+          `     <body> [body content] -> all tags allowed here`,
+          `      <p> [phrasing content] -> <a>, <b>, <img>, <input> ... (no <div>, <p> ...)`,
+          `       <b>`,
+          `        <div> <= is not allowed as a child of phrasing content.`,
         ].join('\n')
       );
     });
@@ -558,13 +582,13 @@ describe('serializer v2', () => {
       ).rejects.toThrowError(
         [
           `Code(Q12): SsrError(tag): Error found in file: ${filePath}`,
-          `HTML rules do not allow &#39;&lt;div&gt;&#39; at this location.`,
+          `HTML rules do not allow '<div>' at this location.`,
           `  (The HTML parser will try to recover by auto-closing or inserting additional tags which will confuse Qwik when it resumes.)`,
-          `  Offending tag: &lt;div&gt;`,
+          `  Offending tag: <div>`,
           `  Existing tag context:`,
-          `    &lt;div&gt; [any content]`,
-          `     &lt;img&gt; [no-content element]`,
-          `      &lt;div&gt; &lt;= is not allowed as a child of no-content element.`,
+          `    <div> [any content]`,
+          `     <img> [no-content element]`,
+          `      <div> <= is not allowed as a child of no-content element.`,
         ].join('\n')
       );
     });
@@ -589,6 +613,7 @@ async function withContainer(
   const html = ssrContainer.writer.toString();
   // console.log(html);
   const container = getDomContainer(toDOM(html));
+  await whenContainerDataReady(container, () => undefined);
   // console.log(JSON.stringify((container as any).rawStateData, null, 2));
   return container;
 }
@@ -640,8 +665,9 @@ function toDOM(html: string): HTMLElement {
   return document.body.firstElementChild! as HTMLElement;
 }
 
-function toVNode(containerElement: HTMLElement): VNode {
+async function toVNode(containerElement: HTMLElement): Promise<VNode> {
   const container = getDomContainer(containerElement);
+  await whenContainerDataReady(container, () => undefined);
   const vNode = vnode_getFirstChild(container.rootVNode)!;
   return vNode;
 }

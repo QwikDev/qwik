@@ -1,5 +1,126 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.38
+
+### Major Changes
+
+- ✨ relocate built assets with output.assetFileNames; remove build.assetsDir handling (by [@maiieul](https://github.com/maiieul) in [#8817](https://github.com/QwikDev/qwik/pull/8817))
+
+- 🐞🩹 sync computed$ errors also go in `.error` and also rethrow on `.value` read (by [@wmertens](https://github.com/wmertens) in [#8807](https://github.com/QwikDev/qwik/pull/8807))
+
+### Minor Changes
+
+- ✨ `useComputed$` accepts async functions and provides a compute context with `track()`; `useAsync$`, `createAsync$`, and `AsyncSignal` are deprecated in favor of it (by [@wmertens](https://github.com/wmertens) in [#8807](https://github.com/QwikDev/qwik/pull/8807))
+
+- ✨ improve client resume responsiveness by splitting startup DOM processing into smaller tasks (by [@Varixo](https://github.com/Varixo) in [#8575](https://github.com/QwikDev/qwik/pull/8575))
+
+- ✨ improve client resume responsiveness by splitting state processing into smaller tasks (by [@Varixo](https://github.com/Varixo) in [#8579](https://github.com/QwikDev/qwik/pull/8579))
+
+- ✨ Add experimental `Show` control-flow component with `when$`, `then$`, and optional `else$` branches. (by [@Varixo](https://github.com/Varixo) in [#8624](https://github.com/QwikDev/qwik/pull/8624))
+
+### Patch Changes
+
+- 🐞🩹 preserve deferred attribute values during server rendering (by [@Varixo](https://github.com/Varixo) in [#8839](https://github.com/QwikDev/qwik/pull/8839))
+
+- 🐞🩹 preserve camelcase html attributes after client resume (by [@Varixo](https://github.com/Varixo) in [#8838](https://github.com/QwikDev/qwik/pull/8838))
+
+- 🐞🩹 validate element names during server rendering (by [@Varixo](https://github.com/Varixo) in [#8839](https://github.com/QwikDev/qwik/pull/8839))
+
+- 🐞🩹 preserve element keys during server rendering (by [@Varixo](https://github.com/Varixo) in [#8839](https://github.com/QwikDev/qwik/pull/8839))
+
+- 🐞🩹 clientOnly async signals now resume on pages without other serialized state (by [@wmertens](https://github.com/wmertens) in [#8807](https://github.com/QwikDev/qwik/pull/8807))
+
+- 🐞🩹 clientOnly option on useComputed$ now skips SSR computation (by [@wmertens](https://github.com/wmertens) in [#8807](https://github.com/QwikDev/qwik/pull/8807))
+
+- 🐞🩹 dedupe the ssr already-streamed-chore dev warning to once per host (by [@maiieul](https://github.com/maiieul) in [#8808](https://github.com/QwikDev/qwik/pull/8808))
+
+- 🐞🩹 the built-in dev-time eslint linter now targets es2022 (by [@maiieul](https://github.com/maiieul) in [#8810](https://github.com/QwikDev/qwik/pull/8810))
+
+- Dev-mode QRL segments now resolve even when their parent module was never loaded in the requesting Vite server (e.g. Vitest browser mode or SSR rendered in a separate server). The dev server transforms the parent on demand instead of erroring with "module does not exist in the build graph". (by [@maiieul](https://github.com/maiieul) in [#8816](https://github.com/QwikDev/qwik/pull/8816))
+
+- Fix SSR in-order streaming not flushing before awaiting a component-body promise. (by [@AmariahAK](https://github.com/AmariahAK) in [#8820](https://github.com/QwikDev/qwik/pull/8820))
+
+- 🐞🩹 release pending store state after failed deserialization (by [@Varixo](https://github.com/Varixo) in [#8839](https://github.com/QwikDev/qwik/pull/8839))
+
+- 🐞🩹 duplicate projected element children when a component throws a promise on first render (by [@maiieul](https://github.com/maiieul) in [#8715](https://github.com/QwikDev/qwik/pull/8715))
+
+- 🐞🩹 resume multiple SSR containers on the same page (by [@maiieul](https://github.com/maiieul) in [#8799](https://github.com/QwikDev/qwik/pull/8799))
+
+- 🐞🩹 validate serialized object data before restoration (by [@Varixo](https://github.com/Varixo) in [#8839](https://github.com/QwikDev/qwik/pull/8839))
+
+- 🐞🩹 reject malformed byte arrays before allocating deserialized data (by [@Varixo](https://github.com/Varixo) in [#8839](https://github.com/QwikDev/qwik/pull/8839))
+
+- 🐞🩹 filter callable properties while restoring errors (by [@Varixo](https://github.com/Varixo) in [#8839](https://github.com/QwikDev/qwik/pull/8839))
+
+- 🐞🩹 preserve slot names during server rendering (by [@Varixo](https://github.com/Varixo) in [#8839](https://github.com/QwikDev/qwik/pull/8839))
+
+- 🐞🩹 resuming component props when statePrewarm option is enabled (by [@Varixo](https://github.com/Varixo) in [#8784](https://github.com/QwikDev/qwik/pull/8784))
+
+- 🐞🩹 ssg build no longer overwrites the deployed server entry with a broken re-export (by [@wmertens](https://github.com/wmertens) in [#8806](https://github.com/QwikDev/qwik/pull/8806))
+
+- 🐞🩹 reject invalid serialized Promise dependencies (by [@Varixo](https://github.com/Varixo) in [#8839](https://github.com/QwikDev/qwik/pull/8839))
+
+- 🐞🩹 reduce component rerender when props are the same (by [@Varixo](https://github.com/Varixo) in [#8735](https://github.com/QwikDev/qwik/pull/8735))
+
+- 🐞🩹 surface a failed container resume — report it and unblock `whenContainerDataReady` waiters — instead of swallowing the error into a silent hang. (by [@maiieul](https://github.com/maiieul) in [#8772](https://github.com/QwikDev/qwik/pull/8772))
+
+- 🐞🩹 surface a failed vnode-data resume — report it and unblock the `whenVNodeDataReady` waiters — instead of swallowing the error into a silent hang. (by [@maiieul](https://github.com/maiieul) in [#8773](https://github.com/QwikDev/qwik/pull/8773))
+
+- 🐞🩹 prevent large updates that span multiple frames from restarting incorrectly and missing pending UI changes (by [@Varixo](https://github.com/Varixo) in [#8743](https://github.com/QwikDev/qwik/pull/8743))
+
+## 2.0.0-beta.37
+
+### Minor Changes
+
+- ✨ reject server-only modules from client builds (by [@Varixo](https://github.com/Varixo) in [#8605](https://github.com/QwikDev/qwik/pull/8605))
+
+### Patch Changes
+
+- 🐞🩹 prevent streamed event handlers from resuming before container state is ready (by [@Varixo](https://github.com/Varixo) in [#8689](https://github.com/QwikDev/qwik/pull/8689))
+
+- 🐞🩹 When a component$ wasn't loaded yet, it would use stale props by the time it resolved and executed. (by [@wmertens](https://github.com/wmertens) in [#8501](https://github.com/QwikDev/qwik/pull/8501))
+
+- 🐞🩹 make repeated HMR JSX remove and restore updates reload QRLs before rerendering (by [@thejackshelton-kunaico](https://github.com/thejackshelton-kunaico) in [#8695](https://github.com/QwikDev/qwik/pull/8695))
+
+## 2.0.0-beta.36
+
+### Minor Changes
+
+- ✨ make `usePreventNavigate$` and `request.rewrite()` stable by removing their experimental feature flags. (by [@Varixo](https://github.com/Varixo) in [#8631](https://github.com/QwikDev/qwik/pull/8631))
+
+### Patch Changes
+
+- ✨ add experimental out-of-order Suspense streaming (by [@Varixo](https://github.com/Varixo) in [#8611](https://github.com/QwikDev/qwik/pull/8611))
+
+- 🐞🩹 prevent Qwik Vite virtual JSX modules from emitting sourcemaps that point to missing files. (by [@Varixo](https://github.com/Varixo) in [#8629](https://github.com/QwikDev/qwik/pull/8629))
+
+- 🐞🩹 release paused cursors that are abandoned before they resume (by [@Varixo](https://github.com/Varixo) in [#8670](https://github.com/QwikDev/qwik/pull/8670))
+
+- 🐞🩹 correctly handle interactivty during html streaming (by [@Varixo](https://github.com/Varixo) in [#8581](https://github.com/QwikDev/qwik/pull/8581))
+
+- 🐞🩹 expose `getClientManifest` from the `@qwik.dev/core` root package types. (by [@Varixo](https://github.com/Varixo) in [#8630](https://github.com/QwikDev/qwik/pull/8630))
+
+- 🐞🩹 inline components projected into a slot now resolve context from the component they are projected into, fixing the MDX provider pattern (`useMDXComponents`). (by [@maiieul](https://github.com/maiieul) in [#8684](https://github.com/QwikDev/qwik/pull/8684))
+
+- 🐞🩹 stale DOM remaining after replacing content during a pending async render (by [@wmertens](https://github.com/wmertens) in [#8649](https://github.com/QwikDev/qwik/pull/8649))
+
+- 🐞🩹 `render()` no longer waits for `useVisibleTask$` to complete. Visible tasks are post-flush side effects and run independently. (by [@maiieul](https://github.com/maiieul) in [#8622](https://github.com/QwikDev/qwik/pull/8622))
+
+- 🐞🩹 we removed the vite preload helper from the built bundles. This reduces total bundle size of all bundles by about 3%. (by [@maiieul](https://github.com/maiieul) in [#8617](https://github.com/QwikDev/qwik/pull/8617))
+
+- 🐞🩹 escape URI-reserved vnode directive chars in serialized keys (by [@Varixo](https://github.com/Varixo) in [#8626](https://github.com/QwikDev/qwik/pull/8626))
+
+- fix(core): SSR no longer crashes with `Code(Q12): SsrError(tag)` when `<head>`/`<body>` are projected through a headless component (e.g. a Provider that renders only `<Slot/>`). (by [@maiieul](https://github.com/maiieul) in [#8668](https://github.com/QwikDev/qwik/pull/8668))
+
+- 🐞🩹 don't HTML-escape SSR tag nesting errors so they're readable when logged (by [@maiieul](https://github.com/maiieul) in [#8667](https://github.com/QwikDev/qwik/pull/8667))
+
+- 🐞🩹 event handlers in out-of-order Suspense content so they resume correctly after streamed state patches (by [@Varixo](https://github.com/Varixo) in [#8685](https://github.com/QwikDev/qwik/pull/8685))
+
+- 🐞🩹 ssr `q:template` projection handling so hidden slotted content can be restored correctly after component rerenders. (by [@Varixo](https://github.com/Varixo) in [#8661](https://github.com/QwikDev/qwik/pull/8661))
+
+- Updated dependencies [[`d124a92`](https://github.com/QwikDev/qwik/commit/d124a9207c45d1ce6cdb980d07d8ee6118083416)]:
+  - @qwik.dev/optimizer@2.1.0-beta.5
+
 ## 2.0.0-beta.35
 
 ### Minor Changes

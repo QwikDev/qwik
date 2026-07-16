@@ -7,7 +7,9 @@ import { QError, qError } from '../shared/error/error';
 import { ERROR_CONTEXT, isRecoverable } from '../shared/error/error-handling';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { wrapDeserializerProxy } from '../shared/serdes/deser-proxy';
-import { getObjectById, parseQRL, preprocessState } from '../shared/serdes/index';
+import { eagerDeserializeStateIterator } from '../shared/serdes/inflate';
+import { getObjectById, parseQRL } from '../shared/serdes/index';
+import { preprocessStateIterator } from '../shared/serdes/preprocess-state';
 import { _SharedContainer } from '../shared/shared-container';
 import { QContainerValue, type HostElement, type ObjToProxyMap } from '../shared/types';
 import { EMPTY_ARRAY } from '../shared/utils/flyweight';
@@ -26,6 +28,8 @@ import {
   QLocaleAttr,
   QManifestHashAttr,
   QScopedStyle,
+  QStatePrewarmAttr,
+  QStatePatchAttrSelector,
   QStyle,
   QStyleSelector,
   QStylesAllSelector,
@@ -41,12 +45,17 @@ import {
 } from '../shared/utils/scoped-styles';
 import { setErrorPayload } from '../shared/cursor/chore-execution';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
-import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
+import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
 import type { VNode } from '../shared/vnode/vnode';
 import type { ContextId } from '../use/use-context';
-import { processVNodeData } from './process-vnode-data';
+import { processSegmentStateScriptsIterator } from './process-segment-state';
+import {
+  onVNodeDataReady,
+  processOutOfOrderSegmentVNodeData,
+  processVNodeData,
+} from './process-vnode-data';
 import {
   VNodeFlags,
   type ContainerElement,
@@ -61,6 +70,8 @@ import {
   vnode_newUnMaterializedElement,
   vnode_setProp,
 } from './vnode-utils';
+import { ContainerDataProcessState, processContainerStateData } from './process-state-data';
+export { onContainerDataReady, whenContainerDataReady } from './process-state-data';
 
 /** @public */
 export function getDomContainer(element: Element): IClientContainer {
@@ -85,6 +96,23 @@ export const isDomContainer = (container: any): container is DomContainer => {
   return container instanceof DomContainer;
 };
 
+function getOutOfOrderStreamingScript(boundaryId: number, content: Element | null) {
+  const segmentId = String(boundaryId);
+  const qContainerElement = content?.closest(QContainerSelector) as ContainerElement | null;
+  const qContainer = qContainerElement?.qContainer as DomContainer | undefined;
+  if (qContainer) {
+    const document = qContainer.element.ownerDocument;
+    processOutOfOrderSegmentVNodeData(document, segmentId, content);
+    onVNodeDataReady(document, () => {
+      qContainer.element.qContainer === qContainer &&
+        processContainerStateData(
+          qContainer,
+          processSegmentStateScriptsIterator(qContainer, segmentId)
+        );
+    });
+  }
+}
+
 /** @internal */
 export class DomContainer extends _SharedContainer implements IClientContainer {
   public element: ContainerElement;
@@ -95,11 +123,15 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   public $storeProxyMap$: ObjToProxyMap = new WeakMap();
   public $qFuncs$: Array<(...args: unknown[]) => unknown>;
   public $instanceHash$: string;
-  public $forwardRefs$: Array<number> | null = null;
+  public $forwardRefs$: Array<number | string> | null = null;
   public vNodeLocate: (id: string | Element) => VNode = (id) => vnode_locate(this.rootVNode, id);
+  public $containerDataProcessState$ = ContainerDataProcessState.NotStarted;
+  public $containerStateReadyCallbacks$: Array<() => void> | undefined = undefined;
+  public $containerStateDataState$: unknown = undefined;
 
   private $rawStateData$: unknown[];
   private $stateData$: unknown[];
+  private $rootForwardRefs$: Array<number | string> | null = null;
   private $styleIds$: Set<string> | null = null;
 
   constructor(element: ContainerElement) {
@@ -108,7 +140,8 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     if (!this.qContainer) {
       throw qError(QError.elementWithoutContainer);
     }
-    this.document = element.ownerDocument as QDocument;
+    const document = element.ownerDocument as QDocument;
+    this.document = document;
     this.element = element;
     this.$buildBase$ = element.getAttribute(QBaseAttr)!;
     this.$instanceHash$ = element.getAttribute(QInstanceAttr)!;
@@ -116,23 +149,51 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     this.rootVNode = vnode_newUnMaterializedElement(this.element);
     this.$rawStateData$ = [];
     this.$stateData$ = [];
-    const document = this.element.ownerDocument as QDocument;
-    if (!document.qVNodeData) {
-      processVNodeData(document);
+    if (__EXPERIMENTAL__.suspense && document.querySelector('template[q\\:r]')) {
+      document.qProcessOOOS ||= getOutOfOrderStreamingScript;
     }
     this.$qFuncs$ = getQFuncs(document, this.$instanceHash$) || EMPTY_ARRAY;
     this.$setServerData$();
-    element.setAttribute(QContainerAttr, QContainerValue.RESUMED);
     element.qContainer = this;
-    (element as any).qDestroy = () => this.$destroy$();
-    const qwikStates = element.querySelectorAll('script[type="qwik/state"]');
-    if (qwikStates.length !== 0) {
-      const lastState = qwikStates[qwikStates.length - 1];
-      this.$rawStateData$ = JSON.parse(lastState.textContent!);
-      preprocessState(this.$rawStateData$, this);
-      this.$stateData$ = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
+    element.qDestroy = () => this.$destroy$();
+    this.$containerDataProcessState$ = ContainerDataProcessState.ProcessingVNode;
+    processVNodeData(document, element);
+    onVNodeDataReady(document, () => {
+      if (this.$containerDataProcessState$ === ContainerDataProcessState.ProcessingVNode) {
+        processContainerStateData(this, this.$processContainerData$());
+      }
+    });
+  }
+
+  *$processContainerData$(): Generator<void, void, void> {
+    const element = this.element;
+    if (element.qContainer !== this) {
+      return;
+    }
+    const rootState =
+      element.querySelector(
+        `script[type="qwik/state"][q\\:instance="${this.$instanceHash$}"]:not(${QStatePatchAttrSelector})`
+      ) ||
+      element.querySelector(
+        `script[type="qwik/state"]:not([q\\:instance]):not(${QStatePatchAttrSelector})`
+      );
+    if (rootState) {
+      this.$rawStateData$ = JSON.parse(rootState.textContent!);
+      yield* preprocessStateIterator(this.$rawStateData$, this);
+      this.$rootForwardRefs$ = this.$forwardRefs$;
+      const rootCount = this.$rawStateData$.length / 2;
+      const statePrewarm = element.getAttribute(QStatePrewarmAttr);
+      if (statePrewarm !== null && rootCount > 0 && rootCount >= Number(statePrewarm)) {
+        this.$stateData$ = yield* eagerDeserializeStateIterator(this, this.$rawStateData$);
+      } else {
+        this.$stateData$ = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
+      }
+    }
+    if (__EXPERIMENTAL__.suspense) {
+      yield* processSegmentStateScriptsIterator(this);
     }
     this.$hoistStyles$();
+    element.setAttribute(QContainerAttr, QContainerValue.RESUMED);
     if (!qTest && element.isConnected) {
       element.dispatchEvent(new CustomEvent('qresume', { bubbles: true }));
     }
@@ -148,8 +209,28 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     el.qContainer = undefined;
     el.qVnodeData = undefined;
     el.qVNodeRefs = undefined;
+    if (__EXPERIMENTAL__.suspense) {
+      el.qSegmentVnodeData = undefined;
+    }
     el.removeAttribute(QContainerAttr);
-    (el.ownerDocument as QDocument).qVNodeData = undefined!;
+    const document = el.ownerDocument as QDocument;
+    this.$containerStateDataState$ = undefined;
+    this.$containerDataProcessState$ = ContainerDataProcessState.NotStarted;
+    const hasContainers = document.querySelector(QContainerSelector) !== null;
+    if (!hasContainers) {
+      document.qVNodeData = undefined!;
+      document.qVNodeDataStarted = undefined;
+      document.qVNodeDataReady = undefined;
+      document.qVNodeDataState = undefined;
+      document.qVNodeDataCallbacks = undefined;
+      document.qVNodeDataProcessed = undefined;
+      document.qProcessVNodeDataPatch = undefined;
+    }
+    if (__EXPERIMENTAL__.suspense) {
+      if (!hasContainers) {
+        document.qProcessOOOS = undefined;
+      }
+    }
   }
 
   /**
@@ -291,6 +372,10 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   $getObjectById$ = (id: number | string): unknown => {
     return getObjectById(id, this.$stateData$);
   };
+
+  $getForwardRef$(id: number): number | string | undefined {
+    return this.$rootForwardRefs$?.[id];
+  }
 
   getSyncFn(id: number): (...args: unknown[]) => unknown {
     const fn = this.$qFuncs$[id];

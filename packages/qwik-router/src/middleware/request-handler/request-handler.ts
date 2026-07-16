@@ -1,17 +1,30 @@
+import { isDev } from '@qwik.dev/core';
 import type { Render } from '@qwik.dev/core/server';
 import { loadRoute } from '../../runtime/src/routing';
+import { FULLPATH_HEADER, ROUTE_PATH_HEADER } from '../../runtime/src/route-loaders';
 import type { QwikRouterConfig, RebuildRouteInfoInternal } from '../../runtime/src/types';
-export { _asyncRequestStore } from './async-request-store';
 import { _asyncRequestStore } from './async-request-store';
-import { getRouteMatchPathname } from './request-path';
-import { renderQwikMiddleware, resolveRequestHandlers } from './resolve-request-handlers';
+import { devPreloadedRouteLoaders } from './dev-preloaded-route-loader';
+import {
+  IsQLoader,
+  recognizeRequest,
+  resolveValidInternalFullPathname,
+  trimInternalPathname,
+  trimRecognizedInternalPathname,
+} from './request-path';
+import { renderQwikMiddleware, resolveRequestHandlers } from './resolve-request-handlers-core';
 import type { ServerRenderOptions, ServerRequestEvent } from './types';
 import { runQwikRouter, type QwikRouterRun } from './user-response';
 
 let qwikRouterConfig: QwikRouterConfig;
 
 async function getConfig(): Promise<QwikRouterConfig> {
+  if (isDev) {
+    return (await import('@qwik-router-config')) as any as QwikRouterConfig;
+  }
   if (!qwikRouterConfig) {
+    // The production server build prunes this plan (drops prerendered server-free routes); full
+    // when nothing is excluded. See the router config `load`.
     qwikRouterConfig = (await import('@qwik-router-config')) as any as QwikRouterConfig;
   }
   return qwikRouterConfig;
@@ -29,7 +42,7 @@ export async function requestHandler<T = unknown>(
   const { render, checkOrigin } = opts;
   const config = await getConfig();
 
-  const { pathname, isInternal } = getRouteMatchPathname(serverRequestEv.url.pathname);
+  const pathname = getRequestHandlerPathname(serverRequestEv);
   // Ignore requests for .well-known so static servers or other middleware can handle them
   if (pathname === '/.well-known' || pathname.startsWith('/.well-known/')) {
     return null;
@@ -41,7 +54,7 @@ export async function requestHandler<T = unknown>(
     serverRequestEv.request.method,
     checkOrigin ?? true,
     render,
-    isInternal
+    serverRequestEv
   );
 
   // When fallthrough is enabled and no route matched, let the adapter handle it
@@ -50,15 +63,14 @@ export async function requestHandler<T = unknown>(
   }
 
   const rebuildRouteInfo: RebuildRouteInfoInternal = async (url: URL) => {
-    // once internal, always internal, don't override
-    const { pathname } = getRouteMatchPathname(url.pathname);
+    const cleanPathname = trimInternalPathname(url.pathname);
     return loadRequestHandlers(
       config,
-      pathname,
+      cleanPathname,
       serverRequestEv.request.method,
       checkOrigin ?? true,
       render,
-      isInternal
+      serverRequestEv
     );
   };
 
@@ -71,23 +83,51 @@ export async function requestHandler<T = unknown>(
   );
 }
 
+export function getRequestHandlerPathname(
+  serverRequestEv: Pick<ServerRequestEvent, 'url' | 'request'>
+) {
+  const recognized = recognizeRequest(serverRequestEv.url.pathname);
+  if (!recognized) {
+    return serverRequestEv.url.pathname;
+  }
+
+  const loaderPathname = trimRecognizedInternalPathname(serverRequestEv.url.pathname, recognized);
+  if (recognized.type !== IsQLoader) {
+    return loaderPathname;
+  }
+
+  return (
+    resolveValidInternalFullPathname(
+      loaderPathname,
+      serverRequestEv.request.headers.get(FULLPATH_HEADER) ??
+        serverRequestEv.request.headers.get(ROUTE_PATH_HEADER)
+    ) ?? loaderPathname
+  );
+}
+
 async function loadRequestHandlers(
   qwikRouterConfig: QwikRouterConfig,
   pathname: string,
   method: string,
   checkOrigin: boolean | 'lax-proto',
   renderFn: Render,
-  isInternal: boolean
+  serverRequestEv: ServerRequestEvent
 ) {
   const { routes, serverPlugins, cacheModules } = qwikRouterConfig;
-  const loadedRoute = await loadRoute(routes, cacheModules, pathname, isInternal);
+  const loadedRoute = await loadRoute(routes, cacheModules, pathname);
+  const loader = isDev ? devPreloadedRouteLoaders.get(serverRequestEv.request) : undefined;
+  const lastModule = loadedRoute.$mods$[loadedRoute.$mods$.length - 1];
+  if (loader && lastModule) {
+    loadedRoute.$mods$[loadedRoute.$mods$.length - 1] = Object.assign({}, lastModule, {
+      __preloadedRouteLoader: loader,
+    });
+  }
   const requestHandlers = resolveRequestHandlers(
     serverPlugins,
     loadedRoute,
     method,
     checkOrigin,
-    renderQwikMiddleware(renderFn),
-    isInternal
+    renderQwikMiddleware(renderFn)
   );
   return { loadedRoute, requestHandlers };
 }

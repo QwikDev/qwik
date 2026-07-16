@@ -389,7 +389,7 @@ test('should use the dist/ fallback with client target', async () => {
   const plugin = getPlugin(initOpts);
   const c: any = (await plugin.config.call(
     configHookPluginContext,
-    { build: { assetsDir: 'my-assets-dir/' } },
+    { build: {} },
     { command: 'serve', mode: 'development' }
   ))!;
 
@@ -403,28 +403,55 @@ test('should use build.outDir config with client target', async () => {
   const plugin = getPlugin(initOpts);
   const c: any = (await plugin.config.call(
     configHookPluginContext,
-    { build: { outDir: 'my-dist/', assetsDir: 'my-assets-dir' } },
+    { build: { outDir: 'my-dist/' } },
     { command: 'serve', mode: 'development' }
   ))!;
 
   assert.equal(c.build.outDir, normalizePath(resolve(cwd, `my-dist`)));
 });
 
-test('should use build.outDir config when assetsDir is _astro', async () => {
-  const initOpts = {
-    optimizerOptions: mockOptimizerOptions(),
-  };
-
-  const plugin = getPlugin(initOpts);
-
-  // Astro sets a build.assetsDir of _astro, but we don't want to change that
+test('build.assetsDir is ignored: it no longer relocates Qwik output', async () => {
+  const plugin = getPlugin({ optimizerOptions: mockOptimizerOptions() });
   const c: any = (await plugin.config.call(
     configHookPluginContext,
-    { build: { assetsDir: '_astro' } },
-    { command: 'serve', mode: 'development' }
+    { build: { assetsDir: 'q' } },
+    { command: 'build', mode: 'production' }
   ))!;
+  const outputOptions = c.build.rollupOptions.output as Rollup.OutputOptions;
+  // assets stay at the default dir and chunks stay at build/ — assetsDir has no effect on Qwik output
+  assert.deepEqual(outputOptions.assetFileNames, 'assets/[hash]-[name].[ext]');
+  assert.deepEqual(outputOptions.chunkFileNames, 'build/q-[hash].js');
+});
 
-  assert.equal(c.build.outDir, normalizePath(resolve(cwd, `dist/`)));
+test('user output.assetFileNames relocates assets but keeps chunks at build/', async () => {
+  const plugin = getPlugin({ optimizerOptions: mockOptimizerOptions() });
+  const c: any = (await plugin.config.call(
+    configHookPluginContext,
+    { build: { rollupOptions: { output: { assetFileNames: 'q/assets/[hash]-[name][extname]' } } } },
+    { command: 'build', mode: 'production' }
+  ))!;
+  const outputOptions = c.build.rollupOptions.output as Rollup.OutputOptions;
+  assert.deepEqual(outputOptions.assetFileNames, 'q/assets/[hash]-[name][extname]');
+  assert.deepEqual(outputOptions.chunkFileNames, 'build/q-[hash].js');
+  assert.deepEqual(outputOptions.entryFileNames, 'build/q-[hash].js');
+});
+
+test('user output.assetFileNames also applies to the SSR build (client/SSR stay in sync)', async () => {
+  const initOpts = {
+    optimizerOptions: mockOptimizerOptions(),
+    ssr: {
+      input: resolve(cwd, 'src', 'entry.ssr.tsx'),
+      outDir: resolve(cwd, 'server'),
+    },
+  };
+  const plugin = getPlugin(initOpts);
+  const c: any = (await plugin.config.call(
+    configHookPluginContext,
+    { build: { rollupOptions: { output: { assetFileNames: 'q/assets/[hash]-[name][extname]' } } } },
+    { command: 'serve', mode: 'ssr' }
+  ))!;
+  const outputOptions = c.build.rollupOptions.output as Rollup.OutputOptions;
+  assert.deepEqual(outputOptions.assetFileNames, 'q/assets/[hash]-[name][extname]');
 });
 
 test('command: build, mode: production (deno)', async () => {
@@ -876,6 +903,53 @@ describe('worker qrl chunk rewrites', () => {
     const rewritten = rewriteWorkerQrlChunkPlaceholders(code, resolver);
 
     assert.equal(rewritten, 'const chunk = "/app/assets/build/q-worker.js";');
+  });
+});
+
+describe('writeBundle entry facade', () => {
+  test('writes the .js facade into the bundle output dir, not the plugin outDir', async () => {
+    const fs = await import('node:fs');
+    const os = await import('node:os');
+    const tmp = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'qwik-vite-facade-'));
+    try {
+      const serverOutDir = path.join(tmp, 'server');
+      const ssgOutDir = path.join(tmp, 'ssg-cache');
+      await fs.promises.mkdir(serverOutDir, { recursive: true });
+      await fs.promises.mkdir(ssgOutDir, { recursive: true });
+      // The real deployed entry emitted earlier by the ssr environment build.
+      const deployedEntry = path.join(serverOutDir, 'entry.cloudflare-pages.js');
+      const deployedCode = 'export const fetch = () => {};';
+      await fs.promises.writeFile(deployedEntry, deployedCode);
+
+      const plugins = qwikVite({ optimizerOptions: mockOptimizerOptions() }) as any[];
+      const [prePlugin, postPlugin] = plugins;
+      await prePlugin.config.call(
+        configHookPluginContext,
+        {
+          build: { ssr: resolve(cwd, 'src', 'entry.cloudflare-pages.tsx'), outDir: serverOutDir },
+        },
+        { command: 'build', mode: '' }
+      );
+
+      // Simulate the ssg environment writing its own bundle to a throwaway dir.
+      await postPlugin.writeBundle.call(
+        { environment: { config: { consumer: 'server' } } },
+        { dir: ssgOutDir },
+        { 'entry.cloudflare-pages.mjs': { type: 'chunk' } }
+      );
+
+      assert.equal(
+        await fs.promises.readFile(deployedEntry, 'utf-8'),
+        deployedCode,
+        'deployed server entry must not be clobbered by another environment'
+      );
+      assert.equal(
+        await fs.promises.readFile(path.join(ssgOutDir, 'entry.cloudflare-pages.js'), 'utf-8'),
+        'export * from "./entry.cloudflare-pages.mjs";'
+      );
+    } finally {
+      await fs.promises.rm(tmp, { recursive: true, force: true });
+    }
   });
 });
 

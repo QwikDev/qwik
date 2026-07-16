@@ -8,14 +8,8 @@ import type { QRL } from '../../shared/qrl/qrl.public';
 import type { Container, HostElement } from '../../shared/types';
 import { delay, retryOnPromise } from '../../shared/utils/promises';
 import { invoke, newInvokeContext } from '../../use/use-core';
-import { Task } from '../../use/use-task';
-import {
-  type AsyncCtx,
-  AsyncSignalFlags,
-  EffectProperty,
-  NEEDS_COMPUTATION,
-  SignalFlags,
-} from '../types';
+import { Task, TaskFlags } from '../../use/use-task';
+import { AsyncSignalFlags, EffectProperty, NEEDS_COMPUTATION, ComputedSignalFlags } from '../types';
 import { clearAllEffects } from '../cleanup';
 import { createSignal, createAsync$, createAsyncQrl } from '../signal.public';
 import { getSubscriber } from '../subscriber';
@@ -106,13 +100,13 @@ describe('async signal', () => {
         await signal.promise();
 
         expect(ref.computeCalls).toBe(1);
-        expect(signal.$flags$ & SignalFlags.INVALID).toBe(0);
+        expect(signal.$flags$ & ComputedSignalFlags.INVALID).toBe(0);
         expect(signal.$pollTimeoutId$).toBeDefined();
 
         await delay(20);
 
         expect(ref.computeCalls).toBe(1);
-        expect(signal.$flags$ & SignalFlags.INVALID).toBe(SignalFlags.INVALID);
+        expect(signal.$flags$ & ComputedSignalFlags.INVALID).toBe(ComputedSignalFlags.INVALID);
         expect(signal.$untrackedValue$).toBe(1);
         expect(signal.$pollTimeoutId$).toBeUndefined();
       });
@@ -159,13 +153,13 @@ describe('async signal', () => {
       await withContainer(async () => {
         const signal = createAsync$(async () => 1, { expires: 10 }) as AsyncSignalImpl<number>;
         signal.untrackedValue = 1;
-        signal.$flags$ &= ~SignalFlags.INVALID;
+        signal.$flags$ &= ~ComputedSignalFlags.INVALID;
         signal.poll = false;
         (signal as any).$scheduleNextPoll$();
 
         await delay(20);
 
-        expect(signal.$flags$ & SignalFlags.INVALID).toBe(SignalFlags.INVALID);
+        expect(signal.$flags$ & ComputedSignalFlags.INVALID).toBe(ComputedSignalFlags.INVALID);
         expect(signal.$untrackedValue$).toBe(1);
         expect(signal.$pollTimeoutId$).toBeUndefined();
       });
@@ -178,14 +172,14 @@ describe('async signal', () => {
           allowStale: false,
         }) as AsyncSignalImpl<number>;
         signal.untrackedValue = 42;
-        signal.$flags$ &= ~SignalFlags.INVALID;
+        signal.$flags$ &= ~ComputedSignalFlags.INVALID;
         (signal as any).$scheduleNextPoll$();
 
         expect(signal.$pollTimeoutId$).toBeDefined();
 
         await delay(20);
 
-        expect(signal.$flags$ & SignalFlags.INVALID).toBe(SignalFlags.INVALID);
+        expect(signal.$flags$ & ComputedSignalFlags.INVALID).toBe(ComputedSignalFlags.INVALID);
         expect(signal.$untrackedValue$).toBe(42);
         expect(signal.$pollTimeoutId$).toBeUndefined();
       });
@@ -199,14 +193,14 @@ describe('async signal', () => {
           allowStale: false,
         }) as AsyncSignalImpl<number>;
         signal.untrackedValue = 42;
-        signal.$flags$ &= ~SignalFlags.INVALID;
+        signal.$flags$ &= ~ComputedSignalFlags.INVALID;
         (signal as any).$scheduleNextPoll$();
 
         expect(signal.$pollTimeoutId$).toBeDefined();
 
         await delay(20);
 
-        expect(signal.$flags$ & SignalFlags.INVALID).toBe(SignalFlags.INVALID);
+        expect(signal.$flags$ & ComputedSignalFlags.INVALID).toBe(ComputedSignalFlags.INVALID);
         expect(signal.$untrackedValue$).toBe(NEEDS_COMPUTATION);
         expect(signal.$pollTimeoutId$).toBeUndefined();
       });
@@ -328,7 +322,7 @@ describe('async signal', () => {
 
         const signal = (await retryOnPromise(() =>
           createAsyncQrl(
-            $(async ({ track, cleanup }: AsyncCtx) => {
+            $(async ({ track, cleanup }) => {
               track(() => dep.value);
               cleanup(async () => {
                 await delay(10);
@@ -360,7 +354,7 @@ describe('async signal', () => {
 
         const signal = (await retryOnPromise(() =>
           createAsyncQrl(
-            $(async ({ track, abortSignal }: AsyncCtx) => {
+            $(async ({ track, abortSignal }) => {
               track(() => dep.value);
               abortSignal.addEventListener('abort', () => {
                 ref.aborted = true;
@@ -411,7 +405,7 @@ describe('async signal', () => {
 
         const signal = (await retryOnPromise(() =>
           createAsyncQrl(
-            $(async ({ abortSignal }: AsyncCtx) => {
+            $(async ({ abortSignal }) => {
               ref.capturedSignal = abortSignal;
               return 42;
             })
@@ -931,12 +925,12 @@ describe('async signal', () => {
         }) as AsyncSignalImpl<number>;
 
         // Signal starts INVALID
-        expect(signal.$flags$ & SignalFlags.INVALID).toBeTruthy();
+        expect(signal.$flags$ & ComputedSignalFlags.INVALID).toBeTruthy();
 
         signal.value = 99;
 
         // INVALID should be cleared
-        expect(signal.$flags$ & SignalFlags.INVALID).toBe(0);
+        expect(signal.$flags$ & ComputedSignalFlags.INVALID).toBe(0);
         expect(signal.value).toBe(99);
       });
     });
@@ -1317,7 +1311,7 @@ describe('async signal', () => {
   function effectQrl(fnQrl: QRL<() => void>) {
     const qrl = fnQrl as QRLInternal<() => void>;
     const element: HostElement = vnode_newVirtual();
-    task = task || new Task(0, 0, element, fnQrl as QRLInternal, undefined, null);
+    task = task || new Task(TaskFlags.TASK, 0, element, fnQrl as QRLInternal, null);
     vnode_setProp(element, ELEMENT_SEQ, [task]);
     if (!qrl.resolved) {
       throw qrl.resolve();

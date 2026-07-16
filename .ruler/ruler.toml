@@ -1,0 +1,28 @@
+# Ruler Configuration File
+# See https://ai.intellectronica.net/ruler for documentation.
+
+# Default agents to enable when running `ruler apply`.
+# AGENTS.md (codex output) is read natively by most other agents (Cursor, Copilot, Gemini, ...),
+# so we only generate the two files that are actually distinct: CLAUDE.md and AGENTS.md.
+default_agents = ["claude", "codex"]
+
+# Keep repo guidance centralized in the root .ruler directory.
+nested = false
+
+[agents.claude]
+enabled = true
+output_path = "CLAUDE.md"
+
+[agents.codex]
+enabled = true
+output_path = "AGENTS.md"
+
+[skills]
+enabled = true
+
+# Ruler leaves .gitignore alone; we manage it manually. Root AGENTS.md/CLAUDE.md are committed so a
+# fresh clone/worktree has the always-on guidance immediately; skill copies are gitignored and
+# regenerated locally with `ruler apply`. Never hand-edit outputs — edit .ruler/. CI re-runs
+# `ruler apply` and fails if the committed root files drift.
+[gitignore]
+enabled = false

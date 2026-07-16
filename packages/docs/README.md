@@ -1,5 +1,7 @@
 # Qwik Docs Site ⚡️
 
+> The production docs at qwik.dev deploy from the `v1` branch.
+
 ## Development Builds
 
 ### Client only

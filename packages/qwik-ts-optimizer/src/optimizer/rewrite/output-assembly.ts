@@ -35,9 +35,11 @@ import { transformInlineSegmentBody } from './inline-body.js';
 import { deriveIsDev } from './const-replacement.js';
 import {
   hasUnderscorePlaceholderParams,
+  isAnyComponentCtx,
   isStrippedExtraction,
   matchesRegCtxName,
 } from './predicates.js';
+import { injectUseHmrIntoInlineBody } from '../transform/module-cleanup.js';
 import type { InlineSegmentJsxOptions } from './raw-props.js';
 import type { RewriteContext } from './rewrite-context.js';
 
@@ -367,6 +369,11 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
     let sigRewrittenBody = rawBody;
     if (hasUnderscorePlaceholderParams(ext.paramNames)) {
       sigRewrittenBody = rewriteFunctionSignature(rawBody, ext.paramNames);
+    }
+
+    if (ctx.mode === 'hmr' && ctx.devFilePath && isAnyComponentCtx(ext.ctxName)) {
+      sigRewrittenBody = injectUseHmrIntoInlineBody(sigRewrittenBody, ctx.devFilePath);
+      neededImports.set('_useHmr', '@qwik.dev/core');
     }
 
     const isRegCtxMatch = matchesRegCtxName(ext, inlineOptions?.regCtxName);

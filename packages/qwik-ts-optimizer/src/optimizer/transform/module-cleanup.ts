@@ -149,22 +149,7 @@ export function injectUseHmr(
   }
   if (!targetFn || !targetFn.body) return segmentCode;
 
-  const s = new MagicString(segmentCode);
-  const indent = inferBlockIndent(segmentCode, targetFn.body.start + 1);
-  const hmrLine = `${indent}_useHmr("${devFile}");`;
-
-  if (targetFn.body.type === 'BlockStatement') {
-    s.appendLeft(targetFn.body.start + 1, `\n${hmrLine}`);
-  } else {
-    const expressionText = segmentCode.slice(targetFn.body.start, targetFn.body.end);
-    s.overwrite(
-      targetFn.body.start,
-      targetFn.body.end,
-      `{\n${hmrLine}\n${indent}return ${expressionText};\n}`,
-    );
-  }
-
-  let result = s.toString();
+  let result = injectHmrCallIntoFunctionBody(segmentCode, targetFn.body, devFile);
 
   if (!result.includes('import { _useHmr }')) {
     const sepIdx = result.indexOf('\n//\n');
@@ -179,6 +164,47 @@ export function injectUseHmr(
   }
 
   return result;
+}
+
+function injectHmrCallIntoFunctionBody(
+  code: string,
+  fnBody: NonNullable<AstFunction['body']>,
+  devFile: string,
+): string {
+  const s = new MagicString(code);
+  const indent = inferBlockIndent(code, fnBody.start + 1);
+  const hmrLine = `${indent}_useHmr("${devFile}");`;
+
+  if (fnBody.type === 'BlockStatement') {
+    s.appendLeft(fnBody.start + 1, `\n${hmrLine}`);
+  } else {
+    const expressionText = code.slice(fnBody.start, fnBody.end);
+    s.overwrite(
+      fnBody.start,
+      fnBody.end,
+      `{\n${hmrLine}\n${indent}return ${expressionText};\n}`,
+    );
+  }
+  return s.toString();
+}
+
+export function injectUseHmrIntoInlineBody(bodyText: string, devFile: string): string {
+  let program: AstProgram;
+  try {
+    program = parseWithRawTransfer('__inline_hmr__.tsx', bodyText).program;
+  } catch {
+    return bodyText;
+  }
+  const stmt = program.body[0];
+  if (!stmt || stmt.type !== 'ExpressionStatement') return bodyText;
+  const fn = stmt.expression;
+  if (
+    (fn.type !== 'ArrowFunctionExpression' && fn.type !== 'FunctionExpression') ||
+    !fn.body
+  ) {
+    return bodyText;
+  }
+  return injectHmrCallIntoFunctionBody(bodyText, fn.body, devFile);
 }
 
 function inferBlockIndent(code: string, start: number): string {

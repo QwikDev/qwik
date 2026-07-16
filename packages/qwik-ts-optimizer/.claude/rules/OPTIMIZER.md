@@ -41,7 +41,7 @@ The optimizer transforms one canonical surface into another. The single most use
 | `_noopQrl(...)`, `_noopQrlDEV(...)` | Stripped-segment placeholder (segment was elided per `stripCtxName` / `stripEventHandlers`) | Phase 5 inline-strategy emit |
 | `.w([captures])` | "with captures" QRL method; emitted on parent-side QRL refs that need to pass values to the segment | Phase 4 parent rewrite |
 | `.s(body)` | "set body" QRL method; only used by inline entry strategy | Phase 5 inline-strategy emit |
-| `useHmr(devFile)` | Auto-injected HMR hook for component segments in dev/hmr mode | Phase 6 `postProcessSegmentCode` |
+| `useHmr(devFile)` | Auto-injected HMR hook for component segments in hmr mode | Phase 6 `postProcessSegmentCode` (segment strategy); Phase 4 parent rewrite `output-assembly.ts` (inline/hoist strategy) |
 
 If you see one of those names in source someone hand-wrote, it's almost certainly a peer tool's output (e.g. `qwik-react` codegen) or a hand-crafted test fixture — not idiomatic developer code. If you see one of those names in optimizer output, it's machinery and you can trace it to the function in code that emits it.
 

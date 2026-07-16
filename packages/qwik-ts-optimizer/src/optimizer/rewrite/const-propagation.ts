@@ -12,6 +12,7 @@
 
 import { parseSync } from 'oxc-parser';
 import { forEachAstChild } from '../ast/guards.js';
+import { applyReplacements, isReplaceableIdentifierPosition } from '../edit/range-replace.js';
 import { isShorthandPropertyValue } from '../prepare/flatten-destructures.js';
 import {
   RAW_TRANSFER_PARSER_OPTIONS,
@@ -26,18 +27,13 @@ import {
 // `forEachAstChild` passes through and lets discriminated-union
 // narrowing (`node.type === 'X'`) type the field accesses below.
 
-export function resolveConstLiterals(parentBody: string, captureNames: string[]): Map<string, string> {
-  const result = new Map<string, string>();
-  if (captureNames.length === 0) return result;
-
-  const wrapperPrefix = 'const __rl__ = ';
-  const wrappedSource = wrapperPrefix + parentBody;
-  const parseResult = parseSync('__rl__.tsx', wrappedSource, RAW_TRANSFER_PARSER_OPTIONS);
-  if (!parseResult.program || parseResult.errors?.length) return result;
-
-  const offset = wrapperPrefix.length;
-  const captureSet = new Set(captureNames);
-
+function collectConstLiteralValues(
+  root: AstNode | null | undefined,
+  source: string,
+  offset: number,
+  captureSet: Set<string>,
+  result: Map<string, string>,
+): void {
   function walkNode(node: AstNode | null | undefined): void {
     if (!node) return;
 
@@ -52,15 +48,33 @@ export function resolveConstLiterals(parentBody: string, captureNames: string[])
       if (!isLiteralNode(init)) continue;
       const literalStart = init.start - offset;
       const literalEnd = init.end - offset;
-      if (literalStart >= 0 && literalEnd <= parentBody.length) {
-        result.set(decl.id.name, parentBody.slice(literalStart, literalEnd));
+      if (literalStart >= 0 && literalEnd <= source.length) {
+        result.set(decl.id.name, source.slice(literalStart, literalEnd));
       }
     }
 
     forEachAstChild(node, (child) => walkNode(child));
   }
 
-  walkNode(parseResult.program);
+  walkNode(root);
+}
+
+export function resolveConstLiterals(parentBody: string, captureNames: string[]): Map<string, string> {
+  const result = new Map<string, string>();
+  if (captureNames.length === 0) return result;
+
+  const wrapperPrefix = 'const __rl__ = ';
+  const wrappedSource = wrapperPrefix + parentBody;
+  const parseResult = parseSync('__rl__.tsx', wrappedSource, RAW_TRANSFER_PARSER_OPTIONS);
+  if (!parseResult.program || parseResult.errors?.length) return result;
+
+  collectConstLiteralValues(
+    parseResult.program,
+    parentBody,
+    wrapperPrefix.length,
+    new Set(captureNames),
+    result,
+  );
   return result;
 }
 
@@ -82,29 +96,7 @@ export function resolveConstLiteralsInClosure(
   if (captureNames.length === 0) return result;
   if (!closureNode.body) return result;
 
-  const captureSet = new Set(captureNames);
-
-  function walkNode(node: AstNode | null | undefined): void {
-    if (!node) return;
-
-    if (node.type !== 'VariableDeclaration' || node.kind !== 'const') {
-      forEachAstChild(node, (child) => walkNode(child));
-      return;
-    }
-
-    for (const decl of node.declarations) {
-      if (decl.id.type !== 'Identifier' || !captureSet.has(decl.id.name) || !decl.init) continue;
-      const init = decl.init;
-      if (!isLiteralNode(init)) continue;
-      if (init.start >= 0 && init.end <= source.length) {
-        result.set(decl.id.name, source.slice(init.start, init.end));
-      }
-    }
-
-    forEachAstChild(node, (child) => walkNode(child));
-  }
-
-  walkNode(closureNode.body);
+  collectConstLiteralValues(closureNode.body, source, 0, new Set(captureNames), result);
   return result;
 }
 
@@ -119,25 +111,17 @@ export function inlineConstCaptures(body: string, constValues: Map<string, strin
   if (!parseResult.program || parseResult.errors?.length) return body;
 
   const offset = wrapperPrefix.length;
-  const replacements: Array<{ start: number; end: number; value: string }> = [];
+  const replacements: Array<{ start: number; end: number; replacement: string }> = [];
 
   function walkNode(node: AstNode | null | undefined, parentKey?: string, parentNode?: AstNode): void {
     if (!node) return;
 
     if (node.type === 'Identifier' && constValues.has(node.name)) {
-      // The parser emits 'Property' / 'MemberExpression' — never the
-      // Babel-style 'ObjectProperty' / 'StaticMemberExpression' shapes.
-      const isDeclId = parentKey === 'id' && parentNode?.type === 'VariableDeclarator';
-      const isPropertyKey = parentKey === 'key' && parentNode?.type === 'Property';
-      const isMemberProp = parentKey === 'property' &&
-        parentNode?.type === 'MemberExpression' &&
-        !parentNode.computed;
-
-      if (!isDeclId && !isPropertyKey && !isMemberProp) {
+      if (isReplaceableIdentifierPosition(parentKey, parentNode)) {
         replacements.push({
           start: node.start - offset,
           end: node.end - offset,
-          value: constValues.get(node.name)!,
+          replacement: constValues.get(node.name)!,
         });
       }
     }
@@ -149,12 +133,7 @@ export function inlineConstCaptures(body: string, constValues: Map<string, strin
 
   walkNode(parseResult.program);
 
-  replacements.sort((a, b) => b.start - a.start);
-  let result = body;
-  for (const r of replacements) {
-    result = result.slice(0, r.start) + r.value + result.slice(r.end);
-  }
-  return result;
+  return applyReplacements(body, replacements);
 }
 
 // ── Virtual resolution graph types ──
@@ -182,18 +161,6 @@ interface IdentRef {
 }
 
 // ── Helpers ──
-
-/** Check if a ref is a "real" reference (not a decl id, property key, or non-computed member prop). */
-function isRealRef(parentKey: string | undefined, parentNode: AstNode | undefined): boolean {
-  // The parser emits 'Property' / 'MemberExpression' — never the
-  // Babel-style 'ObjectProperty' / 'StaticMemberExpression' shapes.
-  if (parentKey === 'id' && parentNode?.type === 'VariableDeclarator') return false;
-  if (parentKey === 'key' && parentNode?.type === 'Property') return false;
-  if (parentKey === 'property' &&
-      parentNode?.type === 'MemberExpression' &&
-      !parentNode.computed) return false;
-  return true;
-}
 
 /**
  * Check if an AST init expression is side-effect-free (safe to inline).
@@ -329,7 +296,7 @@ export function propagateConstLiteralsInBody(body: string): string {
       }
     }
 
-    if (node.type === 'Identifier' && isRealRef(parentKey, parentNode)) {
+    if (node.type === 'Identifier' && isReplaceableIdentifierPosition(parentKey, parentNode)) {
       const refStart = node.start - offset;
       const refEnd = node.end - offset;
       if (refStart >= 0 && refEnd <= body.length) {
@@ -464,14 +431,10 @@ export function propagateConstLiteralsInBody(body: string): string {
           .map(r => ({
             start: r.start - initOffset,
             end: r.end - initOffset,
-            value: resolvedValues.get(r.name)!,
+            replacement: resolvedValues.get(r.name)!,
           }))
-          .sort((a, b) => b.start - a.start);
-        for (const rep of initReplacements) {
-          if (rep.start >= 0 && rep.end <= initText.length) {
-            initText = initText.slice(0, rep.start) + rep.value + initText.slice(rep.end);
-          }
-        }
+          .filter(rep => rep.start >= 0 && rep.end <= initText.length);
+        initText = applyReplacements(initText, initReplacements);
       }
       toInline.set(name, initText);
     }
@@ -510,12 +473,5 @@ export function propagateConstLiteralsInBody(body: string): string {
     });
   }
 
-  edits.sort((a, b) => b.start - a.start || (b.end - b.start) - (a.end - a.start));
-
-  let result = body;
-  for (const edit of edits) {
-    result = result.slice(0, edit.start) + edit.replacement + result.slice(edit.end);
-  }
-
-  return result;
+  return applyReplacements(body, edits);
 }

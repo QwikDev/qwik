@@ -7,6 +7,25 @@
  * - _useHmr() call injection for component segments
  */
 
+export interface NoopQrlDevMeta {
+  file: string;
+  lo: number;
+  hi: number;
+  displayName: string;
+}
+
+/** The `{ file, lo, hi, displayName }` dev-metadata object literal shared by the qrlDEV / _noopQrlDEV builders. */
+export function formatDevMeta(meta: NoopQrlDevMeta): string {
+  return (
+    `{\n` +
+    `    file: "${meta.file}",\n` +
+    `    lo: ${meta.lo},\n` +
+    `    hi: ${meta.hi},\n` +
+    `    displayName: "${meta.displayName}"\n` +
+    `}`
+  );
+}
+
 /**
  * Build a qrlDEV const declaration string for dev mode.
  */
@@ -20,14 +39,8 @@ export function buildQrlDevDeclaration(
   explicitExtension?: string,
 ): string {
   const ext = explicitExtension ?? '';
-  return (
-    `const q_${symbolName} = /*#__PURE__*/ qrlDEV(()=>import("./${canonicalFilename}${ext}"), "${symbolName}", {\n` +
-    `    file: "${devFile}",\n` +
-    `    lo: ${lo},\n` +
-    `    hi: ${hi},\n` +
-    `    displayName: "${displayName}"\n` +
-    `});`
-  );
+  const devMeta = formatDevMeta({ file: devFile, lo, hi, displayName });
+  return `const q_${symbolName} = /*#__PURE__*/ qrlDEV(()=>import("./${canonicalFilename}${ext}"), "${symbolName}", ${devMeta});`;
 }
 
 /**

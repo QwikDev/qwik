@@ -12,6 +12,7 @@ import {
   findMatchingBrace,
   findExpressionEnd,
 } from '../edit/text-scanning.js';
+import { applyReplacements } from '../edit/range-replace.js';
 
 const notTrueLiteral = createRegExp(exactly('!true').and(wordBoundary), [global]);
 
@@ -171,12 +172,8 @@ export function applySegmentDCE(code: string): string {
       });
     }
 
-    replacements.sort((a, b) => b.start - a.start);
-    for (const replacement of replacements) {
-      result =
-        result.slice(0, replacement.start) +
-        replacement.replacement +
-        result.slice(replacement.end);
+    if (replacements.length > 0) {
+      result = applyReplacements(result, replacements);
       changed = true;
     }
   }
@@ -218,16 +215,6 @@ function simplifyFalseAndExpressions(code: string): string {
     }
   }
 
-  if (replacements.length === 0) return code;
-
-  let result = code;
-  for (let i = replacements.length - 1; i >= 0; i--) {
-    const replacement = replacements[i];
-    result =
-      result.slice(0, replacement.start) +
-      replacement.replacement +
-      result.slice(replacement.end);
-  }
-  return result;
+  return applyReplacements(code, replacements);
 }
 

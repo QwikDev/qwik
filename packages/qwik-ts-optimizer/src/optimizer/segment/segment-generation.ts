@@ -869,6 +869,109 @@ function buildMovedQrlSupport(
  * preRenameSymbolName}` and `prep.{sameFileSymbols, defaultExportedNames,
  * renamedExports}`.
  */
+type MovedImportDep = { localName: string; importedName: string; source: string };
+
+function resolveMovedDeclImportDeps(
+  decl: ModuleLevelDecl,
+  varName: string,
+  ctx: SegmentGenerationContext,
+  prep: SegmentGenerationPrep,
+  reexportedNames: Set<string>,
+  movedIntoThisSegment: Set<string>,
+): MovedImportDep[] {
+  const { program, originalImports, parentModulePath } = ctx;
+  const { sameFileSymbols, defaultExportedNames, renamedExports } = prep;
+
+  const importDeps: MovedImportDep[] = [];
+  for (const idName of collectDeclIdentifiers(program, decl)) {
+    const imp = originalImports.get(idName);
+    if (imp) {
+      importDeps.push({ localName: imp.localName, importedName: imp.importedName, source: imp.source });
+      continue;
+    }
+    if (!sameFileSymbols.has(idName) || idName === varName) continue;
+    if (movedIntoThisSegment.has(idName)) continue;
+    if (defaultExportedNames.has(idName)) {
+      importDeps.push({ localName: idName, importedName: 'default', source: parentModulePath });
+      continue;
+    }
+    if (reexportedNames.has(idName)) {
+      importDeps.push({ localName: idName, importedName: `_auto_${idName}`, source: parentModulePath });
+      continue;
+    }
+    const exportedAs = renamedExports.get(idName);
+    importDeps.push({ localName: idName, importedName: exportedAs ?? idName, source: parentModulePath });
+  }
+  return importDeps;
+}
+
+/**
+ * Prefers the parent's post-JSX-rewrite snapshot over the raw decl text so the
+ * moved helper keeps the Qwik JSX form — the raw text would fall through to
+ * oxc-transform's React `_jsx` default.
+ */
+function emitMovedDeclaration(
+  decl: ModuleLevelDecl,
+  varName: string,
+  importDeps: MovedImportDep[],
+  ctx: SegmentGenerationContext,
+  captureInfo: SegmentCaptureInfo,
+  movedQrlSymbols: Set<string>,
+): void {
+  const isDevMode = ctx.emitMode === "dev" || ctx.emitMode === "hmr";
+  const markerXform = tryBuildMarkerDeclMove(
+    decl,
+    ctx.extractions,
+    ctx.relPath,
+    ctx.options,
+    ctx.qrlOutputExt,
+    ctx.sourceExtensions,
+    isDevMode,
+    ctx.devFile,
+  );
+  if (markerXform) {
+    captureInfo.movedDeclarations.push({
+      text: markerXform.qrlDecl,
+      importDeps: [...importDeps, ...markerXform.importDeps],
+    });
+    captureInfo.movedDeclarations.push({ text: markerXform.wrapDecl, importDeps: [] });
+    return;
+  }
+
+  const movedText = ctx.movedDeclSnapshots.get(varName) ?? decl.declText;
+  const support = buildMovedQrlSupport(movedText, ctx, movedQrlSymbols);
+  for (const qrlDecl of support.qrlDecls) {
+    captureInfo.movedDeclarations.push({ text: qrlDecl, importDeps: support.importDeps });
+  }
+  captureInfo.movedDeclarations.push({
+    text: movedText,
+    importDeps: support.qrlDecls.length > 0 ? [...importDeps, ...support.importDeps] : importDeps,
+  });
+}
+
+function filterMigratedCaptures(
+  ext: ConsolidatedSegment,
+  captureInfo: SegmentCaptureInfo,
+  migrationDecisions: readonly MigrationDecision[],
+): void {
+  const migratedVarNames = new Set<string>();
+  for (const decision of migrationDecisions) {
+    if (decision.action === "reexport" || decision.action === "move") {
+      migratedVarNames.add(decision.varName);
+    }
+  }
+  ext.captureNames = ext.captureNames.filter((name) => !migratedVarNames.has(name));
+  ext.captures = ext.captureNames.length > 0;
+
+  if (ext.captures && ext.paramNames.length > 0) {
+    const paramSet = new Set(ext.paramNames);
+    if (ext.captureNames.every((name) => paramSet.has(name))) {
+      ext.captures = false;
+    }
+  }
+  captureInfo.captureNames = ext.captureNames;
+}
+
 export function wireMigration(
   ext: ConsolidatedSegment,
   captureInfo: SegmentCaptureInfo,
@@ -876,15 +979,12 @@ export function wireMigration(
   prep: SegmentGenerationPrep,
 ): void {
   const {
-    program,
-    originalImports,
     migrationDecisions,
     moduleLevelDeclsByName,
     segmentUsage,
     parentModulePath,
     preRenameSymbolName,
   } = ctx;
-  const { sameFileSymbols, defaultExportedNames, renamedExports } = prep;
 
   const migrationKey =
     preRenameSymbolName.get(ext.symbolName) ?? ext.symbolName;
@@ -892,19 +992,9 @@ export function wireMigration(
   const segUsage = segmentUsage.get(migrationKey);
   if (segUsage) {
     for (const decision of migrationDecisions) {
-      if (
-        decision.action === "reexport" &&
-        segUsage.has(decision.varName)
-      ) {
-        const decl = moduleLevelDeclsByName.get(decision.varName);
-        if (decl?.isExported) {
-          continue;
-        }
-        captureInfo.autoImports.push({
-          varName: decision.varName,
-          parentModulePath,
-        });
-      }
+      if (decision.action !== "reexport" || !segUsage.has(decision.varName)) continue;
+      if (moduleLevelDeclsByName.get(decision.varName)?.isExported) continue;
+      captureInfo.autoImports.push({ varName: decision.varName, parentModulePath });
     }
   }
 
@@ -936,140 +1026,27 @@ export function wireMigration(
         const rangeKey = `${decl.declStart}:${decl.declEnd}`;
         if (movedDeclRanges.has(rangeKey)) continue;
         movedDeclRanges.add(rangeKey);
-        const importDeps: Array<{
-          localName: string;
-          importedName: string;
-          source: string;
-        }> = [];
-        const declIdentifiers = collectDeclIdentifiers(program, decl);
-        for (const idName of declIdentifiers) {
-          const imp = originalImports.get(idName);
-          if (imp) {
-            importDeps.push({
-              localName: imp.localName,
-              importedName: imp.importedName,
-              source: imp.source,
-            });
-            continue;
-          }
-
-          if (!sameFileSymbols.has(idName) || idName === decision.varName) {
-            continue;
-          }
-
-          // Its transitive dep moves into this same segment (MIG-06a) — it is
-          // declared locally, so importing it would double-declare.
-          if (movedIntoThisSegment.has(idName)) {
-            continue;
-          }
-
-          if (defaultExportedNames.has(idName)) {
-            importDeps.push({
-              localName: idName,
-              importedName: 'default',
-              source: parentModulePath,
-            });
-            continue;
-          }
-
-          // A migration-reexported dependency is only reachable through its
-          // `_auto_` alias — the parent emits `export { X as _auto_X }`, not
-          // a plain export. `renamedExports` can't know about it (it reads
-          // user export statements off the source program).
-          if (reexportedNames.has(idName)) {
-            importDeps.push({
-              localName: idName,
-              importedName: `_auto_${idName}`,
-              source: parentModulePath,
-            });
-            continue;
-          }
-
-          const exportedAs = renamedExports.get(idName);
-          importDeps.push({
-            localName: idName,
-            importedName: exportedAs ?? idName,
-            source: parentModulePath,
-          });
-        }
-        const isDevMode = ctx.emitMode === "dev" || ctx.emitMode === "hmr";
-        const markerXform = tryBuildMarkerDeclMove(
+        const importDeps = resolveMovedDeclImportDeps(
           decl,
-          ctx.extractions,
-          ctx.relPath,
-          ctx.options,
-          ctx.qrlOutputExt,
-          ctx.sourceExtensions,
-          isDevMode,
-          ctx.devFile,
+          decision.varName,
+          ctx,
+          prep,
+          reexportedNames,
+          movedIntoThisSegment,
         );
-        if (markerXform) {
-          captureInfo.movedDeclarations.push({
-            text: markerXform.qrlDecl,
-            importDeps: [...importDeps, ...markerXform.importDeps],
-          });
-          captureInfo.movedDeclarations.push({
-            text: markerXform.wrapDecl,
-            importDeps: [],
-          });
-        } else {
-          // Prefer the post-JSX-rewrite snapshot when the parent captured
-          // one; falls back to the raw source slice. The snapshot carries
-          // the Qwik JSX form (`_jsxSorted` / `_jsxSplit`) into the moved
-          // helper — without it, raw JSX falls through to oxc-transform's
-          // React `_jsx` default.
-          const rewrittenText = ctx.movedDeclSnapshots.get(decision.varName);
-          const movedText = rewrittenText ?? decl.declText;
-          // The rewritten body can reference `q_<symbol>` QRLs whose
-          // extractions stayed top-level (e.g. a `useTask$` call inside the
-          // helper). The parent demotes those bindings to bare `qrl(...)`
-          // registration statements (`movedMarkerSymbols` in
-          // rewrite/output-assembly.ts), so this segment must own the
-          // `const q_<symbol> = qrl(...)` declarations — plus the `qrl` and
-          // marker-Qrl (`useTaskQrl`, …) imports the text calls.
-          const support = buildMovedQrlSupport(movedText, ctx, movedQrlSymbols);
-          for (const qrlDecl of support.qrlDecls) {
-            captureInfo.movedDeclarations.push({
-              text: qrlDecl,
-              importDeps: support.importDeps,
-            });
-          }
-          captureInfo.movedDeclarations.push({
-            text: movedText,
-            importDeps:
-              support.qrlDecls.length > 0
-                ? [...importDeps, ...support.importDeps]
-                : importDeps,
-          });
-        }
+        emitMovedDeclaration(
+          decl,
+          decision.varName,
+          importDeps,
+          ctx,
+          captureInfo,
+          movedQrlSymbols,
+        );
       }
     }
   }
 
-  // Filter out migrated vars from captures
-  const migratedVarNames = new Set<string>();
-  for (const decision of migrationDecisions) {
-    if (decision.action === "reexport" || decision.action === "move") {
-      migratedVarNames.add(decision.varName);
-    }
-  }
-  ext.captureNames = ext.captureNames.filter(
-    (name) => !migratedVarNames.has(name),
-  );
-  ext.captures = ext.captureNames.length > 0;
-
-  // Reconcile captures with paramNames after migration filtering
-  if (ext.captures && ext.paramNames.length > 0) {
-    const paramSet = new Set(ext.paramNames);
-    const allCapturesInParams = ext.captureNames.every((name) =>
-      paramSet.has(name),
-    );
-    if (allCapturesInParams) {
-      ext.captures = false;
-    }
-  }
-
-  captureInfo.captureNames = ext.captureNames;
+  filterMigratedCaptures(ext, captureInfo, migrationDecisions);
 }
 
 /**

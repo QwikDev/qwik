@@ -10,6 +10,7 @@ import type { AstMaybeNode, JSXAttributeItem } from '../../ast-types.js';
 import { analyzeSignalExpression } from './signal-analysis.js';
 import { transformEventPropName, isEventProp, isPassiveDirective } from './event-handlers.js';
 import { isBindProp, transformBindProp, mergeEventHandlers } from './bind.js';
+import { isCaptureWrappingQrlCall } from '../qwik/w-call.js';
 import {
   classifyConstness,
   isConstBindingName,
@@ -78,23 +79,8 @@ function isConstValueNode(valueNode: AstMaybeNode): boolean {
     case 'Identifier':
     case 'Literal':
       return true;
-    case 'CallExpression': {
-      // `q_<sym>.w([captures])` on a hoisted QRL binding is a
-      // capture-wrapping invocation that produces a stable QRL reference
-      // for the lifetime of the parent element. SWC classifies these as
-      // const on component-prop position: `q_X` is a module-scope const
-      // and `.w(…)` only attaches captures — the call's identity is
-      // stable. Mirrors the same arm in `classifyConstness`
-      // (transform/jsx.ts).
-      const callee = valueNode.callee;
-      return (
-        callee?.type === 'MemberExpression' &&
-        callee.object?.type === 'Identifier' &&
-        callee.object.name.startsWith('q_') &&
-        callee.property?.type === 'Identifier' &&
-        callee.property.name === 'w'
-      );
-    }
+    case 'CallExpression':
+      return isCaptureWrappingQrlCall(valueNode);
     default:
       return false;
   }

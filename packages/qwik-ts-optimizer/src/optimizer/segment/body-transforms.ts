@@ -23,7 +23,6 @@ import { applyRawPropsTransform, consolidateRawPropsInWCalls } from '../rewrite/
 import type { ExtractionResult } from '../extraction/extract.js';
 import type { NestedCallSiteInfo } from './segment-codegen.js';
 import {
-  findArrowIndex,
   pureAwareOverwriteStart,
   scanMatchingParenForward,
 } from '../edit/text-scanning.js';
@@ -599,8 +598,6 @@ export function injectCapturesUnpacking(bodyText: string, captureNames: string[]
   insertFunctionBodyPrologue(session, session.fn, unpackLine);
   return session.toSource();
 }
-
-export { findArrowIndex };
 
 export function insertImportBeforeSeparator(parts: string[], importStmt: string): void {
   const sepIdx = parts.indexOf('//');

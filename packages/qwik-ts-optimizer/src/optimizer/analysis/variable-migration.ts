@@ -120,14 +120,6 @@ function isInitializerSafe(node: AstMaybeNode): boolean {
   }
 }
 
-/** Add all binding names from a pattern into a Set. */
-function addBindingNamesToSet(
-  pattern: BindingPatternLike | null | undefined,
-  target: Set<string>,
-): void {
-  addBindingNamesFromPatternToSet(pattern, target);
-}
-
 function countBindings(node: BindingPatternLike | null | undefined): number {
   return collectBindingNamesFromPattern(node).length;
 }
@@ -235,20 +227,20 @@ export function addDeclaredNamesFromNode(node: AstNode, target: Set<string>): vo
 
   if (type === 'ArrowFunctionExpression' && node.params) {
     for (const param of node.params) {
-      addBindingNamesToSet(param, target);
+      addBindingNamesFromPatternToSet(param, target);
     }
   }
 
   if (type === 'FunctionExpression' || type === 'FunctionDeclaration') {
     if (node.id?.name) target.add(node.id.name);
     for (const param of node.params ?? []) {
-      addBindingNamesToSet(param, target);
+      addBindingNamesFromPatternToSet(param, target);
     }
   }
 
   if (type === 'VariableDeclaration') {
     for (const decl of node.declarations ?? []) {
-      if (decl.id) addBindingNamesToSet(decl.id, target);
+      if (decl.id) addBindingNamesFromPatternToSet(decl.id, target);
     }
   }
 
@@ -257,7 +249,7 @@ export function addDeclaredNamesFromNode(node: AstNode, target: Set<string>): vo
   }
 
   if (type === 'CatchClause' && node.param) {
-    addBindingNamesToSet(node.param, target);
+    addBindingNamesFromPatternToSet(node.param, target);
   }
 }
 

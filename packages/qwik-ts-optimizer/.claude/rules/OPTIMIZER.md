@@ -520,7 +520,7 @@ Output Other segment (snap lines 32–38) imports `SHARED_CONFIG` the same way b
 Two consumers of the `migrationDecisions` array:
 
 - **Parent rewrite** (`rewrite/output-assembly.ts:655` — `assembleOutput`): for `reexport`, append the `export { x as _auto_x }` line; for `move`, delete the source range.
-- **Segment codegen** (`segment/segment-generation.ts:765` — `wireMigration`): for `reexport`, add to the segment's `autoImports` (becomes `import { _auto_x as x }`); for `move` targeting **this segment**, inline the declaration text + its own import deps.
+- **Segment codegen** (`segment/segment-generation.ts:993` — `wireMigration`): for `reexport`, add to the segment's `autoImports` (becomes `import { _auto_x as x }`); for `move` targeting **this segment**, inline the declaration text + its own import deps. `wireMigration` is a short orchestrator over three helpers: `resolveMovedDeclImportDeps` (a moved decl's import dependencies), `emitMovedDeclaration` (marker-QRL vs plain decl emit), and `filterMigratedCaptures` (drop migrated names from captures).
 
 ### Inline/hoist strategy filter
 
@@ -811,11 +811,11 @@ Directory layout under `src/optimizer/` mirrors the pipeline: `prepare/` (Phase 
 | Per-segment codegen orchestrator | `src/optimizer/segment/segment-codegen.ts:650` (`generateSegmentCode`) |
 | Per-segment body transforms | `src/optimizer/segment/body-transforms.ts` |
 | Per-segment import collection | `src/optimizer/segment/import-collection.ts` |
-| All-segments orchestrator | `src/optimizer/segment/segment-generation.ts:1327` (`generateAllSegmentModules`) — 34-line sequencer |
+| All-segments orchestrator | `src/optimizer/segment/segment-generation.ts:1474` (`generateAllSegmentModules`) — 34-line sequencer |
 | All-segments setup (Prep) | `src/optimizer/segment/segment-generation.ts:480` (`computeSegmentGenerationPrep`) |
 | Inline-strategy segment builder | `src/optimizer/segment/segment-generation.ts:563` (`buildInlineStrategySegment`) |
-| Default-strategy segment builder | `src/optimizer/segment/segment-generation.ts:1107` (`buildDefaultStrategySegment`) |
-| Migration wiring (top-level + nested) | `src/optimizer/segment/segment-generation.ts:765` (`wireMigration`) |
+| Default-strategy segment builder | `src/optimizer/segment/segment-generation.ts:1251` (`buildDefaultStrategySegment`) |
+| Migration wiring (top-level + nested) | `src/optimizer/segment/segment-generation.ts:993` (`wireMigration`) |
 | Nested call-site builder | `src/optimizer/segment/segment-generation.ts:958` (`buildNestedCallSites`) |
 | Nested QRL declarations | `src/optimizer/segment/segment-generation.ts:626` (`buildNestedQrlDeclarations`) |
 | Raw-props consolidation (shared) | `src/optimizer/segment/segment-generation.ts:372` (`consolidateRawPropsCaptures`) |

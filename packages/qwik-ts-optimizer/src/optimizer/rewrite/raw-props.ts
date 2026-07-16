@@ -92,19 +92,6 @@ export interface InlineSegmentJsxOptions {
   relPath?: string;
 }
 
-/**
- * Rewrite ({field1, field2}) => ... to (_rawProps) => ... _rawProps.field1 ...
- * so signal analysis detects store field accesses.
- */
-export interface RawPropsTransformResult {
-  /** The transformed body text */
-  body: string;
-  /** Whether any transformation was applied */
-  transformed: boolean;
-  /** The destructured field local names that were replaced with _rawProps.field */
-  destructuredFieldLocals: string[];
-}
-
 interface IdentifierReplacement {
   start: number;
   end: number;
@@ -153,16 +140,6 @@ interface RawPropsTransformPlan {
   fieldLocalToKey: Map<string, string>;
   fieldLocalToDefault: Map<string, string>;
   excludedRanges: SourceRange[];
-}
-
-export function applyRawPropsTransformDetailed(body: string): RawPropsTransformResult {
-  const result = applyRawPropsTransform(body);
-  if (result === body) {
-    return { body, transformed: false, destructuredFieldLocals: [] };
-  }
-  // Extract the field names by re-parsing the original body
-  const fieldLocals = [...extractDestructuredFieldMap(body).keys()];
-  return { body: result, transformed: true, destructuredFieldLocals: fieldLocals };
 }
 
 /** Both destructured-first-param projections, computed from one parse. */

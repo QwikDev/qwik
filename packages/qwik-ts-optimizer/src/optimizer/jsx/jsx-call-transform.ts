@@ -8,7 +8,7 @@
 import type MagicString from 'magic-string';
 import { walk } from 'oxc-walker';
 import type { AstNode, AstProgram } from '../../ast-types.js';
-import { someAstChild } from '../ast/guards.js';
+import { someAstChild, memberStaticPropName } from '../ast/guards.js';
 import {
   computeJsxFlags,
   collectScopeAwareBindings,
@@ -398,17 +398,6 @@ function isValueChild(key: string, parent: AstNode): boolean {
   return !(key === 'key' && parent.type === 'Property' && !parent.computed);
 }
 
-function staticPropName(member: AstNode): string | null {
-  if (member.type !== 'MemberExpression' || !member.property) return null;
-  if (!member.computed && member.property.type === 'Identifier') return member.property.name;
-  if (
-    member.computed &&
-    member.property.type === 'Literal' &&
-    typeof member.property.value === 'string'
-  ) return member.property.value;
-  return null;
-}
-
 /**
  * `isConst` picks the bag the prop lands in; `rawConst` is const-ness of the
  * raw value (governs a following spread's merge). They differ for a component's
@@ -691,7 +680,7 @@ function isStaticChildren(value: AstNode, reactive: ReadonlySet<string>): boolea
   ) {
     // A reactive member read (signal `.value` or store `.field`) becomes a
     // stable `_wrapProp(...)` reference, so it counts as static children.
-    const propName = staticPropName(value);
+    const propName = memberStaticPropName(value);
     if (propName !== null) return true;
   }
   if (value.type === 'ArrayExpression') {

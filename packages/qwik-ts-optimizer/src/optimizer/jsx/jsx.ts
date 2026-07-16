@@ -9,6 +9,7 @@
 import type MagicString from 'magic-string';
 import { walkWithProtocol } from '../ast/walk-with-protocol.js';
 import { forEachAstChild } from '../ast/guards.js';
+import { isCaptureWrappingQrlCall } from '../qwik/w-call.js';
 import type { AstNode, AstProgram, Expression, JSXElementName } from '../../ast-types.js';
 import { SignalHoister } from './signal-analysis.js';
 import { collectPassiveDirectives } from './event-handlers.js';
@@ -619,18 +620,7 @@ export function classifyConstness(
       ) {
         return 'const';
       }
-      // `q_<sym>.w([captures])` on a hoisted QRL binding is a
-      // capture-wrapping invocation that produces a stable QRL reference
-      // — the underlying `q_<sym>` const is immutable, and `.w()` only
-      // attaches captures for runtime re-inflation. SWC classifies these
-      // as const on component-prop position.
-      if (
-        exprNode.callee.type === 'MemberExpression' &&
-        exprNode.callee.object.type === 'Identifier' &&
-        exprNode.callee.object.name.startsWith('q_') &&
-        exprNode.callee.property.type === 'Identifier' &&
-        exprNode.callee.property.name === 'w'
-      ) {
+      if (isCaptureWrappingQrlCall(exprNode)) {
         return 'const';
       }
       return 'var';

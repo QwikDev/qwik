@@ -11,6 +11,8 @@
  * Implements: ENT-02
  */
 
+import { formatDevMeta, type NoopQrlDevMeta } from './dev-mode.js';
+
 // ---------------------------------------------------------------------------
 // Sentinel counter
 // ---------------------------------------------------------------------------
@@ -27,93 +29,44 @@ export function getSentinelCounter(index: number): number {
   return 0xffff0000 + index * 2;
 }
 
+function buildNoopQrl(varName: string, symbolName: string): string {
+  return `const ${varName} = /*#__PURE__*/ _noopQrl("${symbolName}");`;
+}
+
+function buildNoopQrlDev(varName: string, symbolName: string, devMeta: NoopQrlDevMeta): string {
+  return `const ${varName} = /*#__PURE__*/ _noopQrlDEV("${symbolName}", ${formatDevMeta(devMeta)});`;
+}
+
 // ---------------------------------------------------------------------------
 // _noopQrl declarations
 // ---------------------------------------------------------------------------
 
-/**
- * Build a _noopQrl const declaration for inline/hoist strategy.
- *
- * Format (verified from example_inlined_entry_strategy snapshot):
- * ```
- * const q_{symbolName} = /*#__PURE__* / _noopQrl("{symbolName}");
- * ```
- */
+/** `_noopQrl` declaration for an inline/hoist segment. */
 export function buildNoopQrlDeclaration(symbolName: string): string {
-  return `const q_${symbolName} = /*#__PURE__*/ _noopQrl("${symbolName}");`;
+  return buildNoopQrl(`q_${symbolName}`, symbolName);
 }
 
-/**
- * Build a _noopQrlDEV const declaration for inline/hoist + dev mode.
- *
- * Format (verified from example_dev_mode_inlined snapshot):
- * ```
- * const q_{symbolName} = /*#__PURE__* / _noopQrlDEV("{symbolName}", {
- *     file: "{file}",
- *     lo: {lo},
- *     hi: {hi},
- *     displayName: "{displayName}"
- * });
- * ```
- */
-export function buildNoopQrlDevDeclaration(
-  symbolName: string,
-  devMeta: { file: string; lo: number; hi: number; displayName: string },
-): string {
-  return (
-    `const q_${symbolName} = /*#__PURE__*/ _noopQrlDEV("${symbolName}", {\n` +
-    `    file: "${devMeta.file}",\n` +
-    `    lo: ${devMeta.lo},\n` +
-    `    hi: ${devMeta.hi},\n` +
-    `    displayName: "${devMeta.displayName}"\n` +
-    `});`
-  );
+/** `_noopQrlDEV` declaration for an inline/hoist segment in dev mode. */
+export function buildNoopQrlDevDeclaration(symbolName: string, devMeta: NoopQrlDevMeta): string {
+  return buildNoopQrlDev(`q_${symbolName}`, symbolName, devMeta);
 }
 
 // ---------------------------------------------------------------------------
 // Stripped _noopQrl declarations (sentinel naming)
 // ---------------------------------------------------------------------------
 
-/**
- * Build a sentinel-named _noopQrl declaration for a stripped segment.
- *
- * Format (verified from example_strip_server_code snapshot):
- * ```
- * const q_qrl_{counter} = /*#__PURE__* / _noopQrl("{symbolName}");
- * ```
- */
+/** Sentinel-named `_noopQrl` declaration for a stripped segment. */
 export function buildStrippedNoopQrl(symbolName: string, strippedIndex: number): string {
-  const counter = getSentinelCounter(strippedIndex);
-  return `const q_qrl_${counter} = /*#__PURE__*/ _noopQrl("${symbolName}");`;
+  return buildNoopQrl(`q_qrl_${getSentinelCounter(strippedIndex)}`, symbolName);
 }
 
-/**
- * Build a sentinel-named _noopQrlDEV declaration for a stripped segment in dev mode.
- *
- * Format (verified from example_noop_dev_mode snapshot):
- * ```
- * const q_qrl_{counter} = /*#__PURE__* / _noopQrlDEV("{symbolName}", {
- *     file: "{file}",
- *     lo: {lo},
- *     hi: {hi},
- *     displayName: "{displayName}"
- * });
- * ```
- */
+/** Sentinel-named `_noopQrlDEV` declaration for a stripped segment in dev mode. */
 export function buildStrippedNoopQrlDev(
   symbolName: string,
   strippedIndex: number,
-  devMeta: { file: string; lo: number; hi: number; displayName: string },
+  devMeta: NoopQrlDevMeta,
 ): string {
-  const counter = getSentinelCounter(strippedIndex);
-  return (
-    `const q_qrl_${counter} = /*#__PURE__*/ _noopQrlDEV("${symbolName}", {\n` +
-    `    file: "${devMeta.file}",\n` +
-    `    lo: ${devMeta.lo},\n` +
-    `    hi: ${devMeta.hi},\n` +
-    `    displayName: "${devMeta.displayName}"\n` +
-    `});`
-  );
+  return buildNoopQrlDev(`q_qrl_${getSentinelCounter(strippedIndex)}`, symbolName, devMeta);
 }
 
 // ---------------------------------------------------------------------------

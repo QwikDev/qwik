@@ -75,6 +75,23 @@ export function getObjectPropertyKeyName(key: unknown): string | null {
   return null;
 }
 
+/**
+ * Static property name of a MemberExpression: `x.foo` → `"foo"`,
+ * `x['foo']` → `"foo"`, else `null` (computed non-string access, etc.).
+ */
+export function memberStaticPropName(node: AstNode): string | null {
+  if (node.type !== "MemberExpression" || !node.property) return null;
+  if (!node.computed && node.property.type === "Identifier") return node.property.name;
+  if (
+    node.computed &&
+    node.property.type === "Literal" &&
+    typeof node.property.value === "string"
+  ) {
+    return node.property.value;
+  }
+  return null;
+}
+
 export function getAssignedIdentifierName(value: unknown): string | null {
   if (isIdentifierNode(value)) {
     return value.name;
@@ -152,4 +169,17 @@ export function someAstChild(
     if (isAstNode(value) && predicate(value as AstNode, key, compat as AstNode)) return true;
   }
   return false;
+}
+
+/**
+ * Deep existential over an AST subtree: `true` if `node` itself or any
+ * descendant satisfies `predicate`. The shallow sibling is {@link someAstChild}.
+ */
+export function someAstDescendant(
+  node: AstCompatMaybeNode,
+  predicate: (node: AstNode) => boolean,
+): boolean {
+  if (!node || typeof node !== 'object') return false;
+  if (predicate(node as AstNode)) return true;
+  return someAstChild(node, (child) => someAstDescendant(child, predicate));
 }

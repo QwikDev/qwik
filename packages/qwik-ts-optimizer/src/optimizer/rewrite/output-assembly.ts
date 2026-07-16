@@ -17,6 +17,7 @@ import {
   buildQrlDeclaration,
   getQrlImportSource,
 } from './rewrite-calls.js';
+import { isLibModePreservedMarker } from '../qwik/qrl-naming.js';
 import { buildQrlDevDeclaration, buildDevFilePath } from '../segment/dev-mode.js';
 import {
   buildNoopQrlDeclaration,
@@ -484,12 +485,7 @@ export function filterUnusedImports(ctx: RewriteContext): void {
 
     const usedNamed: { local: string; imported: string }[] = [];
     for (const np of info.namedParts) {
-      // lib-mode `$`-suffix markers (e.g. `component$`, `useStyle$`) stay
-      // in the import even when not referenced in the parent body — they
-      // were rewritten to their `*Qrl` forms but downstream library
-      // consumers may still need the original markers for composition or
-      // re-export. The bare `$` is excluded (no marker-function semantics).
-      if (isLibMode && np.imported.length > 1 && np.imported.endsWith('$')) {
+      if (isLibMode && isLibModePreservedMarker(np.imported)) {
         usedNamed.push(np);
         continue;
       }

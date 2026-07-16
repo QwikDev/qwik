@@ -14,7 +14,7 @@ import { rewriteImportSource } from '../rewrite/rewrite-imports.js';
 import { getQrlCalleeName } from '../qwik/qrl-naming.js';
 import { getQrlImportSource } from '../rewrite/rewrite-calls.js';
 import type { NestedCallSiteInfo, SegmentImportData } from './segment-codegen.js';
-import { insertImportBeforeSeparator } from './body-transforms.js';
+import { insertImportBeforeSeparator, partsHaveImport } from './body-transforms.js';
 
 interface SegmentImportSpec {
   localName: string;
@@ -118,14 +118,6 @@ export function recollectPostTransformImports(
   }
 
   addQrlCalleeImports(parts, bodyText, nestedCallSites, importContext);
-}
-
-function partsHaveImport(parts: string[], symbol: string): boolean {
-  return parts.some(p =>
-    p.includes(`{ ${symbol} }`) || p.includes(`{ ${symbol},`) ||
-    p.includes(`, ${symbol} }`) || p.includes(`, ${symbol},`) ||
-    p.includes(`as ${symbol}`) || p.includes(`* as ${symbol}`),
-  );
 }
 
 function buildModuleImportStatement(imp: { localName: string; importedName: string; source: string }): string {

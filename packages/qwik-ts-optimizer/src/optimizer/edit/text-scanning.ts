@@ -147,30 +147,6 @@ export function scanMatchingParenBackward(text: string, start: number): number {
 }
 
 /**
- * Find the index of the `=>` arrow in a function text.
- * Skips arrows inside strings and nested delimiters (parens, brackets, angles).
- */
-export function findArrowIndex(text: string): number {
-  let depth = 0;
-  let inString: string | null = null;
-
-  for (let i = 0; i < text.length - 1; i++) {
-    const ch = text[i];
-
-    if (inString) {
-      if (ch === inString && text[i - 1] !== '\\') inString = null;
-      continue;
-    }
-    if (ch === '"' || ch === "'" || ch === '`') { inString = ch; continue; }
-    if (ch === '(' || ch === '[' || ch === '<') { depth++; continue; }
-    if (ch === ')' || ch === ']' || ch === '>') { depth--; continue; }
-    if (depth === 0 && ch === '=' && text[i + 1] === '>') return i;
-  }
-
-  return -1;
-}
-
-/**
  * Find the end of an expression starting at `start`, respecting nested
  * delimiters (parens, braces, angle brackets for JSX) and string literals.
  *

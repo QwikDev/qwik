@@ -7,7 +7,7 @@
 
 import { createRegExp, exactly, anyOf, global } from 'magic-regexp';
 import type { AstMaybeNode, AstNode, AstParentNode } from '../../ast-types.js';
-import { forEachAstChild, isAstNode } from '../ast/guards.js';
+import { forEachAstChild, isAstNode, someAstDescendant, memberStaticPropName } from '../ast/guards.js';
 import {
   applyReplacements,
   formatSimplifiedLiteral,
@@ -106,47 +106,17 @@ function isStoreFieldAccess(
   // to match SWC behavior of only analyzing known-scope identifiers
   if (localNames && !localNames.has(objName)) return false;
 
-  const propName = getPropertyName(node);
+  const propName = memberStaticPropName(node);
   if (propName == null || propName === 'value') return false;
 
   return true;
 }
 
-/**
- * Extract property name from a MemberExpression.
- * Handles both dot access (x.foo) and computed string access (x['foo']).
- */
-function getPropertyName(node: MemberExpressionNode): string | null {
-  if (!node.computed && node.property.type === 'Identifier') {
-    return node.property.name;
-  }
-  if (
-    node.computed &&
-    node.property.type === 'Literal' &&
-    typeof node.property.value === 'string'
-  ) {
-    return node.property.value;
-  }
-  return null;
-}
-
 // --- Expression analysis -----------------------------------------------------
 
 /** Check if the expression tree contains JSX elements or fragments. */
-function containsJsx(node: AstNode | AstNodeList | null | undefined): boolean {
-  if (node == null) return false;
-  if (Array.isArray(node)) return node.some((child) => containsJsx(child));
-  // `Array.isArray` narrows mutable arrays but not `ReadonlyArray`
-  // (which is what `AstNodeList` is) — the cast bridges that quirk
-  // so downstream `.type` access works against the strict union.
-  const currentNode = node as AstNode;
-  if (currentNode.type === 'JSXElement' || currentNode.type === 'JSXFragment') return true;
-  let found = false;
-  forEachAstChild(currentNode, (child) => {
-    if (!found && containsJsx(child)) found = true;
-  });
-  if (found) return true;
-  return false;
+function containsJsx(node: AstMaybeNode): boolean {
+  return someAstDescendant(node, (n) => n.type === 'JSXElement' || n.type === 'JSXFragment');
 }
 
 /**
@@ -155,25 +125,13 @@ function containsJsx(node: AstNode | AstNodeList | null | undefined): boolean {
  * expressions -- only standalone fn() calls block wrapping.
  */
 function containsUnknownCall(node: AstMaybeNode, importedNames: Set<string>): boolean {
-  if (node == null) return false;
-
-  if (node.type === 'CallExpression') {
-    if (node.callee?.type !== 'MemberExpression' && node.callee?.type !== 'ChainExpression') {
-      const calleeName = getCalleeIdentifierName(node.callee);
-      if (calleeName == null || !importedNames.has(calleeName)) {
-        return true;
-      }
-    }
-  }
-
-  // Tagged template expressions are effectively function calls
-  if (node.type === 'TaggedTemplateExpression') return true;
-
-  let found = false;
-  forEachAstChild(node, (child) => {
-    if (!found && containsUnknownCall(child, importedNames)) found = true;
+  return someAstDescendant(node, (n) => {
+    if (n.type === 'TaggedTemplateExpression') return true;
+    if (n.type !== 'CallExpression') return false;
+    if (n.callee?.type === 'MemberExpression' || n.callee?.type === 'ChainExpression') return false;
+    const calleeName = getCalleeIdentifierName(n.callee);
+    return calleeName == null || !importedNames.has(calleeName);
   });
-  return found;
 }
 
 function getCalleeIdentifierName(callee: AstMaybeNode): string | null {
@@ -183,14 +141,7 @@ function getCalleeIdentifierName(callee: AstMaybeNode): string | null {
 
 /** Check if expression references any imported name directly (not through member access). */
 function containsImportedReference(node: AstMaybeNode, importedNames: Set<string>): boolean {
-  if (node == null) return false;
-  if (node.type === 'Identifier' && importedNames.has(node.name)) return true;
-
-  let found = false;
-  forEachAstChild(node, (child) => {
-    if (!found && containsImportedReference(child, importedNames)) found = true;
-  });
-  return found;
+  return someAstDescendant(node, (n) => n.type === 'Identifier' && importedNames.has(n.name));
 }
 
 /**
@@ -264,29 +215,6 @@ function isDeepStoreAccess(
 }
 
 /**
- * Collect all non-imported identifier names from an expression.
- * Used for complex `.value` objects like `(a || b).value`.
- */
-function collectIdentifiersFromExpr(
-  node: AstMaybeNode,
-  importedNames: Set<string>,
-  seen: Set<string>,
-  roots: string[],
-): void {
-  if (node == null) return;
-  if (node.type === 'Identifier') {
-    if (!importedNames.has(node.name) && !seen.has(node.name)) {
-      seen.add(node.name);
-      roots.push(node.name);
-    }
-    return;
-  }
-  forEachAstChild(node, (child) => {
-    collectIdentifiersFromExpr(child, importedNames, seen, roots);
-  });
-}
-
-/**
  * Unified single-walk collector for signal-analysis dependencies.
  *
  * Returns both `roots` (reactive roots in order of first appearance) AND
@@ -299,7 +227,7 @@ function collectIdentifiersFromExpr(
  *   `localNames` flow through bare-ident collection (via the leftmost-
  *   Identifier visit) and appear in `allDeps` after the alphabetical sort.
  * - Complex `.value` objects (e.g. `(a || b).value`) use the
- *   `collectIdentifiersFromExpr` fallback for BOTH outputs.
+ *   `fallbackCollectIdents` fallback for BOTH outputs.
  * - The Property.key / non-computed MemberExpression.property exclusion
  *   is applied for both outputs. Safe for roots because signal/store
  *   detection happens at the MemberExpression level, not the property
@@ -1051,7 +979,7 @@ function analyzeMemberExpression(
   // store.field / props['field'] (single-level, local obj)
   if (isKnownIdent && isStoreFieldAccess(exprNode, importedNames, localNames)) {
     const objText = source.slice(exprNode.object.start, exprNode.object.end);
-    const propName = getPropertyName(exprNode)!;
+    const propName = memberStaticPropName(exprNode)!;
     return {
       type: 'wrapProp',
       code: `_wrapProp(${objText}, "${propName}")`,
@@ -1065,9 +993,9 @@ function analyzeMemberExpression(
   // The branches above cover:
   //   - signal.value          → wrapProp / fnSignal (isSignalValueAccess)
   //   - obj.x.y / obj.x.y.z   → fnSignal (isDeepStoreAccess, depth ≥ 2)
-  //   - obj.field / obj["x"]  → wrapProp (isStoreFieldAccess via getPropertyName)
+  //   - obj.field / obj["x"]  → wrapProp (isStoreFieldAccess via memberStaticPropName)
   // This branch catches the remaining case: `exprNode.computed === true` AND
-  // the property isn't a string literal (getPropertyName returned null above,
+  // the property isn't a string literal (memberStaticPropName returned null above,
   // so isStoreFieldAccess didn't fire). Matches SWC's behavior where
   // prop_to_string returns None for `[Identifier]` / `[NumericLit]` and
   // convert_inlined_fn's used_as_object check fires on the local-var object.

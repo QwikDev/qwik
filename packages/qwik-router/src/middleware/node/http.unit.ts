@@ -9,6 +9,7 @@ import { EventEmitter } from 'node:events';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { connect } from 'node:net';
 import { performance } from 'node:perf_hooks';
+import { Readable } from 'node:stream';
 import { assert, describe, expect, test, vi } from 'vitest';
 import { fromNodeHttp, normalizeUrl } from './http';
 
@@ -55,6 +56,52 @@ import { fromNodeHttp, normalizeUrl } from './http';
 });
 
 describe('fromNodeHttp()', () => {
+  const createBodyRequest = (chunks: Uint8Array[]) => {
+    const req = Readable.from(chunks) as IncomingMessage;
+    req.method = 'POST';
+    req.url = '/';
+    req.headers = { host: 'localhost' };
+    Object.defineProperty(req, 'socket', { value: {}, configurable: true });
+    return req;
+  };
+
+  const createResponse = () => {
+    const res = new EventEmitter() as ServerResponse & EventEmitter;
+    Object.defineProperty(res, 'closed', { value: false, configurable: true });
+    Object.defineProperty(res, 'destroyed', { value: false, configurable: true });
+    return res;
+  };
+
+  test('should accept request bodies at the byte limit', async () => {
+    const requestEv = await fromNodeHttp(
+      new URL('http://localhost/'),
+      createBodyRequest([Buffer.alloc(4), Buffer.alloc(4)]),
+      createResponse(),
+      'server',
+      undefined,
+      8
+    );
+
+    await expect(requestEv.request.arrayBuffer()).resolves.toHaveProperty('byteLength', 8);
+  });
+
+  test.each([[4, 5], [9]])('should reject request bodies over the byte limit', async (...sizes) => {
+    const requestEv = await fromNodeHttp(
+      new URL('http://localhost/'),
+      createBodyRequest(sizes.map((size) => Buffer.alloc(size))),
+      createResponse(),
+      'server',
+      undefined,
+      8
+    );
+
+    await expect(requestEv.request.arrayBuffer()).rejects.toMatchObject({
+      code: 'QWIK_REQUEST_BODY_LIMIT',
+      status: 413,
+      statusCode: 413,
+    });
+  });
+
   test('should resolve writes immediately when res.write returns true (no backpressure)', async () => {
     const req = new EventEmitter() as IncomingMessage & EventEmitter;
     req.method = 'GET';

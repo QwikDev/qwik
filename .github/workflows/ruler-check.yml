@@ -1,5 +1,6 @@
-# Verifies the committed agent files (AGENTS.md, CLAUDE.md, skills) match the .ruler/ source.
+# Verifies the committed agent guidance (root AGENTS.md, CLAUDE.md) matches the .ruler/ source.
 # They are committed so a fresh clone/worktree has guidance immediately; this guards against drift.
+# Skill copies (.claude/skills, .codex/skills) are gitignored and regenerated locally, not checked here.
 name: Ruler guidance in sync
 
 on:
@@ -29,14 +30,14 @@ jobs:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: 'pnpm'
 
-      - name: Verify committed agent files match .ruler/
+      - name: Verify committed agent guidance matches .ruler/
         run: |
           pnpm dlx @intellectronica/ruler@0.3.42 apply --no-gitignore --no-mcp
-          DRIFT="$(git status --porcelain -- AGENTS.md CLAUDE.md .claude/skills .codex/skills)"
+          DRIFT="$(git status --porcelain -- AGENTS.md CLAUDE.md)"
           if [ -n "$DRIFT" ]; then
-            echo "::error::Committed agent files are out of sync with .ruler/. Run 'pnpm dlx @intellectronica/ruler apply --no-gitignore --no-mcp' and commit the result."
+            echo "::error::Committed agent guidance is out of sync with .ruler/. Run 'pnpm dlx @intellectronica/ruler apply --no-gitignore --no-mcp' and commit the result."
             echo "$DRIFT"
-            git --no-pager diff -- AGENTS.md CLAUDE.md .claude/skills .codex/skills
+            git --no-pager diff -- AGENTS.md CLAUDE.md
             exit 1
           fi
-          echo "Agent files are in sync with .ruler/."
+          echo "Agent guidance is in sync with .ruler/."

@@ -20,7 +20,9 @@ output_path = "AGENTS.md"
 [skills]
 enabled = true
 
-# Generated outputs are committed, not ignored, so a fresh clone/worktree has guidance immediately.
-# Never hand-edit the outputs, edit .ruler/. A CI check re-runs `ruler apply` and fails on drift in case of manual edits.
+# Ruler leaves .gitignore alone; we manage it manually. Root AGENTS.md/CLAUDE.md are committed so a
+# fresh clone/worktree has the always-on guidance immediately; skill copies are gitignored and
+# regenerated locally with `ruler apply`. Never hand-edit outputs — edit .ruler/. CI re-runs
+# `ruler apply` and fails if the committed root files drift.
 [gitignore]
 enabled = false

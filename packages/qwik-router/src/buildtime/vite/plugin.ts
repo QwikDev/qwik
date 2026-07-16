@@ -1,7 +1,9 @@
 import swRegister from '../runtime-generation/sw-register-build?compiled-string';
 import type { QwikVitePlugin } from '@qwik.dev/core/optimizer';
 import fs from 'node:fs';
+import { readFile } from 'node:fs/promises';
 import { basename, extname, join, resolve } from 'node:path';
+import { findExports } from 'mlly';
 import type {
   ConfigEnv,
   EnvironmentOptions,
@@ -30,6 +32,7 @@ import { createMdxTransformer, type MdxTransform } from '../markdown/mdx';
 import { transformMenu } from '../markdown/menu';
 import { generateQwikRouterEntries } from '../runtime-generation/generate-entries';
 import { generateQwikRouterConfig } from '../runtime-generation/generate-qwik-router-config';
+import type { RouteLoaderSourceFiles } from '../runtime-generation/generate-routes';
 import { generateServiceWorkerRegister } from '../runtime-generation/generate-service-worker';
 import { getServerExcludedRoutes } from '../runtime-generation/server-exclude';
 import type { RoutingContext } from '../types';
@@ -152,6 +155,93 @@ function isRouterSourceFileForContext(filePath: string, ctx: RoutingContext) {
   );
 }
 
+function isDiscoveredRouteLoaderSource(
+  filePath: string,
+  sourceFiles: RouteLoaderSourceFiles | undefined
+) {
+  if (!sourceFiles) {
+    return false;
+  }
+  const normalizedPath = normalizePath(filePath);
+  for (const files of sourceFiles.values()) {
+    if (files.includes(normalizedPath)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+type SourceResolver = (specifier: string, importer: string) => Promise<string | undefined>;
+
+export async function findRouteLoaderSourceFiles(
+  ctx: RoutingContext,
+  resolveSource: SourceResolver
+): Promise<RouteLoaderSourceFiles> {
+  const sources = new Map<string, string[]>();
+  const owners = new Set<string>();
+  collectRouteLoaderOwners(ctx.routeTrie, owners);
+  for (const plugin of ctx.serverPlugins) {
+    owners.add(plugin.filePath);
+  }
+  await Promise.all(
+    [...owners].map((owner) => collectReExportSources(owner, owner, resolveSource, sources))
+  );
+  return sources;
+}
+
+function collectRouteLoaderOwners(node: RoutingContext['routeTrie'], owners: Set<string>) {
+  for (const file of node._files) {
+    if (file.type === 'layout' || file.type === 'route') {
+      owners.add(file.filePath);
+    }
+  }
+  for (const child of node.children.values()) {
+    collectRouteLoaderOwners(child, owners);
+  }
+}
+
+async function collectReExportSources(
+  owner: string,
+  filePath: string,
+  resolveSource: SourceResolver,
+  sources: Map<string, string[]>,
+  seen = new Set<string>([owner])
+) {
+  let code: string, exportEntries: ReturnType<typeof findExports> | null;
+  try {
+    code = await readFile(filePath, 'utf-8');
+    exportEntries = findExports(code);
+    if (!exportEntries) {
+      return;
+    }
+  } catch {
+    return;
+  }
+  await Promise.all(
+    exportEntries.map(async (exp) => {
+      if (!exp.specifier) {
+        return;
+      }
+      const resolved = await resolveSource(exp.specifier, filePath);
+      if (!resolved || resolved.charCodeAt(0) === 0) {
+        return;
+      }
+      const resolvedPath = normalizePath(resolved.split(/[?#]/, 1)[0]);
+      let ownerSources = sources.get(owner);
+      if (!ownerSources) {
+        sources.set(owner, (ownerSources = []));
+      }
+      if (!ownerSources.includes(resolvedPath)) {
+        ownerSources.push(resolvedPath);
+      }
+      if (!seen.has(resolvedPath)) {
+        seen.add(resolvedPath);
+        await collectReExportSources(owner, resolvedPath, resolveSource, sources, seen);
+      }
+    })
+  );
+}
+
 export function invalidateRouterConfigModules(server: ViteDevServer) {
   const modules: NonNullable<ReturnType<ViteDevServer['moduleGraph']['getModuleById']>>[] = [];
   const moduleGraphs = new Set<ViteDevServer['moduleGraph']>();
@@ -195,6 +285,7 @@ function qwikRouterPlugin(
   const serverPluginsDir = userOpts?.serverPluginsDir ?? routesDir;
   /** Map from source file path to array of routeLoader$ hashes found in that file */
   const loadersByFile = new Map<string, string[]>();
+  let reExportedRouteLoaderSources: RouteLoaderSourceFiles | undefined;
   /** SSG include/exclude from the adapter (see `_setSsgRoutes`); drives the server-route prune. */
   let ssgRoutePatterns: { include?: string[]; exclude?: string[] } | undefined;
 
@@ -382,10 +473,20 @@ function qwikRouterPlugin(
       if (sendRouterCssHotUpdate(server, file, timestamp)) {
         return [];
       }
-      if (!ctx || !isRouterSourceFileForContext(file, ctx)) {
+      const clearedLoaderHashes = clearRouteLoaderHashes(loadersByFile, file);
+      if (!ctx) {
         return;
       }
-      clearRouteLoaderHashes(loadersByFile, file);
+      if (!isRouterSourceFileForContext(file, ctx)) {
+        if (
+          clearedLoaderHashes ||
+          isDiscoveredRouteLoaderSource(file, reExportedRouteLoaderSources)
+        ) {
+          const configModules = invalidateRouterConfigModules(server);
+          return [...modules, ...configModules];
+        }
+        return;
+      }
       ctx.isDirty = true;
       const configModules = invalidateRouterConfigModules(server);
       return [...modules, ...configModules];
@@ -450,12 +551,20 @@ function qwikRouterPlugin(
               isServerConsumer && !devServer && this.environment.name !== 'ssg'
                 ? await getServerExcludedRoutes(ctx, ssgRoutePatterns)
                 : undefined;
+            reExportedRouteLoaderSources = await findRouteLoaderSourceFiles(
+              ctx,
+              async (specifier, importer) => {
+                const resolved = await this.resolve(specifier, importer, { skipSelf: true });
+                return resolved?.id;
+              }
+            );
             return generateQwikRouterConfig(
               ctx,
               qwikPlugin!,
               isServerConsumer,
               devServer ? loadersByFile : undefined,
-              serverExcludePaths
+              serverExcludePaths,
+              reExportedRouteLoaderSources
             );
           }
 

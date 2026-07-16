@@ -314,6 +314,7 @@ function processJSXNode(
           if (isPromise(jsxOutput)) {
             // Defer reading QScopedStyle until after the promise resolves
             enqueue(async () => {
+              await ssr.streamHandler.flush();
               const resolvedOutput = await jsxOutput;
               const compStyleComponentId = addComponentStylePrefix(host.getProp(QScopedStyle));
 

@@ -29,7 +29,40 @@ import { createQRLWithBackChannel } from './qrl-to-string';
 import { SubscriptionPatch } from './subscription-patch';
 
 export const resolvers = new WeakMap<Promise<any>, [Function, Function]>();
-export const pendingStoreTargets = new Map<object, { t: TypeIds; v: unknown }>();
+
+const BASE64_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+const BASE64_REGEXP = /^[A-Za-z0-9+/]*$/;
+// Validate canonical unpadded base64 before its length controls allocation.
+const isCanonicalBase64 = (value: unknown): value is string => {
+  if (typeof value !== 'string' || !BASE64_REGEXP.test(value)) {
+    return false;
+  }
+  const rest = value.length % 4;
+  if (rest === 0) {
+    return true;
+  }
+  if (rest === 1) {
+    return false;
+  }
+  const lastValue = BASE64_ALPHABET.indexOf(value[value.length - 1]);
+  return (lastValue & (rest === 2 ? 15 : 3)) === 0;
+};
+
+export const beginDeserialization = (container: DeserializeContainer): boolean => {
+  const ownsPendingStoreTargets = container.$pendingStoreTargets$ === undefined;
+  container.$pendingStoreTargets$ ??= new Map();
+  return ownsPendingStoreTargets;
+};
+
+export const endDeserialization = (
+  container: DeserializeContainer,
+  ownsPendingStoreTargets: boolean
+): void => {
+  if (ownsPendingStoreTargets) {
+    container.$pendingStoreTargets$!.clear();
+    container.$pendingStoreTargets$ = undefined;
+  }
+};
 
 export const allocate = (container: DeserializeContainer, typeId: number, value: unknown): any => {
   switch (typeId) {
@@ -127,7 +160,7 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
       const storeValue = allocate(container, t, v);
       const store = getOrCreateStore(storeValue, StoreFlags.NONE, container as DomContainer);
       if (needsInflation(t)) {
-        pendingStoreTargets.set(storeValue, { t, v });
+        container.$pendingStoreTargets$!.set(storeValue, { t, v });
       }
       // We must store the reference so it doesn't get deserialized again in inflate()
       data[0] = TypeIds.Plain;
@@ -157,12 +190,16 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
       // Don't leave unhandled promise rejections
       promise.catch(() => {});
       return promise;
-    case TypeIds.Uint8Array:
-      const encodedLength = (value as string).length;
-      const blocks = encodedLength >>> 2;
-      const rest = encodedLength & 3;
+    case TypeIds.Uint8Array: {
+      if (!isCanonicalBase64(value)) {
+        throw qError(QError.invalidUint8ArrayPayload);
+      }
+      const encodedLength = value.length;
+      const blocks = Math.floor(encodedLength / 4);
+      const rest = encodedLength % 4;
       const decodedLength = blocks * 3 + (rest ? rest - 1 : 0);
       return new Uint8Array(decodedLength);
+    }
     case TypeIds.PropsProxy:
       return createPropsProxy(null!);
     case TypeIds.VNode:

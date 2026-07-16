@@ -18,6 +18,7 @@ import { wrapResponseForHtmlTransform } from './html-transform-wrapper';
 import { getImportPath } from '../runtime-generation/utils';
 
 const FULLPATH_HEADER = 'X-Qwik-fullpath';
+const ROUTE_PATH_HEADER = 'X-Qwik-route-path';
 type DevServerRequest = Parameters<Connect.NextHandleFunction>[0];
 
 export function getDevMiddlewareRequestPath(req: DevServerRequest) {
@@ -139,7 +140,8 @@ async function preloadQLoaderRouteLoader(
   }
 
   const loaderId = recognized.data.loaderId;
-  const headerValue = req.headers[FULLPATH_HEADER.toLowerCase()];
+  const headerValue =
+    req.headers[FULLPATH_HEADER.toLowerCase()] ?? req.headers[ROUTE_PATH_HEADER.toLowerCase()];
   const fullPathHeader = Array.isArray(headerValue) ? headerValue[0] : (headerValue ?? null);
   const loaderPathname = trimRecognizedInternalPathname(requestUrl.pathname, recognized);
   const pathname =
@@ -246,7 +248,7 @@ export const getRouterIndexTags = (server: ViteDevServer) => {
   const cssUrls = getCssUrls(server);
   return cssUrls.map((url) => ({
     tag: 'link',
-    attrs: { rel: 'stylesheet', href: url },
+    attrs: { rel: 'stylesheet', href: server.config.base + url.slice(1) },
   }));
 };
 

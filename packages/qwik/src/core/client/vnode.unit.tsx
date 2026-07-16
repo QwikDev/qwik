@@ -26,6 +26,8 @@ import type { ElementVNode } from '../shared/vnode/element-vnode';
 import type { VNode } from '../shared/vnode/vnode';
 import type { TextVNode } from '../shared/vnode/text-vnode';
 import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
+import { encodeVNodeDataKey, encodeVNodeDataString } from '../shared/utils/character-escaping';
+import { QSlot } from '../shared/utils/markers';
 
 describe('vnode', () => {
   let parent: ContainerElement;
@@ -436,6 +438,16 @@ describe('vnode', () => {
           <Fragment key=":key_" />
         </test>
       );
+    });
+    it('should decode encoded slot names on Virtual', () => {
+      const slotName = '</script>|~;=?@ zażółć';
+      const encodedSlotName = encodeVNodeDataString(encodeVNodeDataKey(slotName));
+      parent.innerHTML = ``;
+      document.qVNodeData.set(parent, `{~|${encodedSlotName}|}`);
+
+      const virtual = vnode_getFirstChild(vParent)!;
+
+      expect(vnode_getProp(virtual, QSlot, null)).toBe(slotName);
     });
     it('should retrieve the correct node even after DOM manipulation', () => {
       parent.innerHTML = `wrongtext`;

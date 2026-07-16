@@ -30,6 +30,17 @@ test.describe('returned control-flow signals', () => {
     expect(response.status()).toEqual(403);
   });
 
+  test('action submission preserves current search params', async ({ page }) => {
+    await page.goto(`${base}/action-error/?foo=bar&tag=a&tag=b`);
+    const [response] = await Promise.all([
+      page.waitForResponse((r) => r.url().includes('qaction=')),
+      page.locator('button[type="submit"]').click(),
+    ]);
+    const actionUrl = new URL(response.url());
+    expect(actionUrl.searchParams.get('foo')).toEqual('bar');
+    expect(actionUrl.searchParams.getAll('tag')).toEqual(['a', 'b']);
+  });
+
   test('JSON action redirect responds with an envelope and navigates the page', async ({
     page,
   }) => {

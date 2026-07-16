@@ -1,7 +1,7 @@
 import { isDev } from '@qwik.dev/core';
 import type { Render } from '@qwik.dev/core/server';
 import { loadRoute } from '../../runtime/src/routing';
-import { FULLPATH_HEADER } from '../../runtime/src/route-loaders';
+import { FULLPATH_HEADER, ROUTE_PATH_HEADER } from '../../runtime/src/route-loaders';
 import type { QwikRouterConfig, RebuildRouteInfoInternal } from '../../runtime/src/types';
 import { _asyncRequestStore } from './async-request-store';
 import { devPreloadedRouteLoaders } from './dev-preloaded-route-loader';
@@ -99,7 +99,8 @@ export function getRequestHandlerPathname(
   return (
     resolveValidInternalFullPathname(
       loaderPathname,
-      serverRequestEv.request.headers.get(FULLPATH_HEADER)
+      serverRequestEv.request.headers.get(FULLPATH_HEADER) ??
+        serverRequestEv.request.headers.get(ROUTE_PATH_HEADER)
     ) ?? loaderPathname
   );
 }

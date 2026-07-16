@@ -188,7 +188,7 @@ async function testAllPaths() {
 
   for (const testPath of testPaths) {
     const editPath = makeEditPageUrl(testPath);
-    const editUrl = `https://github.com/QwikDev/qwik/blob/build/v2/packages/docs/src/routes/${editPath}/index.mdx`;
+    const editUrl = `https://github.com/QwikDev/qwik/blob/main/packages/docs/src/routes/${editPath}/index.mdx`;
 
     try {
       const result = await checkUrl(editUrl);

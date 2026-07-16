@@ -3,12 +3,13 @@ import {
   getPathname,
   fixTrailingSlash,
   resolveRequestHandlers,
+  streamServerFunctionResult,
 } from './resolve-request-handlers-core';
 import { RequestEvHttpStatusMessage, RequestEvSharedActionId } from './request-event-core';
 import { createRequestEvent } from './request-event-core';
 import { RedirectMessage } from './redirect-handler';
 import { isContentType } from './request-utils';
-import type { ServerRequestEvent } from './types';
+import type { RequestEvent, ServerRequestEvent } from './types';
 import { checkCSRF } from './resolve-request-handlers-core';
 import type { LoadedRoute, RouteModule } from '../../runtime/src/types';
 import { ServerError } from '@qwik.dev/router/middleware/request-handler';
@@ -509,6 +510,47 @@ describe('resolve-request-handler', () => {
 
       await expect(requestEv.resolveValue(actionA as any)).resolves.toBeUndefined();
       await expect(requestEv.resolveValue(actionB as any)).resolves.toBeUndefined();
+    });
+  });
+
+  describe('streamServerFunctionResult', () => {
+    // A writable in the post-disconnect state: write/close reject (as Bun's does).
+    function makeDisconnectedWritable(): WritableStream<Uint8Array> {
+      return new WritableStream<Uint8Array>({
+        write() {},
+        close() {
+          throw new Error('Cannot close a writable stream that is closed or errored');
+        },
+      });
+    }
+
+    function makeStreamingEvent(writable: WritableStream<Uint8Array>): RequestEvent {
+      return {
+        headers: new Headers(),
+        getWritableStream: () => writable,
+        signal: new AbortController().signal,
+      } as unknown as RequestEvent;
+    }
+
+    async function* twoItems(): AsyncGenerator<{ n: number }> {
+      yield { n: 0 };
+      yield { n: 1 };
+    }
+
+    it('does not leak an unhandled rejection when close() rejects on a disconnected client', async () => {
+      const fakeQrl = { getHash: () => 'streamServerFn', getSymbol: () => 'streamServerFn' } as any;
+      const rejections: unknown[] = [];
+      const onUnhandled = (reason: unknown) => rejections.push(reason);
+      process.on('unhandledRejection', onUnhandled);
+      try {
+        const ev = makeStreamingEvent(makeDisconnectedWritable());
+        await streamServerFunctionResult(ev, twoItems(), fakeQrl);
+        // Let a macrotask elapse so a dropped rejection surfaces before we assert.
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      } finally {
+        process.off('unhandledRejection', onUnhandled);
+      }
+      expect(rejections).toEqual([]);
     });
   });
 });

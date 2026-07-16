@@ -115,7 +115,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   let clientOutDir: string | null = null;
   let basePathname: string = '/';
   let clientPublicOutDir: string | null = null;
-  let viteAssetsDir: string | undefined;
   let srcDir: string | null = null;
   let rootDir: string | null = null;
 
@@ -142,7 +141,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     getRootDir: () => qwikPlugin.getOptions().rootDir,
     getClientOutDir: () => clientOutDir,
     getClientPublicOutDir: () => clientPublicOutDir,
-    getAssetsDir: () => viteAssetsDir,
     registerBundleGraphAdder: (adder: BundleGraphAdder) => bundleGraphAdders.add(adder),
     onSegment: (callback: SegmentCallback) => {
       qwikPlugin.segmentCallbacks.add(callback);
@@ -210,8 +208,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       if (input && typeof input === 'string') {
         input = [input];
       }
-      viteAssetsDir = viteConfig.build?.assetsDir;
-      const useAssetsDir = target === 'client' && !!viteAssetsDir && viteAssetsDir !== '_astro';
       const pluginOpts: QwikPluginOptions = {
         target,
         buildMode,
@@ -230,7 +226,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           // When ssr is true, this is probably an adapter build and not where the client build is
           // However, if client.outDir was explicitly set, always use it
           (viteConfig.build?.ssr && !userClientOutDir ? undefined : viteConfig.build?.outDir),
-        assetsDir: useAssetsDir ? viteAssetsDir : undefined,
         devTools: qwikViteOpts.devTools,
         sourcemap: !!viteConfig.build?.sourcemap,
         lint: qwikViteOpts.lint,
@@ -340,8 +335,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           ...updatedViteConfig.build!.rollupOptions,
           output: await normalizeRollupOutputOptions(
             qwikPlugin,
-            viteConfig.build?.rollupOptions?.output,
-            useAssetsDir
+            viteConfig.build?.rollupOptions?.output
           ),
           preserveEntrySignatures: 'exports-only',
           onwarn: (warning, warn) => {
@@ -1157,7 +1151,6 @@ export interface QwikVitePluginApi {
   getRootDir: () => string | null;
   getClientOutDir: () => string | null;
   getClientPublicOutDir: () => string | null;
-  getAssetsDir: () => string | undefined;
   registerBundleGraphAdder: (adder: BundleGraphAdder) => void;
   /** Register a callback that fires for each segment emitted during transform. */
   onSegment: (callback: SegmentCallback) => void;

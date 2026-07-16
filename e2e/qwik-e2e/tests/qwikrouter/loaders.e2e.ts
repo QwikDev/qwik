@@ -80,6 +80,17 @@ test.describe('loaders', () => {
       await expect(noise).toHaveText('noise: none');
       await expect(token).not.toHaveText(alphaToken);
     });
+
+    test('should refetch re-exported loaders on SPA route changes', async ({ page }) => {
+      const loaderId = page.locator('#reexported-loader-id');
+
+      await page.goto('/qwikrouter-test/reexported-loader/one/');
+      await expect(loaderId).toHaveText('id: one');
+
+      await page.locator('#reexported-loader-two').click();
+      await page.waitForURL('**/reexported-loader/two/');
+      await expect(loaderId).toHaveText('id: two');
+    });
   });
 
   function tests() {

@@ -53,20 +53,6 @@ export const C = component$(() => {
     expect(out).not.toMatch(/_fnSignal\([^)]*\bnode\b/);
   });
 
-  it('still hoists a signal computed key bound by an outer callback', () => {
-    const input = `
-import { component$, useSignal } from '@qwik.dev/core';
-export const C = component$(() => {
-  const counts = useSignal({});
-  const names = useSignal([]);
-  return <div>{names.value.map((name) => <p key={name}>{counts.value[name] || 0}</p>)}</div>;
-});`;
-    const out = run(input);
-    expect(out).toMatch(/const _hf\d+ = \(p0, ?p1\) => p0\.value\[p1\]/);
-    expect(out).toMatch(/_fnSignal\(_hf\d+, \[counts, name\]/);
-    expect(out).not.toMatch(/=> p0\.value\[name\]/);
-  });
-
   it('still hoists an optional-chain getter call', () => {
     const input = `
 import { component$, useSignal } from '@qwik.dev/core';

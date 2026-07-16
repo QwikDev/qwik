@@ -389,45 +389,6 @@ describe('generateSegmentCode', () => {
 });
 
 describe('disambiguateExtractions', () => {
-  it('appends _1 suffix to second extraction with same context portion', () => {
-    const source = `
-import { component$ } from '@qwik.dev/core';
-export const App = component$(() => {
-  return <div>Hello</div>;
-});
-export const App2 = component$(() => {
-  return <div>World</div>;
-});
-`;
-    const results = extractSegments(source, 'test.tsx');
-    expect(results).toHaveLength(2);
-
-    // Both have context portion "App_component" and "App2_component" -- different names, no disambiguation
-    // Let's test with SAME context portion instead
-  });
-
-  it('disambiguates two extractions with identical context portion', () => {
-    // Two component$ calls inside the same variable name produce same context
-    const source = `
-import { $, component$ } from '@qwik.dev/core';
-export const App = component$(() => {
-  return <div>Hello</div>;
-});
-`;
-    // For a real duplicate test, we need a scenario where two extractions share
-    // the same display name. This happens with multiple $() in same context.
-    const source2 = `
-import { $ } from '@qwik.dev/core';
-export const Foo = {
-  a: $(() => 1),
-  b: $(() => 2),
-};
-`;
-    const results = extractSegments(source2, 'test.tsx');
-    // a and b have different context (Foo_a vs Foo_b), so no disambiguation
-    // We need cases like multiple onClick$ on same element
-  });
-
   it('disambiguates multiple extractions with same display name (e.g., multiple useTask$)', () => {
     const source = `
 import { component$, useTask$ } from '@qwik.dev/core';

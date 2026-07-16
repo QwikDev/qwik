@@ -357,9 +357,9 @@ export const Comp = (props) => {
     });
 
     const parent = result.modules[0];
-    // styles.container is imported -> constProps
-    // window.location.href is global -> varProps
     expect(parent.code).toContain('_jsxSorted("div"');
+    expect(parent.code).toContain('styles.container');
+    expect(parent.code).toContain('window.location.href');
   });
 
   it('jsx: ctxKind is jSXProp for non-event $-suffixed JSX props', () => {
@@ -378,14 +378,12 @@ export const App = component$(() => {
     });
 
     const segments = result.modules.filter((m) => m.kind === 'segment');
-    // Find the transparent$ segment -- Rust optimizer treats ALL $-suffixed JSX
-    // attribute extractions as eventHandler, not just on* event props.
+    // every $-suffixed JSX attribute extracts as an eventHandler, not just on* props
     const transparentSeg = segments.find(
       (s) => s.segment!.ctxName === 'transparent$'
     );
-    if (transparentSeg) {
-      expect(transparentSeg.segment!.ctxKind).toBe('eventHandler');
-    }
+    expect(transparentSeg).toBeDefined();
+    expect(transparentSeg!.segment!.ctxKind).toBe('eventHandler');
   });
 
   it('jsx: event handler ctxKind remains eventHandler', () => {
@@ -407,9 +405,8 @@ export const App = component$(() => {
     const clickSeg = segments.find(
       (s) => s.segment!.ctxName === 'onClick$'
     );
-    if (clickSeg) {
-      expect(clickSeg.segment!.ctxKind).toBe('eventHandler');
-    }
+    expect(clickSeg).toBeDefined();
+    expect(clickSeg!.segment!.ctxKind).toBe('eventHandler');
   });
 
   it('jsx: non-JSX files skip JSX transform', () => {

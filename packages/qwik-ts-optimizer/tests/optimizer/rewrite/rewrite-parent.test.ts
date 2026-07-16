@@ -199,10 +199,10 @@ export const App = component$(() => {
     const imports = collectImports(program);
     const result = rewriteParentModule(source, mkRelativePath('test.tsx'), extractions as ExtractionResult[], imports);
 
-    // Should have extractions with parent relationship
-    // The inner $() should reference the outer component$ as parent
-    // (This depends on extractSegments setting parent correctly)
     expect(result.extractions.length).toBeGreaterThanOrEqual(2);
+    const nested = result.extractions.find((e) => e.parent != null);
+    expect(nested).toBeDefined();
+    expect(result.extractions.some((e) => e.symbolName === nested!.parent)).toBe(true);
   });
 
   it('Test 10: custom inlined useMemo$ rewritten without adding import', () => {

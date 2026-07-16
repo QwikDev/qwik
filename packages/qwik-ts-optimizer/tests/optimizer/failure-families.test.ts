@@ -1,4 +1,4 @@
-import { describe, it } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -114,6 +114,11 @@ describe('failure families', () => {
     console.log(`Family 3 (segment identity): ${segmentIdentity.length}`);
     console.log(`Family 4 (segment codegen): ${segmentCodegen.length}`);
     console.log(`No input: ${noInput.length}`);
-    console.log(`Total: ${alreadyPassing.length + parentRewriteOnly.length + untransformed.length + segmentIdentity.length + segmentCodegen.length + noInput.length}`);
+    const total = alreadyPassing.length + parentRewriteOnly.length + untransformed.length +
+      segmentIdentity.length + segmentCodegen.length + noInput.length;
+    console.log(`Total: ${total}`);
+
+    expect(files.length).toBeGreaterThan(200);
+    expect(total).toBe(files.length);
   });
 });

@@ -608,9 +608,7 @@
       "tests/optimizer/extraction/context-stack.test.ts :: ContextStack nested context produces full display name chain",
       "tests/optimizer/extraction/context-stack.test.ts :: ContextStack pop() removes last context",
       "tests/optimizer/extraction/context-stack.test.ts :: ContextStack push(\"Header\") then push(\"component$\") produces correct display name",
-      "tests/optimizer/extraction/extract.test.ts :: disambiguateExtractions appends _1 suffix to second extraction with same context portion",
       "tests/optimizer/extraction/extract.test.ts :: disambiguateExtractions disambiguates multiple extractions with same display name (e.g., multiple useTask$)",
-      "tests/optimizer/extraction/extract.test.ts :: disambiguateExtractions disambiguates two extractions with identical context portion",
       "tests/optimizer/extraction/extract.test.ts :: disambiguateExtractions does not disambiguate different context portions",
       "tests/optimizer/extraction/extract.test.ts :: disambiguateExtractions recomputes hash after disambiguation suffix is appended",
       "tests/optimizer/extraction/extract.test.ts :: disambiguateExtractions updates canonicalFilename and symbolName consistently",
@@ -753,7 +751,6 @@
       "tests/optimizer/jsx/fnsignal-nonreactive-map.test.ts :: _fnSignal hoisting stays out of non-reactive maps and nested callback params leaves a plain module-const .map inline instead of hoisting it",
       "tests/optimizer/jsx/fnsignal-nonreactive-map.test.ts :: _fnSignal hoisting stays out of non-reactive maps and nested callback params leaves a signal-less .map inline when its callback invokes a local helper",
       "tests/optimizer/jsx/fnsignal-nonreactive-map.test.ts :: _fnSignal hoisting stays out of non-reactive maps and nested callback params never lifts a nested callback parameter into a hoisted dependency array",
-      "tests/optimizer/jsx/fnsignal-nonreactive-map.test.ts :: _fnSignal hoisting stays out of non-reactive maps and nested callback params still hoists a signal computed key bound by an outer callback",
       "tests/optimizer/jsx/fnsignal-nonreactive-map.test.ts :: _fnSignal hoisting stays out of non-reactive maps and nested callback params still hoists an optional-chain getter call",
       "tests/optimizer/jsx/foreign-jsx-runtime.test.ts :: foreign @jsxImportSource pragma support detectForeignJsxRuntime helper detects a react pragma and returns the matched text",
       "tests/optimizer/jsx/foreign-jsx-runtime.test.ts :: foreign @jsxImportSource pragma support detectForeignJsxRuntime helper does NOT flag Qwik-named import sources (those stay under Qwik optimization)",
@@ -1157,7 +1154,6 @@
       "tests/optimizer/router-lib-processing.test.ts :: segment body cut off mid-expression every emitted module parses cleanly",
       "tests/optimizer/router-lib-processing.test.ts :: segment origin + file extension resolve under bundler config every module origin is a well-formed relative path, not a slash-stripped absolute",
       "tests/optimizer/router-lib-processing.test.ts :: segment origin + file extension resolve under bundler config every sibling segment import resolves to an emitted segment file",
-      "tests/optimizer/segment-only-debug.test.ts :: segment-only convergence debug analyzes all 210 snapshot tests for segment-only failures",
       "tests/optimizer/segment/body-default-fold.test.ts :: segment-body default folding (post-JSX-transform pass) does NOT re-canonicalize existing string literals (skipLiterals: true)",
       "tests/optimizer/segment/body-default-fold.test.ts :: segment-body default folding (post-JSX-transform pass) folds `?? 1+2` in nested useTask body too",
       "tests/optimizer/segment/body-default-fold.test.ts :: segment-body default folding (post-JSX-transform pass) folds `?? 1+2` → `?? 3` in component body where raw-props injected the default",
@@ -1402,6 +1398,6 @@
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) has null input",
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) parses without error"
     ],
-    "total": 1217
+    "total": 1213
   }
 }

@@ -67,7 +67,8 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           projectName: 'qwik-docs'
           directory: packages/docs/dist
-          branch: ${{ github.event.workflow_run.event == 'pull_request' && format('pr-{0}', github.event.workflow_run.pull_requests[0].number) || 'main' }}
+          # v1 docs are production (qwik.dev); main (v2) stays a preview until launch
+          branch: ${{ github.event.workflow_run.event == 'pull_request' && format('pr-{0}', github.event.workflow_run.pull_requests[0].number) || (github.event.workflow_run.head_branch == 'v1' && 'main' || format('preview-{0}', github.event.workflow_run.head_branch)) }}
           githubToken: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Skip message when no docs artifact

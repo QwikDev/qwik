@@ -1,5 +1,48 @@
 # @qwik.dev/devtools
 
+## 0.3.0-beta.2
+
+### Minor Changes
+
+- ✨ customize which tabs appear in the devtools sidebar (by [@Aejkatappaja](https://github.com/Aejkatappaja) in [#8833](https://github.com/QwikDev/qwik/pull/8833))
+
+- ✨ reach hidden devtools tabs from a sidebar More panel (by [@Aejkatappaja](https://github.com/Aejkatappaja) in [#8833](https://github.com/QwikDev/qwik/pull/8833))
+
+- ✨ drag to reorder the visible devtools sidebar tabs (by [@Aejkatappaja](https://github.com/Aejkatappaja) in [#8833](https://github.com/QwikDev/qwik/pull/8833))
+
+### Patch Changes
+
+- refactor(devtools): extract findComponentKey and component-name derivation as runtime utilities (by [@Aejkatappaja](https://github.com/Aejkatappaja) in [#8803](https://github.com/QwikDev/qwik/pull/8803))
+
+  The component-key lookup and the "name after the last underscore" derivation were inlined inside
+  the hook runtime installer and duplicated across getComponentDetail, setSignalValue, and
+  getComponentTreeSnapshot. They are now top-level `__qwik_find_component_key__` and
+  `__qwik_derive_component_name__` functions, emitted by name into the injected runtime bundle and
+  reused by every caller. Being pure, they are also covered by unit tests.
+
+- refactor: share the page data source contract between the ui and extension (by [@Aejkatappaja](https://github.com/Aejkatappaja) in [#8804](https://github.com/QwikDev/qwik/pull/8804))
+
+- refactor(devtools): single source of truth for shared protocol types (by [@Aejkatappaja](https://github.com/Aejkatappaja) in [#8712](https://github.com/QwikDev/qwik/pull/8712))
+
+  The VNode tree node, component detail entry, and render event shapes were declared
+  three times: in the browser extension, in the devtools UI, and in the kit client
+  bridge. They now live once in @qwik.dev/devtools/kit (protocol module) as
+  DevtoolsVNodeTreeNode, DevtoolsComponentDetailEntry, and DevtoolsRenderEvent, and
+  every consumer imports them from there.
+
+- refactor(devtools): generate the extension VNode bridge from one shared source (by [@Aejkatappaja](https://github.com/Aejkatappaja) in [#8713](https://github.com/QwikDev/qwik/pull/8713))
+
+  The browser extension's `public/vnode-bridge.js` duplicated the VNode bridge logic
+  (tree building, prop serialization, name normalization, DOM resolution, highlighting,
+  component tree update posting) that the Vite plugin already owns via
+  `__qwik_install_vnode_runtime__` / `createVNodeRuntime()`. It is now generated from
+  that single canonical source by the extension build (alongside `devtools-hook.js`)
+  and is no longer committed.
+
+- refactor: drive the devtools sidebar from a configurable visible-tabs list (by [@Aejkatappaja](https://github.com/Aejkatappaja) in [#8833](https://github.com/QwikDev/qwik/pull/8833))
+
+- ✨ enhances the devtools package management experience by adding dependency inspection, search, install, update, and feedback flows to the Packages panel. (by [@JerryWu1234](https://github.com/JerryWu1234) in [#8768](https://github.com/QwikDev/qwik/pull/8768))
+
 ## 0.3.0-beta.1
 
 ### Patch Changes

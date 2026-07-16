@@ -260,7 +260,6 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
       const basePathname = qwikRouterPlugin.api.getBasePathname();
       const clientOutDir = qwikVitePlugin.api.getClientOutDir()!;
       const clientPublicOutDir = qwikVitePlugin.api.getClientPublicOutDir()!;
-      const assetsDir = qwikVitePlugin.api.getAssetsDir();
       const ssgEnv = builder.environments.ssg;
       const ssgOutDir = ssgOutDirFor(builder.config.root);
 
@@ -302,7 +301,7 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
       await postBuild(
         clientPublicOutDir,
         serverOutDir,
-        assetsDir ? join(basePathname, assetsDir) : basePathname,
+        basePathname,
         staticPaths,
         !!opts.cleanStaticGenerated
       );
@@ -315,7 +314,6 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
           clientPublicOutDir,
           basePathname,
           routes,
-          assetsDir,
           warn: (message) => log.warn(message),
           error: (message) => {
             throw new Error(message);
@@ -367,7 +365,6 @@ interface ViteAdapterPluginOptions {
     serverOutDir: string;
     basePathname: string;
     routes: BuiltRoute[];
-    assetsDir?: string;
     warn: (message: string) => void;
     error: (message: string) => void;
   }) => Promise<void>;

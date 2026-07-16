@@ -40,9 +40,14 @@ export interface QwikRouterNodeMiddleware {
     // @deprecated (undocumented)
     notFound: (req: IncomingMessage | Http2ServerRequest, res: ServerResponse, next: (e: any) => void) => Promise<void>;
     // (undocumented)
-    router: (req: IncomingMessage | Http2ServerRequest, res: ServerResponse, next: NodeRequestNextFunction) => Promise<void>;
+    router: (req: IncomingMessage | Http2ServerRequest, res: ServerResponse, next: NodeRequestNextFunction, limits?: QwikRouterNodeRequestLimits) => Promise<void>;
     // (undocumented)
     staticFile: (req: IncomingMessage | Http2ServerRequest, res: ServerResponse, next: (e?: any) => void) => Promise<void>;
+}
+
+// @public (undocumented)
+export interface QwikRouterNodeRequestLimits {
+    bodyLimit?: number;
 }
 
 // @public (undocumented)
@@ -51,6 +56,7 @@ export interface QwikRouterNodeRequestOptions extends ServerRenderOptions {
     getOrigin?: (req: IncomingMessage | Http2ServerRequest) => string | null;
     // @deprecated (undocumented)
     origin?: string;
+    requestBodyLimit?: number;
     static?: {
         root?: string;
         cacheControl?: string;

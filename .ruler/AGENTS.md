@@ -1,5 +1,13 @@
 # Qwik v2 agents reference, instructions and rules
 
+> [!IMPORTANT]
+> **ALWAYS RUN `ruler apply` AT THE START OF A SESSION.** The agent skills are gitignored, not
+> committed, so a fresh clone/worktree has none until you generate them (once per worktree):
+>
+> ```bash
+> pnpm dlx @intellectronica/ruler@0.3.42 apply --no-gitignore --no-mcp
+> ```
+
 > Canonical source for repo-wide AI coding agent rules. For contributor setup, see
 > [CONTRIBUTING.md](./CONTRIBUTING.md). For package-specific workflows, load the relevant
 > `.ruler/skills/*/SKILL.md` file.
@@ -7,8 +15,10 @@
 ## Source Of Truth
 
 - Shared AI guidance lives in `.ruler/`.
+- Only the root `AGENTS.md` and `CLAUDE.md` are committed generated outputs; the `.claude/`/`.codex/`
+  skill copies are gitignored and regenerated locally with `ruler apply` (see Setup below).
 - Never hand-edit a generated output — edit `.ruler/` and regenerate with `ruler apply`. A CI check
-  re-runs it and fails on drift.
+  re-runs it and fails if the committed root files drift.
 - To change assistant behavior, edit `.ruler/AGENTS.md`, `.ruler/README.md`, or `.ruler/skills/**`,
   then regenerate with Ruler when needed.
 
@@ -24,7 +34,7 @@ the cursor system, and the Rust optimizer.
 
 ## Monorepo Map
 
-- Base branch and release branch for v2 PRs: `build/v2`.
+- Base branch and release branch for v2 PRs: `main`. V1 lives on the `v1` branch.
 
 | Package | Path | Notes |
 | --- | --- | --- |
@@ -52,6 +62,11 @@ commands:
 
 ```bash
 pnpm i
+```
+
+```bash
+# Materialize the agent skills into .claude/.codex (gitignored) — run once per fresh clone/worktree.
+pnpm dlx @intellectronica/ruler@0.3.42 apply --no-gitignore --no-mcp
 ```
 
 ```bash
@@ -143,6 +158,9 @@ Load the relevant skill before non-trivial work in that area:
 | `qwik-guidance-maintenance` | Editing `.ruler/**`, generated-output guidance, or stale skill/reference content |
 
 If no skill fits, stay with these repo-wide rules and inspect local source before changing code.
+
+If a skill above is not loadable, its copy has not been generated in this worktree yet — run the
+`ruler apply` step from Setup, or read the source directly at `.ruler/skills/<name>/SKILL.md`.
 
 Keep the `qwik-` prefix on committed source skill names. Ruler copies these skills into
 agent-native skill directories where they may coexist with user or plugin skills, so the prefix keeps

@@ -126,7 +126,6 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     tsconfigFileNames: ['./tsconfig.json'],
     input: undefined as any,
     outDir: undefined as any,
-    assetsDir: undefined as any,
     resolveQwikBuild: true,
     entryStrategy: undefined as any,
     srcDir: undefined as any,
@@ -216,10 +215,6 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         ...updatedOpts.devTools,
       };
     }
-    if (updatedOpts.assetsDir) {
-      opts.assetsDir = updatedOpts.assetsDir;
-    }
-
     if (
       updatedOpts.target === 'ssr' ||
       updatedOpts.target === 'client' ||
@@ -879,18 +874,27 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       // in dev mode, it could be that the id is a QRL segment that wasn't transformed yet
       const parentId = parentIds.get(id);
       if (parentId) {
+        // building here via ctx.load doesn't seem to work (no transform), instead we use the devserver directly
+        debug(`load(${count})`, 'transforming QRL parent', parentId);
         const parentModule = devServer.moduleGraph.getModuleById(parentId);
         if (parentModule) {
-          // building here via ctx.load doesn't seem to work (no transform), instead we use the devserver directly
-          debug(`load(${count})`, 'transforming QRL parent', parentId);
           await devServer.transformRequest(parentModule.url);
-          // The QRL segment should exist now
-          if (!outputs.has(id)) {
-            debug(`load(${count})`, `QRL segment ${id} not found in ${parentId}`);
-            return null;
-          }
         } else {
-          console.error(`load(${count})`, `module ${parentId} does not exist in the build graph!`);
+          // The parent isn't in THIS server's graph — e.g. SSR was rendered in a
+          // different vite server (test tooling, split server/browser SSR). Bootstrap
+          // it by id so its QRL segments populate `outputs`. If it genuinely can't be
+          // transformed, fall through to the graceful "not found" below rather than
+          // throwing (id-vs-url resolution can differ on Windows / with a non-root base).
+          try {
+            await devServer.transformRequest(parentId);
+          } catch (err) {
+            console.error(`load(${count})`, `could not transform QRL parent ${parentId}:`, err);
+          }
+        }
+        // The QRL segment should exist now
+        if (!outputs.has(id)) {
+          debug(`load(${count})`, `QRL segment ${id} not found in ${parentId}`);
+          return null;
         }
       }
     }
@@ -1589,7 +1593,6 @@ export interface QwikPluginOptions {
   outDir?: string;
   ssrOutDir?: string;
   clientOutDir?: string;
-  assetsDir?: string;
   srcDir?: string | null;
   scope?: string | null;
   /** @deprecated Not used */

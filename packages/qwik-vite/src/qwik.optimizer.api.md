@@ -160,8 +160,6 @@ export type QwikVitePlugin = P<QwikVitePluginApi> & {
 // @public (undocumented)
 export interface QwikVitePluginApi {
     // (undocumented)
-    getAssetsDir: () => string | undefined;
-    // (undocumented)
     getClientOutDir: () => string | null;
     // (undocumented)
     getClientPublicOutDir: () => string | null;

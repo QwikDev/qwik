@@ -1,7 +1,11 @@
+import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   addRouteLoaderHash,
   clearRouteLoaderHashes,
+  findRouteLoaderSourceFiles,
   invalidateRouterConfigModules,
   isRouterSourceFilePath,
   qwikRouter,
@@ -28,6 +32,59 @@ describe('qwikRouter plugin', () => {
           'globalThis.__DEFAULT_LOADERS_SERIALIZATION_STRATEGY__': '"always"',
         },
       });
+    });
+  });
+
+  describe('route loader re-exports', () => {
+    it('discovers re-exported source files through the resolver', async () => {
+      const dir = await mkdtemp(join(tmpdir(), 'qwik-router-'));
+      try {
+        const routeDir = join(dir, 'src/routes/[id]');
+        const loadersDir = join(dir, 'src/loaders');
+        await mkdir(routeDir, { recursive: true });
+        await mkdir(loadersDir, { recursive: true });
+
+        const layout = join(routeDir, 'layout.tsx');
+        const barrel = join(loadersDir, 'barrel.ts');
+        const data = join(loadersDir, 'data.ts');
+        await writeFile(layout, `export { useDadJoke } from '~/loaders/barrel';`);
+        await writeFile(barrel, `export { useDadJoke } from './data';`);
+        await writeFile(data, `export const useDadJoke = 1;`);
+
+        const ctx = {
+          routeTrie: {
+            _files: [
+              {
+                type: 'layout',
+                extlessName: 'layout',
+                ext: '.tsx',
+                dirPath: routeDir,
+                dirName: '[id]',
+                filePath: layout,
+                fileName: 'layout.tsx',
+              },
+            ],
+            children: new Map(),
+          },
+          serverPlugins: [],
+        } as any;
+
+        const sources = await findRouteLoaderSourceFiles(ctx, async (specifier, importer) => {
+          if (specifier.startsWith('~/')) {
+            return join(dir, 'src', specifier.slice(2)) + '.ts';
+          }
+          if (specifier.startsWith('.')) {
+            return join(dirname(importer), specifier) + '.ts';
+          }
+        });
+
+        expect(sources.get(layout)).toEqual([
+          barrel.replaceAll(/\\/g, '/'),
+          data.replaceAll(/\\/g, '/'),
+        ]);
+      } finally {
+        await rm(dir, { recursive: true, force: true });
+      }
     });
   });
 

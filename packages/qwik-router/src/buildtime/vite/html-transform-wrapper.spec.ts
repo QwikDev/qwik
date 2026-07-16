@@ -210,4 +210,17 @@ describe('wrapResponseForHtmlTransform', () => {
       await viteServer.close();
     }
   });
+
+  it('should prefix the Qwik HMR bridge with the Vite base', async () => {
+    server.config = { base: '/admin/' } as ViteDevServer['config'];
+    server.hot = {} as ViteDevServer['hot'];
+    wrapResponseForHtmlTransform(req, res as any, server);
+
+    res.setHeader('Content-Type', 'text/html');
+    res.end('<html><head></head><body></body></html>');
+
+    await new Promise((resolve) => res.on('finish', resolve));
+
+    expect(res.output).toContain('src="/admin/@id/@qwik-hmr-bridge"');
+  });
 });

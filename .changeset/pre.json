@@ -16,7 +16,7 @@
     "@devtools/browser-extension": "0.1.0",
     "@qwik.dev/devtools": "0.2.8"
   },
-  "branch": "build/v2",
+  "branch": "main",
   "changesets": [
     "afraid-bags-jam",
     "afraid-garlics-greet",

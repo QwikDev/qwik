@@ -1007,6 +1007,11 @@
       "tests/optimizer/rewrite/const-replacement.test.ts :: replaceConstants replaces isServer with false and isBrowser with true when isServer=false",
       "tests/optimizer/rewrite/const-replacement.test.ts :: replaceConstants replaces isServer with true and isBrowser with false when isServer=true",
       "tests/optimizer/rewrite/const-replacement.test.ts :: replaceConstants replaces multiple references of the same identifier",
+      "tests/optimizer/rewrite/inline-hoist-usehmr.test.ts :: inline/hoist strategy injects _useHmr for component bodies in hmr mode does not inject _useHmr under dev mode (only hmr)",
+      "tests/optimizer/rewrite/inline-hoist-usehmr.test.ts :: inline/hoist strategy injects _useHmr for component bodies in hmr mode emits _useHmr in both the hoist (server) and segment (client) component bodies",
+      "tests/optimizer/rewrite/inline-hoist-usehmr.test.ts :: inline/hoist strategy injects _useHmr for component bodies in hmr mode injects _useHmr only into the component body, not the handler segment",
+      "tests/optimizer/rewrite/inline-hoist-usehmr.test.ts :: inline/hoist strategy injects _useHmr for component bodies in hmr mode injects _useHmr(\"n.tsx\") into the hoist component body",
+      "tests/optimizer/rewrite/inline-hoist-usehmr.test.ts :: inline/hoist strategy injects _useHmr for component bodies in hmr mode injects _useHmr(\"n.tsx\") into the inline component body",
       "tests/optimizer/rewrite/inlined-qrl-in-captures.test.ts :: inlinedQrl nested inside another inlinedQrl captures array does not extract the capture-position QRL into its own segment",
       "tests/optimizer/rewrite/inlined-qrl-in-captures.test.ts :: inlinedQrl nested inside another inlinedQrl captures array every emitted module is valid JS",
       "tests/optimizer/rewrite/inlined-qrl-in-captures.test.ts :: inlinedQrl nested inside another inlinedQrl captures array hoists the capture-position QRL body to a top-level _inlined_ const and keeps the call inline",
@@ -1397,6 +1402,6 @@
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) has null input",
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) parses without error"
     ],
-    "total": 1212
+    "total": 1217
   }
 }

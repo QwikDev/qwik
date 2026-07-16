@@ -567,7 +567,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
 
         // Submit action if one was triggered
         if (action) {
-          const result = await submitAction(action, trackUrl.pathname);
+          const result = await submitAction(action, trackUrl);
           if (!result) {
             // HTTP redirect happened — bail
             routeInternal.untrackedValue = { type: navType, dest: trackUrl };

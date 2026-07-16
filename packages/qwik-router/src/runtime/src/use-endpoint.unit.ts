@@ -26,7 +26,7 @@ describe('submitAction', () => {
     );
 
     const action = { id: 'act-a', data: { name: 'Ada' } };
-    await submitAction(action as any, '/test/');
+    await submitAction(action as any, new URL('https://qwik.dev/test/'));
 
     expect(action.data).toBeUndefined();
   });
@@ -35,9 +35,26 @@ describe('submitAction', () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network error')));
 
     const action = { id: 'act-a', data: { field: 'value' } };
-    await expect(submitAction(action as any, '/test/')).rejects.toThrow('network error');
+    await expect(submitAction(action as any, new URL('https://qwik.dev/test/'))).rejects.toThrow(
+      'network error'
+    );
 
     expect(action.data).toBeUndefined();
+  });
+
+  it('preserves route search params when appending the action id', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue(await makeJsonResponse({ result: { ok: true } }));
+    vi.stubGlobal('fetch', fetchSpy);
+
+    await submitAction(
+      { id: 'act-a', data: {} } as any,
+      new URL('https://qwik.dev/test/?foo=bar&tag=a&tag=b')
+    );
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      '/test/?foo=bar&tag=a&tag=b&qaction=act-a',
+      expect.any(Object)
+    );
   });
 
   it('returns result and status from JSON action response', async () => {
@@ -50,7 +67,10 @@ describe('submitAction', () => {
         )
     );
 
-    const result = await submitAction({ id: 'act-a', data: {} } as any, '/test/');
+    const result = await submitAction(
+      { id: 'act-a', data: {} } as any,
+      new URL('https://qwik.dev/test/')
+    );
 
     expect(result).toEqual({
       status: 200,
@@ -70,7 +90,10 @@ describe('submitAction', () => {
         )
     );
 
-    const result = await submitAction({ id: 'act-a', data: {} } as any, '/test/');
+    const result = await submitAction(
+      { id: 'act-a', data: {} } as any,
+      new URL('https://qwik.dev/test/')
+    );
 
     expect(result?.status).toBe(422);
     expect(result?.result).toMatchObject({ failed: true });

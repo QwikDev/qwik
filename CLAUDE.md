@@ -38,7 +38,7 @@ the cursor system, and the Rust optimizer.
 
 ## Monorepo Map
 
-- Base branch and release branch for v2 PRs: `build/v2`.
+- Base branch and release branch for v2 PRs: `main`. V1 lives on the `v1` branch.
 
 | Package | Path | Notes |
 | --- | --- | --- |

@@ -2,7 +2,7 @@ import { TypeIds } from './constants';
 import type { DomContainer } from '../../client/dom-container';
 import { vnode_isVNode } from '../../client/vnode-utils';
 import { isObject } from '../utils/types';
-import { allocate } from './allocate';
+import { allocate, beginDeserialization, endDeserialization } from './allocate';
 import { inflate } from './inflate';
 
 /** Arrays/Objects are special-cased so their identifiers is a single digit. */
@@ -63,18 +63,23 @@ class DeserializationHandler implements ProxyHandler<object> {
     }
 
     const container = this.$container$;
-    const propValue = allocate(container, typeId, value);
+    const ownsPendingStoreTargets = beginDeserialization(container);
+    try {
+      const propValue = allocate(container, typeId, value);
 
-    Reflect.set(target, property, propValue);
-    this.$data$[idx] = TypeIds.Plain;
-    this.$data$[idx + 1] = propValue;
+      Reflect.set(target, property, propValue);
+      this.$data$[idx] = TypeIds.Plain;
+      this.$data$[idx + 1] = propValue;
 
-    /** We stored the reference, so now we can inflate, allowing cycles */
-    if (needsInflation(typeId)) {
-      inflate(container, propValue, typeId, value);
+      /** We stored the reference, so now we can inflate, allowing cycles */
+      if (needsInflation(typeId)) {
+        inflate(container, propValue, typeId, value);
+      }
+
+      return propValue;
+    } finally {
+      endDeserialization(container, ownsPendingStoreTargets);
     }
-
-    return propValue;
   }
 
   has(target: object, property: PropertyKey) {

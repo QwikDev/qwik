@@ -1,6 +1,15 @@
 import { describe, it, expect, vi } from 'vitest';
+import { createDocument } from '@qwik.dev/core/testing';
 import { ssrCreateContainer } from './ssr-container';
-import { QDefaultSlot, QStyle, VNodeDataChar, encodeVNodeDataString } from './qwik-copy';
+import {
+  QDefaultSlot,
+  QError,
+  QSlot,
+  QStyle,
+  VNodeDataChar,
+  encodeVNodeDataKey,
+  encodeVNodeDataString,
+} from './qwik-copy';
 import { VNodeDataFlag, type RenderToStreamOptions } from './types';
 import { OPEN_FRAGMENT, CLOSE_FRAGMENT } from './vnode-data';
 import { StreamHandler } from './ssr-stream-handler';
@@ -37,6 +46,76 @@ const getNoScriptHereCount = (container: ReturnType<typeof ssrCreateContainer>) 
 };
 
 describe('SSR Container', () => {
+  it('should reject unsafe element names before writing markup', async () => {
+    const validElementNames = ['div', 'my-widget', 'svg:path', 'foreignObject'];
+    for (let i = 0; i < validElementNames.length; i++) {
+      const elementName = validElementNames[i];
+      const { container, writer } = createTestContainer();
+
+      container.openElement(elementName, null, {}, null, null, null);
+      await container.closeElement();
+
+      expect(writer.toString()).toBe(`<${elementName} :=""></${elementName}>`);
+    }
+
+    const invalidElementNames = [
+      '',
+      '1section',
+      'section demo',
+      'section\tdemo',
+      'section\ndemo',
+      'section/demo',
+      'section>demo',
+      'section<demo',
+      'section=demo',
+      'section"demo',
+      "section'demo",
+      'section\0demo',
+    ];
+    for (let i = 0; i < invalidElementNames.length; i++) {
+      const elementName = invalidElementNames[i];
+      const { container, writer } = createTestContainer();
+
+      expect(() => container.openElement(elementName, null, {}, null, null, null)).toThrow(
+        `Code(Q${QError.invalidElementName})`
+      );
+      expect(writer.toString()).toBe('');
+    }
+  });
+
+  it('should preserve element keys in quoted attributes', async () => {
+    const keys = [
+      'plain',
+      '42',
+      'quote"key',
+      'amp&key',
+      '<tag>',
+      "apostrophe'key",
+      'white space',
+      'żółć',
+    ];
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i];
+      const { container, writer } = createTestContainer();
+
+      container.openElement(
+        'div',
+        key,
+        { 'data-before': 'before' },
+        { 'data-after': 'after' },
+        null,
+        null
+      );
+      await container.closeElement();
+
+      const element = createDocument({ html: writer.toString() }).querySelector('div')!;
+
+      expect(element.getAttribute(':')).toBe(key);
+      expect(element.getAttribute('data-before')).toBe('before');
+      expect(element.getAttribute('data-after')).toBe('after');
+    }
+  });
+
   it('should not emit Qwik loader before style elements', async () => {
     const { container, writer } = createTestContainer();
 
@@ -162,6 +241,32 @@ describe('SSR Container', () => {
     );
     expect(vnodeContent).toContain(
       `${VNodeDataChar.SEPARATOR_CHAR}${encodedValue}${VNodeDataChar.SEPARATOR_CHAR}`
+    );
+  });
+
+  it('should encode slot names in emitVNodeData', () => {
+    const { container, writer } = createTestContainer();
+    container.openContainer();
+    container.serializationCtx.$roots$.push({});
+
+    const slotName = '</script>|~;=?@ zażółć';
+    (container as any).vNodeDatas = [
+      [
+        VNodeDataFlag.SERIALIZE | VNodeDataFlag.VIRTUAL_NODE,
+        { [QSlot]: slotName },
+        OPEN_FRAGMENT,
+        CLOSE_FRAGMENT,
+      ],
+    ];
+
+    (container as any).emitVNodeData();
+
+    const output = writer.toString();
+    const encodedSlotName = encodeVNodeDataString(encodeVNodeDataKey(slotName));
+
+    expect(output).not.toContain(slotName);
+    expect(output).toContain(
+      `${VNodeDataChar.SLOT_CHAR}${VNodeDataChar.SEPARATOR_CHAR}${encodedSlotName}${VNodeDataChar.SEPARATOR_CHAR}`
     );
   });
 

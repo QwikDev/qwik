@@ -39,7 +39,7 @@ import { Fragment } from '../jsx/jsx-runtime';
 import { JSXNodeImpl } from '../jsx/jsx-node';
 import { createPropsProxy, type PropsProxy } from '../jsx/props-proxy';
 import { _OWNER, _PROPS_HANDLER } from '../utils/constants';
-import { _constants, _typeIdNames, TypeIds } from './constants';
+import { _constants, _typeIdNames, Constants, EMPTY_OBJECT_PAYLOAD, TypeIds } from './constants';
 import { _dumpState } from './dump-state';
 import { qrlToString } from './qrl-to-string';
 import { preprocessState } from './preprocess-state';
@@ -1042,6 +1042,22 @@ describe('shared-serialization', () => {
       expect(restoredTarget.self).toBe(restoredTarget);
     });
 
+    it('releases pending store targets after allocation errors', () => {
+      const data = [TypeIds.Store, [TypeIds.Object, EMPTY_OBJECT_PAYLOAD], 999, 0];
+      const state = Array(data.length / 2);
+      const container = _createDeserializeContainer(data);
+      const iterator = eagerDeserializeStateIterator(container, data, state);
+
+      expect(iterator.next().done).toBe(false);
+      expect(container.$pendingStoreTargets$?.size).toBe(1);
+      expect(() => {
+        while (!iterator.next().done) {
+          // Exhaust the iterator.
+        }
+      }).toThrow();
+      expect(container.$pendingStoreTargets$).toBeUndefined();
+    });
+
     it('resolves forward refs after root allocation', () => {
       const { state } = eagerDeserialize([
         TypeIds.ForwardRef,
@@ -1054,6 +1070,40 @@ describe('shared-serialization', () => {
 
       expect(state[0]).toBe(state[2]);
       expect(state[0]).toEqual({ answer: 42 });
+    });
+
+    it('rejects Promise roots resolved with serialized Promises', () => {
+      const promiseRoot = (rootId: number) => [
+        TypeIds.Promise,
+        [TypeIds.Constant, Constants.True, TypeIds.RootRef, rootId],
+      ];
+      const cycles = [
+        promiseRoot(0),
+        [...promiseRoot(1), ...promiseRoot(0)],
+        [...promiseRoot(1), ...promiseRoot(2), ...promiseRoot(0)],
+        [
+          TypeIds.Promise,
+          [TypeIds.Constant, Constants.True, TypeIds.ForwardRef, 0],
+          ...promiseRoot(0),
+          TypeIds.ForwardRefs,
+          [1],
+        ],
+        [
+          TypeIds.Promise,
+          [
+            TypeIds.Constant,
+            Constants.True,
+            TypeIds.Promise,
+            [TypeIds.Constant, Constants.True, TypeIds.RootRef, 0],
+          ],
+        ],
+      ];
+
+      for (let i = 0; i < cycles.length; i++) {
+        expect(() => eagerDeserialize(cycles[i])).toThrow(
+          `Code(Q${QError.invalidPromiseDependency})`
+        );
+      }
     });
 
     it('restores signal backrefs and computed qrls', async () => {
@@ -1251,6 +1301,43 @@ describe('shared-serialization', () => {
       expect(err).toBeInstanceOf(Error);
       expect(err.message).toBe('hi');
     });
+    it('filters callable Error properties', () => {
+      const { state } = eagerDeserialize([
+        TypeIds.Error,
+        [
+          TypeIds.Plain,
+          'boom',
+          TypeIds.Plain,
+          'then',
+          TypeIds.QRL,
+          '1#1',
+          TypeIds.Plain,
+          '__proto__',
+          TypeIds.Object,
+          [TypeIds.Plain, 'then', TypeIds.QRL, '1#1'],
+          TypeIds.Plain,
+          'code',
+          TypeIds.Plain,
+          500,
+        ],
+        TypeIds.Plain,
+        'ignored.js',
+        TypeIds.Plain,
+        'selected_demoHash',
+      ]);
+      const error = state[0] as Error & { code: number; then?: unknown };
+
+      expect(error.message).toBe('boom');
+      expect(error.code).toBe(500);
+      expect(Object.hasOwn(error, 'then')).toBe(false);
+      expect(Object.getPrototypeOf(error)).toBe(Error.prototype);
+
+      const safeError = eagerDeserialize([
+        TypeIds.Error,
+        [TypeIds.Plain, 'safe', TypeIds.Plain, 'then', TypeIds.Plain, 'value'],
+      ]).state[0] as Error & { then: string };
+      expect(safeError.then).toBe('value');
+    });
     it(title(TypeIds.Promise), async () => {
       const objs = await serialize(Promise.resolve(shared1), Promise.reject(shared1), shared1);
       const [p1, p2, shared] = deserialize(objs);
@@ -1292,9 +1379,13 @@ describe('shared-serialization', () => {
       const arr = deserialize(objs);
       expect(arr[0]).toBeInstanceOf(Uint8Array);
       expect(Array.from(arr[0] as any)).toEqual([0, 20, 128, 255]);
+      expect(deserialize(await serialize(new Uint8Array()))).toEqual([new Uint8Array()]);
       expect(deserialize(await serialize(new Uint8Array([0])))).toEqual([new Uint8Array([0])]);
       expect(deserialize(await serialize(new Uint8Array([127, 129])))).toEqual([
         new Uint8Array([127, 129]),
+      ]);
+      expect(deserialize(await serialize(new Uint8Array([1, 2, 3])))).toEqual([
+        new Uint8Array([1, 2, 3]),
       ]);
     });
     it(title(TypeIds.QRL), async () => {
@@ -1379,7 +1470,8 @@ describe('shared-serialization', () => {
       orig.a.store = storeSrc;
 
       const objs = await serialize(orig, storeSrc);
-      const [origRestored, store] = deserialize(objs) as any[];
+      const container = _createDeserializeContainer(objs);
+      const [origRestored, store] = container.$state$ as any[];
       expect(store).toHaveProperty('a');
       expect(store.a).toHaveProperty('b', true);
       expect(store).toHaveProperty('c', store);
@@ -1389,6 +1481,7 @@ describe('shared-serialization', () => {
       expect(store.a.store).toBe(store);
       store.orig.hello = 123;
       expect((origRestored as any).hello).toBe(123);
+      expect(container.$pendingStoreTargets$).toBeUndefined();
     });
     it.todo(title(TypeIds.FormData));
     it.todo(title(TypeIds.JSXNode));
@@ -2217,6 +2310,68 @@ describe('serializer - internal', () => {
     const ser = await _serialize({ a: 1 });
     const des = await _deserialize(ser);
     expect(des).toEqual({ a: 1 });
+  });
+  it('_deserialize filters callable Error properties before Promise resolution', async () => {
+    const error = await _deserialize<Error & { then?: unknown }>(
+      JSON.stringify([
+        TypeIds.Error,
+        [TypeIds.Plain, 'boom', TypeIds.Plain, 'then', TypeIds.QRL, '1#1'],
+        TypeIds.Plain,
+        'ignored.js',
+        TypeIds.Plain,
+        'selected_demoHash',
+      ])
+    );
+
+    expect(error).toBeInstanceOf(Error);
+    expect(error.message).toBe('boom');
+    expect(Object.hasOwn(error, 'then')).toBe(false);
+  });
+  it('_deserialize rejects serialized Promise dependencies', async () => {
+    const cycle = [
+      TypeIds.Promise,
+      [TypeIds.Constant, Constants.True, TypeIds.RootRef, 1],
+      TypeIds.Promise,
+      [TypeIds.Constant, Constants.True, TypeIds.RootRef, 0],
+    ];
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    const timeout = new Promise((resolve) => {
+      timeoutId = setTimeout(resolve, 500, 'timeout');
+    });
+
+    try {
+      await expect(Promise.race([_deserialize(JSON.stringify(cycle)), timeout])).rejects.toThrow(
+        `Code(Q${QError.invalidPromiseDependency})`
+      );
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  });
+  it('_deserialize preserves settled Promises', async () => {
+    expect(await _deserialize(await _serialize(Promise.resolve('resolved')))).toBe('resolved');
+    await expect(
+      _deserialize(await _serialize(Promise.reject(new Error('rejected'))))
+    ).rejects.toThrow('rejected');
+  });
+  it('rejects non-array Object payloads', async () => {
+    const value = { 0: TypeIds.Plain, 1: 'key', 2: TypeIds.Plain, 3: 'value', length: 4 };
+    await expect(_deserialize(JSON.stringify([TypeIds.Object, value]))).rejects.toThrow(
+      'Invalid Object payload'
+    );
+  });
+  it('preserves trailing undefined Object properties', async () => {
+    const value = await _deserialize(JSON.stringify([TypeIds.Object, [TypeIds.Plain, 'key']]));
+    expect(value).toStrictEqual({ key: undefined });
+  });
+  it.each([
+    ['non-string', { length: 4 }],
+    ['invalid alphabet', '****'],
+    ['invalid length', 'A'],
+    ['noncanonical trailing bits', 'AB'],
+  ])('rejects %s Uint8Array payloads', async (_name, value) => {
+    await expect(_deserialize(JSON.stringify([TypeIds.Uint8Array, value]))).rejects.toThrow(
+      `Code(Q${QError.invalidUint8ArrayPayload})`
+    );
   });
   it('_serialize should emit short integer-like plain object keys as numbers', async () => {
     const ser = await _serialize({

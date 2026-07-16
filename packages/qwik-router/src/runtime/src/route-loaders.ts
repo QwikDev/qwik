@@ -66,6 +66,8 @@ const ROUTE_LOADER_VALUE_PREFIX = '__qwik_route_loader_value__';
 
 /** Header name sent by client to tell the server the actual page URL for loader requests. */
 export const FULLPATH_HEADER = 'X-Qwik-fullpath';
+/** Dev route hint that preserves the loader URL. */
+export const ROUTE_PATH_HEADER = 'X-Qwik-route-path';
 
 /**
  * Response envelope for loader.json requests. Exactly one of `d`, `r`, or `e` is set.
@@ -215,7 +217,11 @@ export const fetchRouteLoaderData = async (
 
   const headers: Record<string, string> = {};
   if (pageUrl && pageUrl.pathname !== pathBase) {
-    headers[FULLPATH_HEADER] = pageUrl.pathname;
+    if (!globalThis.__STRICT_LOADERS__) {
+      headers[FULLPATH_HEADER] = pageUrl.pathname;
+    } else if (isDev) {
+      headers[ROUTE_PATH_HEADER] = pageUrl.pathname;
+    }
   }
 
   const cacheKey = `${url}\n${headers[FULLPATH_HEADER] ?? ''}`;
@@ -255,10 +261,21 @@ export const fetchRouteLoaderData = async (
     return (await _deserialize<LoaderResponse>(text)) ?? undefined;
   };
 
-  if (opts?.ignoreCache || opts?.signal) {
-    // Never cache these requests, since they're either one-off or have abort signals that can't be shared
-    // The browser cache will still apply
+  if (opts?.ignoreCache) {
     return request();
+  }
+
+  if (opts?.signal) {
+    // Don't share an abortable request while pending, but reuse it after completion.
+    return request().then((value) => {
+      if (value !== undefined && !fetchCache.has(cacheKey)) {
+        setCache(cacheKey, {
+          value,
+          expires: perfNow() + LOADER_FETCH_CACHE_TTL,
+        });
+      }
+      return value;
+    });
   }
 
   const promise = request().then(

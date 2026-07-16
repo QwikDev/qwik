@@ -82,9 +82,23 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikRouterNodeMiddleware \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nnotFound\n\n\n</td><td>\n\n\n</td><td>\n\n(req: IncomingMessage \\| Http2ServerRequest, res: ServerResponse, next: (e: any) =&gt; void) =&gt; Promise&lt;void&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nrouter\n\n\n</td><td>\n\n\n</td><td>\n\n(req: IncomingMessage \\| Http2ServerRequest, res: ServerResponse, next: [NodeRequestNextFunction](#noderequestnextfunction)<!-- -->) =&gt; Promise&lt;void&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nstaticFile\n\n\n</td><td>\n\n\n</td><td>\n\n(req: IncomingMessage \\| Http2ServerRequest, res: ServerResponse, next: (e?: any) =&gt; void) =&gt; Promise&lt;void&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface QwikRouterNodeMiddleware \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nnotFound\n\n\n</td><td>\n\n\n</td><td>\n\n(req: IncomingMessage \\| Http2ServerRequest, res: ServerResponse, next: (e: any) =&gt; void) =&gt; Promise&lt;void&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nrouter\n\n\n</td><td>\n\n\n</td><td>\n\n(req: IncomingMessage \\| Http2ServerRequest, res: ServerResponse, next: [NodeRequestNextFunction](#noderequestnextfunction)<!-- -->, limits?: [QwikRouterNodeRequestLimits](#qwikrouternoderequestlimits)<!-- -->) =&gt; Promise&lt;void&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nstaticFile\n\n\n</td><td>\n\n\n</td><td>\n\n(req: IncomingMessage \\| Http2ServerRequest, res: ServerResponse, next: (e?: any) =&gt; void) =&gt; Promise&lt;void&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/node/index.ts",
       "mdFile": "router.qwikrouternodemiddleware.md"
+    },
+    {
+      "name": "QwikRouterNodeRequestLimits",
+      "id": "qwikrouternoderequestlimits",
+      "hierarchy": [
+        {
+          "name": "QwikRouterNodeRequestLimits",
+          "id": "qwikrouternoderequestlimits"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikRouterNodeRequestLimits \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nbodyLimit?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_ Maximum request body size in bytes imposed by the host.\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/node/index.ts",
+      "mdFile": "router.qwikrouternoderequestlimits.md"
     },
     {
       "name": "QwikRouterNodeRequestOptions",
@@ -96,7 +110,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikRouterNodeRequestOptions extends ServerRenderOptions \n```\n**Extends:** ServerRenderOptions\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ngetClientConn?\n\n\n</td><td>\n\n\n</td><td>\n\n(req: IncomingMessage \\| Http2ServerRequest) =&gt; ClientConn\n\n\n</td><td>\n\n_(Optional)_ Provide a function that returns a `ClientConn` for the given request.\n\n\n</td></tr>\n<tr><td>\n\ngetOrigin?\n\n\n</td><td>\n\n\n</td><td>\n\n(req: IncomingMessage \\| Http2ServerRequest) =&gt; string \\| null\n\n\n</td><td>\n\n_(Optional)_ Provide a function that computes the origin of the server, used to resolve relative URLs and validate the request origin against CSRF attacks.\n\nWhen not specified, it defaults to the `ORIGIN` environment variable (if set).\n\nIf `ORIGIN` is not set, it's derived from the incoming request, which is not recommended for production use. You can specify the `PROTOCOL_HEADER`<!-- -->, `HOST_HEADER` to `X-Forwarded-Proto` and `X-Forwarded-Host` respectively to override the default behavior.\n\n\n</td></tr>\n<tr><td>\n\norigin?\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nstatic?\n\n\n</td><td>\n\n\n</td><td>\n\n{ root?: string; cacheControl?: string; }\n\n\n</td><td>\n\n_(Optional)_ Options for serving static files\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface QwikRouterNodeRequestOptions extends ServerRenderOptions \n```\n**Extends:** ServerRenderOptions\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ngetClientConn?\n\n\n</td><td>\n\n\n</td><td>\n\n(req: IncomingMessage \\| Http2ServerRequest) =&gt; ClientConn\n\n\n</td><td>\n\n_(Optional)_ Provide a function that returns a `ClientConn` for the given request.\n\n\n</td></tr>\n<tr><td>\n\ngetOrigin?\n\n\n</td><td>\n\n\n</td><td>\n\n(req: IncomingMessage \\| Http2ServerRequest) =&gt; string \\| null\n\n\n</td><td>\n\n_(Optional)_ Provide a function that computes the origin of the server, used to resolve relative URLs and validate the request origin against CSRF attacks.\n\nWhen not specified, it defaults to the `ORIGIN` environment variable (if set).\n\nIf `ORIGIN` is not set, it's derived from the incoming request, which is not recommended for production use. You can specify the `PROTOCOL_HEADER`<!-- -->, `HOST_HEADER` to `X-Forwarded-Proto` and `X-Forwarded-Host` respectively to override the default behavior.\n\n\n</td></tr>\n<tr><td>\n\norigin?\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nrequestBodyLimit?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_ Maximum request body size in bytes. Defaults to 10 MiB.\n\n\n</td></tr>\n<tr><td>\n\nstatic?\n\n\n</td><td>\n\n\n</td><td>\n\n{ root?: string; cacheControl?: string; }\n\n\n</td><td>\n\n_(Optional)_ Options for serving static files\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/node/index.ts",
       "mdFile": "router.qwikrouternoderequestoptions.md"
     }

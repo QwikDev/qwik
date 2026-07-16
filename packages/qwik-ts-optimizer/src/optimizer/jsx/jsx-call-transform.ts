@@ -13,6 +13,7 @@ import {
   computeJsxFlags,
   collectScopeAwareBindings,
   isConstBindingName,
+  fnSignalDepsAllConst,
   type ScopeAwareBindings,
   type JsxKeyCounter,
 } from './jsx.js';
@@ -355,8 +356,9 @@ function classifyProp(
     opts.signalHoister !== undefined &&
     isHoistableSignalExpr(valueNode)
   ) {
-    const depsAllConst = sig.deps.every(
-      (dep) => importedNames.has(dep) || bindings?.classify(dep, pos) === 'const',
+    const depsAllConst = fnSignalDepsAllConst(
+      sig.deps, importedNames, bindings, pos, isHtmlTag,
+      (dep) => opts.paramNames?.includes(dep) ?? false,
     );
     return depsAllConst ? 'const' : 'var';
   }

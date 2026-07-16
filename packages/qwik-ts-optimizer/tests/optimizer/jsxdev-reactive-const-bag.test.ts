@@ -168,4 +168,25 @@ export const Wrapper = component$((props) => {
       /_jsxSplit\(Inner, \{ \.\.\._getVarProps\(props\), \.\.\._getConstProps\(props\), sharedId \}, null,/,
     );
   });
+
+  test('a param-dependent _fnSignal prop on a component element lands in the const bag', () => {
+    const out = transform(`import { jsxDEV as _jsxDEV } from "@qwik.dev/core/jsx-dev-runtime";
+import { component$ } from '@qwik.dev/core';
+import { Inner } from './inner';
+export const C = component$((props) => {
+  return _jsxDEV(Inner, { title: \`w-\${props.w}px\` }, void 0, false, undefined, this);
+});
+`);
+    expect(out).toMatch(/_jsxSorted\(Inner,\s*null,\s*\{\s*title:\s*_fnSignal\(_hf0,\s*\[props\]/);
+  });
+
+  test('the same param-dependent _fnSignal prop on an HTML element stays in the var bag', () => {
+    const out = transform(`import { jsxDEV as _jsxDEV } from "@qwik.dev/core/jsx-dev-runtime";
+import { component$ } from '@qwik.dev/core';
+export const C = component$((props) => {
+  return _jsxDEV("div", { title: \`w-\${props.w}px\` }, void 0, false, undefined, this);
+});
+`);
+    expect(out).toMatch(/_jsxSorted\("div",\s*\{\s*title:\s*_fnSignal\(_hf0,\s*\[props\]/);
+  });
 });

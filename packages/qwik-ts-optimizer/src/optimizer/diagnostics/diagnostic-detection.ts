@@ -17,6 +17,7 @@ import { collectExportNames } from '../extraction/marker-detection.js';
 import type { Diagnostic, DiagnosticHighlightFlat } from '../types/types.js';
 import type { PassiveConflict } from '../analysis/module-gather-walk.js';
 import { getJsxAttributeName } from '../jsx/jsx-attr-name.js';
+import { plainQrlName } from '../qwik/qrl-naming.js';
 import { computeLineColFromOffset } from './source-loc.js';
 import {
   mkByteOffset,
@@ -145,7 +146,7 @@ export function detectC05Diagnostics(
     if (!exportName.endsWith('$')) continue;
     const importInfo = originalImports.get(exportName);
     if (importInfo?.isQwikCore) continue;
-    const qrlName = exportName.slice(0, -1) + 'Qrl';
+    const qrlName = plainQrlName(exportName);
     if (moduleExportNames.has(qrlName)) continue;
     targets.add(exportName);
     targetToQrl.set(exportName, qrlName);

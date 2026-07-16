@@ -37,6 +37,7 @@ import MagicString from 'magic-string';
 import { parseSync } from 'oxc-parser';
 import type { AstNode, AstProgram } from '../../ast-types.js';
 import { RAW_TRANSFER_PARSER_OPTIONS } from '../../ast-types.js';
+import { createTransformSession } from '../edit/transform-session.js';
 
 interface NoopQrlDecl {
   readonly qVarName: string;       // e.g. "q_Works_component_..."
@@ -152,14 +153,12 @@ function substituteInnerQVarsInText(
   bodyText: string,
   buildInlinedLiteral: (qVar: string) => string | null,
 ): string {
-  // Wrap so any expression form parses (`x => {}`, `{ ... }`, identifier).
-  const wrapped = `const __body__ = ${bodyText};`;
-  const parsed = parseSync('body-substitute.tsx', wrapped, RAW_TRANSFER_PARSER_OPTIONS);
-  if (!parsed.program || parsed.errors?.length) return bodyText;
-  const offset = 'const __body__ = '.length;
+  const session = createTransformSession(bodyText);
+  if (!session) return bodyText;
 
-  const edits = new MagicString(wrapped);
-  const decl = (parsed.program.body[0] as { declarations?: Array<{ init?: AstNode }> })?.declarations?.[0];
+  const edits = session.edits;
+  const wrappedSource = session.wrappedSource;
+  const decl = (session.program.body[0] as { declarations?: Array<{ init?: AstNode }> })?.declarations?.[0];
   const bodyNode = decl?.init;
   if (!bodyNode) return bodyText;
 
@@ -181,7 +180,7 @@ function substituteInnerQVarsInText(
         const args = node.arguments ?? [];
         const captureArg = args[0];
         const captureText = captureArg && captureArg.type !== 'SpreadElement'
-          ? wrapped.slice(captureArg.start, captureArg.end)
+          ? wrappedSource.slice(captureArg.start, captureArg.end)
           : undefined;
         const replacement = captureText !== undefined
           ? insertCapturesIntoInlinedQrl(literal, captureText)
@@ -213,7 +212,7 @@ function substituteInnerQVarsInText(
   }
   walk(bodyNode);
 
-  return edits.toString().slice(offset, edits.toString().length - 1);
+  return session.toSource();
 }
 
 /**

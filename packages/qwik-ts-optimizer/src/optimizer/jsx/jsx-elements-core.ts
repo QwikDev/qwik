@@ -409,8 +409,7 @@ export function transformJsxElement(
   const neededImports = new Set<string>();
   const openingElement = node.openingElement;
   const tag = processJsxTag(openingElement.name);
-  const tagIsHtml = tag.startsWith('"') && tag.length > 2 &&
-    tag[1] === tag[1].toLowerCase() && tag[1] >= 'a' && tag[1] <= 'z';
+  const tagIsHtml = tag.startsWith('"') && tag.length > 2;
   const rawTagName = tagIsHtml ? tag.slice(1, -1) : '';
   const textOnly = tagIsHtml && isTextOnlyElement(rawTagName);
   const elementPassiveEvents = passiveEvents ?? collectPassiveDirectives(openingElement.attributes);

@@ -7,6 +7,21 @@ import {
   needsPureAnnotation,
   getQrlImportSource,
 } from '../../../src/optimizer/rewrite/rewrite-calls.js';
+import { plainQrlName } from '../../../src/optimizer/qwik/qrl-naming.js';
+
+describe('plainQrlName', () => {
+  it('swaps a trailing $ for Qrl', () => {
+    expect(plainQrlName('component$')).toBe('componentQrl');
+  });
+
+  it('does not special-case sync$ (unlike getQrlCalleeName)', () => {
+    expect(plainQrlName('sync$')).toBe('syncQrl');
+  });
+
+  it('does not special-case bare $ (unlike getQrlCalleeName)', () => {
+    expect(plainQrlName('$')).toBe('Qrl');
+  });
+});
 
 describe('getQrlCalleeName', () => {
   it('component$ returns componentQrl', () => {

@@ -128,24 +128,36 @@ function buildModuleImportStatement(imp: { localName: string; importedName: stri
   return `import { ${imp.localName} } from "${rewrittenSource}";`;
 }
 
+/**
+ * The reexport and default arms never both match one symbol: a default export
+ * is always `isExported`, so it can't satisfy the `reexport && !isExported`
+ * predicate callers pass as `isReexported`. Order between them is therefore free.
+ */
+export function resolveSameFileImportName(
+  id: string,
+  isReexported: boolean,
+  defaultExportedNames: ReadonlySet<string> | undefined,
+  renamedExports: ReadonlyMap<string, string> | undefined,
+): string {
+  if (isReexported) return `_auto_${id}`;
+  if (defaultExportedNames?.has(id)) return 'default';
+  return renamedExports?.get(id) ?? id;
+}
+
+export function formatSameFileImport(id: string, importedName: string, source: string): string {
+  if (importedName === id) return `import { ${id} } from "${source}";`;
+  return `import { ${importedName} as ${id} } from "${source}";`;
+}
+
 function addSameFileImport(parts: string[], id: string, importContext: SegmentImportData): void {
   const migrationDecision = importContext.migrationDecisions.find(d => d.varName === id);
   if (migrationDecision && migrationDecision.action === 'move') return;
 
-  if (migrationDecision && migrationDecision.action === 'reexport' && !migrationDecision.isExported) {
-    insertImportBeforeSeparator(parts, `import { _auto_${id} as ${id} } from "${importContext.parentModulePath}";`);
-    return;
-  }
-  if (importContext.defaultExportedNames?.has(id)) {
-    insertImportBeforeSeparator(parts, `import { default as ${id} } from "${importContext.parentModulePath}";`);
-    return;
-  }
-  if (importContext.renamedExports?.has(id)) {
-    const exportedAs = importContext.renamedExports.get(id)!;
-    insertImportBeforeSeparator(parts, `import { ${exportedAs} as ${id} } from "${importContext.parentModulePath}";`);
-    return;
-  }
-  insertImportBeforeSeparator(parts, `import { ${id} } from "${importContext.parentModulePath}";`);
+  const isReexported = migrationDecision?.action === 'reexport' && !migrationDecision.isExported;
+  const importedName = resolveSameFileImportName(
+    id, isReexported, importContext.defaultExportedNames, importContext.renamedExports,
+  );
+  insertImportBeforeSeparator(parts, formatSameFileImport(id, importedName, importContext.parentModulePath));
 }
 
 function addQrlCalleeImports(

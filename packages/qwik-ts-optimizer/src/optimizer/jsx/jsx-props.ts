@@ -14,6 +14,7 @@ import { isCaptureWrappingQrlCall } from '../qwik/w-call.js';
 import {
   classifyConstness,
   isConstBindingName,
+  fnSignalDepsAllConst,
   sliceTransformed,
   type JsxTransformContext,
   type ProcessPropsOptions,
@@ -409,46 +410,21 @@ export function processProps(
       }
 
       if (signalResult.type === 'fnSignal') {
-        // SWC skips _fnSignal for object expressions on class/className
-        if (signalResult.isObjectExpr && (propName === 'class' || propName === 'className')) {
-          // fall through to classifyConstness
-        } else if (
-          // SWC's `create_synthetic_qqsegment`
-          // (`swc-reference-only/transform.rs:805`) explicitly skips
-          // `_fnSignal` hoist for `TemplateLiteral` and `CallExpression`
-          // when `is_const` is false — i.e. at least one scoped
-          // identifier is non-const. Function parameters of the
-          // segment's own closure on an HTML element are non-const
-          // (their values come from re-renders), so
-          // `<img src={`${props.src}`}/>` inside `(props) => ...` stays
-          // as a raw template literal. ArrayExpression / ObjectExpression
-          // / BinaryExpression / etc. still hoist regardless — only Tpl
-          // + Call are excluded.
-          (valueNode?.type === 'TemplateLiteral' ||
-            valueNode?.type === 'CallExpression') &&
-          !signalResult.deps.every((dep) =>
-            importedNames.has(dep) ||
-            (bindings?.classify(dep, valueNode.start) === 'const') ||
-            (!tagIsHtml && (paramNames?.has(dep) ?? false))
-          )
-        ) {
-          // fall through to classifyConstness — emit raw expression
-        } else {
+        const isParam = (dep: string) => paramNames?.has(dep) ?? false;
+        const isRawWhenNonConst =
+          valueNode?.type === 'TemplateLiteral' || valueNode?.type === 'CallExpression';
+        const excludedFromHoist =
+          (signalResult.isObjectExpr && (propName === 'class' || propName === 'className')) ||
+          (isRawWhenNonConst &&
+            !fnSignalDepsAllConst(
+              signalResult.deps, importedNames, bindings, valueNode.start, tagIsHtml, isParam,
+            ));
+        if (!excludedFromHoist) {
           const hfName = signalHoister.hoist(signalResult.hoistedFn, signalResult.hoistedStr, valueNode.start ?? 0);
           const fnSignalCall = `_fnSignal(${hfName}, [${signalResult.deps.join(', ')}], ${hfName}_str)`;
           const formattedName = formatPropName(propName);
-          // Function parameters are stable bindings within the enclosing
-          // segment scope, but SWC only treats them as const-eligible deps
-          // when the receiving JSX element is a *component* (non-HTML). On
-          // HTML elements, `_fnSignal` props that close over a parameter
-          // stay in the var bag because the runtime re-renders the DOM
-          // element on every prop change. On component elements, the
-          // const-props bag's identity-stability matters more than the
-          // value-changes-on-rerender concern.
-          const depsAllConst = signalResult.deps.every(dep =>
-            importedNames.has(dep) ||
-            (bindings?.classify(dep, valueNode.start) === 'const') ||
-            (!tagIsHtml && (paramNames?.has(dep) ?? false))
+          const depsAllConst = fnSignalDepsAllConst(
+            signalResult.deps, importedNames, bindings, valueNode.start, tagIsHtml, isParam,
           );
           if (depsAllConst && !inLoop) {
             pushNamed(constEntries, `${formattedName}: ${fnSignalCall}`, 'const', attr.start);

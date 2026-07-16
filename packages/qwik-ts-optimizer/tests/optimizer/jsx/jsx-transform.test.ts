@@ -615,6 +615,18 @@ describe('isHtmlElement', () => {
     expect(isHtmlElement('Div')).toBe(false);
     expect(isHtmlElement('CustomComponent')).toBe(false);
   });
+
+  it('returns true for hyphenated custom elements', () => {
+    expect(isHtmlElement('my-element')).toBe(true);
+  });
+
+  it('classifies a caseless-initial tag as HTML (not a component)', () => {
+    expect(isHtmlElement('5x')).toBe(true);
+  });
+
+  it('returns false for the empty tag name', () => {
+    expect(isHtmlElement('')).toBe(false);
+  });
 });
 
 // ---------------------------------------------------------------------------

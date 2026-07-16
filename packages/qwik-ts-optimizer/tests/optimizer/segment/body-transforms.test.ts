@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   applySelfRefIndirection,
+  ensureCoreImports,
   injectCapturesUnpacking,
   rewriteFunctionSignature,
 } from '../../../src/optimizer/segment/body-transforms.js';
@@ -66,6 +67,40 @@ describe('body-transforms', () => {
       expect(applySelfRefIndirection('() => {\n  const x = call(worker.w([x]));\n  return x;\n}')).toBe(
         '() => {\n  const x = call(worker.w([x]));\n  return x;\n}',
       );
+    });
+  });
+
+  describe('ensureCoreImports', () => {
+    it('inserts a referenced core symbol import before the // separator', () => {
+      const parts = ['//', 'return _jsxSorted("div", null, null, null, 1, "k")'];
+      ensureCoreImports(parts[1]!, parts);
+      expect(parts).toEqual([
+        'import { _jsxSorted } from "@qwik.dev/core";',
+        '//',
+        'return _jsxSorted("div", null, null, null, 1, "k")',
+      ]);
+    });
+
+    it('routes _Fragment to the jsx-runtime import', () => {
+      const parts = ['//', 'return _Fragment'];
+      ensureCoreImports(parts[1]!, parts);
+      expect(parts[0]).toBe('import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";');
+    });
+
+    it('does not re-add a core symbol that is already imported', () => {
+      const parts = ['import { _jsxSorted } from "@qwik.dev/core";', '//', 'return _jsxSorted()'];
+      ensureCoreImports(parts[2]!, parts);
+      expect(parts).toEqual([
+        'import { _jsxSorted } from "@qwik.dev/core";',
+        '//',
+        'return _jsxSorted()',
+      ]);
+    });
+
+    it('does not add a core symbol the body never references', () => {
+      const parts = ['//', 'return 1'];
+      ensureCoreImports(parts[1]!, parts);
+      expect(parts).toEqual(['//', 'return 1']);
     });
   });
 });

@@ -490,19 +490,16 @@ export function transformSyncCalls(bodyText: string, parts: string[]): string {
   return bodyText;
 }
 
-/** Add imports for core symbols referenced in body but not yet imported. */
 export function ensureCoreImports(bodyText: string, parts: string[]): void {
   const coreSymbols = ['_jsxSorted', '_jsxSplit', '_fnSignal', '_wrapProp', '_restProps', '_getVarProps', '_getConstProps'];
-  const sepIdx = parts.indexOf('//');
-  if (sepIdx < 0) return;
 
   for (const sym of coreSymbols) {
-    if (bodyText.includes(sym) && !parts.some(p => p.startsWith('import') && p.includes(sym))) {
-      parts.splice(sepIdx, 0, `import { ${sym} } from "@qwik.dev/core";`);
+    if (bodyText.includes(sym) && !partsHaveImport(parts, sym)) {
+      insertImportBeforeSeparator(parts, `import { ${sym} } from "@qwik.dev/core";`);
     }
   }
-  if (bodyText.includes('_Fragment') && !parts.some(p => p.startsWith('import') && p.includes('_Fragment'))) {
-    parts.splice(parts.indexOf('//'), 0, `import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";`);
+  if (bodyText.includes('_Fragment') && !partsHaveImport(parts, '_Fragment')) {
+    insertImportBeforeSeparator(parts, `import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";`);
   }
 }
 

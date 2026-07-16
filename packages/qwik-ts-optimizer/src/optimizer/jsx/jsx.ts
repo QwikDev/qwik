@@ -221,6 +221,26 @@ export function isConstBindingName(
 }
 
 /**
+ * A closure parameter counts as a const-stable dep only on component elements:
+ * on an HTML element a param-dependent prop stays var because the DOM node
+ * re-renders on every prop change.
+ */
+export function fnSignalDepsAllConst(
+  deps: readonly string[],
+  importedNames: Set<string>,
+  bindings: ScopeAwareBindings | undefined,
+  atPosition: number,
+  tagIsHtml: boolean,
+  isParam: (dep: string) => boolean,
+): boolean {
+  return deps.every(
+    (dep) =>
+      isConstBindingName(dep, importedNames, bindings, atPosition) ||
+      (!tagIsHtml && isParam(dep)),
+  );
+}
+
+/**
  * Extract a non-computed Property key as a string. Returns the identifier
  * name for `{x: ...}`, the stringified value for `{"x": ...}` / `{1: ...}`,
  * or null for any shape that can't be resolved statically.

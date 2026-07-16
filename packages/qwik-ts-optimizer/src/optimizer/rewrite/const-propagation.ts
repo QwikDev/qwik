@@ -10,12 +10,11 @@
  * then apply all edits in a single reverse-sorted pass.
  */
 
-import { parseSync } from 'oxc-parser';
 import { forEachAstChild } from '../ast/guards.js';
 import { applyReplacements, isReplaceableIdentifierPosition } from '../edit/range-replace.js';
 import { isShorthandPropertyValue } from '../prepare/flatten-destructures.js';
+import { createTransformSession } from '../edit/transform-session.js';
 import {
-  RAW_TRANSFER_PARSER_OPTIONS,
   type AstCompatNode,
   type AstFunction,
   type AstNode,
@@ -63,15 +62,13 @@ export function resolveConstLiterals(parentBody: string, captureNames: string[])
   const result = new Map<string, string>();
   if (captureNames.length === 0) return result;
 
-  const wrapperPrefix = 'const __rl__ = ';
-  const wrappedSource = wrapperPrefix + parentBody;
-  const parseResult = parseSync('__rl__.tsx', wrappedSource, RAW_TRANSFER_PARSER_OPTIONS);
-  if (!parseResult.program || parseResult.errors?.length) return result;
+  const session = createTransformSession(parentBody);
+  if (!session) return result;
 
   collectConstLiteralValues(
-    parseResult.program,
+    session.program,
     parentBody,
-    wrapperPrefix.length,
+    session.offset,
     new Set(captureNames),
     result,
   );
@@ -105,12 +102,10 @@ export function resolveConstLiteralsInClosure(
  * literal values. Uses AST-based replacement to avoid replacing property names.
  */
 export function inlineConstCaptures(body: string, constValues: Map<string, string>): string {
-  const wrapperPrefix = 'const __ic__ = ';
-  const wrappedSource = wrapperPrefix + body;
-  const parseResult = parseSync('__ic__.tsx', wrappedSource, RAW_TRANSFER_PARSER_OPTIONS);
-  if (!parseResult.program || parseResult.errors?.length) return body;
+  const session = createTransformSession(body);
+  if (!session) return body;
 
-  const offset = wrapperPrefix.length;
+  const offset = session.offset;
   const replacements: Array<{ start: number; end: number; replacement: string }> = [];
 
   function walkNode(node: AstNode | null | undefined, parentKey?: string, parentNode?: AstNode): void {
@@ -131,7 +126,7 @@ export function inlineConstCaptures(body: string, constValues: Map<string, strin
     });
   }
 
-  walkNode(parseResult.program);
+  walkNode(session.program);
 
   return applyReplacements(body, replacements);
 }
@@ -236,12 +231,10 @@ function readsMutatedObject(node: AstNode, mutatedObjects: ReadonlySet<string>):
  * dead declarations. All in a single parse + single edit pass.
  */
 export function propagateConstLiteralsInBody(body: string): string {
-  const wrapperPrefix = 'const __pb__ = ';
-  const wrappedSource = wrapperPrefix + body;
-  const parseResult = parseSync('__pb__.tsx', wrappedSource, RAW_TRANSFER_PARSER_OPTIONS);
-  if (!parseResult.program || parseResult.errors?.length) return body;
+  const session = createTransformSession(body);
+  if (!session) return body;
 
-  const offset = wrapperPrefix.length;
+  const offset = session.offset;
 
   const constDecls = new Map<string, ConstDecl>();
   const identRefs: IdentRef[] = [];
@@ -322,7 +315,7 @@ export function propagateConstLiteralsInBody(body: string): string {
     currentDeclName = savedDeclName;
   }
 
-  walkCollect(parseResult.program);
+  walkCollect(session.program);
 
   if (constDecls.size === 0) return body;
 

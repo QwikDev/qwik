@@ -30,7 +30,7 @@
     "@types/better-sqlite3": "^7.6.12",
     "drizzle-kit": "^0.30.3",
     "better-sqlite3": "^11.8.1",
-    "drizzle-orm": "^0.39.0"
+    "drizzle-orm": "^0.45.2"
   },
   "scripts": {
     "drizzle:generate": "drizzle-kit generate",

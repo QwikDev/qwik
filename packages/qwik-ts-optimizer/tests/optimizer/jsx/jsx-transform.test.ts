@@ -19,6 +19,7 @@ import {
   type JsxTransformContext,
 } from '../../../src/optimizer/jsx/jsx.js';
 import { SignalHoister } from '../../../src/optimizer/jsx/signal-analysis.js';
+import { parseExpr, parseJsxElement, parseJsxFragment } from '../helpers/parse-nodes.js';
 import MagicString from 'magic-string';
 
 function makeCtx(
@@ -28,30 +29,6 @@ function makeCtx(
   keyCounter: JsxKeyCounter,
 ): JsxTransformContext {
   return { source, s, importedNames, keyCounter, signalHoister: new SignalHoister() };
-}
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-/**
- * Parse a JSX expression and return the expression node.
- */
-function parseExpr(code: string): any {
-  const wrapped = `const x = ${code};`;
-  const { program } = parseSync('test.tsx', wrapped);
-  const decl = program.body[0] as any;
-  return decl.declarations[0].init;
-}
-
-/**
- * Parse JSX source and return the first JSX element or fragment node.
- */
-function parseJsx(code: string): any {
-  const wrapped = `const x = ${code};`;
-  const { program } = parseSync('test.tsx', wrapped);
-  const decl = program.body[0] as any;
-  return decl.declarations[0].init;
 }
 
 // ---------------------------------------------------------------------------
@@ -161,7 +138,7 @@ describe('collectScopeAwareBindings (scope shadowing)', () => {
     source: string;
   } {
     const { program } = parseSync('test.tsx', source);
-    const { bindings } = collectScopeAwareBindings(program as any);
+    const { bindings } = collectScopeAwareBindings(program);
     return { bindings, source };
   }
 
@@ -371,8 +348,7 @@ describe('transformJsxElement', () => {
   it('transforms <div class="class">12</div> to _jsxSorted call', () => {
     const source = '<div class="class">12</div>';
     const s = new MagicString(source);
-    const { program } = parseSync('test.tsx', source);
-    const jsxNode = (program.body[0] as any).expression;
+    const jsxNode = parseJsxElement(source);
     const importedNames = new Set<string>();
     const keyCounter = new JsxKeyCounter();
 
@@ -393,8 +369,7 @@ describe('transformJsxElement', () => {
   it('puts string literal props in constProps', () => {
     const source = '<div title="hello"/>';
     const s = new MagicString(source);
-    const { program } = parseSync('test.tsx', source);
-    const jsxNode = (program.body[0] as any).expression;
+    const jsxNode = parseJsxElement(source);
     const importedNames = new Set<string>();
     const keyCounter = new JsxKeyCounter();
 
@@ -410,8 +385,7 @@ describe('transformJsxElement', () => {
   it('puts global variable props in varProps', () => {
     const source = '<div title={globalVar}/>';
     const s = new MagicString(source);
-    const { program } = parseSync('test.tsx', source);
-    const jsxNode = (program.body[0] as any).expression;
+    const jsxNode = parseJsxElement(source);
     const importedNames = new Set<string>();
     const keyCounter = new JsxKeyCounter();
 
@@ -427,8 +401,7 @@ describe('transformJsxElement', () => {
   it('puts imported member expression props in varProps', () => {
     const source = '<div class={styles.foo}/>';
     const s = new MagicString(source);
-    const { program } = parseSync('test.tsx', source);
-    const jsxNode = (program.body[0] as any).expression;
+    const jsxNode = parseJsxElement(source);
     const importedNames = new Set(['styles']);
     const keyCounter = new JsxKeyCounter();
 
@@ -444,8 +417,7 @@ describe('transformJsxElement', () => {
   it('handles self-closing elements with no children', () => {
     const source = '<div/>';
     const s = new MagicString(source);
-    const { program } = parseSync('test.tsx', source);
-    const jsxNode = (program.body[0] as any).expression;
+    const jsxNode = parseJsxElement(source);
     const importedNames = new Set<string>();
     const keyCounter = new JsxKeyCounter();
 
@@ -461,8 +433,7 @@ describe('transformJsxElement', () => {
   it('uses component identifier for uppercase tags', () => {
     const source = '<Cmp prop="23"/>';
     const s = new MagicString(source);
-    const { program } = parseSync('test.tsx', source);
-    const jsxNode = (program.body[0] as any).expression;
+    const jsxNode = parseJsxElement(source);
     const importedNames = new Set<string>();
     const keyCounter = new JsxKeyCounter();
 
@@ -478,8 +449,7 @@ describe('transformJsxElement', () => {
   it('uses string literal for lowercase (HTML) tags', () => {
     const source = '<div/>';
     const s = new MagicString(source);
-    const { program } = parseSync('test.tsx', source);
-    const jsxNode = (program.body[0] as any).expression;
+    const jsxNode = parseJsxElement(source);
     const importedNames = new Set<string>();
     const keyCounter = new JsxKeyCounter();
 
@@ -494,8 +464,7 @@ describe('transformJsxElement', () => {
   it('extracts explicit key={value} as 6th arg', () => {
     const source = '<Cmp prop="23" key={props.stuff}/>';
     const s = new MagicString(source);
-    const { program } = parseSync('test.tsx', source);
-    const jsxNode = (program.body[0] as any).expression;
+    const jsxNode = parseJsxElement(source);
     const importedNames = new Set<string>();
     const keyCounter = new JsxKeyCounter();
 
@@ -513,8 +482,7 @@ describe('transformJsxElement', () => {
   it('extracts explicit key="stuff" as string literal', () => {
     const source = '<Cmp key="stuff"/>';
     const s = new MagicString(source);
-    const { program } = parseSync('test.tsx', source);
-    const jsxNode = (program.body[0] as any).expression;
+    const jsxNode = parseJsxElement(source);
     const importedNames = new Set<string>();
     const keyCounter = new JsxKeyCounter();
 
@@ -529,8 +497,7 @@ describe('transformJsxElement', () => {
   it('handles multiple children as array', () => {
     const source = '<div><span/><span/><span/></div>';
     const s = new MagicString(source);
-    const { program } = parseSync('test.tsx', source);
-    const jsxNode = (program.body[0] as any).expression;
+    const jsxNode = parseJsxElement(source);
     const importedNames = new Set<string>();
     const keyCounter = new JsxKeyCounter();
 
@@ -547,8 +514,7 @@ describe('transformJsxElement', () => {
   it('handles single child directly (not array)', () => {
     const source = '<div><p/></div>';
     const s = new MagicString(source);
-    const { program } = parseSync('test.tsx', source);
-    const jsxNode = (program.body[0] as any).expression;
+    const jsxNode = parseJsxElement(source);
     const importedNames = new Set<string>();
     const keyCounter = new JsxKeyCounter();
 
@@ -564,8 +530,7 @@ describe('transformJsxElement', () => {
   it('handles spread props with _jsxSplit', () => {
     const source = '<button {...props}/>';
     const s = new MagicString(source);
-    const { program } = parseSync('test.tsx', source);
-    const jsxNode = (program.body[0] as any).expression;
+    const jsxNode = parseJsxElement(source);
     const importedNames = new Set<string>();
     const keyCounter = new JsxKeyCounter();
 
@@ -586,8 +551,7 @@ describe('transformJsxElement', () => {
   it('handles JSXMemberExpression tag (Foo.Bar)', () => {
     const source = '<Foo.Bar/>';
     const s = new MagicString(source);
-    const { program } = parseSync('test.tsx', source);
-    const jsxNode = (program.body[0] as any).expression;
+    const jsxNode = parseJsxElement(source);
     const importedNames = new Set<string>();
     const keyCounter = new JsxKeyCounter();
 
@@ -636,24 +600,21 @@ describe('isHtmlElement', () => {
 describe('processJsxTag', () => {
   it('returns string literal for HTML elements', () => {
     const source = '<div/>';
-    const { program } = parseSync('test.tsx', source);
-    const jsxNode = (program.body[0] as any).expression;
+    const jsxNode = parseJsxElement(source);
     const nameNode = jsxNode.openingElement.name;
     expect(processJsxTag(nameNode)).toBe('"div"');
   });
 
   it('returns identifier for component elements', () => {
     const source = '<MyComponent/>';
-    const { program } = parseSync('test.tsx', source);
-    const jsxNode = (program.body[0] as any).expression;
+    const jsxNode = parseJsxElement(source);
     const nameNode = jsxNode.openingElement.name;
     expect(processJsxTag(nameNode)).toBe('MyComponent');
   });
 
   it('returns dotted path for member expressions', () => {
     const source = '<Foo.Bar/>';
-    const { program } = parseSync('test.tsx', source);
-    const jsxNode = (program.body[0] as any).expression;
+    const jsxNode = parseJsxElement(source);
     const nameNode = jsxNode.openingElement.name;
     expect(processJsxTag(nameNode)).toBe('Foo.Bar');
   });
@@ -667,8 +628,7 @@ describe('transformJsxFragment', () => {
   it('transforms <>child</> to _jsxSorted(_Fragment, ...)', () => {
     const source = '<>child</>';
     const s = new MagicString(source);
-    const { program } = parseSync('test.tsx', source);
-    const jsxNode = (program.body[0] as any).expression;
+    const jsxNode = parseJsxFragment(source);
     const importedNames = new Set<string>();
     const keyCounter = new JsxKeyCounter();
 
@@ -687,8 +647,7 @@ describe('transformJsxFragment', () => {
   it('transforms fragment with multiple children to array', () => {
     const source = '<><div/><span/></>';
     const s = new MagicString(source);
-    const { program } = parseSync('test.tsx', source);
-    const jsxNode = (program.body[0] as any).expression;
+    const jsxNode = parseJsxFragment(source);
     const importedNames = new Set<string>();
     const keyCounter = new JsxKeyCounter();
 

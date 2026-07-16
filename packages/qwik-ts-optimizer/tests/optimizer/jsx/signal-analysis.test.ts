@@ -6,23 +6,11 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { parseSync } from 'oxc-parser';
 import {
   analyzeSignalExpression,
   SignalHoister,
 } from '../../../src/optimizer/jsx/signal-analysis.js';
-
-/**
- * Helper: parse an expression string into an AST expression node.
- * Wraps the expression in a variable declaration to get a valid program.
- */
-function parseExpr(expr: string): { node: any; source: string } {
-  const source = `const __x = ${expr};`;
-  const { program } = parseSync('test.tsx', source);
-  const decl = program.body[0] as any;
-  // VariableDeclaration -> declarations[0] -> init
-  return { node: decl.declarations[0].init, source };
-}
+import { parseExprWithSource as parseExpr } from '../helpers/parse-nodes.js';
 
 describe('signal-analysis', () => {
   describe('analyzeSignalExpression', () => {

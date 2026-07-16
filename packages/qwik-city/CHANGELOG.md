@@ -1,50 +1,5 @@
 # @builder.io/qwik-city
 
-## 1.19.1
-
-### Minor Changes
-
-- ✨ **(EXPERIMENTAL)** standardSchema$ validator (by [@nothendev](https://github.com/nothendev) in #TODO)
-
-  To use it, you need to pass `experimental: ['standardSchema']` as an option to the `qwikVite` plugin as such:
-
-  ```ts
-  // vite.config.ts
-
-  export default defineConfig(({ command, mode }): UserConfig => {
-    return {
-      plugins: [
-        // ... other plugins like qwikCity() etc
-        qwikVite({
-          experimental: ['standardSchema']
-          // ... other options
-        }),
-
-      ],
-      // ... rest of the config
-    };
-  }
-  ```
-
-  Then pass any [Standard Schema compatible](https://standardschema.dev) validator into `standardSchema$`:
-
-  ```ts
-  import { type } from 'arktype';
-  import { routeAction$, standardSchema$ } from '@builder.io/qwik-city';
-
-  export const useLogin = routeAction$(
-    async ({ username, password }, ev) => {
-      // ... use the type-inferred { username: string, password: string }
-    },
-    standardSchema$(
-      type({
-        username: 'string',
-        password: 'string > 8',
-      })
-    )
-  );
-  ```
-
 ## 1.19.0
 
 ### Minor Changes

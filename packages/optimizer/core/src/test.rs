@@ -7180,6 +7180,63 @@ export const App = component$(() => {
 }
 
 #[test]
+fn preprocessed_lib_server_qrl_is_stripped_from_client_output() {
+	let lib_res = test_input!(TestInput {
+		code: r#"
+import { server$ } from '@qwik.dev/core';
+
+export const serverAction = server$(() => {
+	const token = 'VALIDATION_SECRET_SERVER_ONLY_9f1ad6';
+	return token;
+});
+"#
+		.to_string(),
+		mode: EmitMode::Lib,
+		entry_strategy: EntryStrategy::Hoist,
+		transpile_ts: true,
+		snapshot: false,
+		..TestInput::default()
+	});
+
+	let lib_output = lib_res.unwrap();
+	let lib_code = lib_output
+		.modules
+		.iter()
+		.map(|module| module.code.as_str())
+		.collect::<Vec<_>>()
+		.join("\n");
+
+	assert!(
+		lib_code.contains("VALIDATION_SECRET_SERVER_ONLY_9f1ad6"),
+		"expected lib preprocessing to inline the server body:\n{}",
+		lib_code
+	);
+
+	let client_res = test_input!(TestInput {
+		code: lib_code,
+		mode: EmitMode::Prod,
+		entry_strategy: EntryStrategy::Hoist,
+		strip_ctx_name: Some(vec!["server".into()]),
+		snapshot: false,
+		..TestInput::default()
+	});
+
+	let client_output = client_res.unwrap();
+	let client_code = client_output
+		.modules
+		.iter()
+		.map(|module| module.code.as_str())
+		.collect::<Vec<_>>()
+		.join("\n");
+
+	assert!(
+		!client_code.contains("VALIDATION_SECRET_SERVER_ONLY_9f1ad6"),
+		"expected client transform to strip preprocessed server QRL body:\n{}",
+		client_code
+	);
+}
+
+#[test]
 fn inlined_qrl_preserves_captures() {
 	// Simulates lib-preprocessed code being processed by the app optimizer.
 	// The inner inlinedQrl has 5 captures, including variables defined via

@@ -659,8 +659,10 @@ impl<'a> QwikTransform<'a> {
 			hash,
 			migrated_root_vars: Vec::new(),
 		};
-		// Preprocessed inlinedQrl from libs are always emitted — stripping is meant for user code without the user having to write guards; libs can put guards themselves.
-		// App-level $() calls go through _create_synthetic_qsegment which has its own strip check.
+		if !self.should_emit_segment(&segment_data) {
+			return self.create_noop_qrl(&symbol_name, segment_data);
+		}
+
 		for id in &segment_data.local_idents {
 			if let Some(root_id) = self.options.global_collect.root_id_for_symbol(&id.0) {
 				self.ensure_export(&root_id);

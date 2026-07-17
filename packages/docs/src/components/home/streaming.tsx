@@ -1,6 +1,6 @@
-import { component$, Slot, type PropsOf } from '@qwik.dev/core';
-import { Button } from '~/components/action/action';
 import { lucide, streamlinepixel as pixel } from '@qds.dev/ui';
+import { component$, Slot, type PropsOf } from '@qwik.dev/core';
+import { Link } from '~/components/action/action';
 
 export const Streaming = component$(() => {
   const streamingCards = [
@@ -36,7 +36,7 @@ export const Streaming = component$(() => {
               JavaScript Streaming
             </span>
           </h2>
-          <pixel.videomoviesplayer class="absolute -top-[55%] right-[40%] 2xl:-top-[20%] 2xl:right-[25%] z-1 size-20 rotate-14 text-border-base drop-shadow-[6px_6px_0_var(--color-shadow-emphasis)]" />
+          <pixel.videomoviesplayer class="absolute -top-[55%] right-[40%] 2xl:top-[-20%] 2xl:right-[25%] z-1 size-20 rotate-14 text-border-base drop-shadow-[6px_6px_0_var(--color-shadow-emphasis)]" />
         </div>
 
         <div class="flex flex-col gap-6">
@@ -47,10 +47,14 @@ export const Streaming = component$(() => {
           ))}
         </div>
 
-        <Button class="w-fit 2xl:text-base text-sm" variant="primary">
+        <Link
+          href="/docs/concepts/think-qwik/"
+          class="w-fit 2xl:text-base text-sm"
+          variant="primary"
+        >
           <span>Discover more</span>
           <lucide.arrowright />
-        </Button>
+        </Link>
       </div>
       <div class="flex flex-col order-0">
         {streamingCards.map((card, index) => (

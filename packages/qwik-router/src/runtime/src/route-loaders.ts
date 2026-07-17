@@ -789,13 +789,26 @@ export const getLoaderRequestEvent = (
   if (!loaderRequestEv) {
     url.pathname = pathname;
     url.search = filteredSearch;
+    const request = new Request(url, rootRequestEv.request);
     loaderRequestEv = Object.create(rootRequestEv, {
+      originalUrl: {
+        value: new URL(url),
+        enumerable: true,
+      },
+      params: {
+        value: {},
+        enumerable: true,
+      },
       pathname: {
         get: () => url.pathname,
         enumerable: true,
       },
       query: {
         get: () => url.searchParams,
+        enumerable: true,
+      },
+      request: {
+        value: request,
         enumerable: true,
       },
       url: {

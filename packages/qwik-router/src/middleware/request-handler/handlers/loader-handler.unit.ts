@@ -87,7 +87,7 @@ describe('loaderHandler', () => {
     const cacheKeyEv = cacheKey.mock.calls[0][0];
     expect(cacheKeyEv).not.toBe(requestEv);
     expect(cacheKeyEv.url.search).toBe('?page=2&q=shoes');
-    expect(cacheKeyEv.request.url).toBe(requestEv.request.url);
+    expect(cacheKeyEv.request.url).toBe('http://localhost/products/?page=2&q=shoes');
     expect(cacheKey).toHaveBeenCalledWith(cacheKeyEv, '');
     expect(requestEv.send).toHaveBeenCalledWith(200, expect.any(String));
   });
@@ -99,6 +99,8 @@ describe('loaderHandler', () => {
       __qrl: {
         call: vi.fn(async (_thisArg, ev) => ({
           requestUrl: ev.request.url,
+          originalUrl: ev.originalUrl.href,
+          params: ev.params,
           search: ev.url.search,
           q: ev.query.get('q'),
           ignored: ev.query.has('ignored'),
@@ -115,9 +117,11 @@ describe('loaderHandler', () => {
 
     const loaderEv = loader.__qrl.call.mock.calls[0][1];
     expect(loaderEv.url.search).toBe('?q=shoes');
+    expect(loaderEv.request.url).toBe('http://localhost/products/?q=shoes');
+    expect(loaderEv.originalUrl.href).toBe('http://localhost/products/?q=shoes');
+    expect(loaderEv.params).toEqual({});
     expect(loaderEv.query.get('q')).toBe('shoes');
     expect(loaderEv.query.has('ignored')).toBe(false);
-    expect(loaderEv.request.url).toBe(requestEv.request.url);
     expect(requestEv.send).toHaveBeenCalledWith(200, expect.any(String));
   });
 

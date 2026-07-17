@@ -89,6 +89,10 @@ function createResolveRequestHandlers() {
       );
     }
 
+    if (isPageRoute && (method === 'POST' || method === 'GET')) {
+      requestHandlers.push(runServerFunction);
+    }
+
     const routeModules = route.$mods$;
     _resolveRequestHandlers(
       routeLoaders,
@@ -116,10 +120,6 @@ function createResolveRequestHandlers() {
       requestHandlers.push(loaderHandler(routeLoaders, route.$loaderPaths$));
       // Per-action handler: returns JSON and exits if IsQAction + Accept: json
       requestHandlers.push(actionHandler(routeActions));
-      if (method === 'POST' || method === 'GET') {
-        requestHandlers.push(runServerFunction);
-      }
-
       if (!route.$notFound$) {
         requestHandlers.push(fixTrailingSlash);
       }

@@ -17,12 +17,16 @@ describe('createLoaderRequestEventFactory', () => {
     expect(pageEv.url.search).toBe('?page=2');
     expect(pageEv.query.get('page')).toBe('2');
     expect(pageEv.query.has('q')).toBe(false);
-    expect(pageEv.request.url).toBe(requestEv.url.href);
+    expect(pageEv.request.url).toBe('http://localhost/products/?page=2');
+    expect(pageEv.originalUrl.href).toBe('http://localhost/products/?page=2');
+    expect(pageEv.params).toEqual({});
 
     expect(queryEv.url.search).toBe('?q=shoes');
     expect(queryEv.query.get('q')).toBe('shoes');
     expect(queryEv.query.has('page')).toBe(false);
-    expect(queryEv.request.url).toBe(requestEv.url.href);
+    expect(queryEv.request.url).toBe('http://localhost/products/?q=shoes');
+    expect(queryEv.originalUrl.href).toBe('http://localhost/products/?q=shoes');
+    expect(queryEv.params).toEqual({});
 
     pageEv.sharedMap.set('shared', 'value');
     expect(requestEv.sharedMap.get('shared')).toBe('value');
@@ -37,7 +41,8 @@ describe('createLoaderRequestEventFactory', () => {
     expect(missingEv).not.toBe(requestEv);
     expect(missingEv.url.search).toBe('');
     expect(missingEv.query.toString()).toBe('');
-    expect(missingEv.request.url).toBe(requestEv.url.href);
+    expect(missingEv.request.url).toBe('http://localhost/products/');
+    expect(missingEv.originalUrl.href).toBe('http://localhost/products/');
   });
 
   it('returns the original request event when there is no loader search filter', () => {
@@ -103,7 +108,9 @@ describe('createLoaderRequestEventFactory', () => {
       expect(productsEv.url.href).toBe('http://localhost/products/?page=2');
       expect(detailsEv.pathname).toBe('/products/123/');
       expect(detailsEv.url.href).toBe('http://localhost/products/123/?page=2');
-      expect(productsEv.request.url).toBe(requestEv.url.href);
+      expect(productsEv.request.url).toBe('http://localhost/products/?page=2');
+      expect(productsEv.originalUrl.href).toBe('http://localhost/products/?page=2');
+      expect(productsEv.params).toEqual({});
     } finally {
       globalThis.__STRICT_LOADERS__ = previousStrictLoaders;
     }

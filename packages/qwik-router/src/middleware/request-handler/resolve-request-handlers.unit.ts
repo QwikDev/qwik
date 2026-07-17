@@ -14,6 +14,7 @@ import { checkCSRF } from './resolve-request-handlers-core';
 import type { LoadedRoute, RouteModule } from '../../runtime/src/types';
 import { ServerError } from '@qwik.dev/router/middleware/request-handler';
 import { IsQLoader, QLoaderId } from './request-path';
+import { getRouteLoaderValues } from '../../runtime/src/route-loaders';
 
 function createMockServerRequestEvent(url = 'http://localhost:3000/test'): ServerRequestEvent {
   const mockRequest = new Request(url);
@@ -523,6 +524,26 @@ describe('resolve-request-handler', () => {
 
       expect(requestEv.status()).toBe(401);
       expect(requestEv.sharedMap.get(RequestEvHttpStatusMessage)).toBe('boom');
+    });
+
+    it('clears resolved route loader data before rendering a ServerError page', async () => {
+      const route = pageRouteWithLoaders(
+        makeLoader('protected', () => ({ secret: 'hidden' })),
+        makeLoader('guard', () => {
+          throw new ServerError(401, 'login required');
+        })
+      );
+      const renderHandler = vi.fn((requestEv: RequestEvent) => {
+        expect(getRouteLoaderValues(requestEv)).toEqual({});
+        requestEv.exit();
+      });
+      const requestEv = runPage(route, renderHandler);
+
+      await requestEv.next();
+
+      expect(renderHandler).toHaveBeenCalledOnce();
+      expect(requestEv.status()).toBe(401);
+      expect(requestEv.sharedMap.get(RequestEvHttpStatusMessage)).toBe('login required');
     });
 
     it('reports the first blockSSR loader (in route order) that errors', async () => {

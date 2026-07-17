@@ -15,6 +15,7 @@ import type {
   ValidatorReturn,
 } from '../../runtime/src/types';
 import {
+  clearRouteLoaderData,
   getRouteLoaderCtx,
   getRouteLoaderValues,
   loadRouteLoader,
@@ -28,6 +29,7 @@ import {
   RequestEvETagCacheKey,
   RequestEvHttpStatusMessage,
   RequestEvShareServerTiming,
+  RequestEvSharedActionFormData,
   RequestEvSharedActionId,
   RequestRouteName,
   type RequestEventInternal,
@@ -499,10 +501,18 @@ function createResolveRequestHandlers() {
           RequestEvHttpStatusMessage,
           typeof e.data === 'string' ? e.data : 'Server Error'
         );
+        clearErrorResponseData(requestEv);
 
         await renderHandler(requestEv);
       }
     };
+  }
+
+  function clearErrorResponseData(requestEv: RequestEvent) {
+    clearRouteLoaderData(requestEv);
+    requestEv.sharedMap.delete(RequestEvSharedActionId);
+    requestEv.sharedMap.delete(RequestEvSharedActionFormData);
+    requestEv.sharedMap.delete('@actionResult');
   }
 
   async function runValidators(

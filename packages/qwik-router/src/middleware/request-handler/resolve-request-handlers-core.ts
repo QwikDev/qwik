@@ -89,7 +89,7 @@ function createResolveRequestHandlers() {
       );
     }
 
-    if (isPageRoute && (method === 'POST' || method === 'GET')) {
+    if (!route.$notFound$ && isPageRoute && (method === 'POST' || method === 'GET')) {
       requestHandlers.push(runServerFunction);
     }
 

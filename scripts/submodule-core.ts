@@ -38,6 +38,7 @@ async function esbuildMinify(
     minifySyntax: true,
     minifyIdentifiers: opts.minifyIdentifiers,
     legalComments: 'none',
+    drop: ['debugger'],
     ...(opts.mangleCache
       ? {
           mangleProps: new RegExp(MANGLE_PROPS_REGEX),

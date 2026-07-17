@@ -8,6 +8,7 @@
 import { describe, it, expect } from 'vitest';
 import { transformModule } from '../../../src/optimizer/transform/index.js';
 import { mkFilePath, mkSourceText } from '../../../src/optimizer/types/brands.js';
+import type { SegmentMetadataInternal } from '../../../src/optimizer/types/types.js';
 
 describe('transformModule', () => {
   it('transforms a single component$ into parent + segment', () => {
@@ -192,7 +193,7 @@ export const App = component$(() => {
 
     // Inner segment should have captures
     expect(innerSegment!.segment!.captures).toBe(true);
-    const meta = innerSegment!.segment! as any;
+    const meta = innerSegment!.segment! as SegmentMetadataInternal;
     expect(meta.captureNames).toContain('count');
 
     // Inner segment code should have _captures import and unpacking

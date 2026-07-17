@@ -7,23 +7,10 @@ import equal from 'fast-deep-equal';
 import { parseSnapshot } from '../../src/testing/snapshot-parser.js';
 import { transformModule } from '../../src/optimizer/transform/index.js';
 import { getSnapshotTransformOptions } from './snapshot-options.js';
+import { stripAstPositions } from './helpers/ast-normalize.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SNAP_DIR = join(__dirname, '../../match-these-snaps');
-
-function strip(node: any, ancestors: any[] = []): any {
-  if (Array.isArray(node)) return node.map((item) => strip(item, ancestors));
-  if (node === null || typeof node !== 'object') return node;
-  if (node.type === 'ParenthesizedExpression' && node.expression) return strip(node.expression, ancestors);
-  const c: any = {};
-  for (const [k, v] of Object.entries(node)) {
-    if (k === 'start' || k === 'end' || k === 'loc' || k === 'range') continue;
-    if (k === 'raw' && (node?.type === 'Literal' || node?.type === 'JSXText' ||
-      (ancestors[0]?.type === 'TemplateElement' && ancestors[1]?.type === 'TemplateLiteral' && ancestors[2]?.type !== 'TaggedTemplateExpression'))) continue;
-    c[k] = strip(v, [node, ...ancestors].slice(0, 3));
-  }
-  return c;
-}
 
 describe('failure families', () => {
   it('categorizes all 209 snapshots into ordered families', () => {
@@ -52,8 +39,8 @@ describe('failure families', () => {
       let parentOk = true;
       if (parsed.parentModules.length > 0) {
         try {
-          const ep = strip(parseSync('test.tsx', parsed.parentModules[0].code).program);
-          const ap = strip(parseSync('test.tsx', result.modules[0]?.code || '').program);
+          const ep = stripAstPositions(parseSync('test.tsx', parsed.parentModules[0].code).program);
+          const ap = stripAstPositions(parseSync('test.tsx', result.modules[0]?.code || '').program);
           parentOk = equal(ep, ap);
         } catch { parentOk = false; }
       }
@@ -68,8 +55,8 @@ describe('failure families', () => {
         if (!as) { anySegMissing = true; allSegsFound = false; continue; }
         if (es.code && as.code) {
           try {
-            const ep = strip(parseSync('test.tsx', es.code).program);
-            const ap = strip(parseSync('test.tsx', as.code).program);
+            const ep = stripAstPositions(parseSync('test.tsx', es.code).program);
+            const ap = stripAstPositions(parseSync('test.tsx', as.code).program);
             if (!equal(ep, ap)) allSegsMatch = false;
           } catch { allSegsMatch = false; }
         }

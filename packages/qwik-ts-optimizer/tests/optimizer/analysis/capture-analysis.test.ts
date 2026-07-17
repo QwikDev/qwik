@@ -9,6 +9,7 @@
 import { describe, it, expect } from 'vitest';
 import { parseSync } from 'oxc-parser';
 import { walk } from 'oxc-walker';
+import type { AstNode, AstProgram, AstFunction, AstMaybeNode } from '../../../src/ast-types.js';
 import {
   analyzeCaptures,
   collectScopeIdentifiers,
@@ -16,89 +17,102 @@ import {
 } from '../../../src/optimizer/analysis/capture-analysis.js';
 import { computeClosureFreeIdentifiers } from '../../../src/optimizer/analysis/closure-free-identifiers.js';
 
-// ---------------------------------------------------------------------------
-// Helper: find the $() call's argument node in parsed source
-// ---------------------------------------------------------------------------
-
-/**
- * Parse source and find the first ArrowFunctionExpression or FunctionExpression
- * that is a direct argument to a $() call (any call whose callee ends with $).
- * Returns the argument node and the set of identifiers declared in the
- * enclosing scope.
- */
-function findDollarArg(source: string): {
-  argNode: any;
+interface DollarArgFacts {
+  argNode: AstFunction;
   parentScopeIds: Set<string>;
   importedNames: Set<string>;
   freeIds: readonly string[];
-} {
-  const { program } = parseSync('test.tsx', source);
+}
 
-  let argNode: any = null;
-  const importedNames = new Set<string>();
+function asClosureArg(node: AstNode): AstFunction | null {
+  if (node.type !== 'CallExpression') return null;
+  const { callee } = node;
+  if (callee.type !== 'Identifier' || !callee.name.endsWith('$')) return null;
+  const arg = node.arguments[0];
+  if (arg?.type === 'ArrowFunctionExpression' || arg?.type === 'FunctionExpression') {
+    return arg;
+  }
+  return null;
+}
 
-  // Collect imports
-  for (const node of (program as any).body) {
+function collectDollarArgs(program: AstProgram): AstFunction[] {
+  const args: AstFunction[] = [];
+  walk(program, {
+    enter(node: AstNode) {
+      const arg = asClosureArg(node);
+      if (arg) args.push(arg);
+    },
+  });
+  return args;
+}
+
+function collectImportedNames(program: AstProgram): Set<string> {
+  const names = new Set<string>();
+  for (const node of program.body) {
     if (node.type === 'ImportDeclaration') {
       for (const spec of node.specifiers) {
-        if (spec.local?.name) {
-          importedNames.add(spec.local.name);
-        }
+        names.add(spec.local.name);
       }
     }
   }
+  return names;
+}
 
-  // Walk to find the $() call argument
-  walk(program as any, {
-    enter(node: any) {
-      if (
-        node.type === 'CallExpression' &&
-        node.callee?.type === 'Identifier' &&
-        node.callee.name.endsWith('$') &&
-        node.arguments?.[0] &&
-        !argNode
-      ) {
-        argNode = node.arguments[0];
-      }
-    },
-  });
-
-  if (!argNode) {
-    throw new Error('No $() call argument found in source');
-  }
-
-  // Collect parent scope identifiers (everything declared outside the $() arg)
-  const parentScopeIds = new Set<string>();
-  walk(program as any, {
-    enter(node: any, parent: any) {
-      // Skip the $() argument subtree
+function collectParentScopeIds(program: AstProgram, argNode: AstFunction): Set<string> {
+  const ids = new Set<string>();
+  walk(program, {
+    enter(node: AstNode) {
       if (node === argNode) {
-        (this as any).skip();
+        this.skip();
         return;
       }
-      // Collect variable declarations
-      if (node.type === 'VariableDeclarator' && node.id?.type === 'Identifier') {
-        parentScopeIds.add(node.id.name);
+      if (node.type === 'VariableDeclarator' && node.id.type === 'Identifier') {
+        ids.add(node.id.name);
       }
-      // Collect function params (for enclosing arrow/function)
       if (
-        (node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression' || node.type === 'FunctionDeclaration') &&
-        node.params
+        node.type === 'ArrowFunctionExpression' ||
+        node.type === 'FunctionExpression' ||
+        node.type === 'FunctionDeclaration'
       ) {
         for (const param of node.params) {
-          collectBindingNames(param, parentScopeIds);
+          collectBindingNames(param, ids);
         }
       }
     },
   });
-
-  const freeIds =
-    computeClosureFreeIdentifiers(program as any, new Map([['t', argNode]])).get(argNode) ?? [];
-  return { argNode, parentScopeIds, importedNames, freeIds };
+  return ids;
 }
 
-/** Recursively collect binding names from a pattern node. */
-function collectBindingNames(node: any, names: Set<string>): void {
+function buildDollarArgFacts(program: AstProgram, argNode: AstFunction): DollarArgFacts {
+  const freeIds =
+    computeClosureFreeIdentifiers(program, new Map([['t', argNode]])).get(argNode) ?? [];
+  return {
+    argNode,
+    parentScopeIds: collectParentScopeIds(program, argNode),
+    importedNames: collectImportedNames(program),
+    freeIds,
+  };
+}
+
+function findDollarArg(source: string): DollarArgFacts {
+  const { program } = parseSync('test.tsx', source);
+  const argNode = collectDollarArgs(program)[0];
+  if (!argNode) {
+    throw new Error('No $() call argument found in source');
+  }
+  return buildDollarArgFacts(program, argNode);
+}
+
+function findNthDollarArg(source: string, n: number): DollarArgFacts {
+  const { program } = parseSync('test.tsx', source);
+  const argNodes = collectDollarArgs(program);
+  if (argNodes.length <= n) {
+    throw new Error(`Only found ${argNodes.length} $() calls, wanted index ${n}`);
+  }
+  return buildDollarArgFacts(program, argNodes[n]);
+}
+
+function collectBindingNames(node: AstMaybeNode, names: Set<string>): void {
   if (!node) return;
   if (node.type === 'Identifier') {
     names.add(node.name);
@@ -129,82 +143,6 @@ function collectBindingNames(node: any, names: Set<string>): void {
     return;
   }
 }
-
-/**
- * Helper to find inner $() argument when there are nested $() calls.
- * Finds the Nth $() call argument (0-indexed).
- */
-function findNthDollarArg(source: string, n: number): {
-  argNode: any;
-  parentScopeIds: Set<string>;
-  importedNames: Set<string>;
-  freeIds: readonly string[];
-} {
-  const { program } = parseSync('test.tsx', source);
-
-  const argNodes: any[] = [];
-  const importedNames = new Set<string>();
-
-  for (const node of (program as any).body) {
-    if (node.type === 'ImportDeclaration') {
-      for (const spec of node.specifiers) {
-        if (spec.local?.name) {
-          importedNames.add(spec.local.name);
-        }
-      }
-    }
-  }
-
-  walk(program as any, {
-    enter(node: any) {
-      if (
-        node.type === 'CallExpression' &&
-        node.callee?.type === 'Identifier' &&
-        node.callee.name.endsWith('$') &&
-        node.arguments?.[0]
-      ) {
-        argNodes.push(node.arguments[0]);
-      }
-    },
-  });
-
-  if (argNodes.length <= n) {
-    throw new Error(`Only found ${argNodes.length} $() calls, wanted index ${n}`);
-  }
-
-  const argNode = argNodes[n];
-
-  // Collect parent scope identifiers outside this specific argNode
-  const parentScopeIds = new Set<string>();
-  walk(program as any, {
-    enter(node: any) {
-      if (node === argNode) {
-        (this as any).skip();
-        return;
-      }
-      if (node.type === 'VariableDeclarator' && node.id?.type === 'Identifier') {
-        parentScopeIds.add(node.id.name);
-      }
-      if (
-        (node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression' || node.type === 'FunctionDeclaration') &&
-        node !== argNode &&
-        node.params
-      ) {
-        for (const param of node.params) {
-          collectBindingNames(param, parentScopeIds);
-        }
-      }
-    },
-  });
-
-  const freeIds =
-    computeClosureFreeIdentifiers(program as any, new Map([['t', argNode]])).get(argNode) ?? [];
-  return { argNode, parentScopeIds, importedNames, freeIds };
-}
-
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
 
 describe('analyzeCaptures', () => {
   it('Test 1: simple capture - detects variable from enclosing scope', () => {

@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { parseSync } from 'oxc-parser';
+import type { AstProgram, CallExpression } from '../../../src/ast-types.js';
 import {
   sourceMayContainMarkers,
   collectExportNames,
@@ -13,19 +14,15 @@ import {
   type CustomInlinedInfo,
 } from '../../../src/optimizer/extraction/marker-detection.js';
 
-/** Helper: parse code and return the AST program node */
-function parse(code: string) {
-  const result = parseSync('test.tsx', code);
-  return result.program;
+function parse(code: string): AstProgram {
+  return parseSync('test.tsx', code).program;
 }
 
-/** Helper: find first CallExpression in a program */
-function findFirstCall(program: any): any {
+function findFirstCall(program: AstProgram): CallExpression {
   for (const node of program.body) {
     if (node.type === 'ExpressionStatement' && node.expression.type === 'CallExpression') {
       return node.expression;
     }
-    // Handle export const X = component$(() => ...)
     if (node.type === 'VariableDeclaration') {
       for (const decl of node.declarations) {
         if (decl.init?.type === 'CallExpression') {
@@ -41,7 +38,7 @@ function findFirstCall(program: any): any {
       }
     }
   }
-  return null;
+  throw new Error('No CallExpression found in program');
 }
 
 describe('marker-detection', () => {

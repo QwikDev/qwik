@@ -7,47 +7,14 @@ import equal from 'fast-deep-equal';
 import { parseSnapshot } from '../../src/testing/snapshot-parser.js';
 import { transformModule } from '../../src/optimizer/transform/index.js';
 import { getSnapshotTransformOptions } from './snapshot-options.js';
+import { stripAstPositions, isRecord } from './helpers/ast-normalize.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SNAP_DIR = join(__dirname, '../../match-these-snaps');
 
-function shouldStripRaw(node: any, ancestors: any[]): boolean {
-  if (node?.type === 'Literal' || node?.type === 'JSXText') {
-    return true;
-  }
-
-  const [parent, grandparent, greatGrandparent] = ancestors;
-  if (
-    parent?.type === 'TemplateElement' &&
-    grandparent?.type === 'TemplateLiteral' &&
-    greatGrandparent?.type !== 'TaggedTemplateExpression'
-  ) {
-    return true;
-  }
-
-  return false;
-}
-
-function strip(node: any, ancestors: any[] = []): any {
-  if (Array.isArray(node)) return node.map((item) => strip(item, ancestors));
-  if (node === null || typeof node !== 'object') return node;
-  if (node.type === 'ParenthesizedExpression' && node.expression) {
-    return strip(node.expression, ancestors);
-  }
-  const c: any = {};
-  for (const [k, v] of Object.entries(node)) {
-    if (
-      k === 'start' ||
-      k === 'end' ||
-      k === 'loc' ||
-      k === 'range' ||
-      (k === 'raw' && shouldStripRaw(node, ancestors))
-    ) {
-      continue;
-    }
-    c[k] = strip(v, [node, ...ancestors].slice(0, 3));
-  }
-  return c;
+function bodyOf(program: unknown): readonly unknown[] {
+  if (isRecord(program) && Array.isArray(program.body)) return program.body;
+  return [];
 }
 
 describe('convergence breakdown', () => {
@@ -79,14 +46,16 @@ describe('convergence breakdown', () => {
         const exp = parsed.parentModules[0].code;
         const act = result.modules[0]?.code || '';
         try {
-          const ep = strip(parseSync('test.tsx', exp).program);
-          const ap = strip(parseSync('test.tsx', act).program);
+          const ep = stripAstPositions(parseSync('test.tsx', exp).program);
+          const ap = stripAstPositions(parseSync('test.tsx', act).program);
           if (equal(ep, ap)) {
             parentPass++;
           } else {
             parentFail++;
-            const matchCount = ep.body.filter((s: any, i: number) => equal(s, ap.body?.[i])).length;
-            const total = Math.max(ep.body.length, ap.body?.length || 0);
+            const epBody = bodyOf(ep);
+            const apBody = bodyOf(ap);
+            const matchCount = epBody.filter((s, i) => equal(s, apBody[i])).length;
+            const total = Math.max(epBody.length, apBody.length);
             if (matchCount >= total - 1) categories['off-by-1'].push(name);
             else if (matchCount >= total * 0.7) categories['mostly-matching'].push(name);
             else categories['major-diff'].push(name);
@@ -103,8 +72,8 @@ describe('convergence breakdown', () => {
         if (!as) { segMissing++; continue; }
         if (es.code && as.code) {
           try {
-            const ep = strip(parseSync('test.tsx', es.code).program);
-            const ap = strip(parseSync('test.tsx', as.code).program);
+            const ep = stripAstPositions(parseSync('test.tsx', es.code).program);
+            const ap = stripAstPositions(parseSync('test.tsx', as.code).program);
             if (equal(ep, ap)) segPass++; else segFail++;
           } catch { segFail++; }
         }

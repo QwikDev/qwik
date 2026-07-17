@@ -8,6 +8,7 @@
 import { describe, it, expect } from 'vitest';
 import { parseSync } from 'oxc-parser';
 import { walk } from 'oxc-walker';
+import type { AstNode } from '../../../src/ast-types.js';
 import {
   detectLoopContext,
   generateParamPadding,
@@ -15,20 +16,17 @@ import {
   eventHandlerQpParams,
 } from '../../../src/optimizer/jsx/loop-hoisting.js';
 
-// ---------------------------------------------------------------------------
-// Helper: parse source and find first node of given type
-// ---------------------------------------------------------------------------
-
-function findFirstNode(source: string, nodeType: string): any {
+function findFirstNode(source: string, nodeType: string): AstNode {
   const { program } = parseSync('test.tsx', source);
-  let found: any = null;
+  let found: AstNode | undefined;
   walk(program, {
-    enter(node: any) {
+    enter(node: AstNode) {
       if (!found && node.type === nodeType) {
         found = node;
       }
     },
   });
+  if (!found) throw new Error(`No ${nodeType} node found in source`);
   return found;
 }
 

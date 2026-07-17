@@ -158,9 +158,9 @@ export function imagePlugin(userOpts?: QwikRouterVitePluginOptions): PluginOptio
         order: 'pre',
         async handler(id, importer, options) {
           if (parseVirtualImageJsxId(id)) {
-            return null;
+            return id;
           }
-          if (id.endsWith(TO_IMG_ID)) {
+          if (id.endsWith(TO_IMG_ID) || id === VIRTUAL_TO_IMG_ID) {
             return VIRTUAL_TO_IMG_ID;
           }
 

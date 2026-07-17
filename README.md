@@ -32,6 +32,15 @@ bun create qwik@beta
 - Understand the difference between [resumable and replayable](https://next.qwik.dev/docs/concepts/resumable/) applications.
 - Learn about Qwik's high level [mental model](https://next.qwik.dev/docs/concepts/think-qwik/).
 
+## Nightlies
+
+We use pkg.pr.new to make packages available for each PR and for the branches. Use these URLs instead of versions to get the latest build:
+
+- https://pkg.pr.new/QwikDev/qwik/@qwik.dev/core@main
+- https://pkg.pr.new/QwikDev/qwik/@qwik.dev/router@main
+- https://pkg.pr.new/QwikDev/qwik/@qwik.dev/react@main
+- https://pkg.pr.new/QwikDev/qwik/@qwik.dev/devtools@main
+
 ## Resources
 
 - [Docs](https://next.qwik.dev/)

@@ -19,8 +19,8 @@ import { fileURLToPath } from 'node:url';
 import { promisify } from 'util';
 import { readPackageJson } from './package-json.ts';
 
-/** Base esbuild options shared by every minify pass (ESM output at the ES2020 syntax floor). */
-export const ESBUILD_BASE = { format: 'esm', target: 'es2020' } as const;
+/** Base esbuild options shared by every minify pass (ESM output at the ES2022 syntax floor). */
+export const ESBUILD_BASE = { format: 'esm', target: 'es2022' } as const;
 
 const stringOptions = ['distVersion', 'platformTarget', 'setDistTag'] as const;
 const booleanOptions = [

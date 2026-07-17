@@ -57,6 +57,18 @@ describe('submitAction', () => {
     );
   });
 
+  it('replaces any existing action id in route search params', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue(await makeJsonResponse({ result: { ok: true } }));
+    vi.stubGlobal('fetch', fetchSpy);
+
+    await submitAction(
+      { id: 'act-a', data: {} } as any,
+      new URL('https://qwik.dev/test/?qaction=act-b&foo=bar&qaction=act-c')
+    );
+
+    expect(fetchSpy).toHaveBeenCalledWith('/test/?qaction=act-a&foo=bar', expect.any(Object));
+  });
+
   it('returns result and status from JSON action response', async () => {
     vi.stubGlobal(
       'fetch',

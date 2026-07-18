@@ -164,6 +164,7 @@ export {
   errorBoundaryReset as _ebR,
 } from './shared/error/error-boundary';
 export type { ErrorBoundaryInfo, ErrorBoundaryProps } from './shared/error/error-boundary';
+export { PublicError } from './shared/error/public-error';
 export {
   type ReadonlySignal,
   type AsyncSignal,

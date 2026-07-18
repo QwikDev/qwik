@@ -2,8 +2,9 @@ import { isDev } from '@qwik.dev/core/build';
 import { canSerialize } from '../serdes/can-serialize';
 import { createContextId } from '../../use/use-context';
 import { hashCode } from '../utils/hash_code';
-import { logError } from '../utils/log';
+import { logError, logWarn } from '../utils/log';
 import type { ErrorBoundaryInfo } from './error-boundary';
+import { isPublicError } from './public-error';
 
 /** @internal */
 export interface ErrorBoundaryStore {
@@ -95,6 +96,16 @@ export const toSerializableBoundaryError = (
         ? projected
         : redactToGeneric(err);
     }
+    if (isPublicError(err)) {
+      // Constructing a PublicError is consent to display its data — but it must serialize.
+      if (canSerialize(err)) {
+        return err;
+      }
+      if (dev) {
+        logWarn('A PublicError was redacted because its data cannot be serialized.', err);
+      }
+      return redactToGeneric(err);
+    }
     if (!dev) {
       return redactToGeneric(err);
     }
@@ -112,8 +123,8 @@ export const toSerializableBoundaryError = (
 };
 
 export const redactBoundaryErrorForDisplay = (error: unknown, dev: boolean = isDev): Error =>
-  // Framework-projected (server-redacted) errors pass through untouched.
-  safeRead(() => error instanceof Error && 'digest' in error, false)
+  // Consented public errors and framework-projected (server-redacted) errors pass untouched.
+  isPublicError(error) || safeRead(() => error instanceof Error && 'digest' in error, false)
     ? (error as Error)
     : toSerializableBoundaryError(error, dev);
 

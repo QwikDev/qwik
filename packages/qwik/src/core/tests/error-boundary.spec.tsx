@@ -3,6 +3,7 @@ import {
   component$,
   createAsync$,
   ErrorBoundary,
+  PublicError,
   render,
   setPlatform,
   Slot,
@@ -2525,6 +2526,72 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
   });
 });
 
+describe('PublicError membrane pass-through', () => {
+  it('prod: a thrown PublicError passes through by identity with no digest', () => {
+    const err = new PublicError({ message: 'Out of stock', sku: 'A1' });
+    const out = toSerializableBoundaryError(err, /* dev */ false);
+    expect(out).toBe(err);
+    expect('digest' in out).toBe(false);
+  });
+
+  it('prod: a plain Error faking the shape still redacts to generic + digest', () => {
+    const out = toSerializableBoundaryError(
+      Object.assign(new Error('internal'), { data: 'leak' }),
+      /* dev */ false
+    ) as Error & { digest?: string };
+    expect(out.message).toBe('An error occurred');
+    expect(typeof out.digest).toBe('string');
+  });
+
+  it('transformError runs first and its projection wins over a PublicError', () => {
+    const seen: unknown[] = [];
+    const out = toSerializableBoundaryError(new PublicError('public'), /* dev */ false, (e) => {
+      seen.push(e);
+      return new Error('projected');
+    });
+    expect(seen).toHaveLength(1);
+    expect(seen[0]).toBeInstanceOf(PublicError);
+    expect(out.message).toBe('projected');
+  });
+
+  it('a PublicError with unserializable data redacts in dev AND prod, with one dev warning', () => {
+    const logWarnSpy = vi.spyOn(logUtils, 'logWarn').mockImplementation(() => undefined);
+    try {
+      for (const dev of [true, false]) {
+        const out = toSerializableBoundaryError(
+          new PublicError({ retry: () => {} }),
+          dev
+        ) as Error & {
+          digest?: string;
+        };
+        expect(out.message).toBe('An error occurred');
+        expect(typeof out.digest).toBe('string');
+      }
+      expect(logWarnSpy).toHaveBeenCalledTimes(1);
+    } finally {
+      logWarnSpy.mockRestore();
+    }
+  });
+
+  it('markBoundaryErrored keeps the same PublicError instance for store.error and onError$', () => {
+    const received: unknown[] = [];
+    const store: ErrorBoundaryStore = { error: undefined, $onError$: (e) => received.push(e) };
+    const err = new PublicError('Out of stock');
+    markBoundaryErrored(store, err);
+    expect(store.error).toBe(err);
+    expect(received).toEqual([err]);
+  });
+
+  it('prod display: a client-thrown PublicError shows unredacted; a plain Error still redacts', () => {
+    const pub = new PublicError('Out of stock');
+    expect(redactBoundaryErrorForDisplay(pub, /* dev */ false)).toBe(pub);
+    const internal = new Error('internal');
+    const shown = redactBoundaryErrorForDisplay(internal, /* dev */ false);
+    expect(shown).not.toBe(internal);
+    expect(shown.message).toBe('An error occurred');
+  });
+});
+
 describe('hostile thrown values (fail-closed normalization)', () => {
   const makeRevokedProxy = () => {
     const { proxy, revoke } = Proxy.revocable({}, {});
@@ -2580,6 +2647,16 @@ describe('hostile thrown values (fail-closed normalization)', () => {
         cyclic.self = cyclic;
         return cyclic;
       },
+    ],
+    [
+      // Classification fails closed: an unprovable PublicError is treated as unexpected.
+      'PublicError wrapped in a throwing getPrototypeOf trap',
+      () =>
+        new Proxy(new PublicError('trapped'), {
+          getPrototypeOf() {
+            throw new Error('proto trap');
+          },
+        }),
     ],
   ];
 

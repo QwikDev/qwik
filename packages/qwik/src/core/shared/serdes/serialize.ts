@@ -1,4 +1,5 @@
 import { isDev } from '@qwik.dev/core/build';
+import { isPublicError, QPublicErrorMarker } from '../error/public-error';
 import { hasVirtualNodePath } from '../vnode-data-types';
 import { VNodeDataFlag } from '../../../server/types';
 import type { VNodeData } from '../../../server/vnode-data';
@@ -710,6 +711,10 @@ export class Serializer {
       const out: any[] = [value.message];
       // flatten gives us the right output
       out.push(...Object.entries(value).flat());
+      if (__EXPERIMENTAL__.errorBoundary && isPublicError(value)) {
+        // Consent marker: inflate restores the class so `instanceof` survives resume.
+        out.push(QPublicErrorMarker, 1);
+      }
       /// In production we don't want to leak the stack trace.
       if (isDev) {
         out.push('stack', value.stack);

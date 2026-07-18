@@ -1,4 +1,5 @@
 import { isServer } from '@qwik.dev/core/build';
+import { PublicError, QPublicErrorMarker } from '../error/public-error';
 import { qTest } from '../utils/qdev';
 import {
   vnode_getFirstChild,
@@ -229,6 +230,11 @@ function* inflateIterator(
       for (let i = 1; i < d.length; i += 2) {
         const key = d[i];
         const value = d[i + 1];
+        if (__EXPERIMENTAL__.errorBoundary && key === QPublicErrorMarker) {
+          // Consented public error: restore the class so `instanceof` works after resume.
+          Object.setPrototypeOf(target, PublicError.prototype);
+          continue;
+        }
         if (isSafeObjectKV(key, value)) {
           (target as any)[key] = value;
         }

@@ -21,6 +21,9 @@ export class PublicError<T = unknown> extends Error {
   }
 }
 
+/** Serialized-payload consent marker; inflate restores the class when it sees it. @internal */
+export const QPublicErrorMarker = 'q:pe';
+
 /** Classification that survives hostile values (revoked Proxy, throwing traps). @internal */
 export const isPublicError = (value: unknown): value is PublicError => {
   try {

@@ -29,6 +29,7 @@ import {
 } from '../../reactive-primitives/types';
 import { Task, TaskFlags } from '../../use/use-task';
 import { QError } from '../error/error';
+import { PublicError, QPublicErrorMarker } from '../error/public-error';
 import { _qrlWithChunk, inlinedQrl } from '../qrl/qrl';
 import { createQRL, type QRLInternal } from '../qrl/qrl-class';
 import { isQrl, SYNC_QRL } from '../qrl/qrl-utils';
@@ -1337,6 +1338,38 @@ describe('shared-serialization', () => {
         [TypeIds.Plain, 'safe', TypeIds.Plain, 'then', TypeIds.Plain, 'value'],
       ]).state[0] as Error & { then: string };
       expect(safeError.then).toBe('value');
+    });
+    it(title(TypeIds.Error) + ' (PublicError round-trip)', async () => {
+      const objs = await serialize(new PublicError({ message: 'Out of stock', sku: 'A1' }));
+      const err = deserialize(objs)[0] as PublicError<{ message: string; sku: string }>;
+      expect(err).toBeInstanceOf(PublicError);
+      expect(err.message).toBe('Out of stock');
+      expect(err.data).toEqual({ message: 'Out of stock', sku: 'A1' });
+      // The marker is protocol, not data: it must not survive as a field.
+      expect(Object.hasOwn(err, QPublicErrorMarker)).toBe(false);
+    });
+    it('only a PublicError payload carries the marker, exactly once', async () => {
+      const publicRaw = await serializeRaw(new PublicError('x'));
+      expect(publicRaw.split(QPublicErrorMarker).length - 1).toBe(1);
+      const fakeShape = Object.assign(new Error('x'), { data: 'leak' });
+      expect(await serializeRaw(fakeShape)).not.toContain(QPublicErrorMarker);
+    });
+    it('only the marker upgrades an Error payload to PublicError', () => {
+      const upgraded = eagerDeserialize([
+        TypeIds.Error,
+        // prettier-ignore
+        [TypeIds.Plain, 'boom', TypeIds.Plain, 'data', TypeIds.Plain, 'payload', TypeIds.Plain, QPublicErrorMarker, TypeIds.Plain, 1],
+      ]).state[0] as PublicError;
+      expect(upgraded).toBeInstanceOf(PublicError);
+      expect(upgraded.data).toBe('payload');
+      expect(Object.hasOwn(upgraded, QPublicErrorMarker)).toBe(false);
+
+      const plain = eagerDeserialize([
+        TypeIds.Error,
+        [TypeIds.Plain, 'boom', TypeIds.Plain, 'data', TypeIds.Plain, 'payload'],
+      ]).state[0] as Error;
+      expect(plain).toBeInstanceOf(Error);
+      expect(plain).not.toBeInstanceOf(PublicError);
     });
     it(title(TypeIds.Promise), async () => {
       const objs = await serialize(Promise.resolve(shared1), Promise.reject(shared1), shared1);

@@ -3,6 +3,7 @@ import {
   component$,
   ErrorBoundary,
   isServer,
+  PublicError,
   Resource,
   Slot,
   Suspense,
@@ -117,6 +118,41 @@ const EbSyncThrower = component$(() => {
   }
   return <span id="eb-thrower-client" />;
 });
+
+const EbPublicThrower = component$(() => {
+  if (isServer) {
+    throw new PublicError({ message: 'Out of stock', sku: 'A1' });
+  }
+  return <span id="eb-public-client" />;
+});
+
+// The click probes the RESUMED error: `instanceof` must survive serialization.
+const EbPublicProbe = component$<{ error: unknown }>((props) => {
+  const kind = useSignal('');
+  return (
+    <>
+      <button
+        id="eb-public-probe"
+        onClick$={() => {
+          kind.value =
+            props.error instanceof PublicError
+              ? `public:${(props.error.data as { sku: string }).sku}`
+              : 'plain';
+        }}
+      >
+        probe
+      </button>
+      <span id="eb-public-kind">{kind.value}</span>
+    </>
+  );
+});
+
+const publicFallback = $((e: unknown) => (
+  <section id="eb-fallback">
+    <p id="eb-fallback-msg">caught: {errMsg(e)}</p>
+    <EbPublicProbe error={e} />
+  </section>
+));
 
 const EbWrapper = component$(() => (
   <div data-eb-wrapper="">
@@ -337,6 +373,15 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
             label="Release deferred throw"
             releaseParam="release"
           />
+        </>
+      ) : scenario === 'public' ? (
+        <>
+          <ErrorBoundary fallback$={publicFallback}>
+            <EbPublicThrower />
+          </ErrorBoundary>
+          <ErrorBoundary fallback$={(e) => <EbFallback id="eb-plain" msg={errMsg(e)} />}>
+            <EbSyncThrower />
+          </ErrorBoundary>
         </>
       ) : scenario === 'client' ? (
         <ErrorBoundary fallback$={defaultFallback}>

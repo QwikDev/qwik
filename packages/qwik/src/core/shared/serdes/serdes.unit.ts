@@ -1354,6 +1354,22 @@ describe('shared-serialization', () => {
       const fakeShape = Object.assign(new Error('x'), { data: 'leak' });
       expect(await serializeRaw(fakeShape)).not.toContain(QPublicErrorMarker);
     });
+    it('a user Error field named like the marker is reserved: dropped, never upgrades', async () => {
+      const forged = Object.assign(new Error('x'), { [QPublicErrorMarker]: 1, keep: 'ok' });
+      const objs = await serialize(forged);
+      const err = deserialize(objs)[0] as Error & { keep?: string };
+      expect(err).toBeInstanceOf(Error);
+      expect(err).not.toBeInstanceOf(PublicError);
+      expect(err.keep).toBe('ok');
+      expect(Object.hasOwn(err, QPublicErrorMarker)).toBe(false);
+    });
+    it('a PublicError subclass resumes as the base class (documented downgrade)', async () => {
+      class CartError extends PublicError<{ sku: string }> {}
+      const objs = await serialize(new CartError({ sku: 'A1' }));
+      const err = deserialize(objs)[0] as PublicError;
+      expect(err).toBeInstanceOf(PublicError);
+      expect(err.data).toEqual({ sku: 'A1' });
+    });
     it('only the marker upgrades an Error payload to PublicError', () => {
       const upgraded = eagerDeserialize([
         TypeIds.Error,

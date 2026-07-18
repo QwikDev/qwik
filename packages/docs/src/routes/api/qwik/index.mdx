@@ -3174,6 +3174,10 @@ A deliberately public error: constructing one is consent to serialize and displa
 
 `.message` is the human string, `.data` the structured payload: a string `data` doubles as the message, and an object `data` with a string `message` field lifts it onto `.message`.
 
+Contract details:
+
+- Consent covers the whole instance: every own enumerable field serializes with it, so keep the payload in `data`. - A configured `transformError` render option runs first and its projection wins — return the received `PublicError` unchanged to keep it public. - If `data` cannot serialize, the error is redacted to the generic message when it crosses the SSR boundary (a client-thrown one still displays in place). - A subclass instance resumes as a base `PublicError`: discriminate on `data`, not the subclass.
+
 ```typescript
 export declare class PublicError<T = unknown> extends Error
 ```

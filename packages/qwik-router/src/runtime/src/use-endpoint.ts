@@ -23,8 +23,10 @@ export async function submitAction(
   | undefined
 > {
   const pathBase = ensureSlash(routeUrl.pathname);
-  const querySeparator = routeUrl.search ? '&' : '?';
-  const url = `${pathBase}${routeUrl.search}${querySeparator}${QACTION_KEY}=${encodeURIComponent(action.id)}`;
+  const searchParams = new URLSearchParams(routeUrl.search);
+  searchParams.set(QACTION_KEY, action.id);
+  const search = searchParams.toString();
+  const url = `${pathBase}?${search}`;
 
   const actionData = action.data;
   // Clear immediately so a task rerun can't re-submit the same payload

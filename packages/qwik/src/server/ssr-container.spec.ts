@@ -244,6 +244,32 @@ describe('SSR Container', () => {
     );
   });
 
+  it('should encode custom attribute names in emitVNodeData', () => {
+    const { container, writer } = createTestContainer();
+    container.openContainer();
+    container.serializationCtx.$roots$.push({});
+
+    const customKey = '</script><script>globalThis.__qwik_xss=1</script>';
+    (container as any).vNodeDatas = [
+      [
+        VNodeDataFlag.SERIALIZE | VNodeDataFlag.VIRTUAL_NODE,
+        { [customKey]: 'projection-ref' },
+        OPEN_FRAGMENT,
+        CLOSE_FRAGMENT,
+      ],
+    ];
+
+    (container as any).emitVNodeData();
+
+    const output = writer.toString();
+    const encodedKey = encodeVNodeDataString(encodeVNodeDataKey(customKey));
+
+    expect(output).not.toContain(customKey);
+    expect(output).toContain(
+      `${VNodeDataChar.SEPARATOR_CHAR}${encodedKey}${VNodeDataChar.SEPARATOR_CHAR}`
+    );
+  });
+
   it('should encode slot names in emitVNodeData', () => {
     const { container, writer } = createTestContainer();
     container.openContainer();

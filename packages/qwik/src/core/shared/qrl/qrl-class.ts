@@ -2,7 +2,7 @@
 import { getPlatform, isServerPlatform } from '../platform/platform';
 // ^^^ keep these imports above the rest to prevent circular dep issues
 
-import { isBrowser, isDev } from '@qwik.dev/core/build';
+import { isBrowser, isDev, isServer } from '@qwik.dev/core/build';
 import { invokeApply, tryGetInvokeContext, type InvokeContext } from '../../use/use-core';
 import { assertDefined } from '../error/assert';
 import { QError, qError } from '../error/error';
@@ -82,6 +82,8 @@ export type QRLInternalMethods<TYPE> = {
   readonly $lazy$: LazyRef<TYPE>;
 };
 
+let reportedChunkFailures: WeakMap<Container, Set<string>> | undefined;
+
 let getLazyRef: <TYPE>(
   chunk: string | null,
   symbol: string,
@@ -137,7 +139,27 @@ export class LazyRef<TYPE = unknown> {
       ref.then(
         (r) => (this.$ref$ = r),
         (err) => {
-          console.error(`qrl ${this.$symbol$} failed to load`, err);
+          const errorMessage = `qrl ${this.$symbol$} failed to load`;
+
+          if (qTest ? isServerPlatform() : isServer) {
+            console.error(errorMessage, err);
+          } else if (qTest ? !isServerPlatform() : isBrowser) {
+            const failureKey =
+              this.$chunk$ === null ? `symbol:${this.$symbol$}` : `chunk:${this.$chunk$}`;
+            const container = this.$container$;
+            let containerFailures = container && reportedChunkFailures?.get(container);
+            if (!containerFailures?.has(failureKey)) {
+              if (container) {
+                if (!containerFailures) {
+                  containerFailures = new Set();
+                  (reportedChunkFailures ||= new WeakMap()).set(container, containerFailures);
+                }
+                containerFailures.add(failureKey);
+              }
+              console.error(errorMessage, err);
+            }
+          }
+
           // We shouldn't cache rejections, we can try again later
           this.$ref$ = null;
         }

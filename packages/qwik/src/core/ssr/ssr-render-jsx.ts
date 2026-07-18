@@ -104,6 +104,20 @@ export type StackValue = ValueOrPromise<
   | typeof FunctionChild
 >;
 
+const markPromiseHandled = (
+  ssr: SSRContainer,
+  promise: Promise<unknown>,
+  host: ISsrNode | null = null
+): void => {
+  promise.catch((reason) => {
+    try {
+      ssr.handleError(reason, host);
+    } catch {
+      // Original promise remains awaited later.
+    }
+  });
+};
+
 function setParentOptions(
   mutable: { currentStyleScoped: string | null; parentComponentFrame: ISsrComponentFrame | null },
   styleScoped: string | null,
@@ -123,6 +137,11 @@ export async function _walkJSX(
 ): Promise<void> {
   const stack: StackValue[] = [value];
   const enqueue = (value: StackValue) => stack.push(value);
+  const enqueuePromise = (promise: Promise<unknown>) => {
+    markPromiseHandled(ssr, promise);
+    stack.push(promise as StackValue);
+    stack.push(Promise);
+  };
   const drain = async (): Promise<void> => {
     while (stack.length) {
       try {
@@ -162,8 +181,7 @@ export async function _walkJSX(
           if (value === Promise) {
             const pending = stack.pop() as Promise<JSXOutput>;
             if (__EXPERIMENTAL__.errorBoundary && isInsideFailedBoundaryContent(ssr)) {
-              // Never await superseded content; keep the promise observed.
-              pending.catch(() => {});
+              // Never await superseded content; enqueuePromise already observed it.
               continue;
             }
             stack.push(
@@ -180,13 +198,14 @@ export async function _walkJSX(
           continue;
         }
         if (__EXPERIMENTAL__.errorBoundary && isInsideFailedBoundaryContent(ssr)) {
-          // Superseded value frame: discard, but keep a raw promise child observed.
+          // Superseded value frame: discard. Dead content's rejection is meaningless,
+          // so swallow it outright rather than routing it through handleError.
           if (isPromise(value)) {
             value.catch(() => {});
           }
           continue;
         }
-        processJSXNode(ssr, enqueue, value as JSXOutput, options);
+        processJSXNode(ssr, enqueue, enqueuePromise, value as JSXOutput, options);
       } finally {
         const pendingFlush = ssr.streamHandler.waitForPendingFlush();
         if (isPromise(pendingFlush)) {
@@ -332,6 +351,7 @@ function enqueueChild(enqueue: (value: StackValue) => void, child: JSXOutput) {
 function processJSXNode(
   ssr: SSRContainer,
   enqueue: (value: StackValue) => void,
+  enqueuePromise: (promise: Promise<unknown>) => void,
   value: JSXOutput,
   options: SSRRenderJSXOptions
 ) {
@@ -362,8 +382,7 @@ function processJSXNode(
     } else if (isPromise(value)) {
       ssr.openFragment(isDev ? { [DEBUG_TYPE]: VirtualType.Awaited } : EMPTY_OBJ);
       enqueue(ssr.closeFragment);
-      enqueue(value);
-      enqueue(Promise);
+      enqueuePromise(value);
       enqueue(() => ssr.streamHandler.flush());
     } else if (isAsyncGenerator(value)) {
       enqueue(async () => {
@@ -524,8 +543,11 @@ function processJSXNode(
             value = generator;
           }
 
-          enqueue(value as StackValue);
-          isPromise(value) && enqueue(Promise);
+          if (isPromise(value)) {
+            enqueuePromise(value);
+          } else {
+            enqueue(value as StackValue);
+          }
         } else if (type === SSRRaw) {
           ssr.htmlNode(directGetPropsProxyProp(jsx, 'data'));
         } else if (type === SSRStreamBlock) {
@@ -555,6 +577,8 @@ function processJSXNode(
           );
           enqueue(() => ssr.closeComponent());
           if (isPromise(jsxOutput)) {
+            markPromiseHandled(ssr, jsxOutput, host);
+            // Defer reading QScopedStyle until after the promise resolves
             enqueue(async () => {
               await ssr.streamHandler.flush();
               const resolvedOutput = await jsxOutput;
@@ -581,8 +605,11 @@ function processJSXNode(
                 applyInlineComponent(ssr, component && component.componentNode, type, jsx)
               )
             : applyInlineComponent(ssr, component && component.componentNode, type, jsx);
-          enqueue(jsxOutput);
-          isPromise(jsxOutput) && enqueue(Promise);
+          if (isPromise(jsxOutput)) {
+            enqueuePromise(jsxOutput);
+          } else {
+            enqueue(jsxOutput);
+          }
         }
       }
     }

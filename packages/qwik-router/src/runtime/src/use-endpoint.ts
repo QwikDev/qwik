@@ -6,13 +6,13 @@ import { QACTION_KEY } from './constants';
 /**
  * Submit an action to the server and get the result.
  *
- * POSTs to `/routePath/?qaction={actionId}` with `Accept: application/json`. The server runs the
- * action and returns the action result, optionally with the loader hashes that should be
- * invalidated.
+ * POSTs to the route URL with `qaction={actionId}` appended and `Accept: application/json`. The
+ * server runs the action and returns the action result, optionally with the loader hashes that
+ * should be invalidated.
  */
 export async function submitAction(
   action: NonNullable<RouteActionValue>,
-  routePath: string
+  routeUrl: URL
 ): Promise<
   | {
       status: number;
@@ -22,8 +22,11 @@ export async function submitAction(
     }
   | undefined
 > {
-  const pathBase = ensureSlash(routePath);
-  const url = `${pathBase}?${QACTION_KEY}=${encodeURIComponent(action.id)}`;
+  const pathBase = ensureSlash(routeUrl.pathname);
+  const searchParams = new URLSearchParams(routeUrl.search);
+  searchParams.set(QACTION_KEY, action.id);
+  const search = searchParams.toString();
+  const url = `${pathBase}?${search}`;
 
   const actionData = action.data;
   // Clear immediately so a task rerun can't re-submit the same payload

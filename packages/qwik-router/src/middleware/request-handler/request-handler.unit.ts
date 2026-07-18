@@ -63,7 +63,7 @@ describe('getRequestHandlerPathname', () => {
     expect(getRequestHandlerPathname(ev)).toBe('/products/123/');
   });
 
-  it('uses the validated route pathname for strict dev loader requests', () => {
+  it('ignores the strict dev route pathname outside dev mode', () => {
     const ev = createMockServerRequestEvent(
       `http://localhost/products/${getLoaderName('loader-id', 'manifest')}`,
       {
@@ -73,7 +73,20 @@ describe('getRequestHandlerPathname', () => {
       }
     );
 
-    expect(getRequestHandlerPathname(ev)).toBe('/products/123/');
+    expect(getRequestHandlerPathname(ev, false)).toBe('/products/');
+  });
+
+  it('uses the validated route pathname for strict dev loader requests in dev mode', () => {
+    const ev = createMockServerRequestEvent(
+      `http://localhost/products/${getLoaderName('loader-id', 'manifest')}`,
+      {
+        headers: {
+          [ROUTE_PATH_HEADER]: '/products/123/',
+        },
+      }
+    );
+
+    expect(getRequestHandlerPathname(ev, true)).toBe('/products/123/');
   });
 
   it('ignores a strict dev route pathname outside the loader path', () => {

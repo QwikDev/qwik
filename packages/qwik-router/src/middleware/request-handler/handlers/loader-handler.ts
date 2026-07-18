@@ -3,6 +3,7 @@ import {
   FULLPATH_HEADER,
   getRouteLoaderCtx,
   getRouteLoaderResponse,
+  loadRouteLoader,
   resolveRouteLoaderByHash,
   setRouteLoaders,
 } from '../../../runtime/src/route-loaders';
@@ -43,6 +44,7 @@ export function loaderHandler(
     }
 
     setLoaderData(requestEv, routeLoaders, loaderPaths);
+    await runBlockingLoadersBeforeTarget(routeLoaders, loader, requestEv);
 
     const loaderRequestEv = createLoaderRequestEventFactory(requestEv)(loader);
 
@@ -113,6 +115,21 @@ export function loaderHandler(
 
     await sendLoaderResponse(requestEv, data, loader);
   };
+}
+
+async function runBlockingLoadersBeforeTarget(
+  routeLoaders: LoaderInternal[],
+  targetLoader: LoaderInternal,
+  requestEv: RequestEventInternal
+) {
+  for (const loader of routeLoaders) {
+    if (loader === targetLoader) {
+      return;
+    }
+    if (loader.__blockSSR) {
+      await loadRouteLoader(loader, requestEv);
+    }
+  }
 }
 
 function setLoaderData(

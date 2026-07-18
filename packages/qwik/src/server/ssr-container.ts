@@ -1313,7 +1313,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         default: {
           encodeValue = encodeURI;
           this.write(VNodeDataChar.SEPARATOR_CHAR);
-          this.write(encodeVNodeDataString(key));
+          this.write(encodeVNodeDataString(encodeVNodeDataKey(key)));
           this.write(VNodeDataChar.SEPARATOR_CHAR);
         }
       }

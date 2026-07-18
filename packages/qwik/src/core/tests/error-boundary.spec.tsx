@@ -44,6 +44,10 @@ const OOOS_OPT_IN = {
 };
 const IN_ORDER = { streaming: { outOfOrder: false } };
 
+const PublicThrower = component$((): JSXOutput => {
+  throw new PublicError({ message: 'Out of stock', sku: 'A1' });
+});
+
 const Thrower = component$<{ message?: string }>((props) => {
   throw new Error(props.message ?? 'boom');
 });
@@ -2589,6 +2593,96 @@ describe('PublicError membrane pass-through', () => {
     const shown = redactBoundaryErrorForDisplay(internal, /* dev */ false);
     expect(shown).not.toBe(internal);
     expect(shown.message).toBe('An error occurred');
+  });
+});
+
+describe('PublicError integration', () => {
+  it.each([
+    ['default streaming', {}],
+    ['opted-in OOOS', OOOS_OPT_IN],
+  ] as const)(
+    '%s: a thrown PublicError renders its message through the fallback and serializes its data',
+    async (_label, streamingOpts) => {
+      const { html, document } = await streamAndResume(
+        <main>
+          <ErrorBoundary fallback$={fb()}>
+            <PublicThrower />
+          </ErrorBoundary>
+        </main>,
+        streamingOpts
+      );
+      expect(document.querySelector('#fb')?.textContent).toContain('caught: Out of stock');
+      // `.data` reached serialized state; nothing redacted it.
+      expect(html).toContain('A1');
+      expect(html).not.toContain('An error occurred');
+    }
+  );
+
+  it.each([
+    ['default', {}],
+    ['opted-in OOOS', OOOS_OPT_IN],
+  ] as const)(
+    '%s streaming: the resumed error is still a PublicError with readable data',
+    async (_label, streamingOpts) => {
+      const { container } = await ssrRenderToDom(
+        <main>
+          <ErrorBoundary
+            fallback$={$((e: any) => (
+              <p id="fb">{e instanceof PublicError ? `public:${e.data.sku}` : 'not-public'}</p>
+            ))}
+          >
+            <PublicThrower />
+          </ErrorBoundary>
+        </main>,
+        { debug, ...streamingOpts }
+      );
+      const el = container.element;
+      expect(el.querySelector('#fb')?.textContent).toBe('public:A1');
+
+      // The client re-render reads the RESUMED store.error: identity must have survived.
+      await rerenderComponent(el.querySelector('[q\\:ebc]') as HTMLElement);
+      await waitForDrain(container);
+      expect(el.querySelector('#fb')?.textContent).toBe('public:A1');
+    }
+  );
+
+  it('CSR: an event handler throwing a PublicError shows its message in the fallback', async () => {
+    const Clicker = component$(() => (
+      <button
+        onClick$={() => {
+          throw new PublicError('Out of stock');
+        }}
+      >
+        go
+      </button>
+    ));
+    const { container } = await domRender(
+      <ErrorBoundary fallback$={fb()}>
+        <Clicker />
+      </ErrorBoundary>,
+      { debug }
+    );
+    await trigger(container.element, 'button', 'click');
+    expect(container.element.querySelector('#fb')?.textContent).toContain('caught: Out of stock');
+  });
+
+  it('an inner fallback throwing a PublicError escalates to the outer boundary unredacted', async () => {
+    const { container } = await ssrRenderToDom(
+      <ErrorBoundary fallback$={fb('fb-outer')}>
+        <ErrorBoundary
+          fallback$={$(() => {
+            throw new PublicError('outer-facing');
+          })}
+        >
+          <Thrower />
+        </ErrorBoundary>
+      </ErrorBoundary>,
+      { debug }
+    );
+    await waitForDrain(container).catch(() => {});
+    expect(container.element.querySelector('#fb-outer')?.textContent).toContain(
+      'caught: outer-facing'
+    );
   });
 });
 

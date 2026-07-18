@@ -43,6 +43,7 @@ export {
   PrefetchGraph,
   PrefetchServiceWorker,
   PropsOf,
+  PublicError,
   QRL,
   // TODO should this be used instead of EventHandler?
   QRLEventHandlerMulti,

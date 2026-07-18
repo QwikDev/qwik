@@ -164,7 +164,8 @@ export interface RenderOptions extends SerializeDocumentOptions {
    * `onError$` and server logging still receive the original error. Return an `Error`; a throw or a
    * non-Error return falls back to a redacted generic error. Attach custom fields on the returned
    * `Error` — enumerable serializable fields survive to the fallback. When omitted, the default is
-   * secure: full fidelity in dev, a generic message + `digest` in production.
+   * secure: full fidelity in dev, a generic message + `digest` in production. A thrown
+   * `PublicError` also runs through the transform — return it unchanged to keep it public.
    */
   transformError?: (error: unknown) => unknown;
 }

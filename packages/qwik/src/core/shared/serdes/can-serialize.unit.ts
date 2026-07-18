@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { PublicError } from '../error/public-error';
 import { canSerialize } from './can-serialize';
 
 describe('canSerialize: Error fields', () => {
@@ -22,6 +23,14 @@ describe('canSerialize: Error fields', () => {
       }
     }
     expect(canSerialize(new Evil())).toBe(false);
+  });
+
+  it('accepts a PublicError with serializable data', () => {
+    expect(canSerialize(new PublicError({ code: 'X', items: [1] }))).toBe(true);
+  });
+
+  it('rejects a PublicError whose data hides a function', () => {
+    expect(canSerialize(new PublicError({ retry: () => {} }))).toBe(false);
   });
 
   it('handles cyclic Error fields', () => {

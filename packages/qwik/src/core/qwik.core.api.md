@@ -824,6 +824,13 @@ export type PropFunction<T> = QRL<T>;
 // @public
 export type PropsOf<COMP> = COMP extends string ? COMP extends keyof QwikIntrinsicElements ? QwikIntrinsicElements[COMP] : QwikIntrinsicElements['span'] : NonNullable<COMP> extends never ? never : COMP extends FunctionComponent<infer PROPS> ? PROPS extends Record<any, infer V> ? IsAny<V> extends true ? never : ObjectProps<PROPS> : COMP extends Component<infer OrigProps> ? ObjectProps<OrigProps> : PROPS : never;
 
+// @public
+export class PublicError<T = unknown> extends Error {
+    constructor(data: T);
+    // (undocumented)
+    data: T;
+}
+
 // Warning: (ae-forgotten-export) The symbol "_Only$" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "ComponentChildren" needs to be exported by the entry point index.d.ts
 //

@@ -201,6 +201,14 @@ client routing (`client/dom-container.ts`); shared helpers (`shared/error/error-
   and generators never run, and a superseded promise is never awaited — observe it with
   `.catch(noop)` or a late rejection becomes unhandled. Pre-catch content keeps hide-don't-unwind.
   A discard site must never skip StackFns (structural close frames keep HTML balanced).
+- `PublicError` is the ONE unredacted lane through the prod membrane: classification is a
+  guarded `instanceof` (construction = consent; shape/field forgery must stay redacted), the
+  pass-through is `canSerialize`-gated (bad `.data` → generic + one dev warn), `transformError`
+  still runs first and wins, and no `digest` is attached to a passed-through instance. Resume
+  identity rides a `q:pe` marker pair inside the ordinary `TypeIds.Error` payload; inflate
+  restores `PublicError.prototype` on the marker and never assigns it as a field. Both serdes
+  touches are `__EXPERIMENTAL__.errorBoundary`-gated. Prod-mode asserts live at helper level
+  (`dev: false`) or in the `error-boundary.prod` e2e — the unit harness compiles `isDev=true`.
 - Every probe of a raw thrown value must be fail-closed against hostile objects (revoked Proxy,
   throwing traps/getters): `toSerializableBoundaryError`/digest/redact are try/catch-wrapped, and
   `isPromise`, `checkError`, `getStoreTarget`, and the recursive store-get wrap are guarded.

@@ -1,4 +1,5 @@
 import { isDev } from '@qwik.dev/core/build';
+import { isPublicError, QPublicErrorMarker } from '../error/public-error';
 import { hasVirtualNodePath } from '../vnode-data-types';
 import { VNodeDataFlag } from '../../../server/types';
 import type { VNodeData } from '../../../server/vnode-data';
@@ -708,8 +709,17 @@ export class Serializer {
       this.output(TypeIds.Regex, value.toString());
     } else if (value instanceof Error) {
       const out: any[] = [value.message];
-      // flatten gives us the right output
-      out.push(...Object.entries(value).flat());
+      for (const entry of Object.entries(value)) {
+        if (__EXPERIMENTAL__.errorBoundary && entry[0] === QPublicErrorMarker) {
+          // Reserved consent-marker key: only the framework may emit it.
+          continue;
+        }
+        out.push(entry[0], entry[1]);
+      }
+      if (__EXPERIMENTAL__.errorBoundary && isPublicError(value)) {
+        // Consent marker: inflate restores the class so `instanceof` survives resume.
+        out.push(QPublicErrorMarker, 1);
+      }
       /// In production we don't want to leak the stack trace.
       if (isDev) {
         out.push('stack', value.stack);

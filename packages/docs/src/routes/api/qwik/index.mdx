@@ -2823,7 +2823,7 @@ Returned type of the `noSerialize()` function. It will be TYPE or undefined.
 ```typescript
 export type NoSerialize<T> =
   | (T & {
-      __no_serialize__?: true;
+      __no_serialize__: true;
     })
   | undefined;
 ```
@@ -2837,7 +2837,7 @@ Returned type of the `noSerialize()` function. It will be TYPE or undefined.
 ```typescript
 export type NoSerialize<T> =
   | (T & {
-      __no_serialize__?: true;
+      __no_serialize__: true;
     })
   | undefined;
 ```

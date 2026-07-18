@@ -1446,6 +1446,12 @@ export interface CSSProperties extends CSS.Properties<string | number>, CSS.Prop
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-generated.ts)
 
+<h2 id="publicerror-data">data</h2>
+
+```typescript
+data: T;
+```
+
 <h2 id="devjsx">DevJSX</h2>
 
 ```typescript
@@ -3161,6 +3167,78 @@ const TitleBox = component$(
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/component.public.ts)
+
+<h2 id="publicerror">PublicError</h2>
+
+A deliberately public error: constructing one is consent to serialize and display its `data` through an `<ErrorBoundary>` fallback, unredacted, even in production. Any other thrown value is redacted to a generic message in production.
+
+`.message` is the human string, `.data` the structured payload: a string `data` doubles as the message, and an object `data` with a string `message` field lifts it onto `.message`.
+
+```typescript
+export declare class PublicError<T = unknown> extends Error
+```
+
+**Extends:** Error
+
+<table><thead><tr><th>
+
+Constructor
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+(constructor)(data)
+
+</td><td>
+
+</td><td>
+
+Constructs a new instance of the `PublicError` class
+
+</td></tr>
+</tbody></table>
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[data](#publicerror-data)
+
+</td><td>
+
+</td><td>
+
+T
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/error/public-error.ts)
 
 <h2 id="publicprops">PublicProps</h2>
 

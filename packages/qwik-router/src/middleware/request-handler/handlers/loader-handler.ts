@@ -146,7 +146,7 @@ async function sendLoaderResponse(
   requestEv.headers.set('Content-Type', 'application/json; charset=utf-8');
   addVaryHeader(requestEv, FULLPATH_HEADER);
   if (loader?.__expires && loader.__expires > 0) {
-    requestEv.cacheControl({ maxAge: Math.ceil(loader.__expires / 1000) });
+    requestEv.cacheControl({ maxAge: Math.ceil(loader.__expires / 1000), private: true });
   }
   requestEv.send(200, data);
 }

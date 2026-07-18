@@ -380,3 +380,43 @@ export const QwikLogo = component$((props: IconProps) => {
     </svg>
   );
 });
+
+export const IconAdjustmentsHorizontal = component$((props: IconProps) => {
+  return (
+    <svg {...baseSvgProps({ ...props, viewBox: '0 0 24 24' })}>
+      {props.title ? <title>{props.title}</title> : null}
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75"
+      />
+    </svg>
+  );
+});
+
+export const IconEllipsisHorizontal = component$((props: IconProps) => {
+  return (
+    <svg {...baseSvgProps({ ...props, viewBox: '0 0 24 24' })}>
+      {props.title ? <title>{props.title}</title> : null}
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"
+      />
+    </svg>
+  );
+});
+
+export const IconGripVertical = component$((props: IconProps) => {
+  return (
+    <svg {...baseSvgProps({ ...props, viewBox: '0 0 24 24' })} fill="currentColor" stroke="none">
+      {props.title ? <title>{props.title}</title> : null}
+      <circle cx="9" cy="5" r="1.5" />
+      <circle cx="15" cy="5" r="1.5" />
+      <circle cx="9" cy="12" r="1.5" />
+      <circle cx="15" cy="12" r="1.5" />
+      <circle cx="9" cy="19" r="1.5" />
+      <circle cx="15" cy="19" r="1.5" />
+    </svg>
+  );
+});

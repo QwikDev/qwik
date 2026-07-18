@@ -22,7 +22,7 @@ describe('loaderHandler', () => {
     };
   }
 
-  it('uses millisecond expires values to derive Cache-Control seconds and varies on full path', async () => {
+  it('uses expires values for private Cache-Control and varies on full path', async () => {
     const requestEv = createRequestEv();
     const loader = {
       __id: 'loader-id',
@@ -38,7 +38,7 @@ describe('loaderHandler', () => {
 
     await loaderHandler([loader as any])(requestEv as any);
 
-    expect(requestEv.cacheControl).toHaveBeenCalledWith({ maxAge: 2 });
+    expect(requestEv.cacheControl).toHaveBeenCalledWith({ maxAge: 2, private: true });
     expect(requestEv.headers.get('Vary')).toBe(FULLPATH_HEADER);
     expect(requestEv.send).toHaveBeenCalledWith(200, expect.any(String));
   });

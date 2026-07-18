@@ -7,6 +7,7 @@ import { Fragment } from '../jsx/jsx-runtime';
 
 /** Used to represent an undefined value that must be serialized */
 export const explicitUndefined = Symbol('undefined');
+export const EMPTY_OBJECT_PAYLOAD = 0;
 
 export const enum Constants {
   Undefined,

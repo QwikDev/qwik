@@ -84,6 +84,38 @@ describe('SSR Backpatching', () => {
     expect(backpatchedInput?.outerHTML).toContain('aria-describedby="final-id"');
   });
 
+  it('should preserve script delimiters in backpatch values', async () => {
+    const boundaryValue = '</script><template data-backpatch-marker></template>';
+    const Ctx = createContextId<Signal<string>>('bp-script-boundary');
+
+    const Child = component$(() => {
+      const value = useContext(Ctx);
+      useTask$(() => {
+        value.value = boundaryValue;
+      });
+      return <div>child</div>;
+    });
+
+    const Root = component$(() => {
+      const value = useSignal('initial');
+      useContextProvider(Ctx, value);
+      return (
+        <>
+          <input aria-label={value.value} />
+          <Child />
+        </>
+      );
+    });
+
+    const { document } = await ssrRenderToDom(<Root />, { debug });
+    const scripts = document.querySelectorAll(`script[type="${ELEMENT_BACKPATCH_DATA}"]`);
+
+    expect(scripts).toHaveLength(1);
+    expect(JSON.parse(scripts[0].textContent || '[]')).toContain(boundaryValue);
+    expect(document.querySelector('input')?.getAttribute('aria-label')).toBe(boundaryValue);
+    expect(document.querySelector('template[data-backpatch-marker]')).toBeFalsy();
+  });
+
   it('should not log a warning if backpatching is used', async () => {
     const logWarnSpy = vi.spyOn(logUtils, 'logWarn').mockImplementation(() => {});
     const Ctx = createContextId<{ descId: Signal<string> }>('bp-ctx-1');

@@ -155,6 +155,8 @@ enum QwikLoaderInclude {
   Done,
 }
 
+const VALID_ELEMENT_NAME = /^[A-Za-z][A-Za-z0-9._:-]*$/;
+
 const NO_SCRIPT_HERE_ELEMENTS = new Set([
   'script',
   'style',
@@ -686,6 +688,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     currentFile: string | null = null,
     hasMovedCaptures: boolean = true
   ): string | undefined {
+    if (!VALID_ELEMENT_NAME.test(elementName)) {
+      throw qError(QError.invalidElementName, [JSON.stringify(elementName)]);
+    }
+
     const isQwikStyle =
       isQwikStyleElement(elementName, varAttrs) || isQwikStyleElement(elementName, constAttrs);
     // keep track of parser states/contexts where inline scripts are not safe to emit.
@@ -734,7 +740,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
     this.write(' ' + Q_PROPS_SEPARATOR);
     if (key !== null) {
-      this.write(`="${key}"`);
+      this.write(ATTR_EQUALS_QUOTE);
+      this.write(escapeHTML(key));
+      this.write(QUOTE);
     } else if (qTest) {
       // Domino sometimes does not like empty attributes, so we need to add a empty value
       this.write(EMPTY_ATTR);
@@ -1299,6 +1307,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           this.write(VNodeDataChar.CONTEXT_CHAR);
           break;
         case QSlot:
+          encodeValue = encodeVNodeDataKey;
           this.write(VNodeDataChar.SLOT_CHAR);
           break;
         default: {
@@ -1406,7 +1415,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       if (this.renderOptions.serverData?.nonce) {
         scriptAttrs['nonce'] = this.renderOptions.serverData.nonce;
       }
-      this.writeScript(scriptAttrs, JSON.stringify(patches));
+      this.writeScript(scriptAttrs, JSON.stringify(patches).replaceAll('<', '\\u003C'));
     }
   }
 

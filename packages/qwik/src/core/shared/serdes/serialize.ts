@@ -43,7 +43,7 @@ import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
 import { ELEMENT_ID, ELEMENT_PROPS, OnRenderProp, QBackRefs } from '../utils/markers';
 import { isObjectEmpty } from '../utils/objects';
 import { isPromise, maybeThen } from '../utils/promises';
-import { Constants, explicitUndefined, TypeIds } from './constants';
+import { Constants, EMPTY_OBJECT_PAYLOAD, explicitUndefined, TypeIds } from './constants';
 import { qrlToString } from './qrl-to-string';
 import {
   SerializationBackRef,
@@ -603,7 +603,7 @@ export class Serializer {
             }
           }
         }
-        this.output(TypeIds.Object, out.length ? out : 0);
+        this.output(TypeIds.Object, out.length ? out : EMPTY_OBJECT_PAYLOAD);
       }
     } else if (this.$serializationContext$.$isDomRef$(value)) {
       this.$serializationContext$.$markSsrNodeForSerialization$(

@@ -39,8 +39,8 @@ import type { DeserializeContainer, HostElement } from '../types';
 import { _OWNER, _PROPS_HANDLER, _UNINITIALIZED } from '../utils/constants';
 import { isString } from '../utils/types';
 import type { VirtualVNode } from '../vnode/virtual-vnode';
-import { allocate, pendingStoreTargets, resolvers } from './allocate';
-import { TypeIds } from './constants';
+import { allocate, beginDeserialization, endDeserialization, resolvers } from './allocate';
+import { EMPTY_OBJECT_PAYLOAD, TypeIds } from './constants';
 import { needsInflation } from './deser-proxy';
 import type { SubscriptionPatch } from './subscription-patch';
 
@@ -71,9 +71,14 @@ export const inflate = (
   typeId: TypeIds,
   data: unknown
 ): void => {
-  const iterator = inflateIterator(container, target, typeId, data);
-  while (!iterator.next().done) {
-    // Run synchronously for lazy deserialization paths.
+  const ownsPendingStoreTargets = beginDeserialization(container);
+  try {
+    const iterator = inflateIterator(container, target, typeId, data);
+    while (!iterator.next().done) {
+      // Run synchronously for lazy deserialization paths.
+    }
+  } finally {
+    endDeserialization(container, ownsPendingStoreTargets);
   }
 };
 
@@ -94,6 +99,7 @@ export function* eagerDeserializeStateIterator(
   data: unknown[],
   output: unknown[] = Array(data.length / 2)
 ): Generator<void, unknown[], void> {
+  const ownsPendingStoreTargets = beginDeserialization(container);
   const length = data.length / 2;
   const allocated = new Uint8Array(length);
   const previousGetObjectById = container.$getObjectById$;
@@ -129,6 +135,7 @@ export function* eagerDeserializeStateIterator(
     }
   } finally {
     container.$getObjectById$ = previousGetObjectById;
+    endDeserialization(container, ownsPendingStoreTargets);
   }
   return output;
 }
@@ -158,6 +165,9 @@ function* inflateIterator(
     // Already processed
     return;
   }
+  if (typeId === TypeIds.Object && data !== EMPTY_OBJECT_PAYLOAD && !Array.isArray(data)) {
+    throw new Error('Invalid Object payload');
+  }
   // Restore the complex data, special case for Array
   if (typeId !== TypeIds.Array && Array.isArray(data)) {
     data = yield* eagerDeserializeArrayIterator(container, data);
@@ -168,8 +178,7 @@ function* inflateIterator(
       yield* eagerDeserializeArrayIterator(container, data as unknown[], target as unknown[]);
       break;
     case TypeIds.Object:
-      if (data === 0) {
-        // Special case, was an empty object
+      if (data === EMPTY_OBJECT_PAYLOAD) {
         break;
       }
       for (let i = 0; i < (data as any[]).length; i += 2) {
@@ -204,6 +213,10 @@ function* inflateIterator(
       const [resolved, result] = data as [boolean, unknown];
       const [resolve, reject] = resolvers.get(promise)!;
       if (resolved) {
+        // Native Promises cannot fulfill with another Promise.
+        if (resolvers.has(result as Promise<unknown>)) {
+          throw qError(QError.invalidPromiseDependency);
+        }
         resolve(result);
       } else {
         reject(result);
@@ -214,7 +227,11 @@ function* inflateIterator(
       const d = data as string[];
       (target as Error).message = d[0] as string;
       for (let i = 1; i < d.length; i += 2) {
-        (target as any)[d[i]] = d[i + 1];
+        const key = d[i];
+        const value = d[i + 1];
+        if (isSafeObjectKV(key, value)) {
+          (target as any)[key] = value;
+        }
         yield;
       }
       break;
@@ -438,9 +455,9 @@ function* inflateIterator(
     }
     case TypeIds.Store: {
       const store = unwrapStore(target) as object;
-      const storeTarget = pendingStoreTargets.get(store);
+      const storeTarget = container.$pendingStoreTargets$!.get(store);
       if (storeTarget) {
-        pendingStoreTargets.delete(store);
+        container.$pendingStoreTargets$!.delete(store);
         yield* inflateIterator(container, store, storeTarget.t, storeTarget.v);
       }
       const [, flags, effects] = data as unknown[];

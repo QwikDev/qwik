@@ -1,6 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import type { ViteDevServer } from 'vite';
-import { getDevMiddlewareRequestPath, sendRouterCssHotUpdate } from './dev-middleware';
+import {
+  getDevMiddlewareRequestPath,
+  getRouterIndexTags,
+  sendRouterCssHotUpdate,
+} from './dev-middleware';
 
 const file = '/app/src/routes/docs/docs.css';
 
@@ -62,5 +66,31 @@ describe('sendRouterCssHotUpdate', () => {
     });
     expect(sendRouterCssHotUpdate(server, file, 1)).toBe(false);
     expect(send).not.toHaveBeenCalled();
+  });
+});
+
+describe('getRouterIndexTags', () => {
+  it('prefixes CSS URLs with the Vite base', () => {
+    const cssModule = {
+      url: '/@fs/app/src/routes/admin.css',
+      file: '/app/src/routes/admin.css',
+      importers: new Set(),
+    };
+    const moduleGraph = { idToModuleMap: new Map([[cssModule.url, cssModule]]) };
+    const server = {
+      config: { base: '/admin/' },
+      environments: {
+        client: { moduleGraph: { idToModuleMap: new Map() } },
+        ssr: { moduleGraph },
+      },
+      watcher: { add: vi.fn() },
+    } as unknown as ViteDevServer;
+
+    expect(getRouterIndexTags(server)).toEqual([
+      {
+        tag: 'link',
+        attrs: { rel: 'stylesheet', href: '/admin/@fs/app/src/routes/admin.css' },
+      },
+    ]);
   });
 });

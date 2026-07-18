@@ -11,40 +11,51 @@
 
 <h1 align="center">Instant-loading web apps, without effort</h1>
 
-Qwik offers the fastest possible page load times - regardless of the complexity of your website. Qwik is so fast because it allows fully interactive sites to load with almost no JavaScript and [pickup from where the server left off](https://qwik.dev/docs/concepts/resumable/).
+<b>This is the branch for Qwik v2, currently in beta. For v1, see the `v1` branch.</b>
 
-As users interact with the site, only the necessary parts of the site load on-demand. This [precision lazy-loading](https://qwik.dev/docs/concepts/progressive/) is what makes Qwik so quick.
+Qwik offers the fastest possible page load times - regardless of the complexity of your website. Qwik is so fast because it allows fully interactive sites to load with almost no JavaScript and [pick up from where the server left off](https://next.qwik.dev/docs/concepts/resumable/).
+
+As users interact with the site, only the necessary parts of the site load on-demand. This [precision lazy-loading](https://next.qwik.dev/docs/concepts/progressive/) is what makes Qwik so quick.
 
 ## Getting Started
 
 ```sh
-npm create qwik@latest
+npm create qwik@beta
 # or
-pnpm create qwik@latest
+pnpm create qwik@beta
 # or
-yarn create qwik@latest
+yarn create qwik@beta
 # or
-bun create qwik@latest
+bun create qwik@beta
 ```
 
-- Understand the difference between [resumable and replayable](https://qwik.dev/docs/concepts/resumable/) applications.
-- Learn about Qwik's high level [mental model](https://qwik.dev/docs/concepts/think-qwik/).
+- Understand the difference between [resumable and replayable](https://next.qwik.dev/docs/concepts/resumable/) applications.
+- Learn about Qwik's high level [mental model](https://next.qwik.dev/docs/concepts/think-qwik/).
+
+## Nightlies
+
+We use pkg.pr.new to make packages available for each PR and for the branches. Use these URLs instead of versions to get the latest build:
+
+- https://pkg.pr.new/QwikDev/qwik/@qwik.dev/core@main
+- https://pkg.pr.new/QwikDev/qwik/@qwik.dev/router@main
+- https://pkg.pr.new/QwikDev/qwik/@qwik.dev/react@main
+- https://pkg.pr.new/QwikDev/qwik/@qwik.dev/devtools@main
 
 ## Resources
 
-- [Docs](https://qwik.dev/)
-- [Examples](https://qwik.dev/examples/introduction/hello-world/)
-- [Tutorials](https://qwik.dev/tutorial/welcome/overview/)
-- [Videos](https://qwik.dev/media/#videos)
-- [Podcasts](https://qwik.dev/media/#podcasts)
-- [Presentations](https://qwik.dev/media/#presentations)
-- [Blogs](https://qwik.dev/media/#blogs)
+- [Docs](https://next.qwik.dev/)
+- [Examples](https://next.qwik.dev/examples/introduction/hello-world/)
+- [Tutorials](https://next.qwik.dev/tutorial/welcome/overview/)
+- [Videos](https://next.qwik.dev/media/#videos)
+- [Podcasts](https://next.qwik.dev/media/#podcasts)
+- [Presentations](https://next.qwik.dev/media/#presentations)
+- [Blogs](https://next.qwik.dev/media/#blogs)
 
 ## Community
 
 - Ping us at [@QwikDev](https://twitter.com/QwikDev)
 - Join our [Discord](https://qwik.dev/chat) community
-- Join all the [other community groups](https://qwik.dev/ecosystem/#community)
+- Join all the [other community groups](https://next.qwik.dev/ecosystem/#community)
 
 ## Development
 
@@ -82,7 +93,7 @@ bun create qwik@latest
         <picture>
           <source srcset="https://github.com/user-attachments/assets/47c6d86a-5141-40c6-a0fb-5986266fa589" media="(prefers-color-scheme: dark)">
           <source srcset="https://github.com/user-attachments/assets/84bff951-ed35-43e4-9515-ebe07e8b09e4" media="(prefers-color-scheme: light)">
-          <img width="250" src="https://github.com/user-attachments/assets/84bff951-ed35-43e4-9515-ebe07e8b09e4" alt="Company logo">
+          <img width="250" src="https://github.com/user-attachments/assets/84bff951-ed35-43e4-9515-ebe07e8b09e4" alt="Kunaico logo">
         </picture>
       </a>    
     </td>
@@ -93,7 +104,7 @@ bun create qwik@latest
         <picture>
           <source srcset="https://i.imgur.com/DHhJM0J.png" media="(prefers-color-scheme: dark)">
           <source srcset="https://i.imgur.com/DIbsvQC.png" media="(prefers-color-scheme: light)">
-          <img width="250" src="https://i.imgur.com/DIbsvQC.png" alt="Company logo">
+          <img width="250" src="https://i.imgur.com/DIbsvQC.png" alt="Hirez logo">
         </picture>
       </a>    
     </td>

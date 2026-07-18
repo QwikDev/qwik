@@ -758,7 +758,7 @@ export const _noopQrlDEV: <T>(symbolName: string, opts: QRLDev, lexicalScopeCapt
 
 // @public
 export type NoSerialize<T> = (T & {
-    __no_serialize__?: true;
+    __no_serialize__: true;
 }) | undefined;
 
 // @public

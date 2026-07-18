@@ -43,7 +43,7 @@ import {
   isInternalServerComponent,
 } from './internal-server-component';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
-import type { ISsrComponentFrame, SSRContainer, SSRRenderJSXOptions } from './ssr-types';
+import type { ISsrComponentFrame, ISsrNode, SSRContainer, SSRRenderJSXOptions } from './ssr-types';
 import { resolveSlotName } from '../shared/utils/prop';
 
 class MaybeAsyncSignal {}
@@ -57,6 +57,20 @@ export type StackValue = ValueOrPromise<
   | AsyncGenerator
   | typeof MaybeAsyncSignal
 >;
+
+const markPromiseHandled = (
+  ssr: SSRContainer,
+  promise: Promise<unknown>,
+  host: ISsrNode | null = null
+): void => {
+  promise.catch((reason) => {
+    try {
+      ssr.handleError(reason, host);
+    } catch {
+      // Original promise remains awaited later.
+    }
+  });
+};
 
 function setParentOptions(
   mutable: { currentStyleScoped: string | null; parentComponentFrame: ISsrComponentFrame | null },
@@ -77,6 +91,11 @@ export async function _walkJSX(
 ): Promise<void> {
   const stack: StackValue[] = [value];
   const enqueue = (value: StackValue) => stack.push(value);
+  const enqueuePromise = (promise: Promise<unknown>) => {
+    markPromiseHandled(ssr, promise);
+    stack.push(promise as StackValue);
+    stack.push(Promise);
+  };
   const drain = async (): Promise<void> => {
     while (stack.length) {
       try {
@@ -98,7 +117,7 @@ export async function _walkJSX(
           }
           continue;
         }
-        processJSXNode(ssr, enqueue, value as JSXOutput, options);
+        processJSXNode(ssr, enqueue, enqueuePromise, value as JSXOutput, options);
       } finally {
         const pendingFlush = ssr.streamHandler.waitForPendingFlush();
         if (isPromise(pendingFlush)) {
@@ -113,6 +132,7 @@ export async function _walkJSX(
 function processJSXNode(
   ssr: SSRContainer,
   enqueue: (value: StackValue) => void,
+  enqueuePromise: (promise: Promise<unknown>) => void,
   value: JSXOutput,
   options: SSRRenderJSXOptions
 ) {
@@ -143,8 +163,7 @@ function processJSXNode(
     } else if (isPromise(value)) {
       ssr.openFragment(isDev ? { [DEBUG_TYPE]: VirtualType.Awaited } : EMPTY_OBJ);
       enqueue(ssr.closeFragment);
-      enqueue(value);
-      enqueue(Promise);
+      enqueuePromise(value);
       enqueue(() => ssr.streamHandler.flush());
     } else if (isAsyncGenerator(value)) {
       enqueue(async () => {
@@ -283,8 +302,11 @@ function processJSXNode(
             value = generator;
           }
 
-          enqueue(value as StackValue);
-          isPromise(value) && enqueue(Promise);
+          if (isPromise(value)) {
+            enqueuePromise(value);
+          } else {
+            enqueue(value as StackValue);
+          }
         } else if (type === SSRRaw) {
           ssr.htmlNode(directGetPropsProxyProp(jsx, 'data'));
         } else if (type === SSRStreamBlock) {
@@ -312,6 +334,7 @@ function processJSXNode(
           );
           enqueue(() => ssr.closeComponent());
           if (isPromise(jsxOutput)) {
+            markPromiseHandled(ssr, jsxOutput, host);
             // Defer reading QScopedStyle until after the promise resolves
             enqueue(async () => {
               await ssr.streamHandler.flush();
@@ -340,8 +363,11 @@ function processJSXNode(
             type,
             jsx
           );
-          enqueue(jsxOutput);
-          isPromise(jsxOutput) && enqueue(Promise);
+          if (isPromise(jsxOutput)) {
+            enqueuePromise(jsxOutput);
+          } else {
+            enqueue(jsxOutput);
+          }
         }
       }
     }

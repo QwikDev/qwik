@@ -1,11 +1,11 @@
 import { component$ } from '@qwik.dev/core';
 import { useSignal } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
-import { csrRender, ssrRender } from '../test-utils';
+import { csrRender, ssrRender, testRenderer } from '../test-utils';
 
 const debug = false;
 
-describe('ssrRender: qwikloader', () => {
+describe.runIf(testRenderer.render === ssrRender)('ssrRender: qwikloader', () => {
   it('should emit qwikloader and event registrations for event handlers', async () => {
     const ScriptsLoaderAttrs = component$(() => {
       return <button onClick$={() => undefined}>Click</button>;
@@ -152,7 +152,7 @@ describe('ssrRender: qwikloader', () => {
   });
 });
 
-describe('csrRender: qwikloader', () => {
+describe.runIf(testRenderer.render === csrRender)('csrRender: qwikloader', () => {
   it('should run a _qDispatch event handler through qwikloader', async () => {
     const ScriptsCsrLoaderClick = () => {
       return (

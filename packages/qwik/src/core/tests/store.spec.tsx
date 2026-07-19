@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { forceStoreEffects, unwrapStore, useStore } from '@qwik.dev/core';
-import { csrRender, ssrRender } from '../test-utils';
+import { testRenderer } from '../test-utils';
 import { useComputed, useSignal } from '../reactive/public-api';
 import { getStoreSources } from '../reactive/store';
 import { createOwner, runWithOwner } from '../runtime/owner';
@@ -188,10 +188,9 @@ describe('store runtime', () => {
   });
 });
 
-describe.each([
-  { name: 'ssrRender', render: ssrRender },
-  { name: 'csrRender', render: csrRender },
-])('$name: stores', ({ render }) => {
+const { name, render } = testRenderer;
+
+describe(`${name}: stores`, () => {
   it('supports a store factory inside a custom hook', async () => {
     const useCounterStore = () => useStore(() => ({ count: 0 }));
     const App = () => {

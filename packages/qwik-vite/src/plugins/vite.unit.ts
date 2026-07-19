@@ -778,6 +778,71 @@ describe('configEnvironment', () => {
   });
 });
 
+describe('testTarget', () => {
+  test('defaults tests to SSR compilation', async () => {
+    const plugin = getPlugin({ optimizerOptions: mockOptimizerOptions() });
+    await plugin.config.call(configHookPluginContext, {}, { command: 'serve', mode: 'test' });
+
+    assert.equal(plugin.api.getOptions().testTarget, 'ssr');
+  });
+
+  for (const testTarget of ['csr', 'resume', 'ssr'] as const) {
+    test(`normalizes ${testTarget}`, async () => {
+      const plugin = getPlugin({ optimizerOptions: mockOptimizerOptions(), testTarget });
+      await plugin.config.call(configHookPluginContext, {}, { command: 'serve', mode: 'test' });
+
+      assert.equal(plugin.api.getOptions().target, 'test');
+      assert.equal(plugin.api.getOptions().testTarget, testTarget);
+    });
+  }
+
+  test('does not turn a normal mode into a resume build', async () => {
+    const plugin = getPlugin({ optimizerOptions: mockOptimizerOptions(), testTarget: 'resume' });
+    const config = (await plugin.config.call(
+      configHookPluginContext,
+      {},
+      { command: 'serve', mode: 'resume' }
+    ))!;
+
+    assert.equal(plugin.api.getOptions().target, 'client');
+    assert.equal(plugin.api.getOptions().testTarget, undefined);
+    assert.deepEqual(config.ssr?.noExternal, noExternal);
+    assert.equal(config.optimizeDeps?.noDiscovery, undefined);
+  });
+
+  test('isolates broad externalization to resume tests', async () => {
+    const plugin = getPlugin({ optimizerOptions: mockOptimizerOptions(), testTarget: 'resume' });
+    const config = (await plugin.config.call(
+      configHookPluginContext,
+      {},
+      { command: 'serve', mode: 'test' }
+    ))!;
+    const environment = (plugin as any).configEnvironment(
+      'ssr',
+      { consumer: 'server' },
+      { command: 'serve', mode: 'test' }
+    );
+
+    assert.equal(config.ssr?.noExternal, true);
+    assert.equal(config.optimizeDeps?.noDiscovery, true);
+    assert.equal(environment.resolve.noExternal, true);
+  });
+
+  for (const testTarget of ['csr', 'ssr'] as const) {
+    test(`keeps normal externalization for ${testTarget} tests`, async () => {
+      const plugin = getPlugin({ optimizerOptions: mockOptimizerOptions(), testTarget });
+      const config = (await plugin.config.call(
+        configHookPluginContext,
+        {},
+        { command: 'serve', mode: 'test' }
+      ))!;
+
+      assert.deepEqual(config.ssr?.noExternal, noExternal);
+      assert.equal(config.optimizeDeps?.noDiscovery, undefined);
+    });
+  }
+});
+
 describe('worker qrl chunk rewrites', () => {
   const workerPlaceholderCode = (importPath: string) =>
     `const chunk = "${QWIK_WORKER_QRL_SENTINEL}${importPath}";`;

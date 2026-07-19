@@ -1,14 +1,13 @@
 import { createContextId } from '@qwik.dev/core';
 import { useContext, useContextProvider, useSignal, type Signal } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
-import { csrRender, ssrRender } from '../test-utils';
+import { testRenderer } from '../test-utils';
 
 const debug = false;
 
-describe.each([
-  { render: ssrRender }, //
-  { render: csrRender }, //
-])('$name: context', ({ render }) => {
+const { name, render } = testRenderer;
+
+describe(`${name}: context`, () => {
   it('should provide and retrieve context', async () => {
     const MyComp = () => {
       const contextId = createContextId<Signal<string>>('context-integration');

@@ -1,11 +1,10 @@
 import { component$, type PropsOf, useSignal } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
-import { csrRender, ssrRender } from '../test-utils';
+import { testRenderer } from '../test-utils';
 
-describe.each([
-  { name: 'ssr', render: ssrRender },
-  { name: 'csr', render: csrRender },
-])('$name: attributes', ({ render }) => {
+const { name, render } = testRenderer;
+
+describe(`${name}: attributes`, () => {
   it('serializes boolean, enumerated and numeric attributes consistently', async () => {
     const App = component$(() => {
       const enabled = useSignal(false);

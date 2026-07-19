@@ -5,9 +5,9 @@
 ```ts
 
 import type { CorePlatform } from '@qwik.dev/core';
-import { QwikLoaderOptions } from '@qwik.dev/core/server';
+import type { QwikLoaderOptions } from '@qwik.dev/core/server';
 import type { RenderRoot } from '@qwik.dev/core';
-import { RenderToStringOptions } from '@qwik.dev/core/server';
+import type { RenderToStringOptions } from '@qwik.dev/core/server';
 import { Scheduler } from '@qwik.dev/core/internal';
 
 // @public
@@ -72,6 +72,9 @@ export interface QwikLoaderTestDriver {
     dispatch(target: Element, type: string, payload?: QwikLoaderEventPayload): Promise<Event>;
 }
 
+// @public
+export type QwikTestTarget = 'csr' | 'resume' | 'ssr';
+
 // @public (undocumented)
 export interface RenderOptions<Props = undefined> {
     // (undocumented)
@@ -117,6 +120,9 @@ export function ssrRenderToDom<Props>(root: RenderRoot<Props>, options?: RenderO
 export interface TestPlatform extends CorePlatform {
     flush: () => Promise<void>;
 }
+
+// @public
+export const testTarget: QwikTestTarget;
 
 // @public (undocumented)
 export function trigger(parent: Element, target: string | Element | keyof HTMLElementTagNameMap, type: string, payload?: Record<string, unknown>): Promise<Event>;

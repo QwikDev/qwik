@@ -1,11 +1,10 @@
 import { component$, useTask$ } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
-import { csrRender, ssrRender } from '../test-utils';
+import { testRenderer } from '../test-utils';
 
-describe.each([
-  { name: 'ssr', render: ssrRender },
-  { name: 'csr', render: csrRender },
-])('$name: public render root', ({ render }) => {
+const { name, render } = testRenderer;
+
+describe(`${name}: public render root`, () => {
   it('renders a root without props', async () => {
     const App = component$(() => <p>ready</p>);
     const { container, cleanup } = await render(App);

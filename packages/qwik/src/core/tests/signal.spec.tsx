@@ -1,13 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { csrRender, ssrRender } from '../test-utils';
+import { ssrRender, testRenderer } from '../test-utils';
 import { useSignal } from '@qwik.dev/core';
 
 const debug = false;
 
-describe.each([
-  { render: ssrRender }, //
-  { render: csrRender }, //
-])('$name: signals', ({ render }) => {
+const { name, render } = testRenderer;
+
+describe(`${name}: signals`, () => {
   it('should render signal', async () => {
     const MyComp = () => {
       const count = useSignal(0);

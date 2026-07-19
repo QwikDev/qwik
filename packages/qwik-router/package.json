@@ -149,7 +149,7 @@
     },
     "./service-worker": {
       "types": "./service-worker.d.ts",
-      "import": "./lib/service-worker.mjs"
+      "import": "./lib/service-worker/index.mjs"
     },
     "./package.json": "./package.json"
   },

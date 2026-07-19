@@ -3,17 +3,16 @@ import { useAsync$, useSignal, useStylesScoped$ } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
 import { QStyle, QStyleSelector } from '../shared/utils/markers';
 import { getScopedStyles } from '../shared/utils/scoped-stylesheet';
-import { csrRender, ssrRender } from '../test-utils';
+import { ssrRender, testRenderer } from '../test-utils';
 
 const debug = false;
 const STYLE_RED = `.container { color: red; }`;
 const STYLE_BLUE = `.container { color: blue; }`;
 const STYLE_CHILD = `.child { color: green; }`;
 
-describe.each([
-  { name: 'ssrRender', render: ssrRender },
-  { name: 'csrRender', render: csrRender },
-])('$name: useStylesScoped$', ({ render }) => {
+const { name, render } = testRenderer;
+
+describe(`${name}: useStylesScoped$`, () => {
   it('appends scoped style and prefixes static classes', async () => {
     const App = component$(() => {
       useStylesScoped$(STYLE_RED);
@@ -482,26 +481,29 @@ describe.each([
   });
 });
 
-it('ssrRender: appends scoped style to head when rendering document sections', async () => {
-  const Wrapper = component$(() => {
-    useStylesScoped$(STYLE_RED);
-    return <Slot />;
-  });
-  const App = component$(() => (
-    <Wrapper>
-      <head>
-        <script></script>
-      </head>
-      <body>
-        <div>content</div>
-      </body>
-    </Wrapper>
-  ));
+it.runIf(testRenderer.render === ssrRender)(
+  'ssrRender: appends scoped style to head when rendering document sections',
+  async () => {
+    const Wrapper = component$(() => {
+      useStylesScoped$(STYLE_RED);
+      return <Slot />;
+    });
+    const App = component$(() => (
+      <Wrapper>
+        <head>
+          <script></script>
+        </head>
+        <body>
+          <div>content</div>
+        </body>
+      </Wrapper>
+    ));
 
-  const { document, cleanup } = await ssrRender(App, { debug });
-  const style = document.head.querySelector(QStyleSelector)!;
-  const styleId = style.getAttribute(QStyle)!;
+    const { document, cleanup } = await ssrRender(App, { debug });
+    const style = document.head.querySelector(QStyleSelector)!;
+    const styleId = style.getAttribute(QStyle)!;
 
-  expect(style.textContent).toBe(getScopedStyles(STYLE_RED, styleId));
-  cleanup();
-});
+    expect(style.textContent).toBe(getScopedStyles(STYLE_RED, styleId));
+    cleanup();
+  }
+);

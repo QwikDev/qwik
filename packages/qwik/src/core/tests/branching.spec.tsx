@@ -1,13 +1,12 @@
 import { useSignal } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
-import { csrRender, ssrRender } from '../test-utils';
+import { testRenderer } from '../test-utils';
 
 const debug = false;
 
-describe.each([
-  { name: 'ssrRender', render: ssrRender },
-  { name: 'csrRender', render: csrRender },
-])('$name: branching', ({ render }) => {
+const { name, render } = testRenderer;
+
+describe(`${name}: branching`, () => {
   it('switches ternary branches while scalar effects update the active branch', async () => {
     const MyComp = () => {
       const count = useSignal(0);

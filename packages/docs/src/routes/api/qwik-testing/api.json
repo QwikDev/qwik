@@ -205,6 +205,20 @@
       "mdFile": "core.qwikloadertestdriver.md"
     },
     {
+      "name": "QwikTestTarget",
+      "id": "qwiktesttarget",
+      "hierarchy": [
+        {
+          "name": "QwikTestTarget",
+          "id": "qwiktesttarget"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "Compiler target selected by qwikVite for tests.\n\n\n```typescript\nexport type QwikTestTarget = 'csr' | 'resume' | 'ssr';\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/resume-session.ts",
+      "mdFile": "core.qwiktesttarget.md"
+    },
+    {
       "name": "render",
       "id": "domharness-render",
       "hierarchy": [
@@ -276,6 +290,20 @@
       "content": "```typescript\nexport interface TestPlatform extends CorePlatform \n```\n**Extends:** CorePlatform\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nflush\n\n\n</td><td>\n\n\n</td><td>\n\n() =&gt; Promise&lt;void&gt;\n\n\n</td><td>\n\nFlushes work scheduled by the test platform.\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/types.ts",
       "mdFile": "core.testplatform.md"
+    },
+    {
+      "name": "testTarget",
+      "id": "testtarget",
+      "hierarchy": [
+        {
+          "name": "testTarget",
+          "id": "testtarget"
+        }
+      ],
+      "kind": "Variable",
+      "content": "Active compiler target selected by qwikVite.\n\n\n```typescript\ntestTarget: QwikTestTarget\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/index.ts",
+      "mdFile": "core.testtarget.md"
     },
     {
       "name": "trigger",

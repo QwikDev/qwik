@@ -18,11 +18,12 @@ export async function submoduleTesting(config: BuildConfig) {
     bundle: true,
     target,
     external: [
-      '@qwik.dev/compiler',
       '@qwik.dev/core',
       '@qwik.dev/core/internal',
+      '@qwik.dev/core/optimizer',
       '@qwik.dev/core/server',
       'prettier',
+      'rollup',
     ],
     platform: 'node',
   };
@@ -36,7 +37,7 @@ export async function submoduleTesting(config: BuildConfig) {
       importPath(/^@qwik\.dev\/core$/, '../core.mjs'),
       importPath(/^@qwik\.dev\/core\/internal$/, '../core.mjs'),
       importPath(/^@qwik\.dev\/core\/server$/, '../server.mjs'),
-      externalImportNoEffects(/^(@qwik\.dev\/compiler|prettier)$/),
+      externalImportNoEffects(/^(@qwik\.dev\/core\/optimizer|prettier|rollup)$/),
     ],
     define: {
       'globalThis.MODULE_EXT': '"mjs"',

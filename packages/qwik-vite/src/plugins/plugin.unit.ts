@@ -11,7 +11,9 @@ const cwd = process.cwd();
 
 test('types', () => () => {
   qwikVite({ csr: true });
+  qwikVite({ csr: true, testTarget: 'csr' });
   qwikVite({ csr: false, ssr: {} });
+  qwikVite({ csr: false, ssr: {}, testTarget: 'resume' });
 });
 
 test('defaults', async () => {

@@ -31,6 +31,7 @@ import {
   createDevWorkerQrlChunkResolver,
   rewriteWorkerQrlChunkPlaceholders,
 } from './worker-qrl-chunks';
+import type { createTestResume } from './test-resume';
 
 const REG_CTX_NAME = ['server'];
 
@@ -100,7 +101,10 @@ export interface QwikPackages {
   path: string;
 }
 
-export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
+export function createQwikPlugin(
+  optimizerOptions: OptimizerOptions = {},
+  testResume?: ReturnType<typeof createTestResume>
+) {
   const id = `${Math.round(Math.random() * 899) + 100}`;
 
   const clientResults = new Map<string, TransformOutput>();
@@ -108,6 +112,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   const serverTransformedOutputs = new Map<string, [TransformModule, string]>();
   const parentIds = new Map<string, string>();
+  const getParentId = (moduleId: string) =>
+    testResume?.getParentId(moduleId) ?? parentIds.get(moduleId);
   const segmentCallbacks = new Set<(parentId: string, segment: SegmentAnalysis) => void>();
 
   let internalOptimizer: Optimizer | null = null;
@@ -146,6 +152,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     inlineStylesUpToBytes: 20000,
     lint: false,
     experimental: undefined,
+    testTarget: undefined,
   };
 
   let lazyNormalizePath: (id: string) => string;
@@ -236,6 +243,14 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
 
     opts.csr = !!updatedOpts.csr;
+    const testTarget =
+      updatedOpts.testTarget === 'csr' ||
+      updatedOpts.testTarget === 'resume' ||
+      updatedOpts.testTarget === 'ssr'
+        ? updatedOpts.testTarget
+        : undefined;
+    opts.testTarget = opts.target === 'test' ? (testTarget ?? 'ssr') : undefined;
+    testResume?.configure(opts.target === 'test' ? opts.testTarget : undefined);
 
     if (updatedOpts.entryStrategy && typeof updatedOpts.entryStrategy === 'object') {
       opts.entryStrategy = { ...updatedOpts.entryStrategy };
@@ -441,6 +456,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     debug(`transformedOutputs.clear()`);
     clientTransformedOutputs.clear();
     serverTransformedOutputs.clear();
+    testResume?.clear();
 
     if (opts.target === 'client' && !devServer) {
       // emitFile() is only supported during build, not in Vite serve mode
@@ -459,11 +475,14 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   /** Determine if the current module is being processed for a server environment. */
   const getIsServer = (ctx: Rollup.PluginContext, viteOpts?: { ssr?: boolean }) => {
+    if (opts.target === 'test' && opts.testTarget === 'csr') {
+      return false;
+    }
     return ctx.environment
       ? ctx.environment.config.consumer === 'server'
       : devServer
         ? !!viteOpts?.ssr
-        : opts.target === 'ssr' || opts.target === 'test';
+        : opts.target === 'ssr' || (opts.target === 'test' && opts.testTarget !== 'csr');
   };
 
   const shouldAssertClientImports = (isServer: boolean) => {
@@ -647,12 +666,23 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       assertClientCanImport(pathId, importerId, isServer);
     }
 
+    const testResolution = await testResume?.resolveId(
+      devServer,
+      pathId,
+      importerId,
+      isServer,
+      normalizePath
+    );
+    if (testResolution !== undefined) {
+      return testResolution;
+    }
+
     if (
       /**
        * Check if we know the QRL. During regular builds, we'll encounter and build parents before
        * their QRLs, so this will always match.
        */
-      parentIds.get(pathId)
+      getParentId(pathId)
     ) {
       debug(`resolveId(${count}) Resolved already known ${pathId}`);
       result = {
@@ -732,7 +762,10 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       if (qrlMatch) {
         const { parent, name, query } = qrlMatch;
 
-        const resolvedParent = await ctx.resolve(parent, importerId, { skipSelf: true });
+        const resolvedParent =
+          testResume?.getTestSource(parent) !== undefined
+            ? { id: parent }
+            : await ctx.resolve(parent, importerId, { skipSelf: true });
         if (resolvedParent) {
           // Vite likes to add ?v=1234... to the end of the id
           const parentId = resolvedParent.id.split('?')[0];
@@ -763,7 +796,17 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
          * Note that when a this happens, the segment was already resolved and transformed, so we
          * know about it.
          */
-        const importerParentId = parentIds.get(importerId);
+        const resumeResolution = await testResume?.resolveId(
+          devServer,
+          id,
+          importerId,
+          isServer,
+          normalizePath
+        );
+        if (resumeResolution !== undefined) {
+          return resumeResolution;
+        }
+        const importerParentId = getParentId(importerId);
         if (importerParentId) {
           debug(`resolveId(${count}) end`, `resolving via ${importerParentId}`);
           // This returns a promise that we can't await because of deadlocking
@@ -830,9 +873,9 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     // QRL segments
     id = pathId;
     const outputs = isServer ? serverTransformedOutputs : clientTransformedOutputs;
-    if (devServer && !outputs.has(id)) {
+    if (devServer && !testResume?.hasOutput(id) && !outputs.has(id)) {
       // in dev mode, it could be that the id is a QRL segment that wasn't transformed yet
-      const parentId = parentIds.get(id);
+      const parentId = getParentId(id);
       if (parentId) {
         // building here via ctx.load doesn't seem to work (no transform), instead we use the devserver directly
         debug(`load(${count})`, 'transforming QRL parent', parentId);
@@ -852,20 +895,24 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
           }
         }
         // The QRL segment should exist now
-        if (!outputs.has(id)) {
+        if (!testResume?.hasOutput(id) && !outputs.has(id)) {
           debug(`load(${count})`, `QRL segment ${id} not found in ${parentId}`);
           return null;
         }
       }
     }
 
-    const transformedModule = outputs.get(id);
+    const transformedModule = testResume?.getOutput(id, isServer) ?? outputs.get(id);
 
     if (transformedModule) {
       debug(`load(${count})`, 'Found', id);
       let { code } = transformedModule[0];
       const { map, segment } = transformedModule[0];
       const parentId = transformedModule[1];
+
+      if (opts.target === 'test' && opts.testTarget === 'csr' && segment?.ctxName === '$') {
+        code += `\nimport { noSerialize as __qwikTestNoSerialize } from '@qwik.dev/core';\n__qwikTestNoSerialize(${segment.name});`;
+      }
 
       // In HMR mode, append self-accept code to QRL segments
       // When the parent file changes, Vite invalidates and re-serves the segment.
@@ -901,7 +948,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
     const isServer = getIsServer(ctx, transformOpts);
     const currentOutputs = isServer ? serverTransformedOutputs : clientTransformedOutputs;
-    if (currentOutputs.has(id)) {
+    if (testResume?.hasOutput(id) || currentOutputs.has(id)) {
       // This is a QRL segment, and we don't need to process it any further
       return;
     }
@@ -1003,9 +1050,21 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
           transformOpts.stripExports = SERVER_STRIP_EXPORTS;
         }
       }
+      if (opts.target === 'test' && opts.testTarget === 'resume') {
+        transformOpts.stripCtxName = CLIENT_STRIP_CTX_NAME;
+        transformOpts.stripEventHandlers = true;
+        transformOpts.regCtxName = REG_CTX_NAME;
+      }
 
       const now = Date.now();
-      const newOutput = await transformCompilerModules(transformOpts);
+      const resumeTransform = await testResume?.transform(
+        transformOpts,
+        normalizedPathId,
+        srcDir,
+        path,
+        normalizePath
+      );
+      const newOutput = resumeTransform?.output ?? (await transformCompilerModules(transformOpts));
       debug(`transform(${count})`, `done in ${Date.now() - now}ms`);
       if (devPath) {
         const resolveWorkerChunkPath = createDevWorkerQrlChunkResolver(devPath);
@@ -1016,7 +1075,10 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
           );
         }
       }
-      const module = newOutput.modules.find((mod) => !isAdditionalFile(mod))!;
+      const module =
+        resumeTransform?.root ?? newOutput.modules.find((mod) => !isAdditionalFile(mod))!;
+      const additionalModules =
+        resumeTransform?.modules ?? newOutput.modules.filter((mod) => mod !== module);
 
       if (shouldAssertClientImports(isServer)) {
         await assertClientTransformOutputCanImport(ctx, newOutput, srcDir, normalizedPathId);
@@ -1053,40 +1115,43 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         clientResults.set(id, newOutput);
       }
       const deps = new Set<string>();
-      for (const mod of newOutput.modules) {
+      for (const mod of additionalModules) {
         // TODO handle noop modules
-        if (mod !== module) {
-          const key = normalizePath(path.join(srcDir, mod.path));
-          debug(`transform(${count})`, `segment ${key}`, mod.segment!.displayName);
+        const key = normalizePath(path.join(srcDir, mod.path));
+        debug(`transform(${count})`, `segment ${key}`, mod.segment!.displayName);
+        if (!resumeTransform) {
           parentIds.set(key, id);
           currentOutputs.set(key, [mod, id]);
-          deps.add(key);
-          if (devServer) {
-            const mod = devServer.moduleGraph.getModuleById(key);
-            if (mod) {
-              // not sure if this works
-              devServer.moduleGraph.invalidateModule(mod);
-            }
+        }
+        deps.add(key);
+        if (devServer) {
+          const mod = devServer.moduleGraph.getModuleById(key);
+          if (mod) {
+            // not sure if this works
+            devServer.moduleGraph.invalidateModule(mod);
           }
-          if (opts.target === 'client' && !devServer) {
-            // rollup must be told about all entry points
-            ctx.emitFile({
-              id: key,
-              type: 'chunk',
-              preserveSignature: 'allow-extension',
-            });
-          }
-          // Notify segment callbacks
-          if (mod.segment && segmentCallbacks.size > 0) {
-            for (const cb of segmentCallbacks) {
-              cb(id, mod.segment);
-            }
+        }
+        if (opts.target === 'client' && !devServer) {
+          // rollup must be told about all entry points
+          ctx.emitFile({
+            id: key,
+            type: 'chunk',
+            preserveSignature: 'allow-extension',
+          });
+        }
+        // Notify segment callbacks
+        if (mod.segment && segmentCallbacks.size > 0) {
+          for (const cb of segmentCallbacks) {
+            cb(id, mod.segment);
           }
         }
       }
       ctx.addWatchFile(id);
 
-      code = module.code;
+      code =
+        opts.target === 'test' && opts.testTarget !== undefined && testResume !== undefined
+          ? testResume.injectRuntime(module.code, normalizedPathId, opts.testTarget)
+          : module.code;
       map = module.map;
       meta = {
         segment: module.segment,
@@ -1286,6 +1351,7 @@ export const isDev = ${JSON.stringify(isDev)};
     debug('hotUpdate()', ctx.file, environment.name);
 
     const outputs = isServer ? serverTransformedOutputs : clientTransformedOutputs;
+    testResume?.clear();
 
     for (const mod of ctx.modules) {
       const { id } = mod;
@@ -1581,14 +1647,16 @@ export interface QwikPluginOptions {
    * to be stable between releases.
    */
   experimental?: (keyof typeof ExperimentalFeatures)[];
+  testTarget?: 'csr' | 'resume' | 'ssr';
 }
 
 export interface NormalizedQwikPluginOptions extends Omit<
   Required<QwikPluginOptions>,
-  'input' | 'vendorRoots' | 'srcInputs' | 'experimental'
+  'input' | 'vendorRoots' | 'srcInputs' | 'experimental' | 'testTarget'
 > {
   input: string[] | { [entry: string]: string } | undefined;
   experimental: Record<keyof typeof ExperimentalFeatures, boolean> | undefined;
+  testTarget: QwikPluginOptions['testTarget'];
 }
 
 export type QwikPlugin = ReturnType<typeof createQwikPlugin>;

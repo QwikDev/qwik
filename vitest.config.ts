@@ -1,10 +1,52 @@
 import { qwikVite } from '@qwik.dev/core/optimizer';
 import { fileURLToPath } from 'node:url';
 import tsconfigPaths from 'vite-tsconfig-paths';
-import { defineConfig } from 'vitest/config';
+import { defineConfig, type TestProjectInlineConfiguration } from 'vitest/config';
 
 const fromRoot = (path: string) => fileURLToPath(new URL(path, import.meta.url));
-const renderTestDir = fromRoot('./packages/qwik/src/core/tests/');
+const renderTests = [
+  'packages/qwik/src/core/tests/*.spec.tsx',
+  'packages/qwik/src/testing/testing.unit.tsx',
+  'packages/qwik-router/src/runtime/src/link-component.unit.tsx',
+];
+const renderProject = (testTarget: 'csr' | 'resume' | 'ssr'): TestProjectInlineConfiguration => ({
+  plugins: [
+    qwikVite({
+      srcDir: fromRoot('.'),
+      testTarget,
+      devTools: { hmr: false, imageDevTools: false },
+      experimental: ['each', 'suspense'],
+    }),
+    tsconfigPaths({ ignoreConfigErrors: true }),
+  ],
+  resolve: {
+    alias: [
+      { find: /^@qwik.dev\/core$/, replacement: fromRoot('./packages/qwik/src/core/index.ts') },
+      {
+        find: /^@qwik.dev\/core\/internal$/,
+        replacement: fromRoot('./packages/qwik/src/core/index.ts'),
+      },
+      {
+        find: /^@qwik.dev\/core\/server$/,
+        replacement: fromRoot('./packages/qwik/src/server/index.ts'),
+      },
+      {
+        find: /^@qwik.dev\/core\/testing$/,
+        replacement: fromRoot('./packages/qwik/src/testing/index.ts'),
+      },
+    ],
+  },
+  test: {
+    name: testTarget,
+    root: fromRoot('.'),
+    include: [
+      ...(testTarget === 'ssr' ? ['packages/qwik/src/testing/testing.unit.tsx'] : renderTests),
+      ...(testTarget === 'resume' ? ['packages/qwik/src/testing/resume-session.unit.tsx'] : []),
+    ],
+    setupFiles: [fromRoot('./vitest-setup.ts')],
+    testTimeout: 10000,
+  },
+});
 
 export default defineConfig({
   // temporary fix to allow tests to run without the kit package, remove this once we have a proper kit package
@@ -19,7 +61,6 @@ export default defineConfig({
       srcDir: fromRoot('./packages/qwik/src'),
       devTools: { hmr: false },
       experimental: ['each', 'suspense'],
-      fileFilter: (id) => !id.includes(renderTestDir),
     }),
     tsconfigPaths({ ignoreConfigErrors: true }),
   ],
@@ -30,9 +71,13 @@ export default defineConfig({
       '**/*.unit.*',
       '!*/(lib|dist|build|server|target)/**',
       '!**/node_modules/**',
+      '!qwik/src/core/tests/*.spec.tsx',
+      '!qwik/src/testing/testing.unit.tsx',
+      '!qwik-router/src/runtime/src/link-component.unit.tsx',
+      '!qwik/src/testing/resume-session.unit.tsx',
     ],
     setupFiles: [fromRoot('./vitest-setup.ts')],
-    projects: ['..'],
+    projects: ['..', renderProject('csr'), renderProject('resume'), renderProject('ssr')],
     testTimeout: 10000,
   },
 });

@@ -1,12 +1,11 @@
 import { component$ } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
 import { HTML_NS, MATH_NS, SVG_NS } from '../shared/utils/markers';
-import { csrRender, ssrRender } from '../test-utils';
+import { testRenderer } from '../test-utils';
 
-describe.each([
-  { name: 'ssr', render: ssrRender },
-  { name: 'csr', render: csrRender },
-])('$name: namespaces', ({ render }) => {
+const { name, render } = testRenderer;
+
+describe(`${name}: namespaces`, () => {
   it('creates SVG descendants in the SVG namespace', async () => {
     const App = component$(() => (
       <svg viewBox="0 0 10 10">

@@ -1,7 +1,7 @@
 import { component$ } from '@qwik.dev/core';
 import { useServerData } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
-import { csrRender, ssrRender } from '../test-utils';
+import { ssrRender, testRenderer } from '../test-utils';
 
 const debug = false;
 
@@ -12,10 +12,9 @@ it('returns the fallback outside a render context', () => {
   expect(useServerData('value')).toBeUndefined();
 });
 
-describe.each([
-  { name: 'ssrRender', render: ssrRender },
-  { name: 'csrRender', render: csrRender },
-])('$name: useServerData', ({ render }) => {
+const { name, render } = testRenderer;
+
+describe(`${name}: useServerData`, () => {
   it('reads request data and preserves fallback semantics in a custom hook', async () => {
     const App = component$(() => {
       const value = useRequestValue();
@@ -52,7 +51,7 @@ describe.each([
   });
 });
 
-describe('useServerData resume', () => {
+describe.runIf(testRenderer.render === ssrRender)('useServerData resume', () => {
   it('serializes only a captured value rather than the complete serverData object', async () => {
     const App = component$(() => {
       const value = useServerData<string>('value');

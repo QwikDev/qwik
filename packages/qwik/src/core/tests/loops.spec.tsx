@@ -1,13 +1,12 @@
 import { useSignal } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
-import { csrRender, ssrRender } from '../test-utils';
+import { testRenderer } from '../test-utils';
 
 const debug = false;
 
-describe.each([
-  { name: 'ssrRender', render: ssrRender },
-  { name: 'csrRender', render: csrRender },
-])('$name: loops', ({ render }) => {
+const { name, render } = testRenderer;
+
+describe(`${name}: loops`, () => {
   it('updates retained keyed rows and row event captures', async () => {
     const MyComp = () => {
       const items = useSignal([

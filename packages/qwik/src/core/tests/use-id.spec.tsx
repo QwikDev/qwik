@@ -1,14 +1,13 @@
 import { component$ } from '@qwik.dev/core';
 import { useId, useSignal } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
-import { csrRender, ssrRender } from '../test-utils';
+import { testRenderer } from '../test-utils';
 
 const debug = false;
 
-describe.each([
-  { name: 'ssrRender', render: ssrRender },
-  { name: 'csrRender', render: csrRender },
-])('$name: useId', ({ render }) => {
+const { name, render } = testRenderer;
+
+describe(`${name}: useId`, () => {
   it('should generate id', async () => {
     const App = component$(() => {
       const id = useId();

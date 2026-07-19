@@ -1,14 +1,13 @@
 import { component$ } from '@qwik.dev/core';
 import { getLocale, setLocale, withLocale } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
-import { csrRender, ssrRender } from '../test-utils';
+import { ssrRender, testRenderer } from '../test-utils';
 
 const debug = false;
 
-describe.each([
-  { name: 'ssrRender', render: ssrRender },
-  { name: 'csrRender', render: csrRender },
-])('$name: useLocale', ({ render }) => {
+const { name, render } = testRenderer;
+
+describe(`${name}: useLocale`, () => {
   it('should return the default locale', async () => {
     const App = () => {
       const locale = getLocale('en');
@@ -63,7 +62,7 @@ describe('useLocale', () => {
     expect(getLocale('fallback')).toBe('fallback');
   });
 
-  it('should read ssr locale', async () => {
+  it.runIf(testRenderer.render === ssrRender)('should read ssr locale', async () => {
     const App = () => {
       const locale = getLocale('en');
       return <span data-locale={locale} />;
@@ -80,7 +79,7 @@ describe('useLocale', () => {
     cleanup();
   });
 
-  it('should read resumed event locale', async () => {
+  it.runIf(testRenderer.render === ssrRender)('should read resumed event locale', async () => {
     const readLocale = getLocale;
     const App = component$(() => {
       return (

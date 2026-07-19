@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { QRL_RUNTIME_CHUNK } from './shared/serdes/qrl-to-string';
 
 /** @public */
@@ -14,7 +15,10 @@ export interface QwikLoaderTestDriver {
 
 const drivers = new WeakMap<Document, QwikLoaderTestDriver>();
 
-export async function bootQwikLoader(document: Document): Promise<QwikLoaderTestDriver> {
+export async function bootQwikLoader(
+  document: Document,
+  moduleImport = importQwikLoaderModule
+): Promise<QwikLoaderTestDriver> {
   const existing = drivers.get(document);
   if (existing !== undefined) {
     return existing;
@@ -27,7 +31,7 @@ export async function bootQwikLoader(document: Document): Promise<QwikLoaderTest
   ensureDocumentReady(document);
   ensureWindowEventTarget(win);
   executeQwikEventScripts(document, win);
-  runQwikLoader(await getQwikLoaderSource(document), document, win);
+  runQwikLoader(await getQwikLoaderSource(document), document, win, moduleImport);
 
   const driver: QwikLoaderTestDriver = {
     async dispatch(target, type, init = {}) {
@@ -138,14 +142,22 @@ function executeQwikEventScripts(document: Document, win: Window): void {
 }
 
 async function getQwikLoaderSource(document: Document): Promise<string> {
-  const inlineLoader = document.querySelector('script#qwikloader')?.textContent?.trim();
-  if (inlineLoader) {
+  const inlineLoader = document.getElementById('qwikloader')?.textContent?.trim();
+  if (inlineLoader?.includes('const queueTasks = (tasks) => {')) {
     return inlineLoader;
   }
-  return readFile(join(findRepoRoot(), 'packages/qwik/dist/qwikloader.debug.js'), 'utf8');
+  const debugLoaderPath = import.meta.url.includes('/dist/testing/')
+    ? fileURLToPath(new URL('../qwikloader.debug.js', import.meta.url))
+    : join(findRepoRoot(), 'packages/qwik/dist/qwikloader.debug.js');
+  return readFile(debugLoaderPath, 'utf8');
 }
 
-function runQwikLoader(source: string, document: Document, win: Window): void {
+function runQwikLoader(
+  source: string,
+  document: Document,
+  win: Window,
+  moduleImport: (href: string) => Promise<Record<string, unknown>>
+): void {
   const testWindow = win as Window & {
     requestIdleCallback?: (callback: IdleRequestCallback) => number;
     cancelIdleCallback?: (handle: number) => void;
@@ -165,10 +177,6 @@ function runQwikLoader(source: string, document: Document, win: Window): void {
     .replace(
       'const queueTasks = (tasks) => {',
       'const queueTasks = (tasks) => { window.__qwikTestGetQueuedTasks = () => queuedTasks;'
-    )
-    .replace(
-      'queuedTasks = queuedTasks ? queuedTasks.then(run, run) : run();',
-      'queuedTasks = queuedTasks ? queuedTasks.then(run, run) : run(); window.__qwikTestQueuedTasks = queuedTasks;'
     )
     .replace(/\bimport\s*\(/g, '__import(');
   const DominoCustomEvent = function <T = unknown>(type: string, init?: CustomEventInit<T>) {
@@ -195,7 +203,7 @@ function runQwikLoader(source: string, document: Document, win: Window): void {
     DominoCustomEvent,
     createIntersectionObserverStub(),
     { now: () => 1 },
-    (href: string) => importQwikLoaderModule(href)
+    moduleImport
   );
 }
 
@@ -272,20 +280,30 @@ function getDispatchTarget(
 async function flushQwikLoaderTasks(win: Window): Promise<void> {
   const testWindow = win as Window & {
     __qwikTestGetQueuedTasks?: () => Promise<void> | undefined;
-    __qwikTestQueuedTasks?: Promise<void>;
   };
-  let previous: Promise<void> | undefined;
-  for (let i = 0; i < 20; i++) {
-    const pending = testWindow.__qwikTestGetQueuedTasks?.() ?? testWindow.__qwikTestQueuedTasks;
-    if (pending && pending !== previous) {
-      previous = pending;
-      await pending;
-      continue;
-    }
-    await Promise.resolve();
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    if (testWindow.__qwikTestQueuedTasks === pending) {
+  const deadline = Date.now() + 5000;
+  while (true) {
+    const pending = testWindow.__qwikTestGetQueuedTasks?.();
+    if (pending === undefined) {
       return;
+    }
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) {
+      throw new Error('Qwikloader task queue did not settle.');
+    }
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    try {
+      await Promise.race([
+        pending,
+        new Promise<never>((_, reject) => {
+          timeout = setTimeout(
+            () => reject(new Error('Qwikloader task queue did not settle.')),
+            remaining
+          );
+        }),
+      ]);
+    } finally {
+      clearTimeout(timeout);
     }
   }
 }

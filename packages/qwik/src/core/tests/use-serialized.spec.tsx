@@ -1,13 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { useAsync$, useSerializer$, useSignal } from '@qwik.dev/core';
-import { csrRender, ssrRender } from '../test-utils';
+import { testRenderer } from '../test-utils';
 
 const debug = false;
 
-describe.each([
-  { render: ssrRender }, //
-  { render: csrRender }, //
-])('$render.name: serializer signals', ({ render }) => {
+const { name, render } = testRenderer;
+
+describe(`${name}: serializer signals`, () => {
   it('should do custom serialization', async () => {
     const Counter = () => {
       const myCount = useSerializer$({

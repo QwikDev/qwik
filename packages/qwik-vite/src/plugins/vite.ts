@@ -49,6 +49,7 @@ import {
   createBuildWorkerQrlChunkResolver,
   rewriteWorkerQrlChunkPlaceholders,
 } from './worker-qrl-chunks';
+import { createTestResume } from './test-resume';
 
 const DEDUPE = [
   QWIK_CORE_ID,
@@ -128,7 +129,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     : () => true;
   const disableFontPreload = qwikViteOpts.disableFontPreload ?? false;
   const injections: GlobalInjections[] = [];
-  const qwikPlugin = createQwikPlugin(qwikViteOpts.optimizerOptions);
+  const testResume = createTestResume();
+  const qwikPlugin = createQwikPlugin(qwikViteOpts.optimizerOptions, testResume);
 
   const bundleGraphAdders = new Set<BundleGraphAdder>();
 
@@ -228,6 +230,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         sourcemap: !!viteConfig.build?.sourcemap,
         lint: qwikViteOpts.lint,
         experimental: qwikViteOpts.experimental,
+        testTarget: target === 'test' ? qwikViteOpts.testTarget : undefined,
         input,
         manifestInput: qwikViteOpts.ssr?.manifestInput,
         manifestInputPath: qwikViteOpts.ssr?.manifestInputPath,
@@ -262,7 +265,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       const updatedViteConfig: UserConfig = {
         // Duplicated in configEnvironment to support legacy vite build --ssr compatibility
         ssr: {
-          noExternal: [QWIK_CORE_ID, QWIK_CORE_SERVER, QWIK_BUILD_ID],
+          // Resume imports must reach client resolution before SSR externalization.
+          noExternal: testResume.isResume()
+            ? true
+            : [QWIK_CORE_ID, QWIK_CORE_SERVER, QWIK_BUILD_ID],
         },
         envPrefix: ['VITE_', 'PUBLIC_'],
         resolve: {
@@ -280,6 +286,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           },
         },
         optimizeDeps: {
+          noDiscovery: testResume.isResume() || undefined,
           exclude: [
             // using optimized deps for qwik libraries will lead to duplicate imports
             // this breaks Qwik because it relies a lot on module scoped symbols
@@ -317,6 +324,11 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           [qDevKey]: qDev,
           [qInspectorKey]: qInspector,
           [qTestKey]: JSON.stringify(process.env.NODE_ENV === 'test'),
+          ...(opts.target === 'test'
+            ? {
+                'globalThis.qwikTestTarget': JSON.stringify(opts.testTarget),
+              }
+            : {}),
         },
       };
 
@@ -388,7 +400,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       if (isServer) {
         return {
           resolve: {
-            noExternal: [QWIK_CORE_ID, QWIK_CORE_SERVER, QWIK_BUILD_ID],
+            noExternal: testResume.isResume()
+              ? true
+              : [QWIK_CORE_ID, QWIK_CORE_SERVER, QWIK_BUILD_ID],
           },
         } satisfies EnvironmentOptions;
       }
@@ -468,6 +482,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
 
     resolveId(id, importer, resolveIdOpts) {
+      if (testResume.getTestSource(id) !== undefined) {
+        return id;
+      }
       if (id.endsWith(QWIK_HMR_BRIDGE_ID)) {
         return QWIK_HMR_BRIDGE_ID;
       }
@@ -482,6 +499,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
 
     load(id, loadOpts) {
+      const testSource = testResume.getTestSource(id);
+      if (testSource !== undefined) {
+        return { code: testSource };
+      }
       if (id === QWIK_HMR_BRIDGE_ID) {
         return { code: QWIK_HMR_BRIDGE_CODE };
       }
@@ -504,6 +525,12 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
 
     transform(code, id, transformOpts) {
+      const testTarget = qwikPlugin.getOptions().testTarget;
+      const testSource =
+        testTarget === undefined ? undefined : testResume.prepareTestSource(code, id, testTarget);
+      if (testSource !== undefined) {
+        return { code: testSource };
+      }
       if (
         id.includes('.vite/deps/') &&
         code.slice(0, 5000).includes('qwik') &&
@@ -980,6 +1007,8 @@ export const isNotNullable = <T>(v: T): v is NonNullable<T> => {
 };
 
 interface QwikVitePluginCommonOptions {
+  /** Selects CSR, resume, or SSR compilation in test runners. Defaults to SSR. */
+  testTarget?: 'csr' | 'resume' | 'ssr';
   /**
    * Prints verbose Qwik plugin debug logs.
    *

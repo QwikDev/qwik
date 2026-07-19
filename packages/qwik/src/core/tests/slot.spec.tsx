@@ -1,14 +1,13 @@
 import { component$, createContextId, Slot } from '@qwik.dev/core';
 import { useContext, useContextProvider, useSignal } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
-import { csrRender, ssrRender } from '../test-utils';
+import { testRenderer } from '../test-utils';
 
 const debug = false;
 
-describe.each([
-  { name: 'ssrRender', render: ssrRender },
-  { name: 'csrRender', render: csrRender },
-])('$name: slot', ({ render }) => {
+const { name, render } = testRenderer;
+
+describe(`${name}: slot`, () => {
   it('projects default and named slots', async () => {
     const Card = component$(() => {
       return (

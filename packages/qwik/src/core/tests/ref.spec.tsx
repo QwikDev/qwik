@@ -1,12 +1,11 @@
 import { component$ } from '@qwik.dev/core';
 import { useSignal } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
-import { csrRender, ssrRender } from '../test-utils';
+import { testRenderer } from '../test-utils';
 
-describe.each([
-  { name: 'ssrRender', render: ssrRender },
-  { name: 'csrRender', render: csrRender },
-])('$name: ref', ({ render }) => {
+const { name, render } = testRenderer;
+
+describe(`${name}: ref`, () => {
   it('runs a function ref once when its element is created', async () => {
     const App = component$(() => {
       const calls: string[] = [];

@@ -2,17 +2,16 @@ import { component$, Slot } from '@qwik.dev/core';
 import { useSignal, useStyles$ } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
 import { QStyle, QStyleSelector } from '../shared/utils/markers';
-import { csrRender, ssrRender } from '../test-utils';
+import { ssrRender, testRenderer } from '../test-utils';
 
 const debug = false;
 const STYLE_RED = `.container { color: red; }`;
 const STYLE_BLUE = `.container { color: blue; }`;
 const STYLE = `.container{color: blue;}`;
 
-describe.each([
-  { name: 'ssrRender', render: ssrRender },
-  { name: 'csrRender', render: csrRender },
-])('$name: useStyles$', ({ render }) => {
+const { name, render } = testRenderer;
+
+describe(`${name}: useStyles$`, () => {
   it('appends a global style once and leaves element classes unchanged', async () => {
     const App = component$(() => {
       useStyles$(STYLE_RED);
@@ -192,24 +191,27 @@ describe.each([
   });
 });
 
-it('ssrRender: appends style to head when rendering document sections', async () => {
-  const Wrapper = component$(() => {
-    useStyles$(STYLE);
-    return <Slot />;
-  });
-  const App = component$(() => (
-    <Wrapper>
-      <head>
-        <script></script>
-      </head>
-      <body>
-        <div>content</div>
-      </body>
-    </Wrapper>
-  ));
+it.runIf(testRenderer.render === ssrRender)(
+  'ssrRender: appends style to head when rendering document sections',
+  async () => {
+    const Wrapper = component$(() => {
+      useStyles$(STYLE);
+      return <Slot />;
+    });
+    const App = component$(() => (
+      <Wrapper>
+        <head>
+          <script></script>
+        </head>
+        <body>
+          <div>content</div>
+        </body>
+      </Wrapper>
+    ));
 
-  const { document, cleanup } = await ssrRender(App, { debug });
+    const { document, cleanup } = await ssrRender(App, { debug });
 
-  expect(document.head.querySelector(QStyleSelector)?.textContent).toBe(STYLE);
-  cleanup();
-});
+    expect(document.head.querySelector(QStyleSelector)?.textContent).toBe(STYLE);
+    cleanup();
+  }
+);

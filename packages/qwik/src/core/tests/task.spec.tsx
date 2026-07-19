@@ -1,73 +1,70 @@
 import { component$ } from '@qwik.dev/core';
 import { useSignal, useTask$, useVisibleTask$ } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
-import { csrRender, ssrRender } from '../test-utils';
+import { testRenderer } from '../test-utils';
 
 const debug = false;
 
-describe.each([
-  { name: 'ssrRender', render: ssrRender },
-  { name: 'csrRender', render: csrRender },
-])('$name: task', ({ name, render }) => {
-  it('task executes async task before initial render settles', async () => {
-    if (name !== 'ssrRender') {
-      return;
+const { name, render } = testRenderer;
+
+describe(`${name}: task`, () => {
+  it.runIf(testRenderer.name === 'ssrRender')(
+    'task executes async task before initial render settles',
+    async () => {
+      const App = component$(() => {
+        const value = useSignal('wrong');
+
+        useTask$(async () => {
+          await Promise.resolve();
+          value.value = 'WORKS';
+        });
+
+        return <span>{value.value}</span>;
+      });
+
+      const { container, cleanup, flush } = await render(App, { debug });
+      await flush();
+
+      expect(container.querySelector('span')?.textContent).toBe('WORKS');
+
+      cleanup();
     }
+  );
 
-    const App = component$(() => {
-      const value = useSignal('wrong');
+  it.runIf(testRenderer.name === 'ssrRender')(
+    'task runs tasks in order and awaits async tasks',
+    async () => {
+      (globalThis as any).__taskOrder = [] as string[];
 
-      useTask$(async () => {
-        await Promise.resolve();
-        value.value = 'WORKS';
+      const App = component$(() => {
+        const ready = useSignal('pending');
+
+        useTask$(async () => {
+          (globalThis as any).__taskOrder.push('1:start');
+          await Promise.resolve();
+          (globalThis as any).__taskOrder.push('1:done');
+        });
+
+        useTask$(async () => {
+          (globalThis as any).__taskOrder.push('2:start');
+          await Promise.resolve();
+          (globalThis as any).__taskOrder.push('2:done');
+          ready.value = 'done';
+        });
+
+        return <span>{ready.value}</span>;
       });
 
-      return <span>{value.value}</span>;
-    });
+      const { container, cleanup, flush } = await render(App, { debug });
+      await flush();
 
-    const { container, cleanup, flush } = await render(App, { debug });
-    await flush();
+      expect((globalThis as any).__taskOrder).toEqual(['1:start', '1:done', '2:start', '2:done']);
+      expect(container.querySelector('span')?.textContent).toBe('done');
 
-    expect(container.querySelector('span')?.textContent).toBe('WORKS');
-
-    cleanup();
-  });
-
-  it('task runs tasks in order and awaits async tasks', async () => {
-    if (name !== 'ssrRender') {
-      return;
+      delete (globalThis as any).__taskOrder;
+      cleanup();
     }
-
-    (globalThis as any).__taskOrder = [] as string[];
-
-    const App = component$(() => {
-      const ready = useSignal('pending');
-
-      useTask$(async () => {
-        (globalThis as any).__taskOrder.push('1:start');
-        await Promise.resolve();
-        (globalThis as any).__taskOrder.push('1:done');
-      });
-
-      useTask$(async () => {
-        (globalThis as any).__taskOrder.push('2:start');
-        await Promise.resolve();
-        (globalThis as any).__taskOrder.push('2:done');
-        ready.value = 'done';
-      });
-
-      return <span>{ready.value}</span>;
-    });
-
-    const { container, cleanup, flush } = await render(App, { debug });
-    await flush();
-
-    expect((globalThis as any).__taskOrder).toEqual(['1:start', '1:done', '2:start', '2:done']);
-    expect(container.querySelector('span')?.textContent).toBe('done');
-
-    delete (globalThis as any).__taskOrder;
-    cleanup();
-  });
+  );
 
   it('task tracks signal reads before and after await', async () => {
     const App = component$(() => {

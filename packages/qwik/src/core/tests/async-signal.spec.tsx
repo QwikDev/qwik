@@ -1,14 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { component$ } from '@qwik.dev/core';
 import { useAsync$, useSignal, useTask$ } from '@qwik.dev/core';
-import { csrRender, ssrRender } from '../test-utils';
+import { testRenderer } from '../test-utils';
 
 const debug = false;
 
-describe.each([
-  { render: ssrRender }, //
-  { render: csrRender }, //
-])('$name: async signals', ({ render }) => {
+const { name, render } = testRenderer;
+
+describe(`${name}: async signals`, () => {
   it('resolves promise in computed result', async () => {
     const Counter = () => {
       const count = useSignal(1);
@@ -137,7 +136,7 @@ describe.each([
     const { container, cleanup, flush, qwikLoader } = await render(Counter, { debug });
     const button = container.querySelector('button')!;
 
-    if (render === ssrRender) {
+    if (testRenderer.name === 'ssrRender') {
       expect(button.textContent).toBe('2');
     } else {
       expect(button.textContent).toBe('loading');
@@ -251,7 +250,7 @@ describe.each([
 
     const { container, cleanup, flush, qwikLoader } = await render(Counter, { debug });
 
-    if (render === ssrRender) {
+    if (testRenderer.name === 'ssrRender') {
       expect(container.querySelector('#loading')?.textContent).toBe('loading...');
       await qwikLoader?.dispatch(container, 'qidle');
       await drain(flush);
@@ -299,7 +298,7 @@ describe.each([
 
     const { container, cleanup, flush, html } = await render(Counter, { debug });
 
-    if (render === ssrRender) {
+    if (testRenderer.name === 'ssrRender') {
       expect(html).toContain('loading...');
     }
     await drain(flush);
@@ -316,7 +315,7 @@ describe.each([
       return <div>{asyncValue.value}</div>;
     };
 
-    if (render === ssrRender) {
+    if (testRenderer.name === 'ssrRender') {
       await expect(render(Counter, { debug })).rejects.toThrow(
         'Cannot read .value of a clientOnly async signal'
       );
@@ -347,7 +346,9 @@ describe.each([
     const button = container.querySelector('button')!;
 
     await drain(flush);
-    expect((globalThis as any).__asyncLog).toEqual(render === ssrRender ? ['cleanup'] : []);
+    expect((globalThis as any).__asyncLog).toEqual(
+      testRenderer.name === 'ssrRender' ? ['cleanup'] : []
+    );
 
     await qwikLoader?.dispatch(button, 'click');
     await drain(flush);
@@ -388,7 +389,9 @@ describe.each([
     const button = container.querySelector('button')!;
 
     await drain(flush);
-    expect((globalThis as any).__asyncLog).toEqual(render === ssrRender ? ['cleanup'] : []);
+    expect((globalThis as any).__asyncLog).toEqual(
+      testRenderer.name === 'ssrRender' ? ['cleanup'] : []
+    );
 
     await qwikLoader?.dispatch(button, 'click');
     await drain(flush);
@@ -420,7 +423,7 @@ describe.each([
     const { container, cleanup, flush, qwikLoader } = await render(Counter, { debug });
     await drain(flush);
 
-    if (render === ssrRender) {
+    if (testRenderer.name === 'ssrRender') {
       await qwikLoader?.dispatch(container, 'qidle');
       await drain(flush);
     }

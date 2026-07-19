@@ -1,8 +1,9 @@
 import type { RenderOptions, RenderResult } from '../core/test-utils';
-import { bootQwikLoader, csrRenderInto } from '../core/test-utils';
+import { bootQwikLoader, csrRenderInto, ssrRender } from '../core/test-utils';
 import type { RenderRoot } from '@qwik.dev/core';
 import { getOrCreateContainerContext } from '@qwik.dev/core/internal';
 import { createDocument } from './document';
+import { getTestTarget, type QwikTestTarget } from './resume-session';
 
 export { createDocument, createWindow } from './document';
 export { getTestPlatform } from './platform';
@@ -21,6 +22,10 @@ export type {
   MockWindowOptions,
   TestPlatform,
 } from './types';
+export type { QwikTestTarget } from './resume-session';
+
+/** Active compiler target selected by qwikVite. @public */
+export const testTarget: QwikTestTarget = getTestTarget();
 
 /** @public */
 export interface DOMHarness {
@@ -47,16 +52,22 @@ export async function createDOM(options?: { html?: string }): Promise<DOMHarness
   }
   document.body.appendChild(screen);
   let current: RenderResult | undefined;
+  const getScreen = () => current?.container ?? screen;
 
   return {
-    screen,
+    get screen() {
+      return getScreen();
+    },
     async render(root, renderOptions) {
       current?.cleanup();
-      current = await csrRenderInto(root, document, screen, renderOptions);
+      current =
+        getTestTarget() === 'csr'
+          ? await csrRenderInto(root, document, screen, renderOptions)
+          : await ssrRender(root, renderOptions);
       return current;
     },
     async userEvent(target, type, payload) {
-      const element = resolveElement(screen, target);
+      const element = resolveElement(getScreen(), target);
       if (current?.qwikLoader !== undefined) {
         return current.qwikLoader.dispatch(element, type, payload);
       }

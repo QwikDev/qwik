@@ -54,7 +54,7 @@ export const Link = component$<LinkProps>((props) => {
 
         if (elm && elm.href) {
           const url = new URL(elm.href);
-          prefetchRoute(url, true, 0.8, head.manifestHash, false);
+          return prefetchRoute(url, true, 0.8, head.manifestHash, false);
         }
       })
     : null;
@@ -67,13 +67,13 @@ export const Link = component$<LinkProps>((props) => {
       })
     : null;
 
-  const prefetchData = $(async (_: any, elm: HTMLAnchorElement) => {
-    handleDataPrefetch?.(null, elm);
+  const prefetchData = $((_: any, elm: HTMLAnchorElement) => {
+    return handleDataPrefetch?.(null, elm);
   });
 
   const onEnterKeyDown = $((event: KeyboardEvent, element: HTMLAnchorElement) => {
     if (event.key === 'Enter') {
-      prefetchData(null, element);
+      return prefetchData(null, element);
     }
   });
 

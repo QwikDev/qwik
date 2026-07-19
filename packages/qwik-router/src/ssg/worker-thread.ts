@@ -1,8 +1,14 @@
+import { _serialize as serialize } from '@qwik.dev/core/internal';
 import { parentPort } from 'node:worker_threads';
-// Use the global WritableStream, not node:stream/web — in worker threads they can be
-// different classes, causing instanceof checks in pipeTo/TransformStream to fail.
-import type { ClientPageData } from '../runtime/src/types';
+import {
+  renderQwikMiddleware,
+  resolveRequestHandlers,
+} from '../middleware/request-handler/resolve-request-handlers-core';
+import { trimInternalPathname } from '../middleware/request-handler/request-path';
 import type { ServerRequestEvent } from '../middleware/request-handler/types';
+import { runQwikRouter } from '../middleware/request-handler/user-response';
+import { getRouteLoaderValues, getRouteLoaders } from '../runtime/src/route-loaders';
+import { loadRoute } from '../runtime/src/routing';
 import type {
   SsgHandlerOptions,
   SsgRoute,
@@ -12,43 +18,33 @@ import type {
   WorkerInputMessage,
   WorkerOutputMessage,
 } from './types';
-import { renderQwikMiddleware, resolveRequestHandlers } from './resolve-request-handlers-ssg';
-import { runQwikRouter } from './user-response-ssg';
-import { loadRoute } from './worker-imports/runtime';
-import { RequestEvShareQData } from '@qwik-router-ssg-worker/middleware/request-handler/request-event-core';
-import { getRouteMatchPathname } from '@qwik-router-ssg-worker/middleware/request-handler/request-path';
 
 interface StaticWorkerThreadDeps {
-  RequestEvShareQData: string;
   loadRoute: typeof loadRoute;
   renderQwikMiddleware: typeof renderQwikMiddleware;
   resolveRequestHandlers: typeof resolveRequestHandlers;
-  getRouteMatchPathname: typeof getRouteMatchPathname;
+  trimInternalPathname: typeof trimInternalPathname;
   runQwikRouter: typeof runQwikRouter;
 }
 
 interface WorkerThreadDeps extends StaticWorkerThreadDeps {
-  serialize: typeof import('@qwik.dev/core/internal')._serialize;
+  serialize: typeof serialize;
 }
 
 const staticWorkerThreadDeps: StaticWorkerThreadDeps = {
-  RequestEvShareQData,
   loadRoute,
   renderQwikMiddleware,
   resolveRequestHandlers,
-  getRouteMatchPathname,
+  trimInternalPathname,
   runQwikRouter,
 };
 
 export async function workerThread(sys: System) {
-  // Special case: we allow importing qwik again in the same process, it's ok because we just needed the serializer
-  // TODO: remove this once we have vite environment API and no longer need the serializer separately
-  delete (globalThis as any).__qwik;
   const opts = sys.getOptions();
   const pendingPromises = new Set<Promise<any>>();
   const deps: WorkerThreadDeps = {
     ...staticWorkerThreadDeps,
-    serialize: await loadSerialize(),
+    serialize,
   };
 
   // Prevent unhandled errors/rejections from crashing the worker thread.
@@ -167,7 +163,9 @@ async function workerRender(
         return {};
       },
       getWritableStream: (status, headers, _, _r, requestEv) => {
-        result.ok = status >= 200 && status < 300;
+        // The not-found page renders with a 404 status but is still written as a static asset.
+        const isNotFoundPage = url.pathname.endsWith('/404.html');
+        result.ok = (status >= 200 && status < 300) || (isNotFoundPage && status === 404);
 
         if (!result.ok) {
           // not ok, don't write anything
@@ -176,23 +174,19 @@ async function workerRender(
 
         result.contentType = (headers.get('Content-Type') || '').toLowerCase();
         const isHtml = result.contentType.includes('text/html');
-        const is404ErrorPage = url.pathname.endsWith('/404.html');
         const routeFilePath = sys.getRouteFilePath(url.pathname, isHtml);
 
-        if (is404ErrorPage) {
-          result.resourceType = '404';
-        } else if (isHtml) {
+        if (isHtml) {
           result.resourceType = 'page';
         }
 
         const hasRouteWriter = isHtml ? opts.emitHtml !== false : true;
-        const writeQDataEnabled = isHtml && opts.emitData !== false;
+        const writeLoaderDataEnabled = isHtml && opts.emitData !== false;
 
         const stream = new WritableStream<Uint8Array>({
           async start() {
             try {
-              if (hasRouteWriter || writeQDataEnabled) {
-                // for html pages, endpoints or q-data.json
+              if (hasRouteWriter || writeLoaderDataEnabled) {
                 // ensure the containing directory is created
                 await sys.ensureDir(routeFilePath);
               }
@@ -237,13 +231,26 @@ async function workerRender(
             const writePromises: Promise<any>[] = [];
 
             try {
-              if (writeQDataEnabled) {
-                const qData: ClientPageData = requestEv.sharedMap.get(deps.RequestEvShareQData);
-                if (qData && !is404ErrorPage) {
-                  // write q-data.json file when enabled and qData is set
-                  const qDataFilePath = sys.getDataFilePath(url.pathname);
-                  const dataWriter = sys.createWriteStream(qDataFilePath);
-                  dataWriter.on('error', (e) => {
+              if (writeLoaderDataEnabled && !isNotFoundPage) {
+                const routeLoaders = getRouteLoaders(requestEv);
+                const loaderValues = getRouteLoaderValues(requestEv);
+                const manifestHash = (opts.manifest as any)?.manifestHash || 'dev';
+                // Write individual per-loader files for static loaders (expires === 0)
+                for (const loader of routeLoaders) {
+                  if (loader.__expires !== 0) {
+                    continue;
+                  }
+                  const data = loaderValues[loader.__id];
+                  if (data === undefined) {
+                    continue;
+                  }
+                  const loaderFilePath = sys.getLoaderFilePath(
+                    url.pathname,
+                    loader.__id,
+                    manifestHash
+                  );
+                  const loaderWriter = sys.createWriteStream(loaderFilePath);
+                  loaderWriter.on('error', (e) => {
                     console.error(e);
                     result.error = {
                       message: e.message,
@@ -251,14 +258,15 @@ async function workerRender(
                     };
                   });
 
-                  const serialized = await deps.serialize(qData);
-                  dataWriter.write(serialized);
+                  // Match the LoaderResponse envelope { d, r, e } produced by loaderHandler
+                  // so the client deserializer reads the same shape from static and dynamic responses.
+                  const serialized = await deps.serialize({ d: data });
+                  loaderWriter.write(serialized);
 
                   writePromises.push(
                     new Promise<void>((resolve) => {
-                      // set the static file path for the result
                       result.filePath = routeFilePath;
-                      dataWriter.end(resolve);
+                      loaderWriter.end(resolve);
                     })
                   );
                 }
@@ -357,12 +365,6 @@ async function workerRender(
 /** Create a fresh no-op WritableStream (must be a real instance for pipeTo checks). */
 const createNoopWritableStream = () => new WritableStream();
 
-async function loadSerialize(): Promise<typeof import('@qwik.dev/core/internal')._serialize> {
-  // Import qwik after resetting the global singleton so the worker gets a fresh serializer instance.
-  const { _serialize: serialize } = await import('@qwik.dev/core/internal');
-  return serialize;
-}
-
 function isRedirectMessage(value: unknown) {
   return (
     typeof value === 'object' &&
@@ -382,36 +384,36 @@ async function requestHandlerForSsg<T>(
     throw new Error('qwikRouterConfig is required.');
   }
 
-  const { pathname, isInternal } = deps.getRouteMatchPathname(serverRequestEv.url.pathname);
+  const pathname = deps.trimInternalPathname(serverRequestEv.url.pathname);
   if (pathname === '/.well-known' || pathname.startsWith('/.well-known/')) {
     return null;
   }
 
   const { routes, serverPlugins, cacheModules } = qwikRouterConfig;
-  const loadedRoute = await deps.loadRoute(routes, cacheModules, pathname, isInternal);
+  const loadedRoute = await deps.loadRoute(routes, cacheModules, pathname);
   const requestHandlers = deps.resolveRequestHandlers(
     serverPlugins,
     loadedRoute,
     serverRequestEv.request.method,
     checkOrigin ?? true,
-    deps.renderQwikMiddleware(render),
-    isInternal
+    deps.renderQwikMiddleware(render)
   );
 
-  if (qwikRouterConfig.fallthrough && loadedRoute.$notFound$) {
+  // The forced 404.html prerender is a miss by design — render it even under fallthrough so the
+  // static asset exists for the adapter/host to serve.
+  if (qwikRouterConfig.fallthrough && loadedRoute.$notFound$ && !pathname.endsWith('/404.html')) {
     return null;
   }
 
   const rebuildRouteInfo = async (url: URL) => {
-    const { pathname } = deps.getRouteMatchPathname(url.pathname);
-    const loadedRoute = await deps.loadRoute(routes, cacheModules, pathname, isInternal);
+    const cleanPathname = deps.trimInternalPathname(url.pathname);
+    const loadedRoute = await deps.loadRoute(routes, cacheModules, cleanPathname);
     const requestHandlers = deps.resolveRequestHandlers(
       serverPlugins,
       loadedRoute,
       serverRequestEv.request.method,
       checkOrigin ?? true,
-      deps.renderQwikMiddleware(render),
-      isInternal
+      deps.renderQwikMiddleware(render)
     );
     return {
       loadedRoute,

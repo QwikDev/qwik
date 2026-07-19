@@ -17,9 +17,11 @@ export type { ValueOrPromise } from './shared/utils/types';
 export type { JSXOutput } from './shared/jsx/types/jsx-node';
 export type { QwikSymbolEvent } from './shared/jsx/types/jsx-qwik-events';
 export type { PublicAsyncSignal as AsyncSignal } from './reactive/public-types';
+export type { ComputedOptions, ComputedSignal, ComputeCtx } from './reactive/public-types';
 export { AsyncSignal as _AsyncSignal } from './reactive/async-signal';
 export { useContext as _resolveContext } from './runtime/context';
 export { getActiveInvokeContextOrNull } from './runtime/invoke-context';
+export { createOwner, runWithOwner } from './runtime/owner';
 export {
   forceStoreEffects,
   hasStoreEffects as _hasStoreEffects,

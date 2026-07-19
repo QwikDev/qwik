@@ -1,5 +1,3 @@
-import { QContainerValue } from '../types';
-
 /** State factory of the component. */
 export const OnRenderProp = 'q:renderFn';
 
@@ -25,6 +23,7 @@ export const QScopedStyle = 'q:sstyle';
 export const QCtxAttr = 'q:ctx';
 export const QBackRefs = 'q:brefs';
 export const QFuncsPrefix = 'qFuncs_';
+export const QwikEvContainerReady = 0;
 
 export const getQFuncs = (
   document: Document,
@@ -40,6 +39,7 @@ export const QBaseAttr = 'q:base';
 export const QLocaleAttr = 'q:locale';
 export const QManifestHashAttr = 'q:manifest-hash';
 export const QInstanceAttr = 'q:instance';
+export const QStatePrewarmAttr = 'q:prewarm';
 export const QContainerIsland = 'q:container-island';
 export const QContainerIslandEnd = '/' + QContainerIsland;
 export const QIgnore = 'q:ignore';
@@ -53,11 +53,7 @@ export const QTemplate = 'q:template';
 // the same selector should be inside the qwik loader
 // and the same selector should be inside the qwik router spa-shim and spa-init
 export const QContainerSelector =
-  '[q\\:container]:not([q\\:container=' +
-  QContainerValue.HTML +
-  ']):not([q\\:container=' +
-  QContainerValue.TEXT +
-  '])';
+  '[q\\:container]:not([q\\:container=' + 'html' + ']):not([q\\:container=' + 'text' + '])';
 
 // Node namespaces
 export const HTML_NS = 'http://www.w3.org/1999/xhtml';
@@ -85,6 +81,7 @@ export const QDefaultSlot = '';
 export const ELEMENT_ID = 'q:id';
 export const ELEMENT_KEY = 'q:key';
 export const ELEMENT_PROPS = 'q:props';
+/** @internal */
 export const ELEMENT_SEQ = 'q:seq';
 export const ELEMENT_SEQ_IDX = 'q:seqIdx';
 export const ELEMENT_BACKPATCH_DATA = 'qwik/backpatch';

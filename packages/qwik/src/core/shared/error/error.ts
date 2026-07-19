@@ -37,13 +37,16 @@ export const codeToText = (code: number, ...parts: any[]): string => {
       'Unknown vnode type {{0}}.', // 26
       'Materialize error: missing element: {{0}} {{1}} {{2}}', // 27
       'Cannot coerce a Signal, use `.value` instead', // 28
-      'useComputed$ QRL {{0}} {{1}} cannot return a Promise', // 29
+      '', // 29 (cleared: useComputed$ now supports async functions)
       '===\nQwik version {{0}} already imported while importing {{1}}.\nThis can lead to issues due to duplicated shared structures.\nVerify that the Qwik libraries you\'re using are in "resolve.noExternal[]" and in "optimizeDeps.exclude".\n===\n', // 30
       'WrappedSignal is read-only', // 31
       'Attribute value is unsafe for SSR {{0}}', // 32
       'SerializerSymbol function returned rejected promise', // 33
       'Serialization Error: Cannot serialize function: {{0}}', // 34
       'Cannot read .value of a clientOnly async signal during SSR. Use .loading to check state, or provide an initial value.', // 35
+      'Invalid element name for SSR {{0}}', // 36
+      'Invalid serialized Promise dependency', // 37
+      'Invalid serialized Uint8Array payload', // 38
     ];
     let text = MAP[code] ?? '';
     if (parts.length) {
@@ -98,6 +101,9 @@ export const enum QError {
   serializerSymbolRejectedPromise = 33,
   serializeErrorCannotSerializeFunction = 34,
   asyncClientOnlyValueDuringSSR = 35,
+  invalidElementName = 36,
+  invalidPromiseDependency = 37,
+  invalidUint8ArrayPayload = 38,
 }
 
 export const qError = (code: number, errorMessageArgs: any[] = []): Error => {

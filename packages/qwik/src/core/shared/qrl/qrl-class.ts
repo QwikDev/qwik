@@ -2,7 +2,7 @@
 import { getPlatform, isServerPlatform } from '../platform/platform';
 // ^^^ keep these imports above the rest to prevent circular dep issues
 
-import { isBrowser, isDev } from '@qwik.dev/core/build';
+import { isBrowser, isDev, isServer } from '@qwik.dev/core/build';
 import {
   getActiveInvokeContextOrNull,
   setActiveInvokeContext,
@@ -28,6 +28,9 @@ interface SyncQRLSymbol {
 }
 
 export type SyncQRLInternal = QRLInternal & SyncQRLSymbol;
+
+export type QrlCaptures = Readonly<unknown[]> | string | null;
+
 /** @internal */
 export type QRLInternal<TYPE = unknown> = QRL<TYPE> & QRLInternalMethods<TYPE>;
 
@@ -36,8 +39,8 @@ export type QRLInternalMethods<TYPE> = {
   readonly $symbol$: string;
   readonly $hash$: string;
 
-  /** If it's a string it's serialized */
-  readonly $captures$?: Readonly<unknown[]> | string | null;
+  /** Captures are stored lazily after deserialization. */
+  readonly $captures$?: QrlCaptures;
   dev?: QRLDev | null;
 
   resolve(container?: ContainerContext): Promise<TYPE>;
@@ -63,7 +66,7 @@ export type QRLInternalMethods<TYPE> = {
    * method but we need to have a stable name because it gets called in user code by the optimizer,
    * after the $name$ props are mangled
    */
-  w(captures: Readonly<unknown[]> | string | null): QRLInternal<TYPE>;
+  w(captures: QrlCaptures): QRLInternal<TYPE>;
 
   /**
    * "set ref" - Set the ref of the QRL. It's an internal method but we need to have a stable name
@@ -80,6 +83,8 @@ export type QRLInternalMethods<TYPE> = {
   /** The shared lazy-loading reference */
   readonly $lazy$: LazyRef<TYPE>;
 };
+
+let reportedChunkFailures: WeakMap<ContainerContext, Set<string>> | undefined;
 
 let getLazyRef: <TYPE>(
   chunk: string | null,
@@ -136,7 +141,27 @@ export class LazyRef<TYPE = unknown> {
       ref.then(
         (r) => (this.$ref$ = r),
         (err) => {
-          console.error(`qrl ${this.$symbol$} failed to load`, err);
+          const errorMessage = `qrl ${this.$symbol$} failed to load`;
+
+          if (qTest ? isServerPlatform() : isServer) {
+            console.error(errorMessage, err);
+          } else if (qTest ? !isServerPlatform() : isBrowser) {
+            const failureKey =
+              this.$chunk$ === null ? `symbol:${this.$symbol$}` : `chunk:${this.$chunk$}`;
+            const container = this.$container$;
+            let containerFailures = container && reportedChunkFailures?.get(container);
+            if (!containerFailures?.has(failureKey)) {
+              if (container) {
+                if (!containerFailures) {
+                  containerFailures = new Set();
+                  (reportedChunkFailures ||= new WeakMap()).set(container, containerFailures);
+                }
+                containerFailures.add(failureKey);
+              }
+              console.error(errorMessage, err);
+            }
+          }
+
           // We shouldn't cache rejections, we can try again later
           this.$ref$ = null;
         }
@@ -208,12 +233,12 @@ const getInstance = <TYPE>(instance: any): QRLClass<TYPE> => {
 export class QRLClass<TYPE> {
   resolved: undefined | TYPE = undefined;
   // This is defined or undefined for the lifetime of the QRL, so we set it lazily
-  $captures$?: Readonly<unknown[]> | string | null;
+  $captures$?: QrlCaptures;
   $container$?: ContainerContext | null;
 
   constructor(
     readonly $lazy$: LazyRef<TYPE>,
-    $captures$?: Readonly<unknown[]> | string | null,
+    $captures$?: QrlCaptures,
     container?: ContainerContext | null
   ) {
     if (qDev) {
@@ -255,7 +280,7 @@ const qrlCallFn = function <TYPE>(
 
 const qrlWithCaptures = function <TYPE>(
   this: QRLClass<TYPE> | QRLCallable<TYPE>,
-  captures: Readonly<unknown[]> | string | null
+  captures: QrlCaptures
 ): QRLInternal<TYPE> {
   const qrl = getInstance<TYPE>(this);
   const newQrl = new QRLClass<TYPE>(
@@ -341,7 +366,7 @@ const QRL_FUNCTION_PROTO: QRLInternalMethods<any> = Object.create(Function.proto
     get(this: QRLCallable<any>) {
       return this[QRL_STATE].$captures$;
     },
-    set(this: QRLCallable<any>, value: Readonly<unknown[]> | string | null | undefined) {
+    set(this: QRLCallable<any>, value: QrlCaptures | undefined) {
       this[QRL_STATE].$captures$ = value;
     },
   },
@@ -514,7 +539,7 @@ export const createQRL = <TYPE>(
   symbol: string,
   symbolRef?: null | ValueOrPromise<TYPE>,
   symbolFn?: null | (() => Promise<Record<string, TYPE>>),
-  captures?: Readonly<unknown[]> | string | null,
+  captures?: QrlCaptures,
   container?: ContainerContext
 ): QRLInternal<TYPE> => {
   const lazy = getLazyRef<TYPE>(chunk, symbol, symbolFn!, symbolRef!, container);

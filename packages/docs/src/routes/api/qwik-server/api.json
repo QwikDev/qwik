@@ -40,7 +40,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type Render = RenderToString | RenderToStream;\n```\n**References:** [RenderToString](#rendertostring-variable)<!-- -->, [RenderToStream](#rendertostream-variable)",
+      "content": "```typescript\nexport type Render = RenderToString | RenderToStream;\n```\n**References:** [RenderToString](#rendertostring-type-alias)<!-- -->, [RenderToStream](#rendertostream-type-alias)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
       "mdFile": "core.render.md"
     },

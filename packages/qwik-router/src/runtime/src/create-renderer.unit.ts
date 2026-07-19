@@ -16,67 +16,23 @@ describe('createRenderer', () => {
     mocks.renderToStream.mockResolvedValue({} as any);
   });
 
-  it('disables out-of-order streaming for static renders', async () => {
+  it('wraps JSX output in a target-native render root', async () => {
     const renderer = createRenderer((opts) => ({
-      jsx: 'static' as any,
-      options: {
-        ...opts,
-        streaming: {
-          ...opts.streaming,
-          outOfOrder: true,
-        },
-      } as any,
+      jsx: 'content' as any,
+      options: opts,
     }));
-
-    await renderer({
-      stream: { write: vi.fn() },
-      serverData: {
-        renderMode: 'static',
-        qwikrouter: {
-          ev: {},
-        },
-      },
-    } as any);
-
-    expect(mocks.renderToStream).toHaveBeenCalledWith(
-      'static',
-      expect.objectContaining({
-        streaming: expect.objectContaining({
-          outOfOrder: false,
-        }),
-      })
-    );
-  });
-
-  it('keeps out-of-order streaming for server renders', async () => {
-    const renderer = createRenderer((opts) => ({
-      jsx: 'server' as any,
-      options: {
-        ...opts,
-        streaming: {
-          ...opts.streaming,
-          outOfOrder: true,
-        },
-      } as any,
-    }));
-
-    await renderer({
+    const options = {
       stream: { write: vi.fn() },
       serverData: {
         renderMode: 'server',
-        qwikrouter: {
-          ev: {},
-        },
+        qwikrouter: { ev: {} },
       },
-    } as any);
+    } as any;
 
-    expect(mocks.renderToStream).toHaveBeenCalledWith(
-      'server',
-      expect.objectContaining({
-        streaming: expect.objectContaining({
-          outOfOrder: true,
-        }),
-      })
-    );
+    await renderer(options);
+
+    const [root, receivedOptions] = mocks.renderToStream.mock.calls[0];
+    expect(root()).toBe('content');
+    expect(receivedOptions).toBe(options);
   });
 });

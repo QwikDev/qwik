@@ -4,20 +4,24 @@
 
 ```ts
 
-import type { AsyncSignal } from '@qwik.dev/core';
+import type { AbortMessage } from '@qwik.dev/router/middleware/request-handler';
 import { Component } from '@qwik.dev/core';
+import type { ComputedSignal } from '@qwik.dev/core';
 import { Cookie } from '@qwik.dev/router/middleware/request-handler';
 import { CookieOptions } from '@qwik.dev/router/middleware/request-handler';
 import { CookieValue } from '@qwik.dev/router/middleware/request-handler';
 import { DeferReturn } from '@qwik.dev/router/middleware/request-handler';
 import type { EnvGetter } from '@qwik.dev/router/middleware/request-handler';
+import { InternalRequest } from '@qwik.dev/router/middleware/request-handler';
 import { JSXOutput } from '@qwik.dev/core';
+import { NoSerialize } from '@qwik.dev/core';
 import { QRL } from '@qwik.dev/core';
 import { QRLEventHandlerMulti } from '@qwik.dev/core';
 import { QwikIntrinsicElements } from '@qwik.dev/core';
 import { QwikJSX } from '@qwik.dev/core';
-import { Render } from '@qwik.dev/core/server';
 import { RenderToStreamOptions } from '@qwik.dev/core/server';
+import type { RenderToStreamResult } from '@qwik.dev/core/server';
+import type { RenderToStringResult } from '@qwik.dev/core/server';
 import { RequestEvent } from '@qwik.dev/router/middleware/request-handler';
 import { RequestEventAction } from '@qwik.dev/router/middleware/request-handler';
 import { RequestEventBase } from '@qwik.dev/router/middleware/request-handler';
@@ -26,38 +30,39 @@ import { RequestEventLoader } from '@qwik.dev/router/middleware/request-handler'
 import { RequestHandler } from '@qwik.dev/router/middleware/request-handler';
 import type { ResolveSyncValue } from '@qwik.dev/router/middleware/request-handler';
 import type { SerializationStrategy } from '@qwik.dev/core/internal';
-import type { Signal } from '@qwik.dev/core';
+import type { ServerError } from '@qwik.dev/router/middleware/request-handler';
 import type * as v from 'valibot';
-import type { ValueOrPromise } from '@qwik.dev/core';
-import { ValueOrPromise as ValueOrPromise_2 } from '@qwik.dev/core/internal';
+import { ValueOrPromise } from '@qwik.dev/core';
 import { z } from 'zod';
 import type * as z_2 from 'zod';
 
 // @public (undocumented)
 export type Action<RETURN, INPUT = Record<string, unknown>, OPTIONAL extends boolean = true> = {
-    (): ActionStore<RETURN, INPUT, OPTIONAL>;
+    (): ActionStore<ExcludeControlFlow<RETURN>, INPUT, OPTIONAL>;
 };
 
 // @public (undocumented)
 export type ActionConstructor = {
-    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: {
-        readonly id?: string;
+    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: ActionOptions & {
         readonly validation: [VALIDATOR, ...REST];
     }): Action<StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>> | FailReturn<FailOfRest<REST>>>, GetValidatorInputType<VALIDATOR>, false>;
-    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: {
-        readonly id?: string;
+    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: ActionOptions & {
         readonly validation: [VALIDATOR];
     }): Action<StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>>, GetValidatorInputType<VALIDATOR>, false>;
-    <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, options: {
-        readonly id?: string;
+    <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, options: ActionOptions & {
         readonly validation: REST;
     }): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;
     <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: VALIDATOR, ...rest: REST): Action<StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>> | FailReturn<FailOfRest<REST>>>, GetValidatorInputType<VALIDATOR>, false>;
     <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: VALIDATOR): Action<StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>>, GetValidatorInputType<VALIDATOR>, false>;
     <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, ...rest: REST): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;
-    <OBJ>(actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, options?: {
-        readonly id?: string;
-    }): Action<StrictUnion<OBJ>>;
+    <OBJ>(actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, options?: ActionOptions): Action<StrictUnion<OBJ>>;
+};
+
+// @public (undocumented)
+export type ActionOptions = {
+    readonly id?: string;
+    readonly validation?: DataValidator[];
+    readonly invalidate?: Loader_2<any>[];
 };
 
 // @public (undocumented)
@@ -78,7 +83,7 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {
 };
 
 // @public
-export type CacheKeyFn = true | ((status: number, eTag: string, pathname: string) => string | null);
+export type CacheKeyFn = true | ((requestEv: RequestEvent, eTag: string) => string | null);
 
 // @public (undocumented)
 export interface ContentHeading {
@@ -112,6 +117,8 @@ export { CookieOptions }
 
 export { CookieValue }
 
+// Warning: (ae-forgotten-export) The symbol "Render" needs to be exported by the entry point index.d.ts
+//
 // @public
 export const createRenderer: (getOptions: (options: RendererOptions) => {
     jsx: JSXOutput;
@@ -186,10 +193,8 @@ export type DocumentStyle = Readonly<((Omit<QwikIntrinsicElements['style'], 'dan
     style?: never;
 })>;
 
-// Warning: (ae-forgotten-export) The symbol "ErrorBoundaryProps" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export const ErrorBoundary: Component<ErrorBoundaryProps>;
+// @public
+export type ExcludeControlFlow<T> = Exclude<T, AbortMessage | ServerError>;
 
 // @public (undocumented)
 export type FailOfRest<REST extends readonly DataValidator[]> = REST extends readonly DataValidator<infer ERROR>[] ? ERROR : never;
@@ -200,7 +205,7 @@ export type FailOfRest<REST extends readonly DataValidator[]> = REST extends rea
 export type FailReturn<T> = T & Failed;
 
 // @public (undocumented)
-export const Form: <O, I>(input: FormProps<O, I>, key: string | null) => JSXOutput;
+export const Form: <O, I>(input: FormProps<O, I>) => JSXOutput;
 
 // @public (undocumented)
 export interface FormProps<O, I> extends Omit<QwikJSX.IntrinsicElements['form'], 'action' | 'method'> {
@@ -219,6 +224,9 @@ export interface FormSubmitSuccessDetail<T> {
     // (undocumented)
     value: T;
 }
+
+// @public
+export const getRequestEvent: (thisArg?: unknown) => RequestEvent | undefined;
 
 // Warning: (ae-forgotten-export) The symbol "ValibotDataValidator" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "ZodDataValidator" needs to be exported by the entry point index.d.ts
@@ -247,6 +255,8 @@ export type HttpErrorProps = {
     message: string;
 };
 
+export { InternalRequest }
+
 // @public (undocumented)
 export type JSONObject = {
     [x: string]: JSONValue;
@@ -266,7 +276,7 @@ export const Link: Component<LinkProps>;
 export interface LinkProps extends AnchorAttributes {
     // @deprecated (undocumented)
     prefetch?: boolean | 'js';
-    prefetchBundle?: PrefetchStrategy;
+    prefetchBundles?: PrefetchStrategy;
     prefetchData?: PrefetchStrategy;
     // (undocumented)
     reload?: boolean;
@@ -278,12 +288,12 @@ export interface LinkProps extends AnchorAttributes {
 
 // @public (undocumented)
 type Loader_2<RETURN> = {
-    (): LoaderSignal<RETURN>;
+    (): LoaderSignal<ExcludeControlFlow<RETURN>>;
 };
 export { Loader_2 as Loader }
 
 // @public (undocumented)
-export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<infer VALIDATOR> ? Signal<ValueOrPromise<VALIDATOR>> : Signal<TYPE>) & Pick<AsyncSignal, 'promise' | 'loading' | 'error'>;
+export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<infer VALIDATOR> ? ComputedSignal<Awaited<VALIDATOR>> : ComputedSignal<TYPE>);
 
 // @public (undocumented)
 type NavigationType_2 = 'initial' | 'form' | 'link' | 'popstate';
@@ -375,11 +385,17 @@ export interface QwikRouterEnvData {
     // (undocumented)
     loadedRoute: LoadedRoute;
     // (undocumented)
+    loaderValues: Record<string, unknown>;
+    // (undocumented)
     params: PathParams;
     // Warning: (ae-forgotten-export) The symbol "EndpointResponse" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
     response: EndpointResponse;
+    // Warning: (ae-forgotten-export) The symbol "RouteLoaderCtx" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    routeLoaderCtx: RouteLoaderCtx;
     // (undocumented)
     routeName: string;
 }
@@ -388,7 +404,7 @@ export interface QwikRouterEnvData {
 export interface QwikRouterMockActionProp<T = any> {
     action: Action<T>;
     // Warning: (ae-forgotten-export) The symbol "RouteActionResolver" needs to be exported by the entry point index.d.ts
-    handler: QRL<(data: T) => ValueOrPromise_2<RouteActionResolver>>;
+    handler: QRL<(data: T) => ValueOrPromise<RouteActionResolver>>;
 }
 
 // @public (undocumented)
@@ -446,12 +462,10 @@ export type ResolvedDocumentHead<FrontMatter extends Record<string, any> = Recor
     readonly manifestHash: string;
 };
 
-// @public (undocumented)
+// @public
 export const routeAction$: ActionConstructor;
 
-// Warning: (ae-internal-missing-underscore) The name "routeActionQrl" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal (undocumented)
+// @public (undocumented)
 export const routeActionQrl: ActionConstructorQRL;
 
 // @public
@@ -470,11 +484,11 @@ export interface RouteConfigValue {
 // @public
 export interface RouteData {
     _0?: string;
-    _4?: ContentModuleLoader;
+    _4?: ContentModuleLoader | ModuleLoader[];
     _9?: string;
     [part: string]: RouteData | RouteData[] | ModuleLoader[] | ContentModuleLoader | MenuModuleLoader | string[] | string | undefined;
     _B?: string[];
-    _E?: ContentModuleLoader;
+    _E?: ContentModuleLoader | ModuleLoader[];
     _G?: string;
     // Warning: (ae-forgotten-export) The symbol "ModuleLoader" needs to be exported by the entry point index.d.ts
     _I?: ContentModuleLoader | ModuleLoader[];
@@ -484,11 +498,12 @@ export interface RouteData {
     // Warning: (ae-forgotten-export) The symbol "MenuModuleLoader" needs to be exported by the entry point index.d.ts
     _N?: MenuModuleLoader;
     _P?: string;
+    _R?: string[];
 }
 
 // Warning: (ae-forgotten-export) The symbol "LoaderConstructor" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public
 export const routeLoader$: LoaderConstructor;
 
 // Warning: (ae-forgotten-export) The symbol "LoaderConstructorQRL" needs to be exported by the entry point index.d.ts

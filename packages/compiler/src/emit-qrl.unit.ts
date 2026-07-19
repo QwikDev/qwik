@@ -19,7 +19,7 @@ describe('setup QRL emission', () => {
       code: `import { useComputed$, useSignal } from '@qwik.dev/core';
 export function useCounter(initial) {
   const count = useSignal(initial);
-  const double = useComputed$(() => count.value * 2);
+  const double = useComputed$(async () => count.value * 2, { initial: 0 });
   return { count, double };
 }
 `,
@@ -36,9 +36,11 @@ export function useCounter(initial) {
     expect(csr.diagnostics).toEqual([]);
     expect(ssr.modules).toHaveLength(2);
     expect(csr.modules).toHaveLength(2);
-    expect(ssrMain).toContain('useComputedQrl(q_use_counter_useComputed$_segment_0.w([count]))');
+    expect(ssrMain).toContain(
+      'useComputedQrl(q_use_counter_useComputed$_segment_0.w([count]), { initial: 0 })'
+    );
     expect(csrMain).toContain(
-      'useComputed(_withCaptures(use_counter_useComputed$_segment_0, [count]))'
+      'useComputed(_withCaptures(use_counter_useComputed$_segment_0, [count]), { initial: 0 })'
     );
   });
 

@@ -27,7 +27,7 @@ export class SerializerSignal<T, S = unknown> extends Computed<T> {
     public container?: ContainerContext,
     public arg: SerializerArg<T, S> | null = null
   ) {
-    super(computeSerializerValue);
+    super(null, computeSerializerValue);
     this.v = NEEDS_COMPUTATION as T;
   }
 

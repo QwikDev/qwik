@@ -5,7 +5,7 @@
  */
 import { isBrowser } from '@qwik.dev/core/build';
 import { verifySerializable } from '../serdes/verify';
-import type { LazyRef, QRLClass } from './qrl-class';
+import type { LazyRef, QRLClass, QrlCaptures } from './qrl-class';
 import type { ContainerContext } from '../../runtime/container-context';
 
 /** Initialize dev properties on a LazyRef instance. */
@@ -19,10 +19,10 @@ export const initLazyRefDev = (lazy: LazyRef): void => {
 /** Validate captured scope and register WeakRef tracking on a QRLClass instance. */
 export const initQrlClassDev = (
   lazy: LazyRef,
-  captures: Readonly<unknown[]> | string | null | undefined,
+  captures: QrlCaptures | undefined,
   qrl: QRLClass<any>
 ): void => {
-  if (captures && typeof captures === 'object') {
+  if (Array.isArray(captures)) {
     for (let i = 0; i < captures.length; i++) {
       const item = captures[i];
       verifySerializable(item, 'Captured variable in the closure can not be serialized');
@@ -75,7 +75,7 @@ export const setupHmr = (
     return `${path}?${params.join('&')}`;
   };
 
-  document.addEventListener('qHmr' as any, (ev: CustomEvent<{ files: string[]; t: number }>) => {
+  const hmrHandler = (ev: CustomEvent<{ files: string[]; t: number }>) => {
     const files = ev.detail.files;
     const t = ev.detail.t || (document as any).__hmrT || Date.now();
     let didReload = false;
@@ -114,7 +114,6 @@ export const setupHmr = (
       }
       if (didReload) {
         lazy.$ref$ = undefined;
-        (document as any).__hmrDone = (document as any).__hmrT;
         if (lazy.qrls) {
           for (const qrlRef of lazy.qrls) {
             const qrl = qrlRef.deref();
@@ -129,5 +128,6 @@ export const setupHmr = (
         }
       }
     }
-  });
+  };
+  document.addEventListener('qHmr' as any, hmrHandler, true);
 };

@@ -4,6 +4,8 @@ title: \@qwik.dev/qwik/optimizer API Reference
 
 # [API](/api) &rsaquo; @qwik.dev/qwik/optimizer
 
+<h2 id="experimentalfeatures-blockssr">blockSSR</h2>
+
 <h2 id="bundlegraphadder">BundleGraphAdder</h2>
 
 A function that returns a map of bundle names to their dependencies.
@@ -49,6 +51,19 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
+blockSSR
+
+</td><td>
+
+`"blockSSR"`
+
+</td><td>
+
+Enable the `blockSSR: false` route loader option
+
+</td></tr>
+<tr><td>
+
 each
 
 </td><td>
@@ -84,6 +99,19 @@ noSPA
 </td><td>
 
 Disable SPA navigation handler in Qwik Router
+
+</td></tr>
+<tr><td>
+
+show
+
+</td><td>
+
+`"show"`
+
+</td><td>
+
+Enable the Show conditional primitive
 
 </td></tr>
 <tr><td>
@@ -1198,19 +1226,6 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-getAssetsDir
-
-</td><td>
-
-</td><td>
-
-() =&gt; string \| undefined
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
 getClientOutDir
 
 </td><td>
@@ -1285,6 +1300,21 @@ getRootDir
 () =&gt; string \| null
 
 </td><td>
+
+</td></tr>
+<tr><td>
+
+onSegment
+
+</td><td>
+
+</td><td>
+
+(callback: SegmentCallback) =&gt; void
+
+</td><td>
+
+Register a callback that fires for each segment emitted during transform.
 
 </td></tr>
 <tr><td>
@@ -1418,6 +1448,8 @@ export type ServerQwikManifest = Pick<
 **References:** [QwikManifest](#qwikmanifest)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/types.ts)
+
+<h2 id="experimentalfeatures-show">show</h2>
 
 <h2 id="experimentalfeatures-suspense">suspense</h2>
 

@@ -45,6 +45,7 @@ pub struct ExportInfo {
 pub struct GlobalCollect {
 	pub synthetic: Vec<(Id, Import)>,
 	pub imports: IndexMap<Id, Import>,
+	pub dynamic_imports: Vec<Atom>,
 	pub exports: IndexMap<Atom, ExportInfo>,
 	pub root: IndexMap<Id, Span>,
 
@@ -57,6 +58,7 @@ pub fn global_collect(program: &ast::Program) -> GlobalCollect {
 	let mut collect = GlobalCollect {
 		synthetic: vec![],
 		imports: IndexMap::with_capacity(16),
+		dynamic_imports: vec![],
 		exports: IndexMap::with_capacity(16),
 
 		root: IndexMap::with_capacity(16),
@@ -290,6 +292,17 @@ impl Visit for GlobalCollect {
 				}
 			}
 		}
+	}
+
+	fn visit_call_expr(&mut self, node: &ast::CallExpr) {
+		if matches!(&node.callee, ast::Callee::Import(_)) {
+			if let Some(arg) = node.args.first() {
+				if let ast::Expr::Lit(ast::Lit::Str(source)) = &*arg.expr {
+					self.dynamic_imports.push(source.value.clone());
+				}
+			}
+		}
+		node.visit_children_with(self);
 	}
 
 	fn visit_named_export(&mut self, node: &ast::NamedExport) {

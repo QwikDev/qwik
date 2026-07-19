@@ -11,16 +11,18 @@ import type { FailReturn } from '@qwik.dev/router';
 import type { JSXOutput } from '@qwik.dev/core';
 import type { Loader as Loader_2 } from '@qwik.dev/router';
 import type { QwikIntrinsicElements } from '@qwik.dev/core';
-import type { Render } from '@qwik.dev/core/server';
 import type { RenderOptions } from '@qwik.dev/core/server';
+import type { RenderToStreamOptions } from '@qwik.dev/core/server';
+import type { RenderToStreamResult } from '@qwik.dev/core/server';
+import type { RenderToStringResult } from '@qwik.dev/core/server';
 import { RequestEvent as RequestEvent_2 } from '@qwik.dev/router/middleware/request-handler';
 import type { RequestHandler as RequestHandler_2 } from '@qwik.dev/router/middleware/request-handler';
 import type { ResolveSyncValue as ResolveSyncValue_2 } from '@qwik.dev/router/middleware/request-handler';
-import { SerializationStrategy } from '@qwik.dev/core/internal';
 import type { ValueOrPromise } from '@qwik.dev/core';
 
 // @public (undocumented)
 export class AbortMessage {
+    readonly __controlFlow: true;
 }
 
 // Warning: (ae-forgotten-export) The symbol "RequestEventInternal" needs to be exported by the entry point index.d.ts
@@ -32,6 +34,9 @@ export let _asyncRequestStore: AsyncLocalStorage<RequestEventInternal> | undefin
 //
 // @public (undocumented)
 export type CacheControl = CacheControlOptions | number | 'day' | 'week' | 'month' | 'year' | 'no-cache' | 'immutable' | 'private';
+
+// @public
+export function clearLoaderCache(cacheKey?: string): void;
 
 // @public
 export function clearSsrCache(cacheKey?: string): void;
@@ -88,10 +93,8 @@ export interface EnvGetter {
 // @public (undocumented)
 export function getErrorHtml(status: number, e: any): string;
 
-// Warning: (ae-internal-missing-underscore) The name "getNotFound" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function getNotFound(prefix: string): string;
+// @public
+export type InternalRequest = false | 'loader' | 'action';
 
 // Warning: (ae-internal-missing-underscore) The name "isStaticPath" should be prefixed with an underscore because the declaration is marked as @internal
 //
@@ -104,6 +107,9 @@ export const mergeHeadersCookies: (headers: Headers, cookies: Cookie) => Headers
 // @public (undocumented)
 export class RedirectMessage extends AbortMessage {
 }
+
+// @public (undocumented)
+export type Render = (options: RenderToStreamOptions) => Promise<RenderToStringResult | RenderToStreamResult>;
 
 // @public (undocumented)
 export interface RequestEvent<PLATFORM = QwikRouterPlatform> extends RequestEventCommon<PLATFORM> {
@@ -128,6 +134,7 @@ export interface RequestEventBase<PLATFORM = QwikRouterPlatform> {
     readonly cookie: Cookie;
     readonly env: EnvGetter;
     readonly headers: Headers;
+    readonly internalRequest: InternalRequest;
     readonly method: string;
     readonly originalUrl: URL;
     readonly params: Readonly<Record<string, string>>;
@@ -168,13 +175,8 @@ export interface RequestEventLoader<PLATFORM = QwikRouterPlatform> extends Reque
     resolveValue: ResolveValue;
 }
 
-// Warning: (ae-internal-missing-underscore) The name "RequestEvShareQData" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal (undocumented)
-export const RequestEvShareQData = "qData";
-
 // @public (undocumented)
-export type RequestHandler<PLATFORM = QwikRouterPlatform> = (ev: RequestEvent<PLATFORM>) => Promise<void> | void;
+export type RequestHandler<PLATFORM = QwikRouterPlatform> = (ev: RequestEvent<PLATFORM>) => Promise<void | AbortMessage | ServerError> | void | AbortMessage | ServerError;
 
 // Warning: (ae-forgotten-export) The symbol "QwikRouterRun" needs to be exported by the entry point index.d.ts
 //

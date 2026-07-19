@@ -13,60 +13,14 @@ import type { ServerQwikManifest } from '@qwik.dev/core/optimizer';
 // @public
 export const $: <T>(expression: T) => QRL<T>;
 
-// @public (undocumented)
-export type AsyncCtx<T = unknown> = {
-    track: Tracker;
-    cleanup(callback: () => ValueOrPromise<void>): void;
-    readonly abortSignal: AbortSignal;
-    readonly previous: T | undefined;
-    readonly info?: unknown;
-};
+// @public @deprecated (undocumented)
+export type AsyncCtx<T = unknown> = ComputeCtx<T>;
 
-// @public (undocumented)
-export interface AsyncSignal<T = unknown> extends Signal<T> {
-    // (undocumented)
-    abort(reason?: unknown): void;
-    // (undocumented)
-    error: Error | undefined;
-    // (undocumented)
-    expires: number;
-    // @deprecated (undocumented)
-    interval: number;
-    // (undocumented)
-    invalidate(info?: unknown): void;
-    // (undocumented)
-    loading: boolean;
-    // (undocumented)
-    poll: boolean;
-    // (undocumented)
-    promise(): Promise<void>;
-    // (undocumented)
-    untrackedError: Error | undefined;
-    // (undocumented)
-    untrackedLoading: boolean;
-}
+// @public @deprecated (undocumented)
+export type AsyncSignal<T = unknown> = ComputedSignal<T>;
 
-// @public (undocumented)
-export interface AsyncSignalOptions<T> {
-    // (undocumented)
-    allowStale?: boolean;
-    // (undocumented)
-    clientOnly?: boolean;
-    // (undocumented)
-    concurrency?: number;
-    // (undocumented)
-    eagerCleanup?: boolean;
-    // (undocumented)
-    expires?: number;
-    // (undocumented)
-    initial?: T | (() => T);
-    // @deprecated (undocumented)
-    interval?: number;
-    // (undocumented)
-    poll?: boolean;
-    // (undocumented)
-    timeout?: number;
-}
+// @public @deprecated (undocumented)
+export type AsyncSignalOptions<T = unknown> = ComputedOptions<T>;
 
 // @public
 export type ClassList = string | undefined | null | false | Record<string, boolean | string | number | null | undefined> | ClassList[];
@@ -86,7 +40,67 @@ export interface ComponentBaseProps {
 }
 
 // @public (undocumented)
-export type ComputedSignal<T = unknown> = ReadonlySignal<T>;
+export type ComputeCtx<T = unknown> = {
+    track: Tracker;
+    cleanup(callback: () => ValueOrPromise<void>): void;
+    readonly abortSignal: AbortSignal;
+    readonly previous: T | undefined;
+    readonly info?: unknown;
+};
+
+// @public (undocumented)
+export interface ComputedOptions<T = unknown> {
+    // (undocumented)
+    allowStale?: boolean;
+    // (undocumented)
+    clientOnly?: boolean;
+    // (undocumented)
+    concurrency?: number;
+    // (undocumented)
+    eagerCleanup?: boolean;
+    // (undocumented)
+    expires?: number;
+    // (undocumented)
+    initial?: T | (() => T);
+    // @deprecated (undocumented)
+    interval?: number;
+    // (undocumented)
+    poll?: boolean;
+    // (undocumented)
+    serializationStrategy?: SerializationStrategy;
+    // (undocumented)
+    timeout?: number;
+}
+
+// @public (undocumented)
+export interface ComputedSignal<T = unknown> extends ReadonlySignal<T> {
+    // (undocumented)
+    abort(reason?: unknown): void;
+    // (undocumented)
+    readonly error: Error | undefined;
+    // (undocumented)
+    expires: number;
+    // @deprecated (undocumented)
+    interval: number;
+    // (undocumented)
+    invalidate(info?: unknown): void;
+    // @deprecated (undocumented)
+    readonly loading: boolean;
+    // (undocumented)
+    readonly pending: boolean;
+    // (undocumented)
+    poll: boolean;
+    // (undocumented)
+    promise(): Promise<void>;
+    // (undocumented)
+    trigger(): void;
+    // (undocumented)
+    readonly untrackedError: Error | undefined;
+    // @deprecated (undocumented)
+    readonly untrackedLoading: boolean;
+    // (undocumented)
+    readonly untrackedPending: boolean;
+}
 
 // @public (undocumented)
 export interface ContextId<STATE> {
@@ -182,7 +196,7 @@ export type KnownEventNames = LiteralUnion<AllEventKeys, string>;
 
 // @public
 export type NoSerialize<T> = (T & {
-    __no_serialize__?: true;
+    __no_serialize__: true;
 }) | undefined;
 
 // @public
@@ -940,11 +954,11 @@ export function untrack<T, TArgs extends unknown[]>(run: (...args: TArgs) => T, 
 // @public (undocumented)
 export function unwrapStore<T>(value: T): T;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export const useAsync$: <T>(qrl: (ctx: AsyncCtx<T>) => ValueOrPromise<T>, options?: AsyncSignalOptions<T>) => AsyncSignal<T>;
 
 // @public (undocumented)
-export const useComputed$: <T>(qrl: () => T) => ComputedSignal<T>;
+export const useComputed$: <T>(qrl: (ctx: ComputeCtx<Awaited<T>>) => T, options?: ComputedOptions<Awaited<T>>) => ComputedSignal<Awaited<T>>;
 
 // @public (undocumented)
 export function useConstant<T, A extends unknown[]>(value: T | ((...args: A) => T), ...args: A): T;

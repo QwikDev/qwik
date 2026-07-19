@@ -74,7 +74,6 @@ class DeserializationHandler implements ProxyHandler<object> {
     if (needsInflation(typeId)) {
       inflate(context, propValue, typeId, value);
     }
-
     return propValue;
   }
 

@@ -8,7 +8,7 @@ import type { Http2ServerRequest } from 'node:http2';
 import type { IncomingMessage } from 'node:http';
 import type { NodeRequestNextFunction } from '@qwik.dev/router/middleware/node';
 import type { QwikManifest } from '@qwik.dev/core/optimizer';
-import type { Render } from '@qwik.dev/core/server';
+import type { Render } from '@qwik.dev/router/middleware/request-handler';
 import type { ServerRenderOptions } from '@qwik.dev/router/middleware/request-handler';
 import type { ServerResponse } from 'node:http';
 

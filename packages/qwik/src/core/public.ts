@@ -59,7 +59,9 @@ export const useSignal = useSignalImpl as {
 export type {
   AsyncCtx,
   AsyncSignalOptions,
+  ComputedOptions,
   ComputedSignal,
+  ComputeCtx,
   PublicSignal as Signal,
   PublicAsyncSignal as AsyncSignal,
   ReadonlySignal,

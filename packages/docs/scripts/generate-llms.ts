@@ -740,8 +740,13 @@ function preprocessMediaBlocks(sourceContent: string) {
   return content;
 }
 
+/** Drop the `<Term>` wrapper in markdown mirrors, keeping the inline word (its children). */
+function stripGlossaryTerms(sourceContent: string) {
+  return sourceContent.replace(/<\/?Term\b[^>]*>/gi, '');
+}
+
 function preprocessSimpleHtml(sourceContent: string) {
-  return sourceContent
+  return stripGlossaryTerms(sourceContent)
     .replace(/<br\s*\/?>/gi, ' ')
     .replace(/^\s*<\/?(?:div|video|source)\b[^>]*>\s*$/gim, '')
     .replace(/\n{3,}/g, '\n\n');

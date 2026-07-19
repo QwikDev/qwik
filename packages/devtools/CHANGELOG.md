@@ -1,5 +1,65 @@
 # @qwik.dev/devtools
 
+## 0.3.0-beta.2
+
+### Minor Changes
+
+- ✨ customize which tabs appear in the devtools sidebar (by [@Aejkatappaja](https://github.com/Aejkatappaja) in [#8833](https://github.com/QwikDev/qwik/pull/8833))
+
+- ✨ reach hidden devtools tabs from a sidebar More panel (by [@Aejkatappaja](https://github.com/Aejkatappaja) in [#8833](https://github.com/QwikDev/qwik/pull/8833))
+
+- ✨ drag to reorder the visible devtools sidebar tabs (by [@Aejkatappaja](https://github.com/Aejkatappaja) in [#8833](https://github.com/QwikDev/qwik/pull/8833))
+
+### Patch Changes
+
+- refactor(devtools): extract findComponentKey and component-name derivation as runtime utilities (by [@Aejkatappaja](https://github.com/Aejkatappaja) in [#8803](https://github.com/QwikDev/qwik/pull/8803))
+
+  The component-key lookup and the "name after the last underscore" derivation were inlined inside
+  the hook runtime installer and duplicated across getComponentDetail, setSignalValue, and
+  getComponentTreeSnapshot. They are now top-level `__qwik_find_component_key__` and
+  `__qwik_derive_component_name__` functions, emitted by name into the injected runtime bundle and
+  reused by every caller. Being pure, they are also covered by unit tests.
+
+- refactor: share the page data source contract between the ui and extension (by [@Aejkatappaja](https://github.com/Aejkatappaja) in [#8804](https://github.com/QwikDev/qwik/pull/8804))
+
+- refactor(devtools): single source of truth for shared protocol types (by [@Aejkatappaja](https://github.com/Aejkatappaja) in [#8712](https://github.com/QwikDev/qwik/pull/8712))
+
+  The VNode tree node, component detail entry, and render event shapes were declared
+  three times: in the browser extension, in the devtools UI, and in the kit client
+  bridge. They now live once in @qwik.dev/devtools/kit (protocol module) as
+  DevtoolsVNodeTreeNode, DevtoolsComponentDetailEntry, and DevtoolsRenderEvent, and
+  every consumer imports them from there.
+
+- refactor(devtools): generate the extension VNode bridge from one shared source (by [@Aejkatappaja](https://github.com/Aejkatappaja) in [#8713](https://github.com/QwikDev/qwik/pull/8713))
+
+  The browser extension's `public/vnode-bridge.js` duplicated the VNode bridge logic
+  (tree building, prop serialization, name normalization, DOM resolution, highlighting,
+  component tree update posting) that the Vite plugin already owns via
+  `__qwik_install_vnode_runtime__` / `createVNodeRuntime()`. It is now generated from
+  that single canonical source by the extension build (alongside `devtools-hook.js`)
+  and is no longer committed.
+
+- refactor: drive the devtools sidebar from a configurable visible-tabs list (by [@Aejkatappaja](https://github.com/Aejkatappaja) in [#8833](https://github.com/QwikDev/qwik/pull/8833))
+
+- ✨ enhances the devtools package management experience by adding dependency inspection, search, install, update, and feedback flows to the Packages panel. (by [@JerryWu1234](https://github.com/JerryWu1234) in [#8768](https://github.com/QwikDev/qwik/pull/8768))
+
+## 0.3.0-beta.1
+
+### Patch Changes
+
+- refactor(devtools): single canonical devtools hook runtime (by [@Aejkatappaja](https://github.com/Aejkatappaja) in [#8705](https://github.com/QwikDev/qwik/pull/8705))
+
+  The browser extension's injected hook script (`devtools-hook.js`) is now generated
+  from the same `__qwik_install_hook_runtime__` implementation used by the Vite plugin,
+  instead of being a hand-maintained duplicate. A new build-time `@qwik.dev/devtools/codegen`
+  entry exposes the runtime-string builders so both injection paths stay in sync.
+
+- unify devtools global state access and update hook references (by [@JerryWu1234](https://github.com/JerryWu1234) in [#8702](https://github.com/QwikDev/qwik/pull/8702))
+
+- Updated dependencies [[`d4f40ac`](https://github.com/QwikDev/qwik/commit/d4f40acdcbd437095c34255e878338f1e88f207b), [`48fb84e`](https://github.com/QwikDev/qwik/commit/48fb84ed0eb723ab6c6d32eb2b028e447a76ee0f), [`48fb84e`](https://github.com/QwikDev/qwik/commit/48fb84ed0eb723ab6c6d32eb2b028e447a76ee0f), [`a8509c1`](https://github.com/QwikDev/qwik/commit/a8509c1c312a3c9c9434b4050650970807ca38e0), [`e3cd979`](https://github.com/QwikDev/qwik/commit/e3cd979621d95485c7da29bb6c7322b63529bcfb), [`8e40b1f`](https://github.com/QwikDev/qwik/commit/8e40b1f0b004e65405328398f57033a4441becb1), [`48fb84e`](https://github.com/QwikDev/qwik/commit/48fb84ed0eb723ab6c6d32eb2b028e447a76ee0f), [`3b7f050`](https://github.com/QwikDev/qwik/commit/3b7f0508514c5544d532c53db99c27d3d2128990), [`e3cd979`](https://github.com/QwikDev/qwik/commit/e3cd979621d95485c7da29bb6c7322b63529bcfb), [`48fb84e`](https://github.com/QwikDev/qwik/commit/48fb84ed0eb723ab6c6d32eb2b028e447a76ee0f), [`e959cef`](https://github.com/QwikDev/qwik/commit/e959cefc1d938a44540cf4efd942563eb9c53b07), [`27505d5`](https://github.com/QwikDev/qwik/commit/27505d5081d90950af286521da05a5df9620887a), [`9ff0dd4`](https://github.com/QwikDev/qwik/commit/9ff0dd4351154098ae098358089a510ed2e0d770), [`e3cd979`](https://github.com/QwikDev/qwik/commit/e3cd979621d95485c7da29bb6c7322b63529bcfb), [`1722083`](https://github.com/QwikDev/qwik/commit/17220833f006925023c2dfd043388570c091a32d), [`021b4ce`](https://github.com/QwikDev/qwik/commit/021b4ce37073836527fab3fef324675f89005cc0), [`3dcb29b`](https://github.com/QwikDev/qwik/commit/3dcb29b803acb9de1d124fb1ac685b68d647be6c), [`129a54e`](https://github.com/QwikDev/qwik/commit/129a54ef5c90a82dc50ca05d430995baa3bf4255), [`48fb84e`](https://github.com/QwikDev/qwik/commit/48fb84ed0eb723ab6c6d32eb2b028e447a76ee0f)]:
+  - @qwik.dev/core@2.0.0-beta.37
+  - @qwik.dev/router@2.0.0-beta.37
+
 ## 0.3.0-beta.0
 
 ### Minor Changes

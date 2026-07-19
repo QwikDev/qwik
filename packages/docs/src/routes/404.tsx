@@ -84,7 +84,7 @@ export default component$(() => {
         <Spacer class="2xl:h-[254px] h-[64px]" />
         <Decor />
         <div class="absolute right-0 translate-x-[60%] translate-y-[130%] 2xl:translate-x-[60%] 2xl:translate-y-[50%] rounded-full size-[300px] 2xl:size-[1054px] bg-secondary-background-base -z-10 opacity-50"></div>
-        <Rocket class="absolute right-0 bottom-0 2xl:scale-100 scale-50 -translate-x-5 translate-y-15 2xl:-translate-y-10 2xl:-translate-x-[135%]" />
+        <Rocket class="absolute right-0 bottom-0 2xl:scale-100 scale-50 -translate-x-5 translate-y-15 2xl:-translate-y-10 2xl:translate-x-[-135%]" />
 
         <div class="container max-w-[975px] relative">
           <Clouds />

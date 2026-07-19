@@ -52,7 +52,7 @@ export const Form = <O, I>({
       action={action.actionPath}
       preventdefault:submit={!reloadDocument}
       onSubmit$={
-        Array.isArray(onSubmit$)
+        (Array.isArray(onSubmit$)
           ? [
               ...onSubmit$,
               !reloadDocument
@@ -63,7 +63,7 @@ export const Form = <O, I>({
                   })
                 : undefined,
             ]
-          : [onSubmit$, !reloadDocument ? action.submit : undefined]
+          : [onSubmit$, !reloadDocument ? action.submit : undefined]) as any
       }
       method="post"
       data-spa-reset={spaReset ? 'true' : undefined}

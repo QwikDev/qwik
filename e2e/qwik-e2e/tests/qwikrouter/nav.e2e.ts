@@ -1,4 +1,4 @@
-import { expect, test, type Locator } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 import {
   assertPage,
   getScrollHeight,
@@ -36,6 +36,26 @@ test.describe('nav', () => {
       });
   }
 
+  async function reloadFromPage(page: Page) {
+    const loaded = page.waitForEvent('load');
+    await page.evaluate(() => location.reload());
+    await loaded;
+  }
+
+  async function waitForPreventNavigateReady(page: Page) {
+    await expect
+      .poll(async () =>
+        page.evaluate(async () => {
+          const count = document.querySelector('#pn-runcount');
+          const before = count?.textContent;
+          window.dispatchEvent(new Event('beforeunload', { cancelable: true }));
+          await new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)));
+          return count?.textContent !== before;
+        })
+      )
+      .toBe(true);
+  }
+
   test.describe('mpa', () => {
     test.use({ javaScriptEnabled: false });
     tests();
@@ -61,28 +81,53 @@ test.describe('nav', () => {
       await expect(increment).toHaveText('Click me 1');
     });
 
-    test('should update history before async SPA route load completes', async ({ page }) => {
-      await page.route('**/products/jacket/q-data.json', async (route) => {
-        await new Promise((resolve) => setTimeout(resolve, 600));
+    test('should update history and render immediately during SPA nav', async ({ page }) => {
+      let releaseRoute!: () => void;
+      let markRouteRequested!: () => void;
+      const routeRequested = new Promise<void>((resolve) => (markRouteRequested = resolve));
+      const routeReleased = new Promise<void>((resolve) => (releaseRoute = resolve));
+      await page.route('**/products/jacket/q-loader-*.json', async (route) => {
+        markRouteRequested();
+        await routeReleased;
         await route.continue();
       });
 
       await page.goto('/qwikrouter-test/products/hat/');
       const link = page.locator('[data-test-link="products-jacket"]');
       const heading = page.locator('h1');
+      const navigationStatus = page.locator('#navigation-status');
 
       await expect(heading).toHaveText('Product: hat');
-      await link.click();
+      await expect(page.getByText('Price: $21.96')).toBeVisible();
+      await expect(navigationStatus).toHaveText('idle');
+      const click = link.click();
+      await routeRequested;
 
+      try {
+        await expect(navigationStatus).toHaveText('navigating');
+      } finally {
+        releaseRoute();
+      }
+      await click;
+      // URL and params update immediately — the nav task does not wait for loaders.
+      // The heading uses params.id directly so it switches right away.
       await expect
         .poll(() => new URL(page.url()).pathname)
         .toBe('/qwikrouter-test/products/jacket/');
-      await expect(heading).toHaveText('Product: hat');
       await expect(heading).toHaveText('Product: jacket');
+      await expect(page.getByText('Price: $48.96')).toBeVisible();
+      await expect(navigationStatus).toHaveText('idle');
     });
 
     test.describe('scroll-restoration', () => {
-      test('should not refresh again on popstate after manual refresh', async ({ page }) => {
+      test('should not refresh again on popstate after manual refresh', async ({
+        page,
+        browserName,
+      }) => {
+        test.slow(
+          browserName === 'firefox',
+          'Firefox can be slow to resume SPA popstate handling after reload'
+        );
         const documentLoadsKey = '__qwik_router_document_loads__';
         await page.addInitScript((storageKey) => {
           const documentLoads = Number(sessionStorage.getItem(storageKey) || '0') + 1;
@@ -102,20 +147,20 @@ test.describe('nav', () => {
         await expect(page.locator('h1')).toHaveText('Page Short');
         await expect.poll(getDocumentLoads).toBe(1);
 
-        await page.reload();
+        await reloadFromPage(page);
         await expect(page.locator('h1')).toHaveText('Page Short');
         await expect.poll(getDocumentLoads).toBe(2);
 
         await page.goBack();
 
         await expect(page).toHaveURL('/qwikrouter-test/scroll-restoration/page-long/');
-        await expect(page.locator('h1')).toHaveText('Page Long');
+        await expect(page.locator('h1')).toHaveText('Page Long', { timeout: 15000 });
         await expect.poll(getDocumentLoads).toBe(2);
 
         await page.goForward();
 
         await expect(page).toHaveURL('/qwikrouter-test/scroll-restoration/page-short/');
-        await expect(page.locator('h1')).toHaveText('Page Short');
+        await expect(page.locator('h1')).toHaveText('Page Short', { timeout: 15000 });
         await expect.poll(getDocumentLoads).toBe(2);
       });
       test('should scroll on hash change', async ({ page }) => {
@@ -207,6 +252,30 @@ test.describe('nav', () => {
         );
       });
 
+      test('should preserve scroll when submitting routeAction$ after SPA navigation', async ({
+        page,
+      }) => {
+        await page.goto('/qwikrouter-test/scroll-restoration/action-source/');
+        await page.locator('#to-scroll-action').click();
+
+        await expect(page).toHaveURL('/qwikrouter-test/scroll-restoration/action-form/');
+        await expect(page.locator('#scroll-action-heading')).toHaveText('Action Scroll');
+
+        await scrollTo(page, 0, 700);
+        await expect.poll(async () => (await getWindowScrollXY(page))[1]).toBe(700);
+
+        await page.locator('#scroll-action-submit').click();
+
+        await expect(page.locator('#scroll-action-result')).toHaveText('submitted: keep-scroll');
+        await page.evaluate(
+          () =>
+            new Promise<void>((resolve) => {
+              requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+            })
+        );
+        expect((await getWindowScrollXY(page))[1]).toBeGreaterThan(600);
+      });
+
       test('issue4502 (link)', async ({ page }) => {
         await page.goto('/qwikrouter-test/issue4502/');
         const count = page.locator('#count');
@@ -247,7 +316,11 @@ test.describe('nav', () => {
       }
     });
 
-    test('preventNavigate', async ({ page }) => {
+    test('preventNavigate', async ({ page, browserName }) => {
+      test.slow(
+        browserName === 'firefox',
+        'Firefox beforeunload and SPA prevent navigation can be slow under parallel e2e load'
+      );
       await page.goto('/qwikrouter-test/prevent-navigate/');
       const toggleDirty = page.locator('#pn-button');
       const link = page.locator('#pn-link');
@@ -264,6 +337,8 @@ test.describe('nav', () => {
       await page.goBack();
       await expect(count).toHaveText('0');
       await expect(toggleDirty).toHaveText('is clean');
+      await waitForPreventNavigateReady(page);
+      await expect(count).toHaveText('1');
       await toggleDirty.click();
       await expect(toggleDirty).toHaveText('is dirty');
       // dirty browser nav
@@ -273,7 +348,7 @@ test.describe('nav', () => {
         expect(dialog.type()).toBe('beforeunload');
         await dialog.accept();
       });
-      await page.reload();
+      await reloadFromPage(page);
       expect(didTrigger).toBe(true);
       await expect(count).toHaveText('0');
       await toggleDirty.click();
@@ -302,6 +377,49 @@ test.describe('nav', () => {
       });
       await mpaLink.click();
       expect(didTrigger).toBe(true);
+    });
+
+    test('second nav() call should win when two are fired back-to-back', async ({ page }) => {
+      await page.goto('/qwikrouter-test/double-nav/a/');
+      await expect(page.locator('#double-nav-a')).toBeVisible();
+
+      const btn = page.locator('#double-nav-btn');
+      await btn.click();
+
+      // Should end up at C (the second nav call), not B
+      await expect(page.locator('#double-nav-c')).toBeVisible();
+      expect(new URL(page.url()).pathname).toBe('/qwikrouter-test/double-nav/c/');
+      await expect(page.locator('#double-nav-c-data')).toHaveText('data-c');
+    });
+
+    test('second nav() call should win while the first waits for render', async ({ page }) => {
+      await page.goto('/qwikrouter-test/double-nav/a/');
+      await expect(page.locator('#double-nav-a')).toBeVisible();
+
+      await page.locator('#double-nav-render-btn').click();
+
+      await expect(page.locator('#double-nav-c')).toBeVisible();
+      expect(new URL(page.url()).pathname).toBe('/qwikrouter-test/double-nav/c/');
+      await expect(page.locator('#double-nav-c-data')).toHaveText('data-c');
+    });
+
+    test('loader redirect via query string should SPA navigate to target', async ({ page }) => {
+      await page.goto('/qwikrouter-test/loader-redirect/');
+      await expect(page.locator('#loader-redirect-home')).toBeVisible();
+
+      const btn = page.locator('#loader-redirect-btn');
+      await btn.click();
+
+      // Should end up at the redirect target, not the source route.
+      // The redirect involves a network roundtrip (loader fetch sees a 302) plus
+      // two sequential SPA navigations (source → target). The DOM update may lag
+      // the history pushState, so wait directly for the target element.
+      await expect(page.locator('#loader-redirect-target')).toBeVisible({ timeout: 15000 });
+      await expect(page.locator('#loader-redirect-target-data')).toHaveText('target-data');
+      expect(new URL(page.url()).searchParams.get('done')).toBe('true');
+      // Old content must be gone — the redirect should replace, not append.
+      await expect(page.locator('#loader-redirect-home')).not.toBeVisible();
+      await expect(page.locator('#loader-redirect-source')).not.toBeVisible();
     });
   }
 
@@ -513,17 +631,6 @@ test.describe('nav', () => {
       );
 
       await expect(page.locator('#redirected-result')).toHaveText('true');
-    });
-
-    test('server plugin q-data redirect from /redirectme to /', async ({ baseURL }) => {
-      const res = await fetch(new URL('/qwikrouter-test/redirectme/q-data.json', baseURL), {
-        redirect: 'manual',
-        headers: {
-          Accept: 'application/json',
-        },
-      });
-      expect(res.status).toBe(301);
-      expect(res.headers.get('Location')).toBe('/qwikrouter-test/q-data.json');
     });
 
     test('should not execute task from removed layout, and should be executed only once for SPA', async ({

@@ -1,4 +1,3 @@
-import type { ResolvedId } from 'rollup';
 import type {
   BuildOptions,
   ConfigEnv,
@@ -13,12 +12,14 @@ import type {
   Optimizer,
   OptimizerOptions,
   QwikManifest,
+  SegmentAnalysis,
   TransformModule,
 } from '../types';
 import { type BundleGraphAdder } from './bundle-graph';
 import { configurePreviewServer, getViteIndexTags } from './dev';
 import { getImageSizeServer } from './dev/image-size-server';
 import {
+  createQwikPlugin,
   QWIK_BUILD_ID,
   QWIK_CLIENT_MANIFEST_ID,
   QWIK_CORE_ID,
@@ -26,7 +27,6 @@ import {
   QWIK_JSX_DEV_RUNTIME_ID,
   QWIK_JSX_RUNTIME_ID,
   TRANSFORM_REGEX,
-  createQwikPlugin,
   type ExperimentalFeatures,
   type NormalizedQwikPluginOptions,
   type QwikBuildMode,
@@ -37,10 +37,6 @@ import {
 import { createRollupError, normalizeRollupOutputOptions } from './rollup';
 import { isVirtualId } from './vite-utils';
 import {
-  createBuildWorkerQrlChunkResolver,
-  rewriteWorkerQrlChunkPlaceholders,
-} from './worker-qrl-chunks';
-import {
   emitQwikWorkerCoreChunk,
   getQwikWorkerConfig,
   isQwikWorkerCoreId,
@@ -49,6 +45,10 @@ import {
   rewriteClientWorkerCorePlaceholders,
   rewriteSsrWorkerCorePlaceholders,
 } from './worker-core';
+import {
+  createBuildWorkerQrlChunkResolver,
+  rewriteWorkerQrlChunkPlaceholders,
+} from './worker-qrl-chunks';
 
 const DEDUPE = [
   QWIK_CORE_ID,
@@ -110,11 +110,9 @@ type P<T> = VitePlugin<T> & { api: T; config: Extract<VitePlugin<T>['config'], F
  */
 export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   let viteCommand: 'build' | 'serve' = 'serve';
-  let manifestInput: QwikManifest | null = null;
   let clientOutDir: string | null = null;
   let basePathname: string = '/';
   let clientPublicOutDir: string | null = null;
-  let viteAssetsDir: string | undefined;
   let srcDir: string | null = null;
   let rootDir: string | null = null;
 
@@ -137,12 +135,14 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   const api: QwikVitePluginApi = {
     getOptimizer: () => qwikPlugin.getOptimizer(),
     getOptions: () => qwikPlugin.getOptions(),
-    getManifest: () => manifestInput,
+    getManifest: () => qwikPlugin.getOptions().manifestInput,
     getRootDir: () => qwikPlugin.getOptions().rootDir,
     getClientOutDir: () => clientOutDir,
     getClientPublicOutDir: () => clientPublicOutDir,
-    getAssetsDir: () => viteAssetsDir,
     registerBundleGraphAdder: (adder: BundleGraphAdder) => bundleGraphAdders.add(adder),
+    onSegment: (callback: SegmentCallback) => {
+      qwikPlugin.segmentCallbacks.add(callback);
+    },
     _oldDevSsrServer: () => qwikViteOpts.devSsrServer,
   };
 
@@ -206,8 +206,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       if (input && typeof input === 'string') {
         input = [input];
       }
-      viteAssetsDir = viteConfig.build?.assetsDir;
-      const useAssetsDir = target === 'client' && !!viteAssetsDir && viteAssetsDir !== '_astro';
       const pluginOpts: QwikPluginOptions = {
         target,
         buildMode,
@@ -226,7 +224,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           // When ssr is true, this is probably an adapter build and not where the client build is
           // However, if client.outDir was explicitly set, always use it
           (viteConfig.build?.ssr && !userClientOutDir ? undefined : viteConfig.build?.outDir),
-        assetsDir: useAssetsDir ? viteAssetsDir : undefined,
         devTools: qwikViteOpts.devTools,
         sourcemap: !!viteConfig.build?.sourcemap,
         lint: qwikViteOpts.lint,
@@ -243,7 +240,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       // Cache pluginOpts for use in configResolved()
       cachedPluginOpts = pluginOpts;
 
-      manifestInput = opts.manifestInput;
       srcDir = opts.srcDir;
       rootDir = opts.rootDir;
 
@@ -334,9 +330,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           ...updatedViteConfig.build!.rollupOptions,
           output: await normalizeRollupOutputOptions(
             qwikPlugin,
-            viteConfig.build?.rollupOptions?.output,
-            useAssetsDir,
-            opts.outDir
+            viteConfig.build?.rollupOptions?.output
           ),
           preserveEntrySignatures: 'exports-only',
           onwarn: (warning, warn) => {
@@ -388,8 +382,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
     configEnvironment(name: string, _config: EnvironmentOptions, _env: ConfigEnv) {
       // Use environment name to distinguish server vs client — config.consumer is not yet set
-      // at the time this hook is called.
-      const isServer = name === 'ssr';
+      // at the time this hook is called. Adapters may add their own server environment (e.g. `ssg`
+      // for static generation), which needs the same server treatment as `ssr`.
+      const isServer = name === 'ssr' || name === 'ssg';
       if (isServer) {
         return {
           resolve: {
@@ -607,12 +602,12 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           }
           rewriteClientWorkerCorePlaceholders(rollupBundle);
         } else if (isSSR) {
-          rewriteSsrWorkerCorePlaceholders(rollupBundle, manifestInput);
+          rewriteSsrWorkerCorePlaceholders(rollupBundle, qwikPlugin.getOptions().manifestInput);
         }
       },
     },
 
-    async writeBundle(_, rollupBundle) {
+    async writeBundle(outputOptions, rollupBundle) {
       const opts = qwikPlugin.getOptions();
       const isSSR = this.environment.config.consumer === 'server';
       if (isSSR) {
@@ -648,7 +643,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
                   const bundleOutDir = sys.path.dirname(bundeName);
                   const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
 
-                  const folder = sys.path.join(opts.outDir, bundleOutDir);
+                  // Write next to this bundle's own output — other environments (e.g. the
+                  // throwaway ssg build) must not clobber the deployed server entry.
+                  const folder = sys.path.join(outputOptions.dir || opts.outDir, bundleOutDir);
                   await fs.promises.mkdir(folder, { recursive: true });
                   await fs.promises.writeFile(
                     sys.path.join(folder, js),
@@ -699,7 +696,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           // Source files live in the SSR module graph. When they change, notify the
           // client's loaded QRL segments via the client environment's HMR channel.
           // Some non-source imports (e.g. .css?inline) are type 'js' but their URL
-          // isn't a JS/TS file. For those, emit their JS importers instead, since
+          // is not a JS/TS file. For those, emit their JS importers instead, since
           // the component that needs to re-render is the importer.
           const files = new Set<string>();
           const isSourceUrl = (url: string) => /\.([mc]?[jt]sx?|mdx?)$/.test(url.split('?')[0]);
@@ -924,7 +921,7 @@ async function checkExternals() {
         // technically we should check for each importer, but this is ok
         seen.add(source);
         seen.add(packageName);
-        let result: ResolvedId | null;
+        let result: Awaited<ReturnType<Extract<VitePlugin['resolveId'], Function>>>;
         try {
           result = await this.resolve(packageName, importer, { ...options, skipSelf: true });
         } catch {
@@ -1138,6 +1135,9 @@ export type QwikVitePluginOptions = QwikVitePluginCSROptions | QwikVitePluginSSR
 export { ExperimentalFeatures } from './plugin';
 
 /** @public */
+export type SegmentCallback = (parentId: string, segment: SegmentAnalysis) => void;
+
+/** @public */
 export interface QwikVitePluginApi {
   getOptimizer: () => Optimizer | null;
   getOptions: () => NormalizedQwikPluginOptions;
@@ -1145,8 +1145,9 @@ export interface QwikVitePluginApi {
   getRootDir: () => string | null;
   getClientOutDir: () => string | null;
   getClientPublicOutDir: () => string | null;
-  getAssetsDir: () => string | undefined;
   registerBundleGraphAdder: (adder: BundleGraphAdder) => void;
+  /** Register a callback that fires for each segment emitted during transform. */
+  onSegment: (callback: SegmentCallback) => void;
   /** @internal */
   _oldDevSsrServer: () => boolean | undefined;
 }

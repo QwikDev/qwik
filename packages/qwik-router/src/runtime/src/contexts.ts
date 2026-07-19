@@ -1,5 +1,5 @@
 import { createContextId, type Signal } from '@qwik.dev/core';
-import type { AsyncSignal } from '@qwik.dev/core/internal';
+import type { RouteLoaderCtx, RouteLoaderState } from './route-loaders';
 import type {
   ContentState,
   ContentStateInternal,
@@ -11,8 +11,9 @@ import type {
   RoutePreventNavigate,
 } from './types';
 
-export const RouteStateContext =
-  /*#__PURE__*/ createContextId<Record<string, AsyncSignal<unknown>>>('qr-s');
+export const RouteStateContext = /*#__PURE__*/ createContextId<RouteLoaderState>('qr-s');
+
+export const RouteLoaderCtxContext = /*#__PURE__*/ createContextId<RouteLoaderCtx>('qr-lc');
 
 export const ContentContext = /*#__PURE__*/ createContextId<ContentState>('qr-c');
 export const ContentInternalContext =

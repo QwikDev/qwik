@@ -1,0 +1,141 @@
+---
+title: 'How we cut 99% of our JavaScript with Qwik + Partytown'
+authors:
+  - 'Miško Hevery'
+tags: ['Qwik', 'Partytown']
+date: 'December 7, 2021'
+canonical: 'https://www.builder.io/blog/how-we-cut-99-percent-js-with-qwik-and-partytown'
+---
+
+import { ArticleBlock } from '~/routes/(blog)/blog/components/mdx/article-block';
+import { Image } from 'qwik-image';
+import img1 from './img-1.webp';
+
+<ArticleBlock>
+
+Builder.io is excited to announce that our homepage now achieves a 100/100 score on PageSpeed Insights even on mobile, since we adopted Qwik.
+
+[Qwik](https://github.com/builderio/qwik) can achieve this performance no matter how large your application gets. The above numbers were achieved with some cool technology including:
+
+- Pages served with [Qwik](https://github.com/builderio/qwik) have less than 1kb of JavaScript to boot.
+- Our homepage only sends HTML for above-the-fold content.
+- [Partytown](https://github.com/BuilderIO/partytown) is used to move all third-party scripts to web-worker.
+- This site is created using [builder.io](https://builder.io/)'s visual no-code editor
+
+Qwik scales to massive sites, with hundreds of components, and MBs of content and continues to be fast. And it provides interactive server-side components that can transition to client components.
+
+Headless sites are incredibly fast and flexible. They make integration with any API-first vendor a breeze, but they come with a cost of constant reliance on developer resources for even the smallest of tasks (e.g. adding a button to a section). Builder.io solves this with a visual editor that allows non-developers to build high-performance experiences using the elements and permissions their developers provide.
+
+## Where were we before
+
+Our story starts here:
+
+Notice that the performance of the site is average. On mobile, Google PageSpeed estimated that it will take 7.6 seconds before a user can click on a link and expect a response. This is not a great user experience. Additionally, Google is using PageSpeed scores to affect SEO ranking.
+
+The reason for this is that the site has to execute a lot of Javascript on startup. Today, even a static site is full of JavaScript to add menus, interactivity, and third-party analytics scripts such as Google Tag Manager, Intercom, and CRM services.
+
+The JavaScript site consists of two sources of slow down, the site itself and third-party scripts.
+
+The first source of slow down comes from frameworks. When used in conjunction with modern frameworks, sites have a great developer experience and are highly interactive. But this comes at a cost of large JS download and slow startup times as frameworks reconcile the HTML generated on the server with the DOM the frameworks expect. This is known as reconciliation/rehydration, and all frameworks (with exception of Qwik) suffer this fate. The key part of reconciliation/rehydration is when the frameworks attach the listeners to the DOM, making the site interactive. This is the reason why reconciliation/rehydration has to happen as soon as possible. Without this, your site does not work (think menus, chat widgets, etc...)
+
+The second source of slow down comes from third-party scripts. Yes, there are a lot of demo sites and "new builds" that show good PageSpeed scores, but this is in large part because third-party scripts are not yet included. Here is an example of some of the third-party scripts which are on our site:
+
+- Google Tag Manager: is a must for any live site to collect usage statistics so that the marketing can gain insight as to how the site is used and how it can be improved. GTM executes at the beginning and it alone can take up all of the CPU time allotted for the site in PageSpeed before it starts being penalized.
+- Intercom: Allows the customers to chat with builders in real-time on the site to ask questions and to find out more information.
+- Twitter: Testimonials about our product are shown in twitter widgets, which requires that we load Twitter javascript.
+
+All of the above third-party scripts run immediately on-site load and compete for CPU with the reconciliation/rehydration step above, resulting in poor user experience.
+
+The issue is that as developers we have very little control over the above situation. We must use third-party scripts to add analytics and user service features that marketing teams need, and we must use existing frameworks which require expensive reconciliation on-site startup. There just are not a lot of levers under our control. This is the state of our industry and it is why no one can get much better results with the standard approach.
+
+**Qwik and Partytown aim to solve that!**
+
+## Where are we now
+
+| Metric                   | Before | After | Unit | %      |
+| ------------------------ | ------ | ----- | ---- | ------ |
+| Performance Score        | 52     | 100   | s    | 92%    |
+| First Contentfull Paint  | 3.4    | 1.1   | s    | 309%   |
+| Speed Index              | 3.4    | 1.1   | s    | 309%   |
+| Largest Contentful Paint | 3.8    | 1.2   | s    | 316%   |
+| Time to Interactive      | 7.6    | 1.4   | s    | 543%   |
+| TTI - LCP (difference)   | 3.8    | 0.3   | s    | 1,266% |
+| Total Blocking Time      | 1,300  | 40    | ms   | 3,250% |
+| Cumulative Layout Shift  | 0      | 0     | -    |        |
+
+First, a reminder that these numbers are for mobile, a much harder bar to reach than desktop performance.
+
+The above table shows where we are now with Qwik and Partytown. The improvements are massive. Time to interactive dropped from 7.6 seconds down to 1.2 seconds. And total blocking time dropped from 1.3 seconds down to 40 milliseconds. The drop in JS execution can directly be attributed to Qwik for framework time and Partytown for third-party time.
+
+Above is the performance profile before Qwik/Partytown. (This is emulating mobile)
+
+- Page took 1.8 seconds to load.
+- The main thread is very busy most of the time with "reconciliation" work (Figuring out where the DOM listeners should be placed.)
+- The above results in many dropped frames.
+- There is a cascade of JS code loading before the main thread gets busy with "reconciliation".
+
+Compare the previous expensive startup with the Qwik/Partytown combination?
+
+- No JS download
+- Page took 0.5 seconds to load.
+- Main thread is mostly idle.
+- Very few dropped frames.
+- Party town loads later
+- 3rd party scripts execute in web worker (rather than main thread)
+
+The comparison between the previous and current performance is night and day.
+
+The main thing to take away is not that Qwik/Partytown have some clever algorithm. Instead, Qwik/Partytown offloads the main thread from almost all JS, which is why the page loads so fast. But with Qwik, the page remains fully interactive, even with almost no JS. Qwik lets you have your cake and eat it too. Let's look at JavaScript usage.
+
+| Metric                                  | minified  | compressed |
+| --------------------------------------- | --------- | ---------- |
+| Baseline (Main Thread JS)               | 1,800kB   | 326kB      |
+| **Qwik + Partytown (Main Thread JS)\*** | **3.5kB** | **2.5kB**  |
+| --> _part: Qwikloader_                  | _.5kB_    | _1kB_      |
+| --> _part: Partytown confg_             | _.5kB_    | _1kB_      |
+| --> _part: Partytown_                   | _2.5kB_   | _1.5kB_    |
+| === Size Improvement ===                | 51,429%   | 13,000%    |
+| WebWorker 3rd Party JS                  | 219kB     | 82kB       |
+| --> _part: Zoominfo_                    | _1.5kB_   | _1.3kB_    |
+| --> _part: Google Tag Manager_          | _167kB_   | _60kB_     |
+| --> _part: Google Analytics_            | _50kB_    | _21kB_     |
+| --> _part: site-tracking_               | _217kB_   | _64kB_     |
+
+We went from 1.8MB of JavaScript on the Main thread down to 3.5kB. WOW!
+
+The original site had 1.8MB of JavaScript, out of that 219kB was a third-party scripts which as developers we have no control over. That leaves 1.6MB of JavaScript for the site itself. The 1.6Mb contains the framework, templates, and styling needed to rehydrate the site back to full interactivity. When using standard frameworks your site will download the content twice. Once as HTML and again as JavaScript. The double download is what accounts for 1.6MB of code. (You know it is site templates because it compresses really well down to 244kB.)
+
+Contrast the baseline with Qwik + Partytown which comes in at 3.5kB (2.5kB compressed.) Let me repeat that to make it clear. With Qwik + Partytown the only JavaScript which needs to execute on the main thread comes to 3.5kB! This is the reason why the site is so fast to load because there is nothing for the MainThread to do. The other thing to point out is that the 3.5kB will stay no matter how complicated your site gets, it is a fixed cost.
+
+We still have the issue of executing third-party code, but that has been relocated to the WebWorkerThread which runs at a lower priority than MainThread. There all 220kB of third-party code can do its thing without affecting the MainThread performance.
+
+But there is one more thing to point out. Above we mentioned that existing frameworks need to download the site twice. Once as HTML and again as JavaScript which comes to 1.6MB. Here is where Qwik gets to shine. Qwik takes that 1.6MB and breaks it up into multiple separate chunks. Qwik can then download only a small portion of that whole JavaScript and only on user interaction. Qwik can rehydrate components lazily and out of order. This means there is no JavaScript needed until the user interacts with something on the page. And because the hydration is independent for each component only a small piece of JavaScript needs to be downloaded and executed on user interaction to hydrate only that component that the user interacted with. So there are two benefits:
+
+1. We don't have to do anything on page startup, and
+2. when we do have to rehydrate, it is scoped to a single component only (rather than to the whole page).
+
+The last thing to point out is that the vast majority of the page is static, which means those components will never hydrate and thus the JavaScript for those components will never download.
+
+## What is Qwik?
+
+Qwik is a new kind of web framework that focuses on time-to-interactive. Resumability means that Qwik can start executing on the server, can be serialized into HTML, and sent to the client. On the client, qwikloader.js (less than 1kb JS on the client) sits idly waiting for user interaction. When a user interacts, Qwik can resume execution where the server left off. Resumability means that Qwik does not have to do reconciliation on startup and only the component you interact with needs to be hydrated. Qwik can create components on the server and then move them to the client in a seamless way. All of the above results in instant-on applications as is demonstrated above.
+
+### Lazy loading of content below the fold
+
+Qwik keeps all of its state in DOM, which means that Qwik itself is stateless. The stateless property allows for the lazy loading of content below the fold.
+
+The above is very difficult to do with existing frameworks but is trivial with Qwik.
+
+## What is Partytown?
+
+[Partytown](https://github.com/builderio/partytown) allows you to relocate third-party scripts into a Web Worker, will full main thread API access. Once you optimize everything else, third-party scripts are often the biggest culprit for making the site how slow time-to-interactive.
+
+## What is next?
+
+We are hard at work on getting Qwik into your hands soon so you can see for yourself what kind of amazing things you can build.
+
+- [Learn more about Qwik](https://github.com/builderio/qwik)
+- [Learn more about Partytown](https://github.com/builderio/partytown)
+- [Learn more about Builder.io](https://github.com/builderio/builder)
+
+</ArticleBlock>

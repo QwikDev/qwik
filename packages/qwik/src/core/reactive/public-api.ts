@@ -5,9 +5,9 @@ import type { ValueOrPromise } from '../shared/utils/types';
 import type { ContainerContext } from '../runtime/container-context';
 import { getActiveInvokeContextOrNull } from '../runtime/invoke-context';
 import { registerSubscriberToOwner } from '../runtime/owner';
-import { AsyncSignal, AsyncSignalFn, type AsyncSignalQrl } from './async-signal';
+import { AsyncSignal, type AsyncSignalFn, type AsyncSignalQrl } from './async-signal';
 import { disposeSubscriber } from './cleanup';
-import { Computed, readComputedUntracked } from './computed';
+import { Computed, readComputedUntracked, type ComputeSignalFn } from './computed';
 import { ComputedQrl, type ComputedQrlRef } from './computed-qrl';
 import {
   SerializerArgObjectWithInitial,
@@ -20,7 +20,9 @@ import type { Source } from './source';
 import type {
   AsyncCtx,
   AsyncSignalOptions,
+  ComputedOptions,
   ComputedSignal,
+  ComputeCtx,
   PublicAsyncSignal,
   SerializerArg,
 } from './public-types';
@@ -29,8 +31,18 @@ export { useConstant, useSignal } from './signal-api';
 
 /** Computed */
 
-export function useComputed<T>(compute: () => T): Computed<T> {
-  return registerSubscriberToOwner(new Computed(compute));
+export function useComputed<T>(
+  compute: (ctx: ComputeCtx<Awaited<T>>) => T,
+  options?: ComputedOptions<Awaited<T>>
+): Computed<Awaited<T>> {
+  return registerSubscriberToOwner(
+    new Computed(
+      null,
+      compute as ComputeSignalFn<Awaited<T>>,
+      getActiveInvokeContextOrNull()?.container,
+      options
+    )
+  );
 }
 
 export function _wrapArray<T>(
@@ -54,21 +66,24 @@ export function _wrapArray<T>(
 
 export function useComputedQrl<T>(
   computeQrl: ComputedQrlRef<T>,
+  options?: ComputedOptions<T>,
   container?: ContainerContext
 ): ComputedQrl<T> {
   const contextContainer = container ?? getActiveInvokeContextOrNull()?.container;
-  const computed = new ComputedQrl(computeQrl, contextContainer);
-  void computed.computeQrl.resolve(contextContainer).catch(() => {});
+  const computed = new ComputedQrl(computeQrl, contextContainer, options);
+  void computed.computeQrl!.resolve().catch(() => {});
   return registerSubscriberToOwner(computed);
 }
 
 /** @public */
-export const useComputed$: <T>(qrl: () => T) => ComputedSignal<T> = /*#__PURE__*/ implicit$FirstArg(
-  useComputedQrl as any
-);
+export const useComputed$: <T>(
+  qrl: (ctx: ComputeCtx<Awaited<T>>) => T,
+  options?: ComputedOptions<Awaited<T>>
+) => ComputedSignal<Awaited<T>> = /*#__PURE__*/ implicit$FirstArg(useComputedQrl as any);
 
 /** Async */
 
+/** @deprecated Use `useComputed` instead. */
 export function useAsync<T>(
   compute: AsyncSignalFn<T>,
   options?: AsyncSignalOptions<T>
@@ -78,6 +93,7 @@ export function useAsync<T>(
   );
 }
 
+/** @deprecated Use `useComputedQrl` instead. */
 export function useAsyncQrl<T>(
   computeQrl: AsyncSignalQrl<T>,
   options?: AsyncSignalOptions<T>
@@ -88,7 +104,7 @@ export function useAsyncQrl<T>(
   return registerSubscriberToOwner(signal);
 }
 
-/** @public */
+/** @deprecated Use `useComputed$` instead. @public */
 export const useAsync$: <T>(
   qrl: (ctx: AsyncCtx<T>) => ValueOrPromise<T>,
   options?: AsyncSignalOptions<T>

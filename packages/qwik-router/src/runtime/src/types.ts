@@ -1,5 +1,5 @@
 import type {
-  AsyncSignal,
+  ComputedSignal,
   JSXOutput,
   NoSerialize,
   QRL,
@@ -9,6 +9,7 @@ import type {
 } from '@qwik.dev/core';
 import type { SerializationStrategy } from '@qwik.dev/core/internal';
 import type {
+  AbortMessage,
   EnvGetter,
   RequestEvent,
   RequestEventAction,
@@ -16,16 +17,19 @@ import type {
   RequestEventLoader,
   RequestHandler,
   ResolveSyncValue,
+  ServerError,
 } from '@qwik.dev/router/middleware/request-handler';
 import type * as v from 'valibot';
 import type * as z from 'zod';
 import type { Q_ROUTE } from './constants';
+import type { RouteLoaderCtx } from './route-loaders';
 
 export type {
   Cookie,
   CookieOptions,
   CookieValue,
   DeferReturn,
+  InternalRequest,
   RequestEvent,
   RequestEventAction,
   RequestEventBase,
@@ -276,8 +280,6 @@ export type EndpointModuleLoader = () => ValueOrPromise<RouteModule>;
 export type ModuleLoader = ContentModuleLoader | EndpointModuleLoader; //| RouteLoaderLoader;
 export type MenuModuleLoader = () => Promise<MenuModule>;
 
-export type RouteLoaderInfo = [qrl: string, expires: number, live?: true];
-
 /**
  * A nested route trie structure. The root represents `/` and each level represents a URL segment.
  *
@@ -306,10 +308,13 @@ export interface RouteData {
   _G?: string;
   /** The JS bundle names for this route (SSR only) */
   _B?: string[];
-  /** The not-found (404) module loader for this subtree */
-  _4?: ContentModuleLoader;
-  /** The error page module loader for this subtree (error.tsx, takes precedence over _4) */
-  _E?: ContentModuleLoader;
+  /**
+   * Not-found (404) boundary: single loader (runtime prepends layouts) or override chain
+   * (`404@layout`/`!`).
+   */
+  _4?: ContentModuleLoader | ModuleLoader[];
+  /** Error (error.tsx) boundary, same single-or-override-chain shape as `_4`. */
+  _E?: ContentModuleLoader | ModuleLoader[];
   /** The parameter name when this node is reached via `_W` or `_A` from the parent */
   _P?: string;
   /** Prefix for infix params (e.g. "pre" for `pre[slug]post`) — only on `_W` nodes */
@@ -320,6 +325,8 @@ export interface RouteData {
   _M?: RouteData[];
   /** Menu loader for this subtree (from menu.md). Runtime uses nearest ancestor during traversal. */
   _N?: MenuModuleLoader;
+  /** Array of routeLoader$ hashes for this node's loaders */
+  _R?: string[];
   /** Child route segments (any key not starting with `_`) */
   [part: string]:
     | RouteData
@@ -358,22 +365,43 @@ export type ContentModule = PageModule | LayoutModule;
 export type ContentModuleHead = DocumentHead | ResolvedDocumentHead;
 
 /**
- * The eTag export type: a static string or a function receiving DocumentHeadProps.
+ * The eTag export type for routeConfig.
+ *
+ * - `string` — static ETag value.
+ * - `(props: DocumentHeadProps) => string | null` — compute the ETag from route context (params, URL,
+ *   loaded data via `resolveValue`, etc.). Return `null` to skip eTag for this request.
+ *
+ * Qwik normalizes eTag values by stripping weak-form `W/` prefixes, quotes, and forbidden chars,
+ * then sends a strong `ETag` header. Values that normalize to an empty string are treated as
+ * absent.
+ *
+ * When set (and a value is produced), the server includes an `ETag` header and returns `304` if
+ * `If-None-Match` matches.
  *
  * @public
  */
 export type ContentModuleETag = string | ((props: DocumentHeadProps) => string | null);
 
 /**
- * The cacheKey export type. When exported from a page module alongside eTag, enables in-memory SSR
- * caching.
+ * Cache key function. Used by `routeConfig.cacheKey` (SSR HTML cache) and by `routeLoader$`'s
+ * `cacheKey` option (per-loader JSON cache).
  *
- * - `true`: use the default cache key `status|eTag|pathname`
- * - Function: receives status, eTag, and pathname; returns a cache key string or null (no cache)
+ * - `true`: use the surface's default key.
+ *
+ *   - SSR default: `${status}|${eTag}|${pathname}` when an eTag is set, otherwise
+ *       `${status}|${pathname}`.
+ *   - Loader default: `${pathname}|${filteredSearch}|${loaderId}|${eTag}` when an eTag is set,
+ *       otherwise `${pathname}|${filteredSearch}|${loaderId}`.
+ * - Function: receives the request event and the normalized, unquoted eTag (or an empty string when
+ *   none was provided). Return the cache key string, or `null` or `''` to skip caching for this
+ *   request. Loader callbacks receive the loader-scoped request event, with `url`, `query`, and
+ *   `request.url` filtered by the loader's `search` allowlist.
+ *
+ * Note: valid cacheKeys are non-empty strings.
  *
  * @public
  */
-export type CacheKeyFn = true | ((status: number, eTag: string, pathname: string) => string | null);
+export type CacheKeyFn = true | ((requestEv: RequestEvent, eTag: string) => string | null);
 
 /**
  * The value shape returned by a routeConfig export (object form or function return).
@@ -411,27 +439,21 @@ export interface LoadedRoute {
   $routeBundleNames$?: string[] | undefined;
   /** Whether this route is a not-found (404) route */
   $notFound$?: boolean;
-  /** The error module loader (nearest _E ancestor), for rendering ServerErrors */
-  $errorLoader$?: ContentModuleLoader;
+  /** The nearest _E (error.tsx) boundary's chain to render on a thrown ServerError (in its layouts). */
+  $errorLoader$?: ModuleLoader[];
+  /** Merged array of routeLoader$ hashes from all matched nodes (layouts + page) */
+  $loaders$?: string[];
+  /** Runtime-only mapping of routeLoader$ hashes to the matched pathname used for q-loader fetches */
+  $loaderPaths$?: Record<string, string>;
 }
 
 export interface EndpointResponse {
   status: number;
   statusMessage?: string;
-  loaders: Record<string, unknown>;
-  loadersSerializationStrategy: Map<string, SerializationStrategy>;
   formData?: FormData;
   action?: string;
-}
-
-export interface ClientPageData extends Omit<EndpointResponse, 'loadersSerializationStrategy'> {
-  href: string;
-  redirect?: string;
-  isRewrite?: boolean;
-}
-
-export interface LoaderData {
-  loaders: Record<string, unknown>;
+  actionResult?: unknown;
+  loaderHashes?: string[];
 }
 
 /** @public */
@@ -455,6 +477,8 @@ export interface QwikRouterEnvData {
   params: PathParams;
   response: EndpointResponse;
   loadedRoute: LoadedRoute;
+  routeLoaderCtx: RouteLoaderCtx;
+  loaderValues: Record<string, unknown>;
 }
 
 /** @public The server data that is provided by Qwik Router during SSR rendering. It can be retrieved with `useServerData(key)` in the server, but it is not available in the client. */
@@ -522,6 +546,12 @@ export type GetValidatorType<VALIDATOR extends TypedDataValidator> =
 export type ActionOptions = {
   readonly id?: string;
   readonly validation?: DataValidator[];
+  /**
+   * Route loaders to invalidate after this action completes. The loader hooks' hashes are sent to
+   * the client so it knows which loaders to re-fetch. If omitted, ALL route loaders are invalidated
+   * (unless `strictLoaders` is enabled globally in the Vite plugin).
+   */
+  readonly invalidate?: Loader<any>[];
 };
 
 /** @public */
@@ -575,8 +605,7 @@ export type ActionConstructor = {
       data: GetValidatorOutputType<VALIDATOR>,
       event: RequestEventAction
     ) => ValueOrPromise<OBJ>,
-    options: {
-      readonly id?: string;
+    options: ActionOptions & {
       readonly validation: [VALIDATOR, ...REST];
     }
   ): Action<
@@ -595,8 +624,7 @@ export type ActionConstructor = {
       data: GetValidatorOutputType<VALIDATOR>,
       event: RequestEventAction
     ) => ValueOrPromise<OBJ>,
-    options: {
-      readonly id?: string;
+    options: ActionOptions & {
       readonly validation: [VALIDATOR];
     }
   ): Action<
@@ -608,8 +636,7 @@ export type ActionConstructor = {
   // Use options object, use data validator
   <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(
     actionQrl: (data: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>,
-    options: {
-      readonly id?: string;
+    options: ActionOptions & {
       readonly validation: REST;
     }
   ): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;
@@ -658,9 +685,7 @@ export type ActionConstructor = {
   // No validators
   <OBJ>(
     actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>,
-    options?: {
-      readonly id?: string;
-    }
+    options?: ActionOptions
   ): Action<StrictUnion<OBJ>>;
 };
 
@@ -675,8 +700,7 @@ export type ActionConstructorQRL = {
     actionQrl: QRL<
       (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>
     >,
-    options: {
-      readonly id?: string;
+    options: ActionOptions & {
       readonly validation: [VALIDATOR, ...REST];
     }
   ): Action<
@@ -694,8 +718,7 @@ export type ActionConstructorQRL = {
     actionQrl: QRL<
       (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>
     >,
-    options: {
-      readonly id?: string;
+    options: ActionOptions & {
       readonly validation: [VALIDATOR];
     }
   ): Action<
@@ -707,8 +730,7 @@ export type ActionConstructorQRL = {
   // Use options object, use data validator
   <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(
     actionQrl: QRL<(data: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>>,
-    options: {
-      readonly id?: string;
+    options: ActionOptions & {
       readonly validation: REST;
     }
   ): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;
@@ -755,17 +777,100 @@ export type ActionConstructorQRL = {
   // No validators
   <OBJ>(
     actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>>,
-    options?: {
-      readonly id?: string;
-    }
+    options?: ActionOptions
   ): Action<StrictUnion<OBJ>>;
 };
 
 /** @public */
 export type LoaderOptions = {
+  /**
+   * Explicit loader id, overriding the QRL hash. Pass a distinct value (e.g. `fn.getHash()`) when
+   * loaders share a wrapper QRL.
+   */
   readonly id?: string;
   readonly validation?: DataValidator[];
   readonly serializationStrategy?: SerializationStrategy;
+  /**
+   * Time in milliseconds after which the loader data is considered stale. The server derives
+   * `Cache-Control: max-age` seconds from this value on loader responses.
+   *
+   * On the client, the loader's ComputedSignal `expires` is set to this value. If `poll` is true,
+   * the signal auto-refetches when expired. If `poll` is false (default), the data is marked stale
+   * but not auto-refetched.
+   */
+  readonly expires?: number;
+  /**
+   * When true AND `expires` is set, the loader data is automatically refetched when it expires
+   * (polling behavior). When false (default), expired data is marked stale but not auto-refetched.
+   */
+  readonly poll?: boolean;
+  /**
+   * Enable ETag-based caching for this loader's JSON responses.
+   *
+   * - `string` — static ETag value; if `If-None-Match` matches, the loader is skipped entirely
+   * - `(ev: RequestEvent) => string | null` — compute the ETag from the request context (params, URL,
+   *   headers, etc.); if `If-None-Match` matches, the loader is skipped entirely. Return null to
+   *   skip eTag for this request.
+   *
+   * Qwik normalizes eTag values by stripping weak-form `W/` prefixes, quotes, and forbidden chars,
+   * then sends a strong `ETag` header. Values that normalize to an empty string are treated as
+   * absent.
+   *
+   * When set, the server includes an `ETag` header on `q-loader-*.json` responses and returns `304`
+   * if the client sends a matching `If-None-Match` header.
+   *
+   * For auto-computed eTags, use `cacheKey` instead — on cache write the eTag is hashed from the
+   * serialized response and stored alongside it, so subsequent hits get the same eTag.
+   */
+  readonly eTag?: string | ((ev: RequestEvent) => string | null);
+  /**
+   * Enable in-memory server-side caching of this loader's serialized JSON response.
+   *
+   * - `true` — use the default key `${pathname}|${filteredSearch}|${loaderId}` (suffixed with
+   *   `|${eTag}` when an eTag is set).
+   * - Function `(requestEv, eTag) => string | null` — return a custom key, or `null` to skip caching
+   *   this request.
+   *
+   * On cache miss the loader runs, the serialized response is stored alongside its eTag (computed
+   * from the data when no `eTag` option is set), and the response is sent. On cache hit the stored
+   * `{ eTag, data }` pair is served directly — `If-None-Match` is checked against the stored eTag
+   * and a `304` is returned when it matches.
+   */
+  readonly cacheKey?: CacheKeyFn;
+  /**
+   * Allowlist of URL search parameter names that this loader depends on.
+   *
+   * When set, the loader only re-fetches when the listed search params change — other param changes
+   * are ignored. Only the listed params are sent in the loader JSON request URL. During SSR and
+   * loader JSON requests, the loader receives a request event with `url`, `query`, and
+   * `request.url` filtered to the same params.
+   *
+   * When not set, the `qwikRouter()` plugin option `strictLoaders` determines the behavior. If
+   * `strictLoaders` is `true` (this is the default), no search params are sent and changes do not
+   * trigger a re-fetch. If `strictLoaders` is `false`, all search params are sent and any change
+   * triggers a re-fetch.
+   */
+  readonly search?: string[];
+  /**
+   * When true (default), the previous value is kept while the loader re-fetches after navigation,
+   * so components see stale data until the new response arrives.
+   *
+   * When false, the value is cleared on re-fetch, causing reads to suspend (show a loading
+   * boundary). This is useful when showing old data during navigation would be confusing.
+   */
+  readonly allowStale?: boolean;
+  /**
+   * When true (default), the loader is awaited before SSR renders, so its redirect or error can
+   * short-circuit the response and its value is ready for synchronous reads (e.g. in the head).
+   *
+   * When false, the loader runs in the background without blocking SSR: rendering starts
+   * immediately and reading its `.value` suspends until it resolves. A background loader cannot
+   * redirect or error the initial SSR response; treat it as a separate request.
+   *
+   * Setting `false` is experimental and requires adding `experimental: ["blockSSR"]` to your
+   * qwikVite plugin options.
+   */
+  readonly blockSSR?: boolean;
 };
 
 /** @public */
@@ -890,11 +995,18 @@ type Failed = {
 /** @public */
 export type FailReturn<T> = T & Failed;
 
+/**
+ * Drops control-flow signals (`ev.redirect()`, `ev.error()`, etc.) from a loader/action return
+ * type: those are thrown, not surfaced as data. `ev.fail()` is plain data and is kept.
+ *
+ * @public
+ */
+export type ExcludeControlFlow<T> = Exclude<T, AbortMessage | ServerError>;
+
 /** @public */
-export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<infer VALIDATOR>
-  ? Signal<ValueOrPromise<VALIDATOR>>
-  : Signal<TYPE>) &
-  Pick<AsyncSignal, 'promise' | 'loading' | 'error'>;
+export type LoaderSignal<TYPE> = TYPE extends () => ValueOrPromise<infer VALIDATOR>
+  ? ComputedSignal<Awaited<VALIDATOR>>
+  : ComputedSignal<TYPE>;
 
 /** @public */
 export type Loader<RETURN> = {
@@ -902,7 +1014,7 @@ export type Loader<RETURN> = {
    * Returns the `Signal` containing the data returned by the `loader$` function. Like all `use-`
    * functions and methods, it can only be invoked within a `component$()`.
    */
-  (): LoaderSignal<RETURN>;
+  (): LoaderSignal<ExcludeControlFlow<RETURN>>;
 };
 
 export interface LoaderInternal extends Loader<any> {
@@ -912,7 +1024,12 @@ export interface LoaderInternal extends Loader<any> {
   __validators: DataValidator[] | undefined;
   __serializationStrategy: SerializationStrategy;
   __expires: number;
-  // __live: boolean;
+  __poll: boolean;
+  __eTag: string | ((ev: RequestEvent) => string | null) | undefined;
+  __cacheKey: CacheKeyFn | undefined;
+  __search: string[] | undefined;
+  __allowStale: boolean;
+  __blockSSR: boolean;
   (): LoaderSignal<unknown>;
 }
 
@@ -923,7 +1040,7 @@ export type Action<RETURN, INPUT = Record<string, unknown>, OPTIONAL extends boo
    * component$(). Like all `use-` functions and methods, it can only be invoked within a
    * `component$()`.
    */
-  (): ActionStore<RETURN, INPUT, OPTIONAL>;
+  (): ActionStore<ExcludeControlFlow<RETURN>, INPUT, OPTIONAL>;
 };
 
 export interface ActionInternal extends Action<any, any> {
@@ -931,6 +1048,8 @@ export interface ActionInternal extends Action<any, any> {
   __id: string;
   __qrl: QRL<(form: JSONObject, event: RequestEventAction) => ValueOrPromise<unknown>>;
   __validators: DataValidator[] | undefined;
+  /** Loader hashes to invalidate after this action. Undefined = invalidate all. */
+  __invalidate: string[] | undefined;
 
   (): ActionStore<unknown, unknown>;
 }

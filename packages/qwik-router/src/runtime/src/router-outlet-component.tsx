@@ -1,11 +1,12 @@
 import { component$, sync$, useContext, useServerData } from '@qwik.dev/core';
 import { ContentInternalContext } from './contexts';
+import { linkPrefetchInit } from './link-prefetch';
 import type { ClientSPAWindow } from './qwik-router-component';
 import type { ScrollHistoryState } from './scroll-restoration';
 import { type RouterPopstateEventDetail } from './spa-init';
 import spaInit from './spa-init';
 import type { ContentModule, RouteNavigate } from './types';
-import { useNavigate } from './use-functions';
+import { useDocumentHead, useNavigate } from './use-functions';
 
 export const handleRouterPopstate = (
   nav: RouteNavigate,
@@ -31,8 +32,9 @@ interface RoutedContentProps {
 
 function RoutedContent({ contents, index, component: Component }: RoutedContentProps) {
   const nextIndex = index + 1;
+  const RoutedComponent = Component as any;
   return Component ? (
-    <Component>
+    <RoutedComponent>
       {nextIndex < contents.length && (
         <RoutedContent
           contents={contents}
@@ -40,7 +42,7 @@ function RoutedContent({ contents, index, component: Component }: RoutedContentP
           component={contents[nextIndex].default}
         />
       )}
-    </Component>
+    </RoutedComponent>
   ) : nextIndex < contents.length ? (
     <RoutedContent contents={contents} index={nextIndex} component={contents[nextIndex].default} />
   ) : null;
@@ -51,6 +53,7 @@ export const RouterOutlet = component$(() => {
   const serverData = useServerData<Record<string, string>>('containerAttributes');
   assertServerData(serverData);
   const internalContext = useContext(ContentInternalContext);
+  const head = useDocumentHead();
   const nav = useNavigate();
   return internalContext.value?.length ? (
     <>
@@ -61,7 +64,7 @@ export const RouterOutlet = component$(() => {
       />
       {!__EXPERIMENTAL__.noSPA && (
         <script
-          document:onQCInit$={spaInit}
+          document:onQCInit$={[spaInit, linkPrefetchInit(head.manifestHash)]}
           document:onQRouterPopstate$={(event) => handleRouterPopstate(nav, event)}
           document:onQInit$={sync$(() => {
             // Minify window and history

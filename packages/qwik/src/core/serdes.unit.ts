@@ -257,6 +257,19 @@ describe('serdes emit-only', () => {
     expect((signal as { value: number }).value).toBe(7);
   });
 
+  it('serializes an async computed QRL through the async signal wire type', async () => {
+    const qrl = createQRL('./computed.js', 'load', async () => 8);
+    const signal = createOwned(() => useComputedQrl(qrl, { initial: 5 }));
+
+    expect(signal.value).toBe(5);
+    await signal.promise();
+
+    const state = await serialize(signal);
+
+    expect(state[0]).toBe(TypeIds.AsyncSignal);
+    expect((state[1] as unknown[])[5]).toBe(8);
+  });
+
   it('serializes a serializer signal custom object', async () => {
     const qrl = createQRL('./serializer.js', 'arg', {
       deserialize: (n?: number) => new CustomSerializable(n),
@@ -768,7 +781,7 @@ describe('serdes emit-only', () => {
     const [doubled, effect] = createOwned(
       () =>
         [
-          useComputedQrl(qrl, container),
+          useComputedQrl(qrl, undefined, container),
           createSsrTextNodeEffect(createSsrElementTextTarget(4)),
         ] as const
     );
@@ -809,7 +822,7 @@ describe('serdes emit-only', () => {
       container
     );
     await qrl.resolve(container);
-    const doubled = createOwned(() => useComputedQrl(qrl, container));
+    const doubled = createOwned(() => useComputedQrl(qrl, undefined, container));
 
     doubled.value;
     doubled.flags |= ComputedFlags.Dirty;
@@ -861,6 +874,7 @@ describe('serdes emit-only', () => {
     const computed = createOwned(() =>
       useComputedQrl(
         createQRL('./context.computed.js', 'computedValue', () => 'computed'),
+        undefined,
         container
       )
     );

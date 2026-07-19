@@ -24,4 +24,5 @@ export const enum ComputedFlags {
   Dirty = 1 << 0,
   Computing = 1 << 1,
   HasValue = 1 << 2,
+  Async = 1 << 3,
 }

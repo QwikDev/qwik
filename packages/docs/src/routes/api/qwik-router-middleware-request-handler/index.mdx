@@ -4,11 +4,55 @@ title: \@qwik.dev/qwik-router/middleware/request-handler API Reference
 
 # [API](/api) &rsaquo; @qwik.dev/qwik-router/middleware/request-handler
 
+<h2 id="abortmessage-__controlflow">__controlFlow</h2>
+
+Type-only brand so `Exclude<>` can drop control-flow signals from resolved loader/action data.
+
+```typescript
+readonly __controlFlow: true;
+```
+
 <h2 id="abortmessage">AbortMessage</h2>
 
 ```typescript
 export declare class AbortMessage
 ```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[\_\_controlFlow](#abortmessage-__controlflow)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+true
+
+</td><td>
+
+Type-only brand so `Exclude<>` can drop control-flow signals from resolved loader/action data.
+
+</td></tr>
+</tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/redirect-handler.ts)
 
@@ -92,6 +136,50 @@ export type CacheControl =
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts)
+
+<h2 id="clearloadercache">clearLoaderCache</h2>
+
+Clear the in-memory loader cache. Call after deployments or data changes.
+
+When `cacheKey` is provided, only that single entry is removed; otherwise the entire cache is cleared.
+
+```typescript
+export declare function clearLoaderCache(cacheKey?: string): void;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+cacheKey
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+void
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/etag.ts)
 
 <h2 id="clearssrcache">clearSsrCache</h2>
 
@@ -718,6 +806,16 @@ headers(): string[];
 
 string[]
 
+<h2 id="internalrequest">InternalRequest</h2>
+
+Internal JSON request kind handled by Qwik Router, or `false` for normal page requests.
+
+```typescript
+export type InternalRequest = false | "loader" | "action";
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts)
+
 <h2 id="mergeheaderscookies">mergeHeadersCookies</h2>
 
 ```typescript
@@ -782,6 +880,16 @@ export declare class RedirectMessage extends AbortMessage
 **Extends:** [AbortMessage](#abortmessage)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/redirect-handler.ts)
+
+<h2 id="render">Render</h2>
+
+```typescript
+export type Render = (
+  options: RenderToStreamOptions,
+) => Promise<RenderToStringResult | RenderToStreamResult>;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts)
 
 <h2 id="requestevent">RequestEvent</h2>
 
@@ -1053,6 +1161,25 @@ Headers
 HTTP response headers. Notice it will be empty until you first add a header. If you want to read the request headers, use `request.headers` instead.
 
 https://developer.mozilla.org/en-US/docs/Glossary/Response\_header
+
+</td></tr>
+<tr><td>
+
+internalRequest
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+[InternalRequest](#internalrequest)
+
+</td><td>
+
+Identifies Qwik Router internal JSON requests, such as route loader fetches and fetch-based action submissions. Returns `false` for normal page requests.
+
+Check this before applying broad rewrite rules so internal JSON requests keep their routing behavior.
 
 </td></tr>
 <tr><td>
@@ -1525,10 +1652,14 @@ resolveValue
 ```typescript
 export type RequestHandler<PLATFORM = QwikRouterPlatform> = (
   ev: RequestEvent<PLATFORM>,
-) => Promise<void> | void;
+) =>
+  | Promise<void | AbortMessage | ServerError>
+  | void
+  | AbortMessage
+  | ServerError;
 ```
 
-**References:** [RequestEvent](#requestevent)
+**References:** [RequestEvent](#requestevent), [AbortMessage](#abortmessage), [ServerError](#servererror)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/request-handler.ts)
 
@@ -1537,10 +1668,14 @@ export type RequestHandler<PLATFORM = QwikRouterPlatform> = (
 ```typescript
 export type RequestHandler<PLATFORM = QwikRouterPlatform> = (
   ev: RequestEvent<PLATFORM>,
-) => Promise<void> | void;
+) =>
+  | Promise<void | AbortMessage | ServerError>
+  | void
+  | AbortMessage
+  | ServerError;
 ```
 
-**References:** [RequestEvent](#requestevent)
+**References:** [RequestEvent](#requestevent), [AbortMessage](#abortmessage), [ServerError](#servererror)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts)
 
@@ -1765,7 +1900,7 @@ render
 
 </td><td>
 
-Render
+[Render](#render)
 
 </td><td>
 

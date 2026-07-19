@@ -222,6 +222,8 @@ export { router }
             },
           },
         ],
+        // Legacy e2e tests rely on actions re-running all loaders
+        strictLoaders: false,
       }) as PluginOption
       // qwikRouterSsg.nodeServerAdapter({
       //   ssg: null,
@@ -236,6 +238,10 @@ export { router }
     base: basePath,
     ...extra,
     resolve: {
+      alias: {
+        '~': appSrcDir,
+        '@': appSrcDir,
+      },
       conditions: [isProd ? 'production' : 'development'],
       mainFields: [],
     },
@@ -271,7 +277,7 @@ export { router }
               clientManifest = manifest;
             },
           },
-          experimental: ['each', 'suspense'],
+          experimental: ['each', 'show', 'suspense', 'blockSSR'],
         }),
       ],
     })
@@ -287,7 +293,7 @@ export { router }
       plugins: [
         ...plugins,
         optimizer.qwikVite({
-          experimental: ['each', 'suspense'],
+          experimental: ['each', 'show', 'suspense', 'blockSSR'],
           ssr: {
             manifestInput: clientManifest,
           },

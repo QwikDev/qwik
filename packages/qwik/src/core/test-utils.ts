@@ -8,7 +8,6 @@ import {
   Scheduler,
   _renderCompiled as renderCsr,
   createContainerContext,
-  type _CsrRenderRoot as CsrRenderRoot,
   type ContainerContext,
 } from '@qwik.dev/core/internal';
 import {
@@ -20,6 +19,7 @@ import {
 import { format as formatCode } from 'prettier';
 import ts from 'typescript';
 import { createDocument } from '../testing/document';
+import type { CsrRenderRoot } from './csr-render';
 import type { BranchRange } from './dom/branch/branch';
 import { createTextExpressionEffect } from './dom/effect/text-effect';
 import { SubscriberFlags } from './reactive/flags';

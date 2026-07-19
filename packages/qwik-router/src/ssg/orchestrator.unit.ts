@@ -1,5 +1,6 @@
 import type { QwikRouterConfig, RouteData } from '@qwik.dev/router';
 import { assert, test } from 'vitest';
+import { getLoaderName } from '../middleware/request-handler/request-path';
 import { mainThread } from './orchestrator';
 import type { Logger, MainContext, System } from './types';
 
@@ -88,6 +89,25 @@ test('should not prefix the base pathname twice when reconstructing routes', asy
   assert.deepEqual(result.staticPaths, ['/frameworks/keyed/qwik2/dist/']);
 });
 
+test('should prerender <dir>/404.html for each _4 / _E boundary', async () => {
+  const sys = createSystem({
+    routes: {
+      _4: async () => ({ default: () => null as any }),
+      blog: {
+        _E: async () => ({ default: () => null as any }),
+        _I: async () => ({ default: () => null as any }),
+      },
+    },
+    render: async ({ pathname }) => createRenderResult(pathname),
+  });
+
+  const result = await mainThread(sys);
+
+  // root _4 → /404.html ; nested _E → /blog/404.html
+  assert.include(result.staticPaths, '/404.html');
+  assert.include(result.staticPaths, '/blog/404.html');
+});
+
 function createSystem({
   routes,
   render,
@@ -123,7 +143,8 @@ function createSystem({
     createTimer: () => () => 0,
     getRouteFilePath: (pathname) =>
       `C:/tmp/out${pathname === '/' ? '/index.html' : `${pathname}/index.html`}`,
-    getDataFilePath: (pathname) => `C:/tmp/out${pathname}/q-data.json`,
+    getLoaderFilePath: (pathname, loaderId, manifestHash) =>
+      `C:/tmp/out${pathname}${getLoaderName(loaderId, manifestHash)}`,
     getEnv: () => undefined,
     platform: {},
   };

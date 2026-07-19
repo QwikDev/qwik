@@ -23,6 +23,7 @@ import { EffectKind } from '../../dom/effect/effect-kind.enum';
 import { EffectTargetKind } from '../../dom/effect/ssr-effect';
 import { ComputedFlags } from '../../reactive/flags';
 import { AsyncSignal } from '../../reactive/async-signal';
+import { ComputedQrl } from '../../reactive/computed-qrl';
 import { SerializerSignal } from '../../reactive/serializer-signal';
 import { createLazySourceSubs, LazySerialized } from '../../reactive/lazy-serialized';
 import { Signal as ReactiveSignal } from '../../reactive/signal';
@@ -69,7 +70,7 @@ import type { QRLInternal } from '../qrl/qrl-class';
 import { isPromise, maybeThen } from '../utils/promises';
 import type { ValueOrPromise } from '../utils/types';
 import { allocate, pendingStoreTargets, resolvers } from './allocate';
-import { TypeIds } from './constants';
+import { EMPTY_OBJECT_PAYLOAD, TypeIds } from './constants';
 import { needsInflation } from './deser-proxy';
 
 export { allocate, needsInflation };
@@ -106,6 +107,9 @@ export const inflate = (
     // Already processed
     return;
   }
+  if (typeId === TypeIds.Object && data !== EMPTY_OBJECT_PAYLOAD && !Array.isArray(data)) {
+    throw new Error('Invalid Object payload');
+  }
   // Restore the complex data, special case for Array
   if (
     typeId !== TypeIds.Array &&
@@ -140,8 +144,7 @@ const inflateResolved = (
         () => undefined
       );
     case TypeIds.Object:
-      if (data === 0) {
-        // Special case, was an empty object
+      if (data === EMPTY_OBJECT_PAYLOAD) {
         break;
       }
       for (let i = 0; i < (data as any[]).length; i += 2) {
@@ -164,33 +167,25 @@ const inflateResolved = (
       });
     }
     case TypeIds.ComputedSignal: {
-      const computed = target as Writeable<ComputedSubscriber<unknown>>;
+      const computed = target as Writeable<ComputedQrl<unknown>>;
       ensureDeserializedOwner(computed);
       const d = data as unknown[];
       return maybeThen(deserializeData(container, d[0] as TypeIds, d[1]), (qrl) =>
         maybeThen(deserializeData(container, d[2] as TypeIds, d[3]), (deps) =>
-          maybeThen(deserializeData(container, d[4] as TypeIds, d[5]), (value) =>
-            maybeThen((qrl as QRLInternal<() => unknown>).resolve(), (compute) => {
-              computed.compute = compute;
-              if (deps && (deps as Source[]).length > 0) {
-                computed.deps = [];
-                computed.depVersions = [];
-                for (let i = 0; i < (deps as Source[]).length; i++) {
-                  addDependency(computed, (deps as Source[])[i]);
-                }
-              }
-
-              if (value === NEEDS_COMPUTATION) {
-                computed.flags = ComputedFlags.Dirty;
-              } else {
-                computed.v = value;
-                computed.flags = ComputedFlags.HasValue;
-              }
-              if (d.length > 6) {
-                computed.subs = createLazySourceSubscribers(computed, container, d, 6);
-              }
-            })
-          )
+          maybeThen(deserializeData(container, d[4] as TypeIds, d[5]), (value) => {
+            computed.computeQrl = qrl as ComputedQrl<unknown>['computeQrl'];
+            computed.container = container;
+            restoreDependencies(computed, deps as Source[]);
+            if (value === NEEDS_COMPUTATION) {
+              computed.flags = ComputedFlags.Dirty;
+            } else {
+              computed.v = value;
+              computed.flags = ComputedFlags.HasValue;
+            }
+            if (d.length > 6) {
+              computed.subs = createLazySourceSubscribers(computed, container, d, 6);
+            }
+          })
         )
       );
     }
@@ -207,10 +202,10 @@ const inflateResolved = (
               signal.setOptions((options as AsyncSignalOptions<unknown> | null) ?? undefined);
               restoreDependencies(signal, deps as Source[]);
               if (value === NEEDS_COMPUTATION) {
-                signal.flags = ComputedFlags.Dirty;
+                signal.flags = ComputedFlags.Dirty | ComputedFlags.Async;
               } else {
                 signal.v = value as unknown;
-                signal.flags = ComputedFlags.HasValue;
+                signal.flags = ComputedFlags.HasValue | ComputedFlags.Async;
               }
               if (d.length > subscriberOffset) {
                 signal.subs = createLazySourceSubscribers(signal, container, d, subscriberOffset);
@@ -266,19 +261,23 @@ const inflateResolved = (
         )
       );
     }
-    case TypeIds.Error: {
-      const d = data as string[];
-      (target as Error).message = d[0] as string;
-      for (let i = 1; i < d.length; i += 2) {
-        (target as any)[d[i]] = d[i + 1];
-      }
-      break;
-    }
     case TypeIds.FormData: {
       const formData = target as FormData;
       const d = data as any[];
       for (let i = 0; i < d.length; i++) {
         formData.append(d[i++], d[i]);
+      }
+      break;
+    }
+    case TypeIds.Error: {
+      const d = data as unknown[];
+      (target as Error).message = String(d[0]);
+      for (let i = 1; i < d.length; i += 2) {
+        const key = d[i];
+        const value = d[i + 1];
+        if (isSafeObjectKV(key, value)) {
+          (target as Record<string, unknown>)[key] = value;
+        }
       }
       break;
     }
@@ -330,6 +329,9 @@ const inflateResolved = (
       const [resolved, result] = data as [boolean, unknown];
       const [resolve, reject] = resolvers.get(promise)!;
       if (resolved) {
+        if (resolvers.has(result as Promise<unknown>)) {
+          throw qError(QError.invalidPromiseDependency);
+        }
         resolve(result);
       } else {
         reject(result);
@@ -850,6 +852,7 @@ function restoreDependencies(
     | ForBlockSubscription
     | ContentSubscription
     | TaskSubscriber
+    | ComputedSubscriber<unknown>
     | AsyncSignal<unknown>
     | SerializerSignal<unknown, unknown>,
   deps: Source[]

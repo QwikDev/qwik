@@ -12,11 +12,11 @@ export type Action<
   INPUT = Record<string, unknown>,
   OPTIONAL extends boolean = true,
 > = {
-  (): ActionStore<RETURN, INPUT, OPTIONAL>;
+  (): ActionStore<ExcludeControlFlow<RETURN>, INPUT, OPTIONAL>;
 };
 ```
 
-**References:** [ActionStore](#actionstore)
+**References:** [ActionStore](#actionstore), [ExcludeControlFlow](#excludecontrolflow)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
@@ -33,8 +33,7 @@ export type ActionConstructor = {
       data: GetValidatorOutputType<VALIDATOR>,
       event: RequestEventAction,
     ) => ValueOrPromise<OBJ>,
-    options: {
-      readonly id?: string;
+    options: ActionOptions & {
       readonly validation: [VALIDATOR, ...REST];
     },
   ): Action<
@@ -54,8 +53,7 @@ export type ActionConstructor = {
       data: GetValidatorOutputType<VALIDATOR>,
       event: RequestEventAction,
     ) => ValueOrPromise<OBJ>,
-    options: {
-      readonly id?: string;
+    options: ActionOptions & {
       readonly validation: [VALIDATOR];
     },
   ): Action<
@@ -73,8 +71,7 @@ export type ActionConstructor = {
       data: JSONObject,
       event: RequestEventAction,
     ) => ValueOrPromise<OBJ>,
-    options: {
-      readonly id?: string;
+    options: ActionOptions & {
       readonly validation: REST;
     },
   ): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;
@@ -129,14 +126,26 @@ export type ActionConstructor = {
       form: JSONObject,
       event: RequestEventAction,
     ) => ValueOrPromise<OBJ>,
-    options?: {
-      readonly id?: string;
-    },
+    options?: ActionOptions,
   ): Action<StrictUnion<OBJ>>;
 };
 ```
 
-**References:** [TypedDataValidator](#typeddatavalidator), [DataValidator](#datavalidator), [GetValidatorOutputType](#getvalidatoroutputtype), [Action](#action), [StrictUnion](#strictunion), [FailReturn](#failreturn), [ValidatorErrorType](#validatorerrortype), [GetValidatorInputType](#getvalidatorinputtype), [FailOfRest](#failofrest), [JSONObject](#jsonobject)
+**References:** [TypedDataValidator](#typeddatavalidator), [DataValidator](#datavalidator), [GetValidatorOutputType](#getvalidatoroutputtype), [ActionOptions](#actionoptions), [Action](#action), [StrictUnion](#strictunion), [FailReturn](#failreturn), [ValidatorErrorType](#validatorerrortype), [GetValidatorInputType](#getvalidatorinputtype), [FailOfRest](#failofrest), [JSONObject](#jsonobject)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
+
+<h2 id="actionoptions">ActionOptions</h2>
+
+```typescript
+export type ActionOptions = {
+  readonly id?: string;
+  readonly validation?: DataValidator[];
+  readonly invalidate?: Loader<any>[];
+};
+```
+
+**References:** [DataValidator](#datavalidator), [Loader](#loader_2)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
@@ -175,14 +184,18 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {
 
 <h2 id="cachekeyfn">CacheKeyFn</h2>
 
-The cacheKey export type. When exported from a page module alongside eTag, enables in-memory SSR caching.
+Cache key function. Used by `routeConfig.cacheKey` (SSR HTML cache) and by `routeLoader$`'s `cacheKey` option (per-loader JSON cache).
 
-- `true`: use the default cache key `status|eTag|pathname` - Function: receives status, eTag, and pathname; returns a cache key string or null (no cache)
+- `true`: use the surface's default key.
+
+- SSR default: `${status}|${eTag}|${pathname}` when an eTag is set, otherwise `${status}|${pathname}`. - Loader default: `${pathname}|${filteredSearch}|${loaderId}|${eTag}` when an eTag is set, otherwise `${pathname}|${filteredSearch}|${loaderId}`. - Function: receives the request event and the normalized, unquoted eTag (or an empty string when none was provided). Return the cache key string, or `null` or `''` to skip caching for this request. Loader callbacks receive the loader-scoped request event, with `url`, `query`, and `request.url` filtered by the loader's `search` allowlist.
+
+Note: valid cacheKeys are non-empty strings.
 
 ```typescript
 export type CacheKeyFn =
   | true
-  | ((status: number, eTag: string, pathname: string) => string | null);
+  | ((requestEv: RequestEvent, eTag: string) => string | null);
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
@@ -337,7 +350,13 @@ string
 
 <h2 id="contentmoduleetag">ContentModuleETag</h2>
 
-The eTag export type: a static string or a function receiving DocumentHeadProps.
+The eTag export type for routeConfig.
+
+- `string` — static ETag value. - `(props: DocumentHeadProps) => string | null` — compute the ETag from route context (params, URL, loaded data via `resolveValue`, etc.). Return `null` to skip eTag for this request.
+
+Qwik normalizes eTag values by stripping weak-form `W/` prefixes, quotes, and forbidden chars, then sends a strong `ETag` header. Values that normalize to an empty string are treated as absent.
+
+When set (and a value is produced), the server includes an `ETag` header and returns `304` if `If-None-Match` matches.
 
 ```typescript
 export type ContentModuleETag =
@@ -765,13 +784,15 @@ export type DocumentStyle = Readonly<
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-<h2 id="errorboundary">ErrorBoundary</h2>
+<h2 id="excludecontrolflow">ExcludeControlFlow</h2>
+
+Drops control-flow signals (`ev.redirect()`, `ev.error()`, etc.) from a loader/action return type: those are thrown, not surfaced as data. `ev.fail()` is plain data and is kept.
 
 ```typescript
-ErrorBoundary: import("@qwik.dev/core").Component<ErrorBoundaryProps>;
+export type ExcludeControlFlow<T> = Exclude<T, AbortMessage | ServerError>;
 ```
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/error-boundary.tsx)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
 <h2 id="failofrest">FailOfRest</h2>
 
@@ -795,8 +816,7 @@ export type FailReturn<T> = T & Failed;
 <h2 id="form">Form</h2>
 
 ```typescript
-Form: <O, I>(input: FormProps<O, I>, key: string | null) =>
-  import("@qwik.dev/core").JSXOutput;
+Form: <O, I>(input: FormProps<O, I>) => import("@qwik.dev/core").JSXOutput;
 ```
 
 <table><thead><tr><th>
@@ -830,17 +850,6 @@ input
 </td><td>
 
 [FormProps](#formprops)&lt;O, I&gt;
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-key
-
-</td><td>
-
-string \| null
 
 </td><td>
 
@@ -1012,6 +1021,48 @@ T
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/form-component.tsx)
 
+<h2 id="getrequestevent">getRequestEvent</h2>
+
+Returns the current RequestEvent if possible. Only usable on the server, and only during request processing.
+
+```typescript
+getRequestEvent: (thisArg?: unknown) => RequestEvent | undefined;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+thisArg
+
+</td><td>
+
+unknown
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+RequestEvent \| undefined
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/route-loaders.ts)
+
 <h2 id="getvalidatorinputtype">GetValidatorInputType</h2>
 
 ```typescript
@@ -1151,7 +1202,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-prefetchBundle?
+prefetchBundles?
 
 </td><td>
 
@@ -1242,23 +1293,22 @@ _(Optional)_
 
 ```typescript
 export type Loader<RETURN> = {
-  (): LoaderSignal<RETURN>;
+  (): LoaderSignal<ExcludeControlFlow<RETURN>>;
 };
 ```
 
-**References:** [LoaderSignal](#loadersignal)
+**References:** [LoaderSignal](#loadersignal), [ExcludeControlFlow](#excludecontrolflow)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
 <h2 id="loadersignal">LoaderSignal</h2>
 
 ```typescript
-export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<
+export type LoaderSignal<TYPE> = TYPE extends () => ValueOrPromise<
   infer VALIDATOR
 >
-  ? Signal<ValueOrPromise<VALIDATOR>>
-  : Signal<TYPE>) &
-  Pick<AsyncSignal, "promise" | "loading" | "error">;
+  ? ComputedSignal<Awaited<VALIDATOR>>
+  : ComputedSignal<TYPE>;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
@@ -1647,6 +1697,19 @@ LoadedRoute
 </td></tr>
 <tr><td>
 
+loaderValues
+
+</td><td>
+
+</td><td>
+
+Record&lt;string, unknown&gt;
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
 params
 
 </td><td>
@@ -1667,6 +1730,19 @@ response
 </td><td>
 
 EndpointResponse
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+routeLoaderCtx
+
+</td><td>
+
+</td><td>
+
+RouteLoaderCtx
 
 </td><td>
 
@@ -1969,9 +2045,9 @@ boolean
 
 </td><td>
 
-_(Optional)_ Enable the ViewTransition API
+_(Optional)_ Enable the ViewTransition API on SPA navigation. Opt-in: set to `true` to enable.
 
-Default: `true`
+Default: `false`
 
 </td></tr>
 </tbody></table>
@@ -2033,8 +2109,26 @@ export type ResolvedDocumentHead<
 
 <h2 id="routeaction_">routeAction$</h2>
 
+Define a route action that handles form submissions or programmatic invocations.
+
+Actions run on the server when submitted from the client. The result is returned as an `ActionStore` with `.value` for success data and `.error` for errors (including validation errors from `zod$`/`valibot$` where `.fieldErrors` etc. are accessible directly on `.error`).
+
+By default, after an action completes, ALL current route loaders are invalidated on the client and re-fetched as needed (so that the browser cache is correct). This can be controlled with:
+
+- `invalidate: [loader1, loader2]`: Only invalidate specific loaders. The client re-fetches them individually. Other loaders keep their current data. - `invalidate: []`: No loaders are invalidated. The action response only contains the action result. Use this when the action doesn't affect any loader data.
+
+The `strictLoaders` Vite plugin option applies `invalidate: []` globally for all actions that don't specify an explicit `invalidate` option.
+
 ```typescript
 routeAction$: ActionConstructor;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
+
+<h2 id="routeactionqrl">routeActionQrl</h2>
+
+```typescript
+routeActionQrl: ActionConstructorQRL;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
@@ -2189,11 +2283,11 @@ _(Optional)_ Prefix for infix params (e.g. "pre" for `pre[slug]post`) — only o
 
 </td><td>
 
-ContentModuleLoader
+ContentModuleLoader \| ModuleLoader[]
 
 </td><td>
 
-_(Optional)_ The not-found (404) module loader for this subtree
+_(Optional)_ Not-found (404) boundary: single loader (runtime prepends layouts) or override chain (`404@layout`/`!`).
 
 </td></tr>
 <tr><td>
@@ -2234,11 +2328,11 @@ _(Optional)_ The JS bundle names for this route (SSR only)
 
 </td><td>
 
-ContentModuleLoader
+ContentModuleLoader \| ModuleLoader[]
 
 </td><td>
 
-_(Optional)_ The error page module loader for this subtree (error.tsx, takes precedence over \_4)
+_(Optional)_ Error (error.tsx) boundary, same single-or-override-chain shape as `_4`.
 
 </td></tr>
 <tr><td>
@@ -2331,17 +2425,44 @@ string
 _(Optional)_ The parameter name when this node is reached via `_W` or `_A` from the parent
 
 </td></tr>
+<tr><td>
+
+\_R?
+
+</td><td>
+
+</td><td>
+
+string[]
+
+</td><td>
+
+_(Optional)_ Array of routeLoader$ hashes for this node's loaders
+
+</td></tr>
 </tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
 <h2 id="routeloader_">routeLoader$</h2>
 
+Define a route loader that fetches data before the route renders.
+
+Route loaders run on the server during SSR and return data as a `ComputedSignal`. On the client, loaders automatically re-fetch when the route changes (SPA navigation). Each loader gets its own JSON endpoint (`q-loader-{id}.{hash}.json`), so only the loaders present on the target route are fetched.
+
+\*\*Important:\*\* Route loader data uses Qwik's custom serialization format, not standard JSON. This means the data supports features like circular references, Dates, and other non-JSON types, but it cannot be consumed by external clients expecting plain JSON.
+
+\#\# Options
+
+- `search: string[]`: Allowlist of URL search params the loader depends on. Only listed params are sent in the request and changes to other params are ignored. During SSR and loader JSON requests, the loader's request event is filtered to those params too. `search: []` means no search params are sent and only route path changes trigger a re-fetch. - `allowStale: false`: Clears the previous value when re-fetching, so components see a loading state instead of stale data during navigation. Useful when old data would be confusing. - `eTag`: Enable ETag-based caching. Can be `true` (auto-hash), a string, or a function. - `expires` / `poll`: Control client-side caching and polling behavior.
+
+The `strictLoaders` Vite plugin option applies `search: []` globally for all loaders that don't specify an explicit `search` option.
+
 ```typescript
 routeLoader$: LoaderConstructor;
 ```
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/route-loaders.ts)
 
 <h2 id="routelocation">RouteLocation</h2>
 

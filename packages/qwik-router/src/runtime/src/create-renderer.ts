@@ -1,5 +1,6 @@
 import type { JSXOutput } from '@qwik.dev/core';
-import { renderToStream, type Render, type RenderToStreamOptions } from '@qwik.dev/core/server';
+import { renderToStream, type RenderToStreamOptions } from '@qwik.dev/core/server';
+import type { Render } from '../../middleware/request-handler/types';
 import type { DocumentHeadValue, ServerData } from './types';
 
 /** @public */
@@ -45,17 +46,7 @@ export const createRenderer = (
 ) => {
   return ((opts: RendererOptions) => {
     const { jsx, options } = getOptions(opts);
-    const isStatic = opts.serverData.renderMode === 'static';
-    const renderOptions = isStatic
-      ? {
-          ...options,
-          streaming: {
-            ...options.streaming,
-            outOfOrder: false,
-          },
-        }
-      : options;
-    return renderToStream(jsx, renderOptions as any);
+    return renderToStream(() => jsx, options);
     // We force the type to be Render because that's what createQwikRouter accepts
   }) as unknown as Render;
 };

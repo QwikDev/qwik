@@ -172,6 +172,9 @@ export { SerializerSignal, type SerializerSignalQrl } from './reactive/serialize
 export type {
   AsyncCtx,
   AsyncSignalOptions,
+  ComputedOptions,
+  ComputedSignal,
+  ComputeCtx,
   PublicAsyncSignal as AsyncSignalType,
   SerializerArg,
   SerializerArgObject,

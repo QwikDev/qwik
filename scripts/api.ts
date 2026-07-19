@@ -4,6 +4,25 @@ import { join } from 'node:path';
 import { generateQwikApiMarkdownDocs, generateQwikRouterApiMarkdownDocs } from './api-docs.ts';
 import { type BuildConfig, copyFile, ensureDir, panic } from './util.ts';
 
+// jsx-runtime just re-exports JSX, so skip api-extractor.
+export function writeJsxRuntimeDts(config: BuildConfig) {
+  const jsxContent = `export declare const Fragment: symbol;
+export declare const jsx: (_type: unknown, _props: unknown) => never;
+export declare const jsxs: (_type: unknown, _props: unknown) => never;
+export declare const jsxDEV: (_type: unknown, _props: unknown) => never;
+export type { JSX } from '..';
+`;
+  writeFileSync(
+    join(config.distQwikPkgDir, 'jsx-runtime.d.ts'),
+    `// re-export to make TS happy when not using nodenext import resolution\n${jsxContent}`
+  );
+  ensureDir(join(config.distQwikPkgDir, 'jsx-runtime'));
+  writeFileSync(
+    join(config.distQwikPkgDir, 'jsx-runtime', 'index.d.ts'),
+    `// re-export to make TS happy when not using nodenext import resolution\nexport * from '../jsx-runtime';`
+  );
+}
+
 /**
  * Create each submodule's bundled dts file, and ensure the public API has not changed for a
  * production build.
@@ -26,21 +45,7 @@ export async function apiExtractorQwik(config: BuildConfig) {
   );
   // Special case for jsx-runtime:
   // It only re-exports JSX. Don't duplicate the types
-  const jsxContent = `export declare const Fragment: symbol;
-export declare const jsx: (_type: unknown, _props: unknown) => never;
-export declare const jsxs: (_type: unknown, _props: unknown) => never;
-export declare const jsxDEV: (_type: unknown, _props: unknown) => never;
-export type { JSX } from '..';
-`;
-  writeFileSync(
-    join(config.distQwikPkgDir, 'jsx-runtime.d.ts'),
-    `// re-export to make TS happy when not using nodenext import resolution\n${jsxContent}`
-  );
-  ensureDir(join(config.distQwikPkgDir, 'jsx-runtime'));
-  writeFileSync(
-    join(config.distQwikPkgDir, 'jsx-runtime', 'index.d.ts'),
-    `// re-export to make TS happy when not using nodenext import resolution\nexport * from '../jsx-runtime';`
-  );
+  writeJsxRuntimeDts(config);
   createTypesApi(config, config.qwikVitePkgDir, join(config.distQwikPkgDir, 'optimizer.d.ts'), '.');
   createTypesApi(
     config,
@@ -297,7 +302,7 @@ function createTypesApi(
   }
 }
 
-function generateQwikRouterReferenceModules(config: BuildConfig) {
+export function generateQwikRouterReferenceModules(config: BuildConfig) {
   const srcModulesPath = join(config.packagesDir, 'qwik-router', 'lib');
 
   const destModulesPath = join(srcModulesPath, 'modules.d.ts');
@@ -311,7 +316,7 @@ function generateQwikRouterReferenceModules(config: BuildConfig) {
   writeFileSync(distIndexPath, serverDts);
 }
 
-function generateServerReferenceModules(config: BuildConfig) {
+export function generateServerReferenceModules(config: BuildConfig) {
   // server-modules.d.ts
   const referenceDts = `/// <reference types="./server" />
 declare module '@qwik-client-manifest' {

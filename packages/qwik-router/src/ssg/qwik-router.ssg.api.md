@@ -5,7 +5,7 @@
 ```ts
 
 import type { QwikRouterConfig } from '@qwik.dev/router';
-import type { Render } from '@qwik.dev/core/server';
+import type { Render } from '@qwik.dev/router/middleware/request-handler';
 import type { RenderOptions } from '@qwik.dev/core/server';
 
 // @public
@@ -32,7 +32,6 @@ export { SsgOptions as StaticGenerateOptions }
 
 // @public (undocumented)
 export interface SsgRenderOptions extends RenderOptions {
-    emit404Pages?: boolean;
     emitData?: boolean;
     emitHtml?: boolean;
     exclude?: string[];

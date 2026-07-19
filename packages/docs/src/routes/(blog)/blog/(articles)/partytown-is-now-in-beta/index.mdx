@@ -1,0 +1,117 @@
+---
+title: 'You are invited to Partytown! Partytown is now in Beta'
+authors:
+  - 'Adam Bradley'
+tags: ['Qwik']
+date: 'December 14, 2021'
+canonical: 'https://www.builder.io/blog/introducing-qwik-starters'
+---
+
+{/* ---
+title: 'You are invited to Partytown! Partytown is now in Beta'
+authors:
+  - 'Adam Bradley'
+tags: ['Qwik']
+date: 'January 5, 2022'
+canonical: 'https://www.builder.io/blog/partytown-is-now-in-beta'
+--- */}
+
+
+import { ArticleBlock } from '~/routes/(blog)/blog/components/mdx/article-block';
+import { Image } from 'qwik-image';
+
+<ArticleBlock>
+
+Our secret to speedy webpages is now in beta and ready for the real-world! The next step is for our friends (that's you!) to take it for a spin and share your experience so we can iterate and refine to make this the best (third-party script) party ever.
+
+## Partytown's success at Builder
+
+With the combination of Partytown + Qwik, we dramatically improved our homepage performance by moving all of our analytics off the main thread and into a web worker.
+
+For more on how Partytown works, check out [How we cut 99% of our JavaScript with Qwik + Partytown](https://www.builder.io/blog/how-we-cut-99-percent-js-with-qwik-and-partytown) and [Run Third-Party Scripts From a Web Worker](https://dev.to/adamdbradley/introducing-partytown-run-third-party-scripts-from-a-web-worker-2cnp).
+
+## The challenge
+
+Throughout Partytown's development, we've worked with ideas like these to drive performance benefits:
+
+- third-party scripts can eat up a lot of resources.
+- web workers can improve performance by sending tasks to another thread.
+- all our tests with Partytown improve page scores, reduce JavaScript intensive tasks, and continue to send analytic data just as they did before.
+
+We'd love to discover how real-world production websites, such as an e-commerce site, can see an increase in conversions. Partytown increases site performance, which leads to better UX, and search engines notice the performance improvements. This is where you come in!
+
+## Getting started
+
+At the command line, use `npm` to install Partytown:
+
+```
+npm install @builder.io/partytown
+```
+
+Add the `type="text/partytown"` attribute to each third-party script to run from a web worker.
+
+```
+- <script>...</script>
++ <script type="text/partytown">...</script>
+```
+
+Next, inline the Partytown snippet in the `<head>`. How you add the snippet script to the `<head>` depends on your website. While the script could be an external request, it's best for performance to inline the script since it's so small. If you're using React, we recommend using the `<Partytown/>` React component.
+
+You can find the `partytown.js` script within `@builder.io/partytown/lib`. See the [distribution docs](https://github.com/BuilderIO/partytown/wiki/Distribution) for more info on the `@builder.io/partytown` package files.
+
+### React
+
+You can find the React integration in the `@builder.io/partytown/react` submodule. The following is an example of including the `<Partytown/>` component in a Next.js page. Notice the `<Partytown/>` component is in the `<Head>`, and the example analytics script has the `type="text/partytown"` attribute.
+
+```javascript
+import Head from 'next/head';
+import { Partytown } from '@builder.io/partytown/react';
+
+const Home = () => {
+  return (
+    <>
+      <Head>
+        <title>My App</title>
+        <script type="text/partytown" src="https://example.com/analytics.js"></script>
+        <Partytown />
+      </Head>
+      <main>...</main>
+    </>
+  );
+};
+
+export default Home;
+```
+
+We've worked hard to find the right balance between making it easy to integrate into your current setup, whatever that may be, while also giving you 100% control through configuration. See our [installation](https://github.com/BuilderIO/partytown/wiki/Installation) and [configuration](https://github.com/BuilderIO/partytown/wiki/Configuration) for more information on how to add Partytown to your site.
+
+## Help Us Test
+
+Partytown is still in Beta, and we've seen its benefits [already](https://www.builder.io/blog/how-we-cut-99-percent-js-with-qwik-and-partytown). However, to provide more real-world numbers, we need more real-world usage.
+
+Currently, [builder.io](https://www.builder.io/) is using Partytown, and running in production has been invaluable for us to close issues and discover more scenarios that need to be handled. We're also working with a few partners to test on other production websites, but we'd love to get more data! If you have any questions, or looking to contribute, hit us up on our [Discord](https://discord.gg/hbuEtxdEZ3) or [Github](https://github.com/BuilderIO/partytown).
+
+## Integration
+
+At the lowest level, Partytown can work with just vanilla HTML, meaning it doesn't need to be a part of a build process, doesn't need a bundler, doesn't require a specific framework, etc. Because it can integrate with any HTML page, it much easier to then create simple wrapper components or plugins for almost any ecosystem, such as Shopify, Wordpress, Next.js, and much more.
+
+Partytown is different from most web development libraries in how it works and what's required for its setup and configuration. With the Beta release we've also improved our [documentation](https://github.com/BuilderIO/partytown/wiki) but like code, docs are a living project. If you see areas where we could build on our documentation, [let us know](https://github.com/BuilderIO/partytown/issues/new).
+
+## Atomics and Partytown
+
+Our [Atomics build](https://github.com/BuilderIO/partytown/wiki/Enabling-Atomics) is already working, and it's actually 10x faster than the service worker xhr request communication layer, and offers a smaller file size (win win). However, its [cross-origin isolation header requirements](https://web.dev/cross-origin-isolation-guide/) are proving to be a challenge for practical sites. Meaning, if you enable Atomics on your site with the appropriate headers, there's a good chance other requests your site requires may start to fail.
+
+We'll continue to work on [Atomics](https://github.com/BuilderIO/partytown/wiki/Enabling-Atomics), and we're hopeful we can find the right combination so Atomics can instead be the default. As always, if you're interested in helping we'd love to hear from you on [Discord](https://discord.gg/hbuEtxdEZ3).
+
+## What's Next
+
+It's looking promising for Partytown, and it's already improving our own site's performance. We'll continue to fix bugs as they're found, but our next step is to collect production data outlining the before and after effects. Next, we'll be looking to add more integrations, such as Shopify.
+
+Party on.
+
+- [Partytown Discord](https://discord.gg/hbuEtxdEZ3)
+- [Github](https://github.com/BuilderIO/partytown)
+- [@QwikDev](https://twitter.com/QwikDev)
+- [@builderio](https://twitter.com/builderio)
+
+</ArticleBlock>

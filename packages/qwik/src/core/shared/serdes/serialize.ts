@@ -14,6 +14,7 @@ import {
 } from '../../dom/effect/ssr-effect';
 import { ComputedFlags } from '../../reactive/flags';
 import { AsyncSignal } from '../../reactive/async-signal';
+import { Computed, isAsyncComputed } from '../../reactive/computed';
 import { ComputedQrl } from '../../reactive/computed-qrl';
 import { SerializerSignal } from '../../reactive/serializer-signal';
 import { Signal } from '../../reactive/signal';
@@ -47,7 +48,7 @@ import {
 import { _UNINITIALIZED } from '../utils/constants';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
 import { isPromise, maybeThen } from '../utils/promises';
-import { Constants, explicitUndefined, TypeIds } from './constants';
+import { Constants, EMPTY_OBJECT_PAYLOAD, explicitUndefined, TypeIds } from './constants';
 import { qrlToString } from './qrl-to-string';
 import { SerializationBackRef } from './serialization-back-ref';
 import type { SeenRef, SerializationContext } from './serialization-context';
@@ -74,7 +75,7 @@ export class Serializer {
   private $qrlMap$ = new Map<string, QRLInternal>();
   private $streamedRootLimit$ = 0;
   private $writer$: SerdesWriter;
-  /** We need to determine this at runtime because polyfills may not be loaded a module load time */
+  /** Polyfills may not be loaded when this module initializes. */
   private $hasTemporal$ = typeof Temporal !== 'undefined';
 
   constructor(public $serializationContext$: SerializationContext) {
@@ -205,6 +206,25 @@ export class Serializer {
     }
 
     return Number(key);
+  }
+
+  private outputShortStringConstant$(value: string): boolean {
+    switch (value) {
+      case ':':
+        this.output(TypeIds.Constant, Constants.Colon);
+        return true;
+      case '.':
+        this.output(TypeIds.Constant, Constants.Dot);
+        return true;
+      case 'id':
+        this.output(TypeIds.Constant, Constants.Id);
+        return true;
+      case 'ref':
+        this.output(TypeIds.Constant, Constants.Ref);
+        return true;
+      default:
+        return false;
+    }
   }
 
   private outputString(value: string): void {
@@ -381,6 +401,8 @@ export class Serializer {
         case 'string':
           if (value.length === 0) {
             this.output(TypeIds.Constant, Constants.EmptyString);
+          } else if (this.outputShortStringConstant$(value)) {
+            break;
           } else {
             // If the string is short, we output directly
             // Very short strings add overhead to tracking
@@ -401,12 +423,14 @@ export class Serializer {
             this.output(TypeIds.Constant, Constants.UNINITIALIZED);
           } else if (value === explicitUndefined) {
             this.output(TypeIds.Constant, Constants.Undefined);
+          } else {
+            throw qError(QError.serializeErrorUnknownType, [typeof value]);
           }
           break;
         case 'function':
           if (isQrl(value)) {
             if (this.getSeenRefOrOutput(value, index)) {
-              const [chunk, symbol, captures] = qrlToString(
+              const [chunk, symbol, captureIds] = qrlToString(
                 this.$serializationContext$,
                 value,
                 true
@@ -414,23 +438,21 @@ export class Serializer {
               let data: string | number | SsrWriteChunk[];
               if (chunk !== '') {
                 // not a sync QRL, replace all parts with string references
-                data = [
-                  this.$serializationContext$.$addRoot$(chunk),
-                  '#',
-                  this.$serializationContext$.$addRoot$(symbol),
-                ];
-                if (captures) {
-                  const captureIds = captures.split(' ');
+                const chunkRootId = this.$serializationContext$.$addRoot$(chunk);
+                const symbolRootId = this.$serializationContext$.$addRoot$(symbol);
+                data = [chunkRootId, '#', symbolRootId];
+                if (captureIds) {
                   data.push('#');
-                  for (let i = 0; i < captureIds.length; i++) {
+                  const ids = captureIds.split(' ');
+                  for (let i = 0; i < ids.length; i++) {
                     if (i > 0) {
                       data.push(' ');
                     }
-                    data.push(Number(captureIds[i]));
+                    data.push(Number(ids[i]));
                   }
                 }
                 // Since we map QRLs to strings, we need to keep track of this secondary mapping
-                const qrlKey = data.join('');
+                const qrlKey = `${chunkRootId}#${symbolRootId}${captureIds ? '#' + captureIds : ''}`;
                 const existing = this.$qrlMap$.get(qrlKey);
                 if (existing) {
                   // We encountered the same QRL again, make it a root
@@ -488,12 +510,15 @@ export class Serializer {
       } else {
         this.output(TypeIds.SerializerSignal, serializeSerializerSignal(value, maybeValue));
       }
+    } else if (value instanceof ComputedQrl) {
+      this.output(
+        isAsyncComputed(value) ? TypeIds.AsyncSignal : TypeIds.ComputedSignal,
+        isAsyncComputed(value) ? serializeAsyncSignal(value) : serializeComputed(value)
+      );
     } else if (value instanceof AsyncSignal) {
       this.output(TypeIds.AsyncSignal, serializeAsyncSignal(value));
     } else if (value instanceof Signal) {
       this.output(TypeIds.Signal, serializeSignal(value));
-    } else if (value instanceof ComputedQrl) {
-      this.output(TypeIds.ComputedSignal, serializeComputed(value));
     } else if (isStore(value)) {
       this.output(TypeIds.Store, this.serializeStore(value));
     } else if (value instanceof StorePropSource) {
@@ -536,7 +561,7 @@ export class Serializer {
             }
           }
         }
-        this.output(TypeIds.Object, out.length ? out : 0);
+        this.output(TypeIds.Object, out.length ? out : EMPTY_OBJECT_PAYLOAD);
       }
     } else if (value instanceof URL) {
       this.output(TypeIds.URL, value.href);
@@ -846,7 +871,10 @@ function collectStoreSourceRecords(
 function serializeComputed(computed: ComputedQrl<unknown>): unknown[] {
   const hasCachedValue = !!(computed.flags & ComputedFlags.HasValue);
   const needsComputation =
-    !hasCachedValue || !!(computed.flags & ComputedFlags.Dirty) || fastSkipSerialize(computed.v);
+    computed.options?.serializationStrategy === 'never' ||
+    !hasCachedValue ||
+    !!(computed.flags & ComputedFlags.Dirty) ||
+    fastSkipSerialize(computed.v);
   const value = needsComputation
     ? NEEDS_COMPUTATION
     : computed.v === undefined
@@ -912,10 +940,13 @@ function getSerializedSerializerValue(arg: unknown, value: unknown): unknown {
   return maybeThen(data, (data) => (data === undefined ? NEEDS_COMPUTATION : data));
 }
 
-function serializeAsyncSignal(signal: AsyncSignal<unknown>): unknown[] {
+function serializeAsyncSignal(signal: Computed<unknown>): unknown[] {
   const hasCachedValue = !!(signal.flags & ComputedFlags.HasValue);
   const needsComputation =
-    !hasCachedValue || !!(signal.flags & ComputedFlags.Dirty) || fastSkipSerialize(signal.v);
+    signal.options?.serializationStrategy === 'never' ||
+    !hasCachedValue ||
+    !!(signal.flags & ComputedFlags.Dirty) ||
+    fastSkipSerialize(signal.v);
   const value = needsComputation
     ? NEEDS_COMPUTATION
     : signal.v === undefined
@@ -931,7 +962,7 @@ function serializeAsyncSignal(signal: AsyncSignal<unknown>): unknown[] {
   ];
 }
 
-function serializeAsyncSignalOptions(signal: AsyncSignal<unknown>): Record<string, unknown> | null {
+function serializeAsyncSignalOptions(signal: Computed<unknown>): Record<string, unknown> | null {
   const options: Record<string, unknown> = {};
   if (signal.options?.clientOnly) {
     options.clientOnly = true;
@@ -941,6 +972,15 @@ function serializeAsyncSignalOptions(signal: AsyncSignal<unknown>): Record<strin
   }
   if (signal.options?.timeout) {
     options.timeout = signal.options.timeout;
+  }
+  if (signal.options?.concurrency !== undefined) {
+    options.concurrency = signal.options.concurrency;
+  }
+  if (signal.options?.eagerCleanup) {
+    options.eagerCleanup = true;
+  }
+  if (signal.options?.serializationStrategy) {
+    options.serializationStrategy = signal.options.serializationStrategy;
   }
   if (signal.expires) {
     options.expires = signal.expires;

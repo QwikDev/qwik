@@ -22,6 +22,55 @@ export interface PackageInstallResult {
   error?: string;
 }
 
+export type DependencyType = 'dependencies' | 'devDependencies' | 'peerDependencies';
+
+export type InstallDependencyType = 'dependencies' | 'devDependencies';
+
+export type DependencyVersionStatus = 'latest' | 'outdated' | 'unknown' | 'error';
+
+export interface DependencyAuthor {
+  name?: string;
+  email?: string;
+  url?: string;
+}
+
+export interface DependencyInfo {
+  name: string;
+  requestedVersion: string;
+  currentVersion: string;
+  latestVersion?: string;
+  type: DependencyType;
+  status: DependencyVersionStatus;
+  description: string;
+  author?: string | DependencyAuthor;
+  homepage?: string;
+  repository?: string;
+  npmUrl: string;
+  iconUrl?: string | null;
+}
+
+export interface PackageSearchResult {
+  name: string;
+  latestVersion: string;
+  description: string;
+  author?: string | DependencyAuthor;
+  npmUrl: string;
+  isInstalled: boolean;
+  installedVersion?: string;
+}
+
+export interface PackageSearchResponse {
+  results: PackageSearchResult[];
+  error?: string;
+}
+
+export interface DependencyOperationResult {
+  success: boolean;
+  action: 'install' | 'update';
+  packageName: string;
+  error?: string;
+}
+
 export interface BuildAnalysisStatus {
   exists: boolean;
   reportPath: string;
@@ -49,10 +98,15 @@ export interface ServerFunctions {
   getComponents: () => Promise<Component[]>;
   getRoutes: () => any;
   getQwikPackages: () => Promise<[string, string][]>;
-  getAllDependencies: () => Promise<any[]>;
+  getAllDependencies: () => Promise<DependencyInfo[]>;
   getDependenciesStatus: () => Promise<DependenciesStatus>;
-  refreshDependencies: () => Promise<void>;
-  installPackage: (packageName: string, isDev?: boolean) => Promise<PackageInstallResult>;
+  refreshDependencies: () => Promise<DependencyInfo[]>;
+  searchPackages: (query: string) => Promise<PackageSearchResponse>;
+  installPackage: (
+    packageName: string,
+    dependencyType: InstallDependencyType
+  ) => Promise<DependencyOperationResult>;
+  updatePackage: (packageName: string) => Promise<DependencyOperationResult>;
   getBuildAnalysisStatus: () => Promise<BuildAnalysisStatus>;
   buildBuildAnalysisReport: () => Promise<BuildAnalysisRunResult>;
   getModulesByPathIds: (pathIds: string | string[]) => Promise<ModuleLookupResult[]>;

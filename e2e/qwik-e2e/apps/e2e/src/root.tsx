@@ -26,6 +26,7 @@ import NakedObjectStoreReactivityIssue5001 from './components/signals/NakedObjec
 import { Signals } from './components/signals/signals';
 import { SlotParent } from './components/slot/slot';
 import { StreamingRoot } from './components/streaming/streaming';
+import { StreamingFlush } from './components/streaming/streaming-flush';
 import { Styles } from './components/styles/styles';
 import { SyncQRL } from './components/sync-qrl/sync-qrl';
 import { Toggle } from './components/toggle/toggle';
@@ -40,6 +41,7 @@ import { QRL } from './components/qrl/qrl';
 import { AsyncRoot } from './components/use-async/use-async';
 import { Backpatching } from './components/backpatching/backpatching';
 import { EachRoot } from './components/each/each';
+import { ShowRoot } from './components/show/show';
 import { SuspenseRoot } from './components/suspense/suspense';
 import { OutOfOrderSuspenseRoot } from './components/suspense/ooos';
 
@@ -65,6 +67,7 @@ const tests: Record<string, FunctionComponent> = {
   '/e2e/resource-fn': () => <ResourceFn />,
   '/e2e/treeshaking': () => <TreeshakingApp />,
   '/e2e/streaming': () => <StreamingRoot />,
+  '/e2e/streaming-flush': () => <StreamingFlush />,
   '/e2e/mount': () => <MountRoot />,
   '/e2e/ref': () => <RefRoot />,
   '/e2e/signals': () => <Signals />,
@@ -82,6 +85,7 @@ const tests: Record<string, FunctionComponent> = {
   '/e2e/async-computed': () => <AsyncRoot />,
   '/e2e/backpatching': () => <Backpatching />,
   '/e2e/each': () => <EachRoot />,
+  '/e2e/show': () => <ShowRoot />,
   '/e2e/suspense': () => <SuspenseRoot />,
   '/e2e/suspense-ooos': () => <OutOfOrderSuspenseRoot />,
   '/e2e/worker': () => <WorkerRoot />,

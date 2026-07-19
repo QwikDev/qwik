@@ -2,6 +2,7 @@ import type { SsgRenderOptions } from 'packages/qwik-router/src/ssg';
 import fs from 'node:fs';
 import { join, relative } from 'node:path';
 import { normalizePathSlash } from '../../../utils/fs';
+import { ensureSlash } from '../../../utils/pathname';
 import { type ServerAdapterOptions, viteAdapter } from '../../shared/vite';
 
 /** @public */
@@ -37,14 +38,11 @@ export function cloudflarePagesAdapter(opts: CloudflarePagesAdapterOptions = {})
       };
     },
 
-    async generate({ clientOutDir, serverOutDir, basePathname, assetsDir }) {
+    async generate({ clientOutDir, serverOutDir, basePathname }) {
       const routesJsonPath = join(clientOutDir, '_routes.json');
       const hasRoutesJson = fs.existsSync(routesJsonPath);
       if (!hasRoutesJson && opts.functionRoutes !== false) {
-        let pathName = assetsDir ? join(basePathname, assetsDir) : basePathname;
-        if (!pathName.endsWith('/')) {
-          pathName += '/';
-        }
+        const pathName = ensureSlash(basePathname);
         const routesJson = {
           version: 1,
           include: [basePathname + '*'],

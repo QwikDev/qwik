@@ -222,20 +222,20 @@
     },
     {
       "name": "abort",
-      "id": "asyncsignal-abort",
+      "id": "computedsignal-abort",
       "hierarchy": [
         {
-          "name": "AsyncSignal",
-          "id": "asyncsignal-abort"
+          "name": "ComputedSignal",
+          "id": "computedsignal-abort"
         },
         {
           "name": "abort",
-          "id": "asyncsignal-abort"
+          "id": "computedsignal-abort"
         }
       ],
       "kind": "MethodSignature",
       "content": "```typescript\nabort(reason?: unknown): void;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nreason\n\n\n</td><td>\n\nunknown\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
-      "mdFile": "core.asyncsignal.abort.md"
+      "mdFile": "core.computedsignal.abort.md"
     },
     {
       "name": "AsyncCtx",
@@ -247,7 +247,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type AsyncCtx<T = unknown> = {\n    track: Tracker;\n    cleanup(callback: () => ValueOrPromise<void>): void;\n    readonly abortSignal: AbortSignal;\n    readonly previous: T | undefined;\n    readonly info?: unknown;\n};\n```\n**References:** [Tracker](#tracker)<!-- -->, [ValueOrPromise](#valueorpromise)",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `ComputeCtx` instead.\n> \n\n\n```typescript\nexport type AsyncCtx<T = unknown> = ComputeCtx<T>;\n```\n**References:** [ComputeCtx](#computectx)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/public-types.ts",
       "mdFile": "core.asyncctx.md"
     },
@@ -260,8 +260,8 @@
           "id": "asyncsignal"
         }
       ],
-      "kind": "Interface",
-      "content": "```typescript\nexport interface PublicAsyncSignal<T = unknown> extends PublicSignal<T> \n```\n**Extends:** [PublicSignal](#signal)<!-- -->&lt;T&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nerror\n\n\n</td><td>\n\n\n</td><td>\n\nError \\| undefined\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nexpires\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\ninterval\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nloading\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\npoll\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nuntrackedError\n\n\n</td><td>\n\n\n</td><td>\n\nError \\| undefined\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nuntrackedLoading\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[abort(reason)](#asyncsignal-abort)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[invalidate(info)](#asyncsignal-invalidate)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[promise()](#asyncsignal-promise)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "kind": "TypeAlias",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `ComputedSignal` instead.\n> \n\n\n```typescript\nexport type PublicAsyncSignal<T = unknown> = ComputedSignal<T>;\n```\n**References:** [ComputedSignal](#computedsignal)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/public-types.ts",
       "mdFile": "core.asyncsignal.md"
     },
@@ -274,8 +274,8 @@
           "id": "asyncsignaloptions"
         }
       ],
-      "kind": "Interface",
-      "content": "```typescript\nexport interface AsyncSignalOptions<T> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nallowStale?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nclientOnly?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nconcurrency?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\neagerCleanup?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nexpires?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ninitial?\n\n\n</td><td>\n\n\n</td><td>\n\nT \\| (() =&gt; T)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ninterval?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\npoll?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ntimeout?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "kind": "TypeAlias",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `ComputedOptions` instead.\n> \n\n\n```typescript\nexport type AsyncSignalOptions<T = unknown> = ComputedOptions<T>;\n```\n**References:** [ComputedOptions](#computedoptions)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/public-types.ts",
       "mdFile": "core.asyncsignaloptions.md"
     },
@@ -353,6 +353,34 @@
       "mdFile": "core.componentbaseprops.md"
     },
     {
+      "name": "ComputeCtx",
+      "id": "computectx",
+      "hierarchy": [
+        {
+          "name": "ComputeCtx",
+          "id": "computectx"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type ComputeCtx<T = unknown> = {\n    track: Tracker;\n    cleanup(callback: () => ValueOrPromise<void>): void;\n    readonly abortSignal: AbortSignal;\n    readonly previous: T | undefined;\n    readonly info?: unknown;\n};\n```\n**References:** [Tracker](#tracker)<!-- -->, [ValueOrPromise](#valueorpromise)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/public-types.ts",
+      "mdFile": "core.computectx.md"
+    },
+    {
+      "name": "ComputedOptions",
+      "id": "computedoptions",
+      "hierarchy": [
+        {
+          "name": "ComputedOptions",
+          "id": "computedoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface ComputedOptions<T = unknown> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nallowStale?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nclientOnly?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nconcurrency?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\neagerCleanup?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nexpires?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ninitial?\n\n\n</td><td>\n\n\n</td><td>\n\nT \\| (() =&gt; T)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ninterval?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\npoll?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nserializationStrategy?\n\n\n</td><td>\n\n\n</td><td>\n\n[SerializationStrategy](#serializationstrategy)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ntimeout?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/public-types.ts",
+      "mdFile": "core.computedoptions.md"
+    },
+    {
       "name": "ComputedSignal",
       "id": "computedsignal",
       "hierarchy": [
@@ -361,8 +389,8 @@
           "id": "computedsignal"
         }
       ],
-      "kind": "TypeAlias",
-      "content": "```typescript\nexport type ComputedSignal<T = unknown> = ReadonlySignal<T>;\n```\n**References:** [ReadonlySignal](#readonlysignal)",
+      "kind": "Interface",
+      "content": "```typescript\nexport interface ComputedSignal<T = unknown> extends ReadonlySignal<T> \n```\n**Extends:** [ReadonlySignal](#readonlysignal)<!-- -->&lt;T&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nerror\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nError \\| undefined\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nexpires\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\ninterval\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nloading\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\npending\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\npoll\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nuntrackedError\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nError \\| undefined\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nuntrackedLoading\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nuntrackedPending\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[abort(reason)](#computedsignal-abort)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[invalidate(info)](#computedsignal-invalidate)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[promise()](#computedsignal-promise)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[trigger()](#computedsignal-trigger)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/public-types.ts",
       "mdFile": "core.computedsignal.md"
     },
@@ -663,20 +691,20 @@
     },
     {
       "name": "invalidate",
-      "id": "asyncsignal-invalidate",
+      "id": "computedsignal-invalidate",
       "hierarchy": [
         {
-          "name": "AsyncSignal",
-          "id": "asyncsignal-invalidate"
+          "name": "ComputedSignal",
+          "id": "computedsignal-invalidate"
         },
         {
           "name": "invalidate",
-          "id": "asyncsignal-invalidate"
+          "id": "computedsignal-invalidate"
         }
       ],
       "kind": "MethodSignature",
       "content": "```typescript\ninvalidate(info?: unknown): void;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ninfo\n\n\n</td><td>\n\nunknown\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
-      "mdFile": "core.asyncsignal.invalidate.md"
+      "mdFile": "core.computedsignal.invalidate.md"
     },
     {
       "name": "JSXChildren",
@@ -744,7 +772,7 @@
         }
       ],
       "kind": "Function",
-      "content": "Returned type of the `noSerialize()` function. It will be TYPE or undefined.\n\n\n```typescript\nexport type NoSerialize<T> = (T & {\n    __no_serialize__?: true;\n}) | undefined;\n```",
+      "content": "Returned type of the `noSerialize()` function. It will be TYPE or undefined.\n\n\n```typescript\nexport type NoSerialize<T> = (T & {\n    __no_serialize__: true;\n}) | undefined;\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/serdes/verify.ts",
       "mdFile": "core.noserialize.md"
     },
@@ -758,7 +786,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "Returned type of the `noSerialize()` function. It will be TYPE or undefined.\n\n\n```typescript\nexport type NoSerialize<T> = (T & {\n    __no_serialize__?: true;\n}) | undefined;\n```",
+      "content": "Returned type of the `noSerialize()` function. It will be TYPE or undefined.\n\n\n```typescript\nexport type NoSerialize<T> = (T & {\n    __no_serialize__: true;\n}) | undefined;\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/serdes/verify.ts",
       "mdFile": "core.noserialize.md"
     },
@@ -792,20 +820,20 @@
     },
     {
       "name": "promise",
-      "id": "asyncsignal-promise",
+      "id": "computedsignal-promise",
       "hierarchy": [
         {
-          "name": "AsyncSignal",
-          "id": "asyncsignal-promise"
+          "name": "ComputedSignal",
+          "id": "computedsignal-promise"
         },
         {
           "name": "promise",
-          "id": "asyncsignal-promise"
+          "id": "computedsignal-promise"
         }
       ],
       "kind": "MethodSignature",
       "content": "```typescript\npromise(): Promise<void>;\n```\n**Returns:**\n\nPromise&lt;void&gt;",
-      "mdFile": "core.asyncsignal.promise.md"
+      "mdFile": "core.computedsignal.promise.md"
     },
     {
       "name": "PropFunction",
@@ -1139,7 +1167,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface PublicSignal<T = unknown> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nuntrackedValue\n\n\n</td><td>\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nvalue\n\n\n</td><td>\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[trigger()](#signal-trigger)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface PublicSignal<T = unknown> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nuntrackedValue\n\n\n</td><td>\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nvalue\n\n\n</td><td>\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ntrigger()\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/public-types.ts",
       "mdFile": "core.signal.md"
     },
@@ -1285,20 +1313,20 @@
     },
     {
       "name": "trigger",
-      "id": "signal-trigger",
+      "id": "computedsignal-trigger",
       "hierarchy": [
         {
-          "name": "Signal",
-          "id": "signal-trigger"
+          "name": "ComputedSignal",
+          "id": "computedsignal-trigger"
         },
         {
           "name": "trigger",
-          "id": "signal-trigger"
+          "id": "computedsignal-trigger"
         }
       ],
       "kind": "MethodSignature",
       "content": "```typescript\ntrigger(): void;\n```\n**Returns:**\n\nvoid",
-      "mdFile": "core.signal.trigger.md"
+      "mdFile": "core.computedsignal.trigger.md"
     },
     {
       "name": "untrack",
@@ -1338,7 +1366,7 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nuseAsync$: <T>(qrl: (ctx: AsyncCtx<T>) => ValueOrPromise<T>, options?: AsyncSignalOptions<T>) => PublicAsyncSignal<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n(ctx: [AsyncCtx](#asyncctx)<!-- -->&lt;T&gt;) =&gt; [ValueOrPromise](#valueorpromise)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[AsyncSignalOptions](#asyncsignaloptions)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[PublicAsyncSignal](#asyncsignal)<!-- -->&lt;T&gt;",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `useComputed$` instead.\n> \n\n\n```typescript\nuseAsync$: <T>(qrl: (ctx: AsyncCtx<T>) => ValueOrPromise<T>, options?: AsyncSignalOptions<T>) => PublicAsyncSignal<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n(ctx: [AsyncCtx](#asyncctx)<!-- -->&lt;T&gt;) =&gt; [ValueOrPromise](#valueorpromise)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[AsyncSignalOptions](#asyncsignaloptions)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[PublicAsyncSignal](#asyncsignal)<!-- -->&lt;T&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/public-api.ts",
       "mdFile": "core.useasync_.md"
     },
@@ -1352,7 +1380,7 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nuseComputed$: <T>(qrl: () => T) => ComputedSignal<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n() =&gt; T\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[ComputedSignal](#computedsignal)<!-- -->&lt;T&gt;",
+      "content": "```typescript\nuseComputed$: <T>(qrl: (ctx: ComputeCtx<Awaited<T>>) => T, options?: ComputedOptions<Awaited<T>>) => ComputedSignal<Awaited<T>>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n(ctx: [ComputeCtx](#computectx)<!-- -->&lt;Awaited&lt;T&gt;&gt;) =&gt; T\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[ComputedOptions](#computedoptions)<!-- -->&lt;Awaited&lt;T&gt;&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[ComputedSignal](#computedsignal)<!-- -->&lt;Awaited&lt;T&gt;&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/public-api.ts",
       "mdFile": "core.usecomputed_.md"
     },

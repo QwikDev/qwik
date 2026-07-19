@@ -16,9 +16,14 @@ export type qWindow = Window & {
   _qwikEv: {
     events: Set<string>;
     roots: Set<Node>;
-    push(...events: (string | (EventTarget & ParentNode))[]): void;
+    /** Add loader commands, new root nodes, or scoped kebabcase eventnames to listen to. */
+    push: (
+      ...events: (string | (EventTarget & ParentNode) | QwikEvContainerReadyCommand)[]
+    ) => void;
   };
 };
+
+export type QwikEvContainerReadyCommand = 0;
 
 export type QwikLoaderEventScope = 'd' | 'dp' | 'w' | 'wp' | 'e' | 'ep';
 

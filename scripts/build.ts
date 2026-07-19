@@ -28,8 +28,9 @@ import { submoduleServer } from './submodule-server.ts';
 import { submoduleTesting } from './submodule-testing.ts';
 import { submoduleWorker } from './submodule-worker.ts';
 import { buildSupabaseAuthHelpers } from './supabase-auth-helpers.ts';
-import { tsc, tscQwik, tscQwikRouter } from './tsc.ts';
+import { tsc, tscQwik, tscDevDts, tscQwikRouter } from './tsc.ts';
 import { tscDocs } from './tsc-docs.ts';
+import { writeQwikDtsShims, writeQwikRouterDtsShims } from './dts-shim.ts';
 import { emptyDir, ensureDir, panic, type BuildConfig } from './util.ts';
 import { validateBuild } from './validate-build.ts';
 import { submodulePreloader } from './submodule-preloader.ts';
@@ -63,6 +64,9 @@ export async function build(config: BuildConfig) {
       rmSync(config.tscDir, { recursive: true, force: true });
       rmSync(config.dtsDir, { recursive: true, force: true });
       await tscQwik(config);
+    } else if (config.dev && (config.qwik || config.qwikrouter) && !config.watch) {
+      // Dev: incremental dts emit; don't wipe dtsDir (keeps tsbuildinfo).
+      await tscDevDts(config);
     }
     ensureDir(config.distQwikPkgDir);
     if (config.qwik && !config.dev) {
@@ -116,6 +120,9 @@ export async function build(config: BuildConfig) {
     }
     if (config.api || ((!config.dev || config.tsc) && config.qwik)) {
       await apiExtractorQwik(config);
+    } else if (config.dev && config.qwik && !config.watch) {
+      // Dev: re-export shims replace the api-extractor rollup.
+      writeQwikDtsShims(config);
     }
 
     if (config.tsc || (!config.dev && config.qwikrouter)) {
@@ -136,6 +143,9 @@ export async function build(config: BuildConfig) {
 
     if (config.api || ((!config.dev || config.tsc) && config.qwikrouter)) {
       await apiExtractorQwikRouter(config);
+    } else if (config.dev && config.qwikrouter && !config.watch) {
+      // Dev: router shims from the same combined emit.
+      writeQwikRouterDtsShims(config);
     }
 
     if (config.tsc) {

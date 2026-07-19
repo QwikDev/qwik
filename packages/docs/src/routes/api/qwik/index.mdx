@@ -120,7 +120,7 @@ Expression which should be lazy loaded
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/qrl/qrl.public.ts)
 
-<h2 id="asyncsignal-abort">abort</h2>
+<h2 id="computedsignal-abort">abort</h2>
 
 ```typescript
 abort(reason?: unknown): void;
@@ -160,331 +160,43 @@ void
 
 <h2 id="asyncctx">AsyncCtx</h2>
 
+> Warning: This API is now obsolete.
+>
+> Use `ComputeCtx` instead.
+
 ```typescript
-export type AsyncCtx<T = unknown> = {
-  track: Tracker;
-  cleanup(callback: () => ValueOrPromise<void>): void;
-  readonly abortSignal: AbortSignal;
-  readonly previous: T | undefined;
-  readonly info?: unknown;
-};
+export type AsyncCtx<T = unknown> = ComputeCtx<T>;
 ```
 
-**References:** [Tracker](#tracker), [ValueOrPromise](#valueorpromise)
+**References:** [ComputeCtx](#computectx)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/public-types.ts)
 
 <h2 id="asyncsignal">AsyncSignal</h2>
 
+> Warning: This API is now obsolete.
+>
+> Use `ComputedSignal` instead.
+
 ```typescript
-export interface PublicAsyncSignal<T = unknown> extends PublicSignal<T>
+export type PublicAsyncSignal<T = unknown> = ComputedSignal<T>;
 ```
 
-**Extends:** [PublicSignal](#signal)&lt;T&gt;
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-error
-
-</td><td>
-
-</td><td>
-
-Error \| undefined
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-expires
-
-</td><td>
-
-</td><td>
-
-number
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-interval
-
-</td><td>
-
-</td><td>
-
-number
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-loading
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-poll
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-untrackedError
-
-</td><td>
-
-</td><td>
-
-Error \| undefined
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-untrackedLoading
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-<table><thead><tr><th>
-
-Method
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[abort(reason)](#asyncsignal-abort)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[invalidate(info)](#asyncsignal-invalidate)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[promise()](#asyncsignal-promise)
-
-</td><td>
-
-</td></tr>
-</tbody></table>
+**References:** [ComputedSignal](#computedsignal)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/public-types.ts)
 
 <h2 id="asyncsignaloptions">AsyncSignalOptions</h2>
 
+> Warning: This API is now obsolete.
+>
+> Use `ComputedOptions` instead.
+
 ```typescript
-export interface AsyncSignalOptions<T>
+export type AsyncSignalOptions<T = unknown> = ComputedOptions<T>;
 ```
 
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-allowStale?
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-clientOnly?
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-concurrency?
-
-</td><td>
-
-</td><td>
-
-number
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-eagerCleanup?
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-expires?
-
-</td><td>
-
-</td><td>
-
-number
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-initial?
-
-</td><td>
-
-</td><td>
-
-T \| (() =&gt; T)
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-interval?
-
-</td><td>
-
-</td><td>
-
-number
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-poll?
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-timeout?
-
-</td><td>
-
-</td><td>
-
-number
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-</tbody></table>
+**References:** [ComputedOptions](#computedoptions)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/public-types.ts)
 
@@ -680,13 +392,393 @@ _(Optional)_
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-attributes.ts)
 
+<h2 id="computectx">ComputeCtx</h2>
+
+```typescript
+export type ComputeCtx<T = unknown> = {
+  track: Tracker;
+  cleanup(callback: () => ValueOrPromise<void>): void;
+  readonly abortSignal: AbortSignal;
+  readonly previous: T | undefined;
+  readonly info?: unknown;
+};
+```
+
+**References:** [Tracker](#tracker), [ValueOrPromise](#valueorpromise)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/public-types.ts)
+
+<h2 id="computedoptions">ComputedOptions</h2>
+
+```typescript
+export interface ComputedOptions<T = unknown>
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+allowStale?
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+clientOnly?
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+concurrency?
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+eagerCleanup?
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+expires?
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+initial?
+
+</td><td>
+
+</td><td>
+
+T \| (() =&gt; T)
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+interval?
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+poll?
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+serializationStrategy?
+
+</td><td>
+
+</td><td>
+
+[SerializationStrategy](#serializationstrategy)
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+timeout?
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/public-types.ts)
+
 <h2 id="computedsignal">ComputedSignal</h2>
 
 ```typescript
-export type ComputedSignal<T = unknown> = ReadonlySignal<T>;
+export interface ComputedSignal<T = unknown> extends ReadonlySignal<T>
 ```
 
-**References:** [ReadonlySignal](#readonlysignal)
+**Extends:** [ReadonlySignal](#readonlysignal)&lt;T&gt;
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+error
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+Error \| undefined
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+expires
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+interval
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+loading
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+boolean
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+pending
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+boolean
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+poll
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+untrackedError
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+Error \| undefined
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+untrackedLoading
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+boolean
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+untrackedPending
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+boolean
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+<table><thead><tr><th>
+
+Method
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[abort(reason)](#computedsignal-abort)
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[invalidate(info)](#computedsignal-invalidate)
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[promise()](#computedsignal-promise)
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[trigger()](#computedsignal-trigger)
+
+</td><td>
+
+</td></tr>
+</tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/public-types.ts)
 
@@ -1357,7 +1449,7 @@ interface IntrinsicElements extends LenientQwikElements
 
 **Extends:** LenientQwikElements
 
-<h2 id="asyncsignal-invalidate">invalidate</h2>
+<h2 id="computedsignal-invalidate">invalidate</h2>
 
 ```typescript
 invalidate(info?: unknown): void;
@@ -1460,7 +1552,7 @@ Returned type of the `noSerialize()` function. It will be TYPE or undefined.
 ```typescript
 export type NoSerialize<T> =
   | (T & {
-      __no_serialize__?: true;
+      __no_serialize__: true;
     })
   | undefined;
 ```
@@ -1474,7 +1566,7 @@ Returned type of the `noSerialize()` function. It will be TYPE or undefined.
 ```typescript
 export type NoSerialize<T> =
   | (T & {
-      __no_serialize__?: true;
+      __no_serialize__: true;
     })
   | undefined;
 ```
@@ -1501,7 +1593,7 @@ export type OnRenderFn<PROPS> = (props: PROPS) => JSXOutput;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/component.public.ts)
 
-<h2 id="asyncsignal-promise">promise</h2>
+<h2 id="computedsignal-promise">promise</h2>
 
 ```typescript
 promise(): Promise<void>;
@@ -2290,7 +2382,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[trigger()](#signal-trigger)
+trigger()
 
 </td><td>
 
@@ -6377,7 +6469,7 @@ export interface Tracker
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/public-types.ts)
 
-<h2 id="signal-trigger">trigger</h2>
+<h2 id="computedsignal-trigger">trigger</h2>
 
 ```typescript
 trigger(): void;
@@ -6479,6 +6571,10 @@ T
 
 <h2 id="useasync_">useAsync$</h2>
 
+> Warning: This API is now obsolete.
+>
+> Use `useComputed$` instead.
+
 ```typescript
 useAsync$: <T>(
   qrl: (ctx: AsyncCtx<T>) => ValueOrPromise<T>,
@@ -6534,7 +6630,10 @@ _(Optional)_
 <h2 id="usecomputed_">useComputed$</h2>
 
 ```typescript
-useComputed$: <T>(qrl: () => T) => ComputedSignal<T>;
+useComputed$: <T>(
+  qrl: (ctx: ComputeCtx<Awaited<T>>) => T,
+  options?: ComputedOptions<Awaited<T>>,
+) => ComputedSignal<Awaited<T>>;
 ```
 
 <table><thead><tr><th>
@@ -6556,16 +6655,29 @@ qrl
 
 </td><td>
 
-() =&gt; T
+(ctx: [ComputeCtx](#computectx)&lt;Awaited&lt;T&gt;&gt;) =&gt; T
 
 </td><td>
+
+</td></tr>
+<tr><td>
+
+options
+
+</td><td>
+
+[ComputedOptions](#computedoptions)&lt;Awaited&lt;T&gt;&gt;
+
+</td><td>
+
+_(Optional)_
 
 </td></tr>
 </tbody></table>
 
 **Returns:**
 
-[ComputedSignal](#computedsignal)&lt;T&gt;
+[ComputedSignal](#computedsignal)&lt;Awaited&lt;T&gt;&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/public-api.ts)
 

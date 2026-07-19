@@ -1,5 +1,6 @@
 import { $ } from '@qwik.dev/core';
-import { assert, assertType, describe, expectTypeOf, test } from 'vitest';
+import { assert, assertType, describe, expectTypeOf, test, vi } from 'vitest';
+import { getPlatform, setPlatform } from '../platform/platform';
 import { createSerializationContext, parseQRL, qrlToString } from '../serdes/index';
 import { _regSymbol, inlinedQrl, qrl } from './qrl';
 import { _captures, createQRL, withCaptures } from './qrl-class';
@@ -9,6 +10,10 @@ function matchProps(obj: any, properties: Record<string, any>) {
   for (const [key, value] of Object.entries(properties)) {
     assert.deepEqual(obj[key], value, `${obj[key]} !== ${value}`);
   }
+}
+
+function matchDeltaCaptures(obj: any, qrlString: string) {
+  assert.deepEqual(obj.$captures$, qrlString);
 }
 
 describe('types', () => {
@@ -65,17 +70,17 @@ describe('serialization', () => {
     matchProps(parseQRL('./chunk#s1#1 2'), {
       $chunk$: './chunk',
       $symbol$: 's1',
-      $captures$: '1 2',
     });
+    matchDeltaCaptures(parseQRL('./chunk#s1#1 2'), '1 2');
     matchProps(parseQRL('./chunk##1 2'), {
       $chunk$: './chunk',
-      $captures$: '1 2',
     });
+    matchDeltaCaptures(parseQRL('./chunk##1 2'), '1 2');
     matchProps(parseQRL('./path#symbol#2'), {
       $chunk$: './path',
       $symbol$: 'symbol',
-      $captures$: '2',
     });
+    matchDeltaCaptures(parseQRL('./path#symbol#2'), '2');
     matchProps(
       parseQRL(
         '/src/path%2d/foo_symbol.js?_qrl_parent=/home/user/project/src/path/foo.js#symbol#2'
@@ -83,8 +88,13 @@ describe('serialization', () => {
       {
         $chunk$: '/src/path%2d/foo_symbol.js?_qrl_parent=/home/user/project/src/path/foo.js',
         $symbol$: 'symbol',
-        $captures$: '2',
       }
+    );
+    matchDeltaCaptures(
+      parseQRL(
+        '/src/path%2d/foo_symbol.js?_qrl_parent=/home/user/project/src/path/foo.js#symbol#2'
+      ),
+      '2'
     );
   });
 
@@ -155,6 +165,66 @@ describe('createQRL', () => {
     assert.equal(q.resolved, undefined);
     assert.equal(await q.resolve(), 'resolved');
     assert.equal(q.resolved, 'resolved');
+  });
+
+  test('should log a failed chunk only once per container', async () => {
+    const firstError = new Error('first failure');
+    const secondError = new Error('second failure');
+    const thirdError = new Error('third failure');
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const previousPlatform = getPlatform();
+    const importSymbol = vi
+      .fn()
+      .mockRejectedValueOnce(firstError)
+      .mockRejectedValueOnce(secondError)
+      .mockRejectedValueOnce(thirdError);
+    setPlatform({ ...previousPlatform, isServer: false, importSymbol });
+
+    try {
+      const firstContainer = { element: {} } as any;
+      const secondContainer = { element: {} } as any;
+      const firstQrl = createQRL('chunk', 'first', null, null, null, firstContainer);
+      const secondQrl = createQRL('chunk', 'second', null, null, null, firstContainer);
+      const thirdQrl = createQRL('chunk', 'third', null, null, null, secondContainer);
+
+      const results = await Promise.allSettled([
+        firstQrl.resolve(),
+        secondQrl.resolve(),
+        thirdQrl.resolve(),
+      ]);
+
+      assert.deepEqual(results, [
+        { status: 'rejected', reason: firstError },
+        { status: 'rejected', reason: secondError },
+        { status: 'rejected', reason: thirdError },
+      ]);
+      assert.equal(consoleError.mock.calls.length, 2);
+      assert.deepEqual(consoleError.mock.calls[0], ['qrl first failed to load', firstError]);
+      assert.deepEqual(consoleError.mock.calls[1], ['qrl third failed to load', thirdError]);
+    } finally {
+      setPlatform(previousPlatform);
+      consoleError.mockRestore();
+    }
+  });
+
+  test('should not deduplicate failed chunks on the server', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const previousPlatform = getPlatform();
+    const importSymbol = vi.fn().mockRejectedValue(new Error('failure'));
+    setPlatform({ ...previousPlatform, isServer: true, importSymbol });
+
+    try {
+      const container = { element: {} } as any;
+      const firstQrl = createQRL('server-chunk', 'first', null, null, null, container);
+      const secondQrl = createQRL('server-chunk', 'second', null, null, null, container);
+
+      await Promise.allSettled([firstQrl.resolve(), secondQrl.resolve()]);
+
+      assert.equal(consoleError.mock.calls.length, 2);
+    } finally {
+      setPlatform(previousPlatform);
+      consoleError.mockRestore();
+    }
   });
 
   const fn = () => 'hi';

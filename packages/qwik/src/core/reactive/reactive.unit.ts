@@ -12,7 +12,7 @@ import { Computed } from './computed';
 import { ComputedQrl } from './computed-qrl';
 import { _wrapArray, useComputedQrl, useComputed, useConstant, useSignal } from './public-api';
 import { readSourceValue, type Source } from './source';
-import { runWithCollector } from './tracking';
+import { _await, runWithCollector } from './tracking';
 import { Scheduler } from '../runtime/scheduler';
 import { useTask } from '../runtime/task';
 import { createOwner, runWithOwner } from '../runtime/owner';
@@ -93,6 +93,40 @@ describe('reactive primitives', () => {
     expect(doubled.value).toBe(4);
     expect(runs).toBe(2);
     expect(doubled.version).toBe(2);
+  });
+
+  it('supports async computed values and keeps stale values while pending', async () => {
+    const count = useSignal(1);
+    let release!: () => void;
+    const doubled = createOwned(() =>
+      useComputed(
+        async () => {
+          const value = count.value;
+          (
+            await _await(
+              new Promise<void>((resolve) => {
+                release = resolve;
+              })
+            )
+          )();
+          return value * 2;
+        },
+        { initial: 0 }
+      )
+    );
+
+    expect(doubled.value).toBe(0);
+    expect(doubled.pending).toBe(true);
+    release();
+    await doubled.promise();
+    expect(doubled.value).toBe(2);
+
+    count.value = 2;
+    expect(doubled.value).toBe(2);
+    expect(doubled.pending).toBe(true);
+    release();
+    await doubled.promise();
+    expect(doubled.value).toBe(4);
   });
 
   it('returns a plain array when an array wrapper collects no dependencies', () => {
@@ -353,7 +387,7 @@ describe('reactive primitives', () => {
       '0 1',
       container
     );
-    const computed = createOwned(() => useComputedQrl(qrl, container));
+    const computed = createOwned(() => useComputedQrl(qrl, undefined, container));
     let pending: unknown;
 
     try {

@@ -33,6 +33,171 @@ const formatDiagnosticLocation = (startLine?: number, startCol?: number) => {
   return `L${startLine}:C${startCol}`;
 };
 
+const parseHtml = (html: string) => {
+  if (!html) {
+    return null;
+  }
+  return new DOMParser().parseFromString(html, 'text/html');
+};
+
+const TYPE_ID_FORWARD_REFS = 14;
+
+const getStateScriptData = (doc: Document) => {
+  const containerElement = doc.querySelector('[q\\:container][q\\:instance]');
+  const instanceHash = containerElement?.getAttribute('q:instance');
+  const stateScope = containerElement || doc;
+  const stateScriptSelector = instanceHash
+    ? `script[type="qwik/state"][q\\:instance="${instanceHash}"]`
+    : 'script[type="qwik/state"]';
+  const rootStateScript = stateScope.querySelector(`${stateScriptSelector}:not([q\\:patch])`);
+  const patchStateScripts = stateScope.querySelectorAll(`${stateScriptSelector}[q\\:patch]`);
+
+  if (!rootStateScript && patchStateScripts.length === 0) {
+    return null;
+  }
+
+  const patchForwardRefs: Array<number | string> = [];
+  const stateData = JSON.parse(rootStateScript?.textContent || '[]') as unknown[];
+  for (let i = 0; i < patchStateScripts.length; i++) {
+    const patchStateText = patchStateScripts[i].textContent;
+    if (!patchStateText) {
+      continue;
+    }
+    const [rootStart, rawStateData, forwardRefs] = JSON.parse(patchStateText) as [
+      number,
+      unknown[],
+      Array<number | string> | 0 | undefined,
+    ];
+    for (let j = 0; j < rawStateData.length; j++) {
+      stateData[rootStart * 2 + j] = rawStateData[j];
+    }
+    if (forwardRefs) {
+      for (let j = 0; j < forwardRefs.length; j++) {
+        const ref = forwardRefs[j];
+        if (ref !== undefined) {
+          patchForwardRefs.push(ref);
+        }
+      }
+    }
+  }
+
+  if (patchForwardRefs.length > 0) {
+    let forwardRefsIndex = -1;
+    for (let i = 0; i < stateData.length; i += 2) {
+      if (stateData[i] === TYPE_ID_FORWARD_REFS) {
+        forwardRefsIndex = i + 1;
+        break;
+      }
+    }
+    if (forwardRefsIndex === -1) {
+      stateData.push(TYPE_ID_FORWARD_REFS, patchForwardRefs);
+    } else {
+      const rootForwardRefs = stateData[forwardRefsIndex];
+      stateData[forwardRefsIndex] = Array.isArray(rootForwardRefs)
+        ? [...rootForwardRefs, ...patchForwardRefs]
+        : patchForwardRefs;
+    }
+  }
+
+  return { instanceHash, patchStateScripts, rootStateScript, stateData, stateScope };
+};
+
+const getParsedSerializedState = (doc: Document) => {
+  const state = getStateScriptData(doc);
+  if (!state) {
+    return null;
+  }
+  const stateContainer = { $forwardRefs$: null as Array<number | string> | null };
+  _preprocessState(state.stateData, stateContainer as any);
+
+  return state.stateData;
+};
+
+const emulateExecutionOfQwikFuncs = (doc: Document) => {
+  const qFuncs = doc.body.querySelectorAll('[q\\:func]');
+  for (let i = 0; i < qFuncs.length; i++) {
+    const code = qFuncs[i].textContent || '';
+    if (code) {
+      // eslint-disable-next-line no-new-func
+      new Function('document', code)(doc);
+    }
+  }
+};
+
+const normalizeStateScriptsForDebug = (doc: Document) => {
+  const state = getStateScriptData(doc);
+  if (!state) {
+    return;
+  }
+  let rootStateScript = state.rootStateScript;
+  if (!rootStateScript) {
+    rootStateScript = doc.createElement('script');
+    rootStateScript.setAttribute('type', 'qwik/state');
+    if (state.instanceHash) {
+      rootStateScript.setAttribute('q:instance', state.instanceHash);
+    }
+    if (state.stateScope instanceof Document) {
+      state.stateScope.body.appendChild(rootStateScript);
+    } else {
+      state.stateScope.appendChild(rootStateScript);
+    }
+  }
+  rootStateScript.textContent = JSON.stringify(state.stateData);
+  for (let i = 0; i < state.patchStateScripts.length; i++) {
+    state.patchStateScripts[i].remove();
+  }
+};
+
+const applyOutOfOrderResolvedTemplates = (doc: Document) => {
+  const templates = doc.querySelectorAll<HTMLTemplateElement>('template[q\\:r]');
+  for (let i = 0; i < templates.length; i++) {
+    const template = templates[i];
+    const boundaryId = template.getAttribute('q:r');
+    if (!boundaryId || !template.content.firstChild || template.closest('[q\\:rp]')) {
+      continue;
+    }
+    const scope = template.closest('[q\\:container]') || doc;
+    const content = scope.querySelector<HTMLElement>(`[q\\:rp="${boundaryId}"]`);
+    const placeholder = content?.querySelector<HTMLTemplateElement>(
+      `template[q\\:r="${boundaryId}"]`
+    );
+    const parent = placeholder?.parentNode;
+    if (!content || !placeholder || !parent) {
+      continue;
+    }
+    const fallback = content.previousElementSibling as HTMLElement | null;
+    if (fallback?.style) {
+      fallback.style.display = 'none';
+    }
+    content.style.display = 'contents';
+    parent.insertBefore(template.content, placeholder);
+    placeholder.remove();
+    template.remove();
+  }
+};
+
+const getDomContainerFromDebugHtml = (html: string) => {
+  const doc = parseHtml(html);
+  if (!doc) {
+    return null;
+  }
+  emulateExecutionOfQwikFuncs(doc);
+  applyOutOfOrderResolvedTemplates(doc);
+  normalizeStateScriptsForDebug(doc);
+  return _getDomContainer(doc.documentElement);
+};
+
+const ReplOutputSectionLoading = component$(({ text }: { text: string }) => {
+  return (
+    <div class="repl-output-section-loading" role="status" aria-live="polite">
+      <span class="repl-output-section-loading-title">{text}</span>
+      <span class="repl-loading-line repl-loading-line-strong" aria-hidden="true" />
+      <span class="repl-loading-line" aria-hidden="true" />
+      <span class="repl-loading-line repl-loading-line-short" aria-hidden="true" />
+    </div>
+  );
+});
+
 export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProps) => {
   const diagnostics = [...store.diagnostics, ...store.monacoDiagnostics];
   const diagnosticsLen = diagnostics.length;
@@ -41,44 +206,31 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
   ).length;
   const warningCount = diagnostics.filter((diagnostic) => diagnostic.category === 'warning').length;
 
-  const domContainerFromResultHtml = useComputed$(() => {
-    try {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(store.html, 'text/html');
-      return _getDomContainer(doc.documentElement);
-    } catch (err) {
-      console.error(err);
-      return null;
-    }
-  });
-
   const parsedState = useComputed$(() => {
     try {
-      const container = domContainerFromResultHtml.value;
-      const doc = container!.element;
-      const qwikStates = doc.querySelectorAll('script[type="qwik/state"]');
-      if (qwikStates.length !== 0) {
-        const data = qwikStates[qwikStates.length - 1];
-        const origState = JSON.parse(data?.textContent || '[]');
-        _preprocessState(origState, container as any);
-        return origState
-          ? _dumpState(origState, false, '', null)
-              //remove first new line
-              .replace(/\n/, '')
-          : 'No state found';
-      }
-      return 'No state found';
+      const doc = parseHtml(store.html);
+      const stateData = doc ? getParsedSerializedState(doc) : null;
+      return stateData
+        ? _dumpState(stateData, false, '', null)
+            //remove first new line
+            .replace(/\n/, '')
+        : 'No state found';
     } catch (err) {
-      console.error(err);
       return null;
     }
   });
 
   const vdomTree = useComputed$(() => {
     try {
-      const container = domContainerFromResultHtml.value;
+      if (store.selectedOutputPanel !== 'html' || store.isLoading || !store.html) {
+        return null;
+      }
+      const container = getDomContainerFromDebugHtml(store.html);
+      if (!container) {
+        return null;
+      }
       return _vnode_toString.call(
-        container!.rootVNode as any,
+        container.rootVNode as any,
         Number.MAX_SAFE_INTEGER,
         '',
         true,
@@ -86,10 +238,14 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
         false
       );
     } catch (err) {
-      console.error(err);
-      return null;
+      return `Unable to parse VNode tree: ${err instanceof Error ? err.message : String(err)}`;
     }
   });
+
+  const htmlLoading = useComputed$(() => store.selectedOutputPanel === 'html' && store.isLoading);
+  const htmlReady = useComputed$(
+    () => store.selectedOutputPanel === 'html' && !store.isLoading && store.html.length > 0
+  );
 
   return (
     <div class="repl-panel repl-output-panel">
@@ -221,22 +377,37 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
             <div class="output-panel-section">
               <div class="output-panel-section-header">HTML</div>
               <div class="output-panel-section-body">
-                <CodeBlock language="markup" format code={store.html} />
+                {htmlLoading.value ? (
+                  <ReplOutputSectionLoading text="Loading HTML output" />
+                ) : (
+                  <CodeBlock language="markup" format code={store.html} />
+                )}
               </div>
             </div>
-            {parsedState.value ? (
+            {htmlLoading.value || parsedState.value ? (
               <div class="output-panel-section">
                 <div class="output-panel-section-header">Parsed State</div>
                 <div class="output-panel-section-body">
-                  <CodeBlock language="clike" code={parsedState.value} />
+                  {htmlLoading.value ? (
+                    <ReplOutputSectionLoading text="Loading parsed state" />
+                  ) : (
+                    <CodeBlock language="clike" code={parsedState.value || 'No state found'} />
+                  )}
                 </div>
               </div>
             ) : null}
-            {vdomTree.value ? (
+            {htmlLoading.value ? (
               <div class="output-panel-section">
                 <div class="output-panel-section-header">VNode Tree</div>
                 <div class="output-panel-section-body">
-                  <CodeBlock language="markup" code={vdomTree.value} />
+                  <ReplOutputSectionLoading text="Loading VNode tree" />
+                </div>
+              </div>
+            ) : htmlReady.value ? (
+              <div class="output-panel-section">
+                <div class="output-panel-section-header">VNode Tree</div>
+                <div class="output-panel-section-body">
+                  <CodeBlock language="markup" code={vdomTree.value || 'No VNode tree found'} />
                 </div>
               </div>
             ) : null}

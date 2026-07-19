@@ -20,7 +20,8 @@
     "types": ["node", "vite/client"],
     "rootDir": ".",
     "paths": {
-      "~/*": ["./src/*"]
+      "~/*": ["./src/*"],
+      "@/*": ["./src/*"]
     }
   }
 }

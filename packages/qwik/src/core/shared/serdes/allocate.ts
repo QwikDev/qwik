@@ -25,6 +25,24 @@ import { findQwikElement } from '../../runtime/node-walker';
 export const resolvers = new WeakMap<Promise<any>, [Function, Function]>();
 export const pendingStoreTargets = new WeakMap<object, { t: TypeIds; v: unknown }>();
 
+const BASE64_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+const BASE64_REGEXP = /^[A-Za-z0-9+/]*$/;
+// Validate canonical unpadded base64 before its length controls allocation.
+const isCanonicalBase64 = (value: unknown): value is string => {
+  if (typeof value !== 'string' || !BASE64_REGEXP.test(value)) {
+    return false;
+  }
+  const rest = value.length % 4;
+  if (rest === 0) {
+    return true;
+  }
+  if (rest === 1) {
+    return false;
+  }
+  const lastValue = BASE64_ALPHABET.indexOf(value[value.length - 1]);
+  return (lastValue & (rest === 2 ? 15 : 3)) === 0;
+};
+
 export const allocate = (
   context: ContainerContext,
   typeId: number,
@@ -145,12 +163,16 @@ export const allocate = (
       // Don't leave unhandled promise rejections
       promise.catch(() => {});
       return promise;
-    case TypeIds.Uint8Array:
-      const encodedLength = (value as string).length;
-      const blocks = encodedLength >>> 2;
-      const rest = encodedLength & 3;
+    case TypeIds.Uint8Array: {
+      if (!isCanonicalBase64(value)) {
+        throw qError(QError.invalidUint8ArrayPayload);
+      }
+      const encodedLength = value.length;
+      const blocks = Math.floor(encodedLength / 4);
+      const rest = encodedLength % 4;
       const decodedLength = blocks * 3 + (rest ? rest - 1 : 0);
       return new Uint8Array(decodedLength);
+    }
     case TypeIds.EffectSubscription: {
       if (Array.isArray(value) && value[1] === EffectKind.Branch) {
         return new BranchSubscription(null!, context.scheduler);

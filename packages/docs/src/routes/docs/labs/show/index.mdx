@@ -1,0 +1,148 @@
+---
+title: 'Show | Experimental'
+keywords: 'conditional rendering, control flow, branches'
+---
+
+import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
+import { Note } from '~/components/note/note';
+
+# `Show`
+
+**Stage:** `implementation`
+
+<Note>
+  `Show` is experimental and currently a technical preview. Its API and behavior may still change
+  as we gather feedback from real-world usage.
+</Note>
+
+`Show` is a built-in Qwik component for conditional rendering.
+
+It is useful when you want the condition and branches to be QRL-based. `Show` tracks the value
+returned from `when$`, renders `then$` when it is truthy, and renders `else$` when it is falsey.
+If `else$` is omitted, falsey conditions render empty content.
+
+To use it, you must add `experimental: ['show']` to your `qwikVite` plugin options:
+
+```ts
+// vite.config.ts
+import { defineConfig } from 'vite';
+import { qwikVite } from '@qwik.dev/core/optimizer';
+
+export default defineConfig(() => {
+  return {
+    plugins: [
+      qwikVite({
+        experimental: ['show'],
+      }),
+    ],
+  };
+});
+```
+
+<CodeSandbox src="/src/routes/demo/component/show/index.tsx" style={{ height: '18em' }}>
+```tsx /Show/ /when$/ /then$/ /else$/
+import { Show, component$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const count = useSignal(0);
+
+  return (
+    <>
+      <button onClick$={() => count.value++}>Add item</button>
+      <button onClick$={() => (count.value = 0)}>Clear</button>
+
+      <Show
+        when$={() => count.value}
+        then$={(count) => (
+          <p>
+            {count} item{count === 1 ? '' : 's'} in your cart.
+          </p>
+        )}
+        else$={(count) => <p>Your cart is empty ({count}).</p>}
+      />
+    </>
+  );
+});
+```
+</CodeSandbox>
+
+## Props
+
+`Show` accepts three props:
+
+- `when$`: returns the condition. Truthy values select `then$`, falsey values select `else$`.
+- `then$`: receives the value returned by `when$` and returns the JSX to render when it is truthy.
+- `else$`: optionally receives the value returned by `when$` and returns the JSX to render when it
+  is falsey.
+
+`when$`, `then$`, and `else$` are QRL props. Use the `$` suffix so the optimizer can extract the
+closures.
+
+The `then$` and `else$` callback argument is typed from the return value of `when$`:
+
+```tsx /Show/ /when$/ /then$/ /else$/
+const count = useSignal(0);
+
+<Show
+  when$={() => count.value}
+  then$={(count) => <p>{count} items selected.</p>}
+  else$={(count) => <p>No items selected ({count}).</p>}
+/>;
+```
+
+## Without `else$`
+
+When `else$` is not provided, a falsey condition renders nothing:
+
+```tsx /Show/ /when$/ /then$/
+import { Show, component$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const expanded = useSignal(false);
+
+  return (
+    <>
+      <button onClick$={() => (expanded.value = !expanded.value)}>
+        Toggle details
+      </button>
+
+      <Show
+        when$={() => expanded.value}
+        then$={() => <p>Details are visible.</p>}
+      />
+    </>
+  );
+});
+```
+
+## Reactivity
+
+`Show` tracks the values read by `when$`. Put the reactive reads that should switch the branch
+inside `when$`:
+
+```tsx /Show/ /user.value/
+<Show
+  when$={() => user.value?.name ?? ''}
+  then$={(name) => <p>Hello {name}</p>}
+  else$={() => <p>Please sign in.</p>}
+/>
+```
+
+Only the selected branch is resolved and invoked. When `when$` is truthy, `then$` runs and `else$`
+does not. When `when$` is falsey, `else$` runs if it exists and `then$` does not.
+
+## `Show` vs JSX conditionals
+
+For simple conditional markup, ordinary JSX is still a good fit:
+
+```tsx
+{signedIn.value ? <p>Welcome back.</p> : <p>Please sign in.</p>}
+```
+
+Use `Show` when you specifically want QRL-based conditional control flow and branch selection
+handled by the built-in primitive.
+
+## Related
+
+- For general conditional rendering, see [Rendering](/docs/core/rendering/)
+- For the generated API entry, see [API Reference](/api/qwik/#show)

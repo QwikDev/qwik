@@ -59,21 +59,10 @@ const ROW_OPEN = 'r';
 const ROW_CLOSE = '/r';
 
 class RowRange {
-  readonly nativeRange: Range;
-
   constructor(
-    document: Document,
     readonly start: Comment,
     readonly end: Comment
-  ) {
-    this.nativeRange = document.createRange();
-    this.refresh();
-  }
-
-  refresh(): void {
-    this.nativeRange.setStartBefore(this.start);
-    this.nativeRange.setEndAfter(this.end);
-  }
+  ) {}
 }
 
 export type RowDom = Element | RowRange;
@@ -91,19 +80,6 @@ export class ForRange {
   }
 
   clear(): void {
-    const parent = getRangeParent(this.start, this.end);
-    const replaceChildren = (parent as Node & { replaceChildren?: (...nodes: Node[]) => void })
-      .replaceChildren;
-    if (
-      replaceChildren !== undefined &&
-      parent.nodeType !== NodeType.DocumentFragment &&
-      parent.firstChild === this.start &&
-      parent.lastChild === this.end
-    ) {
-      replaceChildren.call(parent, this.start, this.end);
-      return;
-    }
-
     this.nativeRange.setStartAfter(this.start);
     this.nativeRange.setEndBefore(this.end);
     this.nativeRange.deleteContents();
@@ -316,8 +292,11 @@ export class ForBlock<T = unknown> {
     }
 
     if (newLast < firstChanged) {
+      const range = this.range.nativeRange;
+      range.setStartBefore(firstRowNode(oldRows[firstChanged]));
+      range.setEndAfter(lastRowNode(oldRows[oldLast]));
+      range.deleteContents();
       for (let i = firstChanged; i <= oldLast; i++) {
-        removeRow(oldRows[i]);
         const owner = oldOwners[i];
         if (owner !== null) {
           disposeOwner(owner);
@@ -330,11 +309,38 @@ export class ForBlock<T = unknown> {
 
     const oldMiddleLength = oldLast - firstChanged + 1;
     const newMiddleLength = newLast - firstChanged + 1;
+    const useLinearLookup = nextLength < 4 || (oldMiddleLength | newMiddleLength) < 32;
+    let newIndexByKey: Map<ForKey, number> | null = null;
+    let shouldReplaceAll =
+      firstChanged === 0 && oldLast === oldLength - 1 && newLast === nextLength - 1;
+
+    if (!useLinearLookup) {
+      newIndexByKey = new Map<ForKey, number>();
+      for (let i = firstChanged; i <= newLast; i++) {
+        newIndexByKey.set(nextKeys[i], i);
+      }
+    }
+    if (shouldReplaceAll) {
+      for (let i = 0; i < oldLength; i++) {
+        if (
+          useLinearLookup ? nextKeys.indexOf(oldKeys[i]) !== -1 : newIndexByKey!.has(oldKeys[i])
+        ) {
+          shouldReplaceAll = false;
+          break;
+        }
+      }
+    }
+
+    if (shouldReplaceAll) {
+      this.replaceAllRows(items, nextKeys, nextRows, nextOwners, nextIndexSignals, renderFn);
+      return;
+    }
+
     const sources = new Int32Array(newMiddleLength);
     let moved = false;
     let lastRetainedNewIndex = 0;
 
-    if (nextLength < 4 || (oldMiddleLength | newMiddleLength) < 32) {
+    if (useLinearLookup) {
       for (let oldIndex = firstChanged; oldIndex <= oldLast; oldIndex++) {
         let nextIndex = -1;
         for (let i = firstChanged; i <= newLast; i++) {
@@ -360,13 +366,8 @@ export class ForBlock<T = unknown> {
         }
       }
     } else {
-      const newIndexByKey = new Map<ForKey, number>();
-      for (let i = firstChanged; i <= newLast; i++) {
-        newIndexByKey.set(nextKeys[i], i);
-      }
-
       for (let oldIndex = firstChanged; oldIndex <= oldLast; oldIndex++) {
-        const nextIndex = newIndexByKey.get(oldKeys[oldIndex]);
+        const nextIndex = newIndexByKey!.get(oldKeys[oldIndex]);
         if (nextIndex !== undefined && sources[nextIndex - firstChanged] === 0) {
           this.retainRow(nextRows, nextOwners, nextIndexSignals, nextIndex, oldIndex);
           sources[nextIndex - firstChanged] = oldIndex + 1;
@@ -418,6 +419,47 @@ export class ForBlock<T = unknown> {
     this.commitRows(nextKeys, nextRows, nextOwners, nextIndexSignals);
   }
 
+  private replaceAllRows(
+    items: readonly T[],
+    nextKeys: ForKey[],
+    nextRows: RowDom[],
+    nextOwners: Array<Owner | null>,
+    nextIndexSignals: Array<Signal<number> | null> | null,
+    renderFn: ForRenderFn<T>
+  ): void {
+    const parent = replaceForRangeParent(this.range);
+    const fragment = parent === null ? this.container.document.createDocumentFragment() : null;
+    const insertParent = parent ?? fragment!;
+    const reference = parent === null ? null : this.range.end;
+    for (let i = 0; i < nextKeys.length; i++) {
+      const row = this.createAndStoreRow(
+        nextRows,
+        nextOwners,
+        nextIndexSignals,
+        i,
+        nextKeys[i],
+        items[i],
+        i,
+        renderFn
+      );
+      insertOrMoveRow(insertParent, row, reference);
+    }
+
+    if (fragment !== null) {
+      this.range.nativeRange.setStartAfter(this.range.start);
+      this.range.nativeRange.setEndBefore(this.range.end);
+      this.range.nativeRange.deleteContents();
+      this.range.nativeRange.insertNode(fragment);
+    }
+    for (let i = 0; i < this.owners.length; i++) {
+      const owner = this.owners[i];
+      if (owner !== null) {
+        disposeOwner(owner);
+      }
+    }
+    this.commitRows(nextKeys, nextRows, nextOwners, nextIndexSignals);
+  }
+
   private resumeRows(keyFn: ForKeyFn<T>): void {
     const items =
       this.resumeItems ?? ((readSourceValue(this.source) ?? EMPTY_ARRAY) as readonly T[]);
@@ -436,7 +478,7 @@ export class ForBlock<T = unknown> {
       keys[i] = key;
       const rowRange = rowRanges[i];
       rows[i] = Array.isArray(rowRange)
-        ? createRangeRow(this.container.document, rowRange[0], rowRange[1])
+        ? createRangeRow(rowRange[0], rowRange[1])
         : (rowRange as Element);
       owners[i] = null;
       if (indexSignals !== null) {
@@ -479,7 +521,6 @@ export class ForBlock<T = unknown> {
         null,
         invoke,
         this.rowInvokeContext,
-        renderForRow<T>,
         renderFn,
         this.container,
         item,
@@ -487,11 +528,7 @@ export class ForBlock<T = unknown> {
         createRowId(this.idBase, key)
       );
     } catch (error) {
-      const owner = this.rowInvokeContext.owner;
-      if (owner !== null) {
-        disposeOwner(owner);
-        this.rowInvokeContext.owner = null;
-      }
+      disposeInvokeOwner(this.rowInvokeContext);
       throw error;
     }
 
@@ -519,9 +556,6 @@ export class ForBlock<T = unknown> {
     owners[nextIndex] = this.owners[oldIndex];
     if (indexSignal !== null) {
       indexSignals![nextIndex] = indexSignal;
-    }
-
-    if (indexSignal !== null) {
       indexSignal.value = nextIndex;
     }
   }
@@ -553,16 +587,6 @@ export function createForBlock<T>(
   return registerSubscriberToOwner(new ForBlockSubscription(block, ctx.scheduler));
 }
 
-function renderForRow<T>(
-  renderFn: ForRenderFn<T>,
-  ctx: ContainerContext,
-  item: T,
-  index: ForRenderIndex,
-  id?: string
-): MaybeNodeOutput {
-  return renderFn(ctx, item, index, id);
-}
-
 function createRowDom(
   document: Document,
   output: MaybeNodeOutput,
@@ -586,7 +610,7 @@ function createRowDom(
   fragment.appendChild(start);
   appendRowOutput(fragment, normalized ?? output, normalized === null ? rowShape : ROW_MANY);
   fragment.appendChild(end);
-  return createRangeRow(document, start, end);
+  return createRangeRow(start, end);
 }
 
 export function appendRowOutput(
@@ -604,8 +628,26 @@ export function appendRowOutput(
   }
 }
 
-function createRangeRow(document: Document, start: Comment, end: Comment): RowRange {
-  return new RowRange(document, start, end);
+function createRangeRow(start: Comment, end: Comment): RowRange {
+  return new RowRange(start, end);
+}
+
+function replaceForRangeParent(range: ForRange): Node | null {
+  const parent = getRangeParent(range.start, range.end);
+  const replaceChildren = (parent as Node & { replaceChildren?: (...nodes: Node[]) => void })
+    .replaceChildren;
+  if (
+    replaceChildren === undefined ||
+    parent.firstChild !== range.start ||
+    parent.lastChild !== range.end
+  ) {
+    return null;
+  }
+
+  replaceChildren.call(parent);
+  parent.appendChild(range.start);
+  parent.appendChild(range.end);
+  return parent;
 }
 
 function canDetachParent(parent: Node): boolean {
@@ -624,8 +666,8 @@ function isRangeRow(row: RowDom): row is RowRange {
 
 function insertOrMoveRow(parent: Node, row: RowDom, reference: Node | null): void {
   if (isRangeRow(row)) {
-    const first = rangeFirstNode(row);
-    const last = rangeLastNode(row);
+    const first = row.start;
+    const last = row.end;
     if (last.parentNode === parent && fastNextSibling(last) === reference) {
       return;
     }
@@ -635,7 +677,6 @@ function insertOrMoveRow(parent: Node, row: RowDom, reference: Node | null): voi
       const next = fastNextSibling(node);
       parent.insertBefore(node, reference);
       if (node === last) {
-        row.refresh();
         return;
       }
       node = next!;
@@ -650,8 +691,8 @@ function insertOrMoveRow(parent: Node, row: RowDom, reference: Node | null): voi
 
 function removeRow(row: RowDom): void {
   if (isRangeRow(row)) {
-    const first = rangeFirstNode(row);
-    const last = rangeLastNode(row);
+    const first = row.start;
+    const last = row.end;
     const parent = first.parentNode!;
 
     let node: Node = first;
@@ -669,15 +710,11 @@ function removeRow(row: RowDom): void {
 }
 
 function firstRowNode(row: RowDom): Node {
-  return isRangeRow(row) ? rangeFirstNode(row) : row;
+  return isRangeRow(row) ? row.start : row;
 }
 
-function rangeFirstNode(range: RowRange): Node {
-  return range.start;
-}
-
-function rangeLastNode(range: RowRange): Node {
-  return range.end;
+function lastRowNode(row: RowDom): Node {
+  return isRangeRow(row) ? row.end : row;
 }
 
 function longestIncreasingSubsequencePositions(values: Int32Array): number[] {
@@ -736,6 +773,13 @@ function createRowInvokeContext(
     localContextScope: base?.localContextScope,
     slotScope: base?.slotScope,
   });
+}
+
+function disposeInvokeOwner(context: RuntimeInvokeContext): void {
+  if (context.owner !== null) {
+    disposeOwner(context.owner);
+    context.owner = null;
+  }
 }
 
 // SSR
@@ -807,23 +851,20 @@ export class SSRForBlock<T = unknown> {
         const invokeContext = createRowInvokeContext(this.invokeContext, listOwner, this.container);
         let rowOutput: ValueOrPromise<SsrOutput>;
         try {
-          rowOutput = runWithCollector(null, () =>
-            invoke(invokeContext, () =>
-              renderFn(
-                this.container,
-                this.rangeId,
-                rowId,
-                item,
-                indexSignal ?? i,
-                createRowId(this.idBase, key)
-              )
-            )
+          rowOutput = runWithCollector(
+            null,
+            invoke,
+            invokeContext,
+            renderFn,
+            this.container,
+            this.rangeId,
+            rowId,
+            item,
+            indexSignal ?? i,
+            createRowId(this.idBase, key)
           );
         } catch (error) {
-          if (invokeContext.owner !== null) {
-            disposeOwner(invokeContext.owner);
-            invokeContext.owner = null;
-          }
+          disposeInvokeOwner(invokeContext);
           throw error;
         }
 
@@ -834,10 +875,7 @@ export class SSRForBlock<T = unknown> {
               return renderNext(i + 1);
             },
             (error) => {
-              if (invokeContext.owner !== null) {
-                disposeOwner(invokeContext.owner);
-                invokeContext.owner = null;
-              }
+              disposeInvokeOwner(invokeContext);
               throw error;
             }
           );

@@ -3,6 +3,7 @@ import { createDocument } from '../../../testing/document';
 import { ForBlockSubscription } from '../effect/effect';
 import { createTextNodeEffect } from '../effect/text-effect';
 import { useSignal } from '../../reactive/public-api';
+import { OwnerFlags } from '../../reactive/flags';
 import type { ContainerContext } from '../../runtime/container-context';
 import { createOwner } from '../../runtime/owner';
 import {
@@ -172,6 +173,133 @@ describe('ForBlock reorder', () => {
     expect(parent.nodes.map(getNodeLabel)).toEqual(['start', '0', '1', '2', '3', 'end']);
   });
 
+  it('replaces disjoint keyed rows with one replaceChildren call', () => {
+    const document = createDocument({
+      html: '<ul><!--start--><li>1</li><li>2</li><!--end--></ul>',
+    });
+    const list = document.querySelector('ul')!;
+    const startNode = list.firstChild as Comment;
+    const endNode = list.lastChild as Comment;
+    const oldRows = Array.from(list.querySelectorAll('li'));
+    const items = useSignal([{ id: 3 }, { id: 4 }]);
+    const listOwner = createOwner(null);
+    const renderRow = (_ctx: ContainerContext, item: { id: number }) => {
+      const row = document.createElement('li');
+      row.textContent = String(item.id);
+      return row;
+    };
+    const block = new ForBlock(
+      new ForRange(document, startNode, endNode),
+      items,
+      (item) => item.id,
+      renderRow,
+      false,
+      listOwner,
+      null,
+      { document } as ContainerContext
+    );
+    block.keys = [1, 2];
+    block.rows = oldRows;
+    const oldOwners = oldRows.map(() => createOwner(listOwner));
+    block.owners = oldOwners;
+    const replaceChildren = vi.spyOn(list, 'replaceChildren').mockImplementation(() => {
+      while (list.firstChild !== null) {
+        list.removeChild(list.firstChild);
+      }
+    });
+
+    try {
+      block.reconcile(new ForBlockSubscription(block), (item) => item.id, renderRow);
+
+      expect(replaceChildren).toHaveBeenCalledOnce();
+      expect(replaceChildren).toHaveBeenCalledWith();
+      expect([...list.childNodes].map((node) => node.textContent)).toEqual([
+        'start',
+        '3',
+        '4',
+        'end',
+      ]);
+      expect(oldOwners.every((owner) => owner.flags & OwnerFlags.Disposed)).toBe(true);
+    } finally {
+      replaceChildren.mockRestore();
+    }
+  });
+
+  it('replaces disjoint keyed rows without removing range siblings', () => {
+    const document = createDocument({
+      html: '<ul><li>before</li><!--start--><li class="row">1</li><!--end--><li>after</li></ul>',
+    });
+    const list = document.querySelector('ul')!;
+    const startNode = Array.from(list.childNodes).find(
+      (node) => node.nodeType === 8 && node.textContent === 'start'
+    ) as Comment;
+    const endNode = Array.from(list.childNodes).find(
+      (node) => node.nodeType === 8 && node.textContent === 'end'
+    ) as Comment;
+    const oldRow = list.querySelector('.row')!;
+    const items = useSignal([{ id: 2 }]);
+    const listOwner = createOwner(null);
+    const renderRow = (_ctx: ContainerContext, item: { id: number }) => {
+      const row = document.createElement('li');
+      row.className = 'row';
+      row.textContent = String(item.id);
+      return row;
+    };
+    const range = new ForRange(document, startNode, endNode);
+    const block = new ForBlock(range, items, (item) => item.id, renderRow, false, listOwner, null, {
+      document,
+    } as ContainerContext);
+    block.keys = [1];
+    block.rows = [oldRow];
+    block.owners = [createOwner(listOwner)];
+    const deleteContents = vi.spyOn(range.nativeRange, 'deleteContents');
+    const replaceChildren = vi.spyOn(list, 'replaceChildren');
+
+    try {
+      block.reconcile(new ForBlockSubscription(block), (item) => item.id, renderRow);
+
+      expect(replaceChildren).not.toHaveBeenCalled();
+      expect(deleteContents).toHaveBeenCalledOnce();
+      expect(Array.from(list.querySelectorAll('li'), (row) => row.textContent)).toEqual([
+        'before',
+        '2',
+        'after',
+      ]);
+    } finally {
+      deleteContents.mockRestore();
+      replaceChildren.mockRestore();
+    }
+  });
+
+  it('retains a shared prefix when the remaining keys are disjoint', () => {
+    const { block } = createKeyedBlock([1, 2], [1, 3]);
+    const retainedRow = block.rows[0];
+
+    block.reconcile(
+      new ForBlockSubscription(block),
+      (item) => item.id,
+      (_ctx, item) => [createElementNode(String((item as { id: number }).id))]
+    );
+
+    expect(block.rows[0]).toBe(retainedRow);
+  });
+
+  it('replaces a large disjoint keyed range with the mapped lookup', () => {
+    const oldIds = Array.from({ length: 40 }, (_, index) => index);
+    const nextIds = Array.from({ length: 40 }, (_, index) => index + 40);
+    const { block, parent } = createKeyedBlock(oldIds, nextIds);
+    const deleteContents = vi.spyOn(block.range.nativeRange, 'deleteContents');
+
+    block.reconcile(
+      new ForBlockSubscription(block),
+      (item) => item.id,
+      (_ctx, item) => [createElementNode(String((item as { id: number }).id))]
+    );
+
+    expect(deleteContents).toHaveBeenCalledOnce();
+    expect(parent.nodes.slice(1, -1).map(getNodeLabel)).toEqual(nextIds.map(String));
+  });
+
   it('trims removed keyed rows from the head and tail', () => {
     const { block, parent } = createKeyedBlock([0, 1, 2, 3], [1, 2]);
 
@@ -182,6 +310,22 @@ describe('ForBlock reorder', () => {
     );
 
     expect(parent.nodes.map(getNodeLabel)).toEqual(['start', '1', '2', 'end']);
+  });
+
+  it('deletes a contiguous keyed suffix in one range operation', () => {
+    const { block, parent } = createKeyedBlock([0, 1, 2, 3], [0, 1]);
+    const removedOwners = block.owners.slice(2);
+    const deleteContents = vi.spyOn(block.range.nativeRange, 'deleteContents');
+
+    block.reconcile(
+      new ForBlockSubscription(block),
+      (item) => item.id,
+      (_ctx, item) => [createElementNode(String((item as { id: number }).id))]
+    );
+
+    expect(deleteContents).toHaveBeenCalledOnce();
+    expect(parent.nodes.map(getNodeLabel)).toEqual(['start', '0', '1', 'end']);
+    expect(removedOwners.every((owner) => owner!.flags & OwnerFlags.Disposed)).toBe(true);
   });
 
   it('creates rows directly when starting empty', () => {
@@ -245,7 +389,7 @@ describe('ForBlock reorder', () => {
     expect(parent.nodes.map(getNodeLabel)).toEqual(['start', '1', 'end']);
   });
 
-  it('creates native range rows for multi-node fragments', () => {
+  it('creates and trims native range rows for multi-node fragments', () => {
     const startNode = createTestDomNode('start');
     const endNode = createTestDomNode('end');
     const parent = createTestParentNode([startNode, endNode]);
@@ -265,9 +409,10 @@ describe('ForBlock reorder', () => {
       null,
       { document: startNode.ownerDocument! } as ContainerContext
     );
+    const subscription = new ForBlockSubscription(block);
 
     block.reconcile(
-      new ForBlockSubscription(block),
+      subscription,
       (item) => item,
       (_ctx, item) => [createTestDomNode(`a${item}`), createTestDomNode(`b${item}`)]
     );
@@ -284,6 +429,17 @@ describe('ForBlock reorder', () => {
       '/r',
       'end',
     ]);
+
+    const deleteContents = vi.spyOn(block.range.nativeRange, 'deleteContents');
+    items.value = [1];
+    block.reconcile(
+      subscription,
+      (item) => item,
+      (_ctx, item) => [createTestDomNode(`a${item}`), createTestDomNode(`b${item}`)]
+    );
+
+    expect(deleteContents).toHaveBeenCalledOnce();
+    expect(parent.nodes.map(getNodeLabel)).toEqual(['start', 'r', 'a1', 'b1', '/r', 'end']);
   });
 
   it('retains keyed items and updates their index signals', () => {

@@ -11,6 +11,12 @@ needs more detail than the skill body.
 - Preserve compatibility paths deliberately and test them.
 - Avoid broad rewrites, unexplained fallbacks, and temporary debug code.
 
+## Browser DOM Test Doubles
+
+- Keep browser runtime semantics independent of incomplete test DOM behavior.
+- When `@qwik.dev/dom` lacks an API used only by CSR tests, model that API in the test instead of
+  adding a runtime compatibility branch. If production server code needs it, fix `@qwik.dev/dom`.
+
 ## Source Map
 
 ```text

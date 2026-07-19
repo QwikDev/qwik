@@ -49,11 +49,8 @@ import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
 import { isPromise, maybeThen } from '../utils/promises';
 import { Constants, explicitUndefined, TypeIds } from './constants';
 import { qrlToString } from './qrl-to-string';
-import {
-  SerializationBackRef,
-  type SeenRef,
-  type SerializationContext,
-} from './serialization-context';
+import { SerializationBackRef } from './serialization-back-ref';
+import type { SeenRef, SerializationContext } from './serialization-context';
 import { fastSkipSerialize, SerializerSymbol } from './verify';
 
 const MAX_INLINE_ARRAY_ITEMS = 64;

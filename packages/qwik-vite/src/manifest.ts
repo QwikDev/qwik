@@ -4,24 +4,7 @@ import type { GlobalInjections, Path, QwikBundle, QwikManifest, SegmentAnalysis 
 
 // The handlers that are exported by the core package
 // See handlers.mjs
-const extraSymbols = new Set([
-  '_chk',
-  '_rsc',
-  '_res',
-  '_run',
-  '_task',
-  '_val',
-  // Each
-  '_eaC',
-  '_eaT',
-  // Suspense
-  '_suC',
-  '_suT',
-  // Reveal
-  '_reR',
-  '_reC',
-  '_reT',
-]);
+const extraSymbols = new Set(['_chk', '_res', '_run', '_val', '_visibleTask']);
 
 // This is just the initial prioritization of the symbols and entries
 // at build time so there's less work during each SSR. However, SSR should
@@ -411,6 +394,7 @@ export function computeTotals(graph: QwikManifest['bundles']): void {
 
 const preloaderRegex = /[/\\](core|qwik)[/\\]dist[/\\]preloader\.(|c|m)js$/;
 const coreRegex = /[/\\](core|qwik)[/\\]dist[/\\]core(\.min|\.prod)?\.(|c|m)js$/;
+const handlersRegex = /[/\\](core|qwik)[/\\]handlers\.mjs$/;
 const qwikLoaderRegex = /[/\\](core|qwik)[/\\](dist[/\\])?qwikloader(\.debug)?\.[^/]*js$/;
 /**
  * Generates the Qwik build manifest from the Rollup output bundles. It also figures out the bundle
@@ -459,6 +443,7 @@ export function generateManifestFromBundles(
   let coreBundleName: string | undefined;
   let preloaderBundleName: string | undefined;
   let qwikHandlersName: string | undefined;
+  let qwikHandlerSymbols: string[] | undefined;
 
   for (const outputBundle of Object.values(outputBundles)) {
     const bundleFileName = getBundleName(outputBundle.fileName);
@@ -468,8 +453,15 @@ export function generateManifestFromBundles(
     if (outputBundle.name === 'preloader') {
       preloaderBundleName = bundleFileName;
     }
-    if (outputBundle.name === 'handlers') {
+    if (
+      outputBundle.type === 'chunk' &&
+      Object.keys(outputBundle.modules).some((id) => handlersRegex.test(id))
+    ) {
       qwikHandlersName = bundleFileName;
+      qwikHandlerSymbols = outputBundle.exports;
+    } else if (qwikHandlersName === undefined && outputBundle.name === 'handlers') {
+      qwikHandlersName = bundleFileName;
+      qwikHandlerSymbols = outputBundle.type === 'chunk' ? outputBundle.exports : undefined;
     }
   }
   // We need to find our QRL exports
@@ -575,6 +567,9 @@ export function generateManifestFromBundles(
   }
   if (qwikHandlersName) {
     for (const symbol of extraSymbols) {
+      if (!qwikHandlerSymbols?.includes(symbol)) {
+        continue;
+      }
       manifest.symbols[symbol] = {
         origin: 'Qwik core',
         displayName: symbol,

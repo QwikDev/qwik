@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createNode, createText, noopSchedule, runWithTestContainer } from '../test-utils';
-import { createTextNodeEffect } from '../dom/effect/effect';
+import { createTextNodeEffect } from '../dom/effect/text-effect';
 import { useSignal } from '../reactive/public-api';
 import type { ContainerContext } from '../runtime/container-context';
 import { getActiveCollector, runWithCollector } from '../reactive/tracking';

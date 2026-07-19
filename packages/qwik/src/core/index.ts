@@ -147,8 +147,6 @@ export {
 } from './reactive/tracking';
 export {
   _wrapArray,
-  useConstant,
-  useSignal,
   useComputed,
   useComputedQrl,
   useComputed$,
@@ -159,13 +157,10 @@ export {
   useSerializerQrl,
   useSerializer$,
 } from './reactive/public-api';
+export { useConstant, useSignal } from './reactive/signal-api';
 export { Signal } from './reactive/signal';
-export {
-  Computed,
-  markComputedDirty,
-  readComputed,
-  readComputedUntracked,
-} from './reactive/computed';
+export { Computed, readComputed, readComputedUntracked } from './reactive/computed';
+export { markComputedDirty } from './reactive/notify';
 export { ComputedQrl, type ComputedQrlFn, type ComputedQrlRef } from './reactive/computed-qrl';
 export {
   AsyncSignal,
@@ -271,7 +266,6 @@ export {
   type UseContext,
 } from './runtime/context';
 export { Phase, type TaskScheduler } from './runtime/scheduler';
-export { runTaskSubscriber } from './runtime/run-task';
 export {
   Task,
   TaskSubscription,
@@ -322,24 +316,25 @@ export { createCollection, renderSsrCollection } from './dom/collection/collecti
 export {
   AttrEffect,
   AttrExpressionEffect,
-  DomSubscription,
   ForBlockSubscription,
   PropsEffect,
-  TextExpressionEffect,
-  TextNodeEffect,
   createDomBatchEffect,
   createAttrEffect,
   createAttrExpressionEffect,
   createPropsEffect,
+  type AttrExpressionFn,
+} from './dom/effect/effect';
+export { DomSubscription, type DomEffect } from './dom/effect/dom-subscription';
+export {
+  TextExpressionEffect,
+  TextNodeEffect,
   createTextExpressionEffect,
   createTextNodeEffect,
   patchTextValue,
   readTrackedSourceValue,
-  type AttrExpressionFn,
-  type DomEffect,
   type TextExpressionFn,
   type TextExpressionValue,
-} from './dom/effect/effect';
+} from './dom/effect/text-effect';
 export {
   applyDomProps,
   renderDomPropsToString,

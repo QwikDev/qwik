@@ -1,11 +1,7 @@
 import { QContainerSelector, QLocaleAttr } from '../shared/utils/markers';
-import { TypeIds } from '../shared/serdes/constants';
-import { allocate } from '../shared/serdes/allocate';
-import { inflate } from '../shared/serdes/inflate';
-import { needsInflation } from '../shared/serdes/deser-proxy';
+import { TypeIds } from '../shared/serdes/type-id';
 import { isContextScope } from './context-scope';
 import { defaultScheduler, type Scheduler } from './scheduler';
-import type { PhaseSubscriber } from './subscriber';
 import { fastGetAttribute } from './fast-getters';
 import { findContextScopeId } from './node-walker';
 import type { ServerDataContext } from './use-server-data';
@@ -37,7 +33,6 @@ export interface ContainerContext extends ServerDataContext {
   getForwardRefs(): Array<number | string> | null;
   getRoot(id: number | string): Promise<unknown>;
   restoreCaptures(ids: string): Promise<unknown[]>;
-  notify(subscriber: PhaseSubscriber): void;
 }
 
 type ContextElement = Element & {
@@ -106,9 +101,6 @@ function createContainerContextRecord(
         results[i] = await this.getRoot(part);
       }
       return results;
-    },
-    notify(subscriber) {
-      scheduler.notify(subscriber);
     },
   };
   if (serverData !== undefined) {
@@ -181,6 +173,7 @@ async function getRoot(context: ContainerContext, id: number): Promise<unknown> 
   const type = parsed[offset] as TypeIds;
   const value = parsed[offset + 1];
 
+  const { allocate, inflate, needsInflation } = await import('../shared/serdes/inflate');
   const root = await allocate(context, type, value);
   if (isContextScope(root)) {
     root.id = String(id);

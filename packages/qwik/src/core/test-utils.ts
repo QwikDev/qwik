@@ -21,7 +21,7 @@ import { format as formatCode } from 'prettier';
 import ts from 'typescript';
 import { createDocument } from '../testing/document';
 import type { BranchRange } from './dom/branch/branch';
-import { createTextExpressionEffect } from './dom/effect/effect';
+import { createTextExpressionEffect } from './dom/effect/text-effect';
 import { SubscriberFlags } from './reactive/flags';
 import { runWithCollector } from './reactive/tracking';
 import {
@@ -39,6 +39,7 @@ import {
   type TaskSubscriber,
 } from './runtime/subscriber';
 import { useTask } from './runtime/task';
+import { defaultScheduler } from './runtime/scheduler';
 import { bootQwikLoader, type QwikLoaderTestDriver } from './qwikloader-test-driver';
 import type { RenderRoot } from '@qwik.dev/core';
 export { bootQwikLoader };
@@ -383,9 +384,6 @@ export function createCaptureContainer(
       }
       return results;
     },
-    notify(subscriber) {
-      scheduler.notify(subscriber);
-    },
     nextId() {
       return nextId++;
     },
@@ -434,17 +432,15 @@ export function createOrderTextExpressionEffect(
 }
 
 export function createIdleSubscriber(notify: () => void, scheduler?: Scheduler): IdleSubscriber {
-  const subscriber: IdleSubscriber & { scheduler?: Scheduler } = {
+  const subscriber: IdleSubscriber = {
     kind: SubscriberKind.Idle,
     owner: null,
     job: {
       run: notify,
     },
     flags: SubscriberFlags.None,
+    scheduler: scheduler ?? defaultScheduler,
   };
-  if (scheduler) {
-    subscriber.scheduler = scheduler;
-  }
   return registerSubscriberToOwner(subscriber, createOwner(null));
 }
 

@@ -20,6 +20,7 @@ const config: PlaywrightTestConfig = {
   use: {
     launchOptions: {
       slowMo: 100,
+      executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH,
     },
     viewport: {
       width: 520,

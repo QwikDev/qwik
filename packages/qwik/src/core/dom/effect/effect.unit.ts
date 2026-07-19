@@ -14,10 +14,8 @@ import {
   createAttrExpressionEffect,
   createDomBatchEffect,
   createPropsEffect,
-  createTextExpressionEffect,
-  createTextNodeEffect,
-  patchTextValue,
 } from './effect';
+import { createTextExpressionEffect, createTextNodeEffect, patchTextValue } from './text-effect';
 import { applyDomProps, patchAttrValue, renderDomPropsToString, setRef } from './dom-props';
 import { _chk, _val } from '../../runtime/bind-handlers';
 import { setCaptures } from '../../shared/qrl/qrl-class';
@@ -485,9 +483,9 @@ describe('DOM effects', () => {
     const third = createOwned(() => createTextNodeEffect(createText(), order, scheduler));
     const seen: string[] = [];
 
-    first.effect.run = () => seen.push('first');
-    second.effect.run = () => seen.push('second');
-    third.effect.run = () => seen.push('third');
+    first.effect.run = () => void seen.push('first');
+    second.effect.run = () => void seen.push('second');
+    third.effect.run = () => void seen.push('third');
 
     scheduler.notify(third);
     scheduler.notify(first);

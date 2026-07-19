@@ -3,20 +3,22 @@ import { NEEDS_COMPUTATION } from '../../reactive/constants';
 import type { AsyncSignalOptions } from '../../reactive/public-types';
 import { Branch, BranchRange, BranchSubscription } from '../../dom/branch/branch';
 import { ContentBlock, ContentSubscription } from '../../dom/content/content';
-import { ForBlockSubscription } from '../../dom/effect/effect';
 import { ForBlock, ForRange } from '../../dom/for/for';
 import {
   AttrEffect,
   AttrExpressionEffect,
   DomBatchEffect,
+  ForBlockSubscription,
   PropsEffect,
+  type AttrExpressionFn,
+} from '../../dom/effect/effect';
+import type { DomEffect } from '../../dom/effect/dom-subscription';
+import {
   TextExpressionEffect,
   TextNodeEffect,
-  type AttrExpressionFn,
-  type DomEffect,
   type TextExpressionFn,
   type TextExpressionValue,
-} from '../../dom/effect/effect';
+} from '../../dom/effect/text-effect';
 import { EffectKind } from '../../dom/effect/effect-kind.enum';
 import { EffectTargetKind } from '../../dom/effect/ssr-effect';
 import { ComputedFlags } from '../../reactive/flags';
@@ -69,6 +71,8 @@ import type { ValueOrPromise } from '../utils/types';
 import { allocate, pendingStoreTargets, resolvers } from './allocate';
 import { TypeIds } from './constants';
 import { needsInflation } from './deser-proxy';
+
+export { allocate, needsInflation };
 
 const dangerousObjectKeys = new Set([
   'constructor',

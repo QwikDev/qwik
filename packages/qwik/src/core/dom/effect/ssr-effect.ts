@@ -1,6 +1,7 @@
 import { EffectKind } from './effect-kind.enum';
 import { Phase } from '../../runtime/scheduler';
-import { type AttrExpressionFn, type TextExpressionValue } from './effect';
+import type { AttrExpressionFn } from './effect';
+import type { TextExpressionValue } from './text-effect';
 import { isPromise, maybeThen, retryOnPromise } from '../../shared/utils/promises';
 import type { ValueOrPromise } from '../../shared/utils/types';
 import type { SsrDomSubscriber, SsrForBlockSubscriber } from '../../runtime/subscriber';

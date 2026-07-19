@@ -12,9 +12,8 @@ import { inlinedQrl } from '../../shared/qrl/qrl';
 import { _chk, _val } from '../../runtime/bind-handlers';
 import type { QElement } from '../../shared/types';
 import type { SsrEventAttrChunk, SsrRecordPart } from '../../ssr/output';
-import { getActiveCollector } from '../../reactive/tracking';
-import { SubscriberKind, type DomSubscriber } from '../../runtime/subscriber';
 import { setEvent } from '../event/event';
+import { commitDomPromise } from './dom-subscription';
 import {
   CheckedAttr,
   ClassAttr,
@@ -361,15 +360,4 @@ export function patchAttrValue(
   } else {
     element.setAttribute(name, serialized);
   }
-}
-
-export function commitDomPromise<T>(
-  promise: Promise<T>,
-  commit: (value: T) => void
-): Promise<void> {
-  const collector = getActiveCollector();
-  if (collector?.kind === SubscriberKind.Dom) {
-    return (collector as DomSubscriber).trackPromise(promise, commit);
-  }
-  return promise.then(commit);
 }

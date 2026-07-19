@@ -2,15 +2,7 @@ import { build, type BuildOptions } from 'esbuild';
 import { join } from 'node:path';
 import { type InputOptions, type OutputOptions, rollup } from 'rollup';
 import { minify } from 'terser';
-import {
-  type BuildConfig,
-  fileSize,
-  getBanner,
-  readFile,
-  rollupOnWarn,
-  target,
-  writeFile,
-} from './util.ts';
+import { type BuildConfig, fileSize, getBanner, rollupOnWarn, target, writeFile } from './util.ts';
 
 /**
  * Regex for property names that should be mangled consistently across all bundles (core + server).
@@ -36,8 +28,10 @@ export async function submoduleCore(config: BuildConfig): Promise<object | undef
 }
 
 async function submoduleCoreProd(config: BuildConfig): Promise<object | undefined> {
+  const coreInputRoot = join(config.tscDir, 'packages', 'qwik', 'src', 'core');
+  const coreInput = join(coreInputRoot, 'index.js');
   const input: InputOptions = {
-    input: join(config.tscDir, 'packages', 'qwik', 'src', 'core', 'index.js'),
+    input: coreInput,
     onwarn: rollupOnWarn,
     external: ['@qwik.dev/core/build', '@qwik.dev/core/preloader', 'node:async_hooks'],
     plugins: [
@@ -61,9 +55,13 @@ async function submoduleCoreProd(config: BuildConfig): Promise<object | undefine
   const esmOutput: OutputOptions = {
     dir: join(config.distQwikPkgDir),
     format: 'es',
-    entryFileNames: 'core.mjs',
+    preserveModules: true,
+    preserveModulesRoot: coreInputRoot,
+    entryFileNames: (chunk) =>
+      chunk.facadeModuleId === coreInput ? 'core.mjs' : 'core/dev/[name].mjs',
+    chunkFileNames: 'core/dev/[name]-[hash].mjs',
     sourcemap: true,
-    banner: getBanner('@qwik.dev/core', config.distVersion),
+    banner: (chunk) => (chunk.isEntry ? getBanner('@qwik.dev/core', config.distVersion) : ''),
   };
 
   const build = await rollup(input);
@@ -82,6 +80,7 @@ async function submoduleCoreProd(config: BuildConfig): Promise<object | undefine
     : { toplevel: true, module: true, properties: { regex: MANGLE_PROPS_REGEX } };
 
   const inputCore = join(config.distQwikPkgDir, 'core.mjs');
+  const preservedCoreRoot = join(config.distQwikPkgDir, 'core', 'dev');
   const inputMin: InputOptions = {
     external: ['@qwik.dev/core/preloader', 'node:async_hooks'],
     input: inputCore,
@@ -113,11 +112,15 @@ async function submoduleCoreProd(config: BuildConfig): Promise<object | undefine
   await buildMin.write({
     dir: join(config.distQwikPkgDir),
     format: 'es',
-    entryFileNames: 'core.min.mjs',
+    preserveModules: true,
+    preserveModulesRoot: preservedCoreRoot,
+    entryFileNames: (chunk) =>
+      chunk.facadeModuleId === inputCore ? 'core.min.mjs' : 'core/min/[name].mjs',
+    chunkFileNames: 'core/min/[name]-[hash].mjs',
     plugins: [
       {
         name: 'minify',
-        async renderChunk(code) {
+        async renderChunk(code, chunk) {
           const esmMinifyResult = await minify(code, {
             module: true,
             toplevel: true,
@@ -159,13 +162,13 @@ async function submoduleCoreProd(config: BuildConfig): Promise<object | undefine
           });
           const esmMinCode = esmMinifyResult.code!;
           const esmCleanCode = esmMinCode.replace(/__self__/g, '__SELF__');
-          validateNoBareExperimentalReferences(esmCleanCode, 'core.min.mjs');
+          validateNoBareExperimentalReferences(esmCleanCode, chunk.fileName);
 
           const selfIdx = esmCleanCode.indexOf('self');
           const indx = Math.max(selfIdx);
           if (indx !== -1) {
             throw new Error(
-              `"core.min.mjs" should not have any global references, and should have been removed for a production minified build\n` +
+              `"${chunk.fileName}" should not have any global references, and should have been removed for a production minified build\n` +
                 esmCleanCode.substring(indx, indx + 10) +
                 '\n' +
                 esmCleanCode.substring(indx - 100, indx + 300)
@@ -181,13 +184,7 @@ async function submoduleCoreProd(config: BuildConfig): Promise<object | undefine
 
   console.log('🐭 core.min.mjs:', await fileSize(join(config.distQwikPkgDir, 'core.min.mjs')));
 
-  const prodCode = await prepareProdCode(config);
-  await submoduleCoreProduction(
-    config,
-    prodCode,
-    join(config.distQwikPkgDir, 'core.prod.mjs'),
-    mangle ? nameCache : undefined
-  );
+  await submoduleCoreProduction(config, mangle ? nameCache : undefined);
 
   return mangle ? nameCache : undefined;
 }
@@ -198,11 +195,13 @@ async function submoduleCoreProd(config: BuildConfig): Promise<object | undefine
  * both server and browser). `isServer`/`isBrowser` are re-exported from an internal alias that
  * rollup renames back to `@qwik.dev/core/build` in `output.paths`.
  */
-async function prepareProdCode(config: BuildConfig): Promise<string> {
+async function submoduleCoreProduction(config: BuildConfig, nameCache: object | undefined) {
   const VIRTUAL_BUILD = '\0prod-build';
+  const inputCore = join(config.distQwikPkgDir, 'core.mjs');
+  const preservedCoreRoot = join(config.distQwikPkgDir, 'core', 'dev');
 
   const inputProd: InputOptions = {
-    input: join(config.distQwikPkgDir, 'core.mjs'),
+    input: inputCore,
     external: ['@qwik.dev/core/preloader', 'node:async_hooks'],
     onwarn: rollupOnWarn,
     plugins: [
@@ -230,91 +229,79 @@ async function prepareProdCode(config: BuildConfig): Promise<string> {
   };
 
   const prodBuild = await rollup(inputProd);
-  const chunks: string[] = [];
-  await prodBuild.generate({
-    format: 'es',
-    plugins: [
-      {
-        name: 'collect',
-        generateBundle(_, bundles) {
-          for (const f in bundles) {
-            const b = bundles[f];
-            if (b.type === 'chunk') {
-              chunks.push(b.code);
-            }
-          }
-        },
-      },
-    ],
-  });
-
-  return chunks.join('\n');
-}
-
-async function submoduleCoreProduction(
-  config: BuildConfig,
-  code: string,
-  outPath: string,
-  nameCache: object | undefined
-) {
   const noMangle = config.mangle === false;
   const mangle = noMangle
     ? false
     : { toplevel: true, module: true, properties: { regex: MANGLE_PROPS_REGEX } };
-  const result = await minify(code, {
-    nameCache: mangle ? nameCache : undefined,
-    compress: {
-      defaults: false,
-      booleans: true,
-      conditionals: true,
-      dead_code: true,
-      evaluate: true,
-      hoist_props: true,
-      keep_classnames: true,
-      keep_fargs: false,
-      keep_fnames: true,
-      keep_infinity: true,
-      loops: true,
-      properties: true,
-      pure_getters: 'strict',
-      pure_new: true,
-      reduce_funcs: true,
-      reduce_vars: true,
-      side_effects: true,
-      toplevel: true,
-      unsafe_arrows: true,
-      unsafe_math: true,
-      unsafe_symbols: true,
-      unsafe: true,
-      unused: true,
+  await prodBuild.write({
+    dir: config.distQwikPkgDir,
+    format: 'es',
+    preserveModules: true,
+    preserveModulesRoot: preservedCoreRoot,
+    entryFileNames: (chunk) =>
+      chunk.facadeModuleId === inputCore ? 'core.prod.mjs' : 'core/prod/[name].mjs',
+    chunkFileNames: 'core/prod/[name]-[hash].mjs',
+    plugins: [
+      {
+        name: 'minify',
+        async renderChunk(code, chunk) {
+          const result = await minify(code, {
+            nameCache: mangle ? nameCache : undefined,
+            compress: {
+              defaults: false,
+              booleans: true,
+              conditionals: true,
+              dead_code: true,
+              evaluate: true,
+              hoist_props: true,
+              keep_classnames: true,
+              keep_fargs: false,
+              keep_fnames: true,
+              keep_infinity: true,
+              loops: true,
+              properties: true,
+              pure_getters: 'strict',
+              pure_new: true,
+              reduce_funcs: true,
+              reduce_vars: true,
+              side_effects: true,
+              toplevel: true,
+              unsafe_arrows: true,
+              unsafe_math: true,
+              unsafe_symbols: true,
+              unsafe: true,
+              unused: true,
 
-      passes: 3,
-      ecma: 2020,
-      module: true,
+              passes: 3,
+              ecma: 2020,
+              module: true,
 
-      global_defs: {
-        'globalThis.qDev': false,
-        'globalThis.qInspector': false,
-        'globalThis.qDynamicPlatform': true,
-        'globalThis.qTest': false,
-        'globalThis.qRuntimeQrl': false,
-        'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
+              global_defs: {
+                'globalThis.qDev': false,
+                'globalThis.qInspector': false,
+                'globalThis.qDynamicPlatform': true,
+                'globalThis.qTest': false,
+                'globalThis.qRuntimeQrl': false,
+                'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
+              },
+            },
+            format: {
+              beautify: true,
+              braces: true,
+              comments: /__PURE__/,
+              preserve_annotations: true,
+              ecma: 2020,
+              preamble: chunk.isEntry ? getBanner('@qwik.dev/core', config.distVersion) : undefined,
+            },
+            mangle,
+          });
+          const prodCode = result.code!;
+          validateNoBareExperimentalReferences(prodCode, chunk.fileName);
+          return { code: prodCode };
+        },
       },
-    },
-    format: {
-      beautify: true,
-      braces: true,
-      comments: /__PURE__/,
-      preserve_annotations: true,
-      ecma: 2020,
-      preamble: getBanner('@qwik.dev/core', config.distVersion),
-    },
-    mangle,
+    ],
   });
-  code = result.code!;
-  validateNoBareExperimentalReferences(code, 'core.prod.mjs');
-
-  await writeFile(outPath, code + '\n');
 
   console.log('🦝 core.prod.mjs:', await fileSize(join(config.distQwikPkgDir, 'core.prod.mjs')));
 }
@@ -339,6 +326,8 @@ async function submoduleCoreDev(config: BuildConfig) {
     entryNames: submodule,
     outdir: config.distQwikPkgDir,
     bundle: true,
+    splitting: true,
+    chunkNames: 'core-[name]-[hash]',
     sourcemap: 'external',
     target,
     define: {

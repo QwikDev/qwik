@@ -1,8 +1,9 @@
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import { isPromise } from '../shared/utils/promises';
 import type { ContainerContext } from '../runtime/container-context';
-import { Computed, markComputedDirty, readComputed, readComputedUntracked } from './computed';
+import { Computed, readComputed, readComputedUntracked } from './computed';
 import { ComputedFlags } from './flags';
+import { markComputedDirty } from './notify';
 import { getFunctionOrResolve } from '../utils/qrl';
 import type { SerializerArg, SerializerArgObject } from './public-types';
 import { NEEDS_COMPUTATION } from './constants';

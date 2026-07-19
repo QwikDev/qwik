@@ -1,4 +1,5 @@
-import { DomSubscription, ForBlockSubscription } from '../../dom/effect/effect';
+import { ForBlockSubscription } from '../../dom/effect/effect';
+import { DomSubscription } from '../../dom/effect/dom-subscription';
 import { BranchSubscription } from '../../dom/branch/branch';
 import { ContentSubscription } from '../../dom/content/content';
 import { EffectKind } from '../../dom/effect/effect-kind.enum';

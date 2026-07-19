@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ES2022",
+    "lib": ["es2023", "DOM"],
+    "jsx": "react-jsx",
+    "jsxImportSource": "@qwik.dev/core",
+    "strict": true,
+    "moduleResolution": "Bundler",
+    "isolatedModules": true,
+    "noEmit": true
+  },
+  "include": ["src"]
+}

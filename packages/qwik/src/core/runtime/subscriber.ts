@@ -3,7 +3,7 @@ import type { Branch, SSRBranch } from '../dom/branch/branch';
 import type { ContentBlock, SSRContent } from '../dom/content/content';
 import type { ForBlock, SSRForBlock } from '../dom/for/for';
 import type { ValueOrPromise } from '../shared/utils/types';
-import type { DomEffect } from '../dom/effect/effect';
+import type { DomEffect } from '../dom/effect/dom-subscription';
 import type { ComputedSource, Source } from '../reactive/source';
 import type { Task, VisibleTask } from './task';
 import type { SsrDomEffect } from '../dom/effect/ssr-effect';
@@ -32,6 +32,7 @@ export interface OwnedSubscriber {
 
 export interface ScheduledSubscriber extends OwnedSubscriber {
   flags: SubscriberFlags;
+  readonly scheduler: TaskScheduler;
 }
 
 export function takeDirty(subscriber: ScheduledSubscriber): boolean {
@@ -59,15 +60,15 @@ export interface IdleJobRecord {
 export interface TaskSubscriber extends Collector, ScheduledSubscriber {
   readonly kind: SubscriberKind.Task;
   readonly task: Task;
-  readonly scheduler: TaskScheduler;
   runPromise: Promise<void> | null;
+  run(): ValueOrPromise<void>;
 }
 
 export interface VisibleTaskSubscriber extends Collector, ScheduledSubscriber {
   readonly kind: SubscriberKind.VisibleTask;
   readonly task: VisibleTask;
-  readonly scheduler: TaskScheduler;
   runPromise: Promise<void> | null;
+  run(): ValueOrPromise<void>;
 }
 
 export interface DomSubscriber extends Collector, ScheduledSubscriber {

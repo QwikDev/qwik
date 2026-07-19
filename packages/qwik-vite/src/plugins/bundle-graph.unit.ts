@@ -359,4 +359,44 @@ describe('convertManifestToBundleGraph', () => {
       ]
     `);
   });
+
+  test('maps core symbols to the public handlers facade', () => {
+    const chunk = (fileName: string, name: string, moduleId: string, exports: string[]) => ({
+      type: 'chunk',
+      fileName,
+      name,
+      code: `export { ${exports.join(', ')} };`,
+      exports,
+      imports: [],
+      dynamicImports: [],
+      modules: { [moduleId]: {} },
+    });
+    const manifest = generateManifestFromBundles(
+      path as any,
+      [],
+      [],
+      {
+        'internal.js': chunk(
+          'internal.js',
+          'handlers',
+          '/repo/packages/qwik/dist/core/prod/handlers.mjs',
+          ['q']
+        ),
+        'handlers.js': chunk('handlers.js', 'core', '/repo/packages/qwik/handlers.mjs', [
+          '_chk',
+          '_res',
+          '_run',
+          '_val',
+          '_visibleTask',
+        ]),
+      } as any,
+      { rootDir: '/', outDir: '/' } as any,
+      console.error,
+      (p) => p
+    );
+
+    expect(manifest.mapping._run).toBe('handlers.js');
+    expect(manifest.mapping._visibleTask).toBe('handlers.js');
+    expect(manifest.mapping._task).toBeUndefined();
+  });
 });

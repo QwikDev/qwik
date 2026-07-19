@@ -4,7 +4,6 @@ import { logError } from '../shared/utils/log';
 import { isPromise } from '../shared/utils/promises';
 import type { ValueOrPromise } from '../shared/utils/types';
 import { Owner, type OwnerItem } from './owner';
-import { runTaskSubscriber } from './run-task';
 import { SubscriberKind, takeDirty } from './subscriber';
 import type {
   BranchSubscriber,
@@ -13,7 +12,6 @@ import type {
   ForBlockSubscriber,
   IdleSubscriber,
   PhaseSubscriber,
-  SsrDomSubscriber,
   TaskSubscriber,
   VisibleTaskSubscriber,
 } from './subscriber';
@@ -329,7 +327,7 @@ export class Scheduler {
   }
 
   private async runTask(task: TaskSubscriber | VisibleTaskSubscriber): Promise<void> {
-    await runTaskSubscriber(task);
+    await task.run();
   }
 
   private async runBranch(branch: BranchSubscriber): Promise<void> {
@@ -393,16 +391,6 @@ export const defaultScheduler = new Scheduler();
 
 export function createScheduler(scheduleInteraction?: ScheduleFlush): Scheduler {
   return new Scheduler(scheduleInteraction);
-}
-
-export function notifyPhaseSubscriber(subscriber: PhaseSubscriber | SsrDomSubscriber): void {
-  const scheduled = subscriber as PhaseSubscriber;
-  if (scheduled.flags === undefined) {
-    return;
-  }
-  const scheduler =
-    (scheduled as { scheduler?: TaskScheduler | Scheduler }).scheduler ?? defaultScheduler;
-  scheduler.notify(scheduled);
 }
 
 export function scheduleFlush(): void {

@@ -1,0 +1,8 @@
+{
+  "description": "Minimal fixture for core transfer-size budgets.",
+  "type": "module",
+  "__qwik__": {
+    "priority": 0,
+    "vdomless": true
+  }
+}

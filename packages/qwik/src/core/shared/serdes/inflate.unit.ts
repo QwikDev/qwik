@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { createWindow } from '../../../testing/document';
 import { EffectKind } from '../../dom/effect/effect-kind.enum';
-import { DomSubscription, TextNodeEffect } from '../../dom/effect/effect';
+import { DomSubscription } from '../../dom/effect/dom-subscription';
 import { EffectTargetKind } from '../../dom/effect/ssr-effect';
+import { TextNodeEffect } from '../../dom/effect/text-effect';
 import { ComputedQrl } from '../../reactive/computed-qrl';
 import { ComputedFlags } from '../../reactive/flags';
 import {

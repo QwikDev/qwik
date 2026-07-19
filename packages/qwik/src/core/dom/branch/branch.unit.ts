@@ -13,7 +13,7 @@ import {
 import { createComponent } from '../../component/component';
 import { disposeSubscriber } from '../../reactive/cleanup';
 import { useSignal } from '../../reactive/public-api';
-import { createTextExpressionEffect, createTextNodeEffect } from '../effect/effect';
+import { createTextExpressionEffect, createTextNodeEffect } from '../effect/text-effect';
 import { createSsrElementTextTarget, renderSsrTextNode } from '../effect/ssr-effect';
 import {
   getActiveInvokeContext,

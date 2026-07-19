@@ -1,16 +1,10 @@
 import { cleanupDeps } from './cleanup';
 import { ComputedFlags } from './flags';
-import { notifyPhaseSubscriber } from '../runtime/scheduler';
-import { resolveLazySubscribers } from './lazy-serialized';
 import type { Source, SourceSubs } from './source';
-import {
-  SubscriberKind,
-  type ComputedSubscriber,
-  type PhaseSubscriber,
-  type Subscriber,
-} from '../runtime/subscriber';
+import { SubscriberKind, type ComputedSubscriber } from '../runtime/subscriber';
 import { runWithCollector, track } from './tracking';
 import type { Owner } from '../runtime/owner';
+import { notifySourceSubscribers } from './notify';
 
 export class Computed<T> implements ComputedSubscriber<T> {
   readonly kind = SubscriberKind.Computed;
@@ -33,7 +27,7 @@ export class Computed<T> implements ComputedSubscriber<T> {
   }
 
   trigger(): void {
-    notifySubscribers(this);
+    notifySourceSubscribers(this);
   }
 }
 
@@ -56,36 +50,6 @@ export function readComputedUntracked<T>(computed: ComputedSubscriber<T>): T {
   }
 
   return computed.v;
-}
-
-export function markComputedDirty(computed: ComputedSubscriber): void {
-  if (computed.owner === null || computed.flags & ComputedFlags.Dirty) {
-    return;
-  }
-
-  computed.flags |= ComputedFlags.Dirty;
-  notifySubscribers(computed);
-}
-
-function notifySubscribers(computed: ComputedSubscriber): void {
-  if (resolveLazySubscribers(computed, () => notifySubscribers(computed))) {
-    return;
-  }
-
-  const subs = computed.subs;
-  if (subs === null) {
-    return;
-  }
-
-  const snapshot = subs.slice() as Subscriber[];
-  for (let i = 0; i < snapshot.length; i++) {
-    const subscriber = snapshot[i];
-    if (subscriber.kind === SubscriberKind.Computed) {
-      markComputedDirty(subscriber);
-    } else {
-      notifyPhaseSubscriber(subscriber as PhaseSubscriber);
-    }
-  }
 }
 
 function recomputeComputed<T>(computed: ComputedSubscriber<T>): void {

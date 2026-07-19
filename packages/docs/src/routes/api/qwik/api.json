@@ -1367,7 +1367,7 @@
       ],
       "kind": "Function",
       "content": "```typescript\nexport declare function useConstant<T, A extends unknown[]>(value: T | ((...args: A) => T), ...args: A): T;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nvalue\n\n\n</td><td>\n\nT \\| ((...args: A) =&gt; T)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nargs\n\n\n</td><td>\n\nA\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nT",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/public-api.ts",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/signal-api.ts",
       "mdFile": "core.useconstant.md"
     },
     {

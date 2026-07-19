@@ -1,7 +1,4 @@
-import { allocate } from './allocate';
-import { TypeIds } from './constants';
-import { needsInflation } from './deser-proxy';
-import { inflate } from './inflate';
+import { TypeIds } from './type-id';
 import { createSerializationContext } from './serialization-context';
 import { defaultScheduler } from '../../runtime/scheduler';
 import type { ContainerContext } from '../../runtime/container-context';
@@ -46,6 +43,7 @@ export async function _deserialize<T>(raw: string): Promise<T> {
       }
       const type = data[offset] as TypeIds;
       const value = data[offset + 1];
+      const { allocate, inflate, needsInflation } = await import('./inflate');
       const root = await allocate(context as ContainerContext, type, value);
       roots.set(index, root);
       if (needsInflation(type)) {
@@ -57,7 +55,6 @@ export async function _deserialize<T>(raw: string): Promise<T> {
       const parts = ids.trim() ? ids.trim().split(' ') : [];
       return Promise.all(parts.map((id) => context.getRoot(id)));
     },
-    notify: (subscriber: any) => defaultScheduler.notify(subscriber),
   } as unknown as ContainerContext;
 
   return (await context.getRoot(0)) as T;

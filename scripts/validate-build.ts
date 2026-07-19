@@ -1,6 +1,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { basename, extname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { brotliCompressSync } from 'node:zlib';
 import { rollup } from 'rollup';
 import ts from 'typescript';
 import { access, type BuildConfig, type PackageJSON, panic, readFile } from './util.ts';
@@ -86,14 +87,14 @@ export async function validateBuild(config: BuildConfig) {
 
   await validatePackageJson(config, pkg, errors);
   await Promise.all([
-    validateModuleTreeshake(config, join(config.distQwikPkgDir, 'core.min.mjs')),
-    validateModuleTreeshake(config, join(config.distQwikPkgDir, 'core.prod.mjs')),
-    validateModuleTreeshake(config, join(config.distQwikPkgDir, 'core.mjs')),
-    validateModuleTreeshake(config, join(config.distQwikPkgDir, 'server.mjs')),
+    validateModuleTreeshake(join(config.distQwikPkgDir, 'core.min.mjs')),
+    validateModuleTreeshake(join(config.distQwikPkgDir, 'core.min.mjs'), [], 'useSignal', 800),
+    validateModuleTreeshake(join(config.distQwikPkgDir, 'core.prod.mjs')),
+    validateModuleTreeshake(join(config.distQwikPkgDir, 'core.mjs')),
+    validateModuleTreeshake(join(config.distQwikPkgDir, 'server.mjs')),
   ]);
   if (config.qwikrouter) {
     await validateModuleTreeshake(
-      config,
       join(config.packagesDir, 'qwik-router', 'lib', 'index.qwik.mjs'),
       ['@qwik-router-config', '@qwik-router-sw-register', 'zod', '@qwik.dev/core/jsx-runtime']
     );
@@ -205,17 +206,18 @@ async function validatePackageJson(config: BuildConfig, pkg: PackageJSON, errors
 }
 
 async function validateModuleTreeshake(
-  config: BuildConfig,
   entryModulePath: string,
-  external: string[] = []
+  external: string[] = [],
+  exportName?: string,
+  maxBrotliSize?: number
 ): Promise<void> {
   const virtualInputId = `@index`;
   const bundle = await rollup({
     input: virtualInputId,
     treeshake: {
-      moduleSideEffects: 'no-external',
+      moduleSideEffects: false,
     },
-    external: ['@qwik.dev/core/build', '@qwik.dev/core', ...external],
+    external: ['@qwik.dev/core/build', '@qwik.dev/core', '@qwik.dev/core/preloader', ...external],
     plugins: [
       {
         name: 'resolver',
@@ -226,7 +228,9 @@ async function validateModuleTreeshake(
         },
         load(id) {
           if (id === virtualInputId) {
-            return `import "${entryModulePath}";`;
+            return exportName
+              ? `export { ${exportName} } from ${JSON.stringify(entryModulePath)};`
+              : `import ${JSON.stringify(entryModulePath)};`;
           }
         },
       },
@@ -245,10 +249,18 @@ async function validateModuleTreeshake(
   const output = o.output[0];
   const outputCode = output.code.trim();
 
-  if (outputCode !== '') {
+  if (exportName) {
+    const brotliSize = brotliCompressSync(outputCode).byteLength;
+    if (maxBrotliSize !== undefined && brotliSize > maxBrotliSize) {
+      throw new Error(
+        `🧨  ${exportName} from ${entryModulePath} is ${brotliSize} B Brotli, expected at most ${maxBrotliSize} B`
+      );
+    }
+    console.log(`🌳  ${exportName} from ${entryModulePath}: ${brotliSize} B Brotli`);
+  } else if (outputCode !== '') {
     console.log(outputCode);
     throw new Error(`🧨  Unable to treeshake for ${entryModulePath}`);
+  } else {
+    console.log(`🌳  validated treeshake for ${entryModulePath}`);
   }
-
-  console.log(`🌳  validated treeshake for ${entryModulePath}`);
 }

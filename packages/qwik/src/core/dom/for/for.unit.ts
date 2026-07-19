@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createDocument } from '../../../testing/document';
-import { createTextNodeEffect, ForBlockSubscription } from '../effect/effect';
+import { ForBlockSubscription } from '../effect/effect';
+import { createTextNodeEffect } from '../effect/text-effect';
 import { useSignal } from '../../reactive/public-api';
 import type { ContainerContext } from '../../runtime/container-context';
 import { createOwner } from '../../runtime/owner';

@@ -6,7 +6,7 @@ import type { ContainerContext } from '../../runtime/container-context';
 import { invoke, newInvokeContext } from '../../runtime/invoke-context';
 import { createOwner } from '../../runtime/owner';
 import { Scheduler } from '../../runtime/scheduler';
-import { createTextNodeEffect } from '../effect/effect';
+import { createTextNodeEffect } from '../effect/text-effect';
 import { createContentBlock } from './content';
 
 describe('ContentBlock', () => {

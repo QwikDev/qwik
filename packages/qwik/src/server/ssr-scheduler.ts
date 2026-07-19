@@ -1,6 +1,5 @@
 import {
   maybeThen,
-  runTaskSubscriber,
   type PhaseSubscriber,
   type TaskScheduler,
   type TaskSubscriber,
@@ -87,7 +86,7 @@ export class SsrLane implements TaskScheduler {
 
   private drain(current: TaskSubscriber | null): void | Promise<void> {
     while (current !== null) {
-      const result = runTaskSubscriber(current);
+      const result = current.run();
       if (result instanceof Promise) {
         return result.then(() => this.drain(this.takeNext()));
       }

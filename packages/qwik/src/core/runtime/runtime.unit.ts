@@ -12,7 +12,7 @@ import { disposeSubscriber } from '../reactive/cleanup';
 import { OwnerFlags, SubscriberFlags } from '../reactive/flags';
 import { useSignal, useComputed } from '../reactive/public-api';
 import { _await, getActiveCollector, runWithCollector } from '../reactive/tracking';
-import { createTextNodeEffect } from '../dom/effect/effect';
+import { createTextNodeEffect } from '../dom/effect/text-effect';
 import {
   createOwner,
   disposeOwner,
@@ -186,6 +186,7 @@ describe('runtime scheduler and owner lifecycle', () => {
         deps: null,
         depVersions: null,
         owner: null,
+        scheduler,
         branch: null!,
         run() {
           for (let i = 0; i < 32; i++) {

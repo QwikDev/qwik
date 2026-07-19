@@ -1,6 +1,7 @@
 import type { QRL } from '../qrl/qrl.public';
 import type { ValueOrPromise } from '../utils/types';
 import { Serializer } from './serialize';
+import { SerializationBackRef } from './serialization-back-ref';
 import { createStringSerdesWriter, type SerdesWriter } from './writer';
 
 type DomRef = { $nodeId$: string | number };
@@ -14,17 +15,6 @@ export type SeenRef = {
 };
 
 export let isDomRef = (obj: unknown): obj is DomRef => false;
-
-/**
- * A back reference to a previously serialized object. Before deserialization, all backrefs are
- * swapped with their original locations.
- */
-export class SerializationBackRef {
-  constructor(
-    /** The path from root to the original object */
-    public $path$: number[]
-  ) {}
-}
 
 interface AddRootFn {
   (obj: unknown, returnRef?: never): number;

@@ -5,13 +5,11 @@ import { deserializeData, inflate } from './shared/serdes/inflate';
 import { createSerializationContext } from './shared/serdes/serialization-context';
 import { Constants, TypeIds } from './shared/serdes/constants';
 import { allocate } from './shared/serdes/allocate';
+import { _deserialize, _serialize } from './shared/serdes/standalone';
 import { SerializerSymbol } from './shared/serdes/verify';
 import { EffectKind } from './dom/effect/effect-kind.enum';
-import {
-  createTextNodeEffect,
-  type AttrExpressionFn,
-  type TextExpressionFn,
-} from './dom/effect/effect';
+import type { AttrExpressionFn } from './dom/effect/effect';
+import { createTextNodeEffect, type TextExpressionFn } from './dom/effect/text-effect';
 import { BranchSubscription, renderSsrBranch } from './dom/branch/branch';
 import { ContentSubscription, renderSsrContent } from './dom/content/content';
 import { renderSsrForBlock } from './dom/for/for';
@@ -65,6 +63,12 @@ class TestDomRef {
 }
 
 describe('serdes emit-only', () => {
+  it('round-trips standalone serialized signals', async () => {
+    const restored = await _deserialize<Signal<number>>(await _serialize(useSignal(7)));
+
+    expect(restored.value).toBe(7);
+  });
+
   it('resolves a RefVNode to the matching DOM element', () => {
     const win = createWindow({
       html: '<div q:container><span q:id="4">target</span></div>',

@@ -3,8 +3,8 @@ import type { QRL } from '../shared/qrl/qrl.public';
 import type { ValueOrPromise } from '../shared/utils/types';
 import { SubscriberFlags } from '../reactive/flags';
 import { registerSubscriberToOwner } from './owner';
-import { defaultScheduler, notifyPhaseSubscriber, Phase, type TaskScheduler } from './scheduler';
-import { runTaskCleanups } from './run-task';
+import { defaultScheduler, Phase, type TaskScheduler } from './scheduler';
+import { runTaskCleanups, runTaskSubscriber } from './run-task';
 import { getActiveInvokeContextOrNull } from './invoke-context';
 import {
   SubscriberKind,
@@ -89,6 +89,10 @@ export class TaskSubscription extends ScheduledSubscription implements TaskSubsc
   ) {
     super(scheduler);
   }
+
+  run(): ValueOrPromise<void> {
+    return runTaskSubscriber(this);
+  }
 }
 
 export class VisibleTaskSubscription
@@ -102,6 +106,10 @@ export class VisibleTaskSubscription
     scheduler: TaskScheduler = defaultScheduler
   ) {
     super(scheduler);
+  }
+
+  run(): ValueOrPromise<void> {
+    return runTaskSubscriber(this);
   }
 }
 
@@ -119,7 +127,7 @@ export function useTask(run: TaskFn, options?: TaskOptions): TaskSubscriber {
       scheduler
     )
   );
-  notifyPhaseSubscriber(subscriber);
+  subscriber.scheduler.notify(subscriber);
   return subscriber;
 }
 
@@ -137,7 +145,7 @@ export function useTaskQrl(qrl: TaskQrlRef, options?: TaskOptions): TaskSubscrib
       scheduler
     )
   );
-  notifyPhaseSubscriber(subscriber);
+  subscriber.scheduler.notify(subscriber);
   return subscriber;
 }
 
@@ -153,7 +161,7 @@ export function useVisibleTask(run: TaskFn, options?: VisibleTaskOptions): Visib
   const subscriber = registerSubscriberToOwner(
     new VisibleTaskSubscription(new VisibleTask(run, undefined, container), scheduler)
   );
-  notifyPhaseSubscriber(subscriber);
+  subscriber.scheduler.notify(subscriber);
   return subscriber;
 }
 
@@ -166,7 +174,7 @@ export function useVisibleTaskQrl(
   const subscriber = registerSubscriberToOwner(
     new VisibleTaskSubscription(new VisibleTask(undefined, qrl, container), scheduler)
   );
-  notifyPhaseSubscriber(subscriber);
+  subscriber.scheduler.notify(subscriber);
   return subscriber;
 }
 

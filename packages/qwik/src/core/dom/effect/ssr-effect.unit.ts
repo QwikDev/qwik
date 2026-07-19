@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { createQRL } from '../../shared/qrl/qrl-class';
-import { type AttrExpressionFn, type TextExpressionFn } from './effect';
+import type { AttrExpressionFn } from './effect';
 import { EffectKind } from './effect-kind.enum';
+import type { TextExpressionFn } from './text-effect';
 import {
   SsrDomSubscription,
   EffectTargetKind,

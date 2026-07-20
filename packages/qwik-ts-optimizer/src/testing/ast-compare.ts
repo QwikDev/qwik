@@ -1,17 +1,24 @@
 import { parseSync } from 'oxc-parser';
 import equal from 'fast-deep-equal';
-import type {
-  Directive,
-  ImportDeclaration,
-  ModuleExportName,
-  Program,
-  Statement,
-} from '../ast-types.js';
+import type { AstCompatNode } from '../ast-types.js';
+import { isAstNode } from '../optimizer/ast/guards.js';
 
 export interface AstCompareResult {
   match: boolean;
   expectedParseError: string | null;
   actualParseError: string | null;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function asArray(value: unknown): unknown[] | undefined {
+  return Array.isArray(value) ? value : undefined;
+}
+
+function asString(value: unknown): string | undefined {
+  return typeof value === 'string' ? value : undefined;
 }
 
 /**
@@ -74,8 +81,8 @@ export function compareAst(
   const cleanActual = stripPositions(actualResult.program);
 
   // Apply all normalizations to both sides
-  normalizeProgram(cleanExpected);
-  normalizeProgram(cleanActual);
+  if (isAstNode(cleanExpected)) normalizeProgram(cleanExpected);
+  if (isAstNode(cleanActual)) normalizeProgram(cleanActual);
 
   // Re-strip after normalizations: some normalizations create synthetic AST
   // nodes (e.g., mergeJsxSplitProps) that may have different key shapes than
@@ -96,7 +103,7 @@ export function compareAst(
  * Apply all semantic normalizations to a program AST.
  * Each normalization eliminates a class of cosmetic differences.
  */
-function normalizeProgram(program: any): void {
+function normalizeProgram(program: AstCompatNode): void {
   // STRICTLY cosmetic normalizations only — nothing that hides behavioral differences
 
   // Import ordering/splitting — no semantic meaning in JS
@@ -220,23 +227,27 @@ function normalizeProgram(program: any): void {
  * imports before sorting, so `import { a, b } from "x"` matches
  * `import { a } from "x"; import { b } from "x"`.
  */
-function normalizeImportOrder(program: any): void {
-  if (!program?.body || !Array.isArray(program.body)) return;
+function normalizeImportOrder(program: AstCompatNode): void {
+  const body = asArray(program.body);
+  if (!body) return;
 
   // Find the contiguous block of imports at the top
   let importEnd = 0;
-  while (importEnd < program.body.length && program.body[importEnd]?.type === 'ImportDeclaration') {
+  while (importEnd < body.length) {
+    const el = body[importEnd];
+    if (!isRecord(el) || el.type !== 'ImportDeclaration') break;
     importEnd++;
   }
   if (importEnd === 0) return;
 
   // Split multi-specifier imports into individual imports
-  const splitImports: any[] = [];
+  const splitImports: unknown[] = [];
   for (let i = 0; i < importEnd; i++) {
-    const imp = program.body[i];
-    if (imp.specifiers && imp.specifiers.length > 1) {
+    const imp = body[i];
+    const specs = isRecord(imp) ? asArray(imp.specifiers) : undefined;
+    if (isRecord(imp) && specs && specs.length > 1) {
       // Split each specifier into its own import declaration
-      for (const spec of imp.specifiers) {
+      for (const spec of specs) {
         splitImports.push({
           ...imp,
           specifiers: [spec],
@@ -248,12 +259,12 @@ function normalizeImportOrder(program: any): void {
   }
 
   // Sort by serialized form
-  splitImports.sort((a: any, b: any) => {
+  splitImports.sort((a: unknown, b: unknown) => {
     const aKey = JSON.stringify(a);
     const bKey = JSON.stringify(b);
     return aKey.localeCompare(bKey);
   });
-  program.body.splice(0, importEnd, ...splitImports);
+  body.splice(0, importEnd, ...splitImports);
 }
 
 /**
@@ -268,25 +279,29 @@ function normalizeImportOrder(program: any): void {
  *
  * Skip aliases that would collide with other declarations in the module.
  */
-function normalizeImportAliases(program: any): void {
-  if (!program?.body || !Array.isArray(program.body)) return;
+function normalizeImportAliases(program: AstCompatNode): void {
+  const body = asArray(program.body);
+  if (!body) return;
 
   // Collect all aliased import specifiers
   const aliasMap = new Map<string, string>(); // local -> imported
   const allLocalNames = new Set<string>();
 
-  for (const stmt of program.body) {
-    if (stmt?.type !== 'ImportDeclaration') continue;
-    for (const spec of stmt.specifiers || []) {
-      if (spec.type === 'ImportSpecifier' && spec.imported && spec.local) {
-        const imported = spec.imported.name;
-        const local = spec.local.name;
+  for (const stmt of body) {
+    if (!isRecord(stmt) || stmt.type !== 'ImportDeclaration') continue;
+    for (const spec of asArray(stmt.specifiers) ?? []) {
+      if (!isRecord(spec)) continue;
+      if (spec.type === 'ImportSpecifier' && isRecord(spec.imported) && isRecord(spec.local)) {
+        const imported = asString(spec.imported.name);
+        const local = asString(spec.local.name);
+        if (imported === undefined || local === undefined) continue;
         allLocalNames.add(local);
         if (imported !== local && !imported.startsWith('_auto_')) {
           aliasMap.set(local, imported);
         }
-      } else if (spec.local) {
-        allLocalNames.add(spec.local.name);
+      } else if (isRecord(spec.local)) {
+        const local = asString(spec.local.name);
+        if (local !== undefined) allLocalNames.add(local);
       }
     }
   }
@@ -295,8 +310,8 @@ function normalizeImportAliases(program: any): void {
 
   // Also collect all non-import declared names to detect conflicts
   const declaredNames = new Set<string>();
-  for (const stmt of program.body) {
-    if (stmt?.type === 'ImportDeclaration') continue;
+  for (const stmt of body) {
+    if (isRecord(stmt) && stmt.type === 'ImportDeclaration') continue;
     collectDeclNames(stmt, declaredNames);
   }
 
@@ -315,21 +330,28 @@ function normalizeImportAliases(program: any): void {
   if (safeAliases.size === 0) return;
 
   // Rename in import specifiers
-  for (const stmt of program.body) {
-    if (stmt?.type !== 'ImportDeclaration') continue;
-    for (const spec of stmt.specifiers || []) {
-      if (spec.type === 'ImportSpecifier' && spec.local && safeAliases.has(spec.local.name)) {
-        spec.local.name = safeAliases.get(spec.local.name)!;
+  for (const stmt of body) {
+    if (!isRecord(stmt) || stmt.type !== 'ImportDeclaration') continue;
+    for (const spec of asArray(stmt.specifiers) ?? []) {
+      if (isRecord(spec) && spec.type === 'ImportSpecifier' && isRecord(spec.local)) {
+        const localName = asString(spec.local.name);
+        if (localName !== undefined && safeAliases.has(localName)) {
+          spec.local.name = safeAliases.get(localName)!;
+        }
       }
     }
   }
 
   // Rename all identifier references throughout the AST (skip import declarations)
-  function renameIdents(node: any): void {
-    if (!node || typeof node !== 'object') return;
-    if (Array.isArray(node)) { for (const item of node) renameIdents(item); return; }
-    if (node.type === 'Identifier' && safeAliases.has(node.name)) {
-      node.name = safeAliases.get(node.name)!;
+  function renameIdents(node: unknown): void {
+    const arr = asArray(node);
+    if (arr) { for (const item of arr) renameIdents(item); return; }
+    if (!isRecord(node)) return;
+    if (node.type === 'Identifier') {
+      const name = asString(node.name);
+      if (name !== undefined && safeAliases.has(name)) {
+        node.name = safeAliases.get(name)!;
+      }
     }
     for (const key of Object.keys(node)) {
       if (key === 'type') continue;
@@ -337,22 +359,32 @@ function normalizeImportAliases(program: any): void {
     }
   }
 
-  for (const stmt of program.body) {
-    if (stmt?.type === 'ImportDeclaration') continue;
+  for (const stmt of body) {
+    if (isRecord(stmt) && stmt.type === 'ImportDeclaration') continue;
     renameIdents(stmt);
   }
 }
 
-function collectDeclNames(node: any, names: Set<string>): void {
-  if (!node || typeof node !== 'object') return;
-  if (Array.isArray(node)) { for (const item of node) collectDeclNames(item, names); return; }
+function collectDeclNames(node: unknown, names: Set<string>): void {
+  const arr = asArray(node);
+  if (arr) { for (const item of arr) collectDeclNames(item, names); return; }
+  if (!isRecord(node)) return;
   if (node.type === 'VariableDeclaration') {
-    for (const decl of node.declarations || []) {
-      if (decl.id?.type === 'Identifier') names.add(decl.id.name);
+    for (const decl of asArray(node.declarations) ?? []) {
+      if (isRecord(decl) && isRecord(decl.id) && decl.id.type === 'Identifier') {
+        const name = asString(decl.id.name);
+        if (name !== undefined) names.add(name);
+      }
     }
   }
-  if (node.type === 'FunctionDeclaration' && node.id?.name) names.add(node.id.name);
-  if (node.type === 'ClassDeclaration' && node.id?.name) names.add(node.id.name);
+  if (node.type === 'FunctionDeclaration' && isRecord(node.id)) {
+    const name = asString(node.id.name);
+    if (name) names.add(name);
+  }
+  if (node.type === 'ClassDeclaration' && isRecord(node.id)) {
+    const name = asString(node.id.name);
+    if (name) names.add(name);
+  }
   for (const key of Object.keys(node)) {
     if (key === 'type') continue;
     collectDeclNames(node[key], names);
@@ -366,26 +398,34 @@ function collectDeclNames(node: any, names: Set<string>): void {
  * - Hoisted signal functions (const _hf0 = ..., const _hf0_str = ...)
  * - Module-level function declarations moved into segments (const foo = (...) => {...})
  */
-function isReorderableDeclaration(decl: Statement | Directive): boolean {
+function isReorderableDeclaration(decl: unknown): boolean {
+  if (!isRecord(decl)) return false;
+
   switch (decl.type) {
     // Module-level function decls — may be moved between segments by migration.
     case 'FunctionDeclaration':
       return true;
     // Single-declarator `const` — analyse below.
     case 'VariableDeclaration':
-      if (decl.kind !== 'const' || decl.declarations.length !== 1) return false;
       break;
     default:
       return false;
   }
 
-  const { id, init } = decl.declarations[0];
+  const decls = asArray(decl.declarations);
+  if (decl.kind !== 'const' || !decls || decls.length !== 1) return false;
+
+  const first = decls[0];
+  if (!isRecord(first)) return false;
+  const id = first.id;
+  const init = first.init;
+  if (!isRecord(id)) return false;
 
   switch (id.type) {
     // Destructure of a simple read (`const [...] = obj`, `const {x} = obj.y`).
     case 'ArrayPattern':
     case 'ObjectPattern':
-      return init?.type === 'Identifier' || init?.type === 'MemberExpression';
+      return isRecord(init) && (init.type === 'Identifier' || init.type === 'MemberExpression');
     case 'Identifier':
       break;
     default:
@@ -395,12 +435,13 @@ function isReorderableDeclaration(decl: Statement | Directive): boolean {
   // Framework-emitted name prefixes are reorderable regardless of init: `q_*`
   // are qrl/_noopQrl declarations, `_hf<n>` / `_hf<n>_str` are hoisted signal
   // functions and their serialised string pair.
-  if (id.name.startsWith('q_') || /^_hf\d+(_str)?$/.test(id.name)) return true;
+  const idName = asString(id.name);
+  if (idName !== undefined && (idName.startsWith('q_') || /^_hf\d+(_str)?$/.test(idName))) return true;
 
   // Otherwise: side-effect-free init shapes. Plain reads (Literal, Identifier,
   // MemberExpression), function expressions (don't run at decl time), or the
   // `x.w(...)` capture-binding call pattern.
-  if (!init) return false;
+  if (!isRecord(init)) return false;
   switch (init.type) {
     case 'Literal':
     case 'Identifier':
@@ -409,8 +450,8 @@ function isReorderableDeclaration(decl: Statement | Directive): boolean {
     case 'FunctionExpression':
       return true;
     case 'CallExpression':
-      return init.callee.type === 'MemberExpression' &&
-             init.callee.property.type === 'Identifier' &&
+      return isRecord(init.callee) && init.callee.type === 'MemberExpression' &&
+             isRecord(init.callee.property) && init.callee.property.type === 'Identifier' &&
              init.callee.property.name === 'w';
     default:
       return false;
@@ -421,26 +462,27 @@ function isReorderableDeclaration(decl: Statement | Directive): boolean {
  * Sort contiguous blocks of reorderable declarations (QRL refs, hoisted fns).
  * These are independent and their order has no semantic meaning.
  */
-function normalizeQrlDeclarationOrder(program: any): void {
+function normalizeQrlDeclarationOrder(program: AstCompatNode): void {
   sortReorderableBlock(program?.body);
   // Recurse into function/arrow bodies to sort .w() hoisting declarations
-  walkBodies(program, (body: any[]) => sortReorderableBlock(body));
+  walkBodies(program, (body: unknown[]) => sortReorderableBlock(body));
 }
 
 /**
  * Sort contiguous blocks of reorderable statements within a body array.
  */
-function sortReorderableBlock(body: any): void {
-  if (!body || !Array.isArray(body)) return;
+function sortReorderableBlock(body: unknown): void {
+  const arr = asArray(body);
+  if (!arr) return;
   let i = 0;
-  while (i < body.length) {
-    if (!isReorderableDeclaration(body[i])) { i++; continue; }
+  while (i < arr.length) {
+    if (!isReorderableDeclaration(arr[i])) { i++; continue; }
     const blockStart = i;
-    while (i < body.length && isReorderableDeclaration(body[i])) { i++; }
+    while (i < arr.length && isReorderableDeclaration(arr[i])) { i++; }
     if (i - blockStart <= 1) continue;
-    const block = body.slice(blockStart, i);
-    block.sort((a: any, b: any) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
-    body.splice(blockStart, i - blockStart, ...block);
+    const block = arr.slice(blockStart, i);
+    block.sort((a: unknown, b: unknown) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
+    arr.splice(blockStart, i - blockStart, ...block);
   }
 }
 
@@ -448,12 +490,14 @@ function sortReorderableBlock(body: any): void {
  * Walk all statement bodies in an AST (function bodies, arrow bodies, block bodies)
  * and call the callback for each body array.
  */
-function walkBodies(node: any, cb: (body: any[]) => void): void {
-  if (!node || typeof node !== 'object') return;
-  if (Array.isArray(node)) { node.forEach(n => walkBodies(n, cb)); return; }
+function walkBodies(node: unknown, cb: (body: unknown[]) => void): void {
+  const arr = asArray(node);
+  if (arr) { arr.forEach(n => walkBodies(n, cb)); return; }
+  if (!isRecord(node)) return;
   // Call cb for any block body we find
-  if (node.type === 'BlockStatement' && Array.isArray(node.body)) {
-    cb(node.body);
+  const body = asArray(node.body);
+  if (node.type === 'BlockStatement' && body) {
+    cb(body);
   }
   for (const key of Object.keys(node)) {
     if (key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
@@ -471,38 +515,42 @@ function walkBodies(node: any, cb: (body: any[]) => void): void {
  * extracting the symbol name from the first string argument of qrl/_noopQrl calls.
  * This makes both naming conventions produce identical ASTs.
  */
-function canonicalizeQrlVarNames(program: any): void {
-  if (!program?.body || !Array.isArray(program.body)) return;
+function canonicalizeQrlVarNames(program: AstCompatNode): void {
+  const body = asArray(program.body);
+  if (!body) return;
 
   // Map: oldVarName -> canonical name (q_ + symbolName)
   const renameMap = new Map<string, string>();
 
-  for (const stmt of program.body) {
-    if (stmt?.type !== 'VariableDeclaration') continue;
-    for (const decl of stmt.declarations || []) {
-      if (!decl.id || decl.id.type !== 'Identifier') continue;
-      const varName = decl.id.name;
-      if (!varName.startsWith('q_')) continue;
+  for (const stmt of body) {
+    if (!isRecord(stmt) || stmt.type !== 'VariableDeclaration') continue;
+    for (const decl of asArray(stmt.declarations) ?? []) {
+      if (!isRecord(decl) || !isRecord(decl.id) || decl.id.type !== 'Identifier') continue;
+      const varName = asString(decl.id.name);
+      if (varName === undefined || !varName.startsWith('q_')) continue;
 
       const init = decl.init;
-      if (!init || init.type !== 'CallExpression') continue;
+      if (!isRecord(init) || init.type !== 'CallExpression') continue;
       const callee = init.callee;
-      if (!callee) continue;
+      if (!isRecord(callee)) continue;
 
       let symbolArg: string | null = null;
+      const args = asArray(init.arguments);
 
       if (callee.type === 'Identifier' &&
           (callee.name === '_noopQrl' || callee.name === 'qrl' || callee.name === '_noopQrlDEV' || callee.name === 'qrlDEV')) {
         // _noopQrl("sym") or qrl(() => import(...), "sym")
         if (callee.name === '_noopQrl' || callee.name === '_noopQrlDEV') {
           // First arg is the symbol name string
-          if (init.arguments?.[0]?.type === 'Literal' && typeof init.arguments[0].value === 'string') {
-            symbolArg = init.arguments[0].value;
+          const a0 = args?.[0];
+          if (isRecord(a0) && a0.type === 'Literal' && typeof a0.value === 'string') {
+            symbolArg = a0.value;
           }
         } else {
           // qrl/qrlDEV: second arg is the symbol name string
-          if (init.arguments?.[1]?.type === 'Literal' && typeof init.arguments[1].value === 'string') {
-            symbolArg = init.arguments[1].value;
+          const a1 = args?.[1];
+          if (isRecord(a1) && a1.type === 'Literal' && typeof a1.value === 'string') {
+            symbolArg = a1.value;
           }
         }
       }
@@ -519,11 +567,15 @@ function canonicalizeQrlVarNames(program: any): void {
   if (renameMap.size === 0) return;
 
   // Rename all references throughout the AST
-  function renameIdents(node: any): void {
-    if (!node || typeof node !== 'object') return;
-    if (Array.isArray(node)) { for (const item of node) renameIdents(item); return; }
-    if (node.type === 'Identifier' && renameMap.has(node.name)) {
-      node.name = renameMap.get(node.name)!;
+  function renameIdents(node: unknown): void {
+    const arr = asArray(node);
+    if (arr) { for (const item of arr) renameIdents(item); return; }
+    if (!isRecord(node)) return;
+    if (node.type === 'Identifier') {
+      const name = asString(node.name);
+      if (name !== undefined && renameMap.has(name)) {
+        node.name = renameMap.get(name)!;
+      }
     }
     for (const key of Object.keys(node)) {
       if (key === 'type') continue;
@@ -536,28 +588,24 @@ function canonicalizeQrlVarNames(program: any): void {
 
 
 
-function shouldStripRaw(node: any, ancestors: any[]): boolean {
-  if (node?.type === 'Literal' || node?.type === 'JSXText') {
+function shouldStripRaw(node: unknown, ancestors: unknown[]): boolean {
+  if (isRecord(node) && (node.type === 'Literal' || node.type === 'JSXText')) {
     return true;
   }
 
   // TemplateElement.value.raw is cosmetic for untagged templates,
   // but observable for tagged templates via strings.raw.
   const [parent, grandparent, greatGrandparent] = ancestors;
-  if (
-    parent?.type === 'TemplateElement' &&
-    grandparent?.type === 'TemplateLiteral' &&
-    greatGrandparent?.type !== 'TaggedTemplateExpression'
-  ) {
-    return true;
-  }
-
-  return false;
+  return (
+    isRecord(parent) && parent.type === 'TemplateElement' &&
+    isRecord(grandparent) && grandparent.type === 'TemplateLiteral' &&
+    (!isRecord(greatGrandparent) || greatGrandparent.type !== 'TaggedTemplateExpression')
+  );
 }
 
-function stripPositions(node: any, ancestors: any[] = []): any {
+function stripPositions(node: unknown, ancestors: unknown[] = []): unknown {
   if (Array.isArray(node)) return node.map((item) => stripPositions(item, ancestors));
-  if (node === null || typeof node !== 'object') return node;
+  if (!isRecord(node)) return node;
 
   // Unwrap ParenthesizedExpression -- semantically equivalent to the inner expression
   if (node.type === 'ParenthesizedExpression' && node.expression) {
@@ -566,17 +614,22 @@ function stripPositions(node: any, ancestors: any[] = []): any {
 
   // Normalize single-statement BlockStatement in control flow (if/else/for/while/do-while)
   // `if (x) y++;` and `if (x) { y++; }` are semantically identical.
-  if (node.type === 'BlockStatement' && Array.isArray(node.body) && node.body.length === 1) {
-    const parentNode = ancestors[0];
-    if (
-      parentNode?.type === 'IfStatement' ||
-      parentNode?.type === 'ForStatement' ||
-      parentNode?.type === 'ForInStatement' ||
-      parentNode?.type === 'ForOfStatement' ||
-      parentNode?.type === 'WhileStatement' ||
-      parentNode?.type === 'DoWhileStatement'
-    ) {
-      return stripPositions(node.body[0], ancestors);
+  if (node.type === 'BlockStatement') {
+    const body = asArray(node.body);
+    if (body && body.length === 1) {
+      const parentNode = ancestors[0];
+      if (
+        isRecord(parentNode) && (
+          parentNode.type === 'IfStatement' ||
+          parentNode.type === 'ForStatement' ||
+          parentNode.type === 'ForInStatement' ||
+          parentNode.type === 'ForOfStatement' ||
+          parentNode.type === 'WhileStatement' ||
+          parentNode.type === 'DoWhileStatement'
+        )
+      ) {
+        return stripPositions(body[0], ancestors);
+      }
     }
   }
 
@@ -584,11 +637,12 @@ function stripPositions(node: any, ancestors: any[] = []): any {
   // identical but produce different AST nodes (Literal vs Identifier for key).
   // Normalize non-computed property keys to Identifier form for consistent comparison.
   if (node.type === 'Property' && !node.computed && node.key) {
-    const normalizedNode = { ...node };
-    if (node.key.type === 'Literal' && typeof node.key.value === 'string') {
-      normalizedNode.key = { type: 'Identifier', name: node.key.value };
+    const normalizedNode: Record<string, unknown> = { ...node };
+    const keyNode = node.key;
+    if (isRecord(keyNode) && keyNode.type === 'Literal' && typeof keyNode.value === 'string') {
+      normalizedNode.key = { type: 'Identifier', name: keyNode.value };
     }
-    const cleaned: Record<string, any> = {};
+    const cleaned: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(normalizedNode)) {
       if (
         key === 'start' || key === 'end' || key === 'loc' || key === 'range' ||
@@ -604,7 +658,7 @@ function stripPositions(node: any, ancestors: any[] = []): any {
     return cleaned;
   }
 
-  const cleaned: Record<string, any> = {};
+  const cleaned: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(node)) {
     if (
       key === 'start' ||
@@ -636,13 +690,18 @@ function stripPositions(node: any, ancestors: any[] = []): any {
  * Sort specifiers within each import declaration alphabetically.
  * `import { z, a, m } from "x"` → `import { a, m, z } from "x"`
  */
-function sortSpecifiersWithinImports(program: any): void {
-  if (!program?.body) return;
-  for (const stmt of program.body) {
-    if (stmt.type === 'ImportDeclaration' && stmt.specifiers?.length > 1) {
-      stmt.specifiers.sort((a: any, b: any) => {
-        const aName = a.local?.name || a.imported?.name || '';
-        const bName = b.local?.name || b.imported?.name || '';
+function sortSpecifiersWithinImports(program: AstCompatNode): void {
+  const body = asArray(program.body);
+  if (!body) return;
+  for (const stmt of body) {
+    if (!isRecord(stmt) || stmt.type !== 'ImportDeclaration') continue;
+    const specs = asArray(stmt.specifiers);
+    if (specs && specs.length > 1) {
+      specs.sort((a: unknown, b: unknown) => {
+        const aName = (isRecord(a) && isRecord(a.local) && asString(a.local.name)) ||
+                      (isRecord(a) && isRecord(a.imported) && asString(a.imported.name)) || '';
+        const bName = (isRecord(b) && isRecord(b.local) && asString(b.local.name)) ||
+                      (isRecord(b) && isRecord(b.imported) && asString(b.imported.name)) || '';
         return aName.localeCompare(bName);
       });
     }
@@ -653,33 +712,35 @@ function sortSpecifiersWithinImports(program: any): void {
  * Sort contiguous blocks of independent expression statements.
  * `.s()` calls and `export` expression ordering is not semantically meaningful.
  */
-function sortIndependentExpressionStatements(program: any): void {
-  if (!program?.body) return;
+function sortIndependentExpressionStatements(program: AstCompatNode): void {
+  const body = asArray(program.body);
+  if (!body) return;
   let i = 0;
-  while (i < program.body.length) {
-    if (!isIndependentExprStatement(program.body[i])) { i++; continue; }
+  while (i < body.length) {
+    if (!isIndependentExprStatement(body[i])) { i++; continue; }
     const start = i;
-    while (i < program.body.length && isIndependentExprStatement(program.body[i])) i++;
+    while (i < body.length && isIndependentExprStatement(body[i])) i++;
     if (i - start <= 1) continue;
-    const block = program.body.slice(start, i);
-    block.sort((a: any, b: any) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
-    program.body.splice(start, i - start, ...block);
+    const block = body.slice(start, i);
+    block.sort((a: unknown, b: unknown) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
+    body.splice(start, i - start, ...block);
   }
 }
 
-function isIndependentExprStatement(stmt: any): boolean {
-  if (stmt?.type !== 'ExpressionStatement') return false;
+function isIndependentExprStatement(stmt: unknown): boolean {
+  if (!isRecord(stmt) || stmt.type !== 'ExpressionStatement') return false;
   const expr = stmt.expression;
+  if (!isRecord(expr)) return false;
   // q_xxx.s(...) calls
-  if (expr?.type === 'CallExpression' &&
-      expr.callee?.type === 'MemberExpression' &&
-      expr.callee.object?.type === 'Identifier' &&
-      expr.callee.object.name?.startsWith('q_') &&
-      expr.callee.property?.name === 's') return true;
+  if (expr.type === 'CallExpression' &&
+      isRecord(expr.callee) && expr.callee.type === 'MemberExpression' &&
+      isRecord(expr.callee.object) && expr.callee.object.type === 'Identifier' &&
+      asString(expr.callee.object.name)?.startsWith('q_') &&
+      isRecord(expr.callee.property) && expr.callee.property.name === 's') return true;
   // _hfN(...) calls
-  if (expr?.type === 'CallExpression' &&
-      expr.callee?.type === 'Identifier' &&
-      /^_hf\d+/.test(expr.callee.name)) return true;
+  if (expr.type === 'CallExpression' &&
+      isRecord(expr.callee) && expr.callee.type === 'Identifier' &&
+      typeof expr.callee.name === 'string' && /^_hf\d+/.test(expr.callee.name)) return true;
   return false;
 }
 
@@ -688,38 +749,40 @@ function isIndependentExprStatement(stmt: any): boolean {
  * Bare QRL expression calls (qrl(()=>import(...))) and export declarations
  * are independent module-level statements whose relative order doesn't matter.
  */
-function sortIndependentTopLevelStatements(program: any): void {
-  if (!program?.body || !Array.isArray(program.body)) return;
+function sortIndependentTopLevelStatements(program: AstCompatNode): void {
+  const body = asArray(program.body);
+  if (!body) return;
   let i = 0;
-  while (i < program.body.length) {
-    if (!isIndependentTopLevel(program.body[i])) { i++; continue; }
+  while (i < body.length) {
+    if (!isIndependentTopLevel(body[i])) { i++; continue; }
     const start = i;
-    while (i < program.body.length && isIndependentTopLevel(program.body[i])) i++;
+    while (i < body.length && isIndependentTopLevel(body[i])) i++;
     if (i - start <= 1) continue;
-    const block = program.body.slice(start, i);
-    block.sort((a: any, b: any) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
-    program.body.splice(start, i - start, ...block);
+    const block = body.slice(start, i);
+    block.sort((a: unknown, b: unknown) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
+    body.splice(start, i - start, ...block);
   }
 }
 
-function isIndependentTopLevel(stmt: any): boolean {
+function isIndependentTopLevel(stmt: unknown): boolean {
+  if (!isRecord(stmt)) return false;
   // Bare QRL call: qrl(() => import(...), "name")
-  if (stmt?.type === 'ExpressionStatement') {
+  if (stmt.type === 'ExpressionStatement') {
     const expr = stmt.expression;
-    if (expr?.type === 'CallExpression' &&
-        expr.callee?.type === 'Identifier' &&
+    if (isRecord(expr) && expr.type === 'CallExpression' &&
+        isRecord(expr.callee) && expr.callee.type === 'Identifier' &&
         (expr.callee.name === 'qrl' || expr.callee.name === 'qrlDEV')) return true;
     // q_xxx.s(callback) expression statements
-    if (expr?.type === 'CallExpression' &&
-        expr.callee?.type === 'MemberExpression' &&
-        expr.callee.object?.type === 'Identifier' &&
-        expr.callee.object.name?.startsWith('q_') &&
-        expr.callee.property?.type === 'Identifier' &&
+    if (isRecord(expr) && expr.type === 'CallExpression' &&
+        isRecord(expr.callee) && expr.callee.type === 'MemberExpression' &&
+        isRecord(expr.callee.object) && expr.callee.object.type === 'Identifier' &&
+        asString(expr.callee.object.name)?.startsWith('q_') &&
+        isRecord(expr.callee.property) && expr.callee.property.type === 'Identifier' &&
         expr.callee.property.name === 's') return true;
   }
   // Export declarations: export const X = componentQrl(...)
-  if (stmt?.type === 'ExportNamedDeclaration') return true;
-  if (stmt?.type === 'ExportDefaultDeclaration') return true;
+  if (stmt.type === 'ExportNamedDeclaration') return true;
+  if (stmt.type === 'ExportDefaultDeclaration') return true;
   // `const NAME = <Literal>;` declarations have no observable side
   // effects and no dependencies, so the order vs. surrounding `export` /
   // `q_*.s(...)` statements is irrelevant for runtime semantics. SWC's
@@ -731,9 +794,11 @@ function isIndependentTopLevel(stmt: any): boolean {
   // order. Strictly gated: only Literal initialisers — anything more
   // complex (CallExpression, ObjectExpression, etc.) could have side
   // effects whose order matters.
-  if (stmt?.type === 'VariableDeclaration' && stmt.kind === 'const' &&
-      stmt.declarations?.length === 1 &&
-      stmt.declarations[0]?.init?.type === 'Literal') {
+  const decls = asArray(stmt.declarations);
+  const first = decls?.[0];
+  if (stmt.type === 'VariableDeclaration' && stmt.kind === 'const' &&
+      decls && decls.length === 1 &&
+      isRecord(first) && isRecord(first.init) && first.init.type === 'Literal') {
     return true;
   }
   return false;
@@ -742,10 +807,10 @@ function isIndependentTopLevel(stmt: any): boolean {
 /**
  * Normalize `void 0` → `undefined` in the AST.
  */
-function normalizeVoidZero(program: any): void {
-  walkAndReplace(program, (node: any) => {
-    if (node?.type === 'UnaryExpression' && node.operator === 'void' &&
-        node.argument?.type === 'Literal' && node.argument.value === 0) {
+function normalizeVoidZero(program: AstCompatNode): void {
+  walkAndReplace(program, (node: unknown) => {
+    if (isRecord(node) && node.type === 'UnaryExpression' && node.operator === 'void' &&
+        isRecord(node.argument) && node.argument.type === 'Literal' && node.argument.value === 0) {
       return { type: 'Identifier', name: 'undefined' };
     }
     return node;
@@ -755,10 +820,10 @@ function normalizeVoidZero(program: any): void {
 /**
  * Normalize `!0` → `true`, `!1` → `false` in the AST.
  */
-function normalizeBooleanLiterals(program: any): void {
-  walkAndReplace(program, (node: any) => {
-    if (node?.type === 'UnaryExpression' && node.operator === '!' &&
-        node.argument?.type === 'Literal' && typeof node.argument.value === 'number') {
+function normalizeBooleanLiterals(program: AstCompatNode): void {
+  walkAndReplace(program, (node: unknown) => {
+    if (isRecord(node) && node.type === 'UnaryExpression' && node.operator === '!' &&
+        isRecord(node.argument) && node.argument.type === 'Literal' && typeof node.argument.value === 'number') {
       if (node.argument.value === 0) return { type: 'Literal', value: true };
       if (node.argument.value === 1) return { type: 'Literal', value: false };
     }
@@ -769,12 +834,13 @@ function normalizeBooleanLiterals(program: any): void {
 /**
  * Strip "use strict" directives — cosmetic difference between strict/sloppy mode output.
  */
-function stripDirectives(program: any): void {
-  if (!program?.body) return;
-  program.body = program.body.filter((stmt: any) => {
-    if (stmt.type === 'ExpressionStatement' && stmt.directive) return false;
-    if (stmt.type === 'ExpressionStatement' &&
-        stmt.expression?.type === 'Literal' &&
+function stripDirectives(program: AstCompatNode): void {
+  const body = asArray(program.body);
+  if (!body) return;
+  program.body = body.filter((stmt: unknown) => {
+    if (isRecord(stmt) && stmt.type === 'ExpressionStatement' && stmt.directive) return false;
+    if (isRecord(stmt) && stmt.type === 'ExpressionStatement' &&
+        isRecord(stmt.expression) && stmt.expression.type === 'Literal' &&
         stmt.expression.value === 'use strict') return false;
     return true;
   });
@@ -785,12 +851,13 @@ function stripDirectives(program: any): void {
  * This is a cosmetic difference: both forms are semantically identical for
  * single-return-statement arrow functions.
  */
-function normalizeArrowBodies(node: any): void {
-  if (!node || typeof node !== 'object') return;
-  if (Array.isArray(node)) {
-    for (const item of node) normalizeArrowBodies(item);
+function normalizeArrowBodies(node: unknown): void {
+  const arr = asArray(node);
+  if (arr) {
+    for (const item of arr) normalizeArrowBodies(item);
     return;
   }
+  if (!isRecord(node)) return;
   // Recurse first (bottom-up)
   for (const key of Object.keys(node)) {
     if (key === 'type') continue;
@@ -798,14 +865,15 @@ function normalizeArrowBodies(node: any): void {
   }
   // ArrowFunctionExpression with block body containing single return statement
   if (node.type === 'ArrowFunctionExpression' &&
-      node.body?.type === 'BlockStatement' &&
-      Array.isArray(node.body.body) &&
-      node.body.body.length === 1 &&
-      node.body.body[0]?.type === 'ReturnStatement' &&
-      node.body.body[0].argument != null) {
-    // Convert to expression body
-    node.body = node.body.body[0].argument;
-    node.expression = true;
+      isRecord(node.body) && node.body.type === 'BlockStatement') {
+    const inner = asArray(node.body.body);
+    const first = inner?.[0];
+    if (inner && inner.length === 1 &&
+        isRecord(first) && first.type === 'ReturnStatement' && first.argument != null) {
+      // Convert to expression body
+      node.body = first.argument;
+      node.expression = true;
+    }
   }
 }
 
@@ -819,8 +887,9 @@ function normalizeArrowBodies(node: any): void {
  *
  * Also renames all references (_hf0 -> _hf_new_0, etc.) throughout the AST.
  */
-function renumberHoistedFunctions(program: any): void {
-  if (!program?.body || !Array.isArray(program.body)) return;
+function renumberHoistedFunctions(program: AstCompatNode): void {
+  const body = asArray(program.body);
+  if (!body) return;
 
   // Collect _hfN declarations: { index, initJson, stmtIdx, isStr }
   const hfDecls: Array<{
@@ -831,12 +900,13 @@ function renumberHoistedFunctions(program: any): void {
     oldIndex: number;
   }> = [];
 
-  for (let i = 0; i < program.body.length; i++) {
-    const stmt = program.body[i];
-    if (stmt?.type !== 'VariableDeclaration') continue;
-    for (const decl of stmt.declarations || []) {
-      if (decl.id?.type !== 'Identifier') continue;
-      const name = decl.id.name;
+  for (let i = 0; i < body.length; i++) {
+    const stmt = body[i];
+    if (!isRecord(stmt) || stmt.type !== 'VariableDeclaration') continue;
+    for (const decl of asArray(stmt.declarations) ?? []) {
+      if (!isRecord(decl) || !isRecord(decl.id) || decl.id.type !== 'Identifier') continue;
+      const name = asString(decl.id.name);
+      if (name === undefined) continue;
       const match = /^_hf(\d+)(_str)?$/.exec(name);
       if (!match) continue;
       hfDecls.push({
@@ -882,9 +952,10 @@ function renumberHoistedFunctions(program: any): void {
   if (isIdentity) return;
 
   // Rename all _hfN identifiers in the entire AST
-  function renameHf(node: any): void {
-    if (!node || typeof node !== 'object') return;
-    if (Array.isArray(node)) { for (const item of node) renameHf(item); return; }
+  function renameHf(node: unknown): void {
+    const arr = asArray(node);
+    if (arr) { for (const item of arr) renameHf(item); return; }
+    if (!isRecord(node)) return;
     if (node.type === 'Identifier' && typeof node.name === 'string') {
       const m = /^_hf(\d+)(_str)?$/.exec(node.name);
       if (m) {
@@ -913,12 +984,13 @@ function renumberHoistedFunctions(program: any): void {
  * This normalizes a cosmetic difference: some generators wrap loop bodies
  * in blocks while others don't when there's only one statement.
  */
-function unwrapSingleStatementBlocks(node: any): void {
-  if (!node || typeof node !== 'object') return;
-  if (Array.isArray(node)) {
-    for (const item of node) unwrapSingleStatementBlocks(item);
+function unwrapSingleStatementBlocks(node: unknown): void {
+  const arr = asArray(node);
+  if (arr) {
+    for (const item of arr) unwrapSingleStatementBlocks(item);
     return;
   }
+  if (!isRecord(node)) return;
 
   // Recursively process all children first (bottom-up)
   for (const key of Object.keys(node)) {
@@ -929,13 +1001,15 @@ function unwrapSingleStatementBlocks(node: any): void {
   // Unwrap single-statement blocks in loop/if bodies
   const bodyProps = ['body', 'consequent', 'alternate'];
   for (const prop of bodyProps) {
-    if (node[prop]?.type === 'BlockStatement' &&
-        node[prop].body?.length === 1 &&
+    const child = node[prop];
+    const childBody = isRecord(child) ? asArray(child.body) : undefined;
+    if (isRecord(child) && child.type === 'BlockStatement' &&
+        childBody && childBody.length === 1 &&
         // Only unwrap for for/while/do-while/if, not function bodies
         (node.type === 'ForStatement' || node.type === 'ForInStatement' ||
          node.type === 'ForOfStatement' || node.type === 'WhileStatement' ||
          node.type === 'DoWhileStatement' || node.type === 'IfStatement')) {
-      node[prop] = node[prop].body[0];
+      node[prop] = childBody[0];
     }
   }
 }
@@ -950,49 +1024,60 @@ function unwrapSingleStatementBlocks(node: any): void {
  * 1. Converting `var X = ...IIFE(X || {})` to `(function(X){...})({})`
  * 2. Replacing `X || {}` argument with `{}`
  */
-function normalizeEnumIIFE(program: any): void {
-  if (!program?.body || !Array.isArray(program.body)) return;
+function normalizeEnumIIFE(program: AstCompatNode): void {
+  const body = asArray(program.body);
+  if (!body) return;
 
-  for (let i = 0; i < program.body.length; i++) {
-    const stmt = program.body[i];
+  for (let i = 0; i < body.length; i++) {
+    const stmt = body[i];
+    if (!isRecord(stmt)) continue;
 
     // Unwrap `export var/let X = ...` to get the inner VariableDeclaration
-    const varDecl = stmt.type === 'ExportNamedDeclaration' && stmt.declaration?.type === 'VariableDeclaration'
-      ? stmt.declaration
-      : stmt.type === 'VariableDeclaration' ? stmt : null;
+    let varDecl: Record<string, unknown> | null = null;
+    if (stmt.type === 'ExportNamedDeclaration' && isRecord(stmt.declaration) &&
+        stmt.declaration.type === 'VariableDeclaration') {
+      varDecl = stmt.declaration;
+    } else if (stmt.type === 'VariableDeclaration') {
+      varDecl = stmt;
+    }
 
-    if (varDecl && varDecl.declarations?.length === 1) {
-      const decl = varDecl.declarations[0];
+    const varDecls = varDecl ? asArray(varDecl.declarations) : undefined;
+    if (varDecl && varDecls && varDecls.length === 1) {
+      const decl = varDecls[0];
+      if (!isRecord(decl)) continue;
       const init = decl.init;
-      if (!init) continue;
+      if (!isRecord(init)) continue;
 
       // The init might be the CallExpression directly, or wrapped in parentheses
-      let callExpr = init;
-      if (callExpr.type === 'ParenthesizedExpression') callExpr = callExpr.expression;
+      let callExpr: unknown = init;
+      if (isRecord(callExpr) && callExpr.type === 'ParenthesizedExpression') callExpr = callExpr.expression;
 
-      if (callExpr.type !== 'CallExpression') continue;
+      if (!isRecord(callExpr) || callExpr.type !== 'CallExpression') continue;
 
       // The callee should be a FunctionExpression
-      let callee = callExpr.callee;
-      if (callee.type === 'ParenthesizedExpression') callee = callee.expression;
-      if (callee.type !== 'FunctionExpression') continue;
+      let callee: unknown = callExpr.callee;
+      if (isRecord(callee) && callee.type === 'ParenthesizedExpression') callee = callee.expression;
+      if (!isRecord(callee) || callee.type !== 'FunctionExpression') continue;
 
       // Check it has the enum pattern: single param, body ends with return X
-      if (!callee.params || callee.params.length !== 1) continue;
-      const paramName = callee.params[0]?.name || callee.params[0]?.id?.name;
-      const declName = decl.id?.name;
+      const params = asArray(callee.params);
+      if (!params || params.length !== 1) continue;
+      const p0 = params[0];
+      const paramName = (isRecord(p0) && asString(p0.name)) ||
+                        (isRecord(p0) && isRecord(p0.id) && asString(p0.id.name)) || undefined;
+      const declName = isRecord(decl.id) ? asString(decl.id.name) : undefined;
       if (!paramName || !declName || paramName !== declName) continue;
 
       // Convert to ExpressionStatement with IIFE call
       // Replace the argument (X || {}) with {}
-      const args = callExpr.arguments || [];
+      const args = asArray(callExpr.arguments) ?? [];
       if (args.length === 1) {
         // Replace whatever argument with empty object
         args[0] = { type: 'ObjectExpression', properties: [] };
       }
 
       // Wrap in ExpressionStatement
-      program.body[i] = {
+      body[i] = {
         type: 'ExpressionStatement',
         expression: {
           type: 'CallExpression',
@@ -1020,29 +1105,31 @@ function normalizeEnumIIFE(program: any): void {
  * _jsxSplit is used for components with spread props, _jsxSorted for everything else.
  * The distinction is a runtime optimization hint, not semantic.
  */
-function normalizeJsxCalleeNames(node: any): void {
-  if (!node || typeof node !== 'object') return;
-  if (Array.isArray(node)) {
-    for (const item of node) normalizeJsxCalleeNames(item);
+function normalizeJsxCalleeNames(node: unknown): void {
+  const arr = asArray(node);
+  if (arr) {
+    for (const item of arr) normalizeJsxCalleeNames(item);
     return;
   }
+  if (!isRecord(node)) return;
   for (const key of Object.keys(node)) {
     if (key === 'type') continue;
     normalizeJsxCalleeNames(node[key]);
   }
   if (node.type === 'CallExpression' &&
-      node.callee?.type === 'Identifier' &&
+      isRecord(node.callee) && node.callee.type === 'Identifier' &&
       node.callee.name === '_jsxSplit') {
     node.callee.name = '_jsxSorted';
   }
 }
 
-function mergeJsxSplitProps(node: any): void {
-  if (!node || typeof node !== 'object') return;
-  if (Array.isArray(node)) {
-    for (const item of node) mergeJsxSplitProps(item);
+function mergeJsxSplitProps(node: unknown): void {
+  const nodeArr = asArray(node);
+  if (nodeArr) {
+    for (const item of nodeArr) mergeJsxSplitProps(item);
     return;
   }
+  if (!isRecord(node)) return;
   // Recurse first (bottom-up)
   for (const key of Object.keys(node)) {
     if (key === 'type') continue;
@@ -1054,10 +1141,10 @@ function mergeJsxSplitProps(node: any): void {
   // The split between varProps and constProps is an optimization hint, not semantic.
   if (node.type !== 'CallExpression') return;
   const callee = node.callee;
-  if (!callee || callee.type !== 'Identifier' ||
+  if (!isRecord(callee) || callee.type !== 'Identifier' ||
       (callee.name !== '_jsxSplit' && callee.name !== '_jsxSorted')) return;
 
-  const args = node.arguments;
+  const args = asArray(node.arguments);
   if (!args || args.length < 3) return;
 
   const varProps = args[1]; // arg2: varProps
@@ -1065,23 +1152,25 @@ function mergeJsxSplitProps(node: any): void {
 
   // Skip if constProps is already null/Literal(null)
   if (!constProps) return;
-  if (constProps.type === 'Literal' && constProps.value === null) return;
+  if (isRecord(constProps) && constProps.type === 'Literal' && constProps.value === null) return;
 
   // Merge constProps into varProps
-  const varIsNull = !varProps || (varProps.type === 'Literal' && varProps.value === null);
+  const varIsNull = !varProps || (isRecord(varProps) && varProps.type === 'Literal' && varProps.value === null);
 
-  if (varIsNull && constProps.type === 'ObjectExpression') {
+  if (varIsNull && isRecord(constProps) && constProps.type === 'ObjectExpression') {
     // varProps is null, constProps has content: move constProps to varProps
     args[1] = constProps;
     args[2] = { type: 'Literal', value: null };
-  } else if (varProps.type === 'ObjectExpression' && constProps.type === 'ObjectExpression') {
+  } else if (isRecord(varProps) && varProps.type === 'ObjectExpression' &&
+             isRecord(constProps) && constProps.type === 'ObjectExpression') {
     // Both are object expressions: merge constProps properties into varProps
-    varProps.properties = [...(varProps.properties || []), ...(constProps.properties || [])];
+    varProps.properties = [...(asArray(varProps.properties) ?? []), ...(asArray(constProps.properties) ?? [])];
     args[2] = { type: 'Literal', value: null };
-  } else if (varProps.type === 'ObjectExpression' && constProps.type === 'CallExpression') {
+  } else if (isRecord(varProps) && varProps.type === 'ObjectExpression' &&
+             isRecord(constProps) && constProps.type === 'CallExpression') {
     // constProps is _getConstProps(...) -- add as spread to varProps
     varProps.properties = [
-      ...(varProps.properties || []),
+      ...(asArray(varProps.properties) ?? []),
       { type: 'SpreadElement', argument: constProps },
     ];
     args[2] = { type: 'Literal', value: null };
@@ -1097,23 +1186,25 @@ function mergeJsxSplitProps(node: any): void {
  *
  * Also handles _wrapProp(obj) (single arg) -> obj (identity).
  */
-function normalizeWrapProp(node: any): void {
-  if (!node || typeof node !== 'object') return;
-  if (Array.isArray(node)) {
-    for (let i = 0; i < node.length; i++) {
-      node[i] = unwrapWrapProp(node[i]);
-      normalizeWrapProp(node[i]);
+function normalizeWrapProp(node: unknown): void {
+  const arr = asArray(node);
+  if (arr) {
+    for (let i = 0; i < arr.length; i++) {
+      arr[i] = unwrapWrapProp(arr[i]);
+      normalizeWrapProp(arr[i]);
     }
     return;
   }
+  if (!isRecord(node)) return;
   for (const key of Object.keys(node)) {
     if (key === 'type') continue;
     const val = node[key];
     if (val && typeof val === 'object') {
-      if (Array.isArray(val)) {
-        for (let i = 0; i < val.length; i++) {
-          val[i] = unwrapWrapProp(val[i]);
-          normalizeWrapProp(val[i]);
+      const valArr = asArray(val);
+      if (valArr) {
+        for (let i = 0; i < valArr.length; i++) {
+          valArr[i] = unwrapWrapProp(valArr[i]);
+          normalizeWrapProp(valArr[i]);
         }
       } else {
         node[key] = unwrapWrapProp(val);
@@ -1123,16 +1214,17 @@ function normalizeWrapProp(node: any): void {
   }
 }
 
-function unwrapWrapProp(node: any): any {
-  if (!node || node.type !== 'CallExpression') return node;
+function unwrapWrapProp(node: unknown): unknown {
+  if (!isRecord(node) || node.type !== 'CallExpression') return node;
   const callee = node.callee;
-  if (!callee || callee.type !== 'Identifier' || callee.name !== '_wrapProp') return node;
-  const args = node.arguments;
+  if (!isRecord(callee) || callee.type !== 'Identifier' || callee.name !== '_wrapProp') return node;
+  const args = asArray(node.arguments);
   if (!args) return node;
 
-  if (args.length === 2 && args[1]?.type === 'Literal' && typeof args[1].value === 'string') {
+  const a1 = args[1];
+  if (args.length === 2 && isRecord(a1) && a1.type === 'Literal' && typeof a1.value === 'string') {
     // _wrapProp(obj, "prop") -> obj.prop or obj["prop"] for non-identifier keys
-    const propName = args[1].value;
+    const propName = a1.value;
     const isValidId = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(propName);
     return {
       type: 'MemberExpression',
@@ -1173,20 +1265,23 @@ function unwrapWrapProp(node: any): any {
  *
  * Works for any _hf body shape, not just simple member chains.
  */
-function inlineFnSignalSimple(program: any): void {
-  if (!program?.body || !Array.isArray(program.body)) return;
+function inlineFnSignalSimple(program: AstCompatNode): void {
+  const body = asArray(program.body);
+  if (!body) return;
 
   // Collect all _hf function declarations: name -> { params, body }
-  const hfDecls = new Map<string, { paramNames: string[]; body: any }>();
-  for (const stmt of program.body) {
-    if (stmt?.type !== 'VariableDeclaration') continue;
-    for (const decl of stmt.declarations || []) {
-      if (!decl.id || decl.id.type !== 'Identifier') continue;
-      const name = decl.id.name;
-      if (!/^_hf\d+$/.test(name) || !decl.init) continue;
+  const hfDecls = new Map<string, { paramNames: string[]; body: unknown }>();
+  for (const stmt of body) {
+    if (!isRecord(stmt) || stmt.type !== 'VariableDeclaration') continue;
+    for (const decl of asArray(stmt.declarations) ?? []) {
+      if (!isRecord(decl) || !isRecord(decl.id) || decl.id.type !== 'Identifier') continue;
+      const name = asString(decl.id.name);
+      if (name === undefined || !/^_hf\d+$/.test(name) || !isRecord(decl.init)) continue;
       const fn = decl.init;
       if (fn.type !== 'ArrowFunctionExpression') continue;
-      const paramNames = (fn.params || []).map((p: any) => p.name).filter(Boolean);
+      const paramNames = (asArray(fn.params) ?? [])
+        .map((p: unknown) => (isRecord(p) ? asString(p.name) : undefined))
+        .filter((n): n is string => Boolean(n));
       if (paramNames.length === 0) continue;
       hfDecls.set(name, { paramNames, body: fn.body });
     }
@@ -1195,10 +1290,11 @@ function inlineFnSignalSimple(program: any): void {
   if (hfDecls.size === 0) return;
 
   // Deep clone a node
-  function deepClone(node: any): any {
-    if (node === null || typeof node !== 'object') return node;
-    if (Array.isArray(node)) return node.map(deepClone);
-    const clone: any = {};
+  function deepClone(node: unknown): unknown {
+    const arr = asArray(node);
+    if (arr) return arr.map(deepClone);
+    if (!isRecord(node)) return node;
+    const clone: Record<string, unknown> = {};
     for (const key of Object.keys(node)) {
       clone[key] = deepClone(node[key]);
     }
@@ -1206,13 +1302,17 @@ function inlineFnSignalSimple(program: any): void {
   }
 
   // Replace all Identifier references to param names with the corresponding arg
-  function substituteParams(node: any, paramMap: Map<string, any>): any {
-    if (!node || typeof node !== 'object') return node;
-    if (Array.isArray(node)) return node.map(n => substituteParams(n, paramMap));
-    if (node.type === 'Identifier' && paramMap.has(node.name)) {
-      return deepClone(paramMap.get(node.name));
+  function substituteParams(node: unknown, paramMap: Map<string, unknown>): unknown {
+    const arr = asArray(node);
+    if (arr) return arr.map(n => substituteParams(n, paramMap));
+    if (!isRecord(node)) return node;
+    if (node.type === 'Identifier') {
+      const name = asString(node.name);
+      if (name !== undefined && paramMap.has(name)) {
+        return deepClone(paramMap.get(name));
+      }
     }
-    const result: any = {};
+    const result: Record<string, unknown> = {};
     for (const key of Object.keys(node)) {
       result[key] = substituteParams(node[key], paramMap);
     }
@@ -1220,12 +1320,13 @@ function inlineFnSignalSimple(program: any): void {
   }
 
   // Replace _fnSignal calls inline
-  function processNode(node: any): any {
-    if (!node || typeof node !== 'object') return node;
-    if (Array.isArray(node)) {
-      for (let i = 0; i < node.length; i++) { node[i] = processNode(node[i]); }
-      return node;
+  function processNode(node: unknown): unknown {
+    const arr = asArray(node);
+    if (arr) {
+      for (let i = 0; i < arr.length; i++) { arr[i] = processNode(arr[i]); }
+      return arr;
     }
+    if (!isRecord(node)) return node;
 
     // Process children first (bottom-up)
     for (const key of Object.keys(node)) {
@@ -1238,19 +1339,22 @@ function inlineFnSignalSimple(program: any): void {
 
     // Match _fnSignal(hfRef, [args...], strRef)
     if (node.type !== 'CallExpression') return node;
-    if (node.callee?.type !== 'Identifier' || node.callee.name !== '_fnSignal') return node;
-    if (!node.arguments || node.arguments.length < 2) return node;
+    if (!isRecord(node.callee) || node.callee.type !== 'Identifier' || node.callee.name !== '_fnSignal') return node;
+    const nodeArgs = asArray(node.arguments);
+    if (!nodeArgs || nodeArgs.length < 2) return node;
 
-    const hfRef = node.arguments[0];
-    const argsArray = node.arguments[1];
-    if (hfRef?.type !== 'Identifier' || !hfDecls.has(hfRef.name)) return node;
-    if (argsArray?.type !== 'ArrayExpression') return node;
+    const hfRef = nodeArgs[0];
+    const argsArray = nodeArgs[1];
+    if (!isRecord(hfRef) || hfRef.type !== 'Identifier') return node;
+    const hfRefName = asString(hfRef.name);
+    if (hfRefName === undefined || !hfDecls.has(hfRefName)) return node;
+    if (!isRecord(argsArray) || argsArray.type !== 'ArrayExpression') return node;
 
-    const hfInfo = hfDecls.get(hfRef.name)!;
-    const args = argsArray.elements || [];
+    const hfInfo = hfDecls.get(hfRefName)!;
+    const args = asArray(argsArray.elements) ?? [];
 
     // Build param -> arg mapping
-    const paramMap = new Map<string, any>();
+    const paramMap = new Map<string, unknown>();
     for (let i = 0; i < hfInfo.paramNames.length && i < args.length; i++) {
       paramMap.set(hfInfo.paramNames[i], args[i]);
     }
@@ -1271,24 +1375,25 @@ function inlineFnSignalSimple(program: any): void {
  * children and the other doesn't. Since this is a reactivity optimization
  * difference (not a structural one), normalize flag 3 -> 1.
  */
-function normalizeJsxFlags(node: any): void {
-  if (!node || typeof node !== 'object') return;
-  if (Array.isArray(node)) {
-    for (const item of node) normalizeJsxFlags(item);
+function normalizeJsxFlags(node: unknown): void {
+  const arr = asArray(node);
+  if (arr) {
+    for (const item of arr) normalizeJsxFlags(item);
     return;
   }
+  if (!isRecord(node)) return;
   for (const key of Object.keys(node)) {
     if (key === 'type') continue;
     normalizeJsxFlags(node[key]);
   }
   if (node.type !== 'CallExpression') return;
   const callee = node.callee;
-  if (!callee || callee.type !== 'Identifier' ||
+  if (!isRecord(callee) || callee.type !== 'Identifier' ||
       (callee.name !== '_jsxSorted' && callee.name !== '_jsxSplit')) return;
-  const args = node.arguments;
+  const args = asArray(node.arguments);
   if (!args || args.length < 5) return;
   const flagsArg = args[4];
-  if (flagsArg?.type === 'Literal' && typeof flagsArg.value === 'number') {
+  if (isRecord(flagsArg) && flagsArg.type === 'Literal' && typeof flagsArg.value === 'number') {
     // Normalize all flags to 0. The flags encode children type, mutability,
     // and event handler presence -- these are optimization hints that differ
     // between SWC and our optimizer. They don't affect correctness.
@@ -1306,20 +1411,23 @@ function normalizeJsxFlags(node: any): void {
  * different values). Since they are not semantically necessary for
  * correctness comparison, stripping them makes comparison less brittle.
  */
-function stripQpProperties(node: any): void {
-  if (!node || typeof node !== 'object') return;
-  if (Array.isArray(node)) {
-    for (const item of node) stripQpProperties(item);
+function stripQpProperties(node: unknown): void {
+  const arr = asArray(node);
+  if (arr) {
+    for (const item of arr) stripQpProperties(item);
     return;
   }
+  if (!isRecord(node)) return;
   for (const key of Object.keys(node)) {
     if (key === 'type') continue;
     stripQpProperties(node[key]);
   }
   // Only strip q:p/q:ps from ObjectExpression properties
-  if (node.type === 'ObjectExpression' && Array.isArray(node.properties)) {
-    node.properties = node.properties.filter((p: any) => {
-      const keyName = p.key?.name || p.key?.value;
+  const props = asArray(node.properties);
+  if (node.type === 'ObjectExpression' && props) {
+    node.properties = props.filter((p: unknown) => {
+      if (!isRecord(p) || !isRecord(p.key)) return true;
+      const keyName = p.key.name || p.key.value;
       return keyName !== 'q:p' && keyName !== 'q:ps';
     });
   }
@@ -1348,23 +1456,26 @@ function stripQpProperties(node: any): void {
  * Also handles multi-declarator patterns:
  *   `const a = _captures[0], b = _captures[1];`
  */
-function canonicalizeCaptureBindings(program: any): void {
-  if (!program?.body || !Array.isArray(program.body)) return;
+function canonicalizeCaptureBindings(program: AstCompatNode): void {
+  const programBody = asArray(program.body);
+  if (!programBody) return;
 
   // Walk all function/arrow bodies in the program
-  function processBody(body: any[]): void {
-    if (!Array.isArray(body)) return;
+  function processBody(bodyInput: unknown): void {
+    const body = asArray(bodyInput);
+    if (!body) return;
 
     // Collect capture bindings: { originalName -> canonicalName }
     const renameMap = new Map<string, string>();
     let capIdx = 0;
 
     for (const stmt of body) {
-      if (stmt?.type !== 'VariableDeclaration') continue;
-      for (const decl of stmt.declarations || []) {
-        if (!decl.init || !isCapturesAccess(decl.init)) continue;
-        if (decl.id?.type === 'Identifier') {
-          const origName = decl.id.name;
+      if (!isRecord(stmt) || stmt.type !== 'VariableDeclaration') continue;
+      for (const decl of asArray(stmt.declarations) ?? []) {
+        if (!isRecord(decl) || !isRecord(decl.init) || !isCapturesAccess(decl.init)) continue;
+        if (isRecord(decl.id) && decl.id.type === 'Identifier') {
+          const origName = asString(decl.id.name);
+          if (origName === undefined) continue;
           const canonName = `_cap${capIdx++}`;
           if (origName !== canonName) {
             renameMap.set(origName, canonName);
@@ -1376,11 +1487,15 @@ function canonicalizeCaptureBindings(program: any): void {
     if (renameMap.size === 0) return;
 
     // Rename all identifier references in the body
-    function renameIdents(node: any): void {
-      if (!node || typeof node !== 'object') return;
-      if (Array.isArray(node)) { for (const item of node) renameIdents(item); return; }
-      if (node.type === 'Identifier' && renameMap.has(node.name)) {
-        node.name = renameMap.get(node.name)!;
+    function renameIdents(node: unknown): void {
+      const arr = asArray(node);
+      if (arr) { for (const item of arr) renameIdents(item); return; }
+      if (!isRecord(node)) return;
+      if (node.type === 'Identifier') {
+        const name = asString(node.name);
+        if (name !== undefined && renameMap.has(name)) {
+          node.name = renameMap.get(name)!;
+        }
       }
       for (const key of Object.keys(node)) {
         if (key === 'type') continue;
@@ -1392,24 +1507,25 @@ function canonicalizeCaptureBindings(program: any): void {
     renameIdents(body);
   }
 
-  function isCapturesAccess(node: any): boolean {
+  function isCapturesAccess(node: unknown): boolean {
     // Match _captures[N]
-    if (node?.type === 'MemberExpression' && node.computed &&
-        node.object?.type === 'Identifier' && node.object.name === '_captures' &&
-        node.property?.type === 'Literal' && typeof node.property.value === 'number') {
+    if (isRecord(node) && node.type === 'MemberExpression' && node.computed &&
+        isRecord(node.object) && node.object.type === 'Identifier' && node.object.name === '_captures' &&
+        isRecord(node.property) && node.property.type === 'Literal' && typeof node.property.value === 'number') {
       return true;
     }
     return false;
   }
 
   // Process all function bodies in the AST
-  function visitNode(node: any): void {
-    if (!node || typeof node !== 'object') return;
-    if (Array.isArray(node)) { for (const item of node) visitNode(item); return; }
+  function visitNode(node: unknown): void {
+    const arr = asArray(node);
+    if (arr) { for (const item of arr) visitNode(item); return; }
+    if (!isRecord(node)) return;
 
     // Process function bodies
     if ((node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression' ||
-         node.type === 'FunctionDeclaration') && node.body?.type === 'BlockStatement') {
+         node.type === 'FunctionDeclaration') && isRecord(node.body) && node.body.type === 'BlockStatement') {
       processBody(node.body.body);
     }
 
@@ -1421,31 +1537,33 @@ function canonicalizeCaptureBindings(program: any): void {
 
   visitNode(program);
   // Also process top-level (module body) for inline strategy
-  processBody(program.body);
+  processBody(programBody);
 }
 
-function mergeGetVarConstProps(node: any): void {
-  if (!node || typeof node !== 'object') return;
-  if (Array.isArray(node)) {
-    for (const item of node) mergeGetVarConstProps(item);
+function mergeGetVarConstProps(node: unknown): void {
+  const nodeArr = asArray(node);
+  if (nodeArr) {
+    for (const item of nodeArr) mergeGetVarConstProps(item);
     return;
   }
+  if (!isRecord(node)) return;
   for (const key of Object.keys(node)) {
     if (key === 'type') continue;
     mergeGetVarConstProps(node[key]);
   }
-  if (node.type !== 'ObjectExpression' || !Array.isArray(node.properties)) return;
+  const props = asArray(node.properties);
+  if (node.type !== 'ObjectExpression' || !props) return;
 
   // Find pairs of _getVarProps(x) and _getConstProps(x) with the same arg
-  const props = node.properties;
   const consumed = new Set<number>();
 
   for (let i = 0; i < props.length; i++) {
     if (consumed.has(i)) continue;
     const a = props[i];
-    if (a.type !== 'SpreadElement') continue;
+    if (!isRecord(a) || a.type !== 'SpreadElement') continue;
     const aCall = a.argument;
-    if (aCall?.type !== 'CallExpression' || aCall.callee?.type !== 'Identifier') continue;
+    if (!isRecord(aCall) || aCall.type !== 'CallExpression' ||
+        !isRecord(aCall.callee) || aCall.callee.type !== 'Identifier') continue;
     const aName = aCall.callee.name;
     if (aName !== '_getVarProps' && aName !== '_getConstProps') continue;
 
@@ -1455,9 +1573,10 @@ function mergeGetVarConstProps(node: any): void {
     for (let j = 0; j < props.length; j++) {
       if (j === i || consumed.has(j)) continue;
       const b = props[j];
-      if (b.type !== 'SpreadElement') continue;
+      if (!isRecord(b) || b.type !== 'SpreadElement') continue;
       const bCall = b.argument;
-      if (bCall?.type !== 'CallExpression' || bCall.callee?.type !== 'Identifier') continue;
+      if (!isRecord(bCall) || bCall.type !== 'CallExpression' ||
+          !isRecord(bCall.callee) || bCall.callee.type !== 'Identifier') continue;
       if (bCall.callee.name !== otherName) continue;
 
       // Check same argument (simple structural comparison)
@@ -1466,14 +1585,14 @@ function mergeGetVarConstProps(node: any): void {
       if (aArg !== bArg) continue;
 
       // Replace the first one with ...arg, remove the second
-      a.argument = aCall.arguments?.[0] || aCall;
+      a.argument = asArray(aCall.arguments)?.[0] || aCall;
       consumed.add(j);
       break;
     }
   }
 
   if (consumed.size > 0) {
-    node.properties = props.filter((_: any, i: number) => !consumed.has(i));
+    node.properties = props.filter((_: unknown, i: number) => !consumed.has(i));
   }
 }
 
@@ -1482,36 +1601,40 @@ function mergeGetVarConstProps(node: any): void {
  * These byte offsets differ between SWC and our optimizer due to different
  * position tracking. Replace them with 0 to make comparison position-insensitive.
  */
-function normalizeDevModePositions(node: any): void {
-  if (!node || typeof node !== 'object') return;
-  if (Array.isArray(node)) {
-    for (const item of node) normalizeDevModePositions(item);
+function normalizeDevModePositions(node: unknown): void {
+  const arr = asArray(node);
+  if (arr) {
+    for (const item of arr) normalizeDevModePositions(item);
     return;
   }
+  if (!isRecord(node)) return;
   for (const key of Object.keys(node)) {
     if (key === 'type') continue;
     normalizeDevModePositions(node[key]);
   }
   // Match ObjectExpression with lo/hi properties (dev mode info object)
-  if (node.type === 'ObjectExpression' && Array.isArray(node.properties)) {
-    const hasLo = node.properties.some((p: any) => p.key?.name === 'lo' || p.key?.value === 'lo');
-    const hasHi = node.properties.some((p: any) => p.key?.name === 'hi' || p.key?.value === 'hi');
-    const hasFile = node.properties.some((p: any) => p.key?.name === 'file' || p.key?.value === 'file');
+  const props = asArray(node.properties);
+  if (node.type === 'ObjectExpression' && props) {
+    const hasLo = props.some((p: unknown) => isRecord(p) && isRecord(p.key) && (p.key.name === 'lo' || p.key.value === 'lo'));
+    const hasHi = props.some((p: unknown) => isRecord(p) && isRecord(p.key) && (p.key.name === 'hi' || p.key.value === 'hi'));
+    const hasFile = props.some((p: unknown) => isRecord(p) && isRecord(p.key) && (p.key.name === 'file' || p.key.value === 'file'));
     if (hasLo && hasHi && hasFile) {
-      for (const prop of node.properties) {
-        const keyName = prop.key?.name || prop.key?.value;
+      for (const prop of props) {
+        if (!isRecord(prop) || !isRecord(prop.key)) continue;
+        const keyName = prop.key.name || prop.key.value;
         if (keyName === 'lo' || keyName === 'hi') {
           prop.value = { type: 'Literal', value: 0 };
         }
       }
     }
     // Also normalize lineNumber/columnNumber in JSX dev source info objects
-    const hasLine = node.properties.some((p: any) => (p.key?.name || p.key?.value) === 'lineNumber');
-    const hasCol = node.properties.some((p: any) => (p.key?.name || p.key?.value) === 'columnNumber');
-    const hasFileName = node.properties.some((p: any) => (p.key?.name || p.key?.value) === 'fileName');
+    const hasLine = props.some((p: unknown) => isRecord(p) && isRecord(p.key) && (p.key.name || p.key.value) === 'lineNumber');
+    const hasCol = props.some((p: unknown) => isRecord(p) && isRecord(p.key) && (p.key.name || p.key.value) === 'columnNumber');
+    const hasFileName = props.some((p: unknown) => isRecord(p) && isRecord(p.key) && (p.key.name || p.key.value) === 'fileName');
     if (hasLine && hasCol && hasFileName) {
-      for (const prop of node.properties) {
-        const keyName = prop.key?.name || prop.key?.value;
+      for (const prop of props) {
+        if (!isRecord(prop) || !isRecord(prop.key)) continue;
+        const keyName = prop.key.name || prop.key.value;
         if (keyName === 'lineNumber' || keyName === 'columnNumber') {
           prop.value = { type: 'Literal', value: 0 };
         }
@@ -1534,12 +1657,13 @@ function normalizeDevModePositions(node: any): void {
  * distinction (one optimizer may use _noopQrlDEV for server segments
  * while another uses qrlDEV).
  */
-function normalizeDevQrlCalls(node: any): void {
-  if (!node || typeof node !== 'object') return;
-  if (Array.isArray(node)) {
-    for (const item of node) normalizeDevQrlCalls(item);
+function normalizeDevQrlCalls(node: unknown): void {
+  const arr = asArray(node);
+  if (arr) {
+    for (const item of arr) normalizeDevQrlCalls(item);
     return;
   }
+  if (!isRecord(node)) return;
   // Recurse first (bottom-up)
   for (const key of Object.keys(node)) {
     if (key === 'type') continue;
@@ -1549,20 +1673,24 @@ function normalizeDevQrlCalls(node: any): void {
   // Also rename import specifiers: import { qrlDEV } -> import { qrl }
   // and import { _noopQrlDEV } -> import { _noopQrl }
   if (node.type === 'ImportSpecifier') {
-    if (node.imported?.name === 'qrlDEV' && node.local?.name === 'qrlDEV') {
-      node.imported.name = 'qrl';
-      node.local.name = 'qrl';
-    } else if (node.imported?.name === '_noopQrlDEV' && node.local?.name === '_noopQrlDEV') {
-      node.imported.name = '_noopQrl';
-      node.local.name = '_noopQrl';
+    const imported = node.imported;
+    const local = node.local;
+    if (isRecord(imported) && isRecord(local)) {
+      if (imported.name === 'qrlDEV' && local.name === 'qrlDEV') {
+        imported.name = 'qrl';
+        local.name = 'qrl';
+      } else if (imported.name === '_noopQrlDEV' && local.name === '_noopQrlDEV') {
+        imported.name = '_noopQrl';
+        local.name = '_noopQrl';
+      }
     }
     return;
   }
 
   if (node.type !== 'CallExpression') return;
   const callee = node.callee;
-  if (!callee || callee.type !== 'Identifier') return;
-  const args = node.arguments;
+  if (!isRecord(callee) || callee.type !== 'Identifier') return;
+  const args = asArray(node.arguments);
   if (!args) return;
 
   if (callee.name === 'qrlDEV' && args.length >= 2) {
@@ -1589,23 +1717,25 @@ function normalizeDevQrlCalls(node: any): void {
  * `_jsxSorted("div", null, null, "text", 3, "u6_0", { fileName, lineNumber, columnNumber })`
  * Our optimizer may not add this info. Stripping it normalizes the difference.
  */
-function stripJsxSourceInfo(node: any): void {
-  if (!node || typeof node !== 'object') return;
-  if (Array.isArray(node)) {
-    for (const item of node) stripJsxSourceInfo(item);
+function stripJsxSourceInfo(node: unknown): void {
+  const arr = asArray(node);
+  if (arr) {
+    for (const item of arr) stripJsxSourceInfo(item);
     return;
   }
+  if (!isRecord(node)) return;
   for (const key of Object.keys(node)) {
     if (key === 'type') continue;
     stripJsxSourceInfo(node[key]);
   }
   if (node.type !== 'CallExpression') return;
   const callee = node.callee;
-  if (!callee || callee.type !== 'Identifier') return;
+  if (!isRecord(callee) || callee.type !== 'Identifier') return;
   if (callee.name !== '_jsxSorted' && callee.name !== '_jsxSplit') return;
   // Strip 7th argument (index 6) if it exists
-  if (node.arguments && node.arguments.length > 6) {
-    node.arguments = node.arguments.slice(0, 6);
+  const args = asArray(node.arguments);
+  if (args && args.length > 6) {
+    node.arguments = args.slice(0, 6);
   }
 }
 
@@ -1616,24 +1746,26 @@ function stripJsxSourceInfo(node: any): void {
  * component segments. Our optimizer may not add this. Strip it so it
  * doesn't cause comparison failures.
  */
-function stripUseHmrCalls(program: any): void {
-  function processBody(body: any[]): void {
-    if (!Array.isArray(body)) return;
+function stripUseHmrCalls(program: AstCompatNode): void {
+  function processBody(bodyInput: unknown): void {
+    const body = asArray(bodyInput);
+    if (!body) return;
     for (let i = body.length - 1; i >= 0; i--) {
       const stmt = body[i];
-      if (stmt?.type !== 'ExpressionStatement') continue;
+      if (!isRecord(stmt) || stmt.type !== 'ExpressionStatement') continue;
       const expr = stmt.expression;
-      if (expr?.type !== 'CallExpression') continue;
-      if (expr.callee?.type !== 'Identifier' || expr.callee.name !== '_useHmr') continue;
+      if (!isRecord(expr) || expr.type !== 'CallExpression') continue;
+      if (!isRecord(expr.callee) || expr.callee.type !== 'Identifier' || expr.callee.name !== '_useHmr') continue;
       body.splice(i, 1);
     }
   }
 
-  function visit(node: any): void {
-    if (!node || typeof node !== 'object') return;
-    if (Array.isArray(node)) { for (const item of node) visit(item); return; }
+  function visit(node: unknown): void {
+    const arr = asArray(node);
+    if (arr) { for (const item of arr) visit(item); return; }
+    if (!isRecord(node)) return;
     if ((node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression' ||
-         node.type === 'FunctionDeclaration') && node.body?.type === 'BlockStatement') {
+         node.type === 'FunctionDeclaration') && isRecord(node.body) && node.body.type === 'BlockStatement') {
       processBody(node.body.body);
     }
     for (const key of Object.keys(node)) {
@@ -1653,23 +1785,26 @@ function stripUseHmrCalls(program: any): void {
  * semantically equivalent. Normalize duplicate keys by merging their values
  * into ArrayExpression nodes.
  */
-function mergeDuplicateObjectProperties(node: any): void {
-  if (!node || typeof node !== 'object') return;
-  if (Array.isArray(node)) {
-    for (const item of node) mergeDuplicateObjectProperties(item);
+function mergeDuplicateObjectProperties(node: unknown): void {
+  const arr = asArray(node);
+  if (arr) {
+    for (const item of arr) mergeDuplicateObjectProperties(item);
     return;
   }
+  if (!isRecord(node)) return;
   // Recurse first (bottom-up)
   for (const key of Object.keys(node)) {
     if (key === 'type') continue;
     mergeDuplicateObjectProperties(node[key]);
   }
-  if (node.type === 'ObjectExpression' && Array.isArray(node.properties)) {
+  const props = asArray(node.properties);
+  if (node.type === 'ObjectExpression' && props) {
     const keyMap = new Map<string, number[]>();
-    for (let i = 0; i < node.properties.length; i++) {
-      const prop = node.properties[i];
-      if (prop.type !== 'Property' || prop.computed) continue;
-      const keyName = prop.key?.name || prop.key?.value;
+    for (let i = 0; i < props.length; i++) {
+      const prop = props[i];
+      if (!isRecord(prop) || prop.type !== 'Property' || prop.computed) continue;
+      const keyRaw = isRecord(prop.key) ? (prop.key.name || prop.key.value) : undefined;
+      const keyName = asString(keyRaw);
       if (!keyName) continue;
       const indices = keyMap.get(keyName) || [];
       indices.push(i);
@@ -1679,22 +1814,24 @@ function mergeDuplicateObjectProperties(node: any): void {
     const toRemove = new Set<number>();
     for (const [, indices] of keyMap) {
       if (indices.length <= 1) continue;
-      const first = node.properties[indices[0]];
-      const values: any[] = [];
+      const first = props[indices[0]];
+      const values: unknown[] = [];
       for (const idx of indices) {
-        const val = node.properties[idx].value;
+        const propAtIdx = props[idx];
+        const val = isRecord(propAtIdx) ? propAtIdx.value : undefined;
+        const elements = isRecord(val) ? asArray(val.elements) : undefined;
         // If the value is already an array, flatten it
-        if (val?.type === 'ArrayExpression' && Array.isArray(val.elements)) {
-          values.push(...val.elements);
+        if (isRecord(val) && val.type === 'ArrayExpression' && elements) {
+          values.push(...elements);
         } else {
           values.push(val);
         }
         if (idx !== indices[0]) toRemove.add(idx);
       }
-      first.value = { type: 'ArrayExpression', elements: values };
+      if (isRecord(first)) first.value = { type: 'ArrayExpression', elements: values };
     }
     if (toRemove.size > 0) {
-      node.properties = node.properties.filter((_: any, i: number) => !toRemove.has(i));
+      node.properties = props.filter((_: unknown, i: number) => !toRemove.has(i));
     }
   }
 }
@@ -1705,51 +1842,55 @@ function mergeDuplicateObjectProperties(node: any): void {
  * is not semantically meaningful, so sorting makes comparison order-insensitive.
  * Only sorts non-spread properties; spread elements stay in place.
  */
-function sortObjectProperties(node: any): void {
-  if (!node || typeof node !== 'object') return;
-  if (Array.isArray(node)) {
-    for (const item of node) sortObjectProperties(item);
+function sortObjectProperties(node: unknown): void {
+  const arr = asArray(node);
+  if (arr) {
+    for (const item of arr) sortObjectProperties(item);
     return;
   }
+  if (!isRecord(node)) return;
   // Recurse first (bottom-up)
   for (const key of Object.keys(node)) {
     if (key === 'type') continue;
     sortObjectProperties(node[key]);
   }
   // Sort properties of ObjectExpression
-  if (node.type === 'ObjectExpression' && Array.isArray(node.properties)) {
-    const hasSpread = node.properties.some((p: any) => p.type === 'SpreadElement');
-    if (!hasSpread && node.properties.length > 1) {
+  const props = asArray(node.properties);
+  if (node.type === 'ObjectExpression' && props) {
+    const hasSpread = props.some((p: unknown) => isRecord(p) && p.type === 'SpreadElement');
+    if (!hasSpread && props.length > 1) {
       // No spreads: sort all properties alphabetically
-      node.properties.sort((a: any, b: any) => {
-        const aKey = a.key?.name || a.key?.value || '';
-        const bKey = b.key?.name || b.key?.value || '';
+      props.sort((a: unknown, b: unknown) => {
+        const aKey = (isRecord(a) && isRecord(a.key) && (a.key.name || a.key.value)) || '';
+        const bKey = (isRecord(b) && isRecord(b.key) && (b.key.name || b.key.value)) || '';
         return String(aKey).localeCompare(String(bKey));
       });
-    } else if (hasSpread && node.properties.length > 1) {
+    } else if (hasSpread && props.length > 1) {
       // With spreads: separate spreads and named properties.
       // Sort spreads among themselves by their argument text,
       // sort named properties alphabetically, then concatenate:
       // spreads first, then sorted named props.
       // This normalizes `{ "bind:value": x, ...spread }` to match
       // `{ ...spread, "bind:value": x }`.
-      const spreads: any[] = [];
-      const named: any[] = [];
-      for (const p of node.properties) {
-        if (p.type === 'SpreadElement') {
+      const spreads: unknown[] = [];
+      const named: unknown[] = [];
+      for (const p of props) {
+        if (isRecord(p) && p.type === 'SpreadElement') {
           spreads.push(p);
         } else {
           named.push(p);
         }
       }
-      spreads.sort((a: any, b: any) => {
-        const aKey = a.argument?.callee?.name || a.argument?.name || '';
-        const bKey = b.argument?.callee?.name || b.argument?.name || '';
+      spreads.sort((a: unknown, b: unknown) => {
+        const aArg = isRecord(a) ? a.argument : undefined;
+        const bArg = isRecord(b) ? b.argument : undefined;
+        const aKey = (isRecord(aArg) && isRecord(aArg.callee) && aArg.callee.name) || (isRecord(aArg) && aArg.name) || '';
+        const bKey = (isRecord(bArg) && isRecord(bArg.callee) && bArg.callee.name) || (isRecord(bArg) && bArg.name) || '';
         return String(aKey).localeCompare(String(bKey));
       });
-      named.sort((a: any, b: any) => {
-        const aKey = a.key?.name || a.key?.value || '';
-        const bKey = b.key?.name || b.key?.value || '';
+      named.sort((a: unknown, b: unknown) => {
+        const aKey = (isRecord(a) && isRecord(a.key) && (a.key.name || a.key.value)) || '';
+        const bKey = (isRecord(b) && isRecord(b.key) && (b.key.name || b.key.value)) || '';
         return String(aKey).localeCompare(String(bKey));
       });
       node.properties = [...spreads, ...named];
@@ -1767,15 +1908,18 @@ function sortObjectProperties(node: any): void {
  * and the other keeps it. Only applies to top-level statements in
  * function/arrow bodies (the inline strategy pattern).
  */
-function stripUnusedCallBindings(program: any): void {
-  if (!program?.body || !Array.isArray(program.body)) return;
+function stripUnusedCallBindings(program: AstCompatNode): void {
+  const body = asArray(program.body);
+  if (!body) return;
 
   // Collect all identifier names referenced in the program
-  function collectRefs(node: any, refs: Set<string>, skipDecl?: string): void {
-    if (!node || typeof node !== 'object') return;
-    if (Array.isArray(node)) { node.forEach(n => collectRefs(n, refs, skipDecl)); return; }
-    if (node.type === 'Identifier' && node.name && node.name !== skipDecl) {
-      refs.add(node.name);
+  function collectRefs(node: unknown, refs: Set<string>, skipDecl?: string): void {
+    const arr = asArray(node);
+    if (arr) { arr.forEach(n => collectRefs(n, refs, skipDecl)); return; }
+    if (!isRecord(node)) return;
+    if (node.type === 'Identifier') {
+      const name = asString(node.name);
+      if (name && name !== skipDecl) refs.add(name);
     }
     for (const key of Object.keys(node)) {
       if (key === 'type' || key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
@@ -1784,28 +1928,31 @@ function stripUnusedCallBindings(program: any): void {
   }
 
   // Process each body (top-level and function bodies)
-  function processBody(body: any[]): void {
-    if (!Array.isArray(body)) return;
-    for (let i = 0; i < body.length; i++) {
-      const stmt = body[i];
-      if (stmt?.type !== 'VariableDeclaration') continue;
-      if (!stmt.declarations || stmt.declarations.length !== 1) continue;
-      const decl = stmt.declarations[0];
-      if (!decl.id || decl.id.type !== 'Identifier') continue;
-      const name = decl.id.name;
-      if (!decl.init || decl.init.type !== 'CallExpression') continue;
+  function processBody(bodyInput: unknown): void {
+    const bodyArr = asArray(bodyInput);
+    if (!bodyArr) return;
+    for (let i = 0; i < bodyArr.length; i++) {
+      const stmt = bodyArr[i];
+      if (!isRecord(stmt) || stmt.type !== 'VariableDeclaration') continue;
+      const decls = asArray(stmt.declarations);
+      if (!decls || decls.length !== 1) continue;
+      const decl = decls[0];
+      if (!isRecord(decl) || !isRecord(decl.id) || decl.id.type !== 'Identifier') continue;
+      const name = asString(decl.id.name);
+      if (name === undefined) continue;
+      if (!isRecord(decl.init) || decl.init.type !== 'CallExpression') continue;
 
       // Check if this name is referenced anywhere else in the body
       const refs = new Set<string>();
-      for (let j = 0; j < body.length; j++) {
+      for (let j = 0; j < bodyArr.length; j++) {
         if (j === i) continue;
-        collectRefs(body[j], refs);
+        collectRefs(bodyArr[j], refs);
       }
       // Also check if it's referenced in the init's arguments (recursive ref)
       // but NOT in the callee itself
       if (!refs.has(name)) {
         // Replace with ExpressionStatement
-        body[i] = {
+        bodyArr[i] = {
           type: 'ExpressionStatement',
           expression: decl.init,
         };
@@ -1813,7 +1960,7 @@ function stripUnusedCallBindings(program: any): void {
     }
   }
 
-  processBody(program.body);
+  processBody(body);
 
   // Also process function/arrow bodies within the program
   walkBodies(program, processBody);
@@ -1829,21 +1976,25 @@ function stripUnusedCallBindings(program: any): void {
  * We normalize by sorting the args array and rewriting the _hf body accordingly.
  * This must run AFTER renumberHoistedFunctions.
  */
-function canonicalizeFnSignalArgs(program: any): void {
-  if (!program?.body || !Array.isArray(program.body)) return;
+function canonicalizeFnSignalArgs(program: AstCompatNode): void {
+  const body = asArray(program.body);
+  if (!body) return;
 
   // 1. Collect all _hf function declarations: _hfN -> { paramCount, bodyNode, strNode }
-  const hfDecls = new Map<string, { bodyStmt: any; strStmt: any; paramNames: string[] }>();
-  for (const stmt of program.body) {
-    if (stmt?.type !== 'VariableDeclaration') continue;
-    for (const decl of stmt.declarations || []) {
-      if (!decl.id || decl.id.type !== 'Identifier') continue;
-      const name = decl.id.name;
-      if (/^_hf\d+$/.test(name) && decl.init) {
-        const params = (decl.init.params || []).map((p: any) => p.name).filter(Boolean);
+  const hfDecls = new Map<string, { bodyStmt: unknown; strStmt: unknown; paramNames: string[] }>();
+  for (const stmt of body) {
+    if (!isRecord(stmt) || stmt.type !== 'VariableDeclaration') continue;
+    for (const decl of asArray(stmt.declarations) ?? []) {
+      if (!isRecord(decl) || !isRecord(decl.id) || decl.id.type !== 'Identifier') continue;
+      const name = asString(decl.id.name);
+      if (name === undefined) continue;
+      if (/^_hf\d+$/.test(name) && isRecord(decl.init)) {
+        const params = (asArray(decl.init.params) ?? [])
+          .map((p: unknown) => (isRecord(p) ? asString(p.name) : undefined))
+          .filter((n): n is string => Boolean(n));
         hfDecls.set(name, { bodyStmt: decl, strStmt: null, paramNames: params });
       }
-      if (/^_hf\d+_str$/.test(name) && decl.init) {
+      if (/^_hf\d+_str$/.test(name) && isRecord(decl.init)) {
         const baseName = name.replace('_str', '');
         const existing = hfDecls.get(baseName);
         if (existing) existing.strStmt = decl;
@@ -1856,9 +2007,10 @@ function canonicalizeFnSignalArgs(program: any): void {
   // (debug logging removed)
 
   // 2. Find all _fnSignal calls and canonicalize their args
-  function processFnSignalCalls(node: any): void {
-    if (!node || typeof node !== 'object') return;
-    if (Array.isArray(node)) { for (const item of node) processFnSignalCalls(item); return; }
+  function processFnSignalCalls(node: unknown): void {
+    const arr = asArray(node);
+    if (arr) { for (const item of arr) processFnSignalCalls(item); return; }
+    if (!isRecord(node)) return;
 
     // Process children first (bottom-up)
     for (const key of Object.keys(node)) {
@@ -1868,31 +2020,35 @@ function canonicalizeFnSignalArgs(program: any): void {
 
     // Match _fnSignal(hfRef, [args], strRef) calls
     if (node.type !== 'CallExpression') return;
-    if (node.callee?.type !== 'Identifier' || node.callee.name !== '_fnSignal') return;
-    if (!node.arguments || node.arguments.length < 2) return;
+    if (!isRecord(node.callee) || node.callee.type !== 'Identifier' || node.callee.name !== '_fnSignal') return;
+    const nodeArgs = asArray(node.arguments);
+    if (!nodeArgs || nodeArgs.length < 2) return;
 
-    const hfRef = node.arguments[0];
-    const argsArray = node.arguments[1];
+    const hfRef = nodeArgs[0];
+    const argsArray = nodeArgs[1];
 
-    if (hfRef?.type !== 'Identifier' || !/^_hf\d+$/.test(hfRef.name)) return;
-    if (argsArray?.type !== 'ArrayExpression' || !Array.isArray(argsArray.elements)) return;
+    if (!isRecord(hfRef) || hfRef.type !== 'Identifier') return;
+    const hfName = asString(hfRef.name);
+    if (hfName === undefined || !/^_hf\d+$/.test(hfName)) return;
+    if (!isRecord(argsArray) || argsArray.type !== 'ArrayExpression') return;
+    const elements = asArray(argsArray.elements);
+    if (!elements) return;
 
-    const hfName = hfRef.name;
     const hfInfo = hfDecls.get(hfName);
-    if (!hfInfo || hfInfo.paramNames.length !== argsArray.elements.length) return;
+    if (!hfInfo || hfInfo.paramNames.length !== elements.length) return;
 
     // Always clear _hf_str values since they're string representations
     // that may differ in formatting between implementations
-    if (hfInfo.strStmt?.init) {
+    if (isRecord(hfInfo.strStmt) && isRecord(hfInfo.strStmt.init)) {
       hfInfo.strStmt.init = { type: 'Literal', value: '' };
     }
-    if (node.arguments[2]?.type === 'Literal') {
-      node.arguments[2] = { type: 'Literal', value: '' };
+    const arg2 = nodeArgs[2];
+    if (isRecord(arg2) && arg2.type === 'Literal') {
+      nodeArgs[2] = { type: 'Literal', value: '' };
     }
 
     // 3. Sort elements by serialized form and build remapping
-    const elements = argsArray.elements;
-    const indexed = elements.map((el: any, i: number) => ({
+    const indexed = elements.map((el: unknown, i: number) => ({
       el,
       origIdx: i,
       key: JSON.stringify(el),
@@ -1919,14 +2075,18 @@ function canonicalizeFnSignalArgs(program: any): void {
     }
 
     // 4. Rewrite the _fnSignal args to sorted order
-    argsArray.elements = sorted.map((s: any) => s.el);
+    argsArray.elements = sorted.map((s) => s.el);
 
     // 5. Remap parameter references in the _hf body
-    function remapParams(n: any): void {
-      if (!n || typeof n !== 'object') return;
-      if (Array.isArray(n)) { for (const item of n) remapParams(item); return; }
-      if (n.type === 'Identifier' && paramMap.has(n.name)) {
-        n.name = paramMap.get(n.name)!;
+    function remapParams(n: unknown): void {
+      const nArr = asArray(n);
+      if (nArr) { for (const item of nArr) remapParams(item); return; }
+      if (!isRecord(n)) return;
+      if (n.type === 'Identifier') {
+        const nm = asString(n.name);
+        if (nm !== undefined && paramMap.has(nm)) {
+          n.name = paramMap.get(nm)!;
+        }
       }
       for (const key of Object.keys(n)) {
         if (key === 'type') continue;
@@ -1935,15 +2095,16 @@ function canonicalizeFnSignalArgs(program: any): void {
     }
 
     // Remap in the _hf function body ONLY (not the params themselves)
-    const hfFn = hfInfo.bodyStmt?.init;
-    if (hfFn?.body) {
+    const hfFn = isRecord(hfInfo.bodyStmt) ? hfInfo.bodyStmt.init : undefined;
+    if (isRecord(hfFn) && hfFn.body) {
       remapParams(hfFn.body);
     }
 
     // Now replace temp names with final names in the body
-    function finalizeParams(n: any): void {
-      if (!n || typeof n !== 'object') return;
-      if (Array.isArray(n)) { for (const item of n) finalizeParams(item); return; }
+    function finalizeParams(n: unknown): void {
+      const nArr = asArray(n);
+      if (nArr) { for (const item of nArr) finalizeParams(item); return; }
+      if (!isRecord(n)) return;
       if (n.type === 'Identifier' && typeof n.name === 'string' && n.name.startsWith('__canon_p')) {
         n.name = n.name.replace('__canon_', '');
       }
@@ -1952,7 +2113,7 @@ function canonicalizeFnSignalArgs(program: any): void {
         finalizeParams(n[key]);
       }
     }
-    if (hfFn?.body) {
+    if (isRecord(hfFn) && hfFn.body) {
       finalizeParams(hfFn.body);
     }
 
@@ -1962,23 +2123,26 @@ function canonicalizeFnSignalArgs(program: any): void {
   processFnSignalCalls(program);
 }
 
-function deduplicateImports(program: any): void {
-  if (!program?.body) return;
-  const importMap = new Map<string, any>();
+function deduplicateImports(program: AstCompatNode): void {
+  const body = asArray(program.body);
+  if (!body) return;
+  const importMap = new Map<string, Record<string, unknown>>();
   const toRemove: number[] = [];
 
-  for (let i = 0; i < program.body.length; i++) {
-    const stmt = program.body[i];
-    if (stmt.type !== 'ImportDeclaration') continue;
+  for (let i = 0; i < body.length; i++) {
+    const stmt = body[i];
+    if (!isRecord(stmt) || stmt.type !== 'ImportDeclaration') continue;
     const source = JSON.stringify(stmt.source);
-    const hasDefault = stmt.specifiers?.some((s: any) => s.type === 'ImportDefaultSpecifier');
-    const hasNamespace = stmt.specifiers?.some((s: any) => s.type === 'ImportNamespaceSpecifier');
+    const specs = asArray(stmt.specifiers);
+    const hasDefault = specs?.some((s: unknown) => isRecord(s) && s.type === 'ImportDefaultSpecifier');
+    const hasNamespace = specs?.some((s: unknown) => isRecord(s) && s.type === 'ImportNamespaceSpecifier');
     // Don't merge default/namespace imports
     if (hasDefault || hasNamespace) continue;
 
-    if (importMap.has(source)) {
-      const existing = importMap.get(source);
-      existing.specifiers.push(...(stmt.specifiers || []));
+    const existing = importMap.get(source);
+    if (existing) {
+      const existingSpecs = asArray(existing.specifiers);
+      if (existingSpecs) existingSpecs.push(...(specs ?? []));
       toRemove.push(i);
     } else {
       importMap.set(source, stmt);
@@ -1987,15 +2151,16 @@ function deduplicateImports(program: any): void {
 
   // Remove merged duplicates (reverse order to preserve indices)
   for (let i = toRemove.length - 1; i >= 0; i--) {
-    program.body.splice(toRemove[i], 1);
+    body.splice(toRemove[i], 1);
   }
 
   // Re-sort specifiers in merged imports
   for (const imp of importMap.values()) {
-    if (imp.specifiers?.length > 1) {
-      imp.specifiers.sort((a: any, b: any) => {
-        const aName = a.local?.name || '';
-        const bName = b.local?.name || '';
+    const specs = asArray(imp.specifiers);
+    if (specs && specs.length > 1) {
+      specs.sort((a: unknown, b: unknown) => {
+        const aName = (isRecord(a) && isRecord(a.local) && asString(a.local.name)) || '';
+        const bName = (isRecord(b) && isRecord(b.local) && asString(b.local.name)) || '';
         return aName.localeCompare(bName);
       });
     }
@@ -2012,18 +2177,21 @@ function deduplicateImports(program: any): void {
  * When we see `const X = <expr>; q_Y.s(X);` where X is referenced
  * only once (in the `.s()` call), inline the expression into `.s()`.
  */
-function inlineSegmentBodyIntoSCall(program: any): void {
-  if (!program?.body || !Array.isArray(program.body)) return;
+function inlineSegmentBodyIntoSCall(program: AstCompatNode): void {
+  const body = asArray(program.body);
+  if (!body) return;
 
   // Build a map of const declarations: name -> { initNode, stmtIndex }
-  const constDecls = new Map<string, { init: any; stmtIndex: number }>();
-  for (let i = 0; i < program.body.length; i++) {
-    const stmt = program.body[i];
-    if (stmt?.type === 'VariableDeclaration' && stmt.kind === 'const' &&
-        stmt.declarations?.length === 1) {
-      const decl = stmt.declarations[0];
-      if (decl.id?.type === 'Identifier' && decl.init) {
-        constDecls.set(decl.id.name, { init: decl.init, stmtIndex: i });
+  const constDecls = new Map<string, { init: unknown; stmtIndex: number }>();
+  for (let i = 0; i < body.length; i++) {
+    const stmt = body[i];
+    if (!isRecord(stmt)) continue;
+    const decls = asArray(stmt.declarations);
+    if (stmt.type === 'VariableDeclaration' && stmt.kind === 'const' && decls && decls.length === 1) {
+      const decl = decls[0];
+      if (isRecord(decl) && isRecord(decl.id) && decl.id.type === 'Identifier' && decl.init) {
+        const name = asString(decl.id.name);
+        if (name !== undefined) constDecls.set(name, { init: decl.init, stmtIndex: i });
       }
     }
   }
@@ -2031,31 +2199,34 @@ function inlineSegmentBodyIntoSCall(program: any): void {
   // Find q_X.s(Y) calls where Y is an identifier referencing a const decl
   const toInline: { sCallStmtIndex: number; constStmtIndex: number; argName: string }[] = [];
 
-  for (let i = 0; i < program.body.length; i++) {
-    const stmt = program.body[i];
-    if (stmt?.type !== 'ExpressionStatement') continue;
+  for (let i = 0; i < body.length; i++) {
+    const stmt = body[i];
+    if (!isRecord(stmt) || stmt.type !== 'ExpressionStatement') continue;
     const expr = stmt.expression;
     // Match q_X.s(Y) pattern
-    if (expr?.type !== 'CallExpression') continue;
-    if (expr.callee?.type !== 'MemberExpression') continue;
-    if (expr.callee.object?.type !== 'Identifier') continue;
-    if (expr.callee.property?.type !== 'Identifier' || expr.callee.property.name !== 's') continue;
-    if (!expr.callee.object.name?.startsWith('q_')) continue;
-    if (expr.arguments?.length !== 1) continue;
-    const arg = expr.arguments[0];
-    if (arg?.type !== 'Identifier') continue;
+    if (!isRecord(expr) || expr.type !== 'CallExpression') continue;
+    if (!isRecord(expr.callee) || expr.callee.type !== 'MemberExpression') continue;
+    if (!isRecord(expr.callee.object) || expr.callee.object.type !== 'Identifier') continue;
+    if (!isRecord(expr.callee.property) || expr.callee.property.type !== 'Identifier' || expr.callee.property.name !== 's') continue;
+    if (!asString(expr.callee.object.name)?.startsWith('q_')) continue;
+    const exprArgs = asArray(expr.arguments);
+    if (!exprArgs || exprArgs.length !== 1) continue;
+    const arg = exprArgs[0];
+    if (!isRecord(arg) || arg.type !== 'Identifier') continue;
+    const argName = asString(arg.name);
+    if (argName === undefined) continue;
 
-    const constInfo = constDecls.get(arg.name);
+    const constInfo = constDecls.get(argName);
     if (!constInfo) continue;
 
     // Only inline if the const init is a function expression or arrow function
-    const initType = constInfo.init?.type;
+    const initType = isRecord(constInfo.init) ? constInfo.init.type : undefined;
     if (initType !== 'ArrowFunctionExpression' && initType !== 'FunctionExpression') continue;
 
     toInline.push({
       sCallStmtIndex: i,
       constStmtIndex: constInfo.stmtIndex,
-      argName: arg.name,
+      argName,
     });
   }
 
@@ -2064,14 +2235,18 @@ function inlineSegmentBodyIntoSCall(program: any): void {
   for (const { sCallStmtIndex, constStmtIndex, argName } of toInline) {
     const constInfo = constDecls.get(argName)!;
     // Replace the argument in the .s() call with the init expression
-    program.body[sCallStmtIndex].expression.arguments[0] = constInfo.init;
+    const sStmt = body[sCallStmtIndex];
+    if (isRecord(sStmt) && isRecord(sStmt.expression)) {
+      const sArgs = asArray(sStmt.expression.arguments);
+      if (sArgs) sArgs[0] = constInfo.init;
+    }
     // Mark the const declaration for removal
     toRemoveIndices.add(constStmtIndex);
   }
 
   // Remove inlined const declarations
   if (toRemoveIndices.size > 0) {
-    program.body = program.body.filter((_: any, i: number) => !toRemoveIndices.has(i));
+    program.body = body.filter((_: unknown, i: number) => !toRemoveIndices.has(i));
   }
 }
 
@@ -2087,34 +2262,39 @@ function inlineSegmentBodyIntoSCall(program: any): void {
  * 1. Stripping `export { X as _auto_X }` named export specifiers
  * 2. Rewriting `import { _auto_X as X }` to `import { X }`
  */
-function normalizeAutoExports(program: any): void {
-  if (!program?.body || !Array.isArray(program.body)) return;
+function normalizeAutoExports(program: AstCompatNode): void {
+  const body = asArray(program.body);
+  if (!body) return;
 
   // Strip _auto_ export specifiers
-  for (let i = program.body.length - 1; i >= 0; i--) {
-    const stmt = program.body[i];
-    if (stmt?.type === 'ExportNamedDeclaration' && !stmt.declaration && stmt.specifiers) {
-      // Remove specifiers where exported name starts with _auto_
-      stmt.specifiers = stmt.specifiers.filter((spec: any) => {
-        const exported = spec.exported?.name || '';
-        return !exported.startsWith('_auto_');
-      });
-      // If no specifiers left, remove the whole export statement
-      if (stmt.specifiers.length === 0) {
-        program.body.splice(i, 1);
-      }
+  for (let i = body.length - 1; i >= 0; i--) {
+    const stmt = body[i];
+    if (!isRecord(stmt) || stmt.type !== 'ExportNamedDeclaration' || stmt.declaration) continue;
+    const specs = asArray(stmt.specifiers);
+    if (!specs) continue;
+    // Remove specifiers where exported name starts with _auto_
+    const kept = specs.filter((spec: unknown) => {
+      const exported = (isRecord(spec) && isRecord(spec.exported) && asString(spec.exported.name)) || '';
+      return !exported.startsWith('_auto_');
+    });
+    stmt.specifiers = kept;
+    // If no specifiers left, remove the whole export statement
+    if (kept.length === 0) {
+      body.splice(i, 1);
     }
   }
 
   // Normalize _auto_ import specifiers: import { _auto_X as X } -> import { X }
-  for (const stmt of program.body) {
-    if (stmt?.type !== 'ImportDeclaration' || !stmt.specifiers) continue;
-    for (const spec of stmt.specifiers) {
-      if (spec.type !== 'ImportSpecifier') continue;
-      const imported = spec.imported?.name || '';
+  for (const stmt of body) {
+    if (!isRecord(stmt) || stmt.type !== 'ImportDeclaration') continue;
+    const specs = asArray(stmt.specifiers);
+    if (!specs) continue;
+    for (const spec of specs) {
+      if (!isRecord(spec) || spec.type !== 'ImportSpecifier') continue;
+      const imported = (isRecord(spec.imported) && asString(spec.imported.name)) || '';
       if (imported.startsWith('_auto_')) {
         // Rewrite to import the local name directly
-        spec.imported = { ...spec.local };
+        spec.imported = { ...(isRecord(spec.local) ? spec.local : {}) };
       }
     }
   }
@@ -2126,16 +2306,19 @@ function normalizeAutoExports(program: any): void {
  * leaves behind unused original imports (e.g., `import { component$ }`)
  * after rewriting to the Qrl form.
  */
-function stripUnusedImports(program: any): void {
-  if (!program?.body || !Array.isArray(program.body)) return;
+function stripUnusedImports(program: AstCompatNode): void {
+  const body = asArray(program.body);
+  if (!body) return;
 
   // Collect all identifier names referenced in non-import statements
   const usedNames = new Set<string>();
-  function collectIdents(node: any): void {
-    if (!node || typeof node !== 'object') return;
-    if (Array.isArray(node)) { node.forEach(collectIdents); return; }
-    if (node.type === 'Identifier' && node.name) {
-      usedNames.add(node.name);
+  function collectIdents(node: unknown): void {
+    const arr = asArray(node);
+    if (arr) { arr.forEach(collectIdents); return; }
+    if (!isRecord(node)) return;
+    if (node.type === 'Identifier') {
+      const name = asString(node.name);
+      if (name) usedNames.add(name);
     }
     for (const key of Object.keys(node)) {
       if (key === 'start' || key === 'end' || key === 'loc' || key === 'range' || key === 'type') continue;
@@ -2143,24 +2326,26 @@ function stripUnusedImports(program: any): void {
     }
   }
 
-  for (const stmt of program.body) {
-    if (stmt?.type === 'ImportDeclaration') continue;
+  for (const stmt of body) {
+    if (isRecord(stmt) && stmt.type === 'ImportDeclaration') continue;
     collectIdents(stmt);
   }
 
   // Remove import specifiers whose local name is not used
-  for (let i = program.body.length - 1; i >= 0; i--) {
-    const stmt = program.body[i];
-    if (stmt?.type !== 'ImportDeclaration') continue;
-    if (!stmt.specifiers || stmt.specifiers.length === 0) continue; // side-effect import
+  for (let i = body.length - 1; i >= 0; i--) {
+    const stmt = body[i];
+    if (!isRecord(stmt) || stmt.type !== 'ImportDeclaration') continue;
+    const specs = asArray(stmt.specifiers);
+    if (!specs || specs.length === 0) continue; // side-effect import
 
-    stmt.specifiers = stmt.specifiers.filter((spec: any) => {
-      const localName = spec.local?.name;
+    const kept = specs.filter((spec: unknown) => {
+      const localName = isRecord(spec) && isRecord(spec.local) ? asString(spec.local.name) : undefined;
       return localName && usedNames.has(localName);
     });
+    stmt.specifiers = kept;
 
-    if (stmt.specifiers.length === 0) {
-      program.body.splice(i, 1);
+    if (kept.length === 0) {
+      body.splice(i, 1);
     }
   }
 }
@@ -2180,7 +2365,7 @@ function stripUnusedImports(program: any): void {
  * `componentQrl`, `useTaskQrl`, etc.). User-facing names like
  * `component$`, `useTask$`, `Slot` are preserved.
  */
-function stripFrameworkHelperImports(program: Program): void {
+function stripFrameworkHelperImports(program: AstCompatNode): void {
   const isFrameworkHelper = (name: string): boolean =>
     name.startsWith('_') ||
     name === 'qrl' ||
@@ -2190,24 +2375,35 @@ function stripFrameworkHelperImports(program: Program): void {
   // `ModuleExportName = IdentifierName | IdentifierReference | StringLiteral` —
   // the first two carry `name` (`type: "Identifier"`), StringLiteral carries
   // `value` (`type: "Literal"`).
-  const importedNameOf = (imported: ModuleExportName): string =>
-    imported.type === 'Literal' ? imported.value : imported.name;
+  const importedNameOf = (imported: unknown): string | undefined => {
+    if (!isRecord(imported)) return undefined;
+    if (imported.type === 'Literal') return asString(imported.value);
+    return asString(imported.name);
+  };
 
-  const isStrippable = (decl: ImportDeclaration): boolean =>
-    decl.source.value === '@qwik.dev/core' ||
-    decl.source.value === '@qwik.dev/core/jsx-runtime';
+  const isStrippable = (decl: Record<string, unknown>): boolean => {
+    const src = isRecord(decl.source) ? decl.source.value : undefined;
+    return src === '@qwik.dev/core' || src === '@qwik.dev/core/jsx-runtime';
+  };
 
-  const keepSpecifier = (spec: ImportDeclaration['specifiers'][number]): boolean =>
-    spec.type !== 'ImportSpecifier' ||
-    !isFrameworkHelper(importedNameOf(spec.imported));
+  const keepSpecifier = (spec: unknown): boolean => {
+    if (!isRecord(spec) || spec.type !== 'ImportSpecifier') return true;
+    const name = importedNameOf(spec.imported);
+    return name === undefined || !isFrameworkHelper(name);
+  };
 
-  for (let i = program.body.length - 1; i >= 0; i--) {
-    const stmt = program.body[i];
-    if (stmt.type !== 'ImportDeclaration' || stmt.specifiers.length === 0) continue;
+  const body = asArray(program.body);
+  if (!body) return;
+  for (let i = body.length - 1; i >= 0; i--) {
+    const stmt = body[i];
+    if (!isRecord(stmt) || stmt.type !== 'ImportDeclaration') continue;
+    const specs = asArray(stmt.specifiers);
+    if (!specs || specs.length === 0) continue;
     if (!isStrippable(stmt)) continue;
 
-    stmt.specifiers = stmt.specifiers.filter(keepSpecifier);
-    if (stmt.specifiers.length === 0) program.body.splice(i, 1);
+    const kept = specs.filter(keepSpecifier);
+    stmt.specifiers = kept;
+    if (kept.length === 0) body.splice(i, 1);
   }
 }
 
@@ -2231,33 +2427,36 @@ function stripFrameworkHelperImports(program: Program): void {
  * strips them entirely. Both are valid -- the guard is a no-op in production
  * since server segments only run on the server.
  */
-function stripIsServerGuards(program: any): void {
-  function visitBody(body: any[]): void {
-    if (!Array.isArray(body)) return;
+function stripIsServerGuards(program: AstCompatNode): void {
+  function visitBody(bodyInput: unknown): void {
+    const body = asArray(bodyInput);
+    if (!body) return;
     for (let i = body.length - 1; i >= 0; i--) {
       const stmt = body[i];
       // Match: if (!isServer) return;
-      if (stmt?.type === 'IfStatement' &&
-          stmt.consequent?.type === 'ReturnStatement' &&
+      if (isRecord(stmt) && stmt.type === 'IfStatement' &&
+          isRecord(stmt.consequent) && stmt.consequent.type === 'ReturnStatement' &&
           !stmt.consequent.argument &&
           !stmt.alternate &&
-          stmt.test?.type === 'UnaryExpression' &&
+          isRecord(stmt.test) && stmt.test.type === 'UnaryExpression' &&
           stmt.test.operator === '!' &&
-          stmt.test.argument?.type === 'Identifier' &&
+          isRecord(stmt.test.argument) && stmt.test.argument.type === 'Identifier' &&
           stmt.test.argument.name === 'isServer') {
         body.splice(i, 1);
       }
     }
   }
 
-  function visitNode(node: any): void {
-    if (!node || typeof node !== 'object') return;
-    if (Array.isArray(node)) { for (const item of node) visitNode(item); return; }
-    if (node.type === 'BlockStatement' && Array.isArray(node.body)) {
-      visitBody(node.body);
+  function visitNode(node: unknown): void {
+    const arr = asArray(node);
+    if (arr) { for (const item of arr) visitNode(item); return; }
+    if (!isRecord(node)) return;
+    const nodeBody = asArray(node.body);
+    if (node.type === 'BlockStatement' && nodeBody) {
+      visitBody(nodeBody);
     }
     if ((node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression' ||
-         node.type === 'FunctionDeclaration') && node.body?.type === 'BlockStatement') {
+         node.type === 'FunctionDeclaration') && isRecord(node.body) && node.body.type === 'BlockStatement') {
       visitBody(node.body.body);
     }
     for (const key of Object.keys(node)) {
@@ -2281,35 +2480,38 @@ function stripIsServerGuards(program: any): void {
  * - ExpressionStatement where expression is a SequenceExpression of all Identifiers
  * - ExpressionStatement where expression is a Literal
  */
-function stripPureExpressionStatements(program: any): void {
-  function isPure(expr: any): boolean {
-    if (!expr) return false;
+function stripPureExpressionStatements(program: AstCompatNode): void {
+  function isPure(expr: unknown): boolean {
+    if (!isRecord(expr)) return false;
     if (expr.type === 'Identifier') return true;
     if (expr.type === 'Literal') return true;
     if (expr.type === 'SequenceExpression') {
-      return (expr.expressions || []).every(isPure);
+      return (asArray(expr.expressions) ?? []).every(isPure);
     }
     return false;
   }
 
-  function visitBody(body: any[]): void {
-    if (!Array.isArray(body)) return;
+  function visitBody(bodyInput: unknown): void {
+    const body = asArray(bodyInput);
+    if (!body) return;
     for (let i = body.length - 1; i >= 0; i--) {
       const stmt = body[i];
-      if (stmt?.type === 'ExpressionStatement' && isPure(stmt.expression)) {
+      if (isRecord(stmt) && stmt.type === 'ExpressionStatement' && isPure(stmt.expression)) {
         body.splice(i, 1);
       }
     }
   }
 
-  function visitNode(node: any): void {
-    if (!node || typeof node !== 'object') return;
-    if (Array.isArray(node)) { for (const item of node) visitNode(item); return; }
-    if (node.type === 'BlockStatement' && Array.isArray(node.body)) {
-      visitBody(node.body);
+  function visitNode(node: unknown): void {
+    const arr = asArray(node);
+    if (arr) { for (const item of arr) visitNode(item); return; }
+    if (!isRecord(node)) return;
+    const nodeBody = asArray(node.body);
+    if (node.type === 'BlockStatement' && nodeBody) {
+      visitBody(nodeBody);
     }
     if ((node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression' ||
-         node.type === 'FunctionDeclaration') && node.body?.type === 'BlockStatement') {
+         node.type === 'FunctionDeclaration') && isRecord(node.body) && node.body.type === 'BlockStatement') {
       visitBody(node.body.body);
     }
     for (const key of Object.keys(node)) {
@@ -2321,23 +2523,22 @@ function stripPureExpressionStatements(program: any): void {
   visitNode(program);
 }
 
-function stripUnusedLocalDeclarations(program: any): void {
-  if (!program || typeof program !== 'object') return;
-
+function stripUnusedLocalDeclarations(program: AstCompatNode): void {
   // Walk and find function bodies and nested blocks
-  function visitNode(node: any): void {
-    if (!node || typeof node !== 'object') return;
-    if (Array.isArray(node)) { node.forEach(visitNode); return; }
+  function visitNode(node: unknown): void {
+    const arr = asArray(node);
+    if (arr) { arr.forEach(visitNode); return; }
+    if (!isRecord(node)) return;
 
     // Process function bodies
     if ((node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression' ||
-         node.type === 'FunctionDeclaration') && node.body?.type === 'BlockStatement') {
-      stripUnusedDeclsInBlock(node.body, node.params || []);
+         node.type === 'FunctionDeclaration') && isRecord(node.body) && node.body.type === 'BlockStatement') {
+      stripUnusedDeclsInBlock(node.body, asArray(node.params) ?? []);
     }
 
     // Also process nested blocks inside control flow (do-while, for, while, if, labeled, etc.)
     // These are inside function bodies so we can safely strip unused locals
-    if (node.type === 'BlockStatement' && Array.isArray(node.body)) {
+    if (node.type === 'BlockStatement' && asArray(node.body)) {
       stripUnusedDeclsInBlock(node, []);
     }
 
@@ -2357,31 +2558,36 @@ function stripUnusedLocalDeclarations(program: any): void {
 /**
  * Strip labeled statements that are no-ops: `label: {}` or `label: { break label; }`
  */
-function stripNoopLabeledStatements(node: any): void {
-  if (!node || typeof node !== 'object') return;
-  if (Array.isArray(node)) {
-    for (let i = node.length - 1; i >= 0; i--) {
-      stripNoopLabeledStatements(node[i]);
-      const item = node[i];
-      if (item?.type === 'LabeledStatement') {
+function stripNoopLabeledStatements(node: unknown): void {
+  const arr = asArray(node);
+  if (arr) {
+    for (let i = arr.length - 1; i >= 0; i--) {
+      stripNoopLabeledStatements(arr[i]);
+      const item = arr[i];
+      if (isRecord(item) && item.type === 'LabeledStatement') {
         const body = item.body;
-        const label = item.label?.name;
-        // label: {} (empty block)
-        if (body?.type === 'BlockStatement' && (!body.body || body.body.length === 0)) {
-          node.splice(i, 1);
-          continue;
-        }
-        // label: { break label; }
-        if (body?.type === 'BlockStatement' && body.body?.length === 1 &&
-            body.body[0]?.type === 'BreakStatement' &&
-            body.body[0].label?.name === label) {
-          node.splice(i, 1);
-          continue;
+        const label = isRecord(item.label) ? item.label.name : undefined;
+        if (isRecord(body) && body.type === 'BlockStatement') {
+          const innerBody = asArray(body.body);
+          // label: {} (empty block)
+          if (!innerBody || innerBody.length === 0) {
+            arr.splice(i, 1);
+            continue;
+          }
+          // label: { break label; }
+          const first = innerBody[0];
+          if (innerBody.length === 1 &&
+              isRecord(first) && first.type === 'BreakStatement' &&
+              isRecord(first.label) && first.label.name === label) {
+            arr.splice(i, 1);
+            continue;
+          }
         }
       }
     }
     return;
   }
+  if (!isRecord(node)) return;
   for (const key of Object.keys(node)) {
     if (key === 'type') continue;
     const val = node[key];
@@ -2408,26 +2614,28 @@ function stripNoopLabeledStatements(node: any): void {
  * NewExpression where the callee is an import-only identifier, and removing
  * the statement would make that import unused.
  */
-function stripOrphanedSideEffectCalls(program: any): void {
-  if (!program?.body || !Array.isArray(program.body)) return;
+function stripOrphanedSideEffectCalls(program: AstCompatNode): void {
+  const body = asArray(program.body);
+  if (!body) return;
 
   // Collect imported names
   const importedNames = new Set<string>();
-  for (const stmt of program.body) {
-    if (stmt?.type !== 'ImportDeclaration') continue;
-    for (const spec of stmt.specifiers || []) {
-      if (spec.local?.name) importedNames.add(spec.local.name);
+  for (const stmt of body) {
+    if (!isRecord(stmt) || stmt.type !== 'ImportDeclaration') continue;
+    for (const spec of asArray(stmt.specifiers) ?? []) {
+      const localName = isRecord(spec) && isRecord(spec.local) ? asString(spec.local.name) : undefined;
+      if (localName) importedNames.add(localName);
     }
   }
 
   let changed = true;
   while (changed) {
     changed = false;
-    for (let i = program.body.length - 1; i >= 0; i--) {
-      const stmt = program.body[i];
-      if (stmt?.type !== 'ExpressionStatement') continue;
+    for (let i = body.length - 1; i >= 0; i--) {
+      const stmt = body[i];
+      if (!isRecord(stmt) || stmt.type !== 'ExpressionStatement') continue;
       const expr = stmt.expression;
-      if (expr?.type !== 'CallExpression' && expr?.type !== 'NewExpression') continue;
+      if (!isRecord(expr) || (expr.type !== 'CallExpression' && expr.type !== 'NewExpression')) continue;
 
       // Collect all identifiers used in this expression
       const usedIdents = new Set<string>();
@@ -2439,10 +2647,10 @@ function stripOrphanedSideEffectCalls(program: any): void {
       const allImportOnly = [...usedIdents].every(name => {
         if (!importedNames.has(name)) return false;
         // Check if this import name is referenced in any other statement
-        for (let j = 0; j < program.body.length; j++) {
+        for (let j = 0; j < body.length; j++) {
           if (j === i) continue;
-          const other = program.body[j];
-          if (other?.type === 'ImportDeclaration') continue; // skip import stmts
+          const other = body[j];
+          if (isRecord(other) && other.type === 'ImportDeclaration') continue; // skip import stmts
           const refs = new Set<string>();
           collectAllIdents(other, refs);
           if (refs.has(name)) return false; // referenced elsewhere
@@ -2451,7 +2659,7 @@ function stripOrphanedSideEffectCalls(program: any): void {
       });
 
       if (allImportOnly && usedIdents.size > 0) {
-        program.body.splice(i, 1);
+        body.splice(i, 1);
         changed = true;
       }
     }
@@ -2466,24 +2674,26 @@ function stripOrphanedSideEffectCalls(program: any): void {
  * and actual sides equally so the rest of the structure can be compared
  * without position noise.
  */
-function stripBareQrlPreloadCalls(program: any): void {
-  if (!program?.body || !Array.isArray(program.body)) return;
-  for (let i = program.body.length - 1; i >= 0; i--) {
-    const stmt = program.body[i];
-    if (stmt?.type !== 'ExpressionStatement') continue;
+function stripBareQrlPreloadCalls(program: AstCompatNode): void {
+  const body = asArray(program.body);
+  if (!body) return;
+  for (let i = body.length - 1; i >= 0; i--) {
+    const stmt = body[i];
+    if (!isRecord(stmt) || stmt.type !== 'ExpressionStatement') continue;
     const expr = stmt.expression;
     if (
-      expr?.type === 'CallExpression' &&
-      expr.callee?.type === 'Identifier' &&
+      isRecord(expr) && expr.type === 'CallExpression' &&
+      isRecord(expr.callee) && expr.callee.type === 'Identifier' &&
       (expr.callee.name === 'qrl' || expr.callee.name === 'qrlDEV')
     ) {
-      program.body.splice(i, 1);
+      body.splice(i, 1);
     }
   }
 }
 
-function stripUnusedModuleLevelDeclarations(program: any): void {
-  if (!program?.body || !Array.isArray(program.body)) return;
+function stripUnusedModuleLevelDeclarations(program: AstCompatNode): void {
+  const body = asArray(program.body);
+  if (!body) return;
 
   let changed = true;
   while (changed) {
@@ -2492,16 +2702,17 @@ function stripUnusedModuleLevelDeclarations(program: any): void {
     // For declarations, only collect from init expressions (not binding patterns).
     // For functions/classes, only collect from body (not the declared name).
     const referencedNames = new Set<string>();
-    for (const stmt of program.body) {
-      if (stmt?.type === 'VariableDeclaration') {
-        for (const decl of stmt.declarations || []) {
-          if (decl.init) collectAllIdents(decl.init, referencedNames);
+    for (const stmt of body) {
+      if (!isRecord(stmt)) { collectAllIdents(stmt, referencedNames); continue; }
+      if (stmt.type === 'VariableDeclaration') {
+        for (const decl of asArray(stmt.declarations) ?? []) {
+          if (isRecord(decl) && decl.init) collectAllIdents(decl.init, referencedNames);
         }
-      } else if (stmt?.type === 'FunctionDeclaration') {
+      } else if (stmt.type === 'FunctionDeclaration') {
         // Collect from params and body, but not the function name
-        for (const p of stmt.params || []) collectAllIdents(p, referencedNames);
+        for (const p of asArray(stmt.params) ?? []) collectAllIdents(p, referencedNames);
         if (stmt.body) collectAllIdents(stmt.body, referencedNames);
-      } else if (stmt?.type === 'ClassDeclaration') {
+      } else if (stmt.type === 'ClassDeclaration') {
         if (stmt.body) collectAllIdents(stmt.body, referencedNames);
         if (stmt.superClass) collectAllIdents(stmt.superClass, referencedNames);
       } else {
@@ -2509,31 +2720,34 @@ function stripUnusedModuleLevelDeclarations(program: any): void {
       }
     }
 
-    for (let i = program.body.length - 1; i >= 0; i--) {
-      const stmt = program.body[i];
+    for (let i = body.length - 1; i >= 0; i--) {
+      const stmt = body[i];
+      if (!isRecord(stmt)) continue;
       // Strip plain VariableDeclaration (not export, not import)
-      if (stmt?.type === 'VariableDeclaration') {
-        const allUnused = (stmt.declarations || []).every((decl: any) => {
+      if (stmt.type === 'VariableDeclaration') {
+        const allUnused = (asArray(stmt.declarations) ?? []).every((decl: unknown) => {
           const names = new Map<string, number>();
-          collectDeclaredNames(decl.id, i, names);
+          collectDeclaredNames(isRecord(decl) ? decl.id : undefined, i, names);
           return Array.from(names.keys()).every(n => !referencedNames.has(n));
         });
         if (allUnused) {
-          program.body.splice(i, 1);
+          body.splice(i, 1);
           changed = true;
         }
       }
       // Strip plain FunctionDeclaration whose name is unused
-      if (stmt?.type === 'FunctionDeclaration' && stmt.id?.name) {
-        if (!referencedNames.has(stmt.id.name)) {
-          program.body.splice(i, 1);
+      if (stmt.type === 'FunctionDeclaration' && isRecord(stmt.id) && stmt.id.name) {
+        const idName = asString(stmt.id.name);
+        if (idName !== undefined && !referencedNames.has(idName)) {
+          body.splice(i, 1);
           changed = true;
         }
       }
       // Strip plain ClassDeclaration whose name is unused
-      if (stmt?.type === 'ClassDeclaration' && stmt.id?.name) {
-        if (!referencedNames.has(stmt.id.name)) {
-          program.body.splice(i, 1);
+      if (stmt.type === 'ClassDeclaration' && isRecord(stmt.id) && stmt.id.name) {
+        const idName = asString(stmt.id.name);
+        if (idName !== undefined && !referencedNames.has(idName)) {
+          body.splice(i, 1);
           changed = true;
         }
       }
@@ -2541,8 +2755,10 @@ function stripUnusedModuleLevelDeclarations(program: any): void {
   }
 }
 
-function stripUnusedDeclsInBlock(block: any, params: any[]): void {
-  if (!block?.body || !Array.isArray(block.body)) return;
+function stripUnusedDeclsInBlock(block: unknown, params: unknown[]): void {
+  if (!isRecord(block)) return;
+  const blockBody = asArray(block.body);
+  if (!blockBody) return;
 
   // Iteratively remove unused declarations until stable
   let changed = true;
@@ -2560,22 +2776,23 @@ function stripUnusedDeclsInBlock(block: any, params: any[]): void {
     for (const p of params) {
       collectAllIdents(p, referencedNames);
     }
-    for (let i = 0; i < block.body.length; i++) {
-      const stmt = block.body[i];
-      if (stmt?.type === 'VariableDeclaration') {
+    for (let i = 0; i < blockBody.length; i++) {
+      const stmt = blockBody[i];
+      if (!isRecord(stmt)) { collectAllIdents(stmt, referencedNames); continue; }
+      if (stmt.type === 'VariableDeclaration') {
         // Only collect from init expressions, not from binding patterns
-        for (const decl of stmt.declarations || []) {
-          if (decl.init) collectAllIdents(decl.init, referencedNames);
+        for (const decl of asArray(stmt.declarations) ?? []) {
+          if (isRecord(decl) && decl.init) collectAllIdents(decl.init, referencedNames);
         }
-      } else if (stmt?.type === 'FunctionDeclaration') {
+      } else if (stmt.type === 'FunctionDeclaration') {
         // Collect from params and body, not from the function name itself
-        for (const p of stmt.params || []) collectAllIdents(p, referencedNames);
+        for (const p of asArray(stmt.params) ?? []) collectAllIdents(p, referencedNames);
         if (stmt.body) collectAllIdents(stmt.body, referencedNames);
-      } else if (stmt?.type === 'ClassDeclaration') {
+      } else if (stmt.type === 'ClassDeclaration') {
         // Collect from class body, not from class name
         if (stmt.body) collectAllIdents(stmt.body, referencedNames);
         if (stmt.superClass) collectAllIdents(stmt.superClass, referencedNames);
-      } else if (stmt?.type === 'TryStatement') {
+      } else if (stmt.type === 'TryStatement') {
         // For try/catch, check if the block bodies are empty (only have the catch binding)
         // Skip collecting from try/catch - handled separately below
         collectAllIdents(stmt, referencedNames);
@@ -2585,36 +2802,39 @@ function stripUnusedDeclsInBlock(block: any, params: any[]): void {
     }
 
     // Remove unused VariableDeclarations
-    for (let i = block.body.length - 1; i >= 0; i--) {
-      const stmt = block.body[i];
-      if (stmt?.type === 'VariableDeclaration') {
-        const allUnused = (stmt.declarations || []).every((decl: any) => {
+    for (let i = blockBody.length - 1; i >= 0; i--) {
+      const stmt = blockBody[i];
+      if (!isRecord(stmt)) continue;
+      if (stmt.type === 'VariableDeclaration') {
+        const allUnused = (asArray(stmt.declarations) ?? []).every((decl: unknown) => {
           const names = new Map<string, number>();
-          collectDeclaredNames(decl.id, i, names);
+          collectDeclaredNames(isRecord(decl) ? decl.id : undefined, i, names);
           return Array.from(names.keys()).every(n => !referencedNames.has(n));
         });
         if (allUnused) {
-          block.body.splice(i, 1);
+          blockBody.splice(i, 1);
           changed = true;
         }
-      } else if (stmt?.type === 'FunctionDeclaration' && stmt.id?.name) {
+      } else if (stmt.type === 'FunctionDeclaration' && isRecord(stmt.id) && stmt.id.name) {
         // Remove unused function declarations
-        if (!referencedNames.has(stmt.id.name)) {
-          block.body.splice(i, 1);
+        const idName = asString(stmt.id.name);
+        if (idName !== undefined && !referencedNames.has(idName)) {
+          blockBody.splice(i, 1);
           changed = true;
         }
-      } else if (stmt?.type === 'ClassDeclaration' && stmt.id?.name) {
+      } else if (stmt.type === 'ClassDeclaration' && isRecord(stmt.id) && stmt.id.name) {
         // Remove unused class declarations
-        if (!referencedNames.has(stmt.id.name)) {
-          block.body.splice(i, 1);
+        const idName = asString(stmt.id.name);
+        if (idName !== undefined && !referencedNames.has(idName)) {
+          blockBody.splice(i, 1);
           changed = true;
         }
-      } else if (stmt?.type === 'TryStatement') {
+      } else if (stmt.type === 'TryStatement') {
         // Strip try/catch blocks where the try body is empty (or only has empty statements)
-        const tryBody = stmt.block?.body || [];
-        const hasContent = tryBody.some((s: any) => s?.type !== 'EmptyStatement');
+        const tryBody = (isRecord(stmt.block) ? asArray(stmt.block.body) : undefined) ?? [];
+        const hasContent = tryBody.some((s: unknown) => !isRecord(s) || s.type !== 'EmptyStatement');
         if (!hasContent) {
-          block.body.splice(i, 1);
+          blockBody.splice(i, 1);
           changed = true;
         }
       }
@@ -2622,21 +2842,22 @@ function stripUnusedDeclsInBlock(block: any, params: any[]): void {
   }
 }
 
-function collectDeclaredNames(pattern: any, stmtIndex: number, map: Map<string, number>): void {
-  if (!pattern) return;
+function collectDeclaredNames(pattern: unknown, stmtIndex: number, map: Map<string, number>): void {
+  if (!isRecord(pattern)) return;
   if (pattern.type === 'Identifier') {
-    map.set(pattern.name, stmtIndex);
+    const name = asString(pattern.name);
+    if (name !== undefined) map.set(name, stmtIndex);
   } else if (pattern.type === 'ObjectPattern') {
-    for (const prop of pattern.properties || []) {
-      if (prop.type === 'RestElement') {
+    for (const prop of asArray(pattern.properties) ?? []) {
+      if (isRecord(prop) && prop.type === 'RestElement') {
         collectDeclaredNames(prop.argument, stmtIndex, map);
-      } else {
+      } else if (isRecord(prop)) {
         collectDeclaredNames(prop.value, stmtIndex, map);
       }
     }
   } else if (pattern.type === 'ArrayPattern') {
-    for (const elem of pattern.elements || []) {
-      if (elem?.type === 'RestElement') {
+    for (const elem of asArray(pattern.elements) ?? []) {
+      if (isRecord(elem) && elem.type === 'RestElement') {
         collectDeclaredNames(elem.argument, stmtIndex, map);
       } else {
         collectDeclaredNames(elem, stmtIndex, map);
@@ -2647,11 +2868,13 @@ function collectDeclaredNames(pattern: any, stmtIndex: number, map: Map<string, 
   }
 }
 
-function collectAllIdents(node: any, set: Set<string>): void {
-  if (!node || typeof node !== 'object') return;
-  if (Array.isArray(node)) { node.forEach(n => collectAllIdents(n, set)); return; }
-  if (node.type === 'Identifier' && node.name) {
-    set.add(node.name);
+function collectAllIdents(node: unknown, set: Set<string>): void {
+  const arr = asArray(node);
+  if (arr) { arr.forEach(n => collectAllIdents(n, set)); return; }
+  if (!isRecord(node)) return;
+  if (node.type === 'Identifier') {
+    const name = asString(node.name);
+    if (name) set.add(name);
   }
   for (const key of Object.keys(node)) {
     if (key === 'type') continue;
@@ -2677,23 +2900,25 @@ function collectAllIdents(node: any, set: Set<string>): void {
  *
  * Also handles `q_X.w([...]).w([...])` chained calls.
  */
-function stripDotWCalls(node: any): void {
-  if (!node || typeof node !== 'object') return;
-  if (Array.isArray(node)) {
-    for (let i = 0; i < node.length; i++) {
-      node[i] = unwrapDotW(node[i]);
-      stripDotWCalls(node[i]);
+function stripDotWCalls(node: unknown): void {
+  const arr = asArray(node);
+  if (arr) {
+    for (let i = 0; i < arr.length; i++) {
+      arr[i] = unwrapDotW(arr[i]);
+      stripDotWCalls(arr[i]);
     }
     return;
   }
+  if (!isRecord(node)) return;
   for (const key of Object.keys(node)) {
     if (key === 'type') continue;
     const val = node[key];
     if (val && typeof val === 'object') {
-      if (Array.isArray(val)) {
-        for (let i = 0; i < val.length; i++) {
-          val[i] = unwrapDotW(val[i]);
-          stripDotWCalls(val[i]);
+      const valArr = asArray(val);
+      if (valArr) {
+        for (let i = 0; i < valArr.length; i++) {
+          valArr[i] = unwrapDotW(valArr[i]);
+          stripDotWCalls(valArr[i]);
         }
       } else {
         node[key] = unwrapDotW(val);
@@ -2703,11 +2928,11 @@ function stripDotWCalls(node: any): void {
   }
 }
 
-function unwrapDotW(node: any): any {
-  if (!node || node.type !== 'CallExpression') return node;
+function unwrapDotW(node: unknown): unknown {
+  if (!isRecord(node) || node.type !== 'CallExpression') return node;
   const callee = node.callee;
-  if (!callee || callee.type !== 'MemberExpression') return node;
-  if (callee.property?.type !== 'Identifier' || callee.property.name !== 'w') return node;
+  if (!isRecord(callee) || callee.type !== 'MemberExpression') return node;
+  if (!isRecord(callee.property) || callee.property.type !== 'Identifier' || callee.property.name !== 'w') return node;
   // Recursively unwrap in case of chained .w() calls
   return unwrapDotW(callee.object);
 }
@@ -2723,26 +2948,30 @@ function unwrapDotW(node: any): any {
  *
  * This normalizes `q_X.s(fn)` to `q_X.s()` so only the QRL reference matters.
  */
-function stripDotSBodies(program: any): void {
-  if (!program?.body || !Array.isArray(program.body)) return;
+function stripDotSBodies(program: AstCompatNode): void {
+  const body = asArray(program.body);
+  if (!body) return;
 
   // Track names that were arguments to .s() calls (to strip their decls later)
   const sCallArgNames = new Set<string>();
 
-  for (const stmt of program.body) {
-    if (stmt?.type !== 'ExpressionStatement') continue;
+  for (const stmt of body) {
+    if (!isRecord(stmt) || stmt.type !== 'ExpressionStatement') continue;
     const expr = stmt.expression;
-    if (expr?.type !== 'CallExpression') continue;
+    if (!isRecord(expr) || expr.type !== 'CallExpression') continue;
     const callee = expr.callee;
-    if (!callee || callee.type !== 'MemberExpression') continue;
-    if (callee.property?.type !== 'Identifier' || callee.property.name !== 's') continue;
-    if (callee.object?.type !== 'Identifier') continue;
+    if (!isRecord(callee) || callee.type !== 'MemberExpression') continue;
+    if (!isRecord(callee.property) || callee.property.type !== 'Identifier' || callee.property.name !== 's') continue;
+    if (!isRecord(callee.object) || callee.object.type !== 'Identifier') continue;
     // Only match q_X.s(...) pattern
-    const objName = callee.object.name || '';
+    const objName = asString(callee.object.name) || '';
     if (!objName.startsWith('q_')) continue;
     // Track identifier arguments before stripping
-    if (expr.arguments?.length === 1 && expr.arguments[0]?.type === 'Identifier') {
-      sCallArgNames.add(expr.arguments[0].name);
+    const exprArgs = asArray(expr.arguments);
+    const arg0 = exprArgs?.[0];
+    if (exprArgs?.length === 1 && isRecord(arg0) && arg0.type === 'Identifier') {
+      const argName = asString(arg0.name);
+      if (argName !== undefined) sCallArgNames.add(argName);
     }
     // Strip the arguments
     expr.arguments = [];
@@ -2752,23 +2981,25 @@ function stripDotSBodies(program: any): void {
   if (sCallArgNames.size > 0) {
     // Check which names are still referenced elsewhere
     const referencedNames = new Set<string>();
-    for (const stmt of program.body) {
-      if (stmt?.type === 'VariableDeclaration') {
+    for (const stmt of body) {
+      if (isRecord(stmt) && stmt.type === 'VariableDeclaration') {
         // Don't count the declaration itself
         continue;
       }
       collectAllIdents(stmt, referencedNames);
     }
 
-    for (let i = program.body.length - 1; i >= 0; i--) {
-      const stmt = program.body[i];
-      if (stmt?.type !== 'VariableDeclaration') continue;
-      if (!stmt.declarations || stmt.declarations.length !== 1) continue;
-      const decl = stmt.declarations[0];
-      if (!decl.id || decl.id.type !== 'Identifier') continue;
-      const name = decl.id.name;
+    for (let i = body.length - 1; i >= 0; i--) {
+      const stmt = body[i];
+      if (!isRecord(stmt) || stmt.type !== 'VariableDeclaration') continue;
+      const decls = asArray(stmt.declarations);
+      if (!decls || decls.length !== 1) continue;
+      const decl = decls[0];
+      if (!isRecord(decl) || !isRecord(decl.id) || decl.id.type !== 'Identifier') continue;
+      const name = asString(decl.id.name);
+      if (name === undefined) continue;
       if (sCallArgNames.has(name) && !referencedNames.has(name)) {
-        program.body.splice(i, 1);
+        body.splice(i, 1);
       }
     }
   }
@@ -2787,31 +3018,36 @@ function stripDotSBodies(program: any): void {
  * Also strips `const [X, {Y, ...}] = obj` destructuring declarations that are
  * only used to provide individual bindings (SWC migrates these, we import them).
  */
-function stripMigratedDeclarations(program: any): void {
-  if (!program?.body || !Array.isArray(program.body)) return;
+function stripMigratedDeclarations(program: AstCompatNode): void {
+  const body = asArray(program.body);
+  if (!body) return;
 
   // Collect names imported from the source module (e.g., import { X } from "./test")
   const importedNames = new Set<string>();
-  for (const stmt of program.body) {
-    if (stmt?.type !== 'ImportDeclaration') continue;
-    for (const spec of stmt.specifiers || []) {
-      if (spec.local?.name) importedNames.add(spec.local.name);
+  for (const stmt of body) {
+    if (!isRecord(stmt) || stmt.type !== 'ImportDeclaration') continue;
+    for (const spec of asArray(stmt.specifiers) ?? []) {
+      const localName = isRecord(spec) && isRecord(spec.local) ? asString(spec.local.name) : undefined;
+      if (localName) importedNames.add(localName);
     }
   }
 
   // Collect names declared by non-exported function/class declarations
   const declaredNames = new Set<string>();
-  for (const stmt of program.body) {
-    if (stmt?.type === 'FunctionDeclaration' && stmt.id?.name && !isExported(stmt, program)) {
-      declaredNames.add(stmt.id.name);
+  for (const stmt of body) {
+    if (!isRecord(stmt)) continue;
+    if (stmt.type === 'FunctionDeclaration' && isRecord(stmt.id) && stmt.id.name && !isExported(stmt, program)) {
+      const name = asString(stmt.id.name);
+      if (name) declaredNames.add(name);
     }
-    if (stmt?.type === 'ClassDeclaration' && stmt.id?.name && !isExported(stmt, program)) {
-      declaredNames.add(stmt.id.name);
+    if (stmt.type === 'ClassDeclaration' && isRecord(stmt.id) && stmt.id.name && !isExported(stmt, program)) {
+      const name = asString(stmt.id.name);
+      if (name) declaredNames.add(name);
     }
     // Non-exported variable declarations with destructuring patterns
-    if (stmt?.type === 'VariableDeclaration' && !isExported(stmt, program)) {
-      for (const decl of stmt.declarations || []) {
-        if (decl.id?.type === 'ArrayPattern' || decl.id?.type === 'ObjectPattern') {
+    if (stmt.type === 'VariableDeclaration' && !isExported(stmt, program)) {
+      for (const decl of asArray(stmt.declarations) ?? []) {
+        if (isRecord(decl) && isRecord(decl.id) && (decl.id.type === 'ArrayPattern' || decl.id.type === 'ObjectPattern')) {
           collectPatternNames(decl.id, declaredNames);
         }
       }
@@ -2836,44 +3072,49 @@ function stripMigratedDeclarations(program: any): void {
 
   if (namesToStrip.size === 0) return;
 
-  for (let i = program.body.length - 1; i >= 0; i--) {
-    const stmt = program.body[i];
-    if (stmt?.type === 'FunctionDeclaration' && namesToStrip.has(stmt.id?.name)) {
-      program.body.splice(i, 1);
-    } else if (stmt?.type === 'ClassDeclaration' && namesToStrip.has(stmt.id?.name)) {
-      program.body.splice(i, 1);
-    } else if (stmt?.type === 'VariableDeclaration') {
+  for (let i = body.length - 1; i >= 0; i--) {
+    const stmt = body[i];
+    if (!isRecord(stmt)) continue;
+    const idName = isRecord(stmt.id) ? asString(stmt.id.name) : undefined;
+    if (stmt.type === 'FunctionDeclaration' && idName !== undefined && namesToStrip.has(idName)) {
+      body.splice(i, 1);
+    } else if (stmt.type === 'ClassDeclaration' && idName !== undefined && namesToStrip.has(idName)) {
+      body.splice(i, 1);
+    } else if (stmt.type === 'VariableDeclaration') {
       // Strip declarations where all bound names are in namesToStrip
       const allNames: string[] = [];
-      for (const decl of stmt.declarations || []) {
-        collectPatternNames(decl.id, new Set(), allNames);
+      for (const decl of asArray(stmt.declarations) ?? []) {
+        if (isRecord(decl)) collectPatternNames(decl.id, new Set(), allNames);
       }
       if (allNames.length > 0 && allNames.every(n => namesToStrip.has(n))) {
-        program.body.splice(i, 1);
+        body.splice(i, 1);
       }
     }
   }
 }
 
-function isExported(stmt: any, program: any): boolean {
+function isExported(stmt: unknown, program: AstCompatNode): boolean {
   // Check if the statement is wrapped in an ExportNamedDeclaration
-  for (const s of program.body) {
-    if (s?.type === 'ExportNamedDeclaration' && s.declaration === stmt) return true;
+  for (const s of asArray(program.body) ?? []) {
+    if (isRecord(s) && s.type === 'ExportNamedDeclaration' && s.declaration === stmt) return true;
   }
   return false;
 }
 
-function collectPatternNames(pattern: any, nameSet: Set<string>, nameArr?: string[]): void {
-  if (!pattern) return;
+function collectPatternNames(pattern: unknown, nameSet: Set<string>, nameArr?: string[]): void {
+  if (!isRecord(pattern)) return;
   if (pattern.type === 'Identifier') {
-    nameSet.add(pattern.name);
-    if (nameArr) nameArr.push(pattern.name);
+    const name = asString(pattern.name);
+    if (name !== undefined) {
+      nameSet.add(name);
+      if (nameArr) nameArr.push(name);
+    }
   } else if (pattern.type === 'ArrayPattern') {
-    for (const el of pattern.elements || []) collectPatternNames(el, nameSet, nameArr);
+    for (const el of asArray(pattern.elements) ?? []) collectPatternNames(el, nameSet, nameArr);
   } else if (pattern.type === 'ObjectPattern') {
-    for (const prop of pattern.properties || []) {
-      if (prop.type === 'RestElement') collectPatternNames(prop.argument, nameSet, nameArr);
-      else collectPatternNames(prop.value, nameSet, nameArr);
+    for (const prop of asArray(pattern.properties) ?? []) {
+      if (isRecord(prop) && prop.type === 'RestElement') collectPatternNames(prop.argument, nameSet, nameArr);
+      else if (isRecord(prop)) collectPatternNames(prop.value, nameSet, nameArr);
     }
   } else if (pattern.type === 'AssignmentPattern') {
     collectPatternNames(pattern.left, nameSet, nameArr);
@@ -2894,42 +3135,45 @@ function collectPatternNames(pattern: any, nameSet: Set<string>, nameArr?: strin
  * This normalizes the difference between SWC's _wrapProp(obj, "prop") approach
  * (which normalizeWrapProp converts to obj.prop) and our optimizer's destructuring.
  */
-function inlineDestructuredBindings(program: any): void {
-  function processFunctionBody(body: any[], params: any[]): void {
-    if (!Array.isArray(body)) return;
+function inlineDestructuredBindings(program: AstCompatNode): void {
+  function processFunctionBody(bodyInput: unknown, params: unknown[]): void {
+    const body = asArray(bodyInput);
+    if (!body) return;
 
     // Find destructuring declarations at the start of the body
     for (let i = body.length - 1; i >= 0; i--) {
       const stmt = body[i];
-      if (stmt?.type !== 'VariableDeclaration') continue;
-      if (!stmt.declarations || stmt.declarations.length !== 1) continue;
-      const decl = stmt.declarations[0];
-      if (!decl.init || !decl.id) continue;
+      if (!isRecord(stmt) || stmt.type !== 'VariableDeclaration') continue;
+      const decls = asArray(stmt.declarations);
+      if (!decls || decls.length !== 1) continue;
+      const decl = decls[0];
+      if (!isRecord(decl) || !decl.init || !isRecord(decl.id)) continue;
 
       // Match: const { "key": alias, key2 } = obj (ObjectPattern)
       if (decl.id.type !== 'ObjectPattern') continue;
       const objExpr = decl.init; // The object being destructured
 
       // Build mapping: alias name -> member expression AST node
-      const bindings = new Map<string, any>();
+      const bindings = new Map<string, unknown>();
       let canInline = true;
-      for (const prop of decl.id.properties || []) {
-        if (prop.type === 'RestElement') { canInline = false; break; }
-        if (!prop.value || prop.value.type !== 'Identifier') { canInline = false; break; }
-        if (prop.value.type === 'AssignmentPattern') { canInline = false; break; }
+      for (const prop of asArray(decl.id.properties) ?? []) {
+        if (isRecord(prop) && prop.type === 'RestElement') { canInline = false; break; }
+        if (!isRecord(prop) || !isRecord(prop.value) || prop.value.type !== 'Identifier') { canInline = false; break; }
 
-        const alias = prop.value.name;
-        const keyName = prop.key?.name || prop.key?.value;
-        if (!keyName) { canInline = false; break; }
+        const alias = asString(prop.value.name);
+        const keyName = isRecord(prop.key) ? (prop.key.name || prop.key.value) : undefined;
+        if (alias === undefined || !keyName) { canInline = false; break; }
+        const keyStr = asString(keyName);
+        if (keyStr === undefined) { canInline = false; break; }
 
         // Create obj.key or obj["key"] depending on if it's a valid identifier
-        const isValidId = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(keyName);
+        const isValidId = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(keyStr);
         const memberExpr = {
           type: 'MemberExpression',
           object: JSON.parse(JSON.stringify(objExpr)), // deep clone
           property: isValidId
-            ? { type: 'Identifier', name: keyName }
-            : { type: 'Literal', value: keyName },
+            ? { type: 'Identifier', name: keyStr }
+            : { type: 'Literal', value: keyStr },
           computed: !isValidId,
         };
         bindings.set(alias, memberExpr);
@@ -2938,7 +3182,7 @@ function inlineDestructuredBindings(program: any): void {
       if (!canInline || bindings.size === 0) continue;
 
       // Check that none of the aliases shadow a param or are reassigned
-      const paramNames = new Set(params.map((p: any) => p.name).filter(Boolean));
+      const paramNames = new Set(params.map((p: unknown) => (isRecord(p) ? asString(p.name) : undefined)).filter(Boolean));
       let hasConflict = false;
       for (const alias of bindings.keys()) {
         if (paramNames.has(alias)) { hasConflict = true; break; }
@@ -2955,13 +3199,17 @@ function inlineDestructuredBindings(program: any): void {
     }
   }
 
-  function replaceIdentifiers(node: any, bindings: Map<string, any>): any {
-    if (!node || typeof node !== 'object') return node;
-    if (Array.isArray(node)) return node.map(n => replaceIdentifiers(n, bindings));
-    if (node.type === 'Identifier' && bindings.has(node.name)) {
-      return JSON.parse(JSON.stringify(bindings.get(node.name)));
+  function replaceIdentifiers(node: unknown, bindings: Map<string, unknown>): unknown {
+    const arr = asArray(node);
+    if (arr) return arr.map(n => replaceIdentifiers(n, bindings));
+    if (!isRecord(node)) return node;
+    if (node.type === 'Identifier') {
+      const name = asString(node.name);
+      if (name !== undefined && bindings.has(name)) {
+        return JSON.parse(JSON.stringify(bindings.get(name)));
+      }
     }
-    const result: any = {};
+    const result: Record<string, unknown> = {};
     for (const key of Object.keys(node)) {
       result[key] = replaceIdentifiers(node[key], bindings);
     }
@@ -2969,12 +3217,13 @@ function inlineDestructuredBindings(program: any): void {
   }
 
   // Walk all function bodies
-  function visit(node: any): void {
-    if (!node || typeof node !== 'object') return;
-    if (Array.isArray(node)) { for (const item of node) visit(item); return; }
+  function visit(node: unknown): void {
+    const arr = asArray(node);
+    if (arr) { for (const item of arr) visit(item); return; }
+    if (!isRecord(node)) return;
     if ((node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression' ||
-         node.type === 'FunctionDeclaration') && node.body?.type === 'BlockStatement') {
-      processFunctionBody(node.body.body, node.params || []);
+         node.type === 'FunctionDeclaration') && isRecord(node.body) && node.body.type === 'BlockStatement') {
+      processFunctionBody(node.body.body, asArray(node.params) ?? []);
     }
     for (const key of Object.keys(node)) {
       if (key === 'type') continue;
@@ -2992,12 +3241,13 @@ function inlineDestructuredBindings(program: any): void {
  * while SWC always strips them. Remove typeAnnotation, returnType, and
  * TSTypeAnnotation nodes so they don't cause false mismatches.
  */
-function stripTypeAnnotations(node: any): void {
-  if (!node || typeof node !== 'object') return;
-  if (Array.isArray(node)) {
-    for (const item of node) stripTypeAnnotations(item);
+function stripTypeAnnotations(node: unknown): void {
+  const arr = asArray(node);
+  if (arr) {
+    for (const item of arr) stripTypeAnnotations(item);
     return;
   }
+  if (!isRecord(node)) return;
   // Remove type annotation properties
   delete node.typeAnnotation;
   delete node.returnType;
@@ -3025,22 +3275,26 @@ function stripTypeAnnotations(node: any): void {
  * This handles destructuring at the call boundary: `_rawProps.data` is the same
  * as receiving `data` directly.
  */
-function destructureRawPropsParam(program: any): void {
-  if (!program?.body || !Array.isArray(program.body)) return;
+function destructureRawPropsParam(program: AstCompatNode): void {
+  const body = asArray(program.body);
+  if (!body) return;
 
-  for (const stmt of program.body) {
+  for (const stmt of body) {
     // Find: export const NAME = (params...) => body
     const fn = getExportedSegmentFunction(stmt);
-    if (!fn || !fn.params || fn.params.length < 3) continue;
+    if (!isRecord(fn)) continue;
+    const fnParams = asArray(fn.params);
+    if (!fnParams || fnParams.length < 3) continue;
 
     // Only process 3rd+ params (positions 0,1 are _, _1 convention)
-    for (let pi = 2; pi < fn.params.length; pi++) {
-      const param = fn.params[pi];
-      if (param?.type !== 'Identifier') continue;
-      const paramName = param.name;
+    for (let pi = 2; pi < fnParams.length; pi++) {
+      const param = fnParams[pi];
+      if (!isRecord(param) || param.type !== 'Identifier') continue;
+      const paramName = asString(param.name);
+      if (paramName === undefined) continue;
 
       // Collect all references to this param in the body
-      const refs: any[] = [];
+      const refs: unknown[] = [];
       collectIdentRefs(fn.body, paramName, refs);
 
       if (refs.length === 0) continue;
@@ -3051,19 +3305,26 @@ function destructureRawPropsParam(program: any): void {
       let allSingleField = true;
 
       for (const ref of refs) {
-        if (!ref._parent || ref._parent.type !== 'MemberExpression' ||
-            ref._parent.object !== ref._node || ref._parent.computed) {
+        const parent = isRecord(ref) ? ref._parent : undefined;
+        const refNode = isRecord(ref) ? ref._node : undefined;
+        if (!isRecord(parent) || parent.type !== 'MemberExpression' ||
+            parent.object !== refNode || parent.computed) {
           allSingleField = false;
           break;
         }
-        const prop = ref._parent.property;
-        if (!prop || prop.type !== 'Identifier') {
+        const prop = parent.property;
+        if (!isRecord(prop) || prop.type !== 'Identifier') {
+          allSingleField = false;
+          break;
+        }
+        const propName = asString(prop.name);
+        if (propName === undefined) {
           allSingleField = false;
           break;
         }
         if (fieldName === null) {
-          fieldName = prop.name;
-        } else if (fieldName !== prop.name) {
+          fieldName = propName;
+        } else if (fieldName !== propName) {
           allSingleField = false;
           break;
         }
@@ -3074,21 +3335,23 @@ function destructureRawPropsParam(program: any): void {
       // Rewrite: param -> field, param.field -> field (remove one level of member access)
       param.name = fieldName;
       for (const ref of refs) {
+        if (!isRecord(ref)) continue;
         // ref._parent is MemberExpression `param.field`
         // Replace parent MemberExpression with just Identifier `field`
-        replaceNodeInParent(ref._grandparent, ref._parentKey, ref._parentIndex,
+        replaceNodeInParent(ref._grandparent, asString(ref._parentKey),
+          typeof ref._parentIndex === 'number' ? ref._parentIndex : undefined,
           { type: 'Identifier', name: fieldName });
       }
     }
   }
 }
 
-function getExportedSegmentFunction(stmt: any): any {
-  if (stmt?.type !== 'ExportNamedDeclaration') return null;
+function getExportedSegmentFunction(stmt: unknown): unknown {
+  if (!isRecord(stmt) || stmt.type !== 'ExportNamedDeclaration') return null;
   const decl = stmt.declaration;
-  if (!decl || decl.type !== 'VariableDeclaration') return null;
-  const d = decl.declarations?.[0];
-  if (!d?.init) return null;
+  if (!isRecord(decl) || decl.type !== 'VariableDeclaration') return null;
+  const d = asArray(decl.declarations)?.[0];
+  if (!isRecord(d) || !isRecord(d.init)) return null;
   if (d.init.type === 'ArrowFunctionExpression' || d.init.type === 'FunctionExpression') {
     return d.init;
   }
@@ -3096,16 +3359,17 @@ function getExportedSegmentFunction(stmt: any): any {
 }
 
 function collectIdentRefs(
-  node: any, name: string, refs: any[],
-  parent?: any, parentKey?: string, parentIndex?: number, grandparent?: any,
+  node: unknown, name: string, refs: unknown[],
+  parent?: unknown, parentKey?: string, parentIndex?: number, grandparent?: unknown,
 ): void {
-  if (!node || typeof node !== 'object') return;
-  if (Array.isArray(node)) {
-    for (let i = 0; i < node.length; i++) {
-      collectIdentRefs(node[i], name, refs, node, '' + i, i, parent);
+  const arr = asArray(node);
+  if (arr) {
+    for (let i = 0; i < arr.length; i++) {
+      collectIdentRefs(arr[i], name, refs, arr, '' + i, i, parent);
     }
     return;
   }
+  if (!isRecord(node)) return;
   if (node.type === 'Identifier' && node.name === name) {
     refs.push({ _node: node, _parent: parent, _parentKey: parentKey, _parentIndex: parentIndex, _grandparent: grandparent });
     return;
@@ -3119,11 +3383,12 @@ function collectIdentRefs(
   }
 }
 
-function replaceNodeInParent(container: any, key: string | undefined, index: number | undefined, replacement: any): void {
+function replaceNodeInParent(container: unknown, key: string | undefined, index: number | undefined, replacement: unknown): void {
   if (!container || !key) return;
-  if (Array.isArray(container)) {
-    if (index !== undefined) container[index] = replacement;
-  } else {
+  const arr = asArray(container);
+  if (arr) {
+    if (index !== undefined) arr[index] = replacement;
+  } else if (isRecord(container)) {
     container[key] = replacement;
   }
 }
@@ -3145,42 +3410,46 @@ function replaceNodeInParent(container: any, key: string | undefined, index: num
  * Also handles params: if a function parameter is only used as `param.field`,
  * replace with direct field access (covers both _rawProps params and _captures).
  */
-function expandRawPropsCaptures(program: any): void {
-  function processFunctionBody(fn: any): void {
+function expandRawPropsCaptures(program: AstCompatNode): void {
+  function processFunctionBody(fn: Record<string, unknown>): void {
     const body = fn.body;
-    if (!body) return;
+    if (!isRecord(body)) return;
 
     // Collect variables bound to _captures[N]
-    const stmts = body.type === 'BlockStatement' ? body.body : null;
-    if (!stmts || !Array.isArray(stmts)) return;
+    const stmts = body.type === 'BlockStatement' ? asArray(body.body) : null;
+    if (!stmts) return;
 
     for (const stmt of stmts) {
-      if (stmt?.type !== 'VariableDeclaration') continue;
-      for (const decl of stmt.declarations || []) {
-        if (!decl.init || decl.id?.type !== 'Identifier') continue;
+      if (!isRecord(stmt) || stmt.type !== 'VariableDeclaration') continue;
+      for (const decl of asArray(stmt.declarations) ?? []) {
+        if (!isRecord(decl) || !isRecord(decl.init) || !isRecord(decl.id) || decl.id.type !== 'Identifier') continue;
         // Match _captures[N]
         if (decl.init.type !== 'MemberExpression' ||
-            decl.init.object?.type !== 'Identifier' ||
+            !isRecord(decl.init.object) || decl.init.object.type !== 'Identifier' ||
             decl.init.object.name !== '_captures' ||
             !decl.init.computed ||
-            decl.init.property?.type !== 'Literal' ||
+            !isRecord(decl.init.property) || decl.init.property.type !== 'Literal' ||
             typeof decl.init.property.value !== 'number') continue;
 
-        const varName = decl.id.name;
-        expandMemberAccessesInBody(body, varName);
+        const varName = asString(decl.id.name);
+        if (varName !== undefined) expandMemberAccessesInBody(body, varName);
       }
     }
 
     // Also handle params named _rawProps (SWC's convention for props params)
-    if (fn.params) {
-      for (const param of fn.params) {
-        if (param?.type !== 'Identifier') continue;
+    const fnParams = asArray(fn.params);
+    if (fnParams) {
+      for (const param of fnParams) {
+        if (!isRecord(param) || param.type !== 'Identifier') continue;
+        const paramName = asString(param.name);
+        if (paramName === undefined) continue;
         // Only expand params that follow the _rawProps naming convention
-        if (param.name === '_rawProps' || param.name.startsWith('_rawProps')) {
-          const fieldNames = expandMemberAccessesInBody(body, param.name);
+        if (paramName === '_rawProps' || paramName.startsWith('_rawProps')) {
+          const fieldNames = expandMemberAccessesInBody(body, paramName);
           // If all accesses use a single field, rename the param to match
           if (fieldNames && fieldNames.size === 1) {
-            param.name = fieldNames.values().next().value;
+            const first = fieldNames.values().next().value;
+            if (first !== undefined) param.name = first;
           }
         }
       }
@@ -3191,31 +3460,32 @@ function expandRawPropsCaptures(program: any): void {
    * If ALL references to `varName` in the body are member expressions
    * `varName.field` (non-computed), replace each with just `field`.
    */
-  function expandMemberAccessesInBody(body: any, varName: string): Set<string> | null {
+  function expandMemberAccessesInBody(body: unknown, varName: string): Set<string> | null {
     // Collect all references
-    const refs: Array<{ parent: any; key: string; index?: number; memberExpr: any; fieldName: string }> = [];
+    const refs: Array<{ parent: unknown; key: string; index?: number; memberExpr: unknown; fieldName: string }> = [];
     let hasNonMemberRef = false;
 
-    function scan(node: any, parent: any, key: string, index?: number): void {
-      if (!node || typeof node !== 'object') return;
-      if (Array.isArray(node)) {
-        for (let i = 0; i < node.length; i++) scan(node[i], node, String(i), i);
+    function scan(node: unknown, parent: unknown, key: string, index?: number): void {
+      const nodeArr = asArray(node);
+      if (nodeArr) {
+        for (let i = 0; i < nodeArr.length; i++) scan(nodeArr[i], nodeArr, String(i), i);
         return;
       }
+      if (!isRecord(node)) return;
       // Check if this is a MemberExpression with our var as object
       if (node.type === 'MemberExpression' &&
           !node.computed &&
-          node.object?.type === 'Identifier' &&
+          isRecord(node.object) && node.object.type === 'Identifier' &&
           node.object.name === varName &&
-          node.property?.type === 'Identifier') {
-        refs.push({ parent, key, index, memberExpr: node, fieldName: node.property.name });
+          isRecord(node.property) && node.property.type === 'Identifier') {
+        refs.push({ parent, key, index, memberExpr: node, fieldName: asString(node.property.name) ?? '' });
         // Don't recurse into this MemberExpression's children
         return;
       }
       // Check if this is a bare reference to varName (not as MemberExpression object)
       if (node.type === 'Identifier' && node.name === varName) {
         // Check if parent is the variable declaration itself -- skip those
-        if (parent?.type === 'VariableDeclarator' && key === 'id') return;
+        if (isRecord(parent) && parent.type === 'VariableDeclarator' && key === 'id') return;
         // Check if parent is a param list
         if (Array.isArray(parent) && parent === body) return;
         hasNonMemberRef = true;
@@ -3225,8 +3495,9 @@ function expandRawPropsCaptures(program: any): void {
         if (k === 'type') continue;
         const val = node[k];
         if (val && typeof val === 'object') {
-          if (Array.isArray(val)) {
-            for (let i = 0; i < val.length; i++) scan(val[i], val, String(i), i);
+          const valArr = asArray(val);
+          if (valArr) {
+            for (let i = 0; i < valArr.length; i++) scan(valArr[i], valArr, String(i), i);
           } else {
             scan(val, node, k);
           }
@@ -3246,9 +3517,10 @@ function expandRawPropsCaptures(program: any): void {
     // Replace each memberExpr with just the field Identifier
     for (const ref of refs) {
       const replacement = { type: 'Identifier', name: ref.fieldName };
-      if (ref.index !== undefined && Array.isArray(ref.parent)) {
-        ref.parent[ref.index] = replacement;
-      } else if (ref.parent) {
+      const parentArr = asArray(ref.parent);
+      if (ref.index !== undefined && parentArr) {
+        parentArr[ref.index] = replacement;
+      } else if (isRecord(ref.parent)) {
         ref.parent[ref.key] = replacement;
       }
     }
@@ -3257,9 +3529,10 @@ function expandRawPropsCaptures(program: any): void {
   }
 
   // Visit all functions in the AST
-  function visit(node: any): void {
-    if (!node || typeof node !== 'object') return;
-    if (Array.isArray(node)) { for (const item of node) visit(item); return; }
+  function visit(node: unknown): void {
+    const arr = asArray(node);
+    if (arr) { for (const item of arr) visit(item); return; }
+    if (!isRecord(node)) return;
     if (node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression' ||
         node.type === 'FunctionDeclaration') {
       processFunctionBody(node);
@@ -3287,23 +3560,24 @@ function expandRawPropsCaptures(program: any): void {
  *
  * Also strips `_captures` imports that become unused after removal.
  */
-function stripCapturesDeclarations(program: any): void {
-  function processBody(body: any[]): void {
-    if (!Array.isArray(body)) return;
+function stripCapturesDeclarations(program: AstCompatNode): void {
+  function processBody(bodyInput: unknown): void {
+    const body = asArray(bodyInput);
+    if (!body) return;
     for (let i = body.length - 1; i >= 0; i--) {
       const stmt = body[i];
-      if (stmt?.type !== 'VariableDeclaration') continue;
+      if (!isRecord(stmt) || stmt.type !== 'VariableDeclaration') continue;
       // Check if ALL declarators are _captures[N] assignments
-      const decls = stmt.declarations;
+      const decls = asArray(stmt.declarations);
       if (!decls || decls.length === 0) continue;
-      const allCaptures = decls.every((d: any) => {
-        if (!d.init) return false;
+      const allCaptures = decls.every((d: unknown) => {
+        if (!isRecord(d) || !isRecord(d.init)) return false;
         // Match _captures[N]
         return d.init.type === 'MemberExpression' &&
-               d.init.object?.type === 'Identifier' &&
+               isRecord(d.init.object) && d.init.object.type === 'Identifier' &&
                d.init.object.name === '_captures' &&
                d.init.computed === true &&
-               d.init.property?.type === 'Literal' &&
+               isRecord(d.init.property) && d.init.property.type === 'Literal' &&
                typeof d.init.property.value === 'number';
       });
       if (allCaptures) {
@@ -3313,11 +3587,12 @@ function stripCapturesDeclarations(program: any): void {
   }
 
   // Process function/arrow bodies throughout the AST
-  function visit(node: any): void {
-    if (!node || typeof node !== 'object') return;
-    if (Array.isArray(node)) { for (const item of node) visit(item); return; }
+  function visit(node: unknown): void {
+    const arr = asArray(node);
+    if (arr) { for (const item of arr) visit(item); return; }
+    if (!isRecord(node)) return;
     if ((node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression' ||
-         node.type === 'FunctionDeclaration') && node.body?.type === 'BlockStatement') {
+         node.type === 'FunctionDeclaration') && isRecord(node.body) && node.body.type === 'BlockStatement') {
       processBody(node.body.body);
     }
     for (const key of Object.keys(node)) {
@@ -3329,23 +3604,25 @@ function stripCapturesDeclarations(program: any): void {
   visit(program);
 }
 
-function walkAndReplace(node: any, replacer: (n: any) => any): void {
-  if (node === null || typeof node !== 'object') return;
-  if (Array.isArray(node)) {
-    for (let i = 0; i < node.length; i++) {
-      node[i] = replacer(node[i]);
-      walkAndReplace(node[i], replacer);
+function walkAndReplace(node: unknown, replacer: (n: unknown) => unknown): void {
+  const arr = asArray(node);
+  if (arr) {
+    for (let i = 0; i < arr.length; i++) {
+      arr[i] = replacer(arr[i]);
+      walkAndReplace(arr[i], replacer);
     }
     return;
   }
+  if (!isRecord(node)) return;
   for (const key of Object.keys(node)) {
     if (key === 'type') continue;
     const val = node[key];
     if (val === null || typeof val !== 'object') continue;
-    if (Array.isArray(val)) {
-      for (let i = 0; i < val.length; i++) {
-        val[i] = replacer(val[i]);
-        walkAndReplace(val[i], replacer);
+    const valArr = asArray(val);
+    if (valArr) {
+      for (let i = 0; i < valArr.length; i++) {
+        valArr[i] = replacer(valArr[i]);
+        walkAndReplace(valArr[i], replacer);
       }
     } else {
       node[key] = replacer(val);

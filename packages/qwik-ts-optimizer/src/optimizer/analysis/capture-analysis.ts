@@ -66,6 +66,36 @@ export function analyzeCaptures(
   };
 }
 
+export function excludeNestedExtractionCaptures(
+  closureNode: AstFunction,
+  captureNames: readonly string[],
+  childRanges: ReadonlyArray<readonly [number, number]>,
+  moduleScopeNames: ReadonlySet<string>,
+): string[] {
+  if (captureNames.length === 0 || childRanges.length === 0) {
+    return [...captureNames];
+  }
+  const moduleLevelCaptures = new Set(
+    captureNames.filter((n) => moduleScopeNames.has(n)),
+  );
+  if (moduleLevelCaptures.size === 0) return [...captureNames];
+
+  const usedOutsideAnyChild = new Set<string>();
+  walk(closureNode, {
+    enter(node: AstNode) {
+      if (node.type !== 'Identifier' && node.type !== 'JSXIdentifier') return;
+      const name = node.name;
+      if (!moduleLevelCaptures.has(name) || usedOutsideAnyChild.has(name)) return;
+      if (!childRanges.some(([s, e]) => node.start >= s && node.start < e)) {
+        usedOutsideAnyChild.add(name);
+      }
+    },
+  });
+  return captureNames.filter(
+    (n) => !moduleLevelCaptures.has(n) || usedOutsideAnyChild.has(n),
+  );
+}
+
 /** Extract all binding names from function parameter AST nodes. */
 function collectParamNames(params: AstParamPattern[]): string[] {
   const names: string[] = [];

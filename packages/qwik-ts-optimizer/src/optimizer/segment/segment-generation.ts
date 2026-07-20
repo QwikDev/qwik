@@ -31,7 +31,7 @@ import {
 import { join } from "pathe";
 import { getDirectory } from "../../paths.js";
 import { resolveEntryField } from "./entry-strategy.js";
-import { buildQrlDeclaration } from "../rewrite/rewrite-calls.js";
+import { buildQrlDeclaration, needsPureAnnotation } from "../rewrite/rewrite-calls.js";
 import { getQrlCalleeName } from "../qwik/qrl-naming.js";
 import { isHtmlElement } from "../jsx/jsx.js";
 import { resolveSameFileImportName } from "./import-collection.js";
@@ -39,7 +39,10 @@ import { buildQrlDevDeclaration } from "./dev-mode.js";
 import { generateStrippedSegmentCode } from "./strip-ctx.js";
 import { hasUnderscorePlaceholderParams, isStrippedExtraction } from "../rewrite/predicates.js";
 import { mkByteOffset, mkRelativePath } from "../types/brands.js";
+import { escapeSymbol } from "../../hashing/naming.js";
 import {
+  buildNoopQrlDeclaration,
+  buildNoopQrlDevDeclaration,
   buildStrippedNoopQrl,
   buildStrippedNoopQrlDev,
   getSentinelCounter,
@@ -691,9 +694,9 @@ export function buildNestedQrlDeclarations(
 }
 
 /**
- * The `const q_<sym> = qrl(...)` / `qrlDEV(...)` declaration a segment owns for
- * an extraction whose source decl moved into it: dev emits the `qrlDEV(...)`
- * form with source metadata, prod the bare `qrl(...)` form.
+ * A moved extraction's owned QRL declaration + the core helper it imports.
+ * A stripped body has no chunk, so it registers a `_noopQrl` rather than a
+ * `qrl(()=>import(strippedChunk))` that would resolve to the chunk's `null`.
  */
 function buildMovedQrlDecl(
   ext: ConsolidatedSegment,
@@ -702,32 +705,53 @@ function buildMovedQrlDecl(
   devFile: string | undefined,
   qrlOutputExt: string | undefined,
   sourceExtensions: Map<string, string>,
-): string {
+): { decl: string; qrlHelper: string } {
+  const stripped = isStrippedExtraction(
+    ext,
+    options.stripCtxName,
+    options.stripEventHandlers,
+  );
+  if (stripped) {
+    if (isDevMode && devFile) {
+      return {
+        decl: buildNoopQrlDevDeclaration(ext.symbolName, {
+          file: devFile,
+          lo: 0,
+          hi: 0,
+          displayName: ext.displayName,
+        }),
+        qrlHelper: "_noopQrlDEV",
+      };
+    }
+    return { decl: buildNoopQrlDeclaration(ext.symbolName), qrlHelper: "_noopQrl" };
+  }
   if (isDevMode && devFile) {
     const devExt = options.explicitExtensions ? (qrlOutputExt ?? ".js") : undefined;
-    return buildQrlDevDeclaration(
-      ext.symbolName,
-      ext.canonicalFilename,
-      devFile,
-      ext.loc[0],
-      ext.loc[1],
-      ext.displayName,
-      devExt,
-    );
+    return {
+      decl: buildQrlDevDeclaration(
+        ext.symbolName,
+        ext.canonicalFilename,
+        devFile,
+        ext.loc[0],
+        ext.loc[1],
+        ext.displayName,
+        devExt,
+      ),
+      qrlHelper: "qrlDEV",
+    };
   }
   const outputExt =
     qrlOutputExt ?? sourceExtensions.get(ext.symbolName) ?? ext.extension;
-  return buildQrlDeclaration(
-    ext.symbolName,
-    ext.canonicalFilename,
-    options.explicitExtensions,
-    ext.extension,
-    outputExt,
-  );
-}
-
-function qrlDeclImportName(isDevMode: boolean, devFile: string | undefined): string {
-  return isDevMode && devFile !== undefined ? "qrlDEV" : "qrl";
+  return {
+    decl: buildQrlDeclaration(
+      ext.symbolName,
+      ext.canonicalFilename,
+      options.explicitExtensions,
+      ext.extension,
+      outputExt,
+    ),
+    qrlHelper: "qrl",
+  };
 }
 
 /**
@@ -752,17 +776,14 @@ function tryBuildMarkerDeclMove(
   sourceExtensions: Map<string, string>,
   isDevMode: boolean,
   devFile: string | undefined,
+  originalImports: Map<string, ImportInfo>,
 ): {
   qrlDecl: string;
   wrapDecl: string;
   importDeps: Array<{ localName: string; importedName: string; source: string }>;
 } | null {
-  // Match the decl to its top-level marker-call extraction by displayName.
-  // Format is `<fileStem>_<declName>(_<marker>...)` per `naming.ts`; positional
-  // matching via `ext.loc` doesn't work here because `loc` is stored as
-  // `[line, col]`, not the `[start, end]` byte range surfaced in snapshots.
   const fileStem = relPath.split("/").pop() ?? relPath;
-  const exactDisplayName = `${fileStem}_${decl.name}`;
+  const exactDisplayName = `${fileStem}_${escapeSymbol(decl.name)}`;
   const prefixDisplayName = `${exactDisplayName}_`;
   let match: ConsolidatedSegment | null = null;
   for (const ext of extractions) {
@@ -780,12 +801,20 @@ function tryBuildMarkerDeclMove(
   const qrlCallee = getQrlCalleeName(match.ctxName);
   if (!qrlCallee) return null;
 
-  const qrlDecl = buildMovedQrlDecl(match, options, isDevMode, devFile, qrlOutputExt, sourceExtensions);
-  const qrlImportName = qrlDeclImportName(isDevMode, devFile);
-  const wrapDecl = `const ${decl.name} = /*#__PURE__*/ ${qrlCallee}(q_${match.symbolName});`;
+  const { decl: qrlDecl, qrlHelper } = buildMovedQrlDecl(
+    match,
+    options,
+    isDevMode,
+    devFile,
+    qrlOutputExt,
+    sourceExtensions,
+  );
+  const pure = needsPureAnnotation(qrlCallee) ? "/*#__PURE__*/ " : "";
+  const wrapDecl = `const ${decl.name} = ${pure}${qrlCallee}(q_${match.symbolName});`;
+  const calleeSource = originalImports.get(match.ctxName)?.source ?? "@qwik.dev/core";
   const importDeps = [
-    { localName: qrlImportName, importedName: qrlImportName, source: "@qwik.dev/core" },
-    { localName: qrlCallee, importedName: qrlCallee, source: "@qwik.dev/core" },
+    { localName: qrlHelper, importedName: qrlHelper, source: "@qwik.dev/core" },
+    { localName: qrlCallee, importedName: qrlCallee, source: calleeSource },
   ];
   return { qrlDecl, wrapDecl, importDeps };
 }
@@ -821,15 +850,16 @@ function buildMovedQrlSupport(
   if (matched.length === 0) return { qrlDecls, importDeps };
 
   const isDevMode = ctx.emitMode === "dev" || ctx.emitMode === "hmr";
-  const qrlImportName = qrlDeclImportName(isDevMode, ctx.devFile);
-  importDeps.push({ localName: qrlImportName, importedName: qrlImportName, source: "@qwik.dev/core" });
+  const qrlHelpers = new Set<string>();
 
   matched.sort((a, b) => a.symbolName.localeCompare(b.symbolName));
   for (const e of matched) {
     declared.add(e.symbolName);
-    qrlDecls.push(
-      buildMovedQrlDecl(e, ctx.options, isDevMode, ctx.devFile, ctx.qrlOutputExt, ctx.sourceExtensions),
+    const { decl, qrlHelper } = buildMovedQrlDecl(
+      e, ctx.options, isDevMode, ctx.devFile, ctx.qrlOutputExt, ctx.sourceExtensions,
     );
+    qrlDecls.push(decl);
+    qrlHelpers.add(qrlHelper);
     const callee = getQrlCalleeName(e.ctxName);
     if (
       callee &&
@@ -839,7 +869,10 @@ function buildMovedQrlSupport(
       importDeps.push({ localName: callee, importedName: callee, source: "@qwik.dev/core" });
     }
   }
-  return { qrlDecls, importDeps };
+  const helperDeps = [...qrlHelpers].map((h) => ({
+    localName: h, importedName: h, source: "@qwik.dev/core",
+  }));
+  return { qrlDecls, importDeps: [...helperDeps, ...importDeps] };
 }
 
 /**
@@ -924,6 +957,7 @@ function emitMovedDeclaration(
     ctx.sourceExtensions,
     isDevMode,
     ctx.devFile,
+    ctx.originalImports,
   );
   if (markerXform) {
     captureInfo.movedDeclarations.push({

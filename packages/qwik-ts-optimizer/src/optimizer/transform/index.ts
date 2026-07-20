@@ -36,6 +36,7 @@ import { type SymbolName, mkSymbolName, type RelativePath } from '../types/brand
 import {
   analyzeCaptures,
   collectScopeIdentifiers,
+  excludeNestedExtractionCaptures,
 } from "../analysis/capture-analysis.js";
 import {
   gatherModuleFacts,
@@ -583,6 +584,19 @@ function analyzeModuleCaptures(
 
   const enclosingExtMap = buildParentExtractionMap(extractions);
 
+  const emitsChildFiles =
+    entryStrategy.type !== "inline" && entryStrategy.type !== "hoist";
+  const childRangesByParent = new Map<string, Array<readonly [number, number]>>();
+  if (emitsChildFiles) {
+    for (const child of extractions) {
+      const parent = enclosingExtMap.get(child.symbolName);
+      if (!parent) continue;
+      const ranges = childRangesByParent.get(parent.symbolName) ?? [];
+      ranges.push([child.argStart, child.argEnd]);
+      childRangesByParent.set(parent.symbolName, ranges);
+    }
+  }
+
   // Capture analysis: determine which variables each extraction captures
   const moduleScopeIds = collectScopeIdentifiers(
     program,
@@ -671,6 +685,17 @@ function analyzeModuleCaptures(
           : classifyDeclarationType(program, name);
         return declType === "var";
       });
+      extraction.captures = extraction.captureNames.length > 0;
+    }
+
+    const childRanges = childRangesByParent.get(extraction.symbolName);
+    if (childRanges && extraction.captureNames.length > 0) {
+      extraction.captureNames = excludeNestedExtractionCaptures(
+        closureNode,
+        extraction.captureNames,
+        childRanges,
+        moduleScopeIds,
+      );
       extraction.captures = extraction.captureNames.length > 0;
     }
 

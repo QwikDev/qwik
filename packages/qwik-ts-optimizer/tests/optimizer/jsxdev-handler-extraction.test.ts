@@ -84,10 +84,9 @@ describe('pre-transformed `_jsxDEV` event-handler extraction', () => {
     expect(component!.code).toMatch(/"q-e:click":\s*q_/);
     expect(component!.code).not.toContain('=> testServer$()');
 
-    // The `const testServer$ = serverQrl(…)` binding stays defined in the
-    // parent (it was being stripped to a bare `serverQrl(q_…);` statement).
-    expect(parent.code).toMatch(/const testServer\$ = (?:\/\*#__PURE__\*\/ )?serverQrl\(/);
-    expect(parent.code).not.toMatch(/^\s*serverQrl\(/m);
+    expect(handler!.code, 'binding survives via MOVE, not a parent reexport').toMatch(/const testServer\$ = serverQrl\(q_/);
+    expect(parent.code, 'parent no longer owns the binding').not.toMatch(/const testServer\$ =/);
+    expect(parent.code, 'no dropped-binding `serverQrl(q_…);` statement').not.toMatch(/^\s*serverQrl\(/m);
   });
 
   test('server/hoist+stripEventHandlers: no JSX-attribute syntax leaks into the object literal', () => {

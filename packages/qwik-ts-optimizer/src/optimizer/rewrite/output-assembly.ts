@@ -18,6 +18,7 @@ import {
   getQrlImportSource,
 } from './rewrite-calls.js';
 import { isLibModePreservedMarker } from '../qwik/qrl-naming.js';
+import { escapeSymbol } from '../../hashing/naming.js';
 import { buildQrlDevDeclaration, buildDevFilePath } from '../segment/dev-mode.js';
 import {
   buildNoopQrlDeclaration,
@@ -170,7 +171,7 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
     const fileStem = relPath.split('/').pop() ?? relPath;
     for (const decision of ctx.migrationDecisions) {
       if (decision.action !== 'move') continue;
-      const exact = `${fileStem}_${decision.varName}`;
+      const exact = `${fileStem}_${escapeSymbol(decision.varName)}`;
       const prefix = `${exact}_`;
       // No early exit: a moved helper can own several extractions (e.g. a
       // goto fallback AND a useTask body) — every one of them loses its

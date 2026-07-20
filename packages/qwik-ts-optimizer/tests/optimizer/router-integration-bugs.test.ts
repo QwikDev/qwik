@@ -181,16 +181,7 @@ export const App = component$(() => {
 	});
 });
 
-describe('reexported `const X = server$(…)` keeps its binding', () => {
-	// Bug surfaced running the real vite-qwik-router fixture under the dev SSR
-	// server: `testServer$ is not defined`. A route declares
-	// `const testServer$ = server$(() => …)` and calls it from an `onClick$`.
-	// The handler is extracted into a segment, so `testServer$` looks unused in
-	// the parent and `removeUnusedBindings` stripped the `const testServer$ =`
-	// binding to a bare `serverQrl(q_…);` statement. But migration re-exports it
-	// (`export { testServer$ as _auto_testServer$ }`) for the segment to import,
-	// so the re-export then referenced an undefined name. `removeUnusedBindings`
-	// must keep bindings migration marked `reexport`.
+describe('single-consumer `const X = server$(…)` migrates to its one consumer', () => {
 	const code = `import { component$, useSignal } from '@qwik.dev/core';
 import { server$ } from '@qwik.dev/router';
 
@@ -220,14 +211,39 @@ export default component$(() => {
 	}
 
 	for (const isServer of [true, false]) {
-		test(`parent keeps \`const testServer$ = serverQrl(…)\` (isServer=${isServer})`, () => {
+		test(`testServer$ is moved into the handler segment, not kept in the parent (isServer=${isServer})`, () => {
 			const result = run(isServer);
 			const parent = result.modules.find((m) => m.kind === 'parent') ?? result.modules[0]!;
-			// Binding kept (not stripped to a bare `serverQrl(q_…);` statement)…
-			expect(parent.code).toMatch(/const testServer\$ = \/\*#__PURE__\*\/ serverQrl\(|const testServer\$ = serverQrl\(/);
-			// …so the re-export resolves to a defined name rather than a bare
-			// `serverQrl(q_…);` expression statement.
-			expect(parent.code).not.toMatch(/^\s*serverQrl\(/m);
+			const handler = result.modules.find(
+				(m) => m.kind === 'segment' && m.code.includes('testServer$()'),
+			);
+
+			expect(handler, 'binding moved into its one consumer, self-contained').toBeDefined();
+			expect(handler!.code).toMatch(/const testServer\$ = serverQrl\(q_/);
+			expect(handler!.code).toMatch(/import \{ serverQrl \} from "@qwik\.dev\/router"/);
+			expect(parent.code, 'parent no longer owns the binding').not.toMatch(/const testServer\$ =/);
+			expect(parent.code, 'no dropped-binding `serverQrl(q_…);` statement').not.toMatch(/^\s*serverQrl\(/m);
 		});
 	}
+
+	test('strip-aware: moved decl registers via `_noopQrl`, not a stripped-chunk import', () => {
+		const result = transformModule({
+			srcDir: mkFilePath('/proj'),
+			input: [{ path: mkFilePath('/proj/src/routes/index.tsx'), code: mkSourceText(code) }],
+			transpileTs: true,
+			transpileJsx: true,
+			explicitExtensions: true,
+			preserveFilenames: true,
+			mode: 'prod',
+			isServer: false,
+			stripCtxName: ['server'],
+		});
+		const handler = result.modules.find(
+			(m) => m.kind === 'segment' && m.code.includes('testServer$()'),
+		);
+		expect(handler, 'expected a handler segment consuming testServer$').toBeDefined();
+		expect(handler!.code).toMatch(/const testServer\$ = serverQrl\(q_/);
+		expect(handler!.code).toMatch(/_noopQrl\("s_/);
+		expect(handler!.code).not.toMatch(/qrl\(\(\)\s*=>\s*import\(/);
+	});
 });

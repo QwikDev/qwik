@@ -536,11 +536,12 @@ function qwikRouterPlugin(
             // route files are optimized, so loadersByFile is empty here; pass undefined to
             // emit __LOADERS:...__ placeholders that generateBundle replaces after optimization.
             const isServerConsumer = this.environment.config.consumer === 'server';
+            const isSSG = this.environment.name === 'ssg';
             // Prune the deployed SSR plan (drop prerendered server-free routes so their chunks
             // tree-shake out). The adapter's dedicated `ssg` environment renders every page, so it
             // (like the client and dev) keeps the full trie — keyed on the environment name.
             const serverExcludePaths =
-              isServerConsumer && !devServer && this.environment.name !== 'ssg'
+              isServerConsumer && !devServer && !isSSG
                 ? await getServerExcludedRoutes(ctx, ssgRoutePatterns)
                 : undefined;
             reExportedRouteLoaderSources = await findRouteLoaderSourceFiles(
@@ -554,6 +555,7 @@ function qwikRouterPlugin(
               ctx,
               qwikPlugin!,
               isServerConsumer,
+              isSSG,
               devServer ? loadersByFile : undefined,
               serverExcludePaths,
               reExportedRouteLoaderSources

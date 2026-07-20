@@ -9,6 +9,7 @@ export function generateQwikRouterConfig(
   ctx: RoutingContext,
   qwikPlugin: QwikVitePlugin,
   isSSR: boolean,
+  isSSG: boolean,
   loadersByFile?: Map<string, string[]>,
   serverExcludePaths?: ReadonlySet<string>,
   routeLoaderSourceFiles?: RouteLoaderSourceFiles
@@ -19,9 +20,8 @@ export function generateQwikRouterConfig(
   c.push(`\n/** Qwik Router Config */`);
   c.push(`\nimport { isDev } from '@qwik.dev/core/build';`);
 
-  if (isSSR) {
-    // Eagerly import all modules containing server$ functions so their _regSymbol
-    // side effects run before any RPC request arrives
+  if (isSSR && !isSSG) {
+    // SSG never dispatches RPC, so skip the registry that eagerly links every server$ module.
     esmImports.push(`import 'virtual:qwik-router-server-fns';`);
   }
 

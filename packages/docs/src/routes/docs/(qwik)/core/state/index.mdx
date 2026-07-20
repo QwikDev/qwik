@@ -36,7 +36,8 @@ contributors:
   - Jemsco
   - shairez
   - ianlet
-updated_at: '2023-10-04T21:48:45Z'
+  - youdie006
+updated_at: '2026-07-13T00:00:00Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
 
@@ -218,6 +219,38 @@ export default component$(() => {
 ```
 
 > Do you know why you should use a regular `function(){}` instead of an arrow function in `useStore()`? This is because [arrow functions don't have their own bindings to `this`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions) in JavaScript. This means that if you try to access `this` using an arrow function, `this.count` could point to another object's `count` 😱.
+
+## `useConstant()`
+
+Use `useConstant()` to store a value that is computed **once** and retained for the entire lifetime of the component. Unlike `useSignal()` and `useComputed$()`, the value is not reactive: every subsequent render returns the very first value, and it is never recomputed.
+
+If the value is a function, `useConstant()` invokes it a single time (on the first render) to calculate the value. This makes it a good fit for values that should stay stable across re-renders, such as a generated id, or for a value that is expensive to create and only needs to be created once.
+
+<CodeSandbox src="/src/routes/demo/state/use-constant/index.tsx" style={{ height: '8em' }}>
+```tsx {5} /useConstant/
+import { component$, useConstant, useSignal } from '@builder.io/qwik';
+
+export default component$(() => {
+  // Computed once on the first render and never recomputed.
+  const componentId = useConstant(() => Math.random().toString(36).slice(2, 8));
+  const count = useSignal(0);
+
+  return (
+    <>
+      <p>Component id: {componentId}</p>
+      <p>Count: {count.value}</p>
+      <button onClick$={() => count.value++}>Increment</button>
+    </>
+  );
+});
+```
+</CodeSandbox>
+
+Incrementing the counter updates the `count` signal, but `componentId` keeps its original value: `useConstant()` runs its factory only on the first render and returns that same value every time afterwards.
+
+> **NOTE** A factory that returns `undefined` is re-run on every render. Only defined values are retained — including `null`. If you need to cache the absence of a value, return `null` rather than `undefined`.
+
+> **NOTE** `useConstant()` returns the raw value directly, not a signal. Reach for `useSignal()` when the value needs to change over time, or `useComputed$()` when it should be derived from other state and kept in sync with it. Use `useConstant()` only when the value must be calculated a single time and then stay fixed.
 
 ## Computed state
 

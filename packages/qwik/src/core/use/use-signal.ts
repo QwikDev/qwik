@@ -33,12 +33,17 @@ export const createSignal: UseSignal = <STATE>(initialState?: STATE): Signal<STA
  *
  * If the value is a function, the function is invoked to calculate the actual value.
  *
+ * A factory that returns `undefined` is re-run on every render; any defined value (including
+ * `null`) is retained and returned on subsequent renders.
+ *
  * @deprecated This is a technology preview
  * @public
  */
 export const useConstant = <T>(value: (() => T) | T): T => {
   const { val, set } = useSequentialScope<T>();
-  if (val != null) {
+  // The stored value is `undefined` until the factory has produced a value, so only an
+  // `undefined` result re-runs the factory; a `null` result is retained.
+  if (val !== undefined) {
     return val;
   }
   // Note: We are not using `invoke` here because we don't want to clear the context

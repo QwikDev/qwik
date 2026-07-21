@@ -1,7 +1,7 @@
 import { cancel, intro, log, spinner as spinnerPrompt } from '@clack/prompts';
 
 import type { CreateAppResult } from 'packages/qwik/src/cli/types';
-import { bgBlue } from 'kleur/colors';
+import pc from 'picocolors';
 import { clearDir } from './helpers/clearDir';
 import { createApp } from './create-app';
 import fs from 'node:fs';
@@ -63,7 +63,7 @@ export async function runCreateCli(...args: string[]): Promise<CreateAppResult> 
 
   let outDir = parsedArgs.outDir;
 
-  intro(`Let's create a ${bgBlue(' Qwik App ')} ✨ (v${(globalThis as any).QWIK_VERSION})`);
+  intro(`Let's create a ${pc.bgBlue(' Qwik App ')} ✨ (v${(globalThis as any).QWIK_VERSION})`);
 
   if (writeToCwd()) {
     // write to the current working directory

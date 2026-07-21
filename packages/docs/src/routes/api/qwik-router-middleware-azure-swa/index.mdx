@@ -21,7 +21,7 @@ createQwikCity: typeof createQwikRouter;
 ```typescript
 export declare function createQwikRouter(
   opts: QwikRouterAzureOptions,
-): AzureFunction;
+): HttpHandler;
 ```
 
 <table><thead><tr><th>
@@ -52,17 +52,17 @@ opts
 
 **Returns:**
 
-AzureFunction
+HttpHandler
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/azure-swa/index.ts)
 
 <h2 id="platformazure">PlatformAzure</h2>
 
 ```typescript
-export interface PlatformAzure extends Partial<Context>
+export interface PlatformAzure extends Partial<InvocationContext>
 ```
 
-**Extends:** Partial&lt;Context&gt;
+**Extends:** Partial&lt;InvocationContext&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/azure-swa/index.ts)
 

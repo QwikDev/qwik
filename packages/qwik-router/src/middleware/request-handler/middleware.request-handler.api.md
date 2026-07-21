@@ -9,7 +9,7 @@ import type { AsyncLocalStorage } from 'node:async_hooks';
 import type { EnvGetter as EnvGetter_2 } from '@qwik.dev/router/middleware/request-handler';
 import type { FailReturn } from '@qwik.dev/router';
 import type { JSXOutput } from '@qwik.dev/core';
-import type { Loader as Loader_2 } from '@qwik.dev/router';
+import type { Loader } from '@qwik.dev/router';
 import type { QwikIntrinsicElements } from '@qwik.dev/core';
 import type { Render } from '@qwik.dev/core/server';
 import type { RenderOptions } from '@qwik.dev/core/server';
@@ -183,7 +183,7 @@ export interface ResolveSyncValue {
     // (undocumented)
     <T, INPUT, OPTIONAL extends boolean>(action: Action<T, INPUT, OPTIONAL>): Awaited<T> | undefined;
     // (undocumented)
-    <T>(loader: Loader_2<T>): Awaited<T> extends () => any ? never : Awaited<T>;
+    <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Awaited<T>;
 }
 
 // @public (undocumented)
@@ -191,7 +191,7 @@ export interface ResolveValue {
     // (undocumented)
     <T, INPUT, OPTIONAL extends boolean>(action: Action<T, INPUT, OPTIONAL>): Promise<T | undefined>;
     // (undocumented)
-    <T>(loader: Loader_2<T>): Awaited<T> extends () => any ? never : Promise<T>;
+    <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Promise<T>;
 }
 
 // @public (undocumented)

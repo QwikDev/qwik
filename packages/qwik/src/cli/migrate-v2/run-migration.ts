@@ -1,6 +1,6 @@
 import { confirm, intro, isCancel, log } from '@clack/prompts';
 import type { AppCommand } from '../utils/app-command';
-import { bgMagenta, bgRed, bold, green } from 'kleur/colors';
+import pc from 'picocolors';
 import { bye } from '../utils/utils';
 import { replacePackage } from './replace-package';
 import {
@@ -11,11 +11,11 @@ import {
 
 export async function runV2Migration(app: AppCommand) {
   intro(
-    `✨  ${bgMagenta(' This command will migrate your Qwik application from v1 to v2')}\n` +
+    `✨  ${pc.bgMagenta(' This command will migrate your Qwik application from v1 to v2')}\n` +
       `This includes the following: \n` +
       `  - "@builder.io/qwik", "@builder.io/qwik-city" and "@builder.io/qwik-react" packages will be rescoped to "@qwik.dev/core", "@qwik.dev/router" and "@qwik.dev/react" respectively \n` +
       `  - related dependencies will be updated \n\n` +
-      `${bold(bgRed('Warning: migration tool is experimental and will migrate your application to the "alpha" release of Qwik V2'))}`
+      `${pc.bold(pc.bgRed('Warning: migration tool is experimental and will migrate your application to the "alpha" release of Qwik V2'))}`
   );
   const proceed = await confirm({
     message: 'Do you want to proceed?',
@@ -62,7 +62,7 @@ export async function runV2Migration(app: AppCommand) {
     // updateConfigurations();
 
     await updateDependencies();
-    log.success(`${green(`Your application has been successfully migrated to v2!`)}`);
+    log.success(`${pc.green(`Your application has been successfully migrated to v2!`)}`);
   } catch (error) {
     console.error(error);
     throw error;

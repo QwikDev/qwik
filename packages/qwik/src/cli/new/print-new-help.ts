@@ -1,4 +1,4 @@
-import { cyan, magenta, gray, dim } from 'kleur/colors';
+import pc from 'picocolors';
 import { loadTemplates } from '../utils/templates';
 import { pmRunCmd, note } from '../utils/utils';
 
@@ -7,30 +7,30 @@ export async function printNewHelp() {
   const templates = await loadTemplates();
 
   const outString = [];
-  outString.push(`${cyan('Interactive')}`);
-  outString.push(`  ${pmRun} qwik ${magenta(`new`)}`);
+  outString.push(`${pc.cyan('Interactive')}`);
+  outString.push(`  ${pmRun} qwik ${pc.magenta(`new`)}`);
 
   outString.push(``);
-  outString.push(`${cyan('New route')}`);
+  outString.push(`${pc.cyan('New route')}`);
   outString.push(
-    `  ${pmRun} qwik ${magenta(`new /about`)}: ${dim('Create a new route for /about')}`
+    `  ${pmRun} qwik ${pc.magenta(`new /about`)}: ${pc.dim('Create a new route for /about')}`
   );
 
   outString.push(``);
-  outString.push(`${cyan('New component')}`);
+  outString.push(`${pc.cyan('New component')}`);
   outString.push(
-    `  ${pmRun} qwik ${magenta(`new my-button`)}: ${dim(
+    `  ${pmRun} qwik ${pc.magenta(`new my-button`)}: ${pc.dim(
       'Create a new component in src/components/my-button'
     )}`
   );
   outString.push(
-    `  ${pmRun} qwik ${magenta(`new nested/my-button`)}: ${dim(
+    `  ${pmRun} qwik ${pc.magenta(`new nested/my-button`)}: ${pc.dim(
       'Create a new component in src/components/nested/my-button'
     )}`
   );
 
   outString.push(``);
-  outString.push(`${cyan('Available templates')}`);
+  outString.push(`${pc.cyan('Available templates')}`);
   for (let i = 0; i < templates.length; i++) {
     const t = templates[i];
     let postfix = '';
@@ -38,7 +38,7 @@ export async function printNewHelp() {
       postfix = ' (default)';
     }
 
-    outString.push(`  ${t.id}${gray(postfix)}`);
+    outString.push(`  ${t.id}${pc.gray(postfix)}`);
   }
 
   note(outString.join('\n'), 'Available commands');

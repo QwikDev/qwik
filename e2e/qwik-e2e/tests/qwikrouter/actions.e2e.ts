@@ -66,7 +66,7 @@ test.describe('actions', () => {
 
         await expect(other).toHaveText('false:::');
         await submit.click();
-        await expect(usernameError).toHaveText('String must contain at least 3 character(s)');
+        await expect(usernameError).toHaveText('Too small: expected string to have >=3 characters');
         await expect(codeError).toBeHidden();
         await expect(other).toHaveText('false:::');
 
@@ -74,7 +74,7 @@ test.describe('actions', () => {
         await code.fill('text');
         await submit.click();
         await expect(usernameError).toBeHidden();
-        await expect(codeError).toHaveText('Expected number, received nan');
+        await expect(codeError).toHaveText('Invalid input: expected number, received NaN');
         await expect(username).toHaveValue('Manuel');
         await expect(code).toHaveValue('text');
         await expect(other).toHaveText('false:::');
@@ -82,8 +82,8 @@ test.describe('actions', () => {
         await username.clear();
         await username.fill('Ma');
         await submit.click();
-        await expect(usernameError).toHaveText('String must contain at least 3 character(s)');
-        await expect(codeError).toHaveText('Expected number, received nan');
+        await expect(usernameError).toHaveText('Too small: expected string to have >=3 characters');
+        await expect(codeError).toHaveText('Invalid input: expected number, received NaN');
         await expect(username).toHaveValue('Ma');
         await expect(code).toHaveValue('text');
         await expect(other).toHaveText('false:::');

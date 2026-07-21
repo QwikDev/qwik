@@ -1,4 +1,4 @@
-import { bgRed, cyan, red } from 'kleur/colors';
+import pc from 'picocolors';
 import fs from 'node:fs';
 import path from 'node:path';
 import { log } from '@clack/prompts';
@@ -64,17 +64,17 @@ export function backgroundInstallDeps(pkgManager: string, baseApp: IntegrationDa
     } catch (e: any) {
       if (e) {
         if (e.message) {
-          log.error(red(String(e.message)) + `\n\n`);
+          log.error(pc.red(String(e.message)) + `\n\n`);
         } else {
-          log.error(red(String(e)) + `\n\n`);
+          log.error(pc.red(String(e)) + `\n\n`);
         }
       }
     }
 
     if (!success) {
       const errorMessage =
-        `${bgRed(` ${pkgManager} install failed `)}\n` +
-        ` You might need to run ${cyan(
+        `${pc.bgRed(` ${pkgManager} install failed `)}\n` +
+        ` You might need to run ${pc.cyan(
           `"${pkgManager} install"`
         )} manually inside the root of the project.\n\n`;
       log.error(errorMessage);
@@ -105,7 +105,7 @@ function setupTmpInstall(baseApp: IntegrationData) {
   try {
     fs.mkdirSync(tmpInstallDir);
   } catch (e) {
-    log.error(`❌ ${red(String(e))}`);
+    log.error(`❌ ${pc.red(String(e))}`);
   }
 
   const basePkgJson = path.join(baseApp.dir, 'package.json');

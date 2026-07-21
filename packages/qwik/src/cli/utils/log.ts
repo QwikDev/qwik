@@ -1,18 +1,18 @@
 import type { NextSteps } from '../types';
-import { cyan } from 'kleur/colors';
+import pc from 'picocolors';
 
 export function logSuccessFooter(docs: string[]) {
   const outString = [];
 
   if (docs.length > 0) {
-    outString.push(`📄 ${cyan('Relevant docs:')}`);
+    outString.push(`📄 ${pc.cyan('Relevant docs:')}`);
     for (let i = 0; i < docs.length; i++) {
       const link = docs[i];
       outString.push(`   ${link}`);
     }
   }
   outString.push(``);
-  outString.push(`💬 ${cyan('Questions? Start the conversation at:')}`);
+  outString.push(`💬 ${pc.cyan('Questions? Start the conversation at:')}`);
   outString.push(`   https://qwik.dev/chat`);
   outString.push(`   https://twitter.com/QwikDev`);
   outString.push(``);

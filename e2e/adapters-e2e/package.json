@@ -1,5 +1,6 @@
 {
   "name": "qwik-buffering-test-app",
+  "version": "0.0.0",
   "description": "Qwik buffering test app",
   "engines": {
     "node": "^18.17.0 || ^20.3.0 || >=21.0.0"

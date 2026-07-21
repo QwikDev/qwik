@@ -2,7 +2,7 @@ import type { Transformer } from 'unified';
 import { toString } from 'hast-util-to-string';
 import { visit } from 'unist-util-visit';
 import { refractor } from 'refractor';
-import tsxLang from 'refractor/lang/tsx.js';
+import tsxLang from 'refractor/tsx';
 
 export function rehypeSyntaxHighlight(): Transformer {
   refractor.register(tsxLang);

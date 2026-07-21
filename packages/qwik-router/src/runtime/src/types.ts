@@ -1115,12 +1115,12 @@ export type ValibotConstructorQRL = {
 };
 
 /** @public */
-export type ZodDataValidator<T extends z.ZodType = z.ZodType> = {
+export type ZodDataValidator<T extends z.core.$ZodType = z.core.$ZodType> = {
   readonly __brand: 'zod';
   validate(
     ev: RequestEvent,
     data: unknown
-  ): Promise<ValidatorReturn<ValidatorErrorType<z.input<T>>>>;
+  ): Promise<ValidatorReturn<ValidatorErrorType<z.core.input<T>>>>;
 };
 
 /** @public */
@@ -1129,8 +1129,10 @@ export type ZodConstructor = {
   <T extends z.ZodRawShape>(
     schema: (zod: typeof z.z, ev: RequestEvent) => T
   ): ZodDataValidator<z.ZodObject<T>>;
-  <T extends z.Schema>(schema: T): ZodDataValidator<T>;
-  <T extends z.Schema>(schema: (zod: typeof z.z, ev: RequestEvent) => T): ZodDataValidator<T>;
+  <T extends z.core.$ZodType>(schema: T): ZodDataValidator<T>;
+  <T extends z.core.$ZodType>(
+    schema: (zod: typeof z.z, ev: RequestEvent) => T
+  ): ZodDataValidator<T>;
 };
 
 /** @public */
@@ -1139,8 +1141,10 @@ export type ZodConstructorQRL = {
   <T extends z.ZodRawShape>(
     schema: QRL<(zod: typeof z.z, ev: RequestEvent) => T>
   ): ZodDataValidator<z.ZodObject<T>>;
-  <T extends z.Schema>(schema: QRL<T>): ZodDataValidator<T>;
-  <T extends z.Schema>(schema: QRL<(zod: typeof z.z, ev: RequestEvent) => T>): ZodDataValidator<T>;
+  <T extends z.core.$ZodType>(schema: QRL<T>): ZodDataValidator<T>;
+  <T extends z.core.$ZodType>(
+    schema: QRL<(zod: typeof z.z, ev: RequestEvent) => T>
+  ): ZodDataValidator<T>;
 };
 
 /** @public */

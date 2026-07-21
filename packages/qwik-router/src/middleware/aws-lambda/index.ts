@@ -78,7 +78,7 @@ export function createQwikRouter(opts: AwsOpt): QwikRouterAwsLambdaMiddleware {
 
     return { fixPath, router, staticFile, notFound, handle };
   } catch (err: any) {
-    throw new Error(err.message);
+    throw new Error(err.message, { cause: err });
   }
 }
 

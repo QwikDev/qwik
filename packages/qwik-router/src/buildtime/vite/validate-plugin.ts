@@ -21,6 +21,6 @@ export async function validatePlugin(opts: NormalizedPluginOptions) {
       );
     }
   } catch (e) {
-    throw new Error(`qwikRouter plugin "routesDir" not found: ${e}`);
+    throw new Error(`qwikRouter plugin "routesDir" not found: ${e}`, { cause: e });
   }
 }

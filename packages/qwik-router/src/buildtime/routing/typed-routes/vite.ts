@@ -40,7 +40,7 @@ async function assertDirectoryExists(directoryPath: string) {
       throw new Error(`${directoryPath} is not a directory.`);
     }
   } catch (error) {
-    throw new Error(`Directory ${directoryPath} does not exist.`);
+    throw new Error(`Directory ${directoryPath} does not exist.`, { cause: error });
   }
 }
 

@@ -106,6 +106,7 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-function-type': 'off',
       '@typescript-eslint/no-require-imports': 'off',
       '@typescript-eslint/no-wrapper-object-types': 'off',
+      'no-useless-assignment': 'off',
     },
   },
   {

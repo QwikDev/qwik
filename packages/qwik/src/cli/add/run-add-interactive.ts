@@ -1,5 +1,5 @@
 import { intro, isCancel, log, outro, select, spinner } from '@clack/prompts';
-import { bgBlue, bgMagenta, blue, bold, cyan, magenta } from 'kleur/colors';
+import pc from 'picocolors';
 import type { IntegrationData, UpdateAppOptions, UpdateAppResult } from '../types';
 import { loadIntegrations, sortIntegrationsAndReturnAsClackOptions } from '../utils/integrations';
 import { bye, getPackageManager, note, panic } from '../utils/utils';
@@ -22,10 +22,10 @@ export async function runAddInteractive(app: AppCommand, id: string | undefined)
       throw new Error(`Invalid integration: ${id}`);
     }
 
-    intro(`🦋 ${bgBlue(` Add Integration `)} ${bold(magenta(integration.id))}`);
+    intro(`🦋 ${pc.bgBlue(` Add Integration `)} ${pc.bold(pc.magenta(integration.id))}`);
   } else {
     // use interactive cli to choose which integration to add
-    intro(`🦋 ${bgBlue(` Add Integration `)}`);
+    intro(`🦋 ${pc.bgBlue(` Add Integration `)}`);
 
     const integrationChoices = [
       ...integrations.filter((i) => i.type === 'adapter'),
@@ -107,12 +107,14 @@ async function logUpdateAppResult(pkgManager: string, result: UpdateAppResult) {
     panic(`No updates made`);
   }
 
-  log.step(`👻 ${bgBlue(` Ready? `)} Add ${bold(magenta(result.integration.id))} to your app?`);
+  log.step(
+    `👻 ${pc.bgBlue(` Ready? `)} Add ${pc.bold(pc.magenta(result.integration.id))} to your app?`
+  );
 
   if (modifyFiles.length > 0) {
     log.message(
       [
-        `🐬 ${cyan('Modify')}`,
+        `🐬 ${pc.cyan('Modify')}`,
         ...modifyFiles.map((f) => `   - ${relative(process.cwd(), f.path)}`),
       ].join('\n')
     );
@@ -121,7 +123,7 @@ async function logUpdateAppResult(pkgManager: string, result: UpdateAppResult) {
   if (createFiles.length > 0) {
     log.message(
       [
-        `🌟 ${cyan(`Create`)}`,
+        `🌟 ${pc.cyan(`Create`)}`,
         ...createFiles.map((f) => `   - ${relative(process.cwd(), f.path)}`),
       ].join('\n')
     );
@@ -130,7 +132,7 @@ async function logUpdateAppResult(pkgManager: string, result: UpdateAppResult) {
   if (overwriteFiles.length > 0) {
     log.message(
       [
-        `🐳 ${cyan(`Overwrite`)}`,
+        `🐳 ${pc.cyan(`Overwrite`)}`,
         ...overwriteFiles.map((f) => `   - ${relative(process.cwd(), f.path)}`),
       ].join('\n')
     );
@@ -139,7 +141,7 @@ async function logUpdateAppResult(pkgManager: string, result: UpdateAppResult) {
   if (installDepNames.length > 0) {
     log.message(
       [
-        `💾 ${cyan(`Install ${pkgManager} dependenc${installDepNames.length > 1 ? 'ies' : 'y'}:`)}`,
+        `💾 ${pc.cyan(`Install ${pkgManager} dependenc${installDepNames.length > 1 ? 'ies' : 'y'}:`)}`,
         ...installDepNames.map(
           (depName) => `   - ${depName} ${result.updates.installedDeps[depName]}`
         ),
@@ -151,14 +153,14 @@ async function logUpdateAppResult(pkgManager: string, result: UpdateAppResult) {
     const prefix = pkgManager === 'npm' ? 'npm run' : pkgManager;
     log.message(
       [
-        `📜 ${cyan(`New ${pkgManager} script${installDepNames.length > 1 ? 's' : ''}:`)}`,
+        `📜 ${pc.cyan(`New ${pkgManager} script${installDepNames.length > 1 ? 's' : ''}:`)}`,
         ...installScripts.map((script) => `   - ${prefix} ${script}`),
       ].join('\n')
     );
   }
 
   const commit = await select({
-    message: `Ready to apply the ${bold(magenta(result.integration.id))} updates to your app?`,
+    message: `Ready to apply the ${pc.bold(pc.magenta(result.integration.id))} updates to your app?`,
     options: [
       { label: 'Yes looks good, finish update!', value: true },
       { label: 'Nope, cancel update', value: false },
@@ -174,18 +176,20 @@ function logUpdateAppCommitResult(result: UpdateAppResult, pkgManager: string) {
   if (result.updates.installedScripts.length > 0) {
     const prefix = pkgManager === 'npm' || pkgManager === 'bun' ? `${pkgManager} run` : pkgManager;
     const message = result.updates.installedScripts
-      .map((script) => `- ${prefix} ${blue(script)}`)
+      .map((script) => `- ${prefix} ${pc.blue(script)}`)
       .join('\n');
     note(message, 'New scripts added');
   }
 
   const nextSteps = result.integration.pkgJson.__qwik__?.nextSteps;
   if (nextSteps) {
-    const noteMessage = `🟣 ${bgMagenta(` ${nextSteps.title ?? 'Action Required!'} `)}`;
+    const noteMessage = `🟣 ${pc.bgMagenta(` ${nextSteps.title ?? 'Action Required!'} `)}`;
     note(logNextStep(nextSteps, pkgManager), noteMessage);
   }
 
-  outro(`🦄 ${bgMagenta(` Success! `)} Added ${bold(cyan(result.integration.id))} to your app`);
+  outro(
+    `🦄 ${pc.bgMagenta(` Success! `)} Added ${pc.bold(pc.cyan(result.integration.id))} to your app`
+  );
 
   // TODO: `logSuccessFooter` returns a string, but we don't use it!
   // logSuccessFooter(result.integration.docs);

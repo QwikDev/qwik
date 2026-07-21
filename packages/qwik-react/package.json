@@ -34,10 +34,10 @@
   "main": "./lib/index.qwik.mjs",
   "peerDependencies": {
     "@qwik.dev/core": "workspace:^",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
-    "react": "^18",
-    "react-dom": "^18",
+    "@types/react": "^18 || ^19",
+    "@types/react-dom": "^18 || ^19",
+    "react": "^18 || ^19",
+    "react-dom": "^18 || ^19",
     "vite": ">=8 <9"
   },
   "publishConfig": {

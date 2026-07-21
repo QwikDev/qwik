@@ -1,3 +1,4 @@
+import { HttpRequest, InvocationContext } from '@azure/functions';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { mockRequestHandler } = vi.hoisted(() => ({
@@ -65,11 +66,12 @@ describe('createQwikRouter()', () => {
 
     const handler = createQwikRouter({ render: vi.fn() } as any);
     const response = await handler(
-      {} as any,
-      {
+      new HttpRequest({
         method: 'GET',
+        url: 'http://localhost/',
         headers: { 'x-ms-original-url': 'http://localhost/' },
-      } as any
+      }),
+      new InvocationContext()
     );
 
     expect(allocations).toEqual([6]);

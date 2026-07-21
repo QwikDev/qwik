@@ -1,4 +1,4 @@
-import { magenta, dim } from 'kleur/colors';
+import pc from 'picocolors';
 import { loadIntegrations, sortIntegrationsAndReturnAsClackOptions } from '../utils/integrations';
 import { pmRunCmd, note, bye, limitLength } from '../utils/utils';
 import { confirm, intro, isCancel, select } from '@clack/prompts';
@@ -14,7 +14,9 @@ function renderIntegration(integrations: IntegrationData[]) {
     .map((integration) => {
       const hint = limitLength(integration.pkgJson.description, MAX_HINT_LENGTH);
       return (
-        integration.id + ' '.repeat(Math.max(SPACE_TO_HINT - integration.id.length, 2)) + dim(hint)
+        integration.id +
+        ' '.repeat(Math.max(SPACE_TO_HINT - integration.id.length, 2)) +
+        pc.dim(hint)
       );
     })
     .join('\n');
@@ -26,7 +28,7 @@ export async function printAddHelp(app: AppCommand) {
   const features = integrations.filter((i) => i.type === 'feature');
   const pmRun = pmRunCmd();
 
-  intro(`${pmRun} qwik ${magenta(`add`)} [integration]`);
+  intro(`${pmRun} qwik ${pc.magenta(`add`)} [integration]`);
 
   note(renderIntegration(adapters), 'Adapters');
   note(renderIntegration(features), 'Features');

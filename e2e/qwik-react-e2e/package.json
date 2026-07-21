@@ -1,5 +1,6 @@
 {
   "name": "qwik-react-test-app",
+  "version": "0.0.0",
   "description": "Qwik react test app",
   "devDependencies": {
     "@qwik.dev/react": "workspace:*",

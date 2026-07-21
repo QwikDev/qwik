@@ -42,6 +42,7 @@
     "packages/qwik-react/vite",
     "@types/deno.d.ts",
     "@types/bun.d.ts",
+    "@types/which-pm-runs.d.ts",
     "types.d.ts",
     "packages/qwik-router/global.d.ts"
   ],

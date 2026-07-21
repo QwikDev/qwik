@@ -4,18 +4,18 @@
 
 ```ts
 
-import type { AzureFunction } from '@azure/functions';
-import type { Context } from '@azure/functions';
+import type { HttpHandler } from '@azure/functions';
+import type { InvocationContext } from '@azure/functions';
 import type { ServerRenderOptions } from '@qwik.dev/router/middleware/request-handler';
 
 // @public @deprecated (undocumented)
 export const createQwikCity: typeof createQwikRouter;
 
 // @public (undocumented)
-export function createQwikRouter(opts: QwikRouterAzureOptions): AzureFunction;
+export function createQwikRouter(opts: QwikRouterAzureOptions): HttpHandler;
 
 // @public (undocumented)
-export interface PlatformAzure extends Partial<Context> {
+export interface PlatformAzure extends Partial<InvocationContext> {
 }
 
 // @public @deprecated (undocumented)

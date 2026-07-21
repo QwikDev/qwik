@@ -70,7 +70,9 @@
     "packages/qwik/global.d.ts",
     "packages/qwik-vite/global.d.ts",
     "packages/qwik-router/src",
-    "packages/qwik-router/global.d.ts"
+    "packages/qwik-router/global.d.ts",
+    "@types/bun.d.ts",
+    "@types/which-pm-runs.d.ts"
   ],
   "exclude": ["**/dist", "**/lib", "node_modules"]
 }

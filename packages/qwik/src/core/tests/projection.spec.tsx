@@ -3455,6 +3455,34 @@ describe.each([
         </Component>
       );
     });
+
+    it('should render a bare nested component in <head>', async () => {
+      const HeadInner = component$(() => <meta name="repro-marker" />);
+      const Head = component$(() => {
+        _useHmr('head.tsx');
+        return <HeadInner />;
+      });
+      const Layout = component$(() => <Slot />);
+      const Root = component$(() => (
+        <>
+          <head>
+            <Head />
+          </head>
+          <body>
+            <Layout>content</Layout>
+          </body>
+        </>
+      ));
+
+      const { document } = await render(<Root />, {
+        debug: DEBUG,
+        containerTagName: 'html',
+        raw: true,
+      });
+
+      expect(document.querySelector('meta[name="repro-marker"]')).toBeTruthy();
+      expect(document.querySelector('q\\:template')).toBeFalsy();
+    });
   });
 });
 

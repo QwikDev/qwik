@@ -255,13 +255,14 @@ In this example, `onSubmitCompleted$` is used to reset the editingIdSignal value
 
 ## Validation and type safety
 
-Qwik comes with built-in support for [Zod](https://zod.dev/), a TypeScript-first schema validation that can be used directly with actions, using the `zod$()` function.
+`schema$()` validates an action's input on the server before the action runs, and infers the action's data type from the schema. It accepts any [Standard Schema](https://standardschema.dev/) validator, including [Zod](https://zod.dev/), [Valibot](https://valibot.dev/), [ArkType](https://arktype.io/), and [Effect Schema](https://effect.website/). The examples below use Zod.
 
-Actions + [Zod](https://zod.dev/) allows to create type safe forms, where the data is validated server side before the action is executed.
+<Note>`zod$()` and `valibot$()` still work but are deprecated aliases for `schema$()`. Effect Schema is not a Standard Schema by itself; wrap it with `Schema.standardSchemaV1(schema)` before passing it in.</Note>
 
 ```tsx {16-20} /firstName/#a /lastName/#b title="src/routes/index.tsx"
 import { component$ } from '@qwik.dev/core';
-import { routeAction$, zod$, z, Form } from '@qwik.dev/router';
+import { routeAction$, schema$, Form } from '@qwik.dev/router';
+import * as z from 'zod';
 
 export const useAddUser = routeAction$(
   async (user) => {
@@ -275,11 +276,13 @@ export const useAddUser = routeAction$(
       userID,
     };
   },
-  // Zod schema is used to validate that the FormData includes "firstName" and "lastName"
-  zod$({
-    firstName: z.string(),
-    lastName: z.string(),
-  })
+  // validate that the FormData includes "firstName" and "lastName"
+  schema$(
+    z.object({
+      firstName: z.string(),
+      lastName: z.string(),
+    })
+  )
 );
 
 export default component$(() => {
@@ -301,15 +304,11 @@ export default component$(() => {
 });
 ```
 
-When submitting data to a `routeAction()`, the data is validated against the Zod schema. If the data is invalid, the action will put the validation error in the `routeAction.value` property.
+When submitting data to a `routeAction()`, the data is validated against the schema. If the data is invalid, the action puts the validation error in the `routeAction.value` property.
 
-Please refer to the [Zod documentation](https://zod.dev/) for more information on how to use Zod schemas.
+### Event-based validation
 
-### Advanced event based validation
-
-The constructor of ```zod$``` can also take a function, as the first argument is zod itself, so you can use this directly to build the schema.
-The second parameter is the RequestEvent to construct an event-based zod schema.
-Especially in combination with ```refine``` and ```superRefine``` in zod, the only limit is your imagination.
+`schema$()` also accepts a function that receives the `RequestEvent`, so you can build the schema from request data such as query parameters or headers.
 
 
 ```tsx {5-5} /ev/#a  title="Advanced event based validation"
@@ -327,8 +326,8 @@ export const useAddUser = routeAction$(
     };
   },
   // Zod schema is used to validate that the FormData includes "firstName" and "lastName"
-  zod$((z, ev) => {
-    // The first name is optional if the url contains the query parameter "firstname=optional"
+  schema$((ev) => {
+    // firstName is optional when the url has the query parameter "firstname=optional"
     const firstName =
       ev.url.searchParams.get("firstname") === "optional"
         ? z.string().optional()
@@ -369,7 +368,8 @@ export const useProductRecommendations = routeAction$(
 In order to return non-success values, the action must use the `fail()` method.
 
 ```tsx /fail/
-import { routeAction$, zod$, z } from '@qwik.dev/router';
+import { routeAction$, schema$ } from '@qwik.dev/router';
+import * as z from 'zod';
 
 export const useAddUser = routeAction$(
   async (user, { fail }) => {
@@ -384,9 +384,11 @@ export const useAddUser = routeAction$(
       userID,
     };
   },
-  zod$({
-    name: z.string(),
-  })
+  schema$(
+    z.object({
+      name: z.string(),
+    })
+  )
 );
 ```
 
@@ -419,7 +421,7 @@ When an action is triggered, the previous state is stored in the `action.formDat
 
 ```tsx {12} /action.formData/
 import { component$ } from '@qwik.dev/core';
-import { routeAction$, Form, zod$, z } from '@qwik.dev/router';
+import { routeAction$, Form } from '@qwik.dev/router';
 
 export const useAddUser = routeAction$(async (user) => {
   // handle action...
@@ -436,7 +438,7 @@ export default component$(() => {
 });
 ```
 
-The `action.formData` is especially useful for retaining user-filled form data even after a page refresh. This enables a seamless SPA experience, even with JS disabled.
+The `action.formData` is useful for retaining user-filled form data after a page refresh, even with JS disabled.
 
 ## Route vs Global actions
 

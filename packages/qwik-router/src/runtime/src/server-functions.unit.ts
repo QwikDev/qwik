@@ -10,10 +10,19 @@ vi.mock('../../middleware/request-handler/async-request-store', () => ({
   },
 }));
 
+import { type } from 'arktype';
+import { Schema } from 'effect';
+import * as v from 'valibot';
 import * as z from 'zod';
 import * as zm from 'zod/mini';
 import { routeLoader$ } from './route-loaders';
-import { getRequestEvent, routeAction$, server$ } from './server-functions';
+import {
+  flattenStandardIssues,
+  getRequestEvent,
+  routeAction$,
+  server$,
+  validateStandardSchema,
+} from './server-functions';
 import type { RequestEventBase, ValidatorErrorType } from './types';
 
 describe('types', () => {
@@ -212,5 +221,105 @@ describe('types', () => {
       username?: string;
       password?: string;
     }>();
+  });
+});
+
+describe('flattenStandardIssues', () => {
+  test('keys scalar fields by dotted path', () => {
+    expect(
+      flattenStandardIssues([
+        { message: 'Invalid string', path: ['username'] },
+        { message: 'Invalid email', path: ['person', 'email'] },
+      ])
+    ).toEqual({
+      formErrors: [],
+      fieldErrors: { username: 'Invalid string', 'person.email': 'Invalid email' },
+    });
+  });
+
+  test('collapses numeric indices to [] and groups messages', () => {
+    expect(
+      flattenStandardIssues([
+        { message: 'Required', path: ['persons', 0, 'name'] },
+        { message: 'Too short', path: ['persons', 1, 'name'] },
+        { message: 'Required', path: ['tags', 0] },
+      ])
+    ).toEqual({
+      formErrors: [],
+      fieldErrors: {
+        'persons[].name': ['Required', 'Too short'],
+        'tags[]': ['Required'],
+      },
+    });
+  });
+
+  test('routes empty-path issues to formErrors', () => {
+    expect(
+      flattenStandardIssues([
+        { message: 'Object invalid', path: [] },
+        { message: 'Also root' },
+        { message: 'Field bad', path: ['name'] },
+      ])
+    ).toEqual({
+      formErrors: ['Object invalid', 'Also root'],
+      fieldErrors: { name: 'Field bad' },
+    });
+  });
+
+  test('normalizes object path segments', () => {
+    expect(
+      flattenStandardIssues([
+        { message: 'Invalid', path: [{ key: 'person' }, { key: 'name' }] },
+        { message: 'Required', path: [{ key: 'items' }, { key: 0 }] },
+      ])
+    ).toEqual({
+      formErrors: [],
+      fieldErrors: { 'person.name': 'Invalid', 'items[]': ['Required'] },
+    });
+  });
+});
+
+describe('validateStandardSchema', () => {
+  const ev = { locale: () => undefined } as any;
+
+  test('zod: success returns the parsed output', async () => {
+    const result = await validateStandardSchema(ev, z.object({ name: z.string() }), {
+      name: 'Qwik',
+    });
+    expect(result).toEqual({ success: true, data: { name: 'Qwik' } });
+  });
+
+  test('zod: failure returns flattened field errors', async () => {
+    const result = await validateStandardSchema(ev, z.object({ name: z.string() }), { name: 123 });
+    expect(result.success).toBe(false);
+    expect(result).toMatchObject({ status: 400, error: { formErrors: [] } });
+    expect(
+      (result as { error: { fieldErrors: Record<string, unknown> } }).error.fieldErrors
+    ).toHaveProperty('name');
+  });
+
+  test('valibot: rides the same path and returns the parsed output', async () => {
+    const result = await validateStandardSchema(ev, v.object({ name: v.string() }), {
+      name: 'Qwik',
+    });
+    expect(result).toEqual({ success: true, data: { name: 'Qwik' } });
+  });
+
+  test('effect: validates via Schema.standardSchemaV1', async () => {
+    const effectSchema = Schema.standardSchemaV1(Schema.Struct({ name: Schema.String }));
+    const result = await validateStandardSchema(ev, effectSchema, { name: 'Qwik' });
+    expect(result).toEqual({ success: true, data: { name: 'Qwik' } });
+  });
+
+  test('arktype: validates a callable schema', async () => {
+    const result = await validateStandardSchema(ev, type({ name: 'string' }), { name: 'Qwik' });
+    expect(result).toEqual({ success: true, data: { name: 'Qwik' } });
+  });
+
+  test('zod/mini: validates through the shared path', async () => {
+    const result = await validateStandardSchema(ev, zm.object({ name: zm.string() }), {
+      name: 'Qwik',
+    });
+    expect(result).toEqual({ success: true, data: { name: 'Qwik' } });
   });
 });

@@ -1,5 +1,6 @@
 import { component$ } from '@qwik.dev/core';
-import { routeAction$, z, zod$ } from '@qwik.dev/router';
+import { routeAction$, zod$ } from '@qwik.dev/router';
+import * as z from 'zod';
 import type { ValidatorErrorType } from 'packages/qwik-router/src/runtime/src/types';
 
 // This is a TypeScript type validation test only.

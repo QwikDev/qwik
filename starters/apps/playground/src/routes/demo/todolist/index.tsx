@@ -3,9 +3,9 @@ import {
   Form,
   routeAction$,
   routeLoader$,
-  z,
   zod$,
 } from "@qwik.dev/router";
+import * as z from "zod";
 import { component$ } from "@qwik.dev/core";
 import styles from "./todolist.module.css";
 

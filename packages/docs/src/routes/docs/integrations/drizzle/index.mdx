@@ -136,7 +136,8 @@ We will use `routeAction$` and `Form` to create a progressive form to add a new 
 
 ```tsx {7-9} /Drizzle/ title="src/routes/create/index.tsx"
 import { component$ } from "@qwik.dev/core";
-import { routeAction$, zod$, z, Form } from "@qwik.dev/router";
+import { routeAction$, schema$, Form } from "@qwik.dev/router";
+import * as z from "zod";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import Database from "better-sqlite3";
 import { schema } from "../../../drizzle/schema";
@@ -147,10 +148,12 @@ export const useCreateUser = routeAction$(
     const user = await db.insert(schema.users).values(data);
     return user;
   },
-  zod$({
-    name: z.string(),
-    email: z.string().email(),
-  }),
+  schema$(
+    z.object({
+      name: z.string(),
+      email: z.string().email(),
+    })
+  ),
 );
 
 export default component$(() => {

@@ -1,13 +1,6 @@
 import { component$, Resource } from '@qwik.dev/core';
-import {
-  type DocumentHead,
-  Form,
-  Link,
-  routeAction$,
-  routeLoader$,
-  z,
-  zod$,
-} from '@qwik.dev/router';
+import { type DocumentHead, Form, Link, routeAction$, routeLoader$, zod$ } from '@qwik.dev/router';
+import * as z from 'zod';
 import { delay } from '../../actions/login';
 
 export const useDateLoader = routeLoader$(() => new Date('2021-01-01T00:00:00.000Z'));

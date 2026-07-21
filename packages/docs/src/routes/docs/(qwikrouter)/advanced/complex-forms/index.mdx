@@ -85,15 +85,15 @@ After submitting the form the data would be parsed in an object like this:
 
 ## Using with Actions
 
-Complex forms can be validated using zod$ with routeAction$ and globalAction$. Continuing with the previous examples it would look like this:
+Complex forms can be validated using schema$ with routeAction$ and globalAction$. Continuing with the previous examples it would look like this:
 
 ```tsx
 export const action = routeAction$(
   async (person) => {
     return { success: true, person, };
   },
-  // Zod schema is used to validate the FormData
-  zod$({
+  // schema validates the FormData
+  schema$(z.object({
     person: z.array(
       z.object({
         name: z.string(),
@@ -107,7 +107,7 @@ export const action = routeAction$(
         pets: z.array(z.string())
       })
     ),
-  })
+  }))
 );
 ```
 
@@ -121,8 +121,8 @@ export const addPersonAction = routeAction$(
   async person => {
     return { success: true, person };
   },
-  // Zod schema is used to validate the FormData
-  zod$({
+  // schema validates the FormData
+  schema$(z.object({
     person: z.object({
       name: z.string(),
       email: z.string().email(),
@@ -134,7 +134,7 @@ export const addPersonAction = routeAction$(
       }),
       pets: z.array(z.string()),
     }),
-  })
+  }))
 );
 ```
 
@@ -166,7 +166,7 @@ If you make person an array, the error messages will switch to a slightly differ
 }
 ```
 
-<Note>If you completely forget to assign a value to an array type, lets say you completely forget person in the form. The error is then in `fieldErrors["person[]"]`.</Note>
+<Note>If you completely forget to assign a value to an array type, lets say you completely forget person in the form. The error is then in `fieldErrors["person"]`, keyed by the field itself since the failure is the missing value rather than a bad element.</Note>
 
 This way you can easily match the error messages to the input names like this:
 
@@ -176,7 +176,7 @@ export const useAddPersonAction = routeAction$(
     console.log(person);
     return { success: true, person };
   },
-  zod$({
+  schema$(z.object({
     person: z.object({
       name: z.string().min(2),
       email: z.string().email(),
@@ -188,7 +188,7 @@ export const useAddPersonAction = routeAction$(
       }),
       pets: z.array(z.string().min(2)),
     }),
-  })
+  }))
 );
 
 export default component$(() => {

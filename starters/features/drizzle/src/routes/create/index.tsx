@@ -1,4 +1,5 @@
-import { Form, routeAction$, z, zod$ } from "@qwik.dev/router";
+import { Form, routeAction$, zod$ } from "@qwik.dev/router";
+import * as z from "zod";
 import { component$ } from "@qwik.dev/core";
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";

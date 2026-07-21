@@ -85,8 +85,6 @@ export enum ExperimentalFeatures {
   show = 'show',
   /** Enable the Suspense fallback primitive */
   suspense = 'suspense',
-  /** Enable the Valibot form validation */
-  valibot = 'valibot',
   /** Disable SPA navigation handler in Qwik Router */
   noSPA = 'noSPA',
   /** Enable the ability to use the Qwik Insights vite plugin and `<Insights/>` component */

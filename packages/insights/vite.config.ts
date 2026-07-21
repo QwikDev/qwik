@@ -24,7 +24,7 @@ export default defineConfig({
   plugins: [
     qwikRouter(),
     qwikVite({
-      experimental: ['insights', 'valibot'],
+      experimental: ['insights'],
     }),
     tsconfigPaths({ root: '.' }),
     qwikInsights({ publicApiKey: loadEnv('', '.', '').PUBLIC_QWIK_INSIGHTS_KEY }),

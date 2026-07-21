@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
-import { Form, routeAction$, z, zod$ } from "@qwik.dev/router";
+import { Form, routeAction$, zod$ } from "@qwik.dev/router";
+import * as z from "zod";
 import { component$ } from "@qwik.dev/core";
 
 export const useCreateUser = routeAction$(

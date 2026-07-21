@@ -68,15 +68,9 @@ export const createOutOfOrderRevealCoordinator = <ITEM extends RevealItemLike = 
   order: RevealOrder,
   collapsed: boolean
 ): OutOfOrderRevealCoordinator<ITEM> => {
-  if (!isOutOfOrderStreaming()) {
-    return null!;
-  }
-  const container = tryGetInvokeContext()?.$container$;
-  let id = 0;
-  if (container) {
-    id = (outOfOrderRevealIds.get(container) || 0) + 1;
-    outOfOrderRevealIds.set(container, id);
-  }
+  const container = tryGetInvokeContext()!.$container$!;
+  const id = (outOfOrderRevealIds.get(container) || 0) + 1;
+  outOfOrderRevealIds.set(container, id);
   return new OutOfOrderRevealCoordinator<ITEM>(id, order, collapsed);
 };
 
@@ -105,16 +99,8 @@ export const isOutOfOrderStreaming = (): boolean => {
 };
 
 /** @internal */
-export const nextOutOfOrderSuspenseId = (): number => {
-  if (!__EXPERIMENTAL__.suspense) {
-    return 0;
-  }
-  const container = tryGetInvokeContext()?.$container$ as SSRContainer | undefined;
-  if (container?.outOfOrderStreaming !== true) {
-    return 0;
-  }
-  return container?.nextOutOfOrderId?.() ?? 0;
-};
+export const nextOutOfOrderSuspenseId = (): number =>
+  (tryGetInvokeContext()!.$container$! as SSRContainer).nextOutOfOrderId();
 
 /** @internal */
 export const applySubscriptionPatches = (

@@ -3,9 +3,7 @@ export type RevealOrder = 'parallel' | 'sequential' | 'reverse' | 'together';
 
 export interface RevealItemLike {
   boundary: {
-    pending: {
-      untrackedValue: number;
-    };
+    untrackedValue: number;
   };
 }
 
@@ -20,7 +18,7 @@ export interface RevealRegistrationLike<ITEM extends RevealItemLike = RevealItem
 /** @internal */
 export const canRevealRegistration = <ITEM extends RevealItemLike>(
   registration: RevealRegistrationLike<ITEM> | null,
-  isPending: (item: ITEM) => boolean = (item) => item.boundary.pending.untrackedValue > 0
+  isPending: (item: ITEM) => boolean = (item) => item.boundary.untrackedValue > 0
 ): boolean => {
   if (registration === null) {
     return true;

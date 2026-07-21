@@ -1401,7 +1401,6 @@ export const Suspense: typeof _suC;
 // @public (undocumented)
 export type SuspenseProps = {
     fallback?: JSXOutput;
-    showStale?: boolean;
     delay?: number;
 };
 

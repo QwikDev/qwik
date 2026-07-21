@@ -9,12 +9,17 @@ type LayoutProps = {
 
 export default component$<LayoutProps>(({ mode = 'default', ...props }) => {
   return (
-    <>
+    <div class="min-h-screen bg-editorial-canvas font-editorial-ui text-editorial-primary">
       <Header />
-      <main class={[mode === 'bright' ? 'bg-white' : 'bg-slate-100', props.class]}>
+      <main
+        class={[
+          'min-h-[calc(100vh-var(--spacing-editorial-header))]',
+          mode === 'bright' ? 'bg-editorial-surface' : 'bg-editorial-canvas',
+          props.class,
+        ]}
+      >
         <Slot />
       </main>
-      {/* <footer>footer</footer> */}
-    </>
+    </div>
   );
 });

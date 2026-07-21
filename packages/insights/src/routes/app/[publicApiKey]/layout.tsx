@@ -43,7 +43,7 @@ export default component$(() => {
 
   return (
     <Layout>
-      <div class="grid min-h-[calc(100vh-76px)] grid-cols-[240px_1fr]">
+      <div class="grid min-h-[calc(100vh-var(--spacing-editorial-header))] grid-cols-[240px_1fr]">
         <aside>
           <div class="flex h-full flex-col gap-8 overflow-y-auto bg-white p-8">
             {NAVIGATION.map(({ path, label, icon, addDividor = false }) => (

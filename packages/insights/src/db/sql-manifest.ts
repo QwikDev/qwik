@@ -17,6 +17,50 @@ export async function dbGetManifests(
   return manifests;
 }
 
+export async function dbGetLatestManifests(
+  db: AppDatabase,
+  publicApiKeys: string[]
+): Promise<ManifestRow[]> {
+  if (publicApiKeys.length === 0) {
+    return [];
+  }
+
+  const rankedManifests = db
+    .select({
+      id: manifestTable.id,
+      publicApiKey: manifestTable.publicApiKey,
+      hash: manifestTable.hash,
+      timestamp: manifestTable.timestamp,
+      rank: sql<number>`row_number() over (
+        partition by ${manifestTable.publicApiKey}
+        order by ${manifestTable.timestamp} desc, ${manifestTable.id} desc
+      )`.as('manifest_rank'),
+    })
+    .from(manifestTable)
+    .where(inArray(manifestTable.publicApiKey, publicApiKeys))
+    .as('ranked_manifests');
+
+  const manifests = await db
+    .select({
+      id: rankedManifests.id,
+      publicApiKey: rankedManifests.publicApiKey,
+      hash: rankedManifests.hash,
+      timestamp: rankedManifests.timestamp,
+    })
+    .from(rankedManifests)
+    .where(eq(rankedManifests.rank, 1))
+    .all();
+
+  const applicationOrder = new Map(
+    publicApiKeys.map((publicApiKey, index) => [publicApiKey, index])
+  );
+  return manifests.sort(
+    (a, b) =>
+      (applicationOrder.get(a.publicApiKey ?? '') ?? Number.MAX_SAFE_INTEGER) -
+      (applicationOrder.get(b.publicApiKey ?? '') ?? Number.MAX_SAFE_INTEGER)
+  );
+}
+
 export interface ManifestStatsRow {
   hash: string;
   timestamp: Date;

@@ -24,58 +24,32 @@ test.describe('suspense', () => {
   });
 
   function tests() {
-    test('should show fallback while a descendant update is blocked', async ({ page }) => {
+    test('should keep resolved content while a descendant update is blocked', async ({ page }) => {
       await expect(page.locator('#single-value')).toHaveText('value=0');
       await expect(page.locator('#single-fallback')).toBeHidden();
 
       await page.locator('#single-button').click();
-      await expect(page.locator('#single-fallback')).toBeVisible();
+      await page.waitForTimeout(40);
+      await expect(page.locator('#single-fallback')).toBeHidden();
       await expect(page.locator('#single-value')).toHaveText('value=0');
+      await expect(page.locator('#single-value')).toBeVisible();
 
       await resolveSuspense(page, 'single', '__resolveSingleSuspense');
       await expect(page.locator('#single-value')).toHaveText('value=1');
       await expect(page.locator('#single-fallback')).toBeHidden();
     });
 
-    test('should keep stale content visible while showing fallback when a descendant update is blocked', async ({
-      page,
-    }) => {
-      await expect(page.locator('#show-stale-value')).toHaveText('value=0');
-      await expect(page.locator('#show-stale-value')).toBeVisible();
-      await expect(page.locator('#show-stale-fallback')).toBeHidden();
-
-      await page.locator('#show-stale-button').click();
-      await page.waitForTimeout(40);
-      await expect(page.locator('#show-stale-fallback')).toBeVisible();
-      await expect(page.locator('#show-stale-value')).toHaveText('value=0');
-      await expect(page.locator('#show-stale-value')).toBeVisible();
-
-      await resolveSuspense(page, 'show-stale', '__resolveShowStaleSuspense');
-      await expect(page.locator('#show-stale-value')).toHaveText('value=1');
-      await expect(page.locator('#show-stale-fallback')).toBeHidden();
-
-      await page.locator('#show-stale-button').click();
-      await page.waitForTimeout(40);
-      await expect(page.locator('#show-stale-fallback')).toBeVisible();
-      await expect(page.locator('#show-stale-value')).toHaveText('value=1');
-      await expect(page.locator('#show-stale-value')).toBeVisible();
-
-      await resolveSuspense(page, 'show-stale', '__resolveShowStaleSuspense');
-      await expect(page.locator('#show-stale-value')).toHaveText('value=2');
-      await expect(page.locator('#show-stale-fallback')).toBeHidden();
-    });
-
-    test('should use the nearest nested fallback for blocked descendant updates', async ({
-      page,
-    }) => {
+    test('should keep nested resolved content while an update is blocked', async ({ page }) => {
       await expect(page.locator('#inner-value')).toHaveText('value=0');
       await expect(page.locator('#outer-fallback')).toBeHidden();
       await expect(page.locator('#inner-fallback')).toBeHidden();
 
       await page.locator('#inner-button').click();
-      await expect(page.locator('#inner-fallback')).toBeVisible();
+      await page.waitForTimeout(40);
+      await expect(page.locator('#inner-fallback')).toBeHidden();
       await expect(page.locator('#outer-fallback')).toBeHidden();
       await expect(page.locator('#inner-value')).toHaveText('value=0');
+      await expect(page.locator('#inner-value')).toBeVisible();
 
       await resolveSuspense(page, 'inner', '__resolveInnerSuspense');
       await expect(page.locator('#inner-value')).toHaveText('value=1');
@@ -93,31 +67,6 @@ test.describe('suspense', () => {
       await resolveSuspense(page, 'mounted-async', '__resolveMountedAsyncSuspense');
       await expect(page.locator('#mounted-async-value')).toHaveText('Async content');
       await expect(page.locator('#mounted-async-fallback')).toBeHidden();
-    });
-
-    test('should reveal collapsed sequential boundaries in order', async ({ page }) => {
-      await expect(page.locator('#reveal-first-value')).toHaveText('value=0');
-      await expect(page.locator('#reveal-second-value')).toHaveText('value=0');
-      await expect(page.locator('#reveal-first-fallback')).toBeHidden();
-      await expect(page.locator('#reveal-second-fallback')).toBeHidden();
-
-      await page.locator('#reveal-first-button').click();
-      await page.locator('#reveal-second-button').click();
-      await page.waitForTimeout(40);
-
-      await expect(page.locator('#reveal-first-fallback')).toBeVisible();
-      await expect(page.locator('#reveal-second-fallback')).toBeHidden();
-      await expect(page.locator('#reveal-second-value')).toBeHidden();
-
-      await resolveSuspense(page, 'reveal-second', '__resolveRevealSecondSuspense');
-      await expect(page.locator('#reveal-second-fallback')).toBeHidden();
-      await expect(page.locator('#reveal-second-value')).toBeHidden();
-
-      await resolveSuspense(page, 'reveal-first', '__resolveRevealFirstSuspense');
-      await expect(page.locator('#reveal-first-value')).toHaveText('value=1');
-      await expect(page.locator('#reveal-second-value')).toHaveText('value=1');
-      await expect(page.locator('#reveal-first-fallback')).toBeHidden();
-      await expect(page.locator('#reveal-second-fallback')).toBeHidden();
     });
   }
 

@@ -466,63 +466,8 @@ reveal it without waiting for another HTML chunk. For `delay > 0`, the fallback 
 the delay finishes first, Qwik reveals it with a streamed update. If the content finishes first, Qwik
 cancels the reveal and shows the resolved content instead.
 
-## `showStale`
-
-By default, when a boundary that already showed content pauses again, the fallback replaces the content while the new work is pending.
-
-Use `showStale` to keep the previous content visible while also showing the fallback:
-
-<CodeSandbox src="/src/routes/demo/component/suspense-show-stale/index.tsx" style={{ height: '20em' }}>
-```tsx /showStale/
-import { component$, Suspense, useSignal, type JSXOutput } from '@qwik.dev/core';
-
-const LOAD_MS = 1200;
-
-const COLORS = ['#7c3aed', '#0891b2', '#16a34a', '#ea580c'];
-
-const ProfileCard = component$((props: { version: number }) => {
-  const content = new Promise<JSXOutput>((resolve) => {
-    const color = COLORS[props.version % COLORS.length];
-
-    setTimeout(
-      () =>
-        resolve(
-          <article style={{ border: `4px solid ${color}`, padding: '12px' }}>
-            <p>Profile version {props.version}</p>
-          </article>
-        ),
-      LOAD_MS
-    );
-  });
-
-  return <>{content}</>;
-});
-
-export default component$(() => {
-  const version = useSignal(1);
-
-  return (
-    <section>
-      <button onClick$={() => version.value++}>Refresh profile</button>
-
-      <Suspense fallback={<p>Loading new profile...</p>} showStale>
-        <ProfileCard version={version.value} />
-      </Suspense>
-    </section>
-  );
-});
-```
-</CodeSandbox>
-
-Click “Refresh profile” after the first card appears. The old card stays visible alongside the fallback while the new card loads.
-
-`showStale` only affects content that has already been revealed. During the first render, there is no previous content to keep visible, so the boundary only shows the fallback while it waits.
-
-<Note>
-`showStale` keeps previously revealed content visible while the same content updates. If you change a child component's `key`, Qwik treats it as a new instance, so there may be no stale content to keep.
-
-`showStale` only controls what the user sees. It does not cache data or change what the subtree returns.
-</Note>
+After a boundary shows its content, later asynchronous updates keep that content visible and do not
+show the fallback again. A newly rendered boundary can show its fallback during its initial load.
 
 ## Coordinating Boundaries with `Reveal`
 
@@ -563,7 +508,6 @@ By default, a pending boundary that is blocked by `Reveal` can still show its fa
 type SuspenseProps = {
   fallback?: JSXOutput;
   delay?: number;
-  showStale?: boolean;
 };
 
 type RevealOrder = 'parallel' | 'sequential' | 'reverse' | 'together';
@@ -578,7 +522,6 @@ Props:
 
 - `fallback`: JSX rendered while the boundary is waiting
 - `delay`: milliseconds to wait before showing the fallback, defaults to `0`
-- `showStale`: keep previously revealed content visible while showing the fallback during later waits
 - `order`: reveal order for child Suspense boundaries, defaults to `parallel`
 - `collapsed`: hide pending blocked boundaries instead of showing their fallbacks
 

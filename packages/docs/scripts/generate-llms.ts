@@ -349,7 +349,7 @@ The playground focuses on rapid experimentation rather than long-form documentat
       'Experimental',
       'Suspense',
       '/docs/labs/suspense/',
-      'Experimental fallback boundaries for async rendering and out-of-order streaming, including `useAsync$`, `delay`, and `showStale` patterns.',
+      'Experimental fallback boundaries for async rendering and out-of-order streaming, including `useComputed$`, `delay`, and `Reveal` patterns.',
       toSourcePath('docs', 'labs', 'suspense', 'index.mdx')
     ),
     apiEntry('qwik'),

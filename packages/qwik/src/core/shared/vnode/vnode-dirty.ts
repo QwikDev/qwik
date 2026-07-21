@@ -13,7 +13,6 @@ import {
   getNearestCursorBoundary,
   getOwnCursorBoundary,
   setNearestCursorBoundary,
-  type CursorBoundary,
 } from '../../use/use-cursor-boundary';
 import { ChoreBits } from './enums/chore-bits.enum';
 import type { VNodeOperation } from './types/dom-vnode-operation';
@@ -39,9 +38,9 @@ function propagatePath(target: VNode): void {
  * Propagates dirty bits from vNode up to the specified cursorRoot. Used during diff when we know
  * the cursor root to merge with. Also updates cursor position if we pass through any cursors.
  */
-function propagateToCursorRoot(container: Container, vNode: VNode, cursorRoot: VNode): void {
+function propagateToCursorRoot(vNode: VNode, cursorRoot: VNode): void {
   reusablePath.push(vNode);
-  let cursorBoundary = getOwnCursorBoundary(container, vNode);
+  let cursorBoundary = getOwnCursorBoundary(vNode);
   let current: VNode | null = vNode.slotParent || vNode.parent;
 
   while (current) {
@@ -49,8 +48,7 @@ function propagateToCursorRoot(container: Container, vNode: VNode, cursorRoot: V
     const currentIsCursor = isCursor(current);
     if (__EXPERIMENTAL__.suspense) {
       cursorBoundary ||=
-        getOwnCursorBoundary(container, current) ||
-        (isDirty ? getNearestCursorBoundary(container, current) : null);
+        getOwnCursorBoundary(current) || (isDirty ? getNearestCursorBoundary(current) : null);
     }
 
     // Stop when we reach the cursor root or a dirty ancestor
@@ -89,19 +87,17 @@ function propagateToCursorRoot(container: Container, vNode: VNode, cursorRoot: V
  * Finds a blocking cursor or dirty ancestor and propagates dirty bits to it. Returns true if found
  * and attached, false if a new cursor should be created.
  */
-function findAndPropagateToBlockingCursor(container: Container, vNode: VNode): boolean {
+function findAndPropagateToBlockingCursor(vNode: VNode): boolean {
   reusablePath.push(vNode);
-  let cursorBoundary: CursorBoundary | null = __EXPERIMENTAL__.suspense
-    ? getOwnCursorBoundary(container, vNode)
-    : null;
+  let cursorBoundary = getOwnCursorBoundary(vNode);
   let current: VNode | null = vNode.slotParent || vNode.parent;
 
   while (current) {
     const currentIsCursor = isCursor(current);
     if (__EXPERIMENTAL__.suspense) {
       cursorBoundary ||=
-        getOwnCursorBoundary(container, current) ||
-        (currentIsCursor ? getNearestCursorBoundary(container, current) : null);
+        getOwnCursorBoundary(current) ||
+        (currentIsCursor ? getNearestCursorBoundary(current) : null);
     }
 
     if (currentIsCursor) {
@@ -161,7 +157,7 @@ export function markVNodeDirty(
 
   // If cursorRoot is provided, propagate up to it
   if (cursorRoot && isRealDirty && parent && !parent.dirty) {
-    propagateToCursorRoot(container, vNode, cursorRoot);
+    propagateToCursorRoot(vNode, cursorRoot);
     return;
   }
 
@@ -171,7 +167,7 @@ export function markVNodeDirty(
     // nearest boundary unless this vnode owns a boundary itself.
     setNearestCursorBoundary(
       vNode,
-      getOwnCursorBoundary(container, vNode) || getNearestCursorBoundary(container, parent)
+      getOwnCursorBoundary(vNode) || getNearestCursorBoundary(parent)
     );
     if (isRealDirty) {
       parent.dirty |= ChoreBits.CHILDREN;
@@ -204,14 +200,14 @@ export function markVNodeDirty(
   } else if (!isCursor(vNode)) {
     // Check if there's an existing cursor that is blocking (executing a render-blocking task)
     // If so, merge with it instead of creating a new cursor (single-pass find + propagate)
-    if (!findAndPropagateToBlockingCursor(container, vNode)) {
+    if (!findAndPropagateToBlockingCursor(vNode)) {
       // No blocking cursor found, create a new one
       addCursor(container, vNode, 0);
     }
   } else {
     // Existing cursor-root case: the vnode is already the scheduled cursor, so only its own
     // boundary can be authoritative here.
-    setNearestCursorBoundary(vNode, getOwnCursorBoundary(container, vNode));
+    setNearestCursorBoundary(vNode, getOwnCursorBoundary(vNode));
   }
 }
 

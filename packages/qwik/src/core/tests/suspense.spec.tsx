@@ -425,11 +425,6 @@ describe('domRender: Suspense client-side pause delay', () => {
     delete (globalThis as any).__slowResolve;
     delete (globalThis as any).__susToggle;
     delete (globalThis as any).__susResolve;
-    delete (globalThis as any).__zeroFallbackToggle;
-    delete (globalThis as any).__zeroFallbackResolve;
-    delete (globalThis as any).__showStaleToggle;
-    delete (globalThis as any).__showStaleResolve;
-    delete (globalThis as any).__slowChildResolve;
   });
 
   it('should show fallback mid-flight and swap it for children on completion', async () => {
@@ -480,10 +475,7 @@ describe('domRender: Suspense client-side pause delay', () => {
     );
   });
 
-  it('should re-show fallback when a descendant updates and blocks past delay', async () => {
-    // After initial mount, flip the signal: the child's render returns a Promise that takes
-    // longer than the Suspense delay. The new update-time cursor should inherit the
-    // boundary's hooks and re-trigger the fallback, then clear it once resolved.
+  it('should keep resolved content visible when a descendant update blocks', async () => {
     (globalThis as any).__susToggle = null as any;
     (globalThis as any).__susResolve = null as any;
 
@@ -538,11 +530,12 @@ describe('domRender: Suspense client-side pause delay', () => {
     const toggle = (globalThis as any).__susToggle as { value: number };
     toggle.value = 1;
 
-    // Wait past the delay so the new cursor's pause-timer fires.
+    // Wait past the delay to ensure the fallback stays hidden.
     await delay(40);
 
     html = document.querySelector('div')!.innerHTML;
-    expect(html).toContain(loading);
+    expect(html).toContain('value=0');
+    expect(html).not.toContain(loading);
 
     // Resolve the pending task and let the render settle.
     const resolveFn = (globalThis as any).__susResolve as () => void;
@@ -570,263 +563,6 @@ describe('domRender: Suspense client-side pause delay', () => {
           </div>
         </Component>
       </div>
-    );
-  });
-
-  it('should show a numeric zero fallback while a descendant update is blocked', async () => {
-    (globalThis as any).__zeroFallbackToggle = null as any;
-    (globalThis as any).__zeroFallbackResolve = null as any;
-
-    const Child = component$(() => {
-      const toggle = useSignal(0);
-      (globalThis as any).__zeroFallbackToggle = toggle;
-      useTask$(({ track }) => {
-        const t = track(() => toggle.value);
-        if (t === 0) {
-          return;
-        }
-        return new Promise<void>((resolve) => {
-          (globalThis as any).__zeroFallbackResolve = resolve;
-        });
-      });
-      return <p>value={toggle.value}</p>;
-    });
-
-    const { container, document } = await domRender(
-      <div>
-        <Suspense fallback={0} delay={10}>
-          <Child />
-        </Suspense>
-      </div>,
-      { debug }
-    );
-
-    const suspenseRoot = document.querySelector('div')!;
-    const fallbackHost = suspenseRoot.children[0] as HTMLElement;
-    const contentHost = suspenseRoot.children[1] as HTMLElement;
-    expect(fallbackHost.textContent).toBe('0');
-    expect(fallbackHost.style.display).toBe('none');
-    expect(contentHost.style.display).toBe('contents');
-
-    const toggle = (globalThis as any).__zeroFallbackToggle as { value: number };
-    toggle.value = 1;
-    await delay(40);
-
-    expect(fallbackHost.textContent).toBe('0');
-    expect(fallbackHost.style.display).toBe('contents');
-    expect(contentHost.style.display).toBe('none');
-
-    const resolveFn = (globalThis as any).__zeroFallbackResolve as () => void;
-    expect(resolveFn).toBeDefined();
-    resolveFn();
-    await waitForDrain(container);
-
-    expect(fallbackHost.style.display).toBe('none');
-    expect(contentHost.style.display).toBe('contents');
-    expect(contentHost.textContent).toContain('value=1');
-  });
-
-  it('should keep stale content visible while showing fallback during updates when showStale is enabled', async () => {
-    (globalThis as any).__showStaleToggle = null as any;
-    (globalThis as any).__showStaleResolve = null as any;
-
-    const Child = component$(() => {
-      const toggle = useSignal(0);
-      (globalThis as any).__showStaleToggle = toggle;
-      useTask$(({ track }) => {
-        const t = track(() => toggle.value);
-        if (t === 0) {
-          return;
-        }
-        return new Promise<void>((resolve) => {
-          (globalThis as any).__showStaleResolve = resolve;
-        });
-      });
-      return <p>value={toggle.value}</p>;
-    });
-
-    const { document, vNode } = await domRender(
-      <div>
-        <Suspense fallback={<span>Loading...</span>} delay={10} showStale>
-          <Child />
-        </Suspense>
-      </div>,
-      { debug }
-    );
-
-    const suspenseRoot = document.querySelector('div')!;
-    let html = suspenseRoot.innerHTML;
-    expect(html).toContain('value=0');
-    expect(html).not.toContain(loading);
-    expect((suspenseRoot.children[0] as HTMLElement).style.display).toBe('none');
-    expect((suspenseRoot.children[1] as HTMLElement).style.display).toBe('contents');
-    expect(vNode).toMatchVDOM(
-      <div>
-        <Component>
-          <div style="display:none">
-            <span>Loading...</span>
-          </div>
-          <div style="display:contents">
-            <Projection ssr-required>
-              <Component>
-                <p>
-                  value=<Signal>0</Signal>
-                </p>
-              </Component>
-            </Projection>
-          </div>
-        </Component>
-      </div>
-    );
-
-    const toggle = (globalThis as any).__showStaleToggle as { value: number };
-    toggle.value = 1;
-    await new Promise((r) => setTimeout(r, 40));
-
-    html = suspenseRoot.innerHTML;
-    expect(html).toContain('value=0');
-    expect(html).toContain(loading);
-    expect(html.indexOf('value=0')).toBeGreaterThan(html.indexOf(loading));
-    expect((suspenseRoot.children[0] as HTMLElement).style.display).toBe('contents');
-    expect((suspenseRoot.children[1] as HTMLElement).style.display).toBe('contents');
-
-    const resolveFn = (globalThis as any).__showStaleResolve as () => void;
-    expect(resolveFn).toBeDefined();
-    resolveFn();
-    await new Promise((r) => setTimeout(r, 10));
-
-    html = suspenseRoot.innerHTML;
-    expect(html).toContain('value=1');
-    expect(html).not.toContain(loading);
-    expect((suspenseRoot.children[0] as HTMLElement).style.display).toBe('none');
-    expect((suspenseRoot.children[1] as HTMLElement).style.display).toBe('contents');
-    expect(vNode).toMatchVDOM(
-      <div>
-        <Component>
-          <div style="display:none">
-            <span>Loading...</span>
-          </div>
-          <div style="display:contents">
-            <Projection ssr-required>
-              <Component>
-                <p>
-                  value=<Signal>1</Signal>
-                </p>
-              </Component>
-            </Projection>
-          </div>
-        </Component>
-      </div>
-    );
-  });
-
-  it('should show fallback when a child component rerenders to a promise child', async () => {
-    (globalThis as any).__slowChildResolve = null as any;
-
-    const Slow = component$(({ count }: { count: number }) => {
-      if (count === 0) {
-        return <div>Count: {count}</div>;
-      }
-      return (
-        <div>
-          Count:{' '}
-          {
-            new Promise<number>((resolve) => {
-              (globalThis as any).__slowChildResolve = () => resolve(count);
-            })
-          }
-        </div>
-      );
-    });
-
-    const App = component$(() => {
-      const count = useSignal(0);
-      return (
-        <main>
-          <p>Count: {count.value}</p>
-          <div>
-            <button onClick$={() => count.value++}>Click</button>
-            <Suspense fallback={<div>counting...</div>} delay={10}>
-              <Slow count={count.value} />
-            </Suspense>
-          </div>
-        </main>
-      );
-    });
-
-    const { container, document, vNode } = await domRender(<App />, { debug });
-
-    let html = document.querySelector('main > div')!.innerHTML;
-    expect(html).toContain('Count: 0');
-
-    const countingHtml = '<div style="display:contents"><div>counting...</div></div>';
-    expect(html).not.toContain(countingHtml);
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <main>
-          <p>
-            Count: <Signal>0</Signal>
-          </p>
-          <div>
-            <button>Click</button>
-            <Component>
-              <div style="display:none">
-                <div>counting...</div>
-              </div>
-              <div style="display:contents">
-                <Projection ssr-required>
-                  <Component>
-                    <div>
-                      Count: <Signal>0</Signal>
-                    </div>
-                  </Component>
-                </Projection>
-              </div>
-            </Component>
-          </div>
-        </main>
-      </Component>
-    );
-
-    await trigger(document.body, 'button', 'click', {}, { waitForIdle: false });
-    await new Promise((r) => setTimeout(r, 40));
-
-    html = document.querySelector('main > div')!.innerHTML;
-    expect(html).toContain(countingHtml);
-
-    const resolve = (globalThis as any).__slowChildResolve as (() => void) | null;
-    expect(resolve).toBeTruthy();
-    resolve!();
-    await waitForDrain(container);
-
-    html = document.querySelector('main > div')!.innerHTML;
-    expect(html).toContain('Count: 1');
-    expect(html).not.toContain(countingHtml);
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <main>
-          <p>
-            Count: <Signal>1</Signal>
-          </p>
-          <div>
-            <button>Click</button>
-            <Component>
-              <div style="display:none">
-                <div>counting...</div>
-              </div>
-              <div style="display:contents">
-                <Projection ssr-required>
-                  <Component>
-                    <div>
-                      Count: <Signal>1</Signal>
-                    </div>
-                  </Component>
-                </Projection>
-              </div>
-            </Component>
-          </div>
-        </main>
-      </Component>
     );
   });
 
@@ -869,178 +605,6 @@ describe('domRender: Suspense client-side pause delay', () => {
         </Component>
       </Component>
     );
-  });
-});
-
-describe('domRender: Reveal suspense coordination', () => {
-  type RevealTestState = {
-    toggles: Record<string, { value: number }>;
-    resolvers: Record<string, () => void>;
-  };
-
-  const RevealTestChild = component$((props: { id: string }) => {
-    const toggle = useSignal(0);
-    const state = (globalThis as any).__revealState as RevealTestState;
-    state.toggles[props.id] = toggle;
-    useTask$(({ track }) => {
-      const value = track(() => toggle.value);
-      if (value === 0) {
-        return;
-      }
-      return new Promise<void>((resolve) => {
-        state.resolvers[props.id] = resolve;
-      });
-    });
-    return (
-      <p>
-        {props.id}:{toggle.value}
-      </p>
-    );
-  });
-
-  const renderReveal = async (props: {
-    order?: 'parallel' | 'sequential' | 'reverse' | 'together';
-    collapsed?: boolean;
-  }) => {
-    const state: RevealTestState = { toggles: {}, resolvers: {} };
-    (globalThis as any).__revealState = state;
-    const result = await domRender(
-      <div id="reveal-root">
-        <Reveal {...props}>
-          <Suspense fallback={<span>Loading first</span>} delay={10}>
-            <RevealTestChild id="first" />
-          </Suspense>
-          <Suspense fallback={<span>Loading second</span>} delay={10}>
-            <RevealTestChild id="second" />
-          </Suspense>
-        </Reveal>
-      </div>,
-      { debug }
-    );
-    return { ...result, state, root: result.document.querySelector('#reveal-root')! };
-  };
-
-  const getRevealHosts = (root: Element) => {
-    const children = root.children;
-    return {
-      firstFallback: children[0] as HTMLElement,
-      firstContent: children[1] as HTMLElement,
-      secondFallback: children[2] as HTMLElement,
-      secondContent: children[3] as HTMLElement,
-    };
-  };
-
-  const blockRevealChildren = async (state: RevealTestState) => {
-    state.toggles.first.value = 1;
-    state.toggles.second.value = 1;
-    await delay(40);
-  };
-
-  afterEach(() => {
-    delete (globalThis as any).__revealState;
-  });
-
-  it('should keep parallel boundaries independent', async () => {
-    const { container, root, state } = await renderReveal({ order: 'parallel' });
-
-    await blockRevealChildren(state);
-    let hosts = getRevealHosts(root);
-    expect(hosts.firstFallback.style.display).toBe('contents');
-    expect(hosts.secondFallback.style.display).toBe('contents');
-
-    state.resolvers.second();
-    await delay(20);
-
-    hosts = getRevealHosts(root);
-    expect(hosts.firstFallback.style.display).toBe('contents');
-    expect(hosts.secondFallback.style.display).toBe('none');
-
-    expect(hosts.secondContent.style.display).toBe('contents');
-
-    state.resolvers.first();
-    await waitForDrain(container);
-  });
-
-  it('should reveal sequential content in registration order', async () => {
-    const { container, root, state } = await renderReveal({ order: 'sequential' });
-
-    await blockRevealChildren(state);
-    let hosts = getRevealHosts(root);
-    expect(hosts.firstFallback.style.display).toBe('contents');
-    expect(hosts.secondFallback.style.display).toBe('contents');
-
-    expect(hosts.secondContent.style.display).toBe('none');
-
-    state.resolvers.second();
-    await delay(20);
-
-    hosts = getRevealHosts(root);
-    expect(hosts.secondFallback.style.display).toBe('none');
-    expect(hosts.secondContent.style.display).toBe('none');
-
-    state.resolvers.first();
-    await waitForDrain(container);
-
-    hosts = getRevealHosts(root);
-    expect(hosts.firstContent.style.display).toBe('contents');
-    expect(hosts.secondContent.style.display).toBe('contents');
-  });
-
-  it('should collapse unrevealed sequential fallbacks', async () => {
-    const { container, root, state } = await renderReveal({ order: 'sequential', collapsed: true });
-
-    await blockRevealChildren(state);
-    const hosts = getRevealHosts(root);
-    expect(hosts.firstFallback.style.display).toBe('contents');
-    expect(hosts.secondFallback.style.display).toBe('none');
-
-    expect(hosts.secondContent.style.display).toBe('none');
-
-    state.resolvers.first();
-    state.resolvers.second();
-    await waitForDrain(container);
-  });
-
-  it('should reveal reverse content from the end', async () => {
-    const { container, root, state } = await renderReveal({ order: 'reverse' });
-
-    await blockRevealChildren(state);
-    state.resolvers.first();
-    await delay(20);
-
-    let hosts = getRevealHosts(root);
-    expect(hosts.firstFallback.style.display).toBe('none');
-
-    expect(hosts.firstContent.style.display).toBe('none');
-
-    state.resolvers.second();
-    await waitForDrain(container);
-
-    hosts = getRevealHosts(root);
-    expect(hosts.firstContent.style.display).toBe('contents');
-    expect(hosts.secondContent.style.display).toBe('contents');
-  });
-
-  it('should reveal together only after all boundaries resolve', async () => {
-    const { container, root, state } = await renderReveal({ order: 'together' });
-
-    await blockRevealChildren(state);
-    state.resolvers.first();
-    await delay(20);
-
-    let hosts = getRevealHosts(root);
-    expect(hosts.firstFallback.style.display).toBe('none');
-
-    expect(hosts.firstContent.style.display).toBe('none');
-
-    expect(hosts.secondFallback.style.display).toBe('contents');
-
-    state.resolvers.second();
-    await waitForDrain(container);
-
-    hosts = getRevealHosts(root);
-    expect(hosts.firstContent.style.display).toBe('contents');
-    expect(hosts.secondContent.style.display).toBe('contents');
   });
 });
 
@@ -1339,7 +903,7 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
     expect(contentHost.style.display).toBe('contents');
   });
 
-  it('should show fallback immediately when SSR delay is not positive', async () => {
+  it('should show a numeric zero fallback immediately during initial loading', async () => {
     let resolveSlow!: (value: JSXOutput) => void;
     const slow = new Promise<JSXOutput>((resolve) => {
       resolveSlow = resolve;
@@ -1349,14 +913,14 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
 
     const renderPromise = ssrRenderSuspenseStream(
       <main>
-        <Suspense fallback={<button>Immediate waiting</button>} delay={0}>
+        <Suspense fallback={0} delay={0}>
           <Slow />
         </Suspense>
       </main>,
       chunks
     );
 
-    await vi.waitFor(() => expect(chunks.join('')).toContain('Immediate waiting'));
+    await vi.waitFor(() => expect(chunks.join('')).toContain('>0</div>'));
     expect(chunks.join('')).toContain('<div style="display:contents"');
     expect(chunks.join('')).not.toContain('type="qwik/backpatch"');
 

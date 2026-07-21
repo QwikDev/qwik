@@ -1853,26 +1853,6 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
     super(opts);
   }
 
-  override nextOutOfOrderId(): number {
-    return this.$rootContainer$.nextOutOfOrderId();
-  }
-
-  override $runQueuedRender$<T>(render: () => ValueOrPromise<T>): ValueOrPromise<T> {
-    return this.$rootContainer$.$runQueuedRender$(render);
-  }
-
-  override queueOutOfOrderSegment(segment: Promise<void>): void {
-    this.$rootContainer$.queueOutOfOrderSegment(segment);
-  }
-
-  override emitOutOfOrderSegmentScripts(scripts: string): void {
-    this.$rootContainer$.emitOutOfOrderSegmentScripts(scripts);
-  }
-
-  override emitOutOfOrderExecutorIfNeeded(): void {
-    this.$rootContainer$.emitOutOfOrderExecutorIfNeeded();
-  }
-
   $recordExternalRootEffect$(
     producer: unknown,
     effect: EffectSubscription,
@@ -1902,7 +1882,6 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
     try {
       const commit = this.$commitRoots$(rootContainer, segmentSerializationCtx);
       this.$mergeSegmentEventData$(rootContainer, segmentSerializationCtx);
-      this.$mergeSegmentSyncFns$(rootContainer, segmentSerializationCtx);
       const subscriptionPatchRootId = this.$addSubscriptionsToRoots$(
         rootContainer,
         rootReadyAtSegment,
@@ -1987,11 +1966,7 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
   }
 
   private queueLateVNodeDataPatch(node: VNodeDataSerializableNode, addedFlags: number): void {
-    if (
-      !__EXPERIMENTAL__.suspense ||
-      !this.outOfOrderStreaming ||
-      !(addedFlags & (VNodeDataFlag.SERIALIZE | VNodeDataFlag.REFERENCE))
-    ) {
+    if (!(addedFlags & (VNodeDataFlag.SERIALIZE | VNodeDataFlag.REFERENCE))) {
       return;
     }
     const owner = this.getVNodeDataOwnerFromNodeId(node.id);
@@ -2153,17 +2128,7 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
     }
   }
 
-  private $mergeSegmentSyncFns$(
-    rootContainer: SSRContainer,
-    segmentSerializationCtx: SerializationContext
-  ): void {
-    rootContainer.serializationCtx.$syncFns$.push(...segmentSerializationCtx.$syncFns$);
-  }
-
   private collectSubscriptionPatches(rootContainer: SSRContainer, rootLimit: number) {
-    if (!__EXPERIMENTAL__.suspense || !this.outOfOrderStreaming) {
-      return;
-    }
     return collectSubscriptionPatches(
       rootContainer.serializationCtx,
       this.subscriptionPatchRecords,

@@ -6,8 +6,8 @@ import {
   useDocumentHead,
   useLocation,
   useQwikRouter,
-  z,
 } from '@qwik.dev/router';
+import * as z from 'zod';
 import './global.css';
 
 export const InsightsError = /* @__PURE__ */ z.object({

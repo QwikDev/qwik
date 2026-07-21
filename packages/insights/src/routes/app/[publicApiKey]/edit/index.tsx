@@ -1,5 +1,6 @@
 import { component$, useSignal, useTask$ } from '@qwik.dev/core';
-import { routeAction$, routeLoader$, useLocation, valibot$, z, zod$, Form } from '@qwik.dev/router';
+import { routeAction$, routeLoader$, useLocation, valibot$, zod$, Form } from '@qwik.dev/router';
+import * as z from 'zod';
 import { Field, Form as SchemaForm, reset, useField, useForm$ } from '@formisch/qwik';
 import { eq } from 'drizzle-orm';
 import AppCard from '~/components/app-card';

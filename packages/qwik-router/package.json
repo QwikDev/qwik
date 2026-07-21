@@ -5,6 +5,7 @@
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
     "@mdx-js/mdx": "^3.1.1",
+    "@standard-schema/spec": "^1.1.0",
     "@types/mdx": "^2.0.13",
     "estree-util-value-to-estree": "^3.5.0",
     "github-slugger": "^2.0.0",
@@ -35,6 +36,8 @@
     "@qwik.dev/core": "workspace:*",
     "@types/mdast": "4.0.4",
     "@types/node": "26.1.1",
+    "arktype": "2.1.25",
+    "effect": "3.21.0",
     "typescript": "5.9.3",
     "unified": "11.0.5",
     "uvu": "0.5.6",

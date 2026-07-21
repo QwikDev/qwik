@@ -31,6 +31,7 @@ import type { ResolveSyncValue } from '@qwik.dev/router/middleware/request-handl
 import type { SerializationStrategy } from '@qwik.dev/core/internal';
 import type { ServerError } from '@qwik.dev/router/middleware/request-handler';
 import type { Signal } from '@qwik.dev/core';
+import type { StandardSchemaV1 } from '@standard-schema/spec';
 import type * as v from 'valibot';
 import type { ValueOrPromise } from '@qwik.dev/core';
 import { ValueOrPromise as ValueOrPromise_2 } from '@qwik.dev/core/internal';
@@ -232,14 +233,11 @@ export interface FormSubmitSuccessDetail<T> {
 // @public
 export const getRequestEvent: (thisArg?: unknown) => RequestEvent | undefined;
 
-// Warning: (ae-forgotten-export) The symbol "ValibotDataValidator" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "ZodDataValidator" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export type GetValidatorInputType<VALIDATOR extends TypedDataValidator> = VALIDATOR extends ValibotDataValidator<infer TYPE> ? v.InferInput<TYPE> : VALIDATOR extends ZodDataValidator<infer TYPE> ? z_2.input<TYPE> : never;
+export type GetValidatorInputType<VALIDATOR extends TypedDataValidator> = VALIDATOR extends SchemaDataValidator<infer T> ? StandardSchemaV1.InferInput<T> : never;
 
 // @public (undocumented)
-export type GetValidatorOutputType<VALIDATOR extends TypedDataValidator> = VALIDATOR extends ValibotDataValidator<infer TYPE> ? v.InferOutput<TYPE> : VALIDATOR extends ZodDataValidator<infer TYPE> ? z_2.output<TYPE> : never;
+export type GetValidatorOutputType<VALIDATOR extends TypedDataValidator> = VALIDATOR extends SchemaDataValidator<infer T> ? StandardSchemaV1.InferOutput<T> : never;
 
 // @public (undocumented)
 export type GetValidatorType<VALIDATOR extends TypedDataValidator> = GetValidatorOutputType<VALIDATOR>;
@@ -538,6 +536,26 @@ export type RouteNavigate = QRL<(path?: string | number | URL, options?: {
 // @public (undocumented)
 export const RouterOutlet: Component<unknown>;
 
+// @public (undocumented)
+export const schema$: SchemaConstructor;
+
+// @public (undocumented)
+export type SchemaConstructor = {
+    <T extends StandardSchemaV1>(schema: T): SchemaDataValidator<T>;
+    <T extends StandardSchemaV1>(schema: (ev: RequestEvent) => T): SchemaDataValidator<T>;
+};
+
+// @public (undocumented)
+export type SchemaDataValidator<T extends StandardSchemaV1 = StandardSchemaV1> = {
+    validate(ev: RequestEvent, data: unknown): Promise<ValidatorReturn<ValidatorErrorType<StandardSchemaV1.InferInput<T>>>>;
+};
+
+// Warning: (ae-forgotten-export) The symbol "SchemaConstructorQRL" needs to be exported by the entry point index.d.ts
+// Warning: (ae-internal-missing-underscore) The name "schemaQrl" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export const schemaQrl: SchemaConstructorQRL;
+
 // Warning: (ae-forgotten-export) The symbol "ServerConfig" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
@@ -593,7 +611,7 @@ export type StaticGenerateHandler = (input: {
 export type StrictUnion<T> = Prettify<StrictUnionHelper<T, T>>;
 
 // @public (undocumented)
-export type TypedDataValidator = ValibotDataValidator | ZodDataValidator;
+export type TypedDataValidator = SchemaDataValidator;
 
 // @beta (undocumented)
 export const untypedAppUrl: (route: string, params?: Record<string, string>, paramsPrefix?: string) => string;
@@ -628,7 +646,7 @@ export const useQwikRouter: (props?: QwikRouterProps) => void;
 
 // Warning: (ae-forgotten-export) The symbol "ValibotConstructor" needs to be exported by the entry point index.d.ts
 //
-// @beta (undocumented)
+// @public @deprecated (undocumented)
 export const valibot$: ValibotConstructor;
 
 // Warning: (ae-forgotten-export) The symbol "ValibotConstructorQRL" needs to be exported by the entry point index.d.ts
@@ -671,15 +689,15 @@ export type ValidatorReturn<T extends Record<string, any> = {}> = ValidatorRetur
 
 export { z }
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export const zod$: ZodConstructor;
 
 // @public (undocumented)
 export type ZodConstructor = {
-    <T extends z_2.ZodRawShape>(schema: T): ZodDataValidator<z_2.ZodObject<T>>;
-    <T extends z_2.ZodRawShape>(schema: (zod: typeof z_2.z, ev: RequestEvent) => T): ZodDataValidator<z_2.ZodObject<T>>;
-    <T extends z_2.core.$ZodType>(schema: T): ZodDataValidator<T>;
-    <T extends z_2.core.$ZodType>(schema: (zod: typeof z_2.z, ev: RequestEvent) => T): ZodDataValidator<T>;
+    <T extends z_2.ZodRawShape>(schema: T): SchemaDataValidator<z_2.ZodObject<T>>;
+    <T extends z_2.ZodRawShape>(schema: (zod: typeof z_2.z, ev: RequestEvent) => T): SchemaDataValidator<z_2.ZodObject<T>>;
+    <T extends z_2.core.$ZodType>(schema: T): SchemaDataValidator<T>;
+    <T extends z_2.core.$ZodType>(schema: (zod: typeof z_2.z, ev: RequestEvent) => T): SchemaDataValidator<T>;
 };
 
 // Warning: (ae-forgotten-export) The symbol "ZodConstructorQRL" needs to be exported by the entry point index.d.ts

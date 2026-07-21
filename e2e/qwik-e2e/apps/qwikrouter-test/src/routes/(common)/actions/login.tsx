@@ -1,5 +1,6 @@
 import { component$, useSignal } from '@qwik.dev/core';
-import { Form, globalAction$, z, zod$ } from '@qwik.dev/router';
+import { Form, globalAction$, zod$ } from '@qwik.dev/router';
+import * as z from 'zod';
 import styles from './actions.module.css';
 
 export function delay(nu: number) {

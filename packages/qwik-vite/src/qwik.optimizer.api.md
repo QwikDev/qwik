@@ -25,8 +25,7 @@ export enum ExperimentalFeatures {
     insights = "insights",
     noSPA = "noSPA",
     show = "show",
-    suspense = "suspense",
-    valibot = "valibot"
+    suspense = "suspense"
 }
 
 // @public (undocumented)

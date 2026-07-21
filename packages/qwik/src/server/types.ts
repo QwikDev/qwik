@@ -157,6 +157,16 @@ export interface RenderOptions extends SerializeDocumentOptions {
   containerAttributes?: Record<string, string>;
   /** Metadata that can be retrieved during SSR with `useServerData()`. */
   serverData?: Record<string, any>;
+
+  /**
+   * Server-only. Maps a thrown error to the `Error` an `<ErrorBoundary>` serializes into the HTML
+   * (and hands to its `fallback$` on resume), running at SSR catch time before serialization.
+   * `onError$` and server logging still receive the original error. Return an `Error`; a throw or a
+   * non-Error return falls back to a redacted generic error. Attach custom fields on the returned
+   * `Error` — enumerable serializable fields survive to the fallback. When omitted, the default is
+   * secure: full fidelity in dev, a generic message + `digest` in production.
+   */
+  transformError?: (error: unknown) => unknown;
 }
 
 /** @public */
@@ -224,6 +234,8 @@ export const enum VNodeDataFlag {
   REFERENCE = 8,
   /// Should be output during serialization.
   SERIALIZE = 16,
+  /// In a swapped-out ErrorBoundary subtree; materializes as non-resumable DOM.
+  INERT = 32,
 }
 
 export type BackpatchEntry = {

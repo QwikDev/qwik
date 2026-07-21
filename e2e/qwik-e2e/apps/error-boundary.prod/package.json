@@ -1,0 +1,6 @@
+{
+  "name": "error-boundary.prod",
+  "description": "Prod-mode (qDev=false) build of the shared error-boundary e2e fixture.",
+  "private": true,
+  "type": "module"
+}

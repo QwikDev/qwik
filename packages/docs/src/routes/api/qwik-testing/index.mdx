@@ -623,6 +623,7 @@ export declare function ssrRenderToDom(
     streaming?: StreamingOptions;
     resume?: boolean;
     onBeforeResume?: (document: Document) => void;
+    transformError?: (error: unknown) => unknown;
   },
 ): Promise<{
   container: _DomContainer;
@@ -662,7 +663,7 @@ opts
 
 </td><td>
 
-\{ debug?: boolean; raw?: boolean; qwikLoader?: boolean; containerTagName?: string; statePrewarm?: number \| false; stream?: StreamWriter; streaming?: [StreamingOptions](#streamingoptions); resume?: boolean; onBeforeResume?: (document: Document) =&gt; void; }
+\{ debug?: boolean; raw?: boolean; qwikLoader?: boolean; containerTagName?: string; statePrewarm?: number \| false; stream?: StreamWriter; streaming?: [StreamingOptions](#streamingoptions); resume?: boolean; onBeforeResume?: (document: Document) =&gt; void; transformError?: (error: unknown) =&gt; unknown; }
 
 </td><td>
 
@@ -844,7 +845,7 @@ Promise&lt;Event \| null&gt;
 
 ```typescript
 export declare function vnode_fromJSX(jsx: JSXOutput): {
-  vParent: _ElementVNode | _VirtualVNode;
+  vParent: _VirtualVNode | _ElementVNode;
   vNode: _VNode | null;
   document: _QDocument;
   container: ClientContainer;
@@ -879,7 +880,7 @@ JSXOutput
 
 **Returns:**
 
-\{ vParent: \_ElementVNode \| \_VirtualVNode; vNode: \_VNode \| null; document: \_QDocument; container: ClientContainer; }
+\{ vParent: \_VirtualVNode \| \_ElementVNode; vNode: \_VNode \| null; document: \_QDocument; container: ClientContainer; }
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/vdom-diff.unit-util.ts)
 

@@ -192,11 +192,6 @@ export type DocumentStyle = Readonly<((Omit<QwikIntrinsicElements['style'], 'dan
     style?: never;
 })>;
 
-// Warning: (ae-forgotten-export) The symbol "ErrorBoundaryProps" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export const ErrorBoundary: Component<ErrorBoundaryProps>;
-
 // @public
 export type ExcludeControlFlow<T> = Exclude<T, AbortMessage | ServerError>;
 

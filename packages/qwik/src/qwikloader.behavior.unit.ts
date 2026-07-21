@@ -303,6 +303,54 @@ describe('qwikloader behavior', () => {
     expect(logs).toEqual(['child bubble']);
   });
 
+  const stopLogHandlerQrl = (label: string) =>
+    `data:text/javascript;charset=utf-8,${encodeURIComponent(
+      `export const handler = () => globalThis.__qwikLoaderStopLogs.push(${JSON.stringify(label)});`
+    )}#handler#`;
+
+  test('a deferred (importing) handler that does not stop still runs the deferred ancestor', async () => {
+    const { doc } = createLoaderEnvironment(['e:click']);
+    const logs: string[] = [];
+    const previousLogs = (globalThis as any).__qwikLoaderStopLogs;
+    const container = createMockElement(null, { 'q:container': 'resumed', 'q:base': './' });
+    const parent = createMockElement(container, {
+      'q-e:click': stopLogHandlerQrl('parent bubble'),
+    });
+    const child = createMockElement(parent, { 'q-e:click': stopLogHandlerQrl('child run') });
+
+    (globalThis as any).__qwikLoaderStopLogs = logs;
+    try {
+      getSingleListener(doc, 'click').handler(createMockEvent(child));
+      await vi.waitFor(() => {
+        expect(logs).toEqual(['child run', 'parent bubble']);
+      });
+    } finally {
+      (globalThis as any).__qwikLoaderStopLogs = previousLogs;
+    }
+  });
+
+  test('a deferred (importing) capture handler that does not stop still runs the later deferred bubble handler', async () => {
+    const { doc } = createLoaderEnvironment(['e:click']);
+    const logs: string[] = [];
+    const previousLogs = (globalThis as any).__qwikLoaderStopLogs;
+    const container = createMockElement(null, { 'q:container': 'resumed', 'q:base': './' });
+    const capturer = createMockElement(container, {
+      'capture:click': true,
+      'q-e:click': stopLogHandlerQrl('capturer capture'),
+    });
+    const target = createMockElement(capturer, { 'q-e:click': stopLogHandlerQrl('target bubble') });
+
+    (globalThis as any).__qwikLoaderStopLogs = logs;
+    try {
+      getSingleListener(doc, 'click').handler(createMockEvent(target));
+      await vi.waitFor(() => {
+        expect(logs).toEqual(['capturer capture', 'target bubble']);
+      });
+    } finally {
+      (globalThis as any).__qwikLoaderStopLogs = previousLogs;
+    }
+  });
+
   test('applies parent preventdefault synchronously before async child bubbling completes', async () => {
     const { doc } = createLoaderEnvironment(['e:click']);
     const logs: string[] = [];

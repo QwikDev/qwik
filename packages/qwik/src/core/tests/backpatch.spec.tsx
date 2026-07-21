@@ -266,6 +266,48 @@ describe('SSR Backpatching', () => {
     expect(backpatchedLabel?.outerHTML).toContain('id="final-id"');
   });
 
+  it('should apply patches queued in reverse document order (executor walks forward-only)', async () => {
+    const CtxA = createContextId<{ early: Signal<string> }>('bp-rev-a');
+    const CtxB = createContextId<{ late: Signal<string> }>('bp-rev-b');
+
+    const MutateLate = component$(() => {
+      const context = useContext(CtxB);
+      useTask$(() => {
+        context.late.value = 'late-final';
+      });
+      return <span>mutate-late</span>;
+    });
+
+    const MutateEarly = component$(() => {
+      const context = useContext(CtxA);
+      useTask$(() => {
+        context.early.value = 'early-final';
+      });
+      return <span>mutate-early</span>;
+    });
+
+    const Root = component$(() => {
+      const early = useSignal('early-initial');
+      const late = useSignal('late-initial');
+      useContextProvider(CtxA, { early });
+      useContextProvider(CtxB, { late });
+      return (
+        <div>
+          <input id="early" aria-label={early.value} />
+          <input id="late" aria-label={late.value} />
+          <MutateLate />
+          <MutateEarly />
+        </div>
+      );
+    });
+
+    const { document } = await ssrRenderToDom(<Root />, { debug });
+
+    expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_DATA);
+    expect(document.querySelector('#early')?.getAttribute('aria-label')).toBe('early-final');
+    expect(document.querySelector('#late')?.getAttribute('aria-label')).toBe('late-final');
+  });
+
   it('should not serialize backpatched attributes into vnode data', async () => {
     const Ctx = createContextId<{ id: Signal<string>; label: Signal<string> }>('ctx');
 

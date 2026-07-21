@@ -2,6 +2,7 @@ import {
   createDocument,
   domRender,
   emulateExecutionOfQwikFuncs,
+  getTestPlatform,
   ssrRenderToDom,
   trigger,
   waitForDrain,
@@ -15,10 +16,13 @@ import {
   Fragment as Projection,
   Fragment as Awaited,
   component$,
+  createContextId,
   getDomContainer,
   type JSXOutput,
+  render,
+  setPlatform,
   useAsync$,
-  useErrorBoundary,
+  useContextProvider,
   Slot,
   useTask$,
   useSignal,
@@ -27,6 +31,7 @@ import {
   Fragment as Signal,
 } from '@qwik.dev/core';
 import { ErrorProvider, emulateExecutionOfBackpatch } from '../../testing/rendering.unit-util';
+import { useErrorBoundaryStore } from '../use/use-error-boundary-store';
 import { delay } from '../shared/utils/promises';
 import { getScopedStyles } from '../shared/utils/scoped-stylesheet';
 import { TypeIds } from '../shared/serdes/constants';
@@ -279,7 +284,7 @@ describe.each([
 
   it('should bubble descendant throws to the nearest regular error boundary on the client', async () => {
     const ErrorBoundary = component$(() => {
-      const boundary = useErrorBoundary();
+      const boundary = useErrorBoundaryStore();
       return boundary.error ? <p>Error: {(boundary.error as Error).message}</p> : <Slot />;
     });
     const BadChild = component$(() => {
@@ -287,7 +292,7 @@ describe.each([
     });
 
     if (render === ssrRenderToDom) {
-      // SSR still propagates the error synchronously — Suspense is not an SSR error boundary.
+      // Suspense is not an SSR error boundary; SSR throws synchronously.
       let caught: unknown;
       try {
         await render(
@@ -430,6 +435,8 @@ describe('domRender: Suspense client-side pause delay', () => {
     delete (globalThis as any).__showStaleToggle;
     delete (globalThis as any).__showStaleResolve;
     delete (globalThis as any).__slowChildResolve;
+    delete (globalThis as any).__wrapperSlowContent;
+    delete (globalThis as any).__wrapperSlowResolve;
   });
 
   it('should show fallback mid-flight and swap it for children on completion', async () => {
@@ -449,7 +456,6 @@ describe('domRender: Suspense client-side pause delay', () => {
       { debug }
     );
 
-    // Wait past the delay (10ms) so the pause-timer fires and marks fallback visible.
     await new Promise((r) => setTimeout(r, 40));
 
     (globalThis as any).__slowResolve(<p>Done</p>);
@@ -480,10 +486,47 @@ describe('domRender: Suspense client-side pause delay', () => {
     );
   });
 
+  it('should show the fallback when the deferred child is projected through a stateful wrapper component', async () => {
+    (globalThis as any).__wrapperSlowContent = new Promise<JSXOutput>((resolve) => {
+      (globalThis as any).__wrapperSlowResolve = resolve;
+    });
+    const wrapperContext = createContextId<{ renders: number }>('test-stateful-wrapper');
+    // Stateful wrapper (like ErrorBoundary): its projection hid the Suspense boundary pre-fix.
+    const StatefulWrapper = component$(() => {
+      const state = useStore({ renders: 0 });
+      useContextProvider(wrapperContext, state);
+      return <Slot />;
+    });
+    const SlowChild = component$(() => {
+      return <>{(globalThis as any).__wrapperSlowContent}</>;
+    });
+
+    setPlatform(getTestPlatform());
+    const document = createDocument();
+    const renderPromise = render(
+      document.body,
+      <div>
+        <Suspense fallback={<span>Loading...</span>} delay={10}>
+          <StatefulWrapper>
+            <SlowChild />
+          </StatefulWrapper>
+        </Suspense>
+      </div>
+    );
+
+    // Past the delay and still unresolved: the fallback must be visible mid-flight.
+    await delay(40);
+    expect(document.querySelector('div')!.innerHTML).toContain(loading);
+
+    (globalThis as any).__wrapperSlowResolve(<p>Done</p>);
+    await renderPromise;
+
+    const html = document.querySelector('div')!.innerHTML;
+    expect(html).toContain('Done');
+    expect(html).not.toContain(loading);
+  });
+
   it('should re-show fallback when a descendant updates and blocks past delay', async () => {
-    // After initial mount, flip the signal: the child's render returns a Promise that takes
-    // longer than the Suspense delay. The new update-time cursor should inherit the
-    // boundary's hooks and re-trigger the fallback, then clear it once resolved.
     (globalThis as any).__susToggle = null as any;
     (globalThis as any).__susResolve = null as any;
 
@@ -493,7 +536,7 @@ describe('domRender: Suspense client-side pause delay', () => {
       useTask$(({ track }) => {
         const t = track(() => toggle.value);
         if (t === 0) {
-          return; // initial: sync
+          return;
         }
         return new Promise<void>((resolve) => {
           (globalThis as any).__susResolve = resolve;
@@ -511,7 +554,6 @@ describe('domRender: Suspense client-side pause delay', () => {
       { debug }
     );
 
-    // Initial render finished; children in place, no fallback.
     let html = document.querySelector('div')!.innerHTML;
     expect(html).toContain('value=0');
     expect(html).not.toContain(loading);
@@ -534,7 +576,6 @@ describe('domRender: Suspense client-side pause delay', () => {
       </div>
     );
 
-    // Trigger an update that will pause the cursor.
     const toggle = (globalThis as any).__susToggle as { value: number };
     toggle.value = 1;
 
@@ -544,7 +585,6 @@ describe('domRender: Suspense client-side pause delay', () => {
     html = document.querySelector('div')!.innerHTML;
     expect(html).toContain(loading);
 
-    // Resolve the pending task and let the render settle.
     const resolveFn = (globalThis as any).__susResolve as () => void;
     expect(resolveFn).toBeDefined();
     resolveFn();

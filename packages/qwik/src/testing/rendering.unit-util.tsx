@@ -132,6 +132,7 @@ export async function ssrRenderToDom(
     resume?: boolean;
     /** Inject nodes into the document before test runs (for testing purposes) */
     onBeforeResume?: (document: Document) => void;
+    transformError?: (error: unknown) => unknown;
   } = {}
 ) {
   setPlatform(getTestPlatform());
@@ -150,6 +151,7 @@ export async function ssrRenderToDom(
     const renderOptions = {
       containerTagName: opts.containerTagName,
       qwikLoader: opts.qwikLoader ? 'inline' : 'never',
+      transformError: opts.transformError,
       statePrewarm: opts.statePrewarm,
     } as const;
     if (opts.stream || opts.streaming) {
@@ -404,25 +406,36 @@ export function emulateExecutionOfBackpatch(document: Document) {
   executeBackpatch(document);
 }
 
-export function emulateExecutionOfOutOfOrderScripts(document: Document) {
+export function emulateExecutionOfOutOfOrderScripts(
+  document: Document,
+  extraScriptMarkers: string[] = []
+) {
   const scripts = Array.from(
     document.querySelectorAll('script[type="text/javascript"]'),
     (script) => script.textContent || ''
-  ).filter((code) => code.includes('qO') || code.includes('qInstallOOOS'));
+  ).filter(
+    (code) =>
+      code.includes('qO') ||
+      code.includes('qInstallOOOS') ||
+      extraScriptMarkers.some((marker) => code.includes(marker))
+  );
   if (scripts.length > 0) {
     // eslint-disable-next-line no-new-func
     new Function('document', scripts.join('\n'))(document);
   }
 }
 
-function emulateExecutionOfStreamingOutOfOrderScripts(document: Document) {
+export function emulateExecutionOfStreamingOutOfOrderScripts(
+  document: Document,
+  extraScriptMarkers: string[] = []
+) {
   const qDocument = document as Document & {
     qProcessOOOS?: (boundaryId: number, content: Element | null) => void;
   };
   qDocument.qProcessOOOS = (boundaryId, content) => {
     processOutOfOrderSegmentVNodeData(document, String(boundaryId), content);
   };
-  emulateExecutionOfOutOfOrderScripts(document);
+  emulateExecutionOfOutOfOrderScripts(document, extraScriptMarkers);
 }
 
 function renderStyles(getStyles: () => Record<string, string | string[]>) {

@@ -24,6 +24,9 @@ const extraSymbols = new Set([
   '_reR',
   '_reC',
   '_reT',
+  // ErrorBoundary
+  '_ebC',
+  '_ebR',
 ]);
 
 // This is just the initial prioritization of the symbols and entries

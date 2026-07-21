@@ -17,6 +17,17 @@ import { isSerializerObj } from '../../reactive-primitives/utils';
 
 const getKeyVal = <T>(value: T, key: keyof T) => value[key];
 
+const canSerializeOwnEnumerable = (value: object, seen: WeakSet<any>): boolean => {
+  for (const key in value) {
+    // if the value is a props proxy, then sometimes we could create a component-level subscription,
+    // so we should call untrack here to avoid tracking the value
+    if (!canSerialize(untrack(getKeyVal, value, key as keyof typeof value), seen)) {
+      return false;
+    }
+  }
+  return true;
+};
+
 export const canSerialize = (value: unknown, seen: WeakSet<any> = new WeakSet()): boolean => {
   const hasTemporal = typeof Temporal !== 'undefined';
   if (
@@ -37,14 +48,7 @@ export const canSerialize = (value: unknown, seen: WeakSet<any> = new WeakSet())
       value = getStoreTarget(value);
     }
     if (proto == Object.prototype) {
-      for (const key in value as object) {
-        // if the value is a props proxy, then sometimes we could create a component-level subscription,
-        // so we should call untrack here to avoid tracking the value
-        if (!canSerialize(untrack(getKeyVal, value, key as keyof typeof value), seen)) {
-          return false;
-        }
-      }
-      return true;
+      return canSerializeOwnEnumerable(value as object, seen);
     } else if (proto == Array.prototype) {
       for (let i = 0; i < (value as unknown[]).length; i++) {
         // ignore sparse array holes
@@ -67,7 +71,15 @@ export const canSerialize = (value: unknown, seen: WeakSet<any> = new WeakSet())
     } else if (isSerializerObj(value)) {
       return true;
     } else if (value instanceof Error) {
-      return true;
+      try {
+        // The serializer reads these; a throwing getter must fail the check.
+        void value.message;
+        void value.stack;
+      } catch {
+        return false;
+      }
+      // The serializer also emits the Error's own enumerable fields.
+      return canSerializeOwnEnumerable(value, seen);
     } else if (value instanceof URL) {
       return true;
     } else if (value instanceof Date) {

@@ -10,6 +10,7 @@ const Q_CONTAINER_SELECTOR = '[q\\:container]:not([q\\:container=html]):not([q\\
 
 type OutOfOrderTemplate = HTMLTemplateElement | null;
 type OutOfOrderHost = Element | null;
+// [reveal, hide]: hide is reveal's previous sibling.
 type OutOfOrderEntry = [OutOfOrderHost | 0, OutOfOrderHost];
 type OutOfOrderScope = Document | Element;
 
@@ -27,7 +28,7 @@ type OutOfOrderExecutor = {
 };
 
 type OutOfOrderDocument = Document & {
-  qProcessOOOS?: (boundaryId: number, content: Element | null) => void;
+  qProcessOOOS?: (boundaryId: number, revealNode: Element | null) => void;
 };
 
 type OutOfOrderGlobal = typeof globalThis & {
@@ -37,9 +38,9 @@ type OutOfOrderGlobal = typeof globalThis & {
 export const installOutOfOrderExecutor = (doc: Document) => {
   const groups = new WeakMap<OutOfOrderScope, Record<string, OutOfOrderGroup>>();
 
-  const process = (boundaryId: number, content: Element | null) => {
+  const process = (boundaryId: number, revealNode: Element | null) => {
     const executorDoc = doc as OutOfOrderDocument;
-    executorDoc.qProcessOOOS?.(boundaryId, content);
+    executorDoc.qProcessOOOS?.(boundaryId, revealNode);
   };
 
   const getScope = (): OutOfOrderScope => {
@@ -82,23 +83,23 @@ export const installOutOfOrderExecutor = (doc: Document) => {
     return templates.length ? (templates[templates.length - 1] as HTMLTemplateElement) : null;
   };
 
-  const getPlaceholderTemplate = (content: Element, boundaryId: number): OutOfOrderTemplate => {
-    return content.querySelector(Q_RESOLVED_SELECTOR + boundaryId + '"]') as OutOfOrderTemplate;
+  const getPlaceholderTemplate = (revealHost: Element, boundaryId: number): OutOfOrderTemplate => {
+    return revealHost.querySelector(Q_RESOLVED_SELECTOR + boundaryId + '"]') as OutOfOrderTemplate;
   };
 
   const getResultParent = (scope: OutOfOrderScope, boundaryId: number): Element | null => {
     return scope.querySelector(Q_RESULT_PARENT_SELECTOR + boundaryId + '"]');
   };
 
-  const reveal = (content: OutOfOrderHost, fallback: OutOfOrderHost) => {
-    if (!content) {
+  const reveal = (revealHost: OutOfOrderHost, hideHost: OutOfOrderHost) => {
+    if (!revealHost) {
       return 0;
     }
-    if (fallback && (fallback as HTMLElement).style) {
-      (fallback as HTMLElement).style.display = 'none';
+    if (hideHost && (hideHost as HTMLElement).style) {
+      (hideHost as HTMLElement).style.display = 'none';
     }
-    if ((content as HTMLElement).style) {
-      (content as HTMLElement).style.display = 'contents';
+    if ((revealHost as HTMLElement).style) {
+      (revealHost as HTMLElement).style.display = 'contents';
     }
     return 1;
   };
@@ -107,16 +108,16 @@ export const installOutOfOrderExecutor = (doc: Document) => {
     if (!resolved) {
       return null;
     }
-    const content = getResultParent(scope, boundaryId);
-    const placeholder = content ? getPlaceholderTemplate(content, boundaryId) : null;
+    const revealHost = getResultParent(scope, boundaryId);
+    const placeholder = revealHost ? getPlaceholderTemplate(revealHost, boundaryId) : null;
     const parent = placeholder ? placeholder.parentNode : null;
-    if (!placeholder || !content || !parent) {
+    if (!placeholder || !revealHost || !parent) {
       return null;
     }
     parent.insertBefore(resolved.content, placeholder);
     placeholder.remove();
     resolved.remove();
-    return [content, content.previousElementSibling] as OutOfOrderEntry;
+    return [revealHost, revealHost.previousElementSibling] as OutOfOrderEntry;
   };
 
   const flush = (group: OutOfOrderGroup) => {

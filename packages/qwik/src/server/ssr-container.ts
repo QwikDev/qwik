@@ -112,6 +112,7 @@ import { preloaderPost, preloaderPre } from './preload-impl';
 import {
   getQwikBackpatchExecutorScript,
   getQwikLoaderScript,
+  getQwikErrorSwapExecutorScript,
   getQwikOutOfOrderExecutorScript,
 } from './scripts';
 import { DomRef, SsrComponentFrame, SsrNode } from './ssr-node';
@@ -260,6 +261,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   public symbolToChunkResolver: SymbolToChunkResolver;
   public renderOptions: RenderOptions;
   public readonly outOfOrderStreaming: boolean;
+  public readonly $transformError$: ((error: unknown) => unknown) | undefined;
   public serializationCtx: SerializationContext;
   // Sometimes there is no app state, but framework metadata still points to a vnode id.
   // For example, an OOOS segment can point outside the segment to a root vnode through
@@ -285,6 +287,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private styleIds = new Set<string>();
   private isBackpatchExecutorEmitted = false;
   private isOutOfOrderExecutorEmitted = false;
+  private isErrorSwapExecutorEmitted = false;
   private backpatchMap = new Map<number | string, BackpatchEntry[]>();
 
   private currentElementFrame: ElementFrame | null = null;
@@ -345,6 +348,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.$buildBase$ = opts.buildBase;
     this.resolvedManifest = opts.resolvedManifest;
     this.renderOptions = opts.renderOptions;
+    this.$transformError$ = opts.renderOptions.transformError;
     const outOfOrderStreaming =
       (this.renderOptions as RenderToStreamOptions).streaming?.outOfOrder === true;
     if (!__EXPERIMENTAL__.suspense) {
@@ -457,11 +461,15 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.rootContainerReadyPromise = null;
   }
 
-  nextOutOfOrderId(): number {
-    if (!__EXPERIMENTAL__.suspense || !this.outOfOrderStreaming) {
+  nextOutOfOrderId(markUsed = true): number {
+    // In-order ErrorBoundary needs an id without arming OOOS.
+    const ooosActive = __EXPERIMENTAL__.suspense && this.outOfOrderStreaming;
+    if (!ooosActive && !__EXPERIMENTAL__.errorBoundary) {
       return 0;
     }
-    this.outOfOrderUsed = true;
+    if (markUsed && ooosActive) {
+      this.outOfOrderUsed = true;
+    }
     return ++this.outOfOrderId;
   }
 
@@ -487,6 +495,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         'Out-of-order Suspense streaming requires `streaming.outOfOrder` to be `true`.'
       );
     }
+    this.outOfOrderUsed = true;
     this.markVNodeRefForSerialization(options.parentComponentFrame?.componentNode);
     const writer = new StringBufferSegmentWriter();
     const segmentContainer = this.createSegmentContainer(segmentId, writer);
@@ -1151,8 +1160,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           this.write(VNodeDataSeparator.REFERENCE_CH);
         }
         if (
-          flag &
-          (VNodeDataFlag.TEXT_DATA | VNodeDataFlag.VIRTUAL_NODE | VNodeDataFlag.ELEMENT_NODE)
+          !(flag & VNodeDataFlag.INERT) &&
+          flag & (VNodeDataFlag.TEXT_DATA | VNodeDataFlag.VIRTUAL_NODE | VNodeDataFlag.ELEMENT_NODE)
         ) {
           let fragmentAttrs: Props | null = null;
           /**
@@ -1380,7 +1389,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   emitPatchDataIfNeeded(): void {
     const patches: (string | number | boolean | null)[] = [];
-    for (const [elementIndex, backpatchEntries] of this.backpatchMap) {
+    // Inline executor is forward-only; entries must ascend by index.
+    const sortedBackpatches = [...this.backpatchMap.entries()].sort(
+      ([a], [b]) => Number(a) - Number(b)
+    );
+    for (let entryIdx = 0; entryIdx < sortedBackpatches.length; entryIdx++) {
+      const [elementIndex, backpatchEntries] = sortedBackpatches[entryIdx];
       for (let i = 0; i < backpatchEntries.length; i++) {
         const backpatchEntry = backpatchEntries[i];
         patches.push(
@@ -1442,6 +1456,18 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       { type: 'text/javascript', nonce: this.renderOptions.serverData?.nonce },
       getQwikOutOfOrderExecutorScript({ debug: isDev })
     );
+  }
+
+  emitErrorSwapExecutorIfNeeded(): void {
+    if (!__EXPERIMENTAL__.errorBoundary || this.isErrorSwapExecutorEmitted) {
+      return;
+    }
+    this.isErrorSwapExecutorEmitted = true;
+    this.emitInlineScript(getQwikErrorSwapExecutorScript({ debug: isDev }));
+  }
+
+  $registerErrorSwap$(_boundaryId: number): void {
+    // No-op: standalone boundaries emit `qErr` inline; only segments defer.
   }
 
   emitInlineScript(script: string): void {
@@ -1843,6 +1869,7 @@ interface SegmentRootCommit {
 export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentContainer {
   $outOfOrderState$ = OutOfOrderSegmentState.Rendering;
   $outOfOrderRootIdMap$: number[] | null = null;
+  $errorSwapIds$: number[] = [];
   private subscriptionPatchRecords: SubscriptionPatchRecord[] = [];
   private pendingVNodeDataPatches: PendingVNodeDataPatches | null = null;
 
@@ -1853,8 +1880,13 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
     super(opts);
   }
 
-  override nextOutOfOrderId(): number {
-    return this.$rootContainer$.nextOutOfOrderId();
+  override nextOutOfOrderId(markUsed = true): number {
+    return this.$rootContainer$.nextOutOfOrderId(markUsed);
+  }
+
+  override $registerErrorSwap$(boundaryId: number): void {
+    // `qErr` is inert inside the segment `<template>`; defer swap to root.
+    this.$errorSwapIds$.push(boundaryId);
   }
 
   override $runQueuedRender$<T>(render: () => ValueOrPromise<T>): ValueOrPromise<T> {
@@ -1871,6 +1903,10 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
 
   override emitOutOfOrderExecutorIfNeeded(): void {
     this.$rootContainer$.emitOutOfOrderExecutorIfNeeded();
+  }
+
+  override emitErrorSwapExecutorIfNeeded(): void {
+    this.$rootContainer$.emitErrorSwapExecutorIfNeeded();
   }
 
   $recordExternalRootEffect$(

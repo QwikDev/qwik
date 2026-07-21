@@ -187,6 +187,50 @@ streaming, navigation, or integration with fixture apps. For Qwik e2e, load
 
 Never use `pnpm test.unit` for agent verification in this repo.
 
+## ErrorBoundary (experimental `errorBoundary`)
+
+Where things live: `errorBoundaryCmp` (`shared/error/error-boundary.ts`); SSR catch + inert marking
+(`ssr/ssr-render-jsx.ts`); fallback hosts (`control-flow/suspense.tsx`, `SSRErrorFallbackHost`);
+client routing (`client/dom-container.ts`); shared helpers (`shared/error/error-handling.ts`).
+
+### Invariants
+- The boundary never buffers streaming: the SSR catch only sets `store.error`, fires `onError$`,
+  marks content inert, and returns `null` — the sibling `fallback-host` renders the fallback.
+- Queued frames inside an INERT content host are DISCARDED at drain time
+  (`openBoundaryContentScopes` in `ssr-render-jsx.ts`): post-catch siblings, fn children, signals,
+  and generators never run, and a superseded promise is never awaited — observe it with
+  `.catch(noop)` or a late rejection becomes unhandled. Pre-catch content keeps hide-don't-unwind.
+  A discard site must never skip StackFns (structural close frames keep HTML balanced).
+- Every probe of a raw thrown value must be fail-closed against hostile objects (revoked Proxy,
+  throwing traps/getters): `toSerializableBoundaryError`/digest/redact are try/catch-wrapped, and
+  `isPromise`, `checkError`, `getStoreTarget`, and the recursive store-get wrap are guarded.
+  `canSerialize` validates an Error's own enumerable fields plus `message`/`stack` reads; a
+  `transformError` projection must pass `canSerialize` or it redacts to the generic.
+- The swap is decided at fallback-host drain time by error ORIGIN: in-place → inline + `qErr`
+  (`q:ebf`), even under OOOS; deferred-segment → `qO` shell (`q:rp`). Inline content must never sit
+  under `q:rp` (OOOS resume hijacks it into a template); a deferred fallback's vnode-data must
+  travel through a segment.
+- `markBoundaryErrored` is the only server error writer: it normalizes (never stores `undefined`)
+  and fires `onError$` per caught error + phase (`tagErrorPhase` survives the SSR rethrow).
+  First-wins absorption lives at the call sites, not inside it.
+- Both callbacks receive an `Error` (`fireOnError`/`toSerializableBoundaryError` coerce): an Error
+  throw reaches `onError$` identity-preserved in dev AND prod; a non-Error throw is wrapped with
+  the raw value as `cause` (serialized to the dev fallback only when serializable). The
+  prod-redacted error must never carry `cause` or custom fields — that would leak the raw error
+  through serialized state. A non-Error `transformError` projection redacts to the generic.
+- `store.error === undefined` means "no error" — every writer normalizes a thrown `undefined`.
+- `store.$onError$` is server-only; the client uses the serialized `props.onError$`.
+- `content-host` precedes `fallback-host`; the `qErr` executor stays independent of `qO` (gated on
+  `errorBoundary`, not `suspense`).
+- Closest boundary catches; a throwing fallback escalates past detached-`$fallback$` boundaries.
+- Stray function children (SSR): every child-enqueue site in `processJSXNode` sentinel-marks a
+  function so the drain routes its sync throw or awaited rejection to the boundary (phase
+  `render`); success stays invoke-and-discard, pinned by spec pending the fn-children RFC. A
+  missed enqueue site fails back to the old uncaught-throw behavior, never corruption — keep that
+  property. `SSRStream` children are consumed upstream and never reach the drain; the walk's
+  internal StackFns must keep hitting the unmarked fn branch. The client silently ignores function
+  children — leave it untouched.
+
 ## Keep This Reference Fresh
 
 Before finishing a core task, ask:

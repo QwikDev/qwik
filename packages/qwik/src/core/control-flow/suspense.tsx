@@ -14,12 +14,21 @@ import { _captures } from '../shared/qrl/qrl-class';
 import {
   QCursorBoundary,
   QDefaultSlot,
+  QErrorFallbackHost,
   QSuspenseResolved,
   QSuspenseResultParent,
 } from '../shared/utils/markers';
 import { resolveSlotName } from '../shared/utils/prop';
+import { noSerialize } from '../shared/serdes/verify';
+import { isOutOfOrderSegmentContainer } from '../shared/utils/container';
 import { createInternalServerComponent } from '../ssr/internal-server-component';
 import type { SSRContainer, SSROutOfOrderSegment, SSRRenderJSXOptions } from '../ssr/ssr-types';
+import {
+  ERROR_CONTEXT,
+  isErrorFromDeferredSegment,
+  markBoundaryErrored,
+  type ErrorBoundaryStore,
+} from '../shared/error/error-handling';
 import { useComputedQrl } from '../use/use-computed';
 import { useCursorBoundary, type CursorBoundary } from '../use/use-cursor-boundary';
 import { useSignal } from '../use/use-signal';
@@ -252,6 +261,13 @@ const SSRDeferredSlot = __EXPERIMENTAL__.suspense
       const boundaryState = jsx.varProps.boundary as SSROutOfOrderBoundaryState | null;
       const contentStyle = jsx.varProps.contentStyle as Signal<{ display: string }>;
       const revealBoundary = jsx.varProps.reveal as OutOfOrderRevealBoundary | null;
+      // Placeholder already streamed; route to `$emitFallback$`, not in place.
+      const errorBoundaryStore =
+        __EXPERIMENTAL__.errorBoundary && options.parentComponentFrame
+          ? (ssr.resolveContext(options.parentComponentFrame.componentNode, ERROR_CONTEXT) as
+              | ErrorBoundaryStore
+              | undefined)
+          : undefined;
       const content = ssr.segment(
         contentSegment,
         createClaimedDeferredSlot(ssr, jsx, options),
@@ -261,17 +277,29 @@ const SSRDeferredSlot = __EXPERIMENTAL__.suspense
       writeOutOfOrderPlaceholder(ssr, boundaryId);
       ssr.emitOutOfOrderExecutorIfNeeded();
       ssr.queueOutOfOrderSegment(
-        content.then((rendered) =>
-          emitRenderedOutOfOrderSegment(
-            ssr,
-            boundaryId,
-            contentSegment,
-            rendered,
-            contentStyle,
-            revealBoundary,
-            boundaryState
+        content
+          .then((rendered) =>
+            emitRenderedOutOfOrderSegment(
+              ssr,
+              boundaryId,
+              contentSegment,
+              rendered,
+              contentStyle,
+              revealBoundary,
+              boundaryState
+            )
           )
-        )
+          .catch((error) => {
+            if (errorBoundaryStore) {
+              if (errorBoundaryStore.$emitFallback$) {
+                return errorBoundaryStore.$emitFallback$(error);
+              }
+              if (errorBoundaryStore.error !== undefined) {
+                return;
+              }
+            }
+            throw error;
+          })
       );
     })
   : null!;
@@ -311,6 +339,32 @@ function createClaimedDeferredSlot(
   );
 }
 
+async function finalizeAndSwapOutOfOrderSegment(
+  ssr: SSRContainer,
+  boundaryId: number,
+  segmentId: string,
+  rendered: SSROutOfOrderSegment,
+  revealBoundary: OutOfOrderRevealBoundary | null,
+  emitExecutor: boolean
+): Promise<void> {
+  const result = await rendered.container.$finalizeOutOfOrderSegment$(segmentId, rendered);
+  writeOutOfOrderResolvedTemplate(ssr, boundaryId, result.html, revealBoundary);
+  ssr.emitOutOfOrderSegmentScripts(result.scripts);
+  if (emitExecutor) {
+    ssr.emitOutOfOrderExecutorIfNeeded();
+  }
+  ssr.emitInlineScript(`qO(${boundaryId})`);
+  // Deferred `qErr` swaps run after `qO` injected the hosts.
+  const errorSwapIds = rendered.container.$errorSwapIds$;
+  if (__EXPERIMENTAL__.errorBoundary && errorSwapIds.length) {
+    ssr.emitErrorSwapExecutorIfNeeded();
+    for (let i = 0; i < errorSwapIds.length; i++) {
+      ssr.emitInlineScript(`qErr(${errorSwapIds[i]})`);
+    }
+  }
+  await ssr.streamHandler.flush();
+}
+
 async function emitRenderedOutOfOrderSegment(
   ssr: SSRContainer,
   boundaryId: number,
@@ -324,13 +378,115 @@ async function emitRenderedOutOfOrderSegment(
   revealBoundary?.resolve();
   await ssr.$runQueuedRender$(async () => {
     ssr.addRoot(contentStyle);
-    const result = await rendered.container.$finalizeOutOfOrderSegment$(segmentId, rendered);
-    writeOutOfOrderResolvedTemplate(ssr, boundaryId, result.html, revealBoundary);
-    ssr.emitOutOfOrderSegmentScripts(result.scripts);
-    ssr.emitInlineScript(`qO(${boundaryId})`);
-    // qO() is the browser-visible handoff for this segment, so flush it immediately.
-    await ssr.streamHandler.flush();
+    await finalizeAndSwapOutOfOrderSegment(
+      ssr,
+      boundaryId,
+      segmentId,
+      rendered,
+      revealBoundary,
+      false
+    );
   });
+}
+
+export const SSRErrorFallback = __EXPERIMENTAL__.errorBoundary
+  ? /*#__PURE__*/ createInternalServerComponent<{ boundaryId: number; store: ErrorBoundaryStore }>(
+      (ssr, jsx, options) => {
+        const boundaryId = jsx.varProps.boundaryId as number;
+        const store = jsx.varProps.store as ErrorBoundaryStore;
+        const segmentId = `${boundaryId}`;
+        const streamFallback = async (error: unknown): Promise<void> => {
+          const fallback = store.$fallback$;
+          if (!fallback) {
+            return;
+          }
+          markBoundaryErrored(store, error, 'render', ssr.$transformError$);
+          store.$fallback$ = undefined;
+          // Render redacted `store.error`, not raw `error`, to avoid leaks.
+          const segment = await ssr.segment(segmentId, fallback(store.error) as JSXOutput, options);
+          await emitErrorBoundaryFallback(ssr, boundaryId, segmentId, segment);
+        };
+        store.$emitFallback$ = noSerialize(streamFallback);
+        writeOutOfOrderPlaceholder(ssr, boundaryId);
+        // `!== undefined` so a falsy sync throw still streams.
+        if (store.error !== undefined && store.$fallback$) {
+          return streamFallback(store.error);
+        }
+      }
+    )
+  : null!;
+
+export const SSRErrorFallbackInline = __EXPERIMENTAL__.errorBoundary
+  ? /*#__PURE__*/ createInternalServerComponent<{ boundaryId: number; store: ErrorBoundaryStore }>(
+      (ssr, jsx, _options, enqueue) => {
+        const boundaryId = jsx.varProps.boundaryId as number;
+        const store = jsx.varProps.store as ErrorBoundaryStore;
+        if (store.error !== undefined && store.$fallback$) {
+          const fallback = store.$fallback$;
+          store.$fallback$ = undefined;
+          if (isOutOfOrderSegmentContainer(ssr)) {
+            // Inline `qErr` is inert in the segment `<template>`; defer to root.
+            ssr.$registerErrorSwap$(boundaryId);
+            enqueue(fallback(store.error) as JSXOutput);
+          } else {
+            // LIFO: enqueue `qErr` first so it swaps after content.
+            enqueue(() => {
+              ssr.emitErrorSwapExecutorIfNeeded();
+              ssr.emitInlineScript(`qErr(${boundaryId})`);
+            });
+            enqueue(fallback(store.error) as JSXOutput);
+          }
+        }
+      }
+    )
+  : null!;
+
+export const SSRErrorFallbackHost = __EXPERIMENTAL__.errorBoundary
+  ? /*#__PURE__*/ createInternalServerComponent<{
+      boundaryId: number;
+      store: ErrorBoundaryStore;
+      hostStyle: Signal<{ display: string }>;
+    }>((ssr, jsx, _options, enqueue) => {
+      const boundaryId = jsx.varProps.boundaryId as number;
+      const store = jsx.varProps.store as ErrorBoundaryStore;
+      const hostStyle = jsx.varProps.hostStyle as Signal<{ display: string }>;
+      const deliverLate =
+        __EXPERIMENTAL__.suspense &&
+        ssr.outOfOrderStreaming &&
+        !isOutOfOrderSegmentContainer(ssr) &&
+        (store.error === undefined || isErrorFromDeferredSegment(store));
+      enqueue(
+        /*#__PURE__*/ _jsxSorted(
+          'div',
+          {
+            [deliverLate ? QSuspenseResultParent : QErrorFallbackHost]: String(boundaryId),
+            style: hostStyle,
+          },
+          null,
+          /*#__PURE__*/ _jsxSorted(
+            deliverLate ? SSRErrorFallback : SSRErrorFallbackInline,
+            { boundaryId, store },
+            null,
+            null,
+            1,
+            null
+          ),
+          1,
+          null
+        )
+      );
+    })
+  : null!;
+
+async function emitErrorBoundaryFallback(
+  ssr: SSRContainer,
+  boundaryId: number,
+  segmentId: string,
+  rendered: SSROutOfOrderSegment
+): Promise<void> {
+  await ssr.$runQueuedRender$(() =>
+    finalizeAndSwapOutOfOrderSegment(ssr, boundaryId, segmentId, rendered, null, true)
+  );
 }
 
 function markOutOfOrderContentResolved(boundaryState: SSROutOfOrderBoundaryState | null): void {
@@ -378,11 +534,11 @@ function shouldRenderFallback(
   );
 }
 
-function writeOutOfOrderPlaceholder(ssr: SSRContainer, boundaryId: number): void {
+export function writeOutOfOrderPlaceholder(ssr: SSRContainer, boundaryId: number): void {
   ssr.write(`<template ${QSuspenseResolved}="${boundaryId}"></template>`);
 }
 
-function writeOutOfOrderResolvedTemplate(
+export function writeOutOfOrderResolvedTemplate(
   ssr: SSRContainer,
   boundaryId: number,
   html: string,

@@ -33,7 +33,13 @@ export function addCursorBoundary(cursorData: CursorData, vNode: VNode): void {
   if (!__EXPERIMENTAL__.suspense) {
     return;
   }
-  const boundary = getNearestCursorBoundary(cursorData.container, vNode);
+  // A projected child (e.g. under ErrorBoundary) may cache its boundary on an ancestor.
+  let boundary: CursorBoundary | null = null;
+  let current: VNode | null = vNode;
+  while (current && !boundary) {
+    boundary = getNearestCursorBoundary(cursorData.container, current);
+    current = current.slotParent || current.parent;
+  }
   if (!boundary) {
     return;
   }

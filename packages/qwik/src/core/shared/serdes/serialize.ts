@@ -1,4 +1,5 @@
 import { isDev } from '@qwik.dev/core/build';
+import { hasVirtualNodePath } from '../vnode-data-types';
 import { VNodeDataFlag } from '../../../server/types';
 import type { VNodeData } from '../../../server/vnode-data';
 import { vnode_isVNode } from '../../client/vnode-utils';
@@ -715,6 +716,15 @@ export class Serializer {
       }
       this.output(TypeIds.Error, out);
     } else if (this.$serializationContext$.$isSsrNode$(value)) {
+      if (
+        value.vnodeData &&
+        value.vnodeData[0] & VNodeDataFlag.INERT &&
+        hasVirtualNodePath(value.id)
+      ) {
+        // A dead virtual node has no structural vnode-data, so its ref can't resume.
+        this.output(TypeIds.Constant, Constants.Undefined);
+        return;
+      }
       const rootIndex = this.$serializationContext$.$addRoot$(value);
       this.$serializationContext$.$setProp$(value, ELEMENT_ID, rootIndex);
       // we need to output before the vnode overwrites its values

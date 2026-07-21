@@ -4,7 +4,13 @@ import { isDev } from '@qwik.dev/core/build';
 import type { QRLInternal } from '../../server/qwik-types';
 import { assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
-import { ERROR_CONTEXT, isRecoverable } from '../shared/error/error-handling';
+import {
+  ERROR_CONTEXT,
+  fireOnError,
+  isRecoverable,
+  type ErrorBoundaryStore,
+} from '../shared/error/error-handling';
+import type { ErrorBoundaryInfo } from '../shared/error/error-boundary';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { wrapDeserializerProxy } from '../shared/serdes/deser-proxy';
 import { eagerDeserializeStateIterator } from '../shared/serdes/inflate';
@@ -24,6 +30,8 @@ import {
   QContainerSelector,
   QCursorBoundary,
   QCtxAttr,
+  QErrorContentHost,
+  QErrorFallbackHost,
   QInstanceAttr,
   QLocaleAttr,
   QManifestHashAttr,
@@ -33,17 +41,20 @@ import {
   QStyle,
   QStyleSelector,
   QStylesAllSelector,
+  QSuspenseResultParent,
   Q_PROPS_SEPARATOR,
   USE_ON_LOCAL_SEQ_IDX,
   getQFuncs,
 } from '../shared/utils/markers';
 import { isSlotProp } from '../shared/utils/prop';
 import { qDev, qTest } from '../shared/utils/qdev';
+import { logError, logErrorAndThrowAsync } from '../shared/utils/log';
 import {
   convertScopedStyleIdsToArray,
   convertStyleIdsToString,
 } from '../shared/utils/scoped-styles';
 import { setErrorPayload } from '../shared/cursor/chore-execution';
+import { SUSPENSE_QRL_SYMBOL } from '../control-flow/suspense-utils';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
 import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
@@ -96,6 +107,10 @@ export const isDomContainer = (container: any): container is DomContainer => {
   return container instanceof DomContainer;
 };
 
+const RESET_BOUNDARY_HOST_SELECTOR = [QErrorFallbackHost, QSuspenseResultParent, QErrorContentHost]
+  .map((marker) => `[${marker.replace(':', '\\:')}]`)
+  .join(',');
+
 function getOutOfOrderStreamingScript(boundaryId: number, content: Element | null) {
   const segmentId = String(boundaryId);
   const qContainerElement = content?.closest(QContainerSelector) as ContainerElement | null;
@@ -111,6 +126,23 @@ function getOutOfOrderStreamingScript(boundaryId: number, content: Element | nul
         );
     });
   }
+}
+
+// Per-window, not per-container: shared page would log each rejection N times.
+const windowsWithRejectionBridge = new WeakSet<object>();
+
+function registerUnhandledRejectionBridge(view: (Window & typeof globalThis) | null | undefined) {
+  if (
+    !view ||
+    typeof view.addEventListener !== 'function' ||
+    windowsWithRejectionBridge.has(view)
+  ) {
+    return;
+  }
+  windowsWithRejectionBridge.add(view);
+  view.addEventListener('unhandledrejection', (e: PromiseRejectionEvent) => {
+    logError(e?.reason);
+  });
 }
 
 /** @internal */
@@ -133,6 +165,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   private $stateData$: unknown[];
   private $rootForwardRefs$: Array<number | string> | null = null;
   private $styleIds$: Set<string> | null = null;
+  private $qErrorHandler$: ((e: Event) => void) | null = null;
 
   constructor(element: ContainerElement) {
     super({}, element.getAttribute(QLocaleAttr)!);
@@ -156,6 +189,32 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     this.$setServerData$();
     element.qContainer = this;
     element.qDestroy = () => this.$destroy$();
+    if (__EXPERIMENTAL__.errorBoundary) {
+      // Synchronous, not deferred resume, so CSR containers get it too.
+      this.$qErrorHandler$ = (e: Event) => {
+        const detail = (
+          e as CustomEvent<{ error: unknown; element?: Element; importError?: string }>
+        ).detail;
+        // qwikloader already logged import/symbol failures.
+        if (detail?.importError) {
+          return;
+        }
+        const source = detail?.element;
+        // Scope shared-document qerror to this container; isolate nested sources.
+        if (source && source.closest(QContainerSelector) === this.element) {
+          const host = this.vNodeLocate(source);
+          if (host) {
+            try {
+              this.handleError(detail.error, host, 'event');
+            } catch (handlerError) {
+              logError(handlerError);
+            }
+          }
+        }
+      };
+      this.document.addEventListener?.('qerror', this.$qErrorHandler$);
+      registerUnhandledRejectionBridge(document.defaultView);
+    }
     this.$containerDataProcessState$ = ContainerDataProcessState.ProcessingVNode;
     processVNodeData(document, element);
     onVNodeDataReady(document, () => {
@@ -201,6 +260,10 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
 
   /** Tear down this container so stale references fail gracefully. */
   $destroy$(): void {
+    if (this.$qErrorHandler$) {
+      this.document.removeEventListener?.('qerror', this.$qErrorHandler$);
+      this.$qErrorHandler$ = null;
+    }
     this.vNodeLocate = () => null as any;
     this.$rawStateData$.length = 0;
     this.$stateData$.length = 0;
@@ -264,27 +327,68 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     return qrl;
   }
 
-  handleError(err: any, host: VNode | null): void {
+  handleError(err: any, host: VNode | null, phase: ErrorBoundaryInfo['phase'] = 'render'): void {
     if (qDev && host) {
       if (typeof document !== 'undefined') {
         setErrorPayload(host, err);
         markVNodeDirty(this, host, ChoreBits.ERROR_WRAP);
       }
-
-      if (err && err instanceof Error) {
-        if (!('hostElement' in err)) {
+      try {
+        if (err && err instanceof Error && !('hostElement' in err)) {
           (err as any)['hostElement'] = String(host);
         }
+      } catch {
+        // Hostile thrown value: skip the dev annotation.
       }
       if (!isRecoverable(err)) {
         throw err;
       }
     }
-    const errorStore = host && this.resolveContext(host, ERROR_CONTEXT);
-    if (!errorStore) {
-      throw err;
+    if (!__EXPERIMENTAL__.errorBoundary) {
+      // Pre-feature behavior: no boundary walk, synchronous rethrow.
+      const errorStore = host && this.resolveContext(host, ERROR_CONTEXT);
+      if (!errorStore) {
+        throw err;
+      }
+      errorStore.error = err;
+      return;
     }
-    errorStore.error = err;
+    // `undefined` is `store.error`'s no-error sentinel; store a keyable Error.
+    const storedError = err === undefined ? new Error('undefined') : err;
+    let current: VNode | null = host;
+    while (current) {
+      const boundaryHost = this.resolveContextHost(current, ERROR_CONTEXT);
+      if (!boundaryHost) {
+        break;
+      }
+      const store = this.resolveContext<ErrorBoundaryStore>(boundaryHost, ERROR_CONTEXT);
+      if (store && store.error === undefined) {
+        // Resumed boundary never subscribed; mark dirty to render the fallback.
+        store.error = storedError;
+        // `store.$onError$` is server-only; read serialized `props.onError$`.
+        const boundaryProps = this.getHostProp<{
+          onError$?: (error: unknown, info: ErrorBoundaryInfo) => unknown;
+        }>(boundaryHost, ELEMENT_PROPS);
+        fireOnError(boundaryProps?.onError$, err, {
+          phase,
+          boundaryId: store.boundaryId ?? '',
+        });
+        markVNodeDirty(this, boundaryHost, ChoreBits.COMPONENT);
+        return;
+      }
+      if (store && store.error === null) {
+        // Generic ERROR_CONTEXT consumer captures only, never re-renders.
+        store.error = storedError;
+        return;
+      }
+      if (boundaryHost.dirty & ChoreBits.COMPONENT) {
+        logError(err);
+        return;
+      }
+      current = this.getParentHost(boundaryHost);
+    }
+    // Rethrow async to reach the global handler, not the chore loop.
+    logErrorAndThrowAsync(err);
   }
 
   setContext<T>(host: VNode, context: ContextId<T>, value: T): void {
@@ -304,6 +408,51 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       host = this.getParentHost(host)!;
     }
     return undefined;
+  }
+
+  resolveContextHost(host: VNode, contextId: ContextId<unknown>): VNode | null {
+    while (host) {
+      const ctx = this.getHostProp<Array<string | unknown>>(host, QCtxAttr);
+      if (ctx != null && mapArray_has(ctx, contextId.id, 0)) {
+        return host;
+      }
+      host = this.getParentHost(host)!;
+    }
+    return null;
+  }
+
+  resetErrorBoundary(host: VNode): void {
+    let boundaryHost = this.resolveContextHost(host, ERROR_CONTEXT);
+    if (!boundaryHost) {
+      // Streamed fallback segment doesn't chain to the boundary; re-resolve from DOM.
+      const hostEl = (host as { node?: Element }).node?.closest?.(RESET_BOUNDARY_HOST_SELECTOR);
+      boundaryHost = hostEl
+        ? this.resolveContextHost(this.vNodeLocate(hostEl), ERROR_CONTEXT)
+        : null;
+    }
+    if (!boundaryHost) {
+      return;
+    }
+    const store = this.resolveContext<ErrorBoundaryStore>(boundaryHost, ERROR_CONTEXT);
+    if (!store || store.error === undefined) {
+      return;
+    }
+    // Re-render owner and clear error in the same tick to re-supply + re-execute.
+    let owner = this.getParentHost(boundaryHost);
+    while (
+      owner &&
+      (this.getHostProp(owner, OnRenderProp) as { $symbol$?: string } | null)?.$symbol$ ===
+        SUSPENSE_QRL_SYMBOL
+    ) {
+      owner = this.getParentHost(owner);
+    }
+    // `getParentHost` is null for a resumed boundary; fall back to serialized projection owner.
+    const resolvedOwner = owner ?? (store.resetOwner as VNode | undefined);
+    if (!resolvedOwner) {
+      return;
+    }
+    markVNodeDirty(this, resolvedOwner, ChoreBits.COMPONENT);
+    store.error = undefined;
   }
 
   getParentHost(host: VNode): VNode | null {

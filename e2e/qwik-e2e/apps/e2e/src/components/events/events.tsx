@@ -73,9 +73,9 @@ const EventsParent = component$(() => {
           <a
             href="/"
             preventdefault:click
+            stoppropagation:click
             id="prevent-default-2"
-            onClick$={(ev) => {
-              ev.stopPropagation();
+            onClick$={() => {
               store.countAnchor++;
             }}
           >

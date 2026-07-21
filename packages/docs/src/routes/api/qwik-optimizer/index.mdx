@@ -26,6 +26,8 @@ export type BundleGraphAdder = (manifest: QwikManifest) => Record<
 
 <h2 id="experimentalfeatures-each">each</h2>
 
+<h2 id="experimentalfeatures-errorboundary">errorBoundary</h2>
+
 <h2 id="experimentalfeatures">ExperimentalFeatures</h2>
 
 Use `__EXPERIMENTAL__.x` to check if feature `x` is enabled. It will be replaced with `true` or `false` via an exact string replacement.
@@ -73,6 +75,19 @@ each
 </td><td>
 
 Enable the Each keyed-list primitive
+
+</td></tr>
+<tr><td>
+
+errorBoundary
+
+</td><td>
+
+`"errorBoundary"`
+
+</td><td>
+
+Enable the ErrorBoundary primitive
 
 </td></tr>
 <tr><td>

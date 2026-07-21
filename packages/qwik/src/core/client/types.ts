@@ -77,7 +77,7 @@ export interface QDocument extends Document {
   qProcessVNodeDataPatch?: (script: Element | null) => void;
 
   /** Processes an out-of-order Suspense segment after its resolved HTML is swapped in. */
-  qProcessOOOS?: (boundaryId: number, content: Element | null) => void;
+  qProcessOOOS?: (boundaryId: number, revealNode: Element | null) => void;
 }
 
 /**

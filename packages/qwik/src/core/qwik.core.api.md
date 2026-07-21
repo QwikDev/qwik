@@ -184,7 +184,7 @@ export interface _Container {
     // (undocumented)
     getParentHost(host: _HostElement): _HostElement | null;
     // (undocumented)
-    handleError(err: any, $host$: _HostElement | null): void;
+    handleError(err: any, $host$: _HostElement | null, phase?: ErrorBoundaryInfo['phase']): void;
     // (undocumented)
     resolveContext<T>(host: _HostElement, contextId: ContextId<T>): T | undefined;
     // Warning: (ae-forgotten-export) The symbol "SymbolToChunkResolver" needs to be exported by the entry point index.d.ts
@@ -369,7 +369,7 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     // (undocumented)
     getSyncFn(id: number): (...args: unknown[]) => unknown;
     // (undocumented)
-    handleError(err: any, host: _VNode | null): void;
+    handleError(err: any, host: _VNode | null, phase?: ErrorBoundaryInfo['phase']): void;
     // (undocumented)
     parseQRL<T = unknown>(qrlStr: string): QRL<T>;
     // (undocumented)
@@ -377,7 +377,11 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     // (undocumented)
     qManifestHash: string;
     // (undocumented)
+    resetErrorBoundary(host: _VNode): void;
+    // (undocumented)
     resolveContext<T>(host: _VNode, contextId: ContextId<T>): T | undefined;
+    // (undocumented)
+    resolveContextHost(host: _VNode, contextId: ContextId<unknown>): _VNode | null;
     // (undocumented)
     rootVNode: _ElementVNode;
     // (undocumented)
@@ -407,6 +411,12 @@ export const Each: EachComponent;
 
 // @internal (undocumented)
 export const _eaT: (input: TaskCtx) => Promise<void>;
+
+// @internal (undocumented)
+export const _ebC: (props: ErrorBoundaryProps) => JSXOutput;
+
+// @internal (undocumented)
+export const _ebR: () => void;
 
 // @internal (undocumented)
 export const _EFFECT_BACK_REF: unique symbol;
@@ -439,9 +449,18 @@ export const _EMPTY_ARRAY: any[];
 export const _EMPTY_OBJ: Record<string, any>;
 
 // @public (undocumented)
-export interface ErrorBoundaryStore {
-    // (undocumented)
-    error: any | undefined;
+export const ErrorBoundary: Component<ErrorBoundaryProps>;
+
+// @public
+export interface ErrorBoundaryInfo {
+    boundaryId: string;
+    phase: 'render' | 'task' | 'event' | 'async-generator' | 'async-signal';
+}
+
+// @public (undocumented)
+export interface ErrorBoundaryProps {
+    fallback$: QRL<(error: Error, reset: QRL<() => void>) => JSXOutput>;
+    onError$?: QRL<(error: Error, info: ErrorBoundaryInfo) => void>;
 }
 
 // @public (undocumented)
@@ -813,7 +832,7 @@ export type PublicProps<PROPS> = (PROPS extends Record<any, any> ? Omit<PROPS, `
 
 // @internal (undocumented)
 export interface _QDocument extends Document {
-    qProcessOOOS?: (boundaryId: number, content: Element | null) => void;
+    qProcessOOOS?: (boundaryId: number, revealNode: Element | null) => void;
     qProcessVNodeDataPatch?: (script: Element | null) => void;
     // (undocumented)
     qVNodeData: WeakMap<Element, string>;
@@ -1198,7 +1217,7 @@ export abstract class _SharedContainer implements _Container {
     // (undocumented)
     abstract getParentHost(host: _HostElement): _HostElement | null;
     // (undocumented)
-    abstract handleError(err: any, $host$: _HostElement | null): void;
+    abstract handleError(err: any, $host$: _HostElement | null, phase?: ErrorBoundaryInfo['phase']): void;
     // (undocumented)
     abstract resolveContext<T>(host: _HostElement, contextId: ContextId<T>): T | undefined;
     // (undocumented)
@@ -2046,9 +2065,6 @@ export const useContext: UseContext;
 
 // @public
 export const useContextProvider: <STATE>(context: ContextId<STATE>, newValue: STATE) => void;
-
-// @public (undocumented)
-export const useErrorBoundary: () => ErrorBoundaryStore;
 
 // @internal
 export function _useHmr(devPath: string): void;

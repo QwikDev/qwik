@@ -1,11 +1,13 @@
-# Deferred multi-head SSR design
+# Deferred multi-head SSR and Suspense OOOS design
 
-Status: deferred; not in the current implementation scope
-Last updated: 2026-07-17
+Status: multi-head deferred; Suspense/OOOS approved as a follow-up
+Last updated: 2026-07-20
 
 The active compiler plan implements sequential SSR and lives in [`PLAN.md`](./PLAN.md). This document
-preserves the candidate design for eager multi-head SSR. Nothing here is an implementation
-requirement until the feature is explicitly brought back into scope.
+preserves the candidate design for eager multi-head SSR and the settled contract for the separate
+Suspense/OOOS follow-up. Generic multi-head SSR remains deferred. The Suspense section below is the
+implementation agreement once that follow-up starts; it does not expand the current sequential
+compiler completion scope.
 
 ## Goal and boundary
 
@@ -149,7 +151,7 @@ guarantee of deterministic shared-write behavior.
   or merged into its parent. The choice must preserve document-order metadata without creating a
   Promise or microtask.
 
-## Deferred OOOS backpatch protocol
+## Shared OOOS transaction constraints
 
 An attribute patch can identify its element by a stable compiler-owned ID and does not need an
 attribute placeholder. Structural output needs a compiler-emitted start/end boundary. Each head
@@ -178,37 +180,245 @@ ancestor/descendant ordering, a child behind an `await`, sequential rows and pro
 rejection observation, no writes after failure, disposal of uncommitted framework state, sink
 backpressure, and the synchronous fast path.
 
-## Relationship to Suspense
+## Suspense and OOOS follow-up
 
-Multi-head ordered commit does not implement Suspense. It adds no fallback, placeholder, reveal
-queue, out-of-order patch, browser patch executor, or legacy `q:r`, `q:rp`, or `qO` protocol. Direct
-`<Suspense>` remains unsupported by the active compiler plan.
+Multi-head ordered commit does not implement Suspense. Suspense creates lanes only at explicit
+boundaries and may reveal a later boundary before an earlier sibling. Do not expose generic
+multi-head scheduling or restore the legacy `q:r`, `q:rp`, or `qO` protocol.
 
-The reserved public props remain:
+### Public and compiler contract
 
 ```ts
-type SuspenseProps = {
-  fallback?: JSXOutput;
-  delay?: number;
-  showStale?: boolean;
-};
+interface SuspenseProps {
+  readonly fallback$?: QRL<() => JSXOutput>;
+  readonly delay?: number;
+}
 ```
 
-Isolated segments, typed references, and remapping could later support Suspense, but Suspense needs
-a separate scheduling contract:
+- `fallback$` is optional. Local, inline, and imported QRLs behave identically.
+- A boundary may show its fallback only during its first pending render. Its lifecycle is
+  `initial -> pending -> resolved`, and `resolved` is terminal for that boundary instance.
+- Synchronous initial content never invokes `fallback$`. Pending initial content renders the
+  fallback into its own owner and transaction; `delay` controls when it becomes visible.
+- `delay` is sampled when the boundary is created and its timer runs on the server for streamed SSR.
+- Reveal replaces the fallback DOM and disposes its owner. Later suspended updates keep the last
+  resolved content visible and never recreate or reveal the fallback.
+- A newly mounted boundary instance has its own one-shot initial lifecycle. No global fallback
+  registry or update generation tracking is needed.
+- JSX in any extracted QRL is target-native transformed. A segment with `render !== null` is enough;
+  do not add a render-specific QRL role.
+- Async structural content suspends the nearest boundary. Async attributes and properties use
+  backpatches and do not suspend the boundary.
+- Manually thrown Promises and thenables are unsupported. Errors and rejections fail the render;
+  ErrorBoundary remains separate work.
+- Parser-sensitive table, select, SVG, and MathML placements automatically use in-order rendering.
+  The compiler also emits a development diagnostic explaining why OOOS was disabled there.
 
-- `renderToString()` resolves final content without a fallback.
-- `renderToStream()` may emit a lazy shell/fallback and later reveal, and completes only after all
-  reveals or a fatal error.
-- Returned Promises and async-signal reads suspend the nearest boundary; without one, the root
-  blocks. Manually thrown Promises and thenables remain unsupported.
-- Errors and rejections are not caught by Suspense, and suspension in a fallback bubbles upward.
-- Direct content reveals atomically; partial reveal requires nesting, and a descendant cannot reveal
-  before its ancestor shell.
-- Fallback and content use separate framework owners and transactions.
-- Reveal patches carry HTML, node/root remapping, state delta, boundary ID, and generation; stale
-  patches are ignored after unmount, replacement, or a newer generation.
-- Final DOM, framework state, IDs, ownership, and resume behavior are deterministic even when
-  streamed payload timing differs.
+`renderToStream()` enables OOOS by default and has an explicit opt-out. `renderToString()` and SSG
+await final content and emit neither fallback packets nor browser executors.
 
-These Suspense details are also deferred and must not expand the current sequential SSR scope.
+### Boundary lanes
+
+The renderer creates a content `SsrLane` before invoking a boundary's initial content. A lane owns
+its task queue, owner, local `SerializationContext`, structured output, styles, events, captures,
+and local node/root IDs. Promise continuations can settle only their lane.
+
+- A lane is ready only after content rendering, every first SSR `useTask$`, and state sealing finish.
+- `deferUpdates` affects later executions after resume; it never makes the first SSR task nonblocking.
+- A synchronous boundary stays on the Promise-free path and emits final content in place.
+- Once a boundary returns async work, it always emits an OOOS packet, even if that work settles
+  before the root prelude is written.
+- Sibling lanes settle independently. Global root IDs are allocated at commit, while node IDs are
+  local and remapped at commit.
+- A nested packet may settle early, but the server does not write it until its parent `qSeg` packet
+  has been written.
+- Fallback and content owners remain separate. Reveal disposes the fallback owner; failure disposes
+  every uncommitted owner.
+- After initial reveal, later async updates use the ordinary scheduler and leave resolved content in
+  place. They do not create SSR lanes, fallback work, reveal packets, or generations.
+
+The root shell, initial state, loader, protocol CSS, packets, and closing markup all pass through the
+existing `SsrOutputWriter`. It keeps one external write in flight and is the only layer allowed to
+touch the sink.
+
+### Stream protocol
+
+Each boundary uses one `display: contents` host. While pending it contains fallback DOM; reveal
+atomically replaces its children with final content and keeps the host as the stable range. Protocol
+CSS is emitted once with the render nonce. Reveal metadata is packed into
+`q:v="group,index,flags,total"` instead of adding one attribute per field.
+
+A segment packet is emitted in this order:
+
+1. New `qwik/state` chunks with `q:chunk`, `q:base`, and `q:len`.
+2. An optional `qwik/state-patch` script.
+3. A `<template q:s="segmentId">` containing remapped content.
+4. An install-once `qSeg` executor followed by `qSeg(segmentId)`.
+
+The `qSeg` executor is absent from the root prelude and from responses without asynchronous
+boundaries. It is emitted with the first segment or the first delayed `qSeg.d(segmentId)` call.
+Processing one segment performs structural insertion, state registration, subscription catch-up,
+style deduplication, initial Reveal coordination, and fallback cleanup.
+
+Initial state scanning and `qSeg` use the same `registerStateChunk()` path. Registering the same
+element twice is a no-op. A different element reusing an existing `q:chunk` fails closed. Existing
+roots are never replaced by streamed snapshots: state already resumed or changed on the client
+wins.
+
+Subscription deltas use a separate inert `qwik/state-patch` payload:
+
+```text
+[0, sourceRootId, ...subscriberRootIds]
+[1, storeRootId, path, property, ...subscriberRootIds]
+```
+
+The first form patches a signal-like source and the second patches one store property. A live source
+runs targeted catch-up before reveal; an unmaterialized source retains the pending edge for lazy
+registration. The executor never scans the whole container.
+
+Attribute and property patches use a separate install-once `qPatch` executor and stable numeric
+`q:id` targets:
+
+```text
+[0, nodeId, attributeName, valueOrNull]
+[1, nodeId, value]
+[2, nodeId, checked]
+```
+
+Opcode `0` sets or removes an attribute, `1` patches `value`, and `2` patches `checked`. `qPatch` is
+absent unless a patch is needed. Value and checked patches compare against `defaultValue` and
+`defaultChecked` so streamed output never overwrites a user's edit.
+
+Reveal coordinates only initial boundary resolution. It supports `parallel`, `sequential`,
+`reverse`, and `together`, including collapsed fallback behavior. A boundary reveals atomically;
+partial reveal requires nesting.
+
+### Failure, security, and backpressure
+
+- Attach rejection handlers when work starts. A rejection stops new writes and disposes every
+  uncommitted lane; an already active sink write may finish.
+- Synthesize no error HTML and do not attempt to roll back user state.
+- Escape every serialized script payload against `</script` termination and preserve the configured
+  nonce on executable scripts and protocol CSS.
+- Scope numeric node lookup, state chunks, segments, and readiness to one container instance.
+- Malformed opcodes, duplicate chunk IDs, missing targets, and cross-container references fail
+  closed without broad DOM traversal.
+- Do not add a concurrency limit or buffered-byte limit until measurements require one.
+
+## Test-first implementation sequence
+
+Each phase starts with the smallest failing test listed below. Do not proceed to the next phase until
+the focused tests for the current phase pass. Existing test files and the deterministic OOOS release
+endpoint are extended rather than replaced by a parallel fixture.
+
+### Phase 1: API and target plans
+
+- `packages/compiler/src/extract.unit.ts`: inline, local, and imported `fallback$` QRLs containing
+  JSX receive target-native render segments without a new QRL role.
+- `packages/compiler/src/semantic-lower.unit.ts`: Suspense and Reveal metadata is semantic, while
+  parser-sensitive placements select in-order output and report a development diagnostic.
+- `packages/compiler/src/plan-csr.unit.ts`: one replaceable boundary host and packed Reveal metadata
+  are planned without runtime tree inspection or update generations.
+- `packages/compiler/src/emit-ssr.unit.ts`: synchronous boundaries remain synchronous; generated SSR
+  calls the boundary ABI with typed output and imports no packet executor when none is needed.
+- Add the public declarations and remove only the Suspense/OOOS placeholder from
+  `packages/qwik/src/core/tests/deferred-features.spec.ts`; leave unrelated deferred features skipped.
+
+Exit criterion: compiler fixtures cover local, inline, and imported fallback QRLs, and an application
+without Suspense has byte-for-byte equivalent generated control flow apart from intentional imports.
+
+### Phase 2: CSR Suspense and Reveal
+
+- Add one focused runtime unit beside the Suspense implementation for synchronous content without
+  fallback invocation, exactly one fallback invocation for initial pending content, delay
+  cancellation, nearest-boundary selection, terminal resolution, fallback owner disposal, stale
+  content during later updates, and all initial Reveal orders.
+- Convert `e2e/qwik-e2e/apps/e2e/src/components/suspense/suspense.tsx` to `fallback$` and keep
+  `e2e/qwik-e2e/tests/suspense.e2e.ts` as the initial CSR and pure-CSR contract. Replace the existing
+  repeated-update fallback cases with one assertion that later pending updates keep resolved content
+  visible and never recreate the fallback.
+- Replace timing sleeps with resolver or DOM-state assertions wherever the behavior is not itself a
+  timer contract.
+
+Exit criterion: fallback is interactive only while initial content is pending, is removed after
+reveal, and never returns during later updates.
+
+### Phase 3: SSR lanes and ordered output
+
+- `packages/qwik/src/server/ssr-scheduler.unit.ts`: independent lanes, first-task blocking,
+  synchronous fast path, immediate rejection observation, and owner disposal.
+- `packages/qwik/src/server/ssr-render.unit.ts`: shell writes before a controlled boundary resolves,
+  an async boundary always emits one packet, nested packets wait for their parent, opt-out stays
+  in-order, and string rendering emits final content only.
+- `packages/qwik/src/core/ssr/output-writer.unit.ts`: packet writes remain serialized, backpressure
+  permits one sink write, and no write starts after failure.
+
+Exit criterion: root readiness can occur while the response remains open, and responses without an
+async boundary contain no `qSeg`, `qPatch`, template packet, or protocol CSS.
+
+### Phase 4: streamed state and `qSeg`
+
+- `packages/qwik/src/server/ssr-script-emitter.unit.ts`: packet order, `q:chunk` metadata, nonce,
+  script escaping, style deduplication, and install-once executor emission.
+- `packages/qwik/src/core/runtime/container-context.unit.ts`: initial and streamed chunk registration,
+  same-element idempotence, duplicate-ID rejection, cross-chunk refs, and lazy pending edges.
+- Extend the closest serdes inflate unit with a streamed writer/reader round trip; do not create a
+  second serialization format.
+- Add a focused `qSeg` behavior unit for atomic replacement, fallback owner disposal, client-wins
+  state, targeted catch-up, nested gating, delay cancellation, and container scoping.
+
+Exit criterion: a segment depending on root state can arrive after resume, reveal current client
+state, and subscribe to later changes without rescanning the container.
+
+### Phase 5: `qPatch`
+
+- `packages/compiler/src/emit-ssr.unit.ts`: pending attributes/properties receive stable numeric IDs
+  and typed records without suspending a boundary.
+- `packages/qwik/src/server/ssr-script-emitter.unit.ts`: attribute/value/checked records are escaped
+  and the executor is emitted only on first use.
+- Add a focused `qPatch` behavior unit for set, remove, value, checked, malformed records, missing
+  targets, container scoping, and dirty form controls.
+- Expand `e2e/qwik-e2e/tests/backpatching.e2e.ts` with attribute removal and user-edited value and
+  checked cases.
+
+Exit criterion: async attributes do not show a fallback and patches never overwrite user input.
+
+### Phase 6: streamed integration
+
+Port the existing fixture in
+`e2e/qwik-e2e/apps/e2e/src/components/suspense/ooos.tsx` to `fallback$`. Extend
+`e2e/qwik-e2e/tests/suspense-ooos.e2e.ts` only for missing behavior:
+
+- shell and fallback resume while a controlled segment is pending;
+- fallback controls resume while pending, then fallback DOM is removed permanently after reveal;
+- sibling boundaries resolve in both orders and nested children cannot reveal before parents;
+- root state changed by the shell or fallback wins and the revealed subscriber catches up;
+- delay wins before content and content wins before delay;
+- every Reveal order and collapsed behavior;
+- styles are installed before reveal and executors are emitted exactly once;
+- first async SSR tasks suspend, while async attributes do not;
+- OOOS opt-out, `renderToString()`, and SSG contain final content without packets;
+- failures stop the stream without browser errors or leaked closing packets.
+
+Use controlled release IDs and observable DOM markers. Clock waits are allowed only for the delay
+contract; all other cases must avoid arbitrary sleeps.
+
+### Verification gate
+
+Run the focused unit after each implementation edit, then the three browser files after a fresh dev
+build:
+
+```bash
+pnpm vitest run packages/compiler/src/<focused>.unit.ts
+pnpm vitest run packages/qwik/src/server/<focused>.unit.ts
+pnpm vitest run packages/qwik/src/core/<focused>.unit.ts
+pnpm build.core.dev
+pnpm playwright test e2e/qwik-e2e/tests/suspense.e2e.ts --browser=chromium --config e2e/qwik-e2e/playwright.config.ts
+pnpm playwright test e2e/qwik-e2e/tests/suspense-ooos.e2e.ts --browser=chromium --config e2e/qwik-e2e/playwright.config.ts
+pnpm playwright test e2e/qwik-e2e/tests/backpatching.e2e.ts --browser=chromium --config e2e/qwik-e2e/playwright.config.ts
+```
+
+Before handoff, run the affected compiler/core/server suites, `pnpm tsc.check`, `pnpm api.update`,
+`pnpm build.core`, the SSG snapshot test, and bundle-size checks. Add one minor changeset for the
+published Suspense/OOOS feature. Inspect every snapshot and size-budget change; never bulk-update
+snapshots.

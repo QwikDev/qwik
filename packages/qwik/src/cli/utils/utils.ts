@@ -1,7 +1,7 @@
-import { blue, gray, green, magenta, red, reset, white } from 'kleur/colors';
+import pc from 'picocolors';
 import { log, outro } from '@clack/prompts';
 import type { IntegrationPackageJson } from '../types';
-import detectPackageManager from 'which-pm-runs';
+import { whichPMRuns } from 'which-pm-runs';
 import fs from 'node:fs';
 import { join } from 'node:path';
 import { execa } from 'execa';
@@ -18,9 +18,9 @@ export function runCommand(cmd: string, args: string[], cwd: string) {
     .catch((e) => {
       if (e) {
         if (e.message) {
-          log.error(red(String(e.message)) + `\n\n`);
+          log.error(pc.red(String(e.message)) + `\n\n`);
         } else {
-          log.error(red(String(e)) + `\n\n`);
+          log.error(pc.red(String(e)) + `\n\n`);
         }
       }
       return false;
@@ -104,7 +104,7 @@ export function limitLength(hint: string, maxLength: number = 50) {
 }
 
 export function getPackageManager() {
-  return detectPackageManager()?.name || 'pnpm';
+  return whichPMRuns()?.name || 'pnpm';
 }
 
 export function pmRunCmd() {
@@ -116,7 +116,7 @@ export function pmRunCmd() {
 }
 
 export function panic(msg: string) {
-  console.error(`\n❌ ${red(msg)}\n`);
+  console.error(`\n❌ ${pc.red(msg)}\n`);
   process.exit(1);
 }
 
@@ -128,17 +128,17 @@ export function bye(): never {
 export function printHeader() {
   /* eslint-disable no-console */
   console.log(
-    blue(`
-      ${magenta('............')}
-    .::: ${magenta(':--------:.')}
-   .::::  ${magenta('.:-------:.')}
-  .:::::.   ${magenta('.:-------.')}
-  ::::::.     ${magenta('.:------.')}
- ::::::.        ${magenta(':-----:')}
- ::::::.       ${magenta('.:-----.')}
-  :::::::.     ${magenta('.-----.')}
-   ::::::::..   ${magenta('---:.')}
-    .:::::::::. ${magenta(':-:.')}
+    pc.blue(`
+      ${pc.magenta('............')}
+    .::: ${pc.magenta(':--------:.')}
+   .::::  ${pc.magenta('.:-------:.')}
+  .:::::.   ${pc.magenta('.:-------.')}
+  ::::::.     ${pc.magenta('.:------.')}
+ ::::::.        ${pc.magenta(':-----:')}
+ ::::::.       ${pc.magenta('.:-----.')}
+  :::::::.     ${pc.magenta('.-----.')}
+   ::::::::..   ${pc.magenta('---:.')}
+    .:::::::::. ${pc.magenta(':-:.')}
      ..::::::::::::
              ...::::
     `),
@@ -222,12 +222,15 @@ export const note = (message = '', title = '') => {
       titleLen
     ) + 2;
   const msg = lines
-    .map((ln) => `${gray(S_BAR)}  ${white(ln)}${' '.repeat(len - strip(ln).length)}${gray(S_BAR)}`)
+    .map(
+      (ln) =>
+        `${pc.gray(S_BAR)}  ${pc.white(ln)}${' '.repeat(len - strip(ln).length)}${pc.gray(S_BAR)}`
+    )
     .join('\n');
   process.stdout.write(
-    `${gray(S_BAR)}\n${green(S_STEP_SUBMIT)}  ${reset(title)} ${gray(
+    `${pc.gray(S_BAR)}\n${pc.green(S_STEP_SUBMIT)}  ${pc.reset(title)} ${pc.gray(
       S_BAR_H.repeat(Math.max(len - titleLen - 1, 1)) + S_CORNER_TOP_RIGHT
-    )}\n${msg}\n${gray(S_CONNECT_LEFT + S_BAR_H.repeat(len + 2) + S_CORNER_BOTTOM_RIGHT)}\n`
+    )}\n${msg}\n${pc.gray(S_CONNECT_LEFT + S_BAR_H.repeat(len + 2) + S_CORNER_BOTTOM_RIGHT)}\n`
   );
 };
 // End of used code from clack

@@ -1,6 +1,6 @@
 import { ChildProcess, exec, execSync } from 'child_process';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
-import { yellow } from 'kleur/colors';
+import pc from 'picocolors';
 import { dirname, join, resolve } from 'path';
 import { dirSync } from 'tmp';
 import treeKill from 'tree-kill';
@@ -202,7 +202,7 @@ function _computeWorkspaceRoot(cwd: string) {
 
 export function log(text: string) {
   // eslint-disable-next-line no-console
-  console.log(yellow('E2E: ' + text));
+  console.log(pc.yellow('E2E: ' + text));
 }
 
 export const DEFAULT_TIMEOUT = process.env.CI ? 120000 : 30000;

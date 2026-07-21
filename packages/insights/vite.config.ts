@@ -9,7 +9,7 @@ export default defineConfig({
   environments: {
     client: {
       optimizeDeps: {
-        exclude: ['@auth/qwik', '@modular-forms/qwik'],
+        exclude: ['@auth/qwik', '@formisch/qwik'],
       },
     },
     ssr: {
@@ -17,14 +17,14 @@ export default defineConfig({
         sourcemap: true,
       },
       resolve: {
-        noExternal: ['@auth/qwik', '@modular-forms/qwik'],
+        noExternal: ['@auth/qwik', '@formisch/qwik'],
       },
     },
   },
   plugins: [
     qwikRouter(),
     qwikVite({
-      experimental: ['insights'],
+      experimental: ['insights', 'valibot'],
     }),
     tsconfigPaths({ root: '.' }),
     qwikInsights({ publicApiKey: loadEnv('', '.', '').PUBLIC_QWIK_INSIGHTS_KEY }),

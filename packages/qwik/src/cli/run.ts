@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { red, dim, cyan, bgMagenta } from 'kleur/colors';
+import pc from 'picocolors';
 import { AppCommand } from './utils/app-command';
 import { runAddCommand } from './add/run-add-command';
 import { runNewCommand } from './new/run-new-command';
@@ -129,7 +129,7 @@ async function runCommand(app: AppCommand) {
   }
 
   if (typeof app.task === 'string') {
-    console.log(red(`Unrecognized qwik command: ${app.task}`) + '\n');
+    console.log(pc.red(`Unrecognized qwik command: ${app.task}`) + '\n');
   }
 
   await printHelp(app);
@@ -139,15 +139,15 @@ async function runCommand(app: AppCommand) {
 async function printHelp(app: AppCommand) {
   const pmRun = pmRunCmd();
 
-  intro(`🔭  ${bgMagenta(' Qwik Help ')}`);
+  intro(`🔭  ${pc.bgMagenta(' Qwik Help ')}`);
 
   note(
     COMMANDS.filter((cmd) => cmd.showInHelp)
       .map(
         (cmd) =>
-          `${pmRun} qwik ${cyan(cmd.label)}` +
+          `${pmRun} qwik ${pc.cyan(cmd.label)}` +
           ' '.repeat(Math.max(SPACE_TO_HINT - cmd.label.length, 2)) +
-          dim(cmd.hint)
+          pc.dim(cmd.hint)
       )
       .join('\n'),
     'Available commands'
@@ -166,7 +166,7 @@ async function printHelp(app: AppCommand) {
     message: 'Select a command',
     options: COMMANDS.filter((cmd) => cmd.showInHelp).map((cmd) => ({
       value: cmd.value,
-      label: `${pmRun} qwik ${cyan(cmd.label)}`,
+      label: `${pmRun} qwik ${pc.cyan(cmd.label)}`,
       hint: cmd.hint,
     })),
   });

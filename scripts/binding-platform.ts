@@ -12,10 +12,11 @@ export async function buildPlatformBinding(config: BuildConfig) {
   const cmd = `napi`;
   const args = [
     `build`,
-    `--cargo-name`,
+    `--package`,
     'qwik_napi',
     `--platform`,
-    `--config=${relative(config.rootDir, join(config.srcNapiDir, 'napi.config.json'))}`,
+    `--config-path=${relative(config.rootDir, join(config.srcNapiDir, 'napi.config.json'))}`,
+    `--output-dir`,
     config.distBindingsDir,
   ];
 

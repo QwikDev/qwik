@@ -1,16 +1,16 @@
 {
   "versionGroups": [
     {
-      "label": "Require minimums",
-      "dependencyTypes": ["prod", "peer"],
-      "range": "^"
+      "label": "Playwright should have the same version as in flake.nix",
+      "dependencies": ["@playwright/test"],
+      "pinVersion": "1.61.0"
     }
   ],
   "semverGroups": [
     {
-      "label": "Playwright should have the same version as in flake.nix",
-      "dependencies": ["@playwright/test"],
-      "pinVersion": "1.47.0"
+      "label": "Require minimums",
+      "dependencyTypes": ["prod", "peer"],
+      "range": "^"
     },
     {
       "label": "use exact version numbers for devDependencies",

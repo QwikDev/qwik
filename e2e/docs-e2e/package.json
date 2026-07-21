@@ -1,10 +1,11 @@
 {
   "name": "docs-e2e",
+  "version": "0.0.0",
   "description": "",
   "author": "",
   "devDependencies": {
     "@playwright/test": "1.61.0",
-    "@types/node": "24.10.0"
+    "@types/node": "26.1.1"
   },
   "keywords": [],
   "license": "ISC",

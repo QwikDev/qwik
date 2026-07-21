@@ -1,5 +1,5 @@
 import { log, spinner } from '@clack/prompts';
-import { bgRed, cyan } from 'kleur/colors';
+import pc from 'picocolors';
 import fs from 'node:fs';
 import { dirname } from 'node:path';
 import type { FsUpdates, UpdateAppOptions, UpdateAppResult } from '../types';
@@ -78,9 +78,9 @@ export async function updateApp(pkgManager: string, opts: UpdateAppOptions) {
       showSpinner && s.stop('App updated');
 
       if (!passed) {
-        const errorMessage = `${bgRed(
+        const errorMessage = `${pc.bgRed(
           ` ${pkgManager} install failed `
-        )}\n You might need to run "${cyan(
+        )}\n You might need to run "${pc.cyan(
           `${pkgManager} install`
         )}" manually inside the root of the project.`;
 

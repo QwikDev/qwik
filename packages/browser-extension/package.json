@@ -4,7 +4,6 @@
   "version": "0.1.1-beta.0",
   "dependencies": {
     "@qwik.dev/devtools": "workspace:^",
-    "lit": "^3.3.2",
     "wxt": "^0.20.20"
   },
   "devDependencies": {

@@ -1,81 +1,9 @@
-import { BMP } from 'image-size/dist/types/bmp.js';
-import { CUR } from 'image-size/dist/types/cur.js';
-import { DDS } from 'image-size/dist/types/dds.js';
-import { GIF } from 'image-size/dist/types/gif.js';
-import { ICNS } from 'image-size/dist/types/icns.js';
-import { ICO } from 'image-size/dist/types/ico.js';
-import { J2C } from 'image-size/dist/types/j2c.js';
-import { JP2 } from 'image-size/dist/types/jp2.js';
-import { JPG } from 'image-size/dist/types/jpg.js';
-import { KTX } from 'image-size/dist/types/ktx.js';
-import { PNG } from 'image-size/dist/types/png.js';
-import { PNM } from 'image-size/dist/types/pnm.js';
-import { PSD } from 'image-size/dist/types/psd.js';
-import { SVG } from 'image-size/dist/types/svg.js';
-import { TGA } from 'image-size/dist/types/tga.js';
-import { WEBP } from 'image-size/dist/types/webp.js';
-import { HEIF } from 'image-size/dist/types/heif.js';
+import { imageSize } from 'image-size';
 
 import type { Connect } from 'vite';
 import type { OptimizerSystem } from '../../types';
 import { formatError } from '../format-error';
 
-// This map helps avoid validating for every single image type
-const firstBytes: Record<number, keyof typeof types> = {
-  0x38: 'psd',
-  0x42: 'bmp',
-  0x44: 'dds',
-  0x47: 'gif',
-  0x52: 'webp',
-  0x69: 'icns',
-  0x89: 'png',
-  0xff: 'jpg',
-};
-
-// Put in order of most common to least common
-const types = {
-  webp: WEBP,
-  jpg: JPG,
-  png: PNG,
-  svg: SVG,
-  gif: GIF,
-  avif: HEIF,
-  bmp: BMP,
-  cur: CUR,
-  dds: DDS,
-  icns: ICNS,
-  ico: ICO,
-  j2c: J2C,
-  jp2: JP2,
-  ktx: KTX,
-  pnm: PNM,
-  psd: PSD,
-  tga: TGA,
-};
-
-const keys = Object.keys(types) as (keyof typeof types)[];
-
-function detector(buffer: Buffer): keyof typeof types | undefined {
-  const byte = buffer[0];
-  const type = firstBytes[byte];
-  if (type && types[type].validate(buffer)) {
-    return type;
-  }
-  return keys.find((key) => types[key].validate(buffer));
-}
-
-function lookup(buffer: Buffer) {
-  // detect the file type, don't rely on the extension
-  const type = detector(buffer);
-  if (typeof type !== 'undefined') {
-    // find an appropriate handler for this file type
-    const size = types[type].calculate(buffer);
-    if (size !== undefined) {
-      size.type = type;
-      return size;
-    }
-  }
-}
 export async function getInfoForSrc(src: string) {
   // Put all supported protocols here
   if (!/^(https?|file|capacitor):/.test(src)) {
@@ -90,15 +18,13 @@ export async function getInfoForSrc(src: string) {
       return undefined;
     }
     const buffer = await res.arrayBuffer();
-    const size = lookup(Buffer.from(buffer));
-    if (size) {
-      return {
-        width: size.width,
-        height: size.height,
-        type: size.type,
-        size: buffer.byteLength,
-      };
-    }
+    const size = imageSize(new Uint8Array(buffer));
+    return {
+      width: size.width,
+      height: size.height,
+      type: size.type,
+      size: buffer.byteLength,
+    };
   } catch (err) {
     console.error(err);
     return undefined;

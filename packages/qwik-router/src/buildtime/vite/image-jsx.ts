@@ -283,7 +283,6 @@ export function optimizeSvg(
         name: 'preset-default',
         params: {
           overrides: {
-            removeViewBox: false,
             ...userOpts?.imageOptimization?.svgo?.defaultPresetOverrides,
           },
         },

@@ -63,7 +63,7 @@ export type ActionConstructor = {
 export type ActionOptions = {
     readonly id?: string;
     readonly validation?: DataValidator[];
-    readonly invalidate?: Loader_2<any>[];
+    readonly invalidate?: Loader<any>[];
 };
 
 // @public (undocumented)
@@ -291,10 +291,9 @@ export interface LinkProps extends AnchorAttributes {
 }
 
 // @public (undocumented)
-type Loader_2<RETURN> = {
+export type Loader<RETURN> = {
     (): LoaderSignal<ExcludeControlFlow<RETURN>>;
 };
-export { Loader_2 as Loader }
 
 // @public (undocumented)
 export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<infer VALIDATOR> ? Signal<ValueOrPromise<VALIDATOR>> : Signal<TYPE>) & Pick<ComputedSignal<any>, 'promise' | 'pending' | 'error' | 'loading'>;
@@ -414,7 +413,7 @@ export interface QwikRouterMockActionProp<T = any> {
 // @public (undocumented)
 export interface QwikRouterMockLoaderProp<T = any> {
     data: T;
-    loader: Loader_2<T>;
+    loader: Loader<T>;
 }
 
 // @public (undocumented)
@@ -679,8 +678,8 @@ export const zod$: ZodConstructor;
 export type ZodConstructor = {
     <T extends z_2.ZodRawShape>(schema: T): ZodDataValidator<z_2.ZodObject<T>>;
     <T extends z_2.ZodRawShape>(schema: (zod: typeof z_2.z, ev: RequestEvent) => T): ZodDataValidator<z_2.ZodObject<T>>;
-    <T extends z_2.Schema>(schema: T): ZodDataValidator<T>;
-    <T extends z_2.Schema>(schema: (zod: typeof z_2.z, ev: RequestEvent) => T): ZodDataValidator<T>;
+    <T extends z_2.core.$ZodType>(schema: T): ZodDataValidator<T>;
+    <T extends z_2.core.$ZodType>(schema: (zod: typeof z_2.z, ev: RequestEvent) => T): ZodDataValidator<T>;
 };
 
 // Warning: (ae-forgotten-export) The symbol "ZodConstructorQRL" needs to be exported by the entry point index.d.ts

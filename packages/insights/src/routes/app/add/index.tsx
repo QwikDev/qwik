@@ -1,5 +1,6 @@
-import { component$, useSignal } from '@qwik.dev/core';
-import { formAction$, useForm, zodForm$ } from '@modular-forms/qwik';
+import { component$ } from '@qwik.dev/core';
+import { routeAction$, valibot$ } from '@qwik.dev/router';
+import { Field, Form, useForm$ } from '@formisch/qwik';
 import Container from '~/components/container';
 import { DiskIcon } from '~/components/icons/disk';
 import Layout from '~/components/layout';
@@ -8,7 +9,7 @@ import { ApplicationForm } from '../[publicApiKey]/app.form';
 import styles from './styles.module.css';
 import { getInsightUser } from '~/routes/app/layout';
 
-export const useFormAction = formAction$<ApplicationForm>(
+export const useFormAction = routeAction$(
   async ({ name, description, url }, { redirect, sharedMap }) => {
     const db = getDB();
     const publicApiKey = Math.round(Math.random() * Number.MAX_SAFE_INTEGER).toString(36);
@@ -37,68 +38,73 @@ export const useFormAction = formAction$<ApplicationForm>(
 
     redirect(302, `/app/${publicApiKey}/`);
   },
-  zodForm$(ApplicationForm)
+  valibot$(ApplicationForm)
 );
 
 export default component$(() => {
-  const [, { Form, Field }] = useForm<ApplicationForm>({
-    loader: useSignal({ name: '', description: '', url: '' }),
-    action: useFormAction(),
-    validate: zodForm$(ApplicationForm),
-  });
+  const action = useFormAction();
+  const form = useForm$(() => ({
+    schema: ApplicationForm,
+  }));
   return (
     <Layout mode="bright">
       <Container position="center" width="small"></Container>
       <div class={[styles['add-app-wrapper'], 'p-6']}>
         <h1 class="h3">Create Application</h1>
-        <Form>
+        <Form of={form} onSubmit$={(output) => action.submit(output)}>
           <div>
             <label>Name</label>
-            <Field name="name">
-              {(field, props) => (
+            <Field
+              of={form}
+              path={['name']}
+              render$={(field) => (
                 <>
                   <input
-                    {...props}
+                    {...field.props}
                     type="text"
-                    value={field.value}
+                    value={field.input.value}
                     class="border-2 border-gray-300"
                   />
-                  {field.error && <p class="text-red-800">{field.error}</p>}
+                  {field.errors.value && <p class="text-red-800">{field.errors.value[0]}</p>}
                 </>
               )}
-            </Field>
+            />
           </div>
           <div>
             <label>URL</label>
-            <Field name="url">
-              {(field, props) => (
+            <Field
+              of={form}
+              path={['url']}
+              render$={(field) => (
                 <>
                   <input
-                    {...props}
+                    {...field.props}
                     type="url"
-                    value={field.value}
+                    value={field.input.value}
                     class="border-2 border-gray-300"
                   />
-                  {field.error && <p class="text-red-800">{field.error}</p>}
+                  {field.errors.value && <p class="text-red-800">{field.errors.value[0]}</p>}
                 </>
               )}
-            </Field>
+            />
           </div>
           <div>
             <label>Description</label>
-            <Field name="description">
-              {(field, props) => (
+            <Field
+              of={form}
+              path={['description']}
+              render$={(field) => (
                 <>
                   <input
-                    {...props}
+                    {...field.props}
                     type="text"
-                    value={field.value}
+                    value={field.input.value}
                     class="border-2 border-gray-300"
                   />
-                  {field.error && <p class="text-red-800">{field.error}</p>}
+                  {field.errors.value && <p class="text-red-800">{field.errors.value[0]}</p>}
                 </>
               )}
-            </Field>
+            />
           </div>
           <div
             style={{

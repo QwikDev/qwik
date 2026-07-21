@@ -11,6 +11,7 @@ vi.mock('../../middleware/request-handler/async-request-store', () => ({
 }));
 
 import * as z from 'zod';
+import * as zm from 'zod/mini';
 import { routeLoader$ } from './route-loaders';
 import { getRequestEvent, routeAction$, server$ } from './server-functions';
 import type { RequestEventBase, ValidatorErrorType } from './types';
@@ -194,6 +195,22 @@ describe('types', () => {
 
     expectTypeOf<ErrorType>().not.toEqualTypeOf<{
       someAnyType?: string;
+    }>();
+  });
+
+  test('zod/mini schema satisfies the zod$ constructor and error typing', () => () => {
+    const miniSchema = zm.object({
+      username: zm.string(),
+      password: zm.string(),
+    });
+
+    type SatisfiesConstructor = typeof miniSchema extends z.core.$ZodType ? true : false;
+    expectTypeOf<SatisfiesConstructor>().toEqualTypeOf<true>();
+
+    type ErrorType = ValidatorErrorType<zm.infer<typeof miniSchema>>['fieldErrors'];
+    expectTypeOf<ErrorType>().toEqualTypeOf<{
+      username?: string;
+      password?: string;
     }>();
   });
 });

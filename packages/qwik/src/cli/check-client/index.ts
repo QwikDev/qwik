@@ -1,6 +1,6 @@
 import type { AppCommand } from '../utils/app-command';
 // Removed non-critical logging to keep command output silent unless there are serious issues
-import { red } from 'kleur/colors';
+import pc from 'picocolors';
 import { runInPkg } from '../utils/install-deps';
 import { getPackageManager, panic } from '../utils/utils';
 import fs from 'fs/promises';
@@ -17,7 +17,7 @@ export async function runQwikClientCommand(app: AppCommand) {
     const dist = app.args[2];
     await checkClientCommand(app, src, dist);
   } catch (e) {
-    console.error(`❌ ${red(String(e))}\n`);
+    console.error(`❌ ${pc.red(String(e))}\n`);
     process.exit(1);
   }
 }

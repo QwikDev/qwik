@@ -145,7 +145,7 @@ export type ActionOptions = {
 };
 ```
 
-**References:** [DataValidator](#datavalidator), [Loader](#loader_2)
+**References:** [DataValidator](#datavalidator), [Loader](#loader)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
@@ -1309,7 +1309,7 @@ _(Optional)_
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/link-component.tsx)
 
-<h2 id="loader_2">Loader_2</h2>
+<h2 id="loader">Loader</h2>
 
 ```typescript
 export type Loader<RETURN> = {
@@ -1888,7 +1888,7 @@ loader
 
 </td><td>
 
-[Loader](#loader_2)&lt;T&gt;
+[Loader](#loader)&lt;T&gt;
 
 </td><td>
 
@@ -3144,8 +3144,8 @@ export type ZodConstructor = {
   <T extends z.ZodRawShape>(
     schema: (zod: typeof z.z, ev: RequestEvent) => T,
   ): ZodDataValidator<z.ZodObject<T>>;
-  <T extends z.Schema>(schema: T): ZodDataValidator<T>;
-  <T extends z.Schema>(
+  <T extends z.core.$ZodType>(schema: T): ZodDataValidator<T>;
+  <T extends z.core.$ZodType>(
     schema: (zod: typeof z.z, ev: RequestEvent) => T,
   ): ZodDataValidator<T>;
 };

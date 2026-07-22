@@ -27,8 +27,7 @@
     "prettier": "latest",
     "typescript": "latest",
     "typescript-plugin-css-modules": "latest",
-    "vite": "latest",
-    "vite-tsconfig-paths": "^4.2.1"
+    "vite": "latest"
   },
   "engines": {
     "node": "^18.17.0 || ^20.3.0 || >=21.0.0",

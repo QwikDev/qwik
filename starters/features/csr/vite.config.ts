@@ -4,10 +4,12 @@
  */
 import { qwikVite } from "@qwik.dev/core/optimizer";
 import { defineConfig, type UserConfig } from "vite";
-import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig((): UserConfig => {
   return {
-    plugins: [qwikVite({ csr: true }), tsconfigPaths({ root: "." })],
+    plugins: [qwikVite({ csr: true })],
+    resolve: {
+      tsconfigPaths: true,
+    },
   };
 });

@@ -7,7 +7,6 @@ import { readFile, rm, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build, createBuilder, type InlineConfig, type PluginOption } from 'vite';
-import tsconfigPaths from 'vite-tsconfig-paths';
 
 // Brotli size budgets for production bundles. These are ceilings, not exact matches: any size
 // at or below the budget is fine. Bump the budget intentionally when a real feature justifies
@@ -181,10 +180,10 @@ async function buildFixtureApp() {
   await rm(serverDir, { recursive: true, force: true });
   capturedRouterConfig = null;
 
-  const plugins: PluginOption[] = [qwikRouter(), tsconfigPaths({ root: '.' })];
+  const plugins: PluginOption[] = [qwikRouter()];
   // Fresh instance so the server build's loadersByFile starts empty, mirroring apps that run
   // build.client/build.server as separate processes (exercises the manifest recovery path).
-  const serverPlugins: PluginOption[] = [qwikRouter(), tsconfigPaths({ root: '.' })];
+  const serverPlugins: PluginOption[] = [qwikRouter()];
 
   const getConfig = (extra?: InlineConfig): InlineConfig => ({
     root: appDir,

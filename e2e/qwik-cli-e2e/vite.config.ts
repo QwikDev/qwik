@@ -1,6 +1,5 @@
 import { existsSync, mkdirSync } from 'fs';
 import { resolve } from 'path';
-import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig } from 'vitest/config';
 
 // if we're running in github CI
@@ -26,7 +25,6 @@ if (process.env.CI) {
 }
 
 export default defineConfig({
-  plugins: [tsconfigPaths({ root: '../../' })],
   test: {
     include: ['./tests/*.spec.?(c|m)[jt]s?(x)'],
     setupFiles: ['./utils/setup.ts'],

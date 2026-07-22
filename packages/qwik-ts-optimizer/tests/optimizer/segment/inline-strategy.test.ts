@@ -9,9 +9,6 @@ import {
 } from '../../../src/optimizer/segment/inline-strategy.js';
 
 describe('inline-strategy', () => {
-  // -------------------------------------------------------------------------
-  // buildNoopQrlDeclaration
-  // -------------------------------------------------------------------------
   describe('buildNoopQrlDeclaration', () => {
     it('produces _noopQrl const declaration', () => {
       const result = buildNoopQrlDeclaration('Child_component_9GyF01GDKqw');
@@ -28,9 +25,6 @@ describe('inline-strategy', () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // buildNoopQrlDevDeclaration
-  // -------------------------------------------------------------------------
   describe('buildNoopQrlDevDeclaration', () => {
     it('produces _noopQrlDEV const declaration with dev metadata', () => {
       const result = buildNoopQrlDevDeclaration(
@@ -53,9 +47,6 @@ describe('inline-strategy', () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // getSentinelCounter
-  // -------------------------------------------------------------------------
   describe('getSentinelCounter', () => {
     it('returns 0xFFFF0000 for index 0', () => {
       expect(getSentinelCounter(0)).toBe(4294901760);
@@ -74,9 +65,6 @@ describe('inline-strategy', () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // buildStrippedNoopQrl
-  // -------------------------------------------------------------------------
   describe('buildStrippedNoopQrl', () => {
     it('produces sentinel-named _noopQrl for index 0', () => {
       const result = buildStrippedNoopQrl('s_r1qAHX7Opp0', 0);
@@ -93,9 +81,6 @@ describe('inline-strategy', () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // buildStrippedNoopQrlDev
-  // -------------------------------------------------------------------------
   describe('buildStrippedNoopQrlDev', () => {
     it('produces sentinel-named _noopQrlDEV with dev metadata', () => {
       const result = buildStrippedNoopQrlDev('App_component_serverStuff_ebyHaP15ytQ', 0, {
@@ -115,9 +100,6 @@ describe('inline-strategy', () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // buildSCall
-  // -------------------------------------------------------------------------
   describe('buildSCall', () => {
     it('produces .s() call with body text', () => {
       const result = buildSCall('q_Child_component_9GyF01GDKqw', '()=>{ return "hello"; }');

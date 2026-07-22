@@ -1,25 +1,3 @@
-/**
- * Unit tests for `src/optimizer/ast/walk-with-protocol.ts` — the
- * compile-time-enforced enter/exit protocol wrapper.
- *
- * Three layers of coverage:
- *
- *   1. **Behavioural parity** — the wrapper walks the AST identically to
- *      raw `oxc-walker.walk`: visits every node, enters before children,
- *      leaves after children, preserves `this.skip()` semantics.
- *
- *   2. **Context delivery** — enter handlers receive `enterCtx`; leave
- *      handlers receive `exitCtx`; both contexts may be backed by the
- *      same closure-captured mutable state, with the type split being
- *      the discipline (not a runtime barrier).
- *
- *   3. **Compile-time enforcement** — `@ts-expect-error` directives in
- *      type-only positions assert that a field present on `ExitContext`
- *      but absent from `EnterContext` cannot be accessed during the
- *      enter phase. If a future change widens `EnterContext` so an
- *      ExitContext-only field becomes accessible, these directives go
- *      red and TS surfaces the leak.
- */
 
 import { describe, it, expect } from 'vitest';
 import MagicString from 'magic-string';
@@ -71,8 +49,6 @@ describe('walkWithProtocol — behavioural parity with raw walk', () => {
       },
     );
 
-    // ObjectExpression's enter must precede Property's enter,
-    // and Property's leave must precede ObjectExpression's leave.
     const objEnter = trace.indexOf('enter:ObjectExpression');
     const propEnter = trace.indexOf('enter:Property');
     const propLeave = trace.indexOf('leave:Property');
@@ -94,14 +70,12 @@ describe('walkWithProtocol — behavioural parity with raw walk', () => {
       {
         enter(node) {
           visited.push(node.type);
-          // Skip the outer ObjectExpression's children.
           if (node.type === 'ObjectExpression') this.skip();
         },
         leave() { /* no-op */ },
       },
     );
 
-    // ObjectExpression itself is visited; its Property children are not.
     expect(visited).toContain('ObjectExpression');
     expect(visited).not.toContain('Property');
   });
@@ -122,9 +96,6 @@ describe('walkWithProtocol — behavioural parity with raw walk', () => {
       },
     );
 
-    // Program has no parent; VariableDeclaration's parent is Program;
-    // VariableDeclarator's parent is VariableDeclaration; Literal's
-    // parent is VariableDeclarator (via init).
     expect(parentPairs).toContainEqual(['Program', null]);
     expect(parentPairs).toContainEqual(['VariableDeclaration', 'Program']);
     expect(parentPairs).toContainEqual([
@@ -150,8 +121,6 @@ describe('walkWithProtocol — context delivery', () => {
       {
         enter(_node, _parent, ctx) {
           seen.push(`enter:${ctx.enterMark}`);
-          // Type-only: ctx is `E` here, so `ctx.exitMark` does not exist.
-          // (The @ts-expect-error suite below pins the compile-time check.)
         },
         leave(_node, _parent, ctx) {
           seen.push(`leave:${ctx.enterMark}|${ctx.exitMark}`);
@@ -164,10 +133,6 @@ describe('walkWithProtocol — context delivery', () => {
   });
 
   it('allows enter and leave to share underlying state via closure', () => {
-    // The protocol enforces the *type split*, not the *state split*. Walks
-    // that need enter to buffer information consumed by leave (the
-    // buffer-on-enter pattern) work the same as raw walk: enter mutates shared state via
-    // an enterCtx method that closes over it; leave reads via exitCtx.
     interface E { recordEnter(t: string): void; }
     interface X extends E { drain(): string[]; }
 
@@ -195,11 +160,6 @@ describe('walkWithProtocol — context delivery', () => {
   });
 });
 
-// Type-only assertions live in a function the test never invokes; they
-// are still typechecked. The TS suppression directives below are the
-// actual assertion — if the wrapper's type design ever lets EnterContext
-// see ExitContext-only fields, the suppressions go unused and tsc fails
-// the build.
 function _typeOnlyProtocolEnforcement(): void {
   interface E { readonly source: string; }
   interface X extends E { readonly s: MagicString; }
@@ -213,15 +173,12 @@ function _typeOnlyProtocolEnforcement(): void {
     exitCtx,
     {
       enter(_node, _parent, ctx) {
-        // ctx is `E`. Accessing `ctx.s` must be a compile error.
         // @ts-expect-error - `s` only exists on ExitContext
         ctx.s.overwrite(0, 1, 'y');
 
-        // Sanity: `ctx.source` IS accessible (it's on E). No suppression.
         void ctx.source;
       },
       leave(_node, _parent, ctx) {
-        // ctx is `X`. Accessing `ctx.s` must NOT be a compile error.
         void ctx.s;
         void ctx.source;
       },
@@ -231,9 +188,6 @@ function _typeOnlyProtocolEnforcement(): void {
 
 describe('walkWithProtocol — compile-time enforcement', () => {
   it('keeps the type-only assertions reachable for tsc', () => {
-    // The real assertion is the suppression directive in
-    // `_typeOnlyProtocolEnforcement` above; this test exists so the
-    // function is referenced and tsc doesn't strip it as dead code.
     expect(typeof _typeOnlyProtocolEnforcement).toBe('function');
   });
 });

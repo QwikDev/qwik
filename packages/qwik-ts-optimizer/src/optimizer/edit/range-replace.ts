@@ -1,91 +1,39 @@
 /**
- * Range-replacement walker primitive.
- *
- * Consolidates walk-and-collect passes that each independently walk an
- * AST top-down, test a predicate, push `{start, end, replacement}`
- * records, and apply them disjointly. The known callers:
- *
- * | Pass | Predicate |
- * |---|---|
- * | `signal-analysis.ts:collectReplacements` | root identifier → `pN` (skip property-key / member-prop) |
- * | `utils/simplify.ts:collectSimplifications` | foldable subtree → primitive literal |
- * | `signal-analysis.ts:collectParenStrips` | `ParenthesizedExpression` with `Property` value parent → strip parens |
- * | `rewrite/raw-props.ts:collectIdentifierReplacements` | identifier matching `fieldLocalToKey` → `_rawProps.X` |
- * | `utils/props-field-rewrite.ts:walkNode` | same as raw-props (near-duplicate) |
- *
- * The Identifier-position guard (skip property-key / member-prop / param /
- * declarator-id) appears in 3 of the walkers; it's extracted here as
- * {@link isReplaceableIdentifierPosition}.
- *
- * ## API shape
- *
- * Each pass becomes a `RangeReplacementCollector` — a per-node visitor that
- * returns 0+ replacements plus an optional `skipSubtree` signal. The
- * orchestrator runs ONE AST walk and dispatches every node to every
- * registered collector, then applies replacements via
- * {@link applyReplacements} (re-exported from `utils/simplify.ts`).
- *
- * ## skipSubtree semantics
- *
- * `collectSimplifications` and its body-fold sibling have the invariant
- * "don't recurse into a simplified subtree" — children would emit
- * overlapping ranges into the now-irrelevant subtree (e.g. `1 + 2 + 3`
- * folds to `6`; recursing would also fold the inner `1 + 2` to `3` and
- * emit `3 + 3` overlapping the outer `6`). When any collector returns
- * `skipSubtree: true`, the orchestrator skips recursion into THAT subtree
- * for ALL collectors — conservative; safe because the subtree is being
- * replaced wholesale.
- *
- * Other collectors (paren-strip, identifier-substitution) don't return
- * `skipSubtree`. Paren-strip emits boundary replacements but still
- * recurses (nested parens at different positions); identifier passes
- * match leaves so recursion past them is a no-op.
- *
- * ## Disjoint-range guarantee
- *
- * The orchestrator does NOT check for overlaps between collectors at
- * runtime — that's still the caller's responsibility. The current pass
- * set is disjoint by construction:
- *
- * - Root replacements target Identifiers
- * - Simplifications target Binary/Unary/Logical/Conditional with primitive operands
- * - Paren-strips target ParenthesizedExpression boundary edges
- *
- * No node-type overlap. See `signal-analysis.ts:generateFnSignal`
- * commentary for the original disjoint-by-construction reasoning.
+ * One AST walk that dispatches every node to every registered collector and
+ * gathers their range replacements. Collectors must emit disjoint ranges — the
+ * orchestrator does not check for overlap. A collector returning
+ * `skipSubtree: true` suppresses recursion into that node's children for all
+ * collectors (used when replacing an entire subtree, e.g. folding `1 + 2 + 3`
+ * to `6`, where recursing would emit overlapping inner ranges).
  */
 
 import type { AstMaybeNode, AstNode, AstParentNode } from '../../ast-types.js';
 import { forEachAstChild } from '../ast/guards.js';
 
-/** A range edit: [start, end) of `exprText` is replaced with `replacement`. */
 export interface RangeReplacement {
   readonly start: number;
   readonly end: number;
   readonly replacement: string;
 }
 
-/** Context threaded to each collector at every visited node. */
+/**
+ * Context threaded to each collector at every visited node. `exprStart` is the
+ * source-absolute offset of `exprText[0]`; replacement ranges index into `exprText`.
+ */
 export interface CollectorContext {
-  /** Property name on the parent that holds this node (e.g. `'value'`, `'left'`). */
   readonly parentKey?: string;
-  /** Parent AST node. `undefined` at the root. */
   readonly parentNode?: AstParentNode;
-  /** Source-absolute offset of `exprText[0]`. Subtract from `node.start` to get relative offset. */
   readonly exprStart: number;
-  /** The source text being edited. Replacement ranges index into this. */
   readonly exprText: string;
 }
 
-/** Result returned by a collector for a single visited node. */
+/**
+ * Result returned by a collector for a single node. `skipSubtree: true`
+ * suppresses recursion into this node's children for all collectors — use it
+ * when replacing an entire subtree (e.g. simplifying `1 + 2 + 3` to `6`).
+ */
 export interface CollectorResult {
-  /** Replacements to emit for this node. Empty array = no emit. */
   readonly replacements: readonly RangeReplacement[];
-  /**
-   * If `true`, suppresses recursion into this node's children for ALL collectors.
-   * Use when the collector is replacing the entire subtree with a different form
-   * (e.g. simplifying `1 + 2 + 3` to `6`).
-   */
   readonly skipSubtree?: boolean;
 }
 
@@ -113,13 +61,6 @@ export function applyReplacements(
   return out;
 }
 
-/**
- * Walk a subtree once, dispatching every node to every collector. Returns
- * a flat list of replacements suitable for {@link applyReplacements}.
- *
- * If any collector returns `skipSubtree: true` at a node, recursion into
- * that node's children is suppressed for ALL collectors.
- */
 export function collectRangeReplacements(
   root: AstMaybeNode,
   exprStart: number,
@@ -155,31 +96,19 @@ export function collectRangeReplacements(
 
 export interface ReplaceableIdentifierPositionOptions {
   /**
-   * How to treat MemberExpression `property` positions.
-   * - `'nonComputed'` (default): exclude `.foo` (non-computed) but allow
-   *   `[foo]` (computed). The historic raw-props + signal-analysis behaviour.
-   * - `'all'`: exclude both `.foo` and `[foo]`. Used by the segment-codegen
-   *   caller of `rewritePropsFieldReferences`.
+   * How to treat MemberExpression `property` positions. `'nonComputed'` (default)
+   * excludes `.foo` but allows `[foo]`; `'all'` excludes both.
    */
   memberPropertyMode?: 'all' | 'nonComputed';
 }
 
 /**
- * The standard "should this Identifier reference be replaced here?" predicate.
- * Returns `false` for positions where the Identifier is a declarator name,
- * a property key, a member access property (per `memberPropertyMode`), or
- * a function parameter — none of which represent a *reference* to the
- * binding that would benefit from substitution.
+ * Whether an Identifier at this position is a *reference* worth substituting —
+ * `false` for declarator names, property keys, member-access properties (per
+ * `memberPropertyMode`), and function parameters.
  *
- * Shared by:
- * - `signal-analysis.ts` root-identifier-to-`pN` replacement
- * - `rewrite/raw-props.ts` field-local-to-`_rawProps.X` replacement
- * - `utils/props-field-rewrite.ts` (callers under both `memberPropertyMode`s)
- *
- * **Shorthand `Property` value positions are NOT excluded by this check** —
- * those require special-case emit (key + ': ' + accessor) and the
- * caller handles them separately. This predicate returns `true` for the
- * shorthand value position so the caller can detect it via
+ * Shorthand `Property` value positions return `true` here (not excluded); they
+ * need special-case emit and the caller detects them via
  * `parentKey === 'value' && parentNode.shorthand === true`.
  */
 export function isReplaceableIdentifierPosition(
@@ -198,13 +127,9 @@ export function isReplaceableIdentifierPosition(
 }
 
 /**
- * Does a `??` LogicalExpression at this position need wrapping parens?
- * Drives precedence-aware emission in `raw-props.ts` and
- * `props-field-rewrite.ts`. Returns `true` only when the parent operator
- * has precedence ≥ `??` (Binary/Logical/Unary/Update/MemberExpression
- * object / TaggedTemplate tag / Call+New callee). Note that mixing `??`
- * with `||` or `&&` is a JS syntax error without explicit parens —
- * `LogicalExpression` includes that case.
+ * Whether a `??` expression at this position needs wrapping parens. Returns
+ * `true` for parents with precedence ≥ `??`; `LogicalExpression` is included
+ * because mixing `??` with `||`/`&&` is a syntax error without explicit parens.
  */
 export function expressionNeedsParens(
   parentKey: string | undefined,

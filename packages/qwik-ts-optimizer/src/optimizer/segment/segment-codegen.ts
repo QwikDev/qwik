@@ -1,10 +1,3 @@
-/**
- * Segment module code generation.
- *
- * Generates the source code for extracted segment modules. Each segment
- * module contains only the imports it references plus the exported segment body.
- */
-
 import { createRegExp, exactly, oneOrMore, whitespace, charNotIn } from 'magic-regexp';
 import { createTransformSession } from '../edit/transform-session.js';
 import { rewriteImportSource } from '../rewrite/rewrite-imports.js';
@@ -20,7 +13,6 @@ import { walkAstForQp } from '../jsx/qp-walk.js';
 import { foldBodySimplifiableExpressions } from '../jsx/simplify.js';
 import type { AstProgram } from '../../ast-types.js';
 
-// Re-export from body-transforms for backward compatibility
 export {
   rewriteFunctionSignature,
   removeDeadConstLiterals,
@@ -29,7 +21,6 @@ export {
   partsHaveImport,
 } from './body-transforms.js';
 
-// Import helpers from split modules
 import {
   rewriteNestedCallSitesInline,
   applySelfRefIndirection,
@@ -50,46 +41,41 @@ const qrlConstName = createRegExp(
   exactly('const').and(oneOrMore(whitespace)).and(exactly('q_').and(oneOrMore(charNotIn(' \t\n\r'))).grouped()),
 );
 
+/**
+ * Capture/migration payloads for one segment. `skipCaptureInjection` means the
+ * body already contains `_captures[i]` references (e.g. an `inlinedQrl`), so the
+ * unpacking prologue is not re-injected. `propsFieldCaptures` are names
+ * consolidated into `_rawProps` (field local → prop key); `propsFieldDefaults`
+ * carries their destructure-time defaults so defaulted fields emit
+ * `(_rawProps.<key> ?? <default>)`. `constLiterals` (captured name → literal
+ * source) are inlined into the body.
+ */
 export interface SegmentCaptureInfo {
-  /** Variables received via _captures (scope-level captures). */
   captureNames: string[];
-  /** _auto_VARNAME imports from parent module (module-level migration). */
   autoImports: Array<{ varName: string; parentModulePath: string }>;
-  /** Declarations physically moved into the segment, with their import dependencies. */
   movedDeclarations: Array<{ text: string; importDeps: Array<{ localName: string; importedName: string; source: string }> }>;
-  /** If true, skip _captures unpacking injection (body already has _captures refs, e.g. inlinedQrl). */
   skipCaptureInjection?: boolean;
-  /**
-   * Map from original prop field local name to prop key name.
-   * When set, these captures have been consolidated into _rawProps.
-   */
   propsFieldCaptures?: Map<string, string>;
-  /**
-   * Map from prop-field local name to destructure-time default
-   * expression source text. When set alongside {@link propsFieldCaptures},
-   * defaulted fields emit `(_rawProps.<key> ?? <default>)`.
-   */
   propsFieldDefaults?: Map<string, string>;
-  /**
-   * Map from captured variable name to its literal source text.
-   * When set, these const literal captures are inlined into the segment body.
-   */
   constLiterals?: Map<string, string>;
 }
 
-/**
- * Additional import context from transform.ts for post-transform import re-collection.
- */
 export interface SegmentImportData {
   moduleImports: Array<{ localName: string; importedName: string; source: string; importAttributes?: Record<string, string> }>;
   sameFileSymbols: Set<string>;
   defaultExportedNames?: Set<string>;
-  /** Map from local variable name to its exported name when they differ */
   renamedExports?: Map<string, string>;
   parentModulePath: string;
   migrationDecisions: Array<{ varName: string; action: string; isExported?: boolean }>;
 }
 
+/**
+ * `source` (the original module string) and `bodyOriginOffset` (the body's byte
+ * offset, `ext.loc[0]`) together yield source-relative dev-info positions:
+ * default-strategy segments wrap the body as `(${bodyText})` before parsing, so
+ * without them dev-info `lineNumber:` lands body-relative. Both are honored only
+ * when `devOptions` is set.
+ */
 export interface SegmentJsxOptions {
   enableJsx: boolean;
   importedNames: Set<string>;
@@ -97,18 +83,7 @@ export interface SegmentJsxOptions {
   relPath?: string;
   keyCounterStart?: number;
   devOptions?: DevSuffixOptions;
-  /**
-   * Original module source string. Used together with
-   * {@link bodyOriginOffset} to compute source-relative dev-info
-   * positions (default-strategy segments wrap the body as `(${bodyText})`
-   * before parsing; without this, dev-info `lineNumber:` lands
-   * body-relative). Only honored when `devOptions` is set.
-   */
   source?: string;
-  /**
-   * Byte offset of the extraction's body in the original source
-   * (`ext.loc[0]`). Used together with {@link source}.
-   */
   bodyOriginOffset?: number;
 }
 
@@ -135,8 +110,6 @@ interface SegmentImportSpec {
   importedName: string;
 }
 
-// ── Props field reference replacement ──
-
 function replacePropsFieldReferences(
   bodyText: string,
   fieldMap: Map<string, string>,
@@ -148,12 +121,6 @@ function replacePropsFieldReferences(
   });
 }
 
-// ── Phase helpers for generateSegmentCode ──
-
-/**
- * Phase 1: Build import statements from extraction.segmentImports,
- * grouping by source and filtering out captured names.
- */
 function buildSegmentImports(
   extraction: ConsolidatedSegment,
   capturedNames: Set<string>,
@@ -213,10 +180,6 @@ function buildSegmentImports(
   return { parts, importsBySource };
 }
 
-/**
- * Phase 2: Merge _captures into @qwik.dev/core import or add a new one,
- * plus _auto_ imports and moved-declaration imports.
- */
 function addCaptureAndMigrationImports(
   parts: string[],
   captureInfo: SegmentCaptureInfo | undefined,
@@ -269,7 +232,6 @@ function addCaptureAndMigrationImports(
   }
 }
 
-/** Phase 3: Add nested QRL declarations and their required imports. */
 function addNestedQrlDeclarations(parts: string[], nestedQrlDecls: string[] | undefined): void {
   if (!nestedQrlDecls || nestedQrlDecls.length === 0) return;
 
@@ -300,17 +262,11 @@ function addNestedQrlDeclarations(parts: string[], nestedQrlDecls: string[] | un
   parts.push('//');
 }
 
-// ── JSX transformation ──
-
 /**
- * Phase 5b helper: rewrite peer-tool `jsx(Tag, propsObj, ...)` calls (e.g.
- * from `qwik-react` codegen) into `_jsxSorted(...)` form. Sits alongside
- * `transformSegmentJsx` (which handles `<JSX/>` syntax) — the two are
- * complementary because peer tools pre-process JSX to `jsx()` calls before
- * the optimizer sees the source, and the syntax-based pass skips them.
- *
- * Returns the rewritten body and (if any rewrites happened) the updated
- * key-counter value to thread back into `segmentKeyCounterValue`.
+ * Rewrites peer-tool `jsx(Tag, propsObj, ...)` calls (e.g. from `qwik-react`
+ * codegen) into `_jsxSorted(...)` form — complementary to `transformSegmentJsx`
+ * (which handles `<JSX/>` syntax), because peer tools pre-process JSX to `jsx()`
+ * calls that the syntax-based pass skips.
  */
 function transformSegmentJsxCalls(
   bodyText: string,
@@ -515,8 +471,6 @@ function buildQpOverrides(
   return qpOverrides.size > 0 ? qpOverrides : undefined;
 }
 
-// ── Separator normalization ──
-
 function normalizeSeparators(parts: string[]): void {
   const allParts = parts.filter(p => p !== '//');
   const imports: string[] = [];
@@ -541,13 +495,6 @@ function normalizeSeparators(parts: string[]): void {
   parts.push(...other);
 }
 
-// ── Phase helpers ──
-
-/**
- * Phases 1–3: build the upfront `parts[]` (imports + capture/migration imports
- * + nested QRL declarations) and the `importsBySource` index that downstream
- * post-transform import re-collection (Phase 8) needs to merge into.
- */
 function collectInitialImports(
   extraction: ConsolidatedSegment,
   capturedNames: Set<string>,
@@ -562,11 +509,6 @@ function collectInitialImports(
 }
 
 /**
- * Phase 4: apply the body-text-only transforms — nested call site rewriting,
- * self-ref indirection, enum inlining, raw-props normalisation, diagnostic
- * stripping, and the three capture-driven passes (props field rename,
- * const-literal inlining, captures unpacking).
- *
  * Returns the updated `captureInfo` because const-literal inlining filters
  * inlined names out of `captureNames`; downstream phases (JSX, captures
  * unpacking) need that filtered view.
@@ -578,9 +520,8 @@ function applyBodyTransforms(
   nestedCallSites: NestedCallSiteInfo[] | undefined,
   enumValueMap: Map<string, Map<string, string>> | undefined,
 ): { bodyText: string; captureInfo: SegmentCaptureInfo | undefined } {
-  // Locally mutable plain string for the body-transform pipeline below.
-  // BodyText brand applies at the ExtractionResult boundary; internal
-  // helpers work on string.
+  // Internal helpers work on plain string; the BodyText brand applies only at
+  // the ExtractionResult boundary.
   let bodyText: string = extraction.bodyText;
 
   if (nestedCallSites && nestedCallSites.length > 0) {
@@ -594,24 +535,19 @@ function applyBodyTransforms(
 
   // `inlinedQrl` bodies are pre-compiled library code: their first arg is a
   // finished closure whose destructured first param (e.g. a `useTask$`'s
-  // `({ track })` context) is NOT component props and must not be normalised
-  // to `_rawProps`. SWC skips the first arg of `inlinedQrl`/`inlinedQrlDEV`
-  // calls for exactly this reason (props_destructuring.rs — the inlinedQrl
-  // arm of `visit_mut_call_expr`). Applying the rewrite here renamed the param
-  // to `_rawProps` while the body still referenced `track`, and dropped the
-  // closing brace — producing an unbalanced, unparseable segment.
+  // `({ track })` context) is NOT component props and must not be normalised to
+  // `_rawProps`. Doing so renamed the param while the body still referenced the
+  // original binding and dropped the closing brace, producing an unbalanced,
+  // unparseable segment.
   if (!extraction.isInlinedQrl) {
     bodyText = applyRawPropsToSegmentBody(bodyText, parts);
   }
   bodyText = stripDiagnosticsAndDirectives(bodyText);
 
-  // Destructure capture-driven payloads once so the conditional pass list
-  // below doesn't re-probe `captureInfo?.x && captureInfo.x.size > 0` at
-  // every step (that pattern was repeated three times in the original).
   const propsFieldCaptures = captureInfo?.propsFieldCaptures;
   if (propsFieldCaptures && propsFieldCaptures.size > 0) {
     // Pass `propsFieldDefaults` so defaulted fields emit
-    // `(_rawProps.<key> ?? <default>)` matching SWC's NullishCoalescing.
+    // `(_rawProps.<key> ?? <default>)`.
     bodyText = replacePropsFieldReferences(
       bodyText,
       propsFieldCaptures,
@@ -640,15 +576,6 @@ function applyBodyTransforms(
   return { bodyText, captureInfo: liveCaptureInfo };
 }
 
-// ── Main entry point ──
-
-/**
- * Generate the segment module source code for an extracted segment.
- *
- * 9-phase sequencer. Phases 1–3 (imports) and Phase 4 (body transforms) are
- * extracted into named helpers above. Phases 5–9 stay inline because each is
- * already a short named-function call or a single conditional.
- */
 export function generateSegmentCode(
   extraction: ConsolidatedSegment,
   nestedQrlDecls?: string[],
@@ -660,17 +587,14 @@ export function generateSegmentCode(
 ): { code: string; keyCounterValue?: number } {
   const capturedNames = new Set<string>(captureInfo ? captureInfo.captureNames : []);
 
-  // Phases 1–3: upfront import declarations.
   const { parts, importsBySource } = collectInitialImports(
     extraction, capturedNames, captureInfo, nestedQrlDecls, importContext,
   );
 
-  // Phase 4: body-text transforms (also yields the post-const-inline captureInfo).
   let { bodyText, captureInfo: liveCaptureInfo } = applyBodyTransforms(
     extraction, parts, captureInfo, nestedCallSites, enumValueMap,
   );
 
-  // Phase 5: JSX transformation.
   let segmentKeyCounterValue: number | undefined;
   if (jsxOptions?.enableJsx) {
     const jsxResult = transformSegmentJsx(bodyText, parts, jsxOptions, nestedCallSites, liveCaptureInfo);
@@ -678,15 +602,12 @@ export function generateSegmentCode(
     segmentKeyCounterValue = jsxResult.keyCounterValue;
   }
 
-  // Phase 5b: peer-tool JSX-call rewriting. `qwik-react` and similar peer
-  // codegen emit `jsx(Tag, propsObj)` calls (already pre-processed from JSX
-  // syntax). Phase 5's JSX-syntax transform skips them because they're not
-  // `<JSX/>`, and the entire Phase 5 may be skipped when source isn't .tsx/
-  // .jsx (qwik-react ships as .mjs). Rewrite them to `_jsxSorted(...)` here so
-  // they merge into the optimizer's emit shape. Runs unconditionally — the
-  // cheap fast-path inside `transformSegmentJsxCalls` skips when no jsx
-  // imports are present. SWC's reference equivalent: `handle_jsx` at
-  // `swc-reference-only/transform.rs:1163` gated by `jsx_functions` membership.
+  // Peer-tool JSX-call rewriting: `qwik-react` and similar peer codegen emit
+  // `jsx(Tag, propsObj)` calls (pre-processed from JSX syntax) that Phase 5's
+  // syntax transform skips, and Phase 5 may be skipped entirely when the source
+  // isn't .tsx/.jsx (qwik-react ships as .mjs). Rewrite them to `_jsxSorted(...)`
+  // here. Runs unconditionally — the fast-path in `transformSegmentJsxCalls`
+  // skips when no jsx imports are present.
   if (importContext) {
     // Map each event-handler QRL var (`q_<sym>`) to its `q:p`/`q:ps` capture
     // params, so the peer-tool JSX-call rewriter can inject the prop onto the
@@ -708,22 +629,18 @@ export function generateSegmentCode(
     }
   }
 
-  // Fold constant-foldable subtrees that survived earlier passes
-  // (typically `?? <default>` RHS injected by raw-props in non-JSX
-  // positions). Runs AFTER Phase 5/5b so `_hf<n>_str` has been generated
-  // source-preserving and JSX-prop positions are now `_fnSignal(...)`
-  // calls with no `?? <default>` left to fold. Mirrors the same
-  // post-pass in the inline-strategy path (`rewrite/inline-body.ts`).
+  // Fold constant-foldable subtrees that survived earlier passes (typically
+  // `?? <default>` RHS injected by raw-props in non-JSX positions). Runs AFTER
+  // Phase 5/5b so `_hf<n>_str` is generated source-preserving and JSX-prop
+  // positions are now `_fnSignal(...)` calls with no `?? <default>` left to fold.
   bodyText = foldBodySimplifiableExpressions(bodyText);
 
-  // Phase 6: core-symbol imports + sync$ call rewriting.
   // Include moved-decl text (already in `parts`) when scanning for core
   // helpers — a moved helper function with rewritten JSX may reference
-  // `_jsxSplit` / `_getVarProps` / `_getConstProps` etc. that the
-  // segment's main body doesn't. The `//` separator may not yet be
-  // present when `ensureCoreImports` runs (it's added later by
-  // `normalizeSeparators`), so explicitly include a separator before
-  // calling so the early-return path doesn't bail out.
+  // `_jsxSplit` / `_getVarProps` / `_getConstProps` etc. that the segment's
+  // main body doesn't. The `//` separator may not yet be present when
+  // `ensureCoreImports` runs (added later by `normalizeSeparators`), so include
+  // a separator before calling so the early-return path doesn't bail out.
   const scanText = bodyText + '\n' + parts
     .filter(p => !p.startsWith('import') && p !== '//')
     .join('\n');
@@ -731,21 +648,17 @@ export function generateSegmentCode(
   ensureCoreImports(scanText, parts);
   bodyText = transformSyncCalls(bodyText, parts);
 
-  // Phase 7: separator normalization (after core imports, before re-collection).
   normalizeSeparators(parts);
 
-  // Function signature rewrite for loop-padding (_,_1,...) parameters.
   if (hasUnderscorePlaceholderParams(extraction.paramNames)) {
     bodyText = rewriteFunctionSignature(bodyText, extraction.paramNames);
   }
 
-  // Phase 8: post-transform import re-collection + final separator normalization.
   if (importContext) {
     recollectPostTransformImports(bodyText, parts, importContext, importsBySource, capturedNames, nestedCallSites);
   }
   normalizeSeparators(parts);
 
-  // Phase 9: dead-code elimination + emit.
   if (nestedCallSites && nestedCallSites.length > 0) {
     bodyText = removeDeadConstLiterals(bodyText);
   }

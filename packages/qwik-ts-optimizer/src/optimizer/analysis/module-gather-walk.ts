@@ -1,39 +1,16 @@
 /**
- * Canonical per-module gather walk.
+ * Canonical per-module gather walk: one traversal over the parsed program —
+ * building the ScopeTracker as it goes — produces every per-module fact
+ * (free identifiers, lexical scopes, loop contexts, scope entries, segment/root
+ * usage, passive-directive conflicts, scope-aware JSX bindings) plus the
+ * Phase-1 extraction set. Each fact is a projection; the standalone functions
+ * they replace are retained as differential oracles.
  *
- * One traversal over the original parsed program — building the
- * ScopeTracker as it goes — produces every per-module fact that previously
- * required its own full-program walk:
- *
- *   - free identifiers per extraction closure (was `computeClosureFreeIdentifiers`,
- *     itself the group-1 fusion of per-closure `getUndeclaredIdentifiersInFunction`)
- *   - lexical scope chains per closure (was `buildClosureLexicalScopes`)
- *   - extraction loop contexts + per-loop var decls (was `buildExtractionLoopMap`)
- *   - function/for-loop scope entries (was `collectAllScopeEntries`)
- *   - segment/root identifier usage (was `computeSegmentUsage`)
- *   - passive:/preventdefault: JSX attribute conflicts (was the walk inside
- *     `detectPassivePreventdefaultConflicts`; emission stays at the Phase-4
- *     call site so diagnostic order is unchanged)
- *   - scope-aware JSX bindings (was the standalone `collectScopeAwareBindings`
- *     walk that `transformAllJsx` ran on the parent program; threaded to the
- *     Phase-4 JSX transform via `precomputedScopeBindings`)
- *
- * Parity contract: each projection keeps the exact per-node logic of the
- * function it replaces — shared node-level helpers are imported from the
- * original modules where exportable, and the walk topology (DFS enter/leave
- * order) is identical because every original used the same `oxc-walker`
- * traversal. The originals are retained as differential oracles; see
- * `tests/optimizer/analysis/module-gather-walk.test.ts`.
- *
- * Projections that need whole-program knowledge before they can act
- * (segment-usage classification must see hoisted declarations) buffer during
- * enter and act after the walk returns — the Program-exit act of the
- * single-pass stack model. The free-identifier projection follows the same
- * shape: identifier visits buffer `(name, scopeKey)` per open closure and
- * resolve after the walk via `ScopeQueryTracker.getDeclarationFromScope`,
- * so resolution does not depend on the walk cursor — which is what allows
- * the tracker to build *during* the gather walk: by resolution time the
- * scope tree is complete, hoisted declarations included.
+ * Projections needing whole-program knowledge before they can act (segment
+ * usage must see hoisted declarations; free-identifier resolution needs the
+ * complete scope tree) buffer during enter and resolve after the walk returns.
+ * That post-walk resolution is what lets the tracker build during this walk
+ * rather than in a separate pass before it.
  */
 
 import { isBindingIdentifier } from 'oxc-walker';
@@ -74,33 +51,26 @@ import {
   type ScopeBindingsCollector,
 } from '../jsx/jsx.js';
 
-/** Inputs for the segment-usage projection. */
 export interface UsageExtractionRange {
   readonly symbolName: string;
   readonly argStart: number;
   readonly argEnd: number;
 }
 
-/** Inputs for the loop-map projection. */
 export interface CallExtractionRange {
   readonly symbolName: string;
   readonly callStart: number;
   readonly callEnd: number;
 }
 
-/** One passive:/preventdefault: conflict site, gathered during the walk and
- * emitted as a diagnostic later (Phase 4) to preserve diagnostic order. */
+/** One passive:/preventdefault: conflict site; emission is deferred to Phase 4
+ * to preserve diagnostic order. */
 export interface PassiveConflict {
   readonly eventName: string;
   readonly start: number;
   readonly end: number;
 }
 
-/**
- * Inputs for hosting the Phase-1 extraction collector in the gather walk.
- * Mirrors the `extractSegments` parameter surface; the walk itself replaces
- * the standalone extraction traversal.
- */
 export interface ExtractionGatherInputs {
   readonly source: string;
   readonly relPath: string;
@@ -112,23 +82,12 @@ export interface ExtractionGatherInputs {
 }
 
 /**
- * Which facts to gather. A projection runs iff its input field is present —
- * passing an empty array/map still runs the projection (matching the
- * original functions, which walked regardless of how many targets they had).
- *
- * Each optional input enables its like-named projection; the exceptions are
- * `closureNodes` (drives both free-identifier and lexical-scope),
- * `usageExtractions` (segment-usage), and `loopExtractions` + `repairedCode`
- * (loop-map).
- *
- * Two host modes:
- *   - **standalone-facts mode** — the caller already has extractions and
- *     passes `closureNodes` / `usageExtractions` / `loopExtractions`.
- *   - **fused-extraction mode** — `extraction` is set; the walk hosts the
- *     Phase-1 collector, discovers extractions itself, and the
- *     free-identifier, lexical-scope, loop-map, and segment-usage
- *     projections key off the discovered set. The three standalone-mode
- *     inputs must be omitted.
+ * Which facts to gather: each projection runs iff its input field is present —
+ * an empty array/map still runs it. Two host modes: standalone-facts (caller
+ * passes `closureNodes` / `usageExtractions` / `loopExtractions` for existing
+ * extractions) and fused-extraction (`extraction` is set; the walk hosts the
+ * Phase-1 collector and the projections key off the discovered set, so the
+ * three standalone inputs must be omitted).
  */
 export interface ModuleGatherInputs {
   readonly program: AstProgram;
@@ -143,10 +102,9 @@ export interface ModuleGatherInputs {
 }
 
 /**
- * Every gathered fact. Fields for disabled projections are empty. The
- * closure-keyed maps (`closureFreeIdentifiers`, `closureLexicalScopes`) key by
- * node identity, not symbolName — names aren't final until post-walk
- * disambiguation.
+ * Every gathered fact; fields for disabled projections are empty. The
+ * closure-keyed maps key by node identity, not symbolName — names aren't final
+ * until post-walk disambiguation.
  */
 export interface ModuleGatherFacts {
   readonly extractions: readonly ExtractedSegment[];
@@ -162,10 +120,9 @@ export interface ModuleGatherFacts {
 }
 
 /**
- * Scope-key containment: is `scope` equal to or nested under `ancestor`?
- * Scope keys are dash-joined index paths (`"0-2-1"`); the root scope is
- * the empty string. Segment-wise comparison — a bare `startsWith` would
- * make `"0-11"` a child of `"0-1"`.
+ * Scope-key containment: is `scope` equal to or nested under `ancestor`? Keys
+ * are dash-joined index paths; root is `""`. Segment-wise, not a bare
+ * `startsWith`, which would make `"0-11"` a child of `"0-1"`.
  */
 function isScopeWithin(scope: string, ancestor: string): boolean {
   if (ancestor === '') return true;
@@ -187,10 +144,10 @@ interface LexicalScopeFrame {
 }
 
 /**
- * A closure whose free identifiers are being buffered. `ownScope` (the
- * outermost scope key it pushes) reads a `FunctionExpression`'s own name as
+ * A closure whose free identifiers are being buffered. `ownScope` (its
+ * outermost pushed scope key) treats a `FunctionExpression`'s own name as
  * internal — it sits above the param scope. `seen` dedups `(scopeKey, name)`
- * pairs to bound the buffer without disturbing first-free-occurrence order.
+ * pairs without disturbing first-occurrence order.
  */
 interface OpenClosure {
   readonly fn: AstFunction;
@@ -200,7 +157,6 @@ interface OpenClosure {
   readonly seen: Set<string>;
 }
 
-/** One buffered identifier visit awaiting post-walk resolution. */
 interface PendingResolution {
   readonly oc: OpenClosure;
   readonly name: string;
@@ -257,9 +213,8 @@ interface GatherExitContext extends GatherEnterContext {
 }
 
 /**
- * Run the canonical gather walk — one program traversal. The ScopeTracker
- * builds during the walk itself (attached unfrozen, frozen on return before
- * free-identifier resolution); there is no standalone build walk.
+ * Run the canonical gather walk — one program traversal. The ScopeTracker is
+ * attached unfrozen and frozen on return before free-identifier resolution.
  */
 export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts {
   const { program } = inputs;
@@ -507,11 +462,12 @@ function isComputedKeyReference(node: AstNode, parent: AstNode | null): boolean 
   return false;
 }
 
-/** Free-identifier projection — `computeClosureFreeIdentifiers`'s gather
- * half. Pure buffering of `(name, scopeKey)` per open closure; resolution
- * happens post-walk in {@link resolveFreeIdentifiers}. The same name can
- * resolve free at one reference site and internal at another (shadowing),
- * which is why the buffer keys on the scope key, not the name alone. */
+/**
+ * Free-identifier projection: buffer `(name, scopeKey)` per open closure;
+ * resolution happens post-walk in {@link resolveFreeIdentifiers}. The same name
+ * can resolve free at one reference and internal at another (shadowing), so the
+ * buffer keys on the scope key, not the name alone.
+ */
 function enterFreeIdentifiers(
   node: AstNode,
   parent: AstNode | null,
@@ -550,10 +506,11 @@ function enterFreeIdentifiers(
   }
 }
 
-/** Post-walk act for the free-identifier projection: resolve the buffered
- * visits in occurrence order against the frozen tracker. Resolution is
- * memoized per `(name, scopeKey)` — the chain-walk is the expensive step
- * and identical pairs resolve identically. */
+/**
+ * Resolve the buffered free-identifier visits in occurrence order against the
+ * frozen tracker. Memoized per `(name, scopeKey)`: the chain-walk is the
+ * expensive step and identical pairs resolve identically.
+ */
 function resolveFreeIdentifiers(
   pending: readonly PendingResolution[],
   tracker: ScopeQueryTracker,
@@ -586,7 +543,6 @@ function resolveFreeIdentifiers(
   }
 }
 
-/** Lexical-scope projection — `buildClosureLexicalScopes`'s scope stack. */
 function enterLexicalScopes(node: AstNode, ctx: GatherEnterContext): void {
   if (!ctx.lexicalEnabled) return;
 
@@ -607,7 +563,6 @@ function enterLexicalScopes(node: AstNode, ctx: GatherEnterContext): void {
   ctx.pushScope({ node, set });
 }
 
-/** Loop-map projection — `buildExtractionLoopMap`'s loop stack + buckets. */
 function enterLoopMap(node: AstNode, ctx: GatherEnterContext): void {
   if (!ctx.loopEnabled) return;
 
@@ -647,10 +602,11 @@ function enterLoopMap(node: AstNode, ctx: GatherEnterContext): void {
   }
 }
 
-/** Scope-entry projection — `collectAllScopeEntries`'s gather half. Pure
- * node buffering; the per-node entry records build post-walk (and are
- * skipped entirely when a fused walk found no extractions — the sole
- * consumer, event-handler capture promotion, iterates extractions). */
+/**
+ * Scope-entry projection: buffer nodes; entry records build post-walk, skipped
+ * when a fused walk found no extractions (the sole consumer iterates
+ * extractions).
+ */
 function enterScopeEntries(node: AstNode, ctx: GatherEnterContext): void {
   if (!ctx.scopeEntriesEnabled) return;
 
@@ -666,8 +622,8 @@ function enterScopeEntries(node: AstNode, ctx: GatherEnterContext): void {
   }
 }
 
-/** Segment-usage projection — `computeSegmentUsage`'s gather half. Pure
- * buffering; all attribution happens in {@link classifySegmentUsage}. */
+/** Segment-usage projection: buffer decl/identifier visits; attribution happens
+ * post-walk in {@link classifySegmentUsage}. */
 function enterSegmentUsage(
   node: AstNode,
   parent: AstNode | null,
@@ -687,8 +643,6 @@ function enterSegmentUsage(
   }
 }
 
-/** Passive-conflict projection — the walk half of
- * `detectPassivePreventdefaultConflicts` (emission happens in Phase 4). */
 function enterPassiveConflicts(node: AstNode, ctx: GatherEnterContext): void {
   if (!ctx.passiveEnabled) return;
   if (node.type !== 'JSXOpeningElement') return;
@@ -717,12 +671,10 @@ function enterPassiveConflicts(node: AstNode, ctx: GatherEnterContext): void {
 }
 
 /**
- * A sweep cursor over extraction arg ranges: feed it positions in ascending
- * order and it maintains the stack of ranges containing the current
- * position. Arg ranges are AST node ranges, so they nest properly or are
- * disjoint — the stack top is always the innermost containing range, which
- * is what the pre-sweep implementation found by scanning every extraction
- * per visit (the O(identifiers × extractions) shape this replaces).
+ * A sweep cursor over extraction arg ranges: fed ascending positions, it keeps
+ * the stack of ranges containing the current position. Arg ranges are AST node
+ * ranges, so they nest or are disjoint — the stack top is always the innermost
+ * containing range.
  */
 class ExtractionRangeSweep {
   private readonly sorted: UsageExtractionRange[];
@@ -753,17 +705,12 @@ class ExtractionRangeSweep {
 }
 
 /**
- * Post-walk classification of buffered declaration and identifier visits —
- * the attribution half of `computeSegmentUsage`. Attribution waits for the
- * full locals map; in DFS order an identifier reference can be visited
- * before its hoisted declaration (`function f() { g(); function g() {} }`).
- *
- * Both buffers are classified by a sorted range-stack sweep instead of a
- * per-visit scan over every extraction, bounding the work at
- * O((visits + extractions) · nesting-depth) rather than
- * O(visits × extractions). The buffers arrive in DFS-enter order, which is
- * ascending by position for source-ordered AST properties; the sorts make
- * the sweep independent of that walker detail.
+ * Post-walk classification of buffered declaration and identifier visits.
+ * Attribution waits for the full locals map because in DFS order an identifier
+ * reference can be visited before its hoisted declaration
+ * (`function f() { g(); function g() {} }`), so visits are buffered and
+ * classified post-walk. Both buffers are classified by a sorted range-stack
+ * sweep, so the sweep is independent of walker visit order.
  */
 function classifySegmentUsage(
   declVisits: readonly AstNode[],

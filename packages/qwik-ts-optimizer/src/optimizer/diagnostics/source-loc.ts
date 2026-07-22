@@ -1,6 +1,3 @@
-/**
- * Compute 1-based line and column from a character offset in source text.
- */
 export function computeLineColFromOffset(
   source: string,
   offset: number,

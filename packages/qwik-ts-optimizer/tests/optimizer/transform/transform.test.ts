@@ -1,9 +1,3 @@
-/**
- * Integration tests for transformModule() public API.
- *
- * Tests the complete extraction pipeline: parsing, extraction, parent rewriting,
- * and segment codegen wired together through the public entry point.
- */
 
 import { describe, it, expect } from 'vitest';
 import { transformModule } from '../../../src/optimizer/transform/index.js';
@@ -30,14 +24,11 @@ export const App = component$(() => {
     const segment = result.modules[1];
     if (parent.kind !== 'parent') throw new Error('expected parent module');
     if (segment.kind !== 'segment') throw new Error('expected segment module');
-    // Parent module
     expect(parent.isEntry).toBe(false);
     expect(parent.origPath).toBe('test.tsx');
-    // Parent code should have componentQrl and qrl references
     expect(parent.code).toContain('componentQrl');
     expect(parent.code).toContain('qrl(');
 
-    // Segment module
     expect(segment.isEntry).toBe(true);
     expect(segment.segment.ctxName).toBe('component$');
     expect(segment.segment.ctxKind).toBe('function');
@@ -62,9 +53,7 @@ export const handler = $(() => {
     expect(result.modules.length).toBe(2);
     const segment = result.modules[1];
     if (segment.kind !== 'segment') throw new Error('expected segment module');
-    // Parent should reference q_ variable
     expect(result.modules[0].code).toContain('q_');
-    // Segment should export the body
     expect(segment.segment.ctxName).toBe('$');
     expect(segment.code).toContain('export const');
     expect(segment.code).toContain("console.log('hello')");
@@ -84,7 +73,6 @@ export const App = component$(() => {
       srcDir: mkFilePath('.'),
     });
 
-    // Parent module should have rewritten imports
     expect(result.modules[0].code).toContain('@qwik.dev/core');
     expect(result.modules[0].code).not.toContain('@builder.io/qwik');
   });
@@ -101,7 +89,6 @@ const fn = sync$(() => true);`),
       srcDir: mkFilePath('.'),
     });
 
-    // sync$ should not produce a segment module
     expect(result.modules.length).toBe(1);
     expect(result.modules[0].isEntry).toBe(false);
     expect(result.modules[0].code).toContain('_qrlSync');
@@ -155,15 +142,10 @@ export const handler = $(() => {
       srcDir: mkFilePath('.'),
     });
 
-    // Parent + at least 2 segments
     expect(result.modules.length).toBeGreaterThanOrEqual(3);
     const segments = result.modules.filter((m) => m.kind === 'segment');
     expect(segments.length).toBeGreaterThanOrEqual(2);
   });
-
-  // -----------------------------------------------------------------------
-  // Phase 3: Capture analysis and variable migration integration tests
-  // -----------------------------------------------------------------------
 
   it('captures: nested $() inside component$ captures parent scope variables', () => {
     const result = transformModule({
@@ -183,20 +165,16 @@ export const App = component$(() => {
       srcDir: mkFilePath('.'),
     });
 
-    // Find parent module and segments
     const parent = result.modules[0];
     const segments = result.modules.filter((m) => m.kind === 'segment');
 
-    // Find the inner $() segment (the one with captures)
     const innerSegment = segments.find((s) => s.segment!.ctxName === '$' && s.segment!.parent !== null);
     expect(innerSegment).toBeDefined();
 
-    // Inner segment should have captures
     expect(innerSegment!.segment!.captures).toBe(true);
     const meta = innerSegment!.segment! as SegmentMetadataInternal;
     expect(meta.captureNames).toContain('count');
 
-    // Inner segment code should have _captures import and unpacking
     expect(innerSegment!.code).toContain('_captures');
     expect(innerSegment!.code).toContain('const count = _captures[0]');
   });
@@ -222,22 +200,13 @@ export const App = component$(() => {
     const appSegment = segments.find((s) => s.segment!.displayName.includes('App'));
     expect(appSegment).toBeDefined();
 
-    // Parent should NOT have .w() (these are _auto_ imports, not captures)
-    // The segment should NOT have _captures
     expect(appSegment!.segment!.captures).toBe(false);
 
-    // TITLE is only used by one segment and is safe to move (not exported, no side effects).
-    // SWC moves single-segment-exclusive variables into the segment rather than re-exporting.
-    // The segment should contain the moved declaration, NOT an _auto_ import.
     expect(appSegment!.code).toContain('const TITLE');
     expect(parent.code).not.toContain('_auto_TITLE');
   });
 
   it('migration: variable used only by segment gets moved (not reexported)', () => {
-    // helperFn is declared at root but only used by the App segment.
-    // SWC's build_main_module_usage_set skips Stmt::Decl items, so
-    // the declaration site does not count as "root usage". Since helperFn
-    // is used by exactly one segment, it should be MOVED, not reexported.
     const result = transformModule({
       input: [
         {
@@ -259,17 +228,11 @@ export const App = component$(() => {
     const appSegment = segments.find((s) => s.segment!.displayName.includes('App'));
     expect(appSegment).toBeDefined();
 
-    // helperFn should be MOVED into the segment (single-use, safe, not exported)
     expect(appSegment!.code).toContain('const helperFn');
     expect(parent.code).not.toContain('_auto_helperFn');
 
-    // Segment should NOT use _captures for this
     expect(appSegment!.segment!.captures).toBe(false);
   });
-
-  // -----------------------------------------------------------------------
-  // Phase 4: JSX transform integration tests
-  // -----------------------------------------------------------------------
 
   it('jsx: transforms basic JSX element to _jsxSorted call in parent', () => {
     const result = transformModule({
@@ -287,12 +250,10 @@ export const Lightweight = (props) => {
     });
 
     const parent = result.modules[0];
-    // Parent should contain _jsxSorted call for the non-extracted JSX
     expect(parent.code).toContain('_jsxSorted');
     expect(parent.code).toContain('"div"');
     expect(parent.code).toContain('class: "hello"');
     expect(parent.code).toContain('"world"');
-    // _jsxSorted should be imported
     expect(parent.code).toContain('import { _jsxSorted }');
   });
 
@@ -335,7 +296,6 @@ export const App = component$(() => {
     const segments = result.modules.filter((m) => m.kind === 'segment');
     const appSegment = segments.find((s) => s.segment!.displayName.includes('App'));
     expect(appSegment).toBeDefined();
-    // Segment body should have JSX transformed to _jsxSorted
     expect(appSegment!.code).toContain('_jsxSorted');
     expect(appSegment!.code).toContain('"div"');
     expect(appSegment!.code).toContain('class: "test"');
@@ -379,7 +339,6 @@ export const App = component$(() => {
     });
 
     const segments = result.modules.filter((m) => m.kind === 'segment');
-    // every $-suffixed JSX attribute extracts as an eventHandler, not just on* props
     const transparentSeg = segments.find(
       (s) => s.segment!.ctxName === 'transparent$'
     );
@@ -423,14 +382,9 @@ export const handler = $(() => { console.log('hello'); });`),
     });
 
     const parent = result.modules[0];
-    // No JSX imports should be added
     expect(parent.code).not.toContain('_jsxSorted');
     expect(parent.code).not.toContain('_Fragment');
   });
-
-  // -----------------------------------------------------------------------
-  // Phase 4: Signal wrapping, event naming, and bind desugaring integration
-  // -----------------------------------------------------------------------
 
   it('signal: wraps signal.value with _wrapProp in constProps (SIG-01)', () => {
     const result = transformModule({
@@ -510,7 +464,6 @@ export const App = component$(() => {
       srcDir: mkFilePath('.'),
     });
 
-    // The segment body should contain the q-e:click naming
     const segments = result.modules.filter((m) => m.kind === 'segment');
     const appSegment = segments.find((s) => s.segment!.displayName.includes('App_component'));
     if (appSegment) {
@@ -534,9 +487,7 @@ export const Comp = (props) => {
     });
 
     const parent = result.modules[0];
-    // document:onFocus$ -> q-d:focus
     expect(parent.code).toContain('"q-d:focus"');
-    // window:onClick$ -> q-w:click
     expect(parent.code).toContain('"q-w:click"');
   });
 
@@ -556,7 +507,6 @@ export const Comp = (props) => {
     });
 
     const parent = result.modules[0];
-    // Component event props should NOT be renamed to q-e:click
     expect(parent.code).not.toContain('"q-e:click"');
   });
 
@@ -641,19 +591,11 @@ export const Comp = (props) => {
     });
 
     const parent = result.modules[0];
-    // Should have passive prefix
     expect(parent.code).toContain('"q-ep:click"');
-    // passive:click should not appear as a prop in the output
     expect(parent.code).not.toContain('"passive:click"');
   });
 
-  // -----------------------------------------------------------------------
-  // Phase 4: Loop hoisting integration tests (LOOP-01..05)
-  // -----------------------------------------------------------------------
-
   it('loop: for-of loop injects q:p prop and sets loop flag (LOOP-01, LOOP-02, LOOP-05)', () => {
-    // Use for-of loop with JSX pushed to array (not inside JSX children)
-    // so the element is transformed directly by the walk
     const result = transformModule({
       input: [
         {
@@ -677,11 +619,7 @@ export const App = component$(() => {
     expect(appSegment).toBeDefined();
 
     const code = appSegment!.code;
-    // The <div> inside the for-of loop should have q:p for the iteration variable
     expect(code).toContain('"q:p": item');
-    // Flags should include bit 4 (loop context)
-    // Match the flags argument in _jsxSorted call -- q:p goes to varEntries (2nd arg)
-    // and constEntries may be null when all props are in varEntries
     const divMatch = code.match(/_jsxSorted\("div",\s*\{[^}]+\},\s*(?:null|\{[^}]*\}),\s*\w+,\s*(\d+),/);
     expect(divMatch).toBeTruthy();
     const flags = parseInt(divMatch![1], 10);
@@ -711,9 +649,7 @@ export const App = component$(() => {
     expect(appSegment).toBeDefined();
 
     const code = appSegment!.code;
-    // Check q:p for the iteration variable i
     expect(code).toContain('"q:p": i');
-    // The <span> inside the for loop should have loop flag (5 = 1|4)
     expect(code).toMatch(/_jsxSorted\("span".*5.*"u6_0"\)/);
   });
 
@@ -732,15 +668,13 @@ export const Comp = (props) => {
     });
 
     const parent = result.modules[0];
-    // Flags should NOT include bit 4 (no loop context)
     const divMatch = parent.code.match(/_jsxSorted\("div",\s*null,\s*\{[^}]+\},\s*"world",\s*(\d+),/);
     expect(divMatch).toBeTruthy();
     const flags = parseInt(divMatch![1], 10);
-    expect(flags & 4).toBe(0); // loop bit should NOT be set
+    expect(flags & 4).toBe(0);
   });
 
   it('loop: parent-level .map() loop injects q:p and loop flag (LOOP-01)', () => {
-    // Non-extracted JSX at parent level (not inside component$)
     const result = transformModule({
       input: [
         {
@@ -760,9 +694,7 @@ export const Comp = (props) => {
     });
 
     const parent = result.modules[0];
-    // The <span> inside the for-of loop should have q:p and loop flag
     expect(parent.code).toContain('"q:p": item');
-    // Check flags include loop bit (5 = 1|4)
     expect(parent.code).toMatch(/_jsxSorted\("span".*5.*"u6_0"\)/);
   });
 

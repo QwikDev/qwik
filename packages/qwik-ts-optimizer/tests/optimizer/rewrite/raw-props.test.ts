@@ -9,16 +9,6 @@ import {
 
 describe('raw-props', () => {
   it('rewrites destructured params without reparsing the edited body', () => {
-    // Const-default (literal) — consolidation fires per SWC's `is_const_expr` gate.
-    // Call-default (e.g. `label = getLabel()`) aborts consolidation; that case
-    // is now covered by 'aborts consolidation for call-expression default' below.
-    //
-    // `label: <accessor>` lands in `Property` value position, which
-    // is precedence-safe for the `??` operator — no defensive parens needed.
-    // `count + 1` is a non-defaulted reference (no `??` clause at all) so
-    // it's just `_rawProps.count + 1` — also no parens. Pre-fix this emitted
-    // `label: (_rawProps.label ?? "x")` unconditionally; the new output is
-    // bare and matches SWC's emit.
     const body = '({ count, label = "x" }) => ({ count, label, total: count + 1 })';
 
     const result = applyRawPropsTransform(body);
@@ -29,26 +19,18 @@ describe('raw-props', () => {
   });
 
   it('aborts consolidation for call-expression default (parity gate)', () => {
-    // Matches SWC's `transform_pat` `skip = true` arm
-    // (`swc-reference-only/props_destructuring.rs:389-391`): when an
-    // AssignmentPattern default contains a CallExpression the destructure
-    // is preserved verbatim instead of being rewritten to `_rawProps.<key>`.
     const body = '({ count, label = getLabel() }) => ({ count, label, total: count + 1 })';
 
     const result = applyRawPropsTransform(body);
 
-    // No consolidation — source returned unchanged.
     expect(result).toBe(body);
   });
 
   it('aborts consolidation for nested ObjectPattern field (parity gate)', () => {
-    // Matches SWC's `transform_pat` skip arm for KeyValue with a nested
-    // ObjectPattern value (`swc-reference-only/props_destructuring.rs:456-458`).
     const body = '({ count, stuff: { hey } }) => ({ count, hey })';
 
     const result = applyRawPropsTransform(body);
 
-    // No consolidation — source returned unchanged.
     expect(result).toBe(body);
   });
 
@@ -129,8 +111,6 @@ describe('raw-props', () => {
   });
 
   it('consolidates computed-member-only captures (prefilter must not gate them out)', () => {
-    // `_rawProps[key]` has no `_rawProps.` substring — the textual
-    // prefilter must use the bare token or this regresses silently.
     const result = consolidateRawPropsInWCalls(
       'qrl(() => 1).w([a, _rawProps[key]])',
     );
@@ -139,10 +119,8 @@ describe('raw-props', () => {
   });
 
   it('returns bodies the consolidation cannot touch verbatim (prefilter paths)', () => {
-    // No `_rawProps` at all.
     const noRawProps = 'qrl(() => 1).w([a, b, c])';
     expect(consolidateRawPropsInWCalls(noRawProps)).toBe(noRawProps);
-    // `_rawProps` referenced but no `.w(` call.
     const noWCall = '(x) => _rawProps.count + x';
     expect(consolidateRawPropsInWCalls(noWCall)).toBe(noWCall);
   });
@@ -163,7 +141,6 @@ describe('raw-props', () => {
     );
     expect(info.fieldDefaults).toEqual(new Map([['bar', '1 + 2']]));
 
-    // The thin wrappers project the same single-parse result.
     expect(extractDestructuredFieldMap(body)).toEqual(info.fieldMap);
     expect(extractDestructuredFieldDefaultsMap(body)).toEqual(info.fieldDefaults);
   });

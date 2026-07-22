@@ -7,7 +7,6 @@ const QWIK_PACKAGE_PREFIXES = [
   '@builder.io/qwik',
 ];
 
-/** Check whether an import source belongs to a Qwik package or subpath. */
 export function isQwikPackageSource(source: string): boolean {
   return QWIK_PACKAGE_PREFIXES.some(
     (prefix) => source === prefix || source.startsWith(prefix + '/'),

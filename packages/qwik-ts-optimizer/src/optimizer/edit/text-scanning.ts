@@ -1,21 +1,9 @@
 /**
- * Shared text-scanning utilities for character-level operations.
- *
- * These helpers exist for cases where AST-based approaches are impractical:
- * - Post-transform text where the original AST is stale
- * - Iterative text transformations where re-parsing each iteration is wasteful
- * - Pre-parse repair steps where parsing fails on the input
- *
- * Each function handles string literal skipping to avoid false matches
- * inside quoted content.
+ * Character-level scanning for cases where the AST is unavailable or stale:
+ * post-transform text, iterative rewrites, and pre-parse repair. Each helper
+ * skips string literals to avoid matching inside quoted content.
  */
 
-/**
- * Check if a character offset falls inside a string literal (single, double,
- * or template). Handles escape sequences and template expression nesting.
- *
- * Scans from the start of `text` up to `offset`, tracking quote state.
- */
 export function isInsideString(text: string, offset: number): boolean {
   let inSingle = false;
   let inDouble = false;
@@ -50,19 +38,11 @@ export function isInsideString(text: string, offset: number): boolean {
 const PURE_ANNOTATION_AT_END = /\/\*\s*[#@]__PURE__\s*\*\/$/;
 
 /**
- * Given the start offset of a call expression that is about to be replaced by a
- * bare identifier (e.g. an `inlinedQrl(…)` becoming its `q_<symbol>` reference),
- * return the offset to overwrite *from* so that an immediately-preceding PURE
- * annotation (`/* @__PURE__ *​/` or `/*#__PURE__*​/`) is consumed along with the
- * call.
- *
- * A PURE annotation only applies to a call/new expression; left in front of a
- * bare identifier it is meaningless, and once a downstream TS/JSX transform
- * reflows it onto its own line a bundler (Rolldown) fails with a fatal
- * `INVALID_ANNOTATION` ("comment ignored due to position"). Whitespace *before*
- * the annotation is preserved, so `foo(a, /* @__PURE__ *​/ bar(…))` collapses to
- * `foo(a, q_X)` rather than `foo(a,q_X)`. Returns `callStart` unchanged when no
- * PURE annotation precedes the call.
+ * Given the start of a call about to become a bare identifier, return the offset
+ * to overwrite from so a preceding PURE annotation is consumed with it. Left in
+ * front of a bare identifier the annotation is meaningless, and once a downstream
+ * transform reflows it onto its own line Rolldown aborts with INVALID_ANNOTATION.
+ * Whitespace before the annotation is preserved.
  */
 export function pureAwareOverwriteStart(source: string, callStart: number): number {
   let j = callStart;
@@ -71,10 +51,6 @@ export function pureAwareOverwriteStart(source: string, callStart: number): numb
   return match ? match.index : callStart;
 }
 
-/**
- * Find the matching close brace `}` for an open brace at `openPos`.
- * Skips string literals. Returns the index of `}`, or -1 if unmatched.
- */
 export function findMatchingBrace(text: string, openPos: number): number {
   let depth = 1;
   let inString: string | null = null;
@@ -105,11 +81,7 @@ export function findMatchingBrace(text: string, openPos: number): number {
   return -1;
 }
 
-/**
- * Scan forward from `start` (the position AFTER the opening paren) to find
- * the matching close paren, respecting nesting and string literals.
- * Returns the index one past the closing paren.
- */
+/** Scan from `start` (just after the open paren) to the index one past the matching close paren. */
 export function scanMatchingParenForward(text: string, start: number): number {
   let depth = 1;
   let j = start;
@@ -131,10 +103,7 @@ export function scanMatchingParenForward(text: string, start: number): number {
   return j;
 }
 
-/**
- * Scan backward from `start` to find the matching open paren.
- * Returns the index of the opening paren.
- */
+/** Scan backward from `start` to the index of the matching open paren. */
 export function scanMatchingParenBackward(text: string, start: number): number {
   let depth = 1;
   let i = start;
@@ -147,13 +116,9 @@ export function scanMatchingParenBackward(text: string, start: number): number {
 }
 
 /**
- * Find the end of an expression starting at `start`, respecting nested
- * delimiters (parens, braces, angle brackets for JSX) and string literals.
- *
- * Terminates at newline, semicolon, or comma when at depth 0, or at
- * an unmatched closing delimiter.
- *
- * Used by dead-code elimination to find the extent of `false && <expr>`.
+ * Find the end of an expression at `start`, respecting nested parens, braces,
+ * JSX angle brackets, and string literals. Terminates at a depth-0 newline,
+ * semicolon, or comma, or at an unmatched closing delimiter.
  */
 export function findExpressionEnd(code: string, start: number): number {
   let i = start;

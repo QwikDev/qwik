@@ -17,10 +17,10 @@ describe('failure families', () => {
     const files = readdirSync(SNAP_DIR).filter(f => f.endsWith('.snap')).sort();
 
     const alreadyPassing: string[] = [];
-    const parentRewriteOnly: string[] = []; // segments match, parent wrong
-    const untransformed: string[] = []; // extraction not happening
-    const segmentIdentity: string[] = []; // wrong segment names
-    const segmentCodegen: string[] = []; // segment found but code wrong
+    const parentRewriteOnly: string[] = [];
+    const untransformed: string[] = [];
+    const segmentIdentity: string[] = [];
+    const segmentCodegen: string[] = [];
     const noInput: string[] = [];
 
     for (const f of files) {
@@ -35,7 +35,6 @@ describe('failure families', () => {
         result = transformModule(opts);
       } catch { untransformed.push(name); continue; }
 
-      // Check parent
       let parentOk = true;
       if (parsed.parentModules.length > 0) {
         try {
@@ -45,7 +44,6 @@ describe('failure families', () => {
         } catch { parentOk = false; }
       }
 
-      // Check segments
       let allSegsFound = true;
       let allSegsMatch = true;
       let anySegMissing = false;

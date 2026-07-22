@@ -1,31 +1,9 @@
-// Bundler-shaped-input tier: pre-transformed JSX handler extraction.
-//
-// In the real Vite/Rolldown pipeline esbuild transpiles `.tsx` to
-// `_jsxDEV("button", { onClick$: () => … })` *before* the qwik optimizer's
-// transform hook runs — so `$`-suffixed event handlers arrive as object
-// properties of a JSX-factory call, not as raw JSX attributes
-// (`<button onClick$={() => …}>`). The convergence snapshot suite only ever
-// feeds raw JSX, so this input shape was untested.
-//
-// Two failures motivated these tests, both reproduced against the real
-// `vite-qwik-router` fixture:
-//   1. The handler was never extracted — it stayed inline as a plain
-//      `q-e:click` prop value, and the module-level `server$` binding it
-//      referenced (`const testServer$ = server$(…)`) got mis-attributed and
-//      dropped, crashing at runtime with `testServer$ is not defined`.
-//   2. Once extracted, the inline/hoist (server) rewrite path spliced JSX
-//      *attribute* syntax into an object literal (`onClick$: q-e:click={q_X}`),
-//      a fatal parse error.
-
 import { parseSync } from 'oxc-parser';
 import { describe, expect, test } from 'vitest';
 
 import { transformModule } from '../../src/index.js';
 import { mkFilePath, mkSourceText } from '../../src/optimizer/types/brands.js';
 
-// `<button onClick$={() => testServer$()}>` after esbuild's automatic dev JSX
-// transform. `testServer$` is a module-level `server$` binding referenced only
-// from the handler.
 const PRE_TRANSFORMED = `import { jsxDEV as _jsxDEV } from "@qwik.dev/core/jsx-dev-runtime";
 import { component$, useSignal } from '@qwik.dev/core';
 import { server$ } from '@qwik.dev/router';
@@ -74,12 +52,8 @@ describe('pre-transformed `_jsxDEV` event-handler extraction', () => {
       (m) => m.kind === 'segment' && m.code.includes('testServer$()'),
     );
 
-    // The handler became its own segment (not left inline in the component).
     expect(handler, 'expected a dedicated handler segment calling testServer$()').toBeDefined();
 
-    // The component references the handler via a generated QRL, never an
-    // inline arrow — an inline `() => testServer$()` on a `q-e:click` prop
-    // can't be serialised for SSR resumption.
     expect(component, 'expected a component segment').toBeDefined();
     expect(component!.code).toMatch(/"q-e:click":\s*q_/);
     expect(component!.code).not.toContain('=> testServer$()');
@@ -106,8 +80,6 @@ describe('pre-transformed `_jsxDEV` event-handler extraction', () => {
       stripCtxName: ['useClient', 'useBrowser', 'useVisibleTask', 'client', 'browser'],
     });
 
-    // The fatal symptom was `onClick$: q-e:click={q_X}` — attribute syntax
-    // spliced into an object literal. parseSync catches it directly.
     assertAllModulesParse(result.modules);
 
     for (const m of result.modules) {
@@ -117,12 +89,6 @@ describe('pre-transformed `_jsxDEV` event-handler extraction', () => {
 });
 
 describe('pre-transformed `_jsxDEV` reactive emit (q:p, const-bag, _wrapProp, flags)', () => {
-	// The buttons rendered but were inert: the `_jsxDEV`→`_jsxSorted` transform
-	// emitted event handlers in the VAR bag while the flags claimed static
-	// listeners (so the runtime, reading the const bag, never wired the event);
-	// it never injected the `q:p` capture prop (so a handler that captures a
-	// signal ran without it); and it left signal `.value` children unwrapped
-	// (so the display never re-rendered). The correct output mirrors SWC.
 	const CODE = `import { jsxDEV as _jsxDEV } from "@qwik.dev/core/jsx-dev-runtime";
 import { component$, useSignal } from '@qwik.dev/core';
 
@@ -172,21 +138,14 @@ export default component$(() => {
 		test(`${env.label}: capturing handler gets q:p + const-bag + _wrapProp + flag 7`, () => {
 			const code = buttonsModule(run(env.strat, env.isServer));
 
-			// The capturing button: q:p var prop, const-bag event handler,
-			// _wrapProp reactive children, and the moved_captures flag (bit 4).
 			expect(code, '`q:p`: count capture passed to the handler').toMatch(/"q:p":\s*count/);
-			// The event handler lives in the CONST bag (3rd arg), not the var bag.
 			expect(code, 'event handler in const bag, not inline in var bag')
 				.toMatch(/\{\s*"q:p":\s*count\s*\}\s*,\s*\{\s*"q-e:click":\s*q_/);
-			// Reactive `{count.value}` children wrapped for re-render.
 			expect(code).toMatch(/_wrapProp\(count\)/);
-			// Flag 7 = static_listeners(1) | static_subtree(2) | moved_captures(4).
 			expect(code).toMatch(/_wrapProp\(count\),\s*7,/);
 
-			// The non-capturing handler: const-bag, no q:p, flag 3.
 			expect(code).toMatch(/_jsxSorted\("button",\s*null,\s*\{\s*"q-e:click":\s*q_[^}]*\},\s*"Static",\s*3,/);
 
-			// Never the broken forms: handler in var bag, or unwrapped .value child.
 			expect(code, 'no event handler stranded in the var bag with a static-listeners flag')
 				.not.toMatch(/\{\s*"q-e:click":[^}]*\},\s*null,\s*"Static"/);
 		});
@@ -194,11 +153,6 @@ export default component$(() => {
 });
 
 describe('pre-padded handler params (idempotent input): q:p excludes padding slots', () => {
-	// A handler that already carries the positional `_, _1` prefix and numbered
-	// padding (`_2`) arrives when the optimizer re-runs over its own output or
-	// consumes peer-tool codegen. The q:p/q:ps prop the element delivers must
-	// contain only the real capture names — padding slots are placeholders the
-	// runtime fills with nothing.
 	const PRE_PADDED = `import { jsxDEV as _jsxDEV } from "@qwik.dev/core/jsx-dev-runtime";
 import { component$, useSignal } from '@qwik.dev/core';
 
@@ -236,9 +190,7 @@ export default component$(() => {
 			expect(withJsx, 'expected a module with the button JSX').toBeDefined();
 			const code = withJsx!.code;
 
-			// The real positional capture is delivered via q:p.
 			expect(code, 'q:p delivers the real capture param').toMatch(/"q:p":\s*count/);
-			// Padding slots never leak into the capture prop.
 			expect(code, 'no padding name in q:p/q:ps').not.toMatch(/"q:ps?":[^,}]*_2/);
 		});
 	}

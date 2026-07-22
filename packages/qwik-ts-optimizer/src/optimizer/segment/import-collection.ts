@@ -1,9 +1,7 @@
 /**
- * Post-transform import re-collection for segment code generation.
- *
- * After body transforms (JSX, nested calls, sync$), the segment body may
- * reference identifiers not in the original segmentImports. This module
- * scans the final body text and adds missing imports.
+ * Earlier body transforms (JSX, nested calls, sync$) can introduce identifier
+ * references absent from the original segmentImports; this scans the final
+ * body text and adds the missing imports.
  */
 
 import { createRegExp, oneOrMore, wordChar, wordBoundary, global } from 'magic-regexp';
@@ -26,17 +24,6 @@ const qrlSuffixPattern = createRegExp(
   [global],
 );
 
-/**
- * Parse a body text string and extract all referenced Identifier and JSXIdentifier names.
- * Used to determine which imports a segment body needs after all transforms.
- *
- * Single walk collects three things at once: the first function node, every
- * Uppercase JSXIdentifier (component refs), and every plain Identifier name.
- * Post-walk we either use `getUndeclaredIdentifiersInFunction` against the
- * found function (the common path — bare-expression bodies are rare) or fall
- * back to the bare Identifier set. The bare set is only populated for the
- * fallback path; the common path discards it.
- */
 function collectBodyIdentifiers(bodyText: string): Set<string> {
   const ids = new Set<string>();
   try {
@@ -67,7 +54,6 @@ function collectBodyIdentifiers(bodyText: string): Set<string> {
       for (const name of bareIds) ids.add(name);
     }
   } catch {
-    // Matches identifiers starting with uppercase, _ or $. Fallback when AST parse fails.
     // Not converted to magic-regexp: charIn() escapes hyphens, breaking character ranges.
     const identRegex = /\b([A-Z_$][a-zA-Z0-9_$]*)\b/g;
     let match;
@@ -76,11 +62,6 @@ function collectBodyIdentifiers(bodyText: string): Set<string> {
   return ids;
 }
 
-/**
- * Scan the final body text for identifiers that need imports not already present.
- * Catches same-file components, namespace imports, _auto_ migration imports,
- * and Qrl-suffixed runtime imports from nested call rewriting.
- */
 export function recollectPostTransformImports(
   bodyText: string,
   parts: string[],
@@ -175,14 +156,13 @@ function addQrlCalleeImports(
         if (parts.some(p => p.includes(qrlName))) continue;
         const markerName = `${qrlName.slice(0, -3)}$`;
         if (getQrlCalleeName(markerName) !== qrlName) continue;
-        // Gate on the name being a legitimate `*Qrl` import — either from
-        // the source file's imports or the optimizer's runtime-imports
-        // injection list (`segment-generation.ts:166-194`). Without this
-        // gate, ANY user-named identifier ending in `Qrl` (e.g. a function
-        // parameter named `reactCmpQrl` in qwik-react's `qwikifyQrl`) gets
-        // a bogus `import { reactCmpQrl } from "@qwik.dev/core";` emitted
-        // — getQrlCalleeName's check above is trivially true since it
-        // literally re-suffixes `Qrl` onto its input.
+        // Gate on the name being a legitimate `*Qrl` import — either from the
+        // source file's imports or the optimizer's runtime-imports injection
+        // list. Without this gate, ANY user-named identifier ending in `Qrl`
+        // (e.g. a function parameter named `reactCmpQrl` in qwik-react's
+        // `qwikifyQrl`) gets a bogus `import { reactCmpQrl } from
+        // "@qwik.dev/core";` emitted — getQrlCalleeName's check above is
+        // trivially true since it literally re-suffixes `Qrl` onto its input.
         if (!importContext.moduleImports.some(m => m.localName === qrlName)) continue;
         const importSource = getQrlImportSource(qrlName);
         insertImportBeforeSeparator(parts, `import { ${qrlName} } from "${importSource}";`);

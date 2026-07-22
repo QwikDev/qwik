@@ -1,10 +1,3 @@
-/**
- * Segment module generation phase for the Qwik optimizer.
- *
- * Generates TransformModule entries for each extracted segment,
- * including code generation, metadata, and import context assembly.
- */
-
 import { walk } from "oxc-walker";
 import type {
   AstFunction,
@@ -70,17 +63,13 @@ import { eventHandlerQpParams } from "../jsx/loop-hoisting.js";
 
 /**
  * Resolve the on-disk extension for a segment's emitted file (`module.path`
- * and the `extension` metadata field). This MUST equal the extension used by
- * QRL import specifiers that target the segment (the `outputExt` resolution
- * at the nested call-site and parent-rewrite QRL-declaration sites):
- * the bundler keys its segment registry on `module.path`, so if a sibling
- * segment imports `./foo.js` while the segment was registered as `./foo.mjs`,
- * the lookup misses and Rolldown reports UNRESOLVED_IMPORT. SWC keeps them in
- * sync by applying the output extension (`.js` under `transpileTs`) uniformly
- * to both the file path and the import specifier; this mirrors that. The
- * resolution chain is identical to the import sites: parent-derived output
- * extension wins, then the segment's own JSX-flipped source extension, then
- * the raw source extension.
+ * and the `extension` metadata field). MUST equal the extension used by the
+ * QRL import specifiers that target the segment: the bundler keys its segment
+ * registry on `module.path`, so a sibling importing `./foo.js` while the
+ * segment registered as `./foo.mjs` misses the lookup and Rolldown reports
+ * UNRESOLVED_IMPORT. The resolution chain matches the import sites: parent-
+ * derived output extension wins, then the segment's JSX-flipped source
+ * extension, then the raw source extension.
  */
 function resolveSegmentFileExtension(
   symbolName: string,
@@ -91,7 +80,6 @@ function resolveSegmentFileExtension(
   return qrlOutputExt ?? sourceExtensions.get(symbolName) ?? segmentExtension;
 }
 
-/** Collect TS enum declarations for value inlining in segment bodies. */
 export function collectEnumValueMap(
   program: AstProgram,
   shouldTranspileTs: boolean,
@@ -121,7 +109,6 @@ export function collectEnumValueMap(
               : null;
         if (!memberName) continue;
         if (member.initializer) {
-          // Explicit initializer -- extract literal value
           if (member.initializer.type === "Literal" && typeof member.initializer.value === "number") {
             const val = String(member.initializer.value);
             members.set(memberName, val);
@@ -136,11 +123,9 @@ export function collectEnumValueMap(
             );
             autoValue = NaN; // String enums break auto-increment
           } else {
-            // Complex initializer -- skip inlining for this member
             autoValue = NaN;
           }
         } else {
-          // Auto-incremented value
           members.set(memberName, String(autoValue));
           autoValue++;
         }
@@ -153,7 +138,6 @@ export function collectEnumValueMap(
   return enumValueMap;
 }
 
-/** Collect import attributes from AST (e.g., with { type: "json" }). */
 export function collectImportAttributes(
   program: AstProgram,
 ): Map<string, Record<string, string>> {
@@ -169,7 +153,6 @@ export function collectImportAttributes(
         const value = attr.value?.value;
         if (key && value) attrObj[key] = value;
       }
-      // Associate with each specifier's local name
       for (const spec of node.specifiers) {
         const localName = spec.local?.name;
         if (localName) {
@@ -181,7 +164,6 @@ export function collectImportAttributes(
   return importAttributesMap;
 }
 
-/** Build the segment import list used during import resolution. */
 export function buildSegmentImportList(
   originalImports: Map<string, ImportInfo>,
   importAttributesMap: Map<string, Record<string, string>>,
@@ -261,8 +243,7 @@ export interface SegmentGenerationContext {
    * The original `input.path` (whatever the consumer supplied — absolute
    * or relative). Distinct from `relPath`, which has been made
    * srcDir-relative. Segment `module.path` derives its directory portion
-   * from this so output paths live in the same namespace as inputs,
-   * matching SWC's behavior.
+   * from this so output paths live in the same namespace as inputs.
    */
   inputPath: string;
   emitMode: string;
@@ -321,20 +302,17 @@ export interface SegmentGenerationContext {
 
 /**
  * Immutable per-call setup data produced once before the per-extraction loop
- * in {@link generateAllSegmentModules}. All fields are read-only across the
- * loop body; producing them up-front means the per-extraction code has no
- * setup-time side effects to reason about.
- *
- * Note: `sortedExtractions` is the same reference as `ctx.updatedExtractions`,
- * which {@link computeSegmentGenerationPrep} sorts in place (children before
- * parents). Treat it as logically immutable inside the loop.
+ * in {@link generateAllSegmentModules}. Fields are logically read-only across
+ * the loop body (their types stay mutable only to match downstream signatures
+ * like `SegmentImportData` / `generateSegmentCode`), so the per-extraction code
+ * has no setup-time side effects to reason about. `sortedExtractions` is the
+ * same reference as `ctx.updatedExtractions`, which
+ * {@link computeSegmentGenerationPrep} sorts in place (children before parents).
+ * `fieldDefaultsMaps` parallels `fieldMaps`: per parent symbol, destructure-time
+ * default expressions keyed by local-binding name (empty inner map ⇒ no
+ * defaults, fall through to bare `_rawProps.<key>`).
  */
 export interface SegmentGenerationPrep {
-  /**
-   * All fields below are *intended* read-only across the per-extraction loop.
-   * Types stay mutable to match downstream signatures (`SegmentImportData`,
-   * `generateSegmentCode`) without forcing readonly-cast plumbing through them.
-   */
   extBySymbol: Map<string, ConsolidatedSegment>;
   sortedExtractions: ConsolidatedSegment[];
   sameFileSymbols: Set<string>;
@@ -343,45 +321,31 @@ export interface SegmentGenerationPrep {
   segmentImportList: SegmentImportData["moduleImports"];
   enumValueMap: Map<string, Map<string, string>>;
   fieldMaps: ReadonlyMap<string, ReadonlyMap<string, string>>;
-  /**
-   * Parallel to `fieldMaps` — for each parent symbol, the destructure-time
-   * default expressions keyed by local-binding name. Empty inner map means
-   * no defaults; consumers should fall through to bare `_rawProps.<key>`
-   * accessors.
-   */
   fieldDefaultsMaps: ReadonlyMap<string, ReadonlyMap<string, string>>;
 }
 
 /**
  * Result of {@link consolidateRawPropsCaptures}. Returned (vs in-place
- * mutation) so the caller can decide which surface to write to — the
- * inline-strategy path writes to `ext.propsFieldCaptures`, the default-strategy
- * path writes to `captureInfo.propsFieldCaptures`. Both paths additionally
- * mutate `ext.captureNames` and `ext.captures`.
+ * mutation) so the caller decides which surface to write to — the
+ * inline-strategy path writes `ext.propsFieldCaptures`, the default-strategy
+ * path writes `captureInfo.propsFieldCaptures`; both also mutate
+ * `ext.captureNames` and `ext.captures`. `newCaptureNames` is sorted and
+ * includes the literal `"_rawProps"` sentinel. `propsFieldDefaults` holds
+ * destructure-time defaults for captures that resolved to a defaulted parent
+ * prop (emitted downstream as `(_rawProps.<key> ?? <default>)`), undefined when
+ * none apply.
  */
 export interface RawPropsConsolidation {
   propsFieldCaptures: Map<string, string>;
-  /** Sorted; includes the literal `"_rawProps"` sentinel. */
   newCaptureNames: string[];
-  /**
-   * Per-field destructure-time defaults for captures that resolved to a
-   * defaulted prop on the parent. Used downstream by raw-props body
-   * rewriting to emit `(_rawProps.<key> ?? <default>)`. Undefined / empty
-   * when no defaults apply.
-   */
   propsFieldDefaults?: Map<string, string>;
 }
 
 /**
- * Partition an extraction's `captureNames` into a `propsFieldCaptures` map
- * (the names that resolve to a destructured field on the parent's first
- * argument) and a `_rawProps`-suffixed sorted array (the remaining captures
- * plus the `_rawProps` sentinel for the runtime). Returns `null` when no
- * captures resolve to props fields — the caller leaves `ext` untouched in
- * that case.
- *
- * Shared between the inline-strategy metadata path and the default-strategy
- * codegen path; identical algorithm in both, only the write surfaces differ.
+ * Returns `null` when no captures resolve to parent props fields (the caller
+ * then leaves `ext` untouched). Shared by the inline-strategy metadata path and
+ * the default-strategy codegen path — identical algorithm, only the write
+ * surfaces differ.
  */
 export function consolidateRawPropsCaptures(
   captureNames: readonly string[],
@@ -409,12 +373,6 @@ export function consolidateRawPropsCaptures(
   };
 }
 
-/**
- * Build the `parent symbol → (destructured local → field expr)` map and the
- * parallel defaults map for every parent referenced by an extraction —
- * both projections from one parse per parent body
- * ({@link extractDestructuredFieldInfo}).
- */
 function buildParentFieldMaps(
   extractions: readonly ConsolidatedSegment[],
   extBySymbol: ReadonlyMap<string, ConsolidatedSegment>,
@@ -440,12 +398,10 @@ function buildParentFieldMaps(
 }
 
 /**
- * Look up the parent's destructured-field map and run raw-props
- * consolidation for `ext`. Returns `null` when consolidation doesn't apply
- * (no parent, no captures, or the parent has no destructured fields). The
- * caller applies the result to its own surface — the inline-strategy path
- * writes `ext`, the default-strategy path writes `captureInfo` — so the
- * divergent writes stay explicit at the call site.
+ * Returns `null` when consolidation doesn't apply (no parent, no captures, or
+ * the parent has no destructured fields). The caller applies the result to its
+ * own surface — inline-strategy writes `ext`, default-strategy writes
+ * `captureInfo` — so the divergent writes stay explicit at the call site.
  */
 function tryConsolidateRawProps(
   ext: ConsolidatedSegment,
@@ -459,9 +415,9 @@ function tryConsolidateRawProps(
 }
 
 /**
- * Assemble the {@link SegmentMetadataInternal} block emitted alongside a
- * segment file. Both strategy builders produce the identical 15-field shape;
- * only `entryField` and `outputExtension` are computed differently upstream.
+ * Both strategy builders produce the identical {@link SegmentMetadataInternal}
+ * shape; only `entryField` and `outputExtension` are computed differently
+ * upstream, so those are the only per-call parameters.
  */
 function buildSegmentMetadata(
   ext: ConsolidatedSegment,
@@ -487,26 +443,17 @@ function buildSegmentMetadata(
 }
 
 /**
- * Compute the {@link SegmentGenerationPrep} record consumed by the per-extraction
- * loop in {@link generateAllSegmentModules}. Folds the eight setup steps
- * (extBySymbol, depth-sort, same-file symbol triple, segmentImportList,
- * enumValueMap, fieldMaps) into a single immutable record so the loop body
- * has no setup-time side effects to reason about.
- *
  * Mutates `ctx.updatedExtractions` in place to depth-sort children before
  * parents.
  */
 export function computeSegmentGenerationPrep(
   ctx: SegmentGenerationContext,
 ): SegmentGenerationPrep {
-  // Build O(1) lookup map for extractions by symbolName.
   const extBySymbol = new Map<string, ConsolidatedSegment>();
   for (const ext of ctx.updatedExtractions) {
     extBySymbol.set(ext.symbolName, ext);
   }
 
-  // Sort extractions so children are processed before parents
-  // (depth-first, leaves first).
   const extractionDepth = new Map<string, number>();
   for (const ext of ctx.updatedExtractions) {
     let depth = 0;
@@ -524,25 +471,17 @@ export function computeSegmentGenerationPrep(
     return db - da;
   });
 
-  // Collect same-file exported/declared names for self-referential segment imports.
   const { sameFileSymbols, defaultExportedNames, renamedExports } =
     collectSameFileSymbolInfo(ctx.program);
 
-  // Collect import attributes and build module imports context.
   const importAttributesMap = collectImportAttributes(ctx.program);
   const segmentImportList = buildSegmentImportList(
     ctx.originalImports,
     importAttributesMap,
   );
 
-  // Collect TS enum declarations for value inlining.
   const enumValueMap = collectEnumValueMap(ctx.program, ctx.shouldTranspileTs);
 
-  // Pre-compute destructured field maps for every parent an extraction
-  // references — one for field expressions, one for the parallel
-  // destructure-time defaults. Raw-props consolidation (inline + default
-  // strategies) reads both to emit `(_rawProps.<key> ?? <default>)` for
-  // defaulted fields in nested segments.
   const { fieldMaps, fieldDefaultsMaps } = buildParentFieldMaps(
     ctx.updatedExtractions, extBySymbol,
   );
@@ -561,20 +500,15 @@ export function computeSegmentGenerationPrep(
 }
 
 /**
- * Build a single inline-strategy {@link TransformModule}. Inline/hoist
- * entry strategies emit segment bodies inside the parent module rather
- * than as separate files.
+ * Returns `null` for non-stripped extractions — their body is inlined into the
+ * parent and no per-segment file lands on disk. Stripped extractions still get
+ * their own file holding the `export const X = null` stub the runtime resolver
+ * expects when a stripped QRL is referenced.
  *
- * Returns `null` for non-stripped extractions — their body is inlined
- * into the parent and no per-segment file should land on disk (mirrors
- * SWC, which emits no segment file in that case). Stripped extractions
- * still get their own file holding the `export const X = null` stub the
- * runtime resolver expects when a stripped QRL is referenced.
- *
- * Mutates `ext.captureNames`, `ext.captures`, and `ext.propsFieldCaptures`
- * when raw-props consolidation applies. Mutation runs unconditionally
- * because the consolidated capture metadata is also consumed by the
- * parent's inlined `q_X.s(body)` emission.
+ * Mutates `ext.captureNames`, `ext.captures`, and `ext.propsFieldCaptures` when
+ * raw-props consolidation applies — unconditionally, because the consolidated
+ * capture metadata is also consumed by the parent's inlined `q_X.s(body)`
+ * emission.
  */
 export function buildInlineStrategySegment(
   ext: ConsolidatedSegment,
@@ -582,8 +516,6 @@ export function buildInlineStrategySegment(
   prep: SegmentGenerationPrep,
   stripped: boolean,
 ): TransformModule | null {
-  // Inline strategy: apply _rawProps consolidation for metadata. Inline path
-  // writes the consolidated fields onto `ext` (no `captureInfo` here).
   const rawProps = tryConsolidateRawProps(ext, prep);
   if (rawProps !== null) {
     ext.propsFieldCaptures = rawProps.propsFieldCaptures;
@@ -602,10 +534,6 @@ export function buildInlineStrategySegment(
     undefined,
   );
 
-  // Non-stripped inline-strategy extractions emit no segment file. Their
-  // body lives in the parent via `q_X.s(body)`; SWC's reference emits no
-  // companion file. Only stripped extractions ship the `= null` stub file
-  // the runtime resolver still needs to load.
   if (!stripped) return null;
 
   const outputExtension = resolveSegmentFileExtension(
@@ -627,17 +555,10 @@ export function buildInlineStrategySegment(
 }
 
 /**
- * Build the per-child QRL declaration strings (one per non-sync child of
- * `ext`). Each child becomes either a `_noopQrl(...)` / `_noopQrlDEV(...)`
- * declaration (when stripped) or a `qrl(...)` / `qrlDEV(...)` declaration.
- *
- * Returns the declaration strings paired with `childQrlVarNames`, the map
- * from `child.symbolName → q_<name>` (or `q_qrl_<sentinel>` for stripped
- * children) that downstream consumers (e.g. {@link buildNestedCallSites})
- * use to refer to the child's QRL.
- *
- * Stripped-segment indexing is per-call (each call to this helper has its
- * own `strippedIdx` counter via {@link getSentinelCounter}).
+ * Returns the declaration strings paired with `childQrlVarNames`
+ * (`child.symbolName → q_<name>`, or `q_qrl_<sentinel>` for stripped children).
+ * Stripped-segment indexing is per-call — each call owns its `strippedIdx`
+ * counter via {@link getSentinelCounter}.
  */
 export function buildNestedQrlDeclarations(
   children: ConsolidatedSegment[],
@@ -694,7 +615,6 @@ export function buildNestedQrlDeclarations(
 }
 
 /**
- * A moved extraction's owned QRL declaration + the core helper it imports.
  * A stripped body has no chunk, so it registers a `_noopQrl` rather than a
  * `qrl(()=>import(strippedChunk))` that would resolve to the chunk's `null`.
  */
@@ -875,35 +795,6 @@ function buildMovedQrlSupport(
   return { qrlDecls, importDeps: [...helperDeps, ...importDeps] };
 }
 
-/**
- * Wire migration data (auto-imports, moved declarations, capture filtering,
- * capture/param reconciliation) into `captureInfo` and `ext`.
- *
- * Applies to both top-level and nested segments. Per-segment matching is keyed
- * by `migrationKey` (`preRenameSymbolName.get(ext.symbolName) ?? ext.symbolName`),
- * so a `move` decision targeting a nested segment lands its declaration in
- * that nested segment's file rather than its parent.
- *
- * Caller-side precondition: only invoked when `!ext.isInlinedQrl`.
- * `inlinedQrl` extractions skip migration wiring because their capture list
- * is pre-baked by the upstream tool.
- *
- * **Mutation surface:**
- * - `captureInfo.autoImports` — `push`'d once per applicable `reexport`
- *   migration decision.
- * - `captureInfo.movedDeclarations` — `push`'d once per applicable `move`
- *   migration decision.
- * - `captureInfo.captureNames` — overwritten at the end with the post-filter
- *   capture list.
- * - `ext.captureNames` — filtered in place to drop migrated var names.
- * - `ext.captures` — recomputed from the filtered captureNames; may flip to
- *   `false` when all remaining captures are also paramNames.
- *
- * Reads from `ctx.{program, originalImports, migrationDecisions,
- * moduleLevelDeclsByName, segmentUsage, parentModulePath,
- * preRenameSymbolName}` and `prep.{sameFileSymbols, defaultExportedNames,
- * renamedExports}`.
- */
 type MovedImportDep = { localName: string; importedName: string; source: string };
 
 function resolveMovedDeclImportDeps(
@@ -1002,6 +893,14 @@ function filterMigratedCaptures(
   captureInfo.captureNames = ext.captureNames;
 }
 
+/**
+ * Per-segment matching is keyed by `migrationKey`
+ * (`preRenameSymbolName.get(ext.symbolName) ?? ext.symbolName`), so a `move`
+ * decision targeting a nested segment lands its declaration in that nested
+ * segment's file rather than its parent. Precondition: only invoked when
+ * `!ext.isInlinedQrl` — `inlinedQrl` extractions skip migration wiring because
+ * their capture list is pre-baked by the upstream tool.
+ */
 export function wireMigration(
   ext: ConsolidatedSegment,
   captureInfo: SegmentCaptureInfo,
@@ -1031,8 +930,8 @@ export function wireMigration(
   const movedDeclRanges = new Set<string>();
   const movedQrlSymbols = new Set<string>();
   // Reexported non-exported decls — reachable from segments only via their
-  // `_auto_` alias. User-exported decls keep plain imports even when a
-  // reexport decision also fires for them (SWC's emit shape).
+  // `_auto_` alias. User-exported decls keep plain imports even when a reexport
+  // decision also fires for them.
   const reexportedNames = new Set<string>();
   const movedIntoThisSegment = new Set<string>();
   for (const d of migrationDecisions) {
@@ -1104,14 +1003,6 @@ function passiveEventsFromDisplayName(child: ConsolidatedSegment): Set<string> {
   return passiveSet;
 }
 
-/**
- * Build the per-child {@link NestedCallSiteInfo} array. Branches per child
- * on whether the call site is a JSX attribute (`eventHandler` ctxKind with
- * a `$`-suffixed callee) — the JSX-attr branch carries event-prop-name
- * transform, passive-event detection (via the `_q_ep_`/`_q_wp_`/`_q_dp_`
- * displayName pattern), loop-cross-capture detection, and loop-local-param
- * computation.
- */
 export function buildNestedCallSites(
   children: ConsolidatedSegment[],
   childQrlVarNames: Map<string, string>,
@@ -1187,12 +1078,10 @@ export function buildNestedCallSites(
         hoistedCaptureNames: hasLoopCrossCaptures
           ? child.captureNames
           : undefined,
-        // A JSX-attr child segment that captures variables but isn't
-        // subject to the loop-cross hoist path still needs `.w(…)`
-        // capture wrapping at the parent's prop call site. Mirrors the
-        // inline-strategy path at `rewrite/inline-body.ts`. The
-        // body-transforms consumer reads this only when
-        // `hoistedSymbolName` is unset.
+        // A JSX-attr child that captures but isn't on the loop-cross hoist path
+        // still needs `.w(…)` capture wrapping at the parent's prop call site;
+        // the body-transforms consumer reads this only when `hoistedSymbolName`
+        // is unset.
         captureNames:
           !hasLoopCrossCaptures && child.captureNames.length > 0
             ? child.captureNames
@@ -1242,23 +1131,10 @@ export function buildNestedCallSites(
 }
 
 /**
- * Build a single default-strategy {@link TransformModule} for `ext`. Default
- * strategy emits each segment as a standalone module with its own code,
- * metadata, and import context (vs the inline strategy's metadata-only
- * shape — see {@link buildInlineStrategySegment}).
- *
- * Sequences seven sub-phases against the per-extraction state:
- * 1. Build per-child QRL declarations + childQrlVarNames map.
- * 2. Initialise captureInfo + consolidate destructured prop-field captures.
- * 3. Wire pre-computed const literal inlining.
- * 4. Wire top-level migration (only when `parent === null && !isInlinedQrl`).
- * 5. Build nested call-site info.
- * 6. Generate segment code (or stripped sentinel) + post-process.
- * 7. Build SegmentMetadataInternal + final TransformModule.
- *
- * Returns the module plus `keyCounterValue` (the JSX key counter advanced
- * by `generateSegmentCode`); the orchestrator threads that value into the
- * next iteration.
+ * Default strategy emits each segment as a standalone module with its own code,
+ * metadata, and import context (vs the inline strategy's metadata-only shape).
+ * Returns the module plus `keyCounterValue` — the JSX key counter advanced by
+ * `generateSegmentCode`, which the orchestrator threads into the next iteration.
  */
 export function buildDefaultStrategySegment(
   ext: ConsolidatedSegment,
@@ -1290,16 +1166,15 @@ export function buildDefaultStrategySegment(
     children, options, isDevMode, devFile, qrlOutputExt,
   );
 
-  // Build capture info
   const captureInfo: SegmentCaptureInfo = {
     captureNames: ext.captureNames,
     autoImports: [],
     movedDeclarations: [],
   };
 
-  // Consolidate destructured prop-field captures into _rawProps. Default
-  // strategy writes the consolidated fields onto `captureInfo` (the inline
-  // path writes `ext`); both also update `ext.captureNames`/`ext.captures`.
+  // Default strategy writes the consolidated prop-field captures onto
+  // `captureInfo` (the inline path writes `ext`); both update
+  // `ext.captureNames`/`ext.captures`.
   const rawProps = tryConsolidateRawProps(ext, prep);
   if (rawProps !== null) {
     captureInfo.captureNames = rawProps.newCaptureNames;
@@ -1311,16 +1186,12 @@ export function buildDefaultStrategySegment(
     ext.captures = rawProps.newCaptureNames.length > 0;
   }
 
-  // Wire pre-computed const literal inlining info
   const preComputedConsts = constLiteralsMap.get(ext.symbolName);
   if (preComputedConsts) {
     captureInfo.constLiterals = preComputedConsts;
     captureInfo.captureNames = ext.captureNames;
   }
 
-  // Wire migration info for both top-level and nested segments. Per-segment
-  // matching is keyed by migrationKey, so a move decision targeting a nested
-  // segment lands its declaration in that nested segment's file (F4).
   wireMigration(ext, captureInfo, ctx, prep);
 
   const parentRawPropsFieldMap = bodyConsolidatesToRawProps(ext.bodyText)
@@ -1354,7 +1225,6 @@ export function buildDefaultStrategySegment(
     }),
   };
 
-  // Generate segment code.
   // When source carries a foreign `@jsxImportSource` pragma, skip Qwik's
   // JSX-syntax rewrite entirely. The JSX in the body stays as-is and
   // oxc-transform's default JSX transform (run by `postProcessSegmentCode`)
@@ -1428,7 +1298,6 @@ export function buildDefaultStrategySegment(
     segmentCode = hoistInlinedQrlBodies(segmentCode);
   }
 
-  // Build segment metadata and entry field
   let parentComponentSymbol: string | null = null;
   if (entryStrategy.type === "component") {
     let current = ext.parent;
@@ -1471,17 +1340,10 @@ export function buildDefaultStrategySegment(
 }
 
 /**
- * Generate all segment TransformModule entries.
- *
- * This is Phase 5 of the transform pipeline -- producing segment modules
- * with their code, metadata, and import context. The function is a thin
- * sequencer over {@link computeSegmentGenerationPrep} (per-call setup) +
- * a per-extraction loop that forks on entry strategy:
- * inline/hoist → {@link buildInlineStrategySegment} (metadata-only emit);
- * default → {@link buildDefaultStrategySegment} (full code + metadata).
- *
- * The JSX key counter is threaded across segments so per-module JSX keys
- * stay unique.
+ * Forks per extraction on entry strategy: inline/hoist →
+ * {@link buildInlineStrategySegment} (metadata-only emit), default →
+ * {@link buildDefaultStrategySegment} (full code + metadata). The JSX key
+ * counter is threaded across segments so per-module JSX keys stay unique.
  */
 export function generateAllSegmentModules(
   ctx: SegmentGenerationContext,
@@ -1491,10 +1353,10 @@ export function generateAllSegmentModules(
 
   // Pre-compute the per-segment JSX-key starting counter in SOURCE order,
   // independent of the depth-first processing order used by the main loop
-  // below. SWC's reference consumes JSX keys per source position; consuming
-  // in depth-first segment order produces stable but SWC-divergent keys
-  // (e.g. a Foo body at line 13 would get `u6_1` because Root_1's `<div/>`
-  // at line 27 gets `u6_0` when processed first as a depth-1 child).
+  // below. JSX keys are consumed per source position; consuming in depth-first
+  // segment order produces stable but wrong keys (e.g. a Foo body at line 13
+  // would get `u6_1` because Root_1's `<div/>` at line 27 gets `u6_0` when
+  // processed first as a depth-1 child).
   const segmentStartKey = computeSegmentStartKeys(
     prep.sortedExtractions,
     ctx.parentJsxKeyCounterValue,
@@ -1510,9 +1372,8 @@ export function generateAllSegmentModules(
     if (stripped) (ext as Mutable<ConsolidatedSegment>).loc = [mkByteOffset(0), mkByteOffset(0)];
 
     // Clear capture metadata for event-handler segments stripped via
-    // `stripEventHandlers`. SWC's reference emits these with
-    // `captures: false, captureNames: []` because the body is gone — the
-    // runtime never consumes the captures, so the metadata reflects that.
+    // `stripEventHandlers`: the body is gone and the runtime never consumes the
+    // captures, so emit `captures: false, captureNames: []`.
     // `stripCtxName`-stripped segments preserve their captures (different
     // policy: those carry runtime-meaningful info even with `null` body).
     if (
@@ -1528,7 +1389,7 @@ export function generateAllSegmentModules(
     if (ctx.isInlineStrategy) {
       const inlineModule = buildInlineStrategySegment(ext, ctx, prep, stripped);
       // null result means non-stripped inline — body inlined into parent,
-      // no segment file emitted (matches SWC's reference behaviour).
+      // no segment file emitted.
       if (inlineModule !== null) allModules.push(inlineModule);
       continue;
     }
@@ -1544,29 +1405,25 @@ export function generateAllSegmentModules(
 }
 
 /**
- * Pre-compute the JSX-key counter value each segment should START at.
+ * The JSX-key ordering rule: top-level extractions are keyed in SOURCE order
+ * (by body byte offset); within each subtree the traversal is depth-first
+ * leaves-first (children consume keys before their parent). `sortedExtractions`
+ * is global depth-first descending — fine for codegen ordering but it mixes
+ * subtrees across top-level extractions, giving wrong keys when two top-level
+ * subtrees both contain JSX.
  *
- * SWC's ordering rule: top-level extractions are processed in SOURCE
- * order (by their body's byte offset); within each subtree the traversal
- * is depth-first leaves-first (children consume keys before their
- * parent). The current `sortedExtractions` does global depth-first
- * descending, which mixes subtrees across top-level extractions — fine
- * for codegen ordering but produces JSX keys that don't match SWC when
- * two top-level subtrees both contain JSX.
- *
- * Each segment's exclusive JSX consumption is its own body's JSX-element
- * count minus the sum of its direct children's totals — because a
- * parent's bodyText textually contains its children's bodyText, naive
- * totals would double-count.
+ * Each segment's exclusive JSX consumption is its own body's JSX-element count
+ * minus the sum of its direct children's totals — a parent's bodyText textually
+ * contains its children's, so naive totals would double-count.
  */
 function computeSegmentStartKeys(
   sortedExtractions: readonly ConsolidatedSegment[],
   parentJsxKeyCounterValue: number,
   closureNodes: ReadonlyMap<string, AstFunction>,
 ): Map<string, number> {
-  // 1. Total JSX-element count per extraction. The Phase-1 closure node
-  // IS the raw body's AST — walk it directly; fall back to a body-text
-  // parse only when no node was threaded (e.g. inlinedQrl spec paths).
+  // Total JSX-element count per extraction. The Phase-1 closure node IS the raw
+  // body's AST — walk it directly; fall back to a body-text parse only when no
+  // node was threaded (e.g. inlinedQrl spec paths).
   const totalCount = new Map<string, number>();
   for (const ext of sortedExtractions) {
     const node = closureNodes.get(ext.symbolName);
@@ -1577,7 +1434,6 @@ function computeSegmentStartKeys(
     }
   }
 
-  // 2. Index children by parent for the recursive traversal below.
   const childrenBySymbol = new Map<string, ConsolidatedSegment[]>();
   for (const ext of sortedExtractions) {
     if (ext.parent === null) continue;
@@ -1586,7 +1442,6 @@ function computeSegmentStartKeys(
     else childrenBySymbol.set(ext.parent, [ext]);
   }
 
-  // 3. Exclusive JSX consumption per segment.
   const exclusiveCount = new Map<string, number>();
   for (const ext of sortedExtractions) {
     let own = totalCount.get(ext.symbolName) ?? 0;
@@ -1597,8 +1452,6 @@ function computeSegmentStartKeys(
     exclusiveCount.set(ext.symbolName, Math.max(0, own));
   }
 
-  // 4. Walk top-level extractions in source order; within each, recurse
-  // depth-first (children-in-source-order first, then self).
   const result = new Map<string, number>();
   let counter = parentJsxKeyCounterValue;
 
@@ -1621,18 +1474,12 @@ function computeSegmentStartKeys(
 }
 
 /**
- * Count how many JSX elements / fragments a body text consumes from
- * `JsxKeyCounter.next()` during the JSX transform. Used by
- * {@link computeSegmentStartKeys} to know how much each segment will
- * advance the global counter.
- *
- * Mirrors `transformJsxElement`'s key-emission rule in
- * `jsx-elements-core.ts:480-487`: a JSXElement that is a JSX-child of a
- * JSXElement or JSXFragment AND has an HTML tag (lowercase first
- * character) gets a `null` key and does NOT advance the counter. All
- * other JSXElements + every JSXFragment do advance the counter. Without
- * this rule, segments whose body is `<><div/></>` shape over-count by
- * one (the inner HTML element gets `null`, not a real key).
+ * Counts how many JSX elements/fragments a body consumes from the JSX key
+ * counter, so {@link computeSegmentStartKeys} knows how far each segment
+ * advances it. The key-emission rule: a JSXElement that is a JSX-child of a
+ * JSXElement/JSXFragment AND has an HTML tag (lowercase first char) gets a
+ * `null` key and does NOT advance the counter; all other JSXElements and every
+ * JSXFragment advance it. Without this, a `<><div/></>` body over-counts by one.
  */
 function countJsxKeyConsumption(bodyText: string): number {
   // Cheap regex prefilter — if the body contains nothing JSX-shaped, skip

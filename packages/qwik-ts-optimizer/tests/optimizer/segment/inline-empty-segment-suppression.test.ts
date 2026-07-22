@@ -1,25 +1,3 @@
-/**
- * Regression tests for suppressing empty segment-module files under
- * inline strategy (part of the F5 server-marker stripping work).
- *
- * Pre-fix: `buildInlineStrategySegment` always returned a
- * `TransformModule`, so every extraction under inline / hoist strategy
- * produced a per-segment file — stripped ones got the `export const X = null`
- * stub, non-stripped ones got `code: ""`. SWC's reference emits a file
- * only for the stripped case; non-stripped bodies are inlined into the
- * parent via `q_X.s(body)` and need no companion file on disk.
- *
- * The fix returns `null` from `buildInlineStrategySegment` when
- * `!stripped`, and the orchestrator filters those out. Stripped segments
- * still ship their `= null` stub (the runtime resolver still has to be
- * able to load that name).
- *
- * Negative-scope cases confirm:
- *  - Default (segment) entry strategy still emits a file per extraction
- *    (the new behavior is gated to inline strategy only).
- *  - Stripped + inline still emits the stub file.
- */
-
 import { describe, it, expect } from 'vitest';
 import { transformModule } from '../../../src/optimizer/transform/index.js';
 import type { TransformModule } from '../../../src/optimizer/types/types.js';
@@ -31,9 +9,6 @@ function findSegments(result: { modules: readonly TransformModule[] }): readonly
 
 describe('inline-strategy empty segment-file suppression', () => {
   it('non-stripped inline-strategy extraction emits NO segment file', () => {
-    // Three extractions, no strip config — under inline strategy all three
-    // get inlined into the parent. Pre-fix: 3 empty-body segment files.
-    // Post-fix: 0 segment files.
     const input = `
 import { component$, useStore, useTask$ } from '@qwik.dev/core';
 export const App = component$(() => {
@@ -78,10 +53,6 @@ export const App = component$(() => {
   });
 
   it('mixed stripped + non-stripped under inline: only stripped get files', () => {
-    // Mirrors the example_strip_client_code shape — multiple non-stripped
-    // (useTask$, Div onClick$ that should keep, Div render$) plus stripped
-    // (useClientMount$, shouldRemove$ via stripEventHandlers, parent
-    // onClick$ via stripEventHandlers).
     const input = `
 import { component$, useClientMount$, useStore, useTask$ } from '@qwik.dev/core';
 export const Parent = component$(() => {
@@ -104,25 +75,17 @@ export const Parent = component$(() => {
       stripEventHandlers: true,
     });
     const segments = findSegments(result);
-    // 3 stripped: useClientMount$, shouldRemove$, parent onClick$.
-    // (Div's onClick$ + render$ are also event handlers and so also
-    // stripped under stripEventHandlers: true — useTask$ stays non-stripped
-    // but body is inlined.)
     const strippedCtxNames = segments
       .map((m) => (m.kind === 'segment' ? m.segment.ctxName : ''))
       .sort();
-    // Every segment file must have a non-empty stripped body.
     for (const m of segments) {
       if (m.kind === 'segment') expect(m.code).toContain('= null');
     }
-    // Exactly the stripped ctxNames appear; no useTask$ ghost file.
     expect(strippedCtxNames).not.toContain('useTask$');
     expect(strippedCtxNames).toContain('useClientMount$');
   });
 
   it('default (segment) strategy still emits a file per extraction (negative scope)', () => {
-    // Pre-fix behavior preserved for non-inline strategies. Segment
-    // strategy emits one file per extraction regardless of stripping.
     const input = `
 import { component$, useTask$ } from '@qwik.dev/core';
 export const App = component$(() => {
@@ -137,7 +100,6 @@ export const App = component$(() => {
       transpileTs: true, transpileJsx: true,
     });
     const segments = findSegments(result);
-    // 2 segments: component$ + useTask$. Both have non-empty bodies.
     expect(segments.length).toBe(2);
     for (const m of segments) {
       if (m.kind === 'segment') expect(m.code.length).toBeGreaterThan(20);

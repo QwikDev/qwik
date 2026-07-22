@@ -1,11 +1,3 @@
-/**
- * JSX element and fragment transformation for the Qwik optimizer.
- *
- * Transforms individual JSX element/fragment nodes into _jsxSorted,
- * _jsxSplit, or _createElement calls with correct prop classification,
- * flags, keys, and spread handling.
- */
-
 import type { JSXAttributeItem, JSXElement, JSXFragment } from '../../ast-types.js';
 import { collectPassiveDirectives } from './event-handlers.js';
 import { buildCaptureProp, type LoopContext } from './loop-hoisting.js';
@@ -59,10 +51,6 @@ function buildConstPropsPart(
   return 'null';
 }
 
-/**
- * Inject q:p/q:ps prop for capture context on HTML elements.
- * Mutates varEntries in place.
- */
 function injectQpProp(
   node: JSXElement,
   tagIsHtml: boolean,
@@ -86,18 +74,14 @@ function injectQpProp(
 
   if (!inLoop || qpOverrides) return;
 
-  // Fall back to iterVars-based q:p for elements with event handlers in loops
   const hasEventHandlers = varEntries.some(e => isRewrittenEventEntry(e) || e.startsWith('"host:'))
     || constEntries.some(e => isRewrittenEventEntry(e) || e.startsWith('"host:'));
   if (!hasEventHandlers) return;
 
-  // Suppress the iterVars fallback when ANY event handler on this element
-  // references a QRL with hoisted cross-scope captures (qrlsWithCaptures
-  // tracks both `loopLocalParamNames` and `hoistedSymbolName` cases).
-  // Those handlers receive their data via `.w([captures])` bindings hoisted
-  // to the outer loop scope, not via positional iterVar delivery — emitting
-  // `q:p` for the immediate iterVars would be redundant and diverges from
-  // SWC's emit (no q:p on these elements).
+  // Suppress the iterVars fallback when an event handler references a QRL with
+  // hoisted cross-scope captures: those handlers receive data via `.w([captures])`
+  // bindings hoisted to the outer loop scope, so an immediate-iterVars `q:p`
+  // would be redundant.
   if (qrlsWithCaptures && eventHandlerReferencesCapturingQrl(varEntries, constEntries, qrlsWithCaptures)) {
     return;
   }
@@ -108,10 +92,8 @@ function injectQpProp(
   }
 }
 
-/** Match `"q-e:click": <ident>` (or any rewritten-event prefix) and check the
- * identifier against the qrlsWithCaptures set. The prop name itself contains
- * a colon (`q-e:click`), so the value separator is the colon *after* the
- * closing quote of the name. */
+/** The prop name itself contains a colon (`q-e:click`), so the value separator
+ * is the colon *after* the name's closing quote. */
 function eventHandlerReferencesCapturingQrl(
   varEntries: string[],
   constEntries: string[],
@@ -130,10 +112,6 @@ function eventHandlerReferencesCapturingQrl(
   return false;
 }
 
-/**
- * Move event handlers from constEntries to varEntries when q:ps captures
- * include non-static-const vars. Mutates both arrays in place.
- */
 function moveEventHandlersForNonConstCaptures(
   node: JSXElement,
   tagIsHtml: boolean,
@@ -171,7 +149,6 @@ function moveEventHandlersForNonConstCaptures(
   return movedAny;
 }
 
-/** Build a _createElement call for spread + explicit key. */
 function buildCreateElementCall(
   tag: string,
   spreadArg: string,
@@ -202,21 +179,17 @@ function buildCreateElementCall(
 }
 
 /**
- * Source-ordered `_jsxSplit` emission. Returns null when the SWC-parity
- * rule doesn't apply (single spread, no spread, or no real-const-after-
- * all-spreads — the existing wrapper-based path handles those cases).
+ * Source-ordered `_jsxSplit` emission. Returns null when the rule doesn't apply
+ * (single spread, no spread, or no real-const-after-all-spreads — the
+ * wrapper-based path handles those).
  *
- * Rule: when there are MULTIPLE spreads AND at least one explicit
- * "real-const" prop (literal/stable QRL/identifier value, not just
- * event-handler routing or `q:p*` capture metadata) positioned AFTER all
- * spreads, the explicit const props cover the const-bag completely.
- * Spreads contribute only raw `...expr` to the var-bag at their source
- * position; the var-bag preserves source order; the const-bag holds only
- * the post-all-spreads stable entries.
- *
- * Single-spread cases continue through the wrapper-based path: SWC's
- * emit there uses `_getVarProps(spread)` + `_getConstProps(spread)` so
- * the runtime can classify the spread's keys.
+ * Rule: with MULTIPLE spreads AND at least one explicit "real-const" prop
+ * (literal/stable-QRL/identifier value, not event-handler routing or `q:p*`
+ * metadata) positioned AFTER all spreads, the explicit const props cover the
+ * const-bag completely; spreads contribute only raw `...expr` to the var-bag at
+ * their source position, and the var-bag preserves source order. Single-spread
+ * cases go through the wrapper-based path so the spread's keys are classified
+ * at runtime.
  */
 function tryBuildSourceOrderedJsxSplit(
   tag: string,
@@ -246,8 +219,6 @@ function tryBuildSourceOrderedJsxSplit(
   }
   if (!hasRealConstAfterSpreads) return null;
 
-  // Single linear pass: each slot lands in var-bag or const-bag based on
-  // (kind, classification, position-relative-to-last-spread).
   const varParts: string[] = [];
   const constParts: string[] = [];
   for (const slot of slotOrder) {
@@ -281,7 +252,6 @@ function tryBuildSourceOrderedJsxSplit(
   };
 }
 
-/** Build a _jsxSplit call for spread without explicit key. */
 function buildJsxSplitCall(
   tag: string,
   tagIsHtml: boolean,
@@ -296,12 +266,6 @@ function buildJsxSplitCall(
   neededImports: Set<string>,
   slotOrder?: readonly SlotEntry[],
 ): JsxTransformResult {
-  // Source-ordered emission with raw spreads when an explicit
-  // "real-const" prop is positioned AFTER ALL spreads. SWC's emit rule:
-  // in that case the explicit const props cover the const-bag completely
-  // (cannot be overridden by spread), spreads contribute only to
-  // var-bag, and the var-bag entries appear in source order with spreads
-  // interleaved at their source position.
   if (slotOrder && slotOrder.length > 0) {
     const sourceOrdered = tryBuildSourceOrderedJsxSplit(
       tag, slotOrder, childrenText, flags, keyStr, neededImports,
@@ -320,7 +284,6 @@ function buildJsxSplitCall(
   let varPropsPart: string;
   let constPropsPart: string;
 
-  // Component elements with extras merge everything into varProps
   const componentHasExtras = !tagIsHtml && (
     constEntries.length > 0 || varEntries.length > 0 ||
     beforeSpreadEntries.length > 0 || additionalSpreads.length > 0
@@ -346,16 +309,10 @@ function buildJsxSplitCall(
     const shouldMergeConst = (varEntries.length > 0 && constEntries.length > 0) || hasNonBindNonEventVarEntries;
 
     if (shouldMergeConst) {
-      // When const entries include a "real" const prop (not just
-      // event-handler routing like `"q-e:click"` or `"q:p"` capture metadata),
-      // split the spreads — `_getConstProps` goes in the const bag alongside
-      // the real const entries, NOT in the var bag. Mirrors SWC's emit for
-      // `<div ... {...rest} override>` where `override` is a real const prop:
-      //   var: { ..._getVarProps(rest), <var entries> }
-      //   const: { ..._getConstProps(rest), override: true }
-      // For event-handler-only const entries (e.g. `should_move_bind_value_to_var_props`),
-      // the current merged form stays — both spreads in var bag, const bag
-      // carries just the event handler.
+      // When const entries include a "real" const prop (not just event-handler
+      // routing or `q:p` metadata), split the spreads: `_getConstProps` goes in
+      // the const bag alongside the real const entries. Event-handler-only const
+      // entries keep the merged form (both spreads in the var bag).
       const hasRealConstEntries = constEntries.some(
         (e) => !isRewrittenEventEntry(e) && !e.startsWith('"q:'),
       );
@@ -393,9 +350,6 @@ function buildJsxSplitCall(
   };
 }
 
-/**
- * Transform a single JSX element node to a _jsxSorted/_jsxSplit/_createElement call.
- */
 export function transformJsxElement(
   ctx: JsxTransformContext,
   node: JSXElement,
@@ -529,9 +483,6 @@ export function transformJsxElement(
   };
 }
 
-/**
- * Transform a JSX fragment node to a _jsxSorted call.
- */
 export function transformJsxFragment(
   ctx: JsxTransformContext,
   node: JSXFragment,

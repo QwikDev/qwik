@@ -1,10 +1,3 @@
-/**
- * Transform `jsx(Tag, propsObj)` / `jsxs(...)` / `jsxDEV(...)` CallExpressions
- * into `_jsxSorted(...)` / `_jsxSplit(...)` form — the pre-transformed JSX path,
- * where a bundler (esbuild/oxc) or peer tool (`qwik-react` codegen) lowers
- * `<Tag ... />` to a JSX-factory call before the optimizer runs.
- */
-
 import type MagicString from 'magic-string';
 import { walk } from 'oxc-walker';
 import type { AstNode, AstProgram } from '../../ast-types.js';
@@ -24,23 +17,10 @@ import type { SegmentImportData } from '../segment/segment-codegen.js';
 
 const EMPTY_SET: ReadonlySet<string> = new Set();
 
-/**
- * Collect the set of identifier names in this segment's import context that
- * resolve to a JSX-runtime function. Mirrors `transform.rs:235-238`:
- *   - Named import `jsx` / `jsxs` / `jsxDEV` from `@qwik.dev/core` (any name).
- *   - Anything imported from `@qwik.dev/core/jsx-runtime` or
- *     `@qwik.dev/core/jsx-dev-runtime` (any imported name; the local alias
- *     is what we care about).
- */
 export function collectJsxFunctionNames(importContext: SegmentImportData): Set<string> {
   return collectJsxFunctionNamesFromIterable(importContext.moduleImports);
 }
 
-/**
- * Variant that operates on the structural minimum needed for the rule —
- * lets callers with `ImportInfo[]` (e.g. parent-rewrite under inline strategy)
- * reuse the same classification without first converting to `SegmentImportData`.
- */
 export function collectJsxFunctionNamesFromIterable(
   imports: Iterable<{ readonly localName: string; readonly importedName: string; readonly source: string }>,
 ): Set<string> {
@@ -67,67 +47,29 @@ interface JsxCallTransformOptions {
   jsxFunctions: Set<string>;
   keyCounter: JsxKeyCounter;
   neededImports: Set<string>;
-  /** Reactive bindings (`useStore`/`useSignal`/...) that drive the
-   * `_wrapProp(...)` rewrite + `isStaticChildren` classification. Empty/absent
-   * means no signal analysis. */
   reactiveBindings?: ReadonlySet<string>;
-  /**
-   * Byte ranges to skip during the walk. Used by the parent-rewrite path
-   * so jsx() calls already inside a marker extraction's argument tree
-   * (where the parent emits `q_<sym>` and segment-codegen handles the
-   * jsx-call rewrite separately) are not double-transformed. Each range
-   * is `[start, end)`; calls whose start byte lies inside any range are
-   * left alone.
-   */
+  /** Byte ranges `[start, end)` to skip. Used by the parent-rewrite path so
+   * `jsx()` calls already inside a marker extraction's argument tree (handled
+   * by segment-codegen) aren't double-transformed. */
   skipRanges?: ReadonlyArray<{ readonly start: number; readonly end: number }>;
-  /**
-   * Maps an event-handler QRL var name (`q_<sym>`) to the lexical-capture
-   * params the runtime must deliver to it positionally — the handler's
-   * params after the `_, _1` (event, element) prefix. When a const event
-   * handler on an element references one of these, `buildJsxSortedCall`
-   * injects the element's `q:p`/`q:ps` prop so the runtime passes the
-   * captures through. Mirrors the raw-JSX path's `injectQpProp`.
-   */
+  /** Maps an event-handler QRL var (`q_<sym>`) to the lexical-capture params
+   * delivered positionally. When a const handler on an element references one,
+   * the element gets a `q:p`/`q:ps` prop so the runtime passes captures through. */
   qpByQrl?: ReadonlyMap<string, readonly string[]>;
-  /** All names imported by the module; lets the reactive classifier tell
-   * signal reads apart from references to imports. */
   importedNames?: ReadonlySet<string>;
-  /** Accumulates `_hf<n>` functions hoisted for `_fnSignal(...)` values;
-   * threaded across bodies for stable `_hf<n>` numbering. */
   signalHoister?: SignalHoister;
-  /** Locally declared names in this body; a dep declared locally isn't
-   * treated as a signal/store read. */
   localNames?: ReadonlySet<string>;
-  /** Scope-aware binding lookup; a reactive prop whose deps are all stable
-   * (imported or const-bound) goes in the const bag. */
   bindings?: ScopeAwareBindings;
-  /** The body's closure params. Member reads on them (`props.field`) are
-   * wrappable store-field reads even with no `useSignal`/`useStore` binding. */
   paramNames?: readonly string[];
 }
 
 /**
- * Walk a parsed program (typically a segment body wrapped in `(...)` to make
- * it parseable as an Expression) and rewrite every `jsx(Tag, propsObj, ...)`
- * call whose callee is in `jsxFunctions` into the `_jsxSorted(...)` form.
- *
- * Two traversals: a gather walk for reactive bindings (a `const X = use*()`
- * declaration can appear after the first jsx() call in document order, so
- * the set must be complete before any wrap decision), then one act walk
- * whose enter phase wraps reactive accesses (`X.prop` →
- * `_wrapProp(X, "prop")`) and records each call's direct jsx children, and
- * whose leave phase rewrites calls bottom-up — inner calls are rewritten
- * before outer calls, so when the outer's source text is sliced (for tag /
- * children), it contains the already-rewritten inner call text.
- *
- * Keying: a component element is always keyed; an HTML element is keyed only
- * when it is not a direct jsx child of another jsx element — a render root,
- * or an element reached through an expression boundary (`&&` / ternary /
- * `.map` / an arrow or loop body). A direct HTML child takes `null`. An
- * explicit key is reused only from the 3-argument `jsx(tag, props, key)`
- * form; the 6-argument dev form's trailing key/source arguments are ignored.
- *
- * Mutates `s` (the MagicString of the parsed source) and `opts.neededImports`.
+ * Rewrite every `jsx(Tag, propsObj, ...)` whose callee is in `jsxFunctions`
+ * to `_jsxSorted(...)`. Two passes: gather reactive bindings first (a
+ * `const X = use*()` can appear after the first `jsx()` call in document order,
+ * so the set must be complete before any wrap decision), then rewrite
+ * bottom-up so an outer call's sliced source contains already-rewritten inner
+ * calls. Mutates `s` and `opts.neededImports`.
  */
 export function transformJsxCalls(
   source: string,
@@ -191,16 +133,6 @@ export function transformJsxCalls(
   });
 }
 
-/**
- * Collect names of `const X = use*(...)` declarations — the reactive sources
- * (`useStore`, `useSignal`, `useComputed`, `useResource`, etc.) whose field
- * accesses inside JSX need `_wrapProp` wrapping for runtime reactivity.
- *
- * Conservative — any local const assigned to a `use*()` call qualifies. The
- * wrap only fires on identifiers in this set when they appear as the object
- * of a MemberExpression INSIDE a jsx() call's argument tree (not inside
- * nested function bodies — see `wrapReactiveAccessesInJsxCalls`).
- */
 function collectReactiveBindings(program: AstProgram): Set<string> {
   const result = new Set<string>();
   walk(program, {
@@ -463,12 +395,8 @@ function buildJsxSortedCall(
   opts: JsxCallTransformOptions,
   isDirectJsxChild: boolean,
 ): string | null {
-  // Caller already gates on `callNode.type === 'CallExpression'` and
-  // `arguments[1].type === 'ObjectExpression'`. The CallExpression check
-  // here is required for type-checker narrowing before destructuring; the
-  // combined guard after it covers the rest. Tag arg cannot be a
-  // SpreadElement (that'd be `jsx(...tag, ...)` — never emitted by peer
-  // tools).
+  // The CallExpression check is required for type-checker narrowing before
+  // destructuring, even though the caller already gated on it.
   if (callNode.type !== 'CallExpression') return null;
   const args = callNode.arguments;
   const tagArg = args[0];
@@ -481,13 +409,11 @@ function buildJsxSortedCall(
   ) return null;
 
   const tag = s.slice(tagArg.start, tagArg.end);
-  // HTML tags are string-literal first args (`jsx("button", ...)`); component
-  // tags are identifiers (`jsx(MyCmp, ...)`). Event-handler key rewriting
-  // (`onClick$` → `"q-e:click"`) only applies to HTML — components receive
-  // the `*$` form as a JSX prop and the runtime handles wiring internally.
+  // HTML tags are string-literal first args; component tags are identifiers.
+  // Event-handler key rewriting (`onClick$` → `"q-e:click"`) applies only to
+  // HTML — components receive the `*$` form as a JSX prop and wire it at runtime.
   const isHtmlTag = tagArg.type === 'Literal' && typeof tagArg.value === 'string';
 
-  // Non-Property/SpreadElement props (e.g. a setter) are out of scope — bail.
   let childrenText: string | null = null;
   let childrenIsDynamic = false;
   let hasVarEventHandler = false;
@@ -495,8 +421,6 @@ function buildJsxSortedCall(
   const constEntries: string[] = [];
   const slots: PropSlot[] = [];
   const spreadArgs: string[] = [];
-  // Union of `q:p`/`q:ps` capture params across all const event handlers on
-  // this element (an element with two capturing handlers shares one prop).
   const qpParams: string[] = [];
   for (const prop of propsArg.properties) {
     if (prop.type === 'SpreadElement') {
@@ -524,20 +448,15 @@ function buildJsxSortedCall(
       if (isHandlerPropKey(keyName)) hasVarEventHandler = true;
       continue;
     }
-    // Rewrite event-handler prop keys on HTML tags from the marker form
-    // (`onClick$`) to the runtime form (`"q-e:click"`). Mirrors what
-    // `transformAllJsx` does for JSX syntax.
     if (isHtmlTag && keyName !== null) {
       const transformed = transformEventPropName(keyName, new Set());
       if (transformed !== null) {
         const valueText = s.slice(prop.value.start, prop.value.end);
-        // A const event handler — a bare QRL ref (`q_X`) or `q_X.w([…])` —
-        // belongs in the CONST props bag (3rd `_jsxSorted` arg), matching
-        // SWC and the `static_listeners` flag. Emitting it in the VAR bag
-        // while the flag claims static listeners leaves the runtime looking
-        // in the const bag, finding nothing, and never wiring the event.
-        // Anything else (an inline arrow, a computed value) is a var handler
-        // and drops the flag bit.
+        // A const event handler (bare QRL ref `q_X`) belongs in the const props
+        // bag with the static_listeners flag: put it in the var bag while the
+        // flag claims static listeners and the runtime looks in the const bag,
+        // finds nothing, and never wires the event. An inline arrow or computed
+        // value is a var handler and drops the flag bit.
         const eventEntry = `"${transformed}": ${valueText}`;
         const rawConst = isConstExpr(prop.value, opts);
         if (isConstEventHandlerValue(prop.value)) {
@@ -594,9 +513,9 @@ function buildJsxSortedCall(
     keyText = 'null';
   }
 
-  // The element's `q:p`/`q:ps` capture prop goes in the VAR bag (the captured
-  // values can change between renders), ahead of any other var props —
-  // matching SWC's emit order. Its presence sets the `moved_captures` flag.
+  // The element's `q:p`/`q:ps` capture prop goes in the VAR bag (captured
+  // values can change between renders), ahead of other var props; its presence
+  // sets the moved_captures flag.
   let qpEntry: string | null = null;
   if (qpParams.length > 0) {
     const qp = buildCaptureProp(qpParams, true);
@@ -635,23 +554,15 @@ function buildJsxSortedCall(
 }
 
 /**
- * A const event-handler value: a bare QRL identifier (`q_<sym>`), whose
- * lexical captures (if any) are delivered out-of-band via the element's
- * `q:p`/`q:ps` prop. SWC places these in the const props bag with the
- * `static_listeners` flag set.
- *
- * A `q_<sym>.w([captures])` handler is NOT const — the `.w()` binds the
- * captures inline, so the QRL reference varies with them. SWC keeps those
- * in the VAR bag and clears the `static_listeners` bit (see the
- * `example_parsed_inlined_qrls` snapshot, flags `2`). An inline arrow or
- * any other expression is likewise a var handler.
+ * A const event-handler value is a bare QRL identifier (`q_<sym>`); its captures
+ * ride the element's `q:p`/`q:ps` prop. A `q_<sym>.w([captures])` handler is NOT
+ * const — `.w()` binds captures inline so the reference varies with them (var
+ * bag, static_listeners cleared).
  */
 function isConstEventHandlerValue(value: AstNode): boolean {
   return value.type === 'Identifier';
 }
 
-/** Extract a static key name from an object property. Returns null for
- * computed-key properties that don't have a constant string/identifier name. */
 function propertyKeyName(prop: AstNode): string | null {
   if (prop.type !== 'Property' || !prop.key) return null;
   const key = prop.key;
@@ -660,13 +571,9 @@ function propertyKeyName(prop: AstNode): string | null {
   return null;
 }
 
-/** Classify a children expression as static. Extends to MemberExpressions
- * on reactive bindings (which become `_wrapProp(...)` — compile-time-
- * resolved signal access) and arrays whose elements are all themselves
- * static. Nested `_jsxSorted(...)` calls (the rewritten form of inner
- * jsx() calls) classify as dynamic. The reactive-binding check is done
- * against the SOURCE AST (pre-wrap) since `isStaticChildren` runs before
- * the source-string `_wrapProp` overwrite via `buildJsxSortedCall`. */
+/** Classify a children expression as static. The reactive-binding check runs
+ * against the SOURCE AST (pre-wrap), since `isStaticChildren` runs before the
+ * `_wrapProp` overwrite in `buildJsxSortedCall`. */
 function isStaticChildren(value: AstNode, reactive: ReadonlySet<string>): boolean {
   if (value.type === 'Literal') return true;
   if (value.type === 'TemplateLiteral' && (value.expressions ?? []).length === 0) return true;

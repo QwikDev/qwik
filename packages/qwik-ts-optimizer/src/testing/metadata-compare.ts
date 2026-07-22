@@ -11,19 +11,12 @@ export interface MetadataCompareResult {
   mismatches: MetadataFieldMismatch[];
 }
 
-/**
- * Compare two SegmentMetadata objects field-by-field.
- * Checks all 13+ fields: origin, name, entry, displayName, hash,
- * canonicalFilename, path, extension, parent, ctxKind, ctxName,
- * captures, loc, paramNames (optional), captureNames (optional).
- */
 export function compareMetadata(
   expected: SegmentMetadata,
   actual: SegmentMetadata,
 ): MetadataCompareResult {
   const mismatches: MetadataFieldMismatch[] = [];
 
-  // String/boolean/null fields - exact match
   const simpleFields: (keyof SegmentMetadata)[] = [
     'origin',
     'name',
@@ -45,12 +38,10 @@ export function compareMetadata(
     }
   }
 
-  // loc: [number, number] - compare elements
   if (expected.loc[0] !== actual.loc[0] || expected.loc[1] !== actual.loc[1]) {
     mismatches.push({ field: 'loc', expected: expected.loc, actual: actual.loc });
   }
 
-  // Optional array fields - compare as JSON strings (order matters for paramNames)
   const arrayFields: (keyof SegmentMetadata)[] = ['paramNames', 'captureNames'];
   for (const field of arrayFields) {
     const exp = expected[field];

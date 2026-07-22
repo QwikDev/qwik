@@ -1,21 +1,12 @@
 /**
- * Compute JSX key prefix from file path hash.
- *
- * The Rust optimizer derives a 2-character prefix from the SipHash-1-3 of
- * the relative file path, using the first 2 characters of the base64url
- * encoding of the hash's little-endian bytes.
+ * Compute a 2-character JSX key prefix: the first 2 base64 chars of the
+ * SipHash-1-3 (zero-key) of the relative file path's little-endian hash bytes.
  */
 
 import SipHash13 from 'siphash/lib/siphash13.js';
 
 const ZERO_KEY: [number, number, number, number] = [0, 0, 0, 0];
 
-/**
- * Compute a 2-character key prefix from a relative file path.
- *
- * Uses SipHash-1-3 with zero keys (matching Rust's DefaultHasher),
- * then takes the first 2 characters of the base64 encoding.
- */
 export function computeKeyPrefix(relPath: string): string {
   const result = SipHash13.hash(ZERO_KEY, relPath);
 

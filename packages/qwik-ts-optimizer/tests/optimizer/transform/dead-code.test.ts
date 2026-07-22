@@ -1,7 +1,3 @@
-/**
- * Tests for segment dead-code elimination (constant `if (true)` / `if (false)`
- * folding).
- */
 
 import { describe, it, expect } from 'vitest';
 import { parseSync } from 'oxc-parser';
@@ -19,13 +15,6 @@ describe('applySegmentDCE', () => {
   });
 
   it('folds a nested fold inside a folded branch without corrupting braces', () => {
-    // The bug: both the outer `if (false)` and the inner `if (true)` were
-    // collected in a single pass, then applied descending-by-start against the
-    // same string. Applying the inner edit first shifted every offset after it,
-    // leaving the outer fold's `end` index stale — its slice cut at the wrong
-    // position and dropped a closing brace, producing unbalanced, unparseable
-    // output. The fix skips folds nested inside an already-collected fold and
-    // lets the iterative pass handle them once unnested.
     const code = [
       'export const s_x = () => {',
       '  if (false) {',

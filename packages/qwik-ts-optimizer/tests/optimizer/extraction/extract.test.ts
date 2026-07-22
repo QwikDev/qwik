@@ -25,7 +25,6 @@ export const App = component$(() => {
 
     const seg = results[0];
     expect(seg.displayName).toBe('test.tsx_App_component');
-    // symbolName should be contextPortion + "_" + hash
     expect(seg.symbolName).toMatch(/^App_component_/);
     expect(seg.calleeName).toBe('component$');
     expect(seg.isBare).toBe(false);
@@ -93,8 +92,6 @@ export const Root = component$(() => {
       .filter((r) => r.ctxName === '$');
     const bareDisplayNames = bareResults.map((r) => r.displayName);
 
-    // Both bare $() segments share context "Root_component" so disambiguation applies:
-    // first keeps original, second gets _1 suffix (matching Rust optimizer behavior)
     expect(bareDisplayNames).toContain('test.tsx_Root_component_useStyles');
     expect(bareDisplayNames).toContain('test.tsx_Root_component_1');
   });
@@ -141,17 +138,6 @@ export const handler = $(() => {
   });
 
   it('inlinedQrl arrow body containing JSX flips extension via activeSegmentBodies', () => {
-    // Defensive against peer codegen tools that might emit raw JSX inside an
-    // inlinedQrl arrow body. None of the 12 inlinedQrl-using snapshots in
-    // match-these-snaps/ exercise this path (peer tools pre-transform JSX),
-    // but the activeSegmentBodies push covers the case for symmetry with
-    // the marker-call / JSX-attribute paths.
-    //
-    // Source must be `.tsx` for the parser to accept raw JSX; the test
-    // demonstrates that the leave-handler runs `extensionFromSegmentJsx(true, ...)`
-    // — which produces `.tsx` for `.tsx` sources (same as initial sourceExt
-    // here, but the path is exercised; for hypothetical `.jsx`-source peer
-    // tools the same path would flip `.jsx` → `.tsx`).
     const source = `
 import { inlinedQrl } from '@qwik.dev/core';
 const _x = inlinedQrl(() => <div>Hello</div>, "Foo_component_xxxxxxxxxx");
@@ -163,9 +149,6 @@ const _x = inlinedQrl(() => <div>Hello</div>, "Foo_component_xxxxxxxxxx");
   });
 
   it('inlinedQrl with no-JSX arrow body leaves extension as sourceExt', () => {
-    // Counter-test: when the leave-handler observes hasJsx=false, it does NOT
-    // overwrite the initial `extension = sourceExt` (preserves the inlinedQrl
-    // path's "peer tool's source flavor is intent" contract for non-JSX bodies).
     const source = `
 import { inlinedQrl } from '@qwik.dev/core';
 const _x = inlinedQrl(() => console.log('plain'), "Foo_component_xxxxxxxxxx");
@@ -190,12 +173,6 @@ export const App = component$(() => {
   });
 
   it('has correct loc [line, col] from argument position', () => {
-    // Original test preserved for baseline continuity. The name and intent
-    // are misleading: `loc` is `[byteStart, byteEnd]`, not
-    // `[line, col]` (see the three byte-offset regression tests immediately
-    // below). The original assertions (`>= 2` and `>= 0`) happen to pass
-    // for byte offsets too, so this test still passes; the semantic
-    // contract is pinned by the byte-offset tests below.
     const source = `import { $ } from '@qwik.dev/core';
 const handler = $(() => {
   console.log('hi');
@@ -209,16 +186,6 @@ const handler = $(() => {
     expect(col).toBeGreaterThanOrEqual(0);
   });
 
-  // Byte-offset regression coverage: `loc` is `[byteStart, byteEnd]` of the
-  // segment body in the original source — *not* `[line, col]`. The
-  // documented contract (OPTIMIZER.md "Symbol naming and hashing" + snap
-  // fixture format) was previously violated by two of three extraction
-  // emission sites (marker-call and JSX-attr paths emitted `[line, col]`).
-  // The bug was hidden because convergence's strict-compare explicitly
-  // skips `loc`. The `ByteOffset` brand made it a compile error,
-  // and these tests pin the byte-offset contract going forward across all
-  // three emission paths.
-
   it('loc matches [argStart, argEnd] for marker-call path', () => {
     const source = `import { component$ } from '@qwik.dev/core';
 export const App = component$(() => {
@@ -231,7 +198,6 @@ export const App = component$(() => {
 
     expect(seg.loc[0]).toBe(seg.argStart);
     expect(seg.loc[1]).toBe(seg.argEnd);
-    // Slicing the source with the byte range yields the actual arrow function.
     expect(source.slice(seg.loc[0], seg.loc[1])).toMatch(/^\(\)\s*=>/);
   });
 
@@ -250,9 +216,6 @@ export const App = component$(() => <button onClick$={() => console.log('hi')}/>
   });
 
   it('loc matches [argStart, argEnd] for inlinedQrl path', () => {
-    // Pre-existing site 1 always emitted the correct byte offsets — this
-    // test pins that behavior as the canonical contract the other two
-    // sites now match.
     const source = `import { inlinedQrl } from '@qwik.dev/core';
 const x = inlinedQrl(() => 'body', "Foo_aaaaaaaa");
 `;
@@ -294,7 +257,6 @@ export const App = component$(() => {
     expect(results).toHaveLength(1);
 
     const seg = results[0];
-    // Should include 'foo' import but not 'bar' import
     const importNames = seg.segmentImports.map((i) => i.localName);
     expect(importNames).toContain('foo');
     expect(importNames).not.toContain('bar');
@@ -400,16 +362,11 @@ export const App = component$(() => {
 });
 `;
     const results = extractSegments(source, 'test.tsx');
-    // Should have 4 extractions: 1 component + 3 useTask
-    // The 3 useTask$ all produce context "App_component_useTask" -> disambiguate
     const taskExtractions = results.filter(r => r.calleeName === 'useTask$');
     expect(taskExtractions).toHaveLength(3);
 
-    // First useTask keeps original name
     expect(taskExtractions[0].displayName).toBe('test.tsx_App_component_useTask');
-    // Second gets _1
     expect(taskExtractions[1].displayName).toBe('test.tsx_App_component_useTask_1');
-    // Third gets _2
     expect(taskExtractions[2].displayName).toBe('test.tsx_App_component_useTask_2');
   });
 
@@ -421,7 +378,6 @@ export const B = $(() => 2);
 `;
     const results = extractSegments(source, 'test.tsx');
     expect(results).toHaveLength(2);
-    // A and B have different context portions, no disambiguation
     expect(results[0].displayName).toBe('test.tsx_A');
     expect(results[1].displayName).toBe('test.tsx_B');
   });
@@ -439,7 +395,6 @@ export const App = component$(() => {
     const taskExtractions = results.filter(r => r.calleeName === 'useTask$');
     expect(taskExtractions).toHaveLength(2);
 
-    // Hashes must differ since context portions differ after disambiguation
     expect(taskExtractions[0].hash).not.toBe(taskExtractions[1].hash);
   });
 
@@ -457,11 +412,8 @@ export const App = component$(() => {
     expect(taskExtractions).toHaveLength(2);
 
     const second = taskExtractions[1];
-    // displayName should have _1
     expect(second.displayName).toBe('test.tsx_App_component_useTask_1');
-    // symbolName should be contextPortion_hash
     expect(second.symbolName).toMatch(/^App_component_useTask_1_/);
-    // canonicalFilename should be displayName_hash
     expect(second.canonicalFilename).toBe(second.displayName + '_' + second.hash);
   });
 });

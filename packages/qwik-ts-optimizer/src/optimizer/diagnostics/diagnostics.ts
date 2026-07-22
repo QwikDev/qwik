@@ -1,15 +1,7 @@
-/**
- * Diagnostic emission and suppression for the Qwik optimizer.
- *
- * Provides functions to create diagnostic objects and to parse/apply
- * @qwik-disable-next-line suppression directives.
- */
-
 import { createRegExp, exactly, maybe, whitespace } from 'magic-regexp';
 import type { AstFunction, AstMaybeNode, AstNode, AstProgram } from '../../ast-types.js';
 import type { Diagnostic, DiagnosticHighlightFlat } from '../types/types.js';
 
-/** C02: captured function/class reference across a $() boundary. */
 export function emitC02(
   identName: string,
   file: string,
@@ -28,7 +20,6 @@ export function emitC02(
   };
 }
 
-/** C05: foo$ called but fooQrl not exported in the same file. */
 export function emitC05(
   calleeName: string,
   qrlName: string,
@@ -46,7 +37,6 @@ export function emitC05(
   };
 }
 
-/** Warning: preventdefault:event does nothing when passive:event is also set. */
 export function emitPassiveConflictWarning(
   eventName: string,
   file: string,
@@ -69,10 +59,6 @@ const TRAILING_COMMENT_CLOSER = createRegExp(
   exactly('*/').and(whitespace.times.any()).and(maybe(exactly('}'))).and(whitespace.times.any()).at.lineEnd(),
 );
 
-/**
- * Parse @qwik-disable-next-line directives from source code.
- * Returns a map of 1-based line numbers to sets of suppressed diagnostic codes.
- */
 export function parseDisableDirectives(sourceCode: string): Map<number, Set<string>> {
   const directives = new Map<number, Set<string>>();
   const lines = sourceCode.split('\n');
@@ -98,7 +84,6 @@ export function parseDisableDirectives(sourceCode: string): Map<number, Set<stri
   return directives;
 }
 
-/** Filter out diagnostics suppressed by @qwik-disable-next-line directives. */
 export function filterSuppressedDiagnostics(
   diagnostics: Diagnostic[],
   directives: Map<number, Set<string>>,
@@ -115,16 +100,11 @@ export function filterSuppressedDiagnostics(
 
 type DeclKind = 'var' | 'fn' | 'class';
 
-/** Classify whether an identifier was declared as a function, class, or variable. */
 export function classifyDeclarationType(program: AstProgram, identName: string): DeclKind {
   return classifyInStatements(program.body, identName);
 }
 
-/**
- * Variant of {@link classifyDeclarationType} that walks a closure body directly
- * instead of a wrapped re-parsed program. Used when the caller already has the
- * closure AST node from `extractSegments`'s companion map.
- */
+/** Walks a closure body directly, avoiding a re-parse when the caller already holds the closure AST node. */
 export function classifyDeclarationTypeInClosure(
   closure: AstFunction,
   identName: string,

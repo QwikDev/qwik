@@ -158,14 +158,12 @@ describe('parseSnapshot', () => {
           const content = readFileSync(join(SNAPS_DIR, file), 'utf-8');
           const result = parseSnapshot(content);
 
-          // Verify structure
           expect(result.frontmatter).toBeDefined();
           expect(result.frontmatter.source).toBeTruthy();
           expect(Array.isArray(result.segments)).toBe(true);
           expect(Array.isArray(result.parentModules)).toBe(true);
           expect(Array.isArray(result.diagnostics)).toBe(true);
 
-          // Verify all segments have valid metadata
           for (const seg of result.segments) {
             expect(seg.metadata).not.toBeNull();
             expect(seg.metadata!.name).toBeTruthy();
@@ -186,7 +184,6 @@ describe('parseSnapshot', () => {
         throw new Error(`Failed to parse ${errors.length} files:\n${errors.join('\n')}`);
       }
 
-      // Sanity check: we should have found a meaningful number of segments
       expect(totalSegments).toBeGreaterThan(100);
       expect(totalParentModules).toBeGreaterThan(50);
     });

@@ -1,18 +1,3 @@
-/**
- * Differential tests for the whole-program free-identifier analysis.
- *
- * `computeClosureFreeIdentifiers` replaces per-closure
- * `getUndeclaredIdentifiersInFunction` calls (two AST walks per closure)
- * with two walks over the whole program. Its contract is exact parity
- * with the per-closure form — same names, same first-reference order —
- * for every closure it tracks.
- *
- * The corpus sweep runs the comparison over every function-like node in
- * every snapshot fixture input (a far broader population than actual
- * extractions), so any resolution divergence — scope-chain handling,
- * shadowing, hoisting, the FunctionExpression own-name scope — surfaces
- * as a named fixture failure.
- */
 
 import { describe, it, expect } from 'vitest';
 import { readdirSync, readFileSync } from 'node:fs';
@@ -127,10 +112,6 @@ const laterDeclared = 5;
   });
 
   it('keeps first-free-occurrence order when a name resolves internal at one scope and free at another', () => {
-    // Inside the closure, `dual` first resolves to the block-scoped `let`
-    // (internal), then to the module-level binding (free). The free
-    // occurrence must land in the name list between `firstFree` and
-    // `secondFree` — exactly where the per-closure form records it.
     const source = `
 export const B = $(() => {
   use(firstFree);

@@ -3,9 +3,6 @@ import { generateStrippedSegmentCode } from '../../../src/optimizer/segment/stri
 import { isStrippedSegment } from '../../../src/optimizer/rewrite/predicates.js';
 
 describe('strip-ctx', () => {
-  // -------------------------------------------------------------------------
-  // isStrippedSegment
-  // -------------------------------------------------------------------------
   describe('isStrippedSegment', () => {
     it('returns true when ctxName starts with a stripCtxName prefix', () => {
       expect(isStrippedSegment('serverStuff', 'function', ['server'])).toBe(true);
@@ -50,9 +47,6 @@ describe('strip-ctx', () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // generateStrippedSegmentCode
-  // -------------------------------------------------------------------------
   describe('generateStrippedSegmentCode', () => {
     it('generates null export for symbol name', () => {
       expect(generateStrippedSegmentCode('s_r1qAHX7Opp0')).toBe(

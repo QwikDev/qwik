@@ -1,28 +1,11 @@
 /**
- * Flatten `const <pat> = useFooBar()` destructures inside `component$`
- * bodies, mirroring SWC's `PropsDestructuring::transform_component_body`
- * (`swc-reference-only/props_destructuring.rs:108-260`).
- *
- * The rewrite is a code-size optimization the Qwik Rust optimizer
- * applies before extraction. A declaration like:
- *
- *     const { store5 } = useForm2();
- *
- * becomes:
- *
- *     const form2 = useForm2();
- *
- * and every reference to `store5` in the same scope rewrites to
- * `form2.store5`. The new binding name is derived from the callee by
- * stripping the `use` prefix and lowercasing the first character
- * (`useForm2` → `form2`).
- *
- * Only `const <ObjectPattern> = <ident-callee starting with "use">` is
- * handled here. Array destructures and member-init forms are left alone
- * — the SWC rule for those branches is more involved (substituting
- * member accesses, handling rest elements) and the convergence tests
- * exercise the object-pattern path primarily. Extend when a second test
- * demands it.
+ * Flatten `const <ObjectPattern> = useFoo()` destructures inside `component$`
+ * bodies as a pre-extraction code-size optimization. `const { store5 } =
+ * useForm2()` becomes `const form2 = useForm2()` and every `store5` reference
+ * rewrites to `form2.store5` (the new binding drops the `use` prefix and
+ * lowercases the first char). Only object-pattern destructures of a
+ * `use`-prefixed identifier callee are handled; array and member-init forms
+ * are left alone.
  */
 
 import MagicString from 'magic-string';
@@ -30,20 +13,6 @@ import { parseWithRawTransfer } from '../ast/parse.js';
 import { walk } from 'oxc-walker';
 import type { AstNode, AstParentNode, AstProgram, CallExpression } from '../../ast-types.js';
 
-/**
- * Apply destructure flattening to a source string. Returns the rewritten
- * source (or the original if nothing changed) along with the re-parsed
- * AST so the caller can avoid an extra parse.
- *
- * Implementation: single `walk(program, ...)` that handles both passes.
- * When the walker enters a `component$()` CallExpression we synchronously
- * scan its arrow body's top-level statements for flattenable decls,
- * record them, and overwrite each decl's pattern range immediately.
- * The walker then descends into the body where identifier references
- * are rewritten against the flat `decls` array. DFS order guarantees
- * an identifier's enclosing-scope decls are collected before the
- * identifier itself is visited.
- */
 type Substitution = { from: string; to: string };
 
 export function flattenDestructureUseCalls(
@@ -51,21 +20,15 @@ export function flattenDestructureUseCalls(
   relPath: string,
   program: AstProgram,
 ): { source: string; changed: boolean } {
-  // Sound textual prefilter: the walk below only acts on CallExpressions
-  // whose callee Identifier is *literally* named `component$` (see the
-  // name check in the enter handler — renamed imports never flatten).
-  // An Identifier's name appears verbatim at its source position, so a
-  // module whose text lacks the token cannot contain a trigger call;
-  // skipping the walk entirely cannot change behavior. Over-inclusion
-  // (the token inside a string or longer name) just falls through to
-  // the walk, which decides for real.
+  // Sound prefilter: the walk only fires on a callee literally named
+  // `component$`, and that token appears verbatim at its source position, so
+  // a module whose text lacks it cannot match.
   if (!source.includes('component$')) {
     return { source, changed: false };
   }
 
-  // Lazy: even prefiltered modules usually have no flattenable decls,
-  // and MagicString construction walks the whole source. Materialize on
-  // the first overwrite.
+  // Lazily materialize MagicString on first overwrite — most prefiltered
+  // modules still have no flattenable decls.
   let s: MagicString | undefined;
   const edits = (): MagicString => (s ??= new MagicString(source));
   const decls: FlattenableDecl[] = [];
@@ -73,13 +36,9 @@ export function flattenDestructureUseCalls(
 
   walk(program, {
     enter(node: AstNode, parent: AstParentNode) {
-      // Collect decls when entering a `component$()` CallExpression and
-      // overwrite each decl's pattern range immediately so by the time
-      // the walker descends into the body, the substitution map for the
-      // enclosing scope is already populated. Manual one-level-deep body
-      // iteration matches the pre-merge behavior (we do not piggyback
-      // on the walker's VariableDeclaration visits — that would also
-      // pick up nested function-body decls we don't want to flatten).
+      // Manually iterating the body's top-level statements (rather than the
+      // walker's VariableDeclaration visits) keeps nested function-body decls
+      // from being flattened.
       if (
         node.type === 'CallExpression' &&
         node.callee?.type === 'Identifier' &&
@@ -92,19 +51,14 @@ export function flattenDestructureUseCalls(
       if (node.type !== 'Identifier' || !node.name) return;
       if (decls.length === 0) return;
       if (isDeclaringIdentifierPosition(node, parent)) return;
-      // Skip identifiers that fall inside ANY flattened decl's pattern
-      // range — those ranges were overwritten when the decl was
-      // collected, and magic-string will throw if we try to split a
-      // chunk that has already been edited. The walker visits inner
-      // Identifier nodes of shorthand-Property destructures (`{url}`
-      // → both the key and value sides resolve to the same Identifier),
-      // and those value-side Identifiers don't match
-      // `isDeclaringIdentifierPosition`'s key-equality check.
+      // Skip identifiers inside an already-overwritten decl pattern range —
+      // magic-string throws on splitting an edited chunk. Shorthand
+      // destructure values (`{url}`) resolve to the same Identifier and slip
+      // past the declaring-position check above.
       for (const d of decls) {
         if (node.start >= d.idStart && node.end <= d.idEnd) return;
       }
-      // First scope match (in source order — outermost-wins) governs
-      // the substitution choice. Preserves pre-merge semantics exactly.
+      // First scope match in source order wins (outermost scope governs).
       for (const decl of decls) {
         if (node.start < decl.scopeStart || node.end > decl.scopeEnd) continue;
         const subs = subsByScope.get(decl.scopeStart);
@@ -126,10 +80,9 @@ export function flattenDestructureUseCalls(
 }
 
 /**
- * True when an Identifier node sits in a *declaring* position rather than
- * a reference position — i.e. it's introducing a binding, naming an object
- * literal key, labelling a statement, etc. References to flattened
- * destructured names need to be rewritten; declaring positions don't.
+ * True when an Identifier sits in a declaring position (introducing a binding,
+ * an object-literal key, a label) rather than a reference — only references to
+ * flattened names get rewritten.
  */
 function isDeclaringIdentifierPosition(node: AstNode, parent: AstParentNode): boolean {
   if (!parent) return false;
@@ -166,13 +119,10 @@ export function isShorthandPropertyValue(node: AstNode, parent: AstParentNode): 
 }
 
 interface FlattenableDecl {
-  /** Source position of the declarator's `id` (the destructure pattern). */
   idStart: number;
   idEnd: number;
-  /** Source position of the enclosing function body — the substitution scope. */
   scopeStart: number;
   scopeEnd: number;
-  /** Source position of the variable declaration's surrounding statement. */
   declStart: number;
   declEnd: number;
   newBinding: string;
@@ -180,16 +130,10 @@ interface FlattenableDecl {
 }
 
 /**
- * Inspect a single `component$(arrow)` call. For each flattenable
- * `const { ... } = use*()` declaration at the top level of the arrow's
- * body, record a FlattenableDecl, overwrite the pattern range, and
- * register the substitution map under the body's source span.
- *
- * Only `component$()` calls whose first argument is an arrow with a
- * BlockStatement body produce output here — other shapes are silently
- * ignored. Manual one-level-deep iteration of `body.body` matches the
- * pre-merge collection behavior and avoids picking up nested
- * VariableDeclarations the walker would otherwise visit.
+ * For each flattenable `const { ... } = use*()` at the top level of a
+ * `component$(arrow)` body with a BlockStatement, record a FlattenableDecl,
+ * overwrite its pattern, and register the substitution map under the body's
+ * span. Other call shapes are ignored.
  */
 function collectAndApplyDeclsForComponentCall(
   callNode: CallExpression,
@@ -213,8 +157,8 @@ function collectAndApplyDeclsForComponentCall(
     if (!init.callee || init.callee.type !== 'Identifier') continue;
     const calleeName = init.callee.name;
     if (!calleeName.startsWith('use') || calleeName.length <= 3) continue;
-    // Skip the well-known marker hooks — the qrl rewrite re-targets
-    // these and the destructure here would interact awkwardly.
+    // Skip marker hooks (`use*$` / `use*Qrl`) — the qrl rewrite re-targets
+    // these, so flattening them here would conflict.
     if (calleeName.endsWith('$') || calleeName.endsWith('Qrl')) continue;
     if (id.type !== 'ObjectPattern') continue;
     const fields: Array<{ localName: string; keyName: string }> = [];
@@ -251,8 +195,7 @@ function collectAndApplyDeclsForComponentCall(
   }
 }
 
-/** Convenience: parse, flatten, re-parse. Used in Phase 0.5 of
- * `transformModule`. */
+/** Parse, flatten, then re-parse the flattened source. */
 export function flattenAndReparse(
   source: string,
   relPath: string,

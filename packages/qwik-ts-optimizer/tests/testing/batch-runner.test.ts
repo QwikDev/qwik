@@ -41,12 +41,10 @@ describe('batch-runner', () => {
   it('getBatchFiles returns correct slice', () => {
     const files = getSnapshotFiles(SNAP_DIR);
 
-    // First batch: 10 items
     const batch0 = getBatchFiles(files, 10, 0);
     expect(batch0).toHaveLength(10);
     expect(batch0[0]).toBe(files[0]);
 
-    // Last batch: 210 - 200 = 10 items
     const batch20 = getBatchFiles(files, 10, 20);
     expect(batch20).toHaveLength(10);
     expect(batch20[0]).toBe(files[200]);
@@ -95,7 +93,6 @@ describe('batch-runner', () => {
   it('lockPassingSnapshots appends without removing', () => {
     const lockFile = join(tmpDir, 'lock.json');
 
-    // Simulate batch 0 result
     const batch0Result: BatchResult = {
       total: 3,
       passed: 2,
@@ -108,7 +105,6 @@ describe('batch-runner', () => {
     };
     lockPassingSnapshots(lockFile, batch0Result);
 
-    // Simulate batch 1 result
     const batch1Result: BatchResult = {
       total: 2,
       passed: 2,
@@ -133,7 +129,6 @@ describe('batch-runner', () => {
     const allFiles = getSnapshotFiles(SNAP_DIR);
     const batch0Files = getBatchFiles(allFiles, 5, 0);
 
-    // Lock first 3 files
     saveLockedSnapshots(lockFile, batch0Files.slice(0, 3));
 
     let testFnCallCount = 0;
@@ -148,7 +143,6 @@ describe('batch-runner', () => {
       return { passed: true };
     });
 
-    // 3 locked (skipped), 2 tested
     expect(testFnCallCount).toBe(2);
     expect(result.total).toBe(5);
     expect(result.passed).toBe(5);

@@ -1,10 +1,3 @@
-/**
- * Tests for capture analysis module.
- *
- * Verifies that analyzeCaptures() correctly detects variables crossing $()
- * boundaries, handles var hoisting, destructured bindings, globals/imports
- * exclusion, and the distinction between captureNames and paramNames.
- */
 
 import { describe, it, expect } from 'vitest';
 import { parseSync } from 'oxc-parser';
@@ -154,7 +147,6 @@ describe('analyzeCaptures', () => {
       });
     `;
 
-    // The inner $() is the second $() call (index 1)
     const { argNode, parentScopeIds, importedNames, freeIds } = findNthDollarArg(source, 1);
     const result = analyzeCaptures(argNode, parentScopeIds, freeIds);
 
@@ -258,14 +250,12 @@ describe('analyzeCaptures', () => {
   });
 
   it('Test 8: no captures for module-level refs - returns empty', () => {
-    // Module-level vars are NOT in parentScopeIdentifiers (they go through migration)
     const source = `
       import { $ } from '@qwik.dev/core';
       const moduleVar = 42;
       $(() => { moduleVar; });
     `;
 
-    // For module-level, parentScopeIds is empty (no enclosing function scope)
     const { argNode, freeIds } = findDollarArg(source);
     const emptyParentScope = new Set<string>();
     const result = analyzeCaptures(argNode, emptyParentScope, freeIds);
@@ -288,10 +278,6 @@ describe('analyzeCaptures', () => {
   });
 
   it('Test 10: inner-scope binding shadowing a top-level import IS captured', () => {
-    // The inner `const qrl = 23` shadows the outer `import { qrl } from ...`.
-    // The click handler's reference to `qrl` resolves to the inner binding
-    // and must cross the segment boundary as a capture (so const-literal
-    // resolution can later inline it to `23` in the segment body).
     const source = `
       import { qrl } from '@qwik.dev/core/what';
       function host() {
@@ -300,9 +286,7 @@ describe('analyzeCaptures', () => {
       }
     `;
 
-    // The $() inside host() is the second $-suffixed call in the source.
     const { argNode, parentScopeIds, importedNames, freeIds } = findNthDollarArg(source, 0);
-    // Sanity check: the helper records both the import AND the inner binding.
     expect(importedNames.has('qrl')).toBe(true);
     expect(parentScopeIds.has('qrl')).toBe(true);
 

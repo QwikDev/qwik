@@ -1,13 +1,8 @@
 /**
- * Strip exports module for the Qwik optimizer.
- *
- * When the `stripExports` option specifies export names, their bodies are
- * replaced with a throw statement. This pass only rewrites the export
- * bodies — never the imports. Imports left unused by the strip are pruned
- * by the parent rewrite's `filterUnusedImports`, which runs after this pass
- * and re-checks every surviving import against the post-strip module body.
- * Doing import cleanup here too would re-add imports onto the ranges
- * `processImports` already removed, emitting each surviving import twice.
+ * Only the export *bodies* are rewritten — never imports. Import cleanup
+ * happens later in `filterUnusedImports` against the post-strip body;
+ * pruning here would re-add imports onto ranges already removed, emitting
+ * each surviving import twice.
  */
 
 import type MagicString from 'magic-string';
@@ -20,9 +15,6 @@ interface StripExportsResult {
   strippedNames: string[];
 }
 
-/**
- * Replace the bodies of the named exports with a throw statement.
- */
 export function stripExportDeclarations(
   s: MagicString,
   program: AstProgram,

@@ -60,7 +60,6 @@ describe('buildSyncTransform', () => {
     const result = buildSyncTransform(originalFn);
     expect(result).toContain('_qrlSync(');
     expect(result).toContain(originalFn);
-    // Should have a minified string as second argument
     expect(result).toMatch(/_qrlSync\([\s\S]+,\s*"/);
   });
 

@@ -1,24 +1,3 @@
-/**
- * Profiling workload driver for the optimizer pipeline.
- *
- * Runs a deterministic, repeatable `transformModule` workload (1 warmup +
- * N measured iterations) so a sampling profiler can be attached to a
- * known shape:
- *
- *   PROFILE_ITERATIONS=30 npx vitest run tests/benchmark/profile-deep.test.ts \
- *     --no-file-parallelism
- *
- * and for a CPU profile, run the same command under `node --cpu-prof`
- * (or vitest's `--cpu-prof` passthrough) — the BENCHMARKS.md inclusive
- * on-stack tables were produced this way over the built dist.
- *
- * Workload selection: the worst-case real-world file from a Qwik
- * checkout (`$QWIK_HOME`, same file BENCH-02 uses) when available;
- * otherwise the largest snapshot fixture input from `match-these-snaps`,
- * so the harness still runs (and stays a passing test) on machines and
- * CI runners without a Qwik checkout.
- */
-
 import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, dirname, relative } from 'node:path';
@@ -88,8 +67,6 @@ describe('profiling harness', () => {
         sourceMaps: false,
       });
 
-    // Warmup, and the correctness gate: the workload must transform into
-    // a parent module plus at least one extracted segment.
     const warmup = run();
     expect(warmup.modules.length).toBeGreaterThan(1);
 

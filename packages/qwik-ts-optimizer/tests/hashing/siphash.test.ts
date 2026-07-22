@@ -24,7 +24,6 @@ describe('qwikHash', () => {
     const hash = qwikHash(undefined, 'test.tsx', 'renderHeader1');
     expect(hash).toHaveLength(11);
     expect(hash).toMatch(createRegExp(oneOrMore(anyOf(letter, digit)).at.lineStart().at.lineEnd()));
-    // No - or _ characters
     expect(hash).not.toMatch(createRegExp(charIn('-_')));
   });
 
@@ -43,12 +42,6 @@ describe('qwikHash', () => {
       displayName: string;
     }> = [];
 
-    // Known edge cases where the hash input uses a different algorithm:
-    // - Segments with loc [0,0] (server-stripped segments, hash computed differently)
-    // - Segments where name == hash (explicit named QRLs, no auto-hash)
-    // - Segments from external modules (origin has ../ prefix, path resolution differs)
-    // - CSS import segments (display name derived from import source, not context stack)
-    // These will be handled during optimizer implementation in later phases.
     const KNOWN_EDGE_CASE_FILES = new Set([
       'qwik_core__test__example_build_server.snap',
       'qwik_core__test__example_capture_imports.snap',
@@ -67,27 +60,22 @@ describe('qwikHash', () => {
         if (!segment.metadata) continue;
         const meta = segment.metadata;
 
-        // displayName = "{fileBasename}_{contextPortion}"
-        // The file basename in displayName comes from the last path component of origin
         const lastSlash = meta.origin.lastIndexOf('/');
         const basename = lastSlash >= 0 ? meta.origin.slice(lastSlash + 1) : meta.origin;
         const prefix = basename + '_';
 
         if (!meta.displayName.startsWith(prefix)) {
-          // displayName doesn't use origin basename -- skip (edge case)
           skipped++;
           continue;
         }
 
         const contextPortion = meta.displayName.slice(prefix.length);
 
-        // Skip segments where hash == name (explicit named QRLs, not auto-hashed)
         if (meta.hash === meta.name) {
           skipped++;
           continue;
         }
 
-        // Skip segments with loc [0,0] (server-stripped, hash computed differently)
         if (meta.loc[0] === 0 && meta.loc[1] === 0) {
           skipped++;
           continue;
@@ -97,7 +85,6 @@ describe('qwikHash', () => {
         totalHashes++;
 
         if (computed !== meta.hash) {
-          // For known edge case files, track but don't fail
           if (KNOWN_EDGE_CASE_FILES.has(file)) {
             skipped++;
             continue;
@@ -119,7 +106,6 @@ describe('qwikHash', () => {
       console.log(`Mismatches:`, JSON.stringify(mismatches, null, 2));
     }
     expect(mismatches).toHaveLength(0);
-    // Ensure we tested a substantial number of hashes
     expect(totalHashes).toBeGreaterThan(350);
   });
 });

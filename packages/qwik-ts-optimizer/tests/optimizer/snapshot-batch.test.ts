@@ -1,14 +1,3 @@
-/**
- * Snapshot batch validation for the Qwik optimizer.
- *
- * Uses Phase 1's snapshot parser and AST comparison to validate
- * transformModule() output against the real snapshot corpus.
- *
- * Phase 2 scope: Only snapshots that test extraction, call form rewriting,
- * and import handling. Snapshots requiring captures, JSX transforms, signals,
- * or entry strategies are deferred to later phases.
- */
-
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -25,21 +14,11 @@ const SNAP_DIR = join(__dirname, '../../match-these-snaps');
 describe('snapshot batch validation', () => {
   const allFiles = getSnapshotFiles(SNAP_DIR);
 
-  /**
-   * Full end-to-end matches: parent module + all segments match.
-   * These snapshots test extraction, call form rewriting, import handling,
-   * QRL declarations, and segment codegen.
-   */
   const fullMatchSnapshots = [
     'qwik_core__test__issue_117.snap',
     'qwik_core__test__special_jsx.snap',
   ];
 
-  /**
-   * Parent-only matches: parent module matches but segments may differ
-   * due to nested call rewriting, variable migration, or JSX transforms
-   * that are deferred to later phases.
-   */
   const parentMatchSnapshots = [
     'qwik_core__test__example_2.snap',
     'qwik_core__test__example_4.snap',
@@ -47,11 +26,6 @@ describe('snapshot batch validation', () => {
     'qwik_core__test__example_of_synchronous_qrl.snap',
   ];
 
-  /**
-   * JSX-related snapshots (Phase 4): parent module match.
-   * These test JSX transform integration, event naming, signal wrapping,
-   * bind desugaring, and loop hoisting in the parent module output.
-   */
   const jsxParentMatchSnapshots = [
     'qwik_core__test__should_convert_jsx_events.snap',
     'qwik_core__test__example_jsx.snap',
@@ -90,7 +64,6 @@ describe('snapshot batch validation', () => {
           mode: 'test',
         });
 
-        // Compare parent module
         if (parsed.parentModules.length > 0) {
           const expectedParent = parsed.parentModules[0];
           const actualParent = result.modules[0];
@@ -104,7 +77,6 @@ describe('snapshot batch validation', () => {
           ).toBe(true);
         }
 
-        // Compare segment modules
         for (const expectedSeg of parsed.segments) {
           if (!expectedSeg.metadata) continue;
 
@@ -124,7 +96,6 @@ describe('snapshot batch validation', () => {
             ).toBe(true);
           }
 
-          // Compare segment metadata
           if (actualSeg?.kind === 'segment' && expectedSeg.metadata) {
             const actual = actualSeg.segment;
             const expected = expectedSeg.metadata;
@@ -167,10 +138,6 @@ describe('snapshot batch validation', () => {
           mode: 'test',
         });
 
-        // Verify segment metadata matches for segments that exist
-        // Note: Some segments have transformed event names (q_e_click vs onClick$)
-        // in their display names which requires extraction pipeline changes.
-        // We verify matching segments and track missing ones.
         let matchedCount = 0;
         const missingSegments: string[] = [];
 
@@ -192,20 +159,17 @@ describe('snapshot batch validation', () => {
             const actual = actualSeg.segment;
             const expected = expectedSeg.metadata;
 
-            // Core identity fields
             expect(actual.origin).toBe(expected.origin);
             expect(actual.name).toBe(expected.name);
             expect(actual.displayName).toBe(expected.displayName);
             expect(actual.hash).toBe(expected.hash);
             expect(actual.canonicalFilename).toBe(expected.canonicalFilename);
-            // Context and capture fields
             expect(actual.ctxKind).toBe(expected.ctxKind);
             expect(actual.ctxName).toBe(expected.ctxName);
             expect(actual.captures).toBe(expected.captures);
           }
         }
 
-        // Verify we processed the snapshot (count matched + missing = total)
         const totalExpected = parsed.segments.filter((s) => s.metadata).length;
         expect(matchedCount + missingSegments.length).toBe(totalExpected);
       });
@@ -235,7 +199,6 @@ describe('snapshot batch validation', () => {
           mode: 'test',
         });
 
-        // Compare parent module only
         if (parsed.parentModules.length > 0) {
           const expectedParent = parsed.parentModules[0];
           const actualParent = result.modules[0];

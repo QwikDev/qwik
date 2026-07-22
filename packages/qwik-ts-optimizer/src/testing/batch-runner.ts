@@ -18,26 +18,16 @@ export interface BatchResult {
 export interface BatchConfig {
   snapshotDir: string;
   batchSize: number;
-  batchIndex: number; // 0-based
-  lockFile?: string; // Path to lock file (JSON array of locked snapshot filenames)
+  batchIndex: number;
+  lockFile?: string;
 }
 
-/**
- * Get all .snap filenames from a directory, sorted alphabetically.
- */
 export function getSnapshotFiles(dir: string): string[] {
   return readdirSync(dir)
     .filter((f) => f.endsWith('.snap'))
     .sort();
 }
 
-/**
- * Get the list of snapshot filenames for a specific batch.
- * @param files - All snapshot filenames (sorted)
- * @param batchSize - Number of snapshots per batch
- * @param batchIndex - 0-based batch index
- * @returns Array of filenames in this batch
- */
 export function getBatchFiles(
   files: string[],
   batchSize: number,
@@ -47,19 +37,12 @@ export function getBatchFiles(
   return files.slice(start, start + batchSize);
 }
 
-/**
- * Load locked snapshot names from a lock file.
- * Returns empty array if file does not exist.
- */
 export function loadLockedSnapshots(lockFile: string): string[] {
   if (!existsSync(lockFile)) return [];
   const content = readFileSync(lockFile, 'utf-8');
   return JSON.parse(content) as string[];
 }
 
-/**
- * Save locked snapshot names to a lock file.
- */
 export function saveLockedSnapshots(lockFile: string, names: string[]): void {
   writeFileSync(
     lockFile,
@@ -67,17 +50,6 @@ export function saveLockedSnapshots(lockFile: string, names: string[]): void {
   );
 }
 
-/**
- * Run a batch of snapshot tests.
- *
- * For Phase 1, this only validates that snapshots parse correctly.
- * In Phase 2+, a `testFn` callback will be provided that runs the
- * actual optimizer and compares output.
- *
- * @param config - Batch configuration
- * @param testFn - Optional test function per snapshot. If not provided, only validates parsing.
- * @returns BatchResult with pass/fail for each snapshot
- */
 export function runBatch(
   config: BatchConfig,
   testFn?: (
@@ -92,7 +64,6 @@ export function runBatch(
   const results: SnapshotTestResult[] = [];
 
   for (const file of batchFiles) {
-    // Skip locked snapshots (they already passed)
     if (locked.includes(file)) {
       results.push({ file, passed: true });
       continue;
@@ -106,7 +77,6 @@ export function runBatch(
         const result = testFn(snapshot, file);
         results.push({ file, passed: result.passed, error: result.error });
       } else {
-        // Default: just validate parsing succeeded
         results.push({ file, passed: true });
       }
     } catch (err) {
@@ -123,10 +93,6 @@ export function runBatch(
   };
 }
 
-/**
- * Lock all passing snapshots from a batch result.
- * Appends to existing locked list (never removes).
- */
 export function lockPassingSnapshots(
   lockFile: string,
   batchResult: BatchResult,

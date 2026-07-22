@@ -36,7 +36,6 @@ describe('ContextStack', () => {
     ctx.push('Header');
     ctx.push('component$');
     const symbolName = ctx.getSymbolName();
-    // Should be "Header_component_{hash}"
     expect(symbolName).toMatch(/^Header_component_[A-Za-z0-9]+$/);
   });
 

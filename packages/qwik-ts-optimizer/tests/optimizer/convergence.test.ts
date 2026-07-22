@@ -1,13 +1,3 @@
-/**
- * Convergence test for the Qwik optimizer.
- *
- * Runs ALL 209 snapshot tests through transformModule() with correct
- * per-snapshot options and compares output against expected snapshots.
- *
- * This is a measurement tool -- not all tests are expected to pass yet.
- * It serves as the convergence dashboard to track progress.
- */
-
 import { describe, it, expect } from 'vitest';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -23,10 +13,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const SNAP_DIR = join(__dirname, '../../match-these-snaps');
 const TS_OUTPUT_DIR = join(__dirname, '../../ts-output');
 
-// Ensure ts-output directory exists
 mkdirSync(TS_OUTPUT_DIR, { recursive: true });
 
-/** Format a transform result as a snapshot file for ts-output/ */
 function formatSnapshot(input: string, result: TransformOutput): string {
   const lines: string[] = ['==INPUT==\n', input];
 
@@ -44,10 +32,6 @@ function formatSnapshot(input: string, result: TransformOutput): string {
   return lines.join('');
 }
 
-/**
- * Extract the test name from a snapshot filename.
- * e.g., 'qwik_core__test__example_1.snap' -> 'example_1'
- */
 function getTestName(snapFilename: string): string {
   return snapFilename
     .replace('qwik_core__test__', '')
@@ -57,7 +41,6 @@ function getTestName(snapFilename: string): string {
 describe('convergence: all 209 snapshots', () => {
   const allFiles = getSnapshotFiles(SNAP_DIR);
 
-  // Track results for summary
   const results = {
     total: 0,
     fullPass: 0,
@@ -80,12 +63,9 @@ describe('convergence: all 209 snapshots', () => {
 
       if (!parsed.input) {
         results.noInput++;
-        // Some snapshots have no INPUT section (pre-transformed code)
-        // Skip these -- they test already-inlined code
         return;
       }
 
-      // Get per-snapshot options
       const options = getSnapshotTransformOptions(testName, parsed.input);
 
       let result;
@@ -96,13 +76,11 @@ describe('convergence: all 209 snapshots', () => {
         throw new Error(`transformModule() threw for ${testName}: ${err}`);
       }
 
-      // Write current output to ts-output/ so it stays in sync automatically
       writeFileSync(join(TS_OUTPUT_DIR, snapFile), formatSnapshot(parsed.input, result));
 
       let parentMatches = true;
       let segmentsMatch = true;
 
-      // Compare parent module
       if (parsed.parentModules.length > 0) {
         const expectedParent = parsed.parentModules[0];
         const actualParent = result.modules[0];
@@ -116,7 +94,6 @@ describe('convergence: all 209 snapshots', () => {
         }
       }
 
-      // Compare segment modules
       for (const expectedSeg of parsed.segments) {
         if (!expectedSeg.metadata) continue;
 
@@ -129,7 +106,6 @@ describe('convergence: all 209 snapshots', () => {
           continue;
         }
 
-        // Compare segment code via AST
         if (actualSeg.code && expectedSeg.code) {
           const parseFilename = expectedSeg.filename || 'test.tsx';
           const astResult = compareAst(expectedSeg.code, actualSeg.code, parseFilename);
@@ -138,7 +114,6 @@ describe('convergence: all 209 snapshots', () => {
           }
         }
 
-        // Compare segment metadata
         if (actualSeg.kind === 'segment' && expectedSeg.metadata) {
           const actual = actualSeg.segment;
           const expected = expectedSeg.metadata;
@@ -158,7 +133,6 @@ describe('convergence: all 209 snapshots', () => {
         }
       }
 
-      // Classify result
       if (parentMatches && segmentsMatch) {
         results.fullPass++;
       } else if (!parentMatches && segmentsMatch) {
@@ -169,13 +143,11 @@ describe('convergence: all 209 snapshots', () => {
         results.fullFail++;
       }
 
-      // Assert -- this will cause individual test failures but shows progress
       expect(parentMatches, `Parent module mismatch for ${testName}`).toBe(true);
       expect(segmentsMatch, `Segment mismatch for ${testName}`).toBe(true);
     });
   }
 
-  // Summary test -- always runs last to show convergence metrics
   it('convergence summary', () => {
     console.log('\n=== CONVERGENCE SUMMARY ===');
     console.log(`Total:            ${results.total}`);
@@ -188,7 +160,6 @@ describe('convergence: all 209 snapshots', () => {
     console.log(`Pass rate:        ${results.total > 0 ? ((results.fullPass / results.total) * 100).toFixed(1) : 0}%`);
     console.log('===========================\n');
 
-    // This test always passes -- it's just for reporting
     expect(results.total).toBeGreaterThan(0);
   });
 });

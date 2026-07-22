@@ -3,30 +3,18 @@ import type { AstFunction, AstProgram } from '../../ast-types.js';
 import { parseWithRawTransfer } from '../ast/parse.js';
 
 /**
- * Canonical wrapper for body-text edit sessions. Every session wraps the
- * body identically (and parses under one filename) so the parse memo
- * below can recognize repeated parses: consecutive helpers in a body
- * pipeline that operate on the same text version share one parse instead
- * of each paying for its own.
+ * Every session wraps the body identically (and parses under one filename) so the
+ * parse memo can key on the wrapped source and share a parse across consecutive
+ * helpers operating on the same text.
  */
 const WRAPPER_PREFIX = 'const __seg__ = ';
 const SESSION_FILENAME = '__session__.tsx';
 
 /**
- * Last-N parse memo, keyed by the exact wrapped source string — a text
- * change between helpers produces a different key, so staleness is
- * impossible by construction. Sharing is safe because eager raw-transfer
- * parses materialize plain JS objects (no buffer aliasing) and session
- * consumers read the AST without mutating it; each session still gets
- * its own MagicString.
- *
- * Cap of 16: the session churn census (see BENCHMARKS.md) found a cap of
- * 4 thrashing under interleaved parent/nested-segment pipelines — ~20
- * re-parses of already-seen text per worst-case file once the duplicated
- * field-map extraction was unified. Entries are small segment-body ASTs (the whole
- * worst-case file's session parse volume is ~0.3 MB of text), so the
- * extra retention is noise; the cap still keeps the memo from growing
- * with module count.
+ * Parse memo keyed by the exact wrapped source string, so a text change between
+ * helpers produces a different key and staleness is impossible. Sharing a parsed
+ * AST is safe: raw-transfer parses materialize plain JS objects (no buffer
+ * aliasing) and consumers read without mutating; each session gets its own MagicString.
  */
 const PARSE_MEMO_CAP = 16;
 const parseMemo = new Map<string, ReturnType<typeof parseWithRawTransfer>>();
@@ -34,7 +22,7 @@ const parseMemo = new Map<string, ReturnType<typeof parseWithRawTransfer>>();
 function memoizedParse(wrappedSource: string): ReturnType<typeof parseWithRawTransfer> {
   const hit = parseMemo.get(wrappedSource);
   if (hit !== undefined) {
-    // Refresh recency so chains longer than the cap keep their hot entry.
+    // Re-insert (LRU): move the hot entry to the newest slot so it survives eviction.
     parseMemo.delete(wrappedSource);
     parseMemo.set(wrappedSource, hit);
     return hit;
@@ -65,12 +53,10 @@ export interface FunctionTransformSession extends TransformSession {
 
 interface TransformSessionOptions {
   /**
-   * Proceed with the recovered AST when the parse reports recoverable
-   * errors (`program` present, `errors` non-empty). Call sites that
-   * historically parsed directly without an error check — and whose
-   * inputs legitimately contain recoverable shapes like `() => await
-   * api()` in non-async position — opt in; edit-applying sites stay
-   * strict and bail to their unchanged-text fallback.
+   * Proceed with the recovered AST when the parse reports recoverable errors.
+   * Analysis call sites whose inputs legitimately contain recoverable shapes
+   * (e.g. `() => await api()` in non-async position) opt in; edit-applying sites
+   * stay strict and bail to their unchanged-text fallback.
    */
   tolerateErrors?: boolean;
 }
@@ -87,9 +73,7 @@ export function createTransformSession(
     return null;
   }
 
-  // MagicString construction walks the whole wrapped source; read-only
-  // sessions (analysis helpers that never edit) shouldn't pay for it, so
-  // the instance materializes on first `edits` access.
+  // Lazy so read-only sessions don't pay MagicString's full-source walk.
   let edits: MagicString | undefined;
   return {
     sourceText,

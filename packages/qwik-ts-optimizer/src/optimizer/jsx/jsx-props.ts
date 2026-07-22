@@ -1,11 +1,3 @@
-/**
- * JSX attribute/prop processing for the Qwik optimizer.
- *
- * Classifies JSX attributes into varProps and constProps, handles event
- * handler transformation, bind desugaring, spread attributes, and
- * signal analysis for prop values.
- */
-
 import type { AstMaybeNode, JSXAttributeItem } from '../../ast-types.js';
 import { analyzeSignalExpression } from './signal-analysis.js';
 import { transformEventPropName, isEventProp, isPassiveDirective } from './event-handlers.js';
@@ -24,13 +16,10 @@ import { startsWithRewrittenEventPrefix } from '../qwik/event-attrs.js';
 import { getJsxAttributeName } from './jsx-attr-name.js';
 
 /**
- * Try to read a byte range from the transform buffer (`sliceTransformed` —
- * an exact-range JSX write-memo hit, else `s.slice`, both reflecting
- * accumulated edits). Fall back to the original `source` text when
- * MagicString throws (happens when the range's start byte is inside a
- * previously-replaced range, making the slice anchor ambiguous — e.g.
- * when an upstream rewrite has already overwritten the entire attribute
- * value before the JSX walker reaches the outer element).
+ * Read a byte range from the transform buffer, falling back to the original
+ * `source` when MagicString throws — which happens when the range's start byte
+ * lies inside a previously-replaced range (an upstream rewrite overwrote the
+ * attribute value before the JSX walker reached the outer element).
  */
 function sliceWithFallback(
   ctx: JsxTransformContext,
@@ -45,18 +34,16 @@ function sliceWithFallback(
 }
 
 /**
- * Slot entry — one element per JSX attribute in source order. Captures
- * enough information for `buildJsxSplitCall` to assemble var/
- * const bags while preserving SWC's emit ordering rules:
+ * Slot entry — one per JSX attribute in source order. Captures enough for
+ * `buildJsxSplitCall` to assemble var/const bags in emit order:
  *
- *   - top-level: attributes appear in source order;
- *   - named props with stable values placed AFTER ALL spreads land in
- *     the const-bag; everything else (including stable-but-pre-spread
- *     and unstable values) lands in the var-bag at its source position;
- *   - spreads appear as raw `...expr` in the var-bag at source position
- *     when the post-all-spreads const set is non-empty; otherwise the
- *     `_getVarProps`/`_getConstProps` split wrappers are needed for the
- *     spread's content to be classified at runtime.
+ *   - attributes appear in source order;
+ *   - named props with stable values placed AFTER ALL spreads land in the
+ *     const-bag; everything else (stable-but-pre-spread and unstable values)
+ *     lands in the var-bag at its source position;
+ *   - spreads appear as raw `...expr` in the var-bag when the post-all-spreads
+ *     const set is non-empty; otherwise the `_getVarProps`/`_getConstProps`
+ *     wrappers are needed so the spread's content is classified at runtime.
  */
 export type SlotEntry =
   | {
@@ -71,7 +58,6 @@ export type SlotEntry =
       readonly sourceStart: number;
     };
 
-/** True for value nodes that are always const (literals, arrows, identifiers). */
 function isConstValueNode(valueNode: AstMaybeNode): boolean {
   if (!valueNode) return true;
   switch (valueNode.type) {
@@ -88,16 +74,10 @@ function isConstValueNode(valueNode: AstMaybeNode): boolean {
 }
 
 /**
- * Fold the whitespace of a string-literal JSX attribute value so a value
- * spanning multiple physical source lines (or containing tabs) survives
- * re-emission as a single-line JS string literal — raw newlines inside an
- * emitted JS string are a syntax error. `quoted` is the raw source slice
- * including its surrounding quote characters.
- *
- * Per-line: tabs become spaces; leading whitespace is stripped from
- * continuation lines and trailing whitespace from every non-last line; the
- * lines (empty ones included, so a blank line contributes one join space)
- * are joined with a single space.
+ * Fold a string-literal JSX attribute value so a value spanning multiple
+ * physical lines (or containing tabs) survives re-emission as a single-line
+ * JS string literal — raw newlines in an emitted JS string are a syntax error.
+ * `quoted` is the raw source slice including its surrounding quotes.
  */
 function foldJsxAttrStringWhitespace(quoted: string): string {
   const quote = quoted[0];
@@ -114,12 +94,10 @@ function foldJsxAttrStringWhitespace(quoted: string): string {
   return `${quote}${folded}${quote}`;
 }
 
-/** True if entry string is a quoted prop key whose name has a rewritten event prefix. */
 export function isRewrittenEventEntry(entry: string): boolean {
   return entry.startsWith('"') && startsWithRewrittenEventPrefix(entry.slice(1));
 }
 
-/** Sort var entries alphabetically by prop key (SWC sorts var_props when no spread). */
 export function sortVarEntries(entries: string[]): void {
   if (entries.length > 1) {
     entries.sort((a, b) => {
@@ -138,9 +116,6 @@ export function formatPropName(name: string): string {
   return needsQuoting(name) ? `"${name}"` : name;
 }
 
-/**
- * Process JSX attributes and classify them into varProps and constProps.
- */
 export function processProps(
   ctx: JsxTransformContext,
   attributes: JSXAttributeItem[],
@@ -173,10 +148,9 @@ export function processProps(
     return { varEntries, constEntries, beforeSpreadEntries, key, hasVarProps: false, hasVarEventHandler: false, hasSpread, additionalSpreads: [], slotOrder, neededImports };
   }
 
-  // Keep the legacy buckets in sync with `slotOrder` at every push site.
-  // The dual write costs little and avoids ripple to the many existing
-  // readers of the buckets (event-handler movement, `buildJsxSplitCall`
-  // legacy paths, `_jsxSorted` no-spread emit, etc.).
+  // Dual-write the legacy buckets and `slotOrder` at every push so the many
+  // existing bucket readers (event-handler movement, `buildJsxSplitCall`,
+  // `_jsxSorted` emit) don't need to change.
   const pushNamed = (
     bucket: string[],
     entry: string,
@@ -247,27 +221,16 @@ export function processProps(
       valueNode = null;
     } else if (attr.value.type === 'JSXExpressionContainer') {
       valueNode = attr.value.expression;
-      // Prefer MagicString (post-rewrite) over the raw source. By the
-      // time `processProps` is called for an outer JSXElement's leave
-      // handler, any JSX nested inside this attribute value's arrow
-      // body has already been visited and overwritten in `s` (DFS
-      // leaves children before parent). Slicing from `source` would
-      // re-emit the original raw JSX into the outer call's attribute
-      // bag, and the surrounding `s.overwrite(node.start, node.end,
-      // callStr)` for the outer element would clobber the inner
-      // rewrites. `s.slice` reflects the post-rewrite text so the
-      // inner `_jsxSorted(...)` survives. The fallback to `source.slice`
-      // covers the case where the value bytes are themselves inside a
-      // replaced range (an upstream rewrite that overwrote the entire
-      // attribute, e.g. event-handler QRL replacement) — MagicString
-      // throws "Cannot use replaced character N as slice start anchor"
-      // in that case; the raw source matches what's expected then.
+      // Prefer the post-rewrite buffer over raw source: DFS leaves children
+      // before the parent, so JSX nested in this attribute's arrow body is
+      // already overwritten in `s`; slicing raw `source` would re-emit the
+      // original JSX and the outer element's overwrite would clobber the inner
+      // rewrites. The fallback covers value bytes inside a replaced range,
+      // where MagicString throws on the slice anchor.
       valueText = sliceWithFallback(ctx, valueNode.start, valueNode.end);
-      // Match SWC's `simplify::simplifier` (explicitly invoked from
-      // swc-reference-only/parse.rs:360) by simplifying compile-time-
-      // constant prop expressions to their literal result. Without
-      // this, `prop={'true' + 1 ? 'true' : ''}` emits as
-      // `prop: "true" + 1 ? "true" : ""` instead of `prop: 'true'`.
+      // Fold compile-time-constant prop expressions to their literal result,
+      // so `prop={'true' + 1 ? 'true' : ''}` emits as `prop: 'true'` instead
+      // of `prop: "true" + 1 ? "true" : ""`.
       const simplified = simplifyExpression(valueNode);
       if (simplified.simplified) {
         valueText = formatSimplifiedLiteral(simplified.value);
@@ -275,11 +238,8 @@ export function processProps(
     } else {
       valueNode = attr.value;
       valueText = sliceWithFallback(ctx, attr.value.start, attr.value.end);
-      // A string-literal attribute value may span multiple physical lines
-      // or contain tabs in source — valid JSX, but raw newlines inside an
-      // emitted JS string literal are a syntax error. Only touch the slice
-      // when such characters are present so single-line values keep their
-      // exact source bytes (and existing snapshots are unaffected).
+      // Only fold when a newline/tab/CR is present, so single-line values keep
+      // their exact source bytes.
       if (attr.value.type === 'Literal' && /[\n\r\t]/.test(valueText)) {
         valueText = foldJsxAttrStringWhitespace(valueText);
       }
@@ -340,11 +300,9 @@ export function processProps(
         pushNamed(constEntries, `${formattedName}: ${valueText}`, 'const', attr.start);
       } else {
         pushNamed(varEntries, `${formattedName}: ${valueText}`, 'var', attr.start);
-        // SWC clears `static_listeners` whenever any prop's value is
-        // non-const (`swc-reference-only/transform.rs:2514-2516`,
-        // mirroring :2441-2443). TS's flag math reads
-        // `hasVarEventHandler` for bit 0; setting it here brings
-        // Component-prop `*$` attrs with non-const values into parity.
+        // A non-const prop value clears the static_listeners bit; the flag math
+        // reads `hasVarEventHandler` for bit 0, so set it here for Component-prop
+        // `*$` attrs with non-const values.
         hasVarEventHandler = true;
       }
       continue;
@@ -366,11 +324,9 @@ export function processProps(
           hasVarEventHandler = true;
         }
       } else {
-        // Capture the slot entry at the prop's source position so the
-        // source-order var-bag emission path in `buildJsxSplitCall`
-        // sees the rewritten event handler in its lexical order. The
-        // `bindHandlers` map below still drives the legacy bucket
-        // injection — both paths stay in sync.
+        // Record the slot at the prop's source position so `buildJsxSplitCall`'s
+        // source-order emission sees the rewritten handler in lexical order; the
+        // `bindHandlers` map still drives the legacy bucket injection.
         const existing = bindHandlers.get(propName);
         const isConst = isConstValueNode(valueNode);
         if (existing) {
@@ -456,7 +412,6 @@ export function processProps(
     sortVarEntries(varEntries);
   }
 
-  // Merge bind handlers into their target bucket
   const hasBindEntries = varEntries.some(e => e.startsWith('"bind:'));
   const eventTarget = (hasSpread && tagIsHtml && !hasBindEntries) ? varEntries : constEntries;
   for (const [eventName, handlerCode] of bindHandlers) {

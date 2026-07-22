@@ -16,7 +16,7 @@
  * machinery for body emission + capture wiring (extraction, capture analysis,
  * `q_X.s(body)` synthesis); only the final emission shape differs.
  *
- * Mirrors SWC's library-mode emit (`match-these-snaps/qwik_core__test__example_lib_mode.snap`):
+ * Emits library-mode form:
  *
  *   export const Works = componentQrl(inlinedQrl((props) => {
  *     useStyleQrl(inlinedQrl(STYLES, "Works_component_useStyle_..."));
@@ -25,12 +25,10 @@
  *     ...
  *   }, "Works_component_..."));
  *
- * Bodies are substituted bottom-up: each q_X's body string has inner q_Y
- * references replaced FIRST so when the outer q_X body is inlined at its
- * reference site, it already contains the fully-collapsed inner literals.
+ * Bodies are substituted bottom-up: each q_X's body has inner q_Y references
+ * replaced first, so the outer literal already contains the collapsed inner ones.
  *
- * Import side: removes `_noopQrl` (no longer needed), adds `inlinedQrl`.
- * `_captures` stays (still referenced inside collapsed bodies).
+ * Import side: removes `_noopQrl`, adds `inlinedQrl`; `_captures` stays.
  */
 
 import MagicString from 'magic-string';
@@ -40,25 +38,23 @@ import { RAW_TRANSFER_PARSER_OPTIONS } from '../../ast-types.js';
 import { createTransformSession } from '../edit/transform-session.js';
 
 interface NoopQrlDecl {
-  readonly qVarName: string;       // e.g. "q_Works_component_..."
-  readonly qrlSymbolName: string;  // e.g. "Works_component_..."
+  readonly qVarName: string;
+  readonly qrlSymbolName: string;
   readonly start: number;
   readonly end: number;
 }
 
 interface SCallStatement {
   readonly qVarName: string;
-  readonly bodyText: string;       // body literal source text (function expr, identifier ref, etc.)
+  readonly bodyText: string;
   readonly start: number;
   readonly end: number;
   readonly bodyDecl?: { name: string; start: number; end: number };
 }
 
 /**
- * Collapse the inline-strategy output into lib-mode emit shape.
- *
- * Returns the rewritten source. If no `_noopQrl(...)` decls are found
- * (e.g. parse failure, non-lib input), returns the source unchanged.
+ * Collapse the inline-strategy output into lib-mode emit shape. Returns the
+ * source unchanged when no `_noopQrl(...)` decls are found.
  */
 export function collapseToLibInlinedQrl(source: string): string {
   const parsed = parseSync('lib-collapse.tsx', source, RAW_TRANSFER_PARSER_OPTIONS);
@@ -71,25 +67,19 @@ export function collapseToLibInlinedQrl(source: string): string {
   const sCalls = collectSCallStatements(program, source, noopDecls);
   if (sCalls.size === 0) return source;
 
-  // Build qVarName → collapsed inlinedQrl literal, bottom-up. For each
-  // q_X, take its raw body source and substitute any inner `q_Y` /
-  // `q_Y.w([...])` references with their already-collapsed `inlinedQrl(...)`
-  // literals. Topological-ish via lazy memoization: each q_X is built on
-  // first demand, recursively visiting its dependencies.
   const inlinedLiteralsByVar = new Map<string, string>();
   const inProgress = new Set<string>();
   function buildInlinedLiteral(qVar: string): string | null {
     const cached = inlinedLiteralsByVar.get(qVar);
     if (cached !== undefined) return cached;
-    if (inProgress.has(qVar)) return null;  // cycle — should be impossible
+    if (inProgress.has(qVar)) return null;
     const decl = noopDecls.get(qVar);
     const sCall = sCalls.get(qVar);
     if (!decl || !sCall) return null;
     inProgress.add(qVar);
     const collapsedBody = substituteInnerQVarsInText(sCall.bodyText, buildInlinedLiteral);
     inProgress.delete(qVar);
-    // Bare-reference form (no captures); reference-site code adds the
-    // captures array as a 3rd argument when it sees `.w([...])`.
+    // Bare form; the reference site appends the captures array when it sees `.w([...])`.
     const literal = `/*#__PURE__*/ inlinedQrl(${collapsedBody}, "${decl.qrlSymbolName}")`;
     inlinedLiteralsByVar.set(qVar, literal);
     return literal;
@@ -103,10 +93,8 @@ export function collapseToLibInlinedQrl(source: string): string {
 
   const edits = new MagicString(source);
 
-  // Step 1: replace every q_X reference at top level (parent body) with the
-  // collapsed inlinedQrl literal. Skip references INSIDE noop-decl init or
-  // inside the body decls that we're going to delete — those are folded
-  // into the body strings via `substituteInnerQVarsInText`.
+  // Skip references inside noop-decl init or the body decls being deleted —
+  // those are folded into the body strings via `substituteInnerQVarsInText`.
   const skipRanges = collectSkipRanges(noopDecls, sCalls);
   const referenceRanges = collectQVarReferenceRanges(
     program, source, inlinedLiteralsByVar, skipRanges, noopDecls,
@@ -119,9 +107,6 @@ export function collapseToLibInlinedQrl(source: string): string {
     edits.overwrite(ref.start, ref.end, replacement);
   }
 
-  // Step 2: delete the now-redundant decls + .s() calls + (when separate)
-  // the body const decl. Reverse-order deletion keeps offsets stable
-  // even though MagicString handles non-overlapping ranges OK.
   const ranges: Array<{ start: number; end: number }> = [];
   for (const decl of noopDecls.values()) {
     if (!inlinedLiteralsByVar.has(decl.qVarName)) continue;
@@ -141,13 +126,8 @@ export function collapseToLibInlinedQrl(source: string): string {
 }
 
 /**
- * Re-parse `bodyText` as a standalone expression, walk it for `q_Y` /
- * `q_Y.w([...])` references, and substitute each with its collapsed
- * inlinedQrl literal (via `buildInlinedLiteral`). Returns the rewritten body.
- *
- * If the body is just an identifier reference (e.g. `q_X.s(STYLES)` where
- * `STYLES` is a module-level binding), it has no inner q_Y references and
- * passes through unchanged.
+ * Substitute inner `q_Y`/`q_Y.w([...])` references in `bodyText` with their
+ * collapsed inlinedQrl literals.
  */
 function substituteInnerQVarsInText(
   bodyText: string,
@@ -165,7 +145,6 @@ function substituteInnerQVarsInText(
   function walk(node: AstNode | null | undefined): void {
     if (!node || typeof node !== 'object') return;
 
-    // `q_Y.w([captures])` form
     if (
       node.type === 'CallExpression' &&
       node.callee?.type === 'MemberExpression' &&
@@ -190,7 +169,6 @@ function substituteInnerQVarsInText(
       }
     }
 
-    // Bare `q_Y` identifier
     if (node.type === 'Identifier') {
       const literal = buildInlinedLiteral(node.name);
       if (literal) {
@@ -215,12 +193,7 @@ function substituteInnerQVarsInText(
   return session.toSource();
 }
 
-/**
- * Take a base `inlinedQrl(body, "name")` literal and append a captures
- * array, producing `inlinedQrl(body, "name", [captures])`.
- */
 function insertCapturesIntoInlinedQrl(literal: string, captureArgsText: string): string {
-  // The literal ends in `)`; insert `, captures` before that paren.
   const lastParen = literal.lastIndexOf(')');
   if (lastParen < 0) return literal;
   return literal.slice(0, lastParen) + `, ${captureArgsText}` + literal.slice(lastParen);
@@ -300,15 +273,9 @@ function collectSCallStatements(
     let bodyText: string;
     let bodyDecl: SCallStatement['bodyDecl'];
     if (bodyArg.type === 'Identifier') {
-      // Two cases:
-      // 1. Per-segment body var: `q_X.s(X)` where `X` is the synthesized
-      //    body decl emitted by the inline pipeline. Resolve to the decl's
-      //    init text (the actual body) and mark the decl for deletion.
-      //    Naming convention: the body var matches the qrl symbol name.
-      // 2. User-level binding: `q_X.s(STYLES)` where `STYLES` is a
-      //    module-level const declared by the user. Keep the identifier
-      //    as the inlined body text; don't delete the decl (other code
-      //    may reference it and SWC's lib emit preserves it).
+      // Two cases: (1) synthesized body var `q_X.s(X)` where `X` matches the qrl
+      // symbol name — resolve to its init text and delete the decl; (2) user
+      // binding `q_X.s(STYLES)` — keep the identifier and preserve the decl.
       const decl = constDeclByName.get(bodyArg.name);
       const noopDecl = noopDecls.get(qVarName);
       const isSyntheticBody = decl != null && noopDecl != null &&
@@ -341,9 +308,8 @@ interface QVarReferenceRange {
 }
 
 /**
- * Collect ranges to skip when walking for q_X references: the `_noopQrl(...)`
- * decl statements, the `q_X.s(body)` statements, and the body decls that
- * back them. All of those get deleted/replaced by separate codepaths.
+ * Ranges to skip when walking for q_X references — the decls/statements
+ * deleted or replaced by separate codepaths.
  */
 function collectSkipRanges(
   noopDecls: Map<string, NoopQrlDecl>,
@@ -381,7 +347,6 @@ function collectQVarReferenceRanges(
     if (!node || typeof node !== 'object') return;
     if (typeof node.start === 'number' && isInsideAnyRange(node.start, skipRanges)) return;
 
-    // `q_X.w([captures])`
     if (
       node.type === 'CallExpression' &&
       node.callee?.type === 'MemberExpression' &&
@@ -407,10 +372,8 @@ function collectQVarReferenceRanges(
       }
     }
 
-    // Bare `q_X` identifier
     if (node.type === 'Identifier' && buildersByVar.has(node.name)) {
-      // Defensive — don't replace declarator-id positions even though
-      // we already skip _noopQrl decl statements via skipRanges.
+      // Defensive: don't replace declarator-id positions.
       out.push({ qVar: node.name, start: node.start, end: node.end });
       return;
     }

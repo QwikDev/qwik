@@ -1,26 +1,3 @@
-/**
- * Differential tests for the fused-extraction mode of the canonical
- * gather walk.
- *
- * The gather walk hosts the Phase-1 extraction collector, replacing the
- * standalone extraction traversal in the production pipeline. The
- * standalone `extractSegments` is retained as the differential oracle;
- * this suite runs both paths over the same parsed program and asserts:
- *
- *   - every `ExtractionResult` field is identical, in array order;
- *   - the `closureNodesOut` maps carry the same symbolName keys and
- *     reference-identical AST nodes;
- *   - the extraction-derived projections (loop map, segment usage,
- *     lexical scopes, free identifiers) match their per-fact oracles —
- *     these take a different code path in fused mode (mid-walk
- *     identity-keyed recording, post-disambiguation derivation) than the
- *     standalone-facts mode the existing gather-walk suite pins.
- *
- * Both the kitchen-sink module (every extraction path: marker call, bare
- * $(), inlinedQrl, JSX attribute, JSX object-prop, loops, nesting,
- * disambiguation collisions) and the full snapshot fixture corpus run
- * under three transpileJsx flag combinations.
- */
 
 import { describe, it, expect } from 'vitest';
 import { readdirSync, readFileSync } from 'node:fs';
@@ -53,9 +30,6 @@ interface FlagCombo {
   readonly explicitTranspileJsx: boolean;
 }
 
-/** The three meaningful flag shapes: default-tsx auto-transpile, raw-JSX
- * passthrough, and user-explicit transpile (flips the ctxKind classifier
- * to the element-kind rule). */
 const FLAG_COMBOS: readonly FlagCombo[] = [
   { label: 'auto', transpileJsx: true, explicitTranspileJsx: false },
   { label: 'raw', transpileJsx: false, explicitTranspileJsx: false },
@@ -68,8 +42,6 @@ function mapOfSetsToPlain(m: ReadonlyMap<string, Set<string>>): Record<string, s
   return out;
 }
 
-/** LoopContext carries the loop's AST node; compare by shared identity
- * index and the rest structurally. */
 function loopMapToComparable(
   m: ReadonlyMap<string, Array<{ type: string; iterVars: string[]; loopNode: unknown; loopBodyStart: number; loopBodyEnd: number }>>,
   nodeIds: Map<unknown, number>,
@@ -131,18 +103,12 @@ function diffFixture(source: string, filename: string, combo: FlagCombo): string
     if (a !== b) mismatches.push(`[${combo.label}] ${label}: fused=${a} oracle=${b}`);
   };
 
-  // Every ExtractionResult field, in array order. At the 'extracted'
-  // phase every field is JSON-comparable (strings, numbers, booleans,
-  // arrays, null); the Map-typed phase fields are unset until later
-  // pipeline phases.
   check('extractions.length', fusedExtractions.length, oracleExtractions.length);
   const count = Math.min(fusedExtractions.length, oracleExtractions.length);
   for (let i = 0; i < count; i++) {
     check(`extraction[${i}]`, fusedExtractions[i], oracleExtractions[i]);
   }
 
-  // closureNodes: same symbolName keys, reference-identical AST nodes
-  // (both paths walked the same parsed program).
   check('closureNodes.keys', [...fusedClosures.keys()].sort(), [...oracleClosures.keys()].sort());
   for (const [sym, fn] of fusedClosures) {
     if (oracleClosures.get(sym) !== fn) {
@@ -150,11 +116,6 @@ function diffFixture(source: string, filename: string, combo: FlagCombo): string
     }
   }
 
-  // Extraction-derived projections vs their per-fact oracles. The fused
-  // path records these mid-walk keyed by object/node identity and derives
-  // the symbolName-keyed maps post-disambiguation — a different mechanism
-  // than both the standalone walks and the gather walk's standalone-facts
-  // mode.
   const oracleArr = oracleExtractions as unknown as ExtractionResult[];
 
   const oracleLoop = buildExtractionLoopMap(program, oracleArr, source);
@@ -170,10 +131,6 @@ function diffFixture(source: string, filename: string, combo: FlagCombo): string
     Object.fromEntries(oracleLoop.loopBodyVarDecls),
   );
 
-  // Usage classification is intentionally skipped when the fused walk
-  // found no extractions (every downstream rootUsage read is conjunctive
-  // with segment usage, so the maps would be dead weight) — pin the empty
-  // contract for that case and full oracle parity otherwise.
   if (fusedExtractions.length === 0) {
     check('segmentUsage(empty)', facts.segmentUsage.size, 0);
     check('rootUsage(empty)', facts.rootUsage.size, 0);
@@ -213,11 +170,6 @@ function diffAllCombos(source: string, filename: string): string[] {
   return out;
 }
 
-/** Exercises every extraction path: variable-named marker, bare $() with
- * wrapper context, nested $() (parent/child + disambiguation collision),
- * JSX event + non-event attributes on HTML and component tags, loops of
- * every kind around extractions, inlinedQrl with explicit captures, a
- * peer-tool jsx() props bag, and a default-export marker. */
 const KITCHEN_SINK = `
 import { component$, $, useTask$, inlinedQrl, useStyles$, jsx } from '@qwik.dev/core';
 import css from './style.css';
@@ -266,9 +218,6 @@ describe('fused-extraction parity with standalone extractSegments', () => {
   it('matches on the kitchen-sink module', () => {
     expect(diffAllCombos(KITCHEN_SINK, 'test.tsx')).toEqual([]);
 
-    // Guard against vacuous parity: the fixture must produce a healthy
-    // extraction population with loops, captures-bearing closures, and
-    // an inlinedQrl.
     const parsed = parseSync('test.tsx', KITCHEN_SINK, RAW_TRANSFER_PARSER_OPTIONS);
     const facts = gatherModuleFacts({
       program: parsed.program as AstProgram,

@@ -1,11 +1,3 @@
-/**
- * Segment body transformation helpers for the Qwik optimizer.
- *
- * Contains nested call site rewriting, .w() hoisting, enum inlining,
- * raw props application, sync$ transformation, diagnostic stripping,
- * dead code elimination, and function signature rewriting.
- */
-
 import { createRegExp, exactly, oneOrMore, maybe, anyOf, wordChar, wordBoundary, whitespace, global } from 'magic-regexp';
 import { walk } from 'oxc-walker';
 import type {
@@ -42,9 +34,6 @@ function getNestedCallSiteStart(site: NestedCallSiteInfo): number {
 }
 
 /**
- * Scan backwards from `pos` to find an enclosing arrow whose parameter list
- * includes `capturedVarName`, returning the injection position inside the body.
- *
  * Text-based because it runs after nested call site rewriting has invalidated
  * the original AST positions.
  */
@@ -57,7 +46,6 @@ function findEnclosingArrowBodyForCapture(text: string, pos: number, capturedVar
     while (j >= 0 && /\s/.test(text[j])) j--;
     if (!(j >= 1 && text[j] === '>' && text[j - 1] === '=')) { i--; continue; }
 
-    // Found `=> (` or `=> {` -- extract the parameter list
     let paramEnd = j - 2;
     while (paramEnd >= 0 && /\s/.test(text[paramEnd])) paramEnd--;
 
@@ -81,7 +69,6 @@ function findEnclosingArrowBodyForCapture(text: string, pos: number, capturedVar
     const params = paramText.split(',').map(p => p.trim());
     if (params.includes(capturedVarName)) return i + 1;
 
-    // Check if the captured variable is declared as a local inside this arrow body
     const bodyStart = i + 1;
     const bodySlice = text.slice(bodyStart, pos);
     const localDeclPattern = createRegExp(wordBoundary, anyOf('const', 'let', 'var'), oneOrMore(whitespace), exactly(capturedVarName), wordBoundary);
@@ -92,10 +79,6 @@ function findEnclosingArrowBodyForCapture(text: string, pos: number, capturedVar
   return -1;
 }
 
-/**
- * Find the end position (after the semicolon) of a variable declaration
- * for the given variable name, searching forward from startPos.
- */
 function findVarDeclarationEnd(text: string, startPos: number, varName: string): number {
   const pattern = createRegExp(wordBoundary, anyOf('const', 'let', 'var'), oneOrMore(whitespace), exactly(varName), whitespace.times.any(), exactly('='));
   const searchText = text.slice(startPos);
@@ -112,30 +95,15 @@ function findVarDeclarationEnd(text: string, startPos: number, varName: string):
 }
 
 /**
- * Threshold separating "outermost arrow body" from "nested loop callback"
- * by the position `findEnclosingArrowBodyForCapture` returns.
- *
- * When that helper lands inside the segment body's outermost arrow
- * (e.g., the `(props) => {...}` that wraps the whole segment), the
- * returned position is small — within ~10 chars of `bodyText[0]`.
- * Anything deeper, like an `arr.map(item => {...})` callback nested
- * inside, gives a much larger position. Captures resolved at the
- * outermost level go to component scope (before the return); captures
- * resolved inside a nested callback get hoisted at the local declaration
- * site instead.
- *
- * 20 is empirical, tuned against the SWC reference output. A future
- * structural replacement (e.g., counting `=>` tokens before
- * `enclosingPos` or tracking scope depth during AST walking) would
- * need careful re-validation against the snapshot suite before
- * swapping in.
+ * Position threshold: below it a capture resolved in the segment's outermost
+ * arrow body (hoisted to component scope); above it, deeper in a nested loop
+ * callback (hoisted at the local declaration site). Empirical.
  */
 const OUTERMOST_BODY_THRESHOLD = 20;
 
 /**
- * Replace `bodyText[start, end)` with `replacement`. Returns the body
- * unchanged when the range is out of bounds — defensive guard against
- * stale positions from upstream rewriting.
+ * Returns the body unchanged when the range is out of bounds — a defensive
+ * guard against stale positions from upstream rewriting.
  */
 function spliceWithinBody(bodyText: string, start: number, end: number, replacement: string): string {
   if (start < 0 || end > bodyText.length) return bodyText;
@@ -143,10 +111,8 @@ function spliceWithinBody(bodyText: string, start: number, end: number, replacem
 }
 
 /**
- * Rewrite nested $() calls and $-suffixed JSX attrs in the body text,
- * replacing them with QRL variable references. Returns the modified body text.
- *
- * MUST run before any other text modifications because it uses original source positions.
+ * MUST run before any other text modifications because it uses original
+ * source positions.
  */
 export function rewriteNestedCallSitesInline(
   bodyText: string,
@@ -162,12 +128,9 @@ export function rewriteNestedCallSitesInline(
 
   for (const site of sorted) {
     if (site.isJsxAttr && site.attrStart !== undefined && site.attrEnd !== undefined && site.transformedPropName) {
-      // A JSX-attr child segment that captures variables but isn't
-      // subject to the loop-cross hoist path (`hoistedSymbolName` unset,
-      // populated by `buildNestedCallSites` only for in-loop or
-      // loop-iter-padded handlers) still needs `.w([captures])`
-      // wrapping at the parent's prop call site. Mirrors the
-      // inline-strategy path in `rewrite/inline-body.ts`.
+      // A JSX-attr child that captures but isn't on the loop-cross hoist path
+      // (`hoistedSymbolName` unset) still needs `.w([captures])` wrapping at
+      // the parent's prop call site.
       let propValueRef: string;
       if (site.hoistedSymbolName) {
         propValueRef = site.hoistedSymbolName;
@@ -186,8 +149,7 @@ export function rewriteNestedCallSitesInline(
         const isLoopCallback = enclosingPos >= 0 && enclosingPos > OUTERMOST_BODY_THRESHOLD;
         if (isLoopCallback) {
           // Asymmetric indentation (12-space first item, 8-space rest+close)
-          // matches the SWC reference output for this branch byte-for-byte.
-          // Kept inline rather than going through formatWCall.
+          // is intentional here; kept inline rather than routed through formatWCall.
           const captureList = site.hoistedCaptureNames.join(',\n        ');
           const decl = `const ${site.hoistedSymbolName} = ${site.qrlVarName}.w([\n            ${captureList}\n        ]);`;
           let latestDeclPos = -1;
@@ -236,14 +198,13 @@ export function rewriteNestedCallSitesInline(
   return bodyText;
 }
 
-/** Inject .w() hoisting declarations, converting expression bodies to block bodies as needed. */
 function injectHoistDeclarations(
   bodyText: string,
   hoistDeclarations: Array<{ position: number; declaration: string }>,
 ): string {
   if (hoistDeclarations.length === 0) return bodyText;
 
-  // SWC groups .w() declarations in the same scope together at the max position
+  // Group .w() declarations in the same scope together at the max position.
   if (hoistDeclarations.length > 1) {
     const maxPos = Math.max(...hoistDeclarations.map(h => h.position));
     const minPos = Math.min(...hoistDeclarations.map(h => h.position));
@@ -257,7 +218,6 @@ function injectHoistDeclarations(
     const pos = hoist.position;
     const charBefore = bodyText[pos - 1];
     if (charBefore === '(') {
-      // Expression body: `=> (expr)` -- convert to block body
       let depth = 1;
       let closeIdx = pos;
       while (closeIdx < bodyText.length && depth > 0) {
@@ -274,7 +234,6 @@ function injectHoistDeclarations(
         '\n        ' + hoist.declaration +
         bodyText.slice(pos);
     } else {
-      // Mid-block injection: detect indentation from the next non-empty line
       let indent = '\t';
       const nextNewline = bodyText.indexOf('\n', pos);
       if (nextNewline >= 0) {
@@ -291,17 +250,10 @@ function injectHoistDeclarations(
 }
 
 /**
- * Find the position of the component-level `return ` keyword in `bodyText` —
- * the return statement at depth-1 relative to the body's outer `{...}`.
- *
- * Required because a component body may contain nested function
- * declarations (each with their own `return`), and `componentScopeWDecls`
- * must be injected BEFORE the COMPONENT's return, not the first nested
- * function's return. `indexOf('return ')` would find the wrong one.
- *
- * Returns the position of the LAST depth-1 `return ` token (the component's
- * own return — any inner-function returns sit at deeper depths and are
- * skipped). Falls back to -1 if no depth-1 return is found.
+ * A component body may contain nested function declarations (each with their
+ * own `return`), and `componentScopeWDecls` must be injected before the
+ * COMPONENT's return, not the first nested function's — so this returns the
+ * LAST depth-1 `return`, or -1 when none is found.
  */
 function findComponentReturnPosition(bodyText: string): number {
   let i = 0;
@@ -316,9 +268,7 @@ function findComponentReturnPosition(bodyText: string): number {
     if (ch === '{') depth++;
     else if (ch === '}') depth--;
     else if (depth === 1 && bodyText.startsWith('return ', i)) {
-      // Confirm `return ` is a keyword by checking the preceding char isn't
-      // an identifier continuation (defensive — guards against e.g. `noreturn `
-      // would never appear in TS output but cheap to check).
+      // Confirm `return ` is a keyword, not an identifier tail like `noreturn `.
       const prev = i > 0 ? bodyText[i - 1] : '\n';
       if (!/[A-Za-z0-9_$]/.test(prev)) {
         lastDepth1Return = i;
@@ -331,7 +281,6 @@ function findComponentReturnPosition(bodyText: string): number {
   return lastDepth1Return;
 }
 
-/** Inject component-scope .w() declarations before the component's return statement. */
 function injectComponentScopeWDecls(bodyText: string, decls: string[] | undefined): string {
   if (!decls || decls.length === 0) return bodyText;
 
@@ -345,7 +294,6 @@ function injectComponentScopeWDecls(bodyText: string, decls: string[] | undefine
   return bodyText.slice(0, returnIdx) + declBlock + bodyText.slice(returnIdx);
 }
 
-/** Inline TS enum member references (e.g., Thing.A -> 0). */
 export function inlineEnumReferences(bodyText: string, enumValueMap: Map<string, Map<string, string>>): string {
   for (const [enumName, members] of enumValueMap) {
     for (const [memberName, value] of members) {
@@ -357,8 +305,6 @@ export function inlineEnumReferences(bodyText: string, enumValueMap: Map<string,
 }
 
 /**
- * Apply `_ref` indirection for self-referential captures.
- *
  * When a component body declares `const X = call(q_yyy.w([X]))`, the capture
  * array references `X` inside its own initializer — TDZ. Rewrites to:
  *
@@ -387,8 +333,7 @@ export function applySelfRefIndirection(bodyText: string): string {
     walk(d.init, {
       enter(node: AstNode) {
         if (node.type !== 'CallExpression') return;
-        // The parser emits 'MemberExpression' — never the Babel-style
-        // 'StaticMemberExpression' shape.
+        // The parser emits 'MemberExpression', not a 'StaticMemberExpression' shape.
         const callee = node.callee;
         if (callee.type !== 'MemberExpression') return;
         if (callee.property.type !== 'Identifier' || callee.property.name !== 'w') return;
@@ -415,11 +360,6 @@ export function applySelfRefIndirection(bodyText: string): string {
   return session.toSource();
 }
 
-/**
- * Normalise destructured first params to `_rawProps`, add `_restProps` import if needed.
- * Applies to any qrl segment with a destructured first param (component$ or otherwise) —
- * `applyRawPropsTransform` is a no-op when the first param isn't destructured.
- */
 export function applyRawPropsToSegmentBody(bodyText: string, parts: string[]): string {
   const result = applyRawPropsTransform(bodyText);
   if (result === bodyText) return bodyText;
@@ -432,14 +372,11 @@ export function applyRawPropsToSegmentBody(bodyText: string, parts: string[]): s
 }
 
 /**
- * Strip diagnostic comments and passive/preventdefault JSX directives.
- * Must run AFTER nested call site rewriting (which uses original positions).
+ * Must run AFTER nested call site rewriting, which uses original positions.
  */
 export function stripDiagnosticsAndDirectives(bodyText: string): string {
   bodyText = bodyText.replace(qwikDisableDirective, '');
 
-  // Strip passive:* and matching preventdefault:* PER-ELEMENT.
-  // Matches HTML opening tags: `<tagName attrs>`. Uses lazy quantifier for attrs capture.
   // Not converted to magic-regexp: lazy quantifiers inside capture groups aren't supported.
   bodyText = bodyText.replace(/<(\w+)([^>]*?)>/g, (_match, tagName, attrsStr) => {
     const elementPassive = new Set<string>();
@@ -458,7 +395,6 @@ export function stripDiagnosticsAndDirectives(bodyText: string): string {
   return bodyText;
 }
 
-/** Transform sync$() calls to _qrlSync() with minified string argument. */
 export function transformSyncCalls(bodyText: string, parts: string[]): string {
   if (!bodyText.includes('sync$(')) return bodyText;
 
@@ -468,7 +404,6 @@ export function transformSyncCalls(bodyText: string, parts: string[]): string {
     const syncIdx = bodyText.indexOf('sync$(', i);
     if (syncIdx === -1) { result += bodyText.slice(i); break; }
 
-    // Word boundary check
     if (syncIdx > 0 && /[\w$]/.test(bodyText[syncIdx - 1])) {
       result += bodyText.slice(i, syncIdx + 6);
       i = syncIdx + 6;
@@ -503,10 +438,6 @@ export function ensureCoreImports(bodyText: string, parts: string[]): void {
   }
 }
 
-/**
- * Remove `const X = literal;` declarations from a function body when X is
- * no longer referenced anywhere else in the body.
- */
 export function removeDeadConstLiterals(bodyText: string): string {
   let session: FunctionTransformSession | null;
   try {
@@ -570,9 +501,6 @@ export function removeDeadConstLiterals(bodyText: string): string {
   return result;
 }
 
-/**
- * Rewrite a function's parameter list to use the given paramNames.
- */
 export function rewriteFunctionSignature(bodyText: string, paramNames: string[]): string {
   const session = createFunctionTransformSession(bodyText);
   if (!session) return bodyText;
@@ -580,9 +508,6 @@ export function rewriteFunctionSignature(bodyText: string, paramNames: string[])
   return session.toSource();
 }
 
-/**
- * Inject _captures unpacking into a function body text.
- */
 export function injectCapturesUnpacking(bodyText: string, captureNames: string[]): string {
   if (captureNames.length === 0) return bodyText;
 

@@ -1,8 +1,3 @@
-/**
- * Unit tests for JSX transformation module.
- *
- * Tests classifyConstness, computeJsxFlags, JsxKeyCounter, and transformJsxElement.
- */
 
 import { describe, it, expect } from 'vitest';
 import { parseSync } from 'oxc-parser';
@@ -30,10 +25,6 @@ function makeCtx(
 ): JsxTransformContext {
   return { source, s, importedNames, keyCounter, signalHoister: new SignalHoister() };
 }
-
-// ---------------------------------------------------------------------------
-// classifyConstness
-// ---------------------------------------------------------------------------
 
 describe('classifyConstness', () => {
   const importedNames = new Set(['dep', 'importedValue', 'styles']);
@@ -65,13 +56,11 @@ describe('classifyConstness', () => {
 
   it('returns var for member expression on imported value (styles.foo)', () => {
     const node = parseExpr('styles.foo');
-    // SWC is_const.rs treats ALL member expressions as var regardless of import status
     expect(classifyConstness(node, importedNames, undefined, 0)).toBe('var');
   });
 
   it('returns var for signal.value access', () => {
     const node = parseExpr('signal.value');
-    // signal is not in importedNames, so it's var
     expect(classifyConstness(node, importedNames, undefined, 0)).toBe('var');
   });
 
@@ -126,13 +115,7 @@ describe('classifyConstness', () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// collectScopeAwareBindings
-// ---------------------------------------------------------------------------
-
 describe('collectScopeAwareBindings (scope shadowing)', () => {
-  /** Parse a program and return both the scope-aware bindings and the
-   * source text so tests can locate positions via `source.indexOf(...)`. */
   function setup(source: string): {
     bindings: ReturnType<typeof collectScopeAwareBindings>['bindings'];
     source: string;
@@ -150,7 +133,7 @@ function f() {
   }
 }`;
     const { bindings, source: src } = setup(source);
-    const refPos = src.indexOf('use(item)') + 4; // position of "item" inside use(item)
+    const refPos = src.indexOf('use(item)') + 4;
     expect(bindings.classify('item', refPos)).toBe('const');
   });
 
@@ -165,10 +148,6 @@ function f() {
   });
 
   it('shadows: arrow param wins over outer for-of binding of the same name', () => {
-    // This is the core scope-shadowing case from `example_component_with_event_listeners_inside_loop`:
-    // two scopes in the same file both declare `item`. References inside the
-    // arrow body should resolve to the arrow param (var); references inside
-    // the for-of body should resolve to the for-of binding (const).
     const source = `
 function outer() {
   arr.map((item) => use(item));      // arrow param 'item' — var
@@ -192,7 +171,6 @@ function outer() {
 }`;
     const { bindings, source: src } = setup(source);
     const innerRef = src.indexOf('use(item)') + 4;
-    // Inner arrow body sees the inner arrow param (var).
     expect(bindings.classify('item', innerRef)).toBe('var');
   });
 
@@ -206,12 +184,7 @@ function f() {
     expect(bindings.classify('err', refPos)).toBe('var');
   });
 
-  it('classifies a block-scoped const with literal init as var (matches SWC Var(is_const && is_static))', () => {
-    // `isReturnStatic` only returns true for CallExpressions ending in
-    // `$/Qrl` or starting with `use` (SWC's `is_static` requires the init
-    // to propagate from a Var(true) source). A bare literal init like `42`
-    // doesn't pass that check, so the const declaration classifies as var.
-    // This matches the prior `walkPatternInit` semantics exactly.
+  it('classifies a block-scoped const with literal init as var', () => {
     const source = `
 function f() {
   {
@@ -237,11 +210,6 @@ function f() {
   });
 
   it('addProgramScopeConst classifies as const everywhere, overriding inner var bindings', () => {
-    // Matches segment-codegen capture-injection semantics: capture names get
-    // injected as program-scope consts. Even though `_captures[N]` unpacking
-    // creates an AST-level const declaration whose MemberExpression init
-    // would normally classify as 'var', the alwaysConst override wins so
-    // the name classifies as const at any reference position.
     const source = `
 const state = _captures[0];
 function inner() {
@@ -252,7 +220,7 @@ function inner() {
     expect(bindings.classify('state', source.indexOf('use(state)') + 4)).toBe('const');
   });
 
-  it('for-in binding classifies as const (matches SWC for-of treatment)', () => {
+  it('for-in binding classifies as const', () => {
     const source = `
 function f() {
   for (const key in obj) {
@@ -271,22 +239,12 @@ function f() {
   });
 
   it('compound destructure with literal-array init: per-elem classification', () => {
-    // From `should_wrap_prop_from_destructured_array` territory.
-    // Mirrors the prior `walkPatternInit` per-elem classification.
     const source = `function f() { const [store, math] = [useStore(), Math.random()]; use(store); }`;
     const { bindings, source: src } = setup(source);
-    // `store` paired with `useStore()` — isReturnStatic → const
     expect(bindings.classify('store', src.indexOf('use(store)') + 4)).toBe('const');
-    // `math` paired with `Math.random()` — NOT isReturnStatic (CallExpression
-    // whose callee is a MemberExpression, not an identifier ending in $/Qrl
-    // or starting with `use`) → var
     expect(bindings.classify('math', src.indexOf('use(store)') + 4)).toBe('var');
   });
 });
-
-// ---------------------------------------------------------------------------
-// computeJsxFlags
-// ---------------------------------------------------------------------------
 
 describe('computeJsxFlags', () => {
   it('returns 3 for no varProps + static children (fully immutable)', () => {
@@ -298,12 +256,10 @@ describe('computeJsxFlags', () => {
   });
 
   it('returns 3 for varProps + static children (bit 0 always set outside loop)', () => {
-    // Outside loop context, bit 0 is always set regardless of varProps
     expect(computeJsxFlags(true, 'static')).toBe(3);
   });
 
   it('returns 1 for varProps + dynamic children (bit 0 always set outside loop)', () => {
-    // Outside loop context, bit 0 is always set regardless of varProps
     expect(computeJsxFlags(true, 'dynamic')).toBe(1);
   });
 
@@ -312,24 +268,17 @@ describe('computeJsxFlags', () => {
   });
 
   it('returns 3 for varProps + no children (bit 0 always set outside loop)', () => {
-    // Outside loop context, bit 0 is always set regardless of varProps
     expect(computeJsxFlags(true, 'none')).toBe(3);
   });
 
   it('returns 4 for varProps + dynamic children in loop context', () => {
-    // In loop context with varProps: bit 2 set, bit 0 NOT set
     expect(computeJsxFlags(true, 'dynamic', true)).toBe(4);
   });
 
   it('returns 7 for no varProps + static children in loop context', () => {
-    // In loop context without varProps: all three bits set
     expect(computeJsxFlags(false, 'static', true)).toBe(7);
   });
 });
-
-// ---------------------------------------------------------------------------
-// JsxKeyCounter
-// ---------------------------------------------------------------------------
 
 describe('JsxKeyCounter', () => {
   it('generates u6_0, u6_1, u6_2 sequentially', () => {
@@ -339,10 +288,6 @@ describe('JsxKeyCounter', () => {
     expect(counter.next()).toBe('u6_2');
   });
 });
-
-// ---------------------------------------------------------------------------
-// transformJsxElement - basic elements
-// ---------------------------------------------------------------------------
 
 describe('transformJsxElement', () => {
   it('transforms <div class="class">12</div> to _jsxSorted call', () => {
@@ -357,7 +302,6 @@ describe('transformJsxElement', () => {
       jsxNode,
     );
 
-    // Should produce _jsxSorted("div", null, { class: "class" }, "12", 3, null)
     expect(result).toBeDefined();
     expect(result!.tag).toBe('"div"');
     expect(result!.varProps).toBeNull();
@@ -442,7 +386,6 @@ describe('transformJsxElement', () => {
       jsxNode,
     );
 
-    // Components use identifier, not string literal
     expect(result!.tag).toBe('Cmp');
   });
 
@@ -473,9 +416,7 @@ describe('transformJsxElement', () => {
       jsxNode,
     );
 
-    // Key should be the expression, not auto-generated u6_N
     expect(result!.key).toBe('props.stuff');
-    // key should NOT appear in constProps or varProps
     expect(result!.constProps).not.toContain('key');
   });
 
@@ -506,7 +447,6 @@ describe('transformJsxElement', () => {
       jsxNode,
     );
 
-    // Multiple children should produce array-like output
     expect(result!.children).toContain('[');
     expect(result!.children).toContain(']');
   });
@@ -523,7 +463,6 @@ describe('transformJsxElement', () => {
       jsxNode,
     );
 
-    // Single child should NOT be in an array
     expect(result!.children).not.toMatch(/^\[/);
   });
 
@@ -564,10 +503,6 @@ describe('transformJsxElement', () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// isHtmlElement
-// ---------------------------------------------------------------------------
-
 describe('isHtmlElement', () => {
   it('returns true for lowercase tags', () => {
     expect(isHtmlElement('div')).toBe(true);
@@ -593,10 +528,6 @@ describe('isHtmlElement', () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// processJsxTag
-// ---------------------------------------------------------------------------
-
 describe('processJsxTag', () => {
   it('returns string literal for HTML elements', () => {
     const source = '<div/>';
@@ -619,10 +550,6 @@ describe('processJsxTag', () => {
     expect(processJsxTag(nameNode)).toBe('Foo.Bar');
   });
 });
-
-// ---------------------------------------------------------------------------
-// transformJsxFragment
-// ---------------------------------------------------------------------------
 
 describe('transformJsxFragment', () => {
   it('transforms <>child</> to _jsxSorted(_Fragment, ...)', () => {
@@ -660,10 +587,6 @@ describe('transformJsxFragment', () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// transformAllJsx - integration
-// ---------------------------------------------------------------------------
-
 describe('transformAllJsx', () => {
   it('transforms nested JSX elements bottom-up', () => {
     const source = '<div><p>hello</p></div>';
@@ -674,7 +597,6 @@ describe('transformAllJsx', () => {
     const output = transformAllJsx({ source, s, program, importedNames });
 
     const result = s.toString();
-    // Inner <p> should be transformed first, then outer <div>
     expect(result).toContain('_jsxSorted');
     expect(output.neededImports.has('_jsxSorted')).toBe(true);
   });

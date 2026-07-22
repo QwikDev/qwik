@@ -1,11 +1,3 @@
-/**
- * Tests for bind syntax desugaring.
- *
- * Verified against snapshot corpus:
- * - example_input_bind.snap
- * - should_merge_on_input_and_bind_checked.snap
- * - should_move_bind_value_to_var_props.snap
- */
 
 import { describe, it, expect } from 'vitest';
 import {
@@ -58,7 +50,6 @@ describe('bind-transform', () => {
   });
 
   describe('transformBindProp', () => {
-    // BIND-01: bind:value -> value prop + q-e:input handler with inlinedQrl(_val, "_val", [signal])
     it('transforms bind:value with inlinedQrl(_val)', () => {
       const result = transformBindProp('bind:value', 'value');
 
@@ -71,7 +62,6 @@ describe('bind-transform', () => {
       expect(result.needsImport).toContain('_val');
     });
 
-    // BIND-02: bind:checked -> checked prop + q-e:input handler with inlinedQrl(_chk, "_chk", [signal])
     it('transforms bind:checked with inlinedQrl(_chk)', () => {
       const result = transformBindProp('bind:checked', 'checked');
 
@@ -84,7 +74,6 @@ describe('bind-transform', () => {
       expect(result.needsImport).toContain('_chk');
     });
 
-    // BIND-03: bind:stuff -> passthrough with no handler
     it('passes through unknown bind:stuff without handler', () => {
       const result = transformBindProp('bind:stuff', 'stuff');
 
@@ -94,7 +83,6 @@ describe('bind-transform', () => {
       expect(result.needsImport).toEqual([]);
     });
 
-    // bind:value with different expression source
     it('handles bind:value with a different expression', () => {
       const result = transformBindProp('bind:value', 'localValue');
 
@@ -105,7 +93,6 @@ describe('bind-transform', () => {
       );
     });
 
-    // bind:checked with different expression source
     it('handles bind:checked with a different expression', () => {
       const result = transformBindProp('bind:checked', 'localChecked');
 
@@ -116,7 +103,6 @@ describe('bind-transform', () => {
       );
     });
 
-    // Another unknown bind variant
     it('passes through bind:disabled without handler', () => {
       const result = transformBindProp('bind:disabled', 'isDisabled');
 

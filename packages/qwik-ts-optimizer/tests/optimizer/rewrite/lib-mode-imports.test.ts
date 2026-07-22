@@ -1,48 +1,3 @@
-/**
- * Regression tests for lib-mode preserving original `$`-suffix
- * marker imports + `jsx as _jsx` runtime import (the final slice that
- * flipped `example_lib_mode`).
- *
- * Pre-fix (with the lib-mode emission shape already in place): lib-mode
- * output dropped the user-facing `*$` markers (`component$`, `useStyle$`,
- * `useTask$`, `server$`, etc.) and the `jsx as _jsx` runtime import from
- * the parent module's import surface — they were considered "unused"
- * after being rewritten to their `*Qrl` forms and got stripped by both
- * `processImports` (rewrite phase), `filterUnusedImports` (post-rewrite),
- * `oxcTransformSync` (TS strip), and `removeUnusedImports` (module-cleanup).
- *
- * The fix preserves them at all four strip sites in lib mode:
- *
- * 1. `processImports` in `rewrite/index.ts`: skip the `toRemove.push(i)`
- *    when `isLibMode` AND the importedName is `*$`-suffix (length > 1).
- * 2. `filterUnusedImports` in `rewrite/output-assembly.ts`: include `*$`
- *    specifiers in `usedNamed` unconditionally when `isLibMode`, even
- *    when the local name isn't referenced in body text.
- * 3. Post-`oxcTransformSync` re-prepend in `rewrite/output-assembly.ts`:
- *    capture the lib-preserved imports BEFORE TS-strip and re-prepend
- *    them after — TS-strip aggressively eliminates unused value imports
- *    and the `onlyRemoveTypeImports` flag doesn't override that.
- * 4. `removeUnusedImports` in `transform/module-cleanup.ts`: skip strip
- *    for `*$`-suffix specifiers from `@qwik.dev/core` and `jsx` from
- *    `@qwik.dev/core/jsx-runtime` when `isLibMode`.
- *
- * Plus `collectNeededImports` in `output-assembly.ts` adds the
- * `jsx as _jsx` entry to `neededImports` under lib mode (it's not
- * referenced via the JSX walker but is part of SWC's lib emit surface).
- *
- * compareAst gained one normalizer change: `isIndependentTopLevel` now
- * also accepts `const NAME = <Literal>` VariableDeclarations, so SWC's
- * lib emit (declares the literal const BEFORE the export) and TS's
- * source-order emit (declares it AFTER) normalize to the same canonical
- * sort. Strictly gated to Literal initialisers — anything more complex
- * could have side effects whose order matters.
- *
- * Companion to convergence's `example_lib_mode` (the final F2 test).
- * The emission shape and function-local const inlining (already handled
- * by the existing pipeline + simplifier) are separate slices; this file
- * covers preserving the import surface.
- */
-
 import { describe, it, expect } from 'vitest';
 import { transformModule } from '../../../src/optimizer/transform/index.js';
 import type { TransformModule } from '../../../src/optimizer/types/types.js';
@@ -73,20 +28,15 @@ const STYLES = '.class {}';
       transpileJsx: true,
     });
     const code = findParent(result).code;
-    // All three `$`-suffix markers preserved on a single line.
     expect(code).toMatch(/import \{[^}]*\bcomponent\$[^}]*\} from ["']@qwik\.dev\/core["']/);
     expect(code).toMatch(/import \{[^}]*\buseStyle\$[^}]*\} from ["']@qwik\.dev\/core["']/);
     expect(code).toMatch(/import \{[^}]*\buseTask\$[^}]*\} from ["']@qwik\.dev\/core["']/);
-    // Their `*Qrl` rewrites also appear (as separate imports).
     expect(code).toMatch(/import \{ componentQrl \} from ["']@qwik\.dev\/core["']/);
     expect(code).toMatch(/import \{ useStyleQrl \} from ["']@qwik\.dev\/core["']/);
     expect(code).toMatch(/import \{ useTaskQrl \} from ["']@qwik\.dev\/core["']/);
   });
 
   it('strips bare `$` (no marker-function semantics) under lib mode', () => {
-    // The bare `$` marker is excluded from lib-mode preservation — it has
-    // no marker-function semantics post-extraction and SWC's lib emit
-    // also strips it from `example_lib_mode`'s expected output.
     const input = `
 import { $, component$ } from '@qwik.dev/core';
 export const C = component$(() => <div onClick={$(() => console.log('!'))}/>);
@@ -99,9 +49,7 @@ export const C = component$(() => <div onClick={$(() => console.log('!'))}/>);
       transpileJsx: true,
     });
     const code = findParent(result).code;
-    expect(code).toMatch(/component\$/);  // `component$` preserved
-    // Bare `$` is stripped — extract just the marker imports and confirm
-    // no standalone `$` specifier slipped through.
+    expect(code).toMatch(/component\$/);
     const importMatch = code.match(/import \{([^}]+)\} from ["']@qwik\.dev\/core["']/);
     expect(importMatch).not.toBeNull();
     const specs = importMatch![1].split(',').map((s) => s.trim());
@@ -109,9 +57,6 @@ export const C = component$(() => <div onClick={$(() => console.log('!'))}/>);
   });
 
   it('adds `jsx as _jsx` import from `@qwik.dev/core/jsx-runtime` under lib mode', () => {
-    // SWC's lib emit unconditionally includes this import alongside the
-    // rewritten `_jsxSorted` form — JSX runtime export surface for
-    // downstream library consumers. TS now matches.
     const input = `
 import { component$ } from '@qwik.dev/core';
 export const C = component$(() => <div/>);
@@ -128,9 +73,6 @@ export const C = component$(() => <div/>);
   });
 
   it('non-lib modes still strip `$`-suffix markers from imports (negative scope)', () => {
-    // Default `mode: 'prod'` — historic behavior: `$`-suffix markers
-    // stripped from imports once rewritten to `*Qrl` forms. The new
-    // lib-mode preservation code path doesn't leak into other modes.
     const input = `
 import { component$ } from '@qwik.dev/core';
 export const C = component$(() => <div/>);
@@ -164,10 +106,6 @@ export const C = component$(() => <div/>);
   });
 
   it('end-to-end: example_lib_mode flips with Sub-A + Sub-C', () => {
-    // The full example_lib_mode input — combines emission shape (Sub-A),
-    // const-text inlining (Sub-B no-op via existing pipeline), and
-    // import preservation (Sub-C). All three together produce the SWC-
-    // matching output.
     const input = `
 import { $, component$, server$, useStyle$, useTask$, useSignal } from '@qwik.dev/core';
 
@@ -194,26 +132,21 @@ const STYLES = '.class {}';
     });
     const code = findParent(result).code;
 
-    // Sub-A: emission shape (markerQrl(inlinedQrl(...)))
     expect(code).toMatch(/componentQrl\(\/\*[^*]*\*\/ inlinedQrl/);
     expect(code).toMatch(/useStyleQrl\(\/\*[^*]*\*\/ inlinedQrl/);
     expect(code).toMatch(/useTaskQrl\(\/\*[^*]*\*\/ inlinedQrl/);
     expect(code).toMatch(/serverQrl\(\/\*[^*]*\*\/ inlinedQrl/);
 
-    // Sub-B effect: `text = 'hola'` const folded at use sites.
     expect(code).toMatch(/console\.log\(sig\.value, ["']hola["']\)/);
 
-    // Sub-C: original `*$` markers preserved.
     expect(code).toMatch(/\bcomponent\$/);
     expect(code).toMatch(/\bserver\$/);
     expect(code).toMatch(/\buseStyle\$/);
     expect(code).toMatch(/\buseTask\$/);
     expect(code).toMatch(/\buseSignal\b/);
 
-    // Sub-C: jsx as _jsx runtime import.
     expect(code).toMatch(/import \{ jsx as _jsx \} from ["']@qwik\.dev\/core\/jsx-runtime["']/);
 
-    // No segment-file modules (Sub-A's suppression).
     const segments = result.modules.filter((m) => m.kind === 'segment');
     expect(segments.length).toBe(0);
   });

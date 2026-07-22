@@ -1,10 +1,3 @@
-/**
- * Capture analysis module for the Qwik optimizer.
- *
- * Detects variables that cross $() boundaries -- variables referenced
- * inside a $() closure but declared in an enclosing scope. These become
- * the `captureNames` array in segment metadata, used for _captures injection.
- */
 
 import { walk } from 'oxc-walker';
 import type {
@@ -29,16 +22,6 @@ export interface CaptureAnalysisResult {
   paramNames: string[];
 }
 
-/**
- * Analyze a $() closure node to determine which variables cross the
- * serialization boundary. Excludes globals; includes parent-scope
- * bindings even when a same-name top-level import exists (the inner
- * binding shadows the import).
- *
- * `freeIdentifiers` is the closure's slice of the module-wide
- * free-identifier map (`computeClosureFreeIdentifiers`) — the caller
- * computes that map once per module instead of re-walking per closure.
- */
 export function analyzeCaptures(
   closureNode: AstFunction,
   parentScopeIdentifiers: Set<string>,
@@ -47,12 +30,9 @@ export function analyzeCaptures(
   const paramNames = collectParamNames(closureNode.params ?? []);
   const undeclared = freeIdentifiers;
 
-  // Parent-scope membership wins unconditionally. Same-scope import +
-  // decl is illegal in JS, so a name appearing in both
-  // `parentScopeIdentifiers` and the module's import set must be a
-  // legitimate inner-scope shadow — the closure resolves to that inner
-  // binding and the value crosses the segment boundary. Excluding
-  // shadowed names would drop real inner-scope captures.
+  // Parent-scope membership wins even when a same-name import exists: same-scope
+  // import + decl is illegal, so the name must be an inner-scope shadow whose
+  // value crosses the boundary — excluding it would drop a real capture.
   const captureNames = [...new Set(
     undeclared
       .filter((name) => parentScopeIdentifiers.has(name))
@@ -96,7 +76,6 @@ export function excludeNestedExtractionCaptures(
   );
 }
 
-/** Extract all binding names from function parameter AST nodes. */
 function collectParamNames(params: AstParamPattern[]): string[] {
   const names: string[] = [];
   for (const param of params) {
@@ -105,9 +84,6 @@ function collectParamNames(params: AstParamPattern[]): string[] {
   return names;
 }
 
-/**
- * Collect all identifiers declared in a container scope (function body or program).
- */
 export function collectScopeIdentifiers(
   containerNode: AstProgram | BlockStatement | FunctionBody | AstFunction,
   _source: string,
@@ -159,13 +135,10 @@ function collectDeclarationsFromNode(
 
 /**
  * Differential oracle for the gather walk's lexical-scope projection: for each
- * tracked closure, the flat union of every enclosing function/arrow scope plus
- * the module scope (not the closure's own params/body) — the set capture
- * analysis intersects against. Production routes through `module-gather-walk.ts`.
- *
- * A single walk accumulates each scope's declarations on enter; the per-closure
- * union is deferred until after the walk, so enclosing declarations that
- * textually follow the closure (hoisted names, later `const`s) are included.
+ * tracked closure, the flat union of every enclosing scope plus the module
+ * scope. The per-closure union is deferred until after the walk so enclosing
+ * declarations that textually follow the closure (hoisted names, later
+ * `const`s) are still included.
  */
 export function buildClosureLexicalScopes(
   program: AstProgram,
@@ -189,8 +162,7 @@ export function buildClosureLexicalScopes(
 
       const fn = node as AstFunction;
       const sym = nodeToSymbol.get(fn);
-      // Snapshot the enclosing scope sets by reference — they keep filling
-      // after this closure; the union is taken once the walk completes.
+      // Snapshot enclosing scopes by reference; they keep filling, union taken post-walk.
       if (sym !== undefined) pending.push({ sym, scopes: [...scopeStack] });
 
       const ownScope = new Set<string>();
@@ -221,10 +193,9 @@ function isFunctionLikeNode(node: AstNode): boolean {
 }
 
 /**
- * Add the binding names a single node contributes to its enclosing function
- * scope. Non-recursive: the caller's walk provides traversal, so block/loop
- * bodies are reached without a nested walk. Function/class *declaration* names
- * belong to the enclosing scope; a nested function's params and body are a
+ * Add the binding names a single node declares to its enclosing function scope.
+ * Non-recursive: the caller's walk provides traversal, so a function/class
+ * declaration name lands in the enclosing scope while its params/body are a
  * separate scope the walk visits under its own frame.
  */
 export function addScopeDeclarations(node: AstNode, ids: Set<string>): void {

@@ -11,22 +11,15 @@ import { createTransformSession } from '../edit/transform-session.js';
 interface RewritePropsFieldReferencesOptions {
   memberPropertyMode?: 'all' | 'nonComputed';
   /**
-   * Optional map of localName → defaultExpressionSource. When provided,
-   * rewrites for matching field names emit `(_rawProps.<key> ?? <default>)`
-   * instead of bare `_rawProps.<key>`. Matches SWC's NullishCoalescing
-   * emission in `transform_pat` (`swc-reference-only/props_destructuring.rs:382-388`).
+   * localName → default expression source. When set, matching fields emit
+   * `(_rawProps.<key> ?? <default>)` instead of bare `_rawProps.<key>`.
    */
   defaultValues?: ReadonlyMap<string, string>;
 }
 
 /**
- * Build a {@link RangeReplacementCollector} that rewrites identifier references
- * matching `fieldMap` keys to `_rawProps.<key>` (or `(_rawProps.<key> ?? <default>)`
- * when a default is provided). Handles shorthand `Property` value positions
- * specially by emitting `key: <accessor>` to expand the shorthand.
- *
- * Predicate runs through the shared {@link isReplaceableIdentifierPosition}
- * helper.
+ * Collector that rewrites identifier references matching `fieldMap` keys to
+ * `_rawProps.<key>`. Shorthand `Property` values expand to `key: <accessor>`.
  */
 function propsFieldIdentifierCollector(
   fieldMap: ReadonlyMap<string, string>,
@@ -54,7 +47,7 @@ function propsFieldIdentifierCollector(
     if (defaultExpr === undefined) {
       accessor = baseAccessor;
     } else {
-      // Shorthand expands to Property-value position (precedence-safe).
+      // Shorthand expands to Property-value position, which is precedence-safe.
       const needsParens = !isShorthandValue &&
         expressionNeedsParens(ctx.parentKey, ctx.parentNode);
       accessor = needsParens
@@ -69,15 +62,13 @@ function propsFieldIdentifierCollector(
         end: node.end - ctx.exprStart,
         replacement,
       }],
-      // Identifier is a leaf — recursion past it is a no-op anyway, so
-      // explicit skipSubtree adds nothing here.
     };
   };
 }
 
 /**
- * Replace bare references to destructured prop field names with _rawProps accessors.
- * Uses AST positions to avoid changing property keys or declaration sites.
+ * Replace bare references to destructured prop field names with `_rawProps`
+ * accessors, using AST positions to avoid touching property keys or decl sites.
  */
 export function rewritePropsFieldReferences(
   bodyText: string,
@@ -102,9 +93,8 @@ export function rewritePropsFieldReferences(
     options.memberPropertyMode,
   );
 
-  // The collector emits ranges relative to `wrappedSource`; `applyReplacements`
-  // splices into `wrappedSource`, then the wrapper-prefix slice yields the
-  // original body's edited form.
+  // Ranges are relative to `wrappedSource`; slicing off the wrapper prefix
+  // yields the original body's edited form.
   const replacements = collectRangeReplacements(
     program, 0, wrappedSource, [collector],
   );

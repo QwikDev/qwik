@@ -88,7 +88,6 @@ describe('buildSymbolName', () => {
       displayName: string;
     }> = [];
 
-    // Same edge case files as siphash corpus test
     const KNOWN_EDGE_CASE_FILES = new Set([
       'qwik_core__test__example_build_server.snap',
       'qwik_core__test__example_capture_imports.snap',
@@ -107,7 +106,6 @@ describe('buildSymbolName', () => {
         if (!segment.metadata) continue;
         const meta = segment.metadata;
 
-        // Skip edge cases (same as hash test)
         const lastSlash = meta.origin.lastIndexOf('/');
         const basename = lastSlash >= 0 ? meta.origin.slice(lastSlash + 1) : meta.origin;
         const prefix = basename + '_';

@@ -1,10 +1,6 @@
 /**
- * Raw props transformation for component$ extractions.
- *
- * Rewrites destructured parameters like ({field1, field2}) => ...
- * to (_rawProps) => ... _rawProps.field1 ... for signal analysis.
- * Also handles body-level destructuring, rest elements, and
- * .w() call consolidation.
+ * Raw props transformation for component$ extractions: rewrites destructured
+ * parameters to `(_rawProps) => ... _rawProps.<field> ...`.
  */
 
 import type {
@@ -69,26 +65,16 @@ function isWCallWithArrayArg(
 }
 
 /**
- * Options for JSX transpilation within inline .s() body text.
+ * Options for JSX transpilation within inline .s() body text. `source` is
+ * required only when `devOptions` is set — used to compute source-relative
+ * dev-info positions.
  */
 export interface InlineSegmentJsxOptions {
-  /** Whether to apply JSX transpilation */
   enableJsx: boolean;
-  /** Set of imported identifier names (for prop classification) */
   importedNames: Set<string>;
-  /** Dev mode options for JSX source info */
   devOptions?: DevSuffixOptions;
-  /**
-   * Original module source string, used to compute source-relative
-   * `lineNumber:` / `columnNumber:` on JSX dev-info. Combined with the
-   * per-extraction `loc[0]` and the inline-body wrapper-prefix length to
-   * build a {@link DevInfoSourcePosition} at the `transformAllJsx` call.
-   * Only required when `devOptions` is set.
-   */
   source?: string;
-  /** Starting key counter value (for continuation from module-level JSX) */
   keyCounterStart?: number;
-  /** Relative file path for key prefix derivation */
   relPath?: string;
 }
 
@@ -98,7 +84,6 @@ interface IdentifierReplacement {
   key: string;
   local: string;
   isShorthand?: boolean;
-  /** Parent context requires `(<accessor> ?? <default>)` wrap. */
   needsParens?: boolean;
 }
 
@@ -108,21 +93,14 @@ interface RawPropsField {
   defaultValue?: string;
 }
 
+/**
+ * `unsafe` is true when the destructure has a shape consolidation cannot express
+ * (nested pattern, non-const default, or non-identifier rest); the caller must
+ * then abort and preserve the source destructure verbatim.
+ */
 interface RawPropsBindingInfo {
   fields: RawPropsField[];
   restElementName: string | null;
-  /**
-   * True when the pattern contains a shape consolidation cannot safely
-   * express via `_rawProps.<key>` rewrites:
-   *   - Property value is a nested ObjectPattern / ArrayPattern
-   *     (e.g. `{ stuff: { hey } }`)
-   *   - Property has an AssignmentPattern default that is non-const —
-   *     a call, a member access, or a sibling-binding reference
-   *     (e.g. `{ stuff = hola() }`, `{ b: y = x === 1 }`)
-   *   - RestElement argument is not a plain Identifier
-   * When `unsafe`, the caller MUST abort consolidation and preserve
-   * the original destructure pattern verbatim.
-   */
   unsafe: boolean;
 }
 
@@ -151,12 +129,8 @@ export interface DestructuredFieldInfo {
 }
 
 /**
- * Extract the field-key map AND the defaults map from a destructured first
- * parameter in a single session/parse. The consumers always want both (or
- * are indifferent to computing both): keeping the projections separate
- * meant two back-to-back full-extraction loops parsing every parent body
- * twice — the single largest avoidable-parse population in the session
- * churn census (see BENCHMARKS.md).
+ * Extract the field-key map and the defaults map from a destructured first
+ * parameter in a single parse.
  */
 export function extractDestructuredFieldInfo(body: string): DestructuredFieldInfo {
   const fieldMap = new Map<string, string>();
@@ -173,10 +147,8 @@ export function extractDestructuredFieldInfo(body: string): DestructuredFieldInf
   if (firstParam.type !== 'ObjectPattern') return result;
 
   const bindings = collectPatternBindings(firstParam, body, session.offset);
-  // Aborted destructure — return empty maps so downstream consolidation
-  // (`preConsolidateRawPropsCaptures`, nested-segment field propagation)
-  // skips this parent entirely instead of partially consolidating only
-  // the safe-shaped fields. Matches SWC's all-or-nothing gate.
+  // Aborted destructure — return empty maps so downstream consolidation skips
+  // this parent entirely rather than partially consolidating safe fields only.
   if (bindings.unsafe) return result;
 
   for (const field of bindings.fields) {
@@ -197,16 +169,9 @@ export function extractDestructuredFieldMap(body: string): Map<string, string> {
 }
 
 /**
- * Extract destructure-time default expressions from a function body whose
- * first parameter is an ObjectPattern. Returns a map keyed by local-binding
- * name to the default expression's source text (e.g. `some` → `1+2`,
- * `hey2` → `123`). Returns an empty map when the destructure aborts under
- * the safe-consolidation gate (mirrors {@link extractDestructuredFieldMap}).
- *
- * Used by nested-segment field propagation so `_rawProps.<key>` references
- * inside a child segment's body get `?? <default>` appended for fields
- * that the parent destructure defaulted — matching SWC's NullishCoalescing
- * emission in `transform_pat` (`swc-reference-only/props_destructuring.rs:382-388`).
+ * Extract destructure-time default expressions from a function whose first
+ * parameter is an ObjectPattern (e.g. `some` → `1+2`). Empty map when the
+ * destructure aborts under the safe-consolidation gate.
  */
 export function extractDestructuredFieldDefaultsMap(body: string): Map<string, string> {
   return extractDestructuredFieldInfo(body).fieldDefaults;
@@ -234,9 +199,8 @@ function collectPatternBindings(
     const keyName = getObjectPropertyKeyName(prop.key);
     if (!keyName) continue;
 
-    // A nested ObjectPattern / ArrayPattern value (`{ stuff: { hey } }`)
-    // has no `_rawProps.<key>` accessor the field-rewrite walker can emit,
-    // so consolidation cannot express it — preserve the source destructure.
+    // A nested pattern value (`{ stuff: { hey } }`) has no `_rawProps.<key>`
+    // accessor to emit, so consolidation cannot express it — abort.
     if (isAstNode(prop.value)) {
       const vt = prop.value.type;
       if (vt === 'ObjectPattern' || vt === 'ArrayPattern') {
@@ -265,8 +229,7 @@ function collectPatternBindings(
     defaultNodes.push(defaultNode);
   }
 
-  // Runs after the loop because it needs the full binding set; any
-  // non-const default aborts the whole rewrite.
+  // After the loop: needs the full binding set; any non-const default aborts.
   if (!unsafe) {
     const bindingLocals = new Set<string>(fields.map((f) => f.local));
     if (restElementName) bindingLocals.add(restElementName);
@@ -282,13 +245,10 @@ function collectPatternBindings(
 }
 
 /**
- * A destructure default is non-const — hence not inline-safe — when its
- * expression tree contains a call, a member access, or a reference to one
- * of `bindingLocals` (the sibling destructured bindings). Calls and member
- * reads are not statically relocatable; a sibling reference would dangle
- * once the destructure is eliminated. Arrow/function bodies are not
- * descended (their free references resolve at call time, not inline).
- * Object-literal property keys are not references and are skipped.
+ * A destructure default is non-const — not inline-safe — when its expression
+ * contains a call, a member access, or a sibling-binding reference (which would
+ * dangle once the destructure is eliminated). Arrow/function bodies aren't
+ * descended; object-literal keys aren't references.
  */
 function defaultExprIsNonConst(node: unknown, bindingLocals: ReadonlySet<string>): boolean {
   if (!isAstNode(node)) return false;
@@ -386,12 +346,9 @@ function analyzeRawPropsTransform(
   if (!arrowBodyLooksLikeComponent(fn.body)) return null;
 
   const bindings = collectPatternBindings(firstParam, body, offset);
-  // SWC's `transform_pat` aborts the entire pattern rewrite when any
-  // field has an unsupported shape (nested ObjectPattern/ArrayPattern,
-  // call-expression default, non-ident rest argument). Preserve the
-  // source destructure verbatim in that case — examples:
-  //   NoWorks2: `({ count, stuff: { hey } }) => ...` (nested pattern)
-  //   NoWorks3: `({ count, stuff = hola() }) => ...`  (call default)
+  // Abort the whole pattern rewrite when any field has an unsupported shape
+  // (nested pattern, call-expression default, non-ident rest) — preserve the
+  // source destructure verbatim.
   if (bindings.unsafe) return null;
   if (bindings.fields.length === 0 && !bindings.restElementName) return null;
 
@@ -415,9 +372,9 @@ function analyzeBodyDestructurePlan(
 ): RawPropsTransformPlan | null {
   if (!fnBody || fnBody.type !== 'BlockStatement') return null;
 
-  // A destructured props object may be a local derived from the param
-  // (`const props = usePlayground(rawProps)`), not the param itself; a native
-  // `{ ...rest }` on it enumerates the props proxy and over-subscribes the host.
+  // The destructured props object may be a local derived from the param
+  // (`const props = usePlayground(rawProps)`); `{ ...rest }` on it would
+  // enumerate the props proxy and over-subscribe.
   const propsDerived = collectPropsDerivedLocals(baseName, fnBody.body ?? []);
 
   for (const stmt of fnBody.body ?? []) {
@@ -467,8 +424,8 @@ function analyzeBodyDestructureDeclarator(
   const baseName = declarator.init.name;
 
   const bindings = collectPatternBindings(declarator.id, body, offset);
-  // Same SWC-gate as the param-level path — preserve the source
-  // destructure verbatim when any field has an unsupported shape.
+  // Same gate as the param-level path — preserve the source destructure when
+  // any field has an unsupported shape.
   if (bindings.unsafe) return null;
   if (bindings.fields.length === 0 && !bindings.restElementName) return null;
 
@@ -494,22 +451,10 @@ function isExcludedRange(
 }
 
 /**
- * Collector form for matching Identifier references to destructured
- * prop locals and emitting `IdentifierReplacement` records describing
- * where the `_rawProps.<key>` rewrite should land.
- *
- * Subtree-skip for excluded ranges (param-list, body-destructure statement)
- * runs at the orchestrator level via `skipSubtree`. The shared
- * {@link isReplaceableIdentifierPosition} predicate captures the raw-props
- * parent-context guards (property-key / non-computed member-prop / params
- * / declarator-id excluded).
- *
- * The output uses the local `IdentifierReplacement` shape rather than
- * the generic `RangeReplacement` because the apply step ({@link applyIdentifierReplacements})
- * needs the original `local` and `key` to compose the accessor + default
- * value at emit time. The collector populates a closure-captured array
- * (not the orchestrator's return value) for that reason; the orchestrator
- * is still doing the walk + skipSubtree dispatch.
+ * Collector matching Identifier references to destructured prop locals, emitting
+ * `IdentifierReplacement` records for the `_rawProps.<key>` rewrite. Uses the
+ * local shape (not generic `RangeReplacement`) because the apply step needs the
+ * original `local`/`key` to compose the accessor + default at emit time.
  */
 function buildIdentifierReplacementsCollector(
   fieldLocalToKey: ReadonlyMap<string, string>,
@@ -521,14 +466,10 @@ function buildIdentifierReplacementsCollector(
     if (hasRange(node) && isExcludedRange(node, excludedRanges as Array<{ start: number; end: number }> | undefined)) {
       return { replacements: [], skipSubtree: true };
     }
-    // JSXIdentifier in a JSX tag-name position is a *reference*
-    // to the same binding the regular Identifier path rewrites — `<Model/>`
-    // looks up `Model` in scope just like `console.log(Model)` would. The
-    // tag accepts a JSXMemberExpression, so a source-text rewrite to
-    // `<props.Model/>` is valid. Only JSXOpeningElement.name and
-    // JSXClosingElement.name are reference positions; JSXAttribute names,
-    // JSXMemberExpression.property, and JSXNamespacedName components are
-    // literal names and must NOT be rewritten.
+    // A JSXIdentifier in tag-name position is a reference to the same binding
+    // (`<Model/>` resolves `Model` in scope), so rewrite to `<props.Model/>`.
+    // Only opening/closing tag names are references — attribute names,
+    // member-expression properties, and namespace parts must NOT be rewritten.
     if (
       isAstNode(node) &&
       node.type === 'JSXIdentifier' &&
@@ -594,12 +535,8 @@ function collectIdentifierReplacements(
 ): IdentifierReplacement[] {
   if (!isAstNode(root)) return [];
   const out: IdentifierReplacement[] = [];
-  // The shared orchestrator threads strict `AstNode` to collectors; this
-  // call site has an `AstCompatNode` narrowed via `isAstNode`. The two
-  // shapes share the structural fields the orchestrator + collectors
-  // actually read (`type`, `start`, `end`, child node references via
-  // `forEachAstChild`) so the cast is safe — same FFI-boundary
-  // pragmatism as the existing `isAstNode` narrowing pattern.
+  // `root` is an `AstCompatNode` narrowed via `isAstNode`; it shares the
+  // structural fields the orchestrator reads, so the cast to `AstNode` is safe.
   collectRangeReplacements(root as AstNode, 0, '', [
     buildIdentifierReplacementsCollector(fieldLocalToKey, offset, out, excludedRanges),
   ]);
@@ -615,8 +552,7 @@ function applyIdentifierReplacements(
   for (const replacement of replacements) {
     const baseAccessor = buildPropertyAccessor(baseName, replacement.key);
     const defaultValue = defaultValues?.get(replacement.local);
-    // Parens only when parent precedence requires them (captured at
-    // collect time via `expressionNeedsParens` → `replacement.needsParens`).
+    // Parens only when parent precedence requires them (via `replacement.needsParens`).
     let accessor: string;
     if (defaultValue === undefined) {
       accessor = baseAccessor;
@@ -694,21 +630,13 @@ function collectRawPropsWCallReplacements(session: TransformSession): Array<{
 }
 
 /**
- * After _rawProps transform, consolidate .w([...]) arrays:
- * Replace any _rawProps.xxx entries with a single _rawProps, deduped.
- *
- * e.g., `.w([arg0, _rawProps.foo, _rawProps.bar])` -> `.w([arg0, _rawProps])`
- *
- * Returns the consolidated body text.
+ * Consolidate `.w([...])` arrays after the _rawProps transform: any `_rawProps.x`
+ * entries collapse to a single deduped `_rawProps`.
+ * e.g. `.w([arg0, _rawProps.foo, _rawProps.bar])` → `.w([arg0, _rawProps])`
  */
 export function consolidateRawPropsInWCalls(body: string): string {
-  // Sound textual prefilter: a consolidation site is a `.w([...])` array
-  // containing a `_rawProps` member expression (dotted OR computed —
-  // `_rawProps[key]` consolidates too, so the bare token is the widest
-  // sound gate). Both substrings necessarily appear in any body this pass
-  // could change; most segment bodies have neither — skip the parse. This
-  // was the largest per-segment one-shot parse population in the session
-  // churn census (see BENCHMARKS.md).
+  // Textual prefilter: any body this pass could change contains both `_rawProps`
+  // and `.w(`; most have neither, so skip the parse.
   if (!body.includes('_rawProps') || !body.includes('.w(')) return body;
   const session = createTransformSession(body);
   if (!session) return body;
@@ -780,11 +708,9 @@ export function consolidateQpCaptureValues(
 }
 
 /**
- * Replace original field name references with _rawProps.field in a body string.
- * For child segments whose captures were consolidated into a single _rawProps capture.
- *
- * When `defaultValues` is provided, defaulted fields emit
- * `(_rawProps.<key> ?? <default>)`.
+ * Replace field-name references with `_rawProps.<field>` in a body string, for
+ * child segments whose captures were consolidated into a single `_rawProps`.
+ * With `defaultValues`, defaulted fields emit `(_rawProps.<key> ?? <default>)`.
  */
 export function replacePropsFieldReferencesInBody(
   body: string,

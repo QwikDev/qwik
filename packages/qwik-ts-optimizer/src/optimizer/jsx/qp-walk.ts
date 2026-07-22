@@ -1,17 +1,8 @@
 /**
- * Shared q:p collection walk.
- *
- * Both emit paths (segment-file codegen and the inline/hoist strategy) need
- * the same mapping: for each JSX element, which capture params do its
- * event-handler attributes require on the element's `q:p` var-prop? The walk
- * shape is identical on both sides — only the param resolution differs, so it
- * is injected as a callback:
- *
- * - segment codegen resolves through its `NestedCallSiteInfo` records
- *   (`elementQpParams` with a loop-local fallback);
- * - the inline path resolves through a plain QRL-name → params map and also
- *   needs to know which QRL names matched (`qrlsWithCaptures` drives var/const
- *   prop classification downstream).
+ * Shared q:p collection walk for both emit paths (segment codegen and
+ * inline/hoist). The walk shape is identical; only param resolution differs,
+ * so it's injected as `resolveParams`. Matched QRL names feed
+ * `qrlsWithCaptures`, which drives downstream var/const prop classification.
  */
 
 import { forEachAstChild } from '../ast/guards.js';
@@ -19,13 +10,6 @@ import { getJsxAttributeName } from './jsx-attr-name.js';
 import { isEventAttributeName } from '../qwik/event-attrs.js';
 import type { AstMaybeNode, JSXAttributeItem } from '../../ast-types.js';
 
-/**
- * Collect the deduplicated q:p capture params contributed by one JSX
- * element's event-handler attributes. An attribute contributes when its value
- * is a bare `Identifier` (a rewritten QRL reference) that `resolveParams`
- * recognises; matched QRL names are added to `qrlsWithCaptures` when the
- * caller provides one.
- */
 export function collectQpParamsFromElement(
   attrs: readonly JSXAttributeItem[],
   resolveParams: (qrlName: string) => readonly string[] | undefined,
@@ -58,11 +42,6 @@ export function collectQpParamsFromElement(
   return elementParams;
 }
 
-/**
- * Recursively walk an AST, populating `qpOverrides` (element start offset →
- * deduped q:p params) for every JSX element whose event-handler attributes
- * reference a QRL that `resolveParams` recognises.
- */
 export function walkAstForQp(
   node: AstMaybeNode,
   resolveParams: (qrlName: string) => readonly string[] | undefined,

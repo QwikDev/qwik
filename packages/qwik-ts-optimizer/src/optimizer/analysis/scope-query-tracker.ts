@@ -1,25 +1,14 @@
 /**
  * `ScopeTracker` with a cursor-free declaration query.
  *
- * Upstream `getDeclaration(name)` resolves against the tracker's *current*
- * scope key — the walk cursor — by splitting the dash-joined index path and
- * probing each prefix from innermost to root (`oxc-walker`'s
- * `ScopeTracker.getDeclaration`). That couples resolution to replay time:
- * a consumer must be inside a walk, at the identifier's position, to ask
- * where a name resolves.
- *
- * `getDeclarationFromScope(name, scopeKey)` is the same prefix chain-walk
- * with the cursor made explicit. On a tracker built with
- * `preserveExitedScopes: true` and then frozen, the full scope tree is
- * retained, so the query returns — for any `(name, scopeKey)` pair — exactly
- * what `getDeclaration(name)` would have returned with the cursor at
- * `scopeKey`. This decouples resolution from traversal: a walk can buffer
- * `(name, getCurrentScope())` pairs and resolve them all post-walk, which is
- * what lets the tracker build *during* the gather walk instead of in a
- * standalone build walk before it.
- *
- * Equivalence against replay-time `getDeclaration` is pinned per fixture by
- * `tests/optimizer/analysis/scope-query-tracker.test.ts`.
+ * Upstream `getDeclaration(name)` resolves against the tracker's current scope
+ * (the walk cursor), coupling resolution to replay time.
+ * `getDeclarationFromScope` takes the cursor as an explicit `scopeKey`: on a
+ * tracker built with `preserveExitedScopes: true` and then frozen, the full
+ * scope tree is retained, so it returns for any `(name, scopeKey)` exactly what
+ * `getDeclaration` would with the cursor there. This lets a walk buffer
+ * `(name, currentScope)` pairs and resolve them post-walk — which is what lets
+ * the tracker build during the gather walk instead of in a pass before it.
  */
 
 import { ScopeTracker } from 'oxc-walker';
@@ -27,11 +16,8 @@ import type { ScopeTrackerNode } from 'oxc-walker';
 
 export class ScopeQueryTracker extends ScopeTracker {
   /**
-   * Resolve `name` as if the walk cursor were at `scopeKey`.
-   *
-   * Mirrors upstream `getDeclaration` exactly (including the
-   * `.map(Number)` round-trip on the split key), substituting `scopeKey`
-   * for `this.scopeIndexKey`. The root scope's key is the empty string.
+   * Resolve `name` as if the walk cursor were at `scopeKey`. The root scope's
+   * key is the empty string.
    */
   getDeclarationFromScope(name: string, scopeKey: string): ScopeTrackerNode | null {
     if (!scopeKey) {

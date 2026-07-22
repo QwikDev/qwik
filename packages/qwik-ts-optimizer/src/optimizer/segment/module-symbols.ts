@@ -14,10 +14,6 @@ function getSpecifierName(specifier: ModuleExportName | null | undefined): strin
   return specifier?.value;
 }
 
-/**
- * Collect top-level names that segment codegen may need to import back from the parent.
- * This includes exported names plus top-level declarations in the same module.
- */
 export function collectSameFileSymbolInfo(program: AstProgram): SameFileSymbolInfo {
   const sameFileSymbols = new Set<string>();
   const defaultExportedNames = new Set<string>();

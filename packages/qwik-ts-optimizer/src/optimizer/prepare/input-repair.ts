@@ -1,22 +1,17 @@
 /**
- * Input preprocessing for parse error recovery.
- *
- * oxc-parser is stricter than SWC and returns empty ASTs for certain
- * syntax errors that SWC recovers from. This module applies targeted
- * repairs to make such inputs parseable while preserving semantics.
- *
- * Repairs are ONLY applied when parseSync returns an empty program body
- * with errors. Well-formed inputs pass through unchanged.
+ * Input preprocessing for parse-error recovery. oxc-parser returns an empty
+ * AST for certain syntax errors; this module applies targeted repairs to make
+ * such inputs parseable while preserving semantics. Repairs run ONLY when the
+ * initial parse yields an empty program body with errors — well-formed inputs
+ * pass through unchanged.
  */
 
 import type { AstEcmaScriptModule, AstProgram } from '../../ast-types.js';
 import { parseWithRawTransfer } from '../ast/parse.js';
 
 /**
- * Attempt to repair source code that oxc-parser cannot parse.
- *
- * Returns the original source unchanged if it parses successfully or
- * no repair strategy succeeds.
+ * Attempt to repair source oxc-parser cannot parse; returns the original
+ * source unchanged if it already parses or no repair strategy succeeds.
  */
 export function repairInput(
   source: string,
@@ -24,10 +19,8 @@ export function repairInput(
   preParsedProgram?: AstProgram,
   preParsedModule?: AstEcmaScriptModule,
 ): { source: string; program?: AstProgram; module?: AstEcmaScriptModule } {
-  // Caller (typically a bundler like Rolldown) already parsed this source
-  // and is handing us the Program — trust it and skip the internal parse.
-  // Eliminates the double-parse when integrating with a host that already
-  // has the AST in hand.
+  // A pre-parsed Program (e.g. from a bundler that already parsed this source)
+  // is trusted as-is, skipping the internal parse.
   if (preParsedProgram) {
     return { source, program: preParsedProgram, module: preParsedModule };
   }
@@ -52,8 +45,8 @@ export function repairInput(
 }
 
 /**
- * Remove unmatched closing parentheses when `)` count exceeds `(` count.
- * Only handles single-excess cases, trying each `)` from end to start.
+ * Remove a single unmatched closing paren (only when `)` count exceeds `(` by
+ * exactly one), trying each `)` from end to start.
  */
 function tryRemoveUnmatchedParens(source: string, filename: string): string | null {
   let openCount = 0;
@@ -87,8 +80,8 @@ function tryRemoveUnmatchedParens(source: string, filename: string): string | nu
 }
 
 /**
- * Convert JSX text containing `>` into expression containers `{"text"}`.
- * oxc-parser rejects raw `>` in JSX text that SWC accepts.
+ * Wrap JSX text containing a raw `>` (which oxc-parser rejects) into an
+ * expression container `{"text"}`.
  */
 function tryWrapJsxTextArrows(source: string, filename: string): string | null {
   const regions = findJsxTextRegionsWithGt(source);
@@ -109,12 +102,11 @@ function tryWrapJsxTextArrows(source: string, filename: string): string | null {
   return null;
 }
 
-/** Regex matching lines composed entirely of closing brackets/punctuation. */
 const BRACKET_ONLY_LINE = /^[)\]};,]+$/;
 
 /**
- * Find JSX text regions containing `>` that would cause parse errors.
- * Also captures trailing bracket-only companion lines (e.g. `));`).
+ * Find JSX text regions containing `>`, plus trailing bracket-only companion
+ * lines (e.g. `));`) that must be wrapped alongside them.
  */
 function findJsxTextRegionsWithGt(source: string): Array<{ start: number; end: number }> {
   const regions: Array<{ start: number; end: number }> = [];
@@ -151,7 +143,6 @@ function findJsxTextRegionsWithGt(source: string): Array<{ start: number; end: n
       const textEnd = textStart + trimmed.length;
       regions.push({ start: textStart, end: textEnd });
 
-      // Scan forward for bracket-only companion lines (e.g. `));`)
       for (let j = lineIdx + 1; j < lines.length; j++) {
         const nextTrimmed = lines[j].trim();
         if (nextTrimmed.startsWith('<')) break;

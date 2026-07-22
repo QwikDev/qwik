@@ -1,11 +1,3 @@
-/**
- * Tests for the diagnostics module.
- *
- * Covers: C02 (FunctionReference), C03 (CanNotCapture), C05 (MissingQrlImplementation),
- * preventdefault-passive-check, parseDisableDirectives, filterSuppressedDiagnostics,
- * and integration with the transform pipeline.
- */
-
 import { describe, it, expect } from 'vitest';
 import {
   emitC02,
@@ -50,7 +42,6 @@ describe('emitC02', () => {
   });
 
   it('does not emit for uncaptured identifiers (caller responsibility)', () => {
-    // This is a caller-level concern -- emitC02 always emits. Tested here for API shape only.
     const diag = emitC02('Other', 'test.tsx', true);
     expect(diag.code).toBe('C02');
   });
@@ -62,7 +53,6 @@ describe('parseDisableDirectives', () => {
 /* @qwik-disable-next-line C05 */
 useMemo$(() => {});`;
     const directives = parseDisableDirectives(source);
-    // Directive on line 2 suppresses line 3
     expect(directives.get(3)?.has('C05')).toBe(true);
   });
 
@@ -112,35 +102,25 @@ describe('filterSuppressedDiagnostics', () => {
   });
 
   it('suppresses only the NEXT line, not subsequent lines', () => {
-    // Directive on line 2 suppresses line 3 only
     const diags: Diagnostic[] = [
-      // Diagnostic on line 3 -- should be suppressed
       { category: 'error', code: 'C03', file: 'test.tsx', message: 'uses local values (a)', highlights: [{ lo: mkByteOffset(20), hi: mkByteOffset(30), startLine: mkLineNumber(3), startCol: mkColumnNumber(1), endLine: mkLineNumber(3), endCol: mkColumnNumber(10) }], suggestions: null, scope: 'optimizer' },
-      // Diagnostic on line 4 -- should NOT be suppressed
       { category: 'error', code: 'C03', file: 'test.tsx', message: 'uses local values (b)', highlights: [{ lo: mkByteOffset(40), hi: mkByteOffset(50), startLine: mkLineNumber(4), startCol: mkColumnNumber(1), endLine: mkLineNumber(4), endCol: mkColumnNumber(10) }], suggestions: null, scope: 'optimizer' },
     ];
     const directives = new Map<number, Set<string>>();
-    directives.set(3, new Set(['C03'])); // Only line 3 is suppressed
+    directives.set(3, new Set(['C03']));
     const result = filterSuppressedDiagnostics(diags, directives);
     expect(result).toHaveLength(1);
     expect(result[0].message).toContain('b');
   });
 
   it('handles diagnostics with null highlights (uses no line matching)', () => {
-    // C02 has null highlights -- no line info available, so cannot be suppressed by line
-    // Unless we add line tracking to C02 later
     const diags: Diagnostic[] = [emitC02('hola', 'test.tsx', false)];
     const directives = new Map<number, Set<string>>();
     directives.set(5, new Set(['C02']));
     const result = filterSuppressedDiagnostics(diags, directives);
-    // C02 has null highlights, no startLine -- cannot match line-based suppression
     expect(result).toHaveLength(1);
   });
 });
-
-// ---------------------------------------------------------------------------
-// C05 and preventdefault-passive-check unit tests
-// ---------------------------------------------------------------------------
 
 describe('emitC05', () => {
   it('produces error with code C05 for missing Qrl export', () => {
@@ -176,10 +156,6 @@ describe('emitPassiveConflictWarning', () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// Integration tests -- diagnostics through transform pipeline
-// ---------------------------------------------------------------------------
-
 describe('transform pipeline diagnostics', () => {
   it('emits C02 for function/class captures in example_capturing_fn_class', () => {
     const input = `
@@ -206,11 +182,9 @@ export const App = component$(() => {
       srcDir: mkFilePath('.'),
     });
 
-    // Should still produce code output (diagnostics are non-blocking)
     expect(result.modules.length).toBeGreaterThan(0);
     expect(result.modules[0].code).toBeTruthy();
 
-    // Should emit C02 diagnostics for hola and Thing (not Other -- not captured)
     const c02Diags = result.diagnostics.filter((d) => d.code === 'C02');
     expect(c02Diags.length).toBe(2);
 
@@ -226,7 +200,6 @@ export const App = component$(() => {
   it('emits C05 for missing custom inlined Qrl export', () => {
     const input = `
 import { component$ as Component, $ as onRender, useStore, wrap, useEffect } from '@qwik.dev/core';
-
 
 export const useMemo$ = (qrt) => {
 \tuseEffect(qrt);
@@ -247,10 +220,8 @@ export const App = component$((props) => {
       srcDir: mkFilePath('.'),
     });
 
-    // Should still produce code
     expect(result.modules.length).toBeGreaterThan(0);
 
-    // Should emit C05 for useMemo$ without useMemoQrl
     const c05Diags = result.diagnostics.filter((d) => d.code === 'C05');
     expect(c05Diags.length).toBe(1);
     expect(c05Diags[0].message).toContain("rewrites 'useMemo$' to use 'useMemoQrl'");
@@ -305,7 +276,6 @@ export const App = component$((props) => {
       srcDir: mkFilePath('.'),
     });
 
-    // The preventdefault-passive-check should be suppressed
     const passiveDiags = result.diagnostics.filter(
       (d) => d.code === 'preventdefault-passive-check'
     );
@@ -351,10 +321,8 @@ export const App = component$(() => {
       srcDir: mkFilePath('.'),
     });
 
-    // Diagnostics present
     expect(result.diagnostics.length).toBeGreaterThan(0);
 
-    // Code still produced
     expect(result.modules.length).toBeGreaterThan(0);
     expect(result.modules[0].code.length).toBeGreaterThan(0);
   });

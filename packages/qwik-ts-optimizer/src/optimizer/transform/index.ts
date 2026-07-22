@@ -1,10 +1,8 @@
 /**
- * Public entry point for the Qwik optimizer.
- *
- * transformModule() accepts TransformModulesOptions and returns TransformOutput,
- * wiring together extraction, capture analysis, variable migration, parent
- * rewriting, and segment codegen into a single public API matching the NAPI
- * binding interface.
+ * Public entry point for the Qwik optimizer. `transformModule` accepts
+ * `TransformModulesOptions` and returns `TransformOutput`, sequencing
+ * extraction, capture analysis, variable migration, parent rewriting, and
+ * segment codegen behind one public API.
  */
 
 import type {
@@ -100,18 +98,10 @@ import {
   type SegmentGenerationContext,
 } from '../segment/segment-generation.js';
 
-// ---------------------------------------------------------------------------
-// Per-file pipeline. `transformOneModule` sequences the phase helpers below;
-// each phase takes explicit inputs and returns an explicit result object so
-// the data flow between phases is visible at the signature level.
-// ---------------------------------------------------------------------------
-
 /**
- * Output-level source-kind flags, accumulated across input files.
- *
- * The accumulation is order-sensitive: segment generation reads the
- * *running* `isJsx` value, so a file sees `true` if any earlier input
- * (or itself) was JSX.
+ * Output-level source-kind flags accumulated across input files. The
+ * accumulation is order-sensitive: a file sees `isJsx: true` if any earlier
+ * input (or itself) was JSX.
  */
 interface ModuleKindFlags {
   readonly isTypeScript: boolean;
@@ -143,14 +133,12 @@ interface ExtractedModule {
   readonly kind: 'extracted';
   readonly extractions: ExtractionResult[];
   readonly closureNodes: Map<string, AstFunction>;
-  /** Facts from the fused gather walk; consumed by Phase 2. */
   readonly facts: ModuleGatherFacts;
 }
 
 /**
- * Phase 1 result. `passthrough` is the early exit for inputs with no
- * marker calls and no JSX to transpile — the module is emitted verbatim
- * and no further phase runs.
+ * Phase 1 result. `passthrough` is the early exit for inputs with no marker
+ * calls and no JSX to transpile — the module is emitted verbatim.
  */
 type SegmentExtraction =
   | { readonly kind: 'passthrough'; readonly module: TransformModule }
@@ -160,7 +148,6 @@ type SegmentExtraction =
 interface EmitConfig {
   readonly emitMode: EmitMode;
   readonly entryStrategy: EntryStrategy;
-  /** `inline` or `hoist` — segment bodies stay in the parent module. */
   readonly isInlineStrategy: boolean;
   readonly isLibMode: boolean;
   readonly shouldTranspileJsx: boolean;
@@ -171,8 +158,10 @@ interface EmitConfig {
 
 /**
  * Phase 2 result. Capture analysis also mutates `extractions` in place
- * (captureNames/paramNames/captures + the `'captured'` phase flip) per the
- * in-place phase-transition pattern.
+ * (captureNames/paramNames/captures and the `'captured'` phase flip). The
+ * usage maps and passive-conflict list arrive pre-built from the Phase-1
+ * gather walk; `scopeAwareBindings` is present only when this module will run
+ * the Phase-4 JSX transform.
  */
 interface CaptureAnalysis {
   readonly originalImports: Map<string, ImportInfo>;
@@ -180,16 +169,9 @@ interface CaptureAnalysis {
   readonly enclosingExtMap: Map<string, ExtractionResult>;
   readonly extractionLoopMap: Map<string, LoopContext[]>;
   readonly elementQpParamsMap: Map<string, string[]>;
-  /** Segment/root identifier usage from the canonical gather walk;
-   * consumed by Phase 3 (`attributeSegmentUsage`). */
   readonly segmentUsage: Map<string, Set<string>>;
   readonly rootUsage: Set<string>;
-  /** passive:/preventdefault: conflicts gathered during the canonical walk;
-   * emitted as diagnostics in Phase 4 to preserve diagnostic order. */
   readonly passiveConflicts: readonly PassiveConflict[];
-  /** Scope-aware JSX bindings from the canonical gather walk; present iff
-   * this module will run the Phase-4 JSX transform. Threaded into
-   * `transformAllJsx` so it skips its own bindings walk. */
   readonly scopeAwareBindings: ScopeAwareCollectResult | undefined;
 }
 
@@ -217,10 +199,8 @@ interface ModuleTransformResult {
 
 /**
  * Transform Qwik source modules by extracting segments, rewriting the parent
- * module, and generating segment module code.
- *
- * This is the public API consumed by the Qwik Vite plugin, matching the NAPI
- * binding interface.
+ * module, and generating segment module code. Public API consumed by the Qwik
+ * Vite plugin.
  *
  * Pipeline per input file (see `transformOneModule`):
  *   repair -> extract -> analyze captures -> migrate -> rewrite parent -> generate segments
@@ -248,14 +228,8 @@ export function transformModule(
 }
 
 /**
- * Run the full per-file pipeline for one input module.
- *
- * Phase markers match the numbering used throughout the project docs:
- *   Phase 0/0.5 `prepareModuleInput` -> Phase 1 `extractModuleSegments`
- *   -> Phase 2 `analyzeModuleCaptures` -> Phase 3 `attributeSegmentUsage`
- *   -> Phase 4 `rewriteParent` -> Phase 5 `generateSegments`.
- * (Phase 6, diagnostic suppression, is cross-file and runs once in
- * `transformModule` via `applyDiagnosticSuppression`.)
+ * Run the full per-file pipeline for one input module. Phase 6 (diagnostic
+ * suppression) is cross-file and runs once in `transformModule`, not here.
  */
 function transformOneModule(
   input: TransformModuleInput,
@@ -338,10 +312,9 @@ function transformOneModule(
 function prepareModuleInput(mod: ModuleContext): PreparedModuleInput {
   const { input, relPath } = mod;
 
-  // Phase 0: Repair input for SWC-recoverable parse errors.
-  // When the caller supplies a pre-parsed Program (typically from a
-  // bundler's `meta.ast`), `repairInput` uses it directly and skips
-  // its internal parse.
+  // Phase 0: repair recoverable parse errors. A caller-supplied pre-parsed
+  // Program (typically a bundler's `meta.ast`) is used directly, skipping the
+  // internal parse.
   const repairResult = repairInput(
     input.code,
     relPath,
@@ -349,9 +322,8 @@ function prepareModuleInput(mod: ModuleContext): PreparedModuleInput {
     input.module,
   );
   let repairedCode = repairResult.source;
-  // Single module AST for extraction and the rest of the pipeline. When
-  // repair already produced a program, reuse it; otherwise parse once here
-  // so extractSegments does not parse the same source again internally.
+  // Reuse repair's program when present; otherwise parse once here so
+  // extraction doesn't re-parse the same source.
   let program: AstProgram;
   let parserModule: AstEcmaScriptModule | undefined;
   if (repairResult.program) {
@@ -363,12 +335,10 @@ function prepareModuleInput(mod: ModuleContext): PreparedModuleInput {
     parserModule = parsed.module;
   }
 
-  // Phase 0.5: Flatten `const {x} = useFoo()` inside `component$` bodies
-  // to `const foo = useFoo()` + reference rewrites. Mirrors SWC's
-  // `props_destructuring::transform_component_body` (a code-size
-  // optimization applied before extraction). Runs after repair so the
-  // AST positions are valid. If the rewrite produced changes, re-parse
-  // so downstream phases see the rewritten source.
+  // Phase 0.5: flatten `const {x} = useFoo()` inside `component$` bodies to
+  // `const foo = useFoo()` + reference rewrites (a pre-extraction code-size
+  // optimization). Re-parse when it changes so downstream phases see the
+  // rewritten source.
   const flattened = flattenAndReparse(repairedCode, relPath, program);
   if (flattened.changed) {
     repairedCode = flattened.source;
@@ -376,10 +346,9 @@ function prepareModuleInput(mod: ModuleContext): PreparedModuleInput {
     parserModule = flattened.module ?? parserModule;
   }
 
-  // Detect foreign `@jsxImportSource` pragma once per source. Threaded
-  // into rewrite + segment generation so both phases skip Qwik's
-  // JSX-syntax rewrite and let oxc-transform's default JSX transform
-  // handle the file using the pragma-named runtime.
+  // Detect a foreign `@jsxImportSource` pragma once; threaded into rewrite +
+  // segment generation so both skip Qwik's JSX rewrite and defer to
+  // oxc-transform's default JSX handling for the pragma's runtime.
   const { hasForeignJsxRuntime, pragmaText: foreignJsxPragmaText } =
     detectForeignJsxRuntime(repairedCode);
 
@@ -392,21 +361,13 @@ function prepareModuleInput(mod: ModuleContext): PreparedModuleInput {
   };
 }
 
-/** Phase 1+2 walk: extract `$()` segments and gather every per-module
- * fact in one fused program traversal, or emit the module verbatim. */
 /**
- * Drop `inlinedQrl` extractions that sit as a value inside another
- * `inlinedQrl`'s captures array. A QRL used as a capture value is not a
- * lazy-loadable boundary, so it must not become its own segment — extracting
- * it would rewrite its call site (inside the outer extraction's `.w([...])`
- * array) and collide with the outer's capture-wrap edit, corrupting output.
- * These stay inline in the owning segment body, where `hoistInlinedQrlBodies`
- * lifts their body to a top-level `_inlined_<name>` const.
- *
- * Containment is read off existing offsets: an extraction whose call sits
- * inside another inlinedQrl's call but *after* that call's arg0 body
- * (`callStart >= outer.argEnd`) can only be in arg2 (the captures array) —
- * arg1 is the name string literal and cannot hold a call.
+ * Drop `inlinedQrl` extractions nested as a value inside another `inlinedQrl`'s
+ * captures array. A QRL used as a capture value is not a lazy boundary;
+ * extracting it would rewrite its call site inside the outer `.w([...])` and
+ * collide with the outer capture-wrap edit. Containment is read off offsets:
+ * a call inside another inlinedQrl but after its arg0 (`callStart >= argEnd`)
+ * can only sit in the captures array.
  */
 function filterCaptureInlinedQrls(
   extractions: ExtractionResult[],
@@ -443,12 +404,9 @@ function extractModuleSegments(
   const willTranspileJsx =
     options.transpileJsx !== false && (ext === ".tsx" || ext === ".jsx");
 
-  // Sound textual prefilter (the Phase-0.5 flatten-prefilter pattern):
-  // a module whose text cannot contain an extraction trigger — see
-  // `sourceMayContainMarkers` for the soundness argument — and that has
-  // no JSX to transpile is a passthrough by construction. Skipping the
-  // gather walk for it cannot change behavior; it only avoids paying the
-  // tracker build and projection buffers on marker-less modules.
+  // Sound prefilter: a module whose text cannot contain an extraction trigger
+  // (see `sourceMayContainMarkers`) and has no JSX to transpile is a
+  // passthrough — skipping the gather walk here cannot change behavior.
   if (!willTranspileJsx && !sourceMayContainMarkers(repairedCode)) {
     return {
       kind: 'passthrough',
@@ -461,49 +419,38 @@ function extractModuleSegments(
     };
   }
 
-  // Closure AST nodes (the `arg` of each marker call) are threaded out by
-  // the extraction collector keyed by post-disambiguation `symbolName`, so
-  // downstream phases reuse the original parse instead of re-parsing each
-  // extraction's body.
+  // Closure AST nodes are threaded out keyed by post-disambiguation
+  // symbolName, so downstream phases reuse the original parse instead of
+  // re-parsing each extraction's body.
   const closureNodes = new Map<string, AstFunction>();
-  // The canonical gather walk, hosting the Phase-1 extraction collector:
-  // one program traversal produces the extraction set AND every per-module
-  // fact that previously required its own walk. Projections that depend on
-  // extraction identity (free identifiers, lexical scopes, loop map,
-  // segment usage) key off the closures the collector discovers mid-walk;
+  // One fused traversal produces the extraction set and every per-module fact.
+  // Identity-dependent projections key off closures discovered mid-walk;
   // symbolName-keyed maps are derived post-walk, after disambiguation.
   const facts = gatherModuleFacts({
     program,
     repairedCode,
     scopeEntries: true,
     passiveConflicts: true,
-    // Same predicate Phase 4 uses to decide whether the JSX transform runs
-    // (`rewriteParent` builds `jsxOptions` under this condition) — gather
-    // the bindings only when that transform will consume them.
+    // Gather scope bindings only when the Phase-4 JSX transform will consume
+    // them (same `willTranspileJsx` gate `rewriteParent` uses).
     scopeBindings: willTranspileJsx,
     extraction: {
       source: repairedCode,
       relPath,
       scope: options.scope,
       transpileJsx: willTranspileJsx,
-      // Explicit user-set transpileJsx flag (defaults to false) for the
-      // ctxKind classifier. Distinct from `willTranspileJsx` which
-      // defaults to true on .tsx/.jsx (TS auto-transpile).
+      // Explicit user-set flag (defaults false) for the ctxKind classifier —
+      // distinct from `willTranspileJsx`, which defaults true on .tsx/.jsx.
       explicitTranspileJsx: options.transpileJsx === true,
       parserModule,
       closureNodesOut: closureNodes,
     },
   });
-  // The collector returns `readonly ExtractedSegment[]` as its
-  // phase-locked contract. The orchestrator applies in-place mutations
-  // (prod rename, transpile-downgrade, capture analysis, raw-props
-  // consolidation) that gradually advance the array elements through
-  // `captured` → `consolidated` phases. The cast here is the single
-  // FFI-boundary widening; per-mutation `Mutable` casts handle
-  // field-level readonly enforcement.
+  // The collector's `readonly ExtractedSegment[]` is widened once here; the
+  // orchestrator then advances elements in place through the `captured` →
+  // `consolidated` phases via per-mutation `Mutable` casts.
   const extractions = facts.extractions as ExtractionResult[];
 
-  // Early exit: no segments and no JSX to transpile
   if (extractions.length === 0 && !willTranspileJsx) {
     return {
       kind: 'passthrough',
@@ -528,12 +475,9 @@ function extractModuleSegments(
 function resolveEmitConfig(mod: ModuleContext): EmitConfig {
   const { options, relPath, ext } = mod;
 
-  // `mode: 'lib'` produces a single-module library output (segment
-  // bodies inlined as `inlinedQrl(body, name, [captures])` literals).
-  // Re-uses the inline pipeline for body emission + capture wiring; a
-  // post-pass in `output-assembly.ts` collapses the inline output
-  // (`const q_X = _noopQrl(...); q_X.s(body);`) into the lib shape
-  // (`inlinedQrl(body, name, [caps])`).
+  // `mode: 'lib'` emits a single-module library output: it reuses the inline
+  // pipeline, and a post-pass in `output-assembly.ts` collapses the inline
+  // shape into `inlinedQrl(body, name, [caps])`.
   let entryStrategy: EntryStrategy;
   if (options.mode === 'lib') {
     entryStrategy = { type: 'inline' as const };
@@ -597,29 +541,22 @@ function analyzeModuleCaptures(
     }
   }
 
-  // Capture analysis: determine which variables each extraction captures
   const moduleScopeIds = collectScopeIdentifiers(
     program,
     repairedCode,
     relPath,
   );
 
-  // Collect scope identifiers from each segment's body for nested capture
-  // analysis. The closure AST nodes themselves were already populated by
-  // `extractSegments` above — no body re-parse needed.
+  // Collect each segment body's scope identifiers for nested capture analysis;
+  // the closure nodes were already threaded through, so no body re-parse.
   const bodyScopeIds = new Map<string, Set<string>>();
   for (const [symbolName, closureNode] of closureNodes) {
     const bodyIds = collectScopeIdentifiers(closureNode, "", "");
     bodyScopeIds.set(symbolName, bodyIds);
   }
 
-  // Facts from the canonical gather walk — the single fused traversal that
-  // also ran Phase-1 extraction (`extractModuleSegments`). Free identifiers
-  // and lexical scope chains feed capture analysis below; loop maps + scope
-  // entries feed event-handler capture promotion; segment usage feeds
-  // Phase 3; passive conflicts are emitted in Phase 4. Keyed by closure
-  // node identity / symbolName as each consumer needs — node-identity keys
-  // survive the prod `s_<hash>` rename.
+  // Facts from the fused gather walk; node-identity keys (free identifiers,
+  // lexical scopes) survive the prod `s_<hash>` rename.
   const {
     closureFreeIdentifiers,
     closureLexicalScopes,
@@ -632,7 +569,6 @@ function analyzeModuleCaptures(
     scopeAwareBindings,
   } = extracted.facts;
 
-  // Run capture analysis with the correct parent scope for each extraction.
   for (const extraction of extractions) {
     const closureNode = closureNodes.get(extraction.symbolName);
     if (!closureNode) continue;
@@ -642,7 +578,7 @@ function analyzeModuleCaptures(
     const lexicalScope = closureLexicalScopes.get(closureNode);
     const parentScopeIds: Set<string> = lexicalScope ?? moduleScopeIds;
 
-    // For inlinedQrl extractions, populate captureNames from explicit captures
+    // inlinedQrl carries explicit captures — read them rather than analyzing.
     if (extraction.isInlinedQrl) {
       if (extraction.explicitCaptures) {
         const items = extraction.explicitCaptures
@@ -674,7 +610,7 @@ function analyzeModuleCaptures(
     extraction.paramNames = result.paramNames;
     extraction.captures = result.captures;
 
-    // Filter out function/class declarations from captures.
+    // Function/class declarations aren't serialized captures — keep only vars.
     if (extraction.captureNames.length > 0) {
       const enclosingClosure = enclosingExt
         ? closureNodes.get(enclosingExt.symbolName)
@@ -699,7 +635,6 @@ function analyzeModuleCaptures(
       extraction.captures = extraction.captureNames.length > 0;
     }
 
-    // Reconcile captures with paramNames
     if (extraction.captures && extraction.paramNames.length > 0) {
       const paramSet = new Set(extraction.paramNames);
       const allCapturesInParams = extraction.captureNames.every((name) =>
@@ -734,14 +669,10 @@ function analyzeModuleCaptures(
     }
   }
 
-  // Event handler capture-to-param promotion (q:p delivery mechanism)
   const globalDeclPositions = new Map<string, number>();
-  // Only `inline` (not `hoist`) skips the captures→paramNames
-  // promotion. `hoist` emits `(_, _1, capture) => body` const
-  // declarations, so it still needs the param-padding form. `inline`
-  // emits `q_X.s((origArg) => { const _rawProps = _captures[0]; ... })`,
-  // which requires keeping captures in `captureNames` for the
-  // downstream `_captures[N]` unpacking pipeline.
+  // Only `inline` (not `hoist`) skips captures→paramNames promotion: `hoist`
+  // still needs the `(_, _1, capture)` param-padding form, while `inline`
+  // keeps captures in `captureNames` for the `_captures[N]` unpacking path.
   const isInlineOnlyStrategy = entryStrategy.type === "inline";
   const eventCaptureCtx: EventCaptureContext = {
     extractions,
@@ -760,13 +691,10 @@ function analyzeModuleCaptures(
 
   promoteEventHandlerCaptures(eventCaptureCtx, globalDeclPositions);
 
-  // Unify parameter slots for multiple event handlers on the same element
   unifyParameterSlots(eventCaptureCtx, globalDeclPositions);
 
-  // Build elementQpParams map. Threads strip-config so stripped event
-  // handlers' captures populate `elementQpParamsMap` for segment-body
-  // JSX (`buildQpOverrides` in segment-codegen looks up by handler
-  // symbolName via `nestedCallSite.elementQpParams`).
+  // Threads strip-config so stripped event handlers' captures still populate
+  // `elementQpParamsMap` for segment-body JSX.
   const elementQpParamsMap = buildElementCaptureMap(
     eventCaptureCtx,
     globalDeclPositions,
@@ -786,11 +714,8 @@ function analyzeModuleCaptures(
     diagnostics,
   );
 
-  // Flip the `phase` discriminator from 'extracted' to 'captured' now
-  // that capture analysis has populated `captureNames` / `paramNames`.
-  // Internal-builder cast (FFI-boundary pattern, matching the
-  // prod-rename + transpile-downgrade sites) — the alternative is a
-  // full pass-through `.map()` to construct new objects.
+  // Flip the phase discriminator to 'captured' now that captureNames /
+  // paramNames are populated. Internal-builder cast avoids a pass-through map.
   for (const extraction of extractions) {
     (extraction as Mutable<ExtractionResult>).phase = 'captured';
   }
@@ -845,18 +770,15 @@ function attributeSegmentUsage(
   for (const d of moduleLevelDecls) {
     moduleLevelDeclsByName.set(d.name, d);
   }
-  // Usage covers both `$()` and `inlinedQrl(...)` extractions: module-level
-  // references inside a peer-tool-emitted `inlinedQrl` body (e.g. qwik-react
-  // codegen) still need migration attribution. The explicit-captures list on
-  // `inlinedQrl` only covers closure variables — module-level decls referenced
-  // in the body (like a peer-tool's shared `filterProps`) are NOT in the
-  // captures and need usage attribution via the program walk. The walk itself
-  // happened in Phase 2 (canonical gather walk); the maps arrive pre-built.
+  // Module-level refs inside an `inlinedQrl` body still need migration
+  // attribution: explicit captures cover only closure variables, so
+  // body-referenced module decls arrive via the Phase-2 usage maps, not
+  // captures.
   const { segmentUsage, rootUsage } = analysis;
 
-  // Augment segmentUsage with captured names a `$()` body references and thus
-  // needs migrated. inlinedQrl captures arrive via `_captures` (not an import),
-  // so folding them in would wrongly mark them dual-use and reexport them.
+  // Augment segmentUsage with a `$()` body's captured names. inlinedQrl
+  // captures arrive via `_captures`, not an import — folding them in would
+  // wrongly mark them dual-use and reexport them.
   for (const ext of extractions) {
     if (ext.isInlinedQrl) continue;
     const usage = segmentUsage.get(ext.symbolName);
@@ -867,7 +789,7 @@ function attributeSegmentUsage(
     }
   }
 
-  // Variables delivered via q:ps (paramNames captures) are referenced by the parent
+  // Captures delivered via q:p (paramNames slots >= 2) are referenced by the parent.
   for (const ext of extractions) {
     if (ext.ctxKind !== "eventHandler") continue;
     if (
@@ -887,7 +809,8 @@ function attributeSegmentUsage(
     }
   }
 
-  // When transpileTs is enabled, TS enum values are inlined into segment bodies
+  // With transpileTs, TS enum values are inlined into segment bodies, so their
+  // names shouldn't count as segment usage.
   if (options.transpileTs === true) {
     const enumNames = new Set<string>();
     for (const node of program.body) {
@@ -945,19 +868,14 @@ function applyProdRename(
   if (emitMode !== "prod") return preRenameSymbolName;
 
   for (const ext of extractions) {
-    // `inlinedQrl` extractions get renamed under prod too. SWC
-    // renames them (e.g. `App_component_Fh88JClhbC0` →
-    // `s_Fh88JClhbC0`), preserving the hash suffix so runtime QRL
-    // resolution still matches. The runtime uses hash-keyed lookup,
-    // not the symbolic name, so the rename is safe even for
-    // peer-tool-supplied names.
+    // inlinedQrl extractions are renamed under prod too, preserving the hash
+    // suffix. Runtime QRL resolution is hash-keyed, not name-keyed, so the
+    // rename is safe even for peer-tool-supplied names.
     const original = ext.symbolName;
-    // Prod rename mutates identity post-extraction. Internal-builder
-    // cast — the alternative is a full pass-through `array.map()`.
+    // Internal-builder cast: rename mutates identity in place post-extraction.
     (ext as Mutable<ExtractionResult>).symbolName = mkSymbolName("s_" + ext.hash);
     preRenameSymbolName.set(ext.symbolName, original);
-    // Mirror the rename in `closureNodes` so post-rename lookups (Phase 4
-    // const-literal resolution, etc.) still find the threaded AST node.
+    // Mirror the rename in `closureNodes` so post-rename lookups still resolve.
     const closure = closureNodes.get(original);
     if (closure) {
       closureNodes.delete(original);
@@ -982,8 +900,7 @@ function downgradeExtensions(
     sourceExtensions.set(extraction.symbolName, extraction.extension);
   }
 
-  // In-place mutation via internal-builder cast — see the prod-rename
-  // comment in `applyProdRename`.
+  // In-place mutation via internal-builder cast.
   if (shouldTranspileJsx || shouldTranspileTs) {
     for (const extraction of extractions) {
       const wip = extraction as Mutable<ExtractionResult>;
@@ -1032,10 +949,9 @@ function rewriteParent(
       enableJsx: true,
       importedNames: analysis.importedNames,
       enableSignals: true,
-      // Phase-2 gather-walk projection of the same program object; saves
-      // transformAllJsx its own full-program bindings walk. Positions are
-      // plain numbers extracted at gather time, so intervening parses
-      // can't invalidate them.
+      // Phase-2 gather-walk projection; saves transformAllJsx its own bindings
+      // walk. Positions are plain numbers, so intervening parses can't
+      // invalidate them.
       precomputedScopeBindings: analysis.scopeAwareBindings,
     };
   }
@@ -1086,7 +1002,6 @@ function rewriteParent(
     hasForeignJsxRuntime,
   );
 
-  // Post-process parent: DCE + unused import cleanup
   const parentCode = applySegmentDCE(parentResult.code);
   const cleanedCode = removeUnusedImports(
     parentCode,
@@ -1126,12 +1041,10 @@ function rewriteParent(
 }
 
 /**
- * Phase 5: generate one module per non-stripped segment.
- *
- * Always runs the generation pipeline (lib mode relies on its side effects
- * during the parent inline collapse) but returns no segment modules in lib
- * mode — the bodies were inlined into the parent via
- * `collapseToLibInlinedQrl`.
+ * Phase 5: generate one module per non-stripped segment. Always runs the
+ * pipeline (lib mode relies on its side effects during the parent inline
+ * collapse) but returns no modules in lib mode — bodies were inlined into the
+ * parent.
  */
 function generateSegments(
   mod: ModuleContext,
@@ -1151,12 +1064,11 @@ function generateSegments(
     prepared;
   const { parentResult, devFile } = parent;
 
-  // `parentResult.extractions` is already typed as `ConsolidatedSegment[]`
-  // — `rewriteParentModule` flips the phase discriminator after
-  // `resolveNesting`.
+  // `parentResult.extractions` is already `ConsolidatedSegment[]` — the parent
+  // rewrite flipped the phase discriminator after `resolveNesting`.
   const updatedExtractions = parentResult.extractions;
 
-  // Pre-pass: resolve const literal captures for child segments (default strategy only).
+  // Resolve const-literal captures for child segments (default strategy only).
   const constLiteralsMap = new Map<string, Map<string, string>>();
   if (!emit.isInlineStrategy) {
     for (const ext of updatedExtractions) {
@@ -1190,8 +1102,7 @@ function generateSegments(
   }
 
   const segmentCtx: SegmentGenerationContext = {
-    // Same array as `updatedExtractions` (`rewriteParentModule`
-    // mutates in place); cast to the narrow variant for Phase 5 typing.
+    // Same array as `updatedExtractions` (mutated in place); narrowed for Phase 5.
     extractions: extractions as ConsolidatedSegment[],
     updatedExtractions,
     closureNodes,
@@ -1200,11 +1111,9 @@ function generateSegments(
     options,
     repairedCode,
     relPath,
-    // Original consumer-supplied `input.path` (vs `relPath`, which is
-    // `input.path` made srcDir-relative). Segment `module.path` derives
-    // its directory portion from this so output paths live in the same
-    // namespace as inputs — when a bundler passes absolute paths, the
-    // emitted segment paths are absolute too, matching SWC's behavior.
+    // Original consumer-supplied `input.path` (vs the srcDir-relative
+    // `relPath`). Segment `module.path` derives its directory from this so
+    // output paths share the input's namespace — absolute in, absolute out.
     inputPath: input.path,
     emitMode: emit.emitMode,
     devFile,
@@ -1220,9 +1129,8 @@ function generateSegments(
     preRenameSymbolName,
     qrlOutputExt: emit.qrlOutputExt,
     sourceExtensions,
-    // The parent input file's extension drives oxc-transform's
-    // parser-dialect selection in `postProcessSegmentCode`. Falls back
-    // to `.tsx` (parses TS + JSX, covers both) when extension is missing.
+    // Drives oxc-transform's parser-dialect selection; falls back to `.tsx`
+    // (parses both TS and JSX) when the extension is missing.
     parentSourceExt: ext || '.tsx',
     shouldTranspileJsx: emit.shouldTranspileJsx,
     shouldTranspileTs: emit.shouldTranspileTs,
@@ -1238,10 +1146,8 @@ function generateSegments(
   };
 
   const segmentModules = generateAllSegmentModules(segmentCtx);
-  // lib mode produces a single-module library output. The segment-file
-  // modules are still generated (extraction + capture analysis runs)
-  // but the bodies are inlined into the parent module via
-  // `collapseToLibInlinedQrl`. Skip emitting the segment modules.
+  // lib mode inlines segment bodies into the parent; skip emitting the
+  // separately-generated segment modules.
   if (emit.isLibMode) {
     return [];
   }

@@ -1,11 +1,3 @@
-/**
- * JSX element transformation module for the Qwik optimizer.
- *
- * Converts JSX syntax to _jsxSorted/_jsxSplit function calls with
- * correct prop classification (varProps/constProps), flags computation,
- * key generation, spread handling, and fragment support.
- */
-
 import type MagicString from 'magic-string';
 import { walkWithProtocol } from '../ast/walk-with-protocol.js';
 import { forEachAstChild } from '../ast/guards.js';
@@ -16,7 +8,6 @@ import { collectPassiveDirectives } from './event-handlers.js';
 import { detectLoopContext, type LoopContext } from './loop-hoisting.js';
 import { computeKeyPrefix } from './key-prefix.js';
 
-// Re-export for consumers
 export { processChildren } from './jsx-children.js';
 export {
   processProps,
@@ -44,81 +35,50 @@ export interface JsxTransformOutput {
 }
 
 /**
- * Coordinate-conversion info for JSX dev-info under wrapped-body callers.
- *
- * The Inline-strategy path (`rewrite/inline-body.ts`) and default-strategy
- * segment-file path (`segment-codegen.ts`) parse the extracted body wrapped
- * in a single-line prefix (`const __body__ = ` and `(` respectively). When
- * dev-info is requested, JSX positions reported by the AST are offsets in
- * that wrapped body — not in the original module source. Without conversion,
- * `lineNumber:` ends up body-relative, but SWC reports source-relative
- * positions.
- *
- * Callers that already pass the original module source as `transformAllJsx`'s
- * `source` arg (parent rewrite at `rewrite/index.ts`) leave this undefined.
+ * Coordinate-conversion info for JSX dev-info under wrapped-body callers. The
+ * inline-strategy and segment-file paths parse the extracted body wrapped in a
+ * prefix, so AST-reported JSX positions are offsets in that wrapped body, not
+ * the module source. Without conversion, `lineNumber:` ends up body-relative
+ * instead of source-relative. Module-level callers (parent rewrite) leave this
+ * undefined.
  */
 export interface DevInfoSourcePosition {
-  /** Original module source — `lineStarts` is computed from this. */
   source: string;
-  /** Byte offset of the wrapped body's start in `source`. */
   bodyOriginOffset: number;
-  /** Length of the single-line wrapper prefix prepended to the body. */
   wrapperPrefixLen: number;
 }
 
-/** Dev-info emission options for `transformAllJsx`. */
 export interface DevSuffixOptions {
-  /** Source-file path emitted as `fileName:` on the dev-info object. */
   relPath: string;
-  /**
-   * Optional coordinate-conversion info; see {@link DevInfoSourcePosition}.
-   * When provided, dev-info `lineNumber:`/`columnNumber:` are computed in
-   * `sourcePosition.source` coords with `bodyOriginOffset + (nodeStart -
-   * wrapperPrefixLen)` as the absolute byte offset.
-   */
   sourcePosition?: DevInfoSourcePosition;
 }
 
-/**
- * Shared plumbing + scope information threaded through the JSX transform
- * for a single `transformAllJsx` invocation. Consumers (`transformJsxElement`,
- * `processProps`, future `transformJsxFragment` / `processChildren` refactors)
- * read a subset; the context is constant across every element in one call.
- */
 export interface JsxTransformContext {
   source: string;
   s: MagicString;
   importedNames: Set<string>;
   keyCounter: JsxKeyCounter;
   signalHoister: SignalHoister;
-  /** Scope-aware binding lookup. Use `bindings.classify(name, atPosition)`
-   * to resolve a reference to its innermost enclosing scope's binding kind;
-   * shadowed names (e.g. arrow param shadowing a for-of binding) resolve
-   * correctly. A flat `constIdents: Set<string>` cannot disambiguate
-   * shadowing — necessary for correct classification under nested scopes. */
+  /** Scope-aware binding lookup. `classify(name, atPosition)` resolves to the
+   * innermost enclosing scope's kind so shadowed names (arrow param over a
+   * for-of binding) classify correctly; a flat `Set` cannot disambiguate. */
   bindings?: ScopeAwareBindings;
   allDeclaredNames?: Set<string>;
   paramNames?: Set<string>;
   qrlsWithCaptures?: Set<string>;
-  /** Exact-range log of every `writeJsxCall` overwrite, keyed by range
-   * start. Lets readers recover an already-rewritten subtree's text
-   * without the chunk-list walk `MagicString.slice` pays on a heavily
-   * edited buffer — see `sliceTransformed` for the soundness argument. */
+  /** Exact-range log of every `writeJsxCall` overwrite, keyed by range start;
+   * lets readers recover a rewritten subtree's text without the chunk-list walk
+   * `MagicString.slice` pays on a heavily edited buffer (see `sliceTransformed`). */
   jsxWriteMemo?: ReadonlyMap<number, { end: number; content: string }>;
 }
 
 /**
  * Read a byte range from the in-progress transform buffer, preferring an
- * exact-range hit in the JSX write memo over `MagicString.slice`.
- *
- * Why an exact-range hit is final-in-walk: the JSX walk rewrites
- * bottom-up and `writeJsxCall` is its only MagicString write path, so by
- * the time an enclosing element reads a child's range, the child's
- * recorded write is the last edit landing inside that range — any later
- * write targets a strictly-enclosing ancestor range and is recorded
- * under its own start. `s.slice(start, end)` would therefore return
- * exactly the recorded content. The one pass that revisits recorded
- * ranges (the post-walk signal-hoist rename) runs after all reads.
+ * exact-range hit in the JSX write memo over `MagicString.slice`. Sound because
+ * the JSX walk rewrites bottom-up through the single `writeJsxCall` path, so a
+ * child's recorded write is the last edit inside its range by the time an
+ * ancestor reads it; the only pass that revisits recorded ranges (post-walk
+ * signal-hoist rename) runs after all reads.
  */
 export function sliceTransformed(
   ctx: JsxTransformContext,
@@ -130,31 +90,12 @@ export function sliceTransformed(
   return ctx.s.slice(start, end);
 }
 
-/**
- * Enter-phase context for the JSX walker. Carries the read-only
- * source text plus the two enter-phase accumulators: the loop stack (pushed
- * on loop enter) and the sole-child JSX marker WeakSet (filled when a parent
- * JSX node first sees its children). Holds NO write path — calling
- * `ctx.writeJsxCall(...)` from the enter handler is a compile error because
- * this type has no such field.
- */
 export interface JsxWalkEnterContext {
   readonly source: string;
   readonly loopStack: LoopContext[];
   readonly childJsxNodes: WeakSet<object>;
 }
 
-/**
- * Exit-phase context for the JSX walker. Extends EnterContext with
- * the per-element transform inputs (`jsxCtx`, `enableSignals`,
- * `qpOverrides`, `ranges`) and the act-helpers needed during leave:
- * `neededImports` (write target), `getDevSourceSuffix` (dev suffix
- * builder), `setNeedsFragment` (flip the outer `needsFragment` flag when
- * a JSXFragment is rewritten), and `writeJsxCall` (the only MagicString
- * write path — it records each overwrite so the signal-hoist rename pass
- * can later rewrite exactly the inserted chunks without disturbing
- * original-source offsets).
- */
 export interface JsxWalkExitContext extends JsxWalkEnterContext {
   readonly ranges: ReadonlyArray<{ start: number; end: number }>;
   readonly jsxCtx: JsxTransformContext;
@@ -166,7 +107,6 @@ export interface JsxWalkExitContext extends JsxWalkEnterContext {
   readonly writeJsxCall: (start: number, end: number, content: string) => void;
 }
 
-/** Per-element options for `transformJsxElement`. All fields are optional. */
 export interface JsxElementOptions {
   passiveEvents?: Set<string>;
   loopCtx?: LoopContext | null;
@@ -175,35 +115,18 @@ export interface JsxElementOptions {
   qpOverrides?: Map<number, string[]>;
 }
 
-/** Per-call options for `processChildren`. */
 export interface ProcessChildrenOptions {
-  /**
-   * Per-element accumulator. `processChildren` and its helpers add the
-   * names of any runtime helpers they emit (`_wrapProp`, `_fnSignal`, …)
-   * into this set so the caller can wire imports.
-   */
   neededImports: Set<string>;
-  /**
-   * Gate for child-expression signal analysis (`_fnSignal` hoisting,
-   * `_wrapProp`, constness classification). Defaults to `true`. Set to
-   * `false` for elements where signal-aware processing of children is
-   * suppressed (currently: text-only HTML tags, and components opting
-   * out via `enableChildSignals: false`).
-   */
   enableSignalAnalysis?: boolean;
 }
 
-/** Per-call options for `processProps`. */
 export interface ProcessPropsOptions {
   tagIsHtml: boolean;
   passiveEvents: Set<string>;
   inLoop?: boolean;
-  /**
-   * Skip signal analysis for prop value expressions. Set to `true` when the
-   * caller intends to lower the element to `_createElement` (spread + key
-   * variant), since that path emits prop values verbatim and any
-   * `_fnSignal` hoists for those values would be unreachable.
-   */
+  /** Skip signal analysis for prop values; set when lowering to `_createElement`
+   * (spread + key), whose path emits prop values verbatim so any `_fnSignal`
+   * hoists would be unreachable. */
   skipSignalAnalysis?: boolean;
 }
 
@@ -240,11 +163,6 @@ export function fnSignalDepsAllConst(
   );
 }
 
-/**
- * Extract a non-computed Property key as a string. Returns the identifier
- * name for `{x: ...}`, the stringified value for `{"x": ...}` / `{1: ...}`,
- * or null for any shape that can't be resolved statically.
- */
 function staticPropKeyName(key: AstNode | null | undefined): string | null {
   if (!key) return null;
   if (key.type === 'Identifier') return key.name;
@@ -262,19 +180,12 @@ function isReturnStatic(init: Expression | null | undefined): boolean {
 }
 
 /**
- * Scope-aware binding classification.
- *
- * Replaces the prior flat `constBindings: Set<string>` with a position-indexed
- * lookup. A reference to `item` at position P resolves to the innermost
- * enclosing scope that declares `item`; classification follows that scope's
- * binding kind. This is what SWC's hygiene-based `decl_stack` lookup gives
- * for free; OXC has no equivalent, so we simulate it via scope ranges.
- *
- * Per-name index: `nameToScopes: Map<name, scope-range[]>`. Lookup picks the
- * smallest range containing `atPosition` whose name matches. Synthetic
- * program-scope bindings (`addProgramScopeConst`) use range `[0, MAX]` so
- * any inner scope's binding wins — segment-codegen uses this to inject
- * `_captures[i]` names that aren't AST-declared but are runtime-const.
+ * Scope-aware binding classification: a reference to `item` at position P
+ * resolves to the innermost enclosing scope that declares `item`, and
+ * classification follows that scope's binding kind. Per-name index
+ * `nameToScopes: Map<name, scope-range[]>`; lookup picks the smallest range
+ * containing `atPosition`. Synthetic program-scope bindings
+ * (`addProgramScopeConst`) use range `[0, MAX]` so any inner scope's binding wins.
  */
 interface ScopeRange {
   readonly start: number;
@@ -283,29 +194,22 @@ interface ScopeRange {
 }
 
 export interface ScopeAwareBindings {
-  /** Look up `name`'s binding kind at AST position `atPosition`. Returns the
-   * innermost matching scope's kind, or undefined if no enclosing scope
-   * binds `name` (caller falls through to imports / undeclared check). */
+  /** Innermost enclosing scope's binding kind for `name` at `atPosition`, or
+   * undefined when no scope binds it (caller falls through to imports/undeclared). */
   classify(name: string, atPosition: number): 'const' | 'var' | undefined;
-  /** Add a name that classifies as `const` everywhere — used to inject
-   * names that aren't AST-declared but are runtime-const (e.g. capture
-   * bindings from `_captures[i]` unpacking). Any inner-scope binding of
-   * the same name shadows correctly. */
+  /** Register `name` as const everywhere — for names that aren't AST-declared
+   * but are runtime-const (e.g. `_captures[i]` unpacking bindings). Inner-scope
+   * bindings still shadow. */
   addProgramScopeConst(name: string): void;
 }
 
 class ScopeAwareBindingsImpl implements ScopeAwareBindings {
   private nameToScopes = new Map<string, ScopeRange[]>();
   /**
-   * Names that classify as `'const'` everywhere, overriding any AST-derived
-   * binding. Populated by `addProgramScopeConst` — used for capture names
-   * injected by `_captures[i]` unpacking. Even though those names appear
-   * as AST `const X = _captures[N]` declarations inside segment bodies,
-   * their initializer (`_captures[N]`) is a MemberExpression that wouldn't
-   * normally pass `isReturnStatic`, so the AST-derived classification
-   * would be `'var'` — incorrect, since `_captures` is a runtime-stable
-   * array. The override matches the prior flat-Set behavior where
-   * `captureInfo.captureNames` were forcibly added to `constBindings`.
+   * Names that classify as `'const'` everywhere, overriding AST-derived binding.
+   * Populated by `addProgramScopeConst` for `_captures[N]` unpacking names:
+   * those appear as `const X = _captures[N]` whose MemberExpression initializer
+   * wouldn't pass `isReturnStatic`, so the AST-derived kind would wrongly be `'var'`.
    */
   private alwaysConst = new Set<string>();
 
@@ -319,7 +223,6 @@ class ScopeAwareBindingsImpl implements ScopeAwareBindings {
   }
 
   classify(name: string, atPosition: number): 'const' | 'var' | undefined {
-    // alwaysConst overrides scope walk — see field doc above.
     if (this.alwaysConst.has(name)) return 'const';
     const scopes = this.nameToScopes.get(name);
     if (!scopes) return undefined;
@@ -343,40 +246,16 @@ class ScopeAwareBindingsImpl implements ScopeAwareBindings {
 }
 
 export interface ScopeAwareCollectResult {
-  /** Scope-aware binding lookup keyed by (name, position). */
   bindings: ScopeAwareBindings;
-  /** Every locally declared identifier name (any binding kind) — flat,
-   * scope-unaware. Used by signal-analysis as a "this name is declared
-   * somewhere locally, so don't treat it as a signal/store dep" filter. */
+  /** Every locally declared name (any binding kind), flat/scope-unaware —
+   * signal-analysis uses it to skip names declared locally. */
   allLocalNames: Set<string>;
 }
 
-/**
- * Single-pass collection of scope-aware `bindings` + flat `allLocalNames`.
- * Walks the AST maintaining a scope stack: each Function* / Arrow / Block /
- * For-loop / Catch / Program node pushes a frame on enter, pops on leave.
- * Bindings declared inside are recorded with that frame's source range.
- *
- * Const-vs-var classification per binding mirrors the prior `collectConst-
- * AndLocalNames` behavior:
- * - `VariableDeclaration` with `kind === 'const'` and `isReturnStatic(init)`
- *   per leaf → `'const'`
- * - All other bindings (let/var declarations, function/arrow/method params,
- *   for-in/of bindings via VarDecl with null init are special-cased through
- *   the same VarDecl branch, catch param, function/class declaration names)
- *   → `'var'`
- *
- * Block scoping is treated uniformly (every binding goes in its immediate
- * enclosing scope-introducing node). This is technically more restrictive
- * than JS semantics for `var` (which floats to the enclosing function), but
- * is safe: a `var x` recorded in an inner block scope can only produce a
- * false-positive shadow detection, which classifies the reference as `var`
- * (the safer direction — fewer false-const classifications).
- */
-/** Enter/leave view of the bindings collection, so the canonical gather
- * walk (`analysis/module-gather-walk.ts`) can drive it as a projection of
- * the shared traversal. `collectScopeAwareBindings` below remains the
- * standalone walk — and the projection's differential oracle. */
+/** Enter/leave view of the bindings collection so the canonical gather walk
+ * (`analysis/module-gather-walk.ts`) can drive it as a projection.
+ * `collectScopeAwareBindings` remains the standalone walk and the projection's
+ * differential oracle. */
 export interface ScopeBindingsCollector {
   readonly enter: (node: AstNode) => void;
   readonly leave: (node: AstNode) => void;
@@ -387,8 +266,6 @@ export function createScopeBindingsCollector(program: AstProgram): ScopeBindings
   const bindings = new ScopeAwareBindingsImpl();
   const allLocalNames = new Set<string>();
 
-  /** Stack of active scope ranges. The top is the innermost; bindings
-   * declared inside the current visit get recorded with the top range. */
   const scopeStack: Array<{ start: number; end: number }> = [];
 
   function currentScope(): { start: number; end: number } {
@@ -418,13 +295,6 @@ export function createScopeBindingsCollector(program: AstProgram): ScopeBindings
     }
   }
 
-  /** Walk a destructure pattern paired with its initializer. For each leaf
-   * binding, classify as `'const'` iff the corresponding init expression is
-   * `isReturnStatic`; otherwise `'var'`. Same algorithm as the prior
-   * `walkPatternInit` — catches compound destructures like
-   * `const [store, math] = [useStore(...), Math.random()]` → store const,
-   * math not.
-   */
   function walkPatternInit(id: AstNode | null | undefined, init: Expression | null | undefined): void {
     if (!id) return;
     if (id.type === 'Identifier') {
@@ -497,9 +367,8 @@ export function createScopeBindingsCollector(program: AstProgram): ScopeBindings
       scopeStack.push({ start: node.start, end: node.end });
     }
 
-    // FunctionDeclaration/ClassDeclaration NAMES bind in their enclosing
-    // scope (the parent), not in the new function-body scope. Add them to
-    // the scope ABOVE the just-pushed frame (if we pushed one).
+    // FunctionDeclaration/ClassDeclaration names bind in the enclosing scope,
+    // not the new body scope — record them in the scope above the just-pushed frame.
     if (node.type === 'FunctionDeclaration' && node.id) {
       const targetScope = pushed && scopeStack.length >= 2
         ? scopeStack[scopeStack.length - 2]
@@ -508,15 +377,13 @@ export function createScopeBindingsCollector(program: AstProgram): ScopeBindings
       bindings.add(node.id.name, targetScope.start, targetScope.end, 'var');
     }
     if (node.type === 'ClassDeclaration' && node.id) {
-      // Classes are not scope-introducing in this model (we don't push for
-      // them); the name binds in the current scope.
+      // Classes aren't scope-introducing in this model (no push), so the name
+      // binds in the current scope.
       allLocalNames.add(node.id.name);
       const scope = currentScope();
       bindings.add(node.id.name, scope.start, scope.end, 'var');
     }
 
-    // Function parameters bind in the function/arrow body scope (which we
-    // just pushed for these node types).
     if ((node.type === 'FunctionDeclaration' || node.type === 'FunctionExpression' ||
          node.type === 'ArrowFunctionExpression') && node.params) {
       for (const param of node.params) {
@@ -524,17 +391,13 @@ export function createScopeBindingsCollector(program: AstProgram): ScopeBindings
       }
     }
 
-    // Catch param binds in the catch clause scope.
     if (node.type === 'CatchClause' && node.param) {
       addBindingIdent(node.param, 'var');
     }
 
-    // VariableDeclaration handles both standalone `const/let/var x = ...`
-    // AND the LHS of `for (const x of arr)` / `for (let i = 0; ...)`. For
-    // const declarations, walkPatternInit classifies each leaf based on
-    // `isReturnStatic(init)`. For for-of/in, `decl.init === null` →
-    // `isReturnStatic(null) === true` → bound as 'const' (matches prior
-    // behavior).
+    // One `VariableDeclaration` covers standalone declarations and for-loop LHS.
+    // For-of/in have `decl.init === null`, so `isReturnStatic(null) === true`
+    // binds them as 'const'.
     if (node.type === 'VariableDeclaration') {
       const isConst = node.kind === 'const';
       for (const decl of node.declarations) {
@@ -554,9 +417,8 @@ export function createScopeBindingsCollector(program: AstProgram): ScopeBindings
     }
   }
 
-  // Push the program-level scope frame so top-level bindings have somewhere
-  // to land. Range covers the whole program; it is never popped, so
-  // `result` can be read at any point after the traversal.
+  // Push the program-level scope frame so top-level bindings land somewhere;
+  // never popped, so `result` is readable after the traversal.
   scopeStack.push({ start: program.start ?? 0, end: program.end ?? Number.MAX_SAFE_INTEGER });
 
   return {
@@ -579,11 +441,9 @@ export function collectScopeAwareBindings(program: AstProgram): ScopeAwareCollec
 }
 
 /**
- * Determine if an expression is immutable (const) or mutable (var).
- * Mirrors SWC's `is_const_expr`. Takes the expression's AST position so
- * identifier references resolve through scope-aware lookup; shadowed
- * names (e.g. an arrow param shadowing an outer for-of binding) classify
- * correctly.
+ * Classify an expression as immutable (const) or mutable (var). Takes the AST
+ * position so identifier references resolve through scope-aware lookup and
+ * shadowed names classify correctly.
  */
 export function classifyConstness(
   exprNode: AstNode | null | undefined,
@@ -595,8 +455,8 @@ export function classifyConstness(
 
   switch (exprNode.type) {
     case 'Literal':
-      // Runtime emits all four literal interfaces (String/Numeric/Boolean/
-      // Null) under the same `'Literal'` discriminant.
+      // All four literal interfaces (String/Numeric/Boolean/Null) share the
+      // same `'Literal'` discriminant.
       return 'const';
 
     case 'TemplateLiteral': {
@@ -611,29 +471,25 @@ export function classifyConstness(
       const name = exprNode.name;
       if (name === 'undefined') return 'const';
       if (importedNames.has(name)) return 'const';
-      // Use the identifier's own position for the scope lookup — the
-      // outer `atPosition` is the enclosing expression's start, but the
-      // identifier may sit deeper (e.g. nested in a SequenceExpression).
-      // Both resolve to the same enclosing scope for the cases we care
-      // about; using the identifier's start is the most precise.
+      // Use the identifier's own start for the scope lookup — the outer
+      // `atPosition` is the enclosing expression's start, but the identifier
+      // may sit deeper.
       if (bindings?.classify(name, exprNode.start) === 'const') return 'const';
       return 'var';
     }
 
     case 'MemberExpression': {
-      // Runtime emits Computed/Static/PrivateField under one
-      // `'MemberExpression'` discriminant; all three carry `.object`.
+      // Computed/Static/PrivateField share one `'MemberExpression'`
+      // discriminant; all three carry `.object`.
       const obj = exprNode.object;
       if (obj.type === 'Identifier' && importedNames.has(obj.name)) return 'const';
       return 'var';
     }
 
     case 'CallExpression':
-      // `_fnSignal(_hf<n>, [deps], _hf<n>_str)` is a hoisted reactive
-      // expression — its callee identity is stable, the runtime evaluates
-      // the inner `_hf<n>` against fresh deps. SWC classifies these as
-      // const; matching that puts them in the const-props bag where the
-      // runtime can skip re-computing the prop record on re-render.
+      // A hoisted `_fnSignal(_hf<n>, [deps], ...)` has a stable callee;
+      // classifying it const puts it in the const-props bag so the runtime skips
+      // re-computing the prop record on re-render.
       if (
         exprNode.callee.type === 'Identifier' &&
         exprNode.callee.name === '_fnSignal'
@@ -765,9 +621,6 @@ export function isTextOnlyElement(tagName: string): boolean {
   return TEXT_ONLY_TAGS.has(tagName);
 }
 
-/**
- * Extract tag representation from a JSX opening element name node.
- */
 export function processJsxTag(nameNode: JSXElementName | null | undefined): string {
   if (!nameNode) return '"div"';
 
@@ -798,13 +651,11 @@ export function processJsxTag(nameNode: JSXElementName | null | undefined): stri
 }
 
 /**
- * Build a binary-searchable index over skip ranges: sort by start
- * (descending end as tie-break) and drop ranges contained in an
- * already-kept range. Dropping is lossless — a node inside a dropped
- * range is also inside its container. The kept ranges have strictly
- * increasing starts AND strictly increasing ends (a later range with a
- * smaller end would be contained), which is what makes the single-probe
- * query in `isInSkipRange` sound.
+ * Build a binary-searchable index over skip ranges: sort by start (descending
+ * end tie-break), drop ranges contained in an already-kept range (lossless — a
+ * node inside a dropped range is inside its container). Kept ranges have
+ * strictly increasing starts AND ends, which makes `isInSkipRange`'s
+ * single-probe query sound.
  */
 export function buildSkipRangeIndex(
   skipRanges: ReadonlyArray<{ start: number; end: number }>,
@@ -850,8 +701,8 @@ export function isInSkipRange(
 }
 
 /**
- * Apply two-phase rename (old -> temp -> new) to avoid collisions when
- * renumbering _hf variables to match SWC's top-down source order.
+ * Two-phase rename (old → temp → new) so renumbering `_hf` variables to
+ * top-down source order can't collide.
  */
 function renameSignalHoistNames(text: string, renameMap: Map<string, string>): string {
   let renamed = text;
@@ -872,7 +723,6 @@ function renameSignalHoistNames(text: string, renameMap: Map<string, string>): s
   return renamed;
 }
 
-/** One JSX overwrite performed during the walk: range + written content. */
 interface RecordedJsxWrite {
   readonly start: number;
   readonly end: number;
@@ -880,18 +730,11 @@ interface RecordedJsxWrite {
 }
 
 /**
- * Renumber `_hf` occurrences in the buffer. Every `_hf<n>` name lives
- * inside content the JSX walk itself inserted (`_fnSignal(_hf<n>, ...)`
- * call sites inside rewritten JSX; the hoisted declarations are renamed
- * separately by `buildRenameMap` before emission), so renames are applied
- * by re-overwriting exactly the recorded JSX write ranges with renamed
- * content. Replaying in recorded (bottom-up) order reproduces the walk's
- * child-then-enclosing-parent overwrite nesting, so the final buffer
- * state matches what a buffer-wide rewrite would produce — without
- * replacing untouched chunks. Original-source offsets outside JSX stay
- * valid for later passes on the shared MagicString (the peer-tool `jsx()`
- * rewrite, moved-decl snapshot slices), which read via `s.slice` at
- * original AST positions and error on replaced anchors.
+ * Renumber `_hf` occurrences by re-overwriting exactly the recorded JSX write
+ * ranges (every `_hf<n>` lives inside walk-inserted content). Replaying in
+ * recorded bottom-up order reproduces the walk's overwrite nesting without
+ * touching untouched chunks, so original-source offsets stay valid for later
+ * passes that `s.slice` at original AST positions and error on replaced anchors.
  */
 function applySignalHoistRenames(
   s: MagicString,
@@ -906,29 +749,15 @@ function applySignalHoistRenames(
   }
 }
 
-/** Append dev source location info to a JSX call string. */
 function appendDevSuffix(callString: string, devSuffix: string): string {
   if (!devSuffix) return callString;
   return callString.slice(0, -1) + devSuffix + ')';
 }
 
-// Import element/fragment transform functions
 import { transformJsxElement, transformJsxFragment } from './jsx-elements-core.js';
 
-// Re-export for consumers
 export { transformJsxElement, transformJsxFragment };
 
-/**
- * Walk the AST bottom-up and transform all JSX nodes.
- * Uses leave callback to ensure inner JSX is transformed before outer JSX.
- */
-/**
- * Required inputs for one `transformAllJsx` invocation — the four values
- * the orchestrator can't sensibly default. `source` is the parser input
- * the AST is positioned in; `s` is the MagicString being mutated; `program`
- * is the parsed AST root; `importedNames` is the set of top-level imported
- * binding names used for prop-classification.
- */
 export interface TransformAllJsxInput {
   source: string;
   s: MagicString;
@@ -936,32 +765,16 @@ export interface TransformAllJsxInput {
   importedNames: Set<string>;
 }
 
-/**
- * Per-call configuration for `transformAllJsx`. All fields optional; defaults
- * mirror the previous positional signature. The JSX orchestrator is
- * context+options shaped like its inner callees (`transformJsxElement`,
- * `transformJsxFragment`, `processChildren`, `processProps`).
- */
 export interface TransformAllJsxOptions {
-  /** Byte ranges to skip during the walk (e.g., already-handled subtrees). */
   skipRanges?: Array<{ start: number; end: number }>;
-  /** Dev-info emission config; when set, JSX calls get a trailing dev-source suffix. */
   devOptions?: DevSuffixOptions;
-  /** Starting JSX key counter value (continuation across multiple `transformAllJsx` calls). */
   keyCounterStart?: number;
-  /** Run signal-analysis hoisting (`_fnSignal`, `_wrapProp`). Defaults to true. */
   enableSignals?: boolean;
-  /** Per-element `q:p`/`q:ps` overrides keyed by JSXElement.start byte offset. */
   qpOverrides?: Map<number, string[]>;
-  /** Set of QRL local names that carry captures, used by prop classification. */
   qrlsWithCaptures?: Set<string>;
-  /** Closure parameter names (treated as const for prop classification on HTML tags). */
   paramNames?: Set<string>;
-  /** Module-relative path used to derive the JSX key prefix. */
   relPath?: string;
-  /** Shared SignalHoister for `_hf<n>` counter continuity across calls. */
   sharedSignalHoister?: SignalHoister;
-  /** Pre-computed scope-aware bindings, when the caller already built them. */
   precomputedScopeBindings?: ScopeAwareCollectResult;
 }
 
@@ -1004,17 +817,10 @@ export function transformAllJsx(
     jsxWriteMemo,
   };
 
-  // When the JSX walk runs over a *wrapped body* (Inline strategy via
-  // `inline-body.ts` and default-strategy segment files via
-  // `segment-codegen.ts`), `source` here is the wrapped body — not the
-  // original module source. Naively computing `lineStarts` from this
-  // `source` produces body-relative line/column for JSX dev-info, but
-  // SWC reports source-relative positions. `devOptions.sourcePosition`
-  // lets callers declare "compute lineStarts from this other string and
-  // convert nodeStart via `bodyOriginOffset + (nodeStart -
-  // wrapperPrefixLen)` before lookup." Module-level callers (parent
-  // rewrite) omit it; their `source` already IS the original module
-  // source.
+  // Over a wrapped body, `source` is the wrapped body, so computing
+  // `lineStarts` from it yields body-relative dev-info positions;
+  // `devOptions.sourcePosition` supplies the original source + offset to convert
+  // to source-relative. Module-level callers omit it.
   let lineStarts: number[] | null = null;
   if (devOptions) {
     const linesSource = devOptions.sourcePosition?.source ?? source;
@@ -1044,12 +850,9 @@ export function transformAllJsx(
   const loopStack: LoopContext[] = [];
   const childJsxNodes = new WeakSet<object>();
 
-  // Split walk state into Enter and Exit context views so the
-  // type system enforces "enter gathers, exit acts." Enter sees only what's
-  // needed to record loop context and pre-mark sole-child JSX nodes; Exit
-  // adds the dev-suffix helper and the act-helpers that mutate `s` and
-  // `needsFragment`. Calling `ctx.writeJsxCall(...)` from enter would be a
-  // compile error because the EnterContext type has no such field.
+  // Enter/Exit context views so the type system enforces "enter gathers, exit
+  // acts": calling `writeJsxCall` from enter is a compile error because
+  // EnterContext lacks it.
   const jsxWrites: RecordedJsxWrite[] = [];
   const enterCtx: JsxWalkEnterContext = {
     source,

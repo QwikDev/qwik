@@ -225,13 +225,9 @@ export function applySegmentSideEffectSimplification(
 
   const exportStart = code.indexOf(exportMatch[0]!);
 
-  // Parse the FULL `code` rather than slicing to `exportSection` and
-  // reparsing — per `CODING_BEST_PRACTICES.md` "Should only ever parse
-  // once" the AST should never be re-derived from a substring of the
-  // original input. The walk filters nodes by absolute position
-  // (`>= exportStart`) instead. Caller can pass `preParsedProgram` so
-  // we skip the parse entirely when the upstream pipeline already
-  // holds a fresh AST of the current `code`.
+  // Parse the full `code` and filter the walk by absolute position
+  // (`>= exportStart`) rather than reparsing a substring — the AST is never
+  // re-derived from a slice of the original input.
   let program: AstProgram;
   if (preParsedProgram) {
     program = preParsedProgram;
@@ -257,9 +253,6 @@ export function applySegmentSideEffectSimplification(
 
   walk(program, {
     enter(node: AstNode, parent: AstParentNode) {
-      // Skip everything outside the export section — equivalent to the
-      // old substring slice. Cheap position check; no traversal cost
-      // beyond visiting the nodes once.
       if (node.start !== undefined && node.end !== undefined &&
           (node.end <= exportStart)) return;
 
@@ -313,11 +306,6 @@ export function applySegmentSideEffectSimplification(
     ) {
       replacement = decl.initText + ';';
     } else if (decl.initType === 'BinaryExpression') {
-      // AST-walk preferred — the legacy regex version scans raw source
-      // text and would match identifier-like substrings inside string
-      // literals (`'p' + pi` → `['p', 'pi']`), corrupting the
-      // side-effect-preserving rewrite. Fall back to the regex only if
-      // the AST node isn't available.
       const operandIds = extractBinaryOperandIdentifiersFromAst(decl.initNode);
       replacement = operandIds.length > 0 ? operandIds.join(', ') + ';' : decl.initText + ';';
     } else {
@@ -442,11 +430,9 @@ export function removeUnusedImports(
 
     const importSource = spec.node.source?.value ?? '';
 
-    // lib mode preserves `$`-suffix marker imports and the
-    // `jsx as _jsx` jsx-runtime import even when unused. These are
-    // public-surface imports for downstream library consumers,
-    // intentional per SWC's lib-emit semantics. Keep them regardless of
-    // `transpileJsx`.
+    // lib mode preserves `$`-suffix marker imports and the `jsx as _jsx`
+    // jsx-runtime import even when unused — they're public-surface imports for
+    // downstream library consumers.
     if (isLibMode) {
       const importedName = spec.specNode.type === 'ImportSpecifier'
         ? (getImportedSpecifierName(spec.specNode) ?? spec.localName)
@@ -658,13 +644,9 @@ export function buildParentExtractionMap(
 }
 
 /**
- * Collect identifier names from a BinaryExpression AST subtree. Recurses
- * through nested BinaryExpressions so `a + b + c` yields `[a, b, c]`. The
- * AST walk only touches actual `Identifier` nodes — string/numeric
- * literals and parenthesised inner expressions are skipped. This replaces
- * an earlier regex-based extractor that scanned raw source text and
- * would corrupt cases like `'p' + pi` (matching `p` from inside the
- * string literal alongside `pi`).
+ * Collect identifier names from a BinaryExpression subtree (`a + b + c` →
+ * `[a, b, c]`). Only real `Identifier` nodes are touched, so identifier-like
+ * substrings inside string literals (`'p' + pi`) are not misread as reads.
  */
 function extractBinaryOperandIdentifiersFromAst(node: AstNode): string[] {
   const ids: string[] = [];
@@ -687,8 +669,7 @@ function extractBinaryOperandIdentifiersFromAst(node: AstNode): string[] {
       visit(n.expression);
       return;
     }
-    // Other shapes (literals, calls, member expressions, etc.) contribute
-    // no bare identifiers we want to preserve as side-effect reads.
+    // Literals, calls, and member expressions contribute no bare-identifier reads.
   }
   visit(node);
   return ids;

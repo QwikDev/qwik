@@ -1,16 +1,3 @@
-/**
- * Compile-time assertions for brand non-interchangeability.
- *
- * These tests never run. `pnpm typecheck` is the gate: each
- * `@ts-expect-error` line asserts that the next statement *fails to
- * compile*. If TypeScript accepts the line, `@ts-expect-error` itself
- * becomes an error and typecheck fails — that is the bug we'd want to
- * catch.
- *
- * If you find yourself wanting to "fix" one of these errors, the type
- * system is doing exactly what it should. Use the right smart constructor
- * or accept the value from a properly-typed source instead.
- */
 
 import {
   mkSymbolName,
@@ -37,10 +24,6 @@ import {
   type ColumnNumber,
 } from '../../../src/optimizer/types/brands.js';
 
-// ---------------------------------------------------------------------------
-// Cross-brand assignment is forbidden
-// ---------------------------------------------------------------------------
-
 const sym: SymbolName = mkSymbolName('foo');
 const hash: Hash = mkHash('jMxQsjbyDss');
 const canonical: CanonicalFilename = mkCanonicalFilename('test.tsx_foo_jMxQsjbyDss');
@@ -62,10 +45,6 @@ const _canonicalFromDisplay: CanonicalFilename = display;
 // @ts-expect-error — CtxName is not assignable to SymbolName
 const _symFromCtx: SymbolName = ctx;
 
-// ---------------------------------------------------------------------------
-// Plain `string` cannot satisfy a brand without a smart constructor
-// ---------------------------------------------------------------------------
-
 const bareString = 'foo';
 
 // @ts-expect-error — plain string is not assignable to SymbolName
@@ -74,13 +53,8 @@ const _symFromBare: SymbolName = bareString;
 // @ts-expect-error — plain string is not assignable to Hash
 const _hashFromBare: Hash = bareString;
 
-// ---------------------------------------------------------------------------
-// Function arguments — the canonical motivating example
-// ---------------------------------------------------------------------------
-
 declare function emitSegment(name: SymbolName, h: Hash): void;
 
-// Correct: matches signature in order
 emitSegment(sym, hash);
 
 // @ts-expect-error — arguments swapped: Hash where SymbolName expected
@@ -88,10 +62,6 @@ emitSegment(hash, sym);
 
 // @ts-expect-error — both bare strings forbidden
 emitSegment('foo', 'jMxQsjbyDss');
-
-// ---------------------------------------------------------------------------
-// Path brands cross-cut
-// ---------------------------------------------------------------------------
 
 const origin: Origin = mkOrigin('test.tsx');
 const rel: RelativePath = mkRelativePath('src/foo.ts');
@@ -105,10 +75,6 @@ const _relFromFile: RelativePath = file;
 
 // @ts-expect-error — RelativePath is not assignable to FilePath
 const _fileFromRel: FilePath = rel;
-
-// ---------------------------------------------------------------------------
-// Position brands cross-cut
-// ---------------------------------------------------------------------------
 
 const offset: ByteOffset = mkByteOffset(42);
 const line: LineNumber = mkLineNumber(10);
@@ -129,12 +95,6 @@ emitLoc(offset, line, col);
 
 // @ts-expect-error — line + offset swapped
 emitLoc(line, offset, col);
-
-// ---------------------------------------------------------------------------
-// Brand string-ness is preserved (brands ARE assignable TO their base type)
-// ---------------------------------------------------------------------------
-// This direction must succeed — a SymbolName must be usable wherever a
-// plain string is accepted (e.g. concatenation, logging, JSON output).
 
 const _strFromSym: string = sym;
 const _strFromHash: string = hash;

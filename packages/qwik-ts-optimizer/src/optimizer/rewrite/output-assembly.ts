@@ -1,11 +1,3 @@
-/**
- * Output assembly phases for parent module rewriting.
- *
- * Contains QRL declaration building, needed import collection,
- * unused import filtering, inline .s() call generation, and
- * final output assembly with TS type stripping.
- */
-
 import type MagicString from 'magic-string';
 import { transformSync as oxcTransformSync, type TransformOptions } from 'oxc-transform';
 import { createRegExp, exactly, wordBoundary } from 'magic-regexp';
@@ -145,11 +137,8 @@ export function collectNeededImports(ctx: RewriteContext): void {
     }
   }
 
-  // lib mode emits an additional `import { jsx as _jsx } from
-  // "@qwik.dev/core/jsx-runtime"` alongside the rewritten `_jsxSorted`
-  // form. SWC includes it in lib emit even when not directly referenced
-  // — the JSX runtime export surface stays available for downstream
-  // library consumers.
+  // Lib mode keeps the JSX runtime import available for downstream
+  // consumers even when the parent module doesn't reference it.
   if (ctx.isLibMode && jsxResult && !alreadyImported.has('jsx')) {
     neededImports.set('jsx as _jsx', '@qwik.dev/core/jsx-runtime');
   }
@@ -161,11 +150,9 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
   const topLevelNonSync = extractions.filter((e) => !e.isSync && e.parent === null && !inlinedQrlSymbols.has(e.symbolName));
   const allNonSync = extractions.filter((e) => !e.isSync && !inlinedQrlSymbols.has(e.symbolName));
 
-  // Symbols whose source-decl is being `move`d into a sibling segment's file.
-  // For these, the parent skips the usual `const q_<sym> = qrl(...)` declaration
-  // and instead emits a bare `qrl(...);` expression statement — runtime preload
-  // registration only, since `q_<sym>` is no longer referenced in the parent
-  // (the `componentQrl(q_<sym>)` wrap got moved out alongside the source decl).
+  // A moved source-decl carries its `componentQrl(q_<sym>)` wrap into the
+  // sibling segment, so the parent emits a bare `qrl(...)` registration
+  // instead of `const q_<sym> = qrl(...)` — the binding is unreferenced here.
   const movedMarkerSymbols = new Set<string>();
   if (ctx.migrationDecisions && ctx.moduleLevelDecls) {
     const fileStem = relPath.split('/').pop() ?? relPath;
@@ -173,9 +160,8 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
       if (decision.action !== 'move') continue;
       const exact = `${fileStem}_${escapeSymbol(decision.varName)}`;
       const prefix = `${exact}_`;
-      // No early exit: a moved helper can own several extractions (e.g. a
-      // goto fallback AND a useTask body) — every one of them loses its
-      // parent-side `q_<sym>` binding when the helper's decl moves out.
+      // A moved helper can own several extractions, so scan all — every one
+      // loses its parent-side `q_<sym>` binding when the decl moves out.
       for (const e of extractions) {
         if (e.parent !== null) continue;
         if (e.isInlinedQrl) continue;
@@ -251,9 +237,9 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
         ctx.qrlDecls.push(
           `qrl(()=>import("./${ext.canonicalFilename}${fileExt}"), "${ext.symbolName}");`,
         );
-        // Intentionally not adding `q_<sym>` to `qrlVarNames`: the
-        // parent no longer declares this binding, so any stray reference
-        // should surface as a downstream error rather than be silently named.
+        // Intentionally not registering `q_<sym>` in `qrlVarNames`: the
+        // parent no longer declares it, so a stray reference should surface
+        // as an error rather than be silently named.
         continue;
       }
       if (isDevMode && devFilePath) {
@@ -285,12 +271,9 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
     migrationDecisions } = ctx;
   const allNonSync = extractions.filter((e) => !e.isSync && !inlinedQrlSymbols.has(e.symbolName));
 
-  // Names migration is reexporting (`_auto_<name>`) or moving — same filter
-  // `addCaptureWrapping` (`rewrite/index.ts:657`) applies at the `.w(...)`
-  // emission site. Body-side capture unpacking must filter symmetrically:
-  // the migrated decl is in module scope under inline/hoist (body stays in
-  // parent) or imported via `_auto_` under segment-file, so `_captures[N]`
-  // indirection is unwanted and would deliver undefined.
+  // A migrated decl is reachable directly — module scope under inline/hoist,
+  // or an `_auto_` import under segment-file — never via `_captures`, so
+  // unpacking it from `_captures[N]` would deliver undefined. Exclude these.
   const migratedNames: ReadonlySet<string> = new Set(
     (migrationDecisions ?? [])
       .filter((d) => d.action === 'reexport' || d.action === 'move')
@@ -304,13 +287,9 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
     ? {
         enableJsx: true,
         importedNames: jsxOptions.importedNames,
-        // JSX dev-info `fileName:` only switches to the user-supplied
-        // dev path when explicitly set on the input (via `devPath`).
-        // The composed `devFilePath` (srcDir+relPath fallback) keeps
-        // the default `relPath` behaviour.
+        // JSX dev-info `fileName:` honors only an explicit user `devPath`,
+        // otherwise falling back to `relPath` — not the composed `devFilePath`.
         devOptions: isDevMode ? { relPath: ctx.userDevPath ?? relPath } : undefined,
-        // Needed to convert wrapped-body offsets to source-relative
-        // dev-info positions inside `transformInlineSegmentBody`.
         source: isDevMode ? ctx.source : undefined,
         keyCounterStart: isHoist ? ctx.jsxKeyCounterValue : undefined,
         relPath,
@@ -318,8 +297,8 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
     : undefined;
 
   const sharedHoister = jsxOptions?.enableJsx ? new SignalHoister() : undefined;
-  // Separate hoister for the `_jsxDEV(...)` path, apart from `sharedHoister`
-  // (which gets reordered) so emitted `_hf<n>` refs stay aligned with decls.
+  // Separate from `sharedHoister` (which gets reordered) so emitted `_hf<n>`
+  // refs stay aligned with their decls.
   const sharedJsxCallHoister = new SignalHoister();
 
   const nestedExts: ExtractionResult[] = [];
@@ -359,10 +338,8 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
       ext, extractions, qrlVarNames, inlineSegmentJsxOptions, inlineOptions?.regCtxName, sharedHoister,
       ctx.closureNodes, ctx.source, ctx.originalImports, ctx.relPath, ctx.jsxKeyCounterValue,
       migratedNames,
-      // Suppress `.w([])` on stripped child QRLs.
       inlineOptions?.stripCtxName,
       inlineOptions?.stripEventHandlers,
-      // const folding for the inline/hoist body
       ctx.isServer,
       deriveIsDev(ctx.mode),
       sharedJsxCallHoister,
@@ -389,9 +366,8 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
       ctx.jsxKeyCounterValue = keyCounterValue;
       inlineSegmentJsxOptions = { ...inlineSegmentJsxOptions, keyCounterStart: ctx.jsxKeyCounterValue };
     } else if (keyCounterValue !== undefined) {
-      // Under inline strategy, jsx-call rewrites in `.s(body)` blocks
-      // advance the JSX key counter shared across all `.s(body)` calls in
-      // the module. Without this, body2's keys would restart at 0.
+      // The JSX key counter is shared across every `.s(body)` block; without
+      // threading it, the next body's keys would restart at 0.
       ctx.jsxKeyCounterValue = keyCounterValue;
     }
     ctx.inlineHoistedDeclarations.push(...hoistedDeclarations);
@@ -403,13 +379,10 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
 
     const forceInlineForRegCtx = isRegCtxMatch && inlineOptions?.entryType === 'inline';
     if (isHoist && !forceInlineForRegCtx) {
-      // When body is a bare identifier referring to a module-level decl
-      // (`useStyle$(STYLES)` shape — body slice = "STYLES"), the const-decl
-      // wrapping that Hoist normally emits is redundant. SWC emits
-      // `q_X.s(STYLES)` directly. Route to `ctx.sCalls` so `placeSCalls`
-      // can place it relative to the referenced decl (which may be
-      // declared AFTER the extraction's containing statement — TDZ
-      // otherwise; see the forward-dep handling in `placeSCalls`).
+      // For a bare-identifier body referencing a module-level decl
+      // (`useStyle$(STYLES)`), the hoist const-decl wrapper is redundant —
+      // emit `q_X.s(STYLES)` and route to `ctx.sCalls` so `placeSCalls`
+      // positions it after the referenced decl (declared later otherwise → TDZ).
       const moduleDeclNames = ctx.moduleLevelDecls
         ? new Set(ctx.moduleLevelDecls.map((d) => d.name))
         : undefined;
@@ -432,7 +405,7 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
             else if (hoistBody.endsWith(';')) hoistBody = hoistBody.slice(0, -1);
           }
         } catch {
-          // TS stripping failed, use original
+          // strip failed — keep the un-stripped body
         }
         const constDecl = buildHoistConstDecl(ext.symbolName, hoistBody);
         const sCall = buildHoistSCall(varName, ext.symbolName);
@@ -461,10 +434,6 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
   }
 }
 
-/**
- * Remove specifiers from surviving user imports that are only used inside
- * segment bodies (no longer referenced in the parent module).
- */
 export function filterUnusedImports(ctx: RewriteContext): void {
   const { survivingUserImports, survivingImportInfos, s, qrlDecls, sCalls,
     inlineHoistedDeclarations, isInline, inlineOptions, relPath, isLibMode } = ctx;
@@ -533,10 +502,9 @@ export function filterUnusedImports(ctx: RewriteContext): void {
 }
 
 /**
- * `export const X = component$(...)` pre-rewrite or `export const X = componentQrl(...)`
- * post-rewrite. Either suffix identifies an export whose init is being QRL-wrapped —
- * the anchor for sCall placement (self-referencing sCalls must go after such
- * exports to avoid TDZ at module load).
+ * Marks an export whose init is QRL-wrapped (`component$`/`componentQrl`) —
+ * the sCall placement anchor: self-referencing sCalls must follow it to
+ * avoid TDZ at module load.
  */
 function isMarkerLikeCall(init: AstNode | null | undefined): boolean {
   if (!init || init.type !== 'CallExpression' || init.callee?.type !== 'Identifier') return false;
@@ -569,11 +537,9 @@ function findLastMarkerExportAnchor(program: AstProgram): { start: number; end: 
 }
 
 /**
- * `\b<name>\b` testers for sCall-body reference checks, cached because the
- * placement helpers below probe the same decl/export names repeatedly
- * (per sCall × per name). The raw concatenation is kept as-is — names are
- * JS identifiers, whose only regex-significant character is `$`, and the
- * existing (mis)behavior on `$`-containing names must not silently change.
+ * Names are JS identifiers whose only regex-significant char is `$`; the
+ * raw concatenation must preserve existing behavior on `$`-containing
+ * names — don't silently "fix" it.
  */
 const wordBoundaryTesterCache = new Map<string, RegExp>();
 
@@ -600,15 +566,10 @@ function findLastReferencedDeclEnd(
 }
 
 /**
- * For a single sCall, find the last (latest by `declEnd`) module-level decl
- * the sCall body references AND whose `declStart` is strictly after `threshold`.
- *
- * Used by `placeSCalls` to detect TDZ-sensitive forward dependencies: an sCall
- * that references a decl declared *after* the marker-export anchor (e.g.
- * `q_useStyle.s(STYLES)` where `const STYLES = '...'` follows `export const
- * Works = component$(...)` in source). The marker-anchor partitioning otherwise
- * places such sCalls before the export — referencing STYLES before it's
- * declared. Returns null when no forward dep exists.
+ * Detects a TDZ-sensitive forward dependency: the latest decl an sCall
+ * references that is declared *after* `threshold` (e.g. `q_useStyle.s(STYLES)`
+ * where `const STYLES` follows the marker export). `placeSCalls` uses it to
+ * position the sCall after that decl instead of before it. Null when none.
  */
 function findForwardReferencedDeclEnd(
   sCall: string,
@@ -638,28 +599,11 @@ function partitionSCallsBySelfRef(
 }
 
 /**
- * Splice sCalls into the parent module via `MagicString` offsets. Each sCall
- * lands at exactly one position; the chosen position depends on its body's
- * references against the anchors below.
- *
- * Anchor priority:
- *   1. Forward decl dependency (per-sCall): when a marker-export anchor
- *      exists AND the sCall references a module-level decl declared
- *      *after* the anchor. Place AFTER that decl to avoid TDZ at module
- *      load (e.g. `q_useStyle.s(STYLES)` where `const STYLES` follows
- *      `export const Works = component$(...)`). Per-sCall because the
- *      same module may mix forward-dep sCalls with anchor-relative ones.
- *   2. Marker-call export anchor (group): remaining sCalls partition by
- *      self-ref to any exported marker name. Self-referencing sCalls go
- *      AFTER the export to avoid TDZ on the reference; non-referencing
- *      go BEFORE.
- *   3. No marker anchor (group): last module-decl any remaining sCall
- *      body references — peer-tool `inlinedQrl` input uses plain
- *      `export { name }`, no marker init to anchor against.
- *   4. No anchor at all → append at end of file.
- *
- * The "group" placements keep adjacent sCalls together. Only the
- * TDZ-sensitive forward-dep case splits out of the group.
+ * Places each sCall at one `MagicString` offset. A per-sCall forward
+ * dependency (references a decl declared after the marker anchor) is spliced
+ * right after that decl to avoid TDZ; the rest group at the marker anchor —
+ * self-referencing sCalls after the export, others before — else after the
+ * last referenced decl, else appended at end of file.
  */
 function placeSCalls(
   s: MagicString,
@@ -672,7 +616,6 @@ function placeSCalls(
   const markerAnchor = findLastMarkerExportAnchor(program);
   const decls = moduleLevelDecls ?? [];
 
-  // Pull out forward-dep sCalls per-sCall; the rest stays grouped.
   const groupedSCalls: string[] = [];
   for (const sCall of sCalls) {
     const forwardDeclEnd = markerAnchor && decls.length > 0
@@ -737,10 +680,9 @@ export function assembleOutput(ctx: RewriteContext): string {
   s.prepend(preamble.join('\n') + '\n');
 
   if (migrationDecisions && !ctx.isLibMode) {
-    // `_auto_X` re-exports exist to make module-level decls available to
-    // segment-file imports. Lib mode emits a single-module output (no
-    // segment files), so the re-exports are unnecessary and diverge
-    // from SWC's lib emit which omits them.
+    // `_auto_X` re-exports make module-level decls importable by segment
+    // files. Lib mode emits a single module (no segment files), so they're
+    // unnecessary and omitted.
     for (const decision of migrationDecisions) {
       if (decision.action === 'reexport') {
         const decl = moduleLevelDecls?.find(d => d.name === decision.varName);
@@ -769,20 +711,13 @@ export function assembleOutput(ctx: RewriteContext): string {
 
   let finalCode = s.toString();
 
-  // lib-mode collapse runs on the assembled inline-strategy output.
-  // Transforms `_noopQrl(name) + q_X.s(body)` triples into inline
-  // `inlinedQrl(body, name, [captures])` literals at every reference
-  // site. Re-uses the inline pipeline's body emission + capture wiring;
-  // only the final emission shape differs.
   if (ctx.isLibMode) {
     finalCode = collapseToLibInlinedQrl(finalCode);
   }
 
-  // Capture lib-mode-preserved imports BEFORE TS-strip. oxc-transform's
-  // strip eliminates unused value imports (the `*$` markers + `jsx as
-  // _jsx` have no in-body references after rewrites). We re-prepend them
-  // after strip to honor lib mode's "preserve user-facing surface"
-  // contract.
+  // oxc-transform's strip drops these as unused (`*$` markers + `jsx as
+  // _jsx` have no in-body refs after rewrite); capture them before strip
+  // and re-prepend to preserve lib mode's public surface.
   const libModeReservedImports: string[] = [];
   if (ctx.isLibMode && transpileTs) {
     libModeReservedImports.push(...extractLibModeReservedImports(finalCode));
@@ -799,10 +734,6 @@ export function assembleOutput(ctx: RewriteContext): string {
     }
   }
 
-  // Re-prepend lib-mode-preserved imports that oxc-transform's strip
-  // eliminated as "unused." These are intentional public-surface imports
-  // for downstream library consumers (the `*$` markers + the
-  // `jsx as _jsx` runtime export).
   if (libModeReservedImports.length > 0) {
     finalCode = libModeReservedImports.join('\n') + '\n' + finalCode;
   }
@@ -811,24 +742,17 @@ export function assembleOutput(ctx: RewriteContext): string {
 }
 
 /**
- * Extract import statements that lib mode wants preserved across TS-strip:
- * - `import { X$, Y$, ... } from '@qwik.dev/core'` survivor — user-facing
- *   `$`-suffix markers whose `*Qrl` rewrites are already in the output but
- *   whose original forms downstream library consumers may want to import.
- * - `import { jsx as _jsx } from '@qwik.dev/core/jsx-runtime'` — JSX runtime
- *   surface SWC's lib emit always includes.
- *
- * Returns the import statement strings as they appear in `source`. The
- * caller re-prepends these to the post-strip output.
+ * Extracts the imports lib mode preserves across TS-strip: the `$`-suffix
+ * marker survivors (downstream consumers may import the original forms) and
+ * `import { jsx as _jsx } from '@qwik.dev/core/jsx-runtime'`. Returns them
+ * as they appear in `source` for the caller to re-prepend.
  */
 function extractLibModeReservedImports(source: string): string[] {
   const out: string[] = [];
 
-  // `*$`-suffix marker survivor. Emit with double-quote source string to
-  // match post-strip quote style — compareAst's `deduplicateImports`
-  // keys on the source AST's `raw` field, so single vs double quote
-  // produces different keys and won't merge. Mirroring oxc-transform's
-  // post-strip normalization keeps the dedup path open.
+  // Emit the source with double quotes to match post-strip quote style —
+  // the dedup pass keys on the AST `raw` field, so single vs double quote
+  // won't merge.
   const markerRe = /import\s*\{([^}]*\$[^}]*)\}\s*from\s*(["'])@qwik\.dev\/core\2\s*;/g;
   let m: RegExpExecArray | null;
   while ((m = markerRe.exec(source)) !== null) {
@@ -839,7 +763,6 @@ function extractLibModeReservedImports(source: string): string[] {
     out.push(`import { ${kept.join(', ')} } from "@qwik.dev/core";`);
   }
 
-  // `jsx as _jsx` from jsx-runtime
   const jsxRe = /import\s*\{\s*jsx\s+as\s+_jsx\s*\}\s*from\s*(["'])@qwik\.dev\/core\/jsx-runtime\1\s*;/g;
   const jsxMatch = jsxRe.exec(source);
   if (jsxMatch) {

@@ -1,9 +1,6 @@
 /**
- * Shared path string helpers for optimizer transforms.
- *
- * These utilities intentionally operate on normalized string paths to match
- * the existing optimizer behavior and keep path handling deterministic across
- * platforms.
+ * Shared path-string helpers. Operate on normalized string paths for
+ * deterministic cross-platform behavior.
  */
 import { basename, dirname, extname, isAbsolute, normalize, normalizeString, relative } from 'pathe';
 import {
@@ -12,21 +9,15 @@ import {
   mkRelativePath,
 } from './optimizer/types/brands.js';
 
-// The high-level entry points (`computeRelPath`,
-// `computeParentModulePath`, `computeOutputExtension`) take/return branded
-// path types because their contracts encode real semantic distinctions
-// (FilePath = arbitrary path; RelativePath = no-leading-slash). The
-// low-level string manipulators below (`getBasename`, `getDirectory`,
-// `getExtension`, etc.) accept plain `string` — they work on any
-// path-shaped input by design, and branding them just forces casts at
-// every consumer with no type-safety win.
+// High-level entry points (`computeRelPath`, `computeParentModulePath`,
+// `computeOutputExtension`) take/return branded path types; the low-level string
+// helpers below accept plain `string` — branding them would force casts at every
+// consumer with no type-safety win.
 
-/** Determine file extension from a path string. */
 export function getExtension(filePath: string): string {
   return extname(normalizePath(filePath));
 }
 
-/** Strip file extension from a path string. */
 export function stripExtension(filePath: string): string {
   const normalized = normalizePath(filePath);
   const extension = extname(normalized);
@@ -34,43 +25,33 @@ export function stripExtension(filePath: string): string {
   return normalized.slice(0, -extension.length);
 }
 
-/** Get the basename component from a slash-delimited path string. */
 export function getBasename(filePath: string): string {
   return basename(normalizePath(filePath));
 }
 
-/** Get the directory component from a slash-delimited path string. */
 export function getDirectory(filePath: string): string {
   const dir = dirname(normalizePath(filePath));
   return dir === '.' ? '' : dir;
 }
 
-/** Get the basename without its extension. */
 export function getFileStem(filePath: string): string {
   return stripExtension(getBasename(filePath));
 }
 
-/** Normalize a path string to use forward slashes. */
 export function normalizePath(filePath: string): string {
   return normalize(filePath);
 }
 
 /**
- * Compute relative path from srcDir. If path doesn't start with srcDir,
- * returns a normalized form with any leading `/` stripped — the contract
- * is that the returned value is always usable where a relative path is
- * expected (no leading slash). This matches `RelativePath`'s shape rule
- * in `types/brands.ts` so the result can be branded without per-fallback
- * special-casing at consumers.
+ * Compute the relative path from srcDir. When the path is outside srcDir, returns
+ * a normalized form with any leading `/` stripped, so the result is always usable
+ * as a relative path (no leading slash) — matching `RelativePath`'s shape rule.
  *
- * Preserves a leading `./` from the input when present. SWC's hash
- * function uses the user-provided path shape (e.g. `./node_modules/x`
- * stays as `./node_modules/x`), and the JSX dev-info `fileName:`
- * emission also expects that shape. Stripping `./` via `normalize()`
- * would produce TS-vs-SWC hash divergence + dev-info path divergence
- * for `node_modules`-prefixed fixtures. Stripping the `./` for
- * absolute-path concatenation happens at the call site
- * (`buildDevFilePath`).
+ * A leading `./` from the input is preserved: the hash function and the JSX
+ * dev-info `fileName:` emission both key off the user-provided path shape (e.g.
+ * `./node_modules/x` must stay `./node_modules/x`), so stripping it would shift
+ * hashes and dev-info paths for `node_modules`-prefixed inputs. Stripping the
+ * `./` for absolute-path concatenation happens at the call site.
  */
 export function computeRelPath(inputPath: FilePath, srcDir: FilePath): RelativePath {
   const hasLeadingDotSlash = (inputPath as string).startsWith('./');
@@ -87,15 +68,12 @@ export function computeRelPath(inputPath: FilePath, srcDir: FilePath): RelativeP
   }
 
   // Input lives outside srcDir. When both operands are absolute, `relative()`
-  // yields a well-formed `../`-prefixed path — which is exactly what SWC
-  // emits for `origin` (e.g. a `node_modules` lib above the project root:
-  // `../../node_modules/@qwik.dev/router/index.qwik.mjs`). Preserving that
-  // shape matters for the bundler: it anchors a segment's own relative
-  // imports (`./chunks/routing.qwik.mjs`) by resolving them against `origin`,
-  // and a slash-stripped absolute path resolves to garbage. `relative()` is
-  // only trustworthy when both operands are absolute; with a relative operand
-  // its result is cwd-dependent, so those cases fall through to preserving the
-  // input verbatim (the prior behaviour).
+  // yields a well-formed `../`-prefixed path (e.g. a `node_modules` lib above the
+  // project root). Preserving that shape matters for the bundler: it anchors a
+  // segment's own relative imports against `origin`, and a slash-stripped absolute
+  // path resolves to garbage. `relative()` is only trustworthy with two absolute
+  // operands; a relative operand makes its result cwd-dependent, so those cases
+  // fall through to preserving the input verbatim.
   if (isAbsolute(normInput) && isAbsolute(normSrc) && rel.startsWith('..')) {
     return mkRelativePath(restoreDotSlash(rel, hasLeadingDotSlash));
   }
@@ -103,9 +81,6 @@ export function computeRelPath(inputPath: FilePath, srcDir: FilePath): RelativeP
   return mkRelativePath(restoreDotSlash(stripLeadingSlash(normInput), hasLeadingDotSlash));
 }
 
-/** If the original input had a leading `./` prefix, restore it on the
- * normalized output (unless the normalized form already has it or is
- * empty). */
 function restoreDotSlash(normalized: string, hadDotSlashPrefix: boolean): string {
   if (!hadDotSlashPrefix) return normalized;
   if (normalized.startsWith('./')) return normalized;
@@ -117,14 +92,6 @@ function stripLeadingSlash(path: string): string {
   return path.startsWith('/') ? path.slice(1) : path;
 }
 
-/**
- * Check whether a relative import path stays within the srcDir-relative tree
- * when resolved from a file's relative path.
- *
- * `relativePath` is an import-specifier string (e.g. `./foo`, `../bar`),
- * gate-checked on entry. `importerPath` is the source file's
- * project-relative path.
- */
 export function isRelativePathInsideBase(relativePath: string, importerPath: RelativePath): boolean {
   if (!relativePath.startsWith('.')) return false;
 
@@ -136,9 +103,9 @@ export function isRelativePathInsideBase(relativePath: string, importerPath: Rel
 }
 
 /**
- * Compute the parent module path for segment imports back to the parent module.
- * Segments are always emitted in the same directory as the parent file,
- * so we use only the basename (no directory component), prefixed with "./".
+ * Compute the parent module path for a segment's import back to the parent.
+ * Segments are emitted in the same directory as the parent, so only the basename
+ * is used (prefixed with `./`).
  */
 export function computeParentModulePath(
   relPath: RelativePath,
@@ -152,10 +119,9 @@ export function computeParentModulePath(
 }
 
 /**
- * Compute the output file extension for QRL imports based on transpilation settings.
- * - transpileTs (with or without transpileJsx): .js (TypeScript fully stripped)
- * - transpileJsx only (no transpileTs): .ts (JSX gone, TS remains)
- * - neither: use source extension (.tsx, .ts, etc.)
+ * Output file extension for QRL imports: `.js` when TS is transpiled (fully
+ * stripped), `.ts` when only JSX is transpiled (TS remains), else the source
+ * extension.
  */
 export function computeOutputExtension(
   sourceExt: string,

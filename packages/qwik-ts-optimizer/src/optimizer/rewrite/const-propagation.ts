@@ -1,13 +1,5 @@
 /**
  * Const literal propagation and inlining utilities.
- *
- * Resolves const literal values from parent bodies, inlines them into
- * capture references, propagates cascading const literals, and removes
- * dead const declarations.
- *
- * Uses a virtual resolution graph: parse ONCE, build a model of all const
- * declarations and identifier references, resolve cascading chains in memory,
- * then apply all edits in a single reverse-sorted pass.
  */
 
 import { forEachAstChild } from '../ast/guards.js';
@@ -21,10 +13,6 @@ import {
   type Expression,
   type VariableDeclarator,
 } from '../../ast-types.js';
-
-// Walker parameters: `AstNode | null | undefined` matches what
-// `forEachAstChild` passes through and lets discriminated-union
-// narrowing (`node.type === 'X'`) type the field accesses below.
 
 function collectConstLiteralValues(
   root: AstNode | null | undefined,
@@ -76,13 +64,8 @@ export function resolveConstLiterals(parentBody: string, captureNames: string[])
 }
 
 /**
- * Variant of {@link resolveConstLiterals} that walks an already-parsed closure
- * node directly, skipping the wrapper-and-reparse trick. `source` is the
- * source string from which the closure was originally parsed — `init.start` /
- * `init.end` on each AST node are source-absolute offsets into it.
- *
- * Use when the caller has access to the closure node from
- * `extractSegments`'s companion map.
+ * Walks an already-parsed closure node directly. `init.start`/`init.end` on
+ * each node are source-absolute offsets into `source`, not body-relative.
  */
 export function resolveConstLiteralsInClosure(
   closureNode: AstFunction,
@@ -98,8 +81,8 @@ export function resolveConstLiteralsInClosure(
 }
 
 /**
- * Replace captured identifier references in a body text with their inlined
- * literal values. Uses AST-based replacement to avoid replacing property names.
+ * AST-based (not textual) so property names sharing a captured identifier's
+ * name are not replaced.
  */
 export function inlineConstCaptures(body: string, constValues: Map<string, string>): string {
   const session = createTransformSession(body);
@@ -131,8 +114,6 @@ export function inlineConstCaptures(body: string, constValues: Map<string, strin
   return applyReplacements(body, replacements);
 }
 
-// ── Virtual resolution graph types ──
-
 interface ConstDecl {
   name: string;
   initText: string;
@@ -141,7 +122,6 @@ interface ConstDecl {
   stmtEnd: number;
   isLiteral: boolean;
   isSideEffectFree: boolean;
-  /** Names of other consts referenced in this decl's init expression */
   initRefersTo: string[];
 }
 
@@ -149,31 +129,18 @@ interface IdentRef {
   name: string;
   start: number;
   end: number;
-  /** Which const declaration this ref lives inside (null if not inside any) */
   insideDeclOf: string | null;
-  /** Property key when this ref is an object-shorthand value; inlining a non-identifier there expands to `{ key: value }`. */
   shorthandKey: string | null;
 }
 
-// ── Helpers ──
-
-/**
- * Check if an AST init expression is side-effect-free (safe to inline).
- * Only allows simple member access chains and identifiers.
- */
 function isSimpleSideEffectFree(node: AstNode | null | undefined): boolean {
   if (!node) return false;
   switch (node.type) {
     case 'Identifier':
       return !node.name.startsWith('_');
     case 'Literal':
-      // Runtime emits all four literal interfaces (String/Numeric/Boolean/
-      // Null) under the same `'Literal'` discriminant.
       return true;
     case 'MemberExpression':
-      // Runtime emits all three member-expression interfaces (Computed,
-      // Static, PrivateField) under the same `'MemberExpression'`
-      // discriminant; all three carry `.object`.
       return isSimpleSideEffectFree(node.object);
     default:
       return false;
@@ -184,7 +151,6 @@ function isLiteralNode(node: AstNode): boolean {
   return node.type === 'Literal';
 }
 
-/** Collect all identifier names referenced in a subtree. */
 function collectIdentifiers(node: AstNode): string[] {
   const ids: string[] = [];
   function walk(n: AstNode | null | undefined): void {
@@ -203,10 +169,8 @@ function memberRootName(member: AstNode): string | null {
 }
 
 /**
- * Whether `node` reads a member of an object whose members are mutated
- * elsewhere in the body. Inlining such a member read into a later use is
- * unsound — a `const i = ctx.n` read before `ctx.n++` must not be folded
- * into `return ctx.n` after it.
+ * Inlining a member read of a mutated object is unsound: `const i = ctx.n`
+ * before `ctx.n++` must not fold into `return ctx.n` after it.
  */
 function readsMutatedObject(node: AstNode, mutatedObjects: ReadonlySet<string>): boolean {
   if (mutatedObjects.size === 0) return false;
@@ -223,13 +187,6 @@ function readsMutatedObject(node: AstNode, mutatedObjects: ReadonlySet<string>):
   return found;
 }
 
-// ── Main: virtual graph propagation ──
-
-/**
- * Inline `const X = <literal>` within a body, propagate cascading const
- * literals, inline single-use side-effect-free non-literals, and remove
- * dead declarations. All in a single parse + single edit pass.
- */
 export function propagateConstLiteralsInBody(body: string): string {
   const session = createTransformSession(body);
   if (!session) return body;
@@ -319,13 +276,11 @@ export function propagateConstLiteralsInBody(body: string): string {
 
   if (constDecls.size === 0) return body;
 
-  // Resolve cascading literal chains: if const B = A and A is a literal const,
-  // then B resolves to A's value.
   const resolvedValues = new Map<string, string>();
 
   function resolveValue(name: string, visited: Set<string>): string | null {
     if (resolvedValues.has(name)) return resolvedValues.get(name)!;
-    if (visited.has(name)) return null; // circular
+    if (visited.has(name)) return null;
     visited.add(name);
 
     const decl = constDecls.get(name);
@@ -336,7 +291,6 @@ export function propagateConstLiteralsInBody(body: string): string {
       return decl.initText;
     }
 
-    // Check if this is an identifier-only init pointing to another const
     if (decl.initNode?.type === 'Identifier' && decl.initRefersTo.length === 1) {
       const target = decl.initRefersTo[0];
       const resolved = resolveValue(target, visited);
@@ -349,7 +303,6 @@ export function propagateConstLiteralsInBody(body: string): string {
     return null;
   }
 
-  // Try to resolve all const decls
   for (const name of constDecls.keys()) {
     resolveValue(name, new Set());
   }
@@ -360,13 +313,11 @@ export function propagateConstLiteralsInBody(body: string): string {
     toRemove.add(name);
   }
 
-  // Two-pass: first with literal removals only, then add non-literal removals,
-  // because external ref counts depend on which consts are removed.
+  // External ref counts depend on which consts are removed, so count in two passes.
   function countExternalRefs(removedSet: Set<string>): Map<string, number> {
     const counts = new Map<string, number>();
     for (const ref of identRefs) {
       if (!constDecls.has(ref.name)) continue;
-      // Skip refs inside decls that are being removed
       if (ref.insideDeclOf !== null && removedSet.has(ref.insideDeclOf)) continue;
       counts.set(ref.name, (counts.get(ref.name) ?? 0) + 1);
     }
@@ -375,13 +326,11 @@ export function propagateConstLiteralsInBody(body: string): string {
 
   let externalRefCounts = countExternalRefs(toRemove);
 
-  // Now handle non-literal candidates
   for (const [name, decl] of constDecls) {
-    if (resolvedValues.has(name)) continue; // already handled as literal
+    if (resolvedValues.has(name)) continue;
     if (!decl.isSideEffectFree) continue;
-    if (decl.isLiteral) continue; // literals already handled
+    if (decl.isLiteral) continue;
 
-    // Check that no identifier in the init is a mutable variable
     const referencesMutable = decl.initRefersTo.some(id => mutableVars.has(id));
     if (referencesMutable) continue;
 
@@ -389,12 +338,10 @@ export function propagateConstLiteralsInBody(body: string): string {
 
     const refs = externalRefCounts.get(name) ?? 0;
     if (refs <= 1) {
-      // Will be removed (and inlined if refs === 1)
       toRemove.add(name);
     }
   }
 
-  // Recount external refs with the full removal set
   externalRefCounts = countExternalRefs(toRemove);
 
   const toInline = new Map<string, string>();
@@ -406,19 +353,15 @@ export function propagateConstLiteralsInBody(body: string): string {
     }
   }
 
-  // Non-literal single-use consts: resolve any literal refs within init text
-  // before inlining (e.g. `FOO[key]` becomes `FOO['A']` when key is literal).
   for (const [name, decl] of constDecls) {
     if (resolvedValues.has(name)) continue;
     if (!toRemove.has(name)) continue;
     const refs = externalRefCounts.get(name) ?? 0;
     if (refs === 1) {
-      // Check if the init text references any resolved literal consts
       let initText = decl.initText;
       const refsInInit = identRefs.filter(r => r.insideDeclOf === name && resolvedValues.has(r.name));
       if (refsInInit.length > 0) {
-        // Apply literal substitutions within the init text
-        // Ref positions are relative to body, but initText starts at decl's init position
+        // Ref positions are body-relative; initText starts at the decl's init position.
         const initOffset = decl.initNode.start - offset;
         const initReplacements = refsInInit
           .map(r => ({
@@ -454,10 +397,8 @@ export function propagateConstLiteralsInBody(body: string): string {
     const decl = constDecls.get(name)!;
     let start = decl.stmtStart;
     let end = decl.stmtEnd;
-    // Consume trailing semicolon and whitespace/newline
     while (end < body.length && (body[end] === ';' || body[end] === ' ' || body[end] === '\t')) end++;
     if (end < body.length && body[end] === '\n') end++;
-    // Consume leading whitespace
     while (start > 0 && (body[start - 1] === ' ' || body[start - 1] === '\t')) start--;
     edits.push({
       start,

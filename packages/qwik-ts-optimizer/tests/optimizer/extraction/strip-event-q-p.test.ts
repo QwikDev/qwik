@@ -1,37 +1,3 @@
-/**
- * Regression tests — three coupled fixes for the
- * `example_strip_client_code` convergence target.
- *
- * 1. ctxKind harmonisation: HTML + any `$`-suffix attr → eventHandler
- *    (universal — `shouldRemove$` was previously misclassified as
- *    jSXProp). Component element + any `$`-suffix attr → jSXProp under
- *    `transpileJsx: true` (matches SWC's `handle_jsx` is_fn split at
- *    `swc-reference-only/transform.rs:2427`). Component + `on*$` →
- *    eventHandler under `transpileJsx: false` (matches `handle_jsx_value`
- *    name-prefix rule at `transform.rs:1240+`). The classifier switches
- *    on the user's explicit `transpileJsx` flag (defaults to false to
- *    mirror SWC).
- *
- * 2. `q_<sym>.w([captures])` const-classification: a capture-wrapping
- *    invocation on a hoisted QRL binding has stable identity (the QRL
- *    const is immutable; `.w(…)` only attaches captures). Lands in the
- *    const-bag on component-prop position (mirrors SWC's emit for
- *    `render$: q_X.w([state])` in
- *    `example_strip_client_code`). Implemented in both
- *    `classifyConstness` (transform/jsx.ts) and `isConstValueNode`
- *    (transform/jsx-props.ts) since the JSX-attr `$`-branch uses the
- *    latter.
- *
- * 3. q:p propagation from stripped events: a stripped event handler's
- *    body emits `= null` and can't consume captures via `_captures[N]`
- *    at runtime. SWC propagates the handler's captures to the parent
- *    JSX element's `q:p` (single capture) or `q:ps` (multi-capture
- *    array) var-prop instead. Implemented in
- *    `transformInlineSegmentBody`'s `bodyQpOverrides` builder (inline
- *    strategy, the actual target's path) AND symmetrically in
- *    `runJsxTransform` via `buildStrippedEventQpOverrides` for the
- *    default-strategy path.
- */
 
 import { describe, it, expect } from 'vitest';
 import { transformModule } from '../../../src/optimizer/transform/index.js';
@@ -92,9 +58,6 @@ export const App = component$(() => {
     });
 
     it('transpileJsx=false: Component + `onClick$` → eventHandler (name-prefix rule)', () => {
-      // Mirror SWC's handle_jsx_value path used when react::react pre-pass
-      // doesn't run. should_not_transform_events_on_non_elements is the
-      // canonical baseline-passing fixture for this rule.
       const result = transformModule({
         input: [
           {
@@ -130,8 +93,6 @@ export const App = component$(() => {
 });
 `);
       const parent = result.modules[0];
-      // Expected shape: _jsxSorted(Card, null, { render$: q_X.w([state]) }, ...)
-      // var-bag is null, const-bag has render$
       expect(parent.code).toMatch(
         /_jsxSorted\(\s*Card\s*,\s*null\s*,\s*\{\s*render\$:\s*q_[A-Za-z_0-9]+\.w\(\[\s*state\s*\]\)/,
       );
@@ -158,9 +119,6 @@ export const App = component$(() => {
         { stripEventHandlers: true },
       );
       const parent = result.modules[0];
-      // Both shouldRemove$ + onClick$ are stripped (eventHandler ctxKind
-      // under stripEventHandlers). Both capture `state`. Single unioned
-      // capture → `q:p` (singular), value is bare identifier.
       expect(parent.code).toMatch(/_jsxSorted\("div",\s*\{\s*"q:p":\s*state\s*\}/);
     });
 
@@ -184,8 +142,6 @@ export const App = component$(() => {
         { stripEventHandlers: true },
       );
       const parent = result.modules[0];
-      // Multi-capture → `q:ps` (plural) with array value. Source-decl
-      // order: alpha first, beta second.
       expect(parent.code).toMatch(
         /_jsxSorted\("div",\s*\{\s*"q:ps":\s*\[\s*alpha\s*,\s*beta\s*\]\s*\}/,
       );
@@ -199,7 +155,6 @@ export const App = component$(() => {
 });
 `);
       const parent = result.modules[0];
-      // No strip config, so no propagation. The element gets no q:p.
       expect(parent.code).not.toMatch(/"q:ps?":/);
     });
 
@@ -216,8 +171,6 @@ export const App = component$(() => {
         { stripEventHandlers: true },
       );
       const parent = result.modules[0];
-      // Card is Component → onClick$ is jSXProp under transpileJsx=true,
-      // not stripped by stripEventHandlers. No q:p on the Card element.
       expect(parent.code).not.toMatch(/"q:ps?":/);
     });
   });

@@ -1,12 +1,8 @@
 /**
- * A capture-position `inlinedQrl` (a QRL used as a value inside another QRL's
- * captures array) is not a lazy boundary, so it is kept inline rather than
- * extracted (`filterCaptureInlinedQrls`). Its body still needs a stable
- * top-level binding: `inlinedQrl(() => {…}, "name", […])` becomes
+ * A capture-position `inlinedQrl` (a QRL used inside another QRL's captures
+ * array) is not a lazy boundary, so its body is kept inline but still needs a
+ * stable top-level binding: `inlinedQrl(() => {…}, "name", […])` becomes
  * `const _inlined_name = () => {…}` + `inlinedQrl(_inlined_name, "name", […])`.
- *
- * Segment-body scoped — runs only from the default-strategy builder; parent
- * `inlinedQrl` calls (qwikify/idempotency/lib-mode) keep their inline form.
  */
 
 import { walk } from 'oxc-walker';

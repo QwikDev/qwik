@@ -52,14 +52,6 @@ export function isVariableDeclaratorNode(node: unknown): node is VariableDeclara
   return isAstNode(node) && node.type === "VariableDeclarator";
 }
 
-/**
- * Return the AST `properties` array from a destructure pattern node.
- *
- * Each element is validated via `isAstNode` before being included; the
- * downstream cast to `AstNode[]` is the brand-constructor pattern (one
- * validated cast at the boundary, zero at call sites) — same shape as
- * `forEachAstChild`'s visitor dispatch.
- */
 export function getPatternProperties(node: unknown): AstNode[] {
   if (!isAstNode(node) || !Array.isArray(node.properties)) return [];
   return node.properties.filter(isAstNode) as AstNode[];
@@ -75,10 +67,6 @@ export function getObjectPropertyKeyName(key: unknown): string | null {
   return null;
 }
 
-/**
- * Static property name of a MemberExpression: `x.foo` → `"foo"`,
- * `x['foo']` → `"foo"`, else `null` (computed non-string access, etc.).
- */
 export function memberStaticPropName(node: AstNode): string | null {
   if (node.type !== "MemberExpression" || !node.property) return null;
   if (!node.computed && node.property.type === "Identifier") return node.property.name;
@@ -102,16 +90,6 @@ export function getAssignedIdentifierName(value: unknown): string | null {
   return null;
 }
 
-/**
- * Walk every AST child of `node`, calling `visitor` on each.
- *
- * `node` may be the strict oxc `Node` union or the loose duck-typed
- * `AstCompatNode` shape; the loop only needs string-indexable access.
- * Children get re-validated via `isAstNode` before dispatch, so the
- * visitor receives values that satisfy the `AstNode` contract — the
- * cast at the dispatch site is the brand-constructor pattern (one
- * validated cast at the boundary, zero at call sites).
- */
 export function forEachAstChild(
   node: AstCompatMaybeNode,
   visitor: (child: AstNode, key: string, parent: AstNode) => void,
@@ -139,12 +117,6 @@ export function forEachAstChild(
   }
 }
 
-/**
- * Short-circuit sibling of `forEachAstChild`. Returns `true` on the first
- * child for which `predicate` returns truthy; otherwise iterates every
- * child and returns `false`. Same skip-keys + `isAstNode` validation as
- * `forEachAstChild`; predicate receives the tight `AstNode` form.
- */
 export function someAstChild(
   node: AstCompatMaybeNode,
   predicate: (child: AstNode, key: string, parent: AstNode) => boolean,
@@ -171,10 +143,6 @@ export function someAstChild(
   return false;
 }
 
-/**
- * Deep existential over an AST subtree: `true` if `node` itself or any
- * descendant satisfies `predicate`. The shallow sibling is {@link someAstChild}.
- */
 export function someAstDescendant(
   node: AstCompatMaybeNode,
   predicate: (node: AstNode) => boolean,

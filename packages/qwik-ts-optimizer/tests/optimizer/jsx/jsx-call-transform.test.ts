@@ -1,12 +1,3 @@
-/**
- * Unit + functional tests for the `jsx() → _jsxSorted()` peer-tool transform.
- * Pins the production behavior of `transformJsxCalls` so the
- * snap suite (`example_qwik_react`) doesn't have to carry the contract alone.
- *
- * The transform mirrors SWC's `handle_jsx` (`swc-reference-only/transform.rs:1163`)
- * for the patterns emitted by `qwik-react` codegen — `jsx(Tag, propsObj)` /
- * `jsxs(...)` / `jsxDEV(...)` calls inside segment bodies.
- */
 
 import { describe, it, expect } from 'vitest';
 import { transformModule } from '../../../src/optimizer/transform/index.js';
@@ -72,7 +63,6 @@ describe('collectJsxFunctionNames', () => {
       parentModulePath: './foo',
       migrationDecisions: [],
     });
-    // For jsx-runtime imports, any local name counts (the source is what marks it).
     expect(result.has('foo')).toBe(true);
   });
 
@@ -92,7 +82,6 @@ describe('collectJsxFunctionNames', () => {
 
 describe('jsx() → _jsxSorted() integration', () => {
   it('rewrites jsx(Tag, propsObj) inside an inlinedQrl body', () => {
-    // Mirrors the qwik_react fixture's `jsx(Host, { ... })` pattern.
     const input = `
 import { componentQrl, inlinedQrl } from '@qwik.dev/core';
 import { jsx } from '@qwik.dev/core/jsx-runtime';
@@ -110,8 +99,6 @@ const Foo = componentQrl(inlinedQrl(() => {
     expect(seg?.code).toBeTruthy();
     expect(seg!.code).toContain('_jsxSorted(Host');
     expect(seg!.code).not.toContain('return jsx(Host');
-    // The raw jsx-runtime import gets reduced/removed because the body no
-    // longer references the named symbol.
     expect(seg!.code).toContain('_jsxSorted');
   });
 
@@ -131,7 +118,6 @@ const Foo = componentQrl(inlinedQrl(() => {
 
     const seg = findModule(result.modules, 'Foo_component_bbb');
     expect(seg?.code).toBeTruthy();
-    // varProps is null (children was the only prop), children slot has someExpr.
     expect(seg!.code).toMatch(/_jsxSorted\(Fragment,\s*null,\s*null,\s*someExpr/);
   });
 
@@ -170,15 +156,12 @@ const Foo = componentQrl(inlinedQrl(() => {
 
     const seg = findModule(result.modules, 'Foo_component_ddd');
     expect(seg?.code).toBeTruthy();
-    // Both the outer and inner jsx() calls rewrite to _jsxSorted().
     expect(seg!.code).not.toContain('jsx(Host');
     expect(seg!.code).not.toContain('jsx(Inner');
-    // Outer _jsxSorted contains the inner _jsxSorted as its children arg.
     expect(seg!.code).toMatch(/_jsxSorted\(Host,\s*null,\s*null,\s*\/\*#__PURE__\*\/\s*_jsxSorted\(Inner/);
   });
 
   it('leaves jsx() calls alone when propsObj is not an ObjectExpression', () => {
-    // Matches SWC handle_jsx behavior at transform.rs:1166-1168.
     const input = `
 import { componentQrl, inlinedQrl } from '@qwik.dev/core';
 import { jsx } from '@qwik.dev/core/jsx-runtime';
@@ -195,15 +178,11 @@ const Foo = componentQrl(inlinedQrl(() => {
 
     const seg = findModule(result.modules, 'Foo_component_eee');
     expect(seg?.code).toBeTruthy();
-    // The call should NOT be rewritten — propsObj is an Identifier, not an
-    // ObjectExpression literal.
     expect(seg!.code).toContain('jsx(Host, dynamicProps)');
     expect(seg!.code).not.toContain('_jsxSorted(Host');
   });
 
   it('does nothing when no jsx-runtime import is present', () => {
-    // Regression guard: the transform must not fire on bodies that have no
-    // `jsx` import (only the JSX-syntax transform should handle JSX in those).
     const input = `
 import { componentQrl, inlinedQrl } from '@qwik.dev/core';
 
@@ -218,7 +197,6 @@ const Foo = componentQrl(inlinedQrl(() => {
 
     const seg = findModule(result.modules, 'Foo_component_fff');
     expect(seg?.code).toBeTruthy();
-    // No transformation should happen.
     expect(seg!.code).toContain('jsx(Host');
     expect(seg!.code).not.toContain('_jsxSorted(Host');
   });

@@ -1,12 +1,3 @@
-/**
- * Tests for strip-exports module.
- *
- * Verifies that stripExportDeclarations() replaces specified export bodies
- * with throw statements. Import cleanup is the parent rewrite pipeline's
- * job (processImports + filterUnusedImports), not this function's — see
- * strip-exports-dup-imports.test.ts for the pipeline-level coverage.
- */
-
 import { describe, it, expect } from 'vitest';
 import MagicString from 'magic-string';
 import { parseSync } from 'oxc-parser';
@@ -40,10 +31,6 @@ export const onGet = () => {
   });
 
   it('removes imports used only by the stripped export', () => {
-    // This pass only rewrites the export body; pruning imports left unused
-    // by the strip is the parent rewrite pipeline's job (filterUnusedImports
-    // after processImports). Asserting it end-to-end keeps the behavior
-    // covered where it actually lives now.
     const source = `import { component$, useSignal } from "@qwik.dev/core";
 import { dbOnly } from "./db";
 export const onGet = () => dbOnly.find();
@@ -93,7 +80,6 @@ export const otherFn = () => {
 };
 `;
     const result = runStrip(source, ['onGet']);
-    // mongodb is still used by otherFn, so the import must stay
     expect(result.code).toContain(`import mongodb from 'mongodb'`);
   });
 

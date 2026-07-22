@@ -1,14 +1,3 @@
-/**
- * Tests for the binary-searchable skip-range index used by the JSX walk.
- *
- * The contract under test: for any skip-range set, querying the built
- * index gives exactly the same answer as the naive linear scan over the
- * original ranges ("is this node contained in at least one range?").
- * The index drops contained ranges and probes a single candidate, so the
- * interesting inputs are nested, partially-overlapping, and duplicate
- * ranges — shapes where a wrong candidate choice would diverge from the
- * linear scan.
- */
 
 import { describe, it, expect } from 'vitest';
 import { buildSkipRangeIndex, isInSkipRange } from '../../../src/optimizer/jsx/jsx.js';
@@ -39,9 +28,6 @@ describe('skip-range index', () => {
   });
 
   it('matches the linear scan on nested ranges', () => {
-    // The wide range arrives after the narrow one, so a sort-free probe
-    // of the rightmost start would pick the narrow range and miss
-    // containment in the wide one.
     expectParity([{ start: 4, end: 6 }, { start: 0, end: 12 }, { start: 5, end: 5 }], 14);
   });
 
@@ -57,9 +43,6 @@ describe('skip-range index', () => {
   });
 
   it('matches the linear scan on a deterministic pseudo-random sweep', () => {
-    // Seeded LCG so the sweep is reproducible; covers range-set shapes
-    // (counts 1-6 over a small coordinate space, forcing dense overlap)
-    // the structured cases above don't enumerate.
     let seed = 0x2f6e2b1;
     const next = (bound: number): number => {
       seed = (seed * 1103515245 + 12345) & 0x7fffffff;

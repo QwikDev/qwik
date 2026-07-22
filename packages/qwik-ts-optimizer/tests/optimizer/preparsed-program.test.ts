@@ -8,10 +8,6 @@ import {
   mkSourceText,
 } from '../../src/optimizer/types/brands.js';
 
-// Fixture source — a small Qwik component$ that exercises extraction,
-// segment generation, and JSX rewrite. Picked deliberately small so any
-// structural difference between the program / no-program paths surfaces
-// in the diff, not in noise.
 const FIXTURE_SOURCE = `
 import { component$ } from '@qwik.dev/core';
 export const App = component$(({ name }) => {
@@ -74,7 +70,6 @@ describe('preParsedProgram thread-through', () => {
   });
 
   it('omitting program preserves the legacy parse-internally path', () => {
-    // No `program` field, no `module` field. Optimizer parses internally.
     const result = transformModule({
       srcDir: mkFilePath('/src'),
       input: [
@@ -91,7 +86,6 @@ describe('preParsedProgram thread-through', () => {
   it('accepts program without module — module remains optional', () => {
     const path = mkFilePath('test.tsx');
     const parsed = parseSync(path, FIXTURE_SOURCE, RAW_TRANSFER_PARSER_OPTIONS);
-    // Pass program only; omit module.
     const result = transformModule({
       srcDir: mkFilePath('/src'),
       input: [
@@ -125,11 +119,7 @@ describe('preParsedProgram thread-through', () => {
     expect(result.diagnostics.length).toBe(0);
   });
 
-  it('program survives the NAPI parity mapping — identical output with vs without', async () => {
-    // Guards the brandTransformOptions spread in create-optimizer.ts: if the
-    // NAPI boundary ever drops `program`/`module` while re-branding inputs,
-    // the optimizer would silently fall back to its internal parse. Identical
-    // emitted code proves the host AST actually flowed through.
+  it('program survives the pre-parsed mapping — identical output with vs without', async () => {
     const { createOptimizer } = await import('../../src/index.js');
     const optimizer = await createOptimizer();
     const parsed = parseSync('test.tsx', FIXTURE_SOURCE, RAW_TRANSFER_PARSER_OPTIONS);

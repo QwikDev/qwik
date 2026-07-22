@@ -1,16 +1,3 @@
-// Regression tests for qwik-router lib processing parity.
-//
-// These exercise processing of `@qwik.dev/router/lib/*.qwik.mjs` pre-bundled
-// library code, which is the territory where the bundler-integration smoke
-// surfaced multiple parse errors and unresolved-import failures in TS mode
-// (SWC mode handles all of these cleanly).
-//
-// All tests use a fixture extracted from the real qwik-router lib output.
-// The fixture lives at `tests/fixtures/qwik-router-lib-snippet.mjs` and is a
-// 300-line excerpt covering the marker constructs that surfaced bugs: zod$,
-// validator$, globalAction$ via implicit$FirstArg(XQrl) patterns, plus the
-// surrounding helper functions whose declaration boundaries got chopped.
-
 import { parseSync } from 'oxc-parser';
 import { describe, expect, test } from 'vitest';
 import { readFileSync } from 'node:fs';
@@ -21,8 +8,6 @@ import { mkFilePath, mkSourceText } from '../../src/optimizer/types/brands.js';
 
 const FIXTURE_PATH = join(__dirname, '..', 'fixtures', 'qwik-router-lib-snippet.mjs');
 
-// Bundler-equivalent strip config — what qwik-bundler passes through to the
-// optimizer for a client build with router strip names registered.
 const BUNDLER_STRIP_CONFIG = {
 	stripCtxName: ['route', 'zod$', 'validator$', 'globalAction$'],
 	stripExports: [
@@ -39,8 +24,6 @@ const BUNDLER_STRIP_CONFIG = {
 	stripEventHandlers: true,
 } as const;
 
-// The lib lives in `node_modules` two levels above srcDir and is handed to the
-// optimizer as an absolute path — the shape the Rolldown adapter passes.
 const SRC_DIR = '/workspace/fixtures/vite-qwik-router';
 const INPUT_PATH = '/workspace/node_modules/@qwik.dev/router/lib/index.qwik.mjs';
 
@@ -64,14 +47,6 @@ function runTransform(source: string) {
 }
 
 describe('chopped marker call mid-expression', () => {
-	// The bug: with strip config active (zod$/validator$/globalAction$ in
-	// stripCtxName + stripEventHandlers: true), the optimizer was producing
-	// orphan `, qrl) => {` lines mid-output. The corresponding source had a
-	// complete `const getValidators = (rest, qrl) => {` declaration that
-	// got chopped to just the trailing `, qrl) => {` and merged with the
-	// previous (now-broken) const declaration.
-	//
-	// This test pins the fix.
 	test('lib fixture emits no orphan `, X) => {` lines', () => {
 		const source = readFileSync(FIXTURE_PATH, 'utf8');
 		const result = runTransform(source);
@@ -95,27 +70,6 @@ describe('chopped marker call mid-expression', () => {
 });
 
 describe('segment origin + file extension resolve under bundler config', () => {
-	// The original framing of this gap — "segments retain `./chunks/*.qwik.mjs`
-	// imports, so strip them" — was wrong: SWC emits those exact `./chunks/`
-	// imports too (the lib's pre-bundled chunks are real sibling files). The
-	// real bundler-integration blockers were two metadata-shape bugs that only
-	// surface when the optimizer is handed an absolute input path for a lib
-	// living in `node_modules` outside srcDir — exactly what the Rolldown
-	// adapter passes:
-	//
-	//   1. ORIGIN SHAPE. `origin` must be a well-formed relative path
-	//      (`../../node_modules/…`), not a leading-slash-stripped absolute
-	//      (`workspace/node_modules/…`). The bundler anchors each segment's own
-	//      relative imports (`./chunks/routing.qwik.mjs`) by resolving them
-	//      against `origin`; a slash-stripped absolute resolves to garbage and
-	//      Rolldown reports UNRESOLVED_IMPORT.
-	//
-	//   2. FILE EXTENSION. A segment's emitted-file extension (`module.path`)
-	//      must equal the extension used by sibling QRL `import("./…")`
-	//      specifiers. Under transpileTs the imports use `.js`; if the segment
-	//      registered at `.mjs` the bundler's segment-registry exact-match
-	//      missed and Rolldown reported UNRESOLVED_IMPORT. SWC keeps both `.js`.
-
 	test('every module origin is a well-formed relative path, not a slash-stripped absolute', () => {
 		const source = readFileSync(FIXTURE_PATH, 'utf8');
 		const result = runTransform(source);
@@ -126,9 +80,6 @@ describe('segment origin + file extension resolve under bundler config', () => {
 				origin.startsWith('/'),
 				`origin is an unresolved absolute path: ${JSON.stringify(origin)}`,
 			).toBe(false);
-			// srcDir is `/workspace/fixtures/vite-qwik-router`; the lib lives at
-			// `/workspace/node_modules/@qwik.dev/router/lib/…`, two levels up, so
-			// the correct srcDir-relative origin is `../../node_modules/…`.
 			expect(
 				origin.startsWith('../../node_modules/@qwik.dev/router/lib/'),
 				`origin is not the expected srcDir-relative path: ${JSON.stringify(origin)}`,
@@ -140,26 +91,14 @@ describe('segment origin + file extension resolve under bundler config', () => {
 		const source = readFileSync(FIXTURE_PATH, 'utf8');
 		const result = runTransform(source);
 
-		// Mirror the bundler's segment registry: the set of paths each emitted
-		// segment is registered under (`segmentId(env, module.path)`).
 		const segmentPaths = new Set<string>(
 			result.modules.filter((m) => m.kind === 'segment').map((m) => m.path),
 		);
 		expect(segmentPaths.size, 'fixture should emit segments').toBeGreaterThan(0);
 
-		// Specifiers the optimizer itself emits for sibling segment files carry
-		// the source basename (`index.qwik.mjs_<symbol>`); lib-internal
-		// `./chunks/…` imports are deliberately excluded — those resolve against
-		// `origin` on disk, not against the segment registry.
 		const importRe = /(?:import\(\s*|from\s*)["'](\.[^"']+)["']/g;
 		let checked = 0;
 		for (const mod of result.modules) {
-			// Mirror the bundler's resolveId: a segment importer resolves its
-			// relative imports against its own registered `module.path`; a
-			// non-segment importer (the parent) resolves against its real module
-			// id — i.e. the absolute input path. (The parent's `module.path` is
-			// in the srcDir-relative namespace, distinct from the segment paths,
-			// so resolving against it would be wrong here.)
 			const baseDir = mod.kind === 'segment' ? dirname(mod.path) : dirname(INPUT_PATH);
 			for (const match of mod.code.matchAll(importRe)) {
 				const spec = match[1]!;
@@ -177,11 +116,6 @@ describe('segment origin + file extension resolve under bundler config', () => {
 });
 
 describe('segment body cut off mid-expression', () => {
-	// The bug: a useTask$ segment body was missing its closing brace, producing
-	// "Expected `}` but found `EOF`" parse errors. Likely the same root cause
-	// as the mid-expression extraction boundary bug.
-	//
-	// This test pins the fix — every emitted module's code must parse cleanly.
 	test('every emitted module parses cleanly', () => {
 		const source = readFileSync(FIXTURE_PATH, 'utf8');
 		const result = runTransform(source);
@@ -197,18 +131,6 @@ describe('segment body cut off mid-expression', () => {
 });
 
 describe('no duplicate @qwik.dev/core import when a replaced const shares an import', () => {
-	// A lib chunk that imports a const-replacement target (isBrowser/isServer/
-	// isDev) ALONGSIDE surviving specifiers, under prod + the client strip
-	// config, used to emit TWO `@qwik.dev/core` imports: one usage-filtered copy
-	// in the preamble, and a stale copy re-introduced at body start. The cause:
-	// `processImports` removes every original import and rebuilds survivors, then
-	// const-replacement's removal pass overwrote the already-removed original
-	// import range — re-materialising it. The duplicate `createAsyncQrl`
-	// declaration broke Rolldown with "identifier already declared".
-	//
-	// Trigger requires the const target to be actually USED (so replacement
-	// fires) and the original import to carry other surviving specifiers. Source
-	// mirrors the shape of `@qwik.dev/router/lib/chunks/routing.qwik.mjs`.
 	const SOURCE = `import { createAsyncQrl, inlinedQrl, _captures, isBrowser, withLocale } from '@qwik.dev/core';
 const f = () => isBrowser ? 1 : 2;
 const g = (locale) => withLocale(locale, () => 42);
@@ -234,9 +156,6 @@ export { f, g, h };
 			preserveFilenames: true,
 			mode: 'prod',
 			minify: 'simplify',
-			// Real bundler CLIENT strip config — note `stripEventHandlers` is unset
-			// on the client path (distinct from BUNDLER_STRIP_CONFIG above), which
-			// is what exercises the const-replacement interaction.
 			stripCtxName: ['useServer', 'server', 'route', 'zod$', 'validator$', 'globalAction$'],
 			stripExports: [
 				'onGet',
@@ -274,15 +193,6 @@ export { f, g, h };
 });
 
 describe('client strip config (stripEventHandlers unset) — full lib', () => {
-	// The bundler's CLIENT strip config differs from BUNDLER_STRIP_CONFIG above:
-	// `stripEventHandlers` is unset and `useServer`/`server` are stripped. That
-	// path exercised two bugs the `stripEventHandlers: true` config masks:
-	//  - const-replacement of isDev/isServer/isBrowser creates `if (true)` /
-	//    `if (false)` that DCE folds; a fold nested inside another fold corrupted
-	//    braces (applied with a stale offset) → unparseable segment.
-	//  - an `inlinedQrl` task body with a destructured *context* param
-	//    (`({ track })`) was wrongly normalised to `_rawProps`; SWC skips the
-	//    first arg of `inlinedQrl` calls, so the context param must be preserved.
 	const CLIENT_STRIP_CONFIG = {
 		stripCtxName: ['useServer', 'server', 'route', 'zod$', 'validator$', 'globalAction$'],
 		stripExports: BUNDLER_STRIP_CONFIG.stripExports,
@@ -325,12 +235,6 @@ describe('client strip config (stripEventHandlers unset) — full lib', () => {
 	});
 
 	test('no PURE annotation is stranded before a bare q_<symbol> reference', () => {
-		// A peer tool emits `componentQrl(/* @__PURE__ */ inlinedQrl(…))`. When
-		// the inlinedQrl call is replaced with the bare `q_<symbol>` identifier,
-		// the annotation must be dropped — a PURE annotation before an identifier
-		// (not a call) is meaningless, and once the downstream TS/JSX transform
-		// reflows it onto its own line Rolldown fails the build with a fatal
-		// INVALID_ANNOTATION ("comment ignored due to position").
 		const result = runClient(readFileSync(FIXTURE_PATH, 'utf8'));
 		const strandedPure = /\/\*\s*[#@]__PURE__\s*\*\/\s*q_/;
 		for (const mod of result.modules) {
@@ -342,26 +246,15 @@ describe('client strip config (stripEventHandlers unset) — full lib', () => {
 	});
 
 	test('inlinedQrl `serverQrl` dispatcher is not stripped under stripCtxName: [server]', () => {
-		// The router's `server$` RPC routes through `serverQrl`, emitted as
-		// `inlinedQrl(asyncFn, "serverQrl_w03grD0Ag68", […])`. Its name starts
-		// with `server`, so a strip keyed on `stripCtxName: ['server']` would
-		// collapse it to a chunkless `_noopQrl` — fatal at runtime (Qwik Q14,
-		// "serverQrl … does not have a chunk path") when a server function is
-		// invoked from the client. inlinedQrl segments are pre-baked and must
-		// never be stripped (SWC gates its strip only on the developer-`$()`
-		// path, never the inlinedQrl path).
 		const result = runClient(readFileSync(FIXTURE_PATH, 'utf8'));
 
 		const serverQrlSeg = result.modules.find(
 			(m) => m.kind === 'segment' && m.path.includes('serverQrl'),
 		);
 		expect(serverQrlSeg, 'serverQrl dispatcher segment should be emitted').toBeDefined();
-		// A stripped segment is `export const … = null;`; the real body is large.
 		expect(serverQrlSeg!.code).not.toMatch(/=\s*null\s*;\s*$/m);
 		expect(serverQrlSeg!.code.length).toBeGreaterThan(200);
 
-		// The parent loads the dispatcher via a real lazy `qrl(() => import(…))`,
-		// not a chunkless `_noopQrl` sentinel.
 		const parent = result.modules.find((m) => m.kind === 'parent') ?? result.modules[0]!;
 		expect(parent.code).toMatch(/qrl\(\(\)\s*=>\s*import\([^)]*serverQrl/);
 		expect(parent.code).not.toMatch(/_noopQrl\("[^"]*serverQrl/);
@@ -369,16 +262,6 @@ describe('client strip config (stripEventHandlers unset) — full lib', () => {
 });
 
 describe('inline/hoist strategy keeps the `_captures` import used by inlined bodies', () => {
-	// Bug surfaced running the real vite-qwik-router under dev SSR: the router
-	// library's `useQwikRouter` `useTask$` (an `inlinedQrl` whose body reads
-	// `const x = _captures[0]`) threw `_captures is not defined` at runtime.
-	// Under the server entry strategy (`hoist`) the inlinedQrl body stays in the
-	// parent module, so the parent still needs `_captures`. But the import-strip
-	// pass treated `_captures` as an extracted-marker callee and dropped it from
-	// the `@qwik.dev/core` import — leaving the inlined body referencing an
-	// undefined name. SWC keeps the import. Stripping `_captures` is only correct
-	// when the body is extracted into a separate segment file (which re-imports
-	// it); under inline/hoist the import must survive by actual usage.
 	const code = `import { useTaskQrl, inlinedQrl, _captures, useSignal } from '@qwik.dev/core';
 
 export const useThing = () => {
@@ -412,13 +295,9 @@ export const useThing = () => {
 		const result = runServerHoist();
 		const parent = result.modules.find((m) => m.kind === 'parent') ?? result.modules[0]!;
 
-		// The inlined body stays in the parent and references `_captures`…
 		expect(parent.code).toMatch(/\b_captures\s*\[/);
-		// …so the `_captures` import must survive (was being stripped).
 		expect(parent.code).toMatch(/import\s*\{[^}]*\b_captures\b[^}]*\}\s*from\s*["']@qwik\.dev\/core["']/);
 
-		// And every emitted module parses (a missing import is a runtime, not a
-		// parse, failure — but assert parseability as a general guard).
 		for (const m of result.modules) {
 			const ext = m.path.endsWith('.tsx') || m.path.endsWith('.jsx') ? 'tsx' : 'mjs';
 			const parsed = parseSync(`mod.${ext}`, m.code);

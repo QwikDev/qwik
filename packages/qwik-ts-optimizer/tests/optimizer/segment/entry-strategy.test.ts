@@ -1,14 +1,7 @@
-/**
- * Tests for entry strategy resolution.
- *
- * Covers: ENT-01 (smart), ENT-03 (component), ENT-04 (manual), single strategy.
- */
-
 import { describe, it, expect } from 'vitest';
 import { resolveEntryField } from '../../../src/optimizer/segment/entry-strategy.js';
 
 describe('resolveEntryField', () => {
-  // ENT-01: Smart mode segments have entry: null
   describe('smart strategy', () => {
     it('returns null for smart strategy', () => {
       expect(resolveEntryField('smart', 'App_component_abc123', 'component', null, undefined)).toBeNull();
@@ -23,7 +16,6 @@ describe('resolveEntryField', () => {
     });
   });
 
-  // ENT-03: Component strategy sets entry to parent component symbol
   describe('component strategy', () => {
     it('returns parent component symbol for non-component segments', () => {
       expect(
@@ -44,7 +36,6 @@ describe('resolveEntryField', () => {
     });
   });
 
-  // ENT-04: Manual strategy uses manual map
   describe('manual strategy', () => {
     it('returns mapped value when symbol is in manual map', () => {
       const manual = { 'App_component_abc123': 'vendor' };
@@ -61,7 +52,6 @@ describe('resolveEntryField', () => {
     });
   });
 
-  // Single strategy: all segments grouped together
   describe('single strategy', () => {
     it('returns fixed entry name for single strategy', () => {
       const result = resolveEntryField('single', 'App_component_abc123', 'component', null, undefined);

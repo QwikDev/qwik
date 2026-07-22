@@ -1,8 +1,3 @@
-/**
- * Tests for the shared q:p collection walk — the JSX walk both emit paths
- * (segment codegen and inline/hoist strategy) use to map elements to the
- * capture params their event-handler attributes require.
- */
 
 import { describe, it, expect } from 'vitest';
 import { parseSync } from 'oxc-parser';

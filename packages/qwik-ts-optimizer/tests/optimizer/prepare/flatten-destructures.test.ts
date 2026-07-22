@@ -1,18 +1,3 @@
-/**
- * Tests for `src/optimizer/prepare/flatten-destructures.ts` — the
- * `const { X } = useFooBar()` → `const fooBar = useFooBar()` rewrite
- * introduced in F8c.
- *
- * The headline regression below pins a magic-string overwrite crash
- * surfaced by `BENCH-01` against the real Qwik monorepo. The shape:
- * two flattenable decls in the same `component$` scope where the
- * second decl introduces a destructured name; the value-side
- * Identifier of that shorthand Property was getting visited as a
- * reference and overwritten on top of the already-edited pattern
- * range. Convergence snapshots didn't exercise this shape, so the
- * crash escaped to benchmarks.
- */
-
 import { describe, it, expect } from 'vitest';
 import { parseSync } from 'oxc-parser';
 import { parseWithRawTransfer } from '../../../src/optimizer/ast/parse.js';
@@ -69,22 +54,6 @@ describe('flattenDestructureUseCalls', () => {
     expect(out).toBe(source);
   });
 
-  // ── Regression: F8c crash surfaced by BENCH-01 ─────────────────
-  //
-  // The bug: when the same scope holds two flattenable decls and the
-  // walker visits the value-side Identifier of the SECOND decl's
-  // shorthand Property, the loop could match a substitution from the
-  // *second* decl (correctly) but use the *first* decl's id-range
-  // for the "skip if inside pattern" check. The check then failed
-  // (node is not inside first decl's id-range), and the overwrite
-  // attempt hit the already-edited chunk inside the second decl's
-  // pattern — `magic-string` threw:
-  //
-  //   Cannot split a chunk that has already been edited (45:10 – "{ url }")
-  //
-  // The fix hoists the "skip if inside ANY decl's pattern" check out
-  // of the per-decl loop. This test pins the regression.
-
   it('does not crash on two flattenable decls in the same scope (BENCH-01 repro)', () => {
     const source = [
       `import { component$ } from '@qwik.dev/core';`,
@@ -95,9 +64,6 @@ describe('flattenDestructureUseCalls', () => {
       `});`,
     ].join('\n');
 
-    // Pre-fix: this throws `Cannot split a chunk that has already
-    // been edited`. Post-fix: rewrite succeeds and produces both
-    // flattened bindings.
     let result: { source: string; changed: boolean };
     expect(() => { result = flatten(source); }).not.toThrow();
 
@@ -143,14 +109,6 @@ describe('flattenDestructureUseCalls', () => {
     expect(out).toContain('useBar(foo.url)');
     expect(out).toContain('const bar = useBar(foo.url)');
   });
-
-  // ── Prefilter soundness ─────────────────────────────────────────
-  //
-  // The textual `component$` prefilter is sound because the walk's own
-  // trigger is `callee.name === 'component$'` exactly: a renamed import
-  // (`component$ as cmp`) never flattened before the prefilter existed,
-  // and its source lacks no behavior for the prefilter to change. These
-  // two tests pin both halves of that coupling.
 
   it('leaves a renamed-import component module unchanged (never flattened; prefilter must not matter)', () => {
     const source = [

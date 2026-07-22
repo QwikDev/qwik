@@ -1,9 +1,3 @@
-/**
- * Tests for dev mode QRL declaration builders and JSX source info.
- *
- * Covers: MODE-01 (qrlDEV), MODE-02 (JSX source info), MODE-03 (_useHmr).
- */
-
 import { describe, it, expect } from 'vitest';
 import {
   buildQrlDevDeclaration,
@@ -12,7 +6,6 @@ import {
 import { injectUseHmr } from '../../../src/optimizer/transform/module-cleanup.js';
 
 describe('buildQrlDevDeclaration', () => {
-  // MODE-01: Dev mode emits qrlDEV with file/lo/hi/displayName
   it('generates correct qrlDEV declaration matching snapshot format', () => {
     const result = buildQrlDevDeclaration(
       'App_component_ckEPmXZlub0',

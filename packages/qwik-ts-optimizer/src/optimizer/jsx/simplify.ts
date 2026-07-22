@@ -1,26 +1,10 @@
 /**
- * Expression simplifier for JSX prop values.
- *
- * Named after — and matching the intent of — SWC's `simplify::simplifier`
- * pass that the Qwik Rust optimizer explicitly invokes after its main
- * transform (see `swc-reference-only/parse.rs:360`). The SWC simplifier
- * evaluates compile-time-constant subtrees and rewrites them as
- * literals, shrinking emitted code. This module ports the slice of
- * that behaviour relevant to JSX prop emission: trivial binary / unary
- * / logical / conditional expressions where the operands are primitive
- * literals.
- *
- * Without this, `prop={'true' + 1 ? 'true' : ''}` emits as
- * `prop: "true" + 1 ? "true" : ""` instead of `prop: 'true'`.
- *
- * Post-order traversal so nested subtrees collapse from the leaves up;
- * `('true' + 1) ? a : b` first simplifies the binary to a string
- * literal, then the conditional sees a literal test and picks the
- * consequent branch.
- *
- * Conservative — only simplifies primitive literal operands (string /
- * number / boolean / null / undefined). BigInt, divide-by-zero, and
- * other exotic coercions are left untouched.
+ * Expression simplifier for JSX prop values: evaluates compile-time-constant
+ * subtrees and rewrites them as literals to shrink emitted code, so
+ * `prop={'true' + 1 ? 'true' : ''}` emits as `prop: 'true'`. Post-order so
+ * nested subtrees collapse from the leaves up. Conservative — only primitive
+ * literal operands (string/number/boolean/null/undefined); BigInt,
+ * divide-by-zero, and other exotic coercions are left untouched.
  */
 import type { AstMaybeNode } from '../../ast-types.js';
 import { createTransformSession } from '../edit/transform-session.js';
@@ -35,23 +19,13 @@ import {
 // consumers should import from there directly going forward.
 export { applyReplacements };
 
-/**
- * Try to simplify the given expression to a JS primitive value at
- * compile time. Returns `{ simplified: true, value }` if the entire
- * subtree collapses to a primitive literal, otherwise
- * `{ simplified: false }`.
- */
 export function simplifyExpression(node: AstMaybeNode): SimplifyResult {
   if (!node) return UNSIMPLIFIED;
   switch (node.type) {
     case 'Literal': {
-      // After narrowing, `node` is `BooleanLiteral | NullLiteral |
-      // NumericLiteral | StringLiteral | BigIntLiteral | RegExpLiteral`.
-      // The typeof guards below admit only the four primitive-valued
-      // variants (Boolean/Null/Numeric/String) — BigIntLiteral's
-      // `bigint`-typed value and RegExpLiteral's `object`-typed value
-      // both fall through to UNSIMPLIFIED. The old explicit `.bigint`
-      // check is therefore redundant.
+      // The typeof guards admit only the four primitive-valued Literal variants;
+      // BigInt (bigint value) and RegExp (object value) fall through to
+      // UNSIMPLIFIED.
       const v = node.value;
       if (
         v === null ||
@@ -85,12 +59,10 @@ export function simplifyExpression(node: AstMaybeNode): SimplifyResult {
       if (!left.simplified) return UNSIMPLIFIED;
       const right = simplifyExpression(node.right);
       if (!right.simplified) return UNSIMPLIFIED;
-      // `as never` casts here are load-bearing — TypeScript correctly
-      // refuses `string + boolean` etc., but matching SWC's simplifier
-      // means doing the JS-side arithmetic that does allow it. The
-      // casts bridge the TS-vs-JS arithmetic gap; the value remains
-      // typed to the SimplifyResult union via the typeof guards on
-      // each non-`+` branch.
+      // The `as never` casts are load-bearing: TS refuses `string + boolean`,
+      // but JS-side folding must allow it. The casts bridge the TS-vs-JS
+      // arithmetic gap; the result stays typed via the typeof guards on each
+      // non-`+` branch.
       const l = left.value as never;
       const r = right.value as never;
       switch (node.operator) {
@@ -135,15 +107,14 @@ export function simplifyExpression(node: AstMaybeNode): SimplifyResult {
 }
 
 /**
- * Format a simplified primitive value as a JS source string suitable for
- * splicing into emitted code. Strings use single quotes to match SWC's
- * preferred output style; other primitives use their canonical form.
+ * Format a simplified primitive value as a JS source string for splicing into
+ * emitted code. Strings use single quotes; other primitives use their canonical
+ * form.
  */
 export function formatSimplifiedLiteral(value: unknown): string {
   if (typeof value === 'string') {
-    // Single-quoted with minimal escaping. Embedded single quotes get
-    // escaped; embedded double quotes are left alone so the output
-    // matches SWC's emit style (`prop: 'has "quotes"'`).
+    // Single-quoted with minimal escaping: embedded single quotes escaped,
+    // double quotes left alone.
     return `'${value.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '\\r')}'`;
   }
   if (value === undefined) return 'undefined';
@@ -154,7 +125,6 @@ export function formatSimplifiedLiteral(value: unknown): string {
     if (value === -Infinity) return '-Infinity';
     return String(value);
   }
-  // boolean
   return String(value);
 }
 
@@ -165,16 +135,12 @@ export type SimplifyResult =
 const UNSIMPLIFIED: SimplifyResult = { simplified: false };
 
 /**
- * Shared implementation behind the two public collector factories below.
- * `skipLiterals = true` suppresses Literal-node matching so source-form
- * literals (e.g. `"count"`) stay as-written instead of being
- * re-canonicalized to canonical single-quoted form. Lambda-body emit
- * (`signal-analysis.ts:generateFnSignal`) wants canonical form;
- * body-source emit (`foldBodySimplifiableExpressions`) preserves source.
- *
- * Returns `skipSubtree: true` on every matched node — children are
- * subsumed by the parent's emit, and recursing would emit overlapping
- * ranges into the now-replaced subtree.
+ * Shared implementation behind the two collector factories. `skipLiterals = true`
+ * suppresses Literal matching so source-form literals stay as-written
+ * (body-source emit) instead of being re-canonicalized to single-quoted form
+ * (lambda-body emit wants canonical). Returns `skipSubtree: true` on every
+ * match — children are subsumed by the parent's emit, and recursing would emit
+ * overlapping ranges into the replaced subtree.
  */
 function buildSimplificationsCollector(skipLiterals: boolean): RangeReplacementCollector {
   return (node, ctx) => {
@@ -201,10 +167,9 @@ function buildSimplificationsCollector(skipLiterals: boolean): RangeReplacementC
 }
 
 /**
- * Collector for the hoisted lambda body (`_hf<n>`) emit — used by
- * `signal-analysis.ts:generateFnSignal`. Folds ANY simplifiable subtree
- * including `Literal` nodes (re-canonicalizes source quote style to
- * canonical single-quoted form, matching SWC's lambda-body emit).
+ * Collector for the hoisted lambda body (`_hf<n>`) emit. Folds ANY simplifiable
+ * subtree including `Literal` nodes (re-canonicalizes source quote style to
+ * single-quoted form).
  */
 export function lambdaBodySimplificationsCollector(): RangeReplacementCollector {
   return buildSimplificationsCollector(false);
@@ -222,23 +187,13 @@ export function bodySourceSimplificationsCollector(): RangeReplacementCollector 
 }
 
 /**
- * Fold constant-foldable subtrees inside a segment-body source.
- *
- * Runs as a post-JSX-transform pass over the body text. By that timing,
- * JSX-prop positions have become `_fnSignal(...)` calls (with `_hf<n>_str`
- * already generated source-preserving), so any remaining `?? <const-expr>`
- * patterns live in non-JSX positions like `console.log(_rawProps.X ?? 1+2)`.
- *
- * Mirrors SWC's `simplify::simplifier` pass that the Qwik Rust optimizer
- * runs after its main transform (`swc-reference-only/parse.rs:360`).
- * Strictly narrower than the full SWC simplifier — only folds subtrees that
- * `simplifyExpression` can collapse to a primitive literal, matching the
- * same conservative gate the lambda-body folder in `signal-analysis.ts`
- * already uses.
- *
- * Wraps the body in `const __body__ = …` so a bare arrow expression
- * parses; returns the body source unchanged on parse failure (defensive,
- * the body has already been through several earlier transforms).
+ * Fold constant-foldable subtrees inside a segment-body source, as a
+ * post-JSX-transform pass. By that timing JSX-prop positions are already
+ * `_fnSignal(...)` calls, so remaining foldable patterns live in non-JSX
+ * positions (`console.log(_rawProps.X ?? 1+2)`). Only folds subtrees
+ * `simplifyExpression` can collapse to a primitive literal. Wraps the body in
+ * `const __body__ = …` so a bare arrow parses; returns the body unchanged on
+ * parse failure.
  */
 export function foldBodySimplifiableExpressions(bodyText: string): string {
   if (bodyText.length === 0) return bodyText;

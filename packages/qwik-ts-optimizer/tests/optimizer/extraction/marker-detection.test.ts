@@ -184,7 +184,6 @@ describe('marker-detection', () => {
       const program = parse(`
         useMemo$(() => {});
       `);
-      // Simulate: useMemo$ is a custom inlined function
       const imports = new Map<string, ImportInfo>();
       const customInlined = new Map<string, CustomInlinedInfo>();
       customInlined.set('useMemo$', {
@@ -234,35 +233,26 @@ describe('marker-detection', () => {
       expect(getExtractionName('$', false)).toBe('$');
       expect(getExtractionName('component$', false)).toBe('component$');
       expect(getExtractionName('useTask$', false)).toBe('useTask$');
-      // For JSX event attrs, the ctxName comes from the attribute name
       expect(getExtractionName('$', true, 'onClick$')).toBe('onClick$');
     });
   });
 });
 
 describe('sourceMayContainMarkers', () => {
-  // The prefilter gates skipping the extraction walk entirely, so its
-  // false-negative surface must be empty: every shape that can trigger an
-  // extraction (or resolve one through imports) must return true.
   it('returns true for every extraction-trigger shape', () => {
     const triggers = [
       `import { component$ } from '@qwik.dev/core';`,
-      // Renamed import: the call site has no $, but the import text does.
       `import { component$ as Cmp } from '@qwik.dev/core'; Cmp(() => null);`,
-      // Bare $ import + aliased call.
       `import { $ as q } from '@qwik.dev/core'; q(() => null);`,
       `$(() => {})`,
       `<div onClick$={() => {}} />`,
       `jsx('button', { onClick$: () => {} })`,
       `jsx('button', { 'onClick$': () => {} })`,
-      // inlinedQrl needs no $ at all.
       `import { inlinedQrl } from '@qwik.dev/core'; inlinedQrl(fn, 'x');`,
       `_inlinedQrl(fn, 'x')`,
       `import { implicit$FirstArg } from '@qwik.dev/core';`,
-      // Unicode-escaped $ in an identifier.
       `component\\u0024(() => null)`,
       `component\\u{24}(() => null)`,
-      // Trailing $ at end of source must over-include, not crash.
       `const x = foo$`,
     ];
     for (const code of triggers) {

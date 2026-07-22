@@ -1,21 +1,3 @@
-/**
- * Differential tests for the canonical per-module gather walk.
- *
- * `gatherModuleFacts` fuses five formerly-independent full-program walks
- * (lexical scopes, extraction loop map, scope entries, segment usage,
- * passive-conflict detection) plus the free-identifier analysis into one
- * traversal. Each original function is retained as the differential oracle
- * for its projection; this suite asserts exact parity between the fused
- * walk's output and every oracle, per fixture.
- *
- * The corpus sweep synthesizes an "extraction" from every function-like
- * node in every snapshot fixture input — a far broader population than
- * actual extractions — so any divergence in stack handling, range
- * attribution, or hoisting order surfaces as a named fixture failure.
- * (Free-identifier parity has its own oracle suite in
- * `closure-free-identifiers.test.ts`, which now exercises the canonical
- * walk through the `computeClosureFreeIdentifiers` wrapper.)
- */
 
 import { describe, it, expect } from 'vitest';
 import { readdirSync, readFileSync } from 'node:fs';
@@ -89,8 +71,6 @@ function mapOfSetsToPlain(m: ReadonlyMap<string, Set<string>>): Record<string, s
   return out;
 }
 
-/** LoopContext carries the loop's AST node; compare it by identity and the
- * rest structurally. */
 function loopMapToComparable(
   m: ReadonlyMap<string, Array<{ type: string; iterVars: string[]; loopNode: unknown; loopBodyStart: number; loopBodyEnd: number }>>,
   nodeIds: Map<unknown, number>,
@@ -136,10 +116,6 @@ function diffFixture(source: string, filename: string): string[] {
     if (a !== b) mismatches.push(`${label}: fused=${a} oracle=${b}`);
   };
 
-  // Lexical scopes. The fused walk keys by closure-node identity (names
-  // are not final until disambiguation in fused-extraction mode); re-key
-  // by the synthetic symbol names to compare with the symbolName-keyed
-  // oracle.
   const oracleLex = buildClosureLexicalScopes(program, nodes);
   const fusedLex = new Map<string, Set<string>>();
   for (const [sym, fn] of nodes) {
@@ -148,9 +124,6 @@ function diffFixture(source: string, filename: string): string[] {
   }
   check('lexicalScopes', mapOfSetsToPlain(fusedLex), mapOfSetsToPlain(oracleLex));
 
-  // Loop map + loop body var decls. The oracle only reads symbolName /
-  // callStart / callEnd off ExtractionResult; the synthetic records carry
-  // exactly those fields.
   const oracleLoop = buildExtractionLoopMap(
     program,
     extractions as unknown as ExtractionResult[],
@@ -168,18 +141,12 @@ function diffFixture(source: string, filename: string): string[] {
     Object.fromEntries(oracleLoop.loopBodyVarDecls),
   );
 
-  // Scope entries
   check('allScopeEntries', facts.allScopeEntries, collectAllScopeEntries(program));
 
-  // Segment usage
   const oracleUsage = computeSegmentUsage(program, extractions);
   check('segmentUsage', mapOfSetsToPlain(facts.segmentUsage), mapOfSetsToPlain(oracleUsage.segmentUsage));
   check('rootUsage', [...facts.rootUsage].sort(), [...oracleUsage.rootUsage].sort());
 
-  // Scope-aware bindings, compared on the consumer contract: `classify()`
-  // at every identifier position (the surface `classifyConstness` /
-  // `isConstBindingName` read) plus the flat local-name set. Internal
-  // scope-range layout is free to differ as long as every lookup agrees.
   const oracleBindings = collectScopeAwareBindings(program);
   const fusedBindings = facts.scopeAwareBindings;
   if (!fusedBindings) {
@@ -206,8 +173,6 @@ function diffFixture(source: string, filename: string): string[] {
     check('scopeBindings.classify', classifyDiffs, []);
   }
 
-  // Passive conflicts, compared at the diagnostic level so the gather+emit
-  // split proves order-identical to the oracle's walk-and-emit.
   const oracleDiags: Diagnostic[] = [];
   detectPassivePreventdefaultConflicts(program, filename, source, oracleDiags);
   const fusedDiags: Diagnostic[] = [];
@@ -217,8 +182,6 @@ function diffFixture(source: string, filename: string): string[] {
   return mismatches;
 }
 
-/** A flat module with `count` extractions, each referencing one local, one
- * unique free identifier, and one shared module-level binding. */
 function syntheticManyExtractionSource(count: number): string {
   const lines: string[] = ['const shared = 1;'];
   for (let i = 0; i < count; i++) {
@@ -263,8 +226,6 @@ const laterDecl = 7;
 `;
     expect(diffFixture(source, 'test.tsx')).toEqual([]);
 
-    // Guard against vacuous parity: the fixture must actually exercise
-    // every projection.
     const parsed = parseSync('test.tsx', source, RAW_TRANSFER_PARSER_OPTIONS);
     const program = parsed.program as AstProgram;
     const nodes = collectFunctionNodes(program);
@@ -287,9 +248,6 @@ const laterDecl = 7;
     expect(facts.closureLexicalScopes.size).toBe(nodes.size);
     expect(facts.rootUsage.size).toBeGreaterThan(0);
     expect([...facts.closureFreeIdentifiers.values()].some((names) => names.length > 0)).toBe(true);
-    // Scope-bindings projection: both binding kinds exercised — the for-of
-    // binding classifies const at a position inside the loop body; the
-    // mutable `let` classifies var.
     const sb = facts.scopeAwareBindings;
     expect(sb).toBeDefined();
     expect(sb!.allLocalNames.has('moduleVar')).toBe(true);
@@ -329,9 +287,6 @@ describe('segment-usage projection bounded behavior', () => {
     const program = parsed.program as AstProgram;
     const nodes = collectFunctionNodes(program);
 
-    // Count every property read against an extraction record. Containment
-    // tests read `argStart` / `argEnd`, so the read count is a deterministic
-    // proxy for how many range comparisons the projection performs.
     let reads = 0;
     const counted = syntheticExtractions(nodes).map(
       (ext) =>
@@ -344,16 +299,12 @@ describe('segment-usage projection bounded behavior', () => {
     );
     const facts = gatherModuleFacts({ program, usageExtractions: counted });
 
-    // Sanity: the projection actually classified this input.
     expect(facts.segmentUsage.size).toBe(counted.length);
     const perSegment = [...facts.segmentUsage.values()];
     expect(perSegment.every((used) => used.has('shared'))).toBe(true);
     expect(perSegment.some((used) => used.has('l0'))).toBe(false);
     expect(facts.rootUsage.has('shared')).toBe(false);
 
-    // ~2,400 identifier visits × 200 extractions × 2 range reads ≈ 600k+
-    // for a per-visit scan over every extraction. The range-stack sweep
-    // stays around two orders of magnitude below that.
     expect(reads).toBeLessThan(100_000);
   });
 });

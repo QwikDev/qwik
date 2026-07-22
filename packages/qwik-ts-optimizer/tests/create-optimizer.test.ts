@@ -17,8 +17,6 @@ describe('createOptimizer', () => {
   });
 
   it('round-trips a minimal $() input through transformModules', async () => {
-    // No mk* constructors — the NAPI-parity surface accepts raw strings and
-    // brands internally, matching how an SWC-typed consumer calls it.
     const optimizer = await createOptimizer();
     const result = await optimizer.transformModules({
       srcDir: '/src',
@@ -35,9 +33,6 @@ describe('createOptimizer', () => {
     expect(result.isTypeScript).toBe(true);
     expect(result.isJsx).toBe(true);
 
-    // SWC's NAPI record shape: no `kind` discriminant; parents carry
-    // `origPath` with `segment: null`, segments carry `segment` with
-    // `origPath: null`.
     const parent = result.modules.find((m) => m.segment === null);
     const segment = result.modules.find((m) => m.segment !== null);
     expect(parent).toBeDefined();
@@ -49,15 +44,13 @@ describe('createOptimizer', () => {
     expect(segment?.segment?.name).toBeTruthy();
   });
 
-  it('emits mutable output arrays (SWC NAPI parity)', async () => {
+  it('emits mutable output arrays', async () => {
     const optimizer = await createOptimizer();
     const result = await optimizer.transformModules({
       srcDir: '/src',
       input: [{ path: 'noop.ts', code: 'export const x = 1;' }],
     });
 
-    // Consumers typed against SWC's `TransformOutput` see mutable arrays;
-    // pushing must not throw and must not alias internal state.
     result.modules.push(result.modules[0]!);
     expect(result.modules.length).toBe(2);
 
@@ -103,8 +96,6 @@ describe('createOptimizer', () => {
   });
 
   it('ignores passthrough OptimizerOptions fields without throwing', async () => {
-    // binding / inlineStylesUpToBytes / sourcemap / _optimizer exist on the
-    // type for SWC-parity but are not consumed by this implementation.
     const optimizer = await createOptimizer({
       binding: { fake: 'napi-binding' },
       inlineStylesUpToBytes: 4096,

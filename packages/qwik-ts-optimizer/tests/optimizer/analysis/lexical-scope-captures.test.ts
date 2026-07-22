@@ -1,23 +1,3 @@
-/**
- * Tests for capture analysis of marker calls inside
- * non-extraction enclosing functions.
- *
- * Pre-fix, `transform/index.ts`'s capture loop used either
- *   - the enclosing **extraction**'s body scope (when one wrapped the
- *     current extraction), or
- *   - module top-level scope (otherwise).
- *
- * Both forms miss decls from intermediate non-marker enclosing functions.
- * The new `buildClosureLexicalScopes` builds the full lexical chain (every
- * enclosing function/arrow scope plus module scope) so captures resolve
- * correctly regardless of how the closure is nested.
- *
- * The covering surfacing case is `example_qwik_router_client`'s
- * `usePreventNavigateQrl`: a module-level arrow holding a
- * `useVisibleTask$(() => registerPreventNav(fn))` whose closure captures
- * both `fn` (outer arrow param) and `registerPreventNav` (outer arrow
- * const). Pre-fix, both came out as free identifiers (runtime crash).
- */
 
 import { describe, it, expect } from 'vitest';
 import { transformModule } from '../../../src/optimizer/transform/index.js';
@@ -57,7 +37,6 @@ function transform(src: string) {
 
 describe('Bug 3 — lexical scope chain for captures', () => {
   it('module-level arrow with marker call captures both outer param and outer const', () => {
-    // Minimal repro of usePreventNavigateQrl pattern.
     const src = `
 import { useVisibleTask$, useContext } from '@qwik.dev/core';
 export const usePreventNavigateQrl = (fn) => {
@@ -72,11 +51,9 @@ export const usePreventNavigateQrl = (fn) => {
     expect(meta.captures).toBe(true);
     expect(meta.captureNames).toEqual(['fn', 'registerPreventNav']);
 
-    // The segment body should unpack both via _captures.
     expect(seg.code).toContain('_captures[0]');
     expect(seg.code).toContain('_captures[1]');
 
-    // The parent should wrap the QRL with .w([fn, registerPreventNav]).
     const parent = findParent(result.modules);
     expect(parent.code).toMatch(/\.w\(\[\s*fn,\s*registerPreventNav\s*\]\)/);
   });
@@ -91,17 +68,11 @@ export function setup(initial) {
 `;
     const result = transform(src);
     const meta = segmentMeta(findSegment(result.modules));
-    // `initial` isn't referenced inside the closure so isn't captured;
-    // `helper` is.
     expect(meta.captureNames).toEqual(['helper']);
     expect(meta.captures).toBe(true);
   });
 
   it('intermediate non-marker function between two markers contributes its scope', () => {
-    // Nested case: `component$` body contains a non-marker arrow that
-    // contains the marker call. The closure captures both `x` (the
-    // intermediate arrow's param) and `props.foo` (via `props` from
-    // component$'s param).
     const src = `
 import { component$, useTask$ } from '@qwik.dev/core';
 export const C = component$((props) => {
@@ -112,7 +83,6 @@ export const C = component$((props) => {
 });
 `;
     const result = transform(src);
-    // Find the useTask$ segment (the inner one, not the component$ one).
     const segs = result.modules.filter((m) => m.kind === 'segment');
     const inner = segs.find((m) =>
       m.kind === 'segment' && m.segment.ctxName === 'useTask$'
@@ -122,7 +92,6 @@ export const C = component$((props) => {
     }
     const meta = segmentMeta(inner);
     expect(meta.captures).toBe(true);
-    // Both `x` (intermediate arrow param) and `props` (outer component$ param) cross.
     expect(meta.captureNames).toEqual(['props', 'x']);
   });
 
@@ -160,11 +129,6 @@ export const fn1 = () => {
   });
 
   it('negative scope: sibling functions do not contribute their scope', () => {
-    // `other`'s param `y` should NOT be visible inside `target`'s
-    // useTask$ closure. Pre-fix the recursive collectScopeIdentifiers
-    // (applied to program) would have included `y` because it descended
-    // into all nested function bodies — confirming that the walker-based
-    // scope-stack approach is correctly scope-respecting.
     const src = `
 import { useTask$ } from '@qwik.dev/core';
 export const target = (a) => {

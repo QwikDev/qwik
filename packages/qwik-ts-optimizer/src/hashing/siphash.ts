@@ -1,8 +1,6 @@
 /**
- * SipHash-1-3 hashing for Qwik symbol names.
- *
- * Replicates Rust's DefaultHasher (SipHash-1-3 with zero keys) and
- * Qwik's base64 encoding (URL-safe, no padding, replace - and _ with 0).
+ * SipHash-1-3 (zero keys) hashing for Qwik symbol names, with URL-safe base64
+ * encoding: no padding, `-`/`_` replaced with `0`.
  */
 
 import { charIn, createRegExp, exactly, global as g, oneOrMore } from 'magic-regexp';
@@ -11,44 +9,29 @@ import { type Hash, mkHash } from '../optimizer/types/brands.js';
 
 const ZERO_KEY: [number, number, number, number] = [0, 0, 0, 0];
 
-/**
- * Compute a Qwik-compatible hash for a symbol.
- *
- * @param scope - Optional scope prefix (usually undefined)
- * @param relPath - Relative file path (e.g., "test.tsx")
- * @param displayName - Display name context portion (e.g., "renderHeader1_div_onClick")
- * @returns 11-character base64-encoded hash string
- */
+/** Hash a symbol from `scope + relPath + displayName` to an 11-char base64 string. */
 export function qwikHash(
   scope: string | undefined,
   relPath: string,
   displayName: string
 ): Hash {
-  // HASH-02: Hash input is raw concatenated bytes: scope + rel_path + display_name (no separators)
   const input = (scope ?? '') + relPath + displayName;
   return encodeHash(input);
 }
 
 /**
- * Compute a Qwik-compatible hash from a raw seed string. Mirrors SWC's
- * `register_context_name` `hash_override` path
- * (swc-reference-only/transform.rs:413-414) where the seed bytes are
- * fed directly to the hasher without the `scope + relPath + displayName`
- * concat. Used by the import-aware naming path:
- * `useStyles$(css3)` with `import css3 from './style.css'` hashes the
- * seed `./style.css#default` rather than the stack-derived
- * `App_component_useStyles` context portion. Keeps the segment hash
- * stable across files importing the same asset under the same name.
+ * Hash a raw seed string directly, without the `scope + relPath + displayName`
+ * concat. The import-aware naming path uses it so `useStyles$(css3)` with
+ * `import css3 from './style.css'` hashes the seed `./style.css#default`, keeping
+ * the segment hash stable across files importing the same asset under the same name.
  */
 export function qwikHashFromSeed(seed: string): Hash {
   return encodeHash(seed);
 }
 
 function encodeHash(input: string): Hash {
-  // HASH-01: SipHash-1-3 with keys (0,0,0,0)
   const result = SipHash13.hash(ZERO_KEY, input);
 
-  // HASH-03: u64 little-endian bytes
   const bytes = new Uint8Array(8);
   bytes[0] = result.l & 0xff;
   bytes[1] = (result.l >>> 8) & 0xff;
@@ -59,7 +42,6 @@ function encodeHash(input: string): Hash {
   bytes[6] = (result.h >>> 16) & 0xff;
   bytes[7] = (result.h >>> 24) & 0xff;
 
-  // HASH-03: Base64url encode, no padding, replace - and _ with 0
   const PLUS = createRegExp(exactly('+'), [g]);
   const SLASH = createRegExp(exactly('/'), [g]);
   const TRAILING_PAD = createRegExp(oneOrMore('=').at.lineEnd());

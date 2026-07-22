@@ -1,10 +1,3 @@
-/**
- * JSX children processing for the Qwik optimizer.
- *
- * Handles normalization of JSXText whitespace, classification of child
- * node types (static/dynamic), and signal analysis for child expressions.
- */
-
 import { createRegExp, exactly, oneOrMore, anyOf, digit, whitespace, charNotIn } from 'magic-regexp';
 import { analyzeSignalExpression } from './signal-analysis.js';
 import {
@@ -29,10 +22,6 @@ const jsxSortedVarProps = createRegExp(
     .and(anyOf('{', 'null').grouped()),
 );
 
-/**
- * Normalize JSXText nodes following standard JSX whitespace rules.
- * Returns only meaningful children (non-empty text and non-text nodes).
- */
 export function normalizeJsxChildren(children: JSXChild[]): (JSXChild & { _trimmedText?: string })[] {
   const meaningful: (JSXChild & { _trimmedText?: string })[] = [];
 
@@ -48,19 +37,10 @@ export function normalizeJsxChildren(children: JSXChild[]): (JSXChild & { _trimm
     let normalized: string;
 
     if (hasNewline) {
-      // Babel/React JSX whitespace rule (`cleanJSXElementLiteralChild` in
-      // @babel/plugin-transform-react-jsx). The key asymmetry the naive
-      // `lines.map(trim).filter().join(' ')` form gets wrong: a line that
-      // is BOTH the last line of the chunk AND non-empty preserves its
-      // trailing whitespace, because the trailing space belongs to inline
-      // content rather than a newline-adjacent indent. Same for the first
-      // line and its leading whitespace.
-      //
-      // Worked examples:
-      //   "\n    Level "   → "Level "   (trailing space kept; it's on the
-      //                                   last non-empty line)
-      //   "\n    B\n    "  → "B"        (trailing whitespace is on a
-      //                                   later, empty line — dropped)
+      // JSX whitespace normalization (Babel's `cleanJSXElementLiteralChild`):
+      // a line that is both the last line of the chunk and non-empty keeps its
+      // trailing whitespace, and a first line keeps its leading whitespace —
+      // only newline-adjacent indentation is stripped.
       const lines = raw.split('\n');
       let lastNonEmptyLine = -1;
       for (let li = 0; li < lines.length; li++) {
@@ -118,9 +98,6 @@ export function normalizeJsxChildren(children: JSXChild[]): (JSXChild & { _trimm
   return meaningful;
 }
 
-/**
- * Process JSX children nodes and return a children string representation.
- */
 export function processChildren(
   ctx: JsxTransformContext,
   children: JSXChild[],
@@ -156,10 +133,6 @@ export function processChildren(
   };
 }
 
-/**
- * Check if a transformed JSX call's flag indicates a dynamic subtree.
- * Parses the trailing ", N, key)" pattern from _jsxSorted output.
- */
 function hasStaticSubtreeFlag(transformedText: string): boolean {
   const flagMatch = transformedText.match(jsxFlagTail);
   if (!flagMatch) return true;
@@ -167,10 +140,6 @@ function hasStaticSubtreeFlag(transformedText: string): boolean {
   return (flag & 2) !== 0;
 }
 
-/**
- * Classify a nested JSX element/fragment child as static or dynamic.
- * SWC propagates dynamic status upward through the JSX tree.
- */
 function classifyNestedJsxChild(
   child: JSXElement | JSXFragment,
   childText: string,
@@ -218,7 +187,6 @@ function processOneChild(
   return { text: null, type: 'none' };
 }
 
-/** Process a JSX expression container child ({expr}). */
 function processExpressionChild(
   ctx: JsxTransformContext,
   child: JSXExpressionContainer,

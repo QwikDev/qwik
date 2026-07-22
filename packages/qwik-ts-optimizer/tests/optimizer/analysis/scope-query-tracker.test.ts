@@ -1,23 +1,3 @@
-/**
- * Equivalence pinning for `ScopeQueryTracker.getDeclarationFromScope`.
- *
- * The subclass query must return — for any `(name, scopeKey)` pair — the
- * exact object the upstream replay-time `getDeclaration(name)` returns with
- * the walk cursor at `scopeKey`. The procedure per fixture:
- *
- *   1. Build the tracker over the program (`preserveExitedScopes: true`),
- *      freeze it.
- *   2. Replay-walk with the frozen tracker; at every `Identifier` position
- *      (binding and reference alike) record the name, the cursor's scope
- *      key, and what replay-time `getDeclaration` resolved.
- *   3. After the walk, assert `getDeclarationFromScope(name, scopeKey)`
- *      returns the identical object (reference equality) for every record.
- *
- * Targeted fixtures pin the scope-shape edge cases (shadowing, hoisted
- * `function` declarations, `FunctionExpression` own-name double-scope,
- * catch params, for-loop heads); the corpus sweep runs the same procedure
- * over every snapshot fixture input for breadth.
- */
 
 import { describe, it, expect } from 'vitest';
 import { readdirSync, readFileSync } from 'node:fs';
@@ -174,8 +154,6 @@ use(e);
         failures.push(`${snapFile}: ${m}`);
       }
     }
-    // Guard against a vacuous sweep: the corpus must exercise real
-    // identifier resolution, not just parse.
     expect(checkedFixtures).toBeGreaterThan(100);
     expect(totalRecords).toBeGreaterThan(1000);
     expect(totalResolved).toBeGreaterThan(500);

@@ -1,36 +1,6 @@
-/**
- * Per-snapshot options map for the Qwik optimizer convergence test.
- *
- * Maps snapshot test names (without qwik_core__test__ prefix and .snap suffix)
- * to their exact TransformModulesOptions overrides. Options not specified
- * use the Rust test defaults:
- *   - transpileTs: false
- *   - transpileJsx: false
- *   - mode: 'lib' (Rust's EmitMode::Test maps to our 'lib')
- *   - entryStrategy: { type: 'segment' }
- *   - minify: 'simplify'
- *   - filename: 'test.tsx'
- *   - srcDir: '/user/qwik/src/'
- *   - explicitExtensions: false
- *   - preserveFilenames: false
- *   - isServer: undefined
- *
- * Sources:
- *   - Rust test.rs from QwikDev/qwik (main branch, 3677 lines)
- *   - Snapshot output file analysis (extension, inline indicators, JSX markers)
- *   - Additional tests inferred from snapshot content for tests not in downloaded test.rs
- *
- * CRITICAL: The Rust default mode is EmitMode::Test which has no direct equivalent
- * in our TS API. It behaves like 'lib' mode (no prod optimizations, no dev instrumentation).
- */
-
 import type { TransformModulesOptions } from '../../src/optimizer/types/types.js';
 import { mkFilePath, mkSourceText } from '../../src/optimizer/types/brands.js';
 
-/**
- * Options override for a single snapshot test.
- * Only non-default fields need to be specified.
- */
 export type SnapshotOptions = Partial<
   Pick<
     TransformModulesOptions,
@@ -49,27 +19,16 @@ export type SnapshotOptions = Partial<
     | 'scope'
   >
 > & {
-  /** Override filename (default: 'test.tsx') */
   filename?: string;
-  /** Override srcDir (default: '/user/qwik/src/') */
   srcDir?: string;
-  /** Override devPath */
   devPath?: string;
 };
 
-/**
- * Default options matching Rust's TestInput::default().
- * Every snapshot uses these unless overridden in SNAPSHOT_OPTIONS.
- */
 export const DEFAULT_OPTIONS: Required<
   Pick<SnapshotOptions, 'transpileTs' | 'transpileJsx' | 'mode' | 'minify' | 'filename' | 'srcDir'>
 > & { entryStrategy: { type: 'segment' } } = {
   transpileTs: false,
   transpileJsx: false,
-  // Matches SWC's `TestInput::default()` mode = `EmitMode::Test`
-  // (swc-reference-only/test.rs). A `'lib'` default would trigger the
-  // lib-emit shape for every test now that `mode: 'lib'` is wired up;
-  // `'test'` is the no-op variant matching SWC's default.
   mode: 'test',
   entryStrategy: { type: 'segment' },
   minify: 'simplify',
@@ -77,22 +36,7 @@ export const DEFAULT_OPTIONS: Required<
   srcDir: '/user/qwik/src/',
 };
 
-// ---------------------------------------------------------------------------
-// Per-snapshot options (only non-default values)
-// ---------------------------------------------------------------------------
-
-/**
- * Map from snapshot name to options overrides.
- * Key is the test name (e.g., 'example_1', not the full filename).
- */
 export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
-  // =======================================================================
-  // Tests from Rust test.rs with DEFAULT options (no overrides needed)
-  // =======================================================================
-  // These use: transpileTs=false, transpileJsx=false, mode='lib', entry=segment,
-  //            minify=simplify, filename='test.tsx', srcDir='/user/qwik/src/'
-
-  // example_1 through example_9: all defaults
   example_1: {},
   example_2: {},
   example_3: {},
@@ -112,9 +56,6 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
   example_ts_enums_no_transpile: {},
   special_jsx: {},
 
-  // =======================================================================
-  // Tests with filename override
-  // =======================================================================
   example_10: { filename: 'project/test.tsx' },
   example_11: { filename: 'project/test.tsx', entryStrategy: { type: 'single' } },
   example_exports: { filename: 'project/test.tsx', transpileTs: true },
@@ -165,11 +106,7 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     entryStrategy: { type: 'inline' },
     explicitExtensions: true,
   },
-  // NOTE: example_qwik_sdk_inline has no snapshot file -- excluded from map
 
-  // =======================================================================
-  // Tests with transpileTs + transpileJsx (most common override combo)
-  // =======================================================================
   example_functional_component_2: { transpileTs: true, transpileJsx: true },
   example_functional_component_capture_props: { transpileTs: true, transpileJsx: true },
   example_invalid_references: { transpileTs: true, transpileJsx: true },
@@ -200,8 +137,8 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     transpileJsx: true,
     entryStrategy: { type: 'segment' },
     stripCtxName: ['server'],
-    mode: 'prod',  // Expected output uses s_ prefix naming
-    isServer: true,  // Expected output has isServer guards removed
+    mode: 'prod',
+    isServer: true,
   },
   example_server_auth: {
     transpileTs: true,
@@ -209,34 +146,19 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     entryStrategy: { type: 'segment' },
   },
 
-  // =======================================================================
-  // Tests with transpileTs only (no JSX transpile)
-  // =======================================================================
   example_multi_capture: { transpileTs: true },
 
-  // =======================================================================
-  // Tests with transpileJsx only (no TS transpile)
-  // =======================================================================
   lib_mode_fn_signal: { transpileJsx: true },
   impure_template_fns: { transpileJsx: true },
 
-  // =======================================================================
-  // Tests with minify override
-  // =======================================================================
   example_functional_component: { minify: 'none' },
 
-  // =======================================================================
-  // Tests with entryStrategy overrides
-  // =======================================================================
   example_inlined_entry_strategy: { entryStrategy: { type: 'inline' } },
   example_parsed_inlined_qrls: {
     entryStrategy: { type: 'inline' },
     mode: 'prod',
   },
 
-  // =======================================================================
-  // Tests with explicitExtensions
-  // =======================================================================
   example_explicit_ext_transpile: {
     transpileTs: true,
     transpileJsx: true,
@@ -296,9 +218,6 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     explicitExtensions: true,
   },
 
-  // =======================================================================
-  // Tests with mode overrides
-  // =======================================================================
   example_prod_node: { mode: 'prod' },
   example_build_server: { isServer: true, mode: 'prod' },
   example_dev_mode: {
@@ -321,9 +240,6 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     stripCtxName: ['server'],
   },
 
-  // =======================================================================
-  // Tests with isServer + entryStrategy combos
-  // =======================================================================
   example_use_optimization: {
     entryStrategy: { type: 'inline' },
     transpileTs: true,
@@ -351,9 +267,6 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     isServer: false,
   },
 
-  // =======================================================================
-  // Tests with smart entry strategy
-  // =======================================================================
   example_use_server_mount: {
     transpileTs: true,
     transpileJsx: true,
@@ -365,9 +278,6 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     entryStrategy: { type: 'smart' },
   },
 
-  // =======================================================================
-  // Tests with hoist entry strategy
-  // =======================================================================
   example_derived_signals_div: {
     transpileJsx: true,
     transpileTs: true,
@@ -404,9 +314,6 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     entryStrategy: { type: 'hoist' },
   },
 
-  // =======================================================================
-  // Tests with reg_ctx_name / strip_ctx_name / strip_event_handlers
-  // =======================================================================
   example_drop_side_effects: {
     transpileTs: true,
     transpileJsx: true,
@@ -435,9 +342,6 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     regCtxName: ['server'],
   },
 
-  // =======================================================================
-  // Tests with inline entry strategy (various combos)
-  // =======================================================================
   example_props_optimization: {
     transpileJsx: true,
     entryStrategy: { type: 'inline' },
@@ -450,13 +354,6 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     mode: 'prod',
   },
 
-  // =======================================================================
-  // Tests NOT in downloaded test.rs — inferred from snapshot output
-  // These tests appear in a newer version of test.rs (assertion_line > 3677)
-  // Options inferred from: output file extension, inline/hoist markers, JSX transforms
-  // =======================================================================
-
-  // --- Segment strategy, transpileTs + transpileJsx (output is .js with JSX markers) ---
   destructure_args_colon_props: { transpileTs: true, transpileJsx: true },
   destructure_args_colon_props2: { transpileTs: true, transpileJsx: true },
   destructure_args_colon_props3: { transpileTs: true, transpileJsx: true },
@@ -543,7 +440,6 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
   should_wrap_store_expression: { transpileTs: true, transpileJsx: true },
   should_wrap_type_asserted_variables_in_template: { transpileTs: true, transpileJsx: true },
 
-  // --- No transpile (output is .tsx, no JSX markers) ---
   component_level_self_referential_qrl: {},
   example_segment_variable_migration: {},
   rename_builder_io: {},
@@ -555,7 +451,6 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
   ternary_prop: { transpileJsx: true },
   transform_qrl_in_regular_prop: { transpileJsx: true },
 
-  // --- Inline entry strategy, transpileTs + transpileJsx (inlinedQrl in output, no ENTRY POINT segments) ---
   fun_with_scopes: {
     transpileTs: true,
     transpileJsx: true,
@@ -567,7 +462,6 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
   should_not_generate_conflicting_props_identifiers: { transpileTs: true, transpileJsx: true, entryStrategy: { type: 'inline' } },
   should_not_move_over_side_effects: { transpileTs: true, transpileJsx: true, entryStrategy: { type: 'inline' } },
 
-  // --- Inline entry strategy with transpileTs + transpileJsx + hoist-like patterns ---
   root_level_self_referential_qrl_inline: {
     filename: './node_modules/qwik-tree/index.qwik.jsx',
     transpileJsx: true,
@@ -576,30 +470,20 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     mode: 'dev',
   },
 
-  // --- Hoist entry strategy ---
   example_props_wrapping: { transpileTs: true, transpileJsx: true, entryStrategy: { type: 'hoist' } },
   example_props_wrapping2: { transpileTs: true, transpileJsx: true, entryStrategy: { type: 'hoist' } },
   example_props_wrapping_children: { transpileTs: true, transpileJsx: true, entryStrategy: { type: 'hoist' } },
   example_props_wrapping_children2: { transpileTs: true, transpileJsx: true, entryStrategy: { type: 'hoist' } },
 
-  // --- Segment entry strategy with explicit extensions ---
   example_qwik_router_client: {
     filename: '../node_modules/@qwik.dev/router/index.qwik.mjs',
     explicitExtensions: true,
   },
 
-  // --- Self-referential component migration (output has multiple segments with JSX) ---
   example_self_referential_component_migration: { transpileJsx: true },
 
-  // --- HMR test ---
-  // hmr already listed above with transpileTs + transpileJsx
-
-  // --- Inline + transpile (inferred from output: .js, _noopQrl, no ENTRY POINT) ---
   inlined_qrl_uses_identifier_reference_when_hoisted_snapshot: { transpileTs: true, transpileJsx: true, entryStrategy: { type: 'inline' } },
 
-  // --- Multi-input test (no INPUT section in snapshot, uses transform_modules directly) ---
-  // relative_paths uses: srcDir='/path/to/app/src/thing', rootDir='/path/to/app/',
-  // minify=simplify, explicitExtensions=true, mode='lib', entry=segment, transpileTs=true, transpileJsx=true
   relative_paths: {
     srcDir: '/path/to/app/src/thing',
     transpileTs: true,
@@ -609,14 +493,6 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
   },
 };
 
-// ---------------------------------------------------------------------------
-// Helper to merge snapshot options with defaults
-// ---------------------------------------------------------------------------
-
-/**
- * Get the full TransformModulesOptions for a snapshot test.
- * Merges per-snapshot overrides with defaults.
- */
 export function getSnapshotTransformOptions(
   snapshotName: string,
   inputCode: string,

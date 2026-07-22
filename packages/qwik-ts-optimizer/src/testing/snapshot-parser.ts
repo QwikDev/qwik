@@ -1,8 +1,6 @@
 /**
- * Snapshot parser for Qwik optimizer .snap files (Rust insta format).
- *
- * Parses YAML frontmatter, optional INPUT section, segment blocks with
- * metadata, parent module blocks, and diagnostics.
+ * Parser for `.snap` fixture files: YAML frontmatter, optional INPUT section,
+ * segment blocks with metadata, parent module blocks, and diagnostics.
  */
 
 import { createRegExp, exactly, oneOrMore, char, whitespace, linefeed, multiline as m, global as g } from 'magic-regexp';
@@ -64,23 +62,15 @@ export interface ParsedSnapshot {
   diagnostics: Diagnostic[];
 }
 
-/**
- * Parse a .snap file content string into structured data.
- */
 export function parseSnapshot(content: string): ParsedSnapshot {
-  // 1. Extract YAML frontmatter
   const frontmatter = parseFrontmatter(content);
 
-  // 2. Strip frontmatter from content
   const afterFrontmatter = stripFrontmatter(content);
 
-  // 3. Extract diagnostics section (always last)
   const { body, diagnostics } = extractDiagnostics(afterFrontmatter);
 
-  // 4. Extract optional INPUT section
   const { input, rest } = extractInput(body);
 
-  // 5. Parse section blocks (segments and parent modules)
   const { segments, parentModules } = parseSections(rest);
 
   return {
@@ -93,7 +83,6 @@ export function parseSnapshot(content: string): ParsedSnapshot {
 }
 
 function parseFrontmatter(content: string): ParsedSnapshot['frontmatter'] {
-  // Find the YAML frontmatter between --- delimiters
   const firstDash = content.indexOf('---');
   if (firstDash === -1) {
     throw new Error('No frontmatter found (missing opening ---)');
@@ -146,7 +135,6 @@ function extractDiagnostics(body: string): { body: string; diagnostics: Diagnost
     try {
       diagnostics = JSON.parse(diagContent);
     } catch {
-      // If diagnostics JSON is malformed, return empty array
       diagnostics = [];
     }
   }
@@ -163,11 +151,9 @@ function extractInput(body: string): { input: string | null; rest: string } {
   }
 
   let afterInput = body.slice(inputIdx + inputMarker.length);
-  // Strip the newline immediately after ==INPUT== (part of the marker line)
-  // but preserve all subsequent whitespace (affects byte offsets for qrlDEV lo/hi)
+  // Strip only the marker's own trailing newline; later whitespace affects qrlDEV byte offsets.
   if (afterInput.startsWith('\n')) afterInput = afterInput.slice(1);
 
-  // Find the next section delimiter (===...===) after INPUT
   const delimMatch = afterInput.match(createRegExp(
     exactly('=').times.atLeast(3)
       .and(whitespace.times.any())
@@ -179,10 +165,8 @@ function extractInput(body: string): { input: string | null; rest: string } {
     [m],
   ));
   if (!delimMatch || delimMatch.index === undefined) {
-    // No sections after input -- entire rest is input
-    // Use trimEnd() to preserve leading newlines (they affect byte offsets
-    // for qrlDEV lo/hi values which the Rust optimizer computes from the
-    // original input including leading whitespace)
+    // trimEnd() preserves leading newlines — they affect the qrlDEV lo/hi byte
+    // offsets, computed from the original input including leading whitespace.
     return { input: afterInput.trimEnd(), rest: '' };
   }
 
@@ -216,7 +200,6 @@ function parseSections(body: string): {
 
   const lines = body.split('\n');
 
-  // Find all delimiter line indices
   const delimiters: Array<{ index: number; filename: string; isEntryPoint: boolean }> = [];
 
   for (let i = 0; i < lines.length; i++) {
@@ -229,7 +212,6 @@ function parseSections(body: string): {
     }
   }
 
-  // Process each section
   for (let d = 0; d < delimiters.length; d++) {
     const delim = delimiters[d];
     const startLine = delim.index + 1;
@@ -238,11 +220,9 @@ function parseSections(body: string): {
     const sectionLines = lines.slice(startLine, endLine);
     const sectionBody = sectionLines.join('\n');
 
-    // Try to extract metadata JSON (inside /* ... */ comment)
     const metadata = extractMetadata(sectionBody);
 
     if (metadata !== null) {
-      // This is a segment block (has metadata)
       const { code, sourceMap } = extractCodeAndSourceMap(sectionBody);
       segments.push({
         filename: delim.filename,
@@ -252,7 +232,6 @@ function parseSections(body: string): {
         metadata,
       });
     } else {
-      // This is a parent module block (no metadata)
       const { code, sourceMap } = extractCodeAndSourceMap(sectionBody);
       parentModules.push({
         filename: delim.filename,
@@ -266,7 +245,6 @@ function parseSections(body: string): {
 }
 
 function extractMetadata(sectionBody: string): SegmentMetadata | null {
-  // Metadata is inside /* ... */ block
   const metaStart = sectionBody.lastIndexOf('/*\n');
   if (metaStart === -1) return null;
 
@@ -287,7 +265,6 @@ function extractCodeAndSourceMap(sectionBody: string): {
   code: string;
   sourceMap: string | null;
 } {
-  // Find the Some("...") source map line
   const someMatch = sectionBody.match(createRegExp(
     exactly('Some("')
       .and(char.times.any().groupedAs('val'))
@@ -302,17 +279,14 @@ function extractCodeAndSourceMap(sectionBody: string): {
 
   if (someMatch && someMatch.index !== undefined) {
     sourceMap = (someMatch.groups?.val ?? someMatch[1])!
-      // Unescape the JSON-like escaped string
       .replace(createRegExp(exactly('\\"'), [g]), '"')
       .replace(createRegExp(exactly('\\\\'), [g]), '\\');
 
-    // Code is everything before the Some(...) line
     code = sectionBody.slice(0, someMatch.index).trimEnd();
   } else {
     code = sectionBody;
   }
 
-  // Strip trailing metadata block from code if present
   const metaStart = code.lastIndexOf('/*\n');
   if (metaStart !== -1) {
     const metaEnd = code.indexOf('*/', metaStart);
@@ -321,7 +295,6 @@ function extractCodeAndSourceMap(sectionBody: string): {
     }
   }
 
-  // Trim leading/trailing whitespace but preserve internal formatting
   code = code
     .replace(createRegExp(oneOrMore(linefeed).at.lineStart()), '')
     .replace(createRegExp(oneOrMore(linefeed).at.lineEnd()), '');

@@ -1,23 +1,8 @@
-/**
- * Unit tests for `src/optimizer/ast/guards.ts` helpers.
- *
- * Coverage focus: pin the contract of the new `someAstChild`
- * utility (short-circuit version of `forEachAstChild`). The existing
- * `forEachAstChild` is implicitly covered by every walker that uses it;
- * we add a thin smoke test alongside to anchor expectations.
- */
 
 import { describe, it, expect } from 'vitest';
 import { forEachAstChild, someAstChild } from '../../../src/optimizer/ast/guards.js';
 import type { AstCompatNode, AstNode } from '../../../src/ast-types.js';
 
-// Tests use synthetic `type` strings (`'A'`, `'B'`, `'Foo'`, etc.) that
-// don't satisfy `AstNode`'s strict discriminated-union — the goal is
-// to exercise traversal mechanics (short-circuit, skip-keys, parent
-// threading) independent of real node shapes. The `AstCompatNode`
-// duck-typed shape is the right input type here; downstream
-// comparisons cast `.type` to `string` since the iterator now
-// surfaces `AstNode`'s strict union at the visitor boundary.
 function mkNode(type: string, extra: Record<string, unknown> = {}): AstCompatNode {
   return { type, start: 0, end: 0, ...extra };
 }
@@ -78,8 +63,6 @@ describe('someAstChild', () => {
   });
 
   it('skips meta keys (type/start/end/loc/range) by default', () => {
-    // None of these are AST nodes; loc/range are numeric arrays. The default
-    // skipKeys + isAstNode validation ensures no false positives.
     const node = mkNode('Foo', {
       type: 'Foo',
       start: 0,

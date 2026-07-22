@@ -1,10 +1,3 @@
-/**
- * Tests for const-replacement module.
- *
- * Verifies that replaceConstants() replaces isServer/isBrowser/isDev identifiers
- * imported from qwik packages with boolean literals.
- */
-
 import { describe, it, expect } from 'vitest';
 import MagicString from 'magic-string';
 import { parseSync } from 'oxc-parser';
@@ -89,7 +82,6 @@ if (isDev) { console.log('dev'); }
 console.log(isServer);
 `;
     const result = runReplace(source, true);
-    // isServer here is not imported from qwik, so it should NOT be replaced
     expect(result.code).toBe(source);
     expect(result.replacedCount).toBe(0);
   });
@@ -112,11 +104,6 @@ console.log(isb);
     expect(result.replacedCount).toBe(1);
   });
 
-  // `replaceConstants` substitutes usages but no longer removes the import
-  // itself — import cleanup is owned by the parent rewrite (processImports +
-  // the surviving-imports usage filter), which is what actually drops the
-  // now-unreferenced binding. So this contract is asserted end-to-end through
-  // `transformModule` rather than against `replaceConstants` in isolation.
   it('removes import statement for replaced identifiers', () => {
     const source = `import { isServer, isBrowser } from '@qwik.dev/core/build';
 export const x = isServer ? 1 : 2;
@@ -132,20 +119,15 @@ export const y = isBrowser ? 3 : 4;
     });
     const parent = result.modules.find((m) => m.kind === 'parent') ?? result.modules[0]!;
     expect(parent.code).not.toContain('import { isServer, isBrowser }');
-    // Fully gone — usages substituted with literals, binding dropped.
     expect(/\bisServer\b/.test(parent.code)).toBe(false);
   });
 
   it('keeps non-replaced specifiers in a mixed import', () => {
-    // At the replaceConstants level the import is left intact (the pipeline's
-    // usage filter handles removal); isDev is neither replaced nor dropped here.
     const source = `import { isServer, isBrowser, isDev } from '@qwik.dev/core/build';
 console.log(isServer, isBrowser, isDev);
 `;
-    // Only replacing isServer/isBrowser (isServer=true), not isDev (isDev undefined)
     const result = runReplace(source, true, undefined);
     expect(result.code).toContain('console.log(true, false, isDev)');
-    // isDev still present (in the untouched import + the usage).
     expect(result.code).toContain('isDev');
   });
 

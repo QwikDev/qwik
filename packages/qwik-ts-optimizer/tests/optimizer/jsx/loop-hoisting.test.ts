@@ -1,9 +1,3 @@
-/**
- * Tests for loop-hoisting module.
- *
- * Tests loop detection (all 6 types), .w() hoisting plan generation,
- * q:p/q:ps injection, and positional parameter padding.
- */
 
 import { describe, it, expect } from 'vitest';
 import { parseSync } from 'oxc-parser';
@@ -29,10 +23,6 @@ function findFirstNode(source: string, nodeType: string): AstNode {
   if (!found) throw new Error(`No ${nodeType} node found in source`);
   return found;
 }
-
-// ---------------------------------------------------------------------------
-// detectLoopContext
-// ---------------------------------------------------------------------------
 
 describe('detectLoopContext', () => {
   it('detects .map() call expression', () => {
@@ -113,10 +103,6 @@ describe('detectLoopContext', () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// generateParamPadding
-// ---------------------------------------------------------------------------
-
 describe('generateParamPadding', () => {
   it('generates base padding with no loop vars', () => {
     const params = generateParamPadding([]);
@@ -133,10 +119,6 @@ describe('generateParamPadding', () => {
     expect(params).toEqual(['_', '_1', 'index', 'item']);
   });
 });
-
-// ---------------------------------------------------------------------------
-// eventHandlerQpParams
-// ---------------------------------------------------------------------------
 
 describe('eventHandlerQpParams', () => {
   it('returns [] for an empty param list', () => {
@@ -172,9 +154,6 @@ describe('eventHandlerQpParams', () => {
   });
 
   it('skips a bare `_` param past the prefix', () => {
-    // SWC's placeholder generator emits bare `_` only at slot 0 and builds
-    // q:p from the lifted idents directly, so a bare `_` at index >= 2 is
-    // an author-written placeholder that never reaches q:p.
     expect(eventHandlerQpParams(['_', '_1', '_'])).toEqual([]);
     expect(eventHandlerQpParams(['_', '_1', '_', 'item'])).toEqual(['item']);
     expect(eventHandlerQpParams(['_', '_1', 'item', '_'])).toEqual(['item']);
@@ -187,10 +166,6 @@ describe('eventHandlerQpParams', () => {
     ]);
   });
 });
-
-// ---------------------------------------------------------------------------
-// buildCaptureProp
-// ---------------------------------------------------------------------------
 
 describe('buildCaptureProp', () => {
   it('returns null for empty loop vars', () => {
@@ -220,14 +195,8 @@ describe('buildCaptureProp', () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// Snapshot-matching patterns
-// ---------------------------------------------------------------------------
-
 describe('snapshot pattern matching', () => {
   it('matches loop hoisting pattern from event_listeners_inside_loop snap', () => {
-    // From snapshot: paramNames: ["_", "_1", "item"], captureNames: ["cart"]
-    // The handler segment signature is (_, _1, item) with cart captured via .w()
     const params = generateParamPadding(['item']);
     expect(params).toEqual(['_', '_1', 'item']);
 
@@ -237,8 +206,6 @@ describe('snapshot pattern matching', () => {
   });
 
   it('matches nested loop pattern from cross_scope snap', () => {
-    // From snapshot: paramNames: ["_", "_1", "j", "cellKey"], captureNames: ["i"]
-    // Multiple loop vars -> q:ps sorted alphabetically
     const params = generateParamPadding(['j', 'cellKey']);
     expect(params).toEqual(['_', '_1', 'j', 'cellKey']);
 
@@ -248,13 +215,11 @@ describe('snapshot pattern matching', () => {
   });
 
   it('matches for-i loop pattern with captures', () => {
-    // From snapshot: paramNames: ["_", "_1", "i"], captureNames: ["cart", "results"]
     const params = generateParamPadding(['i']);
     expect(params).toEqual(['_', '_1', 'i']);
   });
 
   it('matches for-in loop pattern with key iter var', () => {
-    // From snapshot: paramNames: ["_", "_1", "key"], captureNames: ["cart", "results"]
     const params = generateParamPadding(['key']);
     expect(params).toEqual(['_', '_1', 'key']);
 

@@ -51,7 +51,6 @@ const elseClause = createRegExp(
   whitespace.times.any().and('else').and(whitespace.times.any()).and('{').at.lineStart(),
 );
 
-// Matches `if (true) ` or `if (false) ` NOT followed by `{` (braceless if)
 const ifBracelessPattern = createRegExp(
   wordBoundary.and(exactly('if')).and(whitespace.times.any()).and(exactly('('))
     .and(whitespace.times.any())
@@ -110,13 +109,9 @@ export function applySegmentDCE(code: string): string {
     let match;
 
     while ((match = ifBracedBoolLiteral.exec(result)) !== null) {
-      // Skip a fold nested inside one already collected this pass. The
-      // replacements are applied descending-by-start against the current
-      // `result`, so an inner edit shifts every offset after it and
-      // invalidates the outer fold's stale `end` — the outer slice then cuts
-      // at the wrong position and drops a brace. The enclosing `while
-      // (changed)` loop re-runs and folds the now-unnested inner block on the
-      // next iteration. (The braceless handler below already guards this way.)
+      // Skip a fold nested inside one already collected this pass: applying
+      // the inner edit shifts later offsets and invalidates the outer fold's
+      // stale `end`. The `while (changed)` loop re-folds it next iteration.
       if (replacements.some((r) => match!.index >= r.start && match!.index < r.end)) {
         continue;
       }
@@ -192,7 +187,6 @@ export function applySegmentDCE(code: string): string {
 
   return result;
 }
-
 
 function simplifyFalseAndExpressions(code: string): string {
   falseAndOp.lastIndex = 0;

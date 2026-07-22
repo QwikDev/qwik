@@ -1,40 +1,3 @@
-/**
- * Regression tests for stripped-QRL parent emission cleanup
- * (part of the F5 server-marker stripping work).
- *
- * Two coupled behaviors diverging from SWC pre-fix:
- *
- * 1. **`.w([captures])` wrapping on stripped QRLs in parent JSX.**
- *    TS emitted `shouldRemove$: q_qrl_*.w([state])` for stripped event
- *    handlers. SWC emits bare `q_qrl_*` — the body is `= null`, captures
- *    are runtime-irrelevant, the wrapper is dead weight.
- *
- * 2. **Capture metadata divergence.** SWC's `Parent_component_div_shouldRemove_*`
- *    metadata has `captures: false` even though the source closure reads
- *    `state.text`. SWC's `Parent_component_useClientMount_*` (stripped
- *    via `stripCtxName`) keeps `captures: true, captureNames: ["state"]`.
- *    Rule: `stripEventHandlers`-stripped segments suppress capture
- *    metadata; `stripCtxName`-stripped segments preserve it.
- *
- * Fix touches two sites:
- *  - `rewrite/inline-body.ts:transformInlineSegmentBody` — gates the
- *    `.w(...)` JSX-prop emission on `!isStrippedSegment(child, ...)`.
- *    Two new params (`stripCtxName`, `stripEventHandlers`) threaded
- *    from `inlineOptions` at the call site in `output-assembly.ts`.
- *  - `transform/segment-generation.ts:generateAllSegmentModules` —
- *    sibling to the existing loc-zeroing block: clears
- *    `captures` and `captureNames` on `eventHandler`-kind stripped
- *    segments when `stripEventHandlers: true` is set.
- *
- * Part of the F5 fix stack. This slice alone doesn't flip an additional
- * convergence test —
- * `strip_client_code` has independent divergences (the deferred G
- * issue: inline-strategy uses `s_<hash>` short-form naming while SWC
- * uses `Parent_component_<…>` long-form) — but eliminates the
- * runtime-incorrect `.w([state])` wrap on null-body QRLs and aligns
- * capture metadata with SWC's two-arm policy.
- */
-
 import { describe, it, expect } from 'vitest';
 import { transformModule } from '../../../src/optimizer/transform/index.js';
 import type { TransformModule, SegmentMetadataInternal } from '../../../src/optimizer/types/types.js';
@@ -74,12 +37,8 @@ export const Parent = component$(() => {
       stripEventHandlers: true,
     });
     const parent = findParent(result);
-    // Stripped handlers appear as bare `q_qrl_X` references, NOT `q_qrl_X.w(...)`.
-    // Match the const-props bag entries — `shouldRemove$: q_qrl_X` and
-    // `"q-e:click": q_qrl_X` (no `.w` suffix).
     expect(parent.code).toMatch(/shouldRemove\$: q_qrl_\d+,/);
     expect(parent.code).toMatch(/"q-e:click": q_qrl_\d+/);
-    // Explicit: no .w call appears after either stripped QRL in JSX position.
     expect(parent.code).not.toMatch(/shouldRemove\$: q_qrl_\d+\.w\(/);
     expect(parent.code).not.toMatch(/"q-e:click": q_qrl_\d+\.w\(/);
   });
@@ -101,20 +60,12 @@ export const Parent = component$(() => {
     });
     const seg = findSegmentByCtx(result, 'shouldRemove$');
     if (seg.kind !== 'segment') throw new Error('expected segment');
-    // Body closure reads `state.text` — captures would normally be
-    // populated. Under stripEventHandlers, SWC clears them. The
-    // `captureNames` field lives on `SegmentMetadataInternal` (the
-    // runtime shape) but the public `SegmentAnalysis` type doesn't
-    // expose it — cast to read it for the regression check.
     const meta = seg.segment as SegmentMetadataInternal;
     expect(meta.captures).toBe(false);
     expect(meta.captureNames).toEqual([]);
   });
 
   it('stripCtxName-stripped segments PRESERVE capture metadata (negative-scope policy split)', () => {
-    // The asymmetric arm: stripCtxName-stripped keeps capture metadata
-    // even though body is `= null`. SWC's `Parent_component_useClientMount_*`
-    // in example_strip_client_code has captures:true,captureNames:["state"].
     const input = `
 import { component$, useClientMount$, useStore } from '@qwik.dev/core';
 export const Parent = component$(() => {
@@ -129,8 +80,6 @@ export const Parent = component$(() => {
       transpileTs: true, transpileJsx: true,
       entryStrategy: { type: 'inline' },
       stripCtxName: ['useClientMount$'],
-      // Note: stripEventHandlers NOT set — only stripCtxName triggers
-      // this segment's stripping; captures should survive.
     });
     const seg = findSegmentByCtx(result, 'useClientMount$');
     if (seg.kind !== 'segment') throw new Error('expected segment');
@@ -140,8 +89,6 @@ export const Parent = component$(() => {
   });
 
   it('non-stripped event handlers still receive .w([captures]) when needed (negative scope)', () => {
-    // Confirm the gate doesn't accidentally suppress the wrap for
-    // non-stripped handlers that DO need their captures.
     const input = `
 import { component$, useStore } from '@qwik.dev/core';
 export const Parent = component$(() => {
@@ -154,10 +101,8 @@ export const Parent = component$(() => {
       srcDir: mkFilePath('.'),
       transpileTs: true, transpileJsx: true,
       entryStrategy: { type: 'inline' },
-      // No strip config — onClick$ stays a real segment.
     });
     const parent = findParent(result);
-    // onClick$ should still get .w([state]).
     expect(parent.code).toMatch(/q_\w+\.w\(\[\s*state\s*\]\)/);
   });
 });

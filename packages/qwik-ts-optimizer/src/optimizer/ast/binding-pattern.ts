@@ -1,7 +1,3 @@
-/**
- * Shared binding-pattern helpers for ESTree-compatible AST nodes.
- */
-
 import type {
   BindingPattern,
   BindingRestElement,
@@ -10,15 +6,8 @@ import type {
 } from '@oxc-project/types';
 
 /**
- * The closed union of node types `visitBindingNames` dispatches on.
- *
- * OXC's canonical `BindingPattern` covers identifier-in-binding-position,
- * object pattern, array pattern, and assignment pattern. We extend with
- * `BindingRestElement` / `FormalParameterRest` (both `type: "RestElement"`
- * at runtime; appear in array-pattern element slots and function-param
- * rest slots respectively) and `TSParameterProperty` (TS class constructor
- * param shorthand). The switch in `visitBindingNames` exhausts this union;
- * adding a new variant upstream forces a compile-time update.
+ * `BindingRestElement` and `FormalParameterRest` both surface as
+ * `type: "RestElement"` at runtime, so `visitBindingNames` handles them in one arm.
  */
 export type BindingPatternLike =
   | BindingPattern
@@ -69,7 +58,6 @@ function visitBindingNames(
   }
 }
 
-/** Collect all declared binding names from a pattern node. */
 export function collectBindingNamesFromPattern(
   pattern: BindingPatternLike | null | undefined,
 ): string[] {
@@ -78,7 +66,6 @@ export function collectBindingNamesFromPattern(
   return names;
 }
 
-/** Add all binding names from a pattern node into an existing array. */
 export function appendBindingNamesFromPattern(
   pattern: BindingPatternLike | null | undefined,
   target: string[],
@@ -86,7 +73,6 @@ export function appendBindingNamesFromPattern(
   visitBindingNames(pattern, (name) => target.push(name));
 }
 
-/** Add all binding names from a pattern node into an existing set. */
 export function addBindingNamesFromPatternToSet(
   pattern: BindingPatternLike | null | undefined,
   target: Set<string>,

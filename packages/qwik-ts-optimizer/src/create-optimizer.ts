@@ -1,17 +1,13 @@
-// SWC-shape `createOptimizer` factory.
+// `createOptimizer` factory.
 //
-// Mirrors `@qwik.dev/optimizer`'s public surface so a bundler call site like
+// Provides an async factory plus a `transformModules(opts): Promise<...>`
+// instance so a bundler call site like
 //
 //   const result = await (await getOptimizer()).transformModules(opts);
 //
-// reads through unchanged when the optimizer provider is swapped. SWC's
-// signature is `createOptimizer(opts?: OptimizerOptions): Promise<Optimizer>`,
-// and the Optimizer instance exposes `transformModules(opts): Promise<TransformOutput>`
-// plus a `sys: OptimizerSystem` field — this module reproduces that shape.
-//
-// Internally everything wraps the synchronous `transformModule`. The Promise
-// returns satisfy the contract without introducing real async — there's no
-// napi binding to load.
+// reads through unchanged. Internally everything wraps the synchronous
+// `transformModule`; the Promise returns satisfy the async contract without any
+// real async work.
 
 import * as nodePath from 'pathe';
 
@@ -32,14 +28,9 @@ import type {
 } from './optimizer/types/types.js';
 import { mkFilePath, mkSourceText } from './optimizer/types/brands.js';
 
-// ---------------------------------------------------------------------------
-// Public types — mirror SWC's `@qwik.dev/optimizer` surface
-// ---------------------------------------------------------------------------
-
 /**
- * Runtime environment the optimizer is executing in. Mirrors SWC's
- * `SystemEnvironment` exactly. Default `'node'` — the only environment the
- * TS optimizer has been exercised in.
+ * Runtime environment the optimizer is executing in. Default `'node'` — the only
+ * environment this optimizer has been exercised in.
  */
 export type SystemEnvironment =
   | 'node'
@@ -50,12 +41,9 @@ export type SystemEnvironment =
   | 'unknown';
 
 /**
- * Path utilities. Shape mirrors SWC's `Path` interface, which itself
- * mirrors Node's `path` module. `pathe` provides the implementation.
- *
- * `win32` is intentionally `null` to match SWC's narrowed type — `pathe`
- * normalises separators so the platform-specific variant isn't needed at
- * the public boundary.
+ * Path utilities, shaped like Node's `path` module; `pathe` provides the
+ * implementation. `win32` is intentionally `null` — `pathe` normalises
+ * separators, so the platform-specific variant isn't needed at this boundary.
  */
 export interface Path {
   resolve(...paths: string[]): string;
@@ -87,14 +75,9 @@ export interface Path {
 }
 
 /**
- * Host-system surface the optimizer can call back into. Mirrors SWC's
- * `OptimizerSystem`. Consumers swapping providers can rely on the same
- * field set being present.
- *
- * The TS optimizer's transform pipeline never reads `sys` today — the
- * field exists for SWC-parity at the public boundary. Tools that
- * historically poked at `optimizer.sys` from outside will find the same
- * shape.
+ * Host-system surface the optimizer can call back into. The transform pipeline
+ * never reads `sys` today — the field exists for compatibility at the public
+ * boundary so provider-swapping consumers find the same field set.
  */
 export interface OptimizerSystem {
   cwd: () => string;
@@ -107,18 +90,12 @@ export interface OptimizerSystem {
 }
 
 /**
- * Options for `createOptimizer`. Mirrors SWC's `OptimizerOptions`.
- *
- * All fields are passthrough: `sys` is preserved on the instance if
- * provided (otherwise a default stub is built); the others
- * (`binding`/`inlineStylesUpToBytes`/`sourcemap`/`_optimizer`) are
- * accepted for type-compatibility with the SWC factory call site but
- * not read by this implementation.
- *
- * The bundler call site (`createOptimizer(options.optimizerOptions)` in
- * qwik-bundler/src/rolldown.ts) currently passes `undefined`; the
- * passthrough fields exist so an existing SWC integration's options
- * object can be reused unmodified when swapping providers.
+ * Options for `createOptimizer`. All fields are passthrough: `sys` is preserved
+ * on the instance if provided (otherwise a default stub is built); the others
+ * (`binding`/`inlineStylesUpToBytes`/`sourcemap`/`_optimizer`) are accepted for
+ * type-compatibility but not read. The bundler call site currently passes
+ * `undefined`; the passthrough fields let an existing options object be reused
+ * unmodified when swapping providers.
  */
 export interface OptimizerOptions {
   sys?: OptimizerSystem;
@@ -128,37 +105,27 @@ export interface OptimizerOptions {
   _optimizer?: unknown;
 }
 
-// ---------------------------------------------------------------------------
-// NAPI-parity transform types — the raw-string boundary
-// ---------------------------------------------------------------------------
+// Raw-string transform types — the boundary the `Napi*` type family speaks.
 //
-// `createOptimizer` is the SWC parity entry point, and SWC's NAPI binding
-// speaks plain strings: consumers typed against `@qwik.dev/optimizer` hand
-// over unbranded paths and source text, and read back mutable arrays with
-// `segment`/`origPath` null-arms on every module. The types below mirror
-// that declared interface so an SWC call site reads through unchanged —
-// the brands are established internally via the smart constructors (the
-// raw input is the boundary; `mk*` is where the invariant is born).
-//
-// One deliberate deviation from SWC's *declared* interface:
-// `NapiSegmentAnalysis.ctxKind` includes `'jSXProp'`. SWC's published
-// `.d.ts` declares only `'eventHandler' | 'function'`, but the Rust
-// optimizer emits `SegmentKind::JSXProp` (swc-reference-only/transform.rs)
-// and so do we. The published SWC type is stale; this type follows the
-// runtime truth shared by both implementations.
+// Consumers hand over unbranded paths and source text and read back mutable
+// arrays with `segment`/`origPath` null-arms on every module; brands are
+// established internally via the smart constructors. `NapiSegmentAnalysis.ctxKind`
+// includes `'jSXProp'` because the optimizer emits a JSX-prop segment kind.
 
-/** One source file for {@link QwikOptimizer.transformModules}. Raw-string mirror of `TransformModuleInput`. */
+/**
+ * One source file for {@link QwikOptimizer.transformModules}. `program` is an
+ * optional pre-parsed Program (e.g. Rolldown's `meta.ast`) that skips the
+ * internal parse; `module` is its ESM-metadata sibling.
+ */
 export interface NapiTransformModuleInput {
   path: string;
   code: string;
   devPath?: string;
-  /** Optional pre-parsed Program (e.g. Rolldown's `meta.ast`) — skips the internal parse. */
   program?: AstProgram;
-  /** Optional ESM-module metadata sibling to `program`. */
   module?: AstEcmaScriptModule;
 }
 
-/** Raw-string mirror of `TransformModulesOptions` for the SWC-parity surface. */
+/** Raw-string mirror of `TransformModulesOptions`. */
 export interface NapiTransformModulesOptions {
   input: readonly NapiTransformModuleInput[];
   srcDir: string;
@@ -179,7 +146,7 @@ export interface NapiTransformModulesOptions {
   isServer?: boolean;
 }
 
-/** Plain-string mirror of `SegmentAnalysis`, shaped like SWC's NAPI output. */
+/** Plain-string mirror of `SegmentAnalysis`. */
 export interface NapiSegmentAnalysis {
   origin: string;
   name: string;
@@ -198,9 +165,8 @@ export interface NapiSegmentAnalysis {
 }
 
 /**
- * SWC-shaped module record: no `kind` discriminant; instead the
- * `segment`/`origPath` null-arms SWC's NAPI binding emits (parents carry
- * `origPath`, segments carry `segment`).
+ * Module record with no `kind` discriminant — the `segment`/`origPath` null-arms
+ * distinguish the two shapes (parents carry `origPath`, segments carry `segment`).
  */
 export interface NapiTransformModule {
   path: string;
@@ -211,7 +177,7 @@ export interface NapiTransformModule {
   origPath: string | null;
 }
 
-/** Plain-number mirror of `DiagnosticHighlightFlat` (SWC's `SourceLocation`). */
+/** Plain-number mirror of `DiagnosticHighlightFlat`. */
 export interface NapiSourceLocation {
   lo: number;
   hi: number;
@@ -222,8 +188,8 @@ export interface NapiSourceLocation {
 }
 
 /**
- * SWC-shaped diagnostic. `category` includes `'sourceError'` because SWC
- * declares it; this implementation only emits `'error' | 'warning'`.
+ * Diagnostic record. `category` includes `'sourceError'` for boundary
+ * compatibility, though this implementation only emits `'error' | 'warning'`.
  */
 export interface NapiDiagnostic {
   scope: string;
@@ -235,7 +201,7 @@ export interface NapiDiagnostic {
   suggestions: string[] | null;
 }
 
-/** SWC-shaped transform result: fresh mutable arrays, NAPI module records. */
+/** Transform result: fresh mutable arrays, NAPI module records. */
 export interface NapiTransformOutput {
   modules: NapiTransformModule[];
   diagnostics: NapiDiagnostic[];
@@ -244,24 +210,16 @@ export interface NapiTransformOutput {
 }
 
 /**
- * Optimizer instance. Mirrors SWC's `Optimizer`.
- *
- * `transformModules` wraps the synchronous `transformModule` from
- * `optimizer/transform/index.ts` and returns a Promise so the call site
- * matches SWC's async surface. It speaks the NAPI-parity raw types: inputs
- * are branded internally, outputs are mapped to SWC's declared shape.
- * `sys` is the host-system surface (see {@link OptimizerSystem}).
+ * Optimizer instance. `transformModules` wraps the synchronous `transformModule`
+ * and returns a Promise so the call site can `await` it; it speaks the raw
+ * NAPI-parity types (inputs branded internally, outputs mapped to the public
+ * shape). `sys` is the host-system surface (see {@link OptimizerSystem}).
  */
 export interface QwikOptimizer {
   transformModules(opts: NapiTransformModulesOptions): Promise<NapiTransformOutput>;
   sys: OptimizerSystem;
 }
 
-// ---------------------------------------------------------------------------
-// NAPI boundary mapping
-// ---------------------------------------------------------------------------
-
-/** Brand the raw NAPI options into the native transform input. */
 function brandTransformOptions(
   opts: NapiTransformModulesOptions,
 ): TransformModulesOptions {
@@ -276,12 +234,10 @@ function brandTransformOptions(
   };
 }
 
-/** Widen a native segment record to the NAPI shape (brands erase downward). */
 function toNapiSegment(segment: SegmentAnalysis): NapiSegmentAnalysis {
   return { ...segment, loc: [segment.loc[0], segment.loc[1]] };
 }
 
-/** Map a `kind`-discriminated native module onto SWC's null-arm record shape. */
 function toNapiModule(module: TransformModule): NapiTransformModule {
   switch (module.kind) {
     case 'parent':
@@ -319,18 +275,10 @@ function toNapiDiagnostic(diagnostic: Diagnostic): NapiDiagnostic {
   return { ...diagnostic, highlights };
 }
 
-// ---------------------------------------------------------------------------
-// Default OptimizerSystem stub
-// ---------------------------------------------------------------------------
-
 /**
  * `pathe` provides a full Node-`path`-shaped module. Cast through the
- * structural-subset boundary once here so the public `Path` type stays
- * SWC-parity'd without per-call casts at consumers.
- *
- * `pathe` exports `posix` and `win32` variants too, but the SWC surface
- * narrows `win32` to `null` (separator normalisation is sufficient at
- * the boundary).
+ * structural-subset boundary once here so consumers need no per-call casts.
+ * `win32` is narrowed to `null`; separator normalisation is sufficient.
  */
 function buildDefaultPath(): Path {
   const path: Path = {
@@ -347,8 +295,7 @@ function buildDefaultPath(): Path {
     sep: nodePath.sep,
     delimiter: nodePath.delimiter,
     win32: null,
-    // `posix` is recursive — self-reference established after the object
-    // is built so the closure captures the final `path` reference.
+    // `posix` self-references `path`; a getter defers so the closure sees the built object.
     get posix(): Path {
       return path;
     },
@@ -367,21 +314,11 @@ function buildDefaultSystem(): OptimizerSystem {
   };
 }
 
-// ---------------------------------------------------------------------------
-// Factory
-// ---------------------------------------------------------------------------
-
 /**
- * Build an optimizer instance. SWC parity entry point.
- *
- * Returns a Promise so the bundler's `await createOptimizer(...)` call
- * site (qwik-bundler/src/rolldown.ts:354) matches SWC's signature. The
- * underlying `transformModule` is synchronous; nothing is actually async
- * here, but `Promise.resolve(instance)` satisfies the contract.
- *
- * `options.sys` is preserved on the instance if provided; otherwise a
- * default stub is built. Other `OptimizerOptions` fields are accepted
- * for type-compatibility with the SWC factory but not read.
+ * Build an optimizer instance. Returns a Promise so a `await createOptimizer(...)`
+ * call site can await it, though the underlying `transformModule` is synchronous.
+ * `options.sys` is preserved if provided; otherwise a default stub is built. Other
+ * `OptimizerOptions` fields are accepted for type-compatibility but not read.
  */
 export function createOptimizer(
   options?: OptimizerOptions,

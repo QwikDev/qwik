@@ -1,9 +1,3 @@
-/**
- * Tests for import source path rewriting.
- *
- * Verifies that @builder.io/* package imports are correctly rewritten
- * to @qwik.dev/* equivalents with sub-path preservation.
- */
 import { describe, it, expect } from 'vitest';
 import { rewriteImportSource } from '../../../src/optimizer/rewrite/rewrite-imports.js';
 
@@ -54,7 +48,6 @@ describe('rewriteImportSource', () => {
     expect(rewriteImportSource('@qwik.dev/core')).toBe('@qwik.dev/core');
   });
 
-  // Additional edge cases
   it('@builder.io/qwik/jsx-dev-runtime -> @qwik.dev/core/jsx-dev-runtime', () => {
     expect(rewriteImportSource('@builder.io/qwik/jsx-dev-runtime')).toBe(
       '@qwik.dev/core/jsx-dev-runtime'
@@ -62,7 +55,6 @@ describe('rewriteImportSource', () => {
   });
 
   it('@builder.io/qwik-city does not match @builder.io/qwik rule', () => {
-    // This ensures longer prefix matches first
     const result = rewriteImportSource('@builder.io/qwik-city');
     expect(result).toBe('@qwik.dev/router');
     expect(result).not.toBe('@qwik.dev/core-city');

@@ -1,9 +1,3 @@
-/**
- * Tests for variable migration analysis module.
- *
- * Tests the decision tree: move (single-use, safe), reexport (shared/exported/side-effects),
- * or keep (not used by segments).
- */
 
 import { describe, it, expect } from 'vitest';
 import { parseSync } from 'oxc-parser';
@@ -17,10 +11,6 @@ import {
   type ModuleLevelDecl,
 } from '../../../src/optimizer/analysis/variable-migration.js';
 
-// ---------------------------------------------------------------------------
-// Helper to make ModuleLevelDecl objects for unit testing analyzeMigration()
-// ---------------------------------------------------------------------------
-
 function makeDecl(overrides: Partial<ModuleLevelDecl> & { name: string }): ModuleLevelDecl {
   return {
     declStart: 0,
@@ -33,10 +23,6 @@ function makeDecl(overrides: Partial<ModuleLevelDecl> & { name: string }): Modul
     ...overrides,
   };
 }
-
-// ---------------------------------------------------------------------------
-// analyzeMigration() unit tests
-// ---------------------------------------------------------------------------
 
 describe('analyzeMigration', () => {
   it('Test 1: single-use safe variable => move', () => {
@@ -175,8 +161,6 @@ describe('analyzeMigration', () => {
     expect(decisions).toHaveLength(2);
     expect(decisions[0].action).toBe('reexport');
     expect(decisions[0].varName).toBe('a');
-    // 'b' is used by root only; not by any segment, so MIG-05a doesn't apply and
-    // it stays in the parent. Original decideMigration tree gives 'keep' for unused-by-segments.
     expect(decisions[1].action).toBe('keep');
     expect(decisions[1].varName).toBe('b');
   });
@@ -239,10 +223,6 @@ describe('analyzeMigration', () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// collectModuleLevelDecls() tests
-// ---------------------------------------------------------------------------
-
 describe('collectModuleLevelDecls', () => {
   function parse(code: string) {
     return parseSync('test.tsx', code).program;
@@ -295,7 +275,6 @@ describe('collectModuleLevelDecls', () => {
     const program = parse(code);
     const decls = collectModuleLevelDecls(program, code);
 
-    // Both `a` and `b` should be marked as part of shared destructuring
     expect(decls).toHaveLength(2);
     expect(decls[0].name).toBe('a');
     expect(decls[0].isPartOfSharedDestructuring).toBe(true);
@@ -353,10 +332,6 @@ describe('collectModuleLevelDecls', () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// computeSegmentUsage() tests
-// ---------------------------------------------------------------------------
-
 describe('computeSegmentUsage', () => {
   function parse(code: string) {
     return parseSync('test.tsx', code).program;
@@ -366,9 +341,6 @@ describe('computeSegmentUsage', () => {
     const code = 'const x = 1;\ncomponent$(() => { return x; });';
     const program = parse(code);
 
-    // The arrow fn body references `x`. Find the arg range.
-    // component$(() => { return x; })
-    // The argument is the arrow: () => { return x; }
     const arrowStart = code.indexOf('() =>');
     const arrowEnd = code.lastIndexOf(')');
 
@@ -377,9 +349,6 @@ describe('computeSegmentUsage', () => {
     ]);
 
     expect(segmentUsage.get('seg1')?.has('x')).toBe(true);
-    // 'x' in `const x = 1` is a declaration-site binding at root level.
-    // SWC's build_main_module_usage_set skips Stmt::Decl items, so
-    // declaration-site identifiers are NOT in rootUsage.
     expect(rootUsage.has('x')).toBe(false);
   });
 
@@ -398,11 +367,6 @@ describe('computeSegmentUsage', () => {
   });
 
   it('does not count property-position identifiers as usage', () => {
-    // A root helper whose name collides with property names in unrelated
-    // expressions: `document.startVT` (member prop) and `{ startVT: 1 }`
-    // (object key) must not register as root usage of the binding — the
-    // pre-fix behavior demoted a single-segment MOVE to a dual-use
-    // REEXPORT exactly this way.
     const code = [
       "const startVT = (p) => { if ('x' in document) document.startVT(p); };",
       'const cfg = { startVT: 1 };',
@@ -419,15 +383,9 @@ describe('computeSegmentUsage', () => {
 
     expect(segmentUsage.get('seg1')?.has('startVT')).toBe(true);
     expect(rootUsage.has('startVT')).toBe(false);
-    // Shorthand `{ cfg }` style references still count — only the
-    // non-shorthand key position is excluded.
     expect(segmentUsage.get('seg1')?.has('cfg')).toBe(true);
   });
 });
-
-// ---------------------------------------------------------------------------
-// MIG-06: reexport dependencies of moved declarations
-// ---------------------------------------------------------------------------
 
 describe('analyzeMigration MIG-06 (moved-decl dependencies)', () => {
   function declsFor(code: string): { program: ReturnType<typeof parseSync>['program']; decls: ModuleLevelDecl[] } {
@@ -498,9 +456,6 @@ describe('analyzeMigration MIG-06 (moved-decl dependencies)', () => {
     ].join('\n');
     const { program, decls } = declsFor(code);
 
-    // `shared` is single-segment-used by segB; `helperA` (which references
-    // `shared` from its body) moves to segA. shared cannot leave the
-    // parent — helperA's moved body still imports it from there.
     const segmentUsage = new Map([
       ['segA', new Set(['helperA'])],
       ['segB', new Set(['shared'])],
@@ -522,7 +477,6 @@ describe('analyzeMigration MIG-06 (moved-decl dependencies)', () => {
     ].join('\n');
     const { program, decls } = declsFor(code);
 
-    // `stays` is unused by any segment -> keep; SETTINGS keeps too.
     const decisions = analyzeMigration(decls, new Map(), new Set(['SETTINGS', 'stays']), program);
 
     const byName = new Map(decisions.map((d) => [d.varName, d]));

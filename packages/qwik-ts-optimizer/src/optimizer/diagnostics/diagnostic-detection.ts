@@ -27,12 +27,6 @@ import {
 
 type SourceRange = { start: number; end: number };
 
-/**
- * Construct a `DiagnosticHighlightFlat` from a byte range, computing the
- * line/col pairs and wrapping every position field with its brand.
- * Centralises the brand-construction so each diagnostic emitter doesn't
- * repeat the 6 wraps inline.
- */
 function buildHighlight(source: string, lo: number, hi: number): DiagnosticHighlightFlat {
   const [startLine, startCol] = computeLineColFromOffset(source, lo);
   const [endLine, endCol] = computeLineColFromOffset(source, hi);
@@ -69,19 +63,10 @@ export function detectC02Diagnostics(
       ? closureNodes.get(enclosingExt.symbolName)
       : undefined;
 
-    // C02 fires only for fn/class refs declared inside an enclosing
-    // extraction's closure — those decls live in a parent segment file
-    // the current segment can't reach. Module-level fn/class refs are
-    // handled by variable-migration (MIG-01 MOVE for single-segment use,
-    // MIG-02/03/04 REEXPORT for multi-use), so the segment either inlines
-    // the decl or imports it as `_auto_*`. Flagging those as C02 produces
-    // false positives on legitimate code — e.g. `@qwik.dev/router`'s
-    // module-level helpers consumed by useTask$ closures.
+    // C02 fires only for fn/class refs inside an enclosing extraction's closure —
+    // module-level refs are handled by variable-migration and would false-positive.
     if (!enclosingClosure) continue;
 
-    // First pass: classify each undeclared id and collect the set of fn/class
-    // names that need a reference-site lookup. We use the set both as the
-    // walker's filter and to gate the second pass.
     type Classified = { refName: string; declType: 'var' | 'fn' | 'class' };
     const classified: Classified[] = [];
     const fnOrClassNames = new Set<string>();
@@ -101,9 +86,6 @@ export function detectC02Diagnostics(
 
     if (classified.length === 0) continue;
 
-    // Single walk of the closure subtree collecting the first reference
-    // site for every name in `fnOrClassNames`. A per-refName subtree
-    // walk would be O(target_count × subtreeSize).
     const referenceSites = collectIdentifierReferenceSites(closureNode, fnOrClassNames);
 
     for (const { refName, declType } of classified) {
@@ -137,9 +119,6 @@ export function detectC05Diagnostics(
 ): void {
   const moduleExportNames = collectExportNames(program, moduleInfo);
 
-  // Collect the set of `$`-suffixed export names that survive the gates;
-  // we walk the program once for all of them rather than once per export.
-  // A per-name walk would be O(target_count × programSize).
   const targets = new Set<string>();
   const targetToQrl = new Map<string, string>();
   for (const exportName of moduleExportNames) {
@@ -167,12 +146,6 @@ export function detectC05Diagnostics(
   }
 }
 
-/**
- * Emit the warning diagnostics for passive:/preventdefault: conflicts
- * gathered by the canonical gather walk (`analysis/module-gather-walk.ts`).
- * Called at the Phase-4 site where `detectPassivePreventdefaultConflicts`
- * used to run, so diagnostic order is unchanged.
- */
 export function emitPassiveConflictDiagnostics(
   conflicts: ReadonlyArray<PassiveConflict>,
   file: string,
@@ -190,11 +163,7 @@ export function emitPassiveConflictDiagnostics(
   }
 }
 
-/**
- * Production routes through the canonical gather walk's passive-conflict
- * projection plus `emitPassiveConflictDiagnostics`; this standalone form is
- * retained as the differential oracle for that projection.
- */
+/** Retained as the differential oracle for the gather walk's passive-conflict projection. */
 export function detectPassivePreventdefaultConflicts(
   program: AstProgram,
   file: string,
@@ -232,12 +201,6 @@ export function detectPassivePreventdefaultConflicts(
   });
 }
 
-/**
- * Single-pass collection of `CallExpression` callee sites whose callee is a
- * bare `Identifier` and whose name is in `names`. Returns a map keyed by
- * callee name. Replaces the per-name walk pattern (which was
- * O(target_count × programSize)).
- */
 function collectCallSitesByName(
   program: AstProgram,
   names: Set<string>,
@@ -260,13 +223,6 @@ function collectCallSitesByName(
   return out;
 }
 
-/**
- * Single-pass collection of the FIRST reference-site for each name in
- * `names` within a closure subtree. "Reference-site" excludes declaring
- * positions and non-computed property keys / member properties — same
- * exclusions the original per-name walker applied. Replaces the previous
- * per-name closure walk (which was O(target_count × subtreeSize)).
- */
 function collectIdentifierReferenceSites(
   closureNode: AstFunction,
   names: Set<string>,

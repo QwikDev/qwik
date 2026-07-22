@@ -86,10 +86,6 @@ export type AstCompatNode = {
   end?: number;
   [key: string]: unknown;
 };
-// Walker entry points accept either the strict oxc `Node` union or the loose
-// duck-typed `AstCompatNode` shape — `forEachAstChild` and other generic
-// traversals consume both and only need the `type` discriminant + indexable
-// children.
 export type AstCompatMaybeNode = AstCompatNode | AstNode | null | undefined;
 export type AstPropertyWithValue =
   | import('@oxc-project/types').BindingProperty

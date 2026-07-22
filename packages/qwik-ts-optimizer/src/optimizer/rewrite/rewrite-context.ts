@@ -1,9 +1,3 @@
-/**
- * Shared state type for the parent module rewrite pipeline.
- *
- * Threaded through all rewrite phases to avoid passing 20+ parameters.
- */
-
 import type MagicString from 'magic-string';
 import type { ExtractionResult } from '../extraction/extract.js';
 import type { ImportInfo } from '../extraction/marker-detection.js';
@@ -29,11 +23,6 @@ export interface RewriteContext {
   relPath: RelativePath;
   s: MagicString;
   program: AstProgram;
-  /**
-   * Closure AST nodes per extraction (keyed by symbolName), threaded
-   * from `extractSegments` to enable AST-based helpers that would
-   * otherwise re-parse the body.
-   */
   closureNodes?: Map<string, AstFunction>;
   extractions: ExtractionResult[];
   originalImports: Map<string, ImportInfo>;
@@ -42,13 +31,6 @@ export interface RewriteContext {
   jsxOptions?: JsxRewriteOptions;
   mode?: EmitMode;
   devFilePath?: string;
-  /**
-   * Raw user-supplied dev path from `TransformModuleInput.devPath`, *not*
-   * the composed `devFilePath` (which falls back to `srcDir/relPath`).
-   * Used by JSX dev-info `fileName:` emission, which only honors the
-   * user's explicit override and otherwise falls back to `relPath`.
-   * (qrlDEV `file:` differs — it always uses `devFilePath`.)
-   */
   userDevPath?: string;
   inlineOptions?: InlineStrategyOptions;
   stripExports?: readonly string[];
@@ -77,14 +59,6 @@ export interface RewriteContext {
   jsxKeyCounterValue: number;
   isDevMode: boolean;
   isInline: boolean;
-  /** `mode: 'lib'` runs the inline pipeline + a post-pass collapse. */
   isLibMode: boolean;
-  /**
-   * Source carries `/* @jsxImportSource <non-qwik-pkg> *‌/` pragma.
-   * When true, skip Qwik's JSX-syntax rewrite (`runJsxTransform`) so
-   * oxc-transform's default JSX transform handles the file using the
-   * pragma-named runtime. Marker calls (`qwikify$`, `component$`, …) still
-   * extract — they're the Qwik↔foreign-runtime bridge.
-   */
   hasForeignJsxRuntime: boolean;
 }

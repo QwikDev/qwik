@@ -1,12 +1,3 @@
-/**
- * Runtime unit tests for the brand smart constructors in
- * `src/optimizer/types/brands.ts`. Each brand gets accept-case +
- * reject-case coverage.
- *
- * Compile-time enforcement (type-level non-interchangeability) lives in
- * the sibling `brands.compile-test.ts` — those assertions can't run at
- * runtime; they fail the typecheck instead.
- */
 
 import { describe, it, expect } from 'vitest';
 import {
@@ -53,20 +44,12 @@ describe('mkHash', () => {
   });
 
   it('rejects non-11-char or non-alphanumeric inputs', () => {
-    // The validator accepts the peer-tool input class the inlinedQrl
-    // parser accepts at runtime (looser than an 11-char-strict shape).
-    // The strict-rejection assertions here cover the values that *must
-    // still* be rejected.
     expect(() => mkHash('')).toThrow();
     expect(() => mkHash('contains-dash')).toThrow();
     expect(() => mkHash('has space123')).toThrow();
   });
 
   it('accepts peer-tool hash slots loosened to match the inlinedQrl parser', () => {
-    // The brand accepts everything the extraction parser
-    // pushes through: short alphanumeric names (e.g. "task"), and the
-    // fallback case where the whole symbol name (with underscores) becomes
-    // the hash slot when no `_<hash>` suffix is parseable.
     expect(mkHash('task')).toBe('task');
     expect(mkHash('AaBbCcDd')).toBe('AaBbCcDd');
     expect(mkHash('waytoolongahashvalue')).toBe('waytoolongahashvalue');
@@ -88,15 +71,10 @@ describe('mkCanonicalFilename', () => {
   });
 
   it('rejects values with non-identifier characters', () => {
-    // The validator accepts any non-empty value (production values
-    // include bracket-routes and digit-leading filenames). The strict-
-    // rejection cases preserved here are values that must remain rejected:
-    // empty strings. Non-empty arbitrary input is accepted by design.
     expect(() => mkCanonicalFilename('')).toThrow();
   });
 
   it('accepts real-world dotted, bracket-route, and digit-leading values', () => {
-    // The brand admits the actual production-emitted shapes.
     expect(mkCanonicalFilename('test.tsx_renderHeader1_jMxQsjbyDss')).toBe(
       'test.tsx_renderHeader1_jMxQsjbyDss',
     );
@@ -118,9 +96,6 @@ describe('mkDisplayName', () => {
   });
 
   it('rejects invalid shapes', () => {
-    // mkDisplayName accepts any non-empty value (production values
-    // include bracket-routes and digit-leading filenames). The empty case
-    // is the only one rejected.
     expect(() => mkDisplayName('')).toThrow();
   });
 
@@ -152,14 +127,10 @@ describe('mkCtxName', () => {
   });
 
   it('accepts bare `$` standalone', () => {
-    // The bare-`$()` marker's ctxName is literally '$' in production —
-    // see `tests/optimizer/extract.test.ts` for the contract.
     expect(mkCtxName('$')).toBe('$');
   });
 
   it('accepts hyphenated JSX attribute names', () => {
-    // JSX accepts dashed attribute names and convergence fixtures emit
-    // them as ctxName values (e.g. `on-cLick$` in `example_jsx_listeners`).
     expect(mkCtxName('on-cLick$')).toBe('on-cLick$');
     expect(mkCtxName('aria-label$')).toBe('aria-label$');
     expect(mkCtxName('data-foo$')).toBe('data-foo$');
@@ -194,11 +165,6 @@ describe('mkRelativePath', () => {
   });
 
   it('rejects only empty strings (absolute paths legitimate for module.path)', () => {
-    // Absolute paths are accepted because `TransformModule.path` follows
-    // the consumer's `input.path` namespace — a bundler supplying absolute
-    // paths gets absolute output paths back, matching SWC's behavior. The
-    // brand still distinguishes from `FilePath` and other path types at
-    // the type level; only the runtime shape constraint relaxed.
     expect(() => mkRelativePath('')).toThrow();
     expect(mkRelativePath('/abs/foo.ts')).toBe('/abs/foo.ts');
   });

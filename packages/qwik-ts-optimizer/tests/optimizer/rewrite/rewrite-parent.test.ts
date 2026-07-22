@@ -1,11 +1,3 @@
-/**
- * Tests for parent module rewriting engine.
- *
- * Verifies that rewriteParentModule produces correct output structure:
- * optimizer-added imports, QRL declarations, rewritten body with
- * proper call form transformations.
- */
-
 import { describe, it, expect } from 'vitest';
 import { rewriteParentModule } from '../../../src/optimizer/rewrite/index.js';
 import { extractSegments, type ExtractionResult } from '../../../src/optimizer/extraction/extract.js';
@@ -13,9 +5,6 @@ import { collectImports } from '../../../src/optimizer/extraction/marker-detecti
 import { parseSync } from 'oxc-parser';
 import { mkRelativePath } from '../../../src/optimizer/types/brands.js';
 
-/**
- * Helper: extract and rewrite a source file, returning the parent code.
- */
 function rewrite(source: string, relPath = 'test.tsx'): string {
   const extractions = extractSegments(source, relPath);
   const { program } = parseSync(relPath, source);
@@ -32,15 +21,10 @@ export const App = component$(() => {
 });`;
     const code = rewrite(source);
 
-    // Should have componentQrl import
     expect(code).toContain('import { componentQrl } from "@qwik.dev/core";');
-    // Should have qrl import
     expect(code).toContain('import { qrl } from "@qwik.dev/core";');
-    // Should have QRL declaration
     expect(code).toMatch(/const q_\w+ = \/\*#__PURE__\*\/ qrl\(\(\)=>import\(/);
-    // Should have componentQrl call with PURE annotation
     expect(code).toContain('/*#__PURE__*/ componentQrl(q_');
-    // Should NOT have component$ in the body (it's been rewritten)
     expect(code).not.toMatch(/component\$\(/);
   });
 
@@ -51,22 +35,12 @@ const handler = $(() => {
 });`;
     const code = rewrite(source, 'test.ts');
 
-    // Non-exported bare $ bindings: SWC inlines the qrl() call directly (no const declaration)
-    // The `const handler = ` prefix is stripped since handler is not exported or referenced elsewhere
     expect(code).toMatch(/\/\*#__PURE__\*\/ qrl\(\(\)=>import\(/);
-    // Should NOT have a separate const q_ declaration for unused bare $ bindings
     expect(code).not.toMatch(/const q_handler/);
-    // Should NOT have $( in the output
     expect(code).not.toContain('$(');
   });
 
   it('Test 2b: bare $() with a leading PURE annotation does not strand it before the q_ reference', () => {
-    // A peer tool may emit `/*#__PURE__*/ $(...)`. When the bare $() is replaced
-    // by its `q_<symbol>` identifier, the annotation must be consumed — a PURE
-    // comment before a bare identifier is meaningless and becomes a fatal
-    // bundler error once a downstream transform reflows it onto its own line.
-    // The isInlinedQrl branch of rewriteCallSites handles this; the isBare
-    // branch must match it.
     const source = `import { $ } from "@qwik.dev/core";
 export const handler = /*#__PURE__*/ $(() => console.log("hi"));`;
     const code = rewrite(source, 'test.ts');
@@ -88,16 +62,12 @@ const handler = $(() => {
 });`;
     const code = rewrite(source);
 
-    // Should have QRL declaration for exported component$ (handler is non-exported bare $ → inlined)
     const qrlDecls = code
       .split('\n')
       .filter((line) => line.startsWith('const q_'));
     expect(qrlDecls.length).toBe(1);
-    // The non-exported bare $ handler should be inlined (no const q_handler)
     expect(code).not.toMatch(/const q_handler/);
-    // But it should have the inline qrl() expression
     expect(code).toMatch(/\/\*#__PURE__\*\/ qrl\(\(\)=>import\(.*handler/);
-    // The exported component$ should still have a const q_ declaration
     expect(code).toMatch(/const q_.*component/);
   });
 
@@ -108,7 +78,6 @@ export const App = component$(() => {
 });`;
     const code = rewrite(source);
 
-    // Old import should be rewritten
     expect(code).not.toContain('@builder.io/qwik');
     expect(code).toContain('@qwik.dev/core');
   });
@@ -120,7 +89,6 @@ export const App = component$(() => {
 });`;
     const code = rewrite(source);
 
-    // qrl and componentQrl should be SEPARATE import statements
     const importLines = code
       .split('\n')
       .filter((line) => line.startsWith('import {'));
@@ -131,7 +99,6 @@ export const App = component$(() => {
     );
     expect(qrlImport).toBeDefined();
     expect(componentQrlImport).toBeDefined();
-    // They should be separate lines
     expect(qrlImport).not.toBe(componentQrlImport);
   });
 
@@ -143,9 +110,7 @@ export const App = component$(() => {
 });`;
     const code = rewrite(source);
 
-    // useStore should still be imported (it's not a marker)
     expect(code).toContain('useStore');
-    // The original import should keep useStore
     expect(code).toMatch(/import\s*\{\s*useStore\s*\}\s*from\s*"@qwik\.dev\/core"/);
   });
 
@@ -159,10 +124,7 @@ export const task = useTask$(() => {
 });`;
     const code = rewrite(source);
 
-    // componentQrl should have PURE annotation
     expect(code).toContain('/*#__PURE__*/ componentQrl(');
-    // useTaskQrl should NOT have PURE annotation
-    // It should appear as just useTaskQrl( without PURE
     const useTaskLine = code.split('\n').find((l) => l.includes('useTaskQrl('));
     expect(useTaskLine).toBeDefined();
     expect(useTaskLine).not.toContain('/*#__PURE__*/');
@@ -175,11 +137,8 @@ const fn = sync$(() => {
 });`;
     const code = rewrite(source, 'test.ts');
 
-    // sync$ should become _qrlSync(original, "minified")
     expect(code).toContain('_qrlSync(');
-    // Should have _qrlSync import
     expect(code).toContain('import { _qrlSync } from "@qwik.dev/core";');
-    // Should NOT have a QRL declaration for sync (no const q_...)
     const qrlDecls = code
       .split('\n')
       .filter((line) => line.startsWith('const q_'));
@@ -214,13 +173,9 @@ export const useMemo$ = /*#__PURE__*/ wrap(useMemoQrl);
 const val = useMemo$(() => {
   return 42;
 });`;
-    // Note: custom inlined detection requires `export const X$ = wrap(XQrl)` pattern
-    // This is a simplified test - the actual detection is in marker-detection.ts
     const code = rewrite(source, 'test.ts');
 
-    // useMemo$ should be rewritten to useMemoQrl
     expect(code).toContain('useMemoQrl(q_');
-    // Should NOT add an import for useMemoQrl (it's locally defined)
     const importLines = code
       .split('\n')
       .filter(
@@ -237,14 +192,12 @@ export const App = component$(() => {
 });`;
     const code = rewrite(source);
 
-    // componentQrl should NOT be added as a new import since it's already imported
     const componentQrlImports = code
       .split('\n')
       .filter(
         (line) =>
           line.startsWith('import {') && line.includes('componentQrl'),
       );
-    // Should have at most 1 (the existing one, possibly rewritten)
     expect(componentQrlImports.length).toBeLessThanOrEqual(1);
   });
 
@@ -255,7 +208,6 @@ export const App = component$(() => {
 });`;
     const code = rewrite(source);
 
-    // Should have // separators
     const lines = code.split('\n');
     const separatorCount = lines.filter((l) => l.trim() === '//').length;
     expect(separatorCount).toBeGreaterThanOrEqual(2);

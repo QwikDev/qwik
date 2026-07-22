@@ -1,10 +1,3 @@
-/**
- * Marker function detection for the Qwik optimizer.
- *
- * Identifies which CallExpression nodes in an AST should trigger segment
- * extraction: calls ending with `$` that are imported from @qwik.dev/core
- * (or @builder.io/qwik) or defined as custom inlined functions.
- */
 import type {
   AstEcmaScriptModule,
   AstProgram,
@@ -41,7 +34,6 @@ function getImportSpecifierName(specifier: ModuleExportName): string | undefined
   return specifier.value;
 }
 
-/** Collect all import declarations, returning a map keyed by local binding name. */
 export function collectImports(
   program: AstProgram,
   moduleInfo?: AstEcmaScriptModule,
@@ -114,7 +106,6 @@ export function collectImports(
   return imports;
 }
 
-/** Collect exported binding names from parser module metadata or AST. */
 export function collectExportNames(
   program: AstProgram,
   moduleInfo?: AstEcmaScriptModule,
@@ -161,7 +152,6 @@ export function collectExportNames(
   return exports;
 }
 
-/** Scan for `export const X$ = wrap(XQrl)` custom inlined function patterns. */
 export function collectCustomInlined(
   program: AstProgram,
 ): Map<string, CustomInlinedInfo> {
@@ -191,17 +181,14 @@ export function collectCustomInlined(
   return custom;
 }
 
-/** Extract callee name from a CallExpression (Identifier callees only). */
 export function getCalleeName(callExpr: CallExpression): string | null {
   return callExpr.callee?.type === 'Identifier' ? callExpr.callee.name : null;
 }
 
 /**
- * Check if a CallExpression is a marker call that should trigger extraction.
- *
- * A marker call has a callee whose *original* (imported) name ends with `$`,
- * or is in the customInlined map. Handles renamed imports like
- * `import { component$ as Component }`.
+ * A marker call: the callee's original imported name ends in `$` (renamed
+ * imports match on the imported name, not the local one), or it's a `$`-named
+ * customInlined entry.
  */
 export function isMarkerCall(
   callExpr: CallExpression,
@@ -242,23 +229,12 @@ export function getExtractionName(
 }
 
 /**
- * Sound textual prefilter: can this source possibly contain an extraction
- * trigger? Every trigger requires one of:
- *
- *   - a `$`-final identifier / JSX-attribute / property-key token visible
- *     verbatim in source — at the call site, in the import statement
- *     (`isMarkerCall` resolves renamed imports through the import text),
- *     in the `export const X$ = wrap(XQrl)` customInlined declaration, as
- *     `name$={...}`, or as `name$:` / `"name$":`. In valid JS/TS syntax a
- *     token-final `$` is never immediately followed by `{` — that exact
- *     shape (`${`) is exclusively template-literal interpolation;
- *   - an `inlinedQrl` / `_inlinedQrl` callee (no `$` required); or
- *   - a unicode-escaped `$` in an identifier (`\u0024` / `\u{24}`).
- *
- * A module whose text has none of these cannot extract, so the caller may
- * skip the extraction walk entirely. Over-inclusion (a `$` inside a string,
- * comment, or non-marker name) just falls through to the walk, which
- * decides for real.
+ * Sound textual prefilter: may `source` contain an extraction trigger? Every
+ * trigger leaves a verbatim token — a `$`-final identifier/attribute/key (a
+ * token-final `$` is only ever followed by `{` in template-literal `${`, so
+ * that shape is excluded), an `inlinedQrl` callee, or a unicode-escaped `$`.
+ * Over-inclusion is safe (the walk decides for real); a false negative would
+ * silently drop a segment, so the check must never miss.
  */
 export function sourceMayContainMarkers(source: string): boolean {
   for (
@@ -266,8 +242,7 @@ export function sourceMayContainMarkers(source: string): boolean {
     idx !== -1;
     idx = source.indexOf('$', idx + 1)
   ) {
-    // charCodeAt past the end yields NaN, which !== '{' — a trailing `$`
-    // safely over-includes.
+    // charCodeAt past end is NaN (!== '{'), so a trailing `$` over-includes safely.
     if (source.charCodeAt(idx + 1) !== 0x7b /* '{' */) return true;
   }
   return (

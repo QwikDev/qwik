@@ -1,10 +1,6 @@
 /**
- * Variable migration analysis for the Qwik optimizer.
- *
- * Decides whether module-level declarations should be:
- * - **moved** into a segment (single-use, safe, not exported)
- * - **re-exported** as _auto_VARNAME (shared, exported, side-effects)
- * - **kept** at root (not used by any segment)
+ * Variable migration analysis: decide whether each module-level declaration is
+ * moved into a segment, re-exported as `_auto_<name>`, or kept at root.
  */
 
 import { walk } from 'oxc-walker';
@@ -27,20 +23,15 @@ export interface ModuleLevelDecl {
   readonly declStart: number;
   readonly declEnd: number;
   readonly declText: string;
-  // `isExported` is set conservatively to `false` during the initial decl
-  // walk, then flipped to `true` in a follow-up pass that scans
-  // `ExportNamedDeclaration` re-export specifiers at module scope
-  // (`variable-migration.ts:216`). Left mutable for that two-pass shape.
+  // Mutable: set false during the initial decl walk, flipped true by the later
+  // pass that scans `export { name }` specifiers.
   isExported: boolean;
   readonly hasSideEffects: boolean;
   readonly isPartOfSharedDestructuring: boolean;
   readonly kind: string;
 }
 
-/**
- * Conservative purity check: returns true only for expressions that
- * provably have no side effects (literals, functions, simple compositions).
- */
+/** Conservative purity check: true only for expressions that provably have no side effects. */
 function isInitializerSafe(node: AstMaybeNode): boolean {
   if (!node) return true;
 
@@ -53,7 +44,7 @@ function isInitializerSafe(node: AstMaybeNode): boolean {
       return true;
 
     case 'Identifier':
-      // Reading a binding is side-effect-free; matches SWC behavior
+      // Reading a binding is side-effect-free.
       return true;
 
     case 'TemplateLiteral':
@@ -88,26 +79,19 @@ function isInitializerSafe(node: AstMaybeNode): boolean {
       return isInitializerSafe(node.test) && isInitializerSafe(node.consequent) && isInitializerSafe(node.alternate);
 
     case 'MemberExpression':
-      // Could trigger getters, but matches SWC migration behavior
+      // Could trigger getters, but treated as safe for migration.
       return !node.computed && isInitializerSafe(node.object);
 
     case 'MetaProperty':
       return true;
 
     case 'CallExpression': {
-      // Marker calls (`component$`, `useTask$`, `sync$`, etc., or the bare `$`)
-      // are pure from the migration policy's perspective: the parent rewrite
-      // replaces them with `componentQrl(qrl(...))` or equivalent, which
-      // doesn't observably mutate. Treating them as safe lets MIG-01 fire for
-      // single-segment marker decls (e.g. mutual-recursion components) instead
-      // of getting trapped in MIG-04.
-      //
-      // Detection mirrors the structural rule in `marker-detection.ts`:
-      // any callee whose source-level identifier name ends in `$`. Renamed
-      // marker imports (`import { component$ as cmp }`) would not match and
-      // remain conservatively side-effecty — that's fine, since the
-      // misclassification only loses a `move` optimization (reexport is still
-      // correct output).
+      // Marker calls (`component$`, `useTask$`, the bare `$`, etc.) are pure for
+      // migration: the parent rewrite replaces them with a non-mutating QRL
+      // form. Treating them as safe lets a single-segment marker decl move
+      // (MIG-01) instead of being trapped as side-effecty (MIG-04). Renamed
+      // marker imports don't match and stay conservative — that only loses a
+      // move optimization; reexport is still correct.
       if (node.callee?.type === 'Identifier') {
         const name = node.callee.name;
         if (name === '$' || name.endsWith('$')) return true;
@@ -124,9 +108,6 @@ function countBindings(node: BindingPatternLike | null | undefined): number {
   return collectBindingNamesFromPattern(node).length;
 }
 
-/**
- * Unwrap export wrappers to get the inner declaration and export status.
- */
 function unwrapExport(stmt: AstProgram['body'][number]): { declaration: AstNode; isExported: boolean } {
   if (
     (stmt.type === 'ExportNamedDeclaration' || stmt.type === 'ExportDefaultDeclaration') &&
@@ -202,7 +183,7 @@ export function collectModuleLevelDecls(
     }
   }
 
-  // Second pass: handle `export { name }` specifiers declared separately from their binding
+  // Handle `export { name }` specifiers declared separately from their binding.
   for (const stmt of program.body ?? []) {
     if (stmt.type === 'ExportNamedDeclaration' && !stmt.declaration && stmt.specifiers) {
       for (const spec of stmt.specifiers) {
@@ -218,9 +199,8 @@ export function collectModuleLevelDecls(
 }
 
 /**
- * Extract declared names (params, variable bindings, class/function names,
- * catch params) from a single AST node into the target set. Shared with the
- * canonical gather walk's segment-usage projection (`module-gather-walk.ts`).
+ * Add the binding names a single node declares to `target`. Shared with the
+ * gather walk's segment-usage projection.
  */
 export function addDeclaredNamesFromNode(node: AstNode, target: Set<string>): void {
   const type = node.type;
@@ -263,15 +243,14 @@ export const DECLARATION_TYPES = new Set([
 ]);
 
 /**
- * True when an Identifier node is not a binding reference: a non-computed
- * member property (`obj.x`), a non-shorthand non-computed object-property
- * key (`{ x: v }`), or a non-computed class-member key. SWC's usage
- * collector is reference-semantic and never counts these; counting them
- * fabricates phantom usage for any module-level decl whose name collides
- * with a property name (e.g. a root `startViewTransition` helper vs
- * `document.startViewTransition`), which wrongly demotes a single-segment
- * MOVE to a dual-use REEXPORT. Shared with the canonical gather walk's
- * segment-usage projection.
+ * True when an Identifier is not a binding reference: a non-computed member
+ * property (`obj.x`), a non-shorthand non-computed object-property key
+ * (`{ x: v }`), or a non-computed class-member key. Usage attribution is
+ * reference-semantic and must skip these — counting them fabricates phantom
+ * usage for any module-level decl whose name collides with a property name
+ * (e.g. a root `startViewTransition` vs `document.startViewTransition`), which
+ * wrongly demotes a single-segment MOVE to a dual-use REEXPORT. Shared with the
+ * gather walk's segment-usage projection.
  */
 export function isNonReferenceIdentifier(
   node: AstNode,
@@ -291,9 +270,9 @@ export function isNonReferenceIdentifier(
 }
 
 /**
- * Positions of top-level declaration-site identifiers. SWC's
- * `build_main_module_usage_set` skips these so they don't count as root usage.
- * Shared with the canonical gather walk's segment-usage projection.
+ * Positions of top-level declaration-site identifiers, skipped during usage
+ * attribution so they don't count as root usage. Shared with the gather walk's
+ * segment-usage projection.
  */
 export function collectRootDeclPositions(program: AstProgram): Set<number> {
   const positions = new Set<number>();
@@ -362,24 +341,15 @@ function collectBindingPositions(
 }
 
 /**
- * Attribute every identifier reference to either a segment or root scope.
- * Filters out locally-declared names within segments and declaration-site
- * identifiers at root level.
+ * Attribute every identifier reference to a segment or root scope, filtering
+ * locally-declared names within segments and root declaration-site identifiers.
+ * Classification can't happen inline during `enter`: in DFS order a reference
+ * can be visited before its hoisted declaration
+ * (`function f() { g(); function g() {} }`), so visits are buffered and
+ * classified post-walk once the locals map is complete.
  *
- * Implementation note: a previous design ran two `walk(program, ...)` passes
- * back-to-back (first to collect per-extraction locals, then to classify
- * identifiers). The two are merged into a single walk here, but identifier
- * classification cannot happen inline during `enter`: in DFS order an
- * identifier reference can be visited *before* its hoisted declaration
- * (e.g. `function f() { g(); function g() {} }` — the `g` Identifier is
- * entered before the `function g` FunctionDeclaration). To keep semantic
- * equivalence with the two-pass version, identifier visits are buffered
- * during the walk and classified in a post-walk linear pass once the
- * locals map is fully populated.
- *
- * Production routes through the canonical gather walk's segment-usage
- * projection (`module-gather-walk.ts`); this standalone form is retained
- * as the differential oracle for that projection.
+ * Retained as the differential oracle for the gather walk's segment-usage
+ * projection.
  */
 export function computeSegmentUsage(
   program: AstProgram,
@@ -450,11 +420,9 @@ export function computeSegmentUsage(
 }
 
 /**
- * Reasons returned in `MigrationDecision.reason`. Centralised so the same
- * MIG code never appears as a free-floating string in two places. Keys
- * follow `<ACTION>_<DISCRIMINATOR>` so the action taken is visible at the
- * call site; reason strings keep the `(MIG-XX)` suffix as a grep target
- * back to the Rust SWC reference.
+ * Reasons returned in `MigrationDecision.reason`. Centralised so the same MIG
+ * code never appears as a free-floating string in two places. Keys follow
+ * `<ACTION>_<DISCRIMINATOR>` so the action is visible at the call site.
  */
 export const MIG_REASON = {
   MOVE_SINGLE_SEGMENT: 'single-use safe variable (MIG-01)',
@@ -477,13 +445,12 @@ const INLINE_STRATEGY_REEXPORT_REASONS: ReadonlySet<string> = new Set([
 ]);
 
 /**
- * Inline/hoist strategy keeps segment bodies in the parent module, so a
- * module-level decl consumed by a segment is already in scope. Only reexports
- * whose binding is needed *beyond* this module survive — exported decls
- * (MIG-03) and decls shared across consumers (MIG-02). Side-effect (MIG-04),
- * shared-destructure (MIG-05) and moved-dep (MIG-06) reexports are
- * runtime-redundant here and are dropped, as is every `move` (which would
- * delete a decl the in-parent body still references).
+ * Inline/hoist strategy keeps segment bodies in the parent, so a decl a segment
+ * consumes is already in scope. Only reexports needed beyond this module survive
+ * — exported (MIG-03) and multi-consumer (MIG-02). Side-effect (MIG-04),
+ * shared-destructure (MIG-05) and moved-dep (MIG-06) reexports are redundant
+ * here and dropped, as is every `move` (which would delete a decl the in-parent
+ * body still references).
  */
 export function filterInlineStrategyMigrations(
   decisions: readonly MigrationDecision[],
@@ -494,16 +461,12 @@ export function filterInlineStrategyMigrations(
 }
 
 /**
- * Identifier names referenced within a module-level declaration's byte
- * range. Walks only the decl's enclosing top-level statement; the range
- * filter stays because the decl range can be narrower than the statement
- * (one declarator of a multi-declarator declaration).
- *
- * `referencesOnly` skips property-position identifiers (`obj.x`,
- * `{ x: v }` keys) via {@link isNonReferenceIdentifier} — use it when the
- * result feeds binding-level decisions. The default (false) preserves the
- * historical name-harvest semantics `wireMigration` relies on for import
- * wiring.
+ * Identifier names referenced within a module-level declaration's byte range.
+ * Walks the enclosing top-level statement; the range filter stays because the
+ * decl range can be narrower than the statement (one declarator of many).
+ * `referencesOnly` skips property-position identifiers (for binding-level
+ * decisions); the default keeps the name-harvest semantics `wireMigration` uses
+ * for import wiring.
  */
 export function collectDeclIdentifiers(
   program: AstProgram,
@@ -529,7 +492,6 @@ export function collectDeclIdentifiers(
   return names;
 }
 
-/** Names of the segments that reference `name`. */
 function usingSegmentsOf(name: string, segmentUsage: Map<string, Set<string>>): string[] {
   const result: string[] = [];
   for (const [segName, usedNames] of segmentUsage) {
@@ -555,12 +517,9 @@ function usingSegmentsOf(name: string, segmentUsage: Map<string, Set<string>>): 
  * the whole destructure can be moved together into that segment instead.
  *
  * Post-pass MIG-06: a `move`d declaration's body can still reference other
- * module-level declarations after it leaves the parent. Any such dependency
- * that would otherwise stay un-exported (`keep`) — or would move to a
- * *different* segment — flips to `reexport` so the migrated body can import
- * it from the parent. Mirrors SWC's `precompute_and_declare_auto_exports`
- * plus the `used_by_incompatible_root` arm of its migratable-vars safety
- * filter.
+ * module-level declarations after it leaves the parent. Any such dependency that
+ * would otherwise stay un-exported (`keep`) — or would move to a different
+ * segment — flips to `reexport` so the migrated body can import it.
  */
 export function analyzeMigration(
   decls: ModuleLevelDecl[],
@@ -575,16 +534,15 @@ export function analyzeMigration(
 }
 
 /**
- * MIG-06 post-pass — see {@link analyzeMigration}. Mutates `decisions` in
- * place, in two stages mirroring SWC's order (safety filter to fixpoint,
- * then auto-export declaration):
+ * MIG-06 post-pass — see {@link analyzeMigration}. Mutates `decisions` in place,
+ * in two stages:
  *
- * 1. Demote to fixpoint: a `move` whose decl is referenced by another
- *    `move` targeting a *different* segment cannot leave the parent —
- *    demote it to `reexport`. Iterated because each demotion can strand a
- *    previously-compatible mover.
- * 2. Flip orphaned keeps: any `keep` dependency of a surviving `move` flips
- *    to `reexport` so the migrated body can import it from the parent.
+ * 1. Demote to fixpoint: a `move` whose decl is referenced by another `move`
+ *    targeting a *different* segment can't leave the parent — demote it to
+ *    `reexport`. Iterated because each demotion can strand a previously-
+ *    compatible mover.
+ * 2. Flip orphaned keeps: any `keep` dependency of a surviving `move` flips to
+ *    `reexport` so the migrated body can import it from the parent.
  */
 function reexportMovedDeclDependencies(
   decls: ModuleLevelDecl[],
@@ -747,18 +705,12 @@ function decideMigration(
 
 /**
  * MIG-05a post-pass. When every binding in a shared-destructure declaration
- * flows to the same single segment with no root/multi-segment/export/
- * side-effect interference, promote them all from `reexport` to `move`
- * targeting that segment. Mutates `decisions` in place; no-op when the
- * preconditions don't hold.
+ * flows to the same single segment with no root/multi-segment/export/side-effect
+ * interference, promote them all from `reexport` to `move` targeting that
+ * segment. Mutates `decisions` in place; no-op otherwise.
  *
- * Preconditions per binding:
- * - not exported, no side effects, not used by root code
- * - used by exactly one segment
- * - all sibling bindings target the same segment
- *
- * Single-binding "shared" decls only appear in synthetic test data — real
- * shared destructures always have >=2 sibling bindings.
+ * Preconditions per binding: not exported, no side effects, not used by root;
+ * used by exactly one segment; all siblings target the same segment.
  */
 function promoteSharedDestructureGroups(
   decls: ModuleLevelDecl[],

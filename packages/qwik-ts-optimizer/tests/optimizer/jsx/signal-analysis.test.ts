@@ -1,9 +1,3 @@
-/**
- * Tests for signal analysis module.
- *
- * Verifies detection of signal.value and store.field patterns for _wrapProp,
- * and correct identification of non-wrap conditions per SIG-05.
- */
 
 import { describe, it, expect } from 'vitest';
 import {
@@ -94,9 +88,7 @@ describe('signal-analysis', () => {
       expect(result.type).toBe('fnSignal');
       if (result.type === 'fnSignal') {
         expect(result.deps).toEqual(['signal']);
-        // hoistedFn preserves original whitespace
         expect(result.hoistedFn).toBe('(p0)=>12 + p0.value');
-        // hoistedStr removes whitespace
         expect(result.hoistedStr).toBe('"12+p0.value"');
       }
     });
@@ -146,7 +138,6 @@ describe('signal-analysis', () => {
       if (result.type === 'fnSignal') {
         expect(result.deps).toEqual(['store']);
         expect(result.hoistedFn).toContain('p0.address.city.name');
-        // String representation preserves source quotes and removes whitespace
         expect(result.hoistedStr).toContain("p0.address.city.name?");
         expect(result.hoistedStr).toContain("'true'");
         expect(result.hoistedStr).toContain("'false'");
@@ -159,9 +150,7 @@ describe('signal-analysis', () => {
       expect(result.type).toBe('fnSignal');
       if (result.type === 'fnSignal') {
         expect(result.deps).toEqual(['a', 'b']);
-        // hoistedFn preserves original whitespace
         expect(result.hoistedFn).toBe('(p0,p1)=>p0.value + p1.value');
-        // hoistedStr removes whitespace
         expect(result.hoistedStr).toBe('"p0.value+p1.value"');
       }
     });
@@ -170,7 +159,6 @@ describe('signal-analysis', () => {
       const { node, source } = parseExpr('12 + signal.value');
       const result = analyzeSignalExpression(node, source, importedNames);
       if (result.type === 'fnSignal') {
-        // No spaces around operators
         expect(result.hoistedStr).not.toContain(' + ');
         expect(result.hoistedStr).not.toContain(' - ');
       }
@@ -199,9 +187,6 @@ describe('signal-analysis', () => {
     });
   });
 
-  // Computed MemberExpression with non-literal property emits
-  // _fnSignal. Matches SWC's convert_inlined_fn path for `results[i]` /
-  // `obj[key]` / `obj[42]` inside loop callbacks.
   describe('analyzeMemberExpression — computed non-literal property', () => {
     const importedNames = new Set<string>();
 
@@ -228,7 +213,7 @@ describe('signal-analysis', () => {
       }
     });
 
-    it('hoists obj[42] (computed numeric literal — SWC also hoists this case)', () => {
+    it('hoists obj[42] (computed numeric literal)', () => {
       const { node, source } = parseExpr('obj[42]');
       const localNames = new Set(['obj']);
       const result = analyzeSignalExpression(node, source, importedNames, localNames);
@@ -250,18 +235,14 @@ describe('signal-analysis', () => {
       }
     });
 
-    it('does NOT hoist obj[i] when obj is not a known local (matches SWC: needs in-scope Var)', () => {
-      // Unknown global / unbound name — the localNames-aware gate filters
-      // out names we can't resolve, matching SWC's decl_stack check.
+    it('does NOT hoist obj[i] when obj is not a known local (needs an in-scope var)', () => {
       const { node, source } = parseExpr('unknownGlobal[i]');
-      const localNames = new Set(['i']); // intentionally excludes unknownGlobal
+      const localNames = new Set(['i']);
       const result = analyzeSignalExpression(node, source, importedNames, localNames);
       expect(result.type).toBe('none');
     });
 
     it('does NOT hoist when expression contains an unknown function call', () => {
-      // The containsUnknownCall blocker fires for `arr[foo()]` where foo is
-      // not imported — matches SWC's used_as_call gate.
       const { node, source } = parseExpr('arr[foo()]');
       const localNames = new Set(['arr']);
       const result = analyzeSignalExpression(node, source, importedNames, localNames);

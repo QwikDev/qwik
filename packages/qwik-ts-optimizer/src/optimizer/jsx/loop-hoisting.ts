@@ -1,11 +1,3 @@
-/**
- * Loop hoisting module for the Qwik optimizer.
- *
- * Detects event handlers inside loops, hoists .w([captures]) above the loop,
- * injects q:p/q:ps props for iteration variable access, and generates
- * positional parameter padding.
- */
-
 import type {
   AstFunction,
   AstNode,
@@ -27,9 +19,6 @@ export interface LoopContext {
   loopBodyEnd: number;
 }
 
-/**
- * Detect if an AST node represents a loop construct.
- */
 export function detectLoopContext(
   node: AstNode,
   _source: string,
@@ -110,29 +99,18 @@ function buildLoopContext(
   };
 }
 
-/**
- * Generate positional parameter padding for loop variable parameters.
- * The first 2 positions are always padding: ["_", "_1"] for event and context params.
- */
 export function generateParamPadding(loopVarNames: string[]): string[] {
   return ['_', '_1', ...loopVarNames];
 }
 
 /**
  * The lexical-capture params an event handler receives positionally — its
- * params after the `_, _1` (event, element) prefix, excluding padding
- * (`_2`, `_3`, … from loop-iter promotion, and bare `_`). These are the
- * names the owning element delivers via its `q:p`/`q:ps` prop. Returns
- * `[]` when the handler has no `_, _1` prefix (i.e. no positional capture
- * delivery).
+ * params after the `_, _1` (event, element) prefix, excluding padding (`_2`,
+ * `_3`, … and bare `_`). Returns `[]` when there's no `_, _1` prefix.
  *
- * Bare `_` at index ≥2 is never a lifted param: SWC builds q:p from the
- * lifted iter-vars/captures directly and its placeholder generator emits
- * bare `_` only at slot 0 (`event_handler_placeholder_pat`,
- * swc-reference-only/transform.rs) — so a bare `_` past the prefix can
- * only be an author-written placeholder, which SWC never lifts. (With the
- * `_, _1` prefix present it is also a duplicate-param SyntaxError in
- * module code, so the arm is defensive.)
+ * A bare `_` at index ≥2 is never a lifted param — only an author-written
+ * placeholder — so it's excluded defensively (with the `_, _1` prefix present
+ * it would also be a duplicate-param SyntaxError in module code).
  */
 export function eventHandlerQpParams(paramNames: readonly string[]): string[] {
   if (paramNames.length < 2 || paramNames[0] !== '_' || paramNames[1] !== '_1') {
@@ -147,11 +125,6 @@ export function eventHandlerQpParams(paramNames: readonly string[]): string[] {
   return result;
 }
 
-/**
- * Build the q:p or q:ps prop for loop iteration variables.
- *
- * Single var uses q:p; multiple vars use q:ps with alphabetical sorting.
- */
 export function buildCaptureProp(
   loopVars: string[],
   preserveOrder: boolean = false,
@@ -165,10 +138,6 @@ export function buildCaptureProp(
   const sorted = preserveOrder ? loopVars : [...loopVars].sort();
   return { propName: 'q:ps', propValue: '[' + sorted.join(', ') + ']' };
 }
-
-// ---------------------------------------------------------------------------
-// Internal helpers
-// ---------------------------------------------------------------------------
 
 function extractCallbackParams(callback: AstFunction): string[] {
   const params = callback.params ?? [];

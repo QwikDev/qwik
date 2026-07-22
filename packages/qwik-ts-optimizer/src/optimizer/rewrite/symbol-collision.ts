@@ -1,35 +1,9 @@
 /**
- * User-symbol collision detection + renaming.
- *
- * When the optimizer injects runtime imports (`qrl`, `componentQrl`,
- * `_jsxSorted`, etc.) whose names collide with user-declared top-level
- * symbols (a local `const componentQrl = …`, an `import { qrl } from
- * '@qwik.dev/core/what'`), the synthetic and user-side bindings would
- * shadow each other in the emitted module — wrong runtime semantics.
- *
- * SWC's reference optimizer handles this via `private_ident!` and
- * hygiene-context-driven printer mangling: the user-side ends up with a
- * numeric suffix (`qrl` → `qrl1`). We have no hygiene system in this
- * pipeline, so we do the rename explicitly:
- *   1. Build the set of names we will inject from `ctx.neededImports`.
- *   2. Scan top-level user symbols (surviving import locals + module-level
- *      decls). Each collision plans a fresh-suffix rename.
- *   3. Apply edits:
- *      - Survived import specifier: alias-extend `{ qrl }` → `{ qrl as qrl1 }`
- *        (the original import source has already been removed from the
- *        MagicString accumulator — we rewrite the structured `namedParts`
- *        and rebuild the import string in `survivingUserImports[idx]`).
- *      - Module-level decl identifier: overwrite via MagicString.
- *      - References to the renamed binding in user-survived code: AST walk
- *        with a scope stack; overwrite Identifier nodes that resolve to
- *        the renamed top-level binding (skipping property keys, member
- *        property names, and any inner-scope shadow).
- *   4. Update tracking maps so downstream phases see the renamed names.
- *
- * Surfacing fixture: `example_qwik_conflict`. User declares
- * `const componentQrl = …` AND `import { qrl } from '@qwik.dev/core/what'`;
- * the optimizer also injects `componentQrl` (for `component$` markers) and
- * `qrl` (for the `q_<symbol>` runtime loader).
+ * When injected runtime imports (`qrl`, `componentQrl`, `_jsxSorted`, …)
+ * collide with user-declared top-level symbols, the two bindings would
+ * shadow each other and break runtime semantics. This pipeline has no
+ * hygiene pass, so colliding user-side bindings are renamed with a fresh
+ * numeric suffix (`qrl` → `qrl1`) and every reference rewritten.
  */
 
 import type { AstNode, AstProgram } from '../../ast-types.js';
@@ -40,9 +14,8 @@ import { isStrippedExtraction } from './predicates.js';
 import { getQrlImportSource } from './rewrite-calls.js';
 
 /**
- * Parse the local name from a `neededImports` map key. The map stores
- * specifier strings — bare `'qrl'` or aliased `'Fragment as _Fragment'`.
- * In the aliased form the local binding is the right-hand side.
+ * A `neededImports` key is either `'qrl'` or `'Fragment as _Fragment'`;
+ * the local binding is the part after ` as `.
  */
 function localNameOfNeeded(key: string): string {
   const asIdx = key.indexOf(' as ');
@@ -51,14 +24,10 @@ function localNameOfNeeded(key: string): string {
 }
 
 /**
- * Compute the universe of `{ localName → expectedSource }` the optimizer
- * would inject for this parent module. Mirrors `collectNeededImports`
- * but ignores the `alreadyImported` mask — collision detection needs to
- * see names that the mask would otherwise hide (a same-named user
- * import from a *different* source still produces a real collision).
- *
- * Stays in sync with `collectNeededImports`. If a new emission is added
- * there, mirror it here.
+ * The full set of `{ localName → expectedSource }` the optimizer would
+ * inject, computed WITHOUT the `alreadyImported` mask — collision detection
+ * must see names the mask hides (a same-named user import from a different
+ * source is still a real collision). Keep in sync with `collectNeededImports`.
  */
 export function computeWouldInjectNames(
   ctx: RewriteContext,
@@ -141,18 +110,12 @@ interface UserSymbolImport {
 
 interface UserSymbolDecl {
   readonly kind: 'decl';
-  /** Source position of the binding identifier (for MagicString overwrite). */
   readonly idStart: number;
   readonly idEnd: number;
 }
 
 type UserSymbol = UserSymbolImport | UserSymbolDecl;
 
-/**
- * Pick a fresh suffix-renamed name not already used by any user symbol or
- * injected name. Mirrors SWC's hygiene-context mangling ordering by
- * starting at `1` and incrementing.
- */
 function pickFreshName(
   base: string,
   taken: ReadonlySet<string>,
@@ -161,7 +124,6 @@ function pickFreshName(
     const candidate = `${base}${i}`;
     if (!taken.has(candidate)) return candidate;
   }
-  // Defensive: practically unreachable. A defect, not a recoverable state.
   throw new Error(`pickFreshName exhausted suffixes for ${base}`);
 }
 
@@ -201,7 +163,6 @@ function findBindingIdentifierPositions(
   return null;
 }
 
-/** Collect binding names introduced by a function/arrow's params. */
 function collectParamBindings(params: readonly AstNode[], out: Set<string>): void {
   for (const param of params) collectPatternBindings(param, out);
 }
@@ -232,7 +193,6 @@ function collectPatternBindings(node: AstNode | null | undefined, out: Set<strin
   }
 }
 
-/** Collect var/let/const + function/class decl names from a block's statement list. */
 function collectBlockBindings(statements: readonly AstNode[], out: Set<string>): void {
   for (const stmt of statements) {
     if (stmt.type === 'VariableDeclaration') {
@@ -244,9 +204,8 @@ function collectBlockBindings(statements: readonly AstNode[], out: Set<string>):
 }
 
 /**
- * Walk the program AST and rewrite every Identifier that references a
- * renamed top-level binding via MagicString. Scope stack tracks inner
- * shadows so we never rewrite an inner same-named binding's references.
+ * Scope stack tracks inner shadows so a renamed top-level binding's
+ * references are rewritten but an inner same-named binding's are left alone.
  */
 function rewriteReferences(
   ctx: RewriteContext,
@@ -268,11 +227,9 @@ function rewriteReferences(
   ): void {
     if (!node) return;
 
-    // ImportDeclaration ranges are owned by processImports (already
-    // s.remove'd; surviving form is rebuilt in survivingUserImports
-    // strings, handled separately by applyImportSpecifierRename). An
-    // overwrite inside a removed range re-introduces the snippet — skip
-    // the whole subtree so MagicString can't leak `qrl1;`-style residue.
+    // Import ranges were already `s.remove`d elsewhere; overwriting inside
+    // a removed range re-introduces text (`qrl1;` residue), so skip the
+    // whole subtree — the surviving import is rebuilt separately.
     if (node.type === 'ImportDeclaration') return;
 
     if (node.type === 'Identifier') {
@@ -282,15 +239,11 @@ function rewriteReferences(
           parentNode?.type === 'Property' && !parentNode.computed;
         const isMemberProp = parentKey === 'property' &&
           parentNode?.type === 'MemberExpression' && !parentNode.computed;
-        // Skip the renamed binding's *own* declaration identifier — the
-        // direct decl rewrite above already handled it. Other identifier
-        // positions that share the same name (e.g. an inner shadow's
-        // VariableDeclarator id) are blocked by `isShadowed` above.
+        // The binding's own decl-id was already overwritten directly; skip
+        // it here. Inner same-named decl-ids are blocked by `isShadowed`.
         const isDeclId = excludedPositions.has(node.start);
-        // Skip shorthand property values: a Property with shorthand=true
-        // has `key === value` pointing at the same Identifier; rewriting
-        // would silently drop the property name. Conservative leave-alone
-        // — no fixture exercises this case for the injected-name set.
+        // A shorthand Property has key === value (same Identifier);
+        // rewriting it would silently drop the property name, so leave it.
         const isShorthandValue = parentKey === 'value' &&
           parentNode?.type === 'Property' && parentNode.shorthand === true;
         if (!isPropertyKey && !isMemberProp && !isDeclId && !isShorthandValue) {
@@ -328,9 +281,8 @@ function rewriteReferences(
   }
 
   function pushScopeIfBlock(node: AstNode): Set<string> | null {
-    // Block statements introduce a lexical scope for let/const/function/class.
-    // Function bodies are BlockStatement too — the function-like push above
-    // covers params; this push covers the body's hoisted decls and lexicals.
+    // Function bodies are also BlockStatements: the function-like push
+    // handles params, this one handles the body's own lexical decls.
     if (node.type !== 'BlockStatement') return null;
     const scope = new Set<string>();
     collectBlockBindings(node.body ?? [], scope);
@@ -341,12 +293,9 @@ function rewriteReferences(
 }
 
 /**
- * Apply renames to surviving user-import specifiers by editing the
- * structured `namedParts` and the assembled import string. The source
- * import declarations have already been `s.remove`d by `processImports`,
- * so editing MagicString positions wouldn't take effect — the rebuilt
- * string in `survivingUserImports[importIdx]` is what gets prepended in
- * `assembleOutput`.
+ * The source import was already `s.remove`d, so a MagicString overwrite
+ * wouldn't take — rename by editing the rebuilt `survivingUserImports`
+ * string (and its structured `namedParts`) instead.
  */
 function applyImportSpecifierRename(
   ctx: RewriteContext,
@@ -359,7 +308,6 @@ function applyImportSpecifierRename(
   const updatedPart = { imported: part.imported, local: newLocal };
   info.namedParts[partIdx] = updatedPart;
 
-  // Rebuild the named-parts segment and the full import string.
   const namedStrs = info.namedParts.map(np =>
     np.imported !== np.local ? `${np.imported} as ${np.local}` : np.local,
   );
@@ -378,30 +326,19 @@ function applyImportSpecifierRename(
 }
 
 /**
- * Detect collisions between optimizer-injected import names and
- * user-side top-level symbols, then rename the user side via a fresh
- * numeric suffix. See module docstring for the algorithm.
- *
- * Runs AFTER all body rewrites (rewriteCallSites, JSX transform) but
- * BEFORE `collectNeededImports`. The universe of would-inject names is
- * computed independently of `alreadyImported` so a same-named user
- * import from a *different* source is correctly identified as a
- * collision (the surfacing fixture is `example_qwik_conflict`'s
- * `import { qrl } from '@qwik.dev/core/what'` paired with the
- * optimizer's `qrl` from `@qwik.dev/core`).
+ * Runs AFTER all body rewrites but BEFORE `collectNeededImports`, so the
+ * would-inject universe is computed independently of `alreadyImported`
+ * (a same-named user import from a different source is still a collision).
  */
 export function detectAndRenameCollisions(ctx: RewriteContext): void {
-  // 1. Compute the universe of would-inject names + their sources.
   const wouldInject = computeWouldInjectNames(ctx);
   if (wouldInject.size === 0) return;
 
-  // Map by local name (key string includes "as <local>" for aliases).
   const wouldInjectByLocal = new Map<string, string>();
   for (const [key, source] of wouldInject) {
     wouldInjectByLocal.set(localNameOfNeeded(key), source);
   }
 
-  // 2a. User-side import locals (from survived imports).
   const userSymbols = new Map<string, UserSymbol>();
   const userImportSources = new Map<string, string>();
   for (let importIdx = 0; importIdx < ctx.survivingImportInfos.length; importIdx++) {
@@ -416,7 +353,6 @@ export function detectAndRenameCollisions(ctx: RewriteContext): void {
     }
   }
 
-  // 2b. User-side module-level decl names.
   if (ctx.moduleLevelDecls) {
     for (const decl of ctx.moduleLevelDecls) {
       if (userSymbols.has(decl.name)) continue;
@@ -426,14 +362,9 @@ export function detectAndRenameCollisions(ctx: RewriteContext): void {
     }
   }
 
-  // 3. Plan renames for colliding user symbols.
-  //   - Decl collision: always rename (decl shadows the injected import).
-  //   - Import collision with same source: skip (user is doing what the
-  //     optimizer would do; assume intentional and leave alone — the
-  //     existing `alreadyImported` mask in collectNeededImports handles
-  //     the dedup correctly here).
-  //   - Import collision with different source: rename (two distinct
-  //     bindings with the same name in the same scope is illegal).
+  // A user import from the *same* source as the injected one is a deliberate
+  // dedup, not a collision — skip it; only a different source (or a shadowing
+  // decl) needs renaming.
   const renameMap = new Map<string, string>();
   const taken = new Set<string>([
     ...userSymbols.keys(),
@@ -452,8 +383,6 @@ export function detectAndRenameCollisions(ctx: RewriteContext): void {
   }
   if (renameMap.size === 0) return;
 
-  // 4a. Decl rewrites — collect exclusion positions so the reference
-  // walker leaves the renamed binding's own decl-id alone.
   const declExclusions = new Set<number>();
   for (const [oldName, newName] of renameMap) {
     const sym = userSymbols.get(oldName);
@@ -462,17 +391,14 @@ export function detectAndRenameCollisions(ctx: RewriteContext): void {
     declExclusions.add(sym.idStart);
   }
 
-  // 4b. Import specifier rewrites (string-level edit on rebuilt import).
   for (const [oldName, newName] of renameMap) {
     const sym = userSymbols.get(oldName);
     if (sym?.kind !== 'import') continue;
     applyImportSpecifierRename(ctx, sym.importIdx, sym.partIdx, newName);
   }
 
-  // 4c. Reference rewrites via AST walk with scope tracking.
   rewriteReferences(ctx, renameMap, declExclusions);
 
-  // 5. Update tracking maps.
   for (const [oldName, newName] of renameMap) {
     if (ctx.alreadyImported.has(oldName)) {
       ctx.alreadyImported.delete(oldName);
@@ -486,9 +412,7 @@ export function detectAndRenameCollisions(ctx: RewriteContext): void {
     }
     if (ctx.moduleLevelDecls) {
       for (const decl of ctx.moduleLevelDecls) {
-        // ModuleLevelDecl.name is readonly; cast through to mutate the
-        // rename target (FFI-boundary-style pattern, scoped to this
-        // rename pass).
+        // `name` is readonly; cast through to mutate it for the rename.
         if (decl.name === oldName) {
           (decl as { name: string }).name = newName;
         }
@@ -496,11 +420,9 @@ export function detectAndRenameCollisions(ctx: RewriteContext): void {
     }
   }
 
-  // 6. Ensure the optimizer-side import for each renamed name is
-  // present in `neededImports`. We run AFTER `collectNeededImports`, so
-  // any name it skipped via the `alreadyImported` mask (now stale post-
-  // rename) wouldn't appear in `neededImports`. The `wouldInject` map
-  // computed earlier has the authoritative key+source for each.
+  // This runs after `collectNeededImports`, whose `alreadyImported` mask
+  // is now stale post-rename; re-add each renamed name's import from the
+  // authoritative `wouldInject` map so it isn't dropped.
   for (const [renamedUserName] of renameMap) {
     for (const [key, source] of wouldInject) {
       if (localNameOfNeeded(key) !== renamedUserName) continue;
@@ -510,32 +432,20 @@ export function detectAndRenameCollisions(ctx: RewriteContext): void {
     }
   }
 
-  // 7. Drop stale entries from each extraction's `segmentImports`.
-  // These were populated during extraction (before rename) by scanning
-  // the segment body's identifier set against the user's import set.
-  // Post-rename the user's import for `oldName` is gone (it's `newName`
-  // now), so any `{localName: oldName, ...}` entry is stale: the body
-  // either references `oldName` as a local binding (no import needed —
-  // local shadows) or as the old outer-scope reference (which is now
-  // dead after the rename). Either way, no import should be emitted at
-  // the `oldName` local. `recollectPostTransformImports` in
-  // segment-codegen re-derives any genuinely-needed imports from the
-  // post-transform body; if the body actually does reference `newName`
-  // (the renamed user binding), it'll re-emit from the updated
-  // originalImports.
+  // `segmentImports` was built pre-rename; any entry keyed on `oldName` is
+  // now stale (the import is `newName`, or the ref became a local shadow /
+  // dead). Drop them — `recollectPostTransformImports` re-derives whatever
+  // the post-transform body genuinely needs.
   for (const ext of ctx.extractions) {
     if (ext.segmentImports.length === 0) continue;
     const filtered = ext.segmentImports.filter(imp => !renameMap.has(imp.localName));
     if (filtered.length !== ext.segmentImports.length) {
-      // ExtractionResult.segmentImports is `readonly ImportInfo[]`;
-      // cast through to mutate (FFI-boundary pattern, scoped to this
-      // rename pass).
+      // `segmentImports` is readonly; cast through to reassign the filtered list.
       (ext as unknown as { segmentImports: ImportInfo[] }).segmentImports = filtered;
     }
   }
 }
 
-// Internal: re-export so unit tests can exercise individual pieces.
 export const __internals = {
   localNameOfNeeded,
   pickFreshName,

@@ -76,7 +76,6 @@ export const Menu = component$(() => {
 });
 `;
     const code = parentOf(input);
-    // Shorthand `{ …, pathname }` must keep its key when the value is inlined.
     expect(code).toContain('pathname:');
     expect(parses(code)).toBe(true);
   });

@@ -1,27 +1,3 @@
-/**
- * BENCH-01: Full monorepo benchmark — SWC vs TS optimizer
- * BENCH-02: Worst-case single file benchmark — SWC vs TS optimizer
- *
- * These benchmarks compare the TS optimizer against the native SWC optimizer
- * on real Qwik source files. They serve as CI-enforceable regression gates:
- *
- *   - Monorepo: TS must be within 1.15x of SWC wall time
- *   - Single file: TS must be within 1.5x of SWC wall time
- *
- * Usage:
- *   npx vitest run tests/benchmark/optimizer-benchmark.test.ts
- *
- * Environment:
- *   QWIK_HOME — path to a Qwik repo checkout (required to run benchmarks).
- *   QWIK_SWC_BINDING_OVERRIDE — optional basename of the native binding shim
- *     (e.g. `qwik.linux-x64-gnu.node`). When set, autodetect is skipped.
- *
- * These tests are wrapped in describe.skip so they do NOT run during
- * the normal `npx vitest run` invocation. To run them explicitly:
- *   npx vitest run tests/benchmark/optimizer-benchmark.test.ts --no-file-parallelism
- * and remove the .skip or use: BENCH=1 npx vitest run tests/benchmark/
- */
-
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
@@ -31,10 +7,6 @@ import type { TransformModuleInput } from '../../src/optimizer/types/types.js';
 import { mkFilePath, mkSourceText } from '../../src/optimizer/types/brands.js';
 import * as process from "node:process";
 
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
 const QWIK_HOME = process.env.QWIK_HOME;
 
 const MONOREPO_RATIO_LIMIT = 1.15;
@@ -43,11 +15,9 @@ const SINGLE_FILE_RATIO_LIMIT = 1.5;
 const WARMUP_RUNS = 1;
 const MEASURED_RUNS = 2;
 
-
 if (!QWIK_HOME) {
     describe.skip('BENCH-00: QWIK_HOME was not set, skipping benchmark tests.', () => { })
 } else {
-    /** Keep in sync with `$QWIK_HOME/packages/qwik/src/optimizer/src/qwik-binding-map.ts` (napi-rs triples). */
     const QWIK_BINDING_MAP: Record<string, Record<string, { platformArchABI: string }[]>> = {
         darwin: {
             arm64: [{ platformArchABI: 'qwik.darwin-arm64.node' }],
@@ -61,10 +31,6 @@ if (!QWIK_HOME) {
         },
     };
 
-    /**
-     * Basename of the binding shim under `packages/optimizer/bindings/<name>.js`
-     * (e.g. `qwik.darwin-arm64.node`).
-     */
     function resolveQwikSwcBindingBasename(): string {
         const override = process.env.QWIK_SWC_BINDING_OVERRIDE;
         if (override !== undefined && override !== '') {
@@ -91,15 +57,7 @@ if (!QWIK_HOME) {
     const qwikSwcBindingBasename = resolveQwikSwcBindingBasename();
     const qwikSwcBindingPath = `${QWIK_PACKAGES_DIR}/optimizer/bindings/${qwikSwcBindingBasename}`;
 
-    // ---------------------------------------------------------------------------
-    // SWC binding (native NAPI module)
-    // ---------------------------------------------------------------------------
-
     const swcBinding = require(qwikSwcBindingPath);
-
-    // ---------------------------------------------------------------------------
-    // File discovery (cached)
-    // ---------------------------------------------------------------------------
 
     let discoveredFiles: string[] | null = null;
 
@@ -118,10 +76,6 @@ if (!QWIK_HOME) {
 
         return discoveredFiles;
     }
-
-    // ---------------------------------------------------------------------------
-    // Input builders
-    // ---------------------------------------------------------------------------
 
     function buildTsInput(files: string[]): TransformModuleInput[] {
         return files.map((file) => ({
@@ -148,10 +102,6 @@ if (!QWIK_HOME) {
         };
     }
 
-    // ---------------------------------------------------------------------------
-    // Timing helper — run N times, return minimum elapsed time in ms
-    // ---------------------------------------------------------------------------
-
     async function measureMinAsync(
         fn: () => Promise<unknown>,
         runs: number,
@@ -177,10 +127,6 @@ if (!QWIK_HOME) {
         return min;
     }
 
-    // ---------------------------------------------------------------------------
-    // BENCH-01: Full monorepo benchmark
-    // ---------------------------------------------------------------------------
-
     const runBenchmarks = process.env['BENCH'] === '1';
     const describeFn = runBenchmarks ? describe : describe.skip;
 
@@ -193,7 +139,6 @@ if (!QWIK_HOME) {
                 const swcInput = tsInput.map((f) => ({ path: f.path, code: f.code }));
                 const swcOptions = buildSwcOptions(swcInput);
 
-                // Warmup both optimizers
                 for (let i = 0; i < WARMUP_RUNS; i++) {
                     await swcBinding.transform_modules(swcOptions);
                     transformModule({
@@ -210,7 +155,6 @@ if (!QWIK_HOME) {
                     });
                 }
 
-                // Measured runs — take minimum
                 const swcTime = await measureMinAsync(
                     () => swcBinding.transform_modules(swcOptions),
                     MEASURED_RUNS,
@@ -254,10 +198,6 @@ if (!QWIK_HOME) {
         );
     });
 
-    // ---------------------------------------------------------------------------
-    // BENCH-02: Worst-case single file benchmark
-    // ---------------------------------------------------------------------------
-
     describeFn('BENCH-02: worst-case single file benchmark', () => {
         it(
             'TS optimizer is within 1.5x of SWC for worst-case single file',
@@ -270,7 +210,6 @@ if (!QWIK_HOME) {
                 const swcInput = [{ path: filePath, code }];
                 const swcOptions = buildSwcOptions(swcInput);
 
-                // Warmup both optimizers
                 for (let i = 0; i < WARMUP_RUNS; i++) {
                     await swcBinding.transform_modules(swcOptions);
                     transformModule({
@@ -287,7 +226,6 @@ if (!QWIK_HOME) {
                     });
                 }
 
-                // Measured runs — take minimum
                 const swcTime = await measureMinAsync(
                     () => swcBinding.transform_modules(swcOptions),
                     MEASURED_RUNS,

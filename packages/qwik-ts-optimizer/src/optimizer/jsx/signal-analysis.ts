@@ -1,10 +1,3 @@
-/**
- * Signal analysis for the Qwik optimizer.
- *
- * Detects signal/store expressions in JSX props and generates appropriate
- * wrapping (_wrapProp) or hoisted function signal (_fnSignal) representations.
- */
-
 import { createRegExp, exactly, anyOf, global } from 'magic-regexp';
 import type { AstMaybeNode, AstNode, AstParentNode } from '../../ast-types.js';
 import { forEachAstChild, isAstNode, someAstDescendant, memberStaticPropName } from '../ast/guards.js';
@@ -36,15 +29,6 @@ type IdentifierNode = Extract<AstNode, { type: 'Identifier' }>;
 type MemberExpressionNode = Extract<AstNode, { type: 'MemberExpression' }>;
 type AstNodeList = ReadonlyArray<AstMaybeNode>;
 
-// --- Expression peeling ------------------------------------------------------
-
-/**
- * Peel TS type-assertion wrappers (`as`, `!`, `<T>`, `satisfies`,
- * instantiation) and `ParenthesizedExpression` layers off a node.
- * Shared by `analyzeSignalExpression` (top-of-dispatch) and
- * `analyzeMemberExpression` (member-chain object position). Returns
- * `null` only when input is nullish.
- */
 function peelExpressionWrappers(node: AstMaybeNode): AstNode | null {
   let current: AstMaybeNode = node;
   while (current) {
@@ -64,8 +48,6 @@ function peelExpressionWrappers(node: AstMaybeNode): AstNode | null {
   return null;
 }
 
-// --- Node type detection -----------------------------------------------------
-
 const GLOBAL_NAMES = new Set([
   'window', 'document', 'globalThis', 'navigator', 'location', 'history',
   'screen', 'localStorage', 'sessionStorage', 'console', 'Math', 'JSON',
@@ -73,7 +55,6 @@ const GLOBAL_NAMES = new Set([
   'NaN', 'Infinity',
 ]);
 
-/** Detect `x.value` MemberExpression pattern (signal value access). */
 function isSignalValueAccess(
   node: AstMaybeNode,
 ): node is MemberExpressionNode {
@@ -86,10 +67,6 @@ function isSignalValueAccess(
   );
 }
 
-/**
- * Detect `props.field` or `store.field` where the object is a local variable.
- * Only matches single-level member access. Excludes `.value` (that's signal).
- */
 function isStoreFieldAccess(
   node: AstMaybeNode,
   importedNames: Set<string>,
@@ -102,8 +79,8 @@ function isStoreFieldAccess(
   if (importedNames.has(objName)) return false;
   if (GLOBAL_NAMES.has(objName)) return false;
 
-  // Unknown globals (not imported, not in GLOBAL_NAMES, not local) are skipped
-  // to match SWC behavior of only analyzing known-scope identifiers
+  // Skip unknown globals (not imported, not in GLOBAL_NAMES, not local) —
+  // only known-scope identifiers are analyzed.
   if (localNames && !localNames.has(objName)) return false;
 
   const propName = memberStaticPropName(node);
@@ -112,18 +89,10 @@ function isStoreFieldAccess(
   return true;
 }
 
-// --- Expression analysis -----------------------------------------------------
-
-/** Check if the expression tree contains JSX elements or fragments. */
 function containsJsx(node: AstMaybeNode): boolean {
   return someAstDescendant(node, (n) => n.type === 'JSXElement' || n.type === 'JSXFragment');
 }
 
-/**
- * Check if an expression contains a standalone function call whose callee is
- * NOT an imported name. Method calls (obj.method()) are allowed in signal
- * expressions -- only standalone fn() calls block wrapping.
- */
 function containsUnknownCall(node: AstMaybeNode, importedNames: Set<string>): boolean {
   return someAstDescendant(node, (n) => {
     if (n.type === 'TaggedTemplateExpression') return true;
@@ -139,7 +108,6 @@ function getCalleeIdentifierName(callee: AstMaybeNode): string | null {
   return null;
 }
 
-/** Check if expression references any imported name directly (not through member access). */
 function containsImportedReference(node: AstMaybeNode, importedNames: Set<string>): boolean {
   return someAstDescendant(node, (n) => n.type === 'Identifier' && importedNames.has(n.name));
 }
@@ -182,22 +150,17 @@ function hasCallOutsideChainSpine(node: AstMaybeNode, inChainSpine: boolean): bo
   return found;
 }
 
-// --- Reactive root detection -------------------------------------------------
-
-/** Get the root identifier name of a member expression chain. */
 function getMemberChainRoot(node: AstNode): string | null {
   if (node.type === 'Identifier') return node.name;
   if (node.type === 'MemberExpression') return getMemberChainRoot(node.object);
   return null;
 }
 
-/** Get the depth of a member chain. `store.field` = 1, `store.a.b` = 2. */
 function getMemberChainDepth(node: AstNode): number {
   if (node.type !== 'MemberExpression') return 0;
   return 1 + getMemberChainDepth(node.object);
 }
 
-/** Check if a MemberExpression is a deep store access (depth >= 2) on a local identifier. */
 function isDeepStoreAccess(
   node: AstNode,
   importedNames: Set<string>,
@@ -215,23 +178,11 @@ function isDeepStoreAccess(
 }
 
 /**
- * Unified single-walk collector for signal-analysis dependencies.
- *
- * Returns both `roots` (reactive roots in order of first appearance) AND
- * `allDeps` (reactive roots plus bare locally-bound Identifiers, sorted
- * alphabetically). Walking once eliminates duplicate tree traversal at
- * the 3 call sites in `analyzeSignalExpression` / `tryBuildFnSignal`.
- *
- * Three semantic invariants this collector enforces:
- * - `localNames` is applied consistently. Roots that aren't in
- *   `localNames` flow through bare-ident collection (via the leftmost-
- *   Identifier visit) and appear in `allDeps` after the alphabetical sort.
- * - Complex `.value` objects (e.g. `(a || b).value`) use the
- *   `fallbackCollectIdents` fallback for BOTH outputs.
- * - The Property.key / non-computed MemberExpression.property exclusion
- *   is applied for both outputs. Safe for roots because signal/store
- *   detection happens at the MemberExpression level, not the property
- *   Identifier.
+ * Single-walk collector returning both `roots` (reactive roots, first-appearance
+ * order) and `allDeps` (roots plus bare locally-bound identifiers, sorted). The
+ * non-computed `MemberExpression.property` and `Property.key` positions are
+ * excluded from both outputs — safe because signal/store detection happens at
+ * the MemberExpression level, not the property Identifier.
  */
 interface SignalDepsResult {
   roots: string[];
@@ -325,11 +276,9 @@ function collectSignalDeps(
     }
 
     if (isStoreFieldAccess(n, importedNames, localNames)) {
-      // The cast is load-bearing: the preceding `isDeepStoreAccess`
-      // predicate also returns `n is MemberExpressionNode`, so TS
-      // has already excluded MemberExpression from `n`'s type by
-      // this point in the control flow — narrowing `n` again to the
-      // same type produces `never`. The cast overrides that.
+      // Load-bearing cast: the preceding `isDeepStoreAccess` (also
+      // `n is MemberExpressionNode`) has narrowed `n` such that re-narrowing
+      // to the same type yields `never`.
       const memberNode = n as MemberExpressionNode;
       addRoot(getMemberChainRoot(memberNode.object));
       walkComputedKeys(memberNode.object);
@@ -380,10 +329,6 @@ function collectSignalDeps(
   return { roots, allDeps };
 }
 
-/**
- * Thin wrapper for the 2 sites in `analyzeMemberExpression` that need
- * only reactive roots (not bare deps).
- */
 function collectReactiveRoots(
   node: AstNode,
   importedNames: Set<string>,
@@ -392,12 +337,10 @@ function collectReactiveRoots(
   return collectSignalDeps(node, importedNames, localNames).roots;
 }
 
-// --- fnSignal generation -----------------------------------------------------
-
 /**
- * Generate hoisted function body by replacing reactive root names with pN parameters.
- * Returns both the full function (preserving original spacing) and a minimal-whitespace
- * string representation (matching SWC's AST-reprinted output).
+ * Generate a hoisted function body, replacing reactive root names with `pN`
+ * params. Returns both the full function (original spacing) and a
+ * minimal-whitespace serialized string form.
  */
 function generateFnSignal(
   exprNode: AstNode,
@@ -412,17 +355,10 @@ function generateFnSignal(
   const exprText = source.slice(exprNode.start, exprNode.end);
   const exprStart = exprNode.start;
 
-  // Root-identifier substitution and constant-subtree simplification
-  // share the orchestrator. raw-props doesn't emit defensive parens at
-  // Property-value positions — precedence-aware emission via
-  // `expressionNeedsParens` in `raw-props.ts` and `props-field-rewrite.ts`
-  // means the source slice the `_hf<n>_str` generator inherits is
-  // paren-free to begin with. Organic source parens in Property-value
-  // position would flow through verbatim.
-  //
-  // Disjoint-by-construction: roots target Identifiers; simplifications
-  // target Binary/Unary/Logical/Conditional with primitive operands. No
-  // node type overlaps with another.
+  // Root substitution and constant-subtree simplification share the
+  // orchestrator; disjoint by construction — roots target Identifiers,
+  // simplifications target Binary/Unary/Logical/Conditional with primitive
+  // operands, so no node type overlaps.
   const rootCollector = rootReplacementsCollector(rootToParam);
   const replacements = collectRangeReplacements(
     exprNode, exprStart, exprText,
@@ -447,7 +383,6 @@ function generateFnSignal(
     ? `(${params})=>(${lambdaFnBody})`
     : `(${params})=>${lambdaFnBody}`;
 
-  // String representation: minimal whitespace, double-quoted strings (matching SWC)
   let strBody = stripTrailingCommas(normalizeStringQuotes(removeWhitespace(strFnBody)));
   strBody = stripOuterParens(strBody);
   strBody = stripTernaryConditionParens(strBody);
@@ -457,25 +392,6 @@ function generateFnSignal(
   return { hoistedFn, hoistedStr };
 }
 
-/**
- * Factory for the root-identifier-substitution collector used by
- * {@link generateFnSignal}. Three matched shapes, each replacing the
- * root identifier of a chain with its `pN` parameter:
- *
- * 1. `signal.value` or deep `store.X.Y` access → replace the chain root
- * 2. Single-level `obj.field` store access → replace the chain root
- * 3. Bare identifier reference → replace in-place
- *
- * Returns `skipSubtree: true` whenever a match consumes the subtree
- * (preventing duplicate emits on descendants that would re-match arm 3).
- * For complex-object signal access (e.g. `(a || b).value` where
- * `findRootIdentifier` returns null), recursion is allowed so arm 3
- * catches the inner identifiers naturally.
- *
- * Arm 3 uses the shared {@link isReplaceableIdentifierPosition} predicate,
- * which excludes function-parameter and declarator-id positions (those
- * positions don't carry reactive root references in practice).
- */
 function collectComputedKeyRewrites(
   chainNode: AstNode,
   rootToParam: ReadonlyMap<string, string>,
@@ -531,8 +447,6 @@ function rootReplacementsCollector(
         // recurse so the bare-identifier arm catches inner identifiers.
         return null;
       }
-      // Matched shape but rootId not a tracked dep — mirror the
-      // behaviour of returning without recursing.
       return { replacements: keyRewrites, skipSubtree: true };
     }
 
@@ -575,7 +489,6 @@ function rootReplacementsCollector(
   };
 }
 
-/** Find the root Identifier node at the base of a member chain. */
 function findRootIdentifier(node: AstMaybeNode): IdentifierNode | null {
   if (!node) return null;
   if (node.type === 'Identifier') return node;
@@ -583,17 +496,12 @@ function findRootIdentifier(node: AstMaybeNode): IdentifierNode | null {
   return null;
 }
 
-// --- String normalization for hoisted string representation ------------------
-
 /**
- * Remove whitespace around operators for the minimal string representation.
- * Preserves whitespace inside string literals. Inserts a space only where
- * adjacent tokens would merge (e.g., keyword boundaries like `in`, `instanceof`).
- *
- * NOTE: This is intentionally a character-level tokenizer rather than AST-based.
- * It operates on tiny expression fragments (already extracted from AST nodes)
- * to produce a minimal serialized form matching SWC's AST-reprinted output.
- * Re-parsing these fragments would be more complex than the tokenizer itself.
+ * Remove whitespace around operators for the minimal string form, preserving
+ * whitespace inside string literals and inserting a space only where adjacent
+ * tokens would merge (e.g. `in`, `instanceof`). Intentionally a character-level
+ * tokenizer, not AST-based — it runs on tiny already-extracted fragments where
+ * re-parsing would be more complex.
  */
 function removeWhitespace(text: string): string {
   const tokens: string[] = [];
@@ -607,7 +515,6 @@ function removeWhitespace(text: string): string {
       continue;
     }
 
-    // String literal
     if (ch === '"' || ch === "'") {
       let tok = ch;
       i++;
@@ -620,7 +527,6 @@ function removeWhitespace(text: string): string {
       continue;
     }
 
-    // Template literal
     if (ch === '`') {
       let tok = ch;
       i++;
@@ -633,7 +539,6 @@ function removeWhitespace(text: string): string {
       continue;
     }
 
-    // Run of non-whitespace, non-string chars
     let tok = '';
     while (i < text.length) {
       const c = text[i];
@@ -645,7 +550,6 @@ function removeWhitespace(text: string): string {
     if (tok) tokens.push(tok);
   }
 
-  // Join tokens, inserting space only where two word-like chars would merge
   let result = '';
   for (let t = 0; t < tokens.length; t++) {
     if (t > 0) {
@@ -665,15 +569,11 @@ function isWordChar(ch: string): boolean {
   return /[a-zA-Z0-9_$]/.test(ch);
 }
 
-/** Strip trailing commas before closing delimiters. SWC re-serializes from AST so these drop. */
+/** Strip trailing commas before closing delimiters (dropped by AST re-serialization). */
 function stripTrailingCommas(text: string): string {
   return text.replace(trailingComma, '$1');
 }
 
-/**
- * Skip past a string or template literal starting at position `i`.
- * Returns the index of the character after the closing delimiter.
- */
 function skipStringLiteral(text: string, i: number): number {
   const ch = text[i];
   if (ch === '"' || ch === "'") {
@@ -707,11 +607,9 @@ function skipStringLiteral(text: string, i: number): number {
 }
 
 /**
- * Find the matching close-paren for an open paren at position 0.
- * Skips string/template literals. Returns -1 if not found.
- *
- * NOTE: Intentionally text-based. Used by stripOuterParens/stripTernaryConditionParens
- * on tiny expression fragments during serialization. Not worth re-parsing.
+ * Find the matching close-paren for an open paren at position 0, skipping
+ * string/template literals; returns -1 if not found. Intentionally text-based —
+ * runs on tiny fragments where re-parsing isn't worth it.
  */
 function findMatchingParen(text: string): number {
   let depth = 0;
@@ -730,17 +628,15 @@ function findMatchingParen(text: string): number {
 }
 
 /**
- * Strip balanced outer parentheses that wrap the entire expression.
- * SWC generates the str from AST reprinting which omits unnecessary parens.
+ * Strip balanced outer parentheses that wrap the entire expression (unnecessary
+ * parens are omitted by AST re-serialization).
  */
 function stripOuterParens(text: string): string {
   while (text.length >= 2 && text[0] === '(') {
     const matchPos = findMatchingParen(text);
     if (matchPos === text.length - 1) {
-      // Parens wrap entire expression -- strip them
       text = text.slice(1, -1);
     } else {
-      // Parens wrap a sub-expression at the start -- don't strip
       break;
     }
   }
@@ -748,16 +644,14 @@ function stripOuterParens(text: string): string {
 }
 
 /**
- * Strip redundant parentheses around a ternary condition.
- * `(cond)?cons:alt` -> `cond?cons:alt`
- * SWC's AST reprinting omits grouping parens that don't affect ternary precedence.
+ * Strip redundant parentheses around a ternary condition:
+ * `(cond)?cons:alt` -> `cond?cons:alt`.
  */
 function stripTernaryConditionParens(text: string): string {
   if (text.length < 4 || text[0] !== '(') return text;
 
   const matchPos = findMatchingParen(text);
 
-  // If the matched close paren is immediately followed by '?', the parens are redundant
   if (matchPos > 0 && matchPos < text.length - 1 && text[matchPos + 1] === '?') {
     return text.slice(1, matchPos) + text.slice(matchPos + 1);
   }
@@ -766,11 +660,9 @@ function stripTernaryConditionParens(text: string): string {
 }
 
 /**
- * Normalize single-quoted string literals to double quotes.
- * Matches SWC behavior: re-serialized AST uses double quotes.
- *
- * NOTE: Intentionally character-level. Operates on tiny serialized expression
- * fragments to match SWC's double-quote convention. Not worth re-parsing.
+ * Normalize single-quoted string literals to double quotes (the serialized
+ * double-quote convention). Intentionally character-level — runs on tiny
+ * fragments where re-parsing isn't worth it.
  */
 function normalizeStringQuotes(text: string): string {
   let result = '';
@@ -820,20 +712,12 @@ function normalizeStringQuotes(text: string): string {
   return result;
 }
 
-// --- Main analysis function --------------------------------------------------
-
-/**
- * Analyze a JSX prop expression to determine if it should be wrapped
- * with _wrapProp, converted to _fnSignal, or left as-is.
- */
 export function analyzeSignalExpression(
   exprNode: AstMaybeNode,
   source: string,
   importedNames: Set<string>,
   localNames?: Set<string>,
 ): SignalExprResult {
-  // Peel TS-assertion + Paren wrappers (organic source wrappers like
-  // `<div title={(a || b).value}/>` still flow through).
   const peeled = peelExpressionWrappers(exprNode);
   if (peeled == null) return { type: 'none' };
   if (peeled !== exprNode) {
@@ -841,7 +725,6 @@ export function analyzeSignalExpression(
   }
   exprNode = peeled;
 
-  // Literals are never wrapped
   if (exprNode.type === 'Literal') {
     return { type: 'none' };
   }
@@ -850,7 +733,6 @@ export function analyzeSignalExpression(
     return { type: 'none' };
   }
 
-  // Template literals without expressions are static
   if (
     exprNode.type === 'TemplateLiteral' &&
     (!exprNode.expressions || exprNode.expressions.length === 0)
@@ -858,7 +740,6 @@ export function analyzeSignalExpression(
     return { type: 'none' };
   }
 
-  // ChainExpression: analyze the whole chain (preserving `?.` syntax)
   if (exprNode.type === 'ChainExpression') {
     return tryBuildFnSignal(exprNode, source, importedNames, localNames);
   }
@@ -871,7 +752,6 @@ export function analyzeSignalExpression(
     return analyzeMemberExpression(exprNode, source, importedNames, localNames);
   }
 
-  // Object/array expressions with reactive values get wrapped in _fnSignal
   if (exprNode.type === 'ObjectExpression') {
     const { roots, allDeps } = collectSignalDeps(exprNode, importedNames, localNames);
     if (roots.length === 0) return { type: 'none' };
@@ -901,11 +781,6 @@ export function analyzeSignalExpression(
   return { type: 'none' };
 }
 
-/**
- * Try to build an _fnSignal for an expression that may contain reactive roots.
- * Returns 'none' if the expression has blockers (unknown calls, imported refs, JSX)
- * or no reactive roots.
- */
 function tryBuildFnSignal(
   exprNode: AstNode,
   source: string,
@@ -946,18 +821,16 @@ function analyzeMemberExpression(
   const unwrapped = peelExpressionWrappers(exprNode.object);
   const objIdent = unwrapped?.type === 'Identifier' ? unwrapped.name : null;
 
-  // SWC only applies signal treatment to identifiers it can resolve in scope
+  // Only apply signal treatment to identifiers resolvable in scope.
   const isKnownIdent = objIdent === null ||
     importedNames.has(objIdent) ||
     GLOBAL_NAMES.has(objIdent) ||
     (localNames?.has(objIdent) ?? true);
 
-  // signal.value -> _wrapProp for simple identifiers, _fnSignal for complex ones
   if (isSignalValueAccess(exprNode) && isKnownIdent) {
     if (objIdent !== null) {
       return { type: 'wrapProp', code: `_wrapProp(${objIdent})` };
     }
-    // Complex expression: (a || b).value -> _fnSignal
     const roots = collectReactiveRoots(exprNode, importedNames, localNames);
     if (roots.length > 0) {
       const { hoistedFn, hoistedStr } = generateFnSignal(exprNode, source, roots);
@@ -967,7 +840,6 @@ function analyzeMemberExpression(
     return { type: 'wrapProp', code: `_wrapProp(${objText})` };
   }
 
-  // Deep store access (store.address.city.name) -> fnSignal
   if (isKnownIdent && isDeepStoreAccess(exprNode, importedNames, localNames)) {
     const roots = collectReactiveRoots(exprNode, importedNames, localNames);
     if (roots.length > 0) {
@@ -976,7 +848,6 @@ function analyzeMemberExpression(
     }
   }
 
-  // store.field / props['field'] (single-level, local obj)
   if (isKnownIdent && isStoreFieldAccess(exprNode, importedNames, localNames)) {
     const objText = source.slice(exprNode.object.start, exprNode.object.end);
     const propName = memberStaticPropName(exprNode)!;
@@ -987,18 +858,10 @@ function analyzeMemberExpression(
     };
   }
 
-  // MemberExpression with computed non-literal property
-  // (e.g. results[i] in a for-i loop, obj[key] in a for-in loop, obj[42]).
-  // SWC's convert_inlined_fn path emits _fnSignal((p0,p1) => p1[p0], deps, str).
-  // The branches above cover:
-  //   - signal.value          → wrapProp / fnSignal (isSignalValueAccess)
-  //   - obj.x.y / obj.x.y.z   → fnSignal (isDeepStoreAccess, depth ≥ 2)
-  //   - obj.field / obj["x"]  → wrapProp (isStoreFieldAccess via memberStaticPropName)
-  // This branch catches the remaining case: `exprNode.computed === true` AND
-  // the property isn't a string literal (memberStaticPropName returned null above,
-  // so isStoreFieldAccess didn't fire). Matches SWC's behavior where
-  // prop_to_string returns None for `[Identifier]` / `[NumericLit]` and
-  // convert_inlined_fn's used_as_object check fires on the local-var object.
+  // Computed non-literal property (`results[i]`, `obj[key]`, `obj[42]`) — the
+  // case the branches above miss: `exprNode.computed === true` and the property
+  // isn't a string literal (so `isStoreFieldAccess` didn't fire). Emits
+  // `_fnSignal((p0,p1) => p1[p0], deps, str)`.
   if (isKnownIdent && exprNode.computed) {
     const { allDeps } = collectSignalDeps(exprNode, importedNames, localNames);
     if (
@@ -1016,18 +879,11 @@ function analyzeMemberExpression(
   return { type: 'none' };
 }
 
-// --- SignalHoister -----------------------------------------------------------
-
-/** Manages hoisted signal functions (_hf0, _hf1, etc.) for a module. */
 export class SignalHoister {
   counter = 0;
   hoistedFunctions: Array<{ name: string; fn: string; str: string; sourcePos: number }> = [];
   private dedupMap = new Map<string, string>();
 
-  /**
-   * Add a hoisted function, returns the _hfN name.
-   * Deduplicates: identical function bodies reuse their existing name.
-   */
   hoist(fn: string, str: string, sourcePos: number = 0): string {
     const existing = this.dedupMap.get(fn);
     if (existing) return existing;
@@ -1039,7 +895,6 @@ export class SignalHoister {
     return name;
   }
 
-  /** Get all hoisted declarations as source text lines. */
   getDeclarations(): string[] {
     const lines: string[] = [];
     for (const h of this.hoistedFunctions) {
@@ -1050,10 +905,9 @@ export class SignalHoister {
   }
 
   /**
-   * Build a renaming map that renumbers _hf variables by source position order.
-   * SWC processes elements top-down (props before children) but our walk is
-   * bottom-up (leave callback). This renumbers from walk order to source order.
-   * Returns null if already in order.
+   * Build a map renumbering `_hf` variables to source-position order. The walk
+   * is bottom-up (leave callback), so emitted `_hf` numbers must be remapped to
+   * top-down source order. Returns null if already in order.
    */
   buildRenameMap(): Map<string, string> | null {
     if (this.hoistedFunctions.length <= 1) return null;

@@ -1,13 +1,3 @@
-/**
- * Call form rewriting utilities for the Qwik optimizer.
- *
- * Transforms marker function calls to their Qrl equivalents:
- * - component$ -> componentQrl
- * - useTask$ -> useTaskQrl
- * - $ -> (bare QRL reference, no wrapper)
- * - sync$ -> _qrlSync
- */
-
 import { createRegExp, exactly, oneOrMore, whitespace, wordChar, charIn, charNotIn, global } from 'magic-regexp';
 import { transformSync as oxcTransformSync } from 'oxc-transform';
 import { rewriteImportSource } from './rewrite-imports.js';
@@ -16,8 +6,6 @@ import { getQrlCalleeName } from '../qwik/qrl-naming.js';
 import { quoteAsStringLiteral } from '../edit/string-literal.js';
 import { scanMatchingParenForward } from '../edit/text-scanning.js';
 
-// Keep this as a raw RegExp because the lazy quantifier is the clearest way
-// to preserve the current non-greedy block comment stripping behavior.
 const blockComment = /\/\*[\s\S]*?\*\//g;
 
 const lineComment = createRegExp(exactly('//').and(charNotIn('\n').times.any()), [global]);
@@ -35,21 +23,8 @@ const singleArrowParam = createRegExp(
   exactly('(').and(oneOrMore(wordChar).grouped()).and(')=>').at.lineStart(),
 );
 
-/**
- * Get the Qrl callee name from a marker name.
- *
- * - "$" -> "" (bare QRL, no wrapper)
- * - "sync$" -> "_qrlSync"
- * - "component$" -> "componentQrl"
- * - "useTask$" -> "useTaskQrl"
- */
 export { getQrlCalleeName } from '../qwik/qrl-naming.js';
 
-/**
- * Build a QRL const declaration string.
- *
- * When explicit extensions are requested, appends the output extension.
- */
 export function buildQrlDeclaration(
   symbolName: string,
   canonicalFilename: string,
@@ -61,9 +36,6 @@ export function buildQrlDeclaration(
   return `const q_${symbolName} = /*#__PURE__*/ qrl(()=>import("./${canonicalFilename}${ext}"), "${symbolName}");`;
 }
 
-/**
- * Minify a function body string for sync$ serialization.
- */
 function minifyFunctionText(text: string): string {
   let result = text;
 
@@ -99,22 +71,12 @@ export function buildSyncTransform(originalFnText: string): string {
   return `_qrlSync(${originalFnText}, ${quoteAsStringLiteral(minified)})`;
 }
 
-/** Qrl callee names that get PURE annotations. */
 const PURE_CALLEES = new Set(['componentQrl', 'qrl', 'qrlDEV']);
 
-/**
- * Determine if a QRL wrapper call needs a PURE annotation.
- */
 export function needsPureAnnotation(qrlCalleeName: string): boolean {
   return PURE_CALLEES.has(qrlCalleeName);
 }
 
-/**
- * Get the import source for a Qrl callee.
- *
- * Non-Qwik packages import the Qrl variant from the same package.
- * Qwik sub-packages preserve their source (with legacy rewriting).
- */
 export function getQrlImportSource(qrlCalleeName: string, originalSource?: string): string {
   if (originalSource && !isQwikPackageSource(originalSource)) {
     return originalSource;

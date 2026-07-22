@@ -1,9 +1,3 @@
-/**
- * Type-level tests for optimizer API types.
- *
- * These tests verify that all API types are correctly defined and exported
- * with the expected fields and shapes.
- */
 import { describe, it, expect } from 'vitest';
 import type {
   TransformModulesOptions,
@@ -100,7 +94,6 @@ describe('EntryStrategy', () => {
     ];
     expect(strategies).toHaveLength(7);
 
-    // Variants with manual field
     const withManual: EntryStrategy = {
       type: 'smart',
       manual: { symbolA: 'bundleX' },
@@ -137,9 +130,6 @@ describe('TransformModule', () => {
   });
 
   it('has correct shape for a parent variant', () => {
-    // The parent variant no longer carries a `segment: null` field — the
-    // discriminator `kind` gates variant-specific field access at
-    // compile time.
     const mod: TransformModule = {
       kind: 'parent',
       path: mkRelativePath('test.tsx'),

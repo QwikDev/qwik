@@ -1,15 +1,7 @@
 /**
- * Builders for the `.w([captures])` "with-captures" call the optimizer appends
- * to a QRL reference so the runtime injects the bound values into the segment.
- *
- * The capture list is laid out one-per-line with symmetric indentation: joiner
- * lines use `innerIndent`, the closing bracket uses `closeIndent`. The exact
- * whitespace matches the SWC reference output.
- *
- * Two emit sites keep their own inline layout and intentionally do NOT route
- * through here — the loop-callback hoist branch in `body-transforms.ts`
- * (asymmetric 12/8 indent) and the pre-joined-string `.w` emits in
- * `rewrite/index.ts`.
+ * Builders for the `.w([captures])` "with-captures" call appended to a QRL
+ * reference so the runtime injects the bound values into the segment. The
+ * capture list is laid out one-per-line with symmetric indentation.
  */
 
 import type { AstNode } from '../../ast-types.js';
@@ -26,7 +18,6 @@ export function isCaptureWrappingQrlCall(node: AstNode): boolean {
   );
 }
 
-/** The `.w([captures])` suffix, without the leading QRL variable. */
 export function wCallSuffix(
   captures: readonly string[],
   innerIndent: string,
@@ -35,7 +26,6 @@ export function wCallSuffix(
   return `.w([\n${innerIndent}${captures.join(',\n' + innerIndent)}\n${closeIndent}])`;
 }
 
-/** A full `qrlVar.w([captures])` expression. */
 export function formatWCall(
   qrlVar: string,
   captures: readonly string[],
@@ -46,9 +36,9 @@ export function formatWCall(
 }
 
 /**
- * Split a bracketed array-literal source string into its top-level element
- * texts. Commas inside nested `()`/`[]`/`{}` or string literals don't split —
- * a capture array can hold a nested call whose own commas must survive.
+ * Split a bracketed array-literal string into top-level element texts. Commas
+ * inside nested `()`/`[]`/`{}` or string literals don't split, so a capture that
+ * is itself a call survives intact.
  */
 export function parseArrayItems(arrayText: string): string[] {
   let inner = arrayText.trim();

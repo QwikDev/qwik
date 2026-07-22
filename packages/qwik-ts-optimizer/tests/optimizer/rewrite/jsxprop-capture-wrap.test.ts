@@ -1,41 +1,3 @@
-/**
- * Regression tests for `.w([captures])` emission on Component-prop QRL
- * refs (`example_immutable_analysis` parity). This is the fix that flips
- * the target convergence test.
- *
- * Two coupled bugs in the default-strategy emit path:
- *
- * 1. **`buildNestedCallSites` didn't propagate `captureNames` for JSX-attr
- *    children** when `hasLoopCrossCaptures=false`. The non-JSX-attr arm
- *    already does (`segment-generation.ts:988-998`), but the
- *    `if (isJsxAttr)` arm only propagated `hoistedCaptureNames` (loop-cross
- *    path). Component-prop `<X captured$={() => state.x}>` at top level
- *    (no loop) had `captureNames=undefined` in the call site.
- *
- * 2. **`rewriteNestedCallSitesInline` didn't emit `.w([captures])` for
- *    JSX-attr refs.** The non-JSX-attr branch at `body-transforms.ts:208-209`
- *    already does. The inline-strategy path at `rewrite/inline-body.ts:242-244`
- *    also does. The default-strategy JSX-attr branch was the gap.
- *
- * Fix.
- *   - Populate `captureNames` in `buildNestedCallSites` for jsx-attr
- *     children when `!hasLoopCrossCaptures && child.captureNames.length > 0`.
- *   - In `rewriteNestedCallSitesInline`'s JSX-attr branch, use
- *     `formatWCall(qrlVar, captureNames)` for `propValueRef` when
- *     `!hoistedSymbolName && captureNames?.length > 0`.
- *
- * Bonus: also fixed a JSX flag-math gap (bit 0 / static_listeners). SWC
- * clears `static_listeners` whenever any prop's value is non-const
- * (`swc-reference-only/transform.rs:2514-2516`). TS's flag math reads
- * `hasVarEventHandler` for bit 0, but the Component-prop `*$` arm at
- * `jsx-props.ts:321-329` wasn't setting it for non-const values. Now
- * sets `hasVarEventHandler = true` when the value lands in var-bag
- * (mirrors SWC's static_listeners-clearing condition).
- *
- * Flips `example_immutable_analysis` from FAIL → PASS — convergence
- * 202/212 → 203/212.
- */
-
 import { describe, it, expect } from 'vitest';
 import { transformModule } from '../../../src/optimizer/transform/index.js';
 import { mkFilePath, mkSourceText } from '../../../src/optimizer/types/brands.js';
@@ -97,7 +59,6 @@ export const App = component$(() => {
       expect(body.code).toMatch(
         /captured\$:\s*q_[A-Za-z_0-9]+\.w\(\s*\[\s*state\s*\]\s*\)/,
       );
-      // Belt and braces: the pre-fix shape (bare q_X, no .w()) must not appear.
       expect(body.code).not.toMatch(/captured\$:\s*q_[A-Za-z_0-9]+\s*[,}]/);
     });
 
@@ -113,8 +74,6 @@ export const App = component$(() => {
 `);
       const body = findComponentBodySegment(result);
       if (body?.kind !== 'segment') throw new Error('App body segment missing');
-      // Both captures land in the .w(...) array. Capture names sorted
-      // alphabetically (capture-analysis emits sorted).
       expect(body.code).toMatch(
         /handler\$:\s*q_[A-Za-z_0-9]+\.w\(\s*\[\s*a\s*,\s*b\s*\]\s*\)/,
       );
@@ -132,7 +91,6 @@ export const App = component$(() => {
 `);
       const body = findComponentBodySegment(result);
       if (body?.kind !== 'segment') throw new Error('App body segment missing');
-      // Bare q_X — no .w(...) when there are no captures.
       expect(body.code).toMatch(/static\$:\s*q_[A-Za-z_0-9]+\s*[,}]/);
       expect(body.code).not.toMatch(/static\$:\s*q_[A-Za-z_0-9]+\.w\(/);
     });
@@ -149,24 +107,12 @@ export const App = component$(() => {
 `);
       const body = findComponentBodySegment(result);
       if (body?.kind !== 'segment') throw new Error('App body segment missing');
-      // HTML event-handler path: prop name is `q-e:click` (eventHandler
-      // ctxKind → transformEventPropName converts), value is a bare qrl
-      // ref. Captures flow through the `q:p` (var-bag) propagation pattern
-      // rather than a value-side `.w(...)` wrap. This pre-existing path
-      // is unchanged by the fix (which only adds `.w(...)` on the
-      // jSXProp arm for Component-prop refs).
       expect(body.code).toMatch(/"q-e:click":\s*q_[A-Za-z_0-9]+\s*[},]/);
-      // q:p captures the state binding so the bare ref can resolve it
-      // at runtime.
       expect(body.code).toMatch(/"q:p":\s*state\b/);
-      // The pre-fix concern: a Component-prop-style `.w(...)` should NOT
-      // appear on this HTML event handler.
       expect(body.code).not.toMatch(/"q-e:click":\s*q_[A-Za-z_0-9]+\.w\(/);
     });
 
     it('inline strategy: pre-existing capture-wrap path at inline-body.ts:242-244 unchanged', () => {
-      // The inline-strategy reference for this fix. Already worked pre-fix for
-      // captured Component-prop refs; this test pins that it still works.
       const result = transformInline(`
 import { component$, useStore } from '@qwik.dev/core';
 import { Card } from './card';
@@ -217,11 +163,6 @@ export const Render = component$(() => {
 
   describe('Bonus fix: JSX flag bit 0 (static_listeners) on Component element with non-const *$', () => {
     it('`<Card prop$={varValue}>` → `_jsxSorted(Card, ..., flag=2)` (bit 0 NOT set)', () => {
-      // Pre-fix: TS computed flag=3 because `hasVarEventHandler` stayed
-      // false for the non-const Component-prop arm. SWC computes flag=2
-      // by clearing static_listeners (bit 0) for any non-const prop
-      // value (transform.rs:2514-2516). With `hasVarEventHandler = true`
-      // for non-const Component-prop in var-bag, TS now matches.
       const result = transformDefault(`
 import { component$ } from '@qwik.dev/core';
 import { Card } from './card';
@@ -231,13 +172,9 @@ export const App = component$((props) => {
 `);
       const body = findComponentBodySegment(result);
       if (body?.kind !== 'segment') throw new Error('App body segment missing');
-      // The flag arg is the 5th positional. With static_listeners cleared,
-      // the flag should not have bit 0 (1) set.
       const flagMatch = body.code.match(/_jsxSorted\(\s*Card\s*,\s*[^)]+?,\s*([0-9]+)\s*,\s*"u6_/);
       expect(flagMatch).not.toBeNull();
       const flag = Number(flagMatch![1]);
-      // bit 0 (static_listeners) MUST NOT be set — there's a non-const
-      // event-shaped prop value in var-bag.
       expect(flag & 1).toBe(0);
     });
   });

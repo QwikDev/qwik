@@ -923,6 +923,12 @@ const processData = (
   } else if (isPromise(node)) {
     stream.write(FLUSH_COMMENT);
     return node.then((node) => processData(node, rCtx, ssrCtx, stream, flags, beforeClose));
+  } else if (isFunction(node)) {
+    throw new Error(
+      `Functions are not valid JSX children. ` +
+        `You might have passed a function instead of calling it: use {fn()} instead of {fn}. ` +
+        `If this is a component, wrap it with component$().`
+    );
   } else {
     logWarn('A unsupported value was passed to the JSX, skipping render. Value:', node);
     return;

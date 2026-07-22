@@ -2,7 +2,6 @@ import { qwikVite } from "@qwik.dev/core/optimizer";
 import { qwikRouter } from "@qwik.dev/router/vite";
 import { defineConfig } from "vite";
 import pkg from "./package.json";
-import tsconfigPaths from "vite-tsconfig-paths";
 
 const { dependencies = {}, peerDependencies = {} } = pkg as any;
 const makeRegex = (dep) => new RegExp(`^${dep}(/.*)?$`);
@@ -33,6 +32,6 @@ export default defineConfig(() => {
         ],
       },
     },
-    plugins: [qwikVite(), qwikRouter(), tsconfigPaths({ root: "." })],
+    plugins: [qwikVite(), qwikRouter()],
   };
 });

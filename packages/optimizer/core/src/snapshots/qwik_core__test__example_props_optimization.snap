@@ -8,6 +8,7 @@ expression: output
 
 import { $, component$, useTask$ } from '@qwik.dev/core';
 import { CONST } from 'const';
+const getValue = () => 0;
 export const Works = component$(({
 	count,
 	some = 1+2,
@@ -36,16 +37,21 @@ export const NoWorks2 = component$(({count, stuff: {hey}}) => {
 	);
 });
 
-export const NoWorks3 = component$(({count, stuff = hola()}) => {
+export const DynamicDefaults = component$(({count, stuff = getValue(), other: value = getValue()}) => {
 	console.log(stuff);
 	useTask$(({track}) => {
-		track(() => count);
-		console.log(count);
+		track(() => stuff);
+		track(() => value);
+		console.log(count, stuff, value);
 	});
 	return (
-		<div class={count}>{count}</div>
+		<div class={stuff}>{value}</div>
 	);
 });
+
+export const ReferencedDefault = component$(({first = getValue(second), second}) => (
+	<div>{first}{second}</div>
+));
 
 ============================= test.js ==
 
@@ -67,11 +73,16 @@ const _hf1 = (p0)=>({
         some: p0.some ?? 3
     });
 const _hf1_str = "{some:p0.some??1+2}";
+const _hf2 = (p0, p1)=>p1.stuff === void 0 ? p0 : p1.stuff;
+const _hf2_str = "p1.stuff===void 0?p0:p1.stuff";
+const _hf3 = (p0, p1)=>p1.other === void 0 ? p0 : p1.other;
+const _hf3_str = "p1.other===void 0?p0:p1.other";
 //
+const q_DynamicDefaults_component_nZOHO1uiqf4 = /*#__PURE__*/ _noopQrl("DynamicDefaults_component_nZOHO1uiqf4");
+const q_DynamicDefaults_component_useTask_Od2wjq7X07c = /*#__PURE__*/ _noopQrl("DynamicDefaults_component_useTask_Od2wjq7X07c");
 const q_NoWorks2_component_JPD9t2HyEKg = /*#__PURE__*/ _noopQrl("NoWorks2_component_JPD9t2HyEKg");
 const q_NoWorks2_component_useTask_lXiqwbxxjq0 = /*#__PURE__*/ _noopQrl("NoWorks2_component_useTask_lXiqwbxxjq0");
-const q_NoWorks3_component_fc13h5yYn14 = /*#__PURE__*/ _noopQrl("NoWorks3_component_fc13h5yYn14");
-const q_NoWorks3_component_useTask_3cQGU0s1VwU = /*#__PURE__*/ _noopQrl("NoWorks3_component_useTask_3cQGU0s1VwU");
+const q_ReferencedDefault_component_xTfXU3xq5Ow = /*#__PURE__*/ _noopQrl("ReferencedDefault_component_xTfXU3xq5Ow");
 const q_Works_component_t45qL4vNGv0 = /*#__PURE__*/ _noopQrl("Works_component_t45qL4vNGv0");
 const q_Works_component_useTask_pjo5U5Ikll0 = /*#__PURE__*/ _noopQrl("Works_component_useTask_pjo5U5Ikll0");
 //
@@ -121,26 +132,44 @@ q_NoWorks2_component_JPD9t2HyEKg.s(({ count, stuff: { hey } })=>{
         class: count
     }, null, count, 1, "u6_1");
 });
-q_NoWorks3_component_useTask_3cQGU0s1VwU.s(({ track })=>{
-    const count = _captures[0];
-    track(()=>count);
-    console.log(count);
+q_DynamicDefaults_component_useTask_Od2wjq7X07c.s(({ track })=>{
+    const _defaultValue = _captures[0], _defaultValue1 = _captures[1], _rawProps = _captures[2];
+    track(()=>_rawProps.stuff === void 0 ? _defaultValue : _rawProps.stuff);
+    track(()=>_rawProps.other === void 0 ? _defaultValue1 : _rawProps.other);
+    console.log(_rawProps.count, _rawProps.stuff === void 0 ? _defaultValue : _rawProps.stuff, _rawProps.other === void 0 ? _defaultValue1 : _rawProps.other);
 });
-q_NoWorks3_component_fc13h5yYn14.s(({ count, stuff = hola() })=>{
-    console.log(stuff);
-    useTaskQrl(q_NoWorks3_component_useTask_3cQGU0s1VwU.w([
-        count
+const getValue = ()=>0;
+q_DynamicDefaults_component_nZOHO1uiqf4.s((_rawProps)=>{
+    const _defaultValue = _rawProps.stuff === void 0 ? getValue() : void 0;
+    const _defaultValue1 = _rawProps.other === void 0 ? getValue() : void 0;
+    console.log(_rawProps.stuff === void 0 ? _defaultValue : _rawProps.stuff);
+    useTaskQrl(q_DynamicDefaults_component_useTask_Od2wjq7X07c.w([
+        _defaultValue,
+        _defaultValue1,
+        _rawProps
     ]));
     return /*#__PURE__*/ _jsxSorted("div", {
-        class: count
-    }, null, count, 1, "u6_2");
+        class: _fnSignal(_hf2, [
+            _defaultValue,
+            _rawProps
+        ], _hf2_str)
+    }, null, _fnSignal(_hf3, [
+        _defaultValue1,
+        _rawProps
+    ], _hf3_str), 1, "u6_2");
 });
+q_ReferencedDefault_component_xTfXU3xq5Ow.s(({ first = getValue(second), second })=>/*#__PURE__*/ _jsxSorted("div", null, null, [
+        first,
+        second
+    ], 1, "u6_3"));
 export const Works = /*#__PURE__*/ componentQrl(q_Works_component_t45qL4vNGv0);
 export const NoWorks2 = /*#__PURE__*/ componentQrl(q_NoWorks2_component_JPD9t2HyEKg);
-export const NoWorks3 = /*#__PURE__*/ componentQrl(q_NoWorks3_component_fc13h5yYn14);
+export const DynamicDefaults = /*#__PURE__*/ componentQrl(q_DynamicDefaults_component_nZOHO1uiqf4);
+export const ReferencedDefault = /*#__PURE__*/ componentQrl(q_ReferencedDefault_component_xTfXU3xq5Ow);
+export { getValue as _auto_getValue };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;;sBAKC,QAAO;;mBAWmB,CAAA;QAAE,IAAI,KAXhC,QAAO;IAW0B,CAAA;;;;;;;;;;wCALxB,CAAC,EAAC,KAAK,EAAC;;IAChB,MAAM,cARP;IASC,QAAQ,GAAG,WATZ,OASoB,gBANpB,iBAFA,QAAO,aAGP,gBAAqB;;gCALU;;;;;;;;IAO/B,QAAQ,GAAG,WAHX,iBAFA,QAAO;IAMP;;;;IAIA,qBACC,UAAC;QAAI,IAAI;;;QAAQ,MAAM;;;QAAY,KAAK;wBAAa;;0BAAA;QAAM,QAAQ;;AAErE;2CAIU,CAAC,EAAC,KAAK,EAAC;;IAChB,MAAM,IAAM;IACZ,QAAQ,GAAG,CAAC;;mCAJqB,CAAC,EAAC,KAAK,EAAE,OAAO,EAAC,GAAG,EAAC,EAAC;IACxD,QAAQ,GAAG,CAAC;IACZ;;;IAIA,qBACC,WAAC;QAAI,OAAO;aAAQ;AAEtB;2CAIU,CAAC,EAAC,KAAK,EAAC;;IAChB,MAAM,IAAM;IACZ,QAAQ,GAAG,CAAC;;mCAJqB,CAAC,EAAC,KAAK,EAAE,QAAQ,MAAM,EAAC;IAC1D,QAAQ,GAAG,CAAC;IACZ;;;IAIA,qBACC,WAAC;QAAI,OAAO;aAAQ;AAEtB;AArCA,OAAO,MAAM,sBAAQ,4CAelB;AAEH,OAAO,MAAM,yBAAW,+CASrB;AAEH,OAAO,MAAM,yBAAW,+CASrB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;;sBAMC,QAAO;;mBAWmB,CAAA;QAAE,IAAI,KAXhC,QAAO;IAW0B,CAAA;;0BAeiB,2BAAA;;0BAAoB,2BAAA;;;;;;;;;;;wCApB7D,CAAC,EAAC,KAAK,EAAC;;IAChB,MAAM,cARP;IASC,QAAQ,GAAG,WATZ,OASoB,gBANpB,iBAFA,QAAO,aAGP,gBAAqB;;gCALU;;;;;;;;IAO/B,QAAQ,GAAG,WAHX,iBAFA,QAAO;IAMP;;;;IAIA,qBACC,UAAC;QAAI,IAAI;;;QAAQ,MAAM;;;QAAY,KAAK;wBAAa;;0BAAA;QAAM,QAAQ;;AAErE;2CAIU,CAAC,EAAC,KAAK,EAAC;;IAChB,MAAM,IAAM;IACZ,QAAQ,GAAG,CAAC;;mCAJqB,CAAC,EAAC,KAAK,EAAE,OAAO,EAAC,GAAG,EAAC,EAAC;IACxD,QAAQ,GAAG,CAAC;IACZ;;;IAIA,qBACC,WAAC;QAAI,OAAO;aAAQ;AAEtB;kDAIU,CAAC,EAAC,KAAK,EAAC;;IAChB,MAAM,cAH2C,6CAAA;IAIjD,MAAM,cAJ+D,8CAAA;IAKrE,QAAQ,GAAG,WAL+B,iBAAO,6CAAA,iBAAoB,8CAAA;;AA7BvE,MAAM,WAAW,IAAM;0CA6BmB;oCAAS,mBAAQ;qCAAY,mBAAe;IACrF,QAAQ,GAAG,WADuC,6CAAA;IAElD;;;;;IAKA,qBACC,WAAC;QAAI,KAAK;;;;;;;;AAEZ;4CAE4C,CAAC,EAAC,QAAQ,SAAS,OAAO,EAAE,MAAM,EAAC,iBAC9E,WAAC;QAAK;QAAO;;AAzCd,OAAO,MAAM,sBAAQ,4CAelB;AAEH,OAAO,MAAM,yBAAW,+CASrB;AAEH,OAAO,MAAM,gCAAkB,sDAU5B;AAEH,OAAO,MAAM,kCAAoB,wDAE9B\"}")
 == DIAGNOSTICS ==
 
 []

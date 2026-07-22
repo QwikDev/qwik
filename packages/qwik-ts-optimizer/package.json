@@ -12,15 +12,15 @@
     "ast"
   ],
   "license": "MIT",
-  "homepage": "https://github.com/thejackshelton/TS-Optimizer#readme",
+  "homepage": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-ts-optimizer#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/thejackshelton/TS-Optimizer.git"
+    "url": "git+https://github.com/QwikDev/qwik.git",
+    "directory": "packages/qwik-ts-optimizer"
   },
   "bugs": {
-    "url": "https://github.com/thejackshelton/TS-Optimizer/issues"
+    "url": "https://github.com/QwikDev/qwik/issues"
   },
-  "packageManager": "pnpm@10.25.0",
   "engines": {
     "node": ">=22"
   },
@@ -44,10 +44,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
-    "verify:publish": "vitest run --reporter=json --outputFile=local.json; node scripts/check-regression.mjs local.json",
-    "prepublishOnly": "pnpm build && pnpm verify:publish",
-    "ci:baseline:check": "node scripts/check-regression.mjs",
-    "ci:baseline:update": "node scripts/update-baseline.mjs"
+    "prepublishOnly": "pnpm build && pnpm test"
   },
   "dependencies": {
     "@oxc-project/types": "0.124.0",

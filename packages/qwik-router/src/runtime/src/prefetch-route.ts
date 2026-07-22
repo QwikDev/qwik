@@ -1,10 +1,13 @@
 import * as qwikRouterConfig from '@qwik-router-config';
 import { isBrowser, isDev } from '@qwik.dev/core';
+import { _isSignalNotInvalid } from '@qwik.dev/core/internal';
 // @ts-expect-error no types for preloader yet
 import { p as preload } from '@qwik.dev/core/preloader';
 import { ensureSlash } from '../../utils/pathname';
-import { fetchRouteLoaderData } from './route-loaders';
+import { fetchRouteLoaderData, type RouteLoaderState } from './route-loaders';
 import { loadRoute } from './routing';
+import type { LoadedRoute } from './types';
+
 /**
  * Prefetch a route's JS bundles and optionally its loader data.
  *
@@ -17,13 +20,15 @@ import { loadRoute } from './routing';
  * @param probability - Bundle preload probability (0-1, default 0.8)
  * @param manifestHash - Build manifest hash for loader URLs (from `useDocumentHead().manifestHash`)
  * @param prefetchBundle - Whether to prefetch route JS bundles
+ * @param loaderState - In-memory loader signals; loaders with unexpired data are not fetched
  */
 export async function prefetchRoute(
   url: URL,
   prefetchData?: boolean,
   probability = 0.8,
   manifestHash?: string,
-  prefetchBundle = true
+  prefetchBundle = true,
+  loaderState?: RouteLoaderState
 ) {
   if (!isBrowser || isDev) {
     return;
@@ -54,24 +59,40 @@ export async function prefetchRoute(
       return;
     }
 
-    // Prefetch loader data in parallel (fire-and-forget, consume body for caching)
-    if (loadedRoute.$loaders$?.length && loadedRoute.$loaderPaths$) {
-      const basePath = (qwikRouterConfig as any).basePathname ?? '/';
-      for (const hash of loadedRoute.$loaders$) {
-        let loaderPath = loadedRoute.$loaderPaths$?.[hash];
-        if (!loaderPath) {
-          continue;
-        }
-        if (basePath !== '/' && !loaderPath.startsWith(basePath)) {
-          loaderPath = basePath + loaderPath.slice(1);
-        }
-        fetchRouteLoaderData(hash, loaderPath, manifestHash, {
-          pageUrl: url,
-          basePath,
-        }).catch(() => {});
-      }
-    }
+    prefetchLoaderData(loadedRoute, url, manifestHash, loaderState);
   } catch {
     // Silently ignore prefetch errors
   }
 }
+
+/**
+ * Prefetch a route's loader data in parallel (fire-and-forget, consume body for caching). Loaders
+ * whose in-memory signal still holds unexpired data are skipped.
+ */
+export const prefetchLoaderData = (
+  loadedRoute: LoadedRoute,
+  url: URL,
+  manifestHash: string,
+  loaderState?: RouteLoaderState
+) => {
+  if (!loadedRoute.$loaders$?.length || !loadedRoute.$loaderPaths$) {
+    return;
+  }
+  const basePath = (qwikRouterConfig as any).basePathname ?? '/';
+  for (const hash of loadedRoute.$loaders$) {
+    if (_isSignalNotInvalid(loaderState?.[hash])) {
+      continue;
+    }
+    let loaderPath = loadedRoute.$loaderPaths$[hash];
+    if (!loaderPath) {
+      continue;
+    }
+    if (basePath !== '/' && !loaderPath.startsWith(basePath)) {
+      loaderPath = basePath + loaderPath.slice(1);
+    }
+    fetchRouteLoaderData(hash, loaderPath, manifestHash, {
+      pageUrl: url,
+      basePath,
+    }).catch(() => {});
+  }
+};

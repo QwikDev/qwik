@@ -33,7 +33,7 @@ export const useMarkdownItems = routeLoader$(
     });
     return markdownItems;
   },
-  { expires: 0 }
+  { expires: 0, blockSSR: false, cacheKey: true }
 );
 
 type MarkdownItems = Record<string, MDX>;

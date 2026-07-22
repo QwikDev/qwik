@@ -1,0 +1,195 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 416
+expression: output
+---
+==INPUT==
+
+
+import { $, component$ } from '@qwik.dev/core';
+
+export const Foo = component$(({foo}) => {
+	const arg0 = 20;
+	return $(() => {
+		const fn = ({aaa}) => aaa;
+		return (
+			<div>
+				{foo}{fn()}{arg0}
+			</div>
+		)
+	});
+})
+
+export const Bar = component$(({bar}) => {
+	return $(() => {
+		return (
+			<div>
+				{bar}
+			</div>
+		)
+	});
+})
+
+============================= test.tsx_Foo_component_HTDRsvUbLiE.jsx (ENTRY POINT)==
+
+import { qrl } from "@qwik.dev/core";
+//
+const q_Foo_component_1_DvU6FitWglY = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_1_DvU6FitWglY"), "Foo_component_1_DvU6FitWglY");
+//
+export const Foo_component_HTDRsvUbLiE = (_rawProps)=>{
+    return q_Foo_component_1_DvU6FitWglY.w([
+        _rawProps
+    ]);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAG8B;IAE7B;;;AAQD\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_component_HTDRsvUbLiE",
+  "entry": null,
+  "displayName": "test.tsx_Foo_component",
+  "hash": "HTDRsvUbLiE",
+  "canonicalFilename": "test.tsx_Foo_component_HTDRsvUbLiE",
+  "path": "",
+  "extension": "jsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    81,
+    221
+  ],
+  "paramNames": [
+    "_rawProps"
+  ]
+}
+*/
+============================= test.jsx ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Bar_component_L80pS8Hxf1Y = /*#__PURE__*/ qrl(()=>import("./test.tsx_Bar_component_L80pS8Hxf1Y"), "Bar_component_L80pS8Hxf1Y");
+const q_Foo_component_HTDRsvUbLiE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE");
+//
+export const Foo = /*#__PURE__*/ componentQrl(q_Foo_component_HTDRsvUbLiE);
+export const Bar = /*#__PURE__*/ componentQrl(q_Bar_component_L80pS8Hxf1Y);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAGA,OAAO,MAAM,oBAAM,0CAUjB;AAEF,OAAO,MAAM,oBAAM,0CAQjB\"}")
+============================= test.tsx_Bar_component_L80pS8Hxf1Y.jsx (ENTRY POINT)==
+
+import { qrl } from "@qwik.dev/core";
+//
+const q_Bar_component_1_0xSyNSnVu3k = /*#__PURE__*/ qrl(()=>import("./test.tsx_Bar_component_1_0xSyNSnVu3k"), "Bar_component_1_0xSyNSnVu3k");
+//
+export const Bar_component_L80pS8Hxf1Y = (_rawProps)=>{
+    return q_Bar_component_1_0xSyNSnVu3k.w([
+        _rawProps
+    ]);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAe8B;IAC7B;;;AAOD\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Bar_component_L80pS8Hxf1Y",
+  "entry": null,
+  "displayName": "test.tsx_Bar_component",
+  "hash": "L80pS8Hxf1Y",
+  "canonicalFilename": "test.tsx_Bar_component_L80pS8Hxf1Y",
+  "path": "",
+  "extension": "jsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    254,
+    335
+  ],
+  "paramNames": [
+    "_rawProps"
+  ]
+}
+*/
+============================= test.tsx_Foo_component_1_DvU6FitWglY.jsx (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+//
+export const Foo_component_1_DvU6FitWglY = ()=>{
+    const _rawProps = _captures[0];
+    const fn = ({ aaa })=>aaa;
+    return <div>
+				{_rawProps.foo}{fn()}{20}
+			</div>;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;2CAKU;;IACR,MAAM,KAAK,CAAC,EAAC,GAAG,EAAC,GAAK;IACtB,QACE,IAAI;IACJ,WAN4B,KAMtB,MALI,GAKO;GAClB,EAAE\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_component_1_DvU6FitWglY",
+  "entry": null,
+  "displayName": "test.tsx_Foo_component_1",
+  "hash": "DvU6FitWglY",
+  "canonicalFilename": "test.tsx_Foo_component_1_DvU6FitWglY",
+  "path": "",
+  "extension": "jsx",
+  "parent": "Foo_component_HTDRsvUbLiE",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    122,
+    217
+  ],
+  "captureNames": [
+    "_rawProps"
+  ]
+}
+*/
+============================= test.tsx_Bar_component_1_0xSyNSnVu3k.jsx (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+//
+export const Bar_component_1_0xSyNSnVu3k = ()=>{
+    const _rawProps = _captures[0];
+    return <div>
+				{_rawProps.bar}
+			</div>;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;2CAgBU;;IACR,QACE,IAAI;IACJ,WAJ4B,IAIvB;GACN,EAAE\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Bar_component_1_0xSyNSnVu3k",
+  "entry": null,
+  "displayName": "test.tsx_Bar_component_1",
+  "hash": "0xSyNSnVu3k",
+  "canonicalFilename": "test.tsx_Bar_component_1_0xSyNSnVu3k",
+  "path": "",
+  "extension": "jsx",
+  "parent": "Bar_component_L80pS8Hxf1Y",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    277,
+    331
+  ],
+  "captureNames": [
+    "_rawProps"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

@@ -1,0 +1,514 @@
+
+import { describe, it, expect } from 'vitest';
+import { parseSync } from 'oxc-parser';
+import {
+  analyzeMigration,
+  collectModuleLevelDecls,
+  computeSegmentUsage,
+  filterInlineStrategyMigrations,
+  MIG_REASON,
+  type MigrationDecision,
+  type ModuleLevelDecl,
+} from '../../../src/optimizer/analysis/variable-migration.js';
+
+function makeDecl(overrides: Partial<ModuleLevelDecl> & { name: string }): ModuleLevelDecl {
+  return {
+    declStart: 0,
+    declEnd: 0,
+    declText: '',
+    isExported: false,
+    hasSideEffects: false,
+    isPartOfSharedDestructuring: false,
+    kind: 'const',
+    ...overrides,
+  };
+}
+
+describe('analyzeMigration', () => {
+  it('Test 1: single-use safe variable => move', () => {
+    const decls = [makeDecl({ name: 'helperFn' })];
+    const segmentUsage = new Map([['seg1', new Set(['helperFn'])]]);
+    const rootUsage = new Set<string>();
+
+    const decisions = analyzeMigration(decls, segmentUsage, rootUsage);
+
+    expect(decisions).toHaveLength(1);
+    expect(decisions[0].action).toBe('move');
+    expect(decisions[0].varName).toBe('helperFn');
+    expect(decisions[0].targetSegment).toBe('seg1');
+  });
+
+  it('Test 2: shared variable used by two segments => reexport', () => {
+    const decls = [makeDecl({ name: 'SHARED' })];
+    const segmentUsage = new Map([
+      ['seg1', new Set(['SHARED'])],
+      ['seg2', new Set(['SHARED'])],
+    ]);
+    const rootUsage = new Set<string>();
+
+    const decisions = analyzeMigration(decls, segmentUsage, rootUsage);
+
+    expect(decisions).toHaveLength(1);
+    expect(decisions[0].action).toBe('reexport');
+    expect(decisions[0].varName).toBe('SHARED');
+    expect(decisions[0].targetSegment).toBeUndefined();
+  });
+
+  it('Test 3: exported variable used by segment => reexport (MIG-03)', () => {
+    const decls = [makeDecl({ name: 'publicHelper', isExported: true })];
+    const segmentUsage = new Map([['seg1', new Set(['publicHelper'])]]);
+    const rootUsage = new Set<string>();
+
+    const decisions = analyzeMigration(decls, segmentUsage, rootUsage);
+
+    expect(decisions).toHaveLength(1);
+    expect(decisions[0].action).toBe('reexport');
+    expect(decisions[0].varName).toBe('publicHelper');
+  });
+
+  it('Test 4: side-effect declaration used by one segment => reexport (MIG-04)', () => {
+    const decls = [makeDecl({ name: 'state', hasSideEffects: true })];
+    const segmentUsage = new Map([['seg1', new Set(['state'])]]);
+    const rootUsage = new Set<string>();
+
+    const decisions = analyzeMigration(decls, segmentUsage, rootUsage);
+
+    expect(decisions).toHaveLength(1);
+    expect(decisions[0].action).toBe('reexport');
+    expect(decisions[0].varName).toBe('state');
+  });
+
+  it('Test 5: safe literals are eligible for move if single-use', () => {
+    const decls = [
+      makeDecl({ name: 'COUNT' }),
+      makeDecl({ name: 'NAME' }),
+      makeDecl({ name: 'FN' }),
+    ];
+    const segmentUsage = new Map([
+      ['seg1', new Set(['COUNT'])],
+      ['seg2', new Set(['NAME'])],
+      ['seg3', new Set(['FN'])],
+    ]);
+    const rootUsage = new Set<string>();
+
+    const decisions = analyzeMigration(decls, segmentUsage, rootUsage);
+
+    expect(decisions).toHaveLength(3);
+    for (const d of decisions) {
+      expect(d.action).toBe('move');
+    }
+    expect(decisions[0].targetSegment).toBe('seg1');
+    expect(decisions[1].targetSegment).toBe('seg2');
+    expect(decisions[2].targetSegment).toBe('seg3');
+  });
+
+  it('Test 6: destructuring with shared bindings => reexport (MIG-05)', () => {
+    const decls = [makeDecl({ name: 'a', isPartOfSharedDestructuring: true })];
+    const segmentUsage = new Map([['seg1', new Set(['a'])]]);
+    const rootUsage = new Set<string>();
+
+    const decisions = analyzeMigration(decls, segmentUsage, rootUsage);
+
+    expect(decisions).toHaveLength(1);
+    expect(decisions[0].action).toBe('reexport');
+    expect(decisions[0].varName).toBe('a');
+  });
+
+  it('Test 6a: shared destructure all flowing to one segment => move (MIG-05a)', () => {
+    const decls = [
+      makeDecl({ name: 'a', isPartOfSharedDestructuring: true, declStart: 10, declEnd: 30 }),
+      makeDecl({ name: 'b', isPartOfSharedDestructuring: true, declStart: 10, declEnd: 30 }),
+    ];
+    const segmentUsage = new Map([['seg1', new Set(['a', 'b'])]]);
+    const rootUsage = new Set<string>();
+
+    const decisions = analyzeMigration(decls, segmentUsage, rootUsage);
+
+    expect(decisions).toHaveLength(2);
+    expect(decisions[0].action).toBe('move');
+    expect(decisions[0].targetSegment).toBe('seg1');
+    expect(decisions[1].action).toBe('move');
+    expect(decisions[1].targetSegment).toBe('seg1');
+  });
+
+  it('Test 6b: shared destructure split across segments => reexport', () => {
+    const decls = [
+      makeDecl({ name: 'a', isPartOfSharedDestructuring: true, declStart: 10, declEnd: 30 }),
+      makeDecl({ name: 'b', isPartOfSharedDestructuring: true, declStart: 10, declEnd: 30 }),
+    ];
+    const segmentUsage = new Map([
+      ['seg1', new Set(['a'])],
+      ['seg2', new Set(['b'])],
+    ]);
+    const rootUsage = new Set<string>();
+
+    const decisions = analyzeMigration(decls, segmentUsage, rootUsage);
+
+    expect(decisions[0].action).toBe('reexport');
+    expect(decisions[1].action).toBe('reexport');
+  });
+
+  it('Test 6c: shared destructure with one binding used by root => reexport', () => {
+    const decls = [
+      makeDecl({ name: 'a', isPartOfSharedDestructuring: true, declStart: 10, declEnd: 30 }),
+      makeDecl({ name: 'b', isPartOfSharedDestructuring: true, declStart: 10, declEnd: 30 }),
+    ];
+    const segmentUsage = new Map([['seg1', new Set(['a'])]]);
+    const rootUsage = new Set(['b']);
+
+    const decisions = analyzeMigration(decls, segmentUsage, rootUsage);
+
+    expect(decisions).toHaveLength(2);
+    expect(decisions[0].action).toBe('reexport');
+    expect(decisions[0].varName).toBe('a');
+    expect(decisions[1].action).toBe('keep');
+    expect(decisions[1].varName).toBe('b');
+  });
+
+  it('Test 7: variable not used by any segment => keep', () => {
+    const decls = [makeDecl({ name: 'unused' })];
+    const segmentUsage = new Map<string, Set<string>>();
+    const rootUsage = new Set<string>();
+
+    const decisions = analyzeMigration(decls, segmentUsage, rootUsage);
+
+    expect(decisions).toHaveLength(1);
+    expect(decisions[0].action).toBe('keep');
+    expect(decisions[0].varName).toBe('unused');
+  });
+
+  it('Test 8: variable used by root AND a segment => reexport', () => {
+    const decls = [makeDecl({ name: 'config' })];
+    const segmentUsage = new Map([['seg1', new Set(['config'])]]);
+    const rootUsage = new Set(['config']);
+
+    const decisions = analyzeMigration(decls, segmentUsage, rootUsage);
+
+    expect(decisions).toHaveLength(1);
+    expect(decisions[0].action).toBe('reexport');
+    expect(decisions[0].varName).toBe('config');
+  });
+
+  it('Test 9: arrow function expression => safe, eligible for move', () => {
+    const decls = [makeDecl({ name: 'arrowFn', hasSideEffects: false })];
+    const segmentUsage = new Map([['seg1', new Set(['arrowFn'])]]);
+    const rootUsage = new Set<string>();
+
+    const decisions = analyzeMigration(decls, segmentUsage, rootUsage);
+
+    expect(decisions).toHaveLength(1);
+    expect(decisions[0].action).toBe('move');
+  });
+
+  it('Test 10: function call as initializer => has side effects, not eligible for move', () => {
+    const decls = [makeDecl({ name: 'cfg', hasSideEffects: true })];
+    const segmentUsage = new Map([['seg1', new Set(['cfg'])]]);
+    const rootUsage = new Set<string>();
+
+    const decisions = analyzeMigration(decls, segmentUsage, rootUsage);
+
+    expect(decisions).toHaveLength(1);
+    expect(decisions[0].action).toBe('reexport');
+  });
+
+  it('exported variable NOT used by any segment => keep', () => {
+    const decls = [makeDecl({ name: 'publicApi', isExported: true })];
+    const segmentUsage = new Map<string, Set<string>>();
+    const rootUsage = new Set<string>();
+
+    const decisions = analyzeMigration(decls, segmentUsage, rootUsage);
+
+    expect(decisions).toHaveLength(1);
+    expect(decisions[0].action).toBe('keep');
+  });
+});
+
+describe('collectModuleLevelDecls', () => {
+  function parse(code: string) {
+    return parseSync('test.tsx', code).program;
+  }
+
+  it('collects const declarations with literal initializers as safe', () => {
+    const program = parse('const COUNT = 42;\nconst NAME = "hello";');
+    const decls = collectModuleLevelDecls(program, 'const COUNT = 42;\nconst NAME = "hello";');
+
+    expect(decls).toHaveLength(2);
+    expect(decls[0].name).toBe('COUNT');
+    expect(decls[0].hasSideEffects).toBe(false);
+    expect(decls[0].kind).toBe('const');
+    expect(decls[1].name).toBe('NAME');
+    expect(decls[1].hasSideEffects).toBe(false);
+  });
+
+  it('detects arrow function as safe (no side effects)', () => {
+    const code = 'const fn = (x) => x + 1;';
+    const program = parse(code);
+    const decls = collectModuleLevelDecls(program, code);
+
+    expect(decls).toHaveLength(1);
+    expect(decls[0].name).toBe('fn');
+    expect(decls[0].hasSideEffects).toBe(false);
+  });
+
+  it('detects function call as having side effects', () => {
+    const code = 'const state = createConfig();';
+    const program = parse(code);
+    const decls = collectModuleLevelDecls(program, code);
+
+    expect(decls).toHaveLength(1);
+    expect(decls[0].name).toBe('state');
+    expect(decls[0].hasSideEffects).toBe(true);
+  });
+
+  it('detects exported declarations', () => {
+    const code = 'export const helper = () => {};';
+    const program = parse(code);
+    const decls = collectModuleLevelDecls(program, code);
+
+    expect(decls).toHaveLength(1);
+    expect(decls[0].name).toBe('helper');
+    expect(decls[0].isExported).toBe(true);
+  });
+
+  it('detects destructuring with multiple bindings', () => {
+    const code = 'const { a, b } = obj;';
+    const program = parse(code);
+    const decls = collectModuleLevelDecls(program, code);
+
+    expect(decls).toHaveLength(2);
+    expect(decls[0].name).toBe('a');
+    expect(decls[0].isPartOfSharedDestructuring).toBe(true);
+    expect(decls[1].name).toBe('b');
+    expect(decls[1].isPartOfSharedDestructuring).toBe(true);
+  });
+
+  it('handles FunctionDeclaration', () => {
+    const code = 'function greet(name) { return "hi " + name; }';
+    const program = parse(code);
+    const decls = collectModuleLevelDecls(program, code);
+
+    expect(decls).toHaveLength(1);
+    expect(decls[0].name).toBe('greet');
+    expect(decls[0].hasSideEffects).toBe(false);
+    expect(decls[0].kind).toBe('function');
+  });
+
+  it('treats Math.random() call as side effect', () => {
+    const code = 'const id = Math.random();';
+    const program = parse(code);
+    const decls = collectModuleLevelDecls(program, code);
+
+    expect(decls).toHaveLength(1);
+    expect(decls[0].hasSideEffects).toBe(true);
+  });
+
+  it('treats object/array literals with only safe values as safe', () => {
+    const code = 'const obj = { x: 1, y: "two" };\nconst arr = [1, 2, 3];';
+    const program = parse(code);
+    const decls = collectModuleLevelDecls(program, code);
+
+    expect(decls).toHaveLength(2);
+    expect(decls[0].hasSideEffects).toBe(false);
+    expect(decls[1].hasSideEffects).toBe(false);
+  });
+
+  it('treats object with call expression value as having side effects', () => {
+    const code = 'const obj = { x: getVal() };';
+    const program = parse(code);
+    const decls = collectModuleLevelDecls(program, code);
+
+    expect(decls).toHaveLength(1);
+    expect(decls[0].hasSideEffects).toBe(true);
+  });
+
+  it('collects single-binding destructuring as NOT shared', () => {
+    const code = 'const { a } = obj;';
+    const program = parse(code);
+    const decls = collectModuleLevelDecls(program, code);
+
+    expect(decls).toHaveLength(1);
+    expect(decls[0].name).toBe('a');
+    expect(decls[0].isPartOfSharedDestructuring).toBe(false);
+  });
+});
+
+describe('computeSegmentUsage', () => {
+  function parse(code: string) {
+    return parseSync('test.tsx', code).program;
+  }
+
+  it('attributes identifiers inside extraction range to segments', () => {
+    const code = 'const x = 1;\ncomponent$(() => { return x; });';
+    const program = parse(code);
+
+    const arrowStart = code.indexOf('() =>');
+    const arrowEnd = code.lastIndexOf(')');
+
+    const { segmentUsage, rootUsage } = computeSegmentUsage(program, [
+      { symbolName: 'seg1', argStart: arrowStart, argEnd: arrowEnd },
+    ]);
+
+    expect(segmentUsage.get('seg1')?.has('x')).toBe(true);
+    expect(rootUsage.has('x')).toBe(false);
+  });
+
+  it('attributes identifiers outside all ranges to root', () => {
+    const code = 'const y = foo();\ncomponent$(() => { return 42; });';
+    const program = parse(code);
+
+    const arrowStart = code.indexOf('() =>');
+    const arrowEnd = code.lastIndexOf(')');
+
+    const { rootUsage } = computeSegmentUsage(program, [
+      { symbolName: 'seg1', argStart: arrowStart, argEnd: arrowEnd },
+    ]);
+
+    expect(rootUsage.has('foo')).toBe(true);
+  });
+
+  it('does not count property-position identifiers as usage', () => {
+    const code = [
+      "const startVT = (p) => { if ('x' in document) document.startVT(p); };",
+      'const cfg = { startVT: 1 };',
+      'component$(() => { startVT(cfg); });',
+    ].join('\n');
+    const program = parse(code);
+
+    const arrowStart = code.indexOf('() => { startVT');
+    const arrowEnd = code.length - 2;
+
+    const { segmentUsage, rootUsage } = computeSegmentUsage(program, [
+      { symbolName: 'seg1', argStart: arrowStart, argEnd: arrowEnd },
+    ]);
+
+    expect(segmentUsage.get('seg1')?.has('startVT')).toBe(true);
+    expect(rootUsage.has('startVT')).toBe(false);
+    expect(segmentUsage.get('seg1')?.has('cfg')).toBe(true);
+  });
+});
+
+describe('analyzeMigration MIG-06 (moved-decl dependencies)', () => {
+  function declsFor(code: string): { program: ReturnType<typeof parseSync>['program']; decls: ModuleLevelDecl[] } {
+    const program = parseSync('test.tsx', code).program;
+    const decls = collectModuleLevelDecls(program, code);
+    return { program, decls };
+  }
+
+  it('flips an un-exported keep dependency of a moved decl to reexport', () => {
+    const code = [
+      "const SETTINGS = { mode: 'mock' };",
+      'const useHelper = (props) => { return SETTINGS.mode + props.x; };',
+      'console.log(SETTINGS.mode);',
+    ].join('\n');
+    const { program, decls } = declsFor(code);
+
+    const segmentUsage = new Map([['segA', new Set(['useHelper'])]]);
+    const rootUsage = new Set(['SETTINGS']);
+
+    const decisions = analyzeMigration(decls, segmentUsage, rootUsage, program);
+
+    const byName = new Map(decisions.map((d) => [d.varName, d]));
+    expect(byName.get('useHelper')?.action).toBe('move');
+    expect(byName.get('SETTINGS')?.action).toBe('reexport');
+    expect(byName.get('SETTINGS')?.reason).toContain('MIG-06');
+  });
+
+  it('moves a keep dependency used only by movers to the same segment into it', () => {
+    const code = [
+      "const SETTINGS = { mode: 'mock' };",
+      'const useHelper = (props) => { return SETTINGS.mode + props.x; };',
+    ].join('\n');
+    const { program, decls } = declsFor(code);
+
+    const segmentUsage = new Map([['segA', new Set(['useHelper'])]]);
+    const rootUsage = new Set(['SETTINGS']);
+
+    const decisions = analyzeMigration(decls, segmentUsage, rootUsage, program);
+
+    const byName = new Map(decisions.map((d) => [d.varName, d]));
+    expect(byName.get('useHelper')?.action).toBe('move');
+    expect(byName.get('SETTINGS')?.action).toBe('move');
+    expect(byName.get('SETTINGS')?.targetSegment).toBe('segA');
+    expect(byName.get('SETTINGS')?.reason).toContain('MIG-06a');
+  });
+
+  it('leaves exported dependencies alone (plain import path handles them)', () => {
+    const code = [
+      'export const API = { url: 1 };',
+      'const useHelper = (props) => { return API.url + props.x; };',
+    ].join('\n');
+    const { program, decls } = declsFor(code);
+
+    const segmentUsage = new Map([['segA', new Set(['useHelper'])]]);
+    const rootUsage = new Set(['API']);
+
+    const decisions = analyzeMigration(decls, segmentUsage, rootUsage, program);
+
+    const byName = new Map(decisions.map((d) => [d.varName, d]));
+    expect(byName.get('useHelper')?.action).toBe('move');
+    expect(byName.get('API')?.action).toBe('keep');
+  });
+
+  it('demotes a dependency moving to a different segment to reexport', () => {
+    const code = [
+      'const shared = () => 1;',
+      'const helperA = () => shared();',
+    ].join('\n');
+    const { program, decls } = declsFor(code);
+
+    const segmentUsage = new Map([
+      ['segA', new Set(['helperA'])],
+      ['segB', new Set(['shared'])],
+    ]);
+    const rootUsage = new Set<string>();
+
+    const decisions = analyzeMigration(decls, segmentUsage, rootUsage, program);
+
+    const byName = new Map(decisions.map((d) => [d.varName, d]));
+    expect(byName.get('helperA')?.action).toBe('move');
+    expect(byName.get('shared')?.action).toBe('reexport');
+    expect(byName.get('shared')?.reason).toContain('MIG-06');
+  });
+
+  it('does not flip dependencies of decls that stay in the parent', () => {
+    const code = [
+      'const SETTINGS = { mode: 1 };',
+      'const stays = () => SETTINGS.mode;',
+    ].join('\n');
+    const { program, decls } = declsFor(code);
+
+    const decisions = analyzeMigration(decls, new Map(), new Set(['SETTINGS', 'stays']), program);
+
+    const byName = new Map(decisions.map((d) => [d.varName, d]));
+    expect(byName.get('stays')?.action).toBe('keep');
+    expect(byName.get('SETTINGS')?.action).toBe('keep');
+  });
+});
+
+describe('filterInlineStrategyMigrations', () => {
+  const decisions: MigrationDecision[] = [
+    { action: 'reexport', varName: 'exported', reason: MIG_REASON.REEXPORT_EXPORTED },
+    { action: 'reexport', varName: 'dualUse', reason: MIG_REASON.REEXPORT_DUAL_USE },
+    { action: 'reexport', varName: 'multiSegment', reason: MIG_REASON.REEXPORT_MULTI_SEGMENT },
+    { action: 'reexport', varName: 'sideEffect', reason: MIG_REASON.REEXPORT_SIDE_EFFECTS },
+    { action: 'reexport', varName: 'sharedDestructure', reason: MIG_REASON.REEXPORT_SHARED_DESTRUCTURE },
+    { action: 'reexport', varName: 'movedDep', reason: MIG_REASON.REEXPORT_MOVED_DECL_DEP },
+    { action: 'move', varName: 'mover', reason: MIG_REASON.MOVE_SINGLE_SEGMENT },
+    { action: 'keep', varName: 'kept', reason: MIG_REASON.KEEP_UNUSED },
+  ];
+
+  it('keeps only the exported (MIG-03) and multi-segment/dual-use (MIG-02) reexports', () => {
+    const result = filterInlineStrategyMigrations(decisions);
+    expect(result.map((d) => d.varName)).toEqual(['exported', 'dualUse', 'multiSegment']);
+  });
+
+  it('drops the side-effect (MIG-04) reexport for a decl consumed by an inline segment', () => {
+    const result = filterInlineStrategyMigrations(decisions);
+    expect(result.some((d) => d.varName === 'sideEffect')).toBe(false);
+  });
+
+  it('drops every move (which would delete a still-referenced in-parent decl)', () => {
+    const result = filterInlineStrategyMigrations(decisions);
+    expect(result.some((d) => d.action === 'move')).toBe(false);
+  });
+});

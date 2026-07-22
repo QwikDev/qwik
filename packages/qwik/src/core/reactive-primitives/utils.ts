@@ -19,6 +19,7 @@ import {
   SerializationSignalFlags,
   EffectProperty,
   ComputedSignalFlags,
+  NEEDS_COMPUTATION,
   type CustomSerializable,
   type EffectSubscription,
   type StoreTarget,
@@ -194,4 +195,19 @@ export const getComputedSignalFlags = (
 export const _markSignalAsExternallyOwned = (signal: ComputedSignal<unknown>) => {
   (signal as ComputedSignalImpl<unknown> | WrappedSignalImpl<unknown>).$flags$ |=
     ComputedSignalFlags.PRESERVE_ON_SEQ_CLEANUP;
+};
+
+/**
+ * Whether the signal holds a computed value that was not invalidated (by dependency changes or
+ * `expires`). Unlike the public getters, this never triggers a computation.
+ *
+ * @internal
+ */
+export const _isSignalNotInvalid = (signal: ComputedSignal<unknown> | undefined): boolean => {
+  const impl = signal as ComputedSignalImpl<unknown> | undefined;
+  return (
+    !!impl &&
+    !(impl.$flags$ & ComputedSignalFlags.INVALID) &&
+    impl.$untrackedValue$ !== NEEDS_COMPUTATION
+  );
 };

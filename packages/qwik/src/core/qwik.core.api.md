@@ -538,6 +538,9 @@ export { h }
 export const _hasStoreEffects: (value: StoreTarget, prop: keyof StoreTarget) => boolean;
 
 // @internal
+export const _isSignalNotInvalid: (signal: ComputedSignal<unknown> | undefined) => boolean;
+
+// @internal
 export const _hmr: (this: string | undefined, event: CustomEvent<{
     files: string[];
     t: number;

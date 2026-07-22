@@ -875,7 +875,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         window._qRouterScrollEnabled = true;
         callRestoreScrollOnDocument();
 
-        refreshLinkPrefetchObserver(manifestHash);
+        refreshLinkPrefetchObserver(manifestHash, loaderState);
         if (nav.shouldForcePrevUrl) {
           forceStoreEffects(routeLocation, 'prevUrl');
         }

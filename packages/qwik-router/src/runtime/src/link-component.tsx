@@ -1,4 +1,13 @@
-import { $, component$, Slot, sync$, untrack, type QwikIntrinsicElements } from '@qwik.dev/core';
+import {
+  $,
+  component$,
+  Slot,
+  sync$,
+  untrack,
+  useContext,
+  type QwikIntrinsicElements,
+} from '@qwik.dev/core';
+import { RouteStateContext } from './contexts';
 import { prefetchRoute } from './prefetch-route';
 import { useDocumentHead, useLocation, useNavigate } from './use-functions';
 import { getClientNavPath, shouldPreload } from './utils';
@@ -8,6 +17,7 @@ export const Link = component$<LinkProps>((props) => {
   const nav = useNavigate();
   const loc = useLocation();
   const head = useDocumentHead();
+  const loaderState = useContext(RouteStateContext);
   const originalHref = props.href;
   const {
     onClick$,
@@ -54,7 +64,7 @@ export const Link = component$<LinkProps>((props) => {
 
         if (elm && elm.href) {
           const url = new URL(elm.href);
-          prefetchRoute(url, true, 0.8, head.manifestHash, false);
+          prefetchRoute(url, true, 0.8, head.manifestHash, false, loaderState);
         }
       })
     : null;

@@ -33,7 +33,7 @@ import { SSRComment, SSRRaw, SkipRender } from '../shared/jsx/utils.public';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { QElement, qWindow } from '../shared/types';
 import { DEBUG_TYPE, QContainerValue, VirtualType } from '../shared/types';
-import { directSetAttribute } from '../shared/utils/attribute';
+import { applyDomAttribute, directSetAttribute } from '../shared/utils/attribute';
 import { escapeHTML } from '../shared/utils/character-escaping';
 import { _CONST_PROPS, _OWNER, _PROPS_HANDLER, _VAR_PROPS } from '../shared/utils/constants';
 import { isHtmlAttributeAnEventName } from '../shared/utils/event-names';
@@ -96,6 +96,7 @@ import {
   vnode_newVirtual,
   vnode_remove,
   vnode_setAttr,
+  vnode_getNode,
   vnode_setProp,
   vnode_setText,
   vnode_truncate,
@@ -1175,6 +1176,43 @@ function expectElement(diffContext: DiffContext, jsx: JSXNodeInternal, elementNa
 
   if (jsxProps) {
     diffProps(diffContext, vNode, jsxProps, (isDev && getFileLocationFromJsx(jsx.dev)) || null);
+  }
+
+  if (
+    isDev &&
+    !diffContext.$isCreationMode$ &&
+    jsx.constProps &&
+    getCursorData(diffContext.$cursor$)?.hmrConstReload
+  ) {
+    reapplyHmrConstProps(diffContext, vNode, jsx.constProps);
+  }
+}
+
+// HMR update-only: a removed const attr, and dangerouslySetInnerHTML/promise/signal values, aren't reapplied.
+function reapplyHmrConstProps(
+  diffContext: DiffContext,
+  vNode: ElementVNode,
+  constProps: Record<string, unknown>
+) {
+  const element = vnode_getNode(vNode) as QElement | null;
+  if (!element) {
+    return;
+  }
+  const isSvg = (vNode.flags & VNodeFlags.NS_svg) !== 0;
+  for (const key in constProps) {
+    const value = constProps[key];
+    if (
+      isHtmlAttributeAnEventName(key) ||
+      key === 'ref' ||
+      key === dangerouslySetInnerHTML ||
+      isSignal(value) ||
+      isPromise(value)
+    ) {
+      continue;
+    }
+    const attrValue =
+      value != null ? serializeAttribute(key, value, diffContext.$scopedStyleIdPrefix$) : null;
+    applyDomAttribute(element, key, attrValue, isSvg);
   }
 }
 

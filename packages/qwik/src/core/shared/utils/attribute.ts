@@ -41,3 +41,56 @@ export function directSetAttribute(
     fastSetAttribute(element, attrName, attrValue);
   }
 }
+
+const isBooleanAttr = (element: Element, key: string): boolean => {
+  const isBoolean =
+    key == 'allowfullscreen' ||
+    key == 'async' ||
+    key == 'autofocus' ||
+    key == 'autoplay' ||
+    key == 'checked' ||
+    key == 'controls' ||
+    key == 'default' ||
+    key == 'defer' ||
+    key == 'disabled' ||
+    key == 'formnovalidate' ||
+    key == 'inert' ||
+    key == 'ismap' ||
+    key == 'itemscope' ||
+    key == 'loop' ||
+    key == 'multiple' ||
+    key == 'muted' ||
+    key == 'nomodule' ||
+    key == 'novalidate' ||
+    key == 'open' ||
+    key == 'playsinline' ||
+    key == 'readonly' ||
+    key == 'required' ||
+    key == 'reversed' ||
+    key == 'selected';
+  return isBoolean && key in element;
+};
+
+const parseBoolean = (value: string | boolean | null): boolean => {
+  if (value === 'false') {
+    return false;
+  }
+  return Boolean(value);
+};
+
+export const applyDomAttribute = (
+  element: Element,
+  attrName: string,
+  attrValue: string | boolean | null,
+  isSvg: boolean
+): void => {
+  if (isBooleanAttr(element, attrName)) {
+    (element as any)[attrName] = parseBoolean(attrValue);
+  } else if (attrValue == null || attrValue === false) {
+    element.removeAttribute(attrName);
+  } else if (attrName === 'value' && attrName in element) {
+    (element as any).value = attrValue;
+  } else {
+    directSetAttribute(element, attrName, attrValue, isSvg);
+  }
+};

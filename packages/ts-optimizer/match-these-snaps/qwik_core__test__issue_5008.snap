@@ -1,0 +1,127 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 3564
+expression: output
+---
+==INPUT==
+
+
+		import { component$, useStore } from "@qwik.dev/core";
+
+		export default component$(() => {
+		const store = useStore([{ value: 0 }]);
+		return (
+			<>
+			<button onClick$={() => store[0].value++}>+1</button>
+			{store.map(function (v, idx) {
+				return <div key={"fn_" + idx}>Function: {v.value}</div>;
+			})}
+			{store.map((v, idx) => (
+				<div key={"arrow_" + idx}>Arrow: {v.value}</div>
+			))}
+			</>
+		);
+		});
+		
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+//
+export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGE,6BAAe,2CAaZ\"}")
+============================= test.tsx_test_component_Fragment_button_q_e_click_7MTd2pAiliw.js (ENTRY POINT)==
+
+export const test_component_Fragment_button_q_e_click_7MTd2pAiliw = (_, _1, store)=>store[0].value++;
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"oEAOqB,gBAAM,KAAK,CAAC,EAAE,CAAC,KAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_Fragment_button_q_e_click_7MTd2pAiliw",
+  "entry": null,
+  "displayName": "test.tsx_test_component_Fragment_button_q_e_click",
+  "hash": "7MTd2pAiliw",
+  "canonicalFilename": "test.tsx_test_component_Fragment_button_q_e_click_7MTd2pAiliw",
+  "path": "",
+  "extension": "js",
+  "parent": "test_component_LUXeXe0DQrg",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    176,
+    198
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "store"
+  ]
+}
+*/
+============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
+
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { _jsxSorted } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { useStore } from "@qwik.dev/core";
+//
+const q_test_component_Fragment_button_q_e_click_7MTd2pAiliw = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_Fragment_button_q_e_click_7MTd2pAiliw"), "test_component_Fragment_button_q_e_click_7MTd2pAiliw");
+//
+export const test_component_LUXeXe0DQrg = ()=>{
+    const store = useStore([
+        {
+            value: 0
+        }
+    ]);
+    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
+        /*#__PURE__*/ _jsxSorted("button", {
+            "q:p": store
+        }, {
+            "q-e:click": q_test_component_Fragment_button_q_e_click_7MTd2pAiliw
+        }, "+1", 7, null),
+        store.map(function(v, idx) {
+            return /*#__PURE__*/ _jsxSorted("div", null, null, [
+                "Function: ",
+                _wrapProp(v)
+            ], 1, "fn_" + idx);
+        }),
+        store.map((v, idx)=>/*#__PURE__*/ _jsxSorted("div", null, null, [
+                "Arrow: ",
+                _wrapProp(v)
+            ], 1, "arrow_" + idx))
+    ], 1, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;0CAG4B;IAC1B,MAAM,QAAQ,SAAS;QAAC;YAAE,OAAO;QAAE;KAAE;IACrC,qBACC;sBACA,WAAC;;;YAAO,WAAQ;WAA0B;QACzC,MAAM,GAAG,CAAC,SAAU,CAAC,EAAE,GAAG;YAC1B,qBAAO,WAAC;gBAAsB;0BAAW;kBAAxB,QAAQ;QAC1B;QACC,MAAM,GAAG,CAAC,CAAC,GAAG,oBACd,WAAC;gBAAyB;0BAAQ;kBAAxB,WAAW;;AAIvB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_LUXeXe0DQrg",
+  "entry": null,
+  "displayName": "test.tsx_test_component",
+  "hash": "LUXeXe0DQrg",
+  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    88,
+    417
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

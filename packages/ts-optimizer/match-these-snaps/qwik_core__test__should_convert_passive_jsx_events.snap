@@ -1,0 +1,162 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 4739
+expression: output
+---
+==INPUT==
+
+
+		import { component$ } from '@qwik.dev/core';
+
+		const PassiveEventsComponent = component$(() => {
+			return (
+				<div>
+					<button passive:click onClick$={() => {}}>
+						click
+					</button>
+					<button passive:scroll passive:touchstart window:onScroll$={() => {}} document:onTouchStart$={() => {}}>
+						scroll
+					</button>
+					<button passive:mouseover>
+						noop
+					</button>
+				</div>
+			);
+		});
+		
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_PassiveEventsComponent_component_lvDVJ8RMyh4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_PassiveEventsComponent_component_lvDVJ8RMyh4"), "PassiveEventsComponent_component_lvDVJ8RMyh4");
+//
+/*#__PURE__*/ componentQrl(q_PassiveEventsComponent_component_lvDVJ8RMyh4);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;cAGiC\"}")
+============================= test.tsx_PassiveEventsComponent_component_lvDVJ8RMyh4.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_PassiveEventsComponent_component_div_button_q_dp_touchstart_wJgjHCkK0i4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_PassiveEventsComponent_component_div_button_q_dp_touchstart_wJgjHCkK0i4"), "PassiveEventsComponent_component_div_button_q_dp_touchstart_wJgjHCkK0i4");
+const q_PassiveEventsComponent_component_div_button_q_ep_click_GIcY22LJ0us = /*#__PURE__*/ qrl(()=>import("./test.tsx_PassiveEventsComponent_component_div_button_q_ep_click_GIcY22LJ0us"), "PassiveEventsComponent_component_div_button_q_ep_click_GIcY22LJ0us");
+const q_PassiveEventsComponent_component_div_button_q_wp_scroll_kFM1OZfh7ko = /*#__PURE__*/ qrl(()=>import("./test.tsx_PassiveEventsComponent_component_div_button_q_wp_scroll_kFM1OZfh7ko"), "PassiveEventsComponent_component_div_button_q_wp_scroll_kFM1OZfh7ko");
+//
+export const PassiveEventsComponent_component_lvDVJ8RMyh4 = ()=>{
+    return /*#__PURE__*/ _jsxSorted("div", null, null, [
+        /*#__PURE__*/ _jsxSorted("button", null, {
+            "q-ep:click": q_PassiveEventsComponent_component_div_button_q_ep_click_GIcY22LJ0us
+        }, "click", 3, null),
+        /*#__PURE__*/ _jsxSorted("button", null, {
+            "q-wp:scroll": q_PassiveEventsComponent_component_div_button_q_wp_scroll_kFM1OZfh7ko,
+            "q-dp:touchstart": q_PassiveEventsComponent_component_div_button_q_dp_touchstart_wJgjHCkK0i4
+        }, "scroll", 3, null),
+        /*#__PURE__*/ _jsxSorted("button", null, null, "noop", 3, null)
+    ], 3, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;4DAG4C;IACzC,qBACC,WAAC;sBACA,WAAC;YAAqB,YAAQ;WAAY;sBAG1C,WAAC;YAAD,aAES;YAFT,iBAES;WAF+F;sBAGxG,WAAC,sBAAyB;;AAK7B\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "PassiveEventsComponent_component_lvDVJ8RMyh4",
+  "entry": null,
+  "displayName": "test.tsx_PassiveEventsComponent_component",
+  "hash": "lvDVJ8RMyh4",
+  "canonicalFilename": "test.tsx_PassiveEventsComponent_component_lvDVJ8RMyh4",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    94,
+    415
+  ]
+}
+*/
+============================= test.tsx_PassiveEventsComponent_component_div_button_q_dp_touchstart_wJgjHCkK0i4.js (ENTRY POINT)==
+
+export const PassiveEventsComponent_component_div_button_q_dp_touchstart_wJgjHCkK0i4 = ()=>{};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"uFASmG,KAAO\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "PassiveEventsComponent_component_div_button_q_dp_touchstart_wJgjHCkK0i4",
+  "entry": null,
+  "displayName": "test.tsx_PassiveEventsComponent_component_div_button_q_dp_touchstart",
+  "hash": "wJgjHCkK0i4",
+  "canonicalFilename": "test.tsx_PassiveEventsComponent_component_div_button_q_dp_touchstart_wJgjHCkK0i4",
+  "path": "",
+  "extension": "js",
+  "parent": "PassiveEventsComponent_component_lvDVJ8RMyh4",
+  "ctxKind": "eventHandler",
+  "ctxName": "document:onTouchStart$",
+  "captures": false,
+  "loc": [
+    298,
+    306
+  ]
+}
+*/
+============================= test.tsx_PassiveEventsComponent_component_div_button_q_wp_scroll_kFM1OZfh7ko.js (ENTRY POINT)==
+
+export const PassiveEventsComponent_component_div_button_q_wp_scroll_kFM1OZfh7ko = ()=>{};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"mFASiE,KAAO\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "PassiveEventsComponent_component_div_button_q_wp_scroll_kFM1OZfh7ko",
+  "entry": null,
+  "displayName": "test.tsx_PassiveEventsComponent_component_div_button_q_wp_scroll",
+  "hash": "kFM1OZfh7ko",
+  "canonicalFilename": "test.tsx_PassiveEventsComponent_component_div_button_q_wp_scroll_kFM1OZfh7ko",
+  "path": "",
+  "extension": "js",
+  "parent": "PassiveEventsComponent_component_lvDVJ8RMyh4",
+  "ctxKind": "eventHandler",
+  "ctxName": "window:onScroll$",
+  "captures": false,
+  "loc": [
+    264,
+    272
+  ]
+}
+*/
+============================= test.tsx_PassiveEventsComponent_component_div_button_q_ep_click_GIcY22LJ0us.js (ENTRY POINT)==
+
+export const PassiveEventsComponent_component_div_button_q_ep_click_GIcY22LJ0us = ()=>{};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"kFAMqC,KAAO\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "PassiveEventsComponent_component_div_button_q_ep_click_GIcY22LJ0us",
+  "entry": null,
+  "displayName": "test.tsx_PassiveEventsComponent_component_div_button_q_ep_click",
+  "hash": "GIcY22LJ0us",
+  "canonicalFilename": "test.tsx_PassiveEventsComponent_component_div_button_q_ep_click_GIcY22LJ0us",
+  "path": "",
+  "extension": "js",
+  "parent": "PassiveEventsComponent_component_lvDVJ8RMyh4",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    161,
+    169
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

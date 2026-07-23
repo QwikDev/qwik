@@ -1,0 +1,133 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 6030
+expression: output
+---
+==INPUT==
+
+
+import { component$, $ } from '@qwik.dev/core';
+
+// scrollState is used by both segments - must NOT be migrated
+const scrollState = (el) => ({ x: el.scrollLeft, y: el.scrollTop });
+
+// saveScroll is used by both segments - must NOT be migrated
+const saveScroll = (s) => history.replaceState(s, '');
+
+// bigHelper depends on scrollState and saveScroll, used only by App
+const bigHelper = (el) => {
+  const s = scrollState(el);
+  saveScroll(s);
+  return s;
+};
+
+export const App = component$(() => {
+  // Uses bigHelper (which transitively uses scrollState and saveScroll)
+  const s = bigHelper(document.body);
+  return <div>{s.x}</div>;
+});
+
+export const Other = component$(() => {
+  // Directly uses scrollState and saveScroll
+  const s = scrollState(document.body);
+  saveScroll(s);
+  return <div>{s.y}</div>;
+});
+
+============================= test.tsx_Other_component_C1my3EIdP1k.tsx (ENTRY POINT)==
+
+import { _auto_saveScroll as saveScroll } from "./test";
+import { _auto_scrollState as scrollState } from "./test";
+//
+export const Other_component_C1my3EIdP1k = ()=>{
+    // Directly uses scrollState and saveScroll
+    const s = scrollState(document.body);
+    saveScroll(s);
+    return <div>{s.y}</div>;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;2CAsBgC;IAC9B,2CAA2C;IAC3C,MAAM,IAAI,YAAY,SAAS,IAAI;IACnC,WAAW;IACX,QAAQ,KAAK,EAAE,CAAC,GAAG;AACrB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Other_component_C1my3EIdP1k",
+  "entry": null,
+  "displayName": "test.tsx_Other_component",
+  "hash": "C1my3EIdP1k",
+  "canonicalFilename": "test.tsx_Other_component_C1my3EIdP1k",
+  "path": "",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    674,
+    813
+  ]
+}
+*/
+============================= test.tsx ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
+const q_Other_component_C1my3EIdP1k = /*#__PURE__*/ qrl(()=>import("./test.tsx_Other_component_C1my3EIdP1k"), "Other_component_C1my3EIdP1k");
+// scrollState is used by both segments - must NOT be migrated
+//
+const scrollState = (el)=>({
+        x: el.scrollLeft,
+        y: el.scrollTop
+    });
+// saveScroll is used by both segments - must NOT be migrated
+const saveScroll = (s)=>history.replaceState(s, '');
+export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
+export const Other = /*#__PURE__*/ componentQrl(q_Other_component_C1my3EIdP1k);
+export { saveScroll as _auto_saveScroll };
+export { scrollState as _auto_scrollState };
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,8DAA8D;;AAC9D,MAAM,cAAc,CAAC,KAAO,CAAC;QAAE,GAAG,GAAG,UAAU;QAAE,GAAG,GAAG,SAAS;IAAC,CAAC;AAElE,6DAA6D;AAC7D,MAAM,aAAa,CAAC,IAAM,QAAQ,YAAY,CAAC,GAAG;AASlD,OAAO,MAAM,oBAAM,0CAIhB;AAEH,OAAO,MAAM,sBAAQ,4CAKlB\"}")
+============================= test.tsx_App_component_ckEPmXZlub0.tsx (ENTRY POINT)==
+
+import { _auto_saveScroll as saveScroll } from "./test";
+import { _auto_scrollState as scrollState } from "./test";
+//
+const bigHelper = (el)=>{
+    const s = scrollState(el);
+    saveScroll(s);
+    return s;
+};
+export const App_component_ckEPmXZlub0 = ()=>{
+    // Uses bigHelper (which transitively uses scrollState and saveScroll)
+    const s = bigHelper(document.body);
+    return <div>{s.x}</div>;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;MAUM,YAAY,CAAC;IACjB,MAAM,IAAI,YAAY;IACtB,WAAW;IACX,OAAO;AACT;yCAE8B;IAC5B,sEAAsE;IACtE,MAAM,IAAI,UAAU,SAAS,IAAI;IACjC,QAAQ,KAAK,EAAE,CAAC,GAAG;AACrB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_ckEPmXZlub0",
+  "entry": null,
+  "displayName": "test.tsx_App_component",
+  "hash": "ckEPmXZlub0",
+  "canonicalFilename": "test.tsx_App_component_ckEPmXZlub0",
+  "path": "",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    491,
+    638
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

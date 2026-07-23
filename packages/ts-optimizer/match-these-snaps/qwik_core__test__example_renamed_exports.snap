@@ -1,0 +1,109 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 1075
+expression: output
+---
+==INPUT==
+
+
+import { component$ as Component, $ as onRender, useStore } from '@qwik.dev/core';
+
+export const App = Component((props) => {
+	const state = useStore({thing: 0});
+
+	return onRender(() => (
+		<div>{state.thing}</div>
+	));
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_App_Component_NuXFTHRjvXE = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_Component_NuXFTHRjvXE"), "App_Component_NuXFTHRjvXE");
+//
+export const App = /*#__PURE__*/ componentQrl(q_App_Component_NuXFTHRjvXE);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,oBAAM,0CAMhB\"}")
+============================= test.tsx_App_Component_1_A08tXHb9pEk.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+//
+export const App_Component_1_A08tXHb9pEk = ()=>{
+    const state = _captures[0];
+    return /*#__PURE__*/ _jsxSorted("div", null, null, _wrapProp(state, "thing"), 3, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;2CAMiB;;yBACf,WAAC,6BAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_Component_1_A08tXHb9pEk",
+  "entry": null,
+  "displayName": "test.tsx_App_Component_1",
+  "hash": "A08tXHb9pEk",
+  "canonicalFilename": "test.tsx_App_Component_1_A08tXHb9pEk",
+  "path": "",
+  "extension": "js",
+  "parent": "App_Component_NuXFTHRjvXE",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    183,
+    220
+  ],
+  "captureNames": [
+    "state"
+  ]
+}
+*/
+============================= test.tsx_App_Component_NuXFTHRjvXE.js (ENTRY POINT)==
+
+import { qrl } from "@qwik.dev/core";
+import { useStore } from "@qwik.dev/core";
+//
+const q_App_Component_1_A08tXHb9pEk = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_Component_1_A08tXHb9pEk"), "App_Component_1_A08tXHb9pEk");
+//
+export const App_Component_NuXFTHRjvXE = (props)=>{
+    const state = useStore({
+        thing: 0
+    });
+    return q_App_Component_1_A08tXHb9pEk.w([
+        state
+    ]);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAG6B,CAAC;IAC7B,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAEhC;;;AAGD\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_Component_NuXFTHRjvXE",
+  "entry": null,
+  "displayName": "test.tsx_App_Component",
+  "hash": "NuXFTHRjvXE",
+  "canonicalFilename": "test.tsx_App_Component_NuXFTHRjvXE",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    115,
+    224
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

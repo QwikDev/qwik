@@ -1,0 +1,127 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 3916
+expression: output
+---
+==INPUT==
+
+
+		import { component$, useSignal } from '@qwik.dev/core';
+		const useFoo = (count) => {
+			const tag = (s) => {
+				const value = typeof s === "string" ? s : s[0];
+				return `${value}-${count.value}`;
+			}
+			return tag;
+		}
+
+		export default component$(() => {
+			const count = useSignal(0);
+			const foo = useFoo(count);
+			return (
+				<>
+					<p>{foo("test")}</p>
+					<p>{foo`test`}</p>
+					<button onClick$={() => count.value++}>Count up</button>
+				</>
+			);
+		});
+		
+============================= test.tsx_test_component_Fragment_button_q_e_click_7MTd2pAiliw.ts (ENTRY POINT)==
+
+export const test_component_Fragment_button_q_e_click_7MTd2pAiliw = (_, _1, count)=>count.value++;
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"oEAiBuB,gBAAM,MAAM,KAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_Fragment_button_q_e_click_7MTd2pAiliw",
+  "entry": null,
+  "displayName": "test.tsx_test_component_Fragment_button_q_e_click",
+  "hash": "7MTd2pAiliw",
+  "canonicalFilename": "test.tsx_test_component_Fragment_button_q_e_click_7MTd2pAiliw",
+  "path": "",
+  "extension": "ts",
+  "parent": "test_component_LUXeXe0DQrg",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    418,
+    437
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "count"
+  ]
+}
+*/
+============================= test.tsx_test_component_LUXeXe0DQrg.ts (ENTRY POINT)==
+
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { useSignal } from "@qwik.dev/core";
+//
+const useFoo = (count)=>{
+    const tag = (s)=>{
+        const value = typeof s === "string" ? s : s[0];
+        return `${value}-${count.value}`;
+    };
+    return tag;
+};
+//
+const q_test_component_Fragment_button_q_e_click_7MTd2pAiliw = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_Fragment_button_q_e_click_7MTd2pAiliw"), "test_component_Fragment_button_q_e_click_7MTd2pAiliw");
+//
+export const test_component_LUXeXe0DQrg = ()=>{
+    const count = useSignal(0);
+    const foo = useFoo(count);
+    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
+        /*#__PURE__*/ _jsxSorted("p", null, null, foo("test"), 1, null),
+        /*#__PURE__*/ _jsxSorted("p", null, null, foo`test`, 1, null),
+        /*#__PURE__*/ _jsxSorted("button", {
+            "q:p": count
+        }, {
+            "q-e:click": q_test_component_Fragment_button_q_e_click_7MTd2pAiliw
+        }, "Count up", 7, null)
+    ], 1, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;MAEQ,SAAS,CAAC;IACf,MAAM,MAAM,CAAC;QACZ,MAAM,QAAQ,OAAO,MAAM,WAAW,IAAI,CAAC,CAAC,EAAE;QAC9C,OAAO,GAAG,MAAM,CAAC,EAAE,MAAM,KAAK,EAAE;IACjC;IACA,OAAO;AACR;;;;0CAE0B;IACzB,MAAM,QAAQ,UAAU;IACxB,MAAM,MAAM,OAAO;IACnB,qBACC;sBACC,WAAC,iBAAG,IAAI;sBACR,WAAC,iBAAG,GAAG,CAAC,IAAI,CAAC;sBACb,WAAC;;;YAAO,WAAQ;WAAuB;;AAG1C\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_LUXeXe0DQrg",
+  "entry": null,
+  "displayName": "test.tsx_test_component",
+  "hash": "LUXeXe0DQrg",
+  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
+  "path": "",
+  "extension": "ts",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    257,
+    474
+  ]
+}
+*/
+============================= test.ts ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+//
+export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAUE,6BAAe,2CAUZ\"}")
+== DIAGNOSTICS ==
+
+[]

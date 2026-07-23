@@ -1043,7 +1043,12 @@ describe('hotUpdate', () => {
           moduleGraph: { getModuleById: () => undefined, invalidateModule: () => undefined },
         },
       },
-      { file: modules[0]?.id ?? modules[0]?.url ?? '', modules, timestamp: 123 }
+      {
+        file: modules[0]?.id ?? modules[0]?.url ?? '',
+        modules,
+        timestamp: 123,
+        read: () => 'export const noop = 0;\n',
+      }
     );
 
   const componentCode = `import { component$ } from '@qwik.dev/core';

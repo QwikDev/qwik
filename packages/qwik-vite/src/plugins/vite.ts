@@ -709,11 +709,23 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
 
     async hotUpdate(ctx) {
+      const hmrEnabled = qwikViteOpts?.devTools?.hmr ?? true;
+      const isSourceUrl = (url: string) => /\.([mc]?[jt]sx?|mdx?)$/.test(url.split('?')[0]);
+
+      if (hmrEnabled && isSourceUrl(ctx.file)) {
+        const error = await qwikPlugin
+          .getTransformError(await ctx.read(), ctx.file)
+          .catch(() => null);
+        if (error) {
+          if (this.environment.name === 'client') {
+            this.warn(createBundlerError(qwikPlugin.normalizePath(ctx.file), error));
+          }
+          return [];
+        }
+      }
+
       const qwikReRendersChange = qwikPlugin.hotUpdate(this.environment, ctx);
 
-      const hmrEnabled = qwikViteOpts?.devTools?.hmr ?? true;
-
-      const isSourceUrl = (url: string) => /\.([mc]?[jt]sx?|mdx?)$/.test(url.split('?')[0]);
       const isStyleUrl = (url: string) => {
         const path = url.split('?')[0];
         return STYLING.some((ext) => path.endsWith(ext));

@@ -6,6 +6,8 @@ import {
   type QRLInternal,
 } from '../shared/qrl/qrl-class';
 import { inlinedQrl } from '../shared/qrl/qrl';
+import { findCursor } from '../shared/cursor/cursor';
+import { getCursorData } from '../shared/cursor/cursor-props';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import type { Container } from '../shared/types';
 import type { VNode } from '../shared/vnode/vnode';
@@ -49,6 +51,11 @@ export const _hmr = function (
       return;
     }
     markVNodeDirty(container, host, ChoreBits.COMPONENT);
+    const cursor = findCursor(host);
+    const cursorData = cursor && getCursorData(cursor);
+    if (cursorData) {
+      cursorData.hmrConstReload = true;
+    }
     reRunChangedTasks(container, host, files);
   });
 };

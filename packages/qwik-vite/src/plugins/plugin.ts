@@ -1333,6 +1333,28 @@ export const isDev = ${JSON.stringify(isDev)};
     opts.sourcemap = sourcemap;
   }
 
+  async function getTransformError(code: string, id: string): Promise<Diagnostic | null> {
+    const path = getPath();
+    const { pathId } = parseId(id);
+    const normalizedPathId = normalizePath(pathId);
+    const ext = path.extname(normalizedPathId).toLowerCase();
+    if (!(ext in TRANSFORM_EXTS) && !TRANSFORM_REGEX.test(normalizedPathId)) {
+      return null;
+    }
+    const output = await getOptimizer().transformModules({
+      input: [{ code, path: path.parse(normalizedPathId).base }],
+      minify: 'none',
+      sourceMaps: false,
+      transpileTs: true,
+      transpileJsx: true,
+      srcDir: normalizePath(path.dirname(normalizedPathId)),
+      rootDir: opts.rootDir,
+      mode: 'dev',
+      isServer: false,
+    });
+    return output.diagnostics.find((d) => d.category === 'error') ?? null;
+  }
+
   // Only used in Vite dev mode, called per-environment
   function hotUpdate(environment: DevEnvironment, ctx: HotUpdateOptions): boolean {
     const isServer = environment.name === 'ssr';
@@ -1503,6 +1525,7 @@ export const isDev = ${JSON.stringify(isDev)};
     setSourceMapSupport,
     configureServer,
     hotUpdate,
+    getTransformError,
     codeSplitting,
     generateManifest,
   };

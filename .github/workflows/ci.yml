@@ -677,6 +677,8 @@ jobs:
         settings:
           - host: ubuntu-latest
             browser: chromium
+          - host: ubuntu-latest
+            browser: firefox
           - host: windows-latest
             browser: chromium
           - host: macos-latest
@@ -1031,9 +1033,14 @@ jobs:
             browser: chromium
             shard: 2
             shardTotal: 2
-          # Some tests are failing on firefox, disable for now
-          # - host: ubuntu-latest
-          #   browser: firefox
+          - host: ubuntu-latest
+            browser: firefox
+            shard: 1
+            shardTotal: 2
+          - host: ubuntu-latest
+            browser: firefox
+            shard: 2
+            shardTotal: 2
           - host: windows-latest
             browser: chromium
             shard: 1

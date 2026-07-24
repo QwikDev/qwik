@@ -27,7 +27,7 @@
     "eslint-plugin-qwik": "workspace:*",
     "globals": "17.0.0",
     "netlify-cli": "24.5.1",
-    "postcss": "8.5.10",
+    "postcss": "8.5.12",
     "prettier": "3.7.4",
     "prettier-plugin-tailwindcss": "0.7.2",
     "tailwindcss": "4.2.4",

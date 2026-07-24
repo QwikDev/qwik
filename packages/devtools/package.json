@@ -36,7 +36,7 @@
     "eslint-plugin-qwik": "workspace:*",
     "nodemon": "3.1.14",
     "np": "11.0.2",
-    "postcss": "8.5.10",
+    "postcss": "8.5.12",
     "prettier": "3.7.4",
     "prettier-plugin-tailwindcss": "0.7.2",
     "react": "19.2.4",

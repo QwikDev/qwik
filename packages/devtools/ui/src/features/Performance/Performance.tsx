@@ -5,10 +5,11 @@ import { ComponentCard } from './components/ComponentCard';
 import { HookDetailsPanel } from './components/HookDetailsPanel';
 import { PerformanceOverview } from './components/PerformanceOverview';
 import { getPageDataSource, type RenderEvent } from '../../devtools/page-data-source';
+import type { DevtoolsState } from '../../devtools/state';
 
 const MAX_RENDER_EVENTS = 200;
 
-export const Performance = component$(() => {
+export const Performance = component$<{ state: DevtoolsState }>(({ state }) => {
   const perf = useSignal<QwikPerfStoreRemembered | null>(null);
   const selectedComponent = useSignal<string | null>(null);
   const renderEvents = useSignal<RenderEvent[]>([]);
@@ -64,6 +65,16 @@ export const Performance = component$(() => {
 
   const clearRenderEvents = $(() => {
     renderEvents.value = [];
+  });
+
+  // The palette requests a clear; reset the flag once handled so it can fire again.
+  useTask$(({ track }) => {
+    if (!track(() => state.clearPerformanceRequested)) {
+      return;
+    }
+    renderEvents.value = [];
+    selectedComponent.value = null;
+    state.clearPerformanceRequested = false;
   });
 
   const hasData = (perf.value?.ssr?.length ?? 0) > 0 || (perf.value?.csr?.length ?? 0) > 0;

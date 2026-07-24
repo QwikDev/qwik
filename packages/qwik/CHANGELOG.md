@@ -1,5 +1,21 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.39
+
+### Patch Changes
+
+- 🐞🩹 handle async component rejections during SSR flushes. (by [@Varixo](https://github.com/Varixo) in [#8851](https://github.com/QwikDev/qwik/pull/8851))
+
+- 🐞🩹 support Vite's Rolldown type definitions in the optimizer plugin (by [@gioboa](https://github.com/gioboa) in [#8874](https://github.com/QwikDev/qwik/pull/8874))
+
+- 🐞🩹 report repeated qrl chunk load failures only once (by [@Varixo](https://github.com/Varixo) in [#8845](https://github.com/QwikDev/qwik/pull/8845))
+
+- 🐞🩹 encode vnode metadata keys in script output. (by [@Varixo](https://github.com/Varixo) in [#8866](https://github.com/QwikDev/qwik/pull/8866))
+
+- 🐞🩹 require noSerialize values to carry the marker brand (by [@Varixo](https://github.com/Varixo) in [#8867](https://github.com/QwikDev/qwik/pull/8867))
+
+- 🐞🩹 avoid projecting HMR placeholders into nested components (by [@Varixo](https://github.com/Varixo) in [#8865](https://github.com/QwikDev/qwik/pull/8865))
+
 ## 2.0.0-beta.38
 
 ### Major Changes

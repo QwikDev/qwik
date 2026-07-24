@@ -607,35 +607,40 @@ describe('shared-serialization', () => {
       const clean = createComputed$(() => foo.value + 2, { serializationStrategy: 'always' });
       const never = createComputed$(() => foo.value + 3, { serializationStrategy: 'never' });
       const always = createComputed$(() => foo.value + 4, { serializationStrategy: 'always' });
+      const defaultStrategy = createComputed$(() => foo.value + 5);
       const noSer = createComputed$(() => noSerialize({ foo }));
       // note that this won't subscribe because we're not setting up the context
       // do not read `dirty` to keep it dirty
       expect(clean.value).toBe(2);
       expect(never.value).toBe(3);
       expect(always.value).toBe(4);
-      const objs = await serialize(dirty, clean, never, always, noSer);
+      expect(defaultStrategy.value).toBe(5);
+      const objs = await serialize(dirty, clean, never, always, defaultStrategy, noSer);
       expect(_dumpState(objs)).toMatchInlineSnapshot(`
         "
         0 ComputedSignal [
-          QRL "6#1#-2"
+          QRL "7#1#-2"
         ]
         1 ComputedSignal [
-          QRL "6#2#-3"
+          QRL "7#2#-3"
           Constant undefined
           {number} 2
         ]
         2 ComputedSignal [
-          QRL "6#3#-4"
+          QRL "7#3#-4"
         ]
         3 ComputedSignal [
-          QRL "6#4#-5"
+          QRL "7#4#-5"
           Constant undefined
           {number} 4
         ]
         4 ComputedSignal [
-          QRL "6#5#-6"
+          QRL "7#5#-6"
         ]
-        5 Signal [
+        5 ComputedSignal [
+          QRL "7#6#-7"
+        ]
+        6 Signal [
           {number} 0
           EffectSubscriptionNoData [
             RootRef 1
@@ -649,14 +654,19 @@ describe('shared-serialization', () => {
             RootRef 3
             Constant '.'
           ]
+          EffectSubscriptionNoData [
+            RootRef 4
+            Constant '.'
+          ]
         ]
-        6 {string} "mock-chunk"
-        7 {string} "describe_describe_it_dirty_createComputed_ahnh0V4rf6g"
-        8 {string} "describe_describe_it_clean_createComputed_0ZTfN4iJ0tg"
-        9 {string} "describe_describe_it_never_createComputed_1HbLed7JXyo"
-        10 {string} "describe_describe_it_always_createComputed_4nMmgHlUOog"
-        11 {string} "describe_describe_it_noSer_createComputed_pXwl00hYYQQ"
-        (454 chars)"
+        7 {string} "mock-chunk"
+        8 {string} "describe_describe_it_dirty_createComputed_ahnh0V4rf6g"
+        9 {string} "describe_describe_it_clean_createComputed_0ZTfN4iJ0tg"
+        10 {string} "describe_describe_it_never_createComputed_1HbLed7JXyo"
+        11 {string} "describe_describe_it_always_createComputed_4nMmgHlUOog"
+        12 {string} "describe_describe_it_defaultStrategy_createComputed_i9O7shypysA"
+        13 {string} "describe_describe_it_noSer_createComputed_pXwl00hYYQQ"
+        (552 chars)"
       `);
     });
     it(title(TypeIds.SerializerSignal), async () => {

@@ -1,5 +1,4 @@
-import type { OutputBundle, PluginContext } from 'rollup';
-import type { Plugin as VitePlugin, UserConfig } from 'vite';
+import type { Plugin as VitePlugin, Rollup, UserConfig } from 'vite';
 import type { QwikManifest } from '../types';
 import { QWIK_CORE_ID, QWIK_CORE_INTERNAL_ID, type QwikBuildTarget } from './plugin';
 import {
@@ -28,7 +27,7 @@ export const loadQwikWorkerCore = () => {
   };
 };
 
-export const emitQwikWorkerCoreChunk = (ctx: PluginContext) => {
+export const emitQwikWorkerCoreChunk = (ctx: Rollup.PluginContext) => {
   ctx.emitFile({
     id: QWIK_WORKER_CORE_ID,
     name: 'qwik-worker-core',
@@ -53,7 +52,7 @@ export const getQwikWorkerConfig = (
   };
 };
 
-export const rewriteClientWorkerCorePlaceholders = (rollupBundle: OutputBundle) => {
+export const rewriteClientWorkerCorePlaceholders = (rollupBundle: Rollup.OutputBundle) => {
   const workerCoreChunk = Object.values(rollupBundle).find(
     (output) => output.type === 'chunk' && output.facadeModuleId === QWIK_WORKER_CORE_ID
   );
@@ -66,7 +65,7 @@ export const rewriteClientWorkerCorePlaceholders = (rollupBundle: OutputBundle) 
 };
 
 export const rewriteSsrWorkerCorePlaceholders = (
-  rollupBundle: OutputBundle,
+  rollupBundle: Rollup.OutputBundle,
   manifest: QwikManifest | null
 ) => {
   const workerCoreChunkFileName = getWorkerCoreChunkFileNameFromManifest(manifest);
@@ -107,7 +106,7 @@ const createQwikWorkerPlugins = (userWorkerPlugins: WorkerConfig['plugins']) => 
 };
 
 const rewriteWorkerCorePlaceholdersInBundle = (
-  rollupBundle: OutputBundle,
+  rollupBundle: Rollup.OutputBundle,
   resolveWorkerCorePath: (fileName: string) => string | undefined
 ) => {
   for (const output of Object.values(rollupBundle)) {

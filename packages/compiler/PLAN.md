@@ -1,7 +1,7 @@
 # Compiler implementation plan
 
 Status: active working agreement
-Last updated: 2026-07-18
+Last updated: 2026-07-23
 
 Cross-session architecture handoff: [`TARGET_NATIVE_HANDOFF.md`](./TARGET_NATIVE_HANDOFF.md).
 
@@ -33,9 +33,10 @@ names. Target planners consume a validated `ComponentPlan`; emitters only serial
 plans. This is the only production compiler pipeline. OXC normalizes TypeScript with JSX preserved,
 parses the normalized source, and handles the ordinary transform only for `not-applicable` modules.
 
-Multi-head SSR and Suspense are outside this implementation. Multi-head investigation remains in
-[`MULTI_HEAD_SSR.md`](./MULTI_HEAD_SSR.md). Suspense readiness comes only from stable CSR ranges and
-an extensible `SsrOutput`; do not add speculative heads, transactions, reveal queues, or patches.
+Generic multi-head SSR remains outside this implementation. Lean compiler-driven Suspense is an
+implemented one-shot extension of the existing content-range model; its protocol and exclusions
+live in [`MULTI_HEAD_SSR.md`](./MULTI_HEAD_SSR.md). Do not add speculative heads, transactions,
+reveal queues, or a general backpatch system.
 
 ## Stable internal contracts
 
@@ -89,8 +90,9 @@ interface ModuleBoundaryPlan {
 ```
 
 Every dynamic render node and effect refers to a `LifetimeId`. A lifetime declares its owner,
-parent, async ownership boundary, and atomic commit behavior. `RenderFunctionPlan` may belong to a branch,
-slot, row, or dynamic collection, but may not register lifecycle hooks.
+parent, async ownership boundary, and atomic commit behavior. `RenderFunctionPlan` may belong to a
+branch, slot, row, dynamic collection, Suspense boundary, or ordinary QRL, but may not register
+lifecycle hooks.
 
 The compiler entry returns exactly one result:
 
@@ -389,10 +391,11 @@ interface SsrRecordChunk {
 }
 ```
 
-SSR is strictly sequential: sibling 2 starts only after sibling 1 settles; rows and slot
+Base SSR is strictly sequential: sibling 2 starts only after sibling 1 settles; rows and slot
 projections also remain sequential. Returned Promises are awaited in that order, while async
-signals retry through their dedicated effect path without repeating component setup. IDs, roots,
-captures, styles, and events are assigned only in the ready sequential continuation.
+signals retry through their dedicated effect path without repeating component setup. A pending
+Suspense boundary may commit its fallback shell position and later stream its resolved packet;
+unrelated sibling packets use resolution order and nested packets wait for their parent.
 For Source-capable keyed collections, the compiler marks a single-element row with `q:row` and
 wraps every other row in a typed `<!r=...>...<!/r>` record. Direct-array rows have no row marker.
 The target plan separately records whether a row actually uses `rowId`; SSR allocates it only in
@@ -419,9 +422,9 @@ mutation log. SSR uses typed event chunks inside element records, merges handler
 materialization, and relocates a headless document carrier into `<head>` without parsing HTML.
 
 One `SsrOutputWriter` recursively consumes the output, materializes a whole record before one
-`write()`, keeps at most one write in flight, serializes HTML/state/loader/event scripts/closing
-tags, and owns the only `finish()` path. `renderToString()` and `renderToStream()` use that same
-writer. Do not add `SsrHead`, transactions, remapping, `maybeFork()`, or Suspense patches.
+`write()`, keeps at most one write in flight, serializes HTML/state/loader/event/Suspense packet
+scripts/closing tags, and owns the only `finish()` path. `renderToString()` and `renderToStream()`
+use that same writer. Do not add `SsrHead`, transactions, remapping, or `maybeFork()`.
 
 ## Implementation phases
 
@@ -500,10 +503,11 @@ Exit: all supported shapes produce stable ranges/bindings and unsupported shapes
 Status: implemented; final verification in progress
 
 - Lowering is the only JSX classification phase.
-- Model element, text, dynamic value, component, branch, slot, collection, and DOM effect
+- Model element, text, dynamic value, component, branch, slot, collection, Suspense, and DOM effect
   explicitly.
 - Ordered props preserve source order and last-write-wins semantics.
-- Diagnose Suspense, innerHTML+children, unsupported raw-text children, and unknown syntax.
+- Diagnose innerHTML+children, unsupported raw-text children, invalid Suspense forms, and unknown
+  syntax.
 - Recursively lower callback JSX once, classify its receiver as direct-array, direct-reactive, or
   derived, and retain that source kind for both target planners.
 - Keep ordinary component props inline while retaining binding-aware references to true nested QRL
@@ -523,6 +527,12 @@ Status: implemented; final verification in progress
 - Remove regex-based loop capture, task strategy, and import-usage rewriting.
 - Store the neutral implicit-`$` boundary and payload kind (`function` or `value`) without choosing
   the CSR direct API or SSR QRL API in extraction.
+- For every reachable ordinary function QRL whose single final return contains JSX, semantic
+  lowering attaches the same target-native `RenderFunctionPlan` independently of the QRL's
+  consumer. Target planners prepend hidden `ctx` to its authored parameters; non-render event,
+  task, computed, serializer, and style boundaries keep their existing ABI.
+- Emitters branch only on `SegmentPlan.render`; they must not infer render behavior from a prop,
+  hook, segment, or identifier name.
 - Module-level segments have `lifetimeId: null`; component validation continues to require a real
   lifetime for every segment owned by a `ComponentPlan`. Never synthesize a component or lifetime
   solely to transform a helper module.
@@ -570,6 +580,8 @@ Status: implemented; final verification in progress
   calls.
 - Register only genuine one-shot continuations with `scheduler.waitFor()`. Returned-Promise
   insertion remains compiler-planned; the runtime does not normalize arbitrary output.
+- Emit Suspense as one existing range, one content render QRL, an optional ordinary fallback QRL,
+  and `createSuspense()`. Synchronous content allocates no timer and never resolves fallback.
 - Scheduler phases retry framework AsyncSignal suspension, serialize attempts of the same
   subscriber, batch scalar Promise collection, and preserve synchronous fast paths. Do not add
   async keyed `For`.
@@ -587,7 +599,7 @@ Status: implemented; final verification in progress
 Exit: focused CSR tests cover adjacent anchors, returned Promises, setup-once, stale completion,
 cleanup, task order/custom hooks, async signals/text, atomic `For`, slots, and contexts.
 
-### 10. `SsrPlan`, SSR emitter, and sequential runtime
+### 10. `SsrPlan`, SSR emitter, and Suspense stream runtime
 
 Status: implemented; final verification in progress
 
@@ -605,7 +617,8 @@ Status: implemented; final verification in progress
   after observing actual async cleanup. A lane starts the first task during `notify()`, queues later
   registrations lazily, drains invalidations and failures in registration order, and performs no
   I/O or global metadata commit.
-- Preserve strict sibling/row/projection order and the sync fast path.
+- Preserve strict base sibling/row/projection order and the sync fast path. Only explicit Suspense
+  boundaries may split fallback shell output from resolved content.
 - Allocate resumability metadata only after async work is ready.
 - Preserve structured records and typed references.
 - Emit a compiler-proven static root with no setup, calls, events, typed references, or dynamic
@@ -624,6 +637,12 @@ Status: implemented; final verification in progress
 - `rangeId` and `rowId` parameters exist only when the target plan uses their marker/range; retain a
   positional placeholder only when a later runtime argument requires it.
 - Route every byte through the one `SsrOutputWriter` shared by string and stream APIs.
+- Emit Suspense through `createSsrSuspense()` and request-local deferred records. The shell owns
+  fallback state; append-only resolved state precedes each packet; child packets wait for their
+  parent; `renderToString()` and `outOfOrder: false` emit final content inline.
+- Collect resolved-content dependencies at the request boundary. Emit flat `q:sub` edge metadata
+  only when a new subscriber depends on a previously serialized source; consume no root ID,
+  reserialize no source, and allocate client edge storage only when metadata exists.
 - For implicit-`$`, select the same-source `fooQrl` API and pass the ordinary segment QRL with
   binding-aware captures; never derive target names ad hoc in the emitter.
 
@@ -640,6 +659,8 @@ pipeline.
 Status: implemented; final verification in progress
 
 - Plan CSR and SSR render-function segments with the same semantic rules as components.
+- A rendered ordinary QRL exports `(ctx, ...authoredArgs)`; a non-render QRL preserves its authored
+  parameters. Segment emission mechanically follows the planner-provided parameter lists.
 - Emit exact named/default/namespace imports for module references.
 - Export required local declarations through range insertion without reordering them.
 - Reject a component extracted to a separate module when it writes to a mutable top-level binding;
@@ -704,7 +725,11 @@ preserved, and all verification below passes.
   functions, and prebuilt `inlinedQrl` captures.
 - Implicit-`$` fixtures cover core, third-party and local markers; aliases, shadowing,
   type-only/default/namespace exclusions; target alias reuse/collisions; nested calls; async
-  segments; function captures; capture-free values; and missing local companions.
+  segments; function captures; capture-free values; generic JSX render QRLs; authored render
+  parameters; and missing local companions.
+- Suspense fixtures cover direct/aliased/namespace recognition, generic fallback QRL lowering,
+  parser-sensitive in-order output, one-shot CSR fallback ownership, append-only state, sibling
+  resolution order, nested parent gating, late packet cancellation, and final-only SSR modes.
 
 ## Runtime cutover status
 

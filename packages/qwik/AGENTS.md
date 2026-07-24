@@ -74,6 +74,8 @@ src/server/
 - The scheduler owns CSR initial subscriber work. One-shot async continuations use `waitFor()`.
 - Returned Promises use the existing `maybeThen()`/scheduler paths. Manually thrown Promise support
   is not a public contract.
+- Streamed Suspense records new edges to earlier sources as zero-root `q:sub` metadata. Paused
+  sources attach them lazily; live sources catch up through post-insertion root preparation.
 - Keyed `For` preserves the original raw item for a reused key and updates only its index signal.
 
 ## Server bundle boundary
@@ -105,5 +107,6 @@ signature verifier may block wrapper commands locally; do not bypass it with `pm
 
 Legacy test dispositions are recorded in
 `src/core/tests/LEGACY_TEST_MIGRATION.md`. Tests requiring full component rerender or VNode
-tree inspection are deliberately excluded; deferred Resource, ErrorBoundary, Suspense, backpatch,
-multi-head and OOOS cases remain fixture strings or skipped tests until their designs are settled.
+tree inspection are deliberately excluded. Resource, ErrorBoundary, SuspenseList, generic
+backpatch, and multi-head cases remain deferred; one-shot Suspense OOOS uses focused
+compiler/core/server coverage.

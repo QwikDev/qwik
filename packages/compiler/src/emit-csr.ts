@@ -13,7 +13,7 @@ import {
 import { getSegmentImportPath } from './emit-segment';
 import {
   planCsr,
-  planCsrRenderFunction,
+  planCsrSegmentRender,
   type CsrComponentCardinalityResolver,
   type CsrCollectionRowPlan,
   type CsrOperationPlan,
@@ -70,7 +70,7 @@ interface CsrDomBatch {
   readonly operations: string[];
 }
 
-const REF_HELPERS: Record<CsrRefStep, QwikWord> = {
+const REF_HELPERS: Record<Exclude<CsrRefStep, 'content'>, QwikWord> = {
   firstChild: QwikWord.FirstChild,
   nextSibling: QwikWord.NextSibling,
 };
@@ -286,7 +286,9 @@ export function emitCsrPlan(
     refNames.set(ref.id, refName);
     const { path, steps } = emitShortestRefPath(fragmentName, ref.path, emittedRefs);
     for (const step of steps) {
-      imports.add(REF_HELPERS[step]);
+      if (step !== 'content') {
+        imports.add(REF_HELPERS[step]);
+      }
     }
     statements.push(`const ${refName} = ${path};`);
     emittedRefs.push({ name: refName, path: ref.path });
@@ -362,22 +364,19 @@ export function emitCsrSegmentRender(
   componentCardinality?: CsrComponentCardinalityResolver,
   componentPropsName = 'props'
 ): CsrRender | null {
-  if (segment.render === null) {
-    return null;
-  }
-  const plan = planCsrRenderFunction(
-    segment.render,
+  const target = planCsrSegmentRender(
+    segment,
     segments,
     source,
     componentCardinality,
     componentPropsName
   );
-  if (plan === null) {
+  if (target === null) {
     return null;
   }
   const emitted = emitCsrPlan(
     segment.symbolName,
-    plan,
+    target.plan,
     source,
     inputPath,
     explicitExtensions,
@@ -386,12 +385,11 @@ export function emitCsrSegmentRender(
   if (emitted === null) {
     return null;
   }
-  const parameterBindingIds = segment.usedParameterBindingIds;
   return {
     ...emitted,
-    runtimeParameters: plan.needsContext || parameterBindingIds.length > 0 ? ['ctx'] : [],
-    trailingRuntimeParameters: plan.needsId ? ['_id'] : [],
-    parameterBindingIds,
+    runtimeParameters: target.runtimeParameters,
+    trailingRuntimeParameters: target.trailingRuntimeParameters,
+    parameterBindingIds: target.parameterBindingIds,
   };
 }
 
@@ -878,6 +876,27 @@ function emitCsrOperation(
           });`,
         ],
         statements: [`ctx.scheduler.notify(${branch});`],
+      };
+    }
+    case 'suspense': {
+      const range = getRangeNames(operation.range, refNames);
+      if (range === null) {
+        return null;
+      }
+      imports.add(QwikWord.BranchRange);
+      imports.add(QwikWord.CreateSuspense);
+      operationNames.set(operation.id, [range.start, range.end]);
+      const fallback =
+        operation.fallback === null
+          ? 'undefined'
+          : operation.fallback.kind === 'segment'
+            ? emitPlannedFunctionReference(operation.fallback.reference, context)
+            : emitValue(operation.fallback, context);
+      return {
+        declarations: [],
+        statements: [
+          `${QwikWord.CreateSuspense}(ctx, new ${QwikWord.BranchRange}(ctx.document, ${range.start}, ${range.end}), ${emitPlannedFunctionReference(operation.content, context)}, ${fallback}, ${operation.delay === null ? '0' : emitValue(operation.delay, context)});`,
+        ],
       };
     }
     case 'slot': {
@@ -1426,7 +1445,10 @@ function emitPlannedFunctionReference(
 }
 
 function emitRefPath(root: string, path: readonly CsrRefStep[]): string {
-  return path.reduce((code, step) => `${REF_HELPERS[step]}(${code})`, root);
+  return path.reduce(
+    (code, step) => (step === 'content' ? `${code}.content` : `${REF_HELPERS[step]}(${code})`),
+    root
+  );
 }
 
 function emitShortestRefPath(

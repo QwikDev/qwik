@@ -24,7 +24,7 @@ function diagnosticCodes(code: string) {
 }
 
 describe('transform diagnostics', () => {
-  test('returns compiler diagnostics through transformModules without JSX fallback', async () => {
+  test('transforms Suspense without an unsupported diagnostic or JSX fallback', async () => {
     const input = {
       path: 'src/component.tsx',
       code: `import { Suspense } from '@qwik.dev/core';
@@ -40,11 +40,8 @@ export function App() { return <Suspense>content</Suspense>; }`,
         isServer,
       });
 
-      expect(result.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
-        TransformDiagnosticCode.SuspenseUnsupported,
-      ]);
-      expect(result.modules).toHaveLength(1);
-      expect(result.modules[0].code).toBe('');
+      expect(result.diagnostics).toEqual([]);
+      expect(result.modules[0].code).not.toContain('<Suspense');
     }
   });
 
@@ -68,7 +65,7 @@ export function App() { return <Suspense>content</Suspense>; }`,
     expect(result.modules[0].code).toBe('');
   });
 
-  test('rejects direct and namespace Suspense boundaries', () => {
+  test('accepts direct and namespace Suspense boundaries', () => {
     const result = diagnostics(`import { Suspense as Boundary } from '@qwik.dev/core';
 import * as Qwik from '@qwik.dev/core';
 
@@ -77,12 +74,7 @@ export function App() {
 }
 `);
 
-    expect(result).toHaveLength(2);
-    expect(result.map((diagnostic) => diagnostic.code)).toEqual([
-      TransformDiagnosticCode.SuspenseUnsupported,
-      TransformDiagnosticCode.SuspenseUnsupported,
-    ]);
-    expect(result[0].message).toBe('Suspense is not supported by the compiler yet.');
+    expect(result).toEqual([]);
   });
 
   test('does not diagnose shadowed Suspense imports', () => {
@@ -143,6 +135,30 @@ export function App(Boundary) {
 `)
     ).toEqual([]);
   });
+
+  test.each(['script', 'style', 'textarea', 'title'])(
+    'rejects Suspense inside raw-text <%s>',
+    (tag) => {
+      expect(
+        diagnosticCodes(`import { Suspense } from '@qwik.dev/core';
+export function App() {
+  return <${tag}><Suspense>ready</Suspense></${tag}>;
+}`)
+      ).toEqual([TransformDiagnosticCode.RawTextChildren]);
+    }
+  );
+
+  test.each(['{<Suspense>ready</Suspense>}', '{true && <Suspense>ready</Suspense>}'])(
+    'rejects expression-wrapped raw-text Suspense %s',
+    (child) => {
+      expect(
+        diagnosticCodes(`import { Suspense } from '@qwik.dev/core';
+export function App() {
+  return <title>${child}</title>;
+}`)
+      ).toEqual([TransformDiagnosticCode.RawTextChildren]);
+    }
+  );
 
   test('allows Promise native attributes and rejects unsupported Promise surfaces', () => {
     const result = diagnostics(`const Child = (props) => <span>{props.value}</span>;

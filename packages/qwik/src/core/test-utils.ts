@@ -364,6 +364,7 @@ export function createCaptureContainer(
       rootToChunk: [],
       forwardRefsChunk: null,
       liveRoots: new Map(),
+      disposedRoots: new Set(),
     },
     forwardRefs: null,
     getForwardRefs() {
@@ -372,6 +373,9 @@ export function createCaptureContainer(
     getRoot(id) {
       return Promise.resolve(captures[String(id)]);
     },
+    discardRoot() {},
+    async disposeRoot() {},
+    async prepareRoot() {},
     async restoreCaptures(ids) {
       const normalized = ids.trim();
       if (normalized.length === 0) {

@@ -75,6 +75,20 @@ import { needsInflation } from './deser-proxy';
 
 export { allocate, needsInflation };
 
+export function restoreStreamedSubscribers(
+  container: ContainerContext,
+  source: unknown,
+  subscriberIds: readonly number[]
+): void {
+  const subscriptions = ((source as Source).subs ??= []);
+  for (let i = 0; i < subscriberIds.length; i++) {
+    const subscriberId = subscriberIds[i];
+    subscriptions.push(
+      new LazySerialized<Subscriber>(() => container.getRoot(subscriberId) as Promise<Subscriber>)
+    );
+  }
+}
+
 const dangerousObjectKeys = new Set([
   'constructor',
   'prototype',
@@ -514,6 +528,7 @@ async function restoreContentSubscription(
   const ownedSubscribers = parts[5] as Subscriber[] | undefined;
   const slotScope = (parts[6] as SlotScope | null | undefined) ?? null;
   const useOnScopes = parts[7] as UseOnMap[] | null | undefined;
+  const contextArg = parts[8] === true;
   const markerRange = findContentRange(container.element, rangeId);
   isDev && assertDefined(markerRange, `Missing content range ${rangeId}.`);
   if (markerRange === null) {
@@ -532,6 +547,7 @@ async function restoreContentSubscription(
     invokeContext,
     container,
     useOnScopes != null,
+    contextArg,
     true
   );
   restoreDependencies(subscription, deps);

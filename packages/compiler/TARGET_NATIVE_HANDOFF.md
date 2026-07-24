@@ -1,7 +1,7 @@
 # Target-native Qwik handoff
 
 Status: cross-session context
-Last updated: 2026-07-18
+Last updated: 2026-07-23
 
 This document is the shortest complete map of the target-native compiler/runtime work. Read it
 before changing `packages/compiler`, `packages/qwik/src/core`, or `packages/qwik/src/server`.
@@ -9,7 +9,8 @@ before changing `packages/compiler`, `packages/qwik/src/core`, or `packages/qwik
 It does not replace the authoritative documents:
 
 - [`PLAN.md`](./PLAN.md) is the source of truth for settled compiler/runtime semantics.
-- [`MULTI_HEAD_SSR.md`](./MULTI_HEAD_SSR.md) contains the deferred multi-head and OOOS design.
+- [`MULTI_HEAD_SSR.md`](./MULTI_HEAD_SSR.md) contains the deferred multi-head design and implemented
+  lean Suspense OOOS contract.
 - [`packages/qwik/AGENTS.md`](../qwik/AGENTS.md) defines package-level implementation rules.
 
 If code, this handoff, and `PLAN.md` disagree, inspect the focused tests and ask before inventing a
@@ -28,9 +29,10 @@ TSX
   -> DOM or SSR output
 ```
 
-The goal is resumability without VNodes, hydration, component rerendering, or a second optimizer
-pipeline. The compiler should move every decision known statically out of downloaded runtime JS.
-The runtime should contain only work that genuinely depends on values available at execution time.
+The goal is resumability without VNodes, client-side component rebuilding, component rerendering,
+or a second optimizer pipeline. The compiler should move every decision known statically out of
+downloaded runtime JS. The runtime should contain only work that genuinely depends on values
+available at execution time.
 
 The primary optimization target is the combined cost of:
 
@@ -57,7 +59,7 @@ packages/compiler/src/
   semantic-lower.ts         semantic JSX and setup lowering
   validate-component-plan.ts
   plan-csr.ts               CSR templates, ranges, operations and ABI choices
-  plan-ssr.ts               sequential SSR operations and output choices
+  plan-ssr.ts               SSR operations, Suspense boundaries and output choices
   emit-csr.ts               mechanical CSR serialization
   emit-ssr.ts               mechanical SSR serialization
   emit-segment.ts           target segment serialization
@@ -82,7 +84,7 @@ packages/qwik/src/server/
   ssr-scheduler.ts          request-local task lanes
   ssr-event-attr.ts         typed event attributes
   ssr-events.ts             event/QRL serialization
-  ssr-script-emitter.ts     state, loader and event scripts
+  ssr-script-emitter.ts     state, loader, event and Suspense packet scripts
   ssr-use-on.ts             SSR useOn carrier handling
   ssr-ref.ts                server DOM references
   string-writer.ts          renderToString sink
@@ -116,7 +118,7 @@ Responsibilities are strict:
 - `analysis` owns identity: `BindingId`, scopes, references, imports and exports.
 - `discover` only decides which module items are candidates.
 - `shape` validates supported linear component structure.
-- `semantic-lower` is the only place that assigns JSX meaning.
+- `semantic-lower` is the only place that assigns JSX meaning, including rendered ordinary QRLs.
 - `SegmentPlan` owns captures, module references, parameters, await ranges and QRL metadata.
 - `ComponentPlan` combines shape, setup, render semantics, segments and lifetimes.
 - CSR/SSR planners choose templates, ranges, output shape, markers, IDs and runtime ABI.
@@ -173,6 +175,13 @@ SSR: foo$(closure, ...rest) -> fooQrl(qrl(segment).w(captures), ...rest)
 CSR closures still need captures; direct execution does not mean capture-free execution. A
 boundary-only module is a compiler success and emits all reachable nested segments.
 
+A reachable ordinary function QRL whose single final return contains JSX receives a
+`RenderFunctionPlan` during semantic lowering, regardless of which prop or API consumes it. CSR and
+SSR planners prepend hidden `ctx` to its authored parameters, so its internal ABI is
+`(ctx, ...authoredArgs)`. Event, task, computed, serializer, and style QRLs without a render plan
+retain their authored ABI. Extraction does not assign this meaning, and emitters only serialize the
+plan; no phase may recognize render QRLs by consumer or identifier name.
+
 ## Bindings, captures and props
 
 - Captures and module references are always binding-aware.
@@ -194,8 +203,8 @@ boundary-only module is a compiler success and emits all reachable nested segmen
 ## Render semantics and ownership
 
 `RenderPlan` is semantic only. It contains elements, text, dynamic values, components, branches,
-slots, collections, effects and local renderable values. It contains no HTML strings, DOM paths or
-runtime helper names.
+slots, collections, Suspense, effects and local renderable values. It contains no HTML strings, DOM
+paths or runtime helper names.
 
 Every dynamic node/effect has a `LifetimeId`. Every subscriber belongs to an owner. Component
 setup and hook registration execute exactly once; reactive DOM updates do not rerun a component.
@@ -216,6 +225,9 @@ CSR target planning owns templates, references, stable ranges, return mode and o
   ranges synchronously and schedules its work through the existing scheduler contract.
 - One-shot async component, slot, plain content and direct-array work registers its continuation
   with `scheduler.waitFor()`.
+- Suspense reuses one existing content range and `ContentBlock`. It invokes an optional ordinary
+  fallback QRL only when initial content remains pending past its delay, and permanently disposes
+  that fallback when content commits.
 - Root `render()` mounts the synchronous output and waits once for `flushInteraction()`.
 - Component cleanup disposes its owner before removing mounted nodes and is idempotent.
 
@@ -336,13 +348,26 @@ helper to apply scopes after rendering.
 
 ## SSR model now
 
-Current SSR is sequential:
+Base SSR remains sequential:
 
 - sibling 2 does not start before sibling 1 settles;
 - rows and slot projections are sequential;
-- `renderToString()` and `renderToStream()` have equivalent final semantics apart from their sink;
 - returned Promises are awaited with `maybeThen()`;
-- no backpatch, head transaction, reveal queue or OOOS patch is emitted.
+- no generic backpatch, head transaction, reveal queue, or multi-head transaction is emitted.
+
+Explicit Suspense boundaries add one narrow OOOS path:
+
+- synchronous content and content resolving before `delay` remain inline and packet-free;
+- a pending boundary emits fallback in the shell and a later append-only state/template packet;
+- resolved content emits zero-root `q:sub` metadata only for new subscriber edges to previously
+  serialized sources; paused sources restore those edges lazily, while live sources use boundary
+  preparation for immediate catch-up;
+- unrelated sibling packets use Promise-resolution order and child packets wait for their parent;
+- one nearest-container-scoped executor applies packets serially with a native DOM `Range`;
+- missing client ranges cancel their content roots, and removed fallback roots are disposed or
+  tombstoned before later resume;
+- `renderToString()` and `renderToStream({ outOfOrder: false })` await final content inline and emit
+  no packet executor.
 
 SSR output is structured:
 
@@ -374,8 +399,8 @@ The server has one `SsrScheduler` per request and currently one root lane.
 - Visible tasks never enter the SSR scheduler.
 - A lane performs no stream I/O or global metadata commit.
 
-Lane shape is intentionally useful for future multi-head SSR, but no empty transaction/head
-abstraction should be added now.
+Lane shape remains useful for future multi-head SSR, but Suspense uses request-local deferred
+records and the existing root lane rather than an empty transaction/head abstraction.
 
 ## Server bundle boundary
 
@@ -438,9 +463,9 @@ Do not implement these opportunistically:
 
 - `useResource`;
 - ErrorBoundary (the intended implementation is expected to change);
-- Suspense and SuspenseList;
+- SuspenseList and Reveal coordination;
 - multi-head SSR;
-- OOOS structural/attribute backpatch execution;
+- OOOS structural/attribute backpatch execution outside explicit Suspense boundaries;
 - SSR head transactions, reveal patches and state-delta remapping;
 - retry of an entire RenderPlan;
 - manually thrown user Promises as a public async contract;
@@ -449,10 +474,11 @@ Do not implement these opportunistically:
 - component rerendering as an update mechanism;
 - VNode tree inspection or compatibility runtime.
 
-Future OOOS/backpatch work must follow [`MULTI_HEAD_SSR.md`](./MULTI_HEAD_SSR.md): structural
+Future generic OOOS/backpatch work must follow [`MULTI_HEAD_SSR.md`](./MULTI_HEAD_SSR.md): structural
 patches use compiler boundaries, attribute patches use stable element IDs, work renders into a
 local serialization context, commit remaps/deduplicates roots and dependencies, and every payload
-uses the one ordered sink. Do not leak SSR-only state into CSR invoke contexts.
+uses the one ordered sink. The implemented Suspense path intentionally uses shared append-only IDs
+and no local transaction or remapping. Do not leak SSR-only state into CSR invoke contexts.
 
 ## Testing policy
 
@@ -485,35 +511,6 @@ git diff HEAD --check
 When the root pnpm signature verifier blocks local wrapper commands, do not bypass it with
 `pmOnFail=ignore`. Use the equivalent checked-in Node build entry or local binary for diagnosis and
 report the environmental blocker. Building platform bindings also requires the local `napi` CLI.
-
-## Current verification baseline
-
-After flattening the core and server source directories:
-
-- Qwik package TypeScript check passes.
-- Core/server/testing: 62 passing files plus one skipped file; 817 passing tests and four skipped.
-- Server after relocation: six files and 33 tests pass.
-- Compiler plus the focused Qwik Vite plugin test: 17 files and 353 tests pass.
-- Targeted Qwik/core/worker build passes.
-- Prettier checks for the merged entrypoints and relocated server files pass.
-- `git diff HEAD --check` passes.
-
-These counts are a historical handoff baseline, not a substitute for rerunning affected tests.
-
-## Current worktree cautions
-
-The worktree contains a large, intentional cutover diff that predates the final directory
-flattening. Preserve it. Do not use `git reset`, `git checkout`, or broad generated-file updates.
-Always inspect `git diff HEAD`, not only the unstaged diff.
-
-At the time of this handoff, relocated destination files under `packages/qwik/src/core/*` and
-`packages/qwik/src/server/ssr-*.ts` are untracked while their former locations are deleted in the
-working tree. A future intentional staging operation must use `git add -A`; `git add -u` would omit
-the destinations. Do not stage unless the user asks.
-
-Generated API documentation under `packages/docs/src/routes/api` still contains old source edit
-links from before directory flattening. Regenerate it with `pnpm api.update`; do not hand-edit the
-generated Markdown/JSON.
 
 ## Decision protocol
 

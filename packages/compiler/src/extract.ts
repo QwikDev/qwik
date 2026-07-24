@@ -151,6 +151,16 @@ class QrlExtractor {
         this.recordReference(node);
         return;
       case 'JSXElement': {
+        if (this.isSuspense(node.openingElement.name)) {
+          this.visitComponentJsxAttributes(node.openingElement.attributes, node.openingElement);
+          const segment = this.createExpressionSegment('suspense:content', node, 'suspenseRender');
+          if (segment !== null) {
+            this.visitExpressionsSegment(node.children, segment, (child) =>
+              this.visitJsxChild(child)
+            );
+          }
+          return;
+        }
         const name = getJsxName(node.openingElement.name);
         const slot = name !== null && this.isQwikSlot(node.openingElement.name);
         if (name !== null && !isNativeTag(name) && !slot) {
@@ -674,6 +684,7 @@ class QrlExtractor {
       | 'branchRender'
       | 'forKey'
       | 'forRender'
+      | 'suspenseRender'
       | 'slotRender' = 'expression'
   ): Segment | null {
     const range = getRange(expression);
@@ -1006,6 +1017,26 @@ class QrlExtractor {
   private isQwikSlot(node: unknown): boolean {
     const imported = this.bindingForReference(node)?.import;
     return imported?.importedName === QwikHooks.Slot && isQwikImport(imported.source);
+  }
+
+  private isSuspense(node: AstNode): boolean {
+    if (node.type === 'JSXIdentifier') {
+      const imported = this.bindingForReference(node)?.import;
+      return (
+        imported?.importedName === QwikHooks.Suspense &&
+        !imported.typeOnly &&
+        isQwikImport(imported.source)
+      );
+    }
+    if (
+      node.type !== 'JSXMemberExpression' ||
+      node.object.type !== 'JSXIdentifier' ||
+      node.property.name !== QwikHooks.Suspense
+    ) {
+      return false;
+    }
+    const imported = this.bindingForReference(node.object)?.import;
+    return imported?.importedName === '*' && !imported.typeOnly && isQwikImport(imported.source);
   }
 
   private createModuleDeclaration(statement: AstNode): ModuleDeclaration | null {

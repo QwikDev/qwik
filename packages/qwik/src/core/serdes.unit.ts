@@ -93,6 +93,49 @@ describe('serdes emit-only', () => {
     expect(hasSerializedPair(JSON.parse(ctx.$writer$.toString()), TypeIds.RefVNode, 6)).toBe(true);
   });
 
+  it('serializes only roots added after the initial state', async () => {
+    const ctx = createSerializationContext(
+      null,
+      () => '',
+      () => {},
+      new WeakMap()
+    );
+    const initialRoot = { value: 1 };
+    ctx.$addRoot$(initialRoot);
+
+    await ctx.$serialize$();
+    const initialState = ctx.$writer$.toString();
+    ctx.$addRoot$([initialRoot]);
+
+    expect(await ctx.$serializeNext$()).toEqual({
+      base: 1,
+      len: 1,
+      state: JSON.stringify([TypeIds.Array, [TypeIds.RootRef, 0]]),
+    });
+    expect(ctx.$writer$.toString()).toBe(initialState);
+    expect(await ctx.$serializeNext$()).toBeNull();
+  });
+
+  it('returns incremental forward refs outside the real-root state', async () => {
+    const ctx = createSerializationContext(
+      null,
+      () => '',
+      () => {},
+      new WeakMap()
+    );
+    ctx.$addRoot$('initial');
+    await ctx.$serialize$();
+    ctx.$addRoot$(Promise.resolve('later'));
+
+    const range = await ctx.$serializeNext$();
+
+    expect(range?.base).toBe(1);
+    expect(range?.len).toBe(2);
+    expect(range?.forwardRefs).toEqual([2]);
+    expect(JSON.parse(range!.state)).toHaveLength(4);
+    expect(JSON.parse(range!.state).slice(0, 2)).toEqual([TypeIds.ForwardRef, 0]);
+  });
+
   it('serializes a signal without subscribers', async () => {
     const count = useSignal(0);
     const state = await serialize(count);

@@ -21,6 +21,7 @@ export const enum QwikWord {
   MergeProps = 'mergeProps',
   BranchRange = 'BranchRange',
   CreateBranch = 'createBranch',
+  CreateSuspense = 'createSuspense',
   CreateContentBlock = 'createContentBlock',
   CreateCollection = 'createCollection',
   WrapArray = '_wrapArray',
@@ -49,6 +50,7 @@ export const enum QwikWord {
   RenderSsrTextNode = 'renderSsrTextNode',
   RenderSsrTextExpression = 'renderSsrTextExpression',
   RenderSsrBranch = 'renderSsrBranch',
+  CreateSsrSuspense = 'createSsrSuspense',
   RenderSsrContent = 'renderSsrContent',
   RenderSsrCollection = 'renderSsrCollection',
   RenderSsrSlot = 'renderSsrSlot',
@@ -124,4 +126,5 @@ export const enum QwikHooks {
   UseOnDocument = 'useOnDocument',
   UseOnWindow = 'useOnWindow',
   Slot = 'Slot',
+  Suspense = 'Suspense',
 }

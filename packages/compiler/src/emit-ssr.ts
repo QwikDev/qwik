@@ -27,6 +27,7 @@ import {
   type SsrPropOperation,
   type SsrRenderBlockPlan,
   type SsrSlotOperation,
+  type SsrSuspenseOperation,
   type SsrComponentReturnModeResolver,
 } from './plan-ssr';
 import type {
@@ -702,6 +703,8 @@ class SsrEmitter {
         return this.component(operation);
       case 'branch':
         return this.branch(operation);
+      case 'suspense':
+        return this.suspense(operation);
       case 'slot':
         return this.slot(operation);
       case 'collection':
@@ -1015,7 +1018,8 @@ class SsrEmitter {
     prep.push(...props.prep);
     this.imports.add(QwikWord.CreateComponent);
     const tag = this.source.slice(operation.tagRange[0], operation.tagRange[1]);
-    const expression = `${QwikWord.CreateComponent}(${props.value}, (props) => ${tag}(props, ctx${
+    const componentContext = operation.blockingSuspense ? 'ctx.inOrder()' : 'ctx';
+    const expression = `${QwikWord.CreateComponent}(${props.value}, (props) => ${tag}(props, ${componentContext}${
       operation.idBase === null ? '' : `, ${operation.idBase}`
     })${options})`;
     if (operation.returnMode === 'sync' && this.synchronousBlock) {
@@ -1061,6 +1065,48 @@ class SsrEmitter {
       value,
       literal('<!/b>'),
     ];
+  }
+
+  private suspense(operation: SsrSuspenseOperation): SsrPart[] | null {
+    if (operation.inOrder !== null) {
+      return this.operations(operation.inOrder);
+    }
+    const content = this.renderSegment(operation.content);
+    if (content === null) {
+      return null;
+    }
+    const fallback = operation.fallback === null ? null : this.suspenseQrl(operation.fallback);
+    if (operation.fallback !== null && fallback === null) {
+      return null;
+    }
+    const delayPrep = operation.delay === null ? [] : this.inlineValuePrep(operation.delay);
+    if (delayPrep === null) {
+      return null;
+    }
+    const id = this.declareId('suspenseId');
+    const value = this.step(
+      `${QwikWord.CreateSsrSuspense}(ctx, ${id}, ${this.qrlReference(content)}, ${fallback?.value ?? 'undefined'}, ${operation.delay === null ? '0' : this.expression(operation.delay)})`,
+      [this.assignId(id), ...this.rootSegment(content), ...(fallback?.prep ?? []), ...delayPrep],
+      'suspense'
+    );
+    this.imports.add(QwikWord.CreateSsrSuspense);
+    return [value];
+  }
+
+  private suspenseQrl(
+    value: ValuePlan
+  ): { readonly value: string; readonly prep: readonly string[] } | null {
+    if (value.kind === 'segment') {
+      const segment = this.segment(value.segment);
+      return segment === null
+        ? null
+        : {
+            value: this.qrlReference(segment, value.segment),
+            prep: this.rootNames(this.captureNames(segment, value.segment)),
+          };
+    }
+    const prep = this.inlineValuePrep(value);
+    return prep === null ? null : { value: this.expression(value), prep };
   }
 
   private slot(operation: SsrSlotOperation): SsrPart[] | null {

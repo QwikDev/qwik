@@ -58,6 +58,10 @@ export function disposeSubscriber(subscriber: Subscriber): void {
     case SubscriberKind.ForBlock:
     case SubscriberKind.Content: {
       cleanupDeps(subscriber);
+      if (subscriber.kind === SubscriberKind.Content) {
+        subscriber.dispose();
+        return;
+      }
       const scheduled = subscriber as PhaseSubscriber;
       if (scheduled.flags === undefined) {
         return;
@@ -68,8 +72,6 @@ export function disposeSubscriber(subscriber: Subscriber): void {
       } else if (scheduled.kind === SubscriberKind.Branch) {
         scheduled.branch.dispose();
       } else if (scheduled.kind === SubscriberKind.ForBlock) {
-        scheduled.block.dispose();
-      } else if (scheduled.kind === SubscriberKind.Content) {
         scheduled.block.dispose();
       }
       return;

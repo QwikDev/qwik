@@ -29,7 +29,7 @@ export async function _deserialize<T>(raw: string): Promise<T> {
     document: null,
     locale: null,
     scheduler: defaultScheduler,
-    state: { rootToChunk: [], forwardRefsChunk: null, liveRoots: roots },
+    state: { rootToChunk: [], forwardRefsChunk: null, liveRoots: roots, disposedRoots: new Set() },
     forwardRefs: null,
     getForwardRefs: () => context.forwardRefs,
     async getRoot(id: number | string) {

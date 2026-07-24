@@ -5,7 +5,7 @@
 ```ts
 
 import { PhaseSubscriber } from '@qwik.dev/core';
-import type { QRL } from '@qwik.dev/core';
+import { QRL } from '@qwik.dev/core';
 import type { QwikManifest } from '@qwik.dev/core/optimizer';
 import type { RenderRoot } from '@qwik.dev/core';
 import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
@@ -68,6 +68,8 @@ export const renderToStream: RenderToStream;
 
 // @public (undocumented)
 export interface RenderToStreamOptions<Props = undefined> extends RenderOptions<Props> {
+    // (undocumented)
+    outOfOrder?: boolean;
     // (undocumented)
     stream: StreamWriter;
 }

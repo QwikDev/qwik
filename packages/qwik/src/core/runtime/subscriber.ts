@@ -94,6 +94,7 @@ export interface ForBlockSubscriber extends Collector, ScheduledSubscriber {
 export interface ContentSubscriber extends Collector, ScheduledSubscriber {
   readonly kind: SubscriberKind.Content;
   readonly block: ContentBlock<any>;
+  dispose(): void;
   run(): ValueOrPromise<readonly Node[]>;
 }
 
@@ -126,6 +127,7 @@ export interface SsrContentSubscriber extends Collector {
   readonly kind: SubscriberKind.Content;
   owner: Owner | null;
   readonly content: SSRContent<any>;
+  dispose(): void;
 }
 
 // Work scheduled into one of the runtime phases.

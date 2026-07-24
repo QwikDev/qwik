@@ -49,6 +49,7 @@ export { version } from './version';
 export { render } from './csr-render';
 export type { RenderOptions, RenderResult, RenderRoot } from './render-types';
 export { Slot } from './dom/slot/slot';
+export { Suspense, type SuspenseProps } from './dom/content/content';
 
 export { useAsync$, useComputed$, useConstant, useSerializer$ } from './reactive/public-api';
 /** @public */

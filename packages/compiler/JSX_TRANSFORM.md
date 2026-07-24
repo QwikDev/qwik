@@ -35,7 +35,8 @@ The compiler transform returns one of three results:
 - Shape validation accepts the supported linear component setup and rejects unsupported control
   flow before lowering.
 - Semantic lowering is the only layer that classifies JSX, ordered props, branches, slots,
-  collections, dynamic content, effects, ownership, and lifetimes.
+  collections, Suspense, rendered ordinary QRLs, dynamic content, effects, ownership, and
+  lifetimes.
 - CSR and SSR planners consume the same validated semantic plan and decide templates, ranges,
   target operations, parameter ABI, and reachable segments.
 - Emitters serialize target plans. They do not inspect the AST or reclassify source expressions.
@@ -49,8 +50,9 @@ the synchronous fast path and commit only the latest active attempt. Manually th
 not supported.
 
 SSR emits recursive `SsrOutput` with structured records and typed references. Rendering is
-sequential: siblings, rows, and slot projections settle in document order. A record is fully
-materialized before the writer performs one ordered write.
+sequential outside explicit Suspense boundaries: siblings, rows, and slot projections settle in
+document order. Pending Suspense boundaries may stream resolved packets after their fallback shell
+position. A record is fully materialized before the writer performs one ordered write.
 
 Plain array maps render sequential collections. Proven or derived reactive sources use keyed
 collections with compiler-planned keys and row markers. Target-native render functions already
@@ -61,8 +63,12 @@ Implicit `$` calls are recognized by imported binding identity. CSR calls the di
 with the extracted function and captures; SSR calls the corresponding QRL implementation. An
 existing `inlinedQrl()` is already a complete QRL and passes through unchanged.
 
+Every reachable ordinary function QRL whose single final return contains JSX receives a
+target-native render plan. Its emitted ABI is `(ctx, ...authoredArgs)`; non-render QRLs preserve
+their authored ABI. This is a semantic QRL rule, not a Suspense prop-name special case.
+
 ## Deferred work
 
-Styles parity, Suspense, and multi-head/out-of-order SSR are separate work. Their absence does not
-introduce a second compiler pipeline. Detailed internal contracts and current implementation work
-are tracked in [`PLAN.md`](./PLAN.md).
+Generic multi-head SSR, SuspenseList, and non-Suspense structural/attribute backpatching remain
+separate work. Their absence does not introduce a second compiler pipeline. Detailed internal
+contracts and current implementation work are tracked in [`PLAN.md`](./PLAN.md).

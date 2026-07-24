@@ -15,6 +15,156 @@ const options = (input: TransformModuleInput): TransformModulesOptions => ({
 });
 
 describe('SSR output', () => {
+  test('emits the direct SSR Suspense ABI without compiler-owned range markup', async () => {
+    const result = await transformModules(
+      options({
+        path: 'src/suspense.tsx',
+        code: `import { Suspense } from '@qwik.dev/core';
+import { AsyncContent } from './async-content';
+export function App({ delay }) {
+  return <main><Suspense fallback$={() => <i>wait</i>} delay={delay}><AsyncContent /></Suspense></main>;
+}`,
+      })
+    );
+    const main = result.modules[0]?.code ?? '';
+
+    expect(result.diagnostics).toEqual([]);
+    expect(parseSync('suspense.js', main, { lang: 'js', sourceType: 'module' }).errors).toEqual([]);
+    expect(main).toMatch(/createSsrSuspense\(ctx, suspenseId\d+, q_[\w$]+, q_[\w$]+, delay\)/);
+    expect(main).not.toContain("createSsrRecord('<!s='");
+    expect(main).not.toContain('<q-s');
+    expect(main).not.toContain('Reveal');
+    expect(result.modules.map((module) => module.code).join('\n')).not.toContain('<Suspense');
+  });
+
+  test('emits a local JSX fallback QRL', async () => {
+    const result = await transformModules(
+      options({
+        path: 'src/local-fallback.tsx',
+        code: `import { $, Suspense } from '@qwik.dev/core';
+export function App() {
+  const fallback = $(() => <i>wait</i>);
+  return <Suspense fallback$={fallback}><span>content</span></Suspense>;
+}`,
+      })
+    );
+    const output = result.modules.map((module) => module.code).join('\n');
+
+    expect(result.diagnostics).toEqual([]);
+    expect(output).toContain('createSsrSuspense');
+    expect(output).toContain('return "<i>wait</i>"');
+    expect(output).not.toContain('<Suspense');
+  });
+
+  test('preserves conditional local fallback QRL selection', async () => {
+    const result = await transformModules(
+      options({
+        path: 'src/conditional-fallback.tsx',
+        code: `import { $, Suspense } from '@qwik.dev/core';
+export function App({ first }) {
+  const fallback = first ? $(() => <i>first</i>) : $(() => <b>second</b>);
+  return <Suspense fallback$={fallback}><span>content</span></Suspense>;
+}`,
+      })
+    );
+    const output = result.modules.map((module) => module.code).join('\n');
+
+    expect(result.diagnostics).toEqual([]);
+    for (const module of result.modules) {
+      expect(
+        parseSync(module.path, module.code, { lang: 'js', sourceType: 'module' }).errors
+      ).toEqual([]);
+    }
+    expect(result.modules[0]?.code).toMatch(/createSsrSuspense\([^;]+, fallback, 0\)/);
+    expect(output).toContain('return "<i>first</i>"');
+    expect(output).toContain('return "<b>second</b>"');
+  });
+
+  test('lowers a local JSX value containing Suspense', async () => {
+    const result = await transformModules(
+      options({
+        path: 'src/local-suspense.tsx',
+        code: `import { Suspense } from '@qwik.dev/core';
+export function App() {
+  const view = <Suspense fallback$={() => <i>wait</i>}><b>ready</b></Suspense>;
+  return <main>{view}</main>;
+}`,
+      })
+    );
+    const output = result.modules.map((module) => module.code).join('\n');
+
+    expect(result.diagnostics).toEqual([]);
+    for (const module of result.modules) {
+      expect(
+        parseSync(module.path, module.code, { lang: 'js', sourceType: 'module' }).errors
+      ).toEqual([]);
+    }
+    expect(output).toContain('createSsrSuspense');
+    expect(output).not.toContain('<Suspense');
+  });
+
+  test('renders parser-sensitive Suspense content in order', async () => {
+    const result = await transformModules(
+      options({
+        path: 'src/table-suspense.tsx',
+        code: `import { Suspense } from '@qwik.dev/core';
+export function App() {
+  return <table><Suspense fallback$={() => <tbody />}><tbody><tr><td>ready</td></tr></tbody></Suspense></table>;
+}`,
+      })
+    );
+    const main = result.modules[0]?.code ?? '';
+
+    expect(result.diagnostics).toEqual([]);
+    expect(main).toContain('<table><tbody><tr><td>ready</td></tr></tbody></table>');
+    expect(main).not.toContain('createSsrSuspense');
+  });
+
+  test('renders Suspense inside template content in order', async () => {
+    const result = await transformModules(
+      options({
+        path: 'src/template-suspense.tsx',
+        code: `import { Suspense } from '@qwik.dev/core';
+export function App() {
+  return <template><Suspense fallback$={() => <i>wait</i>}><b>ready</b></Suspense></template>;
+}`,
+      })
+    );
+    const main = result.modules[0]?.code ?? '';
+
+    expect(result.diagnostics).toEqual([]);
+    expect(main).toContain('<template><b>ready</b></template>');
+    expect(main).not.toContain('createSsrSuspense');
+  });
+
+  test('passes an in-order context through parser-sensitive components', async () => {
+    const result = await transformModules(
+      options({
+        path: 'src/svg-suspense.tsx',
+        code: `import { Suspense } from '@qwik.dev/core';
+function Icon() {
+  return <Suspense fallback$={() => <circle />}><circle /></Suspense>;
+}
+export function App() {
+  return <svg><Icon /></svg>;
+}`,
+      })
+    );
+    const output = result.modules.map((module) => module.code).join('\n');
+
+    expect(result.diagnostics).toEqual([]);
+    expect(output).toContain('Icon(props, ctx.inOrder())');
+    expect(output).toContain('createSsrSuspense');
+  });
+
+  test('does not import createSsrSuspense without a Suspense boundary', async () => {
+    const result = await transformModules(
+      options({ path: 'src/plain.tsx', code: `export function App() { return <p>ready</p>; }` })
+    );
+
+    expect(result.modules[0]?.code).not.toContain('createSsrSuspense');
+  });
+
   test('emits a typed context-scope marker', async () => {
     const result = await transformModules(
       options({
@@ -225,6 +375,7 @@ export function App() {
             range: [0, 5],
             tagRange: [0, 5],
             bindingId: null,
+            blockingSuspense: false,
             lifetimeId: 0,
             props: [],
             slots: [],

@@ -6,7 +6,7 @@ import { discoverComponents } from './discover';
 import { emitCsrPlan, emitCsrSegmentRender } from './emit-csr';
 import { extractQrls } from './extract';
 import { lowerComponent } from './lower';
-import { planCsr } from './plan-csr';
+import { planCsr, planCsrSegmentRender } from './plan-csr';
 import type { ComponentPlan, ModuleAnalysis } from './plan-types';
 
 function lower(code: string): { plan: ComponentPlan; analysis: ModuleAnalysis } {
@@ -36,6 +36,92 @@ function lower(code: string): { plan: ComponentPlan; analysis: ModuleAnalysis } 
 }
 
 describe('planCsr', () => {
+  test('plans Suspense on an existing range and emits the direct CSR ABI', () => {
+    const code = `import { Suspense } from '@qwik.dev/core';
+export function App({ delay }) {
+  return <main><Suspense fallback$={() => <i>wait</i>} delay={delay}><span>ready</span></Suspense></main>;
+}`;
+    const plan = planCsr(lower(code).plan, code)!;
+    const suspense = plan.operations.find((operation) => operation.kind === 'suspense');
+    const imports = new Set<string>();
+    const emitted = emitCsrPlan('App', plan, code, 'src/component.tsx', false, imports)!;
+    const output = [...emitted.hoists, ...emitted.statements, emitted.value].join('\n');
+
+    expect(suspense).toMatchObject({
+      kind: 'suspense',
+      range: { start: expect.any(Number), end: expect.any(Number) },
+      content: { delivery: 'lazy' },
+      fallback: { kind: 'segment', reference: { delivery: 'lazy' } },
+      delay: { kind: 'expression', expression: 'delay' },
+    });
+    expect(output).toMatch(
+      /createSuspense\(ctx, new BranchRange\(ctx\.document, start\d+, end\d+\), q_[\w$]+, q_[\w$]+, \(delay\)\);/
+    );
+    expect(output).not.toContain('<Suspense');
+    expect(output).not.toContain('Reveal');
+    expect(output).not.toContain('q-s');
+    expect([...imports]).toContain('createSuspense');
+    expect([...imports]).toContain('BranchRange');
+  });
+
+  test('does not import createSuspense without a Suspense boundary', () => {
+    const code = `export function App() { return <main>ready</main>; }`;
+    const plan = planCsr(lower(code).plan, code)!;
+    const imports = new Set<string>();
+    emitCsrPlan('App', plan, code, 'src/component.tsx', false, imports);
+
+    expect([...imports]).not.toContain('createSuspense');
+  });
+
+  test('plans the hidden context before authored render QRL parameters', () => {
+    const code = `import { $ } from '@qwik.dev/core';
+export function App() {
+  const view = $((label) => <i>{label}</i>);
+  return <main>{String(view)}</main>;
+}`;
+    const component = lower(code).plan;
+    const segment = component.segments.find((candidate) => candidate.ctxName === '$')!;
+    const target = planCsrSegmentRender(segment, component.segments, code)!;
+
+    expect(target.runtimeParameters).toEqual(['ctx']);
+    expect(target.parameterBindingIds).toEqual(segment.usedParameterBindingIds);
+  });
+
+  test('passes an imported fallback QRL without a compiler role', () => {
+    const code = `import { Suspense } from '@qwik.dev/core';
+import { fallback } from './fallback';
+export function App() { return <Suspense fallback$={fallback}>ready</Suspense>; }`;
+    const plan = planCsr(lower(code).plan, code)!;
+    const suspense = plan.operations.find((operation) => operation.kind === 'suspense');
+
+    expect(suspense).toMatchObject({
+      kind: 'suspense',
+      fallback: { kind: 'expression', expression: 'fallback' },
+    });
+  });
+
+  test('resolves Suspense markers through template content', () => {
+    const code = `import { Suspense } from '@qwik.dev/core';
+export function App() {
+  return <template><Suspense fallback$={() => <i>wait</i>}><b>ready</b></Suspense></template>;
+}`;
+    const plan = planCsr(lower(code).plan, code)!;
+    const suspense = plan.operations.find((operation) => operation.kind === 'suspense');
+    const imports = new Set<string>();
+    const emitted = emitCsrPlan('App', plan, code, 'src/component.tsx', false, imports)!;
+    const output = [...emitted.statements, emitted.value].join('\n');
+
+    expect(suspense).toMatchObject({
+      range: { start: expect.any(Number), end: expect.any(Number) },
+    });
+    expect(
+      plan.refs
+        .filter((ref) => ref.kind.startsWith('range-'))
+        .every((ref) => ref.path.some((step) => (step as string) === 'content'))
+    ).toBe(true);
+    expect(output).toMatch(/_first\(el\d+\.content\)/);
+  });
+
   test('plans final template paths and batches scalar operations with the same captures', () => {
     const code = `import { useSignal } from '@qwik.dev/core';
 export function App() {

@@ -78,6 +78,7 @@ export type SsrOperation =
   | SsrContentOperation
   | SsrComponentOperation
   | SsrBranchOperation
+  | SsrSuspenseOperation
   | SsrSlotOperation
   | SsrCollectionOperation;
 
@@ -136,6 +137,7 @@ export interface SsrComponentOperation {
   readonly returnMode: 'sync' | 'maybe-promise';
   readonly props: readonly OrderedPropPlan[];
   readonly idBase: string | null;
+  readonly blockingSuspense: boolean;
   readonly slots: readonly {
     readonly name: string;
     readonly render: RenderFunctionPlan;
@@ -150,6 +152,14 @@ export interface SsrBranchOperation {
   readonly else: RenderFunctionPlan | null;
   readonly root: boolean;
   readonly idBase: string | null;
+}
+
+export interface SsrSuspenseOperation {
+  readonly kind: 'suspense';
+  readonly content: RenderFunctionPlan;
+  readonly fallback: ValuePlan | null;
+  readonly delay: ValuePlan | null;
+  readonly inOrder: readonly SsrOperation[] | null;
 }
 
 export interface SsrSlotOperation {
@@ -348,6 +358,8 @@ export function planSsrSegmentRender(
   const row = segment.kind === 'forRender' || segment.kind === 'collectionRender';
   const slot = segment.kind === 'slotRender';
   const branch = segment.kind === 'branchRender';
+  const suspense = segment.kind === 'suspenseRender';
+  const qrl = segment.kind === 'qrl';
   const sourceCapableRow = row && segment.render.collectionSourceKind !== 'direct-array';
   const rowRoot =
     sourceCapableRow &&
@@ -356,25 +368,28 @@ export function planSsrSegmentRender(
   const rowMarker = sourceCapableRow && !rowRoot;
   const usesRowId = row && (rowMarker || planned.render.needsRootRange);
   const parameterBindingIds = segment.usedParameterBindingIds;
-  const runtimeParameters = row
-    ? parameterBindingIds.length > 0
-      ? ['ctx', '__rangeId', usesRowId ? 'rowId' : '__rowId']
-      : usesRowId
-        ? ['ctx', '__rangeId', 'rowId']
-        : planned.render.needsContext
-          ? ['ctx']
-          : []
-    : branch
-      ? planned.render.needsRootRange
-        ? ['ctx', 'rangeId']
-        : planned.render.needsContext
-          ? ['ctx']
-          : []
-      : slot
-        ? ['ctx', 'rangeId']
-        : planned.render.needsContext
-          ? ['ctx']
-          : [];
+  const runtimeParameters =
+    suspense || qrl
+      ? ['ctx']
+      : row
+        ? parameterBindingIds.length > 0
+          ? ['ctx', '__rangeId', usesRowId ? 'rowId' : '__rowId']
+          : usesRowId
+            ? ['ctx', '__rangeId', 'rowId']
+            : planned.render.needsContext
+              ? ['ctx']
+              : []
+        : branch
+          ? planned.render.needsRootRange
+            ? ['ctx', 'rangeId']
+            : planned.render.needsContext
+              ? ['ctx']
+              : []
+          : slot
+            ? ['ctx', 'rangeId']
+            : planned.render.needsContext
+              ? ['ctx']
+              : [];
   return {
     ...planned,
     surroundingRangeId: branch || slot ? 'rangeId' : row ? 'rowId' : null,
@@ -532,6 +547,7 @@ class SsrPlanner {
           returnMode: this.componentReturnMode(node.bindingId),
           props: node.props,
           idBase: node.needsId ? this.idExpression('c') : null,
+          blockingSuspense: node.blockingSuspense,
           slots: node.slots.map((slot) => ({
             name: slot.name,
             render: slot.render,
@@ -547,6 +563,21 @@ class SsrPlanner {
           root: false,
           idBase: node.then.needsId || node.else?.needsId === true ? this.idExpression('b') : null,
         };
+      case 'suspense': {
+        const inOrder = node.blocking
+          ? this.nodes(node.content.render.roots, parentTargetId)
+          : null;
+        if (node.blocking && inOrder === null) {
+          return null;
+        }
+        return {
+          kind: 'suspense',
+          content: node.content,
+          fallback: node.fallback,
+          delay: node.delay,
+          inOrder,
+        };
+      }
       case 'slot':
         return {
           kind: 'slot',
@@ -799,6 +830,9 @@ function isStaticSsrRoot(render: RenderPlan): boolean {
 function isStaticSsrNode(node: RenderNodePlan): boolean {
   return (
     node.kind === 'static-text' ||
+    (node.kind === 'suspense' &&
+      node.blocking &&
+      node.content.render.roots.every(isStaticSsrNode)) ||
     (node.kind === 'element' &&
       node.propsEffect === null &&
       node.props.every((prop) => prop.kind === 'static') &&
@@ -863,6 +897,19 @@ function collectSsrSegmentIds(operations: readonly SsrOperation[]): string[] {
         render(operation.then);
         render(operation.else);
         return;
+      case 'suspense':
+        if (operation.inOrder !== null) {
+          operation.inOrder.forEach(visit);
+        } else {
+          render(operation.content);
+          if (operation.fallback !== null) {
+            value(operation.fallback);
+          }
+          if (operation.delay !== null) {
+            value(operation.delay);
+          }
+        }
+        return;
       case 'slot':
         render(operation.fallback);
         return;
@@ -890,6 +937,8 @@ function collectSsrDirectSegmentIds(operations: readonly SsrOperation[]): string
   const visit = (operation: SsrOperation): void => {
     if (operation.kind === 'element') {
       operation.children.forEach(visit);
+    } else if (operation.kind === 'suspense' && operation.inOrder !== null) {
+      operation.inOrder.forEach(visit);
     } else if (operation.kind === 'collection' && operation.row.kind === 'inline') {
       operation.row.target.usedSegmentIds.forEach((id) => ids.add(id));
     }
@@ -922,6 +971,8 @@ function isSynchronousSsrOperation(operation: SsrOperation): boolean {
     case 'branch':
     case 'slot':
       return false;
+    case 'suspense':
+      return operation.inOrder?.every(isSynchronousSsrOperation) ?? false;
     case 'collection':
       return (
         operation.source.kind === 'direct-array' &&
@@ -955,6 +1006,8 @@ function needsSsrContext(operation: SsrOperation): boolean {
     case 'slot':
     case 'collection':
       return true;
+    case 'suspense':
+      return operation.inOrder?.some(needsSsrContext) ?? true;
   }
 }
 

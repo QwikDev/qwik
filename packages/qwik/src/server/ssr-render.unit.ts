@@ -6,6 +6,7 @@ import {
   createSsrNodeId,
   createSsrElementRecord,
   createSsrRecord,
+  type SsrOutput,
   type SsrReferenceChunk,
 } from '../core/ssr/output';
 import { useContextProvider, type ContextId } from '../core/runtime/context';
@@ -16,6 +17,9 @@ import { getLocale } from '../core/runtime/use-locale';
 import { useServerData } from '../core/runtime/use-server-data';
 import { useSignal } from '../core/reactive/public-api';
 import { useOnDocument } from '../core/runtime/use-on';
+import { createSsrSuspense } from '../core/dom/content/content';
+import { _await } from '../core/reactive/tracking';
+import { createSsrElementTextTarget, renderSsrTextNode } from '../core/dom/effect/ssr-effect';
 import {
   renderToStreamCompiled as renderToStream,
   renderToStringCompiled as renderToString,
@@ -218,5 +222,387 @@ describe('SSR context markers', () => {
     const result = await rendering;
     expect(completed).toBe(true);
     expect(result.html).toContain('<p>ready</p>');
+  });
+
+  test('keeps synchronous Suspense content inline', async () => {
+    const fallback = vi.fn(() => '<p>fallback</p>');
+
+    const result = await renderToString((_props, ctx) =>
+      createSsrSuspense(
+        ctx,
+        ctx.nextId(),
+        createQRL('', 'content', () => '<p>content</p>', null, null),
+        createQRL('', 'fallback', fallback, null, null)
+      )
+    );
+
+    expect(result.html).toContain('<!d=0><p>content</p><!/d>');
+    expect(result.html).not.toContain('q:s=');
+    expect(fallback).not.toHaveBeenCalled();
+  });
+
+  test('writes a fallback shell before its resolved packet', async () => {
+    let resolveContent!: (value: string) => void;
+    const content = new Promise<string>((resolve) => (resolveContent = resolve));
+    let shellWritten!: () => void;
+    const shell = new Promise<void>((resolve) => (shellWritten = resolve));
+    const chunks: string[] = [];
+
+    const rendering = renderToStream(
+      (_props, ctx) =>
+        createSsrSuspense(
+          ctx,
+          ctx.nextId(),
+          createQRL('', 'content', () => content, null, null),
+          createQRL('', 'fallback', () => '<p>fallback</p>', null, null)
+        ),
+      {
+        containerTagName: 'div',
+        stream: {
+          write(chunk) {
+            chunks.push(chunk);
+            if (chunk.includes('fallback')) {
+              shellWritten();
+            }
+          },
+        },
+      }
+    );
+
+    await shell;
+    expect(chunks.join('')).toContain('<p>fallback</p>');
+    expect(chunks.join('')).not.toContain('<p>content</p>');
+    expect(chunks).not.toContain('</div>');
+
+    resolveContent('<p>content</p>');
+    await rendering;
+
+    const html = chunks.join('');
+    expect(html).not.toContain('q:sub');
+    expect(html).toContain('<template q:s="0"><p>content</p></template>');
+    const shellState = html.match(/type="qwik\/state" q:base="0" q:len="(\d+)"/);
+    const packetState = html.match(/type="qwik\/state" q:s="0" q:base="(\d+)"/);
+    expect(shellState).not.toBeNull();
+    expect(packetState).not.toBeNull();
+    expect(packetState?.[1]).toBe(shellState?.[1]);
+    expect(html.indexOf('<p>fallback</p>')).toBeLessThan(html.indexOf('<p>content</p>'));
+    expect(html.endsWith('</div>')).toBe(true);
+  });
+
+  test('streams new dependency edges for state already serialized in the shell', async () => {
+    let resolveContent!: () => void;
+    const content = new Promise<void>((resolve) => (resolveContent = resolve));
+    let shellWritten!: () => void;
+    const shell = new Promise<void>((resolve) => (shellWritten = resolve));
+    const chunks: string[] = [];
+
+    const rendering = renderToStream(
+      (_props, ctx) => {
+        const count = useSignal(0);
+        ctx.addRoot(count);
+        return createSsrSuspense(
+          ctx,
+          ctx.nextId(),
+          createQRL(
+            '',
+            'content',
+            () =>
+              _await(content).then((resume) => {
+                resume();
+                return `<p>${renderSsrTextNode(createSsrElementTextTarget(0), count)}</p>`;
+              }),
+            null,
+            null
+          ),
+          createQRL('', 'fallback', () => '<p>fallback</p>', null, null)
+        );
+      },
+      {
+        containerTagName: 'div',
+        stream: {
+          write(chunk) {
+            chunks.push(chunk);
+            if (chunk.includes('fallback')) {
+              shellWritten();
+            }
+          },
+        },
+      }
+    );
+
+    await shell;
+    resolveContent();
+    await rendering;
+
+    const html = chunks.join('');
+    const metadata = html.match(/<script[^>]*q:sub[^>]*>(.*?)<\/script>/);
+    expect(metadata).not.toBeNull();
+    const [sourceId, subscriberId] = JSON.parse(metadata![1]) as number[];
+    expect(sourceId).toBe(0);
+    expect(subscriberId).toBeGreaterThan(0);
+    expect(html).toMatch(/window\._qwikS\(document\.currentScript,0,\d+,/);
+  });
+
+  test('writes sibling packets in resolution order', async () => {
+    let resolveFirst!: (value: string) => void;
+    let resolveSecond!: (value: string) => void;
+    const first = new Promise<string>((resolve) => (resolveFirst = resolve));
+    const second = new Promise<string>((resolve) => (resolveSecond = resolve));
+    let shellWritten!: () => void;
+    const shell = new Promise<void>((resolve) => (shellWritten = resolve));
+    let secondWritten!: () => void;
+    const secondPacket = new Promise<void>((resolve) => (secondWritten = resolve));
+    const chunks: string[] = [];
+
+    const rendering = renderToStream(
+      (_props, ctx) => [
+        createSsrSuspense(
+          ctx,
+          ctx.nextId(),
+          createQRL('', 'first', () => first, null, null),
+          createQRL('', 'firstFallback', () => 'first fallback', null, null)
+        ) as SsrOutput,
+        createSsrSuspense(
+          ctx,
+          ctx.nextId(),
+          createQRL('', 'second', () => second, null, null),
+          createQRL('', 'secondFallback', () => 'second fallback', null, null)
+        ) as SsrOutput,
+      ],
+      {
+        containerTagName: 'div',
+        stream: {
+          write(chunk) {
+            chunks.push(chunk);
+            if (chunk.includes('second fallback')) {
+              shellWritten();
+            }
+            if (chunk.includes('second content')) {
+              secondWritten();
+            }
+          },
+        },
+      }
+    );
+
+    await shell;
+    resolveSecond('second content');
+    await secondPacket;
+    expect(chunks.join('')).not.toContain('first content');
+
+    resolveFirst('first content');
+    await rendering;
+
+    const html = chunks.join('');
+    expect(html.indexOf('second content')).toBeLessThan(html.indexOf('first content'));
+  });
+
+  test('skips delayed SSR fallback when content wins', async () => {
+    let resolveContent!: (value: string) => void;
+    const content = new Promise<string>((resolve) => (resolveContent = resolve));
+    const fallback = vi.fn(() => 'fallback');
+    const chunks: string[] = [];
+    const rendering = renderToStream(
+      (_props, ctx) =>
+        createSsrSuspense(
+          ctx,
+          ctx.nextId(),
+          createQRL('', 'content', () => content, null, null),
+          createQRL('', 'fallback', fallback, null, null),
+          20
+        ),
+      { stream: { write: (chunk) => void chunks.push(chunk) } }
+    );
+
+    resolveContent('content');
+    await rendering;
+
+    expect(chunks.join('')).toContain('<!d=0>content<!/d>');
+    expect(chunks.join('')).not.toContain('q:s=');
+    expect(fallback).not.toHaveBeenCalled();
+  });
+
+  test('renders final content without OOOS protocol for strings', async () => {
+    const fallback = vi.fn(() => 'fallback');
+    const result = await renderToString((_props, ctx) =>
+      createSsrSuspense(
+        ctx,
+        ctx.nextId(),
+        createQRL('', 'content', () => Promise.resolve('content'), null, null),
+        createQRL('', 'fallback', fallback, null, null)
+      )
+    );
+
+    expect(result.html).toContain('<!d=0>content<!/d>');
+    expect(result.html).not.toContain('q:s=');
+    expect(fallback).not.toHaveBeenCalled();
+  });
+
+  test('renders parser-sensitive component contexts in order', async () => {
+    const fallback = vi.fn(() => 'fallback');
+    const chunks: string[] = [];
+
+    await renderToStream(
+      (_props, ctx) =>
+        createSsrSuspense(
+          ctx.inOrder(),
+          ctx.nextId(),
+          createQRL('', 'content', () => Promise.resolve('content'), null, null),
+          createQRL('', 'fallback', fallback, null, null)
+        ),
+      { stream: { write: (chunk) => void chunks.push(chunk) } }
+    );
+
+    expect(chunks.join('')).toContain('<!d=0>content<!/d>');
+    expect(chunks.join('')).not.toContain('q:s=');
+    expect(fallback).not.toHaveBeenCalled();
+  });
+
+  test('gates a resolved child packet behind its parent packet', async () => {
+    let resolveOuter!: () => void;
+    const outer = new Promise<void>((resolve) => (resolveOuter = resolve));
+    let shellWritten!: () => void;
+    const shell = new Promise<void>((resolve) => (shellWritten = resolve));
+    const chunks: string[] = [];
+
+    const rendering = renderToStream(
+      (_props, ctx) =>
+        createSsrSuspense(
+          ctx,
+          ctx.nextId(),
+          createQRL(
+            '',
+            'outer',
+            (contentCtx) => {
+              const child = createSsrSuspense(
+                contentCtx,
+                contentCtx.nextId(),
+                createQRL('', 'inner', () => Promise.resolve('inner content'), null, null),
+                createQRL('', 'innerFallback', () => 'inner fallback', null, null)
+              ) as SsrOutput;
+              return outer.then(() => ['outer content', child]);
+            },
+            null,
+            null
+          ),
+          createQRL('', 'outerFallback', () => 'outer fallback', null, null)
+        ),
+      {
+        containerTagName: 'div',
+        stream: {
+          write(chunk) {
+            chunks.push(chunk);
+            if (chunk.includes('outer fallback')) {
+              shellWritten();
+            }
+          },
+        },
+      }
+    );
+
+    await shell;
+    resolveOuter();
+    await rendering;
+
+    const html = chunks.join('');
+    expect(html.indexOf('outer content')).toBeLessThan(html.indexOf('inner content'));
+    expect(html.endsWith('</div>')).toBe(true);
+  });
+
+  test('stops shell writes when deferred content rejects under backpressure', async () => {
+    let rejectContent!: (error: Error) => void;
+    const content = new Promise<string>((_resolve, reject) => (rejectContent = reject));
+    let releaseWrite!: () => void;
+    const blockedWrite = new Promise<void>((resolve) => (releaseWrite = resolve));
+    let firstWrite!: () => void;
+    const started = new Promise<void>((resolve) => (firstWrite = resolve));
+    const chunks: string[] = [];
+    let writes = 0;
+
+    const rendering = renderToStream(
+      (_props, ctx) =>
+        createSsrSuspense(
+          ctx,
+          ctx.nextId(),
+          createQRL('', 'content', () => content, null, null),
+          createQRL('', 'fallback', () => 'fallback', null, null)
+        ),
+      {
+        containerTagName: 'div',
+        stream: {
+          write(chunk) {
+            chunks.push(chunk);
+            if (writes++ === 0) {
+              firstWrite();
+              return blockedWrite;
+            }
+          },
+        },
+      }
+    );
+
+    await started;
+    const error = new Error('content failed');
+    rejectContent(error);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    releaseWrite();
+
+    await expect(rendering).rejects.toBe(error);
+    expect(chunks).toHaveLength(1);
+    expect(chunks.join('')).not.toContain('fallback');
+    expect(chunks.join('')).not.toContain('</div>');
+  });
+
+  test('cancels fallback-owned boundaries when fallback is removed', async () => {
+    let resolveOuter!: (value: string) => void;
+    const outer = new Promise<string>((resolve) => (resolveOuter = resolve));
+    const never = new Promise<string>(() => {});
+    let shellWritten!: () => void;
+    const shell = new Promise<void>((resolve) => (shellWritten = resolve));
+    const chunks: string[] = [];
+
+    const rendering = renderToStream(
+      (_props, ctx) =>
+        createSsrSuspense(
+          ctx,
+          ctx.nextId(),
+          createQRL('', 'outer', () => outer, null, null),
+          createQRL(
+            '',
+            'outerFallback',
+            (fallbackCtx) => [
+              'outer fallback',
+              createSsrSuspense(
+                fallbackCtx,
+                fallbackCtx.nextId(),
+                createQRL('', 'inner', () => never, null, null),
+                createQRL('', 'innerFallback', () => 'inner fallback', null, null)
+              ) as SsrOutput,
+            ],
+            null,
+            null
+          )
+        ),
+      {
+        containerTagName: 'div',
+        stream: {
+          write(chunk) {
+            chunks.push(chunk);
+            if (chunk.includes('outer fallback')) {
+              shellWritten();
+            }
+          },
+        },
+      }
+    );
+
+    await shell;
+    resolveOuter('outer content');
+    await rendering;
+
+    expect(chunks.join('')).toContain('outer content');
+    expect(chunks.join('')).not.toContain('inner content');
+    expect(chunks.join('')).toMatch(/disposeRoot\(r\)/);
+    expect(chunks.join('').endsWith('</div>')).toBe(true);
   });
 });

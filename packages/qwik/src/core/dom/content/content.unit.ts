@@ -1,13 +1,16 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createDocument } from '../../../testing/document';
 import { disposeSubscriber } from '../../reactive/cleanup';
 import { useSignal } from '../../reactive/public-api';
-import type { ContainerContext } from '../../runtime/container-context';
+import { createQRL } from '../../shared/qrl/qrl-class';
+import type { QRL } from '../../shared/qrl/qrl.public';
+import { createContainerContext, type ContainerContext } from '../../runtime/container-context';
 import { invoke, newInvokeContext } from '../../runtime/invoke-context';
 import { createOwner } from '../../runtime/owner';
 import { Scheduler } from '../../runtime/scheduler';
+import { BranchRange } from '../branch/branch';
 import { createTextNodeEffect } from '../effect/text-effect';
-import { createContentBlock } from './content';
+import { createContentBlock, createSuspense } from './content';
 
 describe('ContentBlock', () => {
   it('renders initially and replaces content when a dependency changes', async () => {
@@ -143,6 +146,250 @@ describe('ContentBlock', () => {
   });
 });
 
+describe('createSuspense', () => {
+  it('passes the container context to content and fallback renders', () => {
+    const pending = deferred<Node>();
+    let contentContext: ContainerContext | undefined;
+    let fallbackContext: ContainerContext | undefined;
+    const { host } = setupSuspense(
+      renderQrl((ctx) => {
+        contentContext = ctx;
+        return pending.promise;
+      }),
+      renderQrl((ctx) => {
+        fallbackContext = ctx;
+        return ctx!.document.createTextNode('loading');
+      })
+    );
+
+    expect(contentContext?.document).toBe(host.ownerDocument);
+    expect(fallbackContext).toBe(contentContext);
+  });
+
+  it('does not touch the fallback importer for synchronous content', () => {
+    let fallbackImports = 0;
+    const fallback = createQRL<RenderFn>('chunk', 'fallback', null, () => {
+      fallbackImports++;
+      return Promise.resolve({ fallback: () => null });
+    });
+    const { host } = setupSuspense(
+      renderQrl(() => textNode('ready')),
+      fallback
+    );
+
+    expect(host.textContent).toBe('ready');
+    expect(fallbackImports).toBe(0);
+  });
+
+  it('renders one fallback while retaining the host range markers', async () => {
+    const pending = deferred<Node>();
+    let contentRuns = 0;
+    let fallbackRuns = 0;
+    const fallbackNode = textNode('loading');
+    const readyNode = textNode('ready');
+    const { host, start, end } = setupSuspense(
+      renderQrl(() => {
+        contentRuns++;
+        return pending.promise;
+      }),
+      renderQrl(() => {
+        fallbackRuns++;
+        return fallbackNode;
+      })
+    );
+
+    expect(Array.from(host.childNodes)).toEqual([start, fallbackNode, end]);
+    expect(contentRuns).toBe(1);
+    expect(fallbackRuns).toBe(1);
+
+    pending.resolve(readyNode);
+    await settle();
+
+    expect(Array.from(host.childNodes)).toEqual([start, readyNode, end]);
+    expect(fallbackRuns).toBe(1);
+  });
+
+  it('skips a delayed fallback when content wins', async () => {
+    vi.useFakeTimers();
+    try {
+      const pending = deferred<Node>();
+      let fallbackRuns = 0;
+      const { host } = setupSuspense(
+        renderQrl(() => pending.promise),
+        renderQrl(() => {
+          fallbackRuns++;
+          return textNode('loading');
+        }),
+        20
+      );
+
+      pending.resolve(textNode('ready'));
+      await settle();
+      vi.advanceTimersByTime(20);
+
+      expect(host.textContent).toBe('ready');
+      expect(fallbackRuns).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('skips a delayed fallback after its boundary is disposed', () => {
+    vi.useFakeTimers();
+    try {
+      const pending = deferred<Node>();
+      const fallback = vi.fn(() => textNode('loading'));
+      const setup = setupSuspense(
+        renderQrl(() => pending.promise),
+        renderQrl(fallback),
+        20
+      );
+
+      disposeSubscriber(setup.content);
+      vi.advanceTimersByTime(20);
+
+      expect(fallback).not.toHaveBeenCalled();
+      expect(Array.from(setup.host.childNodes)).toEqual([setup.start, setup.end]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('disposes the fallback owner when content commits', async () => {
+    const pending = deferred<Node>();
+    const nested = useSignal('nested');
+    let effect!: ReturnType<typeof createTextNodeEffect>;
+    const { content } = setupSuspense(
+      renderQrl(() => pending.promise),
+      renderQrl(() => {
+        effect = createTextNodeEffect(textNode(''), nested);
+        return textNode('loading');
+      })
+    );
+
+    expect(effect.owner).not.toBeNull();
+    expect(content.block.currentOwner).toBe(effect.owner);
+
+    pending.resolve(textNode('ready'));
+    await settle();
+
+    expect(effect.owner).toBeNull();
+  });
+
+  it('disposes the complete fallback owner tree with its content root', async () => {
+    const pending = deferred<Node>();
+    const nested = useSignal('nested');
+    let effect!: ReturnType<typeof createTextNodeEffect>;
+    const setup = setupSuspense(
+      renderQrl(() => pending.promise),
+      renderQrl(() => {
+        effect = createTextNodeEffect(textNode(''), nested);
+        return textNode('loading');
+      })
+    );
+    setup.ctx.state.liveRoots.set(0, setup.content);
+
+    await setup.ctx.disposeRoot(0);
+
+    expect(effect.owner).toBeNull();
+    expect(Array.from(setup.host.childNodes)).toEqual([setup.start, setup.end]);
+  });
+
+  it('disposes a fallback owner while its render is pending', () => {
+    const content = deferred<Node>();
+    const fallback = deferred<Node>();
+    const nested = useSignal('nested');
+    let effect!: ReturnType<typeof createTextNodeEffect>;
+    const setup = setupSuspense(
+      renderQrl(() => content.promise),
+      renderQrl(() => {
+        effect = createTextNodeEffect(textNode(''), nested);
+        return fallback.promise;
+      })
+    );
+
+    disposeSubscriber(setup.content);
+
+    expect(effect.owner).toBeNull();
+    expect(Array.from(setup.host.childNodes)).toEqual([setup.start, setup.end]);
+  });
+
+  it('does not overwrite content when fallback rendering resolves late', async () => {
+    const content = deferred<Node>();
+    const fallback = deferred<Node>();
+    const nested = useSignal('nested');
+    let effect!: ReturnType<typeof createTextNodeEffect>;
+    const setup = setupSuspense(
+      renderQrl(() => content.promise),
+      renderQrl(() => {
+        effect = createTextNodeEffect(textNode(''), nested);
+        return fallback.promise;
+      })
+    );
+
+    content.resolve(textNode('ready'));
+    await settle();
+    expect(effect.owner).toBeNull();
+
+    fallback.resolve(textNode('late fallback'));
+    await setup.scheduler.flushInteraction();
+
+    expect(setup.host.textContent).toBe('ready');
+  });
+
+  it('disposes rejected content and reports the error', async () => {
+    const reported = deferred<void>();
+    const report = vi.fn(() => reported.resolve());
+    vi.stubGlobal('reportError', report);
+    try {
+      const pending = deferred<Node>();
+      const { content, host, start, end } = setupSuspense(
+        renderQrl(() => pending.promise),
+        renderQrl(() => textNode('loading'))
+      );
+      const error = new Error('content failed');
+
+      pending.reject(error);
+      await reported.promise;
+
+      expect(Array.from(host.childNodes)).toEqual([start, end]);
+      expect(content.block.currentOwner).toBeNull();
+      expect(report).toHaveBeenCalledWith(error);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('keeps resolved content stale during later updates without fallback', async () => {
+    const source = useSignal(0);
+    const initial = deferred<Node>();
+    const update = deferred<Node>();
+    let fallbackRuns = 0;
+    const setup = setupSuspense(
+      renderQrl(() => (source.value === 0 ? initial.promise : update.promise)),
+      renderQrl(() => {
+        fallbackRuns++;
+        return textNode('loading');
+      })
+    );
+
+    initial.resolve(textNode('ready'));
+    await settle();
+    source.value = 1;
+    const updating = setup.scheduler.flushInteraction();
+    await settle();
+
+    expect(setup.host.textContent).toBe('ready');
+    expect(fallbackRuns).toBe(1);
+
+    update.resolve(textNode('updated'));
+    await updating;
+
+    expect(setup.host.textContent).toBe('updated');
+    expect(fallbackRuns).toBe(1);
+  });
+});
+
 function setup<TArgs extends unknown[]>(
   args: TArgs,
   fn: (
@@ -158,7 +405,7 @@ function setup<TArgs extends unknown[]>(
   host.appendChild(start);
   host.appendChild(end);
   const scheduler = new Scheduler(() => {});
-  const ctx = { document, scheduler } as ContainerContext;
+  const ctx = createContainerContext(host, scheduler);
   const context = newInvokeContext({ owner: createOwner(null), container: ctx });
   const content = invoke(context, () =>
     createContentBlock(ctx, start, end, args, (...args) => fn(document, scheduler, ...args))
@@ -168,6 +415,42 @@ function setup<TArgs extends unknown[]>(
 
 function text(document: Document, value: string): Node {
   return document.createTextNode(value);
+}
+
+type RenderFn = (
+  ctx?: ContainerContext
+) => Node | readonly Node[] | null | undefined | Promise<Node>;
+
+let qrlId = 0;
+
+function renderQrl(render: RenderFn): QRL<RenderFn> {
+  return createQRL('chunk', `render${qrlId++}`, render);
+}
+
+function textNode(value: string): Text {
+  return createDocument().createTextNode(value);
+}
+
+function setupSuspense(contentQrl: QRL<RenderFn>, fallbackQrl?: QRL<RenderFn>, delay = 0) {
+  const document = createDocument({ html: '<div></div>' });
+  const host = document.querySelector('div')!;
+  const start = document.createComment('start');
+  const end = document.createComment('end');
+  host.appendChild(start);
+  host.appendChild(end);
+  const scheduler = new Scheduler(() => {});
+  const ctx = createContainerContext(host, scheduler);
+  const context = newInvokeContext({ owner: createOwner(null), container: ctx });
+  const content = invoke(context, () =>
+    createSuspense(ctx, new BranchRange(document, start, end), contentQrl, fallbackQrl, delay)
+  );
+  return { content, ctx, document, host, start, end, scheduler };
+}
+
+async function settle(): Promise<void> {
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
 }
 
 function deferred<T>() {

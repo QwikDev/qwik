@@ -48,6 +48,7 @@ import type {
   SegmentReferencePlan,
   SetupPlan,
   SlotPlan,
+  SuspensePlan,
   StaticProp,
   UseIdPlan,
   ValuePlan,
@@ -167,6 +168,7 @@ class SemanticLowerer {
     }
     const effects: RenderEffectPlan[] = [];
     const roots = this.lowerExpression(expression, { lifetimeId: rootLifetime, effects });
+    this.lowerQrlRenderFunctions();
     this.validateCompilerHookScopes();
     if (this.failure !== null) {
       return this.failure;
@@ -197,7 +199,11 @@ class SemanticLowerer {
     };
   }
 
-  private lowerExpression(expression: unknown, context: RenderContext): RenderNodePlan[] {
+  private lowerExpression(
+    expression: unknown,
+    context: RenderContext,
+    blockingSuspense = false
+  ): RenderNodePlan[] {
     const node = unwrapExpression(expression);
     if (node === null || node === undefined || isEmptyBranchExpression(node)) {
       return [];
@@ -215,9 +221,9 @@ class SemanticLowerer {
     }
     switch (node.type) {
       case 'JSXElement':
-        return this.lowerElement(node, context);
+        return this.lowerElement(node, context, blockingSuspense);
       case 'JSXFragment':
-        return this.lowerChildren(node.children, context);
+        return this.lowerChildren(node.children, context, blockingSuspense);
       case 'Literal':
         return this.lowerLiteral(node, range);
       case 'ConditionalExpression':
@@ -226,9 +232,13 @@ class SemanticLowerer {
         if (branch !== null) {
           const condition = getStaticBranchCondition(branch.condition);
           if (condition !== null) {
-            return this.lowerExpression(condition ? branch.then : branch.else, context);
+            return this.lowerExpression(
+              condition ? branch.then : branch.else,
+              context,
+              blockingSuspense
+            );
           }
-          const plan = this.lowerBranch(node, branch, context.lifetimeId);
+          const plan = this.lowerBranch(node, branch, context.lifetimeId, blockingSuspense);
           return plan === null ? [] : [plan];
         }
         if (containsJsx(node)) {
@@ -242,7 +252,7 @@ class SemanticLowerer {
       case 'CallExpression': {
         const collection = this.getMapCandidate(node);
         if (collection !== null) {
-          const plan = this.lowerCollection(collection, context.lifetimeId);
+          const plan = this.lowerCollection(collection, context.lifetimeId, blockingSuspense);
           return plan === null ? [] : [plan];
         }
         if (containsJsx(node)) {
@@ -266,9 +276,17 @@ class SemanticLowerer {
     }
   }
 
-  private lowerElement(node: JSXElement, context: RenderContext): RenderNodePlan[] {
+  private lowerElement(
+    node: JSXElement,
+    context: RenderContext,
+    blockingSuspense: boolean
+  ): RenderNodePlan[] {
     const range = getRange(node);
     const tagRange = getRange(node.openingElement.name);
+    if (range !== null && this.isSuspense(node.openingElement.name)) {
+      const suspense = this.lowerSuspense(node, range, context, blockingSuspense);
+      return suspense === null ? [] : [suspense];
+    }
     const tag = getJsxName(node.openingElement.name);
     if (range === null || tagRange === null || tag === null) {
       return this.unsupported(
@@ -297,7 +315,7 @@ class SemanticLowerer {
       ];
     }
     if (!isNativeTag(tag)) {
-      return [this.lowerComponent(node, range, tagRange, bindingId, context)];
+      return [this.lowerComponent(node, range, tagRange, bindingId, context, blockingSuspense)];
     }
     const propsEffect = this.createElementPropsEffect(node, range, context);
     const props = this.lowerProps(node, range, context, 'element', propsEffect);
@@ -307,9 +325,77 @@ class SemanticLowerer {
       range,
       props,
       propsEffect,
-      children: this.lowerChildren(node.children, context),
+      children: this.lowerChildren(
+        node.children,
+        context,
+        blockingSuspense || PARSER_SENSITIVE_ELEMENTS.has(tag)
+      ),
     };
     return [element];
+  }
+
+  private lowerSuspense(
+    node: JSXElement,
+    range: SourceRange,
+    context: RenderContext,
+    blocking: boolean
+  ): SuspensePlan | null {
+    if (
+      node.openingElement.attributes.some((attribute) => attribute.type === 'JSXSpreadAttribute')
+    ) {
+      this.unsupported(range, 'Suspense does not support spread props.');
+      return null;
+    }
+    const lifetimeId = this.allocateLifetime(context.lifetimeId, 'suspense', 'atomic-range');
+    const segment = this.findSegment('suspenseRender', range);
+    if (segment === null) {
+      this.unsupported(range, 'Suspense content requires an extracted render segment.');
+      return null;
+    }
+    const content = this.createChildrenRenderFunction(
+      'suspense',
+      range,
+      node.children,
+      segment,
+      lifetimeId,
+      blocking
+    );
+    const fallbackExpression = readAttributeExpression(node, 'fallback$');
+    const fallback =
+      fallbackExpression === null ? null : this.createQrlValue(fallbackExpression, lifetimeId);
+    const delayExpression = readAttributeExpression(node, 'delay');
+    return {
+      kind: 'suspense',
+      range,
+      lifetimeId,
+      content,
+      fallback,
+      delay:
+        delayExpression === null
+          ? null
+          : this.createValue(delayExpression, lifetimeId, false, false, false, true),
+      blocking,
+    };
+  }
+
+  private createQrlValue(expression: AstNode, lifetimeId: LifetimeId): ValuePlan {
+    if (isFunctionLike(expression)) {
+      const range = getRange(expression);
+      const segment =
+        range === null
+          ? null
+          : (this.extracted.segments.find(
+              (candidate) => candidate.kind === 'qrl' && sameRange(candidate.functionRange, range)
+            ) ?? null);
+      if (segment !== null) {
+        return {
+          kind: 'segment',
+          expression: range!,
+          segment: this.referenceSegment(segment, lifetimeId),
+        };
+      }
+    }
+    return this.createValue(expression, lifetimeId, false, false, false, true);
   }
 
   private lowerComponent(
@@ -317,7 +403,8 @@ class SemanticLowerer {
     range: SourceRange,
     tagRange: SourceRange,
     bindingId: BindingId | null,
-    context: RenderContext
+    context: RenderContext,
+    blockingSuspense: boolean
   ): ComponentNodePlan {
     const lifetimeId = this.allocateLifetime(context.lifetimeId, 'component-call', 'atomic-range');
     const props = this.lowerProps(
@@ -347,7 +434,8 @@ class SemanticLowerer {
           childRange,
           [child],
           segment,
-          projectionLifetime
+          projectionLifetime,
+          blockingSuspense
         ),
       });
     }
@@ -357,6 +445,7 @@ class SemanticLowerer {
       tagRange,
       bindingId,
       needsId: false,
+      blockingSuspense,
       lifetimeId,
       props,
       slots,
@@ -378,7 +467,11 @@ class SemanticLowerer {
     };
   }
 
-  private lowerChildren(children: readonly JSXChild[], context: RenderContext): RenderNodePlan[] {
+  private lowerChildren(
+    children: readonly JSXChild[],
+    context: RenderContext,
+    blockingSuspense = false
+  ): RenderNodePlan[] {
     const result: RenderNodePlan[] = [];
     for (const child of children) {
       switch (child.type) {
@@ -391,11 +484,11 @@ class SemanticLowerer {
           break;
         }
         case 'JSXExpressionContainer':
-          result.push(...this.lowerExpression(child.expression, context));
+          result.push(...this.lowerExpression(child.expression, context, blockingSuspense));
           break;
         case 'JSXElement':
         case 'JSXFragment':
-          result.push(...this.lowerExpression(child, context));
+          result.push(...this.lowerExpression(child, context, blockingSuspense));
           break;
       }
     }
@@ -933,7 +1026,8 @@ class SemanticLowerer {
   private lowerBranch(
     expression: AstNode,
     branch: NonNullable<ReturnType<typeof getJsxBranchExpression>>,
-    parentLifetimeId: LifetimeId
+    parentLifetimeId: LifetimeId,
+    blockingSuspense: boolean
   ): BranchPlan | null {
     const range = getRange(expression);
     const conditionRange = getRange(branch.condition);
@@ -965,17 +1059,30 @@ class SemanticLowerer {
       range,
       lifetimeId,
       condition: this.referenceSegment(condition, lifetimeId),
-      then: this.createExpressionRenderFunction('branch', branch.then, thenSegment, lifetimeId),
+      then: this.createExpressionRenderFunction(
+        'branch',
+        branch.then,
+        thenSegment,
+        lifetimeId,
+        blockingSuspense
+      ),
       else:
         branch.else === null || elseSegment === null
           ? null
-          : this.createExpressionRenderFunction('branch', branch.else, elseSegment, lifetimeId),
+          : this.createExpressionRenderFunction(
+              'branch',
+              branch.else,
+              elseSegment,
+              lifetimeId,
+              blockingSuspense
+            ),
     };
   }
 
   private lowerCollection(
     collection: MapCandidate,
-    parentLifetimeId: LifetimeId
+    parentLifetimeId: LifetimeId,
+    blockingSuspense: boolean
   ): CollectionPlan | null {
     const sourceRange = getRange(collection.source);
     if (sourceRange === null) {
@@ -1053,7 +1160,8 @@ class SemanticLowerer {
       collection,
       rowSegment,
       lifetimeId,
-      source.kind
+      source.kind,
+      blockingSuspense
     );
     const usesIndexSignal =
       source.kind !== 'direct-array' &&
@@ -1075,7 +1183,8 @@ class SemanticLowerer {
     collection: MapCandidate,
     segment: Segment | null,
     parentLifetimeId: LifetimeId,
-    collectionSourceKind: CollectionPlan['source']['kind']
+    collectionSourceKind: CollectionPlan['source']['kind'],
+    blockingSuspense: boolean
   ): RenderFunctionPlan {
     const range = getRange(collection.callback) ?? collection.range;
     const lifetimeId = this.allocateLifetime(parentLifetimeId, 'render-function', 'atomic-range');
@@ -1105,7 +1214,7 @@ class SemanticLowerer {
         this.withRenderSegment(segmentId, () => {
           const effects: RenderEffectPlan[] = [];
           return {
-            roots: this.lowerExpression(collection.row, { lifetimeId, effects }),
+            roots: this.lowerExpression(collection.row, { lifetimeId, effects }, blockingSuspense),
             effects,
           } satisfies RenderPlan;
         })
@@ -1154,18 +1263,31 @@ class SemanticLowerer {
   }
 
   private createExpressionRenderFunction(
-    kind: 'branch',
+    kind: 'branch' | 'qrl',
     expression: AstNode,
     segment: Segment,
-    parentLifetimeId: LifetimeId
+    parentLifetimeId: LifetimeId,
+    blockingSuspense = false,
+    setupRanges: readonly SourceRange[] = [],
+    parameterBindingIds: readonly BindingId[] = []
   ): RenderFunctionPlan {
     const range = getRange(expression)!;
     const lifetimeId = this.allocateLifetime(parentLifetimeId, 'render-function', 'atomic-range');
+    this.classifySetupBindings(setupRanges);
+    const setup = setupRanges.map<SetupPlan>((setupRange) => ({
+      kind: 'statement',
+      range: setupRange,
+      lifetimeId,
+      referenceBindingIds: this.setupReferenceBindingIds(setupRange).filter(
+        (id) => !this.isSparkHookBinding(id, QwikHooks.UseId)
+      ),
+      useIds: this.collectUseIds(setupRange),
+    }));
     this.referenceSegment(segment, lifetimeId);
     const render = this.withRenderSegment(segment.id, () => {
       const effects: RenderEffectPlan[] = [];
       return {
-        roots: this.lowerExpression(expression, { lifetimeId, effects }),
+        roots: this.lowerExpression(expression, { lifetimeId, effects }, blockingSuspense),
         effects,
       } satisfies RenderPlan;
     });
@@ -1175,20 +1297,20 @@ class SemanticLowerer {
       range,
       segmentId: segment.id,
       lifetimeId,
-      async: segment.awaits.length > 0,
+      async: segment.async || segment.awaits.length > 0,
       pure: isPureRenderFunction(
         render,
-        [],
-        segment.awaits.length > 0,
-        this.lifecycleSegmentsIn(range),
-        false
+        setup,
+        segment.async || segment.awaits.length > 0,
+        this.lifecycleSegmentsIn(segment.functionRange),
+        setup.some((item) => item.kind === 'statement' && item.useIds.length > 0)
       ),
-      setup: [],
-      parameterBindingIds: [],
+      setup,
+      parameterBindingIds,
       render,
-      referenceBindingIds: this.renderReferenceBindingIds(render, []),
-      lifecycleSegmentIds: this.lifecycleSegmentsIn(range),
-      needsId: false,
+      referenceBindingIds: this.renderReferenceBindingIds(render, setup),
+      lifecycleSegmentIds: this.lifecycleSegmentsIn(segment.functionRange),
+      needsId: setup.some((item) => item.kind === 'statement' && item.useIds.length > 0),
       styleScope: this.styleScopes.length === 0 ? null : this.styleScopes.join(' '),
       runtimeStyleScope: this.hasCustomHook,
       runtimeStyleScopeName: this.hasCustomHook ? this.runtimeStyleScopeName() : null,
@@ -1197,12 +1319,50 @@ class SemanticLowerer {
     return plan;
   }
 
+  private lowerQrlRenderFunctions(): void {
+    for (const segment of this.extracted.segments) {
+      const lifetimeId = this.usedSegments.get(segment.id);
+      if (
+        lifetimeId === undefined ||
+        segment.kind !== 'qrl' ||
+        segment.payload !== 'function' ||
+        this.renderFunctions.has(segment.id) ||
+        (segment.qrl?.kind === 'implicit' && segment.qrl.role !== 'generic')
+      ) {
+        continue;
+      }
+      const callback = findNodeByRange(this.component.body, segment.functionRange);
+      if (callback === null || !isFunctionLike(callback)) {
+        continue;
+      }
+      const returned = getCallbackReturn(callback);
+      if (returned !== null && containsJsx(returned.row)) {
+        this.createExpressionRenderFunction(
+          'qrl',
+          returned.row,
+          segment,
+          lifetimeId,
+          false,
+          returned.setup,
+          this.parameterBindings(callback)
+        );
+      } else if (containsJsx(callback.body)) {
+        this.unsupported(
+          segment.functionRange,
+          'JSX-bearing QRLs require a single final return expression.'
+        );
+        return;
+      }
+    }
+  }
+
   private createChildrenRenderFunction(
-    kind: 'slot',
+    kind: 'slot' | 'suspense',
     range: SourceRange,
     children: readonly JSXChild[],
     segment: Segment | null,
-    parentLifetimeId: LifetimeId
+    parentLifetimeId: LifetimeId,
+    blockingSuspense = false
   ): RenderFunctionPlan {
     const lifetimeId = this.allocateLifetime(parentLifetimeId, 'render-function', 'atomic-range');
     const segmentId =
@@ -1214,7 +1374,7 @@ class SemanticLowerer {
     const render = this.withRenderSegment(segmentId, () => {
       const effects: RenderEffectPlan[] = [];
       return {
-        roots: this.lowerChildren(children, { lifetimeId, effects }),
+        roots: this.lowerChildren(children, { lifetimeId, effects }, blockingSuspense),
         effects,
       } satisfies RenderPlan;
     });
@@ -1330,7 +1490,7 @@ class SemanticLowerer {
   }
 
   private createSyntheticRenderSegment(
-    kind: 'forRender' | 'slotRender' | 'collectionRender',
+    kind: 'forRender' | 'suspenseRender' | 'slotRender' | 'collectionRender',
     callback: AstFunction | null,
     range: SourceRange,
     lifetimeId: LifetimeId,
@@ -1703,6 +1863,15 @@ class SemanticLowerer {
           addRenderFunction(node.then);
           addRenderFunction(node.else);
           return;
+        case 'suspense':
+          addRenderFunction(node.content);
+          if (node.fallback !== null) {
+            addValue(node.fallback);
+          }
+          if (node.delay !== null) {
+            addValue(node.delay);
+          }
+          return;
         case 'slot':
           addRenderFunction(node.fallback);
           return;
@@ -1796,9 +1965,18 @@ class SemanticLowerer {
         );
         continue;
       }
+      const jsxDeclaration =
+        statement?.type === 'VariableDeclaration'
+          ? statement.declarations.find((declaration) => containsJsx(declaration.init))
+          : undefined;
+      const initializer = unwrapExpression(jsxDeclaration?.init);
+      const hasQrl = this.extracted.segments.some(
+        (segment) => segment.kind === 'qrl' && containsRange(range, segment.range)
+      );
       if (
         statement?.type !== 'VariableDeclaration' ||
-        !statement.declarations.some((declaration) => containsJsx(declaration.init))
+        jsxDeclaration === undefined ||
+        (initializer?.type !== 'JSXElement' && initializer?.type !== 'JSXFragment' && hasQrl)
       ) {
         const useIds = this.collectUseIds(range);
         setup.push({
@@ -2427,6 +2605,28 @@ class SemanticLowerer {
     return isQwikBinding(binding) && binding!.import!.importedName === QwikHooks.Slot;
   }
 
+  private isSuspense(node: AstNode): boolean {
+    if (node.type === 'JSXIdentifier') {
+      const binding = this.binding(this.bindingIdAt(getRange(node)));
+      return (
+        isQwikBinding(binding) &&
+        !binding!.import!.typeOnly &&
+        binding!.import!.importedName === QwikHooks.Suspense
+      );
+    }
+    if (
+      node.type !== 'JSXMemberExpression' ||
+      node.object.type !== 'JSXIdentifier' ||
+      node.property.name !== QwikHooks.Suspense
+    ) {
+      return false;
+    }
+    const binding = this.binding(this.bindingIdAt(getRange(node.object)));
+    return (
+      isQwikBinding(binding) && !binding!.import!.typeOnly && binding!.import!.importedName === '*'
+    );
+  }
+
   private providesContext(): boolean {
     return this.component.shape.setup.some((range) => {
       const setup = findNodeByRange(this.component.body, range);
@@ -2593,6 +2793,16 @@ function readStaticAttribute(node: JSXElement, expectedName: string): string | n
   return null;
 }
 
+function readAttributeExpression(node: JSXElement, expectedName: string): AstNode | null {
+  for (let index = node.openingElement.attributes.length - 1; index >= 0; index--) {
+    const attribute = node.openingElement.attributes[index];
+    if (attribute.type === 'JSXAttribute' && getJsxAttributeName(attribute.name) === expectedName) {
+      return getJsxAttributeExpression(attribute.value) ?? null;
+    }
+  }
+  return null;
+}
+
 function getProjectionName(child: JSXChild): string | null {
   return child.type === 'JSXElement' ? readStaticAttribute(child, 'q:slot') : '';
 }
@@ -2603,6 +2813,24 @@ function isEmptyChild(child: JSXChild): boolean {
     (child.type === 'JSXExpressionContainer' &&
       (child.expression.type === 'JSXEmptyExpression' || isEmptyBranchExpression(child.expression)))
   );
+}
+
+const PARSER_SENSITIVE_ELEMENTS = new Set([
+  'table',
+  'thead',
+  'tbody',
+  'tfoot',
+  'tr',
+  'colgroup',
+  'select',
+  'optgroup',
+  'template',
+  'svg',
+  'math',
+]);
+
+function containsRange(outer: SourceRange, inner: SourceRange): boolean {
+  return inner[0] >= outer[0] && inner[1] <= outer[1];
 }
 
 function isQwikBinding(binding: BindingInfo | null): boolean {

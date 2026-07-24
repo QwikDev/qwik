@@ -1200,6 +1200,34 @@
       "mdFile": "core.store.md"
     },
     {
+      "name": "Suspense",
+      "id": "suspense",
+      "hierarchy": [
+        {
+          "name": "Suspense",
+          "id": "suspense"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nSuspense: FunctionComponent<SuspenseProps & {\n    children?: JSXOutput;\n}>\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/dom/content/content.ts",
+      "mdFile": "core.suspense.md"
+    },
+    {
+      "name": "SuspenseProps",
+      "id": "suspenseprops",
+      "hierarchy": [
+        {
+          "name": "SuspenseProps",
+          "id": "suspenseprops"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface SuspenseProps \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ndelay?\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nfallback$?\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[QRL](#qrl)<!-- -->&lt;() =&gt; [JSXOutput](#jsxoutput)<!-- -->&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/dom/content/content.ts",
+      "mdFile": "core.suspenseprops.md"
+    },
+    {
       "name": "SVGAttributes",
       "id": "svgattributes",
       "hierarchy": [

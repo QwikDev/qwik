@@ -24,6 +24,35 @@ function extractInput(code: string) {
 }
 
 describe('extractQrls', () => {
+  test('extracts one Suspense content segment by imported binding identity', () => {
+    const extracted = extractInput(`import { Suspense as Boundary } from '@qwik.dev/core';
+import * as Qwik from '@qwik.dev/core';
+export function App() {
+  return <><Boundary fallback$={() => <i>wait</i>}><span>first</span><b>second</b></Boundary><Qwik.Suspense>third</Qwik.Suspense></>;
+}`);
+
+    expect(extracted.segments.filter((segment) => segment.kind === 'suspenseRender')).toHaveLength(
+      2
+    );
+    expect(
+      extracted.segments.filter((segment) => segment.ctxName === 'suspense:content')
+    ).toHaveLength(2);
+    expect(extracted.segments.filter((segment) => segment.ctxName === 'fallback$')).toMatchObject([
+      { kind: 'qrl', qrl: null },
+    ]);
+  });
+
+  test('does not recognize shadowed Suspense bindings', () => {
+    const extracted = extractInput(`import { Suspense as Boundary } from '@qwik.dev/core';
+import * as Qwik from '@qwik.dev/core';
+export function App(Boundary) {
+  const Qwik = { Suspense: () => null };
+  return <><Boundary>local</Boundary><Qwik.Suspense>namespace</Qwik.Suspense></>;
+}`);
+
+    expect(extracted.segments.some((segment) => segment.kind === 'suspenseRender')).toBe(false);
+  });
+
   test('extracts source-ordered DOM props groups with nested event segments', () => {
     const extracted = extractInput(`import { useSignal } from '@qwik.dev/core';
 export function App({ attrs, label }) {

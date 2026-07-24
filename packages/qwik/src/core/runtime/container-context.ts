@@ -1,10 +1,12 @@
 import { QContainerSelector, QLocaleAttr } from '../shared/utils/markers';
 import { TypeIds } from '../shared/serdes/type-id';
+import { disposeSubscriber } from '../reactive/cleanup';
 import { isContextScope } from './context-scope';
 import { defaultScheduler, type Scheduler } from './scheduler';
 import { fastGetAttribute } from './fast-getters';
 import { findContextScopeId } from './node-walker';
 import type { ServerDataContext } from './use-server-data';
+import type { PhaseSubscriber, Subscriber } from './subscriber';
 
 const STATE_SCRIPT_TYPE = 'qwik/state';
 const CTX_PROP = '_ctx';
@@ -20,6 +22,9 @@ export interface ContainerState {
   rootToChunk: StateChunk[];
   forwardRefsChunk: StateChunk | null;
   liveRoots: Map<number, unknown>;
+  disposedRoots: Set<number>;
+  registeredScripts?: WeakSet<HTMLScriptElement>;
+  subscriberRoots?: Map<number, number[]>;
 }
 
 export interface ContainerContext extends ServerDataContext {
@@ -32,7 +37,11 @@ export interface ContainerContext extends ServerDataContext {
   styleIds?: Map<string, string>;
   getForwardRefs(): Array<number | string> | null;
   getRoot(id: number | string): Promise<unknown>;
+  discardRoot(id: number | string): void;
+  disposeRoot(id: number | string): Promise<void>;
+  prepareRoot(id: number | string): Promise<void>;
   restoreCaptures(ids: string): Promise<unknown[]>;
+  registerStateScripts?(scripts: readonly HTMLScriptElement[]): void;
 }
 
 type ContextElement = Element & {
@@ -75,6 +84,8 @@ function createContainerContextRecord(
     rootToChunk: [],
     forwardRefsChunk: null,
     liveRoots: new Map(),
+    disposedRoots: new Set(),
+    registeredScripts: new WeakSet(),
   };
   const context: ContainerContext = {
     element,
@@ -88,6 +99,26 @@ function createContainerContextRecord(
     },
     getRoot(id) {
       return getRoot(context, Number(id));
+    },
+    discardRoot(id) {
+      const rootId = Number(id);
+      state.disposedRoots.add(rootId);
+      const root = state.liveRoots.get(rootId);
+      if (root !== undefined) {
+        disposeSubscriber(root as Subscriber);
+      }
+    },
+    async disposeRoot(id) {
+      const root = (await getRoot(context, Number(id))) as Subscriber;
+      disposeSubscriber(root);
+    },
+    async prepareRoot(id) {
+      const root = (await getRoot(context, Number(id))) as PhaseSubscriber;
+      context.scheduler.notify(root);
+      await context.scheduler.flushInteraction();
+    },
+    registerStateScripts(scripts) {
+      registerStateScripts(context, scripts, true);
     },
     async restoreCaptures(ids) {
       const normalized = ids.trim();
@@ -106,7 +137,7 @@ function createContainerContextRecord(
   if (serverData !== undefined) {
     context.serverData = serverData;
   }
-  registerStateScripts(context);
+  registerInitialStateScripts(context);
   return context;
 }
 
@@ -118,29 +149,66 @@ function findContainerElement(element: Element): Element {
   return container;
 }
 
-function registerStateScripts(context: ContainerContext): void {
+function registerInitialStateScripts(context: ContainerContext): void {
   const scripts = context.element.querySelectorAll(`script[type="${STATE_SCRIPT_TYPE}"]`);
+  const ownScripts: HTMLScriptElement[] = [];
   for (let i = 0; i < scripts.length; i++) {
     const script = scripts[i] as HTMLScriptElement;
-    const baseAttr = fastGetAttribute(script, 'q:base');
-    const lenAttr = fastGetAttribute(script, 'q:len');
-    if (baseAttr === null || lenAttr === null) {
-      throw new Error('Qwik state scripts require q:base and q:len.');
+    if (script.closest(QContainerSelector) === context.element) {
+      ownScripts.push(script);
     }
-    const base = Number(baseAttr);
-    const len = Number(lenAttr);
-    const chunk: StateChunk = {
-      base,
-      len,
-      script,
-      parsed: null,
-    };
-    if (fastGetAttribute(script, 'q:fr') !== null) {
-      context.state.forwardRefsChunk = chunk;
+  }
+  registerStateScripts(context, ownScripts);
+}
+
+function registerStateScript(context: ContainerContext, script: HTMLScriptElement): void {
+  const registered = (context.state.registeredScripts ??= new WeakSet());
+  if (registered.has(script)) {
+    return;
+  }
+  if (fastGetAttribute(script, 'q:sub') !== null) {
+    registerSubscriberRoots(context, JSON.parse(script.textContent || '[]') as number[]);
+    registered.add(script);
+    return;
+  }
+  const base = Number(fastGetAttribute(script, 'q:base'));
+  const len = Number(fastGetAttribute(script, 'q:len'));
+  const chunk: StateChunk = {
+    base,
+    len,
+    script,
+    parsed: null,
+  };
+  const disposed = fastGetAttribute(script, 'q:dispose');
+  if (disposed !== null) {
+    const disposedValues = disposed.split(' ');
+    for (let i = 0; i < disposedValues.length; i++) {
+      const value = disposedValues[i];
+      context.state.disposedRoots.add(Number(value));
     }
+  }
+  if (fastGetAttribute(script, 'q:fr') !== null) {
+    context.state.forwardRefsChunk = chunk;
+    context.forwardRefs = null;
+  } else {
     for (let offset = 0; offset < len; offset++) {
       context.state.rootToChunk[base + offset] = chunk;
     }
+  }
+  registered.add(script);
+}
+
+function registerStateScripts(
+  context: ContainerContext,
+  scripts: readonly HTMLScriptElement[],
+  skipSubscriptions = false
+): void {
+  for (let i = 0; i < scripts.length; i++) {
+    const script = scripts[i];
+    if (skipSubscriptions && fastGetAttribute(script, 'q:sub') !== null) {
+      continue;
+    }
+    registerStateScript(context, script);
   }
 }
 
@@ -154,8 +222,8 @@ function getForwardRefs(context: ContainerContext): Array<number | string> | nul
     return null;
   }
 
-  chunk.parsed ??= parseStateChunk(context, chunk);
-  return context.forwardRefs;
+  const parsed = chunk.parsed ?? parseStateChunk(context, chunk);
+  return (context.forwardRefs = parsed[1] as Array<number | string>);
 }
 
 async function getRoot(context: ContainerContext, id: number): Promise<unknown> {
@@ -168,36 +236,62 @@ async function getRoot(context: ContainerContext, id: number): Promise<unknown> 
     throw new Error(`Missing Qwik state root ${id}.`);
   }
 
-  const parsed = chunk.parsed ?? (chunk.parsed = parseStateChunk(context, chunk));
+  const parsed = parseStateChunk(context, chunk);
   const offset = (id - chunk.base) * 2;
   const type = parsed[offset] as TypeIds;
   const value = parsed[offset + 1];
 
-  const { allocate, inflate, needsInflation } = await import('../shared/serdes/inflate');
+  const { allocate, inflate, needsInflation, restoreStreamedSubscribers } =
+    await import('../shared/serdes/inflate');
   const root = await allocate(context, type, value);
   if (isContextScope(root)) {
     root.id = String(id);
   }
   context.state.liveRoots.set(id, root);
 
-  if (type === TypeIds.ForwardRefs) {
+  if (context.state.disposedRoots.has(id)) {
+    return root;
+  } else if (type === TypeIds.ForwardRefs) {
     context.forwardRefs = value as Array<number | string>;
   } else if (needsInflation(type)) {
     await inflate(context, root, type, value);
   }
 
+  const subscriberRoots = context.state.subscriberRoots;
+  if (subscriberRoots !== undefined) {
+    const subscriberIds = subscriberRoots.get(id);
+    if (subscriberIds !== undefined) {
+      subscriberRoots.delete(id);
+      if (subscriberRoots.size === 0) {
+        context.state.subscriberRoots = undefined;
+      }
+      restoreStreamedSubscribers(context, root, subscriberIds);
+    }
+  }
+
   return root;
+}
+
+function registerSubscriberRoots(context: ContainerContext, subscriptions: number[]): void {
+  let roots = context.state.subscriberRoots;
+  for (let i = 0; i < subscriptions.length; i += 2) {
+    const sourceId = subscriptions[i];
+    const subscriberId = subscriptions[i + 1];
+    roots ??= context.state.subscriberRoots = new Map();
+    const subscribers = roots.get(sourceId);
+    if (subscribers === undefined) {
+      roots.set(sourceId, [subscriberId]);
+    } else {
+      subscribers.push(subscriberId);
+    }
+  }
 }
 
 function parseStateChunk(context: ContainerContext, chunk: StateChunk): unknown[] {
   if (chunk.parsed !== null) {
     return chunk.parsed;
   }
-  const parsed = JSON.parse(chunk.script.textContent || '[]');
-  if (!Array.isArray(parsed)) {
-    throw new Error('Invalid Qwik state chunk.');
-  }
-  chunk.parsed = parsed;
+  const parsed = (chunk.parsed = JSON.parse(chunk.script.textContent || '[]') as unknown[]);
   preprocessStateChunk(context, chunk, parsed);
   return parsed;
 }

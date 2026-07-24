@@ -3,17 +3,26 @@ import {
   _res,
   createQRL,
   createSerializationContext,
+  createSsrNodeId,
+  createSsrRecord,
   createSsrRootRef,
   disposeOwner,
+  disposeSubscriber,
   getActiveInvokeContextOrNull,
   getPlatform,
   invoke,
+  isPromise,
   isSsrRecordChunk,
+  maybeThen,
   newInvokeContext,
+  Owner,
+  renderSsrContent,
   setPlatform,
   SsrOutputWriter,
+  type QRL,
   type SerializationContext,
   type ServerDataContext,
+  type Subscriber,
   type SsrEventAttrChunk,
   type SsrOutput,
   type SsrReferenceChunk,
@@ -31,6 +40,7 @@ import {
   QRenderAttr,
   QRuntimeAttr,
   QVersionAttr,
+  SubscriberKind,
   escapeHTML,
   type ValueOrPromise,
 } from './qwik-copy';
@@ -62,7 +72,25 @@ export interface SsrRenderContext extends ServerDataContext {
   addRoot(value: unknown): number;
   contextScopeRef(): SsrReferenceChunk;
   eventAttr(name: string, value: unknown, hasMovedCaptures?: boolean): SsrEventAttrChunk;
+  deferSuspense(
+    rangeId: number,
+    contentQrl: QRL<SsrSuspenseRender>,
+    fallbackQrl: QRL<SsrSuspenseRender> | undefined,
+    delay: number
+  ): ValueOrPromise<SsrOutput>;
+  inOrder(): SsrRenderContext;
   styleIds: Map<string, string>;
+}
+
+type SsrSuspenseRender = (ctx: SsrRenderContext) => ValueOrPromise<SsrOutput>;
+
+interface DeferredSuspense {
+  readonly id: number;
+  readonly contentRoot: unknown;
+  parentId: number | null;
+  fallbackRoot?: unknown;
+  cancelled?: true;
+  output?: SsrOutput;
 }
 
 /** @internal */
@@ -77,7 +105,7 @@ export const renderToStringCompiled = async <Props = undefined>(
   opts: RenderToStringOptions<Props> = {}
 ): Promise<RenderToStringResult> => {
   const stream = new StringWriter();
-  const result = await renderToStreamCompiled(root, { ...opts, stream });
+  const result = await renderToStreamCompiled(root, { ...opts, stream }, false);
 
   return {
     html: stream.toString(),
@@ -90,7 +118,8 @@ export const renderToStringCompiled = async <Props = undefined>(
 
 export const renderToStreamCompiled = async <Props = undefined>(
   root: SsrRenderRoot<Props>,
-  opts: RenderToStreamOptions<Props>
+  opts: RenderToStreamOptions<Props>,
+  outOfOrder = opts.outOfOrder !== false
 ): Promise<RenderToStreamResult> => {
   const previousPlatform = getPlatform();
   const resolvedManifest = resolveManifest(opts.manifest);
@@ -128,9 +157,146 @@ export const renderToStreamCompiled = async <Props = undefined>(
     const scheduler = new SsrScheduler();
     const rootLane = scheduler.createLane(serializationCtx);
     let nextId = 0;
-    const ctx: SsrRenderContext & {
+    let deferred: DeferredSuspense[] | undefined;
+    let ready: DeferredSuspense[] | undefined;
+    let wake: (() => void) | undefined;
+    let deferredError: unknown;
+    let hasDeferredError = false;
+    let ctx!: SsrRenderContext & {
       finalizeComponentOutput(output: SsrOutput, events: UseOnMap): SsrOutput;
-    } = {
+    };
+    const notifyDeferred = () => {
+      const resolve = wake;
+      wake = undefined;
+      resolve?.();
+    };
+    const wrapContent = (rangeId: number, content: SsrOutput): SsrOutput => [
+      createSsrRecord('<!d=', createSsrNodeId(rangeId), '>'),
+      content,
+      '<!/d>',
+    ];
+    const reparentChildren = (rangeId: number, parentId: number | null) => {
+      const records = deferred;
+      if (records === undefined) {
+        return;
+      }
+      for (let i = 0; i < records.length; i++) {
+        if (records[i].parentId === rangeId) {
+          records[i].parentId = parentId;
+        }
+      }
+    };
+    const deferSuspense = (
+      renderCtx: SsrRenderContext,
+      parentId: number | null,
+      rangeId: number,
+      contentQrl: QRL<SsrSuspenseRender>,
+      fallbackQrl: QRL<SsrSuspenseRender> | undefined,
+      delay: number,
+      allowOutOfOrder: boolean
+    ): ValueOrPromise<SsrOutput> => {
+      const contentCtx = Object.create(renderCtx) as SsrRenderContext;
+      contentCtx.deferSuspense = (id, content, fallback, nestedDelay) =>
+        deferSuspense(contentCtx, rangeId, id, content, fallback, nestedDelay, allowOutOfOrder);
+      let contentRoot: unknown;
+      const content = renderSsrContent(
+        contentCtx as any,
+        rangeId,
+        [],
+        contentQrl as any,
+        false,
+        true,
+        (subscription) => (contentRoot = subscription)
+      );
+      if (!isPromise(content)) {
+        reparentChildren(rangeId, parentId);
+        return wrapContent(rangeId, content);
+      }
+      if (!allowOutOfOrder) {
+        return content.then((output) => {
+          serializationCtx.$addRoot$(contentRoot);
+          reparentChildren(rangeId, parentId);
+          return wrapContent(rangeId, output);
+        });
+      }
+
+      const renderFallback = (record: DeferredSuspense): ValueOrPromise<SsrOutput> => {
+        if (fallbackQrl === undefined) {
+          return wrapContent(rangeId, '');
+        }
+        const fallbackId = renderCtx.nextId();
+        return maybeThen(
+          renderSsrContent(
+            renderCtx as any,
+            fallbackId,
+            [],
+            fallbackQrl as any,
+            false,
+            true,
+            (subscription) => {
+              record.fallbackRoot = subscription;
+            }
+          ),
+          (fallback) => {
+            serializationCtx.$addRoot$(record.fallbackRoot);
+            return wrapContent(rangeId, wrapContent(fallbackId, fallback));
+          }
+        );
+      };
+      const registerDeferred = (): ValueOrPromise<SsrOutput> => {
+        const record: DeferredSuspense = { id: rangeId, parentId, contentRoot };
+        (deferred ??= []).push(record);
+        content.then(
+          (output) => {
+            if (record.cancelled) {
+              return;
+            }
+            serializationCtx.$addRoot$(contentRoot);
+            record.output = output;
+            (ready ??= []).push(record);
+            notifyDeferred();
+          },
+          (error) => {
+            if (record.cancelled) {
+              return;
+            }
+            deferredError = error;
+            hasDeferredError = true;
+            notifyDeferred();
+          }
+        );
+        return renderFallback(record);
+      };
+      if (!(delay > 0)) {
+        return registerDeferred();
+      }
+      return new Promise<SsrOutput>((resolve, reject) => {
+        let settled = false;
+        const timer = setTimeout(() => {
+          settled = true;
+          resolve(registerDeferred());
+        }, delay);
+        content.then(
+          (output) => {
+            if (!settled) {
+              settled = true;
+              clearTimeout(timer);
+              serializationCtx.$addRoot$(contentRoot);
+              reparentChildren(rangeId, parentId);
+              resolve(wrapContent(rangeId, output));
+            }
+          },
+          (error) => {
+            if (!settled) {
+              settled = true;
+              clearTimeout(timer);
+              reject(error);
+            }
+          }
+        );
+      });
+    };
+    ctx = {
       serializationCtx,
       scheduler: rootLane,
       styleIds,
@@ -154,6 +320,16 @@ export const renderToStreamCompiled = async <Props = undefined>(
       eventAttr(name, value, hasMovedCaptures = false) {
         return createSsrEventAttr(serializationCtx, name, value, hasMovedCaptures || locale !== '');
       },
+      deferSuspense(rangeId, contentQrl, fallbackQrl, delay) {
+        return deferSuspense(ctx, null, rangeId, contentQrl, fallbackQrl, delay, outOfOrder);
+      },
+      inOrder() {
+        const inOrderCtx = Object.create(this) as SsrRenderContext;
+        inOrderCtx.inOrder = () => inOrderCtx;
+        inOrderCtx.deferSuspense = (rangeId, contentQrl, fallbackQrl, delay) =>
+          deferSuspense(inOrderCtx, null, rangeId, contentQrl, fallbackQrl, delay, false);
+        return inOrderCtx;
+      },
       finalizeComponentOutput(output, events) {
         return applyUseOnToSsrOutput(output, events, ctx.eventAttr);
       },
@@ -164,6 +340,7 @@ export const renderToStreamCompiled = async <Props = undefined>(
       ? withLocale(locale, () => invoke(rootInvokeContext, root, opts.props as Props, ctx))
       : invoke(rootInvokeContext, root, opts.props as Props, ctx));
     await rootLane.flush();
+    throwDeferredError(hasDeferredError, deferredError);
     if (rootInvokeContext.useOnEvents !== undefined) {
       output = applyUseOnToSsrOutput(output, rootInvokeContext.useOnEvents, ctx.eventAttr);
     }
@@ -172,36 +349,109 @@ export const renderToStreamCompiled = async <Props = undefined>(
     }
     const stateAttrParts = createStateScriptEventAttrs(serializationCtx);
     const styledOutput = injectStyles(output, styleIds);
+    const emittedStyles = deferred === undefined ? undefined : new Set(styleIds.keys());
     const [containerOpen, containerClose] = createContainerTags(
       containerTagName,
       containerAttributes,
       styledOutput
     );
-    const finalOutput: SsrOutput[] = [containerOpen, styledOutput];
+    const shellOutput: SsrOutput[] = [containerOpen, styledOutput];
     if (serializationCtx.$roots$.length > 0) {
       await serializationCtx.$serialize$();
-      finalOutput.push(
+      throwDeferredError(hasDeferredError, deferredError);
+      shellOutput.push(
         scripts.emitState(
           serializationCtx.$writer$.toString(),
           0,
           serializationCtx.$serializedRootCount$,
-          stateAttrParts
+          stateAttrParts,
+          serializationCtx.$serializedForwardRefCount$ > 0
         )
       );
     }
-    if (serializationCtx.$eventQrls$.size > 0) {
-      finalOutput.push(scripts.emitQwikLoader());
-      finalOutput.push(scripts.emitQwikEvents(serializationCtx.$eventNames$));
+    const hasDeferred = deferred !== undefined;
+    if (serializationCtx.$eventQrls$.size > 0 || hasDeferred) {
+      shellOutput.push(scripts.emitQwikLoader());
+      shellOutput.push(scripts.emitQwikEvents(serializationCtx.$eventNames$));
     }
-    finalOutput.push(containerClose);
+    const emittedEvents = hasDeferred ? new Set(serializationCtx.$eventNames$) : undefined;
+    if (hasDeferred) {
+      shellOutput.push(scripts.emitSuspenseRuntime(instanceHash));
+    } else {
+      shellOutput.push(containerClose);
+    }
     let size = 0;
     const writer = new SsrOutputWriter({
       write(chunk) {
+        throwDeferredError(hasDeferredError, deferredError);
         size += chunk.length;
         return opts.stream.write(chunk);
       },
     });
-    await writer.finish(finalOutput);
+    await writer.finish(shellOutput);
+    throwDeferredError(hasDeferredError, deferredError);
+
+    if (deferred !== undefined) {
+      const emitted = new Set<number>();
+      while (deferred.some((record) => !record.cancelled && !emitted.has(record.id))) {
+        let record: DeferredSuspense | undefined;
+        while (record === undefined) {
+          throwDeferredError(hasDeferredError, deferredError);
+          const records = ready;
+          if (records !== undefined) {
+            const index = records.findIndex(
+              (candidate) =>
+                !candidate.cancelled &&
+                (candidate.parentId === null || emitted.has(candidate.parentId))
+            );
+            if (index !== -1) {
+              record = records.splice(index, 1)[0];
+              break;
+            }
+          }
+          await new Promise<void>((resolve) => (wake = resolve));
+        }
+        await rootLane.flush();
+        throwDeferredError(hasDeferredError, deferredError);
+        const subscriptions = collectDeferredSubscriptions(
+          serializationCtx,
+          record.contentRoot,
+          serializationCtx.$rootStateRootCount$
+        );
+        const state = await serializationCtx.$serializeNext$();
+        throwDeferredError(hasDeferredError, deferredError);
+        const packet: SsrOutput[] = [];
+        if (state !== null) {
+          packet.push(scripts.emitStateRange(state, record.id, subscriptions));
+        }
+        packet.push(emitNewStyles(styleIds, emittedStyles!));
+        const newEvents = takeNewValues(serializationCtx.$eventNames$, emittedEvents!);
+        packet.push(scripts.emitQwikEvents(newEvents));
+        packet.push(
+          scripts.emitResolved(
+            record.id,
+            record.output!,
+            serializationCtx.$hasRootId$(record.contentRoot),
+            record.fallbackRoot === undefined
+              ? undefined
+              : serializationCtx.$hasRootId$(record.fallbackRoot)
+          )
+        );
+        await writer.finish(packet);
+        throwDeferredError(hasDeferredError, deferredError);
+        emitted.add(record.id);
+        if (record.fallbackRoot !== undefined) {
+          disposeSubscriber(record.fallbackRoot as any);
+          for (let i = 0; i < deferred.length; i++) {
+            const candidate = deferred[i];
+            if ((candidate.contentRoot as { owner?: unknown }).owner === null) {
+              candidate.cancelled = true;
+            }
+          }
+        }
+      }
+      await writer.finish(containerClose);
+    }
 
     return {
       flushes: 0,
@@ -236,6 +486,72 @@ export const renderToStreamCompiled = async <Props = undefined>(
 export const renderToString = renderToStringCompiled as RenderToString;
 /** @public */
 export const renderToStream = renderToStreamCompiled as RenderToStream;
+
+function collectDeferredSubscriptions(
+  serializationCtx: SerializationContext,
+  contentRoot: unknown,
+  serializedRootCount: number
+): number[] {
+  const root = contentRoot as Subscriber & { content: { currentOwner: Owner | null } };
+  const subscribers = new Set<Subscriber>([root]);
+  const owners = root.content.currentOwner === null ? [] : [root.content.currentOwner];
+
+  for (let i = 0; i < owners.length; i++) {
+    const items = owners[i].items;
+    if (items === null) {
+      continue;
+    }
+    for (let j = 0; j < items.length; j++) {
+      const item = items[j];
+      if (item instanceof Owner) {
+        owners.push(item);
+      } else {
+        subscribers.add(item);
+      }
+    }
+  }
+
+  const subscriptions: number[] = [];
+  for (const subscriber of subscribers) {
+    if (
+      wasSerializedBefore(serializationCtx, subscriber, serializedRootCount) ||
+      subscriber.kind === SubscriberKind.Idle ||
+      subscriber.deps === null
+    ) {
+      continue;
+    }
+    let sourceIds: number[] | null = null;
+    for (let i = 0; i < subscriber.deps.length; i++) {
+      const source = subscriber.deps[i];
+      if (wasSerializedBefore(serializationCtx, source, serializedRootCount)) {
+        (sourceIds ??= []).push(serializationCtx.$addRoot$(source));
+      }
+    }
+    if (sourceIds === null) {
+      continue;
+    }
+    const subscriberId = serializationCtx.$addRoot$(subscriber);
+    for (let i = 0; i < sourceIds.length; i++) {
+      subscriptions.push(sourceIds[i], subscriberId);
+    }
+  }
+  return subscriptions;
+}
+
+function wasSerializedBefore(
+  serializationCtx: SerializationContext,
+  value: unknown,
+  serializedRootCount: number
+): boolean {
+  let ref = serializationCtx.getSeenRef(value);
+  if (ref === undefined) {
+    return false;
+  }
+  while (ref.$parent$) {
+    ref = ref.$parent$;
+  }
+  return ref.$index$ < serializedRootCount;
+}
 
 function createStateScriptEventAttrs(
   serializationCtx: ReturnType<typeof createSerializationContext>
@@ -385,6 +701,28 @@ function injectStyles(output: SsrOutput, styles: Map<string, string>): SsrOutput
   return [`<head>${styleHtml}</head><body>`, output, '</body>'];
 }
 
+function emitNewStyles(styles: Map<string, string>, emitted: Set<string>): string {
+  let html = '';
+  for (const [styleId, content] of styles) {
+    if (!emitted.has(styleId)) {
+      emitted.add(styleId);
+      html += `<style q:style="${escapeHTML(styleId)}">${content}</style>`;
+    }
+  }
+  return html;
+}
+
+function takeNewValues(values: ReadonlySet<string>, emitted: Set<string>): Set<string> {
+  const added = new Set<string>();
+  for (const value of values) {
+    if (!emitted.has(value)) {
+      emitted.add(value);
+      added.add(value);
+    }
+  }
+  return added;
+}
+
 function createContainerOpenTag(tagName: string, attrs: Record<string, string>): string {
   let html = tagName === 'html' ? '<!DOCTYPE html>' : '';
   html += `<${tagName}`;
@@ -462,6 +800,12 @@ function getLocale(opts: RenderToStringOptions<any>): string {
     return opts.locale(opts);
   }
   return opts.serverData?.locale || opts.locale || opts.containerAttributes?.locale || '';
+}
+
+function throwDeferredError(hasError: boolean, error: unknown): void {
+  if (hasError) {
+    throw error;
+  }
 }
 
 function randomStr() {

@@ -377,6 +377,19 @@ export const Slot: FunctionComponent<{
 // @public (undocumented)
 export type Store<T extends object> = T;
 
+// @public (undocumented)
+export const Suspense: FunctionComponent<SuspenseProps & {
+    children?: JSXOutput;
+}>;
+
+// @public (undocumented)
+export interface SuspenseProps {
+    // (undocumented)
+    readonly delay?: number;
+    // (undocumented)
+    readonly fallback$?: QRL<() => JSXOutput>;
+}
+
 // Warning: (ae-forgotten-export) The symbol "AriaAttributes" needs to be exported by the entry point public.d.ts
 //
 // @public

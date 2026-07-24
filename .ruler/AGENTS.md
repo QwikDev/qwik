@@ -184,6 +184,8 @@ When a change affects published packages, add a changeset under `.changeset/`.
 
 - Remember to keep your code DRY.
 - Do not leave debug logging or temporary names in the final diff.
+- Never use property-existence checks such as `'kind' in value` to discriminate runtime types. Use
+  nominal classes or explicit tagged-union discriminants.
 - Only add comments for crucial information that is not self-explanatory. Keep your comments constrained to 1 short sentence (10-ish words) maximum. Focus on explaning the why/issue rather than implementation details.  
 - Write one changeset per patch/minor/major change. Keep the changeset message constrained to 1 short sentence or 2 maximum, focused on the bug fix, feature or breaking changes. Don't explain the internals or implementation details.
 

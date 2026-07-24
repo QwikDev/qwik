@@ -2412,6 +2412,79 @@ export type Store<T extends object> = T;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/store.ts)
 
+<h2 id="suspense">Suspense</h2>
+
+```typescript
+Suspense: FunctionComponent<
+  SuspenseProps & {
+    children?: JSXOutput;
+  }
+>;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/dom/content/content.ts)
+
+<h2 id="suspenseprops">SuspenseProps</h2>
+
+```typescript
+export interface SuspenseProps
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+delay?
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+number
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+fallback$?
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+[QRL](#qrl)&lt;() =&gt; [JSXOutput](#jsxoutput)&gt;
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/dom/content/content.ts)
+
 <h2 id="svgattributes">SVGAttributes</h2>
 
 The TS types don't include the SVG attributes so we have to define them ourselves

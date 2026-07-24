@@ -411,11 +411,7 @@ function emitSegmentCode(
       functionHead = '() => ';
       break;
     case 'branchRender':
-      functionHead = `(${[
-        ...(rendered?.runtimeParameters ?? ['ctx']),
-        ...(rendered?.trailingRuntimeParameters ?? []),
-      ].join(', ')}) => `;
-      break;
+    case 'suspenseRender':
     case 'slotRender':
       functionHead = `(${[
         ...(rendered?.runtimeParameters ?? ['ctx']),
@@ -437,9 +433,15 @@ function emitSegmentCode(
     case 'event':
     case 'qrl':
       functionHead =
-        segment.payload === 'value'
-          ? '() => '
-          : source.slice(segment.functionRange[0], segment.bodyRange[0]);
+        rendered !== undefined
+          ? `(${[
+              ...(rendered.runtimeParameters ?? ['ctx']),
+              ...usedParameterNames,
+              ...(rendered.trailingRuntimeParameters ?? []),
+            ].join(', ')}) => `
+          : segment.payload === 'value'
+            ? '() => '
+            : source.slice(segment.functionRange[0], segment.bodyRange[0]);
       break;
   }
   const declaration = `export const ${segment.symbolName} = ${functionHead}{\n${statements}\n};`;
@@ -471,6 +473,7 @@ export function shouldResolveSsrSegment(segment: SegmentPlan): boolean {
     case 'forRender':
     case 'collectionRender':
     case 'slotRender':
+    case 'suspenseRender':
       return true;
   }
 }

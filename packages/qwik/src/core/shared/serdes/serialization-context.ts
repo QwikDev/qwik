@@ -14,6 +14,13 @@ export type SeenRef = {
   $parent$?: SeenRef | null;
 };
 
+export interface SerializedStateRange {
+  readonly base: number;
+  readonly len: number;
+  readonly state: string;
+  readonly forwardRefs?: readonly (number | string | number[])[];
+}
+
 export let isDomRef = (obj: unknown): obj is DomRef => false;
 
 interface AddRootFn {
@@ -22,6 +29,7 @@ interface AddRootFn {
 }
 export interface SerializationContext {
   $serialize$: () => ValueOrPromise<void>;
+  $serializeNext$: () => ValueOrPromise<SerializedStateRange | null>;
   $serializePatch$: (
     rootStart: number,
     rootIds: number[],
@@ -67,7 +75,6 @@ export interface SerializationContext {
   $serializedRootCount$: number;
   $serializedForwardRefCount$: number;
   $rootStateRootCount$: number;
-  $hasRootStateForwardRefs$: boolean;
 
   $promoteToRoot$: (ref: SeenRef, obj: unknown, index?: number) => void;
 
@@ -101,7 +108,6 @@ class SerializationContextImpl implements SerializationContext {
   public $serializedRootCount$ = 0;
   public $serializedForwardRefCount$ = 0;
   public $rootStateRootCount$ = 0;
-  public $hasRootStateForwardRefs$ = false;
   public $eagerResume$: Set<unknown> = new Set();
   public $eventQrls$: Set<QRL> = new Set();
   public $eventNames$: Set<string> = new Set();
@@ -122,6 +128,30 @@ class SerializationContextImpl implements SerializationContext {
 
   async $serialize$(): Promise<void> {
     await this.$serializer$.serialize();
+  }
+
+  async $serializeNext$(): Promise<SerializedStateRange | null> {
+    const base = this.$rootStateRootCount$;
+    if (base === this.$roots$.length) {
+      return null;
+    }
+    const chunks: string[] = [];
+    const writer = createStringSerdesWriter((chunk) => {
+      chunks.push(chunk);
+    });
+    const previousWriter = this.$writer$;
+    this.$setWriter$(writer);
+    try {
+      const forwardRefs = await this.$serializer$.serializeNext();
+      return {
+        base,
+        len: this.$rootStateRootCount$ - base,
+        state: chunks.join(''),
+        ...(forwardRefs ? { forwardRefs: forwardRefs.slice() } : {}),
+      };
+    } finally {
+      this.$setWriter$(previousWriter);
+    }
   }
 
   async $serializePatch$(

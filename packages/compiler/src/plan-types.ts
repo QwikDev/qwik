@@ -18,6 +18,7 @@ export type SegmentKind =
   | 'branchRender'
   | 'forKey'
   | 'forRender'
+  | 'suspenseRender'
   | 'slotRender'
   | 'collectionRender';
 export type SegmentCaptureSource = 'local' | 'param' | 'loop';
@@ -179,6 +180,7 @@ export interface LifetimePlan {
     | 'dynamic-value'
     | 'component-call'
     | 'branch'
+    | 'suspense'
     | 'slot'
     | 'collection'
     | 'effect';
@@ -218,6 +220,7 @@ export type RenderNodePlan =
   | DynamicValuePlan
   | ComponentNodePlan
   | BranchPlan
+  | SuspensePlan
   | SlotPlan
   | CollectionPlan;
 
@@ -258,6 +261,7 @@ export interface ComponentNodePlan {
   readonly tagRange: SourceRange;
   readonly bindingId: BindingId | null;
   readonly needsId: boolean;
+  readonly blockingSuspense: boolean;
   readonly lifetimeId: LifetimeId;
   readonly props: readonly OrderedPropPlan[];
   readonly slots: readonly ComponentProjectionPlan[];
@@ -277,6 +281,16 @@ export interface BranchPlan {
   readonly condition: SegmentReferencePlan;
   readonly then: RenderFunctionPlan;
   readonly else: RenderFunctionPlan | null;
+}
+
+export interface SuspensePlan {
+  readonly kind: 'suspense';
+  readonly range: SourceRange;
+  readonly lifetimeId: LifetimeId;
+  readonly content: RenderFunctionPlan;
+  readonly fallback: ValuePlan | null;
+  readonly delay: ValuePlan | null;
+  readonly blocking: boolean;
 }
 
 export interface SlotPlan {
@@ -441,7 +455,7 @@ export type RenderEffectPlan =
     };
 
 export interface RenderFunctionPlan {
-  readonly kind: 'branch' | 'slot' | 'collection-row' | 'local-jsx';
+  readonly kind: 'branch' | 'suspense' | 'slot' | 'collection-row' | 'local-jsx' | 'qrl';
   readonly collectionSourceKind: CollectionSourcePlan['kind'] | null;
   readonly range: SourceRange;
   readonly segmentId: string | null;

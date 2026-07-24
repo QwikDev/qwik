@@ -774,6 +774,9 @@ function collectComponentBindingIds(render: RenderPlan, analysis: ModuleAnalysis
           visitRender(node.else.render);
         }
         return;
+      case 'suspense':
+        visitRender(node.content.render);
+        return;
       case 'slot':
         if (node.fallback !== null) {
           visitRender(node.fallback.render);
@@ -850,6 +853,8 @@ function markPlanNeedsId(
             then: mapRenderFunction(node.then),
             else: node.else === null ? null : mapRenderFunction(node.else),
           };
+        case 'suspense':
+          return { ...node, content: mapRenderFunction(node.content) };
         case 'slot':
           return {
             ...node,
@@ -873,6 +878,8 @@ function markPlanNeedsId(
         return node.needsId || node.slots.some((slot) => slot.render.needsId);
       case 'branch':
         return node.then.needsId || node.else?.needsId === true;
+      case 'suspense':
+        return node.content.needsId;
       case 'slot':
         return node.fallback?.needsId === true;
       case 'collection':
@@ -999,6 +1006,7 @@ function collectEagerComponentBindingIds(
       case 'static-text':
       case 'dynamic-value':
       case 'branch':
+      case 'suspense':
       case 'slot':
         return;
     }

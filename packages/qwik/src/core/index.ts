@@ -128,7 +128,7 @@ export { ComputedFlags, OwnerFlags, SubscriberFlags } from './reactive/flags';
 export { render } from './csr-render';
 export type { RenderOptions, RenderResult, RenderRoot } from './render-types';
 export { escapeHTML } from './shared/utils/character-escaping';
-export { maybeThen, promiseAll } from './shared/utils/promises';
+export { isPromise, maybeThen, promiseAll } from './shared/utils/promises';
 export {
   isComputedSource,
   peekSourceValue,
@@ -208,6 +208,7 @@ export { SsrOutputWriter } from './ssr/output-writer';
 export {
   createSerializationContext,
   type SerializationContext,
+  type SerializedStateRange,
 } from './shared/serdes/serialization-context';
 
 export {
@@ -230,9 +231,9 @@ export {
   createOwner,
   disposeOwner,
   getActiveOwner,
+  Owner,
   registerSubscriberToOwner,
   runWithOwner,
-  type Owner,
 } from './runtime/owner';
 export {
   getActiveInvokeContext,
@@ -306,7 +307,14 @@ export {
   createBranch,
   renderSsrBranch,
 } from './dom/branch/branch';
-export { createContentBlock, renderSsrContent } from './dom/content/content';
+export {
+  Suspense,
+  createContentBlock,
+  createSsrSuspense,
+  createSuspense,
+  renderSsrContent,
+  type SuspenseProps,
+} from './dom/content/content';
 export {
   ForBlock,
   ForRange,

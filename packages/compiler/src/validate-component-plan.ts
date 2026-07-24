@@ -296,6 +296,16 @@ class ComponentPlanValidator {
           this.validateRenderFunction(node.else, `${path}.else`, node.lifetimeId);
         }
         return;
+      case 'suspense':
+        this.validateOwnedLifetime(node.lifetimeId, parentLifetimeId, 'suspense', path);
+        this.validateRenderFunction(node.content, `${path}.content`, node.lifetimeId);
+        if (node.fallback !== null) {
+          this.validateValue(node.fallback, `${path}.fallback`);
+        }
+        if (node.delay !== null) {
+          this.validateValue(node.delay, `${path}.delay`);
+        }
+        return;
       case 'slot':
         this.validateOwnedLifetime(node.lifetimeId, parentLifetimeId, 'slot', path);
         if (node.fallback !== null) {

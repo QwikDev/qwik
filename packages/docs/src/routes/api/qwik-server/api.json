@@ -110,7 +110,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface RenderToStreamOptions<Props = undefined> extends RenderOptions<Props> \n```\n**Extends:** [RenderOptions](#renderoptions)<!-- -->&lt;Props&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nstream\n\n\n</td><td>\n\n\n</td><td>\n\nStreamWriter\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface RenderToStreamOptions<Props = undefined> extends RenderOptions<Props> \n```\n**Extends:** [RenderOptions](#renderoptions)<!-- -->&lt;Props&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\noutOfOrder?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nstream\n\n\n</td><td>\n\n\n</td><td>\n\nStreamWriter\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
       "mdFile": "core.rendertostreamoptions.md"
     },

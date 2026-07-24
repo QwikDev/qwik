@@ -13,6 +13,111 @@ const options = (input: TransformModuleInput, isServer: boolean): TransformModul
 });
 
 describe('setup QRL emission', () => {
+  test('keeps ctx in the render QRL ABI', async () => {
+    const input = {
+      path: 'src/suspense-render-abi.tsx',
+      code: `import { Suspense } from '@qwik.dev/core';
+import { Child } from './child';
+export function App({ visible }) {
+  const content = ['static suspense'];
+  return <main>
+    <Suspense>{content}</Suspense>
+    <Suspense><Child /><Suspense><b>nested suspense</b></Suspense></Suspense>
+    {visible && <i>static branch</i>}
+  </main>;
+}`,
+    };
+
+    for (const isServer of [false, true]) {
+      const result = await transformModules(options(input, isServer));
+      const suspense = result.modules.filter((module) => module.path.includes('suspense_content'));
+      const staticSuspense = suspense.find((module) => module.code.includes('content = _captures'));
+      const contextSuspense = suspense.find((module) => module.code.includes('createComponent'));
+      const branch = result.modules.find((module) => module.path.includes('branch_then'));
+
+      expect(result.diagnostics).toEqual([]);
+      expect(suspense).toHaveLength(3);
+      expect(staticSuspense?.code).toMatch(/= \(ctx\) =>/);
+      expect(contextSuspense?.code).toMatch(/= \(ctx\) =>/);
+      expect(contextSuspense?.code).toContain(isServer ? 'createSsrSuspense' : 'createSuspense');
+      expect(branch?.code).toMatch(isServer ? /= \(\) =>/ : /= \(ctx\) =>/);
+    }
+  });
+
+  test('lowers component-local JSX QRLs without a consumer-specific role', async () => {
+    const input = {
+      path: 'src/local-view.tsx',
+      code: `import { $ } from '@qwik.dev/core';
+export function App() {
+  const view = $((label) => <i>{label}</i>);
+  return <button onClick$={(event) => event.preventDefault()}>{String(view)}</button>;
+}`,
+    };
+
+    for (const isServer of [false, true]) {
+      const result = await transformModules(options(input, isServer));
+      const view = result.modules.find((module) => module.path.includes('$_segment'));
+      const event = result.modules.find((module) => module.segment?.ctxName === 'onClick$');
+
+      expect(result.diagnostics).toEqual([]);
+      expectValidModules(result.modules);
+      expect(view?.code).toMatch(/= \(ctx, label\) =>/);
+      expect(view?.code).not.toMatch(/=>\s*<i>|return\s*<i>/);
+      expect(view?.code).toContain(
+        isServer ? 'createSsrElementRecord("i"' : 'createTemplate("<i> </i>")'
+      );
+      expect(event?.code).toMatch(/= \(event\) =>/);
+    }
+  });
+
+  test('lowers JSX in generic implicit QRL boundaries', async () => {
+    const input = {
+      path: 'src/custom-view.tsx',
+      code: `import { renderView$ } from './view';
+export function App() {
+  renderView$((label) => <i>{label}</i>);
+  return <main />;
+}`,
+    };
+
+    for (const isServer of [false, true]) {
+      const result = await transformModules(options(input, isServer));
+      const view = result.modules.find((module) => module.segment?.ctxName === 'renderView$');
+
+      expect(result.diagnostics).toEqual([]);
+      expectValidModules(result.modules);
+      expect(view?.code).toMatch(/= \(ctx, label\) =>/);
+      expect(view?.code).not.toMatch(/=>\s*<i>|return\s*<i>/);
+      expect(view?.code).toContain(
+        isServer ? 'createSsrElementRecord("i"' : 'createTemplate("<i> </i>")'
+      );
+    }
+  });
+
+  test('emits JSX-bearing Suspense fallback QRLs through target-native renderers', async () => {
+    const input = {
+      path: 'src/suspense-qrl.tsx',
+      code: `import { Suspense } from '@qwik.dev/core';
+export function App() {
+  return <Suspense fallback$={() => <i>wait</i>}><span>ready</span></Suspense>;
+}`,
+    };
+
+    for (const isServer of [false, true]) {
+      const result = await transformModules(options(input, isServer));
+      const fallback = result.modules.find((module) => module.path.includes('fallback$_segment'));
+
+      expect(result.diagnostics).toEqual([]);
+      expectValidModules(result.modules);
+      expect(fallback?.code).not.toMatch(/=>\s*<i>|return\s*<i>/);
+      expect(fallback?.code).not.toContain('Reveal');
+      expect(fallback?.code).not.toContain('q-s');
+      expect(fallback?.code).toContain(
+        isServer ? 'return "<i>wait</i>";' : 'createTemplate("<i>wait</i>")'
+      );
+    }
+  });
+
   test('transforms boundaries in a module without components', async () => {
     const input = {
       path: 'src/use-counter.ts',

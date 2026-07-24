@@ -40,6 +40,7 @@ export interface RenderToStringOptions<Props = undefined> extends RenderOptions<
 /** @public */
 export interface RenderToStreamOptions<Props = undefined> extends RenderOptions<Props> {
   stream: StreamWriter;
+  outOfOrder?: boolean;
 }
 
 /** @public */

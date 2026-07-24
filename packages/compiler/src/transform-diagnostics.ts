@@ -21,10 +21,8 @@ import type {
   Segment,
   SegmentPlan,
 } from './plan-types';
-import { QWIK_CORE_IMPORT, QWIK_IMPORT } from './words';
 
 export const enum TransformDiagnosticCode {
-  SuspenseUnsupported = 'suspense-unsupported',
   InnerHtmlChildren = 'inner-html-children',
   PromiseScalar = 'promise-scalar',
   LifecycleInRender = 'lifecycle-in-render',
@@ -160,18 +158,6 @@ export function validateModule(
 
       const opening = node.openingElement;
       const elementRange = getRange(opening) ?? getRange(node) ?? [0, 0];
-      if (isImportedSuspense(opening.name, referencedBindings)) {
-        findings.push(
-          locatedDiagnostic(
-            file,
-            source,
-            elementRange,
-            TransformDiagnosticCode.SuspenseUnsupported,
-            'Suspense is not supported by the compiler yet.'
-          )
-        );
-      }
-
       const tag = getJsxName(opening.name);
       if (tag !== null && isNativeTag(tag) && hasRenderableChildren(node.children)) {
         const innerHtml = opening.attributes.find(
@@ -350,13 +336,14 @@ function hasUnsupportedRawTextChildren(children: readonly AstNode[]): boolean {
       continue;
     }
     if (child.type !== 'JSXExpressionContainer') {
-      renderable++;
-      dynamic++;
-      continue;
+      return true;
     }
     const expression = unwrapExpression(child.expression);
     if (expression == null || expression.type === 'JSXEmptyExpression') {
       continue;
+    }
+    if (containsJsx(expression)) {
+      return true;
     }
     if (
       (expression.type === 'Identifier' && expression.name === 'undefined') ||
@@ -371,6 +358,14 @@ function hasUnsupportedRawTextChildren(children: readonly AstNode[]): boolean {
     }
   }
   return dynamic > 0 && (dynamic !== 1 || renderable !== 1);
+}
+
+function containsJsx(node: AstNode): boolean {
+  let found = false;
+  visit(node, (candidate) => {
+    found ||= candidate.type === 'JSXElement' || candidate.type === 'JSXFragment';
+  });
+  return found;
 }
 
 export function createTransformFailureDiagnostic(
@@ -567,40 +562,6 @@ function validateLifecycleHooks(
     );
   }
   return findings;
-}
-
-function isImportedSuspense(
-  name: AstNode,
-  referencedBindings: ReadonlyMap<string, BindingInfo | null>
-): boolean {
-  if (name.type === 'JSXIdentifier') {
-    return isQwikImportBinding(referencedBinding(name, referencedBindings), 'Suspense');
-  }
-  if (
-    name.type !== 'JSXMemberExpression' ||
-    name.object.type !== 'JSXIdentifier' ||
-    name.property.name !== 'Suspense'
-  ) {
-    return false;
-  }
-  return isQwikImportBinding(referencedBinding(name.object, referencedBindings), '*');
-}
-
-function isQwikImportBinding(binding: BindingInfo | null, importedName: string): boolean {
-  return (
-    binding?.kind === 'import' &&
-    binding.import?.importedName === importedName &&
-    !binding.import.typeOnly &&
-    (binding.import.source === QWIK_CORE_IMPORT || binding.import.source === QWIK_IMPORT)
-  );
-}
-
-function referencedBinding(
-  node: AstNode,
-  referencedBindings: ReadonlyMap<string, BindingInfo | null>
-): BindingInfo | null {
-  const range = getRange(node);
-  return range === null ? null : (referencedBindings.get(rangeKey(range)) ?? null);
 }
 
 function isInnerHtmlProp(name: string | null): boolean {

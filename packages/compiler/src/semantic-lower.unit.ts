@@ -45,6 +45,93 @@ function success(code: string) {
 }
 
 describe('semantic lowering', () => {
+  test('lowers Suspense to its lean semantic shape and target-native QRL renders', () => {
+    const plan = success(`import { Suspense as Boundary } from '@qwik.dev/core';
+export function App({ delay }) {
+  return <Boundary fallback$={() => <i>wait</i>} delay={delay}><span>first</span><b>second</b></Boundary>;
+}`);
+    const suspense = plan.render.roots[0];
+
+    expect(Object.keys(suspense).sort()).toEqual([
+      'blocking',
+      'content',
+      'delay',
+      'fallback',
+      'kind',
+      'lifetimeId',
+      'range',
+    ]);
+    expect(suspense).toMatchObject({
+      kind: 'suspense',
+      blocking: false,
+      content: { kind: 'suspense', render: { roots: [{ kind: 'element' }, { kind: 'element' }] } },
+      fallback: { kind: 'segment' },
+      delay: { kind: 'expression' },
+    });
+    if (suspense.kind !== 'suspense' || suspense.fallback?.kind !== 'segment') {
+      throw new Error('Expected a semantic Suspense boundary');
+    }
+    expect(
+      plan.segments.find((segment) => segment.id === suspense.content.segmentId)
+    ).toMatchObject({
+      kind: 'suspenseRender',
+      render: suspense.content,
+    });
+    expect(
+      plan.segments.find((segment) => segment.id === suspense.fallback.segment.segmentId)
+    ).toMatchObject({
+      kind: 'qrl',
+      qrl: null,
+      render: { kind: 'qrl', render: { roots: [{ kind: 'element', tag: 'i' }] } },
+    });
+  });
+
+  test('marks Suspense directly inside parser-sensitive elements as blocking', () => {
+    const plan = success(`import * as Qwik from '@qwik.dev/core';
+export function App() {
+  return <table><Qwik.Suspense><tbody><tr><td>ready</td></tr></tbody></Qwik.Suspense></table>;
+}`);
+    const table = plan.render.roots[0];
+    if (table.kind !== 'element' || table.children[0]?.kind !== 'suspense') {
+      throw new Error('Expected parser-sensitive Suspense');
+    }
+    expect(table.children[0].blocking).toBe(true);
+  });
+
+  test('keeps parser-sensitive context through static branches and foreign elements', () => {
+    const tablePlan = success(`import { Suspense } from '@qwik.dev/core';
+export function App() {
+  return <table>{true && <Suspense><tbody /></Suspense>}</table>;
+}`);
+    const table = tablePlan.render.roots[0];
+    if (table.kind !== 'element' || table.children[0]?.kind !== 'suspense') {
+      throw new Error('Expected table Suspense');
+    }
+
+    const svgPlan = success(`import { Suspense } from '@qwik.dev/core';
+export function App() {
+  return <svg><g><Suspense><circle /></Suspense></g></svg>;
+}`);
+    const svg = svgPlan.render.roots[0];
+    const group = svg.kind === 'element' ? svg.children[0] : undefined;
+    const suspense = group?.kind === 'element' ? group.children[0] : undefined;
+
+    expect(table.children[0].blocking).toBe(true);
+    expect(suspense).toMatchObject({ kind: 'suspense', blocking: true });
+  });
+
+  test('rejects Suspense spread props instead of ignoring them', () => {
+    const { result } = lower(`import { Suspense } from '@qwik.dev/core';
+export function App({ options }) {
+  return <Suspense {...options}><span>content</span></Suspense>;
+}`);
+
+    expect(result).toMatchObject({
+      kind: 'failure',
+      message: 'Suspense does not support spread props.',
+    });
+  });
+
   test('builds a target-neutral tree with explicit effects and lifetimes', () => {
     const plan = success(`import { useSignal } from '@qwik.dev/core';
 export function App() {

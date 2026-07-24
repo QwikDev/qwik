@@ -17,7 +17,7 @@ import type {
   ComponentOutput,
 } from './plan-types';
 
-export type CsrRefStep = 'firstChild' | 'nextSibling';
+export type CsrRefStep = 'content' | 'firstChild' | 'nextSibling';
 
 export type CsrRefKind = 'element' | 'text' | 'text-marker' | 'range-start' | 'range-end';
 
@@ -244,6 +244,14 @@ export type CsrOperationPlan =
     }
   | {
       readonly id: number;
+      readonly kind: 'suspense';
+      readonly range: CsrRangePlan;
+      readonly content: CsrSegmentReferencePlan;
+      readonly fallback: CsrValuePlan | null;
+      readonly delay: CsrValuePlan | null;
+    }
+  | {
+      readonly id: number;
       readonly kind: 'slot';
       readonly range: CsrRangePlan;
       readonly name: string;
@@ -289,6 +297,13 @@ export interface CsrPlan {
   readonly idBase: string;
   readonly runtimeStyleScopeName: string | null;
   readonly initializeRuntimeStyleScope: boolean;
+}
+
+export interface CsrSegmentRenderTargetPlan {
+  readonly plan: CsrPlan;
+  readonly runtimeParameters: readonly string[];
+  readonly trailingRuntimeParameters: readonly string[];
+  readonly parameterBindingIds: readonly BindingId[];
 }
 
 interface TemplateElement {
@@ -425,6 +440,41 @@ export function planCsrRenderFunction(
     renderFunction.needsId,
     ''
   );
+}
+
+export function planCsrSegmentRender(
+  segment: SegmentPlan,
+  segments: readonly SegmentPlan[],
+  source: string,
+  componentCardinality: CsrComponentCardinalityResolver = unknownComponentCardinality,
+  componentPropsName = 'props'
+): CsrSegmentRenderTargetPlan | null {
+  if (segment.render === null) {
+    return null;
+  }
+  const plan = planCsrRenderFunction(
+    segment.render,
+    segments,
+    source,
+    componentCardinality,
+    componentPropsName
+  );
+  if (plan === null) {
+    return null;
+  }
+  const parameterBindingIds = segment.usedParameterBindingIds;
+  return {
+    plan,
+    runtimeParameters:
+      segment.kind === 'qrl' ||
+      segment.kind === 'suspenseRender' ||
+      plan.needsContext ||
+      parameterBindingIds.length > 0
+        ? ['ctx']
+        : [],
+    trailingRuntimeParameters: plan.needsId ? ['_id'] : [],
+    parameterBindingIds,
+  };
 }
 
 class CsrPlanner {
@@ -808,6 +858,21 @@ class CsrPlanner {
         });
         return { kind: 'operation', operation, cardinality: 'many' };
       }
+      case 'suspense': {
+        const content = this.planRenderFunction(node.content, 'lazy');
+        const fallback = node.fallback === null ? null : this.planValue(node.fallback, 'lazy');
+        const delay = node.delay === null ? null : this.planValue(node.delay);
+        if (
+          content === null ||
+          (node.fallback !== null && fallback === null) ||
+          (delay === null && node.delay !== null)
+        ) {
+          return null;
+        }
+        const range = this.appendRange(parent);
+        const operation = this.pushOperation({ kind: 'suspense', range, content, fallback, delay });
+        return { kind: 'operation', operation, cardinality: 'many' };
+      }
       case 'slot': {
         const fallback = node.fallback === null ? null : this.planRenderFunction(node.fallback);
         if (node.fallback !== null && fallback === null) {
@@ -983,7 +1048,10 @@ class CsrPlanner {
     return planned;
   }
 
-  private planValue(value: ValuePlan): CsrValuePlan | null {
+  private planValue(
+    value: ValuePlan,
+    delivery: CsrSegmentReferencePlan['delivery'] = 'direct'
+  ): CsrValuePlan | null {
     if (value.kind === 'render-value') {
       const render = this.renderValuePlans.get(value.bindingId);
       return {
@@ -1026,7 +1094,7 @@ class CsrPlanner {
         range: value.expression,
       };
     }
-    const reference = this.planSegment(value.segment);
+    const reference = this.planSegment(value.segment, delivery);
     return reference === null
       ? null
       : {
@@ -1211,7 +1279,9 @@ function finalizeTemplate(nodes: readonly TemplateNode[]) {
             if (VOID_ELEMENTS.has(node.tag.toLowerCase())) {
               return open;
             }
-            const content = node.rawHtml === null ? visit(node.children, path) : node.rawHtml;
+            const childPath =
+              node.tag.toLowerCase() === 'template' ? [...path, 'content' as const] : path;
+            const content = node.rawHtml === null ? visit(node.children, childPath) : node.rawHtml;
             return `${open}${content}</${node.tag}>`;
           }
         }
@@ -1331,6 +1401,7 @@ function renderPlanOutputShape(
     case 'component':
       return componentCardinality(root.bindingId).outputShape;
     case 'branch':
+    case 'suspense':
     case 'slot':
     case 'collection':
       return 'many';

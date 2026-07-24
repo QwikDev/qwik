@@ -83,10 +83,18 @@ export class Serializer {
   }
 
   async serialize(): Promise<void> {
+    await this.serializeRoots(true);
+  }
+
+  async serializeNext(): Promise<Array<number | string | number[]> | null> {
+    return this.serializeRoots(false);
+  }
+
+  private async serializeRoots(includeForwardRefs: boolean) {
     const previousStreamedRootLimit = this.$streamedRootLimit$;
     this.$streamedRootLimit$ = 0;
     try {
-      await this.outputRoots();
+      return await this.outputRoots(includeForwardRefs);
     } finally {
       this.$streamedRootLimit$ = previousStreamedRootLimit;
     }
@@ -786,15 +794,16 @@ export class Serializer {
     });
   }
 
-  private async outputRoots(): Promise<void> {
+  private async outputRoots(
+    includeForwardRefs: boolean
+  ): Promise<Array<number | string | number[]> | null> {
     this.$writer$.write(BRACKET_OPEN);
     const rootsWritten = await this.outputPendingRoots();
 
     const forwardRefs = this.getForwardRefsPayload();
     this.$serializationContext$.$rootStateRootCount$ = this.$serializationContext$.$roots$.length;
-    this.$serializationContext$.$hasRootStateForwardRefs$ = !!forwardRefs;
     const forwardRefCount = forwardRefs?.length ?? 0;
-    if (forwardRefs) {
+    if (forwardRefs && includeForwardRefs) {
       if (rootsWritten > 0) {
         this.$writer$.write(COMMA);
       }
@@ -804,9 +813,9 @@ export class Serializer {
 
     this.$writer$.write(BRACKET_CLOSE);
     this.$serializationContext$.$serializedRootCount$ =
-      this.$serializationContext$.$roots$.length +
-      (this.$serializationContext$.$hasRootStateForwardRefs$ ? 1 : 0);
+      this.$serializationContext$.$roots$.length + (forwardRefs ? 1 : 0);
     this.$serializationContext$.$serializedForwardRefCount$ = forwardRefCount;
+    return forwardRefs;
   }
 }
 
@@ -1060,6 +1069,7 @@ function serializeContentSubscription(subscription: SsrContentSubscription): unk
     getSsrOwnedSubscribers(content.currentOwner),
     content.invokeContext?.slotScope ?? null,
     content.useOnRoot ? serializeUseOnScopes(content.invokeContext) : null,
+    content.contextArg,
   ];
 }
 
@@ -1204,7 +1214,10 @@ function serializeSubscribers(subs: SourceSubs): readonly Subscriber[] {
   let subscribers: Subscriber[] | null = null;
   for (let i = 0; i < subs.length; i++) {
     const subscriber = subs[i];
-    if (isLazySerialized(subscriber)) {
+    if (
+      isLazySerialized(subscriber) ||
+      (subscriber instanceof SsrContentSubscription && subscriber.content.isPending)
+    ) {
       subscribers ??= subs.slice(0, i) as Subscriber[];
     } else if (subscribers !== null) {
       subscribers.push(subscriber);

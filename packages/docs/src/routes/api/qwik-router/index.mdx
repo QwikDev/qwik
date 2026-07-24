@@ -145,7 +145,7 @@ export type ActionOptions = {
 };
 ```
 
-**References:** [DataValidator](#datavalidator), [Loader](#loader_2)
+**References:** [DataValidator](#datavalidator), [Loader](#loader)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
@@ -1087,14 +1087,12 @@ RequestEvent \| undefined
 
 ```typescript
 export type GetValidatorInputType<VALIDATOR extends TypedDataValidator> =
-  VALIDATOR extends ValibotDataValidator<infer TYPE>
-    ? v.InferInput<TYPE>
-    : VALIDATOR extends ZodDataValidator<infer TYPE>
-      ? z.input<TYPE>
-      : never;
+  VALIDATOR extends SchemaDataValidator<infer T>
+    ? StandardSchemaV1.InferInput<T>
+    : never;
 ```
 
-**References:** [TypedDataValidator](#typeddatavalidator)
+**References:** [TypedDataValidator](#typeddatavalidator), [SchemaDataValidator](#schemadatavalidator)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
@@ -1102,14 +1100,12 @@ export type GetValidatorInputType<VALIDATOR extends TypedDataValidator> =
 
 ```typescript
 export type GetValidatorOutputType<VALIDATOR extends TypedDataValidator> =
-  VALIDATOR extends ValibotDataValidator<infer TYPE>
-    ? v.InferOutput<TYPE>
-    : VALIDATOR extends ZodDataValidator<infer TYPE>
-      ? z.output<TYPE>
-      : never;
+  VALIDATOR extends SchemaDataValidator<infer T>
+    ? StandardSchemaV1.InferOutput<T>
+    : never;
 ```
 
-**References:** [TypedDataValidator](#typeddatavalidator)
+**References:** [TypedDataValidator](#typeddatavalidator), [SchemaDataValidator](#schemadatavalidator)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
@@ -1309,7 +1305,7 @@ _(Optional)_
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/link-component.tsx)
 
-<h2 id="loader_2">Loader_2</h2>
+<h2 id="loader">Loader</h2>
 
 ```typescript
 export type Loader<RETURN> = {
@@ -1888,7 +1884,7 @@ loader
 
 </td><td>
 
-[Loader](#loader_2)&lt;T&gt;
+[Loader](#loader)&lt;T&gt;
 
 </td><td>
 
@@ -2602,6 +2598,47 @@ RouterOutlet: import("@qwik.dev/core").Component<unknown>;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/router-outlet-component.tsx)
 
+<h2 id="schema_">schema$</h2>
+
+```typescript
+schema$: SchemaConstructor;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
+
+<h2 id="schemaconstructor">SchemaConstructor</h2>
+
+```typescript
+export type SchemaConstructor = {
+  <T extends StandardSchemaV1>(schema: T): SchemaDataValidator<T>;
+  <T extends StandardSchemaV1>(
+    schema: (ev: RequestEvent) => T,
+  ): SchemaDataValidator<T>;
+};
+```
+
+**References:** [SchemaDataValidator](#schemadatavalidator)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
+
+<h2 id="schemadatavalidator">SchemaDataValidator</h2>
+
+```typescript
+export type SchemaDataValidator<T extends StandardSchemaV1 = StandardSchemaV1> =
+  {
+    validate(
+      ev: RequestEvent,
+      data: unknown,
+    ): Promise<
+      ValidatorReturn<ValidatorErrorType<StandardSchemaV1.InferInput<T>>>
+    >;
+  };
+```
+
+**References:** [ValidatorReturn](#validatorreturn), [ValidatorErrorType](#validatorerrortype)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
+
 <h2 id="server_">server$</h2>
 
 ```typescript
@@ -2813,8 +2850,10 @@ export type StrictUnion<T> = Prettify<StrictUnionHelper<T, T>>;
 <h2 id="typeddatavalidator">TypedDataValidator</h2>
 
 ```typescript
-export type TypedDataValidator = ValibotDataValidator | ZodDataValidator;
+export type TypedDataValidator = SchemaDataValidator;
 ```
+
+**References:** [SchemaDataValidator](#schemadatavalidator)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
@@ -3056,7 +3095,9 @@ void
 
 <h2 id="valibot_">valibot$</h2>
 
-> This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> Warning: This API is now obsolete.
+>
+> Prefer `schema$`, which accepts any Standard Schema validator.
 
 ```typescript
 valibot$: ValibotConstructor;
@@ -3130,6 +3171,10 @@ export type ValidatorReturn<T extends Record<string, any> = {}> =
 
 <h2 id="zod_">zod$</h2>
 
+> Warning: This API is now obsolete.
+>
+> Prefer `schema$`, which accepts any Standard Schema validator.
+
 ```typescript
 zod$: ZodConstructor;
 ```
@@ -3140,15 +3185,17 @@ zod$: ZodConstructor;
 
 ```typescript
 export type ZodConstructor = {
-  <T extends z.ZodRawShape>(schema: T): ZodDataValidator<z.ZodObject<T>>;
+  <T extends z.ZodRawShape>(schema: T): SchemaDataValidator<z.ZodObject<T>>;
   <T extends z.ZodRawShape>(
     schema: (zod: typeof z.z, ev: RequestEvent) => T,
-  ): ZodDataValidator<z.ZodObject<T>>;
-  <T extends z.Schema>(schema: T): ZodDataValidator<T>;
-  <T extends z.Schema>(
+  ): SchemaDataValidator<z.ZodObject<T>>;
+  <T extends z.core.$ZodType>(schema: T): SchemaDataValidator<T>;
+  <T extends z.core.$ZodType>(
     schema: (zod: typeof z.z, ev: RequestEvent) => T,
-  ): ZodDataValidator<T>;
+  ): SchemaDataValidator<T>;
 };
 ```
+
+**References:** [SchemaDataValidator](#schemadatavalidator)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)

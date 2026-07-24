@@ -1,4 +1,4 @@
-import { bgMagenta, bold, cyan, magenta } from 'kleur/colors';
+import pc from 'picocolors';
 
 import type { CreateAppResult } from '../../../qwik/src/cli/types';
 import { logSuccessFooter } from '../../../qwik/src/cli/utils/log';
@@ -12,28 +12,28 @@ export function logAppCreated(pkgManager: string, result: CreateAppResult, ranIn
   const outString = [];
 
   if (isCwdDir) {
-    outString.push(`🦄 ${bgMagenta(' Success! ')}`);
+    outString.push(`🦄 ${pc.bgMagenta(' Success! ')}`);
   } else {
     outString.push(
-      `🦄 ${bgMagenta(' Success! ')} ${cyan(`Project created in`)} ${bold(
-        magenta(relativeProjectPath)
-      )} ${cyan(`directory`)}`
+      `🦄 ${pc.bgMagenta(' Success! ')} ${pc.cyan(`Project created in`)} ${pc.bold(
+        pc.magenta(relativeProjectPath)
+      )} ${pc.cyan(`directory`)}`
     );
   }
   outString.push(``);
 
   const qwikAdd = pkgManager !== 'npm' ? `${pkgManager} qwik add` : `npm run qwik add`;
-  outString.push(`🤍 ${cyan('Integrations? Add Netlify, Cloudflare, Tailwind...')}`);
+  outString.push(`🤍 ${pc.cyan('Integrations? Add Netlify, Cloudflare, Tailwind...')}`);
   outString.push(`   ${qwikAdd}`);
   outString.push(``);
 
   outString.push(logSuccessFooter(result.docs));
 
-  outString.push(`👀 ${cyan('Presentations, Podcasts and Videos:')}`);
+  outString.push(`👀 ${pc.cyan('Presentations, Podcasts and Videos:')}`);
   outString.push(`   https://qwik.dev/media/`);
   outString.push(``);
 
-  outString.push(`🐰 ${cyan(`Next steps:`)}`);
+  outString.push(`🐰 ${pc.cyan(`Next steps:`)}`);
   if (!isCwdDir) {
     outString.push(`   cd ${relativeProjectPath}`);
   }

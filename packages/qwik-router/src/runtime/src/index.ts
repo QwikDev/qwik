@@ -50,6 +50,7 @@ export type {
   RouteLocation,
   RouteNavigate,
   ServerData,
+  SchemaConstructor,
   StaticGenerate,
   StaticGenerateHandler,
   ValidatorErrorKeyDotNotation,
@@ -79,6 +80,8 @@ export {
   globalActionQrl,
   routeAction$,
   routeActionQrl,
+  schema$,
+  schemaQrl,
   server$,
   serverQrl,
   valibot$,
@@ -101,7 +104,10 @@ export {
   usePreventNavigateQrl,
 } from './use-functions';
 
-export { z } from 'zod';
+export {
+  /** @deprecated Import `z` from `zod` directly; `schema$` accepts any Standard Schema validator. */
+  z,
+} from 'zod';
 
 export { Form } from './form-component';
 export type { FormProps } from './form-component';
@@ -118,6 +124,7 @@ export type {
   ServerFunction,
   ServerQRL,
   StrictUnion,
+  SchemaDataValidator,
   TypedDataValidator,
   ValidatorReturn,
 } from './types';

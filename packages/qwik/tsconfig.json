@@ -18,6 +18,6 @@
       "@qwik.dev/core/insights/vite": ["packages/qwik/src/insights/vite"]
     }
   },
-  "include": ["src", "global.d.ts", "../qwik-vite/global.d.ts"],
+  "include": ["src", "global.d.ts", "../qwik-vite/global.d.ts", "../../@types/which-pm-runs.d.ts"],
   "exclude": ["dist"]
 }

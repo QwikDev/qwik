@@ -220,7 +220,7 @@ export { router }
     getInlineConf({
       build: {
         minify: false,
-        rollupOptions: clientInput
+        rolldownOptions: clientInput
           ? {
               input: {
                 'entry.dev': clientInput,
@@ -465,8 +465,8 @@ async function main() {
   });
 
   app.get('/', startersHomepage);
-  app.get('/favicon*', favicon);
-  app.all('/*', handleApp);
+  app.get('/favicon*splat', favicon);
+  app.all('/*splat', handleApp);
 
   const server = app.listen(port, () => {
     console.log(`E2E Dir: ${e2eDir}`);

@@ -83,7 +83,7 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
         // the inherited objects are shared by reference with the top-level (ssr) config.
         environmentOptions.build = {
           ...environmentOptions.build,
-          rollupOptions: { ...environmentOptions.build?.rollupOptions, input: {} },
+          rolldownOptions: { ...environmentOptions.build?.rolldownOptions, input: {} },
         };
       }
     },
@@ -126,8 +126,8 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
           `import render from '${srcDir}/entry.ssr';`,
           `import qwikRouterConfig from '@qwik-router-config';`,
           `import { startWorker } from '@qwik.dev/router/ssg';`,
-          // Fire-and-forget (no top-level await): avoids a Rollup inlined-dynamic-import init-order
-          // bug on the SSR target. See rollup/rollup#4166.
+          // Fire-and-forget (no top-level await): avoids an inlined-dynamic-import init-order
+          // bug on the SSR target (see rollup/rollup#4166).
           `startWorker({ render, qwikRouterConfig }).catch((err) => {`,
           `  console.error(err);`,
           `  process.exit(1);`,

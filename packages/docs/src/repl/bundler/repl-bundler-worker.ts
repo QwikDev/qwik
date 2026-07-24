@@ -1,12 +1,6 @@
 import { rolldown, type OutputAsset, type OutputChunk } from '@rolldown/browser';
 import type { PkgUrls, ReplInputOptions, ReplModuleOutput, ReplResult } from '../types';
-import {
-  definesPlugin,
-  replCss,
-  replMinify,
-  replResolver,
-  replWorkerQrlChunks,
-} from './rollup-plugins';
+import { definesPlugin, replCss, replResolver, replWorkerQrlChunks } from './rolldown-plugins';
 import { QWIK_PKG_NAME_V1 } from '../repl-constants';
 
 // Worker message types
@@ -179,7 +173,7 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
     plugins: [
       definesPlugin(defines),
       replCss({ srcInputs }),
-      qwikViteModule!.qwikRollup({
+      qwikViteModule!.qwikRolldown({
         optimizerOptions: { binding, _optimizer: qwikOptimizerModule },
         target: 'client',
         buildMode,
@@ -196,7 +190,6 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
       }),
       replWorkerQrlChunks(() => result.manifest),
       replResolver(deps, { srcInputs, buildMode, replId }, 'client'),
-      replMinify(buildMode),
     ],
     onwarn,
   });
@@ -204,6 +197,7 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
   const clientBundle = await clientBuild.generate({
     format: 'es',
     sourcemap: false,
+    minify: buildMode === 'production',
   });
 
   result.events.push({
@@ -226,7 +220,7 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
     plugins: [
       definesPlugin(defines),
       replCss({ srcInputs }),
-      qwikViteModule!.qwikRollup({
+      qwikViteModule!.qwikRolldown({
         optimizerOptions: { binding, _optimizer: qwikOptimizerModule },
         target: 'ssr',
         buildMode,
@@ -236,7 +230,6 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
         experimental: ['suspense'],
       }),
       replResolver(deps, { srcInputs, buildMode, replId }, 'ssr'),
-      replMinify(buildMode),
     ],
     onwarn,
   });
@@ -245,6 +238,7 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
     format: 'es',
     inlineDynamicImports: true,
     sourcemap: false,
+    minify: buildMode === 'production',
   });
 
   result.events.push({

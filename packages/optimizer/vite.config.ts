@@ -15,14 +15,14 @@ export default defineConfig(({ mode }) => ({
     outDir: 'dist',
     sourcemap: false,
     target: 'safari15.4',
-    minify: mode === 'development' ? false : 'esbuild',
+    minify: mode === 'development' ? false : 'oxc',
     lib: {
       entry: 'src/index.ts',
       name: 'optimizer',
       fileName: () => 'index.mjs',
       formats: ['es'],
     },
-    rollupOptions: {
+    rolldownOptions: {
       output: { banner: getBanner('@qwik.dev/optimizer', version) },
     },
   },

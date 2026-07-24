@@ -1,8 +1,11 @@
 {
   "name": "@qwik.dev/qwik-vite",
+  "version": "0.0.0",
   "devDependencies": {
-    "image-size": "1.2.1",
-    "magic-string": "0.30.21"
+    "image-size": "2.0.2",
+    "magic-string": "1.0.0",
+    "rolldown": "1.1.5",
+    "vite": "8.1.5"
   },
   "private": true
 }

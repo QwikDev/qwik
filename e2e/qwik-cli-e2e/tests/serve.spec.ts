@@ -136,6 +136,95 @@ for (const type of ['empty', 'playground'] as QwikProjectType[]) {
       );
     }
 
+    if (type === 'playground') {
+      test(
+        'Should not storm the browser when a mid-edit save is syntactically invalid',
+        { timeout: DEFAULT_TIMEOUT * 2 },
+        async () => {
+          const host = `http://localhost:${SERVE_PORT}/`;
+          await assertHostUnused(host);
+          const p = await runCommandUntil(
+            `npm run dev -- --port ${SERVE_PORT}`,
+            global.tmpDir,
+            (output) => output.includes(host)
+          );
+          assert.equal(existsSync(global.tmpDir), true);
+
+          const counterComponentPath = join(
+            global.tmpDir,
+            'src/components/starter/counter/counter.tsx'
+          );
+          const originalCounterContent = readFileSync(counterComponentPath, 'utf-8');
+
+          const browser = await playwright[browserType].launch();
+          try {
+            const page = await browser.newPage();
+
+            let errorCount = 0;
+            const samples: string[] = [];
+            const record = (entry: string) => {
+              errorCount++;
+              if (samples.length < 20) {
+                samples.push(entry);
+              }
+            };
+            page.on('console', (msg) => {
+              if (msg.type() === 'error') {
+                record(`[console] ${msg.text()}`);
+              }
+            });
+            page.on('pageerror', (err) => record(`[pageerror] ${err.message}`));
+            page.on('response', (resp) => {
+              if (resp.status() >= 500) {
+                record(`[${resp.status()}] ${resp.url()}`);
+              }
+            });
+
+            await page.goto(host);
+            const plusBtn = page.locator('button', { hasText: '+' }).first();
+            await plusBtn.waitFor({ timeout: 10000 });
+            await clickUntilCounterReaches(page, plusBtn, 73, 6, 10000);
+            log('Counter is at 73');
+
+            writeFileSync(counterComponentPath, withBrokenJsx(originalCounterContent));
+            log('Wrote syntactically-broken counter.tsx');
+            await page.waitForTimeout(3000);
+
+            expect(
+              errorCount,
+              `errors during broken window (expected a handful, not a storm):\n${samples.join('\n')}`
+            ).toBeLessThan(15);
+
+            expect(await page.textContent('body')).toContain('73');
+
+            const markerText = `HMR-RECOVER-${Date.now()}`;
+            writeFileSync(counterComponentPath, withHmrMarker(originalCounterContent, markerText));
+            log(`Wrote recovered counter.tsx with marker ${markerText}`);
+            await page.waitForFunction(
+              (expected) =>
+                document.querySelector('[data-testid="hmr-marker"]')?.textContent === expected,
+              markerText,
+              { timeout: 20000 }
+            );
+            expect(await page.textContent('body')).toContain('73');
+            log('Recovered after valid save; state preserved');
+          } finally {
+            try {
+              writeFileSync(counterComponentPath, originalCounterContent);
+            } catch (e) {
+              log(`Error restoring counter.tsx: ${e.message}`);
+            }
+            await browser.close();
+            try {
+              await promisifiedTreeKill(p.pid!, 'SIGKILL');
+            } catch (e) {
+              log(`Error terminating dev server: ${e.message}`);
+            }
+          }
+        }
+      );
+    }
+
     test('Should preview the app', { timeout: DEFAULT_TIMEOUT }, async () => {
       const host = `http://localhost:${SERVE_PORT}/`;
       await assertHostUnused(host);
@@ -182,10 +271,24 @@ for (const type of ['empty', 'playground'] as QwikProjectType[]) {
   });
 }
 
+const GAUGE_ANCHOR = `<Gauge value={count.value} />`;
+
+function assertAnchor(counterContent: string) {
+  if (!counterContent.includes(GAUGE_ANCHOR)) {
+    throw new Error(`counter.tsx fixture drift: "${GAUGE_ANCHOR}" not found`);
+  }
+}
+
+function withBrokenJsx(counterContent: string) {
+  assertAnchor(counterContent);
+  return counterContent.replace(GAUGE_ANCHOR, `<div>${GAUGE_ANCHOR}`);
+}
+
 function withHmrMarker(counterContent: string, markerText: string) {
+  assertAnchor(counterContent);
   return counterContent.replace(
-    `<Gauge value={count.value} />`,
-    `<span data-testid="hmr-marker">${markerText}</span><Gauge value={count.value} />`
+    GAUGE_ANCHOR,
+    `<span data-testid="hmr-marker">${markerText}</span>${GAUGE_ANCHOR}`
   );
 }
 

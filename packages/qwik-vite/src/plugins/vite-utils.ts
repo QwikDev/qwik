@@ -1,3 +1,12 @@
+import type { Rolldown } from 'vite';
+
+export const createRolldownError = (
+  message: string,
+  id: string,
+  plugin: string,
+  loc?: Rolldown.RolldownError['loc']
+): Rolldown.RolldownError => ({ message, id, plugin, loc });
+
 export interface Loc {
   file: string;
   line: number | undefined;
@@ -50,6 +59,14 @@ export const findLocation = (e: Error): Loc | undefined => {
 };
 
 export const isVirtualId = (id: string) => id.startsWith('\0');
+
+export const toDevPath = (normalizedId: string, normalizedRootDir: string): string => {
+  const root = normalizedRootDir.replace(/\/+$/, '');
+  if (normalizedId.startsWith(root + '/')) {
+    return normalizedId.slice(root.length);
+  }
+  return '/@fs/' + normalizedId.replace(/^\/+/, '');
+};
 
 const safeParseInt = (nu: string) => {
   try {
@@ -127,13 +144,48 @@ export function isWin(os: string): boolean {
 export function parseId(originalId: string) {
   const [pathId, query] = originalId.split('?');
   const queryStr = query || '';
+  let params: URLSearchParams | undefined;
   return {
     originalId,
     pathId,
     query: queryStr ? `?${query}` : '',
-    params: new URLSearchParams(queryStr),
+    get params() {
+      return (params ??= new URLSearchParams(queryStr));
+    },
   };
 }
 
 export const getSymbolHash = (symbolName: string) =>
   /_([a-zA-Z0-9]+)($|\.js($|\?))/.exec(symbolName)?.[1];
+
+/**
+ * Flatten a path-like name into a chunk `[name]`-safe token (Rolldown rejects path separators
+ * there).
+ */
+export const flattenToChunkName = (name: string) =>
+  name
+    .replace(/^[A-Za-z]:/, '')
+    .replace(/^(\.\.[/\\])+/, '')
+    .replace(/^\.[/\\]/, '')
+    .replace(/^[/\\]+/, '')
+    .replace(/[/\\]+/g, '-');
+
+// Chunk names the manifest matches to find the core/preloader bundles; a user or segment chunk must
+// never collide with one or it would hijack that manifest pointer. (The qwikloader is matched by its
+// emit reference instead, so a same-named route chunk can't shadow it.)
+const RESERVED_CHUNK_NAMES = new Set(['qwik-core', 'qwikloader', 'qwik-preloader']);
+
+/**
+ * Turn an entry/segment name into a chunk `[name]`, kept clear of path separators and reserved
+ * names.
+ */
+export const sanitizeChunkGroupName = (name: string | null | undefined) => {
+  if (!name) {
+    return null;
+  }
+  const chunkName = /[/\\]/.test(name) ? flattenToChunkName(name) : name;
+  if (!chunkName) {
+    return null;
+  }
+  return RESERVED_CHUNK_NAMES.has(chunkName) ? `${chunkName}-segment` : chunkName;
+};

@@ -1,4 +1,3 @@
-/// <reference types="bun" />
 import { isDev } from '@qwik.dev/core/build';
 import { setServerPlatform } from '@qwik.dev/core/server';
 import type {

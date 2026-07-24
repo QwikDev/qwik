@@ -37,8 +37,8 @@ export async function submoduleOptimizer(config: BuildConfig) {
       sourcemap: false,
       target: target,
       minify: !config.dev,
-      rollupOptions: {
-        external: ['node:fs', 'node:path', 'launch-editor', '@qwik.dev/optimizer'],
+      rolldownOptions: {
+        external: ['node:fs', 'node:path', 'launch-editor', '@qwik.dev/optimizer', 'vite'],
         output: {
           banner: getBanner('@qwik.dev/core/optimizer', config.distVersion),
         },

@@ -2,14 +2,13 @@ import { qwikInsights } from '@qwik.dev/core/insights/vite';
 import { qwikVite } from '@qwik.dev/core/optimizer';
 import { qwikRouter } from '@qwik.dev/router/vite';
 import { defineConfig, loadEnv } from 'vite';
-import tsconfigPaths from 'vite-tsconfig-paths';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
   environments: {
     client: {
       optimizeDeps: {
-        exclude: ['@auth/qwik', '@modular-forms/qwik'],
+        exclude: ['@auth/qwik', '@formisch/qwik'],
       },
     },
     ssr: {
@@ -17,16 +16,18 @@ export default defineConfig({
         sourcemap: true,
       },
       resolve: {
-        noExternal: ['@auth/qwik', '@modular-forms/qwik'],
+        noExternal: ['@auth/qwik', '@formisch/qwik'],
       },
     },
+  },
+  resolve: {
+    tsconfigPaths: true,
   },
   plugins: [
     qwikRouter(),
     qwikVite({
       experimental: ['insights'],
     }),
-    tsconfigPaths({ root: '.' }),
     qwikInsights({ publicApiKey: loadEnv('', '.', '').PUBLIC_QWIK_INSIGHTS_KEY }),
     tailwindcss(),
   ],

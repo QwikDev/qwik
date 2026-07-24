@@ -12,7 +12,7 @@ export default defineConfig(() => {
       target: 'esnext',
       outDir: 'lib',
       minify: false,
-      rollupOptions: {
+      rolldownOptions: {
         input: {
           index: './src/runtime/src/',
           'adapters/azure-swa/vite': './src/adapters/azure-swa/vite',

@@ -53,6 +53,10 @@ packages/docs/public/builder
 # Generated from packages/devtools/plugin/src/runtime/installers.ts by the
 # browser-extension build/dev scripts. Do not format or edit by hand.
 packages/browser-extension/public/devtools-hook.js
+packages/browser-extension/public/vnode-bridge.js
+
+# Playwright HTML report output, gitignored per e2e/**/.gitignore
+e2e/**/playwright-report
 
 # Ruler-generated and committed; must stay byte-identical to `ruler apply` output (guarded by the
 # ruler-check CI). Edit .ruler/ and regenerate instead of letting Prettier reformat these.

@@ -1,5 +1,6 @@
 import { component$ } from '@qwik.dev/core';
-import { routeAction$, routeLoader$, validator$, z, zod$ } from '@qwik.dev/router';
+import { routeAction$, routeLoader$, validator$, zod$ } from '@qwik.dev/router';
+import * as z from 'zod';
 import type {
   ActionOptions,
   JSONObject,

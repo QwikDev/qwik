@@ -24,7 +24,7 @@ async function buildComponents(config: BuildConfig) {
       emptyOutDir: false,
       target: 'es2022',
       minify: false,
-      rollupOptions: {
+      rolldownOptions: {
         external: (id) => /^(@|node:)/i.test(id),
       },
     },
@@ -44,7 +44,7 @@ async function buildVite(config: BuildConfig) {
       },
       outDir: distBase,
       emptyOutDir: false,
-      rollupOptions: {
+      rolldownOptions: {
         external: (id) => /^(@|node:)/i.test(id),
       },
     },

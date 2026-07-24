@@ -4,5 +4,6 @@ declare const Bun: {
   file: (path: string) => {
     text: () => Promise<string>;
     stream: () => Promise<ReadableStream<Uint8Array>>;
+    exists: () => Promise<boolean>;
   };
 };

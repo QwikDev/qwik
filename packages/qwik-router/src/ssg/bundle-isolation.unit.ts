@@ -2,7 +2,7 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { basename, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { build, type Rollup } from 'vite';
+import { build, type Rolldown } from 'vite';
 import { describe, expect, it } from 'vitest';
 
 // run-ssg builds as two entries: the worker entry owns the render machinery, the main entry's static
@@ -58,7 +58,7 @@ describe('SSG worker bundle isolation', () => {
           minify: false,
           outDir,
           ssr: true,
-          rollupOptions: {
+          rolldownOptions: {
             input: {
               'run-ssg': join(appDir, 'run-ssg.ts'),
               'run-ssg-worker': join(appDir, 'run-ssg-worker.ts'),
@@ -68,10 +68,10 @@ describe('SSG worker bundle isolation', () => {
         },
       });
 
-      const outputs = Array.isArray(result) ? result : [result as Rollup.RollupOutput];
+      const outputs = Array.isArray(result) ? result : [result as Rolldown.RolldownOutput];
       const chunks = outputs
         .flatMap((o) => o.output)
-        .filter((c): c is Rollup.OutputChunk => c.type === 'chunk');
+        .filter((c): c is Rolldown.OutputChunk => c.type === 'chunk');
       const byFile = new Map(chunks.map((c) => [c.fileName, c]));
 
       const mainEntry = chunks.find((c) => c.isEntry && /^run-ssg\./.test(basename(c.fileName)));

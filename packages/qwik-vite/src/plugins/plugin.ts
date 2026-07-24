@@ -1,4 +1,5 @@
-import type { DevEnvironment, HotUpdateOptions, Plugin, Rollup, ViteDevServer } from 'vite';
+import type { ChunkingContext, CodeSplittingOptions } from 'rolldown';
+import type { DevEnvironment, HotUpdateOptions, Plugin, Rolldown, ViteDevServer } from 'vite';
 import { hashCode } from '../../../qwik/src/core/shared/utils/hash_code';
 import { generateManifestFromBundles, getValidManifest } from '../manifest';
 import type {
@@ -24,7 +25,7 @@ import {
   isServerOnlyModule,
   mightContainServerOnlyImport,
 } from './server-only-modules';
-import { isVirtualId, isWin, parseId } from './vite-utils';
+import { isVirtualId, isWin, parseId, sanitizeChunkGroupName, toDevPath } from './vite-utils';
 import MagicString from 'magic-string';
 import {
   createDevWorkerQrlChunkResolver,
@@ -84,8 +85,6 @@ export enum ExperimentalFeatures {
   show = 'show',
   /** Enable the Suspense fallback primitive */
   suspense = 'suspense',
-  /** Enable the Valibot form validation */
-  valibot = 'valibot',
   /** Disable SPA navigation handler in Qwik Router */
   noSPA = 'noSPA',
   /** Enable the ability to use the Qwik Insights vite plugin and `<Insights/>` component */
@@ -425,7 +424,9 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   let optimizer: Optimizer;
   let shouldAddHandlers = false;
-  const buildStart = async (_ctx: Rollup.PluginContext) => {
+  // emitFile reference for the qwikloader chunk; resolved to its output file name for the manifest.
+  let qwikLoaderChunkRef: string | undefined;
+  const buildStart = async (_ctx: Rolldown.PluginContext) => {
     debug(`buildStart()`, opts.buildMode, opts.scope, opts.target, opts.rootDir, opts.srcDir);
     optimizer = getOptimizer();
     shouldAddHandlers = !devServer;
@@ -441,13 +442,15 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     clientTransformedOutputs.clear();
     serverTransformedOutputs.clear();
 
+    qwikLoaderChunkRef = undefined;
     if (opts.target === 'client' && !devServer) {
       // emitFile() is only supported during build, not in Vite serve mode
       const ql = await _ctx.resolve('@qwik.dev/core/qwikloader.js', undefined, {
         skipSelf: true,
       });
       if (ql) {
-        _ctx.emitFile({
+        // Keep the reference so the manifest can resolve the loader's output name authoritatively.
+        qwikLoaderChunkRef = _ctx.emitFile({
           id: ql.id,
           type: 'chunk',
           preserveSignature: 'allow-extension',
@@ -457,7 +460,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   /** Determine if the current module is being processed for a server environment. */
-  const getIsServer = (ctx: Rollup.PluginContext, viteOpts?: { ssr?: boolean }) => {
+  const getIsServer = (ctx: Rolldown.PluginContext, viteOpts?: { ssr?: boolean }) => {
     return ctx.environment
       ? ctx.environment.config.consumer === 'server'
       : devServer
@@ -484,7 +487,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     return normalizedImportId.includes('.server') || /(^|\/)server(\/|$)/.test(normalizedImportId);
   };
 
-  const getImportSpecifiers = (ctx: Rollup.PluginContext, code: string): string[] => {
+  const getImportSpecifiers = (ctx: Rolldown.PluginContext, code: string): string[] => {
     const imports = new Set<string>();
 
     const addSource = (source: any) => {
@@ -532,7 +535,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   const assertClientTransformCanImport = async (
-    ctx: Rollup.PluginContext,
+    ctx: Rolldown.PluginContext,
     code: string,
     resolveImporterId: string,
     importerId = resolveImporterId
@@ -553,7 +556,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   const assertClientTransformOutputCanImport = async (
-    ctx: Rollup.PluginContext,
+    ctx: Rolldown.PluginContext,
     output: TransformOutput,
     srcDir: string,
     importerId?: string,
@@ -570,7 +573,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   const resolveTransformableImport = async (
-    ctx: Rollup.PluginContext,
+    ctx: Rolldown.PluginContext,
     importId: string,
     importerId: string
   ) => {
@@ -592,7 +595,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   const restoreSsrImportGraphEdges = async (
-    ctx: Rollup.PluginContext,
+    ctx: Rolldown.PluginContext,
     inputImports: string[],
     importerId: string
   ): Promise<string[]> => {
@@ -624,7 +627,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
    * `load()` phase ensure it is built first.
    */
   const resolveId = async (
-    ctx: Rollup.PluginContext,
+    ctx: Rolldown.PluginContext,
     id: string,
     importerId: string | undefined,
     resolveOpts?: QwikResolveIdOptions
@@ -645,7 +648,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         // Find the actual file on disk by asking vite to resolve it
         const resolved = await ctx.resolve(origId, importerId);
         if (resolved) {
-          const devEnv = ctx.environment as DevEnvironment;
+          const devEnv = ctx.environment as unknown as DevEnvironment;
           const file = devEnv.moduleGraph.getModuleById(resolved.id)?.file;
           if (file) {
             const path = `${file}${location}`;
@@ -682,7 +685,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     const parsedId = parseId(id);
     const pathId = normalizePath(parsedId.pathId);
 
-    let result: Rollup.ResolveIdResult;
+    let result: Rolldown.ResolveIdResult;
 
     /** At this point, the request has been normalized. */
     if (!(devServer && resolveOpts?.scan)) {
@@ -796,9 +799,9 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         }
       } else if (importerId) {
         /**
-         * When we get here it's neither a virtual module nor a QRL segment. However, Rollup can ask
-         * us to resolve imports from QRL segments. It seems like importers need to exist on disk
-         * for this to work automatically, so for segments we resolve via the parent instead.
+         * When we get here it's neither a virtual module nor a QRL segment. However, Rolldown can
+         * ask us to resolve imports from QRL segments. It seems like importers need to exist on
+         * disk for this to work automatically, so for segments we resolve via the parent instead.
          *
          * Note that when a this happens, the segment was already resolved and transformed, so we
          * know about it.
@@ -818,10 +821,10 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   let loadCount = 0;
   const load = async (
-    ctx: Rollup.PluginContext,
+    ctx: Rolldown.PluginContext,
     id: string,
     loadOpts?: Parameters<Extract<Plugin['load'], Function>>[1]
-  ): Promise<Rollup.LoadResult> => {
+  ): Promise<Rolldown.LoadResult> => {
     if (id === '\0editor') {
       // This doesn't get used, but we need to return something
       return '"opening in editor"';
@@ -931,11 +934,11 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
   let theManifest: string | null | undefined;
   let transformCount = 0;
   const transform = async function (
-    ctx: Rollup.PluginContext,
+    ctx: Rolldown.PluginContext,
     code: string,
     id: string,
     transformOpts = {} as Parameters<Extract<Plugin['transform'], Function>>[2]
-  ): Promise<Rollup.SourceDescription | undefined> {
+  ): Promise<Rolldown.SourceDescription | undefined> {
     if (isVirtualId(id)) {
       return;
     }
@@ -1000,20 +1003,14 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       const entryStrategy: EntryStrategy = opts.entryStrategy;
       let devPath: string | undefined;
       const moduleGraph =
-        (ctx.environment as DevEnvironment | undefined)?.moduleGraph ?? devServer?.moduleGraph;
+        (ctx.environment as unknown as DevEnvironment | undefined)?.moduleGraph ??
+        devServer?.moduleGraph;
       if (moduleGraph) {
         devPath = moduleGraph.getModuleById(pathId)?.url;
         // Fallback: if the module isn't in the graph yet (first transform),
         // compute a root-relative URL path that matches what hotUpdate sends.
         if (!devPath && opts.rootDir) {
-          const rootDir = normalizePath(opts.rootDir);
-          const normalizedId = normalizePath(pathId);
-          if (normalizedId.startsWith(rootDir)) {
-            devPath = normalizedId.slice(rootDir.length);
-            if (!devPath.startsWith('/')) {
-              devPath = '/' + devPath;
-            }
-          }
+          devPath = toDevPath(normalizePath(pathId), normalizePath(opts.rootDir));
         }
       }
       const transformOpts: TransformModulesOptions = {
@@ -1099,6 +1096,9 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       }
       const deps = new Set<string>();
       for (const mod of newOutput.modules) {
+        if (mod.segment) {
+          mod.segment.entry = normalizeChunkGroupName(mod.segment.entry, srcDir);
+        }
         // TODO handle noop modules
         if (mod !== module) {
           const key = normalizePath(path.join(srcDir, mod.path));
@@ -1176,7 +1176,10 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     canonPath: (p: string) => string;
   };
 
-  const createOutputAnalyzer = (rollupBundle: Rollup.OutputBundle) => {
+  const createOutputAnalyzer = (
+    rollupBundle: Rolldown.OutputBundle,
+    qwikLoaderFileName?: string
+  ) => {
     const injections: GlobalInjections[] = [];
 
     const outputAnalyzer: OutputAnalyzer = {
@@ -1204,7 +1207,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         rollupBundle,
         opts,
         debug,
-        canonPath
+        canonPath,
+        qwikLoaderFileName
       );
       if (extra) {
         Object.assign(manifest, extra);
@@ -1329,21 +1333,47 @@ export const isDev = ${JSON.stringify(isDev)};
     opts.sourcemap = sourcemap;
   }
 
+  async function getTransformError(code: string, id: string): Promise<Diagnostic | null> {
+    const path = getPath();
+    const { pathId } = parseId(id);
+    const normalizedPathId = normalizePath(pathId);
+    const ext = path.extname(normalizedPathId).toLowerCase();
+    if (!(ext in TRANSFORM_EXTS) && !TRANSFORM_REGEX.test(normalizedPathId)) {
+      return null;
+    }
+    const output = await getOptimizer().transformModules({
+      input: [{ code, path: path.parse(normalizedPathId).base }],
+      minify: 'none',
+      sourceMaps: false,
+      transpileTs: true,
+      transpileJsx: true,
+      srcDir: normalizePath(path.dirname(normalizedPathId)),
+      rootDir: opts.rootDir,
+      mode: 'dev',
+      isServer: false,
+    });
+    return output.diagnostics.find((d) => d.category === 'error') ?? null;
+  }
+
   // Only used in Vite dev mode, called per-environment
-  function hotUpdate(environment: DevEnvironment, ctx: HotUpdateOptions) {
+  function hotUpdate(environment: DevEnvironment, ctx: HotUpdateOptions): boolean {
     const isServer = environment.name === 'ssr';
     debug('hotUpdate()', ctx.file, environment.name);
 
     const outputs = isServer ? serverTransformedOutputs : clientTransformedOutputs;
 
+    let hasReRenderableSegment = false;
     for (const mod of ctx.modules) {
       const { id } = mod;
       if (id) {
         debug('hotUpdate()', `invalidate ${id}`);
         clientResults.delete(id);
-        for (const [key, [_, parentId]] of outputs) {
+        for (const [key, [transformedModule, parentId]] of outputs) {
           if (parentId === id) {
             debug('hotUpdate()', `invalidate ${id} segment ${key}`);
+            if (transformedModule.segment?.ctxName !== 'worker$') {
+              hasReRenderableSegment = true;
+            }
             outputs.delete(key);
             const segMod = environment.moduleGraph.getModuleById(key);
             if (segMod) {
@@ -1353,58 +1383,81 @@ export const isDev = ${JSON.stringify(isDev)};
         }
       }
     }
+    return hasReRenderableSegment;
   }
 
-  const manualChunks: Rollup.ManualChunksOption = (id: string, { getModuleInfo }) => {
-    if (opts.target === 'client') {
-      if (
-        // The preloader has to stay in a separate chunk if it's a client build
-        id.endsWith('@qwik.dev/core/build') ||
-        /[/\\](core|qwik)[/\\]dist[/\\]preloader\.[cm]js$/.test(id)
-      ) {
-        return 'qwik-preloader';
-      } else if (
-        // likewise, core and handlers have to be in the same chunk so there's no import waterfall
-        /[/\\](core|qwik)[/\\](handlers|dist[/\\]core(\.prod|\.min)?)\.[cm]js$/.test(id)
-      ) {
-        return 'qwik-core';
-      } else if (/[/\\](core|qwik)[/\\]dist[/\\]qwikloader\.js$/.test(id)) {
-        return 'qwik-loader';
-      }
+  const normalizeChunkGroupName = (entry: string | null | undefined, srcDir: string) => {
+    if (!entry) {
+      return null;
     }
+    const path = getPath();
+    const normalizedEntry = normalizePath(entry);
+    const absoluteEntry = path.isAbsolute(normalizedEntry)
+      ? normalizedEntry
+      : normalizePath(path.resolve(srcDir, normalizedEntry));
+    const rootRelativeEntry = normalizePath(path.relative(opts.rootDir, absoluteEntry));
+    const preferredName =
+      !rootRelativeEntry.startsWith('../') && !path.isAbsolute(rootRelativeEntry)
+        ? rootRelativeEntry
+        : absoluteEntry;
+    return sanitizeChunkGroupName(preferredName);
+  };
 
-    const module = getModuleInfo(id);
+  // Eagerly-loaded contexts stay with their parent rather than grouping into a segment chunk.
+  const EAGER_CTX_NAMES = new Set(['qwikify$', 'useVisibleTask$', 'useComputed$']);
+  const mergeRelatedSegments = (id: string, ctx: ChunkingContext) => {
+    const module = ctx?.getModuleInfo(id);
     if (module) {
       const segment = module.meta.segment as SegmentAnalysis | undefined;
       if (segment) {
         // TODO: Remove useComputed$ once we don't need to eagerly load them anymore
-        if (['qwikify$', 'useVisibleTask$', 'useComputed$'].includes(segment.ctxName)) {
+        if (EAGER_CTX_NAMES.has(segment.ctxName)) {
           return null;
         }
         const { hash } = segment;
-
-        // We use the manual entry strategy to group segments together based on their common entry or Qwik Insights provided hash
+        // Group segments by their common entry (or Qwik Insights hash), incl. node_modules qwik libs.
+        // segment.entry is already sanitized at transform; a user `manual` name may not be.
         const chunkName =
           (opts.entryStrategy as SmartEntryStrategy).manual?.[hash] || segment.entry;
         if (chunkName) {
-          // we group related segments together based on their common entry or Qwik Insights provided hash
-          // This not only applies to source files, but also qwik libraries files that are imported through node_modules
-          return chunkName;
+          return sanitizeChunkGroupName(chunkName);
         }
       }
     }
-
-    // The rest is non-qwik code. We let rollup handle it.
     return null;
   };
 
+  // core and handlers must share a chunk so there's no import waterfall; kept on every target so the
+  // manifest can identify the core/handlers bundle. The qwikloader is its own emitFile entry
+  // (named 'qwikloader'), so no group is needed for it. qwik-preloader is client-only.
+  const qwikCoreGroup = {
+    name: 'qwik-core',
+    test: /[/\\](core|qwik)[/\\](handlers|dist[/\\]core(\.prod|\.min)?)\.[cm]js$/,
+  };
+  const segmentGroup = { name: mergeRelatedSegments };
+  const codeSplitting = (target: QwikBuildTarget): CodeSplittingOptions => ({
+    includeDependenciesRecursively: false,
+    groups:
+      target === 'client'
+        ? [
+            qwikCoreGroup,
+            {
+              name: 'qwik-preloader',
+              test: /(?:@qwik\.dev\/core\/build|[/\\](?:core|qwik)[/\\]dist[/\\]preloader\.[cm]js)$/,
+            },
+            segmentGroup,
+          ]
+        : [qwikCoreGroup, segmentGroup],
+  });
+
   async function generateManifest(
-    ctx: Rollup.PluginContext,
-    rollupBundle: Rollup.OutputBundle,
+    ctx: Rolldown.PluginContext,
+    rollupBundle: Rolldown.OutputBundle,
     bundleGraphAdders?: Set<BundleGraphAdder>,
     manifestExtra?: Partial<QwikManifest>
   ) {
-    const outputAnalyzer = createOutputAnalyzer(rollupBundle);
+    const qwikLoaderFileName = qwikLoaderChunkRef ? ctx.getFileName(qwikLoaderChunkRef) : undefined;
+    const outputAnalyzer = createOutputAnalyzer(rollupBundle, qwikLoaderFileName);
     const manifest = await outputAnalyzer.generateManifest(manifestExtra);
 
     manifest.platform = {
@@ -1472,7 +1525,8 @@ export const isDev = ${JSON.stringify(isDev)};
     setSourceMapSupport,
     configureServer,
     hotUpdate,
-    manualChunks,
+    getTransformError,
+    codeSplitting,
     generateManifest,
   };
 }

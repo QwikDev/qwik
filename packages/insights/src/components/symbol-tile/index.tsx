@@ -144,11 +144,10 @@ const serverGetSourceSnippet = server$(async function (symbolHash: string) {
   }
   let source = '...';
   let url: URL | null = null;
-  let rawUrl: URL | null = null;
   if (publicApiKey == '221smyuj5gl') {
     const rawGithub = 'https://raw.githubusercontent.com/QwikDev/qwik/main/packages/docs/src/';
     const github = 'https://github.com/QwikDev/qwik/blob/main/packages/docs/src/';
-    rawUrl = new URL(rawGithub);
+    const rawUrl = new URL(rawGithub);
     url = new URL(github);
     if (symbolDetail.origin.startsWith('./')) {
       console.log('ORIGIN:', symbolDetail.origin);

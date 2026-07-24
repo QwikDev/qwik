@@ -11,18 +11,19 @@
     "@qwik.dev/optimizer": "workspace:*",
     "csstype": "^3.2.3",
     "launch-editor": "^2.14.1",
-    "magic-string": "0.30.21",
-    "rollup": "^4.61.0"
+    "magic-string": "^1.0.0"
   },
   "devDependencies": {
     "@croct/json5-parser": "0.2.2",
     "@qwik.dev/core": "workspace:*",
     "@qwik.dev/dom": "workspace:*",
     "domino": "2.1.6",
-    "ignore": "5.3.1",
-    "image-size": "1.2.1",
-    "kleur": "4.1.5",
+    "ignore": "7.0.6",
+    "image-size": "2.0.2",
+    "memfs": "4.51.1",
+    "picocolors": "1.1.1",
     "prettier": "3.7.4",
+    "rolldown": "1.1.5",
     "vitest": "4.1.10"
   },
   "engines": {
@@ -160,9 +161,9 @@
   "license": "MIT",
   "main": "./src/index.ts",
   "peerDependencies": {
-    "prettier": "*",
-    "vite": ">=6 <9",
-    "vitest": ">=2 <4"
+    "prettier": ">=2",
+    "vite": ">=8 <9",
+    "vitest": ">=2 <5"
   },
   "peerDependenciesMeta": {
     "vitest": {

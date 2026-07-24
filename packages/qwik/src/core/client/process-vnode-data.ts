@@ -591,9 +591,14 @@ function* processVNodeDataImpl(
             node as Element,
             contentBoundaryId
           );
-          nextNode = nextSibling(node);
+          let cursor: Node | null = node;
+          while (cursor && !(nextNode = nextSibling(cursor))) {
+            cursor = cursor.parentNode;
+          }
           if (nextNode) {
             walker.currentNode = nextNode;
+          } else {
+            return;
           }
         }
       }

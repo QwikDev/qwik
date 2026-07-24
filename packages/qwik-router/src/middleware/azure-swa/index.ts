@@ -1,4 +1,9 @@
-import type { AzureFunction, Context, HttpRequest } from '@azure/functions';
+import type {
+  HttpHandler,
+  HttpRequest,
+  HttpResponseInit,
+  InvocationContext,
+} from '@azure/functions';
 import { setServerPlatform } from '@qwik.dev/core/server';
 import type {
   ServerRenderOptions,
@@ -9,60 +14,29 @@ import {
   isStaticPath,
   requestHandler,
 } from '@qwik.dev/router/middleware/request-handler';
-import { parseString } from 'set-cookie-parser';
+import { parseSetCookie } from 'set-cookie-parser';
 
 // @qwik.dev/router/middleware/azure-swa
 
-interface AzureResponse {
-  status: number;
-  headers: { [key: string]: any };
-  body?: string | Uint8Array;
-  cookies?: AzureCookie[];
-}
-
-interface AzureCookie {
-  /** Cookie name */
-  name: string;
-  /** Cookie value */
-  value: string;
-  /** Specifies allowed hosts to receive the cookie */
-  domain?: string;
-  /** Specifies URL path that must exist in the requested URL */
-  path?: string;
-  /**
-   * NOTE: It is generally recommended that you use maxAge over expires. Sets the cookie to expire
-   * at a specific date instead of when the client closes. This can be a Javascript Date or Unix
-   * time in milliseconds.
-   */
-  expires?: Date | number;
-  /** Sets the cookie to only be sent with an encrypted request */
-  secure?: boolean;
-  /** Sets the cookie to be inaccessible to JavaScript's Document.cookie API */
-  httpOnly?: boolean;
-  /** Can restrict the cookie to not be sent with cross-site requests */
-  sameSite?: string | undefined;
-  /**
-   * Number of seconds until the cookie expires. A zero or negative number will expire the cookie
-   * immediately.
-   */
-  maxAge?: number;
-}
-
 /** @public */
-export function createQwikRouter(opts: QwikRouterAzureOptions): AzureFunction {
+export function createQwikRouter(opts: QwikRouterAzureOptions): HttpHandler {
   if (opts.manifest) {
     setServerPlatform(opts.manifest);
   }
-  async function onAzureSwaRequest(context: Context, req: HttpRequest): Promise<AzureResponse> {
+  async function onAzureSwaRequest(
+    req: HttpRequest,
+    context: InvocationContext
+  ): Promise<HttpResponseInit> {
     try {
-      const url = new URL(req.headers['x-ms-original-url']!);
-      const options: RequestInit = {
+      const url = new URL(req.headers.get('x-ms-original-url')!);
+      const options = {
         method: req.method || 'GET',
         headers: req.headers,
-        body: req.bufferBody || req.rawBody || req.body,
+        body: req.body,
+        duplex: 'half',
       };
 
-      const serverRequestEv: ServerRequestEvent<AzureResponse> = {
+      const serverRequestEv: ServerRequestEvent<HttpResponseInit> = {
         mode: 'server',
         locale: undefined,
         url,
@@ -76,12 +50,21 @@ export function createQwikRouter(opts: QwikRouterAzureOptions): AzureFunction {
         getWritableStream: (status, headers, cookies, resolve) => {
           const chunks: Uint8Array[] = [];
           let bodyLength = 0;
-          const response: AzureResponse = {
+          const responseHeaders: Record<string, string> = {};
+          const response: HttpResponseInit = {
             status,
-            headers: {},
-            cookies: cookies.headers().map((header) => parseString(header)),
+            headers: responseHeaders,
+            cookies: parseSetCookie(cookies.headers()).map((cookie) => ({
+              ...cookie,
+              sameSite:
+                cookie.sameSite === 'Strict' ||
+                cookie.sameSite === 'Lax' ||
+                cookie.sameSite === 'None'
+                  ? cookie.sameSite
+                  : undefined,
+            })),
           };
-          headers.forEach((value, key) => (response.headers[key] = value));
+          headers.forEach((value, key) => (responseHeaders[key] = value));
           return new WritableStream({
             write(chunk: Uint8Array) {
               chunks.push(chunk.slice());
@@ -102,7 +85,7 @@ export function createQwikRouter(opts: QwikRouterAzureOptions): AzureFunction {
 
         getClientConn: () => {
           return {
-            ip: req.headers['x-forwarded-client-Ip'],
+            ip: req.headers.get('x-forwarded-client-Ip') ?? undefined,
             country: undefined,
           };
         },
@@ -124,7 +107,7 @@ export function createQwikRouter(opts: QwikRouterAzureOptions): AzureFunction {
 
       // No matching route: respond with a minimal 404 (static paths get a plain message).
       const notFoundHtml =
-        !req.headers.accept?.includes('text/html') || isStaticPath(req.method || 'GET', url)
+        !req.headers.get('accept')?.includes('text/html') || isStaticPath(req.method || 'GET', url)
           ? 'Not Found'
           : getErrorHtml(404, 'Not Found');
       return {
@@ -160,4 +143,4 @@ export interface QwikRouterAzureOptions extends ServerRenderOptions {}
 export type QwikCityAzureOptions = QwikRouterAzureOptions;
 
 /** @public */
-export interface PlatformAzure extends Partial<Context> {}
+export interface PlatformAzure extends Partial<InvocationContext> {}

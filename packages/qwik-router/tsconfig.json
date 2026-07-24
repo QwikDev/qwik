@@ -44,6 +44,6 @@
       "@qwik-router-sw-register": ["packages/qwik-router/src/runtime/src/sw-register-runtime.ts"]
     }
   },
-  "include": ["src", "global.d.ts"],
+  "include": ["src", "global.d.ts", "../../@types/bun.d.ts"],
   "exclude": ["dist", "lib"]
 }

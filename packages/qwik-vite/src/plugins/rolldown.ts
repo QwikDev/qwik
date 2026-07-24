@@ -1,4 +1,5 @@
-import type { Rollup } from 'vite';
+import type { OutputOptions } from 'rolldown';
+import type { Rolldown } from 'vite';
 import type {
   Diagnostic,
   EntryStrategy,
@@ -17,20 +18,19 @@ import {
   type QwikPlugin,
   type QwikPluginOptions,
 } from './plugin';
-import { findDepPkgJsonPath } from './utils';
-import { isVirtualId } from './vite-utils';
+import { createRolldownError, flattenToChunkName, isVirtualId } from './vite-utils';
 
-type QwikRollupPluginApi = {
+type QwikRolldownPluginApi = {
   getOptimizer: () => Optimizer;
   getOptions: () => NormalizedQwikPluginOptions;
 };
 
 /** @public */
-export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
-  const qwikPlugin = createQwikPlugin(qwikRollupOpts.optimizerOptions);
+export function qwikRolldown(qwikRolldownOpts: QwikRolldownPluginOptions = {}): any {
+  const qwikPlugin = createQwikPlugin(qwikRolldownOpts.optimizerOptions);
 
-  const rollupPlugin: QwikRollupPlugin = {
-    name: 'rollup-plugin-qwik',
+  const rolldownPlugin: QwikRolldownPlugin = {
+    name: 'rolldown-plugin-qwik',
 
     api: {
       getOptimizer: () => qwikPlugin.getOptimizer(),
@@ -40,31 +40,23 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
     async options(inputOpts) {
       await qwikPlugin.init();
 
-      const origOnwarn = inputOpts.onwarn;
-      inputOpts.onwarn = (warning, warn) => {
-        if (warning.plugin === 'typescript' && warning.message.includes('outputToFilesystem')) {
-          return;
-        }
-        origOnwarn ? origOnwarn(warning, warn) : warn(warning);
-      };
-
       const pluginOpts: QwikPluginOptions = {
-        csr: qwikRollupOpts.csr,
-        target: qwikRollupOpts.target,
-        buildMode: qwikRollupOpts.buildMode,
-        debug: qwikRollupOpts.debug,
-        entryStrategy: qwikRollupOpts.entryStrategy,
-        rootDir: qwikRollupOpts.rootDir,
-        srcDir: qwikRollupOpts.srcDir,
-        srcInputs: qwikRollupOpts.srcInputs,
+        csr: qwikRolldownOpts.csr,
+        target: qwikRolldownOpts.target,
+        buildMode: qwikRolldownOpts.buildMode,
+        debug: qwikRolldownOpts.debug,
+        entryStrategy: qwikRolldownOpts.entryStrategy,
+        rootDir: qwikRolldownOpts.rootDir,
+        srcDir: qwikRolldownOpts.srcDir,
+        srcInputs: qwikRolldownOpts.srcInputs,
         input: inputOpts.input as string,
         resolveQwikBuild: true,
-        manifestOutput: qwikRollupOpts.manifestOutput,
-        manifestInput: qwikRollupOpts.manifestInput,
-        transformedModuleOutput: qwikRollupOpts.transformedModuleOutput,
-        inlineStylesUpToBytes: qwikRollupOpts.optimizerOptions?.inlineStylesUpToBytes,
-        lint: qwikRollupOpts.lint,
-        experimental: qwikRollupOpts.experimental,
+        manifestOutput: qwikRolldownOpts.manifestOutput,
+        manifestInput: qwikRolldownOpts.manifestInput,
+        transformedModuleOutput: qwikRolldownOpts.transformedModuleOutput,
+        inlineStylesUpToBytes: qwikRolldownOpts.optimizerOptions?.inlineStylesUpToBytes,
+        lint: qwikRolldownOpts.lint,
+        experimental: qwikRolldownOpts.experimental,
       };
 
       await qwikPlugin.normalizeOptions(pluginOpts);
@@ -75,10 +67,10 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
       return inputOpts;
     },
 
-    outputOptions(rollupOutputOpts) {
-      return normalizeRollupOutputOptionsObject(
+    outputOptions(outputOpts) {
+      return normalizeRolldownOutputObject(
         qwikPlugin,
-        rollupOutputOpts,
+        outputOpts,
         qwikPlugin.getOptions().outDir
       ) as any;
     },
@@ -88,9 +80,9 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
         diagnostics.forEach((d) => {
           const id = qwikPlugin.normalizePath(optimizer.sys.path.join(srcDir, d.file));
           if (d.category === 'error') {
-            this.error(createRollupError(id, d));
+            this.error(createBundlerError(id, d));
           } else {
-            this.warn(createRollupError(id, d));
+            this.warn(createBundlerError(id, d));
           }
         });
       });
@@ -128,27 +120,25 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
     },
   };
 
-  return rollupPlugin;
+  return rolldownPlugin;
 }
 
-export async function normalizeRollupOutputOptions(
+export async function normalizeRolldownOutputOptions(
   qwikPlugin: QwikPlugin,
-  rollupOutputOpts: Rollup.OutputOptions | Rollup.OutputOptions[] | undefined
-): Promise<Rollup.OutputOptions | Rollup.OutputOptions[]> {
-  if (Array.isArray(rollupOutputOpts)) {
+  outputOpts: OutputOptions | OutputOptions[] | undefined
+): Promise<OutputOptions | OutputOptions[]> {
+  if (Array.isArray(outputOpts)) {
     // make sure at least one output is present in every case
-    if (!rollupOutputOpts.length) {
-      rollupOutputOpts.push({});
+    if (!outputOpts.length) {
+      outputOpts.push({});
     }
 
     return await Promise.all(
-      rollupOutputOpts.map((outputOptsObj) =>
-        normalizeRollupOutputOptionsObject(qwikPlugin, outputOptsObj)
-      )
+      outputOpts.map((outputOptsObj) => normalizeRolldownOutputObject(qwikPlugin, outputOptsObj))
     );
   }
 
-  return normalizeRollupOutputOptionsObject(qwikPlugin, rollupOutputOpts);
+  return normalizeRolldownOutputObject(qwikPlugin, outputOpts);
 }
 
 const normalizeChunkPathPrefix = (prefix: string) => {
@@ -172,7 +162,7 @@ const getChunkFileName = (
     return `${chunkPathPrefix}q-[hash].js`;
   } else {
     // Friendlier names in dev or preview with debug mode
-    return (chunkInfo: Rollup.PreRenderedChunk) => {
+    return (chunkInfo: Rolldown.PreRenderedChunk) => {
       if (chunkInfo.moduleIds?.some((id) => /core\.(prod|min)\.mjs$/.test(id))) {
         return `${chunkPathPrefix}core.js`;
       }
@@ -181,28 +171,24 @@ const getChunkFileName = (
       }
 
       // The chunk name can often be a path. We sanitize it to use dashes instead of slashes, to keep the same folder structure as without debug:true.
-      // Besides, Rollup doesn't accept absolute or relative paths as inputs for the [name] placeholder for the same reason.
+      // Besides, the bundler doesn't accept absolute or relative paths as inputs for the [name] placeholder for the same reason.
       const relativePath = optimizer.sys.path.relative(optimizer.sys.cwd(), chunkInfo.name);
-      const sanitized = relativePath
-        .replace(/^(\.\.\/)+/, '')
-        .replace(/^\/+/, '')
-        .replace(/\//g, '-');
-      return `${chunkPathPrefix}${sanitized}.js`;
+      return `${chunkPathPrefix}${flattenToChunkName(relativePath)}.js`;
     };
   }
 };
 
-export async function normalizeRollupOutputOptionsObject(
+export async function normalizeRolldownOutputObject(
   qwikPlugin: QwikPlugin,
-  rollupOutputOptsObj: Rollup.OutputOptions | undefined,
-  // Force `dir` for the standalone Rollup plugin (no Vite to derive it). Vite passes undefined so
+  rolldownOutputOptsObj: OutputOptions | undefined,
+  // Force `dir` for the standalone plugin (no Vite to derive it). Vite passes undefined so
   // each environment's `build.outDir` resolves it — letting a custom env (e.g. `ssg`) use its own.
   outDir?: string
-): Promise<Rollup.OutputOptions> {
-  const outputOpts: Rollup.OutputOptions = { ...rollupOutputOptsObj };
+): Promise<OutputOptions> {
+  const outputOpts: OutputOptions = { ...rolldownOutputOptsObj };
   const opts = qwikPlugin.getOptions();
   const optimizer = qwikPlugin.getOptimizer();
-  const manualChunks = qwikPlugin.manualChunks;
+  const internalCodeSplitting = qwikPlugin.codeSplitting(opts.target);
 
   if (!outputOpts.assetFileNames) {
     // SEO likes readable asset names. Set `output.assetFileNames` to relocate assets.
@@ -223,24 +209,24 @@ export async function normalizeRollupOutputOptionsObject(
 
     // client should always be es
     outputOpts.format = 'es';
-    const prevManualChunks = outputOpts.manualChunks;
-    if (prevManualChunks && typeof prevManualChunks !== 'function') {
-      throw new Error('manualChunks must be a function');
-    }
-    // Casts bridge Rollup vs Rolldown ManualChunkMeta type differences
-    type ManualChunkFn = (id: string, meta: unknown) => string | void | null;
-
-    // We need custom chunking for the client build
-    outputOpts.manualChunks = prevManualChunks
-      ? (id, meta) =>
-          (prevManualChunks as ManualChunkFn)(id, meta) || (manualChunks as ManualChunkFn)(id, meta)
-      : (manualChunks as Rollup.OutputOptions['manualChunks']);
   } else {
     // server production output, try to be similar to client
     if (!outputOpts.chunkFileNames) {
       outputOpts.chunkFileNames = chunkFileName;
     }
   }
+
+  // Custom chunking groups related qrl segments; same config for client and server.
+  const userCodeSplitting = outputOpts.codeSplitting;
+  if (typeof userCodeSplitting === 'boolean') {
+    throw new Error(
+      'codeSplitting must be a `codeSplitting: { groups: [...] }` object so Qwik can group qrl segments back together without causing network waterfalls.'
+    );
+  }
+  outputOpts.codeSplitting = {
+    includeDependenciesRecursively: internalCodeSplitting.includeDependenciesRecursively,
+    groups: [...(internalCodeSplitting.groups ?? []), ...(userCodeSplitting?.groups ?? [])],
+  };
 
   if (!outputOpts.dir && outDir) {
     outputOpts.dir = outDir;
@@ -250,61 +236,21 @@ export async function normalizeRollupOutputOptionsObject(
     outputOpts.exports = 'auto';
   }
 
-  /**
-   * Transitive imports must not be hoisted. Otherwise, the bundle-graph static imports will be
-   * incorrect; leading to over-preloading.
-   */
-  outputOpts.hoistTransitiveImports = false;
-
-  // V2 official release TODO: remove below checks and just keep `outputOpts.onlyExplicitManualChunks = true;`
-  const userPkgJsonPath = await findDepPkgJsonPath(optimizer.sys, 'rollup', optimizer.sys.cwd());
-  if (userPkgJsonPath) {
-    try {
-      const fs: typeof import('fs') = await optimizer.sys.dynamicImport('node:fs');
-      const pkgJsonStr = await fs.promises.readFile(userPkgJsonPath, 'utf-8');
-      const pkgJson = JSON.parse(pkgJsonStr);
-      const version = String(pkgJson?.version || '');
-      const [major, minor, patch] = version.split('.').map((n: string) => parseInt(n, 10)) as [
-        number,
-        number,
-        number,
-      ];
-      const isGte452 =
-        Number.isFinite(major) &&
-        (major > 4 || (major === 4 && (minor > 52 || (minor === 52 && (patch || 0) >= 0))));
-      if (isGte452) {
-        (
-          outputOpts as Rollup.OutputOptions & { onlyExplicitManualChunks?: boolean }
-        ).onlyExplicitManualChunks = true;
-      } else {
-        console.warn(
-          `⚠️ We detected that you're using a Rollup version prior to 4.52.0 (${version}). For the latest and greatest, we recommend to let Vite install the latest version for you, or manually install the latest version of Rollup in your project if that doesn't work. It will enable the new Rollup \`outputOpts.onlyExplicitManualChunks\` feature flag, which improves preloading performance and reduces cache invalidation for a snappier user experience.`
-        );
-      }
-    } catch {
-      // If we cannot determine the installed Rollup version, avoid warning
-    }
-  }
-
   return outputOpts;
 }
 
-export function createRollupError(id: string, diagnostic: Diagnostic) {
+export function createBundlerError(id: string, diagnostic: Diagnostic) {
   const loc = diagnostic.highlights?.[0];
-  const err: Rollup.RollupError = Object.assign(new Error(diagnostic.message), {
+  return createRolldownError(
+    diagnostic.message,
     id,
-    plugin: 'qwik',
-    loc: loc && {
-      column: loc.startCol,
-      line: loc.startLine,
-    },
-    stack: '',
-  });
-  return err;
+    'qwik',
+    loc && { column: loc.startCol, line: loc.startLine }
+  );
 }
 
 /** @public */
-export interface QwikRollupPluginOptions {
+export interface QwikRolldownPluginOptions {
   csr?: boolean;
   /**
    * Build `production` or `development`.
@@ -385,5 +331,20 @@ export interface QwikRollupPluginOptions {
   experimental?: (keyof typeof ExperimentalFeatures)[];
 }
 export { ExperimentalFeatures } from './plugin';
-type P<T> = Rollup.Plugin<T> & { api: T };
-export interface QwikRollupPlugin extends P<QwikRollupPluginApi> {}
+type P<T> = Rolldown.Plugin<T> & { api: T };
+export interface QwikRolldownPlugin extends P<QwikRolldownPluginApi> {}
+
+/**
+ * Renamed to `qwikRolldown` — Rollup support was dropped in the Vite 8 migration.
+ *
+ * @deprecated Use `qwikRolldown`.
+ * @public
+ */
+export const qwikRollup = qwikRolldown;
+/**
+ * Renamed to `QwikRolldownPluginOptions`.
+ *
+ * @deprecated Use `QwikRolldownPluginOptions`.
+ * @public
+ */
+export type QwikRollupPluginOptions = QwikRolldownPluginOptions;

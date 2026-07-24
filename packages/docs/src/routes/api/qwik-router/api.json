@@ -40,7 +40,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type ActionOptions = {\n    readonly id?: string;\n    readonly validation?: DataValidator[];\n    readonly invalidate?: Loader<any>[];\n};\n```\n**References:** [DataValidator](#datavalidator)<!-- -->, [Loader](#loader_2)",
+      "content": "```typescript\nexport type ActionOptions = {\n    readonly id?: string;\n    readonly validation?: DataValidator[];\n    readonly invalidate?: Loader<any>[];\n};\n```\n**References:** [DataValidator](#datavalidator)<!-- -->, [Loader](#loader)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.actionoptions.md"
     },
@@ -404,7 +404,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type GetValidatorInputType<VALIDATOR extends TypedDataValidator> = VALIDATOR extends ValibotDataValidator<infer TYPE> ? v.InferInput<TYPE> : VALIDATOR extends ZodDataValidator<infer TYPE> ? z.input<TYPE> : never;\n```\n**References:** [TypedDataValidator](#typeddatavalidator)",
+      "content": "```typescript\nexport type GetValidatorInputType<VALIDATOR extends TypedDataValidator> = VALIDATOR extends SchemaDataValidator<infer T> ? StandardSchemaV1.InferInput<T> : never;\n```\n**References:** [TypedDataValidator](#typeddatavalidator)<!-- -->, [SchemaDataValidator](#schemadatavalidator)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.getvalidatorinputtype.md"
     },
@@ -418,7 +418,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type GetValidatorOutputType<VALIDATOR extends TypedDataValidator> = VALIDATOR extends ValibotDataValidator<infer TYPE> ? v.InferOutput<TYPE> : VALIDATOR extends ZodDataValidator<infer TYPE> ? z.output<TYPE> : never;\n```\n**References:** [TypedDataValidator](#typeddatavalidator)",
+      "content": "```typescript\nexport type GetValidatorOutputType<VALIDATOR extends TypedDataValidator> = VALIDATOR extends SchemaDataValidator<infer T> ? StandardSchemaV1.InferOutput<T> : never;\n```\n**References:** [TypedDataValidator](#typeddatavalidator)<!-- -->, [SchemaDataValidator](#schemadatavalidator)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.getvalidatoroutputtype.md"
     },
@@ -521,18 +521,18 @@
       "mdFile": "router.linkprops.md"
     },
     {
-      "name": "Loader_2",
-      "id": "loader_2",
+      "name": "Loader",
+      "id": "loader",
       "hierarchy": [
         {
-          "name": "Loader_2",
-          "id": "loader_2"
+          "name": "Loader",
+          "id": "loader"
         }
       ],
       "kind": "TypeAlias",
       "content": "```typescript\nexport type Loader<RETURN> = {\n    (): LoaderSignal<ExcludeControlFlow<RETURN>>;\n};\n```\n**References:** [LoaderSignal](#loadersignal)<!-- -->, [ExcludeControlFlow](#excludecontrolflow)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
-      "mdFile": "router.loader_2.md"
+      "mdFile": "router.loader.md"
     },
     {
       "name": "LoaderSignal",
@@ -782,7 +782,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikRouterMockLoaderProp<T = any> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ndata\n\n\n</td><td>\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\nThe data to return when the loader is called.\n\n\n</td></tr>\n<tr><td>\n\nloader\n\n\n</td><td>\n\n\n</td><td>\n\n[Loader](#loader_2)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\nThe loader function to mock.\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface QwikRouterMockLoaderProp<T = any> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ndata\n\n\n</td><td>\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\nThe data to return when the loader is called.\n\n\n</td></tr>\n<tr><td>\n\nloader\n\n\n</td><td>\n\n\n</td><td>\n\n[Loader](#loader)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\nThe loader function to mock.\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx",
       "mdFile": "router.qwikroutermockloaderprop.md"
     },
@@ -1011,6 +1011,48 @@
       "mdFile": "router.routeroutlet.md"
     },
     {
+      "name": "schema$",
+      "id": "schema_",
+      "hierarchy": [
+        {
+          "name": "schema$",
+          "id": "schema_"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nschema$: SchemaConstructor\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts",
+      "mdFile": "router.schema_.md"
+    },
+    {
+      "name": "SchemaConstructor",
+      "id": "schemaconstructor",
+      "hierarchy": [
+        {
+          "name": "SchemaConstructor",
+          "id": "schemaconstructor"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type SchemaConstructor = {\n    <T extends StandardSchemaV1>(schema: T): SchemaDataValidator<T>;\n    <T extends StandardSchemaV1>(schema: (ev: RequestEvent) => T): SchemaDataValidator<T>;\n};\n```\n**References:** [SchemaDataValidator](#schemadatavalidator)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
+      "mdFile": "router.schemaconstructor.md"
+    },
+    {
+      "name": "SchemaDataValidator",
+      "id": "schemadatavalidator",
+      "hierarchy": [
+        {
+          "name": "SchemaDataValidator",
+          "id": "schemadatavalidator"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type SchemaDataValidator<T extends StandardSchemaV1 = StandardSchemaV1> = {\n    validate(ev: RequestEvent, data: unknown): Promise<ValidatorReturn<ValidatorErrorType<StandardSchemaV1.InferInput<T>>>>;\n};\n```\n**References:** [ValidatorReturn](#validatorreturn)<!-- -->, [ValidatorErrorType](#validatorerrortype)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
+      "mdFile": "router.schemadatavalidator.md"
+    },
+    {
       "name": "server$",
       "id": "server_",
       "hierarchy": [
@@ -1132,7 +1174,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type TypedDataValidator = ValibotDataValidator | ZodDataValidator;\n```",
+      "content": "```typescript\nexport type TypedDataValidator = SchemaDataValidator;\n```\n**References:** [SchemaDataValidator](#schemadatavalidator)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.typeddatavalidator.md"
     },
@@ -1258,7 +1300,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "> This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nvalibot$: ValibotConstructor\n```",
+      "content": "> Warning: This API is now obsolete.\n> \n> Prefer `schema$`<!-- -->, which accepts any Standard Schema validator.\n> \n\n\n```typescript\nvalibot$: ValibotConstructor\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts",
       "mdFile": "router.valibot_.md"
     },
@@ -1328,7 +1370,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "```typescript\nzod$: ZodConstructor\n```",
+      "content": "> Warning: This API is now obsolete.\n> \n> Prefer `schema$`<!-- -->, which accepts any Standard Schema validator.\n> \n\n\n```typescript\nzod$: ZodConstructor\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts",
       "mdFile": "router.zod_.md"
     },
@@ -1342,7 +1384,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type ZodConstructor = {\n    <T extends z.ZodRawShape>(schema: T): ZodDataValidator<z.ZodObject<T>>;\n    <T extends z.ZodRawShape>(schema: (zod: typeof z.z, ev: RequestEvent) => T): ZodDataValidator<z.ZodObject<T>>;\n    <T extends z.Schema>(schema: T): ZodDataValidator<T>;\n    <T extends z.Schema>(schema: (zod: typeof z.z, ev: RequestEvent) => T): ZodDataValidator<T>;\n};\n```",
+      "content": "```typescript\nexport type ZodConstructor = {\n    <T extends z.ZodRawShape>(schema: T): SchemaDataValidator<z.ZodObject<T>>;\n    <T extends z.ZodRawShape>(schema: (zod: typeof z.z, ev: RequestEvent) => T): SchemaDataValidator<z.ZodObject<T>>;\n    <T extends z.core.$ZodType>(schema: T): SchemaDataValidator<T>;\n    <T extends z.core.$ZodType>(schema: (zod: typeof z.z, ev: RequestEvent) => T): SchemaDataValidator<T>;\n};\n```\n**References:** [SchemaDataValidator](#schemadatavalidator)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.zodconstructor.md"
     }

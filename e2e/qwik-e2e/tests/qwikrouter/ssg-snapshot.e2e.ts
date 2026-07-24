@@ -7,14 +7,14 @@ import { readFile, rm, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build, createBuilder, type InlineConfig, type PluginOption } from 'vite';
-import tsconfigPaths from 'vite-tsconfig-paths';
 
 // Brotli size budgets for production bundles. These are ceilings, not exact matches: any size
 // at or below the budget is fine. Bump the budget intentionally when a real feature justifies
 // the growth.
 const PRELOADER_BROTLI_BUDGET = 1800; // We currently group the vite preload helper with the preloader, adding ~500bytes brotli.
-// Async computed and serializer validation changes increased core size.
-const CORE_BROTLI_BUDGET = 35400;
+// Async computed and serializer validation changes increased core size; the Rolldown
+// core is larger still.
+const CORE_BROTLI_BUDGET = 37500;
 const QWIKLOADER_BROTLI_BUDGET = 2100;
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
@@ -180,10 +180,10 @@ async function buildFixtureApp() {
   await rm(serverDir, { recursive: true, force: true });
   capturedRouterConfig = null;
 
-  const plugins: PluginOption[] = [qwikRouter(), tsconfigPaths({ root: '.' })];
+  const plugins: PluginOption[] = [qwikRouter()];
   // Fresh instance so the server build's loadersByFile starts empty, mirroring apps that run
   // build.client/build.server as separate processes (exercises the manifest recovery path).
-  const serverPlugins: PluginOption[] = [qwikRouter(), tsconfigPaths({ root: '.' })];
+  const serverPlugins: PluginOption[] = [qwikRouter()];
 
   const getConfig = (extra?: InlineConfig): InlineConfig => ({
     root: appDir,
@@ -192,7 +192,7 @@ async function buildFixtureApp() {
     clearScreen: false,
     logLevel: 'error',
     build: {
-      minify: 'terser',
+      minify: true,
     },
     ...extra,
   });

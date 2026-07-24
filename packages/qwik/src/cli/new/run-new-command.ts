@@ -1,4 +1,4 @@
-import { green, bgMagenta, dim } from 'kleur/colors';
+import pc from 'picocolors';
 import fs from 'node:fs';
 import { join } from 'path';
 import { isCancel, select, text, log, intro } from '@clack/prompts';
@@ -18,11 +18,11 @@ export async function runNewCommand(app: AppCommand) {
   try {
     // render help
     if (app.args.length > 1 && app.args[1] === 'help') {
-      intro(`🔭  ${bgMagenta(' Qwik Help ')}`);
+      intro(`🔭  ${pc.bgMagenta(' Qwik Help ')}`);
       await printNewHelp();
       bye();
     } else {
-      intro(`✨  ${bgMagenta(' Create a new Qwik component or route ')}`);
+      intro(`✨  ${pc.bgMagenta(' Create a new Qwik component or route ')}`);
     }
 
     const args = app.args.filter((a) => !a.startsWith('--'));
@@ -95,8 +95,8 @@ export async function runNewCommand(app: AppCommand) {
 
     const fileOutput = await writeToFile(name, slug, template, outDir);
 
-    log.success(`${green(`${toPascal([typeArg])} "${slug}" created!`)}`);
-    log.message(`Emitted in ${dim(fileOutput)}`);
+    log.success(`${pc.green(`${toPascal([typeArg])} "${slug}" created!`)}`);
+    log.message(`Emitted in ${pc.dim(fileOutput)}`);
   } catch (e) {
     log.error(String(e));
     await printNewHelp();
@@ -143,7 +143,7 @@ async function selectName(type: 'route' | 'component' | 'markdown' | 'mdx') {
     message,
     placeholder,
     validate: (v) => {
-      if (v.length < 1) {
+      if (!v || v.length < 1) {
         return 'Value can not be empty';
       }
     },

@@ -1,9 +1,10 @@
-import type { Rollup } from 'vite';
-import type { ESLint, Linter } from 'eslint';
+import type { Rolldown } from 'vite';
+import type { ESLint } from 'eslint';
 import type { OptimizerSystem } from '../types';
+import { createRolldownError } from './vite-utils';
 
 export interface QwikLinter {
-  lint(ctx: Rollup.PluginContext, code: string, id: string): void;
+  lint(ctx: Rolldown.PluginContext, code: string, id: string): void;
 }
 
 export async function createLinter(
@@ -39,7 +40,7 @@ export async function createLinter(
   }
 
   return {
-    async lint(ctx: Rollup.PluginContext, code: string, id: string) {
+    async lint(ctx: Rolldown.PluginContext, code: string, id: string) {
       try {
         const filePath = parseRequest(id);
         if (await eslint.isPathIgnored(filePath)) {
@@ -54,8 +55,13 @@ export async function createLinter(
             if (message.ruleId != null && !message.ruleId.startsWith('qwik/')) {
               continue;
             }
-            const err = createRollupError(file.filePath, message);
-            ctx.warn(err);
+            ctx.warn(
+              createRolldownError(message.message, file.filePath, 'vite-plugin-eslint', {
+                file: file.filePath,
+                column: message.column,
+                line: message.line,
+              })
+            );
           }
         });
       } catch (err) {
@@ -67,18 +73,4 @@ export async function createLinter(
 
 function parseRequest(id: string) {
   return id.split('?', 2)[0];
-}
-
-function createRollupError(id: string, reportMessage: Linter.LintMessage) {
-  const err: Rollup.RollupError = Object.assign(new Error(reportMessage.message), {
-    id,
-    plugin: 'vite-plugin-eslint',
-    loc: {
-      file: id,
-      column: reportMessage.column,
-      line: reportMessage.line,
-    },
-    stack: '',
-  });
-  return err;
 }

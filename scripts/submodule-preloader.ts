@@ -1,14 +1,20 @@
+import { transform } from 'esbuild';
 import { join } from 'node:path';
 import { build } from 'vite';
-import { fileSize, type BuildConfig } from './util.ts';
-import { MANGLE_PROPS_REGEX } from './submodule-core.ts';
+import { ESBUILD_BASE, fileSize, readFile, writeFile, type BuildConfig } from './util.ts';
+import { MANGLE_PROPS_REGEX, type MangleCache } from './submodule-core.ts';
 
 /**
- * Builds the preloader script as a stand-alone ES module. Vite handles the minification via Terser
- * — we only need to pass the property-mangling regex so `$...$` internal properties stay in sync
- * with the names mangled by the core/server bundles (see `MANGLE_PROPS_REGEX`).
+ * Builds the preloader script as a stand-alone ES module. Vite bundles it unminified, then esbuild
+ * minifies and mangles the `$...$` internal properties using the shared `mangleCache` from the core
+ * build so the names stay in sync with the core/server bundles (see `MANGLE_PROPS_REGEX`).
  */
-export async function submodulePreloader(config: BuildConfig): Promise<void> {
+export async function submodulePreloader(
+  config: BuildConfig,
+  mangleCache?: MangleCache
+): Promise<void> {
+  const preloaderPath = join(config.distQwikPkgDir, 'preloader.mjs');
+
   await build({
     build: {
       emptyOutDir: false,
@@ -18,31 +24,33 @@ export async function submodulePreloader(config: BuildConfig): Promise<void> {
         formats: ['es'],
         fileName: () => 'preloader.mjs',
       },
-      rollupOptions: {
+      rolldownOptions: {
         external: ['@qwik.dev/core/build'],
       },
-      minify: 'terser',
-      terserOptions: {
-        compress: {
-          defaults: false,
-          module: true,
-          hoist_props: true,
-          unused: true,
-          booleans_as_integers: true,
-        },
-        mangle: {
-          toplevel: false,
-          properties: {
-            // use short attribute names for internal properties
-            regex: MANGLE_PROPS_REGEX,
-          },
-        },
-      },
+      minify: false,
       outDir: config.distQwikPkgDir,
     },
-    define: { 'globalThis.qTest': 'false' }, // In vitest environments, `qTest` is `true` which allows test-only code to run, but in production builds it should be `false` to allow dead code elimination.
+    // In vitest environments `qTest` is `true`; force it `false` here so test-only code is stripped.
+    define: { 'globalThis.qTest': 'false' },
   });
 
-  const preloaderSize = await fileSize(join(config.distQwikPkgDir, 'preloader.mjs'));
+  const noMangle = config.mangle === false;
+  const code = await readFile(preloaderPath, 'utf-8');
+  const result = await transform(code, {
+    ...ESBUILD_BASE,
+    minifySyntax: true,
+    minifyIdentifiers: true,
+    legalComments: 'none',
+    ...(noMangle
+      ? {}
+      : {
+          mangleProps: new RegExp(MANGLE_PROPS_REGEX),
+          mangleQuoted: true,
+          mangleCache: mangleCache ?? {},
+        }),
+  });
+  await writeFile(preloaderPath, result.code);
+
+  const preloaderSize = await fileSize(preloaderPath);
   console.log(`🐮 preloader:`, preloaderSize);
 }

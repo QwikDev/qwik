@@ -1,81 +1,9 @@
-import bmp_1 from 'image-size/dist/types/bmp.js';
-import cur_1 from 'image-size/dist/types/cur.js';
-import dds_1 from 'image-size/dist/types/dds.js';
-import gif_1 from 'image-size/dist/types/gif.js';
-import icns_1 from 'image-size/dist/types/icns.js';
-import ico_1 from 'image-size/dist/types/ico.js';
-import j2c_1 from 'image-size/dist/types/j2c.js';
-import jp2_1 from 'image-size/dist/types/jp2.js';
-import jpg_1 from 'image-size/dist/types/jpg.js';
-import ktx_1 from 'image-size/dist/types/ktx.js';
-import png_1 from 'image-size/dist/types/png.js';
-import pnm_1 from 'image-size/dist/types/pnm.js';
-import psd_1 from 'image-size/dist/types/psd.js';
-import svg_1 from 'image-size/dist/types/svg.js';
-import tga_1 from 'image-size/dist/types/tga.js';
-import webp_1 from 'image-size/dist/types/webp.js';
-import heif_1 from 'image-size/dist/types/heif.js';
+import { imageSize } from 'image-size';
 
 import type { Connect } from 'vite';
 import type { OptimizerSystem } from '../../types';
 import { formatError } from '../format-error';
 
-// This map helps avoid validating for every single image type
-const firstBytes: Record<number, keyof typeof types> = {
-  0x38: 'psd',
-  0x42: 'bmp',
-  0x44: 'dds',
-  0x47: 'gif',
-  0x52: 'webp',
-  0x69: 'icns',
-  0x89: 'png',
-  0xff: 'jpg',
-};
-
-// Put in order of most common to least common
-const types = {
-  webp: webp_1.WEBP,
-  jpg: jpg_1.JPG,
-  png: png_1.PNG,
-  svg: svg_1.SVG,
-  gif: gif_1.GIF,
-  avif: heif_1.HEIF,
-  bmp: bmp_1.BMP,
-  cur: cur_1.CUR,
-  dds: dds_1.DDS,
-  icns: icns_1.ICNS,
-  ico: ico_1.ICO,
-  j2c: j2c_1.J2C,
-  jp2: jp2_1.JP2,
-  ktx: ktx_1.KTX,
-  pnm: pnm_1.PNM,
-  psd: psd_1.PSD,
-  tga: tga_1.TGA,
-};
-
-const keys = Object.keys(types) as (keyof typeof types)[];
-
-function detector(buffer: Buffer): keyof typeof types | undefined {
-  const byte = buffer[0];
-  const type = firstBytes[byte];
-  if (type && types[type].validate(buffer)) {
-    return type;
-  }
-  return keys.find((key) => types[key].validate(buffer));
-}
-
-function lookup(buffer: Buffer) {
-  // detect the file type, don't rely on the extension
-  const type = detector(buffer);
-  if (typeof type !== 'undefined') {
-    // find an appropriate handler for this file type
-    const size = types[type].calculate(buffer);
-    if (size !== undefined) {
-      size.type = type;
-      return size;
-    }
-  }
-}
 export async function getInfoForSrc(src: string) {
   // Put all supported protocols here
   if (!/^(https?|file|capacitor):/.test(src)) {
@@ -90,15 +18,13 @@ export async function getInfoForSrc(src: string) {
       return undefined;
     }
     const buffer = await res.arrayBuffer();
-    const size = lookup(Buffer.from(buffer));
-    if (size) {
-      return {
-        width: size.width,
-        height: size.height,
-        type: size.type,
-        size: buffer.byteLength,
-      };
-    }
+    const size = imageSize(new Uint8Array(buffer));
+    return {
+      width: size.width,
+      height: size.height,
+      type: size.type,
+      size: buffer.byteLength,
+    };
   } catch (err) {
     console.error(err);
     return undefined;

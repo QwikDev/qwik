@@ -1,11 +1,13 @@
+import { preprocessCSS } from 'vite';
 import type {
-  BuildOptions,
   ConfigEnv,
   EnvironmentOptions,
+  ResolvedConfig,
   UserConfig,
   ViteDevServer,
   Plugin as VitePlugin,
 } from 'vite';
+import { promises as fs } from 'node:fs';
 import type {
   EntryStrategy,
   GlobalInjections,
@@ -35,7 +37,7 @@ import {
   type QwikPluginDevTools,
   type QwikPluginOptions,
 } from './plugin';
-import { createRollupError, normalizeRollupOutputOptions } from './rollup';
+import { createBundlerError, normalizeRolldownOutputOptions } from './rolldown';
 import { isVirtualId } from './vite-utils';
 import {
   emitQwikWorkerCoreChunk,
@@ -64,34 +66,38 @@ const DEDUPE = [
 const STYLING = ['.css', '.scss', '.sass', '.less', '.styl', '.stylus'];
 const FONTS = ['.woff', '.woff2', '.ttf'];
 
+const CSS_MODULE_RE = /\.module\.(css|scss|sass|less|styl|stylus)$/;
+const WORKER_FILE_RE = /[?&]worker_file\b/;
+
+const readCssModuleClassMap = async (
+  file: string,
+  config: ResolvedConfig
+): Promise<Record<string, string>> => {
+  const raw = await fs.readFile(file, 'utf-8');
+  const { modules } = await preprocessCSS(raw, file, config);
+  return modules ?? {};
+};
+
+export const isSameClassMap = (a: Record<string, string>, b: Record<string, string>): boolean => {
+  const aKeys = Object.keys(a);
+  if (aKeys.length !== Object.keys(b).length) {
+    return false;
+  }
+  return aKeys.every((key) => a[key] === b[key]);
+};
+
 const QWIK_HMR_BRIDGE_ID = '@qwik-hmr-bridge';
-/**
- * Client-side HMR bridge: listens for qwik:hmr events from the server and dispatches events for
- * each changed file. These events then call _hmr on the specific component that changed, causing it
- * to re-render, even if it was paused.
- */
 const QWIK_HMR_BRIDGE_CODE = `
-  // HMR bridge: connects Vite HMR events to Qwik's component re-rendering.
   if (import.meta.hot) {
-    let timeout;
     import.meta.hot.on("qwik:hmr", (data) => {
       if (data.t === document.__hmrT) {
-        console.log("Received duplicate HMR update, ignoring", data.files);
         return;
       }
-      clearTimeout(timeout);
       document.__hmrT = data.t;
-      document.__hmrDone = 0;
-      document.dispatchEvent(
-        new CustomEvent("qHmr", { detail: data })
-      );
-      timeout = setTimeout(() => {
-      console.log(document.__hmrDone, document.__hmrT);
-        if (document.__hmrDone !== document.__hmrT) {
-          console.log("HMR update did not match active code, reloading the page", location.href);
-          location.reload();
-        }
-      }, 500);
+      document.dispatchEvent(new CustomEvent("qHmr", { detail: data }));
+    });
+    import.meta.hot.on("qwik:css-module-update", ({ url, t }) => {
+      import(/* @vite-ignore */ url + (url.includes("?") ? "&" : "?") + "t=" + t);
     });
   }
 `;
@@ -104,7 +110,7 @@ const QWIK_HMR_BRIDGE_CODE = `
 type P<T> = VitePlugin<T> & { api: T; config: Extract<VitePlugin<T>['config'], Function> };
 
 /**
- * The types for Vite/Rollup don't allow us to be too specific about the return type. The correct
+ * The types for Vite/Rolldown don't allow us to be too specific about the return type. The correct
  * return type is `[QwikVitePlugin, VitePlugin<never>]`, and if you search the plugin by name you'll
  * get the `QwikVitePlugin`.
  *
@@ -120,11 +126,13 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
   let ssrOutDir: string | null = null;
   let buildMode: QwikBuildMode = 'development';
+  let workerCoreChunkRef: string | undefined;
   let viteServer: ViteDevServer | undefined;
   // Cache the user-specified clientOutDir to use across multiple normalizeOptions calls
   const userClientOutDir = qwikViteOpts.client?.outDir;
   // Cache the resolved plugin options from config() to reuse in configResolved()
   let cachedPluginOpts: QwikPluginOptions | null = null;
+  const cssModuleClassMaps = new Map<string, Record<string, string>>();
   const fileFilter: QwikVitePluginOptions['fileFilter'] = qwikViteOpts.fileFilter
     ? (id, type) => TRANSFORM_REGEX.test(id) || qwikViteOpts.fileFilter!(id, type)
     : () => true;
@@ -204,7 +212,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             : qwikViteOpts.ssr?.input
           : undefined;
       const clientInput = target === 'client' ? qwikViteOpts.client?.input : undefined;
-      let input = viteConfig.build?.rollupOptions?.input || clientInput || ssrInput;
+      let input = viteConfig.build?.rolldownOptions?.input || clientInput || ssrInput;
       if (input && typeof input === 'string') {
         input = [input];
       }
@@ -310,12 +318,11 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           dynamicImportVarsOptions: {
             exclude: [/./],
           },
-          rollupOptions: {
+          rolldownOptions: {
             external: ['node:async_hooks'],
             // This will amend the existing input
             input,
-            // temporary fix for rolldown-vite types
-          } as BuildOptions['rollupOptions'],
+          },
         },
         worker: getQwikWorkerConfig(viteConfig.worker, target, viteCommand),
         define: {
@@ -330,20 +337,14 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         if (opts.outDir) {
           updatedViteConfig.build!.outDir = opts.outDir;
         }
-        const origOnwarn = updatedViteConfig.build!.rollupOptions?.onwarn;
-        updatedViteConfig.build!.rollupOptions = {
-          ...updatedViteConfig.build!.rollupOptions,
-          output: await normalizeRollupOutputOptions(
+        updatedViteConfig.build!.rolldownOptions = {
+          ...updatedViteConfig.build!.rolldownOptions,
+          output: await normalizeRolldownOutputOptions(
             qwikPlugin,
-            viteConfig.build?.rollupOptions?.output
+            viteConfig.build?.rolldownOptions?.output
           ),
-          preserveEntrySignatures: 'exports-only',
-          onwarn: (warning, warn) => {
-            if (warning.plugin === 'typescript' && warning.message.includes('outputToFilesystem')) {
-              return;
-            }
-            origOnwarn ? origOnwarn(warning, warn) : warn(warning);
-          },
+          // Rolldown rejects 'exports-only' with includeDependenciesRecursively:false.
+          preserveEntrySignatures: 'allow-extension',
         };
 
         if (opts.target === 'ssr') {
@@ -360,7 +361,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         } else if (opts.target === 'lib') {
           // Library Build
           updatedViteConfig.build!.minify = false;
-          updatedViteConfig.build!.rollupOptions.external = [
+          updatedViteConfig.build!.rolldownOptions!.external = [
             QWIK_CORE_ID,
             QWIK_CORE_INTERNAL_ID,
             QWIK_CORE_SERVER,
@@ -437,7 +438,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         !qwikViteOpts.csr &&
         qwikPlugin.getOptions().target === 'client'
       ) {
-        const names = ['vite:build-import-analysis'];
+        const names = ['vite:build-import-analysis', 'native:import-analysis-build'];
         const plugins = config.plugins as VitePlugin[];
         for (const name of names) {
           const i = plugins.findIndex((p) => p?.name === name);
@@ -450,6 +451,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
     async buildStart() {
       injections.length = 0;
+      workerCoreChunkRef = undefined;
 
       // Using vite.resolveId to check file if exist
       // for example input might be virtual file
@@ -460,16 +462,16 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         diagnostics.forEach((d) => {
           const id = qwikPlugin.normalizePath(optimizer.sys.path.join(srcDir, d.file));
           if (d.category === 'error') {
-            this.error(createRollupError(id, d));
+            this.error(createBundlerError(id, d));
           } else {
-            this.warn(createRollupError(id, d));
+            this.warn(createBundlerError(id, d));
           }
         });
       });
 
       await qwikPlugin.buildStart(this);
       if (viteCommand === 'build' && qwikPlugin.getOptions().target === 'client') {
-        emitQwikWorkerCoreChunk(this);
+        workerCoreChunkRef = emitQwikWorkerCoreChunk(this);
       }
     },
 
@@ -537,6 +539,19 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   const vitePluginPost: VitePlugin<never> = {
     name: 'vite-plugin-qwik-post',
     enforce: 'post',
+
+    async transform(_code, id) {
+      const file = id.split('?')[0];
+      if (
+        viteCommand === 'serve' &&
+        this.environment.name === 'client' &&
+        viteServer &&
+        CSS_MODULE_RE.test(file)
+      ) {
+        cssModuleClassMaps.set(file, await readCssModuleClassMap(file, viteServer.config));
+      }
+      return null;
+    },
 
     generateBundle: {
       order: 'post',
@@ -606,7 +621,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
               output.code = rewriteWorkerQrlChunkPlaceholders(output.code, resolveChunkPath);
             }
           }
-          rewriteClientWorkerCorePlaceholders(rollupBundle);
+          rewriteClientWorkerCorePlaceholders(this, rollupBundle, workerCoreChunkRef);
         } else if (isSSR) {
           rewriteSsrWorkerCorePlaceholders(rollupBundle, qwikPlugin.getOptions().manifestInput);
         }
@@ -693,41 +708,92 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       };
     },
 
-    hotUpdate(ctx) {
-      qwikPlugin.hotUpdate(this.environment, ctx);
-
+    async hotUpdate(ctx) {
       const hmrEnabled = qwikViteOpts?.devTools?.hmr ?? true;
-      if (this.environment.name === 'ssr' && ctx.modules.length) {
-        if (hmrEnabled) {
-          // Source files live in the SSR module graph. When they change, notify the
-          // client's loaded QRL segments via the client environment's HMR channel.
-          // Some non-source imports (e.g. .css?inline) are type 'js' but their URL
-          // is not a JS/TS file. For those, emit their JS importers instead, since
-          // the component that needs to re-render is the importer.
-          const files = new Set<string>();
-          const isSourceUrl = (url: string) => /\.([mc]?[jt]sx?|mdx?)$/.test(url.split('?')[0]);
-          for (const m of ctx.modules) {
-            const url = m.url.split('?')[0];
-            if (m.type === 'js' && isSourceUrl(m.url)) {
-              files.add(url);
-            } else {
-              for (const importer of m.importers) {
-                if (importer.type === 'js' && isSourceUrl(importer.url)) {
-                  files.add(importer.url.split('?')[0]);
-                }
-              }
+      const isSourceUrl = (url: string) => /\.([mc]?[jt]sx?|mdx?)$/.test(url.split('?')[0]);
+
+      if (hmrEnabled && isSourceUrl(ctx.file)) {
+        const error = await qwikPlugin
+          .getTransformError(await ctx.read(), ctx.file)
+          .catch(() => null);
+        if (error) {
+          if (this.environment.name === 'client') {
+            this.warn(createBundlerError(qwikPlugin.normalizePath(ctx.file), error));
+          }
+          return [];
+        }
+      }
+
+      const qwikReRendersChange = qwikPlugin.hotUpdate(this.environment, ctx);
+
+      const isStyleUrl = (url: string) => {
+        const path = url.split('?')[0];
+        return STYLING.some((ext) => path.endsWith(ext));
+      };
+      const changedSourceFiles = new Set<string>();
+      let hasStyleDependent = false;
+      for (const m of ctx.modules) {
+        if (m.type === 'js' && isSourceUrl(m.url)) {
+          changedSourceFiles.add(m.url.split('?')[0]);
+        } else if (isStyleUrl(m.url)) {
+          for (const importer of m.importers) {
+            if (importer.type === 'js' && isSourceUrl(importer.url)) {
+              hasStyleDependent = true;
             }
           }
-          if (files.size > 0 && viteServer) {
-            viteServer.environments.client.hot.send({
-              type: 'custom',
-              event: 'qwik:hmr',
-              data: { files: [...files], t: ctx.timestamp },
-            });
-          }
-        } else {
+        }
+      }
+      const shouldReRender = changedSourceFiles.size > 0 && !hasStyleDependent;
+
+      if (this.environment.name === 'ssr' && ctx.modules.length) {
+        if (hmrEnabled && shouldReRender && viteServer) {
+          viteServer.environments.client.hot.send({
+            type: 'custom',
+            event: 'qwik:hmr',
+            data: { files: [...changedSourceFiles], t: ctx.timestamp },
+          });
+        } else if (!hmrEnabled) {
           viteServer?.environments.client.hot.send({ type: 'full-reload' });
         }
+      }
+
+      if (this.environment.name === 'client' && hmrEnabled && shouldReRender) {
+        if (qwikReRendersChange) {
+          return [];
+        }
+        if (ctx.modules.some((m) => WORKER_FILE_RE.test(m.url))) {
+          viteServer?.environments.client.hot.send({ type: 'full-reload' });
+          return [];
+        }
+      }
+
+      const isCssModuleEdit =
+        hmrEnabled && CSS_MODULE_RE.test(ctx.file) && ctx.modules.some((m) => isStyleUrl(m.url));
+      if (isCssModuleEdit && this.environment.name === 'client') {
+        const clientEnv = ctx.server.environments.client;
+        let nextMap: Record<string, string>;
+        try {
+          nextMap = await readCssModuleClassMap(ctx.file, ctx.server.config);
+        } catch {
+          return [];
+        }
+        const previousMap = cssModuleClassMaps.get(ctx.file);
+        cssModuleClassMaps.set(ctx.file, nextMap);
+
+        if (!previousMap || !isSameClassMap(previousMap, nextMap)) {
+          clientEnv.hot.send({ type: 'full-reload' });
+        } else {
+          for (const mod of clientEnv.moduleGraph.getModulesByFile(ctx.file) ?? []) {
+            if (mod.url) {
+              clientEnv.hot.send({
+                type: 'custom',
+                event: 'qwik:css-module-update',
+                data: { url: mod.url, t: ctx.timestamp },
+              });
+            }
+          }
+        }
+        return [];
       }
     },
 

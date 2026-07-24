@@ -563,7 +563,8 @@ Qwik provides the `routeAction$()` API exported from `@qwik.dev/router` to handl
 ```tsx title="src/routes/user/[userID]/index.tsx"
 
 import { component$ } from '@qwik.dev/core';
-import { routeAction$, Form, zod$, z } from '@qwik.dev/router';
+import { routeAction$, Form, schema$ } from '@qwik.dev/router';
+import * as z from 'zod';
 
 // The `routeAction$()` function is used to create a data loader that will be executed on the server when the form is submitted.
 // The return of `routeAction$()` is a custom use hook, which can be used to access the data returned from `routeAction$()`.
@@ -575,10 +576,10 @@ export const useUserUpdate = routeAction$(async (data, requestContext) => {
   return {
     user,
   };
-}, zod$({
+}, schema$(z.object({
   name: z.string(),
   email: z.string(),
-}));
+})));
 
 export default component$(() => {
   // The `useUserUpdate` hook will return an `ActionStore<T>` containing the `value` returned from `routeAction$()`, and some other properties, such as `submit()`, which is used to submit the form programmatically, and `isRunning`. All of these properties are reactive, and will re-render the component whenever they change.

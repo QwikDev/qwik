@@ -1,6 +1,7 @@
 import type { VNode } from '../vnode/vnode';
 import { isCursor, type Cursor } from './cursor';
 import { removeCursorFromQueue } from './cursor-queue';
+import { isDev } from '@qwik.dev/core/build';
 import type { Container } from '../types';
 import type { VNodeJournal } from '../../client/vnode-utils';
 import type { Task } from '../../use/use-task';
@@ -24,6 +25,7 @@ export interface CursorData {
   priority: number;
   promise: Promise<void> | null;
   boundaries: CursorBoundary[] | null;
+  hmrConstReload?: boolean;
 }
 
 /**
@@ -62,6 +64,10 @@ export function mergeCursorData(newCursorData: CursorData, oldCursorData: Cursor
   if (oldCursorData === newCursorData) {
     // same cursor data, no need to merge
     return;
+  }
+
+  if (isDev && oldCursorData.hmrConstReload) {
+    newCursorData.hmrConstReload = true;
   }
 
   // merge after flush tasks

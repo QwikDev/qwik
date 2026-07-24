@@ -1,5 +1,5 @@
 import type { PageModule, PathParams, RouteData } from '@qwik.dev/router';
-import { bold, dim, green, magenta, red } from 'kleur/colors';
+import pc from 'picocolors';
 import { relative } from 'node:path';
 import { msToString } from '../utils/format';
 import { ensureSlash, getPathnameForDynamicRoute } from '../utils/pathname';
@@ -12,7 +12,7 @@ export async function mainThread(sys: System) {
 
   const main = await sys.createMainProcess!();
   const log = await sys.createLogger();
-  log.info('\n' + bold(green('Starting Qwik Router SSG...')));
+  log.info('\n' + pc.bold(pc.green('Starting Qwik Router SSG...')));
 
   const qwikRouterConfig = opts.qwikRouterConfig;
   const renderTimeout = 30_000;
@@ -42,21 +42,21 @@ export async function mainThread(sys: System) {
         generatorResult.duration = timer();
 
         if (generatorResult.errors === 0) {
-          log.info(`\n${green('SSG results')}`);
+          log.info(`\n${pc.green('SSG results')}`);
           if (generatorResult.rendered > 0) {
             log.info(
-              `- Generated: ${dim(
+              `- Generated: ${pc.dim(
                 `${generatorResult.rendered} page${generatorResult.rendered === 1 ? '' : 's'}`
               )}`
             );
           }
 
-          log.info(`- Duration: ${dim(msToString(generatorResult.duration))}`);
+          log.info(`- Duration: ${pc.dim(msToString(generatorResult.duration))}`);
 
           const total = generatorResult.rendered + generatorResult.errors;
           if (total > 0) {
             log.info(
-              `- Average: ${dim(msToString(generatorResult.duration / total) + ' per page')}`
+              `- Average: ${pc.dim(msToString(generatorResult.duration / total) + ' per page')}`
             );
           }
           log.info(``);
@@ -119,11 +119,11 @@ export async function mainThread(sys: System) {
           if (result.error) {
             const err = new Error(result.error.message);
             err.stack = result.error.stack;
-            log.error(`\n${bold(red(`!!! ${result.pathname}: Error during SSG`))}`);
-            log.error(red(err.message));
-            log.error(`  Pathname: ${magenta(staticRoute.pathname)}`);
+            log.error(`\n${pc.bold(pc.red(`!!! ${result.pathname}: Error during SSG`))}`);
+            log.error(pc.red(err.message));
+            log.error(`  Pathname: ${pc.magenta(staticRoute.pathname)}`);
             if (err.stack) {
-              log.error(dim(err.stack));
+              log.error(pc.dim(err.stack));
             }
 
             generatorResult.errors++;
@@ -135,7 +135,7 @@ export async function mainThread(sys: System) {
             const base = opts.rootDir ?? opts.outDir;
             const path = relative(base, result.filePath);
             const lastSlash = path.lastIndexOf('/');
-            log.info(`${dim(path.slice(0, lastSlash + 1))}${path.slice(lastSlash + 1)}`);
+            log.info(`${pc.dim(path.slice(0, lastSlash + 1))}${path.slice(lastSlash + 1)}`);
           }
 
           flushQueue();

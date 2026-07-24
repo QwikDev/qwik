@@ -1,3 +1,4 @@
+import { isDev } from '@qwik.dev/core/build';
 import { getDomContainer, whenContainerDataReady } from '../client/dom-container';
 import { BackRef } from '../reactive-primitives/backref';
 import { clearAllEffects } from '../reactive-primitives/cleanup';
@@ -29,6 +30,7 @@ export const enum TaskFlags {
   RENDER_BLOCKING = 1 << 3,
   NEEDS_CLEANUP = 1 << 4,
   EVENTS_REGISTERED = 1 << 5,
+  REMOUNT_ON_THROW = 1 << 6,
 }
 
 // <docs markdown="../readme.md#Tracker">
@@ -171,6 +173,17 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: TaskOptions): void => {
   }
 };
 
+let hmrRemountId = 0;
+const scheduleHmrRemount = (container: Container, host: HostElement): boolean => {
+  const parentHost = container.getParentHost(host);
+  if (!parentHost) {
+    return false;
+  }
+  (host as unknown as { key: string | null }).key = '@hmr-remount/' + hmrRemountId++;
+  markVNodeDirty(container, parentHost, ChoreBits.COMPONENT);
+  return true;
+};
+
 export const runTask = (
   task: Task,
   container: Container,
@@ -181,7 +194,8 @@ export const runTask = (
     return pendingTask;
   }
 
-  task.$flags$ &= ~TaskFlags.DIRTY;
+  const remountOnThrow = (task.$flags$ & TaskFlags.REMOUNT_ON_THROW) !== 0;
+  task.$flags$ &= ~(TaskFlags.DIRTY | TaskFlags.REMOUNT_ON_THROW);
   const handleError = (reason: unknown) => container.handleError(reason, host);
 
   let taskPromise: Promise<void> | null = null;
@@ -206,9 +220,11 @@ export const runTask = (
             }
             return runTask(task, container, host);
           });
-        } else {
-          handleError(err);
         }
+        if (isDev && remountOnThrow && scheduleHmrRemount(container, host)) {
+          return;
+        }
+        handleError(err);
       }
     );
   });

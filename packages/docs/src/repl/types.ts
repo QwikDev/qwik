@@ -2,7 +2,7 @@ import type { NoSerialize, Signal } from '@qwik.dev/core';
 import type {
   Diagnostic,
   QwikManifest,
-  QwikRollupPluginOptions,
+  QwikRolldownPluginOptions,
   TransformModule,
 } from '@qwik.dev/core/optimizer';
 import type { ReplInstance } from './repl-instance';
@@ -17,7 +17,7 @@ export interface ReplAppInput {
 }
 
 export type PkgUrls = { [pkgName: string]: { [path: string]: string; version: string } };
-export interface ReplInputOptions extends Omit<QwikRollupPluginOptions, 'srcDir'> {
+export interface ReplInputOptions extends Omit<QwikRolldownPluginOptions, 'srcDir'> {
   replId: string;
   srcInputs: ReplModuleInput[];
   version: string;

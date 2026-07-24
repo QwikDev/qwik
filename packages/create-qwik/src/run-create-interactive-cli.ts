@@ -1,5 +1,5 @@
 import { backgroundInstallDeps, installDeps } from '../../qwik/src/cli/utils/install-deps';
-import { bgBlue, gray, magenta, red } from 'kleur/colors';
+import pc from 'picocolors';
 import { cancel, confirm, intro, isCancel, log, select, spinner, text } from '@clack/prompts';
 import { getPackageManager, note, runCommand, wait } from '../../qwik/src/cli/utils/utils';
 import { join, relative } from 'node:path';
@@ -20,13 +20,13 @@ export async function runCreateInteractiveCli(): Promise<CreateAppResult> {
   const templateManager = await makeTemplateManager('app');
   const defaultProjectName = './qwik-app';
 
-  intro(`Let's create a ${bgBlue(' Qwik App ')} ✨ (v${(globalThis as any).QWIK_VERSION})`);
+  intro(`Let's create a ${pc.bgBlue(' Qwik App ')} ✨ (v${(globalThis as any).QWIK_VERSION})`);
 
   await wait(500);
 
   const projectNameAnswer =
     (await text({
-      message: `Where would you like to create your new project? ${gray(
+      message: `Where would you like to create your new project? ${pc.gray(
         `(Use '.' or './' for current directory)`
       )}`,
       placeholder: defaultProjectName,
@@ -59,7 +59,7 @@ export async function runCreateInteractiveCli(): Promise<CreateAppResult> {
     process.exit(0);
   };
 
-  log.info(`Creating new project in ${bgBlue(' ' + outDir + ' ')} ... 🐇`);
+  log.info(`Creating new project in ${pc.bgBlue(' ' + outDir + ' ')} ... 🐇`);
 
   let removeExistingOutDirPromise: Promise<void | void[]> | null = null;
 
@@ -126,7 +126,7 @@ export async function runCreateInteractiveCli(): Promise<CreateAppResult> {
       });
       if (!isCancel(joke) && joke) {
         const [setup, punchline] = getRandomJoke();
-        note(magenta(`${setup!.trim()}\n${punchline!.trim()}`), '🙈');
+        note(pc.magenta(`${setup!.trim()}\n${punchline!.trim()}`), '🙈');
       }
     } catch (e) {
       // Never crash on jokes
@@ -160,7 +160,9 @@ export async function runCreateInteractiveCli(): Promise<CreateAppResult> {
         s.stop('Git initialized 🎲');
       } catch (e) {
         s.stop('Git failed to initialize');
-        log.error(red(`Git failed to initialize. You can do this manually by running: git init`));
+        log.error(
+          pc.red(`Git failed to initialize. You can do this manually by running: git init`)
+        );
       }
     }
   }

@@ -1,6 +1,7 @@
 import { component$, useSignal, useTask$ } from '@qwik.dev/core';
-import { routeAction$, routeLoader$, useLocation, z, zod$, Form } from '@qwik.dev/router';
-import { formAction$, useForm, zodForm$, type InitialValues } from '@modular-forms/qwik';
+import { routeAction$, routeLoader$, useLocation, valibot$, zod$, Form } from '@qwik.dev/router';
+import * as z from 'zod';
+import { Field, Form as SchemaForm, reset, useField, useForm$ } from '@formisch/qwik';
 import { eq } from 'drizzle-orm';
 import AppCard from '~/components/app-card';
 import { DiskIcon } from '~/components/icons/disk';
@@ -13,7 +14,7 @@ import {
 import { ApplicationForm } from '../app.form';
 import { EditIcon } from '~/components/icons/edit';
 
-export const useFormLoader = routeLoader$<InitialValues<ApplicationForm>>(async ({ params }) => {
+export const useFormLoader = routeLoader$<ApplicationForm>(async ({ params }) => {
   const db = getDB();
   const publicApiKey = params.publicApiKey;
   const app = await db
@@ -31,7 +32,7 @@ export const useUsers = routeLoader$<string[]>(async ({ params }) => {
   return users;
 });
 
-export const useFormAction = formAction$<ApplicationForm>(
+export const useFormAction = routeAction$(
   async ({ name, description, url }, { redirect, params }) => {
     const db = getDB();
     db.update(applicationTable)
@@ -44,7 +45,7 @@ export const useFormAction = formAction$<ApplicationForm>(
       .run();
     throw redirect(302, `/app/${params.publicApiKey}/`);
   },
-  zodForm$(ApplicationForm)
+  valibot$(ApplicationForm)
 );
 
 export const useRemoveUserAction = routeAction$(
@@ -66,12 +67,13 @@ export const useAddUserAction = routeAction$(
 );
 
 export default component$(() => {
-  // const form = useFormLoader();
-  const [loginForm, { Form: ModularForm, Field }] = useForm<ApplicationForm>({
-    loader: useFormLoader(),
-    action: useFormAction(),
-    validate: zodForm$(ApplicationForm),
-  });
+  const formLoader = useFormLoader();
+  const action = useFormAction();
+  const form = useForm$(() => ({
+    schema: ApplicationForm,
+    initialInput: formLoader.value,
+  }));
+  const nameField = useField(form, { path: ['name'] });
   const location = useLocation();
   const users = useUsers();
   const removeUserAction = useRemoveUserAction();
@@ -83,6 +85,10 @@ export default component$(() => {
       addEmail.value = '';
     }
   });
+  useTask$(({ track }) => {
+    const loaded = track(() => formLoader.value);
+    reset(form, { initialInput: loaded });
+  });
 
   return (
     <div>
@@ -90,46 +96,52 @@ export default component$(() => {
         <EditIcon />
         Edit Application
       </h1>
-      <ModularForm>
+      <SchemaForm of={form} onSubmit$={(output) => action.submit(output)}>
         <div class="mb-10">
           <AppCard
             mode="show"
-            title={loginForm.internal.fields.name?.value}
+            title={nameField.input.value}
             publicApiKey={location.params.publicApiKey}
           />
         </div>
         <div>
           <label>Name</label>
-          <Field name="name">
-            {(field, props) => (
+          <Field
+            of={form}
+            path={['name']}
+            render$={(field) => (
               <>
-                <input {...props} type="text" value={field.value} />{' '}
-                {field.error && <div>{field.error}</div>}
+                <input {...field.props} type="text" value={field.input.value} />{' '}
+                {field.errors.value && <div>{field.errors.value[0]}</div>}
               </>
             )}
-          </Field>
+          />
         </div>
         <div>
           <label>Description</label>
-          <Field name="description">
-            {(field, props) => (
+          <Field
+            of={form}
+            path={['description']}
+            render$={(field) => (
               <>
-                <input {...props} type="text" value={field.value} />
-                {field.error && <div>{field.error}</div>}
+                <input {...field.props} type="text" value={field.input.value} />
+                {field.errors.value && <div>{field.errors.value[0]}</div>}
               </>
             )}
-          </Field>
+          />
         </div>
         <div>
           <label>URL</label>
-          <Field name="url">
-            {(field, props) => (
+          <Field
+            of={form}
+            path={['url']}
+            render$={(field) => (
               <>
-                <input {...props} type="text" value={field.value} />
-                {field.error && <div>{field.error}</div>}
+                <input {...field.props} type="text" value={field.input.value} />
+                {field.errors.value && <div>{field.errors.value[0]}</div>}
               </>
             )}
-          </Field>
+          />
         </div>
         <div
           style={{
@@ -141,7 +153,7 @@ export default component$(() => {
             Save
           </button>
         </div>
-      </ModularForm>
+      </SchemaForm>
       <label>Allowed Users</label>
       <ul>
         {users.value.map((user) => (

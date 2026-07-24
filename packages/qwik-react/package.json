@@ -10,7 +10,7 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "typescript": "5.9.3",
-    "vite": "7.3.5"
+    "vite": "8.1.5"
   },
   "engines": {
     "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
@@ -34,11 +34,11 @@
   "main": "./lib/index.qwik.mjs",
   "peerDependencies": {
     "@qwik.dev/core": "workspace:^",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
-    "react": "^18",
-    "react-dom": "^18",
-    "vite": ">=6 <9"
+    "@types/react": "^18 || ^19",
+    "@types/react-dom": "^18 || ^19",
+    "react": "^18 || ^19",
+    "react-dom": "^18 || ^19",
+    "vite": ">=8 <9"
   },
   "publishConfig": {
     "access": "public"

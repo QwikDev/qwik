@@ -1,7 +1,7 @@
 import { vnode_journalToString, type VNodeJournal } from '../../client/vnode-utils';
 import { runTask } from '../../use/use-task';
 import { QContainerValue, type Container } from '../types';
-import { directSetAttribute } from '../utils/attribute';
+import { applyDomAttribute } from '../utils/attribute';
 import { dangerouslySetInnerHTML, QContainerAttr } from '../utils/markers';
 import { serializeAttribute } from '../utils/styles';
 import {
@@ -159,21 +159,14 @@ export function _flushJournal(journal: VNodeJournal): void {
         rawValue != null
           ? serializeAttribute(attrName, rawValue, operation.scopedStyleIdPrefix)
           : null;
-      const shouldRemove = attrValue == null || attrValue === false;
-      if (isBooleanAttr(element, attrName)) {
-        (element as any)[attrName] = parseBoolean(attrValue);
-      } else if (attrName === dangerouslySetInnerHTML) {
+      if (attrName === dangerouslySetInnerHTML) {
         if (batchParent === element) {
           flush();
         }
         (element as any).innerHTML = attrValue;
         element.setAttribute(QContainerAttr, QContainerValue.HTML);
-      } else if (shouldRemove) {
-        element.removeAttribute(attrName);
-      } else if (attrName === 'value' && attrName in element) {
-        (element as any).value = attrValue;
       } else {
-        directSetAttribute(element, attrName, attrValue, operation.isSvg);
+        applyDomAttribute(element, attrName, attrValue, operation.isSvg);
       }
     }
   }
@@ -197,39 +190,3 @@ function executeAfterFlush(container: Container, cursorData: CursorData): void {
   }
   cursorData.afterFlushTasks = null;
 }
-
-const isBooleanAttr = (element: Element, key: string): boolean => {
-  const isBoolean =
-    key == 'allowfullscreen' ||
-    key == 'async' ||
-    key == 'autofocus' ||
-    key == 'autoplay' ||
-    key == 'checked' ||
-    key == 'controls' ||
-    key == 'default' ||
-    key == 'defer' ||
-    key == 'disabled' ||
-    key == 'formnovalidate' ||
-    key == 'inert' ||
-    key == 'ismap' ||
-    key == 'itemscope' ||
-    key == 'loop' ||
-    key == 'multiple' ||
-    key == 'muted' ||
-    key == 'nomodule' ||
-    key == 'novalidate' ||
-    key == 'open' ||
-    key == 'playsinline' ||
-    key == 'readonly' ||
-    key == 'required' ||
-    key == 'reversed' ||
-    key == 'selected';
-  return isBoolean && key in element;
-};
-
-const parseBoolean = (value: string | boolean | null): boolean => {
-  if (value === 'false') {
-    return false;
-  }
-  return Boolean(value);
-};

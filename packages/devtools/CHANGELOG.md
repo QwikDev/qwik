@@ -1,5 +1,11 @@
 # @qwik.dev/devtools
 
+## 0.3.0-beta.3
+
+### Patch Changes
+
+- 🐞🩹 disable lifecycle scripts during package operations. (by [@Varixo](https://github.com/Varixo) in [#8855](https://github.com/QwikDev/qwik/pull/8855))
+
 ## 0.3.0-beta.2
 
 ### Minor Changes

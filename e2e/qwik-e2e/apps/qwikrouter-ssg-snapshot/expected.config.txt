@@ -16,7 +16,7 @@ export const routes = {
   _R: "__LOADERS:<app>/src/routes/index.tsx__",
   "sub": {
     _L: SubLayout,
-    _R: "__LOADERS:<app>/src/routes/sub/404.tsx|<app>/src/routes/sub/layout.tsx__",
+    _R: "__LOADERS:<app>/src/routes/sub/layout.tsx|<app>/src/routes/sub/404.tsx__",
     _4: ()=>import("<app>/src/routes/sub/404"),
   },
 };

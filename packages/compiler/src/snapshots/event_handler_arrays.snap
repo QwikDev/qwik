@@ -30,7 +30,8 @@ export function App(props, ctx) {
       '<button',
       ctx.eventAttr('q-e:click', [
         q_component_q_e_click_segment_0_2xwyg1cinvmpz,
-        [undefined, q_component_q_e_click_segment_1_2xwyfnber1kpg.w([count])],
+        undefined,
+        q_component_q_e_click_segment_1_2xwyfnber1kpg.w([count]),
       ]),
       '>'
     ),
@@ -109,11 +110,11 @@ export function App(props, ctx) {
   const count = useSignal(0);
   const fragment0 = App_tmpl0(ctx.document);
   const el0 = _first(fragment0);
-  const event0 = [
+  setEvent(el0, 'q-e:click', [
     component_q_e_click_segment_0_2xwyg1cinvmpz,
-    [undefined, _withCaptures(component_q_e_click_segment_1_2xwyfnber1kpg, [count])],
-  ];
-  if (event0) setEvent(el0, 'q-e:click', event0);
+    undefined,
+    _withCaptures(component_q_e_click_segment_1_2xwyfnber1kpg, [count]),
+  ]);
   return el0;
 }
 ============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==

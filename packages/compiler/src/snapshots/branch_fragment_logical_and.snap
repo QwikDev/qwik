@@ -50,7 +50,10 @@ const q_component_branch_then_segment_2_24n7b7xmnzb3n = /*#__PURE__*/ _qrlWithCh
   () => import('./component.tsx_component_branch_then_segment_2_24n7b7xmnzb3n'),
   'component_branch_then_segment_2_24n7b7xmnzb3n'
 );
-
+function InnerCmp(props, ctx) {
+  return '<div>Hello world</div>';
+}
+export { InnerCmp };
 export function App(props, ctx) {
   const groupSig = useSignal('1');
   const branchId0 = ctx.nextId();
@@ -76,31 +79,6 @@ export function App(props, ctx) {
     '<!/b>',
   ]);
 }
-============================= src/component.tsx_component_InnerCmp.js (ENTRY POINT)==
-
-export function InnerCmp(props, ctx) {
-  return '<div>Hello world</div>';
-}
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_InnerCmp_17usajjh7s6y3",
-  "entry": null,
-  "displayName": "component_InnerCmp",
-  "hash": "17usajjh7s6y3",
-  "canonicalFilename": "component.tsx_component_InnerCmp_17usajjh7s6y3",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component",
-  "captures": false,
-  "loc": [
-    44,
-    99
-  ],
-  "paramNames": []
-}
-*/
 ============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';
@@ -165,7 +143,7 @@ export const component_branch_condition_segment_1_2fzri0t2yrfeq = () => {
 */
 ============================= src/component.tsx_component_branch_then_segment_2_24n7b7xmnzb3n.js (ENTRY POINT)==
 
-import { InnerCmp } from './component.tsx_component_InnerCmp';
+import { InnerCmp } from './component';
 import { createComponent } from '@qwik.dev/core';
 
 export const component_branch_then_segment_2_24n7b7xmnzb3n = (ctx) => {
@@ -201,24 +179,30 @@ export const component_branch_then_segment_2_24n7b7xmnzb3n = (ctx) => {
 import {
   useSignal,
   _first,
+  createTemplate,
   _next,
   setEvent,
   BranchRange,
   createBranch,
   _withCaptures,
   _qrlWithChunk,
-  createTemplate,
 } from '@qwik.dev/core';
 import { component_q_e_click_segment_0_2xwyg1cinvmpz } from './component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz';
 import { component_branch_condition_segment_1_2fzri0t2yrfeq } from './component.tsx_component_branch_condition_segment_1_2fzri0t2yrfeq';
 
+const InnerCmp_tmpl0 = createTemplate('<div>Hello world</div>');
 const q_component_branch_then_segment_2_24n7b7xmnzb3n = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_branch_then_segment_2_24n7b7xmnzb3n',
   () => import('./component.tsx_component_branch_then_segment_2_24n7b7xmnzb3n'),
   'component_branch_then_segment_2_24n7b7xmnzb3n'
 );
 const App_tmpl0 = createTemplate('Some text:  <button>click</button><!----><!---->');
-
+function InnerCmp(props, ctx) {
+  const fragment0 = InnerCmp_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
+}
+export { InnerCmp };
 export function App(props, ctx) {
   const groupSig = useSignal('1');
   const fragment0 = App_tmpl0(ctx.document);
@@ -239,37 +223,6 @@ export function App(props, ctx) {
   ctx.scheduler.notify(branch0);
   return [text0, el0, start0, end0];
 }
-============================= src/component.tsx_component_InnerCmp.js (ENTRY POINT)==
-
-import { _first, createTemplate } from '@qwik.dev/core';
-
-const InnerCmp_tmpl0 = createTemplate('<div>Hello world</div>');
-
-export function InnerCmp(props, ctx) {
-  const fragment0 = InnerCmp_tmpl0(ctx.document);
-  const el0 = _first(fragment0);
-  return el0;
-}
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_InnerCmp_17usajjh7s6y3",
-  "entry": null,
-  "displayName": "component_InnerCmp",
-  "hash": "17usajjh7s6y3",
-  "canonicalFilename": "component.tsx_component_InnerCmp_17usajjh7s6y3",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component",
-  "captures": false,
-  "loc": [
-    44,
-    99
-  ],
-  "paramNames": []
-}
-*/
 ============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';
@@ -334,7 +287,7 @@ export const component_branch_condition_segment_1_2fzri0t2yrfeq = () => {
 */
 ============================= src/component.tsx_component_branch_then_segment_2_24n7b7xmnzb3n.js (ENTRY POINT)==
 
-import { InnerCmp } from './component.tsx_component_InnerCmp';
+import { InnerCmp } from './component';
 import { createComponent } from '@qwik.dev/core';
 
 export const component_branch_then_segment_2_24n7b7xmnzb3n = (ctx) => {

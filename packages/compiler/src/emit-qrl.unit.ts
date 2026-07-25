@@ -268,7 +268,7 @@ export function helper() {
       path: 'src/custom-style.tsx',
       code: `import { useSignal } from '@qwik.dev/core';
 import { useRed } from './use-red';
-function Child() { return <i>child</i>; }
+export function Child() { return <i>child</i>; }
 export function App() {
   useRed();
   const active = useSignal(true);

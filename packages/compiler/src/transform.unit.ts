@@ -807,6 +807,33 @@ export function App() { return <section><Child /></section>; }`,
     expect(main).toContain('maybeThen(createComponent');
   });
 
+  test('keeps non-exported components in the source module', async () => {
+    const code = `import { component$ } from '@qwik.dev/core';
+const Private = component$(() => <span>Private</span>);
+export const Public = component$(() => <span>Public</span>);
+export const App = component$(({ show }) => <><Public />{show && <Private />}</>);`;
+    const result = await transformModules({
+      ...options,
+      input: [{ path: 'src/component.tsx', code }],
+    });
+    const main = result.modules.find((module) => module.path === 'src/component.tsx')!;
+    const privateEntry = result.modules.find((module) =>
+      module.path.includes('_component_Private')
+    );
+    const publicEntry = result.modules.find((module) => module.path.includes('_component_Public'));
+    const branch = result.modules.find(
+      (module) => module.segment?.ctxName === 'branch:then' && module.code.includes('Private')
+    );
+
+    expect(result.diagnostics).toEqual([]);
+    expect(privateEntry).toBeUndefined();
+    expect(publicEntry).toBeDefined();
+    expect(main.code).not.toContain('__qwik_Private');
+    expect(main.code).toContain('const Private = (props, ctx) =>');
+    expect(main.code).toContain('export { Private };');
+    expect(branch?.code).toContain('import { Private } from "./component";');
+  });
+
   test('preserves the main module and emits binding-aware imports for extracted entries', async () => {
     const code = `'use strict';
 // retained comment
@@ -818,7 +845,7 @@ import './side-effect'; // retained import comment
 const localValue = 1;
 export const version = 'v2';
 
-function Child() {
+export function Child() {
   return <button onClick$={() => consume(payload, tools, alias, localValue)}>run</button>;
 }
 
@@ -856,7 +883,7 @@ export function App() {
 
   test('rejects a write to a top-level binding from an extracted component', async () => {
     const code = `let counter = 0;
-function Child() {
+export function Child() {
   counter++;
   return <span>{counter}</span>;
 }

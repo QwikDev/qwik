@@ -130,7 +130,7 @@ describe('transformModules', () => {
   test('creates globally unique segment identities', async () => {
     const code = `import { useTask$ } from '@qwik.dev/core';
 
-function Child() {
+export function Child() {
   return <button onClick$={() => 'clicked'}>Child</button>;
 }
 
@@ -182,7 +182,7 @@ export function App() {
         {
           path: 'src/x.tsx',
           code: `import { Foo$ } from './foo';
-function Foo$_segment_0() {
+export function Foo$_segment_0() {
   return <p>Child</p>;
 }
 export function App() {

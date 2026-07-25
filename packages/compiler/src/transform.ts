@@ -331,6 +331,7 @@ export function transformModule(ctx: CompilerContext): TransformResult {
   );
   const componentOutputs = outputs.filter(
     (output) =>
+      output.component.exported &&
       output.component.exportName !== 'default' &&
       output.component.localName !== null &&
       referencedComponents.has(output.component.bindingId)

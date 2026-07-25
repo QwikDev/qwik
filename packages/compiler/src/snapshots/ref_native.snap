@@ -27,27 +27,49 @@ export function App({ forwarded, rest }) {
 
 import {
   useSignal,
-  createSsrElementRecord,
   createSsrNodeId,
+  createSsrElementRecord,
+  createSsrElementTextTarget,
+  renderSsrTextExpression,
+  escapeHTML,
+  maybeThen,
   createSsrRecord,
   renderSsrProps,
   createSsrElementTarget,
   createComponent,
   getActiveInvokeContextOrNull,
   invoke,
-  maybeThen,
   _qrlWithChunk,
 } from '@qwik.dev/core';
+import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
 import { component_props_segment_4_208nzmc6ba85l } from './component.tsx_component_props_segment_4_208nzmc6ba85l';
-import { Child } from './component.tsx_component_Child';
 
+const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_text_segment_0_1fh10fbkzokfc',
+  () => import('./component.tsx_component_text_segment_0_1fh10fbkzokfc'),
+  'component_text_segment_0_1fh10fbkzokfc'
+);
+q_component_text_segment_0_1fh10fbkzokfc.s(component_text_segment_0_1fh10fbkzokfc);
 const q_component_props_segment_4_208nzmc6ba85l = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_props_segment_4_208nzmc6ba85l',
   () => import('./component.tsx_component_props_segment_4_208nzmc6ba85l'),
   'component_props_segment_4_208nzmc6ba85l'
 );
 q_component_props_segment_4_208nzmc6ba85l.s(component_props_segment_4_208nzmc6ba85l);
-
+function Child(props, ctx) {
+  const id0 = ctx.nextId();
+  ctx.addRoot(props);
+  const text1 = renderSsrTextExpression(
+    createSsrElementTextTarget(id0),
+    [props],
+    q_component_text_segment_0_1fh10fbkzokfc
+  );
+  return maybeThen(text1, (text1) => [
+    createSsrElementRecord('span', '<span q:id="', createSsrNodeId(id0), '"', '>'),
+    escapeHTML(text1),
+    '</span>',
+  ]);
+}
 export function App(props0, ctx) {
   const { forwarded, rest } = props0;
   const signalRef = useSignal();
@@ -105,62 +127,6 @@ export function App(props0, ctx) {
     ]);
   });
 }
-============================= src/component.tsx_component_Child.js (ENTRY POINT)==
-
-import {
-  createSsrNodeId,
-  createSsrElementRecord,
-  createSsrElementTextTarget,
-  renderSsrTextExpression,
-  escapeHTML,
-  maybeThen,
-  _qrlWithChunk,
-} from '@qwik.dev/core';
-import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
-
-const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_text_segment_0_1fh10fbkzokfc',
-  () => import('./component.tsx_component_text_segment_0_1fh10fbkzokfc'),
-  'component_text_segment_0_1fh10fbkzokfc'
-);
-q_component_text_segment_0_1fh10fbkzokfc.s(component_text_segment_0_1fh10fbkzokfc);
-
-export function Child(props, ctx) {
-  const id0 = ctx.nextId();
-  ctx.addRoot(props);
-  const text1 = renderSsrTextExpression(
-    createSsrElementTextTarget(id0),
-    [props],
-    q_component_text_segment_0_1fh10fbkzokfc
-  );
-  return maybeThen(text1, (text1) => [
-    createSsrElementRecord('span', '<span q:id="', createSsrNodeId(id0), '"', '>'),
-    escapeHTML(text1),
-    '</span>',
-  ]);
-}
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_Child_3dcfzbj6fj81r",
-  "entry": null,
-  "displayName": "component_Child",
-  "hash": "3dcfzbj6fj81r",
-  "canonicalFilename": "component.tsx_component_Child_3dcfzbj6fj81r",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component",
-  "captures": false,
-  "loc": [
-    44,
-    120
-  ],
-  "paramNames": [
-    "props"
-  ]
-}
-*/
 ============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
 
 export const component_text_segment_0_1fh10fbkzokfc = (props) => {
@@ -228,19 +194,33 @@ export const component_props_segment_4_208nzmc6ba85l = (props0) => {
 import {
   useSignal,
   _first,
+  createTextExpressionEffect,
+  createTemplate,
   _next,
   setRef,
   createPropsEffect,
   createComponent,
-  createTemplate,
 } from '@qwik.dev/core';
+import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
 import { component_props_segment_4_208nzmc6ba85l } from './component.tsx_component_props_segment_4_208nzmc6ba85l';
-import { Child } from './component.tsx_component_Child';
 
+const Child_tmpl0 = createTemplate('<span> </span>');
 const App_tmpl0 = createTemplate(
   '<section><div>Signal</div><div>Inline</div><div>Named</div><div>Forwarded</div><div>Spread</div><div>Opaque</div><!----><!----></section>'
 );
-
+function Child(props, ctx) {
+  const fragment0 = Child_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const text0 = _first(el0);
+  const effect0 = createTextExpressionEffect(
+    text0,
+    [props],
+    component_text_segment_0_1fh10fbkzokfc,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect0);
+  return el0;
+}
 export function App(props0, ctx) {
   const { forwarded, rest } = props0;
   const signalRef = useSignal();
@@ -281,48 +261,6 @@ export function App(props0, ctx) {
   end0.remove();
   return el0;
 }
-============================= src/component.tsx_component_Child.js (ENTRY POINT)==
-
-import { _first, createTextExpressionEffect, createTemplate } from '@qwik.dev/core';
-import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
-
-const Child_tmpl0 = createTemplate('<span> </span>');
-
-export function Child(props, ctx) {
-  const fragment0 = Child_tmpl0(ctx.document);
-  const el0 = _first(fragment0);
-  const text0 = _first(el0);
-  const effect0 = createTextExpressionEffect(
-    text0,
-    [props],
-    component_text_segment_0_1fh10fbkzokfc,
-    ctx.scheduler
-  );
-  ctx.scheduler.notify(effect0);
-  return el0;
-}
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_Child_3dcfzbj6fj81r",
-  "entry": null,
-  "displayName": "component_Child",
-  "hash": "3dcfzbj6fj81r",
-  "canonicalFilename": "component.tsx_component_Child_3dcfzbj6fj81r",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component",
-  "captures": false,
-  "loc": [
-    44,
-    120
-  ],
-  "paramNames": [
-    "props"
-  ]
-}
-*/
 ============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
 
 export const component_text_segment_0_1fh10fbkzokfc = (props) => {

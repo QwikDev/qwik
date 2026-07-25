@@ -732,6 +732,21 @@ class SemanticLowerer {
         groupedEffect?.lifetimeId ??
         this.allocateLifetime(context.lifetimeId, 'effect', 'immediate');
       const event = isEventProp(name);
+      if (event && targetKind === 'element') {
+        for (const value of this.createEventValues(expression, lifetimeId)) {
+          const effectId =
+            groupedEffect?.effectId ??
+            this.pushEffect(context, {
+              kind: 'event',
+              lifetimeId,
+              target,
+              name,
+              value,
+            });
+          props.push({ kind: 'event', range, name, value, lifetimeId, effectId });
+        }
+        continue;
+      }
       const value = this.createValue(
         expression,
         lifetimeId,
@@ -783,10 +798,16 @@ class SemanticLowerer {
     }
     const normalized: OrderedPropPlan[] = [];
     props.forEach((prop, index) => {
-      const wins = last.get(propKey(prop)) === index;
+      const winningIndex = last.get(propKey(prop));
+      const winningProp = winningIndex === undefined ? undefined : props[winningIndex];
+      const wins = winningIndex === index;
+      const sharesEventSource =
+        prop.kind === 'event' &&
+        winningProp?.kind === 'event' &&
+        sameRange(prop.range, winningProp.range);
       if (prop.kind === 'bind') {
         normalized.push({ ...prop, effectId: wins ? prop.effectId : null });
-      } else if (wins) {
+      } else if (wins || sharesEventSource) {
         normalized.push(prop);
       }
     });
@@ -934,6 +955,20 @@ class SemanticLowerer {
       value,
     });
     return { kind: 'dynamic-value', output, range, lifetimeId, effectId, value };
+  }
+
+  private createEventValues(expression: AstNode, lifetimeId: LifetimeId): ValuePlan[] {
+    const value = unwrapExpression(expression);
+    if (
+      value?.type !== 'ArrayExpression' ||
+      value.elements.some((element) => element?.type === 'SpreadElement')
+    ) {
+      return [this.createValue(expression, lifetimeId, true)];
+    }
+    return value.elements.flatMap((element) => {
+      const child = unwrapExpression(element);
+      return child === null || child === undefined ? [] : this.createEventValues(child, lifetimeId);
+    });
   }
 
   private createValue(

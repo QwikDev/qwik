@@ -69,9 +69,10 @@ export interface ManifestStatsRow {
 
 export async function dbGetManifestStats(
   db: AppDatabase,
-  publicApiKey: string
+  publicApiKey: string,
+  { limit = 100 }: { limit?: number } = {}
 ): Promise<ManifestStatsRow[]> {
-  const manifestHashes = await dbGetManifestHashes(db, publicApiKey);
+  const manifestHashes = await dbGetManifestHashes(db, publicApiKey, { limit });
   if (manifestHashes.length === 0) {
     return [];
   }
@@ -94,7 +95,7 @@ export async function dbGetManifestStats(
     )
     .groupBy(manifestTable.hash)
     .orderBy(sql`${manifestTable.timestamp} DESC`)
-    .limit(100)
+    .limit(limit)
     .all();
   return manifests.map((manifest) => {
     return {

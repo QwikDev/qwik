@@ -92,6 +92,31 @@ export function vectorSum(vector: number[]): number {
   }
   return sum;
 }
+
+export function vectorHasMinimumSamples(vector: number[], minimum: number): boolean {
+  return vectorSum(vector) >= minimum;
+}
+
+export function vectorPercentile(
+  vector: number[],
+  percentile: number,
+  buckets: Bucket[] = BUCKETS
+): number {
+  const total = vectorSum(vector);
+  if (total === 0) {
+    return 0;
+  }
+  const target = Math.max(1, Math.ceil(total * percentile));
+  let count = 0;
+  for (let i = 0; i < vector.length; i++) {
+    count += vector[i];
+    if (count >= target) {
+      return buckets[i].avg;
+    }
+  }
+  return 0;
+}
+
 export function vectorSum2(vector: number[], split: number): [number, number] {
   let sum1 = 0;
   let sum2 = 0;

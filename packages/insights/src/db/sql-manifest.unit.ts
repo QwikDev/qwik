@@ -100,6 +100,11 @@ test('returns the 100 newest manifest hashes', async () => {
       expectedHashes
     );
     assert.equal(stats[0].latency[0], 0);
+    const limitedStats = await dbGetManifestStats(db, 'app', { limit: 2 });
+    assert.deepEqual(
+      limitedStats.map((manifest) => manifest.hash),
+      expectedHashes.slice(0, 2)
+    );
   } finally {
     client.close();
   }

@@ -7,6 +7,8 @@ const height = 75;
 export const latencyColors = ['green', 10, 'yellow', 50, 'red', Number.MAX_SAFE_INTEGER];
 export const delayColors = ['gray', 250, 'lightgray', Number.MAX_SAFE_INTEGER];
 export const grayColors = ['gray', Number.MAX_SAFE_INTEGER];
+export const currentColors = ['blue', Number.MAX_SAFE_INTEGER];
+export const previousColors = ['violet', Number.MAX_SAFE_INTEGER];
 
 export default component$<{
   name?: string;
@@ -81,9 +83,11 @@ export default component$<{
                 { 'bg-red-500': barColors.value[idx] === 'red' },
                 { 'bg-slate-500': barColors.value[idx] === 'gray' },
                 { 'bg-slate-300': barColors.value[idx] === 'lightgray' },
+                { 'bg-editorial-data-current': barColors.value[idx] === 'blue' },
+                { 'bg-editorial-data-previous': barColors.value[idx] === 'violet' },
               ]}
               style={{
-                height: (height * value) / max + 'px',
+                height: max ? (height * value) / max + 'px' : '0px',
               }}
             >
               {/* <code class={css({ display: 'inline-block', fontSize: 8 })}>{value}</code> */}

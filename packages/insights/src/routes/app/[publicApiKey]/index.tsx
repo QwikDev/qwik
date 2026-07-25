@@ -7,9 +7,12 @@ import { errorTable, getDB } from '~/db';
 import { getAppInfo, getSlowEdges, getSymbolDetails } from '~/db/query';
 import { dbGetManifestStats } from '~/db/sql-manifest';
 import { getRoutes } from '~/db/sql-routes';
-import { BUCKETS, vectorHasMinimumSamples, vectorPercentile, vectorSum } from '~/stats/vector';
-
-const MIN_COMPARISON_SAMPLES = 100;
+import { BUCKETS, vectorPercentile, vectorSum } from '~/stats/vector';
+import {
+  getManifestPerformance,
+  MIN_PERFORMANCE_SAMPLES,
+  PERFORMANCE_PERCENTILE,
+} from './performance';
 
 export const head: DocumentHead = {
   title: 'Performance overview | Qwik Insights',
@@ -57,10 +60,10 @@ export const useAppData = routeLoader$(async ({ params }) => {
   }
   const slowSymbols = latestEdges
     .map((edge) => {
-      const latency = vectorPercentile(edge.latency, 0.75);
+      const latency = vectorPercentile(edge.latency, PERFORMANCE_PERCENTILE);
       const previousLatency = vectorPercentile(
         previousEdgesBySymbol.get(edge.to)?.latency ?? [],
-        0.75
+        PERFORMANCE_PERCENTILE
       );
       return {
         hash: edge.to,
@@ -77,13 +80,10 @@ export const useAppData = routeLoader$(async ({ params }) => {
     .slice(0, 3);
   const latest = manifests.at(0);
   const previous = manifests.at(1);
-  const latestLatency = latest ? vectorPercentile(latest.latency, 0.75) : 0;
-  const previousLatency = previous ? vectorPercentile(previous.latency, 0.75) : 0;
-  const latestSamples = latest ? vectorSum(latest.latency) : 0;
-  const previousSamples = previous ? vectorSum(previous.latency) : 0;
-  const hasEnoughSamples =
-    vectorHasMinimumSamples(latest?.latency ?? [], MIN_COMPARISON_SAMPLES) &&
-    vectorHasMinimumSamples(previous?.latency ?? [], MIN_COMPARISON_SAMPLES);
+  const latestPerformance = latest ? getManifestPerformance(latest.latency) : null;
+  const previousPerformance = previous ? getManifestPerformance(previous.latency) : null;
+  const latestLatency = latestPerformance?.p95 ?? null;
+  const previousLatency = previousPerformance?.p95 ?? null;
 
   return {
     app,
@@ -92,8 +92,8 @@ export const useAppData = routeLoader$(async ({ params }) => {
           hash: latest.hash,
           timestamp: latest.timestamp.toISOString(),
           latency: latest.latency,
-          p75: latestLatency,
-          samples: latestSamples,
+          p95: latestLatency,
+          samples: latestPerformance?.samples ?? 0,
         }
       : null,
     previous: previous
@@ -101,12 +101,12 @@ export const useAppData = routeLoader$(async ({ params }) => {
           hash: previous.hash,
           timestamp: previous.timestamp.toISOString(),
           latency: previous.latency,
-          p75: previousLatency,
-          samples: previousSamples,
+          p95: previousLatency,
+          samples: previousPerformance?.samples ?? 0,
         }
       : null,
     change:
-      hasEnoughSamples && previousLatency
+      latestLatency !== null && previousLatency !== null && previousLatency > 0
         ? Math.round(((latestLatency - previousLatency) / previousLatency) * 100)
         : null,
     slowSymbols,
@@ -201,7 +201,7 @@ export default component$(() => {
               {previous && change !== null
                 ? `Manifest ${latest?.hash} compared with ${previous.hash}.`
                 : previous
-                  ? `Comparison starts at ${MIN_COMPARISON_SAMPLES} samples per manifest. Current: ${latest?.samples ?? 0}; previous: ${previous.samples}.`
+                  ? `Comparison starts at ${MIN_PERFORMANCE_SAMPLES} samples per manifest. Current: ${latest?.samples ?? 0}; previous: ${previous.samples}.`
                   : 'A previous manifest is required before a comparison can be calculated.'}
             </p>
             <ButtonLink
@@ -215,7 +215,7 @@ export default component$(() => {
 
           <section class="mt-editorial-12">
             <p class="text-editorial-11 font-semibold tracking-[0.04em] text-editorial-muted uppercase">
-              Symbol load latency · P75
+              Symbol load latency · P95
             </p>
             <h2 class="mt-editorial-2 text-editorial-24 font-semibold tracking-[-0.02em]">
               Latency distribution by manifest
@@ -225,14 +225,14 @@ export default component$(() => {
                 <Distribution
                   label="Latest manifest"
                   tone="current"
-                  value={latest.p75}
+                  value={latest.p95}
                   vector={latest.latency}
                 />
                 {previous ? (
                   <Distribution
                     label="Previous manifest"
                     tone="previous"
-                    value={previous.p75}
+                    value={previous.p95}
                     vector={previous.latency}
                   />
                 ) : (
@@ -252,15 +252,23 @@ export default component$(() => {
             What the data says
           </p>
           <p class="mt-editorial-3 text-editorial-20 font-semibold leading-[1.35]">
-            {latest && previous && change === null
-              ? `Comparison begins after both manifests reach ${MIN_COMPARISON_SAMPLES} samples.`
-              : latest
-                ? `75% of recorded symbol loads completed within ${formatDuration(latest.p75)}.`
-                : 'No symbol samples have been recorded yet.'}
+            {latest?.p95 === null
+              ? `P95 becomes available after ${MIN_PERFORMANCE_SAMPLES} samples. Current: ${latest.samples}.`
+              : latest && previous?.p95 === null
+                ? `Comparison begins after both manifests reach ${MIN_PERFORMANCE_SAMPLES} samples.`
+                : latest
+                  ? `95% of recorded symbol loads completed within ${formatDuration(latest.p95)}.`
+                  : 'No symbol samples have been recorded yet.'}
           </p>
           <dl class="mt-editorial-6">
-            <Metric label="Current P75" value={latest ? formatDuration(latest.p75) : '—'} />
-            <Metric label="Previous P75" value={previous ? formatDuration(previous.p75) : '—'} />
+            <Metric
+              label="Current P95"
+              value={latest && latest.p95 !== null ? formatDuration(latest.p95) : '—'}
+            />
+            <Metric
+              label="Previous P95"
+              value={previous && previous.p95 !== null ? formatDuration(previous.p95) : '—'}
+            />
             <Metric
               label="Change"
               value={change === null ? '—' : `${change > 0 ? '+' : ''}${change}%`}
@@ -314,7 +322,7 @@ export default component$(() => {
                   <tr>
                     <th class="py-editorial-3 font-semibold">Symbol</th>
                     <th class="py-editorial-3 font-semibold">Routes</th>
-                    <th class="py-editorial-3 font-semibold">P75</th>
+                    <th class="py-editorial-3 font-semibold">P95</th>
                     <th class="py-editorial-3 font-semibold">Change</th>
                     <th class="py-editorial-3 text-right font-semibold">Samples</th>
                   </tr>
@@ -405,7 +413,7 @@ export default component$(() => {
 const Distribution = component$<{
   label: string;
   tone: 'current' | 'previous';
-  value: number;
+  value: number | null;
   vector: number[];
 }>(({ label, tone, value, vector }) => {
   const colors = tone === 'current' ? currentColors : previousColors;
@@ -422,7 +430,9 @@ const Distribution = component$<{
           />
           <span class="text-editorial-12 text-editorial-secondary">{label}</span>
         </div>
-        <strong class="text-editorial-14">{formatDuration(value)}</strong>
+        <strong class="text-editorial-14">
+          {value === null ? 'Collecting data' : formatDuration(value)}
+        </strong>
       </div>
       <div class="mt-editorial-4 overflow-x-auto">
         <Histogram vector={vector} colors={colors} buckets={BUCKETS} />

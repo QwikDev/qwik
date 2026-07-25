@@ -4,7 +4,11 @@ import BrandLockup from '~/components/brand-lockup';
 import { GithubIcon } from '~/components/icons/github';
 import { useSession, useSignOut } from '~/routes/plugin@auth';
 
-export default component$(() => {
+type HeaderProps = {
+  showBrand?: boolean;
+};
+
+export default component$<HeaderProps>(({ showBrand = true }) => {
   const signOutSig = useSignOut();
   const userCtx = useSession();
   const location = useLocation();
@@ -17,16 +21,28 @@ export default component$(() => {
 
   return (
     <header class="h-editorial-header border-b border-editorial-border bg-editorial-surface">
-      <div class="mx-auto flex h-full max-w-editorial-viewport items-center px-editorial-6 editorial-desktop:pr-editorial-11 editorial-desktop:pl-editorial-18">
-        <Link
-          href="/app/"
-          aria-label="Qwik Insights applications"
-          class="rounded-editorial-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-editorial-accent"
-        >
-          <BrandLockup />
-        </Link>
+      <div
+        class={[
+          'mx-auto flex h-full max-w-editorial-viewport items-center px-editorial-6 editorial-desktop:pr-editorial-11',
+          showBrand ? 'editorial-desktop:pl-editorial-18' : 'editorial-desktop:pl-editorial-8',
+        ]}
+      >
+        {showBrand && (
+          <Link
+            href="/app/"
+            aria-label="Qwik Insights applications"
+            class="rounded-editorial-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-editorial-accent"
+          >
+            <BrandLockup />
+          </Link>
+        )}
 
-        <span class="ml-editorial-16 hidden text-editorial-11 font-semibold tracking-[0.02em] text-editorial-muted uppercase editorial-desktop:ml-editorial-26 md:inline">
+        <span
+          class={[
+            'hidden text-editorial-11 font-semibold tracking-[0.02em] text-editorial-muted uppercase md:inline',
+            showBrand && 'ml-editorial-16 editorial-desktop:ml-editorial-26',
+          ]}
+        >
           {context}
         </span>
 

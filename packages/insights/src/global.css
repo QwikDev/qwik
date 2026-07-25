@@ -59,6 +59,7 @@
   --spacing-editorial-18: 4.5rem;
   --spacing-editorial-26: 6.5rem;
   --spacing-editorial-header: 6rem;
+  --spacing-editorial-sidebar-expanded: 16rem;
 
   --radius-editorial-xs: 0.125rem;
   --radius-editorial-sm: 0.25rem;
@@ -214,4 +215,12 @@ svg {
 .button svg {
   width: 1.5rem;
   height: 1.5rem;
+}
+
+.application-navigation-icon [fill='black'] {
+  fill: currentColor;
+}
+
+.application-navigation-icon [stroke='black'] {
+  stroke: currentColor;
 }

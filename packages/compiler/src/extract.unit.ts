@@ -57,10 +57,10 @@ export function App(Boundary) {
     const extracted = extractInput(`import { useSignal } from '@qwik.dev/core';
 export function App({ attrs, label }) {
   const count = useSignal(0);
-  return <button disabled {...attrs.value} title={\`label \${label.value}\`} onClick$={() => count.value++} />;
+  return <button disabled {...attrs.value} title={\`label \${label.value}\`} onClick$={[() => count.value++, () => count.value--]} />;
 }`);
     const props = extracted.segments.find((segment) => segment.ctxName === 'props');
-    const event = extracted.segments.find((segment) => segment.kind === 'event');
+    const events = extracted.segments.filter((segment) => segment.kind === 'event');
 
     expect(props).toMatchObject({
       kind: 'expression',
@@ -72,7 +72,10 @@ export function App({ attrs, label }) {
       ],
       captures: [{ name: 'attrs' }, { name: 'label' }, { name: 'count' }],
     });
-    expect(event).toMatchObject({ parentId: props?.id, captures: [{ name: 'count' }] });
+    expect(events).toHaveLength(2);
+    for (const event of events) {
+      expect(event).toMatchObject({ parentId: props?.id, captures: [{ name: 'count' }] });
+    }
   });
 
   test('extracts an event handler with a local capture', () => {

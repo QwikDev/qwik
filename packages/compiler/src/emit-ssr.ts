@@ -1550,8 +1550,18 @@ class SsrEmitter {
       const replacements: Array<{ range: SourceRange; value: string }> = [];
       for (const reference of value.boundaries) {
         const segment = this.segment(reference);
-        if (segment === null || segment.qrl === null) {
+        if (segment === null) {
           return expression;
+        }
+        if (segment.qrl === null) {
+          if (segment.kind !== 'event') {
+            return expression;
+          }
+          replacements.push({
+            range: segment.functionRange,
+            value: this.qrlReference(segment, reference),
+          });
+          continue;
         }
         const boundary = segment.qrl;
         if (boundary.kind === 'explicit') {

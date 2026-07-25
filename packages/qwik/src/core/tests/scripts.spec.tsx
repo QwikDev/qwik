@@ -96,6 +96,26 @@ describe.runIf(testRenderer.render === ssrRender)('ssrRender: qwikloader', () =>
     cleanup();
   });
 
+  it('should run inline event handler arrays through qwikloader', async () => {
+    const App = () => {
+      const count = useSignal(0);
+      return (
+        <button onClick$={[() => count.value++, [undefined, () => (count.value += 2)]]}>
+          {count.value}
+        </button>
+      );
+    };
+
+    const { container, cleanup, qwikLoader } = await ssrRender(App, { debug });
+    const button = container.querySelector('button')!;
+
+    expect(button.getAttribute('q-e:click')).toContain('|');
+    await qwikLoader!.dispatch(button, 'click');
+    expect(button.textContent).toBe('3');
+
+    cleanup();
+  });
+
   it('should queue quick captured clicks through qwikloader', async () => {
     const ScriptsLoaderCapturedClick = () => {
       const count = useSignal(0);

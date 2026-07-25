@@ -28,6 +28,8 @@ describe('types', () => {
     expectTypeOf<QRLEventHandlerMulti<PointerEvent, HTMLDivElement>>().toMatchTypeOf<
       QwikIntrinsicElements['div']['onAuxClick$']
     >();
+    const eventHandlers: JSX.IntrinsicElements['button']['onClick$'] = [(_event, _element) => {}];
+    void eventHandlers;
     expectTypeOf<QwikIntrinsicElements['li']['children']>().toEqualTypeOf<JSXChildren>();
     expectTypeOf<QwikIntrinsicElements['link']['children']>().toEqualTypeOf<undefined>();
     expectTypeOf<QwikIntrinsicElements['svg']['width']>().toEqualTypeOf<

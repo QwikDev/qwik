@@ -413,19 +413,7 @@ class QrlExtractor {
       node.value?.type === 'JSXExpressionContainer'
         ? unwrapExpression(node.value.expression)
         : null;
-    if (ctxName?.endsWith('$') && isFunctionLike(expression)) {
-      const segment = this.createSegment(
-        ctxName,
-        node,
-        expression,
-        jsxEventToHtmlAttribute(ctxName),
-        null,
-        [],
-        null
-      );
-      if (segment !== null) {
-        this.visitFunction(expression, segment);
-      }
+    if (ctxName?.endsWith('$') && this.visitEventExpression(ctxName, expression, node)) {
       return;
     }
     if (
@@ -436,6 +424,44 @@ class QrlExtractor {
       return;
     }
     this.visit(node.value);
+  }
+
+  private visitEventExpression(
+    ctxName: string,
+    expression: AstNode | null | undefined,
+    boundary: unknown
+  ): boolean {
+    if (isFunctionLike(expression)) {
+      const segment = this.createSegment(
+        ctxName,
+        boundary,
+        expression,
+        jsxEventToHtmlAttribute(ctxName),
+        null,
+        [],
+        null
+      );
+      if (segment !== null) {
+        this.visitFunction(expression, segment);
+      }
+      return true;
+    }
+    if (expression?.type !== 'ArrayExpression') {
+      return false;
+    }
+    for (const element of expression.elements) {
+      const value = unwrapExpression(
+        element?.type === 'SpreadElement' ? element.argument : element
+      );
+      if (
+        value === null ||
+        value === undefined ||
+        !this.visitEventExpression(ctxName, value, value)
+      ) {
+        this.visit(element);
+      }
+    }
+    return true;
   }
 
   private visitJsxAttributes(attributes: JSXAttributeItem[], boundary: AstNode) {
@@ -535,11 +561,10 @@ class QrlExtractor {
     }
     const expression = getJsxAttributeExpression(attribute.value);
     const name = getJsxAttributeName(attribute.name);
-    if (name?.endsWith('$') && isFunctionLike(expression)) {
-      this.visitJsxAttribute(attribute);
-    } else {
-      this.visit(expression);
+    if (name?.endsWith('$') && this.visitEventExpression(name, expression, attribute)) {
+      return;
     }
+    this.visit(expression);
   }
 
   private visitJsxChild(node: unknown) {

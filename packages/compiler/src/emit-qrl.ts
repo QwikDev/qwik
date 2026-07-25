@@ -167,7 +167,11 @@ export function appendCsrQrlReplacements(
 ): boolean {
   const boundary = segment.qrl;
   if (boundary === null) {
-    return false;
+    if (segment.kind !== 'event') {
+      return false;
+    }
+    replacements.push({ range: segment.functionRange, value: reference });
+    return true;
   }
   if (boundary.kind === 'explicit' || boundary.kind === 'sync') {
     replacements.push({ range: segment.range, value: reference });

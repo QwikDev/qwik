@@ -191,6 +191,13 @@ export type QRLEventHandlerMulti<EV extends Event, EL> =
   | null
   | QRLEventHandlerMulti<EV, EL>[];
 
+type EventHandlerMulti<EV extends Event, EL> =
+  | QRL<EventHandler<EV, EL>>
+  | EventHandler<EV, EL>
+  | undefined
+  | null
+  | EventHandlerMulti<EV, EL>[];
+
 type JSXElementEvents = {
   [K in keyof QwikHTMLElementEventMap as `on${PascalCaseName<K>}$`]: QwikHTMLElementEventMap[K];
 };
@@ -205,15 +212,11 @@ type QwikKnownEvents<EL> = {
   [K in keyof QwikJSXEvents]?: QRLEventHandlerMulti<QwikJSXEvents[K], EL>;
 };
 type QwikKnownEventsPlain<EL> = {
-  [K in keyof QwikJSXEvents]?:
-    | QRLEventHandlerMulti<QwikJSXEvents[K], EL>
-    | EventHandler<QwikJSXEvents[K], EL>;
+  [K in keyof QwikJSXEvents]?: EventHandlerMulti<QwikJSXEvents[K], EL>;
 };
 type QwikCustomEventsPlain<EL> = {
   /** The handler */
-  [key: `${'document:' | 'window:' | ''}on${string}$`]:
-    | QRLEventHandlerMulti<Event, EL>
-    | EventHandler<Event, EL>;
+  [key: `${'document:' | 'window:' | ''}on${string}$`]: EventHandlerMulti<Event, EL>;
 };
 
 /** @public */

@@ -126,7 +126,7 @@ function emitSegmentCode(
   const imports: string[] = [];
   const qwikImports = new Set<string>();
   const childSegments = segments.filter((candidate) => candidate.parentId === segment.id);
-  const children = childSegments.filter(isSetupQrlSegment);
+  const children = segment.render === null ? childSegments.filter(isSetupQrlSegment) : [];
   const propsBoundaryParameters = new Map<string, string>();
   const replacements: Array<{ range: SegmentPlan['range']; value: string }> = [];
   const childImports: string[] = [];

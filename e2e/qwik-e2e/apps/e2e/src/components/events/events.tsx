@@ -191,9 +191,8 @@ const EventsParent = component$(() => {
       <p id="count-passive-document">countPassiveDocument: {store.passiveDocumentCount}</p>
       <p id="count-passive-window">countPassiveWindow: {store.passiveWindowCount}</p>
       <UseOnWindowConditionalRenderIssue3948 />
-      {/* Compiler emits missing `__qwik_*` component symbols. */}
-      {/* <UndefinedEventHandler /> */}
-      {/* <ExecuteAllEventHandlers /> */}
+      <UndefinedEventHandler />
+      <ExecuteAllEventHandlers />
     </>
   );
 });
@@ -256,7 +255,6 @@ export const UseOnWindowConditionalRenderIssue3948 = component$(() => {
   );
 });
 
-/*
 const UndefinedEventHandler = component$(() => {
   return (
     <p>
@@ -281,4 +279,3 @@ const ExecuteAllEventHandlers = component$(() => {
     </button>
   );
 });
-*/

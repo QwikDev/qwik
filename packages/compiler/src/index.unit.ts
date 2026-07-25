@@ -805,6 +805,18 @@ export function App() {
     });
   });
 
+  test('lowers inline event handler arrays for CSR and SSR', async () => {
+    await testInput('event_handler_arrays', {
+      code: `import { useSignal } from '@qwik.dev/core';
+
+export function App() {
+  const count = useSignal(0);
+  return <button onClick$={[() => console.log('click'), [undefined, () => count.value++]]}>Save</button>;
+}
+`,
+    });
+  });
+
   test('lowers native bind props and preserves input handler order', async () => {
     await testInput('bind_native', {
       code: `import { useSignal } from '@qwik.dev/core';

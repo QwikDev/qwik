@@ -1020,7 +1020,7 @@ class SemanticLowerer {
       referenceBindingIds: references,
       initialOnly: false,
       compilerString: false,
-      boundaries: [],
+      boundaries: event ? this.referenceInlineBoundaries(range, lifetimeId, true) : [],
     };
   }
 
@@ -1795,10 +1795,13 @@ class SemanticLowerer {
 
   private referenceInlineBoundaries(
     range: SourceRange,
-    lifetimeId: LifetimeId
+    lifetimeId: LifetimeId,
+    includeEvents = false
   ): SegmentReferencePlan[] {
     const candidates = this.extracted.segments.filter(
-      (segment) => segment.qrl !== null && rangeContains(range, segment.range)
+      (segment) =>
+        (segment.qrl !== null || (includeEvents && segment.kind === 'event')) &&
+        rangeContains(range, segment.range)
     );
     const candidateIds = new Set(candidates.map((segment) => segment.id));
     return candidates

@@ -722,7 +722,8 @@ function emitCsrOperation(
           imports,
           next,
           operation.styleScopedId,
-          operation.runtimeStyleScope ? context.runtimeStyleScopeName : null
+          operation.runtimeStyleScope ? context.runtimeStyleScopeName : null,
+          context
         ),
       };
     }
@@ -753,7 +754,7 @@ function emitCsrOperation(
           statements: [
             `${QwikWord.SetEvent}(${target}, ${JSON.stringify(operation.name)}, ${emitEventHandler(
               only,
-              imports
+              context
             )});`,
           ],
         };
@@ -763,14 +764,14 @@ function emitCsrOperation(
         return {
           declarations: [],
           statements: [
-            `const ${event} = ${only.value.expression};`,
+            `const ${event} = ${emitEventValue(only.value, context)};`,
             `if (${event}) ${QwikWord.SetEvent}(${target}, ${JSON.stringify(
               operation.name
             )}, ${event});`,
           ],
         };
       }
-      const handlers = operation.handlers.map((handler) => emitEventHandler(handler, imports));
+      const handlers = operation.handlers.map((handler) => emitEventHandler(handler, context));
       if (handlers.length === 0) {
         return { declarations: [], statements: [] };
       }
@@ -1193,7 +1194,8 @@ function emitElementPropsStatements(
   imports: Set<string>,
   next: (prefix: string) => string,
   styleScopedId: string | null,
-  runtimeStyleScopeName: string | null
+  runtimeStyleScopeName: string | null,
+  context: CsrEmitContext
 ): string[] {
   const scope = styleScopeExpression(styleScopedId, runtimeStyleScopeName);
   const statements: string[] = [];
@@ -1257,7 +1259,7 @@ function emitElementPropsStatements(
         statements.push(
           `${QwikWord.ApplyDomProps}(${target}, { ${JSON.stringify(prop.name)}: ${emitEventValue(
             prop.value,
-            imports
+            context
           )} });`
         );
         break;
@@ -1338,9 +1340,7 @@ function emitComponentProps(props: readonly CsrPropPlan[], context: CsrEmitConte
         );
         break;
       case 'event':
-        entries.push(
-          `${JSON.stringify(prop.name)}: ${emitEventValue(prop.value, context.imports)}`
-        );
+        entries.push(`${JSON.stringify(prop.name)}: ${emitEventValue(prop.value, context)}`);
         break;
       case 'inner-html':
         entries.push(
@@ -1400,19 +1400,19 @@ function emitValue(value: CsrValuePlan, context?: CsrEmitContext): string {
   return `(${applyReplacements(context.source, value.range, replacements)})`;
 }
 
-function emitEventValue(value: CsrValuePlan, imports: Set<string>): string {
+function emitEventValue(value: CsrValuePlan, context: CsrEmitContext): string {
   return value.kind === 'segment'
-    ? emitFunctionReference(value.reference, imports)
-    : `(${value.expression})`;
+    ? emitFunctionReference(value.reference, context.imports)
+    : emitValue(value, context);
 }
 
-function emitEventHandler(handler: CsrEventHandlerPlan, imports: Set<string>): string {
+function emitEventHandler(handler: CsrEventHandlerPlan, context: CsrEmitContext): string {
   if (handler.kind === 'value') {
-    return emitEventValue(handler.value, imports);
+    return emitEventValue(handler.value, context);
   }
-  imports.add(QwikWord.InlinedQrl);
+  context.imports.add(QwikWord.InlinedQrl);
   const fn = handler.name === 'checked' ? QwikWord.BindCheckedHandler : QwikWord.BindValueHandler;
-  imports.add(fn);
+  context.imports.add(fn);
   return `${QwikWord.InlinedQrl}(${fn}, ${JSON.stringify(fn)}, [${handler.signal}])`;
 }
 

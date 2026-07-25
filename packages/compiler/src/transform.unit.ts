@@ -713,6 +713,24 @@ export function App() {
     expect(result.modules.map((module) => module.code).join('\n')).toContain('handlers.click');
   });
 
+  test('emits one target import for event arrays inside render segments', async () => {
+    const code = `import { sync$ } from '@qwik.dev/core';
+export function App({ enabled }) {
+  return enabled ? <script document:onQInit$={[sync$(() => console.log('ready'))]} /> : null;
+}`;
+    const result = await transformModules({
+      ...options,
+      isServer: true,
+      input: [{ path: 'src/component.tsx', code }],
+    });
+    const branch = result.modules.find(
+      (module) => module.segment?.ctxName === 'branch:then' && module.code.includes('_qrlSync')
+    );
+
+    expect(result.diagnostics).toEqual([]);
+    expect(branch?.code.match(/import \{ _qrlSync/g)).toHaveLength(1);
+  });
+
   test('preserves an inlined QRL and its explicit captures', async () => {
     const code = `import { inlinedQrl } from '@qwik.dev/core';
 import { useSignal } from '@qwik.dev/core';

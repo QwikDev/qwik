@@ -49,8 +49,8 @@ export const ResumingCounterShow = component$(() => {
   const count = useContext(CTXCount);
   const copy = useContext(CTXCounterCopy);
 
-  useTask$(({ track }) => {
-    const value = track(() => count.value);
+  useTask$(() => {
+    const value = count.value;
     copy.value = value;
   });
   return (

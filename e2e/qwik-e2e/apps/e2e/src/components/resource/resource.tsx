@@ -1,15 +1,16 @@
 import {
   component$,
+  type ComputedSignal,
   createContextId,
-  Resource,
+  useComputed$,
   useContext,
   useContextProvider,
-  useResource$,
   useStore,
   useStyles$,
   useTask$,
-  type ResourceReturn,
+  untrack,
 } from '@qwik.dev/core';
+import { delay } from '../delay';
 
 export interface WeatherData {
   name: string;
@@ -41,28 +42,28 @@ export const ResourceApp = component$(() => {
     countDoubleDouble: 0,
   });
 
-  useTask$(async ({ track }) => {
-    logs.content += '[WATCH] 1 before\n';
-    const count = track(() => state.count);
+  useTask$(async () => {
+    untrack(() => (logs.content += '[WATCH] 1 before\n'));
+    const count = state.count;
     await delay(100);
     state.countDouble = count * 2;
-    logs.content += '[WATCH] 1 after\n';
+    untrack(() => (logs.content += '[WATCH] 1 after\n'));
   });
 
-  useTask$(async ({ track }) => {
-    logs.content += '[WATCH] 2 before\n';
-    const city = track(() => state.countDouble);
+  useTask$(async () => {
+    untrack(() => (logs.content += '[WATCH] 2 before\n'));
+    const city = state.countDouble;
     await delay(100);
     state.countDoubleDouble = city * 2;
-    logs.content += '[WATCH] 2 after\n';
+    untrack(() => (logs.content += '[WATCH] 2 after\n'));
   });
 
-  const resource = useResource$<number>(async ({ track }) => {
-    logs.content += '[RESOURCE] 1 before\n';
+  const resource = useComputed$(async ({ track }) => {
+    untrack(() => (logs.content += '[RESOURCE] 1 before\n'));
     const count = track(() => state.countDoubleDouble);
     await delay(1000);
 
-    logs.content += '[RESOURCE] 1 after\n\n';
+    untrack(() => (logs.content += '[RESOURCE] 1 after\n\n'));
     return count * 2;
   });
 
@@ -71,13 +72,13 @@ export const ResourceApp = component$(() => {
       <button type="button" class="increment" onClick$={() => state.count++}>
         Increment
       </button>
-      <div id="outside-state">{resource.loading ? 'pending' : 'resolved'}</div>
+      <div id="outside-state">{resource.pending ? 'pending' : 'resolved'}</div>
       <Results result={resource} />
     </div>
   );
 });
 
-export const Results = component$((props: { result: ResourceReturn<number> }) => {
+export const Results = component$((props: { result: ComputedSignal<number> }) => {
   useStyles$(`
     .logs {
       white-space: pre;
@@ -87,25 +88,22 @@ export const Results = component$((props: { result: ResourceReturn<number> }) =>
   const state = useStore({
     count: 0,
   });
-  const resourceState = props.result.loading ? 'pending' : 'resolved';
+  const resourceState = props.result.pending ? 'pending' : 'resolved';
   return (
     <div>
       <div id="inside-state">{resourceState}</div>
-      <Resource
-        value={props.result}
-        onPending={() => <div class="resource1">loading resource 1...</div>}
-        onRejected={(reason) => <div class="resource1">error {`${reason}`}</div>}
-        onResolved={(number) => {
-          return (
-            <>
-              <div class="resource1">resource 1 is {number}</div>
-              <button class="count" onClick$={() => state.count++}>
-                count is {mutable(state.count + 0)}
-              </button>
-            </>
-          );
-        }}
-      />
+      {props.result.pending ? (
+        <div class="resource1">loading resource 1...</div>
+      ) : props.result.error ? (
+        <div class="resource1">error {String(props.result.error)}</div>
+      ) : (
+        <>
+          <div class="resource1">resource 1 is {props.result.value}</div>
+          <button class="count" onClick$={() => state.count++}>
+            count is {mutable(state.count + 0)}
+          </button>
+        </>
+      )}
 
       <div class="logs">{logs.content + ''}</div>
     </div>
@@ -114,9 +112,4 @@ export const Results = component$((props: { result: ResourceReturn<number> }) =>
 
 export function mutable(value: any) {
   return value;
-}
-export function delay(nu: number) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, nu);
-  });
 }

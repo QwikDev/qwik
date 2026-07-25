@@ -1,16 +1,7 @@
 import { test, expect } from '@playwright/test';
+import { describeRenderModes } from './render-modes';
 
 test.describe('attributes', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/e2e/attributes');
-    page.on('pageerror', (err) => expect(err).toEqual(undefined));
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') {
-        expect(msg.text()).toEqual(undefined);
-      }
-    });
-  });
-
   function tests() {
     test('initial render is correctly', async ({ page }) => {
       const input = page.locator('#input');
@@ -283,42 +274,7 @@ test.describe('attributes', () => {
       await expect(button).not.toHaveAttribute('aria-label');
       await expect(button).not.toHaveAttribute('title');
     });
-
-    test('should rerun vnode-diff when QRL is not resolved', async ({ page }) => {
-      const incrementButton = page.locator('#progress-btn');
-      const hideButton = page.locator('#progress-hide');
-      const progress1 = page.locator('#progress-1');
-      const progress2 = page.locator('#progress-2');
-      const progress3 = page.locator('#progress-3');
-
-      await expect(progress1).toHaveAttribute('aria-valuetext', '200000%');
-      await expect(progress2).toHaveAttribute('aria-valuetext', '2100');
-      await expect(progress3).toHaveAttribute('aria-valuetext', '200000%');
-
-      await hideButton.click();
-      await hideButton.click();
-
-      await incrementButton.click();
-
-      await expect(progress1).toHaveAttribute('aria-valuetext', '250000%');
-      await expect(progress2).toHaveAttribute('aria-valuetext', '2600');
-      await expect(progress3).toHaveAttribute('aria-valuetext', '250000%');
-    });
   }
 
-  tests();
-
-  test.describe('client rerender', () => {
-    test.beforeEach(async ({ page }) => {
-      const toggleRender = page.locator('#force-rerender');
-      const renderCount = page.locator('#renderCount');
-      const v = Number(await toggleRender.getAttribute('data-v'));
-
-      expect(v).toBe(0);
-      await expect(renderCount).toHaveText(`Render ${v}`);
-      await toggleRender.click();
-      await expect(renderCount).toHaveText(`Render ${v + 1}`);
-    });
-    tests();
-  });
+  describeRenderModes('/e2e/attributes', tests);
 });

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { describeRenderModes } from './render-modes';
 
 test.describe('events', () => {
   test.beforeEach(async ({ page }) => {
@@ -115,17 +116,7 @@ test.describe('events', () => {
   });
 });
 
-test.describe('events with client rerender', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/e2e/events');
-    page.on('pageerror', (err) => expect(err).toEqual(undefined));
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') {
-        expect(msg.text()).toEqual(undefined);
-      }
-    });
-  });
-
+test.describe('event handlers', () => {
   function eventsTest(isClient: boolean) {
     test('should not throw if event handler is array with undefined value', async ({ page }) => {
       const button = page.locator('#undefined-event-handler');
@@ -190,16 +181,7 @@ test.describe('events with client rerender', () => {
     });
   }
 
-  eventsTest(false);
-
-  test.describe('client rerender', () => {
-    test.beforeEach(async ({ page }) => {
-      const toggleRender = page.locator('#rerender');
-      await toggleRender.click();
-      await expect(page.locator('#render-count')).toHaveText('1');
-    });
-    eventsTest(true);
-  });
+  describeRenderModes('/e2e/events', (mode) => eventsTest(mode === 'client'));
 });
 
 test.describe('broadcast-events', () => {

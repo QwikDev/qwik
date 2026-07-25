@@ -1,5 +1,5 @@
-import { component$, isServer, useStore, useTask$ } from '@qwik.dev/core';
-import { delay } from '../async/async';
+import { component$, isServer, untrack, useStore, useTask$ } from '@qwik.dev/core';
+import { delay } from '../delay';
 
 export const MountRoot = component$(() => {
   const internal = useStore(
@@ -15,29 +15,29 @@ export const MountRoot = component$(() => {
   });
   useTask$(async () => {
     if (isServer) {
-      store.logs += 'BEFORE useServerMount1()\n';
+      untrack(() => (store.logs += 'BEFORE useServerMount1()\n'));
       await delay(100);
-      store.logs += 'AFTER useServerMount1()\n';
+      untrack(() => (store.logs += 'AFTER useServerMount1()\n'));
     }
   });
 
   useTask$(async () => {
-    store.logs += 'BEFORE useMount2()\n';
+    untrack(() => (store.logs += 'BEFORE useMount2()\n'));
     await delay(50);
-    store.logs += 'AFTER useMount2()\n';
+    untrack(() => (store.logs += 'AFTER useMount2()\n'));
   });
 
   useTask$(async () => {
-    store.logs += 'BEFORE useWatch3()\n';
+    untrack(() => (store.logs += 'BEFORE useWatch3()\n'));
     await delay(20);
-    store.logs += 'AFTER useWatch3()\n';
+    untrack(() => (store.logs += 'AFTER useWatch3()\n'));
   });
 
   useTask$(async () => {
     if (isServer) {
-      store.logs += 'BEFORE useServerMount4()\n';
+      untrack(() => (store.logs += 'BEFORE useServerMount4()\n'));
       await delay(10);
-      store.logs += 'AFTER useServerMount4()\n';
+      untrack(() => (store.logs += 'AFTER useServerMount4()\n'));
     }
   });
 

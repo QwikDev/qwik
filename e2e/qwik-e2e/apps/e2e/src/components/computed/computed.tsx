@@ -110,8 +110,8 @@ export const ShouldResolveComputedQrlEarly = component$(() => {
   const demo = useComputed$(() => 'Hello');
 
   // change attribute and read computed
-  useTask$(({ track }) => {
-    if (!track(trigger)) {
+  useTask$(() => {
+    if (!trigger.value) {
       return;
     }
 

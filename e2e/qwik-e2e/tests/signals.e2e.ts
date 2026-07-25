@@ -1,16 +1,7 @@
 import { test, expect } from '@playwright/test';
+import { describeRenderModes } from './render-modes';
 
 test.describe('signals', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/e2e/signals');
-    page.on('pageerror', (err) => expect(err).toEqual(undefined));
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') {
-        expect(msg.text()).toEqual(undefined);
-      }
-    });
-  });
-
   function tests() {
     test('should do its thing', async ({ page }) => {
       const incrementBtn = page.locator('#count');
@@ -542,30 +533,16 @@ test.describe('signals', () => {
       );
     });
 
-    test('createSignal/createComputed$', async ({ page }) => {
+    test('many signals', async ({ page }) => {
       const button = page.locator('#many-signals-button');
       const result = page.locator('#many-signals-result');
-      // TODO createComputed$
-      // const doubles = page.locator("#many-doubles-result");
       await expect(result).toHaveText('0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ');
-      // await expect(doubles).toHaveText("0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ");
       await button.click();
       await expect(result).toHaveText('1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ');
-      // await expect(doubles).toHaveText("2, 2, 2, 2, 2, 2, 2, 2, 2, 2, ");
     });
   }
 
-  tests();
-
-  test.describe('client rerender', () => {
-    test.beforeEach(async ({ page }) => {
-      const toggleRender = page.locator('#rerender');
-      await toggleRender.click();
-      await expect(page.locator('#rerender-count')).toHaveText('Renders: 1');
-      await expect(page.locator('#rerender-check')).toHaveText('1');
-    });
-    tests();
-  });
+  describeRenderModes('/e2e/signals', tests);
 });
 
 test.describe('regressions', () => {

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { describeRenderModes } from './render-modes';
 
 test.describe('computed', () => {
   function tests() {
@@ -101,24 +102,5 @@ test.describe('computed', () => {
     });
   }
 
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/e2e/computed');
-    page.on('pageerror', (err) => expect(err).toEqual(undefined));
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') {
-        expect(msg.text()).toEqual(undefined);
-      }
-    });
-  });
-
-  tests();
-
-  test.describe('client rerender', () => {
-    test.beforeEach(async ({ page }) => {
-      const rerender = page.locator('#rerender');
-      await rerender.click();
-      await expect(page.locator('#render-count')).toHaveText('Renders: 1');
-    });
-    tests();
-  });
+  describeRenderModes('/e2e/computed', tests);
 });

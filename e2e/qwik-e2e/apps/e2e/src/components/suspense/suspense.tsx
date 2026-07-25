@@ -1,10 +1,11 @@
 import {
   component$,
-  Reveal,
+  // Reveal,
   Suspense,
+  untrack,
   useSignal,
   useTask$,
-  type JSXOutput,
+  // type JSXOutput,
   type Signal,
 } from '@qwik.dev/core';
 
@@ -37,8 +38,9 @@ export const SuspenseChildren = component$(() => {
       <SingleBoundary />
       <ShowStaleBoundary />
       <NestedBoundaries />
-      <MountedAsyncBoundary />
-      <RevealBoundaries />
+      {/* <MountedAsyncBoundary /> */}
+      {/* Runtime v3 does not export deferred Reveal support. */}
+      {/* <RevealBoundaries /> */}
     </>
   );
 });
@@ -89,7 +91,7 @@ export const NestedBoundaries = component$(() => {
   );
 });
 
-export const MountedAsyncBoundary = component$(() => {
+/* export const MountedAsyncBoundary = component$(() => {
   const show = useSignal(false);
   const resolveName = '__resolveMountedAsyncSuspense';
 
@@ -121,8 +123,9 @@ export const MountedAsyncChild = component$((props: { resolveName: string }) => 
     };
   });
   return <>{content}</>;
-});
+}); */
 
+/* Runtime v3 does not export deferred Reveal support.
 export const RevealBoundaries = component$(() => {
   const firstResolveName = '__resolveRevealFirstSuspense';
   const firstPendingName = '__pendingRevealFirstSuspense';
@@ -188,6 +191,7 @@ export const RevealBoundaries = component$(() => {
     </div>
   );
 });
+*/
 
 export const ResolveUpdate = component$((props: { id: string; resolveName: string }) => {
   return (
@@ -210,21 +214,25 @@ export const BlockingUpdate = component$((props: BlockingUpdateProps) => {
   const target = props.target ?? localTarget;
   const value = useSignal(0);
 
-  useTask$(({ track, cleanup }) => {
-    const targetValue = track(() => target.value);
-    if (targetValue === value.value) {
+  useTask$(({ cleanup }) => {
+    const targetValue = target.value;
+    if (targetValue === untrack(() => value.value)) {
       return;
     }
 
+    const [resolveName, pendingName] = untrack(
+      () => [props.resolveName, props.pendingName] as const
+    );
+
     cleanup(() => {
-      delete (globalThis as any)[props.resolveName];
-      delete (globalThis as any)[props.pendingName];
+      delete (globalThis as any)[resolveName];
+      delete (globalThis as any)[pendingName];
     });
 
     return new Promise<void>((resolve) => {
-      (globalThis as any)[props.resolveName] = () => {
-        delete (globalThis as any)[props.resolveName];
-        delete (globalThis as any)[props.pendingName];
+      (globalThis as any)[resolveName] = () => {
+        delete (globalThis as any)[resolveName];
+        delete (globalThis as any)[pendingName];
         value.value = targetValue;
         resolve();
       };

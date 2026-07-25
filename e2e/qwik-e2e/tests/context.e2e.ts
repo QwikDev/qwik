@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { describeRenderModes } from './render-modes';
 
 test.describe('context', () => {
   function tests(ssr: boolean) {
@@ -163,24 +164,5 @@ test.describe('context', () => {
     });
   }
 
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/e2e/context');
-    page.on('pageerror', (err) => expect(err).toEqual(undefined));
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') {
-        expect(msg.text()).toEqual(undefined);
-      }
-    });
-  });
-  tests(true);
-
-  test.describe('client rerender', () => {
-    test.beforeEach(async ({ page }) => {
-      const rerender = page.locator('#btn-rerender');
-      await rerender.click();
-      await expect(page.locator('#render-count')).toHaveText('1');
-      await expect(page.locator('#context-app-count')).toHaveText('1');
-    });
-    tests(false);
-  });
+  describeRenderModes('/e2e/context', (mode) => tests(mode === 'ssr'));
 });

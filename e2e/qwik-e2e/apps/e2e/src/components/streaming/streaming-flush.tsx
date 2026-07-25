@@ -1,10 +1,5 @@
 import { component$ } from '@qwik.dev/core';
-
-export function delay(time: number) {
-  return new Promise<void>((resolve) => {
-    setTimeout(() => resolve(), time);
-  });
-}
+import { delay } from '../delay';
 
 export const AsyncCmp = component$(async () => {
   await delay(5000);

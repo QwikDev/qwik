@@ -1,10 +1,6 @@
 import { component$, Resource, useResource$, useStore, useStyles$ } from '@qwik.dev/core';
 import { SSRStream, SSRStreamBlock } from '@qwik.dev/core/internal';
-export function delay(time: number) {
-  return new Promise<void>((resolve) => {
-    setTimeout(() => resolve(), time);
-  });
-}
+import { delay } from '../delay';
 
 export const StreamingRoot = component$(() => {
   const store = useStore({

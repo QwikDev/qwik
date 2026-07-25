@@ -37,20 +37,20 @@ export const Watch = component$(() => {
   });
 
   // This watch should be treeshaken
-  useTask$(({ track }) => {
-    const path = track(() => nav.path);
+  useTask$(() => {
+    const path = nav.path;
     console.log(path);
   });
 
   // Double count watch
-  useTask$(({ track }) => {
-    const count = track(() => store.count);
+  useTask$(() => {
+    const count = store.count;
     store.doubleCount = 2 * count;
   });
 
   // Debouncer watch
-  useTask$(({ track }) => {
-    const doubleCount = track(() => store.doubleCount);
+  useTask$(() => {
+    const doubleCount = store.doubleCount;
     const timer = setTimeout(() => {
       store.debounced = doubleCount;
     }, 2000);
@@ -107,8 +107,8 @@ export const DynamicTreeshakingUseWatchIssue1766Root = component$(() => {
   });
   useContextProvider(LinkPath, loc);
 
-  useTask$(({ track }) => {
-    const path = track(() => loc.value);
+  useTask$(() => {
+    const path = loc.value;
     final.value = path.toUpperCase();
   });
 
@@ -124,9 +124,9 @@ export const DynamicTreeshakingUseWatchIssue1766 = component$(() => {
   const counter = useSignal(0);
   const second = useSignal('---');
 
-  useTask$(async ({ track }) => {
-    track(counter);
-    if (counter.value !== 0) {
+  useTask$(async () => {
+    const count = counter.value;
+    if (count !== 0) {
       second.value = 'watch ran';
     }
   });

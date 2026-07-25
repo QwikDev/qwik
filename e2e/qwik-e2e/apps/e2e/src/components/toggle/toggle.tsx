@@ -4,6 +4,7 @@ import {
   createContextId,
   isBrowser,
   isServer,
+  untrack,
   useContext,
   useContextProvider,
   useStore,
@@ -55,10 +56,10 @@ export const Logs0 = component$((props: Record<string, any>) => {
   const rootState = useContext(CTX);
   const logs = useContext(CTX_LOCAL);
 
-  useTask$(({ track }) => {
-    const count = track(() => rootState.count);
+  useTask$(() => {
+    const count = rootState.count;
     console.log('changed');
-    logs.logs += `Log(${count})`;
+    untrack(() => (logs.logs += `Log(${count})`));
   });
   console.log('created');
 
@@ -91,7 +92,7 @@ export const ToggleA = component$((props: { root: { logs: string } }) => {
   });
 
   useTask$(({ cleanup }) => {
-    if (state.mount !== '') {
+    if (untrack(() => state.mount) !== '') {
       throw new Error('already mounted');
     }
     if (isServer) {
@@ -105,8 +106,7 @@ export const ToggleA = component$((props: { root: { logs: string } }) => {
     });
   });
 
-  useTask$(({ track }) => {
-    track(() => rootState.count);
+  useTask$(() => {
     state.copyCount = rootState.count;
   });
 
@@ -131,12 +131,12 @@ export const ToggleB = component$((props: { root: { logs: string } }) => {
     copyCount: 0,
   });
 
-  useTask$(({ track }) => {
-    state.copyCount = track(() => rootState.count);
+  useTask$(() => {
+    state.copyCount = rootState.count;
   });
 
   useTask$(({ cleanup }) => {
-    if (state.mount !== '') {
+    if (untrack(() => state.mount) !== '') {
       throw new Error('already mounted');
     }
     if (isServer) {
@@ -166,10 +166,10 @@ export const Child = component$(() => {
   const rootState = useContext(CTX);
   const logs = useContext(CTX_LOCAL);
 
-  useTask$(({ track }) => {
-    const count = track(() => rootState.count);
+  useTask$(() => {
+    const count = rootState.count;
     console.log('Child', count);
-    logs.logs += `Child(${count})`;
+    untrack(() => (logs.logs += `Child(${count})`));
   });
 
   return <div>CHILD</div>;

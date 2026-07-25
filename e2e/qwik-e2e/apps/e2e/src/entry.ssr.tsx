@@ -1,6 +1,28 @@
+import { component$ } from '@qwik.dev/core';
 import { renderToStream, type RenderToStreamOptions } from '@qwik.dev/core/server';
 import { Root } from './root';
-import { LogConsole } from '../../../log-console';
+// Compiler serializes the synchronous qinit handler as invalid `#0`.
+// import { LogConsole } from '../../../log-console';
+
+const FragmentRoot = component$<{ pathname: string }>(({ pathname }) => (
+  <>
+    {/* <LogConsole /> */}
+    <Root pathname={pathname} />
+  </>
+));
+
+const DocumentRoot = component$<{ pathname: string }>(({ pathname }) => (
+  <>
+    <head>
+      <meta charset="utf-8" />
+      <title>Qwik Blank App</title>
+    </head>
+    <body>
+      {/* <LogConsole /> */}
+      <Root pathname={pathname} />
+    </body>
+  </>
+));
 
 /**
  * Entry point for server-side pre-rendering.
@@ -26,37 +48,23 @@ export default function (opts: RenderToStreamOptions) {
 
   // Render segment instead
   if (url.searchParams.has('fragment')) {
-    return renderToStream(
-      <>
-        <LogConsole />
-        <Root pathname={url.pathname} />
-      </>,
-      {
-        containerTagName: 'container',
-        // streaming: {
-        //   inOrder: {
-        //     buffering: 'marks',
-        //   },
-        // },
-        qwikLoader: {
-          include: url.searchParams.get('loader') === 'false' ? 'never' : 'auto',
-        },
-        ...renderOpts,
-      }
-    );
+    return renderToStream(FragmentRoot, {
+      containerTagName: 'container',
+      // streaming: {
+      //   inOrder: {
+      //     buffering: 'marks',
+      //   },
+      // },
+      qwikLoader: {
+        include: url.searchParams.get('loader') === 'false' ? 'never' : 'auto',
+      },
+      ...renderOpts,
+      props: { pathname: url.pathname },
+    });
   }
 
-  return renderToStream(
-    <>
-      <head>
-        <meta charset="utf-8" />
-        <title>Qwik Blank App</title>
-      </head>
-      <body>
-        <LogConsole />
-        <Root pathname={url.pathname} />
-      </body>
-    </>,
-    renderOpts
-  );
+  return renderToStream(DocumentRoot, {
+    ...renderOpts,
+    props: { pathname: url.pathname },
+  });
 }

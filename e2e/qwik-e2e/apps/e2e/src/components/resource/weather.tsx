@@ -1,12 +1,6 @@
 /* eslint-disable */
-import {
-  component$,
-  Resource,
-  useResource$,
-  useStore,
-  useTask$,
-  type ResourceReturn,
-} from '@qwik.dev/core';
+import { component$, type ComputedSignal, useComputed$, useStore, useTask$ } from '@qwik.dev/core';
+import { delay } from '../delay';
 
 export interface WeatherData {
   name: string;
@@ -28,8 +22,8 @@ export const Weather = component$(() => {
   });
 
   // Debounce city
-  useTask$(({ track }) => {
-    const city = track(() => state.city);
+  useTask$(() => {
+    const city = state.city;
     const timer = setTimeout(() => {
       state.debouncedCity = city;
     }, 500);
@@ -38,15 +32,15 @@ export const Weather = component$(() => {
     };
   });
 
-  const weather = useResource$<WeatherData | undefined>(async ({ track, cleanup }) => {
+  const weather = useComputed$<WeatherData | undefined>(async ({ track, abortSignal }) => {
     const city = track(() => state.debouncedCity);
-    cleanup(() => console.log('abort request for ', city));
+    abortSignal.addEventListener('abort', () => console.log('abort request for ', city), {
+      once: true,
+    });
     if (city.length < 2) {
       return undefined;
     }
-    const controller = new AbortController();
-    cleanup(() => controller.abort());
-    const value = await fetchWeather(city, controller.signal);
+    const value = await fetchWeather(city, abortSignal);
     return value;
   });
 
@@ -65,56 +59,51 @@ export const Weather = component$(() => {
   );
 });
 
-export const WeatherResults = component$((props: { weather: ResourceReturn<WeatherData> }) => {
+export const WeatherResults = component$((props: { weather: ComputedSignal<WeatherData> }) => {
   console.log('rerender');
   return (
     <div>
-      <Resource
-        value={props.weather}
-        onPending={() => <div>loading data...</div>}
-        onRejected={() => <div>error</div>}
-        onResolved={(resolved) => (
-          <ul>
-            <li>name: {resolved.name}</li>
-            <li>temp: {resolved.temp}</li>
-            <li>feels_like: {resolved.feels_like}</li>
-            <li>humidity: {resolved.humidity}</li>
-            <li>temp_max: {resolved.temp_max}</li>
-            <li>temp_min: {resolved.temp_min}</li>
-            <li>visibility: {resolved.visibility}</li>
-          </ul>
-        )}
-      />
+      {props.weather.pending ? (
+        <div>loading data...</div>
+      ) : props.weather.error ? (
+        <div>error</div>
+      ) : (
+        <ul>
+          <li>name: {props.weather.value.name}</li>
+          <li>temp: {props.weather.value.temp}</li>
+          <li>feels_like: {props.weather.value.feels_like}</li>
+          <li>humidity: {props.weather.value.humidity}</li>
+          <li>temp_max: {props.weather.value.temp_max}</li>
+          <li>temp_min: {props.weather.value.temp_min}</li>
+          <li>visibility: {props.weather.value.visibility}</li>
+        </ul>
+      )}
     </div>
   );
 });
 
 export const WeatherResults2 = component$(
-  (props: { weather: ResourceReturn<WeatherData | undefined> }) => {
+  (props: { weather: ComputedSignal<WeatherData | undefined> }) => {
     console.log('rerender');
     return (
       <div>
-        <Resource
-          value={props.weather}
-          onPending={() => <div>loading data...</div>}
-          onRejected={(reason) => <div>error {`${reason}`}</div>}
-          onResolved={(weather) => {
-            if (!weather) {
-              return <div>Please write some city</div>;
-            }
-            return (
-              <ul>
-                <li>name: {weather.name}</li>
-                <li>temp: {weather.temp}</li>
-                <li>feels_like: {weather.feels_like}</li>
-                <li>humidity: {weather.humidity}</li>
-                <li>temp_max: {weather.temp_max}</li>
-                <li>temp_min: {weather.temp_min}</li>
-                <li>visibility: {weather.visibility}</li>
-              </ul>
-            );
-          }}
-        />
+        {props.weather.pending ? (
+          <div>loading data...</div>
+        ) : props.weather.error ? (
+          <div>error {String(props.weather.error)}</div>
+        ) : props.weather.value ? (
+          <ul>
+            <li>name: {props.weather.value.name}</li>
+            <li>temp: {props.weather.value.temp}</li>
+            <li>feels_like: {props.weather.value.feels_like}</li>
+            <li>humidity: {props.weather.value.humidity}</li>
+            <li>temp_max: {props.weather.value.temp_max}</li>
+            <li>temp_min: {props.weather.value.temp_min}</li>
+            <li>visibility: {props.weather.value.visibility}</li>
+          </ul>
+        ) : (
+          <div>Please write some city</div>
+        )}
       </div>
     );
   }
@@ -142,10 +131,4 @@ export async function fetchWeather(city: string, signal: AbortSignal): Promise<W
     temp_max: json.main.temp_max,
     temp_min: json.main.temp_min,
   };
-}
-
-function delay(nu: number) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, nu);
-  });
 }

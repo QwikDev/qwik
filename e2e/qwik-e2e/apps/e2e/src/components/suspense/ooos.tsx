@@ -8,7 +8,7 @@ import {
   type JSXOutput,
   type Signal,
 } from '@qwik.dev/core';
-import { SSRRaw, SSRStream, type SSRStreamWriter } from '@qwik.dev/core/internal';
+// import { SSRRaw, SSRStream, type SSRStreamWriter } from '@qwik.dev/core/internal';
 
 type OutOfOrderReleaseStore = {
   resolved: Set<string>;
@@ -88,11 +88,11 @@ export const OutOfOrderSuspenseRoot = component$(() => {
           <DelayedFallbackOutOfOrderSuspense />
         ) : scenario === 'reveal' ? (
           <RevealOutOfOrderSuspense />
-        ) : scenario === 'containers' ? (
-          <OutOfOrderSuspenseContainers />
-        ) : scenario === 'container' ? (
-          <OutOfOrderSuspenseContainerFragment />
-        ) : scenario === 'rerender' ? (
+        ) : // ) : scenario === 'containers' ? (
+        //   <OutOfOrderSuspenseContainers />
+        // ) : scenario === 'container' ? (
+        //   <OutOfOrderSuspenseContainerFragment />
+        scenario === 'rerender' ? (
           <OutOfOrderSuspenseRerender />
         ) : (
           <Suspense key={render.value} fallback={<FallbackOutOfOrderContent />}>
@@ -114,6 +114,7 @@ export const OutOfOrderSuspenseRoot = component$(() => {
   );
 });
 
+/* TODO(v3): restore SSRStream coverage when the API returns.
 const SSRStreamOutOfOrderContainer = component$<{
   id: string;
   releaseId: string | null;
@@ -184,6 +185,7 @@ export const OutOfOrderSuspenseContainerFragment = component$(() => {
     </section>
   );
 });
+*/
 
 export const FallbackOutOfOrderContent = component$(() => {
   const count = useSignal(0);

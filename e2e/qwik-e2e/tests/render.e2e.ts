@@ -1,17 +1,6 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('render', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/e2e/render');
-    page.on('pageerror', (err) => expect(err).toEqual(undefined));
-    page.on('console', (msg) => {
-      // console.warn(msg.type(), msg.text());
-      if (msg.type() === 'error') {
-        expect(msg.text()).toEqual(undefined);
-      }
-    });
-  });
-
   function tests(isClient: boolean) {
     test('should load', async ({ page }) => {
       const button = page.locator('button#increment');
@@ -489,36 +478,53 @@ test.describe('render', () => {
     });
   }
 
-  tests(false);
-
-  test.describe('client rerender', () => {
+  test.describe('ssr', () => {
     test.beforeEach(async ({ page }) => {
-      const toggleRender = page.locator('#rerender');
-      const v = await toggleRender.getAttribute('data-v');
-      await toggleRender.click();
-      await expect(page.locator('#rerenderCount')).toHaveText(`Render ${Number(v) + 1}`);
-      await page.waitForLoadState('networkidle');
+      page.on('pageerror', (err) => expect(err).toEqual(undefined));
+      page.on('console', (msg) => {
+        // console.warn(msg.type(), msg.text());
+        if (msg.type() === 'error') {
+          expect(msg.text()).toEqual(undefined);
+        }
+      });
+      await page.goto('/e2e/render');
     });
+
+    tests(false);
+
+    test('pr3475', async ({ page }) => {
+      const ref = page.locator('#pr-3475-button');
+      await expect(ref).toHaveText('data');
+      await ref.click();
+      await expect(ref).not.toHaveText('data');
+    });
+
+    test('issue 4346 - undefined ref prop', async ({ page }) => {
+      const result = page.locator('#issue-4346-result');
+      const toggle = page.locator('#issue-4346-toggle');
+      await expect(result).toHaveText('Hello');
+      await toggle.click();
+      await expect(result).toHaveText('world');
+    });
+
+    test('dynamic DOM tags', async ({ page }) => {
+      const button = page.locator('#dynamic-button');
+      await expect(button).toHaveClass('btn');
+    });
+  });
+
+  test.describe('client', () => {
+    test.beforeEach(async ({ page }) => {
+      page.on('pageerror', (err) => expect(err).toEqual(undefined));
+      page.on('console', (msg) => {
+        // console.warn(msg.type(), msg.text());
+        if (msg.type() === 'error') {
+          expect(msg.text()).toEqual(undefined);
+        }
+      });
+      await page.goto('/e2e/render?csr=1');
+    });
+
     tests(true);
-  });
-
-  test('pr3475', async ({ page }) => {
-    const ref = page.locator('#pr-3475-button');
-    await expect(ref).toHaveText('data');
-    await ref.click();
-    await expect(ref).not.toHaveText('data');
-  });
-
-  test('issue 4346 - undefined ref prop', async ({ page }) => {
-    const result = page.locator('#issue-4346-result');
-    const toggle = page.locator('#issue-4346-toggle');
-    await expect(result).toHaveText('Hello');
-    await toggle.click();
-    await expect(result).toHaveText('world');
-  });
-
-  test('dynamic DOM tags', async ({ page }) => {
-    const button = page.locator('#dynamic-button');
-    await expect(button).toHaveClass('btn');
   });
 });

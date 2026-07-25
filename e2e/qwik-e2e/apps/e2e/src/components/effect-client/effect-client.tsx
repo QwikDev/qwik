@@ -13,7 +13,7 @@ import {
   useVisibleTask$,
   type Signal,
 } from '@qwik.dev/core';
-import { delay } from '../streaming/streaming';
+import { delay } from '../delay';
 
 export const EffectClient = component$(() => {
   useStyles$(`.box {

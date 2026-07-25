@@ -1,5 +1,5 @@
-import { component$, Resource, useResource$, useSignal, useStyles$ } from '@qwik.dev/core';
-import { SSRRaw, SSRStream, type SSRStreamWriter } from '@qwik.dev/core/internal';
+import { component$, useComputed$, useSignal, useStyles$ } from '@qwik.dev/core';
+// import { SSRRaw, SSRStream, type SSRStreamWriter } from '@qwik.dev/core/internal';
 
 interface ContainerProps {
   url: string;
@@ -15,6 +15,7 @@ export const Containers = component$(() => {
   );
 });
 
+/* TODO(v3): restore SSRStream coverage when the API returns.
 const SSRStreamRemoteContainer = component$<{
   url: string;
   containerId?: string;
@@ -48,6 +49,7 @@ const SSRStreamRemoteContainer = component$<{
     </div>
   );
 });
+*/
 
 export const Container = component$((props: ContainerProps) => {
   useStyles$(`
@@ -70,9 +72,9 @@ export const Container = component$((props: ContainerProps) => {
     }
     `);
 
-  const resource = useResource$<{ url: string; html: string }>(async ({ track }) => {
-    track(() => props.url);
-    const url = `http://localhost:${(globalThis as any).PORT}${props.url}?fragment&loader=false`;
+  const resource = useComputed$(async ({ track }) => {
+    const remoteUrl = track(() => props.url);
+    const url = `http://localhost:${(globalThis as any).PORT}${remoteUrl}?fragment&loader=false`;
     const res = await fetch(url);
     return {
       url,
@@ -83,39 +85,21 @@ export const Container = component$((props: ContainerProps) => {
   return (
     <div>
       <div class="inline-container">
-        <Resource
-          value={resource}
-          onResolved={({ url, html }) => {
-            return (
-              <>
-                <div class="url">{url}</div>
-                <div class="frame" dangerouslySetInnerHTML={html} />
-              </>
-            );
-          }}
-        />
+        <div class="url">{resource.value.url}</div>
+        <div class="frame" dangerouslySetInnerHTML={resource.value.html} />
       </div>
       <div style={{ border: '1px solid red' }}>
         Shadow DOM
         <div id="shadow-dom-resource" q:shadowRoot>
           <template shadowRootMode="open">
-            <Resource
-              value={resource}
-              onResolved={({ url, html }) => {
-                return (
-                  <>
-                    <div class="url">{url}</div>
-                    <div class="frame" dangerouslySetInnerHTML={html} />
-                  </>
-                );
-              }}
-            />
+            <div class="url">{resource.value.url}</div>
+            <div class="frame" dangerouslySetInnerHTML={resource.value.html} />
           </template>
         </div>
-        <SSRStreamRemoteContainer
+        {/* <SSRStreamRemoteContainer
           url="/e2e/two-listeners?fragment&loader=false"
           containerId="shadow-dom-stream"
-        />
+        /> */}
       </div>
     </div>
   );

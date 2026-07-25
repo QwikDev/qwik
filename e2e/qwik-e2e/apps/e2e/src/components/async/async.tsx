@@ -1,10 +1,5 @@
 import { component$, useStore } from '@qwik.dev/core';
-
-export function delay(time: number) {
-  return new Promise<void>((resolve) => {
-    setTimeout(() => resolve(), time);
-  });
-}
+import { delay } from '../delay';
 
 export const Async = component$(() => {
   const state = useStore({ name: 'World', count: 0 });

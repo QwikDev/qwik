@@ -24,14 +24,14 @@ import {
   maybeThen,
   _qrlWithChunk,
 } from '@qwik.dev/core';
-import { component_props_segment_0 } from './component.tsx_component_props_segment_0';
+import { component_props_segment_0_208o16glymg7p } from './component.tsx_component_props_segment_0_208o16glymg7p';
 
-const q_component_props_segment_0 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_props_segment_0',
-  () => import('./component.tsx_component_props_segment_0'),
-  'component_props_segment_0'
+const q_component_props_segment_0_208o16glymg7p = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_props_segment_0_208o16glymg7p',
+  () => import('./component.tsx_component_props_segment_0_208o16glymg7p'),
+  'component_props_segment_0_208o16glymg7p'
 );
-q_component_props_segment_0.s(component_props_segment_0);
+q_component_props_segment_0_208o16glymg7p.s(component_props_segment_0_208o16glymg7p);
 export function App(props, ctx) {
   const attrs = useSignal({
     title: 'from-spread',
@@ -45,7 +45,7 @@ export function App(props, ctx) {
   const props1 = renderSsrProps(
     createSsrElementTarget(id0),
     [attrs, title],
-    q_component_props_segment_0,
+    q_component_props_segment_0_208o16glymg7p,
     ctx.eventAttr
   );
   return maybeThen(props1, (props1) => {
@@ -57,23 +57,23 @@ export function App(props, ctx) {
     ];
   });
 }
-============================= src/component.tsx_component_props_segment_0.js (ENTRY POINT)==
+============================= src/component.tsx_component_props_segment_0_208o16glymg7p.js (ENTRY POINT)==
 
 import { _qrlWithChunk } from '@qwik.dev/core';
-const q_component_q_e_click_segment_1 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_q_e_click_segment_1',
-  () => import('./component.tsx_component_q_e_click_segment_1'),
-  'component_q_e_click_segment_1'
+const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg',
+  () => import('./component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg'),
+  'component_q_e_click_segment_1_2xwyfnber1kpg'
 );
 
-export const component_props_segment_0 = (attrs, title) => {
+export const component_props_segment_0_208o16glymg7p = (attrs, title) => {
   return {
     ...attrs.value,
     get title() {
       return title.value;
     },
     get onClick$() {
-      return q_component_q_e_click_segment_1.w([title]);
+      return q_component_q_e_click_segment_1_2xwyfnber1kpg.w([title]);
     },
     'data-id': 'static',
   };
@@ -81,11 +81,11 @@ export const component_props_segment_0 = (attrs, title) => {
 /*
 {
   "origin": "component.tsx",
-  "name": "component_props_segment_0",
+  "name": "component_props_segment_0_208o16glymg7p",
   "entry": null,
   "displayName": "component_props_segment_0",
-  "hash": "segment_0",
-  "canonicalFilename": "component.tsx_component_props_segment_0",
+  "hash": "208o16glymg7p",
+  "canonicalFilename": "component.tsx_component_props_segment_0_208o16glymg7p",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -102,22 +102,22 @@ export const component_props_segment_0 = (attrs, title) => {
   ]
 }
 */
-============================= src/component.tsx_component_q_e_click_segment_1.js (ENTRY POINT)==
+============================= src/component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';
 
-export const component_q_e_click_segment_1 = () => {
+export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
   const title = _captures[0];
   return (title.value = 'clicked');
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_q_e_click_segment_1",
+  "name": "component_q_e_click_segment_1_2xwyfnber1kpg",
   "entry": null,
   "displayName": "component_q_e_click_segment_1",
-  "hash": "segment_1",
-  "canonicalFilename": "component.tsx_component_q_e_click_segment_1",
+  "hash": "2xwyfnber1kpg",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg",
   "extension": "js",
   "parent": null,
   "ctxKind": "eventHandler",
@@ -147,8 +147,8 @@ import {
   createPropsEffect,
   createTemplate,
 } from '@qwik.dev/core';
-import { component_props_segment_0 } from './component.tsx_component_props_segment_0';
-import { component_q_e_click_segment_1 } from './component.tsx_component_q_e_click_segment_1';
+import { component_props_segment_0_208o16glymg7p } from './component.tsx_component_props_segment_0_208o16glymg7p';
+import { component_q_e_click_segment_1_2xwyfnber1kpg } from './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg';
 
 const App_tmpl0 = createTemplate('<div>Child</div>');
 export function App(props, ctx) {
@@ -162,16 +162,16 @@ export function App(props, ctx) {
   const el0 = _first(fragment0);
   const effect0 = createPropsEffect(
     el0,
-    [attrs, title, _withCaptures(component_q_e_click_segment_1, [title])],
-    component_props_segment_0,
+    [attrs, title, _withCaptures(component_q_e_click_segment_1_2xwyfnber1kpg, [title])],
+    component_props_segment_0_208o16glymg7p,
     ctx.scheduler
   );
   ctx.scheduler.waitFor(effect0.run());
   return el0;
 }
-============================= src/component.tsx_component_props_segment_0.js (ENTRY POINT)==
+============================= src/component.tsx_component_props_segment_0_208o16glymg7p.js (ENTRY POINT)==
 
-export const component_props_segment_0 = (attrs, title, __qwikBoundary) => {
+export const component_props_segment_0_208o16glymg7p = (attrs, title, __qwikBoundary) => {
   return {
     ...attrs.value,
     get title() {
@@ -186,11 +186,11 @@ export const component_props_segment_0 = (attrs, title, __qwikBoundary) => {
 /*
 {
   "origin": "component.tsx",
-  "name": "component_props_segment_0",
+  "name": "component_props_segment_0_208o16glymg7p",
   "entry": null,
   "displayName": "component_props_segment_0",
-  "hash": "segment_0",
-  "canonicalFilename": "component.tsx_component_props_segment_0",
+  "hash": "208o16glymg7p",
+  "canonicalFilename": "component.tsx_component_props_segment_0_208o16glymg7p",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -207,22 +207,22 @@ export const component_props_segment_0 = (attrs, title, __qwikBoundary) => {
   ]
 }
 */
-============================= src/component.tsx_component_q_e_click_segment_1.js (ENTRY POINT)==
+============================= src/component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';
 
-export const component_q_e_click_segment_1 = () => {
+export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
   const title = _captures[0];
   return (title.value = 'clicked');
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_q_e_click_segment_1",
+  "name": "component_q_e_click_segment_1_2xwyfnber1kpg",
   "entry": null,
   "displayName": "component_q_e_click_segment_1",
-  "hash": "segment_1",
-  "canonicalFilename": "component.tsx_component_q_e_click_segment_1",
+  "hash": "2xwyfnber1kpg",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg",
   "extension": "js",
   "parent": null,
   "ctxKind": "eventHandler",

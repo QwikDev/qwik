@@ -31,11 +31,11 @@ export function Child(props, ctx, _id = 'qChild-') {
 /*
 {
   "origin": "use-id-child.tsx",
-  "name": "use_id_child_Child",
+  "name": "use_id_child_Child_t5bgbs49x2n3",
   "entry": null,
   "displayName": "use_id_child_Child",
-  "hash": "use_id_child_Child",
-  "canonicalFilename": "use-id-child.tsx_use_id_child_Child",
+  "hash": "t5bgbs49x2n3",
+  "canonicalFilename": "use-id-child.tsx_use_id_child_Child_t5bgbs49x2n3",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -75,11 +75,11 @@ export function Child(props, ctx, _id = 'qChild-') {
 /*
 {
   "origin": "use-id-child.tsx",
-  "name": "use_id_child_Child",
+  "name": "use_id_child_Child_t5bgbs49x2n3",
   "entry": null,
   "displayName": "use_id_child_Child",
-  "hash": "use_id_child_Child",
-  "canonicalFilename": "use-id-child.tsx_use_id_child_Child",
+  "hash": "t5bgbs49x2n3",
+  "canonicalFilename": "use-id-child.tsx_use_id_child_Child_t5bgbs49x2n3",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

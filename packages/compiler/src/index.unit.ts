@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { transformModules } from './index';
+import { createSegmentSourceIdentity } from './segment-identity';
 import { format as formatCode } from 'prettier';
 import { posix } from 'node:path';
 import type {
@@ -126,6 +127,86 @@ async function formatSnapshotCode(code: string) {
 }
 
 describe('transformModules', () => {
+  test('creates globally unique segment identities', async () => {
+    const code = `import { useTask$ } from '@qwik.dev/core';
+
+function Child() {
+  return <button onClick$={() => 'clicked'}>Child</button>;
+}
+
+export function App() {
+  useTask$(() => 'first');
+  useTask$(() => 'second');
+  return <Child />;
+}
+`;
+    const inputs = ['src/a/index.tsx', 'src/b/index.tsx'].map((path) => ({ path, code }));
+    const transform = (input: TransformModuleInput, isServer: boolean) =>
+      transformModules(baseOptions(input, isServer));
+    const [aSsr, bSsr, aCsr, bCsr] = await Promise.all([
+      transform(inputs[0], true),
+      transform(inputs[1], true),
+      transform(inputs[0], false),
+      transform(inputs[1], false),
+    ]);
+    const getSegments = (results: TransformOutput[]) =>
+      results.flatMap((result) => result.modules.flatMap((module) => module.segment ?? []));
+    const ssrSegments = getSegments([aSsr, bSsr]);
+    const csrSegments = getSegments([aCsr, bCsr]);
+
+    expect(createSegmentSourceIdentity('src/a/../a/index.tsx')).toBe(
+      createSegmentSourceIdentity('src\\a\\index.tsx')
+    );
+    expect(ssrSegments).toHaveLength(8);
+    expect(new Set(ssrSegments.map((segment) => segment.name)).size).toBe(ssrSegments.length);
+    expect(new Set(ssrSegments.map((segment) => segment.hash)).size).toBe(ssrSegments.length);
+    expect(new Set(ssrSegments.map((segment) => segment.canonicalFilename)).size).toBe(
+      ssrSegments.length
+    );
+    expect(ssrSegments.map((segment) => segment.name).sort()).toEqual(
+      csrSegments.map((segment) => segment.name).sort()
+    );
+    for (const segment of [...ssrSegments, ...csrSegments]) {
+      expect(segment.name).toBe(`${segment.displayName}_${segment.hash}`);
+    }
+    const scoped = await transformModules({
+      ...baseOptions(inputs[0], false),
+      scope: 'other-package',
+    });
+    expect(getSegments([scoped]).map((segment) => segment.name)).not.toEqual(
+      getSegments([aCsr]).map((segment) => segment.name)
+    );
+
+    const separateDomains = await transformModules(
+      baseOptions(
+        {
+          path: 'src/x.tsx',
+          code: `import { Foo$ } from './foo';
+function Foo$_segment_0() {
+  return <p>Child</p>;
+}
+export function App() {
+  Foo$(() => 'value');
+  return <Foo$_segment_0 />;
+}`,
+        },
+        false
+      )
+    );
+    expect(separateDomains.diagnostics).toEqual([]);
+    const domainSegments = getSegments([separateDomains]);
+    expect(domainSegments).toHaveLength(2);
+    expect(new Set(domainSegments.map((segment) => segment.name)).size).toBe(domainSegments.length);
+
+    const duplicate = await transformModules({
+      ...baseOptions(inputs[0], false),
+      input: [inputs[0], inputs[0]],
+    });
+    expect(duplicate.diagnostics).toContainEqual(
+      expect.objectContaining({ code: 'duplicate-segment', category: 'error' })
+    );
+  });
+
   test('passes through modules without components', async () => {
     await testInput('module_without_component', {
       path: 'src/plain.ts',

@@ -31,28 +31,28 @@ import {
   maybeThen,
   _qrlWithChunk,
 } from '@qwik.dev/core';
-import { component_title_segment_0 } from './component.tsx_component_title_segment_0';
-import { component_className_segment_1 } from './component.tsx_component_className_segment_1';
-import { component_style_segment_2 } from './component.tsx_component_style_segment_2';
+import { component_title_segment_0_2f0r0xivypjmx } from './component.tsx_component_title_segment_0_2f0r0xivypjmx';
+import { component_className_segment_1_kvlfd5j1l32j } from './component.tsx_component_className_segment_1_kvlfd5j1l32j';
+import { component_style_segment_2_cgm261f5ipp0 } from './component.tsx_component_style_segment_2_cgm261f5ipp0';
 
-const q_component_title_segment_0 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_title_segment_0',
-  () => import('./component.tsx_component_title_segment_0'),
-  'component_title_segment_0'
+const q_component_title_segment_0_2f0r0xivypjmx = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_title_segment_0_2f0r0xivypjmx',
+  () => import('./component.tsx_component_title_segment_0_2f0r0xivypjmx'),
+  'component_title_segment_0_2f0r0xivypjmx'
 );
-q_component_title_segment_0.s(component_title_segment_0);
-const q_component_className_segment_1 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_className_segment_1',
-  () => import('./component.tsx_component_className_segment_1'),
-  'component_className_segment_1'
+q_component_title_segment_0_2f0r0xivypjmx.s(component_title_segment_0_2f0r0xivypjmx);
+const q_component_className_segment_1_kvlfd5j1l32j = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_className_segment_1_kvlfd5j1l32j',
+  () => import('./component.tsx_component_className_segment_1_kvlfd5j1l32j'),
+  'component_className_segment_1_kvlfd5j1l32j'
 );
-q_component_className_segment_1.s(component_className_segment_1);
-const q_component_style_segment_2 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_style_segment_2',
-  () => import('./component.tsx_component_style_segment_2'),
-  'component_style_segment_2'
+q_component_className_segment_1_kvlfd5j1l32j.s(component_className_segment_1_kvlfd5j1l32j);
+const q_component_style_segment_2_cgm261f5ipp0 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_style_segment_2_cgm261f5ipp0',
+  () => import('./component.tsx_component_style_segment_2_cgm261f5ipp0'),
+  'component_style_segment_2_cgm261f5ipp0'
 );
-q_component_style_segment_2.s(component_style_segment_2);
+q_component_style_segment_2_cgm261f5ipp0.s(component_style_segment_2_cgm261f5ipp0);
 export function App(props, ctx) {
   const count = useSignal(0);
   const id0 = ctx.nextId();
@@ -63,7 +63,7 @@ export function App(props, ctx) {
     (target1 ??= createSsrElementTarget(id0)),
     'title',
     [count],
-    q_component_title_segment_0
+    q_component_title_segment_0_2f0r0xivypjmx
   );
   const attr3 = () =>
     invoke(invokeCtx5, () => {
@@ -71,7 +71,7 @@ export function App(props, ctx) {
         (target1 ??= createSsrElementTarget(id0)),
         'class',
         [count],
-        q_component_className_segment_1
+        q_component_className_segment_1_kvlfd5j1l32j
       );
     });
   const attr4 = () =>
@@ -80,7 +80,7 @@ export function App(props, ctx) {
         (target1 ??= createSsrElementTarget(id0)),
         'style',
         [count],
-        q_component_style_segment_2
+        q_component_style_segment_2_cgm261f5ipp0
       );
     });
   return maybeThen(attr2, (attr2) =>
@@ -102,19 +102,19 @@ export function App(props, ctx) {
     )
   );
 }
-============================= src/component.tsx_component_title_segment_0.js (ENTRY POINT)==
+============================= src/component.tsx_component_title_segment_0_2f0r0xivypjmx.js (ENTRY POINT)==
 
-export const component_title_segment_0 = (count) => {
+export const component_title_segment_0_2f0r0xivypjmx = (count) => {
   return `count ${count.value}`;
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_title_segment_0",
+  "name": "component_title_segment_0_2f0r0xivypjmx",
   "entry": null,
   "displayName": "component_title_segment_0",
-  "hash": "segment_0",
-  "canonicalFilename": "component.tsx_component_title_segment_0",
+  "hash": "2f0r0xivypjmx",
+  "canonicalFilename": "component.tsx_component_title_segment_0_2f0r0xivypjmx",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -130,19 +130,19 @@ export const component_title_segment_0 = (count) => {
   ]
 }
 */
-============================= src/component.tsx_component_className_segment_1.js (ENTRY POINT)==
+============================= src/component.tsx_component_className_segment_1_kvlfd5j1l32j.js (ENTRY POINT)==
 
-export const component_className_segment_1 = (count) => {
+export const component_className_segment_1_kvlfd5j1l32j = (count) => {
   return { active: count.value > 0 };
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_className_segment_1",
+  "name": "component_className_segment_1_kvlfd5j1l32j",
   "entry": null,
   "displayName": "component_className_segment_1",
-  "hash": "segment_1",
-  "canonicalFilename": "component.tsx_component_className_segment_1",
+  "hash": "kvlfd5j1l32j",
+  "canonicalFilename": "component.tsx_component_className_segment_1_kvlfd5j1l32j",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -158,19 +158,19 @@ export const component_className_segment_1 = (count) => {
   ]
 }
 */
-============================= src/component.tsx_component_style_segment_2.js (ENTRY POINT)==
+============================= src/component.tsx_component_style_segment_2_cgm261f5ipp0.js (ENTRY POINT)==
 
-export const component_style_segment_2 = (count) => {
+export const component_style_segment_2_cgm261f5ipp0 = (count) => {
   return { color: count.value % 2 === 0 ? 'green' : 'blue' };
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_style_segment_2",
+  "name": "component_style_segment_2_cgm261f5ipp0",
   "entry": null,
   "displayName": "component_style_segment_2",
-  "hash": "segment_2",
-  "canonicalFilename": "component.tsx_component_style_segment_2",
+  "hash": "cgm261f5ipp0",
+  "canonicalFilename": "component.tsx_component_style_segment_2_cgm261f5ipp0",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -200,9 +200,9 @@ import {
   createDomBatchEffect,
   createTemplate,
 } from '@qwik.dev/core';
-import { component_title_segment_0 } from './component.tsx_component_title_segment_0';
-import { component_className_segment_1 } from './component.tsx_component_className_segment_1';
-import { component_style_segment_2 } from './component.tsx_component_style_segment_2';
+import { component_title_segment_0_2f0r0xivypjmx } from './component.tsx_component_title_segment_0_2f0r0xivypjmx';
+import { component_className_segment_1_kvlfd5j1l32j } from './component.tsx_component_className_segment_1_kvlfd5j1l32j';
+import { component_style_segment_2_cgm261f5ipp0 } from './component.tsx_component_style_segment_2_cgm261f5ipp0';
 
 const App_tmpl0 = createTemplate('<div data-kind="counter">Attrs</div>');
 export function App(props, ctx) {
@@ -210,26 +210,26 @@ export function App(props, ctx) {
   const fragment0 = App_tmpl0(ctx.document);
   const el0 = _first(fragment0);
   function batch0() {
-    patchAttrValue(el0, 'title', component_title_segment_0(count));
-    patchAttrValue(el0, 'class', component_className_segment_1(count));
-    patchAttrValue(el0, 'style', component_style_segment_2(count));
+    patchAttrValue(el0, 'title', component_title_segment_0_2f0r0xivypjmx(count));
+    patchAttrValue(el0, 'class', component_className_segment_1_kvlfd5j1l32j(count));
+    patchAttrValue(el0, 'style', component_style_segment_2_cgm261f5ipp0(count));
   }
   const effect0 = createDomBatchEffect(batch0, ctx.scheduler);
   return el0;
 }
-============================= src/component.tsx_component_title_segment_0.js (ENTRY POINT)==
+============================= src/component.tsx_component_title_segment_0_2f0r0xivypjmx.js (ENTRY POINT)==
 
-export const component_title_segment_0 = (count) => {
+export const component_title_segment_0_2f0r0xivypjmx = (count) => {
   return `count ${count.value}`;
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_title_segment_0",
+  "name": "component_title_segment_0_2f0r0xivypjmx",
   "entry": null,
   "displayName": "component_title_segment_0",
-  "hash": "segment_0",
-  "canonicalFilename": "component.tsx_component_title_segment_0",
+  "hash": "2f0r0xivypjmx",
+  "canonicalFilename": "component.tsx_component_title_segment_0_2f0r0xivypjmx",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -245,19 +245,19 @@ export const component_title_segment_0 = (count) => {
   ]
 }
 */
-============================= src/component.tsx_component_className_segment_1.js (ENTRY POINT)==
+============================= src/component.tsx_component_className_segment_1_kvlfd5j1l32j.js (ENTRY POINT)==
 
-export const component_className_segment_1 = (count) => {
+export const component_className_segment_1_kvlfd5j1l32j = (count) => {
   return { active: count.value > 0 };
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_className_segment_1",
+  "name": "component_className_segment_1_kvlfd5j1l32j",
   "entry": null,
   "displayName": "component_className_segment_1",
-  "hash": "segment_1",
-  "canonicalFilename": "component.tsx_component_className_segment_1",
+  "hash": "kvlfd5j1l32j",
+  "canonicalFilename": "component.tsx_component_className_segment_1_kvlfd5j1l32j",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -273,19 +273,19 @@ export const component_className_segment_1 = (count) => {
   ]
 }
 */
-============================= src/component.tsx_component_style_segment_2.js (ENTRY POINT)==
+============================= src/component.tsx_component_style_segment_2_cgm261f5ipp0.js (ENTRY POINT)==
 
-export const component_style_segment_2 = (count) => {
+export const component_style_segment_2_cgm261f5ipp0 = (count) => {
   return { color: count.value % 2 === 0 ? 'green' : 'blue' };
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_style_segment_2",
+  "name": "component_style_segment_2_cgm261f5ipp0",
   "entry": null,
   "displayName": "component_style_segment_2",
-  "hash": "segment_2",
-  "canonicalFilename": "component.tsx_component_style_segment_2",
+  "hash": "cgm261f5ipp0",
+  "canonicalFilename": "component.tsx_component_style_segment_2_cgm261f5ipp0",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

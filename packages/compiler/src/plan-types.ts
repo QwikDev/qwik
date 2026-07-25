@@ -596,6 +596,7 @@ export interface ModuleDeclaration {
 }
 
 export interface ExtractedQrls {
+  sourceIdentity: string;
   analysis: ModuleAnalysis;
   segments: Segment[];
   moduleDeclarations: ModuleDeclaration[];

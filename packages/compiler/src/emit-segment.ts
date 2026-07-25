@@ -19,6 +19,7 @@ import type {
   SegmentPlan,
   SegmentPropsPartPlan,
 } from './plan-types';
+import { getSegmentDisplayName, getSegmentSymbolHash } from './segment-identity';
 import { QWIK_IMPORT, QwikWord } from './words';
 
 export interface EmittedSegmentRender {
@@ -524,8 +525,8 @@ function createSegmentAnalysis(
     origin: inputName,
     name: segment.symbolName,
     entry: null,
-    displayName: segment.symbolName,
-    hash: segment.id,
+    displayName: getSegmentDisplayName(segment.symbolName),
+    hash: getSegmentSymbolHash(segment.symbolName),
     canonicalFilename: `${inputName}_${segment.symbolName}`,
     extension: 'js',
     parent: null,

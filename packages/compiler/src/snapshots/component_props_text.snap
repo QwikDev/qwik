@@ -17,21 +17,21 @@ import {
   maybeThen,
   _qrlWithChunk,
 } from '@qwik.dev/core';
-import { component_text_segment_0 } from './component.tsx_component_text_segment_0';
+import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
 
-const q_component_text_segment_0 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_text_segment_0',
-  () => import('./component.tsx_component_text_segment_0'),
-  'component_text_segment_0'
+const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_text_segment_0_1fh10fbkzokfc',
+  () => import('./component.tsx_component_text_segment_0_1fh10fbkzokfc'),
+  'component_text_segment_0_1fh10fbkzokfc'
 );
-q_component_text_segment_0.s(component_text_segment_0);
+q_component_text_segment_0_1fh10fbkzokfc.s(component_text_segment_0_1fh10fbkzokfc);
 export function App(props, ctx) {
   const id0 = ctx.nextId();
   ctx.addRoot(props);
   const text1 = renderSsrTextExpression(
     createSsrElementTextTarget(id0),
     [props],
-    q_component_text_segment_0
+    q_component_text_segment_0_1fh10fbkzokfc
   );
   return maybeThen(text1, (text1) => [
     createSsrElementRecord('p', '<p q:id="', createSsrNodeId(id0), '"', '>'),
@@ -39,19 +39,19 @@ export function App(props, ctx) {
     '</p>',
   ]);
 }
-============================= src/component.tsx_component_text_segment_0.js (ENTRY POINT)==
+============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
 
-export const component_text_segment_0 = (props) => {
+export const component_text_segment_0_1fh10fbkzokfc = (props) => {
   return props.label;
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_text_segment_0",
+  "name": "component_text_segment_0_1fh10fbkzokfc",
   "entry": null,
   "displayName": "component_text_segment_0",
-  "hash": "segment_0",
-  "canonicalFilename": "component.tsx_component_text_segment_0",
+  "hash": "1fh10fbkzokfc",
+  "canonicalFilename": "component.tsx_component_text_segment_0_1fh10fbkzokfc",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -75,7 +75,7 @@ export const component_text_segment_0 = (props) => {
 ============================= src/component.tsx ==
 
 import { _first, createTextExpressionEffect, createTemplate } from '@qwik.dev/core';
-import { component_text_segment_0 } from './component.tsx_component_text_segment_0';
+import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
 
 const App_tmpl0 = createTemplate('<p> </p>');
 export function App(props, ctx) {
@@ -85,25 +85,25 @@ export function App(props, ctx) {
   const effect0 = createTextExpressionEffect(
     text0,
     [props],
-    component_text_segment_0,
+    component_text_segment_0_1fh10fbkzokfc,
     ctx.scheduler
   );
   ctx.scheduler.notify(effect0);
   return el0;
 }
-============================= src/component.tsx_component_text_segment_0.js (ENTRY POINT)==
+============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
 
-export const component_text_segment_0 = (props) => {
+export const component_text_segment_0_1fh10fbkzokfc = (props) => {
   return props.label;
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_text_segment_0",
+  "name": "component_text_segment_0_1fh10fbkzokfc",
   "entry": null,
   "displayName": "component_text_segment_0",
-  "hash": "segment_0",
-  "canonicalFilename": "component.tsx_component_text_segment_0",
+  "hash": "1fh10fbkzokfc",
+  "canonicalFilename": "component.tsx_component_text_segment_0_1fh10fbkzokfc",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

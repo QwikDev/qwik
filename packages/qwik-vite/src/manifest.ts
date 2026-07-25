@@ -1,5 +1,6 @@
 import type { Rollup } from 'vite';
 import { type NormalizedQwikPluginOptions } from './plugins/plugin';
+import { getSymbolHash } from './plugins/vite-utils';
 import type { GlobalInjections, Path, QwikBundle, QwikManifest, SegmentAnalysis } from './types';
 
 // The handlers that are exported by the core package
@@ -409,6 +410,19 @@ export function generateManifestFromBundles(
   debug: (...args: any[]) => void,
   canonPath: (p: string) => string
 ) {
+  const segmentHashes = new Map([...extraSymbols].map((symbol) => [getSymbolHash(symbol), symbol]));
+  for (const segment of segments) {
+    const hash = getSymbolHash(segment.name);
+    if (hash !== segment.hash) {
+      throw new Error(`Qwik segment "${segment.name}" declares an invalid hash "${segment.hash}".`);
+    }
+    const previous = segmentHashes.get(hash);
+    if (previous !== undefined) {
+      throw new Error(`Duplicate Qwik segment hash "${hash}" from "${previous}".`);
+    }
+    segmentHashes.set(hash, segment.name);
+  }
+
   // Note that this will be the order of the JSON file
   const manifest: QwikManifest = {
     version: '1',

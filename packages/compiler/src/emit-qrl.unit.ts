@@ -1,4 +1,8 @@
-import type { TransformModuleInput, TransformModulesOptions } from '@qwik.dev/optimizer';
+import type {
+  TransformModuleInput,
+  TransformModulesOptions,
+  TransformOutput,
+} from '@qwik.dev/optimizer';
 import { parseSync } from 'oxc-parser';
 import { describe, expect, test } from 'vitest';
 import { transformModules } from './index';
@@ -134,6 +138,7 @@ export function useCounter(initial) {
     const csr = await transformModules(options(input, false));
     const ssrMain = ssr.modules[0]?.code ?? '';
     const csrMain = csr.modules[0]?.code ?? '';
+    const symbol = segmentNames(csr, 'useComputed$')[0];
 
     expectValidModules(ssr.modules);
     expectValidModules(csr.modules);
@@ -141,12 +146,8 @@ export function useCounter(initial) {
     expect(csr.diagnostics).toEqual([]);
     expect(ssr.modules).toHaveLength(2);
     expect(csr.modules).toHaveLength(2);
-    expect(ssrMain).toContain(
-      'useComputedQrl(q_use_counter_useComputed$_segment_0.w([count]), { initial: 0 })'
-    );
-    expect(csrMain).toContain(
-      'useComputed(_withCaptures(use_counter_useComputed$_segment_0, [count]), { initial: 0 })'
-    );
+    expect(ssrMain).toContain(`useComputedQrl(q_${symbol}.w([count]), { initial: 0 })`);
+    expect(csrMain).toContain(`useComputed(_withCaptures(${symbol}, [count]), { initial: 0 })`);
   });
 
   test('transforms useTask$ inside a component-free custom hook module', async () => {
@@ -163,15 +164,12 @@ export function useCounterTask() {
 
     const ssr = await transformModules(options(input, true));
     const csr = await transformModules(options(input, false));
+    const symbol = segmentNames(csr, 'useTask$')[0];
 
     expectValidModules(ssr.modules);
     expectValidModules(csr.modules);
-    expect(csr.modules[0]?.code).toContain(
-      'useTask(_withCaptures(use_task_hook_useTask$_segment_0, [count]))'
-    );
-    expect(ssr.modules[0]?.code).toContain(
-      'useTaskQrl(q_use_task_hook_useTask$_segment_0.w([count]))'
-    );
+    expect(csr.modules[0]?.code).toContain(`useTask(_withCaptures(${symbol}, [count]))`);
+    expect(ssr.modules[0]?.code).toContain(`useTaskQrl(q_${symbol}.w([count]))`);
   });
 
   test('turns a module visible task into an SSR event carrier', async () => {
@@ -188,14 +186,15 @@ export function useVisible() {
     const csr = await transformModules(options(input, false));
     const main = ssr.modules[0]?.code ?? '';
     const csrMain = csr.modules[0]?.code ?? '';
+    const symbol = segmentNames(csr, 'useVisibleTask$')[0];
 
     expect(ssr.diagnostics).toEqual([]);
     expect(csr.diagnostics).toEqual([]);
-    expect(main).toMatch(
-      /__qwik_useOnDocument\("qinit", __qwik_createVisibleTaskHandlerQrl\(q_use_visible_useVisibleTask\$_segment_0\)\)/
+    expect(main).toContain(
+      `__qwik_useOnDocument("qinit", __qwik_createVisibleTaskHandlerQrl(q_${symbol}))`
     );
     expect(main).not.toContain('useVisibleTaskQrl');
-    expect(csrMain).toContain('useVisibleTask(use_visible_useVisibleTask$_segment_0, {');
+    expect(csrMain).toContain(`useVisibleTask(${symbol}, {`);
     expect(csrMain).not.toContain('useVisibleTaskQrl');
   });
 
@@ -415,13 +414,15 @@ export function useValues(value) {
 
     const csr = await transformModules(options(input, false));
     const output = csr.modules.map((module) => module.code).join('\n');
+    const taskSymbol = segmentNames(csr, 'useFoo$')[0];
+    const serializerSymbol = segmentNames(csr, 'useSerializer$')[0];
 
     expectValidModules(csr.modules);
     expect(csr.diagnostics).toEqual([]);
     expect(csr.modules.filter((module) => module.segment != null)).toHaveLength(2);
-    expect(output).toContain('export const use_values_useFoo$_segment_0 = async () =>');
+    expect(output).toContain(`export const ${taskSymbol} = async () =>`);
     expect(output).toContain('(await _await(Promise.resolve()))();');
-    expect(output).toContain('useSerializer(use_values_useSerializer$_segment_1)');
+    expect(output).toContain(`useSerializer(${serializerSymbol})`);
   });
 
   test('transforms independent component and module boundaries together', async () => {
@@ -463,15 +464,14 @@ export function useCustom(value) {
     const csr = await transformModules(options(input, false));
     const ssrMain = ssr.modules[0]?.code ?? '';
     const csrMain = csr.modules[0]?.code ?? '';
+    const symbol = segmentNames(csr, 'useFoo$')[0];
 
     expectValidModules(ssr.modules);
     expectValidModules(csr.modules);
     expect(csrMain).toContain('useFoo$ as marker');
     expect(ssrMain).toContain('useFoo$ as marker');
-    expect(csrMain).toContain(
-      `direct(_withCaptures(custom_hook_useFoo$_segment_0, [value]), { mode: "test" })`
-    );
-    expect(ssrMain).toContain(`lazy(q_custom_hook_useFoo$_segment_0.w([value]), { mode: "test" })`);
+    expect(csrMain).toContain(`direct(_withCaptures(${symbol}, [value]), { mode: "test" })`);
+    expect(ssrMain).toContain(`lazy(q_${symbol}.w([value]), { mode: "test" })`);
   });
 
   test('transforms nested module boundaries transitively', async () => {
@@ -509,15 +509,12 @@ export function useHook(value) {
 
     const ssr = await transformModules(options(input, true));
     const csr = await transformModules(options(input, false));
+    const symbol = segmentNames(csr, 'useLocal$')[0];
 
     expectValidModules(ssr.modules);
     expectValidModules(csr.modules);
-    expect(csr.modules[0]?.code).toContain(
-      'useLocal(_withCaptures(local_hook_useLocal$_segment_0, [value]))'
-    );
-    expect(ssr.modules[0]?.code).toContain(
-      'useLocalQrl(q_local_hook_useLocal$_segment_0.w([value]))'
-    );
+    expect(csr.modules[0]?.code).toContain(`useLocal(_withCaptures(${symbol}, [value]))`);
+    expect(ssr.modules[0]?.code).toContain(`useLocalQrl(q_${symbol}.w([value]))`);
   });
 
   test('diagnoses a missing local target companion without partial output', async () => {
@@ -587,12 +584,13 @@ export function App() {
     const csr = await transformModules(options(input, false));
     const ssrMain = ssr.modules[0]?.code ?? '';
     const csrMain = csr.modules[0]?.code ?? '';
+    const symbol = segmentNames(csr, 'useTask$')[0];
 
     expectValidModules(ssr.modules);
     expectValidModules(csr.modules);
 
     expect(ssr.modules).toHaveLength(2);
-    expect(ssrMain).toContain('useTaskQrl(q_task_useTask$_segment_0.w([count]), {');
+    expect(ssrMain).toContain(`useTaskQrl(q_${symbol}.w([count]), {`);
     expect(ssrMain).not.toContain('runTaskSubscriber');
     expect(ssrMain).not.toContain('ctx.addRoot(task');
     expect(ssrMain).toContain(
@@ -602,11 +600,11 @@ export function App() {
 
     expect(csr.modules).toHaveLength(2);
     expect(csrMain).toContain(
-      'useTask(_withCaptures(task_useTask$_segment_0, [count]), { deferUpdates: false });'
+      `useTask(_withCaptures(${symbol}, [count]), { deferUpdates: false });`
     );
     expect(csrMain).not.toContain('useTaskQrl');
     expect(csrMain).not.toContain('_qrlWithChunk');
-    expect(csr.modules[1]?.code).toContain('export const task_useTask$_segment_0 = async () => {');
+    expect(csr.modules[1]?.code).toContain(`export const ${symbol} = async () => {`);
     expect(csr.modules[1]?.code).toContain('import { _captures, _await }');
     expect(csr.modules[1]?.code).toContain('(await _await(Promise.resolve()))();');
     expect(csr.modules[1]?.code).not.toContain('yield');
@@ -628,15 +626,12 @@ export function App() {
     const csr = await transformModules(options(input, false));
     const ssrMain = ssr.modules[0]?.code ?? '';
     const csrMain = csr.modules[0]?.code ?? '';
+    const symbol = segmentNames(csr, 'useComputed$')[0];
 
-    expect(ssrMain).toContain('useComputedQrl(q_computed_useComputed$_segment_0.w([count]))');
-    expect(ssrMain).toContain(
-      'q_computed_useComputed$_segment_0.s(computed_useComputed$_segment_0);'
-    );
+    expect(ssrMain).toContain(`useComputedQrl(q_${symbol}.w([count]))`);
+    expect(ssrMain).toContain(`q_${symbol}.s(${symbol});`);
     expect(ssrMain).not.toContain('scheduler.flush');
-    expect(csrMain).toContain(
-      'useComputed(_withCaptures(computed_useComputed$_segment_0, [count]))'
-    );
+    expect(csrMain).toContain(`useComputed(_withCaptures(${symbol}, [count]))`);
     expect(csrMain).not.toContain('useComputedQrl');
     expect(csrMain).not.toContain('_qrlWithChunk');
   });
@@ -654,8 +649,9 @@ export function App() {
 
     const csr = await transformModules(options(input, false));
     const csrMain = csr.modules[0]?.code ?? '';
+    const symbol = segmentNames(csr, 'useTask$')[0];
 
-    expect(csrMain).toContain('useTask(plain_task_useTask$_segment_0);');
+    expect(csrMain).toContain(`useTask(${symbol});`);
     expect(csrMain).not.toContain('_withCaptures');
   });
 
@@ -676,19 +672,20 @@ export function App() {
     const csr = await transformModules(options(input, false));
     const ssrMain = ssr.modules[0]?.code ?? '';
     const csrMain = csr.modules[0]?.code ?? '';
+    const symbols = segmentNames(csr, 'useTask$');
 
     expectValidModules(ssr.modules);
     expectValidModules(csr.modules);
     expect(ssr.modules).toHaveLength(3);
-    expect(ssrMain).toContain('useTaskQrl(q_tasks_useTask$_segment_0.w([count]))');
-    expect(ssrMain).toContain('useTaskQrl(q_tasks_useTask$_segment_1.w([count]))');
-    expect(ssrMain.indexOf('useTaskQrl(q_tasks_useTask$_segment_0')).toBeLessThan(
-      ssrMain.indexOf('useTaskQrl(q_tasks_useTask$_segment_1')
+    expect(ssrMain).toContain(`useTaskQrl(q_${symbols[0]}.w([count]))`);
+    expect(ssrMain).toContain(`useTaskQrl(q_${symbols[1]}.w([count]))`);
+    expect(ssrMain.indexOf(`useTaskQrl(q_${symbols[0]}`)).toBeLessThan(
+      ssrMain.indexOf(`useTaskQrl(q_${symbols[1]}`)
     );
     expect(ssrMain.match(/ctx\.scheduler\.flush\(\)/g)).toHaveLength(1);
     expect(csr.modules).toHaveLength(3);
-    expect(csrMain).toContain('useTask(_withCaptures(tasks_useTask$_segment_0, [count]));');
-    expect(csrMain).toContain('useTask(_withCaptures(tasks_useTask$_segment_1, [count]));');
+    expect(csrMain).toContain(`useTask(_withCaptures(${symbols[0]}, [count]));`);
+    expect(csrMain).toContain(`useTask(_withCaptures(${symbols[1]}, [count]));`);
   });
 
   test('keeps explicit dollar lazy on SSR and uses its function on CSR', async () => {
@@ -708,10 +705,11 @@ export function App() {
     const csr = await transformModules(options(input, false));
     const ssrMain = ssr.modules[0]?.code ?? '';
     const csrMain = csr.modules[0]?.code ?? '';
+    const symbol = segmentNames(csr, '$')[0];
 
-    expect(ssrMain).toContain('const handler = q_explicit_$_segment_0.w([count]);');
-    expect(ssrMain).not.toContain('q_explicit_$_segment_0.s(');
-    expect(csrMain).toContain('const handler = _withCaptures(explicit_$_segment_0, [count]);');
+    expect(ssrMain).toContain(`const handler = q_${symbol}.w([count]);`);
+    expect(ssrMain).not.toContain(`q_${symbol}.s(`);
+    expect(csrMain).toContain(`const handler = _withCaptures(${symbol}, [count]);`);
   });
 
   test('uses existing same-source target aliases and removes a marker with no value uses', async () => {
@@ -732,15 +730,14 @@ export function App() {
     const csr = await transformModules(options(input, false));
     const ssrMain = ssr.modules[0]?.code ?? '';
     const csrMain = csr.modules[0]?.code ?? '';
+    const symbol = segmentNames(csr, 'marker$')[0];
 
     expectValidModules(ssr.modules);
     expectValidModules(csr.modules);
-    expect(csrMain).toContain(
-      `direct(_withCaptures(external_marker$_segment_0, [count]), { mode: "test" });`
-    );
+    expect(csrMain).toContain(`direct(_withCaptures(${symbol}, [count]), { mode: "test" });`);
     expect(csrMain).not.toContain('markerQrl(');
     expect(csrMain).not.toContain('_qrlWithChunk');
-    expect(ssrMain).toContain('lazy(q_external_marker$_segment_0.w([count]), { mode: "test" });');
+    expect(ssrMain).toContain(`lazy(q_${symbol}.w([count]), { mode: "test" });`);
     expect(csrMain).not.toContain('marker$ as marker');
     expect(ssrMain).not.toContain('marker$ as marker');
     expect(csr.modules.some((module) => module.path.includes('marker$_segment_0'))).toBe(true);
@@ -768,16 +765,15 @@ export function App() {
     const valueModule = csr.modules.find((module) =>
       module.path.includes('useSerializer$_segment')
     );
+    const symbol = segmentNames(csr, 'useSerializer$')[0];
 
     expectValidModules(ssr.modules);
     expectValidModules(csr.modules);
-    expect(csrMain).toMatch(/useSerializer\w*\(serializer_useSerializer\$_segment_0\)/);
-    expect(csrMain).not.toContain('_withCaptures(serializer_useSerializer$_segment_0');
+    expect(csrMain).toContain(`useSerializer(${symbol})`);
+    expect(csrMain).not.toContain(`_withCaptures(${symbol}`);
     expect(csrMain).not.toContain('useSerializerQrl');
-    expect(valueModule?.code).toContain('export const serializer_useSerializer$_segment_0 = {');
-    expect(ssr.modules[0]?.code).toContain(
-      'useSerializerQrl(q_serializer_useSerializer$_segment_0)'
-    );
+    expect(valueModule?.code).toContain(`export const ${symbol} = {`);
+    expect(ssr.modules[0]?.code).toContain(`useSerializerQrl(q_${symbol})`);
   });
 
   test('emits captured serializer values as factories', async () => {
@@ -802,19 +798,14 @@ export function App() {
     const valueModule = csr.modules.find((module) =>
       module.path.includes('useSerializer$_segment')
     );
+    const symbol = segmentNames(csr, 'useSerializer$')[0];
 
     expect(ssr.diagnostics).toEqual([]);
     expect(csr.diagnostics).toEqual([]);
-    expect(csrMain).toContain(
-      'useSerializer(_withCaptures(serializer_capture_useSerializer$_segment_0, [count]))'
-    );
-    expect(valueModule?.code).toContain(
-      'export const serializer_capture_useSerializer$_segment_0 = () => {'
-    );
+    expect(csrMain).toContain(`useSerializer(_withCaptures(${symbol}, [count]))`);
+    expect(valueModule?.code).toContain(`export const ${symbol} = () => {`);
     expect(valueModule?.code).toContain('const count = _captures[0];');
-    expect(ssr.modules[0]?.code).toContain(
-      'useSerializerQrl(q_serializer_capture_useSerializer$_segment_0.w([count]))'
-    );
+    expect(ssr.modules[0]?.code).toContain(`useSerializerQrl(q_${symbol}.w([count]))`);
   });
 
   test('uses the same target-aware rules inside extracted segments', async () => {
@@ -838,14 +829,15 @@ export function App() {
     const csrOuter = csr.modules.find((module) => module.path.includes('outer$_segment_0'))!;
     const csrInner = csr.modules.find((module) => module.path.includes('inner$_segment_1'))!;
     const ssrOuter = ssr.modules.find((module) => module.path.includes('outer$_segment_0'))!;
+    const innerSymbol = segmentNames(csr, 'inner$')[0];
 
     expectValidModules(ssr.modules);
     expectValidModules(csr.modules);
-    expect(csrOuter.code).toContain('_withCaptures(nested_inner$_segment_1, [count])');
+    expect(csrOuter.code).toContain(`_withCaptures(${innerSymbol}, [count])`);
     expect(csrOuter.code).not.toContain('_qrlWithChunk');
     expect(csrInner.code).toContain('(await _await(Promise.resolve()))();');
     expect(ssrOuter.code).toContain('innerQrl');
-    expect(ssrOuter.code).toContain('q_nested_inner$_segment_1.w([count])');
+    expect(ssrOuter.code).toContain(`q_${innerSymbol}.w([count])`);
   });
 
   test('uses exported local companions for each target', async () => {
@@ -863,11 +855,12 @@ export function App() {
 
     const ssr = await transformModules(options(input, true));
     const csr = await transformModules(options(input, false));
+    const symbol = segmentNames(csr, 'local$')[0];
 
     expectValidModules(ssr.modules);
     expectValidModules(csr.modules);
-    expect(csr.modules[0]?.code).toContain('local(local_local$_segment_0);');
-    expect(ssr.modules[0]?.code).toContain('localQrl(q_local_local$_segment_0);');
+    expect(csr.modules[0]?.code).toContain(`local(${symbol});`);
+    expect(ssr.modules[0]?.code).toContain(`localQrl(q_${symbol});`);
   });
 
   test('retargets an unused marker specifier while preserving comments and attributes', async () => {
@@ -886,12 +879,13 @@ export function App() {
 
     const csr = await transformModules(options(input, false));
     const main = csr.modules[0]?.code ?? '';
+    const symbol = segmentNames(csr, 'marker$')[0];
 
     expectValidModules(csr.modules);
     expect(main).toContain('// keep target comment');
     expect(main).toContain('with { type: "custom" }');
     expect(main).toContain('import { marker, keep } from "library"');
-    expect(main).toContain('marker(imports_marker$_segment_0);');
+    expect(main).toContain(`marker(${symbol});`);
     expect(main).not.toContain('marker$ as marker');
   });
 
@@ -910,11 +904,12 @@ export function App() {
 
     const csr = await transformModules(options(input, false));
     const main = csr.modules[0]?.code ?? '';
+    const symbol = segmentNames(csr, 'marker$')[0];
 
     expectValidModules(csr.modules);
     expect(main).toContain('marker$ as marker');
     expect(main).toContain('marker as __qwik_marker_0');
-    expect(main).toContain('__qwik_marker_0(collision_marker$_segment_0);');
+    expect(main).toContain(`__qwik_marker_0(${symbol});`);
   });
 
   test('does not retarget a marker onto an existing local binding', async () => {
@@ -932,13 +927,20 @@ export function App() {
 
     const csr = await transformModules(options(input, false));
     const main = csr.modules[0]?.code ?? '';
+    const symbol = segmentNames(csr, 'marker$')[0];
 
     expectValidModules(csr.modules);
     expect(main).not.toContain('marker$ } from');
     expect(main).toContain('marker as __qwik_marker');
-    expect(main).toContain('__qwik_marker(local_collision_marker$_segment_0);');
+    expect(main).toContain(`__qwik_marker(${symbol});`);
   });
 });
+
+function segmentNames(result: TransformOutput, ctxName: string): string[] {
+  return result.modules.flatMap((module) =>
+    module.segment?.ctxName === ctxName ? [module.segment.name] : []
+  );
+}
 
 function expectValidModules(modules: readonly { path: string; code: string }[]) {
   for (const module of modules) {

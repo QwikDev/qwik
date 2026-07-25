@@ -38,28 +38,30 @@ import {
   escapeHTML,
   _qrlWithChunk,
 } from '@qwik.dev/core';
-import { component_useTask$_segment_0 } from './component.tsx_component_useTask$_segment_0';
-import { component_useVisibleTask$_segment_1 } from './component.tsx_component_useVisibleTask$_segment_1';
+import { component_useTask$_segment_0_12v231gyiwsit } from './component.tsx_component_useTask$_segment_0_12v231gyiwsit';
+import { component_useVisibleTask$_segment_1_97oyhe0qyjrq } from './component.tsx_component_useVisibleTask$_segment_1_97oyhe0qyjrq';
 
-const q_component_useTask$_segment_0 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_useTask$_segment_0',
-  () => import('./component.tsx_component_useTask$_segment_0'),
-  'component_useTask$_segment_0'
+const q_component_useTask$_segment_0_12v231gyiwsit = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_useTask$_segment_0_12v231gyiwsit',
+  () => import('./component.tsx_component_useTask$_segment_0_12v231gyiwsit'),
+  'component_useTask$_segment_0_12v231gyiwsit'
 );
-q_component_useTask$_segment_0.s(component_useTask$_segment_0);
-const q_component_useVisibleTask$_segment_1 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_useVisibleTask$_segment_1',
-  () => import('./component.tsx_component_useVisibleTask$_segment_1'),
-  'component_useVisibleTask$_segment_1'
+q_component_useTask$_segment_0_12v231gyiwsit.s(component_useTask$_segment_0_12v231gyiwsit);
+const q_component_useVisibleTask$_segment_1_97oyhe0qyjrq = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_useVisibleTask$_segment_1_97oyhe0qyjrq',
+  () => import('./component.tsx_component_useVisibleTask$_segment_1_97oyhe0qyjrq'),
+  'component_useVisibleTask$_segment_1_97oyhe0qyjrq'
 );
-q_component_useVisibleTask$_segment_1.s(component_useVisibleTask$_segment_1);
+q_component_useVisibleTask$_segment_1_97oyhe0qyjrq.s(
+  component_useVisibleTask$_segment_1_97oyhe0qyjrq
+);
 export function App(props, ctx) {
   const invokeCtx = getActiveInvokeContextOrNull();
   const count = useSignal(0);
-  useTaskQrl(q_component_useTask$_segment_0.w([count]));
+  useTaskQrl(q_component_useTask$_segment_0_12v231gyiwsit.w([count]));
   useOnDocument(
     'qinit',
-    createVisibleTaskHandlerQrl(q_component_useVisibleTask$_segment_1.w([count]))
+    createVisibleTaskHandlerQrl(q_component_useVisibleTask$_segment_1_97oyhe0qyjrq.w([count]))
   );
   return maybeThen(ctx.scheduler.flush(), () =>
     invoke(invokeCtx, () => {
@@ -74,11 +76,11 @@ export function App(props, ctx) {
     })
   );
 }
-============================= src/component.tsx_component_useTask$_segment_0.js (ENTRY POINT)==
+============================= src/component.tsx_component_useTask$_segment_0_12v231gyiwsit.js (ENTRY POINT)==
 
 import { _captures, _await } from '@qwik.dev/core';
 
-export const component_useTask$_segment_0 = async ({ cleanup }) => {
+export const component_useTask$_segment_0_12v231gyiwsit = async ({ cleanup }) => {
   const count = _captures[0];
   const before = count.value;
   (await _await(Promise.resolve()))();
@@ -90,11 +92,11 @@ export const component_useTask$_segment_0 = async ({ cleanup }) => {
 /*
 {
   "origin": "component.tsx",
-  "name": "component_useTask$_segment_0",
+  "name": "component_useTask$_segment_0_12v231gyiwsit",
   "entry": null,
   "displayName": "component_useTask$_segment_0",
-  "hash": "segment_0",
-  "canonicalFilename": "component.tsx_component_useTask$_segment_0",
+  "hash": "12v231gyiwsit",
+  "canonicalFilename": "component.tsx_component_useTask$_segment_0_12v231gyiwsit",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -112,11 +114,11 @@ export const component_useTask$_segment_0 = async ({ cleanup }) => {
   ]
 }
 */
-============================= src/component.tsx_component_useVisibleTask$_segment_1.js (ENTRY POINT)==
+============================= src/component.tsx_component_useVisibleTask$_segment_1_97oyhe0qyjrq.js (ENTRY POINT)==
 
 import { _captures, _await } from '@qwik.dev/core';
 
-export const component_useVisibleTask$_segment_1 = async () => {
+export const component_useVisibleTask$_segment_1_97oyhe0qyjrq = async () => {
   const count = _captures[0];
   (await _await(Promise.resolve()))();
   count.value;
@@ -124,11 +126,11 @@ export const component_useVisibleTask$_segment_1 = async () => {
 /*
 {
   "origin": "component.tsx",
-  "name": "component_useVisibleTask$_segment_1",
+  "name": "component_useVisibleTask$_segment_1_97oyhe0qyjrq",
   "entry": null,
   "displayName": "component_useVisibleTask$_segment_1",
-  "hash": "segment_1",
-  "canonicalFilename": "component.tsx_component_useVisibleTask$_segment_1",
+  "hash": "97oyhe0qyjrq",
+  "canonicalFilename": "component.tsx_component_useVisibleTask$_segment_1_97oyhe0qyjrq",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -160,14 +162,14 @@ import {
   createTextNodeEffect,
   createTemplate,
 } from '@qwik.dev/core';
-import { component_useTask$_segment_0 } from './component.tsx_component_useTask$_segment_0';
-import { component_useVisibleTask$_segment_1 } from './component.tsx_component_useVisibleTask$_segment_1';
+import { component_useTask$_segment_0_12v231gyiwsit } from './component.tsx_component_useTask$_segment_0_12v231gyiwsit';
+import { component_useVisibleTask$_segment_1_97oyhe0qyjrq } from './component.tsx_component_useVisibleTask$_segment_1_97oyhe0qyjrq';
 
 const App_tmpl0 = createTemplate('<button> </button>');
 export function App(props, ctx) {
   const count = useSignal(0);
-  useTask(_withCaptures(component_useTask$_segment_0, [count]));
-  useVisibleTask(_withCaptures(component_useVisibleTask$_segment_1, [count]), {
+  useTask(_withCaptures(component_useTask$_segment_0_12v231gyiwsit, [count]));
+  useVisibleTask(_withCaptures(component_useVisibleTask$_segment_1_97oyhe0qyjrq, [count]), {
     strategy: 'document-ready',
   });
   const fragment0 = App_tmpl0(ctx.document);
@@ -177,11 +179,11 @@ export function App(props, ctx) {
   ctx.scheduler.notify(effect0);
   return el0;
 }
-============================= src/component.tsx_component_useTask$_segment_0.js (ENTRY POINT)==
+============================= src/component.tsx_component_useTask$_segment_0_12v231gyiwsit.js (ENTRY POINT)==
 
 import { _captures, _await } from '@qwik.dev/core';
 
-export const component_useTask$_segment_0 = async ({ cleanup }) => {
+export const component_useTask$_segment_0_12v231gyiwsit = async ({ cleanup }) => {
   const count = _captures[0];
   const before = count.value;
   (await _await(Promise.resolve()))();
@@ -193,11 +195,11 @@ export const component_useTask$_segment_0 = async ({ cleanup }) => {
 /*
 {
   "origin": "component.tsx",
-  "name": "component_useTask$_segment_0",
+  "name": "component_useTask$_segment_0_12v231gyiwsit",
   "entry": null,
   "displayName": "component_useTask$_segment_0",
-  "hash": "segment_0",
-  "canonicalFilename": "component.tsx_component_useTask$_segment_0",
+  "hash": "12v231gyiwsit",
+  "canonicalFilename": "component.tsx_component_useTask$_segment_0_12v231gyiwsit",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -215,11 +217,11 @@ export const component_useTask$_segment_0 = async ({ cleanup }) => {
   ]
 }
 */
-============================= src/component.tsx_component_useVisibleTask$_segment_1.js (ENTRY POINT)==
+============================= src/component.tsx_component_useVisibleTask$_segment_1_97oyhe0qyjrq.js (ENTRY POINT)==
 
 import { _captures, _await } from '@qwik.dev/core';
 
-export const component_useVisibleTask$_segment_1 = async () => {
+export const component_useVisibleTask$_segment_1_97oyhe0qyjrq = async () => {
   const count = _captures[0];
   (await _await(Promise.resolve()))();
   count.value;
@@ -227,11 +229,11 @@ export const component_useVisibleTask$_segment_1 = async () => {
 /*
 {
   "origin": "component.tsx",
-  "name": "component_useVisibleTask$_segment_1",
+  "name": "component_useVisibleTask$_segment_1_97oyhe0qyjrq",
   "entry": null,
   "displayName": "component_useVisibleTask$_segment_1",
-  "hash": "segment_1",
-  "canonicalFilename": "component.tsx_component_useVisibleTask$_segment_1",
+  "hash": "97oyhe0qyjrq",
+  "canonicalFilename": "component.tsx_component_useVisibleTask$_segment_1_97oyhe0qyjrq",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

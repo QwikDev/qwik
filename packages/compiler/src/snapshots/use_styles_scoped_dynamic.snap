@@ -26,18 +26,22 @@ import {
   _qrlWithChunk,
 } from '@qwik.dev/core';
 import styles from './app.css?inline';
-import { use_styles_scoped_dynamic_class_segment_1 } from './use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_1';
+import { use_styles_scoped_dynamic_class_segment_1_3grhh2wv1i202 } from './use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_1_3grhh2wv1i202';
 
-const q_use_styles_scoped_dynamic_class_segment_1 = /*#__PURE__*/ _qrlWithChunk(
-  './use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_1',
-  () => import('./use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_1'),
-  'use_styles_scoped_dynamic_class_segment_1'
+const q_use_styles_scoped_dynamic_class_segment_1_3grhh2wv1i202 = /*#__PURE__*/ _qrlWithChunk(
+  './use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_1_3grhh2wv1i202',
+  () =>
+    import('./use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_1_3grhh2wv1i202'),
+  'use_styles_scoped_dynamic_class_segment_1_3grhh2wv1i202'
 );
-q_use_styles_scoped_dynamic_class_segment_1.s(use_styles_scoped_dynamic_class_segment_1);
-const q_use_styles_scoped_dynamic_q_e_click_segment_2 = /*#__PURE__*/ _qrlWithChunk(
-  './use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_q_e_click_segment_2',
-  () => import('./use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_q_e_click_segment_2'),
-  'use_styles_scoped_dynamic_q_e_click_segment_2'
+q_use_styles_scoped_dynamic_class_segment_1_3grhh2wv1i202.s(
+  use_styles_scoped_dynamic_class_segment_1_3grhh2wv1i202
+);
+const q_use_styles_scoped_dynamic_q_e_click_segment_2_29fz3rp7gjtvv = /*#__PURE__*/ _qrlWithChunk(
+  './use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_q_e_click_segment_2_29fz3rp7gjtvv',
+  () =>
+    import('./use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_q_e_click_segment_2_29fz3rp7gjtvv'),
+  'use_styles_scoped_dynamic_q_e_click_segment_2_29fz3rp7gjtvv'
 );
 export function App(props, ctx) {
   useStylesScoped(styles, 'gtgvab-0');
@@ -48,7 +52,7 @@ export function App(props, ctx) {
     createSsrElementTarget(id0),
     'class',
     [active],
-    q_use_styles_scoped_dynamic_class_segment_1,
+    q_use_styles_scoped_dynamic_class_segment_1_3grhh2wv1i202,
     undefined,
     '⚡️gtgvab-0'
   );
@@ -59,15 +63,18 @@ export function App(props, ctx) {
       createSsrNodeId(id0),
       '"',
       attr1 === null ? '' : ' class' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
-      ctx.eventAttr('q-e:click', q_use_styles_scoped_dynamic_q_e_click_segment_2.w([active])),
+      ctx.eventAttr(
+        'q-e:click',
+        q_use_styles_scoped_dynamic_q_e_click_segment_2_29fz3rp7gjtvv.w([active])
+      ),
       '>'
     ),
     'Toggle</button>',
   ]);
 }
-============================= src/use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_1.js (ENTRY POINT)==
+============================= src/use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_1_3grhh2wv1i202.js (ENTRY POINT)==
 
-export const use_styles_scoped_dynamic_class_segment_1 = (active) => {
+export const use_styles_scoped_dynamic_class_segment_1_3grhh2wv1i202 = (active) => {
   return {
     container: true,
     active: active.value,
@@ -76,11 +83,11 @@ export const use_styles_scoped_dynamic_class_segment_1 = (active) => {
 /*
 {
   "origin": "use-styles-scoped-dynamic.tsx",
-  "name": "use_styles_scoped_dynamic_class_segment_1",
+  "name": "use_styles_scoped_dynamic_class_segment_1_3grhh2wv1i202",
   "entry": null,
   "displayName": "use_styles_scoped_dynamic_class_segment_1",
-  "hash": "segment_1",
-  "canonicalFilename": "use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_1",
+  "hash": "3grhh2wv1i202",
+  "canonicalFilename": "use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_1_3grhh2wv1i202",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -96,22 +103,22 @@ export const use_styles_scoped_dynamic_class_segment_1 = (active) => {
   ]
 }
 */
-============================= src/use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_q_e_click_segment_2.js (ENTRY POINT)==
+============================= src/use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_q_e_click_segment_2_29fz3rp7gjtvv.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';
 
-export const use_styles_scoped_dynamic_q_e_click_segment_2 = () => {
+export const use_styles_scoped_dynamic_q_e_click_segment_2_29fz3rp7gjtvv = () => {
   const active = _captures[0];
   return (active.value = true);
 };
 /*
 {
   "origin": "use-styles-scoped-dynamic.tsx",
-  "name": "use_styles_scoped_dynamic_q_e_click_segment_2",
+  "name": "use_styles_scoped_dynamic_q_e_click_segment_2_29fz3rp7gjtvv",
   "entry": null,
   "displayName": "use_styles_scoped_dynamic_q_e_click_segment_2",
-  "hash": "segment_2",
-  "canonicalFilename": "use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_q_e_click_segment_2",
+  "hash": "29fz3rp7gjtvv",
+  "canonicalFilename": "use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_q_e_click_segment_2_29fz3rp7gjtvv",
   "extension": "js",
   "parent": null,
   "ctxKind": "eventHandler",
@@ -143,8 +150,8 @@ import {
   createTemplate,
 } from '@qwik.dev/core';
 import styles from './app.css?inline';
-import { use_styles_scoped_dynamic_class_segment_1 } from './use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_1';
-import { use_styles_scoped_dynamic_q_e_click_segment_2 } from './use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_q_e_click_segment_2';
+import { use_styles_scoped_dynamic_class_segment_1_3grhh2wv1i202 } from './use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_1_3grhh2wv1i202';
+import { use_styles_scoped_dynamic_q_e_click_segment_2_29fz3rp7gjtvv } from './use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_q_e_click_segment_2_29fz3rp7gjtvv';
 
 const App_tmpl0 = createTemplate('<button class="⚡️gtgvab-0">Toggle</button>');
 export function App(props, ctx) {
@@ -156,17 +163,17 @@ export function App(props, ctx) {
     el0,
     'class',
     [active],
-    use_styles_scoped_dynamic_class_segment_1,
+    use_styles_scoped_dynamic_class_segment_1_3grhh2wv1i202,
     ctx.scheduler,
     '⚡️gtgvab-0'
   );
   ctx.scheduler.notify(effect0);
-  setEvent(el0, 'q-e:click', use_styles_scoped_dynamic_q_e_click_segment_2, [active]);
+  setEvent(el0, 'q-e:click', use_styles_scoped_dynamic_q_e_click_segment_2_29fz3rp7gjtvv, [active]);
   return el0;
 }
-============================= src/use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_1.js (ENTRY POINT)==
+============================= src/use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_1_3grhh2wv1i202.js (ENTRY POINT)==
 
-export const use_styles_scoped_dynamic_class_segment_1 = (active) => {
+export const use_styles_scoped_dynamic_class_segment_1_3grhh2wv1i202 = (active) => {
   return {
     container: true,
     active: active.value,
@@ -175,11 +182,11 @@ export const use_styles_scoped_dynamic_class_segment_1 = (active) => {
 /*
 {
   "origin": "use-styles-scoped-dynamic.tsx",
-  "name": "use_styles_scoped_dynamic_class_segment_1",
+  "name": "use_styles_scoped_dynamic_class_segment_1_3grhh2wv1i202",
   "entry": null,
   "displayName": "use_styles_scoped_dynamic_class_segment_1",
-  "hash": "segment_1",
-  "canonicalFilename": "use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_1",
+  "hash": "3grhh2wv1i202",
+  "canonicalFilename": "use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_1_3grhh2wv1i202",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -195,22 +202,22 @@ export const use_styles_scoped_dynamic_class_segment_1 = (active) => {
   ]
 }
 */
-============================= src/use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_q_e_click_segment_2.js (ENTRY POINT)==
+============================= src/use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_q_e_click_segment_2_29fz3rp7gjtvv.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';
 
-export const use_styles_scoped_dynamic_q_e_click_segment_2 = () => {
+export const use_styles_scoped_dynamic_q_e_click_segment_2_29fz3rp7gjtvv = () => {
   const active = _captures[0];
   return (active.value = true);
 };
 /*
 {
   "origin": "use-styles-scoped-dynamic.tsx",
-  "name": "use_styles_scoped_dynamic_q_e_click_segment_2",
+  "name": "use_styles_scoped_dynamic_q_e_click_segment_2_29fz3rp7gjtvv",
   "entry": null,
   "displayName": "use_styles_scoped_dynamic_q_e_click_segment_2",
-  "hash": "segment_2",
-  "canonicalFilename": "use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_q_e_click_segment_2",
+  "hash": "29fz3rp7gjtvv",
+  "canonicalFilename": "use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_q_e_click_segment_2_29fz3rp7gjtvv",
   "extension": "js",
   "parent": null,
   "ctxKind": "eventHandler",

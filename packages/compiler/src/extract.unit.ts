@@ -88,7 +88,7 @@ export const App = () => {
     expect(segment).toMatchObject({
       id: 'segment_0',
       parentId: null,
-      name: 'component_q_e_click_segment_0',
+      name: expect.stringMatching(/^component_q_e_click_segment_0_[a-z0-9]+$/),
       kind: 'event',
       ctxName: 'onClick$',
       captures: [{ name: 'count', source: 'local' }],
@@ -177,7 +177,7 @@ export function App() {
     expect(extracted.segments).toHaveLength(1);
     expect(extracted.segments[0]).toMatchObject({
       id: 'segment_0',
-      name: 'component_useTask$_segment_0',
+      name: expect.stringMatching(/^component_useTask\$_segment_0_[a-z0-9]+$/),
       kind: 'qrl',
       ctxName: 'useTask$',
       captures: [{ name: 'count', source: 'local' }],
@@ -194,7 +194,7 @@ export function App() {
 
     expect(extracted.segments).toHaveLength(1);
     expect(extracted.segments[0]).toMatchObject({
-      name: 'component_useTask$_segment_0',
+      name: expect.stringMatching(/^component_useTask\$_segment_0_[a-z0-9]+$/),
       ctxName: 'useTask$',
       qrl: {
         kind: 'implicit',

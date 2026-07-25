@@ -46,21 +46,21 @@ import {
   maybeThen,
   _qrlWithChunk,
 } from '@qwik.dev/core';
-import { component_text_segment_0 } from './component.tsx_component_text_segment_0';
-import { component_props_segment_1 } from './component.tsx_component_props_segment_1';
+import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
+import { component_props_segment_1_208o0sfi1se76 } from './component.tsx_component_props_segment_1_208o0sfi1se76';
 
-const q_component_text_segment_0 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_text_segment_0',
-  () => import('./component.tsx_component_text_segment_0'),
-  'component_text_segment_0'
+const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_text_segment_0_1fh10fbkzokfc',
+  () => import('./component.tsx_component_text_segment_0_1fh10fbkzokfc'),
+  'component_text_segment_0_1fh10fbkzokfc'
 );
-q_component_text_segment_0.s(component_text_segment_0);
-const q_component_props_segment_1 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_props_segment_1',
-  () => import('./component.tsx_component_props_segment_1'),
-  'component_props_segment_1'
+q_component_text_segment_0_1fh10fbkzokfc.s(component_text_segment_0_1fh10fbkzokfc);
+const q_component_props_segment_1_208o0sfi1se76 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_props_segment_1_208o0sfi1se76',
+  () => import('./component.tsx_component_props_segment_1_208o0sfi1se76'),
+  'component_props_segment_1_208o0sfi1se76'
 );
-q_component_props_segment_1.s(component_props_segment_1);
+q_component_props_segment_1_208o0sfi1se76.s(component_props_segment_1_208o0sfi1se76);
 
 export function Field(props, ctx) {
   const { label, ...rest } = props;
@@ -71,7 +71,7 @@ export function Field(props, ctx) {
   const text1 = renderSsrTextExpression(
     createSsrRangeTextTarget(id0, 0),
     [props],
-    q_component_text_segment_0
+    q_component_text_segment_0_1fh10fbkzokfc
   );
   const props3 = () =>
     invoke(invokeCtx4, () => {
@@ -79,7 +79,7 @@ export function Field(props, ctx) {
       return renderSsrProps(
         createSsrElementTarget(id2),
         [props],
-        q_component_props_segment_1,
+        q_component_props_segment_1_208o0sfi1se76,
         ctx.eventAttr
       );
     });
@@ -100,11 +100,11 @@ export function Field(props, ctx) {
 /*
 {
   "origin": "component.tsx",
-  "name": "component_Field",
+  "name": "component_Field_3b8gbm6d8rn81",
   "entry": null,
   "displayName": "component_Field",
-  "hash": "component_Field",
-  "canonicalFilename": "component.tsx_component_Field",
+  "hash": "3b8gbm6d8rn81",
+  "canonicalFilename": "component.tsx_component_Field_3b8gbm6d8rn81",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -119,20 +119,20 @@ export function Field(props, ctx) {
   ]
 }
 */
-============================= src/component.tsx_component_text_segment_0.js (ENTRY POINT)==
+============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
 
-export const component_text_segment_0 = (props) => {
+export const component_text_segment_0_1fh10fbkzokfc = (props) => {
   const { label, ...rest } = props;
   return label;
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_text_segment_0",
+  "name": "component_text_segment_0_1fh10fbkzokfc",
   "entry": null,
   "displayName": "component_text_segment_0",
-  "hash": "segment_0",
-  "canonicalFilename": "component.tsx_component_text_segment_0",
+  "hash": "1fh10fbkzokfc",
+  "canonicalFilename": "component.tsx_component_text_segment_0_1fh10fbkzokfc",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -148,20 +148,20 @@ export const component_text_segment_0 = (props) => {
   ]
 }
 */
-============================= src/component.tsx_component_props_segment_1.js (ENTRY POINT)==
+============================= src/component.tsx_component_props_segment_1_208o0sfi1se76.js (ENTRY POINT)==
 
 import { _qrlWithChunk } from '@qwik.dev/core';
-const q_component_q_e_input_segment_2 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_q_e_input_segment_2',
-  () => import('./component.tsx_component_q_e_input_segment_2'),
-  'component_q_e_input_segment_2'
+const q_component_q_e_input_segment_2_2g2zxvycvpkld = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_q_e_input_segment_2_2g2zxvycvpkld',
+  () => import('./component.tsx_component_q_e_input_segment_2_2g2zxvycvpkld'),
+  'component_q_e_input_segment_2_2g2zxvycvpkld'
 );
 
-export const component_props_segment_1 = (props) => {
+export const component_props_segment_1_208o0sfi1se76 = (props) => {
   const { label, ...rest } = props;
   return {
     get onInput$() {
-      return q_component_q_e_input_segment_2;
+      return q_component_q_e_input_segment_2_2g2zxvycvpkld;
     },
     ...rest,
   };
@@ -169,11 +169,11 @@ export const component_props_segment_1 = (props) => {
 /*
 {
   "origin": "component.tsx",
-  "name": "component_props_segment_1",
+  "name": "component_props_segment_1_208o0sfi1se76",
   "entry": null,
   "displayName": "component_props_segment_1",
-  "hash": "segment_1",
-  "canonicalFilename": "component.tsx_component_props_segment_1",
+  "hash": "208o0sfi1se76",
+  "canonicalFilename": "component.tsx_component_props_segment_1_208o0sfi1se76",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -189,19 +189,19 @@ export const component_props_segment_1 = (props) => {
   ]
 }
 */
-============================= src/component.tsx_component_q_e_input_segment_2.js (ENTRY POINT)==
+============================= src/component.tsx_component_q_e_input_segment_2_2g2zxvycvpkld.js (ENTRY POINT)==
 
-export const component_q_e_input_segment_2 = () => {
+export const component_q_e_input_segment_2_2g2zxvycvpkld = () => {
   return console.log('input');
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_q_e_input_segment_2",
+  "name": "component_q_e_input_segment_2_2g2zxvycvpkld",
   "entry": null,
   "displayName": "component_q_e_input_segment_2",
-  "hash": "segment_2",
-  "canonicalFilename": "component.tsx_component_q_e_input_segment_2",
+  "hash": "2g2zxvycvpkld",
+  "canonicalFilename": "component.tsx_component_q_e_input_segment_2_2g2zxvycvpkld",
   "extension": "js",
   "parent": null,
   "ctxKind": "eventHandler",
@@ -245,9 +245,9 @@ import {
   createPropsEffect,
   createTemplate,
 } from '@qwik.dev/core';
-import { component_text_segment_0 } from './component.tsx_component_text_segment_0';
-import { component_props_segment_1 } from './component.tsx_component_props_segment_1';
-import { component_q_e_input_segment_2 } from './component.tsx_component_q_e_input_segment_2';
+import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
+import { component_props_segment_1_208o0sfi1se76 } from './component.tsx_component_props_segment_1_208o0sfi1se76';
+import { component_q_e_input_segment_2_2g2zxvycvpkld } from './component.tsx_component_q_e_input_segment_2_2g2zxvycvpkld';
 
 const Field_tmpl0 = createTemplate('<label><!----><input></label>');
 
@@ -262,14 +262,14 @@ export function Field(props, ctx) {
   const effect0 = createTextExpressionEffect(
     text0,
     [props],
-    component_text_segment_0,
+    component_text_segment_0_1fh10fbkzokfc,
     ctx.scheduler
   );
   ctx.scheduler.notify(effect0);
   const effect1 = createPropsEffect(
     el1,
-    [props, component_q_e_input_segment_2],
-    component_props_segment_1,
+    [props, component_q_e_input_segment_2_2g2zxvycvpkld],
+    component_props_segment_1_208o0sfi1se76,
     ctx.scheduler
   );
   ctx.scheduler.waitFor(effect1.run());
@@ -278,11 +278,11 @@ export function Field(props, ctx) {
 /*
 {
   "origin": "component.tsx",
-  "name": "component_Field",
+  "name": "component_Field_3b8gbm6d8rn81",
   "entry": null,
   "displayName": "component_Field",
-  "hash": "component_Field",
-  "canonicalFilename": "component.tsx_component_Field",
+  "hash": "3b8gbm6d8rn81",
+  "canonicalFilename": "component.tsx_component_Field_3b8gbm6d8rn81",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -297,20 +297,20 @@ export function Field(props, ctx) {
   ]
 }
 */
-============================= src/component.tsx_component_text_segment_0.js (ENTRY POINT)==
+============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
 
-export const component_text_segment_0 = (props) => {
+export const component_text_segment_0_1fh10fbkzokfc = (props) => {
   const { label, ...rest } = props;
   return label;
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_text_segment_0",
+  "name": "component_text_segment_0_1fh10fbkzokfc",
   "entry": null,
   "displayName": "component_text_segment_0",
-  "hash": "segment_0",
-  "canonicalFilename": "component.tsx_component_text_segment_0",
+  "hash": "1fh10fbkzokfc",
+  "canonicalFilename": "component.tsx_component_text_segment_0_1fh10fbkzokfc",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -326,9 +326,9 @@ export const component_text_segment_0 = (props) => {
   ]
 }
 */
-============================= src/component.tsx_component_props_segment_1.js (ENTRY POINT)==
+============================= src/component.tsx_component_props_segment_1_208o0sfi1se76.js (ENTRY POINT)==
 
-export const component_props_segment_1 = (props, __qwikBoundary) => {
+export const component_props_segment_1_208o0sfi1se76 = (props, __qwikBoundary) => {
   const { label, ...rest } = props;
   return {
     get onInput$() {
@@ -340,11 +340,11 @@ export const component_props_segment_1 = (props, __qwikBoundary) => {
 /*
 {
   "origin": "component.tsx",
-  "name": "component_props_segment_1",
+  "name": "component_props_segment_1_208o0sfi1se76",
   "entry": null,
   "displayName": "component_props_segment_1",
-  "hash": "segment_1",
-  "canonicalFilename": "component.tsx_component_props_segment_1",
+  "hash": "208o0sfi1se76",
+  "canonicalFilename": "component.tsx_component_props_segment_1_208o0sfi1se76",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -360,19 +360,19 @@ export const component_props_segment_1 = (props, __qwikBoundary) => {
   ]
 }
 */
-============================= src/component.tsx_component_q_e_input_segment_2.js (ENTRY POINT)==
+============================= src/component.tsx_component_q_e_input_segment_2_2g2zxvycvpkld.js (ENTRY POINT)==
 
-export const component_q_e_input_segment_2 = () => {
+export const component_q_e_input_segment_2_2g2zxvycvpkld = () => {
   return console.log('input');
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_q_e_input_segment_2",
+  "name": "component_q_e_input_segment_2_2g2zxvycvpkld",
   "entry": null,
   "displayName": "component_q_e_input_segment_2",
-  "hash": "segment_2",
-  "canonicalFilename": "component.tsx_component_q_e_input_segment_2",
+  "hash": "2g2zxvycvpkld",
+  "canonicalFilename": "component.tsx_component_q_e_input_segment_2_2g2zxvycvpkld",
   "extension": "js",
   "parent": null,
   "ctxKind": "eventHandler",

@@ -26,20 +26,20 @@ import {
   maybeThen,
   _qrlWithChunk,
 } from '@qwik.dev/core';
-const q_component_$_segment_0 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_$_segment_0',
-  () => import('./component.tsx_component_$_segment_0'),
-  'component_$_segment_0'
+const q_component_$_segment_0_1lv589sf1qw9f = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_$_segment_0_1lv589sf1qw9f',
+  () => import('./component.tsx_component_$_segment_0_1lv589sf1qw9f'),
+  'component_$_segment_0_1lv589sf1qw9f'
 );
-const q_component_$_segment_1 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_$_segment_1',
-  () => import('./component.tsx_component_$_segment_1'),
-  'component_$_segment_1'
+const q_component_$_segment_1_1lv57vrb4wu8w = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_$_segment_1_1lv57vrb4wu8w',
+  () => import('./component.tsx_component_$_segment_1_1lv57vrb4wu8w'),
+  'component_$_segment_1_1lv57vrb4wu8w'
 );
 export function App(props, ctx) {
   const count = useSignal(0);
-  useOn('click', q_component_$_segment_0.w([count]));
-  useOnDocument('qinit', q_component_$_segment_1.w([count]), {
+  useOn('click', q_component_$_segment_0_1lv589sf1qw9f.w([count]));
+  useOnDocument('qinit', q_component_$_segment_1_1lv57vrb4wu8w.w([count]), {
     capture: true,
     preventdefault: true,
   });
@@ -52,22 +52,22 @@ export function App(props, ctx) {
     '</button>',
   ]);
 }
-============================= src/component.tsx_component_$_segment_0.js (ENTRY POINT)==
+============================= src/component.tsx_component_$_segment_0_1lv589sf1qw9f.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';
 
-export const component_$_segment_0 = () => {
+export const component_$_segment_0_1lv589sf1qw9f = () => {
   const count = _captures[0];
   return count.value++;
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_$_segment_0",
+  "name": "component_$_segment_0_1lv589sf1qw9f",
   "entry": null,
   "displayName": "component_$_segment_0",
-  "hash": "segment_0",
-  "canonicalFilename": "component.tsx_component_$_segment_0",
+  "hash": "1lv589sf1qw9f",
+  "canonicalFilename": "component.tsx_component_$_segment_0_1lv589sf1qw9f",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -83,22 +83,22 @@ export const component_$_segment_0 = () => {
   ]
 }
 */
-============================= src/component.tsx_component_$_segment_1.js (ENTRY POINT)==
+============================= src/component.tsx_component_$_segment_1_1lv57vrb4wu8w.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';
 
-export const component_$_segment_1 = () => {
+export const component_$_segment_1_1lv57vrb4wu8w = () => {
   const count = _captures[0];
   return (count.value += 2);
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_$_segment_1",
+  "name": "component_$_segment_1_1lv57vrb4wu8w",
   "entry": null,
   "displayName": "component_$_segment_1",
-  "hash": "segment_1",
-  "canonicalFilename": "component.tsx_component_$_segment_1",
+  "hash": "1lv57vrb4wu8w",
+  "canonicalFilename": "component.tsx_component_$_segment_1_1lv57vrb4wu8w",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -130,14 +130,14 @@ import {
   createTextNodeEffect,
   createTemplate,
 } from '@qwik.dev/core';
-import { component_$_segment_0 } from './component.tsx_component_$_segment_0';
-import { component_$_segment_1 } from './component.tsx_component_$_segment_1';
+import { component_$_segment_0_1lv589sf1qw9f } from './component.tsx_component_$_segment_0_1lv589sf1qw9f';
+import { component_$_segment_1_1lv57vrb4wu8w } from './component.tsx_component_$_segment_1_1lv57vrb4wu8w';
 
 const App_tmpl0 = createTemplate('<button> </button>');
 export function App(props, ctx) {
   const count = useSignal(0);
-  useOn('click', _withCaptures(component_$_segment_0, [count]));
-  useOnDocument('qinit', _withCaptures(component_$_segment_1, [count]), {
+  useOn('click', _withCaptures(component_$_segment_0_1lv589sf1qw9f, [count]));
+  useOnDocument('qinit', _withCaptures(component_$_segment_1_1lv57vrb4wu8w, [count]), {
     capture: true,
     preventdefault: true,
   });
@@ -148,22 +148,22 @@ export function App(props, ctx) {
   ctx.scheduler.notify(effect0);
   return el0;
 }
-============================= src/component.tsx_component_$_segment_0.js (ENTRY POINT)==
+============================= src/component.tsx_component_$_segment_0_1lv589sf1qw9f.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';
 
-export const component_$_segment_0 = () => {
+export const component_$_segment_0_1lv589sf1qw9f = () => {
   const count = _captures[0];
   return count.value++;
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_$_segment_0",
+  "name": "component_$_segment_0_1lv589sf1qw9f",
   "entry": null,
   "displayName": "component_$_segment_0",
-  "hash": "segment_0",
-  "canonicalFilename": "component.tsx_component_$_segment_0",
+  "hash": "1lv589sf1qw9f",
+  "canonicalFilename": "component.tsx_component_$_segment_0_1lv589sf1qw9f",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -179,22 +179,22 @@ export const component_$_segment_0 = () => {
   ]
 }
 */
-============================= src/component.tsx_component_$_segment_1.js (ENTRY POINT)==
+============================= src/component.tsx_component_$_segment_1_1lv57vrb4wu8w.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';
 
-export const component_$_segment_1 = () => {
+export const component_$_segment_1_1lv57vrb4wu8w = () => {
   const count = _captures[0];
   return (count.value += 2);
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_$_segment_1",
+  "name": "component_$_segment_1_1lv57vrb4wu8w",
   "entry": null,
   "displayName": "component_$_segment_1",
-  "hash": "segment_1",
-  "canonicalFilename": "component.tsx_component_$_segment_1",
+  "hash": "1lv57vrb4wu8w",
+  "canonicalFilename": "component.tsx_component_$_segment_1_1lv57vrb4wu8w",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

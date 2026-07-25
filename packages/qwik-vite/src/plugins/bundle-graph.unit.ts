@@ -360,6 +360,33 @@ describe('convertManifestToBundleGraph', () => {
     `);
   });
 
+  test('rejects duplicate segment hashes', () => {
+    const segment = outputBundles.segments[0];
+    const generate = (segments: typeof outputBundles.segments) =>
+      generateManifestFromBundles(
+        path as any,
+        segments as any,
+        [],
+        {} as any,
+        { rootDir: '/', outDir: '/' } as any,
+        console.error,
+        (value) => value
+      );
+
+    expect(() => generate([segment, segment])).toThrow(
+      `Duplicate Qwik segment hash "${segment.hash}"`
+    );
+    expect(() => generate([segment, { ...segment, name: `duplicate_${segment.hash}` }])).toThrow(
+      `Duplicate Qwik segment hash "${segment.hash}"`
+    );
+    expect(() => generate([{ ...segment, hash: 'wrong' }])).toThrow(
+      `declares an invalid hash "wrong"`
+    );
+    expect(() => generate([{ ...segment, name: 'generated_chk', hash: 'chk' }])).toThrow(
+      `Duplicate Qwik segment hash "chk" from "_chk"`
+    );
+  });
+
   test('maps core symbols to the public handlers facade', () => {
     const chunk = (fileName: string, name: string, moduleId: string, exports: string[]) => ({
       type: 'chunk',

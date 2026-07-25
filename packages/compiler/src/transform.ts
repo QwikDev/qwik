@@ -65,6 +65,12 @@ import type {
   TransformResult,
   SegmentPlan,
 } from './plan-types';
+import {
+  getSegmentDisplayName,
+  createSegmentSourceIdentity,
+  createSegmentSymbolName,
+  getSegmentSymbolHash,
+} from './segment-identity';
 import { QWIK_IMPORT } from './words';
 import {
   createModuleBoundaryPlan,
@@ -93,7 +99,7 @@ export function transformModule(ctx: CompilerContext): TransformResult {
     return { kind: 'not-applicable' };
   }
   const analysis = analyzeModule(program);
-  const extractedQrls = extractQrls(program, ctx.input.path, analysis);
+  const extractedQrls = extractQrls(program, ctx.input.path, analysis, ctx.options.scope);
   const candidates = discoverComponentCandidates(program, analysis);
   if (
     candidates.length === 0 &&
@@ -479,6 +485,7 @@ export function transformModule(ctx: CompilerContext): TransformResult {
         segment: createComponentAnalysis(
           component.output.component,
           ctx.input.path,
+          ctx.options.scope,
           mapMetadataRange(ctx)
         ),
       })
@@ -1613,19 +1620,24 @@ function transformFailure(
 function createComponentAnalysis(
   component: ComponentDefinition,
   inputPath: string,
+  scope: string | undefined,
   mapRange: (range: SourceRange) => SourceRange
 ): SegmentAnalysis {
   const inputName = basename(inputPath);
   const sourceName = inputName.replace(/\.[cm]?[jt]sx?$/, '');
   const componentName =
     component.exportName === 'default' ? (component.localName ?? 'default') : component.exportName;
-  const name = sanitizeIdentifier(`${sourceName}_${componentName}`);
+  const name = createSegmentSymbolName(
+    createSegmentSourceIdentity(inputPath, scope),
+    sanitizeIdentifier(`${sourceName}_${componentName}`),
+    'component'
+  );
   return {
     origin: inputName,
     name,
     entry: null,
-    displayName: name,
-    hash: name,
+    displayName: getSegmentDisplayName(name),
+    hash: getSegmentSymbolHash(name),
     canonicalFilename: `${inputName}_${name}`,
     extension: 'js',
     parent: null,

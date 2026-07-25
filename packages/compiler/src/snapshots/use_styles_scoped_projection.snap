@@ -28,24 +28,29 @@ import {
   createComponent,
   _qrlWithChunk,
 } from '@qwik.dev/core';
-import { use_styles_scoped_projection_slot_render_segment_2 } from './use-styles-scoped-projection.tsx_use_styles_scoped_projection_slot_render_segment_2';
+import { use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy } from './use-styles-scoped-projection.tsx_use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy';
 import { Child } from './use-styles-scoped-projection.tsx_component_Child';
 
-const q_use_styles_scoped_projection_slot_render_segment_2 = /*#__PURE__*/ _qrlWithChunk(
-  './use-styles-scoped-projection.tsx_use_styles_scoped_projection_slot_render_segment_2',
-  () =>
-    import('./use-styles-scoped-projection.tsx_use_styles_scoped_projection_slot_render_segment_2'),
-  'use_styles_scoped_projection_slot_render_segment_2'
-);
-q_use_styles_scoped_projection_slot_render_segment_2.s(
-  use_styles_scoped_projection_slot_render_segment_2
+const q_use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy =
+  /*#__PURE__*/ _qrlWithChunk(
+    './use-styles-scoped-projection.tsx_use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy',
+    () =>
+      import('./use-styles-scoped-projection.tsx_use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy'),
+    'use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy'
+  );
+q_use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy.s(
+  use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy
 );
 export { Child };
 export function App(props, ctx) {
   useStylesScoped(parentStyles, 'gtgvab-0');
   const slotScope0 = createSlotScope();
   ctx.addRoot(slotScope0);
-  registerProjection(slotScope0, '', q_use_styles_scoped_projection_slot_render_segment_2);
+  registerProjection(
+    slotScope0,
+    '',
+    q_use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy
+  );
   return createComponent({}, (props) => Child(props, ctx), { slotScope: slotScope0 });
 }
 ============================= src/use-styles-scoped-projection.tsx_component_Child.js (ENTRY POINT)==
@@ -71,11 +76,11 @@ export function Child(props, ctx) {
 /*
 {
   "origin": "use-styles-scoped-projection.tsx",
-  "name": "use_styles_scoped_projection_Child",
+  "name": "use_styles_scoped_projection_Child_2a2z4jsh27l5v",
   "entry": null,
   "displayName": "use_styles_scoped_projection_Child",
-  "hash": "use_styles_scoped_projection_Child",
-  "canonicalFilename": "use-styles-scoped-projection.tsx_use_styles_scoped_projection_Child",
+  "hash": "2a2z4jsh27l5v",
+  "canonicalFilename": "use-styles-scoped-projection.tsx_use_styles_scoped_projection_Child_2a2z4jsh27l5v",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -88,11 +93,11 @@ export function Child(props, ctx) {
   "paramNames": []
 }
 */
-============================= src/use-styles-scoped-projection.tsx_use_styles_scoped_projection_slot_render_segment_2.js (ENTRY POINT)==
+============================= src/use-styles-scoped-projection.tsx_use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy.js (ENTRY POINT)==
 
 import { createSsrRecord, createSsrNodeId } from '@qwik.dev/core';
 
-export const use_styles_scoped_projection_slot_render_segment_2 = (ctx, rangeId) => {
+export const use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy = (ctx, rangeId) => {
   return [
     createSsrRecord('<!s=', createSsrNodeId(rangeId), '>'),
     '<span class="⚡️gtgvab-0 projected">Projected</span><!/s>',
@@ -101,11 +106,11 @@ export const use_styles_scoped_projection_slot_render_segment_2 = (ctx, rangeId)
 /*
 {
   "origin": "use-styles-scoped-projection.tsx",
-  "name": "use_styles_scoped_projection_slot_render_segment_2",
+  "name": "use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy",
   "entry": null,
   "displayName": "use_styles_scoped_projection_slot_render_segment_2",
-  "hash": "segment_2",
-  "canonicalFilename": "use-styles-scoped-projection.tsx_use_styles_scoped_projection_slot_render_segment_2",
+  "hash": "ltuwbe4740jy",
+  "canonicalFilename": "use-styles-scoped-projection.tsx_use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -133,13 +138,17 @@ import {
   registerProjection,
   createComponent,
 } from '@qwik.dev/core';
-import { use_styles_scoped_projection_slot_render_segment_2 } from './use-styles-scoped-projection.tsx_use_styles_scoped_projection_slot_render_segment_2';
+import { use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy } from './use-styles-scoped-projection.tsx_use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy';
 import { Child } from './use-styles-scoped-projection.tsx_component_Child';
 export { Child };
 export function App(props, ctx) {
   useStylesScoped(parentStyles, 'gtgvab-0');
   const slotScope0 = createSlotScope();
-  registerProjection(slotScope0, '', use_styles_scoped_projection_slot_render_segment_2);
+  registerProjection(
+    slotScope0,
+    '',
+    use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy
+  );
   return createComponent({}, (props) => Child(props, ctx), { slotScope: slotScope0 });
 }
 ============================= src/use-styles-scoped-projection.tsx_component_Child.js (ENTRY POINT)==
@@ -172,11 +181,11 @@ export function Child(props, ctx) {
 /*
 {
   "origin": "use-styles-scoped-projection.tsx",
-  "name": "use_styles_scoped_projection_Child",
+  "name": "use_styles_scoped_projection_Child_2a2z4jsh27l5v",
   "entry": null,
   "displayName": "use_styles_scoped_projection_Child",
-  "hash": "use_styles_scoped_projection_Child",
-  "canonicalFilename": "use-styles-scoped-projection.tsx_use_styles_scoped_projection_Child",
+  "hash": "2a2z4jsh27l5v",
+  "canonicalFilename": "use-styles-scoped-projection.tsx_use_styles_scoped_projection_Child_2a2z4jsh27l5v",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -189,26 +198,28 @@ export function Child(props, ctx) {
   "paramNames": []
 }
 */
-============================= src/use-styles-scoped-projection.tsx_use_styles_scoped_projection_slot_render_segment_2.js (ENTRY POINT)==
+============================= src/use-styles-scoped-projection.tsx_use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy.js (ENTRY POINT)==
 
 import { _first, createTemplate } from '@qwik.dev/core';
-const use_styles_scoped_projection_slot_render_segment_2_tmpl0 = createTemplate(
+const use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy_tmpl0 = createTemplate(
   '<span class="⚡️gtgvab-0 projected">Projected</span>'
 );
 
-export const use_styles_scoped_projection_slot_render_segment_2 = (ctx) => {
-  const fragment0 = use_styles_scoped_projection_slot_render_segment_2_tmpl0(ctx.document);
+export const use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy = (ctx) => {
+  const fragment0 = use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy_tmpl0(
+    ctx.document
+  );
   const el0 = _first(fragment0);
   return el0;
 };
 /*
 {
   "origin": "use-styles-scoped-projection.tsx",
-  "name": "use_styles_scoped_projection_slot_render_segment_2",
+  "name": "use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy",
   "entry": null,
   "displayName": "use_styles_scoped_projection_slot_render_segment_2",
-  "hash": "segment_2",
-  "canonicalFilename": "use-styles-scoped-projection.tsx_use_styles_scoped_projection_slot_render_segment_2",
+  "hash": "ltuwbe4740jy",
+  "canonicalFilename": "use-styles-scoped-projection.tsx_use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

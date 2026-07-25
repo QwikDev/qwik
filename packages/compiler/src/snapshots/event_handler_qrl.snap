@@ -10,35 +10,35 @@ export function App() {
 
 import { createSsrElementRecord, _qrlWithChunk } from '@qwik.dev/core';
 
-const q_component_q_e_click_segment_0 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_q_e_click_segment_0',
-  () => import('./component.tsx_component_q_e_click_segment_0'),
-  'component_q_e_click_segment_0'
+const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz',
+  () => import('./component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz'),
+  'component_q_e_click_segment_0_2xwyg1cinvmpz'
 );
 export function App(props, ctx) {
   return [
     createSsrElementRecord(
       'button',
       '<button',
-      ctx.eventAttr('q-e:click', q_component_q_e_click_segment_0),
+      ctx.eventAttr('q-e:click', q_component_q_e_click_segment_0_2xwyg1cinvmpz),
       '>'
     ),
     'Click</button>',
   ];
 }
-============================= src/component.tsx_component_q_e_click_segment_0.js (ENTRY POINT)==
+============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
 
-export const component_q_e_click_segment_0 = (ev) => {
+export const component_q_e_click_segment_0_2xwyg1cinvmpz = (ev) => {
   return console.log(ev.type);
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_q_e_click_segment_0",
+  "name": "component_q_e_click_segment_0_2xwyg1cinvmpz",
   "entry": null,
   "displayName": "component_q_e_click_segment_0",
-  "hash": "segment_0",
-  "canonicalFilename": "component.tsx_component_q_e_click_segment_0",
+  "hash": "2xwyg1cinvmpz",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz",
   "extension": "js",
   "parent": null,
   "ctxKind": "eventHandler",
@@ -61,28 +61,28 @@ export const component_q_e_click_segment_0 = (ev) => {
 ============================= src/component.tsx ==
 
 import { _first, setEvent, createTemplate } from '@qwik.dev/core';
-import { component_q_e_click_segment_0 } from './component.tsx_component_q_e_click_segment_0';
+import { component_q_e_click_segment_0_2xwyg1cinvmpz } from './component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz';
 
 const App_tmpl0 = createTemplate('<button>Click</button>');
 export function App(props, ctx) {
   const fragment0 = App_tmpl0(ctx.document);
   const el0 = _first(fragment0);
-  setEvent(el0, 'q-e:click', component_q_e_click_segment_0);
+  setEvent(el0, 'q-e:click', component_q_e_click_segment_0_2xwyg1cinvmpz);
   return el0;
 }
-============================= src/component.tsx_component_q_e_click_segment_0.js (ENTRY POINT)==
+============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
 
-export const component_q_e_click_segment_0 = (ev) => {
+export const component_q_e_click_segment_0_2xwyg1cinvmpz = (ev) => {
   return console.log(ev.type);
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_q_e_click_segment_0",
+  "name": "component_q_e_click_segment_0_2xwyg1cinvmpz",
   "entry": null,
   "displayName": "component_q_e_click_segment_0",
-  "hash": "segment_0",
-  "canonicalFilename": "component.tsx_component_q_e_click_segment_0",
+  "hash": "2xwyg1cinvmpz",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz",
   "extension": "js",
   "parent": null,
   "ctxKind": "eventHandler",

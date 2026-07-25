@@ -32,21 +32,21 @@ import {
   maybeThen,
   _qrlWithChunk,
 } from '@qwik.dev/core';
-import { component_props_segment_0 } from './component.tsx_component_props_segment_0';
-import { component_props_segment_1 } from './component.tsx_component_props_segment_1';
+import { component_props_segment_0_208o16glymg7p } from './component.tsx_component_props_segment_0_208o16glymg7p';
+import { component_props_segment_1_208o0sfi1se76 } from './component.tsx_component_props_segment_1_208o0sfi1se76';
 
-const q_component_props_segment_0 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_props_segment_0',
-  () => import('./component.tsx_component_props_segment_0'),
-  'component_props_segment_0'
+const q_component_props_segment_0_208o16glymg7p = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_props_segment_0_208o16glymg7p',
+  () => import('./component.tsx_component_props_segment_0_208o16glymg7p'),
+  'component_props_segment_0_208o16glymg7p'
 );
-q_component_props_segment_0.s(component_props_segment_0);
-const q_component_props_segment_1 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_props_segment_1',
-  () => import('./component.tsx_component_props_segment_1'),
-  'component_props_segment_1'
+q_component_props_segment_0_208o16glymg7p.s(component_props_segment_0_208o16glymg7p);
+const q_component_props_segment_1_208o0sfi1se76 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_props_segment_1_208o0sfi1se76',
+  () => import('./component.tsx_component_props_segment_1_208o0sfi1se76'),
+  'component_props_segment_1_208o0sfi1se76'
 );
-q_component_props_segment_1.s(component_props_segment_1);
+q_component_props_segment_1_208o0sfi1se76.s(component_props_segment_1_208o0sfi1se76);
 export function App(props, ctx) {
   const first = useSignal('first');
   const second = useSignal('second');
@@ -63,7 +63,7 @@ export function App(props, ctx) {
       return renderSsrProps(
         createSsrElementTarget(id2),
         [first, props],
-        q_component_props_segment_0,
+        q_component_props_segment_0_208o16glymg7p,
         ctx.eventAttr
       );
     });
@@ -74,7 +74,7 @@ export function App(props, ctx) {
       return renderSsrProps(
         createSsrElementTarget(id4),
         [props, second],
-        q_component_props_segment_1,
+        q_component_props_segment_1_208o0sfi1se76,
         ctx.eventAttr
       );
     });
@@ -101,9 +101,9 @@ export function App(props, ctx) {
     })
   );
 }
-============================= src/component.tsx_component_props_segment_0.js (ENTRY POINT)==
+============================= src/component.tsx_component_props_segment_0_208o16glymg7p.js (ENTRY POINT)==
 
-export const component_props_segment_0 = (first, props) => {
+export const component_props_segment_0_208o16glymg7p = (first, props) => {
   return {
     get 'bind:value'() {
       return first;
@@ -114,11 +114,11 @@ export const component_props_segment_0 = (first, props) => {
 /*
 {
   "origin": "component.tsx",
-  "name": "component_props_segment_0",
+  "name": "component_props_segment_0_208o16glymg7p",
   "entry": null,
   "displayName": "component_props_segment_0",
-  "hash": "segment_0",
-  "canonicalFilename": "component.tsx_component_props_segment_0",
+  "hash": "208o16glymg7p",
+  "canonicalFilename": "component.tsx_component_props_segment_0_208o16glymg7p",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -135,9 +135,9 @@ export const component_props_segment_0 = (first, props) => {
   ]
 }
 */
-============================= src/component.tsx_component_props_segment_1.js (ENTRY POINT)==
+============================= src/component.tsx_component_props_segment_1_208o0sfi1se76.js (ENTRY POINT)==
 
-export const component_props_segment_1 = (props, second) => {
+export const component_props_segment_1_208o0sfi1se76 = (props, second) => {
   return {
     ...props.rest,
     get 'bind:value'() {
@@ -148,11 +148,11 @@ export const component_props_segment_1 = (props, second) => {
 /*
 {
   "origin": "component.tsx",
-  "name": "component_props_segment_1",
+  "name": "component_props_segment_1_208o0sfi1se76",
   "entry": null,
   "displayName": "component_props_segment_1",
-  "hash": "segment_1",
-  "canonicalFilename": "component.tsx_component_props_segment_1",
+  "hash": "208o0sfi1se76",
+  "canonicalFilename": "component.tsx_component_props_segment_1_208o0sfi1se76",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -187,8 +187,8 @@ import {
   createPropsEffect,
   createTemplate,
 } from '@qwik.dev/core';
-import { component_props_segment_0 } from './component.tsx_component_props_segment_0';
-import { component_props_segment_1 } from './component.tsx_component_props_segment_1';
+import { component_props_segment_0_208o16glymg7p } from './component.tsx_component_props_segment_0_208o16glymg7p';
+import { component_props_segment_1_208o0sfi1se76 } from './component.tsx_component_props_segment_1_208o0sfi1se76';
 
 const App_tmpl0 = createTemplate('<input title="known"><input><input>');
 export function App(props, ctx) {
@@ -201,15 +201,25 @@ export function App(props, ctx) {
   const effect0 = createAttrEffect(el0, 'value', first, ctx.scheduler);
   ctx.scheduler.notify(effect0);
   setEvent(el0, 'q-e:input', inlinedQrl(_val, '_val', [first]));
-  const effect1 = createPropsEffect(el1, [first, props], component_props_segment_0, ctx.scheduler);
+  const effect1 = createPropsEffect(
+    el1,
+    [first, props],
+    component_props_segment_0_208o16glymg7p,
+    ctx.scheduler
+  );
   ctx.scheduler.waitFor(effect1.run());
-  const effect2 = createPropsEffect(el2, [props, second], component_props_segment_1, ctx.scheduler);
+  const effect2 = createPropsEffect(
+    el2,
+    [props, second],
+    component_props_segment_1_208o0sfi1se76,
+    ctx.scheduler
+  );
   ctx.scheduler.waitFor(effect2.run());
   return [el0, el1, el2];
 }
-============================= src/component.tsx_component_props_segment_0.js (ENTRY POINT)==
+============================= src/component.tsx_component_props_segment_0_208o16glymg7p.js (ENTRY POINT)==
 
-export const component_props_segment_0 = (first, props) => {
+export const component_props_segment_0_208o16glymg7p = (first, props) => {
   return {
     get 'bind:value'() {
       return first;
@@ -220,11 +230,11 @@ export const component_props_segment_0 = (first, props) => {
 /*
 {
   "origin": "component.tsx",
-  "name": "component_props_segment_0",
+  "name": "component_props_segment_0_208o16glymg7p",
   "entry": null,
   "displayName": "component_props_segment_0",
-  "hash": "segment_0",
-  "canonicalFilename": "component.tsx_component_props_segment_0",
+  "hash": "208o16glymg7p",
+  "canonicalFilename": "component.tsx_component_props_segment_0_208o16glymg7p",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -241,9 +251,9 @@ export const component_props_segment_0 = (first, props) => {
   ]
 }
 */
-============================= src/component.tsx_component_props_segment_1.js (ENTRY POINT)==
+============================= src/component.tsx_component_props_segment_1_208o0sfi1se76.js (ENTRY POINT)==
 
-export const component_props_segment_1 = (props, second) => {
+export const component_props_segment_1_208o0sfi1se76 = (props, second) => {
   return {
     ...props.rest,
     get 'bind:value'() {
@@ -254,11 +264,11 @@ export const component_props_segment_1 = (props, second) => {
 /*
 {
   "origin": "component.tsx",
-  "name": "component_props_segment_1",
+  "name": "component_props_segment_1_208o0sfi1se76",
   "entry": null,
   "displayName": "component_props_segment_1",
-  "hash": "segment_1",
-  "canonicalFilename": "component.tsx_component_props_segment_1",
+  "hash": "208o0sfi1se76",
+  "canonicalFilename": "component.tsx_component_props_segment_1_208o0sfi1se76",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

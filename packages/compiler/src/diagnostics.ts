@@ -1,10 +1,14 @@
 import type { Diagnostic } from '@qwik.dev/optimizer';
 
-export function createDiagnostic(file: string, message: string): Diagnostic {
+export function createDiagnostic(
+  file: string,
+  message: string,
+  code: string | null = 'unsupported'
+): Diagnostic {
   return {
     scope: 'compiler',
     category: 'error',
-    code: 'unsupported',
+    code,
     file,
     message,
     highlights: null,

@@ -1,4 +1,6 @@
 import type {
+  Diagnostic,
+  TransformModule,
   TransformModuleInput,
   TransformModulesOptions,
   TransformOutput,
@@ -7,19 +9,50 @@ import { parseSync } from 'oxc-parser';
 import { createModule, isJsxPath, isTypeScriptPath, transformWithOxc } from './module-utils';
 import { mapDiagnosticsToOriginal, normalizeTransformInput } from './normalization';
 import { parseModule } from './parse';
+import { createDiagnostic } from './diagnostics';
 import type { CompilerContext, CompilerResult } from './types';
 import { transformModule } from './transform';
 
 /** @public */
 export async function transformModules(options: TransformModulesOptions): Promise<TransformOutput> {
   const results = await Promise.all(options.input.map((input) => transformInput(input, options)));
+  const modules = results.flatMap((result) => result.modules);
 
   return {
-    modules: results.flatMap((result) => result.modules),
-    diagnostics: results.flatMap((result) => result.diagnostics),
+    modules,
+    diagnostics: [
+      ...results.flatMap((result) => result.diagnostics),
+      ...findDuplicateSegmentDiagnostics(modules),
+    ],
     isTypeScript: options.input.some((input) => isTypeScriptPath(input.path)),
     isJsx: options.input.some((input) => isJsxPath(input.path)),
   };
+}
+
+function findDuplicateSegmentDiagnostics(modules: readonly TransformModule[]): Diagnostic[] {
+  const names = new Map<string, TransformModule>();
+  const hashes = new Map<string, TransformModule>();
+  const diagnostics: Diagnostic[] = [];
+  for (const module of modules) {
+    const segment = module.segment;
+    if (segment === null) {
+      continue;
+    }
+    const previous = names.get(segment.name) ?? hashes.get(segment.hash);
+    if (previous !== undefined) {
+      diagnostics.push(
+        createDiagnostic(
+          module.origPath ?? module.path,
+          `Segment identity "${segment.name}" conflicts with ${previous.origPath ?? previous.path}.`,
+          'duplicate-segment'
+        )
+      );
+      continue;
+    }
+    names.set(segment.name, module);
+    hashes.set(segment.hash, module);
+  }
+  return diagnostics;
 }
 
 /** @internal */

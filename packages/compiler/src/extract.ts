@@ -31,6 +31,7 @@ import type {
   Segment,
   SegmentPropsPartPlan,
 } from './plan-types';
+import { createSegmentSourceIdentity, createSegmentSymbolName } from './segment-identity';
 import { QWIK_CORE_IMPORT, QWIK_IMPORT, QwikHooks } from './words';
 
 interface SegmentState {
@@ -48,9 +49,12 @@ interface QrlCallee {
 export function extractQrls(
   program: Program,
   path: string,
-  analysis: ModuleAnalysis = analyzeModule(program)
+  analysis: ModuleAnalysis = analyzeModule(program),
+  scope?: string
 ): ExtractedQrls {
-  return new QrlExtractor(path, analysis).extract(program);
+  return new QrlExtractor(path, analysis, createSegmentSourceIdentity(path, scope)).extract(
+    program
+  );
 }
 
 export function isSetupQrlSegment(segment: {
@@ -74,7 +78,8 @@ class QrlExtractor {
 
   constructor(
     private readonly path: string,
-    private readonly analysis: ModuleAnalysis
+    private readonly analysis: ModuleAnalysis,
+    private readonly sourceIdentity: string
   ) {
     this.bindings = new Map(analysis.bindings.map((binding) => [binding.id, binding]));
     this.references = new Map(
@@ -92,6 +97,7 @@ class QrlExtractor {
       }
     }
     return {
+      sourceIdentity: this.sourceIdentity,
       analysis: this.analysis,
       segments: this.segments,
       moduleDeclarations: this.moduleDeclarations,
@@ -695,7 +701,7 @@ class QrlExtractor {
     const segment: Segment = {
       id,
       parentId: this.segmentStack[this.segmentStack.length - 1]?.segment.id ?? null,
-      name: createSegmentName(this.path, ctxName, id),
+      name: createSegmentName(this.path, this.sourceIdentity, ctxName, id),
       kind,
       ctxName,
       qrl: null,
@@ -756,7 +762,7 @@ class QrlExtractor {
     const segment: Segment = {
       id,
       parentId: this.segmentStack[this.segmentStack.length - 1]?.segment.id ?? null,
-      name: createSegmentName(this.path, eventName ?? ctxName, id),
+      name: createSegmentName(this.path, this.sourceIdentity, eventName ?? ctxName, id),
       kind: eventName === null ? 'qrl' : 'event',
       ctxName,
       qrl,
@@ -795,7 +801,7 @@ class QrlExtractor {
     const segment: Segment = {
       id,
       parentId: this.segmentStack[this.segmentStack.length - 1]?.segment.id ?? null,
-      name: createSegmentName(this.path, callee.name, id),
+      name: createSegmentName(this.path, this.sourceIdentity, callee.name, id),
       kind: 'qrl',
       ctxName: callee.name,
       qrl: callee.boundary,
@@ -1236,11 +1242,20 @@ const ITERATION_METHODS = new Set([
   'reduceRight',
 ]);
 
-function createSegmentName(path: string, ctxName: string, id: string): string {
+function createSegmentName(
+  path: string,
+  sourceIdentity: string,
+  ctxName: string,
+  id: string
+): string {
   const slash = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
   const filename = slash === -1 ? path : path.slice(slash + 1);
   const sourceName = filename.replace(/\.[cm]?[jt]sx?$/, '');
-  return sanitizeIdentifier(`${sourceName}_${ctxName}_${id}`);
+  return createSegmentSymbolName(
+    sourceIdentity,
+    sanitizeIdentifier(`${sourceName}_${ctxName}_${id}`),
+    'extracted'
+  );
 }
 
 function sanitizeIdentifier(value: string): string {

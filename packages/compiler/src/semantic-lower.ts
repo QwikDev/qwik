@@ -54,6 +54,7 @@ import type {
   ValuePlan,
 } from './plan-types';
 import { QWIK_CORE_IMPORT, QWIK_IMPORT, QwikHooks } from './words';
+import { createSegmentSymbolName } from './segment-identity';
 import { createExtractedSegmentPlan } from './segment-plan';
 
 export type SemanticLowerFailureCode =
@@ -1563,7 +1564,7 @@ class SemanticLowerer {
     });
     return {
       id,
-      symbolName: id,
+      symbolName: createSegmentSymbolName(this.extracted.sourceIdentity, id, 'synthetic'),
       parentId: this.renderSegmentStack[this.renderSegmentStack.length - 1] ?? null,
       kind,
       ctxName: kind === 'collectionRender' ? 'collection:render' : kind,

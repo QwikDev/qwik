@@ -31,15 +31,15 @@ import {
   maybeThen,
   _qrlWithChunk,
 } from '@qwik.dev/core';
-const q_component_q_e_input_segment_1 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_q_e_input_segment_1',
-  () => import('./component.tsx_component_q_e_input_segment_1'),
-  'component_q_e_input_segment_1'
+const q_component_q_e_input_segment_1_2g2zwpv157ejs = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_q_e_input_segment_1_2g2zwpv157ejs',
+  () => import('./component.tsx_component_q_e_input_segment_1_2g2zwpv157ejs'),
+  'component_q_e_input_segment_1_2g2zwpv157ejs'
 );
-const q_component_q_e_input_segment_2 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_q_e_input_segment_2',
-  () => import('./component.tsx_component_q_e_input_segment_2'),
-  'component_q_e_input_segment_2'
+const q_component_q_e_input_segment_2_2g2zxvycvpkld = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_q_e_input_segment_2_2g2zxvycvpkld',
+  () => import('./component.tsx_component_q_e_input_segment_2_2g2zxvycvpkld'),
+  'component_q_e_input_segment_2_2g2zxvycvpkld'
 );
 export function App(props, ctx) {
   const value = useSignal('');
@@ -65,7 +65,7 @@ export function App(props, ctx) {
         attr1 === null ? '' : ' value' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
         ctx.eventAttr('q-e:input', [
           inlinedQrl(_val, '_val', [value]),
-          q_component_q_e_input_segment_1,
+          q_component_q_e_input_segment_1_2g2zwpv157ejs,
         ]),
         '>'
       ),
@@ -74,7 +74,7 @@ export function App(props, ctx) {
         createSsrNodeId(id2),
         '"',
         ctx.eventAttr('q-e:input', [
-          q_component_q_e_input_segment_2,
+          q_component_q_e_input_segment_2_2g2zxvycvpkld,
           inlinedQrl(_chk, '_chk', [checked]),
         ]),
         attr3 === null ? '' : ' checked' + (attr3 === '' ? '' : '="' + escapeHTML(attr3) + '"'),
@@ -83,19 +83,19 @@ export function App(props, ctx) {
     ])
   );
 }
-============================= src/component.tsx_component_q_e_input_segment_1.js (ENTRY POINT)==
+============================= src/component.tsx_component_q_e_input_segment_1_2g2zwpv157ejs.js (ENTRY POINT)==
 
-export const component_q_e_input_segment_1 = () => {
+export const component_q_e_input_segment_1_2g2zwpv157ejs = () => {
   return console.log('after');
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_q_e_input_segment_1",
+  "name": "component_q_e_input_segment_1_2g2zwpv157ejs",
   "entry": null,
   "displayName": "component_q_e_input_segment_1",
-  "hash": "segment_1",
-  "canonicalFilename": "component.tsx_component_q_e_input_segment_1",
+  "hash": "2g2zwpv157ejs",
+  "canonicalFilename": "component.tsx_component_q_e_input_segment_1_2g2zwpv157ejs",
   "extension": "js",
   "parent": null,
   "ctxKind": "eventHandler",
@@ -108,19 +108,19 @@ export const component_q_e_input_segment_1 = () => {
   "paramNames": []
 }
 */
-============================= src/component.tsx_component_q_e_input_segment_2.js (ENTRY POINT)==
+============================= src/component.tsx_component_q_e_input_segment_2_2g2zxvycvpkld.js (ENTRY POINT)==
 
-export const component_q_e_input_segment_2 = () => {
+export const component_q_e_input_segment_2_2g2zxvycvpkld = () => {
   return console.log('before');
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_q_e_input_segment_2",
+  "name": "component_q_e_input_segment_2_2g2zxvycvpkld",
   "entry": null,
   "displayName": "component_q_e_input_segment_2",
-  "hash": "segment_2",
-  "canonicalFilename": "component.tsx_component_q_e_input_segment_2",
+  "hash": "2g2zxvycvpkld",
+  "canonicalFilename": "component.tsx_component_q_e_input_segment_2_2g2zxvycvpkld",
   "extension": "js",
   "parent": null,
   "ctxKind": "eventHandler",
@@ -151,8 +151,8 @@ import {
   _chk,
   createTemplate,
 } from '@qwik.dev/core';
-import { component_q_e_input_segment_1 } from './component.tsx_component_q_e_input_segment_1';
-import { component_q_e_input_segment_2 } from './component.tsx_component_q_e_input_segment_2';
+import { component_q_e_input_segment_1_2g2zwpv157ejs } from './component.tsx_component_q_e_input_segment_1_2g2zwpv157ejs';
+import { component_q_e_input_segment_2_2g2zxvycvpkld } from './component.tsx_component_q_e_input_segment_2_2g2zxvycvpkld';
 
 const App_tmpl0 = createTemplate('<input><input>');
 export function App(props, ctx) {
@@ -163,25 +163,31 @@ export function App(props, ctx) {
   const el1 = _next(el0);
   const effect0 = createAttrEffect(el0, 'value', value, ctx.scheduler);
   ctx.scheduler.notify(effect0);
-  setEvent(el0, 'q-e:input', [inlinedQrl(_val, '_val', [value]), component_q_e_input_segment_1]);
-  setEvent(el1, 'q-e:input', [component_q_e_input_segment_2, inlinedQrl(_chk, '_chk', [checked])]);
+  setEvent(el0, 'q-e:input', [
+    inlinedQrl(_val, '_val', [value]),
+    component_q_e_input_segment_1_2g2zwpv157ejs,
+  ]);
+  setEvent(el1, 'q-e:input', [
+    component_q_e_input_segment_2_2g2zxvycvpkld,
+    inlinedQrl(_chk, '_chk', [checked]),
+  ]);
   const effect1 = createAttrEffect(el1, 'checked', checked, ctx.scheduler);
   ctx.scheduler.notify(effect1);
   return [el0, el1];
 }
-============================= src/component.tsx_component_q_e_input_segment_1.js (ENTRY POINT)==
+============================= src/component.tsx_component_q_e_input_segment_1_2g2zwpv157ejs.js (ENTRY POINT)==
 
-export const component_q_e_input_segment_1 = () => {
+export const component_q_e_input_segment_1_2g2zwpv157ejs = () => {
   return console.log('after');
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_q_e_input_segment_1",
+  "name": "component_q_e_input_segment_1_2g2zwpv157ejs",
   "entry": null,
   "displayName": "component_q_e_input_segment_1",
-  "hash": "segment_1",
-  "canonicalFilename": "component.tsx_component_q_e_input_segment_1",
+  "hash": "2g2zwpv157ejs",
+  "canonicalFilename": "component.tsx_component_q_e_input_segment_1_2g2zwpv157ejs",
   "extension": "js",
   "parent": null,
   "ctxKind": "eventHandler",
@@ -194,19 +200,19 @@ export const component_q_e_input_segment_1 = () => {
   "paramNames": []
 }
 */
-============================= src/component.tsx_component_q_e_input_segment_2.js (ENTRY POINT)==
+============================= src/component.tsx_component_q_e_input_segment_2_2g2zxvycvpkld.js (ENTRY POINT)==
 
-export const component_q_e_input_segment_2 = () => {
+export const component_q_e_input_segment_2_2g2zxvycvpkld = () => {
   return console.log('before');
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_q_e_input_segment_2",
+  "name": "component_q_e_input_segment_2_2g2zxvycvpkld",
   "entry": null,
   "displayName": "component_q_e_input_segment_2",
-  "hash": "segment_2",
-  "canonicalFilename": "component.tsx_component_q_e_input_segment_2",
+  "hash": "2g2zxvycvpkld",
+  "canonicalFilename": "component.tsx_component_q_e_input_segment_2_2g2zxvycvpkld",
   "extension": "js",
   "parent": null,
   "ctxKind": "eventHandler",

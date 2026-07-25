@@ -18,18 +18,23 @@ import {
   maybeThen,
   _qrlWithChunk,
 } from '@qwik.dev/core';
-import { semantic_expression_104_127 } from './component.tsx_semantic_expression_104_127';
+import { semantic_expression_104_127_3po7a59ojefo5 } from './component.tsx_semantic_expression_104_127_3po7a59ojefo5';
 
-const q_semantic_expression_104_127 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_semantic_expression_104_127',
-  () => import('./component.tsx_semantic_expression_104_127'),
-  'semantic_expression_104_127'
+const q_semantic_expression_104_127_3po7a59ojefo5 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_semantic_expression_104_127_3po7a59ojefo5',
+  () => import('./component.tsx_semantic_expression_104_127_3po7a59ojefo5'),
+  'semantic_expression_104_127_3po7a59ojefo5'
 );
-q_semantic_expression_104_127.s(semantic_expression_104_127);
+q_semantic_expression_104_127_3po7a59ojefo5.s(semantic_expression_104_127_3po7a59ojefo5);
 export function App(props, ctx) {
   const contentId0 = ctx.nextId();
   ctx.addRoot(props);
-  const content1 = renderSsrContent(ctx, contentId0, [props], q_semantic_expression_104_127);
+  const content1 = renderSsrContent(
+    ctx,
+    contentId0,
+    [props],
+    q_semantic_expression_104_127_3po7a59ojefo5
+  );
   return maybeThen(content1, (content1) => [
     createSsrElementRecord('section', '<section', '>'),
     '<b>Before</b>',
@@ -38,21 +43,21 @@ export function App(props, ctx) {
     '<!/d><i>After</i></section>',
   ]);
 }
-============================= src/component.tsx_semantic_expression_104_127.js (ENTRY POINT)==
+============================= src/component.tsx_semantic_expression_104_127_3po7a59ojefo5.js (ENTRY POINT)==
 
 import { renderItem } from './render-item';
 
-export const semantic_expression_104_127 = (props) => {
+export const semantic_expression_104_127_3po7a59ojefo5 = (props) => {
   return renderItem(props.value);
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "semantic_expression_104_127",
+  "name": "semantic_expression_104_127_3po7a59ojefo5",
   "entry": null,
   "displayName": "semantic_expression_104_127",
-  "hash": "semantic_expression_104_127",
-  "canonicalFilename": "component.tsx_semantic_expression_104_127",
+  "hash": "3po7a59ojefo5",
+  "canonicalFilename": "component.tsx_semantic_expression_104_127_3po7a59ojefo5",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -76,7 +81,7 @@ export const semantic_expression_104_127 = (props) => {
 ============================= src/component.tsx ==
 
 import { _first, _next, createContentBlock, createTemplate } from '@qwik.dev/core';
-import { semantic_expression_104_127 } from './component.tsx_semantic_expression_104_127';
+import { semantic_expression_104_127_3po7a59ojefo5 } from './component.tsx_semantic_expression_104_127_3po7a59ojefo5';
 
 const App_tmpl0 = createTemplate('<section><b>Before</b><!----><!----><i>After</i></section>');
 export function App(props, ctx) {
@@ -84,25 +89,31 @@ export function App(props, ctx) {
   const el0 = _first(fragment0);
   const start0 = _next(_first(el0));
   const end0 = _next(start0);
-  const content0 = createContentBlock(ctx, start0, end0, [props], semantic_expression_104_127);
+  const content0 = createContentBlock(
+    ctx,
+    start0,
+    end0,
+    [props],
+    semantic_expression_104_127_3po7a59ojefo5
+  );
   ctx.scheduler.notify(content0);
   return el0;
 }
-============================= src/component.tsx_semantic_expression_104_127.js (ENTRY POINT)==
+============================= src/component.tsx_semantic_expression_104_127_3po7a59ojefo5.js (ENTRY POINT)==
 
 import { renderItem } from './render-item';
 
-export const semantic_expression_104_127 = (props) => {
+export const semantic_expression_104_127_3po7a59ojefo5 = (props) => {
   return renderItem(props.value);
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "semantic_expression_104_127",
+  "name": "semantic_expression_104_127_3po7a59ojefo5",
   "entry": null,
   "displayName": "semantic_expression_104_127",
-  "hash": "semantic_expression_104_127",
-  "canonicalFilename": "component.tsx_semantic_expression_104_127",
+  "hash": "3po7a59ojefo5",
+  "canonicalFilename": "component.tsx_semantic_expression_104_127_3po7a59ojefo5",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

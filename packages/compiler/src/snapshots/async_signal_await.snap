@@ -27,17 +27,19 @@ import {
   maybeThen,
   _qrlWithChunk,
 } from '@qwik.dev/core';
-import { component_useAsync$_segment_0 } from './component.tsx_component_useAsync$_segment_0';
+import { component_useAsync$_segment_0_1yzaaw1sggq4w } from './component.tsx_component_useAsync$_segment_0_1yzaaw1sggq4w';
 
-const q_component_useAsync$_segment_0 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_useAsync$_segment_0',
-  () => import('./component.tsx_component_useAsync$_segment_0'),
-  'component_useAsync$_segment_0'
+const q_component_useAsync$_segment_0_1yzaaw1sggq4w = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_useAsync$_segment_0_1yzaaw1sggq4w',
+  () => import('./component.tsx_component_useAsync$_segment_0_1yzaaw1sggq4w'),
+  'component_useAsync$_segment_0_1yzaaw1sggq4w'
 );
-q_component_useAsync$_segment_0.s(component_useAsync$_segment_0);
+q_component_useAsync$_segment_0_1yzaaw1sggq4w.s(component_useAsync$_segment_0_1yzaaw1sggq4w);
 export function App(props, ctx) {
   const count = useSignal(0);
-  const data = useAsyncQrl(q_component_useAsync$_segment_0.w([count]), { initial: 0 });
+  const data = useAsyncQrl(q_component_useAsync$_segment_0_1yzaaw1sggq4w.w([count]), {
+    initial: 0,
+  });
   const id0 = ctx.nextId();
   ctx.addRoot(data);
   const text1 = renderSsrTextNode(createSsrElementTextTarget(id0), data);
@@ -47,11 +49,11 @@ export function App(props, ctx) {
     '</button>',
   ]);
 }
-============================= src/component.tsx_component_useAsync$_segment_0.js (ENTRY POINT)==
+============================= src/component.tsx_component_useAsync$_segment_0_1yzaaw1sggq4w.js (ENTRY POINT)==
 
 import { _captures, _await } from '@qwik.dev/core';
 
-export const component_useAsync$_segment_0 = async () => {
+export const component_useAsync$_segment_0_1yzaaw1sggq4w = async () => {
   const count = _captures[0];
   const before = count.value;
   (await _await(Promise.resolve()))();
@@ -60,11 +62,11 @@ export const component_useAsync$_segment_0 = async () => {
 /*
 {
   "origin": "component.tsx",
-  "name": "component_useAsync$_segment_0",
+  "name": "component_useAsync$_segment_0_1yzaaw1sggq4w",
   "entry": null,
   "displayName": "component_useAsync$_segment_0",
-  "hash": "segment_0",
-  "canonicalFilename": "component.tsx_component_useAsync$_segment_0",
+  "hash": "1yzaaw1sggq4w",
+  "canonicalFilename": "component.tsx_component_useAsync$_segment_0_1yzaaw1sggq4w",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -95,12 +97,14 @@ import {
   createTextNodeEffect,
   createTemplate,
 } from '@qwik.dev/core';
-import { component_useAsync$_segment_0 } from './component.tsx_component_useAsync$_segment_0';
+import { component_useAsync$_segment_0_1yzaaw1sggq4w } from './component.tsx_component_useAsync$_segment_0_1yzaaw1sggq4w';
 
 const App_tmpl0 = createTemplate('<button> </button>');
 export function App(props, ctx) {
   const count = useSignal(0);
-  const data = useAsync(_withCaptures(component_useAsync$_segment_0, [count]), { initial: 0 });
+  const data = useAsync(_withCaptures(component_useAsync$_segment_0_1yzaaw1sggq4w, [count]), {
+    initial: 0,
+  });
   const fragment0 = App_tmpl0(ctx.document);
   const el0 = _first(fragment0);
   const text0 = _first(el0);
@@ -108,11 +112,11 @@ export function App(props, ctx) {
   ctx.scheduler.notify(effect0);
   return el0;
 }
-============================= src/component.tsx_component_useAsync$_segment_0.js (ENTRY POINT)==
+============================= src/component.tsx_component_useAsync$_segment_0_1yzaaw1sggq4w.js (ENTRY POINT)==
 
 import { _captures, _await } from '@qwik.dev/core';
 
-export const component_useAsync$_segment_0 = async () => {
+export const component_useAsync$_segment_0_1yzaaw1sggq4w = async () => {
   const count = _captures[0];
   const before = count.value;
   (await _await(Promise.resolve()))();
@@ -121,11 +125,11 @@ export const component_useAsync$_segment_0 = async () => {
 /*
 {
   "origin": "component.tsx",
-  "name": "component_useAsync$_segment_0",
+  "name": "component_useAsync$_segment_0_1yzaaw1sggq4w",
   "entry": null,
   "displayName": "component_useAsync$_segment_0",
-  "hash": "segment_0",
-  "canonicalFilename": "component.tsx_component_useAsync$_segment_0",
+  "hash": "1yzaaw1sggq4w",
+  "canonicalFilename": "component.tsx_component_useAsync$_segment_0_1yzaaw1sggq4w",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

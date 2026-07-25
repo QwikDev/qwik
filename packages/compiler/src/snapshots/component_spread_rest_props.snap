@@ -17,17 +17,20 @@ export function Parent() {
 import { mergeProps, createComponent, _qrlWithChunk } from '@qwik.dev/core';
 import { Button } from './component.tsx_component_Button';
 
-const q_component_q_e_click_segment_2 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_q_e_click_segment_2',
-  () => import('./component.tsx_component_q_e_click_segment_2'),
-  'component_q_e_click_segment_2'
+const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1',
+  () => import('./component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1'),
+  'component_q_e_click_segment_2_2xwygteqhjqr1'
 );
 export { Button };
 export function Parent(props, ctx) {
   const attrs = { title: 'Save' };
   const label = 'clicked';
   return createComponent(
-    mergeProps(attrs, { kind: 'primary', onClick$: q_component_q_e_click_segment_2.w([label]) }),
+    mergeProps(attrs, {
+      kind: 'primary',
+      onClick$: q_component_q_e_click_segment_2_2xwygteqhjqr1.w([label]),
+    }),
     (props) => Button(props, ctx)
   );
 }
@@ -41,14 +44,14 @@ import {
   maybeThen,
   _qrlWithChunk,
 } from '@qwik.dev/core';
-import { component_props_segment_0 } from './component.tsx_component_props_segment_0';
+import { component_props_segment_0_208o16glymg7p } from './component.tsx_component_props_segment_0_208o16glymg7p';
 
-const q_component_props_segment_0 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_props_segment_0',
-  () => import('./component.tsx_component_props_segment_0'),
-  'component_props_segment_0'
+const q_component_props_segment_0_208o16glymg7p = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_props_segment_0_208o16glymg7p',
+  () => import('./component.tsx_component_props_segment_0_208o16glymg7p'),
+  'component_props_segment_0_208o16glymg7p'
 );
-q_component_props_segment_0.s(component_props_segment_0);
+q_component_props_segment_0_208o16glymg7p.s(component_props_segment_0_208o16glymg7p);
 
 export function Button(props, ctx) {
   const { kind, ...rest } = props;
@@ -57,7 +60,7 @@ export function Button(props, ctx) {
   const props1 = renderSsrProps(
     createSsrElementTarget(id0),
     [props],
-    q_component_props_segment_0,
+    q_component_props_segment_0_208o16glymg7p,
     ctx.eventAttr
   );
   return maybeThen(props1, (props1) => {
@@ -79,11 +82,11 @@ export function Button(props, ctx) {
 /*
 {
   "origin": "component.tsx",
-  "name": "component_Button",
+  "name": "component_Button_1fu029q1rsi67",
   "entry": null,
   "displayName": "component_Button",
-  "hash": "component_Button",
-  "canonicalFilename": "component.tsx_component_Button",
+  "hash": "1fu029q1rsi67",
+  "canonicalFilename": "component.tsx_component_Button_1fu029q1rsi67",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -98,9 +101,9 @@ export function Button(props, ctx) {
   ]
 }
 */
-============================= src/component.tsx_component_props_segment_0.js (ENTRY POINT)==
+============================= src/component.tsx_component_props_segment_0_208o16glymg7p.js (ENTRY POINT)==
 
-export const component_props_segment_0 = (props) => {
+export const component_props_segment_0_208o16glymg7p = (props) => {
   const { kind, ...rest } = props;
   return {
     ...rest,
@@ -112,11 +115,11 @@ export const component_props_segment_0 = (props) => {
 /*
 {
   "origin": "component.tsx",
-  "name": "component_props_segment_0",
+  "name": "component_props_segment_0_208o16glymg7p",
   "entry": null,
   "displayName": "component_props_segment_0",
-  "hash": "segment_0",
-  "canonicalFilename": "component.tsx_component_props_segment_0",
+  "hash": "208o16glymg7p",
+  "canonicalFilename": "component.tsx_component_props_segment_0_208o16glymg7p",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -133,22 +136,22 @@ export const component_props_segment_0 = (props) => {
   ]
 }
 */
-============================= src/component.tsx_component_q_e_click_segment_2.js (ENTRY POINT)==
+============================= src/component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';
 
-export const component_q_e_click_segment_2 = () => {
+export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
   const label = _captures[0];
   return label;
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_q_e_click_segment_2",
+  "name": "component_q_e_click_segment_2_2xwygteqhjqr1",
   "entry": null,
   "displayName": "component_q_e_click_segment_2",
-  "hash": "segment_2",
-  "canonicalFilename": "component.tsx_component_q_e_click_segment_2",
+  "hash": "2xwygteqhjqr1",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1",
   "extension": "js",
   "parent": null,
   "ctxKind": "eventHandler",
@@ -172,7 +175,7 @@ export const component_q_e_click_segment_2 = () => {
 ============================= src/component.tsx ==
 
 import { createComponent, _withCaptures, mergeProps } from '@qwik.dev/core';
-import { component_q_e_click_segment_2 } from './component.tsx_component_q_e_click_segment_2';
+import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
 import { Button } from './component.tsx_component_Button';
 export { Button };
 export function Parent(props, ctx) {
@@ -181,7 +184,7 @@ export function Parent(props, ctx) {
   return createComponent(
     mergeProps(attrs, {
       kind: 'primary',
-      onClick$: _withCaptures(component_q_e_click_segment_2, [label]),
+      onClick$: _withCaptures(component_q_e_click_segment_2_2xwygteqhjqr1, [label]),
     }),
     (props) => Button(props, ctx)
   );
@@ -189,7 +192,7 @@ export function Parent(props, ctx) {
 ============================= src/component.tsx_component_Button.js (ENTRY POINT)==
 
 import { _first, createPropsEffect, createTemplate } from '@qwik.dev/core';
-import { component_props_segment_0 } from './component.tsx_component_props_segment_0';
+import { component_props_segment_0_208o16glymg7p } from './component.tsx_component_props_segment_0_208o16glymg7p';
 
 const Button_tmpl0 = createTemplate('<button>Click</button>');
 
@@ -197,18 +200,23 @@ export function Button(props, ctx) {
   const { kind, ...rest } = props;
   const fragment0 = Button_tmpl0(ctx.document);
   const el0 = _first(fragment0);
-  const effect0 = createPropsEffect(el0, [props], component_props_segment_0, ctx.scheduler);
+  const effect0 = createPropsEffect(
+    el0,
+    [props],
+    component_props_segment_0_208o16glymg7p,
+    ctx.scheduler
+  );
   ctx.scheduler.waitFor(effect0.run());
   return el0;
 }
 /*
 {
   "origin": "component.tsx",
-  "name": "component_Button",
+  "name": "component_Button_1fu029q1rsi67",
   "entry": null,
   "displayName": "component_Button",
-  "hash": "component_Button",
-  "canonicalFilename": "component.tsx_component_Button",
+  "hash": "1fu029q1rsi67",
+  "canonicalFilename": "component.tsx_component_Button_1fu029q1rsi67",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -223,9 +231,9 @@ export function Button(props, ctx) {
   ]
 }
 */
-============================= src/component.tsx_component_props_segment_0.js (ENTRY POINT)==
+============================= src/component.tsx_component_props_segment_0_208o16glymg7p.js (ENTRY POINT)==
 
-export const component_props_segment_0 = (props) => {
+export const component_props_segment_0_208o16glymg7p = (props) => {
   const { kind, ...rest } = props;
   return {
     ...rest,
@@ -237,11 +245,11 @@ export const component_props_segment_0 = (props) => {
 /*
 {
   "origin": "component.tsx",
-  "name": "component_props_segment_0",
+  "name": "component_props_segment_0_208o16glymg7p",
   "entry": null,
   "displayName": "component_props_segment_0",
-  "hash": "segment_0",
-  "canonicalFilename": "component.tsx_component_props_segment_0",
+  "hash": "208o16glymg7p",
+  "canonicalFilename": "component.tsx_component_props_segment_0_208o16glymg7p",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -258,22 +266,22 @@ export const component_props_segment_0 = (props) => {
   ]
 }
 */
-============================= src/component.tsx_component_q_e_click_segment_2.js (ENTRY POINT)==
+============================= src/component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';
 
-export const component_q_e_click_segment_2 = () => {
+export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
   const label = _captures[0];
   return label;
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_q_e_click_segment_2",
+  "name": "component_q_e_click_segment_2_2xwygteqhjqr1",
   "entry": null,
   "displayName": "component_q_e_click_segment_2",
-  "hash": "segment_2",
-  "canonicalFilename": "component.tsx_component_q_e_click_segment_2",
+  "hash": "2xwygteqhjqr1",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1",
   "extension": "js",
   "parent": null,
   "ctxKind": "eventHandler",

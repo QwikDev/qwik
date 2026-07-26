@@ -362,6 +362,26 @@ test.describe('ErrorBoundary reset', () => {
     });
   }
 
+  test('reset on an always-throwing child re-derives the fallback client-side', async ({
+    page,
+  }) => {
+    assertNoBrowserErrors(page);
+    await page.goto(streamingUrl('rederive', true), { waitUntil: 'commit' });
+
+    await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: An error occurred');
+    // Server-fired onError$ never reaches the window sink.
+    expect(await page.evaluate(() => (window as any).__ebRederiveRuns ?? 0)).toBe(0);
+
+    await page.locator('#eb-reset').click();
+
+    // Client re-run re-throws: the re-derived error displays with dev fidelity.
+    await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: eb always boom', {
+      timeout: 10000,
+    });
+    await expect.poll(() => page.evaluate(() => (window as any).__ebRederiveRuns ?? 0)).toBe(1);
+  });
+
   test('client error: reset re-supplies the content interactively', async ({ page }) => {
     assertNoBrowserErrors(page);
     await page.goto('/e2e/error-boundary-streaming?scenario=reset-csr', { waitUntil: 'commit' });

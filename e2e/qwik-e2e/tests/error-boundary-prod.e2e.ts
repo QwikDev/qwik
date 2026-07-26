@@ -56,6 +56,25 @@ test.describe('ErrorBoundary prod build (qDev=false)', () => {
     await expect(page.locator('#eb-public-kind')).toHaveText('public:A1');
   });
 
+  test('reset on an always-throwing child re-derives the redacted fallback client-side', async ({
+    page,
+  }) => {
+    assertNoBrowserErrors(page);
+    await page.goto(prodUrl('rederive'), { waitUntil: 'commit' });
+
+    await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: An error occurred');
+
+    await page.locator('#eb-reset').click();
+
+    // The refire proves the client re-derived; display stays redacted.
+    await expect
+      .poll(() => page.evaluate(() => (window as any).__ebRederiveRuns ?? 0), { timeout: 10000 })
+      .toBe(1);
+    await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: An error occurred');
+    expect(await page.locator('body').innerText()).not.toContain('eb always boom');
+  });
+
   test('reset round-trips through the prod serializer and re-executes the children', async ({
     page,
   }) => {

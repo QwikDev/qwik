@@ -8,6 +8,7 @@ import {
   setPlatform,
   Slot,
   Suspense,
+  useComputed$,
   useSignal,
   useTask$,
   useVisibleTask$,
@@ -30,6 +31,7 @@ import {
   rerenderComponent,
 } from '../../testing/rendering.unit-util';
 import { delay } from '../shared/utils/promises';
+import { isServerPlatform } from '../shared/platform/platform';
 import {
   markBoundaryErrored,
   redactBoundaryErrorForDisplay,
@@ -1559,7 +1561,7 @@ describe('ErrorBoundary SSR→CSR cross-phase', () => {
     ['default', {}],
     ['opted-in OOOS', OOOS_OPT_IN],
   ] as const)(
-    '%s streaming: re-rendering an SSR-errored boundary drops the inert content, fallback stays',
+    '%s streaming: re-rendering an SSR-errored boundary re-runs the children and re-derives the fallback',
     async (_label, streamingOpts) => {
       const { container } = await ssrRenderToDom(
         <main>
@@ -1611,6 +1613,183 @@ describe('ErrorBoundary SSR→CSR cross-phase', () => {
 
     expect(el.querySelector('#fb-inner')).toBeTruthy();
     expect(el.querySelector('#fb-outer')).toBeFalsy();
+  });
+});
+
+describe('ErrorBoundary stateless wire', () => {
+  const WireSecretThrower = component$((): JSXOutput => {
+    throw new Error('wire-secret-boom');
+  });
+
+  it('an SSR-errored boundary serializes neither the error nor its message', async () => {
+    const { html, document } = await streamAndResume(
+      <main>
+        <ErrorBoundary
+          fallback$={$(() => (
+            <p id="fb">static fallback</p>
+          ))}
+        >
+          <WireSecretThrower />
+        </ErrorBoundary>
+      </main>
+    );
+    expect(document.querySelector('#fb')).toBeTruthy();
+    // The fallback displays nothing of it, so any hit is state.
+    expect(html).not.toContain('wire-secret-boom');
+  });
+
+  it('the boundary store serializes resetOwner and boundaryId, but no error key', async () => {
+    const { container } = await ssrRenderToDom(
+      <main>
+        <ErrorBoundary fallback$={fb()}>
+          <Thrower />
+        </ErrorBoundary>
+      </main>,
+      { debug }
+    );
+    const el = container.element;
+    const state = el.querySelector('script[type="qwik/state"]')!;
+    const rootCount = (JSON.parse(state.textContent!) as unknown[]).length / 2;
+    let store: Record<string, unknown> | undefined;
+    for (let i = 0; i < rootCount; i++) {
+      const root = container.$getObjectById$(i);
+      if (root && typeof root === 'object' && 'resetOwner' in root && 'boundaryId' in root) {
+        store = root as Record<string, unknown>;
+      }
+    }
+    expect(store).toBeDefined();
+    expect('error' in store!).toBe(false);
+  });
+
+  it('re-rendering a sibling outside the boundary leaves the swapped content hidden', async () => {
+    const Sibling = component$(() => <p id="outside">outside</p>);
+    const { container } = await ssrRenderToDom(
+      <main>
+        <Sibling />
+        <ErrorBoundary fallback$={fb()}>
+          <div id="content">content</div>
+          <Thrower />
+        </ErrorBoundary>
+      </main>,
+      { debug }
+    );
+    const el = container.element;
+    const contentHost = el.querySelector('[q\\:ebc]') as HTMLElement;
+    expect(contentHost.style.display).toBe('none');
+
+    await rerenderComponent(el.querySelector('#outside') as HTMLElement);
+    await waitForDrain(container);
+
+    // No live style subscription may un-hide inert content.
+    expect(contentHost.style.display).toBe('none');
+    expect(el.querySelector('#fb')).toBeTruthy();
+  });
+});
+
+describe('ErrorBoundary client re-derivation', () => {
+  const HealedThrower = component$((): JSXOutput => {
+    if (isServerPlatform()) {
+      throw new Error('ssr-only boom');
+    }
+    return <span id="healed">healed</span>;
+  });
+
+  it('re-rendering an SSR-errored boundary auto-recovers when the child no longer throws', async () => {
+    const { container } = await ssrRenderToDom(
+      <main>
+        <ErrorBoundary fallback$={fb()}>
+          <HealedThrower />
+        </ErrorBoundary>
+      </main>,
+      { debug }
+    );
+    const el = container.element;
+    expect(el.querySelector('#fb')).toBeTruthy();
+
+    await rerenderComponent(el.querySelector('[q\\:ebc]') as HTMLElement);
+    await waitForDrain(container);
+
+    // Children re-run; the healed child renders content.
+    expect(el.querySelector('#healed')).toBeTruthy();
+    expect(el.querySelector('#fb')).toBeFalsy();
+  });
+
+  it('a serialized computed that throws on read re-derives the fallback on re-render', async () => {
+    const ComputedThrower = component$(() => {
+      const boom = useComputed$((): string => {
+        throw new Error('computed boom');
+      });
+      return <p>{boom.value}</p>;
+    });
+    const { container } = await ssrRenderToDom(
+      <main>
+        <ErrorBoundary fallback$={fb()}>
+          <ComputedThrower />
+        </ErrorBoundary>
+      </main>,
+      { debug }
+    );
+    const el = container.element;
+    expect(el.querySelector('#fb')?.textContent).toContain('caught: computed boom');
+
+    await rerenderComponent(el.querySelector('[q\\:ebc]') as HTMLElement);
+    await waitForDrain(container);
+
+    expect(el.querySelector('#fb')?.textContent).toContain('caught: computed boom');
+  });
+
+  it('a client error fires the serialized onError$ again after an SSR catch', async () => {
+    (globalThis as any).__ebRederiveLog = [];
+    const { container } = await ssrRenderToDom(
+      <main>
+        <ErrorBoundary
+          fallback$={fb()}
+          onError$={$((e: any) => {
+            ((globalThis as any).__ebRederiveLog ||= []).push(e instanceof Error ? e.message : e);
+          })}
+        >
+          <Thrower message="rederive boom" />
+        </ErrorBoundary>
+      </main>,
+      { debug }
+    );
+    const el = container.element;
+    expect((globalThis as any).__ebRederiveLog).toEqual(['rederive boom']);
+
+    await rerenderComponent(el.querySelector('[q\\:ebc]') as HTMLElement);
+    await settleOnErrorDelivery(container);
+
+    // Documented refire: once per errored episode per environment.
+    expect((globalThis as any).__ebRederiveLog).toEqual(['rederive boom', 'rederive boom']);
+    delete (globalThis as any).__ebRederiveLog;
+  });
+
+  it('degrade: a task-thrown SSR error yields content, not the fallback, on re-execution', async () => {
+    const ServerTaskThrower = component$(() => {
+      useTask$(() => {
+        if (isServerPlatform()) {
+          throw new Error('task boom');
+        }
+      });
+      return <p id="task-content">task content</p>;
+    });
+    const { container } = await ssrRenderToDom(
+      <main>
+        <ErrorBoundary fallback$={fb()}>
+          <ServerTaskThrower />
+        </ErrorBoundary>
+      </main>,
+      { debug }
+    );
+    const el = container.element;
+    expect(el.querySelector('#fb')?.textContent).toContain('caught: task boom');
+
+    await rerenderComponent(el.querySelector('[q\\:ebc]') as HTMLElement);
+    await waitForDrain(container);
+
+    // The task cannot re-derive; children render without it.
+    expect(el.querySelector('#task-content')).toBeTruthy();
+    expect(el.querySelector('#fb')).toBeFalsy();
   });
 });
 
@@ -2332,10 +2511,10 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
       }
     );
 
-    it('dev: a serializable non-Error throw keeps its raw cause across an SSR→resume round-trip', async () => {
+    it('dev: a QRL-captured boundary error keeps its raw cause across serialize/deserialize', async () => {
       const raw = { code: 401 };
       const serializable = toSerializableBoundaryError(raw, /* dev */ true);
-      // Serialization captures enumerable own props only, so a non-enumerable cause would be dropped.
+      // Userland captures still serdes; the boundary store never serializes.
       const resumed = (await _deserialize(await _serialize(serializable))) as Error & {
         cause?: unknown;
       };
@@ -2350,27 +2529,26 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
       expect(toSerializableBoundaryError(original, /* dev */ true)).toBe(original);
     });
 
-    it('a non-serializable throw with a string message keeps the message and gets NO cause', () => {
-      const out = toSerializableBoundaryError(
-        new NonSerializableError(),
-        /* dev */ true
-      ) as Error & {
+    it('a non-serializable throw with a string message keeps the message and the raw as cause', () => {
+      const raw = new NonSerializableError();
+      const out = toSerializableBoundaryError(raw, /* dev */ true) as Error & {
         cause?: unknown;
       };
       expect(out).toBeInstanceOf(Error);
       expect(out.message).toBe('non-serializable boom');
-      expect('cause' in out).toBe(false);
+      // In-memory only now: the raw always survives as cause.
+      expect(out.cause).toBe(raw);
     });
 
-    it('a non-serializable throw without a message coerces via String and gets NO cause', () => {
+    it('a non-serializable throw without a message coerces via String and keeps the raw as cause', () => {
       const fn = () => {};
       const out = toSerializableBoundaryError(fn, /* dev */ true) as Error & { cause?: unknown };
       expect(out).toBeInstanceOf(Error);
       expect(out.message).toBe(String(fn));
-      expect('cause' in out).toBe(false);
+      expect(out.cause).toBe(fn);
     });
 
-    it('markBoundaryErrored: a non-Error throw reaches onError$ wrapped with the raw as cause', () => {
+    it('markBoundaryErrored: stores the raw throw and fires onError$ with it wrapped, raw as cause', () => {
       const received: unknown[] = [];
       const store: ErrorBoundaryStore = { error: undefined, $onError$: (e) => received.push(e) };
       const raw = { code: 401 };
@@ -2379,7 +2557,8 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
       const seen = received[0] as Error & { cause?: unknown };
       expect(seen).toBeInstanceOf(Error);
       expect(seen.cause).toBe(raw);
-      expect(store.error).toBeInstanceOf(Error);
+      // Store keeps the raw value; display wraps it into an Error later.
+      expect(store.error).toBe(raw);
     });
   });
 
@@ -2426,13 +2605,21 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
     expect(typeof out.digest).toBe('string');
   });
 
-  it('markBoundaryErrored: applies transformError to store.error but fires onError$ with the original', () => {
+  it('markBoundaryErrored: keeps the raw error in the store; transformError projects at display time', () => {
     const received: unknown[] = [];
     const store: ErrorBoundaryStore = { error: undefined, $onError$: (e) => received.push(e) };
     const original = Object.assign(new Error('boom'), { secret: 'x' });
-    markBoundaryErrored(store, original, 'render', () => new Error('redacted'));
-    expect((store.error as Error).message).toBe('redacted');
+    markBoundaryErrored(store, original);
+    expect(store.error).toBe(original);
     expect(received).toEqual([original]);
+    // Projection moves to the single display membrane.
+    const displayWithTransform = redactBoundaryErrorForDisplay as unknown as (
+      error: unknown,
+      dev?: boolean,
+      transformError?: (error: unknown) => unknown
+    ) => Error;
+    const shown = displayWithTransform(store.error, /* dev */ false, () => new Error('redacted'));
+    expect(shown.message).toBe('redacted');
   });
 
   it('transformError (render option): redacts the SSR-serialized boundary error end-to-end', async () => {
@@ -2453,31 +2640,35 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
       'nested unserializable field',
       () => Object.assign(new Error('leaky'), { meta: { cb: () => {} } }),
     ],
-    [
-      'throwing getter field',
-      () => {
-        const projected = new Error('leaky');
-        Object.defineProperty(projected, 'trap', {
-          enumerable: true,
-          get() {
-            throw new Error('getter trap');
-          },
-        });
-        return projected;
-      },
-    ],
   ] as Array<[string, () => Error]>)(
-    'transformError: an Error projection with an unserializable %s redacts to generic + digest',
+    'transformError: an Error projection with an unserializable %s is kept by identity',
     (_, makeProjection) => {
-      const out = toSerializableBoundaryError(
-        new Error('secret'),
-        /* dev */ false,
-        makeProjection
-      ) as Error & { digest?: string };
-      expect(out.message).toBe('An error occurred');
-      expect(typeof out.digest).toBe('string');
+      const projected = makeProjection();
+      // Display-only now: unserializable fields are fine to show.
+      expect(
+        toSerializableBoundaryError(new Error('secret'), /* dev */ false, () => projected)
+      ).toBe(projected);
     }
   );
+
+  // Unreadable projection would crash the fallback; fail closed.
+  it('transformError: an Error projection with a throwing getter field redacts to generic + digest', () => {
+    const projected = new Error('leaky');
+    Object.defineProperty(projected, 'trap', {
+      enumerable: true,
+      get() {
+        throw new Error('getter trap');
+      },
+    });
+    // Hostile projection: fail closed, never the raw.
+    const out = toSerializableBoundaryError(
+      new Error('secret'),
+      /* dev */ false,
+      () => projected
+    ) as Error & { digest?: string };
+    expect(out.message).toBe('An error occurred');
+    expect(typeof out.digest).toBe('string');
+  });
 
   it('transformError: an Error projection with serializable custom fields is kept by identity', () => {
     const projected = Object.assign(new Error('safe'), { code: 401, meta: { retryable: true } });
@@ -2486,17 +2677,20 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
     );
   });
 
-  it('transformError (render option): an unserializable projection still completes SSR with the generic fallback', async () => {
+  it('transformError (render option): a projection with unserializable fields renders its own message and SSR still completes', async () => {
     const { container } = await ssrRenderToDom(
       <ErrorBoundary fallback$={fb()}>
         <Thrower message="SECRET-db-detail" />
       </ErrorBoundary>,
-      { debug, transformError: () => Object.assign(new Error('leaky'), { retry: () => {} }) }
+      {
+        debug,
+        transformError: () => Object.assign(new Error('shown-to-user'), { retry: () => {} }),
+      }
     );
     const text = container.element.querySelector('#fb')?.textContent;
-    expect(text).toContain('An error occurred');
+    // Projection displays; nothing of it needs to serialize.
+    expect(text).toContain('shown-to-user');
     expect(text).not.toContain('SECRET');
-    expect(text).not.toContain('leaky');
   });
 
   it('digest is produced and deterministic for non-Error thrown values', () => {
@@ -2558,20 +2752,14 @@ describe('PublicError membrane pass-through', () => {
     expect(out.message).toBe('projected');
   });
 
-  it('a PublicError with unserializable data redacts in dev AND prod, with one dev warning', () => {
+  it('a PublicError with unserializable data displays unredacted in dev AND prod, with no warning', () => {
     const logWarnSpy = vi.spyOn(logUtils, 'logWarn').mockImplementation(() => undefined);
     try {
-      for (const dev of [true, false]) {
-        const out = toSerializableBoundaryError(
-          new PublicError({ retry: () => {} }),
-          dev
-        ) as Error & {
-          digest?: string;
-        };
-        expect(out.message).toBe('An error occurred');
-        expect(typeof out.digest).toBe('string');
-      }
-      expect(logWarnSpy).toHaveBeenCalledTimes(1);
+      const err = new PublicError({ retry: () => {} });
+      // Display-only: consent holds even for unserializable data.
+      expect(toSerializableBoundaryError(err, /* dev */ true)).toBe(err);
+      expect(toSerializableBoundaryError(err, /* dev */ false)).toBe(err);
+      expect(logWarnSpy).not.toHaveBeenCalled();
     } finally {
       logWarnSpy.mockRestore();
     }
@@ -2601,7 +2789,7 @@ describe('PublicError integration', () => {
     ['default streaming', {}],
     ['opted-in OOOS', OOOS_OPT_IN],
   ] as const)(
-    '%s: a thrown PublicError renders its message through the fallback and serializes its data',
+    '%s: a thrown PublicError renders its message through the fallback and does NOT serialize its data',
     async (_label, streamingOpts) => {
       const { html, document } = await streamAndResume(
         <main>
@@ -2612,8 +2800,8 @@ describe('PublicError integration', () => {
         streamingOpts
       );
       expect(document.querySelector('#fb')?.textContent).toContain('caught: Out of stock');
-      // `.data` reached serialized state; nothing redacted it.
-      expect(html).toContain('A1');
+      // Display consent is not wire consent: data stays off the state.
+      expect(html).not.toContain('A1');
       expect(html).not.toContain('An error occurred');
     }
   );
@@ -2622,7 +2810,7 @@ describe('PublicError integration', () => {
     ['default', {}],
     ['opted-in OOOS', OOOS_OPT_IN],
   ] as const)(
-    '%s streaming: the resumed error is still a PublicError with readable data',
+    '%s streaming: a client re-render re-derives a PublicError with readable data',
     async (_label, streamingOpts) => {
       const { container } = await ssrRenderToDom(
         <main>
@@ -2639,7 +2827,7 @@ describe('PublicError integration', () => {
       const el = container.element;
       expect(el.querySelector('#fb')?.textContent).toBe('public:A1');
 
-      // The client re-render reads the RESUMED store.error: identity must have survived.
+      // Children re-run on the client; a fresh PublicError re-derives the display.
       await rerenderComponent(el.querySelector('[q\\:ebc]') as HTMLElement);
       await waitForDrain(container);
       expect(el.querySelector('#fb')?.textContent).toBe('public:A1');

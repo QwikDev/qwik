@@ -126,6 +126,11 @@ const EbPublicThrower = component$(() => {
   return <span id="eb-public-client" />;
 });
 
+// Throws in BOTH environments: reset re-derives the same failure.
+const EbAlwaysThrower = component$((): JSXOutput => {
+  throw new Error('eb always boom');
+});
+
 // The click probes the RESUMED error: `instanceof` must survive serialization.
 const EbPublicProbe = component$<{ error: unknown }>((props) => {
   const kind = useSignal('');
@@ -411,6 +416,17 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
         <ErrorBoundary fallback$={resetFallback}>
           <EbContent />
           <EbSyncThrower />
+        </ErrorBoundary>
+      ) : scenario === 'rederive' ? (
+        <ErrorBoundary
+          fallback$={resetFallback}
+          onError$={$(() => {
+            if (!isServer) {
+              (window as any).__ebRederiveRuns = ((window as any).__ebRederiveRuns ?? 0) + 1;
+            }
+          })}
+        >
+          <EbAlwaysThrower />
         </ErrorBoundary>
       ) : scenario === 'reset-csr' ? (
         <ErrorBoundary fallback$={resetFallback}>

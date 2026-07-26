@@ -110,6 +110,9 @@ function getStylesFactory(document: Document) {
   };
 }
 
+// Real browsers run the inline qErr script; emulate it so the errored end state matches.
+const ERROR_SWAP_SCRIPT_MARKERS = ['qErr', 'qInstallErrorSwap'];
+
 /** @public */
 export async function ssrRenderToDom(
   jsx: JSXOutput,
@@ -188,7 +191,7 @@ export async function ssrRenderToDom(
   emulateExecutionOfQwikFuncs(document);
 
   if (isStreaming) {
-    emulateExecutionOfStreamingOutOfOrderScripts(document);
+    emulateExecutionOfStreamingOutOfOrderScripts(document, ERROR_SWAP_SCRIPT_MARKERS);
   }
 
   if (opts.onBeforeResume) {
@@ -198,7 +201,7 @@ export async function ssrRenderToDom(
   emulateExecutionOfBackpatch(document);
   const container = _getDomContainer(containerElement) as _DomContainer;
   if (!isStreaming) {
-    emulateExecutionOfOutOfOrderScripts(document);
+    emulateExecutionOfOutOfOrderScripts(document, ERROR_SWAP_SCRIPT_MARKERS);
   }
   await whenContainerDataReady(container, () => undefined);
   if (opts.debug) {

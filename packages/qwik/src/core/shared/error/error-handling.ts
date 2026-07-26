@@ -1,8 +1,7 @@
 import { isDev } from '@qwik.dev/core/build';
-import { canSerialize } from '../serdes/can-serialize';
 import { createContextId } from '../../use/use-context';
 import { hashCode } from '../utils/hash_code';
-import { logError, logWarn } from '../utils/log';
+import { logError } from '../utils/log';
 import type { ErrorBoundaryInfo } from './error-boundary';
 import { isPublicError } from './public-error';
 
@@ -45,9 +44,6 @@ const errorBoundaryDigest = (err: unknown): string =>
     )
   );
 
-// No `instanceof Error` shortcut: an Error's own fields must serialize too.
-const isKeepableBoundaryError = (v: unknown): boolean => v !== undefined && canSerialize(v);
-
 const redactToGeneric = (err: unknown): Error & { digest: string } => {
   // No cause/custom fields: redaction must never leak the raw error.
   const redacted = new Error(GENERIC_BOUNDARY_ERROR_MESSAGE) as Error & { digest: string };
@@ -81,52 +77,61 @@ const toBoundaryError = (raw: unknown, withCause: boolean): Error => {
   return wrapped;
 };
 
-/** Never returns `undefined` (the store's no-error sentinel); fail-closed. */
-export const toSerializableBoundaryError = (
-  err: unknown,
+// A projection with an unreadable field would crash the fallback; probe every enumerable read.
+const isReadableProjection = (projected: Error): boolean =>
+  safeRead(() => {
+    void projected.message;
+    void projected.name;
+    for (const key in projected) {
+      void (projected as Record<string, unknown>)[key];
+    }
+    return true;
+  }, false);
+
+/**
+ * The single boundary membrane: turns any thrown value into a display-safe `Error`. Never throws (a
+ * hostile value is redacted) and never returns `undefined` (the store's no-error sentinel).
+ */
+export const redactBoundaryErrorForDisplay = (
+  error: unknown,
   dev: boolean = isDev,
   transformError?: (error: unknown) => unknown
 ): Error => {
   try {
     if (transformError) {
-      // A throwing transform lands in the outer catch. The projection's own
-      // fields serialize later; validate them now, fail-closed.
-      const projected = transformError(err);
-      return projected instanceof Error && canSerialize(projected)
+      // The app's projection wins; keep a readable Error by identity, else fail closed.
+      const projected = transformError(error);
+      return projected instanceof Error && isReadableProjection(projected)
         ? projected
-        : redactToGeneric(err);
+        : redactToGeneric(error);
     }
-    if (isPublicError(err)) {
-      // Constructing a PublicError is consent to display its data — but it must serialize.
-      if (canSerialize(err)) {
-        return err;
-      }
-      if (dev) {
-        logWarn('A PublicError was redacted because its data cannot be serialized.', err);
-      }
-      return redactToGeneric(err);
+    // Constructing a PublicError is consent to display its data unredacted, even in prod.
+    if (isPublicError(error)) {
+      return error;
+    }
+    // An already-projected (server-redacted) error passes through untouched.
+    if (safeRead(() => error instanceof Error && 'digest' in error, false)) {
+      return error as Error;
     }
     if (!dev) {
-      return redactToGeneric(err);
+      return redactToGeneric(error);
     }
-    if (isKeepableBoundaryError(err)) {
-      // Dev-only: a serializable raw throw survives to the fallback via `cause`.
-      return toBoundaryError(err, true);
+    if (error instanceof Error) {
+      return error;
     }
-    const rawMessage = (err as { message?: unknown })?.message;
-    // No cause: a non-serializable raw would break dev serialization.
-    return typeof rawMessage === 'string' ? new Error(rawMessage) : toBoundaryError(err, false);
+    const rawMessage = (error as { message?: unknown })?.message;
+    if (typeof rawMessage === 'string') {
+      // In-memory only: the raw value always survives to the fallback via `cause`.
+      const wrapped = new Error(rawMessage);
+      wrapped.cause = error;
+      return wrapped;
+    }
+    return toBoundaryError(error, true);
   } catch {
     // A hostile raw value threw during inspection: redact without touching it again.
-    return redactToGeneric(err);
+    return redactToGeneric(error);
   }
 };
-
-export const redactBoundaryErrorForDisplay = (error: unknown, dev: boolean = isDev): Error =>
-  // Consented public errors and framework-projected (server-redacted) errors pass untouched.
-  isPublicError(error) || safeRead(() => error instanceof Error && 'digest' in error, false)
-    ? (error as Error)
-    : toSerializableBoundaryError(error, dev);
 
 export const fireOnError = (
   onError: ((error: Error, info: ErrorBoundaryInfo) => unknown) | undefined | null,
@@ -180,10 +185,11 @@ const getTaggedErrorPhase = (err: unknown): ErrorBoundaryInfo['phase'] | undefin
 export const markBoundaryErrored = (
   store: ErrorBoundaryStore,
   error: unknown,
-  phase: ErrorBoundaryInfo['phase'] = 'render',
-  transformError?: (error: unknown) => unknown
+  phase: ErrorBoundaryInfo['phase'] = 'render'
 ): void => {
-  store.error = toSerializableBoundaryError(error, isDev, transformError);
+  // Store the raw throw; the display membrane projects it later.
+  // `undefined` is the no-error sentinel, so a bare `undefined` throw needs a keyable stand-in.
+  store.error = error === undefined ? new Error('undefined') : error;
   fireOnError(store.$onError$, error, {
     // A tagged origin (e.g. a rethrown task throw) beats the catch site's.
     phase: getTaggedErrorPhase(error) ?? phase,

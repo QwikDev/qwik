@@ -255,7 +255,7 @@ function renderErrorBoundaryFallback(
     ) {
       throw err;
     }
-    markBoundaryErrored(errorStore, err, phase, ssr.$transformError$);
+    markBoundaryErrored(errorStore, err, phase);
     if (__EXPERIMENTAL__.errorBoundary) {
       if (isOutOfOrderSegmentContainer(ssr)) {
         markErrorFromDeferredSegment(errorStore);

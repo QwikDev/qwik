@@ -1,4 +1,4 @@
-import { isBrowser } from '@qwik.dev/core/build';
+import { isBrowser, isDev } from '@qwik.dev/core/build';
 import { qTest } from '../shared/utils/qdev';
 import { _wrapProp } from '../reactive-primitives/internal-api';
 import type { Signal } from '../reactive-primitives/signal.public';
@@ -27,6 +27,7 @@ import {
   ERROR_CONTEXT,
   isErrorFromDeferredSegment,
   markBoundaryErrored,
+  redactBoundaryErrorForDisplay,
   type ErrorBoundaryStore,
 } from '../shared/error/error-handling';
 import { useComputedQrl } from '../use/use-computed';
@@ -400,10 +401,11 @@ export const SSRErrorFallback = __EXPERIMENTAL__.errorBoundary
           if (!fallback) {
             return;
           }
-          markBoundaryErrored(store, error, 'render', ssr.$transformError$);
+          markBoundaryErrored(store, error, 'render');
           store.$fallback$ = undefined;
-          // Render redacted `store.error`, not raw `error`, to avoid leaks.
-          const segment = await ssr.segment(segmentId, fallback(store.error) as JSXOutput, options);
+          // Project the raw `store.error` at display time to avoid leaks.
+          const projected = redactBoundaryErrorForDisplay(store.error, isDev, ssr.$transformError$);
+          const segment = await ssr.segment(segmentId, fallback(projected) as JSXOutput, options);
           await emitErrorBoundaryFallback(ssr, boundaryId, segmentId, segment);
         };
         store.$emitFallback$ = noSerialize(streamFallback);
@@ -424,17 +426,19 @@ export const SSRErrorFallbackInline = __EXPERIMENTAL__.errorBoundary
         if (store.error !== undefined && store.$fallback$) {
           const fallback = store.$fallback$;
           store.$fallback$ = undefined;
+          // Project the raw `store.error` at display time to avoid leaks.
+          const projected = redactBoundaryErrorForDisplay(store.error, isDev, ssr.$transformError$);
           if (isOutOfOrderSegmentContainer(ssr)) {
             // Inline `qErr` is inert in the segment `<template>`; defer to root.
             ssr.$registerErrorSwap$(boundaryId);
-            enqueue(fallback(store.error) as JSXOutput);
+            enqueue(fallback(projected) as JSXOutput);
           } else {
             // LIFO: enqueue `qErr` first so it swaps after content.
             enqueue(() => {
               ssr.emitErrorSwapExecutorIfNeeded();
               ssr.emitInlineScript(`qErr(${boundaryId})`);
             });
-            enqueue(fallback(store.error) as JSXOutput);
+            enqueue(fallback(projected) as JSXOutput);
           }
         }
       }

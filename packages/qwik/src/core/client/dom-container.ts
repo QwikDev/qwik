@@ -434,7 +434,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       return;
     }
     const store = this.resolveContext<ErrorBoundaryStore>(boundaryHost, ERROR_CONTEXT);
-    if (!store || store.error === undefined) {
+    if (!store) {
       return;
     }
     // Re-render owner and clear error in the same tick to re-supply + re-execute.

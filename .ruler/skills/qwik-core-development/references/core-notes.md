@@ -191,9 +191,23 @@ Never use `pnpm test.unit` for agent verification in this repo.
 
 Where things live: `errorBoundaryCmp` (`shared/error/error-boundary.ts`); SSR catch + inert marking
 (`ssr/ssr-render-jsx.ts`); fallback hosts (`control-flow/suspense.tsx`, `SSRErrorFallbackHost`);
-client routing (`client/dom-container.ts`); shared helpers (`shared/error/error-handling.ts`).
+client routing + reset (`client/dom-container.ts`); shared helpers incl. the display membrane
+(`shared/error/error-handling.ts`); the non-enumerable store field (`use/use-error-boundary-store.ts`).
 
-### Invariants
+### Invariants (stateless model: the boundary never serializes error state)
+- `store.error` is a NON-ENUMERABLE field on the store target (`Object.defineProperty(...,
+  'error', { enumerable: false })` in `use-error-boundary-store.ts`) — the serializer only walks
+  enumerable keys, so error state never crosses the wire and a resumed boundary starts with no
+  error of its own. Keep it non-enumerable; never add an ErrorBoundary carve-out to the serializer
+  to compensate.
+- Single display membrane: `redactBoundaryErrorForDisplay(error, dev, transformError)` in
+  `error-handling.ts`. The store always holds the RAW throw; projection to a display-safe `Error`
+  happens only at display call sites (`SSRErrorFallback*`, `errorBoundaryCmp`). `canSerialize`
+  plays no role in display.
+- Only the framework's own brand — a module-private `Symbol` (`REDACTED` in `error-handling.ts`)
+  set by `redactToGeneric` — lets an error pass the membrane as already-redacted. A plain `digest`
+  field on an app-thrown error is ordinary app data and must NOT skip prod redaction; an app can't
+  forge the brand by shaping a `digest` field.
 - The boundary never buffers streaming: the SSR catch only sets `store.error`, fires `onError$`,
   marks content inert, and returns `null` — the sibling `fallback-host` renders the fallback.
 - Queued frames inside an INERT content host are DISCARDED at drain time
@@ -201,19 +215,23 @@ client routing (`client/dom-container.ts`); shared helpers (`shared/error/error-
   and generators never run, and a superseded promise is never awaited — observe it with
   `.catch(noop)` or a late rejection becomes unhandled. Pre-catch content keeps hide-don't-unwind.
   A discard site must never skip StackFns (structural close frames keep HTML balanced).
-- `PublicError` is the ONE unredacted lane through the prod membrane: classification is a
-  guarded `instanceof` (construction = consent; shape/field forgery must stay redacted), the
-  pass-through is `canSerialize`-gated (bad `.data` → generic + one dev warn), `transformError`
-  still runs first and wins, and no `digest` is attached to a passed-through instance. Resume
-  identity rides a `q:pe` marker pair inside the ordinary `TypeIds.Error` payload; inflate
-  restores `PublicError.prototype` on the marker and never assigns it as a field. Both serdes
-  touches are `__EXPERIMENTAL__.errorBoundary`-gated. Prod-mode asserts live at helper level
-  (`dev: false`) or in the `error-boundary.prod` e2e — the unit harness compiles `isDev=true`.
+- `PublicError` is the ONE unredacted lane through the prod membrane: classification is a guarded
+  `instanceof` (construction = consent; shape/field forgery must stay redacted — pass-through is
+  identity-only, not gated on the error's serializability), `transformError` still runs first and
+  wins, and no `digest` is attached to a passed-through instance. Resume identity rides a `q:pe`
+  marker pair inside the ordinary `TypeIds.Error` payload; inflate restores `PublicError.prototype`
+  on the marker and never assigns it as a field. Both serdes touches are
+  `__EXPERIMENTAL__.errorBoundary`-gated. Prod-mode asserts live at helper level (`dev: false`) or
+  in the `error-boundary.prod` e2e — the unit harness compiles `isDev=true`.
 - Every probe of a raw thrown value must be fail-closed against hostile objects (revoked Proxy,
-  throwing traps/getters): `toSerializableBoundaryError`/digest/redact are try/catch-wrapped, and
-  `isPromise`, `checkError`, `getStoreTarget`, and the recursive store-get wrap are guarded.
-  `canSerialize` validates an Error's own enumerable fields plus `message`/`stack` reads; a
-  `transformError` projection must pass `canSerialize` or it redacts to the generic.
+  throwing traps/getters): `redactBoundaryErrorForDisplay`/`redactToGeneric`/`isReadableProjection`
+  read through `safeRead` or try/catch, and `isPromise`, `checkError`, `getStoreTarget`, and the
+  recursive store-get wrap are guarded. A `transformError` projection must be an `Error` whose
+  enumerable fields are all readable (`isReadableProjection`) or it redacts to the generic.
+- Host styles are static literals (`display:contents` / `display:none` passed as plain props,
+  never a `Signal`); the `qErr` swap script owns flipping the errored end state in the DOM. Never
+  reintroduce a live style subscription on the hosts — a resumed recompute would un-hide inert
+  content.
 - The swap is decided at fallback-host drain time by error ORIGIN: in-place → inline + `qErr`
   (`q:ebf`), even under OOOS; deferred-segment → `qO` shell (`q:rp`). Inline content must never sit
   under `q:rp` (OOOS resume hijacks it into a template); a deferred fallback's vnode-data must
@@ -221,12 +239,17 @@ client routing (`client/dom-container.ts`); shared helpers (`shared/error/error-
 - `markBoundaryErrored` is the only server error writer: it normalizes (never stores `undefined`)
   and fires `onError$` per caught error + phase (`tagErrorPhase` survives the SSR rethrow).
   First-wins absorption lives at the call sites, not inside it.
-- Both callbacks receive an `Error` (`fireOnError`/`toSerializableBoundaryError` coerce): an Error
-  throw reaches `onError$` identity-preserved in dev AND prod; a non-Error throw is wrapped with
-  the raw value as `cause` (serialized to the dev fallback only when serializable). The
-  prod-redacted error must never carry `cause` or custom fields — that would leak the raw error
-  through serialized state. A non-Error `transformError` projection redacts to the generic.
+- Both callbacks receive an `Error` (`fireOnError`/`toBoundaryError` coerce): an Error throw
+  reaches `onError$` identity-preserved in dev AND prod; a non-Error throw is wrapped with the raw
+  value as `cause` (serialized to the dev fallback only when serializable). The prod-redacted error
+  must never carry `cause` or custom fields — that would leak the raw error through serialized
+  state. A non-Error `transformError` projection redacts to the generic.
 - `store.error === undefined` means "no error" — every writer normalizes a thrown `undefined`.
+- `resetErrorBoundary` must keep working when `store.error` is `undefined` — after resume that IS
+  the errored state (the field never serialized), so reset can't gate its own logic on reading it.
+- Errored boundaries re-derive by re-running the children (owner re-render clears `store.error` and
+  the boundary re-executes); a task-phase SSR throw does NOT re-derive on a later client re-render
+  because the task never re-runs — documented developer responsibility, not a framework warning.
 - `store.$onError$` is server-only; the client uses the serialized `props.onError$`.
 - `content-host` precedes `fallback-host`; the `qErr` executor stays independent of `qO` (gated on
   `errorBoundary`, not `suspense`).

@@ -2958,11 +2958,12 @@ describe('hostile thrown values (fail-closed normalization)', () => {
   });
 
   it.each(hostileRows)(
-    'markBoundaryErrored absorbs it and still stores an Error: %s',
+    'markBoundaryErrored absorbs it and its display projection is an Error: %s',
     (_, makeHostile) => {
       const store: ErrorBoundaryStore = { error: undefined };
       expect(() => markBoundaryErrored(store, makeHostile())).not.toThrow();
-      expect(store.error).toBeInstanceOf(Error);
+      // The store is a black box; only the display membrane guarantees an Error.
+      expect(redactBoundaryErrorForDisplay(store.error, false)).toBeInstanceOf(Error);
     }
   );
 

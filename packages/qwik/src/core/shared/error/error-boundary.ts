@@ -8,7 +8,6 @@ import { Fragment } from '../jsx/jsx-runtime';
 import { Slot } from '../jsx/slot.public';
 import type { JSXOutput } from '../jsx/types/jsx-node';
 import { isServerPlatform } from '../platform/platform';
-import { _fnSignal } from '../qrl/inlined-fn';
 import { inlinedQrl } from '../qrl/qrl';
 import type { QRL } from '../qrl/qrl.public';
 import { noSerialize } from '../serdes/verify';
@@ -61,16 +60,6 @@ export const errorBoundaryReset = (): void => {
   }
 };
 
-// `!== undefined` so a thrown falsy value still shows the fallback.
-const _ebContentStyle = (store: ErrorBoundaryStore) => ({
-  display: store.error !== undefined ? 'none' : 'contents',
-});
-const _ebContentStyle_str = '{display:p0.error!==undefined?"none":"contents"}';
-const _ebFallbackStyle = (store: ErrorBoundaryStore) => ({
-  display: store.error !== undefined ? 'contents' : 'none',
-});
-const _ebFallbackStyle_str = '{display:p0.error!==undefined?"contents":"none"}';
-
 const buildLastResortFallback = (): JSXOutput =>
   /*#__PURE__*/ _jsxSorted('div', { role: 'alert' }, null, 'Something went wrong.', 0, null);
 
@@ -99,7 +88,7 @@ const buildErrorBoundaryHosts = (store: ErrorBoundaryStore): JSXOutput => {
       'div',
       {
         [QErrorContentHost]: String(boundaryId),
-        style: /*#__PURE__*/ _fnSignal(_ebContentStyle, [store], _ebContentStyle_str),
+        style: 'display:contents',
       },
       null,
       /*#__PURE__*/ _jsxSorted(Slot, null, null, null, 0, null),
@@ -111,7 +100,7 @@ const buildErrorBoundaryHosts = (store: ErrorBoundaryStore): JSXOutput => {
       {
         boundaryId,
         store,
-        hostStyle: /*#__PURE__*/ _fnSignal(_ebFallbackStyle, [store], _ebFallbackStyle_str),
+        hostStyle: 'display:none',
       },
       null,
       null,

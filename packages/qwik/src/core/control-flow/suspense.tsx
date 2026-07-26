@@ -445,11 +445,11 @@ export const SSRErrorFallbackHost = __EXPERIMENTAL__.errorBoundary
   ? /*#__PURE__*/ createInternalServerComponent<{
       boundaryId: number;
       store: ErrorBoundaryStore;
-      hostStyle: Signal<{ display: string }>;
+      hostStyle: string;
     }>((ssr, jsx, _options, enqueue) => {
       const boundaryId = jsx.varProps.boundaryId as number;
       const store = jsx.varProps.store as ErrorBoundaryStore;
-      const hostStyle = jsx.varProps.hostStyle as Signal<{ display: string }>;
+      const hostStyle = jsx.varProps.hostStyle as string;
       const deliverLate =
         __EXPERIMENTAL__.suspense &&
         ssr.outOfOrderStreaming &&

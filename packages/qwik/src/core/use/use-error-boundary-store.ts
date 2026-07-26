@@ -4,7 +4,14 @@ import { useStore } from './use-store.public';
 
 /** @internal */
 export const useErrorBoundaryStore = () => {
-  const error = useStore<ErrorBoundaryStore>({ error: undefined });
+  // Serializer walks enumerable keys, so a non-enumerable `error` never crosses the wire.
+  const target = Object.defineProperty({} as ErrorBoundaryStore, 'error', {
+    value: undefined,
+    writable: true,
+    enumerable: false,
+    configurable: true,
+  });
+  const error = useStore<ErrorBoundaryStore>(target);
   useContextProvider(ERROR_CONTEXT, error);
 
   return error;

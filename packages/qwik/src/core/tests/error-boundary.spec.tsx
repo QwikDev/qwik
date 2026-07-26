@@ -694,6 +694,26 @@ const withResetBoundary = (child: JSXOutput) =>
     </main>
   ));
 
+// Re-derivation rides the owner re-render; a boundary alone re-renders an empty severed Slot.
+const withRerenderOwner = (
+  child: JSXOutput,
+  boundaryProps: { fallback$?: any; onError$?: any } = {}
+) =>
+  component$(() => {
+    const ticks = useSignal(0);
+    return (
+      <main>
+        <span id="owner-anchor">{ticks.value}</span>
+        <ErrorBoundary
+          fallback$={boundaryProps.fallback$ ?? fb()}
+          onError$={boundaryProps.onError$}
+        >
+          {child}
+        </ErrorBoundary>
+      </main>
+    );
+  });
+
 // Harness can't dispatch resumed handlers; drive reset directly.
 const resetResumed = async (container: any) => {
   const c = _getDomContainer(container.element) as any;
@@ -1563,21 +1583,19 @@ describe('ErrorBoundary SSR→CSR cross-phase', () => {
   ] as const)(
     '%s streaming: re-rendering an SSR-errored boundary re-runs the children and re-derives the fallback',
     async (_label, streamingOpts) => {
-      const { container } = await ssrRenderToDom(
-        <main>
-          <ErrorBoundary fallback$={fb()}>
-            <div id="content">content</div>
-            <Thrower />
-          </ErrorBoundary>
-        </main>,
-        { debug, ...streamingOpts }
+      const App = withRerenderOwner(
+        <>
+          <div id="content">content</div>
+          <Thrower />
+        </>
       );
+      const { container } = await ssrRenderToDom(<App />, { debug, ...streamingOpts });
       const el = container.element;
       const contentHost = el.querySelector('[q\\:ebc]') as HTMLElement;
       expect(el.querySelector('#fb')?.textContent).toContain('caught: boom');
       expect(contentHost.contains(el.querySelector('#content'))).toBe(true);
 
-      await rerenderComponent(contentHost);
+      await rerenderComponent(el.querySelector('#owner-anchor') as HTMLElement);
       await waitForDrain(container);
 
       expect(el.querySelector('#content')).toBeFalsy();
@@ -1695,18 +1713,12 @@ describe('ErrorBoundary client re-derivation', () => {
   });
 
   it('re-rendering an SSR-errored boundary auto-recovers when the child no longer throws', async () => {
-    const { container } = await ssrRenderToDom(
-      <main>
-        <ErrorBoundary fallback$={fb()}>
-          <HealedThrower />
-        </ErrorBoundary>
-      </main>,
-      { debug }
-    );
+    const App = withRerenderOwner(<HealedThrower />);
+    const { container } = await ssrRenderToDom(<App />, { debug });
     const el = container.element;
     expect(el.querySelector('#fb')).toBeTruthy();
 
-    await rerenderComponent(el.querySelector('[q\\:ebc]') as HTMLElement);
+    await rerenderComponent(el.querySelector('#owner-anchor') as HTMLElement);
     await waitForDrain(container);
 
     // Children re-run; the healed child renders content.
@@ -1721,18 +1733,12 @@ describe('ErrorBoundary client re-derivation', () => {
       });
       return <p>{boom.value}</p>;
     });
-    const { container } = await ssrRenderToDom(
-      <main>
-        <ErrorBoundary fallback$={fb()}>
-          <ComputedThrower />
-        </ErrorBoundary>
-      </main>,
-      { debug }
-    );
+    const App = withRerenderOwner(<ComputedThrower />);
+    const { container } = await ssrRenderToDom(<App />, { debug });
     const el = container.element;
     expect(el.querySelector('#fb')?.textContent).toContain('caught: computed boom');
 
-    await rerenderComponent(el.querySelector('[q\\:ebc]') as HTMLElement);
+    await rerenderComponent(el.querySelector('#owner-anchor') as HTMLElement);
     await waitForDrain(container);
 
     expect(el.querySelector('#fb')?.textContent).toContain('caught: computed boom');
@@ -1740,23 +1746,16 @@ describe('ErrorBoundary client re-derivation', () => {
 
   it('a client error fires the serialized onError$ again after an SSR catch', async () => {
     (globalThis as any).__ebRederiveLog = [];
-    const { container } = await ssrRenderToDom(
-      <main>
-        <ErrorBoundary
-          fallback$={fb()}
-          onError$={$((e: any) => {
-            ((globalThis as any).__ebRederiveLog ||= []).push(e instanceof Error ? e.message : e);
-          })}
-        >
-          <Thrower message="rederive boom" />
-        </ErrorBoundary>
-      </main>,
-      { debug }
-    );
+    const App = withRerenderOwner(<Thrower message="rederive boom" />, {
+      onError$: $((e: any) => {
+        ((globalThis as any).__ebRederiveLog ||= []).push(e instanceof Error ? e.message : e);
+      }),
+    });
+    const { container } = await ssrRenderToDom(<App />, { debug });
     const el = container.element;
     expect((globalThis as any).__ebRederiveLog).toEqual(['rederive boom']);
 
-    await rerenderComponent(el.querySelector('[q\\:ebc]') as HTMLElement);
+    await rerenderComponent(el.querySelector('#owner-anchor') as HTMLElement);
     await settleOnErrorDelivery(container);
 
     // Documented refire: once per errored episode per environment.
@@ -1773,18 +1772,12 @@ describe('ErrorBoundary client re-derivation', () => {
       });
       return <p id="task-content">task content</p>;
     });
-    const { container } = await ssrRenderToDom(
-      <main>
-        <ErrorBoundary fallback$={fb()}>
-          <ServerTaskThrower />
-        </ErrorBoundary>
-      </main>,
-      { debug }
-    );
+    const App = withRerenderOwner(<ServerTaskThrower />);
+    const { container } = await ssrRenderToDom(<App />, { debug });
     const el = container.element;
     expect(el.querySelector('#fb')?.textContent).toContain('caught: task boom');
 
-    await rerenderComponent(el.querySelector('[q\\:ebc]') as HTMLElement);
+    await rerenderComponent(el.querySelector('#owner-anchor') as HTMLElement);
     await waitForDrain(container);
 
     // The task cannot re-derive; children render without it.
@@ -2812,23 +2805,17 @@ describe('PublicError integration', () => {
   ] as const)(
     '%s streaming: a client re-render re-derives a PublicError with readable data',
     async (_label, streamingOpts) => {
-      const { container } = await ssrRenderToDom(
-        <main>
-          <ErrorBoundary
-            fallback$={$((e: any) => (
-              <p id="fb">{e instanceof PublicError ? `public:${e.data.sku}` : 'not-public'}</p>
-            ))}
-          >
-            <PublicThrower />
-          </ErrorBoundary>
-        </main>,
-        { debug, ...streamingOpts }
-      );
+      const App = withRerenderOwner(<PublicThrower />, {
+        fallback$: $((e: any) => (
+          <p id="fb">{e instanceof PublicError ? `public:${e.data.sku}` : 'not-public'}</p>
+        )),
+      });
+      const { container } = await ssrRenderToDom(<App />, { debug, ...streamingOpts });
       const el = container.element;
       expect(el.querySelector('#fb')?.textContent).toBe('public:A1');
 
       // Children re-run on the client; a fresh PublicError re-derives the display.
-      await rerenderComponent(el.querySelector('[q\\:ebc]') as HTMLElement);
+      await rerenderComponent(el.querySelector('#owner-anchor') as HTMLElement);
       await waitForDrain(container);
       expect(el.querySelector('#fb')?.textContent).toBe('public:A1');
     }

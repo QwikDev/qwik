@@ -1745,6 +1745,8 @@ fallback$
 
 Rendered when a descendant throws; receives `(error, reset)`. The error is always an `Error` (`{error.message}` is safe): a non-Error throw is wrapped, and in production it is redacted to a generic message + `digest`. Add a live region for screen-reader announcement. Invoke `reset` wrapped in a handler — `onClick$={() => reset()}`, not `onClick$={reset}` — so it stays wired in a streamed fallback after resume.
 
+A re-derived client fallback recomputes `digest`, so it can differ from the server-rendered value.
+
 </td></tr>
 <tr><td>
 
@@ -1759,6 +1761,8 @@ onError$?
 </td><td>
 
 _(Optional)_ Side-effect fired once per caught error; never affects rendering. Receives the original `Error` instance; a non-Error throw arrives wrapped in an `Error` whose `cause` is the raw thrown value.
+
+Fires at most once per errored episode per environment. An error reported during SSR fires again when the client re-derives it, so dedupe externally (digest or `info.boundaryId`) for telemetry.
 
 </td></tr>
 </tbody></table>
@@ -3176,7 +3180,7 @@ A deliberately public error: constructing one is consent to serialize and displa
 
 Contract details:
 
-- Consent covers the whole instance: every own enumerable field serializes with it, so keep the payload in `data`. - A configured `transformError` render option runs first and its projection wins — return the received `PublicError` unchanged to keep it public. - If `data` cannot serialize, the error is redacted to the generic message when it crosses the SSR boundary (a client-thrown one still displays in place). - A subclass instance resumes as a base `PublicError`: discriminate on `data`, not the subclass.
+- Consent covers the whole instance: every own enumerable field serializes with it, so keep the payload in `data`. - A configured `transformError` render option runs first and its projection wins — return the received `PublicError` unchanged to keep it public. - The framework never serializes the boundary error; `data` crosses the wire only inside your own captures (props, QRLs, stores) and must serialize there. - A subclass instance resumes as a base `PublicError`: discriminate on `data`, not the subclass.
 
 ```typescript
 export declare class PublicError<T = unknown> extends Error

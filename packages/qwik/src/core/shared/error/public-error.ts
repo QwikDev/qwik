@@ -12,8 +12,8 @@
  *   payload in `data`.
  * - A configured `transformError` render option runs first and its projection wins — return the
  *   received `PublicError` unchanged to keep it public.
- * - If `data` cannot serialize, the error is redacted to the generic message when it crosses the SSR
- *   boundary (a client-thrown one still displays in place).
+ * - The framework never serializes the boundary error; `data` crosses the wire only inside your own
+ *   captures (props, QRLs, stores) and must serialize there.
  * - A subclass instance resumes as a base `PublicError`: discriminate on `data`, not the subclass.
  *
  * @public

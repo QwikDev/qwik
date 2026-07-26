@@ -39,12 +39,19 @@ export interface ErrorBoundaryProps {
    * a generic message + `digest`. Add a live region for screen-reader announcement. Invoke `reset`
    * wrapped in a handler — `onClick$={() => reset()}`, not `onClick$={reset}` — so it stays wired
    * in a streamed fallback after resume.
+   *
+   * A re-derived client fallback recomputes `digest`, so it can differ from the server-rendered
+   * value.
    */
   fallback$: QRL<(error: Error, reset: QRL<() => void>) => JSXOutput>;
   /**
    * Side-effect fired once per caught error; never affects rendering. Receives the original `Error`
    * instance; a non-Error throw arrives wrapped in an `Error` whose `cause` is the raw thrown
    * value.
+   *
+   * Fires at most once per errored episode per environment. An error reported during SSR fires
+   * again when the client re-derives it, so dedupe externally (digest or `info.boundaryId`) for
+   * telemetry.
    */
   onError$?: QRL<(error: Error, info: ErrorBoundaryInfo) => void>;
 }

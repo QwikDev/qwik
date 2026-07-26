@@ -88,7 +88,7 @@ const isReadableProjection = (projected: Error): boolean =>
     void projected.message;
     void projected.name;
     for (const key in projected) {
-      void (projected as Record<string, unknown>)[key];
+      void (projected as unknown as Record<string, unknown>)[key];
     }
     return true;
   }, false);

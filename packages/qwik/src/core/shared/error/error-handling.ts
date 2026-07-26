@@ -44,10 +44,15 @@ const errorBoundaryDigest = (err: unknown): string =>
     )
   );
 
+// Brands framework-projected errors so the pass-through can't be forged by an app's `digest` field.
+const REDACTED = /*#__PURE__*/ Symbol();
+
 const redactToGeneric = (err: unknown): Error & { digest: string } => {
   // No cause/custom fields: redaction must never leak the raw error.
   const redacted = new Error(GENERIC_BOUNDARY_ERROR_MESSAGE) as Error & { digest: string };
   redacted.digest = errorBoundaryDigest(err);
+  // Non-enumerable so it never leaks into userland serialization of captured errors.
+  Object.defineProperty(redacted, REDACTED, { value: true });
   return redacted;
 };
 
@@ -109,8 +114,8 @@ export const redactBoundaryErrorForDisplay = (
     if (isPublicError(error)) {
       return error;
     }
-    // An already-projected (server-redacted) error passes through untouched.
-    if (safeRead(() => error instanceof Error && 'digest' in error, false)) {
+    // An already-projected (framework-redacted) error passes through untouched.
+    if (safeRead(() => error instanceof Error && REDACTED in error, false)) {
       return error as Error;
     }
     if (!dev) {

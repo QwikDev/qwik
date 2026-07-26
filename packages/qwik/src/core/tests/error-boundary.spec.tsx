@@ -2472,6 +2472,15 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
     expect(redactBoundaryErrorForDisplay(raw, /* dev */ true)).toBe(raw);
   });
 
+  it('prod: an app error carrying its own digest field still redacts to generic + fresh digest', () => {
+    const err = Object.assign(new Error('DB dsn=postgres://user:pw@host'), { digest: 'x' });
+    const out = redactBoundaryErrorForDisplay(err, /* dev */ false) as Error & { digest?: string };
+    expect(out.message).toBe('An error occurred');
+    expect(out.message).not.toContain('dsn');
+    expect(JSON.stringify({ ...out })).not.toContain('dsn');
+    expect(typeof out.digest).toBe('string');
+  });
+
   it('redactBoundaryErrorForDisplay: keeps an already-redacted projection (preserves the digest)', () => {
     const alreadyRedacted = redactBoundaryErrorForDisplay(new Error('orig'), false) as Error & {
       digest: string;

@@ -235,6 +235,11 @@ export class Serializer {
     }
   }
 
+  private rebaseQrlCaptureDeltas$(baseRootId: number, captureDeltas: string): string {
+    const [first, ...rest] = captureDeltas.split(' ');
+    return [Number(first) - baseRootId, ...rest].join(' ');
+  }
+
   private outputString(value: string): void {
     const s = this.stringNeedsJsonEscape$(value) ? JSON.stringify(value) : QUOTE + value + QUOTE;
     let angleBracketIdx: number = -1;
@@ -438,37 +443,29 @@ export class Serializer {
         case 'function':
           if (isQrl(value)) {
             if (this.getSeenRefOrOutput(value, index)) {
-              const [chunk, symbol, captureIds] = qrlToString(
+              const [chunk, symbol, captureDeltasFromZero] = qrlToString(
                 this.$serializationContext$,
                 value,
                 true
               );
-              let data: string | number | SsrWriteChunk[];
+              let data: string | number;
               if (chunk !== '') {
                 // not a sync QRL, replace all parts with string references
                 const chunkRootId = this.$serializationContext$.$addRoot$(chunk);
                 const symbolRootId = this.$serializationContext$.$addRoot$(symbol);
-                data = [chunkRootId, '#', symbolRootId];
-                if (captureIds) {
-                  data.push('#');
-                  const ids = captureIds.split(' ');
-                  for (let i = 0; i < ids.length; i++) {
-                    if (i > 0) {
-                      data.push(' ');
-                    }
-                    data.push(Number(ids[i]));
-                  }
-                }
+                const captureDeltas = captureDeltasFromZero
+                  ? this.rebaseQrlCaptureDeltas$(symbolRootId, captureDeltasFromZero)
+                  : null;
+                data = `${chunkRootId}#${symbolRootId - chunkRootId}${captureDeltas ? '#' + captureDeltas : ''}`;
                 // Since we map QRLs to strings, we need to keep track of this secondary mapping
-                const qrlKey = `${chunkRootId}#${symbolRootId}${captureIds ? '#' + captureIds : ''}`;
-                const existing = this.$qrlMap$.get(qrlKey);
+                const existing = this.$qrlMap$.get(data);
                 if (existing) {
                   // We encountered the same QRL again, make it a root
                   const ref = this.$serializationContext$.$addRoot$(existing);
                   this.output(TypeIds.RootRef, ref);
                   return;
                 } else {
-                  this.$qrlMap$.set(qrlKey, value);
+                  this.$qrlMap$.set(data, value);
                 }
               } else {
                 // sync QRL

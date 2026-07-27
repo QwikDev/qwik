@@ -123,7 +123,7 @@ describe('serialization', () => {
         serializationContext,
         createQRL('src/routes/[...index]/a+b/c?foo', 's1', null, null, [{}, {}])
       ),
-      'src/routes/[...index]/a+b/c?foo#s1#2 3'
+      'src/routes/[...index]/a+b/c?foo#s1#2 1'
     );
   });
 

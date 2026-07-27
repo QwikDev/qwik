@@ -41,6 +41,7 @@ import {
 } from './runtime/subscriber';
 import { Task, TaskSubscription } from './runtime/task';
 import { bootQwikLoader, type QwikLoaderTestDriver } from './qwikloader-test-driver';
+import { deserializeCaptures } from './shared/qrl/qrl-class';
 
 export { bootQwikLoader };
 export type { QwikLoaderEventPayload, QwikLoaderTestDriver } from './qwikloader-test-driver';
@@ -376,17 +377,8 @@ export function createCaptureContainer(
     discardRoot() {},
     async disposeRoot() {},
     async prepareRoot() {},
-    async restoreCaptures(ids) {
-      const normalized = ids.trim();
-      if (normalized.length === 0) {
-        return [];
-      }
-      const parts = normalized.split(' ');
-      const results: unknown[] = new Array(parts.length);
-      for (let i = 0; i < parts.length; i++) {
-        results[i] = await container.getRoot(parts[i]);
-      }
-      return results;
+    restoreCaptures(ids) {
+      return deserializeCaptures(container, ids);
     },
     nextId() {
       return nextId++;

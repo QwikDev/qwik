@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { createQRL } from './shared/qrl/qrl-class';
+import { _captures, createQRL, type QRLInternal } from './shared/qrl/qrl-class';
 import { needsInflation } from './shared/serdes/deser-proxy';
 import { deserializeData, inflate } from './shared/serdes/inflate';
 import { createSerializationContext } from './shared/serdes/serialization-context';
 import { Constants, TypeIds } from './shared/serdes/constants';
 import { allocate } from './shared/serdes/allocate';
 import { _deserialize, _serialize } from './shared/serdes/standalone';
+import { QRL_RUNTIME_CHUNK } from './shared/serdes/qrl-to-string';
 import { SerializerSymbol } from './shared/serdes/verify';
 import { EffectKind } from './dom/effect/effect-kind.enum';
 import type { AttrExpressionFn } from './dom/effect/effect';
@@ -77,6 +78,27 @@ describe('serdes emit-only', () => {
     const target = root.firstElementChild;
 
     expect(allocate(createContainerContext(root), TypeIds.RefVNode, 4)).toBe(target);
+  });
+
+  it('restores delta-encoded QRL captures', async () => {
+    const first = { value: 'first' };
+    const second = { value: 'second' };
+    const context = createCaptureContainer({
+      0: QRL_RUNTIME_CHUNK,
+      1: 'deltaCaptureHandler',
+      2: first,
+      3: second,
+    });
+    const backChannel: Map<string, Function> = ((globalThis as any).__qrl_back_channel__ ||=
+      new Map());
+    backChannel.set('deltaCaptureHandler', () => _captures);
+
+    const qrl = (await allocate(context, TypeIds.QRL, '0#1#1 1')) as QRLInternal<() => unknown>;
+    const handler = await qrl.resolve(context);
+
+    expect(qrl.$captures$).toEqual([first, second]);
+    expect(handler()).toEqual([first, second]);
+    expect(() => allocate(context, TypeIds.QRL, 'invalid')).toThrow('Invalid serialized QRL');
   });
 
   it('serializes a DOM ref as its node id', async () => {
@@ -467,7 +489,7 @@ describe('serdes emit-only', () => {
     expect(effectPayload[10]).toBe(TypeIds.Array);
     expect(effectPayload[11]).toEqual([TypeIds.RootRef, 0]);
     expect(effectPayload[12]).toBe(TypeIds.QRL);
-    expect(effectPayload[13]).toBe('1#2#0');
+    expect(effectPayload[13]).toBe('1#1#-2');
     expect(state.slice(2)).toEqual([TypeIds.Plain, 'counter.text.js', TypeIds.Plain, 'label']);
   });
 
@@ -837,7 +859,7 @@ describe('serdes emit-only', () => {
     const signalPayload = state[3] as unknown[];
 
     expect(computedPayload[0]).toBe(TypeIds.QRL);
-    expect(computedPayload[1]).toBe('2#3#1');
+    expect(computedPayload[1]).toBe('2#1#-2');
     expect(computedPayload[2]).toBe(TypeIds.Array);
     expect(computedPayload[3]).toEqual([TypeIds.RootRef, 1]);
     expect(computedPayload[4]).toBe(TypeIds.Plain);

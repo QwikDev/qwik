@@ -15,6 +15,7 @@ import { Task, TaskSubscription } from '../../runtime/task';
 import { Phase } from '../../runtime/scheduler';
 import { qError, QError } from '../error/error';
 import type { QRLInternal } from '../qrl/qrl-class';
+import { parseSerializedQrlRootIds } from '../qrl/qrl-capture-deltas';
 import { _UNINITIALIZED } from '../utils/constants';
 import { maybeThen } from '../utils/promises';
 import type { ValueOrPromise } from '../utils/types';
@@ -80,10 +81,11 @@ export const allocate = (
       return {};
     case TypeIds.QRL: {
       if (typeof value === 'string') {
-        const [chunkId, symbolId, captureIds] = value.split('#');
+        const [chunkId, symbolId, captureDeltas] = parseSerializedQrlRootIds(value);
+        const captures = captureDeltas === null ? null : value;
         return maybeThen(context.getRoot(chunkId), (chunk) =>
           maybeThen(context.getRoot(symbolId), (symbol) =>
-            createQRLWithBackChannel(chunk as string, symbol as string, captureIds || null, context)
+            createQRLWithBackChannel(chunk as string, symbol as string, captures, context)
           )
         );
       }

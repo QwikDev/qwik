@@ -79,7 +79,7 @@ When core state changes its serialized representation:
 
 1. Update serializer and allocator/inflater together.
 2. Preserve existing wire IDs unless the protocol is intentionally versioned.
-3. Preserve absolute root IDs for QRL captures.
+3. Encode serialized QRL root IDs as chunk-to-symbol-to-capture delta chains.
 4. Add a round-trip test for writer and reader behavior.
 5. Keep malformed-input handling fail-closed at the deserialization boundary.
 

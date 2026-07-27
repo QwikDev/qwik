@@ -36,7 +36,8 @@ describe('ContainerContext', () => {
 
     expect(context.state.rootToChunk[0].parsed).toBeNull();
     expect(await context.getRoot(2)).toBe('two');
-    expect(await context.restoreCaptures('1 2')).toEqual(['one', 'two']);
+    expect(await context.restoreCaptures('1 1')).toEqual(['one', 'two']);
+    expect(await context.restoreCaptures('0#1#0 1')).toEqual(['one', 'two']);
   });
 
   it('registers an appended state script once and resolves cross-chunk refs', async () => {

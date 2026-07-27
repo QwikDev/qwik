@@ -11,6 +11,7 @@ describe('SSR event attributes', () => {
       () => {},
       new WeakMap()
     );
+    serializationCtx.$addRoot$({ id: 'existing' });
     const first = { id: 'first' };
     const second = { id: 'second' };
     const handler = createQRL('./listener.js', '_handler', () => {}, null, [first, second]);
@@ -18,14 +19,9 @@ describe('SSR event attributes', () => {
     expect(createSsrEventAttr(serializationCtx, 'q-e:click', handler, false)).toEqual({
       type: 'event-attr',
       name: 'q-e:click',
-      valueParts: [
-        'listener.js#_handler#',
-        { type: 'root-ref', localId: 0 },
-        ' ',
-        { type: 'root-ref', localId: 1 },
-      ],
+      valueParts: ['listener.js#_handler#', { type: 'root-ref', localId: 1 }, ' 1'],
     });
-    expect(serializationCtx.$roots$).toEqual([first, second]);
+    expect(serializationCtx.$roots$).toEqual([{ id: 'existing' }, first, second]);
   });
 
   it('converts root paths and escapes only literal attribute chunks', () => {

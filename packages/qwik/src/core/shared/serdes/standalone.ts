@@ -2,6 +2,7 @@ import { TypeIds } from './type-id';
 import { createSerializationContext } from './serialization-context';
 import { defaultScheduler } from '../../runtime/scheduler';
 import type { ContainerContext } from '../../runtime/container-context';
+import { deserializeCaptures } from '../qrl/qrl-class';
 
 /** @internal */
 export async function _serialize<T>(data: T): Promise<string> {
@@ -51,9 +52,8 @@ export async function _deserialize<T>(raw: string): Promise<T> {
       }
       return root;
     },
-    async restoreCaptures(ids: string) {
-      const parts = ids.trim() ? ids.trim().split(' ') : [];
-      return Promise.all(parts.map((id) => context.getRoot(id)));
+    restoreCaptures(ids: string) {
+      return deserializeCaptures(context as ContainerContext, ids);
     },
   } as unknown as ContainerContext;
 

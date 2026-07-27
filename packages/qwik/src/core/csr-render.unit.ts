@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createDocument } from '../testing/document';
-import { renderCompiled as render } from './csr-render';
+import { renderCompiled } from './csr-render';
 import { createOwner, type Owner } from './runtime/owner';
 import { OwnerFlags } from './reactive/flags';
 import { Scheduler } from './runtime/scheduler';
@@ -11,7 +11,7 @@ describe('csr render', () => {
     const document = createDocument({ html: '<main></main>' });
     const host = document.querySelector('main')!;
 
-    const result = await render(
+    const result = await renderCompiled(
       host,
       (props: { label: string }, ctx) => {
         const node = ctx.document.createElement('span');
@@ -28,7 +28,7 @@ describe('csr render', () => {
     const document = createDocument({ html: '<main></main>' });
     const host = document.querySelector('main')!;
 
-    const result = await render(host, (_props, ctx) => {
+    const result = await renderCompiled(host, (_props, ctx) => {
       const node = ctx.document.createElement('span');
       node.textContent = 'one';
       return node;
@@ -47,7 +47,7 @@ describe('csr render', () => {
     let resolve!: (node: Node) => void;
     const output = new Promise<Node>((done) => (resolve = done));
 
-    const rendering = render(host, () => output);
+    const rendering = renderCompiled(host, () => output);
     expect(host.innerHTML).toBe('');
 
     const node = document.createElement('span');
@@ -65,7 +65,7 @@ describe('csr render', () => {
     const scheduler = new Scheduler((flush) => queueMicrotask(flush));
     let mounted = false;
 
-    const result = await render(
+    const result = await renderCompiled(
       host,
       (_props, ctx) => {
         const node = ctx.document.createElement('span');
@@ -87,7 +87,7 @@ describe('csr render', () => {
     let owner: Owner | null = null;
 
     await expect(
-      render(host, () => {
+      renderCompiled(host, () => {
         owner = createOwner();
         return Promise.reject(new Error('failed'));
       })
@@ -102,7 +102,7 @@ describe('csr render', () => {
     const host = document.querySelector('main')!;
     let owner: Owner | null = null;
 
-    const result = await render(host, (_props, ctx) => {
+    const result = await renderCompiled(host, (_props, ctx) => {
       owner = createOwner();
       return ctx.document.createElement('span');
     });
@@ -120,7 +120,7 @@ describe('csr render', () => {
     let start!: Comment;
     let end!: Comment;
 
-    const result = await render(host, (_props, ctx) => {
+    const result = await renderCompiled(host, (_props, ctx) => {
       start = ctx.document.createComment('');
       end = ctx.document.createComment('');
       return [start, ctx.document.createElement('span'), end];

@@ -7,6 +7,7 @@ import { fastGetAttribute } from './fast-getters';
 import { findContextScopeId } from './node-walker';
 import type { ServerDataContext } from './use-server-data';
 import type { PhaseSubscriber, Subscriber } from './subscriber';
+import { deserializeCaptures } from '../shared/qrl/qrl-class';
 
 const STATE_SCRIPT_TYPE = 'qwik/state';
 const CTX_PROP = '_ctx';
@@ -120,18 +121,8 @@ function createContainerContextRecord(
     registerStateScripts(scripts) {
       registerStateScripts(context, scripts, true);
     },
-    async restoreCaptures(ids) {
-      const normalized = ids.trim();
-      if (normalized.length === 0) {
-        return [];
-      }
-      const parts = normalized.split(' ');
-      const results: unknown[] = new Array(parts.length);
-      for (let i = 0; i < parts.length; i++) {
-        const part = parts[i];
-        results[i] = await this.getRoot(part);
-      }
-      return results;
+    restoreCaptures(ids) {
+      return deserializeCaptures(context, ids);
     },
   };
   if (serverData !== undefined) {

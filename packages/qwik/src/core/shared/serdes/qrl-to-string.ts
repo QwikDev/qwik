@@ -70,17 +70,24 @@ export function qrlToString(
 
   const captures = qrl.getCaptured();
 
-  let captureIds: string | null = null;
+  let captureDeltas: string | null = null;
   if (captures && captures.length > 0) {
     // We refer by id so every capture needs to be a root
-    captureIds = captures.map((ref) => `${serializationContext.$addRoot$(ref)}`).join(' ');
+    let previous = 0;
+    const deltas: number[] = new Array(captures.length);
+    for (let i = 0; i < captures.length; i++) {
+      const captureId = serializationContext.$addRoot$(captures[i]);
+      deltas[i] = captureId - previous;
+      previous = captureId;
+    }
+    captureDeltas = deltas.join(' ');
   }
   if (raw) {
-    return [chunk, symbol, captureIds];
+    return [chunk, symbol, captureDeltas];
   }
   let qrlStringInline = `${chunk}#${symbol}`;
-  if (captureIds) {
-    qrlStringInline += `#${captureIds}`;
+  if (captureDeltas) {
+    qrlStringInline += `#${captureDeltas}`;
   }
   return qrlStringInline;
 }
@@ -96,12 +103,11 @@ export function qrlToChunks(
     return prefix;
   }
   const chunks: SsrWriteChunk[] = [prefix, '#'];
-  const captureIds = captures.split(' ');
-  for (let i = 0; i < captureIds.length; i++) {
-    if (i > 0) {
-      chunks.push(' ');
-    }
-    chunks.push(Number(captureIds[i]));
+  const firstSpace = captures.indexOf(' ');
+  if (firstSpace === -1) {
+    chunks.push(Number(captures));
+  } else {
+    chunks.push(Number(captures.slice(0, firstSpace)), captures.slice(firstSpace));
   }
   return chunks;
 }
@@ -124,7 +130,7 @@ export function createQRLWithBackChannel(
   return createQRL(chunk, symbol, null, qrlImporter, captures, container);
 }
 
-/** Parses "chunk#hash#...rootRef" */
+/** Parses "chunk#hash#...captureDelta" */
 export function parseQRL(qrl: string, container?: ContainerContext): QRLInternal<any> {
   const [chunk, symbol, captures] = qrl.split('#');
   return createQRLWithBackChannel(chunk, symbol, captures || null, container);

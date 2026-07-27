@@ -514,9 +514,7 @@ test.describe('ErrorBoundary multi-container qErr scoping', () => {
     await page.goto(routeUrl('multi-container'), { waitUntil: 'commit' });
 
     await expect(page.locator('#eb-embed #eb-fallback')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#eb-embed #eb-fallback-msg')).toHaveText(
-      'caught: An error occurred'
-    );
+    await expect(page.locator('#eb-embed #eb-fallback-msg')).toHaveText('caught: fragment boom');
     await expect(page.locator('#eb-embed #eb-content')).toBeHidden();
 
     // Per-container id counters make both boundaries share one id.

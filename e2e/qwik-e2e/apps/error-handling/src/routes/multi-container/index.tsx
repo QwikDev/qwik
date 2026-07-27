@@ -2,11 +2,10 @@ import { component$, ErrorBoundary, Resource, useResource$, useSignal } from '@q
 import { EbFallback, errMsg } from '../../components/error-boundary/error-boundary';
 
 // Inlined during SSR so the qErr swap script runs with a real currentScript.
-// A router app cannot serve a `containerTagName:'container'` fragment, so the
-// separate embedded container is still sourced from the plain e2e fragment endpoint.
+// A router app cannot serve a `containerTagName:'container'` fragment, so a dedicated plain app does.
 const EmbeddedFragment = component$(() => {
   const fragmentHtml = useResource$<string>(async () => {
-    const url = `http://localhost:${(globalThis as any).PORT}/e2e/error-boundary-streaming?fragment&loader=false&outOfOrder=false`;
+    const url = `http://localhost:${(globalThis as any).PORT}/error-handling-fragment/`;
     const res = await fetch(url);
     return res.text();
   });

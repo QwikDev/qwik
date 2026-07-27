@@ -29,9 +29,11 @@ import {
   useStylesScoped$,
   useStore,
   Fragment as Signal,
+  type Signal as SignalType,
 } from '@qwik.dev/core';
 import { ErrorProvider, emulateExecutionOfBackpatch } from '../../testing/rendering.unit-util';
 import { useErrorBoundaryStore } from '../use/use-error-boundary-store';
+import { isServerPlatform } from '../shared/platform/platform';
 import { delay } from '../shared/utils/promises';
 import { getScopedStyles } from '../shared/utils/scoped-stylesheet';
 import { TypeIds } from '../shared/serdes/constants';
@@ -2718,5 +2720,75 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
       delete (globalThis as any).__ooosUnitFallbackValue;
       delete (globalThis as any).__ooosUnitShellValue;
     }
+  });
+});
+
+describe('ssrRenderToDom: author re-render across a deferred Suspense', () => {
+  const OOOS_OPT_IN = {
+    streaming: { inOrder: { strategy: 'disabled' as const }, outOfOrder: true },
+  };
+  const IN_ORDER = { streaming: { outOfOrder: false } };
+  const mounts = { count: 0 };
+
+  const DeferredRetry = component$<{ attempt: SignalType<number> }>((props) => {
+    if (isServerPlatform()) {
+      return delay(10).then(() => (
+        <button id="retry" onClick$={() => props.attempt.value++}>
+          mount 0
+        </button>
+      )) as unknown as JSXOutput;
+    }
+    mounts.count++;
+    return (
+      <button id="retry" onClick$={() => props.attempt.value++}>
+        mount {mounts.count}
+      </button>
+    );
+  });
+
+  // Author renders nothing but the Suspense, so only a remount proves it re-rendered.
+  const DeferOnlyApp = component$(() => {
+    const attempt = useSignal(0);
+    return (
+      <Suspense fallback={<span id="skel">loading</span>}>
+        <DeferredRetry key={attempt.value} attempt={attempt} />
+      </Suspense>
+    );
+  });
+
+  const ShellThenDeferApp = component$(() => {
+    const attempt = useSignal(0);
+    return (
+      <div>
+        <h2 id="shell">shell</h2>
+        <Suspense fallback={<span id="skel">loading</span>}>
+          <DeferredRetry key={attempt.value} attempt={attempt} />
+        </Suspense>
+      </div>
+    );
+  });
+
+  const expectRemount = async (jsx: JSXOutput, opts: object) => {
+    mounts.count = 0;
+    const { container } = await ssrRenderToDom(jsx, { debug, ...opts });
+    const el = container.element;
+    expect(el.querySelector('#retry')?.textContent).toContain('mount 0');
+
+    await trigger(el, '#retry', 'click');
+
+    expect(el.querySelector('#retry')?.textContent).toContain('mount 1');
+  };
+
+  it('in-order: an author whose only root is the Suspense re-renders', async () => {
+    await expectRemount(<DeferOnlyApp />, IN_ORDER);
+  });
+
+  // https://github.com/QwikDev/qwik/issues/8876 — the author's q:renderFn is dropped under OOOS.
+  it.skip('out-of-order: an author whose only root is the Suspense re-renders', async () => {
+    await expectRemount(<DeferOnlyApp />, OOOS_OPT_IN);
+  });
+
+  it('out-of-order: an author with in-order shell content above the Suspense re-renders', async () => {
+    await expectRemount(<ShellThenDeferApp />, OOOS_OPT_IN);
   });
 });

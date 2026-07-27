@@ -713,7 +713,7 @@ const withRerenderOwner = (
     );
   });
 
-// Harness can't dispatch resumed handlers; drive reset directly.
+// Resumed rows drive the container reset API directly; the CSR row covers the click path.
 const resetResumed = async (container: any) => {
   const c = _getDomContainer(container.element) as any;
   c.resetErrorBoundary(c.vNodeLocate(container.element.querySelector('#retry')));

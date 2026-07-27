@@ -459,7 +459,9 @@ export interface ErrorBoundaryInfo {
 
 // @public (undocumented)
 export interface ErrorBoundaryProps {
-    fallback$: QRL<(error: Error, reset: QRL<() => void>) => JSXOutput>;
+    fallback$: QRL<(error: Error & {
+        digest?: string;
+    }, reset: QRL<() => void>) => JSXOutput>;
     onError$?: QRL<(error: Error, info: ErrorBoundaryInfo) => void>;
 }
 

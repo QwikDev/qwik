@@ -1739,13 +1739,15 @@ fallback$
 
 </td><td>
 
-[QRL](#qrl-type-alias)&lt;(error: Error, reset: [QRL](#qrl-type-alias)&lt;() =&gt; void&gt;) =&gt; [JSXOutput](#jsxoutput)&gt;
+[QRL](#qrl-type-alias)&lt;(error: Error &amp; \{ digest?: string; }, reset: [QRL](#qrl-type-alias)&lt;() =&gt; void&gt;) =&gt; [JSXOutput](#jsxoutput)&gt;
 
 </td><td>
 
 Rendered when a descendant throws; receives `(error, reset)`. The error is always an `Error` (`{error.message}` is safe): a non-Error throw is wrapped, and in production it is redacted to a generic message + `digest`. Add a live region for screen-reader announcement. Invoke `reset` wrapped in a handler — `onClick$={() => reset()}`, not `onClick$={reset}` — so it stays wired in a streamed fallback after resume.
 
 A re-derived client fallback recomputes `digest`, so it can differ from the server-rendered value.
+
+`digest` is set only when the framework redacted the error (production); absent on dev-fidelity and `PublicError` fallbacks.
 
 </td></tr>
 <tr><td>
@@ -3180,7 +3182,7 @@ A deliberately public error: constructing one is consent to serialize and displa
 
 Contract details:
 
-- Consent covers the whole instance: every own enumerable field serializes with it, so keep the payload in `data`. - A configured `transformError` render option runs first and its projection wins — return the received `PublicError` unchanged to keep it public. - The framework never serializes the boundary error; `data` crosses the wire only inside your own captures (props, QRLs, stores) and must serialize there. - A subclass instance resumes as a base `PublicError`: discriminate on `data`, not the subclass.
+- Consent covers the whole instance: every own enumerable field serializes with it, so keep the payload in `data`. - A configured `transformError` render option runs first and its projection wins — return the received `PublicError` unchanged, or return `undefined` to apply the default policy, which keeps it public. - The framework never serializes the boundary error; `data` crosses the wire only inside your own captures (props, QRLs, stores) and must serialize there. - A subclass instance resumes as a base `PublicError`: discriminate on `data`, not the subclass.
 
 ```typescript
 export declare class PublicError<T = unknown> extends Error

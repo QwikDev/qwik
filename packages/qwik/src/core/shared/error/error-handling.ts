@@ -21,6 +21,8 @@ export interface ErrorBoundaryStore {
 
 export const ERROR_CONTEXT = /*#__PURE__*/ createContextId<ErrorBoundaryStore>('qk-error');
 
+export const ERROR_BOUNDARY_QRL_SYMBOL = '_ebC';
+
 /** Reads from a possibly-hostile raw value; a throwing trap/getter yields the fallback. */
 const safeRead = <T>(read: () => T, fallback: T): T => {
   try {

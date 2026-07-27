@@ -17,7 +17,11 @@ import { tryGetInvokeContext } from '../../use/use-core';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { getNextUniqueIndex } from '../utils/unique-index-generator';
 import { getStoreTarget } from '../../reactive-primitives/impl/store';
-import { redactBoundaryErrorForDisplay, type ErrorBoundaryStore } from './error-handling';
+import {
+  ERROR_BOUNDARY_QRL_SYMBOL,
+  redactBoundaryErrorForDisplay,
+  type ErrorBoundaryStore,
+} from './error-handling';
 
 type ISsrComponentFrameLike = {
   projectionComponentFrame?: { componentNode?: unknown } | null;
@@ -174,5 +178,5 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
 /** @public @experimental */
 export const ErrorBoundary: Component<ErrorBoundaryProps> =
   /*#__PURE__*/ componentQrl<ErrorBoundaryProps>(
-    /*#__PURE__*/ inlinedQrl(errorBoundaryCmp, '_ebC')
+    /*#__PURE__*/ inlinedQrl(errorBoundaryCmp, ERROR_BOUNDARY_QRL_SYMBOL)
   );

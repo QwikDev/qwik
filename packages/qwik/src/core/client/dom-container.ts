@@ -5,6 +5,7 @@ import type { QRLInternal } from '../../server/qwik-types';
 import { assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import {
+  ERROR_BOUNDARY_QRL_SYMBOL,
   ERROR_CONTEXT,
   fireOnError,
   isRecoverable,
@@ -439,11 +440,13 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     }
     // Re-render owner and clear error in the same tick to re-supply + re-execute.
     let owner = this.getParentHost(boundaryHost);
-    while (
-      owner &&
-      (this.getHostProp(owner, OnRenderProp) as { $symbol$?: string } | null)?.$symbol$ ===
-        SUSPENSE_QRL_SYMBOL
-    ) {
+    // Boundaries never author children; climb to the real author so the reset re-renders it.
+    while (owner) {
+      const symbol = (this.getHostProp(owner, OnRenderProp) as { $symbol$?: string } | null)
+        ?.$symbol$;
+      if (symbol !== SUSPENSE_QRL_SYMBOL && symbol !== ERROR_BOUNDARY_QRL_SYMBOL) {
+        break;
+      }
       owner = this.getParentHost(owner);
     }
     // `getParentHost` is null for a resumed boundary; fall back to serialized projection owner.

@@ -51,7 +51,6 @@ export function getQwikOutOfOrderExecutorScript(opts: { debug?: boolean } = {}) 
   const script = opts.debug
     ? QWIK_OUT_OF_ORDER_EXECUTOR_DEBUG
     : QWIK_OUT_OF_ORDER_EXECUTOR_MINIFIED;
-  // Guard install so streamed containers don't redeclare top-level consts.
   return `if(!globalThis.qO||globalThis.qO.d!==document){${script}}`;
 }
 

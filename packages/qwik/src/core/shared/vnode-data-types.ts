@@ -101,5 +101,4 @@ export const getSegmentVNodeRefId = (segmentId: string, localIndex: number): num
   return -((diagonal * (diagonal + 1)) / 2 + localIndex + 1);
 };
 
-/** Virtual/text refs append an alphanumeric child path to the numeric element ref. */
 export const hasVirtualNodePath = (refId: string): boolean => /[A-Za-z]/.test(refId);

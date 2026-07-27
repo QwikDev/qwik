@@ -38,7 +38,6 @@ export const getStoreTarget = <T extends StoreTarget>(value: T): T | null => {
   try {
     return value?.[STORE_TARGET] || null;
   } catch {
-    // Hostile object (revoked Proxy/throwing trap) is not a store.
     return null;
   }
 };
@@ -174,7 +173,7 @@ export class StoreHandler implements ProxyHandler<StoreTarget> {
         shouldWrapRecursively =
           !Object.isFrozen(value) && !isStore(value) && !Object.isFrozen(target);
       } catch {
-        // Hostile object (revoked Proxy/throwing trap): return it unwrapped.
+        // ignore
       }
     }
     if (shouldWrapRecursively) {

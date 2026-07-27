@@ -72,13 +72,11 @@ export const canSerialize = (value: unknown, seen: WeakSet<any> = new WeakSet())
       return true;
     } else if (value instanceof Error) {
       try {
-        // The serializer reads these; a throwing getter must fail the check.
         void value.message;
         void value.stack;
       } catch {
         return false;
       }
-      // The serializer also emits the Error's own enumerable fields.
       return canSerializeOwnEnumerable(value, seen);
     } else if (value instanceof URL) {
       return true;

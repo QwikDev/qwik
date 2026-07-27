@@ -111,7 +111,6 @@ export interface SSRContainer extends Container {
   readonly symbolToChunkResolver: SymbolToChunkResolver;
   readonly resolvedManifest: ResolvedManifest;
   readonly outOfOrderStreaming: boolean;
-  /** Server-only; redacts a boundary error before serialization. */
   readonly $transformError$: ((error: unknown) => unknown) | undefined;
   additionalHeadNodes: Array<JSXNodeInternal>;
   additionalBodyNodes: Array<JSXNodeInternal>;
@@ -161,7 +160,6 @@ export interface SSRContainer extends Container {
   render(jsx: JSXOutput): Promise<void>;
   renderJSX(jsx: JSXOutput, options: SSRRenderJSXOptions): Promise<void>;
   $runQueuedRender$<T>(render: () => ValueOrPromise<T>): ValueOrPromise<T>;
-  /** `markUsed: false` reserves an id without arming the OOOS executor. */
   nextOutOfOrderId(markUsed?: boolean): number;
   emitOutOfOrderSegmentScripts(scripts: string): void;
   segment(
@@ -172,7 +170,6 @@ export interface SSRContainer extends Container {
   queueOutOfOrderSegment(segment: Promise<void>): void;
   emitOutOfOrderExecutorIfNeeded(): void;
   emitErrorSwapExecutorIfNeeded(): void;
-  /** Defers `qErr` to the reveal; no-op outside a segment. */
   $registerErrorSwap$(boundaryId: number): void;
   emitInlineScript(script: string): void;
   writeScript(attrs: Props, body?: string): void;
@@ -193,7 +190,6 @@ export interface SSRContainer extends Container {
 
 export interface SSRSegmentContainer extends SSRContainer {
   $rootContainer$: SSRContainer;
-  /** Errored boundary ids; their `qErr` runs after the reveal. */
   $errorSwapIds$: number[];
   $recordExternalRootEffect$(
     producer: unknown,

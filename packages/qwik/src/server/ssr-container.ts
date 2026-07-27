@@ -462,7 +462,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   nextOutOfOrderId(markUsed = true): number {
-    // In-order ErrorBoundary needs an id without arming OOOS.
     const ooosActive = __EXPERIMENTAL__.suspense && this.outOfOrderStreaming;
     if (!ooosActive && !__EXPERIMENTAL__.errorBoundary) {
       return 0;
@@ -1389,7 +1388,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   emitPatchDataIfNeeded(): void {
     const patches: (string | number | boolean | null)[] = [];
-    // Inline executor is forward-only; entries must ascend by index.
     const sortedBackpatches = [...this.backpatchMap.entries()].sort(
       ([a], [b]) => Number(a) - Number(b)
     );
@@ -1466,9 +1464,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.emitInlineScript(getQwikErrorSwapExecutorScript({ debug: isDev }));
   }
 
-  $registerErrorSwap$(_boundaryId: number): void {
-    // No-op: standalone boundaries emit `qErr` inline; only segments defer.
-  }
+  $registerErrorSwap$(_boundaryId: number): void {}
 
   emitInlineScript(script: string): void {
     const scriptAttrs: Record<string, string> = { type: 'text/javascript' };
@@ -1885,7 +1881,6 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
   }
 
   override $registerErrorSwap$(boundaryId: number): void {
-    // `qErr` is inert inside the segment `<template>`; defer swap to root.
     this.$errorSwapIds$.push(boundaryId);
   }
 

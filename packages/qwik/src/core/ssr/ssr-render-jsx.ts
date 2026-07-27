@@ -65,8 +65,6 @@ import { resolveSlotName } from '../shared/utils/prop';
 class MaybeAsyncSignal {}
 class FunctionChild {}
 
-// Open ErrorBoundary content hosts per container: once a host is INERT (its boundary
-// caught), still-queued frames inside it are superseded and must not run.
 const openBoundaryContentScopes = /*#__PURE__*/ new WeakMap<SSRContainer, ISsrNode[]>();
 
 const pushBoundaryContentScope = (ssr: SSRContainer, contentHost: ISsrNode): StackFn => {
@@ -162,7 +160,6 @@ export async function _walkJSX(
           continue;
         }
         if (__EXPERIMENTAL__.errorBoundary && value === FunctionChild) {
-          // User fn child: keep invoke-and-discard, but route throws to the boundary.
           const fnChild = stack.pop() as StackFn;
           if (isInsideFailedBoundaryContent(ssr)) {
             continue;
@@ -181,7 +178,6 @@ export async function _walkJSX(
           if (value === Promise) {
             const pending = stack.pop() as Promise<JSXOutput>;
             if (__EXPERIMENTAL__.errorBoundary && isInsideFailedBoundaryContent(ssr)) {
-              // Never await superseded content; enqueuePromise already observed it.
               continue;
             }
             stack.push(
@@ -198,8 +194,6 @@ export async function _walkJSX(
           continue;
         }
         if (__EXPERIMENTAL__.errorBoundary && isInsideFailedBoundaryContent(ssr)) {
-          // Superseded value frame: discard. Dead content's rejection is meaningless,
-          // so swallow it outright rather than routing it through handleError.
           if (isPromise(value)) {
             value.catch(() => {});
           }
@@ -247,7 +241,6 @@ function renderErrorBoundaryFallback(
     if (!errorStore || !errorStore.$fallback$) {
       continue;
     }
-    // Already-streamed outer boundary can't catch in place; tear down the segment.
     if (
       __EXPERIMENTAL__.errorBoundary &&
       isOutOfOrderSegmentContainer(ssr) &&
@@ -271,14 +264,12 @@ function markErrorBoundaryContentInert(
   ssr: SSRContainer,
   boundaryNode: ReturnType<SSRContainer['getOrCreateLastNode']>
 ): void {
-  // Only boundary + ancestors can hold a live projection ref into dead content.
   const liveOwners = new Map<string, ISsrNode>();
   for (let n: ISsrNode | null = boundaryNode; n; n = n.parentComponent) {
     if (n.id) {
       liveOwners.set(n.id, n);
     }
   }
-  // Runs before the fallback host renders; children are dead partial content.
   const children = boundaryNode.children;
   if (children) {
     for (let i = 0; i < children.length; i++) {
@@ -293,7 +284,6 @@ function markSubtreeInert(
   liveOwners: Map<string, ISsrNode>
 ): void {
   node.vnodeData[0] |= VNodeDataFlag.INERT;
-  // Cut the owner's slot ref so client resume won't walk dead content.
   const ownerId = node.getProp(QSlotParent) as string | null;
   if (ownerId) {
     const owner = liveOwners.get(ownerId);
@@ -321,7 +311,6 @@ function markSubtreeInert(
   }
 }
 
-/** `host` captured so a deferred rejection routes to its producing node. */
 function catchToErrorBoundary(
   ssr: SSRContainer,
   host: ReturnType<SSRContainer['getOrCreateLastNode']>,
@@ -338,7 +327,6 @@ function catchToErrorBoundary(
   }
 }
 
-/** Stray function child: the sentinel routes its throw to the nearest boundary. */
 function enqueueChild(enqueue: (value: StackValue) => void, child: JSXOutput) {
   if (__EXPERIMENTAL__.errorBoundary && typeof child === 'function') {
     enqueue(child as StackValue);
@@ -387,10 +375,8 @@ function processJSXNode(
     } else if (isAsyncGenerator(value)) {
       enqueue(async () => {
         if (__EXPERIMENTAL__.errorBoundary && isInsideFailedBoundaryContent(ssr)) {
-          // Superseded before iteration started: never run the generator.
           return;
         }
-        // Fresh object per walk: `_walkJSX` mutates options in place.
         const freshWalkOptions = () => ({
           currentStyleScoped: options.currentStyleScoped,
           parentComponentFrame: options.parentComponentFrame,
@@ -413,7 +399,6 @@ function processJSXNode(
     } else {
       const jsx = value as JSXNodeInternal;
       const type = jsx.type;
-      // JSXChildren allows functions: enqueueChild marks them so throws route to the boundary.
       if (typeof type === 'string') {
         appendClassIfScopedStyleExists(jsx, options.currentStyleScoped);
         let qwikInspectorAttrValue: string | null = null;
@@ -438,7 +423,6 @@ function processJSXNode(
         }
 
         if (__EXPERIMENTAL__.errorBoundary && directGetPropsProxyProp(jsx, QErrorContentHost)) {
-          // Scope the content host so queued frames after a catch can be discarded.
           enqueue(pushBoundaryContentScope(ssr, ssr.getOrCreateLastNode()));
         }
         enqueue(ssr.closeElement);

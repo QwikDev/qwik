@@ -351,7 +351,6 @@ const dispatch = (
         defer = true;
         tasks.push(async () => {
           await waitForReady;
-          // Only sync symbols need the silent first try; retrying an import re-reports its failure.
           await run(chunk ? await resolve() : (await resolve(false)) || (await resolve()));
         });
       } else if (isPromise(handler)) {

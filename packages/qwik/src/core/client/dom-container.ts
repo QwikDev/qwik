@@ -130,7 +130,6 @@ function getOutOfOrderStreamingScript(boundaryId: number, content: Element | nul
   }
 }
 
-// Per-window, not per-container: shared page would log each rejection N times.
 const windowsWithRejectionBridge = new WeakSet<object>();
 
 function registerUnhandledRejectionBridge(view: (Window & typeof globalThis) | null | undefined) {
@@ -192,17 +191,14 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     element.qContainer = this;
     element.qDestroy = () => this.$destroy$();
     if (__EXPERIMENTAL__.errorBoundary) {
-      // Synchronous, not deferred resume, so CSR containers get it too.
       this.$qErrorHandler$ = (e: Event) => {
         const detail = (
           e as CustomEvent<{ error: unknown; element?: Element; importError?: string }>
         ).detail;
-        // qwikloader already logged import/symbol failures.
         if (detail?.importError) {
           return;
         }
         const source = detail?.element;
-        // Scope shared-document qerror to this container; isolate nested sources.
         if (source && source.closest(QContainerSelector) === this.element) {
           const host = this.vNodeLocate(source);
           if (host) {
@@ -340,14 +336,13 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
           (err as any)['hostElement'] = String(host);
         }
       } catch {
-        // Hostile thrown value: skip the dev annotation.
+        // ignore
       }
       if (!isRecoverable(err)) {
         throw err;
       }
     }
     if (!__EXPERIMENTAL__.errorBoundary) {
-      // Pre-feature behavior: no boundary walk, synchronous rethrow.
       const errorStore = host && this.resolveContext(host, ERROR_CONTEXT);
       if (!errorStore) {
         throw err;
@@ -355,7 +350,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       errorStore.error = err;
       return;
     }
-    // `undefined` is `store.error`'s no-error sentinel; store a keyable Error.
     const storedError = err === undefined ? new Error('undefined') : err;
     let current: VNode | null = host;
     while (current) {
@@ -365,9 +359,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       }
       const store = this.resolveContext<ErrorBoundaryStore>(boundaryHost, ERROR_CONTEXT);
       if (store && store.error === undefined) {
-        // Resumed boundary never subscribed; mark dirty to render the fallback.
         store.error = storedError;
-        // `store.$onError$` is server-only; read serialized `props.onError$`.
         const boundaryProps = this.getHostProp<{
           onError$?: (error: unknown, info: ErrorBoundaryInfo) => unknown;
         }>(boundaryHost, ELEMENT_PROPS);
@@ -379,7 +371,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         return;
       }
       if (store && store.error === null) {
-        // Generic ERROR_CONTEXT consumer captures only, never re-renders.
         store.error = storedError;
         return;
       }
@@ -389,7 +380,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       }
       current = this.getParentHost(boundaryHost);
     }
-    // Rethrow async to reach the global handler, not the chore loop.
     logErrorAndThrowAsync(err);
   }
 
@@ -426,7 +416,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   resetErrorBoundary(host: VNode): void {
     let boundaryHost = this.resolveContextHost(host, ERROR_CONTEXT);
     if (!boundaryHost) {
-      // Streamed fallback segment doesn't chain to the boundary; re-resolve from DOM.
       const hostEl = vnode_getDomParent(host, true)?.closest?.(RESET_BOUNDARY_HOST_SELECTOR);
       boundaryHost = hostEl
         ? this.resolveContextHost(this.vNodeLocate(hostEl), ERROR_CONTEXT)
@@ -439,25 +428,15 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     if (!store) {
       return;
     }
-    // The author re-supplies the children; the boundary itself only projects them.
-    // `getAuthorHost` is null for a resumed boundary; fall back to the serialized author.
     const owner = this.getAuthorHost(boundaryHost) ?? (store.resetOwner as VNode | undefined);
     if (!owner) {
       return;
     }
-    // Re-render owner and clear error in the same tick to re-supply + re-execute.
     markVNodeDirty(this, owner, ChoreBits.COMPONENT);
-    // A resumed boundary never carried an error, so clearing it alone would not re-render it.
     markVNodeDirty(this, boundaryHost, ChoreBits.COMPONENT);
     store.error = undefined;
   }
 
-  /**
-   * The component whose render authored `host`'s JSX.
-   *
-   * Unlike `getParentHost`, crossing a projection skips the component that owns the slot: projected
-   * content is authored by whoever supplied it, one level further up.
-   */
   private getAuthorHost(host: VNode): VNode | null {
     let vNode: VNode | null = vnode_getProjectionParentOrParent(host);
     let crossedProjection = false;
@@ -477,10 +456,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     return null;
   }
 
-  /**
-   * A boundary authors the subtree below it only while it is errored; a resumed one renders its
-   * `<Slot />` again, so the fallback still in the DOM was authored further up.
-   */
   private authorsOwnChildren(host: VNode): boolean {
     const ctx = this.getHostProp<Array<string | unknown>>(host, QCtxAttr);
     if (ctx == null || !mapArray_has(ctx, ERROR_CONTEXT.id, 0)) {

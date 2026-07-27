@@ -231,7 +231,6 @@ function* inflateIterator(
         const key = d[i];
         const value = d[i + 1];
         if (__EXPERIMENTAL__.errorBoundary && key === QPublicErrorMarker) {
-          // Consented public error: restore the class so `instanceof` works after resume.
           Object.setPrototypeOf(target, PublicError.prototype);
           continue;
         }

@@ -184,7 +184,6 @@ export const runTask = (
 
   task.$flags$ &= ~TaskFlags.DIRTY;
   const handleError = (reason: unknown) => {
-    // SSR render-drain rethrow loses the origin; tag keeps it.
     tagErrorPhase(reason, 'task');
     container.handleError(reason, host, 'task');
   };

@@ -711,13 +711,11 @@ export class Serializer {
       const out: any[] = [value.message];
       for (const entry of Object.entries(value)) {
         if (__EXPERIMENTAL__.errorBoundary && entry[0] === QPublicErrorMarker) {
-          // Reserved consent-marker key: only the framework may emit it.
           continue;
         }
         out.push(entry[0], entry[1]);
       }
       if (__EXPERIMENTAL__.errorBoundary && isPublicError(value)) {
-        // Consent marker: inflate restores the class so `instanceof` survives resume.
         out.push(QPublicErrorMarker, 1);
       }
       /// In production we don't want to leak the stack trace.
@@ -731,7 +729,6 @@ export class Serializer {
         value.vnodeData[0] & VNodeDataFlag.INERT &&
         hasVirtualNodePath(value.id)
       ) {
-        // A dead virtual node has no structural vnode-data, so its ref can't resume.
         this.output(TypeIds.Constant, Constants.Undefined);
         return;
       }

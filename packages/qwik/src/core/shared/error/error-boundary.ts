@@ -85,7 +85,6 @@ const renderFallbackOrLastResort = (
   const rendered = fallbackQrl(error, reset) as JSXOutput | Promise<JSXOutput>;
   if (rendered && typeof (rendered as Promise<JSXOutput>).then === 'function') {
     return (rendered as Promise<JSXOutput>).catch((err) => {
-      // Resolved means loaded-then-threw: escalate; else chunk failure.
       if ((fallbackQrl as { resolved?: unknown }).resolved !== undefined) {
         throw err;
       }
@@ -134,15 +133,12 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
   const store = useErrorBoundaryStore();
   const invokeCtx = tryGetInvokeContext();
   const host = invokeCtx?.$hostElement$;
-  // Raw target, not proxy, so this never subscribes to `boundaryId`.
   const container = invokeCtx?.$container$;
   if (container && (getStoreTarget(store) ?? store).boundaryId === undefined) {
     store.boundaryId = getNextUniqueIndex(container);
   }
   const reset = /*#__PURE__*/ inlinedQrl(errorBoundaryReset, '_ebR', [host]);
-  // Fresh closures so `noSerialize` taints these mirrors, not the prop QRLs.
   const fallbackQrl = props.fallback$;
-  // Server-only mirror: `store.error` is always coerced to an Error before display.
   store.$fallback$ = noSerialize((error: unknown) => fallbackQrl(error as Error, reset));
   const onErrorQrl = props.onError$;
   store.$onError$ = onErrorQrl
@@ -151,7 +147,6 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
 
   const isServerEnv = qTest ? isServerPlatform() : !isBrowser;
   if (__EXPERIMENTAL__.errorBoundary && isServerEnv) {
-    // Projection owner under a plain key; prod drops `$`-prefixed keys.
     const ownerFrame = (
       invokeCtx?.$container$ as
         | { getComponentFrame?: (depth: number) => ISsrComponentFrameLike | null }

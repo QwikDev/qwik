@@ -33,7 +33,6 @@ export function addCursorBoundary(cursorData: CursorData, vNode: VNode): void {
   if (!__EXPERIMENTAL__.suspense) {
     return;
   }
-  // A projected child (e.g. under ErrorBoundary) may cache its boundary on an ancestor.
   let boundary: CursorBoundary | null = null;
   let current: VNode | null = vNode;
   while (current && !boundary) {

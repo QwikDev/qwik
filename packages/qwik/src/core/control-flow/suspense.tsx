@@ -262,7 +262,6 @@ const SSRDeferredSlot = __EXPERIMENTAL__.suspense
       const boundaryState = jsx.varProps.boundary as SSROutOfOrderBoundaryState | null;
       const contentStyle = jsx.varProps.contentStyle as Signal<{ display: string }>;
       const revealBoundary = jsx.varProps.reveal as OutOfOrderRevealBoundary | null;
-      // Placeholder already streamed; route to `$emitFallback$`, not in place.
       const errorBoundaryStore =
         __EXPERIMENTAL__.errorBoundary && options.parentComponentFrame
           ? (ssr.resolveContext(options.parentComponentFrame.componentNode, ERROR_CONTEXT) as
@@ -355,7 +354,6 @@ async function finalizeAndSwapOutOfOrderSegment(
     ssr.emitOutOfOrderExecutorIfNeeded();
   }
   ssr.emitInlineScript(`qO(${boundaryId})`);
-  // Deferred `qErr` swaps run after `qO` injected the hosts.
   const errorSwapIds = rendered.container.$errorSwapIds$;
   if (__EXPERIMENTAL__.errorBoundary && errorSwapIds.length) {
     ssr.emitErrorSwapExecutorIfNeeded();
@@ -403,14 +401,12 @@ export const SSRErrorFallback = __EXPERIMENTAL__.errorBoundary
           }
           markBoundaryErrored(store, error, 'render');
           store.$fallback$ = undefined;
-          // Project the raw `store.error` at display time to avoid leaks.
           const projected = redactBoundaryErrorForDisplay(store.error, isDev, ssr.$transformError$);
           const segment = await ssr.segment(segmentId, fallback(projected) as JSXOutput, options);
           await emitErrorBoundaryFallback(ssr, boundaryId, segmentId, segment);
         };
         store.$emitFallback$ = noSerialize(streamFallback);
         writeOutOfOrderPlaceholder(ssr, boundaryId);
-        // `!== undefined` so a falsy sync throw still streams.
         if (store.error !== undefined && store.$fallback$) {
           return streamFallback(store.error);
         }
@@ -426,14 +422,11 @@ export const SSRErrorFallbackInline = __EXPERIMENTAL__.errorBoundary
         if (store.error !== undefined && store.$fallback$) {
           const fallback = store.$fallback$;
           store.$fallback$ = undefined;
-          // Project the raw `store.error` at display time to avoid leaks.
           const projected = redactBoundaryErrorForDisplay(store.error, isDev, ssr.$transformError$);
           if (isOutOfOrderSegmentContainer(ssr)) {
-            // Inline `qErr` is inert in the segment `<template>`; defer to root.
             ssr.$registerErrorSwap$(boundaryId);
             enqueue(fallback(projected) as JSXOutput);
           } else {
-            // LIFO: enqueue `qErr` first so it swaps after content.
             enqueue(() => {
               ssr.emitErrorSwapExecutorIfNeeded();
               ssr.emitInlineScript(`qErr(${boundaryId})`);

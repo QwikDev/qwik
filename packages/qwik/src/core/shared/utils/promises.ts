@@ -8,7 +8,6 @@ export const isPromise = <T>(value: any): value is Promise<T> => {
     // not using "value instanceof Promise" to have zone.js support
     return !!value && typeof value == 'object' && typeof value.then === 'function';
   } catch {
-    // Hostile object (revoked Proxy/throwing getter) is not a promise.
     return false;
   }
 };
@@ -103,7 +102,7 @@ const checkError = (e: Error) => {
       e.message = 'It seems like you forgot to add "if (isBrowser) {...}" here:' + e.message;
     }
   } catch {
-    // Hostile thrown value: leave it untouched.
+    // ignore
   }
 };
 const justThrow = (e: any) => {

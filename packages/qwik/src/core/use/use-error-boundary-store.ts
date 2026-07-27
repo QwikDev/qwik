@@ -4,7 +4,6 @@ import { useStore } from './use-store.public';
 
 /** @internal */
 export const useErrorBoundaryStore = () => {
-  // Serializer walks enumerable keys, so a non-enumerable `error` never crosses the wire.
   const target = Object.defineProperty({} as ErrorBoundaryStore, 'error', {
     value: undefined,
     writable: true,

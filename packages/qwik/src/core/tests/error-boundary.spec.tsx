@@ -2756,6 +2756,25 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
     expect(typeof out.digest).toBe('string');
   });
 
+  it('transformError: returning undefined declines — the default policy applies', () => {
+    const decline = () => undefined;
+    // (a) a PublicError stays public in dev and prod.
+    const pub = new PublicError('Out of stock');
+    expect(redactBoundaryErrorForDisplay(pub, /* dev */ true, decline)).toBe(pub);
+    expect(redactBoundaryErrorForDisplay(pub, /* dev */ false, decline)).toBe(pub);
+    // (b) a plain Error in prod redacts to generic + digest.
+    const prodOut = redactBoundaryErrorForDisplay(
+      new Error('secret'),
+      /* dev */ false,
+      decline
+    ) as Error & { digest?: string };
+    expect(prodOut.message).toBe('An error occurred');
+    expect(typeof prodOut.digest).toBe('string');
+    // (c) a plain Error in dev keeps the original by identity.
+    const original = new Error('secret');
+    expect(redactBoundaryErrorForDisplay(original, /* dev */ true, decline)).toBe(original);
+  });
+
   it('transformError: fail-closed — a non-serializable return redacts to generic + digest', () => {
     const out = redactBoundaryErrorForDisplay(
       new Error('secret'),
@@ -2794,6 +2813,25 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
     const text = container.element.querySelector('#fb')?.textContent;
     expect(text).toContain('redacted-by-app');
     expect(text).not.toContain('SECRET');
+  });
+
+  it('transformError (render option): declining on a PublicError renders its data unredacted', async () => {
+    const { container } = await ssrRenderToDom(
+      <ErrorBoundary
+        fallback$={$((e: any) => (
+          <p id="fb">{e instanceof PublicError ? `public:${e.data.sku}` : 'not-public'}</p>
+        ))}
+      >
+        <PublicThrower />
+      </ErrorBoundary>,
+      {
+        debug,
+        // Projects only "transform:*" messages; declines everything else.
+        transformError: (e: unknown) =>
+          e instanceof Error && e.message.startsWith('transform:') ? e : undefined,
+      }
+    );
+    expect(container.element.querySelector('#fb')?.textContent).toBe('public:A1');
   });
 
   it.each([

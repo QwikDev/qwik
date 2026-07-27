@@ -106,11 +106,15 @@ export const redactBoundaryErrorForDisplay = (
 ): Error => {
   try {
     if (transformError) {
-      // The app's projection wins; keep a readable Error by identity, else fail closed.
       const projected = transformError(error);
-      return projected instanceof Error && isReadableProjection(projected)
-        ? projected
-        : redactToGeneric(error);
+      if (projected instanceof Error) {
+        // The app's projection wins; keep a readable Error by identity, else fail closed.
+        return isReadableProjection(projected) ? projected : redactToGeneric(error);
+      }
+      // `undefined`/`null` declines: fall through to the default policy; any other junk fails closed.
+      if (projected != null) {
+        return redactToGeneric(error);
+      }
     }
     // Constructing a PublicError is consent to display its data unredacted, even in prod.
     if (isPublicError(error)) {

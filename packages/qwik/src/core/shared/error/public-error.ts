@@ -11,7 +11,8 @@
  * - Consent covers the whole instance: every own enumerable field serializes with it, so keep the
  *   payload in `data`.
  * - A configured `transformError` render option runs first and its projection wins — return the
- *   received `PublicError` unchanged to keep it public.
+ *   received `PublicError` unchanged, or return `undefined` to apply the default policy, which
+ *   keeps it public.
  * - The framework never serializes the boundary error; `data` crosses the wire only inside your own
  *   captures (props, QRLs, stores) and must serialize there.
  * - A subclass instance resumes as a base `PublicError`: discriminate on `data`, not the subclass.

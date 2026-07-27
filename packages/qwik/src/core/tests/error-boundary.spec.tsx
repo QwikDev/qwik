@@ -949,17 +949,16 @@ describe('ErrorBoundary reset', () => {
     expect(el.querySelector('#outer-fb')).toBeTruthy();
   });
 
-  // SSR-resume shape: after a stateless resume the outer boundary's store.error is
-  // undefined, so an inner boundary living inside the resumed SSR fallback must still
-  // stop the reset walk at the resumed-errored outer author. The outer child ALWAYS
-  // throws, so its fallback re-derives; the inner child throws only at SSR so the
-  // client reset recovers it inside the re-derived outer fallback.
-  const ssrFallbackNestedRef = { innerThrows: true };
+  // SSR-resume shape: resetting a boundary nested inside a resumed SSR fallback
+  // re-derives the whole outer boundary through its author (serialized resetOwner in
+  // browsers; the materialized route chain in this harness). Outer ALWAYS throws so
+  // the fallback re-derives; the inner throws only at SSR so the reset recovers it.
+  // Gate on the platform: a captured flag object freezes across the resume wire.
   const SsrFallbackAlwaysThrower = component$((): JSXOutput => {
     throw new Error('outer-boom');
   });
   const SsrFallbackNestedFlake = component$(() => {
-    if (ssrFallbackNestedRef.innerThrows) {
+    if (isServerPlatform()) {
       throw new Error('inner-boom');
     }
     return <div id="ssr-inner-ok">inner ok</div>;
@@ -986,7 +985,6 @@ describe('ErrorBoundary reset', () => {
   ));
 
   it('SSR resume: reset on a boundary nested inside a resumed SSR fallback re-derives the outer and recovers the inner', async () => {
-    ssrFallbackNestedRef.innerThrows = true;
     const { container } = await ssrRenderToDom(<SsrFallbackNestedApp />, { debug, ...IN_ORDER });
     const el = container.element;
     // SSR nesting works: both fallbacks stream before any reset.
@@ -994,7 +992,6 @@ describe('ErrorBoundary reset', () => {
     expect(el.querySelector('#ssr-retry-nested')).toBeTruthy();
     expect(el.querySelector('#ssr-inner-ok')).toBeFalsy();
 
-    ssrFallbackNestedRef.innerThrows = false;
     const c = _getDomContainer(el) as any;
     c.resetErrorBoundary(c.vNodeLocate(el.querySelector('#ssr-retry-nested')));
     await waitForDrain(container);

@@ -140,7 +140,7 @@ When a core value gains serialized state:
 1. Update the serializer and inflater together.
 2. Keep array positions or marker encodings documented in the code that owns them.
 3. Add a round-trip test in `shared/serdes` or the closest subsystem.
-4. Check SSR and client resume behavior when the value affects hydration or streamed state.
+4. Check SSR and client resume behavior when the value affects resumed or streamed state.
 
 For AsyncSignal fields, inspect the serdes tests that deserialize async signals and verify
 `expires`, `poll`, stale value, and error/loading state behavior.
@@ -187,96 +187,62 @@ streaming, navigation, or integration with fixture apps. For Qwik e2e, load
 
 Never use `pnpm test.unit` for agent verification in this repo.
 
+Unit-harness traps (cause false results in `ssrRenderToDom` specs):
+
+- Inline `$()` QRLs are re-created per render (no optimizer), so prop-identity-sensitive tests need
+  module-scope QRL constants to discriminate.
+- The harness materializes full parent chains, so resume-only code paths gated on missing parents
+  (e.g. reset's `resetOwner` fallback) never run — e2e is the authority for resumed behavior.
+- A captured plain-object flag serializes at SSR and resumes as a frozen copy; gate flaky fixtures
+  on `isServerPlatform()`, not captured mutable state.
+
 ## ErrorBoundary (experimental `errorBoundary`)
 
 Where things live: `errorBoundaryCmp` (`shared/error/error-boundary.ts`); SSR catch + inert marking
-(`ssr/ssr-render-jsx.ts`); fallback hosts (`control-flow/suspense.tsx`, `SSRErrorFallbackHost`);
-client routing + reset (`client/dom-container.ts`); shared helpers incl. the display membrane
-(`shared/error/error-handling.ts`); the non-enumerable store field (`use/use-error-boundary-store.ts`).
+(`ssr/ssr-render-jsx.ts`); fallback hosts (`control-flow/suspense.tsx`); client routing + reset
+(`client/dom-container.ts`); display membrane (`shared/error/error-handling.ts`); store field
+(`use/use-error-boundary-store.ts`).
 
-### Invariants (stateless model: the boundary never serializes error state)
-- `store.error` is a NON-ENUMERABLE field on the store target (`Object.defineProperty(...,
-  'error', { enumerable: false })` in `use-error-boundary-store.ts`) — the serializer only walks
-  enumerable keys, so error state never crosses the wire and a resumed boundary starts with no
-  error of its own. Keep it non-enumerable; never add an ErrorBoundary carve-out to the serializer
-  to compensate.
-- Single display membrane: `redactBoundaryErrorForDisplay(error, dev, transformError)` in
-  `error-handling.ts`. The store always holds the RAW throw; projection to a display-safe `Error`
-  happens only at display call sites (`SSRErrorFallback*`, `errorBoundaryCmp`). `canSerialize`
-  plays no role in display.
-- Only the framework's own brand — a module-private `Symbol` (`REDACTED` in `error-handling.ts`)
-  set by `redactToGeneric` — lets an error pass the membrane as already-redacted. A plain `digest`
-  field on an app-thrown error is ordinary app data and must NOT skip prod redaction; an app can't
-  forge the brand by shaping a `digest` field.
-- The boundary never buffers streaming: the SSR catch only sets `store.error`, fires `onError$`,
-  marks content inert, and returns `null` — the sibling `fallback-host` renders the fallback.
-- Queued frames inside an INERT content host are DISCARDED at drain time
-  (`openBoundaryContentScopes` in `ssr-render-jsx.ts`): post-catch siblings, fn children, signals,
-  and generators never run, and a superseded promise is never awaited — observe it with
-  `.catch(noop)` or a late rejection becomes unhandled. Pre-catch content keeps hide-don't-unwind.
-  A discard site must never skip StackFns (structural close frames keep HTML balanced).
-- `PublicError` is the ONE unredacted lane through the prod membrane: classification is a guarded
-  `instanceof` (construction = consent; shape/field forgery must stay redacted — pass-through is
-  identity-only, not gated on the error's serializability), `transformError` still runs first and
-  wins, and no `digest` is attached to a passed-through instance. Resume identity rides a `q:pe`
-  marker pair inside the ordinary `TypeIds.Error` payload; inflate restores `PublicError.prototype`
-  on the marker and never assigns it as a field. Both serdes touches are
-  `__EXPERIMENTAL__.errorBoundary`-gated. Prod-mode asserts live at helper level (`dev: false`) or
-  in the `error-boundary.prod` e2e — the unit harness compiles `isDev=true`.
-- Every probe of a raw thrown value must be fail-closed against hostile objects (revoked Proxy,
-  throwing traps/getters): `redactBoundaryErrorForDisplay`/`redactToGeneric`/`isReadableProjection`
-  read through `safeRead` or try/catch, and `isPromise`, `checkError`, `getStoreTarget`, and the
-  recursive store-get wrap are guarded. A `transformError` projection must be an `Error` whose
-  enumerable fields are all readable (`isReadableProjection`) or it redacts to the generic.
-- Host styles are static literals (`display:contents` / `display:none` passed as plain props,
-  never a `Signal`); the `qErr` swap script owns flipping the errored end state in the DOM. Never
-  reintroduce a live style subscription on the hosts — a resumed recompute would un-hide inert
-  content.
-- The swap is decided at fallback-host drain time by error ORIGIN: in-place → inline + `qErr`
-  (`q:ebf`), even under OOOS; deferred-segment → `qO` shell (`q:rp`). Inline content must never sit
-  under `q:rp` (OOOS resume hijacks it into a template); a deferred fallback's vnode-data must
-  travel through a segment.
-- `markBoundaryErrored` is the only server error writer: it normalizes (never stores `undefined`)
-  and fires `onError$` per caught error + phase (`tagErrorPhase` survives the SSR rethrow).
-  First-wins absorption lives at the call sites, not inside it.
-- Both callbacks receive an `Error` (`fireOnError`/`toBoundaryError` coerce): an Error throw
-  reaches `onError$` identity-preserved in dev AND prod; a non-Error throw is wrapped with the raw
-  value as `cause` (serialized to the dev fallback only when serializable). The prod-redacted error
-  must never carry `cause` or custom fields — that would leak the raw error through serialized
-  state. A non-Error `transformError` projection redacts to the generic.
-- `store.error === undefined` means "no error" — every writer normalizes a thrown `undefined`.
-- `resetErrorBoundary` must keep working when `store.error` is `undefined` — after resume that IS
-  the errored state (the field never serialized), so reset can't gate its own logic on reading it.
-- Reset owner walk: skip `_suC`/`_ebC` parents, but STOP at an `_ebC` whose in-memory
-  `store.error` is set — an errored boundary authors its fallback (a healthy one authors
-  nothing). RESUMED-errored parents need no walk stop: in browsers `getParentHost` is null
-  after resume, so reset resolves the serialized `resetOwner`, which already points at the
-  true author (incl. a boundary nested in an SSR fallback). Do NOT add DOM-state detection
-  and mark a resumed boundary directly — its SSR projection was abandoned, rendering `Slot`
-  there yields an empty subtree; only the author re-render regenerates it.
-- Reset-test traps (all three cause false results in the unit harness):
-  - inline `$()` fallback QRLs are re-created per render (no optimizer), so a mis-targeted
-    owner re-render still changes boundary props and rebuilds the subtree — false green.
-    Hoist fallback QRLs to module-scope constants.
-  - the harness materializes full parent chains, so `getParentHost` never returns null and
-    the in-browser `resetOwner` fallback path never runs — resumed-reset behavior needs the
-    e2e as the authority, not the unit harness.
-  - a captured plain-object flag serializes at SSR and resumes as a frozen copy; test
-    mutations never reach the resumed closure. Gate flaky fixtures on `isServerPlatform()`.
-- Errored boundaries re-derive by re-running the children (owner re-render clears `store.error` and
-  the boundary re-executes); a task-phase SSR throw does NOT re-derive on a later client re-render
-  because the task never re-runs — documented developer responsibility, not a framework warning.
-- `store.$onError$` is server-only; the client uses the serialized `props.onError$`.
-- `content-host` precedes `fallback-host`; the `qErr` executor stays independent of `qO` (gated on
-  `errorBoundary`, not `suspense`).
+Invariants (stateless model):
+
+- The boundary never serializes error state: `store.error` is a non-enumerable store-target field.
+  Keep it non-enumerable; never add an ErrorBoundary carve-out to the serializer.
+- Single display membrane `redactBoundaryErrorForDisplay(error, dev, transformError)`: the store
+  holds the RAW throw; projection happens only at display sites; `canSerialize` plays no role. A
+  `transformError` projection must be a readable `Error` or it redacts; returning `undefined`/
+  `null` declines and the default policy applies. The membrane never throws — every raw-value probe
+  stays fail-closed against hostile objects.
+- Only the framework brand set by `redactToGeneric` passes the membrane as already-redacted; an app
+  error's own `digest` field is data and must not skip prod redaction. The prod-redacted error
+  carries no `cause` and no custom fields.
+- `PublicError` is the one unredacted prod lane: guarded `instanceof` (construction = consent),
+  identity pass-through, no digest attached. Resume identity rides the `q:pe` marker inside the
+  ordinary Error payload; inflate restores the prototype and never assigns the marker as a field.
+- Prod-mode asserts live at helper level (`dev: false`) or in the `error-boundary.prod` e2e — the
+  unit harness compiles `isDev=true`.
+- The SSR catch never buffers streaming: it marks the store, fires `onError$`, marks content inert,
+  and returns null; the fallback host renders the fallback. Queued frames inside an inert content
+  host are discarded (superseded promises stay observed); pre-catch content keeps hide-don't-unwind;
+  a discard site must never skip StackFns.
+- Host styles are static literals; the `qErr` swap script owns the errored end state in the DOM.
+  Never reintroduce a live style subscription on the hosts — a resumed recompute would un-hide
+  inert content. Swap by origin: in-place under `q:ebf` via `qErr`; deferred segment via the `qO`
+  shell (`q:rp`); inline content must never sit under `q:rp`.
+- `markBoundaryErrored` is the only server error writer; `onError$` receives the original `Error`
+  (a non-Error throw arrives wrapped with the raw value as `cause`); `store.error === undefined`
+  means "no error" and every writer normalizes a thrown `undefined`.
+- Reset re-renders the AUTHOR: the owner walk skips `_suC`/`_ebC` parents but stops at an `_ebC`
+  with an in-memory error (an errored boundary authors its fallback). Reset must work with
+  `store.error` undefined — that IS the resumed errored state; browsers then resolve the
+  serialized `resetOwner`, which already points at the true author. Never mark a resumed boundary
+  directly: its SSR projection was abandoned, so rendering its Slot yields an empty subtree.
+- Errored boundaries re-derive by re-running the children through the author re-render; a
+  task-phase SSR throw does not re-derive (documented developer responsibility). `store.$onError$`
+  is server-only; the client fires the serialized `props.onError$` — refire on client
+  re-derivation is documented, not deduped.
 - Closest boundary catches; a throwing fallback escalates past detached-`$fallback$` boundaries.
-- Stray function children (SSR): every child-enqueue site in `processJSXNode` sentinel-marks a
-  function so the drain routes its sync throw or awaited rejection to the boundary (phase
-  `render`); success stays invoke-and-discard, pinned by spec pending the fn-children RFC. A
-  missed enqueue site fails back to the old uncaught-throw behavior, never corruption — keep that
-  property. `SSRStream` children are consumed upstream and never reach the drain; the walk's
-  internal StackFns must keep hitting the unmarked fn branch. The client silently ignores function
-  children — leave it untouched.
+  Function children (SSR) are sentinel-marked so throws route to the boundary; success stays
+  invoke-and-discard; a missed enqueue site fails back to uncaught-throw, never corruption.
 
 ## Keep This Reference Fresh
 

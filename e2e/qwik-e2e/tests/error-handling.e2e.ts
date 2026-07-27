@@ -65,7 +65,8 @@ test.describe('ErrorBoundary streaming swap', () => {
     await expect(page.locator('#eb-fallback-count')).toHaveText('1');
   });
 
-  // Pre-existing: an OOOS deferred rejection under a Slot wrapper asserts "Missing child" on resume.
+  // No in-order twin: in-order streaming never exposes the skeleton, so the teardown is unobservable.
+  // OOOS blocked by https://github.com/QwikDev/qwik/issues/8877 (deferred rejection under a Slot wrapper asserts "Missing child" on resume).
   test.fixme('async deferred throw: streams siblings + skeleton, then tears down the whole boundary', async ({
     page,
   }) => {
@@ -402,7 +403,8 @@ test.describe('ErrorBoundary reset', () => {
     page,
   }) => {
     assertNoBrowserErrors(page);
-    await page.goto(routeUrl('reset-wrapped'), { waitUntil: 'commit' });
+    // OOOS blocked by https://github.com/QwikDev/qwik/issues/8876 (router apps drop q:renderFn for post-resume re-render).
+    await page.goto(routeUrl('reset-wrapped', { outOfOrder: false }), { waitUntil: 'commit' });
     await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
 
     await page.locator('#eb-reset').click();
@@ -415,7 +417,8 @@ test.describe('ErrorBoundary reset', () => {
     page,
   }) => {
     assertNoBrowserErrors(page);
-    await page.goto(routeUrl('reset-reerror'), { waitUntil: 'commit' });
+    // OOOS blocked by https://github.com/QwikDev/qwik/issues/8876 (router apps drop q:renderFn for post-resume re-render).
+    await page.goto(routeUrl('reset-reerror', { outOfOrder: false }), { waitUntil: 'commit' });
     await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#eb-fallback-msg')).toContainText('An error occurred');
 
@@ -452,7 +455,8 @@ test.describe('ErrorBoundary reset', () => {
     page,
   }) => {
     assertNoBrowserErrors(page);
-    await page.goto(routeUrl('reset-wrapped-key'), { waitUntil: 'commit' });
+    // OOOS blocked by https://github.com/QwikDev/qwik/issues/8876 (router apps drop q:renderFn for post-resume re-render).
+    await page.goto(routeUrl('reset-wrapped-key', { outOfOrder: false }), { waitUntil: 'commit' });
     await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
     await page.locator('#eb-reset').click();
     await expect(page.locator('#eb-wrap-recovered')).toBeVisible({ timeout: 10000 });

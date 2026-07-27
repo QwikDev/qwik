@@ -885,6 +885,69 @@ describe('ErrorBoundary reset', () => {
     expect(el.querySelector('#fb-outer')).toBeFalsy();
     expect(el.querySelector('#outer-sibling')).toBeTruthy();
   });
+
+  // The inner boundary lives inside the ERRORED outer boundary's fallback, so the
+  // outer boundary authors it; the reset walk must stop there, not climb past it.
+  // Outer child throws once so a walk-past-owner App re-render can't rebuild the inner subtree.
+  const fallbackNestedRef = { outerThrown: false, innerThrows: true };
+  const FallbackOuterOnce = component$(() => {
+    if (!fallbackNestedRef.outerThrown) {
+      fallbackNestedRef.outerThrown = true;
+      throw new Error('outer-boom');
+    }
+    return <div id="outer-child-ok">outer child ok</div>;
+  });
+  const FallbackNestedFlake = component$(() => {
+    if (fallbackNestedRef.innerThrows) {
+      throw new Error('inner-boom');
+    }
+    return <div id="inner-ok">inner ok</div>;
+  });
+  // Stable module-scope QRLs mirror the optimizer: re-rendering the App owner keeps
+  // the outer boundary's props identical, so it won't re-render (and rebuild the inner
+  // subtree) unless the reset targets it directly.
+  const nestedInnerFb = $((ie: any, reset: any) => (
+    <button id="retry-nested" onClick$={() => reset()}>
+      inner caught: {ie.message}
+    </button>
+  ));
+  const nestedOuterFb = $((e: any) => (
+    <>
+      <p id="outer-fb">outer: {String(e?.message ?? e)}</p>
+      <ErrorBoundary fallback$={nestedInnerFb}>
+        <FallbackNestedFlake />
+      </ErrorBoundary>
+    </>
+  ));
+  const FallbackNestedApp = component$(() => (
+    <main>
+      <ErrorBoundary fallback$={nestedOuterFb}>
+        <FallbackOuterOnce />
+      </ErrorBoundary>
+    </main>
+  ));
+
+  // Residual gap: a RESUMED-errored outer (store.error undefined after stateless
+  // resume) is still skipped, so SSR-fallback-nested boundaries stay uncovered.
+  it('reset on a boundary nested inside an errored outer fallback re-executes its child, outer intact', async () => {
+    fallbackNestedRef.outerThrown = false;
+    fallbackNestedRef.innerThrows = true;
+    const { container } = await domRender(<FallbackNestedApp />, { debug });
+    await waitForDrain(container).catch(() => {});
+    const el = container.element;
+    expect(el.querySelector('#outer-fb')).toBeTruthy();
+    expect(el.querySelector('#retry-nested')).toBeTruthy();
+    expect(el.querySelector('#inner-ok')).toBeFalsy();
+
+    fallbackNestedRef.innerThrows = false;
+    const c = _getDomContainer(el) as any;
+    c.resetErrorBoundary(c.vNodeLocate(el.querySelector('#retry-nested')));
+    await waitForDrain(container);
+
+    expect(el.querySelector('#inner-ok')?.textContent).toContain('inner ok');
+    expect(el.querySelector('#retry-nested')).toBeFalsy();
+    expect(el.querySelector('#outer-fb')).toBeTruthy();
+  });
 });
 
 describe('ErrorBoundary CSR-specific', () => {

@@ -447,6 +447,13 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       if (symbol !== SUSPENSE_QRL_SYMBOL && symbol !== ERROR_BOUNDARY_QRL_SYMBOL) {
         break;
       }
+      if (symbol === ERROR_BOUNDARY_QRL_SYMBOL) {
+        // An errored boundary authors its fallback; a healthy one authors nothing.
+        const ownerStore = this.resolveContext<ErrorBoundaryStore>(owner, ERROR_CONTEXT);
+        if (ownerStore && ownerStore.error !== undefined) {
+          break;
+        }
+      }
       owner = this.getParentHost(owner);
     }
     // `getParentHost` is null for a resumed boundary; fall back to serialized projection owner.

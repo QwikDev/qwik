@@ -5,8 +5,6 @@ import {
   errMsg,
 } from '../../components/error-boundary/error-boundary';
 
-// Outer child always throws, so its fallback re-derives; the inner boundary lives
-// inside that resumed SSR fallback and its reset must target the outer.
 export default component$(() => (
   <ErrorBoundary
     fallback$={(e) => (

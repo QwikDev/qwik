@@ -9,7 +9,6 @@ import {
 } from '@qwik.dev/core';
 import { defaultFallback } from '../../components/error-boundary/error-boundary';
 
-// Router serverData has no ooosRequestId, so gated routes mint their own release key.
 const releaseStore = () =>
   ((globalThis as any).__qwikOOOSReleaseStore ||= {
     resolved: new Set<string>(),
@@ -44,7 +43,6 @@ const ReleaseButton = component$<{ id: string; requestId: string; releaseId: str
   }
 );
 
-// Release-gated deferred throw: the whole boundary tears down once it rejects.
 const EbAsyncThrower = component$<{ requestId: string; releaseId: string | null }>(
   ({ requestId, releaseId }) => {
     if (isServer) {

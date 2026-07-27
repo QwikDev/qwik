@@ -1,8 +1,6 @@
 import { $, component$, ErrorBoundary, isServer } from '@qwik.dev/core';
-// Relative (not `~`) so the prod twin can re-export this module across app roots.
 import { errMsg } from '../../components/error-boundary/error-boundary';
 
-// A forged `digest` must NOT buy redaction pass-through: prod still redacts the secret.
 const EbForgedDigestThrower = component$(() => {
   if (isServer) {
     const err = new Error('digest secret boom') as Error & { digest?: string };

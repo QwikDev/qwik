@@ -16,7 +16,6 @@ export const EbFallback = component$((props: { msg: string; id?: string }) => {
   );
 });
 
-// Explicit `$()`: identifier-valued `$`-props aren't extracted (Q34).
 export const defaultFallback = $((e: unknown) => <EbFallback msg={errMsg(e)} />);
 export const outerFallback = $((e: unknown) => <EbFallback id="eb-outer" msg={errMsg(e)} />);
 export const innerFallback = $((e: unknown) => <EbFallback id="eb-inner" msg={errMsg(e)} />);
@@ -50,12 +49,10 @@ export const EbSyncThrower = component$<{ message?: string; clientId?: string }>
   return <span id={props.clientId ?? 'eb-thrower-client'} />;
 });
 
-// Throws in BOTH environments, so a reset re-derives the same failure.
 export const EbAlwaysThrower = component$<{ message?: string }>((props): JSXOutput => {
   throw new Error(props.message ?? 'eb always boom');
 });
 
-// Increments `touched` BEFORE throwing so a blocked-import test can prove the handler never ran.
 export const EbThrowOnClick = component$<{ idPrefix: string; message: string; label?: string }>(
   (props) => {
     const touched = useSignal(0);

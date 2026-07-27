@@ -2,7 +2,6 @@ import { component$, ErrorBoundary, Suspense, useSignal } from '@qwik.dev/core';
 import { EbWrapAsync, EbWrapper, errMsg } from '../../components/error-boundary/error-boundary';
 
 export default component$(() => {
-  // Bumping the boundary key remounts it, replacing reset() with a fresh render.
   const attempt = useSignal(0);
   return (
     <Suspense fallback={<span id="eb-skel">loading</span>}>

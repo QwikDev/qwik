@@ -13,7 +13,6 @@ import {
   EbSyncThrower,
 } from '../../components/error-boundary/error-boundary';
 
-// Router serverData has no ooosRequestId, so gated routes mint their own release key.
 const releaseStore = () =>
   ((globalThis as any).__qwikOOOSReleaseStore ||= {
     resolved: new Set<string>(),
@@ -48,7 +47,6 @@ const ReleaseButton = component$<{ id: string; requestId: string; releaseId: str
   }
 );
 
-// Release-gated (not timed) so pre-release assertions cannot race.
 const EbGatedOk = component$<{ requestId: string; releaseId: string | null }>(
   ({ requestId, releaseId }) => {
     if (isServer) {
@@ -72,7 +70,6 @@ export default component$(() => {
     `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
   ).value;
   return (
-    // Main-flow swap beside a live deferred segment: qErr and qO coexist.
     <>
       <ErrorBoundary fallback$={defaultFallback}>
         <EbContent />

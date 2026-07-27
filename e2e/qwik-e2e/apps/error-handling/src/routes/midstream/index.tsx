@@ -13,11 +13,8 @@ import {
   resetFallback,
 } from '../../components/error-boundary/error-boundary';
 
-// WebKit buffers mid-stream inline scripts; pad or the qwikloader never runs.
-// https://bugs.webkit.org/show_bug.cgi?id=265386
 const WEBKIT_STREAMING_FLUSH = '\u200b'.repeat(512);
 
-// Router serverData has no ooosRequestId, so gated routes mint their own release key.
 const releaseStore = () =>
   ((globalThis as any).__qwikOOOSReleaseStore ||= {
     resolved: new Set<string>(),
@@ -52,7 +49,6 @@ const ReleaseButton = component$<{ id: string; requestId: string; releaseId: str
   }
 );
 
-// Release-gated (not timed) so pre-release assertions cannot race.
 const EbGatedOk = component$<{ requestId: string; releaseId: string | null }>(
   ({ requestId, releaseId }) => {
     if (isServer) {
@@ -78,7 +74,6 @@ export default component$(() => {
     `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
   ).value;
   return (
-    // Gated sibling holds the stream open before qwik/state arrives.
     <>
       {webkitFlush ? (
         <div aria-hidden="true" style="width:0px;height:0px;overflow:hidden">

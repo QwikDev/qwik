@@ -1,7 +1,6 @@
 import { component$, ErrorBoundary, isServer, Suspense, type JSXOutput } from '@qwik.dev/core';
 import { resetFallback } from '../../components/error-boundary/error-boundary';
 
-// `window` counter survives boundary re-creation across resets.
 const EbReErrorAsync = component$(() => {
   if (isServer) {
     return new Promise<JSXOutput>((_resolve, reject) => {

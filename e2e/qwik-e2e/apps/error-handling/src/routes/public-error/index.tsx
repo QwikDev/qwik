@@ -1,5 +1,4 @@
 import { $, component$, ErrorBoundary, isServer, PublicError, useSignal } from '@qwik.dev/core';
-// Relative (not `~`) so the prod twin can re-export this module across app roots.
 import { EbFallback, EbSyncThrower, errMsg } from '../../components/error-boundary/error-boundary';
 
 const EbPublicThrower = component$(() => {
@@ -9,7 +8,6 @@ const EbPublicThrower = component$(() => {
   return <span id="eb-public-client" />;
 });
 
-// The click probes the RESUMED error: `instanceof` must survive serialization.
 const EbPublicProbe = component$<{ error: unknown }>((props) => {
   const kind = useSignal('');
   return (

@@ -8,7 +8,6 @@ import {
 } from '@qwik.dev/core';
 import { defaultFallback, EbSyncThrower } from '../../components/error-boundary/error-boundary';
 
-// A task inside the swapped-out content must not re-run when an outside signal changes.
 const EbInertContent = component$<{ trigger: Signal<number> }>((props) => {
   useTask$(({ track }) => {
     track(() => props.trigger.value);

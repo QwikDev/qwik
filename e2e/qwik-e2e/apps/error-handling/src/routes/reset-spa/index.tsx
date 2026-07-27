@@ -21,7 +21,6 @@ const EbReErrorAsync = component$(() => {
   return <p id="eb-reerror-recovered">recovered after {runs} runs</p>;
 });
 
-// Boundary mounts on click, so there is no serialized resetOwner (client-first path).
 export default component$(() => {
   const spaShow = useSignal(false);
   return (

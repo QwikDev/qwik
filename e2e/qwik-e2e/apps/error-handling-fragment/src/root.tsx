@@ -1,7 +1,6 @@
 import { $, component$, ErrorBoundary, isServer, sync$, type JSXOutput } from '@qwik.dev/core';
 
-// `sync$` keeps the click inline in the container: loading a chunk here would pull in a
-// second copy of core (Q30) because this app is built separately from the host page.
+// onClick$ here would load a second core copy and re-trip Q30.
 const bumpCount = sync$((_: Event, el: Element) => {
   const count = el.parentElement!.querySelector('#eb-fallback-count')!;
   count.textContent = String(Number(count.textContent) + 1);
@@ -17,7 +16,6 @@ const FragmentFallback = component$((props: { msg: string }) => (
   </section>
 ));
 
-// Explicit `$()`: identifier-valued `$`-props aren't extracted (Q34).
 const fragmentFallback = $((e: unknown) => (
   <FragmentFallback msg={String((e as { message?: unknown })?.message ?? e)} />
 ));

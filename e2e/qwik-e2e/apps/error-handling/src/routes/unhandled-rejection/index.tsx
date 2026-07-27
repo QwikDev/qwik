@@ -1,6 +1,5 @@
 import { component$, useSignal } from '@qwik.dev/core';
 
-// A fire-and-forget Promise.reject must reach logError via the unhandledrejection bridge.
 export default component$(() => {
   const touched = useSignal(0);
   return (

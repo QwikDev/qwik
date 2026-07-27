@@ -1,7 +1,6 @@
 import { component$, ErrorBoundary, isServer, useComputed$ } from '@qwik.dev/core';
 import { defaultFallback } from '../../components/error-boundary/error-boundary';
 
-// Reading a computed that throws routes the error to the boundary.
 const EbComputedThrower = component$(() => {
   const boom = useComputed$((): string => {
     if (isServer) {

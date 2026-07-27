@@ -25,7 +25,6 @@ export const streamingModes = [
 
 type RouteApp = 'error-handling' | 'error-handling.prod';
 
-// Route-per-scenario URL for the error-handling router app (and its prod twin).
 export const routeUrl = (
   route: string,
   {

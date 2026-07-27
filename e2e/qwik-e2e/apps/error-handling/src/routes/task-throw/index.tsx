@@ -1,7 +1,6 @@
 import { component$, ErrorBoundary, isServer, useTask$ } from '@qwik.dev/core';
 import { defaultFallback } from '../../components/error-boundary/error-boundary';
 
-// A useTask$ throw is caught by the nearest parent boundary.
 const EbTaskThrower = component$(() => {
   useTask$(() => {
     if (isServer) {

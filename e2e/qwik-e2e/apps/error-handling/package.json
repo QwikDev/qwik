@@ -1,0 +1,9 @@
+{
+  "name": "error-handling",
+  "description": "Error-handling e2e app: one route per ErrorBoundary/PublicError/loader scenario.",
+  "private": true,
+  "type": "module",
+  "__qwik__": {
+    "qwikRouter": true
+  }
+}

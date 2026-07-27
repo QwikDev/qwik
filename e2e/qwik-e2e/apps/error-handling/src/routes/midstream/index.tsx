@@ -1,5 +1,4 @@
 import {
-  $,
   component$,
   ErrorBoundary,
   isServer,
@@ -7,9 +6,12 @@ import {
   useServerData,
   useSignal,
   type JSXOutput,
-  type QRL,
 } from '@qwik.dev/core';
-import { EbContent, EbSyncThrower, errMsg } from '../../components/error-boundary/error-boundary';
+import {
+  EbContent,
+  EbSyncThrower,
+  resetFallback,
+} from '../../components/error-boundary/error-boundary';
 
 // WebKit buffers mid-stream inline scripts; pad or the qwikloader never runs.
 // https://bugs.webkit.org/show_bug.cgi?id=265386
@@ -66,15 +68,6 @@ const EbGatedOk = component$<{ requestId: string; releaseId: string | null }>(
     return <span id="eb-deferred-ok">deferred ok</span>;
   }
 );
-
-const resetFallback = $((e: unknown, reset: QRL<() => void>) => (
-  <section id="eb-fallback">
-    <p id="eb-fallback-msg">caught: {errMsg(e)}</p>
-    <button id="eb-reset" onClick$={() => reset()}>
-      Retry
-    </button>
-  </section>
-));
 
 export default component$(() => {
   const url = useServerData<string>('url');

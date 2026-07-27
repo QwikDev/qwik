@@ -1,21 +1,12 @@
-import { $, component$, ErrorBoundary, type QRL } from '@qwik.dev/core';
+import { component$, ErrorBoundary } from '@qwik.dev/core';
 import { routeLoader$ } from '@qwik.dev/router';
 // Relative (not `~`) so the prod twin can re-export this module across app roots.
-import { errMsg } from '../../components/error-boundary/error-boundary';
+import { resetFallback } from '../../components/error-boundary/error-boundary';
 
 export const useThrowingLoaderData = routeLoader$(() => ({
   shouldThrow: true,
   secret: 'loader-data-secret',
 }));
-
-const resetFallback = $((e: unknown, reset: QRL<() => void>) => (
-  <section id="eb-fallback">
-    <p id="eb-fallback-msg">caught: {errMsg(e)}</p>
-    <button id="eb-reset" onClick$={() => reset()}>
-      Retry
-    </button>
-  </section>
-));
 
 // Throwing from the serialized loader value: reset re-runs the child, which re-derives the
 // identical error from the round-tripped loader data (redacted in prod).

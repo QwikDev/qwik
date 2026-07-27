@@ -1,10 +1,9 @@
-import { component$, ErrorBoundary, type JSXOutput } from '@qwik.dev/core';
-import { EbSyncThrower, errMsg } from '../../components/error-boundary/error-boundary';
-
-// Throws in BOTH environments so the outer fallback re-derives on resume.
-const EbAlwaysThrower = component$((): JSXOutput => {
-  throw new Error('eb always boom');
-});
+import { component$, ErrorBoundary } from '@qwik.dev/core';
+import {
+  EbAlwaysThrower,
+  EbSyncThrower,
+  errMsg,
+} from '../../components/error-boundary/error-boundary';
 
 // Outer child always throws, so its fallback re-derives; the inner boundary lives
 // inside that resumed SSR fallback and its reset must target the outer.

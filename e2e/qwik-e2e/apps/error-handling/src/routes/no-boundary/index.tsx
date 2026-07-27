@@ -1,20 +1,7 @@
-import { component$, useSignal } from '@qwik.dev/core';
+import { component$ } from '@qwik.dev/core';
+import { EbThrowOnClick } from '../../components/error-boundary/error-boundary';
 
 // No ErrorBoundary: a client throw must surface to the global handler.
-export default component$(() => {
-  const touched = useSignal(0);
-  return (
-    <>
-      <button
-        id="eb-no-boundary-throw"
-        onClick$={() => {
-          touched.value++;
-          throw new Error('no-boundary boom');
-        }}
-      >
-        throw on click
-      </button>
-      <span id="eb-no-boundary-touched">{touched.value}</span>
-    </>
-  );
-});
+export default component$(() => (
+  <EbThrowOnClick idPrefix="eb-no-boundary" message="no-boundary boom" />
+));

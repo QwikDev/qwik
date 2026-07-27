@@ -1,23 +1,5 @@
-import { component$, ErrorBoundary, useSignal } from '@qwik.dev/core';
-import { defaultFallback } from '../../components/error-boundary/error-boundary';
-
-const ThrowOnClick = component$<{ idPrefix: string; message: string }>((props) => {
-  const touched = useSignal(0);
-  return (
-    <>
-      <button
-        id={`${props.idPrefix}-throw`}
-        onClick$={() => {
-          touched.value++;
-          throw new Error(props.message);
-        }}
-      >
-        throw on click
-      </button>
-      <span id={`${props.idPrefix}-touched`}>{touched.value}</span>
-    </>
-  );
-});
+import { component$, ErrorBoundary } from '@qwik.dev/core';
+import { defaultFallback, EbThrowOnClick } from '../../components/error-boundary/error-boundary';
 
 export default component$(() => (
   <ErrorBoundary
@@ -29,7 +11,7 @@ export default component$(() => (
       (window as any).__ebOnErrorBoundaryId = info?.boundaryId;
     }}
   >
-    <ThrowOnClick idPrefix="eb-onerror" message="onerror boom" />
+    <EbThrowOnClick idPrefix="eb-onerror" message="onerror boom" />
     <div id="eb-content">content ok</div>
   </ErrorBoundary>
 ));

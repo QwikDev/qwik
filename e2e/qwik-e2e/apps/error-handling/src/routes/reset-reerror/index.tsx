@@ -1,22 +1,5 @@
-import {
-  $,
-  component$,
-  ErrorBoundary,
-  isServer,
-  Suspense,
-  type JSXOutput,
-  type QRL,
-} from '@qwik.dev/core';
-import { errMsg } from '../../components/error-boundary/error-boundary';
-
-const resetFallback = $((e: unknown, reset: QRL<() => void>) => (
-  <section id="eb-fallback">
-    <p id="eb-fallback-msg">caught: {errMsg(e)}</p>
-    <button id="eb-reset" onClick$={() => reset()}>
-      Retry
-    </button>
-  </section>
-));
+import { component$, ErrorBoundary, isServer, Suspense, type JSXOutput } from '@qwik.dev/core';
+import { resetFallback } from '../../components/error-boundary/error-boundary';
 
 // `window` counter survives boundary re-creation across resets.
 const EbReErrorAsync = component$(() => {

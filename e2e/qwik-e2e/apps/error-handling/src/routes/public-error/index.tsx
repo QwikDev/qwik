@@ -1,19 +1,12 @@
 import { $, component$, ErrorBoundary, isServer, PublicError, useSignal } from '@qwik.dev/core';
 // Relative (not `~`) so the prod twin can re-export this module across app roots.
-import { EbFallback, errMsg } from '../../components/error-boundary/error-boundary';
+import { EbFallback, EbSyncThrower, errMsg } from '../../components/error-boundary/error-boundary';
 
 const EbPublicThrower = component$(() => {
   if (isServer) {
     throw new PublicError({ message: 'Out of stock', sku: 'A1' });
   }
   return <span id="eb-public-client" />;
-});
-
-const EbSyncThrower = component$(() => {
-  if (isServer) {
-    throw new Error('eb sync boom');
-  }
-  return <span id="eb-plain-client" />;
 });
 
 // The click probes the RESUMED error: `instanceof` must survive serialization.
@@ -50,7 +43,7 @@ export default component$(() => (
       <EbPublicThrower />
     </ErrorBoundary>
     <ErrorBoundary fallback$={(e) => <EbFallback id="eb-plain" msg={errMsg(e)} />}>
-      <EbSyncThrower />
+      <EbSyncThrower clientId="eb-plain-client" />
     </ErrorBoundary>
   </>
 ));

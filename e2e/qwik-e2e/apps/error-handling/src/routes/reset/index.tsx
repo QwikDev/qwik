@@ -1,14 +1,9 @@
-import { $, component$, ErrorBoundary, type QRL } from '@qwik.dev/core';
-import { EbContent, EbSyncThrower, errMsg } from '../../components/error-boundary/error-boundary';
-
-const resetFallback = $((e: unknown, reset: QRL<() => void>) => (
-  <section id="eb-fallback">
-    <p id="eb-fallback-msg">caught: {errMsg(e)}</p>
-    <button id="eb-reset" onClick$={() => reset()}>
-      Retry
-    </button>
-  </section>
-));
+import { component$, ErrorBoundary } from '@qwik.dev/core';
+import {
+  EbContent,
+  EbSyncThrower,
+  resetFallback,
+} from '../../components/error-boundary/error-boundary';
 
 export default component$(() => (
   <ErrorBoundary fallback$={resetFallback}>

@@ -1,28 +1,5 @@
-import {
-  component$,
-  ErrorBoundary,
-  isServer,
-  Slot,
-  Suspense,
-  useSignal,
-  type JSXOutput,
-} from '@qwik.dev/core';
-import { errMsg } from '../../components/error-boundary/error-boundary';
-
-const EbWrapper = component$(() => (
-  <div data-eb-wrapper="">
-    <Slot />
-  </div>
-));
-
-const EbWrapAsync = component$(() => {
-  if (isServer) {
-    return new Promise<JSXOutput>((_resolve, reject) => {
-      setTimeout(() => reject(new Error('eb wrap async boom')), 200);
-    }) as unknown as JSXOutput;
-  }
-  return <p id="eb-wrap-recovered">recovered</p>;
-});
+import { component$, ErrorBoundary, Suspense, useSignal } from '@qwik.dev/core';
+import { EbWrapAsync, EbWrapper, errMsg } from '../../components/error-boundary/error-boundary';
 
 export default component$(() => {
   // Bumping the boundary key remounts it, replacing reset() with a fresh render.

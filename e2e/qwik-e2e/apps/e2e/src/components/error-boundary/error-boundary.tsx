@@ -503,6 +503,19 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
             <div id="eb-content">content ok</div>
           </ErrorBoundary>
         </ErrorBoundary>
+      ) : scenario === 'nested-reset' ? (
+        <ErrorBoundary fallback$={(e) => <EbFallback id="eb-outer" msg={errMsg(e)} />}>
+          <section id="eb-outer-ok">
+            <p>outer ok</p>
+            <button id="eb-outer-ok-button" onClick$={() => touched.value++}>
+              Touch outer
+            </button>
+            <span id="eb-outer-ok-count">{touched.value}</span>
+          </section>
+          <ErrorBoundary fallback$={resetFallback}>
+            <EbSyncThrower />
+          </ErrorBoundary>
+        </ErrorBoundary>
       ) : scenario === 'last-resort' ? (
         <ErrorBoundary fallback$={defaultFallback}>
           <EbThrowOnClick idPrefix="eb-last-resort" message="last-resort boom" touched={touched} />

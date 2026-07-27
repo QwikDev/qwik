@@ -468,6 +468,26 @@ test.describe('ErrorBoundary reset', () => {
     await expect(page.locator('#eb-wrap-recovered')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#eb-fallback')).toHaveCount(0);
   });
+
+  test('SSR resume: reset on a nested inner boundary re-executes its children, outer intact', async ({
+    page,
+  }) => {
+    assertNoBrowserErrors(page);
+    await page.goto(streamingUrl('nested-reset', false), { waitUntil: 'commit' });
+
+    await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#eb-outer-ok')).toBeVisible();
+    await expect(page.locator('#eb-thrower-client')).toHaveCount(0);
+
+    await page.locator('#eb-reset').click();
+
+    await expect(page.locator('#eb-thrower-client')).toBeAttached({ timeout: 10000 });
+    await expect(page.locator('#eb-fallback')).toHaveCount(0);
+    await expect(page.locator('#eb-outer-ok')).toBeVisible();
+
+    await page.locator('#eb-outer-ok-button').click();
+    await expect(page.locator('#eb-outer-ok-count')).toHaveText('1');
+  });
 });
 
 test.describe('ErrorBoundary multi-container qErr scoping', () => {

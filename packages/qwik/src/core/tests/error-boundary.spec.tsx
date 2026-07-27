@@ -845,6 +845,46 @@ describe('ErrorBoundary reset', () => {
     expect(el.querySelector('#fb-inner')?.textContent).toContain('inner recovered');
     expect(el.querySelector('#retry-outer')).toBeFalsy();
   });
+
+  // Resetting the INNER boundary must re-execute only its own children, not re-project the outer.
+  const NestedResetApp = component$(() => (
+    <main>
+      <ErrorBoundary
+        fallback$={$((e: any) => (
+          <p id="fb-outer">outer: {String(e?.message ?? e)}</p>
+        ))}
+      >
+        <div id="outer-sibling">outer sibling</div>
+        <ErrorBoundary
+          fallback$={$((e: any, reset: any) => (
+            <button id="retry-inner" onClick$={() => reset()}>
+              caught: {e.message}
+            </button>
+          ))}
+        >
+          <ResetFlake />
+        </ErrorBoundary>
+      </ErrorBoundary>
+    </main>
+  ));
+
+  it('SSR resume: reset on a nested inner boundary re-executes its children, outer intact', async () => {
+    resetRef.flake = 0;
+    const { container } = await ssrRenderToDom(<NestedResetApp />, { debug, ...IN_ORDER });
+    const el = container.element;
+    expect(el.querySelector('#retry-inner')).toBeTruthy();
+    expect(el.querySelector('#ok')).toBeFalsy();
+    expect(el.querySelector('#outer-sibling')).toBeTruthy();
+
+    const c = _getDomContainer(el) as any;
+    c.resetErrorBoundary(c.vNodeLocate(el.querySelector('#retry-inner')));
+    await waitForDrain(container);
+
+    expect(el.querySelector('#ok')?.textContent).toContain('ok');
+    expect(el.querySelector('#retry-inner')).toBeFalsy();
+    expect(el.querySelector('#fb-outer')).toBeFalsy();
+    expect(el.querySelector('#outer-sibling')).toBeTruthy();
+  });
 });
 
 describe('ErrorBoundary CSR-specific', () => {

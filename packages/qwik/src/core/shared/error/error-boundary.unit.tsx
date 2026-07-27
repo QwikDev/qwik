@@ -5,9 +5,9 @@ import type { ErrorBoundaryStore } from './error-handling';
 
 describe('ErrorBoundary public types', () => {
   // `()=>()=>` bodies never execute; compile-time only.
-  test('fallback$ error param is exactly Error', () => () => {
+  test('fallback$ error param is Error with optional digest', () => () => {
     type FallbackError = Parameters<ErrorBoundaryProps['fallback$']>[0];
-    expectTypeOf<FallbackError>().toEqualTypeOf<Error>();
+    expectTypeOf<FallbackError>().toEqualTypeOf<Error & { digest?: string }>();
     expectTypeOf<FallbackError>().not.toBeAny();
   });
 

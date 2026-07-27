@@ -46,8 +46,11 @@ export interface ErrorBoundaryProps {
    *
    * A re-derived client fallback recomputes `digest`, so it can differ from the server-rendered
    * value.
+   *
+   * `digest` is set only when the framework redacted the error (production); absent on dev-fidelity
+   * and `PublicError` fallbacks.
    */
-  fallback$: QRL<(error: Error, reset: QRL<() => void>) => JSXOutput>;
+  fallback$: QRL<(error: Error & { digest?: string }, reset: QRL<() => void>) => JSXOutput>;
   /**
    * Side-effect fired once per caught error; never affects rendering. Receives the original `Error`
    * instance; a non-Error throw arrives wrapped in an `Error` whose `cause` is the raw thrown

@@ -488,6 +488,25 @@ test.describe('ErrorBoundary reset', () => {
     await page.locator('#eb-outer-ok-button').click();
     await expect(page.locator('#eb-outer-ok-count')).toHaveText('1');
   });
+
+  test('SSR resume: reset on a boundary nested inside a resumed SSR fallback re-derives the outer and recovers the inner', async ({
+    page,
+  }) => {
+    assertNoBrowserErrors(page);
+    await page.goto(streamingUrl('fallback-nested-resume', false), { waitUntil: 'commit' });
+
+    // Both fallbacks visible after resume.
+    await expect(page.locator('#eb-outer-fb')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#eb-inner-reset')).toBeVisible();
+    await expect(page.locator('#eb-thrower-client')).toHaveCount(0);
+
+    await page.locator('#eb-inner-reset').click();
+
+    // Outer child always throws → outer fallback re-derives; inner recovers inside it.
+    await expect(page.locator('#eb-thrower-client')).toBeAttached({ timeout: 10000 });
+    await expect(page.locator('#eb-outer-fb')).toBeVisible();
+    await expect(page.locator('#eb-inner-reset')).toHaveCount(0);
+  });
 });
 
 test.describe('ErrorBoundary multi-container qErr scoping', () => {

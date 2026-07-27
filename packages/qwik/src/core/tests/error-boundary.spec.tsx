@@ -948,6 +948,62 @@ describe('ErrorBoundary reset', () => {
     expect(el.querySelector('#retry-nested')).toBeFalsy();
     expect(el.querySelector('#outer-fb')).toBeTruthy();
   });
+
+  // SSR-resume shape: after a stateless resume the outer boundary's store.error is
+  // undefined, so an inner boundary living inside the resumed SSR fallback must still
+  // stop the reset walk at the resumed-errored outer author. The outer child ALWAYS
+  // throws, so its fallback re-derives; the inner child throws only at SSR so the
+  // client reset recovers it inside the re-derived outer fallback.
+  const ssrFallbackNestedRef = { innerThrows: true };
+  const SsrFallbackAlwaysThrower = component$((): JSXOutput => {
+    throw new Error('outer-boom');
+  });
+  const SsrFallbackNestedFlake = component$(() => {
+    if (ssrFallbackNestedRef.innerThrows) {
+      throw new Error('inner-boom');
+    }
+    return <div id="ssr-inner-ok">inner ok</div>;
+  });
+  const ssrNestedInnerFb = $((ie: any, reset: any) => (
+    <button id="ssr-retry-nested" onClick$={() => reset()}>
+      inner caught: {ie.message}
+    </button>
+  ));
+  const ssrNestedOuterFb = $((e: any) => (
+    <>
+      <p id="ssr-outer-fb">outer: {String(e?.message ?? e)}</p>
+      <ErrorBoundary fallback$={ssrNestedInnerFb}>
+        <SsrFallbackNestedFlake />
+      </ErrorBoundary>
+    </>
+  ));
+  const SsrFallbackNestedApp = component$(() => (
+    <main>
+      <ErrorBoundary fallback$={ssrNestedOuterFb}>
+        <SsrFallbackAlwaysThrower />
+      </ErrorBoundary>
+    </main>
+  ));
+
+  it('SSR resume: reset on a boundary nested inside a resumed SSR fallback re-derives the outer and recovers the inner', async () => {
+    ssrFallbackNestedRef.innerThrows = true;
+    const { container } = await ssrRenderToDom(<SsrFallbackNestedApp />, { debug, ...IN_ORDER });
+    const el = container.element;
+    // SSR nesting works: both fallbacks stream before any reset.
+    expect(el.querySelector('#ssr-outer-fb')).toBeTruthy();
+    expect(el.querySelector('#ssr-retry-nested')).toBeTruthy();
+    expect(el.querySelector('#ssr-inner-ok')).toBeFalsy();
+
+    ssrFallbackNestedRef.innerThrows = false;
+    const c = _getDomContainer(el) as any;
+    c.resetErrorBoundary(c.vNodeLocate(el.querySelector('#ssr-retry-nested')));
+    await waitForDrain(container);
+
+    // Outer child always throws → outer fallback re-derives; inner recovers inside it.
+    expect(el.querySelector('#ssr-outer-fb')).toBeTruthy();
+    expect(el.querySelector('#ssr-inner-ok')?.textContent).toContain('inner ok');
+    expect(el.querySelector('#ssr-retry-nested')).toBeFalsy();
+  });
 });
 
 describe('ErrorBoundary CSR-specific', () => {

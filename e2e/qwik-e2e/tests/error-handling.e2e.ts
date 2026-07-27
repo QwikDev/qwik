@@ -599,16 +599,22 @@ test.describe('ErrorBoundary last-resort & rejection bridge', () => {
     await page.goto(routeUrl('happy'), { waitUntil: 'commit' });
     await expect(page.locator('#eb-content')).toBeVisible({ timeout: 10000 });
 
+    // The router's own qcinit script imports handlers.js too, so only count the click's failure.
+    const failuresBeforeClick = importFailureErrors().length;
+    const qErrorsBeforeClick = (await page.evaluate(() => (window as any).__ebQErrors)).length;
+
     await page.locator('#eb-content-throw').click();
 
     // Exactly once: a re-added container would re-log.
-    await expect.poll(() => importFailureErrors().length, { timeout: 10000 }).toBeGreaterThan(0);
+    await expect
+      .poll(() => importFailureErrors().length, { timeout: 10000 })
+      .toBeGreaterThan(failuresBeforeClick);
     await page.waitForTimeout(300);
-    expect(importFailureErrors()).toHaveLength(1);
+    expect(importFailureErrors()).toHaveLength(failuresBeforeClick + 1);
     expect(blockedRequests.length).toBeGreaterThan(0);
 
     const qErrors = await page.evaluate(() => (window as any).__ebQErrors);
-    expect(qErrors).toEqual([{ importError: 'async' }]);
+    expect(qErrors.slice(qErrorsBeforeClick)).toEqual([{ importError: 'async' }]);
 
     await expect(page.locator('#eb-fallback')).toHaveCount(0);
     await expect(page.locator('[role="alert"]')).toHaveCount(0);

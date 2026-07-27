@@ -1345,7 +1345,6 @@ describe('shared-serialization', () => {
       expect(err).toBeInstanceOf(PublicError);
       expect(err.message).toBe('Out of stock');
       expect(err.data).toEqual({ message: 'Out of stock', sku: 'A1' });
-      // The marker is protocol, not data: it must not survive as a field.
       expect(Object.hasOwn(err, QPublicErrorMarker)).toBe(false);
     });
     it('only a PublicError payload carries the marker, exactly once', async () => {

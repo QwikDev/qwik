@@ -294,7 +294,6 @@ describe.each([
     });
 
     if (render === ssrRenderToDom) {
-      // Suspense is not an SSR error boundary; SSR throws synchronously.
       let caught: unknown;
       try {
         await render(
@@ -493,7 +492,6 @@ describe('domRender: Suspense client-side pause delay', () => {
       (globalThis as any).__wrapperSlowResolve = resolve;
     });
     const wrapperContext = createContextId<{ renders: number }>('test-stateful-wrapper');
-    // Stateful wrapper (like ErrorBoundary): its projection hid the Suspense boundary pre-fix.
     const StatefulWrapper = component$(() => {
       const state = useStore({ renders: 0 });
       useContextProvider(wrapperContext, state);
@@ -516,7 +514,6 @@ describe('domRender: Suspense client-side pause delay', () => {
       </div>
     );
 
-    // Past the delay and still unresolved: the fallback must be visible mid-flight.
     await delay(40);
     expect(document.querySelector('div')!.innerHTML).toContain(loading);
 
@@ -2746,7 +2743,6 @@ describe('ssrRenderToDom: author re-render across a deferred Suspense', () => {
     );
   });
 
-  // Author renders nothing but the Suspense, so only a remount proves it re-rendered.
   const DeferOnlyApp = component$(() => {
     const attempt = useSignal(0);
     return (
@@ -2783,7 +2779,7 @@ describe('ssrRenderToDom: author re-render across a deferred Suspense', () => {
     await expectRemount(<DeferOnlyApp />, IN_ORDER);
   });
 
-  // https://github.com/QwikDev/qwik/issues/8876 — the author's q:renderFn is dropped under OOOS.
+  // https://github.com/QwikDev/qwik/issues/8876
   it.skip('out-of-order: an author whose only root is the Suspense re-renders', async () => {
     await expectRemount(<DeferOnlyApp />, OOOS_OPT_IN);
   });

@@ -110,7 +110,6 @@ function getStylesFactory(document: Document) {
   };
 }
 
-// Real browsers run the inline qErr script; emulate it so the errored end state matches.
 const ERROR_SWAP_SCRIPT_MARKERS = ['qErr', 'qInstallErrorSwap'];
 
 /** @public */

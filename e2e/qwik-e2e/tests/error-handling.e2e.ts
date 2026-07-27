@@ -514,7 +514,9 @@ test.describe('ErrorBoundary multi-container qErr scoping', () => {
     await page.goto(routeUrl('multi-container'), { waitUntil: 'commit' });
 
     await expect(page.locator('#eb-embed #eb-fallback')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#eb-embed #eb-fallback-msg')).toHaveText('caught: fragment boom');
+    // Mode-agnostic: strict builds SSR-redact (prod-condition core in the harness SSR bundle)
+    // and the inert fragment never re-renders; the scoping crux is the swap, not the text.
+    await expect(page.locator('#eb-embed #eb-fallback-msg')).toContainText('caught:');
     await expect(page.locator('#eb-embed #eb-content')).toBeHidden();
 
     // Per-container id counters make both boundaries share one id.

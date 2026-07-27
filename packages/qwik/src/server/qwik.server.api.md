@@ -12,12 +12,14 @@ import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
 import { SerializationContext } from '@qwik.dev/core';
 import { ServerDataContext } from '@qwik.dev/core';
 import type { ServerQwikManifest } from '@qwik.dev/core/optimizer';
+import { SsrAttributePatch } from '@qwik.dev/core';
 import { SsrEventAttrChunk } from '@qwik.dev/core';
 import { SsrOutput } from '@qwik.dev/core';
 import { SsrReferenceChunk } from '@qwik.dev/core';
 import type { StreamWriter } from '@qwik.dev/core';
 import type { SymbolMapperFn } from '@qwik.dev/core/optimizer';
 import { TaskScheduler } from '@qwik.dev/core';
+import { UseOnMap } from '@qwik.dev/core';
 
 // @public
 export function getQwikLoaderScript(opts?: {

@@ -139,8 +139,8 @@ JSX, component candidates, or boundaries.
   synchronously. A DOM batch performs its initial tracked run inside `createDomBatchEffect()`;
   there is no second runtime helper or generated initialization call. A grouped props subscriber
   runs once directly and registers only its returned Promise with `scheduler.waitFor()`; later
-  updates use the scheduler. The root mounts the synchronous output and calls
-  `scheduler.flushInteraction()` once.
+  updates use the scheduler. The root mounts returned output and calls `scheduler.flushInteraction()`
+  once.
 - One-shot component, slot, plain-content, and direct-array collection continuations register their
   actual pending work through `scheduler.waitFor()`. Both the scheduler's Promise list and scalar
   phase collection are allocated lazily only after a real Promise is observed.
@@ -155,13 +155,12 @@ JSX, component candidates, or boundaries.
   single `ContentBlock` subscriber and SSR records it with a compiler-emitted `<!d=id>...<!/d>`
   range plus `renderSsrContent()`. Returned Promises are latest-wins and AsyncSignal suspension is
   retried; this does not add a generic render-boundary abstraction.
-- CSR initial tasks execute sequentially in registration order through the existing scheduler. SSR
-  owns one request-local `SsrScheduler`; the current sequential renderer uses its root lane only.
-  `useTaskQrl()` notifies that lane synchronously, so the first task starts eagerly while linear
-  setup continues. A single compiler-emitted lane `flush()` after setup stabilizes direct and
-  custom-hook tasks before the first RenderPlan execution, and a final root-lane flush runs before
-  styles/state serialization. The synchronous path returns `undefined` and allocates no Promise or
-  queue.
+- CSR initial tasks execute sequentially through an invocation-local Promise chain. The compiler
+  waits on that chain between setup and RenderPlan execution only for components that can register
+  tasks; later invalidations use the scheduler. SSR owns one request-local `SsrScheduler`, its root
+  lane, and one child lane per Suspense content render. `useTaskQrl()` notifies the active lane
+  synchronously, and a content-lane flush contributes to that boundary's initial pending state. Both
+  targets preserve a Promise-free synchronous path.
 - `useVisibleTask$` records runtime metadata but never executes on SSR.
 - Async text and native DOM attributes are latest-wins. Component props, props spreads,
   `innerHTML`, events, refs, keys, and reactive/derived keyed rows reject Promise values.
@@ -574,10 +573,10 @@ Status: implemented; final verification in progress
   the compiler does not emit a redundant `{ container: ctx }`.
 - Reuse the existing `ValueOrPromise` utilities with synchronous fast paths; do not add a generic
   render-segment retry helper.
-- Emit one `scheduler.notify()` for each scheduled subscriber. A DOM batch performs its one
+- Emit one `scheduler.notify()` for each DOM or structural subscriber. A DOM batch performs its one
   initial tracked run during construction and needs no generated `notify()`, `.run()`, or helper
-  call. Subscriber-based operations do not wrap their returned anchors in identity `maybeThen`
-  calls.
+  call. CSR `useTask()` runs initial work through its invoke context; later task invalidations use
+  the scheduler. Subscriber-based operations do not wrap returned anchors in identity `maybeThen`.
 - Register only genuine one-shot continuations with `scheduler.waitFor()`. Returned-Promise
   insertion remains compiler-planned; the runtime does not normalize arbitrary output.
 - Emit Suspense as one existing range, one content render QRL, an optional ordinary fallback QRL,
@@ -585,9 +584,9 @@ Status: implemented; final verification in progress
 - Scheduler phases retry framework AsyncSignal suspension, serialize attempts of the same
   subscriber, batch scalar Promise collection, and preserve synchronous fast paths. Do not add
   async keyed `For`.
-- Root `render()` mounts the returned nodes/ranges, drains initial subscriber/one-shot/blocking work
-  through one `flushInteraction()`, rolls back owner and mounted DOM on rejection, and performs
-  owner-first idempotent cleanup.
+- Root `render()` receives task-stabilized component output, mounts it, drains remaining
+  subscriber/one-shot work through one `flushInteraction()`, rolls back owner and mounted DOM on
+  rejection, and performs owner-first idempotent cleanup.
 - Emit compiler-owned `useId` bases and direct style setup/scopes; components without IDs or styles
   receive no corresponding runtime work or allocation.
 - For implicit-`$`, statically import the emitted segment and pass it through `_withCaptures` only
@@ -615,8 +614,8 @@ Status: implemented; final verification in progress
   enters the SSR scheduler.
 - `runTaskSubscriber()` and cleanup return `ValueOrPromise<void>` and allocate a Promise list only
   after observing actual async cleanup. A lane starts the first task during `notify()`, queues later
-  registrations lazily, drains invalidations and failures in registration order, and performs no
-  I/O or global metadata commit.
+  registrations lazily, drains invalidations and failures in registration order, coalesces scalar
+  patches, and performs no I/O or global metadata commit.
 - Preserve strict base sibling/row/projection order and the sync fast path. Only explicit Suspense
   boundaries may split fallback shell output from resolved content.
 - Allocate resumability metadata only after async work is ready.
@@ -639,7 +638,10 @@ Status: implemented; final verification in progress
 - Route every byte through the one `SsrOutputWriter` shared by string and stream APIs.
 - Emit Suspense through `createSsrSuspense()` and request-local deferred records. The shell owns
   fallback state; append-only resolved state precedes each packet; child packets wait for their
-  parent; `renderToString()` and `outOfOrder: false` emit final content inline.
+  parent; initial task work can make content pending; `renderToString()` and `outOfOrder: false`
+  emit final content inline.
+- Keep the renderer as the sole stream owner. Drain coalesced patches only after their lane and every
+  parent lane have committed target output; include pre-resolved patches after the matching packet.
 - Collect resolved-content dependencies at the request boundary. Emit flat `q:sub` edge metadata
   only when a new subscriber depends on a previously serialized source; consume no root ID,
   reserialize no source, and allocate client edge storage only when metadata exists.

@@ -22,7 +22,7 @@ import {
   type Owner,
 } from './owner';
 import { getActiveInvokeContextOrNull, invoke, newInvokeContext } from './invoke-context';
-import { Scheduler } from './scheduler';
+import { Phase, Scheduler } from './scheduler';
 import { runTaskSubscriber } from './run-task';
 import {
   SubscriberKind,
@@ -31,10 +31,46 @@ import {
   type TaskSubscriber,
   type VisibleTaskSubscriber,
 } from './subscriber';
-import { useTask, useTaskQrl, useVisibleTask, useVisibleTaskQrl, type TaskFn } from './task';
+import {
+  Task,
+  TaskSubscription,
+  useTask,
+  useTaskQrl,
+  useVisibleTask,
+  useVisibleTaskQrl,
+  type TaskFn,
+} from './task';
 import type { ContainerContext } from './container-context';
 
 describe('runtime scheduler and owner lifecycle', () => {
+  it('chains initial tasks on the active invoke context', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const context = newInvokeContext({
+      owner: createOwner(null),
+      container: createCaptureContainer({}, scheduler),
+    });
+    const order: string[] = [];
+    let resolveFirst!: () => void;
+
+    invoke(context, () => {
+      useTask(
+        () =>
+          new Promise<void>((resolve) => {
+            order.push('first:start');
+            resolveFirst = resolve;
+          })
+      );
+      useTask(() => {
+        order.push('second');
+      });
+    });
+
+    expect(order).toEqual(['first:start']);
+    resolveFirst();
+    await context.initialTaskPromise;
+    expect(order).toEqual(['first:start', 'second']);
+  });
+
   it('waits for one-shot work and drains work scheduled by its resolution', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const order: string[] = [];
@@ -136,12 +172,17 @@ describe('runtime scheduler and owner lifecycle', () => {
       flush = scheduledFlush;
     });
 
-    runWithTestContainer(scheduler, () =>
-      useTask(() => {
-        ran = true;
-        throw new Error('scheduled boom');
-      })
+    const task = registerSubscriberToOwner(
+      new TaskSubscription(
+        new Task(() => {
+          ran = true;
+          throw new Error('scheduled boom');
+        }, Phase.BlockingTask),
+        scheduler
+      ),
+      createOwner(null)
     );
+    scheduler.notify(task);
 
     flush();
     await Promise.resolve();
@@ -224,17 +265,10 @@ describe('runtime scheduler and owner lifecycle', () => {
     runWithTestContainer(
       scheduler,
       () => {
-        parentDeferred = useTask(
-          () => {
-            order.push('parent:deferred');
-          },
-          { deferUpdates: false }
-        );
+        parentDeferred = useTaskSubscriber(scheduler, 'parent:deferred', order, Phase.DeferredTask);
         const child = createOwner();
         runWithOwner(child, () => {
-          childBlocking = useTask(() => {
-            order.push('child:blocking');
-          });
+          childBlocking = useTaskSubscriber(scheduler, 'child:blocking', order);
         });
       },
       parent
@@ -278,7 +312,7 @@ describe('runtime scheduler and owner lifecycle', () => {
   it('skips disposed tasks that were already scheduled', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const seen: string[] = [];
-    const task = runWithTestContainer(scheduler, () => useTask(() => seen.push('task')));
+    const task = useTaskSubscriber(scheduler, 'task', seen);
 
     scheduler.notify(task);
     disposeSubscriber(task);
@@ -513,7 +547,6 @@ describe('runtime scheduler and owner lifecycle', () => {
 
     expect(owner.items).toEqual([task, visibleTask]);
 
-    scheduler.notify(task);
     scheduler.notify(visibleTask);
     await scheduler.flushInteraction();
 
@@ -584,9 +617,6 @@ describe('runtime scheduler and owner lifecycle', () => {
         seen.push(count.value);
       })
     );
-
-    scheduler.notify(task);
-    await scheduler.flushInteraction();
 
     expect(seen).toEqual([0]);
     expect(count.subs).toContain(task);
@@ -820,11 +850,7 @@ describe('runtime scheduler and owner lifecycle', () => {
   it('runs deferred tasks without blocking on a deferred queue', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const order: string[] = [];
-    const task = runWithTestContainer(scheduler, () =>
-      useTask(() => order.push('deferred'), {
-        deferUpdates: false,
-      })
-    );
+    const task = useTaskSubscriber(scheduler, 'deferred', order, Phase.DeferredTask);
 
     scheduler.notify(task);
     await scheduler.flushInteraction();
@@ -949,12 +975,7 @@ describe('runtime scheduler and owner lifecycle', () => {
     const a = useSignal('a');
     const b = useSignal('b');
     const seen: string[] = [];
-    const task = runWithTestContainer(scheduler, () =>
-      useTask(() => seen.push(useA.value ? a.value : b.value))
-    );
-
-    scheduler.notify(task);
-    await scheduler.flushInteraction();
+    runWithTestContainer(scheduler, () => useTask(() => seen.push(useA.value ? a.value : b.value)));
 
     useA.value = false;
     await scheduler.flushInteraction();

@@ -1,11 +1,15 @@
+import { isServer } from '@qwik.dev/core/build';
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
 import type { QRL } from '../shared/qrl/qrl.public';
+import { isServerPlatform } from '../shared/platform/platform';
+import { isPromise, maybeThen } from '../shared/utils/promises';
+import { qTest } from '../shared/utils/qdev';
 import type { ValueOrPromise } from '../shared/utils/types';
 import { SubscriberFlags } from '../reactive/flags';
 import { registerSubscriberToOwner } from './owner';
 import { defaultScheduler, Phase, type TaskScheduler } from './scheduler';
 import { runTaskCleanups, runTaskSubscriber } from './run-task';
-import { getActiveInvokeContextOrNull } from './invoke-context';
+import { getActiveInvokeContext, getActiveInvokeContextOrNull } from './invoke-context';
 import {
   SubscriberKind,
   type ScheduledSubscriber,
@@ -114,7 +118,8 @@ export class VisibleTaskSubscription
 }
 
 export function useTask(run: TaskFn, options?: TaskOptions): TaskSubscriber {
-  const container = getActiveInvokeContextOrNull()?.container;
+  const invokeContext = getActiveInvokeContext();
+  const container = invokeContext.container;
   const scheduler = container?.scheduler ?? defaultScheduler;
   const subscriber = registerSubscriberToOwner(
     new TaskSubscription(
@@ -127,7 +132,16 @@ export function useTask(run: TaskFn, options?: TaskOptions): TaskSubscriber {
       scheduler
     )
   );
-  subscriber.scheduler.notify(subscriber);
+  if (qTest ? isServerPlatform() : isServer) {
+    subscriber.scheduler.notify(subscriber);
+    return subscriber;
+  }
+  subscriber.flags |= SubscriberFlags.Dirty;
+  const result = maybeThen(invokeContext.initialTaskPromise, () => subscriber.run());
+  if (isPromise(result)) {
+    invokeContext.initialTaskPromise = result;
+    void result.catch(() => {});
+  }
   return subscriber;
 }
 

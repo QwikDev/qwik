@@ -360,6 +360,7 @@ export class SSRContentSubscription<
   TArgs extends unknown[] = unknown[],
 > implements SsrContentSubscriber {
   readonly kind = SubscriberKind.Content;
+  readonly scheduler = null;
   owner: Owner | null = null;
   deps: Source[] | null = null;
   depVersions: number[] | null = null;

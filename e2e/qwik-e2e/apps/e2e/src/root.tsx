@@ -43,8 +43,7 @@ import { Watch } from './components/watch/watch';
 import './global.css';
 import { QRL } from './components/qrl/qrl';
 import { AsyncRoot } from './components/use-async/use-async';
-// Compiler emits a missing symbol for the backpatching child.
-// import { Backpatching } from './components/backpatching/backpatching';
+import { Backpatching } from './components/backpatching/backpatching';
 import { SuspenseRoot } from './components/suspense/suspense';
 // import { OutOfOrderSuspenseRoot } from './components/suspense/ooos';
 
@@ -98,7 +97,7 @@ export const Root = component$<{ pathname: string }>(({ pathname }) => {
       {/* {pathname === '/e2e/exception/use-task' && <UseTaskExceptions />} */}
       {pathname === '/e2e/qrl' && <QRL />}
       {pathname === '/e2e/async-computed' && <AsyncRoot />}
-      {/* {pathname === '/e2e/backpatching' && <Backpatching />} */}
+      {pathname === '/e2e/backpatching' && <Backpatching />}
       {pathname === '/e2e/suspense' && <SuspenseRoot />}
       {/* {pathname === '/e2e/suspense-ooos' && <OutOfOrderSuspenseRoot />} */}
       {/* {pathname === '/e2e/worker' && <WorkerRoot />} */}

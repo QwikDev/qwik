@@ -2,12 +2,7 @@ import { swapRemove } from '../utils/array';
 import { ComputedFlags, SubscriberFlags } from './flags';
 import type { Source } from './source';
 import type { Owner } from '../runtime/owner';
-import {
-  SubscriberKind,
-  type Collector,
-  type PhaseSubscriber,
-  type Subscriber,
-} from '../runtime/subscriber';
+import { SubscriberKind, type Collector, type Subscriber } from '../runtime/subscriber';
 
 export function cleanupDeps(collector: Collector): void {
   const deps = collector.deps;
@@ -62,9 +57,12 @@ export function disposeSubscriber(subscriber: Subscriber): void {
         subscriber.dispose();
         return;
       }
-      const scheduled = subscriber as PhaseSubscriber;
-      if (scheduled.flags === undefined) {
+      if (subscriber.scheduler === null) {
         return;
+      }
+      const scheduled = subscriber;
+      if (scheduled.kind === SubscriberKind.Dom) {
+        scheduled.invalidate();
       }
       scheduled.flags = SubscriberFlags.None;
       if (scheduled.kind === SubscriberKind.Task || scheduled.kind === SubscriberKind.VisibleTask) {

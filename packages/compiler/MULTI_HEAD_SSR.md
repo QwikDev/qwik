@@ -1,7 +1,6 @@
 # Deferred multi-head SSR and lean Suspense OOOS
 
 Status: generic multi-head deferred; lean Suspense implemented
-Last updated: 2026-07-23
 
 The active compiler contract lives in [`PLAN.md`](./PLAN.md). This document preserves the candidate
 design for eager generic multi-head SSR and records the implemented, separate one-shot
@@ -19,11 +18,10 @@ only if measurement shows they are needed.
 
 ## Request scheduler and lanes
 
-The sequential renderer already owns one request-local `SsrScheduler` and uses a single root lane.
-This is a real task scheduler, not an empty multi-head abstraction: `useTaskQrl()` starts the first
-task eagerly, later registrations queue lazily, and `flush()` stabilizes the lane before its
-RenderPlan runs. A final root flush happens before style/state serialization. A lane owns only its
-task queue, pending task, failure, parent ID, and local serialization context; it performs no I/O,
+The sequential renderer owns one request-local `SsrScheduler`, one root lane, and one child lane for
+each Suspense content render. `useTaskQrl()` starts the first task eagerly, later registrations queue
+lazily, and `flush()` stabilizes the active lane. A final request settle happens before closing the
+container. Lanes own work, failures, parent IDs, and coalesced scalar patches; they perform no I/O,
 global ID allocation, or metadata commit.
 
 Multi-head can extend that exact request scheduler with one lane per head:
@@ -182,9 +180,9 @@ backpressure, and the synchronous fast path.
 ## Lean compiler-driven Suspense
 
 This section is independent of generic multi-head SSR. Suspense is a compiler-recognized, one-shot
-special case of the existing branch/content range model. It must not introduce a Suspense scheduler,
-subscriber kind, owner marker, lane transaction, ID remapping layer, state-patch registry, or runtime
-tree.
+special case of the existing branch/content range model. It reuses a child lane from the request
+scheduler but introduces no Suspense coordinator, subscriber kind, owner marker, lane transaction,
+ID remapping layer, state-patch registry, or runtime tree.
 
 ### Public contract
 
@@ -200,14 +198,15 @@ interface SuspenseProps {
 - The first successful content commit removes the fallback permanently.
 - Later async updates use the existing `ContentBlock` stale-content behavior and never return to the
   fallback.
+- Initial `useTask$` work contributes to that boundary's pending state on CSR and SSR.
 - A newly mounted boundary instance receives a fresh one-shot lifecycle.
 - Fallback QRLs use the same generic target-native render-QRL plan as every other reachable ordinary
   QRL whose single final return contains JSX.
 - Manually thrown Promises and thenables are unsupported. Errors follow the existing CSR scheduler or
   SSR request failure path.
 
-`Reveal`, update-time fallback, `showStale`, async scalar backpatching, and streamed `sync$` functions
-are outside the first implementation.
+`Reveal`, update-time fallback, `showStale`, and streamed `sync$` functions are outside the first
+implementation.
 
 ### Compiler lowering
 
@@ -265,9 +264,10 @@ createSsrSuspense(ctx, rangeId, contentQrl, fallbackQrl, delay);
 generated code never calls `ctx.deferSuspense()` directly.
 
 The request callback uses the same global node ID counter, `SerializationContext`, style/event maps,
-and existing root scheduler lane. Its small request-local record contains the segment ID, optional
-parent ID, content Promise, and the content/fallback subscription roots needed for activation and
-disposal. It creates no lane-local framework transaction or ID remapping.
+and request scheduler. Each content render receives a child lane; its initial task flush contributes
+to the content result. The small request-local record contains the segment ID, optional parent ID,
+content lane, content Promise, and content/fallback subscription roots. It creates no lane-local
+framework transaction or ID remapping.
 
 For `delay > 0`, SSR waits for `Promise.race(content, timer)` before finalizing the shell position. If
 content wins, final content is emitted inline and fallback is never invoked. If the timer wins, the
@@ -364,6 +364,13 @@ The root renderer writes:
 The request fails fast on content, serialization, or sink rejection. No packet or closing markup may
 start after failure is observed. An already active external write may finish.
 
+The renderer is the only caller of `SsrOutputWriter.finish()`. Lanes coalesce scalar patches without
+performing I/O and wake the renderer when work becomes available. A patch is writable only when its
+lane has no blocked ancestor. Deferring a boundary blocks its content lane; writing that boundary's
+packet releases the lane. Patches ready before release are appended after the resolved packet call,
+and later patches use the same ordered writer. The client applies each patch directly after the
+existing `_qwikSP` chain and retains no missing-target registry.
+
 `renderToString()` and `renderToStream({ outOfOrder: false })` await final content, emit it inline, and
 contain no range packet executor.
 
@@ -372,12 +379,12 @@ contain no range packet executor.
 The implemented boundary does not add:
 
 - a Suspense runtime module or coordinator class;
-- owner boundary markers or scheduler scopes;
+- owner boundary markers;
 - a subscriber kind;
 - local serialization contexts or ID remapping;
 - `q:chunk` registries;
 - source reserialization or mutable subscriber-list snapshots;
-- `qPatch` or async scalar backpatching;
+- generic structural `qPatch` operations;
 - Reveal groups;
 - update generations;
 - custom `<q-s>` hosts or protocol CSS;
@@ -385,9 +392,8 @@ The implemented boundary does not add:
 - imported JSX fallback QRLs until standalone module QRL rendering is target-native;
 - concurrency or buffered-byte limits.
 
-Async attributes and properties keep their existing in-order behavior and do not trigger fallback.
-The first async CSR `useTask$` is not a Suspense trigger in this lean version because supporting it
-would require the boundary-aware scheduler that this design intentionally avoids.
+Async attributes and properties do not independently trigger fallback. Initial `useTask$` work can
+trigger its boundary on CSR and SSR. Later task invalidations retain committed content.
 
 ## Verification gate
 
@@ -408,4 +414,5 @@ the complete focused browser path passes.
 The initial 200-250 line estimate is a design-review trigger, not permission to omit ownership,
 late-resume, parser, failure, or trust-boundary handling. Enforce the runtime cost directly instead:
 no Suspense imports or scripts without the feature, no Promise or timer on synchronous content, one
-executor per streamed response, one small call per packet, and no per-boundary serializer or lane.
+executor per streamed response, one small call per packet, and no per-boundary serializer or
+transaction.

@@ -1,6 +1,7 @@
 import {
   createSsrRecord,
   type SerializedStateRange,
+  type SsrAttributePatch,
   type SsrOutput,
   type SsrReferenceChunk,
 } from '@qwik.dev/core';
@@ -18,6 +19,8 @@ interface SsrScriptEmitterOptions {
 }
 
 export class SsrScriptEmitter {
+  private hasBackpatchRuntime = false;
+
   constructor(private readonly opts: SsrScriptEmitterOptions = {}) {}
 
   emitState(
@@ -153,6 +156,16 @@ export class SsrScriptEmitter {
     );
   }
 
+  emitBackpatch(patches: readonly SsrAttributePatch[]): string {
+    const apply = `const c=s.closest('[q\\\\:container]');if(!c)return;const z=e=>e.closest('[q\\\\:container]')===c;for(let i=0;i<d.length;i+=3){const e=[...c.querySelectorAll('[q\\\\:id="'+d[i]+'"]')].find(z),n=d[i+1],v=d[i+2];if(!e)continue;n==='value'&&e.value!==undefined?e.value=v??'':n==='checked'&&e.checked!==undefined?e.checked=v!==null:v==null?e.removeAttribute(n):e.setAttribute(n,v)}`;
+    const install = this.hasBackpatchRuntime ? '' : `w._qwikB=(s,d)=>{${apply}};`;
+    this.hasBackpatchRuntime = true;
+    return this.writeScript(
+      { nonce: this.getNonce() },
+      `((s,w,d)=>{${install}const f=()=>w._qwikB(s,d);w._qwikSP?w._qwikSP=w._qwikSP.then(f):f()})(document.currentScript,window,${escapeJsonScript(JSON.stringify(patches.flat()))})`
+    );
+  }
+
   emitSuspenseRuntime(instanceHash: string): string {
     return this.writeScript(
       { nonce: this.getNonce() },
@@ -212,6 +225,10 @@ export class SsrScriptEmitter {
 
 function escapeScript(value: string): string {
   return value.replace(/<\//g, '<\\/');
+}
+
+function escapeJsonScript(value: string): string {
+  return value.replace(/</g, '\\u003C');
 }
 
 function serializeScriptAttrs(attrs: Record<string, ScriptAttrValue>): string {

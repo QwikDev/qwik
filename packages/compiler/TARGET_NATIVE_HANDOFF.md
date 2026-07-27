@@ -225,10 +225,13 @@ CSR target planning owns templates, references, stable ranges, return mode and o
   ranges synchronously and schedules its work through the existing scheduler contract.
 - One-shot async component, slot, plain content and direct-array work registers its continuation
   with `scheduler.waitFor()`.
+- Initial `useTask$` work chains in registration order on the component invoke context. The compiler
+  waits after setup and before RenderPlan execution only when direct tasks or custom hooks may
+  register that work.
 - Suspense reuses one existing content range and `ContentBlock`. It invokes an optional ordinary
   fallback QRL only when initial content remains pending past its delay, and permanently disposes
   that fallback when content commits.
-- Root `render()` mounts the synchronous output and waits once for `flushInteraction()`.
+- Root `render()` mounts task-stabilized output and waits once for `flushInteraction()`.
 - Component cleanup disposes its owner before removing mounted nodes and is idempotent.
 
 The runtime must keep a synchronous fast path. Do not generate identity `maybeThen()` calls or
@@ -322,7 +325,6 @@ Important supported behavior:
 - `useStore()` runs its factory once under `untrack()`. Default is deep/reactive; shallow uses a
   separate shallow proxy/cache; `{ reactive: false }` returns the raw object.
 - `useContext`/`useContextProvider` use inherited context scopes.
-- `useTask$` registers a task. Initial task ordering is registration order.
 - `useVisibleTask$` records client metadata and never executes on SSR.
 - `useOn`, `useOnDocument` and `useOnWindow` use the component event scope. Headless global events
   use the hidden script carrier; headless element events are ignored with a dev-only warning.
@@ -353,7 +355,8 @@ Base SSR remains sequential:
 - sibling 2 does not start before sibling 1 settles;
 - rows and slot projections are sequential;
 - returned Promises are awaited with `maybeThen()`;
-- no generic backpatch, head transaction, reveal queue, or multi-head transaction is emitted.
+- no generic structural backpatch, head transaction, reveal queue, or multi-head transaction is
+  emitted.
 
 Explicit Suspense boundaries add one narrow OOOS path:
 
@@ -388,7 +391,8 @@ output. It permits at most one external write in flight and owns one finish path
 
 ## SSR scheduler
 
-The server has one `SsrScheduler` per request and currently one root lane.
+The server has one `SsrScheduler` per request, one root lane, and one child lane for each Suspense
+content render.
 
 - `useTaskQrl()` calls lane `notify()` synchronously.
 - The first task starts eagerly while linear setup continues.
@@ -397,10 +401,12 @@ The server has one `SsrScheduler` per request and currently one root lane.
 - A final root flush runs before styles/state serialization.
 - Synchronous task/flush paths allocate no Promise or queue.
 - Visible tasks never enter the SSR scheduler.
-- A lane performs no stream I/O or global metadata commit.
+- A lane performs no stream I/O or global metadata commit. It only coalesces scalar patches and
+  wakes the renderer.
 
-Lane shape remains useful for future multi-head SSR, but Suspense uses request-local deferred
-records and the existing root lane rather than an empty transaction/head abstraction.
+Suspense content uses a child lane so its task readiness and patches remain boundary-owned. The lane
+shares global IDs and serialization state; request-local deferred records still avoid an empty
+transaction/head abstraction. The renderer drains a lane only after its target output is committed.
 
 ## Server bundle boundary
 
@@ -465,7 +471,7 @@ Do not implement these opportunistically:
 - ErrorBoundary (the intended implementation is expected to change);
 - SuspenseList and Reveal coordination;
 - multi-head SSR;
-- OOOS structural/attribute backpatch execution outside explicit Suspense boundaries;
+- OOOS structural backpatch execution outside explicit Suspense boundaries;
 - SSR head transactions, reveal patches and state-delta remapping;
 - retry of an entire RenderPlan;
 - manually thrown user Promises as a public async contract;

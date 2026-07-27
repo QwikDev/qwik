@@ -1,11 +1,11 @@
 import { EffectKind } from './effect-kind.enum';
-import { Phase } from '../../runtime/scheduler';
+import { defaultScheduler, type TaskScheduler } from '../../runtime/scheduler';
 import type { AttrExpressionFn } from './effect';
 import type { TextExpressionValue } from './text-effect';
 import { isPromise, maybeThen, retryOnPromise } from '../../shared/utils/promises';
 import type { ValueOrPromise } from '../../shared/utils/types';
 import type { SsrDomSubscriber, SsrForBlockSubscriber } from '../../runtime/subscriber';
-import { SubscriberKind } from '../../runtime/subscriber';
+import { SubscriberKind, takeDirty } from '../../runtime/subscriber';
 import type { SsrEventAttrChunk } from '../../ssr/output';
 import { readSourceValue, type Source } from '../../reactive/source';
 import { runWithCollector, track } from '../../reactive/tracking';
@@ -16,6 +16,9 @@ import type { Owner } from '../../runtime/owner';
 import type { SSRForBlock } from '../for/for';
 import { renderDomPropsToString, serializeAttrExpressionValue } from './dom-props';
 import { isDev } from '@qwik.dev/core/build';
+import { SubscriberFlags } from '../../reactive/flags';
+import { cleanupDeps } from '../../reactive/cleanup';
+import { getActiveInvokeContextOrNull } from '../../runtime/invoke-context';
 
 export type TextExpressionQrl<TArgs extends unknown[] = unknown[]> = QRLInternal<
   (...args: TArgs) => ValueOrPromise<TextExpressionValue>
@@ -35,6 +38,7 @@ export type SsrScalarDomEffect =
   | SsrAttrExpressionEffect<any[]>
   | SsrPropsEffect<any[]>;
 export type SsrDomEffect = SsrScalarDomEffect | SsrDomBatchEffect;
+export type SsrAttributePatch = readonly [targetId: number, name: string, value: string | null];
 
 export const enum EffectTargetKind {
   ElementText = 0,
@@ -62,7 +66,6 @@ export interface SsrElementTarget {
 
 export class SsrTextExpressionEffect<TArgs extends unknown[] = unknown[]> {
   readonly kind = EffectKind.TextExpression;
-  readonly phase = Phase.ScalarDom;
 
   constructor(
     readonly target: SsrEffectTarget,
@@ -73,7 +76,6 @@ export class SsrTextExpressionEffect<TArgs extends unknown[] = unknown[]> {
 
 export class SsrTextNodeEffect {
   readonly kind = EffectKind.TextNode;
-  readonly phase = Phase.ScalarDom;
 
   constructor(
     readonly target: SsrEffectTarget,
@@ -83,7 +85,6 @@ export class SsrTextNodeEffect {
 
 export class SsrAttrEffect {
   readonly kind = EffectKind.Attr;
-  readonly phase = Phase.ScalarDom;
 
   constructor(
     readonly target: SsrEffectTarget,
@@ -95,7 +96,6 @@ export class SsrAttrEffect {
 
 export class SsrAttrExpressionEffect<TArgs extends unknown[] = unknown[]> {
   readonly kind = EffectKind.Attr;
-  readonly phase = Phase.ScalarDom;
 
   constructor(
     readonly target: SsrEffectTarget,
@@ -108,7 +108,6 @@ export class SsrAttrExpressionEffect<TArgs extends unknown[] = unknown[]> {
 
 export class SsrPropsEffect<TArgs extends unknown[] = unknown[]> {
   readonly kind = EffectKind.Props;
-  readonly phase = Phase.ScalarDom;
 
   constructor(
     readonly target: SsrEffectTarget,
@@ -120,21 +119,103 @@ export class SsrPropsEffect<TArgs extends unknown[] = unknown[]> {
 
 export class SsrDomBatchEffect {
   readonly kind = EffectKind.DomBatch;
-  readonly phase = Phase.ScalarDom;
   readonly effects: SsrScalarDomEffect[] = [];
 }
 
 export class SsrDomSubscription implements SsrDomSubscriber {
   readonly kind = SubscriberKind.Dom;
   owner: Owner | null = null;
+  flags = SubscriberFlags.None;
   deps: Source[] | null = null;
   depVersions: number[] | null = null;
+  patch: SsrAttributePatch | null = null;
+  private pendingValue: Promise<unknown> | undefined;
+  private cancelAsync: (() => void) | undefined;
 
-  constructor(readonly effect: SsrDomEffect) {}
+  constructor(
+    readonly effect: SsrDomEffect,
+    readonly scheduler: TaskScheduler = getActiveInvokeContextOrNull()?.container?.scheduler ??
+      defaultScheduler
+  ) {}
+
+  invalidate(): void {
+    this.pendingValue = undefined;
+    const cancel = this.cancelAsync;
+    this.cancelAsync = undefined;
+    cancel?.();
+  }
+
+  schedulePromise(promise: Promise<unknown>): void {
+    this.scheduler.notify(this);
+    this.pendingValue = promise;
+  }
+
+  run(): ValueOrPromise<void> {
+    if (!takeDirty(this)) {
+      return;
+    }
+    const pendingValue = this.pendingValue;
+    this.invalidate();
+    this.patch = null;
+    const effect = this.effect;
+    // only attributes on elements are supported for backpatch
+    if (
+      effect.kind !== EffectKind.Attr ||
+      effect.target.kind !== EffectTargetKind.Element ||
+      (effect instanceof SsrAttrEffect && effect.source === undefined)
+    ) {
+      return;
+    }
+    const value =
+      pendingValue ??
+      retryOnPromise(() => {
+        cleanupDeps(this);
+        if (this.owner === null) {
+          return;
+        }
+        if (effect instanceof SsrAttrEffect) {
+          return runWithCollector(this, readTrackedSourceValue, effect.source!);
+        }
+        if (effect instanceof SsrAttrExpressionEffect) {
+          const fn = effect.qrl.resolved;
+          if (fn === undefined) {
+            throw effect.qrl.resolve();
+          }
+          return runWithCollector(this, withCaptures(fn, effect.args), ...effect.args);
+        }
+      });
+    const commit = (resolved: unknown) => {
+      this.patch = [
+        effect.target.id,
+        effect.name,
+        serializeAttrExpressionValue(effect.name, resolved, effect.styleScopedId ?? undefined),
+      ];
+    };
+    return isPromise(value) ? this.trackPromise(value, commit) : commit(value);
+  }
+
+  private trackPromise<T>(promise: Promise<T>, commit: (value: T) => void): Promise<void> {
+    let cancel!: () => void;
+    const invalidation = new Promise<void>((resolve) => (cancel = resolve));
+    this.cancelAsync = cancel;
+    return Promise.race([
+      promise.then((value) => {
+        if (this.owner !== null && this.cancelAsync === cancel) {
+          commit(value);
+        }
+      }),
+      invalidation,
+    ]).finally(() => {
+      if (this.cancelAsync === cancel) {
+        this.cancelAsync = undefined;
+      }
+    });
+  }
 }
 
 export class SSRForBlockSubscription<T = unknown> implements SsrForBlockSubscriber {
   readonly kind = SubscriberKind.ForBlock;
+  readonly scheduler = null;
   owner: Owner | null = null;
   deps: Source[] | null = null;
   depVersions: number[] | null = null;
@@ -263,15 +344,11 @@ export function renderSsrAttr(
   styleScopedId?: string
 ): ValueOrPromise<string | null> {
   const subscriber = createSsrDomEffect(
-    new SsrAttrEffect(target, name, batch ? source : undefined, styleScopedId),
+    new SsrAttrEffect(target, name, source, styleScopedId),
     batch
   );
-  return retryOnPromise(() =>
-    maybeThen(
-      runWithCollector(subscriber, readTrackedSourceValue, source) as ValueOrPromise<unknown>,
-      (value) => serializeAttrExpressionValue(name, value, styleScopedId)
-    )
-  );
+  const value = retryOnPromise(() => runWithCollector(subscriber, readTrackedSourceValue, source));
+  return serializeOrScheduleAttr(subscriber, name, value, styleScopedId);
 }
 
 export function renderSsrAttrExpression<TArgs extends unknown[]>(
@@ -287,18 +364,16 @@ export function renderSsrAttrExpression<TArgs extends unknown[]>(
     batch
   );
 
-  return retryOnPromise(() => {
+  const value = retryOnPromise(() => {
     const fn = qrl.resolved;
 
     if (fn === undefined) {
       throw qrl.resolve();
     }
 
-    return maybeThen(
-      runWithCollector(subscriber, withCaptures(fn, args), ...args) as ValueOrPromise<unknown>,
-      (value) => serializeAttrExpressionValue(name, value, styleScopedId)
-    );
+    return runWithCollector(subscriber, withCaptures(fn, args), ...args);
   });
+  return serializeOrScheduleAttr(subscriber, name, value, styleScopedId);
 }
 
 export function renderSsrProps<TArgs extends unknown[]>(
@@ -353,4 +428,22 @@ function addSsrBatchEffect(batch: SsrDomSubscriber, effect: SsrScalarDomEffect):
 function readTrackedSourceValue<T>(source: Source<T>): T {
   track(source);
   return readSourceValue(source);
+}
+
+function serializeOrScheduleAttr(
+  subscriber: SsrDomSubscriber,
+  name: string,
+  value: ValueOrPromise<unknown>,
+  styleScopedId?: string
+): ValueOrPromise<string | null> {
+  if (isPromise(value)) {
+    if (subscriber.effect.kind === EffectKind.DomBatch) {
+      return maybeThen(value, (resolved) =>
+        serializeAttrExpressionValue(name, resolved, styleScopedId)
+      );
+    }
+    (subscriber as SsrDomSubscription).schedulePromise(value);
+    return null;
+  }
+  return serializeAttrExpressionValue(name, value, styleScopedId);
 }

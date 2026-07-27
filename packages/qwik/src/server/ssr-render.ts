@@ -23,6 +23,7 @@ import {
   type SerializationContext,
   type ServerDataContext,
   type Subscriber,
+  type SsrAttributePatch,
   type SsrEventAttrChunk,
   type SsrOutput,
   type SsrReferenceChunk,
@@ -52,6 +53,7 @@ import { SsrDomRef, setSsrRef } from './ssr-ref';
 import { serializeSsrEvent } from './ssr-events';
 import { StringWriter } from './string-writer';
 import type {
+  ResolvedManifest,
   RenderToStreamOptions,
   RenderToStreamResult,
   RenderToStringOptions,
@@ -59,7 +61,6 @@ import type {
   RenderToString,
   RenderToStream,
 } from './types';
-import type { ResolvedManifest } from './types';
 import { getBuildBase } from './utils';
 import { createPlatform, getSymbolHash } from './platform';
 import { resolveManifest } from './manifest';
@@ -72,6 +73,7 @@ export interface SsrRenderContext extends ServerDataContext {
   addRoot(value: unknown): number;
   contextScopeRef(): SsrReferenceChunk;
   eventAttr(name: string, value: unknown, hasMovedCaptures?: boolean): SsrEventAttrChunk;
+  finalizeComponentOutput(output: SsrOutput, events: UseOnMap): SsrOutput;
   deferSuspense(
     rangeId: number,
     contentQrl: QRL<SsrSuspenseRender>,
@@ -87,6 +89,7 @@ type SsrSuspenseRender = (ctx: SsrRenderContext) => ValueOrPromise<SsrOutput>;
 interface DeferredSuspense {
   readonly id: number;
   readonly contentRoot: unknown;
+  readonly lane: SsrLane;
   parentId: number | null;
   fallbackRoot?: unknown;
   cancelled?: true;
@@ -154,22 +157,20 @@ export const renderToStreamCompiled = async <Props = undefined>(
       qwikLoader: opts.qwikLoader,
     });
     const styleIds = new Map<string, string>();
-    const scheduler = new SsrScheduler();
-    const rootLane = scheduler.createLane(serializationCtx);
     let nextId = 0;
     let deferred: DeferredSuspense[] | undefined;
     let ready: DeferredSuspense[] | undefined;
+    let blockedLanes: Set<number> | undefined;
     let wake: (() => void) | undefined;
     let deferredError: unknown;
     let hasDeferredError = false;
-    let ctx!: SsrRenderContext & {
-      finalizeComponentOutput(output: SsrOutput, events: UseOnMap): SsrOutput;
-    };
     const notifyDeferred = () => {
       const resolve = wake;
       wake = undefined;
       resolve?.();
     };
+    const scheduler = new SsrScheduler(notifyDeferred);
+    const rootLane = scheduler.createLane(serializationCtx);
     const wrapContent = (rangeId: number, content: SsrOutput): SsrOutput => [
       createSsrRecord('<!d=', createSsrNodeId(rangeId), '>'),
       content,
@@ -196,10 +197,12 @@ export const renderToStreamCompiled = async <Props = undefined>(
       allowOutOfOrder: boolean
     ): ValueOrPromise<SsrOutput> => {
       const contentCtx = Object.create(renderCtx) as SsrRenderContext;
+      const contentLane = scheduler.createLane(serializationCtx, renderCtx.scheduler);
+      contentCtx.scheduler = contentLane;
       contentCtx.deferSuspense = (id, content, fallback, nestedDelay) =>
         deferSuspense(contentCtx, rangeId, id, content, fallback, nestedDelay, allowOutOfOrder);
       let contentRoot: unknown;
-      const content = renderSsrContent(
+      const renderedContent = renderSsrContent(
         contentCtx as any,
         rangeId,
         [],
@@ -208,6 +211,14 @@ export const renderToStreamCompiled = async <Props = undefined>(
         true,
         (subscription) => (contentRoot = subscription)
       );
+      const initialTasks = contentLane.flush();
+      const finishContent = (output: SsrOutput) => maybeThen(contentLane.flush(), () => output);
+      const content =
+        isPromise(renderedContent) && isPromise(initialTasks)
+          ? Promise.all([renderedContent, initialTasks]).then(([output]) => finishContent(output))
+          : maybeThen(renderedContent, (output) =>
+              maybeThen(initialTasks, () => finishContent(output))
+            );
       if (!isPromise(content)) {
         reparentChildren(rangeId, parentId);
         return wrapContent(rangeId, content);
@@ -244,7 +255,8 @@ export const renderToStreamCompiled = async <Props = undefined>(
         );
       };
       const registerDeferred = (): ValueOrPromise<SsrOutput> => {
-        const record: DeferredSuspense = { id: rangeId, parentId, contentRoot };
+        const record: DeferredSuspense = { id: rangeId, parentId, contentRoot, lane: contentLane };
+        (blockedLanes ??= new Set()).add(contentLane.id);
         (deferred ??= []).push(record);
         content.then(
           (output) => {
@@ -296,7 +308,7 @@ export const renderToStreamCompiled = async <Props = undefined>(
         );
       });
     };
-    ctx = {
+    const ctx: SsrRenderContext = {
       serializationCtx,
       scheduler: rootLane,
       styleIds,
@@ -330,24 +342,21 @@ export const renderToStreamCompiled = async <Props = undefined>(
           deferSuspense(inOrderCtx, null, rangeId, contentQrl, fallbackQrl, delay, false);
         return inOrderCtx;
       },
-      finalizeComponentOutput(output, events) {
+      finalizeComponentOutput(output, events): SsrOutput {
         return applyUseOnToSsrOutput(output, events, ctx.eventAttr);
       },
-    };
+    } satisfies SsrRenderContext;
     rootInvokeContext.container = ctx as any;
 
     let output = await (locale
       ? withLocale(locale, () => invoke(rootInvokeContext, root, opts.props as Props, ctx))
       : invoke(rootInvokeContext, root, opts.props as Props, ctx));
-    await rootLane.flush();
-    throwDeferredError(hasDeferredError, deferredError);
     if (rootInvokeContext.useOnEvents !== undefined) {
       output = applyUseOnToSsrOutput(output, rootInvokeContext.useOnEvents, ctx.eventAttr);
     }
     if (containerTagName === 'html') {
       output = relocateHeadlessCarriers(output);
     }
-    const stateAttrParts = createStateScriptEventAttrs(serializationCtx);
     const styledOutput = injectStyles(output, styleIds);
     const emittedStyles = deferred === undefined ? undefined : new Set(styleIds.keys());
     const [containerOpen, containerClose] = createContainerTags(
@@ -355,11 +364,94 @@ export const renderToStreamCompiled = async <Props = undefined>(
       containerAttributes,
       styledOutput
     );
-    const shellOutput: SsrOutput[] = [containerOpen, styledOutput];
+    const hasDeferred = deferred !== undefined;
+    let size = 0;
+    const writer = new SsrOutputWriter({
+      write(chunk) {
+        throwDeferredError(hasDeferredError, deferredError);
+        scheduler.throwIfFailed();
+        size += chunk.length;
+        return opts.stream.write(chunk);
+      },
+    });
+    const findBlockedLane = (lane: SsrLane): number | null => {
+      const blocked = blockedLanes;
+      if (blocked === undefined) {
+        return null;
+      }
+      let laneId: number | null = lane.id;
+      while (laneId !== null) {
+        if (blocked.has(laneId)) {
+          return laneId;
+        }
+        laneId = scheduler.lanes[laneId].parentId;
+      }
+      return null;
+    };
+    const takePatches = (blockedBy: number | null): SsrAttributePatch[] | null => {
+      let patches: SsrAttributePatch[] | null = null;
+      for (let i = 0; i < scheduler.lanes.length; i++) {
+        const lane = scheduler.lanes[i];
+        if (!lane.hasPatches || findBlockedLane(lane) !== blockedBy) {
+          continue;
+        }
+        const lanePatches = lane.takePatches()!;
+        if (patches === null) {
+          patches = lanePatches;
+        } else {
+          patches.push(...lanePatches);
+        }
+      }
+      return patches;
+    };
+    const writePatches = (blockedBy: number | null): ValueOrPromise<void> => {
+      const patches = takePatches(blockedBy);
+      return patches === null ? undefined : writer.finish(scripts.emitBackpatch(patches));
+    };
+    const waitForWork = () => new Promise<void>((resolve) => (wake = resolve));
+    const throwIfFailed = () => {
+      throwDeferredError(hasDeferredError, deferredError);
+      scheduler.throwIfFailed();
+    };
+    const settlePending = async (pending: Promise<void>): Promise<void> => {
+      let settled = false;
+      const finish = () => {
+        settled = true;
+        notifyDeferred();
+      };
+      pending.then(finish, finish);
+      while (!settled) {
+        throwIfFailed();
+        const patches = takePatches(null);
+        if (patches !== null) {
+          await writer.finish(scripts.emitBackpatch(patches));
+        } else {
+          await waitForWork();
+        }
+      }
+      await pending;
+      await writePatches(null);
+    };
+    const settlePatches = (): ValueOrPromise<void> => {
+      const pending = scheduler.settle();
+      return isPromise(pending) ? settlePending(pending) : writePatches(null);
+    };
+    await writer.finish([containerOpen, styledOutput]);
+    throwIfFailed();
+
+    if (hasDeferred) {
+      await rootLane.flush();
+    } else {
+      await settlePatches();
+    }
+    await writePatches(null);
+    throwIfFailed();
+    const stateAttrParts = createStateScriptEventAttrs(serializationCtx);
+    const shellTail: SsrOutput[] = [];
     if (serializationCtx.$roots$.length > 0) {
       await serializationCtx.$serialize$();
       throwDeferredError(hasDeferredError, deferredError);
-      shellOutput.push(
+      shellTail.push(
         scripts.emitState(
           serializationCtx.$writer$.toString(),
           0,
@@ -369,34 +461,30 @@ export const renderToStreamCompiled = async <Props = undefined>(
         )
       );
     }
-    const hasDeferred = deferred !== undefined;
     if (serializationCtx.$eventQrls$.size > 0 || hasDeferred) {
-      shellOutput.push(scripts.emitQwikLoader());
-      shellOutput.push(scripts.emitQwikEvents(serializationCtx.$eventNames$));
+      shellTail.push(scripts.emitQwikLoader());
+      shellTail.push(scripts.emitQwikEvents(serializationCtx.$eventNames$));
     }
     const emittedEvents = hasDeferred ? new Set(serializationCtx.$eventNames$) : undefined;
     if (hasDeferred) {
-      shellOutput.push(scripts.emitSuspenseRuntime(instanceHash));
+      shellTail.push(scripts.emitSuspenseRuntime(instanceHash));
     } else {
-      shellOutput.push(containerClose);
+      shellTail.push(containerClose);
     }
-    let size = 0;
-    const writer = new SsrOutputWriter({
-      write(chunk) {
-        throwDeferredError(hasDeferredError, deferredError);
-        size += chunk.length;
-        return opts.stream.write(chunk);
-      },
-    });
-    await writer.finish(shellOutput);
-    throwDeferredError(hasDeferredError, deferredError);
+    await writer.finish(shellTail);
+    throwIfFailed();
 
     if (deferred !== undefined) {
       const emitted = new Set<number>();
       while (deferred.some((record) => !record.cancelled && !emitted.has(record.id))) {
         let record: DeferredSuspense | undefined;
         while (record === undefined) {
-          throwDeferredError(hasDeferredError, deferredError);
+          throwIfFailed();
+          const patches = takePatches(null);
+          if (patches !== null) {
+            await writer.finish(scripts.emitBackpatch(patches));
+            continue;
+          }
           const records = ready;
           if (records !== undefined) {
             const index = records.findIndex(
@@ -409,10 +497,9 @@ export const renderToStreamCompiled = async <Props = undefined>(
               break;
             }
           }
-          await new Promise<void>((resolve) => (wake = resolve));
+          await waitForWork();
         }
-        await rootLane.flush();
-        throwDeferredError(hasDeferredError, deferredError);
+        throwIfFailed();
         const subscriptions = collectDeferredSubscriptions(
           serializationCtx,
           record.contentRoot,
@@ -437,19 +524,30 @@ export const renderToStreamCompiled = async <Props = undefined>(
               : serializationCtx.$hasRootId$(record.fallbackRoot)
           )
         );
+        const packetPatches = takePatches(record.lane.id);
+        if (packetPatches !== null) {
+          packet.push(scripts.emitBackpatch(packetPatches));
+        }
         await writer.finish(packet);
-        throwDeferredError(hasDeferredError, deferredError);
+        blockedLanes!.delete(record.lane.id);
+        throwIfFailed();
         emitted.add(record.id);
         if (record.fallbackRoot !== undefined) {
           disposeSubscriber(record.fallbackRoot as any);
           for (let i = 0; i < deferred.length; i++) {
             const candidate = deferred[i];
-            if ((candidate.contentRoot as { owner?: unknown }).owner === null) {
+            if (
+              !candidate.cancelled &&
+              (candidate.contentRoot as { owner?: unknown }).owner === null
+            ) {
               candidate.cancelled = true;
+              blockedLanes!.delete(candidate.lane.id);
+              scheduler.cancel(candidate.lane);
             }
           }
         }
       }
+      await settlePatches();
       await writer.finish(containerClose);
     }
 
@@ -513,8 +611,9 @@ function collectDeferredSubscriptions(
 
   const subscriptions: number[] = [];
   for (const subscriber of subscribers) {
+    const subscriberId = serializationCtx.$hasRootId$(subscriber);
     if (
-      wasSerializedBefore(serializationCtx, subscriber, serializedRootCount) ||
+      (subscriberId !== undefined && subscriberId < serializedRootCount) ||
       subscriber.kind === SubscriberKind.Idle ||
       subscriber.deps === null
     ) {
@@ -530,9 +629,9 @@ function collectDeferredSubscriptions(
     if (sourceIds === null) {
       continue;
     }
-    const subscriberId = serializationCtx.$addRoot$(subscriber);
+    const addedSubscriberId = serializationCtx.$addRoot$(subscriber);
     for (let i = 0; i < sourceIds.length; i++) {
-      subscriptions.push(sourceIds[i], subscriberId);
+      subscriptions.push(sourceIds[i], addedSubscriberId);
     }
   }
   return subscriptions;

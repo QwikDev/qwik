@@ -79,17 +79,22 @@ export const component_useTask$_segment_0_12v231gyiwsit = () => {
 ============================= src/component.tsx ==
 
 import { useTask } from 'third-party-library';
-import { getActiveInvokeContext, _first, createTemplate } from '@qwik.dev/core';
+import { getActiveInvokeContext, _first, createTemplate, maybeThen, invoke } from '@qwik.dev/core';
 import { component_useTask$_segment_0_12v231gyiwsit } from './component.tsx_component_useTask$_segment_0_12v231gyiwsit';
 
 const App_tmpl0 = createTemplate('<main>Ready</main>');
 export function App(props, ctx) {
+  const invokeCtx = getActiveInvokeContext();
   useTask(component_useTask$_segment_0_12v231gyiwsit);
   const styleScope0 = getActiveInvokeContext().styleScopes?.join(' ');
-  const fragment0 = App_tmpl0(ctx.document);
-  const el0 = _first(fragment0);
-  if (styleScope0) el0.className = styleScope0;
-  return el0;
+  return maybeThen(invokeCtx.initialTaskPromise, () =>
+    invoke(invokeCtx, () => {
+      const fragment0 = App_tmpl0(ctx.document);
+      const el0 = _first(fragment0);
+      if (styleScope0) el0.className = styleScope0;
+      return el0;
+    })
+  );
 }
 ============================= src/component.tsx_component_useTask$_segment_0_12v231gyiwsit.js (ENTRY POINT)==
 

@@ -204,6 +204,16 @@ export interface ComponentPlan {
   readonly lifetimes: readonly LifetimePlan[];
 }
 
+export function hasInitialTask(component: ComponentPlan): boolean {
+  return (
+    component.hasCustomHook ||
+    component.segments.some(
+      (segment) =>
+        segment.parentId === null && segment.qrl?.kind === 'implicit' && segment.qrl.role === 'task'
+    )
+  );
+}
+
 export interface ModuleBoundaryPlan {
   readonly roots: readonly SegmentReferencePlan[];
   readonly segments: readonly SegmentPlan[];

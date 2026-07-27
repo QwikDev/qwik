@@ -387,6 +387,7 @@ export {
   createSsrTextNodeEffect,
   renderSsrAttrExpression,
   renderSsrAttr,
+  type SsrAttributePatch,
   renderSsrProps,
   renderSsrTextExpression,
   renderSsrTextNode,

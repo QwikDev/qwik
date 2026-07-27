@@ -161,23 +161,31 @@ import {
   _first,
   createTextNodeEffect,
   createTemplate,
+  getActiveInvokeContext,
+  maybeThen,
+  invoke,
 } from '@qwik.dev/core';
 import { component_useTask$_segment_0_12v231gyiwsit } from './component.tsx_component_useTask$_segment_0_12v231gyiwsit';
 import { component_useVisibleTask$_segment_1_97oyhe0qyjrq } from './component.tsx_component_useVisibleTask$_segment_1_97oyhe0qyjrq';
 
 const App_tmpl0 = createTemplate('<button> </button>');
 export function App(props, ctx) {
+  const invokeCtx = getActiveInvokeContext();
   const count = useSignal(0);
   useTask(_withCaptures(component_useTask$_segment_0_12v231gyiwsit, [count]));
   useVisibleTask(_withCaptures(component_useVisibleTask$_segment_1_97oyhe0qyjrq, [count]), {
     strategy: 'document-ready',
   });
-  const fragment0 = App_tmpl0(ctx.document);
-  const el0 = _first(fragment0);
-  const text0 = _first(el0);
-  const effect0 = createTextNodeEffect(text0, count, ctx.scheduler);
-  ctx.scheduler.notify(effect0);
-  return el0;
+  return maybeThen(invokeCtx.initialTaskPromise, () =>
+    invoke(invokeCtx, () => {
+      const fragment0 = App_tmpl0(ctx.document);
+      const el0 = _first(fragment0);
+      const text0 = _first(el0);
+      const effect0 = createTextNodeEffect(text0, count, ctx.scheduler);
+      ctx.scheduler.notify(effect0);
+      return el0;
+    })
+  );
 }
 ============================= src/component.tsx_component_useTask$_segment_0_12v231gyiwsit.js (ENTRY POINT)==
 

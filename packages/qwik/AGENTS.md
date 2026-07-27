@@ -71,7 +71,8 @@ src/server/
   rerendered as a unit.
 - Every subscriber must belong to an owner. Unit tests that construct a subscriber directly must
   use `runWithOwner(createOwner(null), ...)` or the existing compiler-backed test harness.
-- The scheduler owns CSR initial subscriber work. One-shot async continuations use `waitFor()`.
+- CSR initial tasks chain on their invoke context before compiler-emitted render work. The scheduler
+  owns later invalidations, and one-shot async continuations use `waitFor()`.
 - Returned Promises use the existing `maybeThen()`/scheduler paths. Manually thrown Promise support
   is not a public contract.
 - Streamed Suspense records new edges to earlier sources as zero-root `q:sub` metadata. Paused

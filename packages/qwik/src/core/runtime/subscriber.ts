@@ -105,27 +105,31 @@ export interface IdleSubscriber extends ScheduledSubscriber {
 
 // SSR-only
 
-export interface SsrDomSubscriber extends Collector {
+export interface SsrDomSubscriber extends Collector, ScheduledSubscriber {
   readonly kind: SubscriberKind.Dom;
-  owner: Owner | null;
   readonly effect: SsrDomEffect;
+  invalidate(): void;
+  run(): ValueOrPromise<void>;
 }
 
 export interface SsrBranchSubscriber extends Collector {
   readonly kind: SubscriberKind.Branch;
   owner: Owner | null;
+  readonly scheduler: null;
   readonly effect: SSRBranch;
 }
 
 export interface SsrForBlockSubscriber extends Collector {
   readonly kind: SubscriberKind.ForBlock;
   owner: Owner | null;
+  readonly scheduler: null;
   readonly effect: SSRForBlock<any>;
 }
 
 export interface SsrContentSubscriber extends Collector {
   readonly kind: SubscriberKind.Content;
   owner: Owner | null;
+  readonly scheduler: null;
   readonly content: SSRContent<any>;
   dispose(): void;
 }
@@ -135,6 +139,7 @@ export type PhaseSubscriber =
   | TaskSubscriber
   | VisibleTaskSubscriber
   | DomSubscriber
+  | SsrDomSubscriber
   | BranchSubscriber
   | ForBlockSubscriber
   | ContentSubscriber
@@ -156,7 +161,6 @@ export type CollectorSubscriber =
 export type Subscriber =
   | ComputedSubscriber
   | PhaseSubscriber
-  | SsrDomSubscriber
   | SsrBranchSubscriber
   | SsrForBlockSubscriber
   | SsrContentSubscriber;

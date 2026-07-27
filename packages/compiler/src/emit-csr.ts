@@ -223,7 +223,7 @@ export function emitCsrPlan(
   if (setup === null) {
     return null;
   }
-  const statements = setup.statements;
+  const statements: string[] = [];
   if (plan.output !== null) {
     if (plan.output.kind === 'component') {
       const context: CsrEmitContext = {
@@ -243,25 +243,9 @@ export function emitCsrPlan(
         next,
       };
       const component = emitDirectComponent(plan.output, context, statements);
-      return {
-        hoists: [...setup.hoists, ...context.hoists],
-        statements,
-        value: component,
-        directSegmentIds: plan.directSegmentIds,
-        async: plan.async,
-        needsId: plan.needsId,
-        idBase: plan.idBase,
-      };
+      return finalizeCsrRender(plan, setup, imports, statements, component, context.hoists);
     }
-    return {
-      hoists: setup.hoists,
-      statements,
-      value: emitValue(plan.output),
-      directSegmentIds: plan.directSegmentIds,
-      async: plan.async,
-      needsId: plan.needsId,
-      idBase: plan.idBase,
-    };
+    return finalizeCsrRender(plan, setup, imports, statements, emitValue(plan.output));
   }
   statements.push(`const ${fragmentName} = ${templateName}(ctx.document);`);
 
@@ -339,12 +323,33 @@ export function emitCsrPlan(
 
   imports.add(QwikWord.CreateTemplate);
   const value = emitRoots(plan.roots, context.operationNames, refNames);
+  return finalizeCsrRender(plan, setup, imports, statements, value, [
+    ...context.hoists,
+    `const ${templateName} = ${QwikWord.CreateTemplate}(${JSON.stringify(plan.template)});`,
+  ]);
+}
+
+function finalizeCsrRender(
+  plan: CsrPlan,
+  setup: { statements: string[]; hoists: string[] },
+  imports: Set<string>,
+  renderStatements: string[],
+  value: string,
+  hoists: string[] = []
+): CsrRender {
+  let statements = [...setup.statements, ...renderStatements];
+  if (plan.waitForTasks) {
+    imports.add(QwikWord.GetActiveInvokeContext);
+    imports.add(QwikWord.MaybeThen);
+    imports.add('invoke');
+    statements = [`const invokeCtx = ${QwikWord.GetActiveInvokeContext}();`, ...setup.statements];
+    value = `${QwikWord.MaybeThen}(invokeCtx.initialTaskPromise, () => ${emitCsrInvokeRender(
+      renderStatements,
+      value
+    )})`;
+  }
   return {
-    hoists: [
-      ...setup.hoists,
-      ...context.hoists,
-      `const ${templateName} = ${QwikWord.CreateTemplate}(${JSON.stringify(plan.template)});`,
-    ],
+    hoists: [...setup.hoists, ...hoists],
     statements,
     value,
     directSegmentIds: plan.directSegmentIds,
@@ -352,6 +357,11 @@ export function emitCsrPlan(
     needsId: plan.needsId,
     idBase: plan.idBase,
   };
+}
+
+function emitCsrInvokeRender(statements: readonly string[], value: string): string {
+  const body = [...statements, `return ${value};`].map((statement) => `  ${statement}`).join('\n');
+  return `invoke(invokeCtx, () => {\n${body}\n})`;
 }
 
 export function emitCsrSegmentRender(

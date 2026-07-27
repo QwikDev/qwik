@@ -1,6 +1,7 @@
 import { jsxEventToHtmlAttribute } from './ast-utils';
 import type { SourceRange } from './types';
 import { escapeAttr, escapeText, serializeAttrValue } from './html-utils';
+import { hasInitialTask } from './plan-types';
 import type {
   BindingId,
   ComponentPlan,
@@ -292,6 +293,7 @@ export interface CsrPlan {
   readonly usedSegmentIds: readonly string[];
   readonly returnMode: CsrReturnMode;
   readonly async: boolean;
+  readonly waitForTasks: boolean;
   readonly needsContext: boolean;
   readonly needsId: boolean;
   readonly idBase: string;
@@ -382,7 +384,9 @@ export function createCsrComponentCardinalityResolver(
       outputShape,
       cardinality: outputShapeCardinality(outputShape),
       returnMode:
-        component.shape.async || renderPlanReturnMode(component.render, resolve) === 'maybe-promise'
+        component.shape.async ||
+        hasInitialTask(component) ||
+        renderPlanReturnMode(component.render, resolve) === 'maybe-promise'
           ? 'maybe-promise'
           : 'sync',
     };
@@ -413,7 +417,8 @@ export function planCsr(
     null,
     component.shape.async,
     component.needsId,
-    component.idBase
+    component.idBase,
+    hasInitialTask(component)
   );
 }
 
@@ -508,7 +513,8 @@ class CsrPlanner {
     ownerSegmentId: string | null,
     async: boolean,
     needsId = false,
-    idBase = ''
+    idBase = '',
+    waitForTasks = false
   ): CsrPlan | null {
     this.isAsync = async;
     this.needsId = needsId;
@@ -627,11 +633,15 @@ class CsrPlanner {
       directSegmentIds: [...this.directSegmentIds],
       usedSegmentIds: [...this.usedSegmentIds],
       returnMode:
-        async || (directOutput !== null && directOutput.returnMode === 'maybe-promise')
+        async ||
+        waitForTasks ||
+        (directOutput !== null && directOutput.returnMode === 'maybe-promise')
           ? 'maybe-promise'
           : 'sync',
       async: this.isAsync,
+      waitForTasks,
       needsContext:
+        waitForTasks ||
         finalized.html !== '' ||
         this.operations.length > 0 ||
         directOutput?.kind === 'component' ||

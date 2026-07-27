@@ -275,6 +275,7 @@ export class SSRBranch {
 
 export class SSRBranchSubscription implements SsrBranchSubscriber {
   readonly kind = SubscriberKind.Branch;
+  readonly scheduler = null;
   owner: Owner | null = null;
   deps: Source[] | null = null;
   depVersions: number[] | null = null;

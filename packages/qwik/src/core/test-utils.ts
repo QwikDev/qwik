@@ -32,14 +32,14 @@ import {
   type Owner,
 } from './runtime/owner';
 import { invoke, newInvokeContext } from './runtime/invoke-context';
-import { defaultScheduler } from './runtime/scheduler';
+import { defaultScheduler, Phase } from './runtime/scheduler';
 import {
   SubscriberKind,
   type DomSubscriber,
   type IdleSubscriber,
   type TaskSubscriber,
 } from './runtime/subscriber';
-import { useTask } from './runtime/task';
+import { Task, TaskSubscription } from './runtime/task';
 import { bootQwikLoader, type QwikLoaderTestDriver } from './qwikloader-test-driver';
 
 export { bootQwikLoader };
@@ -411,10 +411,13 @@ export function runWithTestContainer<T>(
 export function useTaskSubscriber(
   scheduler: Scheduler,
   label: string,
-  order: string[]
+  order: string[],
+  phase = Phase.BlockingTask
 ): TaskSubscriber {
-  const create = () => useTask(() => order.push(label));
-  return runWithTestContainer(scheduler, create, getActiveOwner() ?? createOwner(null));
+  return registerSubscriberToOwner(
+    new TaskSubscription(new Task(() => order.push(label), phase), scheduler),
+    getActiveOwner() ?? createOwner(null)
+  );
 }
 
 export function createOrderTextExpressionEffect(

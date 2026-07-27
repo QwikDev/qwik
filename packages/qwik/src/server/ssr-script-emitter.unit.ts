@@ -184,6 +184,112 @@ describe('SsrScriptEmitter', () => {
     expect(missingScript.parentElement).toBeNull();
   });
 
+  it('executes escaped attribute and form control backpatches by q:id', () => {
+    const boundaryValue = '</script><template data-marker></template>';
+    const output = new SsrScriptEmitter({ nonce: 'patch' }).emitBackpatch([
+      [0, 'aria-label', boundaryValue],
+      [0, 'title', null],
+      [0, 'value', 'final'],
+      [0, 'checked', ''],
+    ]);
+
+    expect(output).not.toContain(boundaryValue);
+    expect(output).toContain('<script nonce="patch">');
+    const document = createDocument({
+      html: `<div q:container>
+        <div q:container><input q:id="0" aria-label="nested"></div>
+        <input q:id="0" title="initial" value="initial">${output}
+      </div>`,
+    });
+    const scripts = document.querySelectorAll('script');
+    expect(scripts).toHaveLength(1);
+    const executor = scripts[0];
+    const input = document.querySelectorAll('input')[1] as HTMLInputElement;
+    input.value = 'user';
+    const setAttribute = input.setAttribute.bind(input);
+    Object.defineProperty(input, 'setAttribute', {
+      value: (name: string, value: string) => {
+        if (name !== 'value' && name !== 'checked') {
+          setAttribute(name, value);
+        }
+      },
+    });
+    Object.defineProperty(document, 'currentScript', { value: executor });
+
+    // eslint-disable-next-line no-new-func
+    Function('window', 'document', executor.textContent!)({}, document);
+
+    expect(input.getAttribute('aria-label')).toBe(boundaryValue);
+    expect(input.hasAttribute('title')).toBe(false);
+    expect(input.value).toBe('final');
+    expect(input.checked).toBe(true);
+    expect(document.querySelector('input')!.getAttribute('aria-label')).toBe('nested');
+    expect(document.querySelector('template[data-marker]')).toBeFalsy();
+  });
+
+  it('applies a backpatch after deferred content insertion', async () => {
+    const emitter = new SsrScriptEmitter();
+    const output = emitter.emitBackpatch([[0, 'title', 'final']]);
+    const document = createDocument({
+      html: `<div q:container><!--d=7-->fallback<!--/d-->
+        <template q:s="7"><input q:id="0"></template><script id="packet"></script>${output}
+      </div>`,
+    });
+    const scripts = document.querySelectorAll('script');
+    expect(scripts).toHaveLength(2);
+    const executor = scripts[1];
+    const window = { _qwikEv: [] as unknown[] } as any;
+    const container = document.querySelector('[q\\:container]')! as HTMLElement & {
+      _ctx?: unknown;
+    };
+    container._ctx = {
+      registerStateScripts: () => {},
+      disposeRoot: async () => {},
+      prepareRoot: async () => {
+        document.querySelector('input')?.setAttribute('title', 'prepared');
+      },
+    };
+    Function(
+      'window',
+      'document',
+      readScriptBody(emitter.emitSuspenseRuntime('instance'))
+    )(window, document);
+    window._qwikS(document.querySelector('#packet'), 7, 1, -1);
+    Object.defineProperty(document, 'currentScript', { value: executor });
+    // eslint-disable-next-line no-new-func
+    Function('window', 'document', executor.textContent!)(window, document);
+    await window._qwikSP;
+
+    expect(document.querySelector('input')?.getAttribute('title')).toBe('final');
+  });
+
+  it('keeps backpatch state out of the container', () => {
+    const emitter = new SsrScriptEmitter();
+    const output = emitter.emitBackpatch([[0, 'title', 'final']]);
+    const next = emitter.emitBackpatch([[0, 'title', 'next']]);
+    const document = createDocument({
+      html: `<form q:container><input q:id="0">${output}</form>`,
+    });
+    const container = document.querySelector('form')! as any;
+    const applyCollision = document.createElement('input');
+    const pendingCollision = document.createElement('input');
+    container._qwikBA = applyCollision;
+    container._qwikBP = pendingCollision;
+    const scripts = document.querySelectorAll('script');
+    expect(scripts).toHaveLength(1);
+    const executor = scripts[0];
+    Object.defineProperty(document, 'currentScript', { value: executor });
+
+    // eslint-disable-next-line no-new-func
+    Function('window', 'document', executor.textContent!)({}, document);
+
+    expect(document.querySelector('[q\\:id="0"]')?.getAttribute('title')).toBe('final');
+    expect(container._qwikBA).toBe(applyCollision);
+    expect(container._qwikBP).toBe(pendingCollision);
+    expect(output).toContain('w._qwikB=');
+    expect(next).not.toContain('querySelectorAll');
+  });
+
   it.each(['never', { include: 'never' }] as const)(
     'omits the loader for %j configuration',
     (qwikLoader) => {

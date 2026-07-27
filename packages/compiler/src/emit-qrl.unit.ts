@@ -198,7 +198,7 @@ export function useVisible() {
     expect(csrMain).not.toContain('useVisibleTaskQrl');
   });
 
-  test('flushes task work hidden behind an imported custom hook on SSR', async () => {
+  test('waits for task work hidden behind an imported custom hook', async () => {
     const input = {
       path: 'src/custom-task.tsx',
       code: `import { useCounterTask as task } from './use-counter';
@@ -210,12 +210,20 @@ export function App() {
     };
 
     const ssr = await transformModules(options(input, true));
+    const csr = await transformModules(options(input, false));
     const main = ssr.modules[0]?.code ?? '';
+    const csrMain = csr.modules[0]?.code ?? '';
 
     expect(ssr.diagnostics).toEqual([]);
+    expect(csr.diagnostics).toEqual([]);
     expect(main).toContain('const invokeCtx = getActiveInvokeContextOrNull();');
     expect(main).toContain('task();');
     expect(main).toContain('maybeThen(ctx.scheduler.flush(), () => invoke(invokeCtx, () => {');
+    expect(csrMain).toContain('const invokeCtx = getActiveInvokeContext();');
+    expect(csrMain).toContain('task();');
+    expect(csrMain).toContain(
+      'maybeThen(invokeCtx.initialTaskPromise, () => invoke(invokeCtx, () => {'
+    );
   });
 
   test('lowers module style boundaries without a style segment module', async () => {
@@ -604,6 +612,10 @@ export function App() {
     );
     expect(csrMain).not.toContain('useTaskQrl');
     expect(csrMain).not.toContain('_qrlWithChunk');
+    expect(csrMain).toContain('const invokeCtx = getActiveInvokeContext();');
+    expect(csrMain).toContain(
+      'return maybeThen(invokeCtx.initialTaskPromise, () => invoke(invokeCtx, () => {'
+    );
     expect(csr.modules[1]?.code).toContain(`export const ${symbol} = async () => {`);
     expect(csr.modules[1]?.code).toContain('import { _captures, _await }');
     expect(csr.modules[1]?.code).toContain('(await _await(Promise.resolve()))();');
@@ -686,6 +698,10 @@ export function App() {
     expect(csr.modules).toHaveLength(3);
     expect(csrMain).toContain(`useTask(_withCaptures(${symbols[0]}, [count]));`);
     expect(csrMain).toContain(`useTask(_withCaptures(${symbols[1]}, [count]));`);
+    expect(csrMain.match(/initialTaskPromise/g)).toHaveLength(1);
+    expect(csrMain.indexOf(`useTask(_withCaptures(${symbols[1]}`)).toBeLessThan(
+      csrMain.indexOf('initialTaskPromise')
+    );
   });
 
   test('keeps explicit dollar lazy on SSR and uses its function on CSR', async () => {

@@ -32,12 +32,4 @@ describe.skip('features deferred by the target-native cutover', () => {
     `;
     void source;
   });
-
-  it('SSR backpatch', () => {
-    const source = `
-      export const App = () => <button title={getAsyncTitle()}>content</button>;
-      // Future streaming SSR emits a typed attribute patch for the resolved title.
-    `;
-    void source;
-  });
 });

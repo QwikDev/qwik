@@ -84,7 +84,6 @@ export const ELEMENT_PROPS = 'q:props';
 /** @internal */
 export const ELEMENT_SEQ = 'q:seq';
 export const ELEMENT_SEQ_IDX = 'q:seqIdx';
-export const ELEMENT_BACKPATCH_DATA = 'qwik/backpatch';
 
 export const ITERATION_ITEM_SINGLE = 'q:p'; // Single iteration parameter (not an array)
 export const ITERATION_ITEM_MULTI = 'q:ps'; // Multiple iteration parameters (array)

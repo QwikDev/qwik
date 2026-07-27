@@ -128,7 +128,7 @@ describe('SSR DOM effect helpers', () => {
     expect((subscriber.effect as any).target).toBe(target);
   });
 
-  it('awaits Promise attributes and rejects Promise DOM props', async () => {
+  it('defers Promise attributes and rejects Promise DOM props', () => {
     const target = createSsrElementTarget(3);
     const title = useSignal<unknown>(Promise.resolve('late'));
     const attrQrl = createQRL<AttrExpressionFn<[]>>(
@@ -146,13 +146,11 @@ describe('SSR DOM effect helpers', () => {
       null
     );
 
-    await expect(createOwned(() => renderSsrAttr(target, 'title', title))).resolves.toBe('late');
-    await expect(
-      createOwned(() => renderSsrAttrExpression(target, 'title', [], attrQrl))
-    ).resolves.toBe('late');
-    await expect(
+    expect(createOwned(() => renderSsrAttr(target, 'title', title))).toBeNull();
+    expect(createOwned(() => renderSsrAttrExpression(target, 'title', [], attrQrl))).toBeNull();
+    expect(
       createOwned(() => renderSsrAttr(target, 'hidden', useSignal(Promise.resolve(false))))
-    ).resolves.toBeNull();
+    ).toBeNull();
     expect(() =>
       createOwned(() => renderSsrProps(target, [], propsQrl as unknown as DomPropsQrl<[]>))
     ).toThrow('Promise values are not supported for JSX DOM props.');
@@ -185,6 +183,17 @@ describe('SSR DOM effect helpers', () => {
     expect(batch.subscriber.deps).toEqual([count, active]);
     expect(batch.subscriber.effect.kind).toBe(EffectKind.DomBatch);
     expect((batch.subscriber.effect as any).effects).toHaveLength(2);
+  });
+
+  it('awaits Promise attributes in an SSR DOM batch', async () => {
+    const title = useSignal<unknown>(Promise.resolve('late'));
+
+    const value = createOwned(() => {
+      const batch = createSsrDomBatchEffect();
+      return renderSsrAttr(createSsrElementTarget(5), 'title', title, batch);
+    });
+
+    await expect(value).resolves.toBe('late');
   });
 
   it('renders spread DOM props without children and collects getter dependencies', () => {

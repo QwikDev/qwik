@@ -10,7 +10,6 @@ import type {
   ContentSubscriber,
   DomSubscriber,
   ForBlockSubscriber,
-  IdleSubscriber,
   PhaseSubscriber,
   TaskSubscriber,
   VisibleTaskSubscriber,
@@ -18,11 +17,7 @@ import type {
 
 export const enum Phase {
   BlockingTask = 0,
-  StructuralDom = 1,
-  ScalarDom = 2,
-  VisibleTask = 3,
   DeferredTask = 4,
-  Idle = 5,
 }
 
 export type ScheduleFlush = (flush: () => void) => void;
@@ -37,6 +32,8 @@ interface OwnerFrame {
   index: number;
   end: number;
 }
+
+type StructuralSubscriber = BranchSubscriber | ForBlockSubscriber | ContentSubscriber;
 
 export class Scheduler {
   private readonly ownerQueue: Owner[] = [];
@@ -69,11 +66,7 @@ export class Scheduler {
         phase = OwnerFlags.DirtyScalarDom;
         break;
       case SubscriberKind.Branch:
-        phase = OwnerFlags.DirtyStructuralDom;
-        break;
       case SubscriberKind.ForBlock:
-        phase = OwnerFlags.DirtyStructuralDom;
-        break;
       case SubscriberKind.Content:
         phase = OwnerFlags.DirtyStructuralDom;
         break;
@@ -106,7 +99,7 @@ export class Scheduler {
     }
   }
 
-  scheduleFlush(): void {
+  private scheduleFlush(): void {
     if (this.flushing || this.flushPending) {
       return;
     }
@@ -244,14 +237,18 @@ export class Scheduler {
     const end = items.length;
     for (let i = 0; i < end && i < items.length; i++) {
       const item = items[i];
-      if (!(item instanceof Owner)) {
-        if (item.kind === SubscriberKind.Branch) {
-          await this.runBranch(item as BranchSubscriber);
-        } else if (item.kind === SubscriberKind.ForBlock) {
-          await this.runForBlock(item as ForBlockSubscriber);
-        } else if (item.kind === SubscriberKind.Content) {
-          await this.runContent(item as ContentSubscriber);
-        }
+      if (
+        item instanceof Owner ||
+        (item.kind !== SubscriberKind.Branch &&
+          item.kind !== SubscriberKind.ForBlock &&
+          item.kind !== SubscriberKind.Content)
+      ) {
+        continue;
+      }
+      const subscriber = item as StructuralSubscriber;
+      if (takeDirty(subscriber)) {
+        cleanupDeps(subscriber);
+        await subscriber.run();
       }
     }
   }
@@ -272,7 +269,11 @@ export class Scheduler {
     for (let i = 0; i < end && i < items.length; i++) {
       const item = items[i];
       if (!(item instanceof Owner) && item.kind === SubscriberKind.Dom) {
-        const result = this.runScalarDomEffect(item as DomSubscriber);
+        const effect = item as DomSubscriber;
+        if (!takeDirty(effect)) {
+          continue;
+        }
+        const result = effect.run();
         if (isPromise(result)) {
           (pending ??= []).push(result);
         }
@@ -318,8 +319,8 @@ export class Scheduler {
       if (item instanceof Owner) {
         continue;
       }
-      if (item.kind === SubscriberKind.Idle) {
-        this.runIdleJob(item);
+      if (item.kind === SubscriberKind.Idle && takeDirty(item)) {
+        void item.job.run();
       } else if (item.kind === SubscriberKind.Task && item.task.phase === Phase.DeferredTask) {
         this.runTask(item).catch(logError);
       }
@@ -328,47 +329,6 @@ export class Scheduler {
 
   private async runTask(task: TaskSubscriber | VisibleTaskSubscriber): Promise<void> {
     await task.run();
-  }
-
-  private async runBranch(branch: BranchSubscriber): Promise<void> {
-    if (!takeDirty(branch)) {
-      return;
-    }
-
-    cleanupDeps(branch);
-    await branch.run();
-  }
-
-  private async runForBlock(block: ForBlockSubscriber): Promise<void> {
-    if (!takeDirty(block)) {
-      return;
-    }
-
-    cleanupDeps(block);
-    await block.run();
-  }
-
-  private runContent(content: ContentSubscriber): ValueOrPromise<unknown> {
-    if (!takeDirty(content)) {
-      return;
-    }
-    cleanupDeps(content);
-    return content.run();
-  }
-
-  private runScalarDomEffect(effect: DomSubscriber): ValueOrPromise<void> {
-    if (!takeDirty(effect)) {
-      return;
-    }
-    return effect.run();
-  }
-
-  private runIdleJob(job: IdleSubscriber): void {
-    if (!takeDirty(job)) {
-      return;
-    }
-
-    void job.job.run();
   }
 
   private readonly flushScheduled = (): void => {
@@ -388,14 +348,6 @@ export class Scheduler {
 }
 
 export const defaultScheduler = new Scheduler();
-
-export function createScheduler(scheduleInteraction?: ScheduleFlush): Scheduler {
-  return new Scheduler(scheduleInteraction);
-}
-
-export function scheduleFlush(): void {
-  defaultScheduler.scheduleFlush();
-}
 
 function markOwnerDirty(owner: Owner, phase: OwnerFlags): boolean {
   let current: Owner | null = owner;

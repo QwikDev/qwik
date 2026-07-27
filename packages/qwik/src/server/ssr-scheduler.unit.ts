@@ -1,10 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import {
   createOwner,
+  createSsrElementTarget,
+  disposeSubscriber,
   Phase,
   registerSubscriberToOwner,
+  SsrAttrEffect,
+  SsrDomSubscription,
   Task,
   TaskSubscription,
+  useSignal,
   type TaskFn,
 } from '@qwik.dev/core';
 import { SsrScheduler, type SsrLane } from './ssr-scheduler';
@@ -25,6 +30,16 @@ function createTask(lane: SsrLane, run: TaskFn): TaskSubscription {
     new TaskSubscription(new Task(run, Phase.BlockingTask), lane),
     createOwner(null)
   );
+}
+
+function createDom(lane: SsrLane, promise: Promise<string>): SsrDomSubscription {
+  const source = useSignal('initial');
+  const subscriber = registerSubscriberToOwner(
+    new SsrDomSubscription(new SsrAttrEffect(createSsrElementTarget(0), 'title', source), lane),
+    createOwner(null)
+  );
+  subscriber.schedulePromise(promise);
+  return subscriber;
 }
 
 describe('SsrScheduler', () => {
@@ -92,5 +107,62 @@ describe('SsrScheduler', () => {
     lane.notify(task);
 
     await expect(lane.flush()).rejects.toThrow('task failed');
+  });
+
+  it('flushes tasks without waiting for DOM Promises', async () => {
+    const { lane } = createLane();
+    let resolve!: (value: string) => void;
+    const pending = new Promise<string>((done) => (resolve = done));
+    createDom(lane, pending);
+
+    expect(lane.flush()).toBeUndefined();
+    expect(lane.takePatches()).toBeNull();
+
+    const settled = lane.settle();
+    resolve('final');
+    await settled;
+    expect(lane.takePatches()).toEqual([[0, 'title', 'final']]);
+  });
+
+  it('coalesces patches for the same attribute', async () => {
+    const { lane } = createLane();
+    let resolveFirst!: (value: string) => void;
+    let resolveSecond!: (value: string) => void;
+    createDom(lane, new Promise<string>((resolve) => (resolveFirst = resolve)));
+    createDom(lane, new Promise<string>((resolve) => (resolveSecond = resolve)));
+    const settled = lane.settle();
+
+    resolveFirst('first');
+    resolveSecond('second');
+    await settled;
+
+    expect(lane.takePatches()).toEqual([[0, 'title', 'second']]);
+  });
+
+  it('drops a resolved patch superseded before collection', async () => {
+    const { lane } = createLane();
+    let resolve!: (value: string) => void;
+    const subscriber = createDom(lane, new Promise<string>((done) => (resolve = done)));
+    lane.flush();
+
+    resolve('stale');
+    await Promise.resolve();
+    const source = (subscriber.effect as SsrAttrEffect).source!;
+    source.v = 'final';
+    source.version++;
+    lane.notify(subscriber);
+    lane.flush();
+    await lane.settle();
+
+    expect(lane.takePatches()).toEqual([[0, 'title', 'final']]);
+  });
+
+  it('stops waiting when a pending DOM subscriber is disposed', async () => {
+    const { lane } = createLane();
+    const subscriber = createDom(lane, new Promise<string>(() => {}));
+    const settled = Promise.resolve(lane.settle());
+
+    disposeSubscriber(subscriber);
+    await settled;
   });
 });

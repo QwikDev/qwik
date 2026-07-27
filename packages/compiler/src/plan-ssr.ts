@@ -1,5 +1,6 @@
 import type { SourceRange } from './types';
 import { jsxEventToHtmlAttribute } from './ast-utils';
+import { hasInitialTask } from './plan-types';
 import type {
   BindingId,
   ComponentPlan,
@@ -238,23 +239,13 @@ export function createSsrComponentReturnModeResolver(
     const planned = planSsr(component, resolve);
     resolving.delete(bindingId);
     const mode =
-      !component.shape.async && !hasBlockingTask(component) && planned?.render.synchronous === true
+      !component.shape.async && !hasInitialTask(component) && planned?.render.synchronous === true
         ? 'sync'
         : 'maybe-promise';
     modes.set(bindingId, mode);
     return mode;
   };
   return resolve;
-}
-
-function hasBlockingTask(component: ComponentPlan): boolean {
-  return (
-    component.hasCustomHook ||
-    component.segments.some(
-      (segment) =>
-        segment.parentId === null && segment.qrl?.kind === 'implicit' && segment.qrl.role === 'task'
-    )
-  );
 }
 
 export function planSsr(
@@ -284,7 +275,7 @@ export function planSsr(
     providesContext: component.providesContext,
     needsId: component.needsId,
     idBase: component.idBase,
-    flushTasks: hasBlockingTask(component),
+    flushTasks: hasInitialTask(component),
     runtimeStyleScopeName: component.runtimeStyleScopeName,
     usedSegmentIds: [
       ...new Set([...render.usedSegmentIds, ...operations.flatMap(setupSegmentIds)]),

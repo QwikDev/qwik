@@ -16,6 +16,7 @@ export interface RuntimeInvokeContext {
   useOnEvents?: UseOnMap;
   inheritedUseOnEvents?: readonly UseOnMap[];
   styleScopes?: string[];
+  initialTaskPromise?: Promise<void>;
 }
 
 export interface NewInvokeContextOptions {

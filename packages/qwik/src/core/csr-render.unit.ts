@@ -59,7 +59,7 @@ describe('csr render', () => {
     result.cleanup();
   });
 
-  it('mounts a Promise root before running initial tasks', async () => {
+  it('runs initial tasks before mounting a Promise root', async () => {
     const document = createDocument({ html: '<main></main>' });
     const host = document.querySelector('main')!;
     const scheduler = new Scheduler((flush) => queueMicrotask(flush));
@@ -77,7 +77,7 @@ describe('csr render', () => {
       { scheduler }
     );
 
-    expect(mounted).toBe(true);
+    expect(mounted).toBe(false);
     result.cleanup();
   });
 

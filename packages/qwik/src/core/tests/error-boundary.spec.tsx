@@ -1001,6 +1001,48 @@ describe('ErrorBoundary reset', () => {
     expect(el.querySelector('#ssr-inner-ok')?.textContent).toContain('inner ok');
     expect(el.querySelector('#ssr-retry-nested')).toBeFalsy();
   });
+
+  // Deep projection shape: Suspense › Slot-projecting wrapper › boundary. The parent-host walk
+  // lands on the wrapper, which only projects the boundary — it never authored its children.
+  const WrapperProjector = component$(() => (
+    <div data-wrapper="">
+      <Slot />
+    </div>
+  ));
+  const WrappedSsrFlake = component$(() => {
+    if (isServerPlatform()) {
+      throw new Error('wrapped-boom');
+    }
+    return <p id="wrapped-ok">recovered</p>;
+  });
+  const wrappedResetFb = $((e: any, reset: any) => (
+    <button id="retry-wrapped" onClick$={() => reset()}>
+      caught: {e.message}
+    </button>
+  ));
+  const WrappedResetApp = component$(() => (
+    <Suspense fallback={<span id="skel">loading</span>}>
+      <WrapperProjector>
+        <ErrorBoundary fallback$={wrappedResetFb}>
+          <WrappedSsrFlake />
+        </ErrorBoundary>
+      </WrapperProjector>
+    </Suspense>
+  ));
+
+  it('SSR resume: reset through a Suspense + Slot-projecting wrapper re-executes the children', async () => {
+    const { container } = await ssrRenderToDom(<WrappedResetApp />, { debug, ...IN_ORDER });
+    const el = container.element;
+    expect(el.querySelector('#retry-wrapped')).toBeTruthy();
+    expect(el.querySelector('#wrapped-ok')).toBeFalsy();
+
+    const c = _getDomContainer(el) as any;
+    c.resetErrorBoundary(c.vNodeLocate(el.querySelector('#retry-wrapped')));
+    await waitForDrain(container);
+
+    expect(el.querySelector('#wrapped-ok')?.textContent).toContain('recovered');
+    expect(el.querySelector('#retry-wrapped')).toBeFalsy();
+  });
 });
 
 describe('ErrorBoundary CSR-specific', () => {

@@ -5,7 +5,6 @@ import type { QRLInternal } from '../../server/qwik-types';
 import { assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import {
-  ERROR_BOUNDARY_QRL_SYMBOL,
   ERROR_CONTEXT,
   fireOnError,
   isRecoverable,
@@ -55,7 +54,6 @@ import {
   convertStyleIdsToString,
 } from '../shared/utils/scoped-styles';
 import { setErrorPayload } from '../shared/cursor/chore-execution';
-import { SUSPENSE_QRL_SYMBOL } from '../control-flow/suspense-utils';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
 import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
@@ -76,7 +74,10 @@ import {
 } from './types';
 import { mapArray_get, mapArray_has, mapArray_set } from './util-mapArray';
 import {
+  vnode_getDomParent,
+  vnode_getProjectionParentOrParent,
   vnode_getProp,
+  vnode_isProjection,
   vnode_isVirtualVNode,
   vnode_locate,
   vnode_newUnMaterializedElement,
@@ -426,7 +427,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     let boundaryHost = this.resolveContextHost(host, ERROR_CONTEXT);
     if (!boundaryHost) {
       // Streamed fallback segment doesn't chain to the boundary; re-resolve from DOM.
-      const hostEl = (host as { node?: Element }).node?.closest?.(RESET_BOUNDARY_HOST_SELECTOR);
+      const hostEl = vnode_getDomParent(host, true)?.closest?.(RESET_BOUNDARY_HOST_SELECTOR);
       boundaryHost = hostEl
         ? this.resolveContextHost(this.vNodeLocate(hostEl), ERROR_CONTEXT)
         : null;
@@ -438,31 +439,55 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     if (!store) {
       return;
     }
-    // Re-render owner and clear error in the same tick to re-supply + re-execute.
-    let owner = this.getParentHost(boundaryHost);
-    // Boundaries never author children; climb to the real author so the reset re-renders it.
-    while (owner) {
-      const symbol = (this.getHostProp(owner, OnRenderProp) as { $symbol$?: string } | null)
-        ?.$symbol$;
-      if (symbol !== SUSPENSE_QRL_SYMBOL && symbol !== ERROR_BOUNDARY_QRL_SYMBOL) {
-        break;
-      }
-      if (symbol === ERROR_BOUNDARY_QRL_SYMBOL) {
-        // An errored boundary authors its fallback; a healthy one authors nothing.
-        const ownerStore = this.resolveContext<ErrorBoundaryStore>(owner, ERROR_CONTEXT);
-        if (ownerStore && ownerStore.error !== undefined) {
-          break;
-        }
-      }
-      owner = this.getParentHost(owner);
-    }
-    // `getParentHost` is null for a resumed boundary; fall back to serialized projection owner.
-    const resolvedOwner = owner ?? (store.resetOwner as VNode | undefined);
-    if (!resolvedOwner) {
+    // The author re-supplies the children; the boundary itself only projects them.
+    // `getAuthorHost` is null for a resumed boundary; fall back to the serialized author.
+    const owner = this.getAuthorHost(boundaryHost) ?? (store.resetOwner as VNode | undefined);
+    if (!owner) {
       return;
     }
-    markVNodeDirty(this, resolvedOwner, ChoreBits.COMPONENT);
+    // Re-render owner and clear error in the same tick to re-supply + re-execute.
+    markVNodeDirty(this, owner, ChoreBits.COMPONENT);
+    // A resumed boundary never carried an error, so clearing it alone would not re-render it.
+    markVNodeDirty(this, boundaryHost, ChoreBits.COMPONENT);
     store.error = undefined;
+  }
+
+  /**
+   * The component whose render authored `host`'s JSX.
+   *
+   * Unlike `getParentHost`, crossing a projection skips the component that owns the slot: projected
+   * content is authored by whoever supplied it, one level further up.
+   */
+  private getAuthorHost(host: VNode): VNode | null {
+    let vNode: VNode | null = vnode_getProjectionParentOrParent(host);
+    let crossedProjection = false;
+    while (vNode) {
+      if (vnode_isVirtualVNode(vNode)) {
+        if (vnode_isProjection(vNode)) {
+          crossedProjection = true;
+        } else if (vnode_getProp(vNode, OnRenderProp, null) !== null) {
+          if (!crossedProjection && this.authorsOwnChildren(vNode)) {
+            return vNode;
+          }
+          crossedProjection = false;
+        }
+      }
+      vNode = vnode_getProjectionParentOrParent(vNode);
+    }
+    return null;
+  }
+
+  /**
+   * A boundary authors the subtree below it only while it is errored; a resumed one renders its
+   * `<Slot />` again, so the fallback still in the DOM was authored further up.
+   */
+  private authorsOwnChildren(host: VNode): boolean {
+    const ctx = this.getHostProp<Array<string | unknown>>(host, QCtxAttr);
+    if (ctx == null || !mapArray_has(ctx, ERROR_CONTEXT.id, 0)) {
+      return true;
+    }
+    const store = mapArray_get(ctx, ERROR_CONTEXT.id, 0) as ErrorBoundaryStore | null;
+    return !store || store.error !== undefined;
   }
 
   getParentHost(host: VNode): VNode | null {

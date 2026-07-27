@@ -482,6 +482,38 @@ describe('qwikloader behavior', () => {
     }
   });
 
+  test('reports a failed chunk import once when the container was streamed', async () => {
+    const { doc, win } = createLoaderEnvironment(['e:click']);
+    const container = createMockElement(null, {
+      'q:container': 'paused',
+      'q:base': './',
+      'q:instance': 'missing',
+    });
+    const button = createMockElement(container, {
+      'q-e:click': 'data:text/javascript,throw new Error("boom")#handler#',
+    });
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    try {
+      getSingleListener(doc, 'click').handler(createMockEvent(button));
+      win._qwikEv.push(QwikEvContainerReady, 'missing');
+
+      await vi.waitFor(() => {
+        expect(consoleError).toHaveBeenCalled();
+      });
+      await flushQueuedTasks();
+
+      const importErrors = doc.dispatchEvent.mock.calls
+        .map(([ev]: any[]) => ev)
+        .filter((ev: any) => ev.type === 'qerror');
+      expect(importErrors).toHaveLength(1);
+      expect(importErrors[0].detail.importError).toBe('async');
+      expect(consoleError).toHaveBeenCalledTimes(1);
+    } finally {
+      consoleError.mockRestore();
+    }
+  });
+
   test('falls back to readystatechange while waiting for streamed container data', async () => {
     const { doc } = createLoaderEnvironment(['e:click']);
     const logs: string[] = [];

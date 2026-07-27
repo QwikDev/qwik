@@ -187,15 +187,6 @@ streaming, navigation, or integration with fixture apps. For Qwik e2e, load
 
 Never use `pnpm test.unit` for agent verification in this repo.
 
-Unit-harness traps (cause false results in `ssrRenderToDom` specs):
-
-- Inline `$()` QRLs are re-created per render (no optimizer), so prop-identity-sensitive tests need
-  module-scope QRL constants to discriminate.
-- The harness materializes full parent chains, so resume-only code paths gated on missing parents
-  (e.g. reset's `resetOwner` fallback) never run — e2e is the authority for resumed behavior.
-- A captured plain-object flag serializes at SSR and resumes as a frozen copy; gate flaky fixtures
-  on `isServerPlatform()`, not captured mutable state.
-
 ## ErrorBoundary (experimental `errorBoundary`)
 
 Where things live: `errorBoundaryCmp` (`shared/error/error-boundary.ts`); SSR catch + inert marking

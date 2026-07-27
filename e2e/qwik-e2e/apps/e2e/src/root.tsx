@@ -44,7 +44,6 @@ import { EachRoot } from './components/each/each';
 import { ShowRoot } from './components/show/show';
 import { SuspenseRoot } from './components/suspense/suspense';
 import { OutOfOrderSuspenseRoot } from './components/suspense/ooos';
-import { ErrorBoundaryStreamingRoot } from './components/error-boundary/error-boundary';
 
 const tests: Record<string, FunctionComponent> = {
   '/e2e/two-listeners': () => <TwoListeners />,
@@ -89,7 +88,6 @@ const tests: Record<string, FunctionComponent> = {
   '/e2e/show': () => <ShowRoot />,
   '/e2e/suspense': () => <SuspenseRoot />,
   '/e2e/suspense-ooos': () => <OutOfOrderSuspenseRoot />,
-  '/e2e/error-boundary-streaming': () => <ErrorBoundaryStreamingRoot />,
   '/e2e/worker': () => <WorkerRoot />,
 };
 

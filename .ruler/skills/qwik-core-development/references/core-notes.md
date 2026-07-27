@@ -249,12 +249,20 @@ client routing + reset (`client/dom-container.ts`); shared helpers incl. the dis
   the errored state (the field never serialized), so reset can't gate its own logic on reading it.
 - Reset owner walk: skip `_suC`/`_ebC` parents, but STOP at an `_ebC` whose in-memory
   `store.error` is set — an errored boundary authors its fallback (a healthy one authors
-  nothing). Resumed-errored parents (error `undefined`) are still skipped: SSR-fallback-nested
-  boundaries are the documented gap.
-- Reset-test trap: inline `$()` fallback QRLs are re-created per render in the unit harness (no
-  optimizer), so a MIS-targeted owner re-render still changes boundary props and rebuilds the
-  subtree — false green. Hoist fallback QRLs to module-scope constants to make owner-resolution
-  tests discriminate.
+  nothing). RESUMED-errored parents need no walk stop: in browsers `getParentHost` is null
+  after resume, so reset resolves the serialized `resetOwner`, which already points at the
+  true author (incl. a boundary nested in an SSR fallback). Do NOT add DOM-state detection
+  and mark a resumed boundary directly — its SSR projection was abandoned, rendering `Slot`
+  there yields an empty subtree; only the author re-render regenerates it.
+- Reset-test traps (all three cause false results in the unit harness):
+  - inline `$()` fallback QRLs are re-created per render (no optimizer), so a mis-targeted
+    owner re-render still changes boundary props and rebuilds the subtree — false green.
+    Hoist fallback QRLs to module-scope constants.
+  - the harness materializes full parent chains, so `getParentHost` never returns null and
+    the in-browser `resetOwner` fallback path never runs — resumed-reset behavior needs the
+    e2e as the authority, not the unit harness.
+  - a captured plain-object flag serializes at SSR and resumes as a frozen copy; test
+    mutations never reach the resumed closure. Gate flaky fixtures on `isServerPlatform()`.
 - Errored boundaries re-derive by re-running the children (owner re-render clears `store.error` and
   the boundary re-executes); a task-phase SSR throw does NOT re-derive on a later client re-render
   because the task never re-runs — documented developer responsibility, not a framework warning.

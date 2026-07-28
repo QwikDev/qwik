@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isPublicError, PublicError } from './public-error';
+import { PublicError } from './public-error';
 
 describe('PublicError', () => {
   it('string data doubles as the message', () => {
@@ -23,35 +23,5 @@ describe('PublicError', () => {
 
   it('is an Error', () => {
     expect(new PublicError('x')).toBeInstanceOf(Error);
-  });
-
-  describe('isPublicError', () => {
-    it('accepts instances and subclass instances', () => {
-      class CartError extends PublicError<{ sku: string }> {}
-      expect(isPublicError(new PublicError('x'))).toBe(true);
-      expect(isPublicError(new CartError({ sku: 'a' }))).toBe(true);
-    });
-
-    it('rejects a plain Error faking the shape', () => {
-      expect(isPublicError(Object.assign(new Error('x'), { data: 'leak' }))).toBe(false);
-    });
-
-    it('rejects hostile values without throwing', () => {
-      const { proxy, revoke } = Proxy.revocable({}, {});
-      revoke();
-      expect(isPublicError(proxy)).toBe(false);
-      expect(
-        isPublicError(
-          new Proxy(
-            {},
-            {
-              getPrototypeOf() {
-                throw new Error('trap');
-              },
-            }
-          )
-        )
-      ).toBe(false);
-    });
   });
 });

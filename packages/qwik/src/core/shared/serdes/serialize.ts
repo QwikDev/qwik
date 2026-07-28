@@ -1,5 +1,5 @@
 import { isDev } from '@qwik.dev/core/build';
-import { isPublicError, QPublicErrorMarker } from '../error/public-error';
+import { PublicError, QPublicErrorMarker } from '../error/public-error';
 import { hasVirtualNodePath } from '../vnode-data-types';
 import { VNodeDataFlag } from '../../../server/types';
 import type { VNodeData } from '../../../server/vnode-data';
@@ -715,7 +715,7 @@ export class Serializer {
         }
         out.push(entry[0], entry[1]);
       }
-      if (__EXPERIMENTAL__.errorBoundary && isPublicError(value)) {
+      if (__EXPERIMENTAL__.errorBoundary && value instanceof PublicError) {
         out.push(QPublicErrorMarker, 1);
       }
       /// In production we don't want to leak the stack trace.

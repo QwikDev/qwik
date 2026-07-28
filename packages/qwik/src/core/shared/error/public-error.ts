@@ -25,11 +25,3 @@ export class PublicError<T = unknown> extends Error {
 }
 
 export const QPublicErrorMarker = 'q:pe';
-
-export const isPublicError = (value: unknown): value is PublicError => {
-  try {
-    return value instanceof PublicError;
-  } catch {
-    return false;
-  }
-};

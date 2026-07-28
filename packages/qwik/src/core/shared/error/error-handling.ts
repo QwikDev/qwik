@@ -3,7 +3,7 @@ import { createContextId } from '../../use/use-context';
 import { hashCode } from '../utils/hash_code';
 import { logError } from '../utils/log';
 import type { ErrorBoundaryInfo } from './error-boundary';
-import { isPublicError } from './public-error';
+import { PublicError } from './public-error';
 
 /** @internal */
 export interface ErrorBoundaryStore {
@@ -96,7 +96,7 @@ export const redactBoundaryErrorForDisplay = (
         return redactToGeneric(error);
       }
     }
-    if (isPublicError(error)) {
+    if (error instanceof PublicError) {
       return error;
     }
     if (safeRead(() => error instanceof Error && REDACTED in error, false)) {

@@ -8,6 +8,7 @@ import {
   ERROR_CONTEXT,
   fireOnError,
   isRecoverable,
+  toBoundaryError,
   type ErrorBoundaryStore,
 } from '../shared/error/error-handling';
 import type { ErrorBoundaryInfo } from '../shared/error/error-boundary';
@@ -342,7 +343,8 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       errorStore.error = err;
       return;
     }
-    const storedError = err === undefined ? new Error('undefined') : err;
+    // `null` would collide with the capture-only sentinel, so wrap every nullish throw.
+    const storedError = err == null ? toBoundaryError(err) : err;
     let current: VNode | null = host;
     while (current) {
       const boundaryHost = this.resolveContextHost(current, ERROR_CONTEXT);

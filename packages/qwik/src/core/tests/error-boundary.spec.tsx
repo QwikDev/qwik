@@ -1173,6 +1173,42 @@ describe('ErrorBoundary CSR-specific', () => {
         }
       }
     );
+
+    it.each([null, new Error('first')])(
+      'a later error still escalates after %s was thrown',
+      async (first) => {
+        const outerSeen: unknown[] = [];
+        const { container } = await domRender(
+          <ErrorBoundary
+            fallback$={fb('fb-outer')}
+            onError$={$((e: any) => {
+              outerSeen.push(e);
+            })}
+          >
+            <ErrorBoundary fallback$={fb('fb-inner')}>
+              <button id="content">x</button>
+            </ErrorBoundary>
+          </ErrorBoundary>,
+          { debug }
+        );
+        const el = container.element;
+        const target = el.querySelector('#content')!;
+
+        dispatchQError(target, { error: first, element: target });
+        await settleOnErrorDelivery(container);
+        expect(el.querySelector('#fb-inner')).toBeTruthy();
+        expect(el.querySelector('#fb-outer')).toBeFalsy();
+
+        dispatchQError(el.querySelector('#fb-inner')!, {
+          error: new Error('second'),
+          element: el.querySelector('#fb-inner')!,
+        });
+        await settleOnErrorDelivery(container);
+
+        expect(el.querySelector('#fb-outer')).toBeTruthy();
+        expect((outerSeen[0] as Error)?.message).toBe('second');
+      }
+    );
   });
 
   it('CSR: a non-recoverable build error is not caught by the boundary', async () => {

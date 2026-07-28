@@ -50,7 +50,7 @@ const redactToGeneric = (err: unknown): Error & { digest: string } => {
   return redacted;
 };
 
-const toBoundaryError = (raw: unknown): Error => {
+export const toBoundaryError = (raw: unknown): Error => {
   if (raw instanceof Error) {
     return raw;
   }
@@ -160,7 +160,8 @@ export const markBoundaryErrored = (
   error: unknown,
   phase: ErrorBoundaryInfo['phase'] = 'render'
 ): void => {
-  store.error = error === undefined ? new Error('undefined') : error;
+  // `null` would collide with the capture-only sentinel, so wrap every nullish throw.
+  store.error = error == null ? toBoundaryError(error) : error;
   fireOnError(store.$onError$, error, {
     phase: getTaggedErrorPhase(error) ?? phase,
     boundaryId: store.boundaryId ?? '',

@@ -1,15 +1,15 @@
 /**
- * A deliberately public error: constructing one is consent to serialize and display its `data`
- * through an `<ErrorBoundary>` fallback, unredacted, even in production. Any other thrown value is
- * redacted to a generic message in production.
+ * A deliberately public error: constructing one is consent to display its `data` through an
+ * `<ErrorBoundary>` fallback, unredacted, even in production. Any other thrown value is redacted to
+ * a generic message in production.
  *
  * `.message` is the human string, `.data` the structured payload: a string `data` doubles as the
  * message, and an object `data` with a string `message` field lifts it onto `.message`.
  *
  * Contract details:
  *
- * - Consent covers the whole instance: every own enumerable field serializes with it, so keep the
- *   payload in `data`.
+ * - Consent covers the whole instance: no field is redacted, so keep the payload in `data` and
+ *   secrets off the error.
  * - A configured `transformError` render option runs first and its projection wins — return the
  *   received `PublicError` unchanged, or return `undefined` to apply the default policy, which
  *   keeps it public.

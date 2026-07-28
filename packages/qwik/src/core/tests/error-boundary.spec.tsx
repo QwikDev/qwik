@@ -2912,6 +2912,26 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
     expect(redactBoundaryErrorForDisplay(original, true, decline)).toBe(original);
   });
 
+  it('transformError: an async transform warns in dev instead of silently redacting everything', () => {
+    const warn = vi.spyOn(logUtils, 'logWarn').mockImplementation(() => undefined);
+    const asyncTransform = (() => Promise.resolve(new Error('projected'))) as unknown as (
+      error: unknown
+    ) => Error;
+    const out = redactBoundaryErrorForDisplay(
+      new Error('secret'),
+      true,
+      asyncTransform
+    ) as Error & {
+      digest?: string;
+    };
+
+    expect(out.message).toBe('An error occurred');
+    expect(typeof out.digest).toBe('string');
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(String(warn.mock.calls[0][0])).toContain('transformError');
+    warn.mockRestore();
+  });
+
   it('transformError: fail-closed — a function return redacts to generic + digest', () => {
     const out = redactBoundaryErrorForDisplay(
       new Error('secret'),

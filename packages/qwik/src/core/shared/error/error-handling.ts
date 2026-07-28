@@ -1,7 +1,7 @@
 import { isDev } from '@qwik.dev/core/build';
 import { createContextId } from '../../use/use-context';
 import { hashCode } from '../utils/hash_code';
-import { logError } from '../utils/log';
+import { logError, logWarn } from '../utils/log';
 import type { ErrorBoundaryInfo } from './error-boundary';
 import { PublicError } from './public-error';
 
@@ -91,6 +91,9 @@ export const redactBoundaryErrorForDisplay = (
         return isReadableProjection(projected) ? projected : redactToGeneric(error);
       }
       if (projected != null) {
+        if (dev && typeof (projected as { then?: unknown })?.then === 'function') {
+          logWarn('transformError must return synchronously; an async one redacts every error.');
+        }
         return redactToGeneric(error);
       }
     }

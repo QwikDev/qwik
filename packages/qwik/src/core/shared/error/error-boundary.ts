@@ -143,8 +143,8 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
         onErrorQrl(error as Error, info)
       );
     }
-    // Retains the owner reference so it stays resumable for reset to re-render.
-    store.resetOwner = (host as { parentComponent?: unknown } | undefined)?.parentComponent;
+    // Serialized only to keep this node resumable; dropping it makes reset a silent no-op.
+    store.resumableParent = (host as { parentComponent?: unknown } | undefined)?.parentComponent;
     return buildErrorBoundaryHosts(store);
   }
 

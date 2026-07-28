@@ -1933,7 +1933,7 @@ describe('ErrorBoundary stateless wire', () => {
     expect(html).not.toContain('wire-secret-boom');
   });
 
-  it('the boundary store serializes resetOwner and boundaryId, but no error key', async () => {
+  it('the boundary store serializes resumableParent and boundaryId, but no error key', async () => {
     const { container } = await ssrRenderToDom(
       <main>
         <ErrorBoundary fallback$={fb()}>
@@ -1948,13 +1948,13 @@ describe('ErrorBoundary stateless wire', () => {
     let store: Record<string, unknown> | undefined;
     for (let i = 0; i < rootCount; i++) {
       const root = container.$getObjectById$(i);
-      if (root && typeof root === 'object' && 'resetOwner' in root && 'boundaryId' in root) {
+      if (root && typeof root === 'object' && 'resumableParent' in root && 'boundaryId' in root) {
         store = root as Record<string, unknown>;
       }
     }
     expect(store).toBeDefined();
     expect('error' in store!).toBe(false);
-    expect(Object.keys(store!).sort()).toEqual(['boundaryId', 'resetOwner']);
+    expect(Object.keys(store!).sort()).toEqual(['boundaryId', 'resumableParent']);
   });
 
   it('re-rendering a sibling outside the boundary leaves the swapped content hidden', async () => {

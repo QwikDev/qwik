@@ -207,18 +207,30 @@ function emitSegmentCode(
       }
       const importPath = getSegmentImportPath(inputPath, child, explicitExtensions);
       if (target === 'csr') {
-        const name = allocateGeneratedName(
-          '__qwikBoundary',
-          new Set([
-            ...analysis.bindings.map((binding) => binding.name),
-            ...propsBoundaryParameters.values(),
-          ])
-        );
-        propsBoundaryParameters.set(child.id, name);
-        replacements.push({
-          range: child.functionRange,
-          value: name,
-        });
+        if (segment.ctxName === 'componentProps') {
+          childImports.push(`import { ${child.symbolName} } from ${JSON.stringify(importPath)};`);
+          replacements.push({
+            range: child.functionRange,
+            value: emitCapturedFunctionReference(
+              child.symbolName,
+              segmentCaptureNames(child, componentPropsName),
+              qwikImports
+            ),
+          });
+        } else {
+          const name = allocateGeneratedName(
+            '__qwikBoundary',
+            new Set([
+              ...analysis.bindings.map((binding) => binding.name),
+              ...propsBoundaryParameters.values(),
+            ])
+          );
+          propsBoundaryParameters.set(child.id, name);
+          replacements.push({
+            range: child.functionRange,
+            value: name,
+          });
+        }
       } else {
         const qrl = getQrlVariableName(child);
         qwikImports.add(QwikWord.QrlWithChunk);
@@ -285,7 +297,8 @@ function emitSegmentCode(
       imports.push(emittedImport);
     }
   }
-  const isExpression = segment.kind === 'expression';
+  const isComponentProps = segment.ctxName === 'componentProps';
+  const isExpression = segment.kind === 'expression' && !isComponentProps;
   const captureNames = segmentCaptureNames(segment, componentPropsName);
   if (captureNames.length > 0 && !isExpression) {
     qwikImports.add(QwikWord.Captures);
@@ -373,7 +386,7 @@ function emitSegmentCode(
       segment.propsParts.length === 0
         ? rawBody
         : `{ ${segment.propsParts
-            .map((part) => emitPropsPart(part, source, replacements))
+            .map((part) => emitPropsPart(part, source, replacements, isComponentProps))
             .join(', ')} }`;
     const body =
       segment.bodyKind === 'block' ? rawBody.slice(1, -1).trim() : `return ${expressionBody};`;
@@ -405,7 +418,9 @@ function emitSegmentCode(
   );
   switch (segment.kind) {
     case 'expression':
-      functionHead = `(${[...captureNames, ...propsBoundaryParameters.values()].join(', ')}) => `;
+      functionHead = isComponentProps
+        ? '() => '
+        : `(${[...captureNames, ...propsBoundaryParameters.values()].join(', ')}) => `;
       break;
     case 'collectionSource':
     case 'branchCondition':
@@ -482,13 +497,16 @@ export function shouldResolveSsrSegment(segment: SegmentPlan): boolean {
 function emitPropsPart(
   part: SegmentPropsPartPlan,
   source: string,
-  replacements: readonly { range: SegmentPlan['range']; value: string }[]
+  replacements: readonly { range: SegmentPlan['range']; value: string }[],
+  eager: boolean
 ): string {
   switch (part.kind) {
     case 'static':
       return `${JSON.stringify(part.prop.name)}: ${JSON.stringify(part.prop.value)}`;
     case 'expression':
-      return `get ${JSON.stringify(part.name)}() { return ${emitPropsExpression(part.range, source, replacements)}; }`;
+      return eager
+        ? `${JSON.stringify(part.name)}: ${emitPropsExpression(part.range, source, replacements)}`
+        : `get ${JSON.stringify(part.name)}() { return ${emitPropsExpression(part.range, source, replacements)}; }`;
     case 'spread':
       return `...(${emitPropsExpression(part.range, source, replacements)})`;
   }

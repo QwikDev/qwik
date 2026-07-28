@@ -274,6 +274,7 @@ export interface ComponentNodePlan {
   readonly blockingSuspense: boolean;
   readonly lifetimeId: LifetimeId;
   readonly props: readonly OrderedPropPlan[];
+  readonly propsSource: SegmentReferencePlan | null;
   readonly slots: readonly ComponentProjectionPlan[];
 }
 

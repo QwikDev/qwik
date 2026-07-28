@@ -22,6 +22,7 @@ import type { ValueOrPromise } from '../utils/types';
 import { _constants, TypeIds, type Constants } from './constants';
 import { createQRLWithBackChannel } from './qrl-to-string';
 import { findQwikElement } from '../../runtime/node-walker';
+import { allocatePropsProxy } from '../../component/props';
 
 export const resolvers = new WeakMap<Promise<any>, [Function, Function]>();
 export const pendingStoreTargets = new WeakMap<object, { t: TypeIds; v: unknown }>();
@@ -119,6 +120,8 @@ export const allocate = (
       return new Error();
     case TypeIds.Signal:
       return new Signal(undefined);
+    case TypeIds.PropsProxy:
+      return allocatePropsProxy();
     case TypeIds.AsyncSignal:
       return new AsyncSignal(null, null, context);
     case TypeIds.SerializerSignal:

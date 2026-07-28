@@ -47,6 +47,7 @@ export const codeToText = (code: number, ...parts: any[]): string => {
       'Invalid element name for SSR {{0}}', // 36
       'Invalid serialized Promise dependency', // 37
       'Invalid serialized Uint8Array payload', // 38
+      'Uninitialized props proxy', // 39
     ];
     let text = MAP[code] ?? '';
     if (parts.length) {
@@ -104,6 +105,7 @@ export const enum QError {
   invalidElementName = 36,
   invalidPromiseDependency = 37,
   invalidUint8ArrayPayload = 38,
+  uninitializedPropsProxy = 39,
 }
 
 export const qError = (code: number, errorMessageArgs: any[] = []): Error => {

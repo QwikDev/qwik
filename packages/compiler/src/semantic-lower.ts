@@ -414,6 +414,7 @@ class SemanticLowerer {
       { lifetimeId, effects: context.effects },
       'component'
     );
+    const propsSource = this.createComponentPropsSource(node, lifetimeId);
     const slots: ComponentProjectionPlan[] = [];
     for (const child of node.children) {
       if (isEmptyChild(child)) {
@@ -449,8 +450,55 @@ class SemanticLowerer {
       blockingSuspense,
       lifetimeId,
       props,
+      propsSource,
       slots,
     };
+  }
+
+  private createComponentPropsSource(
+    node: JSXElement,
+    lifetimeId: LifetimeId
+  ): SegmentReferencePlan | null {
+    const hasReactiveSpread = node.openingElement.attributes.some((attribute) => {
+      if (
+        attribute.type !== 'JSXSpreadAttribute' ||
+        getExpandableObjectProperties(attribute.argument) !== null
+      ) {
+        return false;
+      }
+      const expression = unwrapExpression(attribute.argument);
+      const range = getRange(expression);
+      if (expression === null || expression === undefined || range === null) {
+        return false;
+      }
+      const references = this.referencesIn(range);
+      if (references.length === 0) {
+        return true;
+      }
+      return references.some((bindingId) => {
+        const binding = this.binding(bindingId);
+        return (
+          binding === null ||
+          (binding.kind !== 'import' &&
+            binding.kind !== 'module' &&
+            !this.initialOnlyBindings.has(bindingId))
+        );
+      });
+    });
+    if (!hasReactiveSpread) {
+      return null;
+    }
+    const openingRange = getRange(node.openingElement);
+    if (openingRange === null) {
+      return null;
+    }
+    const segment = this.extracted.segments.find(
+      (candidate) =>
+        candidate.kind === 'expression' &&
+        candidate.ctxName === 'componentProps' &&
+        sameRange(candidate.bodyRange, openingRange)
+    );
+    return segment === undefined ? null : this.referenceSegment(segment, lifetimeId);
   }
 
   private createSlot(

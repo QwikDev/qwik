@@ -72,6 +72,7 @@ import type { ValueOrPromise } from '../utils/types';
 import { allocate, pendingStoreTargets, resolvers } from './allocate';
 import { EMPTY_OBJECT_PAYLOAD, TypeIds } from './constants';
 import { needsInflation } from './deser-proxy';
+import { restorePropsProxySource } from '../../component/props';
 
 export { allocate, needsInflation };
 
@@ -179,6 +180,15 @@ const inflateResolved = (
           signal.subs = createLazySourceSubscribers(signal, container, d, 2);
         }
       });
+    }
+    case TypeIds.PropsProxy: {
+      const values = data as unknown[];
+      const source = values[0];
+      if (!(source instanceof ReactiveSignal) && !(source instanceof StorePropSource)) {
+        throw new Error('Invalid PropsProxy source');
+      }
+      restorePropsProxySource(target as object, source as Source<object>);
+      break;
     }
     case TypeIds.ComputedSignal: {
       const computed = target as Writeable<ComputedQrl<unknown>>;

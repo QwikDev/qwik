@@ -30,6 +30,7 @@ import type { Source, SourceSubs } from '../../reactive/source';
 import { isContextScope } from '../../runtime/context-scope';
 import { TaskSubscription } from '../../runtime/task';
 import { isProjection, isSlotScope, type Projection, type SlotScope } from '../../dom/slot/slot';
+import { getPropsProxySource } from '../../component/props';
 import { Owner } from '../../runtime/owner';
 import type { Subscriber } from '../../runtime/subscriber';
 import type { RuntimeInvokeContext } from '../../runtime/invoke-context';
@@ -505,6 +506,7 @@ export class Serializer {
   }
 
   private writeObjectValue(value: {}) {
+    let propsProxySource: Source<object> | null | undefined;
     if (value instanceof SerializerSignal) {
       const maybeValue = getSerializerSignalValue(value);
       if (isPromise(maybeValue)) {
@@ -550,6 +552,11 @@ export class Serializer {
       this.output(TypeIds.Projection, serializeProjection(value));
     } else if (this.$serializationContext$.$isDomRef$(value)) {
       this.output(TypeIds.RefVNode, value.$nodeId$);
+    } else if ((propsProxySource = getPropsProxySource(value)) !== undefined) {
+      if (propsProxySource === null) {
+        throw qError(QError.serializeErrorUnknownType, ['uninitialized props proxy']);
+      }
+      this.output(TypeIds.PropsProxy, [propsProxySource]);
     } else if (isObjectLiteral(value)) {
       if (Array.isArray(value)) {
         this.output(

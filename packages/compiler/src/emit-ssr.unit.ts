@@ -378,6 +378,7 @@ export function App() {
             blockingSuspense: false,
             lifetimeId: 0,
             props: [],
+            propsSource: null,
             slots: [],
           },
         ],

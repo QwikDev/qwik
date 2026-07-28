@@ -3,7 +3,7 @@ import { _captures, createQRL, type QRLInternal } from './shared/qrl/qrl-class';
 import { needsInflation } from './shared/serdes/deser-proxy';
 import { deserializeData, inflate } from './shared/serdes/inflate';
 import { createSerializationContext } from './shared/serdes/serialization-context';
-import { Constants, TypeIds } from './shared/serdes/constants';
+import { Constants, EMPTY_OBJECT_PAYLOAD, TypeIds } from './shared/serdes/constants';
 import { allocate } from './shared/serdes/allocate';
 import { _deserialize, _serialize } from './shared/serdes/standalone';
 import { QRL_RUNTIME_CHUNK } from './shared/serdes/qrl-to-string';
@@ -43,6 +43,7 @@ import { Phase, Scheduler } from './runtime/scheduler';
 import { useTaskQrl, Task, TaskSubscription, type TaskFn } from './runtime/task';
 import { runWithCollector } from './reactive/tracking';
 import { createCaptureContainer, createText, runWithTestContainer } from './test-utils';
+import { createPropsProxy, getPropsProxySource } from './component/props';
 
 type BranchConditionFn = () => boolean;
 type BranchRenderFn = (ctx: ContainerContext) => ValueOrPromise<string>;
@@ -64,6 +65,25 @@ class TestDomRef {
 }
 
 describe('serdes emit-only', () => {
+  it('round-trips a props proxy with its reactive source', async () => {
+    const source = useSignal({ label: 'initial' });
+    const proxy = createPropsProxy(source);
+    const restoredProxy = await _deserialize<{ label: string }>(await _serialize(proxy));
+    const restoredSource = getPropsProxySource(restoredProxy) as Signal<{ label: string }>;
+
+    expect(restoredProxy.label).toBe('initial');
+
+    restoredSource.value = { label: 'updated' };
+
+    expect(restoredProxy.label).toBe('updated');
+  });
+
+  it('rejects a props proxy without a reactive source', async () => {
+    await expect(
+      _deserialize(JSON.stringify([TypeIds.PropsProxy, [TypeIds.Object, EMPTY_OBJECT_PAYLOAD]]))
+    ).rejects.toThrow('Invalid PropsProxy source');
+  });
+
   it('round-trips standalone serialized signals', async () => {
     const restored = await _deserialize<Signal<number>>(await _serialize(useSignal(7)));
 

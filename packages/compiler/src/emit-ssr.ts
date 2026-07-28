@@ -1011,7 +1011,7 @@ class SsrEmitter {
       }
       options = `, { slotScope: ${scope} }`;
     }
-    const props = this.componentProps(operation.props);
+    const props = this.componentProps(operation.props, operation.propsSource);
     if (props === null) {
       return null;
     }
@@ -1312,8 +1312,25 @@ class SsrEmitter {
   }
 
   private componentProps(
-    props: readonly OrderedPropPlan[]
+    props: readonly OrderedPropPlan[],
+    propsSource: SegmentReferencePlan | null
   ): { readonly value: string; readonly prep: readonly string[] } | null {
+    if (propsSource !== null) {
+      const segment = this.segment(propsSource);
+      if (segment === null) {
+        return null;
+      }
+      const captures = this.captureNames(segment, propsSource);
+      this.imports.add(QwikWord.CreatePropsProxy);
+      this.imports.add(QwikHooks.UseComputedQrl);
+      return {
+        value: `${QwikWord.CreatePropsProxy}(${QwikHooks.UseComputedQrl}(${this.qrlReference(
+          segment,
+          propsSource
+        )}))`,
+        prep: this.rootNames(captures),
+      };
+    }
     const sources: string[] = [];
     const prep: string[] = [];
     let entries: string[] = [];

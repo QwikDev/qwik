@@ -1,3 +1,13 @@
+import { readSourceValue, type Source } from '../reactive/source';
+import { track } from '../reactive/tracking';
+import { qError, QError } from '../shared/error/error';
+
+interface PropsProxyState<T extends object> {
+  source: Source<T> | null;
+}
+
+const propsProxyStates = new WeakMap<object, PropsProxyState<object>>();
+
 export function mergeProps(
   ...sources: Array<Record<string, unknown> | null | undefined>
 ): Record<string, unknown> {
@@ -9,4 +19,53 @@ export function mergeProps(
     }
   }
   return target;
+}
+
+export function createPropsProxy<T extends object>(source: Source<T>): T {
+  return createPropsProxyState(source);
+}
+
+export function allocatePropsProxy(): object {
+  return createPropsProxyState(null);
+}
+
+export function getPropsProxySource(proxy: object): Source<object> | null | undefined {
+  return propsProxyStates.get(proxy)?.source;
+}
+
+export function restorePropsProxySource(proxy: object, source: Source<object>): void {
+  const state = propsProxyStates.get(proxy);
+  if (state === undefined) {
+    throw new Error('Invalid props proxy');
+  }
+  state.source = source;
+}
+
+function createPropsProxyState<T extends object>(source: Source<T> | null): T {
+  const state: PropsProxyState<T> = { source };
+  const readProps = (): T => {
+    const source = state.source;
+    if (source === null) {
+      throw qError(QError.uninitializedPropsProxy);
+    }
+    track(source);
+    return readSourceValue(source);
+  };
+  const proxy = new Proxy(Object.create(null), {
+    get: (_target, property) => {
+      if (state.source === null && property === 'then') {
+        return undefined;
+      }
+      const props = readProps();
+      return Reflect.get(props, property, props);
+    },
+    has: (_target, property) => Reflect.has(readProps(), property),
+    ownKeys: () => Reflect.ownKeys(readProps()),
+    getOwnPropertyDescriptor: (_target, property) => {
+      const descriptor = Reflect.getOwnPropertyDescriptor(readProps(), property);
+      return descriptor === undefined ? undefined : { ...descriptor, configurable: true };
+    },
+  }) as T;
+  propsProxyStates.set(proxy, state as PropsProxyState<object>);
+  return proxy;
 }

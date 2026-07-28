@@ -825,7 +825,8 @@ function emitCsrOperation(
       const options = slotScope === null ? '' : `, { slotScope: ${slotScope} }`;
       const call = `${QwikWord.CreateComponent}(${emitComponentProps(
         operation.props,
-        context
+        context,
+        operation.propsSource
       )}, (props) => ${operation.tag}(props, ctx${
         operation.idBase === null ? '' : `, ${operation.idBase}`
       })${options})`;
@@ -1076,11 +1077,13 @@ function emitDirectComponent(
 ): string {
   const slotScope = emitSlotScope(component.slots, context, statements);
   context.imports.add(QwikWord.CreateComponent);
-  return `${QwikWord.CreateComponent}(${emitComponentProps(component.props, context)}, (props) => ${
-    component.tag
-  }(props, ctx${component.idBase === null ? '' : `, ${component.idBase}`})${
-    slotScope === null ? '' : `, { slotScope: ${slotScope} }`
-  })`;
+  return `${QwikWord.CreateComponent}(${emitComponentProps(
+    component.props,
+    context,
+    component.propsSource
+  )}, (props) => ${component.tag}(props, ctx${
+    component.idBase === null ? '' : `, ${component.idBase}`
+  })${slotScope === null ? '' : `, { slotScope: ${slotScope} }`})`;
 }
 
 function emitCsrSetup(
@@ -1330,7 +1333,19 @@ function styleScopeExpression(
     : `${runtimeStyleScopeName} ? ${JSON.stringify(`${styleScopedId} `)} + ${runtimeStyleScopeName} : ${JSON.stringify(styleScopedId)}`;
 }
 
-function emitComponentProps(props: readonly CsrPropPlan[], context: CsrEmitContext): string {
+function emitComponentProps(
+  props: readonly CsrPropPlan[],
+  context: CsrEmitContext,
+  propsSource: CsrSegmentReferencePlan | null = null
+): string {
+  if (propsSource !== null) {
+    context.imports.add(QwikWord.CreatePropsProxy);
+    context.imports.add(QwikHooks.UseComputed);
+    return `${QwikWord.CreatePropsProxy}(${QwikHooks.UseComputed}(${emitPlannedFunctionReference(
+      propsSource,
+      context
+    )}))`;
+  }
   const sources: string[] = [];
   let entries: string[] = [];
   const flush = () => {

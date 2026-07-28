@@ -491,47 +491,22 @@ class QrlExtractor {
   }
 
   private visitComponentJsxAttributes(attributes: JSXAttributeItem[], boundary: AstNode): void {
-    const spreadExpressions: AstNode[] = [];
-    const dynamicAttributes = new Map<JSXAttributeItem, AstNode>();
-    for (const attribute of attributes) {
-      if (attribute.type === 'JSXSpreadAttribute') {
-        if (getExpandableObjectProperties(attribute.argument) !== null) {
-          continue;
-        }
-        const expression = unwrapExpression(attribute.argument);
-        if (isNode(expression)) {
-          spreadExpressions.push(expression);
-        }
-        continue;
-      }
-      const name = getJsxAttributeName(attribute.name);
-      const expression = getJsxAttributeExpression(attribute.value);
-      if (
-        name !== null &&
-        name !== 'key' &&
-        jsxEventToHtmlAttribute(name) === null &&
-        expression !== null &&
-        expression.type !== 'Literal' &&
-        expression.type !== 'JSXEmptyExpression'
-      ) {
-        dynamicAttributes.set(attribute, expression);
-      }
-    }
-    if (
-      spreadExpressions.length >= 2 ||
-      (spreadExpressions.length > 0 && dynamicAttributes.size > 0)
-    ) {
-      const segment = this.createExpressionSegment('props', boundary);
-      if (segment !== null) {
-        for (const attribute of attributes) {
-          if (attribute.type === 'JSXAttribute' && !dynamicAttributes.has(attribute)) {
-            this.visitJsxAttribute(attribute);
-          }
-        }
-        this.visitExpressionsSegment(
-          [...spreadExpressions, ...dynamicAttributes.values()],
-          segment
-        );
+    const componentAttributes = attributes.filter(
+      (attribute) =>
+        attribute.type === 'JSXSpreadAttribute' ||
+        !['key', 'q:slot'].includes(getJsxAttributeName(attribute.name) ?? '')
+    );
+    const hasDynamicSpread = componentAttributes.some(
+      (attribute) =>
+        attribute.type === 'JSXSpreadAttribute' &&
+        getExpandableObjectProperties(attribute.argument) === null
+    );
+    if (hasDynamicSpread) {
+      const propsParts = createPropsParts(componentAttributes);
+      const segment = this.createExpressionSegment('componentProps', boundary);
+      if (segment !== null && propsParts !== null) {
+        segment.propsParts = propsParts;
+        this.visitPropsSegment(componentAttributes, segment);
         return;
       }
     }

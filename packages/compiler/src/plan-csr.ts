@@ -147,6 +147,7 @@ export interface CsrDirectComponentPlan {
   readonly outputShape: CsrOutputShape;
   readonly returnMode: CsrReturnMode;
   readonly props: readonly CsrPropPlan[];
+  readonly propsSource: CsrSegmentReferencePlan | null;
   readonly idBase: string | null;
   readonly slots: readonly {
     readonly name: string;
@@ -227,6 +228,7 @@ export type CsrOperationPlan =
       readonly outputShape: CsrOutputShape;
       readonly returnMode: CsrReturnMode;
       readonly props: readonly CsrPropPlan[];
+      readonly propsSource: CsrSegmentReferencePlan | null;
       readonly idBase: string | null;
       readonly slots: readonly {
         readonly name: string;
@@ -952,7 +954,8 @@ class CsrPlanner {
     node: Extract<RenderNodePlan, { kind: 'component' }>
   ): CsrDirectComponentPlan | null {
     const props = this.planProps(node.props);
-    if (props === null) {
+    const propsSource = node.propsSource === null ? null : this.planSegment(node.propsSource);
+    if (props === null || (node.propsSource !== null && propsSource === null)) {
       return null;
     }
     const slots: Array<{
@@ -979,6 +982,7 @@ class CsrPlanner {
       outputShape: component.outputShape,
       returnMode: component.returnMode,
       props,
+      propsSource,
       idBase: node.needsId ? this.idExpression('c') : null,
       slots,
     };

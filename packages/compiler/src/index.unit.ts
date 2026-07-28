@@ -470,6 +470,26 @@ export function Logical(props: { attrs: object | null }) {
     });
   });
 
+  test('creates reactive props proxies only for dynamic component spreads', async () => {
+    await testInput('component_reactive_spread_props', {
+      code: `import { useSignal } from '@qwik.dev/core';
+import { Child, createAttrs, importedAttrs } from './child';
+
+export function App() {
+  const count = useSignal(1);
+  const attributes = useSignal({ title: 'spread' });
+  return <main>
+    <Child {...importedAttrs} />
+    <Child count={count.value} />
+    <Child {...attributes.value} />
+    <Child title="before" {...attributes.value} count={count.value} title="after" onClick$={() => count.value++} />
+    <Child {...createAttrs(count.value)} />
+  </main>;
+}
+`,
+    });
+  });
+
   test('renders a local member expression as text', async () => {
     await testInput('component_local_text', {
       code: `export function App() {

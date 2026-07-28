@@ -137,6 +137,7 @@ export interface SsrComponentOperation {
   readonly tagRange: SourceRange;
   readonly returnMode: 'sync' | 'maybe-promise';
   readonly props: readonly OrderedPropPlan[];
+  readonly propsSource: SegmentReferencePlan | null;
   readonly idBase: string | null;
   readonly blockingSuspense: boolean;
   readonly slots: readonly {
@@ -537,6 +538,7 @@ class SsrPlanner {
           tagRange: node.tagRange,
           returnMode: this.componentReturnMode(node.bindingId),
           props: node.props,
+          propsSource: node.propsSource,
           idBase: node.needsId ? this.idExpression('c') : null,
           blockingSuspense: node.blockingSuspense,
           slots: node.slots.map((slot) => ({
@@ -876,6 +878,9 @@ function collectSsrSegmentIds(operations: readonly SsrOperation[]): string[] {
         operation.children.forEach(visit);
         return;
       case 'component':
+        if (operation.propsSource !== null) {
+          ids.add(operation.propsSource.segmentId);
+        }
         for (const prop of operation.props) {
           if (prop.kind !== 'static') {
             value(prop.value);
@@ -926,12 +931,22 @@ function collectSsrSegmentIds(operations: readonly SsrOperation[]): string[] {
 function collectSsrDirectSegmentIds(operations: readonly SsrOperation[]): string[] {
   const ids = new Set<string>();
   const visit = (operation: SsrOperation): void => {
-    if (operation.kind === 'element') {
-      operation.children.forEach(visit);
-    } else if (operation.kind === 'suspense' && operation.inOrder !== null) {
-      operation.inOrder.forEach(visit);
-    } else if (operation.kind === 'collection' && operation.row.kind === 'inline') {
-      operation.row.target.usedSegmentIds.forEach((id) => ids.add(id));
+    switch (operation.kind) {
+      case 'element':
+        operation.children.forEach(visit);
+        break;
+      case 'component':
+        if (operation.propsSource !== null) {
+          ids.add(operation.propsSource.segmentId);
+        }
+        break;
+      case 'suspense':
+        operation.inOrder?.forEach(visit);
+        break;
+      case 'collection':
+        if (operation.row.kind === 'inline') {
+          operation.row.target.usedSegmentIds.forEach((id) => ids.add(id));
+        }
     }
   };
   operations.forEach(visit);

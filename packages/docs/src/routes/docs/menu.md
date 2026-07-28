@@ -167,6 +167,7 @@
 - [Each](/docs/labs/each/index.mdx)
 - [Show](/docs/labs/show/index.mdx)
 - [Suspense](/docs/labs/suspense/index.mdx)
+- [ErrorBoundary](/docs/labs/error-boundary/index.mdx)
 - [Insights](/docs/labs/insights/index.mdx)
 - [Typed Routes](/docs/labs/typed-routes/index.mdx)
 - [Devtools](/docs/labs/devtools/index.mdx)

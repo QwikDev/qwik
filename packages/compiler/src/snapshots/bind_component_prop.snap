@@ -18,7 +18,7 @@ export function App() {
 import { useSignal, createComponent } from '@qwik.dev/core';
 import { Pager } from './component.tsx_component_Pager';
 export { Pager };
-export function App(props, ctx) {
+export function App(props0, ctx) {
   const page = useSignal(1);
   return createComponent(
     {
@@ -129,7 +129,7 @@ export const component_text_segment_0_1fh10fbkzokfc = (props) => {
 import { useSignal, createComponent } from '@qwik.dev/core';
 import { Pager } from './component.tsx_component_Pager';
 export { Pager };
-export function App(props, ctx) {
+export function App(props0, ctx) {
   const page = useSignal(1);
   return createComponent(
     {

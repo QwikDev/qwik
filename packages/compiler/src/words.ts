@@ -77,6 +77,20 @@ export const enum QwikGenWord {
   Text = 'text',
 }
 
+/**
+ * Names the compiler emits as component and segment parameters. They are allocated per module so
+ * they never collide with a binding the source already declares.
+ */
+export interface GeneratedNames {
+  readonly props: string;
+  readonly ctx: string;
+}
+
+export const DEFAULT_GENERATED_NAMES: GeneratedNames = {
+  props: QwikGenWord.ComponentProps,
+  ctx: QwikGenWord.ComponentContext,
+};
+
 export const enum QwikComments {
   TextMarker = '<!t>',
   TextMarkerEnd = '<!/t>',

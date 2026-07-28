@@ -61,11 +61,9 @@ export const ContextApp = component$(({ count }: { count: number }) => {
         <Level2 />
       </ContextFromSlot>
 
-      {/* Compiler ABI currently collides with the fixture's local `ctx`. */}
-      {/* <UseContextConditionalLinkRenderingIssue1971 /> */}
+      <UseContextConditionalLinkRenderingIssue1971 />
       <ContextViaSlotClientResumeIssue2087 />
-      {/* Compiler ABI currently collides with the fixture's local `ctx`. */}
-      {/* <ContextProviderChildAccessIssue2894 /> */}
+      <ContextProviderChildAccessIssue2894 />
       <DynamicClassUpdateRegressionIssue5356 />
       <ScalarContextValuesIssue5793 />
       <div id="context-app-count">{count}</div>
@@ -147,7 +145,6 @@ export const Level3 = component$(() => {
   );
 });
 
-/* Compiler ABI currently collides with the fixture's local `ctx`.
 export const UseContextConditionalLinkRenderingIssue1971 = component$(() => {
   return (
     <UseContextConditionalLinkRenderingIssue1971Provider>
@@ -183,7 +180,6 @@ export const UseContextConditionalLinkRenderingIssue1971Consumer = component$(()
   const ctx = useContext(UseContextConditionalLinkRenderingIssue1971Context);
   return <div id="issue1971-value">Value: {ctx.value}</div>;
 });
-*/
 
 export const Ctx = createContextId<{ t: string }>('issue-2087');
 
@@ -237,7 +233,6 @@ export const Provider = component$(() => {
   return <Slot />;
 });
 
-/* Compiler ABI currently collides with the fixture's local `ctx`.
 export const CTX_2894 = createContextId<{ foo: string }>('issue-2894');
 export const ContextProviderChildAccessIssue2894 = component$(() => {
   useContextProvider(CTX_2894, { foo: 'bar' });
@@ -265,7 +260,6 @@ export const ContextProviderChildAccessIssue2894_Consumer = component$(() => {
   const ctx = useContext(CTX_2894);
   return <div id="issue2894-value">Value: {ctx.foo}</div>;
 });
-*/
 
 export const DynamicClassUpdateRegressionIssue5356Context = createContextId<object>('issue-5356');
 export const DynamicClassUpdateRegressionIssue5356 = component$(() => {

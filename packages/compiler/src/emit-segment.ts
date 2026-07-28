@@ -20,7 +20,7 @@ import type {
   SegmentPropsPartPlan,
 } from './plan-types';
 import { getSegmentDisplayName, getSegmentSymbolHash } from './segment-identity';
-import { QWIK_IMPORT, QwikWord } from './words';
+import { DEFAULT_GENERATED_NAMES, QWIK_IMPORT, QwikWord, type GeneratedNames } from './words';
 
 export interface EmittedSegmentRender {
   hoists: string[];
@@ -44,7 +44,7 @@ export type SegmentRenderEmitter = (
   segments: readonly SegmentPlan[],
   inputPath: string,
   explicitExtensions: boolean,
-  componentPropsName: string
+  generatedNames: GeneratedNames
 ) => EmittedSegmentRender | null;
 
 export function emitSegmentModules(
@@ -56,7 +56,7 @@ export function emitSegmentModules(
   analysis: ModuleAnalysis,
   target: 'csr' | 'ssr',
   emitSegmentRender: SegmentRenderEmitter,
-  componentPropsName = 'props'
+  generatedNames = DEFAULT_GENERATED_NAMES
 ): TransformModule[] | null {
   const modules: TransformModule[] = [];
   for (const segment of segments) {
@@ -74,7 +74,7 @@ export function emitSegmentModules(
       analysis,
       target,
       emitSegmentRender,
-      componentPropsName
+      generatedNames
     );
     if (code === null) {
       return null;
@@ -121,7 +121,7 @@ function emitSegmentCode(
   analysis: ModuleAnalysis,
   target: 'csr' | 'ssr',
   emitSegmentRender: SegmentRenderEmitter,
-  componentPropsName: string
+  generatedNames: GeneratedNames
 ): string | null {
   const imports: string[] = [];
   const qwikImports = new Set<string>();
@@ -143,7 +143,7 @@ function emitSegmentCode(
       );
       const reference = emitCapturedFunctionReference(
         child.symbolName,
-        segmentCaptureNames(child, componentPropsName),
+        segmentCaptureNames(child, generatedNames),
         qwikImports
       );
       if (
@@ -184,7 +184,7 @@ function emitSegmentCode(
       );
       const reference = emitCapturedQrlReference(
         child.symbolName,
-        segmentCaptureNames(child, componentPropsName)
+        segmentCaptureNames(child, generatedNames)
       );
       if (boundary.kind === 'explicit') {
         replacements.push({ range: child.range, value: reference });
@@ -213,7 +213,7 @@ function emitSegmentCode(
             range: child.functionRange,
             value: emitCapturedFunctionReference(
               child.symbolName,
-              segmentCaptureNames(child, componentPropsName),
+              segmentCaptureNames(child, generatedNames),
               qwikImports
             ),
           });
@@ -243,7 +243,7 @@ function emitSegmentCode(
           range: child.functionRange,
           value: emitCapturedQrlReference(
             child.symbolName,
-            segmentCaptureNames(child, componentPropsName)
+            segmentCaptureNames(child, generatedNames)
           ),
         });
       }
@@ -299,7 +299,7 @@ function emitSegmentCode(
   }
   const isComponentProps = segment.ctxName === 'componentProps';
   const isExpression = segment.kind === 'expression' && !isComponentProps;
-  const captureNames = segmentCaptureNames(segment, componentPropsName);
+  const captureNames = segmentCaptureNames(segment, generatedNames);
   if (captureNames.length > 0 && !isExpression) {
     qwikImports.add(QwikWord.Captures);
   }
@@ -351,7 +351,7 @@ function emitSegmentCode(
           segments,
           inputPath,
           explicitExtensions,
-          componentPropsName
+          generatedNames
         );
   if (rendered === null) {
     return null;
@@ -378,7 +378,7 @@ function emitSegmentCode(
       : `const ${captureNames
           .map((name, index) => `${name} = ${QwikWord.Captures}[${index}]`)
           .join(', ')};`;
-  const componentPropsSetup = emitComponentPropsSetup(segment, source, componentPropsName);
+  const componentPropsSetup = emitComponentPropsSetup(segment, source, generatedNames);
   let statements: string;
   if (rendered === undefined) {
     const rawBody = applyReplacements(source, segment.bodyRange, replacements);
@@ -430,7 +430,7 @@ function emitSegmentCode(
     case 'suspenseRender':
     case 'slotRender':
       functionHead = `(${[
-        ...(rendered?.runtimeParameters ?? ['ctx']),
+        ...(rendered?.runtimeParameters ?? [generatedNames.ctx]),
         ...(rendered?.trailingRuntimeParameters ?? []),
       ].join(', ')}) => `;
       break;
@@ -440,7 +440,7 @@ function emitSegmentCode(
     case 'forRender':
     case 'collectionRender': {
       functionHead = `(${[
-        ...(rendered?.runtimeParameters ?? ['ctx']),
+        ...(rendered?.runtimeParameters ?? [generatedNames.ctx]),
         ...usedParameterNames,
         ...(rendered?.trailingRuntimeParameters ?? []),
       ].join(', ')}) => `;
@@ -451,7 +451,7 @@ function emitSegmentCode(
       functionHead =
         rendered !== undefined
           ? `(${[
-              ...(rendered.runtimeParameters ?? ['ctx']),
+              ...(rendered.runtimeParameters ?? [generatedNames.ctx]),
               ...usedParameterNames,
               ...(rendered.trailingRuntimeParameters ?? []),
             ].join(', ')}) => `
@@ -586,10 +586,10 @@ function getBindingNames(bindingIds: readonly BindingId[], analysis: ModuleAnaly
   return bindingIds.map((bindingId) => names.get(bindingId) ?? '_');
 }
 
-function segmentCaptureNames(segment: SegmentPlan, componentPropsName: string): string[] {
+function segmentCaptureNames(segment: SegmentPlan, generatedNames: GeneratedNames): string[] {
   return [
     ...(segment.captures.some((capture) => capture.access === 'component-prop')
-      ? [componentPropsName]
+      ? [generatedNames.props]
       : []),
     ...segment.captures.flatMap((capture) =>
       capture.access === 'component-prop' ? [] : [capture.name]
@@ -604,7 +604,7 @@ function segmentCaptureNames(segment: SegmentPlan, componentPropsName: string): 
 function emitComponentPropsSetup(
   segment: SegmentPlan,
   source: string,
-  componentPropsName: string
+  generatedNames: GeneratedNames
 ): string {
   const parameter = segment.componentParameter;
   if (
@@ -619,7 +619,7 @@ function emitComponentPropsSetup(
     parameter.param.defaultRange === null
       ? ''
       : ` ?? ${source.slice(parameter.param.defaultRange[0], parameter.param.defaultRange[1])}`;
-  return `const ${binding} = ${componentPropsName}${fallback};`;
+  return `const ${binding} = ${generatedNames.props}${fallback};`;
 }
 
 export function emitBindingImport(binding: ImportBinding, localName: string): string {

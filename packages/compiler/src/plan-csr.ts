@@ -1,4 +1,5 @@
 import { jsxEventToHtmlAttribute } from './ast-utils';
+import { DEFAULT_GENERATED_NAMES, type GeneratedNames } from './words';
 import type { SourceRange } from './types';
 import { escapeAttr, escapeText, serializeAttrValue } from './html-utils';
 import { hasInitialTask } from './plan-types';
@@ -403,13 +404,13 @@ export function planCsr(
   component: ComponentPlan,
   source: string,
   componentCardinality: CsrComponentCardinalityResolver = unknownComponentCardinality,
-  componentPropsName = 'props'
+  generatedNames = DEFAULT_GENERATED_NAMES
 ): CsrPlan | null {
   return new CsrPlanner(
     component.segments,
     source,
     componentCardinality,
-    componentPropsName,
+    generatedNames,
     component.styleScope,
     component.runtimeStyleScopeName,
     component.runtimeStyleScopeName !== null
@@ -429,13 +430,13 @@ export function planCsrRenderFunction(
   segments: readonly SegmentPlan[],
   source: string,
   componentCardinality: CsrComponentCardinalityResolver = unknownComponentCardinality,
-  componentPropsName = 'props'
+  generatedNames = DEFAULT_GENERATED_NAMES
 ): CsrPlan | null {
   return new CsrPlanner(
     segments,
     source,
     componentCardinality,
-    componentPropsName,
+    generatedNames,
     renderFunction.styleScope,
     renderFunction.runtimeStyleScopeName,
     false
@@ -454,7 +455,7 @@ export function planCsrSegmentRender(
   segments: readonly SegmentPlan[],
   source: string,
   componentCardinality: CsrComponentCardinalityResolver = unknownComponentCardinality,
-  componentPropsName = 'props'
+  generatedNames = DEFAULT_GENERATED_NAMES
 ): CsrSegmentRenderTargetPlan | null {
   if (segment.render === null) {
     return null;
@@ -464,7 +465,7 @@ export function planCsrSegmentRender(
     segments,
     source,
     componentCardinality,
-    componentPropsName
+    generatedNames
   );
   if (plan === null) {
     return null;
@@ -477,7 +478,7 @@ export function planCsrSegmentRender(
       segment.kind === 'suspenseRender' ||
       plan.needsContext ||
       parameterBindingIds.length > 0
-        ? ['ctx']
+        ? [generatedNames.ctx]
         : [],
     trailingRuntimeParameters: plan.needsId ? ['_id'] : [],
     parameterBindingIds,
@@ -501,7 +502,7 @@ class CsrPlanner {
     private readonly segments: readonly SegmentPlan[],
     private readonly source: string,
     private readonly componentCardinality: CsrComponentCardinalityResolver,
-    private readonly componentPropsName: string,
+    private readonly generatedNames: GeneratedNames,
     private readonly styleScopedId: string | null = null,
     private readonly runtimeStyleScopeName: string | null = null,
     private readonly initializeRuntimeStyleScope = false
@@ -527,7 +528,7 @@ class CsrPlanner {
           this.segments,
           this.source,
           this.componentCardinality,
-          this.componentPropsName,
+          this.generatedNames,
           item.render.styleScope,
           item.render.runtimeStyleScopeName
         ).plan(
@@ -1154,7 +1155,7 @@ class CsrPlanner {
       this.segments,
       this.source,
       this.componentCardinality,
-      this.componentPropsName
+      this.generatedNames
     );
     if (segment === undefined || planned === null) {
       return null;
@@ -1189,7 +1190,7 @@ class CsrPlanner {
       segment.captures.map((capture) => [capture.bindingId, capture.name] as const)
     );
     const captures = [
-      ...(reference.componentPropBindingIds.length > 0 ? [this.componentPropsName] : []),
+      ...(reference.componentPropBindingIds.length > 0 ? [this.generatedNames.props] : []),
       ...reference.captureBindingIds.map((bindingId) => captureNames.get(bindingId)),
       ...(segment.render?.runtimeStyleScopeName === null ||
       segment.render?.runtimeStyleScopeName === undefined

@@ -997,7 +997,11 @@ function segmentNames(result: TransformOutput, ctxName: string): string[] {
 function expectValidModules(modules: readonly { path: string; code: string }[]) {
   for (const module of modules) {
     expect(
-      parseSync(module.path, module.code, { lang: 'js', sourceType: 'module' }).errors
+      parseSync(module.path, module.code, {
+        lang: 'js',
+        sourceType: 'module',
+        showSemanticErrors: true,
+      }).errors
     ).toEqual([]);
   }
 }

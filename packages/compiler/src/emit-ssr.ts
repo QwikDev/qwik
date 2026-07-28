@@ -39,7 +39,14 @@ import type {
   SegmentReferencePlan,
   ValuePlan,
 } from './plan-types';
-import { QWIK_IMPORT, QwikAttributes, QwikHooks, QwikWord } from './words';
+import {
+  DEFAULT_GENERATED_NAMES,
+  QWIK_IMPORT,
+  QwikAttributes,
+  QwikHooks,
+  QwikWord,
+  type GeneratedNames,
+} from './words';
 
 interface SsrRender {
   readonly imports: readonly string[];
@@ -69,7 +76,7 @@ export function emitSsrModule(
   explicitExtensions: boolean,
   localImplementationSource: string | null,
   qrlImports: TargetImportResolver,
-  componentPropsName: string,
+  generatedNames: GeneratedNames,
   componentReturnMode: SsrComponentReturnModeResolver,
   moduleRoots: readonly SegmentPlan[]
 ): EmittedModule | null {
@@ -163,7 +170,7 @@ export function emitSsrModule(
       componentSegments,
       qrlImports,
       localImplementationSource,
-      componentPropsName
+      generatedNames
     );
     if (render === null) {
       return null;
@@ -178,7 +185,7 @@ export function emitSsrModule(
         render,
         source,
         false,
-        componentPropsName,
+        generatedNames,
         planned.needsId ? planned.idBase : null
       ),
       rangeCode: emitComponent(
@@ -186,7 +193,7 @@ export function emitSsrModule(
         render,
         source,
         true,
-        componentPropsName,
+        generatedNames,
         planned.needsId ? planned.idBase : null
       ),
     });
@@ -239,7 +246,7 @@ export function emitSsrSegmentRender(
   segments: readonly SegmentPlan[] = [segment],
   inputPath = '',
   explicitExtensions = false,
-  componentPropsName = 'props',
+  generatedNames = DEFAULT_GENERATED_NAMES,
   componentReturnMode?: SsrComponentReturnModeResolver
 ): {
   hoists: string[];
@@ -253,7 +260,7 @@ export function emitSsrSegmentRender(
   if (renderFunction === null) {
     return segment.kind === 'branchRender' ? { hoists: [], statements: [], value: "''" } : null;
   }
-  const planned = planSsrSegmentRender(segment, segments, componentReturnMode);
+  const planned = planSsrSegmentRender(segment, segments, componentReturnMode, generatedNames);
   if (planned === null) {
     return null;
   }
@@ -272,10 +279,10 @@ export function emitSsrSegmentRender(
   const emitted = new SsrEmitter(
     source,
     segmentById,
-    captureNames(segment, undefined, componentPropsName),
+    captureNames(segment, undefined, generatedNames),
     qrlImports,
     getInputImportPath(inputPath, explicitExtensions),
-    componentPropsName
+    generatedNames
   ).emit(planned.render, {
     surroundingRangeId: planned.surroundingRangeId,
     rootAttribute: planned.rowRoot ? QwikAttributes.Row : null,
@@ -309,7 +316,7 @@ function emitComponentRender(
   segments: ReadonlyMap<string, SegmentPlan>,
   qrlImports: TargetImportResolver,
   localImplementationSource: string | null,
-  componentPropsName: string
+  generatedNames: GeneratedNames
 ): (SsrRender & { readonly setup: SsrSetup }) | null {
   const setup = emitSetup(
     plan,
@@ -328,7 +335,7 @@ function emitComponentRender(
     [],
     qrlImports,
     localImplementationSource,
-    componentPropsName
+    generatedNames
   ).emit(plan.render, {
     surroundingRangeId: null,
     rootAttribute: null,
@@ -364,7 +371,7 @@ function emitComponent(
   render: SsrRender & { readonly setup: SsrSetup },
   source: string,
   range: boolean,
-  componentPropsName: string,
+  generatedNames: GeneratedNames,
   idBase: string | null
 ): string {
   const emit = range ? emitComponentRangeReplacement : emitComponentFunction;
@@ -375,20 +382,20 @@ function emitComponent(
       render.value,
       source,
       false,
-      componentPropsName,
+      generatedNames,
       idBase
     );
   }
   return emit(
     component,
     render.setup.statements,
-    `${QwikWord.MaybeThen}(ctx.scheduler.flush(), () => ${emitInvokeRender(
+    `${QwikWord.MaybeThen}(${generatedNames.ctx}.scheduler.flush(), () => ${emitInvokeRender(
       render.statements,
       render.value
     )})`,
     source,
     false,
-    componentPropsName,
+    generatedNames,
     idBase
   );
 }
@@ -563,7 +570,7 @@ class SsrEmitter {
     rootedCaptures: readonly string[] = [],
     private readonly qrlImports = new TargetImportResolver(),
     private readonly localImplementationSource: string | null = null,
-    private readonly componentPropsName = 'props'
+    private readonly generatedNames = DEFAULT_GENERATED_NAMES
   ) {
     this.addedRoots = new Set(rootedCaptures);
   }
@@ -621,7 +628,9 @@ class SsrEmitter {
     }
     if (options.contextBoundary) {
       this.imports.add(QwikWord.CreateSsrRecord);
-      parts.unshift(`${QwikWord.CreateSsrRecord}('<!c=', ctx.contextScopeRef(), '>')`);
+      parts.unshift(
+        `${QwikWord.CreateSsrRecord}('<!c=', ${this.generatedNames.ctx}.contextScopeRef(), '>')`
+      );
       parts.push(literal('<!/c>'));
     }
     let output = this.output(parts);
@@ -670,7 +679,9 @@ class SsrEmitter {
       imports: [...this.imports],
       statements: [
         ...this.declaredIds.map((name) =>
-          this.eagerIds.has(name) ? `const ${name} = ctx.nextId();` : `let ${name};`
+          this.eagerIds.has(name)
+            ? `const ${name} = ${this.generatedNames.ctx}.nextId();`
+            : `let ${name};`
         ),
         ...this.declaredElementTargets.map((name) => `let ${name};`),
         ...this.statements,
@@ -800,7 +811,7 @@ class SsrEmitter {
       if (prep === null) {
         return null;
       }
-      const expression = `ctx.setRef(${this.expression(prop.value)}, ${target})`;
+      const expression = `${this.generatedNames.ctx}.setRef(${this.expression(prop.value)}, ${target})`;
       if (this.steps.length === 0) {
         this.eagerIds.add(target);
         this.statements.push(...prep, `${expression};`);
@@ -977,7 +988,7 @@ class SsrEmitter {
     const id = this.declareId('contentId');
     const captures = this.captureNames(segment, operation.segment);
     const value = this.step(
-      `${QwikWord.RenderSsrContent}(ctx, ${id}, [${captures.join(', ')}], ${qrlName(segment)}${operation.root ? ', true' : ''})`,
+      `${QwikWord.RenderSsrContent}(${this.generatedNames.ctx}, ${id}, [${captures.join(', ')}], ${qrlName(segment)}${operation.root ? ', true' : ''})`,
       [this.assignId(id), ...this.rootNames(captures)],
       'content'
     );
@@ -996,7 +1007,10 @@ class SsrEmitter {
     let options = '';
     if (operation.slots.length > 0) {
       const scope = this.name('slotScope');
-      prep.push(`const ${scope} = ${QwikWord.CreateSlotScope}();`, `ctx.addRoot(${scope});`);
+      prep.push(
+        `const ${scope} = ${QwikWord.CreateSlotScope}();`,
+        `${this.generatedNames.ctx}.addRoot(${scope});`
+      );
       this.imports.add(QwikWord.CreateSlotScope);
       this.imports.add(QwikWord.RegisterProjection);
       for (const slot of operation.slots) {
@@ -1020,7 +1034,9 @@ class SsrEmitter {
     prep.push(...props.prep);
     this.imports.add(QwikWord.CreateComponent);
     const tag = this.source.slice(operation.tagRange[0], operation.tagRange[1]);
-    const componentContext = operation.blockingSuspense ? 'ctx.inOrder()' : 'ctx';
+    const componentContext = operation.blockingSuspense
+      ? `${this.generatedNames.ctx}.inOrder()`
+      : this.generatedNames.ctx;
     const expression = `${QwikWord.CreateComponent}(${props.value}, (props) => ${tag}(props, ${componentContext}${
       operation.idBase === null ? '' : `, ${operation.idBase}`
     })${options})`;
@@ -1052,7 +1068,7 @@ class SsrEmitter {
     this.imports.add(QwikWord.CreateSsrRecord);
     this.imports.add(QwikWord.CreateSsrNodeId);
     const value = this.step(
-      `${QwikWord.RenderSsrBranch}(ctx, ${id}, ${this.qrlReference(condition, operation.condition)}, ${this.qrlReference(thenSegment)}, ${elseSegment === null ? 'undefined' : this.qrlReference(elseSegment)}${
+      `${QwikWord.RenderSsrBranch}(${this.generatedNames.ctx}, ${id}, ${this.qrlReference(condition, operation.condition)}, ${this.qrlReference(thenSegment)}, ${elseSegment === null ? 'undefined' : this.qrlReference(elseSegment)}${
         operation.idBase === null
           ? operation.root
             ? ", '', true"
@@ -1087,7 +1103,7 @@ class SsrEmitter {
     }
     const id = this.declareId('suspenseId');
     const value = this.step(
-      `${QwikWord.CreateSsrSuspense}(ctx, ${id}, ${this.qrlReference(content)}, ${fallback?.value ?? 'undefined'}, ${operation.delay === null ? '0' : this.expression(operation.delay)})`,
+      `${QwikWord.CreateSsrSuspense}(${this.generatedNames.ctx}, ${id}, ${this.qrlReference(content)}, ${fallback?.value ?? 'undefined'}, ${operation.delay === null ? '0' : this.expression(operation.delay)})`,
       [this.assignId(id), ...this.rootSegment(content), ...(fallback?.prep ?? []), ...delayPrep],
       'suspense'
     );
@@ -1121,7 +1137,7 @@ class SsrEmitter {
     this.imports.add(QwikWord.GetActiveInvokeContextOrNull);
     return [
       this.step(
-        `${QwikWord.RenderSsrSlot}(ctx, ${JSON.stringify(operation.name)}, ${
+        `${QwikWord.RenderSsrSlot}(${this.generatedNames.ctx}, ${JSON.stringify(operation.name)}, ${
           fallback === null ? 'undefined' : this.qrlReference(fallback)
         }, ${QwikWord.GetActiveInvokeContextOrNull}()${
           operation.idBase === null ? '' : `, ${operation.idBase}`
@@ -1159,7 +1175,7 @@ class SsrEmitter {
       ];
       this.imports.add(QwikWord.RenderSsrCollection);
       value = this.step(
-        `${QwikWord.RenderSsrCollection}(ctx, ${id}, ${source}, ${this.qrlReference(
+        `${QwikWord.RenderSsrCollection}(${this.generatedNames.ctx}, ${id}, ${source}, ${this.qrlReference(
           key,
           operation.key
         )}, ${this.qrlReference(row!)}, ${operation.usesIndexSignal}, ${
@@ -1181,7 +1197,7 @@ class SsrEmitter {
         return null;
       }
       this.imports.add(QwikWord.RenderSsrCollection);
-      const expression = `${QwikWord.RenderSsrCollection}(ctx, undefined, ${source}, undefined, ${rowReference}, false, ${operation.idBase === null ? "''" : operation.idBase}, ${
+      const expression = `${QwikWord.RenderSsrCollection}(${this.generatedNames.ctx}, undefined, ${source}, undefined, ${rowReference}, false, ${operation.idBase === null ? "''" : operation.idBase}, ${
         operation.usesRowId
       }, ${operation.rowShape})`;
       value =
@@ -1208,12 +1224,12 @@ class SsrEmitter {
           source,
           operation.source.segment
         )}${operation.source.keepSource ? ', true' : ''});`,
-        `if (!Array.isArray(${collection})) ctx.addRoot(${collection});`,
+        `if (!Array.isArray(${collection})) ${this.generatedNames.ctx}.addRoot(${collection});`,
       ];
       this.imports.add(QwikWord.WrapArray);
       this.imports.add(QwikWord.RenderSsrCollection);
       value = this.step(
-        `${QwikWord.RenderSsrCollection}(ctx, ${id}, ${collection}, ${
+        `${QwikWord.RenderSsrCollection}(${this.generatedNames.ctx}, ${id}, ${collection}, ${
           key === null || operation.key === null
             ? 'undefined'
             : this.qrlReference(key, operation.key)
@@ -1255,7 +1271,7 @@ class SsrEmitter {
       [],
       this.qrlImports,
       this.localImplementationSource,
-      this.componentPropsName
+      this.generatedNames
     ).emit(row.target.render, {
       surroundingRangeId: row.target.surroundingRangeId,
       rootAttribute: row.target.rowRoot ? QwikAttributes.Row : null,
@@ -1281,7 +1297,7 @@ class SsrEmitter {
       while (runtimeParameters.length < 3) {
         runtimeParameters.push(
           runtimeParameters.length === 0
-            ? 'ctx'
+            ? this.generatedNames.ctx
             : runtimeParameters.length === 1
               ? '__rangeId'
               : '__rowId'
@@ -1480,14 +1496,15 @@ class SsrEmitter {
     }
     this.imports.add('renderDomPropsToString');
     return this.step(
-      `renderDomPropsToString(${this.expression(value)}, ctx.eventAttr, ${
+      `renderDomPropsToString(${this.expression(value)}, ${this.generatedNames.ctx}.eventAttr, ${
         styleScope.staticId === null && styleScope.runtimeName === null
           ? 'undefined'
           : scopeExpression(styleScope, null)
       })`,
       [this.assignId(targetId)],
       'props',
-      (name) => `${name}.ref !== undefined && ctx.setRef(${name}.ref, ${targetId})`
+      (name) =>
+        `${name}.ref !== undefined && ${this.generatedNames.ctx}.setRef(${name}.ref, ${targetId})`
     );
   }
 
@@ -1507,11 +1524,12 @@ class SsrEmitter {
     return this.step(
       `${QwikWord.RenderSsrProps}(${this.elementTarget(targetId)}, [${captures.join(', ')}], ${qrlName(
         segment
-      )}, ctx.eventAttr${styleArgs})`,
+      )}, ${this.generatedNames.ctx}.eventAttr${styleArgs})`,
       [this.assignId(targetId), ...this.rootNames(captures)],
       'props',
       includeRef
-        ? (name) => `${name}.ref !== undefined && ctx.setRef(${name}.ref, ${targetId})`
+        ? (name) =>
+            `${name}.ref !== undefined && ${this.generatedNames.ctx}.setRef(${name}.ref, ${targetId})`
         : undefined
     );
   }
@@ -1544,7 +1562,7 @@ class SsrEmitter {
       }
     }
     const value = values.length === 1 ? values[0] : `[${values.join(', ')}]`;
-    return `ctx.eventAttr(${JSON.stringify(eventName)}, ${value})`;
+    return `${this.generatedNames.ctx}.eventAttr(${JSON.stringify(eventName)}, ${value})`;
   }
 
   private rawValue(value: ValuePlan, prep: readonly SsrPrep[], prefix: string): string | null {
@@ -1639,11 +1657,11 @@ class SsrEmitter {
   }
 
   private captureNames(segment: SegmentPlan, reference?: SegmentReferencePlan): string[] {
-    return captureNames(segment, reference, this.componentPropsName);
+    return captureNames(segment, reference, this.generatedNames);
   }
 
   private qrlReference(segment: SegmentPlan, reference?: SegmentReferencePlan): string {
-    return qrlReference(segment, reference, this.componentPropsName);
+    return qrlReference(segment, reference, this.generatedNames);
   }
 
   private renderSegment(render: { readonly segmentId: string | null }): SegmentPlan | null {
@@ -1663,7 +1681,7 @@ class SsrEmitter {
     for (const name of names) {
       if (!this.addedRoots.has(name)) {
         this.addedRoots.add(name);
-        statements.push(`ctx.addRoot(${name});`);
+        statements.push(`${this.generatedNames.ctx}.addRoot(${name});`);
       }
     }
     return statements;
@@ -1684,7 +1702,9 @@ class SsrEmitter {
       if (eager) {
         this.eagerIds.add(statement.name);
       }
-      return this.eagerIds.has(statement.name) ? [] : [`${statement.name} ??= ctx.nextId();`];
+      return this.eagerIds.has(statement.name)
+        ? []
+        : [`${statement.name} ??= ${this.generatedNames.ctx}.nextId();`];
     });
     this.steps.push({
       name,
@@ -1799,7 +1819,7 @@ function scopeExpression(scope: SsrStyleScope, className: string | null): string
 function captureNames(
   segment: SegmentPlan,
   reference: SegmentReferencePlan | undefined,
-  componentPropsName: string
+  generatedNames: GeneratedNames
 ): string[] {
   const captureIds =
     reference === undefined ? null : new Set<BindingId>(reference.captureBindingIds);
@@ -1811,7 +1831,7 @@ function captureNames(
       (componentPropIds === null || componentPropIds.has(capture.bindingId))
   );
   return [
-    ...(hasComponentProps ? [componentPropsName] : []),
+    ...(hasComponentProps ? [generatedNames.props] : []),
     ...segment.captures.flatMap((capture) =>
       capture.access !== 'component-prop' &&
       (captureIds === null || captureIds.has(capture.bindingId))
@@ -1832,9 +1852,9 @@ function qrlName(segment: SegmentPlan): string {
 function qrlReference(
   segment: SegmentPlan,
   reference?: SegmentReferencePlan,
-  componentPropsName = 'props'
+  generatedNames = DEFAULT_GENERATED_NAMES
 ): string {
-  const captures = captureNames(segment, reference, componentPropsName);
+  const captures = captureNames(segment, reference, generatedNames);
   return captures.length === 0
     ? qrlName(segment)
     : `${qrlName(segment)}.w([${captures.join(', ')}])`;

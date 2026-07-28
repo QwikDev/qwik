@@ -1,4 +1,5 @@
 import type { SourceRange } from './types';
+import { DEFAULT_GENERATED_NAMES, type GeneratedNames } from './words';
 import { jsxEventToHtmlAttribute } from './ast-utils';
 import { hasInitialTask } from './plan-types';
 import type {
@@ -338,7 +339,8 @@ export function planSsrRenderFunction(
 export function planSsrSegmentRender(
   segment: SegmentPlan,
   segments: readonly SegmentPlan[],
-  componentReturnMode: SsrComponentReturnModeResolver = unknownComponentReturnMode
+  componentReturnMode: SsrComponentReturnModeResolver = unknownComponentReturnMode,
+  generatedNames: GeneratedNames = DEFAULT_GENERATED_NAMES
 ): SsrSegmentRenderTargetPlan | null {
   if (segment.render === null) {
     return null;
@@ -362,25 +364,25 @@ export function planSsrSegmentRender(
   const parameterBindingIds = segment.usedParameterBindingIds;
   const runtimeParameters =
     suspense || qrl
-      ? ['ctx']
+      ? [generatedNames.ctx]
       : row
         ? parameterBindingIds.length > 0
-          ? ['ctx', '__rangeId', usesRowId ? 'rowId' : '__rowId']
+          ? [generatedNames.ctx, '__rangeId', usesRowId ? 'rowId' : '__rowId']
           : usesRowId
-            ? ['ctx', '__rangeId', 'rowId']
+            ? [generatedNames.ctx, '__rangeId', 'rowId']
             : planned.render.needsContext
-              ? ['ctx']
+              ? [generatedNames.ctx]
               : []
         : branch
           ? planned.render.needsRootRange
-            ? ['ctx', 'rangeId']
+            ? [generatedNames.ctx, 'rangeId']
             : planned.render.needsContext
-              ? ['ctx']
+              ? [generatedNames.ctx]
               : []
           : slot
-            ? ['ctx', 'rangeId']
+            ? [generatedNames.ctx, 'rangeId']
             : planned.render.needsContext
-              ? ['ctx']
+              ? [generatedNames.ctx]
               : [];
   return {
     ...planned,
@@ -407,7 +409,8 @@ class SsrPlanner {
     private readonly styleScopedId: string | null = null,
     private readonly needsId = false,
     private readonly componentReturnMode: SsrComponentReturnModeResolver = unknownComponentReturnMode,
-    private readonly runtimeStyleScopeName: string | null = null
+    private readonly runtimeStyleScopeName: string | null = null,
+    private readonly generatedNames: GeneratedNames = DEFAULT_GENERATED_NAMES
   ) {}
 
   setup(setup: SetupPlan, ownerSegmentId: string | null): SsrSetupOperation | null {
@@ -586,7 +589,12 @@ class SsrPlanner {
         const row =
           rowTarget === null
             ? null
-            : planSsrSegmentRender(rowTarget, this.segments, this.componentReturnMode);
+            : planSsrSegmentRender(
+                rowTarget,
+                this.segments,
+                this.componentReturnMode,
+                this.generatedNames
+              );
         if (row === null || rowTarget === null) {
           return null;
         }

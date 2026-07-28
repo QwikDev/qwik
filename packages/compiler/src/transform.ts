@@ -71,7 +71,7 @@ import {
   createSegmentSymbolName,
   getSegmentSymbolHash,
 } from './segment-identity';
-import { QWIK_IMPORT } from './words';
+import { QWIK_IMPORT, type GeneratedNames } from './words';
 import {
   createModuleBoundaryPlan,
   findInvalidModuleSetupHook,
@@ -350,10 +350,11 @@ export function transformModule(ctx: CompilerContext): TransformResult {
   const componentByBinding = new Map(
     componentModules.map((component) => [component.output.component.bindingId, component])
   );
-  const componentPropsName = allocateGeneratedName(
-    'props',
-    analysis.bindings.map((binding) => binding.name)
-  );
+  const boundNames = analysis.bindings.map((binding) => binding.name);
+  const generatedNames: GeneratedNames = {
+    props: allocateGeneratedName('props', boundNames),
+    ctx: allocateGeneratedName('ctx', boundNames),
+  };
   const componentImports = new Map<BindingId, SegmentComponentImport>(
     componentModules.map((component) => [
       component.output.component.bindingId,
@@ -399,7 +400,7 @@ export function transformModule(ctx: CompilerContext): TransformResult {
     markerRetargets,
     componentCardinality,
     componentReturnMode,
-    componentPropsName,
+    generatedNames,
     moduleRootSegments
   );
   if (emittedMain === null) {
@@ -446,7 +447,7 @@ export function transformModule(ctx: CompilerContext): TransformResult {
       new Map(),
       componentCardinality,
       componentReturnMode,
-      componentPropsName,
+      generatedNames,
       []
     );
     const emittedComponent = emitted?.components.find(
@@ -507,7 +508,7 @@ export function transformModule(ctx: CompilerContext): TransformResult {
     analysis,
     ctx.emitTarget,
     ctx.emitTarget === 'ssr'
-      ? (segment, source, imports, segments, inputPath, explicitExtensions, componentPropsName) =>
+      ? (segment, source, imports, segments, inputPath, explicitExtensions, generatedNames) =>
           emitSsrSegmentRender(
             segment,
             source,
@@ -515,10 +516,10 @@ export function transformModule(ctx: CompilerContext): TransformResult {
             segments,
             inputPath,
             explicitExtensions,
-            componentPropsName,
+            generatedNames,
             componentReturnMode
           )
-      : (segment, source, imports, segments, inputPath, explicitExtensions, componentPropsName) =>
+      : (segment, source, imports, segments, inputPath, explicitExtensions, generatedNames) =>
           emitCsrSegmentRender(
             segment,
             source,
@@ -527,9 +528,9 @@ export function transformModule(ctx: CompilerContext): TransformResult {
             inputPath,
             explicitExtensions,
             componentCardinality,
-            componentPropsName
+            generatedNames
           ),
-    componentPropsName
+    generatedNames
   );
   if (segmentModules === null || segmentModules.length !== emittedSegments.length) {
     return transformFailure(ctx, null, 'The compiler could not emit extracted segments.');
@@ -757,7 +758,7 @@ function emitModule(
   markerRetargets: ReadonlyMap<BindingId, MarkerImportRetarget>,
   componentCardinality: CsrComponentCardinalityResolver,
   componentReturnMode: SsrComponentReturnModeResolver,
-  componentPropsName: string,
+  generatedNames: GeneratedNames,
   moduleRoots: readonly SegmentPlan[]
 ): EmittedModule | null {
   const targetImports = new TargetImportResolver(analysis.bindings.map((binding) => binding.name));
@@ -819,7 +820,7 @@ function emitModule(
         ctx.options.explicitExtensions === true,
         localImplementationSource,
         targetImports,
-        componentPropsName,
+        generatedNames,
         componentReturnMode,
         moduleRoots
       )
@@ -832,7 +833,7 @@ function emitModule(
         localImplementationSource,
         targetImports,
         componentCardinality,
-        componentPropsName,
+        generatedNames,
         moduleRoots
       );
 }

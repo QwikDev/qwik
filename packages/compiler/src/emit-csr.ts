@@ -27,7 +27,14 @@ import {
   type CsrValuePlan,
 } from './plan-csr';
 import type { BindingId, ComponentDefinition, ComponentOutput, SegmentPlan } from './plan-types';
-import { QWIK_IMPORT, QwikGenWord, QwikHooks, QwikWord } from './words';
+import {
+  DEFAULT_GENERATED_NAMES,
+  QWIK_IMPORT,
+  QwikGenWord,
+  QwikHooks,
+  QwikWord,
+  type GeneratedNames,
+} from './words';
 
 export interface CsrRender {
   readonly hoists: string[];
@@ -56,6 +63,7 @@ interface CsrEmitContext {
   readonly qrlImports: TargetImportResolver;
   readonly localImplementationSource: string | null;
   readonly runtimeStyleScopeName: string | null;
+  readonly generatedNames: GeneratedNames;
   readonly next: (prefix: string) => string;
 }
 
@@ -84,7 +92,7 @@ export function emitCsrModule(
   localImplementationSource: string | null,
   qrlImports: TargetImportResolver,
   componentCardinality: CsrComponentCardinalityResolver,
-  componentPropsName: string,
+  generatedNames: GeneratedNames,
   moduleRoots: readonly SegmentPlan[]
 ): EmittedModule | null {
   const hoists: string[] = [];
@@ -115,7 +123,7 @@ export function emitCsrModule(
     }
   }
   for (const output of outputs) {
-    const plan = planCsr(output.result, source, componentCardinality, componentPropsName);
+    const plan = planCsr(output.result, source, componentCardinality, generatedNames);
     if (plan === null) {
       return null;
     }
@@ -128,7 +136,8 @@ export function emitCsrModule(
       explicitExtensions,
       imports,
       qrlImports,
-      localImplementationSource
+      localImplementationSource,
+      generatedNames
     );
     if (render === null) {
       return null;
@@ -139,8 +148,8 @@ export function emitCsrModule(
     hoists.push(...render.hoists);
     components.push({
       bindingId: output.component.bindingId,
-      moduleCode: emitCsrComponent(output.component, render, source, componentPropsName),
-      rangeCode: emitCsrComponentRange(output.component, render, source, componentPropsName),
+      moduleCode: emitCsrComponent(output.component, render, source, generatedNames),
+      rangeCode: emitCsrComponentRange(output.component, render, source, generatedNames),
     });
   }
   const seenSegments = new Set<string>();
@@ -170,7 +179,7 @@ function emitCsrComponent(
   component: ComponentDefinition,
   render: CsrRender,
   source: string,
-  componentPropsName: string
+  generatedNames: GeneratedNames
 ): string {
   return emitComponentFunction(
     component,
@@ -178,7 +187,7 @@ function emitCsrComponent(
     render.value,
     source,
     render.async,
-    componentPropsName,
+    generatedNames,
     render.needsId ? render.idBase : null
   );
 }
@@ -187,7 +196,7 @@ function emitCsrComponentRange(
   component: ComponentDefinition,
   render: CsrRender,
   source: string,
-  componentPropsName: string
+  generatedNames: GeneratedNames
 ): string {
   return emitComponentRangeReplacement(
     component,
@@ -195,7 +204,7 @@ function emitCsrComponentRange(
     render.value,
     source,
     render.async,
-    componentPropsName,
+    generatedNames,
     render.needsId ? render.idBase : null
   );
 }
@@ -208,7 +217,8 @@ export function emitCsrPlan(
   explicitExtensions: boolean,
   imports: Set<string>,
   qrlImports: TargetImportResolver = new TargetImportResolver(),
-  localImplementationSource: string | null = null
+  localImplementationSource: string | null = null,
+  generatedNames: GeneratedNames = DEFAULT_GENERATED_NAMES
 ): CsrRender | null {
   const next = createNameAllocator();
   const templateName = `${sanitizeName(name)}_${next(QwikGenWord.Template)}`;
@@ -220,7 +230,8 @@ export function emitCsrPlan(
     explicitExtensions,
     imports,
     qrlImports,
-    localImplementationSource
+    localImplementationSource,
+    generatedNames
   );
   if (setup === null) {
     return null;
@@ -233,6 +244,7 @@ export function emitCsrPlan(
         inputPath,
         explicitExtensions,
         imports,
+        generatedNames,
         refNames: new Map(),
         operationNames: new Map(),
         rootOperationIds: new Set(),
@@ -249,7 +261,7 @@ export function emitCsrPlan(
     }
     return finalizeCsrRender(plan, setup, imports, statements, emitValue(plan.output));
   }
-  statements.push(`const ${fragmentName} = ${templateName}(ctx.document);`);
+  statements.push(`const ${fragmentName} = ${templateName}(${generatedNames.ctx}.document);`);
 
   const refNames = new Map<number, string>();
   const emittedRefs: { name: string; path: readonly CsrRefStep[] }[] = [];
@@ -285,6 +297,7 @@ export function emitCsrPlan(
     inputPath,
     explicitExtensions,
     imports,
+    generatedNames,
     refNames,
     operationNames: new Map(),
     rootOperationIds: new Set(
@@ -318,7 +331,7 @@ export function emitCsrPlan(
     for (const batch of batches.values()) {
       statements.push(
         `function ${batch.update}() { ${batch.operations.join('; ')}; }`,
-        `const ${batch.effect} = ${QwikWord.CreateDomBatchEffect}(${batch.update}, ctx.scheduler);`
+        `const ${batch.effect} = ${QwikWord.CreateDomBatchEffect}(${batch.update}, ${context.generatedNames.ctx}.scheduler);`
       );
     }
   }
@@ -374,14 +387,14 @@ export function emitCsrSegmentRender(
   inputPath = '',
   explicitExtensions = false,
   componentCardinality?: CsrComponentCardinalityResolver,
-  componentPropsName = 'props'
+  generatedNames = DEFAULT_GENERATED_NAMES
 ): CsrRender | null {
   const target = planCsrSegmentRender(
     segment,
     segments,
     source,
     componentCardinality,
-    componentPropsName
+    generatedNames
   );
   if (target === null) {
     return null;
@@ -392,7 +405,10 @@ export function emitCsrSegmentRender(
     source,
     inputPath,
     explicitExtensions,
-    imports
+    imports,
+    undefined,
+    null,
+    generatedNames
   );
   if (emitted === null) {
     return null;
@@ -467,13 +483,13 @@ function emitCsrOperation(
           const effect = next(QwikGenWord.Effect);
           imports.add(QwikWord.CreateTextNodeEffect);
           statements.push(
-            `const ${effect} = ${QwikWord.CreateTextNodeEffect}(${text}, ${operation.value.source}, ctx.scheduler);`,
-            `ctx.scheduler.notify(${effect});`
+            `const ${effect} = ${QwikWord.CreateTextNodeEffect}(${text}, ${operation.value.source}, ${context.generatedNames.ctx}.scheduler);`,
+            `${context.generatedNames.ctx}.scheduler.notify(${effect});`
           );
           return {
             declarations: operation.existing
               ? []
-              : [`const ${text} = ctx.document.createTextNode('');`],
+              : [`const ${text} = ${context.generatedNames.ctx}.document.createTextNode('');`],
             statements,
           };
         } else {
@@ -490,13 +506,13 @@ function emitCsrOperation(
           statements.push(
             `const ${effect} = ${QwikWord.CreateTextExpressionEffect}(${text}, [${operation.value.reference.captures.join(
               ', '
-            )}], ${operation.value.reference.symbolName}, ctx.scheduler);`,
-            `ctx.scheduler.notify(${effect});`
+            )}], ${operation.value.reference.symbolName}, ${context.generatedNames.ctx}.scheduler);`,
+            `${context.generatedNames.ctx}.scheduler.notify(${effect});`
           );
           return {
             declarations: operation.existing
               ? []
-              : [`const ${text} = ctx.document.createTextNode('');`],
+              : [`const ${text} = ${context.generatedNames.ctx}.document.createTextNode('');`],
             statements,
           };
         } else {
@@ -514,7 +530,7 @@ function emitCsrOperation(
       return {
         declarations: operation.existing
           ? []
-          : [`const ${text} = ctx.document.createTextNode('');`],
+          : [`const ${text} = ${context.generatedNames.ctx}.document.createTextNode('');`],
         statements,
       };
     }
@@ -560,7 +576,7 @@ function emitCsrOperation(
           operation.value.returnMode === 'sync'
             ? [`const ${value} = ${emitValue(operation.value)};`, mount]
             : [
-                `ctx.scheduler.waitFor(${QwikWord.MaybeThen}(${emitValue(
+                `${context.generatedNames.ctx}.scheduler.waitFor(${QwikWord.MaybeThen}(${emitValue(
                   operation.value
                 )}, (${value}) => { ${mount} }));`,
               ],
@@ -577,11 +593,11 @@ function emitCsrOperation(
       operationNames.set(operation.id, [range.start, range.end]);
       return {
         declarations: [
-          `const ${content} = ${QwikWord.CreateContentBlock}(ctx, ${range.start}, ${range.end}, [${operation.segment.captures.join(
+          `const ${content} = ${QwikWord.CreateContentBlock}(${context.generatedNames.ctx}, ${range.start}, ${range.end}, [${operation.segment.captures.join(
             ', '
           )}], ${operation.segment.symbolName}${isRoot ? ', true' : ''});`,
         ],
-        statements: [`ctx.scheduler.notify(${content});`],
+        statements: [`${context.generatedNames.ctx}.scheduler.notify(${content});`],
       };
     }
     case 'runtime-style': {
@@ -648,12 +664,12 @@ function emitCsrOperation(
           statements: [
             `const ${effect} = ${QwikWord.CreateAttrEffect}(${target}, ${JSON.stringify(
               operation.name
-            )}, ${operation.value.source}, ctx.scheduler${styleScopeArgument(
+            )}, ${operation.value.source}, ${context.generatedNames.ctx}.scheduler${styleScopeArgument(
               operation.styleScopedId,
               operation.runtimeStyleScope,
               context
             )});`,
-            `ctx.scheduler.notify(${effect});`,
+            `${context.generatedNames.ctx}.scheduler.notify(${effect});`,
           ],
         };
       }
@@ -681,12 +697,12 @@ function emitCsrOperation(
               operation.name
             )}, [${operation.value.reference.captures.join(', ')}], ${
               operation.value.reference.symbolName
-            }, ctx.scheduler${styleScopeArgument(
+            }, ${context.generatedNames.ctx}.scheduler${styleScopeArgument(
               operation.styleScopedId,
               operation.runtimeStyleScope,
               context
             )});`,
-            `ctx.scheduler.notify(${effect});`,
+            `${context.generatedNames.ctx}.scheduler.notify(${effect});`,
           ],
         };
       }
@@ -717,12 +733,14 @@ function emitCsrOperation(
             `const ${effect} = ${QwikWord.CreatePropsEffect}(${target}, [${[
               ...operation.segment.captures,
               ...stableBoundaries,
-            ].join(', ')}], ${operation.segment.symbolName}, ctx.scheduler${styleScopeArgument(
+            ].join(
+              ', '
+            )}], ${operation.segment.symbolName}, ${context.generatedNames.ctx}.scheduler${styleScopeArgument(
               operation.styleScopedId,
               operation.runtimeStyleScope,
               context
             )});`,
-            `ctx.scheduler.waitFor(${effect}.run());`,
+            `${context.generatedNames.ctx}.scheduler.waitFor(${effect}.run());`,
           ],
         };
       }
@@ -829,7 +847,7 @@ function emitCsrOperation(
         operation.props,
         context,
         operation.propsSource
-      )}, (props) => ${operation.tag}(props, ctx${
+      )}, (props) => ${operation.tag}(props, ${context.generatedNames.ctx}${
         operation.idBase === null ? '' : `, ${operation.idBase}`
       })${options})`;
       if (operation.returnMode === 'sync') {
@@ -856,7 +874,7 @@ function emitCsrOperation(
             ? statements
             : [...statements, `let ${roots} = [${range.start}, ${range.end}];`],
         statements: [
-          `ctx.scheduler.waitFor(${QwikWord.MaybeThen}(${call}, (${component}) => { ${mount}${
+          `${context.generatedNames.ctx}.scheduler.waitFor(${QwikWord.MaybeThen}(${call}, (${component}) => { ${mount}${
             roots === null ? '' : ` ${roots} = ${mounted};`
           } ${range.start}.remove(); ${range.end}.remove(); }));`,
         ],
@@ -874,7 +892,7 @@ function emitCsrOperation(
       operationNames.set(operation.id, [range.start, range.end]);
       return {
         declarations: [
-          `const ${branch} = ${QwikWord.CreateBranch}(ctx, new ${QwikWord.BranchRange}(ctx.document, ${range.start}, ${range.end}), ${emitPlannedFunctionReference(
+          `const ${branch} = ${QwikWord.CreateBranch}(${context.generatedNames.ctx}, new ${QwikWord.BranchRange}(${context.generatedNames.ctx}.document, ${range.start}, ${range.end}), ${emitPlannedFunctionReference(
             operation.condition,
             context
           )}, ${emitPlannedFunctionReference(operation.then, context)}, ${
@@ -889,7 +907,7 @@ function emitCsrOperation(
               : `, ${operation.idBase}${isRoot ? ', true' : ''}`
           });`,
         ],
-        statements: [`ctx.scheduler.notify(${branch});`],
+        statements: [`${context.generatedNames.ctx}.scheduler.notify(${branch});`],
       };
     }
     case 'suspense': {
@@ -909,7 +927,7 @@ function emitCsrOperation(
       return {
         declarations: [],
         statements: [
-          `${QwikWord.CreateSuspense}(ctx, new ${QwikWord.BranchRange}(ctx.document, ${range.start}, ${range.end}), ${emitPlannedFunctionReference(operation.content, context)}, ${fallback}, ${operation.delay === null ? '0' : emitValue(operation.delay, context)});`,
+          `${QwikWord.CreateSuspense}(${context.generatedNames.ctx}, new ${QwikWord.BranchRange}(${context.generatedNames.ctx}.document, ${range.start}, ${range.end}), ${emitPlannedFunctionReference(operation.content, context)}, ${fallback}, ${operation.delay === null ? '0' : emitValue(operation.delay, context)});`,
         ],
       };
     }
@@ -928,7 +946,7 @@ function emitCsrOperation(
       return {
         declarations: [],
         statements: [
-          `ctx.scheduler.waitFor(${QwikWord.MaybeThen}(${QwikWord.CreateSlot}(${JSON.stringify(
+          `${context.generatedNames.ctx}.scheduler.waitFor(${QwikWord.MaybeThen}(${QwikWord.CreateSlot}(${JSON.stringify(
             operation.name
           )}, ${
             operation.fallback === null
@@ -951,7 +969,7 @@ function emitCsrOperation(
         }
         operationNames.set(operation.id, [range.start, range.end]);
         imports.add(QwikWord.CreateCollection);
-        const call = `${QwikWord.CreateCollection}(ctx, ${range.start}, ${range.end}, ${
+        const call = `${QwikWord.CreateCollection}(${context.generatedNames.ctx}, ${range.start}, ${range.end}, ${
           operation.source.expression
         }, ${emitPlannedFunctionReference(
           operation.key,
@@ -963,7 +981,7 @@ function emitCsrOperation(
         }, ${emitRowShape(operation.rowShape)})`;
         return {
           declarations: [],
-          statements: [`ctx.scheduler.waitFor(${call});`],
+          statements: [`${context.generatedNames.ctx}.scheduler.waitFor(${call});`],
         };
       }
       if (operation.source.kind === 'direct-array') {
@@ -976,7 +994,7 @@ function emitCsrOperation(
         if (row === null) {
           return null;
         }
-        const call = `${QwikWord.CreateCollection}(ctx, ${range.start}, ${range.end}, ${
+        const call = `${QwikWord.CreateCollection}(${context.generatedNames.ctx}, ${range.start}, ${range.end}, ${
           operation.source.expression
         }, null, ${operation.row.symbolName}, false, ${
           operation.idBase === null ? "''" : operation.idBase
@@ -989,7 +1007,7 @@ function emitCsrOperation(
           statements: [
             operation.row.render.returnMode === 'sync'
               ? `${call};`
-              : `ctx.scheduler.waitFor(${call});`,
+              : `${context.generatedNames.ctx}.scheduler.waitFor(${call});`,
           ],
         };
       }
@@ -1001,7 +1019,7 @@ function emitCsrOperation(
       if (operation.row.kind !== 'segment') {
         return null;
       }
-      const call = `${QwikWord.CreateCollection}(ctx, ${range.start}, ${range.end}, ${collectionSource}, ${
+      const call = `${QwikWord.CreateCollection}(${context.generatedNames.ctx}, ${range.start}, ${range.end}, ${collectionSource}, ${
         operation.key === null ? 'null' : emitPlannedFunctionReference(operation.key, context)
       }, ${emitPlannedFunctionReference(operation.row.reference, context)}, ${
         operation.usesIndexSignal
@@ -1017,7 +1035,7 @@ function emitCsrOperation(
             operation.source.keepSource ? ', true' : ''
           });`,
         ],
-        statements: [`ctx.scheduler.waitFor(${call});`],
+        statements: [`${context.generatedNames.ctx}.scheduler.waitFor(${call});`],
       };
     }
   }
@@ -1035,7 +1053,8 @@ function emitInlineCollectionRow(
     context.explicitExtensions,
     context.imports,
     context.qrlImports,
-    context.localImplementationSource
+    context.localImplementationSource,
+    context.generatedNames
   );
   if (render === null) {
     return null;
@@ -1056,7 +1075,9 @@ function emitInlineCollectionRow(
     }
   }
   const signature = [
-    ...(row.render.needsContext || parameters.length > 0 || row.render.needsId ? ['ctx'] : []),
+    ...(row.render.needsContext || parameters.length > 0 || row.render.needsId
+      ? [context.generatedNames.ctx]
+      : []),
     ...parameters,
     ...(row.render.needsId ? ['_id'] : []),
   ];
@@ -1083,7 +1104,7 @@ function emitDirectComponent(
     component.props,
     context,
     component.propsSource
-  )}, (props) => ${component.tag}(props, ctx${
+  )}, (props) => ${component.tag}(props, ${context.generatedNames.ctx}${
     component.idBase === null ? '' : `, ${component.idBase}`
   })${slotScope === null ? '' : `, { slotScope: ${slotScope} }`})`;
 }
@@ -1095,7 +1116,8 @@ function emitCsrSetup(
   explicitExtensions: boolean,
   imports: Set<string>,
   qrlImports: TargetImportResolver,
-  localImplementationSource: string | null
+  localImplementationSource: string | null,
+  generatedNames: GeneratedNames
 ): { statements: string[]; hoists: string[] } | null {
   const segmentById = new Map(plan.segments.map((segment) => [segment.id, segment]));
   const statements: string[] = [];
@@ -1110,7 +1132,8 @@ function emitCsrSetup(
         explicitExtensions,
         imports,
         qrlImports,
-        localImplementationSource
+        localImplementationSource,
+        generatedNames
       );
       if (render === null) {
         return null;
@@ -1234,8 +1257,8 @@ function emitElementPropsStatements(
               prop.name
             )}, [${prop.value.reference.captures.join(', ')}], ${
               prop.value.reference.symbolName
-            }, ctx.scheduler${scope === null ? '' : `, ${scope}`});`,
-            `ctx.scheduler.waitFor(${effect}.run());`
+            }, ${context.generatedNames.ctx}.scheduler${scope === null ? '' : `, ${scope}`});`,
+            `${context.generatedNames.ctx}.scheduler.waitFor(${effect}.run());`
           );
         } else {
           imports.add(QwikWord.PatchAttrValue);
@@ -1254,10 +1277,10 @@ function emitElementPropsStatements(
           statements.push(
             `const ${effect} = ${QwikWord.CreatePropsEffect}(${target}, [${prop.value.reference.captures.join(
               ', '
-            )}], ${prop.value.reference.symbolName}, ctx.scheduler${
+            )}], ${prop.value.reference.symbolName}, ${context.generatedNames.ctx}.scheduler${
               scope === null ? '' : `, ${scope}`
             });`,
-            `ctx.scheduler.waitFor(${effect}.run());`
+            `${context.generatedNames.ctx}.scheduler.waitFor(${effect}.run());`
           );
         } else {
           imports.add(QwikWord.ApplyDomProps);

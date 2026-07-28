@@ -1,5 +1,5 @@
 import { createContextId } from '@qwik.dev/core';
-import { useContext, useContextProvider, useSignal, type Signal } from '@qwik.dev/core';
+import { useContext, useContextProvider, useSignal, useStore, type Signal } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
 import { testRenderer } from '../test-utils';
 
@@ -166,6 +166,94 @@ describe(`${name}: context`, () => {
     await qwikLoader?.dispatch(button!, 'click');
 
     expect(container.querySelector('span')?.textContent).toBe('provided');
+    cleanup();
+  });
+
+  it('should allow a consumer to bind the context to a local named ctx', async () => {
+    const contextId = createContextId<Signal<string>>('context-local-ctx-name');
+    const Child = () => {
+      const ctx = useContext(contextId);
+      return <span>{ctx.value}</span>;
+    };
+
+    const MyComp = () => {
+      const source = useSignal('provided');
+      useContextProvider(contextId, source);
+      return <Child />;
+    };
+
+    const { container, cleanup } = await render(MyComp, { debug });
+
+    expect(container.querySelector('span')?.textContent).toBe('provided');
+    cleanup();
+  });
+
+  it('should grow a store-sized collection of context consumers', async () => {
+    const contextId = createContextId<Signal<string>>('context-store-collection');
+    const Child = () => {
+      const context = useContext(contextId);
+      return <span class="row">{context.value}</span>;
+    };
+
+    const MyComp = () => {
+      const source = useSignal('provided');
+      const state = useStore({ count: 0 });
+      useContextProvider(contextId, source);
+
+      return (
+        <div>
+          <button onClick$={() => state.count++}>add</button>
+          {Array.from({ length: state.count }).map((_, index) => (
+            <Child key={index} />
+          ))}
+        </div>
+      );
+    };
+
+    const { container, cleanup, qwikLoader } = await render(MyComp, { debug });
+    const button = container.querySelector('button');
+    expect(container.querySelectorAll('.row').length).toBe(0);
+
+    await qwikLoader?.dispatch(button!, 'click');
+    expect(container.querySelectorAll('.row').length).toBe(1);
+
+    await qwikLoader?.dispatch(button!, 'click');
+    expect(container.querySelectorAll('.row').length).toBe(2);
+    expect(container.querySelector('.row')?.textContent).toBe('provided');
+
+    cleanup();
+  });
+
+  it('should update expression props on context consumers', async () => {
+    const contextId = createContextId<object>('context-expression-props');
+    const Child = (props: { value: number; active: boolean }) => {
+      useContext(contextId);
+      return <div id={`child-${props.value}`}>{props.active ? 'active' : 'inactive'}</div>;
+    };
+
+    const MyComp = () => {
+      const selected = useSignal(1);
+      useContextProvider(contextId, {});
+
+      return (
+        <div>
+          <button onClick$={() => (selected.value = 2)}>select</button>
+          {[1, 2].map((value) => (
+            <Child key={value} value={value} active={selected.value === value} />
+          ))}
+        </div>
+      );
+    };
+
+    const { container, cleanup, qwikLoader } = await render(MyComp, { debug });
+    expect(container.querySelector('#child-1')?.textContent).toBe('active');
+    expect(container.querySelector('#child-2')?.textContent).toBe('inactive');
+
+    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+
+    expect(container.querySelector('#child-1')?.textContent).toBe('inactive');
+    expect(container.querySelector('#child-2')?.textContent).toBe('active');
+
     cleanup();
   });
 });

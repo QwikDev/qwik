@@ -18,7 +18,7 @@ export function Parent() {
 import { useSignal, createComponent } from '@qwik.dev/core';
 import { Child } from './component.tsx_component_Child';
 export { Child };
-export function Parent(props, ctx) {
+export function Parent(props0, ctx) {
   const count = useSignal(1);
   return createComponent(
     {
@@ -175,7 +175,7 @@ export const component_text_segment_1_1fh10tcowimfv = (props) => {
 import { useSignal, createComponent } from '@qwik.dev/core';
 import { Child } from './component.tsx_component_Child';
 export { Child };
-export function Parent(props, ctx) {
+export function Parent(props0, ctx) {
   const count = useSignal(1);
   return createComponent(
     {

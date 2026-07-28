@@ -1,5 +1,5 @@
 import type { ComponentDefinition } from './plan-types';
-import { QwikGenWord } from './words';
+import { DEFAULT_GENERATED_NAMES, type GeneratedNames } from './words';
 
 export function emitComponentFunction(
   component: ComponentDefinition,
@@ -7,7 +7,7 @@ export function emitComponentFunction(
   value: string,
   source: string,
   async = false,
-  componentPropsName?: string,
+  generatedNames: GeneratedNames = DEFAULT_GENERATED_NAMES,
   idBase: string | null = null
 ) {
   return emitComponentFunctionMode(
@@ -17,7 +17,7 @@ export function emitComponentFunction(
     source,
     async,
     'module',
-    componentPropsName,
+    generatedNames,
     idBase
   );
 }
@@ -29,7 +29,7 @@ export function emitComponentRangeReplacement(
   value: string,
   source: string,
   async = false,
-  componentPropsName?: string,
+  generatedNames: GeneratedNames = DEFAULT_GENERATED_NAMES,
   idBase: string | null = null
 ) {
   return emitComponentFunctionMode(
@@ -39,7 +39,7 @@ export function emitComponentRangeReplacement(
     source,
     async,
     'range',
-    componentPropsName,
+    generatedNames,
     idBase
   );
 }
@@ -51,16 +51,12 @@ function emitComponentFunctionMode(
   source: string,
   async: boolean,
   mode: 'module' | 'range',
-  componentPropsName?: string,
+  generatedNames: GeneratedNames = DEFAULT_GENERATED_NAMES,
   idBase: string | null = null
 ) {
   const param = component.params.length === 1 ? component.params[0] : null;
-  const props =
-    param?.name ??
-    (param?.bindingRange !== null && param?.bindingRange !== undefined
-      ? (componentPropsName ?? QwikGenWord.ComponentProps)
-      : QwikGenWord.ComponentProps);
-  const params = `${props}, ${QwikGenWord.ComponentContext}${
+  const props = param?.name ?? generatedNames.props;
+  const params = `${props}, ${generatedNames.ctx}${
     idBase === null ? '' : `, _id = ${JSON.stringify(idBase)}`
   }`;
   const paramSetup = emitComponentParamSetup(param, props, source);

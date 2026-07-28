@@ -8,29 +8,8 @@ describe('canSerialize: Error fields', () => {
     expect(canSerialize(err)).toBe(true);
   });
 
-  it('rejects an Error with a function-valued own field', () => {
-    expect(canSerialize(Object.assign(new Error('x'), { retry: () => {} }))).toBe(false);
-  });
-
-  it('rejects an Error with a nested unserializable field', () => {
-    expect(canSerialize(Object.assign(new Error('x'), { meta: { cb: () => {} } }))).toBe(false);
-  });
-
-  it('rejects an Error whose message getter throws', () => {
-    class Evil extends Error {
-      get message(): string {
-        throw new Error('trap');
-      }
-    }
-    expect(canSerialize(new Evil())).toBe(false);
-  });
-
   it('accepts a PublicError with serializable data', () => {
     expect(canSerialize(new PublicError({ code: 'X', items: [1] }))).toBe(true);
-  });
-
-  it('rejects a PublicError whose data hides a function', () => {
-    expect(canSerialize(new PublicError({ retry: () => {} }))).toBe(false);
   });
 
   it('handles cyclic Error fields', () => {

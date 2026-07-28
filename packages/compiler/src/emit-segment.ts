@@ -370,7 +370,7 @@ function emitSegmentCode(
   if (qwikImports.size > 0) {
     imports.push(`import { ${[...qwikImports].join(', ')} } from ${JSON.stringify(QWIK_IMPORT)};`);
   }
-  imports.push(...qrlImports.declarations());
+  imports.push(...qrlImports.declarations({ source: QWIK_IMPORT, names: qwikImports }));
 
   const captureStatement =
     captureNames.length === 0 || isExpression

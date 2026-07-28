@@ -23,8 +23,14 @@ export interface QrlTargetImport {
   readonly code: string | null;
 }
 
+interface ResolvedTargetImport extends QrlTargetImport {
+  readonly source: string;
+  readonly importedName: string;
+  readonly attributes: readonly ImportAttributeBinding[];
+}
+
 export class TargetImportResolver {
-  private readonly imports = new Map<string, QrlTargetImport>();
+  private readonly imports = new Map<string, ResolvedTargetImport>();
   private readonly usedNames: Set<string>;
 
   constructor(usedNames: Iterable<string> = []) {
@@ -37,7 +43,13 @@ export class TargetImportResolver {
     attributes: readonly ImportAttributeBinding[],
     local: string
   ): void {
-    this.imports.set(targetImportKey(source, importedName, attributes), { local, code: null });
+    this.imports.set(targetImportKey(source, importedName, attributes), {
+      local,
+      code: null,
+      source,
+      importedName,
+      attributes,
+    });
     this.usedNames.add(local);
   }
 
@@ -51,11 +63,11 @@ export class TargetImportResolver {
     if (existing !== undefined) {
       return existing.local;
     }
-    const prefix = `__qwik_${sanitizeIdentifier(importedName)}`;
-    let local = prefix;
+    const base = sanitizeIdentifier(importedName);
+    let local = base;
     let suffix = 0;
     while (this.usedNames.has(local)) {
-      local = `${prefix}_${suffix++}`;
+      local = `${base}${suffix++}`;
     }
     this.usedNames.add(local);
     const attributeClause =
@@ -68,12 +80,27 @@ export class TargetImportResolver {
     this.imports.set(key, {
       local,
       code: `import { ${imported} } from ${JSON.stringify(source)}${attributeClause};`,
+      source,
+      importedName,
+      attributes,
     });
     return local;
   }
 
-  declarations(): string[] {
-    return [...this.imports.values()].flatMap((item) => (item.code === null ? [] : [item.code]));
+  declarations(provided?: { source: string; names: ReadonlySet<string> }): string[] {
+    return [...this.imports.values()].flatMap((item) => {
+      if (
+        item.code === null ||
+        (provided !== undefined &&
+          item.source === provided.source &&
+          item.local === item.importedName &&
+          item.attributes.length === 0 &&
+          provided.names.has(item.importedName))
+      ) {
+        return [];
+      }
+      return [item.code];
+    });
   }
 }
 

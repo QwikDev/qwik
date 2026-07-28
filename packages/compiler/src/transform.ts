@@ -82,10 +82,8 @@ import {
 interface LocalComponentModule {
   readonly output: ComponentOutput;
   readonly name: string;
-  readonly exportedName: string;
   readonly path: string;
   readonly importPath: string;
-  readonly mainImportName: string;
 }
 
 interface MarkerImportRetarget {
@@ -339,21 +337,14 @@ export function transformModule(ctx: CompilerContext): TransformResult {
   const componentOutputSet = new Set(componentOutputs);
   const mainOutputs = outputs.filter((output) => !componentOutputSet.has(output));
   const explicitExtensions = ctx.options.explicitExtensions === true;
-  const usedNames = new Set(analysis.bindings.map((binding) => binding.name));
   const componentModules = componentOutputs.map<LocalComponentModule>((output) => {
     const name = output.component.localName!;
     const path = `${ctx.input.path}_component_${name}.js`;
-    const exportedName = String(output.component.exportName);
     return {
       output,
       name,
-      exportedName,
       path,
       importPath: `./${basename(path).slice(0, -3)}${explicitExtensions ? '.js' : ''}`,
-      mainImportName:
-        output.component.declarationKind === 'const'
-          ? allocateName(`__qwik_${name}`, usedNames)
-          : name,
     };
   });
   const componentByBinding = new Map(
@@ -366,7 +357,7 @@ export function transformModule(ctx: CompilerContext): TransformResult {
   const componentImports = new Map<BindingId, SegmentComponentImport>(
     componentModules.map((component) => [
       component.output.component.bindingId,
-      { path: component.importPath, importedName: component.exportedName },
+      { path: component.importPath, importedName: component.name },
     ])
   );
 
@@ -435,10 +426,21 @@ export function transformModule(ctx: CompilerContext): TransformResult {
     const componentSegments = component.output.result.segments.filter((segment) =>
       reachableSegmentIds.has(segment.id)
     );
+    const moduleOutput = {
+      ...component.output,
+      component: {
+        ...component.output.component,
+        exportName: component.name,
+        declarationKind:
+          component.output.component.declarationKind === 'const'
+            ? ('function' as const)
+            : component.output.component.declarationKind,
+      },
+    };
     const emitted = emitModule(
       ctx,
       analysis,
-      [component.output],
+      [moduleOutput],
       componentSegments,
       getInputImportPath(ctx.input.path, explicitExtensions),
       new Map(),
@@ -596,21 +598,27 @@ function assembleMainModule(
     replacements.push({ range: output.component.replacementRange, value: component.rangeCode });
   }
 
+  const constReplacements = createExtractedConstComponentReplacements(
+    program,
+    ctx.input.code,
+    componentModules
+  );
+  if (constReplacements === null) {
+    return null;
+  }
+  replacements.push(...constReplacements);
+
   for (const component of componentModules) {
     const declaration = component.output.component;
     if (declaration.declarationKind === 'const') {
-      replacements.push({
-        range: declaration.replacementRange,
-        value: component.mainImportName,
-      });
-    } else {
-      replacements.push({
-        range: declaration.replacementRange,
-        value: isDirectNamedExport(program, declaration.replacementRange)
-          ? `{ ${component.name} };`
-          : '',
-      });
+      continue;
     }
+    replacements.push({
+      range: declaration.replacementRange,
+      value: isDirectNamedExport(program, declaration.replacementRange)
+        ? `{ ${component.name} };`
+        : '',
+    });
   }
   replacements.push(
     ...createModuleReferenceExports(segments, componentModules, declarations, analysis)
@@ -625,11 +633,11 @@ function assembleMainModule(
           emitBindingImport(
             {
               source: component.importPath,
-              importedName: component.exportedName,
+              importedName: component.name,
               typeOnly: false,
               attributes: [],
             },
-            component.mainImportName
+            component.name
           ),
         ]
       : []
@@ -655,6 +663,89 @@ function assembleMainModule(
     ctx.input.normalizationMap ?? null
   );
   return createModule(ctx.input.path, assembled.code, assembled.map);
+}
+
+function createExtractedConstComponentReplacements(
+  program: Program,
+  source: string,
+  componentModules: readonly LocalComponentModule[]
+): RangeReplacement[] | null {
+  const componentsByRange = new Map(
+    componentModules
+      .filter((component) => component.output.component.declarationKind === 'const')
+      .map((component) => [rangeKey(component.output.component.replacementRange), component])
+  );
+  const replacements: RangeReplacement[] = [];
+
+  for (const statement of program.body) {
+    const declaration =
+      statement.type === 'ExportNamedDeclaration' ? statement.declaration : statement;
+    if (declaration?.type !== 'VariableDeclaration') {
+      continue;
+    }
+    const declarators = declaration.declarations.map((declarator) => {
+      const range = getRange(declarator);
+      const initializerRange = getRange(declarator.init);
+      return {
+        range,
+        component:
+          initializerRange === null ? undefined : componentsByRange.get(rangeKey(initializerRange)),
+      };
+    });
+    const extracted = declarators.filter((entry) => entry.component !== undefined);
+    if (extracted.length === 0) {
+      continue;
+    }
+    const statementRange = getRange(statement);
+    if (statementRange === null || declarators.some((entry) => entry.range === null)) {
+      return null;
+    }
+
+    const remaining = declarators.filter((entry) => entry.component === undefined);
+    const comments = collectDeclaratorComments(
+      source,
+      getRange(declaration),
+      declarators.map((entry) => entry.range!)
+    );
+    const declarations =
+      remaining.length === 0
+        ? ''
+        : `${statement.type === 'ExportNamedDeclaration' ? 'export ' : ''}${declaration.kind} ${remaining
+            .map((entry) => source.slice(entry.range![0], entry.range![1]))
+            .join(', ')};`;
+    const exports =
+      statement.type === 'ExportNamedDeclaration'
+        ? `export { ${extracted.map((entry) => entry.component!.name).join(', ')} };`
+        : '';
+    replacements.push({
+      range: statementRange,
+      value: [comments, declarations, exports].filter(Boolean).join('\n'),
+    });
+  }
+
+  return replacements;
+}
+
+function collectDeclaratorComments(
+  source: string,
+  declarationRange: SourceRange | null,
+  declaratorRanges: readonly SourceRange[]
+): string {
+  if (declarationRange === null || declaratorRanges.length === 0) {
+    return '';
+  }
+  const gaps: SourceRange[] = [
+    [declarationRange[0], declaratorRanges[0][0]],
+    ...declaratorRanges
+      .slice(1)
+      .map((range, index) => [declaratorRanges[index][1], range[0]] as SourceRange),
+    [declaratorRanges[declaratorRanges.length - 1][1], declarationRange[1]],
+  ];
+  return gaps
+    .flatMap(
+      (range) => source.slice(range[0], range[1]).match(/\/\*[\s\S]*?\*\/|\/\/[^\r\n]*/g) ?? []
+    )
+    .join('\n');
 }
 
 function emitModule(
@@ -955,7 +1046,7 @@ function emitComponentModuleImports(
         emitBindingImport(
           {
             source: component.importPath,
-            importedName: component.exportedName,
+            importedName: component.name,
             typeOnly: false,
             attributes: [],
           },
@@ -1664,16 +1755,6 @@ function mapMetadataRange(ctx: CompilerContext): (range: SourceRange) => SourceR
     ctx.input.originalCode,
     ctx.input.normalizationMap as Parameters<typeof createOriginalRangeMapper>[2]
   );
-}
-
-function allocateName(base: string, used: Set<string>): string {
-  let name = sanitizeIdentifier(base);
-  let suffix = 0;
-  while (used.has(name)) {
-    name = `${sanitizeIdentifier(base)}_${++suffix}`;
-  }
-  used.add(name);
-  return name;
 }
 
 function sanitizeIdentifier(value: string): string {

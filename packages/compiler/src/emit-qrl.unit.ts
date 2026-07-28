@@ -5,6 +5,7 @@ import type {
 } from '@qwik.dev/optimizer';
 import { parseSync } from 'oxc-parser';
 import { describe, expect, test } from 'vitest';
+import { TargetImportResolver } from './emit-qrl';
 import { transformModules } from './index';
 
 const options = (input: TransformModuleInput, isServer: boolean): TransformModulesOptions => ({
@@ -17,6 +18,18 @@ const options = (input: TransformModuleInput, isServer: boolean): TransformModul
 });
 
 describe('setup QRL emission', () => {
+  test('reuses a provided natural import from the same module', () => {
+    const imports = new TargetImportResolver();
+
+    expect(imports.resolve('@qwik.dev/core', 'useComputed', [])).toBe('useComputed');
+    expect(
+      imports.declarations({
+        source: '@qwik.dev/core',
+        names: new Set(['useComputed']),
+      })
+    ).toEqual([]);
+  });
+
   test('keeps ctx in the render QRL ABI', async () => {
     const input = {
       path: 'src/suspense-render-abi.tsx',
@@ -190,9 +203,7 @@ export function useVisible() {
 
     expect(ssr.diagnostics).toEqual([]);
     expect(csr.diagnostics).toEqual([]);
-    expect(main).toContain(
-      `__qwik_useOnDocument("qinit", __qwik_createVisibleTaskHandlerQrl(q_${symbol}))`
-    );
+    expect(main).toContain(`useOnDocument("qinit", createVisibleTaskHandlerQrl(q_${symbol}))`);
     expect(main).not.toContain('useVisibleTaskQrl');
     expect(csrMain).toContain(`useVisibleTask(${symbol}, {`);
     expect(csrMain).not.toContain('useVisibleTaskQrl');
@@ -480,6 +491,29 @@ export function useCustom(value) {
     expect(ssrMain).toContain('useFoo$ as marker');
     expect(csrMain).toContain(`direct(_withCaptures(${symbol}, [value]), { mode: "test" })`);
     expect(ssrMain).toContain(`lazy(q_${symbol}.w([value]), { mode: "test" })`);
+  });
+
+  test('uses target names directly when marker value uses prevent retargeting', async () => {
+    const input = {
+      path: 'src/custom-hook.tsx',
+      code: `import { marker$ } from 'library';
+export const retained = marker$;
+export function App() {
+  marker$(() => 1);
+  return <p>App</p>;
+}
+`,
+    };
+
+    const csr = await transformModules(options(input, false));
+    const main = csr.modules[0]?.code ?? '';
+    const symbol = segmentNames(csr, 'marker$')[0];
+
+    expectValidModules(csr.modules);
+    expect(csr.diagnostics).toEqual([]);
+    expect(main).toContain('import { marker } from "library";');
+    expect(main).toContain(`marker(${symbol});`);
+    expect(main).not.toContain('__qwik_marker');
   });
 
   test('transforms nested module boundaries transitively', async () => {
@@ -884,8 +918,8 @@ export function App() {
       path: 'src/imports.tsx',
       code: `// keep target comment
 import { marker$ as marker, keep } from 'library' with { type: 'custom' };
-const __qwik_marker = 1;
-export const retained = [keep, __qwik_marker];
+const unrelated = 1;
+export const retained = [keep, unrelated];
 export function App() {
   marker(() => 1);
   return <p>Imports</p>;
@@ -909,8 +943,8 @@ export function App() {
     const input = {
       path: 'src/collision.tsx',
       code: `import { marker$ as marker } from 'library';
-const __qwik_marker = 1;
-export const retained = [marker, __qwik_marker];
+const marker0 = 1;
+export const retained = [marker, marker0];
 export function App() {
   marker(() => 1);
   return <p>Collision</p>;
@@ -924,8 +958,9 @@ export function App() {
 
     expectValidModules(csr.modules);
     expect(main).toContain('marker$ as marker');
-    expect(main).toContain('marker as __qwik_marker_0');
-    expect(main).toContain(`__qwik_marker_0(${symbol});`);
+    expect(main).toContain('marker as marker1');
+    expect(main).toContain(`marker1(${symbol});`);
+    expect(main).not.toContain('__qwik_');
   });
 
   test('does not retarget a marker onto an existing local binding', async () => {
@@ -947,8 +982,9 @@ export function App() {
 
     expectValidModules(csr.modules);
     expect(main).not.toContain('marker$ } from');
-    expect(main).toContain('marker as __qwik_marker');
-    expect(main).toContain(`__qwik_marker(${symbol});`);
+    expect(main).toContain('marker as marker0');
+    expect(main).toContain(`marker0(${symbol});`);
+    expect(main).not.toContain('__qwik_');
   });
 });
 

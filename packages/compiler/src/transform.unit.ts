@@ -828,10 +828,77 @@ export const App = component$(({ show }) => <><Public />{show && <Private />}</>
     expect(result.diagnostics).toEqual([]);
     expect(privateEntry).toBeUndefined();
     expect(publicEntry).toBeDefined();
-    expect(main.code).not.toContain('__qwik_Private');
+    expect(main.code).not.toContain('component_Private');
     expect(main.code).toContain('const Private = (props, ctx) =>');
     expect(main.code).toContain('export { Private };');
     expect(branch?.code).toContain('import { Private } from "./component";');
+  });
+
+  test('imports extracted const components without synthetic aliases', async () => {
+    const code = `import { component$, createContextId, useContext } from '@qwik.dev/core';
+export const Context = createContextId('context');
+export const ContextRoot = component$(() => <ContextApp />);
+export const ContextApp = component$(() => {
+  useContext(Context);
+  return <span>App</span>;
+});`;
+    const result = await transformModules({
+      ...options,
+      input: [{ path: 'src/context.tsx', code }],
+    });
+    const main = result.modules.find((module) => module.path === 'src/context.tsx')!;
+    const component = result.modules.find((module) =>
+      module.path.includes('_component_ContextApp')
+    )!;
+
+    expect(result.diagnostics).toEqual([]);
+    expect(main.code).toContain('import { ContextApp } from "./context.tsx_component_ContextApp";');
+    expect(main.code).toContain('export { ContextApp };');
+    expect(main.code).not.toContain('import { ContextApp as ');
+    expect(main.code).not.toContain('export const ContextApp =');
+    expect(component.code).toContain('export function ContextApp(');
+    expect(component.code).toContain('import { Context } from "./context";');
+  });
+
+  test('preserves sibling declarators when importing extracted components', async () => {
+    const code = `import { component$ } from '@qwik.dev/core';
+export const First = component$(() => <span>First</span>), /* keep sibling */ retained = 1, Second = component$(() => <span>Second</span>);
+export const App = component$(() => <><First /><Second /></>);`;
+    const result = await transformModules({
+      ...options,
+      transpileTs: false,
+      input: [{ path: 'src/component.tsx', code }],
+    });
+    const main = result.modules.find((module) => module.path === 'src/component.tsx')!;
+
+    expect(result.diagnostics).toEqual([]);
+    expect(main.code).toContain('import { First } from "./component.tsx_component_First";');
+    expect(main.code).toContain('import { Second } from "./component.tsx_component_Second";');
+    expect(main.code).toContain('export const retained = 1;');
+    expect(main.code).toContain('/* keep sibling */');
+    expect(main.code).toContain('export { First, Second };');
+    expect(main.code).not.toContain('import { First as ');
+    expect(main.code).not.toContain('import { Second as ');
+  });
+
+  test('preserves authored export aliases for extracted components', async () => {
+    const code = `import { component$ } from '@qwik.dev/core';
+const Child = component$(() => <span>Child</span>);
+export { Child as PublicChild };
+export const App = component$(() => <Child />);`;
+    const result = await transformModules({
+      ...options,
+      input: [{ path: 'src/component.tsx', code }],
+    });
+    const main = result.modules.find((module) => module.path === 'src/component.tsx')!;
+    const component = result.modules.find((module) => module.path.includes('_component_Child'))!;
+
+    expect(result.diagnostics).toEqual([]);
+    expect(main.code).toContain('import { Child } from "./component.tsx_component_Child";');
+    expect(main.code).toContain('export { Child as PublicChild };');
+    expect(main.code).not.toContain('import { Child as ');
+    expect(component.code).toContain('export function Child(');
+    expect(component.code).not.toContain('export function PublicChild(');
   });
 
   test('preserves the main module and emits binding-aware imports for extracted entries', async () => {

@@ -27,7 +27,7 @@ import {
   type CsrValuePlan,
 } from './plan-csr';
 import type { BindingId, ComponentDefinition, ComponentOutput, SegmentPlan } from './plan-types';
-import { QwikGenWord, QwikHooks, QwikWord } from './words';
+import { QWIK_IMPORT, QwikGenWord, QwikHooks, QwikWord } from './words';
 
 export interface CsrRender {
   readonly hoists: string[];
@@ -157,7 +157,9 @@ export function emitCsrModule(
   });
   return {
     imports: [...imports],
-    localImports: qrlImports.declarations().concat(segmentImports),
+    localImports: qrlImports
+      .declarations({ source: QWIK_IMPORT, names: imports })
+      .concat(segmentImports),
     hoists,
     components,
     replacements,

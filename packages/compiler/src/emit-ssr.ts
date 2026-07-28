@@ -39,7 +39,7 @@ import type {
   SegmentReferencePlan,
   ValuePlan,
 } from './plan-types';
-import { QwikAttributes, QwikHooks, QwikWord } from './words';
+import { QWIK_IMPORT, QwikAttributes, QwikHooks, QwikWord } from './words';
 
 interface SsrRender {
   readonly imports: readonly string[];
@@ -223,7 +223,9 @@ export function emitSsrModule(
 
   return {
     imports: [...imports],
-    localImports: qrlImports.declarations().concat(localImports),
+    localImports: qrlImports
+      .declarations({ source: QWIK_IMPORT, names: imports })
+      .concat(localImports),
     hoists,
     components,
     replacements,
@@ -292,7 +294,7 @@ export function emitSsrSegmentRender(
     imports.add(name);
   }
   return {
-    hoists: qrlImports.declarations(),
+    hoists: qrlImports.declarations({ source: QWIK_IMPORT, names: imports }),
     statements: [...setup.statements, ...emitted.statements],
     value: emitted.value,
     runtimeParameters: planned.runtimeParameters,

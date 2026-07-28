@@ -400,7 +400,7 @@ export const SSRErrorFallback = __EXPERIMENTAL__.errorBoundary
             return;
           }
           markBoundaryErrored(store, error, 'render');
-          store.$fallback$ = undefined;
+          delete store.$fallback$;
           const projected = redactBoundaryErrorForDisplay(store.error, isDev, ssr.$transformError$);
           const segment = await ssr.segment(segmentId, fallback(projected) as JSXOutput, options);
           await emitErrorBoundaryFallback(ssr, boundaryId, segmentId, segment);
@@ -421,7 +421,7 @@ export const SSRErrorFallbackInline = __EXPERIMENTAL__.errorBoundary
         const store = jsx.varProps.store as ErrorBoundaryStore;
         if (store.error !== undefined && store.$fallback$) {
           const fallback = store.$fallback$;
-          store.$fallback$ = undefined;
+          delete store.$fallback$;
           const projected = redactBoundaryErrorForDisplay(store.error, isDev, ssr.$transformError$);
           if (isOutOfOrderSegmentContainer(ssr)) {
             ssr.$registerErrorSwap$(boundaryId);

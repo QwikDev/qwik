@@ -138,9 +138,11 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
     const fallbackQrl = props.fallback$;
     store.$fallback$ = noSerialize((error: unknown) => fallbackQrl(error as Error, reset));
     const onErrorQrl = props.onError$;
-    store.$onError$ = onErrorQrl
-      ? noSerialize((error: unknown, info: ErrorBoundaryInfo) => onErrorQrl(error as Error, info))
-      : undefined;
+    if (onErrorQrl) {
+      store.$onError$ = noSerialize((error: unknown, info: ErrorBoundaryInfo) =>
+        onErrorQrl(error as Error, info)
+      );
+    }
     // Retains the owner reference so it stays resumable for reset to re-render.
     store.resetOwner = (host as { parentComponent?: unknown } | undefined)?.parentComponent;
     return buildErrorBoundaryHosts(store);

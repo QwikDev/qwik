@@ -1898,6 +1898,7 @@ describe('ErrorBoundary stateless wire', () => {
     }
     expect(store).toBeDefined();
     expect('error' in store!).toBe(false);
+    expect(Object.keys(store!).sort()).toEqual(['boundaryId', 'resetOwner']);
   });
 
   it('re-rendering a sibling outside the boundary leaves the swapped content hidden', async () => {

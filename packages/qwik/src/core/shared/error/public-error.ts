@@ -1,21 +1,13 @@
 /**
- * A deliberately public error: constructing one is consent to display its `data` through an
- * `<ErrorBoundary>` fallback, unredacted, even in production. Any other thrown value is redacted to
- * a generic message in production.
+ * An error meant to be seen: an `<ErrorBoundary>` fallback displays a `PublicError` unredacted,
+ * even in production, where any other thrown value becomes a generic message.
  *
- * `.message` is the human string, `.data` the structured payload: a string `data` doubles as the
- * message, and an object `data` with a string `message` field lifts it onto `.message`.
+ * A string `data` doubles as `.message`; an object `data` with a string `message` field lifts it
+ * onto `.message`. Consent covers the whole instance, so keep secrets off it.
  *
- * Contract details:
- *
- * - Consent covers the whole instance: no field is redacted, so keep the payload in `data` and
- *   secrets off the error.
- * - A configured `transformError` render option runs first and its projection wins — return the
- *   received `PublicError` unchanged, or return `undefined` to apply the default policy, which
- *   keeps it public.
- * - The framework never serializes the boundary error; `data` crosses the wire only inside your own
- *   captures (props, QRLs, stores) and must serialize there.
- * - A subclass instance resumes as a base `PublicError`: discriminate on `data`, not the subclass.
+ * The framework never serializes the boundary error, so `data` only has to serialize if your own
+ * code captures it (props, QRLs, stores). A subclass instance resumes as a base `PublicError`:
+ * discriminate on `data`, not the subclass.
  *
  * @public
  * @experimental

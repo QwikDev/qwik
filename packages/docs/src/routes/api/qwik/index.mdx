@@ -1643,6 +1643,8 @@ type ElementType = string | FunctionComponent<Record<any, any>>;
 
 <h2 id="errorboundary">ErrorBoundary</h2>
 
+Renders `fallback$` instead of its children when a descendant throws.
+
 ```typescript
 ErrorBoundary: Component<ErrorBoundaryProps>;
 ```
@@ -1743,11 +1745,9 @@ fallback$
 
 </td><td>
 
-Rendered when a descendant throws; receives `(error, reset)`. The error is always an `Error` (`{error.message}` is safe): a non-Error throw is wrapped, and in production it is redacted to a generic message + `digest`. Add a live region for screen-reader announcement. Invoke `reset` wrapped in a handler — `onClick$={() => reset()}`, not `onClick$={reset}` — so it stays wired in a streamed fallback after resume.
+Rendered when a descendant throws. The error is always an `Error`, so `{error.message}` is safe: a non-Error throw is wrapped, and production redacts to a generic message plus `digest`.
 
-A re-derived client fallback recomputes `digest`, so it can differ from the server-rendered value.
-
-`digest` is set only when the framework redacted the error (production); absent on dev-fidelity and `PublicError` fallbacks.
+Wrap `reset` in a handler — `onClick$={() => reset()}`, not `onClick$={reset}` — so it stays wired in a streamed fallback.
 
 </td></tr>
 <tr><td>
@@ -1762,9 +1762,9 @@ onError$?
 
 </td><td>
 
-_(Optional)_ Side-effect fired once per caught error; never affects rendering. Receives the original `Error` instance; a non-Error throw arrives wrapped in an `Error` whose `cause` is the raw thrown value.
+_(Optional)_ Side effect only; never affects rendering. Receives the original `Error` — a non-Error throw arrives wrapped, with `cause` set to the raw value.
 
-Fires at most once per errored episode per environment. An error reported during SSR fires again when the client re-derives it, so dedupe externally (digest or `info.boundaryId`) for telemetry.
+An error caught during SSR fires again when the client re-derives it, so dedupe in your reporter.
 
 </td></tr>
 </tbody></table>
@@ -3176,13 +3176,11 @@ const TitleBox = component$(
 
 <h2 id="publicerror">PublicError</h2>
 
-A deliberately public error: constructing one is consent to display its `data` through an `<ErrorBoundary>` fallback, unredacted, even in production. Any other thrown value is redacted to a generic message in production.
+An error meant to be seen: an `<ErrorBoundary>` fallback displays a `PublicError` unredacted, even in production, where any other thrown value becomes a generic message.
 
-`.message` is the human string, `.data` the structured payload: a string `data` doubles as the message, and an object `data` with a string `message` field lifts it onto `.message`.
+A string `data` doubles as `.message`; an object `data` with a string `message` field lifts it onto `.message`. Consent covers the whole instance, so keep secrets off it.
 
-Contract details:
-
-- Consent covers the whole instance: no field is redacted, so keep the payload in `data` and secrets off the error. - A configured `transformError` render option runs first and its projection wins — return the received `PublicError` unchanged, or return `undefined` to apply the default policy, which keeps it public. - The framework never serializes the boundary error; `data` crosses the wire only inside your own captures (props, QRLs, stores) and must serialize there. - A subclass instance resumes as a base `PublicError`: discriminate on `data`, not the subclass.
+The framework never serializes the boundary error, so `data` only has to serialize if your own code captures it (props, QRLs, stores). A subclass instance resumes as a base `PublicError`: discriminate on `data`, not the subclass.
 
 ```typescript
 export declare class PublicError<T = unknown> extends Error

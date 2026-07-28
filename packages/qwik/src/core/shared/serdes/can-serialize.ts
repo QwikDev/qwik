@@ -19,8 +19,7 @@ const getKeyVal = <T>(value: T, key: keyof T) => value[key];
 
 const canSerializeOwnEnumerable = (value: object, seen: WeakSet<any>): boolean => {
   for (const key in value) {
-    // if the value is a props proxy, then sometimes we could create a component-level subscription,
-    // so we should call untrack here to avoid tracking the value
+    // untrack the read: a props proxy would create a component-level subscription
     if (!canSerialize(untrack(getKeyVal, value, key as keyof typeof value), seen)) {
       return false;
     }

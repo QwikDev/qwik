@@ -159,14 +159,14 @@ export interface RenderOptions extends SerializeDocumentOptions {
   serverData?: Record<string, any>;
 
   /**
-   * Server-only. Maps a thrown error to the `Error` an `<ErrorBoundary>` serializes into the HTML
-   * (and hands to its `fallback$` on resume), running at SSR catch time before serialization.
-   * `onError$` and server logging still receive the original error. Return an `Error` to project
-   * it; return `undefined` (or `null`) to decline and apply the default policy; any other return or
-   * a throw falls back to a redacted generic error. Attach custom fields on the returned `Error` —
-   * enumerable serializable fields survive to the fallback. When omitted, the default is secure:
-   * full fidelity in dev, a generic message + `digest` in production. A thrown `PublicError` also
-   * runs through the transform — return it unchanged, or return `undefined`, to keep it public.
+   * Server-only. Projects a thrown error into the `Error` an `<ErrorBoundary>` fallback displays
+   * during SSR; `onError$` and server logging still receive the original. It never runs on the
+   * client, so a re-derived fallback uses the default policy: full fidelity in dev, a generic
+   * message plus `digest` in production.
+   *
+   * Return an `Error` to project it, or `undefined`/`null` to decline; any other return, or a
+   * throw, redacts to the generic error. A thrown `PublicError` runs through it too — return it
+   * unchanged, or decline, to keep it public.
    */
   transformError?: (error: unknown) => unknown;
 }

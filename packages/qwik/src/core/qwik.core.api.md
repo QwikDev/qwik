@@ -448,7 +448,7 @@ export const _EMPTY_ARRAY: any[];
 // @internal (undocumented)
 export const _EMPTY_OBJ: Record<string, any>;
 
-// @public (undocumented)
+// @public
 export const ErrorBoundary: Component<ErrorBoundaryProps>;
 
 // @public

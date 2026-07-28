@@ -38,27 +38,19 @@ export interface ErrorBoundaryInfo {
 /** @public @experimental */
 export interface ErrorBoundaryProps {
   /**
-   * Rendered when a descendant throws; receives `(error, reset)`. The error is always an `Error`
-   * (`{error.message}` is safe): a non-Error throw is wrapped, and in production it is redacted to
-   * a generic message + `digest`. Add a live region for screen-reader announcement. Invoke `reset`
-   * wrapped in a handler — `onClick$={() => reset()}`, not `onClick$={reset}` — so it stays wired
-   * in a streamed fallback after resume.
+   * Rendered when a descendant throws. The error is always an `Error`, so `{error.message}` is
+   * safe: a non-Error throw is wrapped, and production redacts to a generic message plus `digest`.
    *
-   * A re-derived client fallback recomputes `digest`, so it can differ from the server-rendered
-   * value.
-   *
-   * `digest` is set only when the framework redacted the error (production); absent on dev-fidelity
-   * and `PublicError` fallbacks.
+   * Wrap `reset` in a handler — `onClick$={() => reset()}`, not `onClick$={reset}` — so it stays
+   * wired in a streamed fallback.
    */
   fallback$: QRL<(error: Error & { digest?: string }, reset: QRL<() => void>) => JSXOutput>;
   /**
-   * Side-effect fired once per caught error; never affects rendering. Receives the original `Error`
-   * instance; a non-Error throw arrives wrapped in an `Error` whose `cause` is the raw thrown
-   * value.
+   * Side effect only; never affects rendering. Receives the original `Error` — a non-Error throw
+   * arrives wrapped, with `cause` set to the raw value.
    *
-   * Fires at most once per errored episode per environment. An error reported during SSR fires
-   * again when the client re-derives it, so dedupe externally (digest or `info.boundaryId`) for
-   * telemetry.
+   * An error caught during SSR fires again when the client re-derives it, so dedupe in your
+   * reporter.
    */
   onError$?: QRL<(error: Error, info: ErrorBoundaryInfo) => void>;
 }
@@ -173,7 +165,7 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
   return /*#__PURE__*/ _jsxSorted(Slot, null, null, null, 0, null);
 };
 
-/** @public @experimental */
+/** Renders `fallback$` instead of its children when a descendant throws. @public @experimental */
 export const ErrorBoundary: Component<ErrorBoundaryProps> =
   /*#__PURE__*/ componentQrl<ErrorBoundaryProps>(
     /*#__PURE__*/ inlinedQrl(errorBoundaryCmp, ERROR_BOUNDARY_QRL_SYMBOL)

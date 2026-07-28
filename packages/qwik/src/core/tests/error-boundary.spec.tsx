@@ -2491,6 +2491,30 @@ describe('ErrorBoundary OOOS (opt-in, Suspense)', () => {
     expect(displayOf(document.querySelector('#sibling')?.closest('div[style]'))).toBe('none');
   });
 
+  it.each([
+    ['in-order', IN_ORDER],
+    ['OOOS', OOOS_OPT_IN],
+  ])('%s: a sync throw inside a <Suspense> reports to onError$ exactly once', async (_m, opts) => {
+    const fires: string[] = [];
+    await ssrRenderToDom(
+      <main>
+        <ErrorBoundary
+          fallback$={fb()}
+          onError$={$((e: any) => {
+            fires.push(e.message);
+          })}
+        >
+          <Suspense fallback={<span id="skel">loading</span>}>
+            <Thrower />
+          </Suspense>
+        </ErrorBoundary>
+      </main>,
+      { debug, ...opts }
+    );
+
+    expect(fires).toEqual(['boom']);
+  });
+
   it('a sync throw inside a <Suspense> boundary swaps within the segment', async () => {
     const { document } = await streamAndResume(
       <main>

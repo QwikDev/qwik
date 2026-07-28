@@ -399,7 +399,10 @@ export const SSRErrorFallback = __EXPERIMENTAL__.errorBoundary
           if (!fallback) {
             return;
           }
-          markBoundaryErrored(store, error, 'render');
+          // The catch site already recorded it; marking again refires onError$.
+          if (store.error !== error) {
+            markBoundaryErrored(store, error, 'render');
+          }
           delete store.$fallback$;
           const projected = redactBoundaryErrorForDisplay(store.error, isDev, ssr.$transformError$);
           const segment = await ssr.segment(segmentId, fallback(projected) as JSXOutput, options);

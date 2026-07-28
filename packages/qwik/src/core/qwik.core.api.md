@@ -454,6 +454,7 @@ export const ErrorBoundary: Component<ErrorBoundaryProps>;
 // @public
 export interface ErrorBoundaryInfo {
     boundaryId: string;
+    digest: string;
     phase: 'render' | 'task' | 'event' | 'async-generator' | 'async-signal';
 }
 

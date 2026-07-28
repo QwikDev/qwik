@@ -499,7 +499,7 @@ test.describe('ErrorBoundary multi-container qErr scoping', () => {
     await page.goto(routeUrl('multi-container'), { waitUntil: 'commit' });
 
     await expect(page.locator('#eb-embed #eb-fallback')).toBeVisible({ timeout: 10000 });
-    // Mode-agnostic: strict builds SSR-redact, so assert only that a message was caught.
+    // Strict builds SSR-redact, so assert only that a message was caught.
     await expect(page.locator('#eb-embed #eb-fallback-msg')).toContainText('caught:');
     await expect(page.locator('#eb-embed #eb-content')).toBeHidden();
 

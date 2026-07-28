@@ -887,7 +887,7 @@ describe('ErrorBoundary reset', () => {
     }
     return <div id="inner-ok">inner ok</div>;
   });
-  // Module-scope QRLs mirror the optimizer: this fixture depends on their referential stability.
+  // Hoisted like the optimizer emits: this fixture needs stable QRL identity.
   const nestedInnerFb = $((ie: any, reset: any) => (
     <button id="retry-nested" onClick$={() => reset()}>
       inner caught: {ie.message}
@@ -929,7 +929,7 @@ describe('ErrorBoundary reset', () => {
     expect(el.querySelector('#outer-fb')).toBeTruthy();
   });
 
-  // Gate on the platform: a captured flag object freezes across the resume wire.
+  // A captured flag freezes across the resume wire; gate on the platform.
   const SsrFallbackAlwaysThrower = component$((): JSXOutput => {
     throw new Error('outer-boom');
   });
@@ -2571,7 +2571,7 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
     const original = Object.assign(new Error('secret-db-detail'), {
       query: 'SELECT * FROM users',
     });
-    const redacted = redactBoundaryErrorForDisplay(original, /* dev */ false) as Error & {
+    const redacted = redactBoundaryErrorForDisplay(original, false) as Error & {
       digest?: string;
     };
     expect(redacted).toBeInstanceOf(Error);
@@ -2597,7 +2597,7 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
 
   it('dev: keeps full fidelity (returns the original Error unchanged)', () => {
     const original = new Error('full-detail');
-    expect(redactBoundaryErrorForDisplay(original, /* dev */ true)).toBe(original);
+    expect(redactBoundaryErrorForDisplay(original, true)).toBe(original);
   });
 
   it('markBoundaryErrored fires onError$ with the ORIGINAL error, not the redacted projection', () => {
@@ -2611,7 +2611,7 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
 
   it('redactBoundaryErrorForDisplay: prod redacts a raw client error to generic + digest', () => {
     const raw = Object.assign(new Error('client secret'), { token: 'abc' });
-    const out = redactBoundaryErrorForDisplay(raw, /* dev */ false) as Error & { digest?: string };
+    const out = redactBoundaryErrorForDisplay(raw, false) as Error & { digest?: string };
     expect(out.message).toBe('An error occurred');
     expect((out as unknown as Record<string, unknown>).token).toBeUndefined();
     expect(typeof out.digest).toBe('string');
@@ -2619,12 +2619,12 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
 
   it('redactBoundaryErrorForDisplay: dev keeps the original error (full fidelity)', () => {
     const raw = new Error('client secret');
-    expect(redactBoundaryErrorForDisplay(raw, /* dev */ true)).toBe(raw);
+    expect(redactBoundaryErrorForDisplay(raw, true)).toBe(raw);
   });
 
   it('prod: an app error carrying its own digest field still redacts to generic + fresh digest', () => {
     const err = Object.assign(new Error('DB dsn=postgres://user:pw@host'), { digest: 'x' });
-    const out = redactBoundaryErrorForDisplay(err, /* dev */ false) as Error & { digest?: string };
+    const out = redactBoundaryErrorForDisplay(err, false) as Error & { digest?: string };
     expect(out.message).toBe('An error occurred');
     expect(out.message).not.toContain('dsn');
     expect(JSON.stringify({ ...out })).not.toContain('dsn');
@@ -2643,7 +2643,7 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
     (original as Error & { cause?: unknown }).cause = { db: 'internal' };
     const raws = [original, { code: 401 }];
     for (let i = 0; i < raws.length; i++) {
-      const redacted = redactBoundaryErrorForDisplay(raws[i], /* dev */ false) as Error & {
+      const redacted = redactBoundaryErrorForDisplay(raws[i], false) as Error & {
         cause?: unknown;
       };
       expect(redacted.cause).toBeUndefined();
@@ -2655,7 +2655,7 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
     it.each([[0], ['x'], [{ code: 401 }]])(
       'a serializable non-Error throw %o becomes an Error with the raw as cause',
       (raw) => {
-        const out = redactBoundaryErrorForDisplay(raw, /* dev */ true) as Error & {
+        const out = redactBoundaryErrorForDisplay(raw, true) as Error & {
           cause?: unknown;
         };
         expect(out).toBeInstanceOf(Error);
@@ -2666,7 +2666,7 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
 
     it('dev: a QRL-captured boundary error keeps its raw cause across serialize/deserialize', async () => {
       const raw = { code: 401 };
-      const serializable = redactBoundaryErrorForDisplay(raw, /* dev */ true);
+      const serializable = redactBoundaryErrorForDisplay(raw, true);
       const resumed = (await _deserialize(await _serialize(serializable))) as Error & {
         cause?: unknown;
       };
@@ -2677,12 +2677,12 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
 
     it('an Error throw passes untouched, custom enumerable fields included', () => {
       const original = Object.assign(new Error('full-detail'), { code: 401 });
-      expect(redactBoundaryErrorForDisplay(original, /* dev */ true)).toBe(original);
+      expect(redactBoundaryErrorForDisplay(original, true)).toBe(original);
     });
 
     it('a non-serializable throw with a string message keeps the message and the raw as cause', () => {
       const raw = new NonSerializableError();
-      const out = redactBoundaryErrorForDisplay(raw, /* dev */ true) as Error & {
+      const out = redactBoundaryErrorForDisplay(raw, true) as Error & {
         cause?: unknown;
       };
       expect(out).toBeInstanceOf(Error);
@@ -2692,7 +2692,7 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
 
     it('a non-serializable throw without a message coerces via String and keeps the raw as cause', () => {
       const fn = () => {};
-      const out = redactBoundaryErrorForDisplay(fn, /* dev */ true) as Error & { cause?: unknown };
+      const out = redactBoundaryErrorForDisplay(fn, true) as Error & { cause?: unknown };
       expect(out).toBeInstanceOf(Error);
       expect(out.message).toBe(String(fn));
       expect(out.cause).toBe(fn);
@@ -2715,19 +2715,15 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
     const original = Object.assign(new Error('secret-db-detail'), { query: 'SELECT 1' });
     const transformError = (e: unknown) =>
       new Error(`safe: ${e instanceof Error ? e.name : 'unknown'}`);
-    const inDev = redactBoundaryErrorForDisplay(original, /* dev */ true, transformError) as Error;
+    const inDev = redactBoundaryErrorForDisplay(original, true, transformError) as Error;
     expect(inDev.message).toBe('safe: Error');
     expect((inDev as unknown as Record<string, unknown>).query).toBeUndefined();
-    const inProd = redactBoundaryErrorForDisplay(
-      original,
-      /* dev */ false,
-      transformError
-    ) as Error;
+    const inProd = redactBoundaryErrorForDisplay(original, false, transformError) as Error;
     expect(inProd.message).toBe('safe: Error');
   });
 
   it('transformError: fail-closed — a throwing transform redacts to generic + digest, never the raw', () => {
-    const out = redactBoundaryErrorForDisplay(new Error('secret'), /* dev */ true, () => {
+    const out = redactBoundaryErrorForDisplay(new Error('secret'), true, () => {
       throw new Error('transform bug');
     }) as Error & { digest?: string };
     expect(out.message).toBe('An error occurred');
@@ -2738,7 +2734,7 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
   it('transformError: a non-Error projection redacts to generic + digest', () => {
     const out = redactBoundaryErrorForDisplay(
       new Error('secret'),
-      /* dev */ true,
+      true,
       () => 'safe message'
     ) as Error & { digest?: string };
     expect(out).toBeInstanceOf(Error);
@@ -2749,23 +2745,21 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
   it('transformError: returning undefined declines — the default policy applies', () => {
     const decline = () => undefined;
     const pub = new PublicError('Out of stock');
-    expect(redactBoundaryErrorForDisplay(pub, /* dev */ true, decline)).toBe(pub);
-    expect(redactBoundaryErrorForDisplay(pub, /* dev */ false, decline)).toBe(pub);
-    const prodOut = redactBoundaryErrorForDisplay(
-      new Error('secret'),
-      /* dev */ false,
-      decline
-    ) as Error & { digest?: string };
+    expect(redactBoundaryErrorForDisplay(pub, true, decline)).toBe(pub);
+    expect(redactBoundaryErrorForDisplay(pub, false, decline)).toBe(pub);
+    const prodOut = redactBoundaryErrorForDisplay(new Error('secret'), false, decline) as Error & {
+      digest?: string;
+    };
     expect(prodOut.message).toBe('An error occurred');
     expect(typeof prodOut.digest).toBe('string');
     const original = new Error('secret');
-    expect(redactBoundaryErrorForDisplay(original, /* dev */ true, decline)).toBe(original);
+    expect(redactBoundaryErrorForDisplay(original, true, decline)).toBe(original);
   });
 
-  it('transformError: fail-closed — a non-serializable return redacts to generic + digest', () => {
+  it('transformError: fail-closed — a function return redacts to generic + digest', () => {
     const out = redactBoundaryErrorForDisplay(
       new Error('secret'),
-      /* dev */ true,
+      true,
       () => () => {}
     ) as Error & {
       digest?: string;
@@ -2781,11 +2775,7 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
     markBoundaryErrored(store, original);
     expect(store.error).toBe(original);
     expect(received).toEqual([original]);
-    const shown = redactBoundaryErrorForDisplay(
-      store.error,
-      /* dev */ false,
-      () => new Error('redacted')
-    );
+    const shown = redactBoundaryErrorForDisplay(store.error, false, () => new Error('redacted'));
     expect(shown.message).toBe('redacted');
   });
 
@@ -2829,9 +2819,9 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
     'transformError: an Error projection with an unserializable %s is kept by identity',
     (_, makeProjection) => {
       const projected = makeProjection();
-      expect(
-        redactBoundaryErrorForDisplay(new Error('secret'), /* dev */ false, () => projected)
-      ).toBe(projected);
+      expect(redactBoundaryErrorForDisplay(new Error('secret'), false, () => projected)).toBe(
+        projected
+      );
     }
   );
 
@@ -2845,7 +2835,7 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
     });
     const out = redactBoundaryErrorForDisplay(
       new Error('secret'),
-      /* dev */ false,
+      false,
       () => projected
     ) as Error & { digest?: string };
     expect(out.message).toBe('An error occurred');
@@ -2854,9 +2844,9 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
 
   it('transformError: an Error projection with serializable custom fields is kept by identity', () => {
     const projected = Object.assign(new Error('safe'), { code: 401, meta: { retryable: true } });
-    expect(
-      redactBoundaryErrorForDisplay(new Error('secret'), /* dev */ false, () => projected)
-    ).toBe(projected);
+    expect(redactBoundaryErrorForDisplay(new Error('secret'), false, () => projected)).toBe(
+      projected
+    );
   });
 
   it('transformError (render option): a projection with unserializable fields renders its own message and SSR still completes', async () => {
@@ -2908,7 +2898,7 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
 describe('PublicError membrane pass-through', () => {
   it('prod: a thrown PublicError passes through by identity with no digest', () => {
     const err = new PublicError({ message: 'Out of stock', sku: 'A1' });
-    const out = redactBoundaryErrorForDisplay(err, /* dev */ false);
+    const out = redactBoundaryErrorForDisplay(err, false);
     expect(out).toBe(err);
     expect('digest' in out).toBe(false);
   });
@@ -2916,7 +2906,7 @@ describe('PublicError membrane pass-through', () => {
   it('prod: a plain Error faking the shape still redacts to generic + digest', () => {
     const out = redactBoundaryErrorForDisplay(
       Object.assign(new Error('internal'), { data: 'leak' }),
-      /* dev */ false
+      false
     ) as Error & { digest?: string };
     expect(out.message).toBe('An error occurred');
     expect(typeof out.digest).toBe('string');
@@ -2924,7 +2914,7 @@ describe('PublicError membrane pass-through', () => {
 
   it('transformError runs first and its projection wins over a PublicError', () => {
     const seen: unknown[] = [];
-    const out = redactBoundaryErrorForDisplay(new PublicError('public'), /* dev */ false, (e) => {
+    const out = redactBoundaryErrorForDisplay(new PublicError('public'), false, (e) => {
       seen.push(e);
       return new Error('projected');
     });
@@ -2937,8 +2927,8 @@ describe('PublicError membrane pass-through', () => {
     const logWarnSpy = vi.spyOn(logUtils, 'logWarn').mockImplementation(() => undefined);
     try {
       const err = new PublicError({ retry: () => {} });
-      expect(redactBoundaryErrorForDisplay(err, /* dev */ true)).toBe(err);
-      expect(redactBoundaryErrorForDisplay(err, /* dev */ false)).toBe(err);
+      expect(redactBoundaryErrorForDisplay(err, true)).toBe(err);
+      expect(redactBoundaryErrorForDisplay(err, false)).toBe(err);
       expect(logWarnSpy).not.toHaveBeenCalled();
     } finally {
       logWarnSpy.mockRestore();
@@ -2956,9 +2946,9 @@ describe('PublicError membrane pass-through', () => {
 
   it('prod display: a client-thrown PublicError shows unredacted; a plain Error still redacts', () => {
     const pub = new PublicError('Out of stock');
-    expect(redactBoundaryErrorForDisplay(pub, /* dev */ false)).toBe(pub);
+    expect(redactBoundaryErrorForDisplay(pub, false)).toBe(pub);
     const internal = new Error('internal');
-    const shown = redactBoundaryErrorForDisplay(internal, /* dev */ false);
+    const shown = redactBoundaryErrorForDisplay(internal, false);
     expect(shown).not.toBe(internal);
     expect(shown.message).toBe('An error occurred');
   });
@@ -3116,9 +3106,9 @@ describe('hostile thrown values (fail-closed normalization)', () => {
   it.each(hostileRows)(
     'the display membrane never throws in dev and prod: %s',
     (_, makeHostile) => {
-      const inDev = redactBoundaryErrorForDisplay(makeHostile(), /* dev */ true);
+      const inDev = redactBoundaryErrorForDisplay(makeHostile(), true);
       expect(inDev).toBeInstanceOf(Error);
-      const inProd = redactBoundaryErrorForDisplay(makeHostile(), /* dev */ false) as Error & {
+      const inProd = redactBoundaryErrorForDisplay(makeHostile(), false) as Error & {
         digest?: string;
       };
       expect(inProd).toBeInstanceOf(Error);

@@ -32,7 +32,7 @@ describe('ErrorBoundary public types', () => {
     accept($(() => null));
     accept($(() => undefined));
     accept($(() => [<span>a</span>, 'b', null]));
-    // @ts-expect-error fallback$ must return JSXOutput, not an arbitrary object.
+    // @ts-expect-error not a JSXOutput
     accept($(() => ({ not: 'jsx' })));
     expectTypeOf<JSXOutput>().not.toBeAny();
   });

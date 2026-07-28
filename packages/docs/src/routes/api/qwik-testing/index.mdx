@@ -623,7 +623,7 @@ export declare function ssrRenderToDom(
     streaming?: StreamingOptions;
     resume?: boolean;
     onBeforeResume?: (document: Document) => void;
-    transformError?: (error: unknown) => unknown;
+    transformError?: (error: unknown) => Error | undefined | null | void;
   },
 ): Promise<{
   container: _DomContainer;
@@ -663,7 +663,7 @@ opts
 
 </td><td>
 
-\{ debug?: boolean; raw?: boolean; qwikLoader?: boolean; containerTagName?: string; statePrewarm?: number \| false; stream?: StreamWriter; streaming?: [StreamingOptions](#streamingoptions); resume?: boolean; onBeforeResume?: (document: Document) =&gt; void; transformError?: (error: unknown) =&gt; unknown; }
+\{ debug?: boolean; raw?: boolean; qwikLoader?: boolean; containerTagName?: string; statePrewarm?: number \| false; stream?: StreamWriter; streaming?: [StreamingOptions](#streamingoptions); resume?: boolean; onBeforeResume?: (document: Document) =&gt; void; transformError?: (error: unknown) =&gt; Error \| undefined \| null \| void; }
 
 </td><td>
 

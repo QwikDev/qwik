@@ -134,7 +134,7 @@ export async function ssrRenderToDom(
     resume?: boolean;
     /** Inject nodes into the document before test runs (for testing purposes) */
     onBeforeResume?: (document: Document) => void;
-    transformError?: (error: unknown) => unknown;
+    transformError?: (error: unknown) => Error | undefined | null | void;
   } = {}
 ) {
   setPlatform(getTestPlatform());

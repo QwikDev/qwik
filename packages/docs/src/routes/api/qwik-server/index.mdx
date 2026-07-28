@@ -585,13 +585,15 @@ transformError?
 
 </td><td>
 
-(error: unknown) =&gt; unknown
+(error: unknown) =&gt; Error \| undefined \| null \| void
 
 </td><td>
 
 _(Optional)_ Server-only. Projects a thrown error into the `Error` an `<ErrorBoundary>` fallback displays during SSR; `onError$` still receives the original. It never runs on the client, so a re-derived fallback uses the default policy: full fidelity in dev, a generic message plus `digest` in production.
 
 Return an `Error` to project it, or `undefined`/`null` to decline; any other return, or a throw, redacts to the generic error. A thrown `PublicError` runs through it too — return it unchanged, or decline, to keep it public.
+
+It is called synchronously, so it cannot be `async`: a returned promise redacts every error.
 
 </td></tr>
 </tbody></table>

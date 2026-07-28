@@ -85,7 +85,7 @@ export interface RenderOptions extends SerializeDocumentOptions {
     serverData?: Record<string, any>;
     snapshot?: boolean;
     statePrewarm?: number | false;
-    transformError?: (error: unknown) => unknown;
+    transformError?: (error: unknown) => Error | undefined | null | void;
 }
 
 // @public (undocumented)

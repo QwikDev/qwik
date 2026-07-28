@@ -533,6 +533,30 @@ describe.each(modes)('ErrorBoundary behavior (%s)', (mode, renderMode) => {
       expect(infos[0].boundaryId.length).toBeGreaterThan(0);
     });
 
+    it('info.digest matches the digest a production fallback displays', async () => {
+      const digests: Array<string | undefined> = [];
+      const seen: unknown[] = [];
+      const { container } = await renderMode(
+        () => (
+          <ErrorBoundary
+            fallback$={fb()}
+            onError$={$((e: any, info: any) => {
+              seen.push(e);
+              digests.push(info.digest);
+            })}
+          >
+            <Thrower />
+          </ErrorBoundary>
+        ),
+        modeOpts
+      );
+      await settleOnErrorDelivery(container);
+
+      const onScreen = redactBoundaryErrorForDisplay(seen[0], false) as Error & { digest: string };
+      expect(digests).toEqual([onScreen.digest]);
+      expect(onScreen.digest).toBeTruthy();
+    });
+
     it('a synchronously throwing onError$ is swallowed; the fallback still renders and info is delivered exactly once', async () => {
       const calls: Array<{ phase: string; boundaryId: string }> = [];
       const { container } = await renderMode(

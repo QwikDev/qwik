@@ -121,13 +121,14 @@ export const redactBoundaryErrorForDisplay = (
 export const fireOnError = (
   onError: ((error: Error, info: ErrorBoundaryInfo) => unknown) | undefined | null,
   error: unknown,
-  info: ErrorBoundaryInfo
+  info: Omit<ErrorBoundaryInfo, 'digest'>
 ): void => {
   if (!onError) {
     return;
   }
   try {
-    Promise.resolve(onError(toBoundaryError(error), info)).catch(logError);
+    const digest = errorBoundaryDigest(error);
+    Promise.resolve(onError(toBoundaryError(error), { ...info, digest })).catch(logError);
   } catch (e) {
     logError(e);
   }

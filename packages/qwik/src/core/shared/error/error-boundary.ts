@@ -29,6 +29,12 @@ export interface ErrorBoundaryInfo {
   phase: 'render' | 'task' | 'event' | 'async-generator' | 'async-signal';
   /** Stable id of the boundary that caught it. */
   boundaryId: string;
+  /**
+   * The code a production fallback shows for this error, so a user's bug report matches your logs.
+   * An error caught during SSR reports a second, different digest if the client re-derives it — the
+   * stacks differ.
+   */
+  digest: string;
 }
 
 /** @public @experimental */

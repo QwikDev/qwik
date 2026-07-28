@@ -1184,7 +1184,9 @@ describe('ErrorBoundary CSR-specific', () => {
     dispatchQError(target, { error: err, element: target });
     try {
       await waitForDrain(container);
-    } catch {}
+    } catch {
+      // ignore
+    }
     expect(el.querySelector('#fb')).toBeFalsy();
   });
 

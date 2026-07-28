@@ -38,6 +38,25 @@ describe('error-swap executor (qErr)', () => {
     expect(displayOf(document.querySelector('[q\\:ebf="2"]'))).toBe('contents');
   });
 
+  it('strips document and window handlers from the hidden content', () => {
+    const document = setup(
+      `<div q:container="resumed" q:render="dom-ssr">
+        <div q:ebc="1" style="display:contents">
+          <p id="dead" q-d:click="chunk#h" q-w:resize="chunk#h" q-e:click="chunk#h">partial</p>
+        </div>
+        <div q:ebf="1" style="display:none"><p id="fb">fallback</p></div>
+        <p id="outside" q-d:click="chunk#h">outside</p>
+      </div>`
+    );
+    (globalThis as any).qErr(1);
+    const dead = document.querySelector('#dead')!;
+    expect(dead.hasAttribute('q-d:click')).toBe(false);
+    expect(dead.hasAttribute('q-w:resize')).toBe(false);
+    // Element-scoped handlers cannot fire on a hidden node, so leave them alone.
+    expect(dead.hasAttribute('q-e:click')).toBe(true);
+    expect(document.querySelector('#outside')!.hasAttribute('q-d:click')).toBe(true);
+  });
+
   it('marks the document so a second install short-circuits', () => {
     const document = setup(`<div q:container="resumed"></div>`);
     expect((globalThis as any).qErr.d).toBe(document);

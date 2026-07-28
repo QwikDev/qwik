@@ -90,6 +90,47 @@ describe('serdes emit-only', () => {
     expect(restored.value).toBe(7);
   });
 
+  it.each([
+    ['computed', TypeIds.ComputedSignal],
+    ['async', TypeIds.AsyncSignal],
+  ])('resolves a restored %s QRL before finishing inflation', async (_name, typeId) => {
+    const container = createCaptureContainer({});
+    let resolveModule!: (module: { symbol: () => string }) => void;
+    const qrl = createQRL(
+      'computed',
+      'symbol',
+      null,
+      () =>
+        new Promise<{ symbol: () => string }>((resolve) => {
+          resolveModule = resolve;
+        }),
+      null,
+      container
+    );
+    const data = [
+      TypeIds.Plain,
+      qrl,
+      TypeIds.Plain,
+      [],
+      TypeIds.Constant,
+      Constants.NEEDS_COMPUTATION,
+      ...(typeId === TypeIds.AsyncSignal ? [TypeIds.Constant, Constants.Null] : []),
+    ];
+    const restored = await allocate(container, typeId, data);
+    let didInflate = false;
+
+    const inflation = Promise.resolve(inflate(container, restored, typeId, data)).then(() => {
+      didInflate = true;
+    });
+    await Promise.resolve();
+
+    expect(didInflate).toBe(false);
+    resolveModule({ symbol: () => 'resolved' });
+    await inflation;
+
+    expect(qrl.resolved).toBeTypeOf('function');
+  });
+
   it('resolves a RefVNode to the matching DOM element', () => {
     const win = createWindow({
       html: '<div q:container><span q:id="4">target</span></div>',

@@ -209,6 +209,9 @@ const inflateResolved = (
             if (d.length > 6) {
               computed.subs = createLazySourceSubscribers(computed, container, d, 6);
             }
+            if (value === NEEDS_COMPUTATION) {
+              return maybeThen(getFunctionOrResolve(computed.computeQrl!, container), () => {});
+            }
           })
         )
       );
@@ -233,6 +236,9 @@ const inflateResolved = (
               }
               if (d.length > subscriberOffset) {
                 signal.subs = createLazySourceSubscribers(signal, container, d, subscriberOffset);
+              }
+              if (value === NEEDS_COMPUTATION) {
+                return maybeThen(getFunctionOrResolve(signal.computeQrl!, container), () => {});
               }
             })
           )

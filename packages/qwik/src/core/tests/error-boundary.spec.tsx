@@ -3321,6 +3321,33 @@ describe('hostile thrown values (fail-closed normalization)', () => {
 });
 
 describe('ErrorBoundary inert subtree', () => {
+  it('a bound attribute in the errored content stops tracking after resume', async () => {
+    const Bound = component$<{ src: Signal<string> }>((props) => (
+      <img id="dead-img" src={props.src.value} />
+    ));
+    const App = component$(() => {
+      const src = useSignal('/first.png');
+      return (
+        <main>
+          <button id="bump" onClick$={() => (src.value = '/second.png')}>
+            bump
+          </button>
+          <ErrorBoundary fallback$={fb()}>
+            <Bound src={src} />
+            <Thrower />
+          </ErrorBoundary>
+        </main>
+      );
+    });
+    const { container } = await ssrRenderToDom(<App />, { debug });
+    const el = container.element;
+    expect(el.querySelector('#dead-img')?.getAttribute('src')).toBe('/first.png');
+
+    await trigger(el, '#bump', 'click');
+
+    expect(el.querySelector('#dead-img')?.getAttribute('src')).toBe('/first.png');
+  });
+
   it('a document-ready visible task in the errored content does not throw on resume', async () => {
     const logErrorSpy = vi
       .spyOn(logUtils, 'logError')

@@ -18,7 +18,6 @@ import {
   type SSRStreamChildren,
 } from '../shared/jsx/utils.public';
 import { type SerializationContext } from '../shared/serdes/index';
-import { hasVirtualNodePath } from '../shared/vnode-data-types';
 import { DEBUG_TYPE, VirtualType } from '../shared/types';
 import { isAsyncGenerator } from '../shared/utils/async-generator';
 import { EMPTY_OBJ } from '../shared/utils/flyweight';
@@ -289,9 +288,9 @@ function markSubtreeInert(
       owner.removeProp((node.getProp(QSlot) as string | null) ?? QDefaultSlot);
     }
   }
-  if (hasVirtualNodePath(node.id)) {
-    clearAllEffects(ssr, node);
-  }
+  // Element consumers keep materializing when inert, so their bindings would keep patching hidden
+  // DOM; virtual ones can't materialize and would leave producers pointing at a dead node.
+  clearAllEffects(ssr, node);
   const seq = node.getProp(ELEMENT_SEQ) as unknown[] | null;
   if (seq) {
     for (let i = 0; i < seq.length; i++) {

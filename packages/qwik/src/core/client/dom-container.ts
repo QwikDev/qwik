@@ -72,7 +72,6 @@ import {
 } from './types';
 import { mapArray_get, mapArray_has, mapArray_set } from './util-mapArray';
 import {
-  vnode_getProjectionParentComponent,
   vnode_getProjectionParentOrParent,
   vnode_getProp,
   vnode_isProjection,
@@ -423,9 +422,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     }
     markVNodeDirty(this, owner, ChoreBits.COMPONENT);
     markVNodeDirty(this, boundaryHost, ChoreBits.COMPONENT);
-    if (this.forwardsItsChildren(boundaryHost)) {
-      this.markProjectedContentDirty(boundaryHost);
-    }
     store.error = undefined;
   }
 
@@ -446,86 +442,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       vNode = vnode_getProjectionParentOrParent(vNode);
     }
     return null;
-  }
-
-  /**
-   * True when the boundary's children reach it through a `<Slot/>`, so the component that authored
-   * the `<ErrorBoundary>` element only forwards them and re-rendering it recreates nothing.
-   */
-  private forwardsItsChildren(boundaryHost: VNode): boolean {
-    const props = (boundaryHost as VirtualVNode).props;
-    if (!props) {
-      return false;
-    }
-    const propKeys = Object.keys(props);
-    for (let i = 0; i < propKeys.length; i++) {
-      if (!isSlotProp(propKeys[i])) {
-        continue;
-      }
-      const value = props[propKeys[i]];
-      const projection = (
-        typeof value === 'string' ? this.vNodeLocate(value) : value
-      ) as VNode | null;
-      if (!projection || typeof projection !== 'object') {
-        continue;
-      }
-      // Peek only; forcing materialization here corrupts the reset render.
-      for (let child = (projection as VirtualVNode).firstChild; child; child = child.nextSibling) {
-        if (vnode_isVirtualVNode(child) && vnode_isProjection(child)) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  /**
-   * A projection survives the boundary's fallback render as a vnode, but the output it had already
-   * rendered is gone. Re-attaching it schedules no work, so mark its components for re-render.
-   */
-  private markProjectedContentDirty(host: VNode): void {
-    const seen = new Set<VNode>();
-    const visitProjectionsOf = (componentHost: VNode): void => {
-      const props = (componentHost as VirtualVNode).props;
-      if (!props) {
-        return;
-      }
-      const propKeys = Object.keys(props);
-      for (let i = 0; i < propKeys.length; i++) {
-        if (!isSlotProp(propKeys[i])) {
-          continue;
-        }
-        const value = props[propKeys[i]];
-        const projection = (
-          typeof value === 'string' ? this.vNodeLocate(value) : value
-        ) as VNode | null;
-        if (projection && typeof projection === 'object') {
-          visitSubtree(projection);
-        }
-      }
-    };
-    const visitSubtree = (node: VNode): void => {
-      if (seen.has(node)) {
-        return;
-      }
-      seen.add(node);
-      if (vnode_isVirtualVNode(node)) {
-        if (vnode_getProp(node, OnRenderProp, null) !== null) {
-          markVNodeDirty(this, node, ChoreBits.COMPONENT);
-          visitProjectionsOf(node);
-        } else if (vnode_isProjection(node)) {
-          const projectionHost = vnode_getProjectionParentComponent(node);
-          if (projectionHost) {
-            visitProjectionsOf(projectionHost);
-          }
-        }
-      }
-      // Peek only; forcing materialization here breaks the reset render.
-      for (let child = (node as VirtualVNode).firstChild; child; child = child.nextSibling) {
-        visitSubtree(child);
-      }
-    };
-    visitProjectionsOf(host);
   }
 
   private authorsOwnChildren(host: VNode): boolean {

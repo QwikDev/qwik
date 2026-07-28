@@ -27,7 +27,10 @@ import {
 export interface ErrorBoundaryInfo {
   /** Where the caught error originated. */
   phase: 'render' | 'task' | 'event' | 'async-generator' | 'async-signal';
-  /** Stable id of the boundary that caught it. */
+  /**
+   * Identifies the boundary within the page. Allocated in render order and kept across a resume, so
+   * every report from one boundary shares it — but it shifts when render order changes.
+   */
   boundaryId: string;
   /**
    * The code a production fallback shows for this error, so a user's bug report matches your logs.

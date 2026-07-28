@@ -1041,38 +1041,33 @@ describe('ErrorBoundary reset', () => {
   });
 
   // The boundary is packaged INSIDE a component, so its children arrive through <Slot/>.
-  // Reset cannot recover this shape: the fallback render severs the boundary's projection, and
-  // re-rendering the true author does NOT relink it — proven by marking the author and every host
-  // between it and the boundary dirty, after which the child still never re-executes. So this is a
-  // projection-relink gap, not the owner resolution `getAuthorHost` performs.
   const BoxedBoundary = component$(() => (
     <ErrorBoundary fallback$={wrappedResetFb}>
       <Slot />
     </ErrorBoundary>
   ));
 
-  it.fails(
-    'CSR: reset through a boundary packaged in a wrapper re-executes the children',
-    async () => {
-      resetRef.flake = 0;
-      const App = component$(() => (
-        <main>
-          <BoxedBoundary>
-            <ResetFlake />
-          </BoxedBoundary>
-        </main>
-      ));
-      const { container } = await domRender(<App />, { debug });
-      const el = container.element;
-      expect(el.querySelector('#retry-wrapped')).toBeTruthy();
+  it('CSR: reset through a boundary packaged in a wrapper re-executes the children', async () => {
+    resetRef.flake = 0;
+    const App = component$(() => (
+      <main>
+        <BoxedBoundary>
+          <ResetFlake />
+        </BoxedBoundary>
+      </main>
+    ));
+    const { container } = await domRender(<App />, { debug });
+    const el = container.element;
+    expect(el.querySelector('#retry-wrapped')).toBeTruthy();
 
-      await trigger(el, '#retry-wrapped', 'click');
+    await trigger(el, '#retry-wrapped', 'click');
 
-      expect(el.querySelector('#ok')?.textContent).toContain('ok');
-      expect(el.querySelector('#retry-wrapped')).toBeFalsy();
-    }
-  );
+    expect(el.querySelector('#ok')?.textContent).toContain('ok');
+    expect(el.querySelector('#retry-wrapped')).toBeFalsy();
+  });
 
+  // Still open after resume: the boundary host carries no slot props yet, so the forwarding check
+  // finds nothing, and resolving or materializing them at reset time corrupts the reset render.
   it.fails(
     'SSR resume: reset through a boundary packaged in a wrapper re-executes the children',
     async () => {

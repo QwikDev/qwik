@@ -22,6 +22,9 @@ export function replaceRange(
   range: Range,
   nodes: readonly Node[]
 ): void {
+  // Re-anchor ranges after template nodes move out of their fragment.
+  range.setStartAfter(start);
+  range.setEndBefore(end);
   range.deleteContents();
 
   if (nodes.length === 1) {
@@ -33,7 +36,4 @@ export function replaceRange(
     }
     range.insertNode(fragment);
   }
-
-  range.setStartAfter(start);
-  range.setEndBefore(end);
 }

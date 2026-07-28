@@ -75,6 +75,26 @@ describe('branches', () => {
     expect(nextB.parentNode).toBeNull();
   });
 
+  it('reanchors branch ranges after their markers move', () => {
+    const start = createTestDomNode('start');
+    const end = createTestDomNode('end');
+    const next = createTestDomNode('next');
+    const templateParent = createTestParentNode([start, end]);
+    const mountedParent = createTestParentNode([]);
+    const range = new BranchRange(
+      start.ownerDocument!,
+      start as unknown as Comment,
+      end as unknown as Comment
+    );
+
+    mountedParent.insertBefore(start, null);
+    mountedParent.insertBefore(end, null);
+    range.replace([next]);
+
+    expect(mountedParent.nodes.map(getNodeLabel)).toEqual(['start', 'next', 'end']);
+    expect(templateParent.nodes).toEqual([]);
+  });
+
   it('restores branch invoke contexts before creating components', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const rootOwner = createOwner();

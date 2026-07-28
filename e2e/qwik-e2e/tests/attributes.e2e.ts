@@ -50,12 +50,12 @@ test.describe('attributes', () => {
       await stuffBtn.click();
       await expect(inputCopy).toHaveJSProperty('value', 'Hello');
       await expect(inputValue).toHaveText('Hello');
-      await expect(renders).toHaveText('2');
+      await expect(renders).toHaveText('1');
 
       await input.pressSequentially('Bye');
       await expect(inputCopy).toHaveJSProperty('value', 'ByeHello');
       await expect(inputValue).toHaveText('ByeHello');
-      await expect(renders).toHaveText('2');
+      await expect(renders).toHaveText('1');
 
       await expect(svg).toHaveAttribute('width', '15');
       await expect(svg).toHaveAttribute('height', '15');
@@ -151,7 +151,7 @@ test.describe('attributes', () => {
       await expect(input).not.toHaveAttribute('aria-required');
       await expect(input).not.toHaveAttribute('draggable');
       await expect(input).not.toHaveAttribute('spellcheck');
-      await expect(renders).toHaveText('2');
+      await expect(renders).toHaveText('1');
     });
 
     test('should toggle attributes several times', async ({ page }) => {
@@ -180,7 +180,7 @@ test.describe('attributes', () => {
       await expect(svg).toHaveClass('');
       await expect(svg).not.toHaveAttribute('aria-hidden');
 
-      await expect(renders).toHaveText('2');
+      await expect(renders).toHaveText('1');
 
       await countBtn.click();
 
@@ -200,7 +200,7 @@ test.describe('attributes', () => {
       await expect(svg).toHaveClass('is-svg');
       await expect(svg).toHaveAttribute('aria-hidden', 'true');
 
-      await expect(renders).toHaveText('3');
+      await expect(renders).toHaveText('1');
 
       await countBtn.click();
       await expect(svg).not.toHaveAttribute('aria-hidden', 'true');
@@ -218,7 +218,7 @@ test.describe('attributes', () => {
       await expect(svg).not.toHaveAttribute('preserveAspectRatio');
       await expect(svg).not.toHaveAttribute('aria-hidden');
       await expect(svg).toHaveClass('');
-      await expect(renders).toHaveText('4');
+      await expect(renders).toHaveText('1');
 
       await countBtn.click();
 
@@ -237,7 +237,7 @@ test.describe('attributes', () => {
       await expect(svg).toHaveClass('is-svg');
       await expect(svg).toHaveAttribute('aria-hidden', 'true');
 
-      await expect(renders).toHaveText('5');
+      await expect(renders).toHaveText('1');
     });
 
     test('issue 3622 - select value after navigation', async ({ page }) => {

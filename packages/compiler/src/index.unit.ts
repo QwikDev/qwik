@@ -1170,6 +1170,37 @@ export function App() {
     });
   });
 
+  test('emits SSR and CSR ternary fragment branch renderers', async () => {
+    await testInput('branch_ternary_fragment', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export function Child() {
+  const hide = useSignal(false);
+  return (
+    <div>
+      {hide.value ? (
+        <>
+          <label />
+          <input />
+          <svg />
+        </>
+      ) : (
+        <>
+          <label for="value" />
+          <input required />
+          <svg width="1" />
+        </>
+      )}
+    </div>
+  );
+}
+
+export function App() {
+  return <Child />;
+}
+`,
+    });
+  });
+
   test('emits SSR and CSR logical branch renderers', async () => {
     await testInput('branch_logical_and', {
       code: `import { useSignal } from '@qwik.dev/core';

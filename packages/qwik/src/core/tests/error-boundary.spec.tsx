@@ -10,6 +10,7 @@ import {
   Suspense,
   useComputed$,
   useSignal,
+  type Signal,
   useTask$,
   useVisibleTask$,
   type JSXOutput,
@@ -3316,5 +3317,35 @@ describe('hostile thrown values (fail-closed normalization)', () => {
     );
     await trigger(container.element, 'button', 'click');
     expect(container.element.querySelector('#fb')).toBeTruthy();
+  });
+});
+
+describe('ErrorBoundary inert subtree', () => {
+  it('a document-ready visible task in the errored content does not throw on resume', async () => {
+    const logErrorSpy = vi
+      .spyOn(logUtils, 'logError')
+      .mockImplementation((message?: any) => message as Error);
+    const DeadTask = component$(() => {
+      useVisibleTask$(
+        () => {
+          // ignore
+        },
+        { strategy: 'document-ready' }
+      );
+      return <div id="dead-task">dead</div>;
+    });
+    const { container } = await ssrRenderToDom(
+      <main>
+        <ErrorBoundary fallback$={fb()}>
+          <DeadTask />
+          <Thrower />
+        </ErrorBoundary>
+      </main>,
+      { debug }
+    );
+
+    await expect(trigger(container.element, null, 'd:qinit')).resolves.not.toThrow();
+    expect(logErrorSpy).not.toHaveBeenCalled();
+    logErrorSpy.mockRestore();
   });
 });

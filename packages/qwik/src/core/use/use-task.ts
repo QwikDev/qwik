@@ -263,6 +263,10 @@ export function scheduleTask(this: string, _event: Event, element: Element) {
       setCaptures(deserializeCaptureDeltas(container, this));
     }
     const task = _captures![0] as Task;
+    if (!task.$el$) {
+      // An ErrorBoundary tore the host down; the task has nothing left to run against.
+      return;
+    }
     task.$flags$ |= TaskFlags.DIRTY;
     markVNodeDirty(container, task.$el$, ChoreBits.TASKS);
   });

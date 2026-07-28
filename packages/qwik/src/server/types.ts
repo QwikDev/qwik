@@ -236,6 +236,7 @@ export const enum VNodeDataFlag {
   REFERENCE = 8,
   /// Should be output during serialization.
   SERIALIZE = 16,
+  /// Swapped out by an ErrorBoundary; resumes as inert DOM.
   INERT = 32,
 }
 

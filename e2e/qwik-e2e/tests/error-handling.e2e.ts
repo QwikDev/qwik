@@ -657,7 +657,7 @@ test.describe('ErrorBoundary × loader errors', () => {
     await expect(page.locator('#loader-500-body')).toHaveCount(0);
   });
 
-  // pending loader-revalidation ruling
+  // reset should re-invoke loaders; semantics are Phase B
   test.fixme('reset re-derives the identical fallback from the serialized loader value', async ({
     page,
   }) => {
@@ -677,7 +677,7 @@ test.describe('ErrorBoundary × loader errors', () => {
     await expect(page.locator('#eb-content')).toHaveCount(0);
   });
 
-  // pending loader-revalidation ruling
+  // reset should re-invoke loaders; semantics are Phase B
   test.fixme('reset does not re-invoke the loader: no q-data request fires for the reset', async ({
     page,
   }) => {

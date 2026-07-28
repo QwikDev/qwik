@@ -220,12 +220,14 @@ Invariants (stateless model):
   inert content. Swap by origin: in-place under `q:ebf` via `qErr`; deferred segment via the `qO`
   shell (`q:rp`); inline content must never sit under `q:rp`.
 - `markBoundaryErrored` is the only server error writer; `onError$` receives the original `Error`
-  (a non-Error throw arrives wrapped with the raw value as `cause`); `store.error === undefined`
-  means "no error" and every writer normalizes a thrown `undefined`.
-- Reset re-renders the AUTHOR: the owner walk skips `_suC`/`_ebC` parents but stops at an `_ebC`
-  with an in-memory error (an errored boundary authors its fallback). Reset must work with
-  `store.error` undefined — that IS the resumed errored state; browsers then resolve the
-  serialized `resetOwner`, which already points at the true author. Never mark a resumed boundary
+  (a non-Error throw arrives wrapped with the raw value as `cause`) plus a `digest` matching the one
+  a production fallback shows; `store.error === undefined` means "no error" and every writer wraps a
+  nullish throw, because a stored `null` is the capture-only sentinel.
+- Reset re-renders the AUTHOR: `getAuthorHost` walks projections on the client, skipping
+  `_suC`/`_ebC` parents but stopping at an `_ebC` with an in-memory error (an errored boundary
+  authors its fallback). Reset must work with `store.error` undefined — that IS the resumed errored
+  state. Nothing reads `store.resetOwner`; serializing it is what keeps the owner's `q:renderFn`
+  emitted, so dropping the write turns reset into a silent no-op. Never mark a resumed boundary
   directly: its SSR projection was abandoned, so rendering its Slot yields an empty subtree.
 - Errored boundaries re-derive by re-running the children through the author re-render; a
   task-phase SSR throw does not re-derive (documented developer responsibility). `store.$onError$`

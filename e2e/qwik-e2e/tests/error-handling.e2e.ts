@@ -788,4 +788,28 @@ test.describe('prod (strict dist)', () => {
     await page.locator('#eb-content-button').click();
     await expect(page.locator('#eb-content-count')).toHaveText('1');
   });
+
+  test('an app error carrying its own digest field still redacts', async ({ page }) => {
+    assertNoBrowserErrors(page);
+    await page.goto(prodUrl('digest-forgery'), { waitUntil: 'commit' });
+
+    await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: An error occurred', {
+      timeout: 10000,
+    });
+    const digest = await page.locator('#eb-fallback-digest').innerText();
+    expect(digest).not.toBe('forged-digest');
+    expect(digest).not.toBe('none');
+    expect(await page.locator('body').innerText()).not.toContain('digest secret boom');
+  });
+
+  test('a PublicError whose data carries a function still displays unredacted', async ({
+    page,
+  }) => {
+    assertNoBrowserErrors(page);
+    await page.goto(prodUrl('unserializable-public'), { waitUntil: 'commit' });
+
+    await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: Out of stock', {
+      timeout: 10000,
+    });
+  });
 });

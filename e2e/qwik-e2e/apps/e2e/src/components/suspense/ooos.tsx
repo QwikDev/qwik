@@ -26,11 +26,11 @@ const getOutOfOrderReleaseKey = (requestId: string, releaseId: string): string =
   return `${requestId}:${releaseId}`;
 };
 
-export const getSearchParam = (url: string | undefined, name: string): string | null => {
+const getSearchParam = (url: string | undefined, name: string): string | null => {
   return url ? new URL(url).searchParams.get(name) : null;
 };
 
-export const waitForRelease = (requestId: string, releaseId: string): Promise<void> => {
+const waitForRelease = (requestId: string, releaseId: string): Promise<void> => {
   return new Promise<void>((resolve) => {
     const store = getOutOfOrderReleaseStore();
     const key = getOutOfOrderReleaseKey(requestId, releaseId);
@@ -60,7 +60,7 @@ const escapeAttr = (value: string): string =>
 
 // WebKit buffers streamed HTML until enough early body content is emitted.
 // https://bugs.webkit.org/show_bug.cgi?id=265386
-export const WEBKIT_STREAMING_FLUSH = '\u200b'.repeat(512);
+const WEBKIT_STREAMING_FLUSH = '\u200b'.repeat(512);
 
 export const OutOfOrderSuspenseRoot = component$(() => {
   const shellCount = useSignal(0);

@@ -50,7 +50,7 @@ const redactToGeneric = (err: unknown): Error & { digest: string } => {
   return redacted;
 };
 
-const toBoundaryError = (raw: unknown, withCause: boolean): Error => {
+const toBoundaryError = (raw: unknown): Error => {
   if (raw instanceof Error) {
     return raw;
   }
@@ -65,9 +65,7 @@ const toBoundaryError = (raw: unknown, withCause: boolean): Error => {
     }
   }
   const wrapped = new Error(message);
-  if (withCause) {
-    wrapped.cause = raw;
-  }
+  wrapped.cause = raw;
   return wrapped;
 };
 
@@ -114,7 +112,7 @@ export const redactBoundaryErrorForDisplay = (
       wrapped.cause = error;
       return wrapped;
     }
-    return toBoundaryError(error, true);
+    return toBoundaryError(error);
   } catch {
     return redactToGeneric(error);
   }
@@ -129,7 +127,7 @@ export const fireOnError = (
     return;
   }
   try {
-    Promise.resolve(onError(toBoundaryError(error, true), info)).catch(logError);
+    Promise.resolve(onError(toBoundaryError(error), info)).catch(logError);
   } catch (e) {
     logError(e);
   }
@@ -147,9 +145,6 @@ export const isErrorFromDeferredSegment = (store: ErrorBoundaryStore): boolean =
 const ERROR_PHASE = /*#__PURE__*/ Symbol('qErrorPhase');
 
 export const tagErrorPhase = (err: unknown, phase: ErrorBoundaryInfo['phase']): void => {
-  if (err === null || (typeof err !== 'object' && typeof err !== 'function')) {
-    return;
-  }
   try {
     Object.defineProperty(err, ERROR_PHASE, { value: phase, configurable: true });
   } catch {
@@ -158,12 +153,7 @@ export const tagErrorPhase = (err: unknown, phase: ErrorBoundaryInfo['phase']): 
 };
 
 const getTaggedErrorPhase = (err: unknown): ErrorBoundaryInfo['phase'] | undefined =>
-  err !== null && (typeof err === 'object' || typeof err === 'function')
-    ? safeRead(
-        () => (err as { [ERROR_PHASE]?: ErrorBoundaryInfo['phase'] })[ERROR_PHASE],
-        undefined
-      )
-    : undefined;
+  safeRead(() => (err as { [ERROR_PHASE]?: ErrorBoundaryInfo['phase'] })?.[ERROR_PHASE], undefined);
 
 export const markBoundaryErrored = (
   store: ErrorBoundaryStore,

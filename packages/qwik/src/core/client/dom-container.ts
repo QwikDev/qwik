@@ -30,8 +30,6 @@ import {
   QContainerSelector,
   QCursorBoundary,
   QCtxAttr,
-  QErrorContentHost,
-  QErrorFallbackHost,
   QInstanceAttr,
   QLocaleAttr,
   QManifestHashAttr,
@@ -41,7 +39,6 @@ import {
   QStyle,
   QStyleSelector,
   QStylesAllSelector,
-  QSuspenseResultParent,
   Q_PROPS_SEPARATOR,
   USE_ON_LOCAL_SEQ_IDX,
   getQFuncs,
@@ -74,7 +71,6 @@ import {
 } from './types';
 import { mapArray_get, mapArray_has, mapArray_set } from './util-mapArray';
 import {
-  vnode_getDomParent,
   vnode_getProjectionParentOrParent,
   vnode_getProp,
   vnode_isProjection,
@@ -108,10 +104,6 @@ export function _getQContainerElement(element: Element): Element | null {
 export const isDomContainer = (container: any): container is DomContainer => {
   return container instanceof DomContainer;
 };
-
-const RESET_BOUNDARY_HOST_SELECTOR = [QErrorFallbackHost, QSuspenseResultParent, QErrorContentHost]
-  .map((marker) => `[${marker.replace(':', '\\:')}]`)
-  .join(',');
 
 function getOutOfOrderStreamingScript(boundaryId: number, content: Element | null) {
   const segmentId = String(boundaryId);
@@ -414,13 +406,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   }
 
   resetErrorBoundary(host: VNode): void {
-    let boundaryHost = this.resolveContextHost(host, ERROR_CONTEXT);
-    if (!boundaryHost) {
-      const hostEl = vnode_getDomParent(host, true)?.closest?.(RESET_BOUNDARY_HOST_SELECTOR);
-      boundaryHost = hostEl
-        ? this.resolveContextHost(this.vNodeLocate(hostEl), ERROR_CONTEXT)
-        : null;
-    }
+    const boundaryHost = this.resolveContextHost(host, ERROR_CONTEXT);
     if (!boundaryHost) {
       return;
     }
@@ -428,7 +414,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     if (!store) {
       return;
     }
-    const owner = this.getAuthorHost(boundaryHost) ?? (store.resetOwner as VNode | undefined);
+    const owner = this.getAuthorHost(boundaryHost);
     if (!owner) {
       return;
     }

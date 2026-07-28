@@ -23,10 +23,6 @@ import {
   type ErrorBoundaryStore,
 } from './error-handling';
 
-type ISsrComponentFrameLike = {
-  projectionComponentFrame?: { componentNode?: unknown } | null;
-};
-
 /** Structured metadata about a caught error, passed to `onError$`. @public @experimental */
 export interface ErrorBoundaryInfo {
   /** Where the caught error originated. */
@@ -130,23 +126,17 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
     store.boundaryId = getNextUniqueIndex(container);
   }
   const reset = /*#__PURE__*/ inlinedQrl(errorBoundaryReset, '_ebR', [host]);
-  const fallbackQrl = props.fallback$;
-  store.$fallback$ = noSerialize((error: unknown) => fallbackQrl(error as Error, reset));
-  const onErrorQrl = props.onError$;
-  store.$onError$ = onErrorQrl
-    ? noSerialize((error: unknown, info: ErrorBoundaryInfo) => onErrorQrl(error as Error, info))
-    : undefined;
 
   const isServerEnv = qTest ? isServerPlatform() : !isBrowser;
   if (__EXPERIMENTAL__.errorBoundary && isServerEnv) {
-    const ownerFrame = (
-      invokeCtx?.$container$ as
-        | { getComponentFrame?: (depth: number) => ISsrComponentFrameLike | null }
-        | undefined
-    )?.getComponentFrame?.(0);
-    store.resetOwner =
-      ownerFrame?.projectionComponentFrame?.componentNode ??
-      (host as { parentComponent?: unknown } | undefined)?.parentComponent;
+    const fallbackQrl = props.fallback$;
+    store.$fallback$ = noSerialize((error: unknown) => fallbackQrl(error as Error, reset));
+    const onErrorQrl = props.onError$;
+    store.$onError$ = onErrorQrl
+      ? noSerialize((error: unknown, info: ErrorBoundaryInfo) => onErrorQrl(error as Error, info))
+      : undefined;
+    // Retains the owner reference so it stays resumable for reset to re-render.
+    store.resetOwner = (host as { parentComponent?: unknown } | undefined)?.parentComponent;
     return buildErrorBoundaryHosts(store);
   }
 

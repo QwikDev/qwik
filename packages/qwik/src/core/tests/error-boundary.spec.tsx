@@ -1870,6 +1870,19 @@ describe('ErrorBoundary client re-derivation', () => {
     return <span id="healed">healed</span>;
   });
 
+  it('an SSR-errored boundary resumes with its owner component still re-renderable', async () => {
+    const App = withRerenderOwner(<Thrower message="owner retention boom" />);
+    const { container } = await ssrRenderToDom(<App />, { debug });
+    const el = container.element;
+    expect(el.querySelector('#fb')?.textContent).toContain('caught: owner retention boom');
+
+    await rerenderComponent(el.querySelector('#owner-anchor') as HTMLElement);
+    await waitForDrain(container);
+
+    expect(el.querySelector('#owner-anchor')).toBeTruthy();
+    expect(el.querySelector('#fb')?.textContent).toContain('caught: owner retention boom');
+  });
+
   it('re-rendering an SSR-errored boundary auto-recovers when the child no longer throws', async () => {
     const App = withRerenderOwner(<HealedThrower />);
     const { container } = await ssrRenderToDom(<App />, { debug });

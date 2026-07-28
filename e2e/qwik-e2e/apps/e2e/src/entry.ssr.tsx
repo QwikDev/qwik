@@ -12,20 +12,15 @@ export default function (opts: RenderToStreamOptions) {
   const outOfOrderParam = url.searchParams.get('outOfOrder');
   const outOfOrderStreaming =
     outOfOrderParam === 'false' ? false : url.pathname === '/e2e/suspense-ooos' ? true : undefined;
-  // 'direct' writes each chunk through, so mid-stream flush timing is observable in tests.
-  const inOrderDirect = url.searchParams.get('inOrderStrategy') === 'direct';
   const renderOpts: RenderToStreamOptions = {
     debug: true,
     ...opts,
     streaming:
-      outOfOrderStreaming === undefined && !inOrderDirect
+      outOfOrderStreaming === undefined
         ? opts.streaming
         : {
             ...opts.streaming,
-            ...(outOfOrderStreaming === undefined
-              ? undefined
-              : { outOfOrder: outOfOrderStreaming }),
-            ...(inOrderDirect ? { inOrder: { strategy: 'direct' as const } } : undefined),
+            outOfOrder: outOfOrderStreaming,
           },
   };
 

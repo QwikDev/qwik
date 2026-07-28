@@ -153,9 +153,7 @@ export async function _walkJSX(
           try {
             await retryOnPromise(() => stack.push(trackFn()));
           } catch (err) {
-            stack.push(
-              renderErrorBoundaryFallback(ssr, ssr.getOrCreateLastNode(), err, 'async-signal')
-            );
+            renderErrorBoundaryFallback(ssr, ssr.getOrCreateLastNode(), err, 'async-signal');
           }
           continue;
         }
@@ -170,7 +168,7 @@ export async function _walkJSX(
               await result;
             }
           } catch (err) {
-            stack.push(renderErrorBoundaryFallback(ssr, ssr.getOrCreateLastNode(), err));
+            renderErrorBoundaryFallback(ssr, ssr.getOrCreateLastNode(), err);
           }
           continue;
         }

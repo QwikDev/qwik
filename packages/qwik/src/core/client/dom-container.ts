@@ -425,11 +425,10 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       }
     }
     const owner = this.getAuthorHost(boundaryHost) ?? recordedAuthor;
-    // Without a renderable author, the boundary's own re-render re-attaches the projection and
-    // its unrendered components are re-scheduled there.
+    // An ownerless reset recovers through projection re-scheduling.
     owner && markVNodeDirty(this, owner, ChoreBits.COMPONENT);
     markVNodeDirty(this, boundaryHost, ChoreBits.COMPONENT);
-    // Projected children: only the recorded author's re-render can re-supply them.
+    // Only the recorded author can re-supply projected children.
     recordedAuthor && markVNodeDirty(this, recordedAuthor, ChoreBits.COMPONENT);
     store.error = undefined;
   }

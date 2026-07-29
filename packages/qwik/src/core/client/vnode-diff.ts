@@ -706,12 +706,7 @@ function descendContentToProject(
   descend(diffContext, projections, true);
 }
 
-/**
- * A projection's content survives the projection being moved, so re-attaching it schedules no work.
- * That is correct while the content's output is intact; when something destroyed the output (an
- * ErrorBoundary rendered its fallback), the component comes back empty and must re-render.
- * Unmaterialized subtrees are left alone — materialization owns them.
- */
+/** A moved projection schedules nothing; components with destroyed output must re-render. */
 function scheduleUnrenderedProjectedComponents(container: ClientContainer, vNode: VNode): void {
   if (vnode_isTextVNode(vNode)) {
     return;

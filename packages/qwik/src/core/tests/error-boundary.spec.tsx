@@ -1041,7 +1041,7 @@ describe('ErrorBoundary reset', () => {
     expect(el.querySelector('#retry-wrapped')).toBeFalsy();
   });
 
-  // The boundary is packaged INSIDE a component, so its children arrive through <Slot/> (#8881).
+  // Children arrive through <Slot/> (#8881).
   const BoxedBoundary = component$(() => (
     <ErrorBoundary fallback$={wrappedResetFb}>
       <Slot />

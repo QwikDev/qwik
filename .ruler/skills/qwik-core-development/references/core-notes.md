@@ -226,9 +226,9 @@ Invariants (stateless model):
 - Reset re-renders the AUTHOR: `getAuthorHost` walks projections on the client, skipping
   `_suC`/`_ebC` parents but stopping at an `_ebC` with an in-memory error (an errored boundary
   authors its fallback). Reset must work with `store.error` undefined — that IS the resumed errored
-  state. Nothing reads `store.resumableParent`; serializing it is what keeps that node's
-  `q:renderFn` emitted, so dropping the write turns reset into a silent no-op. Never mark a resumed boundary
-  directly: its SSR projection was abandoned, so rendering its Slot yields an empty subtree.
+  state. SSR retains the boundary's parent through `ssr.$retainForResume$`, which reset requires to
+  re-render it after resume. Never mark a resumed boundary directly: its SSR projection was
+  abandoned, so rendering its Slot yields an empty subtree.
 - Errored boundaries re-derive by re-running the children through the author re-render; a
   task-phase SSR throw does not re-derive (documented developer responsibility). `store.$onError$`
   is server-only; the client fires the serialized `props.onError$` — refire on client

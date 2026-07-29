@@ -11,7 +11,6 @@ export interface ErrorBoundaryStore {
   $fallback$?: (error: unknown) => unknown;
   $onError$?: (error: unknown, info: ErrorBoundaryInfo) => void;
   $emitFallback$?: (error: unknown) => void | Promise<void>;
-  resumableParent?: unknown;
   boundaryId?: string;
 }
 

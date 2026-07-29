@@ -171,6 +171,8 @@ export interface SSRContainer extends Container {
   emitOutOfOrderExecutorIfNeeded(): void;
   emitErrorSwapExecutorIfNeeded(): void;
   $registerErrorSwap$(boundaryId: number): void;
+  /** Emits the node's vnode data so it can still re-render after resume. */
+  $retainForResume$(node: ISsrNode | null | undefined): void;
   emitInlineScript(script: string): void;
   writeScript(attrs: Props, body?: string): void;
 

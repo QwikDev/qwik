@@ -1224,6 +1224,13 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
   }
 
+  $retainForResume$(node: ISsrNode | null | undefined): void {
+    if (node) {
+      this.addRoot(node);
+      this.markVNodeRefForSerialization(node);
+    }
+  }
+
   private markVNodeRefForSerialization(node: ISsrNode | null | undefined): void {
     if (node) {
       this.hasVNodeRefsForSerialization = true;

@@ -276,13 +276,17 @@ function markErrorBoundaryContentInert(
       markSubtreeInert(ssr, children[i], liveOwners, topmostSevered);
     }
   }
-  // A severed ancestor means the children were projected: only that ancestor's author can
-  // re-supply them, so reset must re-render it — and it must survive the wire to be able to.
+  // Reset resolves an author to re-render, and the walk may skip several ancestors, so every
+  // ancestor of an errored boundary must stay resumable. A severed ancestor means the children
+  // crossed that ancestor's slot: record its author for the client walk, which cannot see past
+  // the cut.
+  for (let n = boundaryNode.parentComponent; n; n = n.parentComponent) {
+    ssr.$retainForResume$(n);
+  }
   if (topmostSevered.node && topmostSevered.node !== boundaryNode) {
     const author = topmostSevered.node.parentComponent;
     if (author && author.id) {
       errorStore.authorId = author.id;
-      ssr.$retainForResume$(author);
     }
   }
 }

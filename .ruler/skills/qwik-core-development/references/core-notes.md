@@ -226,13 +226,14 @@ Invariants (stateless model):
 - Reset re-renders the AUTHOR: `getAuthorHost` walks projections on the client, skipping
   `_suC`/`_ebC` parents but stopping at an `_ebC` with an in-memory error (an errored boundary
   authors its fallback). Reset must work with `store.error` undefined — that IS the resumed errored
-  state. SSR retains the boundary's parent through `ssr.$retainForResume$`, which reset requires to
-  re-render it after resume. When the inert cut severs an ancestor's slot ref (the boundary's
-  children were projected), SSR records that ancestor's author in `store.authorId` and retains it;
-  reset re-renders the recorded author so it re-supplies the projected children. `expectSlot`
-  re-schedules a moved projection's component hosts that have no rendered output and no pending
-  render. Never mark a resumed boundary directly: its SSR projection was abandoned, so rendering
-  its Slot yields an empty subtree.
+  state. Retention is errored-only: the inert cut retains the errored boundary's ancestor chain
+  through `ssr.$retainForResume$`, so healthy boundaries serialize nothing extra. When the cut
+  severs an ancestor's slot ref (the children were projected), it records that ancestor's author in
+  `store.authorId` for the client walk, which cannot see past the cut. Reset re-renders the
+  resolved author when one is renderable and otherwise only the boundary; `expectSlot` re-schedules
+  a moved projection's component hosts that have no rendered output and no pending render. Never
+  mark a resumed errored boundary alone: its SSR projection was abandoned, so rendering its Slot
+  yields an empty subtree — boundary-only reset is safe only while the projection is intact.
 - Errored boundaries re-derive by re-running the children through the author re-render; a
   task-phase SSR throw does not re-derive (documented developer responsibility). `store.$onError$`
   is server-only; the client fires the serialized `props.onError$` — refire on client

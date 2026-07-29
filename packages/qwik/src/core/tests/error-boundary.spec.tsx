@@ -1067,6 +1067,26 @@ describe('ErrorBoundary reset', () => {
     expect(el.querySelector('#retry-wrapped')).toBeFalsy();
   });
 
+  it('a boundary healthy at SSR still resets after a client error post-resume', async () => {
+    const Healthy = component$(() => <button id="target">x</button>);
+    const App = withResetBoundary(<Healthy />);
+    const { container } = await ssrRenderToDom(<App />, { debug, ...IN_ORDER });
+    const el = container.element;
+    expect(el.querySelector('#target')).toBeTruthy();
+
+    dispatchQError(el.querySelector('#target')!, {
+      error: new Error('client boom'),
+      element: el.querySelector('#target')!,
+    });
+    await settleOnErrorDelivery(container);
+    expect(el.querySelector('#retry')).toBeTruthy();
+
+    await resetResumed(container);
+
+    expect(el.querySelector('#target')).toBeTruthy();
+    expect(el.querySelector('#retry')).toBeFalsy();
+  });
+
   it.each([
     ['in-order', IN_ORDER],
     ['OOOS', OOOS_OPT_IN],

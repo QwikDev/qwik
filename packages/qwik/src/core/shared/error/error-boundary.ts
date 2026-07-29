@@ -146,10 +146,6 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
         onErrorQrl(error as Error, info)
       );
     }
-    // Reset re-renders the parent, so it has to survive the wire even on a healthy boundary.
-    (container as { $retainForResume$?: (node: unknown) => void } | undefined)?.$retainForResume$?.(
-      (host as { parentComponent?: unknown } | undefined)?.parentComponent
-    );
     return buildErrorBoundaryHosts(store);
   }
 

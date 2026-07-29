@@ -416,21 +416,21 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     if (!store) {
       return;
     }
-    const owner = this.getAuthorHost(boundaryHost);
-    if (!owner) {
-      return;
-    }
-    markVNodeDirty(this, owner, ChoreBits.COMPONENT);
-    markVNodeDirty(this, boundaryHost, ChoreBits.COMPONENT);
+    let recordedAuthor: VNode | null = null;
     if (store.authorId) {
-      // Projected children: only the recorded author's re-render can re-supply them.
       try {
-        const author = this.vNodeLocate(store.authorId);
-        author && markVNodeDirty(this, author, ChoreBits.COMPONENT);
+        recordedAuthor = this.vNodeLocate(store.authorId);
       } catch {
         // ignore
       }
     }
+    const owner = this.getAuthorHost(boundaryHost) ?? recordedAuthor;
+    // Without a renderable author, the boundary's own re-render re-attaches the projection and
+    // its unrendered components are re-scheduled there.
+    owner && markVNodeDirty(this, owner, ChoreBits.COMPONENT);
+    markVNodeDirty(this, boundaryHost, ChoreBits.COMPONENT);
+    // Projected children: only the recorded author's re-render can re-supply them.
+    recordedAuthor && markVNodeDirty(this, recordedAuthor, ChoreBits.COMPONENT);
     store.error = undefined;
   }
 

@@ -10,7 +10,7 @@ import { createOwner } from '../../runtime/owner';
 import { Scheduler } from '../../runtime/scheduler';
 import { BranchRange } from '../branch/branch';
 import { createTextNodeEffect } from '../effect/text-effect';
-import { createContentBlock, createSuspense } from './content';
+import { createContentBlock, createSuspense, type ContentOutput } from './content';
 
 describe('ContentBlock', () => {
   it('renders initially and replaces content when a dependency changes', async () => {
@@ -26,6 +26,32 @@ describe('ContentBlock', () => {
     await content.scheduler.flushInteraction();
 
     expect(host.textContent).toBe('second');
+  });
+
+  it('renders a primitive output as a text node', async () => {
+    const value = useSignal('first');
+    const { content, host } = setup([value], (_document, _scheduler, signal) => signal.value);
+
+    content.run();
+    expect(host.textContent).toBe('first');
+
+    value.value = 'second';
+    await content.scheduler.flushInteraction();
+
+    expect(host.textContent).toBe('second');
+  });
+
+  it('renders nothing for a boolean output', async () => {
+    const value = useSignal(false);
+    const { content, host } = setup([value], (_document, _scheduler, signal) => signal.value);
+
+    content.run();
+    expect(host.textContent).toBe('');
+
+    value.value = true;
+    await content.scheduler.flushInteraction();
+
+    expect(host.textContent).toBe('');
   });
 
   it('keeps the old DOM while a returned promise is pending', async () => {
@@ -396,7 +422,7 @@ function setup<TArgs extends unknown[]>(
     document: Document,
     scheduler: Scheduler,
     ...args: TArgs
-  ) => Node | readonly Node[] | null | undefined | Promise<Node>
+  ) => ContentOutput | Promise<ContentOutput>
 ) {
   const document = createDocument({ html: '<div></div>' });
   const host = document.querySelector('div')!;

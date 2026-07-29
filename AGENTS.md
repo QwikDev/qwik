@@ -344,6 +344,34 @@ If dependencies, missing generated artifacts, or local environment constraints p
 test run, write the focused test first, record the blocker, and run the test as soon as the blocker
 is resolved.
 
+### Ambient State Across Async Boundaries
+
+Ambient state — the active invoke context, its context scope, the tracking collector — is only
+valid until the first `await`, `maybeThen`, or `.then()`. Capture it into a local **before** the
+boundary and use the captured value inside the callback. Never read it from the ambient getter
+inside a deferred callback.
+
+```ts
+// wrong: the QRL may resolve asynchronously and the context is gone by then
+return maybeThen(getFunctionOrResolve(qrl, container), () => {
+  const ctx = getActiveInvokeContextOrNull();
+});
+
+// right: read it while it is still active
+const ctx = getActiveInvokeContextOrNull();
+return maybeThen(getFunctionOrResolve(qrl, container), () => {
+  /* use ctx */
+});
+```
+
+When a helper is called from inside a callback, pass the captured value in as a parameter rather
+than letting the helper re-read it.
+
+This bites only after resume, because a QRL that is a local function in CSR becomes a lazily
+imported chunk on the client. **A green `csr` project proves nothing here — the same case must run
+in `resume`.** Symptoms are a missing context scope, a lost subscription, or state that silently
+falls back to a snapshot.
+
 ### Boundaries
 
 - Preserve user work and unrelated changes. Do not reset or revert unrelated files.

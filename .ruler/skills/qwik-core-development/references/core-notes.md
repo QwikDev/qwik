@@ -87,6 +87,18 @@ Async computeds serialize as `TypeIds.AsyncSignal`; synchronous computeds serial
 `TypeIds.ComputedSignal`. Selection uses `ComputedFlags.Async`, not class identity, so resumed and
 deprecated-adapter instances follow the same protocol.
 
+## Task Semantics (v3)
+
+- `useTask$`/`useVisibleTask$` auto-track every reactive read in the body; there is no `track` in
+  `TaskCtx`. A task that reads and writes the same store (`state.list.push(...)`, `state.log += x`)
+  re-triggers itself and its peers forever — wrap such mutations in `untrack()`.
+- The compiler drops `key` on components; remount patterns must use branch flips instead.
+- SSR serializes a `VisibleTaskSubscription` (wire `Phase.VisibleTask`) owned by the active SSR
+  scope; the qvisible/qinit attr captures reference it and `_visibleTask` only wakes it. Preserve
+  nested owner scopes so resume keeps both cleanup lifetimes and scheduler phase ordering.
+- `disposeOwner` tears down items in LIFO order so task cleanups can still read fresh values from
+  earlier-registered computeds.
+
 ## Compiler And QRL Boundaries
 
 - Use `$`-suffixed APIs and `$()` when a QRL boundary is expected.

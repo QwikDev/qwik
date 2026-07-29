@@ -11,6 +11,7 @@ import {
   useStyles$,
   useTask$,
   useVisibleTask$,
+  untrack,
   type Signal,
 } from '@qwik.dev/core';
 import { delay } from '../delay';
@@ -102,7 +103,8 @@ export const Eager = component$(() => {
   return (
     <div>
       <div id="eager-msg">{state.msg}</div>
-      <ClientSide key={state.msg} />
+      {/* Alternating branches remount ClientSide when msg changes (v3 ignores component key). */}
+      {state.msg === 'empty 0' ? <ClientSide /> : <ClientSide />}
     </div>
   );
 });
@@ -210,23 +212,26 @@ export const AsyncClientEffectBlockingIssue2015 = component$(() => {
     logs: [] as string[],
   });
 
+  // untrack: reading logs to push would auto-subscribe each task to its own writes.
   useVisibleTask$(async () => {
-    state.logs.push('start 1');
+    untrack(() => state.logs.push('start 1'));
     await delay(100);
-    state.logs.push('finish 1');
+    untrack(() => state.logs.push('finish 1'));
   });
 
   useVisibleTask$(async () => {
-    state.logs.push('start 2');
+    untrack(() => state.logs.push('start 2'));
     await delay(100);
-    state.logs.push('finish 2');
+    untrack(() => state.logs.push('finish 2'));
   });
 
   useVisibleTask$(async () => {
-    state.logs.push('start 3');
+    untrack(() => state.logs.push('start 3'));
     await delay(100);
-    state.logs.push('finish 3');
-    state.logs = state.logs.slice();
+    untrack(() => {
+      state.logs.push('finish 3');
+      state.logs = state.logs.slice();
+    });
   });
 
   return <div id="issue-2015-order">Order: {state.logs.join(' ')}</div>;
@@ -258,7 +263,12 @@ export const CleanupEffects = component$(() => {
 
   return (
     <>
-      <CleanupEffectsChild nuCleanups={nuCleanups} key={counter.value} />
+      {/* Alternating branches remount the child on every click (v3 ignores component key). */}
+      {counter.value % 2 === 0 ? (
+        <CleanupEffectsChild nuCleanups={nuCleanups} />
+      ) : (
+        <CleanupEffectsChild nuCleanups={nuCleanups} />
+      )}
       <button id="cleanup-effects-button" onClick$={() => counter.value++}>
         Add
       </button>
@@ -308,11 +318,12 @@ export const VisibleTaskAfterDestructionIssue4432Child = component$(() => {
   const pathname = useComputed$(() => state.url.pathname);
 
   useVisibleTask$(
-    ({ track, cleanup }) => {
-      track(() => pathname.value);
+    ({ cleanup }) => {
+      // Auto-tracked read; untrack the log write so the task does not subscribe to its own output.
+      const path = pathname.value;
 
       // This should only run on page load for path '/'
-      state.logs += `VisibleTask ChildA ${pathname.value}\n`;
+      untrack(() => (state.logs += `VisibleTask ChildA ${path}\n`));
 
       // This should only run when leaving the page
       cleanup(() => {

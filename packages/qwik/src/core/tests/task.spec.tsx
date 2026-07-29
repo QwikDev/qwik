@@ -1,5 +1,5 @@
 import { component$, Suspense } from '@qwik.dev/core';
-import { useSignal, useTask$, useVisibleTask$ } from '@qwik.dev/core';
+import { useComputed$, useSignal, useStore, useTask$, useVisibleTask$ } from '@qwik.dev/core';
 import { describe, expect, it, vi } from 'vitest';
 import { testRenderer } from '../test-utils';
 
@@ -351,6 +351,107 @@ describe(`${name}: task`, () => {
     await qwikLoader?.dispatch(button, 'click');
     expect(button.textContent).toBe('visible:1');
 
+    cleanup();
+  });
+
+  it('visible task runs cleanup on unmount after resume', async () => {
+    const Child = component$((props: { cleanupCount: { value: number } }) => {
+      useVisibleTask$(({ cleanup }) => {
+        cleanup(() => {
+          props.cleanupCount.value++;
+        });
+      });
+
+      return <span id="visible-cleanup-child">Child</span>;
+    });
+
+    const App = component$(() => {
+      const show = useSignal(true);
+      const cleanupCount = useSignal(0);
+
+      return (
+        <button onClick$={() => (show.value = !show.value)}>
+          {show.value ? <Child cleanupCount={cleanupCount} /> : 'empty'}
+          <b>{cleanupCount.value}</b>
+        </button>
+      );
+    });
+
+    const { container, cleanup, flush, qwikLoader } = await render(App, { debug });
+    const button = container.querySelector('button')!;
+
+    await qwikLoader?.dispatch(container.querySelector('#visible-cleanup-child')!, 'qvisible');
+    await flush();
+    await qwikLoader?.dispatch(button, 'click');
+    await flush();
+
+    expect(container.querySelector('b')?.textContent).toBe('1');
+
+    cleanup();
+  });
+
+  it('visible task cleanup reads fresh computed values', async () => {
+    const Child = component$((props: { state: { url: string; logs: string } }) => {
+      const pathname = useComputed$(() => props.state.url);
+
+      useVisibleTask$(({ cleanup }) => {
+        void pathname.value;
+        cleanup(() => {
+          props.state.logs += `cleanup ${pathname.value};`;
+        });
+      });
+
+      return <p id="fresh-cleanup-child">child</p>;
+    });
+
+    const App = component$(() => {
+      const state = useStore({ url: '/', logs: '' });
+
+      return (
+        <button onClick$={() => (state.url = '/other')}>
+          {state.url === '/' && <Child state={state} />}
+          <b>{state.logs}</b>
+        </button>
+      );
+    });
+
+    const { container, cleanup, flush, qwikLoader } = await render(App, { debug });
+    const button = container.querySelector('button')!;
+
+    await qwikLoader?.dispatch(container.querySelector('#fresh-cleanup-child')!, 'qvisible');
+    await flush();
+    await qwikLoader?.dispatch(button, 'click');
+    await flush();
+
+    expect(container.querySelector('b')?.textContent).toBe('cleanup /other;');
+
+    cleanup();
+  });
+
+  it('task reading a computed for the first time runs once', async () => {
+    (globalThis as any).__computedTaskRuns = [] as string[];
+
+    const App = component$(() => {
+      const source = useSignal('/');
+      const path = useComputed$(() => source.value);
+
+      useVisibleTask$(() => {
+        (globalThis as any).__computedTaskRuns.push(path.value);
+      });
+
+      return <p>ready</p>;
+    });
+
+    const { container, cleanup, flush, qwikLoader } = await render(App, { debug });
+    const paragraph = container.querySelector('p')!;
+
+    await qwikLoader?.dispatch(paragraph, 'qvisible');
+    await flush();
+    await flush();
+
+    expect((globalThis as any).__computedTaskRuns).toEqual(['/']);
+
+    delete (globalThis as any).__computedTaskRuns;
     cleanup();
   });
 });

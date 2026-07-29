@@ -421,7 +421,8 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
   }
 
   private publishValue(value: T): void {
-    const changed = !(this.flags & ComputedFlags.HasValue) || !Object.is(this.v, value);
+    // First materialization is not a change: no subscriber saw an older value.
+    const changed = !!(this.flags & ComputedFlags.HasValue) && !Object.is(this.v, value);
     this.v = value;
     this.flags |= ComputedFlags.HasValue;
     if (changed) {

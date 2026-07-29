@@ -17,6 +17,8 @@ import type {
 
 export const enum Phase {
   BlockingTask = 0,
+  // Serialization marker only; visible tasks flush by subscriber kind.
+  VisibleTask = 1,
   DeferredTask = 4,
 }
 

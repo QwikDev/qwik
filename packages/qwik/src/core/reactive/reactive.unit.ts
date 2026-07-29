@@ -92,7 +92,8 @@ describe('reactive primitives', () => {
     expect(runs).toBe(1);
     expect(doubled.value).toBe(4);
     expect(runs).toBe(2);
-    expect(doubled.version).toBe(2);
+    // Version counts value changes; the first materialization does not bump it.
+    expect(doubled.version).toBe(1);
   });
 
   it('supports async computed values and keeps stale values while pending', async () => {

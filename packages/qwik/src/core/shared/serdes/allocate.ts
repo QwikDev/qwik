@@ -11,7 +11,7 @@ import { useStore, StorePropSource, unwrapStore } from '../../reactive/store';
 import type { ContainerContext } from '../../runtime/container-context';
 import { createContextScope } from '../../runtime/context-scope';
 import { createProjection, createSlotScope } from '../../dom/slot/slot';
-import { Task, TaskSubscription } from '../../runtime/task';
+import { Task, TaskSubscription, VisibleTask, VisibleTaskSubscription } from '../../runtime/task';
 import { Phase } from '../../runtime/scheduler';
 import { qError, QError } from '../error/error';
 import type { QRLInternal } from '../qrl/qrl-class';
@@ -192,8 +192,21 @@ export const allocate = (
       }
       return new DomSubscription(null!, context.scheduler);
     }
-    case TypeIds.Task:
-      return new TaskSubscription(new Task(undefined, Phase.BlockingTask, undefined, context));
+    case TypeIds.Task: {
+      const phase = Array.isArray(value) ? value[1] : undefined;
+      switch (phase) {
+        case Phase.BlockingTask:
+        case Phase.DeferredTask:
+          return new TaskSubscription(new Task(undefined, phase, undefined, context));
+        case Phase.VisibleTask:
+          return new VisibleTaskSubscription(
+            new VisibleTask(undefined, undefined, context),
+            context.scheduler
+          );
+        default:
+          throw new Error(`Invalid serialized task phase ${String(phase)}.`);
+      }
+    }
     case TypeIds.ContextScope:
       return createContextScope(null);
     case TypeIds.SlotScope:

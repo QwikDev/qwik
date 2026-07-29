@@ -2,7 +2,7 @@ import { isDev } from '@qwik.dev/core/build';
 import { NEEDS_COMPUTATION } from '../../reactive/constants';
 import type { AsyncSignalOptions } from '../../reactive/public-types';
 import { Branch, BranchRange, BranchSubscription } from '../../dom/branch/branch';
-import { ContentBlock, ContentSubscription } from '../../dom/content/content';
+import { ContentBlock, ContentSubscription, type ContentOutput } from '../../dom/content/content';
 import { ForBlock, ForRange } from '../../dom/for/for';
 import {
   AttrEffect,
@@ -40,9 +40,15 @@ import type { ContextScope } from '../../runtime/context-scope';
 import { newInvokeContext, type RuntimeInvokeContext } from '../../runtime/invoke-context';
 import type { UseOnMap } from '../../runtime/use-on';
 import type { Projection, SlotScope } from '../../dom/slot/slot';
-import { createOwner, registerSubscriberToOwner } from '../../runtime/owner';
+import { createOwner, registerSubscriberToOwner, type Owner } from '../../runtime/owner';
 import { Phase } from '../../runtime/scheduler';
-import { Task, TaskSubscription, type TaskQrlRef } from '../../runtime/task';
+import {
+  Task,
+  TaskSubscription,
+  VisibleTask,
+  VisibleTaskSubscription,
+  type TaskQrlRef,
+} from '../../runtime/task';
 import {
   findBranchRange,
   findBranchTextNode,
@@ -60,12 +66,12 @@ import {
   type DomSubscriber,
   type Subscriber,
   type TaskSubscriber,
+  type VisibleTaskSubscriber,
 } from '../../runtime/subscriber';
 import { getFunctionOrResolve, readExpression } from '../../utils/qrl';
 import { isQrl } from '../qrl/qrl-utils';
 import { readTrackedSourceValue } from '../../dom/effect/text-effect';
 import type { QRL } from '../qrl/qrl.public';
-import type { MaybeNodeOutput } from '../../utils/nodes';
 import { assertDefined, assertNumber } from '../error/assert';
 import { qError, QError } from '../error/error';
 import { withCaptures } from '../qrl/qrl-captures';
@@ -75,6 +81,7 @@ import type { ValueOrPromise } from '../utils/types';
 import { allocate, pendingStoreTargets, resolvers } from './allocate';
 import { EMPTY_OBJECT_PAYLOAD, TypeIds } from './constants';
 import { needsInflation } from './deser-proxy';
+import type { SerializedOwnerItems } from './serialize';
 import { _props, restorePropsProxySource } from '../../component/props';
 
 export { allocate, needsInflation };
@@ -439,12 +446,37 @@ const inflateResolved = (
     }
     case TypeIds.Task: {
       ensureDeserializedOwner(target as Subscriber);
-      const subscription = target as Writeable<TaskSubscription>;
       const parts = data as unknown[];
-      const phase = parts[0] as Phase.BlockingTask | Phase.DeferredTask;
+      const phase = parts[0];
       const qrl = parts[1] as TaskQrlRef;
       const deps = parts[2] as Source[];
-      subscription.task = new Task(undefined, phase, qrl, container);
+      const subscription = target as TaskSubscription | VisibleTaskSubscription;
+      switch (phase) {
+        case Phase.BlockingTask:
+        case Phase.DeferredTask:
+          if (!(subscription instanceof TaskSubscription)) {
+            throw new Error(`Invalid task subscription for phase ${phase}.`);
+          }
+          (subscription as Writeable<TaskSubscription>).task = new Task(
+            undefined,
+            phase,
+            qrl,
+            container
+          );
+          break;
+        case Phase.VisibleTask:
+          if (!(subscription instanceof VisibleTaskSubscription)) {
+            throw new Error(`Invalid task subscription for phase ${phase}.`);
+          }
+          (subscription as Writeable<VisibleTaskSubscription>).task = new VisibleTask(
+            undefined,
+            qrl,
+            container
+          );
+          break;
+        default:
+          throw new Error(`Invalid serialized task phase ${String(phase)}.`);
+      }
       restoreDependencies(subscription, deps);
       break;
     }
@@ -465,7 +497,7 @@ async function restoreBranchSubscription(
   const thenQrl = parts[5] as QRLInternal<(ctx: ContainerContext) => readonly Node[]>;
   const elseQrl =
     (parts[6] as QRLInternal<(ctx: ContainerContext) => readonly Node[]> | null) ?? undefined;
-  const ownedSubscribers = parts[7] as Subscriber[] | undefined;
+  const ownedItems = parts[7] as SerializedOwnerItems | undefined;
   const slotScope = (parts[8] as SlotScope | null | undefined) ?? null;
   const useOnScopes = parts[9] as UseOnMap[] | null | undefined;
   const idBase = (parts[10] as string | null | undefined) ?? '';
@@ -491,12 +523,10 @@ async function restoreBranchSubscription(
   );
   restoreDependencies(subscription, deps);
 
-  if (Array.isArray(ownedSubscribers) && ownedSubscribers.length > 0) {
+  if (Array.isArray(ownedItems) && ownedItems.length > 0) {
     const owner = createOwner(subscription.owner);
     subscription.branch.currentOwner = owner;
-    for (let i = 0; i < ownedSubscribers.length; i++) {
-      registerSubscriberToOwner(ownedSubscribers[i], owner);
-    }
+    restoreOwnerItems(ownedItems, owner);
   }
 }
 
@@ -558,10 +588,8 @@ async function restoreContentSubscription(
   const rangeId = parts[1] as number;
   const deps = parts[2] as Source[];
   const args = parts[3] as unknown[];
-  const renderQrl = parts[4] as QRLInternal<
-    (...args: unknown[]) => ValueOrPromise<MaybeNodeOutput>
-  >;
-  const ownedSubscribers = parts[5] as Subscriber[] | undefined;
+  const renderQrl = parts[4] as QRLInternal<(...args: unknown[]) => ValueOrPromise<ContentOutput>>;
+  const ownedItems = parts[5] as SerializedOwnerItems | undefined;
   const slotScope = (parts[6] as SlotScope | null | undefined) ?? null;
   const useOnScopes = parts[7] as UseOnMap[] | null | undefined;
   const contextArg = parts[8] === true;
@@ -588,11 +616,20 @@ async function restoreContentSubscription(
   );
   restoreDependencies(subscription, deps);
 
-  if (Array.isArray(ownedSubscribers) && ownedSubscribers.length > 0) {
+  if (Array.isArray(ownedItems) && ownedItems.length > 0) {
     const owner = createOwner(subscription.owner);
     subscription.block.currentOwner = owner;
-    for (let i = 0; i < ownedSubscribers.length; i++) {
-      registerSubscriberToOwner(ownedSubscribers[i], owner);
+    restoreOwnerItems(ownedItems, owner);
+  }
+}
+
+function restoreOwnerItems(items: SerializedOwnerItems, owner: Owner): void {
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    if (Array.isArray(item)) {
+      restoreOwnerItems(item, createOwner(owner));
+    } else {
+      registerSubscriberToOwner(item, owner);
     }
   }
 }
@@ -904,6 +941,7 @@ function restoreDependencies(
     | ForBlockSubscription
     | ContentSubscription
     | TaskSubscriber
+    | VisibleTaskSubscriber
     | ComputedSubscriber<unknown>
     | AsyncSignal<unknown>
     | SerializerSignal<unknown, unknown>,

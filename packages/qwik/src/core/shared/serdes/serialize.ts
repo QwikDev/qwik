@@ -28,7 +28,8 @@ import {
 import { isLazySerialized } from '../../reactive/lazy-serialized';
 import type { Source, SourceSubs } from '../../reactive/source';
 import { isContextScope } from '../../runtime/context-scope';
-import { TaskSubscription } from '../../runtime/task';
+import { TaskSubscription, VisibleTaskSubscription } from '../../runtime/task';
+import { Phase } from '../../runtime/scheduler';
 import { isProjection, isSlotScope, type Projection, type SlotScope } from '../../dom/slot/slot';
 import { getPropsProxySource, getPropsSources } from '../../component/props';
 import { Owner } from '../../runtime/owner';
@@ -54,6 +55,8 @@ import { qrlToString } from './qrl-to-string';
 import { SerializationBackRef } from './serialization-back-ref';
 import type { SeenRef, SerializationContext } from './serialization-context';
 import { fastSkipSerialize, SerializerSymbol } from './verify';
+
+export type SerializedOwnerItems = Array<Subscriber | SerializedOwnerItems>;
 
 const MAX_INLINE_ARRAY_ITEMS = 64;
 
@@ -538,7 +541,7 @@ export class Serializer {
       value instanceof SsrContentSubscription
     ) {
       this.output(TypeIds.EffectSubscription, serializeEffectSubscription(value));
-    } else if (value instanceof TaskSubscription) {
+    } else if (value instanceof TaskSubscription || value instanceof VisibleTaskSubscription) {
       this.output(TypeIds.Task, serializeTaskSubscription(value));
     } else if (isContextScope(value)) {
       const out: unknown[] = [value.parent ?? null];
@@ -1033,8 +1036,12 @@ function serializeEffectSubscription(
   return serializeDomSubscription(subscription);
 }
 
-function serializeTaskSubscription(subscription: TaskSubscription): unknown[] {
-  return [subscription.task.phase, subscription.task.qrl, serializeDeps(subscription.deps)];
+function serializeTaskSubscription(
+  subscription: TaskSubscription | VisibleTaskSubscription
+): unknown[] {
+  const phase =
+    subscription instanceof VisibleTaskSubscription ? Phase.VisibleTask : subscription.task.phase;
+  return [phase, subscription.task.qrl, serializeDeps(subscription.deps)];
 }
 
 function serializeBranchSubscription(subscription: SsrBranchSubscription): unknown[] {
@@ -1048,27 +1055,32 @@ function serializeBranchSubscription(subscription: SsrBranchSubscription): unkno
     effect.conditionQrl,
     effect.thenQrl,
     effect.elseQrl ?? null,
-    getSsrOwnedSubscribers(subscription.effect.currentOwner),
+    getSsrOwnerItems(subscription.effect.currentOwner),
     effect.invokeContext?.slotScope ?? null,
     effect.useOnRoot ? serializeUseOnScopes(effect.invokeContext) : null,
     effect.idBase,
   ];
 }
 
-function getSsrOwnedSubscribers(owner: Owner | null): readonly Subscriber[] {
+function getSsrOwnerItems(owner: Owner | null): SerializedOwnerItems {
   const items = owner?.items;
-  if (items === null || items === undefined) {
+  if (items == null) {
     return EMPTY_ARRAY;
   }
 
-  const subscribers: Subscriber[] = [];
+  const out: Array<Subscriber | SerializedOwnerItems> = [];
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
-    if (!(item instanceof Owner)) {
-      subscribers.push(item);
+    if (item instanceof Owner) {
+      const childItems = getSsrOwnerItems(item);
+      if (childItems.length > 0) {
+        out.push(childItems);
+      }
+    } else {
+      out.push(item);
     }
   }
-  return subscribers;
+  return out;
 }
 
 function serializeContentSubscription(subscription: SsrContentSubscription): unknown[] {
@@ -1079,7 +1091,7 @@ function serializeContentSubscription(subscription: SsrContentSubscription): unk
     serializeDeps(subscription.deps),
     content.args,
     content.qrl,
-    getSsrOwnedSubscribers(content.currentOwner),
+    getSsrOwnerItems(content.currentOwner),
     content.invokeContext?.slotScope ?? null,
     content.useOnRoot ? serializeUseOnScopes(content.invokeContext) : null,
     content.contextArg,

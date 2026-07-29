@@ -101,7 +101,8 @@ export function disposeOwner(owner: Owner): void {
   const items = owner.items;
   owner.items = null;
   if (items !== null) {
-    for (let i = 0; i < items.length; i++) {
+    // LIFO: later items may read earlier ones (task cleanup reading a computed).
+    for (let i = items.length - 1; i >= 0; i--) {
       const item = items[i];
       if (item instanceof Owner) {
         disposeOwner(item);

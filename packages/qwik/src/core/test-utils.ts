@@ -404,7 +404,7 @@ export function useTaskSubscriber(
   scheduler: Scheduler,
   label: string,
   order: string[],
-  phase = Phase.BlockingTask
+  phase: Phase.BlockingTask | Phase.DeferredTask = Phase.BlockingTask
 ): TaskSubscriber {
   return registerSubscriberToOwner(
     new TaskSubscription(new Task(() => order.push(label), phase), scheduler),

@@ -28,9 +28,10 @@ import { createContentRange, replaceRange } from '../range/range';
 import { reapplyUseOnContexts } from '../../runtime/use-on';
 import type { BranchRange } from '../branch/branch';
 
+export type ContentOutput = MaybeNodeOutput | string | number | bigint | boolean;
 type ContentFn<TArgs extends unknown[] = unknown[]> = (
   ...args: TArgs
-) => ValueOrPromise<MaybeNodeOutput>;
+) => ValueOrPromise<ContentOutput>;
 type SsrContentFn<TArgs extends unknown[] = unknown[]> = (
   ...args: TArgs
 ) => ValueOrPromise<SsrOutput>;
@@ -45,6 +46,19 @@ export interface SuspenseProps {
 
 /** @public */
 export const Suspense: FunctionComponent<SuspenseProps & { children?: JSXOutput }> = () => null;
+
+function normalizeContentOutput(document: Document, output: ContentOutput): MaybeNodeOutput {
+  switch (typeof output) {
+    case 'string':
+    case 'number':
+    case 'bigint':
+      return document.createTextNode(String(output));
+    case 'boolean':
+      return null;
+    default:
+      return output;
+  }
+}
 
 export class ContentBlock<TArgs extends unknown[] = unknown[]> {
   currentOwner: Owner | null = null;
@@ -84,7 +98,7 @@ export class ContentBlock<TArgs extends unknown[] = unknown[]> {
             runWithCollector(subscription, () =>
               invokeApply(
                 invokeContext,
-                fn as (...args: unknown[]) => ValueOrPromise<MaybeNodeOutput>,
+                fn as (...args: unknown[]) => ValueOrPromise<ContentOutput>,
                 this.contextArg ? [this.container, ...this.args] : this.args
               )
             )
@@ -131,8 +145,10 @@ export class ContentBlock<TArgs extends unknown[] = unknown[]> {
     replaceRange(this.document, this.start, this.end, this.range, EMPTY_NODES);
   }
 
-  private commit(invokeContext: RuntimeInvokeContext, output: MaybeNodeOutput): readonly Node[] {
+  private commit(invokeContext: RuntimeInvokeContext, output: ContentOutput): readonly Node[] {
     const previousOwner = this.currentOwner;
+    // Expression segments may return primitives; SSR emits them as text.
+    output = normalizeContentOutput(this.document, output);
     const nodes = toNodes(
       this.useOnRoot && this.committed
         ? reapplyUseOnContexts(output, this.invokeContext, this.document)

@@ -5,9 +5,14 @@ import { assertQrl } from './shared/qrl/qrl-utils';
 import { retryOnPromise } from './shared/utils/promises';
 import type { ValueOrPromise } from './shared/utils/types';
 import { getOrCreateContainerContext, type ContainerContext } from './runtime/container-context';
-import { useVisibleTaskQrl, type TaskQrlRef } from './runtime/task';
-import { createOwner } from './runtime/owner';
-import { invoke, newInvokeContext, type RuntimeInvokeContext } from './runtime/invoke-context';
+import { VisibleTask, VisibleTaskSubscription, type TaskQrlRef } from './runtime/task';
+import { registerSubscriberToOwner } from './runtime/owner';
+import {
+  getActiveInvokeContextOrNull,
+  invoke,
+  newInvokeContext,
+  type RuntimeInvokeContext,
+} from './runtime/invoke-context';
 
 export { _captures };
 export { withCaptures as _withCaptures };
@@ -62,10 +67,20 @@ function runCapturedQrl(
     );
 }
 
+// Emitted only by SSR output; always runs on the server.
 export function createVisibleTaskHandlerQrl(
   qrl: QRLInternal
 ): QRLInternal<(event: Event, element: Element) => ValueOrPromise<void>> {
-  return createQRL(null, '_visibleTask', _visibleTask, null, [qrl]);
+  // Serialize the subscription owned by the active SSR scope, so disposing
+  // that scope on the client runs the resumed task's cleanups.
+  const container = getActiveInvokeContextOrNull()?.container;
+  const subscription = registerSubscriberToOwner(
+    new VisibleTaskSubscription(
+      new VisibleTask(undefined, qrl as TaskQrlRef, container),
+      container?.scheduler
+    )
+  );
+  return createQRL(null, '_visibleTask', _visibleTask, null, [subscription]);
 }
 
 export function _visibleTask(this: string, _event: Event, element: Element): ValueOrPromise<void> {
@@ -76,16 +91,14 @@ export function _visibleTask(this: string, _event: Event, element: Element): Val
   if (typeof this === 'string') {
     return context.restoreCaptures(this).then((captures) => {
       setCaptures(captures);
-      runCapturedVisibleTask(captures, context);
+      runCapturedVisibleTask(captures);
     });
   }
-  runCapturedVisibleTask(_captures!, context);
+  runCapturedVisibleTask(_captures!);
 }
 
-function runCapturedVisibleTask(captures: Readonly<unknown[]>, context: ContainerContext): void {
-  const qrlToRun = captures[0] as TaskQrlRef;
-  isDev && assertQrl(qrlToRun);
-  invoke(newInvokeContext({ owner: createOwner(null), container: context }), () => {
-    useVisibleTaskQrl(qrlToRun);
-  });
+function runCapturedVisibleTask(captures: Readonly<unknown[]>): void {
+  // Resumed subscription already sits in the restored owner tree; just wake it.
+  const subscription = captures[0] as VisibleTaskSubscription;
+  subscription.scheduler.notify(subscription);
 }

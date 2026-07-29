@@ -6,6 +6,7 @@ import { isQrl } from '../qrl/qrl-utils';
 import { Computed } from '../../reactive/computed';
 import { Signal } from '../../reactive/signal';
 import { isStore, StorePropSource } from '../../reactive/store';
+import { VisibleTaskSubscription } from '../../runtime/task';
 
 /** @internal */
 export const verifySerializable = <T>(value: T, preMessage?: string): T => {
@@ -126,6 +127,7 @@ const isKnownSerializableValue = (value: unknown): boolean => {
   const hasTemporal = typeof Temporal !== 'undefined';
   return (
     isPromise(value) ||
+    value instanceof VisibleTaskSubscription ||
     value instanceof Error ||
     value instanceof URL ||
     value instanceof Date ||

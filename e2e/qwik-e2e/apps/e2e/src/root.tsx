@@ -6,8 +6,7 @@ import { BuildVariables } from './components/build-variables/build';
 import { ComputedRoot } from './components/computed/computed';
 import { Containers } from './components/containers/container';
 import { ContextRoot } from './components/context/context';
-// Compiler emits forward component aliases before their declarations.
-// import { EffectClient } from './components/effect-client/effect-client';
+import { EffectClient } from './components/effect-client/effect-client';
 import { Events } from './components/events/events';
 import { EventsClient } from './components/events/events-client';
 // import { RenderExceptions, UseTaskExceptions } from './components/exceptions';
@@ -70,7 +69,7 @@ export const Root = component$<{ pathname: string }>(({ pathname }) => {
       {pathname === '/e2e/container' && <Containers />}
       {/* {pathname === '/e2e/factory' && <Factory />} */}
       {pathname === '/e2e/watch' && <Watch />}
-      {/* {pathname === '/e2e/effect-client' && <EffectClient />} */}
+      {pathname === '/e2e/effect-client' && <EffectClient />}
       {pathname === '/e2e/context' && <ContextRoot />}
       {pathname === '/e2e/toggle' && <Toggle />}
       {pathname === '/e2e/styles' && <Styles />}

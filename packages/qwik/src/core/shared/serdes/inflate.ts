@@ -405,11 +405,12 @@ const inflateResolved = (
       }
       break;
     case TypeIds.EffectSubscription: {
-      ensureDeserializedOwner(target as Subscriber);
+      const subscription = target as Subscriber;
       const parts = data as unknown[];
       const kind = parts[0] as EffectKind;
       switch (kind) {
         case EffectKind.Branch: {
+          ensureDeserializedOwner(subscription);
           return restoreBranchSubscription(
             container,
             target as Writeable<BranchSubscription>,
@@ -417,6 +418,7 @@ const inflateResolved = (
           );
         }
         case EffectKind.ForBlock: {
+          ensureDeserializedOwner(subscription);
           return restoreForBlockSubscription(
             container,
             target as Writeable<ForBlockSubscription>,
@@ -424,6 +426,7 @@ const inflateResolved = (
           );
         }
         case EffectKind.Content: {
+          ensureDeserializedOwner(subscription);
           return restoreContentSubscription(
             container,
             target as Writeable<ContentSubscription>,
@@ -434,10 +437,16 @@ const inflateResolved = (
         case EffectKind.TextExpression:
         case EffectKind.Attr:
         case EffectKind.Props: {
-          return restoreDomSubscription(container, target as Writeable<DomSubscriber>, parts);
+          return restoreDomSubscription(container, target as Writeable<DomSubscriber>, parts).then(
+            () => ensureDeserializedOwner(subscription)
+          );
         }
         case EffectKind.DomBatch: {
-          return restoreDomBatchSubscription(container, target as Writeable<DomSubscriber>, parts);
+          return restoreDomBatchSubscription(
+            container,
+            target as Writeable<DomSubscriber>,
+            parts
+          ).then(() => ensureDeserializedOwner(subscription));
         }
         default:
           throw qError(QError.serializeErrorNotImplemented, [kind]);

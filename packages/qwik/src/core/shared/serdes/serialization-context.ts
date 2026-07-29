@@ -6,6 +6,11 @@ import { createStringSerdesWriter, type SerdesWriter } from './writer';
 
 type DomRef = { $nodeId$: string | number };
 type SymbolToChunkResolver = (symbol: string) => string;
+type QrlMapper = (
+  symbol: string,
+  chunk: string | null,
+  parent?: string
+) => readonly [symbol: string, chunk: string] | undefined;
 type ObjToProxyMap = WeakMap<object, object>;
 
 /** Stores the location of an object. If no parent, it's a root. */
@@ -38,6 +43,7 @@ export interface SerializationContext {
   ) => ValueOrPromise<void>;
 
   $symbolToChunkResolver$: SymbolToChunkResolver;
+  $qrlMapper$?: QrlMapper;
 
   /**
    * Map from object to parent and index reference.

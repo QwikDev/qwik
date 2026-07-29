@@ -27,11 +27,9 @@ export function qrlToString(
   let symbol = qrl.$symbol$;
   let chunk = qrl.$chunk$;
 
-  const platform = getPlatform();
-  if (platform) {
-    const result = isDev
-      ? platform.chunkForSymbol(symbol, chunk, qrl.dev?.file)
-      : platform.chunkForSymbol(symbol, chunk);
+  const qrlMapper = serializationContext.$qrlMapper$ ?? getPlatform()?.chunkForSymbol;
+  if (qrlMapper) {
+    const result = isDev ? qrlMapper(symbol, chunk, qrl.dev?.file) : qrlMapper(symbol, chunk);
     if (result) {
       chunk = result[1];
       symbol = result[0];

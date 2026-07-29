@@ -126,7 +126,8 @@ export const renderToStreamCompiled = async <Props = undefined>(
 ): Promise<RenderToStreamResult> => {
   const previousPlatform = getPlatform();
   const resolvedManifest = resolveManifest(opts.manifest);
-  setPlatform(createPlatform(opts, resolvedManifest));
+  const platform = createPlatform(opts, resolvedManifest);
+  setPlatform(platform);
   const rootInvokeContext = newInvokeContext();
 
   try {
@@ -151,6 +152,7 @@ export const renderToStreamCompiled = async <Props = undefined>(
       () => {},
       new WeakMap<any, any>()
     );
+    serializationCtx.$qrlMapper$ = platform.chunkForSymbol;
     const scripts = new SsrScriptEmitter({
       debug: opts.debug,
       nonce: opts.serverData?.nonce,

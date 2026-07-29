@@ -4,8 +4,10 @@ type StatusProps = {
   class?: string;
   dotPosition?: 'start' | 'end';
   label: string;
-  tone?: 'danger' | 'success' | 'warning';
+  tone?: StatusTone;
 };
+
+type StatusTone = 'danger' | 'success' | 'warning';
 
 const toneClasses = {
   danger: 'bg-editorial-danger',
@@ -13,15 +15,17 @@ const toneClasses = {
   warning: 'bg-editorial-warning',
 };
 
+export const StatusDot = component$<{ class?: string; tone?: StatusTone }>(
+  ({ class: className, tone = 'success' }) => (
+    <span
+      class={['h-2 w-2 shrink-0 rounded-editorial-full', toneClasses[tone], className]}
+      aria-hidden="true"
+    />
+  )
+);
+
 export default component$<StatusProps>(
   ({ class: className, dotPosition = 'start', label, tone = 'success' }) => {
-    const dot = (
-      <span
-        class={['h-2 w-2 shrink-0 rounded-editorial-full', toneClasses[tone]]}
-        aria-hidden="true"
-      />
-    );
-
     return (
       <div
         class={[
@@ -29,9 +33,9 @@ export default component$<StatusProps>(
           className,
         ]}
       >
-        {dotPosition === 'start' && dot}
+        {dotPosition === 'start' && <StatusDot tone={tone} />}
         <span>{label}</span>
-        {dotPosition === 'end' && dot}
+        {dotPosition === 'end' && <StatusDot tone={tone} />}
       </div>
     );
   }

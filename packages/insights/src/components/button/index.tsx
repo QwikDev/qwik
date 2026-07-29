@@ -1,7 +1,15 @@
 import { type QwikIntrinsicElements, Slot, component$ } from '@qwik.dev/core';
 import { Link } from '@qwik.dev/router';
 
-type ButtonTheme = 'primary' | 'secondary' | 'danger' | 'success' | 'warning' | 'info' | 'github';
+type ButtonTheme =
+  | 'primary'
+  | 'secondary'
+  | 'danger'
+  | 'success'
+  | 'warning'
+  | 'info'
+  | 'github'
+  | 'text';
 
 type ButtonProps = QwikIntrinsicElements['button'] & { theme?: ButtonTheme };
 type ButtonLinkProps = QwikIntrinsicElements['a'] & { theme?: ButtonTheme };
@@ -23,6 +31,8 @@ const getButtonClasses = (theme: ButtonTheme, className?: ButtonClass) => [
     'min-h-12 rounded-editorial-md border border-editorial-warning bg-editorial-warning text-editorial-primary',
   theme === 'info' &&
     'min-h-12 rounded-editorial-md border border-editorial-accent bg-editorial-accent text-editorial-on-accent',
+  theme === 'text' &&
+    'rounded-editorial-sm !px-0 !py-0 text-editorial-link hover:text-editorial-primary',
   className,
 ];
 

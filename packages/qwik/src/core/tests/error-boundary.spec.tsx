@@ -225,6 +225,13 @@ describe.each(modes)('ErrorBoundary behavior (%s)', (mode, renderMode) => {
     expect(container.element.querySelector('#fb')?.textContent).toContain('caught: boom');
   });
 
+  it('a thrown non-Error class instance is caught', async () => {
+    const { container } = await renderMode(() => boxed(<NonSerializableThrower />));
+    expect(container.element.querySelector('#fb')?.textContent).toContain(
+      'caught: non-serializable boom'
+    );
+  });
+
   it('a render throw is caught by the NEAREST boundary', async () => {
     const { container } = await renderMode(() => (
       <ErrorBoundary
@@ -664,16 +671,6 @@ describe.each(modes)('ErrorBoundary behavior (%s)', (mode, renderMode) => {
       expect(innerLog).toEqual(['boom']);
       expect(outerLog).toEqual(['inner fallback boom']);
     });
-  });
-});
-
-describe('ErrorBoundary behavior', () => {
-  it('a thrown non-Error class instance is caught (CSR)', async () => {
-    const { container } = await domRender(boxed(<NonSerializableThrower />), { debug });
-    await waitForDrain(container);
-    expect(container.element.querySelector('#fb')?.textContent).toContain(
-      'caught: non-serializable boom'
-    );
   });
 });
 
@@ -1206,28 +1203,43 @@ describe('ErrorBoundary CSR-specific', () => {
 
       expect(container.element.querySelector('#fb')).toBeFalsy();
     });
-  });
 
-  it('onError$ receives info.phase "event" for a qerror-delivered client error', async () => {
-    const infos: Array<{ phase: string; boundaryId: string }> = [];
-    const { container } = await domRender(
-      <ErrorBoundary
-        fallback$={fb()}
-        onError$={$((_e: any, info: any) => {
-          infos.push({ phase: info.phase, boundaryId: info.boundaryId });
-        })}
-      >
-        <button id="target">x</button>
-      </ErrorBoundary>,
-      { debug }
-    );
-    const target = container.element.querySelector('#target')!;
-    dispatchQError(target, { error: new Error('client boom'), element: target });
-    await settleOnErrorDelivery(container);
+    it('onError$ receives info.phase "event" for a qerror-delivered client error', async () => {
+      const infos: Array<{ phase: string; boundaryId: string }> = [];
+      const { container } = await domRender(
+        <ErrorBoundary
+          fallback$={fb()}
+          onError$={$((_e: any, info: any) => {
+            infos.push({ phase: info.phase, boundaryId: info.boundaryId });
+          })}
+        >
+          <button id="target">x</button>
+        </ErrorBoundary>,
+        { debug }
+      );
+      const target = container.element.querySelector('#target')!;
+      dispatchQError(target, { error: new Error('client boom'), element: target });
+      await settleOnErrorDelivery(container);
 
-    expect(infos).toHaveLength(1);
-    expect(infos[0].phase).toBe('event');
-    expect(infos[0].boundaryId.length).toBeGreaterThan(0);
+      expect(infos).toHaveLength(1);
+      expect(infos[0].phase).toBe('event');
+      expect(infos[0].boundaryId.length).toBeGreaterThan(0);
+    });
+
+    it('CSR: a non-recoverable build error is not caught by the boundary', async () => {
+      const { container } = await domRender(boxed(<button id="content">x</button>), { debug });
+      const el = container.element;
+      const target = el.querySelector('#content')!;
+      const err = new Error('build boom');
+      (err as any).plugin = 'vite:some-plugin';
+      dispatchQError(target, { error: err, element: target });
+      try {
+        await waitForDrain(container);
+      } catch {
+        // ignore
+      }
+      expect(el.querySelector('#fb')).toBeFalsy();
+    });
   });
 
   describe('falsy thrown values', () => {
@@ -1306,21 +1318,6 @@ describe('ErrorBoundary CSR-specific', () => {
         expect((outerSeen[0] as Error)?.message).toBe('second');
       }
     );
-  });
-
-  it('CSR: a non-recoverable build error is not caught by the boundary', async () => {
-    const { container } = await domRender(boxed(<button id="content">x</button>), { debug });
-    const el = container.element;
-    const target = el.querySelector('#content')!;
-    const err = new Error('build boom');
-    (err as any).plugin = 'vite:some-plugin';
-    dispatchQError(target, { error: err, element: target });
-    try {
-      await waitForDrain(container);
-    } catch {
-      // ignore
-    }
-    expect(el.querySelector('#fb')).toBeFalsy();
   });
 
   describe('multiple containers on one document', () => {
@@ -1493,7 +1490,7 @@ describe('ErrorBoundary CSR-specific', () => {
   });
 
   describe('unhandledrejection bridge', () => {
-    const renderTwoContainers = async () => {
+    const renderTwoContainersWithStubbedView = async () => {
       setPlatform(getTestPlatform());
       const document = createDocument();
       const listeners: Record<string, ((e: any) => void)[]> = {};
@@ -1515,7 +1512,7 @@ describe('ErrorBoundary CSR-specific', () => {
         .spyOn(logUtils, 'logError')
         .mockImplementation((message?: any) => message as Error);
       try {
-        const { view, listeners } = await renderTwoContainers();
+        const { view, listeners } = await renderTwoContainersWithStubbedView();
         const registrations = (view.addEventListener as any).mock.calls.filter(
           (c: any[]) => c[0] === 'unhandledrejection'
         );
@@ -1560,11 +1557,6 @@ describe('ErrorBoundary CSR-specific', () => {
 
 describe('ErrorBoundary SSR-specific', () => {
   describe('safety net: an in-order SSR throw with no boundary above', () => {
-    const PromiseChild = component$(() => {
-      const pending = new Promise<JSXOutput>((_resolve, reject) => reject(new Error('async boom')));
-      return <>{pending}</>;
-    });
-
     it('a synchronous render throw propagates and rejects the render', async () => {
       await expect(
         ssrRenderToDom(
@@ -1610,7 +1602,7 @@ describe('ErrorBoundary SSR-specific', () => {
       await expect(
         ssrRenderToDom(
           <main>
-            <PromiseChild />
+            <AsyncThrower />
           </main>,
           { debug }
         )
@@ -1663,18 +1655,6 @@ describe('ErrorBoundary SSR-specific', () => {
     throw new Error('normal boom');
   });
 
-  it('a non-serializable throw renders the fallback AND the page still serializes', async () => {
-    const { container } = await ssrRenderToDom(
-      <ErrorBoundary fallback$={fb()}>
-        <NonSerializableThrower />
-      </ErrorBoundary>,
-      { debug }
-    );
-    expect(container.element.querySelector('#fb')?.textContent).toContain(
-      'caught: non-serializable boom'
-    );
-  });
-
   it('a normal Error throw is unchanged (still renders its fallback)', async () => {
     const { container } = await ssrRenderToDom(
       <ErrorBoundary
@@ -1700,31 +1680,6 @@ describe('ErrorBoundary SSR-specific', () => {
 
   it('SSR: a non-recoverable build error is NOT hidden in the fallback (it surfaces)', async () => {
     await expect(ssrRenderToDom(boxed(<PluginThrower />), { debug })).rejects.toThrow('build boom');
-  });
-
-  it('fires once from serialized props.onError$ on a post-resume client error', async () => {
-    (globalThis as any).__ebOnErrorLog = [];
-    const { container } = await ssrRenderToDom(
-      <ErrorBoundary
-        fallback$={fb()}
-        onError$={$((e: any) => {
-          ((globalThis as any).__ebOnErrorLog ||= []).push(e instanceof Error ? e.message : e);
-        })}
-      >
-        <button id="target">x</button>
-      </ErrorBoundary>,
-      { debug }
-    );
-    expect((globalThis as any).__ebOnErrorLog).toEqual([]);
-
-    const el = container.element;
-    const target = el.querySelector('#target')!;
-    dispatchQError(target, { error: new Error('client boom'), element: target });
-    await settleOnErrorDelivery(container);
-
-    expect((globalThis as any).__ebOnErrorLog).toEqual(['client boom']);
-    expect(el.querySelector('#fb')?.textContent).toContain('caught: client boom');
-    delete (globalThis as any).__ebOnErrorLog;
   });
 });
 
@@ -1807,6 +1762,31 @@ describe('ErrorBoundary function children', () => {
 });
 
 describe('ErrorBoundary SSR→CSR cross-phase', () => {
+  it('fires once from serialized props.onError$ on a post-resume client error', async () => {
+    (globalThis as any).__ebOnErrorLog = [];
+    const { container } = await ssrRenderToDom(
+      <ErrorBoundary
+        fallback$={fb()}
+        onError$={$((e: any) => {
+          ((globalThis as any).__ebOnErrorLog ||= []).push(e instanceof Error ? e.message : e);
+        })}
+      >
+        <button id="target">x</button>
+      </ErrorBoundary>,
+      { debug }
+    );
+    expect((globalThis as any).__ebOnErrorLog).toEqual([]);
+
+    const el = container.element;
+    const target = el.querySelector('#target')!;
+    dispatchQError(target, { error: new Error('client boom'), element: target });
+    await settleOnErrorDelivery(container);
+
+    expect((globalThis as any).__ebOnErrorLog).toEqual(['client boom']);
+    expect(el.querySelector('#fb')?.textContent).toContain('caught: client boom');
+    delete (globalThis as any).__ebOnErrorLog;
+  });
+
   it('SSR inner error, then a client throw to the OUTER boundary replaces the whole subtree', async () => {
     const { container } = await ssrRenderToDom(
       <main>
@@ -1869,32 +1849,6 @@ describe('ErrorBoundary SSR→CSR cross-phase', () => {
       expect(el.querySelector('#content')).toBeFalsy();
       expect(el.querySelector('[q\\:ebc]')).toBeFalsy();
       expect(el.querySelector('[q\\:ebf]')).toBeFalsy();
-    }
-  );
-
-  it.each([
-    ['default', {}],
-    ['opted-in OOOS', OOOS_OPT_IN],
-  ] as const)(
-    '%s streaming: re-rendering an SSR-errored boundary re-runs the children and re-derives the fallback',
-    async (_label, streamingOpts) => {
-      const App = withRerenderOwner(
-        <>
-          <div id="content">content</div>
-          <Thrower />
-        </>
-      );
-      const { container } = await ssrRenderToDom(<App />, { debug, ...streamingOpts });
-      const el = container.element;
-      const contentHost = el.querySelector('[q\\:ebc]') as HTMLElement;
-      expect(el.querySelector('#fb')?.textContent).toContain('caught: boom');
-      expect(contentHost.contains(el.querySelector('#content'))).toBe(true);
-
-      await rerenderComponent(el.querySelector('#owner-anchor') as HTMLElement);
-      await waitForDrain(container);
-
-      expect(el.querySelector('#content')).toBeFalsy();
-      expect(el.querySelector('#fb')?.textContent).toContain('caught: boom');
     }
   );
 
@@ -1972,29 +1926,6 @@ describe('ErrorBoundary stateless wire', () => {
     expect(store).toBeDefined();
     expect('error' in store!).toBe(false);
     expect(Object.keys(store!)).toEqual(['boundaryId']);
-  });
-
-  it('re-rendering a sibling outside the boundary leaves the swapped content hidden', async () => {
-    const Sibling = component$(() => <p id="outside">outside</p>);
-    const { container } = await ssrRenderToDom(
-      <main>
-        <Sibling />
-        <ErrorBoundary fallback$={fb()}>
-          <div id="content">content</div>
-          <Thrower />
-        </ErrorBoundary>
-      </main>,
-      { debug }
-    );
-    const el = container.element;
-    const contentHost = el.querySelector('[q\\:ebc]') as HTMLElement;
-    expect(contentHost.style.display).toBe('none');
-
-    await rerenderComponent(el.querySelector('#outside') as HTMLElement);
-    await waitForDrain(container);
-
-    expect(contentHost.style.display).toBe('none');
-    expect(el.querySelector('#fb')).toBeTruthy();
   });
 });
 
@@ -2087,6 +2018,55 @@ describe('ErrorBoundary client re-derivation', () => {
 
     expect(el.querySelector('#task-content')).toBeTruthy();
     expect(el.querySelector('#fb')).toBeFalsy();
+  });
+
+  it.each([
+    ['default', {}],
+    ['opted-in OOOS', OOOS_OPT_IN],
+  ] as const)(
+    '%s streaming: re-rendering an SSR-errored boundary re-runs the children and re-derives the fallback',
+    async (_label, streamingOpts) => {
+      const App = withRerenderOwner(
+        <>
+          <div id="content">content</div>
+          <Thrower />
+        </>
+      );
+      const { container } = await ssrRenderToDom(<App />, { debug, ...streamingOpts });
+      const el = container.element;
+      const contentHost = el.querySelector('[q\\:ebc]') as HTMLElement;
+      expect(el.querySelector('#fb')?.textContent).toContain('caught: boom');
+      expect(contentHost.contains(el.querySelector('#content'))).toBe(true);
+
+      await rerenderComponent(el.querySelector('#owner-anchor') as HTMLElement);
+      await waitForDrain(container);
+
+      expect(el.querySelector('#content')).toBeFalsy();
+      expect(el.querySelector('#fb')?.textContent).toContain('caught: boom');
+    }
+  );
+
+  it('re-rendering a sibling outside the boundary leaves the swapped content hidden', async () => {
+    const Sibling = component$(() => <p id="outside">outside</p>);
+    const { container } = await ssrRenderToDom(
+      <main>
+        <Sibling />
+        <ErrorBoundary fallback$={fb()}>
+          <div id="content">content</div>
+          <Thrower />
+        </ErrorBoundary>
+      </main>,
+      { debug }
+    );
+    const el = container.element;
+    const contentHost = el.querySelector('[q\\:ebc]') as HTMLElement;
+    expect(contentHost.style.display).toBe('none');
+
+    await rerenderComponent(el.querySelector('#outside') as HTMLElement);
+    await waitForDrain(container);
+
+    expect(contentHost.style.display).toBe('none');
+    expect(el.querySelector('#fb')).toBeTruthy();
   });
 });
 

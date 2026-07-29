@@ -105,6 +105,37 @@ describe(`${name}: slot`, () => {
     cleanup();
   });
 
+  it('provides parent context to a slot projected inside a branch', async () => {
+    const contextId = createContextId<string>('slot-branch-context');
+
+    const Projector = component$(() => {
+      const shown = useSignal(false);
+      return !shown.value ? <button onClick$={() => (shown.value = true)}>show</button> : <Slot />;
+    });
+
+    const Child = component$(() => {
+      const value = useContext(contextId);
+      return <span id="projected">{value}</span>;
+    });
+
+    const App = component$(() => {
+      useContextProvider(contextId, 'provided');
+      return (
+        <Projector>
+          <Child />
+        </Projector>
+      );
+    });
+
+    const { container, cleanup, qwikLoader } = await render(App, { debug });
+    expect(container.querySelector('#projected')).toBeFalsy();
+
+    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+
+    expect(container.querySelector('#projected')?.textContent).toBe('provided');
+    cleanup();
+  });
+
   it('provides app context to projected slot children', async () => {
     const contextId = createContextId<string>('slot-app-context');
 

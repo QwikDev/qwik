@@ -628,9 +628,11 @@ class SsrEmitter {
     }
     if (options.contextBoundary) {
       this.imports.add(QwikWord.CreateSsrRecord);
-      parts.unshift(
-        `${QwikWord.CreateSsrRecord}('<!c=', ${this.generatedNames.ctx}.contextScopeRef(), '>')`
-      );
+      // Read the scope while the provider's invoke context is still active; the parts below run
+      // after the children resolve, which may be a later microtask.
+      const contextScope = this.name('contextScope');
+      this.statements.push(`const ${contextScope} = ${this.generatedNames.ctx}.contextScopeRef();`);
+      parts.unshift(`${QwikWord.CreateSsrRecord}('<!c=', ${contextScope}, '>')`);
       parts.push(literal('<!/c>'));
     }
     let output = this.output(parts);

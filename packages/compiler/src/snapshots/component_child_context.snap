@@ -32,9 +32,10 @@ export { Child };
 export function Parent(props, ctx) {
   const value = useSignal('provided');
   useContextProvider(Context, value);
+  const contextScope1 = ctx.contextScopeRef();
   const component0 = createComponent({}, (props) => Child(props, ctx));
   return maybeThen(component0, (component0) => [
-    createSsrRecord('<!c=', ctx.contextScopeRef(), '>'),
+    createSsrRecord('<!c=', contextScope1, '>'),
     createSsrElementRecord('section', '<section', '>'),
     component0,
     '</section><!/c>',

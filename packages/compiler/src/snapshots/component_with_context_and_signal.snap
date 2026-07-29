@@ -30,10 +30,11 @@ export const App = (props, ctx) => {
   const source = useSignal('hello');
   useContextProvider(contextId, source);
   const id0 = ctx.nextId();
+  const contextScope2 = ctx.contextScopeRef();
   ctx.addRoot(source);
   const text1 = renderSsrTextNode(createSsrElementTextTarget(id0), source);
   return maybeThen(text1, (text1) => [
-    createSsrRecord('<!c=', ctx.contextScopeRef(), '>'),
+    createSsrRecord('<!c=', contextScope2, '>'),
     createSsrElementRecord('p', '<p q:id="', createSsrNodeId(id0), '"', '>'),
     escapeHTML(text1),
     '</p><!/c>',

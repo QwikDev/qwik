@@ -22,8 +22,9 @@ export function App(props, ctx) {
   const secondContext = createContextId('second');
   useContextProvider(firstContext, 'one');
   useContextProvider(secondContext, 2);
+  const contextScope0 = ctx.contextScopeRef();
   return [
-    createSsrRecord('<!c=', ctx.contextScopeRef(), '>'),
+    createSsrRecord('<!c=', contextScope0, '>'),
     createSsrElementRecord('p', '<p', '>'),
     'Provided</p><!/c>',
   ];

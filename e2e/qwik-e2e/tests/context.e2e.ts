@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { describeRenderModes } from './render-modes';
 
 test.describe('context', () => {
-  function tests(ssr: boolean) {
+  function tests() {
     test('should load', async ({ page }) => {
       const level2State1 = page.locator('.level2-state1');
       const level2State2 = page.locator('.level2-state2');
@@ -126,10 +126,8 @@ test.describe('context', () => {
       const btn = page.locator('#issue2894-button');
       const value = page.locator('#issue2894-value');
 
-      if (ssr) {
-        await expect(value).not.toBeVisible();
-        await expect(value).toHaveText('Value: bar');
-      }
+      // Projected content is not serialized until the slot renders.
+      await expect(value).toHaveCount(0);
 
       await btn.click();
 
@@ -164,5 +162,5 @@ test.describe('context', () => {
     });
   }
 
-  describeRenderModes('/e2e/context', (mode) => tests(mode === 'ssr'));
+  describeRenderModes('/e2e/context', () => tests());
 });

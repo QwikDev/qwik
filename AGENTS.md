@@ -3,7 +3,7 @@
 
 <!-- Source: .ruler/AGENTS.md -->
 
-# Qwik v2 agents reference, instructions and rules
+# Qwik v3 agents reference, instructions and rules
 
 > [!IMPORTANT]
 > **ALWAYS RUN `ruler apply` AT THE START OF A SESSION.** The agent skills are gitignored, not
@@ -30,16 +30,16 @@
 ## Project Snapshot
 
 Qwik is a resumable web framework. SSR serializes application and framework state into HTML, and
-the client resumes without re-running component code. Qwik v2 is a rewrite with VNode-based
-runtime work, rewritten reactive primitives, a new serialization mechanism, and package names under
-`@qwik.dev/*`.
+the client resumes without re-running component code. Qwik v3 is a rewrite with VNode-based
+runtime work, rewritten reactive primitives, a new serialization mechanism, and a TypeScript
+compiler in `packages/compiler` that replaces the Rust optimizer for component transformation.
 
-Key concepts: resumability, QRLs, `$`-suffixed optimizer boundaries, fine-grained signals, VNodes,
-the cursor system, and the Rust optimizer.
+Key concepts: resumability, QRLs, `$`-suffixed compiler boundaries, fine-grained signals, VNodes,
+the cursor system, and the compiler's lowering and emit pipeline.
 
 ## Monorepo Map
 
-- Base branch and release branch for v2 PRs: `main`. V1 lives on the `v1` branch.
+- v3 work targets the `v3` branch. V2 lives on `main`, V1 on the `v1` branch.
 
 | Package | Path | Notes |
 | --- | --- | --- |
@@ -48,14 +48,15 @@ the cursor system, and the Rust optimizer.
 | `@qwik.dev/react` | `packages/qwik-react` | React integration |
 | `@qwik.dev/dom` | `packages/qwik-dom` | Server-side DOM implementation |
 | `@qwik.dev/qwik-vite` | `packages/qwik-vite` | `vite-plugin-qwik`, private, bundled into `@qwik.dev/core/optimizer` |
+| `@qwik.dev/compiler` | `packages/compiler` | TypeScript compiler: analysis, lowering, CSR/SSR emit |
 | `@qwik.dev/optimizer` | `packages/optimizer` | Rust optimizer, WASM, NAPI bindings |
 | `eslint-plugin-qwik` | `packages/eslint-plugin-qwik` | ESLint rules |
 | `create-qwik` | `packages/create-qwik` | Project scaffolding CLI |
 | `qwik-docs` | `packages/docs` | Docs site, private package |
 | `insights` | `packages/insights` | Analytics dashboard, private package |
 
-Use v2 package names (`@qwik.dev/core`, `@qwik.dev/router`, etc.). Do not introduce v1
-`@builder.io/qwik` or `@builder.io/qwik-city` imports except when working on explicit
+Use the `@qwik.dev/*` package names (`@qwik.dev/core`, `@qwik.dev/router`, etc.). Do not introduce
+v1 `@builder.io/qwik` or `@builder.io/qwik-city` imports except when working on explicit
 compatibility override code.
 
 ## Setup And Iteration Loop
@@ -132,7 +133,7 @@ If any of those fail, fix and push your changes.
 
 ## Rules
 
-Recent Qwik v2 work by core maintainers favors small, behavior-shaped changes with regression proof.
+Recent Qwik v3 work by core maintainers favors small, behavior-shaped changes with regression proof.
 Follow that bias:
 
 ### Guidance Freshness

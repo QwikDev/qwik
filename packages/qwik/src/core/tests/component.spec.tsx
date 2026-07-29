@@ -225,6 +225,34 @@ describe(`${name}: component`, () => {
 
     cleanup();
   });
+
+  it('should update expression props on mapped children', async () => {
+    const Child = (props: { value: number; active: boolean }) => (
+      <div id={`child-${props.value}`}>{props.active ? 'active' : 'inactive'}</div>
+    );
+
+    const Parent = () => {
+      const selected = useSignal(1);
+      return (
+        <div>
+          <button onClick$={() => (selected.value = 2)}>select</button>
+          {[1, 2].map((value) => (
+            <Child key={value} value={value} active={selected.value === value} />
+          ))}
+        </div>
+      );
+    };
+
+    const { container, cleanup, qwikLoader } = await render(Parent, { debug });
+    expect(container.querySelector('#child-1')?.textContent).toBe('active');
+    expect(container.querySelector('#child-2')?.textContent).toBe('inactive');
+
+    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+
+    expect(container.querySelector('#child-1')?.textContent).toBe('inactive');
+    expect(container.querySelector('#child-2')?.textContent).toBe('active');
+    cleanup();
+  });
 });
 
 describe('csrRender: component expression props', () => {

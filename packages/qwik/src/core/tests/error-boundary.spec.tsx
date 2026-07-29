@@ -41,6 +41,10 @@ const OOOS_OPT_IN = {
   streaming: { inOrder: { strategy: 'disabled' as const }, outOfOrder: true },
 };
 const IN_ORDER = { streaming: { outOfOrder: false } };
+const streamingModes = [
+  ['default streaming', {}],
+  ['opted-in OOOS', OOOS_OPT_IN],
+] as const;
 
 const PublicThrower = component$((): JSXOutput => {
   throw new PublicError({ message: 'Out of stock', sku: 'A1' });
@@ -1817,11 +1821,8 @@ describe('ErrorBoundary SSR→CSR cross-phase', () => {
     expect(el.querySelector('#outer-btn')).toBeFalsy();
   });
 
-  it.each([
-    ['default', {}],
-    ['opted-in OOOS', OOOS_OPT_IN],
-  ] as const)(
-    '%s streaming: a post-resume client error collapses the two-host boundary cleanly (no Missing child)',
+  it.each(streamingModes)(
+    '%s: a post-resume client error collapses the two-host boundary cleanly (no Missing child)',
     async (_label, streamingOpts) => {
       const { container } = await ssrRenderToDom(
         <main>
@@ -2016,11 +2017,8 @@ describe('ErrorBoundary client re-derivation', () => {
     expect(el.querySelector('#fb')).toBeFalsy();
   });
 
-  it.each([
-    ['default', {}],
-    ['opted-in OOOS', OOOS_OPT_IN],
-  ] as const)(
-    '%s streaming: re-rendering an SSR-errored boundary re-runs the children and re-derives the fallback',
+  it.each(streamingModes)(
+    '%s: re-rendering an SSR-errored boundary re-runs the children and re-derives the fallback',
     async (_label, streamingOpts) => {
       const App = withRerenderOwner(
         <>
@@ -2763,10 +2761,7 @@ describe('ErrorBoundary transformError (render option)', () => {
 });
 
 describe('ErrorBoundary PublicError (rendered)', () => {
-  it.each([
-    ['default streaming', {}],
-    ['opted-in OOOS', OOOS_OPT_IN],
-  ] as const)(
+  it.each(streamingModes)(
     '%s: a thrown PublicError renders its message through the fallback and does NOT serialize its data',
     async (_label, streamingOpts) => {
       const { html, document } = await streamAndResume(
@@ -2783,10 +2778,7 @@ describe('ErrorBoundary PublicError (rendered)', () => {
     }
   );
 
-  it.each([
-    ['default streaming', {}],
-    ['opted-in OOOS', OOOS_OPT_IN],
-  ] as const)(
+  it.each(streamingModes)(
     '%s: a client re-render re-derives a PublicError with readable data',
     async (_label, streamingOpts) => {
       const App = withRerenderOwner(<PublicThrower />, {

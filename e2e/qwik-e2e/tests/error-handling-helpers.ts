@@ -9,6 +9,22 @@ export const assertNoBrowserErrors = (page: Page) => {
   });
 };
 
+export const collectPageErrors = (page: Page) => {
+  const messages: string[] = [];
+  page.on('pageerror', (err) => messages.push(err.message));
+  return messages;
+};
+
+export const collectConsoleErrors = (page: Page) => {
+  const messages: string[] = [];
+  page.on('console', (msg) => {
+    if (msg.type() === 'error') {
+      messages.push(msg.text());
+    }
+  });
+  return messages;
+};
+
 export const releaseDeferred = async (page: Page, selector: string) => {
   const releaseButton = page.locator(selector);
   await expect(releaseButton).toBeVisible();

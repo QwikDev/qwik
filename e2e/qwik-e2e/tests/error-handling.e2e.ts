@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test';
 import {
   assertNoBrowserErrors,
+  collectConsoleErrors,
+  collectPageErrors,
   releaseDeferred,
   routeUrl,
   streamingModes,
@@ -194,8 +196,7 @@ test.describe('ErrorBoundary streaming swap', () => {
   test('useVisibleTask$ throw after resume is routed to the boundary without interaction', async ({
     page,
   }) => {
-    const pageErrors: string[] = [];
-    page.on('pageerror', (err) => pageErrors.push(err.message));
+    const pageErrors = collectPageErrors(page);
 
     await page.goto(routeUrl('visible-task'), { waitUntil: 'commit' });
 
@@ -312,8 +313,7 @@ test.describe('ErrorBoundary streaming swap', () => {
   test('no boundary: a client throw still surfaces to the global error handler', async ({
     page,
   }) => {
-    const pageErrors: string[] = [];
-    page.on('pageerror', (err) => pageErrors.push(err.message));
+    const pageErrors = collectPageErrors(page);
 
     await page.goto(routeUrl('no-boundary'), { waitUntil: 'commit' });
     await expect(page.locator('#eb-title')).toHaveText('Error handling e2e', { timeout: 10000 });
@@ -551,14 +551,8 @@ test.describe('ErrorBoundary chunk-load failures and the rejection bridge', () =
   test('a failed qwikloader dynamic import (chunk 404) leaves the boundary inert', async ({
     page,
   }) => {
-    const pageErrors: string[] = [];
-    page.on('pageerror', (err) => pageErrors.push(err.message));
-    const consoleErrors: string[] = [];
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') {
-        consoleErrors.push(msg.text());
-      }
-    });
+    const pageErrors = collectPageErrors(page);
+    const consoleErrors = collectConsoleErrors(page);
     const importFailureErrors = () =>
       consoleErrors.filter((text) =>
         /dynamically imported|importing a module|error loading|importerror/i.test(text)
@@ -605,12 +599,7 @@ test.describe('ErrorBoundary chunk-load failures and the rejection bridge', () =
   test('a fire-and-forget Promise.reject reaches logError via the unhandledrejection bridge', async ({
     page,
   }) => {
-    const consoleErrors: string[] = [];
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') {
-        consoleErrors.push(msg.text());
-      }
-    });
+    const consoleErrors = collectConsoleErrors(page);
 
     await page.goto(routeUrl('unhandled-rejection'), { waitUntil: 'commit' });
     await expect(page.locator('#eb-reject')).toBeVisible({ timeout: 10000 });

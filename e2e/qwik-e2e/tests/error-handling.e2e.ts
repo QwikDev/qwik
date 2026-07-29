@@ -138,7 +138,7 @@ test.describe('ErrorBoundary streaming swap', () => {
   });
 
   for (const { mode, outOfOrder } of streamingModes) {
-    test(`client-time throw after resume re-renders the boundary to its fallback (${mode})`, async ({
+    test(`${mode}: client-time throw after resume re-renders the boundary to its fallback`, async ({
       page,
     }) => {
       assertNoBrowserErrors(page);
@@ -224,7 +224,7 @@ test.describe('ErrorBoundary streaming swap', () => {
     expect(await page.evaluate(() => (window as any).__ebOnErrorMsg)).toBe('onerror boom');
   });
 
-  test("onError$ info carries phase 'event' and a stable boundaryId for a real qwikloader throw", async ({
+  test('onError$ receives info.phase "event" and a stable boundaryId for a real qwikloader throw', async ({
     page,
   }) => {
     assertNoBrowserErrors(page);
@@ -451,7 +451,7 @@ test.describe('ErrorBoundary reset', () => {
     await expect(page.locator('#eb-fallback')).toHaveCount(0);
   });
 
-  test('SSR resume: reset on a nested inner boundary re-executes its children, outer intact', async ({
+  test('SSR resume (real click): reset on a nested inner boundary re-executes its children, outer intact', async ({
     page,
   }) => {
     assertNoBrowserErrors(page);
@@ -471,7 +471,7 @@ test.describe('ErrorBoundary reset', () => {
     await expect(page.locator('#eb-outer-ok-count')).toHaveText('1');
   });
 
-  test('SSR resume: reset on a boundary nested inside a resumed SSR fallback re-derives the outer and recovers the inner', async ({
+  test('SSR resume (real click): reset on a boundary nested inside a resumed SSR fallback re-derives the outer and recovers the inner', async ({
     page,
   }) => {
     assertNoBrowserErrors(page);
@@ -499,8 +499,9 @@ test.describe('ErrorBoundary multi-container qErr scoping', () => {
     await page.goto(routeUrl('multi-container'), { waitUntil: 'commit' });
 
     await expect(page.locator('#eb-embed #eb-fallback')).toBeVisible({ timeout: 10000 });
-    // Strict builds SSR-redact, so assert only that a message was caught.
-    await expect(page.locator('#eb-embed #eb-fallback-msg')).toContainText('caught:');
+    await expect(page.locator('#eb-embed #eb-fallback-msg')).toHaveText(
+      'caught: An error occurred'
+    );
     await expect(page.locator('#eb-embed #eb-content')).toBeHidden();
 
     const hostBoundaryId = await page
@@ -521,7 +522,7 @@ test.describe('ErrorBoundary multi-container qErr scoping', () => {
   });
 });
 
-test.describe('ErrorBoundary last-resort & rejection bridge', () => {
+test.describe('ErrorBoundary chunk-load failures and the rejection bridge', () => {
   test('built-in last-resort node renders when the fallback$ chunk fails to load', async ({
     page,
   }) => {
@@ -624,7 +625,7 @@ test.describe('ErrorBoundary last-resort & rejection bridge', () => {
 });
 
 test.describe('ErrorBoundary × async-signal .error channel', () => {
-  test('async error read via `.error` is handled inline — the boundary stays inert', async ({
+  test('async error read via `.error` is handled inline — the boundary never sees it', async ({
     page,
   }) => {
     await page.goto(routeUrl('async-error-inline'), { waitUntil: 'commit' });
@@ -657,7 +658,7 @@ test.describe('ErrorBoundary × loader errors', () => {
     await expect(page.locator('#loader-500-body')).toHaveCount(0);
   });
 
-  // reset re-invokes the loader; these assert the opposite
+  // reset re-invokes the loader; this asserts the opposite
   test.fixme('reset re-derives the identical fallback from the serialized loader value', async ({
     page,
   }) => {
@@ -677,7 +678,7 @@ test.describe('ErrorBoundary × loader errors', () => {
     await expect(page.locator('#eb-content')).toHaveCount(0);
   });
 
-  // reset re-invokes the loader; these assert the opposite
+  // reset re-invokes the loader; this asserts the opposite
   test.fixme('reset does not re-invoke the loader: no q-data request fires for the reset', async ({
     page,
   }) => {
@@ -702,7 +703,7 @@ test.describe('ErrorBoundary × loader errors', () => {
   });
 });
 
-test.describe('prod (strict dist)', () => {
+test.describe('ErrorBoundary in a production build (qDev=false)', () => {
   const prodUrl = (route: string) => routeUrl(route, { app: 'error-handling.prod' });
 
   test('client throw after resume shows the redacted fallback, raw message nowhere in the page', async ({

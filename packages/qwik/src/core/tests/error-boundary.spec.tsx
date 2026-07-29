@@ -511,7 +511,7 @@ describe.each(modes)('ErrorBoundary behavior (%s)', (mode, renderMode) => {
       }
     );
 
-    it('passes an info arg with phase "render" and a non-empty boundaryId for a render throw', async () => {
+    it('onError$ receives info.phase "render" and a non-empty boundaryId for a render throw', async () => {
       const infos: Array<{ phase: string; boundaryId: string }> = [];
       const { container } = await renderMode(
         () => (
@@ -802,7 +802,7 @@ describe.each(resetModes)(
   }
 );
 
-describe('ErrorBoundary reset', () => {
+describe('ErrorBoundary reset (single-mode scenarios)', () => {
   it('sequential errors across resets: a second error after recovery shows the second message, and reset recovers again', async () => {
     resetRef.toggle = 0;
     const App = withResetBoundary(<ResetToggle />);
@@ -1048,7 +1048,7 @@ describe('ErrorBoundary reset', () => {
     </ErrorBoundary>
   ));
 
-  it('CSR: reset through a boundary packaged in a wrapper re-executes the children', async () => {
+  it('CSR-click: reset through a boundary packaged in a wrapper re-executes the children', async () => {
     resetRef.flake = 0;
     const App = component$(() => (
       <main>
@@ -1088,10 +1088,10 @@ describe('ErrorBoundary reset', () => {
   });
 
   it.each([
-    ['in-order', IN_ORDER],
-    ['OOOS', OOOS_OPT_IN],
+    ['SSR-resume-in-order', IN_ORDER],
+    ['SSR-resume-out-of-order', OOOS_OPT_IN],
   ])(
-    '%s resume: reset through a boundary packaged in a wrapper re-executes the children',
+    '%s: reset through a boundary packaged in a wrapper re-executes the children',
     async (_mode, streamOpts) => {
       const App = component$(() => (
         <main>
@@ -1116,7 +1116,7 @@ describe('ErrorBoundary reset', () => {
 
 describe('ErrorBoundary CSR-specific', () => {
   describe('qerror routing', () => {
-    it('client: a qerror routes to the NEAREST of nested boundaries', async () => {
+    it('CSR: a qerror routes to the NEAREST of nested boundaries', async () => {
       const { container } = await domRender(
         <ErrorBoundary
           fallback$={$(() => (
@@ -1142,7 +1142,7 @@ describe('ErrorBoundary CSR-specific', () => {
       expect(el.querySelector('#fb-outer')).toBeFalsy();
     });
 
-    it('client: a throwing fallback does not infinite-loop handleError', async () => {
+    it('CSR: a throwing fallback does not infinite-loop handleError', async () => {
       const { container } = await domRender(
         <ErrorBoundary
           fallback$={$(() => {
@@ -1208,7 +1208,7 @@ describe('ErrorBoundary CSR-specific', () => {
     });
   });
 
-  it('onError$ info.phase for a qerror-delivered client error', async () => {
+  it('onError$ receives info.phase "event" for a qerror-delivered client error', async () => {
     const infos: Array<{ phase: string; boundaryId: string }> = [];
     const { container } = await domRender(
       <ErrorBoundary
@@ -1246,7 +1246,7 @@ describe('ErrorBoundary CSR-specific', () => {
     });
 
     it.each([0, null, '', false, undefined])(
-      'shows the fallback when %s is thrown',
+      'shows the fallback when %j is thrown',
       async (thrown) => {
         seenFalsy.errors = [];
         const { container } = await domRender(<Boundary />, { debug });
@@ -1534,7 +1534,7 @@ describe('ErrorBoundary CSR-specific', () => {
     });
   });
 
-  it('a render throw with no enclosing boundary surfaces the ORIGINAL error to logError', async () => {
+  it('safety net: a render throw with no enclosing boundary surfaces the ORIGINAL error to logError', async () => {
     const original = new Error('unbounded boom');
     const UnboundedThrower = component$((): JSXOutput => {
       throw original;
@@ -1779,7 +1779,7 @@ describe('ErrorBoundary function children', () => {
     expect(container.element.querySelector('#fb')).toBeFalsy();
   });
 
-  it('SSR: routes the function-child error to onError$ once, identity-preserved, phase "render"', async () => {
+  it('SSR: onError$ receives info.phase "render" once for a function-child error, identity-preserved', async () => {
     const received: unknown[] = [];
     const infos: Array<{ phase: string }> = [];
     const original = new Error('jsx error');
@@ -2304,7 +2304,7 @@ describe('ErrorBoundary swap mechanics (qErr)', () => {
   });
 
   it.each([
-    { kind: 'an async component whose render rejects', Cmp: AsyncRejector, message: 'async boom' },
+    { kind: 'an async component that rejects', Cmp: AsyncRejector, message: 'async boom' },
     { kind: 'a rejected promise child', Cmp: AsyncThrower, message: 'async boom' },
     { kind: 'an async signal that rejects', Cmp: AsyncSignalThrower, message: 'async signal boom' },
   ])(
@@ -2720,7 +2720,7 @@ describe('ErrorBoundary OOOS (opt-in, Suspense)', () => {
     expect(html).toContain('qErr(');
   });
 
-  it('fires once for an SSR-caught throw (out-of-order) and not again on resume', async () => {
+  it('onError$ fires once for an SSR-caught throw (out-of-order) and not again on resume', async () => {
     onErrorLog.errors = [];
     await ssrRenderToDom(
       <ErrorBoundary
@@ -2739,7 +2739,7 @@ describe('ErrorBoundary OOOS (opt-in, Suspense)', () => {
   });
 });
 
-describe('ErrorBoundary error redaction (prod payload safety)', () => {
+describe('ErrorBoundary error display (prod redaction, transformError)', () => {
   it('prod: scrubs message + attached props to a generic message + stable digest', () => {
     const original = Object.assign(new Error('secret-db-detail'), {
       query: 'SELECT * FROM users',
@@ -2780,19 +2780,6 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
     markBoundaryErrored(store, original);
     expect(received).toHaveLength(1);
     expect(received[0]).toBe(original);
-  });
-
-  it('redactBoundaryErrorForDisplay: prod redacts a raw client error to generic + digest', () => {
-    const raw = Object.assign(new Error('client secret'), { token: 'abc' });
-    const out = redactBoundaryErrorForDisplay(raw, false) as Error & { digest?: string };
-    expect(out.message).toBe('An error occurred');
-    expect((out as unknown as Record<string, unknown>).token).toBeUndefined();
-    expect(typeof out.digest).toBe('string');
-  });
-
-  it('redactBoundaryErrorForDisplay: dev keeps the original error (full fidelity)', () => {
-    const raw = new Error('client secret');
-    expect(redactBoundaryErrorForDisplay(raw, true)).toBe(raw);
   });
 
   it('prod: an app error carrying its own digest field still redacts to generic + fresh digest', () => {
@@ -3005,7 +2992,7 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
   it.each([
     ['function-valued field', () => Object.assign(new Error('leaky'), { retry: () => {} })],
     [
-      'nested unserializable field',
+      'nested function-valued field',
       () => Object.assign(new Error('leaky'), { meta: { cb: () => {} } }),
     ],
   ] as Array<[string, () => Error]>)(
@@ -3088,7 +3075,7 @@ describe('ErrorBoundary error redaction (prod payload safety)', () => {
   });
 });
 
-describe('PublicError membrane pass-through', () => {
+describe('PublicError display pass-through', () => {
   it('prod: a thrown PublicError passes through by identity with no digest', () => {
     const err = new PublicError({ message: 'Out of stock', sku: 'A1' });
     const out = redactBoundaryErrorForDisplay(err, false);
@@ -3147,7 +3134,7 @@ describe('PublicError membrane pass-through', () => {
   });
 });
 
-describe('PublicError integration', () => {
+describe('ErrorBoundary PublicError (rendered)', () => {
   it.each([
     ['default streaming', {}],
     ['opted-in OOOS', OOOS_OPT_IN],
@@ -3169,10 +3156,10 @@ describe('PublicError integration', () => {
   );
 
   it.each([
-    ['default', {}],
+    ['default streaming', {}],
     ['opted-in OOOS', OOOS_OPT_IN],
   ] as const)(
-    '%s streaming: a client re-render re-derives a PublicError with readable data',
+    '%s: a client re-render re-derives a PublicError with readable data',
     async (_label, streamingOpts) => {
       const App = withRerenderOwner(<PublicThrower />, {
         fallback$: $((e: any) => (
@@ -3297,7 +3284,7 @@ describe('hostile thrown values (fail-closed normalization)', () => {
   ];
 
   it.each(hostileRows)(
-    'the display membrane never throws in dev and prod: %s',
+    'redactBoundaryErrorForDisplay never throws in dev or prod: %s',
     (_, makeHostile) => {
       const inDev = redactBoundaryErrorForDisplay(makeHostile(), true);
       expect(inDev).toBeInstanceOf(Error);
@@ -3309,10 +3296,6 @@ describe('hostile thrown values (fail-closed normalization)', () => {
       expect(typeof inProd.digest).toBe('string');
     }
   );
-
-  it.each(hostileRows)('redactBoundaryErrorForDisplay never throws: %s', (_, makeHostile) => {
-    expect(redactBoundaryErrorForDisplay(makeHostile(), false)).toBeInstanceOf(Error);
-  });
 
   it.each(hostileRows)(
     'markBoundaryErrored absorbs it and its display projection is an Error: %s',

@@ -250,7 +250,7 @@ function renderErrorBoundaryFallback(
       if (isOutOfOrderSegmentContainer(ssr)) {
         markErrorFromDeferredSegment(errorStore);
       }
-      markErrorBoundaryContentInert(ssr, boundaryNode);
+      markErrorBoundaryContentInert(ssr, boundaryNode, errorStore);
     }
     return null;
   }
@@ -259,18 +259,30 @@ function renderErrorBoundaryFallback(
 
 function markErrorBoundaryContentInert(
   ssr: SSRContainer,
-  boundaryNode: ReturnType<SSRContainer['getOrCreateLastNode']>
+  boundaryNode: ReturnType<SSRContainer['getOrCreateLastNode']>,
+  errorStore: ErrorBoundaryStore
 ): void {
-  const liveOwners = new Map<string, ISsrNode>();
+  const liveOwners = new Map<string, { node: ISsrNode; depth: number }>();
+  let depth = 0;
   for (let n: ISsrNode | null = boundaryNode; n; n = n.parentComponent) {
     if (n.id) {
-      liveOwners.set(n.id, n);
+      liveOwners.set(n.id, { node: n, depth: depth++ });
     }
   }
+  const topmostSevered = { node: null as ISsrNode | null, depth: -1 };
   const children = boundaryNode.children;
   if (children) {
     for (let i = 0; i < children.length; i++) {
-      markSubtreeInert(ssr, children[i], liveOwners);
+      markSubtreeInert(ssr, children[i], liveOwners, topmostSevered);
+    }
+  }
+  // A severed ancestor means the children were projected: only that ancestor's author can
+  // re-supply them, so reset must re-render it — and it must survive the wire to be able to.
+  if (topmostSevered.node && topmostSevered.node !== boundaryNode) {
+    const author = topmostSevered.node.parentComponent;
+    if (author && author.id) {
+      errorStore.authorId = author.id;
+      ssr.$retainForResume$(author);
     }
   }
 }
@@ -278,14 +290,19 @@ function markErrorBoundaryContentInert(
 function markSubtreeInert(
   ssr: SSRContainer,
   node: ISsrNode,
-  liveOwners: Map<string, ISsrNode>
+  liveOwners: Map<string, { node: ISsrNode; depth: number }>,
+  topmostSevered: { node: ISsrNode | null; depth: number }
 ): void {
   node.vnodeData[0] |= VNodeDataFlag.INERT;
   const ownerId = node.getProp(QSlotParent) as string | null;
   if (ownerId) {
     const owner = liveOwners.get(ownerId);
     if (owner) {
-      owner.removeProp((node.getProp(QSlot) as string | null) ?? QDefaultSlot);
+      owner.node.removeProp((node.getProp(QSlot) as string | null) ?? QDefaultSlot);
+      if (owner.depth > topmostSevered.depth) {
+        topmostSevered.node = owner.node;
+        topmostSevered.depth = owner.depth;
+      }
     }
   }
   // Element consumers keep materializing when inert, so their bindings would keep patching hidden
@@ -303,7 +320,7 @@ function markSubtreeInert(
   const children = node.children;
   if (children) {
     for (let i = 0; i < children.length; i++) {
-      markSubtreeInert(ssr, children[i], liveOwners);
+      markSubtreeInert(ssr, children[i], liveOwners, topmostSevered);
     }
   }
 }

@@ -422,6 +422,15 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     }
     markVNodeDirty(this, owner, ChoreBits.COMPONENT);
     markVNodeDirty(this, boundaryHost, ChoreBits.COMPONENT);
+    if (store.authorId) {
+      // Projected children: only the recorded author's re-render can re-supply them.
+      try {
+        const author = this.vNodeLocate(store.authorId);
+        author && markVNodeDirty(this, author, ChoreBits.COMPONENT);
+      } catch {
+        // ignore
+      }
+    }
     store.error = undefined;
   }
 

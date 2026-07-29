@@ -12,6 +12,7 @@ export interface ErrorBoundaryStore {
   $onError$?: (error: unknown, info: ErrorBoundaryInfo) => void;
   $emitFallback$?: (error: unknown) => void | Promise<void>;
   boundaryId?: string;
+  authorId?: string;
 }
 
 export const ERROR_CONTEXT = /*#__PURE__*/ createContextId<ErrorBoundaryStore>('qk-error');

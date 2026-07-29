@@ -706,6 +706,28 @@ function descendContentToProject(
   descend(diffContext, projections, true);
 }
 
+/**
+ * A projection's content survives the projection being moved, so re-attaching it schedules no work.
+ * That is correct while the content's output is intact; when something destroyed the output (an
+ * ErrorBoundary rendered its fallback), the component comes back empty and must re-render.
+ * Unmaterialized subtrees are left alone — materialization owns them.
+ */
+function scheduleUnrenderedProjectedComponents(container: ClientContainer, vNode: VNode): void {
+  if (vnode_isTextVNode(vNode)) {
+    return;
+  }
+  const firstChild = (vNode as ElementVNode | VirtualVNode).firstChild;
+  if (vnode_isVirtualVNode(vNode) && vnode_getProp(vNode, OnRenderProp, null) !== null) {
+    if (firstChild === null && (vNode.dirty & ChoreBits.COMPONENT) === 0) {
+      markVNodeDirty(container, vNode, ChoreBits.COMPONENT);
+    }
+    return;
+  }
+  for (let child = firstChild; child; child = child.nextSibling) {
+    scheduleUnrenderedProjectedComponents(container, child);
+  }
+}
+
 function expectProjection(diffContext: DiffContext) {
   const jsxNode = diffContext.$jsxValue$ as JSXNodeInternal;
   const slotName = jsxNode.key as string;
@@ -776,6 +798,7 @@ function expectSlot(diffContext: DiffContext) {
   } else if (vProjectedNode === diffContext.$vCurrent$) {
     // All is good.
   } else {
+    scheduleUnrenderedProjectedComponents(diffContext.$container$, vProjectedNode);
     // move from q:template to the target node
     const oldParent = vProjectedNode.parent;
     diffContext.$vNewNode$ = vProjectedNode;

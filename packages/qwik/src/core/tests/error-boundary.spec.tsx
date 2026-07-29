@@ -1041,41 +1041,38 @@ describe('ErrorBoundary reset', () => {
     expect(el.querySelector('#retry-wrapped')).toBeFalsy();
   });
 
-  // The boundary is packaged INSIDE a component, so its children arrive through <Slot/>.
-  // Reset cannot recover this shape (#8881): the children's vnodes survive the fallback render, so
-  // re-attaching the projection schedules no render and they come back empty. Fixing it in
-  // `expectSlot` covers both modes; a reset-side fix only works before a resume.
+  // The boundary is packaged INSIDE a component, so its children arrive through <Slot/> (#8881).
   const BoxedBoundary = component$(() => (
     <ErrorBoundary fallback$={wrappedResetFb}>
       <Slot />
     </ErrorBoundary>
   ));
 
-  it.fails(
-    'CSR: reset through a boundary packaged in a wrapper re-executes the children',
-    async () => {
-      resetRef.flake = 0;
-      const App = component$(() => (
-        <main>
-          <BoxedBoundary>
-            <ResetFlake />
-          </BoxedBoundary>
-        </main>
-      ));
-      const { container } = await domRender(<App />, { debug });
-      const el = container.element;
-      expect(el.querySelector('#retry-wrapped')).toBeTruthy();
+  it('CSR: reset through a boundary packaged in a wrapper re-executes the children', async () => {
+    resetRef.flake = 0;
+    const App = component$(() => (
+      <main>
+        <BoxedBoundary>
+          <ResetFlake />
+        </BoxedBoundary>
+      </main>
+    ));
+    const { container } = await domRender(<App />, { debug });
+    const el = container.element;
+    expect(el.querySelector('#retry-wrapped')).toBeTruthy();
 
-      await trigger(el, '#retry-wrapped', 'click');
+    await trigger(el, '#retry-wrapped', 'click');
 
-      expect(el.querySelector('#ok')?.textContent).toContain('ok');
-      expect(el.querySelector('#retry-wrapped')).toBeFalsy();
-    }
-  );
+    expect(el.querySelector('#ok')?.textContent).toContain('ok');
+    expect(el.querySelector('#retry-wrapped')).toBeFalsy();
+  });
 
-  it.fails(
-    'SSR resume: reset through a boundary packaged in a wrapper re-executes the children',
-    async () => {
+  it.each([
+    ['in-order', IN_ORDER],
+    ['OOOS', OOOS_OPT_IN],
+  ])(
+    '%s resume: reset through a boundary packaged in a wrapper re-executes the children',
+    async (_mode, streamOpts) => {
       const App = component$(() => (
         <main>
           <BoxedBoundary>
@@ -1083,7 +1080,7 @@ describe('ErrorBoundary reset', () => {
           </BoxedBoundary>
         </main>
       ));
-      const { container } = await ssrRenderToDom(<App />, { debug, ...IN_ORDER });
+      const { container } = await ssrRenderToDom(<App />, { debug, ...streamOpts });
       const el = container.element;
       expect(el.querySelector('#retry-wrapped')).toBeTruthy();
 

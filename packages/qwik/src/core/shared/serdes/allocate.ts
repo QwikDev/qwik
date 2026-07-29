@@ -122,6 +122,8 @@ export const allocate = (
       return new Signal(undefined);
     case TypeIds.PropsProxy:
       return allocatePropsProxy();
+    case TypeIds.Props:
+      return {};
     case TypeIds.AsyncSignal:
       return new AsyncSignal(null, null, context);
     case TypeIds.SerializerSignal:

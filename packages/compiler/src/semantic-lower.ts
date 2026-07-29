@@ -801,7 +801,7 @@ class SemanticLowerer {
         expression,
         lifetimeId,
         event,
-        targetKind === 'element' && !event && !innerHtml,
+        !event && !innerHtml,
         false,
         targetKind === 'component' && !event
       );

@@ -237,16 +237,19 @@ export const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
 ============================= src/component.tsx_component_branch_else_segment_4_19dvrvh6znjhf.js (ENTRY POINT)==
 
 import { Counter } from './component';
-import { _captures, createComponent } from '@qwik.dev/core';
+import { _captures, readTrackedSourceValue, _props, createComponent } from '@qwik.dev/core';
 
 export const component_branch_else_segment_4_19dvrvh6znjhf = (ctx) => {
   const count = _captures[0];
   return createComponent(
-    {
-      get count() {
-        return count.value;
+    _props(
+      {
+        get count() {
+          return readTrackedSourceValue(count);
+        },
       },
-    },
+      { count: count }
+    ),
     (props) => Counter(props, ctx)
   );
 };
@@ -478,16 +481,19 @@ export const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
 ============================= src/component.tsx_component_branch_else_segment_4_19dvrvh6znjhf.js (ENTRY POINT)==
 
 import { Counter } from './component';
-import { _captures, createComponent } from '@qwik.dev/core';
+import { _captures, createComponent, readTrackedSourceValue, _props } from '@qwik.dev/core';
 
 export const component_branch_else_segment_4_19dvrvh6znjhf = (ctx) => {
   const count = _captures[0];
   return createComponent(
-    {
-      get count() {
-        return count.value;
+    _props(
+      {
+        get count() {
+          return readTrackedSourceValue(count);
+        },
       },
-    },
+      { count: count }
+    ),
     (props) => Counter(props, ctx)
   );
 };

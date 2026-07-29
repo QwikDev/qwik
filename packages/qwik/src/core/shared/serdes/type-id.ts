@@ -39,6 +39,7 @@ export const enum TypeIds {
   FormData,
   JSXNode,
   PropsProxy,
+  Props,
   SubscriptionData,
   EffectSubscription,
   SubscriptionPatch,

@@ -1351,6 +1351,7 @@ class SsrEmitter {
       };
     }
     const sources: string[] = [];
+    const reactive: string[] = [];
     const prep: string[] = [];
     let entries: string[] = [];
     const flush = () => {
@@ -1364,18 +1365,29 @@ class SsrEmitter {
         case 'static':
           entries.push(`${JSON.stringify(prop.name)}: ${JSON.stringify(prop.value)}`);
           break;
-        case 'dynamic':
-          {
-            const boundaryPrep = this.inlineValuePrep(prop.value);
-            if (boundaryPrep === null) {
-              return null;
-            }
-            prep.push(...boundaryPrep);
+        case 'dynamic': {
+          if (prop.value.kind === 'source') {
+            // Reading through the source keeps the prop live after resume; a getter closure would
+            // serialize as a snapshot.
+            const source = this.source.slice(prop.value.source[0], prop.value.source[1]);
+            this.imports.add(QwikWord.ReadTrackedSourceValue);
+            entries.push(
+              `get ${JSON.stringify(prop.name)}() { return ${QwikWord.ReadTrackedSourceValue}(${source}); }`
+            );
+            reactive.push(`${JSON.stringify(prop.name)}: ${source}`);
+            prep.push(...this.rootNames([source]));
+            break;
           }
+          const boundaryPrep = this.inlineValuePrep(prop.value);
+          if (boundaryPrep === null) {
+            return null;
+          }
+          prep.push(...boundaryPrep);
           entries.push(
             `get ${JSON.stringify(prop.name)}() { return ${this.expression(prop.value)}; }`
           );
           break;
+        }
         case 'event': {
           if (prop.value.kind === 'segment') {
             const segment = this.segment(prop.value.segment);
@@ -1424,11 +1436,18 @@ class SsrEmitter {
     if (sources.length === 0) {
       return { value: '{}', prep };
     }
+    let value: string;
     if (sources.length === 1) {
-      return { value: sources[0], prep };
+      value = sources[0];
+    } else {
+      this.imports.add(QwikWord.MergeProps);
+      value = `${QwikWord.MergeProps}(${sources.join(', ')})`;
     }
-    this.imports.add(QwikWord.MergeProps);
-    return { value: `${QwikWord.MergeProps}(${sources.join(', ')})`, prep };
+    if (reactive.length > 0) {
+      this.imports.add(QwikWord.Props);
+      value = `${QwikWord.Props}(${value}, { ${reactive.join(', ')} })`;
+    }
+    return { value, prep };
   }
 
   private textValue(value: ValuePlan, target: string, prep: readonly SsrPrep[]): string | null {

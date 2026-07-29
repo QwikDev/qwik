@@ -15,18 +15,22 @@ export function Parent() {
 
 ============================= src/component.tsx ==
 
-import { useSignal, createComponent } from '@qwik.dev/core';
+import { useSignal, readTrackedSourceValue, _props, createComponent } from '@qwik.dev/core';
 import { Child } from './component.tsx_component_Child';
 export { Child };
 export function Parent(props0, ctx) {
   const count = useSignal(1);
+  ctx.addRoot(count);
   return createComponent(
-    {
-      label: 'Hi',
-      get count() {
-        return count.value;
+    _props(
+      {
+        label: 'Hi',
+        get count() {
+          return readTrackedSourceValue(count);
+        },
       },
-    },
+      { count: count }
+    ),
     (props) => Child(props, ctx)
   );
 }
@@ -172,18 +176,21 @@ export const component_text_segment_1_1fh10tcowimfv = (props) => {
 
 ============================= src/component.tsx ==
 
-import { useSignal, createComponent } from '@qwik.dev/core';
+import { useSignal, createComponent, readTrackedSourceValue, _props } from '@qwik.dev/core';
 import { Child } from './component.tsx_component_Child';
 export { Child };
 export function Parent(props0, ctx) {
   const count = useSignal(1);
   return createComponent(
-    {
-      label: 'Hi',
-      get count() {
-        return count.value;
+    _props(
+      {
+        label: 'Hi',
+        get count() {
+          return readTrackedSourceValue(count);
+        },
       },
-    },
+      { count: count }
+    ),
     (props) => Child(props, ctx)
   );
 }

@@ -23,6 +23,8 @@ import {
   useSignal,
   createSsrElementRecord,
   createComponent,
+  readTrackedSourceValue,
+  _props,
   createPropsProxy,
   useComputedQrl,
   getActiveInvokeContextOrNull,
@@ -66,12 +68,16 @@ export function App(props, ctx) {
   const component0 = createComponent(importedAttrs, (props) => Child(props, ctx));
   const component1 = () =>
     invoke(invokeCtx5, () => {
+      ctx.addRoot(count);
       return createComponent(
-        {
-          get count() {
-            return count.value;
+        _props(
+          {
+            get count() {
+              return readTrackedSourceValue(count);
+            },
           },
-        },
+          { count: count }
+        ),
         (props) => Child(props, ctx)
       );
     });
@@ -87,7 +93,6 @@ export function App(props, ctx) {
     });
   const component3 = () =>
     invoke(invokeCtx5, () => {
-      ctx.addRoot(count);
       return createComponent(
         createPropsProxy(
           useComputedQrl(q_component_componentProps_segment_3_1y1258wn8ot0t.w([attributes, count]))
@@ -274,6 +279,8 @@ import {
   createComponent,
   _toNodes,
   maybeThen,
+  readTrackedSourceValue,
+  _props,
   createPropsProxy,
   useComputed,
   _withCaptures,
@@ -317,11 +324,14 @@ export function App(props, ctx) {
   ctx.scheduler.waitFor(
     maybeThen(
       createComponent(
-        {
-          get count() {
-            return count.value;
+        _props(
+          {
+            get count() {
+              return readTrackedSourceValue(count);
+            },
           },
-        },
+          { count: count }
+        ),
         (props) => Child(props, ctx)
       ),
       (component1) => {

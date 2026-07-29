@@ -30,7 +30,7 @@ import type { Source, SourceSubs } from '../../reactive/source';
 import { isContextScope } from '../../runtime/context-scope';
 import { TaskSubscription } from '../../runtime/task';
 import { isProjection, isSlotScope, type Projection, type SlotScope } from '../../dom/slot/slot';
-import { getPropsProxySource } from '../../component/props';
+import { getPropsProxySource, getPropsSources } from '../../component/props';
 import { Owner } from '../../runtime/owner';
 import type { Subscriber } from '../../runtime/subscriber';
 import type { RuntimeInvokeContext } from '../../runtime/invoke-context';
@@ -507,6 +507,7 @@ export class Serializer {
 
   private writeObjectValue(value: {}) {
     let propsProxySource: Source<object> | null | undefined;
+    let propsSources: Record<string, unknown> | undefined;
     if (value instanceof SerializerSignal) {
       const maybeValue = getSerializerSignalValue(value);
       if (isPromise(maybeValue)) {
@@ -557,6 +558,14 @@ export class Serializer {
         throw qError(QError.serializeErrorUnknownType, ['uninitialized props proxy']);
       }
       this.output(TypeIds.PropsProxy, [propsProxySource]);
+    } else if ((propsSources = getPropsSources(value)) !== undefined) {
+      const statics: unknown[] = [];
+      for (const key in value) {
+        if (Object.prototype.hasOwnProperty.call(value, key) && !(key in propsSources)) {
+          statics.push(this.maybeNumericObjectKey$(key), (value as any)[key]);
+        }
+      }
+      this.output(TypeIds.Props, [statics, propsSources]);
     } else if (isObjectLiteral(value)) {
       if (Array.isArray(value)) {
         this.output(

@@ -1371,6 +1371,7 @@ function emitComponentProps(
     )}))`;
   }
   const sources: string[] = [];
+  const reactive: string[] = [];
   let entries: string[] = [];
   const flush = () => {
     if (entries.length > 0) {
@@ -1384,6 +1385,16 @@ function emitComponentProps(
         entries.push(`${JSON.stringify(prop.name)}: ${JSON.stringify(prop.value)}`);
         break;
       case 'dynamic':
+        if (prop.value.kind === 'source') {
+          // Reading through the source keeps the prop live after resume; a getter closure would
+          // serialize as a snapshot.
+          context.imports.add(QwikWord.ReadTrackedSourceValue);
+          entries.push(
+            `get ${JSON.stringify(prop.name)}() { return ${QwikWord.ReadTrackedSourceValue}(${prop.value.source}); }`
+          );
+          reactive.push(`${JSON.stringify(prop.name)}: ${prop.value.source}`);
+          break;
+        }
         entries.push(
           `get ${JSON.stringify(prop.name)}() { return ${emitValue(prop.value, context)}; }`
         );
@@ -1408,11 +1419,15 @@ function emitComponentProps(
   if (sources.length === 0) {
     return '{}';
   }
-  if (sources.length === 1) {
-    return sources[0];
+  const merged =
+    sources.length === 1
+      ? sources[0]
+      : (context.imports.add(QwikWord.MergeProps), `${QwikWord.MergeProps}(${sources.join(', ')})`);
+  if (reactive.length === 0) {
+    return merged;
   }
-  context.imports.add(QwikWord.MergeProps);
-  return `${QwikWord.MergeProps}(${sources.join(', ')})`;
+  context.imports.add(QwikWord.Props);
+  return `${QwikWord.Props}(${merged}, { ${reactive.join(', ')} })`;
 }
 
 function emitValue(value: CsrValuePlan, context?: CsrEmitContext): string {

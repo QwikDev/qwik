@@ -61,7 +61,10 @@ import {
   type Subscriber,
   type TaskSubscriber,
 } from '../../runtime/subscriber';
-import { getFunctionOrResolve } from '../../utils/qrl';
+import { getFunctionOrResolve, readExpression } from '../../utils/qrl';
+import { isQrl } from '../qrl/qrl-utils';
+import { readTrackedSourceValue } from '../../dom/effect/text-effect';
+import type { QRL } from '../qrl/qrl.public';
 import type { MaybeNodeOutput } from '../../utils/nodes';
 import { assertDefined, assertNumber } from '../error/assert';
 import { qError, QError } from '../error/error';
@@ -72,7 +75,7 @@ import type { ValueOrPromise } from '../utils/types';
 import { allocate, pendingStoreTargets, resolvers } from './allocate';
 import { EMPTY_OBJECT_PAYLOAD, TypeIds } from './constants';
 import { needsInflation } from './deser-proxy';
-import { restorePropsProxySource } from '../../component/props';
+import { _props, restorePropsProxySource } from '../../component/props';
 
 export { allocate, needsInflation };
 
@@ -180,6 +183,23 @@ const inflateResolved = (
           signal.subs = createLazySourceSubscribers(signal, container, d, 2);
         }
       });
+    }
+    case TypeIds.Props: {
+      const [statics, sources] = data as [unknown[], Record<string, unknown>];
+      const props = target as Record<string, unknown>;
+      for (let i = 0; i < statics.length; i += 2) {
+        props[statics[i] as string] = statics[i + 1];
+      }
+      for (const key in sources) {
+        const source = sources[key];
+        // Branch once here rather than on every read.
+        const get = isQrl(source)
+          ? () => readExpression(source as QRL<() => unknown>, container)
+          : () => readTrackedSourceValue(source as Source<unknown>);
+        Object.defineProperty(props, key, { get, enumerable: true, configurable: true });
+      }
+      _props(props, sources);
+      break;
     }
     case TypeIds.PropsProxy: {
       const values = data as unknown[];

@@ -522,7 +522,7 @@ export function App() {
     );
   });
 
-  test('keeps ordinary component props inline', async () => {
+  test('keeps spreads and innerHTML inline while sourcing direct signal reads', async () => {
     const code = `import { useSignal } from '@qwik.dev/core';
 function Child() { return <p>Child</p>; }
 export function App() {
@@ -538,8 +538,10 @@ export function App() {
 
     expect(result.diagnostics).toEqual([]);
     expect(result.modules[0]?.code).toContain('mergeProps((attrs)');
-    expect(result.modules[0]?.code).toContain('return (count.value);');
-    expect(result.modules[0]?.code).toContain('dangerouslySetInnerHTML');
+    // A direct signal read is registered as a source so it survives resume.
+    expect(result.modules[0]?.code).toContain('return readTrackedSourceValue(count);');
+    expect(result.modules[0]?.code).toContain('{ "count": count }');
+    expect(result.modules[0]?.code).toContain('"dangerouslySetInnerHTML": (count.value)');
     expect(output).not.toContain('return attrs;');
   });
 

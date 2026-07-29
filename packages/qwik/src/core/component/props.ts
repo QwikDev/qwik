@@ -8,6 +8,21 @@ interface PropsProxyState<T extends object> {
 
 const propsProxyStates = new WeakMap<object, PropsProxyState<object>>();
 
+/**
+ * Reactive props are getters, which serialize to a snapshot of whatever they returned. The map
+ * records what each reactive key reads from so serialization can store that instead.
+ */
+const propsSources = new WeakMap<object, Record<string, unknown>>();
+
+export function _props<T extends object>(props: T, sources: Record<string, unknown>): T {
+  propsSources.set(props, sources);
+  return props;
+}
+
+export function getPropsSources(props: object): Record<string, unknown> | undefined {
+  return propsSources.get(props);
+}
+
 export function mergeProps(
   ...sources: Array<Record<string, unknown> | null | undefined>
 ): Record<string, unknown> {

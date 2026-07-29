@@ -129,6 +129,7 @@ export const _typeIdNames = [
   'FormData',
   'JSXNode',
   'PropsProxy',
+  'Props',
   'SubscriptionData',
   'EffectSubscription',
   'SubscriptionPatch',

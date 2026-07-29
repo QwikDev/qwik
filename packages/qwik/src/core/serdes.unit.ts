@@ -43,7 +43,7 @@ import { Phase, Scheduler } from './runtime/scheduler';
 import { useTaskQrl, Task, TaskSubscription, type TaskFn } from './runtime/task';
 import { runWithCollector } from './reactive/tracking';
 import { createCaptureContainer, createText, runWithTestContainer } from './test-utils';
-import { createPropsProxy, getPropsProxySource } from './component/props';
+import { _props, createPropsProxy, getPropsProxySource, getPropsSources } from './component/props';
 
 type BranchConditionFn = () => boolean;
 type BranchRenderFn = (ctx: ContainerContext) => ValueOrPromise<string>;
@@ -76,6 +76,29 @@ describe('serdes emit-only', () => {
     restoredSource.value = { label: 'updated' };
 
     expect(restoredProxy.label).toBe('updated');
+  });
+
+  it('round-trips reactive props keeping their sources live', async () => {
+    const label = useSignal('initial');
+    const props = _props(
+      {
+        plain: 'static',
+        get label() {
+          return label.value;
+        },
+      },
+      { label }
+    );
+
+    const restored = await _deserialize<{ plain: string; label: string }>(await _serialize(props));
+    const restoredLabel = getPropsSources(restored)!.label as Signal<string>;
+
+    expect(restored.plain).toBe('static');
+    expect(restored.label).toBe('initial');
+
+    restoredLabel.value = 'updated';
+
+    expect(restored.label).toBe('updated');
   });
 
   it('rejects a props proxy without a reactive source', async () => {

@@ -20,6 +20,7 @@ export const enum QwikWord {
   RegisterProjection = 'registerProjection',
   CreateSlot = 'createSlot',
   MergeProps = 'mergeProps',
+  Props = '_props',
   BranchRange = 'BranchRange',
   CreateBranch = 'createBranch',
   CreateSuspense = 'createSuspense',

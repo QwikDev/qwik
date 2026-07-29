@@ -226,6 +226,28 @@ describe(`${name}: component`, () => {
     cleanup();
   });
 
+  it('should update a prop that reads a signal directly', async () => {
+    const Child = (props: { count: number }) => <span id="child">{props.count}</span>;
+
+    const Parent = () => {
+      const count = useSignal(0);
+      return (
+        <div>
+          <button onClick$={() => count.value++}>inc</button>
+          <Child count={count.value} />
+        </div>
+      );
+    };
+
+    const { container, cleanup, qwikLoader } = await render(Parent, { debug });
+    expect(container.querySelector('#child')?.textContent).toBe('0');
+
+    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+
+    expect(container.querySelector('#child')?.textContent).toBe('1');
+    cleanup();
+  });
+
   it('should update expression props on mapped children', async () => {
     const Child = (props: { value: number; active: boolean }) => (
       <div id={`child-${props.value}`}>{props.active ? 'active' : 'inactive'}</div>

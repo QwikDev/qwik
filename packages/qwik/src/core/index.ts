@@ -296,7 +296,7 @@ export {
   type ComponentOptions,
   type ComponentRenderFn,
 } from './component/component';
-export { createPropsProxy, mergeProps } from './component/props';
+export { _props, createPropsProxy, mergeProps } from './component/props';
 
 export {
   Branch,

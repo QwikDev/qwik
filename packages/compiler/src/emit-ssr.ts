@@ -43,6 +43,7 @@ import {
   DEFAULT_GENERATED_NAMES,
   QWIK_IMPORT,
   QwikAttributes,
+  QwikGenWord,
   QwikHooks,
   QwikWord,
   type GeneratedNames,
@@ -630,7 +631,7 @@ class SsrEmitter {
       this.imports.add(QwikWord.CreateSsrRecord);
       // Read the scope while the provider's invoke context is still active; the parts below run
       // after the children resolve, which may be a later microtask.
-      const contextScope = this.name('contextScope');
+      const contextScope = this.name(QwikGenWord.ContextScope);
       this.statements.push(`const ${contextScope} = ${this.generatedNames.ctx}.contextScopeRef();`);
       parts.unshift(`${QwikWord.CreateSsrRecord}('<!c=', ${contextScope}, '>')`);
       parts.push(literal('<!/c>'));
@@ -1366,6 +1367,25 @@ class SsrEmitter {
           entries.push(`${JSON.stringify(prop.name)}: ${JSON.stringify(prop.value)}`);
           break;
         case 'dynamic': {
+          if (prop.value.kind === 'segment') {
+            const segment = this.segment(prop.value.segment);
+            if (segment === null) {
+              return null;
+            }
+            // The QRL rides in the sources map so resume can rebuild this getter; a plain getter
+            // would serialize as a snapshot.
+            const qrlName = this.name(QwikGenWord.PropQrl);
+            prep.push(
+              ...this.rootNames(this.captureNames(segment, prop.value.segment)),
+              `const ${qrlName} = ${this.qrlReference(segment, prop.value.segment)};`
+            );
+            this.imports.add(QwikWord.ReadExpression);
+            entries.push(
+              `get ${JSON.stringify(prop.name)}() { return ${QwikWord.ReadExpression}(${qrlName}); }`
+            );
+            reactive.push(`${JSON.stringify(prop.name)}: ${qrlName}`);
+            break;
+          }
           if (prop.value.kind === 'source') {
             // Reading through the source keeps the prop live after resume; a getter closure would
             // serialize as a snapshot.

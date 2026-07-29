@@ -11,13 +11,18 @@ export function getFunctionOrResolve<T>(fn: T | QRL<T>, ctx?: ContainerContext):
 }
 
 /**
- * Calls a QRL that must produce a value synchronously. A pending chunk is thrown so the enclosing
+ * Calls an expression QRL that must produce a value synchronously, passing its captures as the
+ * positional arguments the segment ABI expects. A pending chunk is thrown so the enclosing
  * `retryOnPromise` re-runs once it resolves.
  */
-export function readExpression<T>(qrl: QRL<() => T>, ctx?: ContainerContext): T {
+export function readExpression<T>(
+  qrl: QRL<(...captures: unknown[]) => T>,
+  ctx?: ContainerContext
+): T {
   const fn = getFunctionOrResolve(qrl, ctx);
   if (isPromise(fn)) {
     throw fn;
   }
-  return fn();
+  const captures = (qrl as QRLInternal<(...captures: unknown[]) => T>).getCaptured() ?? [];
+  return fn(...captures);
 }

@@ -305,9 +305,11 @@ JSX, component candidates, or boundaries.
   omitted; ARIA, `spellcheck`, `draggable`, and `contenteditable` booleans become strings; ordinary
   `false` is omitted and ordinary `true` is a presence attribute. Matching is case-insensitive
   after attribute-name normalization.
-- Ordinary component props, spreads, and `innerHTML` remain binding-aware inline expressions; they
-  do not create resumable identity segments. Event props and true nested explicit or implicit QRL
-  boundaries remain segments, and linker reachability starts from those nested boundaries only.
+- Component props are handled per key: serializable values stay inline, computed expressions get
+  their own expression segments carried in the props sources map, and only an opaque spread
+  promotes the whole object to one `componentProps` segment. Event props and true nested explicit
+  or implicit QRL boundaries remain segments, and linker reachability starts from those nested
+  boundaries only.
 - An object-pattern component parameter still executes once in setup, but render-owned text, attr,
   props, content, branch, slot, and row segments destructure their referenced bindings from the
   current props object on every execution. Setup-derived locals, tasks, and event closures retain
@@ -509,8 +511,9 @@ Status: implemented; final verification in progress
   syntax.
 - Recursively lower callback JSX once, classify its receiver as direct-array, direct-reactive, or
   derived, and retain that source kind for both target planners.
-- Keep ordinary component props inline while retaining binding-aware references to true nested QRL
-  boundaries.
+- Keep serializable component props inline while retaining binding-aware references to true nested
+  QRL boundaries; computed props become per-key expression segments, and only opaque spreads use
+  the whole-object `componentProps` path.
 - No unprocessed JSX may remain in successful output.
 
 Exit: target-neutral RenderPlan fixtures cover every variant without HTML, paths, or helper names.

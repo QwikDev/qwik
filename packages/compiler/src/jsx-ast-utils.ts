@@ -1,8 +1,9 @@
-import type { JSXAttributeValue, Node } from 'oxc-parser';
+import type { JSXAttributeItem, JSXAttributeValue, Node } from 'oxc-parser';
 import {
   getIdentifierName,
   getJsxAttributeName,
   getStaticExpressionValue,
+  isEventProp,
   isFunctionLike,
   unwrapExpression,
 } from './ast-utils';
@@ -336,4 +337,56 @@ function visitNode(
 
 function isObjectNode(node: unknown): node is Node {
   return !!node && typeof node === 'object' && 'type' in node && typeof node.type === 'string';
+}
+
+/**
+ * A value the props object can carry per key without code: a literal, a bare reference, or a direct
+ * `source.value` read. Anything else needs its own expression segment.
+ */
+function isSerializablePropExpression(value: JSXAttributeValue | null | undefined): boolean {
+  if (getStaticJsxAttributeValue(value ?? null) !== undefined) {
+    return true;
+  }
+  const expression = unwrapExpression(getJsxAttributeExpression(value));
+  if (expression?.type === 'Identifier') {
+    return true;
+  }
+  if (
+    expression?.type === 'MemberExpression' &&
+    !expression.computed &&
+    getIdentifierName(expression.property) === 'value' &&
+    unwrapExpression(expression.object)?.type === 'Identifier'
+  ) {
+    return true;
+  }
+  // An expression wrapping a `$` boundary resolves to a QRL, which serializes on its own.
+  let hasBoundary = false;
+  visit(expression, (node) => {
+    hasBoundary ||=
+      node.type === 'CallExpression' && (getIdentifierName(node.callee)?.endsWith('$') ?? false);
+  });
+  return hasBoundary;
+}
+
+/**
+ * True when a component prop's value only survives resume as a per-key QRL segment: a computed
+ * expression over something that can change. Serializable values (literals, bare references, direct
+ * `source.value` reads, `$` boundaries) and event/bind/ref props stay inline.
+ */
+export function isComputedComponentProp(attribute: JSXAttributeItem): boolean {
+  if (attribute.type === 'JSXSpreadAttribute') {
+    return false;
+  }
+  const name = getJsxAttributeName(attribute.name);
+  if (
+    name === null ||
+    name === 'key' ||
+    name === 'q:slot' ||
+    name === 'ref' ||
+    name.startsWith('bind:') ||
+    isEventProp(name)
+  ) {
+    return false;
+  }
+  return !isSerializablePropExpression(attribute.value);
 }

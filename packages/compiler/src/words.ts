@@ -14,6 +14,7 @@ export const enum QwikWord {
   PatchAttrValue = 'patchAttrValue',
   PatchTextValue = 'patchTextValue',
   ReadTrackedSourceValue = 'readTrackedSourceValue',
+  ReadExpression = 'readExpression',
   CreateComponent = 'createComponent',
   CreatePropsProxy = 'createPropsProxy',
   CreateSlotScope = 'createSlotScope',
@@ -73,8 +74,10 @@ export const enum QwikGenWord {
   Fragment = 'fragment',
   ComponentProps = 'props',
   ComponentContext = 'ctx',
+  ContextScope = 'contextScope',
   Id = 'id',
   Element = 'el',
+  PropQrl = 'propQrl',
   Text = 'text',
 }
 

@@ -470,6 +470,28 @@ export function Logical(props: { attrs: object | null }) {
     });
   });
 
+  test('classifies component props between inline and the componentProps segment', async () => {
+    await testInput('component_computed_props', {
+      code: `import { $, useSignal } from '@qwik.dev/core';
+import { Child, IMPORTED } from './child';
+
+export function App() {
+  const selected = useSignal(1);
+  const CONST = 10;
+  return <main>
+    <Child a="static" b={selected} c={selected.value} />
+    <Child active={selected.value === 1} label={'#' + selected.value} />
+    <Child initial={CONST * 2} imported={IMPORTED + 1} />
+    <Child qrl={$(() => selected.value)} onPick$={() => selected.value++} />
+    {[1, 2].map((value) => (
+      <Child key={value} value={value} active={selected.value === value} />
+    ))}
+  </main>;
+}
+`,
+    });
+  });
+
   test('creates reactive props proxies only for dynamic component spreads', async () => {
     await testInput('component_reactive_spread_props', {
       code: `import { useSignal } from '@qwik.dev/core';

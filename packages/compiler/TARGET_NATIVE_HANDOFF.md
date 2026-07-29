@@ -189,8 +189,14 @@ plan; no phase may recognize render QRLs by consumer or identifier name.
 - Property keys, strings and unrelated shadowed bindings are not captures.
 - Reachability is target-specific and transitive. Every imported segment must have a module and no
   segment module may be orphaned.
-- Component props remain inline expressions, including getters and spreads. They do not receive an
-  identity wrapper segment.
+- Component props are per-key: literals stay values, bare references and direct `source.value`
+  reads ride as source references, and a computed expression becomes its own expression segment
+  whose QRL travels in the props sources map (`_props`), read through `readExpression`. Only an
+  opaque spread promotes the whole object to a `componentProps` segment
+  (`createPropsProxy(useComputedQrl(...))`), because its key set can change. Events, `bind:`,
+  `ref` and expressions wrapping a true nested QRL boundary stay inline. Per-key reactive wrapper
+  objects (one computed/signal instance per expression) remain forbidden — a QRL with captures
+  carries no subscription state.
 - Destructured component props are live in render effects: the source pattern is recreated from the
   current props object before text, attr, branch, content, slot or row execution. Setup locals,
   tasks and event closures retain their setup-time value.

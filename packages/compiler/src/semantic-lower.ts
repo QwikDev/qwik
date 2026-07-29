@@ -21,6 +21,7 @@ import {
   getStaticBranchCondition,
   getStaticJsxAttributeValue,
   isEmptyBranchExpression,
+  isComputedComponentProp,
 } from './jsx-ast-utils';
 import type {
   BindingId,
@@ -477,15 +478,7 @@ class SemanticLowerer {
       if (references.length === 0) {
         return true;
       }
-      return references.some((bindingId) => {
-        const binding = this.binding(bindingId);
-        return (
-          binding === null ||
-          (binding.kind !== 'import' &&
-            binding.kind !== 'module' &&
-            !this.initialOnlyBindings.has(bindingId))
-        );
-      });
+      return this.hasLiveBinding(range);
     });
     if (!hasReactiveSpread) {
       return null;
@@ -797,13 +790,21 @@ class SemanticLowerer {
         }
         continue;
       }
+      // A computed prop over a live binding only survives resume as its own segment; everything
+      // else a component receives stays an inline expression.
+      const expressionRange = getRange(expression);
+      const computedProp =
+        targetKind === 'component' &&
+        isComputedComponentProp(attribute) &&
+        expressionRange !== null &&
+        this.hasLiveBinding(expressionRange);
       const value = this.createValue(
         expression,
         lifetimeId,
         event,
         !event && !innerHtml,
         false,
-        targetKind === 'component' && !event
+        targetKind === 'component' && !event && !computedProp
       );
       if (innerHtml) {
         const effectId =
@@ -1858,6 +1859,19 @@ class SemanticLowerer {
   private patternBindingId(pattern: unknown): BindingId | null {
     const node = unwrapExpression(pattern);
     return node?.type === 'Identifier' ? this.bindingIdAt(getRange(node)) : null;
+  }
+
+  /** True when the range reads a binding whose value can still change after setup. */
+  private hasLiveBinding(range: SourceRange): boolean {
+    return this.referencesIn(range).some((bindingId) => {
+      const binding = this.binding(bindingId);
+      return (
+        binding === null ||
+        (binding.kind !== 'import' &&
+          binding.kind !== 'module' &&
+          !this.initialOnlyBindings.has(bindingId))
+      );
+    });
   }
 
   private referencesIn(range: SourceRange): BindingId[] {

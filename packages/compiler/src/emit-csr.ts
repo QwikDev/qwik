@@ -1419,10 +1419,13 @@ function emitComponentProps(
   if (sources.length === 0) {
     return '{}';
   }
-  const merged =
-    sources.length === 1
-      ? sources[0]
-      : (context.imports.add(QwikWord.MergeProps), `${QwikWord.MergeProps}(${sources.join(', ')})`);
+  let merged: string;
+  if (sources.length === 1) {
+    merged = sources[0];
+  } else {
+    context.imports.add(QwikWord.MergeProps);
+    merged = `${QwikWord.MergeProps}(${sources.join(', ')})`;
+  }
   if (reactive.length === 0) {
     return merged;
   }

@@ -1,7 +1,7 @@
 import { component$, createContextId, type QRL } from '@qwik.dev/core';
 import { useContext, useContextProvider, useSignal, type Signal } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
-import { csrRender, testRenderer } from '../test-utils';
+import { testRenderer } from '../test-utils';
 
 const debug = false;
 
@@ -275,36 +275,31 @@ describe(`${name}: component`, () => {
     expect(container.querySelector('#child-2')?.textContent).toBe('active');
     cleanup();
   });
-});
 
-describe('csrRender: component expression props', () => {
-  it.runIf(testRenderer.name === 'csrRender')(
-    'should update child subscriptions for expression props',
-    async () => {
-      function Child(props: { count: number }) {
-        return <span>{props.count}</span>;
-      }
-
-      function Parent() {
-        const count = useSignal(0);
-        return (
-          <button onClick$={() => count.value++}>
-            <Child count={count.value} />
-          </button>
-        );
-      }
-
-      const { container, cleanup, qwikLoader } = await csrRender(Parent, { debug });
-      const button = container.querySelector('button');
-
-      expect(button?.textContent).toBe('0');
-      expect(qwikLoader).toBeDefined();
-
-      await qwikLoader?.dispatch(button!, 'click');
-
-      expect(button?.textContent).toBe('1');
-
-      cleanup();
+  it('should update child subscriptions for expression props', async () => {
+    function Child(props: { count: number }) {
+      return <span>{props.count}</span>;
     }
-  );
+
+    function Parent() {
+      const count = useSignal(0);
+      return (
+        <button onClick$={() => count.value++}>
+          <Child count={count.value} />
+        </button>
+      );
+    }
+
+    const { container, cleanup, qwikLoader } = await render(Parent, { debug });
+    const button = container.querySelector('button');
+
+    expect(button?.textContent).toBe('0');
+    expect(qwikLoader).toBeDefined();
+
+    await qwikLoader?.dispatch(button!, 'click');
+
+    expect(button?.textContent).toBe('1');
+
+    cleanup();
+  });
 });

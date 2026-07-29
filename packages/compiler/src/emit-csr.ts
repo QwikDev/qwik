@@ -964,17 +964,16 @@ function emitCsrOperation(
         return null;
       }
       if (operation.source.kind === 'direct-reactive') {
-        if (operation.key === null || operation.row.kind !== 'segment') {
+        if (operation.row.kind !== 'segment') {
           return null;
         }
         operationNames.set(operation.id, [range.start, range.end]);
         imports.add(QwikWord.CreateCollection);
         const call = `${QwikWord.CreateCollection}(${context.generatedNames.ctx}, ${range.start}, ${range.end}, ${
           operation.source.expression
-        }, ${emitPlannedFunctionReference(
-          operation.key,
-          context
-        )}, ${emitPlannedFunctionReference(operation.row.reference, context)}, ${
+        }, ${
+          operation.key === null ? 'null' : emitPlannedFunctionReference(operation.key, context)
+        }, ${emitPlannedFunctionReference(operation.row.reference, context)}, ${
           operation.usesIndexSignal
         }, ${
           operation.idBase === null ? "''" : operation.idBase

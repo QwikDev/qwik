@@ -421,13 +421,19 @@ export function createUnsupportedRuntimeJsxDiagnostic(
   ).diagnostic;
 }
 
-export function createForKeyDiagnostic(
+export function createKeylessCollectionDiagnostic(
   file: string,
   source: string,
-  range: SourceRange,
-  message: string
+  range: SourceRange
 ): Diagnostic {
-  return locatedDiagnostic(file, source, range, TransformDiagnosticCode.ForKey, message).diagnostic;
+  return locatedDiagnostic(
+    file,
+    source,
+    range,
+    TransformDiagnosticCode.ForKey,
+    'A reactive JSX collection without a synchronous key rebuilds every row on each change. Add a key to reconcile rows instead.',
+    'warning'
+  ).diagnostic;
 }
 
 export function createAsyncForDiagnostic(
@@ -757,13 +763,14 @@ function locatedDiagnostic(
   source: string,
   range: SourceRange,
   code: TransformDiagnosticCode,
-  message: string
+  message: string,
+  category: Diagnostic['category'] = 'error'
 ): LocatedDiagnostic {
   return {
     range,
     diagnostic: {
       scope: 'compiler',
-      category: 'error',
+      category,
       code,
       file,
       message,

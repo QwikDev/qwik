@@ -10,7 +10,10 @@ import type { SemanticLowerFailureCode } from './semantic-lower';
 import { validateComponentPlan } from './validate-component-plan';
 
 export type LowerComponentResult =
-  | { readonly kind: 'success'; readonly plan: ComponentPlan }
+  | {
+      readonly kind: 'success';
+      readonly plan: ComponentPlan;
+    }
   | {
       readonly kind: 'failure';
       readonly code: SemanticLowerFailureCode;

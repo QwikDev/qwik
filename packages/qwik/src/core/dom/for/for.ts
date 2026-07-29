@@ -86,6 +86,9 @@ export class ForRange {
   }
 }
 
+// Keyless rows fall back to index identity; the block rebuilds instead of reconciling.
+const indexKeyFn = (_item: unknown, index: number): ForKey => index;
+
 export class ForBlock<T = unknown> {
   keys: ForKey[] = [];
   rows: RowDom[] = [];
@@ -98,7 +101,7 @@ export class ForBlock<T = unknown> {
   constructor(
     readonly range: ForRange,
     readonly source: Source<readonly T[]>,
-    readonly keyFn: ForKeyFn<T> | QRL<ForKeyFn<T>>,
+    readonly keyFn: ForKeyFn<T> | QRL<ForKeyFn<T>> | null | undefined,
     readonly renderFn: ForRenderFn<T> | QRL<ForRenderFn<T>>,
     readonly usesIndexSignal: boolean,
     readonly listOwner: Owner,
@@ -121,7 +124,7 @@ export class ForBlock<T = unknown> {
   }
 
   run(subscription: ForBlockSubscription<T>): ValueOrPromise<void> {
-    const keyFn = getFunctionOrResolve(this.keyFn, this.container);
+    const keyFn = this.keyFn == null ? null : getFunctionOrResolve(this.keyFn, this.container);
     return maybeThen(keyFn, (keyFn) => {
       const renderFn = getFunctionOrResolve(this.renderFn, this.container);
       return maybeThen(renderFn, (renderFn) =>
@@ -132,7 +135,7 @@ export class ForBlock<T = unknown> {
 
   reconcile(
     subscription: ForBlockSubscription<T>,
-    keyFn: ForKeyFn<T>,
+    keyFn: ForKeyFn<T> | null,
     renderFn: ForRenderFn<T>
   ): void {
     const items = runWithCollector(subscription, () => {
@@ -141,24 +144,31 @@ export class ForBlock<T = unknown> {
     }) as readonly T[];
     const nextLength = items.length;
     const nextKeys = new Array<ForKey>(nextLength);
-    const seenKeys = isDev ? new Set<ForKey>() : null;
+    const keyed = keyFn != null;
+    const resolveKey = keyFn ?? indexKeyFn;
+    const seenKeys = isDev && keyed ? new Set<ForKey>() : null;
 
     for (let i = 0; i < nextLength; i++) {
-      const key = keyFn(items[i], i);
-      if (isDev) {
+      const key = resolveKey(items[i], i);
+      if (seenKeys !== null) {
         if (typeof key !== 'string' && typeof key !== 'number') {
           throw new Error('ForBlock key must be a synchronous string or number.');
         }
-        if (seenKeys!.has(key)) {
+        if (seenKeys.has(key)) {
           throw new Error(`Duplicate ForBlock key "${String(key)}".`);
         }
-        seenKeys!.add(key);
+        seenKeys.add(key);
       }
       nextKeys[i] = key;
     }
 
     if (this.resumeItems !== null) {
-      this.resumeRows(keyFn);
+      this.resumeRows(resolveKey);
+    }
+    if (!keyed) {
+      // Index keys cannot tell one row from another, so any update rebuilds the whole collection.
+      // Server-rendered rows are adopted first so this also clears them out of the range.
+      this.discardRows();
     }
 
     const oldKeys = this.keys;
@@ -168,21 +178,7 @@ export class ForBlock<T = unknown> {
 
     // remove all case
     if (nextLength === 0) {
-      if (oldLength > 0) {
-        this.range.clear();
-      }
-      for (let i = 0; i < oldLength; i++) {
-        const owner = oldOwners[i];
-        if (owner !== null) {
-          disposeOwner(owner);
-        }
-      }
-      this.commitRows(
-        EMPTY_ARRAY,
-        EMPTY_ARRAY,
-        EMPTY_ARRAY,
-        this.usesIndexSignal ? EMPTY_ARRAY : null
-      );
+      this.discardRows();
       return;
     }
 
@@ -491,6 +487,25 @@ export class ForBlock<T = unknown> {
     this.resumeIndexSignals = null;
   }
 
+  private discardRows(): void {
+    if (this.rows.length === 0) {
+      return;
+    }
+    this.range.clear();
+    for (let i = 0; i < this.owners.length; i++) {
+      const owner = this.owners[i];
+      if (owner !== null) {
+        disposeOwner(owner);
+      }
+    }
+    this.commitRows(
+      EMPTY_ARRAY,
+      EMPTY_ARRAY,
+      EMPTY_ARRAY,
+      this.usesIndexSignal ? EMPTY_ARRAY : null
+    );
+  }
+
   private commitRows(
     keys: ForKey[],
     rows: RowDom[],
@@ -565,7 +580,7 @@ export function createForBlock<T>(
   ctx: ContainerContext,
   range: ForRange,
   source: Source<readonly T[]>,
-  keyFn: ForKeyFn<T> | QRL<ForKeyFn<T>>,
+  keyFn: ForKeyFn<T> | QRL<ForKeyFn<T>> | null | undefined,
   renderFn: ForRenderFn<T> | QRL<ForRenderFn<T>>,
   usesIndexSignal = false,
   idBase = '',
@@ -790,7 +805,7 @@ export class SSRForBlock<T = unknown> {
   constructor(
     readonly rangeId: number,
     readonly source: Source<readonly T[]>,
-    readonly keyQrl: QRL<ForKeyFn<T>>,
+    readonly keyQrl: QRL<ForKeyFn<T>> | null | undefined,
     readonly renderQrl: QRL<SsrForRenderFn<T>>,
     readonly usesIndexSignal: boolean,
     readonly invokeContext: RuntimeInvokeContext | null,
@@ -805,7 +820,8 @@ export class SSRForBlock<T = unknown> {
   run(): ValueOrPromise<SsrOutput> {
     const subscription = registerSubscriberToOwner(new SSRForBlockSubscription(this));
     const listOwner = createOwner(subscription.owner);
-    const keyFn = getFunctionOrResolve(this.keyQrl, this.container);
+    const keyFn =
+      this.keyQrl == null ? indexKeyFn : getFunctionOrResolve(this.keyQrl, this.container);
     return maybeThen(keyFn, (keyFn) => {
       const renderFn = getFunctionOrResolve(this.renderQrl, this.container);
       return maybeThen(renderFn, (renderFn) =>
@@ -905,7 +921,7 @@ export function renderSsrForBlock<T>(
   ctx: SsrForContext,
   rangeId: number,
   source: Source<readonly T[]>,
-  keyQrl: QRL<ForKeyFn<T>>,
+  keyQrl: QRL<ForKeyFn<T>> | null | undefined,
   renderQrl: QRL<SsrForRenderFn<T>>,
   usesIndexSignal = false,
   idBase = '',

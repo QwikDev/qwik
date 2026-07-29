@@ -1,6 +1,7 @@
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
+import { isPromise } from '../shared/utils/promises';
 import type { ValueOrPromise } from '../shared/utils/types';
 import type { ContainerContext } from '../runtime/container-context';
 import { getActiveInvokeContextOrNull } from '../runtime/invoke-context';
@@ -54,6 +55,10 @@ export function _wrapArray<T>(
   try {
     value = readComputedUntracked(computed);
   } catch (error) {
+    // A pending compute QRL is not a failure; the collection retries once it resolves.
+    if (isPromise(error)) {
+      return computed;
+    }
     disposeSubscriber(computed);
     throw error;
   }

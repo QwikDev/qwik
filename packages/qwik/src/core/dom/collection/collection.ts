@@ -55,9 +55,6 @@ export function createCollection<T>(
   transient = false
 ): ValueOrPromise<void> {
   if (!Array.isArray(collection)) {
-    if (keyFn === null) {
-      throw new Error('A reactive collection requires a synchronous string or number key.');
-    }
     return createForBlock(
       ctx,
       new ForRange(ctx.document, start, end),
@@ -136,14 +133,11 @@ export function renderSsrCollection<T>(
   rowShape: RowOutputShape = ROW_UNKNOWN
 ): ValueOrPromise<SsrOutput> {
   if (!Array.isArray(collection)) {
-    if (keyQrl === undefined) {
-      throw new Error('A reactive collection requires a synchronous string or number key.');
-    }
     return renderSsrForBlock(
       ctx,
       rangeId!,
       collection as Source<readonly T[]>,
-      keyQrl,
+      keyQrl ?? null,
       renderQrl as QRL<SsrCollectionRenderFn<T>>,
       usesIndexSignal,
       idBase,

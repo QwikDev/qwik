@@ -464,15 +464,6 @@ export function App() {
     );
   });
 
-  test('rejects a reactive collection without a key', () => {
-    const lowered = lower(`import { useSignal } from '@qwik.dev/core';
-export function App() {
-  const items = useSignal([{ id: 'a' }]);
-  return <ul>{items.value.map((item) => <li>{item.id}</li>)}</ul>;
-}`);
-    expect(lowered.result).toMatchObject({ kind: 'failure', code: 'for-key' });
-  });
-
   test('rejects an async reactive row', () => {
     const lowered = lower(`import { useSignal } from '@qwik.dev/core';
 export function App() {
@@ -483,7 +474,8 @@ export function App() {
   });
 
   test('keeps direct-array async rows sequential', () => {
-    const plan = success(`export function App({ items }) {
+    const plan = success(`export function App() {
+  const items = [{ id: 'a' }];
   return <ul>{items.map(async (item) => <li>{await item.label()}</li>)}</ul>;
 }`);
     const root = plan.render.roots[0];
@@ -496,7 +488,8 @@ export function App() {
   });
 
   test('lowers a plain map to the same collection plan with nested segments', () => {
-    const plan = success(`export function App({ items }) {
+    const plan = success(`export function App() {
+  const items = [{ id: 'a', label: 'Alpha' }];
   return <ul>{items.map((item) => <li key={item.id} onClick$={() => item.select()}>{item.label}</li>)}</ul>;
 }`);
 
@@ -544,7 +537,8 @@ export function App() {
   });
 
   test('keeps a direct array index positional without making it reactive', () => {
-    const plan = success(`export function App({ items }) {
+    const plan = success(`export function App() {
+  const items = [{ id: 'a' }];
   return <ul>{items.map((item, index) => <li key={item.id}>{index}</li>)}</ul>;
 }`);
     const root = plan.render.roots[0];
@@ -665,5 +659,83 @@ export function App({ items }) {
     expect(validateComponentPlan(lowered.result.plan, lowered.analysis)).toContainEqual(
       expect.objectContaining({ message: 'render functions cannot register lifecycle hooks' })
     );
+  });
+
+  describe('collection source classification', () => {
+    const sourceKind = (code: string) => {
+      const root = success(code).render.roots[0];
+      if (root.kind !== 'element' || root.children[0].kind !== 'collection') {
+        throw new Error('Expected a semantic collection plan');
+      }
+      return root.children[0].source.kind;
+    };
+
+    const staticSources: Record<string, string> = {
+      'array literal': `export function App() {
+  return <ul>{['a', 'b'].map((item) => <li>{item}</li>)}</ul>;
+}`,
+      'const literal array': `export function App() {
+  const items = ['a', 'b'];
+  return <ul>{items.map((item) => <li>{item}</li>)}</ul>;
+}`,
+      'const literal object array': `export function App() {
+  const items = [{ id: 'a' }];
+  return <ul>{items.map((item) => <li>{item.id}</li>)}</ul>;
+}`,
+    };
+
+    // Anything the compiler cannot prove constant must stay reactive; guessing "static" would
+    // silently freeze the rendered rows.
+    const reactiveSources: Record<string, string> = {
+      'store property': `import { useStore } from '@qwik.dev/core';
+export function App() {
+  const state = useStore({ items: [] });
+  return <ul>{state.items.map((item) => <li key={item}>{item}</li>)}</ul>;
+}`,
+      'store-derived length': `import { useStore } from '@qwik.dev/core';
+export function App() {
+  const state = useStore({ count: 0 });
+  return <ul>{Array.from({ length: state.count }).map((_, i) => <li key={i}>{i}</li>)}</ul>;
+}`,
+      'component prop': `export function App({ items }) {
+  return <ul>{items.map((item) => <li key={item}>{item}</li>)}</ul>;
+}`,
+      'context value': `import { useContext, createContextId } from '@qwik.dev/core';
+const id = createContextId('c');
+export function App() {
+  const value = useContext(id);
+  return <ul>{value.items.map((item) => <li key={item}>{item}</li>)}</ul>;
+}`,
+      'imported binding': `import { LINKS } from './links';
+export function App() {
+  return <ul>{LINKS.map((item) => <li key={item}>{item}</li>)}</ul>;
+}`,
+      'local function result': `export function App() {
+  const build = () => ['a'];
+  return <ul>{build().map((item) => <li key={item}>{item}</li>)}</ul>;
+}`,
+    };
+
+    for (const [label, code] of Object.entries(staticSources)) {
+      test(`${label} stays a direct array`, () => {
+        expect(sourceKind(code)).toBe('direct-array');
+      });
+    }
+
+    for (const [label, code] of Object.entries(reactiveSources)) {
+      test(`${label} is treated as reactive`, () => {
+        expect(sourceKind(code)).not.toBe('direct-array');
+      });
+    }
+
+    test('a signal read stays on the direct reactive fast path', () => {
+      expect(
+        sourceKind(`import { useSignal } from '@qwik.dev/core';
+export function App() {
+  const items = useSignal([]);
+  return <ul>{items.value.map((item) => <li key={item}>{item}</li>)}</ul>;
+}`)
+      ).toBe('direct-reactive');
+    });
   });
 });

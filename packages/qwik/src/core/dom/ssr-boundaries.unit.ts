@@ -197,7 +197,7 @@ describe('structured SSR boundaries', () => {
     expect(idCalls).toBe(2);
   });
 
-  it('requires a key for a reactive collection before starting a row', () => {
+  it('renders a keyless reactive collection by falling back to index rows', () => {
     const ctx = createSsrContext();
     const items = useSignal(['item']);
     let renders = 0;
@@ -208,12 +208,11 @@ describe('structured SSR boundaries', () => {
       return 'row';
     });
 
-    expect(() =>
-      invokeWithScope(ctx, null, () =>
-        renderSsrCollection(ctx, 7, items, undefined, renderQrl, false)
-      )
-    ).toThrow('A reactive collection requires a synchronous string or number key.');
-    expect(renders).toBe(0);
+    invokeWithScope(ctx, null, () =>
+      renderSsrCollection(ctx, 7, items, undefined, renderQrl, false)
+    );
+
+    expect(renders).toBe(1);
   });
 
   it('retains the branch owner for a returned Promise and disposes it on rejection', async () => {

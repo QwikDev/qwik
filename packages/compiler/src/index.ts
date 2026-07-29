@@ -258,7 +258,8 @@ async function transformInput(
       case 'success':
         return {
           modules: result.modules,
-          diagnostics: ctx.diagnostics,
+          // Warnings survive a successful transform, so they need the same range mapping as errors.
+          diagnostics: await mapDiagnosticsToOriginal(normalizedInput, options, ctx.diagnostics),
         };
       case 'failure':
         return {

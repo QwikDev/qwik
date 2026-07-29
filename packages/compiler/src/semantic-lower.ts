@@ -60,7 +60,6 @@ import { createExtractedSegmentPlan } from './segment-plan';
 export type SemanticLowerFailureCode =
   | 'unsupported-syntax'
   | 'ref'
-  | 'for-key'
   | 'async-for'
   | 'use-id'
   | 'style-hook'
@@ -68,7 +67,10 @@ export type SemanticLowerFailureCode =
   | 'scoped-style-content';
 
 export type SemanticLowerResult =
-  | { readonly kind: 'success'; readonly plan: ComponentPlan }
+  | {
+      readonly kind: 'success';
+      readonly plan: ComponentPlan;
+    }
   | {
       readonly kind: 'failure';
       readonly code: SemanticLowerFailureCode;
@@ -1182,7 +1184,7 @@ class SemanticLowerer {
             expression: sourceRange,
             source: directSource,
           }
-        : this.isDirectArraySource(collection.source)
+        : this.isStaticCollectionSource(collection.source, sourceRange)
           ? {
               kind: 'direct-array' as const,
               expression: sourceRange,
@@ -1198,14 +1200,6 @@ class SemanticLowerer {
                 lifetimeId
               ),
             };
-    if (source.kind !== 'direct-array' && collection.key === null) {
-      this.fail(
-        'for-key',
-        collection.range,
-        'Reactive and derived JSX collections require a synchronous key.'
-      );
-      return null;
-    }
     if (
       source.kind !== 'direct-array' &&
       (collection.callback.async || containsAwait(collection.callback.body))
@@ -2024,15 +2018,19 @@ class SemanticLowerer {
     return bindingId !== null && this.sourceOutputs.has(bindingId) ? range : null;
   }
 
-  private isDirectArraySource(expression: AstNode): boolean {
-    let valueAccess = false;
-    forEachNode(expression, (node) => {
-      valueAccess ||=
-        node.type === 'MemberExpression' &&
-        !node.computed &&
-        getIdentifierName(node.property) === 'value';
-    });
-    return !valueAccess;
+  /**
+   * A collection may render once only when nothing it reads can change. Anything the compiler
+   * cannot prove constant is treated as reactive, because guessing "static" silently freezes the
+   * rendered rows, while guessing "reactive" only costs a rebuild.
+   */
+  private isStaticCollectionSource(expression: AstNode, range: SourceRange): boolean {
+    if (isLiteralOnlyValue(expression)) {
+      return true;
+    }
+    if (this.hasInlineBoundary(range)) {
+      return false;
+    }
+    return this.referencesIn(range).every((id) => this.initialOnlyBindings.has(id));
   }
 
   private lowerSetup(lifetimeId: LifetimeId): SetupPlan[] {

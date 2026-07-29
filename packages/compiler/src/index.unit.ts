@@ -1315,7 +1315,8 @@ export function App() {
 
   test('renders a direct array map without reactive collection machinery', async () => {
     const result = await testInput('jsx_plain_array_map', {
-      code: `export function App({ items }) {
+      code: `export function App() {
+  const items = [{ id: 'a', label: 'Alpha' }, { id: 'b', label: 'Beta' }];
   return <ul>{items.map((item, index) => <li key={item.id} onClick$={() => console.log(index)}>{item.label}:{index}</li>)}</ul>;
 }
 `,

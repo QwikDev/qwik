@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createDocument } from '../../../testing/document';
 import { isPromise } from '../../shared/utils/promises';
 import { OwnerFlags } from '../../reactive/flags';
-import { useSignal } from '../../reactive/public-api';
+import { useComputed, useSignal } from '../../reactive/public-api';
 import type { Signal } from '../../reactive/signal';
 import type { ContainerContext } from '../../runtime/container-context';
 import { getActiveInvokeContext, invoke, newInvokeContext } from '../../runtime/invoke-context';
@@ -36,6 +36,62 @@ describe('collection', () => {
     await ctx.scheduler.flushInteraction();
 
     expect(rowTexts(list)).toEqual(['2', '3']);
+  });
+
+  it('delegates a Computed source to the existing ForBlock', async () => {
+    const { ctx, list, start, end, run } = setup();
+    const length = useSignal(2);
+    const items = run(() => useComputed(() => Array.from({ length: length.value }, (_, i) => i)));
+
+    const output = run(() =>
+      createCollection(
+        ctx,
+        start,
+        end,
+        items,
+        (item) => item,
+        (_ctx, item) => row(list.ownerDocument, valueOf(item)),
+        false
+      )
+    );
+
+    expect(isPromise(output)).toBe(false);
+    await ctx.scheduler.flushInteraction();
+    expect(rowTexts(list)).toEqual(['0', '1']);
+
+    length.value = 3;
+    await ctx.scheduler.flushInteraction();
+
+    expect(rowTexts(list)).toEqual(['0', '1', '2']);
+  });
+
+  it('rebuilds a keyless reactive collection on every change', async () => {
+    const { ctx, list, start, end, run } = setup();
+    const items = useSignal(['a', 'b']);
+
+    run(() =>
+      createCollection(
+        ctx,
+        start,
+        end,
+        items,
+        null,
+        (_ctx, item) => row(list.ownerDocument, valueOf(item)),
+        false
+      )
+    );
+
+    await ctx.scheduler.flushInteraction();
+    expect(rowTexts(list)).toEqual(['a', 'b']);
+
+    // Same length, different content: a keyed block would retain the rows and go stale.
+    items.value = ['c', 'd'];
+    await ctx.scheduler.flushInteraction();
+    expect(rowTexts(list)).toEqual(['c', 'd']);
+
+    items.value = ['e'];
+    await ctx.scheduler.flushInteraction();
+    expect(rowTexts(list)).toEqual(['e']);
   });
 
   it('renders array rows sequentially and commits them together', async () => {

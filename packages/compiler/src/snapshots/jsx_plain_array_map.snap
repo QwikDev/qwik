@@ -1,6 +1,7 @@
 ==INPUT==
 
-export function App({ items }) {
+export function App() {
+  const items = [{ id: 'a', label: 'Alpha' }, { id: 'b', label: 'Beta' }];
   return <ul>{items.map((item, index) => <li key={item.id} onClick$={() => console.log(index)}>{item.label}:{index}</li>)}</ul>;
 }
 
@@ -32,7 +33,16 @@ const q_component_text_segment_3_1fh11lewq6qgx = /*#__PURE__*/ _qrlWithChunk(
 );
 q_component_text_segment_3_1fh11lewq6qgx.s(component_text_segment_3_1fh11lewq6qgx);
 export function App(props, ctx) {
-  const { items } = props;
+  const items = [
+    {
+      id: 'a',
+      label: 'Alpha',
+    },
+    {
+      id: 'b',
+      label: 'Beta',
+    },
+  ];
   function component_for_render_segment_0_asyt89wzo2d3(ctx, __rangeId, __rowId, item, index) {
     const id0 = ctx.nextId();
     ctx.addRoot(item);
@@ -96,8 +106,8 @@ export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    91,
-    126
+    166,
+    201
   ],
   "paramNames": [],
   "captureNames": [
@@ -124,8 +134,8 @@ export const component_text_segment_3_1fh11lewq6qgx = (item) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    128,
-    138
+    203,
+    213
   ],
   "paramNames": [],
   "captureNames": [
@@ -157,7 +167,16 @@ const component_for_render_segment_0_asyt89wzo2d3_tmpl0 = createTemplate(
 );
 const App_tmpl0 = createTemplate('<ul><!----><!----></ul>');
 export function App(props, ctx) {
-  const { items } = props;
+  const items = [
+    {
+      id: 'a',
+      label: 'Alpha',
+    },
+    {
+      id: 'b',
+      label: 'Beta',
+    },
+  ];
   const fragment0 = App_tmpl0(ctx.document);
   const el0 = _first(fragment0);
   const start0 = _first(el0);
@@ -218,8 +237,8 @@ export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    91,
-    126
+    166,
+    201
   ],
   "paramNames": [],
   "captureNames": [
@@ -246,8 +265,8 @@ export const component_text_segment_3_1fh11lewq6qgx = (item) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    128,
-    138
+    203,
+    213
   ],
   "paramNames": [],
   "captureNames": [

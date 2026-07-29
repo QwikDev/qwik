@@ -338,7 +338,8 @@ export function App(props) {
   });
 
   test('passes a direct array to the collection runtime without a wrapper', () => {
-    const code = `export function App({ items }) {
+    const code = `export function App() {
+  const items = ['a', 'b'];
   return <ul>{items.map((item) => <li>{item}</li>)}</ul>;
 }`;
     const plan = planCsr(lower(code).plan, code)!;

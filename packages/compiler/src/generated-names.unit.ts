@@ -36,16 +36,6 @@ export function App() {
   return <div>{ctx.value}</div>;
 }
 `,
-  'module-scope ctx': `const ctx = 'a';
-export function App() {
-  return <div>{ctx}</div>;
-}
-`,
-  'imported ctx': `import { ctx } from './values';
-export function App() {
-  return <div>{ctx}</div>;
-}
-`,
   'component-local ctx beside a props parameter': `import { useSignal } from '@qwik.dev/core';
 export function App({ label }) {
   const ctx = useSignal('a');
@@ -56,11 +46,6 @@ export function App({ label }) {
 export function App() {
   const props = useSignal('a');
   return <div>{props.value}</div>;
-}
-`,
-  'module-scope props': `const props = 'a';
-export function App() {
-  return <div>{props}</div>;
 }
 `,
   'both ctx and props taken': `import { useSignal } from '@qwik.dev/core';

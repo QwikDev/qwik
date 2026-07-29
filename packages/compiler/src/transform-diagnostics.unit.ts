@@ -282,3 +282,83 @@ export function App({ initial }) {
     expect(result.diagnostics[0].code).toBe(TransformDiagnosticCode.NonFunctionCapture);
   });
 });
+
+describe('keyless reactive collections', () => {
+  const sources: Record<string, string> = {
+    'direct-reactive': `import { useSignal } from '@qwik.dev/core';
+export function App() {
+  const items = useSignal([]);
+  return <ul>{items.value.map((item) => <li>{item}</li>)}</ul>;
+}`,
+    derived: `import { useSignal } from '@qwik.dev/core';
+export function App() {
+  const length = useSignal(0);
+  return <ul>{Array.from({ length: length.value }).map((_, i) => <li>{i}</li>)}</ul>;
+}`,
+  };
+
+  for (const [label, code] of Object.entries(sources)) {
+    for (const isServer of [false, true]) {
+      test(`${label} compiles with a warning (${isServer ? 'ssr' : 'csr'})`, async () => {
+        const result = await transformModules({
+          input: [{ path: `src/keyless-${label}.tsx`, code }],
+          srcDir: 'src',
+          sourceMaps: false,
+          transpileTs: true,
+          transpileJsx: true,
+          isServer,
+        });
+
+        expect(
+          result.diagnostics.map((item) => ({ code: item.code, category: item.category }))
+        ).toEqual([{ code: 'for-key', category: 'warning' }]);
+        expect(result.modules.length).toBeGreaterThan(0);
+      });
+    }
+  }
+
+  test('the warning points at the author line, not the transpiled one', async () => {
+    const code = `import { useSignal } from '@qwik.dev/core';
+
+interface Props {
+  label: string;
+}
+
+export function App() {
+  const items = useSignal<string[]>([]);
+  return <ul>{items.value.map((item) => <li>{item}</li>)}</ul>;
+}
+`;
+    const result = await transformModules({
+      input: [{ path: 'src/keyless-position.tsx', code }],
+      srcDir: 'src',
+      sourceMaps: false,
+      transpileTs: true,
+      transpileJsx: true,
+    });
+
+    const mapLine = code.split('\n').findIndex((line) => line.includes('.map(')) + 1;
+    expect(result.diagnostics[0]?.highlights?.[0]?.startLine).toBe(mapLine);
+  });
+
+  test('a keyed collection reports no diagnostics', async () => {
+    const result = await transformModules({
+      input: [
+        {
+          path: 'src/keyed-collection.tsx',
+          code: `import { useSignal } from '@qwik.dev/core';
+export function App() {
+  const items = useSignal([]);
+  return <ul>{items.value.map((item) => <li key={item}>{item}</li>)}</ul>;
+}`,
+        },
+      ],
+      srcDir: 'src',
+      sourceMaps: false,
+      transpileTs: true,
+      transpileJsx: true,
+    });
+
+    expect(result.diagnostics).toEqual([]);
+  });
+});

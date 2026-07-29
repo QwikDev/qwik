@@ -448,7 +448,8 @@ export function App() {
   });
 
   test('keeps async direct-array rows on the sequential collection path', async () => {
-    const code = `export function App({ items }) {
+    const code = `export function App() {
+  const items = [{ id: 'a' }];
   return <ul>{items.map(async (item) => <li>{await item.label()}</li>)}</ul>;
 }`;
     for (const isServer of [false, true]) {
@@ -486,7 +487,8 @@ export function App() {
   });
 
   test('does not emit a source QRL for a direct array', async () => {
-    const code = `export function App({ items }) {
+    const code = `export function App() {
+  const items = ['a', 'b'];
   return <ul>{items.map((item) => <li>{item}</li>)}</ul>;
 }
 `;

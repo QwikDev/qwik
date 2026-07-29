@@ -1160,7 +1160,7 @@ class SsrEmitter {
     const id = operation.source.kind === 'direct-array' ? null : this.declareId('collectionId');
     let value: string;
     if (operation.source.kind === 'direct-reactive') {
-      if (operation.key === null || key === null || id === null) {
+      if (id === null) {
         return null;
       }
       const source = this.source.slice(
@@ -1170,15 +1170,14 @@ class SsrEmitter {
       const prep = [
         this.assignId(id),
         ...this.rootNames([source]),
-        ...this.rootNames(this.captureNames(key, operation.key)),
+        ...(key === null ? [] : this.rootNames(this.captureNames(key, operation.key!))),
         ...this.rootSegment(row!),
       ];
       this.imports.add(QwikWord.RenderSsrCollection);
       value = this.step(
-        `${QwikWord.RenderSsrCollection}(${this.generatedNames.ctx}, ${id}, ${source}, ${this.qrlReference(
-          key,
-          operation.key
-        )}, ${this.qrlReference(row!)}, ${operation.usesIndexSignal}, ${
+        `${QwikWord.RenderSsrCollection}(${this.generatedNames.ctx}, ${id}, ${source}, ${
+          key === null ? 'undefined' : this.qrlReference(key, operation.key!)
+        }, ${this.qrlReference(row!)}, ${operation.usesIndexSignal}, ${
           operation.idBase === null ? "''" : operation.idBase
         }, ${operation.usesRowId}, ${operation.rowShape})`,
         prep,

@@ -8,7 +8,7 @@ import { analyzeModule } from './analysis';
 import {
   createAsyncForDiagnostic,
   createCustomHookDiagnostic,
-  createForKeyDiagnostic,
+  createKeylessCollectionDiagnostic,
   createImplicitDollarArgumentDiagnostic,
   createModuleWriteDiagnostic,
   createRefDiagnostic,
@@ -226,14 +226,6 @@ export function transformModule(ctx: CompilerContext): TransformResult {
           ],
         };
       }
-      if (lowered.code === 'for-key') {
-        return {
-          kind: 'failure',
-          diagnostics: [
-            createForKeyDiagnostic(ctx.input.path, ctx.input.code, lowered.range, lowered.message),
-          ],
-        };
-      }
       if (lowered.code === 'use-id') {
         return {
           kind: 'failure',
@@ -319,10 +311,12 @@ export function transformModule(ctx: CompilerContext): TransformResult {
       ctx.emitTarget
     ),
     ...validateSerializableCaptures(ctx.input.path, ctx.input.code, program, analysis, segments),
+    ...validateCollectionKeys(ctx.input.path, ctx.input.code, outputs),
   ];
-  if (diagnostics.length > 0) {
+  if (diagnostics.some((item) => item.category !== 'warning')) {
     return { kind: 'failure', diagnostics };
   }
+  ctx.diagnostics.push(...diagnostics);
 
   const referencedComponents = new Set(
     outputs.flatMap((output) => collectComponentBindingIds(output.result.render, analysis))
@@ -848,23 +842,14 @@ function allocateGeneratedName(base: string, names: readonly string[]): string {
   return name;
 }
 
-function collectComponentBindingIds(render: RenderPlan, analysis: ModuleAnalysis): BindingId[] {
-  const bindings: BindingId[] = [];
+function forEachRenderNode(render: RenderPlan, visit: (node: RenderNodePlan) => void): void {
   const visitRender = (value: RenderPlan) => value.roots.forEach(visitNode);
   const visitNode = (node: RenderNodePlan): void => {
+    visit(node);
     switch (node.kind) {
-      case 'component': {
-        const bindingId =
-          node.bindingId ??
-          analysis.references.find((reference) => sameRange(reference.range, node.tagRange))
-            ?.bindingId ??
-          null;
-        if (bindingId !== null) {
-          bindings.push(bindingId);
-        }
+      case 'component':
         node.slots.forEach((slot) => visitRender(slot.render.render));
         return;
-      }
       case 'element':
         node.children.forEach(visitNode);
         return;
@@ -893,7 +878,41 @@ function collectComponentBindingIds(render: RenderPlan, analysis: ModuleAnalysis
     }
   };
   visitRender(render);
+}
+
+function collectComponentBindingIds(render: RenderPlan, analysis: ModuleAnalysis): BindingId[] {
+  const bindings: BindingId[] = [];
+  forEachRenderNode(render, (node) => {
+    if (node.kind !== 'component') {
+      return;
+    }
+    const bindingId =
+      node.bindingId ??
+      analysis.references.find((reference) => sameRange(reference.range, node.tagRange))
+        ?.bindingId ??
+      null;
+    if (bindingId !== null) {
+      bindings.push(bindingId);
+    }
+  });
   return bindings;
+}
+
+/** A reactive collection without a key still renders; it just rebuilds every row on each change. */
+function validateCollectionKeys(
+  file: string,
+  source: string,
+  outputs: readonly ComponentOutput[]
+): Diagnostic[] {
+  const diagnostics: Diagnostic[] = [];
+  for (const output of outputs) {
+    forEachRenderNode(output.result.render, (node) => {
+      if (node.kind === 'collection' && node.source.kind !== 'direct-array' && node.key === null) {
+        diagnostics.push(createKeylessCollectionDiagnostic(file, source, node.range));
+      }
+    });
+  }
+  return diagnostics;
 }
 
 function propagateComponentIdRequirements(

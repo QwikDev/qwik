@@ -5,14 +5,15 @@ import { latencyColumnSums, toVector } from './query-helpers';
 
 export async function dbGetManifests(
   db: AppDatabase,
-  publicApiKey: string
+  publicApiKey: string,
+  { limit = 1000 }: { limit?: number } = {}
 ): Promise<ManifestRow[]> {
   const manifests = await db
     .select()
     .from(manifestTable)
     .where(and(eq(manifestTable.publicApiKey, publicApiKey)))
     .orderBy(sql`${manifestTable.timestamp} DESC`)
-    .limit(1000)
+    .limit(limit)
     .all();
   return manifests;
 }

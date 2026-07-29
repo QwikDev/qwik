@@ -136,6 +136,43 @@ describe(`${name}: slot`, () => {
     cleanup();
   });
 
+  it('provides parent context to every sibling projected inside a branch', async () => {
+    const contextId = createContextId<string>('slot-branch-siblings-context');
+
+    const Projector = component$(() => {
+      const shown = useSignal(false);
+      return !shown.value ? <button onClick$={() => (shown.value = true)}>show</button> : <Slot />;
+    });
+
+    const First = component$(() => {
+      const value = useContext(contextId);
+      return <span id="first">{value}</span>;
+    });
+
+    const Second = component$(() => {
+      const value = useContext(contextId);
+      return <span id="second">{value}</span>;
+    });
+
+    const App = component$(() => {
+      useContextProvider(contextId, 'provided');
+      return (
+        <Projector>
+          <First />
+          <Second />
+        </Projector>
+      );
+    });
+
+    const { container, cleanup, qwikLoader } = await render(App, { debug });
+    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+
+    // The second sibling is projected after the first one resolves, on a separate code path.
+    expect(container.querySelector('#first')?.textContent).toBe('provided');
+    expect(container.querySelector('#second')?.textContent).toBe('provided');
+    cleanup();
+  });
+
   it('provides app context to projected slot children', async () => {
     const contextId = createContextId<string>('slot-app-context');
 

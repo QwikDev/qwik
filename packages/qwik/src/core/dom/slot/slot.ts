@@ -137,11 +137,11 @@ export function createSlot(
 
   const nodes: Node[] = [];
   for (let i = 0; i < projections.length; i++) {
-    const output = project(projections[i], context.container!);
+    const output = project(projections[i], context.container!, context);
     if (isPromise(output)) {
       return maybeThen(output, (resolved) => {
         nodes.push(...resolved);
-        return projectRemaining(nodes, projections, i + 1, context.container!);
+        return projectRemaining(nodes, projections, i + 1, context.container!, context);
       });
     }
     nodes.push(...output);
@@ -186,7 +186,8 @@ export function renderSsrSlot(
 
 function project(
   projection: Projection,
-  container: ContainerContext
+  container: ContainerContext,
+  parentInvokeContext: RuntimeInvokeContext | null
 ): ValueOrPromise<readonly Node[]> {
   if (projection.owner !== null && projection.owner.flags & OwnerFlags.Disposed) {
     projection.owner = null;
@@ -200,9 +201,10 @@ function project(
     container
   );
   return maybeThen(render, (render) => {
-    const currentInvokeContext = getActiveInvokeContextOrNull();
-    const invokeContext = newChildInvokeContext(currentInvokeContext, {
-      ownerHost: projection.owner ?? getOrCreateContextOwner(currentInvokeContext),
+    // The QRL may resolve asynchronously, so the caller's context is passed in rather than read
+    // from the ambient one, which is already gone by the time this runs.
+    const invokeContext = newChildInvokeContext(parentInvokeContext, {
+      ownerHost: projection.owner ?? getOrCreateContextOwner(parentInvokeContext),
       container,
       slotScope: projection.slotScope,
     });
@@ -260,14 +262,15 @@ function projectRemaining(
   nodes: Node[],
   projections: readonly Projection[],
   start: number,
-  container: ContainerContext
+  container: ContainerContext,
+  parentInvokeContext: RuntimeInvokeContext | null
 ): ValueOrPromise<readonly Node[]> {
   for (let i = start; i < projections.length; i++) {
-    const projected = project(projections[i], container);
+    const projected = project(projections[i], container, parentInvokeContext);
     if (isPromise(projected)) {
       return projected.then((resolved) => {
         nodes.push(...resolved);
-        return projectRemaining(nodes, projections, i + 1, container);
+        return projectRemaining(nodes, projections, i + 1, container, parentInvokeContext);
       });
     }
     nodes.push(...projected);

@@ -33,12 +33,6 @@ export const renderCompiled = <Props = undefined>(
   const scheduler = opts.scheduler ?? defaultScheduler;
   target.setAttribute(QContainerAttr, QContainerValue.RESUMED);
   const context = createContainerContext(target, scheduler, opts.serverData);
-  (
-    context as ContainerContext & {
-      finalizeComponentOutput: typeof applyUseOnToCsrOutput;
-    }
-  ).finalizeComponentOutput = (output, events) =>
-    applyUseOnToCsrOutput(output, events, context.document);
 
   const invokeContext = newInvokeContext({ container: context });
   let mountedRange: Range | null = null;

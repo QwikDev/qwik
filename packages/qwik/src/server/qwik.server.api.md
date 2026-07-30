@@ -19,7 +19,6 @@ import { SsrReferenceChunk } from '@qwik.dev/core';
 import type { StreamWriter } from '@qwik.dev/core';
 import type { SymbolMapperFn } from '@qwik.dev/core/optimizer';
 import { TaskScheduler } from '@qwik.dev/core';
-import { UseOnMap } from '@qwik.dev/core';
 
 // @public
 export function getQwikLoaderScript(opts?: {

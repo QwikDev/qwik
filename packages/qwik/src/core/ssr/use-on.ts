@@ -1,4 +1,6 @@
 import { isDev } from '@qwik.dev/core/build';
+import type { UseOnEvent, UseOnMap } from '../runtime/use-on';
+import { EventNameHtmlScope, getEventDataFromHtmlAttribute } from '../shared/utils/event-names';
 import {
   createSsrElementRecord,
   isSsrEventAttrChunk,
@@ -6,10 +8,7 @@ import {
   type SsrEventAttrChunk,
   type SsrOutput,
   type SsrRecordPart,
-  type UseOnEvent,
-  type UseOnMap,
-} from '@qwik.dev/core';
-import { EventNameHtmlScope, getEventDataFromHtmlAttribute } from './qwik-copy';
+} from './output';
 
 export function applyUseOnToSsrOutput(
   output: SsrOutput,

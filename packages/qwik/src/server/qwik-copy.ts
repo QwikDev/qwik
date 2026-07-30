@@ -26,5 +26,6 @@ export {
   QVersionAttr,
 } from '../core/shared/utils/markers';
 export { TypeIds } from '../core/shared/serdes/type-id';
+export { applyUseOnToSsrOutput } from '../core/ssr/use-on';
 export type { CorePlatformServer } from '../core/shared/platform/types';
 export type { ValueOrPromise } from '../core/shared/utils/types';

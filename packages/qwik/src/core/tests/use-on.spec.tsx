@@ -374,6 +374,44 @@ describe(`${name}: useOn`, () => {
       cleanup();
     });
 
+    it('attaches events to components rendered after resume', async () => {
+      const Listener = component$(() => {
+        const count = useSignal(0);
+
+        useOnWindow(
+          'click',
+          $(() => {
+            count.value++;
+          })
+        );
+
+        return <p id="conditional-listener">{count.value}</p>;
+      });
+      const App = component$(() => {
+        const visible = useSignal(false);
+
+        return (
+          <>
+            <button onClick$={() => (visible.value = true)}>Show</button>
+            {visible.value && <Listener />}
+          </>
+        );
+      });
+
+      const { container, cleanup, qwikLoader } = await render(App, { debug });
+      const button = container.querySelector('button')!;
+
+      expect(container.querySelector('#conditional-listener')).toBeFalsy();
+      await qwikLoader?.dispatch(button, 'click');
+
+      const listener = container.querySelector('#conditional-listener')!;
+      expect(listener.hasAttribute('q-w:click')).toBe(true);
+      await qwikLoader?.dispatch(listener, 'w:click');
+      expect(listener.textContent).toBe('1');
+
+      cleanup();
+    });
+
     it('supports modifiers on hidden script carriers', async () => {
       const App = component$(() => {
         useOnWindow(

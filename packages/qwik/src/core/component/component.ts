@@ -1,3 +1,4 @@
+import { isServer } from '@qwik.dev/core/build';
 import { isPromise } from '../shared/utils/promises';
 import type { ValueOrPromise } from '../shared/utils/types';
 import {
@@ -12,6 +13,11 @@ import { disposeOwner, getOrCreateContextOwner } from '../runtime/owner';
 import { untrack } from '../reactive/tracking';
 import type { NodeOutput } from '../utils/nodes';
 import { EMPTY_NODES } from '../utils/consts';
+import { applyUseOnToCsrOutput } from '../runtime/use-on';
+import { qTest } from '../shared/utils/qdev';
+import { isServerPlatform } from '../shared/platform/platform';
+import { applyUseOnToSsrOutput } from '../ssr/use-on';
+import type { SsrEventAttrChunk, SsrOutput } from '../ssr/output';
 
 export type ComponentOutput = NodeOutput | string;
 export type ComponentRenderFn<TProps = unknown> = (
@@ -113,13 +119,21 @@ function finalizeOutput(
   if (useOnEvents === undefined || container === undefined) {
     return normalized;
   }
-  const finalize = (
-    container as unknown as {
-      finalizeComponentOutput?: (
-        output: ComponentOutput,
-        events: NonNullable<RuntimeInvokeContext['useOnEvents']>
-      ) => ComponentOutput;
-    }
-  ).finalizeComponentOutput;
-  return finalize === undefined ? normalized : finalize(normalized, useOnEvents);
+  if (qTest ? isServerPlatform() : isServer) {
+    const eventAttr = (
+      container as unknown as {
+        eventAttr(name: string, value: unknown): SsrEventAttrChunk;
+      }
+    ).eventAttr;
+    return applyUseOnToSsrOutput(
+      normalized as SsrOutput,
+      useOnEvents,
+      eventAttr
+    ) as ComponentOutput;
+  }
+  return applyUseOnToCsrOutput(
+    normalized as NodeOutput,
+    useOnEvents,
+    container.document
+  ) as ComponentOutput;
 }

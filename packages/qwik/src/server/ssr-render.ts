@@ -27,7 +27,6 @@ import {
   type SsrEventAttrChunk,
   type SsrOutput,
   type SsrReferenceChunk,
-  type UseOnMap,
   version,
   withLocale,
 } from '@qwik.dev/core';
@@ -44,10 +43,10 @@ import {
   SubscriberKind,
   escapeHTML,
   type ValueOrPromise,
+  applyUseOnToSsrOutput,
 } from './qwik-copy';
 import { createSsrEventAttr, createSsrEventAttrParts } from './ssr-event-attr';
 import { SsrScriptEmitter } from './ssr-script-emitter';
-import { applyUseOnToSsrOutput } from './ssr-use-on';
 import { SsrScheduler, type SsrLane } from './ssr-scheduler';
 import { SsrDomRef, setSsrRef } from './ssr-ref';
 import { serializeSsrEvent } from './ssr-events';
@@ -73,7 +72,6 @@ export interface SsrRenderContext extends ServerDataContext {
   addRoot(value: unknown): number;
   contextScopeRef(): SsrReferenceChunk;
   eventAttr(name: string, value: unknown, hasMovedCaptures?: boolean): SsrEventAttrChunk;
-  finalizeComponentOutput(output: SsrOutput, events: UseOnMap): SsrOutput;
   deferSuspense(
     rangeId: number,
     contentQrl: QRL<SsrSuspenseRender>,
@@ -343,9 +341,6 @@ export const renderToStreamCompiled = async <Props = undefined>(
         inOrderCtx.deferSuspense = (rangeId, contentQrl, fallbackQrl, delay) =>
           deferSuspense(inOrderCtx, null, rangeId, contentQrl, fallbackQrl, delay, false);
         return inOrderCtx;
-      },
-      finalizeComponentOutput(output, events): SsrOutput {
-        return applyUseOnToSsrOutput(output, events, ctx.eventAttr);
       },
     } satisfies SsrRenderContext;
     rootInvokeContext.container = ctx as any;

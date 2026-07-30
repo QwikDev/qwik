@@ -746,9 +746,8 @@ const resetModes = [
   ],
 ] as const;
 
-describe.each(resetModes)(
-  'ErrorBoundary reset (%s)',
-  (_mode, { render: renderReset, driveReset }) => {
+describe('ErrorBoundary reset', () => {
+  describe.each(resetModes)('%s', (_mode, { render: renderReset, driveReset }) => {
     it('reset re-executes a flaky projected child and recovers', async () => {
       resetRef.flake = 0;
       const App = withResetBoundary(<ResetFlake />);
@@ -784,10 +783,8 @@ describe.each(resetModes)(
 
       expect(el.querySelector('#alive')).toBeTruthy();
     });
-  }
-);
+  });
 
-describe('ErrorBoundary reset (single-mode scenarios)', () => {
   it('sequential errors across resets: a second error after recovery shows the second message, and reset recovers again', async () => {
     resetRef.toggle = 0;
     const App = withResetBoundary(<ResetToggle />);

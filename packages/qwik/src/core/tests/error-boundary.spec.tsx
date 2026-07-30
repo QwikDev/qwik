@@ -786,255 +786,6 @@ describe('ErrorBoundary reset (single-mode scenarios)', () => {
     expect(el.querySelector('#retry')).toBeFalsy();
   });
 
-  const escalationRef = { fallbackCalls: 0 };
-  const EscalationResetApp = component$(() => (
-    <ErrorBoundary
-      fallback$={$((e: any, reset: any) => (
-        <button id="retry-outer" onClick$={() => reset()}>
-          outer: {String(e?.message ?? e)}
-        </button>
-      ))}
-    >
-      <ErrorBoundary
-        fallback$={$(() => {
-          escalationRef.fallbackCalls++;
-          if (escalationRef.fallbackCalls === 1) {
-            throw new Error('inner fallback boom');
-          }
-          return <p id="fb-inner">inner recovered</p>;
-        })}
-      >
-        <Thrower />
-      </ErrorBoundary>
-    </ErrorBoundary>
-  ));
-
-  it('reset after escalation: the outer boundary resets and re-attempts the whole subtree', async () => {
-    escalationRef.fallbackCalls = 0;
-    const { container } = await domRender(<EscalationResetApp />, { debug });
-    await waitForDrain(container).catch(() => {});
-    const el = container.element;
-    expect(el.querySelector('#retry-outer')?.textContent).toContain('inner fallback boom');
-
-    await trigger(el, '#retry-outer', 'click');
-    await waitForDrain(container).catch(() => {});
-
-    expect(el.querySelector('#fb-inner')?.textContent).toContain('inner recovered');
-    expect(el.querySelector('#retry-outer')).toBeFalsy();
-  });
-
-  const NestedResetApp = component$(() => (
-    <main>
-      <ErrorBoundary
-        fallback$={$((e: any) => (
-          <p id="fb-outer">outer: {String(e?.message ?? e)}</p>
-        ))}
-      >
-        <div id="outer-sibling">outer sibling</div>
-        <ErrorBoundary
-          fallback$={$((e: any, reset: any) => (
-            <button id="retry-inner" onClick$={() => reset()}>
-              caught: {e.message}
-            </button>
-          ))}
-        >
-          <ResetFlake />
-        </ErrorBoundary>
-      </ErrorBoundary>
-    </main>
-  ));
-
-  it('SSR resume: reset on a nested inner boundary re-executes its children, outer intact', async () => {
-    resetRef.flake = 0;
-    const { container } = await ssrRenderToDom(<NestedResetApp />, { debug, ...IN_ORDER });
-    const el = container.element;
-    expect(el.querySelector('#retry-inner')).toBeTruthy();
-    expect(el.querySelector('#ok')).toBeFalsy();
-    expect(el.querySelector('#outer-sibling')).toBeTruthy();
-
-    const c = _getDomContainer(el) as any;
-    c.resetErrorBoundary(c.vNodeLocate(el.querySelector('#retry-inner')));
-    await waitForDrain(container);
-
-    expect(el.querySelector('#ok')?.textContent).toContain('ok');
-    expect(el.querySelector('#retry-inner')).toBeFalsy();
-    expect(el.querySelector('#fb-outer')).toBeFalsy();
-    expect(el.querySelector('#outer-sibling')).toBeTruthy();
-  });
-
-  const fallbackNestedRef = { outerThrown: false, innerThrows: true };
-  const FallbackOuterOnce = component$(() => {
-    if (!fallbackNestedRef.outerThrown) {
-      fallbackNestedRef.outerThrown = true;
-      throw new Error('outer-boom');
-    }
-    return <div id="outer-child-ok">outer child ok</div>;
-  });
-  const FallbackNestedFlake = component$(() => {
-    if (fallbackNestedRef.innerThrows) {
-      throw new Error('inner-boom');
-    }
-    return <div id="inner-ok">inner ok</div>;
-  });
-  // Hoisted like the optimizer emits: this fixture needs stable QRL identity.
-  const nestedInnerFb = $((ie: any, reset: any) => (
-    <button id="retry-nested" onClick$={() => reset()}>
-      inner caught: {ie.message}
-    </button>
-  ));
-  const nestedOuterFb = $((e: any) => (
-    <>
-      <p id="outer-fb">outer: {String(e?.message ?? e)}</p>
-      <ErrorBoundary fallback$={nestedInnerFb}>
-        <FallbackNestedFlake />
-      </ErrorBoundary>
-    </>
-  ));
-  const FallbackNestedApp = component$(() => (
-    <main>
-      <ErrorBoundary fallback$={nestedOuterFb}>
-        <FallbackOuterOnce />
-      </ErrorBoundary>
-    </main>
-  ));
-
-  it('reset on a boundary nested inside an errored outer fallback re-executes its child, outer intact', async () => {
-    fallbackNestedRef.outerThrown = false;
-    fallbackNestedRef.innerThrows = true;
-    const { container } = await domRender(<FallbackNestedApp />, { debug });
-    await waitForDrain(container).catch(() => {});
-    const el = container.element;
-    expect(el.querySelector('#outer-fb')).toBeTruthy();
-    expect(el.querySelector('#retry-nested')).toBeTruthy();
-    expect(el.querySelector('#inner-ok')).toBeFalsy();
-
-    fallbackNestedRef.innerThrows = false;
-    const c = _getDomContainer(el) as any;
-    c.resetErrorBoundary(c.vNodeLocate(el.querySelector('#retry-nested')));
-    await waitForDrain(container);
-
-    expect(el.querySelector('#inner-ok')?.textContent).toContain('inner ok');
-    expect(el.querySelector('#retry-nested')).toBeFalsy();
-    expect(el.querySelector('#outer-fb')).toBeTruthy();
-  });
-
-  // A captured flag freezes across the resume wire; gate on the platform.
-  const SsrFallbackAlwaysThrower = component$((): JSXOutput => {
-    throw new Error('outer-boom');
-  });
-  const SsrFallbackNestedFlake = component$(() => {
-    if (isServerPlatform()) {
-      throw new Error('inner-boom');
-    }
-    return <div id="ssr-inner-ok">inner ok</div>;
-  });
-  const ssrNestedInnerFb = $((ie: any, reset: any) => (
-    <button id="ssr-retry-nested" onClick$={() => reset()}>
-      inner caught: {ie.message}
-    </button>
-  ));
-  const ssrNestedOuterFb = $((e: any) => (
-    <>
-      <p id="ssr-outer-fb">outer: {String(e?.message ?? e)}</p>
-      <ErrorBoundary fallback$={ssrNestedInnerFb}>
-        <SsrFallbackNestedFlake />
-      </ErrorBoundary>
-    </>
-  ));
-  const SsrFallbackNestedApp = component$(() => (
-    <main>
-      <ErrorBoundary fallback$={ssrNestedOuterFb}>
-        <SsrFallbackAlwaysThrower />
-      </ErrorBoundary>
-    </main>
-  ));
-
-  it('SSR resume: reset on a boundary nested inside a resumed SSR fallback re-derives the outer and recovers the inner', async () => {
-    const { container } = await ssrRenderToDom(<SsrFallbackNestedApp />, { debug, ...IN_ORDER });
-    const el = container.element;
-    expect(el.querySelector('#ssr-outer-fb')).toBeTruthy();
-    expect(el.querySelector('#ssr-retry-nested')).toBeTruthy();
-    expect(el.querySelector('#ssr-inner-ok')).toBeFalsy();
-
-    const c = _getDomContainer(el) as any;
-    c.resetErrorBoundary(c.vNodeLocate(el.querySelector('#ssr-retry-nested')));
-    await waitForDrain(container);
-
-    expect(el.querySelector('#ssr-outer-fb')).toBeTruthy();
-    expect(el.querySelector('#ssr-inner-ok')?.textContent).toContain('inner ok');
-    expect(el.querySelector('#ssr-retry-nested')).toBeFalsy();
-  });
-
-  const WrapperProjector = component$(() => (
-    <div data-wrapper="">
-      <Slot />
-    </div>
-  ));
-  const WrappedSsrFlake = component$(() => {
-    if (isServerPlatform()) {
-      throw new Error('wrapped-boom');
-    }
-    return <p id="wrapped-ok">recovered</p>;
-  });
-  const wrappedResetFb = $((e: any, reset: any) => (
-    <button id="retry-wrapped" onClick$={() => reset()}>
-      caught: {e.message}
-    </button>
-  ));
-  const WrappedResetApp = component$(() => (
-    <Suspense fallback={<span id="skel">loading</span>}>
-      <WrapperProjector>
-        <ErrorBoundary fallback$={wrappedResetFb}>
-          <WrappedSsrFlake />
-        </ErrorBoundary>
-      </WrapperProjector>
-    </Suspense>
-  ));
-
-  // out-of-order: https://github.com/QwikDev/qwik/issues/8884
-  it.each([['in-order', IN_ORDER]] as const)(
-    '%s SSR resume: reset through a Suspense + Slot-projecting wrapper re-executes the children',
-    async (_mode, streamOpts) => {
-      const { container } = await ssrRenderToDom(<WrappedResetApp />, { debug, ...streamOpts });
-      const el = container.element;
-      expect(el.querySelector('#retry-wrapped')).toBeTruthy();
-      expect(el.querySelector('#wrapped-ok')).toBeFalsy();
-
-      const c = _getDomContainer(el) as any;
-      c.resetErrorBoundary(c.vNodeLocate(el.querySelector('#retry-wrapped')));
-      await waitForDrain(container);
-
-      expect(el.querySelector('#wrapped-ok')?.textContent).toContain('recovered');
-      expect(el.querySelector('#retry-wrapped')).toBeFalsy();
-    }
-  );
-
-  // Children arrive through <Slot/> (#8881).
-  const BoxedBoundary = component$(() => (
-    <ErrorBoundary fallback$={wrappedResetFb}>
-      <Slot />
-    </ErrorBoundary>
-  ));
-
-  it('CSR-click: reset through a boundary packaged in a wrapper re-executes the children', async () => {
-    resetRef.flake = 0;
-    const App = component$(() => (
-      <main>
-        <BoxedBoundary>
-          <ResetFlake />
-        </BoxedBoundary>
-      </main>
-    ));
-    const { container } = await domRender(<App />, { debug });
-    const el = container.element;
-    expect(el.querySelector('#retry-wrapped')).toBeTruthy();
-
-    await trigger(el, '#retry-wrapped', 'click');
-
-    expect(el.querySelector('#ok')?.textContent).toContain('ok');
-    expect(el.querySelector('#retry-wrapped')).toBeFalsy();
-  });
-
   it('a boundary healthy at SSR still resets after a client error post-resume', async () => {
     const Healthy = component$(() => <button id="target">x</button>);
     const App = withResetBoundary(<Healthy />);
@@ -1055,31 +806,284 @@ describe('ErrorBoundary reset (single-mode scenarios)', () => {
     expect(el.querySelector('#retry')).toBeFalsy();
   });
 
-  it.each([
-    ['SSR-resume-in-order', IN_ORDER],
-    ['SSR-resume-out-of-order', OOOS],
-  ])(
-    '%s: reset through a boundary packaged in a wrapper re-executes the children',
-    async (_mode, streamOpts) => {
+  describe('nested boundaries', () => {
+    const escalationRef = { fallbackCalls: 0 };
+    const EscalationResetApp = component$(() => (
+      <ErrorBoundary
+        fallback$={$((e: any, reset: any) => (
+          <button id="retry-outer" onClick$={() => reset()}>
+            outer: {String(e?.message ?? e)}
+          </button>
+        ))}
+      >
+        <ErrorBoundary
+          fallback$={$(() => {
+            escalationRef.fallbackCalls++;
+            if (escalationRef.fallbackCalls === 1) {
+              throw new Error('inner fallback boom');
+            }
+            return <p id="fb-inner">inner recovered</p>;
+          })}
+        >
+          <Thrower />
+        </ErrorBoundary>
+      </ErrorBoundary>
+    ));
+
+    it('reset after escalation: the outer boundary resets and re-attempts the whole subtree', async () => {
+      escalationRef.fallbackCalls = 0;
+      const { container } = await domRender(<EscalationResetApp />, { debug });
+      await waitForDrain(container).catch(() => {});
+      const el = container.element;
+      expect(el.querySelector('#retry-outer')?.textContent).toContain('inner fallback boom');
+
+      await trigger(el, '#retry-outer', 'click');
+      await waitForDrain(container).catch(() => {});
+
+      expect(el.querySelector('#fb-inner')?.textContent).toContain('inner recovered');
+      expect(el.querySelector('#retry-outer')).toBeFalsy();
+    });
+
+    const NestedResetApp = component$(() => (
+      <main>
+        <ErrorBoundary
+          fallback$={$((e: any) => (
+            <p id="fb-outer">outer: {String(e?.message ?? e)}</p>
+          ))}
+        >
+          <div id="outer-sibling">outer sibling</div>
+          <ErrorBoundary
+            fallback$={$((e: any, reset: any) => (
+              <button id="retry-inner" onClick$={() => reset()}>
+                caught: {e.message}
+              </button>
+            ))}
+          >
+            <ResetFlake />
+          </ErrorBoundary>
+        </ErrorBoundary>
+      </main>
+    ));
+
+    it('SSR resume: reset on a nested inner boundary re-executes its children, outer intact', async () => {
+      resetRef.flake = 0;
+      const { container } = await ssrRenderToDom(<NestedResetApp />, { debug, ...IN_ORDER });
+      const el = container.element;
+      expect(el.querySelector('#retry-inner')).toBeTruthy();
+      expect(el.querySelector('#ok')).toBeFalsy();
+      expect(el.querySelector('#outer-sibling')).toBeTruthy();
+
+      const c = _getDomContainer(el) as any;
+      c.resetErrorBoundary(c.vNodeLocate(el.querySelector('#retry-inner')));
+      await waitForDrain(container);
+
+      expect(el.querySelector('#ok')?.textContent).toContain('ok');
+      expect(el.querySelector('#retry-inner')).toBeFalsy();
+      expect(el.querySelector('#fb-outer')).toBeFalsy();
+      expect(el.querySelector('#outer-sibling')).toBeTruthy();
+    });
+
+    const fallbackNestedRef = { outerThrown: false, innerThrows: true };
+    const FallbackOuterOnce = component$(() => {
+      if (!fallbackNestedRef.outerThrown) {
+        fallbackNestedRef.outerThrown = true;
+        throw new Error('outer-boom');
+      }
+      return <div id="outer-child-ok">outer child ok</div>;
+    });
+    const FallbackNestedFlake = component$(() => {
+      if (fallbackNestedRef.innerThrows) {
+        throw new Error('inner-boom');
+      }
+      return <div id="inner-ok">inner ok</div>;
+    });
+    // Hoisted like the optimizer emits: this fixture needs stable QRL identity.
+    const nestedInnerFb = $((ie: any, reset: any) => (
+      <button id="retry-nested" onClick$={() => reset()}>
+        inner caught: {ie.message}
+      </button>
+    ));
+    const nestedOuterFb = $((e: any) => (
+      <>
+        <p id="outer-fb">outer: {String(e?.message ?? e)}</p>
+        <ErrorBoundary fallback$={nestedInnerFb}>
+          <FallbackNestedFlake />
+        </ErrorBoundary>
+      </>
+    ));
+    const FallbackNestedApp = component$(() => (
+      <main>
+        <ErrorBoundary fallback$={nestedOuterFb}>
+          <FallbackOuterOnce />
+        </ErrorBoundary>
+      </main>
+    ));
+
+    it('reset on a boundary nested inside an errored outer fallback re-executes its child, outer intact', async () => {
+      fallbackNestedRef.outerThrown = false;
+      fallbackNestedRef.innerThrows = true;
+      const { container } = await domRender(<FallbackNestedApp />, { debug });
+      await waitForDrain(container).catch(() => {});
+      const el = container.element;
+      expect(el.querySelector('#outer-fb')).toBeTruthy();
+      expect(el.querySelector('#retry-nested')).toBeTruthy();
+      expect(el.querySelector('#inner-ok')).toBeFalsy();
+
+      fallbackNestedRef.innerThrows = false;
+      const c = _getDomContainer(el) as any;
+      c.resetErrorBoundary(c.vNodeLocate(el.querySelector('#retry-nested')));
+      await waitForDrain(container);
+
+      expect(el.querySelector('#inner-ok')?.textContent).toContain('inner ok');
+      expect(el.querySelector('#retry-nested')).toBeFalsy();
+      expect(el.querySelector('#outer-fb')).toBeTruthy();
+    });
+
+    // A captured flag freezes across the resume wire; gate on the platform.
+    const SsrFallbackAlwaysThrower = component$((): JSXOutput => {
+      throw new Error('outer-boom');
+    });
+    const SsrFallbackNestedFlake = component$(() => {
+      if (isServerPlatform()) {
+        throw new Error('inner-boom');
+      }
+      return <div id="ssr-inner-ok">inner ok</div>;
+    });
+    const ssrNestedInnerFb = $((ie: any, reset: any) => (
+      <button id="ssr-retry-nested" onClick$={() => reset()}>
+        inner caught: {ie.message}
+      </button>
+    ));
+    const ssrNestedOuterFb = $((e: any) => (
+      <>
+        <p id="ssr-outer-fb">outer: {String(e?.message ?? e)}</p>
+        <ErrorBoundary fallback$={ssrNestedInnerFb}>
+          <SsrFallbackNestedFlake />
+        </ErrorBoundary>
+      </>
+    ));
+    const SsrFallbackNestedApp = component$(() => (
+      <main>
+        <ErrorBoundary fallback$={ssrNestedOuterFb}>
+          <SsrFallbackAlwaysThrower />
+        </ErrorBoundary>
+      </main>
+    ));
+
+    it('SSR resume: reset on a boundary nested inside a resumed SSR fallback re-derives the outer and recovers the inner', async () => {
+      const { container } = await ssrRenderToDom(<SsrFallbackNestedApp />, { debug, ...IN_ORDER });
+      const el = container.element;
+      expect(el.querySelector('#ssr-outer-fb')).toBeTruthy();
+      expect(el.querySelector('#ssr-retry-nested')).toBeTruthy();
+      expect(el.querySelector('#ssr-inner-ok')).toBeFalsy();
+
+      const c = _getDomContainer(el) as any;
+      c.resetErrorBoundary(c.vNodeLocate(el.querySelector('#ssr-retry-nested')));
+      await waitForDrain(container);
+
+      expect(el.querySelector('#ssr-outer-fb')).toBeTruthy();
+      expect(el.querySelector('#ssr-inner-ok')?.textContent).toContain('inner ok');
+      expect(el.querySelector('#ssr-retry-nested')).toBeFalsy();
+    });
+  });
+
+  describe('through wrapper components', () => {
+    const WrapperProjector = component$(() => (
+      <div data-wrapper="">
+        <Slot />
+      </div>
+    ));
+    const WrappedSsrFlake = component$(() => {
+      if (isServerPlatform()) {
+        throw new Error('wrapped-boom');
+      }
+      return <p id="wrapped-ok">recovered</p>;
+    });
+    const wrappedResetFb = $((e: any, reset: any) => (
+      <button id="retry-wrapped" onClick$={() => reset()}>
+        caught: {e.message}
+      </button>
+    ));
+    const WrappedResetApp = component$(() => (
+      <Suspense fallback={<span id="skel">loading</span>}>
+        <WrapperProjector>
+          <ErrorBoundary fallback$={wrappedResetFb}>
+            <WrappedSsrFlake />
+          </ErrorBoundary>
+        </WrapperProjector>
+      </Suspense>
+    ));
+
+    // out-of-order: https://github.com/QwikDev/qwik/issues/8884
+    it.each([['in-order', IN_ORDER]] as const)(
+      '%s SSR resume: reset through a Suspense + Slot-projecting wrapper re-executes the children',
+      async (_mode, streamOpts) => {
+        const { container } = await ssrRenderToDom(<WrappedResetApp />, { debug, ...streamOpts });
+        const el = container.element;
+        expect(el.querySelector('#retry-wrapped')).toBeTruthy();
+        expect(el.querySelector('#wrapped-ok')).toBeFalsy();
+
+        const c = _getDomContainer(el) as any;
+        c.resetErrorBoundary(c.vNodeLocate(el.querySelector('#retry-wrapped')));
+        await waitForDrain(container);
+
+        expect(el.querySelector('#wrapped-ok')?.textContent).toContain('recovered');
+        expect(el.querySelector('#retry-wrapped')).toBeFalsy();
+      }
+    );
+
+    // Children arrive through <Slot/> (#8881).
+    const BoxedBoundary = component$(() => (
+      <ErrorBoundary fallback$={wrappedResetFb}>
+        <Slot />
+      </ErrorBoundary>
+    ));
+
+    it('CSR-click: reset through a boundary packaged in a wrapper re-executes the children', async () => {
+      resetRef.flake = 0;
       const App = component$(() => (
         <main>
           <BoxedBoundary>
-            <WrappedSsrFlake />
+            <ResetFlake />
           </BoxedBoundary>
         </main>
       ));
-      const { container } = await ssrRenderToDom(<App />, { debug, ...streamOpts });
+      const { container } = await domRender(<App />, { debug });
       const el = container.element;
       expect(el.querySelector('#retry-wrapped')).toBeTruthy();
 
-      const c = _getDomContainer(el) as any;
-      c.resetErrorBoundary(c.vNodeLocate(el.querySelector('#retry-wrapped')));
-      await waitForDrain(container);
+      await trigger(el, '#retry-wrapped', 'click');
 
-      expect(el.querySelector('#wrapped-ok')?.textContent).toContain('recovered');
+      expect(el.querySelector('#ok')?.textContent).toContain('ok');
       expect(el.querySelector('#retry-wrapped')).toBeFalsy();
-    }
-  );
+    });
+
+    it.each([
+      ['SSR-resume-in-order', IN_ORDER],
+      ['SSR-resume-out-of-order', OOOS],
+    ])(
+      '%s: reset through a boundary packaged in a wrapper re-executes the children',
+      async (_mode, streamOpts) => {
+        const App = component$(() => (
+          <main>
+            <BoxedBoundary>
+              <WrappedSsrFlake />
+            </BoxedBoundary>
+          </main>
+        ));
+        const { container } = await ssrRenderToDom(<App />, { debug, ...streamOpts });
+        const el = container.element;
+        expect(el.querySelector('#retry-wrapped')).toBeTruthy();
+
+        const c = _getDomContainer(el) as any;
+        c.resetErrorBoundary(c.vNodeLocate(el.querySelector('#retry-wrapped')));
+        await waitForDrain(container);
+
+        expect(el.querySelector('#wrapped-ok')?.textContent).toContain('recovered');
+        expect(el.querySelector('#retry-wrapped')).toBeFalsy();
+      }
+    );
+  });
 });
 
 describe('ErrorBoundary CSR-specific', () => {

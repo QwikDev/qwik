@@ -17,6 +17,8 @@ import {
   Fragment as Awaited,
   component$,
   createContextId,
+  ErrorBoundary,
+  $,
   getDomContainer,
   type JSXOutput,
   render,
@@ -505,6 +507,38 @@ describe('domRender: Suspense client-side pause delay', () => {
           <StatefulWrapper>
             <SlowChild />
           </StatefulWrapper>
+        </Suspense>
+      </div>
+    );
+
+    await delay(40);
+    expect(document.querySelector('div')!.innerHTML).toContain(loading);
+
+    (globalThis as any).__wrapperSlowResolve(<p>Done</p>);
+    await renderPromise;
+
+    const html = document.querySelector('div')!.innerHTML;
+    expect(html).toContain('Done');
+    expect(html).not.toContain(loading);
+  });
+
+  it('should show the fallback when the deferred child is wrapped in an ErrorBoundary', async () => {
+    (globalThis as any).__wrapperSlowContent = new Promise<JSXOutput>((resolve) => {
+      (globalThis as any).__wrapperSlowResolve = resolve;
+    });
+    const SlowChild = component$(() => {
+      return <>{(globalThis as any).__wrapperSlowContent}</>;
+    });
+
+    setPlatform(getTestPlatform());
+    const document = createDocument();
+    const renderPromise = render(
+      document.body,
+      <div>
+        <Suspense fallback={<span>Loading...</span>} delay={10}>
+          <ErrorBoundary fallback$={$(() => 'error')}>
+            <SlowChild />
+          </ErrorBoundary>
         </Suspense>
       </div>
     );

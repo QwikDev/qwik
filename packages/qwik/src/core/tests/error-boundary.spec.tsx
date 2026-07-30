@@ -179,26 +179,23 @@ const PluginThrower = component$(() => {
 
 const boxed = (child: JSXOutput) => <ErrorBoundary fallback$={fb()}>{child}</ErrorBoundary>;
 
-const nestedEscalation = ({
-  innerOnError,
-  outerOnError,
-}: { innerOnError?: any; outerOnError?: any } = {}) => (
+const NestedEscalation = component$<{ innerOnError?: any; outerOnError?: any }>((props) => (
   <ErrorBoundary
     fallback$={$(() => (
       <p id="fb-outer">outer</p>
     ))}
-    onError$={outerOnError}
+    onError$={props.outerOnError}
   >
     <ErrorBoundary
       fallback$={$(() => {
         throw new Error('inner fallback boom');
       })}
-      onError$={innerOnError}
+      onError$={props.innerOnError}
     >
       <Thrower />
     </ErrorBoundary>
   </ErrorBoundary>
-);
+));
 
 const onErrorLog: { errors: unknown[] } = { errors: [] };
 
@@ -383,7 +380,7 @@ describe.each(modes)('ErrorBoundary behavior (%s)', (mode, renderMode) => {
   });
 
   it('a throwing inner fallback escalates to the outer boundary', async () => {
-    const { container } = await renderMode(nestedEscalation);
+    const { container } = await renderMode(() => <NestedEscalation />);
     await waitForDrain(container).catch(() => {});
     const el = container.element;
     expect(el.querySelector('#fb-outer')?.textContent).toBe('outer');
@@ -638,16 +635,16 @@ describe.each(modes)('ErrorBoundary behavior (%s)', (mode, renderMode) => {
     it('escalation: inner and outer onError$ each fire once for their own error', async () => {
       const innerLog: unknown[] = [];
       const outerLog: unknown[] = [];
-      const { container } = await renderMode(() =>
-        nestedEscalation({
-          innerOnError: $((e: any) => {
+      const { container } = await renderMode(() => (
+        <NestedEscalation
+          innerOnError={$((e: any) => {
             innerLog.push(e instanceof Error ? e.message : e);
-          }),
-          outerOnError: $((e: any) => {
+          })}
+          outerOnError={$((e: any) => {
             outerLog.push(e instanceof Error ? e.message : e);
-          }),
-        })
-      );
+          })}
+        />
+      ));
       await settleOnErrorDelivery(container);
 
       const el = container.element;
@@ -2156,7 +2153,7 @@ describe('ErrorBoundary swap mechanics (qErr)', () => {
   });
 
   it('escalates to the outer boundary under explicit out-of-order (in place via qErr)', async () => {
-    const { html, document } = await streamAndResume(nestedEscalation(), OOOS);
+    const { html, document } = await streamAndResume(<NestedEscalation />, OOOS);
     expect(document.querySelector('#fb-outer')?.textContent).toBe('outer');
     expect(displayOf(document.querySelector('[q\\:ebc]'))).toBe('none');
     expect(document.querySelector('#fb-outer')?.closest('[q\\:ebf]')).toBeTruthy();

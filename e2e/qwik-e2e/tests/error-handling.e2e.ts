@@ -392,7 +392,7 @@ test.describe('ErrorBoundary reset', () => {
     page,
   }) => {
     assertNoBrowserErrors(page);
-    // OOOS: https://github.com/QwikDev/qwik/issues/8876
+    // OOOS: #8876 route shape + #8884 segment reset
     await page.goto(routeUrl('reset-wrapped', { outOfOrder: false }), { waitUntil: 'commit' });
     await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
 
@@ -406,7 +406,7 @@ test.describe('ErrorBoundary reset', () => {
     page,
   }) => {
     assertNoBrowserErrors(page);
-    // OOOS: https://github.com/QwikDev/qwik/issues/8876
+    // OOOS: #8876 route shape + #8884 segment reset
     await page.goto(routeUrl('reset-reerror', { outOfOrder: false }), { waitUntil: 'commit' });
     await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#eb-fallback-msg')).toContainText('An error occurred');
@@ -443,7 +443,7 @@ test.describe('ErrorBoundary reset', () => {
     page,
   }) => {
     assertNoBrowserErrors(page);
-    // OOOS: https://github.com/QwikDev/qwik/issues/8876
+    // OOOS: #8876 route shape + #8884 segment reset
     await page.goto(routeUrl('reset-wrapped-key', { outOfOrder: false }), { waitUntil: 'commit' });
     await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
     await page.locator('#eb-reset').click();

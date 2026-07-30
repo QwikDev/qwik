@@ -206,6 +206,14 @@ const modes = [
     (jsx: () => JSXOutput, opts: Record<string, unknown> = {}) =>
       ssrRenderToDom(jsx(), { debug, ...opts }),
   ],
+  [
+    'SSR in a deferred segment',
+    (jsx: () => JSXOutput, opts: Record<string, unknown> = {}) =>
+      ssrRenderToDom(
+        <Suspense fallback={<span id="segment-skel">deferring</span>}>{jsx()}</Suspense>,
+        { debug, ...opts }
+      ),
+  ],
 ] as const;
 
 describe.each(modes)('ErrorBoundary behavior (%s)', (mode, renderMode) => {

@@ -991,19 +991,23 @@ describe('ErrorBoundary reset (single-mode scenarios)', () => {
     </Suspense>
   ));
 
-  it('SSR resume: reset through a Suspense + Slot-projecting wrapper re-executes the children', async () => {
-    const { container } = await ssrRenderToDom(<WrappedResetApp />, { debug, ...IN_ORDER });
-    const el = container.element;
-    expect(el.querySelector('#retry-wrapped')).toBeTruthy();
-    expect(el.querySelector('#wrapped-ok')).toBeFalsy();
+  // out-of-order: https://github.com/QwikDev/qwik/issues/8884
+  it.each([['in-order', IN_ORDER]] as const)(
+    '%s SSR resume: reset through a Suspense + Slot-projecting wrapper re-executes the children',
+    async (_mode, streamOpts) => {
+      const { container } = await ssrRenderToDom(<WrappedResetApp />, { debug, ...streamOpts });
+      const el = container.element;
+      expect(el.querySelector('#retry-wrapped')).toBeTruthy();
+      expect(el.querySelector('#wrapped-ok')).toBeFalsy();
 
-    const c = _getDomContainer(el) as any;
-    c.resetErrorBoundary(c.vNodeLocate(el.querySelector('#retry-wrapped')));
-    await waitForDrain(container);
+      const c = _getDomContainer(el) as any;
+      c.resetErrorBoundary(c.vNodeLocate(el.querySelector('#retry-wrapped')));
+      await waitForDrain(container);
 
-    expect(el.querySelector('#wrapped-ok')?.textContent).toContain('recovered');
-    expect(el.querySelector('#retry-wrapped')).toBeFalsy();
-  });
+      expect(el.querySelector('#wrapped-ok')?.textContent).toContain('recovered');
+      expect(el.querySelector('#retry-wrapped')).toBeFalsy();
+    }
+  );
 
   // Children arrive through <Slot/> (#8881).
   const BoxedBoundary = component$(() => (
@@ -2649,6 +2653,118 @@ describe('ErrorBoundary out-of-order streaming (Suspense)', () => {
     await getTestPlatform().flush();
     await delay(0);
     expect(onErrorLog.errors).toEqual(['boom']);
+  });
+});
+
+describe('ErrorBoundary late-delivered fallback', () => {
+  // Boundary OUTSIDE a <Suspense> whose child rejects late: the catch rethrows
+  // into the segment and $emitFallback$ streams the fallback afterwards.
+  const LateRejector = component$((): JSXOutput => {
+    const pending = delay(5).then(() =>
+      Promise.reject(new Error('late boom'))
+    ) as Promise<JSXOutput>;
+    return <>{pending}</>;
+  });
+
+  it('a throw arriving after the segment deferred still swaps in the fallback', async () => {
+    const { container } = await ssrRenderToDom(
+      <main>
+        <ErrorBoundary fallback$={fb()}>
+          <Suspense fallback={<span id="skel">loading</span>}>
+            <LateRejector />
+          </Suspense>
+        </ErrorBoundary>
+      </main>,
+      { debug, ...OOOS }
+    );
+    const el = container.element;
+    emulateExecutionOfStreamingOutOfOrderScripts(el.ownerDocument, ['qErr', 'qInstallErrorSwap']);
+    expect(el.querySelector('#fb')?.textContent).toContain('caught: late boom');
+  });
+
+  // https://github.com/QwikDev/qwik/issues/8885
+  it.skip('marks the errored content inert: a bound attribute stops tracking after resume', async () => {
+    const Bound = component$<{ src: Signal<string> }>((props) => (
+      <img id="dead-img" src={props.src.value} />
+    ));
+    const App = component$(() => {
+      const src = useSignal('/first.png');
+      return (
+        <main>
+          <button id="bump" onClick$={() => (src.value = '/second.png')}>
+            bump
+          </button>
+          <ErrorBoundary fallback$={fb()}>
+            <Bound src={src} />
+            <Suspense fallback={<span id="skel">loading</span>}>
+              <LateRejector />
+            </Suspense>
+          </ErrorBoundary>
+        </main>
+      );
+    });
+    const { container } = await ssrRenderToDom(<App />, { debug, ...OOOS });
+    const el = container.element;
+    emulateExecutionOfStreamingOutOfOrderScripts(el.ownerDocument, ['qErr', 'qInstallErrorSwap']);
+    expect(el.querySelector('#dead-img')?.getAttribute('src')).toBe('/first.png');
+
+    await trigger(el, '#bump', 'click');
+
+    expect(el.querySelector('#dead-img')?.getAttribute('src')).toBe('/first.png');
+  });
+
+  it('a document-ready visible task in the errored content does not throw on resume', async () => {
+    const logErrorSpy = vi
+      .spyOn(logUtils, 'logError')
+      .mockImplementation((message?: any) => message as Error);
+    const DeadTask = component$(() => {
+      useVisibleTask$(
+        () => {
+          // ignore
+        },
+        { strategy: 'document-ready' }
+      );
+      return <div id="dead-task">dead</div>;
+    });
+    const { container } = await ssrRenderToDom(
+      <main>
+        <ErrorBoundary fallback$={fb()}>
+          <DeadTask />
+          <Suspense fallback={<span id="skel">loading</span>}>
+            <LateRejector />
+          </Suspense>
+        </ErrorBoundary>
+      </main>,
+      { debug, ...OOOS }
+    );
+    const el = container.element;
+    emulateExecutionOfStreamingOutOfOrderScripts(el.ownerDocument, ['qErr', 'qInstallErrorSwap']);
+    expect(el.querySelector('#fb')?.textContent).toContain('caught: late boom');
+
+    await expect(trigger(el, null, 'd:qinit')).resolves.not.toThrow();
+    expect(logErrorSpy).not.toHaveBeenCalled();
+    logErrorSpy.mockRestore();
+  });
+
+  it('transformError projects the late-streamed fallback; the raw message never reaches the HTML', async () => {
+    const SecretLateRejector = component$((): JSXOutput => {
+      const pending = delay(5).then(() =>
+        Promise.reject(new Error('SECRET-late-detail'))
+      ) as Promise<JSXOutput>;
+      return <>{pending}</>;
+    });
+    const { html, document } = await streamAndResume(
+      <main>
+        <ErrorBoundary fallback$={fb()}>
+          <Suspense fallback={<span id="skel">loading</span>}>
+            <SecretLateRejector />
+          </Suspense>
+        </ErrorBoundary>
+      </main>,
+      { ...OOOS, transformError: () => new Error('redacted-by-app') }
+    );
+    expect(document.querySelector('#fb')?.textContent).toContain('redacted-by-app');
+    expect(html).not.toContain('SECRET-late-detail');
   });
 });
 

@@ -490,6 +490,8 @@ async function emitErrorBoundaryFallback(
   segmentId: string,
   rendered: SSROutOfOrderSegment
 ): Promise<void> {
+  // qErr hides the errored content host and strips its broadcast handlers.
+  rendered.container.$registerErrorSwap$(boundaryId);
   await ssr.$runQueuedRender$(() =>
     finalizeAndSwapOutOfOrderSegment(ssr, boundaryId, segmentId, rendered, null, true)
   );

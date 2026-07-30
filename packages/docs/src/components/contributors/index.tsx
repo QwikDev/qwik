@@ -28,6 +28,7 @@ export default component$(() => {
                   height="40"
                   alt={contributor}
                   class="avatar"
+                  crossOrigin="anonymous"
                 />
               </a>
             </li>

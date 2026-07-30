@@ -780,7 +780,7 @@ export const _noopQrlDEV: <T>(symbolName: string, opts: QRLDev, lexicalScopeCapt
 
 // @public
 export type NoSerialize<T> = (T & {
-    __no_serialize__?: true;
+    __no_serialize__: true;
 }) | undefined;
 
 // @public
@@ -1430,7 +1430,6 @@ export const Suspense: typeof _suC;
 // @public (undocumented)
 export type SuspenseProps = {
     fallback?: JSXOutput;
-    showStale?: boolean;
     delay?: number;
 };
 

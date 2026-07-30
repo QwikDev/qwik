@@ -29,7 +29,6 @@ import {
   QBaseAttr,
   QContainerAttr,
   QContainerSelector,
-  QCursorBoundary,
   QCtxAttr,
   QInstanceAttr,
   QLocaleAttr,
@@ -493,7 +492,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       case OnRenderProp:
       case QCtxAttr:
       case QBackRefs:
-      case QCursorBoundary:
         getObjectById = this.$getObjectById$;
         break;
       case ELEMENT_SEQ_IDX:

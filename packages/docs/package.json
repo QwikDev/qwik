@@ -55,7 +55,7 @@
     "terser": "5.46.0",
     "tsm": "2.3.0",
     "typescript": "5.9.3",
-    "valibot": "1.2.0",
+    "valibot": "1.4.2",
     "vite": "7.3.5",
     "vite-tsconfig-paths": "6.1.1",
     "wrangler": "4.80.0"

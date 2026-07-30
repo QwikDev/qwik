@@ -1278,9 +1278,8 @@ describe('ErrorBoundary CSR-specific', () => {
         const seen = seenFalsy.errors[seenFalsy.errors.length - 1] as Error & { cause?: unknown };
         expect(seen).toBeInstanceOf(Error);
         expect(seen.message).toBe(String(thrown));
-        if (thrown !== undefined) {
-          expect(seen.cause).toBe(thrown);
-        }
+        expect('cause' in seen).toBe(true);
+        expect(seen.cause).toBe(thrown);
       }
     );
 

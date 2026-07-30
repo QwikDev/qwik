@@ -1847,52 +1847,6 @@ describe('ErrorBoundary SSR→CSR cross-phase', () => {
   });
 });
 
-describe('ErrorBoundary stateless wire', () => {
-  const WireSecretThrower = component$((): JSXOutput => {
-    throw new Error('wire-secret-boom');
-  });
-
-  it('an SSR-errored boundary serializes neither the error nor its message', async () => {
-    const { html, document } = await streamAndResume(
-      <main>
-        <ErrorBoundary
-          fallback$={$(() => (
-            <p id="fb">static fallback</p>
-          ))}
-        >
-          <WireSecretThrower />
-        </ErrorBoundary>
-      </main>
-    );
-    expect(document.querySelector('#fb')).toBeTruthy();
-    expect(html).not.toContain('wire-secret-boom');
-  });
-
-  it('the boundary store serializes only boundaryId, and no error key', async () => {
-    const { container } = await ssrRenderToDom(
-      <main>
-        <ErrorBoundary fallback$={fb()}>
-          <Thrower />
-        </ErrorBoundary>
-      </main>,
-      { debug }
-    );
-    const el = container.element;
-    const state = el.querySelector('script[type="qwik/state"]')!;
-    const rootCount = (JSON.parse(state.textContent!) as unknown[]).length / 2;
-    let store: Record<string, unknown> | undefined;
-    for (let i = 0; i < rootCount; i++) {
-      const root = container.$getObjectById$(i);
-      if (root && typeof root === 'object' && 'boundaryId' in root && 'error' in root === false) {
-        store = root as Record<string, unknown>;
-      }
-    }
-    expect(store).toBeDefined();
-    expect('error' in store!).toBe(false);
-    expect(Object.keys(store!)).toEqual(['boundaryId']);
-  });
-});
-
 describe('ErrorBoundary client re-derivation', () => {
   const HealedThrower = component$((): JSXOutput => {
     if (isServerPlatform()) {
@@ -2698,6 +2652,109 @@ describe('ErrorBoundary out-of-order streaming (Suspense)', () => {
   });
 });
 
+describe('ErrorBoundary inert subtree', () => {
+  it('a bound attribute in the errored content stops tracking after resume', async () => {
+    const Bound = component$<{ src: Signal<string> }>((props) => (
+      <img id="dead-img" src={props.src.value} />
+    ));
+    const App = component$(() => {
+      const src = useSignal('/first.png');
+      return (
+        <main>
+          <button id="bump" onClick$={() => (src.value = '/second.png')}>
+            bump
+          </button>
+          <ErrorBoundary fallback$={fb()}>
+            <Bound src={src} />
+            <Thrower />
+          </ErrorBoundary>
+        </main>
+      );
+    });
+    const { container } = await ssrRenderToDom(<App />, { debug });
+    const el = container.element;
+    expect(el.querySelector('#dead-img')?.getAttribute('src')).toBe('/first.png');
+
+    await trigger(el, '#bump', 'click');
+
+    expect(el.querySelector('#dead-img')?.getAttribute('src')).toBe('/first.png');
+  });
+
+  it('a document-ready visible task in the errored content does not throw on resume', async () => {
+    const logErrorSpy = vi
+      .spyOn(logUtils, 'logError')
+      .mockImplementation((message?: any) => message as Error);
+    const DeadTask = component$(() => {
+      useVisibleTask$(
+        () => {
+          // ignore
+        },
+        { strategy: 'document-ready' }
+      );
+      return <div id="dead-task">dead</div>;
+    });
+    const { container } = await ssrRenderToDom(
+      <main>
+        <ErrorBoundary fallback$={fb()}>
+          <DeadTask />
+          <Thrower />
+        </ErrorBoundary>
+      </main>,
+      { debug }
+    );
+
+    await expect(trigger(container.element, null, 'd:qinit')).resolves.not.toThrow();
+    expect(logErrorSpy).not.toHaveBeenCalled();
+    logErrorSpy.mockRestore();
+  });
+});
+
+describe('ErrorBoundary stateless wire', () => {
+  const WireSecretThrower = component$((): JSXOutput => {
+    throw new Error('wire-secret-boom');
+  });
+
+  it('an SSR-errored boundary serializes neither the error nor its message', async () => {
+    const { html, document } = await streamAndResume(
+      <main>
+        <ErrorBoundary
+          fallback$={$(() => (
+            <p id="fb">static fallback</p>
+          ))}
+        >
+          <WireSecretThrower />
+        </ErrorBoundary>
+      </main>
+    );
+    expect(document.querySelector('#fb')).toBeTruthy();
+    expect(html).not.toContain('wire-secret-boom');
+  });
+
+  it('the boundary store serializes only boundaryId, and no error key', async () => {
+    const { container } = await ssrRenderToDom(
+      <main>
+        <ErrorBoundary fallback$={fb()}>
+          <Thrower />
+        </ErrorBoundary>
+      </main>,
+      { debug }
+    );
+    const el = container.element;
+    const state = el.querySelector('script[type="qwik/state"]')!;
+    const rootCount = (JSON.parse(state.textContent!) as unknown[]).length / 2;
+    let store: Record<string, unknown> | undefined;
+    for (let i = 0; i < rootCount; i++) {
+      const root = container.$getObjectById$(i);
+      if (root && typeof root === 'object' && 'boundaryId' in root && 'error' in root === false) {
+        store = root as Record<string, unknown>;
+      }
+    }
+    expect(store).toBeDefined();
+    expect('error' in store!).toBe(false);
+    expect(Object.keys(store!)).toEqual(['boundaryId']);
+  });
+});
+
 describe('ErrorBoundary transformError (render option)', () => {
   it('transformError (render option): redacts the SSR-serialized boundary error end-to-end', async () => {
     const { container } = await ssrRenderToDom(
@@ -2857,62 +2914,5 @@ describe('ErrorBoundary hostile thrown values (render paths)', () => {
     );
     await trigger(container.element, 'button', 'click');
     expect(container.element.querySelector('#fb')).toBeTruthy();
-  });
-});
-
-describe('ErrorBoundary inert subtree', () => {
-  it('a bound attribute in the errored content stops tracking after resume', async () => {
-    const Bound = component$<{ src: Signal<string> }>((props) => (
-      <img id="dead-img" src={props.src.value} />
-    ));
-    const App = component$(() => {
-      const src = useSignal('/first.png');
-      return (
-        <main>
-          <button id="bump" onClick$={() => (src.value = '/second.png')}>
-            bump
-          </button>
-          <ErrorBoundary fallback$={fb()}>
-            <Bound src={src} />
-            <Thrower />
-          </ErrorBoundary>
-        </main>
-      );
-    });
-    const { container } = await ssrRenderToDom(<App />, { debug });
-    const el = container.element;
-    expect(el.querySelector('#dead-img')?.getAttribute('src')).toBe('/first.png');
-
-    await trigger(el, '#bump', 'click');
-
-    expect(el.querySelector('#dead-img')?.getAttribute('src')).toBe('/first.png');
-  });
-
-  it('a document-ready visible task in the errored content does not throw on resume', async () => {
-    const logErrorSpy = vi
-      .spyOn(logUtils, 'logError')
-      .mockImplementation((message?: any) => message as Error);
-    const DeadTask = component$(() => {
-      useVisibleTask$(
-        () => {
-          // ignore
-        },
-        { strategy: 'document-ready' }
-      );
-      return <div id="dead-task">dead</div>;
-    });
-    const { container } = await ssrRenderToDom(
-      <main>
-        <ErrorBoundary fallback$={fb()}>
-          <DeadTask />
-          <Thrower />
-        </ErrorBoundary>
-      </main>,
-      { debug }
-    );
-
-    await expect(trigger(container.element, null, 'd:qinit')).resolves.not.toThrow();
-    expect(logErrorSpy).not.toHaveBeenCalled();
-    logErrorSpy.mockRestore();
   });
 });

@@ -18,29 +18,62 @@ export function Parent() {
 import { createComponent, _qrlWithChunk } from '@qwik.dev/core';
 import { Button } from './component.tsx_component_Button';
 
-const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz',
-  () => import('./component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz'),
-  'component_q_e_click_segment_0_2xwyg1cinvmpz'
+const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg',
+  () => import('./component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg'),
+  'component_q_e_click_segment_1_2xwyfnber1kpg'
 );
 export { Button };
 export function Parent(props, ctx) {
   const value = 1;
   return createComponent(
-    { onClick$: q_component_q_e_click_segment_0_2xwyg1cinvmpz.w([value]) },
+    { onClick$: q_component_q_e_click_segment_1_2xwyfnber1kpg.w([value]) },
     (props) => Button(props, ctx)
   );
 }
 ============================= src/component.tsx_component_Button.js (ENTRY POINT)==
 
-import { createSsrElementRecord } from '@qwik.dev/core';
+import {
+  createSsrNodeId,
+  renderSsrEvent,
+  createSsrElementTarget,
+  createSsrElementRecord,
+  maybeThen,
+  _qrlWithChunk,
+} from '@qwik.dev/core';
+import { component_onClick$_segment_0_3iurff47ay1jy } from './component.tsx_component_onClick$_segment_0_3iurff47ay1jy';
+
+const q_component_onClick$_segment_0_3iurff47ay1jy = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_onClick$_segment_0_3iurff47ay1jy',
+  () => import('./component.tsx_component_onClick$_segment_0_3iurff47ay1jy'),
+  'component_onClick$_segment_0_3iurff47ay1jy'
+);
+q_component_onClick$_segment_0_3iurff47ay1jy.s(component_onClick$_segment_0_3iurff47ay1jy);
 
 export function Button(props, ctx) {
   const { onClick$ } = props;
-  return [
-    createSsrElementRecord('button', '<button', ctx.eventAttr('q-e:click', onClick$), '>'),
+  const id0 = ctx.nextId();
+  ctx.addRoot(props);
+  const event1 = renderSsrEvent(
+    createSsrElementTarget(id0),
+    'q-e:click',
+    [props],
+    q_component_onClick$_segment_0_3iurff47ay1jy,
+    ctx.eventAttr,
+    [],
+    []
+  );
+  return maybeThen(event1, (event1) => [
+    createSsrElementRecord(
+      'button',
+      '<button q:id="',
+      createSsrNodeId(id0),
+      '"',
+      event1 ?? '',
+      '>'
+    ),
     'Click</button>',
-  ];
+  ]);
 }
 /*
 {
@@ -64,22 +97,51 @@ export function Button(props, ctx) {
   ]
 }
 */
-============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
+============================= src/component.tsx_component_onClick$_segment_0_3iurff47ay1jy.js (ENTRY POINT)==
+
+export const component_onClick$_segment_0_3iurff47ay1jy = (props) => {
+  const { onClick$ } = props;
+  return onClick$;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_onClick$_segment_0_3iurff47ay1jy",
+  "entry": null,
+  "displayName": "component_onClick$_segment_0",
+  "hash": "3iurff47ay1jy",
+  "canonicalFilename": "component.tsx_component_onClick$_segment_0_3iurff47ay1jy",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    65,
+    73
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "onClick$"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';
 
-export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
+export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
   const value = _captures[0];
   return value;
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_q_e_click_segment_0_2xwyg1cinvmpz",
+  "name": "component_q_e_click_segment_1_2xwyfnber1kpg",
   "entry": null,
-  "displayName": "component_q_e_click_segment_0",
-  "hash": "2xwyg1cinvmpz",
-  "canonicalFilename": "component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz",
+  "displayName": "component_q_e_click_segment_1",
+  "hash": "2xwyfnber1kpg",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg",
   "extension": "js",
   "parent": null,
   "ctxKind": "eventHandler",
@@ -103,19 +165,20 @@ export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
 ============================= src/component.tsx ==
 
 import { createComponent, _withCaptures } from '@qwik.dev/core';
-import { component_q_e_click_segment_0_2xwyg1cinvmpz } from './component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz';
+import { component_q_e_click_segment_1_2xwyfnber1kpg } from './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg';
 import { Button } from './component.tsx_component_Button';
 export { Button };
 export function Parent(props, ctx) {
   const value = 1;
   return createComponent(
-    { onClick$: _withCaptures(component_q_e_click_segment_0_2xwyg1cinvmpz, [value]) },
+    { onClick$: _withCaptures(component_q_e_click_segment_1_2xwyfnber1kpg, [value]) },
     (props) => Button(props, ctx)
   );
 }
 ============================= src/component.tsx_component_Button.js (ENTRY POINT)==
 
-import { _first, setEvent, createTemplate } from '@qwik.dev/core';
+import { _first, createEventEffect, createTemplate } from '@qwik.dev/core';
+import { component_onClick$_segment_0_3iurff47ay1jy } from './component.tsx_component_onClick$_segment_0_3iurff47ay1jy';
 
 const Button_tmpl0 = createTemplate('<button>Click</button>');
 
@@ -123,8 +186,16 @@ export function Button(props, ctx) {
   const { onClick$ } = props;
   const fragment0 = Button_tmpl0(ctx.document);
   const el0 = _first(fragment0);
-  const event0 = onClick$;
-  if (event0) setEvent(el0, 'q-e:click', event0);
+  const effect0 = createEventEffect(
+    el0,
+    'q-e:click',
+    [props],
+    component_onClick$_segment_0_3iurff47ay1jy,
+    ctx.scheduler,
+    [],
+    []
+  );
+  ctx.scheduler.waitFor(effect0.run());
   return el0;
 }
 /*
@@ -149,22 +220,51 @@ export function Button(props, ctx) {
   ]
 }
 */
-============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
+============================= src/component.tsx_component_onClick$_segment_0_3iurff47ay1jy.js (ENTRY POINT)==
+
+export const component_onClick$_segment_0_3iurff47ay1jy = (props) => {
+  const { onClick$ } = props;
+  return onClick$;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_onClick$_segment_0_3iurff47ay1jy",
+  "entry": null,
+  "displayName": "component_onClick$_segment_0",
+  "hash": "3iurff47ay1jy",
+  "canonicalFilename": "component.tsx_component_onClick$_segment_0_3iurff47ay1jy",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    65,
+    73
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "onClick$"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';
 
-export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
+export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
   const value = _captures[0];
   return value;
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_q_e_click_segment_0_2xwyg1cinvmpz",
+  "name": "component_q_e_click_segment_1_2xwyfnber1kpg",
   "entry": null,
-  "displayName": "component_q_e_click_segment_0",
-  "hash": "2xwyg1cinvmpz",
-  "canonicalFilename": "component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz",
+  "displayName": "component_q_e_click_segment_1",
+  "hash": "2xwyfnber1kpg",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg",
   "extension": "js",
   "parent": null,
   "ctxKind": "eventHandler",

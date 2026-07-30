@@ -78,6 +78,73 @@ export function App({ attrs, label }) {
     }
   });
 
+  test('extracts dynamic DOM events into an expression segment', () => {
+    const extracted = extractInput(`import { $, useSignal } from '@qwik.dev/core';
+export function App() {
+  const enabled = useSignal(false);
+  const input = useSignal('');
+  return <input
+    onInput$={enabled.value ? $((_event, element) => input.value = element.value) : undefined}
+    onFocus$={() => enabled.value = true}
+  />;
+}`);
+    const event = extracted.segments.find((segment) => segment.ctxName === 'onInput$');
+
+    expect(event).toMatchObject({
+      kind: 'expression',
+      captures: [{ name: 'enabled' }, { name: 'input' }],
+    });
+    expect(extracted.segments.some((segment) => segment.ctxName === 'props')).toBe(false);
+    expect(
+      extracted.segments.some(
+        (segment) => segment.parentId === event?.id && segment.qrl?.kind === 'explicit'
+      )
+    ).toBe(true);
+  });
+
+  test('keeps fixed DOM events out of props segments', () => {
+    const extracted = extractInput(`import { $ } from '@qwik.dev/core';
+export function App() {
+  const handler = $(() => undefined);
+  return <>
+    <button onClick$={() => undefined}>Inline</button>
+    <button onClick$={$(() => undefined)}>QRL</button>
+    <button onClick$={handler}>QRL binding</button>
+    <button onClick$={[() => undefined, undefined]}>Array</button>
+    <button onClick$={undefined}>Empty</button>
+  </>;
+}`);
+
+    expect(extracted.segments.some((segment) => segment.ctxName === 'props')).toBe(false);
+  });
+
+  test('extracts prop-driven and array event values into props segments', () => {
+    const extracted = extractInput(`import { useSignal } from '@qwik.dev/core';
+export function App(props) {
+  const enabled = useSignal(false);
+  return <>
+    <button onClick$={props.onClick$}>Prop</button>
+    <button onClick$={[() => undefined, enabled.value ? props.onClick$ : undefined]}>Array</button>
+    <button onClick$={enabled.value && props.onClick$}>Logical</button>
+  </>;
+}`);
+    const events = extracted.segments.filter(
+      (segment) => segment.kind === 'expression' && segment.ctxName === 'onClick$'
+    );
+
+    expect(events).toHaveLength(3);
+    expect(events[0]).toMatchObject({
+      captures: [{ name: 'props' }],
+    });
+    expect(events[1]).toMatchObject({
+      captures: [{ name: 'enabled' }, { name: 'props' }],
+    });
+    expect(events[2]).toMatchObject({
+      captures: [{ name: 'enabled' }, { name: 'props' }],
+    });
+    expect(extracted.segments.some((segment) => segment.ctxName === 'props')).toBe(false);
+  });
+
   test('extracts an event handler with a local capture', () => {
     const extracted = extractInput(`import { useSignal } from '@qwik.dev/core';
 export const App = () => {

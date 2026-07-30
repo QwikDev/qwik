@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createWindow } from '../../../testing/document';
 import { EffectKind } from '../../dom/effect/effect-kind.enum';
 import { DomSubscription } from '../../dom/effect/dom-subscription';
+import { EventEffect } from '../../dom/effect/effect';
 import { EffectTargetKind } from '../../dom/effect/ssr-effect';
 import { TextNodeEffect } from '../../dom/effect/text-effect';
 import { ComputedQrl } from '../../reactive/computed-qrl';
@@ -18,6 +19,7 @@ import { createContextScope, isContextScope } from '../../runtime/context-scope'
 import { Constants, TypeIds } from './constants';
 import { inflate } from './inflate';
 import { toArray } from '../../test-utils';
+import type { QElement } from '../../shared/types';
 
 const encodeObjectData = (entries: Array<[unknown, unknown]>): unknown[] => {
   const out: unknown[] = [];
@@ -273,6 +275,49 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
     ]);
 
     expect(subscription.effect).toBeTypeOf('function');
+  });
+
+  it('restores event effects and updates handlers', async () => {
+    const context = createContext('<button q:id="10"></button>');
+    const enabled = useSignal(false);
+    const handler = () => undefined;
+    const qrl = {
+      resolve: async () => (source: Signal<boolean>) => (source.value ? handler : undefined),
+    };
+    const subscription = new DomSubscription(null!, context.scheduler);
+
+    await inflate(context, subscription, TypeIds.EffectSubscription, [
+      TypeIds.Plain,
+      EffectKind.Event,
+      TypeIds.Plain,
+      EffectTargetKind.Element,
+      TypeIds.Plain,
+      10,
+      TypeIds.Array,
+      [TypeIds.Plain, enabled],
+      TypeIds.Plain,
+      'q-e:click',
+      TypeIds.Array,
+      [TypeIds.Plain, enabled],
+      TypeIds.Plain,
+      qrl,
+      TypeIds.Array,
+      [],
+      TypeIds.Array,
+      [],
+    ]);
+
+    expect(subscription.effect).toBeInstanceOf(EventEffect);
+    expect(subscription.deps).toEqual([enabled]);
+
+    enabled.value = true;
+    await context.scheduler.flushInteraction();
+    const element = context.element.querySelector('button') as Element & QElement;
+    expect(element._qDispatch?.['e:click']).toBe(handler);
+
+    enabled.value = false;
+    await context.scheduler.flushInteraction();
+    expect(element._qDispatch?.['e:click']).toBeUndefined();
   });
 
   it('resolves range text from a local marker index', async () => {

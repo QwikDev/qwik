@@ -276,4 +276,20 @@ test.describe('events client side', () => {
     await div.hover();
     await expect(div).toHaveClass('isOver');
   });
+
+  test('should preserve bind:value with a dynamic input event after resume', async ({ page }) => {
+    const input = page.locator('#input-with-bind');
+    const result = page.locator('#input-with-bind-result');
+
+    await expect(result).toHaveText('Enabled: false; Dynamic: ; Bound: ');
+
+    await input.focus();
+    await expect(result).toHaveText('Enabled: true; Dynamic: ; Bound: ');
+
+    await input.fill('first');
+    await expect(result).toHaveText('Enabled: true; Dynamic: ->first; Bound: first');
+
+    await input.fill('second');
+    await expect(result).toHaveText('Enabled: true; Dynamic: first->second; Bound: second');
+  });
 });

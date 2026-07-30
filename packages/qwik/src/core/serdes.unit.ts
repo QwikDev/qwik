@@ -9,7 +9,7 @@ import { _deserialize, _serialize } from './shared/serdes/standalone';
 import { QRL_RUNTIME_CHUNK } from './shared/serdes/qrl-to-string';
 import { SerializerSymbol } from './shared/serdes/verify';
 import { EffectKind } from './dom/effect/effect-kind.enum';
-import type { AttrExpressionFn } from './dom/effect/effect';
+import type { AttrExpressionFn, EventExpressionFn } from './dom/effect/effect';
 import { createTextNodeEffect, type TextExpressionFn } from './dom/effect/text-effect';
 import { BranchSubscription, renderSsrBranch } from './dom/branch/branch';
 import { ContentSubscription, renderSsrContent } from './dom/content/content';
@@ -26,9 +26,11 @@ import {
   createSsrTextNodeEffect,
   EffectTargetKind,
   renderSsrAttr,
+  renderSsrEvent,
   renderSsrTextNode,
   SsrDomSubscription,
 } from './dom/effect/ssr-effect';
+import { createSsrEventAttr } from './ssr/output';
 import { ComputedFlags } from './reactive/flags';
 import { useAsyncQrl, useComputedQrl, useSerializerQrl, useSignal } from './reactive/public-api';
 import { type SerializerSignal } from './reactive/serializer-signal';
@@ -633,6 +635,46 @@ describe('serdes emit-only', () => {
     expect(effectPayload[9]).toBe('style');
     expect(effectPayload[10]).toBe(TypeIds.Array);
     expect(effectPayload[12]).toBe(TypeIds.QRL);
+  });
+
+  it('serializes SSR event expression subscribers with ordered handlers', async () => {
+    const enabled = useSignal(false);
+    const container = createCaptureContainer({ 0: enabled });
+    const qrl = createQRL<EventExpressionFn<[Signal<boolean>]>>(
+      './click.event.js',
+      'click',
+      (source) => (source.value ? () => undefined : undefined),
+      null,
+      '0',
+      container
+    );
+    const before = createQRL<() => void>('./before.js', 'before', () => undefined, null, null);
+    const after = createQRL<() => void>('./after.js', 'after', () => undefined, null, null);
+    await qrl.resolve(container);
+    createOwned(() =>
+      renderSsrEvent(
+        createSsrElementTarget(2),
+        'q-e:click',
+        [enabled],
+        qrl,
+        (name) => createSsrEventAttr(name, []),
+        [before],
+        [after]
+      )
+    );
+
+    const state = await serialize(enabled);
+    const signalPayload = state[1] as unknown[];
+    const effectPayload = signalPayload[3] as unknown[];
+
+    expect(effectPayload[1]).toBe(EffectKind.Event);
+    expect(effectPayload[3]).toBe(EffectTargetKind.Element);
+    expect(effectPayload[5]).toBe(2);
+    expect(effectPayload[9]).toBe('q-e:click');
+    expect(effectPayload[14]).toBe(TypeIds.Array);
+    expect(effectPayload[16]).toBe(TypeIds.Array);
+    expect(JSON.stringify(state)).toContain('before.js');
+    expect(JSON.stringify(state)).toContain('after.js');
   });
 
   it('serializes SSR DOM batch subscribers', async () => {

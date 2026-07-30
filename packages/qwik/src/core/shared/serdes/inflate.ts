@@ -7,10 +7,12 @@ import { ForBlock, ForRange } from '../../dom/for/for';
 import {
   AttrEffect,
   AttrExpressionEffect,
+  EventEffect,
   ForBlockSubscription,
   PropsEffect,
   type AttrExpressionFn,
 } from '../../dom/effect/effect';
+import type { QDispatchHandler } from '../../shared/types';
 import type { DomEffect } from '../../dom/effect/dom-subscription';
 import {
   TextExpressionEffect,
@@ -440,7 +442,8 @@ const inflateResolved = (
         case EffectKind.TextNode:
         case EffectKind.TextExpression:
         case EffectKind.Attr:
-        case EffectKind.Props: {
+        case EffectKind.Props:
+        case EffectKind.Event: {
           return restoreDomSubscription(container, target as Writeable<DomSubscriber>, parts).then(
             () => ensureDeserializedOwner(subscription)
           );
@@ -854,6 +857,20 @@ async function restoreDomEffect(
       return {
         deps: target.deps,
         effect: new PropsEffect(element, args, fn, styleScopedId ?? undefined),
+      };
+    }
+    case EffectKind.Event: {
+      const target = readDomSubscriptionTarget(parts);
+      const element = resolveElementTarget(container, target.targetKind, target.targetId);
+      const name = String(parts[target.depsIndex + 1]);
+      const args = parts[target.depsIndex + 2] as unknown[];
+      const qrl = parts[target.depsIndex + 3] as QRLInternal<(...args: unknown[]) => unknown>;
+      const before = parts[target.depsIndex + 4] as QDispatchHandler[];
+      const after = parts[target.depsIndex + 5] as QDispatchHandler[];
+      const fn = withCaptures(await qrl.resolve(), args);
+      return {
+        deps: target.deps,
+        effect: new EventEffect(element, name, args, fn, before, after),
       };
     }
     default:

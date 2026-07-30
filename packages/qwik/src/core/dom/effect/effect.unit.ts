@@ -14,6 +14,7 @@ import {
   createAttrEffect,
   createAttrExpressionEffect,
   createDomBatchEffect,
+  createEventEffect,
   createPropsEffect,
 } from './effect';
 import { createTextExpressionEffect, createTextNodeEffect, patchTextValue } from './text-effect';
@@ -128,6 +129,61 @@ describe('DOM effects', () => {
     await scheduler.flushInteraction();
 
     expect(attrs.get('style')).toBe('color:red');
+  });
+
+  it('adds, replaces, and removes dynamic event handlers', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const first = () => 1;
+    const second = () => 2;
+    const handler = useSignal<unknown>(undefined);
+    const { element } = createPropsTarget();
+    const effect = createOwned(() =>
+      createEventEffect(element, 'q-e:click', [], () => handler.value, scheduler)
+    );
+
+    scheduler.notify(effect);
+    await scheduler.flushInteraction();
+    expect((element as any)._qDispatch).toBeUndefined();
+
+    handler.value = first;
+    await scheduler.flushInteraction();
+    expect((element as any)._qDispatch['e:click']).toBe(first);
+
+    handler.value = second;
+    await scheduler.flushInteraction();
+    expect((element as any)._qDispatch['e:click']).toBe(second);
+
+    handler.value = undefined;
+    await scheduler.flushInteraction();
+    expect((element as any)._qDispatch['e:click']).toBeUndefined();
+  });
+
+  it('preserves ordered handlers around a dynamic event value', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const before = () => 1;
+    const dynamic = () => 2;
+    const after = () => 3;
+    const enabled = useSignal(false);
+    const { element } = createPropsTarget();
+    const effect = createOwned(() =>
+      createEventEffect(
+        element,
+        'q-e:input',
+        [],
+        () => (enabled.value ? [dynamic] : undefined),
+        scheduler,
+        [before],
+        [after]
+      )
+    );
+
+    scheduler.notify(effect);
+    await scheduler.flushInteraction();
+    expect((element as any)._qDispatch['e:input']).toEqual([before, after]);
+
+    enabled.value = true;
+    await scheduler.flushInteraction();
+    expect((element as any)._qDispatch['e:input']).toEqual([before, dynamic, after]);
   });
 
   it('patches serialized class values through className', () => {

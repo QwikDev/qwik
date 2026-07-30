@@ -1210,6 +1210,18 @@ function serializeSsrScalarDomEffect(
         effect.qrl,
         effect.styleScopedId,
       ];
+    case EffectKind.Event:
+      return [
+        effect.kind,
+        target.kind,
+        target.id,
+        serializedDeps,
+        effect.name,
+        effect.args,
+        effect.qrl,
+        effect.before,
+        effect.after,
+      ];
   }
 
   return assertNeverSsrDomEffect(effect);

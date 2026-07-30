@@ -10,9 +10,8 @@ import { isPromise } from '../../shared/utils/promises';
 import { serializeAttribute } from '../../shared/utils/styles';
 import { inlinedQrl } from '../../shared/qrl/qrl';
 import { _chk, _val } from '../../runtime/bind-handlers';
-import type { QElement } from '../../shared/types';
 import type { SsrEventAttrChunk, SsrRecordPart } from '../../ssr/output';
-import { setEvent } from '../event/event';
+import { removeEvent, setEvent } from '../event/event';
 import { commitDomPromise } from './dom-subscription';
 import {
   CheckedAttr,
@@ -248,17 +247,6 @@ function applyDomProp(element: Element, key: string, value: unknown, styleScoped
   }
 
   patchAttrValue(element, key, value, styleScopedId);
-}
-
-function removeEvent(element: Element, key: string): void {
-  const scopedKebabName = key.slice(2);
-  const target = element as QElement;
-  if (target._qDispatch) {
-    delete target._qDispatch[scopedKebabName];
-  }
-  if (key.charAt(2) !== 'e') {
-    element.removeAttribute?.(key);
-  }
 }
 
 function setDomProp(

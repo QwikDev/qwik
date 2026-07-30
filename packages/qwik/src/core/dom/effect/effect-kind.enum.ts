@@ -7,4 +7,5 @@ export const enum EffectKind {
   ForBlock = 5,
   DomBatch = 6,
   Content = 7,
+  Event = 8,
 }

@@ -11,7 +11,7 @@ import {
   unwrapExpression,
 } from './ast-utils';
 import type { AstFunction, AstNode } from './types';
-import { analyzeModule, containsJsx } from './analysis';
+import { analyzeModule, containsJsx, findBindingByDeclaration } from './analysis';
 import {
   getExpandableObjectProperties,
   getJsxAttributeExpression,
@@ -32,7 +32,7 @@ import type {
   SegmentPropsPartPlan,
 } from './plan-types';
 import { createSegmentSourceIdentity, createSegmentSymbolName } from './segment-identity';
-import { QWIK_CORE_IMPORT, QWIK_IMPORT, QwikHooks } from './words';
+import { QWIK_CORE_IMPORT, QWIK_IMPORT, QwikHooks, QwikWord } from './words';
 
 interface SegmentState {
   segment: Segment;
@@ -68,6 +68,7 @@ class QrlExtractor {
   private readonly bindings: Map<BindingId, BindingInfo>;
   private readonly references: Map<string, ReferenceInfo>;
   private readonly exportedBindings: Set<BindingId>;
+  private readonly fixedEventBindings = new Set<BindingId>();
   private readonly segments: Segment[] = [];
   private readonly moduleDeclarations: ModuleDeclaration[] = [];
   private readonly invalidBoundaries: Array<{ range: [number, number]; message: string }> = [];
@@ -297,6 +298,21 @@ class QrlExtractor {
 
   private visitVariableDeclaration(node: VariableDeclaration): void {
     for (const declaration of node.declarations) {
+      const identifier = unwrapExpression(declaration.id);
+      const identifierRange = getRange(identifier);
+      const initializer = unwrapExpression(declaration.init);
+      if (
+        node.kind === 'const' &&
+        identifier?.type === 'Identifier' &&
+        identifierRange !== null &&
+        initializer?.type === 'CallExpression' &&
+        this.isQrlFactoryCall(initializer)
+      ) {
+        const binding = findBindingByDeclaration(this.analysis, identifier.name, identifierRange);
+        if (binding !== null) {
+          this.fixedEventBindings.add(binding.id);
+        }
+      }
       this.visitPatternExpressions(declaration.id);
       this.visit(declaration.init);
     }
@@ -413,8 +429,16 @@ class QrlExtractor {
       node.value?.type === 'JSXExpressionContainer'
         ? unwrapExpression(node.value.expression)
         : null;
-    if (ctxName?.endsWith('$') && this.visitEventExpression(ctxName, expression, node)) {
-      return;
+    if (ctxName?.endsWith('$')) {
+      if (
+        !this.isFixedEventExpression(expression) &&
+        this.visitDynamicEventExpression(ctxName, expression)
+      ) {
+        return;
+      }
+      if (this.visitEventExpression(ctxName, expression, node)) {
+        return;
+      }
     }
     if (
       ctxName !== null &&
@@ -464,6 +488,25 @@ class QrlExtractor {
     return true;
   }
 
+  private visitDynamicEventExpression(
+    ctxName: string,
+    expression: AstNode | null | undefined
+  ): boolean {
+    if (expression === null || expression === undefined) {
+      return false;
+    }
+    const segment = this.createExpressionSegment(ctxName, expression);
+    if (segment === null) {
+      return false;
+    }
+    this.visitExpressionsSegment([expression], segment, (value) => {
+      if (!this.visitEventExpression(ctxName, value, value)) {
+        this.visit(value);
+      }
+    });
+    return true;
+  }
+
   private visitJsxAttributes(attributes: JSXAttributeItem[], boundary: AstNode) {
     const domAttributes = attributes.filter(
       (attribute) =>
@@ -488,6 +531,56 @@ class QrlExtractor {
     for (const attr of attributes) {
       this.visitJsxAttribute(attr);
     }
+  }
+
+  private isFixedEventExpression(expression: AstNode | null | undefined): boolean {
+    const value = unwrapExpression(expression);
+    if (value === null || value === undefined || isFunctionLike(value)) {
+      return true;
+    }
+    if (value.type === 'Literal') {
+      return value.value === null || value.value === false;
+    }
+    if (
+      value.type === 'Identifier' &&
+      value.name === 'undefined' &&
+      this.bindingForReference(value) === null
+    ) {
+      return true;
+    }
+    if (
+      value.type === 'Identifier' &&
+      this.fixedEventBindings.has(this.bindingForReference(value)?.id ?? -1)
+    ) {
+      return true;
+    }
+    if (value.type === 'UnaryExpression' && value.operator === 'void') {
+      return true;
+    }
+    if (value.type === 'CallExpression' && this.isQrlFactoryCall(value)) {
+      return true;
+    }
+    if (value.type !== 'ArrayExpression') {
+      return false;
+    }
+    return value.elements.every(
+      (element) =>
+        element === null ||
+        (element.type !== 'SpreadElement' && this.isFixedEventExpression(element))
+    );
+  }
+
+  private isQrlFactoryCall(expression: Extract<AstNode, { type: 'CallExpression' }>): boolean {
+    if (this.getQrlCallee(expression.callee) !== null) {
+      return true;
+    }
+    const callee = unwrapExpression(expression.callee);
+    const imported = this.bindingForReference(callee)?.import;
+    return (
+      imported?.importedName === QwikWord.InlinedQrl &&
+      !imported.typeOnly &&
+      isQwikImport(imported.source)
+    );
   }
 
   private visitComponentJsxAttributes(attributes: JSXAttributeItem[], boundary: AstNode): void {

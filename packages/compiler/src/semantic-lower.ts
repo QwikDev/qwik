@@ -1026,6 +1026,10 @@ class SemanticLowerer {
   }
 
   private createEventValues(expression: AstNode, lifetimeId: LifetimeId): ValuePlan[] {
+    const range = getRange(expression);
+    if (range !== null && this.findSegment('expression', range) !== null) {
+      return [this.createValue(expression, lifetimeId, true)];
+    }
     const value = unwrapExpression(expression);
     if (
       value?.type !== 'ArrayExpression' ||

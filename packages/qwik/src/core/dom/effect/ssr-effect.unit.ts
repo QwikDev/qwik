@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createQRL } from '../../shared/qrl/qrl-class';
-import type { AttrExpressionFn } from './effect';
+import type { AttrExpressionFn, EventExpressionFn } from './effect';
 import { EffectKind } from './effect-kind.enum';
 import type { TextExpressionFn } from './text-effect';
 import {
@@ -12,6 +12,7 @@ import {
   createSsrRangeTextTarget,
   renderSsrAttr,
   renderSsrAttrExpression,
+  renderSsrEvent,
   renderSsrProps,
   renderSsrTextExpression,
   renderSsrTextNode,
@@ -225,6 +226,33 @@ describe('SSR DOM effect helpers', () => {
     expect(subscriber).toBeInstanceOf(SsrDomSubscription);
     expect(subscriber.deps).toEqual([title]);
     expect(subscriber.effect.kind).toBe(EffectKind.Props);
+  });
+
+  it('tracks an initially missing event for resume', () => {
+    const enabled = useSignal(false);
+    const handler = () => undefined;
+    const target = createSsrElementTarget(5);
+    const qrl = createQRL<EventExpressionFn<[Signal<boolean>]>>(
+      './event.js',
+      'event',
+      (source) => (source.value ? handler : undefined),
+      null,
+      null
+    );
+    const eventAttr = (_name: string, value: unknown) => ({
+      type: 'event-attr' as const,
+      name: 'q-e:input',
+      valueParts: [value === handler ? 'handler' : 'unknown'],
+    });
+
+    const rendered = createOwned(() =>
+      renderSsrEvent(target, 'q-e:input', [enabled], qrl, eventAttr)
+    );
+    const subscriber = toArray(enabled.subs)[0] as SsrDomSubscription;
+
+    expect(rendered).toBeNull();
+    expect(subscriber.deps).toEqual([enabled]);
+    expect(subscriber.effect.kind).toBe(EffectKind.Event);
   });
 
   it('creates element text targets with ids', () => {

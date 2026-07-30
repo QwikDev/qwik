@@ -3,11 +3,14 @@ import { $, component$, useSignal } from '@qwik.dev/core';
 export const EventsClient = component$(() => {
   const enabled = useSignal(false);
   const input = useSignal('');
+  const bindEnabled = useSignal(false);
+  const boundInput = useSignal('');
+  const inputBeforeBind = useSignal('');
 
   return (
     <div>
       <p>
-        <a id="link" href="/" preventdefault:click>
+        <a id="link" href="/" preventdefault:click onClick$={() => {}}>
           Should not navigate
         </a>
         <input
@@ -25,6 +28,26 @@ export const EventsClient = component$(() => {
         />
 
         {enabled.value && <EventChildren input={input.value}></EventChildren>}
+      </p>
+      <p>
+        <input
+          id="input-with-bind"
+          onInput$={
+            bindEnabled.value
+              ? $((_event, element) => {
+                  inputBeforeBind.value = `${boundInput.value}->${element.value}`;
+                })
+              : undefined
+          }
+          onFocus$={() => {
+            bindEnabled.value = true;
+          }}
+          bind:value={boundInput}
+        />
+        <span id="input-with-bind-result">
+          Enabled: {String(bindEnabled.value)}; Dynamic: {inputBeforeBind.value}; Bound:{' '}
+          {boundInput.value}
+        </span>
       </p>
     </div>
   );

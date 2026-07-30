@@ -1,6 +1,6 @@
 import { EffectKind } from './effect-kind.enum';
 import { defaultScheduler, type TaskScheduler } from '../../runtime/scheduler';
-import type { AttrExpressionFn } from './effect';
+import { resolveEventHandlers, type AttrExpressionFn, type EventExpressionFn } from './effect';
 import type { TextExpressionValue } from './text-effect';
 import { isPromise, maybeThen, retryOnPromise } from '../../shared/utils/promises';
 import type { ValueOrPromise } from '../../shared/utils/types';
@@ -13,6 +13,7 @@ import type { QRLInternal } from '../../shared/qrl/qrl-class';
 import { withCaptures } from '../../shared/qrl/qrl-captures';
 import { registerSubscriberToOwner } from '../../runtime/owner';
 import type { Owner } from '../../runtime/owner';
+import type { QDispatchHandler } from '../../shared/types';
 import type { SSRForBlock } from '../for/for';
 import { renderDomPropsToString, serializeAttrExpressionValue } from './dom-props';
 import { isDev } from '@qwik.dev/core/build';
@@ -26,6 +27,9 @@ export type TextExpressionQrl<TArgs extends unknown[] = unknown[]> = QRLInternal
 export type AttrExpressionQrl<TArgs extends unknown[] = unknown[]> = QRLInternal<
   AttrExpressionFn<TArgs>
 >;
+export type EventExpressionQrl<TArgs extends unknown[] = unknown[]> = QRLInternal<
+  EventExpressionFn<TArgs>
+>;
 type DomPropsFn<TArgs extends unknown[] = unknown[]> = (
   ...args: TArgs
 ) => Record<string, unknown> | null | undefined;
@@ -36,6 +40,7 @@ export type SsrScalarDomEffect =
   | SsrTextNodeEffect
   | SsrAttrEffect
   | SsrAttrExpressionEffect<any[]>
+  | SsrEventEffect<any[]>
   | SsrPropsEffect<any[]>;
 export type SsrDomEffect = SsrScalarDomEffect | SsrDomBatchEffect;
 export type SsrAttributePatch = readonly [targetId: number, name: string, value: string | null];
@@ -114,6 +119,19 @@ export class SsrPropsEffect<TArgs extends unknown[] = unknown[]> {
     readonly args: TArgs,
     readonly qrl: DomPropsQrl<TArgs>,
     readonly styleScopedId: string | null = null
+  ) {}
+}
+
+export class SsrEventEffect<TArgs extends unknown[] = unknown[]> {
+  readonly kind = EffectKind.Event;
+
+  constructor(
+    readonly target: SsrEffectTarget,
+    readonly name: string,
+    readonly args: TArgs,
+    readonly qrl: EventExpressionQrl<TArgs>,
+    readonly before: readonly QDispatchHandler[] = [],
+    readonly after: readonly QDispatchHandler[] = []
   ) {}
 }
 
@@ -401,6 +419,35 @@ export function renderSsrProps<TArgs extends unknown[]>(
       }
       return renderDomPropsToString(props, eventAttr, styleScopedId);
     });
+  });
+}
+
+export function renderSsrEvent<TArgs extends unknown[]>(
+  target: SsrEffectTarget,
+  name: string,
+  args: TArgs,
+  qrl: EventExpressionQrl<TArgs>,
+  eventAttr: (name: string, value: unknown) => SsrEventAttrChunk,
+  before: readonly QDispatchHandler[] = [],
+  after: readonly QDispatchHandler[] = [],
+  batch?: SsrDomSubscriber
+): ValueOrPromise<SsrEventAttrChunk | null> {
+  const subscriber = createSsrDomEffect(
+    new SsrEventEffect(target, name, args, qrl, before, after),
+    batch
+  );
+
+  return retryOnPromise(() => {
+    const fn = qrl.resolved;
+    if (fn === undefined) {
+      throw qrl.resolve();
+    }
+    const value = runWithCollector(subscriber, withCaptures(fn, args), ...args);
+    if (isPromise(value)) {
+      throw new Error('Promise values are not supported for JSX DOM events.');
+    }
+    const handlers = resolveEventHandlers(value, before, after);
+    return handlers === null ? null : eventAttr(name, handlers);
   });
 }
 

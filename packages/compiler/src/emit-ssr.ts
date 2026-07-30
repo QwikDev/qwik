@@ -866,8 +866,11 @@ class SsrEmitter {
       return name === null ? null : { parts: [], innerHTML: name };
     }
     if (prop.kind === 'event') {
-      const emitted = this.eventValue(prop.handlers, prop.eventName);
-      return emitted === null ? null : { parts: [emitted], innerHTML: null };
+      const dynamic = this.dynamicEventHandlerIndex(prop.handlers) !== -1;
+      const emitted = this.eventValue(prop.handlers, prop.eventName, target);
+      return emitted === null
+        ? null
+        : { parts: [dynamic ? `(${emitted} ?? '')` : emitted], innerHTML: null };
     }
     if (target === null) {
       if (prop.kind === 'dynamic' && isInitialOnlyValue(prop.value)) {
@@ -1574,35 +1577,83 @@ class SsrEmitter {
     );
   }
 
-  private eventValue(handlers: readonly SsrEventHandlerPlan[], eventName: string): string | null {
+  private eventValue(
+    handlers: readonly SsrEventHandlerPlan[],
+    eventName: string,
+    targetId: string | null
+  ): string | null {
+    const dynamicIndex = this.dynamicEventHandlerIndex(handlers);
+    if (dynamicIndex !== -1) {
+      if (targetId === null) {
+        return null;
+      }
+      const dynamic = handlers[dynamicIndex] as Extract<SsrEventHandlerPlan, { kind: 'value' }>;
+      if (dynamic.value.kind !== 'segment') {
+        return null;
+      }
+      const segment = this.segment(dynamic.value.segment);
+      if (segment === null) {
+        return null;
+      }
+      const captures = this.captureNames(segment, dynamic.value.segment);
+      const before = handlers
+        .slice(0, dynamicIndex)
+        .map((handler) => this.eventHandlerValue(handler));
+      const after = handlers
+        .slice(dynamicIndex + 1)
+        .map((handler) => this.eventHandlerValue(handler));
+      if (before.some((value) => value === null) || after.some((value) => value === null)) {
+        return null;
+      }
+      this.imports.add(QwikWord.RenderSsrEvent);
+      return this.step(
+        `${QwikWord.RenderSsrEvent}(${this.elementTarget(targetId)}, ${JSON.stringify(
+          eventName
+        )}, [${captures.join(', ')}], ${qrlName(segment)}, ${
+          this.generatedNames.ctx
+        }.eventAttr, [${before.join(', ')}], [${after.join(', ')}])`,
+        [this.assignId(targetId), ...this.rootNames(captures)],
+        'event'
+      );
+    }
     const values: string[] = [];
     for (const handler of handlers) {
-      if (handler.kind === 'bind') {
-        this.imports.add(QwikWord.InlinedQrl);
-        const fn =
-          handler.name === 'checked' ? QwikWord.BindCheckedHandler : QwikWord.BindValueHandler;
-        this.imports.add(fn);
-        values.push(
-          `${QwikWord.InlinedQrl}(${fn}, ${JSON.stringify(fn)}, [${this.source.slice(
-            handler.signal[0],
-            handler.signal[1]
-          )}])`
-        );
-        continue;
+      const value = this.eventHandlerValue(handler);
+      if (value === null) {
+        return null;
       }
-      const value = handler.value;
-      if (value.kind === 'segment') {
-        const segment = this.segment(value.segment);
-        if (segment === null) {
-          return null;
-        }
-        values.push(this.qrlReference(segment, value.segment));
-      } else {
-        values.push(this.expression(value));
-      }
+      values.push(value);
     }
     const value = values.length === 1 ? values[0] : `[${values.join(', ')}]`;
     return `${this.generatedNames.ctx}.eventAttr(${JSON.stringify(eventName)}, ${value})`;
+  }
+
+  private dynamicEventHandlerIndex(handlers: readonly SsrEventHandlerPlan[]): number {
+    return handlers.findIndex(
+      (handler) =>
+        handler.kind === 'value' &&
+        handler.value.kind === 'segment' &&
+        this.segment(handler.value.segment)?.kind === 'expression'
+    );
+  }
+
+  private eventHandlerValue(handler: SsrEventHandlerPlan): string | null {
+    if (handler.kind === 'bind') {
+      this.imports.add(QwikWord.InlinedQrl);
+      const fn =
+        handler.name === 'checked' ? QwikWord.BindCheckedHandler : QwikWord.BindValueHandler;
+      this.imports.add(fn);
+      return `${QwikWord.InlinedQrl}(${fn}, ${JSON.stringify(fn)}, [${this.source.slice(
+        handler.signal[0],
+        handler.signal[1]
+      )}])`;
+    }
+    const value = handler.value;
+    if (value.kind !== 'segment') {
+      return this.expression(value);
+    }
+    const segment = this.segment(value.segment);
+    return segment === null ? null : this.qrlReference(segment, value.segment);
   }
 
   private rawValue(value: ValuePlan, prep: readonly SsrPrep[], prefix: string): string | null {

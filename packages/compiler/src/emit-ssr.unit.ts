@@ -279,6 +279,53 @@ export function App() {
     expect(main).not.toContain('maybeThen');
   });
 
+  test('emits a resumable event effect for a dynamic event expression', async () => {
+    const result = await transformModules(
+      options({
+        path: 'src/dynamic-event.tsx',
+        code: `import { $, useSignal } from '@qwik.dev/core';
+export function App() {
+  const enabled = useSignal(false);
+  const input = useSignal('');
+  return <input
+    onInput$={enabled.value ? $((_event, element) => input.value = element.value) : undefined}
+    onFocus$={() => enabled.value = true}
+  />;
+}
+`,
+      })
+    );
+    const output = result.modules.map((module) => module.code).join('\n');
+
+    expect(result.diagnostics).toEqual([]);
+    expect(output).toContain('renderSsrEvent');
+    expect(output).not.toContain('renderSsrProps');
+    expect(output).not.toContain('ctx.eventAttr("q-e:input", enabled.value');
+  });
+
+  test('keeps the bind handler after a dynamic SSR input handler', async () => {
+    const result = await transformModules(
+      options({
+        path: 'src/dynamic-bind-event.tsx',
+        code: `import { $, useSignal } from '@qwik.dev/core';
+export function App() {
+  const enabled = useSignal(false);
+  const value = useSignal('');
+  return <input
+    onInput$={enabled.value ? $(() => undefined) : undefined}
+    bind:value={value}
+  />;
+}
+`,
+      })
+    );
+    const output = result.modules.map((module) => module.code).join('\n');
+
+    expect(result.diagnostics).toEqual([]);
+    expect(output).toContain('renderSsrEvent');
+    expect(output).toContain('inlinedQrl(_val');
+  });
+
   test('normalizes static DOM attributes and emits direct innerHTML values', async () => {
     const result = await transformModules(
       options({

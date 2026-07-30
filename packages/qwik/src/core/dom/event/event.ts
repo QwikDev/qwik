@@ -40,6 +40,18 @@ export function setEvent(
   registerQwikLoaderEvent(element, scopedKebabName);
 }
 
+/** @internal */
+export function removeEvent(element: Element, key: string): void {
+  const scopedKebabName = key.slice(2);
+  const target = element as QElement;
+  if (target._qDispatch) {
+    delete target._qDispatch[scopedKebabName];
+  }
+  if (key.charAt(2) !== 'e') {
+    element.removeAttribute?.(key);
+  }
+}
+
 function registerQwikLoaderEvent(element: Element, eventName: string) {
   const qWindow = (qTest ? element.ownerDocument.defaultView : window) as unknown as qWindow;
   const loader = (qWindow._qwikEv ||= [] as any);

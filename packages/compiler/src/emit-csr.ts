@@ -793,6 +793,42 @@ function emitCsrOperation(
       if (target === undefined) {
         return null;
       }
+      const dynamicIndex = operation.handlers.findIndex(
+        (handler) =>
+          handler.kind === 'value' &&
+          handler.value.kind === 'segment' &&
+          context.segments.get(handler.value.reference.segmentId)?.kind === 'expression'
+      );
+      if (dynamicIndex !== -1) {
+        const dynamic = operation.handlers[dynamicIndex] as Extract<
+          CsrEventHandlerPlan,
+          { kind: 'value' }
+        >;
+        if (dynamic.value.kind !== 'segment') {
+          return null;
+        }
+        const effect = next(QwikGenWord.Effect);
+        const before = operation.handlers
+          .slice(0, dynamicIndex)
+          .map((handler) => emitEventHandler(handler, context));
+        const after = operation.handlers
+          .slice(dynamicIndex + 1)
+          .map((handler) => emitEventHandler(handler, context));
+        imports.add(QwikWord.CreateEventEffect);
+        return {
+          declarations: [],
+          statements: [
+            `const ${effect} = ${QwikWord.CreateEventEffect}(${target}, ${JSON.stringify(
+              operation.name
+            )}, [${dynamic.value.reference.captures.join(', ')}], ${
+              dynamic.value.reference.symbolName
+            }, ${context.generatedNames.ctx}.scheduler, [${before.join(', ')}], [${after.join(
+              ', '
+            )}]);`,
+            `${context.generatedNames.ctx}.scheduler.waitFor(${effect}.run());`,
+          ],
+        };
+      }
       imports.add(QwikWord.SetEvent);
       const only = operation.handlers.length === 1 ? operation.handlers[0] : null;
       if (only?.kind === 'value' && only.value.kind === 'segment') {

@@ -1,7 +1,7 @@
 import { describe, expect, test, vi } from 'vitest';
 import { _captures } from '../../shared/qrl/qrl-captures';
 import type { CapturedEventHandler, qWindow, QElement } from '../../shared/types';
-import { setEvent } from './event';
+import { removeEvent, setEvent } from './event';
 
 describe('setEvent', () => {
   test('stores event handlers in _qDispatch', () => {
@@ -62,6 +62,21 @@ describe('setEvent', () => {
 
     expect(push).not.toHaveBeenCalled();
   });
+
+  test('removes local and carrier event handlers', () => {
+    const element = createElementTarget();
+    const handler = vi.fn();
+
+    setEvent(element, 'q-e:click', handler);
+    setEvent(element, 'q-w:scroll', handler);
+    removeEvent(element, 'q-e:click');
+    removeEvent(element, 'q-w:scroll');
+
+    expect((element as QElement)._qDispatch?.['e:click']).toBeUndefined();
+    expect((element as QElement)._qDispatch?.['w:scroll']).toBeUndefined();
+    expect(element.removeAttribute).not.toHaveBeenCalledWith('q-e:click');
+    expect(element.removeAttribute).toHaveBeenCalledWith('q-w:scroll');
+  });
 });
 
 function createElementTarget(): Element {
@@ -70,5 +85,6 @@ function createElementTarget(): Element {
       defaultView: {},
     },
     setAttribute: vi.fn(),
+    removeAttribute: vi.fn(),
   } as unknown as Element;
 }

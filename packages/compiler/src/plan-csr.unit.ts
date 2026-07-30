@@ -195,6 +195,47 @@ export function App() {
     expect(output).not.toContain('patchAttrValue');
   });
 
+  test('emits an event effect for a dynamic event expression', () => {
+    const code = `import { $, useSignal } from '@qwik.dev/core';
+export function App() {
+  const enabled = useSignal(false);
+  const input = useSignal('');
+  return <input
+    onInput$={enabled.value ? $((_event, element) => input.value = element.value) : undefined}
+    onFocus$={() => enabled.value = true}
+  />;
+}`;
+    const plan = planCsr(lower(code).plan, code)!;
+    const imports = new Set<string>();
+    const emitted = emitCsrPlan('App', plan, code, 'src/component.tsx', false, imports)!;
+    const output = emitted.statements.join('\n');
+
+    expect(output).toContain('createEventEffect');
+    expect(output).not.toContain('createPropsEffect');
+    expect(output).not.toMatch(/const event\d+ = enabled\.value/);
+    expect(output).not.toContain('if (event');
+  });
+
+  test('preserves a bind handler after a dynamic input handler', () => {
+    const code = `import { $, useSignal } from '@qwik.dev/core';
+export function App() {
+  const enabled = useSignal(false);
+  const value = useSignal('');
+  return <input
+    onInput$={enabled.value ? $(() => undefined) : undefined}
+    bind:value={value}
+  />;
+}`;
+    const plan = planCsr(lower(code).plan, code)!;
+    const imports = new Set<string>();
+    const emitted = emitCsrPlan('App', plan, code, 'src/component.tsx', false, imports)!;
+    const output = emitted.statements.join('\n');
+
+    expect(output).toContain('createEventEffect');
+    expect(output).toContain('inlinedQrl(_val');
+    expect(output).toMatch(/ctx\.scheduler, \[\], \[inlinedQrl\(_val/);
+  });
+
   test('uses the existing text node for a sole dynamic text child', () => {
     const code = `export function App({ value }) {
   return <p>{value.count}</p>;

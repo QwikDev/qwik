@@ -656,10 +656,11 @@ class SsrPlanner {
           ? true
           : prop.kind === 'bind'
             ? prop.effectId !== null
-            : prop.kind !== 'static' &&
-              prop.kind !== 'event' &&
-              !(prop.kind === 'dynamic' && isInitialOnlyValue(prop.value)) &&
-              !(prop.kind === 'inner-html' && prop.lifetimeId === null)
+            : prop.kind === 'event'
+              ? this.isReactiveEventValue(prop.value)
+              : prop.kind !== 'static' &&
+                !(prop.kind === 'dynamic' && isInitialOnlyValue(prop.value)) &&
+                !(prop.kind === 'inner-html' && prop.lifetimeId === null)
       ) ||
       (this.forcedTargetRange !== undefined && sameRange(node.range, this.forcedTargetRange));
     const targetId = needsTarget ? this.nextTargetId++ : null;
@@ -759,10 +760,18 @@ class SsrPlanner {
               (prop) =>
                 prop.kind === 'spread' ||
                 (prop.kind === 'bind' && prop.effectId !== null) ||
+                (prop.kind === 'event' && this.isReactiveEventValue(prop.value)) ||
                 (prop.kind === 'dynamic' && !isInitialOnlyValue(prop.value)) ||
                 (prop.kind === 'inner-html' && prop.lifetimeId !== null)
             ).length,
     };
+  }
+
+  private isReactiveEventValue(value: ValuePlan): boolean {
+    return (
+      value.kind === 'segment' &&
+      this.segments.find((segment) => segment.id === value.segment.segmentId)?.kind === 'expression'
+    );
   }
 
   private isSynchronousValue(value: ValuePlan): boolean {

@@ -177,8 +177,6 @@ const PluginThrower = component$(() => {
   throw err;
 });
 
-const boxed = (child: JSXOutput) => <ErrorBoundary fallback$={fb()}>{child}</ErrorBoundary>;
-
 const NestedEscalation = component$<{ innerOnError?: any; outerOnError?: any }>((props) => (
   <ErrorBoundary
     fallback$={$(() => (
@@ -232,12 +230,20 @@ describe.each(modes)('ErrorBoundary behavior (%s)', (mode, renderMode) => {
   });
 
   it('a recoverable error renders the fallback', async () => {
-    const { container } = await renderMode(() => boxed(<Thrower />));
+    const { container } = await renderMode(() => (
+      <ErrorBoundary fallback$={fb()}>
+        <Thrower />
+      </ErrorBoundary>
+    ));
     expect(container.element.querySelector('#fb')?.textContent).toContain('caught: boom');
   });
 
   it('a thrown non-Error class instance is caught', async () => {
-    const { container } = await renderMode(() => boxed(<NonSerializableThrower />));
+    const { container } = await renderMode(() => (
+      <ErrorBoundary fallback$={fb()}>
+        <NonSerializableThrower />
+      </ErrorBoundary>
+    ));
     expect(container.element.querySelector('#fb')?.textContent).toContain(
       'caught: non-serializable boom'
     );
@@ -1217,7 +1223,12 @@ describe('ErrorBoundary CSR-specific', () => {
     });
 
     it('CSR: a non-recoverable build error is not caught by the boundary', async () => {
-      const { container } = await domRender(boxed(<button id="content">x</button>), { debug });
+      const { container } = await domRender(
+        <ErrorBoundary fallback$={fb()}>
+          <button id="content">x</button>
+        </ErrorBoundary>,
+        { debug }
+      );
       const el = container.element;
       const target = el.querySelector('#content')!;
       const err = new Error('build boom');
@@ -1664,12 +1675,24 @@ describe('ErrorBoundary SSR-specific', () => {
   });
 
   it('a throw of undefined during SSR render reveals the fallback', async () => {
-    const { container } = await ssrRenderToDom(boxed(<UndefinedThrower />), { debug });
+    const { container } = await ssrRenderToDom(
+      <ErrorBoundary fallback$={fb()}>
+        <UndefinedThrower />
+      </ErrorBoundary>,
+      { debug }
+    );
     expect(container.element.querySelector('#fb')).toBeTruthy();
   });
 
   it('SSR: a non-recoverable build error is NOT hidden in the fallback (it surfaces)', async () => {
-    await expect(ssrRenderToDom(boxed(<PluginThrower />), { debug })).rejects.toThrow('build boom');
+    await expect(
+      ssrRenderToDom(
+        <ErrorBoundary fallback$={fb()}>
+          <PluginThrower />
+        </ErrorBoundary>,
+        { debug }
+      )
+    ).rejects.toThrow('build boom');
   });
 });
 
@@ -1680,7 +1703,10 @@ describe('ErrorBoundary function children', () => {
     }) as unknown as JSXOutput;
 
   it('SSR: a sync function-child throw renders the fallback', async () => {
-    const { container } = await ssrRenderToDom(boxed(throwingFnChild()), { debug });
+    const { container } = await ssrRenderToDom(
+      <ErrorBoundary fallback$={fb()}>{throwingFnChild()}</ErrorBoundary>,
+      { debug }
+    );
     expect(container.element.querySelector('#fb')?.textContent).toContain('caught: jsx error');
   });
 
@@ -1700,7 +1726,10 @@ describe('ErrorBoundary function children', () => {
     const asyncThrower = (async () => {
       throw new Error('async jsx error');
     }) as unknown as JSXOutput;
-    const { container } = await ssrRenderToDom(boxed(asyncThrower), { debug });
+    const { container } = await ssrRenderToDom(
+      <ErrorBoundary fallback$={fb()}>{asyncThrower}</ErrorBoundary>,
+      { debug }
+    );
     expect(container.element.querySelector('#fb')?.textContent).toContain(
       'caught: async jsx error'
     );
@@ -1714,13 +1743,19 @@ describe('ErrorBoundary function children', () => {
 
   it('SSR: a function child RETURNING JSX renders nothing and does not error', async () => {
     const thunk = (() => <div id="thunk">thunk</div>) as unknown as JSXOutput;
-    const { container } = await ssrRenderToDom(boxed(thunk), { debug });
+    const { container } = await ssrRenderToDom(
+      <ErrorBoundary fallback$={fb()}>{thunk}</ErrorBoundary>,
+      { debug }
+    );
     expect(container.element.querySelector('#thunk')).toBeFalsy();
     expect(container.element.querySelector('#fb')).toBeFalsy();
   });
 
   it('CSR: a function child inside a boundary renders empty — no crash, no fallback', async () => {
-    const { container } = await domRender(boxed(throwingFnChild()), { debug });
+    const { container } = await domRender(
+      <ErrorBoundary fallback$={fb()}>{throwingFnChild()}</ErrorBoundary>,
+      { debug }
+    );
     expect(container.element.querySelector('#fb')).toBeFalsy();
   });
 

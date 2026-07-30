@@ -502,7 +502,7 @@ describe.each(modes)('ErrorBoundary behavior (%s)', (mode, renderMode) => {
     });
 
     it.each([[{ code: 401 }], [0]])(
-      'wraps a non-Error throw %o in an Error carrying the raw value as cause',
+      'guarantees the Error type: a non-Error throw %j is coerced, raw value on cause',
       async (raw) => {
         const received: unknown[] = [];
         const RawThrower = component$((): JSXOutput => {

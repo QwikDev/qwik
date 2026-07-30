@@ -9,6 +9,7 @@ import {
   createText,
   getNodeLabel,
   noopSchedule,
+  toArray,
 } from '../../test-utils';
 import { createComponent } from '../../component/component';
 import { disposeSubscriber } from '../../reactive/cleanup';
@@ -180,7 +181,7 @@ describe('branches', () => {
 
     expect(replacements).toEqual([[thenNode]]);
     expect(text.data).toBe('then');
-    expect(visible.subs).toContain(branch);
+    expect(toArray(visible.subs)).toContain(branch);
     expect(branchText.subs).not.toBeNull();
     expect(branch.branch.currentOwner).not.toBeNull();
     expect(thenRuns).toBe(1);
@@ -379,7 +380,7 @@ describe('branches', () => {
     await scheduler.flushInteraction();
 
     expect(replacements).toEqual([[node]]);
-    expect(visible.subs).toContain(branch);
+    expect(toArray(visible.subs)).toContain(branch);
     expect(local.subs).not.toBeNull();
     expect(branch.branch.currentOwner).not.toBeNull();
 
@@ -414,7 +415,7 @@ describe('branches', () => {
 
     expect(resolved).toBe(true);
     expect(replacements).toEqual([[node]]);
-    expect(visible.subs).toContain(branch);
+    expect(toArray(visible.subs)).toContain(branch);
 
     visible.value = false;
     await scheduler.flushInteraction();
@@ -494,7 +495,7 @@ describe('branches', () => {
 
     expect(thenResolved).toBe(false);
     expect(replacements).toEqual([]);
-    expect(visible.subs).toContain(branch);
+    expect(toArray(visible.subs)).toContain(branch);
     expect(branch.branch.currentBranch).toBe(BRANCH_THEN);
     expect(branch.branch.currentOwner).toBeNull();
   });
@@ -547,7 +548,7 @@ describe('branches', () => {
     await scheduler.flushInteraction();
 
     expect(text.data).toBe('mounted');
-    expect(local.subs).toContain(effect);
+    expect(toArray(local.subs)).toContain(effect);
     expect(thenResolved).toBe(false);
     expect(elseResolved).toBe(false);
     expect(replacements).toEqual([]);
@@ -640,7 +641,7 @@ describe('branches', () => {
     });
 
     const html = await createOwned(() => renderSsrBranch(ctx, 0, conditionQrl, thenQrl, undefined));
-    const branch = visible.subs?.[0] as SSRBranchSubscription | undefined;
+    const branch = toArray(visible.subs)[0] as SSRBranchSubscription | undefined;
 
     expect(html).toBe('then');
     expect(branch).toBeDefined();

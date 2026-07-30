@@ -5,12 +5,13 @@ import { createTextNodeEffect } from '../effect/text-effect';
 import { useSignal } from '../../reactive/public-api';
 import { OwnerFlags } from '../../reactive/flags';
 import type { ContainerContext } from '../../runtime/container-context';
-import { createOwner } from '../../runtime/owner';
+import { createOwner, ownerItemsLength } from '../../runtime/owner';
 import {
   createTestDomNode,
   createTestParentNode,
   createText,
   getNodeLabel,
+  toArray,
 } from '../../test-utils';
 import { ForBlock, ForRange } from './for';
 
@@ -202,6 +203,7 @@ describe('ForBlock reorder', () => {
     block.rows = oldRows;
     const oldOwners = oldRows.map(() => createOwner(listOwner));
     block.owners = oldOwners;
+    const insertBefore = vi.spyOn(list, 'insertBefore');
     const replaceChildren = vi.spyOn(list, 'replaceChildren').mockImplementation(() => {
       while (list.firstChild !== null) {
         list.removeChild(list.firstChild);
@@ -213,6 +215,8 @@ describe('ForBlock reorder', () => {
 
       expect(replaceChildren).toHaveBeenCalledOnce();
       expect(replaceChildren).toHaveBeenCalledWith();
+      const fragmentInsertions = insertBefore.mock.calls.filter(([node]) => node.nodeType === 11);
+      expect(fragmentInsertions).toEqual([[expect.objectContaining({ nodeType: 11 }), endNode]]);
       expect([...list.childNodes].map((node) => node.textContent)).toEqual([
         'start',
         '3',
@@ -220,6 +224,117 @@ describe('ForBlock reorder', () => {
         'end',
       ]);
       expect(oldOwners.every((owner) => owner.flags & OwnerFlags.Disposed)).toBe(true);
+    } finally {
+      insertBefore.mockRestore();
+      replaceChildren.mockRestore();
+    }
+  });
+
+  it('releases disjoint rows before rendering their replacements', () => {
+    const document = createDocument({
+      html: '<ul><!--start--><li>1</li><li>2</li><!--end--></ul>',
+    });
+    const list = document.querySelector('ul')!;
+    const startNode = list.firstChild as Comment;
+    const endNode = list.lastChild as Comment;
+    const oldRows = Array.from(list.querySelectorAll('li'));
+    const items = useSignal([{ id: 3 }, { id: 4 }]);
+    const listOwner = createOwner(null);
+    const block = new ForBlock(
+      new ForRange(document, startNode, endNode),
+      items,
+      (item) => item.id,
+      () => [],
+      false,
+      listOwner,
+      null,
+      { document } as ContainerContext
+    );
+    const oldOwners = oldRows.map(() => createOwner(listOwner));
+    block.keys = [1, 2];
+    block.rows = oldRows;
+    block.owners = oldOwners;
+    const replaceChildren = vi.spyOn(list, 'replaceChildren').mockImplementation(() => {
+      while (list.firstChild !== null) {
+        list.removeChild(list.firstChild);
+      }
+    });
+
+    try {
+      block.reconcile(
+        new ForBlockSubscription(block),
+        (item) => item.id,
+        (_ctx, item) => {
+          expect(block.rows).toHaveLength(0);
+          expect(oldOwners.every((owner) => owner.flags & OwnerFlags.Disposed)).toBe(true);
+          const row = document.createElement('li');
+          row.textContent = String(item.id);
+          return row;
+        }
+      );
+
+      expect([...list.childNodes].map((node) => node.textContent)).toEqual([
+        'start',
+        '3',
+        '4',
+        'end',
+      ]);
+    } finally {
+      replaceChildren.mockRestore();
+    }
+  });
+
+  it('disposes partially created disjoint rows when rendering throws', () => {
+    const document = createDocument({
+      html: '<ul><!--start--><li>1</li><!--end--></ul>',
+    });
+    const list = document.querySelector('ul')!;
+    const startNode = list.firstChild as Comment;
+    const endNode = list.lastChild as Comment;
+    const oldRow = list.querySelector('li')!;
+    const items = useSignal([{ id: 2 }, { id: 3 }]);
+    const text = useSignal('row');
+    const listOwner = createOwner(null);
+    const block = new ForBlock(
+      new ForRange(document, startNode, endNode),
+      items,
+      (item) => item.id,
+      () => [],
+      false,
+      listOwner,
+      null,
+      { document } as ContainerContext
+    );
+    block.keys = [1];
+    block.rows = [oldRow];
+    block.owners = [createOwner(listOwner)];
+    let createdOwner = null as ReturnType<typeof createOwner> | null;
+    const replaceChildren = vi.spyOn(list, 'replaceChildren').mockImplementation(() => {
+      while (list.firstChild !== null) {
+        list.removeChild(list.firstChild);
+      }
+    });
+
+    try {
+      expect(() =>
+        block.reconcile(
+          new ForBlockSubscription(block),
+          (item) => item.id,
+          (_ctx, item) => {
+            if (item.id === 3) {
+              throw new Error('row failed');
+            }
+            const effect = createTextNodeEffect(document.createTextNode(''), text);
+            createdOwner = effect.owner;
+            return document.createElement('li');
+          }
+        )
+      ).toThrow('row failed');
+
+      expect(block.rows).toHaveLength(0);
+      expect(createdOwner).not.toBeNull();
+      expect(createdOwner!.flags & OwnerFlags.Disposed).toBeTruthy();
+      expect([...list.childNodes]).toEqual([startNode, endNode]);
     } finally {
       replaceChildren.mockRestore();
     }
@@ -648,8 +763,8 @@ describe('ForBlock reorder', () => {
 
     expect(block.owners[0]).not.toBeNull();
     expect(block.rowInvokeContext.owner).toBeNull();
-    expect(listOwner.items).toContain(block.owners[0]);
-    expect(block.owners[0]!.items).toHaveLength(1);
+    expect(toArray(listOwner.items)).toContain(block.owners[0]);
+    expect(ownerItemsLength(block.owners[0]!.items)).toBe(1);
   });
 
   it('clears rows on dispose', () => {

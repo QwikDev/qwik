@@ -286,6 +286,7 @@ export type CsrEventHandlerPlan =
 /** Target-specific plan consumed by the CSR serializer. */
 export interface CsrPlan {
   readonly template: string;
+  readonly outputShape: CsrOutputShape;
   readonly output: CsrOutputPlan | null;
   readonly refs: readonly CsrRefPlan[];
   readonly roots: readonly CsrRootPlan[];
@@ -627,6 +628,7 @@ class CsrPlanner {
     }
     return {
       template: finalized.html,
+      outputShape: renderPlanOutputShape(render, this.componentCardinality),
       output: directOutput,
       refs: finalized.refs,
       roots: this.roots,

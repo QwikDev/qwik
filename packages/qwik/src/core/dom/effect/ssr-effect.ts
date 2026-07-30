@@ -127,7 +127,6 @@ export class SsrDomSubscription implements SsrDomSubscriber {
   owner: Owner | null = null;
   flags = SubscriberFlags.None;
   deps: Source[] | null = null;
-  depVersions: number[] | null = null;
   patch: SsrAttributePatch | null = null;
   private pendingValue: Promise<unknown> | undefined;
   private cancelAsync: (() => void) | undefined;
@@ -218,7 +217,6 @@ export class SSRForBlockSubscription<T = unknown> implements SsrForBlockSubscrib
   readonly scheduler = null;
   owner: Owner | null = null;
   deps: Source[] | null = null;
-  depVersions: number[] | null = null;
 
   constructor(readonly block: SSRForBlock<T>) {}
 

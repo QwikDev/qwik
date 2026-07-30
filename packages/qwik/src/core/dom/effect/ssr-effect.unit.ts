@@ -20,6 +20,7 @@ import {
 import { type Signal } from '../../reactive/signal';
 import { useSignal } from '../../reactive/public-api';
 import { createOwner, runWithOwner } from '../../runtime/owner';
+import { toArray } from '../../test-utils';
 
 describe('SSR DOM effect helpers', () => {
   it('creates a text node subscriber and collects the source dependency', () => {
@@ -27,7 +28,7 @@ describe('SSR DOM effect helpers', () => {
     const target = createSsrRangeTextTarget(0, 0);
 
     const value = createOwned(() => renderSsrTextNode(target, count));
-    const subscriber = count.subs?.[0] as SsrDomSubscription;
+    const subscriber = toArray(count.subs)[0] as SsrDomSubscription;
 
     expect(value).toBe('1');
     expect(subscriber).toBeInstanceOf(SsrDomSubscription);
@@ -55,7 +56,7 @@ describe('SSR DOM effect helpers', () => {
     );
 
     const value = createOwned(() => renderSsrTextExpression(target, [count], qrl));
-    const subscriber = count.subs?.[0] as SsrDomSubscription;
+    const subscriber = toArray(count.subs)[0] as SsrDomSubscription;
 
     expect(value).toBe('one');
     expect(subscriber).toBeInstanceOf(SsrDomSubscription);
@@ -96,9 +97,9 @@ describe('SSR DOM effect helpers', () => {
     expect(createOwned(() => renderSsrAttr(target, 'class', className))).toBe('active');
     expect(createOwned(() => renderSsrAttr(target, 'style', style))).toBe('color:red');
 
-    const attrSubscriber = title.subs?.[0] as SsrDomSubscription;
-    const classSubscriber = className.subs?.[0] as SsrDomSubscription;
-    const styleSubscriber = style.subs?.[0] as SsrDomSubscription;
+    const attrSubscriber = toArray(title.subs)[0] as SsrDomSubscription;
+    const classSubscriber = toArray(className.subs)[0] as SsrDomSubscription;
+    const styleSubscriber = toArray(style.subs)[0] as SsrDomSubscription;
 
     expect(attrSubscriber.effect.kind).toBe(EffectKind.Attr);
     expect(classSubscriber.effect.kind).toBe(EffectKind.Attr);
@@ -119,7 +120,7 @@ describe('SSR DOM effect helpers', () => {
     );
 
     const value = createOwned(() => renderSsrAttrExpression(target, 'style', [], qrl));
-    const subscriber = count.subs?.[0] as SsrDomSubscription;
+    const subscriber = toArray(count.subs)[0] as SsrDomSubscription;
 
     expect(value).toBe('color:red');
     expect(subscriber).toBeInstanceOf(SsrDomSubscription);
@@ -178,8 +179,8 @@ describe('SSR DOM effect helpers', () => {
 
     expect(batch.text).toBe('1');
     expect(batch.attr).toBeNull();
-    expect(count.subs).toEqual([batch.subscriber]);
-    expect(active.subs).toEqual([batch.subscriber]);
+    expect(count.subs).toBe(batch.subscriber);
+    expect(active.subs).toBe(batch.subscriber);
     expect(batch.subscriber.deps).toEqual([count, active]);
     expect(batch.subscriber.effect.kind).toBe(EffectKind.DomBatch);
     expect((batch.subscriber.effect as any).effects).toHaveLength(2);
@@ -215,7 +216,7 @@ describe('SSR DOM effect helpers', () => {
     );
 
     const rendered = createOwned(() => renderSsrProps(target, [], qrl));
-    const subscriber = title.subs?.[0] as SsrDomSubscription;
+    const subscriber = toArray(title.subs)[0] as SsrDomSubscription;
 
     expect(rendered).toEqual({
       attrs: [' title="hello" class="active"'],

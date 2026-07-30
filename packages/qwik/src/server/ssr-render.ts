@@ -601,8 +601,9 @@ function collectDeferredSubscriptions(
     if (items === null) {
       continue;
     }
-    for (let j = 0; j < items.length; j++) {
-      const item = items[j];
+    const itemCount = Array.isArray(items) ? items.length : 1;
+    for (let j = 0; j < itemCount; j++) {
+      const item = Array.isArray(items) ? items[j] : items;
       if (item instanceof Owner) {
         owners.push(item);
       } else {

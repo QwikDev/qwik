@@ -1,6 +1,10 @@
-import type { Source } from './source';
+import { appendSourceSubscriber, type Source } from './source';
 import type { CollectorSubscriber } from '../runtime/subscriber';
-import { getActiveInvokeContextOrNull, setActiveInvokeContext } from '../runtime/invoke-context';
+import {
+  getActiveInvokeContextOrNull,
+  setActiveInvokeContext,
+  type RuntimeInvokeContext,
+} from '../runtime/invoke-context';
 
 let activeCollector: CollectorSubscriber | null = null;
 
@@ -57,6 +61,54 @@ export function runWithCollector<T, TArgs extends unknown[]>(
   }
 }
 
+export function runWithCollector0<T>(collector: CollectorSubscriber | null, run: () => T): T {
+  const previous = activeCollector;
+  activeCollector = collector;
+
+  try {
+    return run();
+  } finally {
+    activeCollector = previous;
+  }
+}
+
+export function runWithCollector1<T, TArg>(
+  collector: CollectorSubscriber | null,
+  run: (arg: TArg) => T,
+  arg: TArg
+): T {
+  const previous = activeCollector;
+  activeCollector = collector;
+
+  try {
+    return run(arg);
+  } finally {
+    activeCollector = previous;
+  }
+}
+
+export function invokeWithCollector4<T, TFirst, TSecond, TThird, TFourth>(
+  collector: CollectorSubscriber | null,
+  context: RuntimeInvokeContext | null,
+  run: (first: TFirst, second: TSecond, third: TThird, fourth: TFourth) => T,
+  first: TFirst,
+  second: TSecond,
+  third: TThird,
+  fourth: TFourth
+): T {
+  const previousCollector = activeCollector;
+  const previousContext = getActiveInvokeContextOrNull();
+  activeCollector = collector;
+  setActiveInvokeContext(context);
+
+  try {
+    return run(first, second, third, fourth);
+  } finally {
+    setActiveInvokeContext(previousContext);
+    activeCollector = previousCollector;
+  }
+}
+
 /** @public */
 export function untrack<T, TArgs extends unknown[]>(run: (...args: TArgs) => T, ...args: TArgs): T {
   return runWithCollector(null, run, ...args);
@@ -71,7 +123,6 @@ export function track(source: Source): void {
   let deps = collector.deps;
   if (deps === null) {
     collector.deps = deps = [];
-    collector.depVersions = [];
   }
 
   for (let i = 0; i < deps.length; i++) {
@@ -85,11 +136,5 @@ export function track(source: Source): void {
 
 export function addDependency(collector: CollectorSubscriber, source: Source): void {
   collector.deps!.push(source);
-  collector.depVersions!.push(source.version);
-
-  let subs = source.subs;
-  if (subs === null) {
-    source.subs = subs = [];
-  }
-  subs.push(collector);
+  appendSourceSubscriber(source, collector);
 }

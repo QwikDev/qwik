@@ -38,9 +38,16 @@ export function App(props, ctx) {
 
 ============================= src/component.tsx ==
 
-import { _first, _next, createCollection, createTemplate } from '@qwik.dev/core';
+import {
+  _first,
+  _next,
+  createCollection,
+  _createElementTemplate,
+  createTemplate,
+} from '@qwik.dev/core';
 
-const semantic_collectionRender_83_102_1szakjy0f6p92_tmpl0 = createTemplate('<li>Item</li>');
+const semantic_collectionRender_83_102_1szakjy0f6p92_tmpl0 =
+  _createElementTemplate('<li>Item</li>');
 const App_tmpl0 = createTemplate('<ul><!----><!----></ul>');
 export function App(props, ctx) {
   const items = ['first', 'second'];
@@ -49,8 +56,7 @@ export function App(props, ctx) {
   const start0 = _first(el0);
   const end0 = _next(start0);
   function semantic_collectionRender_83_102_1szakjy0f6p92(ctx) {
-    const fragment0 = semantic_collectionRender_83_102_1szakjy0f6p92_tmpl0(ctx.document);
-    const el0 = _first(fragment0);
+    const el0 = semantic_collectionRender_83_102_1szakjy0f6p92_tmpl0(ctx.document);
     return el0;
   }
   createCollection(

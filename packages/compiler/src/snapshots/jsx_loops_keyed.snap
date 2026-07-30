@@ -507,7 +507,7 @@ import {
   patchTextValue,
   setEvent,
   createDomBatchEffect,
-  createTemplate,
+  _createElementTemplate,
 } from '@qwik.dev/core';
 import { component_props_segment_2_208o0eee4yc6n } from './component.tsx_component_props_segment_2_208o0eee4yc6n';
 import { component_data_index_segment_3_156l37xe00ta5 } from './component.tsx_component_data_index_segment_3_156l37xe00ta5';
@@ -515,13 +515,12 @@ import { component_className_segment_4_kvlgj8us3944 } from './component.tsx_comp
 import { component_text_segment_5_1fh12dh4juuhz } from './component.tsx_component_text_segment_5_1fh12dh4juuhz';
 import { component_text_segment_6_1fh12ri8gowii } from './component.tsx_component_text_segment_6_1fh12ri8gowii';
 import { component_q_e_click_segment_7_2xwyev96xdgoe } from './component.tsx_component_q_e_click_segment_7_2xwyev96xdgoe';
-const component_for_render_segment_0_asyt89wzo2d3_tmpl0 = createTemplate(
+const component_for_render_segment_0_asyt89wzo2d3_tmpl0 = _createElementTemplate(
   '<li><span><!---->:<!----></span><button>Toggle</button></li>'
 );
 
 export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, row, index) => {
-  const fragment0 = component_for_render_segment_0_asyt89wzo2d3_tmpl0(ctx.document);
-  const el0 = _first(fragment0);
+  const el0 = component_for_render_segment_0_asyt89wzo2d3_tmpl0(ctx.document);
   const el1 = _first(el0);
   const marker0 = _first(el1);
   const marker1 = _next(_next(marker0));

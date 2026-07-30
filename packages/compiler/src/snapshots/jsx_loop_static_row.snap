@@ -145,12 +145,11 @@ export function App(props, ctx) {
 }
 ============================= src/component.tsx_component_for_render_segment_0_asyt89wzo2d3.js (ENTRY POINT)==
 
-import { _first, createTemplate } from '@qwik.dev/core';
-const component_for_render_segment_0_asyt89wzo2d3_tmpl0 = createTemplate('<li>Item</li>');
+import { _createElementTemplate } from '@qwik.dev/core';
+const component_for_render_segment_0_asyt89wzo2d3_tmpl0 = _createElementTemplate('<li>Item</li>');
 
 export const component_for_render_segment_0_asyt89wzo2d3 = (ctx) => {
-  const fragment0 = component_for_render_segment_0_asyt89wzo2d3_tmpl0(ctx.document);
-  const el0 = _first(fragment0);
+  const el0 = component_for_render_segment_0_asyt89wzo2d3_tmpl0(ctx.document);
   return el0;
 };
 /*

@@ -7,7 +7,6 @@ import { ForBlock, ForRange } from '../../dom/for/for';
 import {
   AttrEffect,
   AttrExpressionEffect,
-  DomBatchEffect,
   ForBlockSubscription,
   PropsEffect,
   type AttrExpressionFn,
@@ -33,7 +32,12 @@ import {
   StorePropSource,
   unwrapStore,
 } from '../../reactive/store';
-import { readSourceValue, type Source, type SourceSub } from '../../reactive/source';
+import {
+  appendSourceSubscriber,
+  readSourceValue,
+  type Source,
+  type SourceSub,
+} from '../../reactive/source';
 import { addDependency } from '../../reactive/tracking';
 import { getContextScopeForNode, type ContainerContext } from '../../runtime/container-context';
 import type { ContextScope } from '../../runtime/context-scope';
@@ -91,10 +95,10 @@ export function restoreStreamedSubscribers(
   source: unknown,
   subscriberIds: readonly number[]
 ): void {
-  const subscriptions = ((source as Source).subs ??= []);
   for (let i = 0; i < subscriberIds.length; i++) {
     const subscriberId = subscriberIds[i];
-    subscriptions.push(
+    appendSourceSubscriber(
+      source as Source,
       new LazySerialized<Subscriber>(() => container.getRoot(subscriberId) as Promise<Subscriber>)
     );
   }
@@ -771,7 +775,7 @@ async function restoreDomBatchSubscription(
     effects[i] = (await restoreDomEffect(container, effectParts[i])).effect;
   }
 
-  subscription.effect = new DomBatchEffect(() => {
+  subscription.effect = () => {
     let pending: Promise<void>[] | undefined;
     for (let i = 0; i < effects.length; i++) {
       const value = effects[i].run();
@@ -780,7 +784,7 @@ async function restoreDomBatchSubscription(
       }
     }
     return pending === undefined ? undefined : Promise.all(pending).then(() => undefined);
-  });
+  };
   restoreDependencies(subscription, deps);
 }
 
@@ -958,7 +962,6 @@ function restoreDependencies(
 ) {
   if (deps && deps.length > 0) {
     collector.deps = [];
-    collector.depVersions = [];
     for (let i = 0; i < deps.length; i++) {
       addDependency(collector, deps[i]);
     }

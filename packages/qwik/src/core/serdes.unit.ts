@@ -42,7 +42,7 @@ import { createOwner, registerSubscriberToOwner, runWithOwner } from './runtime/
 import { Phase, Scheduler } from './runtime/scheduler';
 import { useTaskQrl, Task, TaskSubscription, type TaskFn } from './runtime/task';
 import { runWithCollector } from './reactive/tracking';
-import { createCaptureContainer, createText, runWithTestContainer } from './test-utils';
+import { createCaptureContainer, createText, runWithTestContainer, toArray } from './test-utils';
 import { _props, createPropsProxy, getPropsProxySource, getPropsSources } from './component/props';
 
 type BranchConditionFn = () => boolean;
@@ -903,9 +903,9 @@ describe('serdes emit-only', () => {
     ]);
 
     expect(branch.branch.currentBranch).toBe(BRANCH_THEN);
-    expect(visible.subs).toContain(branch);
-    expect(branch.branch.currentOwner?.items).toContain(ownedEffect);
-    expect(local.subs).toContain(ownedEffect);
+    expect(toArray(visible.subs)).toContain(branch);
+    expect(toArray(branch.branch.currentOwner?.items ?? null)).toContain(ownedEffect);
+    expect(toArray(local.subs)).toContain(ownedEffect);
 
     visible.value = false;
     await container.scheduler.flushInteraction();
@@ -1085,7 +1085,7 @@ describe('serdes emit-only', () => {
     ]);
 
     expect(restored.task.qrl).toBe(qrl);
-    expect(count.subs).toContain(restored);
+    expect(toArray(count.subs)).toContain(restored);
   });
 });
 

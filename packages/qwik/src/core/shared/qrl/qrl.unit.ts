@@ -316,6 +316,21 @@ describe('w (with captures)', () => {
     assert.deepEqual(wrapped('call'), [['direct'], 'call']);
   });
 
+  test('should preserve this and arbitrary arguments', () => {
+    const fn = function (this: { prefix: string }, ...values: string[]) {
+      return [this.prefix, _captures, ...values];
+    };
+    const wrapped = withCaptures(fn, ['direct']);
+
+    assert.deepEqual(wrapped.call({ prefix: 'ctx' }, 'a', 'b', 'c'), [
+      'ctx',
+      ['direct'],
+      'a',
+      'b',
+      'c',
+    ]);
+  });
+
   test('should share the same LazyRef', () => {
     const q1 = createQRL('chunk', 'symbol', capFn, null, ['a']);
     const q2 = q1.w(['b']);

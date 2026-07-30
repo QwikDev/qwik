@@ -17,6 +17,7 @@ import { createContainerContext, type ContainerContext } from '../../runtime/con
 import { createContextScope, isContextScope } from '../../runtime/context-scope';
 import { Constants, TypeIds } from './constants';
 import { inflate } from './inflate';
+import { toArray } from '../../test-utils';
 
 const encodeObjectData = (entries: Array<[unknown, unknown]>): unknown[] => {
   const out: unknown[] = [];
@@ -153,11 +154,11 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
 
     await inflate(context, signal, TypeIds.Signal, data);
 
-    expect(signal.subs).toHaveLength(1);
-    expect(isLazySerialized(signal.subs?.[0])).toBe(true);
+    expect(toArray(signal.subs)).toHaveLength(1);
+    expect(isLazySerialized(toArray(signal.subs)[0])).toBe(true);
 
     signal.value = 2;
-    for (let i = 0; i < 10 && signal.subs?.some(isLazySerialized); i++) {
+    for (let i = 0; i < 10 && toArray(signal.subs).some(isLazySerialized); i++) {
       await Promise.resolve();
     }
     for (let i = 0; i < 10 && context.element.querySelector('p')?.textContent !== '2'; i++) {
@@ -165,8 +166,8 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
       await context.scheduler.flushInteraction();
     }
 
-    expect(signal.subs?.some(isLazySerialized)).toBe(false);
-    expect(signal.subs?.[0]).toBeInstanceOf(DomSubscription);
+    expect(toArray(signal.subs).some(isLazySerialized)).toBe(false);
+    expect(toArray(signal.subs)[0]).toBeInstanceOf(DomSubscription);
     expect(context.element.querySelector('p')?.textContent).toBe('2');
   });
 
@@ -208,9 +209,9 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
 
     await inflate(context, signal, TypeIds.Signal, data);
 
-    expect(signal.subs).toHaveLength(2);
-    expect(signal.subs?.every(isLazySerialized)).toBe(true);
-    expect(signal.subs?.some((sub) => sub instanceof DomSubscription)).toBe(false);
+    expect(toArray(signal.subs)).toHaveLength(2);
+    expect(toArray(signal.subs).every(isLazySerialized)).toBe(true);
+    expect(toArray(signal.subs).some((sub) => sub instanceof DomSubscription)).toBe(false);
   });
 
   it('keeps computed subscribers lazy until the computed notifies', async () => {
@@ -239,13 +240,13 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
 
     await inflate(context, computed, TypeIds.ComputedSignal, data);
 
-    expect(computed.subs).toHaveLength(1);
-    expect(isLazySerialized(computed.subs?.[0])).toBe(true);
+    expect(toArray(computed.subs)).toHaveLength(1);
+    expect(isLazySerialized(toArray(computed.subs)[0])).toBe(true);
 
     computed.v = 2;
     computed.flags = ComputedFlags.HasValue;
     computed.trigger();
-    for (let i = 0; i < 10 && computed.subs?.some(isLazySerialized); i++) {
+    for (let i = 0; i < 10 && toArray(computed.subs).some(isLazySerialized); i++) {
       await Promise.resolve();
     }
     for (let i = 0; i < 10 && context.element.querySelector('p')?.textContent !== '2'; i++) {
@@ -253,9 +254,25 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
       await context.scheduler.flushInteraction();
     }
 
-    expect(computed.subs?.some(isLazySerialized)).toBe(false);
-    expect(computed.subs?.[0]).toBeInstanceOf(DomSubscription);
+    expect(toArray(computed.subs).some(isLazySerialized)).toBe(false);
+    expect(toArray(computed.subs)[0]).toBeInstanceOf(DomSubscription);
     expect(context.element.querySelector('p')?.textContent).toBe('2');
+  });
+
+  it('restores DOM batches as functions', async () => {
+    const context = createContext('');
+    const subscription = new DomSubscription(null!, context.scheduler);
+
+    await inflate(context, subscription, TypeIds.EffectSubscription, [
+      TypeIds.Plain,
+      EffectKind.DomBatch,
+      TypeIds.Array,
+      [],
+      TypeIds.Array,
+      [],
+    ]);
+
+    expect(subscription.effect).toBeTypeOf('function');
   });
 
   it('resolves range text from a local marker index', async () => {
@@ -266,7 +283,7 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
     expect(subscription.effect).toBeInstanceOf(TextNodeEffect);
     expect((subscription.effect as TextNodeEffect).text.data).toBe('1');
     expect(subscription.deps).toEqual([count]);
-    expect(count.subs).toEqual([subscription]);
+    expect(count.subs).toBe(subscription);
   });
 
   it('does not count range boundary markers as targets', async () => {

@@ -4,6 +4,7 @@ export const QWIK_CORE_IMPORT = '@qwik.dev/core';
 export const enum QwikWord {
   // csr
   CreateTemplate = 'createTemplate',
+  CreateElementTemplate = '_createElementTemplate',
   CreateTextNodeEffect = 'createTextNodeEffect',
   CreateTextExpressionEffect = 'createTextExpressionEffect',
   CreateAttrEffect = 'createAttrEffect',

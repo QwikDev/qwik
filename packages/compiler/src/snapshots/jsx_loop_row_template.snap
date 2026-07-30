@@ -394,23 +394,24 @@ import {
   patchTextValue,
   setEvent,
   createDomBatchEffect,
-  createTemplate,
+  _createElementTemplate,
 } from '@qwik.dev/core';
 import { component_className_segment_2_kvlfr6myf532 } from './component.tsx_component_className_segment_2_kvlfr6myf532';
 import { component_text_segment_3_1fh11lewq6qgx } from './component.tsx_component_text_segment_3_1fh11lewq6qgx';
 import { component_q_e_click_segment_4_2xwyeh830jenv } from './component.tsx_component_q_e_click_segment_4_2xwyeh830jenv';
 import { component_text_segment_5_1fh12dh4juuhz } from './component.tsx_component_text_segment_5_1fh12dh4juuhz';
-const component_for_render_segment_0_asyt89wzo2d3_tmpl0 = createTemplate(
+const component_for_render_segment_0_asyt89wzo2d3_tmpl0 = _createElementTemplate(
   '<tr><td class="col-md-1"> </td><td class="col-md-4"><a> </a></td><td class="col-md-1"><a><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></a></td><td class="col-md-6"></td></tr>'
 );
 
 export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, row) => {
-  const fragment0 = component_for_render_segment_0_asyt89wzo2d3_tmpl0(ctx.document);
-  const el0 = _first(fragment0);
-  const text0 = _first(_first(el0));
-  const el1 = _first(_next(_first(el0)));
-  const text1 = _first(el1);
-  setEvent(el1, 'q-e:click', component_q_e_click_segment_4_2xwyeh830jenv, [row]);
+  const el0 = component_for_render_segment_0_asyt89wzo2d3_tmpl0(ctx.document);
+  const el1 = _first(el0);
+  const text0 = _first(el1);
+  const el2 = _next(el1);
+  const el3 = _first(el2);
+  const text1 = _first(el3);
+  setEvent(el3, 'q-e:click', component_q_e_click_segment_4_2xwyeh830jenv, [row]);
   function batch0() {
     patchAttrValue(el0, 'class', component_className_segment_2_kvlfr6myf532(row));
     patchTextValue(text0, component_text_segment_3_1fh11lewq6qgx(row));

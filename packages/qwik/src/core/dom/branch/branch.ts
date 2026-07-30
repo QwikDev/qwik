@@ -110,7 +110,6 @@ export class BranchSubscription implements BranchSubscriber {
   owner: Owner | null = null;
   flags = SubscriberFlags.None;
   deps: Source[] | null = null;
-  depVersions: number[] | null = null;
 
   constructor(
     readonly branch: Branch,
@@ -278,7 +277,6 @@ export class SSRBranchSubscription implements SsrBranchSubscriber {
   readonly scheduler = null;
   owner: Owner | null = null;
   deps: Source[] | null = null;
-  depVersions: number[] | null = null;
 
   constructor(readonly branch: SSRBranch) {}
 

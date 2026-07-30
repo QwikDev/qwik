@@ -157,12 +157,13 @@ import {
   setEvent,
   createTextExpressionEffect,
   patchTextValue,
+  _createElementTemplate,
   createTemplate,
 } from '@qwik.dev/core';
 import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
 import { component_text_segment_3_1fh11lewq6qgx } from './component.tsx_component_text_segment_3_1fh11lewq6qgx';
 
-const component_for_render_segment_0_asyt89wzo2d3_tmpl0 = createTemplate(
+const component_for_render_segment_0_asyt89wzo2d3_tmpl0 = _createElementTemplate(
   '<li><!---->:<!----></li>'
 );
 const App_tmpl0 = createTemplate('<ul><!----><!----></ul>');
@@ -182,8 +183,7 @@ export function App(props, ctx) {
   const start0 = _first(el0);
   const end0 = _next(start0);
   function component_for_render_segment_0_asyt89wzo2d3(ctx, item, index) {
-    const fragment0 = component_for_render_segment_0_asyt89wzo2d3_tmpl0(ctx.document);
-    const el0 = _first(fragment0);
+    const el0 = component_for_render_segment_0_asyt89wzo2d3_tmpl0(ctx.document);
     const marker0 = _first(el0);
     const marker1 = _next(_next(marker0));
     setEvent(el0, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [index]);

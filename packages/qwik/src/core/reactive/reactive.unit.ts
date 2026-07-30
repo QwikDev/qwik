@@ -6,8 +6,9 @@ import {
   createIdleSubscriber,
   noopSchedule,
   runWithTestContainer,
+  toArray,
 } from '../test-utils';
-import { disposeSubscriber } from './cleanup';
+import { cleanupDeps, disposeSubscriber } from './cleanup';
 import { Computed } from './computed';
 import { ComputedQrl } from './computed-qrl';
 import { _wrapArray, useComputedQrl, useComputed, useConstant, useSignal } from './public-api';
@@ -68,6 +69,43 @@ describe('reactive primitives', () => {
 
     expect(notifications).toBe(1);
     expect(count.version).toBe(1);
+  });
+
+  it('stores one source subscriber without allocating an array', () => {
+    const source = useSignal(0);
+    const scheduler = new Scheduler(noopSchedule);
+    const first = runWithTestContainer(scheduler, () => useTask(() => {}));
+    const second = runWithTestContainer(scheduler, () => useTask(() => {}));
+
+    runWithCollector(first, () => source.value);
+    expect(source.subs).toBe(first);
+
+    runWithCollector(second, () => source.value);
+    expect(source.subs).toEqual([first, second]);
+
+    cleanupDeps(first);
+    expect(source.subs).toBe(second);
+
+    runWithCollector(first, () => source.value);
+    runWithCollector(first, () => source.value);
+    expect(source.subs).toEqual([second, first]);
+
+    cleanupDeps(second);
+    expect(source.subs).toBe(first);
+
+    cleanupDeps(first);
+    expect(source.subs).toBeNull();
+  });
+
+  it('tracks dependencies without storing unused version snapshots', () => {
+    const source = useSignal(0);
+    const scheduler = new Scheduler(noopSchedule);
+    const collector = runWithTestContainer(scheduler, () => useTask(() => {}));
+
+    runWithCollector(collector, () => source.value);
+
+    expect(collector.deps).toEqual([source]);
+    expect(collector).not.toHaveProperty('depVersions');
   });
 
   it('keeps computed values lazy and cached until a dependency changes', () => {
@@ -261,7 +299,7 @@ describe('reactive primitives', () => {
     const doubled = createOwned(() => useComputed(() => count.value * 2));
 
     expect(doubled.value).toBe(2);
-    expect(count.subs).toContain(doubled);
+    expect(toArray(count.subs)).toContain(doubled);
 
     disposeSubscriber(doubled);
 
@@ -317,7 +355,7 @@ describe('reactive primitives', () => {
     });
 
     expect(quadrupled.value).toBe(4);
-    expect(doubled.subs).toContain(quadrupled);
+    expect(toArray(doubled.subs)).toContain(quadrupled);
 
     disposeSubscriber(doubled);
     count.value = 2;

@@ -169,7 +169,6 @@ export class ContentSubscription<TArgs extends unknown[] = unknown[]> implements
   owner: Owner | null = null;
   flags = SubscriberFlags.None;
   deps: Source[] | null = null;
-  depVersions: number[] | null = null;
 
   constructor(
     readonly block: ContentBlock<TArgs>,
@@ -379,7 +378,6 @@ export class SSRContentSubscription<
   readonly scheduler = null;
   owner: Owner | null = null;
   deps: Source[] | null = null;
-  depVersions: number[] | null = null;
 
   constructor(readonly content: SSRContent<TArgs>) {}
 

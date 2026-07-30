@@ -207,6 +207,63 @@ export function App() {
     expect(emitted.statements.join('\n')).not.toContain('replaceWith');
   });
 
+  test('clones a single element directly and reuses shared ref prefixes', () => {
+    const code = `import { useSignal } from '@qwik.dev/core';
+export function App({ select, remove }) {
+  const rows = useSignal([{ id: 1, label: 'one' }]);
+  return <table><tbody>{rows.value.map((row) => (
+    <tr key={row.id}><td>{row.label}</td><td><button onClick$={select}>select</button></td><td><button onClick$={remove}>remove</button></td></tr>
+  ))}</tbody></table>;
+}`;
+    const component = lower(code).plan;
+    const row = component.segments.find((segment) => segment.kind === 'forRender')!;
+    const imports = new Set<string>();
+    const emitted = emitCsrSegmentRender(row, code, imports, component.segments)!;
+    const output = emitted.statements.join('\n');
+
+    expect([...imports]).toContain('_createElementTemplate');
+    expect([...imports]).not.toContain('createTemplate');
+    expect(emitted.hoists.join('\n')).toContain('_createElementTemplate(');
+    expect(output).not.toContain('fragment');
+    expect(output).toMatch(/const el\d+ = \w+_tmpl\d+\(ctx\.document\);/);
+    expect(output.match(/_first\(el0\)/g)).toHaveLength(1);
+  });
+
+  test('keeps fragment templates for multiple roots', () => {
+    const code = `export function App() {
+  return <><i>first</i><b>second</b></>;
+}`;
+    const plan = planCsr(lower(code).plan, code)!;
+    const imports = new Set<string>();
+    const emitted = emitCsrPlan('App', plan, code, 'src/component.tsx', false, imports)!;
+
+    expect([...imports]).toContain('createTemplate');
+    expect([...imports]).not.toContain('_createElementTemplate');
+    expect(emitted.statements.join('\n')).toMatch(
+      /const fragment\d+ = \w+_tmpl\d+\(ctx\.document\);/
+    );
+  });
+
+  test('clones single SVG collection rows as direct elements', () => {
+    const code = `import { useSignal } from '@qwik.dev/core';
+export function App() {
+  const rows = useSignal([{ id: 1, radius: 4 }]);
+  return <main>{rows.value.map((row) => (
+    <svg key={row.id}><circle r={row.radius} /></svg>
+  ))}</main>;
+}`;
+    const component = lower(code).plan;
+    const row = component.segments.find((segment) => segment.kind === 'forRender')!;
+    const imports = new Set<string>();
+    const emitted = emitCsrSegmentRender(row, code, imports, component.segments)!;
+    const output = emitted.statements.join('\n');
+
+    expect([...imports]).toContain('_createElementTemplate');
+    expect([...imports]).not.toContain('createTemplate');
+    expect(emitted.hoists.join('\n')).toContain('<svg><circle></circle></svg>');
+    expect(output).not.toContain('fragment');
+  });
+
   test('gives content, component, branch, slot, and collection persistent ranges', () => {
     const code = `import { Slot } from '@qwik.dev/core';
 export function App({ ok, items, render }) {

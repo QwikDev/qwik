@@ -7,7 +7,7 @@ import {
   type ForBlockSubscriber,
 } from '../../runtime/subscriber';
 import type { Source } from '../../reactive/source';
-import { runWithCollector } from '../../reactive/tracking';
+import { runWithCollector0 } from '../../reactive/tracking';
 import type { Owner } from '../../runtime/owner';
 import type { ForBlock } from '../for/for';
 import { applyDomProps, patchAttrValue } from './dom-props';
@@ -74,20 +74,11 @@ export class PropsEffect<TArgs extends unknown[] = unknown[]> {
   }
 }
 
-export class DomBatchEffect {
-  constructor(readonly fn: DomBatchFn) {}
-
-  run(): ValueOrPromise<void> {
-    return this.fn();
-  }
-}
-
 export class ForBlockSubscription<T = unknown> implements ForBlockSubscriber {
   readonly kind = SubscriberKind.ForBlock;
   owner: Owner | null = null;
   flags = SubscriberFlags.None;
   deps: Source[] | null = null;
-  depVersions: number[] | null = null;
 
   constructor(
     readonly block: ForBlock<T>,
@@ -134,7 +125,7 @@ export function createPropsEffect<TArgs extends unknown[]>(
 }
 
 export function createDomBatchEffect(fn: DomBatchFn, scheduler?: Scheduler): DomSubscriber {
-  const subscriber = createDomSubscription(new DomBatchEffect(fn), scheduler);
-  runWithCollector(subscriber, fn);
+  const subscriber = createDomSubscription(fn, scheduler);
+  runWithCollector0(subscriber, fn);
   return subscriber;
 }

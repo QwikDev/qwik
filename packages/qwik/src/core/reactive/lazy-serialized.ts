@@ -56,6 +56,24 @@ export function resolveLazySubscribers(source: Source, notify: () => void): bool
     return false;
   }
 
+  if (!Array.isArray(subs)) {
+    if (!isLazySerialized<Subscriber>(subs)) {
+      return false;
+    }
+    const value = maybeThen(subs.resolve(), (subscriber) => {
+      if (source.subs === subs) {
+        source.subs = subscriber;
+      }
+      return subscriber;
+    });
+    if (isPromise<Subscriber>(value)) {
+      void value.then(notify);
+    } else {
+      notify();
+    }
+    return true;
+  }
+
   let pending: Array<Promise<Subscriber>> | null = null;
   let resolved = false;
   for (let i = 0; i < subs.length; i++) {
@@ -102,6 +120,9 @@ function replaceLazySubscriber(
   const duplicateIndex = subs.indexOf(subscriber, lazyIndex + 1);
   if (duplicateIndex !== -1) {
     subs.splice(duplicateIndex, 1);
+  }
+  if (subs.length === 1) {
+    source.subs = subs[0];
   }
   return subscriber;
 }

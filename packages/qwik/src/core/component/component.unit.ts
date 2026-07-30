@@ -14,7 +14,13 @@ import {
 } from '../runtime/invoke-context';
 import type { ContextScope } from '../runtime/context-scope';
 import type { SlotScope } from '../dom/slot/slot';
-import { createOwner, disposeOwner, runWithOwner } from '../runtime/owner';
+import {
+  createOwner,
+  disposeOwner,
+  ownerItemAt,
+  ownerItemsLength,
+  runWithOwner,
+} from '../runtime/owner';
 import { Scheduler } from '../runtime/scheduler';
 import type { DomSubscriber } from '../runtime/subscriber';
 import { useTask } from '../runtime/task';
@@ -82,10 +88,10 @@ describe('components and invoke contexts', () => {
 
     expect(nodes).toEqual([node]);
     expect(text.data).toBe('mounted');
-    expect(owner.items).toHaveLength(1);
-    expect(owner.items![0]).not.toBe(effect);
+    expect(ownerItemsLength(owner.items)).toBe(1);
+    expect(ownerItemAt(owner.items!, 0)).not.toBe(effect);
     expect(effect.owner?.parent).toBe(owner);
-    expect(effect.owner?.items).toEqual([effect]);
+    expect(effect.owner?.items).toBe(effect);
     expect(source.subs).not.toBeNull();
 
     disposeOwner(owner);

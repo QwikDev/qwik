@@ -1,5 +1,3 @@
-import type { QrlArgs } from './qrl.public';
-
 /**
  * The current captured scope during QRL invocation. This is used to provide the lexical scope for
  * QRL functions. It is used one time per invocation, synchronously, so it is safe to store it in
@@ -25,8 +23,8 @@ export const withCaptures = <TYPE>(
   if (typeof ref !== 'function' || !captures) {
     return ref;
   }
-  return function boundCaptures(this: unknown, ...args: QrlArgs<TYPE>) {
+  return function boundCaptures(this: unknown) {
     setQrlCaptures(captures);
-    return ref.apply(this, args);
+    return (ref as Function).apply(this, arguments);
   } as TYPE;
 };

@@ -1069,8 +1069,9 @@ function getSsrOwnerItems(owner: Owner | null): SerializedOwnerItems {
   }
 
   const out: Array<Subscriber | SerializedOwnerItems> = [];
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i];
+  const itemCount = Array.isArray(items) ? items.length : 1;
+  for (let i = 0; i < itemCount; i++) {
+    const item = Array.isArray(items) ? items[i] : items;
     if (item instanceof Owner) {
       const childItems = getSsrOwnerItems(item);
       if (childItems.length > 0) {
@@ -1234,6 +1235,16 @@ function serializeDeps(deps: Source[] | null): readonly Source[] {
 function serializeSubscribers(subs: SourceSubs): readonly Subscriber[] {
   if (!isServer || subs === null) {
     return EMPTY_ARRAY;
+  }
+
+  if (!Array.isArray(subs)) {
+    if (
+      isLazySerialized(subs) ||
+      (subs instanceof SsrContentSubscription && subs.content.isPending)
+    ) {
+      return EMPTY_ARRAY;
+    }
+    return [subs];
   }
 
   let subscribers: Subscriber[] | null = null;

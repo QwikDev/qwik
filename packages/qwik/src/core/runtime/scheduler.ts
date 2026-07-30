@@ -3,7 +3,7 @@ import { OwnerFlags, SubscriberFlags } from '../reactive/flags';
 import { logError } from '../shared/utils/log';
 import { isPromise } from '../shared/utils/promises';
 import type { ValueOrPromise } from '../shared/utils/types';
-import { Owner, type OwnerItem } from './owner';
+import { Owner, ownerItemAt, ownerItemsLength, type OwnerItems } from './owner';
 import { SubscriberKind, takeDirty } from './subscriber';
 import type {
   BranchSubscriber,
@@ -30,7 +30,7 @@ export interface TaskScheduler {
 
 interface OwnerFrame {
   owner: Owner;
-  items: OwnerItem[] | null;
+  items: OwnerItems;
   index: number;
   end: number;
 }
@@ -176,15 +176,22 @@ export class Scheduler {
           await this.flushOwnerPhases(frame.owner);
         }
         frame.items = frame.owner.items;
-        frame.end = frame.items?.length ?? 0;
+        frame.end = ownerItemsLength(frame.items);
       }
 
-      if (frame.items === null || frame.index >= frame.end || frame.index >= frame.items.length) {
+      if (
+        frame.items === null ||
+        frame.index >= frame.end ||
+        frame.index >= ownerItemsLength(frame.items)
+      ) {
         stack.pop();
         continue;
       }
 
-      const item = frame.items[frame.index++];
+      const item = ownerItemAt(frame.items, frame.index++);
+      if (item === undefined) {
+        continue;
+      }
       if (item instanceof Owner && !(item.flags & OwnerFlags.Disposed)) {
         if (item.flags & OwnerFlags.DirtyMask) {
           pushOwnerFrame(stack, item);
@@ -212,9 +219,9 @@ export class Scheduler {
       return;
     }
 
-    const end = items.length;
-    for (let i = 0; i < end && i < items.length; i++) {
-      const item = items[i];
+    const end = ownerItemsLength(items);
+    for (let i = 0; i < end && i < ownerItemsLength(items); i++) {
+      const item = ownerItemAt(items, i)!;
       if (
         !(item instanceof Owner) &&
         item.kind === SubscriberKind.Task &&
@@ -236,9 +243,9 @@ export class Scheduler {
       return;
     }
 
-    const end = items.length;
-    for (let i = 0; i < end && i < items.length; i++) {
-      const item = items[i];
+    const end = ownerItemsLength(items);
+    for (let i = 0; i < end && i < ownerItemsLength(items); i++) {
+      const item = ownerItemAt(items, i)!;
       if (
         item instanceof Owner ||
         (item.kind !== SubscriberKind.Branch &&
@@ -266,10 +273,10 @@ export class Scheduler {
       return;
     }
 
-    const end = items.length;
+    const end = ownerItemsLength(items);
     let pending: Promise<void>[] | null = null;
-    for (let i = 0; i < end && i < items.length; i++) {
-      const item = items[i];
+    for (let i = 0; i < end && i < ownerItemsLength(items); i++) {
+      const item = ownerItemAt(items, i)!;
       if (!(item instanceof Owner) && item.kind === SubscriberKind.Dom) {
         const effect = item as DomSubscriber;
         if (!takeDirty(effect)) {
@@ -295,9 +302,9 @@ export class Scheduler {
       return;
     }
 
-    const end = items.length;
-    for (let i = 0; i < end && i < items.length; i++) {
-      const item = items[i];
+    const end = ownerItemsLength(items);
+    for (let i = 0; i < end && i < ownerItemsLength(items); i++) {
+      const item = ownerItemAt(items, i)!;
       if (!(item instanceof Owner) && item.kind === SubscriberKind.VisibleTask) {
         this.runTask(item).catch(logError);
       }
@@ -315,9 +322,9 @@ export class Scheduler {
       return;
     }
 
-    const end = items.length;
-    for (let i = 0; i < end && i < items.length; i++) {
-      const item = items[i];
+    const end = ownerItemsLength(items);
+    for (let i = 0; i < end && i < ownerItemsLength(items); i++) {
+      const item = ownerItemAt(items, i)!;
       if (item instanceof Owner) {
         continue;
       }

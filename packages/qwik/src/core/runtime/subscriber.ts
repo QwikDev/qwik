@@ -3,7 +3,7 @@ import type { Branch, SSRBranch } from '../dom/branch/branch';
 import type { ContentBlock, SSRContent } from '../dom/content/content';
 import type { ForBlock, SSRForBlock } from '../dom/for/for';
 import type { ValueOrPromise } from '../shared/utils/types';
-import type { DomEffect } from '../dom/effect/dom-subscription';
+import type { DomEffect, DomEffectFn } from '../dom/effect/dom-subscription';
 import type { ComputedSource, Source } from '../reactive/source';
 import type { Task, VisibleTask } from './task';
 import type { SsrDomEffect } from '../dom/effect/ssr-effect';
@@ -23,7 +23,6 @@ export const enum SubscriberKind {
 
 export interface Collector {
   deps: Source[] | null;
-  depVersions: number[] | null;
 }
 
 export interface OwnedSubscriber {
@@ -73,7 +72,7 @@ export interface VisibleTaskSubscriber extends Collector, ScheduledSubscriber {
 
 export interface DomSubscriber extends Collector, ScheduledSubscriber {
   readonly kind: SubscriberKind.Dom;
-  readonly effect: DomEffect;
+  readonly effect: DomEffect | DomEffectFn;
   invalidate(): void;
   run(): ValueOrPromise<void>;
   trackPromise<T>(promise: Promise<T>, commit: (value: T) => void): Promise<void>;

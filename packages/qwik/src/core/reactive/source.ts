@@ -2,7 +2,7 @@ import { SubscriberKind, type Subscriber } from '../runtime/subscriber';
 import type { LazySerialized } from './lazy-serialized';
 
 export type SourceSub = Subscriber | LazySerialized<Subscriber>;
-export type SourceSubs = SourceSub[] | null;
+export type SourceSubs = SourceSub | SourceSub[] | null;
 
 export interface Source<T = unknown> {
   v: T;
@@ -25,4 +25,15 @@ export function readSourceValue<T>(source: Source<T>): T {
 
 export function peekSourceValue<T>(source: Source<T>): T {
   return source.v;
+}
+
+export function appendSourceSubscriber(source: Source, subscriber: SourceSub): void {
+  const subs = source.subs;
+  if (subs === null) {
+    source.subs = subscriber;
+  } else if (Array.isArray(subs)) {
+    subs.push(subscriber);
+  } else {
+    source.subs = [subs, subscriber];
+  }
 }

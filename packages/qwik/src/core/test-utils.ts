@@ -48,6 +48,10 @@ export type { QwikLoaderEventPayload, QwikLoaderTestDriver } from './qwikloader-
 
 export const noopSchedule = (): void => {};
 
+export function toArray<T>(value: T | T[] | null): T[] {
+  return value === null ? [] : Array.isArray(value) ? value : [value];
+}
+
 /** @public */
 export interface RenderOptions<Props = undefined> {
   props?: Props;

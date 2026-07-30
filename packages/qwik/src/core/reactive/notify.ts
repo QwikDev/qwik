@@ -13,25 +13,33 @@ export function notifySourceSubscribers(source: Source): void {
     return;
   }
 
+  if (!Array.isArray(subs)) {
+    notifySubscriber(subs as Subscriber);
+    return;
+  }
+
   const snapshot = subs.slice() as Subscriber[];
   for (let i = 0; i < snapshot.length; i++) {
-    const subscriber = snapshot[i];
-    switch (subscriber.kind) {
-      case SubscriberKind.Computed:
-        markComputedDirty(subscriber);
-        break;
-      case SubscriberKind.Task:
-      case SubscriberKind.VisibleTask:
-      case SubscriberKind.Dom:
-      case SubscriberKind.Idle:
-      case SubscriberKind.Branch:
-      case SubscriberKind.ForBlock:
-      case SubscriberKind.Content:
-        if (subscriber.scheduler !== null) {
-          subscriber.scheduler.notify(subscriber);
-        }
-        break;
-    }
+    notifySubscriber(snapshot[i]);
+  }
+}
+
+function notifySubscriber(subscriber: Subscriber): void {
+  switch (subscriber.kind) {
+    case SubscriberKind.Computed:
+      markComputedDirty(subscriber);
+      break;
+    case SubscriberKind.Task:
+    case SubscriberKind.VisibleTask:
+    case SubscriberKind.Dom:
+    case SubscriberKind.Idle:
+    case SubscriberKind.Branch:
+    case SubscriberKind.ForBlock:
+    case SubscriberKind.Content:
+      if (subscriber.scheduler !== null) {
+        subscriber.scheduler.notify(subscriber);
+      }
+      break;
   }
 }
 

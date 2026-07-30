@@ -55,7 +55,6 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
   readonly kind = SubscriberKind.Computed;
   owner: Owner | null = null;
   deps: Source[] | null = null;
-  depVersions: number[] | null = null;
   flags = ComputedFlags.Dirty;
   subs: SourceSubs = null;
 
@@ -494,7 +493,7 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
   }
 
   private hasSubscribers(): boolean {
-    return this.subs !== null && this.subs.length > 0;
+    return this.subs !== null;
   }
 
   private runStoredCleanups(): ValueOrPromise<void> {

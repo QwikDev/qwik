@@ -366,7 +366,12 @@ export {
   type UseOnMap,
   type UseOnOptions,
 } from './runtime/use-on';
-export { createTemplate, type TemplateFactory } from './dom/template/template';
+export {
+  createElementTemplate as _createElementTemplate,
+  createTemplate,
+  type ElementTemplateFactory,
+  type TemplateFactory,
+} from './dom/template/template';
 export { toNodes as _toNodes } from './utils/nodes';
 export {
   EffectTargetKind,

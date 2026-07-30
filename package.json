@@ -192,6 +192,7 @@
   "private": true,
   "scripts": {
     "actions.update-pins": "node --experimental-strip-types scripts/update-action-pins.ts",
+    "bench.vdomless-counter": "node scripts/benchmark-vdomless-counter.mjs",
     "api.update": "node --require ./scripts/runBefore.ts scripts/index.ts --tsc --api --dev",
     "build": "node --require ./scripts/runBefore.ts scripts/index.ts",
     "build.browser-extension": "pnpm build.devtools && node --require ./scripts/runBefore.ts scripts/index.ts --browser-extension",

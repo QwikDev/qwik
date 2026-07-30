@@ -23,6 +23,14 @@ describe('public subpaths', () => {
     expect(createDocument().nodeType).toBe(9);
   });
 
+  it('models firstElementChild on template fragments', () => {
+    const document = createDocument();
+    const template = document.createElement('template');
+    template.innerHTML = 'text<span>element</span>';
+
+    expect(template.content.firstElementChild?.tagName).toBe('SPAN');
+  });
+
   it('validates explicit renderers against the compiled target', async () => {
     const invalidRender = testTarget === 'csr' ? ssrRenderToDom : domRender;
     const harness = await createDOM();

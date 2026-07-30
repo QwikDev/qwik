@@ -21,6 +21,7 @@ import {
   type CsrEventHandlerPlan,
   type CsrPlan,
   type CsrPropPlan,
+  type CsrRefPlan,
   type CsrRefStep,
   type CsrRootPlan,
   type CsrSegmentReferencePlan,
@@ -218,7 +219,8 @@ export function emitCsrPlan(
   imports: Set<string>,
   qrlImports: TargetImportResolver = new TargetImportResolver(),
   localImplementationSource: string | null = null,
-  generatedNames: GeneratedNames = DEFAULT_GENERATED_NAMES
+  generatedNames: GeneratedNames = DEFAULT_GENERATED_NAMES,
+  optimizeCollectionRow = false
 ): CsrRender | null {
   const next = createNameAllocator();
   const templateName = `${sanitizeName(name)}_${next(QwikGenWord.Template)}`;
@@ -261,15 +263,41 @@ export function emitCsrPlan(
     }
     return finalizeCsrRender(plan, setup, imports, statements, emitValue(plan.output));
   }
-  statements.push(`const ${fragmentName} = ${templateName}(${generatedNames.ctx}.document);`);
-
   const refNames = new Map<number, string>();
   const emittedRefs: { name: string; path: readonly CsrRefStep[] }[] = [];
   const usedRefs = getUsedRefs(plan);
+  const directElementRef = optimizeCollectionRow ? getDirectElementRef(plan) : null;
+  if (directElementRef === null) {
+    statements.push(`const ${fragmentName} = ${templateName}(${generatedNames.ctx}.document);`);
+  } else {
+    const elementName = next(QwikGenWord.Element);
+    refNames.set(directElementRef.id, elementName);
+    emittedRefs.push({ name: elementName, path: directElementRef.path });
+    statements.push(`const ${elementName} = ${templateName}(${generatedNames.ctx}.document);`);
+  }
+  const usedRefPaths = new Set(
+    plan.refs.filter((ref) => usedRefs.has(ref.id)).map((ref) => ref.path.join('/'))
+  );
+  const sharedPrefixes = optimizeCollectionRow
+    ? getSharedRefPrefixes(plan, usedRefs)
+    : new Set<string>();
   for (const ref of plan.refs) {
     if (!usedRefs.has(ref.id)) {
       continue;
     }
+    if (ref.id === directElementRef?.id) {
+      continue;
+    }
+    emitSharedRefPrefixes(
+      fragmentName,
+      ref.path,
+      sharedPrefixes,
+      usedRefPaths,
+      emittedRefs,
+      imports,
+      statements,
+      next
+    );
     const prefix =
       ref.kind === 'element'
         ? QwikGenWord.Element
@@ -336,11 +364,13 @@ export function emitCsrPlan(
     }
   }
 
-  imports.add(QwikWord.CreateTemplate);
+  const templateFactory =
+    directElementRef === null ? QwikWord.CreateTemplate : QwikWord.CreateElementTemplate;
+  imports.add(templateFactory);
   const value = emitRoots(plan.roots, context.operationNames, refNames);
   return finalizeCsrRender(plan, setup, imports, statements, value, [
     ...context.hoists,
-    `const ${templateName} = ${QwikWord.CreateTemplate}(${JSON.stringify(plan.template)});`,
+    `const ${templateName} = ${templateFactory}(${JSON.stringify(plan.template)});`,
   ]);
 }
 
@@ -408,7 +438,8 @@ export function emitCsrSegmentRender(
     imports,
     undefined,
     null,
-    generatedNames
+    generatedNames,
+    segment.kind === 'collectionRender' || segment.kind === 'forRender'
   );
   if (emitted === null) {
     return null;
@@ -1053,7 +1084,8 @@ function emitInlineCollectionRow(
     context.imports,
     context.qrlImports,
     context.localImplementationSource,
-    context.generatedNames
+    context.generatedNames,
+    true
   );
   if (render === null) {
     return null;
@@ -1540,6 +1572,66 @@ function emitShortestRefPath(
 
 function startsWithPath(path: readonly CsrRefStep[], prefix: readonly CsrRefStep[]): boolean {
   return prefix.every((step, index) => path[index] === step);
+}
+
+function getDirectElementRef(plan: CsrPlan): CsrRefPlan | null {
+  if (plan.outputShape !== 'element' || plan.roots.length !== 1) {
+    return null;
+  }
+  const root = plan.roots[0];
+  if (root.kind !== 'ref') {
+    return null;
+  }
+  const ref = plan.refs.find((candidate) => candidate.id === root.ref);
+  return ref?.kind === 'element' && ref.path.length === 1 && ref.path[0] === 'firstChild'
+    ? ref
+    : null;
+}
+
+function getSharedRefPrefixes(plan: CsrPlan, usedRefs: ReadonlySet<number>): ReadonlySet<string> {
+  const counts = new Map<string, number>();
+  for (const ref of plan.refs) {
+    if (!usedRefs.has(ref.id)) {
+      continue;
+    }
+    for (let length = 1; length < ref.path.length; length++) {
+      const key = ref.path.slice(0, length).join('/');
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+  }
+  return new Set([...counts].flatMap(([key, count]) => (count > 1 ? [key] : [])));
+}
+
+function emitSharedRefPrefixes(
+  root: string,
+  path: readonly CsrRefStep[],
+  sharedPrefixes: ReadonlySet<string>,
+  usedRefPaths: ReadonlySet<string>,
+  emittedRefs: { name: string; path: readonly CsrRefStep[] }[],
+  imports: Set<string>,
+  statements: string[],
+  next: (prefix: string) => string
+): void {
+  for (let length = 1; length < path.length; length++) {
+    const prefixPath = path.slice(0, length);
+    const key = prefixPath.join('/');
+    if (
+      !sharedPrefixes.has(key) ||
+      usedRefPaths.has(key) ||
+      emittedRefs.some((ref) => startsWithPath(prefixPath, ref.path) && ref.path.length === length)
+    ) {
+      continue;
+    }
+    const { path: emittedPath, steps } = emitShortestRefPath(root, prefixPath, emittedRefs);
+    for (const step of steps) {
+      if (step !== 'content') {
+        imports.add(REF_HELPERS[step]);
+      }
+    }
+    const name = next(QwikGenWord.Element);
+    statements.push(`const ${name} = ${emittedPath};`);
+    emittedRefs.push({ name, path: prefixPath });
+  }
 }
 
 function getUsedRefs(plan: CsrPlan): Set<number> {

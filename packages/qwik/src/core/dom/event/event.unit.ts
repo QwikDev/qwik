@@ -48,6 +48,20 @@ describe('setEvent', () => {
       'd:visibilitychange',
     ]);
   });
+
+  test('does not register an event already active in the loader', () => {
+    const element = createElementTarget();
+    const push = vi.fn();
+    (element.ownerDocument.defaultView as unknown as qWindow)._qwikEv = {
+      events: new Set(['e:click']),
+      roots: new Set(),
+      push,
+    };
+
+    setEvent(element, 'q-e:click', (_event: Event, _element: Element) => {});
+
+    expect(push).not.toHaveBeenCalled();
+  });
 });
 
 function createElementTarget(): Element {

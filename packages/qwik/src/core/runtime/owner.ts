@@ -12,12 +12,13 @@ import type { Subscriber } from './subscriber';
 import { runWithCollector } from '../reactive/tracking';
 
 export type OwnerItem = Owner | Subscriber;
+export type OwnerItems = OwnerItem | OwnerItem[] | null;
 
 // Owners are lifetime scopes for reactive work. Anything that can become a
 // subscriber should be owned so it can be disposed and removed from sources.
 export class Owner {
   parent: Owner | null = null;
-  items: OwnerItem[] | null = null;
+  items: OwnerItems = null;
   flags = OwnerFlags.None;
 }
 
@@ -82,12 +83,72 @@ export function registerSubscriberToOwner<T extends Subscriber>(
   subscriber.owner = resolvedOwner;
   const items = resolvedOwner.items;
   if (items === null) {
-    resolvedOwner.items = [subscriber];
-  } else if (!items.includes(subscriber)) {
-    items.push(subscriber);
+    resolvedOwner.items = subscriber;
+  } else if (Array.isArray(items)) {
+    if (!items.includes(subscriber)) {
+      items.push(subscriber);
+    }
+  } else if (items !== subscriber) {
+    resolvedOwner.items = [items, subscriber];
   }
 
   return subscriber;
+}
+
+export function ownerItemsLength(items: OwnerItems): number {
+  return items === null ? 0 : Array.isArray(items) ? items.length : 1;
+}
+
+export function ownerItemAt(
+  items: Exclude<OwnerItems, null>,
+  index: number
+): OwnerItem | undefined {
+  return Array.isArray(items) ? items[index] : index === 0 ? items : undefined;
+}
+
+function appendOwnerItem(owner: Owner, item: OwnerItem): void {
+  const items = owner.items;
+  if (items === null) {
+    owner.items = item;
+  } else if (Array.isArray(items)) {
+    items.push(item);
+  } else {
+    owner.items = [items, item];
+  }
+}
+
+function removeOwnerItem(owner: Owner, item: OwnerItem): void {
+  const items = owner.items;
+  if (items === null) {
+    return;
+  }
+  if (!Array.isArray(items)) {
+    if (items === item) {
+      owner.items = null;
+    }
+    return;
+  }
+  if (!swapRemove(items, item)) {
+    return;
+  }
+  if (items.length === 0) {
+    owner.items = null;
+  } else if (items.length === 1) {
+    owner.items = items[0];
+  }
+}
+
+export function detachSubscriberFromOwner(subscriber: Subscriber, owner: Owner): void {
+  subscriber.owner = null;
+  removeOwnerItem(owner, subscriber);
+}
+
+function disposeOwnerItem(item: OwnerItem): void {
+  if (item instanceof Owner) {
+    disposeOwner(item);
+  } else {
+    disposeSubscriber(item);
+  }
 }
 
 export function disposeOwner(owner: Owner): void {
@@ -100,16 +161,17 @@ export function disposeOwner(owner: Owner): void {
 
   const items = owner.items;
   owner.items = null;
-  if (items !== null) {
-    // LIFO: later items may read earlier ones (task cleanup reading a computed).
-    for (let i = items.length - 1; i >= 0; i--) {
-      const item = items[i];
-      if (item instanceof Owner) {
-        disposeOwner(item);
-      } else {
-        disposeSubscriber(item);
-      }
-    }
+  if (items === null) {
+    return;
+  }
+  if (!Array.isArray(items)) {
+    disposeOwnerItem(items);
+    return;
+  }
+
+  // LIFO: later items may read earlier ones (task cleanup reading a computed).
+  for (let i = items.length - 1; i >= 0; i--) {
+    disposeOwnerItem(items[i]);
   }
 }
 
@@ -149,12 +211,7 @@ function registerOwnerToOwner(owner: Owner, parent: Owner | null): void {
   }
 
   owner.parent = parent;
-  const items = parent.items;
-  if (items === null) {
-    parent.items = [owner];
-  } else {
-    items.push(owner);
-  }
+  appendOwnerItem(parent, owner);
 }
 
 function detachOwnerFromParent(owner: Owner): void {
@@ -164,25 +221,5 @@ function detachOwnerFromParent(owner: Owner): void {
     return;
   }
 
-  const items = parent.items;
-  if (items === null) {
-    return;
-  }
-
-  if (swapRemove(items, owner) && items.length === 0) {
-    parent.items = null;
-  }
-}
-
-function detachSubscriberFromOwner(subscriber: Subscriber, owner: Owner): void {
-  subscriber.owner = null;
-
-  const items = owner.items;
-  if (items === null) {
-    return;
-  }
-
-  if (swapRemove(items, subscriber) && items.length === 0) {
-    owner.items = null;
-  }
+  removeOwnerItem(parent, owner);
 }

@@ -10,6 +10,7 @@ import { createOwner } from '../../runtime/owner';
 import { Scheduler } from '../../runtime/scheduler';
 import { BranchRange } from '../branch/branch';
 import { createTextNodeEffect } from '../effect/text-effect';
+import { toArray } from '../../test-utils';
 import { createContentBlock, createSuspense, type ContentOutput } from './content';
 
 describe('ContentBlock', () => {
@@ -161,14 +162,14 @@ describe('ContentBlock', () => {
 
     content.run();
     await content.scheduler.flushInteraction();
-    expect(nested.subs).toContain(effects[0]);
+    expect(toArray(nested.subs)).toContain(effects[0]);
 
     version.value = 1;
     await content.scheduler.flushInteraction();
 
     expect(effects[0].owner).toBeNull();
-    expect(nested.subs).not.toContain(effects[0]);
-    expect(nested.subs).toContain(effects[1]);
+    expect(toArray(nested.subs)).not.toContain(effects[0]);
+    expect(toArray(nested.subs)).toContain(effects[1]);
   });
 });
 

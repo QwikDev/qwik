@@ -92,7 +92,19 @@ export function ensureGlobals(doc: any, opts?: MockDocumentOptions) {
   doc.createElement = (tagName: string, options?: ElementCreationOptions) => {
     const element = createElement(tagName, options);
     if (tagName.toLowerCase() === 'template') {
-      ((element as HTMLTemplateElement).content.ownerDocument as any).defaultView = doc.defaultView;
+      const content = (element as HTMLTemplateElement).content;
+      (content.ownerDocument as any).defaultView = doc.defaultView;
+      if (content.firstElementChild === undefined) {
+        Object.defineProperty(content, 'firstElementChild', {
+          get() {
+            let child = content.firstChild;
+            while (child !== null && child.nodeType !== 1) {
+              child = child.nextSibling;
+            }
+            return child;
+          },
+        });
+      }
     }
     return element;
   };

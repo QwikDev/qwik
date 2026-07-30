@@ -2,21 +2,29 @@ import { describe, expect, it } from 'vitest';
 import { _captures, createQRL } from '../shared/qrl/qrl-class';
 import {
   createCaptureContainer,
+  createIdleSubscriber,
   createOrderTextExpressionEffect,
   useTaskSubscriber,
   createText,
   noopSchedule,
   runWithTestContainer,
+  toArray,
 } from '../test-utils';
 import { disposeSubscriber } from '../reactive/cleanup';
 import { OwnerFlags, SubscriberFlags } from '../reactive/flags';
 import { useSignal, useComputed } from '../reactive/public-api';
-import { _await, getActiveCollector, runWithCollector } from '../reactive/tracking';
+import {
+  _await,
+  getActiveCollector,
+  invokeWithCollector4,
+  runWithCollector,
+} from '../reactive/tracking';
 import { createTextNodeEffect } from '../dom/effect/text-effect';
 import {
   createOwner,
   disposeOwner,
   getActiveOwner,
+  ownerItemsLength,
   registerSubscriberToOwner,
   runWithOwner,
   type Owner,
@@ -120,11 +128,11 @@ describe('runtime scheduler and owner lifecycle', () => {
       first = createOrderTextExpressionEffect(scheduler, 'first', []);
       second = createOrderTextExpressionEffect(scheduler, 'second', []);
     });
-    first.effect.run = () => {
+    (first.effect as { run: () => Promise<void> }).run = () => {
       started.push('first');
       return firstPromise;
     };
-    second.effect.run = () => {
+    (second.effect as { run: () => Promise<void> }).run = () => {
       started.push('second');
       return secondPromise;
     };
@@ -225,7 +233,6 @@ describe('runtime scheduler and owner lifecycle', () => {
         kind: SubscriberKind.Branch,
         flags: SubscriberFlags.None,
         deps: null,
-        depVersions: null,
         owner: null,
         scheduler,
         branch: null!,
@@ -236,7 +243,7 @@ describe('runtime scheduler and owner lifecycle', () => {
             runWithOwner(child, () => {
               effect = createOrderTextExpressionEffect(scheduler, String(i), []);
             });
-            effect.effect.run = () => {
+            (effect.effect as { run: () => void }).run = () => {
               order.push(i);
               if (i === 0) {
                 queueMicrotask(() => (observed = order.length));
@@ -334,16 +341,16 @@ describe('runtime scheduler and owner lifecycle', () => {
     runWithOwner(owner, () => {
       expect(getActiveOwner()).toBe(owner);
       effect = createTextNodeEffect(text, count, scheduler);
-      expect(owner.items).toEqual([effect]);
+      expect(owner.items).toBe(effect);
     });
     expect(getActiveOwner()).toBeNull();
-    expect(owner.items).toEqual([effect]);
+    expect(owner.items).toBe(effect);
 
     scheduler.notify(effect);
     await scheduler.flushInteraction();
 
     expect(text.data).toBe('1');
-    expect(count.subs).toContain(effect);
+    expect(toArray(count.subs)).toContain(effect);
 
     disposeOwner(owner);
 
@@ -364,7 +371,7 @@ describe('runtime scheduler and owner lifecycle', () => {
 
     expect(context.owner).not.toBeNull();
     expect(context.owner!.parent).toBeNull();
-    expect(context.owner!.items).toEqual([effect]);
+    expect(context.owner!.items).toBe(effect);
   });
 
   it('does not allocate useOn state for ordinary invoke contexts', () => {
@@ -400,17 +407,40 @@ describe('runtime scheduler and owner lifecycle', () => {
     expect(owner.items).toBeNull();
     registerSubscriberToOwner(effect, owner);
     registerSubscriberToOwner(effect, owner);
-    expect(owner.items).toEqual([effect]);
+    expect(owner.items).toBe(effect);
     expect(sourceOwner.items).toBeNull();
 
     scheduler.notify(effect);
     await scheduler.flushInteraction();
 
-    expect(count.subs).toContain(effect);
+    expect(toArray(count.subs)).toContain(effect);
 
     disposeOwner(owner);
 
     expect(count.subs).toBeNull();
+  });
+
+  it('collapses owner items and preserves disposal LIFO order', () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const owner = createOwner(null);
+    const order: string[] = [];
+    const first = createIdleSubscriber(() => {}, scheduler);
+    const second = createIdleSubscriber(() => {}, scheduler);
+    first.job.dispose = () => order.push('first');
+    second.job.dispose = () => order.push('second');
+
+    registerSubscriberToOwner(first, owner);
+    registerSubscriberToOwner(second, owner);
+    expect(owner.items).toEqual([first, second]);
+
+    disposeSubscriber(first);
+    expect(owner.items).toBe(second);
+
+    registerSubscriberToOwner(first, owner);
+    disposeOwner(owner);
+
+    expect(order).toEqual(['first', 'first', 'second']);
+    expect(owner.items).toBeNull();
   });
 
   it('throws when creating subscribers without an active owner', () => {
@@ -432,7 +462,7 @@ describe('runtime scheduler and owner lifecycle', () => {
 
     expect(first.parent).toBe(parent);
     expect(second.parent).toBe(parent);
-    expect(parent.items).toHaveLength(2);
+    expect(ownerItemsLength(parent.items)).toBe(2);
 
     disposeOwner(first);
     disposeOwner(first);
@@ -442,7 +472,7 @@ describe('runtime scheduler and owner lifecycle', () => {
     expect(parent.flags & OwnerFlags.Disposed).toBe(0);
     expect(second.flags & OwnerFlags.Disposed).toBe(0);
     expect(second.parent).toBe(parent);
-    expect(parent.items).toEqual([second]);
+    expect(parent.items).toBe(second);
   });
 
   it('disposes child owners with their parent owner', async () => {
@@ -464,14 +494,14 @@ describe('runtime scheduler and owner lifecycle', () => {
 
     expect(parent.items).toEqual([outerEffect, child]);
     expect(child.parent).toBe(parent);
-    expect(child.items).toEqual([innerEffect]);
+    expect(child.items).toBe(innerEffect);
 
     scheduler.notify(outerEffect);
     scheduler.notify(innerEffect);
     await scheduler.flushInteraction();
 
-    expect(outerSource.subs).toContain(outerEffect);
-    expect(innerSource.subs).toContain(innerEffect);
+    expect(toArray(outerSource.subs)).toContain(outerEffect);
+    expect(toArray(innerSource.subs)).toContain(innerEffect);
 
     disposeOwner(parent);
 
@@ -519,9 +549,9 @@ describe('runtime scheduler and owner lifecycle', () => {
     const count = useSignal(1);
     const doubled = runWithOwner(owner, () => useComputed(() => count.value * 2));
 
-    expect(owner.items).toEqual([doubled]);
+    expect(owner.items).toBe(doubled);
     expect(doubled.value).toBe(2);
-    expect(count.subs).toContain(doubled);
+    expect(toArray(count.subs)).toContain(doubled);
 
     disposeOwner(owner);
 
@@ -551,8 +581,8 @@ describe('runtime scheduler and owner lifecycle', () => {
     await scheduler.flushInteraction();
 
     expect(seen).toEqual([1, 11]);
-    expect(count.subs).toContain(task);
-    expect(count.subs).toContain(visibleTask);
+    expect(toArray(count.subs)).toContain(task);
+    expect(toArray(count.subs)).toContain(visibleTask);
 
     disposeOwner(owner);
 
@@ -579,7 +609,7 @@ describe('runtime scheduler and owner lifecycle', () => {
       expect(getActiveCollector()).toBe(collector);
     });
 
-    expect(tracked.subs).toEqual([collector]);
+    expect(tracked.subs).toBe(collector);
     expect(untracked.subs).toBeNull();
   });
 
@@ -608,6 +638,44 @@ describe('runtime scheduler and owner lifecycle', () => {
     expect(getActiveCollector()).toBeNull();
   });
 
+  it('invokes four arguments with collector and context restoration', () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const collector = runWithTestContainer(scheduler, () => useTask(() => {}));
+    const outerContext = newInvokeContext({});
+    const rowContext = newInvokeContext({});
+    const seen: unknown[] = [];
+
+    invoke(outerContext, () => {
+      const result = invokeWithCollector4(
+        collector,
+        rowContext,
+        (first, second, third, fourth) => {
+          seen.push(
+            getActiveCollector(),
+            getActiveInvokeContextOrNull(),
+            first,
+            second,
+            third,
+            fourth
+          );
+          return 'result';
+        },
+        1,
+        2,
+        3,
+        4
+      );
+
+      expect(result).toBe('result');
+      expect(getActiveCollector()).toBeNull();
+      expect(getActiveInvokeContextOrNull()).toBe(outerContext);
+    });
+
+    expect(seen).toEqual([collector, rowContext, 1, 2, 3, 4]);
+    expect(getActiveCollector()).toBeNull();
+    expect(getActiveInvokeContextOrNull()).toBeNull();
+  });
+
   it('useTask tracks dependencies and reruns after signal mutation', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const count = useSignal(0);
@@ -619,7 +687,7 @@ describe('runtime scheduler and owner lifecycle', () => {
     );
 
     expect(seen).toEqual([0]);
-    expect(count.subs).toContain(task);
+    expect(toArray(count.subs)).toContain(task);
 
     count.value = 1;
     await scheduler.flushInteraction();

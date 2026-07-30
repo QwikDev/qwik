@@ -14,6 +14,7 @@ import { createSsrElementTextTarget, renderSsrTextNode } from '../dom/effect/ssr
 import type { Subscriber } from './subscriber';
 import { Scheduler } from './scheduler';
 import type { Signal } from '../reactive/signal';
+import { toArray } from '../test-utils';
 
 describe('ContainerContext', () => {
   it('adds request data only when provided', () => {
@@ -93,8 +94,8 @@ describe('ContainerContext', () => {
 
     const source = (await context.getRoot(0)) as Source<number>;
 
-    expect(source.subs).toHaveLength(1);
-    expect(isLazySerialized(source.subs?.[0])).toBe(true);
+    expect(toArray(source.subs)).toHaveLength(1);
+    expect(isLazySerialized(toArray(source.subs)[0])).toBe(true);
     expect(context.state.subscriberRoots).toBeUndefined();
   });
 
@@ -112,7 +113,7 @@ describe('ContainerContext', () => {
     let serverSubscriber!: Subscriber;
     runWithOwner(createOwner(null), () => {
       renderSsrTextNode(createSsrElementTextTarget(4), serverCount);
-      serverSubscriber = serverCount.subs![0] as Subscriber;
+      serverSubscriber = toArray(serverCount.subs)[0] as Subscriber;
     });
     const subscriberId = serialization.$addRoot$(serverSubscriber);
     const packetState = await serialization.$serializeNext$();
@@ -133,7 +134,7 @@ describe('ContainerContext', () => {
     await scheduler.flushInteraction();
 
     expect(container.querySelector('span')?.textContent).toBe('3');
-    expect(count.subs).toHaveLength(1);
+    expect(toArray(count.subs)).toHaveLength(1);
   });
 
   it('leaves active packet subscriptions to root preparation', async () => {

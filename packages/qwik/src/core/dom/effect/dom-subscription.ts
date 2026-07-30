@@ -1,7 +1,7 @@
 import { cleanupDeps } from '../../reactive/cleanup';
 import { SubscriberFlags } from '../../reactive/flags';
 import type { Source } from '../../reactive/source';
-import { getActiveCollector, runWithCollector } from '../../reactive/tracking';
+import { getActiveCollector, runWithCollector1 } from '../../reactive/tracking';
 import { getActiveInvokeContextOrNull } from '../../runtime/invoke-context';
 import { registerSubscriberToOwner, type Owner } from '../../runtime/owner';
 import { defaultScheduler, type Scheduler } from '../../runtime/scheduler';
@@ -13,18 +13,19 @@ export interface DomEffect {
   run(): ValueOrPromise<void>;
 }
 
+export type DomEffectFn = () => ValueOrPromise<void>;
+
 export class DomSubscription implements DomSubscriber {
   readonly kind = SubscriberKind.Dom;
   owner: Owner | null = null;
   flags = SubscriberFlags.None;
   deps: Source[] | null = null;
-  depVersions: number[] | null = null;
   declare private asyncGeneration: number | undefined;
   declare private asyncInvalidation: Promise<void> | undefined;
   declare private invalidateAsync: (() => void) | undefined;
 
   constructor(
-    readonly effect: DomEffect,
+    readonly effect: DomEffect | DomEffectFn,
     readonly scheduler: Scheduler = defaultScheduler
   ) {}
 
@@ -44,7 +45,7 @@ export class DomSubscription implements DomSubscriber {
     this.invalidate();
     return retryOnPromise(() => {
       cleanupDeps(this);
-      return this.owner === null ? undefined : runWithCollector(this, () => this.effect.run());
+      return this.owner === null ? undefined : runWithCollector1(this, runDomEffect, this.effect);
     });
   }
 
@@ -67,10 +68,14 @@ export class DomSubscription implements DomSubscriber {
 }
 
 export function createDomSubscription(
-  effect: DomEffect,
+  effect: DomEffect | DomEffectFn,
   scheduler: Scheduler | undefined
 ): DomSubscriber {
   return registerSubscriberToOwner(new DomSubscription(effect, scheduler ?? getActiveScheduler()));
+}
+
+function runDomEffect(effect: DomEffect | DomEffectFn): ValueOrPromise<void> {
+  return typeof effect === 'function' ? effect() : effect.run();
 }
 
 export function commitDomPromise<T>(

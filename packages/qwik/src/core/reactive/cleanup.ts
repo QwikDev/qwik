@@ -1,7 +1,7 @@
 import { swapRemove } from '../utils/array';
 import { ComputedFlags, SubscriberFlags } from './flags';
 import type { Source } from './source';
-import type { Owner } from '../runtime/owner';
+import { detachSubscriberFromOwner } from '../runtime/owner';
 import { SubscriberKind, type Collector, type Subscriber } from '../runtime/subscriber';
 
 export function cleanupDeps(collector: Collector): void {
@@ -15,7 +15,6 @@ export function cleanupDeps(collector: Collector): void {
   }
 
   collector.deps = null;
-  collector.depVersions = null;
 }
 
 function removeSubscriber(source: Source, subscriber: Subscriber): void {
@@ -24,8 +23,20 @@ function removeSubscriber(source: Source, subscriber: Subscriber): void {
     return;
   }
 
-  if (swapRemove(subs, subscriber) && subs.length === 0) {
+  if (!Array.isArray(subs)) {
+    if (subs === subscriber) {
+      source.subs = null;
+    }
+    return;
+  }
+
+  if (!swapRemove(subs, subscriber)) {
+    return;
+  }
+  if (subs.length === 0) {
     source.subs = null;
+  } else if (subs.length === 1) {
+    source.subs = subs[0];
   }
 }
 
@@ -81,25 +92,19 @@ export function disposeSubscriber(subscriber: Subscriber): void {
   }
 }
 
-export function disposeSubscribers(subscribers: readonly Subscriber[] | null | undefined): void {
+export function disposeSubscribers(
+  subscribers: Subscriber | readonly Subscriber[] | null | undefined
+): void {
   if (subscribers === null || subscribers === undefined) {
+    return;
+  }
+
+  if (!Array.isArray(subscribers)) {
+    disposeSubscriber(subscribers as Subscriber);
     return;
   }
 
   for (let i = 0; i < subscribers.length; i++) {
     disposeSubscriber(subscribers[i]);
-  }
-}
-
-function detachSubscriberFromOwner(subscriber: Subscriber, owner: Owner): void {
-  subscriber.owner = null;
-
-  const items = owner.items;
-  if (items === null) {
-    return;
-  }
-
-  if (swapRemove(items, subscriber) && items.length === 0) {
-    owner.items = null;
   }
 }

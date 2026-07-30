@@ -5,7 +5,7 @@ import { isPromise, maybeThen, retryOnPromise } from '../../shared/utils/promise
 import type { ValueOrPromise } from '../../shared/utils/types';
 import { Signal } from '../../reactive/signal';
 import { readSourceValue, type Source } from '../../reactive/source';
-import { runWithCollector, track } from '../../reactive/tracking';
+import { invokeWithCollector4, runWithCollector, track } from '../../reactive/tracking';
 import type { ContainerContext } from '../../runtime/container-context';
 import { fastNextSibling } from '../../runtime/fast-getters';
 import {
@@ -172,8 +172,6 @@ export class ForBlock<T = unknown> {
     }
 
     const oldKeys = this.keys;
-    const oldRows = this.rows;
-    const oldOwners = this.owners;
     const oldLength = oldKeys.length;
 
     // remove all case
@@ -288,6 +286,8 @@ export class ForBlock<T = unknown> {
     }
 
     if (newLast < firstChanged) {
+      const oldRows = this.rows;
+      const oldOwners = this.owners;
       const range = this.range.nativeRange;
       range.setStartBefore(firstRowNode(oldRows[firstChanged]));
       range.setEndAfter(lastRowNode(oldRows[oldLast]));
@@ -332,6 +332,8 @@ export class ForBlock<T = unknown> {
       return;
     }
 
+    const oldRows = this.rows;
+    const oldOwners = this.owners;
     const sources = new Int32Array(newMiddleLength);
     let moved = false;
     let lastRetainedNewIndex = 0;
@@ -424,35 +426,49 @@ export class ForBlock<T = unknown> {
     renderFn: ForRenderFn<T>
   ): void {
     const parent = replaceForRangeParent(this.range);
-    const fragment = parent === null ? this.container.document.createDocumentFragment() : null;
-    const insertParent = parent ?? fragment!;
-    const reference = parent === null ? null : this.range.end;
-    for (let i = 0; i < nextKeys.length; i++) {
-      const row = this.createAndStoreRow(
-        nextRows,
-        nextOwners,
-        nextIndexSignals,
-        i,
-        nextKeys[i],
-        items[i],
-        i,
-        renderFn
+    const oldOwners = this.owners;
+    const fragment = this.container.document.createDocumentFragment();
+
+    if (parent !== null) {
+      this.commitRows(
+        EMPTY_ARRAY,
+        EMPTY_ARRAY,
+        EMPTY_ARRAY,
+        this.usesIndexSignal ? EMPTY_ARRAY : null
       );
-      insertOrMoveRow(insertParent, row, reference);
+      disposeOwners(oldOwners, oldOwners.length);
     }
 
-    if (fragment !== null) {
-      this.range.nativeRange.setStartAfter(this.range.start);
-      this.range.nativeRange.setEndBefore(this.range.end);
-      this.range.nativeRange.deleteContents();
-      this.range.nativeRange.insertNode(fragment);
-    }
-    for (let i = 0; i < this.owners.length; i++) {
-      const owner = this.owners[i];
-      if (owner !== null) {
-        disposeOwner(owner);
+    let createdCount = 0;
+    try {
+      for (; createdCount < nextKeys.length; createdCount++) {
+        const row = this.createAndStoreRow(
+          nextRows,
+          nextOwners,
+          nextIndexSignals,
+          createdCount,
+          nextKeys[createdCount],
+          items[createdCount],
+          createdCount,
+          renderFn
+        );
+        appendNewRow(fragment, row);
       }
+
+      if (parent === null) {
+        this.range.nativeRange.setStartAfter(this.range.start);
+        this.range.nativeRange.setEndBefore(this.range.end);
+        this.range.nativeRange.deleteContents();
+        this.range.nativeRange.insertNode(fragment);
+        disposeOwners(oldOwners, oldOwners.length);
+      } else {
+        parent.insertBefore(fragment, this.range.end);
+      }
+    } catch (error) {
+      disposeOwners(nextOwners, createdCount);
+      throw error;
     }
+
     this.commitRows(nextKeys, nextRows, nextOwners, nextIndexSignals);
   }
 
@@ -532,9 +548,8 @@ export class ForBlock<T = unknown> {
     let nodes: MaybeNodeOutput;
 
     try {
-      nodes = runWithCollector(
+      nodes = invokeWithCollector4(
         null,
-        invoke,
         this.rowInvokeContext,
         renderFn,
         this.container,
@@ -701,6 +716,32 @@ function insertOrMoveRow(parent: Node, row: RowDom, reference: Node | null): voi
       return;
     }
     parent.insertBefore(row, reference);
+  }
+}
+
+function appendNewRow(parent: Node, row: RowDom): void {
+  if (isRangeRow(row)) {
+    const last = row.end;
+    let node: Node = row.start;
+    while (true) {
+      const next = fastNextSibling(node);
+      parent.appendChild(node);
+      if (node === last) {
+        return;
+      }
+      node = next!;
+    }
+  } else {
+    parent.appendChild(row);
+  }
+}
+
+function disposeOwners(owners: Array<Owner | null>, length: number): void {
+  for (let i = 0; i < length; i++) {
+    const owner = owners[i];
+    if (owner != null) {
+      disposeOwner(owner);
+    }
   }
 }
 

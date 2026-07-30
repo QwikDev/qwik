@@ -78,7 +78,6 @@ abstract class ScheduledSubscription implements ScheduledSubscriber {
   owner: Owner | null = null;
   flags = SubscriberFlags.None;
   deps: Source[] | null = null;
-  depVersions: number[] | null = null;
   runPromise: Promise<void> | null = null;
 
   constructor(readonly scheduler: TaskScheduler = defaultScheduler) {}

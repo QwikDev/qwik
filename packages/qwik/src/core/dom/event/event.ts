@@ -3,6 +3,7 @@ import type { CapturedEventHandler, qWindow, QDispatchHandler, QElement } from '
 import { qTest } from '../../shared/utils/qdev';
 
 type EventHandler = (event: Event, element: Element) => unknown;
+const scopedEventNames = Object.create(null) as Record<string, string | undefined>;
 
 /** @internal */
 export function createCapturedEvent(
@@ -26,7 +27,7 @@ export function setEvent(
   handler: QDispatchHandler | QDispatchHandler[],
   captures?: readonly unknown[] | null
 ): void {
-  const scopedKebabName = key.slice(2);
+  const scopedKebabName = (scopedEventNames[key] ??= key.slice(2));
   const target = element as QElement;
   (target._qDispatch ||= {})[scopedKebabName] = captures
     ? createCapturedEvent(handler as EventHandler, captures)
@@ -41,7 +42,11 @@ export function setEvent(
 
 function registerQwikLoaderEvent(element: Element, eventName: string) {
   const qWindow = (qTest ? element.ownerDocument.defaultView : window) as unknown as qWindow;
-  (qWindow._qwikEv ||= [] as any).push(eventName);
+  const loader = (qWindow._qwikEv ||= [] as any);
+  if (!Array.isArray(loader) && loader.events.has(eventName)) {
+    return;
+  }
+  loader.push(eventName);
 }
 
 function runCapturedEvent(captures: CapturedEventHandler, event: Event, element: Element): unknown {

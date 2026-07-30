@@ -139,24 +139,6 @@ test.describe('ErrorBoundary streaming swap', () => {
     expect(await page.evaluate(() => (window as any).__ebDeadTaskClientRuns ?? 0)).toBe(0);
   });
 
-  for (const { mode, outOfOrder } of streamingModes) {
-    test(`${mode}: client-time throw after resume re-renders the boundary to its fallback`, async ({
-      page,
-    }) => {
-      assertNoBrowserErrors(page);
-      await page.goto(routeUrl('csr-event', { outOfOrder }), { waitUntil: 'commit' });
-
-      await expect(page.locator('#eb-content')).toHaveText('content ok', { timeout: 10000 });
-      await expect(page.locator('#eb-fallback')).toHaveCount(0);
-
-      await page.locator('#eb-client-throw').click();
-      await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-
-      await page.locator('#eb-fallback-button').click();
-      await expect(page.locator('#eb-fallback-count')).toHaveText('1');
-    });
-  }
-
   test('in-order mid-stream click on a swapped fallback is queued and replayed after resume', async ({
     page,
     browserName,
@@ -192,6 +174,26 @@ test.describe('ErrorBoundary streaming swap', () => {
     await expect(page.locator('#eb-deferred-ok')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('html')).toHaveAttribute('q:container', 'resumed');
   });
+});
+
+test.describe('ErrorBoundary client-time throws', () => {
+  for (const { mode, outOfOrder } of streamingModes) {
+    test(`${mode}: client-time throw after resume re-renders the boundary to its fallback`, async ({
+      page,
+    }) => {
+      assertNoBrowserErrors(page);
+      await page.goto(routeUrl('csr-event', { outOfOrder }), { waitUntil: 'commit' });
+
+      await expect(page.locator('#eb-content')).toHaveText('content ok', { timeout: 10000 });
+      await expect(page.locator('#eb-fallback')).toHaveCount(0);
+
+      await page.locator('#eb-client-throw').click();
+      await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
+
+      await page.locator('#eb-fallback-button').click();
+      await expect(page.locator('#eb-fallback-count')).toHaveText('1');
+    });
+  }
 
   test('useVisibleTask$ throw after resume is routed to the boundary without interaction', async ({
     page,
@@ -211,6 +213,22 @@ test.describe('ErrorBoundary streaming swap', () => {
     expect(pageErrors.filter((message) => message.includes('visible boom'))).toEqual([]);
   });
 
+  test('no boundary: a client throw still surfaces to the global error handler', async ({
+    page,
+  }) => {
+    const pageErrors = collectPageErrors(page);
+
+    await page.goto(routeUrl('no-boundary'), { waitUntil: 'commit' });
+    await expect(page.locator('#eb-title')).toHaveText('Error handling e2e', { timeout: 10000 });
+
+    await page.locator('#eb-no-boundary-throw').click();
+    await expect(page.locator('#eb-no-boundary-touched')).toHaveText('1', { timeout: 10000 });
+
+    await expect.poll(() => pageErrors, { timeout: 10000 }).toContain('no-boundary boom');
+  });
+});
+
+test.describe('ErrorBoundary onError$', () => {
   test('onError$ fires once with the error on a client-time throw', async ({ page }) => {
     assertNoBrowserErrors(page);
     await page.goto(routeUrl('onerror'), { waitUntil: 'commit' });
@@ -239,7 +257,9 @@ test.describe('ErrorBoundary streaming swap', () => {
     expect(await page.evaluate(() => (window as any).__ebOnErrorPhase)).toBe('event');
     expect(await page.evaluate(() => (window as any).__ebOnErrorBoundaryId)).toBeTruthy();
   });
+});
 
+test.describe('ErrorBoundary nested boundaries', () => {
   test('SSR inner error, then a client throw makes the outer boundary replace the whole subtree', async ({
     page,
   }) => {
@@ -309,20 +329,6 @@ test.describe('ErrorBoundary streaming swap', () => {
       await expect(page.locator('#eb-outer-count')).toHaveText('1');
     });
   }
-
-  test('no boundary: a client throw still surfaces to the global error handler', async ({
-    page,
-  }) => {
-    const pageErrors = collectPageErrors(page);
-
-    await page.goto(routeUrl('no-boundary'), { waitUntil: 'commit' });
-    await expect(page.locator('#eb-title')).toHaveText('Error handling e2e', { timeout: 10000 });
-
-    await page.locator('#eb-no-boundary-throw').click();
-    await expect(page.locator('#eb-no-boundary-touched')).toHaveText('1', { timeout: 10000 });
-
-    await expect.poll(() => pageErrors, { timeout: 10000 }).toContain('no-boundary boom');
-  });
 });
 
 test.describe('ErrorBoundary reset', () => {

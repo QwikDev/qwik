@@ -154,13 +154,20 @@ const BoxedWithSibling = component$(() => {
   );
 });
 
-const NamedSlotProjector = component$(() => {
+const TwoNamedSlots = component$(() => {
   return (
-    <ErrorBoundary fallback$={fb()}>
-      <div id="named-host">
-        <Slot name="danger" />
-      </div>
-    </ErrorBoundary>
+    <div id="two-hosts">
+      <ErrorBoundary fallback$={fb('fb-danger')}>
+        <div id="danger-host">
+          <Slot name="danger" />
+        </div>
+      </ErrorBoundary>
+      <ErrorBoundary fallback$={fb('fb-warning')}>
+        <div id="warning-host">
+          <Slot name="warning" />
+        </div>
+      </ErrorBoundary>
+    </div>
   );
 });
 
@@ -340,15 +347,18 @@ describe.each(modes)('ErrorBoundary behavior (%s)', (mode, renderMode) => {
     expect(container.element.querySelector('#fb')?.textContent).toContain('caught: boom');
   });
 
-  it('named-slot projection: a throw in named-slot content is caught by the projected-into boundary', async () => {
+  it("two named slots: the throw is caught by its own slot's boundary, not the sibling", async () => {
     const { container } = await renderMode(() => (
-      <NamedSlotProjector>
-        <div q:slot="danger">
+      <TwoNamedSlots>
+        <div q:slot="warning">
           <Thrower />
         </div>
-      </NamedSlotProjector>
+      </TwoNamedSlots>
     ));
-    expect(container.element.querySelector('#fb')?.textContent).toContain('caught: boom');
+    const el = container.element;
+    expect(el.querySelector('#fb-warning')?.textContent).toContain('caught: boom');
+    expect(el.querySelector('#fb-danger')).toBeFalsy();
+    expect(el.querySelector('#danger-host')).toBeTruthy();
   });
 
   it('only the fallback shows: the non-throwing sibling and the projected throw are neutralized', async () => {

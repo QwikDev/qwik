@@ -1,4 +1,4 @@
-import type { JSXChild, JSXElement } from 'oxc-parser';
+import type { JSXAttributeItem, JSXChild, JSXElement } from 'oxc-parser';
 import {
   getIdentifierName,
   getJsxAttributeName,
@@ -10,6 +10,8 @@ import {
   isEventProp,
   isNativeTag,
   isObviousPromiseExpression,
+  jsxEventToHtmlAttribute,
+  normalizeJsxEventName,
   normalizeJsxText,
   unwrapExpression,
 } from './ast-utils';
@@ -54,7 +56,7 @@ import type {
   UseIdPlan,
   ValuePlan,
 } from './plan-types';
-import { QWIK_CORE_IMPORT, QWIK_IMPORT, QwikHooks } from './words';
+import { QWIK_CORE_IMPORT, QWIK_IMPORT, QwikAttributes, QwikHooks } from './words';
 import { createSegmentSymbolName } from './segment-identity';
 import { createExtractedSegmentPlan } from './segment-plan';
 
@@ -588,6 +590,8 @@ class SemanticLowerer {
     groupedEffect: ElementPropsEffectPlan | null = null
   ): OrderedPropPlan[] {
     const props: OrderedPropPlan[] = [];
+    const passiveEvents =
+      targetKind === 'element' ? collectPassiveEventNames(node.openingElement.attributes) : null;
     for (const attribute of node.openingElement.attributes) {
       const range = getRange(attribute);
       if (range === null) {
@@ -671,8 +675,15 @@ class SemanticLowerer {
               }
               continue;
             }
+            const modifierName =
+              targetKind === 'element'
+                ? normalizeEventModifier(property.name, passiveEvents!)
+                : property.name;
+            if (modifierName === null) {
+              continue;
+            }
             props.push(
-              property.name === 'innerHTML' || property.name === 'dangerouslySetInnerHTML'
+              modifierName === 'innerHTML' || modifierName === 'dangerouslySetInnerHTML'
                 ? {
                     kind: 'inner-html',
                     range,
@@ -680,7 +691,7 @@ class SemanticLowerer {
                     lifetimeId: null,
                     effectId: null,
                   }
-                : { kind: 'static', range, name: property.name, value: property.value }
+                : { kind: 'static', range, name: modifierName, value: property.value }
             );
           }
           continue;
@@ -753,6 +764,11 @@ class SemanticLowerer {
       const staticValue = getStaticJsxAttributeValue(attribute.value ?? null);
       const innerHtml = name === 'innerHTML' || name === 'dangerouslySetInnerHTML';
       if (staticValue !== undefined) {
+        const modifierName =
+          targetKind === 'element' ? normalizeEventModifier(name, passiveEvents!) : name;
+        if (modifierName === null) {
+          continue;
+        }
         props.push(
           innerHtml
             ? {
@@ -762,7 +778,7 @@ class SemanticLowerer {
                 lifetimeId: null,
                 effectId: null,
               }
-            : { kind: 'static', range, name, value: staticValue }
+            : { kind: 'static', range, name: modifierName, value: staticValue }
         );
         continue;
       }
@@ -775,6 +791,7 @@ class SemanticLowerer {
         groupedEffect?.lifetimeId ??
         this.allocateLifetime(context.lifetimeId, 'effect', 'immediate');
       const event = isEventProp(name);
+      const passive = event && passiveEvents !== null && isPassiveEvent(name, passiveEvents);
       if (event && targetKind === 'element') {
         for (const value of this.createEventValues(expression, lifetimeId)) {
           const effectId =
@@ -786,7 +803,7 @@ class SemanticLowerer {
               name,
               value,
             });
-          props.push({ kind: 'event', range, name, value, lifetimeId, effectId });
+          props.push({ kind: 'event', range, name, passive, value, lifetimeId, effectId });
         }
         continue;
       }
@@ -827,7 +844,7 @@ class SemanticLowerer {
             name,
             value,
           });
-        props.push({ kind: 'event', range, name, value, lifetimeId, effectId });
+        props.push({ kind: 'event', range, name, passive, value, lifetimeId, effectId });
       } else {
         const effectId =
           groupedEffect?.effectId ??
@@ -2970,6 +2987,58 @@ function propKey(prop: OrderedPropPlan): string {
       : prop.kind === 'ref'
         ? 'ref'
         : prop.name;
+}
+
+function collectPassiveEventNames(attributes: readonly JSXAttributeItem[]): Set<string> {
+  const events = new Set<string>();
+  const collect = (name: string, value: StaticProp['value']): void => {
+    if (value && name.startsWith(QwikAttributes.PassivePrefix)) {
+      events.add(normalizeJsxEventName(name.slice(QwikAttributes.PassivePrefix.length)));
+    }
+  };
+  for (const attribute of attributes) {
+    if (attribute.type === 'JSXSpreadAttribute') {
+      for (const property of getExpandableObjectProperties(attribute.argument) ?? []) {
+        if (property.kind === 'static') {
+          collect(property.name, property.value);
+        }
+      }
+      continue;
+    }
+    const name = getJsxAttributeName(attribute.name);
+    const value = getStaticJsxAttributeValue(attribute.value ?? null);
+    if (name !== null && value !== undefined) {
+      collect(name, value);
+    }
+  }
+  return events;
+}
+
+function normalizeEventModifier(name: string, passiveEvents: ReadonlySet<string>): string | null {
+  if (name.startsWith(QwikAttributes.PassivePrefix)) {
+    return null;
+  }
+  if (name.startsWith(QwikAttributes.PreventDefaultPrefix)) {
+    const eventName = normalizeJsxEventName(name.slice(QwikAttributes.PreventDefaultPrefix.length));
+    return passiveEvents.has(eventName)
+      ? null
+      : `${QwikAttributes.PreventDefaultPrefix}${eventName}`;
+  }
+  if (name.startsWith(QwikAttributes.StopPropagationPrefix)) {
+    const eventName = normalizeJsxEventName(
+      name.slice(QwikAttributes.StopPropagationPrefix.length)
+    );
+    return `${QwikAttributes.StopPropagationPrefix}${eventName}`;
+  }
+  return name;
+}
+
+function isPassiveEvent(name: string, passiveEvents: ReadonlySet<string>): boolean {
+  const attribute = jsxEventToHtmlAttribute(name);
+  if (attribute === null) {
+    return false;
+  }
+  return passiveEvents.has(attribute.slice(attribute.indexOf(':') + 1));
 }
 
 function collectAwaitRanges(node: AstNode | null): SegmentPlan['awaits'] {

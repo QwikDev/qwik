@@ -369,6 +369,7 @@ export type OrderedPropPlan =
       readonly kind: 'event';
       readonly range: SourceRange;
       readonly name: string;
+      readonly passive: boolean;
       readonly value: ValuePlan;
       readonly lifetimeId: LifetimeId;
       readonly effectId: number;

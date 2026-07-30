@@ -703,7 +703,7 @@ class SsrPlanner {
         continue;
       }
       if (prop.kind === 'event') {
-        const eventName = jsxEventToHtmlAttribute(prop.name);
+        const eventName = jsxEventToHtmlAttribute(prop.name, prop.passive);
         if (eventName === null) {
           return null;
         }

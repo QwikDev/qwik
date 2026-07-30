@@ -984,6 +984,37 @@ export function App() {
     });
   });
 
+  test('lowers passive events and stop-propagation modifiers', async () => {
+    const input = {
+      path: 'src/component.tsx',
+      code: `export function App() {
+  return <>
+    <button passive:click preventdefault:click stoppropagation:click onClick$={() => 1} />
+    <div passive:scroll window:onScroll$={() => 2} />
+    <div passive:touchstart document:onTouchStart$={() => 3} />
+  </>;
+}
+`,
+    };
+    const ssr = await transformModules(baseOptions(input, true));
+    const csr = await transformModules(baseOptions(input, false));
+    const ssrCode = ssr.modules[0].code;
+    const csrCode = csr.modules[0].code;
+
+    expect(ssrCode).toContain('ctx.eventAttr("q-ep:click"');
+    expect(ssrCode).toContain('ctx.eventAttr("q-wp:scroll"');
+    expect(ssrCode).toContain('ctx.eventAttr("q-dp:touchstart"');
+    expect(ssrCode).toContain(' stoppropagation:click');
+    expect(ssrCode).not.toContain(' passive:');
+    expect(ssrCode).not.toContain(' preventdefault:click');
+    expect(csrCode).toContain('setEvent(el0, "q-ep:click"');
+    expect(csrCode).toContain('setEvent(el1, "q-wp:scroll"');
+    expect(csrCode).toContain('setEvent(el2, "q-dp:touchstart"');
+    expect(csrCode).toContain(' stoppropagation:click');
+    expect(csrCode).not.toContain(' passive:');
+    expect(csrCode).not.toContain(' preventdefault:click');
+  });
+
   test('emits useOn with explicit qrl handler', async () => {
     await testInput('use_on_explicit_qrl', {
       code: `import { $ } from '@qwik.dev/core';

@@ -318,7 +318,7 @@ function getEventScopeDataFromJsxEvent(jsxEvent: string, isPassive: boolean): [s
   return ['', -1];
 }
 
-function normalizeJsxEventName(name: string): string {
+export function normalizeJsxEventName(name: string): string {
   if (name === 'DOMContentLoaded') {
     return '-d-o-m-content-loaded';
   }

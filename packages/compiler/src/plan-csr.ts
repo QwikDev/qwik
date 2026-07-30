@@ -100,7 +100,12 @@ export type CsrPropPlan =
     }
   | { readonly kind: 'dynamic'; readonly name: string; readonly value: CsrValuePlan }
   | { readonly kind: 'spread'; readonly value: CsrValuePlan }
-  | { readonly kind: 'event'; readonly name: string; readonly value: CsrValuePlan }
+  | {
+      readonly kind: 'event';
+      readonly name: string;
+      readonly passive: boolean;
+      readonly value: CsrValuePlan;
+    }
   | {
       readonly kind: 'bind';
       readonly name: 'value' | 'checked';
@@ -771,7 +776,7 @@ class CsrPlanner {
                 });
                 break;
               case 'event':
-                this.pushEventOperation(ref, normalizeEventName(prop.name), {
+                this.pushEventOperation(ref, normalizeEventName(prop.name, prop.passive), {
                   kind: 'value',
                   value: prop.value,
                 });
@@ -1023,7 +1028,7 @@ class CsrPlanner {
           if (value === null) {
             return null;
           }
-          planned.push({ kind: 'event', name: prop.name, value });
+          planned.push({ kind: 'event', name: prop.name, passive: prop.passive, value });
           break;
         }
         case 'bind': {
@@ -1363,8 +1368,8 @@ function normalizeAttributeName(name: string): string {
   return name === 'className' ? 'class' : name === 'htmlFor' ? 'for' : name;
 }
 
-function normalizeEventName(name: string): string {
-  return jsxEventToHtmlAttribute(name) ?? name;
+function normalizeEventName(name: string, passive = false): string {
+  return jsxEventToHtmlAttribute(name, passive) ?? name;
 }
 
 function isSetupSegment(segment: SegmentPlan): boolean {

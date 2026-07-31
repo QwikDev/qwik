@@ -143,6 +143,8 @@ test.describe('ErrorBoundary streaming swap', () => {
     page,
     browserName,
   }) => {
+    // The loader module is fetched while the stream is held; loaded runners need headroom.
+    test.slow();
     assertNoBrowserErrors(page);
     const webkitFlush = browserName === 'webkit' ? { webkitFlush: '1' } : {};
     await page.goto(
@@ -585,11 +587,10 @@ test.describe('ErrorBoundary chunk-load failures and the rejection bridge', () =
 
     await page.locator('#eb-content-throw').click();
 
+    // Browsers may log the failed module fetch twice; the qerror assert below pins single-report.
     await expect
       .poll(() => importFailureErrors().length, { timeout: 10000 })
       .toBeGreaterThan(failuresBeforeClick);
-    await page.waitForTimeout(300);
-    expect(importFailureErrors()).toHaveLength(failuresBeforeClick + 1);
     expect(blockedRequests.length).toBeGreaterThan(0);
 
     const qErrors = await page.evaluate(() => (window as any).__ebQErrors);

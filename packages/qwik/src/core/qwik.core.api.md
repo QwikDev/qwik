@@ -106,11 +106,7 @@ export interface ComputedOptions<T = unknown> {
     // (undocumented)
     container?: _Container;
     eagerCleanup?: boolean;
-    expires?: number;
     initial?: Awaited<T> | (() => Awaited<T>);
-    // @deprecated (undocumented)
-    interval?: number;
-    poll?: boolean;
     // (undocumented)
     serializationStrategy?: SerializationStrategy;
     timeout?: number;
@@ -123,17 +119,13 @@ export type ComputedReturnType<T> = ComputedSignal<Awaited<T>>;
 export interface ComputedSignal<T> extends Signal<T> {
     abort(reason?: any): void;
     error: Error | undefined;
-    expires: number;
     // @deprecated (undocumented)
     force(): void;
-    // @deprecated (undocumented)
-    interval: number;
     invalidate(): void;
     invalidate(info?: unknown): void;
     // @deprecated (undocumented)
     loading: boolean;
     pending: boolean;
-    poll: boolean;
     promise(): Promise<void>;
     untrackedError: Error | undefined;
     // @deprecated (undocumented)

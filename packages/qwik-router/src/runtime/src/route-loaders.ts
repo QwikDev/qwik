@@ -418,8 +418,6 @@ const createRouteLoaderSignal = (
 
     {
       serializationStrategy: loader.__serializationStrategy,
-      expires: loader.__expires,
-      poll: loader.__poll,
       allowStale: loader.__allowStale,
     }
   );

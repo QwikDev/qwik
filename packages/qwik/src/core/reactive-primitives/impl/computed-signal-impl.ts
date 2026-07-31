@@ -74,7 +74,7 @@ export class Job<T> implements ComputeCtx<T> {
   cache(): void {
     isDev &&
       console.error(
-        'useResource cache() method does not do anything. Use `useComputed$` instead of `useResource$`, use the `expires` option for polling behavior.'
+        'useResource cache() method does not do anything. Use `useComputed$` instead of `useResource$`; for polling use the `usePoll` hook from `@qwik.dev/utils`.'
       );
   }
 
@@ -97,7 +97,7 @@ export class Job<T> implements ComputeCtx<T> {
  *
  * Sync compute functions resolve synchronously and every read they perform is auto-tracked. When
  * the compute function turns out to be async (it returned a promise), the signal lazily switches on
- * the async engine — jobs, `loading`, `error`, polling — giving it the same API as an AsyncSignal.
+ * the async engine — jobs, `loading`, `error` — giving it the same API as an AsyncSignal.
  * Auto-tracking only covers reads before the first await point (the invoke context is lost after
  * it); later reads must use the ComputeCtx `track()`.
  */
@@ -123,11 +123,9 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
   declare $current$: Job<T> | null | undefined;
   declare $jobs$: Job<T>[] | undefined;
   declare $concurrency$: number | undefined;
-  declare $expires$: number | undefined;
   declare $timeoutMs$: number | undefined;
   declare $loadingEffects$: undefined | Set<EffectSubscription>;
   declare $errorEffects$: undefined | Set<EffectSubscription>;
-  declare $pollTimeoutId$: ReturnType<typeof setTimeout> | undefined;
   declare $computationTimeoutId$: ReturnType<typeof setTimeout> | undefined;
   declare $info$: unknown | undefined;
   declare $infoVersion$: number | undefined;
@@ -179,13 +177,6 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
         );
       }
       this.$flags$ |= AsyncSignalFlags.CLEAR_ON_INVALIDATE;
-    }
-    const expires = options.expires ?? (options.interval ? Math.abs(options.interval) : undefined);
-    if (expires) {
-      this.expires = expires;
-    }
-    if (options.poll === false || (options.interval !== undefined && options.interval < 0)) {
-      this.$flags$ |= AsyncSignalFlags.NO_POLL;
     }
   }
 
@@ -243,9 +234,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       } else if (this.$current$) {
         this.$current$.$canWrite$ = false;
       }
-      this.$clearNextPoll$();
       super.value = value;
-      this.$scheduleNextPoll$();
       return;
     }
     super.value = value;
@@ -390,53 +379,8 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     return this.$untrackedError$;
   }
 
-  get expires() {
-    return this.$expires$ || 0;
-  }
-
-  set expires(value: number) {
-    this.$clearNextPoll$();
-    this.$expires$ = value;
-    if (this.$expires$ && this.$hasSubscribers$()) {
-      this.$scheduleNextPoll$();
-    }
-  }
-
-  get poll() {
-    return !(this.$flags$ & AsyncSignalFlags.NO_POLL);
-  }
-
-  set poll(value: boolean) {
-    if (value) {
-      this.$flags$ &= ~AsyncSignalFlags.NO_POLL;
-    } else {
-      this.$flags$ |= AsyncSignalFlags.NO_POLL;
-    }
-    // Reschedule since poll behavior changed
-    if (this.$expires$ && this.$hasSubscribers$()) {
-      this.$clearNextPoll$();
-      this.$scheduleNextPoll$();
-    }
-  }
-
-  /** @deprecated Use `expires` and `poll` instead. */
-  get interval() {
-    const expires = this.$expires$ || 0;
-    return this.$flags$ & AsyncSignalFlags.NO_POLL ? -expires : expires;
-  }
-
-  set interval(value: number) {
-    if (value < 0) {
-      this.$flags$ |= AsyncSignalFlags.NO_POLL;
-    } else {
-      this.$flags$ &= ~AsyncSignalFlags.NO_POLL;
-    }
-    this.expires = Math.abs(value);
-  }
-
   $setInvalid$(allowRecalc: boolean, mustClear: boolean | number): void {
     this.$flags$ |= ComputedSignalFlags.INVALID;
-    this.$clearNextPoll$();
     if (mustClear) {
       this.$untrackedValue$ = NEEDS_COMPUTATION;
     }
@@ -576,7 +520,6 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       (this.$container$ as SSRContainer)?.serializationCtx.$eagerResume$.add(this);
       return;
     }
-    this.$clearNextPoll$();
 
     // Clear flag here to make sure the cleanups don't start another compute
     this.$flags$ &= ~ComputedSignalFlags.INVALID;
@@ -698,7 +641,6 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
         this.$computeIfNeeded$();
       } else {
         this.untrackedPending = false;
-        this.$scheduleNextPoll$();
       }
     }
   }
@@ -723,7 +665,6 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
 
   /** Called after SSR/unmount */
   async $destroy$() {
-    this.$clearNextPoll$();
     clearTimeout(this.$computationTimeoutId$);
     const current = this.$current$;
     if (current) {
@@ -734,32 +675,6 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     } else {
       await current?.$promise$;
     }
-  }
-
-  private $clearNextPoll$() {
-    if (this.$pollTimeoutId$ !== undefined) {
-      clearTimeout(this.$pollTimeoutId$);
-      this.$pollTimeoutId$ = undefined;
-    }
-  }
-
-  private $scheduleNextPoll$() {
-    if ((qTest ? isServerPlatform() : isServer) || !this.$expires$) {
-      return;
-    }
-
-    this.$clearNextPoll$();
-
-    const allowRecalc = !(this.$flags$ & AsyncSignalFlags.NO_POLL);
-    // Even when clear on invalidate, we don't clear if we're merely re-running due to polling
-    // We expect to get the new value soon, so we can avoid showing a loading state
-    const mustClear = this.$flags$ & AsyncSignalFlags.CLEAR_ON_INVALIDATE && !allowRecalc;
-    this.$pollTimeoutId$ = setTimeout(
-      () => this.$setInvalid$(allowRecalc, mustClear),
-      this.$expires$!
-    );
-
-    this.$pollTimeoutId$?.unref?.();
   }
 
   private $hasSubscribers$(): boolean {

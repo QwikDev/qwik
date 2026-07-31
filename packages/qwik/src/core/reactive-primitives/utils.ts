@@ -198,8 +198,8 @@ export const _markSignalAsExternallyOwned = (signal: ComputedSignal<unknown>) =>
 };
 
 /**
- * Whether the signal holds a computed value that was not invalidated (by dependency changes or
- * `expires`). Unlike the public getters, this never triggers a computation.
+ * Whether the signal holds a computed value that was not invalidated (by dependency changes).
+ * Unlike the public getters, this never triggers a computation.
  *
  * @internal
  */

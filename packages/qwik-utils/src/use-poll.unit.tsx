@@ -1,44 +1,51 @@
 import { component$, useComputed$ } from '@qwik.dev/core';
-import { domRender, trigger } from '@qwik.dev/core/testing';
+import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { usePoll } from './use-poll';
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-describe('usePoll', () => {
+// Counters live on globalThis: SSR serializes captured objects, so a captured
+// counter would be a deserialized copy on resume and the test would not see client runs.
+const counters = globalThis as any as { pollRuns: number; failRuns: number };
+
+describe.each([
+  { render: ssrRenderToDom }, //
+  { render: domRender }, //
+])('$render.name: usePoll', ({ render }) => {
   it('re-runs the signal after `expires` and keeps polling', async () => {
-    const ref = { runs: 0 };
+    counters.pollRuns = 0;
     const Cmp = component$(() => {
-      const signal = useComputed$(async () => ++ref.runs);
+      const signal = useComputed$(async () => ++(globalThis as any).pollRuns);
       usePoll(signal, 20);
       return <span>{signal.value}</span>;
     });
 
-    const { document } = await domRender(<Cmp />, { debug: false });
-    expect(ref.runs).toBe(1);
+    const { document } = await render(<Cmp />, { debug: false });
+    const runsAfterRender = counters.pollRuns;
     await trigger(document.body, 'span', 'd:qidle');
 
     await delay(100);
-    expect(ref.runs).toBeGreaterThan(1);
+    expect(counters.pollRuns).toBeGreaterThan(runsAfterRender);
   });
 
   it('keeps polling after a failed computation', async () => {
-    const ref = { runs: 0 };
+    counters.failRuns = 0;
     const Cmp = component$(() => {
       const signal = useComputed$(async () => {
-        ref.runs++;
-        if (ref.runs === 2) {
+        const runs = ++(globalThis as any).failRuns;
+        if (runs === 2) {
           throw new Error('boom');
         }
-        return ref.runs;
+        return runs;
       });
       usePoll(signal, 20);
       return <span>{signal.error ? 'err' : signal.value}</span>;
     });
 
-    const { document } = await domRender(<Cmp />, { debug: false });
+    const { document } = await render(<Cmp />, { debug: false });
     await trigger(document.body, 'span', 'd:qidle');
     await delay(150);
-    expect(ref.runs).toBeGreaterThan(2);
+    expect(counters.failRuns).toBeGreaterThan(2);
   });
 });

@@ -205,6 +205,13 @@ export function getJsxMapExpression(node: unknown): JsxMapExpression | null {
   };
 }
 
+export function getJsxMapKeyAttribute(
+  node: unknown
+): Extract<JSXAttributeItem, { type: 'JSXAttribute' }> | null {
+  const map = getJsxMapExpression(node);
+  return map === null ? null : getRowKeyAttribute(map.row);
+}
+
 function getCallbackReturnedJsx(callback: AstFunction): AstJsxNode | null {
   const body = unwrapExpression(callback.body);
   switch (body?.type) {
@@ -227,6 +234,15 @@ function getCallbackReturnedJsx(callback: AstFunction): AstJsxNode | null {
 }
 
 function getRowKey(row: AstJsxNode): Node | null {
+  const key = getRowKeyAttribute(row);
+  return key?.value?.type === 'JSXExpressionContainer'
+    ? (unwrapExpression(key.value.expression) ?? null)
+    : null;
+}
+
+function getRowKeyAttribute(
+  row: AstJsxNode
+): Extract<JSXAttributeItem, { type: 'JSXAttribute' }> | null {
   const children = row.type === 'JSXElement' ? [row] : row.children;
   for (const child of children) {
     if (child.type !== 'JSXElement') {
@@ -235,8 +251,8 @@ function getRowKey(row: AstJsxNode): Node | null {
     const key = child.openingElement.attributes.find(
       (attr) => attr.type === 'JSXAttribute' && getJsxAttributeName(attr.name) === 'key'
     );
-    if (key?.type === 'JSXAttribute' && key.value?.type === 'JSXExpressionContainer') {
-      return unwrapExpression(key.value.expression) ?? null;
+    if (key?.type === 'JSXAttribute') {
+      return key;
     }
   }
   return null;

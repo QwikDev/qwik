@@ -576,11 +576,19 @@ export const SlotProjectedContentNotUpdatingDomIssue5506 = component$(() => {
 
   return (
     <div id="issue-5506-div">
-      <SlotParentIssue5506 key={render.value}>
-        <ToggleIssue5506 id="input-5506" checked={coerceBoolean(sig.value)} onClick$={onClick$} />
-        <br />
-        <button onClick$={() => render.value++}>Rerender on client</button>
-      </SlotParentIssue5506>
+      {render.value % 2 ? (
+        <SlotParentIssue5506>
+          <ToggleIssue5506 id="input-5506" checked={coerceBoolean(sig.value)} onClick$={onClick$} />
+          <br />
+          <button onClick$={() => render.value++}>Rerender on client</button>
+        </SlotParentIssue5506>
+      ) : (
+        <SlotParentIssue5506>
+          <ToggleIssue5506 id="input-5506" checked={coerceBoolean(sig.value)} onClick$={onClick$} />
+          <br />
+          <button onClick$={() => render.value++}>Rerender on client</button>
+        </SlotParentIssue5506>
+      )}
     </div>
   );
 });

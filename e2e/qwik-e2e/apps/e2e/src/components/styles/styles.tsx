@@ -13,7 +13,7 @@ export const Styles = component$(() => {
       <button id="reload" data-v={reload.value} onClick$={() => reload.value++}>
         Reload
       </button>
-      <StylesChildren v={reload.value} key={reload.value} />
+      {reload.value % 2 ? <StylesChildren v={reload.value} /> : <StylesChildren v={reload.value} />}
     </>
   );
 });

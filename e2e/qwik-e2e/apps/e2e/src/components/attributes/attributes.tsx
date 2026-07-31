@@ -9,7 +9,11 @@ export const Attributes = component$(() => {
         Rerender
       </button>
       <span id="render-count">{render.value}</span>
-      <AttributesChild v={render.value} key={render.value} />
+      {render.value % 2 ? (
+        <AttributesChild v={render.value} />
+      ) : (
+        <AttributesChild v={render.value} />
+      )}
     </>
   );
 });

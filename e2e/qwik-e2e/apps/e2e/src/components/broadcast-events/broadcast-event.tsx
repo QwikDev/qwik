@@ -93,7 +93,7 @@ export const BroadcastEvents = component$(() => {
       <button id="btn-toggle-render" type="button" onClick$={() => state.count++}>
         Rerender
       </button>
-      <MouseEvents key={state.count} />
+      {state.count % 2 === 0 ? <MouseEvents /> : <MouseEvents />}
     </div>
   );
 });

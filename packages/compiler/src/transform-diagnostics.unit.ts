@@ -362,3 +362,61 @@ export function App() {
     expect(result.diagnostics).toEqual([]);
   });
 });
+
+describe('component keys', () => {
+  test('warns that a component key does not remount the component', () => {
+    const result = diagnostics(`import { Child } from './child';
+export function App({ version }) {
+  return <Child key={version} />;
+}
+`);
+
+    expect(result).toHaveLength(1);
+    expect(result[0]).toMatchObject({
+      code: 'component-key',
+      category: 'warning',
+      message:
+        'The "key" prop on a component outside a JSX collection is ignored and does not remount it. To force a remount, switch branches: condition ? <Component /> : <Component />.',
+    });
+    expect(result[0]?.highlights?.[0]?.startLine).toBe(3);
+  });
+
+  test('does not warn for native element keys', () => {
+    expect(
+      diagnostics(`export function App({ version }) {
+  return <main key={version}>content</main>;
+}
+`)
+    ).toEqual([]);
+  });
+
+  test('does not warn for static component keys', () => {
+    expect(
+      diagnostics(`import { Child } from './child';
+export function App() {
+  return <main><Child key="first" /><Child key={2} /><Child key={'third'} /></main>;
+}
+`)
+    ).toEqual([]);
+  });
+
+  test('warns for namespace component keys', () => {
+    expect(
+      diagnostics(`import * as UI from './ui';
+export function App({ version }) {
+  return <UI.Child key={version} />;
+}
+`).map((diagnostic) => diagnostic.code)
+    ).toEqual(['component-key']);
+  });
+
+  test('does not warn for component collection keys', () => {
+    expect(
+      diagnostics(`import { Row } from './row';
+export function App({ rows }) {
+  return <main>{rows.map((row) => <Row key={row.id} value={row} />)}</main>;
+}
+`)
+    ).toEqual([]);
+  });
+});

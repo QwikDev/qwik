@@ -28,7 +28,11 @@ export const Render = component$(() => {
       <button id="rerender" data-v={rerender.value} onClick$={() => rerender.value++}>
         Rerender
       </button>
-      <RenderChildren v={rerender.value} key={rerender.value} />
+      {rerender.value % 2 ? (
+        <RenderChildren v={rerender.value} />
+      ) : (
+        <RenderChildren v={rerender.value} />
+      )}
     </>
   );
 });

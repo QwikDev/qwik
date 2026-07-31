@@ -8,7 +8,7 @@ export const Events = component$(() => {
       <button id="rerender" onClick$={() => rerenderCount.value++}>
         Rerender {rerenderCount.value}
       </button>
-      <EventsParent key={rerenderCount.value} />
+      {rerenderCount.value % 2 ? <EventsParent /> : <EventsParent />}
       <p id="render-count">{rerenderCount.value}</p>
     </div>
   );

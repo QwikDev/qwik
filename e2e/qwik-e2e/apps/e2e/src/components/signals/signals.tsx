@@ -1,7 +1,6 @@
 import {
   Slot,
   component$,
-  untrack,
   useComputed$,
   useSignal,
   useStore,
@@ -30,7 +29,11 @@ export const Signals = component$(() => {
         Rerender
       </button>
       <span id="rerender-count">Renders: {rerender.value}</span>
-      <SignalsChildren key={untrack(() => rerender.value)} rerenderCount={rerender.value} />
+      {rerender.value % 2 ? (
+        <SignalsChildren rerenderCount={rerender.value} />
+      ) : (
+        <SignalsChildren rerenderCount={rerender.value} />
+      )}
     </>
   );
 });

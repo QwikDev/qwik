@@ -11,6 +11,7 @@ import {
   unwrapExpression,
   visit,
 } from './ast-utils';
+import { getJsxMapKeyAttribute, getStaticJsxAttributeValue } from './jsx-ast-utils';
 import type { AstNode, SourceRange } from './types';
 import type {
   BindingInfo,
@@ -31,6 +32,7 @@ export const enum TransformDiagnosticCode {
   ModuleWrite = 'module-write',
   TransformFailure = 'transform-failure',
   ForKey = 'for-key',
+  ComponentKey = 'component-key',
   AsyncFor = 'async-for',
   Ref = 'ref',
   UseId = 'use-id',
@@ -151,7 +153,15 @@ export function validateModule(
   );
 
   for (const component of components) {
+    let collectionKeyRanges: Set<string> | null = null;
+
     visit(component.body, (node) => {
+      if (node.type === 'CallExpression') {
+        const collectionKeyRange = getRange(getJsxMapKeyAttribute(node));
+        if (collectionKeyRange !== null) {
+          (collectionKeyRanges ??= new Set()).add(rangeKey(collectionKeyRange));
+        }
+      }
       if (node.type !== 'JSXElement') {
         return;
       }
@@ -159,6 +169,32 @@ export function validateModule(
       const opening = node.openingElement;
       const elementRange = getRange(opening) ?? getRange(node) ?? [0, 0];
       const tag = getJsxName(opening.name);
+      const isComponent =
+        tag === null ? opening.name.type === 'JSXMemberExpression' : !isNativeTag(tag);
+      if (isComponent) {
+        const key = opening.attributes.find(
+          (attribute) =>
+            attribute.type === 'JSXAttribute' && getJsxAttributeName(attribute.name) === 'key'
+        );
+        const keyRange = getRange(key);
+        if (
+          key?.type === 'JSXAttribute' &&
+          getStaticJsxAttributeValue(key.value) === undefined &&
+          keyRange !== null &&
+          !collectionKeyRanges?.has(rangeKey(keyRange))
+        ) {
+          findings.push(
+            locatedDiagnostic(
+              file,
+              source,
+              keyRange,
+              TransformDiagnosticCode.ComponentKey,
+              'The "key" prop on a component outside a JSX collection is ignored and does not remount it. To force a remount, switch branches: condition ? <Component /> : <Component />.',
+              'warning'
+            )
+          );
+        }
+      }
       if (tag !== null && isNativeTag(tag) && hasRenderableChildren(node.children)) {
         const innerHtml = opening.attributes.find(
           (attribute) =>

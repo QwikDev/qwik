@@ -35,7 +35,7 @@ export const ContextRoot = component$(() => {
         Client Rerender
       </button>
       <span id="render-count">{count.value}</span>
-      <ContextApp key={count.value} count={count.value} />
+      {count.value % 2 ? <ContextApp count={count.value} /> : <ContextApp count={count.value} />}
     </div>
   );
 });
@@ -111,8 +111,8 @@ export const Level2 = component$(() => {
         Increment
       </button>
 
-      {Array.from({ length: state3.count }).map(() => {
-        return <Level3></Level3>;
+      {Array.from({ length: state3.count }).map((_, index) => {
+        return <Level3 key={index}></Level3>;
       })}
     </div>
   );

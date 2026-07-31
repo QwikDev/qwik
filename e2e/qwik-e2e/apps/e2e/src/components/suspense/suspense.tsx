@@ -27,7 +27,7 @@ export const SuspenseRoot = component$(() => {
         Rerender
       </button>
       <span id="render-count">{render.value}</span>
-      <SuspenseChildren key={render.value} />
+      {render.value % 2 ? <SuspenseChildren /> : <SuspenseChildren />}
     </>
   );
 });

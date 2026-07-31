@@ -37,6 +37,7 @@
     "packages/create-qwik",
     "packages/supabase-auth-helpers-qwik",
     "packages/qwik-react/src",
+    "packages/qwik-utils/src",
     "starters/apps/*",
     "e2e/qwik-e2e/apps/*",
     "packages/qwik-react/vite",

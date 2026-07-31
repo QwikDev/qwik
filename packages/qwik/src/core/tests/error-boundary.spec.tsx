@@ -200,14 +200,14 @@ const onErrorLog: { errors: unknown[] } = { errors: [] };
 
 const modes = [
   [
-    'CSR',
-    (jsx: () => JSXOutput, opts: Record<string, unknown> = {}) =>
-      domRender(jsx(), { debug, ...opts }),
-  ],
-  [
     'SSR',
     (jsx: () => JSXOutput, opts: Record<string, unknown> = {}) =>
       ssrRenderToDom(jsx(), { debug, ...opts }),
+  ],
+  [
+    'CSR',
+    (jsx: () => JSXOutput, opts: Record<string, unknown> = {}) =>
+      domRender(jsx(), { debug, ...opts }),
   ],
   [
     'SSR in a deferred segment',
@@ -369,75 +369,6 @@ describe('ErrorBoundary + fallback$', () => {
     });
   });
 
-  describe('CSR only', () => {
-    describe('last-resort fallback', () => {
-      it('renders a built-in role="alert" node when the fallback$ chunk fails to load', async () => {
-        const failingFallback = qrl(
-          () => Promise.reject(new Error('chunk load failure')),
-          'fb'
-        ) as any;
-        const { container } = await domRender(
-          <ErrorBoundary fallback$={failingFallback}>
-            <Thrower />
-          </ErrorBoundary>,
-          { debug }
-        );
-        await waitForDrain(container).catch(() => {});
-        const el = container.element;
-        const alert = el.querySelector('[role="alert"]');
-        expect(alert).toBeTruthy();
-        expect(alert?.textContent).toContain('Something went wrong');
-      });
-
-      it('a failing fallback$ chunk with an outer boundary still renders the last-resort locally', async () => {
-        const failingFallback = qrl(
-          () => Promise.reject(new Error('chunk load failure')),
-          'fb'
-        ) as any;
-        const { container } = await domRender(
-          <ErrorBoundary
-            fallback$={$(() => (
-              <p id="fb-outer">outer</p>
-            ))}
-          >
-            <ErrorBoundary fallback$={failingFallback}>
-              <Thrower />
-            </ErrorBoundary>
-          </ErrorBoundary>,
-          { debug }
-        );
-        await waitForDrain(container).catch(() => {});
-        const el = container.element;
-        const alert = el.querySelector('[role="alert"]');
-        expect(alert?.textContent).toContain('Something went wrong');
-        expect(el.querySelector('#fb-outer')).toBeFalsy();
-      });
-    });
-
-    it('safety net: a render throw with no enclosing boundary surfaces the ORIGINAL error to logError', async () => {
-      const original = new Error('unbounded boom');
-      const UnboundedThrower = component$((): JSXOutput => {
-        throw original;
-      });
-      const throwAsyncSpy = vi
-        .spyOn(logUtils, 'logErrorAndThrowAsync')
-        .mockImplementation((message?: any) => message as Error);
-      try {
-        const { container } = await domRender(
-          <main>
-            <UnboundedThrower />
-          </main>,
-          { debug }
-        );
-        await waitForDrain(container).catch(() => {});
-        expect(throwAsyncSpy).toHaveBeenCalledTimes(1);
-        expect(throwAsyncSpy).toHaveBeenCalledWith(original);
-      } finally {
-        throwAsyncSpy.mockRestore();
-      }
-    });
-  });
-
   describe('SSR only', () => {
     describe('safety net: an in-order SSR throw with no boundary above', () => {
       it('a synchronous render throw propagates and rejects the render', async () => {
@@ -537,7 +468,91 @@ describe('ErrorBoundary + fallback$', () => {
     });
   });
 
+  describe('CSR only', () => {
+    describe('last-resort fallback', () => {
+      it('renders a built-in role="alert" node when the fallback$ chunk fails to load', async () => {
+        const failingFallback = qrl(
+          () => Promise.reject(new Error('chunk load failure')),
+          'fb'
+        ) as any;
+        const { container } = await domRender(
+          <ErrorBoundary fallback$={failingFallback}>
+            <Thrower />
+          </ErrorBoundary>,
+          { debug }
+        );
+        await waitForDrain(container).catch(() => {});
+        const el = container.element;
+        const alert = el.querySelector('[role="alert"]');
+        expect(alert).toBeTruthy();
+        expect(alert?.textContent).toContain('Something went wrong');
+      });
+
+      it('a failing fallback$ chunk with an outer boundary still renders the last-resort locally', async () => {
+        const failingFallback = qrl(
+          () => Promise.reject(new Error('chunk load failure')),
+          'fb'
+        ) as any;
+        const { container } = await domRender(
+          <ErrorBoundary
+            fallback$={$(() => (
+              <p id="fb-outer">outer</p>
+            ))}
+          >
+            <ErrorBoundary fallback$={failingFallback}>
+              <Thrower />
+            </ErrorBoundary>
+          </ErrorBoundary>,
+          { debug }
+        );
+        await waitForDrain(container).catch(() => {});
+        const el = container.element;
+        const alert = el.querySelector('[role="alert"]');
+        expect(alert?.textContent).toContain('Something went wrong');
+        expect(el.querySelector('#fb-outer')).toBeFalsy();
+      });
+    });
+
+    it('safety net: a render throw with no enclosing boundary surfaces the ORIGINAL error to logError', async () => {
+      const original = new Error('unbounded boom');
+      const UnboundedThrower = component$((): JSXOutput => {
+        throw original;
+      });
+      const throwAsyncSpy = vi
+        .spyOn(logUtils, 'logErrorAndThrowAsync')
+        .mockImplementation((message?: any) => message as Error);
+      try {
+        const { container } = await domRender(
+          <main>
+            <UnboundedThrower />
+          </main>,
+          { debug }
+        );
+        await waitForDrain(container).catch(() => {});
+        expect(throwAsyncSpy).toHaveBeenCalledTimes(1);
+        expect(throwAsyncSpy).toHaveBeenCalledWith(original);
+      } finally {
+        throwAsyncSpy.mockRestore();
+      }
+    });
+  });
+
   describe('hostile thrown values', () => {
+    it('SSR: a component throwing a revoked Proxy still renders the fallback', async () => {
+      const HostileThrower = component$((): JSXOutput => {
+        const { proxy, revoke } = Proxy.revocable({}, {});
+        revoke();
+        throw proxy;
+      });
+      const { container } = await ssrRenderToDom(
+        <ErrorBoundary fallback$={fb()}>
+          <HostileThrower />
+        </ErrorBoundary>,
+        { debug }
+      );
+      expect(container.element.querySelector('#fb')).toBeTruthy();
+    });
+
     it('CSR: an event handler throwing a revoked Proxy still renders the fallback', async () => {
       const HostileClicker = component$(() => (
         <button
@@ -557,21 +572,6 @@ describe('ErrorBoundary + fallback$', () => {
         { debug }
       );
       await trigger(container.element, 'button', 'click');
-      expect(container.element.querySelector('#fb')).toBeTruthy();
-    });
-
-    it('SSR: a component throwing a revoked Proxy still renders the fallback', async () => {
-      const HostileThrower = component$((): JSXOutput => {
-        const { proxy, revoke } = Proxy.revocable({}, {});
-        revoke();
-        throw proxy;
-      });
-      const { container } = await ssrRenderToDom(
-        <ErrorBoundary fallback$={fb()}>
-          <HostileThrower />
-        </ErrorBoundary>,
-        { debug }
-      );
       expect(container.element.querySelector('#fb')).toBeTruthy();
     });
   });
@@ -1777,14 +1777,6 @@ describe('ErrorBoundary + fallback$', () => {
           throw new Error(message);
         }) as unknown as JSXOutput;
 
-      it('CSR: a function child inside a boundary renders empty — no crash, no fallback', async () => {
-        const { container } = await domRender(
-          <ErrorBoundary fallback$={fb()}>{throwingFnChild()}</ErrorBoundary>,
-          { debug }
-        );
-        expect(container.element.querySelector('#fb')).toBeFalsy();
-      });
-
       it('SSR: a sync function-child throw renders the fallback', async () => {
         const { container } = await ssrRenderToDom(
           <ErrorBoundary fallback$={fb()}>{throwingFnChild()}</ErrorBoundary>,
@@ -1846,6 +1838,14 @@ describe('ErrorBoundary + fallback$', () => {
         expect(received).toHaveLength(1);
         expect(received[0]).toBe(original);
         expect(infos).toEqual([{ phase: 'render' }]);
+      });
+
+      it('CSR: a function child inside a boundary renders empty — no crash, no fallback', async () => {
+        const { container } = await domRender(
+          <ErrorBoundary fallback$={fb()}>{throwingFnChild()}</ErrorBoundary>,
+          { debug }
+        );
+        expect(container.element.querySelector('#fb')).toBeFalsy();
       });
 
       it('SSR OOOS: a sync function-child throw inside a Suspense segment renders the fallback', async () => {
@@ -2657,19 +2657,19 @@ const resetResumed = async (container: any) => {
 
 const resetModes = [
   [
+    'SSR-resume-in-order',
+    {
+      render: (jsx: JSXOutput) => ssrRenderToDom(jsx, { debug, ...IN_ORDER }),
+      driveReset: resetResumed,
+    },
+  ],
+  [
     'CSR-click',
     {
       render: (jsx: JSXOutput) => domRender(jsx, { debug }),
       driveReset: async (container: any) => {
         await trigger(container.element, '#retry', 'click');
       },
-    },
-  ],
-  [
-    'SSR-resume-in-order',
-    {
-      render: (jsx: JSXOutput) => ssrRenderToDom(jsx, { debug, ...IN_ORDER }),
-      driveReset: resetResumed,
     },
   ],
   [
@@ -2720,25 +2720,6 @@ describe('ErrorBoundary reset', () => {
     });
   });
 
-  it('sequential errors across resets: a second error after recovery shows the second message, and reset recovers again', async () => {
-    resetRef.toggle = 0;
-    const App = withResetBoundary(<ResetToggle />);
-    const { container } = await domRender(<App />, { debug });
-    const el = container.element;
-    expect(el.querySelector('#retry')?.textContent).toContain('boom-1');
-
-    await trigger(el, '#retry', 'click');
-    expect(el.querySelector('#alive')).toBeTruthy();
-
-    await rerenderComponent(el.querySelector('#alive') as HTMLElement);
-    await waitForDrain(container).catch(() => {});
-    expect(el.querySelector('#retry')?.textContent).toContain('boom-3');
-
-    await trigger(el, '#retry', 'click');
-    expect(el.querySelector('#alive')).toBeTruthy();
-    expect(el.querySelector('#retry')).toBeFalsy();
-  });
-
   it('a boundary healthy at SSR still resets after a client error post-resume', async () => {
     const Healthy = component$(() => <button id="target">x</button>);
     const App = withResetBoundary(<Healthy />);
@@ -2759,44 +2740,26 @@ describe('ErrorBoundary reset', () => {
     expect(el.querySelector('#retry')).toBeFalsy();
   });
 
+  it('sequential errors across resets: a second error after recovery shows the second message, and reset recovers again', async () => {
+    resetRef.toggle = 0;
+    const App = withResetBoundary(<ResetToggle />);
+    const { container } = await domRender(<App />, { debug });
+    const el = container.element;
+    expect(el.querySelector('#retry')?.textContent).toContain('boom-1');
+
+    await trigger(el, '#retry', 'click');
+    expect(el.querySelector('#alive')).toBeTruthy();
+
+    await rerenderComponent(el.querySelector('#alive') as HTMLElement);
+    await waitForDrain(container).catch(() => {});
+    expect(el.querySelector('#retry')?.textContent).toContain('boom-3');
+
+    await trigger(el, '#retry', 'click');
+    expect(el.querySelector('#alive')).toBeTruthy();
+    expect(el.querySelector('#retry')).toBeFalsy();
+  });
+
   describe('nested boundaries', () => {
-    const escalationRef = { fallbackCalls: 0 };
-    const EscalationResetApp = component$(() => (
-      <ErrorBoundary
-        fallback$={$((e: any, reset: any) => (
-          <button id="retry-outer" onClick$={() => reset()}>
-            outer: {String(e?.message ?? e)}
-          </button>
-        ))}
-      >
-        <ErrorBoundary
-          fallback$={$(() => {
-            escalationRef.fallbackCalls++;
-            if (escalationRef.fallbackCalls === 1) {
-              throw new Error('inner fallback boom');
-            }
-            return <p id="fb-inner">inner recovered</p>;
-          })}
-        >
-          <Thrower />
-        </ErrorBoundary>
-      </ErrorBoundary>
-    ));
-
-    it('reset after escalation: the outer boundary resets and re-attempts the whole subtree', async () => {
-      escalationRef.fallbackCalls = 0;
-      const { container } = await domRender(<EscalationResetApp />, { debug });
-      await waitForDrain(container).catch(() => {});
-      const el = container.element;
-      expect(el.querySelector('#retry-outer')?.textContent).toContain('inner fallback boom');
-
-      await trigger(el, '#retry-outer', 'click');
-      await waitForDrain(container).catch(() => {});
-
-      expect(el.querySelector('#fb-inner')?.textContent).toContain('inner recovered');
-      expect(el.querySelector('#retry-outer')).toBeFalsy();
-    });
-
     const NestedResetApp = component$(() => (
       <main>
         <ErrorBoundary
@@ -2836,7 +2799,94 @@ describe('ErrorBoundary reset', () => {
       expect(el.querySelector('#outer-sibling')).toBeTruthy();
     });
 
+    const escalationRef = { fallbackCalls: 0 };
+    const EscalationResetApp = component$(() => (
+      <ErrorBoundary
+        fallback$={$((e: any, reset: any) => (
+          <button id="retry-outer" onClick$={() => reset()}>
+            outer: {String(e?.message ?? e)}
+          </button>
+        ))}
+      >
+        <ErrorBoundary
+          fallback$={$(() => {
+            escalationRef.fallbackCalls++;
+            if (escalationRef.fallbackCalls === 1) {
+              throw new Error('inner fallback boom');
+            }
+            return <p id="fb-inner">inner recovered</p>;
+          })}
+        >
+          <Thrower />
+        </ErrorBoundary>
+      </ErrorBoundary>
+    ));
+
+    it('reset after escalation: the outer boundary resets and re-attempts the whole subtree', async () => {
+      escalationRef.fallbackCalls = 0;
+      const { container } = await domRender(<EscalationResetApp />, { debug });
+      await waitForDrain(container).catch(() => {});
+      const el = container.element;
+      expect(el.querySelector('#retry-outer')?.textContent).toContain('inner fallback boom');
+
+      await trigger(el, '#retry-outer', 'click');
+      await waitForDrain(container).catch(() => {});
+
+      expect(el.querySelector('#fb-inner')?.textContent).toContain('inner recovered');
+      expect(el.querySelector('#retry-outer')).toBeFalsy();
+    });
+
     describe('reset inside the outer fallback', () => {
+      // A captured flag freezes across the resume wire; gate on the platform.
+      const SsrFallbackAlwaysThrower = component$((): JSXOutput => {
+        throw new Error('outer-boom');
+      });
+      const SsrFallbackNestedFlake = component$(() => {
+        if (isServerPlatform()) {
+          throw new Error('inner-boom');
+        }
+        return <div id="ssr-inner-ok">inner ok</div>;
+      });
+      const ssrNestedInnerFb = $((ie: any, reset: any) => (
+        <button id="ssr-retry-nested" onClick$={() => reset()}>
+          inner caught: {ie.message}
+        </button>
+      ));
+      const ssrNestedOuterFb = $((e: any) => (
+        <>
+          <p id="ssr-outer-fb">outer: {String(e?.message ?? e)}</p>
+          <ErrorBoundary fallback$={ssrNestedInnerFb}>
+            <SsrFallbackNestedFlake />
+          </ErrorBoundary>
+        </>
+      ));
+      const SsrFallbackNestedApp = component$(() => (
+        <main>
+          <ErrorBoundary fallback$={ssrNestedOuterFb}>
+            <SsrFallbackAlwaysThrower />
+          </ErrorBoundary>
+        </main>
+      ));
+
+      it('after a server-side error: re-derives the outer and recovers the inner', async () => {
+        const { container } = await ssrRenderToDom(<SsrFallbackNestedApp />, {
+          debug,
+          ...IN_ORDER,
+        });
+        const el = container.element;
+        expect(el.querySelector('#ssr-outer-fb')).toBeTruthy();
+        expect(el.querySelector('#ssr-retry-nested')).toBeTruthy();
+        expect(el.querySelector('#ssr-inner-ok')).toBeFalsy();
+
+        const c = _getDomContainer(el) as any;
+        c.resetErrorBoundary(c.vNodeLocate(el.querySelector('#ssr-retry-nested')));
+        await waitForDrain(container);
+
+        expect(el.querySelector('#ssr-outer-fb')).toBeTruthy();
+        expect(el.querySelector('#ssr-inner-ok')?.textContent).toContain('inner ok');
+        expect(el.querySelector('#ssr-retry-nested')).toBeFalsy();
+      });
+
       const fallbackNestedRef = { outerThrown: false, innerThrows: true };
       const FallbackOuterOnce = component$(() => {
         if (!fallbackNestedRef.outerThrown) {
@@ -2892,56 +2942,6 @@ describe('ErrorBoundary reset', () => {
         expect(el.querySelector('#retry-nested')).toBeFalsy();
         expect(el.querySelector('#outer-fb')).toBeTruthy();
       });
-
-      // A captured flag freezes across the resume wire; gate on the platform.
-      const SsrFallbackAlwaysThrower = component$((): JSXOutput => {
-        throw new Error('outer-boom');
-      });
-      const SsrFallbackNestedFlake = component$(() => {
-        if (isServerPlatform()) {
-          throw new Error('inner-boom');
-        }
-        return <div id="ssr-inner-ok">inner ok</div>;
-      });
-      const ssrNestedInnerFb = $((ie: any, reset: any) => (
-        <button id="ssr-retry-nested" onClick$={() => reset()}>
-          inner caught: {ie.message}
-        </button>
-      ));
-      const ssrNestedOuterFb = $((e: any) => (
-        <>
-          <p id="ssr-outer-fb">outer: {String(e?.message ?? e)}</p>
-          <ErrorBoundary fallback$={ssrNestedInnerFb}>
-            <SsrFallbackNestedFlake />
-          </ErrorBoundary>
-        </>
-      ));
-      const SsrFallbackNestedApp = component$(() => (
-        <main>
-          <ErrorBoundary fallback$={ssrNestedOuterFb}>
-            <SsrFallbackAlwaysThrower />
-          </ErrorBoundary>
-        </main>
-      ));
-
-      it('after a server-side error: re-derives the outer and recovers the inner', async () => {
-        const { container } = await ssrRenderToDom(<SsrFallbackNestedApp />, {
-          debug,
-          ...IN_ORDER,
-        });
-        const el = container.element;
-        expect(el.querySelector('#ssr-outer-fb')).toBeTruthy();
-        expect(el.querySelector('#ssr-retry-nested')).toBeTruthy();
-        expect(el.querySelector('#ssr-inner-ok')).toBeFalsy();
-
-        const c = _getDomContainer(el) as any;
-        c.resetErrorBoundary(c.vNodeLocate(el.querySelector('#ssr-retry-nested')));
-        await waitForDrain(container);
-
-        expect(el.querySelector('#ssr-outer-fb')).toBeTruthy();
-        expect(el.querySelector('#ssr-inner-ok')?.textContent).toContain('inner ok');
-        expect(el.querySelector('#ssr-retry-nested')).toBeFalsy();
-      });
     });
   });
 
@@ -2963,25 +2963,6 @@ describe('ErrorBoundary reset', () => {
         <Slot />
       </ErrorBoundary>
     ));
-
-    it('CSR-click: reset through a boundary packaged in a wrapper re-executes the children', async () => {
-      resetRef.flake = 0;
-      const App = component$(() => (
-        <main>
-          <BoxedBoundary>
-            <ResetFlake />
-          </BoxedBoundary>
-        </main>
-      ));
-      const { container } = await domRender(<App />, { debug });
-      const el = container.element;
-      expect(el.querySelector('#retry-wrapped')).toBeTruthy();
-
-      await trigger(el, '#retry-wrapped', 'click');
-
-      expect(el.querySelector('#ok')?.textContent).toContain('ok');
-      expect(el.querySelector('#retry-wrapped')).toBeFalsy();
-    });
 
     it.each([
       ['SSR-resume-in-order', IN_ORDER],
@@ -3008,6 +2989,25 @@ describe('ErrorBoundary reset', () => {
         expect(el.querySelector('#retry-wrapped')).toBeFalsy();
       }
     );
+
+    it('CSR-click: reset through a boundary packaged in a wrapper re-executes the children', async () => {
+      resetRef.flake = 0;
+      const App = component$(() => (
+        <main>
+          <BoxedBoundary>
+            <ResetFlake />
+          </BoxedBoundary>
+        </main>
+      ));
+      const { container } = await domRender(<App />, { debug });
+      const el = container.element;
+      expect(el.querySelector('#retry-wrapped')).toBeTruthy();
+
+      await trigger(el, '#retry-wrapped', 'click');
+
+      expect(el.querySelector('#ok')?.textContent).toContain('ok');
+      expect(el.querySelector('#retry-wrapped')).toBeFalsy();
+    });
 
     const WrapperProjector = component$(() => (
       <div data-wrapper="">
@@ -3045,26 +3045,6 @@ describe('ErrorBoundary reset', () => {
 });
 
 describe('PublicError (rendered)', () => {
-  it('CSR: an event handler throwing a PublicError shows its message in the fallback', async () => {
-    const Clicker = component$(() => (
-      <button
-        onClick$={() => {
-          throw new PublicError('Out of stock');
-        }}
-      >
-        go
-      </button>
-    ));
-    const { container } = await domRender(
-      <ErrorBoundary fallback$={fb()}>
-        <Clicker />
-      </ErrorBoundary>,
-      { debug }
-    );
-    await trigger(container.element, 'button', 'click');
-    expect(container.element.querySelector('#fb')?.textContent).toContain('caught: Out of stock');
-  });
-
   it.each(streamingModes)(
     '%s: a thrown PublicError renders its message through the fallback and does NOT serialize its data',
     async (_label, streamingOpts) => {
@@ -3099,6 +3079,26 @@ describe('PublicError (rendered)', () => {
       expect(el.querySelector('#fb')?.textContent).toBe('public:A1');
     }
   );
+
+  it('CSR: an event handler throwing a PublicError shows its message in the fallback', async () => {
+    const Clicker = component$(() => (
+      <button
+        onClick$={() => {
+          throw new PublicError('Out of stock');
+        }}
+      >
+        go
+      </button>
+    ));
+    const { container } = await domRender(
+      <ErrorBoundary fallback$={fb()}>
+        <Clicker />
+      </ErrorBoundary>,
+      { debug }
+    );
+    await trigger(container.element, 'button', 'click');
+    expect(container.element.querySelector('#fb')?.textContent).toContain('caught: Out of stock');
+  });
 
   it('an inner fallback throwing a PublicError escalates to the outer boundary unredacted', async () => {
     const { container } = await ssrRenderToDom(

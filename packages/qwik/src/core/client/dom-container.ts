@@ -379,7 +379,8 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         markVNodeDirty(this, boundaryHost, ChoreBits.COMPONENT);
         return;
       }
-      if (store && store.error === null) {
+      // Capture-only sentinel for the ErrorProvider test spy; folds away in prod builds.
+      if (qTest && store && store.error === null) {
         store.error = storedError;
         return;
       }

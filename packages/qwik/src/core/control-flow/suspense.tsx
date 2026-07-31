@@ -22,6 +22,7 @@ import { resolveSlotName } from '../shared/utils/prop';
 import { noSerialize } from '../shared/serdes/verify';
 import { isOutOfOrderSegmentContainer } from '../shared/utils/container';
 import { createInternalServerComponent } from '../ssr/internal-server-component';
+import { finalizeAndSwapOutOfOrderSegment } from '../ssr/out-of-order-segment-swap';
 import type { SSRContainer, SSROutOfOrderSegment, SSRRenderJSXOptions } from '../ssr/ssr-types';
 import {
   ERROR_CONTEXT,
@@ -334,34 +335,6 @@ function createClaimedDeferredSlot(
     jsx.flags,
     jsx.key
   );
-}
-
-async function finalizeAndSwapOutOfOrderSegment(
-  ssr: SSRContainer,
-  boundaryId: number,
-  segmentId: string,
-  rendered: SSROutOfOrderSegment,
-  revealBoundary: OutOfOrderRevealBoundary | null,
-  emitExecutor: boolean
-): Promise<void> {
-  const result = await rendered.container.$finalizeOutOfOrderSegment$(segmentId, rendered);
-  ssr.write(`<template ${QSuspenseResolved}="${boundaryId}"${revealBoundary?.attrs ?? ''}>`);
-  ssr.write(result.html);
-  ssr.write('</template>');
-  ssr.emitOutOfOrderSegmentScripts(result.scripts);
-  if (emitExecutor) {
-    ssr.emitOutOfOrderExecutorIfNeeded();
-  }
-  ssr.emitInlineScript(`qO(${boundaryId})`);
-  const errorSwapIds = rendered.container.$errorSwapIds$;
-  if (__EXPERIMENTAL__.errorBoundary && errorSwapIds.length) {
-    ssr.emitErrorSwapExecutorIfNeeded();
-    for (let i = 0; i < errorSwapIds.length; i++) {
-      ssr.emitInlineScript(`qErr(${errorSwapIds[i]})`);
-    }
-  }
-  // qO() is the browser-visible handoff for this segment, so flush it immediately.
-  await ssr.streamHandler.flush();
 }
 
 async function emitRenderedOutOfOrderSegment(

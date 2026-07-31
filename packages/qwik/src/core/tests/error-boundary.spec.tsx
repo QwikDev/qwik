@@ -7,6 +7,7 @@ import {
   render,
   setPlatform,
   Slot,
+  SSRStream,
   Suspense,
   useComputed$,
   useSignal,
@@ -1610,28 +1611,48 @@ describe('ErrorBoundary SSR-specific', () => {
     });
   });
 
-  const AsyncGenThrower = component$(() => {
-    return (
-      <>
-        {(async function* () {
-          yield <div id="chunk">chunk</div>;
-          throw new Error('async gen boom');
-        })()}
-      </>
-    ) as unknown as JSXOutput;
-  });
+  const AsyncGenThrower = component$(() => (
+    <SSRStream>
+      {async function* () {
+        yield <div id="chunk">chunk</div>;
+        throw new Error('async gen boom');
+      }}
+    </SSRStream>
+  ));
+  const StreamWriterThrower = component$(() => (
+    <SSRStream>
+      {async (stream) => {
+        stream.write(<div id="chunk">chunk</div>);
+        throw new Error('stream writer boom');
+      }}
+    </SSRStream>
+  ));
 
-  it('routes an async-generator child throw to the enclosing boundary fallback', async () => {
+  it('routes an <SSRStream> generator throw to the boundary, already-streamed chunks intact', async () => {
     const { container } = await ssrRenderToDom(
       <ErrorBoundary fallback$={fb()}>
         <AsyncGenThrower />
       </ErrorBoundary>,
       { debug }
     );
-    expect(container.element.querySelector('#fb')?.textContent).toContain('caught: async gen boom');
+    const el = container.element;
+    expect(el.querySelector('#fb')?.textContent).toContain('caught: async gen boom');
+    expect(el.querySelector('#chunk')).toBeTruthy();
   });
 
-  it('onError$ receives info.phase "async-generator" for an async-generator child throw', async () => {
+  it('routes an <SSRStream> writer-function throw to the boundary', async () => {
+    const { container } = await ssrRenderToDom(
+      <ErrorBoundary fallback$={fb()}>
+        <StreamWriterThrower />
+      </ErrorBoundary>,
+      { debug }
+    );
+    expect(container.element.querySelector('#fb')?.textContent).toContain(
+      'caught: stream writer boom'
+    );
+  });
+
+  it('onError$ receives info.phase "async-generator" for an <SSRStream> generator throw', async () => {
     const infos: Array<{ phase: string; boundaryId: string }> = [];
     await ssrRenderToDom(
       <ErrorBoundary

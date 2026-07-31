@@ -101,7 +101,8 @@ export {
   usePreventNavigateQrl,
 } from './use-functions';
 
-export { z } from 'zod';
+import * as z from 'zod';
+export { z };
 
 export { Form } from './form-component';
 export type { FormProps } from './form-component';

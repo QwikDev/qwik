@@ -103,7 +103,7 @@ export const _qrlWithChunkDEV = <T = any>(
   lexicalScopeCapture?: Readonly<unknown[]>
 ): QRL<T> => {
   const newQrl = _qrlWithChunk(chunk, importer, symbol, lexicalScopeCapture) as QRLInternal<T>;
-  newQrl.$setDev$(opts);
+  qDev && newQrl.$setDev$(opts);
   return newQrl;
 };
 

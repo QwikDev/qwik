@@ -940,41 +940,8 @@ describe('async signal', () => {
     });
   });
 
-  describe('allowStale', () => {
-    it('should not set CLEAR_ON_INVALIDATE flag by default', async () => {
-      await withContainer(async () => {
-        const signal = createAsync$(async () => 42, {
-          initial: 10,
-        }) as AsyncSignalImpl<number>;
-
-        expect(signal.$flags$ & AsyncSignalFlags.CLEAR_ON_INVALIDATE).toBe(0);
-      });
-    });
-
-    it('should set CLEAR_ON_INVALIDATE flag when allowStale is false', async () => {
-      await withContainer(async () => {
-        const signal = createAsync$(async () => 42, {
-          allowStale: false,
-        }) as AsyncSignalImpl<number>;
-
-        expect(signal.$flags$ & AsyncSignalFlags.CLEAR_ON_INVALIDATE).toBe(
-          AsyncSignalFlags.CLEAR_ON_INVALIDATE
-        );
-      });
-    });
-
-    it('should throw when allowStale is false and initial is provided', async () => {
-      await withContainer(async () => {
-        expect(() => {
-          createAsync$(async () => 42, {
-            initial: 10,
-            allowStale: false,
-          });
-        }).toThrow('allowStale: false and initial cannot be used together');
-      });
-    });
-
-    it('should keep stale value on invalidate when allowStale is true (default)', async () => {
+  describe('clear', () => {
+    it('should keep stale value on invalidate', async () => {
       await withContainer(async () => {
         const ref = {
           resolve: undefined as ((value: number) => void) | undefined,
@@ -1002,7 +969,7 @@ describe('async signal', () => {
         await signal.promise();
         expect(signal.value).toBe(42);
 
-        // Invalidate — with allowStale=true (default), value should remain
+        // Invalidate keeps the stale value while recomputing
         ref.resolve = undefined;
         await signal.invalidate();
 
@@ -1011,22 +978,19 @@ describe('async signal', () => {
       });
     });
 
-    it('should clear value on invalidate when allowStale is false', async () => {
+    it('should clear the value and recompute on clear()', async () => {
       await withContainer(async () => {
         const ref = {
           resolve: undefined as ((value: number) => void) | undefined,
           started: 0,
         };
 
-        const signal = createAsync$(
-          async () => {
-            ref.started++;
-            return new Promise<number>((resolve) => {
-              ref.resolve = resolve;
-            });
-          },
-          { allowStale: false }
-        ) as AsyncSignalImpl<number>;
+        const signal = createAsync$(async () => {
+          ref.started++;
+          return new Promise<number>((resolve) => {
+            ref.resolve = resolve;
+          });
+        }) as AsyncSignalImpl<number>;
 
         effect$(() => {
           try {
@@ -1045,12 +1009,21 @@ describe('async signal', () => {
         await signal.promise();
         expect(signal.value).toBe(42);
 
-        // Invalidate — with allowStale=false, value should be cleared
         ref.resolve = undefined;
-        await signal.invalidate();
+        signal.clear();
 
-        // Value should be NEEDS_COMPUTATION
+        // Value is cleared while recomputing, so readers see the loading state
         expect(signal.$untrackedValue$).toBe(NEEDS_COMPUTATION);
+        const settled = signal.promise();
+        await retryOnPromise(() => {
+          if (!ref.resolve) {
+            throw new Promise((resolve) => setTimeout(resolve, 0));
+          }
+        });
+        ref.resolve!(43);
+        await settled;
+        expect(signal.value).toBe(43);
+        expect(ref.started).toBe(2);
       });
     });
   });

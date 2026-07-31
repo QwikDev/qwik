@@ -852,14 +852,6 @@ export type LoaderOptions = {
    */
   readonly search?: string[];
   /**
-   * When true (default), the previous value is kept while the loader re-fetches after navigation,
-   * so components see stale data until the new response arrives.
-   *
-   * When false, the value is cleared on re-fetch, causing reads to suspend (show a loading
-   * boundary). This is useful when showing old data during navigation would be confusing.
-   */
-  readonly allowStale?: boolean;
-  /**
    * When true (default), the loader is awaited before SSR renders, so its redirect or error can
    * short-circuit the response and its value is ready for synchronous reads (e.g. in the head).
    *
@@ -1029,7 +1021,6 @@ export interface LoaderInternal extends Loader<any> {
   __eTag: string | ((ev: RequestEvent) => string | null) | undefined;
   __cacheKey: CacheKeyFn | undefined;
   __search: string[] | undefined;
-  __allowStale: boolean;
   __blockSSR: boolean;
   (): LoaderSignal<unknown>;
 }

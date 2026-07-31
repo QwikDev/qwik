@@ -140,7 +140,6 @@ function createLoader(
     __eTag: undefined,
     __cacheKey: undefined,
     __search: undefined,
-    __allowStale: true,
   } as any;
 }
 

@@ -418,7 +418,6 @@ const createRouteLoaderSignal = (
 
     {
       serializationStrategy: loader.__serializationStrategy,
-      allowStale: loader.__allowStale,
     }
   );
   _markSignalAsExternallyOwned(signal);
@@ -447,7 +446,6 @@ const getLoaderOptions = (rest: (LoaderOptions | DataValidator)[]) => {
   let eTag: LoaderOptions['eTag'] | undefined;
   let cacheKey: LoaderOptions['cacheKey'] | undefined;
   let search: string[] | undefined;
-  let allowStale = true;
   let blockSSR = true;
   const validators: DataValidator[] = [];
 
@@ -483,9 +481,6 @@ const getLoaderOptions = (rest: (LoaderOptions | DataValidator)[]) => {
         } else if (globalThis.__STRICT_LOADERS__) {
           search = [];
         }
-        if (options.allowStale === false) {
-          allowStale = false;
-        }
         if (options.blockSSR === false) {
           if (!__EXPERIMENTAL__.blockSSR) {
             throw new Error(
@@ -509,7 +504,6 @@ const getLoaderOptions = (rest: (LoaderOptions | DataValidator)[]) => {
     eTag,
     cacheKey,
     search,
-    allowStale,
     blockSSR,
   };
 };
@@ -917,18 +911,8 @@ export const routeLoaderQrl = ((
   loaderQrl: QRL<(event: RequestEventLoader) => unknown>,
   ...rest: (LoaderOptions | DataValidator)[]
 ): LoaderInternal => {
-  const {
-    id,
-    validators,
-    serializationStrategy,
-    expires,
-    poll,
-    eTag,
-    cacheKey,
-    search,
-    allowStale,
-    blockSSR,
-  } = getLoaderOptions(rest);
+  const { id, validators, serializationStrategy, expires, poll, eTag, cacheKey, search, blockSSR } =
+    getLoaderOptions(rest);
 
   function loader() {
     const state = _resolveContextWithoutSequentialScope(RouteStateContext)!;
@@ -951,7 +935,6 @@ export const routeLoaderQrl = ((
   loader.__eTag = eTag;
   loader.__cacheKey = cacheKey;
   loader.__search = search;
-  loader.__allowStale = allowStale;
   loader.__blockSSR = blockSSR;
   Object.freeze(loader);
   return loader;
@@ -975,8 +958,6 @@ export const routeLoaderQrl = ((
  *   sent in the request and changes to other params are ignored. During SSR and loader JSON
  *   requests, the loader's request event is filtered to those params too. `search: []` means no
  *   search params are sent and only route path changes trigger a re-fetch.
- * - `allowStale: false`: Clears the previous value when re-fetching, so components see a loading
- *   state instead of stale data during navigation. Useful when old data would be confusing.
  * - `eTag`: Enable ETag-based caching. Can be `true` (auto-hash), a string, or a function.
  * - `expires` / `poll`: Control client-side caching and polling behavior.
  *

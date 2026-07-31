@@ -98,7 +98,6 @@ export type ComputedFn<T> = (ctx: ComputeCtx) => ValueOrPromise<T>;
 
 // @public (undocumented)
 export interface ComputedOptions<T = unknown> {
-    allowStale?: boolean;
     clientOnly?: boolean;
     concurrency?: number;
     // Warning: (ae-incompatible-release-tags) The symbol "container" is marked as @public, but its signature references "_Container" which is marked as @internal
@@ -118,6 +117,7 @@ export type ComputedReturnType<T> = ComputedSignal<Awaited<T>>;
 // @public
 export interface ComputedSignal<T> extends Signal<T> {
     abort(reason?: any): void;
+    clear(): void;
     error: Error | undefined;
     // @deprecated (undocumented)
     force(): void;

@@ -168,6 +168,5 @@ function createLoader(
     __eTag: undefined,
     __cacheKey: undefined,
     __search: search,
-    __allowStale: true,
   } as any;
 }

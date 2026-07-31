@@ -169,15 +169,12 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       // clientOnly can never resolve during SSR, so it must be async from the start
       this.$flags$ |= AsyncSignalFlags.CLIENT_ONLY | AsyncSignalFlags.ASYNC_MODE;
     }
-    if (options.allowStale === false) {
-      if (isDev && initial !== undefined) {
-        throw new Error(
-          'allowStale: false and initial cannot be used together. ' +
-            'allowStale: false clears the value on invalidation, which conflicts with providing an initial value.'
-        );
-      }
-      this.$flags$ |= AsyncSignalFlags.CLEAR_ON_INVALIDATE;
-    }
+  }
+
+  /** Clear the value so readers see the loading state, then recompute. */
+  clear(): void {
+    this.$untrackedValue$ = NEEDS_COMPUTATION;
+    this.invalidate();
   }
 
   invalidate(info?: unknown) {
@@ -186,7 +183,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       this.$infoVersion$ = this.$infoVersion$ === undefined ? 1 : this.$infoVersion$ + 1;
     }
     if (this.$flags$ & AsyncSignalFlags.ASYNC_MODE) {
-      this.$setInvalid$(true, this.$flags$ & AsyncSignalFlags.CLEAR_ON_INVALIDATE);
+      this.$setInvalid$(true);
       return;
     }
     this.$flags$ |= ComputedSignalFlags.INVALID;
@@ -379,11 +376,8 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     return this.$untrackedError$;
   }
 
-  $setInvalid$(allowRecalc: boolean, mustClear: boolean | number): void {
+  $setInvalid$(allowRecalc: boolean): void {
     this.$flags$ |= ComputedSignalFlags.INVALID;
-    if (mustClear) {
-      this.$untrackedValue$ = NEEDS_COMPUTATION;
-    }
     if (
       allowRecalc &&
       (this.$effects$?.size || this.$loadingEffects$?.size || this.$errorEffects$?.size)

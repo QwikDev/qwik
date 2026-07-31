@@ -55,6 +55,11 @@ export interface ComputedSignal<T> extends Signal<T> {
   /** Use this to force recalculation. */
   invalidate(): void;
   /**
+   * Clear the value and recompute. Unlike `invalidate()`, readers see the loading state (reads
+   * throw the computation promise) instead of the stale value while the new value computes.
+   */
+  clear(): void;
+  /**
    * Whether the signal is currently loading. This will trigger lazy computation of the signal, so
    * you can use it like this:
    *

@@ -288,6 +288,18 @@ cleanup(): void;
 
 void
 
+<h2 id="computedsignal-clear">clear</h2>
+
+Clear the value and recompute. Unlike `invalidate()`, readers see the loading state (reads throw the computation promise) instead of the stale value while the new value computes.
+
+```typescript
+clear(): void;
+```
+
+**Returns:**
+
+void
+
 <h2 id="component">Component</h2>
 
 Type representing the Qwik component.
@@ -484,25 +496,6 @@ Description
 
 </th></tr></thead>
 <tbody><tr><td>
-
-allowStale?
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-_(Optional)_ When true (default), the previous value is kept while the signal re-computes after invalidation, so reads return stale data instead of throwing a promise. Reactivity will then update the readers when the new value is ready.
-
-When false, invalidation clears the value so reads throw the computation promise (like the initial load), which is useful for navigations where showing old data would be confusing.
-
-Defaults to `true`.
-
-</td></tr>
-<tr><td>
 
 clientOnly?
 
@@ -776,6 +769,15 @@ Description
 </td><td>
 
 Abort the current computation and run cleanups if needed.
+
+</td></tr>
+<tr><td>
+
+[clear()](#computedsignal-clear)
+
+</td><td>
+
+Clear the value and recompute. Unlike `invalidate()`, readers see the loading state (reads throw the computation promise) instead of the stale value while the new value computes.
 
 </td></tr>
 <tr><td>

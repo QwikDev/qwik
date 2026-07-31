@@ -93,8 +93,7 @@ export const isOutOfOrderStreaming = (): boolean => {
     return false;
   }
   const container = tryGetInvokeContext()?.$container$ as
-    | ({ readonly outOfOrderStreaming?: boolean } & Container)
-    | undefined;
+    ({ readonly outOfOrderStreaming?: boolean } & Container) | undefined;
   return container?.outOfOrderStreaming === true && !isOutOfOrderSegmentContainer(container);
 };
 

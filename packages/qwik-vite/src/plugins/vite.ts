@@ -1036,8 +1036,7 @@ interface QwikVitePluginCommonOptions {
    * before bundling.
    */
   transformedModuleOutput?:
-    | ((transformedModules: TransformModule[]) => Promise<void> | void)
-    | null;
+    ((transformedModules: TransformModule[]) => Promise<void> | void) | null;
   devTools?: QwikPluginDevTools;
   /**
    * Predicate function to filter out files from the optimizer. hook for resolveId, load, and

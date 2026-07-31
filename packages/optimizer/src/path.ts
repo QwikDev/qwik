@@ -41,7 +41,7 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
       } else if (code === 47 /*/*/) {
         break;
       } else {
-        code = 47 /*/*/;
+        code = 47; /*/*/
       }
       if (code === 47 /*/*/) {
         if (lastSlash === i - 1 || dots === 1) {
@@ -145,7 +145,7 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
       }
 
       resolvedPath = path + '/' + resolvedPath;
-      resolvedAbsolute = path.charCodeAt(0) === 47 /*/*/;
+      resolvedAbsolute = path.charCodeAt(0) === 47; /*/*/
     }
 
     // At this point the path should be resolved to a full absolute path, but
@@ -195,7 +195,7 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
 
   const isAbsolute = function isAbsolute(path: string) {
     assertPath(path);
-    return path.length > 0 && path.charCodeAt(0) === 47 /*/*/;
+    return path.length > 0 && path.charCodeAt(0) === 47; /*/*/
   };
 
   const join = function join(...paths: string[]) {

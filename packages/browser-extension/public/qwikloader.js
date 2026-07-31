@@ -24,7 +24,7 @@ const l = (e, t) => Array.from(e.querySelectorAll(t)),
   p = (t) => {
     if (void 0 === t._qwikjson_) {
       let n = (t === e.documentElement ? e.body : t).lastElementChild;
-      for (; n; ) {
+      for (; n;) {
         if ('SCRIPT' === n.tagName && 'qwik/json' === n.getAttribute('type')) {
           t._qwikjson_ = JSON.parse(n.textContent.replace(/\\x3C(\/?script)/gi, '<$1'));
           break;
@@ -105,7 +105,7 @@ const l = (e, t) => Array.from(e.querySelectorAll(t)),
     const t = g(e.type),
       n = 'e:' + t;
     let o = e.target;
-    for (; o && o.getAttribute; ) {
+    for (; o && o.getAttribute;) {
       const r = w(o, e, n, t),
         s = e.bubbles && !e.cancelBubble;
       (f(r) && (await r), (o = s && e.bubbles && !e.cancelBubble ? o.parentElement : null));

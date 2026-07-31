@@ -32,8 +32,7 @@ export interface FormProps<O, I> extends Omit<
 
   /** Event handler executed right after the action is executed successfully and returns some data. */
   onSubmitCompleted$?:
-    | QRLEventHandlerMulti<CustomEvent<FormSubmitCompletedDetail<O>>, HTMLFormElement>
-    | undefined;
+    QRLEventHandlerMulti<CustomEvent<FormSubmitCompletedDetail<O>>, HTMLFormElement> | undefined;
 
   key?: string | number | null;
 }

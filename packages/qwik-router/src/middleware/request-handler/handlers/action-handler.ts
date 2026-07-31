@@ -68,8 +68,7 @@ export function actionHandler(routeActions: ActionInternal[]): RequestHandler {
     // Try global actions map if not found in route
     if (!action) {
       const serverActionsMap = globalThis._qwikActionsMap as
-        | Map<string, ActionInternal>
-        | undefined;
+        Map<string, ActionInternal> | undefined;
       action = serverActionsMap?.get(actionId);
     }
 

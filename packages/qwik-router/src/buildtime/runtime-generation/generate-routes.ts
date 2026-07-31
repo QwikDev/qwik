@@ -21,7 +21,7 @@ export type RouteLoaderSourceFiles = ReadonlyMap<string, readonly string[]>;
 
 /** Check if a build trie key is a group directory name like `(common)` */
 function isGroupKey(key: string) {
-  return key.charCodeAt(0) === 40 /* '(' */;
+  return key.charCodeAt(0) === 40; /* '(' */
 }
 
 /**

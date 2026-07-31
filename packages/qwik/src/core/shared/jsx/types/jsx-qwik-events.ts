@@ -62,8 +62,7 @@ export type Primitive = null | undefined | string | number | boolean | symbol | 
  * ```
  */
 export type LiteralUnion<LiteralType, BaseType extends Primitive> =
-  | LiteralType
-  | (BaseType & Record<never, never>);
+  LiteralType | (BaseType & Record<never, never>);
 
 /**
  * The names of events that Qwik knows about. They are all lowercase, but on the JSX side, they are

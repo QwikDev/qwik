@@ -45,9 +45,7 @@ export const scopeUseTask: Rule.RuleModule = {
     const sourceCode = context.sourceCode;
 
     let currentUseTaskFunction:
-      | TSESTree.FunctionExpression
-      | TSESTree.ArrowFunctionExpression
-      | null = null;
+      TSESTree.FunctionExpression | TSESTree.ArrowFunctionExpression | null = null;
 
     /**
      * Checks if the given AST node (API usage or call) is guarded by an `if
@@ -234,8 +232,7 @@ export const scopeUseTask: Rule.RuleModule = {
           parent.arguments[0] === node
         ) {
           currentUseTaskFunction = node as
-            | TSESTree.FunctionExpression
-            | TSESTree.ArrowFunctionExpression;
+            TSESTree.FunctionExpression | TSESTree.ArrowFunctionExpression;
         }
       },
       ':function:exit'(

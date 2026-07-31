@@ -9,8 +9,7 @@ export function toTreeNodes(vnodes: VNodeTreeNode[]): TreeNode[] {
     name: v.name,
     label: v.name,
     props: v.props as
-      | Record<string, string | number | boolean | null | undefined | object>
-      | undefined,
+      Record<string, string | number | boolean | null | undefined | object> | undefined,
     children: v.children ? toTreeNodes(v.children) : undefined,
   }));
 }

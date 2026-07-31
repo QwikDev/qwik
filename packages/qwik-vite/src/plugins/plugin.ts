@@ -1604,8 +1604,7 @@ export interface QwikPluginOptions {
   resolveQwikBuild?: boolean;
   target?: QwikBuildTarget;
   transformedModuleOutput?:
-    | ((transformedModules: TransformModule[]) => Promise<void> | void)
-    | null;
+    ((transformedModules: TransformModule[]) => Promise<void> | void) | null;
   devTools?: QwikPluginDevTools;
   /**
    * Inline styles up to a certain size (in bytes) instead of using a separate file.

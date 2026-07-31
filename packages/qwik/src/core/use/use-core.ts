@@ -25,10 +25,7 @@ export interface SimplifiedServerRequestEvent<T = unknown> {
 }
 
 export type PossibleEvents =
-  | Event
-  | SimplifiedServerRequestEvent
-  | typeof TaskEvent
-  | typeof RenderEvent;
+  Event | SimplifiedServerRequestEvent | typeof TaskEvent | typeof RenderEvent;
 
 export interface RenderInvokeContext extends InvokeContext {
   // The below are just always-defined attributes of InvokeContext.

@@ -11,8 +11,7 @@ import { USE_ON_LOCAL, USE_ON_LOCAL_FLAGS, USE_ON_LOCAL_SEQ_IDX } from '../share
 import { EventNameHtmlScope, fromCamelToKebabCase } from '../shared/utils/event-names';
 
 export type EventQRL<T extends string = AllEventKeys> =
-  | QRL<EventHandler<EventFromName<T>, Element>>
-  | undefined;
+  QRL<EventHandler<EventFromName<T>, Element>> | undefined;
 
 interface UseOnOptionsBase {
   capture?: boolean;

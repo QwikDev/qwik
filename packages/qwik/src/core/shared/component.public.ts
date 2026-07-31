@@ -111,10 +111,9 @@ type _AllowPlainQrl<Q> =
   // It needs to be handled carefully because it matches regular functions too
   QRLEventHandlerMulti<any, any> extends Q
     ? Q extends QRLEventHandlerMulti<infer EV, infer EL>
-      ?
-          | Q
-          // It can infer unknown and that breaks things
-          | (EL extends Element ? EventHandler<EV, EL> : never)
+      ? | Q
+        // It can infer unknown and that breaks things
+        | (EL extends Element ? EventHandler<EV, EL> : never)
       : Q
     : Q extends QRL<infer U>
       ? Q | U

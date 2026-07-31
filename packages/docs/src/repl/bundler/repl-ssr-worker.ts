@@ -46,10 +46,7 @@ export interface SSRErrorMessage extends MessageBase {
 
 type IncomingMessage = InitSSRMessage;
 export type OutgoingMessage =
-  | SSRReadyMessage
-  | SSRResultMessage
-  | SSRChunkMessage
-  | SSRErrorMessage;
+  SSRReadyMessage | SSRResultMessage | SSRChunkMessage | SSRErrorMessage;
 
 let replId: string;
 

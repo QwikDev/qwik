@@ -9,7 +9,6 @@ export const getAsyncLocalStorage = () => {
   const process = (globalThis as { process?: ProcessWithBuiltins }).process;
   return (
     process?.getBuiltinModule?.('node:async_hooks') as
-      | { AsyncLocalStorage?: new <T>() => AsyncLocalStorage<T> }
-      | undefined
+      { AsyncLocalStorage?: new <T>() => AsyncLocalStorage<T> } | undefined
   )?.AsyncLocalStorage;
 };

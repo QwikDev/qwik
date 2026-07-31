@@ -279,8 +279,7 @@ function createResolveRequestHandlers() {
         const selectedActionId = requestEv.query.get(QACTION_KEY);
         if (selectedActionId) {
           const serverActionsMap = globalThis._qwikActionsMap as
-            | Map<string, ActionInternal>
-            | undefined;
+            Map<string, ActionInternal> | undefined;
           const action =
             routeActions.find((action) => action.__id === selectedActionId) ??
             serverActionsMap?.get(selectedActionId);
@@ -556,8 +555,7 @@ function createResolveRequestHandlers() {
     ) {
       ev.exit();
       const data = (await ev.parseBody()) as
-        | [args?: unknown[] | undefined, ...captured: unknown[]]
-        | undefined;
+        [args?: unknown[] | undefined, ...captured: unknown[]] | undefined;
       if (!Array.isArray(data) || !(Array.isArray(data[0]) || data[0] === undefined)) {
         throw ev.error(500, 'Invalid request');
       }
@@ -735,8 +733,7 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
       }
 
       const cachePlan = requestEv.sharedMap.get(RequestEvETagCacheKey) as
-        | { key: string; eTag: string }
-        | undefined;
+        { key: string; eTag: string } | undefined;
 
       const { readable, writable } = new TextEncoderStream();
       const writableStream = requestEv.getWritableStream();

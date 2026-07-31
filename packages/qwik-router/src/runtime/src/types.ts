@@ -1056,8 +1056,7 @@ export interface ActionInternal extends Action<any, any> {
 }
 /** @public */
 export type ValidatorReturn<T extends Record<string, any> = {}> =
-  | ValidatorReturnSuccess
-  | ValidatorReturnFail<T>;
+  ValidatorReturnSuccess | ValidatorReturnFail<T>;
 
 export type ValidatorReturnSuccess = {
   readonly success: true;

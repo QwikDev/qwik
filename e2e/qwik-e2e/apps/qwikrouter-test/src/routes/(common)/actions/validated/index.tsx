@@ -82,9 +82,7 @@ export default component$(() => {
   if (action1.value) {
     if (action1.value.failed) {
       action1.value satisfies { failed: true } & (
-        | TypedDataValidatorError
-        | DataValidatorError
-        | ActionFailedObject
+        TypedDataValidatorError | DataValidatorError | ActionFailedObject
       );
     } else {
       action1.value satisfies ActionSuccessObject;
@@ -116,9 +114,7 @@ export default component$(() => {
   if (action4.value) {
     if (action4.value.failed) {
       action4.value satisfies { failed: true } & (
-        | TypedDataValidatorError
-        | DataValidatorError
-        | ActionFailedObject
+        TypedDataValidatorError | DataValidatorError | ActionFailedObject
       );
     } else {
       action4.value satisfies ActionSuccessObject;

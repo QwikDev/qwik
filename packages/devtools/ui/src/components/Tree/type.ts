@@ -14,13 +14,7 @@ export type StoreTarget = Record<string | symbol, StoreValue>;
 export type TreeNodePropValue = string | number | boolean | null | undefined | object;
 
 export type ElementType =
-  | 'null'
-  | 'boolean'
-  | 'number'
-  | 'string'
-  | 'function'
-  | 'array'
-  | 'object';
+  'null' | 'boolean' | 'number' | 'string' | 'function' | 'array' | 'object';
 
 export interface TreeNode {
   name?: string;

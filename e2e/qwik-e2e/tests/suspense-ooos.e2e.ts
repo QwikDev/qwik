@@ -478,7 +478,10 @@ test.describe('out-of-order suspense streaming', () => {
     expect(hashes.second).toBeTruthy();
     expect(hashes.first).not.toBe(hashes.second);
 
-    await page.waitForFunction(() => !!(window as any)._qwikEv?.roots);
+    // WebKit can starve rAF-based waitForFunction while the stream is held.
+    await expect
+      .poll(() => page.evaluate(() => !!(window as any)._qwikEv?.roots), { timeout: 30000 })
+      .toBe(true);
 
     const blockedSecondHash = await page.evaluate(({ second }) => {
       const documentWithQwik = document as any;

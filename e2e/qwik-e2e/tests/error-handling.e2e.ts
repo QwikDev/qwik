@@ -159,7 +159,10 @@ test.describe('ErrorBoundary streaming swap', () => {
     await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: An error occurred');
     await expect(page.locator('#eb-deferred-ok')).toHaveCount(0);
 
-    await page.waitForFunction(() => !!(window as any)._qwikEv?.roots);
+    // WebKit can starve rAF-based waitForFunction while the stream is held.
+    await expect
+      .poll(() => page.evaluate(() => !!(window as any)._qwikEv?.roots), { timeout: 30000 })
+      .toBe(true);
     await expect(page.locator('html')).toHaveAttribute('q:container', 'paused');
 
     await page.locator('#eb-reset').click();

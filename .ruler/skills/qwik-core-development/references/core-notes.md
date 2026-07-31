@@ -189,10 +189,13 @@ Never use `pnpm test.unit` for agent verification in this repo.
 
 ## ErrorBoundary (experimental `errorBoundary`)
 
-Where things live: `errorBoundaryCmp` (`shared/error/error-boundary.ts`); SSR catch + inert marking
-(`ssr/ssr-render-jsx.ts`); fallback hosts (`control-flow/suspense.tsx`); client routing + reset
-(`client/dom-container.ts`); display membrane (`shared/error/error-handling.ts`); store field
-(`use/use-error-boundary-store.ts`).
+Where things live: `errorBoundaryCmp` + the SSR fallback hosts (`shared/error/error-boundary.ts`);
+SSR catch + inert marking (`ssr/ssr-render-jsx.ts`); the shared segment-swap finalize both Suspense
+and EB call (`ssr/out-of-order-segment-swap.ts` — its gated qErr drain must serve BOTH callers, so
+never fold it into an EB module); client routing + reset (`client/dom-container.ts`); display
+membrane (`shared/error/error-handling.ts`); store field (`use/use-error-boundary-store.ts`).
+Suspense knows the EB protocol only through the `error-handling.ts` leaf and container ids — it
+must never import EB components.
 
 Invariants (stateless model):
 

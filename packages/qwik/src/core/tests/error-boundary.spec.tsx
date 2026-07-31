@@ -883,7 +883,7 @@ describe('ErrorBoundary reset', () => {
       </main>
     ));
 
-    it('SSR resume: reset on a nested inner boundary re-executes its children, outer intact', async () => {
+    it('after a server-side error: reset on a nested inner boundary re-executes its children, outer intact', async () => {
       resetRef.flake = 0;
       const { container } = await ssrRenderToDom(<NestedResetApp />, { debug, ...IN_ORDER });
       const el = container.element;
@@ -937,7 +937,7 @@ describe('ErrorBoundary reset', () => {
       </main>
     ));
 
-    it('reset on a boundary nested inside an errored outer fallback re-executes its child, outer intact', async () => {
+    it('after a client-side error: reset inside the outer fallback re-executes its child, outer intact', async () => {
       fallbackNestedRef.outerThrown = false;
       fallbackNestedRef.innerThrows = true;
       const { container } = await domRender(<FallbackNestedApp />, { debug });
@@ -988,8 +988,11 @@ describe('ErrorBoundary reset', () => {
       </main>
     ));
 
-    it('SSR resume: reset on a boundary nested inside a resumed SSR fallback re-derives the outer and recovers the inner', async () => {
-      const { container } = await ssrRenderToDom(<SsrFallbackNestedApp />, { debug, ...IN_ORDER });
+    it('after a server-side error: reset inside the outer fallback re-derives the outer and recovers the inner', async () => {
+      const { container } = await ssrRenderToDom(<SsrFallbackNestedApp />, {
+        debug,
+        ...IN_ORDER,
+      });
       const el = container.element;
       expect(el.querySelector('#ssr-outer-fb')).toBeTruthy();
       expect(el.querySelector('#ssr-retry-nested')).toBeTruthy();
@@ -1034,7 +1037,7 @@ describe('ErrorBoundary reset', () => {
 
     // out-of-order: https://github.com/QwikDev/qwik/issues/8884
     it.each([['in-order', IN_ORDER]] as const)(
-      '%s SSR resume: reset through a Suspense + Slot-projecting wrapper re-executes the children',
+      '%s, after a server-side error: reset through a Suspense + Slot-projecting wrapper re-executes the children',
       async (_mode, streamOpts) => {
         const { container } = await ssrRenderToDom(<WrappedResetApp />, { debug, ...streamOpts });
         const el = container.element;

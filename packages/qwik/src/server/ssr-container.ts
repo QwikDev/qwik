@@ -1158,6 +1158,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         if (flag & VNodeDataFlag.REFERENCE) {
           this.write(VNodeDataSeparator.REFERENCE_CH);
         }
+        // Paired with serialize.ts's INERT gate: drop the vnode path AND the state root together.
         if (
           !(flag & VNodeDataFlag.INERT) &&
           flag & (VNodeDataFlag.TEXT_DATA | VNodeDataFlag.VIRTUAL_NODE | VNodeDataFlag.ELEMENT_NODE)
@@ -1471,6 +1472,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.emitInlineScript(getQwikErrorSwapExecutorScript({ debug: isDev }));
   }
 
+  // Root containers emit qErr inline at the swap site; only segment containers defer ids.
   $registerErrorSwap$(_boundaryId: number): void {}
 
   emitInlineScript(script: string): void {

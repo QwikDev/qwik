@@ -724,6 +724,7 @@ export class Serializer {
       }
       this.output(TypeIds.Error, out);
     } else if (this.$serializationContext$.$isSsrNode$(value)) {
+      // Paired with ssr-container's vnode-data INERT skip: drop the state root AND the path together.
       if (
         value.vnodeData &&
         value.vnodeData[0] & VNodeDataFlag.INERT &&

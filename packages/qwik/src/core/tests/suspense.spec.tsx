@@ -2376,16 +2376,16 @@ describe('ssrRenderToDom: author re-render across a deferred Suspense', () => {
     expect(el.querySelector('#retry')?.textContent).toContain('mount 1');
   };
 
-  it('in-order: an author whose only root is the Suspense re-renders', async () => {
+  it('should re-render an author whose only root is the Suspense (in-order)', async () => {
     await expectRemount(<DeferOnlyApp />, IN_ORDER);
   });
 
   // https://github.com/QwikDev/qwik/issues/8876
-  it.skip('out-of-order: an author whose only root is the Suspense re-renders', async () => {
+  it.skip('should re-render an author whose only root is the Suspense (out-of-order)', async () => {
     await expectRemount(<DeferOnlyApp />, OOOS_OPT_IN);
   });
 
-  it('out-of-order: an author with in-order shell content above the Suspense re-renders', async () => {
+  it('should re-render an author with in-order shell content above the Suspense (out-of-order)', async () => {
     await expectRemount(<ShellThenDeferApp />, OOOS_OPT_IN);
   });
 });

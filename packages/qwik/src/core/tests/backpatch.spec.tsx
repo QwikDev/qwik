@@ -266,7 +266,7 @@ describe('SSR Backpatching', () => {
     expect(backpatchedLabel?.outerHTML).toContain('id="final-id"');
   });
 
-  it('should apply patches queued in reverse document order (executor walks forward-only)', async () => {
+  it('should apply patches queued in reverse document order', async () => {
     const CtxA = createContextId<{ early: Signal<string> }>('bp-rev-a');
     const CtxB = createContextId<{ late: Signal<string> }>('bp-rev-b');
 

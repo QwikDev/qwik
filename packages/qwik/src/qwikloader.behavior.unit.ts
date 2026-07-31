@@ -308,7 +308,7 @@ describe('qwikloader behavior', () => {
       `export const handler = () => globalThis.__qwikLoaderStopLogs.push(${JSON.stringify(label)});`
     )}#handler#`;
 
-  test('a deferred (importing) handler that does not stop still runs the deferred ancestor', async () => {
+  test('runs the deferred ancestor when a deferred (importing) handler does not stop', async () => {
     const { doc } = createLoaderEnvironment(['e:click']);
     const logs: string[] = [];
     const previousLogs = (globalThis as any).__qwikLoaderStopLogs;
@@ -329,7 +329,7 @@ describe('qwikloader behavior', () => {
     }
   });
 
-  test('a deferred (importing) capture handler that does not stop still runs the later deferred bubble handler', async () => {
+  test('runs the later deferred bubble handler when a deferred (importing) capture handler does not stop', async () => {
     const { doc } = createLoaderEnvironment(['e:click']);
     const logs: string[] = [];
     const previousLogs = (globalThis as any).__qwikLoaderStopLogs;

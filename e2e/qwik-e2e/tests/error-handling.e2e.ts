@@ -31,7 +31,7 @@ test.describe('ErrorBoundary streaming swap', () => {
   });
 
   for (const { mode, outOfOrder } of streamingModes) {
-    test(`${mode} sync throw: streams the shell, swaps to the fallback, keeps it interactive`, async ({
+    test(`${mode}: sync throw streams the shell, swaps to the fallback, keeps it interactive`, async ({
       page,
     }) => {
       assertNoBrowserErrors(page);
@@ -333,7 +333,7 @@ test.describe('ErrorBoundary nested boundaries', () => {
 
 test.describe('ErrorBoundary reset', () => {
   for (const { mode, outOfOrder } of streamingModes) {
-    test(`${mode} SSR resume: reset re-executes the children and recovers`, async ({ page }) => {
+    test(`${mode}: reset on SSR resume re-executes the children and recovers`, async ({ page }) => {
       assertNoBrowserErrors(page);
       await page.goto(routeUrl('reset', { outOfOrder }), { waitUntil: 'commit' });
       await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });

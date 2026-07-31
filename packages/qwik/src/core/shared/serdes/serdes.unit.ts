@@ -309,6 +309,12 @@ describe('shared-serialization', () => {
         (x chars)"
       `);
     });
+    it('only a PublicError payload carries the marker, exactly once', async () => {
+      const publicRaw = await serializeRaw(new PublicError('x'));
+      expect(publicRaw.split(QPublicErrorMarker).length - 1).toBe(1);
+      const fakeShape = Object.assign(new Error('x'), { data: 'leak' });
+      expect(await serializeRaw(fakeShape)).not.toContain(QPublicErrorMarker);
+    });
     it(title(TypeIds.Promise), async () => {
       expect(await dump(Promise.resolve(shared1), Promise.reject(shared2))).toMatchInlineSnapshot(`
         "
@@ -1347,13 +1353,7 @@ describe('shared-serialization', () => {
       expect(err.data).toEqual({ message: 'Out of stock', sku: 'A1' });
       expect(Object.hasOwn(err, QPublicErrorMarker)).toBe(false);
     });
-    it('only a PublicError payload carries the marker, exactly once', async () => {
-      const publicRaw = await serializeRaw(new PublicError('x'));
-      expect(publicRaw.split(QPublicErrorMarker).length - 1).toBe(1);
-      const fakeShape = Object.assign(new Error('x'), { data: 'leak' });
-      expect(await serializeRaw(fakeShape)).not.toContain(QPublicErrorMarker);
-    });
-    it('a user Error field named like the marker is reserved: dropped, never upgrades', async () => {
+    it('drops a user Error field named like the marker, never upgrading', async () => {
       const forged = Object.assign(new Error('x'), { [QPublicErrorMarker]: 1, keep: 'ok' });
       const objs = await serialize(forged);
       const err = deserialize(objs)[0] as Error & { keep?: string };
@@ -1362,14 +1362,14 @@ describe('shared-serialization', () => {
       expect(err.keep).toBe('ok');
       expect(Object.hasOwn(err, QPublicErrorMarker)).toBe(false);
     });
-    it('a PublicError subclass resumes as the base class (documented downgrade)', async () => {
+    it('resumes a PublicError subclass as the base class (documented downgrade)', async () => {
       class CartError extends PublicError<{ sku: string }> {}
       const objs = await serialize(new CartError({ sku: 'A1' }));
       const err = deserialize(objs)[0] as PublicError;
       expect(err).toBeInstanceOf(PublicError);
       expect(err.data).toEqual({ sku: 'A1' });
     });
-    it('only the marker upgrades an Error payload to PublicError', () => {
+    it('upgrades an Error payload to PublicError only via the marker', () => {
       const upgraded = eagerDeserialize([
         TypeIds.Error,
         // prettier-ignore

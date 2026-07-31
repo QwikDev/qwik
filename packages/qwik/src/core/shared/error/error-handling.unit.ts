@@ -44,18 +44,25 @@ describe('error display (prod redaction, transformError)', () => {
     expect(d1).not.toBe(dOther);
   });
 
+  it('digest is produced and deterministic for non-Error thrown values', () => {
+    const digestOf = (thrown: unknown) => {
+      const projected = redactBoundaryErrorForDisplay(thrown, false) as Error & { digest: string };
+      expect(projected).toBeInstanceOf(Error);
+      expect(projected.message).toBe('An error occurred');
+      expect(typeof projected.digest).toBe('string');
+      expect(projected.digest.length).toBeGreaterThan(0);
+      return projected.digest;
+    };
+    const digests = [0, 'string boom', { code: 'X' }].map((thrown) => {
+      expect(digestOf(thrown)).toBe(digestOf(thrown));
+      return digestOf(thrown);
+    });
+    expect(new Set(digests).size).toBe(digests.length);
+  });
+
   it('dev: keeps full fidelity (returns the original Error unchanged)', () => {
     const original = new Error('full-detail');
     expect(redactBoundaryErrorForDisplay(original, true)).toBe(original);
-  });
-
-  it('markBoundaryErrored fires onError$ with the ORIGINAL error, not the redacted projection', () => {
-    const received: unknown[] = [];
-    const store: ErrorBoundaryStore = { error: undefined, $onError$: (e) => received.push(e) };
-    const original = Object.assign(new Error('boom'), { secret: 'x' });
-    markBoundaryErrored(store, original);
-    expect(received).toHaveLength(1);
-    expect(received[0]).toBe(original);
   });
 
   it('prod: an app error carrying its own digest field still redacts to generic + fresh digest', () => {
@@ -67,7 +74,7 @@ describe('error display (prod redaction, transformError)', () => {
     expect(typeof out.digest).toBe('string');
   });
 
-  it('redactBoundaryErrorForDisplay: keeps an already-redacted projection (preserves the digest)', () => {
+  it('prod: keeps an already-redacted projection (preserves the digest)', () => {
     const alreadyRedacted = redactBoundaryErrorForDisplay(new Error('orig'), false) as Error & {
       digest: string;
     };
@@ -100,7 +107,7 @@ describe('error display (prod redaction, transformError)', () => {
       }
     );
 
-    it('dev: a QRL-captured boundary error keeps its raw cause across serialize/deserialize', async () => {
+    it('a QRL-captured boundary error keeps its raw cause across serialize/deserialize', async () => {
       const raw = { code: 401 };
       const serializable = redactBoundaryErrorForDisplay(raw, true);
       const resumed = (await _deserialize(await _serialize(serializable))) as Error & {
@@ -224,17 +231,6 @@ describe('error display (prod redaction, transformError)', () => {
     expect(typeof out.digest).toBe('string');
   });
 
-  it('markBoundaryErrored: keeps the raw error in the store; transformError projects at display time', () => {
-    const received: unknown[] = [];
-    const store: ErrorBoundaryStore = { error: undefined, $onError$: (e) => received.push(e) };
-    const original = Object.assign(new Error('boom'), { secret: 'x' });
-    markBoundaryErrored(store, original);
-    expect(store.error).toBe(original);
-    expect(received).toEqual([original]);
-    const shown = redactBoundaryErrorForDisplay(store.error, false, () => new Error('redacted'));
-    expect(shown.message).toBe('redacted');
-  });
-
   it.each([
     ['function-valued field', () => Object.assign(new Error('leaky'), { retry: () => {} })],
     [
@@ -274,24 +270,30 @@ describe('error display (prod redaction, transformError)', () => {
       projected
     );
   });
+});
 
-  it('digest is produced and deterministic for non-Error thrown values', () => {
-    const digestOf = (thrown: unknown) => {
-      const projected = redactBoundaryErrorForDisplay(thrown, false) as Error & { digest: string };
-      expect(projected).toBeInstanceOf(Error);
-      expect(projected.message).toBe('An error occurred');
-      expect(typeof projected.digest).toBe('string');
-      expect(projected.digest.length).toBeGreaterThan(0);
-      return projected.digest;
-    };
-    const digests = [0, 'string boom', { code: 'X' }].map((thrown) => {
-      expect(digestOf(thrown)).toBe(digestOf(thrown));
-      return digestOf(thrown);
-    });
-    expect(new Set(digests).size).toBe(digests.length);
+describe('markBoundaryErrored', () => {
+  it('fires onError$ with the ORIGINAL error, not the redacted projection', () => {
+    const received: unknown[] = [];
+    const store: ErrorBoundaryStore = { error: undefined, $onError$: (e) => received.push(e) };
+    const original = Object.assign(new Error('boom'), { secret: 'x' });
+    markBoundaryErrored(store, original);
+    expect(received).toHaveLength(1);
+    expect(received[0]).toBe(original);
   });
 
-  it('markBoundaryErrored called twice: each new error re-fires onError$ and overwrites store.error', () => {
+  it('keeps the raw error in the store; transformError projects at display time', () => {
+    const received: unknown[] = [];
+    const store: ErrorBoundaryStore = { error: undefined, $onError$: (e) => received.push(e) };
+    const original = Object.assign(new Error('boom'), { secret: 'x' });
+    markBoundaryErrored(store, original);
+    expect(store.error).toBe(original);
+    expect(received).toEqual([original]);
+    const shown = redactBoundaryErrorForDisplay(store.error, false, () => new Error('redacted'));
+    expect(shown.message).toBe('redacted');
+  });
+
+  it('called twice: each new error re-fires onError$ and overwrites store.error', () => {
     const received: unknown[] = [];
     const store: ErrorBoundaryStore = { error: undefined, $onError$: (e) => received.push(e) };
     const first = new Error('first');

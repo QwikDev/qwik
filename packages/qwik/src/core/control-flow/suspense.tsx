@@ -1,4 +1,4 @@
-import { isBrowser, isDev } from '@qwik.dev/core/build';
+import { isBrowser } from '@qwik.dev/core/build';
 import { qTest } from '../shared/utils/qdev';
 import { _wrapProp } from '../reactive-primitives/internal-api';
 import type { Signal } from '../reactive-primitives/signal.public';
@@ -14,23 +14,14 @@ import { _captures } from '../shared/qrl/qrl-class';
 import {
   QCursorBoundary,
   QDefaultSlot,
-  QErrorFallbackHost,
   QSuspenseResolved,
   QSuspenseResultParent,
 } from '../shared/utils/markers';
 import { resolveSlotName } from '../shared/utils/prop';
-import { noSerialize } from '../shared/serdes/verify';
-import { isOutOfOrderSegmentContainer } from '../shared/utils/container';
 import { createInternalServerComponent } from '../ssr/internal-server-component';
 import { finalizeAndSwapOutOfOrderSegment } from '../ssr/out-of-order-segment-swap';
 import type { SSRContainer, SSROutOfOrderSegment, SSRRenderJSXOptions } from '../ssr/ssr-types';
-import {
-  ERROR_CONTEXT,
-  isErrorFromDeferredSegment,
-  markBoundaryErrored,
-  redactBoundaryErrorForDisplay,
-  type ErrorBoundaryStore,
-} from '../shared/error/error-handling';
+import { ERROR_CONTEXT, type ErrorBoundaryStore } from '../shared/error/error-handling';
 import { useComputedQrl } from '../use/use-computed';
 import { untrack } from '../use/use-core';
 import { useCursorBoundary, type CursorBoundary } from '../use/use-cursor-boundary';
@@ -367,108 +358,6 @@ async function emitRenderedOutOfOrderSegment(
   });
 }
 
-export const SSRErrorFallback = __EXPERIMENTAL__.errorBoundary
-  ? /*#__PURE__*/ createInternalServerComponent<{ boundaryId: number; store: ErrorBoundaryStore }>(
-      (ssr, jsx, options) => {
-        const boundaryId = jsx.varProps.boundaryId as number;
-        const store = jsx.varProps.store as ErrorBoundaryStore;
-        const segmentId = `${boundaryId}`;
-        const streamFallback = async (error: unknown): Promise<void> => {
-          const fallback = store.$fallback$;
-          if (!fallback) {
-            return;
-          }
-          // The catch site already recorded it; marking again refires onError$.
-          if (store.error !== error) {
-            markBoundaryErrored(store, error, 'render');
-          }
-          delete store.$fallback$;
-          const projected = redactBoundaryErrorForDisplay(store.error, isDev, ssr.$transformError$);
-          const segment = await ssr.segment(segmentId, fallback(projected) as JSXOutput, options);
-          await emitErrorBoundaryFallback(ssr, boundaryId, segmentId, segment);
-        };
-        store.$emitFallback$ = noSerialize(streamFallback);
-        ssr.write(`<template ${QSuspenseResolved}="${boundaryId}"></template>`);
-        if (store.error !== undefined && store.$fallback$) {
-          return streamFallback(store.error);
-        }
-      }
-    )
-  : null!;
-
-export const SSRErrorFallbackInline = __EXPERIMENTAL__.errorBoundary
-  ? /*#__PURE__*/ createInternalServerComponent<{ boundaryId: number; store: ErrorBoundaryStore }>(
-      (ssr, jsx, _options, enqueue) => {
-        const boundaryId = jsx.varProps.boundaryId as number;
-        const store = jsx.varProps.store as ErrorBoundaryStore;
-        if (store.error !== undefined && store.$fallback$) {
-          const fallback = store.$fallback$;
-          delete store.$fallback$;
-          const projected = redactBoundaryErrorForDisplay(store.error, isDev, ssr.$transformError$);
-          if (isOutOfOrderSegmentContainer(ssr)) {
-            ssr.$registerErrorSwap$(boundaryId);
-            enqueue(fallback(projected) as JSXOutput);
-          } else {
-            enqueue(() => {
-              ssr.emitErrorSwapExecutorIfNeeded();
-              ssr.emitInlineScript(`qErr(${boundaryId})`);
-            });
-            enqueue(fallback(projected) as JSXOutput);
-          }
-        }
-      }
-    )
-  : null!;
-
-export const SSRErrorFallbackHost = __EXPERIMENTAL__.errorBoundary
-  ? /*#__PURE__*/ createInternalServerComponent<{
-      boundaryId: number;
-      store: ErrorBoundaryStore;
-      hostStyle: string;
-    }>((ssr, jsx, _options, enqueue) => {
-      const boundaryId = jsx.varProps.boundaryId as number;
-      const store = jsx.varProps.store as ErrorBoundaryStore;
-      const hostStyle = jsx.varProps.hostStyle as string;
-      const deliverLate =
-        __EXPERIMENTAL__.suspense &&
-        ssr.outOfOrderStreaming &&
-        !isOutOfOrderSegmentContainer(ssr) &&
-        (store.error === undefined || isErrorFromDeferredSegment(store));
-      enqueue(
-        /*#__PURE__*/ _jsxSorted(
-          'div',
-          {
-            [deliverLate ? QSuspenseResultParent : QErrorFallbackHost]: String(boundaryId),
-            style: hostStyle,
-          },
-          null,
-          /*#__PURE__*/ _jsxSorted(
-            deliverLate ? SSRErrorFallback : SSRErrorFallbackInline,
-            { boundaryId, store },
-            null,
-            null,
-            1,
-            null
-          ),
-          1,
-          null
-        )
-      );
-    })
-  : null!;
-
-async function emitErrorBoundaryFallback(
-  ssr: SSRContainer,
-  boundaryId: number,
-  segmentId: string,
-  rendered: SSROutOfOrderSegment
-): Promise<void> {
-  // qErr hides the errored content host and strips its broadcast handlers.
-  rendered.container.$registerErrorSwap$(boundaryId);
-  await ssr.$runQueuedRender$(() =>
-    finalizeAndSwapOutOfOrderSegment(ssr, boundaryId, segmentId, rendered, null, true)
-  );
-}
 function scheduleOutOfOrderFallbackDelay(
   ssr: SSRContainer,
   boundaryState: SSROutOfOrderBoundaryState,

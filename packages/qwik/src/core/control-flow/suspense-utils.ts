@@ -103,15 +103,6 @@ export const nextOutOfOrderSuspenseId = (): number =>
   (tryGetInvokeContext()!.$container$! as SSRContainer).nextOutOfOrderId();
 
 /** @internal */
-export const nextErrorBoundaryId = (): number => {
-  if (!__EXPERIMENTAL__.errorBoundary) {
-    return 0;
-  }
-  const container = tryGetInvokeContext()?.$container$ as SSRContainer | undefined;
-  return container?.nextOutOfOrderId?.(false) ?? 0;
-};
-
-/** @internal */
 export const applySubscriptionPatches = (
   container: Container,
   patches: SubscriptionPatch[] | undefined

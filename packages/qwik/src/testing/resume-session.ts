@@ -160,6 +160,9 @@ export async function renderSsrToDom<Props>(
       qwikContainer === document.documentElement && document.body !== null
         ? document.body
         : qwikContainer;
+    // `html` is what the server streamed, before inline scripts run.
+    const streamedHtml = container.innerHTML;
+    applyBackpatchScripts(document);
     installSyncQrls(document, qwikContainer, rendered.snapshotResult?.funcs);
     createContainerContext(qwikContainer, scheduler);
 
@@ -183,7 +186,7 @@ export async function renderSsrToDom<Props>(
     const result: RenderResult = {
       document,
       container,
-      html: container.innerHTML,
+      html: streamedHtml,
       nodes,
       scheduler,
       qwikLoader,
@@ -254,6 +257,25 @@ function createResumePlatform(document: Document, moduleImport: ModuleImport) {
       return moduleImport(new URL(url, base).href).then((module) => module[symbol]);
     },
   };
+}
+
+/** Emulates the browser running the inline attribute-backpatch scripts as it parses the stream. */
+function applyBackpatchScripts(document: Document): void {
+  // The scripts install `_qwikB` on the first one and reuse it on the rest, so they share a window.
+  const win = {};
+  const scripts = Array.from(document.querySelectorAll('script'));
+  for (let i = 0; i < scripts.length; i++) {
+    const script = scripts[i];
+    const code = script.textContent;
+    if (code === null || !code.includes('_qwikB')) {
+      continue;
+    }
+    // The script reads its own position through `document.currentScript`.
+    Object.defineProperty(document, 'currentScript', { configurable: true, value: script });
+    // eslint-disable-next-line no-new-func
+    new Function('window', 'document', code)(win, document);
+  }
+  Object.defineProperty(document, 'currentScript', { configurable: true, value: null });
 }
 
 function installSyncQrls(

@@ -40,10 +40,8 @@ describeSsr('ssrRender: backpatching', () => {
     ));
 
     const result = await ssrRender(App);
-    const input = result.container.querySelector('input')!;
-    expect(input.hasAttribute('title')).toBe(false);
-    applyBackpatches(result.document);
-    expect(input.getAttribute('title')).toBe('final-title');
+    expect(result.html).not.toContain('title=');
+    expect(result.container.querySelector('input')!.getAttribute('title')).toBe('final-title');
     result.cleanup();
   });
 
@@ -65,7 +63,6 @@ describeSsr('ssrRender: backpatching', () => {
     )!;
     expect(script.textContent).not.toContain(boundaryValue);
     expect(result.document.querySelector('template[data-backpatch-marker]')).toBeFalsy();
-    applyBackpatches(result.document);
     expect(result.container.querySelector('input')?.getAttribute('aria-label')).toBe(boundaryValue);
     result.cleanup();
   });
@@ -106,7 +103,6 @@ describeSsr('ssrRender: backpatching', () => {
     });
 
     const result = await ssrRender(App);
-    applyBackpatches(result.document);
     const elements = result.container.querySelectorAll('input, label');
     for (const element of elements) {
       expect(element.getAttribute('aria-labelledby')).toBe('final-label');
@@ -145,7 +141,6 @@ describeSsr('ssrRender: backpatching', () => {
     });
 
     const result = await ssrRender(App);
-    applyBackpatches(result.document);
     const style = result.container.querySelector('#style-target')!;
     const className = result.container.querySelector('#class-target')!;
     expect(style.getAttribute('style')).toBe('color:red');
@@ -167,22 +162,9 @@ describeSsr('ssrRender: backpatching', () => {
         final,
       },
     });
-    applyBackpatches(result.document);
     expect(result.container.querySelector('#attribute-target')?.getAttribute(attribute)).toBe(
       expected
     );
     result.cleanup();
   });
 });
-
-function applyBackpatches(document: Document): void {
-  const scripts = Array.from(document.querySelectorAll('script')).filter((script) =>
-    script.textContent?.includes('_qwikB')
-  );
-  const window = {};
-  for (const script of scripts) {
-    Object.defineProperty(document, 'currentScript', { configurable: true, value: script });
-    // eslint-disable-next-line no-new-func
-    Function('window', 'document', script.textContent!)(window, document);
-  }
-}

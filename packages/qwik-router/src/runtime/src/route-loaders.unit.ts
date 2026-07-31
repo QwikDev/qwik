@@ -86,10 +86,12 @@ describe('route loader execution', () => {
     expect(parentLoader.__qrl.call).toHaveBeenCalledOnce();
   });
 
-  it('stores loader expires values in milliseconds', () => {
-    const loader = routeLoaderQrl(createQrl('timed-loader'), { expires: 60_000 }) as LoaderInternal;
+  it('stores the cacheControl option', () => {
+    const loader = routeLoaderQrl(createQrl('cached-loader'), {
+      cacheControl: 'immutable',
+    }) as LoaderInternal;
 
-    expect(loader.__expires).toBe(60_000);
+    expect(loader.__cacheControl).toBe('immutable');
   });
 
   it('rejects blockSSR: false when the experimental flag is not enabled', () => {
@@ -135,8 +137,6 @@ function createLoader(
     __qrl: createQrl(id, fn),
     __validators: undefined,
     __serializationStrategy: serializationStrategy,
-    __expires: 0,
-    __poll: false,
     __eTag: undefined,
     __cacheKey: undefined,
     __search: undefined,

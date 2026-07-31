@@ -50,8 +50,7 @@ import type {
 
 /**
  * Route loaders read data before the route rendering starts, based on the route being navigated to.
- * They automatically update when the route changes on the client, and can also be made to poll for
- * changes.
+ * They automatically update when the route changes on the client.
  *
  * They are represented by a ComputedSignal.
  */
@@ -441,8 +440,7 @@ export const filterSearchParams = (params: URLSearchParams, allowed: string[]): 
 const getLoaderOptions = (rest: (LoaderOptions | DataValidator)[]) => {
   let id: string | undefined;
   let serializationStrategy: SerializationStrategy = DEFAULT_LOADERS_SERIALIZATION_STRATEGY;
-  let expires: number | undefined;
-  let poll: boolean | undefined;
+  let cacheControl: LoaderOptions['cacheControl'] | undefined;
   let eTag: LoaderOptions['eTag'] | undefined;
   let cacheKey: LoaderOptions['cacheKey'] | undefined;
   let search: string[] | undefined;
@@ -464,11 +462,8 @@ const getLoaderOptions = (rest: (LoaderOptions | DataValidator)[]) => {
         if (options.validation) {
           validators.push(...options.validation);
         }
-        if ('expires' in options) {
-          expires = options.expires;
-        }
-        if ('poll' in options) {
-          poll = options.poll;
+        if ('cacheControl' in options) {
+          cacheControl = options.cacheControl;
         }
         if ('eTag' in options) {
           eTag = options.eTag;
@@ -499,8 +494,7 @@ const getLoaderOptions = (rest: (LoaderOptions | DataValidator)[]) => {
     id,
     validators: validators.reverse(),
     serializationStrategy,
-    expires,
-    poll,
+    cacheControl,
     eTag,
     cacheKey,
     search,
@@ -911,7 +905,7 @@ export const routeLoaderQrl = ((
   loaderQrl: QRL<(event: RequestEventLoader) => unknown>,
   ...rest: (LoaderOptions | DataValidator)[]
 ): LoaderInternal => {
-  const { id, validators, serializationStrategy, expires, poll, eTag, cacheKey, search, blockSSR } =
+  const { id, validators, serializationStrategy, cacheControl, eTag, cacheKey, search, blockSSR } =
     getLoaderOptions(rest);
 
   function loader() {
@@ -930,8 +924,7 @@ export const routeLoaderQrl = ((
   loader.__validators = validators;
   loader.__id = id ?? loaderQrl.getHash();
   loader.__serializationStrategy = serializationStrategy;
-  loader.__expires = expires ?? 120_000; // 2 minutes
-  loader.__poll = poll ?? false;
+  loader.__cacheControl = cacheControl;
   loader.__eTag = eTag;
   loader.__cacheKey = cacheKey;
   loader.__search = search;
@@ -959,7 +952,8 @@ export const routeLoaderQrl = ((
  *   requests, the loader's request event is filtered to those params too. `search: []` means no
  *   search params are sent and only route path changes trigger a re-fetch.
  * - `eTag`: Enable ETag-based caching. Can be `true` (auto-hash), a string, or a function.
- * - `expires` / `poll`: Control client-side caching and polling behavior.
+ * - `cacheControl`: Cache-Control for loader JSON responses; the browser HTTP cache controls
+ *   client-side freshness. `'immutable'` additionally lets SSG write the loader file.
  *
  * The `strictLoaders` Vite plugin option applies `search: []` globally for all loaders that don't
  * specify an explicit `search` option.

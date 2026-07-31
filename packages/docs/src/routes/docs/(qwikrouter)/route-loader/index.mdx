@@ -54,7 +54,7 @@ A few properties of route loaders:
 - **Server-only.** The loader function only runs on the server; the browser never sees the closure body.
 - **Keyed by route, not by call site.** Two visits to the same URL share one logical "result" per "route + url params + search params" set, not one per `useProductDetails()` call.
 - **Result is a `ComputedSignal`.** Components read `.value`, watch `.pending`, and check `.error`. Reading `.value` while the signal is in error state re-throws the error.
-- **Each loader has its own JSON endpoint.** The client fetches `q-loader-{id}.{hash}.json` for navigation, polling, and post-action invalidation. Browser HTTP cache, ETags, and the `expires` option all apply.
+- **Each loader has its own JSON endpoint.** The client fetches `q-loader-{id}.{hash}.json` for navigation, polling, and post-action invalidation. The browser HTTP cache, ETags, and the `cacheControl` option all apply.
 - **Blocks SSR by default.** The server awaits the loader before rendering the page, so a `throw redirect()` or `throw error()` controls the response. Opt out with `blockSSR: false` to run it in the background — see [Background loaders](#background-loaders-blockssr).
 
 This means a `routeLoader$()` should be a **pure function of the URL**: same `params` and `search` → same response. Mixing in any other input (action state, request bodies, one-shot tokens) makes the cached responses inconsistent — see [Loaders cannot read action state](#loaders-cannot-read-action-state).
@@ -136,10 +136,11 @@ export default component$(() => {
 
 A loader is re-fetched when:
 
-- the route path changes to one where the loader is declared (SPA navigation, MPA load) and it hasn't already run for this URL (and hasn't expired),
-- a search param the loader subscribed to changes (see [Search params](#search-params-search)),
+- the app navigates (every SPA navigation re-fetches every loader; the browser HTTP cache decides whether that fetch hits the network — see [Cache & freshness](#cache--freshness)),
 - it's invalidated by an action (see [`routeAction$`](/docs/(qwikrouter)/action/index.mdx) and the action's `invalidate` option),
-- its data has expired and `poll` is enabled (see [Cache & freshness](#cache--freshness)).
+- you invalidate its signal manually, for example from `usePoll` (see [Polling](#polling)).
+
+A re-fetch that returns unchanged data doesn't rerender anything: the response text is compared to the previous one and the signal keeps the same object.
 
 A loader in `src/routes/product/[productId]/index.tsx` runs when the user navigates to `/product/1` or `/product/2`, but not when they navigate to `/about`.
 
@@ -167,34 +168,44 @@ export const useFilteredProducts = routeLoader$(
 );
 ```
 
-`search: []` means the loader doesn't depend on any search params — pure path-keyed cache, best reuse across visits. When `search` is omitted, all search params are forwarded and any change re-fetches (subject to `strictLoaders`, below).
+`search: []` means the loader doesn't depend on any search params — pure path-keyed cache, best reuse across visits. When `search` is omitted, all search params are forwarded (subject to `strictLoaders`, below).
 
 <Note>The `strictLoaders` Vite plugin option (default `true` in v2) applies `search: []` to every loader that doesn't set it explicitly. This is the better default: each unique URL produces at most one cache entry per loader, so unrelated tracking params (`?utm_source=…`, `?fbclid=…`) don't generate fresh, never-reused cache entries for an identical response. To opt a loader into reacting to a query string, set `search` explicitly. Pass `strictLoaders: false` to `qwikRouter()` to restore "all params, all re-fetches" globally.</Note>
 
 ## Cache & freshness
 
-Loader responses come from per-loader JSON endpoints, so ordinary HTTP caching applies. The options below tune that behavior.
+Loader responses come from per-loader JSON endpoints, and the browser HTTP cache is the single freshness authority: every navigation re-fetches every loader, and the loader's `Cache-Control` header decides whether that fetch is served from cache, revalidated, or hits the server.
 
-### `expires`
+### `cacheControl`
 
-Time in milliseconds before the data is considered stale. Sets `Cache-Control` on the JSON response and the signal's expiry. When the data expires, the next read triggers a refetch and components update reactively when the new data arrives.
+Sets the `Cache-Control` header on the loader's JSON responses. It accepts everything the [`cacheControl()`](/docs/(qwikrouter)/caching/index.mdx) request method accepts — `'immutable'`, a max-age number in seconds, an options object — or a function of the request event (return `null` to skip the header). A `Cache-Control` header set inside the loader function wins over the option.
+
+The default is `no-cache`: the browser always revalidates, which pairs well with `eTag` for cheap 304 responses.
 
 ```tsx title="src/routes/product/[productId]/index.tsx"
 export const useProductDetails = routeLoader$(
   async ({ params }) => fetchProduct(params.productId),
-  { expires: 60 * 1000 } // 1 minute
+  { cacheControl: 60 } // fresh for 1 minute, no requests during that time
 );
 ```
 
-<Note>**`expires: 0` is special.** It means "never expires" — the data is only refetched when the application is rebuilt (the manifest hash busts the cache). For SSG, loaders with `expires: 0` are pre-generated as static `.json` files on disk, so route loaders work even on fully static sites.</Note>
+<Note>**`cacheControl: 'immutable'` is special.** It means the data for a URL never changes until the application is rebuilt (the manifest hash busts the cache). For SSG, immutable loaders are pre-generated as static `.json` files on disk, so route loaders work even on fully static sites.</Note>
 
-### `poll`
+### Polling
 
-When `poll: true` and `expires` is set, the loader auto-refetches as soon as data expires — but only while components are reading the loader. Without `poll`, expired data is just *marked* stale; the refetch waits until something reads it.
+To keep loader data fresh while the user stays on the page, use `usePoll` from `@qwik.dev/utils`. It invalidates the signal on an interval (starting once the document is idle, resetting whenever new data lands), and each refetch goes through the browser cache like any other:
 
-### `allowStale`
+```tsx
+import { usePoll } from '@qwik.dev/utils';
 
-By default expired data stays readable while a fresh value loads in the background, so the UI doesn't blank out. Set `allowStale: false` to clear the value on expiry instead, forcing readers to suspend until fresh data arrives.
+export default component$(() => {
+  const stock = useStockLevel();
+  usePoll(stock, 30_000); // refetch every 30s
+  return <p>{stock.value} in stock</p>;
+});
+```
+
+You can also drive this manually: `signal.invalidate()` re-fetches while keeping the current value readable, and `signal.clear()` additionally drops the value so readers suspend until fresh data arrives.
 
 ### `eTag`
 
@@ -214,7 +225,7 @@ export const useSubscription = routeLoader$(
     return getSubscription(user.id);
   },
   {
-    expires: 30 * 1000,
+    cacheControl: 'no-cache',
     eTag: (ev) => {
       const { id } = ev.sharedMap.get('user')!;
       const day = new Date().getDate();
@@ -357,9 +368,7 @@ export default component$(() => {
 
 | Option                  | Default      | Effect                                                                                                |
 | ----------------------- | ------------ | ----------------------------------------------------------------------------------------------------- |
-| `expires`               | `0` (static) | Time-to-live in ms. Sets `Cache-Control` and the signal expiry. `0` means never refetched.             |
-| `poll`                  | `false`      | Auto-refetch when expired, but only while components are reading the loader.                          |
-| `allowStale`            | `true`       | Show stale data while refetching. `false` blocks readers until fresh data arrives.                    |
+| `cacheControl`          | `no-cache`   | `Cache-Control` for the JSON responses; the browser cache decides freshness. `'immutable'` enables SSG loader files. |
 | `serializationStrategy` | `'never'`    | `'never'` / `'always'` / `'auto'` — embed loader data in the SSR HTML?                                |
 | `blockSSR`              | `true`       | Await the loader before SSR (can redirect/error the response). `false` runs it in the background (experimental). |
 | `eTag`                  | —            | `true` (auto-hash), string, or `(ev) => string \| null`. Returns 304 on match.                       |

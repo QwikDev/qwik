@@ -86,6 +86,7 @@ import {
 } from './scroll-restoration';
 import spaInit from './spa-init';
 import {
+  clearNavFetchCache,
   ensureRouteLoaderSignals,
   setLoaderSignalValue,
   updateRouteLoaderPaths,
@@ -608,7 +609,16 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       }
       updateRouteLoaderPaths(routeLoaderCtx, loadedRoute.$loaderPaths$, trackUrl);
       const routeLoaders = ensureRouteLoaderSignals(contentModules, loaderState, routeLoaderCtx);
+      if (!isServer) {
+        // Every nav invalidates every loader: the browser HTTP cache (driven by each
+        // loader's cacheControl) decides freshness. Unsubscribed signals only mark
+        // stale and refetch lazily when read again.
+        for (const id in loaderState) {
+          loaderState[id].invalidate();
+        }
+      }
       if (shouldInvalidateActionLoaders) {
+        // Actions force revalidation (fetch cache: 'reload') for their loaders
         if (actionLoaderHashes !== undefined) {
           for (const hash of actionLoaderHashes) {
             loaderState[hash]?.invalidate(true);
@@ -630,6 +640,11 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
           // trigger load
           loaderState[loader.__id].untrackedPending;
         }
+      }
+      if (!isServer) {
+        // Clear after the kick-off above so hover-prefetched promises are consumed
+        // by this nav's fetches; the next hover starts a fresh per-nav cache.
+        clearNavFetchCache();
       }
       if (internalState.navCount !== navCountBefore) {
         return;
@@ -875,7 +890,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         window._qRouterScrollEnabled = true;
         callRestoreScrollOnDocument();
 
-        refreshLinkPrefetchObserver(manifestHash, loaderState);
+        refreshLinkPrefetchObserver(manifestHash);
         if (nav.shouldForcePrevUrl) {
           forceStoreEffects(routeLocation, 'prevUrl');
         }

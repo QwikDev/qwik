@@ -1,11 +1,9 @@
-import { createComputed$ } from '@qwik.dev/core';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { prefetchLoaderData } from './prefetch-route';
-import type { RouteLoaderState } from './route-loaders';
 import type { LoadedRoute } from './types';
 
 const { fetchRouteLoaderDataMock } = vi.hoisted(() => ({
-  fetchRouteLoaderDataMock: vi.fn(async () => ({ d: 'data' })),
+  fetchRouteLoaderDataMock: vi.fn(async () => ({ raw: 'data' })),
 }));
 
 vi.mock('@qwik-router-config', () => ({
@@ -27,19 +25,12 @@ const createLoadedRoute = (loaderIds: string[]) =>
     $loaderPaths$: Object.fromEntries(loaderIds.map((id) => [id, '/next/'])),
   }) as unknown as LoadedRoute;
 
-/** Create an async computed signal holding a valid (fresh) value, like a route loader signal. */
-const createFreshSignal = async () => {
-  const signal = createComputed$(async () => 'fresh');
-  await signal.promise();
-  return signal;
-};
-
 describe('prefetchLoaderData', () => {
   beforeEach(() => {
     fetchRouteLoaderDataMock.mockClear();
   });
 
-  it('fetches all loaders when no loader state is given', () => {
+  it('fetches every loader of the route', () => {
     prefetchLoaderData(
       createLoadedRoute(['a', 'b']),
       new URL('http://localhost/next/'),
@@ -49,22 +40,13 @@ describe('prefetchLoaderData', () => {
     expect(fetchRouteLoaderDataMock).toHaveBeenCalledTimes(2);
   });
 
-  it('skips loaders whose in-memory data has not expired', async () => {
-    const staleSignal = await createFreshSignal();
-    staleSignal.invalidate();
-    const loaderState: RouteLoaderState = {
-      fresh: await createFreshSignal(),
-      stale: staleSignal,
-    };
+  it('skips loaders without a fetch path', () => {
+    const loadedRoute = createLoadedRoute(['a', 'pathless']);
+    (loadedRoute.$loaderPaths$ as Record<string, string | undefined>).pathless = undefined;
 
-    prefetchLoaderData(
-      createLoadedRoute(['fresh', 'stale', 'missing']),
-      new URL('http://localhost/next/'),
-      manifestHash,
-      loaderState
-    );
+    prefetchLoaderData(loadedRoute, new URL('http://localhost/next/'), manifestHash);
 
     const fetchedIds = fetchRouteLoaderDataMock.mock.calls.map(([id]: unknown[]) => id);
-    expect(fetchedIds).toEqual(['stale', 'missing']);
+    expect(fetchedIds).toEqual(['a']);
   });
 });

@@ -1,7 +1,6 @@
 import { event$ } from '@qwik.dev/core';
 import { preloadRouteBundles } from './client-navigate';
 import { prefetchRoute } from './prefetch-route';
-import type { RouteLoaderState } from './route-loaders';
 import { isSameOrigin, shouldPreload, toPath } from './utils';
 
 let prefetchedLinks = new WeakSet<HTMLAnchorElement>();
@@ -11,24 +10,18 @@ export const resetLinkPrefetchState = () => {
   prefetchedLinks = new WeakSet();
 };
 
-export const refreshLinkPrefetchObserver = (
-  manifestHash?: string,
-  loaderState?: RouteLoaderState
-) => {
+export const refreshLinkPrefetchObserver = (manifestHash?: string) => {
   resetLinkPrefetchState();
   cleanupPrefetchObserver?.();
-  cleanupPrefetchObserver = createLinkPrefetchObserver(manifestHash, loaderState);
+  cleanupPrefetchObserver = createLinkPrefetchObserver(manifestHash);
 };
 
-export const linkPrefetchInit = (manifestHash: string, loaderState: RouteLoaderState) =>
+export const linkPrefetchInit = (manifestHash: string) =>
   event$(() => {
-    refreshLinkPrefetchObserver(manifestHash, loaderState);
+    refreshLinkPrefetchObserver(manifestHash);
   });
 
-export const createLinkPrefetchObserver = (
-  manifestHash?: string,
-  loaderState?: RouteLoaderState
-): (() => void) => {
+export const createLinkPrefetchObserver = (manifestHash?: string): (() => void) => {
   const anchors = document.querySelectorAll<HTMLAnchorElement>('a[q\\:link][data-q-prefetch]');
 
   const prefetchAnchor = (anchor: HTMLAnchorElement, observer?: IntersectionObserver) => {
@@ -60,7 +53,7 @@ export const createLinkPrefetchObserver = (
       preloadRouteBundles(url.pathname);
     }
     if (mode.includes('d')) {
-      prefetchRoute(url, true, 0.8, manifestHash, false, loaderState);
+      prefetchRoute(url, true, 0.8, manifestHash, false);
     }
   };
 

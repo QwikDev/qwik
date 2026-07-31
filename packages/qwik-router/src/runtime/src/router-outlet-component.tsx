@@ -7,7 +7,7 @@ import {
   useContext,
   useServerData,
 } from '@qwik.dev/core';
-import { ContentInternalContext, RouteStateContext } from './contexts';
+import { ContentInternalContext } from './contexts';
 import { linkPrefetchInit } from './link-prefetch';
 import type { ClientSPAWindow } from './qwik-router-component';
 import type { ScrollHistoryState } from './scroll-restoration';
@@ -34,7 +34,6 @@ export const RouterOutlet = component$(() => {
   }
 
   const internalContext = useContext(ContentInternalContext);
-  const loaderState = useContext(RouteStateContext);
   const head = useDocumentHead();
   const nav = useNavigate();
 
@@ -55,7 +54,7 @@ export const RouterOutlet = component$(() => {
         {cmp}
         {!__EXPERIMENTAL__.noSPA && (
           <script
-            document:onQCInit$={[spaInit, linkPrefetchInit(head.manifestHash, loaderState)]}
+            document:onQCInit$={[spaInit, linkPrefetchInit(head.manifestHash)]}
             document:onQRouterPopstate$={(event) => handleRouterPopstate(nav, event)}
             document:onQInit$={sync$(() => {
               // Minify window and history

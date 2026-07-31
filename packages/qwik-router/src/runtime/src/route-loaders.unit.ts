@@ -92,6 +92,12 @@ describe('route loader execution', () => {
     expect(loader.__expires).toBe(60_000);
   });
 
+  it('does not cache loader responses unless expires is given', () => {
+    const loader = routeLoaderQrl(createQrl('default-loader')) as LoaderInternal;
+
+    expect(loader.__expires).toBe(0);
+  });
+
   it('rejects blockSSR: false when the experimental flag is not enabled', () => {
     expect(() => routeLoaderQrl(createQrl('bg-loader'), { blockSSR: false })).toThrowError(
       /experimental/

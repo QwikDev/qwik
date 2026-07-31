@@ -54,7 +54,7 @@ A few properties of route loaders:
 - **Server-only.** The loader function only runs on the server; the browser never sees the closure body.
 - **Keyed by route, not by call site.** Two visits to the same URL share one logical "result" per "route + url params + search params" set, not one per `useProductDetails()` call.
 - **Result is a `ComputedSignal`.** Components read `.value`, watch `.pending`, and check `.error`. Reading `.value` while the signal is in error state re-throws the error.
-- **Each loader has its own JSON endpoint.** The client fetches `q-loader-{id}.{hash}.json` for navigation, polling, and post-action invalidation. Browser HTTP cache, ETags, and the `expires` option all apply.
+- **Each loader has its own JSON endpoint.** The client fetches `q-loader-{id}.{hash}.json` for navigation, polling, and post-action invalidation. ETags and the `expires` option apply to those requests; without `expires` the response is uncached, so the browser HTTP cache never hides a fresh value.
 - **Blocks SSR by default.** The server awaits the loader before rendering the page, so a `throw redirect()` or `throw error()` controls the response. Opt out with `blockSSR: false` to run it in the background — see [Background loaders](#background-loaders-blockssr).
 
 This means a `routeLoader$()` should be a **pure function of the URL**: same `params` and `search` → same response. Mixing in any other input (action state, request bodies, one-shot tokens) makes the cached responses inconsistent — see [Loaders cannot read action state](#loaders-cannot-read-action-state).
@@ -173,7 +173,7 @@ export const useFilteredProducts = routeLoader$(
 
 ## Cache & freshness
 
-Loader responses come from per-loader JSON endpoints, so ordinary HTTP caching applies. The options below tune that behavior.
+Loader responses come from per-loader JSON endpoints, so ordinary HTTP caching applies. **Caching is opt-in:** by default a loader response carries no `Cache-Control` header, so data written by an action is visible to the very next loader fetch. The options below turn caching on and tune it.
 
 ### `expires`
 
@@ -186,7 +186,9 @@ export const useProductDetails = routeLoader$(
 );
 ```
 
-<Note>**`expires: 0` is special.** It means "never expires" — the data is only refetched when the application is rebuilt (the manifest hash busts the cache). For SSG, loaders with `expires: 0` are pre-generated as static `.json` files on disk, so route loaders work even on fully static sites.</Note>
+<Note>**`expires: 0` (the default) means "no expiry".** The signal never goes stale on its own — the loader refetches on navigation, on invalidation after an action, or when the application is rebuilt — and the JSON response is sent without `Cache-Control`, so the browser never serves it from its HTTP cache. For SSG, loaders with `expires: 0` are pre-generated as static `.json` files on disk, so route loaders work even on fully static sites.</Note>
+
+<Note>**Only cache what is safe to cache.** With `expires` set, the browser may serve the loader's JSON straight from its HTTP cache for that long, so a mutation followed by a client-side navigation can render pre-mutation data. Leave it unset for anything a user can change.</Note>
 
 ### `poll`
 
@@ -357,7 +359,7 @@ export default component$(() => {
 
 | Option                  | Default      | Effect                                                                                                |
 | ----------------------- | ------------ | ----------------------------------------------------------------------------------------------------- |
-| `expires`               | `0` (static) | Time-to-live in ms. Sets `Cache-Control` and the signal expiry. `0` means never refetched.             |
+| `expires`               | `0` (no caching) | Time-to-live in ms. Opt in to HTTP caching: sets `Cache-Control` and the signal expiry. `0` sends no `Cache-Control` and never expires the signal. |
 | `poll`                  | `false`      | Auto-refetch when expired, but only while components are reading the loader.                          |
 | `allowStale`            | `true`       | Show stale data while refetching. `false` blocks readers until fresh data arrives.                    |
 | `serializationStrategy` | `'never'`    | `'never'` / `'always'` / `'auto'` — embed loader data in the SSR HTML?                                |

@@ -797,6 +797,10 @@ export type LoaderOptions = {
    * On the client, the loader's ComputedSignal `expires` is set to this value. If `poll` is true,
    * the signal auto-refetches when expired. If `poll` is false (default), the data is marked stale
    * but not auto-refetched.
+   *
+   * Defaults to `0`, meaning no expiry: the loader response carries no `Cache-Control` header, so
+   * data written by an action is visible to the very next loader fetch. Caching is opt-in — set
+   * `expires` when the loader's data may safely be served from the browser cache for a while.
    */
   readonly expires?: number;
   /**

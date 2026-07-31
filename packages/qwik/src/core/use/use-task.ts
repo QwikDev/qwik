@@ -27,9 +27,9 @@ import {
   type SignalInternal,
 } from '../state/signal';
 import { implicit$FirstArg } from '../util/implicit_dollar';
-import { logError, logErrorAndStop, logOnceWarn } from '../util/log';
+import { logError, logErrorAndStop } from '../util/log';
 import { ComputedEvent, TaskEvent } from '../util/markers';
-import { delay, isPromise, maybeThen, safeCall } from '../util/promises';
+import { delay, maybeThen, safeCall } from '../util/promises';
 import { isFunction, isObject, type ValueOrPromise } from '../util/types';
 import { invoke, newInvokeContext, untrack, useInvokeContext, waitAndRun } from './use-core';
 import { useOn, useOnDocument } from './use-on';
@@ -337,16 +337,8 @@ export const useComputedQrl = <T>(qrl: QRL<ComputedFn<T>>): Signal<Awaited<T>> =
  * recalculated, and if the result changed, all tasks which are tracking the signal will be re-run
  * and all components that read the signal will be re-rendered.
  *
- * The function must be synchronous and must not have any side effects.
- *
- * Async functions are deprecated because:
- *
- * - When calculating the first time, it will see it's a promise and it will restart the render
- *   function.
- * - Qwik can't track used signals after the first await, which leads to subtle bugs.
- * - Both `useTask$` and `useResource$` are available, without these problems.
- *
- * In v2, async functions won't work.
+ * The function must not have any side effects. It may return a promise, but only signal reads
+ * before the first await are tracked. Read reactive inputs before awaiting.
  *
  * @public
  */
@@ -761,22 +753,7 @@ export const runComputed = (
   };
   try {
     return maybeThen(task.$qrl$.$resolveLazy$(containerState.$containerEl$), () => {
-      const result = taskFn();
-      if (isPromise(result)) {
-        const warningMessage =
-          'useComputed$: Async functions in computed tasks are deprecated and will stop working in v2. Use useTask$ or useResource$ instead.';
-        const stack = new Error(warningMessage).stack;
-        if (!stack) {
-          logOnceWarn(warningMessage);
-        } else {
-          const lessScaryStack = stack.replace(/^Error:\s*/, '');
-          logOnceWarn(lessScaryStack);
-        }
-
-        return result.then(ok, fail);
-      } else {
-        ok(result);
-      }
+      return safeCall(taskFn, ok, fail);
     });
   } catch (reason) {
     fail(reason);

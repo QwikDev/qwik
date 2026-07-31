@@ -122,20 +122,35 @@ function getOutOfOrderStreamingScript(boundaryId: number, content: Element | nul
   }
 }
 
-const windowsWithRejectionBridge = new WeakSet<object>();
+// One bridge per window, shared by every container on it; refcounted so the last destroy removes it.
+const rejectionBridges = new WeakMap<
+  object,
+  { handler: (e: PromiseRejectionEvent) => void; containers: number }
+>();
 
 function registerUnhandledRejectionBridge(view: (Window & typeof globalThis) | null | undefined) {
-  if (
-    !view ||
-    typeof view.addEventListener !== 'function' ||
-    windowsWithRejectionBridge.has(view)
-  ) {
+  if (!view || typeof view.addEventListener !== 'function') {
     return;
   }
-  windowsWithRejectionBridge.add(view);
-  view.addEventListener('unhandledrejection', (e: PromiseRejectionEvent) => {
+  const bridge = rejectionBridges.get(view);
+  if (bridge) {
+    bridge.containers++;
+    return;
+  }
+  const handler = (e: PromiseRejectionEvent) => {
     logError(e?.reason);
-  });
+  };
+  rejectionBridges.set(view, { handler, containers: 1 });
+  view.addEventListener('unhandledrejection', handler);
+}
+
+function unregisterUnhandledRejectionBridge(view: (Window & typeof globalThis) | null | undefined) {
+  const bridge = view && rejectionBridges.get(view);
+  if (!bridge || --bridge.containers > 0) {
+    return;
+  }
+  rejectionBridges.delete(view);
+  view.removeEventListener?.('unhandledrejection', bridge.handler);
 }
 
 /** @internal */
@@ -253,6 +268,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     if (this.$qErrorHandler$) {
       this.document.removeEventListener?.('qerror', this.$qErrorHandler$);
       this.$qErrorHandler$ = null;
+      unregisterUnhandledRejectionBridge(this.document.defaultView);
     }
     this.vNodeLocate = () => null as any;
     this.$rawStateData$.length = 0;

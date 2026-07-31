@@ -2226,13 +2226,20 @@ describe('qerror (client event channel)', () => {
       view.addEventListener = vi.fn((type: string, cb: (e: any) => void) => {
         (listeners[type] ||= []).push(cb);
       });
+      view.removeEventListener = vi.fn((type: string, cb: (e: any) => void) => {
+        const arr = listeners[type];
+        const at = arr ? arr.indexOf(cb) : -1;
+        if (at >= 0) {
+          arr.splice(at, 1);
+        }
+      });
       const hostA = document.createElement('div');
       const hostB = document.createElement('div');
       document.body.appendChild(hostA);
       document.body.appendChild(hostB);
       await render(hostA, <div id="a">a</div>);
       await render(hostB, <div id="b">b</div>);
-      return { document, view, listeners };
+      return { document, view, listeners, hostA, hostB };
     };
 
     it('registers exactly one unhandledrejection listener across two containers, routing to logError once', async () => {
@@ -2253,6 +2260,25 @@ describe('qerror (client event channel)', () => {
 
         expect(logErrorSpy).toHaveBeenCalledTimes(1);
         expect(logErrorSpy).toHaveBeenCalledWith(reason);
+      } finally {
+        logErrorSpy.mockRestore();
+      }
+    });
+
+    it('destroying the last container removes the bridge; an earlier destroy keeps it', async () => {
+      const logErrorSpy = vi
+        .spyOn(logUtils, 'logError')
+        .mockImplementation((message?: any) => message as Error);
+      try {
+        const { listeners, hostA, hostB } = await renderTwoContainersWithStubbedView();
+        expect(listeners['unhandledrejection']).toHaveLength(1);
+
+        (hostA as any).qDestroy();
+        expect(listeners['unhandledrejection']).toHaveLength(1);
+
+        (hostB as any).qDestroy();
+        expect(listeners['unhandledrejection']).toHaveLength(0);
+        expect(logErrorSpy).not.toHaveBeenCalled();
       } finally {
         logErrorSpy.mockRestore();
       }

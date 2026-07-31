@@ -30,13 +30,14 @@ export function lowerComponentResult(
   if (lowered.kind === 'failure') {
     return lowered;
   }
-  return validateComponentPlan(lowered.plan, analysis).length === 0
+  const issues = validateComponentPlan(lowered.plan, analysis);
+  return issues.length === 0
     ? { kind: 'success', plan: lowered.plan }
     : {
         kind: 'failure',
         code: 'unsupported-syntax',
         range: component.shape.returnExpression,
-        message: 'The lowered component plan failed validation.',
+        message: `The lowered component plan failed validation: ${issues[0].path} ${issues[0].message}`,
       };
 }
 

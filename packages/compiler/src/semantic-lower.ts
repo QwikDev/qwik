@@ -1,4 +1,4 @@
-import type { JSXAttributeItem, JSXChild, JSXElement } from 'oxc-parser';
+import type { JSXAttributeItem, JSXChild, JSXElement, Program } from 'oxc-parser';
 import {
   getIdentifierName,
   getJsxAttributeName,
@@ -44,8 +44,11 @@ import type {
   RenderPlan,
   RenderEffectPlan,
   RenderFunctionPlan,
+  FunctionRenderPlan,
   RenderNodePlan,
   ComponentDefinition,
+  ComponentShape,
+  ModuleBoundaryPlan,
   Segment,
   SegmentPlan,
   SegmentReferencePlan,
@@ -69,17 +72,35 @@ export type SemanticLowerFailureCode =
   | 'custom-hook'
   | 'scoped-style-content';
 
+export interface SemanticLowerFailure {
+  readonly kind: 'failure';
+  readonly code: SemanticLowerFailureCode;
+  readonly range: SourceRange;
+  readonly message: string;
+}
+
 export type SemanticLowerResult =
   | {
       readonly kind: 'success';
       readonly plan: ComponentPlan;
     }
+  | SemanticLowerFailure;
+
+export type SemanticModuleLowerResult =
   | {
-      readonly kind: 'failure';
-      readonly code: SemanticLowerFailureCode;
-      readonly range: SourceRange;
-      readonly message: string;
-    };
+      readonly kind: 'success';
+      readonly plan: ModuleBoundaryPlan;
+    }
+  | SemanticLowerFailure;
+
+interface SemanticOwner {
+  readonly shape: ComponentDefinition['shape'] | null;
+  readonly body: ComponentDefinition['body'];
+  readonly functionRange: SourceRange;
+  readonly setup: readonly SourceRange[];
+  readonly parameter: ComponentDefinition['shape']['parameter'];
+  readonly displayName: string;
+}
 
 interface RenderContext {
   readonly lifetimeId: LifetimeId;
@@ -117,7 +138,115 @@ export function lowerSemanticComponentPlan(
   component: ComponentDefinition,
   extracted: ExtractedQrls
 ): SemanticLowerResult {
-  return new SemanticLowerer(component, extracted).lower();
+  return new SemanticLowerer(
+    {
+      shape: component.shape,
+      body: component.body,
+      functionRange: component.functionRange ?? component.replacementRange,
+      setup: component.shape.setup,
+      parameter: component.shape.parameter,
+      displayName: component.localName ?? String(component.exportName),
+    },
+    extracted
+  ).lowerComponentPlan();
+}
+
+export function lowerSemanticModulePlan(
+  program: Program,
+  plan: ModuleBoundaryPlan,
+  extracted: ExtractedQrls
+): SemanticModuleLowerResult {
+  const segmentsById = new Map(extracted.segments.map((segment) => [segment.id, segment]));
+  const loweredSegments = new Map(plan.segments.map((segment) => [segment.id, segment]));
+  const functions: FunctionRenderPlan[] = [];
+
+  for (const boundarySegment of plan.segments) {
+    const segment = segmentsById.get(boundarySegment.id);
+    if (
+      segment === undefined ||
+      segment.kind !== 'qrl' ||
+      segment.payload !== 'function' ||
+      (segment.qrl?.kind === 'implicit' && segment.qrl.role !== 'generic')
+    ) {
+      continue;
+    }
+    const callback = findNodeByRange(program, segment.functionRange);
+    if (callback === null || !isFunctionLike(callback) || !containsJsx(callback.body)) {
+      continue;
+    }
+    const bodyRange = getRange(callback.body);
+    if (bodyRange === null) {
+      continue;
+    }
+    const owner: SemanticOwner = {
+      shape: null,
+      body: callback.body!,
+      functionRange: segment.functionRange,
+      setup: getLeadingSetupRanges(callback),
+      parameter: null,
+      displayName: segment.name,
+    };
+    const lowered = new SemanticLowerer(owner, extracted).lowerModuleQrl(segment, callback);
+    if (lowered.kind === 'failure') {
+      return lowered;
+    }
+    const rootPlan = loweredSegments.get(segment.id);
+    if (rootPlan !== undefined) {
+      loweredSegments.set(segment.id, {
+        ...rootPlan,
+        embeddedRenders: lowered.embeddedRenders,
+        embeddedRenderContext: segment.qrl?.kind === 'implicit' ? 'trailing' : 'ambient',
+        initialOnly: true,
+      });
+    }
+    for (const item of lowered.segments) {
+      loweredSegments.set(item.id, item);
+    }
+  }
+
+  const excludedFunctionRanges = [
+    ...plan.replacedRanges,
+    ...plan.segments.map((segment) => segment.functionRange),
+  ];
+  for (const functionRange of extracted.analysis.jsxFunctionRanges) {
+    if (excludedFunctionRanges.some((range) => rangeContains(range, functionRange))) {
+      continue;
+    }
+    const callback = findNodeByRange(program, functionRange);
+    if (callback === null || !isFunctionLike(callback)) {
+      continue;
+    }
+    const bodyRange = getRange(callback.body);
+    if (bodyRange === null) {
+      continue;
+    }
+    const owner: SemanticOwner = {
+      shape: null,
+      body: callback.body!,
+      functionRange,
+      setup: getLeadingSetupRanges(callback),
+      parameter: null,
+      displayName: `function_${functionRange[0]}`,
+    };
+    const lowered = new SemanticLowerer(owner, extracted).lowerFunctionRender(callback);
+    if (lowered.kind === 'failure') {
+      return lowered;
+    }
+    functions.push(lowered.plan);
+    for (const segment of lowered.segments) {
+      loweredSegments.set(segment.id, segment);
+    }
+  }
+
+  return {
+    kind: 'success',
+    plan: {
+      roots: plan.roots,
+      segments: [...loweredSegments.values()],
+      functions,
+      replacedRanges: plan.replacedRanges,
+    },
+  };
 }
 
 class SemanticLowerer {
@@ -125,6 +254,12 @@ class SemanticLowerer {
   private readonly lifetimes: LifetimePlan[] = [];
   private readonly usedSegments = new Map<string, LifetimeId>();
   private readonly renderFunctions = new Map<string, RenderFunctionPlan>();
+  private readonly embeddedRenders = new Map<string, RenderFunctionPlan[]>();
+  private readonly embeddedRenderContexts = new Map<
+    string,
+    Exclude<SegmentPlan['embeddedRenderContext'], null>
+  >();
+  private readonly initialOnlyEmbeddedRenders = new Set<string>();
   private readonly syntheticSegments: SegmentPlan[] = [];
   private readonly syntheticSegmentParents = new Map<string, string>();
   private readonly renderSegmentStack: string[] = [];
@@ -136,6 +271,7 @@ class SemanticLowerer {
   private readonly localRenderValues = new Map<BindingId, RenderFunctionPlan>();
   private readonly reactiveLoopBindings = new Set<BindingId>();
   private readonly initialOnlyBindings = new Set<BindingId>();
+  private readonly setupBindings = new Set<BindingId>();
   private readonly compilerStringBindings = new Set<BindingId>();
   private readonly styleScopes: string[] = [];
   private nextUseId = 0;
@@ -147,16 +283,24 @@ class SemanticLowerer {
   private failure: Exclude<SemanticLowerResult, { kind: 'success' }> | null = null;
 
   constructor(
-    private readonly component: ComponentDefinition,
+    private readonly owner: SemanticOwner,
     private readonly extracted: ExtractedQrls
   ) {
     this.analysis = extracted.analysis;
   }
 
-  lower(): SemanticLowerResult {
+  lowerComponentPlan(): SemanticLowerResult {
     const rootLifetime = this.allocateLifetime(null, 'component', 'immediate');
     this.retainSetupSegments(rootLifetime);
-    this.classifySetupBindings(this.component.shape.setup);
+    const shape = this.owner.shape;
+    if (shape === null) {
+      return this.fail(
+        'unsupported-syntax',
+        this.owner.functionRange,
+        'A component render owner requires a component shape.'
+      );
+    }
+    this.classifySetupBindings(shape.setup);
     this.classifyFunctionBindings();
     const setup = this.lowerSetup(rootLifetime);
     if (this.failure !== null) {
@@ -164,11 +308,11 @@ class SemanticLowerer {
     }
     this.hasCustomHook = this.hasCustomHookInSetup();
 
-    const expression = findNodeByRange(this.component.body, this.component.shape.returnExpression);
+    const expression = findNodeByRange(this.owner.body, shape.returnExpression);
     if (expression === null) {
       return this.fail(
         'unsupported-syntax',
-        this.component.shape.returnExpression,
+        shape.returnExpression,
         'The component return expression could not be located in the normalized AST.'
       );
     }
@@ -184,16 +328,16 @@ class SemanticLowerer {
     const finalSetup = inlined.setup;
     const segments = this.createSegmentPlans();
     const referenceBindingIds = this.renderReferenceBindingIds(render, finalSetup);
+    const captures = this.componentCaptures(shape, referenceBindingIds, segments);
     return {
       kind: 'success',
       plan: {
-        shape: this.component.shape,
+        shape,
+        captures,
         setup: finalSetup,
         providesContext: this.providesContext(),
         needsId: this.nextUseId > 0,
-        idBase: `q${sanitizeIdPart(
-          this.component.localName ?? String(this.component.exportName)
-        )}-`,
+        idBase: `q${sanitizeIdPart(this.owner.displayName)}-`,
         styleScope: this.styleScopes.length === 0 ? null : this.styleScopes.join(' '),
         hasCustomHook: this.hasCustomHook,
         runtimeStyleScopeName: this.hasCustomHook ? this.runtimeStyleScopeName() : null,
@@ -202,6 +346,101 @@ class SemanticLowerer {
         segments,
         lifetimes: this.lifetimes,
       },
+    };
+  }
+
+  private componentCaptures(
+    shape: ComponentShape,
+    referenceBindingIds: readonly BindingId[],
+    segments: readonly SegmentPlan[]
+  ): ComponentPlan['captures'] {
+    if (shape.bindingId !== null) {
+      return [];
+    }
+    return unique([
+      ...referenceBindingIds,
+      ...segments.flatMap((segment) => segment.captures.map((capture) => capture.bindingId)),
+    ]).flatMap((bindingId) => {
+      const binding = this.binding(bindingId);
+      if (
+        binding === null ||
+        binding.kind === 'module' ||
+        binding.kind === 'import' ||
+        binding.declarationRange === null ||
+        rangeContains(this.owner.functionRange, binding.declarationRange)
+      ) {
+        return [];
+      }
+      return [{ bindingId, name: binding.name }];
+    });
+  }
+
+  lowerModuleQrl(
+    segment: Segment,
+    callback: AstFunction
+  ):
+    | {
+        readonly kind: 'success';
+        readonly embeddedRenders: readonly RenderFunctionPlan[];
+        readonly segments: readonly SegmentPlan[];
+      }
+    | SemanticLowerFailure {
+    const rootLifetime = this.allocateLifetime(null, 'render-function', 'atomic-range');
+    this.classifySetupBindings(this.owner.setup);
+    this.classifyFunctionBindings();
+    const embeddedRenders = this.createEmbeddedRenderFunctions(
+      callback.body!,
+      segment.id,
+      rootLifetime,
+      segment.id
+    );
+    this.validateCompilerHookScopes();
+    if (this.failure !== null) {
+      return this.failure;
+    }
+    return {
+      kind: 'success',
+      embeddedRenders,
+      segments: this.createSegmentPlans(),
+    };
+  }
+
+  lowerFunctionRender(callback: AstFunction):
+    | {
+        readonly kind: 'success';
+        readonly plan: FunctionRenderPlan;
+        readonly segments: readonly SegmentPlan[];
+      }
+    | SemanticLowerFailure {
+    const functionRange = getRange(callback);
+    const bodyRange = getRange(callback.body);
+    if (functionRange === null || bodyRange === null) {
+      return this.fail(
+        'unsupported-syntax',
+        this.owner.functionRange,
+        'A JSX function has no source range.'
+      );
+    }
+    const rootLifetime = this.allocateLifetime(null, 'render-function', 'atomic-range');
+    this.classifySetupBindings(this.owner.setup);
+    this.classifyFunctionBindings();
+    const roots = this.directFunctionJsxRoots(callback);
+    const renders = roots.map((root) =>
+      this.createEmbeddedRenderFunction(root, null, rootLifetime)
+    );
+    this.validateCompilerHookScopes();
+    if (this.failure !== null) {
+      return this.failure;
+    }
+    return {
+      kind: 'success',
+      plan: {
+        functionRange,
+        bodyRange,
+        bodyKind: callback.body?.type === 'BlockStatement' ? 'block' : 'expression',
+        renders,
+      },
+      segments: this.createSegmentPlans(),
     };
   }
 
@@ -247,12 +486,6 @@ class SemanticLowerer {
           const plan = this.lowerBranch(node, branch, context.lifetimeId, blockingSuspense);
           return plan === null ? [] : [plan];
         }
-        if (containsJsx(node)) {
-          return this.unsupported(
-            range,
-            'JSX inside this expression cannot be represented by a semantic render node.'
-          );
-        }
         return [this.createDynamicValue(node, range, context)];
       }
       case 'CallExpression': {
@@ -261,23 +494,11 @@ class SemanticLowerer {
           const plan = this.lowerCollection(collection, context.lifetimeId, blockingSuspense);
           return plan === null ? [] : [plan];
         }
-        if (containsJsx(node)) {
-          return this.unsupported(
-            range,
-            'A call containing JSX must use a supported map render callback.'
-          );
-        }
         return [this.createDynamicValue(node, range, context)];
       }
       case 'JSXEmptyExpression':
         return [];
       default:
-        if (containsJsx(node)) {
-          return this.unsupported(
-            range,
-            'JSX inside this expression cannot be represented by a semantic render node.'
-          );
-        }
         return [this.createDynamicValue(node, range, context)];
     }
   }
@@ -569,7 +790,7 @@ class SemanticLowerer {
         }
         continue;
       }
-      const source = findNodeByRange(this.component.body, part.expressionRange);
+      const source = findNodeByRange(this.owner.body, part.expressionRange);
       if (source === null) {
         return null;
       }
@@ -1003,6 +1224,7 @@ class SemanticLowerer {
   ): DynamicValuePlan {
     const lifetimeId = this.allocateLifetime(context.lifetimeId, 'dynamic-value', 'atomic-range');
     const output = forcedOutput ?? this.classifyDynamicOutput(expression);
+    const embeddedRoots = this.embeddedJsxRoots(expression);
     const bindingId = expression.type === 'Identifier' ? this.bindingIdAt(range) : null;
     if (
       output === 'content' &&
@@ -1015,7 +1237,43 @@ class SemanticLowerer {
         'Opaque structural content cannot be scoped because its authored JSX is not visible to the compiler.'
       );
     }
-    const value = this.createValue(expression, lifetimeId, false, output === 'text', true);
+    const initialEmbedded =
+      embeddedRoots.length > 0 && this.isInitialEmbeddedExpression(range, embeddedRoots);
+    const inlineEmbeddedRenders = initialEmbedded
+      ? embeddedRoots.map((root) => this.createEmbeddedRenderFunction(root, null, lifetimeId))
+      : [];
+    const value: ValuePlan = initialEmbedded
+      ? {
+          kind: 'expression',
+          expression: range,
+          referenceBindingIds: this.referencesIn(range),
+          initialOnly: true,
+          compilerString: false,
+          boundaries: this.referenceInlineBoundaries(range, lifetimeId),
+          embeddedRenders: inlineEmbeddedRenders,
+        }
+      : this.createValue(
+          expression,
+          lifetimeId,
+          false,
+          output === 'text',
+          true,
+          false,
+          embeddedRoots.length > 0
+        );
+    if (embeddedRoots.length > 0 && !initialEmbedded) {
+      if (value.kind !== 'segment') {
+        this.unsupported(range, 'Embedded JSX requires a source-preserving value segment.');
+      } else {
+        this.attachEmbeddedRenders(
+          value.segment.segmentId,
+          embeddedRoots,
+          lifetimeId,
+          'ambient',
+          this.isInitialEmbeddedExpression(range, embeddedRoots)
+        );
+      }
+    }
     const effectId = this.pushEffect(context, {
       kind: output,
       lifetimeId,
@@ -1049,7 +1307,8 @@ class SemanticLowerer {
     event: boolean,
     allowSource = false,
     allowRenderValue = false,
-    inlineExpression = false
+    inlineExpression = false,
+    forceSegment = false
   ): ValuePlan {
     const range = getRange(expression)!;
     const bindingId = expression.type === 'Identifier' ? this.bindingIdAt(range) : null;
@@ -1068,6 +1327,7 @@ class SemanticLowerer {
     const references = this.referencesIn(range);
     if (
       !event &&
+      !forceSegment &&
       references.length > 0 &&
       references.every((id) => this.initialOnlyBindings.has(id)) &&
       !this.hasInlineBoundary(range)
@@ -1079,9 +1339,10 @@ class SemanticLowerer {
         initialOnly: true,
         compilerString: bindingId !== null && this.compilerStringBindings.has(bindingId),
         boundaries: [],
+        embeddedRenders: [],
       };
     }
-    const source = allowSource ? this.directQwikSourceRange(expression) : null;
+    const source = !forceSegment && allowSource ? this.directQwikSourceRange(expression) : null;
     if (source !== null) {
       return {
         kind: 'source',
@@ -1090,7 +1351,7 @@ class SemanticLowerer {
         referenceBindingIds: this.referencesIn(range),
       };
     }
-    if (inlineExpression) {
+    if (!forceSegment && inlineExpression) {
       return {
         kind: 'expression',
         expression: range,
@@ -1098,6 +1359,7 @@ class SemanticLowerer {
         initialOnly: false,
         compilerString: false,
         boundaries: this.referenceInlineBoundaries(range, lifetimeId),
+        embeddedRenders: [],
       };
     }
     const functionRange = event && isFunctionLike(expression) ? getRange(expression) : null;
@@ -1128,7 +1390,123 @@ class SemanticLowerer {
       initialOnly: false,
       compilerString: false,
       boundaries: event ? this.referenceInlineBoundaries(range, lifetimeId, true) : [],
+      embeddedRenders: [],
     };
+  }
+
+  private attachEmbeddedRenders(
+    segmentId: string,
+    roots: readonly AstNode[],
+    parentLifetimeId: LifetimeId,
+    context: Exclude<SegmentPlan['embeddedRenderContext'], null>,
+    initialOnly: boolean
+  ): void {
+    const plans = roots.map((root) =>
+      this.createEmbeddedRenderFunction(root, segmentId, parentLifetimeId)
+    );
+    const existing = this.embeddedRenders.get(segmentId) ?? [];
+    this.embeddedRenders.set(segmentId, [...existing, ...plans]);
+    this.embeddedRenderContexts.set(segmentId, context);
+    if (initialOnly) {
+      this.initialOnlyEmbeddedRenders.add(segmentId);
+    }
+  }
+
+  private isInitialEmbeddedExpression(range: SourceRange, roots: readonly AstNode[]): boolean {
+    const rootRanges = roots.flatMap((root) => {
+      const rootRange = getRange(root);
+      return rootRange === null ? [] : [rootRange];
+    });
+    const controllingBindings = unique(
+      this.analysis.references.flatMap((reference) => {
+        if (
+          reference.bindingId === null ||
+          !rangeContains(range, reference.range) ||
+          rootRanges.some((rootRange) => rangeContains(rootRange, reference.range))
+        ) {
+          return [];
+        }
+        return [reference.bindingId];
+      })
+    );
+    return (
+      controllingBindings.length > 0 &&
+      controllingBindings.every((bindingId) => this.isStableRenderBinding(bindingId))
+    );
+  }
+
+  private createEmbeddedRenderFunctions(
+    expression: AstNode,
+    segmentId: string,
+    parentLifetimeId: LifetimeId,
+    owningSegmentId: string | null = null
+  ): RenderFunctionPlan[] {
+    return this.embeddedJsxRoots(expression, owningSegmentId).map((root) =>
+      this.createEmbeddedRenderFunction(root, segmentId, parentLifetimeId)
+    );
+  }
+
+  private createEmbeddedRenderFunction(
+    expression: AstNode,
+    segmentId: string | null,
+    parentLifetimeId: LifetimeId
+  ): RenderFunctionPlan {
+    const range = getRange(expression)!;
+    const lifetimeId = this.allocateLifetime(parentLifetimeId, 'render-function', 'atomic-range');
+    const lower = () => {
+      const effects: RenderEffectPlan[] = [];
+      return {
+        roots: this.lowerExpression(expression, { lifetimeId, effects }),
+        effects,
+      } satisfies RenderPlan;
+    };
+    const render = segmentId === null ? lower() : this.withRenderSegment(segmentId, lower);
+    const lifecycleSegmentIds = this.lifecycleSegmentsIn(range);
+    const async = containsAwait(expression);
+    return {
+      kind: 'embedded-jsx',
+      collectionSourceKind: null,
+      range,
+      segmentId: null,
+      lifetimeId,
+      async,
+      pure: isPureRenderFunction(render, [], async, lifecycleSegmentIds, false),
+      setup: [],
+      parameterBindingIds: [],
+      referenceBindingIds: this.renderReferenceBindingIds(render, []),
+      render,
+      lifecycleSegmentIds,
+      needsId: false,
+      styleScope: this.styleScopes.length === 0 ? null : this.styleScopes.join(' '),
+      runtimeStyleScope: this.hasCustomHook,
+      runtimeStyleScopeName: this.hasCustomHook ? this.runtimeStyleScopeName() : null,
+    };
+  }
+
+  private embeddedJsxRoots(expression: AstNode, owningSegmentId: string | null = null): AstNode[] {
+    const range = getRange(expression);
+    if (range === null) {
+      return [];
+    }
+    const skippedRanges = this.extracted.segments.flatMap((segment) =>
+      segment.id !== owningSegmentId &&
+      segment.qrl !== null &&
+      rangeContains(range, segment.functionRange)
+        ? [segment.functionRange]
+        : []
+    );
+    return findMaximalJsxRoots(expression, skippedRanges);
+  }
+
+  private directFunctionJsxRoots(callback: AstFunction): AstNode[] {
+    const functionRange = getRange(callback);
+    if (functionRange === null || callback.body === null) {
+      return [];
+    }
+    const skippedRanges = this.extracted.segments.flatMap((segment) =>
+      rangeContains(functionRange, segment.functionRange) ? [segment.functionRange] : []
+    );
+    return findMaximalJsxRoots(callback.body, skippedRanges, true);
   }
 
   private lowerBranch(
@@ -1431,7 +1809,7 @@ class SemanticLowerer {
       ) {
         continue;
       }
-      const callback = findNodeByRange(this.component.body, segment.functionRange);
+      const callback = findNodeByRange(this.owner.body, segment.functionRange);
       if (callback === null || !isFunctionLike(callback)) {
         continue;
       }
@@ -1447,11 +1825,14 @@ class SemanticLowerer {
           this.parameterBindings(callback)
         );
       } else if (containsJsx(callback.body)) {
-        this.unsupported(
-          segment.functionRange,
-          'JSX-bearing QRLs require a single final return expression.'
+        const roots = this.embeddedJsxRoots(callback.body!, segment.id);
+        this.attachEmbeddedRenders(
+          segment.id,
+          roots,
+          lifetimeId,
+          segment.qrl?.kind === 'implicit' ? 'trailing' : 'ambient',
+          true
         );
-        return;
       }
     }
   }
@@ -1685,7 +2066,7 @@ class SemanticLowerer {
       bodyKind: 'expression',
       propsParts: [],
       async,
-      awaits: collectAwaitRanges(findNodeByRange(this.component.body, range)),
+      awaits: collectAwaitRanges(findNodeByRange(this.owner.body, range)),
       captures: captureBindings.map((binding) => ({
         bindingId: binding.id,
         name: binding.name,
@@ -1697,7 +2078,10 @@ class SemanticLowerer {
       visibleTaskStrategy: null,
       lifetimeId,
       render,
-      componentParameter: this.component.shape.parameter,
+      embeddedRenders: [],
+      embeddedRenderContext: null,
+      initialOnly: false,
+      componentParameter: this.owner.parameter,
       moduleStyle: null,
     };
   }
@@ -1715,12 +2099,28 @@ class SemanticLowerer {
           this.syntheticSegmentParents.get(segment.id) ??
           this.usedSegmentParentId(segment.parentId),
         render,
-        componentParameter: this.component.shape.parameter,
+        componentParameter: this.owner.parameter,
         captureAccess: (kind, bindingId) => this.captureAccess(kind, bindingId),
       });
-      return [plan];
+      return [this.withEmbeddedRenders(plan)];
     });
-    return [...plans, ...this.syntheticSegments];
+    return [
+      ...plans,
+      ...this.syntheticSegments.map((segment) => this.withEmbeddedRenders(segment)),
+    ];
+  }
+
+  private withEmbeddedRenders(segment: SegmentPlan): SegmentPlan {
+    const embeddedRenders = this.embeddedRenders.get(segment.id);
+    if (embeddedRenders === undefined) {
+      return segment;
+    }
+    return {
+      ...segment,
+      embeddedRenders,
+      embeddedRenderContext: this.embeddedRenderContexts.get(segment.id) ?? 'ambient',
+      initialOnly: segment.initialOnly || this.initialOnlyEmbeddedRenders.has(segment.id),
+    };
   }
 
   private getMapCandidate(expression: Extract<AstNode, { type: 'CallExpression' }>) {
@@ -1773,16 +2173,14 @@ class SemanticLowerer {
       return (
         object?.type === 'Identifier' &&
         bindingId !== null &&
-        this.component.shape.parameter?.bindingIds.includes(bindingId) === true
+        this.owner.parameter?.bindingIds.includes(bindingId) === true
       );
     }
     if (expression.type !== 'Identifier' || expression.name !== 'children') {
       return false;
     }
     const bindingId = this.bindingIdAt(getRange(expression));
-    return (
-      bindingId !== null && this.component.shape.parameter?.bindingIds.includes(bindingId) === true
-    );
+    return bindingId !== null && this.owner.parameter?.bindingIds.includes(bindingId) === true;
   }
 
   private retainSetupSegments(lifetimeId: LifetimeId): void {
@@ -1790,7 +2188,7 @@ class SemanticLowerer {
       if (
         segment.parentId === null &&
         !this.isStyleSegment(segment) &&
-        this.component.shape.setup.some((range) => rangeContains(range, segment.range))
+        this.owner.setup.some((range) => rangeContains(range, segment.range))
       ) {
         this.referenceSegment(segment, lifetimeId);
       }
@@ -1809,7 +2207,7 @@ class SemanticLowerer {
 
   private referenceSegment(segment: Segment, lifetimeId: LifetimeId): SegmentReferencePlan {
     const renderParent = this.renderSegmentStack[this.renderSegmentStack.length - 1];
-    if (renderParent !== undefined && segment.parentId === null) {
+    if (renderParent !== undefined && segment.id !== renderParent) {
       this.syntheticSegmentParents.set(segment.id, renderParent);
     }
     if (!this.usedSegments.has(segment.id)) {
@@ -1838,8 +2236,8 @@ class SemanticLowerer {
     if (
       kind !== 'event' &&
       kind !== 'qrl' &&
-      this.component.shape.parameter?.kind === 'object' &&
-      this.component.shape.parameter.bindingIds.includes(bindingId)
+      this.owner.parameter?.kind === 'object' &&
+      this.owner.parameter.bindingIds.includes(bindingId)
     ) {
       return 'component-prop';
     }
@@ -1939,6 +2337,9 @@ class SemanticLowerer {
         if (value.kind === 'expression') {
           value.boundaries.forEach((boundary) =>
             referenceBindingIds(boundary).forEach((id) => ids.add(id))
+          );
+          value.embeddedRenders.forEach((render) =>
+            render.referenceBindingIds.forEach((id) => ids.add(id))
           );
         }
       }
@@ -2070,8 +2471,8 @@ class SemanticLowerer {
 
   private lowerSetup(lifetimeId: LifetimeId): SetupPlan[] {
     const setup: SetupPlan[] = [];
-    for (const range of this.component.shape.setup) {
-      const statement = findNodeByRange(this.component.body, range);
+    for (const range of this.owner.setup) {
+      const statement = findNodeByRange(this.owner.body, range);
       const style = statement === null ? null : this.lowerStyleSetup(statement, range, lifetimeId);
       if (style !== null) {
         setup.push(style);
@@ -2176,7 +2577,7 @@ class SemanticLowerer {
 
   private collectUseIds(range: SourceRange) {
     const calls: UseIdPlan[] = [];
-    const statement = findNodeByRange(this.component.body, range);
+    const statement = findNodeByRange(this.owner.body, range);
     if (statement === null) {
       return calls;
     }
@@ -2212,7 +2613,7 @@ class SemanticLowerer {
 
   private validateCompilerHookScopes(): void {
     const nestedFunctionRanges: SourceRange[] = [];
-    forEachNode(this.component.body, (node) => {
+    forEachNode(this.owner.body, (node) => {
       if (isFunctionLike(node)) {
         const range = getRange(node);
         if (range !== null) {
@@ -2220,7 +2621,7 @@ class SemanticLowerer {
         }
       }
     });
-    forEachNode(this.component.body, (node) => {
+    forEachNode(this.owner.body, (node) => {
       if (node.type !== 'CallExpression') {
         return;
       }
@@ -2243,7 +2644,7 @@ class SemanticLowerer {
                   : null;
       if (
         hook !== null &&
-        !this.component.shape.setup.some((range) => rangeContains(range, callRange)) &&
+        !this.owner.setup.some((range) => rangeContains(range, callRange)) &&
         !(
           hook === QwikHooks.UseId &&
           [...this.renderFunctions.values()].some((render) =>
@@ -2281,7 +2682,7 @@ class SemanticLowerer {
         );
         return;
       }
-      const inSetup = this.component.shape.setup.some((range) => rangeContains(range, callRange));
+      const inSetup = this.owner.setup.some((range) => rangeContains(range, callRange));
       const inNestedFunction = nestedFunctionRanges.some((range) =>
         rangeContains(range, callRange)
       );
@@ -2334,8 +2735,8 @@ class SemanticLowerer {
   }
 
   private hasCustomHookInSetup(): boolean {
-    return this.component.shape.setup.some((range) => {
-      const statement = findNodeByRange(this.component.body, range);
+    return this.owner.setup.some((range) => {
+      const statement = findNodeByRange(this.owner.body, range);
       if (statement === null) {
         return false;
       }
@@ -2460,9 +2861,7 @@ class SemanticLowerer {
       return null;
     }
     const index = this.nextStyle++;
-    const styleId = `${hashCode(
-      `${this.component.localName ?? this.component.exportName}_style${index}`
-    )}-${index}`;
+    const styleId = `${hashCode(`${this.owner.displayName}_style${index}`)}-${index}`;
     if (scoped) {
       this.styleScopes.push(`⚡️${styleId}`);
     }
@@ -2536,7 +2935,7 @@ class SemanticLowerer {
 
   private classifySetupBindings(ranges: readonly SourceRange[]): void {
     for (const range of ranges) {
-      const statement = findNodeByRange(this.component.body, range);
+      const statement = findNodeByRange(this.owner.body, range);
       if (statement?.type !== 'VariableDeclaration') {
         continue;
       }
@@ -2549,6 +2948,9 @@ class SemanticLowerer {
         const bindingId = this.bindingIdAt(getRange(id));
         if (bindingId === null) {
           continue;
+        }
+        if (statement.kind === 'const') {
+          this.setupBindings.add(bindingId);
         }
         const compilerText =
           init.type === 'CallExpression' &&
@@ -2580,8 +2982,32 @@ class SemanticLowerer {
     }
   }
 
+  private isStableRenderBinding(bindingId: BindingId): boolean {
+    if (
+      this.initialOnlyBindings.has(bindingId) ||
+      this.setupBindings.has(bindingId) ||
+      this.functionBindings.has(bindingId)
+    ) {
+      return true;
+    }
+    if (this.owner.parameter?.bindingIds.includes(bindingId) === true) {
+      return false;
+    }
+    const binding = this.binding(bindingId);
+    if (binding === null || binding === undefined) {
+      return false;
+    }
+    if (binding.kind === 'module' || binding.import !== null) {
+      return true;
+    }
+    return (
+      binding.declarationRange !== null &&
+      !rangeContains(this.owner.functionRange, binding.declarationRange)
+    );
+  }
+
   private classifyFunctionBindings(): void {
-    forEachNode(this.component.body, (node) => {
+    forEachNode(this.owner.body, (node) => {
       if (node.type === 'FunctionDeclaration' && node.id !== null) {
         const bindingId = this.bindingIdAt(getRange(node.id));
         if (bindingId !== null) {
@@ -2748,8 +3174,8 @@ class SemanticLowerer {
   }
 
   private providesContext(): boolean {
-    return this.component.shape.setup.some((range) => {
-      const setup = findNodeByRange(this.component.body, range);
+    return this.owner.setup.some((range) => {
+      const setup = findNodeByRange(this.owner.body, range);
       return setup !== null && this.containsContextProviderCall(setup);
     });
   }
@@ -2861,7 +3287,11 @@ function getCallbackReturn(
   const returns = body.body.flatMap((statement, index) =>
     statement.type === 'ReturnStatement' ? [{ statement, index }] : []
   );
-  if (returns.length !== 1 || returns[0].index !== body.body.length - 1) {
+  if (
+    returns.length !== 1 ||
+    returns[0].index !== body.body.length - 1 ||
+    body.body.slice(0, -1).some((statement) => containsNestedReturn(statement))
+  ) {
     return null;
   }
   const row = unwrapExpression(returns[0].statement.argument);
@@ -2875,6 +3305,98 @@ function getCallbackReturn(
       .map(getRange)
       .filter((range): range is SourceRange => range !== null),
   };
+}
+
+function getLeadingSetupRanges(callback: AstFunction): SourceRange[] {
+  const body = unwrapExpression(callback.body);
+  if (body?.type !== 'BlockStatement') {
+    return [];
+  }
+  const ranges: SourceRange[] = [];
+  for (const statement of body.body) {
+    if (
+      statement.type === 'ReturnStatement' ||
+      statement.type === 'IfStatement' ||
+      statement.type === 'SwitchStatement' ||
+      statement.type === 'TryStatement' ||
+      statement.type === 'ForStatement' ||
+      statement.type === 'ForInStatement' ||
+      statement.type === 'ForOfStatement' ||
+      statement.type === 'WhileStatement' ||
+      statement.type === 'DoWhileStatement'
+    ) {
+      break;
+    }
+    const range = getRange(statement);
+    if (range !== null) {
+      ranges.push(range);
+    }
+  }
+  return ranges;
+}
+
+function findMaximalJsxRoots(
+  node: unknown,
+  skippedRanges: readonly SourceRange[],
+  skipNestedFunctions = false
+): AstNode[] {
+  const roots: AstNode[] = [];
+  visit(node);
+  return roots;
+
+  function visit(value: unknown): void {
+    if (!isNode(value)) {
+      return;
+    }
+    const range = getRange(value);
+    if (range !== null && skippedRanges.some((skipped) => sameRange(skipped, range))) {
+      return;
+    }
+    if (skipNestedFunctions && isFunctionLike(value)) {
+      return;
+    }
+    if (value.type === 'JSXElement' || value.type === 'JSXFragment') {
+      roots.push(value);
+      return;
+    }
+    for (const [key, child] of Object.entries(value)) {
+      if (SKIPPED_KEYS.has(key)) {
+        continue;
+      }
+      if (Array.isArray(child)) {
+        for (const item of child) {
+          visit(item);
+        }
+      } else {
+        visit(child);
+      }
+    }
+  }
+}
+
+function containsNestedReturn(node: unknown): boolean {
+  if (!isNode(node)) {
+    return false;
+  }
+  if (isFunctionLike(node)) {
+    return false;
+  }
+  if (node.type === 'ReturnStatement') {
+    return true;
+  }
+  for (const [key, value] of Object.entries(node)) {
+    if (SKIPPED_KEYS.has(key)) {
+      continue;
+    }
+    if (Array.isArray(value)) {
+      if (value.some((child) => containsNestedReturn(child))) {
+        return true;
+      }
+    } else if (containsNestedReturn(value)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 function getRowKey(row: AstNode): AstNode | null {

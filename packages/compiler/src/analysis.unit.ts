@@ -43,6 +43,33 @@ export const Root = component(() => <_child />);
     );
   });
 
+  test('does not classify a function returning a JSX function as a component', () => {
+    const analysis = analyze(`export function factory(Component) {
+  return (props) => <Component {...props} />;
+}
+`);
+
+    expect(analysis.items.some((item) => item.kind === 'component-candidate')).toBe(false);
+  });
+
+  test('assigns JSX to its nearest function owner', () => {
+    const code = `const detached = <aside />;
+export function factory() {
+  return runLater(() => <span />);
+}
+export function View() {
+  return <main />;
+}
+`;
+    const analysis = analyze(code);
+
+    expect(code.slice(...analysis.moduleJsxRange!)).toBe('<aside />');
+    expect(analysis.jsxFunctionRanges.map((range) => code.slice(...range))).toEqual([
+      '() => <span />',
+      'function View() {\n  return <main />;\n}',
+    ]);
+  });
+
   test('preserves binding IDs across hoisting, shadowing, loops, and shorthand reads', () => {
     const analysis = analyze(`const moduleValue = 1;
 function App({ value: prop }) {

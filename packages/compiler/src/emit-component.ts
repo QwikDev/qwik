@@ -1,5 +1,5 @@
 import type { ComponentDefinition } from './plan-types';
-import { DEFAULT_GENERATED_NAMES, type GeneratedNames } from './words';
+import { DEFAULT_GENERATED_NAMES, QwikWord, type GeneratedNames } from './words';
 
 export function emitComponentFunction(
   component: ComponentDefinition,
@@ -8,7 +8,8 @@ export function emitComponentFunction(
   source: string,
   async = false,
   generatedNames: GeneratedNames = DEFAULT_GENERATED_NAMES,
-  idBase: string | null = null
+  idBase: string | null = null,
+  captureNames: readonly string[] = []
 ) {
   return emitComponentFunctionMode(
     component,
@@ -18,7 +19,8 @@ export function emitComponentFunction(
     async,
     'module',
     generatedNames,
-    idBase
+    idBase,
+    captureNames
   );
 }
 
@@ -30,7 +32,8 @@ export function emitComponentRangeReplacement(
   source: string,
   async = false,
   generatedNames: GeneratedNames = DEFAULT_GENERATED_NAMES,
-  idBase: string | null = null
+  idBase: string | null = null,
+  captureNames: readonly string[] = []
 ) {
   return emitComponentFunctionMode(
     component,
@@ -40,7 +43,8 @@ export function emitComponentRangeReplacement(
     async,
     'range',
     generatedNames,
-    idBase
+    idBase,
+    captureNames
   );
 }
 
@@ -52,7 +56,8 @@ function emitComponentFunctionMode(
   async: boolean,
   mode: 'module' | 'range',
   generatedNames: GeneratedNames = DEFAULT_GENERATED_NAMES,
-  idBase: string | null = null
+  idBase: string | null = null,
+  captureNames: readonly string[] = []
 ) {
   const param = component.params.length === 1 ? component.params[0] : null;
   const props = param?.name ?? generatedNames.props;
@@ -60,7 +65,15 @@ function emitComponentFunctionMode(
     idBase === null ? '' : `, _id = ${JSON.stringify(idBase)}`
   }`;
   const paramSetup = emitComponentParamSetup(param, props, source);
-  const body = [...(paramSetup === null ? [] : [paramSetup]), ...statements, `return ${value};`]
+  const captures = captureNames.map(
+    (name, index) => `const ${name} = ${QwikWord.Captures}[${index}];`
+  );
+  const body = [
+    ...(paramSetup === null ? [] : [paramSetup]),
+    ...captures,
+    ...statements,
+    `return ${value};`,
+  ]
     .map((statement) => `  ${statement}`)
     .join('\n');
   if (component.declarationKind === 'const') {

@@ -1,8 +1,7 @@
-import type { BindingId } from './plan-types';
 import type { SourceRange } from './types';
 
 export interface EmittedComponentCode {
-  readonly bindingId: BindingId;
+  readonly identity: string;
   readonly moduleCode: string;
   readonly rangeCode: string;
 }

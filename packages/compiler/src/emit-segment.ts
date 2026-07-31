@@ -10,6 +10,7 @@ import {
   getTargetCallee,
   TargetImportResolver,
 } from './emit-qrl';
+import { emitEmbeddedRenderExpression } from './emit-function';
 import { isSetupQrlSegment } from './extract';
 import type {
   BindingId,
@@ -20,7 +21,13 @@ import type {
   SegmentPropsPartPlan,
 } from './plan-types';
 import { getSegmentDisplayName, getSegmentSymbolHash } from './segment-identity';
-import { DEFAULT_GENERATED_NAMES, QWIK_IMPORT, QwikWord, type GeneratedNames } from './words';
+import {
+  DEFAULT_GENERATED_NAMES,
+  QWIK_IMPORT,
+  QwikGenWord,
+  QwikWord,
+  type GeneratedNames,
+} from './words';
 
 export interface EmittedSegmentRender {
   hoists: string[];
@@ -126,7 +133,25 @@ function emitSegmentCode(
   const imports: string[] = [];
   const qwikImports = new Set<string>();
   const childSegments = segments.filter((candidate) => candidate.parentId === segment.id);
-  const children = segment.render === null ? childSegments.filter(isSetupQrlSegment) : [];
+  const hasEmbeddedRenders = segment.embeddedRenders.length > 0;
+  const embeddedInvokeContextName = hasEmbeddedRenders
+    ? allocateGeneratedName(
+        QwikGenWord.InvokeContext,
+        new Set([...analysis.bindings.map((binding) => binding.name), generatedNames.ctx])
+      )
+    : null;
+  if (hasEmbeddedRenders) {
+    qwikImports.add(QwikWord.GetActiveInvokeContext);
+    qwikImports.add('invoke');
+  }
+  const children =
+    segment.render === null
+      ? childSegments.filter(
+          (child) =>
+            isSetupQrlSegment(child) &&
+            !segment.embeddedRenders.some((render) => containsRange(render.range, child.range))
+        )
+      : [];
   const propsBoundaryParameters = new Map<string, string>();
   const replacements: Array<{ range: SegmentPlan['range']; value: string }> = [];
   const childImports: string[] = [];
@@ -249,7 +274,7 @@ function emitSegmentCode(
       }
     }
   }
-  if (segment.render !== null) {
+  if (segment.render !== null || hasEmbeddedRenders) {
     for (const child of childSegments) {
       if (isSetupQrlSegment(child)) {
         continue;
@@ -356,9 +381,45 @@ function emitSegmentCode(
   if (rendered === null) {
     return null;
   }
+  const embeddedDirectSegmentIds = new Set<string>();
+  for (let index = 0; index < segment.embeddedRenders.length; index++) {
+    const render = segment.embeddedRenders[index];
+    const embedded = emitSegmentRender(
+      {
+        ...segment,
+        id: `${segment.id}_embedded_${index}`,
+        symbolName: `${segment.symbolName}_embedded_${index}`,
+        kind: 'expression',
+        render,
+        embeddedRenders: [],
+        embeddedRenderContext: null,
+        initialOnly: false,
+      },
+      source,
+      qwikImports,
+      segments,
+      inputPath,
+      explicitExtensions,
+      generatedNames
+    );
+    if (embedded === null) {
+      return null;
+    }
+    replacements.push({
+      range: render.range,
+      value: emitEmbeddedRenderExpression(embedded, render.async, embeddedInvokeContextName!),
+    });
+    hoists.push(...embedded.hoists);
+    for (const id of embedded.directSegmentIds ?? []) {
+      embeddedDirectSegmentIds.add(id);
+    }
+  }
   if (target === 'csr') {
     for (const child of csrRenderChildren) {
-      if (rendered?.directSegmentIds?.includes(child.id)) {
+      if (
+        rendered?.directSegmentIds?.includes(child.id) ||
+        embeddedDirectSegmentIds.has(child.id)
+      ) {
         childImports.push(
           `import { ${child.symbolName} } from ${JSON.stringify(
             getSegmentImportPath(inputPath, child, explicitExtensions)
@@ -379,6 +440,15 @@ function emitSegmentCode(
           .map((name, index) => `${name} = ${QwikWord.Captures}[${index}]`)
           .join(', ')};`;
   const componentPropsSetup = emitComponentPropsSetup(segment, source, generatedNames);
+  const embeddedContextStatement =
+    embeddedInvokeContextName === null
+      ? ''
+      : [
+          `const ${embeddedInvokeContextName} = ${QwikWord.GetActiveInvokeContext}();`,
+          ...(segment.embeddedRenderContext === 'ambient'
+            ? [`const ${generatedNames.ctx} = ${embeddedInvokeContextName}.container;`]
+            : []),
+        ].join('\n');
   let statements: string;
   if (rendered === undefined) {
     const rawBody = applyReplacements(source, segment.bodyRange, replacements);
@@ -390,7 +460,7 @@ function emitSegmentCode(
             .join(', ')} }`;
     const body =
       segment.bodyKind === 'block' ? rawBody.slice(1, -1).trim() : `return ${expressionBody};`;
-    statements = [captureStatement, componentPropsSetup, body]
+    statements = [captureStatement, componentPropsSetup, embeddedContextStatement, body]
       .filter(Boolean)
       .map(indent)
       .join('\n');
@@ -448,22 +518,33 @@ function emitSegmentCode(
     }
     case 'event':
     case 'qrl':
-      functionHead =
-        rendered !== undefined
-          ? `(${[
-              ...(rendered.runtimeParameters ?? [generatedNames.ctx]),
-              ...usedParameterNames,
-              ...(rendered.trailingRuntimeParameters ?? []),
-            ].join(', ')}) => `
-          : segment.payload === 'value'
-            ? '() => '
-            : source.slice(segment.functionRange[0], segment.bodyRange[0]);
+      if (segment.embeddedRenderContext === 'trailing') {
+        functionHead = `${segment.async ? 'async ' : ''}(${[
+          ...segment.paramRanges.map((range) => source.slice(range[0], range[1])),
+          generatedNames.ctx,
+        ].join(', ')}) => `;
+      } else {
+        functionHead =
+          rendered !== undefined
+            ? `(${[
+                ...(rendered.runtimeParameters ?? [generatedNames.ctx]),
+                ...usedParameterNames,
+                ...(rendered.trailingRuntimeParameters ?? []),
+              ].join(', ')}) => `
+            : segment.payload === 'value'
+              ? '() => '
+              : source.slice(segment.functionRange[0], segment.bodyRange[0]);
+      }
       break;
   }
   const declaration = `export const ${segment.symbolName} = ${functionHead}{\n${statements}\n};`;
 
   const prelude = [...imports, ...childImports, ...hoists, ...(rendered?.hoists ?? [])];
   return `${prelude.length > 0 ? `${prelude.join('\n')}\n\n` : ''}${declaration}\n`;
+}
+
+function containsRange(outer: SegmentPlan['range'], inner: SegmentPlan['range']): boolean {
+  return outer[0] <= inner[0] && inner[1] <= outer[1];
 }
 
 export function getTargetModuleReferences(segment: SegmentPlan): readonly ModuleReferencePlan[] {

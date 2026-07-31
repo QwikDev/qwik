@@ -85,6 +85,9 @@ export function createExtractedSegmentPlan(
     visibleTaskStrategy: segment.visibleTaskStrategy ?? null,
     lifetimeId: options.lifetimeId,
     render,
+    embeddedRenders: [],
+    embeddedRenderContext: null,
+    initialOnly: false,
     componentParameter: options.componentParameter,
     moduleStyle: options.moduleStyle ?? null,
   };
@@ -155,6 +158,8 @@ export function createModuleBoundaryPlan(
           ];
     }),
     segments,
+    functions: [],
+    replacedRanges,
   };
 }
 
@@ -351,18 +356,25 @@ export function findUnsupportedModuleBoundaryJsx(
   program: Program,
   plan: ModuleBoundaryPlan
 ): SourceRange | null {
-  const segments = new Map(plan.segments.map((segment) => [segment.id, segment]));
-  const ranges = plan.roots.flatMap((root) => {
-    const segment = segments.get(root.segmentId);
-    return segment === undefined ? [] : [segment.functionRange];
-  });
+  const unsupportedRanges = plan.segments.flatMap((segment) =>
+    segment.render !== null || segment.embeddedRenders.length > 0 ? [] : [segment.functionRange]
+  );
+  const supportedRanges = [
+    ...plan.functions.map((fn) => fn.functionRange),
+    ...plan.segments.flatMap((segment) =>
+      segment.render !== null || segment.embeddedRenders.length > 0 ? [segment.functionRange] : []
+    ),
+  ];
   let found: SourceRange | null = null;
   visit(program, (node) => {
     if (found !== null || (node.type !== 'JSXElement' && node.type !== 'JSXFragment')) {
       return;
     }
     const range: SourceRange = [node.start, node.end];
-    if (ranges.some((boundary) => containsRange(boundary, range))) {
+    if (
+      !supportedRanges.some((owner) => containsRange(owner, range)) &&
+      unsupportedRanges.some((boundary) => containsRange(boundary, range))
+    ) {
       found = range;
     }
   });

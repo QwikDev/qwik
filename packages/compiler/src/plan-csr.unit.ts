@@ -84,6 +84,7 @@ export function App() {
     const target = planCsrSegmentRender(segment, component.segments, code)!;
 
     expect(target.runtimeParameters).toEqual(['ctx']);
+    expect(target.trailingRuntimeParameters).toEqual([]);
     expect(target.parameterBindingIds).toEqual(segment.usedParameterBindingIds);
   });
 

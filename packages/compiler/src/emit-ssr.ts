@@ -10,22 +10,30 @@ import {
   isModuleStyleBoundary,
   TargetImportResolver,
 } from './emit-qrl';
-import { getSegmentImportPath, shouldResolveSsrSegment } from './emit-segment';
+import { emitFunctionRenders } from './emit-function';
+import {
+  getSegmentImportPath,
+  shouldResolveSsrSegment,
+  type EmittedSegmentRender,
+} from './emit-segment';
 import { escapeAttr, escapeText, serializeAttrValue } from './html-utils';
 import {
   planSsr,
+  planSsrRenderFunction,
   planSsrSegmentRender,
   type SsrBranchOperation,
   type SsrCollectionOperation,
   type SsrComponentOperation,
   type SsrContentOperation,
   type SsrDynamicOperation,
+  type SsrEmbeddedRenderPlan,
   type SsrElementOperation,
   type SsrEventHandlerPlan,
   type SsrOperation,
   type SsrPlan,
   type SsrPropOperation,
   type SsrRenderBlockPlan,
+  type SsrRenderFunctionTargetPlan,
   type SsrSlotOperation,
   type SsrSuspenseOperation,
   type SsrComponentReturnModeResolver,
@@ -35,6 +43,9 @@ import type {
   OrderedPropPlan,
   ComponentDefinition,
   ComponentOutput,
+  FunctionRenderPlan,
+  InlineComponentReferencePlan,
+  RenderFunctionPlan,
   SegmentPlan,
   SegmentReferencePlan,
   ValuePlan,
@@ -79,12 +90,15 @@ export function emitSsrModule(
   qrlImports: TargetImportResolver,
   generatedNames: GeneratedNames,
   componentReturnMode: SsrComponentReturnModeResolver,
-  moduleRoots: readonly SegmentPlan[]
+  functions: readonly FunctionRenderPlan[],
+  moduleRoots: readonly SegmentPlan[],
+  inlineComponents: readonly InlineComponentReferencePlan[]
 ): EmittedModule | null {
   const imports = new Set<string>();
   const components: EmittedComponentCode[] = [];
   const directSegmentIds = new Set<string>();
   const replacements: Array<{ range: SourceRange; value: string }> = [];
+  const hoists: string[] = [];
 
   for (const segment of moduleRoots) {
     const boundary = segment.qrl;
@@ -156,7 +170,58 @@ export function emitSsrModule(
     }
   }
 
+  const emittedFunctions = emitFunctionRenders(
+    functions,
+    source,
+    inputPath,
+    explicitExtensions,
+    imports,
+    segments,
+    (symbolName, render, code, names, allSegments, path, extensions, generated) =>
+      emitSsrFunctionRender(
+        symbolName,
+        render,
+        code,
+        names,
+        allSegments,
+        path,
+        extensions,
+        generated,
+        componentReturnMode
+      ),
+    generatedNames
+  );
+  if (emittedFunctions === null) {
+    return null;
+  }
+  emittedFunctions.directSegmentIds.forEach((id) => directSegmentIds.add(id));
+  for (const component of inlineComponents) {
+    imports.add(QwikWord.QrlWithChunk);
+    imports.add(QwikWord.ComponentQrl);
+    const qrl = `q_${component.symbolName}`;
+    hoists.push(
+      `const ${qrl} = /*#__PURE__*/ ${QwikWord.QrlWithChunk}(${JSON.stringify(
+        component.importPath
+      )}, () => import(${JSON.stringify(component.importPath)}), ${JSON.stringify(
+        component.symbolName
+      )});`,
+      `${qrl}.s(${component.symbolName});`
+    );
+    const reference =
+      component.captureNames.length === 0
+        ? qrl
+        : `${qrl}.w([${component.captureNames.join(', ')}])`;
+    replacements.push({
+      range: component.replacementRange,
+      value: `${QwikWord.ComponentQrl}(${reference})`,
+    });
+  }
+
   for (const output of outputs) {
+    const captureNames = output.result.captures.map((capture) => capture.name);
+    if (captureNames.length > 0) {
+      imports.add(QwikWord.Captures);
+    }
     const planned = planSsr(output.result, componentReturnMode);
     if (planned === null) {
       return null;
@@ -180,14 +245,15 @@ export function emitSsrModule(
       imports.add(name);
     }
     components.push({
-      bindingId: output.component.bindingId,
+      identity: output.component.identity,
       moduleCode: emitComponent(
         output.component,
         render,
         source,
         false,
         generatedNames,
-        planned.needsId ? planned.idBase : null
+        planned.needsId ? planned.idBase : null,
+        captureNames
       ),
       rangeCode: emitComponent(
         output.component,
@@ -195,12 +261,13 @@ export function emitSsrModule(
         source,
         true,
         generatedNames,
-        planned.needsId ? planned.idBase : null
+        planned.needsId ? planned.idBase : null,
+        captureNames
       ),
     });
   }
 
-  const hoists: string[] = [];
+  hoists.push(...emittedFunctions.hoists);
   const localImports: string[] = [];
   const emittedSegmentIds = new Set<string>();
   for (const segment of segments) {
@@ -236,7 +303,7 @@ export function emitSsrModule(
       .concat(localImports),
     hoists,
     components,
-    replacements,
+    replacements: [...replacements, ...emittedFunctions.replacements],
   };
 }
 
@@ -265,6 +332,80 @@ export function emitSsrSegmentRender(
   if (planned === null) {
     return null;
   }
+  const emitted = emitSsrRenderTarget(
+    planned,
+    source,
+    imports,
+    segments,
+    inputPath,
+    explicitExtensions,
+    generatedNames,
+    captureNames(segment, undefined, generatedNames),
+    {
+      surroundingRangeId: planned.surroundingRangeId,
+      rootAttribute: planned.rowRoot ? QwikAttributes.Row : null,
+      rowMarkerId: planned.rowMarker ? 'rowId' : null,
+      slotMarkerId: planned.slotMarker ? 'rangeId' : null,
+    }
+  );
+  return emitted === null
+    ? null
+    : {
+        ...emitted,
+        runtimeParameters: planned.runtimeParameters,
+        trailingRuntimeParameters: planned.trailingRuntimeParameters,
+        parameterBindingIds: planned.parameterBindingIds,
+      };
+}
+
+function emitSsrFunctionRender(
+  _symbolName: string,
+  render: RenderFunctionPlan,
+  source: string,
+  imports: Set<string>,
+  segments: readonly SegmentPlan[],
+  inputPath: string,
+  explicitExtensions: boolean,
+  generatedNames: GeneratedNames,
+  componentReturnMode: SsrComponentReturnModeResolver
+): EmittedSegmentRender | null {
+  const planned = planSsrRenderFunction(render, segments, componentReturnMode);
+  return planned === null
+    ? null
+    : emitSsrRenderTarget(
+        planned,
+        source,
+        imports,
+        segments,
+        inputPath,
+        explicitExtensions,
+        generatedNames,
+        [],
+        {
+          surroundingRangeId: null,
+          rootAttribute: null,
+          rowMarkerId: null,
+          slotMarkerId: null,
+        }
+      );
+}
+
+function emitSsrRenderTarget(
+  planned: SsrRenderFunctionTargetPlan,
+  source: string,
+  imports: Set<string>,
+  segments: readonly SegmentPlan[],
+  inputPath: string,
+  explicitExtensions: boolean,
+  generatedNames: GeneratedNames,
+  rootedCaptures: readonly string[],
+  options: {
+    readonly surroundingRangeId: string | null;
+    readonly rootAttribute: string | null;
+    readonly rowMarkerId: string | null;
+    readonly slotMarkerId: string | null;
+  }
+): EmittedSegmentRender | null {
   const segmentById = new Map(segments.map((candidate) => [candidate.id, candidate]));
   const qrlImports = new TargetImportResolver();
   const setup = emitSetup(
@@ -280,15 +421,15 @@ export function emitSsrSegmentRender(
   const emitted = new SsrEmitter(
     source,
     segmentById,
-    captureNames(segment, undefined, generatedNames),
+    rootedCaptures,
     qrlImports,
     getInputImportPath(inputPath, explicitExtensions),
     generatedNames
   ).emit(planned.render, {
-    surroundingRangeId: planned.surroundingRangeId,
-    rootAttribute: planned.rowRoot ? QwikAttributes.Row : null,
-    rowMarkerId: planned.rowMarker ? 'rowId' : null,
-    slotMarkerId: planned.slotMarker ? 'rangeId' : null,
+    surroundingRangeId: options.surroundingRangeId,
+    rootAttribute: options.rootAttribute,
+    rowMarkerId: options.rowMarkerId,
+    slotMarkerId: options.slotMarkerId,
     contextBoundary: false,
     structuredRoot: !planned.render.staticRoot,
   });
@@ -305,9 +446,6 @@ export function emitSsrSegmentRender(
     hoists: qrlImports.declarations({ source: QWIK_IMPORT, names: imports }),
     statements: [...setup.statements, ...emitted.statements],
     value: emitted.value,
-    runtimeParameters: planned.runtimeParameters,
-    trailingRuntimeParameters: planned.trailingRuntimeParameters,
-    parameterBindingIds: planned.parameterBindingIds,
   };
 }
 
@@ -373,7 +511,8 @@ function emitComponent(
   source: string,
   range: boolean,
   generatedNames: GeneratedNames,
-  idBase: string | null
+  idBase: string | null,
+  captureNames: readonly string[]
 ): string {
   const emit = range ? emitComponentRangeReplacement : emitComponentFunction;
   if (!render.setup.flushTasks) {
@@ -384,7 +523,8 @@ function emitComponent(
       source,
       false,
       generatedNames,
-      idBase
+      idBase,
+      captureNames
     );
   }
   return emit(
@@ -397,7 +537,8 @@ function emitComponent(
     source,
     false,
     generatedNames,
-    idBase
+    idBase,
+    captureNames
   );
 }
 
@@ -416,7 +557,9 @@ function emitSetup(
     imports.add(QwikWord.GetActiveInvokeContextOrNull);
     imports.add(QwikWord.MaybeThen);
     imports.add('invoke');
-    statements.push(`const invokeCtx = ${QwikWord.GetActiveInvokeContextOrNull}();`);
+    statements.push(
+      `const ${QwikGenWord.InvokeContext} = ${QwikWord.GetActiveInvokeContextOrNull}();`
+    );
   }
 
   for (const operation of plan.setup) {
@@ -536,7 +679,7 @@ function emitSetup(
 
 function emitInvokeRender(statements: readonly string[], value: string): string {
   const body = [...statements, `return ${value};`].map((statement) => `  ${statement}`).join('\n');
-  return `invoke(invokeCtx, () => {\n${body}\n})`;
+  return `invoke(${QwikGenWord.InvokeContext}, () => {\n${body}\n})`;
 }
 
 class SsrEmitter {
@@ -564,6 +707,7 @@ class SsrEmitter {
   private didEmitRoot = false;
   private synchronousBlock = false;
   private runtimeStyleScopeName: string | null = null;
+  private embeddedRenders = new Map<string, SsrEmbeddedRenderPlan>();
 
   constructor(
     private readonly source: string,
@@ -591,6 +735,9 @@ class SsrEmitter {
     this.structuredRoot = options.structuredRoot;
     this.synchronousBlock = block.synchronous;
     this.runtimeStyleScopeName = block.runtimeStyleScopeName;
+    this.embeddedRenders = new Map(
+      block.embeddedRenders.map((render) => [rangeKey(render.range), render])
+    );
     if (block.needsRootRange) {
       if (options.surroundingRangeId !== null) {
         this.rootRangeName = options.surroundingRangeId;
@@ -643,7 +790,7 @@ class SsrEmitter {
       this.statements.push(...this.steps[0].statements);
       output = this.steps[0].expression;
     } else if (this.steps.length > 0) {
-      const invokeContext = this.steps.length > 1 ? this.name('invokeCtx') : null;
+      const invokeContext = this.steps.length > 1 ? this.name(QwikGenWord.InvokeContext) : null;
       if (invokeContext !== null) {
         this.imports.add(QwikWord.GetActiveInvokeContextOrNull);
         this.imports.add('invoke');
@@ -1667,14 +1814,17 @@ class SsrEmitter {
     const captures = this.captureNames(segment, value.segment);
     return this.step(
       `${segment.symbolName}(${captures.join(', ')})`,
-      [...prep, ...this.rootNames(captures)],
+      segment.initialOnly ? prep : [...prep, ...this.rootNames(captures)],
       prefix
     );
   }
 
   private expression(value: ValuePlan): string {
     let expression = this.source.slice(value.expression[0], value.expression[1]);
-    if (value.kind === 'expression' && value.boundaries.length > 0) {
+    if (
+      value.kind === 'expression' &&
+      (value.boundaries.length > 0 || value.embeddedRenders.length > 0)
+    ) {
       const replacements: Array<{ range: SourceRange; value: string }> = [];
       for (const reference of value.boundaries) {
         const segment = this.segment(reference);
@@ -1721,9 +1871,61 @@ class SsrEmitter {
           );
         }
       }
+      for (const render of value.embeddedRenders) {
+        const replacement = this.emitEmbeddedExpression(render);
+        if (replacement !== null) {
+          replacements.push({ range: render.range, value: replacement });
+        }
+      }
       expression = applyReplacements(this.source, value.expression, replacements);
+      if (value.embeddedRenders.length > 0) {
+        this.imports.add(QwikWord.GetActiveInvokeContext);
+        this.imports.add('invoke');
+        expression = `(() => { const ${this.generatedNames.invokeCtx} = ${QwikWord.GetActiveInvokeContext}(); return (${expression}); })()`;
+      }
     }
     return value.kind === 'render-value' ? `${expression}()` : expression;
+  }
+
+  private emitEmbeddedExpression(render: RenderFunctionPlan): string | null {
+    const embedded = this.embeddedRenders.get(rangeKey(render.range));
+    if (embedded === undefined) {
+      return null;
+    }
+    const setup = emitSetup(
+      embedded.target,
+      this.source,
+      this.segments,
+      this.qrlImports,
+      this.localImplementationSource
+    );
+    if (setup === null) {
+      return null;
+    }
+    const emitted = new SsrEmitter(
+      this.source,
+      this.segments,
+      [],
+      this.qrlImports,
+      this.localImplementationSource,
+      this.generatedNames
+    ).emit(embedded.target.render, {
+      surroundingRangeId: null,
+      rootAttribute: null,
+      rowMarkerId: null,
+      slotMarkerId: null,
+      contextBoundary: false,
+      structuredRoot: true,
+    });
+    if (emitted === null) {
+      return null;
+    }
+    setup.imports.forEach((name) => this.imports.add(name));
+    emitted.imports.forEach((name) => this.imports.add(name));
+    const body = [...setup.statements, ...emitted.statements, `return ${emitted.value};`]
+      .map((statement) => `  ${statement}`)
+      .join('\n');
+    return `invoke(${this.generatedNames.invokeCtx}, () => (${embedded.async ? 'async ' : ''}() => {\n${body}\n})())`;
   }
 
   private inlineValuePrep(value: ValuePlan): string[] | null {
@@ -1908,7 +2110,7 @@ function scopeExpression(scope: SsrStyleScope, className: string | null): string
 }
 
 function captureNames(
-  segment: SegmentPlan,
+  segment: Pick<SegmentPlan, 'captures' | 'render'>,
   reference: SegmentReferencePlan | undefined,
   generatedNames: GeneratedNames
 ): string[] {
@@ -1957,6 +2159,10 @@ function isValuePlan(value: unknown): value is ValuePlan {
 
 function isInitialOnlyValue(value: ValuePlan): boolean {
   return value.kind === 'expression' && value.initialOnly;
+}
+
+function rangeKey(range: SourceRange): string {
+  return `${range[0]}:${range[1]}`;
 }
 
 function getInputImportPath(inputPath: string, explicitExtensions: boolean): string {

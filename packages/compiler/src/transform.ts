@@ -1,6 +1,6 @@
 import type { Diagnostic, SegmentAnalysis, TransformModule } from '@qwik.dev/optimizer';
 import type { ImportDeclaration, Program } from 'oxc-parser';
-import { getIdentifierName, getRange, visit } from './ast-utils';
+import { getIdentifierName, getRange } from './ast-utils';
 import { createModule } from './module-utils';
 import { createOriginalRangeMapper } from './normalization';
 import type { CompilerContext, SourceRange } from './types';
@@ -49,12 +49,14 @@ import {
   type SsrComponentReturnModeResolver,
 } from './plan-ssr';
 import { lowerComponentResult } from './lower';
+import { lowerSemanticModulePlan, type SemanticLowerFailure } from './semantic-lower';
 import { assembleGeneratedModule, assembleModule, type RangeReplacement } from './module-assembly';
 import { analyzeComponentShape } from './shape';
 import type {
   BindingId,
   BindingInfo,
   ModuleAnalysis,
+  ModuleBoundaryPlan,
   ModuleDeclaration,
   RenderNodePlan,
   RenderPlan,
@@ -62,6 +64,7 @@ import type {
   SetupPlan,
   ComponentDefinition,
   ComponentOutput,
+  InlineComponentReferencePlan,
   TransformResult,
   SegmentPlan,
 } from './plan-types';
@@ -71,7 +74,7 @@ import {
   createSegmentSymbolName,
   getSegmentSymbolHash,
 } from './segment-identity';
-import { QWIK_IMPORT, type GeneratedNames } from './words';
+import { QWIK_IMPORT, QwikGenWord, type GeneratedNames } from './words';
 import {
   createModuleBoundaryPlan,
   findInvalidModuleSetupHook,
@@ -99,25 +102,24 @@ export function transformModule(ctx: CompilerContext): TransformResult {
   const analysis = analyzeModule(program);
   const extractedQrls = extractQrls(program, ctx.input.path, analysis, ctx.options.scope);
   const candidates = discoverComponentCandidates(program, analysis);
+  if (analysis.moduleJsxRange !== null) {
+    return {
+      kind: 'failure',
+      diagnostics: [
+        createUnsupportedRuntimeJsxDiagnostic(
+          ctx.input.path,
+          ctx.input.code,
+          analysis.moduleJsxRange
+        ),
+      ],
+    };
+  }
   if (
     candidates.length === 0 &&
     extractedQrls.invalidBoundaries.length === 0 &&
-    !extractedQrls.segments.some((segment) => segment.parentId === null && segment.qrl !== null)
+    !extractedQrls.segments.some((segment) => segment.parentId === null && segment.qrl !== null) &&
+    analysis.jsxFunctionRanges.length === 0
   ) {
-    let jsxRange: SourceRange | null = null;
-    visit(program, (node) => {
-      if (jsxRange === null && (node.type === 'JSXElement' || node.type === 'JSXFragment')) {
-        jsxRange = getRange(node);
-      }
-    });
-    if (jsxRange !== null) {
-      return {
-        kind: 'failure',
-        diagnostics: [
-          createUnsupportedRuntimeJsxDiagnostic(ctx.input.path, ctx.input.code, jsxRange),
-        ],
-      };
-    }
     return { kind: 'not-applicable' };
   }
 
@@ -155,12 +157,16 @@ export function transformModule(ctx: CompilerContext): TransformResult {
       ),
     };
   }
-  const moduleBoundaries = createModuleBoundaryPlan(
+  const discoveredModuleBoundaries = createModuleBoundaryPlan(
     extractedQrls,
     components.map((component) => component.replacementRange),
     program
   );
-  const invalidModuleStyle = findInvalidModuleStyleBoundary(program, moduleBoundaries, analysis);
+  const invalidModuleStyle = findInvalidModuleStyleBoundary(
+    program,
+    discoveredModuleBoundaries,
+    analysis
+  );
   if (invalidModuleStyle !== null) {
     return {
       kind: 'failure',
@@ -174,7 +180,11 @@ export function transformModule(ctx: CompilerContext): TransformResult {
       ],
     };
   }
-  const invalidModuleSetupHook = findInvalidModuleSetupHook(program, moduleBoundaries, analysis);
+  const invalidModuleSetupHook = findInvalidModuleSetupHook(
+    program,
+    discoveredModuleBoundaries,
+    analysis
+  );
   if (invalidModuleSetupHook !== null) {
     return {
       kind: 'failure',
@@ -188,6 +198,27 @@ export function transformModule(ctx: CompilerContext): TransformResult {
       ],
     };
   }
+  const loweredModuleBoundaries = lowerSemanticModulePlan(
+    program,
+    discoveredModuleBoundaries,
+    extractedQrls
+  );
+  if (loweredModuleBoundaries.kind === 'failure') {
+    const semanticDiagnostic = createSemanticLowerDiagnostic(ctx, loweredModuleBoundaries);
+    return {
+      kind: 'failure',
+      diagnostics: [
+        semanticDiagnostic ??
+          createUnsupportedBoundaryShapeDiagnostic(
+            ctx.input.path,
+            ctx.input.code,
+            loweredModuleBoundaries.range,
+            loweredModuleBoundaries.message
+          ),
+      ],
+    };
+  }
+  const moduleBoundaries = loweredModuleBoundaries.plan;
   const unsupportedBoundaryJsx = findUnsupportedModuleBoundaryJsx(program, moduleBoundaries);
   if (unsupportedBoundaryJsx !== null) {
     return {
@@ -196,7 +227,8 @@ export function transformModule(ctx: CompilerContext): TransformResult {
         createUnsupportedBoundaryShapeDiagnostic(
           ctx.input.path,
           ctx.input.code,
-          unsupportedBoundaryJsx
+          unsupportedBoundaryJsx,
+          'JSX in this module boundary has no supported render owner.'
         ),
       ],
     };
@@ -205,72 +237,11 @@ export function transformModule(ctx: CompilerContext): TransformResult {
   for (const component of components) {
     const lowered = lowerComponentResult(component, extractedQrls, analysis);
     if (lowered.kind === 'failure') {
-      if (lowered.code === 'ref') {
+      const semanticDiagnostic = createSemanticLowerDiagnostic(ctx, lowered);
+      if (semanticDiagnostic !== null) {
         return {
           kind: 'failure',
-          diagnostics: [
-            createRefDiagnostic(ctx.input.path, ctx.input.code, lowered.range, lowered.message),
-          ],
-        };
-      }
-      if (lowered.code === 'async-for') {
-        return {
-          kind: 'failure',
-          diagnostics: [
-            createAsyncForDiagnostic(
-              ctx.input.path,
-              ctx.input.code,
-              lowered.range,
-              lowered.message
-            ),
-          ],
-        };
-      }
-      if (lowered.code === 'use-id') {
-        return {
-          kind: 'failure',
-          diagnostics: [
-            createUseIdDiagnostic(ctx.input.path, ctx.input.code, lowered.range, lowered.message),
-          ],
-        };
-      }
-      if (lowered.code === 'style-hook') {
-        return {
-          kind: 'failure',
-          diagnostics: [
-            createStyleHookDiagnostic(
-              ctx.input.path,
-              ctx.input.code,
-              lowered.range,
-              lowered.message
-            ),
-          ],
-        };
-      }
-      if (lowered.code === 'custom-hook') {
-        return {
-          kind: 'failure',
-          diagnostics: [
-            createCustomHookDiagnostic(
-              ctx.input.path,
-              ctx.input.code,
-              lowered.range,
-              lowered.message
-            ),
-          ],
-        };
-      }
-      if (lowered.code === 'scoped-style-content') {
-        return {
-          kind: 'failure',
-          diagnostics: [
-            createScopedStyleContentDiagnostic(
-              ctx.input.path,
-              ctx.input.code,
-              lowered.range,
-              lowered.message
-            ),
-          ],
+          diagnostics: [semanticDiagnostic],
         };
       }
       return transformFailure(
@@ -292,6 +263,7 @@ export function transformModule(ctx: CompilerContext): TransformResult {
   const segments = collectReachableSegments(
     outputs,
     moduleBoundaries.roots.map((root) => root.segmentId),
+    moduleBoundaries.functions,
     allSegments,
     ctx.emitTarget,
     ctx.input.code,
@@ -318,21 +290,32 @@ export function transformModule(ctx: CompilerContext): TransformResult {
   }
   ctx.diagnostics.push(...diagnostics);
 
-  const referencedComponents = new Set(
-    outputs.flatMap((output) => collectComponentBindingIds(output.result.render, analysis))
-  );
+  const referencedComponents = new Set([
+    ...outputs.flatMap((output) => collectPlanComponentBindingIds(output.result, analysis)),
+    ...moduleBoundaries.segments.flatMap((segment) =>
+      segment.embeddedRenders.flatMap((render) =>
+        collectComponentBindingIds(render.render, analysis)
+      )
+    ),
+    ...moduleBoundaries.functions.flatMap((fn) =>
+      fn.renders.flatMap((render) => collectComponentBindingIds(render.render, analysis))
+    ),
+  ]);
   const componentOutputs = outputs.filter(
     (output) =>
-      output.component.exported &&
-      output.component.exportName !== 'default' &&
-      output.component.localName !== null &&
-      referencedComponents.has(output.component.bindingId)
+      output.component.bindingId === null ||
+      (output.component.bindingId !== null &&
+        output.component.exported &&
+        output.component.exportName !== 'default' &&
+        output.component.localName !== null &&
+        referencedComponents.has(output.component.bindingId))
   );
   const componentOutputSet = new Set(componentOutputs);
   const mainOutputs = outputs.filter((output) => !componentOutputSet.has(output));
   const explicitExtensions = ctx.options.explicitExtensions === true;
   const componentModules = componentOutputs.map<LocalComponentModule>((output) => {
-    const name = output.component.localName!;
+    const name =
+      output.component.localName ?? `inline_component_${output.component.replacementRange[0]}`;
     const path = `${ctx.input.path}_component_${name}.js`;
     return {
       output,
@@ -342,18 +325,41 @@ export function transformModule(ctx: CompilerContext): TransformResult {
     };
   });
   const componentByBinding = new Map(
-    componentModules.map((component) => [component.output.component.bindingId, component])
+    componentModules.flatMap((component) =>
+      component.output.component.bindingId === null
+        ? []
+        : [[component.output.component.bindingId, component] as const]
+    )
   );
   const boundNames = analysis.bindings.map((binding) => binding.name);
   const generatedNames: GeneratedNames = {
     props: allocateGeneratedName('props', boundNames),
     ctx: allocateGeneratedName('ctx', boundNames),
+    invokeCtx: allocateGeneratedName(QwikGenWord.InvokeContext, boundNames),
   };
   const componentImports = new Map<BindingId, SegmentComponentImport>(
-    componentModules.map((component) => [
-      component.output.component.bindingId,
-      { path: component.importPath, importedName: component.name },
-    ])
+    componentModules.flatMap((component) =>
+      component.output.component.bindingId === null
+        ? []
+        : [
+            [
+              component.output.component.bindingId,
+              { path: component.importPath, importedName: component.name },
+            ] as const,
+          ]
+    )
+  );
+  const inlineComponents: InlineComponentReferencePlan[] = componentModules.flatMap((component) =>
+    component.output.component.bindingId === null
+      ? [
+          {
+            symbolName: component.name,
+            importPath: component.importPath,
+            replacementRange: component.output.component.replacementRange,
+            captureNames: component.output.result.captures.map((capture) => capture.name),
+          },
+        ]
+      : []
   );
 
   const moduleWrite = findExtractedModuleWrite(componentModules, segments, analysis);
@@ -395,7 +401,9 @@ export function transformModule(ctx: CompilerContext): TransformResult {
     componentCardinality,
     componentReturnMode,
     generatedNames,
-    moduleRootSegments
+    moduleBoundaries.functions,
+    moduleRootSegments,
+    inlineComponents
   );
   if (emittedMain === null) {
     return transformFailure(ctx, null, 'The compiler could not emit the qualified module.');
@@ -442,10 +450,12 @@ export function transformModule(ctx: CompilerContext): TransformResult {
       componentCardinality,
       componentReturnMode,
       generatedNames,
+      [],
+      [],
       []
     );
     const emittedComponent = emitted?.components.find(
-      (candidate) => candidate.bindingId === component.output.component.bindingId
+      (candidate) => candidate.identity === component.output.component.identity
     );
     if (emitted === null || emittedComponent === undefined) {
       return transformFailure(
@@ -482,6 +492,7 @@ export function transformModule(ctx: CompilerContext): TransformResult {
         origPath: ctx.input.path,
         segment: createComponentAnalysis(
           component.output.component,
+          component.output.result.captures.length > 0,
           ctx.input.path,
           ctx.options.scope,
           mapMetadataRange(ctx)
@@ -564,7 +575,7 @@ function assembleMainModule(
   markerRetargets: ReadonlyMap<BindingId, MarkerImportRetarget>
 ): TransformModule | null {
   const emittedComponents = new Map(
-    emitted.components.map((component) => [component.bindingId, component])
+    emitted.components.map((component) => [component.identity, component])
   );
   const replacements: RangeReplacement[] = [...emitted.replacements];
   const markerImports = createUnusedMarkerImportReplacements(
@@ -586,7 +597,7 @@ function assembleMainModule(
   );
   replacements.push(...markerImports.replacements);
   for (const output of outputs) {
-    const component = emittedComponents.get(output.component.bindingId);
+    const component = emittedComponents.get(output.component.identity);
     if (component === undefined) {
       return null;
     }
@@ -623,7 +634,10 @@ function assembleMainModule(
   replacements.push(...runtime.replacements);
   const eagerComponents = collectEagerComponentBindingIds(outputs.map((output) => output.result));
   const componentImports = componentModules.flatMap((component) =>
-    component.output.component.exported || eagerComponents.has(component.output.component.bindingId)
+    component.output.component.bindingId === null ||
+    component.output.component.exported ||
+    (component.output.component.bindingId !== null &&
+      eagerComponents.has(component.output.component.bindingId))
       ? [
           emitBindingImport(
             {
@@ -753,7 +767,9 @@ function emitModule(
   componentCardinality: CsrComponentCardinalityResolver,
   componentReturnMode: SsrComponentReturnModeResolver,
   generatedNames: GeneratedNames,
-  moduleRoots: readonly SegmentPlan[]
+  functions: ModuleBoundaryPlan['functions'],
+  moduleRoots: readonly SegmentPlan[],
+  inlineComponents: readonly InlineComponentReferencePlan[]
 ): EmittedModule | null {
   const targetImports = new TargetImportResolver(analysis.bindings.map((binding) => binding.name));
   if (localImplementationSource === null) {
@@ -816,7 +832,9 @@ function emitModule(
         targetImports,
         generatedNames,
         componentReturnMode,
-        moduleRoots
+        functions,
+        moduleRoots,
+        inlineComponents
       )
     : emitCsrModule(
         outputs,
@@ -828,7 +846,9 @@ function emitModule(
         targetImports,
         componentCardinality,
         generatedNames,
-        moduleRoots
+        functions,
+        moduleRoots,
+        inlineComponents
       );
 }
 
@@ -898,6 +918,20 @@ function collectComponentBindingIds(render: RenderPlan, analysis: ModuleAnalysis
   return bindings;
 }
 
+function collectPlanComponentBindingIds(
+  plan: ComponentOutput['result'],
+  analysis: ModuleAnalysis
+): BindingId[] {
+  return [
+    ...collectComponentBindingIds(plan.render, analysis),
+    ...plan.segments.flatMap((segment) =>
+      segment.embeddedRenders.flatMap((render) =>
+        collectComponentBindingIds(render.render, analysis)
+      )
+    ),
+  ];
+}
+
 /** A reactive collection without a key still renders; it just rebuilds every row on each change. */
 function validateCollectionKeys(
   file: string,
@@ -920,15 +954,20 @@ function propagateComponentIdRequirements(
   analysis: ModuleAnalysis
 ): ComponentOutput[] {
   const needsId = new Set(
-    outputs.flatMap((output) => (output.result.needsId ? [output.component.bindingId] : []))
+    outputs.flatMap((output) =>
+      output.result.needsId && output.component.bindingId !== null
+        ? [output.component.bindingId]
+        : []
+    )
   );
   let changed = true;
   while (changed) {
     changed = false;
     for (const output of outputs) {
       if (
+        output.component.bindingId !== null &&
         !needsId.has(output.component.bindingId) &&
-        collectComponentBindingIds(output.result.render, analysis).some((id) => needsId.has(id))
+        collectPlanComponentBindingIds(output.result, analysis).some((id) => needsId.has(id))
       ) {
         needsId.add(output.component.bindingId);
         changed = true;
@@ -936,7 +975,7 @@ function propagateComponentIdRequirements(
     }
   }
   return outputs.map((output) =>
-    needsId.has(output.component.bindingId)
+    output.component.bindingId !== null && needsId.has(output.component.bindingId)
       ? { ...output, result: markPlanNeedsId(output.result, needsId) }
       : output
   );
@@ -1040,6 +1079,7 @@ function markPlanNeedsId(
     segments: plan.segments.map((segment) => ({
       ...segment,
       render: segment.render === null ? null : mapRenderFunction(segment.render),
+      embeddedRenders: segment.embeddedRenders.map(mapRenderFunction),
     })),
   };
 }
@@ -1134,6 +1174,9 @@ function collectEagerComponentBindingIds(
   for (const plan of plans) {
     visitSetup(plan.setup);
     visitRender(plan.render);
+    for (const segment of plan.segments) {
+      segment.embeddedRenders.forEach(visitRenderFunction);
+    }
   }
   return bindings;
 }
@@ -1145,7 +1188,9 @@ function createModuleReferenceExports(
   analysis: ModuleAnalysis
 ): RangeReplacement[] {
   const componentBindings = new Set(
-    componentModules.map((component) => component.output.component.bindingId)
+    componentModules.flatMap((component) =>
+      component.output.component.bindingId === null ? [] : [component.output.component.bindingId]
+    )
   );
   const needed = new Set<BindingId>();
   for (const segment of segments) {
@@ -1338,7 +1383,9 @@ function findUnusedMainImportBindings(
     }
   }
   for (const component of componentModules) {
-    used.delete(component.output.component.bindingId);
+    if (component.output.component.bindingId !== null) {
+      used.delete(component.output.component.bindingId);
+    }
   }
   return analysis.bindings.flatMap((binding) =>
     binding.kind === 'import' && binding.import?.typeOnly !== true && !used.has(binding.id)
@@ -1650,6 +1697,7 @@ function uniqueSegments(segments: readonly SegmentPlan[]): SegmentPlan[] {
 function collectReachableSegments(
   outputs: readonly ComponentOutput[],
   moduleRootIds: readonly string[],
+  functions: ModuleBoundaryPlan['functions'],
   segments: readonly SegmentPlan[],
   target: 'csr' | 'ssr',
   source: string,
@@ -1676,6 +1724,18 @@ function collectReachableSegments(
     }
     queue.push(...plan.usedSegmentIds);
   }
+  for (const fn of functions) {
+    for (const renderFunction of fn.renders) {
+      const plan =
+        target === 'csr'
+          ? planCsrRenderFunction(renderFunction, segments, source, componentCardinality)
+          : planSsrRenderFunction(renderFunction, segments, componentReturnMode);
+      if (plan === null) {
+        return null;
+      }
+      queue.push(...plan.usedSegmentIds);
+    }
+  }
   const reachable = new Set<string>();
   while (queue.length > 0) {
     const id = queue.pop()!;
@@ -1697,6 +1757,16 @@ function collectReachableSegments(
         target === 'csr'
           ? planCsrRenderFunction(segment.render, segments, source, componentCardinality)
           : planSsrRenderFunction(segment.render, segments, componentReturnMode);
+      if (render === null) {
+        return null;
+      }
+      queue.push(...render.usedSegmentIds);
+    }
+    for (const embedded of segment.embeddedRenders) {
+      const render =
+        target === 'csr'
+          ? planCsrRenderFunction(embedded, segments, source, componentCardinality)
+          : planSsrRenderFunction(embedded, segments, componentReturnMode);
       if (render === null) {
         return null;
       }
@@ -1729,8 +1799,32 @@ function transformFailure(
   };
 }
 
+function createSemanticLowerDiagnostic(
+  ctx: CompilerContext,
+  failure: SemanticLowerFailure
+): Diagnostic | null {
+  const { path, code } = ctx.input;
+  switch (failure.code) {
+    case 'ref':
+      return createRefDiagnostic(path, code, failure.range, failure.message);
+    case 'async-for':
+      return createAsyncForDiagnostic(path, code, failure.range, failure.message);
+    case 'use-id':
+      return createUseIdDiagnostic(path, code, failure.range, failure.message);
+    case 'style-hook':
+      return createStyleHookDiagnostic(path, code, failure.range, failure.message);
+    case 'custom-hook':
+      return createCustomHookDiagnostic(path, code, failure.range, failure.message);
+    case 'scoped-style-content':
+      return createScopedStyleContentDiagnostic(path, code, failure.range, failure.message);
+    case 'unsupported-syntax':
+      return null;
+  }
+}
+
 function createComponentAnalysis(
   component: ComponentDefinition,
+  captures: boolean,
   inputPath: string,
   scope: string | undefined,
   mapRange: (range: SourceRange) => SourceRange
@@ -1755,7 +1849,7 @@ function createComponentAnalysis(
     parent: null,
     ctxKind: 'function',
     ctxName: 'component',
-    captures: false,
+    captures,
     loc: mapRange(component.functionRange ?? [0, 0]),
     paramNames: component.params.map((param) => param.name ?? '_'),
   };

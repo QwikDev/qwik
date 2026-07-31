@@ -432,14 +432,15 @@ export function createImplicitDollarArgumentDiagnostic(
 export function createUnsupportedBoundaryShapeDiagnostic(
   file: string,
   source: string,
-  range: SourceRange
+  range: SourceRange,
+  message = 'JSX in a module-level resumable boundary is not supported by the compiler yet.'
 ): Diagnostic {
   return locatedDiagnostic(
     file,
     source,
     range,
     TransformDiagnosticCode.UnsupportedBoundaryShape,
-    'JSX in a module-level resumable boundary is not supported by the compiler yet.'
+    message
   ).diagnostic;
 }
 

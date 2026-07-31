@@ -4,10 +4,11 @@ import type { CompilerContext } from './types';
 import { analyzeModule } from './analysis';
 import { discoverComponents } from './discover';
 import { extractQrls } from './extract';
-import { lowerSemanticComponentPlan } from './semantic-lower';
+import { lowerSemanticComponentPlan, lowerSemanticModulePlan } from './semantic-lower';
 import type { SemanticLowerResult } from './semantic-lower';
 import type { ModuleAnalysis } from './plan-types';
 import { validateComponentPlan } from './validate-component-plan';
+import { createModuleBoundaryPlan } from './segment-plan';
 
 function lower(code: string): { result: SemanticLowerResult; analysis: ModuleAnalysis } {
   const input = { path: 'src/component.tsx', code };
@@ -44,7 +45,112 @@ function success(code: string) {
   return lowered.result.plan;
 }
 
+function lowerModule(code: string) {
+  const input = { path: 'src/factory.tsx', code };
+  const ctx: CompilerContext = {
+    input,
+    options: {
+      input: [input],
+      srcDir: 'src',
+      sourceMaps: false,
+      transpileTs: true,
+      transpileJsx: true,
+    },
+    emitTarget: 'ssr',
+    program: null,
+    diagnostics: [],
+  };
+  parseModule(ctx);
+  expect(ctx.diagnostics).toEqual([]);
+  const analysis = analyzeModule(ctx.program!);
+  const extracted = extractQrls(ctx.program!, input.path, analysis);
+  const discovered = createModuleBoundaryPlan(extracted, [], ctx.program!);
+  return lowerSemanticModulePlan(ctx.program!, discovered, extracted);
+}
+
 describe('semantic lowering', () => {
+  test('attaches embedded renders to a module JSX QRL without component ownership', () => {
+    const result = lowerModule(`import { factory$ } from './factory';
+export const View = factory$((props) => <div>{props.label}</div>);
+`);
+
+    expect(result.kind).toBe('success');
+    if (result.kind !== 'success') {
+      throw new Error(result.message);
+    }
+    const root = result.plan.segments.find(
+      (segment) => segment.id === result.plan.roots[0].segmentId
+    );
+    expect(root).toMatchObject({
+      kind: 'qrl',
+      lifetimeId: null,
+      componentParameter: null,
+      render: null,
+      embeddedRenderContext: 'trailing',
+      embeddedRenders: [{ render: { roots: [{ kind: 'element', tag: 'div' }] } }],
+    });
+  });
+
+  test('keeps returns inside nested function declarations out of the outer render shape', () => {
+    const result = lowerModule(`import { factory$ } from './factory';
+export const View = factory$(() => {
+  function label() {
+    return 'yes';
+  }
+  return <span>{label()}</span>;
+});
+`);
+
+    expect(result.kind).toBe('success');
+  });
+
+  test('attaches every callback JSX root to one source-preserving value segment', () => {
+    const plan = success(`import { Child } from './child';
+export function App(props) {
+  return <main>{choose(() => {
+    if (props.visible) return <Child label="yes" />;
+    return <i>no</i>;
+  })}</main>;
+}`);
+    const root = plan.render.roots[0];
+    if (root.kind !== 'element' || root.children[0]?.kind !== 'dynamic-value') {
+      throw new Error('Expected embedded callback content');
+    }
+    const value = root.children[0].value;
+    if (value.kind !== 'segment') {
+      throw new Error('Expected a source-preserving value segment');
+    }
+    const segment = plan.segments.find((candidate) => candidate.id === value.segment.segmentId);
+
+    expect(segment).toMatchObject({
+      kind: 'expression',
+      render: null,
+      embeddedRenderContext: 'ambient',
+      embeddedRenders: [
+        { render: { roots: [{ kind: 'component' }] } },
+        { render: { roots: [{ kind: 'element', tag: 'i' }] } },
+      ],
+    });
+  });
+
+  test('classifies source-preserved callbacks from binding stability, not called APIs', () => {
+    const plan = success(`const Component = getComponent();
+export function App() {
+  const scheduled = schedule(Component);
+  return <main>{consume(scheduled, (Cmp) => <Cmp />)}</main>;
+}`);
+    const root = plan.render.roots[0];
+    if (root.kind !== 'element' || root.children[0]?.kind !== 'dynamic-value') {
+      throw new Error('Expected embedded callback content');
+    }
+    const value = root.children[0].value;
+    expect(value).toMatchObject({
+      kind: 'expression',
+      initialOnly: true,
+      embeddedRenders: [{ render: { roots: [{ kind: 'component' }] } }],
+    });
+  });
+
   test('lowers Suspense to its lean semantic shape and target-native QRL renders', () => {
     const plan = success(`import { Suspense as Boundary } from '@qwik.dev/core';
 export function App({ delay }) {

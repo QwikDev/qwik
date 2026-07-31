@@ -10,9 +10,11 @@ import {
   isModuleStyleBoundary,
   TargetImportResolver,
 } from './emit-qrl';
+import { emitFunctionRenders } from './emit-function';
 import { getSegmentImportPath } from './emit-segment';
 import {
   planCsr,
+  planCsrRenderFunction,
   planCsrSegmentRender,
   type CsrComponentCardinalityResolver,
   type CsrCollectionRowPlan,
@@ -27,7 +29,15 @@ import {
   type CsrSegmentReferencePlan,
   type CsrValuePlan,
 } from './plan-csr';
-import type { BindingId, ComponentDefinition, ComponentOutput, SegmentPlan } from './plan-types';
+import type {
+  BindingId,
+  ComponentDefinition,
+  ComponentOutput,
+  FunctionRenderPlan,
+  InlineComponentReferencePlan,
+  RenderFunctionPlan,
+  SegmentPlan,
+} from './plan-types';
 import {
   DEFAULT_GENERATED_NAMES,
   QWIK_IMPORT,
@@ -60,6 +70,7 @@ interface CsrEmitContext {
   readonly rootOperationIds: ReadonlySet<number>;
   readonly hoists: string[];
   readonly lazySegmentIds: Set<string>;
+  readonly inlineDirectSegmentIds: Set<string>;
   readonly segments: ReadonlyMap<string, SegmentPlan>;
   readonly qrlImports: TargetImportResolver;
   readonly localImplementationSource: string | null;
@@ -94,7 +105,9 @@ export function emitCsrModule(
   qrlImports: TargetImportResolver,
   componentCardinality: CsrComponentCardinalityResolver,
   generatedNames: GeneratedNames,
-  moduleRoots: readonly SegmentPlan[]
+  functions: readonly FunctionRenderPlan[],
+  moduleRoots: readonly SegmentPlan[],
+  inlineComponents: readonly InlineComponentReferencePlan[]
 ): EmittedModule | null {
   const hoists: string[] = [];
   const components: EmittedComponentCode[] = [];
@@ -123,7 +136,45 @@ export function emitCsrModule(
       return null;
     }
   }
+  const emittedFunctions = emitFunctionRenders(
+    functions,
+    source,
+    inputPath,
+    explicitExtensions,
+    imports,
+    segments,
+    (symbolName, render, code, names, allSegments, path, extensions, generated) =>
+      emitCsrFunctionRender(
+        symbolName,
+        render,
+        code,
+        names,
+        allSegments,
+        path,
+        extensions,
+        componentCardinality,
+        generated
+      ),
+    generatedNames
+  );
+  if (emittedFunctions === null) {
+    return null;
+  }
+  hoists.push(...emittedFunctions.hoists);
+  replacements.push(...emittedFunctions.replacements);
+  emittedFunctions.directSegmentIds.forEach((id) => directSegmentIds.add(id));
+  for (const component of inlineComponents) {
+    imports.add(QwikWord.WithCaptures);
+    replacements.push({
+      range: component.replacementRange,
+      value: `${QwikWord.WithCaptures}(${component.symbolName}, [${component.captureNames.join(', ')}])`,
+    });
+  }
   for (const output of outputs) {
+    const captureNames = output.result.captures.map((capture) => capture.name);
+    if (captureNames.length > 0) {
+      imports.add(QwikWord.Captures);
+    }
     const plan = planCsr(output.result, source, componentCardinality, generatedNames);
     if (plan === null) {
       return null;
@@ -148,9 +199,15 @@ export function emitCsrModule(
     }
     hoists.push(...render.hoists);
     components.push({
-      bindingId: output.component.bindingId,
-      moduleCode: emitCsrComponent(output.component, render, source, generatedNames),
-      rangeCode: emitCsrComponentRange(output.component, render, source, generatedNames),
+      identity: output.component.identity,
+      moduleCode: emitCsrComponent(output.component, render, source, generatedNames, captureNames),
+      rangeCode: emitCsrComponentRange(
+        output.component,
+        render,
+        source,
+        generatedNames,
+        captureNames
+      ),
     });
   }
   const seenSegments = new Set<string>();
@@ -180,7 +237,8 @@ function emitCsrComponent(
   component: ComponentDefinition,
   render: CsrRender,
   source: string,
-  generatedNames: GeneratedNames
+  generatedNames: GeneratedNames,
+  captureNames: readonly string[]
 ): string {
   return emitComponentFunction(
     component,
@@ -189,7 +247,8 @@ function emitCsrComponent(
     source,
     render.async,
     generatedNames,
-    render.needsId ? render.idBase : null
+    render.needsId ? render.idBase : null,
+    captureNames
   );
 }
 
@@ -197,7 +256,8 @@ function emitCsrComponentRange(
   component: ComponentDefinition,
   render: CsrRender,
   source: string,
-  generatedNames: GeneratedNames
+  generatedNames: GeneratedNames,
+  captureNames: readonly string[]
 ): string {
   return emitComponentRangeReplacement(
     component,
@@ -206,7 +266,8 @@ function emitCsrComponentRange(
     source,
     render.async,
     generatedNames,
-    render.needsId ? render.idBase : null
+    render.needsId ? render.idBase : null,
+    captureNames
   );
 }
 
@@ -240,28 +301,45 @@ export function emitCsrPlan(
   }
   const statements: string[] = [];
   if (plan.output !== null) {
+    const context: CsrEmitContext = {
+      source,
+      inputPath,
+      explicitExtensions,
+      imports,
+      generatedNames,
+      refNames: new Map(),
+      operationNames: new Map(),
+      rootOperationIds: new Set(),
+      hoists: [],
+      lazySegmentIds: new Set(),
+      inlineDirectSegmentIds: new Set(),
+      segments: new Map(plan.segments.map((segment) => [segment.id, segment])),
+      qrlImports,
+      localImplementationSource,
+      runtimeStyleScopeName: plan.runtimeStyleScopeName,
+      next,
+    };
     if (plan.output.kind === 'component') {
-      const context: CsrEmitContext = {
-        source,
-        inputPath,
-        explicitExtensions,
-        imports,
-        generatedNames,
-        refNames: new Map(),
-        operationNames: new Map(),
-        rootOperationIds: new Set(),
-        hoists: [],
-        lazySegmentIds: new Set(),
-        segments: new Map(plan.segments.map((segment) => [segment.id, segment])),
-        qrlImports,
-        localImplementationSource,
-        runtimeStyleScopeName: plan.runtimeStyleScopeName,
-        next,
-      };
       const component = emitDirectComponent(plan.output, context, statements);
-      return finalizeCsrRender(plan, setup, imports, statements, component, context.hoists);
+      return finalizeCsrRender(
+        plan,
+        setup,
+        imports,
+        statements,
+        component,
+        context.hoists,
+        context.inlineDirectSegmentIds
+      );
     }
-    return finalizeCsrRender(plan, setup, imports, statements, emitValue(plan.output));
+    return finalizeCsrRender(
+      plan,
+      setup,
+      imports,
+      statements,
+      emitValue(plan.output, context),
+      context.hoists,
+      context.inlineDirectSegmentIds
+    );
   }
   const refNames = new Map<number, string>();
   const emittedRefs: { name: string; path: readonly CsrRefStep[] }[] = [];
@@ -333,6 +411,7 @@ export function emitCsrPlan(
     ),
     hoists: [],
     lazySegmentIds: new Set(),
+    inlineDirectSegmentIds: new Set(),
     segments: new Map(plan.segments.map((segment) => [segment.id, segment])),
     qrlImports,
     localImplementationSource,
@@ -368,10 +447,18 @@ export function emitCsrPlan(
     directElementRef === null ? QwikWord.CreateTemplate : QwikWord.CreateElementTemplate;
   imports.add(templateFactory);
   const value = emitRoots(plan.roots, context.operationNames, refNames);
-  return finalizeCsrRender(plan, setup, imports, statements, value, [
-    ...context.hoists,
-    `const ${templateName} = ${templateFactory}(${JSON.stringify(plan.template)});`,
-  ]);
+  return finalizeCsrRender(
+    plan,
+    setup,
+    imports,
+    statements,
+    value,
+    [
+      ...context.hoists,
+      `const ${templateName} = ${templateFactory}(${JSON.stringify(plan.template)});`,
+    ],
+    context.inlineDirectSegmentIds
+  );
 }
 
 function finalizeCsrRender(
@@ -380,15 +467,19 @@ function finalizeCsrRender(
   imports: Set<string>,
   renderStatements: string[],
   value: string,
-  hoists: string[] = []
+  hoists: string[] = [],
+  inlineDirectSegmentIds: ReadonlySet<string> = new Set()
 ): CsrRender {
   let statements = [...setup.statements, ...renderStatements];
   if (plan.waitForTasks) {
     imports.add(QwikWord.GetActiveInvokeContext);
     imports.add(QwikWord.MaybeThen);
     imports.add('invoke');
-    statements = [`const invokeCtx = ${QwikWord.GetActiveInvokeContext}();`, ...setup.statements];
-    value = `${QwikWord.MaybeThen}(invokeCtx.initialTaskPromise, () => ${emitCsrInvokeRender(
+    statements = [
+      `const ${QwikGenWord.InvokeContext} = ${QwikWord.GetActiveInvokeContext}();`,
+      ...setup.statements,
+    ];
+    value = `${QwikWord.MaybeThen}(${QwikGenWord.InvokeContext}.initialTaskPromise, () => ${emitCsrInvokeRender(
       renderStatements,
       value
     )})`;
@@ -397,7 +488,7 @@ function finalizeCsrRender(
     hoists: [...setup.hoists, ...hoists],
     statements,
     value,
-    directSegmentIds: plan.directSegmentIds,
+    directSegmentIds: [...new Set([...plan.directSegmentIds, ...inlineDirectSegmentIds])],
     async: plan.async,
     needsId: plan.needsId,
     idBase: plan.idBase,
@@ -406,7 +497,40 @@ function finalizeCsrRender(
 
 function emitCsrInvokeRender(statements: readonly string[], value: string): string {
   const body = [...statements, `return ${value};`].map((statement) => `  ${statement}`).join('\n');
-  return `invoke(invokeCtx, () => {\n${body}\n})`;
+  return `invoke(${QwikGenWord.InvokeContext}, () => {\n${body}\n})`;
+}
+
+function emitCsrFunctionRender(
+  symbolName: string,
+  render: RenderFunctionPlan,
+  source: string,
+  imports: Set<string>,
+  segments: readonly SegmentPlan[],
+  inputPath: string,
+  explicitExtensions: boolean,
+  componentCardinality: CsrComponentCardinalityResolver,
+  generatedNames: GeneratedNames
+): CsrRender | null {
+  const planned = planCsrRenderFunction(
+    render,
+    segments,
+    source,
+    componentCardinality,
+    generatedNames
+  );
+  return planned === null
+    ? null
+    : emitCsrPlan(
+        symbolName,
+        planned,
+        source,
+        inputPath,
+        explicitExtensions,
+        imports,
+        undefined,
+        null,
+        generatedNames
+      );
 }
 
 export function emitCsrSegmentRender(
@@ -605,10 +729,11 @@ function emitCsrOperation(
         declarations: [],
         statements:
           operation.value.returnMode === 'sync'
-            ? [`const ${value} = ${emitValue(operation.value)};`, mount]
+            ? [`const ${value} = ${emitValue(operation.value, context)};`, mount]
             : [
                 `${context.generatedNames.ctx}.scheduler.waitFor(${QwikWord.MaybeThen}(${emitValue(
-                  operation.value
+                  operation.value,
+                  context
                 )}, (${value}) => { ${mount} }));`,
               ],
       };
@@ -1508,7 +1633,7 @@ function emitValue(value: CsrValuePlan, context?: CsrEmitContext): string {
   if (
     value.kind !== 'expression' ||
     value.range === null ||
-    value.boundaries.length === 0 ||
+    (value.boundaries.length === 0 && value.embeddedRenders.length === 0) ||
     context === undefined
   ) {
     return `(${value.expression})`;
@@ -1532,7 +1657,38 @@ function emitValue(value: CsrValuePlan, context?: CsrEmitContext): string {
       return `(${value.expression})`;
     }
   }
-  return `(${applyReplacements(context.source, value.range, replacements)})`;
+  for (const embedded of value.embeddedRenders) {
+    const emitted = emitCsrPlan(
+      `inline_${embedded.range[0]}_${embedded.range[1]}`,
+      embedded.plan,
+      context.source,
+      context.inputPath,
+      context.explicitExtensions,
+      context.imports,
+      context.qrlImports,
+      context.localImplementationSource,
+      context.generatedNames
+    );
+    if (emitted === null) {
+      return `(${value.expression})`;
+    }
+    context.hoists.push(...emitted.hoists);
+    emitted.directSegmentIds.forEach((id) => context.inlineDirectSegmentIds.add(id));
+    const body = [...emitted.statements, `return ${emitted.value};`]
+      .map((statement) => `  ${statement}`)
+      .join('\n');
+    replacements.push({
+      range: embedded.range,
+      value: `invoke(${context.generatedNames.invokeCtx}, () => (${embedded.async ? 'async ' : ''}() => {\n${body}\n})())`,
+    });
+  }
+  const expression = applyReplacements(context.source, value.range, replacements);
+  if (value.embeddedRenders.length === 0) {
+    return `(${expression})`;
+  }
+  context.imports.add(QwikWord.GetActiveInvokeContext);
+  context.imports.add('invoke');
+  return `(() => { const ${context.generatedNames.invokeCtx} = ${QwikWord.GetActiveInvokeContext}(); return (${expression}); })()`;
 }
 
 function emitEventValue(value: CsrValuePlan, context: CsrEmitContext): string {

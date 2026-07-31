@@ -45,12 +45,17 @@ class ComponentPlanValidator {
   }
 
   validate(): ComponentPlanValidationIssue[] {
-    this.requireBinding(this.plan.shape.bindingId, 'shape.bindingId');
+    if (this.plan.shape.bindingId !== null) {
+      this.requireBinding(this.plan.shape.bindingId, 'shape.bindingId');
+    }
     this.plan.shape.parameter?.bindingIds.forEach((bindingId, index) =>
       this.requireBinding(bindingId, `shape.parameter.bindingIds[${index}]`)
     );
     this.plan.referenceBindingIds.forEach((bindingId, index) =>
       this.requireBinding(bindingId, `referenceBindingIds[${index}]`)
+    );
+    this.plan.captures.forEach((capture, index) =>
+      this.requireBinding(capture.bindingId, `captures[${index}].bindingId`)
     );
     this.validateLifetimes();
     this.validateSegments();
@@ -209,6 +214,22 @@ class ComponentPlanValidator {
           this.issue(`segments[${index}].render.segmentId`, 'does not match its owning segment');
         }
         this.validateRenderFunction(segment.render, `segments[${index}].render`);
+      }
+      if ((segment.embeddedRenders.length === 0) !== (segment.embeddedRenderContext === null)) {
+        this.issue(
+          `segments[${index}].embeddedRenderContext`,
+          'must be present exactly when the segment owns embedded renders'
+        );
+      }
+      for (let render = 0; render < segment.embeddedRenders.length; render++) {
+        const embedded = segment.embeddedRenders[render];
+        if (!containsRange(segment.bodyRange, embedded.range)) {
+          this.issue(
+            `segments[${index}].embeddedRenders[${render}].range`,
+            'must be contained by the segment body'
+          );
+        }
+        this.validateRenderFunction(embedded, `segments[${index}].embeddedRenders[${render}]`);
       }
     }
   }
@@ -398,9 +419,9 @@ class ComponentPlanValidator {
     } else if (expectedParentId !== undefined && lifetime.parentId !== expectedParentId) {
       this.issue(`${path}.lifetimeId`, `must be owned by lifetime ${expectedParentId}`);
     }
-    if (render.kind === 'local-jsx') {
+    if (render.kind === 'local-jsx' || render.kind === 'embedded-jsx') {
       if (render.segmentId !== null) {
-        this.issue(`${path}.segmentId`, 'local JSX render functions cannot have a segment');
+        this.issue(`${path}.segmentId`, 'inline JSX render functions cannot have a segment');
       }
     } else if (render.segmentId === null || !this.segments.has(render.segmentId)) {
       this.issue(`${path}.segmentId`, `references unknown segment "${render.segmentId}"`);

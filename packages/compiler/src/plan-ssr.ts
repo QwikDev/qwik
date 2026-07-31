@@ -38,6 +38,13 @@ export interface SsrRenderBlockPlan {
   readonly needsContext: boolean;
   readonly staticRoot: boolean;
   readonly runtimeStyleScopeName: string | null;
+  readonly embeddedRenders: readonly SsrEmbeddedRenderPlan[];
+}
+
+export interface SsrEmbeddedRenderPlan {
+  readonly range: SourceRange;
+  readonly async: boolean;
+  readonly target: SsrRenderFunctionTargetPlan;
 }
 
 export interface SsrRenderFunctionTargetPlan {
@@ -225,7 +232,13 @@ const unknownComponentReturnMode: SsrComponentReturnModeResolver = () => 'maybe-
 export function createSsrComponentReturnModeResolver(
   outputs: readonly ComponentOutput[]
 ): SsrComponentReturnModeResolver {
-  const components = new Map(outputs.map((output) => [output.component.bindingId, output.result]));
+  const components = new Map(
+    outputs.flatMap((output) =>
+      output.component.bindingId === null
+        ? []
+        : [[output.component.bindingId, output.result] as const]
+    )
+  );
   const modes = new Map<BindingId, 'sync' | 'maybe-promise'>();
   const resolving = new Set<BindingId>();
   const resolve: SsrComponentReturnModeResolver = (bindingId) => {
@@ -401,6 +414,9 @@ class SsrPlanner {
   private nextTargetId = 0;
   private needsRootRange = false;
   private readonly renderValues = new Map<BindingId, SsrRenderBlockPlan>();
+  private readonly embeddedUsedSegmentIds = new Set<string>();
+  private readonly embeddedDirectSegmentIds = new Set<string>();
+  private readonly embeddedRenders = new Map<string, SsrEmbeddedRenderPlan>();
   private nextId = 0;
 
   constructor(
@@ -457,12 +473,20 @@ class SsrPlanner {
       : {
           operations,
           needsRootRange: this.needsRootRange,
-          usedSegmentIds: collectSsrSegmentIds(operations),
-          directSegmentIds: collectSsrDirectSegmentIds(operations),
+          usedSegmentIds: [
+            ...new Set([...collectSsrSegmentIds(operations), ...this.embeddedUsedSegmentIds]),
+          ],
+          directSegmentIds: [
+            ...new Set([
+              ...collectSsrDirectSegmentIds(operations),
+              ...this.embeddedDirectSegmentIds,
+            ]),
+          ],
           synchronous: operations.every(isSynchronousSsrOperation),
           needsContext: operations.some(needsSsrContext),
           staticRoot: isStaticSsrRoot(render),
           runtimeStyleScopeName: this.runtimeStyleScopeName,
+          embeddedRenders: [...this.embeddedRenders.values()],
         };
   }
 
@@ -494,9 +518,16 @@ class SsrPlanner {
       case 'static-text':
         return { kind: 'static', value: node.value };
       case 'dynamic-value': {
+        if (!this.trackEmbeddedRenders(node.value)) {
+          return null;
+        }
         if (node.output === 'content') {
           if (node.value.kind === 'segment') {
-            return { kind: 'content-effect', segment: node.value.segment, root: false };
+            const reference = node.value.segment;
+            const segment = this.segments.find((candidate) => candidate.id === reference.segmentId);
+            if (segment?.initialOnly !== true) {
+              return { kind: 'content-effect', segment: reference, root: false };
+            }
           }
           return {
             kind: 'dynamic',
@@ -536,6 +567,16 @@ class SsrPlanner {
       case 'element':
         return this.element(node);
       case 'component':
+        if (
+          node.props.some(
+            (prop) =>
+              prop.kind !== 'static' &&
+              isValuePlan(prop.value) &&
+              !this.trackEmbeddedRenders(prop.value)
+          )
+        ) {
+          return null;
+        }
         return {
           kind: 'component',
           tagRange: node.tagRange,
@@ -560,6 +601,12 @@ class SsrPlanner {
           idBase: node.then.needsId || node.else?.needsId === true ? this.idExpression('b') : null,
         };
       case 'suspense': {
+        if (
+          (node.fallback !== null && !this.trackEmbeddedRenders(node.fallback)) ||
+          (node.delay !== null && !this.trackEmbeddedRenders(node.delay))
+        ) {
+          return null;
+        }
         const inOrder = node.blocking
           ? this.nodes(node.content.render.roots, parentTargetId)
           : null;
@@ -642,6 +689,15 @@ class SsrPlanner {
   }
 
   private element(node: Extract<RenderNodePlan, { kind: 'element' }>): SsrElementOperation | null {
+    for (const prop of node.props) {
+      if (
+        prop.kind !== 'static' &&
+        isValuePlan(prop.value) &&
+        !this.trackEmbeddedRenders(prop.value)
+      ) {
+        return null;
+      }
+    }
     const dynamicText = node.children.filter(
       (child) =>
         child.kind === 'dynamic-value' &&
@@ -774,6 +830,26 @@ class SsrPlanner {
     );
   }
 
+  private trackEmbeddedRenders(value: ValuePlan): boolean {
+    if (value.kind !== 'expression') {
+      return true;
+    }
+    for (const render of value.embeddedRenders) {
+      const planned = planSsrRenderFunction(render, this.segments, this.componentReturnMode);
+      if (planned === null) {
+        return false;
+      }
+      planned.usedSegmentIds.forEach((id) => this.embeddedUsedSegmentIds.add(id));
+      planned.directSegmentIds.forEach((id) => this.embeddedDirectSegmentIds.add(id));
+      this.embeddedRenders.set(rangeKey(render.range), {
+        range: render.range,
+        async: render.async,
+        target: planned,
+      });
+    }
+    return true;
+  }
+
   private isSynchronousValue(value: ValuePlan): boolean {
     return (
       value.kind === 'render-value' && this.renderValues.get(value.bindingId)?.synchronous === true
@@ -803,6 +879,10 @@ function setupDirectSegmentIds(operation: SsrSetupOperation): readonly string[] 
 
 function sameRange(left: SourceRange, right: SourceRange): boolean {
   return left[0] === right[0] && left[1] === right[1];
+}
+
+function rangeKey(range: SourceRange): string {
+  return `${range[0]}:${range[1]}`;
 }
 
 function markSoleStructuralRoot(operations: readonly SsrOperation[]): readonly SsrOperation[] {

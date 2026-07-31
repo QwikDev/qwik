@@ -10,7 +10,7 @@ import { EffectClient } from './components/effect-client/effect-client';
 import { Events } from './components/events/events';
 import { EventsClient } from './components/events/events-client';
 // import { RenderExceptions, UseTaskExceptions } from './components/exceptions';
-// import { Factory } from './components/factory/factory';
+import { Factory } from './components/factory/factory';
 import { LexicalScope } from './components/lexical-scope/lexicalScope';
 import { MountRoot } from './components/mount/mount';
 import { NoResume } from './components/no-resume/no-resume';
@@ -67,7 +67,7 @@ export const Root = component$<{ pathname: string }>(({ pathname }) => {
       {pathname === '/e2e/events' && <Events />}
       {/* {pathname === '/e2e/async' && <Async />} */}
       {pathname === '/e2e/container' && <Containers />}
-      {/* {pathname === '/e2e/factory' && <Factory />} */}
+      {pathname === '/e2e/factory' && <Factory />}
       {pathname === '/e2e/watch' && <Watch />}
       {pathname === '/e2e/effect-client' && <EffectClient />}
       {pathname === '/e2e/context' && <ContextRoot />}

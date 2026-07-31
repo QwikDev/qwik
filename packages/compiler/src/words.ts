@@ -67,6 +67,7 @@ export const enum QwikWord {
   QrlWithChunk = '_qrlWithChunk',
   CreateVisibleTaskHandlerQrl = 'createVisibleTaskHandlerQrl',
   //shared
+  ComponentQrl = 'componentQrl',
   Captures = '_captures',
   Await = '_await',
 }
@@ -77,6 +78,7 @@ export const enum QwikGenWord {
   Fragment = 'fragment',
   ComponentProps = 'props',
   ComponentContext = 'ctx',
+  InvokeContext = 'invokeCtx',
   ContextScope = 'contextScope',
   Id = 'id',
   Element = 'el',
@@ -91,11 +93,13 @@ export const enum QwikGenWord {
 export interface GeneratedNames {
   readonly props: string;
   readonly ctx: string;
+  readonly invokeCtx: string;
 }
 
 export const DEFAULT_GENERATED_NAMES: GeneratedNames = {
   props: QwikGenWord.ComponentProps,
   ctx: QwikGenWord.ComponentContext,
+  invokeCtx: QwikGenWord.InvokeContext,
 };
 
 export const enum QwikComments {

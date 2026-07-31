@@ -38,7 +38,7 @@ const TOP_LEVEL_CONTROL_FLOW = new Set([
 
 export function analyzeComponentShape(
   fn: AstFunction,
-  bindingId: BindingId,
+  bindingId: BindingId | null,
   analysis: ModuleAnalysis
 ): ComponentShapeResult {
   if (fn.params.length > 1) {

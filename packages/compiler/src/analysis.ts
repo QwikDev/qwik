@@ -6,6 +6,7 @@ import {
   isNativeTag,
   unwrapExpression,
 } from './ast-utils';
+import { visit as visitAst } from './jsx-ast-utils';
 import type { AstFunction, AstNode, SourceRange } from './types';
 import type {
   BindingId,
@@ -32,7 +33,7 @@ interface Scope {
 }
 
 interface FunctionCandidate {
-  readonly bindingId: BindingId;
+  readonly bindingId: BindingId | null;
   readonly fn: AstFunction;
   readonly replacementRange: SourceRange | null;
   readonly statementIndex: number;
@@ -105,11 +106,14 @@ class ModuleAnalyzer {
     for (const statement of this.program.body) {
       this.visit(statement);
     }
+    const jsxOwners = collectJsxOwners(this.program);
     return {
       bindings: this.bindings,
       references: this.references,
       exports: this.collectExports(),
       items: this.classifyModuleItems(),
+      moduleJsxRange: jsxOwners.moduleRange,
+      jsxFunctionRanges: jsxOwners.functionRanges,
     };
   }
 
@@ -838,8 +842,8 @@ class ModuleAnalyzer {
 
   private classifyModuleItems(): ModuleItemPlan[] {
     const candidates = this.collectFunctionCandidates();
-    const plans = new Map<number, ComponentCandidatePlan>();
-    for (const candidate of candidates.values()) {
+    const plans = new Map<string, ComponentCandidatePlan>();
+    for (const candidate of candidates) {
       const functionRange = getRange(candidate.fn);
       const replacementRange = candidate.replacementRange;
       if (functionRange === null || replacementRange === null) {
@@ -847,7 +851,7 @@ class ModuleAnalyzer {
       }
       const qualification = candidate.wrapped
         ? 'component$'
-        : this.jsxTagBindings.has(candidate.bindingId)
+        : candidate.bindingId !== null && this.jsxTagBindings.has(candidate.bindingId)
           ? 'jsx-tag'
           : candidate.exported && returnPositionContainsJsx(candidate.fn)
             ? 'exported-jsx'
@@ -855,7 +859,7 @@ class ModuleAnalyzer {
       if (qualification === null) {
         continue;
       }
-      plans.set(candidate.bindingId, {
+      plans.set(rangeKey(functionRange), {
         bindingId: candidate.bindingId,
         functionRange,
         replacementRange,
@@ -869,10 +873,11 @@ class ModuleAnalyzer {
 
     return this.program.body.map((statement, statementIndex) => {
       const range = getRange(statement) ?? ([0, 0] as SourceRange);
-      const statementCandidates = [...candidates.values()]
+      const statementCandidates = candidates
         .filter((candidate) => candidate.statementIndex === statementIndex)
         .flatMap((candidate) => {
-          const plan = plans.get(candidate.bindingId);
+          const functionRange = getRange(candidate.fn);
+          const plan = functionRange === null ? undefined : plans.get(rangeKey(functionRange));
           return plan === undefined ? [] : [plan];
         });
       if (statementCandidates.length > 0) {
@@ -892,7 +897,7 @@ class ModuleAnalyzer {
     });
   }
 
-  private collectFunctionCandidates(): Map<BindingId, FunctionCandidate> {
+  private collectFunctionCandidates(): FunctionCandidate[] {
     const candidates = new Map<BindingId, FunctionCandidate>();
     const exports = new Map<BindingId, string | 'default'>();
 
@@ -999,7 +1004,47 @@ class ModuleAnalyzer {
         candidate.exportName = exportName;
       }
     }
-    return candidates;
+    return [...candidates.values(), ...this.collectInlineComponentCandidates(candidates)];
+  }
+
+  private collectInlineComponentCandidates(
+    candidates: Map<BindingId, FunctionCandidate>
+  ): FunctionCandidate[] {
+    const inline: FunctionCandidate[] = [];
+    const moduleHelpers = [...candidates.values()].filter(
+      (candidate) =>
+        !candidate.wrapped &&
+        (candidate.bindingId === null || !this.jsxTagBindings.has(candidate.bindingId)) &&
+        !(candidate.exported && returnPositionContainsJsx(candidate.fn))
+    );
+
+    for (const helper of moduleHelpers) {
+      visitAst(helper.fn, (value) => {
+        if (value.type === 'CallExpression' && this.isImportedComponentCallee(value.callee)) {
+          const argument = value.arguments[0];
+          const fn = unwrapExpression(
+            argument?.type === 'SpreadElement' ? argument.argument : argument
+          );
+          const replacementRange = getRange(value);
+          const functionRange = getRange(fn);
+          if (isFunctionLike(fn) && replacementRange !== null && functionRange !== null) {
+            inline.push({
+              bindingId: null,
+              fn,
+              replacementRange,
+              statementIndex: helper.statementIndex,
+              wrapped: true,
+              exported: false,
+              exportName: `inline_component_${functionRange[0]}`,
+              localName: null,
+              declarationKind: 'const',
+            });
+            return false;
+          }
+        }
+      });
+    }
+    return inline;
   }
 
   private getTopLevelFunction(node: unknown): FunctionLookup | null {
@@ -1077,6 +1122,42 @@ class ModuleAnalyzer {
   }
 }
 
+function collectJsxOwners(program: Program): {
+  readonly moduleRange: SourceRange | null;
+  readonly functionRanges: readonly SourceRange[];
+} {
+  let moduleRange: SourceRange | null = null;
+  const functionRanges = new Map<string, SourceRange>();
+  visit(program, null);
+  return { moduleRange, functionRanges: [...functionRanges.values()] };
+
+  function visit(value: unknown, ownerRange: SourceRange | null): void {
+    if (!isNode(value)) {
+      return;
+    }
+    const range = isFunctionLike(value) ? getRange(value) : ownerRange;
+    if (value.type === 'JSXElement' || value.type === 'JSXFragment') {
+      const jsxRange = getRange(value);
+      if (range === null) {
+        moduleRange ??= jsxRange;
+      } else {
+        functionRanges.set(rangeKey(range), range);
+      }
+      return;
+    }
+    for (const [key, child] of Object.entries(value)) {
+      if (SKIPPED_KEYS.has(key)) {
+        continue;
+      }
+      if (Array.isArray(child)) {
+        child.forEach((item) => visit(item, range));
+      } else {
+        visit(child, range);
+      }
+    }
+  }
+}
+
 function unwrapModuleDeclaration(node: AstNode): AstNode | null {
   if (node.type === 'ExportNamedDeclaration' || node.type === 'ExportDefaultDeclaration') {
     return isNode(node.declaration) ? node.declaration : null;
@@ -1143,7 +1224,7 @@ function returnPositionContainsJsx(fn: AstFunction): boolean {
   }
   let found = false;
   visitReturns(body, (argument) => {
-    found ||= containsJsx(argument);
+    found ||= !isFunctionLike(unwrapExpression(argument)) && containsJsx(argument);
   });
   return found;
 }

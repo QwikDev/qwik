@@ -71,7 +71,7 @@ export interface ImportItem {
 }
 
 export interface ComponentCandidatePlan {
-  readonly bindingId: BindingId;
+  readonly bindingId: BindingId | null;
   readonly functionRange: SourceRange;
   /** Full range replaced during module assembly; includes a component$ wrapper when present. */
   readonly replacementRange: SourceRange;
@@ -95,6 +95,8 @@ export interface ModuleAnalysis {
   readonly references: readonly ReferenceInfo[];
   readonly exports: readonly ExportBindingInfo[];
   readonly items: readonly ModuleItemPlan[];
+  readonly moduleJsxRange: SourceRange | null;
+  readonly jsxFunctionRanges: readonly SourceRange[];
 }
 
 export type QrlBoundaryPlan =
@@ -127,7 +129,7 @@ export interface ComponentParameterPlan {
 }
 
 export interface ComponentShape {
-  readonly bindingId: BindingId;
+  readonly bindingId: BindingId | null;
   readonly async: boolean;
   readonly setup: readonly SourceRange[];
   readonly returnExpression: SourceRange;
@@ -189,6 +191,7 @@ export interface LifetimePlan {
 
 export interface ComponentPlan {
   readonly shape: ComponentShape;
+  readonly captures: readonly ComponentCapturePlan[];
   readonly setup: readonly SetupPlan[];
   readonly providesContext: boolean;
   readonly needsId: boolean;
@@ -204,6 +207,18 @@ export interface ComponentPlan {
   readonly lifetimes: readonly LifetimePlan[];
 }
 
+export interface ComponentCapturePlan {
+  readonly bindingId: BindingId;
+  readonly name: string;
+}
+
+export interface InlineComponentReferencePlan {
+  readonly symbolName: string;
+  readonly importPath: string;
+  readonly replacementRange: SourceRange;
+  readonly captureNames: readonly string[];
+}
+
 export function hasInitialTask(component: ComponentPlan): boolean {
   return (
     component.hasCustomHook ||
@@ -217,6 +232,15 @@ export function hasInitialTask(component: ComponentPlan): boolean {
 export interface ModuleBoundaryPlan {
   readonly roots: readonly SegmentReferencePlan[];
   readonly segments: readonly SegmentPlan[];
+  readonly functions: readonly FunctionRenderPlan[];
+  readonly replacedRanges: readonly SourceRange[];
+}
+
+export interface FunctionRenderPlan {
+  readonly functionRange: SourceRange;
+  readonly bodyRange: SourceRange;
+  readonly bodyKind: 'block' | 'expression';
+  readonly renders: readonly RenderFunctionPlan[];
 }
 
 export interface RenderPlan {
@@ -420,6 +444,7 @@ export type ValuePlan =
       readonly compilerString: boolean;
       /** True nested resumable boundaries; the containing expression is not a boundary. */
       readonly boundaries: readonly SegmentReferencePlan[];
+      readonly embeddedRenders: readonly RenderFunctionPlan[];
     }
   | {
       readonly kind: 'render-value';
@@ -467,7 +492,14 @@ export type RenderEffectPlan =
     };
 
 export interface RenderFunctionPlan {
-  readonly kind: 'branch' | 'suspense' | 'slot' | 'collection-row' | 'local-jsx' | 'qrl';
+  readonly kind:
+    | 'branch'
+    | 'suspense'
+    | 'slot'
+    | 'collection-row'
+    | 'local-jsx'
+    | 'qrl'
+    | 'embedded-jsx';
   readonly collectionSourceKind: CollectionSourcePlan['kind'] | null;
   readonly range: SourceRange;
   readonly segmentId: string | null;
@@ -487,6 +519,7 @@ export interface RenderFunctionPlan {
   readonly runtimeStyleScopeName: string | null;
 }
 
+export type EmbeddedRenderContext = 'ambient' | 'trailing' | null;
 export interface SegmentCapturePlan {
   readonly bindingId: BindingId;
   readonly name: string;
@@ -528,6 +561,10 @@ export interface SegmentPlan {
   readonly visibleTaskStrategy: 'intersection-observer' | 'document-ready' | 'document-idle' | null;
   readonly lifetimeId: LifetimeId | null;
   readonly render: RenderFunctionPlan | null;
+  /** JSX replacements emitted inside an otherwise source-preserved segment body. */
+  readonly embeddedRenders: readonly RenderFunctionPlan[];
+  readonly embeddedRenderContext: EmbeddedRenderContext;
+  readonly initialOnly: boolean;
   readonly componentParameter: ComponentParameterPlan | null;
   readonly moduleStyle: {
     readonly styleId: string;
@@ -536,7 +573,8 @@ export interface SegmentPlan {
 }
 
 export interface ComponentDefinition {
-  bindingId: BindingId;
+  bindingId: BindingId | null;
+  identity: string;
   shape: ComponentShape;
   exported: boolean;
   declarationKind: 'function' | 'const' | 'defaultFunction' | 'defaultArrow';

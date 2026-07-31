@@ -3,6 +3,7 @@ import type { TransformModuleInput, TransformModulesOptions } from '@qwik.dev/op
 import { parseModule } from './parse';
 import type { CompilerContext } from './types';
 import { discoverComponents } from './discover';
+import { analyzeModule } from './analysis';
 
 const baseOptions = (input: TransformModuleInput): TransformModulesOptions => ({
   input: [input],
@@ -12,7 +13,7 @@ const baseOptions = (input: TransformModuleInput): TransformModulesOptions => ({
   transpileJsx: true,
 });
 
-function discoverInput(code: string) {
+function parseInput(code: string) {
   const input = { path: 'src/component.tsx', code };
   const ctx: CompilerContext = {
     input,
@@ -24,7 +25,11 @@ function discoverInput(code: string) {
   parseModule(ctx);
   expect(ctx.diagnostics).toEqual([]);
   expect(ctx.program).not.toBeNull();
-  return discoverComponents(ctx.program!);
+  return ctx.program!;
+}
+
+function discoverInput(code: string) {
+  return discoverComponents(parseInput(code));
 }
 
 describe('discoverComponents', () => {
@@ -104,5 +109,45 @@ export default component$(() => <main>Qwik</main>);
     expect(components.map((component) => component.exportName)).toEqual(['default']);
     expect(components.map((component) => component.localName)).toEqual([null]);
     expect(components.map((component) => component.declarationKind)).toEqual(['defaultArrow']);
+  });
+
+  test('discovers inline component$ calls inside module helpers', () => {
+    const code = `import { component$ } from '@qwik.dev/core';
+
+export function factory(component) {
+  return component$((props) => <div>{component(props)}</div>);
+}
+`;
+    const components = discoverInput(code);
+
+    expect(components).toHaveLength(1);
+    expect(components[0].exported).toBe(false);
+    expect(components[0].localName).toBeNull();
+    expect(code.slice(...components[0].replacementRange)).toBe(
+      'component$((props) => <div>{component(props)}</div>)'
+    );
+  });
+
+  test('does not invent bindings for inline component identities', () => {
+    const code = `import { component$ } from '@qwik.dev/core';
+function factory(component) {
+  return component$((props) => <div>{component(props)}</div>);
+}
+`;
+    const program = parseInput(code);
+    const analysis = analyzeModule(program);
+    const [component] = discoverComponents(program, analysis);
+    expect(component.bindingId).toBeNull();
+    expect(
+      analysis.bindings.some((binding) => binding.name.startsWith('__inline_component_'))
+    ).toBe(false);
+  });
+
+  test('does not discover nested component$ outside module helpers', () => {
+    const components = discoverInput(`import { component$ } from '@qwik.dev/core';
+export const registry = [true && component$(() => <div>nested</div>)];
+`);
+
+    expect(components).toEqual([]);
   });
 });

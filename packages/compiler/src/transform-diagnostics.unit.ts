@@ -45,7 +45,7 @@ export function App() { return <Suspense>content</Suspense>; }`,
     }
   });
 
-  test('diagnoses runtime JSX that does not belong to a supported component or boundary', async () => {
+  test('lowers runtime JSX in ordinary functions', async () => {
     const input = {
       path: 'src/helper.tsx',
       code: `export function helper() { const value = <div>content</div>; console.log(value); }`,
@@ -59,10 +59,9 @@ export function App() { return <Suspense>content</Suspense>; }`,
       isServer: true,
     });
 
-    expect(result.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
-      TransformDiagnosticCode.UnsupportedRuntimeJsx,
-    ]);
-    expect(result.modules[0].code).toBe('');
+    expect(result.diagnostics).toEqual([]);
+    expect(result.modules[0].code).toContain('return "<div>content</div>";');
+    expect(result.modules[0].code).not.toContain('<div>content</div>;');
   });
 
   test('accepts direct and namespace Suspense boundaries', () => {

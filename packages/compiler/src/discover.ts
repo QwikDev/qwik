@@ -36,6 +36,10 @@ export function createComponentDefinition(
   const { plan, fn } = candidate;
   return {
     bindingId: plan.bindingId,
+    identity:
+      plan.bindingId === null
+        ? `inline:${plan.functionRange[0]}:${plan.functionRange[1]}`
+        : `binding:${plan.bindingId}`,
     shape,
     exported: plan.exported,
     declarationKind: plan.declarationKind,

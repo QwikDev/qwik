@@ -89,6 +89,11 @@ export type CsrValuePlan =
       readonly initialOnly: boolean;
       readonly compilerString: boolean;
       readonly boundaries: readonly CsrSegmentReferencePlan[];
+      readonly embeddedRenders: readonly {
+        readonly range: SourceRange;
+        readonly plan: CsrPlan;
+        readonly async: boolean;
+      }[];
       readonly range: SourceRange | null;
     };
 
@@ -371,7 +376,11 @@ export function createCsrComponentCardinalityResolver(
   outputs: readonly ComponentOutput[]
 ): CsrComponentCardinalityResolver {
   const components = new Map(
-    outputs.map((output) => [output.component.bindingId, output.result] as const)
+    outputs.flatMap((output) =>
+      output.component.bindingId === null
+        ? []
+        : ([[output.component.bindingId, output.result]] as const)
+    )
   );
   const cache = new Map<BindingId, CsrComponentTargetInfo>();
   const visiting = new Set<BindingId>();
@@ -603,6 +612,7 @@ class CsrPlanner {
                 initialOnly: true,
                 compilerString: false,
                 boundaries: [],
+                embeddedRenders: [],
                 range: null,
               } satisfies CsrValuePlan)
             : null;
@@ -704,7 +714,9 @@ class CsrPlanner {
         }
         const range = this.appendRange(parent);
         let operation: number;
-        if (value.kind === 'segment') {
+        const segment =
+          value.kind === 'segment' ? this.segmentById.get(value.reference.segmentId) : undefined;
+        if (value.kind === 'segment' && segment?.initialOnly !== true) {
           operation = this.pushOperation({
             kind: 'content-effect',
             range,
@@ -1084,6 +1096,7 @@ class CsrPlanner {
         initialOnly: false,
         compilerString: false,
         boundaries: [],
+        embeddedRenders: [],
         range: null,
       };
     }
@@ -1105,14 +1118,35 @@ class CsrPlanner {
         }
         boundaries.push(planned);
       }
+      const embeddedRenders: Array<{
+        readonly range: SourceRange;
+        readonly plan: CsrPlan;
+        readonly async: boolean;
+      }> = [];
+      for (const render of value.embeddedRenders) {
+        const plan = planCsrRenderFunction(
+          render,
+          [...this.segments.values()],
+          this.source,
+          this.componentCardinality,
+          this.generatedNames
+        );
+        if (plan === null) {
+          return null;
+        }
+        plan.usedSegmentIds.forEach((id) => this.usedSegmentIds.add(id));
+        plan.directSegmentIds.forEach((id) => this.directSegmentIds.add(id));
+        embeddedRenders.push({ range: render.range, plan, async: render.async });
+      }
       return {
         kind: 'expression',
         expression: this.source.slice(value.expression[0], value.expression[1]),
-        returnMode: 'sync',
+        returnMode: embeddedRenders.length === 0 ? 'sync' : 'maybe-promise',
         cardinality: 'unknown',
         initialOnly: value.initialOnly,
         compilerString: value.compilerString,
         boundaries,
+        embeddedRenders,
         range: value.expression,
       };
     }

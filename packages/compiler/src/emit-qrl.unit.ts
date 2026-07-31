@@ -518,10 +518,10 @@ export function App() {
 
   test('transforms nested module boundaries transitively', async () => {
     const input = {
-      path: 'src/nested-hook.ts',
+      path: 'src/nested-hook.tsx',
       code: `import { outer$, inner$ } from 'library';
 export function useNested(value) {
-  return outer$(() => inner$(() => value));
+  return outer$(() => inner$(() => <span>{value}</span>));
 }
 `,
     };
@@ -529,12 +529,16 @@ export function useNested(value) {
     const ssr = await transformModules(options(input, true));
     const csr = await transformModules(options(input, false));
 
+    expect(ssr.diagnostics).toEqual([]);
+    expect(csr.diagnostics).toEqual([]);
     expectValidModules(ssr.modules);
     expectValidModules(csr.modules);
-    expect(ssr.modules.filter((module) => module.segment != null)).toHaveLength(2);
-    expect(csr.modules.filter((module) => module.segment != null)).toHaveLength(2);
+    expect(ssr.modules.filter((module) => module.segment != null).length).toBeGreaterThanOrEqual(2);
+    expect(csr.modules.filter((module) => module.segment != null).length).toBeGreaterThanOrEqual(2);
     expect(ssr.modules.map((module) => module.code).join('\n')).toContain('innerQrl');
     expect(csr.modules.map((module) => module.code).join('\n')).toContain('inner(');
+    expect(ssr.modules.map((module) => module.code).join('\n')).not.toMatch(/=>\s*<span/);
+    expect(csr.modules.map((module) => module.code).join('\n')).not.toMatch(/=>\s*<span/);
   });
 
   test('uses exported local companions in a module without components', async () => {
@@ -591,20 +595,297 @@ export function useInvalid() {
     expect(result.diagnostics[0]?.code).toBe('implicit-dollar-argument');
   });
 
-  test('diagnoses unsupported JSX in a module boundary without misclassifying the hook', async () => {
+  test('lowers JSX in module boundaries and inline factory components', async () => {
     const input = {
-      path: 'src/jsx-hook.tsx',
-      code: `import { useFoo$ } from 'library';
-export function useView() {
-  return useFoo$(() => <span>View</span>);
+      path: 'src/factory.tsx',
+      code: `import { component$, implicit$FirstArg } from '@qwik.dev/core';
+
+export function factory(Component) {
+  return component$((props) => <div><Component {...props} /></div>);
+}
+
+export function factoryQrl(componentQRL) {
+  return component$((props) => {
+    const component = componentQRL.resolve();
+    return <div>{component.then((Cmp) => <Cmp {...props} />)}</div>;
+  });
+}
+export const factory$ = implicit$FirstArg(factoryQrl);
+
+export const A = factory$((props) => <span>{props.label}</span>);
+export function Light(props) {
+  return <i>{props.label}</i>;
+}
+export const B = factory$(Light);
+`,
+    };
+
+    for (const isServer of [false, true]) {
+      const result = await transformModules(options(input, isServer));
+      const main = result.modules[0]?.code ?? '';
+      const view = result.modules.find((module) => module.segment?.ctxName === 'factory$');
+      const output = result.modules.map((module) => module.code).join('\n');
+
+      expect(result.diagnostics).toEqual([]);
+      expectValidModules(result.modules);
+      expect(main).toContain(isServer ? 'factoryQrl(' : 'factory(');
+      expect(output).toContain(isServer ? 'createSsrElementRecord("div"' : 'createTemplate("<div>');
+      expect(output).not.toMatch(/(?:=>|return)\s*\(?\s*</);
+      expect(main).not.toContain('component$(');
+      expect(output).not.toContain('_markRenderQrl');
+      expect(output).not.toContain('_invokeComponent');
+      expect(view?.code).toMatch(/= \(props, ctx\) =>/);
+      expect(view?.code).not.toMatch(/=>\s*<span>|return\s*<span>/);
+      const factoryComponent = result.modules.find(
+        (module) => module.code.includes('component.then') && module.code.includes('_captures')
+      );
+      expect(factoryComponent).toBeDefined();
+      expect(factoryComponent!.code).toContain('componentQRL = _captures[0]');
+      expect(factoryComponent!.code).toMatch(/\(props, ctx\) =>|function \w+\(props, ctx\)/);
+      expect(factoryComponent!.code).not.toMatch(/\(componentQRL, props(?:, ctx)?\)/);
+      if (isServer) {
+        const propsQrl = factoryComponent!.code.match(/useComputedQrl\((q_[\w$]+)/)?.[1];
+        expect(propsQrl).toBeDefined();
+        expect(factoryComponent!.code).toContain(`const ${propsQrl} =`);
+      } else {
+        const propsSegment = factoryComponent!.code.match(
+          /withCaptures\(([\w$]*componentProps[\w$]*)/
+        )?.[1];
+        expect(propsSegment).toBeDefined();
+        expect(factoryComponent!.code).toContain(`import { ${propsSegment} }`);
+      }
+      expect(main).toContain(isServer ? 'componentQrl(' : '_withCaptures(');
+    }
+  });
+
+  test('lowers JSX in ordinary component factories without component$', async () => {
+    const input = {
+      path: 'src/plain-factory.tsx',
+      code: `export function factory(Component) {
+  return (props) => <div><Component {...props} /></div>;
+}
+
+export const A = factory((props) => <span>{props.label}</span>);
+export function App() {
+  return <A label="A" />;
+}
+`,
+    };
+
+    for (const isServer of [false, true]) {
+      const result = await transformModules(options(input, isServer));
+      const output = result.modules.map((module) => module.code).join('\n');
+
+      expect(result.diagnostics).toEqual([]);
+      expectValidModules(result.modules);
+      expect(output).toContain('function factory(Component)');
+      expect(output).toContain('createComponent(');
+      expect(output).toContain(isServer ? '<span' : 'createTemplate("<span>');
+      expect(output).not.toMatch(/(?:=>|return)\s*\(?\s*</);
+    }
+  });
+
+  test('lowers module JSX QRLs with multiple return paths', async () => {
+    const input = {
+      path: 'src/invalid-factory.tsx',
+      code: `import { factory$ } from './factory';
+export const View = factory$((visible) => {
+  if (visible) return <span>yes</span>;
+  return <span>no</span>;
+});
+`,
+    };
+
+    for (const isServer of [false, true]) {
+      const result = await transformModules(options(input, isServer));
+      const output = result.modules.map((module) => module.code).join('\n');
+      const view = result.modules.find((module) => module.segment?.ctxName === 'factory$');
+
+      expect(result.diagnostics).toEqual([]);
+      expectValidModules(result.modules);
+      expect(view?.code).toMatch(/= \(visible, ctx\) =>/);
+      expect(view?.code).toContain('if (visible)');
+      expect(output).not.toMatch(/return\s*<span>|=>\s*<span>/);
+      expect(output).toContain(
+        isServer ? '<span>yes</span>' : 'createTemplate("<span>yes</span>")'
+      );
+      expect(output).toContain(isServer ? '<span>no</span>' : 'createTemplate("<span>no</span>")');
+    }
+  });
+
+  test('preserves authored parameters for explicit JSX QRLs', async () => {
+    const input = {
+      path: 'src/explicit-view.tsx',
+      code: `import { $ } from '@qwik.dev/core';
+export const view = $((label) => <span>{label}</span>);
+`,
+    };
+
+    for (const isServer of [false, true]) {
+      const result = await transformModules(options(input, isServer));
+      const view = result.modules.find((module) => module.segment?.ctxName === '$');
+
+      expect(result.diagnostics).toEqual([]);
+      expectValidModules(result.modules);
+      expect(view?.code).toMatch(/= \(label\) =>/);
+      expect(view?.code).not.toMatch(/= \(ctx, label\) =>/);
+      expect(view?.code).toContain('const ctx = invokeCtx.container;');
+    }
+  });
+
+  test('lowers JSX inside callbacks without recognizing the called API', async () => {
+    const input = {
+      path: 'src/callback-view.tsx',
+      code: `import { Child } from './child';
+import { runLater, choose } from './scheduler';
+export function App(props) {
+  return <main>
+    {runLater(() => <Child label={props.label} />)}
+    {choose(props.enabled, () => {
+      if (props.enabled) return <b>yes</b>;
+      return <i>no</i>;
+    })}
+  </main>;
+}
+`,
+    };
+
+    for (const isServer of [false, true]) {
+      const result = await transformModules(options(input, isServer));
+      const output = result.modules.map((module) => module.code).join('\n');
+      const content = result.modules.filter((module) => module.segment?.ctxName === 'expression');
+
+      expect(result.diagnostics).toEqual([]);
+      expectValidModules(result.modules);
+      expect(output).toContain('runLater(() =>');
+      expect(output).toContain('choose(props.enabled, () =>');
+      expect(output).toContain('if (props.enabled)');
+      expect(output).toContain('const invokeCtx = getActiveInvokeContext();');
+      expect(output).toContain('invoke(invokeCtx, () =>');
+      expect(output).not.toMatch(/(?:=>|return)\s*\(?\s*</);
+      expect(content.length).toBeGreaterThanOrEqual(1);
+      const scheduled = result.modules.find((module) => module.code.includes('runLater('));
+      expect(scheduled).toBeDefined();
+      expect(scheduled!.code.indexOf('getActiveInvokeContext()')).toBeLessThan(
+        scheduled!.code.indexOf('runLater(')
+      );
+      for (const module of content) {
+        const callback = Math.max(module.code.indexOf('runLater('), module.code.indexOf('choose('));
+        expect(module.code.indexOf('getActiveInvokeContext()')).toBeLessThan(callback);
+      }
+    }
+  });
+
+  test('lowers callback JSX in a direct component return value', async () => {
+    const input = {
+      path: 'src/direct-callback.tsx',
+      code: `import { component$ } from '@qwik.dev/core';
+import { runLater } from './scheduler';
+export const App = component$(() => runLater(() => <div>later</div>));
+`,
+    };
+
+    for (const isServer of [false, true]) {
+      const result = await transformModules(options(input, isServer));
+      const output = result.modules.map((module) => module.code).join('\n');
+
+      expect(result.diagnostics).toEqual([]);
+      expectValidModules(result.modules);
+      expect(output).toContain('runLater(() =>');
+      expect(output).toContain(
+        isServer ? 'createSsrElementRecord("div"' : 'createTemplate("<div>later</div>")'
+      );
+      expect(output).not.toMatch(/=>\s*<div/);
+    }
+  });
+
+  test('preserves semantic diagnostic codes for module JSX QRLs', async () => {
+    const input = {
+      path: 'src/async-factory.tsx',
+      code: `import { factory$ } from './factory';
+import { useSignal } from '@qwik.dev/core';
+export const View = factory$(() => {
+  const items = useSignal([{ label: async () => 'A' }]);
+  return <ul>{items.value.map(async (item) => <li>{await item.label()}</li>)}</ul>;
+});
+`,
+    };
+
+    const result = await transformModules(options(input, false));
+
+    expect(result.modules[0]?.code).toBe('');
+    expect(result.diagnostics).toHaveLength(1);
+    expect(result.diagnostics[0]?.code).toBe('async-for');
+  });
+
+  test('lowers JSX in module callbacks without classifying the called API', async () => {
+    const input = {
+      path: 'src/detached.tsx',
+      code: `import { register } from './library';
+export const value = register(() => <div>detached</div>);
+`,
+    };
+
+    const result = await transformModules(options(input, false));
+
+    expect(result.diagnostics).toEqual([]);
+    expectValidModules(result.modules);
+    expect(result.modules[0]?.code).toContain('register(() =>');
+    expect(result.modules[0]?.code).toContain('createTemplate("<div>detached</div>")');
+    expect(result.modules[0]?.code).not.toMatch(/=>\s*<div>/);
+  });
+
+  test('preserves multiple returns in an ordinary JSX function', async () => {
+    const input = {
+      path: 'src/ordinary-returns.tsx',
+      code: `import { register } from './library';
+function renderChoice(visible) {
+  if (visible) return <b>yes</b>;
+  return <i>no</i>;
+}
+export const value = register(renderChoice);
+`,
+    };
+
+    for (const isServer of [false, true]) {
+      const result = await transformModules(options(input, isServer));
+      const output = result.modules.map((module) => module.code).join('\n');
+
+      expect(result.diagnostics).toEqual([]);
+      expectValidModules(result.modules);
+      expect(output).toContain('if (visible)');
+      expect(output).not.toMatch(/return\s*<[^>]+>/);
+    }
+  });
+
+  test('rejects JSX evaluated during module initialization', async () => {
+    const input = {
+      path: 'src/module-jsx.tsx',
+      code: `export const value = <div>detached</div>;`,
+    };
+
+    const result = await transformModules(options(input, false));
+
+    expect(result.modules[0]?.code).toBe('');
+    expect(result.diagnostics).toHaveLength(1);
+    expect(result.diagnostics[0]?.code).toBe('unsupported-runtime-jsx');
+  });
+
+  test('keeps the linear return contract for ordinary components', async () => {
+    const input = {
+      path: 'src/non-linear-component.tsx',
+      code: `export function App(props) {
+  if (props.visible) return <main>yes</main>;
+  return <aside>no</aside>;
 }
 `,
     };
 
     const result = await transformModules(options(input, false));
+
     expect(result.modules[0]?.code).toBe('');
     expect(result.diagnostics).toHaveLength(1);
-    expect(result.diagnostics[0]?.code).toBe('unsupported-boundary-shape');
+    expect(result.diagnostics[0]?.code).toBe('unsupported-component-shape');
   });
 
   test('emits useTaskQrl for SSR and useTask with a function for CSR', async () => {

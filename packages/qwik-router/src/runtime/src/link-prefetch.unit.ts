@@ -55,8 +55,9 @@ const createAnchor = (href: string, mode: string) => {
 };
 
 const manifestHash = 'test-manifest';
+const loaderState = {} as import('./route-loaders').RouteLoaderState;
 
-const createObserver = () => createLinkPrefetchObserver(manifestHash);
+const createObserver = () => createLinkPrefetchObserver(manifestHash, loaderState);
 
 const expectPrefetchRouteCall = (
   callIndex: number,
@@ -96,7 +97,7 @@ describe('link prefetch observer', () => {
     expect(preloadRouteBundlesMock).toHaveBeenCalledTimes(1);
     expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/next/');
     expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
-    expectPrefetchRouteCall(0, '/next/', true, 0.8, manifestHash, false);
+    expectPrefetchRouteCall(0, '/next/', true, 0.8, manifestHash, false, loaderState);
     cleanup();
   });
 

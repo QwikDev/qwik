@@ -8,8 +8,6 @@ import { OnThisPage } from '../../components/on-this-page/on-this-page';
 import { Sidebar } from '../../components/sidebar/sidebar';
 import styles from './docs.css?inline';
 
-export { useMarkdownItems } from '../../components/sidebar/sidebar';
-
 export default component$(() => {
   useStyles$(styles);
   const loc = useLocation();

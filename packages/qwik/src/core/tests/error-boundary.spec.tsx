@@ -2946,7 +2946,7 @@ describe('ErrorBoundary stateless wire', () => {
 });
 
 describe('ErrorBoundary transformError (render option)', () => {
-  it('transformError (render option): redacts the SSR-serialized boundary error end-to-end', async () => {
+  it('transformError (render option): redacts the SSR boundary error end-to-end', async () => {
     const { container } = await ssrRenderToDom(
       <ErrorBoundary fallback$={fb()}>
         <Thrower message="SECRET-db-detail" />

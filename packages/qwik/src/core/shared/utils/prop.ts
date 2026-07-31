@@ -17,6 +17,15 @@ export function isSlotProp(prop: string): boolean {
 
 /** @internal */
 export const _restProps = (props: PropsProxy, omit: string[] = [], target: Props = {}) => {
+  if (props[_VAR_PROPS] === undefined && props[_CONST_PROPS] === undefined) {
+    // not a props proxy, so behave like a native rest destructure
+    for (const key in props) {
+      if (!omit.includes(key) && _hasOwnProperty.call(props, key)) {
+        target[key] = props[key];
+      }
+    }
+    return target;
+  }
   let constPropsTarget: Props | null = null;
   const constProps = props[_CONST_PROPS];
   if (constProps) {

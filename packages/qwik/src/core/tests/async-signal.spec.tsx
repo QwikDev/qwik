@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { component$ } from '@qwik.dev/core';
-import { useAsync$, useSignal, useTask$ } from '@qwik.dev/core';
+import { useAsync$, useComputed$, useSignal, useTask$ } from '@qwik.dev/core';
 import { testRenderer } from '../test-utils';
 
 const debug = false;
@@ -238,7 +238,41 @@ describe(`${name}: async signals`, () => {
       });
       return (
         <div>
-          {asyncValue.loading ? (
+          {asyncValue.pending ? (
+            <div id="loading">loading...</div>
+          ) : (
+            <div id="value">{asyncValue.value}</div>
+          )}
+          <button onClick$={() => count.value++}></button>
+        </div>
+      );
+    };
+
+    const { container, cleanup, flush, qwikLoader } = await render(Counter, { debug });
+
+    if (testRenderer.name === 'ssrRender') {
+      expect(container.querySelector('#loading')?.textContent).toBe('loading...');
+      await qwikLoader?.dispatch(container, 'qidle');
+      await drain(flush);
+    } else {
+      await drain(flush);
+    }
+
+    expect(container.querySelector('#value')?.textContent).toBe('2');
+
+    cleanup();
+  });
+
+  it('skips computation on SSR for clientOnly useComputed$ and resumes on qidle', async () => {
+    const Counter = () => {
+      const count = useSignal(1);
+      const asyncValue = useComputed$(async () => count.value * 2, {
+        clientOnly: true,
+        initial: 0,
+      });
+      return (
+        <div>
+          {asyncValue.pending ? (
             <div id="loading">loading...</div>
           ) : (
             <div id="value">{asyncValue.value}</div>

@@ -1,6 +1,6 @@
 import { _captures, deserializeCaptures, setCaptures } from '../shared/qrl/qrl-class';
 import type { ValueOrPromise } from '../shared/utils/types';
-import { AsyncSignal } from '../reactive/async-signal';
+import { Computed } from '../reactive/computed';
 import type { Signal } from '../reactive/signal';
 import { getOrCreateContainerContext } from './container-context';
 
@@ -41,7 +41,7 @@ export function _res(this: string | undefined, _: unknown, element: Element) {
     if (_captures) {
       for (let i = 0; i < _captures.length; i++) {
         const capture = _captures[i];
-        if (capture instanceof AsyncSignal) {
+        if (capture instanceof Computed) {
           capture.resume();
         }
       }

@@ -537,6 +537,45 @@ describe('ErrorBoundary + fallback$', () => {
     });
   });
 
+  describe('hostile thrown values', () => {
+    it('SSR: a component throwing a revoked Proxy still renders the fallback', async () => {
+      const HostileThrower = component$((): JSXOutput => {
+        const { proxy, revoke } = Proxy.revocable({}, {});
+        revoke();
+        throw proxy;
+      });
+      const { container } = await ssrRenderToDom(
+        <ErrorBoundary fallback$={fb()}>
+          <HostileThrower />
+        </ErrorBoundary>,
+        { debug }
+      );
+      expect(container.element.querySelector('#fb')).toBeTruthy();
+    });
+
+    it('CSR: an event handler throwing a revoked Proxy still renders the fallback', async () => {
+      const HostileClicker = component$(() => (
+        <button
+          onClick$={() => {
+            const { proxy, revoke } = Proxy.revocable({}, {});
+            revoke();
+            throw proxy;
+          }}
+        >
+          go
+        </button>
+      ));
+      const { container } = await domRender(
+        <ErrorBoundary fallback$={fb()}>
+          <HostileClicker />
+        </ErrorBoundary>,
+        { debug }
+      );
+      await trigger(container.element, 'button', 'click');
+      expect(container.element.querySelector('#fb')).toBeTruthy();
+    });
+  });
+
   describe('SSR delivery & teardown', () => {
     describe('in-place swap (qErr)', () => {
       it('happy path (default streaming): renders the content unchanged and ships no swap JS', async () => {
@@ -3077,7 +3116,7 @@ describe('PublicError (rendered)', () => {
   });
 });
 
-describe('display membrane: transformError (render option)', () => {
+describe('transformError (render option)', () => {
   it('transformError (render option): redacts the SSR boundary error end-to-end', async () => {
     const { container } = await ssrRenderToDom(
       <ErrorBoundary fallback$={fb()}>
@@ -3121,44 +3160,5 @@ describe('display membrane: transformError (render option)', () => {
     const text = container.element.querySelector('#fb')?.textContent;
     expect(text).toContain('shown-to-user');
     expect(text).not.toContain('SECRET');
-  });
-});
-
-describe('display membrane: hostile thrown values (render paths)', () => {
-  it('SSR: a component throwing a revoked Proxy still renders the fallback', async () => {
-    const HostileThrower = component$((): JSXOutput => {
-      const { proxy, revoke } = Proxy.revocable({}, {});
-      revoke();
-      throw proxy;
-    });
-    const { container } = await ssrRenderToDom(
-      <ErrorBoundary fallback$={fb()}>
-        <HostileThrower />
-      </ErrorBoundary>,
-      { debug }
-    );
-    expect(container.element.querySelector('#fb')).toBeTruthy();
-  });
-
-  it('CSR: an event handler throwing a revoked Proxy still renders the fallback', async () => {
-    const HostileClicker = component$(() => (
-      <button
-        onClick$={() => {
-          const { proxy, revoke } = Proxy.revocable({}, {});
-          revoke();
-          throw proxy;
-        }}
-      >
-        go
-      </button>
-    ));
-    const { container } = await domRender(
-      <ErrorBoundary fallback$={fb()}>
-        <HostileClicker />
-      </ErrorBoundary>,
-      { debug }
-    );
-    await trigger(container.element, 'button', 'click');
-    expect(container.element.querySelector('#fb')).toBeTruthy();
   });
 });

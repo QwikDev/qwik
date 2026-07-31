@@ -13,7 +13,7 @@ import {
   type SerializationContext,
 } from './serdes/serialization-context';
 import type { Container, HostElement, ObjToProxyMap } from './types';
-import type { ErrorBoundaryInfo } from './error/error-boundary';
+import type { ErrorBoundaryInfo } from './error/error-handling';
 
 /** @internal */
 export abstract class _SharedContainer implements Container {

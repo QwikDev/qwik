@@ -11,7 +11,7 @@ import {
   toBoundaryError,
   type ErrorBoundaryStore,
 } from '../shared/error/error-handling';
-import type { ErrorBoundaryInfo } from '../shared/error/error-boundary';
+import type { ErrorBoundaryInfo } from '../shared/error/error-handling';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { wrapDeserializerProxy } from '../shared/serdes/deser-proxy';
 import { eagerDeserializeStateIterator } from '../shared/serdes/inflate';

@@ -1,5 +1,5 @@
 import type { ISsrNode, StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-types';
-import type { ErrorBoundaryInfo } from './error/error-boundary';
+import type { ErrorBoundaryInfo } from './error/error-handling';
 import type { ContextId } from '../use/use-context';
 import type { EventHandler } from './jsx/types/jsx-qwik-attributes';
 import type { SerializationContext } from './serdes/index';

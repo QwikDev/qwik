@@ -2,8 +2,24 @@ import { isDev } from '@qwik.dev/core/build';
 import { createContextId } from '../../use/use-context';
 import { hashCode } from '../utils/hash_code';
 import { logError, logWarn } from '../utils/log';
-import type { ErrorBoundaryInfo } from './error-boundary';
 import { PublicError } from './public-error';
+
+/** Structured metadata about a caught error, passed to `onError$`. @public @experimental */
+export interface ErrorBoundaryInfo {
+  /** Where the caught error originated. */
+  phase: 'render' | 'task' | 'event' | 'async-generator' | 'async-signal';
+  /**
+   * Identifies the boundary within the page. Allocated in render order and kept across a resume, so
+   * every report from one boundary shares it — but it shifts when render order changes.
+   */
+  boundaryId: string;
+  /**
+   * The code a production fallback shows for this error, so a user's bug report matches your logs.
+   * An error caught during SSR reports a second, different digest if the client re-derives it — the
+   * stacks differ.
+   */
+  digest: string;
+}
 
 /** @internal */
 export interface ErrorBoundaryStore {

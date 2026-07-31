@@ -55,7 +55,7 @@ import {
   markErrorFromDeferredSegment,
   type ErrorBoundaryStore,
 } from '../shared/error/error-handling';
-import type { ErrorBoundaryInfo } from '../shared/error/error-boundary';
+import type { ErrorBoundaryInfo } from '../shared/error/error-handling';
 import type { ISsrComponentFrame, ISsrNode, SSRContainer, SSRRenderJSXOptions } from './ssr-types';
 import { resolveSlotName } from '../shared/utils/prop';
 

@@ -163,7 +163,8 @@ export {
   errorBoundaryCmp as _ebC,
   errorBoundaryReset as _ebR,
 } from './shared/error/error-boundary';
-export type { ErrorBoundaryInfo, ErrorBoundaryProps } from './shared/error/error-boundary';
+export type { ErrorBoundaryProps } from './shared/error/error-boundary';
+export type { ErrorBoundaryInfo } from './shared/error/error-handling';
 export { PublicError } from './shared/error/public-error';
 export {
   type ReadonlySignal,

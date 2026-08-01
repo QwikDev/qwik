@@ -65,10 +65,6 @@ const AsyncRejector = component$(
   () => new Promise<JSXOutput>((_resolve, reject) => reject(new Error('async boom'))) as any
 );
 
-const FallbackBoomer = component$(() => {
-  throw new Error('fallback boom');
-});
-
 const AsyncSignalThrower = component$(() => {
   const sig = createAsync$(() => Promise.reject(new Error('async signal boom')));
   return <>{sig}</>;
@@ -111,7 +107,7 @@ const streamAndResume = async (jsx: JSXOutput, opts: Record<string, unknown> = {
   });
   const html = chunks.join('');
   const document = createDocument({ html });
-  emulateExecutionOfStreamingOutOfOrderScripts(document, ['qErr', 'qInstallErrorSwap']);
+  emulateExecutionOfStreamingOutOfOrderScripts(document);
   return { html, document };
 };
 
@@ -827,7 +823,7 @@ describe('ErrorBoundary + fallback$', () => {
               <main>
                 <ErrorBoundary
                   fallback$={$(() => (
-                    <FallbackBoomer />
+                    <Thrower message="fallback boom" />
                   ))}
                 >
                   <Thrower />
@@ -1247,10 +1243,7 @@ describe('ErrorBoundary + fallback$', () => {
           { debug, ...OOOS }
         );
         const el = container.element;
-        emulateExecutionOfStreamingOutOfOrderScripts(el.ownerDocument, [
-          'qErr',
-          'qInstallErrorSwap',
-        ]);
+        emulateExecutionOfStreamingOutOfOrderScripts(el.ownerDocument);
         expect(el.querySelector('#fb')?.textContent).toContain('caught: late boom');
       });
 
@@ -1277,10 +1270,7 @@ describe('ErrorBoundary + fallback$', () => {
         });
         const { container } = await ssrRenderToDom(<App />, { debug, ...OOOS });
         const el = container.element;
-        emulateExecutionOfStreamingOutOfOrderScripts(el.ownerDocument, [
-          'qErr',
-          'qInstallErrorSwap',
-        ]);
+        emulateExecutionOfStreamingOutOfOrderScripts(el.ownerDocument);
         expect(el.querySelector('#dead-img')?.getAttribute('src')).toBe('/first.png');
 
         await trigger(el, '#bump', 'click');
@@ -1313,10 +1303,7 @@ describe('ErrorBoundary + fallback$', () => {
           { debug, ...OOOS }
         );
         const el = container.element;
-        emulateExecutionOfStreamingOutOfOrderScripts(el.ownerDocument, [
-          'qErr',
-          'qInstallErrorSwap',
-        ]);
+        emulateExecutionOfStreamingOutOfOrderScripts(el.ownerDocument);
         expect(el.querySelector('#fb')?.textContent).toContain('caught: late boom');
 
         await expect(trigger(el, null, 'd:qinit')).resolves.not.toThrow();
@@ -2631,9 +2618,6 @@ const ResetFlake = component$(() => {
   }
   return <div id="ok">ok</div>;
 });
-const ResetAlwaysThrows = component$(() => {
-  throw new Error('persistent');
-});
 const ResetToggle = component$(() => {
   resetRef.toggle++;
   if (resetRef.toggle % 2 === 1) {
@@ -2675,9 +2659,9 @@ const withRerenderOwner = (
     );
   });
 
-const resetResumed = async (container: any) => {
+const resetResumed = async (container: any, retrySelector = '#retry') => {
   const c = _getDomContainer(container.element) as any;
-  c.resetErrorBoundary(c.vNodeLocate(container.element.querySelector('#retry')));
+  c.resetErrorBoundary(c.vNodeLocate(container.element.querySelector(retrySelector)));
   await waitForDrain(container);
 };
 
@@ -2724,7 +2708,7 @@ describe('ErrorBoundary reset', () => {
     });
 
     it('a still-throwing child re-shows the fallback (no loop)', async () => {
-      const App = withResetBoundary(<ResetAlwaysThrows />);
+      const App = withResetBoundary(<Thrower message="persistent" />);
       const { container } = await renderReset(<App />);
       const el = container.element;
 
@@ -2815,9 +2799,7 @@ describe('ErrorBoundary reset', () => {
       expect(el.querySelector('#ok')).toBeFalsy();
       expect(el.querySelector('#outer-sibling')).toBeTruthy();
 
-      const c = _getDomContainer(el) as any;
-      c.resetErrorBoundary(c.vNodeLocate(el.querySelector('#retry-inner')));
-      await waitForDrain(container);
+      await resetResumed(container, '#retry-inner');
 
       expect(el.querySelector('#ok')?.textContent).toContain('ok');
       expect(el.querySelector('#retry-inner')).toBeFalsy();
@@ -2864,9 +2846,6 @@ describe('ErrorBoundary reset', () => {
 
     describe('reset inside the outer fallback', () => {
       // A captured flag freezes across the resume wire; gate on the platform.
-      const SsrFallbackAlwaysThrower = component$((): JSXOutput => {
-        throw new Error('outer-boom');
-      });
       const SsrFallbackNestedFlake = component$(() => {
         if (isServerPlatform()) {
           throw new Error('inner-boom');
@@ -2889,7 +2868,7 @@ describe('ErrorBoundary reset', () => {
       const SsrFallbackNestedApp = component$(() => (
         <main>
           <ErrorBoundary fallback$={ssrNestedOuterFb}>
-            <SsrFallbackAlwaysThrower />
+            <Thrower message="outer-boom" />
           </ErrorBoundary>
         </main>
       ));
@@ -2904,9 +2883,7 @@ describe('ErrorBoundary reset', () => {
         expect(el.querySelector('#ssr-retry-nested')).toBeTruthy();
         expect(el.querySelector('#ssr-inner-ok')).toBeFalsy();
 
-        const c = _getDomContainer(el) as any;
-        c.resetErrorBoundary(c.vNodeLocate(el.querySelector('#ssr-retry-nested')));
-        await waitForDrain(container);
+        await resetResumed(container, '#ssr-retry-nested');
 
         expect(el.querySelector('#ssr-outer-fb')).toBeTruthy();
         expect(el.querySelector('#ssr-inner-ok')?.textContent).toContain('inner ok');
@@ -2960,9 +2937,7 @@ describe('ErrorBoundary reset', () => {
         expect(el.querySelector('#inner-ok')).toBeFalsy();
 
         fallbackNestedRef.innerThrows = false;
-        const c = _getDomContainer(el) as any;
-        c.resetErrorBoundary(c.vNodeLocate(el.querySelector('#retry-nested')));
-        await waitForDrain(container);
+        await resetResumed(container, '#retry-nested');
 
         expect(el.querySelector('#inner-ok')?.textContent).toContain('inner ok');
         expect(el.querySelector('#retry-nested')).toBeFalsy();
@@ -3007,9 +2982,7 @@ describe('ErrorBoundary reset', () => {
         const el = container.element;
         expect(el.querySelector('#retry-wrapped')).toBeTruthy();
 
-        const c = _getDomContainer(el) as any;
-        c.resetErrorBoundary(c.vNodeLocate(el.querySelector('#retry-wrapped')));
-        await waitForDrain(container);
+        await resetResumed(container, '#retry-wrapped');
 
         expect(el.querySelector('#wrapped-ok')?.textContent).toContain('recovered');
         expect(el.querySelector('#retry-wrapped')).toBeFalsy();
@@ -3059,9 +3032,7 @@ describe('ErrorBoundary reset', () => {
         expect(el.querySelector('#retry-wrapped')).toBeTruthy();
         expect(el.querySelector('#wrapped-ok')).toBeFalsy();
 
-        const c = _getDomContainer(el) as any;
-        c.resetErrorBoundary(c.vNodeLocate(el.querySelector('#retry-wrapped')));
-        await waitForDrain(container);
+        await resetResumed(container, '#retry-wrapped');
 
         expect(el.querySelector('#wrapped-ok')?.textContent).toContain('recovered');
         expect(el.querySelector('#retry-wrapped')).toBeFalsy();

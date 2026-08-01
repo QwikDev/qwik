@@ -110,8 +110,6 @@ function getStylesFactory(document: Document) {
   };
 }
 
-const ERROR_SWAP_SCRIPT_MARKERS = ['qErr', 'qInstallErrorSwap'];
-
 /** @public */
 export async function ssrRenderToDom(
   jsx: JSXOutput,
@@ -190,7 +188,7 @@ export async function ssrRenderToDom(
   emulateExecutionOfQwikFuncs(document);
 
   if (isStreaming) {
-    emulateExecutionOfStreamingOutOfOrderScripts(document, ERROR_SWAP_SCRIPT_MARKERS);
+    emulateExecutionOfStreamingOutOfOrderScripts(document);
   }
 
   if (opts.onBeforeResume) {
@@ -200,7 +198,7 @@ export async function ssrRenderToDom(
   emulateExecutionOfBackpatch(document);
   const container = _getDomContainer(containerElement) as _DomContainer;
   if (!isStreaming) {
-    emulateExecutionOfOutOfOrderScripts(document, ERROR_SWAP_SCRIPT_MARKERS);
+    emulateExecutionOfOutOfOrderScripts(document);
   }
   await whenContainerDataReady(container, () => undefined);
   if (opts.debug) {
@@ -408,10 +406,7 @@ export function emulateExecutionOfBackpatch(document: Document) {
   executeBackpatch(document);
 }
 
-export function emulateExecutionOfOutOfOrderScripts(
-  document: Document,
-  extraScriptMarkers: string[] = []
-) {
+export function emulateExecutionOfOutOfOrderScripts(document: Document) {
   const scripts = Array.from(
     document.querySelectorAll('script[type="text/javascript"]'),
     (script) => script.textContent || ''
@@ -419,7 +414,8 @@ export function emulateExecutionOfOutOfOrderScripts(
     (code) =>
       code.includes('qO') ||
       code.includes('qInstallOOOS') ||
-      extraScriptMarkers.some((marker) => code.includes(marker))
+      code.includes('qErr') ||
+      code.includes('qInstallErrorSwap')
   );
   if (scripts.length > 0) {
     // eslint-disable-next-line no-new-func
@@ -427,17 +423,14 @@ export function emulateExecutionOfOutOfOrderScripts(
   }
 }
 
-export function emulateExecutionOfStreamingOutOfOrderScripts(
-  document: Document,
-  extraScriptMarkers: string[] = []
-) {
+export function emulateExecutionOfStreamingOutOfOrderScripts(document: Document) {
   const qDocument = document as Document & {
     qProcessOOOS?: (boundaryId: number, content: Element | null) => void;
   };
   qDocument.qProcessOOOS = (boundaryId, content) => {
     processOutOfOrderSegmentVNodeData(document, String(boundaryId), content);
   };
-  emulateExecutionOfOutOfOrderScripts(document, extraScriptMarkers);
+  emulateExecutionOfOutOfOrderScripts(document);
 }
 
 function renderStyles(getStyles: () => Record<string, string | string[]>) {

@@ -591,8 +591,8 @@ importers:
         specifier: 1.30.0
         version: 1.30.0
       qwik-image:
-        specifier: 0.0.16
-        version: 0.0.16
+        specifier: 2.0.4
+        version: 2.0.4(@qwik.dev/core@packages+qwik)
       react:
         specifier: 19.2.4
         version: 19.2.4
@@ -9735,8 +9735,10 @@ packages:
   quote-unquote@1.0.0:
     resolution: {integrity: sha512-twwRO/ilhlG/FIgYeKGFqyHhoEhqgnKVkcmqMKi2r524gz3ZbDTcyFt38E9xjJI2vT+KbRNHVbnJ/e0I25Azwg==}
 
-  qwik-image@0.0.16:
-    resolution: {integrity: sha512-ZHsRXBlwQiOxiD7HkQyJ59hwCCFENuVN3sIcB1pFGHAZ92ZK5IDKRlsJnag0mV2VPV7Zahk2my9axEPhSQfhUA==}
+  qwik-image@2.0.4:
+    resolution: {integrity: sha512-+DCqQOqT5F+135C0tPSjwhvSemeyi7Sh8+1E6Ymk4rjss22dKQp9IFjsKXM30OK7hr06XZv9uaKt71PeJj/gCw==}
+    peerDependencies:
+      '@qwik.dev/core': ^2.0.0-beta.38
 
   radix3@1.1.2:
     resolution: {integrity: sha512-b484I/7b8rDEdSDKckSSBA8knMpcdsXudlE/LNL639wFoHKwLbEkQFZHWEYwDC0wa0FKUcCY+GAF73Z7wxNVFA==}
@@ -21273,7 +21275,9 @@ snapshots:
 
   quote-unquote@1.0.0: {}
 
-  qwik-image@0.0.16: {}
+  qwik-image@2.0.4(@qwik.dev/core@packages+qwik):
+    dependencies:
+      '@qwik.dev/core': link:packages/qwik
 
   radix3@1.1.2: {}
 

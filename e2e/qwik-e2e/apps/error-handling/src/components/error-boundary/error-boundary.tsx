@@ -73,6 +73,19 @@ export const EbThrowOnClick = component$<{ idPrefix: string; message: string; la
   }
 );
 
+export const EbReErrorAsync = component$(() => {
+  if (isServer) {
+    return new Promise<JSXOutput>((_resolve, reject) => {
+      setTimeout(() => reject(new Error('eb reerror ssr boom')), 50);
+    }) as unknown as JSXOutput;
+  }
+  const runs = ((window as any).__ebReErrorRuns = ((window as any).__ebReErrorRuns ?? 0) + 1);
+  if (runs < 2) {
+    throw new Error('eb reerror client boom ' + runs);
+  }
+  return <p id="eb-reerror-recovered">recovered after {runs} runs</p>;
+});
+
 export const EbWrapper = component$(() => (
   <div data-eb-wrapper="">
     <Slot />

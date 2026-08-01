@@ -1,18 +1,5 @@
 import { component$, ErrorBoundary, isServer, Suspense, type JSXOutput } from '@qwik.dev/core';
-import { resetFallback } from '../../components/error-boundary/error-boundary';
-
-const EbReErrorAsync = component$(() => {
-  if (isServer) {
-    return new Promise<JSXOutput>((_resolve, reject) => {
-      setTimeout(() => reject(new Error('eb reerror ssr boom')), 50);
-    }) as unknown as JSXOutput;
-  }
-  const runs = ((window as any).__ebReErrorRuns = ((window as any).__ebReErrorRuns ?? 0) + 1);
-  if (runs < 2) {
-    throw new Error('eb reerror client boom ' + runs);
-  }
-  return <p id="eb-reerror-recovered">recovered after {runs} runs</p>;
-});
+import { EbReErrorAsync, resetFallback } from '../../components/error-boundary/error-boundary';
 
 export default component$(() => (
   <Suspense fallback={<span id="eb-skel">loading</span>}>

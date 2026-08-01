@@ -5,8 +5,7 @@ import {
   resetFallback,
 } from '../../components/error-boundary/error-boundary';
 import { EbGatedOk, ReleaseButton } from '../../components/release/release';
-
-const WEBKIT_STREAMING_FLUSH = '\u200b'.repeat(512);
+import { WEBKIT_STREAMING_FLUSH } from '../../../../../utils/webkit-flush';
 
 export default component$(() => {
   const url = useServerData<string>('url');

@@ -10,6 +10,7 @@ import {
 } from '@qwik.dev/core';
 import { SSRRaw, SSRStream, type SSRStreamWriter } from '@qwik.dev/core/internal';
 import { waitForRelease } from '../../../../../utils/release-gate';
+import { WEBKIT_STREAMING_FLUSH } from '../../../../../utils/webkit-flush';
 
 const getSearchParam = (url: string | undefined, name: string): string | null => {
   return url ? new URL(url).searchParams.get(name) : null;
@@ -26,10 +27,6 @@ const escapeHtml = (value: string): string =>
 
 const escapeAttr = (value: string): string =>
   escapeHtml(value).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-
-// WebKit buffers streamed HTML until enough early body content is emitted.
-// https://bugs.webkit.org/show_bug.cgi?id=265386
-const WEBKIT_STREAMING_FLUSH = '\u200b'.repeat(512);
 
 export const OutOfOrderSuspenseRoot = component$(() => {
   const shellCount = useSignal(0);

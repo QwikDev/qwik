@@ -96,6 +96,31 @@ describe(`${name}: attributes`, () => {
     cleanup();
   });
 
+  it('keeps the innerHTML subtree when an unrelated prop changes', async () => {
+    const App = component$(() => {
+      const clicks = useSignal(0);
+      return (
+        <div
+          {...{ 'data-clicks': String(clicks.value) }}
+          dangerouslySetInnerHTML="<span>raw</span>"
+          onClick$={() => clicks.value++}
+        />
+      );
+    });
+    const { container, cleanup, flush, qwikLoader } = await render(App);
+    const host = container.querySelector('div')!;
+    await qwikLoader?.dispatch(host, 'click');
+    await flush();
+    const child = host.firstChild;
+
+    await qwikLoader?.dispatch(host, 'click');
+    await flush();
+
+    expect(host.getAttribute('data-clicks')).toBe('2');
+    expect(host.firstChild).toBe(child);
+    cleanup();
+  });
+
   it('uses innerHTML without runtime JSX normalization', async () => {
     const App = component$(() => <div dangerouslySetInnerHTML="<span>raw</span>" />);
     const { container, cleanup } = await render(App);

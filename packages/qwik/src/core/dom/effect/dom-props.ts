@@ -55,10 +55,16 @@ function collectDomProps(
       continue;
     }
     const value = props[key];
-    if (key === RefAttr) {
-      normalized[RefAttr] = value;
-      if (element !== undefined && (prevProps === null || value !== prevProps[RefAttr])) {
-        setRef(value, element);
+    const isRef = key === RefAttr;
+    if (isRef || key === DangerousInnerHTMLAttr) {
+      normalized[key] = value;
+      // Re-applying either is destructive: a ref refires, identical html rebuilds the subtree.
+      if (element !== undefined && (prevProps === null || value !== prevProps[key])) {
+        if (isRef) {
+          setRef(value, element);
+        } else {
+          setInnerHtml(element, value);
+        }
       }
       continue;
     }
@@ -231,10 +237,14 @@ function appendSsrAttrPart(attrs: SsrRecordPart[], part: SsrRecordPart): void {
   }
 }
 
+function setInnerHtml(element: Element, value: unknown): void {
+  (element as Element & { innerHTML: string }).innerHTML =
+    value == null || value === false ? '' : String(value);
+}
+
 function applyDomProp(element: Element, key: string, value: unknown, styleScopedId?: string): void {
   if (key === DangerousInnerHTMLAttr) {
-    (element as Element & { innerHTML: string }).innerHTML =
-      value == null || value === false ? '' : String(value);
+    setInnerHtml(element, value);
     return;
   }
   if (isHtmlAttributeAnEventName(key)) {

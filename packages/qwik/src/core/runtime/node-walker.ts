@@ -21,7 +21,6 @@ const ROW_ATTR = 'q:row';
 export type BranchMarkerRange = readonly [Comment, Comment];
 export type ForMarkerRange = readonly [Comment, Comment];
 export type ContentMarkerRange = readonly [Comment, Comment];
-export type SlotMarkerRange = readonly [Comment, Comment];
 export type RowMarkerRange = readonly [Comment, Comment];
 export type ForRowRange = Element | RowMarkerRange;
 
@@ -101,14 +100,6 @@ export function findContentRange(
   return findMarkerRange(element, CONTENT_OPEN + String(rangeId), CONTENT_OPEN, CONTENT_CLOSE);
 }
 
-export function findSlotRange(element: Element, rangeId: string | number): SlotMarkerRange | null {
-  return findMarkerRange(element, SLOT_OPEN + String(rangeId), SLOT_OPEN, SLOT_CLOSE);
-}
-
-export function findForRowRange(element: Element, rowId: string | number): RowMarkerRange | null {
-  return findMarkerRange(element, ROW_OPEN + '=' + String(rowId), ROW_OPEN, ROW_CLOSE);
-}
-
 function findMarkerRange(
   element: Element,
   marker: string,
@@ -164,22 +155,54 @@ function isRowOpenMarker(data: string): boolean {
   return data === ROW_OPEN || data.startsWith(ROW_OPEN + '=');
 }
 
-function findComment(node: Node, data: string): Comment | null {
-  if (!canHaveChildNodes(node)) {
-    return null;
-  }
-  let child = fastFirstChild(node);
-  while (child !== null) {
-    if (child.nodeType === NodeType.Comment && (child as Comment).data === data) {
-      return child as Comment;
+// 128 = NodeFilter.SHOW_COMMENT
+function createCommentWalker(element: Element): TreeWalker {
+  return element.ownerDocument!.createTreeWalker(element, 128);
+}
+
+function findComment(element: Element, data: string): Comment | null {
+  const walker = createCommentWalker(element);
+  let comment: Node | null;
+  while ((comment = walker.nextNode()) !== null) {
+    if ((comment as Comment).data === data) {
+      return comment as Comment;
     }
-    const nested = findComment(child, data);
-    if (nested !== null) {
-      return nested;
-    }
-    child = fastNextSibling(child);
   }
   return null;
+}
+
+/**
+ * Branch text sits in a branch, a for-row or a slot range. All three ids come from one
+ * per-container counter, so at most one kind owns an id and the first match wins.
+ */
+export function findBranchTextRange(
+  element: Element,
+  rangeId: string | number
+): readonly [Comment, Comment] | null {
+  const id = String(rangeId);
+  const branchMarker = BRANCH_OPEN + id;
+  const rowMarker = ROW_OPEN + '=' + id;
+  const slotMarker = SLOT_OPEN + id;
+  const walker = createCommentWalker(element);
+  let comment: Node | null;
+  while ((comment = walker.nextNode()) !== null) {
+    const data = (comment as Comment).data;
+    if (data === branchMarker) {
+      return toRange(comment as Comment, BRANCH_OPEN, BRANCH_CLOSE);
+    }
+    if (data === rowMarker) {
+      return toRange(comment as Comment, ROW_OPEN, ROW_CLOSE);
+    }
+    if (data === slotMarker) {
+      return toRange(comment as Comment, SLOT_OPEN, SLOT_CLOSE);
+    }
+  }
+  return null;
+}
+
+function toRange(start: Comment, open: string, close: string): readonly [Comment, Comment] | null {
+  const end = findRangeEnd(start, open, close);
+  return end === null ? null : [start, end];
 }
 
 function findRangeEnd(start: Comment, open: string, close: string): Comment | null {
@@ -230,12 +253,4 @@ export function findContextScopeId(node: Node): string | null {
     current = parent;
   }
   return null;
-}
-
-function canHaveChildNodes(node: Node): boolean {
-  return (
-    node.nodeType === NodeType.Element ||
-    node.nodeType === NodeType.Document ||
-    node.nodeType === NodeType.DocumentFragment
-  );
 }

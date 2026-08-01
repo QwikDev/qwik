@@ -58,12 +58,11 @@ import {
 import {
   findBranchRange,
   findBranchTextNode,
+  findBranchTextRange,
   findContentRange,
   findElementText,
   findForRange,
-  findForRowRange,
   findQwikElement,
-  findSlotRange,
   findTextNode,
 } from '../../runtime/node-walker';
 import {
@@ -952,16 +951,8 @@ function resolveBranchTextTarget(
   rangeId: number,
   markerIndex: number
 ): Text | null {
-  const range = findBranchRange(container.element, rangeId);
-  if (range !== null) {
-    return findBranchTextNode(range, markerIndex);
-  }
-  const rowRange = findForRowRange(container.element, rangeId);
-  if (rowRange !== null) {
-    return findBranchTextNode(rowRange, markerIndex);
-  }
-  const slotRange = findSlotRange(container.element, rangeId);
-  return slotRange === null ? null : findBranchTextNode(slotRange, markerIndex);
+  const range = findBranchTextRange(container.element, rangeId);
+  return range === null ? null : findBranchTextNode(range, markerIndex);
 }
 
 function restoreDependencies(

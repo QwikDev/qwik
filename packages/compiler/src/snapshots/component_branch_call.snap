@@ -95,6 +95,7 @@ import {
   renderSsrContent,
   createSsrRecord,
   createSsrNodeId,
+  escapeSsrContent,
   maybeThen,
 } from '@qwik.dev/core';
 import { semantic_expression_136_161_1jyi1z9jxbjxi } from './component.tsx_semantic_expression_136_161_1jyi1z9jxbjxi';
@@ -117,7 +118,7 @@ export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   );
   return maybeThen(content1, (content1) => [
     createSsrRecord('<!d=', createSsrNodeId(contentId0), '>'),
-    content1,
+    escapeSsrContent(content1),
     '<!/d>',
   ]);
 };
@@ -152,6 +153,7 @@ import {
   renderSsrContent,
   createSsrRecord,
   createSsrNodeId,
+  escapeSsrContent,
   maybeThen,
 } from '@qwik.dev/core';
 import { semantic_expression_164_191_22ve5rjpz86py } from './component.tsx_semantic_expression_164_191_22ve5rjpz86py';
@@ -174,7 +176,7 @@ export const component_branch_else_segment_2_19dvu7nugnvkl = (ctx) => {
   );
   return maybeThen(content1, (content1) => [
     createSsrRecord('<!d=', createSsrNodeId(contentId0), '>'),
-    content1,
+    escapeSsrContent(content1),
     '<!/d>',
   ]);
 };

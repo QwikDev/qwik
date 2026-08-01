@@ -2,7 +2,7 @@ import { TypeIds } from './type-id';
 import { createSerializationContext } from './serialization-context';
 import { defaultScheduler } from '../../runtime/scheduler';
 import type { ContainerContext } from '../../runtime/container-context';
-import { deserializeCaptures } from '../qrl/qrl-class';
+import { deserializeCaptures } from './captures';
 
 /** @internal */
 export async function _serialize<T>(data: T): Promise<string> {

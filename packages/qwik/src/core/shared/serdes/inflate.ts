@@ -84,6 +84,7 @@ import type { QRLInternal } from '../qrl/qrl-class';
 import { isPromise, maybeThen } from '../utils/promises';
 import type { ValueOrPromise } from '../utils/types';
 import { allocate, pendingStoreTargets, resolvers } from './allocate';
+import { PromiseRoot, unwrapPromiseRoot } from './promise-root';
 import { EMPTY_OBJECT_PAYLOAD, TypeIds } from './constants';
 import { needsInflation } from './deser-proxy';
 import type { SerializedOwnerItems } from './serialize';
@@ -190,7 +191,7 @@ const inflateResolved = (
       const signal = target as ReactiveSignal<unknown>;
       const d = data as unknown[];
       return maybeThen(deserializeData(container, d[0] as TypeIds, d[1]), (value) => {
-        signal.v = value;
+        signal.v = unwrapPromiseRoot(value);
         if (d.length > 2) {
           signal.subs = createLazySourceSubscribers(signal, container, d, 2);
         }
@@ -387,7 +388,7 @@ const inflateResolved = (
       break;
     }
     case TypeIds.Promise: {
-      const promise = target as Promise<unknown>;
+      const promise = (target as PromiseRoot).promise;
       const [resolved, result] = data as [boolean, unknown];
       const [resolve, reject] = resolvers.get(promise)!;
       if (resolved) {
@@ -993,11 +994,11 @@ export const _eagerDeserializeArray = (
       i += 2;
       if (isPromise(value)) {
         return value.then((value) => {
-          output[index / 2] = value;
+          output[index / 2] = unwrapPromiseRoot(value);
           return drain();
         });
       }
-      output[index / 2] = value;
+      output[index / 2] = unwrapPromiseRoot(value);
     }
     return output;
   };

@@ -7,7 +7,7 @@ import { fastGetAttribute } from './fast-getters';
 import { findContextScopeId } from './node-walker';
 import type { ServerDataContext } from './use-server-data';
 import type { PhaseSubscriber, Subscriber } from './subscriber';
-import { deserializeCaptures } from '../shared/qrl/qrl-class';
+import { deserializeCaptures } from '../shared/serdes/captures';
 
 const STATE_SCRIPT_TYPE = 'qwik/state';
 const CTX_PROP = '_ctx';

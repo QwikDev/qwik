@@ -15,6 +15,7 @@ import {
   renderSsrContent,
   createSsrRecord,
   createSsrNodeId,
+  escapeSsrContent,
   maybeThen,
   _qrlWithChunk,
 } from '@qwik.dev/core';
@@ -39,7 +40,7 @@ export function App(props, ctx) {
     createSsrElementRecord('section', '<section', '>'),
     '<b>Before</b>',
     createSsrRecord('<!d=', createSsrNodeId(contentId0), '>'),
-    content1,
+    escapeSsrContent(content1),
     '<!/d><i>After</i></section>',
   ]);
 }

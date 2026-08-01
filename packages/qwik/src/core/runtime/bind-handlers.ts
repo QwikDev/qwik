@@ -1,4 +1,5 @@
-import { _captures, deserializeCaptures, setCaptures } from '../shared/qrl/qrl-class';
+import { _captures, setCaptures } from '../shared/qrl/qrl-class';
+import { deserializeCaptures } from '../shared/serdes/captures';
 import type { ValueOrPromise } from '../shared/utils/types';
 import { Computed } from '../reactive/computed';
 import type { Signal } from '../reactive/signal';

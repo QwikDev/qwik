@@ -20,6 +20,7 @@ import {
   type ContentSubscriber,
   type SsrContentSubscriber,
 } from '../../runtime/subscriber';
+import { escapeHTML } from '../../shared/utils/character-escaping';
 import { EMPTY_NODES } from '../../utils/consts';
 import { toNodes, type MaybeNodeOutput } from '../../utils/nodes';
 import { getFunctionOrResolve } from '../../utils/qrl';
@@ -46,6 +47,18 @@ export interface SuspenseProps {
 
 /** @public */
 export const Suspense: FunctionComponent<SuspenseProps & { children?: JSXOutput }> = () => null;
+
+/** Content results are user values, so they must never reach the stream as markup. */
+export function escapeSsrContent(output: ContentOutput): string {
+  switch (typeof output) {
+    case 'string':
+    case 'number':
+    case 'bigint':
+      return escapeHTML(String(output));
+    default:
+      return '';
+  }
+}
 
 function normalizeContentOutput(document: Document, output: ContentOutput): MaybeNodeOutput {
   switch (typeof output) {

@@ -36,4 +36,9 @@ export class Signal<T> implements Source<T> {
   trigger(): void {
     notifySourceSubscribers(this);
   }
+
+  /** Hides the internals, whose subscriber graph is circular. */
+  toJSON(): { value: T } {
+    return { value: this.v };
+  }
 }

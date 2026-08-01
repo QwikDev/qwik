@@ -42,7 +42,7 @@ import {
 } from './runtime/subscriber';
 import { Task, TaskSubscription } from './runtime/task';
 import { bootQwikLoader, type QwikLoaderTestDriver } from './qwikloader-test-driver';
-import { deserializeCaptures } from './shared/qrl/qrl-class';
+import { deserializeCaptures } from './shared/serdes/captures';
 
 export { bootQwikLoader };
 export type { QwikLoaderEventPayload, QwikLoaderTestDriver } from './qwikloader-test-driver';

@@ -63,6 +63,7 @@ export const enum QwikWord {
   GetActiveInvokeContextOrNull = 'getActiveInvokeContextOrNull',
   GetActiveInvokeContext = 'getActiveInvokeContext',
   EscapeHTML = 'escapeHTML',
+  EscapeSsrContent = 'escapeSsrContent',
   MaybeThen = 'maybeThen',
   QrlWithChunk = '_qrlWithChunk',
   CreateVisibleTaskHandlerQrl = 'createVisibleTaskHandlerQrl',

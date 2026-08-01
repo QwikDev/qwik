@@ -1148,9 +1148,10 @@ class SsrEmitter {
     this.imports.add(QwikWord.RenderSsrContent);
     this.imports.add(QwikWord.CreateSsrRecord);
     this.imports.add(QwikWord.CreateSsrNodeId);
+    this.imports.add(QwikWord.EscapeSsrContent);
     return [
       `${QwikWord.CreateSsrRecord}('<!d=', ${QwikWord.CreateSsrNodeId}(${id}), '>')`,
-      value,
+      `${QwikWord.EscapeSsrContent}(${value})`,
       literal('<!/d>'),
     ];
   }

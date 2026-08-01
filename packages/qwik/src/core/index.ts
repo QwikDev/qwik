@@ -313,6 +313,7 @@ export {
   createContentBlock,
   createSsrSuspense,
   createSuspense,
+  escapeSsrContent,
   renderSsrContent,
   type SuspenseProps,
 } from './dom/content/content';

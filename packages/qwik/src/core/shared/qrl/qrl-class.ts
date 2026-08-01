@@ -19,7 +19,6 @@ import { withCaptures } from './qrl-captures';
 import { initLazyRefDev, initQrlClassDev, setupHmr } from './qrl-class-dev';
 import { getSymbolHash, SYNC_QRL } from './qrl-utils';
 import type { QRL, QrlArgs, QrlReturn } from './qrl.public';
-import { parseSerializedQrlRootIds } from './qrl-capture-deltas';
 // @ts-expect-error we don't have types for the preloader
 import { p as preload } from '@qwik.dev/core/preloader';
 import type { ContainerContext } from '../../runtime/container-context';
@@ -440,28 +439,6 @@ const QRL_FUNCTION_PROTO: QRLInternalMethods<any> = Object.create(Function.proto
 });
 
 export { _captures, setCaptures, withCaptures } from './qrl-captures';
-
-export const deserializeCaptures = (container: ContainerContext, captures: string) => {
-  let previousRootId = 0;
-  let captureDeltas = captures;
-  if (captures.includes('#')) {
-    const [, symbolRootId, serializedDeltas] = parseSerializedQrlRootIds(captures);
-    previousRootId = symbolRootId;
-    captureDeltas = serializedDeltas ?? '';
-  }
-
-  const rootIds = captureDeltas
-    .split(' ')
-    .filter(Boolean)
-    .map((delta) => {
-      previousRootId += Number(delta);
-      if (!Number.isSafeInteger(previousRootId) || previousRootId < 0) {
-        throw new Error('Invalid serialized QRL captures.');
-      }
-      return previousRootId;
-    });
-  return Promise.all(rootIds.map((id) => container.getRoot(id)));
-};
 
 const getQrlContainer = (qrl: QRLClass<unknown>, container?: ContainerContext | null) => {
   if (qrl.$container$) {

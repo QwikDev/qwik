@@ -70,6 +70,14 @@ describe('reactive primitives', () => {
     expect(notifications).toBe(1);
   });
 
+  it('stringifies a signal to its value without the subscriber graph', () => {
+    const count = useSignal(0);
+    const scheduler = new Scheduler(noopSchedule);
+    count.subs = [createIdleSubscriber(() => {}, scheduler)];
+
+    expect(JSON.stringify({ count })).toBe('{"count":{"value":0}}');
+  });
+
   it('stores one source subscriber without allocating an array', () => {
     const source = useSignal(0);
     const scheduler = new Scheduler(noopSchedule);

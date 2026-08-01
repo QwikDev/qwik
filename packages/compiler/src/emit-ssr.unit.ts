@@ -381,6 +381,25 @@ export function App() {
     expect(main).not.toContain('((value) =>');
   });
 
+  test('escapes dynamic content results', async () => {
+    const result = await transformModules(
+      options({
+        path: 'src/dynamic-content.tsx',
+        code: `import { renderItem } from './render-item';
+export function App({ value }) {
+  return <div>{renderItem(value)}</div>;
+}
+`,
+      })
+    );
+    const main = result.modules[0]?.code ?? '';
+
+    expect(
+      parseSync('dynamic-content.js', main, { lang: 'js', sourceType: 'module' }).errors
+    ).toEqual([]);
+    expect(main).toMatch(/escapeSsrContent\(content\d+\)/);
+  });
+
   test('imports the escaping helper used by dynamic attributes', async () => {
     const result = await transformModules(
       options({

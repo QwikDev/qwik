@@ -23,6 +23,7 @@ import { _constants, TypeIds, type Constants } from './constants';
 import { createQRLWithBackChannel } from './qrl-to-string';
 import { findQwikElement } from '../../runtime/node-walker';
 import { allocatePropsProxy } from '../../component/props';
+import { PromiseRoot } from './promise-root';
 
 export const resolvers = new WeakMap<Promise<any>, [Function, Function]>();
 export const pendingStoreTargets = new WeakMap<object, { t: TypeIds; v: unknown }>();
@@ -169,7 +170,7 @@ export const allocate = (
       resolvers.set(promise, [resolve, reject]);
       // Don't leave unhandled promise rejections
       promise.catch(() => {});
-      return promise;
+      return new PromiseRoot(promise);
     case TypeIds.Uint8Array: {
       if (!isCanonicalBase64(value)) {
         throw qError(QError.invalidUint8ArrayPayload);

@@ -259,10 +259,6 @@ Passive listeners (`{ passive: true }`) are new in v2 and get their own prefix, 
 
 The event name itself is still lowercased unless you opt into case sensitivity with a leading `-`, but v2 adds two rules: `--` is a literal `-` (`dbl--click` → `dbl-click`), and `DOMContentLoaded` is stored as `-d-o-m-content-loaded`.
 
-<Note title="COLONS IN CUSTOM EVENT NAMES">
-Don't put a `:` inside a custom event name (`useOnDocument('my:event', ...)`). The name becomes part of an attribute selector and an unescaped colon makes it invalid CSS. Use a camelCase name instead (`useOnDocument('myEvent', ...)` → `q-d:my-event`).
-</Note>
-
 ### Signal is a wider type
 
 In v1 `Signal<T>` was `{ value: T }`. In v2 it also has `untrackedValue` and `trigger()`:
@@ -524,10 +520,6 @@ Move the hook inside `component$` (error Q10).
 ### Property 'untrackedValue' is missing in type
 
 A `{ value }` object literal used where a `Signal` is expected. See [Signal is a wider type](#signal-is-a-wider-type).
-
-### SyntaxError: '[q-d:my:event]' is not a valid selector
-
-A custom event name containing a `:`. See [Event attribute names changed](#event-attribute-names-changed).
 
 ### Cannot read properties of null (reading 'value') in a test
 

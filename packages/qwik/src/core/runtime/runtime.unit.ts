@@ -102,6 +102,25 @@ describe('runtime scheduler and owner lifecycle', () => {
     expect(order).toEqual(['effect']);
   });
 
+  it('keeps one owner entry when a subscriber is registered repeatedly', () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const owner = createOwner(null);
+    const other = createOwner(null);
+    const subscriber = createOrderTextExpressionEffect(scheduler, 'effect', []);
+
+    registerSubscriberToOwner(subscriber, owner);
+    registerSubscriberToOwner(subscriber, owner);
+    expect(ownerItemsLength(owner.items)).toBe(1);
+
+    registerSubscriberToOwner(subscriber, other);
+    expect(ownerItemsLength(owner.items)).toBe(0);
+    expect(ownerItemsLength(other.items)).toBe(1);
+
+    registerSubscriberToOwner(subscriber, owner);
+    expect(ownerItemsLength(owner.items)).toBe(1);
+    expect(ownerItemsLength(other.items)).toBe(0);
+  });
+
   it('rejects the explicit flush when one-shot work rejects', async () => {
     const scheduler = new Scheduler(noopSchedule);
     scheduler.waitFor(Promise.reject(new Error('one-shot failed')));

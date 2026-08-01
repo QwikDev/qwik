@@ -109,6 +109,10 @@ describe(`${name}: task`, () => {
 
       expect(container.textContent).toBe('loading');
 
+      // Suspense content starts off the flush, so its task may not have registered yet.
+      await vi.waitFor(() =>
+        expect(typeof (globalThis as any).__resolveSuspenseTask).toBe('function')
+      );
       (globalThis as any).__resolveSuspenseTask();
       await flush();
       await vi.waitFor(() => expect(container.textContent).toBe('ready'));

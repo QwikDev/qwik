@@ -80,17 +80,9 @@ export function registerSubscriberToOwner<T extends Subscriber>(
     detachSubscriberFromOwner(subscriber, currentOwner);
   }
 
+  // Already detached above, so membership never needs a scan for duplicates.
   subscriber.owner = resolvedOwner;
-  const items = resolvedOwner.items;
-  if (items === null) {
-    resolvedOwner.items = subscriber;
-  } else if (Array.isArray(items)) {
-    if (!items.includes(subscriber)) {
-      items.push(subscriber);
-    }
-  } else if (items !== subscriber) {
-    resolvedOwner.items = [items, subscriber];
-  }
+  appendOwnerItem(resolvedOwner, subscriber);
 
   return subscriber;
 }

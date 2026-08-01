@@ -12,6 +12,7 @@ import { cleanupDeps, disposeSubscriber } from './cleanup';
 import { Computed } from './computed';
 import { ComputedQrl } from './computed-qrl';
 import { _wrapArray, useComputedQrl, useComputed, useConstant, useSignal } from './public-api';
+import { getStoreSources, useStore } from './store';
 import { readSourceValue, type Source } from './source';
 import { _await, runWithCollector } from './tracking';
 import { Scheduler } from '../runtime/scheduler';
@@ -95,6 +96,23 @@ describe('reactive primitives', () => {
 
     cleanupDeps(first);
     expect(source.subs).toBeNull();
+  });
+
+  it('creates store sources only for tracked reads', () => {
+    const store = useStore({ read: 'a', ignored: 'b' });
+    const scheduler = new Scheduler(noopSchedule);
+    const collector = runWithTestContainer(scheduler, () => useTask(() => {}));
+
+    // Untracked reads must not retain a source per property for the store's lifetime.
+    store.ignored;
+    'ignored' in store;
+    Object.keys(store);
+    expect(Array.from(getStoreSources(store))).toEqual([]);
+
+    runWithCollector(collector, () => store.read);
+    const sources = Array.from(getStoreSources(store));
+    expect(sources.length).toBe(1);
+    expect(sources[0].prop).toBe('read');
   });
 
   it('tracks dependencies without storing unused version snapshots', () => {

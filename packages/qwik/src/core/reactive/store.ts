@@ -1,6 +1,6 @@
 import type { Source, SourceSubs } from './source';
 import { notifySourceSubscribers } from './notify';
-import { track, untrack } from './tracking';
+import { getActiveCollector, track, untrack } from './tracking';
 
 /** @public */
 export type Store<T extends object> = T;
@@ -141,12 +141,17 @@ export function getStoreSources(target: object): Iterable<StorePropSource> {
   return rawToSources.get(unwrapStore(target) as object)?.values() ?? [];
 }
 
+// An untracked read needs no source, and creating one would retain it for the store's lifetime.
+function trackStoreProp(target: StoreTarget, prop: PropertyKey): void {
+  if (typeof prop !== 'symbol' && getActiveCollector() !== null) {
+    track(getStoreSource(target, prop));
+  }
+}
+
 const storeHandler: ProxyHandler<StoreTarget> = {
   get(target, prop, receiver) {
     const value = Reflect.get(target, prop, receiver);
-    if (typeof prop !== 'symbol') {
-      track(getStoreSource(target, prop));
-    }
+    trackStoreProp(target, prop);
     return isWrappable(value) ? getOrCreateDeepStore(value) : value;
   },
 
@@ -181,9 +186,7 @@ const storeHandler: ProxyHandler<StoreTarget> = {
   },
 
   has(target, prop) {
-    if (typeof prop !== 'symbol') {
-      track(getStoreSource(target, prop));
-    }
+    trackStoreProp(target, prop);
     return prop in target;
   },
 
@@ -196,9 +199,7 @@ const shallowStoreHandler: ProxyHandler<StoreTarget> = {
   ...storeHandler,
   get(target, prop, receiver) {
     const value = Reflect.get(target, prop, receiver);
-    if (typeof prop !== 'symbol') {
-      track(getStoreSource(target, prop));
-    }
+    trackStoreProp(target, prop);
     return value;
   },
 };

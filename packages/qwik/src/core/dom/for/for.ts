@@ -27,8 +27,8 @@ import type { MaybeNodeOutput } from '../../utils/nodes';
 import { ForBlockSubscription } from '../effect/effect';
 import { SSRForBlockSubscription } from '../effect/ssr-effect';
 import { getFunctionOrResolve } from '../../utils/qrl';
-import { createContentRange, getRangeParent } from '../range/range';
-import { EMPTY_ARRAY, NodeType } from '../../utils/consts';
+import { getRangeParent, replaceRange } from '../range/range';
+import { EMPTY_ARRAY, EMPTY_NODES, NodeType } from '../../utils/consts';
 import type { SsrOutput } from '../../ssr/output';
 
 export type ForKey = string | number;
@@ -69,20 +69,14 @@ export type RowDom = Element | RowRange;
 
 /** ForRange represents a list-owned range in the DOM. */
 export class ForRange {
-  readonly nativeRange: Range;
-
   constructor(
     readonly document: Document,
     readonly start: Comment,
     readonly end: Comment
-  ) {
-    this.nativeRange = createContentRange(this.document, start, end);
-  }
+  ) {}
 
   clear(): void {
-    this.nativeRange.setStartAfter(this.start);
-    this.nativeRange.setEndBefore(this.end);
-    this.nativeRange.deleteContents();
+    replaceRange(this.document, this.start, this.end, EMPTY_NODES);
   }
 }
 
@@ -288,7 +282,7 @@ export class ForBlock<T = unknown> {
     if (newLast < firstChanged) {
       const oldRows = this.rows;
       const oldOwners = this.owners;
-      const range = this.range.nativeRange;
+      const range = this.range.document.createRange();
       range.setStartBefore(firstRowNode(oldRows[firstChanged]));
       range.setEndAfter(lastRowNode(oldRows[oldLast]));
       range.deleteContents();
@@ -456,10 +450,11 @@ export class ForBlock<T = unknown> {
       }
 
       if (parent === null) {
-        this.range.nativeRange.setStartAfter(this.range.start);
-        this.range.nativeRange.setEndBefore(this.range.end);
-        this.range.nativeRange.deleteContents();
-        this.range.nativeRange.insertNode(fragment);
+        const range = this.range.document.createRange();
+        range.setStartAfter(this.range.start);
+        range.setEndBefore(this.range.end);
+        range.deleteContents();
+        range.insertNode(fragment);
         disposeOwners(oldOwners, oldOwners.length);
       } else {
         parent.insertBefore(fragment, this.range.end);

@@ -22,7 +22,7 @@ import { EMPTY_NODES } from '../../utils/consts';
 import { toNodes } from '../../utils/nodes';
 import type { MaybeNodeOutput } from '../../utils/nodes';
 import { getFunctionOrResolve } from '../../utils/qrl';
-import { createContentRange, replaceRange } from '../range/range';
+import { replaceRange } from '../range/range';
 import type { SsrOutput } from '../../ssr/output';
 import { reapplyUseOnContexts } from '../../runtime/use-on';
 
@@ -36,18 +36,14 @@ type SSRBranchHandlerFn = (
 
 /** BranchRange represents a range of nodes in the DOM that can be replaced with new nodes */
 export class BranchRange {
-  readonly nativeRange: Range;
-
   constructor(
     readonly document: Document,
     readonly start: Comment,
     readonly end: Comment
-  ) {
-    this.nativeRange = createContentRange(this.document, start, end);
-  }
+  ) {}
 
   replace(nodes: readonly Node[]): void {
-    replaceRange(this.document, this.start, this.end, this.nativeRange, nodes);
+    replaceRange(this.document, this.start, this.end, nodes);
   }
 }
 

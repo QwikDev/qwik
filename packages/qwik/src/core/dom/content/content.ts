@@ -24,7 +24,7 @@ import { EMPTY_NODES } from '../../utils/consts';
 import { toNodes, type MaybeNodeOutput } from '../../utils/nodes';
 import { getFunctionOrResolve } from '../../utils/qrl';
 import type { SsrOutput } from '../../ssr/output';
-import { createContentRange, replaceRange } from '../range/range';
+import { replaceRange } from '../range/range';
 import { reapplyUseOnContexts } from '../../runtime/use-on';
 import type { BranchRange } from '../branch/branch';
 
@@ -62,7 +62,6 @@ function normalizeContentOutput(document: Document, output: ContentOutput): Mayb
 
 export class ContentBlock<TArgs extends unknown[] = unknown[]> {
   currentOwner: Owner | null = null;
-  private readonly range: Range;
   private committed: boolean;
   private pendingContext: RuntimeInvokeContext | null = null;
 
@@ -78,7 +77,6 @@ export class ContentBlock<TArgs extends unknown[] = unknown[]> {
     readonly contextArg = false,
     committed = false
   ) {
-    this.range = createContentRange(document, start, end);
     this.committed = committed;
   }
 
@@ -142,7 +140,7 @@ export class ContentBlock<TArgs extends unknown[] = unknown[]> {
       disposeOwner(pendingContext.owner);
       pendingContext.owner = null;
     }
-    replaceRange(this.document, this.start, this.end, this.range, EMPTY_NODES);
+    replaceRange(this.document, this.start, this.end, EMPTY_NODES);
   }
 
   private commit(invokeContext: RuntimeInvokeContext, output: ContentOutput): readonly Node[] {
@@ -154,7 +152,7 @@ export class ContentBlock<TArgs extends unknown[] = unknown[]> {
         ? reapplyUseOnContexts(output, this.invokeContext, this.document)
         : output
     );
-    replaceRange(this.document, this.start, this.end, this.range, nodes);
+    replaceRange(this.document, this.start, this.end, nodes);
     this.committed = true;
     this.currentOwner = invokeContext.owner;
     if (previousOwner !== null) {

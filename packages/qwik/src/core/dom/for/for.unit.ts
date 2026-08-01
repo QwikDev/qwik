@@ -367,21 +367,22 @@ describe('ForBlock reorder', () => {
     block.keys = [1];
     block.rows = [oldRow];
     block.owners = [createOwner(listOwner)];
-    const deleteContents = vi.spyOn(range.nativeRange, 'deleteContents');
+    // One Range is created per range operation, so counting them counts the operations.
+    const rangeOps = vi.spyOn(document, 'createRange').mockClear();
     const replaceChildren = vi.spyOn(list, 'replaceChildren');
 
     try {
       block.reconcile(new ForBlockSubscription(block), (item) => item.id, renderRow);
 
       expect(replaceChildren).not.toHaveBeenCalled();
-      expect(deleteContents).toHaveBeenCalledOnce();
+      expect(rangeOps).toHaveBeenCalledOnce();
       expect(Array.from(list.querySelectorAll('li'), (row) => row.textContent)).toEqual([
         'before',
         '2',
         'after',
       ]);
     } finally {
-      deleteContents.mockRestore();
+      rangeOps.mockRestore();
       replaceChildren.mockRestore();
     }
   });
@@ -403,7 +404,8 @@ describe('ForBlock reorder', () => {
     const oldIds = Array.from({ length: 40 }, (_, index) => index);
     const nextIds = Array.from({ length: 40 }, (_, index) => index + 40);
     const { block, parent } = createKeyedBlock(oldIds, nextIds);
-    const deleteContents = vi.spyOn(block.range.nativeRange, 'deleteContents');
+    // One Range is created per range operation, so counting them counts the operations.
+    const rangeOps = vi.spyOn(block.range.document, 'createRange').mockClear();
 
     block.reconcile(
       new ForBlockSubscription(block),
@@ -411,7 +413,7 @@ describe('ForBlock reorder', () => {
       (_ctx, item) => [createElementNode(String((item as { id: number }).id))]
     );
 
-    expect(deleteContents).toHaveBeenCalledOnce();
+    expect(rangeOps).toHaveBeenCalledOnce();
     expect(parent.nodes.slice(1, -1).map(getNodeLabel)).toEqual(nextIds.map(String));
   });
 
@@ -430,7 +432,8 @@ describe('ForBlock reorder', () => {
   it('deletes a contiguous keyed suffix in one range operation', () => {
     const { block, parent } = createKeyedBlock([0, 1, 2, 3], [0, 1]);
     const removedOwners = block.owners.slice(2);
-    const deleteContents = vi.spyOn(block.range.nativeRange, 'deleteContents');
+    // One Range is created per range operation, so counting them counts the operations.
+    const rangeOps = vi.spyOn(block.range.document, 'createRange').mockClear();
 
     block.reconcile(
       new ForBlockSubscription(block),
@@ -438,7 +441,7 @@ describe('ForBlock reorder', () => {
       (_ctx, item) => [createElementNode(String((item as { id: number }).id))]
     );
 
-    expect(deleteContents).toHaveBeenCalledOnce();
+    expect(rangeOps).toHaveBeenCalledOnce();
     expect(parent.nodes.map(getNodeLabel)).toEqual(['start', '0', '1', 'end']);
     expect(removedOwners.every((owner) => owner!.flags & OwnerFlags.Disposed)).toBe(true);
   });
@@ -545,7 +548,8 @@ describe('ForBlock reorder', () => {
       'end',
     ]);
 
-    const deleteContents = vi.spyOn(block.range.nativeRange, 'deleteContents');
+    // One Range is created per range operation, so counting them counts the operations.
+    const rangeOps = vi.spyOn(block.range.document, 'createRange').mockClear();
     items.value = [1];
     block.reconcile(
       subscription,
@@ -553,7 +557,7 @@ describe('ForBlock reorder', () => {
       (_ctx, item) => [createTestDomNode(`a${item}`), createTestDomNode(`b${item}`)]
     );
 
-    expect(deleteContents).toHaveBeenCalledOnce();
+    expect(rangeOps).toHaveBeenCalledOnce();
     expect(parent.nodes.map(getNodeLabel)).toEqual(['start', 'r', 'a1', 'b1', '/r', 'end']);
   });
 

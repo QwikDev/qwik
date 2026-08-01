@@ -1,12 +1,5 @@
 import { isDev } from '@qwik.dev/core/build';
 
-export function createContentRange(document: Document, start: Comment, end: Comment): Range {
-  const range = document.createRange();
-  range.setStartAfter(start);
-  range.setEndBefore(end);
-  return range;
-}
-
 export function getRangeParent(start: Comment, end: Comment): Node {
   const parent = start.parentNode;
   if (isDev && (parent === null || parent !== end.parentNode)) {
@@ -19,10 +12,11 @@ export function replaceRange(
   document: Document,
   start: Comment,
   end: Comment,
-  range: Range,
   nodes: readonly Node[]
 ): void {
-  // Re-anchor ranges after template nodes move out of their fragment.
+  // Created per operation and dropped: the browser fixes up every *live* Range on every DOM
+  // mutation, so holding one per block taxes writes anywhere on the page.
+  const range = document.createRange();
   range.setStartAfter(start);
   range.setEndBefore(end);
   range.deleteContents();

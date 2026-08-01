@@ -203,16 +203,27 @@ const inflateResolved = (
       for (let i = 0; i < statics.length; i += 2) {
         props[statics[i] as string] = statics[i + 1];
       }
+      // Prop expressions recompute on every read, so resolve them now; a getter
+      // cannot await the chunk and would throw at an unretryable read.
+      let pendingExpressions: ValueOrPromise<unknown>[] | undefined;
       for (const key in sources) {
         const source = sources[key];
         // Branch once here rather than on every read.
-        const get = isQrl(source)
-          ? () => readExpression(source as QRL<() => unknown>, container)
-          : () => readTrackedSourceValue(source as Source<unknown>);
+        let get: () => unknown;
+        if (isQrl(source)) {
+          const expression = source as QRL<() => unknown>;
+          get = () => readExpression(expression, container);
+          const resolved = getFunctionOrResolve(expression, container);
+          if (isPromise(resolved)) {
+            (pendingExpressions ??= []).push(resolved);
+          }
+        } else {
+          get = () => readTrackedSourceValue(source as Source<unknown>);
+        }
         Object.defineProperty(props, key, { get, enumerable: true, configurable: true });
       }
       _props(props, sources);
-      break;
+      return pendingExpressions && maybeThen(Promise.all(pendingExpressions), () => {});
     }
     case TypeIds.PropsProxy: {
       const values = data as unknown[];

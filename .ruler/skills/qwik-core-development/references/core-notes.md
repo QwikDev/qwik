@@ -87,6 +87,40 @@ Async computeds serialize as `TypeIds.AsyncSignal`; synchronous computeds serial
 `TypeIds.ComputedSignal`. Selection uses `ComputedFlags.Async`, not class identity, so resumed and
 deprecated-adapter instances follow the same protocol.
 
+### Resolving QRLs During Inflation
+
+Resolve a QRL in `inflate` when the restored value is later read through a **synchronous property
+getter**: prop expression sources, and the compute QRL of computed/async/serializer signals when the
+value is `NEEDS_COMPUTATION`. A getter cannot await a chunk, so an unresolved QRL makes
+`readExpression` throw the import promise at a read that may sit outside any retry boundary.
+
+Anything reached by *invoking* a QRL stays lazy — event handlers, tasks and SSR effect reads all run
+inside `retryOnPromise`, which retries a synchronous throw and a rejected returned promise alike.
+Never resolve QRLs generically at deserialization: handler QRLs arrive as props `statics`, so
+resolving them would import handler chunks that may never run.
+
+A resolved QRL also has its captures restored, which matters because `getCaptured()` discards the
+promise from `restoreQrlCaptures` and returns the raw delta string when captures are still pending.
+
+This class of bug cannot fail a spec: the Vitest harness has every chunk loaded, so
+`getFunctionOrResolve` returns synchronously. Only a resumed browser run against a cold chunk
+exercises it, so verify in e2e.
+
+### Promise Values Cross The Pipeline Boxed
+
+Deserialization signals "still in flight" by being a thenable, so a deserialized `Promise` must
+travel wrapped in `PromiseRoot` — `await`, `maybeThen` and `Promise.all` all flatten a bare one, and
+a promise-returning accessor can never yield a promise as its value. Allocation is two-phase, so the
+unboxed shell is still pending when `getRoot` awaits it: the result is a silent deadlock, not an
+error.
+
+Unwrap only where a value becomes user data — capture arrays, signal values, and the eager array
+fill — and keep `PromiseRoot` inside `shared/serdes/`. Each unwrap needs a test that fails when it is
+removed; mutation-check new ones by deleting the call and confirming a specific test goes red.
+
+Prove promise behavior in the `resume` project. A green `csr` run means nothing here, because
+deserialization never runs.
+
 ## Task Semantics (v3)
 
 - `useTask$`/`useVisibleTask$` auto-track every reactive read in the body; there is no `track` in
@@ -105,6 +139,9 @@ deprecated-adapter instances follow the same protocol.
 - Avoid manual QRL construction unless nearby tests already need it.
 - If runtime behavior relies on optimizer output, inspect the transform and snapshot.
 - For JSX or event behavior, keep compiler output, runtime ABI, and qwikloader aligned.
+- In SSR emit, `renderSsrContent` results are user values and are escaped, while the synchronous
+  dynamic-content path carries compiler-lowered markup — a local `const el = <span/>` becomes a
+  function returning raw HTML. Escaping is per-path, so check which one a change feeds.
 
 ## Focused Verification
 

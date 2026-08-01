@@ -622,11 +622,23 @@ export const getModuleRouteLoaders = (mods: readonly (RouteModule | undefined)[]
   return routeLoaders;
 };
 
+/**
+ * Loader ids declared `cacheControl: 'immutable'`. Their data cannot change until a rebuild, so
+ * nav-wide invalidation skips them; they still re-fetch when their tracked URL inputs change.
+ * Registered on every nav via ensureRouteLoaderSignal, so resumed signals are covered too.
+ */
+const immutableLoaderIds = new Set<string>();
+
+export const isImmutableLoader = (loaderId: string) => immutableLoaderIds.has(loaderId);
+
 export const ensureRouteLoaderSignal = (
   loader: LoaderInternal,
   state: RouteLoaderState,
   routeLoaderCtx: RouteLoaderCtx
 ) => {
+  if (loader.__cacheControl === 'immutable') {
+    immutableLoaderIds.add(loader.__id);
+  }
   if (isServer && loader.__serializationStrategy === 'never') {
     (state as Record<string, unknown>)[getRouteLoaderValueStateKey(loader.__id)] = _UNINITIALIZED;
   }

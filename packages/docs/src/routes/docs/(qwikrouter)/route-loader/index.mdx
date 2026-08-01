@@ -136,7 +136,7 @@ export default component$(() => {
 
 A loader is re-fetched when:
 
-- the app navigates (every SPA navigation re-fetches every loader; the browser HTTP cache decides whether that fetch hits the network — see [Cache & freshness](#cache--freshness)),
+- the app navigates (every SPA navigation re-fetches every loader except `cacheControl: 'immutable'` ones, which only re-fetch when their URL inputs change; the browser HTTP cache decides whether a fetch hits the network — see [Cache & freshness](#cache--freshness)),
 - it's invalidated by an action (see [`routeAction$`](/docs/(qwikrouter)/action/index.mdx) and the action's `invalidate` option),
 - you invalidate its signal manually, for example from `usePoll` (see [Polling](#polling)).
 
@@ -189,7 +189,7 @@ export const useProductDetails = routeLoader$(
 );
 ```
 
-<Note>**`cacheControl: 'immutable'` is special.** It means the data for a URL never changes until the application is rebuilt (the manifest hash busts the cache). For SSG, immutable loaders are pre-generated as static `.json` files on disk, so route loaders work even on fully static sites.</Note>
+<Note>**`cacheControl: 'immutable'` is special.** It means the data for a URL never changes until the application is rebuilt (the manifest hash busts the cache). Immutable loaders are skipped by the per-navigation re-fetch, and for SSG they are pre-generated as static `.json` files on disk, so route loaders work even on fully static sites.</Note>
 
 ### Polling
 

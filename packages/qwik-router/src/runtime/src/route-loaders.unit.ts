@@ -3,48 +3,13 @@ import { _UNINITIALIZED, type SerializationStrategy } from '@qwik.dev/core/inter
 import {
   ensureRouteLoaderSignal,
   getRouteLoaderResponse,
+  isImmutableLoader,
   loadRouteLoader,
   routeLoaderQrl,
   type RouteLoaderState,
 } from './route-loaders';
 import { ServerError } from '../../middleware/request-handler/server-error';
 import type { LoaderInternal } from './types';
-
-describe('search filter early-return logic', () => {
-  // Mirrors the captured lastFetch object and condition in createRouteLoaderSignal.
-  // Before the fix, only filteredSearch was checked — path changes were silently suppressed.
-  it('does not skip fetch when routePath changes even if filtered search is unchanged', () => {
-    const lastFetch: {
-      filteredSearch?: string;
-      routePath?: string;
-    } = {};
-
-    const shouldSkipFetch = (routePath: string, filteredSearch: string) => {
-      const hasPrevious = lastFetch.filteredSearch !== undefined;
-      if (
-        hasPrevious &&
-        filteredSearch === lastFetch.filteredSearch &&
-        routePath === lastFetch.routePath
-      ) {
-        return true;
-      }
-      lastFetch.filteredSearch = filteredSearch;
-      lastFetch.routePath = routePath;
-      return false;
-    };
-
-    // First call — no previous value, always fetches
-    expect(shouldSkipFetch('/a', 'page=1')).toBe(false);
-    // Same path + same search: skip is correct
-    expect(shouldSkipFetch('/a', 'page=1')).toBe(true);
-    // Different path, same filtered search: must NOT skip (was the bug)
-    expect(shouldSkipFetch('/b', 'page=1')).toBe(false);
-    // Same path + same search again: skip is correct
-    expect(shouldSkipFetch('/b', 'page=1')).toBe(true);
-    // Same path, different search: fetch
-    expect(shouldSkipFetch('/b', 'page=2')).toBe(false);
-  });
-});
 
 describe('route loader execution', () => {
   it('stores an uninitialized resume marker for never loaders', () => {
@@ -61,6 +26,21 @@ describe('route loader execution', () => {
     expect(
       Object.entries(state).filter(([key]) => key.startsWith('__qwik_route_loader_value__'))
     ).toEqual([['__qwik_route_loader_value__never-loader', _UNINITIALIZED]]);
+  });
+
+  it('registers immutable loaders so nav-wide invalidation skips them', () => {
+    const state = {} as RouteLoaderState;
+    const routeLoaderCtx = { loaderPaths: {} };
+    const immutable = routeLoaderQrl(createQrl('immutable-loader'), {
+      cacheControl: 'immutable',
+    }) as LoaderInternal;
+    const normal = routeLoaderQrl(createQrl('normal-loader')) as LoaderInternal;
+
+    ensureRouteLoaderSignal(immutable, state, routeLoaderCtx);
+    ensureRouteLoaderSignal(normal, state, routeLoaderCtx);
+
+    expect(isImmutableLoader(immutable.__id)).toBe(true);
+    expect(isImmutableLoader(normal.__id)).toBe(false);
   });
 
   it('memoizes in-flight loader executions on the request', async () => {

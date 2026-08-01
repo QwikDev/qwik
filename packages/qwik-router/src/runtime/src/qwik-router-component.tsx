@@ -88,6 +88,7 @@ import spaInit from './spa-init';
 import {
   clearNavFetchCache,
   ensureRouteLoaderSignals,
+  isImmutableLoader,
   setLoaderSignalValue,
   updateRouteLoaderPaths,
 } from './route-loaders';
@@ -612,9 +613,12 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       if (!isServer) {
         // Every nav invalidates every loader: the browser HTTP cache (driven by each
         // loader's cacheControl) decides freshness. Unsubscribed signals only mark
-        // stale and refetch lazily when read again.
+        // stale and refetch lazily when read again. Immutable loaders are skipped —
+        // their data cannot change until a rebuild; tracked URL inputs still invalidate them.
         for (const id in loaderState) {
-          loaderState[id].invalidate();
+          if (!isImmutableLoader(id)) {
+            loaderState[id].invalidate();
+          }
         }
       }
       if (shouldInvalidateActionLoaders) {

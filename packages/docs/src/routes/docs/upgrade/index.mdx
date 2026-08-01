@@ -286,6 +286,37 @@ const fake = createSignal(0);
 
 The `client.devInput` option of `qwikVite()` (v1 default `src/entry.dev.tsx`) is gone. Remove it from `vite.config.ts`. For SSR apps the dev server renders through `ssr.input`; for CSR apps (`csr: true`) it uses Vite's `index.html`.
 
+### Module-level variable mutated inside a closure no longer builds
+
+The v2 Optimizer extracts closures more aggressively than v1. If an extracted closure mutates an exported module-level `let`, the Optimizer rewrites the reference as an `import`, and assigning to an import binding fails at build time — a path v1's less aggressive extraction didn't reach.
+
+```tsx
+// Fails to build in v2
+export let count = 0;
+component$(() => {
+  return <button onClick$={() => count++}>{count}</button>;
+});
+```
+
+Move the mutation into an exported accessor function in a separate module:
+
+```tsx
+// counter.ts
+let count = 0;
+export const getCount = () => count;
+export const incrementCount = () => count++;
+```
+
+```tsx
+import { getCount, incrementCount } from './counter';
+
+component$(() => {
+  return <button onClick$={() => incrementCount()}>{getCount()}</button>;
+});
+```
+
+See [Module-level variables cannot be mutated after extraction](../../advanced/dollar/index.mdx#module-level-variables-cannot-be-mutated-after-extraction).
+
 ### Serialization
 
 v1 serialized state into `<script type="qwik/json">` tags. v2 uses `<script type="qwik/vnode">` and `<script type="qwik/state">` at the end of the document. No code change needed, but tooling that parses the old tags will need updating.
@@ -524,6 +555,10 @@ A `{ value }` object literal used where a `Signal` is expected. See [Signal is a
 ### Cannot read properties of null (reading 'value') in a test
 
 `event.target` is `null` under `trigger()`. See [event.target is not populated](#eventtarget-is-not-populated).
+
+### Cannot assign to import ... / Illegal reassignment of import ...
+
+A module-level `let` mutated inside a `$`-extracted closure. The exact wording depends on the bundler: esbuild says `Cannot assign to import "x"`, Rollup/Rolldown say `Illegal reassignment of import "x"`. See [Module-level variable mutated inside a closure no longer builds](#module-level-variable-mutated-inside-a-closure-no-longer-builds).
 
 ### Move qwik packages [...] to devDependencies
 

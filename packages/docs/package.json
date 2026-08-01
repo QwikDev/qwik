@@ -46,7 +46,7 @@
     "prettier": "3.7.4",
     "prism-themes": "1.9.0",
     "prismjs": "1.30.0",
-    "qwik-image": "0.0.16",
+    "qwik-image": "2.0.4",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "shiki": "4.0.2",

@@ -402,14 +402,14 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   }
 
   resolveContext<T>(host: VNode, contextId: ContextId<T>): T | undefined {
-    while (host) {
-      const ctx = this.getHostProp<Array<string | unknown>>(host, QCtxAttr);
-      if (ctx != null && mapArray_has(ctx, contextId.id, 0)) {
-        return mapArray_get(ctx, contextId.id, 0) as T;
-      }
-      host = this.getParentHost(host)!;
-    }
-    return undefined;
+    const found = this.resolveContextHost(host, contextId);
+    return found
+      ? (mapArray_get(
+          this.getHostProp<Array<string | unknown>>(found, QCtxAttr)!,
+          contextId.id,
+          0
+        ) as T)
+      : undefined;
   }
 
   resolveContextHost(host: VNode, contextId: ContextId<unknown>): VNode | null {

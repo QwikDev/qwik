@@ -528,8 +528,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   ): SSRSegmentContainer {
     const rootContainer = this.$getRootContainer$();
     const contentHostNode = this.getOrCreateLastNode();
-    this.addRoot(contentHostNode);
-    this.markVNodeRefForSerialization(contentHostNode);
+    this.$retainForResume$(contentHostNode);
     const rootFrame: ElementFrame = {
       tagNesting: TagNesting.ANYTHING,
       parent: null,

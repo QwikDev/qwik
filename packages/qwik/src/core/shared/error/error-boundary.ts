@@ -9,6 +9,7 @@ import { isServerPlatform } from '../platform/platform';
 import { inlinedQrl } from '../qrl/qrl';
 import type { QRL } from '../qrl/qrl.public';
 import { noSerialize } from '../serdes/verify';
+import { isPromise } from '../utils/promises';
 import {
   QErrorContentHost,
   QErrorFallbackHost,
@@ -73,8 +74,8 @@ const renderFallbackOrLastResort = (
   reset: QRL<() => void>
 ): JSXOutput | Promise<JSXOutput> => {
   const rendered = fallbackQrl(error, reset) as JSXOutput | Promise<JSXOutput>;
-  if (rendered && typeof (rendered as Promise<JSXOutput>).then === 'function') {
-    return (rendered as Promise<JSXOutput>).catch((err) => {
+  if (isPromise<JSXOutput>(rendered)) {
+    return rendered.catch((err) => {
       if ((fallbackQrl as { resolved?: unknown }).resolved !== undefined) {
         throw err;
       }

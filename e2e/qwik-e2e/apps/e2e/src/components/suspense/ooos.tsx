@@ -9,7 +9,7 @@ import {
   type Signal,
 } from '@qwik.dev/core';
 import { SSRRaw, SSRStream, type SSRStreamWriter } from '@qwik.dev/core/internal';
-import { waitForRelease } from '../../../../../release-gate';
+import { waitForRelease } from '../../../../../utils/release-gate';
 
 const getSearchParam = (url: string | undefined, name: string): string | null => {
   return url ? new URL(url).searchParams.get(name) : null;

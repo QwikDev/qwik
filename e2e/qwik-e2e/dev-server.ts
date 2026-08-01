@@ -13,7 +13,7 @@ import { join, relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { build, type InlineConfig, type PluginOption } from 'vite';
 import type { PackageJSON } from '../../scripts/types.ts';
-import { getReleaseKey, getReleaseStore } from './release-gate.ts';
+import { getReleaseKey, getReleaseStore } from './utils/release-gate.ts';
 
 const isWindows = process.platform === 'win32';
 

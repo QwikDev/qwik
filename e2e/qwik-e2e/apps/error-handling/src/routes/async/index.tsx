@@ -7,7 +7,7 @@ import {
   useSignal,
   type JSXOutput,
 } from '@qwik.dev/core';
-import { releaseGated } from '../../../../../release-gate';
+import { releaseGated } from '../../../../../utils/release-gate';
 import { defaultFallback } from '../../components/error-boundary/error-boundary';
 import { ReleaseButton } from '../../components/release/release';
 

@@ -1,5 +1,5 @@
 import { component$, isServer, type JSXOutput } from '@qwik.dev/core';
-import { releaseGated } from '../../../../../release-gate';
+import { releaseGated } from '../../../../../utils/release-gate';
 
 // Raw inline onclick on purpose: the held stream means no framework JS has loaded yet.
 export const ReleaseButton = component$<{

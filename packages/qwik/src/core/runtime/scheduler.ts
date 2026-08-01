@@ -1,7 +1,7 @@
 import { cleanupDeps } from '../reactive/cleanup';
 import { OwnerFlags, SubscriberFlags } from '../reactive/flags';
 import { logError } from '../shared/utils/log';
-import { isPromise } from '../shared/utils/promises';
+import { isPromise, maybeThen } from '../shared/utils/promises';
 import type { ValueOrPromise } from '../shared/utils/types';
 import { Owner, ownerItemAt, ownerItemsLength, type OwnerItems } from './owner';
 import { SubscriberKind, takeDirty } from './subscriber';
@@ -142,7 +142,10 @@ export class Scheduler {
         }
 
         try {
-          await this.flushOwner(owner);
+          const pending = this.flushOwner(owner);
+          if (isPromise(pending)) {
+            await pending;
+          }
         } catch (error) {
           owner.flags &= ~OwnerFlags.Queued;
           throw error;
@@ -161,21 +164,25 @@ export class Scheduler {
     }
   }
 
-  private async flushOwner(owner: Owner): Promise<void> {
+  private flushOwner(owner: Owner): ValueOrPromise<void> {
     const stack: OwnerFrame[] = [];
     pushOwnerFrame(stack, owner);
+    return this.drainOwnerStack(stack);
+  }
 
+  private drainOwnerStack(stack: OwnerFrame[]): ValueOrPromise<void> {
     while (stack.length > 0) {
       const frame = stack[stack.length - 1];
 
       if (frame.items === null) {
-        if ((frame.owner.flags & OwnerFlags.DirtyMask) === OwnerFlags.DirtyScalarDom) {
-          const pending = this.flushScalarDom(frame.owner);
-          if (isPromise(pending)) {
-            await pending;
-          }
-        } else {
-          await this.flushOwnerPhases(frame.owner);
+        const pending = this.flushOwnerPhases(frame.owner);
+        if (isPromise(pending)) {
+          // Snapshot items only once the phases have settled, exactly as the await did.
+          return pending.then(() => {
+            frame.items = frame.owner.items;
+            frame.end = ownerItemsLength(frame.items);
+            return this.drainOwnerStack(stack);
+          });
         }
         frame.items = frame.owner.items;
         frame.end = ownerItemsLength(frame.items);
@@ -202,15 +209,19 @@ export class Scheduler {
     }
   }
 
-  private async flushOwnerPhases(owner: Owner): Promise<void> {
-    await this.flushBlockingTasks(owner);
-    await this.flushStructuralDom(owner);
-    await this.flushScalarDom(owner);
-    this.flushVisibleTasks(owner);
-    this.flushDeferredTasks(owner);
+  // Phase order is blocking -> structural -> scalar -> visible -> deferred.
+  private flushOwnerPhases(owner: Owner): ValueOrPromise<void> {
+    return maybeThen(this.flushBlockingTasks(owner), () =>
+      maybeThen(this.flushStructuralDom(owner), () =>
+        maybeThen(this.flushScalarDom(owner), () => {
+          this.flushVisibleTasks(owner);
+          this.flushDeferredTasks(owner);
+        })
+      )
+    );
   }
 
-  private async flushBlockingTasks(owner: Owner): Promise<void> {
+  private flushBlockingTasks(owner: Owner): ValueOrPromise<void> {
     if (!(owner.flags & OwnerFlags.DirtyBlockingTask)) {
       return;
     }
@@ -221,20 +232,28 @@ export class Scheduler {
       return;
     }
 
-    const end = ownerItemsLength(items);
-    for (let i = 0; i < end && i < ownerItemsLength(items); i++) {
+    return this.runBlockingTasksFrom(items, ownerItemsLength(items), 0);
+  }
+
+  /** Blocking tasks run strictly in order, so a suspending one resumes the rest. */
+  private runBlockingTasksFrom(items: OwnerItems, end: number, from: number): ValueOrPromise<void> {
+    for (let i = from; i < end && i < ownerItemsLength(items); i++) {
       const item = ownerItemAt(items, i)!;
       if (
         !(item instanceof Owner) &&
         item.kind === SubscriberKind.Task &&
         item.task.phase === Phase.BlockingTask
       ) {
-        await this.runTask(item);
+        const result = item.run();
+        if (isPromise(result)) {
+          const next = i + 1;
+          return result.then(() => this.runBlockingTasksFrom(items, end, next));
+        }
       }
     }
   }
 
-  private async flushStructuralDom(owner: Owner): Promise<void> {
+  private flushStructuralDom(owner: Owner): ValueOrPromise<void> {
     if (!(owner.flags & OwnerFlags.DirtyStructuralDom)) {
       return;
     }
@@ -245,8 +264,12 @@ export class Scheduler {
       return;
     }
 
-    const end = ownerItemsLength(items);
-    for (let i = 0; i < end && i < ownerItemsLength(items); i++) {
+    return this.runStructuralDomFrom(items, ownerItemsLength(items), 0);
+  }
+
+  /** Structural work runs in order too: a suspending branch holds back its siblings. */
+  private runStructuralDomFrom(items: OwnerItems, end: number, from: number): ValueOrPromise<void> {
+    for (let i = from; i < end && i < ownerItemsLength(items); i++) {
       const item = ownerItemAt(items, i)!;
       if (
         item instanceof Owner ||
@@ -259,7 +282,11 @@ export class Scheduler {
       const subscriber = item as StructuralSubscriber;
       if (takeDirty(subscriber)) {
         cleanupDeps(subscriber);
-        await subscriber.run();
+        const result = subscriber.run();
+        if (isPromise(result)) {
+          const next = i + 1;
+          return result.then(() => this.runStructuralDomFrom(items, end, next));
+        }
       }
     }
   }
@@ -308,7 +335,7 @@ export class Scheduler {
     for (let i = 0; i < end && i < ownerItemsLength(items); i++) {
       const item = ownerItemAt(items, i)!;
       if (!(item instanceof Owner) && item.kind === SubscriberKind.VisibleTask) {
-        this.runTask(item).catch(logError);
+        this.runDetached(item);
       }
     }
   }
@@ -333,13 +360,21 @@ export class Scheduler {
       if (item.kind === SubscriberKind.Idle && takeDirty(item)) {
         void item.job.run();
       } else if (item.kind === SubscriberKind.Task && item.task.phase === Phase.DeferredTask) {
-        this.runTask(item).catch(logError);
+        this.runDetached(item);
       }
     }
   }
 
-  private async runTask(task: TaskSubscriber | VisibleTaskSubscriber): Promise<void> {
-    await task.run();
+  /** Fire-and-forget phases report failures rather than propagating them into the flush. */
+  private runDetached(task: TaskSubscriber | VisibleTaskSubscriber): void {
+    try {
+      const result = task.run();
+      if (isPromise(result)) {
+        result.catch(logError);
+      }
+    } catch (error) {
+      logError(error);
+    }
   }
 
   private readonly flushScheduled = (): void => {

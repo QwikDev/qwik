@@ -18,6 +18,7 @@ import {
   getTestTarget,
   hasCompiledTestTarget,
   renderSsrToDom,
+  settleScheduler,
 } from '../testing/resume-session';
 import type { CsrRenderRoot } from './csr-render';
 import type { BranchRange } from './dom/branch/branch';
@@ -575,7 +576,8 @@ function withSchedulerFlush(
   return {
     async dispatch(target, type, payload) {
       const event = await qwikLoader.dispatch(target, type, payload);
-      await scheduler.flushInteraction();
+      // Drain like the SSR harness: visible tasks settle after the flush, not inside it.
+      await settleScheduler(scheduler);
       return event;
     },
     cleanup: () => qwikLoader.cleanup(),

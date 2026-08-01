@@ -319,7 +319,7 @@ function withSchedulerFlush(
   };
 }
 
-async function settleScheduler(scheduler: Scheduler): Promise<void> {
+export async function settleScheduler(scheduler: Scheduler): Promise<void> {
   // ponytail: test-only drain until Scheduler exposes an idle promise.
   for (let i = 0; i < 50; i++) {
     await scheduler.flushInteraction();

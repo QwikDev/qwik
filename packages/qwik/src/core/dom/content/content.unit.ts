@@ -364,27 +364,21 @@ describe('createSuspense', () => {
     expect(setup.host.textContent).toBe('ready');
   });
 
-  it('disposes rejected content and reports the error', async () => {
-    const reported = deferred<void>();
-    const report = vi.fn(() => reported.resolve());
-    vi.stubGlobal('reportError', report);
-    try {
-      const pending = deferred<Node>();
-      const { content, host, start, end } = setupSuspense(
-        renderQrl(() => pending.promise),
-        renderQrl(() => textNode('loading'))
-      );
-      const error = new Error('content failed');
+  it('disposes rejected content and rethrows through the scheduler', async () => {
+    const pending = deferred<Node>();
+    const { content, host, start, end, scheduler } = setupSuspense(
+      renderQrl(() => pending.promise),
+      renderQrl(() => textNode('loading'))
+    );
+    const error = new Error('content failed');
 
-      pending.reject(error);
-      await reported.promise;
+    pending.reject(error);
+    // The rejection reaches the scheduler several promise hops later.
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(Array.from(host.childNodes)).toEqual([start, end]);
-      expect(content.block.currentOwner).toBeNull();
-      expect(report).toHaveBeenCalledWith(error);
-    } finally {
-      vi.unstubAllGlobals();
-    }
+    await expect(scheduler.flushInteraction()).rejects.toThrow(error);
+    expect(Array.from(host.childNodes)).toEqual([start, end]);
+    expect(content.block.currentOwner).toBeNull();
   });
 
   it('keeps resolved content stale during later updates without fallback', async () => {

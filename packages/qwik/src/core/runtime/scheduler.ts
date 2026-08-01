@@ -97,6 +97,8 @@ export class Scheduler {
   waitFor(value: ValueOrPromise<unknown>): void {
     if (isPromise(value)) {
       (this.pendingPromises ??= []).push(value);
+      // Own it on queue; the flush that awaits it can be many turns away.
+      value.catch(() => {});
       this.scheduleFlush();
     }
   }

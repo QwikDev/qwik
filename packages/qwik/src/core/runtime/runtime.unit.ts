@@ -109,6 +109,16 @@ describe('runtime scheduler and owner lifecycle', () => {
     await expect(scheduler.flushInteraction()).rejects.toThrow('one-shot failed');
   });
 
+  // An unowned queued rejection fails the whole run, not just this test.
+  it('owns a queued rejection until the flush awaits it', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    scheduler.waitFor(Promise.reject(new Error('deferred failure')));
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    await expect(scheduler.flushInteraction()).rejects.toThrow('deferred failure');
+  });
+
   it('starts all scalar promises before waiting for them', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const owner = createOwner();

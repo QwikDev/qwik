@@ -289,7 +289,8 @@ export function createSuspense(
   content.then(finish, (error) => {
     finish();
     subscription.block.dispose();
-    reportError(error);
+    // Only the rejection goes to the scheduler; awaiting the content would block the fallback.
+    ctx.scheduler.waitFor(Promise.reject(error));
   });
   return subscription;
 }

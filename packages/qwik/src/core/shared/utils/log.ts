@@ -22,28 +22,9 @@ export const logErrorAndStop = (message?: any, ...optionalParams: any[]) => {
   return err;
 };
 
-const _printed = /*#__PURE__*/ new Set<string>();
-
-export const logOnceWarn = (message?: any, ...optionalParams: any[]) => {
-  if (qDev) {
-    const key = 'warn' + String(message);
-    if (!_printed.has(key)) {
-      _printed.add(key);
-      logWarn(message, ...optionalParams);
-    }
-  }
-};
-
 export const logWarn = (message?: any, ...optionalParams: any[]) => {
   if (qDev) {
     console.warn('%cQWIK WARN', STYLE, message, ...optionalParams);
-  }
-};
-
-export const logDebug = (message?: string, ...optionalParams: any[]) => {
-  if (qDev) {
-    // eslint-disable-next-line no-console
-    console.debug('%cQWIK', STYLE, message, ...optionalParams);
   }
 };
 

@@ -4,9 +4,6 @@ import { isPreventDefault } from './event-names';
 import { isClassAttr } from './scoped-styles';
 import { isArray, isString } from './types';
 import { isUnitlessNumber } from './unitless_number';
-import { assertQrl } from '../qrl/qrl-utils';
-import type { QRL } from '../qrl/qrl.public';
-import { hashCode } from './hash_code';
 
 export const serializeClass = (obj: ClassList): string => {
   if (!obj) {
@@ -110,8 +107,3 @@ export const setValueForStyle = (styleName: string, value: any) => {
 export function isAriaAttribute(prop: string): boolean {
   return prop.startsWith('aria-');
 }
-
-export const styleKey = (qStyles: QRL<string>, index: number): string => {
-  assertQrl(qStyles);
-  return `${hashCode(qStyles.$hash$)}-${index}`;
-};

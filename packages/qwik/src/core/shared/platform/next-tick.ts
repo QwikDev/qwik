@@ -1,11 +1,3 @@
-/**
- * Creates a function that schedules `fn` to run as a microtask. Microtasks run before browser
- * paint, preventing flickering.
- */
-export const createMicroTask = (fn: () => void) => {
-  return () => queueMicrotask(fn);
-};
-
 export interface MacroTask {
   (): void;
   $destroy$?: () => void;

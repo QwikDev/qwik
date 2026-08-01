@@ -27,15 +27,6 @@ export const enum EventNameHtmlScope {
 export const EVENT_SUFFIX = '$';
 export const DOM_CONTENT_LOADED_EVENT = 'DOMContentLoaded';
 
-export const isJsxPropertyAnEventName = (name: string): boolean => {
-  return (
-    name.endsWith(EVENT_SUFFIX) &&
-    (name.startsWith(EventNameJSXScope.on) ||
-      name.startsWith(EventNameJSXScope.window) ||
-      name.startsWith(EventNameJSXScope.document))
-  );
-};
-
 export const isHtmlAttributeAnEventName = (name: string): boolean => {
   return (
     name.charCodeAt(0) === 113 /* q */ &&
@@ -90,13 +81,6 @@ export const normalizeJsxEventName = (name: string): string => {
             name.slice(1)
           : name.toLowerCase()
       );
-};
-
-export const isDash = (charCode: number): boolean => charCode === 45; /* - */
-
-export const getEventNameScopeFromJsxEvent = (name: string): string => {
-  const index = name.indexOf(':');
-  return index !== -1 ? name.substring(0, index) : '';
 };
 
 export function isPreventDefault(key: string): boolean {

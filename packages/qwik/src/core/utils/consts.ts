@@ -17,7 +17,6 @@ export const enum NodeType {
 export const PassiveEventPrefix = 'passive:';
 export const PreventDefaultEventPrefix = 'preventdefault:';
 export const StopPropagationEventPrefix = 'stoppropagation:';
-export const BindEventPrefix = 'bind:';
 
 export const EventSuffix = '$';
 

@@ -1,14 +1,8 @@
 import { ComponentStylesPrefixContent } from './markers';
 
-type Props = Record<string, unknown>;
-
 export const styleContent = (styleId: string): string => {
   return ComponentStylesPrefixContent + styleId;
 };
-
-export function hasClassAttr(props: Props): boolean {
-  return 'class' in props;
-}
 
 export function isClassAttr(key: string): boolean {
   return key === 'class';

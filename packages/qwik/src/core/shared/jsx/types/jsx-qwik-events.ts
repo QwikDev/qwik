@@ -73,8 +73,6 @@ export type LiteralUnion<LiteralType, BaseType extends Primitive> =
  */
 export type KnownEventNames = LiteralUnion<AllEventKeys, string>;
 
-// Deprecated old types
-export type SyntheticEvent<T = Element, E = Event> = E & { target: EventTarget & T };
 /** @public @deprecated Use `AnimationEvent` and use the second argument to the handler function for the current event target */
 export type NativeAnimationEvent = AnimationEvent;
 /** @public @deprecated Use `ClipboardEvent` and use the second argument to the handler function for the current event target */

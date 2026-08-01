@@ -236,7 +236,11 @@ export class Scheduler {
   }
 
   /** Blocking tasks run strictly in order, so a suspending one resumes the rest. */
-  private runBlockingTasksFrom(items: OwnerItems, end: number, from: number): ValueOrPromise<void> {
+  private runBlockingTasksFrom(
+    items: NonNullable<OwnerItems>,
+    end: number,
+    from: number
+  ): ValueOrPromise<void> {
     for (let i = from; i < end && i < ownerItemsLength(items); i++) {
       const item = ownerItemAt(items, i)!;
       if (
@@ -268,7 +272,11 @@ export class Scheduler {
   }
 
   /** Structural work runs in order too: a suspending branch holds back its siblings. */
-  private runStructuralDomFrom(items: OwnerItems, end: number, from: number): ValueOrPromise<void> {
+  private runStructuralDomFrom(
+    items: NonNullable<OwnerItems>,
+    end: number,
+    from: number
+  ): ValueOrPromise<void> {
     for (let i = from; i < end && i < ownerItemsLength(items); i++) {
       const item = ownerItemAt(items, i)!;
       if (

@@ -149,7 +149,6 @@ describe('SsrScheduler', () => {
     await Promise.resolve();
     const source = (subscriber.effect as SsrAttrEffect).source!;
     source.v = 'final';
-    source.version++;
     lane.notify(subscriber);
     lane.flush();
     await lane.settle();

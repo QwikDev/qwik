@@ -7,19 +7,15 @@ import {
   useSignal,
   type JSXOutput,
 } from '@qwik.dev/core';
+import { releaseGated } from '../../../../../release-gate';
 import { defaultFallback } from '../../components/error-boundary/error-boundary';
-import { ReleaseButton, waitForRelease } from '../../components/release/release';
+import { ReleaseButton } from '../../components/release/release';
 
 const EbAsyncThrower = component$<{ requestId: string; releaseId: string | null }>(
   ({ requestId, releaseId }) => {
     if (isServer) {
-      if (releaseId) {
-        return waitForRelease(requestId, releaseId).then(() => {
-          throw new Error('eb async boom');
-        }) as unknown as JSXOutput;
-      }
-      return new Promise<JSXOutput>((_resolve, reject) => {
-        setTimeout(() => reject(new Error('eb async boom')), 1000);
+      return releaseGated(requestId, releaseId, (): JSXOutput => {
+        throw new Error('eb async boom');
       }) as unknown as JSXOutput;
     }
     return <span id="eb-async-client" />;

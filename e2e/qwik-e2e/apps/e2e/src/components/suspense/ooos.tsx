@@ -9,41 +9,10 @@ import {
   type Signal,
 } from '@qwik.dev/core';
 import { SSRRaw, SSRStream, type SSRStreamWriter } from '@qwik.dev/core/internal';
-
-type OutOfOrderReleaseStore = {
-  resolved: Set<string>;
-  resolvers: Map<string, Set<() => void>>;
-};
-
-// dev-server.ts resolves this store via POST /__ooos-release; keep the shape in sync.
-const getOutOfOrderReleaseStore = (): OutOfOrderReleaseStore =>
-  ((globalThis as any).__qwikOOOSReleaseStore ||= {
-    resolved: new Set<string>(),
-    resolvers: new Map<string, Set<() => void>>(),
-  });
-
-const getOutOfOrderReleaseKey = (requestId: string, releaseId: string): string => {
-  return `${requestId}:${releaseId}`;
-};
+import { waitForRelease } from '../../../../../release-gate';
 
 const getSearchParam = (url: string | undefined, name: string): string | null => {
   return url ? new URL(url).searchParams.get(name) : null;
-};
-
-const waitForRelease = (requestId: string, releaseId: string): Promise<void> => {
-  return new Promise<void>((resolve) => {
-    const store = getOutOfOrderReleaseStore();
-    const key = getOutOfOrderReleaseKey(requestId, releaseId);
-    if (store.resolved.has(key)) {
-      resolve();
-    } else {
-      let resolvers = store.resolvers.get(key);
-      if (!resolvers) {
-        store.resolvers.set(key, (resolvers = new Set()));
-      }
-      resolvers.add(resolve);
-    }
-  });
 };
 
 const waitForOutOfOrderRelease = (

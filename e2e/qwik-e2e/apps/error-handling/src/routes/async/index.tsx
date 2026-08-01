@@ -8,40 +8,7 @@ import {
   type JSXOutput,
 } from '@qwik.dev/core';
 import { defaultFallback } from '../../components/error-boundary/error-boundary';
-
-const releaseStore = () =>
-  ((globalThis as any).__qwikOOOSReleaseStore ||= {
-    resolved: new Set<string>(),
-    resolvers: new Map<string, Set<() => void>>(),
-  });
-
-const waitForRelease = (requestId: string, releaseId: string): Promise<void> =>
-  new Promise<void>((resolve) => {
-    const store = releaseStore();
-    const key = `${requestId}:${releaseId}`;
-    if (store.resolved.has(key)) {
-      resolve();
-    } else {
-      let resolvers = store.resolvers.get(key);
-      if (!resolvers) {
-        store.resolvers.set(key, (resolvers = new Set()));
-      }
-      resolvers.add(resolve);
-    }
-  });
-
-const ReleaseButton = component$<{ id: string; requestId: string; releaseId: string | null }>(
-  ({ id, requestId, releaseId }) => {
-    if (!releaseId) {
-      return null;
-    }
-    const releaseUrl = `/__ooos-release/${encodeURIComponent(requestId)}/${encodeURIComponent(
-      releaseId
-    )}`;
-    const html = `<button id="${id}" data-release-url="${releaseUrl}" onclick="fetch(this.getAttribute('data-release-url'),{method:'POST'})">Release deferred throw</button>`;
-    return <span dangerouslySetInnerHTML={html} />;
-  }
-);
+import { ReleaseButton, waitForRelease } from '../../components/release/release';
 
 const EbAsyncThrower = component$<{ requestId: string; releaseId: string | null }>(
   ({ requestId, releaseId }) => {
@@ -73,7 +40,12 @@ export default component$(() => {
           <EbAsyncThrower requestId={requestId} releaseId={releaseId} />
         </Suspense>
       </ErrorBoundary>
-      <ReleaseButton id="eb-release" requestId={requestId} releaseId={releaseId} />
+      <ReleaseButton
+        id="eb-release"
+        requestId={requestId}
+        releaseId={releaseId}
+        label="Release deferred throw"
+      />
     </>
   );
 });

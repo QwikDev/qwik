@@ -450,7 +450,6 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
   }
 
   private notify(): void {
-    this.version++;
     notifySourceSubscribers(this);
   }
 

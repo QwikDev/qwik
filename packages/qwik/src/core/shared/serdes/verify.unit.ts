@@ -124,7 +124,6 @@ describe('verifySerializable', () => {
     it('should throw for class instances shaped like reactive sources', () => {
       class SourceLike {
         v = 1;
-        version = 0;
         subs = null;
       }
 

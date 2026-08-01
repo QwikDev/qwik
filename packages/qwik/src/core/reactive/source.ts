@@ -6,7 +6,6 @@ export type SourceSubs = SourceSub | SourceSub[] | null;
 
 export interface Source<T = unknown> {
   v: T;
-  version: number;
   subs: SourceSubs;
 }
 

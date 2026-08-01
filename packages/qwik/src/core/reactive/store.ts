@@ -19,7 +19,6 @@ const proxyToRaw = new WeakMap<object, object>();
 const rawToSources = new WeakMap<object, Map<PropertyKey, StorePropSource>>();
 
 export class StorePropSource<T = unknown> implements Source<T> {
-  version = 0;
   subs: SourceSubs = null;
 
   constructor(
@@ -36,7 +35,6 @@ export class StorePropSource<T = unknown> implements Source<T> {
   }
 
   notify(): void {
-    this.version++;
     notifySourceSubscribers(this);
   }
 }
@@ -128,7 +126,6 @@ export function bindStoreSource<T>(
   }
   const existing = sources.get(prop);
   if (existing !== undefined && existing !== source) {
-    source.version = existing.version;
     source.subs = existing.subs;
   }
   source.target = raw;

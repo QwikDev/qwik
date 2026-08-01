@@ -63,13 +63,11 @@ describe('reactive primitives', () => {
     count.value = 0;
 
     expect(notifications).toBe(0);
-    expect(count.version).toBe(0);
 
     count.value = 1;
     await scheduler.flushInteraction();
 
     expect(notifications).toBe(1);
-    expect(count.version).toBe(1);
   });
 
   it('stores one source subscriber without allocating an array', () => {
@@ -124,6 +122,7 @@ describe('reactive primitives', () => {
 
     expect(collector.deps).toEqual([source]);
     expect(collector).not.toHaveProperty('depVersions');
+    expect(source).not.toHaveProperty('version');
   });
 
   it('keeps computed values lazy and cached until a dependency changes', () => {
@@ -148,8 +147,6 @@ describe('reactive primitives', () => {
     expect(runs).toBe(1);
     expect(doubled.value).toBe(4);
     expect(runs).toBe(2);
-    // Version counts value changes; the first materialization does not bump it.
-    expect(doubled.version).toBe(1);
   });
 
   it('supports async computed values and keeps stale values while pending', async () => {

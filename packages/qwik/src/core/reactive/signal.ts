@@ -5,7 +5,6 @@ import { track } from './tracking';
 /** @public */
 export class Signal<T> implements Source<T> {
   v: T;
-  version = 0;
   subs: SourceSubs = null;
 
   constructor(value: T) {
@@ -23,7 +22,6 @@ export class Signal<T> implements Source<T> {
     }
 
     this.v = next;
-    this.version++;
     notifySourceSubscribers(this);
   }
 

@@ -62,6 +62,7 @@
 - [Builder.io](integrations/builderio/index.mdx)
 - [Cypress](integrations/cypress/index.mdx)
 - [Drizzle](integrations/drizzle/index.mdx)
+- [Formisch](integrations/formisch/index.mdx)
 - [i18n](integrations/i18n/index.mdx)
 - [Icons](integrations/icons/index.mdx)
 - [Image Optimization](integrations/image-optimization/index.mdx)

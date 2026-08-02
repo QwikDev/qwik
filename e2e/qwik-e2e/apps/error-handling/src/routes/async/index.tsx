@@ -36,12 +36,7 @@ export default component$(() => {
           <EbAsyncThrower requestId={requestId} releaseId={releaseId} />
         </Suspense>
       </ErrorBoundary>
-      <ReleaseButton
-        id="eb-release"
-        requestId={requestId}
-        releaseId={releaseId}
-        label="Release deferred throw"
-      />
+      <ReleaseButton requestId={requestId} releaseId={releaseId} label="Release deferred throw" />
     </>
   );
 });

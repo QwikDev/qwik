@@ -3,18 +3,17 @@ import { releaseGated } from '../../../../../utils/release-gate';
 
 // Raw inline onclick on purpose: the held stream means no framework JS has loaded yet.
 export const ReleaseButton = component$<{
-  id: string;
   requestId: string;
   releaseId: string | null;
   label: string;
-}>(({ id, requestId, releaseId, label }) => {
+}>(({ requestId, releaseId, label }) => {
   if (!releaseId) {
     return null;
   }
   const releaseUrl = `/__ooos-release/${encodeURIComponent(requestId)}/${encodeURIComponent(
     releaseId
   )}`;
-  const html = `<button id="${id}" data-release-url="${releaseUrl}" onclick="fetch(this.getAttribute('data-release-url'),{method:'POST'})">${label}</button>`;
+  const html = `<button id="eb-release" data-release-url="${releaseUrl}" onclick="fetch(this.getAttribute('data-release-url'),{method:'POST'})">${label}</button>`;
   return <span dangerouslySetInnerHTML={html} />;
 });
 

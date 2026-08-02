@@ -9,8 +9,8 @@ import { isServerPlatform } from '../platform/platform';
 import { inlinedQrl } from '../qrl/qrl';
 import type { QRL } from '../qrl/qrl.public';
 import { noSerialize } from '../serdes/verify';
-import { isPromise } from '../utils/promises';
 import {
+  OnRenderProp,
   QErrorContentHost,
   QErrorFallbackHost,
   QSuspenseResolved,
@@ -20,19 +20,31 @@ import { qTest } from '../utils/qdev';
 import { isOutOfOrderSegmentContainer } from '../utils/container';
 import { createInternalServerComponent } from '../../ssr/internal-server-component';
 import { finalizeAndSwapOutOfOrderSegment } from '../../ssr/out-of-order-segment-swap';
-import type { SSRContainer, SSROutOfOrderSegment } from '../../ssr/ssr-types';
+import type { SSRContainer } from '../../ssr/ssr-types';
 import { tryGetInvokeContext } from '../../use/use-core';
-import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { getNextUniqueIndex } from '../utils/unique-index-generator';
 import { getStoreTarget } from '../../reactive-primitives/impl/store';
 import {
+  vnode_getProjectionParentOrParent,
+  vnode_getProp,
+  vnode_isProjection,
+  vnode_isVirtualVNode,
+} from '../../client/vnode-utils';
+import { ChoreBits } from '../vnode/enums/chore-bits.enum';
+import { markVNodeDirty } from '../vnode/vnode-dirty';
+import {
+  ERROR_CONTEXT,
   ERROR_BOUNDARY_QRL_SYMBOL,
+  getOwnErrorBoundaryStore,
   isErrorFromDeferredSegment,
   markBoundaryErrored,
   redactBoundaryErrorForDisplay,
   type ErrorBoundaryInfo,
   type ErrorBoundaryStore,
 } from './error-handling';
+import { _captures } from '../qrl/qrl-class';
+import type { DomContainer } from '../../client/dom-container';
+import type { VNode } from '../vnode/vnode';
 
 /** @public @experimental */
 export interface ErrorBoundaryProps {
@@ -56,46 +68,93 @@ export interface ErrorBoundaryProps {
 
 /** @internal */
 export const errorBoundaryReset = (): void => {
-  const [host] = useLexicalScope<[unknown]>();
-  const container = tryGetInvokeContext()?.$container$ as
-    | { resetErrorBoundary?: (host: unknown) => void }
-    | undefined;
-  if (container?.resetErrorBoundary && host) {
-    container.resetErrorBoundary(host);
+  const [host] = _captures as [VNode];
+  // this is executed only on client
+  const container = tryGetInvokeContext()?.$container$ as DomContainer | undefined;
+  const isBrowserEnv = qTest ? !isServerPlatform() : isBrowser;
+  if (isBrowserEnv && host && container) {
+    resetErrorBoundary(container, host);
   }
 };
 
-const buildLastResortFallback = (): JSXOutput =>
-  /*#__PURE__*/ _jsxSorted('div', { role: 'alert' }, null, 'Something went wrong.', 0, null);
+/** @internal */
+export function resetErrorBoundary(container: DomContainer, host: VNode): void {
+  const boundaryHost = container.resolveContextHost(host, ERROR_CONTEXT);
+  if (!boundaryHost) {
+    return;
+  }
+  const store = getOwnErrorBoundaryStore(container, boundaryHost);
+  if (!store) {
+    return;
+  }
+  let recordedContentOwner: VNode | null = null;
+  if (store.projectedContentOwnerId) {
+    try {
+      recordedContentOwner = container.vNodeLocate(store.projectedContentOwnerId);
+    } catch {
+      // ignore
+    }
+  }
+  const owner = findBoundaryContentOwner(container, boundaryHost) ?? recordedContentOwner;
+  // An ownerless reset recovers through projection re-scheduling.
+  owner && markVNodeDirty(container, owner, ChoreBits.COMPONENT);
+  markVNodeDirty(container, boundaryHost, ChoreBits.COMPONENT);
+  // Only the recorded owner can re-supply projected children.
+  if (recordedContentOwner && recordedContentOwner !== owner) {
+    markVNodeDirty(container, recordedContentOwner, ChoreBits.COMPONENT);
+  }
+  store.error = undefined;
+}
+
+function findBoundaryContentOwner(container: DomContainer, host: VNode): VNode | null {
+  let vNode: VNode | null = vnode_getProjectionParentOrParent(host);
+  let crossedProjection = false;
+  while (vNode) {
+    if (vnode_isVirtualVNode(vNode)) {
+      if (vnode_isProjection(vNode)) {
+        crossedProjection = true;
+      } else if (vnode_getProp(vNode, OnRenderProp, null) !== null) {
+        if (!crossedProjection && ownsRenderedContent(container, vNode)) {
+          return vNode;
+        }
+        crossedProjection = false;
+      }
+    }
+    vNode = vnode_getProjectionParentOrParent(vNode);
+  }
+  return null;
+}
+
+function ownsRenderedContent(container: DomContainer, host: VNode): boolean {
+  const store = getOwnErrorBoundaryStore(container, host);
+  return !store || store.error !== undefined;
+}
 
 const renderFallbackOrLastResort = (
   fallbackQrl: ErrorBoundaryProps['fallback$'],
   error: Error,
   reset: QRL<() => void>
 ): JSXOutput | Promise<JSXOutput> => {
-  const rendered = fallbackQrl(error, reset) as JSXOutput | Promise<JSXOutput>;
-  if (isPromise<JSXOutput>(rendered)) {
-    return rendered.catch((err) => {
-      if ((fallbackQrl as { resolved?: unknown }).resolved !== undefined) {
-        throw err;
-      }
-      return buildLastResortFallback();
-    });
-  }
-  return rendered;
+  return fallbackQrl(error, reset).catch((err) => {
+    if (fallbackQrl.resolved !== undefined) {
+      throw err;
+    }
+    return /*#__PURE__*/ _jsxSorted(
+      'div',
+      { role: 'alert' },
+      null,
+      'Something went wrong.',
+      0,
+      null
+    );
+  });
 };
 
-// Boundary ids draw from the container's shared out-of-order sequence (nextOutOfOrderId(false)).
-const nextErrorBoundaryId = (): number => {
-  if (!__EXPERIMENTAL__.errorBoundary) {
-    return 0;
-  }
-  const container = tryGetInvokeContext()?.$container$ as SSRContainer | undefined;
-  return container?.nextOutOfOrderId?.(false) ?? 0;
-};
-
-const buildErrorBoundaryHosts = (store: ErrorBoundaryStore): JSXOutput => {
-  const boundaryId = nextErrorBoundaryId();
+const buildSSRErrorBoundaryHosts = (
+  store: ErrorBoundaryStore,
+  container: SSRContainer | undefined
+): JSXOutput => {
+  const boundaryId = container?.nextOutOfOrderId(false) ?? 0;
   return [
     /*#__PURE__*/ _jsxSorted(
       'div',
@@ -113,7 +172,6 @@ const buildErrorBoundaryHosts = (store: ErrorBoundaryStore): JSXOutput => {
       {
         boundaryId,
         store,
-        hostStyle: 'display:none',
       },
       null,
       null,
@@ -132,15 +190,17 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
   }
   const store = useErrorBoundaryStore();
   const invokeCtx = tryGetInvokeContext();
-  const host = invokeCtx?.$hostElement$;
   const container = invokeCtx?.$container$;
   if (container && (getStoreTarget(store) ?? store).boundaryId === undefined) {
     store.boundaryId = getNextUniqueIndex(container);
   }
-  const reset = /*#__PURE__*/ inlinedQrl(errorBoundaryReset, '_ebR', [host]);
-
   const isServerEnv = qTest ? isServerPlatform() : !isBrowser;
-  if (__EXPERIMENTAL__.errorBoundary && isServerEnv) {
+  if (!isServerEnv && store.error === undefined) {
+    return /*#__PURE__*/ _jsxSorted(Slot, null, null, null, 0, null);
+  }
+
+  const reset = /*#__PURE__*/ inlinedQrl(errorBoundaryReset, '_ebR', [invokeCtx?.$hostElement$]);
+  if (isServerEnv) {
     const fallbackQrl = props.fallback$;
     store.$fallback$ = noSerialize((error: unknown) => fallbackQrl(error as Error, reset));
     const onErrorQrl = props.onError$;
@@ -149,22 +209,18 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
         onErrorQrl(error as Error, info)
       );
     }
-    return buildErrorBoundaryHosts(store);
+    return buildSSRErrorBoundaryHosts(store, container as SSRContainer);
   }
 
-  if (store.error !== undefined) {
-    const displayError = redactBoundaryErrorForDisplay(store.error);
-    return /*#__PURE__*/ _jsxSorted(
-      Fragment,
-      null,
-      null,
-      renderFallbackOrLastResort(props.fallback$, displayError, reset),
-      0,
-      null
-    );
-  }
-
-  return /*#__PURE__*/ _jsxSorted(Slot, null, null, null, 0, null);
+  const displayError = redactBoundaryErrorForDisplay(store.error);
+  return /*#__PURE__*/ _jsxSorted(
+    Fragment,
+    null,
+    null,
+    renderFallbackOrLastResort(props.fallback$, displayError, reset),
+    0,
+    null
+  );
 };
 
 /** Renders `fallback$` instead of its children when a descendant throws. @public @experimental */
@@ -191,11 +247,15 @@ export const SSRErrorFallback = __EXPERIMENTAL__.errorBoundary
           delete store.$fallback$;
           const projected = redactBoundaryErrorForDisplay(store.error, isDev, ssr.$transformError$);
           const segment = await ssr.segment(segmentId, fallback(projected) as JSXOutput, options);
-          await emitErrorBoundaryFallback(ssr, boundaryId, segmentId, segment);
+          // qErr hides the errored content host and strips its broadcast handlers.
+          segment.container.$registerErrorSwap$(boundaryId);
+          await ssr.$runQueuedRender$(() =>
+            finalizeAndSwapOutOfOrderSegment(ssr, boundaryId, segment, null)
+          );
         };
         store.$emitFallback$ = noSerialize(streamFallback);
         ssr.write(`<template ${QSuspenseResolved}="${boundaryId}"></template>`);
-        if (store.error !== undefined && store.$fallback$) {
+        if (store.error !== undefined) {
           return streamFallback(store.error);
         }
       }
@@ -207,20 +267,19 @@ export const SSRErrorFallbackInline = __EXPERIMENTAL__.errorBoundary
       (ssr, jsx, _options, enqueue) => {
         const boundaryId = jsx.varProps.boundaryId as number;
         const store = jsx.varProps.store as ErrorBoundaryStore;
-        if (store.error !== undefined && store.$fallback$) {
-          const fallback = store.$fallback$;
+        const fallback = store.$fallback$;
+        if (store.error !== undefined && fallback) {
           delete store.$fallback$;
           const projected = redactBoundaryErrorForDisplay(store.error, isDev, ssr.$transformError$);
           if (isOutOfOrderSegmentContainer(ssr)) {
             ssr.$registerErrorSwap$(boundaryId);
-            enqueue(fallback(projected) as JSXOutput);
           } else {
             enqueue(() => {
               ssr.emitErrorSwapExecutorIfNeeded();
               ssr.emitInlineScript(`qErr(${boundaryId})`);
             });
-            enqueue(fallback(projected) as JSXOutput);
           }
+          enqueue(fallback(projected) as JSXOutput);
         }
       }
     )
@@ -230,11 +289,9 @@ export const SSRErrorFallbackHost = __EXPERIMENTAL__.errorBoundary
   ? /*#__PURE__*/ createInternalServerComponent<{
       boundaryId: number;
       store: ErrorBoundaryStore;
-      hostStyle: string;
     }>((ssr, jsx, _options, enqueue) => {
       const boundaryId = jsx.varProps.boundaryId as number;
       const store = jsx.varProps.store as ErrorBoundaryStore;
-      const hostStyle = jsx.varProps.hostStyle as string;
       const deliverLate =
         __EXPERIMENTAL__.suspense &&
         ssr.outOfOrderStreaming &&
@@ -245,7 +302,7 @@ export const SSRErrorFallbackHost = __EXPERIMENTAL__.errorBoundary
           'div',
           {
             [deliverLate ? QSuspenseResultParent : QErrorFallbackHost]: String(boundaryId),
-            style: hostStyle,
+            style: 'display:none',
           },
           null,
           /*#__PURE__*/ _jsxSorted(
@@ -262,16 +319,3 @@ export const SSRErrorFallbackHost = __EXPERIMENTAL__.errorBoundary
       );
     })
   : null!;
-
-async function emitErrorBoundaryFallback(
-  ssr: SSRContainer,
-  boundaryId: number,
-  segmentId: string,
-  rendered: SSROutOfOrderSegment
-): Promise<void> {
-  // qErr hides the errored content host and strips its broadcast handlers.
-  rendered.container.$registerErrorSwap$(boundaryId);
-  await ssr.$runQueuedRender$(() =>
-    finalizeAndSwapOutOfOrderSegment(ssr, boundaryId, segmentId, rendered, null, true)
-  );
-}

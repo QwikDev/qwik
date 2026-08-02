@@ -15,10 +15,7 @@
     "incremental": true,
     "isolatedModules": true,
     "outDir": "tmp",
-    "noEmit": true,
-    "paths": {
-      "~/*": ["./src/*"]
-    }
+    "noEmit": true
   },
   "include": ["src", "./*.d.ts", "./*.config.ts"]
 }

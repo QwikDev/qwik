@@ -33,7 +33,7 @@ import {
   QSlotParent,
   qwikInspectorAttr,
 } from '../shared/utils/markers';
-import { mapArray_has } from '../client/util-mapArray';
+import { mapArray_get } from '../client/util-mapArray';
 import { clearAllEffects } from '../reactive-primitives/cleanup';
 import { isTask } from '../use/use-task';
 import { VNodeDataFlag } from '../../server/types';
@@ -77,15 +77,8 @@ const pushBoundaryContentScope = (ssr: SSRContainer, contentHost: ISsrNode): Sta
 
 const isInsideFailedBoundaryContent = (ssr: SSRContainer): boolean => {
   const scopes = openBoundaryContentScopes.get(ssr);
-  if (!scopes || scopes.length === 0) {
-    return false;
-  }
-  for (let i = scopes.length - 1; i >= 0; i--) {
-    if (scopes[i].vnodeData[0] & VNodeDataFlag.INERT) {
-      return true;
-    }
-  }
-  return false;
+  const scope = scopes?.[scopes.length - 1];
+  return !!scope && (scope.vnodeData[0] & VNodeDataFlag.INERT) !== 0;
 };
 
 type StackFn = () => ValueOrPromise<void>;
@@ -206,16 +199,6 @@ export async function _walkJSX(
   await drain();
 }
 
-function findErrorBoundaryNode(host: ISsrNode | null): ISsrNode | null {
-  for (let node = host; node; node = node.parentComponent) {
-    const ctx = node.getProp(QCtxAttr) as Array<string | unknown> | null;
-    if (ctx != null && mapArray_has(ctx, ERROR_CONTEXT.id, 0)) {
-      return node;
-    }
-  }
-  return null;
-}
-
 function renderErrorBoundaryFallback(
   ssr: SSRContainer,
   host: ReturnType<SSRContainer['getOrCreateLastNode']>,
@@ -226,13 +209,14 @@ function renderErrorBoundaryFallback(
     throw err;
   }
   for (
-    let boundaryNode = findErrorBoundaryNode(host);
+    let boundaryNode: ISsrNode | null = host;
     boundaryNode;
-    boundaryNode = findErrorBoundaryNode(boundaryNode.parentComponent)
+    boundaryNode = boundaryNode.parentComponent
   ) {
-    const errorStore = ssr.resolveContext(boundaryNode, ERROR_CONTEXT) as
-      | ErrorBoundaryStore
-      | undefined;
+    const ctx = boundaryNode.getProp(QCtxAttr) as Array<string | unknown> | null;
+    const errorStore = ctx
+      ? (mapArray_get(ctx, ERROR_CONTEXT.id, 0) as ErrorBoundaryStore | null)
+      : null;
     if (!errorStore || !errorStore.$fallback$) {
       continue;
     }
@@ -263,6 +247,9 @@ function markErrorBoundaryContentInert(
   const liveOwners = new Map<string, { node: ISsrNode; depth: number }>();
   let depth = 0;
   for (let n: ISsrNode | null = boundaryNode; n; n = n.parentComponent) {
+    if (n !== boundaryNode) {
+      ssr.$retainForResume$(n);
+    }
     if (n.id) {
       liveOwners.set(n.id, { node: n, depth: depth++ });
     }
@@ -274,15 +261,11 @@ function markErrorBoundaryContentInert(
       markSubtreeInert(ssr, children[i], liveOwners, topmostSevered);
     }
   }
-  // Reset may re-render any ancestor; keep the chain resumable.
-  for (let n = boundaryNode.parentComponent; n; n = n.parentComponent) {
-    ssr.$retainForResume$(n);
-  }
-  // The client's author walk cannot see past the cut.
+  // The client's owner walk cannot see past the cut.
   if (topmostSevered.node && topmostSevered.node !== boundaryNode) {
-    const author = topmostSevered.node.parentComponent;
-    if (author && author.id) {
-      errorStore.authorId = author.id;
+    const projectedContentOwner = topmostSevered.node.parentComponent;
+    if (projectedContentOwner?.id) {
+      errorStore.projectedContentOwnerId = projectedContentOwner.id;
     }
   }
 }

@@ -58,6 +58,7 @@ pnpm playwright test e2e/qwik-react-e2e/tests/reactify.spec.ts --project=chromiu
 
 Traps:
 
+- The core budget is skipped after `build.core.dev`; run `pnpm build.core` to measure it.
 - `test.e2e.router.ssg.update` regenerates the goldens only; it never touches the budgets, so a
   budget breach survives the update.
 - The update run can exit non-zero because a sibling budget assertion failed, not the golden. "N

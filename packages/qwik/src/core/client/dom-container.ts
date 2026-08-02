@@ -5,11 +5,12 @@ import type { QRLInternal } from '../../server/qwik-types';
 import { assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import {
+  createErrorHandler,
   ERROR_CONTEXT,
   fireOnError,
-  isRecoverable,
+  getOwnErrorBoundaryStore,
+  handleDevError,
   toBoundaryError,
-  type ErrorBoundaryStore,
 } from '../shared/error/error-handling';
 import type { ErrorBoundaryInfo } from '../shared/error/error-handling';
 import type { QRL } from '../shared/qrl/qrl.public';
@@ -50,7 +51,6 @@ import {
   convertScopedStyleIdsToArray,
   convertStyleIdsToString,
 } from '../shared/utils/scoped-styles';
-import { setErrorPayload } from '../shared/cursor/chore-execution';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
 import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
@@ -71,9 +71,7 @@ import {
 } from './types';
 import { mapArray_get, mapArray_has, mapArray_set } from './util-mapArray';
 import {
-  vnode_getProjectionParentOrParent,
   vnode_getProp,
-  vnode_isProjection,
   vnode_isVirtualVNode,
   vnode_locate,
   vnode_newUnMaterializedElement,
@@ -198,25 +196,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     element.qContainer = this;
     element.qDestroy = () => this.$destroy$();
     if (__EXPERIMENTAL__.errorBoundary) {
-      this.$qErrorHandler$ = (e: Event) => {
-        const detail = (
-          e as CustomEvent<{ error: unknown; element?: Element; importError?: string }>
-        ).detail;
-        if (detail?.importError) {
-          return;
-        }
-        const source = detail?.element;
-        if (source && source.closest(QContainerSelector) === this.element) {
-          const host = this.vNodeLocate(source);
-          if (host) {
-            try {
-              this.handleError(detail.error, host, 'event');
-            } catch (handlerError) {
-              logError(handlerError);
-            }
-          }
-        }
-      };
+      this.$qErrorHandler$ = createErrorHandler(this);
       this.document.addEventListener?.('qerror', this.$qErrorHandler$);
       registerUnhandledRejectionBridge(document.defaultView);
     }
@@ -329,26 +309,12 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   }
 
   parseQRL<T = unknown>(qrlStr: string): QRL<T> {
-    const qrl = parseQRL(qrlStr, this) as QRLInternal<T>;
-    return qrl;
+    return parseQRL(qrlStr, this) as QRLInternal<T>;
   }
 
   handleError(err: any, host: VNode | null, phase: ErrorBoundaryInfo['phase'] = 'render'): void {
     if (qDev && host) {
-      if (typeof document !== 'undefined') {
-        setErrorPayload(host, err);
-        markVNodeDirty(this, host, ChoreBits.ERROR_WRAP);
-      }
-      try {
-        if (err && err instanceof Error && !('hostElement' in err)) {
-          (err as any)['hostElement'] = String(host);
-        }
-      } catch {
-        // ignore
-      }
-      if (!isRecoverable(err)) {
-        throw err;
-      }
+      handleDevError(this, err, host);
     }
     if (!__EXPERIMENTAL__.errorBoundary) {
       const errorStore = host && this.resolveContext(host, ERROR_CONTEXT);
@@ -366,16 +332,13 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       if (!boundaryHost) {
         break;
       }
-      const store = this.resolveContext<ErrorBoundaryStore>(boundaryHost, ERROR_CONTEXT);
+      const store = getOwnErrorBoundaryStore(this, boundaryHost);
       if (store && store.error === undefined) {
         store.error = storedError;
         const boundaryProps = this.getHostProp<{
           onError$?: (error: unknown, info: ErrorBoundaryInfo) => unknown;
         }>(boundaryHost, ELEMENT_PROPS);
-        fireOnError(boundaryProps?.onError$, err, {
-          phase,
-          boundaryId: store.boundaryId ?? '',
-        });
+        fireOnError(boundaryProps?.onError$, err, phase, store.boundaryId ?? '');
         markVNodeDirty(this, boundaryHost, ChoreBits.COMPONENT);
         return;
       }
@@ -421,60 +384,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       host = this.getParentHost(host)!;
     }
     return null;
-  }
-
-  resetErrorBoundary(host: VNode): void {
-    const boundaryHost = this.resolveContextHost(host, ERROR_CONTEXT);
-    if (!boundaryHost) {
-      return;
-    }
-    const store = this.resolveContext<ErrorBoundaryStore>(boundaryHost, ERROR_CONTEXT);
-    if (!store) {
-      return;
-    }
-    let recordedAuthor: VNode | null = null;
-    if (store.authorId) {
-      try {
-        recordedAuthor = this.vNodeLocate(store.authorId);
-      } catch {
-        // ignore
-      }
-    }
-    const owner = this.getAuthorHost(boundaryHost) ?? recordedAuthor;
-    // An ownerless reset recovers through projection re-scheduling.
-    owner && markVNodeDirty(this, owner, ChoreBits.COMPONENT);
-    markVNodeDirty(this, boundaryHost, ChoreBits.COMPONENT);
-    // Only the recorded author can re-supply projected children.
-    recordedAuthor && markVNodeDirty(this, recordedAuthor, ChoreBits.COMPONENT);
-    store.error = undefined;
-  }
-
-  private getAuthorHost(host: VNode): VNode | null {
-    let vNode: VNode | null = vnode_getProjectionParentOrParent(host);
-    let crossedProjection = false;
-    while (vNode) {
-      if (vnode_isVirtualVNode(vNode)) {
-        if (vnode_isProjection(vNode)) {
-          crossedProjection = true;
-        } else if (vnode_getProp(vNode, OnRenderProp, null) !== null) {
-          if (!crossedProjection && this.authorsOwnChildren(vNode)) {
-            return vNode;
-          }
-          crossedProjection = false;
-        }
-      }
-      vNode = vnode_getProjectionParentOrParent(vNode);
-    }
-    return null;
-  }
-
-  private authorsOwnChildren(host: VNode): boolean {
-    const ctx = this.getHostProp<Array<string | unknown>>(host, QCtxAttr);
-    if (ctx == null || !mapArray_has(ctx, ERROR_CONTEXT.id, 0)) {
-      return true;
-    }
-    const store = mapArray_get(ctx, ERROR_CONTEXT.id, 0) as ErrorBoundaryStore | null;
-    return !store || store.error !== undefined;
   }
 
   getParentHost(host: VNode): VNode | null {

@@ -4,41 +4,24 @@ import { writeSubmodulePackageJson } from './package-json.ts';
 import { getLoaderJsonString, minifyClientScript } from './submodule-qwikloader.ts';
 import { type BuildConfig, ensureDir, fileSize, readFile, writeFile } from './util.ts';
 
+const EXECUTORS = [
+  ['QWIK_BACKPATCH_EXECUTOR', 'backpatch-executor'],
+  ['QWIK_OUT_OF_ORDER_EXECUTOR', 'out-of-order-executor'],
+  ['QWIK_ERROR_SWAP_EXECUTOR', 'error-swap-executor'],
+] as const;
+
 /** Builds and minifies executor javascript files. This is based off of the qwikloader */
 export async function submoduleBackpatch(config: BuildConfig) {
-  await buildExecutor(config, {
-    entry: 'backpatch-executor.ts',
-    debugFile: 'backpatch-executor.debug.js',
-    minifiedFile: 'backpatch-executor.js',
-    label: 'backpatch-executor',
-  });
-
-  await buildExecutor(config, {
-    entry: 'out-of-order-executor.ts',
-    debugFile: 'out-of-order-executor.debug.js',
-    minifiedFile: 'out-of-order-executor.js',
-    label: 'out-of-order-executor',
-  });
-
-  await buildExecutor(config, {
-    entry: 'error-swap-executor.ts',
-    debugFile: 'error-swap-executor.debug.js',
-    minifiedFile: 'error-swap-executor.js',
-    label: 'error-swap-executor',
-  });
+  for (const [, name] of EXECUTORS) {
+    await buildExecutor(config, name);
+  }
 
   await generateBackpatchSubmodule(config);
 }
 
-async function buildExecutor(
-  config: BuildConfig,
-  opts: {
-    entry: string;
-    debugFile: string;
-    minifiedFile: string;
-    label: string;
-  }
-) {
+async function buildExecutor(config: BuildConfig, name: string) {
+  const debugFile = `${name}.debug.js`;
+  const minifiedFile = `${name}.js`;
   await build({
     clearScreen: false,
     build: {
@@ -46,54 +29,37 @@ async function buildExecutor(
       copyPublicDir: false,
       target: 'es2018',
       lib: {
-        entry: join(config.srcQwikDir, opts.entry),
+        entry: join(config.srcQwikDir, `${name}.ts`),
         formats: ['es'],
-        fileName: () => opts.debugFile,
+        fileName: () => debugFile,
       },
       minify: false,
       outDir: config.distQwikPkgDir,
     },
   });
 
-  const debugFilePath = join(config.distQwikPkgDir, opts.debugFile);
+  const debugFilePath = join(config.distQwikPkgDir, debugFile);
   const debugContent = await readFile(debugFilePath, 'utf-8');
 
   const minifyResult = await minifyClientScript(debugContent);
 
-  const minifiedFilePath = join(config.distQwikPkgDir, opts.minifiedFile);
+  const minifiedFilePath = join(config.distQwikPkgDir, minifiedFile);
   await writeFile(minifiedFilePath, minifyResult.code || '');
 
   const size = await fileSize(minifiedFilePath);
-  console.log(`-> ${opts.label}:`, size);
+  console.log(`-> ${name}:`, size);
 }
 
 export async function inlineBackpatchScriptsEsBuild(config: BuildConfig) {
   const define: { [varName: string]: string } = {};
 
-  define['globalThis.QWIK_BACKPATCH_EXECUTOR_MINIFIED'] = await getLoaderJsonString(
-    config,
-    'backpatch-executor.js'
-  );
-  define['globalThis.QWIK_BACKPATCH_EXECUTOR_DEBUG'] = await getLoaderJsonString(
-    config,
-    'backpatch-executor.debug.js'
-  );
-  define['globalThis.QWIK_OUT_OF_ORDER_EXECUTOR_MINIFIED'] = await getLoaderJsonString(
-    config,
-    'out-of-order-executor.js'
-  );
-  define['globalThis.QWIK_OUT_OF_ORDER_EXECUTOR_DEBUG'] = await getLoaderJsonString(
-    config,
-    'out-of-order-executor.debug.js'
-  );
-  define['globalThis.QWIK_ERROR_SWAP_EXECUTOR_MINIFIED'] = await getLoaderJsonString(
-    config,
-    'error-swap-executor.js'
-  );
-  define['globalThis.QWIK_ERROR_SWAP_EXECUTOR_DEBUG'] = await getLoaderJsonString(
-    config,
-    'error-swap-executor.debug.js'
-  );
+  for (const [globalName, name] of EXECUTORS) {
+    define[`globalThis.${globalName}_MINIFIED`] = await getLoaderJsonString(config, `${name}.js`);
+    define[`globalThis.${globalName}_DEBUG`] = await getLoaderJsonString(
+      config,
+      `${name}.debug.js`
+    );
+  }
 
   return define;
 }

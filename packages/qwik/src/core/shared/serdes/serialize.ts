@@ -1,6 +1,5 @@
 import { isDev } from '@qwik.dev/core/build';
 import { PublicError, QPublicErrorMarker } from '../error/public-error';
-import { hasVirtualNodePath } from '../vnode-data-types';
 import { VNodeDataFlag } from '../../../server/types';
 import type { VNodeData } from '../../../server/vnode-data';
 import { vnode_isVNode } from '../../client/vnode-utils';
@@ -728,7 +727,7 @@ export class Serializer {
       if (
         value.vnodeData &&
         value.vnodeData[0] & VNodeDataFlag.INERT &&
-        hasVirtualNodePath(value.id)
+        /[A-Za-z]/.test(value.id)
       ) {
         this.output(TypeIds.Constant, Constants.Undefined);
         return;
@@ -739,9 +738,7 @@ export class Serializer {
       this.output(TypeIds.VNode, value.id);
       const vNodeData = value.vnodeData;
       if (vNodeData) {
-        discoverValuesForVNodeData(vNodeData, (vNodeDataValue) => {
-          this.$serializationContext$.$addRoot$(vNodeDataValue);
-        });
+        discoverValuesForVNodeData(vNodeData, this.$serializationContext$);
         this.$serializationContext$.$markSsrNodeForSerialization$(value, VNodeDataFlag.SERIALIZE);
       }
       if (value.children) {
@@ -1021,9 +1018,12 @@ function getCustomSerializerPromise<T, S>(signal: SerializerSignalImpl<T, S>, va
   );
 }
 
-const discoverValuesForVNodeData = (vnodeData: VNodeData, callback: (value: unknown) => void) => {
+const discoverValuesForVNodeData = (
+  vnodeData: VNodeData,
+  serializationContext: SerializationContext
+) => {
   const length = vnodeData.length;
-  for (let i = 0; i < length; i++) {
+  for (let i = 1; i < length; i++) {
     const value = vnodeData[i];
     if (isSsrAttrs(value)) {
       for (const key in value) {
@@ -1038,7 +1038,7 @@ const discoverValuesForVNodeData = (vnodeData: VNodeData, callback: (value: unkn
         ) {
           continue;
         }
-        callback(attrValue);
+        serializationContext.$addRoot$(attrValue);
       }
     }
   }

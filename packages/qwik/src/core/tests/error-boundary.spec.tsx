@@ -34,6 +34,7 @@ import {
 } from '../../testing/rendering.unit-util';
 import { delay } from '../shared/utils/promises';
 import { isServerPlatform } from '../shared/platform/platform';
+import { resetErrorBoundary } from '../shared/error/error-boundary';
 import { redactBoundaryErrorForDisplay } from '../shared/error/error-handling';
 
 const debug = false;
@@ -2661,7 +2662,7 @@ const withRerenderOwner = (
 
 const resetResumed = async (container: any, retrySelector = '#retry') => {
   const c = _getDomContainer(container.element) as any;
-  c.resetErrorBoundary(c.vNodeLocate(container.element.querySelector(retrySelector)));
+  resetErrorBoundary(c, c.vNodeLocate(container.element.querySelector(retrySelector)));
   await waitForDrain(container);
 };
 

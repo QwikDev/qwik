@@ -28,14 +28,13 @@ export const waitForRelease = (requestId: string, releaseId: string): Promise<vo
     }
   });
 
-// Runs produce after the test's release POST, or after timeoutMs when the route is not gated.
+// Runs produce after the test's release POST, or after a short fallback delay.
 export const releaseGated = <T>(
   requestId: string,
   releaseId: string | null,
-  produce: () => T,
-  timeoutMs = 1000
+  produce: () => T
 ): Promise<T> =>
   (releaseId
     ? waitForRelease(requestId, releaseId)
-    : new Promise<void>((resolve) => setTimeout(resolve, timeoutMs))
+    : new Promise<void>((resolve) => setTimeout(resolve, 1000))
   ).then(produce);

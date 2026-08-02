@@ -1,8 +1,15 @@
 import { isDev } from '@qwik.dev/core/build';
+import type { DomContainer } from '../../client/dom-container';
+import { mapArray_get } from '../../client/util-mapArray';
 import { createContextId } from '../../use/use-context';
+import { setErrorPayload } from '../cursor/chore-execution';
 import { hashCode } from '../utils/hash_code';
 import { logError, logWarn } from '../utils/log';
+import { QContainerSelector, QCtxAttr } from '../utils/markers';
 import { isPromise } from '../utils/promises';
+import { ChoreBits } from '../vnode/enums/chore-bits.enum';
+import type { VNode } from '../vnode/vnode';
+import { markVNodeDirty } from '../vnode/vnode-dirty';
 import { PublicError } from './public-error';
 
 /** Structured metadata about a caught error, passed to `onError$`. @public @experimental */
@@ -29,7 +36,7 @@ export interface ErrorBoundaryStore {
   $onError$?: (error: unknown, info: ErrorBoundaryInfo) => void;
   $emitFallback$?: (error: unknown) => void | Promise<void>;
   boundaryId?: string;
-  authorId?: string;
+  projectedContentOwnerId?: string;
 }
 
 export const ERROR_CONTEXT = /*#__PURE__*/ createContextId<ErrorBoundaryStore>('qk-error');
@@ -45,7 +52,7 @@ const safeRead = <T>(read: () => T, fallback: T): T => {
 };
 
 export const isRecoverable = (err: any) =>
-  safeRead(() => !(err && err instanceof Error && 'plugin' in err), true);
+  safeRead(() => !(err instanceof Error && 'plugin' in err), true);
 
 const GENERIC_BOUNDARY_ERROR_MESSAGE = 'An error occurred';
 
@@ -141,14 +148,17 @@ export const redactBoundaryErrorForDisplay = (
 export const fireOnError = (
   onError: ((error: Error, info: ErrorBoundaryInfo) => unknown) | undefined | null,
   error: unknown,
-  info: Omit<ErrorBoundaryInfo, 'digest'>
+  phase: ErrorBoundaryInfo['phase'],
+  boundaryId: string
 ): void => {
   if (!onError) {
     return;
   }
   try {
     const digest = errorBoundaryDigest(error);
-    Promise.resolve(onError(toBoundaryError(error), { ...info, digest })).catch(logError);
+    void Promise.resolve(onError(toBoundaryError(error), { phase, boundaryId, digest })).catch(
+      logError
+    );
   } catch (e) {
     logError(e);
   }
@@ -183,8 +193,54 @@ export const markBoundaryErrored = (
 ): void => {
   // `null` would collide with the capture-only sentinel, so wrap every nullish throw.
   store.error = error == null ? toBoundaryError(error) : error;
-  fireOnError(store.$onError$, error, {
-    phase: getTaggedErrorPhase(error) ?? phase,
-    boundaryId: store.boundaryId ?? '',
-  });
+  const onError = store.$onError$;
+  if (onError) {
+    fireOnError(onError, error, getTaggedErrorPhase(error) ?? phase, store.boundaryId ?? '');
+  }
 };
+
+export function createErrorHandler(container: DomContainer): (e: Event) => void {
+  return (e: Event) => {
+    const detail = (e as CustomEvent<{ error: unknown; element?: Element; importError?: string }>)
+      .detail;
+    if (detail?.importError) {
+      return;
+    }
+    const source = detail.element;
+    if (source && source.closest(QContainerSelector) === container.element) {
+      const host = container.vNodeLocate(source);
+      if (host) {
+        try {
+          container.handleError(detail.error, host, 'event');
+        } catch (handlerError) {
+          logError(handlerError);
+        }
+      }
+    }
+  };
+}
+
+export function handleDevError(container: DomContainer, err: any, host: VNode) {
+  if (typeof document !== 'undefined') {
+    setErrorPayload(host, err);
+    markVNodeDirty(container, host, ChoreBits.ERROR_WRAP);
+  }
+  try {
+    if (err instanceof Error && !('hostElement' in err)) {
+      (err as any)['hostElement'] = String(host);
+    }
+  } catch {
+    // ignore
+  }
+  if (!isRecoverable(err)) {
+    throw err;
+  }
+}
+
+export function getOwnErrorBoundaryStore(
+  container: DomContainer,
+  host: VNode
+): ErrorBoundaryStore | null {
+  const ctx = container.getHostProp<Array<string | unknown>>(host, QCtxAttr);
+  return ctx ? (mapArray_get(ctx, ERROR_CONTEXT.id, 0) as ErrorBoundaryStore | null) : null;
+}

@@ -21,10 +21,7 @@ export const routeUrl = (
     params = {},
   }: { outOfOrder?: boolean; app?: RouteApp; params?: Record<string, string> } = {}
 ) => {
-  const search = new URLSearchParams();
-  if (!outOfOrder) {
-    search.set('outOfOrder', 'false');
-  }
+  const search = new URLSearchParams(outOfOrder ? undefined : { outOfOrder: 'false' });
   for (const [key, value] of Object.entries(params)) {
     search.set(key, value);
   }

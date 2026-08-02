@@ -26,12 +26,7 @@ export default component$(() => {
         <EbContent />
         <EbSyncThrower />
       </ErrorBoundary>
-      <ReleaseButton
-        id="eb-release"
-        requestId={requestId}
-        releaseId={releaseId}
-        label="Release gated ok"
-      />
+      <ReleaseButton requestId={requestId} releaseId={releaseId} label="Release gated ok" />
       <Suspense fallback={<span id="eb-skel">loading</span>}>
         <EbGatedOk requestId={requestId} releaseId={releaseId} />
       </Suspense>

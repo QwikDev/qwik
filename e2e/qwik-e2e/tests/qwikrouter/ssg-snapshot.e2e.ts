@@ -14,7 +14,7 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 // the growth.
 const PRELOADER_BROTLI_BUDGET = 1800; // We currently group the vite preload helper with the preloader, adding ~500bytes brotli.
 // Async computed and serializer validation changes increased core size.
-const CORE_BROTLI_BUDGET = 35400;
+const CORE_BROTLI_BUDGET = 34800;
 const QWIKLOADER_BROTLI_BUDGET = 2100;
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
@@ -118,8 +118,7 @@ test.describe('router ssg snapshot', () => {
     const preloaderFile = manifest.preloader as string | undefined;
     expect(preloaderFile, 'q-manifest.json should expose `preloader`').toBeTruthy();
 
-    const code = await readFile(resolve(distDir, 'build', preloaderFile!), 'utf-8');
-    await checkBrotliBudget('preloader', code, PRELOADER_BROTLI_BUDGET);
+    await checkBrotliBudget('preloader', preloaderFile!, PRELOADER_BROTLI_BUDGET);
   });
 
   test('core chunk brotli size stays within budget', async () => {
@@ -127,8 +126,7 @@ test.describe('router ssg snapshot', () => {
     const coreFile = manifest.core as string | undefined;
     expect(coreFile, 'q-manifest.json should expose `core`').toBeTruthy();
 
-    const code = await readFile(resolve(distDir, 'build', coreFile!), 'utf-8');
-    await checkBrotliBudget('core', code, CORE_BROTLI_BUDGET);
+    await checkBrotliBudget('core', coreFile!, CORE_BROTLI_BUDGET);
   });
 
   test('qwikloader chunk brotli size stays within budget', async () => {
@@ -136,8 +134,7 @@ test.describe('router ssg snapshot', () => {
     const qwikLoaderFile = manifest.qwikLoader as string | undefined;
     expect(qwikLoaderFile, 'q-manifest.json should expose `qwikLoader`').toBeTruthy();
 
-    const code = await readFile(resolve(distDir, 'build', qwikLoaderFile!), 'utf-8');
-    await checkBrotliBudget('qwikloader', code, QWIKLOADER_BROTLI_BUDGET);
+    await checkBrotliBudget('qwikloader', qwikLoaderFile!, QWIKLOADER_BROTLI_BUDGET);
   });
 });
 
@@ -146,10 +143,10 @@ test.describe('router ssg snapshot', () => {
  * the budget the test fails with the actual size — bump the budget at the top of this file when the
  * growth is expected.
  */
-async function checkBrotliBudget(label: string, content: string, budget: number) {
+async function checkBrotliBudget(label: string, path: string, budget: number) {
+  const content = await readFile(resolve(distDir, 'build', path), 'utf-8');
   expect(content.length).toBeGreaterThan(0);
   const brotli = compress(Buffer.from(content), { mode: 1, quality: 11 }).length;
-  const pct = ((brotli / budget) * 100).toFixed(1);
   // Logged on every run so size trends are visible in test output without having to fail first.
   // `console.warn` (not `console.log`) because the repo's `no-console` rule allows warn/error only.
   console.warn(`[ssg-snapshot] ${label.padEnd(10)} brotli=${brotli} raw=${content.length}`);

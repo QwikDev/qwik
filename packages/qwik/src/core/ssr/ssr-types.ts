@@ -192,7 +192,7 @@ export interface SSRContainer extends Container {
 
 export interface SSRSegmentContainer extends SSRContainer {
   $rootContainer$: SSRContainer;
-  $errorSwapIds$: number[];
+  $errorSwapIds$: number[] | null;
   $recordExternalRootEffect$(
     producer: unknown,
     effect: EffectSubscription,

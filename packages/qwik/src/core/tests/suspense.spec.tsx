@@ -1774,35 +1774,35 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
     (globalThis as any).__ooosUnitStoreShellValue = 0;
     (globalThis as any).__ooosUnitStoreResolvedValue = 0;
 
-    const Slow = component$((props: { state: { count: number } }) => (
+    const Slow = component$((props: { state: { nested: { count: number } } }) => (
       <>
         {slow}
         <button
           id="ooos-unit-store-resolved-button"
           onClick$={() => {
-            props.state.count += 1;
-            (globalThis as any).__ooosUnitStoreResolvedValue = props.state.count;
+            props.state.nested.count += 1;
+            (globalThis as any).__ooosUnitStoreResolvedValue = props.state.nested.count;
           }}
         >
           Touch resolved store
         </button>
-        <span id="ooos-unit-store-resolved-count">{props.state.count}</span>
+        <span id="ooos-unit-store-resolved-count">{props.state.nested.count}</span>
       </>
     ));
     const App = component$(() => {
-      const state = useStore({ count: 0 });
+      const state = useStore({ nested: { count: 0 } });
       return (
         <main>
           <button
             id="ooos-unit-store-shell-button"
             onClick$={() => {
-              state.count += 1;
-              (globalThis as any).__ooosUnitStoreShellValue = state.count;
+              state.nested.count += 1;
+              (globalThis as any).__ooosUnitStoreShellValue = state.nested.count;
             }}
           >
             Touch shell store
           </button>
-          <span id="ooos-unit-store-shell-count">{state.count}</span>
+          <span id="ooos-unit-store-shell-count">{state.nested.count}</span>
           <Suspense fallback={<p>Waiting store</p>}>
             <Slow state={state} />
           </Suspense>

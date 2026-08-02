@@ -556,12 +556,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     const innerSegmentContainer = segmentContainer as typeof segmentContainer & InnerContainer;
     innerSegmentContainer.$isOutOfOrderSegment$ = true;
     innerSegmentContainer.$storeProxyMap$ = this.$storeProxyMap$;
-    segmentContainer.serializationCtx = segmentContainer.serializationCtxFactory(
-      SsrNode,
-      DomRef,
-      this.symbolToChunkResolver,
-      writer
-    );
+    segmentContainer.serializationCtx.$storeProxyMap$ = this.$storeProxyMap$;
     segmentContainer.serializationCtx.$addSyncFn$ = this.serializationCtx.$addSyncFn$.bind(
       this.serializationCtx
     );
@@ -1381,7 +1376,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       if (!append) {
         this.write(BRACKET_OPEN);
       }
-      this.writeArray(append ? fns.slice(start) : fns, COMMA);
+      this.writeArray(fns, COMMA, append ? start : 0);
       if (!append) {
         this.write(BRACKET_CLOSE);
       }
@@ -1394,7 +1389,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   emitPatchDataIfNeeded(): void {
+    if (this.backpatchMap.size === 0) {
+      return;
+    }
     const patches: (string | number | boolean | null)[] = [];
+    // TODO(eb): create backpatch sorted instead of sorting here
     const sortedBackpatches = [...this.backpatchMap.entries()].sort(
       ([a], [b]) => Number(a) - Number(b)
     );
@@ -1414,14 +1413,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
     this.backpatchMap.clear();
 
-    if (patches.length > 0) {
-      this.isBackpatchExecutorEmitted = true;
-      const scriptAttrs: Record<string, string> = { type: ELEMENT_BACKPATCH_DATA };
-      if (this.renderOptions.serverData?.nonce) {
-        scriptAttrs['nonce'] = this.renderOptions.serverData.nonce;
-      }
-      this.writeScript(scriptAttrs, JSON.stringify(patches).replaceAll('<', '\\u003C'));
+    this.isBackpatchExecutorEmitted = true;
+    const scriptAttrs: Record<string, string> = { type: ELEMENT_BACKPATCH_DATA };
+    if (this.renderOptions.serverData?.nonce) {
+      scriptAttrs['nonce'] = this.renderOptions.serverData.nonce;
     }
+    this.writeScript(scriptAttrs, JSON.stringify(patches).replaceAll('<', '\\u003C'));
   }
 
   emitBackpatchDataAndExecutorIfNeeded(): void {
@@ -1719,10 +1716,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.writer.writeRootRefDelta(id, base);
   }
 
-  writeArray(array: string[], separator: string) {
-    for (let i = 0; i < array.length; i++) {
+  writeArray(array: string[], separator: string, start = 0) {
+    for (let i = start; i < array.length; i++) {
       const element = array[i];
-      if (i > 0) {
+      if (i > start) {
         this.write(separator);
       }
       this.write(element);
@@ -1873,7 +1870,7 @@ interface SegmentRootCommit {
 export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentContainer {
   $outOfOrderState$ = OutOfOrderSegmentState.Rendering;
   $outOfOrderRootIdMap$: number[] | null = null;
-  $errorSwapIds$: number[] = [];
+  $errorSwapIds$: number[] | null = null;
   private subscriptionPatchRecords: SubscriptionPatchRecord[] = [];
   private pendingVNodeDataPatches: PendingVNodeDataPatches | null = null;
 
@@ -1889,7 +1886,7 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
   }
 
   override $registerErrorSwap$(boundaryId: number): void {
-    this.$errorSwapIds$.push(boundaryId);
+    (this.$errorSwapIds$ ||= []).push(boundaryId);
   }
 
   override emitErrorSwapExecutorIfNeeded(): void {
@@ -2116,11 +2113,9 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
       if (segment === this) {
         continue;
       }
-      const rootObjs = segment.serializationCtx.$rootObjs$;
-      for (let j = 0; j < rootObjs.length; j++) {
-        if (rootObjs[j] === obj) {
-          return true;
-        }
+      // Preserve strict-equality behavior for NaN roots.
+      if (obj === obj && segment.serializationCtx.$hasRootId$(obj) !== undefined) {
+        return true;
       }
     }
     return false;

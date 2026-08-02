@@ -18,10 +18,10 @@ import {
   QSuspenseResultParent,
 } from '../shared/utils/markers';
 import { resolveSlotName } from '../shared/utils/prop';
+import { ERROR_CONTEXT, type ErrorBoundaryStore } from '../shared/error/error-handling';
 import { createInternalServerComponent } from '../ssr/internal-server-component';
 import { finalizeAndSwapOutOfOrderSegment } from '../ssr/out-of-order-segment-swap';
 import type { SSRContainer, SSROutOfOrderSegment, SSRRenderJSXOptions } from '../ssr/ssr-types';
-import { ERROR_CONTEXT, type ErrorBoundaryStore } from '../shared/error/error-handling';
 import { useComputedQrl } from '../use/use-computed';
 import { untrack } from '../use/use-core';
 import { useCursorBoundary, type CursorBoundary } from '../use/use-cursor-boundary';
@@ -271,7 +271,6 @@ const SSRDeferredSlot = __EXPERIMENTAL__.suspense
             emitRenderedOutOfOrderSegment(
               ssr,
               boundaryId,
-              contentSegment,
               rendered,
               contentStyle,
               revealBoundary,
@@ -279,13 +278,11 @@ const SSRDeferredSlot = __EXPERIMENTAL__.suspense
             )
           )
           .catch((error) => {
-            if (errorBoundaryStore) {
-              if (errorBoundaryStore.$emitFallback$) {
-                return errorBoundaryStore.$emitFallback$(error);
-              }
-              if (errorBoundaryStore.error !== undefined) {
-                return;
-              }
+            if (errorBoundaryStore?.$emitFallback$) {
+              return errorBoundaryStore.$emitFallback$(error);
+            }
+            if (errorBoundaryStore?.error !== undefined) {
+              return;
             }
             throw error;
           })
@@ -331,7 +328,6 @@ function createClaimedDeferredSlot(
 async function emitRenderedOutOfOrderSegment(
   ssr: SSRContainer,
   boundaryId: number,
-  segmentId: string,
   rendered: SSROutOfOrderSegment,
   contentStyle: Signal<{ display: string }>,
   revealBoundary: OutOfOrderRevealBoundary | null,
@@ -347,14 +343,7 @@ async function emitRenderedOutOfOrderSegment(
   revealBoundary?.resolve();
   await ssr.$runQueuedRender$(async () => {
     ssr.addRoot(contentStyle);
-    await finalizeAndSwapOutOfOrderSegment(
-      ssr,
-      boundaryId,
-      segmentId,
-      rendered,
-      revealBoundary,
-      false
-    );
+    await finalizeAndSwapOutOfOrderSegment(ssr, boundaryId, rendered, revealBoundary);
   });
 }
 

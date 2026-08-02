@@ -55,9 +55,6 @@ export function getQwikOutOfOrderExecutorScript(opts: { debug?: boolean } = {}) 
 }
 
 export function getQwikErrorSwapExecutorScript(opts: { debug?: boolean } = {}) {
-  if (!__EXPERIMENTAL__.errorBoundary) {
-    return '';
-  }
   const script = opts.debug ? QWIK_ERROR_SWAP_EXECUTOR_DEBUG : QWIK_ERROR_SWAP_EXECUTOR_MINIFIED;
   return `if(!globalThis.qErr||globalThis.qErr.d!==document){${script}}`;
 }

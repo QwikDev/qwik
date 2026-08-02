@@ -21,12 +21,7 @@ export default component$(() => {
       <Suspense fallback={<span id="eb-skel">loading</span>}>
         <EbGatedOk requestId={requestId} releaseId={releaseId} />
       </Suspense>
-      <ReleaseButton
-        id="eb-release"
-        requestId={requestId}
-        releaseId={releaseId}
-        label="Release deferred ok"
-      />
+      <ReleaseButton requestId={requestId} releaseId={releaseId} label="Release deferred ok" />
     </>
   );
 });

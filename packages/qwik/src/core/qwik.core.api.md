@@ -377,8 +377,6 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     // (undocumented)
     qManifestHash: string;
     // (undocumented)
-    resetErrorBoundary(host: _VNode): void;
-    // (undocumented)
     resolveContext<T>(host: _VNode, contextId: ContextId<T>): T | undefined;
     // (undocumented)
     resolveContextHost(host: _VNode, contextId: ContextId<unknown>): _VNode | null;

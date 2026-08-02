@@ -100,5 +100,3 @@ export const getSegmentVNodeRefId = (segmentId: string, localIndex: number): num
   const diagonal = segmentIndex + localIndex;
   return -((diagonal * (diagonal + 1)) / 2 + localIndex + 1);
 };
-
-export const hasVirtualNodePath = (refId: string): boolean => /[A-Za-z]/.test(refId);

@@ -189,61 +189,12 @@ Never use `pnpm test.unit` for agent verification in this repo.
 
 ## ErrorBoundary (experimental `errorBoundary`)
 
-Where things live: `errorBoundaryCmp` + the SSR fallback hosts (`shared/error/error-boundary.ts`);
-SSR catch + inert marking (`ssr/ssr-render-jsx.ts`); the shared segment-swap finalize both Suspense
-and EB call (`ssr/out-of-order-segment-swap.ts` — its gated qErr drain must serve BOTH callers, so
-never fold it into an EB module); client routing + reset (`client/dom-container.ts`); display
-membrane (`shared/error/error-handling.ts`); store field (`use/use-error-boundary-store.ts`).
-Suspense knows the EB protocol only through the `error-handling.ts` leaf and container ids — it
-must never import EB components.
+Keep error state non-enumerable and out of serialized state. Store the raw throw and project it only
+at display sites; production uses generic redaction unless the app returns an `Error` from
+`transformError` or throws a `PublicError`.
 
-Invariants (stateless model):
-
-- The boundary never serializes error state: `store.error` is a non-enumerable store-target field.
-  Keep it non-enumerable; never add an ErrorBoundary carve-out to the serializer.
-- Single display membrane `redactBoundaryErrorForDisplay(error, dev, transformError)`: the store
-  holds the RAW throw; projection happens only at display sites; `canSerialize` plays no role. A
-  `transformError` projection must be a readable `Error` or it redacts; returning `undefined`/
-  `null` declines and the default policy applies. The membrane never throws — every raw-value probe
-  stays fail-closed against hostile objects.
-- Only the framework brand set by `redactToGeneric` passes the membrane as already-redacted; an app
-  error's own `digest` field is data and must not skip prod redaction. The prod-redacted error
-  carries no `cause` and no custom fields.
-- `PublicError` is the one unredacted prod lane: guarded `instanceof` (construction = consent),
-  identity pass-through, no digest attached. Resume identity rides the `q:pe` marker inside the
-  ordinary Error payload; inflate restores the prototype and never assigns the marker as a field.
-- Prod-mode asserts live at helper level (`dev: false`) or in the `error-boundary.prod` e2e — the
-  unit harness compiles `isDev=true`.
-- The SSR catch never buffers streaming: it marks the store, fires `onError$`, marks content inert,
-  and returns null; the fallback host renders the fallback. Queued frames inside an inert content
-  host are discarded (superseded promises stay observed); pre-catch content keeps hide-don't-unwind;
-  a discard site must never skip StackFns.
-- Host styles are static literals; the `qErr` swap script owns the errored end state in the DOM.
-  Never reintroduce a live style subscription on the hosts — a resumed recompute would un-hide
-  inert content. Swap by origin: in-place under `q:ebf` via `qErr`; deferred segment via the `qO`
-  shell (`q:rp`); inline content must never sit under `q:rp`.
-- `markBoundaryErrored` is the only server error writer; `onError$` receives the original `Error`
-  (a non-Error throw arrives wrapped with the raw value as `cause`) plus a `digest` matching the one
-  a production fallback shows; `store.error === undefined` means "no error" and every writer wraps a
-  nullish throw, because a stored `null` is the capture-only sentinel.
-- Reset re-renders the AUTHOR: `getAuthorHost` walks projections on the client, skipping
-  `_suC`/`_ebC` parents but stopping at an `_ebC` with an in-memory error (an errored boundary
-  authors its fallback). Reset must work with `store.error` undefined — that IS the resumed errored
-  state. Retention is errored-only: the inert cut retains the errored boundary's ancestor chain
-  through `ssr.$retainForResume$`, so healthy boundaries serialize nothing extra. When the cut
-  severs an ancestor's slot ref (the children were projected), it records that ancestor's author in
-  `store.authorId` for the client walk, which cannot see past the cut. Reset re-renders the
-  resolved author when one is renderable and otherwise only the boundary; `expectSlot` re-schedules
-  a moved projection's component hosts that have no rendered output and no pending render. Never
-  mark a resumed errored boundary alone: its SSR projection was abandoned, so rendering its Slot
-  yields an empty subtree — boundary-only reset is safe only while the projection is intact.
-- Errored boundaries re-derive by re-running the children through the author re-render; a
-  task-phase SSR throw does not re-derive (documented developer responsibility). `store.$onError$`
-  is server-only; the client fires the serialized `props.onError$` — refire on client
-  re-derivation is documented, not deduped.
-- Closest boundary catches; a throwing fallback escalates past detached-`$fallback$` boundaries.
-  Function children (SSR) are sentinel-marked so throws route to the boundary; success stays
-  invoke-and-discard; a missed enqueue site fails back to uncaught-throw, never corruption.
+Reset must re-render the component that authored projected children. Preserve the SSR `authorId`
+fallback, ancestor retention, and moved-projection scheduling together with the client author walk.
 
 ## Keep This Reference Fresh
 

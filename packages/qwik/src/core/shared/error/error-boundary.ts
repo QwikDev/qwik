@@ -24,6 +24,7 @@ import type { SSRContainer } from '../../ssr/ssr-types';
 import { tryGetInvokeContext } from '../../use/use-core';
 import { getNextUniqueIndex } from '../utils/unique-index-generator';
 import { getStoreTarget } from '../../reactive-primitives/impl/store';
+import { hasSlotProps } from '../utils/prop';
 import {
   vnode_getProjectionParentOrParent,
   vnode_getProp,
@@ -44,6 +45,7 @@ import {
 } from './error-handling';
 import { _captures } from '../qrl/qrl-class';
 import type { DomContainer } from '../../client/dom-container';
+import type { VirtualVNode } from '../vnode/virtual-vnode';
 import type { VNode } from '../vnode/vnode';
 
 /** @public @experimental */
@@ -77,6 +79,8 @@ export const errorBoundaryReset = (): void => {
   }
 };
 
+const RESET_KEY_SUFFIX = '\0';
+
 /** @internal */
 export function resetErrorBoundary(container: DomContainer, host: VNode): void {
   const boundaryHost = container.resolveContextHost(host, ERROR_CONTEXT);
@@ -87,26 +91,51 @@ export function resetErrorBoundary(container: DomContainer, host: VNode): void {
   if (!store) {
     return;
   }
-  let recordedContentOwner: VNode | null = null;
+  let recordedContentOwner: VirtualVNode | null = null;
   if (store.projectedContentOwnerId) {
     try {
-      recordedContentOwner = container.vNodeLocate(store.projectedContentOwnerId);
+      recordedContentOwner = container.vNodeLocate(store.projectedContentOwnerId) as VirtualVNode;
     } catch {
       // ignore
     }
   }
-  const owner = findBoundaryContentOwner(container, boundaryHost) ?? recordedContentOwner;
-  // An ownerless reset recovers through projection re-scheduling.
-  owner && markVNodeDirty(container, owner, ChoreBits.COMPONENT);
-  markVNodeDirty(container, boundaryHost, ChoreBits.COMPONENT);
-  // Only the recorded owner can re-supply projected children.
-  if (recordedContentOwner && recordedContentOwner !== owner) {
-    markVNodeDirty(container, recordedContentOwner, ChoreBits.COMPONENT);
-  }
+  scheduleBoundaryContentReset(container, boundaryHost as VirtualVNode, recordedContentOwner);
   store.error = undefined;
 }
 
-function findBoundaryContentOwner(container: DomContainer, host: VNode): VNode | null {
+function scheduleBoundaryContentReset(
+  container: DomContainer,
+  boundaryHost: VirtualVNode,
+  recordedContentOwner: VirtualVNode | null
+): void {
+  let resetHost = boundaryHost;
+  let contentOwner = findBoundaryContentOwner(container, resetHost);
+  while (contentOwner) {
+    const contentOwnerBoundary = getOwnErrorBoundaryStore(container, contentOwner);
+    if (contentOwnerBoundary?.error !== undefined || !hasSlotProps(contentOwner.props)) {
+      break;
+    }
+    const nextOwner = findBoundaryContentOwner(container, contentOwner);
+    if (!nextOwner) {
+      break;
+    }
+    resetHost = contentOwner;
+    contentOwner = nextOwner;
+  }
+  if (recordedContentOwner && recordedContentOwner !== contentOwner) {
+    resetHost = contentOwner ?? resetHost;
+    contentOwner = recordedContentOwner;
+  }
+  if (contentOwner) {
+    // Force keyed diff to recreate emptied projected content.
+    resetHost.key = `${resetHost.key ?? ''}${RESET_KEY_SUFFIX}`;
+    markVNodeDirty(container, contentOwner, ChoreBits.COMPONENT);
+  } else {
+    markVNodeDirty(container, boundaryHost, ChoreBits.COMPONENT);
+  }
+}
+
+function findBoundaryContentOwner(container: DomContainer, host: VNode): VirtualVNode | null {
   let vNode: VNode | null = vnode_getProjectionParentOrParent(host);
   let crossedProjection = false;
   while (vNode) {

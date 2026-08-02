@@ -193,8 +193,9 @@ Keep error state non-enumerable and out of serialized state. Store the raw throw
 at display sites; production uses generic redaction unless the app returns an `Error` from
 `transformError` or throws a `PublicError`.
 
-Reset must re-render the component that authored projected children. Preserve the SSR `authorId`
-fallback, ancestor retention, and moved-projection scheduling together with the client author walk.
+Reset must re-render the component that authored projected children. Preserve the SSR
+`projectedContentOwnerId` fallback and ancestor retention. Re-key the highest wrapper below that
+author so normal diffing recreates emptied projected content without projection-wide scheduling.
 
 ## Keep This Reference Fresh
 

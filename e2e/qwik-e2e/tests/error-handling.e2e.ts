@@ -10,6 +10,7 @@ export const streamingModes = [
   { mode: 'in-order', outOfOrder: false },
   { mode: 'out-of-order', outOfOrder: true },
 ] as const;
+const caughtError = /^caught: .+/;
 
 type RouteApp = 'error-handling' | 'error-handling.prod';
 
@@ -62,7 +63,7 @@ test.describe('ErrorBoundary + fallback$', () => {
       await expect(page.locator('#eb-footer')).toHaveText('Footer shell', { timeout: 10000 });
 
       await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: An error occurred');
+      await expect(page.locator('#eb-fallback-msg')).toHaveText(caughtError);
       await expect(page.locator('#eb-content')).toBeHidden();
 
       await page.locator('#eb-fallback-button').click();
@@ -116,7 +117,7 @@ test.describe('ErrorBoundary + fallback$', () => {
     await page.goto(routeUrl('nested-ssr'), { waitUntil: 'commit' });
 
     await expect(page.locator('#eb-outer')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#eb-outer-msg')).toHaveText('caught: An error occurred');
+    await expect(page.locator('#eb-outer-msg')).toHaveText(caughtError);
     await expect(page.locator('#eb-inner')).toBeHidden();
 
     await page.locator('#eb-outer-button').click();
@@ -132,7 +133,7 @@ test.describe('ErrorBoundary + fallback$', () => {
 
       await expect(page.locator('#eb-title')).toHaveText('Error handling e2e', { timeout: 10000 });
       await expect(page.locator('#eb-outer')).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('#eb-outer-msg')).toHaveText('caught: An error occurred');
+      await expect(page.locator('#eb-outer-msg')).toHaveText(caughtError);
       await expect(page.locator('#eb-content')).toBeHidden();
 
       await page.locator('#eb-outer-button').click();
@@ -179,7 +180,7 @@ test.describe('ErrorBoundary + fallback$', () => {
 
       await expect(page.locator('#eb-deferred-ok')).toBeVisible({ timeout: 10000 });
       await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: An error occurred');
+      await expect(page.locator('#eb-fallback-msg')).toHaveText(caughtError);
       await expect(page.locator('#eb-content')).toBeHidden();
 
       await page.locator('#eb-fallback-button').click();
@@ -204,7 +205,7 @@ test.describe('ErrorBoundary + fallback$', () => {
       await releaseDeferred(page, '#eb-release');
 
       await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: An error occurred');
+      await expect(page.locator('#eb-fallback-msg')).toHaveText(caughtError);
       await expect(page.locator('#eb-sibling')).toBeHidden();
 
       await page.locator('#eb-fallback-button').click();
@@ -223,7 +224,7 @@ test.describe('ErrorBoundary + fallback$', () => {
       );
 
       await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: An error occurred');
+      await expect(page.locator('#eb-fallback-msg')).toHaveText(caughtError);
       await expect(page.locator('#eb-content')).toBeHidden();
       await expect(page.locator('#eb-skel')).toBeVisible({ timeout: 10000 });
       await expect(page.locator('#eb-deferred-ok')).toHaveCount(0);
@@ -266,7 +267,7 @@ test.describe('ErrorBoundary + fallback$', () => {
       );
 
       await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: An error occurred');
+      await expect(page.locator('#eb-fallback-msg')).toHaveText(caughtError);
       await expect(page.locator('#eb-deferred-ok')).toHaveCount(0);
 
       // WebKit can starve rAF-based waitForFunction while the stream is held.
@@ -297,9 +298,7 @@ test.describe('ErrorBoundary + fallback$', () => {
       await page.goto(routeUrl('multi-container'), { waitUntil: 'commit' });
 
       await expect(page.locator('#eb-embed #eb-fallback')).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('#eb-embed #eb-fallback-msg')).toHaveText(
-        'caught: An error occurred'
-      );
+      await expect(page.locator('#eb-embed #eb-fallback-msg')).toHaveText(caughtError);
       await expect(page.locator('#eb-embed #eb-content')).toBeHidden();
 
       const hostBoundaryId = await page
@@ -328,7 +327,7 @@ test.describe('ErrorBoundary + fallback$', () => {
       await page.goto(routeUrl('nested'), { waitUntil: 'commit' });
 
       await expect(page.locator('#eb-inner')).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('#eb-inner-msg')).toHaveText('caught: An error occurred');
+      await expect(page.locator('#eb-inner-msg')).toHaveText(caughtError);
       await expect(page.locator('#eb-outer')).toHaveCount(0);
 
       await page.locator('#eb-outer-throw').click();
@@ -395,7 +394,7 @@ test.describe('ErrorBoundary + fallback$', () => {
       }) => {
         await page.goto(routeUrl('async-error-throw'), { waitUntil: 'commit' });
 
-        await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: An error occurred', {
+        await expect(page.locator('#eb-fallback-msg')).toHaveText(caughtError, {
           timeout: 10000,
         });
         await expect(page.locator('#async-value')).toHaveCount(0);
@@ -600,7 +599,7 @@ test.describe('ErrorBoundary reset', () => {
     await page.goto(routeUrl('rederive'), { waitUntil: 'commit' });
 
     await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: An error occurred');
+    await expect(page.locator('#eb-fallback-msg')).toHaveText(caughtError);
     expect(await page.evaluate(() => (window as any).__ebRederiveRuns ?? 0)).toBe(0);
 
     await page.locator('#eb-reset').click();
@@ -638,7 +637,7 @@ test.describe('ErrorBoundary reset', () => {
     // OOOS: #8876 route shape + #8884 segment reset
     await page.goto(routeUrl('reset-reerror', { outOfOrder: false }), { waitUntil: 'commit' });
     await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#eb-fallback-msg')).toContainText('An error occurred');
+    await expect(page.locator('#eb-fallback-msg')).toHaveText(caughtError);
 
     await page.locator('#eb-reset').click();
     await expect(page.locator('#eb-fallback-msg')).toContainText('client boom 1', {

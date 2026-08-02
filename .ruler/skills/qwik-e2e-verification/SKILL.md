@@ -27,6 +27,10 @@ Use this skill for Playwright e2e work in `e2e/**`. Keep the repo-wide rules fro
 - CLI e2e: `e2e/qwik-cli-e2e/tests/`
 - React integration e2e: `e2e/qwik-react-e2e/tests/`
 
+Apps whose directory names contain `.prod` run in production mode under the shared Qwik dev server.
+Keep exact production-only assertions in those fixtures; regular fixtures must pass after either
+`build.core.dev` or `build.core`.
+
 ## Commands
 
 Main Qwik e2e config uses `--browser`, not Playwright projects:

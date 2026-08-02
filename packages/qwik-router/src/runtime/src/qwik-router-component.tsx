@@ -639,10 +639,14 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         // and SSR awaits them on the server side. A loader that redirects
         // fires goto() directly; the new nav starts while this one finishes
         // committing, producing a brief flash of the current page.
+        // Immutable loaders stay lazy: they download only when actually read,
+        // and are then browser-cached for the life of the deploy.
         for (let i = 0; i < routeLoaders.length; i++) {
           const loader = routeLoaders[i];
-          // trigger load
-          loaderState[loader.__id].untrackedPending;
+          if (!isImmutableLoader(loader.__id)) {
+            // trigger load
+            loaderState[loader.__id].untrackedPending;
+          }
         }
       }
       if (!isServer) {

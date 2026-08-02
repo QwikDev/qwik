@@ -3,9 +3,9 @@ import { isBrowser, isDev } from '@qwik.dev/core';
 // @ts-expect-error no types for preloader yet
 import { p as preload } from '@qwik.dev/core/preloader';
 import { ensureSlash } from '../../utils/pathname';
-import { fetchRouteLoaderData } from './route-loaders';
+import { fetchRouteLoaderData, getModuleRouteLoaders } from './route-loaders';
 import { loadRoute } from './routing';
-import type { LoadedRoute } from './types';
+import type { LoadedRoute, RouteModule } from './types';
 
 /**
  * Prefetch a route's JS bundles and optionally its loader data.
@@ -65,14 +65,23 @@ export async function prefetchRoute(
 /**
  * Prefetch a route's loader data in parallel (fire-and-forget). The per-nav fetch map dedupes
  * repeat hovers and shares the promise with the navigation's own fetch; the browser HTTP cache
- * handles freshness.
+ * handles freshness. Immutable loaders are skipped: they download lazily on first actual read and
+ * are then browser-cached for the life of the deploy.
  */
 export const prefetchLoaderData = (loadedRoute: LoadedRoute, url: URL, manifestHash: string) => {
   if (!loadedRoute.$loaders$?.length || !loadedRoute.$loaderPaths$) {
     return;
   }
+  const immutableIds = new Set(
+    getModuleRouteLoaders(loadedRoute.$mods$ as RouteModule[])
+      .filter((loader) => loader.__cacheControl === 'immutable')
+      .map((loader) => loader.__id)
+  );
   const basePath = (qwikRouterConfig as any).basePathname ?? '/';
   for (const hash of loadedRoute.$loaders$) {
+    if (immutableIds.has(hash)) {
+      continue;
+    }
     let loaderPath = loadedRoute.$loaderPaths$[hash];
     if (!loaderPath) {
       continue;

@@ -189,7 +189,7 @@ export const useProductDetails = routeLoader$(
 );
 ```
 
-<Note>**`cacheControl: 'immutable'` is special.** It means the data for a URL never changes until the application is rebuilt (the manifest hash busts the cache). Immutable loaders are skipped by the per-navigation re-fetch, and for SSG they are pre-generated as static `.json` files on disk, so route loaders work even on fully static sites.</Note>
+<Note>**`cacheControl: 'immutable'` is special.** It means the data for a URL never changes until the application is rebuilt (the manifest hash busts the cache). Immutable loaders are fully lazy on the client: they are skipped by the per-navigation re-fetch, the eager navigation fetch, and link data prefetching, so their JSON downloads only when a component actually reads the signal — and is then browser-cached for the life of the deploy. For SSG they are pre-generated as static `.json` files on disk, so route loaders work even on fully static sites.</Note>
 
 ### Polling
 

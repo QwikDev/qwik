@@ -1,5 +1,6 @@
 import { isDev } from '@qwik.dev/core/build';
 import type { DomContainer } from '../../client/dom-container';
+import type { ContainerElement, QDocument } from '../../client/types';
 import { mapArray_get } from '../../client/util-mapArray';
 import { createContextId } from '../../use/use-context';
 import { setErrorPayload } from '../cursor/chore-execution';
@@ -199,25 +200,40 @@ export const markBoundaryErrored = (
   }
 };
 
-export function createErrorHandler(container: DomContainer): (e: Event) => void {
-  return (e: Event) => {
-    const detail = (e as CustomEvent<{ error: unknown; element?: Element; importError?: string }>)
-      .detail;
-    if (detail?.importError) {
-      return;
-    }
-    const source = detail.element;
-    if (source && source.closest(QContainerSelector) === container.element) {
-      const host = container.vNodeLocate(source);
-      if (host) {
-        try {
-          container.handleError(detail.error, host, 'event');
-        } catch (handlerError) {
-          logError(handlerError);
-        }
-      }
-    }
-  };
+const handleQError = (e: Event) => {
+  const detail = (e as CustomEvent<{ error: unknown; element?: Element; importError?: string }>)
+    .detail;
+  if (detail?.importError) {
+    return;
+  }
+  const source = detail.element;
+  // The listener is document-wide, so only this document's elements may route through it.
+  if (!source || source.ownerDocument !== e.currentTarget) {
+    return;
+  }
+  // A destroyed container clears this back-pointer, so a stale target resolves to nothing.
+  const container = (source.closest(QContainerSelector) as ContainerElement | null)?.qContainer;
+  const host = container?.vNodeLocate(source);
+  if (!container || !host) {
+    return;
+  }
+  try {
+    container.handleError(detail.error, host, 'event');
+  } catch (handlerError) {
+    logError(handlerError);
+  }
+};
+
+/**
+ * One listener per document, routed by target, so no container is retained by the document. The
+ * marker lives on the document so a second bundle on the page reuses it instead of
+ * double-handling.
+ */
+export function installQErrorListener(doc: QDocument): void {
+  if (!doc.qErrorHandler) {
+    doc.qErrorHandler = handleQError;
+    doc.addEventListener?.('qerror', handleQError);
+  }
 }
 
 export function handleDevError(container: DomContainer, err: any, host: VNode) {

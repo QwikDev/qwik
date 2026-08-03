@@ -78,6 +78,9 @@ export interface QDocument extends Document {
 
   /** Processes an out-of-order Suspense segment after its resolved HTML is swapped in. */
   qProcessOOOS?: (boundaryId: number, revealNode: Element | null) => void;
+
+  /** Routes `qerror` to the owning container; installed once per document, shared by all bundles. */
+  qErrorHandler?: (e: Event) => void;
 }
 
 /**

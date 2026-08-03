@@ -2160,6 +2160,79 @@ describe('qerror (client event channel)', () => {
       }
     );
 
+    it('registers one qerror listener on the document, not one per container', async () => {
+      setPlatform(getTestPlatform());
+      const document = createDocument();
+      const qerrorHandlers: ((e: any) => void)[] = [];
+      const addEventListener = document.addEventListener.bind(document);
+      document.addEventListener = ((type: string, cb: any, opts?: any) => {
+        type === 'qerror' && qerrorHandlers.push(cb);
+        return addEventListener(type, cb, opts);
+      }) as typeof document.addEventListener;
+      const hostA = document.createElement('div');
+      const hostB = document.createElement('div');
+      document.body.appendChild(hostA);
+      document.body.appendChild(hostB);
+      await render(hostA, <div id="a">a</div>);
+      await render(hostB, <div id="b">b</div>);
+
+      expect(qerrorHandlers).toHaveLength(1);
+    });
+
+    it('installs one qerror listener per document even from a second runtime instance', async () => {
+      setPlatform(getTestPlatform());
+      const document = createDocument();
+      const qerrorHandlers: ((e: any) => void)[] = [];
+      const addEventListener = document.addEventListener.bind(document);
+      document.addEventListener = ((type: string, cb: any, opts?: any) => {
+        type === 'qerror' && qerrorHandlers.push(cb);
+        return addEventListener(type, cb, opts);
+      }) as typeof document.addEventListener;
+      const host = document.createElement('div');
+      document.body.appendChild(host);
+      await render(host, <div id="a">a</div>);
+      expect(qerrorHandlers).toHaveLength(1);
+
+      // A second bundle on the page has its own module state but shares the document.
+      vi.resetModules();
+      const secondRuntime = await import('../shared/error/error-handling');
+      secondRuntime.installQErrorListener(document as any);
+
+      expect(qerrorHandlers).toHaveLength(1);
+    });
+
+    it('ignores a qerror whose element belongs to another document', async () => {
+      setPlatform(getTestPlatform());
+      const documentA = createDocument();
+      const hostA = documentA.createElement('div');
+      documentA.body.appendChild(hostA);
+      await render(hostA, <div id="a">a</div>);
+
+      const documentB = createDocument();
+      const hostB = documentB.createElement('div');
+      documentB.body.appendChild(hostB);
+      await render(
+        hostB,
+        <ErrorBoundary
+          fallback$={$((e: any) => (
+            <p id="fb-B">caught B: {e.message}</p>
+          ))}
+        >
+          <button id="target-B">b</button>
+        </ErrorBoundary>
+      );
+
+      const target = hostB.querySelector('#target-B')!;
+      const ev = documentA.createEvent('Event');
+      ev.initEvent('qerror', false, false);
+      (ev as any).detail = { error: new Error('from another document'), element: target };
+      documentA.dispatchEvent(ev);
+      await settleOnErrorDelivery(_getDomContainer(hostB));
+
+      expect(hostB.querySelector('#fb-B')).toBeFalsy();
+      expect(hostB.querySelector('#target-B')).toBeTruthy();
+    });
+
     it('routes a qerror to the NEAREST owning container when an inner container nests inside an outer one', async () => {
       setPlatform(getTestPlatform());
       const document = createDocument();

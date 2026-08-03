@@ -5,11 +5,11 @@ import type { QRLInternal } from '../../server/qwik-types';
 import { assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import {
-  createErrorHandler,
   ERROR_CONTEXT,
   fireOnError,
   getOwnErrorBoundaryStore,
   handleDevError,
+  installQErrorListener,
   toBoundaryError,
 } from '../shared/error/error-handling';
 import type { ErrorBoundaryInfo } from '../shared/error/error-handling';
@@ -171,7 +171,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   private $stateData$: unknown[];
   private $rootForwardRefs$: Array<number | string> | null = null;
   private $styleIds$: Set<string> | null = null;
-  private $qErrorHandler$: ((e: Event) => void) | null = null;
 
   constructor(element: ContainerElement) {
     super({}, element.getAttribute(QLocaleAttr)!);
@@ -196,8 +195,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     element.qContainer = this;
     element.qDestroy = () => this.$destroy$();
     if (__EXPERIMENTAL__.errorBoundary) {
-      this.$qErrorHandler$ = createErrorHandler(this);
-      this.document.addEventListener?.('qerror', this.$qErrorHandler$);
+      installQErrorListener(this.document);
       registerUnhandledRejectionBridge(document.defaultView);
     }
     this.$containerDataProcessState$ = ContainerDataProcessState.ProcessingVNode;
@@ -245,9 +243,8 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
 
   /** Tear down this container so stale references fail gracefully. */
   $destroy$(): void {
-    if (this.$qErrorHandler$) {
-      this.document.removeEventListener?.('qerror', this.$qErrorHandler$);
-      this.$qErrorHandler$ = null;
+    // `qContainer` flips exactly once, so a repeated destroy cannot double-decrement the bridge.
+    if (__EXPERIMENTAL__.errorBoundary && this.element.qContainer) {
       unregisterUnhandledRejectionBridge(this.document.defaultView);
     }
     this.vNodeLocate = () => null as any;

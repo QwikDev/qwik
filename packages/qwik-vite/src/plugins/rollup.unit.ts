@@ -111,6 +111,12 @@ test('uses explicit Rolldown code splitting with Vite 8', async () => {
       output.codeSplitting.groups[0].name('module', { getModuleInfo: () => null }),
       'manual'
     );
+    // grouping the handlers entry would empty its facade under rolldown
+    assert.isNull(
+      output.codeSplitting.groups[0].name('/project/packages/qwik/handlers.mjs', {
+        getModuleInfo: () => null,
+      })
+    );
   } finally {
     await rm(rootDir, { recursive: true, force: true });
   }

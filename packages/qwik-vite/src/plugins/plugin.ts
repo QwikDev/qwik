@@ -460,8 +460,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         _ctx.emitFile({
           id: handlers.id,
           type: 'chunk',
-          // strict keeps the facade its own chunk with exact QRL symbol names
-          preserveSignature: 'strict',
+          // allow-extension folds the QRL symbol exports into the qwik-core chunk
+          preserveSignature: 'allow-extension',
         });
         shouldAddHandlers = false;
       }
@@ -770,8 +770,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         ctx.emitFile({
           id: key.id,
           type: 'chunk',
-          // strict keeps the facade its own chunk with exact QRL symbol names
-          preserveSignature: 'strict',
+          // allow-extension folds the QRL symbol exports into the qwik-core chunk
+          preserveSignature: 'allow-extension',
         });
       }
 
@@ -1379,11 +1379,9 @@ export const isDev = ${JSON.stringify(isDev)};
         /[/\\](core|qwik)[/\\]dist[/\\]preloader\.[cm]js$/.test(id)
       ) {
         return 'qwik-preloader';
-      } else if (/[/\\](core|qwik)[/\\]handlers\.[cm]js$/.test(id)) {
-        // grouping the emitted handlers entry would drop its export facade in rolldown
-        return null;
       } else if (
-        // core and handlers stay separate to preserve the handlers entry chunk
+        // likewise, core and handlers have to be in the same chunk so there's no import waterfall
+        QWIK_HANDLERS_MODULE_RE.test(id) ||
         /[/\\](core|qwik)[/\\]dist[/\\]core(\.prod|\.min)?\.[cm]js$/.test(id)
       ) {
         return 'qwik-core';
@@ -1559,6 +1557,9 @@ export const QWIK_CLIENT_MANIFEST_ID = '@qwik-client-manifest';
 export const QWIK_PRELOADER_ID = '@qwik.dev/core/preloader';
 /** @internal virtual import to ensure the _run etc handlers are exported as-is */
 export const QWIK_HANDLERS_ID = '@qwik-handlers';
+
+/** @internal matches the handlers entry module emitted for client builds */
+export const QWIK_HANDLERS_MODULE_RE = /[/\\](core|qwik)[/\\]handlers\.[cm]js$/;
 
 export const SRC_DIR_DEFAULT = 'src';
 

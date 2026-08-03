@@ -10,6 +10,7 @@ import type {
 } from '../types';
 import {
   createQwikPlugin,
+  QWIK_HANDLERS_MODULE_RE,
   type ExperimentalFeatures,
   type NormalizedQwikPluginOptions,
   type QwikBuildMode,
@@ -293,9 +294,12 @@ export async function normalizeRollupOutputOptionsObject(
         {
           // explicit types: rolldown ships its own codeSplitting types that break inference
           name: (id: string, context: { getModuleInfo: Rollup.GetModuleInfo }) =>
-            manualChunks(id, {
-              getModuleInfo: context.getModuleInfo.bind(context),
-            }) ?? null,
+            // grouping the handlers entry would empty its facade under rolldown
+            QWIK_HANDLERS_MODULE_RE.test(id)
+              ? null
+              : (manualChunks(id, {
+                  getModuleInfo: context.getModuleInfo.bind(context),
+                }) ?? null),
         },
       ],
     };

@@ -105,21 +105,17 @@ test('emits loader and handlers entry chunks for client builds', async () => {
       emitted.push([id, preserveSignature]),
   } as any);
 
-  // handlers must be strict: a merged or extended facade breaks QRL symbol resolution
+  // allow-extension folds the handlers exports into the qwik-core chunk (no facade, no waterfall)
   expect(emitted).toEqual([
     ['/resolved/@qwik.dev/core/qwikloader.js', 'allow-extension'],
-    ['/resolved/@qwik.dev/core/handlers.mjs', 'strict'],
+    ['/resolved/@qwik.dev/core/handlers.mjs', 'allow-extension'],
   ]);
 });
 
-test('leaves the handlers entry ungrouped so its facade keeps its exports', async () => {
+test('groups handlers with core so rollup avoids an import waterfall', async () => {
   const plugin = await mockPlugin();
 
-  expect(
-    plugin.manualChunks('/project/packages/qwik/handlers.mjs', {
-      getModuleInfo: () => null,
-    } as any)
-  ).toBe(null);
+  expect(plugin.manualChunks('/project/packages/qwik/handlers.mjs', {} as any)).toBe('qwik-core');
   expect(plugin.manualChunks('/project/packages/qwik/dist/core.mjs', {} as any)).toBe('qwik-core');
 });
 

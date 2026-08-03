@@ -102,10 +102,10 @@ export interface QwikManifest {
 }
 
 // @public (undocumented)
-export function qwikRollup(qwikRollupOpts?: QwikRollupPluginOptions): any;
+export function qwikRolldown(qwikRolldownOpts?: QwikRolldownPluginOptions): any;
 
 // @public (undocumented)
-export interface QwikRollupPluginOptions {
+export interface QwikRolldownPluginOptions {
     buildMode?: QwikBuildMode;
     // (undocumented)
     csr?: boolean;
@@ -123,6 +123,12 @@ export interface QwikRollupPluginOptions {
     target?: QwikBuildTarget;
     transformedModuleOutput?: ((transformedModules: TransformModule[]) => Promise<void> | void) | null;
 }
+
+// @public @deprecated
+export const qwikRollup: typeof qwikRolldown;
+
+// @public @deprecated
+export type QwikRollupPluginOptions = QwikRolldownPluginOptions;
 
 // @public (undocumented)
 export interface QwikSymbol {

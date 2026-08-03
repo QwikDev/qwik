@@ -115,6 +115,8 @@ export interface SSRContainer extends Container {
   additionalHeadNodes: Array<JSXNodeInternal>;
   additionalBodyNodes: Array<JSXNodeInternal>;
   $noScriptHere$: number;
+  /** Innermost open ErrorBoundary content host, so the walker can skip an errored subtree. */
+  $errorContentHost$: ISsrNode | null;
 
   /**
    * Lets the container place a root-level `useOn` placeholder `<script>` itself when injecting it

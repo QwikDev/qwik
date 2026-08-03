@@ -8,6 +8,7 @@ import {
   _res,
   _setEvent,
   _walkJSX,
+  _handleSSRError,
   _createQRL as createQRL,
   isSignal,
   type Signal,
@@ -388,8 +389,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   ensureProjectionResolved(_host: HostElement): void {}
 
-  handleError(err: any, _$host$: null): void {
-    throw err;
+  handleError(
+    err: any,
+    host: HostElement | null,
+    phase: Parameters<ISSRContainer['handleError']>[2] = 'render'
+  ): void {
+    _handleSSRError(this, err, host as ISsrNode | null, phase);
   }
 
   addBackpatchEntry(
@@ -670,6 +675,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   $noScriptHere$: number = 0;
+  $errorContentHost$: ISsrNode | null = null;
 
   /** Renders opening tag for DOM element */
   openElement(

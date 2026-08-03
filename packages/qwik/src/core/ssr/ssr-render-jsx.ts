@@ -18,14 +18,14 @@ import {
   type SSRStreamChildren,
 } from '../shared/jsx/utils.public';
 import { type SerializationContext } from '../shared/serdes/index';
+import type { ErrorBoundaryInfo } from '../shared/error/error-handling';
+import { VNodeDataFlag } from '../../server/types';
 import { DEBUG_TYPE, VirtualType } from '../shared/types';
 import { isAsyncGenerator } from '../shared/utils/async-generator';
 import { EMPTY_OBJ } from '../shared/utils/flyweight';
 import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 import {
   ELEMENT_KEY,
-  ELEMENT_SEQ,
-  QCtxAttr,
   QDefaultSlot,
   QErrorContentHost,
   QScopedStyle,
@@ -33,14 +33,10 @@ import {
   QSlotParent,
   qwikInspectorAttr,
 } from '../shared/utils/markers';
-import { mapArray_get } from '../client/util-mapArray';
-import { clearAllEffects } from '../reactive-primitives/cleanup';
-import { isTask } from '../use/use-task';
-import { VNodeDataFlag } from '../../server/types';
 import { isPromise, retryOnPromise } from '../shared/utils/promises';
-import { qDev, qInspector } from '../shared/utils/qdev';
+import { qInspector } from '../shared/utils/qdev';
 import { addComponentStylePrefix } from '../shared/utils/scoped-styles';
-import { isOutOfOrderSegmentContainer, type InnerContainer } from '../shared/utils/container';
+import type { InnerContainer } from '../shared/utils/container';
 import { isFunction, type ValueOrPromise } from '../shared/utils/types';
 import { trackSignalAndAssignHost } from '../use/use-core';
 import {
@@ -48,38 +44,11 @@ import {
   isInternalServerComponent,
 } from './internal-server-component';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
-import {
-  ERROR_CONTEXT,
-  isRecoverable,
-  markBoundaryErrored,
-  markErrorFromDeferredSegment,
-  type ErrorBoundaryStore,
-} from '../shared/error/error-handling';
-import type { ErrorBoundaryInfo } from '../shared/error/error-handling';
 import type { ISsrComponentFrame, ISsrNode, SSRContainer, SSRRenderJSXOptions } from './ssr-types';
 import { resolveSlotName } from '../shared/utils/prop';
 
 class MaybeAsyncSignal {}
 class FunctionChild {}
-
-const openBoundaryContentScopes = /*#__PURE__*/ new WeakMap<SSRContainer, ISsrNode[]>();
-
-const pushBoundaryContentScope = (ssr: SSRContainer, contentHost: ISsrNode): StackFn => {
-  let scopes = openBoundaryContentScopes.get(ssr);
-  if (!scopes) {
-    openBoundaryContentScopes.set(ssr, (scopes = []));
-  }
-  scopes.push(contentHost);
-  return () => {
-    scopes.pop();
-  };
-};
-
-const isInsideFailedBoundaryContent = (ssr: SSRContainer): boolean => {
-  const scopes = openBoundaryContentScopes.get(ssr);
-  const scope = scopes?.[scopes.length - 1];
-  return !!scope && (scope.vnodeData[0] & VNodeDataFlag.INERT) !== 0;
-};
 
 type StackFn = () => ValueOrPromise<void>;
 export type StackValue = ValueOrPromise<
@@ -92,18 +61,21 @@ export type StackValue = ValueOrPromise<
   | typeof FunctionChild
 >;
 
-const markPromiseHandled = (
-  ssr: SSRContainer,
-  promise: Promise<unknown>,
-  host: ISsrNode | null = null
-): void => {
-  promise.catch((reason) => {
-    try {
-      ssr.handleError(reason, host);
-    } catch {
-      // Original promise remains awaited later.
-    }
-  });
+const openBoundaryContentScope = (ssr: SSRContainer, contentHost: ISsrNode): StackFn => {
+  const enclosing = ssr.$errorContentHost$;
+  ssr.$errorContentHost$ = contentHost;
+  return () => {
+    ssr.$errorContentHost$ = enclosing;
+  };
+};
+
+const isInsideFailedBoundaryContent = (ssr: SSRContainer): boolean => {
+  const contentHost = ssr.$errorContentHost$;
+  return !!contentHost && (contentHost.vnodeData[0] & VNodeDataFlag.INERT) !== 0;
+};
+
+const markPromiseHandled = (promise: Promise<unknown>): void => {
+  promise.catch(() => {});
 };
 
 function setParentOptions(
@@ -126,12 +98,13 @@ export async function _walkJSX(
   const stack: StackValue[] = [value];
   const enqueue = (value: StackValue) => stack.push(value);
   const enqueuePromise = (promise: Promise<unknown>) => {
-    markPromiseHandled(ssr, promise);
+    markPromiseHandled(promise);
     stack.push(promise as StackValue);
     stack.push(Promise);
   };
   const drain = async (): Promise<void> => {
     while (stack.length) {
+      let phase: ErrorBoundaryInfo['phase'] = 'render';
       try {
         const value = stack.pop();
         // Reference equality first (no prototype walk), then typeof
@@ -140,11 +113,8 @@ export async function _walkJSX(
           if (__EXPERIMENTAL__.errorBoundary && isInsideFailedBoundaryContent(ssr)) {
             continue;
           }
-          try {
-            await retryOnPromise(() => stack.push(trackFn()));
-          } catch (err) {
-            renderErrorBoundaryFallback(ssr, ssr.getOrCreateLastNode(), err, 'async-signal');
-          }
+          phase = 'async-signal';
+          await retryOnPromise(() => stack.push(trackFn()));
           continue;
         }
         if (__EXPERIMENTAL__.errorBoundary && value === FunctionChild) {
@@ -152,13 +122,9 @@ export async function _walkJSX(
           if (isInsideFailedBoundaryContent(ssr)) {
             continue;
           }
-          try {
-            const result = fnChild.apply(ssr);
-            if (isPromise(result)) {
-              await result;
-            }
-          } catch (err) {
-            renderErrorBoundaryFallback(ssr, ssr.getOrCreateLastNode(), err);
+          const result = fnChild.apply(ssr);
+          if (isPromise(result)) {
+            await result;
           }
           continue;
         }
@@ -168,11 +134,7 @@ export async function _walkJSX(
             if (__EXPERIMENTAL__.errorBoundary && isInsideFailedBoundaryContent(ssr)) {
               continue;
             }
-            stack.push(
-              __EXPERIMENTAL__.errorBoundary
-                ? await catchToErrorBoundary(ssr, ssr.getOrCreateLastNode(), () => pending)
-                : await pending
-            );
+            stack.push(await pending);
           } else {
             const result = (value as StackFn).apply(ssr);
             if (isPromise(result)) {
@@ -188,6 +150,8 @@ export async function _walkJSX(
           continue;
         }
         processJSXNode(ssr, enqueue, enqueuePromise, value as JSXOutput, options);
+      } catch (err) {
+        ssr.handleError(err, ssr.getOrCreateLastNode(), phase);
       } finally {
         const pendingFlush = ssr.streamHandler.waitForPendingFlush();
         if (isPromise(pendingFlush)) {
@@ -197,131 +161,6 @@ export async function _walkJSX(
     }
   };
   await drain();
-}
-
-function renderErrorBoundaryFallback(
-  ssr: SSRContainer,
-  host: ReturnType<SSRContainer['getOrCreateLastNode']>,
-  err: unknown,
-  phase: ErrorBoundaryInfo['phase'] = 'render'
-): JSXOutput {
-  if (qDev && !isRecoverable(err)) {
-    throw err;
-  }
-  for (
-    let boundaryNode: ISsrNode | null = host;
-    boundaryNode;
-    boundaryNode = boundaryNode.parentComponent
-  ) {
-    const ctx = boundaryNode.getProp(QCtxAttr) as Array<string | unknown> | null;
-    const errorStore = ctx
-      ? (mapArray_get(ctx, ERROR_CONTEXT.id, 0) as ErrorBoundaryStore | null)
-      : null;
-    if (!errorStore || !errorStore.$fallback$) {
-      continue;
-    }
-    if (
-      __EXPERIMENTAL__.errorBoundary &&
-      isOutOfOrderSegmentContainer(ssr) &&
-      errorStore.$emitFallback$
-    ) {
-      throw err;
-    }
-    markBoundaryErrored(errorStore, err, phase);
-    if (__EXPERIMENTAL__.errorBoundary) {
-      if (isOutOfOrderSegmentContainer(ssr)) {
-        markErrorFromDeferredSegment(errorStore);
-      }
-      markErrorBoundaryContentInert(ssr, boundaryNode, errorStore);
-    }
-    return null;
-  }
-  throw err;
-}
-
-function markErrorBoundaryContentInert(
-  ssr: SSRContainer,
-  boundaryNode: ReturnType<SSRContainer['getOrCreateLastNode']>,
-  errorStore: ErrorBoundaryStore
-): void {
-  const liveOwners = new Map<string, { node: ISsrNode; depth: number }>();
-  let depth = 0;
-  for (let n: ISsrNode | null = boundaryNode; n; n = n.parentComponent) {
-    if (n !== boundaryNode) {
-      ssr.$retainForResume$(n);
-    }
-    if (n.id) {
-      liveOwners.set(n.id, { node: n, depth: depth++ });
-    }
-  }
-  const topmostSevered = { node: null as ISsrNode | null, depth: -1 };
-  const children = boundaryNode.children;
-  if (children) {
-    for (let i = 0; i < children.length; i++) {
-      markSubtreeInert(ssr, children[i], liveOwners, topmostSevered);
-    }
-  }
-  // The client's owner walk cannot see past the cut.
-  if (topmostSevered.node && topmostSevered.node !== boundaryNode) {
-    const projectedContentOwner = topmostSevered.node.parentComponent;
-    if (projectedContentOwner?.id) {
-      errorStore.projectedContentOwnerId = projectedContentOwner.id;
-    }
-  }
-}
-
-function markSubtreeInert(
-  ssr: SSRContainer,
-  node: ISsrNode,
-  liveOwners: Map<string, { node: ISsrNode; depth: number }>,
-  topmostSevered: { node: ISsrNode | null; depth: number }
-): void {
-  node.vnodeData[0] |= VNodeDataFlag.INERT;
-  const ownerId = node.getProp(QSlotParent) as string | null;
-  if (ownerId) {
-    const owner = liveOwners.get(ownerId);
-    if (owner) {
-      owner.node.removeProp((node.getProp(QSlot) as string | null) ?? QDefaultSlot);
-      if (owner.depth > topmostSevered.depth) {
-        topmostSevered.node = owner.node;
-        topmostSevered.depth = owner.depth;
-      }
-    }
-  }
-  // Element consumers keep materializing when inert, so their bindings would keep patching hidden
-  // DOM; virtual ones can't materialize and would leave producers pointing at a dead node.
-  clearAllEffects(ssr, node);
-  const seq = node.getProp(ELEMENT_SEQ) as unknown[] | null;
-  if (seq) {
-    for (let i = 0; i < seq.length; i++) {
-      const item = seq[i];
-      if (isTask(item)) {
-        clearAllEffects(ssr, item);
-      }
-    }
-  }
-  const children = node.children;
-  if (children) {
-    for (let i = 0; i < children.length; i++) {
-      markSubtreeInert(ssr, children[i], liveOwners, topmostSevered);
-    }
-  }
-}
-
-function catchToErrorBoundary(
-  ssr: SSRContainer,
-  host: ReturnType<SSRContainer['getOrCreateLastNode']>,
-  produce: () => ValueOrPromise<JSXOutput>,
-  phase: ErrorBoundaryInfo['phase'] = 'render'
-): ValueOrPromise<JSXOutput> {
-  try {
-    const out = produce();
-    return isPromise(out)
-      ? out.catch((err) => renderErrorBoundaryFallback(ssr, host, err, phase))
-      : out;
-  } catch (err) {
-    return renderErrorBoundaryFallback(ssr, host, err, phase);
-  }
 }
 
 function enqueueChild(enqueue: (value: StackValue) => void, child: JSXOutput) {
@@ -384,13 +223,8 @@ function processJSXNode(
             await ssr.streamHandler.flush();
           }
         } catch (err) {
-          const fallback = renderErrorBoundaryFallback(
-            ssr,
-            ssr.getOrCreateLastNode(),
-            err,
-            'async-generator'
-          );
-          await _walkJSX(ssr, fallback, freshWalkOptions());
+          ssr.handleError(err, ssr.getOrCreateLastNode(), 'async-generator');
+          await _walkJSX(ssr, null, freshWalkOptions());
         }
       });
     } else {
@@ -420,7 +254,7 @@ function processJSXNode(
         }
 
         if (__EXPERIMENTAL__.errorBoundary && directGetPropsProxyProp(jsx, QErrorContentHost)) {
-          enqueue(pushBoundaryContentScope(ssr, ssr.getOrCreateLastNode()));
+          enqueue(openBoundaryContentScope(ssr, ssr.getOrCreateLastNode()));
         }
         enqueue(ssr.closeElement);
 
@@ -538,6 +372,10 @@ function processJSXNode(
           }
           ssr.openComponent(componentAttrs);
           const host = ssr.getOrCreateLastNode();
+          enqueue(
+            setParentOptions(options, options.currentStyleScoped, options.parentComponentFrame)
+          );
+          enqueue(() => ssr.closeComponent());
           const componentFrame = ssr.getParentComponentFrame()!;
           componentFrame!.distributeChildrenIntoSlots(
             jsx.children,
@@ -545,15 +383,9 @@ function processJSXNode(
             options.parentComponentFrame
           );
 
-          const jsxOutput = __EXPERIMENTAL__.errorBoundary
-            ? catchToErrorBoundary(ssr, host, () => applyQwikComponentBody(ssr, jsx, type))
-            : applyQwikComponentBody(ssr, jsx, type);
-          enqueue(
-            setParentOptions(options, options.currentStyleScoped, options.parentComponentFrame)
-          );
-          enqueue(() => ssr.closeComponent());
+          const jsxOutput = applyQwikComponentBody(ssr, jsx, type);
           if (isPromise(jsxOutput)) {
-            markPromiseHandled(ssr, jsxOutput, host);
+            markPromiseHandled(jsxOutput);
             // Defer reading QScopedStyle until after the promise resolves
             enqueue(async () => {
               await ssr.streamHandler.flush();
@@ -576,11 +408,12 @@ function processJSXNode(
           ssr.openFragment(inlineComponentProps);
           enqueue(ssr.closeFragment);
           const component = ssr.getParentComponentFrame();
-          const jsxOutput = __EXPERIMENTAL__.errorBoundary
-            ? catchToErrorBoundary(ssr, ssr.getOrCreateLastNode(), () =>
-                applyInlineComponent(ssr, component && component.componentNode, type, jsx)
-              )
-            : applyInlineComponent(ssr, component && component.componentNode, type, jsx);
+          const jsxOutput = applyInlineComponent(
+            ssr,
+            component && component.componentNode,
+            type,
+            jsx
+          );
           if (isPromise(jsxOutput)) {
             enqueuePromise(jsxOutput);
           } else {

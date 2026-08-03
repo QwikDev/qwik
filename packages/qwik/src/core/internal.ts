@@ -77,6 +77,7 @@ export { EMPTY_ARRAY as _EMPTY_ARRAY, EMPTY_OBJ as _EMPTY_OBJ } from './shared/u
 export { ELEMENT_SEQ as _ELEMENT_SEQ } from './shared/utils/markers';
 export { _restProps } from './shared/utils/prop';
 export { _walkJSX } from './ssr/ssr-render-jsx';
+export { handleSSRError as _handleSSRError } from './ssr/error-boundary-ssr';
 export { _resolveContextWithoutSequentialScope } from './use/use-context';
 export {
   _getContextContainer,

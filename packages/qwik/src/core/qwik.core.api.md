@@ -555,6 +555,9 @@ export { h as createElement }
 export { h }
 
 // @internal (undocumented)
+export function _handleSSRError(container: SSRContainer, err: any, host: ISsrNode | null, phase?: ErrorBoundaryInfo['phase']): void;
+
+// @internal (undocumented)
 export const _hasStoreEffects: (value: StoreTarget, prop: keyof StoreTarget) => boolean;
 
 // @internal
@@ -840,6 +843,7 @@ export type PublicProps<PROPS> = (PROPS extends Record<any, any> ? Omit<PROPS, `
 
 // @internal (undocumented)
 export interface _QDocument extends Document {
+    qErrorHandler?: (e: Event) => void;
     qProcessOOOS?: (boundaryId: number, revealNode: Element | null) => void;
     qProcessVNodeDataPatch?: (script: Element | null) => void;
     // (undocumented)

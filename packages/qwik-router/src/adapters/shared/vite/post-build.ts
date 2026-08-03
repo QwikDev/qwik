@@ -82,7 +82,7 @@ const injectStatics = async (staticPathsCode: string, outDir: string) => {
     const code = await fs.promises.readFile(path, 'utf-8');
 
     let replaced = false;
-    const newCode = code.replace(/(['"])__QWIK_ROUTER_STATIC_PATHS_ARRAY__\1/g, () => {
+    const newCode = code.replace(/(['"`])__QWIK_ROUTER_STATIC_PATHS_ARRAY__\1/g, () => {
       replaced = true;
       return staticPathsCode;
     });

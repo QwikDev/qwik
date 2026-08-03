@@ -32,7 +32,8 @@ export const emitQwikWorkerCoreChunk = (ctx: Rollup.PluginContext) => {
     id: QWIK_WORKER_CORE_ID,
     name: 'qwik-worker-core',
     type: 'chunk',
-    preserveSignature: 'allow-extension',
+    // strict stops rollup merging this facade away, which hides it from the sentinel rewrite
+    preserveSignature: 'strict',
   });
 };
 

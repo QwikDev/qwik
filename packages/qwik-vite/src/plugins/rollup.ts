@@ -25,6 +25,20 @@ type QwikRollupPluginApi = {
   getOptions: () => NormalizedQwikPluginOptions;
 };
 
+type ManualChunkFn = (
+  id: string,
+  meta: { getModuleInfo: Rollup.GetModuleInfo }
+) => string | void | null;
+
+type RolldownOutputOptions = Rollup.OutputOptions & {
+  codeSplitting?: {
+    includeDependenciesRecursively: boolean;
+    groups: Array<{
+      name: (id: string, context: { getModuleInfo: Rollup.GetModuleInfo }) => string | void | null;
+    }>;
+  };
+};
+
 /** @public */
 export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
   const qwikPlugin = createQwikPlugin(qwikRollupOpts.optimizerOptions);
@@ -192,6 +206,22 @@ const getChunkFileName = (
   }
 };
 
+/** Vite 8+ bundles with Rolldown, which needs different output options than Rollup. */
+export async function isRolldownVite(optimizer: Optimizer): Promise<boolean> {
+  const vitePkgJsonPath = await findDepPkgJsonPath(optimizer.sys, 'vite', optimizer.sys.cwd());
+  if (!vitePkgJsonPath) {
+    return false;
+  }
+  try {
+    const fs: typeof import('fs') = await optimizer.sys.dynamicImport('node:fs');
+    const vitePkgJson = JSON.parse(await fs.promises.readFile(vitePkgJsonPath, 'utf-8'));
+    return parseInt(String(vitePkgJson?.version), 10) >= 8;
+  } catch {
+    // Keep Rollup-compatible output when Vite cannot be detected.
+    return false;
+  }
+}
+
 export async function normalizeRollupOutputOptionsObject(
   qwikPlugin: QwikPlugin,
   rollupOutputOptsObj: Rollup.OutputOptions | undefined,
@@ -227,9 +257,6 @@ export async function normalizeRollupOutputOptionsObject(
     if (prevManualChunks && typeof prevManualChunks !== 'function') {
       throw new Error('manualChunks must be a function');
     }
-    // Casts bridge Rollup vs Rolldown ManualChunkMeta type differences
-    type ManualChunkFn = (id: string, meta: unknown) => string | void | null;
-
     // We need custom chunking for the client build
     outputOpts.manualChunks = prevManualChunks
       ? (id, meta) =>
@@ -256,8 +283,29 @@ export async function normalizeRollupOutputOptionsObject(
    */
   outputOpts.hoistTransitiveImports = false;
 
+  const usesRolldown = await isRolldownVite(optimizer);
+  if (usesRolldown && outputOpts.manualChunks) {
+    const manualChunks = outputOpts.manualChunks as ManualChunkFn;
+    const rolldownOutput = outputOpts as RolldownOutputOptions;
+    rolldownOutput.codeSplitting = {
+      includeDependenciesRecursively: false,
+      groups: [
+        {
+          // explicit types: rolldown ships its own codeSplitting types that break inference
+          name: (id: string, context: { getModuleInfo: Rollup.GetModuleInfo }) =>
+            manualChunks(id, {
+              getModuleInfo: context.getModuleInfo.bind(context),
+            }) ?? null,
+        },
+      ],
+    };
+    delete outputOpts.manualChunks;
+  }
+
   // V2 official release TODO: remove below checks and just keep `outputOpts.onlyExplicitManualChunks = true;`
-  const userPkgJsonPath = await findDepPkgJsonPath(optimizer.sys, 'rollup', optimizer.sys.cwd());
+  const userPkgJsonPath = usesRolldown
+    ? undefined
+    : await findDepPkgJsonPath(optimizer.sys, 'rollup', optimizer.sys.cwd());
   if (userPkgJsonPath) {
     try {
       const fs: typeof import('fs') = await optimizer.sys.dynamicImport('node:fs');

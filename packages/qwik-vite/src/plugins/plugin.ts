@@ -453,6 +453,18 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
           preserveSignature: 'allow-extension',
         });
       }
+      const handlers = await _ctx.resolve('@qwik.dev/core/handlers.mjs', undefined, {
+        skipSelf: true,
+      });
+      if (handlers) {
+        _ctx.emitFile({
+          id: handlers.id,
+          type: 'chunk',
+          // strict keeps the facade its own chunk with exact QRL symbol names
+          preserveSignature: 'strict',
+        });
+        shouldAddHandlers = false;
+      }
     }
   };
 
@@ -758,7 +770,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         ctx.emitFile({
           id: key.id,
           type: 'chunk',
-          preserveSignature: 'allow-extension',
+          // strict keeps the facade its own chunk with exact QRL symbol names
+          preserveSignature: 'strict',
         });
       }
 
@@ -1366,9 +1379,12 @@ export const isDev = ${JSON.stringify(isDev)};
         /[/\\](core|qwik)[/\\]dist[/\\]preloader\.[cm]js$/.test(id)
       ) {
         return 'qwik-preloader';
+      } else if (/[/\\](core|qwik)[/\\]handlers\.[cm]js$/.test(id)) {
+        // grouping the emitted handlers entry would drop its export facade in rolldown
+        return null;
       } else if (
-        // likewise, core and handlers have to be in the same chunk so there's no import waterfall
-        /[/\\](core|qwik)[/\\](handlers|dist[/\\]core(\.prod|\.min)?)\.[cm]js$/.test(id)
+        // core and handlers stay separate to preserve the handlers entry chunk
+        /[/\\](core|qwik)[/\\]dist[/\\]core(\.prod|\.min)?\.[cm]js$/.test(id)
       ) {
         return 'qwik-core';
       } else if (/[/\\](core|qwik)[/\\]dist[/\\]qwikloader\.js$/.test(id)) {
@@ -1392,7 +1408,10 @@ export const isDev = ${JSON.stringify(isDev)};
         if (chunkName) {
           // we group related segments together based on their common entry or Qwik Insights provided hash
           // This not only applies to source files, but also qwik libraries files that are imported through node_modules
-          return chunkName;
+          return chunkName
+            .replace(/^(\.\.[/\\])+/, '')
+            .replace(/^[/\\]+/, '')
+            .replace(/[/\\]/g, '-');
         }
       }
     }

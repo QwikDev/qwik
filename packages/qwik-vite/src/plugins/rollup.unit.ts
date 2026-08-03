@@ -1,3 +1,5 @@
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import path, { resolve } from 'node:path';
 import { qwikRollup } from './rollup';
 import type { Rollup } from 'vite';
@@ -8,10 +10,10 @@ import { normalizePath } from '../../../qwik/src/testing/util';
 
 const cwd = process.cwd();
 
-function mockOptimizerOptions(): OptimizerOptions {
+function mockOptimizerOptions(rootDir = process.cwd()): OptimizerOptions {
   return {
     sys: {
-      cwd: () => process.cwd(),
+      cwd: () => rootDir,
       env: 'node',
       os: process.platform,
       dynamicImport: async (path) => import(path),
@@ -81,6 +83,37 @@ test('rollup default output options, client', async () => {
 
   assert.deepEqual(rollupOutputOpts.dir, normalizePath(resolve(cwd, 'dist')));
   assert.deepEqual(rollupOutputOpts.format, 'es');
+});
+
+test('uses explicit Rolldown code splitting with Vite 8', async () => {
+  const rootDir = await mkdtemp(resolve(tmpdir(), 'qwik-vite-'));
+  try {
+    const viteDir = resolve(rootDir, 'node_modules', 'vite');
+    await mkdir(viteDir, { recursive: true });
+    await writeFile(resolve(viteDir, 'package.json'), JSON.stringify({ version: '8.0.0' }));
+
+    const plugin = qwikRollup({ optimizerOptions: mockOptimizerOptions(rootDir) });
+    await plugin.options!({});
+    const output = (await plugin.outputOptions!({
+      manualChunks: () => 'manual',
+    })) as Rollup.OutputOptions & {
+      onlyExplicitManualChunks?: boolean;
+      codeSplitting: {
+        includeDependenciesRecursively: boolean;
+        groups: Array<{ name: (id: string, context: object) => string | void | null }>;
+      };
+    };
+
+    assert.isUndefined(output.manualChunks);
+    assert.isUndefined(output.onlyExplicitManualChunks);
+    assert.isFalse(output.codeSplitting.includeDependenciesRecursively);
+    assert.equal(
+      output.codeSplitting.groups[0].name('module', { getModuleInfo: () => null }),
+      'manual'
+    );
+  } finally {
+    await rm(rootDir, { recursive: true, force: true });
+  }
 });
 
 test('rollup default output options, ssr', async () => {

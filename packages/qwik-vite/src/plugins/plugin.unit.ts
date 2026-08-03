@@ -96,6 +96,51 @@ test('debug true', async () => {
   assert.deepEqual(opts.debug, true);
 });
 
+test('emits loader and handlers entry chunks for client builds', async () => {
+  const plugin = await mockPlugin();
+  const emitted: [string, string][] = [];
+  await plugin.buildStart({
+    resolve: async (id: string) => ({ id: `/resolved/${id}` }),
+    emitFile: ({ id, preserveSignature }: { id: string; preserveSignature: string }) =>
+      emitted.push([id, preserveSignature]),
+  } as any);
+
+  // handlers must be strict: a merged or extended facade breaks QRL symbol resolution
+  expect(emitted).toEqual([
+    ['/resolved/@qwik.dev/core/qwikloader.js', 'allow-extension'],
+    ['/resolved/@qwik.dev/core/handlers.mjs', 'strict'],
+  ]);
+});
+
+test('leaves the handlers entry ungrouped so its facade keeps its exports', async () => {
+  const plugin = await mockPlugin();
+
+  expect(
+    plugin.manualChunks('/project/packages/qwik/handlers.mjs', {
+      getModuleInfo: () => null,
+    } as any)
+  ).toBe(null);
+  expect(plugin.manualChunks('/project/packages/qwik/dist/core.mjs', {} as any)).toBe('qwik-core');
+});
+
+test('sanitizes relative manual chunk names', async () => {
+  const plugin = await mockPlugin();
+  await plugin.normalizeOptions({ entryStrategy: { type: 'smart' } });
+  const chunkName = plugin.manualChunks('/project/segment.js', {
+    getModuleInfo: () => ({
+      meta: {
+        segment: {
+          ctxName: 'component$',
+          hash: 'hash',
+          entry: '../../packages/router/segment',
+        },
+      },
+    }),
+  } as any);
+
+  expect(chunkName).toBe('packages-router-segment');
+});
+
 test('csr', async () => {
   const plugin = await mockPlugin();
   const opts = await plugin.normalizeOptions({ csr: true });

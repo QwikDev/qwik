@@ -35,7 +35,7 @@ import {
   type QwikPluginDevTools,
   type QwikPluginOptions,
 } from './plugin';
-import { createRollupError, normalizeRollupOutputOptions } from './rollup';
+import { createRollupError, isRolldownVite, normalizeRollupOutputOptions } from './rollup';
 import { isVirtualId } from './vite-utils';
 import {
   emitQwikWorkerCoreChunk,
@@ -337,7 +337,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             qwikPlugin,
             viteConfig.build?.rollupOptions?.output
           ),
-          preserveEntrySignatures: 'exports-only',
+          // rolldown requires allow-extension with explicit code splitting; exports-only keeps rollup chunks lean
+          preserveEntrySignatures: (await isRolldownVite(qwikPlugin.getOptimizer()))
+            ? 'allow-extension'
+            : 'exports-only',
           onwarn: (warning, warn) => {
             if (warning.plugin === 'typescript' && warning.message.includes('outputToFilesystem')) {
               return;
@@ -437,13 +440,14 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         !qwikViteOpts.csr &&
         qwikPlugin.getOptions().target === 'client'
       ) {
-        const names = ['vite:build-import-analysis'];
         const plugins = config.plugins as VitePlugin[];
-        for (const name of names) {
-          const i = plugins.findIndex((p) => p?.name === name);
-          if (i >= 0) {
-            plugins.splice(i, 1);
-          }
+        const nativeIndex = plugins.findIndex((p) => p?.name === 'native:import-analysis-build');
+        const preloadIndex =
+          nativeIndex >= 0
+            ? nativeIndex
+            : plugins.findIndex((p) => p?.name === 'vite:build-import-analysis');
+        if (preloadIndex >= 0) {
+          plugins.splice(preloadIndex, 1);
         }
       }
     },

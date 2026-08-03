@@ -1,3 +1,5 @@
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import path, { resolve } from 'node:path';
 import type { Rollup } from 'vite';
 import { assert, describe, test } from 'vitest';
@@ -14,6 +16,7 @@ import {
   rewriteWorkerCorePlaceholders,
   rewriteWorkerQrlChunkPlaceholders,
 } from './worker-qrl-chunks';
+import { emitQwikWorkerCoreChunk, QWIK_WORKER_CORE_ID } from './worker-core';
 
 const cwd = process.cwd();
 
@@ -32,10 +35,13 @@ const chunkInfoMocks = [
   },
 ] as Rollup.PreRenderedChunk[];
 
-function mockOptimizerOptions(env: 'node' | 'deno' = 'node'): OptimizerOptions {
+function mockOptimizerOptions(
+  env: 'node' | 'deno' = 'node',
+  rootDir = process.cwd()
+): OptimizerOptions {
   return {
     sys: {
-      cwd: () => process.cwd(),
+      cwd: () => rootDir,
       env,
       os: process.platform,
       dynamicImport: async (path) => import(path),
@@ -208,6 +214,91 @@ test('command: build, mode: development', async () => {
   assert.deepEqual(c.optimizeDeps?.include, includeDeps);
   assert.deepEqual(c.optimizeDeps?.exclude, excludeDeps);
   assert.deepEqual(c.ssr?.noExternal, noExternal);
+});
+
+test('removes Vite 8 native preload transforms from client builds', async () => {
+  const plugin = getPlugin({ optimizerOptions: mockOptimizerOptions() });
+  await plugin.config.call(configHookPluginContext, {}, { command: 'build', mode: 'production' });
+  const plugins = [
+    { name: 'vite:build-import-analysis' },
+    { name: 'native:import-analysis-build' },
+    { name: 'keep' },
+  ];
+
+  await plugin.configResolved({ base: '/', build: {}, plugins } as any);
+
+  assert.deepEqual(
+    plugins.map((plugin) => plugin.name),
+    ['vite:build-import-analysis', 'keep']
+  );
+});
+
+async function makeRootWithVite(viteMajorVersion: number) {
+  const rootDir = await mkdtemp(resolve(tmpdir(), 'qwik-vite-'));
+  const viteDir = resolve(rootDir, 'node_modules', 'vite');
+  await mkdir(viteDir, { recursive: true });
+  await writeFile(
+    resolve(viteDir, 'package.json'),
+    JSON.stringify({ version: `${viteMajorVersion}.0.0` })
+  );
+  return rootDir;
+}
+
+test('emits the worker core facade with a strict signature', () => {
+  const emitted: unknown[] = [];
+  emitQwikWorkerCoreChunk({ emitFile: (file: unknown) => emitted.push(file) } as any);
+  // strict keeps the facade its own chunk so the sentinel rewrite can find it
+  assert.deepEqual(emitted, [
+    {
+      id: QWIK_WORKER_CORE_ID,
+      name: 'qwik-worker-core',
+      type: 'chunk',
+      preserveSignature: 'strict',
+    },
+  ]);
+});
+
+test('keeps exports-only entry signatures with Rollup-based Vite', async () => {
+  const rootDir = await makeRootWithVite(7);
+  try {
+    const plugin = getPlugin({ optimizerOptions: mockOptimizerOptions('node', rootDir) });
+    const c = (await plugin.config.call(
+      configHookPluginContext,
+      {},
+      { command: 'build', mode: 'production' }
+    ))!;
+    assert.deepEqual(c.build!.rollupOptions!.preserveEntrySignatures, 'exports-only');
+  } finally {
+    await rm(rootDir, { recursive: true, force: true });
+  }
+});
+
+test('uses allow-extension entry signatures with Vite 8', async () => {
+  const rootDir = await makeRootWithVite(8);
+  try {
+    const plugin = getPlugin({ optimizerOptions: mockOptimizerOptions('node', rootDir) });
+    const c = (await plugin.config.call(
+      configHookPluginContext,
+      {},
+      { command: 'build', mode: 'production' }
+    ))!;
+    assert.deepEqual(c.build!.rollupOptions!.preserveEntrySignatures, 'allow-extension');
+  } finally {
+    await rm(rootDir, { recursive: true, force: true });
+  }
+});
+
+test('removes legacy Vite preload transforms from client builds', async () => {
+  const plugin = getPlugin({ optimizerOptions: mockOptimizerOptions() });
+  await plugin.config.call(configHookPluginContext, {}, { command: 'build', mode: 'production' });
+  const plugins = [{ name: 'vite:build-import-analysis' }, { name: 'keep' }];
+
+  await plugin.configResolved({ base: '/', build: {}, plugins } as any);
+
+  assert.deepEqual(
+    plugins.map((plugin) => plugin.name),
+    ['keep']
+  );
 });
 
 test('command: build, mode: production', async () => {

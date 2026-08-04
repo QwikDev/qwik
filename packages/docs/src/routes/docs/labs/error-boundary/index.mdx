@@ -134,6 +134,17 @@ fallback$={$((error) => (
 The same throw during SSR is server-origin and redacts, so keep display throws client-side — or
 render the message conditionally instead of throwing.
 
+## Caching
+
+An error caught during SSR still responds 200. To keep that response out of caches, the router
+sends `Cache-Control: no-store` when the error precedes the first chunk, and it always skips its
+own SSR cache. A route is therefore not cached while it errors — watch `onError$` for recurring
+errors.
+
+If a failure should be an error response instead of an inline fallback, throw it from a blocking
+loader or middleware with `requestEvent.error(status, data)`: the error document keeps its real
+status and your CDN's error-caching rules apply.
+
 ## `transformError`
 
 A server render option that projects a thrown error into the `Error` the fallback displays during

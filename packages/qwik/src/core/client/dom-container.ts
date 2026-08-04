@@ -121,37 +121,6 @@ function getOutOfOrderStreamingScript(boundaryId: number, content: Element | nul
   }
 }
 
-// One bridge per window, shared by every container on it; refcounted so the last destroy removes it.
-const rejectionBridges = new WeakMap<
-  object,
-  { handler: (e: PromiseRejectionEvent) => void; containers: number }
->();
-
-function registerUnhandledRejectionBridge(view: (Window & typeof globalThis) | null | undefined) {
-  if (!view || typeof view.addEventListener !== 'function') {
-    return;
-  }
-  const bridge = rejectionBridges.get(view);
-  if (bridge) {
-    bridge.containers++;
-    return;
-  }
-  const handler = (e: PromiseRejectionEvent) => {
-    logError(e?.reason);
-  };
-  rejectionBridges.set(view, { handler, containers: 1 });
-  view.addEventListener('unhandledrejection', handler);
-}
-
-function unregisterUnhandledRejectionBridge(view: (Window & typeof globalThis) | null | undefined) {
-  const bridge = view && rejectionBridges.get(view);
-  if (!bridge || --bridge.containers > 0) {
-    return;
-  }
-  rejectionBridges.delete(view);
-  view.removeEventListener?.('unhandledrejection', bridge.handler);
-}
-
 /** @internal */
 export class DomContainer extends _SharedContainer implements IClientContainer {
   public element: ContainerElement;
@@ -197,7 +166,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     element.qDestroy = () => this.$destroy$();
     if (__EXPERIMENTAL__.errorBoundary) {
       installQErrorListener(this.document);
-      registerUnhandledRejectionBridge(document.defaultView);
     }
     this.$containerDataProcessState$ = ContainerDataProcessState.ProcessingVNode;
     processVNodeData(document, element);
@@ -244,10 +212,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
 
   /** Tear down this container so stale references fail gracefully. */
   $destroy$(): void {
-    // `qContainer` flips exactly once, so a repeated destroy cannot double-decrement the bridge.
-    if (__EXPERIMENTAL__.errorBoundary && this.element.qContainer) {
-      unregisterUnhandledRejectionBridge(this.document.defaultView);
-    }
     this.vNodeLocate = () => null as any;
     this.$rawStateData$.length = 0;
     this.$stateData$.length = 0;

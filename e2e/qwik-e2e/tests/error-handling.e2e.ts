@@ -1,10 +1,5 @@
 import { test, expect } from '@playwright/test';
-import {
-  assertNoBrowserErrors,
-  collectConsoleErrors,
-  collectPageErrors,
-  releaseDeferred,
-} from './e2e-helpers';
+import { assertNoBrowserErrors, collectPageErrors, releaseDeferred } from './e2e-helpers';
 
 export const streamingModes = [
   { mode: 'in-order', outOfOrder: false },
@@ -514,24 +509,6 @@ test.describe('qerror (client event channel)', () => {
       await expect(page.locator('#eb-content')).toBeVisible();
       await expect(page.locator('#eb-content-touched')).toHaveText('0');
       expect(pageErrors).toEqual([]);
-    });
-  });
-
-  test.describe('unhandledrejection bridge', () => {
-    test('a fire-and-forget Promise.reject reaches logError via the unhandledrejection bridge', async ({
-      page,
-    }) => {
-      const consoleErrors = collectConsoleErrors(page);
-
-      await page.goto(routeUrl('unhandled-rejection'), { waitUntil: 'commit' });
-      await expect(page.locator('#eb-reject')).toBeVisible({ timeout: 10000 });
-
-      await page.locator('#eb-reject').click();
-      await expect(page.locator('#eb-reject-touched')).toHaveText('1');
-
-      await expect
-        .poll(() => consoleErrors.join('\n'), { timeout: 10000 })
-        .toContain('unhandled boom');
     });
   });
 });

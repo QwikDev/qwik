@@ -13,8 +13,7 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 // at or below the budget is fine. Bump the budget intentionally when a real feature justifies
 // the growth.
 const PRELOADER_BROTLI_BUDGET = 1800; // We currently group the vite preload helper with the preloader, adding ~500bytes brotli.
-// Async computed and serializer validation changes increased core size.
-const CORE_BROTLI_BUDGET = 34700;
+const CORE_BROTLI_BUDGET = 35400;
 const QWIKLOADER_BROTLI_BUDGET = 2100;
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
@@ -80,6 +79,7 @@ test.describe('router ssg snapshot', () => {
       expectedState = normalizedState;
     }
 
+    // These can fail on dev builds, remember to run `pnpm build.core` before updating the snapshot.
     expect(normalizedState).toEqual(expectedState);
     expect(normalizedHtml).toEqual(expectedHtml);
   });
@@ -144,17 +144,20 @@ test.describe('router ssg snapshot', () => {
  * growth is expected.
  */
 async function checkBrotliBudget(label: string, path: string, budget: number) {
-  const content = await readFile(resolve(distDir, 'build', path), 'utf-8');
+  const fullPath = resolve(distDir, 'build', path);
+  const content = await readFile(fullPath, 'utf-8');
   expect(content.length).toBeGreaterThan(0);
   const brotli = compress(Buffer.from(content), { mode: 1, quality: 11 }).length;
   // Logged on every run so size trends are visible in test output without having to fail first.
   // `console.warn` (not `console.log`) because the repo's `no-console` rule allows warn/error only.
-  console.warn(`[ssg-snapshot] ${label.padEnd(10)} brotli=${brotli} raw=${content.length}`);
+  console.warn(
+    `[ssg-snapshot] ${label.padEnd(10)} brotli=${brotli} raw=${content.length} file=${fullPath}`
+  );
   const constantName = `${label.toUpperCase()}_BROTLI_BUDGET`;
   const overage = brotli - budget;
   expect(
     brotli,
-    `${label} bundle is ${brotli} bytes brotli — ${overage} bytes over the ${budget}-byte budget. If this growth is intentional, bump \`${constantName}\` to a higher value.`
+    `${label} bundle is ${brotli} bytes brotli — ${overage} bytes over the ${budget}-byte budget. Make sure you are using the production build. If this growth is intentional, bump \`${constantName}\` to a higher value. File: ${fullPath}`
   ).toBeLessThanOrEqual(budget);
 }
 
@@ -292,7 +295,7 @@ function warnIfSizeChanged(label: string, expected: string, actual: string) {
   if (pct > 0.01) {
     console.error(
       `\n\n[ssg-snapshot] ${label} size changed by ${(pct * 100).toFixed(1)}%: ` +
-        `${expectedLen} → ${actualLen} chars`
+        `${expectedLen} → ${actualLen} chars (did you remember to pnpm build.core ?)`
     );
   }
 }

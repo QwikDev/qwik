@@ -1,4 +1,3 @@
-import { isDev } from '@qwik.dev/core/build';
 import type { DomContainer } from '../../client/dom-container';
 import type { ContainerElement, QDocument } from '../../client/types';
 import { mapArray_get } from '../../client/util-mapArray';
@@ -109,7 +108,7 @@ const isReadableProjection = (projected: Error): boolean =>
 
 export const redactBoundaryErrorForDisplay = (
   error: unknown,
-  showRaw: boolean = isDev,
+  showRaw: boolean,
   transformError?: (error: unknown) => unknown
 ): Error => {
   try {

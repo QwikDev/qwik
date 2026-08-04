@@ -83,8 +83,8 @@ onError$?: QRL<(error: Error, info: ErrorBoundaryInfo) => void>;
 
 It receives the original error and an `ErrorBoundaryInfo`:
 
-- `phase` — where the error came from: `'render'`, `'task'`, `'event'`, `'async-generator'` or
-  `'async-signal'`.
+- `phase` — where the error came from: `'render'`, `'event'`, or `'hook'` (task throws report
+  `'hook'`).
 - `boundaryId` — identifies the boundary within the page.
 - `digest` — the code a production fallback shows for this error, so a user's bug report matches
   your logs.

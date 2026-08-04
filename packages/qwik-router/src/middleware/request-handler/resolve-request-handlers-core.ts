@@ -489,6 +489,7 @@ function createResolveRequestHandlers() {
 
         const status = e.status as number;
         requestEv.status(status);
+        requestEv.headers.set('Cache-Control', 'no-store');
 
         // $errorLoader$ is the error boundary's chain, rendered as-is — a bare error.tsx in its
         // layouts, `error!.tsx` standalone. Undefined → built-in fallback.
@@ -739,7 +740,15 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
         | undefined;
 
       const { readable, writable } = new TextEncoderStream();
-      const writableStream = requestEv.getWritableStream();
+      // Headers commit when the response stream is created, so defer it to the first rendered
+      // chunk — onBeforeFirstFlush can still change them.
+      let responseWriter: WritableStreamDefaultWriter<Uint8Array> | undefined;
+      const lazyResponseSink = new WritableStream<Uint8Array>({
+        write(chunk) {
+          responseWriter ||= requestEv.getWritableStream().getWriter();
+          return responseWriter.write(chunk);
+        },
+      });
 
       let cacheChunks: Uint8Array[] | undefined;
       let pipeSource: ReadableStream<Uint8Array> = readable;
@@ -755,7 +764,8 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
       }
 
       let pipeError: unknown;
-      const pipe = pipeSource.pipeTo(writableStream, { preventClose: true }).catch((error) => {
+      let boundaryErrored = false;
+      const pipe = pipeSource.pipeTo(lazyResponseSink, { preventClose: true }).catch((error) => {
         pipeError = error;
       });
       const stream = writable.getWriter();
@@ -775,6 +785,12 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
             ['q:render']: isStatic ? 'static' : '',
             ...serverData.containerAttributes,
           },
+          onBeforeFirstFlush: (info: { errorBoundaryCaught: boolean }) => {
+            if (info.errorBoundaryCaught) {
+              boundaryErrored = true;
+              responseHeaders.set('Cache-Control', 'no-store');
+            }
+          },
         });
         if (typeof (result as any as RenderToStringResult).html === 'string') {
           await stream.write((result as any as RenderToStringResult).html);
@@ -783,12 +799,13 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
         await stream.ready;
         await stream.close();
         await pipe;
+        responseWriter?.releaseLock();
       }
       if (pipeError) {
         throw pipeError;
       }
 
-      if (cachePlan && cacheChunks && cacheChunks.length > 0) {
+      if (cachePlan && cacheChunks && cacheChunks.length > 0 && !boundaryErrored) {
         const totalLength = cacheChunks.reduce((sum, chunk) => sum + chunk.length, 0);
         const combined = new Uint8Array(totalLength);
         let offset = 0;
@@ -803,7 +820,9 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
         setCachedSsr(cachePlan.key, { eTag: cachedETag, body: html });
       }
 
-      await writableStream.close();
+      if (responseWriter) {
+        await requestEv.getWritableStream().close();
+      }
     };
   }
 

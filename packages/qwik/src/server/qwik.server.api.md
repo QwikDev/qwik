@@ -108,6 +108,9 @@ export const renderToStream: (jsx: JSXOutput, opts: RenderToStreamOptions) => Pr
 
 // @public (undocumented)
 export interface RenderToStreamOptions extends RenderOptions {
+    onBeforeFirstFlush?: (info: {
+        errorBoundaryCaught: boolean;
+    }) => void;
     // (undocumented)
     stream: StreamWriter;
     // (undocumented)

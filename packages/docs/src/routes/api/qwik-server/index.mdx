@@ -721,6 +721,21 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
+onBeforeFirstFlush?
+
+</td><td>
+
+</td><td>
+
+(info: \{ errorBoundaryCaught: boolean; }) =&gt; void
+
+</td><td>
+
+_(Optional)_ Called synchronously just before the first chunk is written — the last moment response headers can still change. `errorBoundaryCaught` is true when an `<ErrorBoundary>` already swapped in its fallback during SSR.
+
+</td></tr>
+<tr><td>
+
 stream
 
 </td><td>

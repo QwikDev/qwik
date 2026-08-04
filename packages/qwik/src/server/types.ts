@@ -207,6 +207,14 @@ export interface StreamingOptions {
 export interface RenderToStreamOptions extends RenderOptions {
   stream: StreamWriter;
   streaming?: StreamingOptions;
+  /**
+   * Called synchronously just before the first chunk is written — the last moment response headers
+   * can still change. `errorBoundaryCaught` is true when an `<ErrorBoundary>` already swapped in
+   * its fallback during SSR.
+   *
+   * @experimental
+   */
+  onBeforeFirstFlush?: (info: { errorBoundaryCaught: boolean }) => void;
 }
 
 /** @public */

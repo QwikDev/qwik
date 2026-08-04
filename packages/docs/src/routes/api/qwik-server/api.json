@@ -222,7 +222,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface RenderToStreamOptions extends RenderOptions \n```\n**Extends:** [RenderOptions](#renderoptions)\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nstream\n\n\n</td><td>\n\n\n</td><td>\n\nStreamWriter\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nstreaming?\n\n\n</td><td>\n\n\n</td><td>\n\n[StreamingOptions](#streamingoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface RenderToStreamOptions extends RenderOptions \n```\n**Extends:** [RenderOptions](#renderoptions)\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nonBeforeFirstFlush?\n\n\n</td><td>\n\n\n</td><td>\n\n(info: { errorBoundaryCaught: boolean; }) =&gt; void\n\n\n</td><td>\n\n_(Optional)_ Called synchronously just before the first chunk is written — the last moment response headers can still change. `errorBoundaryCaught` is true when an `<ErrorBoundary>` already swapped in its fallback during SSR.\n\n\n</td></tr>\n<tr><td>\n\nstream\n\n\n</td><td>\n\n\n</td><td>\n\nStreamWriter\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nstreaming?\n\n\n</td><td>\n\n\n</td><td>\n\n[StreamingOptions](#streamingoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
       "mdFile": "core.rendertostreamoptions.md"
     },

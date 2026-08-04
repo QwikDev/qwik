@@ -41,6 +41,7 @@ export function handleSSRError(
       throw err;
     }
     markBoundaryErrored(errorStore, err, phase);
+    container.$hasBoundaryError$ = true;
     if (container.$isOutOfOrderSegment$) {
       markErrorFromDeferredSegment(errorStore);
     }

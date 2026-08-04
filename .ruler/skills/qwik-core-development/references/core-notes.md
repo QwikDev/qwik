@@ -190,8 +190,8 @@ Never use `pnpm test.unit` for agent verification in this repo.
 ## ErrorBoundary (experimental `errorBoundary`)
 
 Keep error state non-enumerable and out of serialized state. Store the raw throw and project it only
-at display sites; production uses generic redaction unless the app returns an `Error` from
-`transformError` or throws a `PublicError`.
+at display sites; redaction is origin-based — the server display redacts in production unless the
+app returns an `Error` from `transformError`; the client display always shows the error as thrown.
 
 Reset must re-render the component that authored projected children. Identify and retain that
 component as soon as SSR error teardown determines it; store its VNode reference only when the

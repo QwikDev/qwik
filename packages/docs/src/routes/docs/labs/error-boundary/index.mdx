@@ -105,8 +105,10 @@ fallback$={$((error, reset) => (
 
 ## Production redaction
 
-In production the fallback receives a generic message plus a `digest`, so server details never reach
-the browser. In development it receives the real error.
+Redaction follows the error's origin. A server-origin error reaches the fallback as a generic
+message plus a `digest` — server details never leave the server. A client-origin error renders as
+thrown: its message already lives in the browser bundle. An SSR-caught error the client re-derives
+(reset, owner re-render) becomes client-origin and shows raw.
 
 ```tsx
 fallback$={$((error) => (
@@ -116,7 +118,21 @@ fallback$={$((error) => (
 ))}
 ```
 
-Log `info.digest` from `onError$` to match a reported code back to the error in your logs.
+Log `info.digest` from `onError$` to match a reported code back to the error in your logs. The
+`digest` is client-spoofable — branch on it for display, never for trust.
+
+For a deliberate user-facing throw, use your own class and branch on it in the fallback:
+
+```tsx
+export class DisplayError extends Error {}
+
+fallback$={$((error) => (
+  <p>{error instanceof DisplayError ? error.message : 'Something went wrong.'}</p>
+))}
+```
+
+The same throw during SSR is server-origin and redacts, so keep display throws client-side — or
+render the message conditionally instead of throwing.
 
 ## `transformError`
 

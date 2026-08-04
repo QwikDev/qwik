@@ -1697,7 +1697,7 @@ string
 
 </td><td>
 
-The code a production fallback shows for this error, so a user's bug report matches your logs. An error caught during SSR reports a second, different digest if the client re-derives it — the stacks differ.
+The code a production fallback shows for a server-origin error, so a user's bug report matches your logs. An error caught during SSR reports a second, different digest if the client re-derives it — the stacks differ.
 
 </td></tr>
 <tr><td>
@@ -1812,7 +1812,7 @@ fallback$
 
 </td><td>
 
-Rendered when a descendant throws. The error is always an `Error`, so `{error.message}` is safe: a non-Error throw is wrapped, and production redacts to a generic message plus `digest`.
+Rendered when a descendant throws. The error is always an `Error`, so `{error.message}` is safe: a non-Error throw is wrapped, and production redacts server-origin errors to a generic message plus `digest`. Client-origin errors render as thrown — their messages already live in the browser bundle.
 
 Wrap `reset` in a handler — `onClick$={() => reset()}`, not `onClick$={reset}` — so it stays wired in a streamed fallback.
 

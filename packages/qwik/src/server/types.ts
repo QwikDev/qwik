@@ -160,9 +160,8 @@ export interface RenderOptions extends SerializeDocumentOptions {
 
   /**
    * Server-only. Projects a thrown error into the `Error` an `<ErrorBoundary>` fallback displays
-   * during SSR; `onError$` still receives the original. It never runs on the client, so a
-   * re-derived fallback uses the default policy: full fidelity in dev, a generic message plus
-   * `digest` in production.
+   * during SSR; `onError$` still receives the original. It never runs on the client, where a
+   * re-derived fallback shows the error as thrown.
    *
    * Return an `Error` to project it, or `undefined`/`null` to decline; any other return, or a
    * throw, redacts to the generic error.

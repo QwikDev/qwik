@@ -53,7 +53,9 @@ import type { VNode } from '../vnode/vnode';
 export interface ErrorBoundaryProps {
   /**
    * Rendered when a descendant throws. The error is always an `Error`, so `{error.message}` is
-   * safe: a non-Error throw is wrapped, and production redacts to a generic message plus `digest`.
+   * safe: a non-Error throw is wrapped, and production redacts server-origin errors to a generic
+   * message plus `digest`. Client-origin errors render as thrown — their messages already live in
+   * the browser bundle.
    *
    * Wrap `reset` in a handler — `onClick$={() => reset()}`, not `onClick$={reset}` — so it stays
    * wired in a streamed fallback.
@@ -226,7 +228,7 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
     return buildSSRErrorBoundaryHosts(store, container as SSRContainer);
   }
 
-  const displayError = redactBoundaryErrorForDisplay(store.error);
+  const displayError = redactBoundaryErrorForDisplay(store.error, true);
   return /*#__PURE__*/ _jsxSorted(
     Fragment,
     null,

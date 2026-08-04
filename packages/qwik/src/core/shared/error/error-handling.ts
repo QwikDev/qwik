@@ -26,9 +26,9 @@ export interface ErrorBoundaryInfo {
    */
   boundaryId: string;
   /**
-   * The code a production fallback shows for this error, so a user's bug report matches your logs.
-   * An error caught during SSR reports a second, different digest if the client re-derives it — the
-   * stacks differ.
+   * The code a production fallback shows for a server-origin error, so a user's bug report matches
+   * your logs. An error caught during SSR reports a second, different digest if the client
+   * re-derives it — the stacks differ.
    */
   digest: string;
 }
@@ -109,7 +109,7 @@ const isReadableProjection = (projected: Error): boolean =>
 
 export const redactBoundaryErrorForDisplay = (
   error: unknown,
-  dev: boolean = isDev,
+  showRaw: boolean = isDev,
   transformError?: (error: unknown) => unknown
 ): Error => {
   try {
@@ -119,7 +119,7 @@ export const redactBoundaryErrorForDisplay = (
         return isReadableProjection(projected) ? projected : redactToGeneric(error);
       }
       if (projected != null) {
-        if (dev && isPromise(projected)) {
+        if (showRaw && isPromise(projected)) {
           logWarn('transformError must return synchronously; an async one redacts every error.');
         }
         return redactToGeneric(error);
@@ -128,7 +128,7 @@ export const redactBoundaryErrorForDisplay = (
     if (safeRead(() => error instanceof Error && REDACTED in error, false)) {
       return error as Error;
     }
-    if (!dev) {
+    if (!showRaw) {
       return redactToGeneric(error);
     }
     if (error instanceof Error) {

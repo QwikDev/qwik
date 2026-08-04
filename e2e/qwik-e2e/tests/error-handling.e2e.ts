@@ -733,9 +733,7 @@ test.describe('ErrorBoundary in a production build (qDev=false)', () => {
     await expect(page.locator('#eb-fallback-count')).toHaveText('1');
   });
 
-  test('client throw after resume shows the redacted fallback, raw message nowhere in the page', async ({
-    page,
-  }) => {
+  test('client throw after resume shows the thrown message unredacted', async ({ page }) => {
     assertNoBrowserErrors(page);
     await page.goto(prodUrl('csr-event'), { waitUntil: 'commit' });
 
@@ -745,8 +743,7 @@ test.describe('ErrorBoundary in a production build (qDev=false)', () => {
     await page.locator('#eb-client-throw').click();
 
     await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: An error occurred');
-    expect(await page.locator('body').innerText()).not.toContain('client click boom');
+    await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: client click boom');
 
     await page.locator('#eb-fallback-button').click();
     await expect(page.locator('#eb-fallback-count')).toHaveText('1');
@@ -765,7 +762,7 @@ test.describe('ErrorBoundary in a production build (qDev=false)', () => {
     expect(await page.locator('body').innerText()).not.toContain('digest secret boom');
   });
 
-  test('reset on an always-throwing child re-derives the redacted fallback client-side', async ({
+  test('reset flips a redacted SSR fallback to the raw client-derived message', async ({
     page,
   }) => {
     assertNoBrowserErrors(page);
@@ -779,8 +776,7 @@ test.describe('ErrorBoundary in a production build (qDev=false)', () => {
     await expect
       .poll(() => page.evaluate(() => (window as any).__ebRederiveRuns ?? 0), { timeout: 10000 })
       .toBe(1);
-    await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: An error occurred');
-    expect(await page.locator('body').innerText()).not.toContain('eb always boom');
+    await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: eb always boom');
   });
 
   test('reset round-trips through the prod serializer and re-executes the children', async ({

@@ -1,5 +1,6 @@
 import type { Rollup } from 'vite';
 import { type NormalizedQwikPluginOptions } from './plugins/plugin';
+import { condenseImportGraph } from './scc';
 import type { GlobalInjections, Path, QwikBundle, QwikManifest, SegmentAnalysis } from './types';
 
 // The handlers that are exported by the core package
@@ -291,76 +292,10 @@ const getBundleInteractivity = (bundle: QwikBundle, manifest: QwikManifest) => {
  * harder than you think to total nodes in a directed cyclic graph
  */
 export function computeTotals(graph: QwikManifest['bundles']): void {
-  // 1) Prepare Tarjan's structures
-  let index = 0;
-  const stack: string[] = [];
-  const sccList: string[][] = [];
+  // 1) Condense to SCCs (a DAG).
+  const { components: sccList, successors: sccDAG } = condenseImportGraph(graph);
 
-  // Maps for Tarjan
-  const idx = new Map<string, number>(); // node -> index
-  const low = new Map<string, number>(); // node -> low-link
-  const onStack = new Set<string>();
-
-  function strongConnect(v: string) {
-    idx.set(v, index);
-    low.set(v, index);
-    index++;
-    stack.push(v);
-    onStack.add(v);
-
-    // Explore children
-    const children = graph[v].imports || [];
-    for (const w of children) {
-      if (!idx.has(w)) {
-        strongConnect(w);
-        low.set(v, Math.min(low.get(v)!, low.get(w)!));
-      } else if (onStack.has(w)) {
-        low.set(v, Math.min(low.get(v)!, idx.get(w)!));
-      }
-    }
-
-    // If v is a root node, pop stack to form an SCC
-    if (low.get(v) === idx.get(v)) {
-      const comp: string[] = [];
-      let x: string;
-      do {
-        x = stack.pop()!;
-        onStack.delete(x);
-        comp.push(x);
-      } while (x !== v);
-      sccList.push(comp);
-    }
-  }
-
-  // Run Tarjan over all nodes
-  for (const v of Object.keys(graph)) {
-    if (!idx.has(v)) {
-      strongConnect(v);
-    }
-  }
-
-  // 2) Build DAG of SCCs
-  // sccIndex: which SCC a node belongs to
-  const sccIndex = new Map<string, number>();
-  sccList.forEach((comp, i) => {
-    for (const v of comp) {
-      sccIndex.set(v, i);
-    }
-  });
-
-  // Create adjacency for the SCC graph
-  const sccDAG: Set<number>[] = Array.from({ length: sccList.length }, () => new Set());
-  for (const v of Object.keys(graph)) {
-    const i = sccIndex.get(v)!;
-    for (const w of graph[v].imports || []) {
-      const j = sccIndex.get(w)!;
-      if (i !== j) {
-        sccDAG[i].add(j);
-      }
-    }
-  }
-
-  // 3) Topological sort the SCC DAG
+  // 2) Topological sort the SCC DAG
   const visited = new Set<number>();
   const order: number[] = [];
 
@@ -381,7 +316,7 @@ export function computeTotals(graph: QwikManifest['bundles']): void {
   }
   order.reverse(); // Now it's a topological order
 
-  // 4) Compute totals from bottom to top
+  // 3) Compute totals from bottom to top
   const sccTotals = new Array<number>(sccList.length).fill(0);
 
   // First compute the sum of 'size' in each SCC
@@ -403,7 +338,7 @@ export function computeTotals(graph: QwikManifest['bundles']): void {
     sccTotals[sccId] = total;
   }
 
-  // 5) Assign computed totals back to each node in the original graph
+  // 4) Assign computed totals back to each node in the original graph
   for (let i = 0; i < sccList.length; i++) {
     const total = sccTotals[i];
     for (const nodeId of sccList[i]) {

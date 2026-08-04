@@ -8,6 +8,7 @@ import { findContextScopeId } from './node-walker';
 import type { ServerDataContext } from './use-server-data';
 import type { PhaseSubscriber, Subscriber } from './subscriber';
 import { deserializeCaptures } from '../shared/serdes/captures';
+import { qTest } from '../shared/utils/qdev';
 
 const STATE_SCRIPT_TYPE = 'qwik/state';
 const CTX_PROP = '_ctx';
@@ -56,6 +57,9 @@ export function createContainerContext(
 ): ContainerContext {
   const context = createContainerContextRecord(element as HTMLElement, scheduler, serverData);
   (element as ContextElement)[CTX_PROP] = context;
+  if (!qTest && element.isConnected) {
+    element.dispatchEvent(new CustomEvent('qresume', { bubbles: true }));
+  }
   return context;
 }
 

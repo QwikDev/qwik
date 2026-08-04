@@ -1,5 +1,4 @@
 import { isServer } from '@qwik.dev/core/build';
-import { PublicError, QPublicErrorMarker } from '../error/public-error';
 import { qTest } from '../utils/qdev';
 import {
   vnode_getFirstChild,
@@ -224,16 +223,13 @@ function* inflateIterator(
       }
       break;
     }
-    case TypeIds.Error: {
+    case TypeIds.Error:
+    case TypeIds.PublicError: {
       const d = data as string[];
       (target as Error).message = d[0] as string;
       for (let i = 1; i < d.length; i += 2) {
         const key = d[i];
         const value = d[i + 1];
-        if (__EXPERIMENTAL__.errorBoundary && key === QPublicErrorMarker) {
-          Object.setPrototypeOf(target, PublicError.prototype);
-          continue;
-        }
         if (isSafeObjectKV(key, value)) {
           (target as any)[key] = value;
         }

@@ -23,5 +23,3 @@ export class PublicError<T = unknown> extends Error {
     );
   }
 }
-
-export const QPublicErrorMarker = 'q:pe';

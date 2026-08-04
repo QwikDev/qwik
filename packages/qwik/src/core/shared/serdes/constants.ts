@@ -115,6 +115,7 @@ export const enum TypeIds {
   TemporalZonedDateTime,
   /// All types below will be inflate()d
   Error,
+  PublicError,
   Promise,
   Set,
   Map,
@@ -164,6 +165,7 @@ export const _typeIdNames = [
   'TemporalPlainYearMonth',
   'TemporalZonedDateTime',
   'Error',
+  'PublicError',
   'Promise',
   'Set',
   'Map',

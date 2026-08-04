@@ -1,5 +1,5 @@
 import { isDev } from '@qwik.dev/core/build';
-import { PublicError, QPublicErrorMarker } from '../error/public-error';
+import { PublicError } from '../error/public-error';
 import { VNodeDataFlag } from '../../../server/types';
 import type { VNodeData } from '../../../server/vnode-data';
 import { vnode_isVNode } from '../../client/vnode-utils';
@@ -709,19 +709,18 @@ export class Serializer {
     } else if (value instanceof Error) {
       const out: any[] = [value.message];
       for (const entry of Object.entries(value)) {
-        if (__EXPERIMENTAL__.errorBoundary && entry[0] === QPublicErrorMarker) {
-          continue;
-        }
         out.push(entry[0], entry[1]);
-      }
-      if (__EXPERIMENTAL__.errorBoundary && value instanceof PublicError) {
-        out.push(QPublicErrorMarker, 1);
       }
       /// In production we don't want to leak the stack trace.
       if (isDev) {
         out.push('stack', value.stack);
       }
-      this.output(TypeIds.Error, out);
+      this.output(
+        __EXPERIMENTAL__.errorBoundary && value instanceof PublicError
+          ? TypeIds.PublicError
+          : TypeIds.Error,
+        out
+      );
     } else if (this.$serializationContext$.$isSsrNode$(value)) {
       // Paired with ssr-container's vnode-data INERT skip: drop the state root AND the path together.
       if (

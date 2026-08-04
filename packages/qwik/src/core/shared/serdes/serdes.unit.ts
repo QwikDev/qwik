@@ -29,7 +29,7 @@ import {
 } from '../../reactive-primitives/types';
 import { Task, TaskFlags } from '../../use/use-task';
 import { QError } from '../error/error';
-import { PublicError, QPublicErrorMarker } from '../error/public-error';
+import { PublicError } from '../error/public-error';
 import { _qrlWithChunk, inlinedQrl } from '../qrl/qrl';
 import { createQRL, type QRLInternal } from '../qrl/qrl-class';
 import { isQrl, SYNC_QRL } from '../qrl/qrl-utils';
@@ -309,11 +309,12 @@ describe('shared-serialization', () => {
         (x chars)"
       `);
     });
-    it('only a PublicError payload carries the marker, exactly once', async () => {
-      const publicRaw = await serializeRaw(new PublicError('x'));
-      expect(publicRaw.split(QPublicErrorMarker).length - 1).toBe(1);
+    it('serializes PublicError with its own type', async () => {
+      const publicRaw = await serialize(new PublicError('x'));
+      expect(publicRaw[0]).toBe(TypeIds.PublicError);
       const fakeShape = Object.assign(new Error('x'), { data: 'leak' });
-      expect(await serializeRaw(fakeShape)).not.toContain(QPublicErrorMarker);
+      const errorRaw = await serialize(fakeShape);
+      expect(errorRaw[0]).toBe(TypeIds.Error);
     });
     it(title(TypeIds.Promise), async () => {
       expect(await dump(Promise.resolve(shared1), Promise.reject(shared2))).toMatchInlineSnapshot(`
@@ -1345,22 +1346,12 @@ describe('shared-serialization', () => {
       ]).state[0] as Error & { then: string };
       expect(safeError.then).toBe('value');
     });
-    it(title(TypeIds.Error) + ' (PublicError round-trip)', async () => {
+    it(title(TypeIds.PublicError), async () => {
       const objs = await serialize(new PublicError({ message: 'Out of stock', sku: 'A1' }));
       const err = deserialize(objs)[0] as PublicError<{ message: string; sku: string }>;
       expect(err).toBeInstanceOf(PublicError);
       expect(err.message).toBe('Out of stock');
       expect(err.data).toEqual({ message: 'Out of stock', sku: 'A1' });
-      expect(Object.hasOwn(err, QPublicErrorMarker)).toBe(false);
-    });
-    it('drops a user Error field named like the marker, never upgrading', async () => {
-      const forged = Object.assign(new Error('x'), { [QPublicErrorMarker]: 1, keep: 'ok' });
-      const objs = await serialize(forged);
-      const err = deserialize(objs)[0] as Error & { keep?: string };
-      expect(err).toBeInstanceOf(Error);
-      expect(err).not.toBeInstanceOf(PublicError);
-      expect(err.keep).toBe('ok');
-      expect(Object.hasOwn(err, QPublicErrorMarker)).toBe(false);
     });
     it('resumes a PublicError subclass as the base class (documented downgrade)', async () => {
       class CartError extends PublicError<{ sku: string }> {}
@@ -1369,15 +1360,13 @@ describe('shared-serialization', () => {
       expect(err).toBeInstanceOf(PublicError);
       expect(err.data).toEqual({ sku: 'A1' });
     });
-    it('upgrades an Error payload to PublicError only via the marker', () => {
+    it('allocates PublicError only for its own type', () => {
       const upgraded = eagerDeserialize([
-        TypeIds.Error,
-        // prettier-ignore
-        [TypeIds.Plain, 'boom', TypeIds.Plain, 'data', TypeIds.Plain, 'payload', TypeIds.Plain, QPublicErrorMarker, TypeIds.Plain, 1],
+        TypeIds.PublicError,
+        [TypeIds.Plain, 'boom', TypeIds.Plain, 'data', TypeIds.Plain, 'payload'],
       ]).state[0] as PublicError;
       expect(upgraded).toBeInstanceOf(PublicError);
       expect(upgraded.data).toBe('payload');
-      expect(Object.hasOwn(upgraded, QPublicErrorMarker)).toBe(false);
 
       const plain = eagerDeserialize([
         TypeIds.Error,

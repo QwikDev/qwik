@@ -193,9 +193,10 @@ Keep error state non-enumerable and out of serialized state. Store the raw throw
 at display sites; production uses generic redaction unless the app returns an `Error` from
 `transformError` or throws a `PublicError`.
 
-Reset must re-render the component that authored projected children. Preserve the SSR
-`projectedContentOwnerId` fallback and ancestor retention. Re-key the highest wrapper below that
-author so normal diffing recreates emptied projected content without projection-wide scheduling.
+Reset must re-render the component that authored projected children. Identify and retain that
+component as soon as SSR error teardown determines it; store its VNode reference only when the
+projection cut prevents the client owner walk. Re-key the highest wrapper below that author so
+normal diffing recreates emptied projected content without projection-wide scheduling.
 
 ## Keep This Reference Fresh
 

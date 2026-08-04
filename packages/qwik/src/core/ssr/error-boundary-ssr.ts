@@ -8,8 +8,16 @@ import {
   markErrorFromDeferredSegment,
   type ErrorBoundaryStore,
 } from '../shared/error/error-handling';
-import { ELEMENT_SEQ, QCtxAttr, QDefaultSlot, QSlot, QSlotParent } from '../shared/utils/markers';
+import {
+  ELEMENT_SEQ,
+  ELEMENT_PROPS,
+  QCtxAttr,
+  QDefaultSlot,
+  QSlot,
+  QSlotParent,
+} from '../shared/utils/markers';
 import { qDev } from '../shared/utils/qdev';
+import { hasSlotProps } from '../shared/utils/prop';
 import { isTask } from '../use/use-task';
 import { VNodeDataFlag } from '../../server/types';
 import type { ISsrNode, SSRContainer } from './ssr-types';
@@ -25,10 +33,7 @@ export function handleSSRError(
     throw err;
   }
   for (let boundaryNode = host; boundaryNode; boundaryNode = boundaryNode.parentComponent) {
-    const ctx = boundaryNode.getProp(QCtxAttr) as Array<string | unknown> | null;
-    const errorStore = ctx
-      ? (mapArray_get(ctx, ERROR_CONTEXT.id, 0) as ErrorBoundaryStore | null)
-      : null;
+    const errorStore = getOwnSSRErrorBoundaryStore(boundaryNode);
     if (!errorStore || !errorStore.$fallback$) {
       continue;
     }
@@ -50,42 +55,53 @@ function markErrorBoundaryContentInert(
   boundaryNode: ISsrNode,
   errorStore: ErrorBoundaryStore
 ): void {
-  const liveOwners = new Map<string, { node: ISsrNode; depth: number }>();
+  const ancestorOwners = new Map<string, { node: ISsrNode; depth: number }>();
+  let boundaryContentOwner: ISsrNode | null = null;
   let depth = 0;
   for (let node: ISsrNode | null = boundaryNode; node; node = node.parentComponent) {
-    if (node !== boundaryNode) {
-      container.$retainForResume$(node);
-    }
     if (node.id) {
-      liveOwners.set(node.id, { node, depth: depth++ });
+      ancestorOwners.set(node.id, { node, depth: depth++ });
+    }
+    if (node !== boundaryNode && !boundaryContentOwner) {
+      const store = getOwnSSRErrorBoundaryStore(node);
+      if (store?.error !== undefined || !hasSlotProps(node.getProp(ELEMENT_PROPS))) {
+        boundaryContentOwner = node;
+      }
     }
   }
   const topmostSevered = { node: null as ISsrNode | null, depth: -1 };
   const children = boundaryNode.children;
   if (children) {
     for (let i = 0; i < children.length; i++) {
-      markErrorSubtreeInert(container, children[i], liveOwners, topmostSevered);
+      markErrorSubtreeInert(container, children[i], ancestorOwners, topmostSevered);
     }
   }
-  // The client's owner walk cannot see past the cut.
-  if (topmostSevered.node && topmostSevered.node !== boundaryNode) {
-    const projectedContentOwner = topmostSevered.node.parentComponent;
-    if (projectedContentOwner?.id) {
-      errorStore.projectedContentOwnerId = projectedContentOwner.id;
+  if (topmostSevered.node) {
+    const immediateContentOwner = topmostSevered.node.parentComponent;
+    if (topmostSevered.node === boundaryNode) {
+      container.$retainForResume$(boundaryContentOwner);
+    } else if (immediateContentOwner?.id) {
+      container.$retainForResume$(immediateContentOwner);
+      errorStore.projectedContentOwner = immediateContentOwner;
     }
   }
+}
+
+function getOwnSSRErrorBoundaryStore(node: ISsrNode): ErrorBoundaryStore | null {
+  const ctx = node.getProp(QCtxAttr) as Array<string | unknown> | null;
+  return ctx ? (mapArray_get(ctx, ERROR_CONTEXT.id, 0) as ErrorBoundaryStore | null) : null;
 }
 
 function markErrorSubtreeInert(
   container: SSRContainer,
   node: ISsrNode,
-  liveOwners: Map<string, { node: ISsrNode; depth: number }>,
+  ancestorOwners: Map<string, { node: ISsrNode; depth: number }>,
   topmostSevered: { node: ISsrNode | null; depth: number }
 ): void {
   node.vnodeData[0] |= VNodeDataFlag.INERT;
   const ownerId = node.getProp(QSlotParent) as string | null;
   if (ownerId) {
-    const owner = liveOwners.get(ownerId);
+    const owner = ancestorOwners.get(ownerId);
     if (owner) {
       owner.node.removeProp((node.getProp(QSlot) as string | null) ?? QDefaultSlot);
       if (owner.depth > topmostSevered.depth) {
@@ -109,7 +125,7 @@ function markErrorSubtreeInert(
   const children = node.children;
   if (children) {
     for (let i = 0; i < children.length; i++) {
-      markErrorSubtreeInert(container, children[i], liveOwners, topmostSevered);
+      markErrorSubtreeInert(container, children[i], ancestorOwners, topmostSevered);
     }
   }
 }

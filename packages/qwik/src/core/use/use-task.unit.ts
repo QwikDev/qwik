@@ -130,7 +130,7 @@ describe('runTask', () => {
     task.$flags$ |= TaskFlags.DIRTY;
     await runTask(task, container, host);
 
-    expect(container.handleError).toHaveBeenCalledWith(error, host, 'task');
+    expect(container.handleError).toHaveBeenCalledWith(error, host, 'hook');
     expect(run).toBe(2);
     expect(task.$destroyPromise$).toBe(undefined);
     expect(task.$taskPromise$).toBe(null);

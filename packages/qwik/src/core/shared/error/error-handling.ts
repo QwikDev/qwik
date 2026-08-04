@@ -3,6 +3,7 @@ import type { DomContainer } from '../../client/dom-container';
 import type { ContainerElement, QDocument } from '../../client/types';
 import { mapArray_get } from '../../client/util-mapArray';
 import { createContextId } from '../../use/use-context';
+import type { HostElement } from '../types';
 import { setErrorPayload } from '../cursor/chore-execution';
 import { hashCode } from '../utils/hash_code';
 import { logError, logWarn } from '../utils/log';
@@ -11,14 +12,10 @@ import { isPromise } from '../utils/promises';
 import { ChoreBits } from '../vnode/enums/chore-bits.enum';
 import type { VNode } from '../vnode/vnode';
 import { markVNodeDirty } from '../vnode/vnode-dirty';
+import { ErrorBoundaryPhase } from './error-boundary-phase';
 import { PublicError } from './public-error';
 
-/** Identifies where an error caught by an error boundary originated. @public @experimental */
-export const enum ErrorBoundaryPhase {
-  Render = 'render',
-  Event = 'event',
-  Hook = 'hook',
-}
+export { ErrorBoundaryPhase } from './error-boundary-phase';
 
 /** Structured metadata about a caught error, passed to `onError$`. @public @experimental */
 export interface ErrorBoundaryInfo {
@@ -44,7 +41,7 @@ export interface ErrorBoundaryStore {
   $onError$?: (error: unknown, info: ErrorBoundaryInfo) => void;
   $emitFallback$?: (error: unknown) => void | Promise<void>;
   boundaryId?: string;
-  projectedContentOwnerId?: string;
+  projectedContentOwner?: HostElement;
 }
 
 export const ERROR_CONTEXT = /*#__PURE__*/ createContextId<ErrorBoundaryStore>('qk-error');

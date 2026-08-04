@@ -369,7 +369,7 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     // (undocumented)
     getSyncFn(id: number): (...args: unknown[]) => unknown;
     // (undocumented)
-    handleError(err: any, host: _VNode | null, phase: ErrorBoundaryPhase): void;
+    handleError(err: any, host: _VNode | null, phase?: ErrorBoundaryPhase): void;
     // (undocumented)
     parseQRL<T = unknown>(qrlStr: string): QRL<T>;
     // (undocumented)

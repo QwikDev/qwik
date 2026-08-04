@@ -13,6 +13,7 @@ import {
   OnRenderProp,
   QErrorContentHost,
   QErrorFallbackHost,
+  QSlot,
   QSuspenseResolved,
   QSuspenseResultParent,
 } from '../utils/markers';
@@ -28,7 +29,6 @@ import { hasSlotProps } from '../utils/prop';
 import {
   vnode_getProjectionParentOrParent,
   vnode_getProp,
-  vnode_isProjection,
   vnode_isVirtualVNode,
 } from '../../client/vnode-utils';
 import { ChoreBits } from '../vnode/enums/chore-bits.enum';
@@ -92,15 +92,11 @@ export function resetErrorBoundary(container: DomContainer, host: VNode): void {
   if (!store) {
     return;
   }
-  let recordedContentOwner: VirtualVNode | null = null;
-  if (store.projectedContentOwnerId) {
-    try {
-      recordedContentOwner = container.vNodeLocate(store.projectedContentOwnerId) as VirtualVNode;
-    } catch {
-      // ignore
-    }
-  }
-  scheduleBoundaryContentReset(container, boundaryHost as VirtualVNode, recordedContentOwner);
+  scheduleBoundaryContentReset(
+    container,
+    boundaryHost as VirtualVNode,
+    (store.projectedContentOwner as VirtualVNode | undefined) ?? null
+  );
   store.error = undefined;
 }
 
@@ -110,18 +106,30 @@ function scheduleBoundaryContentReset(
   recordedContentOwner: VirtualVNode | null
 ): void {
   let resetHost = boundaryHost;
-  let contentOwner = findBoundaryContentOwner(container, resetHost);
-  while (contentOwner) {
-    const contentOwnerBoundary = getOwnErrorBoundaryStore(container, contentOwner);
-    if (contentOwnerBoundary?.error !== undefined || !hasSlotProps(contentOwner.props)) {
-      break;
+  let contentOwner: VirtualVNode | null = null;
+  let vNode: VNode | null = vnode_getProjectionParentOrParent(boundaryHost);
+  let crossedProjection = false;
+  while (vNode) {
+    if (vnode_isVirtualVNode(vNode)) {
+      if (vnode_getProp(vNode, QSlot, null) !== null) {
+        crossedProjection = true;
+      } else if (vnode_getProp(vNode, OnRenderProp, null) !== null) {
+        if (!crossedProjection) {
+          const ownerBoundary = getOwnErrorBoundaryStore(container, vNode);
+          if (!ownerBoundary || ownerBoundary.error !== undefined) {
+            if (contentOwner) {
+              resetHost = contentOwner;
+            }
+            contentOwner = vNode;
+            if (ownerBoundary?.error !== undefined || !hasSlotProps(vNode.props)) {
+              break;
+            }
+          }
+        }
+        crossedProjection = false;
+      }
     }
-    const nextOwner = findBoundaryContentOwner(container, contentOwner);
-    if (!nextOwner) {
-      break;
-    }
-    resetHost = contentOwner;
-    contentOwner = nextOwner;
+    vNode = vnode_getProjectionParentOrParent(vNode);
   }
   if (recordedContentOwner && recordedContentOwner !== contentOwner) {
     resetHost = contentOwner ?? resetHost;
@@ -134,30 +142,6 @@ function scheduleBoundaryContentReset(
   } else {
     markVNodeDirty(container, boundaryHost, ChoreBits.COMPONENT);
   }
-}
-
-function findBoundaryContentOwner(container: DomContainer, host: VNode): VirtualVNode | null {
-  let vNode: VNode | null = vnode_getProjectionParentOrParent(host);
-  let crossedProjection = false;
-  while (vNode) {
-    if (vnode_isVirtualVNode(vNode)) {
-      if (vnode_isProjection(vNode)) {
-        crossedProjection = true;
-      } else if (vnode_getProp(vNode, OnRenderProp, null) !== null) {
-        if (!crossedProjection && ownsRenderedContent(container, vNode)) {
-          return vNode;
-        }
-        crossedProjection = false;
-      }
-    }
-    vNode = vnode_getProjectionParentOrParent(vNode);
-  }
-  return null;
-}
-
-function ownsRenderedContent(container: DomContainer, host: VNode): boolean {
-  const store = getOwnErrorBoundaryStore(container, host);
-  return !store || store.error !== undefined;
 }
 
 const renderFallbackOrLastResort = (

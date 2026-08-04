@@ -35,7 +35,11 @@ import {
 import { delay } from '../shared/utils/promises';
 import { isServerPlatform } from '../shared/platform/platform';
 import { resetErrorBoundary } from '../shared/error/error-boundary';
-import { redactBoundaryErrorForDisplay } from '../shared/error/error-handling';
+import {
+  ERROR_CONTEXT,
+  getOwnErrorBoundaryStore,
+  redactBoundaryErrorForDisplay,
+} from '../shared/error/error-handling';
 
 const debug = false;
 
@@ -2544,7 +2548,7 @@ describe('onError$', () => {
         expect(infos[0].boundaryId.length).toBeGreaterThan(0);
       });
 
-      it('onError$ receives info.phase "task" for a useTask$ throw', async () => {
+      it('onError$ receives info.phase "hook" for a useTask$ throw', async () => {
         const infos: Array<{ phase: string; boundaryId: string }> = [];
         const { container } = await renderMode(() => (
           <ErrorBoundary
@@ -2560,7 +2564,7 @@ describe('onError$', () => {
         await getTestPlatform().flush();
 
         expect(infos).toHaveLength(1);
-        expect(infos[0].phase).toBe('task');
+        expect(infos[0].phase).toBe('hook');
         expect(infos[0].boundaryId.length).toBeGreaterThan(0);
       });
     });
@@ -2633,7 +2637,7 @@ describe('onError$', () => {
         expect(infos[0].boundaryId.length).toBeGreaterThan(0);
       });
 
-      it('onError$ receives info.phase "async-generator" for an <SSRStream> generator throw', async () => {
+      it('onError$ receives info.phase "render" for an <SSRStream> generator throw', async () => {
         const infos: Array<{ phase: string; boundaryId: string }> = [];
         await ssrRenderToDom(
           <ErrorBoundary
@@ -2649,11 +2653,11 @@ describe('onError$', () => {
         await getTestPlatform().flush();
         await delay(0);
         expect(infos).toHaveLength(1);
-        expect(infos[0].phase).toBe('async-generator');
+        expect(infos[0].phase).toBe('render');
         expect(infos[0].boundaryId.length).toBeGreaterThan(0);
       });
 
-      it('onError$ receives info.phase "async-signal" for a rejecting async signal', async () => {
+      it('onError$ receives info.phase "hook" for a rejecting async signal', async () => {
         (globalThis as any).__ebAsyncSignalInfo = [];
         await streamAndResume(
           <main>
@@ -2676,7 +2680,7 @@ describe('onError$', () => {
           boundaryId: string;
         }>;
         expect(infos).toHaveLength(1);
-        expect(infos[0].phase).toBe('async-signal');
+        expect(infos[0].phase).toBe('hook');
         expect(infos[0].boundaryId.length).toBeGreaterThan(0);
         delete (globalThis as any).__ebAsyncSignalInfo;
       });
@@ -3054,7 +3058,14 @@ describe('ErrorBoundary reset', () => {
         ));
         const { container } = await ssrRenderToDom(<App />, { debug, ...streamOpts });
         const el = container.element;
-        expect(el.querySelector('#retry-wrapped')).toBeTruthy();
+        const retry = el.querySelector('#retry-wrapped')!;
+        expect(retry).toBeTruthy();
+
+        const domContainer = _getDomContainer(el) as any;
+        const retryHost = domContainer.vNodeLocate(retry);
+        const boundaryHost = domContainer.resolveContextHost(retryHost, ERROR_CONTEXT);
+        const store = getOwnErrorBoundaryStore(domContainer, boundaryHost);
+        expect(store?.projectedContentOwner).toBeTruthy();
 
         await resetResumed(container, '#retry-wrapped');
 

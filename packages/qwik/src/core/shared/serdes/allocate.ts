@@ -16,7 +16,6 @@ import { EffectSubscription, StoreFlags } from '../../reactive-primitives/types'
 import { Task, TaskFlags } from '../../use/use-task';
 import { componentQrl } from '../component.public';
 import { qError, QError } from '../error/error';
-import { PublicError } from '../error/public-error';
 import { JSXNodeImpl } from '../jsx/jsx-node';
 import { createPropsProxy } from '../jsx/props-proxy';
 import type { QRLInternal } from '../qrl/qrl-class';
@@ -139,8 +138,6 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
       return new RegExp((value as string).slice(1, idx), (value as string).slice(idx + 1));
     case TypeIds.Error:
       return new Error();
-    case TypeIds.PublicError:
-      return __EXPERIMENTAL__.errorBoundary ? new PublicError(undefined) : new Error();
     case TypeIds.Component:
       return componentQrl(null!);
     case TypeIds.Signal:

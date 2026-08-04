@@ -1,5 +1,4 @@
 import { isDev } from '@qwik.dev/core/build';
-import { PublicError } from '../error/public-error';
 import { VNodeDataFlag } from '../../../server/types';
 import type { VNodeData } from '../../../server/vnode-data';
 import { vnode_isVNode } from '../../client/vnode-utils';
@@ -715,12 +714,7 @@ export class Serializer {
       if (isDev) {
         out.push('stack', value.stack);
       }
-      this.output(
-        __EXPERIMENTAL__.errorBoundary && value instanceof PublicError
-          ? TypeIds.PublicError
-          : TypeIds.Error,
-        out
-      );
+      this.output(TypeIds.Error, out);
     } else if (this.$serializationContext$.$isSsrNode$(value)) {
       // Paired with ssr-container's vnode-data INERT skip: drop the state root AND the path together.
       if (

@@ -3,7 +3,6 @@ import {
   component$,
   createAsync$,
   ErrorBoundary,
-  PublicError,
   render,
   setPlatform,
   Slot,
@@ -52,10 +51,6 @@ const streamingModes = [
   ['in-order', IN_ORDER],
   ['out-of-order', OOOS],
 ] as const;
-
-const PublicThrower = component$((): JSXOutput => {
-  throw new PublicError({ message: 'Out of stock', sku: 'A1' });
-});
 
 const Thrower = component$<{ message?: string }>((props) => {
   throw new Error(props.message ?? 'boom');
@@ -3058,82 +3053,6 @@ describe('ErrorBoundary reset', () => {
   });
 });
 
-describe('PublicError (rendered)', () => {
-  it.each(streamingModes)(
-    '%s: a thrown PublicError renders its message through the fallback and does NOT serialize its data',
-    async (_label, streamingOpts) => {
-      const { html, document } = await streamAndResume(
-        <main>
-          <ErrorBoundary fallback$={fb()}>
-            <PublicThrower />
-          </ErrorBoundary>
-        </main>,
-        streamingOpts
-      );
-      expect(document.querySelector('#fb')?.textContent).toContain('caught: Out of stock');
-      expect(html).not.toContain('A1');
-      expect(html).not.toContain('An error occurred');
-    }
-  );
-
-  it.each(streamingModes)(
-    '%s: a client re-render re-derives a PublicError with readable data',
-    async (_label, streamingOpts) => {
-      const App = withRerenderOwner(<PublicThrower />, {
-        fallback$: $((e: any) => (
-          <p id="fb">{e instanceof PublicError ? `public:${e.data.sku}` : 'not-public'}</p>
-        )),
-      });
-      const { container } = await ssrRenderToDom(<App />, { debug, ...streamingOpts });
-      const el = container.element;
-      expect(el.querySelector('#fb')?.textContent).toBe('public:A1');
-
-      await rerenderComponent(el.querySelector('#owner-anchor') as HTMLElement);
-      await waitForDrain(container);
-      expect(el.querySelector('#fb')?.textContent).toBe('public:A1');
-    }
-  );
-
-  it('CSR: an event handler throwing a PublicError shows its message in the fallback', async () => {
-    const Clicker = component$(() => (
-      <button
-        onClick$={() => {
-          throw new PublicError('Out of stock');
-        }}
-      >
-        go
-      </button>
-    ));
-    const { container } = await domRender(
-      <ErrorBoundary fallback$={fb()}>
-        <Clicker />
-      </ErrorBoundary>,
-      { debug }
-    );
-    await trigger(container.element, 'button', 'click');
-    expect(container.element.querySelector('#fb')?.textContent).toContain('caught: Out of stock');
-  });
-
-  it('an inner fallback throwing a PublicError escalates to the outer boundary unredacted', async () => {
-    const { container } = await ssrRenderToDom(
-      <ErrorBoundary fallback$={fb('fb-outer')}>
-        <ErrorBoundary
-          fallback$={$(() => {
-            throw new PublicError('outer-facing');
-          })}
-        >
-          <Thrower />
-        </ErrorBoundary>
-      </ErrorBoundary>,
-      { debug }
-    );
-    await waitForDrain(container).catch(() => {});
-    expect(container.element.querySelector('#fb-outer')?.textContent).toContain(
-      'caught: outer-facing'
-    );
-  });
-});
-
 describe('transformError (render option)', () => {
   it('redacts the SSR boundary error end-to-end', async () => {
     const { container } = await ssrRenderToDom(
@@ -3147,14 +3066,10 @@ describe('transformError (render option)', () => {
     expect(text).not.toContain('SECRET');
   });
 
-  it('declining on a PublicError renders its data unredacted', async () => {
+  it('declining falls through to the default policy', async () => {
     const { container } = await ssrRenderToDom(
-      <ErrorBoundary
-        fallback$={$((e: any) => (
-          <p id="fb">{e instanceof PublicError ? `public:${e.data.sku}` : 'not-public'}</p>
-        ))}
-      >
-        <PublicThrower />
+      <ErrorBoundary fallback$={fb()}>
+        <Thrower message="declined boom" />
       </ErrorBoundary>,
       {
         debug,
@@ -3162,7 +3077,7 @@ describe('transformError (render option)', () => {
           e instanceof Error && e.message.startsWith('transform:') ? e : undefined,
       }
     );
-    expect(container.element.querySelector('#fb')?.textContent).toBe('public:A1');
+    expect(container.element.querySelector('#fb')?.textContent).toContain('declined boom');
   });
 
   it('a projection with unserializable fields renders its own message and SSR still completes', async () => {

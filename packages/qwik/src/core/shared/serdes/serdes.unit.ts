@@ -29,7 +29,6 @@ import {
 } from '../../reactive-primitives/types';
 import { Task, TaskFlags } from '../../use/use-task';
 import { QError } from '../error/error';
-import { PublicError } from '../error/public-error';
 import { _qrlWithChunk, inlinedQrl } from '../qrl/qrl';
 import { createQRL, type QRLInternal } from '../qrl/qrl-class';
 import { isQrl, SYNC_QRL } from '../qrl/qrl-utils';
@@ -308,13 +307,6 @@ describe('shared-serialization', () => {
         ]
         (x chars)"
       `);
-    });
-    it('serializes PublicError with its own type', async () => {
-      const publicRaw = await serialize(new PublicError('x'));
-      expect(publicRaw[0]).toBe(TypeIds.PublicError);
-      const fakeShape = Object.assign(new Error('x'), { data: 'leak' });
-      const errorRaw = await serialize(fakeShape);
-      expect(errorRaw[0]).toBe(TypeIds.Error);
     });
     it(title(TypeIds.Promise), async () => {
       expect(await dump(Promise.resolve(shared1), Promise.reject(shared2))).toMatchInlineSnapshot(`
@@ -1345,35 +1337,6 @@ describe('shared-serialization', () => {
         [TypeIds.Plain, 'safe', TypeIds.Plain, 'then', TypeIds.Plain, 'value'],
       ]).state[0] as Error & { then: string };
       expect(safeError.then).toBe('value');
-    });
-    it(title(TypeIds.PublicError), async () => {
-      const objs = await serialize(new PublicError({ message: 'Out of stock', sku: 'A1' }));
-      const err = deserialize(objs)[0] as PublicError<{ message: string; sku: string }>;
-      expect(err).toBeInstanceOf(PublicError);
-      expect(err.message).toBe('Out of stock');
-      expect(err.data).toEqual({ message: 'Out of stock', sku: 'A1' });
-    });
-    it('resumes a PublicError subclass as the base class (documented downgrade)', async () => {
-      class CartError extends PublicError<{ sku: string }> {}
-      const objs = await serialize(new CartError({ sku: 'A1' }));
-      const err = deserialize(objs)[0] as PublicError;
-      expect(err).toBeInstanceOf(PublicError);
-      expect(err.data).toEqual({ sku: 'A1' });
-    });
-    it('allocates PublicError only for its own type', () => {
-      const upgraded = eagerDeserialize([
-        TypeIds.PublicError,
-        [TypeIds.Plain, 'boom', TypeIds.Plain, 'data', TypeIds.Plain, 'payload'],
-      ]).state[0] as PublicError;
-      expect(upgraded).toBeInstanceOf(PublicError);
-      expect(upgraded.data).toBe('payload');
-
-      const plain = eagerDeserialize([
-        TypeIds.Error,
-        [TypeIds.Plain, 'boom', TypeIds.Plain, 'data', TypeIds.Plain, 'payload'],
-      ]).state[0] as Error;
-      expect(plain).toBeInstanceOf(Error);
-      expect(plain).not.toBeInstanceOf(PublicError);
     });
     it(title(TypeIds.Promise), async () => {
       const objs = await serialize(Promise.resolve(shared1), Promise.reject(shared1), shared1);

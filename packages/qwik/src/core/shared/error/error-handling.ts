@@ -13,7 +13,6 @@ import { ChoreBits } from '../vnode/enums/chore-bits.enum';
 import type { VNode } from '../vnode/vnode';
 import { markVNodeDirty } from '../vnode/vnode-dirty';
 import { ErrorBoundaryPhase } from './error-boundary-phase';
-import { PublicError } from './public-error';
 
 export { ErrorBoundaryPhase } from './error-boundary-phase';
 
@@ -125,9 +124,6 @@ export const redactBoundaryErrorForDisplay = (
         }
         return redactToGeneric(error);
       }
-    }
-    if (error instanceof PublicError) {
-      return error;
     }
     if (safeRead(() => error instanceof Error && REDACTED in error, false)) {
       return error as Error;

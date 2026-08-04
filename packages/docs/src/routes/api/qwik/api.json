@@ -552,23 +552,6 @@
       "mdFile": "core.cssproperties.md"
     },
     {
-      "name": "data",
-      "id": "publicerror-data",
-      "hierarchy": [
-        {
-          "name": "PublicError",
-          "id": "publicerror-data"
-        },
-        {
-          "name": "data",
-          "id": "publicerror-data"
-        }
-      ],
-      "kind": "Property",
-      "content": "```typescript\ndata: T;\n```",
-      "mdFile": "core.publicerror.data.md"
-    },
-    {
       "name": "DevJSX",
       "id": "devjsx",
       "hierarchy": [
@@ -1437,20 +1420,6 @@
       "content": "Infers `Props` from the component or tag.\n\n\n```typescript\nexport type PropsOf<COMP> = COMP extends string ? COMP extends keyof QwikIntrinsicElements ? QwikIntrinsicElements[COMP] : QwikIntrinsicElements['span'] : NonNullable<COMP> extends never ? never : COMP extends FunctionComponent<infer PROPS> ? PROPS extends Record<any, infer V> ? IsAny<V> extends true ? never : ObjectProps<PROPS> : COMP extends Component<infer OrigProps> ? ObjectProps<OrigProps> : PROPS : never;\n```\n**References:** [QwikIntrinsicElements](#qwikintrinsicelements)<!-- -->, [FunctionComponent](#functioncomponent)<!-- -->, [Component](#component)\n\n\n\n```tsx\nconst Desc = component$(({desc, ...props}: { desc: string } & PropsOf<'div'>) => {\n return <div {...props}>{desc}</div>;\n});\n\nconst TitleBox = component$(({title, ...props}: { title: string } & PropsOf<Box>) => {\n  return <Box {...props}><h1>{title}</h1></Box>;\n});\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/component.public.ts",
       "mdFile": "core.propsof.md"
-    },
-    {
-      "name": "PublicError",
-      "id": "publicerror",
-      "hierarchy": [
-        {
-          "name": "PublicError",
-          "id": "publicerror"
-        }
-      ],
-      "kind": "Class",
-      "content": "An error meant to be seen: an `<ErrorBoundary>` fallback displays a `PublicError` unredacted, even in production, where any other thrown value becomes a generic message.\n\nA string `data` doubles as `.message`<!-- -->; an object `data` with a string `message` field lifts it onto `.message`<!-- -->. Consent covers the whole instance, so keep secrets off it.\n\nThe framework never serializes the boundary error, so `data` only has to serialize if your own code captures it (props, QRLs, stores). A subclass instance resumes as a base `PublicError`<!-- -->: discriminate on `data`<!-- -->, not the subclass.\n\n\n```typescript\nexport declare class PublicError<T = unknown> extends Error \n```\n**Extends:** Error\n\n\n<table><thead><tr><th>\n\nConstructor\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n(constructor)(data)\n\n\n</td><td>\n\n\n</td><td>\n\nConstructs a new instance of the `PublicError` class\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[data](#publicerror-data)\n\n\n</td><td>\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/error/public-error.ts",
-      "mdFile": "core.publicerror.md"
     },
     {
       "name": "PublicProps",

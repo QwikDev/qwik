@@ -166,7 +166,6 @@ export {
 export type { ErrorBoundaryProps } from './shared/error/error-boundary';
 export { ErrorBoundaryPhase } from './shared/error/error-boundary-phase';
 export type { ErrorBoundaryInfo } from './shared/error/error-handling';
-export { PublicError } from './shared/error/public-error';
 export {
   type ReadonlySignal,
   type AsyncSignal,

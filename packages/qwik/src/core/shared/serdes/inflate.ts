@@ -223,8 +223,7 @@ function* inflateIterator(
       }
       break;
     }
-    case TypeIds.Error:
-    case TypeIds.PublicError: {
+    case TypeIds.Error: {
       const d = data as string[];
       (target as Error).message = d[0] as string;
       for (let i = 1; i < d.length; i += 2) {

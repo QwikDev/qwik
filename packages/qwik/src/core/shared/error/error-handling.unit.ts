@@ -6,7 +6,6 @@ import {
   redactBoundaryErrorForDisplay,
   type ErrorBoundaryStore,
 } from './error-handling';
-import { PublicError } from './public-error';
 
 class NonSerializableError {
   message = 'non-serializable boom';
@@ -69,15 +68,6 @@ const hostileRows: Array<[string, () => unknown]> = [
       cyclic.self = cyclic;
       return cyclic;
     },
-  ],
-  [
-    'PublicError wrapped in a throwing getPrototypeOf trap',
-    () =>
-      new Proxy(new PublicError('trapped'), {
-        getPrototypeOf() {
-          throw new Error('proto trap');
-        },
-      }),
   ],
 ];
 
@@ -246,9 +236,8 @@ describe('redactBoundaryErrorForDisplay', () => {
 
     it('returning undefined declines — the default policy applies', () => {
       const decline = () => undefined;
-      const pub = new PublicError('Out of stock');
-      expect(redactBoundaryErrorForDisplay(pub, true, decline)).toBe(pub);
-      expect(redactBoundaryErrorForDisplay(pub, false, decline)).toBe(pub);
+      const raw = new Error('raw boom');
+      expect(redactBoundaryErrorForDisplay(raw, true, decline)).toBe(raw);
       const prodOut = redactBoundaryErrorForDisplay(
         new Error('secret'),
         false,
@@ -335,12 +324,18 @@ describe('redactBoundaryErrorForDisplay', () => {
     });
   });
 
-  describe('PublicError pass-through', () => {
-    it('prod: a thrown PublicError passes through by identity with no digest', () => {
-      const err = new PublicError({ message: 'Out of stock', sku: 'A1' });
-      const out = redactBoundaryErrorForDisplay(err, false);
-      expect(out).toBe(err);
-      expect('digest' in out).toBe(false);
+  describe('no type-based exceptions', () => {
+    it('prod: a custom error class carrying display data redacts like any error', () => {
+      class DisplayError extends Error {
+        constructor(public data: unknown) {
+          super('Out of stock');
+        }
+      }
+      const out = redactBoundaryErrorForDisplay(new DisplayError({ sku: 'A1' }), false) as Error & {
+        digest?: string;
+      };
+      expect(out.message).toBe('An error occurred');
+      expect(typeof out.digest).toBe('string');
     });
 
     it('prod: a plain Error faking the shape still redacts to generic + digest', () => {
@@ -350,38 +345,6 @@ describe('redactBoundaryErrorForDisplay', () => {
       ) as Error & { digest?: string };
       expect(out.message).toBe('An error occurred');
       expect(typeof out.digest).toBe('string');
-    });
-
-    it('transformError runs first and its projection wins over a PublicError', () => {
-      const seen: unknown[] = [];
-      const out = redactBoundaryErrorForDisplay(new PublicError('public'), false, (e) => {
-        seen.push(e);
-        return new Error('projected');
-      });
-      expect(seen).toHaveLength(1);
-      expect(seen[0]).toBeInstanceOf(PublicError);
-      expect(out.message).toBe('projected');
-    });
-
-    it('a PublicError with unserializable data displays unredacted in dev AND prod, with no warning', () => {
-      const logWarnSpy = vi.spyOn(logUtils, 'logWarn').mockImplementation(() => undefined);
-      try {
-        const err = new PublicError({ retry: () => {} });
-        expect(redactBoundaryErrorForDisplay(err, true)).toBe(err);
-        expect(redactBoundaryErrorForDisplay(err, false)).toBe(err);
-        expect(logWarnSpy).not.toHaveBeenCalled();
-      } finally {
-        logWarnSpy.mockRestore();
-      }
-    });
-
-    it('prod: a client-thrown PublicError shows unredacted; a plain Error still redacts', () => {
-      const pub = new PublicError('Out of stock');
-      expect(redactBoundaryErrorForDisplay(pub, false)).toBe(pub);
-      const internal = new Error('internal');
-      const shown = redactBoundaryErrorForDisplay(internal, false);
-      expect(shown).not.toBe(internal);
-      expect(shown.message).toBe('An error occurred');
     });
   });
 
@@ -446,10 +409,11 @@ describe('markBoundaryErrored', () => {
     expect(store.error).toBe(raw);
   });
 
-  it('keeps the same PublicError instance for store.error and onError$', () => {
+  it('keeps the same Error subclass instance for store.error and onError$', () => {
+    class CartError extends Error {}
     const received: unknown[] = [];
     const store: ErrorBoundaryStore = { error: undefined, $onError$: (e) => received.push(e) };
-    const err = new PublicError('Out of stock');
+    const err = new CartError('Out of stock');
     markBoundaryErrored(store, err);
     expect(store.error).toBe(err);
     expect(received).toEqual([err]);

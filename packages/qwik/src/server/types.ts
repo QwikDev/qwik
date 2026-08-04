@@ -165,8 +165,7 @@ export interface RenderOptions extends SerializeDocumentOptions {
    * `digest` in production.
    *
    * Return an `Error` to project it, or `undefined`/`null` to decline; any other return, or a
-   * throw, redacts to the generic error. A thrown `PublicError` runs through it too — return it
-   * unchanged, or decline, to keep it public.
+   * throw, redacts to the generic error.
    *
    * It is called synchronously, so it cannot be `async`: a returned promise redacts every error.
    */

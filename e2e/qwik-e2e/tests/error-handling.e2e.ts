@@ -799,31 +799,4 @@ test.describe('ErrorBoundary in a production build (qDev=false)', () => {
     await page.locator('#eb-content-button').click();
     await expect(page.locator('#eb-content-count')).toHaveText('1');
   });
-
-  test('PublicError renders unredacted while a sibling plain error stays generic', async ({
-    page,
-  }) => {
-    assertNoBrowserErrors(page);
-    await page.goto(prodUrl('public-error'), { waitUntil: 'commit' });
-
-    await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: Out of stock', {
-      timeout: 10000,
-    });
-    await expect(page.locator('#eb-plain-msg')).toHaveText('caught: An error occurred');
-    expect(await page.locator('body').innerText()).not.toContain('eb sync boom');
-
-    await page.locator('#eb-public-probe').click();
-    await expect(page.locator('#eb-public-kind')).toHaveText('public:A1');
-  });
-
-  test('a PublicError whose data carries a function still displays unredacted', async ({
-    page,
-  }) => {
-    assertNoBrowserErrors(page);
-    await page.goto(prodUrl('unserializable-public'), { waitUntil: 'commit' });
-
-    await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: Out of stock', {
-      timeout: 10000,
-    });
-  });
 });

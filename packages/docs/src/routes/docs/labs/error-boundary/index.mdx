@@ -1,6 +1,6 @@
 ---
 title: 'ErrorBoundary | Experimental'
-keywords: 'error boundary, error handling, fallback, reset, onError, digest, PublicError'
+keywords: 'error boundary, error handling, fallback, reset, onError, digest'
 ---
 
 import { Note } from '~/components/note/note';
@@ -117,25 +117,6 @@ fallback$={$((error) => (
 ```
 
 Log `info.digest` from `onError$` to match a reported code back to the error in your logs.
-
-## `PublicError`
-
-Throw a `PublicError` for a message you intend the user to read. It renders unredacted, including in
-production.
-
-```tsx
-import { PublicError, component$ } from '@qwik.dev/core';
-
-export const Checkout = component$(() => {
-  if (outOfStock) {
-    throw new PublicError('This item is out of stock.');
-  }
-  return <p>In stock</p>;
-});
-```
-
-Construction is consent, and it covers the whole instance — keep secrets off it. A string `data`
-doubles as the message; an object `data` with a string `message` field lifts it onto `.message`.
 
 ## `transformError`
 

@@ -17,6 +17,7 @@ import {
   QSlotParent,
 } from '../shared/utils/markers';
 import { qDev } from '../shared/utils/qdev';
+import { getRootContainer } from '../shared/utils/container';
 import { hasSlotProps } from '../shared/utils/prop';
 import { isTask } from '../use/use-task';
 import { VNodeDataFlag } from '../../server/types';
@@ -41,7 +42,7 @@ export function handleSSRError(
       throw err;
     }
     markBoundaryErrored(errorStore, err, phase);
-    container.$hasBoundaryError$ = true;
+    (getRootContainer(container) as SSRContainer).$hasBoundaryError$ = true;
     if (container.$isOutOfOrderSegment$) {
       markErrorFromDeferredSegment(errorStore);
     }

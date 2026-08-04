@@ -8,7 +8,11 @@ const { routeState } = vi.hoisted(() => ({
 }));
 
 vi.mock('@qwik-router-config', () => ({
-  routes: { _I: async () => routeState.module },
+  routes: {
+    _I: async () => routeState.module,
+    'etag-error': { _I: async () => routeState.module },
+    'etag-late': { _I: async () => routeState.module },
+  },
   serverPlugins: undefined,
   cacheModules: false,
   basePathname: '/',
@@ -69,6 +73,50 @@ describe('render cache control', () => {
     expect(captured.status).toBe(200);
     expect(captured.headers?.get('Cache-Control')).toBeNull();
     expect(captured.chunks.length).toBeGreaterThan(0);
+  });
+
+  it('an error document never poisons the SSR etag cache', async () => {
+    routeState.module = { default: () => null, routeConfig: { eTag: 'v1', cacheKey: true } };
+    const throwingThenErrorDocRender = vi
+      .fn()
+      .mockImplementationOnce(async () => {
+        throw new ServerError(500, 'render boom');
+      })
+      .mockImplementation(async (opts: any) => {
+        opts.onBeforeFirstFlush?.({ errorBoundaryCaught: false });
+        await opts.stream.write('ERROR DOC');
+        return { flushes: 1, size: 9, isStatic: false, timing: {} };
+      });
+    const first = createServerRequestEvent('http://localhost/etag-error/');
+    const run1 = await requestHandler(first.ev, { render: throwingThenErrorDocRender as any });
+    await run1!.completion;
+    expect(first.captured.status).toBe(500);
+
+    const second = createServerRequestEvent('http://localhost/etag-error/');
+    const run2 = await requestHandler(second.ev, { render: throwingThenErrorDocRender as any });
+    await run2!.completion;
+    expect(second.captured.headers?.get('X-SSR-Cache')).toBeNull();
+    expect(second.captured.status).toBe(200);
+    expect(throwingThenErrorDocRender).toHaveBeenCalledTimes(3);
+  });
+
+  it('a boundary caught after the first flush skips the SSR etag cache', async () => {
+    routeState.module = { default: () => null, routeConfig: { eTag: 'v1', cacheKey: true } };
+    const lateCatchRender = vi.fn(async (opts: any) => {
+      opts.onBeforeFirstFlush?.({ errorBoundaryCaught: false });
+      await opts.stream.write('<html>late fallback</html>');
+      return { flushes: 2, size: 10, isStatic: false, timing: {}, errorBoundaryCaught: true };
+    });
+    const first = createServerRequestEvent('http://localhost/etag-late/');
+    const run1 = await requestHandler(first.ev, { render: lateCatchRender as any });
+    await run1!.completion;
+    expect(first.captured.status).toBe(200);
+
+    const second = createServerRequestEvent('http://localhost/etag-late/');
+    const run2 = await requestHandler(second.ev, { render: lateCatchRender as any });
+    await run2!.completion;
+    expect(second.captured.headers?.get('X-SSR-Cache')).toBeNull();
+    expect(lateCatchRender).toHaveBeenCalledTimes(2);
   });
 
   it('an error document responds with no-store', async () => {

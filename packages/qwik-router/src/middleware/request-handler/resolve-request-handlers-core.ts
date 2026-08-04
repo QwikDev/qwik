@@ -1,6 +1,6 @@
 import { inlinedQrl, isDev, type QRL } from '@qwik.dev/core';
 import { _serialize, _verifySerializable } from '@qwik.dev/core/internal';
-import type { Render, RenderToStringResult } from '@qwik.dev/core/server';
+import type { Render, RenderToStreamResult, RenderToStringResult } from '@qwik.dev/core/server';
 import type {
   ActionInternal,
   ContentModule,
@@ -514,6 +514,8 @@ function createResolveRequestHandlers() {
     requestEv.sharedMap.delete(RequestEvSharedActionId);
     requestEv.sharedMap.delete(RequestEvSharedActionFormData);
     requestEv.sharedMap.delete('@actionResult');
+    // The error document must never read or write the page's SSR cache entry.
+    requestEv.sharedMap.delete(RequestEvETagCacheKey);
   }
 
   async function runValidators(
@@ -795,11 +797,15 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
         if (typeof (result as any as RenderToStringResult).html === 'string') {
           await stream.write((result as any as RenderToStringResult).html);
         }
+        boundaryErrored ||= (result as RenderToStreamResult).errorBoundaryCaught === true;
       } finally {
-        await stream.ready;
-        await stream.close();
-        await pipe;
-        responseWriter?.releaseLock();
+        try {
+          await stream.ready;
+          await stream.close();
+        } finally {
+          await pipe;
+          responseWriter?.releaseLock();
+        }
       }
       if (pipeError) {
         throw pipeError;

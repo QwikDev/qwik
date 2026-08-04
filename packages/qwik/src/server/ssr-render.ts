@@ -101,6 +101,7 @@ export const renderToStream = async (
     size: ssrContainer.size,
     isStatic: false,
     timing: timing,
+    errorBoundaryCaught: ssrContainer.$hasBoundaryError$ === true,
   };
 
   return result;

@@ -899,12 +899,32 @@ describe('render api', () => {
 
       it('reports no boundary error on a healthy render', async () => {
         const calls: boolean[] = [];
-        await renderToStreamAndSetPlatform(<Counter />, {
+        const result = await renderToStreamAndSetPlatform(<Counter />, {
           containerTagName: 'div',
           stream: createTestStream(vi.fn()),
           onBeforeFirstFlush: (info) => calls.push(info.errorBoundaryCaught),
         });
         expect(calls).toEqual([false]);
+        expect(result.errorBoundaryCaught).toBe(false);
+      });
+
+      it('a catch after the first flush is reported on the result, not the callback', async () => {
+        const calls: boolean[] = [];
+        const result = await renderToStreamAndSetPlatform(
+          <>
+            {'x'.repeat(25000)}
+            <ErrorBoundary fallback$={$(() => 'fb')}>
+              <FlushThrower />
+            </ErrorBoundary>
+          </>,
+          {
+            containerTagName: 'div',
+            stream: createTestStream(vi.fn()),
+            onBeforeFirstFlush: (info) => calls.push(info.errorBoundaryCaught),
+          }
+        );
+        expect(calls).toEqual([false]);
+        expect(result.errorBoundaryCaught).toBe(true);
       });
     });
 

@@ -54,6 +54,12 @@ export interface PrefetchResource {
 export interface RenderToStreamResult extends RenderResult {
   flushes: number;
   size: number;
+  /**
+   * True when an `<ErrorBoundary>` caught during the render, no matter where in the stream.
+   *
+   * @experimental
+   */
+  errorBoundaryCaught?: boolean;
   timing: {
     firstFlush: number;
     render: number;

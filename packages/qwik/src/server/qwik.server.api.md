@@ -119,6 +119,7 @@ export interface RenderToStreamOptions extends RenderOptions {
 
 // @public (undocumented)
 export interface RenderToStreamResult extends RenderResult {
+    errorBoundaryCaught?: boolean;
     // (undocumented)
     flushes: number;
     // (undocumented)

@@ -149,6 +149,7 @@ import {
   vNodeData_openFragment,
   type VNodeData,
 } from './vnode-data';
+import { ErrorBoundaryPhase } from '../core/shared/error/error-handling';
 
 enum QwikLoaderInclude {
   Module,
@@ -389,11 +390,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   ensureProjectionResolved(_host: HostElement): void {}
 
-  handleError(
-    err: any,
-    host: HostElement | null,
-    phase: Parameters<ISSRContainer['handleError']>[2] = 'render'
-  ): void {
+  handleError(err: any, host: HostElement | null, phase: ErrorBoundaryPhase): void {
     _handleSSRError(this, err, host as ISsrNode | null, phase);
   }
 

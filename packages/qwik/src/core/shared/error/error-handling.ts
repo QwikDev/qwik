@@ -13,10 +13,17 @@ import type { VNode } from '../vnode/vnode';
 import { markVNodeDirty } from '../vnode/vnode-dirty';
 import { PublicError } from './public-error';
 
+/** Identifies where an error caught by an error boundary originated. @public @experimental */
+export const enum ErrorBoundaryPhase {
+  Render = 'render',
+  Event = 'event',
+  Hook = 'hook',
+}
+
 /** Structured metadata about a caught error, passed to `onError$`. @public @experimental */
 export interface ErrorBoundaryInfo {
   /** Where the caught error originated. */
-  phase: 'render' | 'task' | 'event' | 'async-generator' | 'async-signal';
+  phase: ErrorBoundaryPhase;
   /**
    * Identifies the boundary within the page. Allocated in render order and kept across a resume, so
    * every report from one boundary shares it — but it shifts when render order changes.
@@ -149,7 +156,7 @@ export const redactBoundaryErrorForDisplay = (
 export const fireOnError = (
   onError: ((error: Error, info: ErrorBoundaryInfo) => unknown) | undefined | null,
   error: unknown,
-  phase: ErrorBoundaryInfo['phase'],
+  phase: ErrorBoundaryPhase,
   boundaryId: string
 ): void => {
   if (!onError) {
@@ -176,7 +183,7 @@ export const isErrorFromDeferredSegment = (store: ErrorBoundaryStore): boolean =
 
 const ERROR_PHASE = /*#__PURE__*/ Symbol('qErrorPhase');
 
-export const tagErrorPhase = (err: unknown, phase: ErrorBoundaryInfo['phase']): void => {
+export const tagErrorPhase = (err: unknown, phase: ErrorBoundaryPhase): void => {
   try {
     Object.defineProperty(err, ERROR_PHASE, { value: phase, configurable: true });
   } catch {
@@ -184,13 +191,13 @@ export const tagErrorPhase = (err: unknown, phase: ErrorBoundaryInfo['phase']): 
   }
 };
 
-const getTaggedErrorPhase = (err: unknown): ErrorBoundaryInfo['phase'] | undefined =>
-  safeRead(() => (err as { [ERROR_PHASE]?: ErrorBoundaryInfo['phase'] })?.[ERROR_PHASE], undefined);
+const getTaggedErrorPhase = (err: unknown): ErrorBoundaryPhase | undefined =>
+  safeRead(() => (err as { [ERROR_PHASE]?: ErrorBoundaryPhase })?.[ERROR_PHASE], undefined);
 
 export const markBoundaryErrored = (
   store: ErrorBoundaryStore,
   error: unknown,
-  phase: ErrorBoundaryInfo['phase'] = 'render'
+  phase: ErrorBoundaryPhase = ErrorBoundaryPhase.Render
 ): void => {
   // `null` would collide with the capture-only sentinel, so wrap every nullish throw.
   store.error = error == null ? toBoundaryError(error) : error;
@@ -218,7 +225,7 @@ const handleQError = (e: Event) => {
     return;
   }
   try {
-    container.handleError(detail.error, host, 'event');
+    container.handleError(detail.error, host, ErrorBoundaryPhase.Event);
   } catch (handlerError) {
     logError(handlerError);
   }

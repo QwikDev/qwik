@@ -2,10 +2,10 @@ import { mapArray_get } from '../client/util-mapArray';
 import { clearAllEffects } from '../reactive-primitives/cleanup';
 import {
   ERROR_CONTEXT,
+  ErrorBoundaryPhase,
   isRecoverable,
   markBoundaryErrored,
   markErrorFromDeferredSegment,
-  type ErrorBoundaryInfo,
   type ErrorBoundaryStore,
 } from '../shared/error/error-handling';
 import { ELEMENT_SEQ, QCtxAttr, QDefaultSlot, QSlot, QSlotParent } from '../shared/utils/markers';
@@ -19,7 +19,7 @@ export function handleSSRError(
   container: SSRContainer,
   err: any,
   host: ISsrNode | null,
-  phase: ErrorBoundaryInfo['phase'] = 'render'
+  phase: ErrorBoundaryPhase
 ): void {
   if (!__EXPERIMENTAL__.errorBoundary || (qDev && !isRecoverable(err))) {
     throw err;

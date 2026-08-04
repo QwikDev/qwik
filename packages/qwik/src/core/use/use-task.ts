@@ -1,6 +1,6 @@
 import { getDomContainer, whenContainerDataReady } from '../client/dom-container';
 import { BackRef } from '../reactive-primitives/backref';
-import { tagErrorPhase } from '../shared/error/error-handling';
+import { ErrorBoundaryPhase, tagErrorPhase } from '../shared/error/error-handling';
 import { clearAllEffects } from '../reactive-primitives/cleanup';
 import { type Signal } from '../reactive-primitives/signal.public';
 import {
@@ -184,8 +184,8 @@ export const runTask = (
 
   task.$flags$ &= ~TaskFlags.DIRTY;
   const handleError = (reason: unknown) => {
-    tagErrorPhase(reason, 'task');
-    container.handleError(reason, host, 'task');
+    tagErrorPhase(reason, ErrorBoundaryPhase.Hook);
+    container.handleError(reason, host, ErrorBoundaryPhase.Hook);
   };
 
   let taskPromise: Promise<void> | null = null;

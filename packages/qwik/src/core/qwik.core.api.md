@@ -184,7 +184,7 @@ export interface _Container {
     // (undocumented)
     getParentHost(host: _HostElement): _HostElement | null;
     // (undocumented)
-    handleError(err: any, $host$: _HostElement | null, phase?: ErrorBoundaryInfo['phase']): void;
+    handleError(err: any, $host$: _HostElement | null, phase?: ErrorBoundaryPhase): void;
     // (undocumented)
     resolveContext<T>(host: _HostElement, contextId: ContextId<T>): T | undefined;
     // Warning: (ae-forgotten-export) The symbol "SymbolToChunkResolver" needs to be exported by the entry point index.d.ts
@@ -369,7 +369,7 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     // (undocumented)
     getSyncFn(id: number): (...args: unknown[]) => unknown;
     // (undocumented)
-    handleError(err: any, host: _VNode | null, phase?: ErrorBoundaryInfo['phase']): void;
+    handleError(err: any, host: _VNode | null, phase: ErrorBoundaryPhase): void;
     // (undocumented)
     parseQRL<T = unknown>(qrlStr: string): QRL<T>;
     // (undocumented)
@@ -453,7 +453,17 @@ export const ErrorBoundary: Component<ErrorBoundaryProps>;
 export interface ErrorBoundaryInfo {
     boundaryId: string;
     digest: string;
-    phase: 'render' | 'task' | 'event' | 'async-generator' | 'async-signal';
+    phase: ErrorBoundaryPhase;
+}
+
+// @public
+export const enum ErrorBoundaryPhase {
+    // (undocumented)
+    Event = "event",
+    // (undocumented)
+    Hook = "hook",
+    // (undocumented)
+    Render = "render"
 }
 
 // @public (undocumented)
@@ -555,7 +565,7 @@ export { h as createElement }
 export { h }
 
 // @internal (undocumented)
-export function _handleSSRError(container: SSRContainer, err: any, host: ISsrNode | null, phase?: ErrorBoundaryInfo['phase']): void;
+export function _handleSSRError(container: SSRContainer, err: any, host: ISsrNode | null, phase: ErrorBoundaryPhase): void;
 
 // @internal (undocumented)
 export const _hasStoreEffects: (value: StoreTarget, prop: keyof StoreTarget) => boolean;
@@ -1229,7 +1239,7 @@ export abstract class _SharedContainer implements _Container {
     // (undocumented)
     abstract getParentHost(host: _HostElement): _HostElement | null;
     // (undocumented)
-    abstract handleError(err: any, $host$: _HostElement | null, phase?: ErrorBoundaryInfo['phase']): void;
+    abstract handleError(err: any, $host$: _HostElement | null, phase?: ErrorBoundaryPhase): void;
     // (undocumented)
     abstract resolveContext<T>(host: _HostElement, contextId: ContextId<T>): T | undefined;
     // (undocumented)

@@ -42,6 +42,7 @@ import {
   redactBoundaryErrorForDisplay,
   type ErrorBoundaryInfo,
   type ErrorBoundaryStore,
+  ErrorBoundaryPhase,
 } from './error-handling';
 import { _captures } from '../qrl/qrl-class';
 import type { DomContainer } from '../../client/dom-container';
@@ -282,7 +283,7 @@ const SSRErrorFallbackRenderer = __EXPERIMENTAL__.errorBoundary
             }
             // The catch site already recorded it; marking again refires onError$.
             if (store.error !== error) {
-              markBoundaryErrored(store, error, 'render');
+              markBoundaryErrored(store, error, ErrorBoundaryPhase.Render);
             }
             const segment = await ssr.segment(
               `${boundaryId}`,

@@ -18,7 +18,7 @@ import {
   type SSRStreamChildren,
 } from '../shared/jsx/utils.public';
 import { type SerializationContext } from '../shared/serdes/index';
-import type { ErrorBoundaryInfo } from '../shared/error/error-handling';
+import { ErrorBoundaryPhase } from '../shared/error/error-handling';
 import { VNodeDataFlag } from '../../server/types';
 import { DEBUG_TYPE, VirtualType } from '../shared/types';
 import { isAsyncGenerator } from '../shared/utils/async-generator';
@@ -48,7 +48,9 @@ import type { ISsrComponentFrame, ISsrNode, SSRContainer, SSRRenderJSXOptions } 
 import { resolveSlotName } from '../shared/utils/prop';
 
 class MaybeAsyncSignal {}
-class FunctionChild {}
+// we need to differentiate between JSX functions and ssr container functions for error boundary
+// JSX functions need to be skipped after error boundary catch an error
+class InvokeJSXFunction {}
 
 type StackFn = () => ValueOrPromise<void>;
 export type StackValue = ValueOrPromise<
@@ -58,7 +60,7 @@ export type StackValue = ValueOrPromise<
   | typeof Promise
   | AsyncGenerator
   | typeof MaybeAsyncSignal
-  | typeof FunctionChild
+  | typeof InvokeJSXFunction
 >;
 
 const openBoundaryContentScope = (ssr: SSRContainer, contentHost: ISsrNode): StackFn => {
@@ -104,7 +106,7 @@ export async function _walkJSX(
   };
   const drain = async (): Promise<void> => {
     while (stack.length) {
-      let phase: ErrorBoundaryInfo['phase'] = 'render';
+      let phase = ErrorBoundaryPhase.Render;
       try {
         const value = stack.pop();
         // Reference equality first (no prototype walk), then typeof
@@ -113,11 +115,11 @@ export async function _walkJSX(
           if (__EXPERIMENTAL__.errorBoundary && isInsideFailedBoundaryContent(ssr)) {
             continue;
           }
-          phase = 'async-signal';
+          phase = ErrorBoundaryPhase.Hook;
           await retryOnPromise(() => stack.push(trackFn()));
           continue;
         }
-        if (__EXPERIMENTAL__.errorBoundary && value === FunctionChild) {
+        if (__EXPERIMENTAL__.errorBoundary && value === InvokeJSXFunction) {
           const fnChild = stack.pop() as StackFn;
           if (isInsideFailedBoundaryContent(ssr)) {
             continue;
@@ -163,12 +165,10 @@ export async function _walkJSX(
   await drain();
 }
 
-function enqueueChild(enqueue: (value: StackValue) => void, child: JSXOutput) {
-  if (__EXPERIMENTAL__.errorBoundary && typeof child === 'function') {
-    enqueue(child as StackValue);
-    enqueue(FunctionChild);
-  } else {
-    enqueue(child);
+function enqueueJSX(enqueue: (v: StackValue) => void, value: JSXOutput) {
+  enqueue(value);
+  if (__EXPERIMENTAL__.errorBoundary && typeof value === 'function') {
+    enqueue(InvokeJSXFunction);
   }
 }
 
@@ -191,7 +191,7 @@ function processJSXNode(
   } else if (typeof value === 'object') {
     if (Array.isArray(value)) {
       for (let i = value.length - 1; i >= 0; i--) {
-        enqueueChild(enqueue, value[i]);
+        enqueueJSX(enqueue, value[i]);
       }
     } else if (isSignal(value)) {
       maybeAddPollingAsyncSignalToEagerResume(ssr.serializationCtx, value);
@@ -223,7 +223,7 @@ function processJSXNode(
             await ssr.streamHandler.flush();
           }
         } catch (err) {
-          ssr.handleError(err, ssr.getOrCreateLastNode(), 'async-generator');
+          ssr.handleError(err, ssr.getOrCreateLastNode(), ErrorBoundaryPhase.Render);
           await _walkJSX(ssr, null, freshWalkOptions());
         }
       });
@@ -274,7 +274,7 @@ function processJSXNode(
         }
 
         const children = jsx.children as JSXOutput;
-        children != null && enqueueChild(enqueue, children);
+        children != null && enqueueJSX(enqueue, children);
       } else if (isFunction(type)) {
         if (
           (__EXPERIMENTAL__.suspense || __EXPERIMENTAL__.errorBoundary) &&
@@ -291,7 +291,7 @@ function processJSXNode(
           ssr.openFragment(attrs);
           enqueue(ssr.closeFragment);
           const children = jsx.children as JSXOutput;
-          children != null && enqueueChild(enqueue, children);
+          children != null && enqueueJSX(enqueue, children);
         } else if (type === Slot) {
           const componentFrame = options.parentComponentFrame;
           if (componentFrame) {
@@ -316,7 +316,7 @@ function processJSXNode(
             if (slotDefaultChildren && slotChildren !== slotDefaultChildren) {
               ssr.addUnclaimedProjection(componentFrame, QDefaultSlot, slotDefaultChildren);
             }
-            enqueueChild(enqueue, slotChildren as JSXOutput);
+            enqueueJSX(enqueue, slotChildren as JSXOutput);
             enqueue(
               setParentOptions(
                 options,
@@ -363,7 +363,7 @@ function processJSXNode(
         } else if (type === SSRStreamBlock) {
           ssr.streamHandler.streamBlockStart();
           enqueue(() => ssr.streamHandler.streamBlockEnd());
-          enqueueChild(enqueue, jsx.children as JSXOutput);
+          enqueueJSX(enqueue, jsx.children as JSXOutput);
         } else if (isQwikComponent(type)) {
           // prod: use new instance of an object for props, we always modify props for a component
           const componentAttrs: Record<string, string | null> = {};

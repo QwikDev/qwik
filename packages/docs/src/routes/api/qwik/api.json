@@ -685,9 +685,23 @@
         }
       ],
       "kind": "Interface",
-      "content": "Structured metadata about a caught error, passed to `onError$`<!-- -->.\n\n\n```typescript\nexport interface ErrorBoundaryInfo \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nboundaryId\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\nIdentifies the boundary within the page. Allocated in render order and kept across a resume, so every report from one boundary shares it — but it shifts when render order changes.\n\n\n</td></tr>\n<tr><td>\n\ndigest\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\nThe code a production fallback shows for this error, so a user's bug report matches your logs. An error caught during SSR reports a second, different digest if the client re-derives it — the stacks differ.\n\n\n</td></tr>\n<tr><td>\n\nphase\n\n\n</td><td>\n\n\n</td><td>\n\n'render' \\| 'task' \\| 'event' \\| 'async-generator' \\| 'async-signal'\n\n\n</td><td>\n\nWhere the caught error originated.\n\n\n</td></tr>\n</tbody></table>",
+      "content": "Structured metadata about a caught error, passed to `onError$`<!-- -->.\n\n\n```typescript\nexport interface ErrorBoundaryInfo \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nboundaryId\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\nIdentifies the boundary within the page. Allocated in render order and kept across a resume, so every report from one boundary shares it — but it shifts when render order changes.\n\n\n</td></tr>\n<tr><td>\n\ndigest\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\nThe code a production fallback shows for this error, so a user's bug report matches your logs. An error caught during SSR reports a second, different digest if the client re-derives it — the stacks differ.\n\n\n</td></tr>\n<tr><td>\n\nphase\n\n\n</td><td>\n\n\n</td><td>\n\n[ErrorBoundaryPhase](#errorboundaryphase)\n\n\n</td><td>\n\nWhere the caught error originated.\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/error/error-handling.ts",
       "mdFile": "core.errorboundaryinfo.md"
+    },
+    {
+      "name": "ErrorBoundaryPhase",
+      "id": "errorboundaryphase",
+      "hierarchy": [
+        {
+          "name": "ErrorBoundaryPhase",
+          "id": "errorboundaryphase"
+        }
+      ],
+      "kind": "Enum",
+      "content": "Identifies where an error caught by an error boundary originated.\n\n\n```typescript\nexport declare const enum ErrorBoundaryPhase \n```\n\n\n<table><thead><tr><th>\n\nMember\n\n\n</th><th>\n\nValue\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nEvent\n\n\n</td><td>\n\n`\"event\"`\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nHook\n\n\n</td><td>\n\n`\"hook\"`\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nRender\n\n\n</td><td>\n\n`\"render\"`\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/error/error-handling.ts",
+      "mdFile": "core.errorboundaryphase.md"
     },
     {
       "name": "ErrorBoundaryProps",
@@ -702,6 +716,23 @@
       "content": "```typescript\nexport interface ErrorBoundaryProps \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfallback$\n\n\n</td><td>\n\n\n</td><td>\n\n[QRL](#qrl-type-alias)<!-- -->&lt;(error: Error &amp; { digest?: string; }, reset: [QRL](#qrl-type-alias)<!-- -->&lt;() =&gt; void&gt;) =&gt; [JSXOutput](#jsxoutput)<!-- -->&gt;\n\n\n</td><td>\n\nRendered when a descendant throws. The error is always an `Error`<!-- -->, so `{error.message}` is safe: a non-Error throw is wrapped, and production redacts to a generic message plus `digest`<!-- -->.\n\nWrap `reset` in a handler — `onClick$={() => reset()}`<!-- -->, not `onClick$={reset}` — so it stays wired in a streamed fallback.\n\n\n</td></tr>\n<tr><td>\n\nonError$?\n\n\n</td><td>\n\n\n</td><td>\n\n[QRL](#qrl-type-alias)<!-- -->&lt;(error: Error, info: [ErrorBoundaryInfo](#errorboundaryinfo)<!-- -->) =&gt; void&gt;\n\n\n</td><td>\n\n_(Optional)_ Side effect only; never affects rendering. Receives the original `Error` — a non-Error throw arrives wrapped, with `cause` set to the raw value.\n\nAn error caught during SSR fires again when the client re-derives it, so dedupe in your reporter.\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/error/error-boundary.ts",
       "mdFile": "core.errorboundaryprops.md"
+    },
+    {
+      "name": "Event",
+      "id": "errorboundaryphase-event",
+      "hierarchy": [
+        {
+          "name": "ErrorBoundaryPhase",
+          "id": "errorboundaryphase-event"
+        },
+        {
+          "name": "Event",
+          "id": "errorboundaryphase-event"
+        }
+      ],
+      "kind": "EnumMember",
+      "content": "",
+      "mdFile": "core.errorboundaryphase.event.md"
     },
     {
       "name": "event$",
@@ -859,6 +890,23 @@
       "content": "The legacy transform, used by some JSX transpilers. The optimizer normally replaces this with optimized calls, with the same caveat as `jsx()`<!-- -->.\n\n\n```typescript\nexport declare function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}>(type: TYPE, props?: PROPS | null, ...children: any[]): JSXNode<TYPE>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ntype\n\n\n</td><td>\n\nTYPE\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nprops\n\n\n</td><td>\n\nPROPS \\| null\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nchildren\n\n\n</td><td>\n\nany\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[JSXNode](#jsxnode)<!-- -->&lt;TYPE&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/jsx-runtime.ts",
       "mdFile": "core.h.md"
+    },
+    {
+      "name": "Hook",
+      "id": "errorboundaryphase-hook",
+      "hierarchy": [
+        {
+          "name": "ErrorBoundaryPhase",
+          "id": "errorboundaryphase-hook"
+        },
+        {
+          "name": "Hook",
+          "id": "errorboundaryphase-hook"
+        }
+      ],
+      "kind": "EnumMember",
+      "content": "",
+      "mdFile": "core.errorboundaryphase.hook.md"
     },
     {
       "name": "HTMLElementAttrs",
@@ -1865,6 +1913,23 @@
       "content": "Render JSX.\n\nUse this method to render JSX. This function does reconciling which means it always tries to reuse what is already in the DOM (rather then destroy and recreate content.) It returns a cleanup function you could use for cleaning up subscriptions.\n\n\n```typescript\nrender: (parent: Element | Document, jsxNode: JSXOutput | FunctionComponent<any>, opts?: RenderOptions) => Promise<RenderResult>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nparent\n\n\n</td><td>\n\nElement \\| Document\n\n\n</td><td>\n\nElement which will act as a parent to `jsxNode`<!-- -->. When possible the rendering will try to reuse existing nodes.\n\n\n</td></tr>\n<tr><td>\n\njsxNode\n\n\n</td><td>\n\n[JSXOutput](#jsxoutput) \\| [FunctionComponent](#functioncomponent)<!-- -->&lt;any&gt;\n\n\n</td><td>\n\nJSX to render\n\n\n</td></tr>\n<tr><td>\n\nopts\n\n\n</td><td>\n\n[RenderOptions](#renderoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nPromise&lt;[RenderResult](#renderresult)<!-- -->&gt;\n\nAn object containing a cleanup function.",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/client/dom-render.ts",
       "mdFile": "core.render.md"
+    },
+    {
+      "name": "Render",
+      "id": "errorboundaryphase-render",
+      "hierarchy": [
+        {
+          "name": "ErrorBoundaryPhase",
+          "id": "errorboundaryphase-render"
+        },
+        {
+          "name": "Render",
+          "id": "errorboundaryphase-render"
+        }
+      ],
+      "kind": "EnumMember",
+      "content": "",
+      "mdFile": "core.errorboundaryphase.render.md"
     },
     {
       "name": "RenderOnce",

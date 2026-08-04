@@ -12,7 +12,7 @@ import {
   installQErrorListener,
   toBoundaryError,
 } from '../shared/error/error-handling';
-import type { ErrorBoundaryInfo } from '../shared/error/error-handling';
+import type { ErrorBoundaryInfo, ErrorBoundaryPhase } from '../shared/error/error-handling';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { wrapDeserializerProxy } from '../shared/serdes/deser-proxy';
 import { eagerDeserializeStateIterator } from '../shared/serdes/inflate';
@@ -309,7 +309,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     return parseQRL(qrlStr, this) as QRLInternal<T>;
   }
 
-  handleError(err: any, host: VNode | null, phase: ErrorBoundaryInfo['phase'] = 'render'): void {
+  handleError(err: any, host: VNode | null, phase: ErrorBoundaryPhase): void {
     if (qDev && host) {
       handleDevError(this, err, host);
     }

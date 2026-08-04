@@ -1714,11 +1714,69 @@ phase
 
 </td><td>
 
-'render' \| 'task' \| 'event' \| 'async-generator' \| 'async-signal'
+[ErrorBoundaryPhase](#errorboundaryphase)
 
 </td><td>
 
 Where the caught error originated.
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/error/error-handling.ts)
+
+<h2 id="errorboundaryphase">ErrorBoundaryPhase</h2>
+
+Identifies where an error caught by an error boundary originated.
+
+```typescript
+export declare const enum ErrorBoundaryPhase
+```
+
+<table><thead><tr><th>
+
+Member
+
+</th><th>
+
+Value
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+Event
+
+</td><td>
+
+`"event"`
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+Hook
+
+</td><td>
+
+`"hook"`
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+Render
+
+</td><td>
+
+`"render"`
+
+</td><td>
 
 </td></tr>
 </tbody></table>
@@ -1785,6 +1843,8 @@ An error caught during SSR fires again when the client re-derives it, so dedupe 
 </tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/error/error-boundary.ts)
+
+<h2 id="errorboundaryphase-event">Event</h2>
 
 <h2 id="event_">event$</h2>
 
@@ -2113,6 +2173,8 @@ any[]
 [JSXNode](#jsxnode)&lt;TYPE&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/jsx-runtime.ts)
+
+<h2 id="errorboundaryphase-hook">Hook</h2>
 
 <h2 id="htmlelementattrs">HTMLElementAttrs</h2>
 
@@ -4016,7 +4078,7 @@ T
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts)
 
-<h2 id="render">render</h2>
+<h2 id="render-function">render</h2>
 
 Render JSX.
 
@@ -4091,6 +4153,8 @@ Promise&lt;[RenderResult](#renderresult)&gt;
 An object containing a cleanup function.
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/client/dom-render.ts)
+
+<h2 id="errorboundaryphase-render-enum-member">Render</h2>
 
 <h2 id="renderonce">RenderOnce</h2>
 

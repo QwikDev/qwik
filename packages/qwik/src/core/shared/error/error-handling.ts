@@ -70,7 +70,7 @@ const errorBoundaryDigest = (err: unknown): string =>
 
 const REDACTED = /*#__PURE__*/ Symbol();
 
-const redactToGeneric = (err: unknown): Error & { digest: string } => {
+export const redactToGeneric = (err: unknown): Error & { digest: string } => {
   const redacted = new Error(GENERIC_BOUNDARY_ERROR_MESSAGE) as Error & { digest: string };
   redacted.digest = errorBoundaryDigest(err);
   Object.defineProperty(redacted, REDACTED, { value: true });

@@ -23,6 +23,7 @@ import { Task } from '../../use/use-task';
 import type { SSRInternalStreamWriter, SSRWriteChunk } from '../../ssr/ssr-types';
 import { isQwikComponent, SERIALIZABLE_STATE } from '../component.public';
 import { qError, QError } from '../error/error';
+import { redactToGeneric } from '../error/error-handling';
 import { isJSXNode } from '../jsx/jsx-node';
 import { Fragment, type Props } from '../jsx/jsx-runtime';
 import { isPropsProxy, type PropsProxy } from '../jsx/props-proxy';
@@ -667,8 +668,13 @@ export class Serializer {
 
         const out: unknown[] = [value.$computeQrl$, value.$effects$];
         if (isAsync) {
+          const untrackedError = value.$untrackedError$;
           // After SSR, the signal is never loading, so no need to send it
-          out.push(value.$loadingEffects$, value.$errorEffects$, value.$untrackedError$);
+          out.push(
+            value.$loadingEffects$,
+            value.$errorEffects$,
+            untrackedError === undefined || isDev ? untrackedError : redactToGeneric(untrackedError)
+          );
           out.push(asyncFlags || undefined);
         }
 

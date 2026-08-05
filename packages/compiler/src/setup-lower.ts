@@ -3,7 +3,7 @@ import { lowerValueIr, type ExprLowerFacts } from './expr-lower';
 import type { ValueIR } from './expr-ir';
 import type { BindingId } from './plan-types';
 import type { SetupOp, TaskBody, TaskStep } from './setup-ir';
-import type { AstNode } from './types';
+import type { AstNode, SourceRange } from './types';
 import { QwikHooks } from './words';
 
 /**
@@ -219,12 +219,11 @@ function visibleTaskStrategy(
 /** V3 tasks auto-track reads; the body lowers only when every statement is step-expressible. */
 function lowerTaskBody(callback: unknown, facts: SetupLowerFacts): TaskBody | null {
   const arrow = unwrapExpression(callback) as
-    | (AstNode & { params?: unknown[]; body?: unknown; async?: boolean; generator?: boolean })
+    | (AstNode & { params?: unknown[]; body?: unknown; async?: boolean })
     | null
     | undefined;
   if (
     arrow?.type !== 'ArrowFunctionExpression' ||
-    arrow.generator === true ||
     (arrow.params?.length ?? 0) !== 0 // TaskCtx (cleanup) usage stays verbatim in v1
   ) {
     return null;

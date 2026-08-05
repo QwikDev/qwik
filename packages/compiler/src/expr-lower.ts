@@ -1,6 +1,7 @@
 import { getIdentifierName, getRange, unwrapExpression } from './ast-utils';
 import type { LambdaIR, ValueIR, ValueIrBinOp, ValueIrLogicOp, ValueIrUnaryOp } from './expr-ir';
-import type { BindingId, SourceRange } from './plan-types';
+import type { BindingId } from './plan-types';
+import type { SourceRange } from './types';
 import type { AstNode } from './types';
 
 /**

@@ -60,3 +60,4 @@ packages/browser-extension/public/devtools-hook.js
 /CLAUDE.md
 # Committed conformance goldens; regenerated via UPDATE_GOLDENS=1, must stay byte-identical.
 packages/compiler/conformance/layer0/goldens
+packages/compiler/conformance/layerA/fixtures/*/expected

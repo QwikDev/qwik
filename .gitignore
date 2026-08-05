@@ -56,3 +56,6 @@ sandbox
 packages/coverage/*
 visualizer.html
 **/lib-types/**/*
+
+# Layer-A conformance harness scratch output
+packages/compiler/conformance/layerA/.generated

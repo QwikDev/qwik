@@ -47,7 +47,15 @@ rewrites cannot silently diverge on the three classically divergent areas.
 
 ## Layer A — plan-in / bytes-out fixtures
 
-Each fixture directory:
+**Phase-0 scaffold implemented** at `packages/compiler/conformance/layerA/`: fixture dirs
+(`fixtures/<name>/input.tsx` + `request.json` + `expected/shell.html`), a harness that compiles
+the fixture through `transformModules`, executes the emitted SSR modules against the **built**
+`@qwik.dev/core` (one module world — mixing built and source core instances splits the ambient
+invoke/owner context), renders with a fixed `instanceHash`, and normalizes the build-stamped
+`q:version` to `"conformance"`. Freshness-gated by `layerA.unit.ts`; regenerate with
+`UPDATE_GOLDENS=1`. The `plan.json` input and streamed-packet/state extraction land with Phase 3+.
+
+Target fixture shape:
 
 ```
 fixture/

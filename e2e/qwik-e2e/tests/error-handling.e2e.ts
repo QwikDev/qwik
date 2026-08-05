@@ -406,6 +406,36 @@ test.describe('ErrorBoundary + fallback$', () => {
         await expect(page.locator('#loader-500-body')).toHaveCount(0);
       });
 
+      test('a loader `.error` guard renders inline at 200, boundary untouched', async ({
+        page,
+      }) => {
+        assertNoBrowserErrors(page);
+        const response = await page.goto(routeUrl('loader-error-inline'), { waitUntil: 'commit' });
+        expect(response!.status()).toBe(200);
+        await expect(page.locator('#loader-error-inline')).toContainText('inline:', {
+          timeout: 10000,
+        });
+        await expect(page.locator('#eb-fallback')).toHaveCount(0);
+      });
+
+      test('an unguarded loader `.value` read renders the EB fallback at 200', async ({ page }) => {
+        assertNoBrowserErrors(page);
+        const response = await page.goto(routeUrl('loader-error-throw'), { waitUntil: 'commit' });
+        expect(response!.status()).toBe(200);
+        await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('#eb-fallback-msg')).toHaveText(caughtError);
+        await expect(page.locator('#loader-error-value')).toHaveCount(0);
+      });
+
+      test('SPA nav settles a loader error client-side', async ({ page }) => {
+        assertNoBrowserErrors(page);
+        await page.goto(routeUrl('loader-error-nav'), { waitUntil: 'commit' });
+        await page.locator('#to-loader-error').click();
+        await expect(page.locator('#loader-error-inline')).toContainText('inline:', {
+          timeout: 10000,
+        });
+      });
+
       // reset re-invokes the loader; this asserts the opposite
       test.fixme('reset re-derives the identical fallback from the serialized loader value', async ({
         page,
@@ -792,6 +822,31 @@ test.describe('ErrorBoundary in a production build (qDev=false)', () => {
       .poll(() => page.evaluate(() => (window as any).__ebRederiveRuns ?? 0), { timeout: 10000 })
       .toBe(1);
     await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: eb always boom');
+  });
+
+  test('a guarded loader error renders the generic message + digest inline, raw nowhere', async ({
+    page,
+  }) => {
+    assertNoBrowserErrors(page);
+    const response = await page.goto(prodUrl('loader-error-inline'), { waitUntil: 'commit' });
+    expect(response!.status()).toBe(200);
+
+    await expect(page.locator('#loader-error-inline')).toContainText('inline: An error occurred', {
+      timeout: 10000,
+    });
+    await expect(page.locator('#loader-error-digest')).not.toBeEmpty();
+    expect(await response!.text()).not.toContain('loader-inline-boom');
+  });
+
+  test('an unguarded loader error renders the redacted EB fallback at 200', async ({ page }) => {
+    assertNoBrowserErrors(page);
+    const response = await page.goto(prodUrl('loader-error-throw'), { waitUntil: 'commit' });
+    expect(response!.status()).toBe(200);
+
+    await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: An error occurred', {
+      timeout: 10000,
+    });
+    expect(await response!.text()).not.toContain('loader-throw-boom');
   });
 
   test('reset round-trips through the prod serializer and re-executes the children', async ({

@@ -28,7 +28,7 @@ import type {
 // route-loaders.ts → middleware barrel → runtime/src/ (same module group)
 import { _asyncRequestStore } from '../../middleware/request-handler/async-request-store';
 import { getLoaderName } from '../../middleware/request-handler/request-path';
-import { RedirectMessage } from '../../middleware/request-handler/redirect-handler';
+import { AbortMessage, RedirectMessage } from '../../middleware/request-handler/redirect-handler';
 import {
   ServerError,
   throwIfControlFlowSignal,
@@ -758,6 +758,10 @@ export const loadRouteLoaderByQrl = (
       },
       (err) => {
         // Keep the rejection memoized so re-reads settle instead of re-executing the loader.
+        // Server-origin failures settle redacted; outcomes must stay recognizable for the abort path.
+        if (isServer && !isDev && !(err instanceof ServerError) && !(err instanceof AbortMessage)) {
+          throw _redactToGeneric(err);
+        }
         throw err;
       }
     );

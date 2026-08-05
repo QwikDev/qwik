@@ -18,6 +18,7 @@ export interface QwikSsrPlan {
 
 export interface LinkedComponent {
   readonly name: string;
+  readonly ssr: QwikModulePlan['components'][number]['ssr'];
   readonly setup: QwikModulePlan['components'][number]['setup'];
   readonly render: readonly PlanNode[];
   readonly needsId: boolean;
@@ -91,6 +92,7 @@ export function linkSsrPlan(modulePlan: QwikModulePlan, entryName: string): Qwik
     entry,
     components: modulePlan.components.map((component) => ({
       name: component.name,
+      ssr: component.ssr,
       setup: component.setup,
       render: linkNodes(component.render),
       needsId: component.needsId,

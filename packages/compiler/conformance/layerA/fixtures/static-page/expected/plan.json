@@ -5,6 +5,67 @@
   "components": [
     {
       "name": "App",
+      "ssr": {
+        "setup": [],
+        "ops": [
+          {
+            "o": "el",
+            "tag": "main",
+            "id": null,
+            "void": false,
+            "styleScopedId": null,
+            "targetUses": 0,
+            "props": [
+              {
+                "p": "static",
+                "name": "class",
+                "value": "shell"
+              }
+            ],
+            "propsEffect": null,
+            "children": [
+              {
+                "o": "el",
+                "tag": "h1",
+                "id": null,
+                "void": false,
+                "styleScopedId": null,
+                "targetUses": 0,
+                "props": [],
+                "propsEffect": null,
+                "children": [
+                  {
+                    "o": "static",
+                    "html": "Static page"
+                  }
+                ]
+              },
+              {
+                "o": "el",
+                "tag": "p",
+                "id": null,
+                "void": false,
+                "styleScopedId": null,
+                "targetUses": 0,
+                "props": [],
+                "propsEffect": null,
+                "children": [
+                  {
+                    "o": "static",
+                    "html": "No state, no handlers."
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "synchronous": true,
+        "staticRoot": true,
+        "needsRootRange": false,
+        "needsId": false,
+        "idBase": "qApp-",
+        "flushTasks": false
+      },
       "setup": [],
       "render": [
         {

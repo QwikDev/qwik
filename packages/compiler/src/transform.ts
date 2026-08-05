@@ -567,7 +567,13 @@ export function transformModule(ctx: CompilerContext): TransformResult {
             path: `${ctx.input.path}.plan.json`,
             isEntry: false,
             code: JSON.stringify(
-              emitModulePlan(outputs, allSegments, ctx.input.code, ctx.input.path),
+              emitModulePlan(
+                outputs,
+                allSegments,
+                ctx.input.code,
+                ctx.input.path,
+                componentReturnMode
+              ),
               null,
               2
             ),

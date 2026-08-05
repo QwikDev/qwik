@@ -6,6 +6,67 @@
     {
       "name": "App",
       "binding": 1,
+      "ssr": {
+        "setup": [
+          {
+            "op": "signal",
+            "local": 2,
+            "init": {
+              "k": "lit",
+              "v": 3
+            }
+          }
+        ],
+        "ops": [
+          {
+            "o": "el",
+            "tag": "button",
+            "id": 0,
+            "void": false,
+            "styleScopedId": null,
+            "targetUses": 0,
+            "props": [
+              {
+                "p": "event",
+                "name": "q-e:click",
+                "handlers": [
+                  {
+                    "value": {
+                      "src": "() => count.value++",
+                      "segment": "segment_0"
+                    }
+                  }
+                ]
+              }
+            ],
+            "propsEffect": null,
+            "children": [
+              {
+                "o": "dyn",
+                "output": "text",
+                "value": {
+                  "src": "count.value",
+                  "ir": {
+                    "k": "signal-read",
+                    "binding": 2
+                  }
+                },
+                "synchronous": false,
+                "target": {
+                  "kind": "element",
+                  "id": 0
+                }
+              }
+            ]
+          }
+        ],
+        "synchronous": false,
+        "staticRoot": false,
+        "needsRootRange": false,
+        "needsId": false,
+        "idBase": "qApp-",
+        "flushTasks": false
+      },
       "setup": [
         {
           "op": "signal",

@@ -648,7 +648,6 @@ export class Serializer {
         const isSkippable = fastSkipSerialize(value.$untrackedValue$);
         // async-mode computeds carry the same engine state and must round-trip like AsyncSignals
         const isAsync = !!(value.$flags$ & AsyncSignalFlags.ASYNC_MODE);
-        const isErrored = isAsync && !!value.$untrackedError$;
         const expires = isAsync && value.$expires$ !== 0 ? value.$expires$ : undefined;
         const concurrency = isAsync && value.$concurrency$ !== 1 ? value.$concurrency$ : undefined;
         const timeout = isAsync && value.$timeoutMs$ !== 0 ? value.$timeoutMs$ : undefined;
@@ -658,7 +657,7 @@ export class Serializer {
           (isAsync && value.$flags$ & ~SerializationSignalFlags.SERIALIZATION_ALL_STRATEGIES) ||
           undefined;
 
-        if (isInvalid || isSkippable || isErrored) {
+        if (isInvalid || isSkippable) {
           v = NEEDS_COMPUTATION;
         } else if (shouldAlwaysSerialize) {
           v = value.$untrackedValue$;

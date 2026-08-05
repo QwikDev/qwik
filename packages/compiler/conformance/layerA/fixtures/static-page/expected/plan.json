@@ -7,6 +7,8 @@
       "name": "App",
       "ssr": {
         "setup": [],
+        "directSegmentIds": [],
+        "usedSegmentIds": [],
         "ops": [
           {
             "o": "el",

@@ -17,6 +17,10 @@
             }
           }
         ],
+        "directSegmentIds": [],
+        "usedSegmentIds": [
+          "segment_0"
+        ],
         "ops": [
           {
             "o": "el",
@@ -118,6 +122,7 @@
     {
       "id": "segment_0",
       "symbolName": "input_q_e_click_segment_0_18mo7olhabfab",
+      "chunk": "./input.tsx_input_q_e_click_segment_0_18mo7olhabfab",
       "kind": "event",
       "qrl": null,
       "captures": [

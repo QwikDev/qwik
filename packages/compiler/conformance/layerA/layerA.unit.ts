@@ -2,7 +2,9 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, test } from 'vitest';
+import { renderToString } from '@qwik.dev/core/server';
 import { listFixtures, renderFixture } from './harness';
+import { buildInterpretedRoot } from './interpret-plan';
 
 /**
  * Freshness gate for Layer-A shell goldens (spec 08). Regenerate with: `UPDATE_GOLDENS=1 pnpm
@@ -31,6 +33,27 @@ describe('layerA shell goldens', () => {
           `${name}/expected/${file} is stale — regenerate goldens`
         ).toBe(content);
       }
+    });
+  }
+});
+
+describe('layerA reference interpreter parity', () => {
+  for (const name of listFixtures()) {
+    test(name, async () => {
+      // renderFixture also writes the generated segment modules the interpreter resolves
+      const { plan } = await renderFixture(name);
+      const request = JSON.parse(
+        readFileSync(join(fixturesDir, name, 'request.json'), 'utf-8')
+      ) as Record<string, unknown>;
+      const root = await buildInterpretedRoot(
+        plan,
+        (chunkFile) => import(`./.generated/${name}/src/${chunkFile}`)
+      );
+      const rendered = await renderToString(root as never, request);
+      const html = rendered.html.replace(/ q:version="[^"]*"/, ' q:version="conformance"');
+      expect(html + '\n').toBe(
+        readFileSync(join(fixturesDir, name, 'expected', 'shell.html'), 'utf-8')
+      );
     });
   }
 });

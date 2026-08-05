@@ -147,6 +147,8 @@ export type PlanProp =
 export interface PlanSegmentMeta {
   readonly id: string;
   readonly symbolName: string;
+  /** Chunk specifier exactly as emitted modules reference it (`./<file-base>`). */
+  readonly chunk: string;
   readonly kind: string;
   readonly qrl: { readonly kind: string; readonly role?: string } | null;
   readonly captures: readonly {
@@ -318,6 +320,7 @@ export function emitModulePlan(
     segments: segments.map((segment) => ({
       id: segment.id,
       symbolName: segment.symbolName,
+      chunk: `./${path.split('/').pop()}_${segment.symbolName}`,
       kind: segment.kind,
       qrl:
         segment.qrl === null

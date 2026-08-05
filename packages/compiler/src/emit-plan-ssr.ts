@@ -38,6 +38,9 @@ export const enum SsrOpKind {
 
 export interface PlanSsrComponent {
   readonly setup: readonly PlanSetupEntry[];
+  /** Segments invoked synchronously server-side — engines resolve these eagerly (`.s()`). */
+  readonly directSegmentIds: readonly string[];
+  readonly usedSegmentIds: readonly string[];
   readonly ops: readonly PlanSsrOp[];
   readonly synchronous: boolean;
   readonly staticRoot: boolean;
@@ -48,6 +51,8 @@ export interface PlanSsrComponent {
 }
 
 export interface PlanSsrRenderFn {
+  /** Backing render segment id (arms/rows/slots resolve to QRLs at runtime). */
+  readonly segment?: string;
   readonly setup: readonly PlanSetupEntry[];
   readonly ops: readonly PlanSsrOp[];
   readonly synchronous: boolean;
@@ -242,7 +247,7 @@ export function emitSsrOpPlan(
     if (planned === null) {
       throw UNPLANNABLE;
     }
-    return targetBlock(planned);
+    return { ...(fn.segmentId === null ? {} : { segment: fn.segmentId }), ...targetBlock(planned) };
   };
 
   const targetBlock = (target: SsrRenderFunctionTargetPlan): PlanSsrRenderFn => ({
@@ -376,6 +381,8 @@ export function emitSsrOpPlan(
   try {
     return {
       setup: setupEntries(planned.setup),
+      directSegmentIds: planned.directSegmentIds,
+      usedSegmentIds: planned.usedSegmentIds,
       ops: planned.render.operations.map(op),
       synchronous: planned.render.synchronous,
       staticRoot: planned.render.staticRoot,

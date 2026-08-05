@@ -1190,6 +1190,28 @@ describe('SSR context markers', () => {
   });
 });
 
+describe('deterministic rendering', () => {
+  test('uses a provided instanceHash so output is byte-reproducible', async () => {
+    const root: SsrRenderRoot = () => '<p>static</p>';
+
+    const first = await renderToString(root, { instanceHash: 'test01' });
+    const second = await renderToString(root, { instanceHash: 'test01' });
+
+    expect(first.html).toContain('q:instance="test01"');
+    expect(first.html).toBe(second.html);
+  });
+
+  test('generates a random instanceHash when not provided', async () => {
+    const root: SsrRenderRoot = () => '<p>static</p>';
+
+    const first = await renderToString(root);
+    const second = await renderToString(root);
+
+    expect(first.html).toMatch(/q:instance="[a-z0-9]{6}"/);
+    expect(first.html).not.toBe(second.html);
+  });
+});
+
 function captureStreamUntil(fragment: string) {
   const chunks: string[] = [];
   let markWritten!: () => void;

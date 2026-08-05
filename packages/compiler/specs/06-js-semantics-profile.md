@@ -50,7 +50,10 @@ Where an engine produces JSON that reaches the wire (state payloads, plan canoni
 - JS string semantics are UTF-16: `.length` and indexing count UTF-16 code units.
 - Policy: **well-formed UTF-16 only.** A lone surrogate reaching serialization is an error in
   every engine (including JS — a new fail-closed check), rather than requiring WTF-8 support in
-  native engines.
+  native engines. Phase 0 validation strengthened the case: today's JS output is already
+  self-inconsistent — lone surrogates serialize raw in single state scripts but as `\udXXX`
+  escapes in chunked ones (the emitter re-encodes chunks via `JSON.parse`/`JSON.stringify`; see
+  [04-state-serialization.md](./04-state-serialization.md) "Chunked re-encoding trap").
 
 ## Coercion table (`String(v)` / template interpolation)
 

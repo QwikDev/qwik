@@ -132,7 +132,7 @@ export const renderToStreamCompiled = async <Props = undefined>(
     const containerTagName = opts.containerTagName ?? 'html';
     const buildBase = getBuildBase(opts);
     const locale = getLocale(opts);
-    const instanceHash = randomStr();
+    const instanceHash = opts.instanceHash ?? randomStr();
     const containerAttributes = createContainerAttributes(
       opts,
       resolvedManifest,

@@ -32,6 +32,11 @@ export interface RenderOptions<Props = undefined> extends SerializeDocumentOptio
   containerTagName?: string;
   containerAttributes?: Record<string, string>;
   serverData?: Record<string, any>;
+  /**
+   * Testing-only: fixes the container `q:instance` hash so output is byte-reproducible. The hash
+   * namespaces per-render globals, so it must stay unique per container in a real document.
+   */
+  instanceHash?: string;
 }
 
 /** @public */

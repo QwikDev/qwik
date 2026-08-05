@@ -41,6 +41,7 @@ export interface RenderOptions<Props = undefined> extends SerializeDocumentOptio
     containerAttributes?: Record<string, string>;
     // (undocumented)
     containerTagName?: string;
+    instanceHash?: string;
     // (undocumented)
     locale?: string | ((options: RenderOptions<Props>) => string);
     // (undocumented)

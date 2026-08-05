@@ -1,5 +1,6 @@
 import {
   createComponent,
+  createSlotScope,
   createSsrElementRecord,
   createSsrElementTarget,
   createSsrElementTextTarget,
@@ -13,8 +14,10 @@ import {
   renderSsrAttr,
   renderSsrBranch,
   renderSsrTextExpression,
+  renderSsrSlot,
   renderSsrTextNode,
   readTrackedSourceValue,
+  registerProjection,
   useComputedQrl,
   useSignal,
   useTaskQrl,
@@ -66,8 +69,13 @@ export async function buildInterpretedRoot(
     qrls.set(segment.id, qrl);
   }
   for (const segment of plan.segments) {
-    const module = await loadSegment(chunkFiles.get(segment.id)!);
-    qrls.get(segment.id)!.s(module[segment.symbolName]);
+    try {
+      const module = await loadSegment(chunkFiles.get(segment.id)!);
+      qrls.get(segment.id)!.s(module[segment.symbolName]);
+    } catch {
+      // some segments have no standalone module (inlined into their parent segment);
+      // they are never invoked through these qrls
+    }
   }
 
   const captureLists = new Map(
@@ -345,13 +353,52 @@ export async function buildInterpretedRoot(
               }
             }
             const rendered = await invoke(invokeCtx, () => {
+              let slotScope: unknown;
+              if (op.slots.length > 0) {
+                slotScope = createSlotScope();
+                ctx.addRoot(slotScope);
+              }
               for (const source of Object.values(sources)) {
                 ctx.addRoot(source);
               }
-              return createComponent(_props(literal, sources) as never, (childProps: unknown) =>
-                interpretComponent(ref, childProps, ctx)
-              );
+              for (const slot of op.slots) {
+                const slotSegment = slot.render.segment;
+                if (slotSegment === undefined) {
+                  throw new Error(`slot "${slot.name}" has no render segment`);
+                }
+                for (const captureBinding of captureLists.get(slotSegment) ?? []) {
+                  ctx.addRoot(locals.get(captureBinding));
+                }
+                registerProjection(
+                  slotScope as never,
+                  slot.name,
+                  qrlWithCaptures(slotSegment) as never
+                );
+              }
+              // static-only props pass as a bare literal, matching emitted serialization
+              const componentProps =
+                Object.keys(sources).length > 0 ? (_props(literal, sources) as never) : literal;
+              const renderer = (childProps: unknown) => interpretComponent(ref, childProps, ctx);
+              return op.slots.length > 0
+                ? createComponent(componentProps as never, renderer, {
+                    slotScope: slotScope as never,
+                  })
+                : createComponent(componentProps as never, renderer);
             });
+            parts.push(rendered);
+            break;
+          }
+          case 'slot': {
+            const fallbackSegment = op.fallback?.segment;
+            const fallbackQrl =
+              op.fallback === null
+                ? undefined
+                : fallbackSegment === undefined
+                  ? undefined
+                  : qrlWithCaptures(fallbackSegment);
+            const rendered = await invoke(invokeCtx, () =>
+              renderSsrSlot(ctx as never, op.name, fallbackQrl as never, invokeCtx as never)
+            );
             parts.push(rendered);
             break;
           }

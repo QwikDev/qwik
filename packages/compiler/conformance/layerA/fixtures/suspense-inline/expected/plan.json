@@ -1,0 +1,171 @@
+{
+  "format": "qwik/ssr-plan",
+  "version": 0,
+  "entry": 1,
+  "components": [
+    {
+      "name": "Delayed",
+      "propsBindings": [],
+      "ssr": {
+        "setup": [
+          {
+            "op": "js",
+            "src": "await Promise.resolve();"
+          }
+        ],
+        "directSegmentIds": [],
+        "usedSegmentIds": [],
+        "ops": [
+          {
+            "o": "el",
+            "tag": "p",
+            "id": null,
+            "void": false,
+            "styleScopedId": null,
+            "targetUses": 0,
+            "props": [],
+            "propsEffect": null,
+            "children": [
+              {
+                "o": "static",
+                "html": "Loaded!"
+              }
+            ]
+          }
+        ],
+        "synchronous": true,
+        "staticRoot": false,
+        "needsRootRange": false,
+        "needsId": false,
+        "idBase": "qDelayed-",
+        "flushTasks": false
+      },
+      "setup": [
+        {
+          "op": "js",
+          "src": "await Promise.resolve();"
+        }
+      ],
+      "render": [
+        {
+          "n": "el",
+          "tag": "p",
+          "props": [],
+          "children": [
+            {
+              "n": "text",
+              "value": "Loaded!"
+            }
+          ]
+        }
+      ],
+      "needsId": false,
+      "idBase": "qDelayed-",
+      "styleScope": null,
+      "providesContext": false,
+      "hasCustomHook": false
+    },
+    {
+      "name": "App",
+      "propsBindings": [],
+      "ssr": {
+        "setup": [],
+        "directSegmentIds": [],
+        "usedSegmentIds": [
+          "segment_0"
+        ],
+        "ops": [
+          {
+            "o": "el",
+            "tag": "section",
+            "id": null,
+            "void": false,
+            "styleScopedId": null,
+            "targetUses": 0,
+            "props": [],
+            "propsEffect": null,
+            "children": [
+              {
+                "o": "suspense",
+                "content": {
+                  "segment": "segment_0",
+                  "setup": [],
+                  "ops": [
+                    {
+                      "o": "component",
+                      "target": {
+                        "ref": 0
+                      },
+                      "returnMode": "maybe-promise",
+                      "props": [],
+                      "propsSource": null,
+                      "idBase": null,
+                      "blockingSuspense": false,
+                      "slots": []
+                    }
+                  ],
+                  "synchronous": false,
+                  "needsRootRange": false
+                },
+                "fallback": null,
+                "delay": null,
+                "inOrder": null
+              }
+            ]
+          }
+        ],
+        "synchronous": false,
+        "staticRoot": false,
+        "needsRootRange": false,
+        "needsId": false,
+        "idBase": "qApp-",
+        "flushTasks": false
+      },
+      "setup": [],
+      "render": [
+        {
+          "n": "el",
+          "tag": "section",
+          "props": [],
+          "children": [
+            {
+              "n": "suspense",
+              "content": {
+                "setup": [],
+                "render": [
+                  {
+                    "n": "component",
+                    "target": {
+                      "ref": 0
+                    },
+                    "props": [],
+                    "slots": []
+                  }
+                ]
+              },
+              "fallback": null,
+              "delay": null,
+              "blocking": false
+            }
+          ]
+        }
+      ],
+      "needsId": false,
+      "idBase": "qApp-",
+      "styleScope": null,
+      "providesContext": false,
+      "hasCustomHook": false
+    }
+  ],
+  "segments": [
+    {
+      "id": "segment_0",
+      "symbolName": "input_suspense_content_segment_0_dqvdq6s2w19",
+      "chunk": "./input.tsx_input_suspense_content_segment_0_dqvdq6s2w19",
+      "kind": "suspenseRender",
+      "qrl": null,
+      "captures": []
+    }
+  ],
+  "unresolved": []
+}

@@ -521,7 +521,7 @@ function emitComponent(
       [...render.setup.statements, ...render.statements],
       render.value,
       source,
-      false,
+      component.shape.async,
       generatedNames,
       idBase,
       captureNames
@@ -535,7 +535,7 @@ function emitComponent(
       render.value
     )})`,
     source,
-    false,
+    component.shape.async,
     generatedNames,
     idBase,
     captureNames

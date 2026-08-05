@@ -1,6 +1,7 @@
 import {
   createComponent,
   createSlotScope,
+  createSsrSuspense,
   createSsrElementRecord,
   createSsrElementTarget,
   createSsrElementTextTarget,
@@ -424,6 +425,42 @@ export async function buildInterpretedRoot(
                   })
                 : createComponent(componentProps as never, renderer);
             });
+            parts.push(rendered);
+            break;
+          }
+          case 'suspense': {
+            const contentSegment = op.content.segment;
+            if (contentSegment === undefined) {
+              throw new Error('suspense content must reference a render segment');
+            }
+            if (op.inOrder !== null) {
+              throw new Error('interpreter cannot render inOrder suspense yet');
+            }
+            const fallbackSegment =
+              op.fallback === null ? undefined : (op.fallback.segment ?? undefined);
+            if (op.fallback !== null && fallbackSegment === undefined) {
+              throw new Error('suspense fallback must reference a segment');
+            }
+            const delay =
+              op.delay === null
+                ? 0
+                : op.delay.ir !== undefined && op.delay.ir.k === 'lit'
+                  ? (op.delay.ir.v as number)
+                  : (() => {
+                      throw new Error('suspense delay must be a literal');
+                    })();
+            const id = ctx.nextId();
+            const rendered = await invoke(invokeCtx, () =>
+              createSsrSuspense(
+                ctx as never,
+                id,
+                qrlWithCaptures(contentSegment) as never,
+                (fallbackSegment === undefined
+                  ? undefined
+                  : qrlWithCaptures(fallbackSegment)) as never,
+                delay
+              )
+            );
             parts.push(rendered);
             break;
           }

@@ -86,6 +86,21 @@ describe('route loader execution', () => {
     expect(parentLoader.__qrl.call).toHaveBeenCalledOnce();
   });
 
+  it('settles a rejected loader per-request: a re-read does not re-execute', async () => {
+    const requestEv: any = {
+      sharedMap: new Map(),
+      url: new URL('http://localhost/products/'),
+    };
+    const failing = createLoader('failing', async () => {
+      throw new Error('loader boom');
+    });
+
+    await expect(loadRouteLoader(failing, requestEv)).rejects.toThrow('loader boom');
+    await expect(loadRouteLoader(failing, requestEv)).rejects.toThrow('loader boom');
+
+    expect(failing.__qrl.call).toHaveBeenCalledOnce();
+  });
+
   it('stores loader expires values in milliseconds', () => {
     const loader = routeLoaderQrl(createQrl('timed-loader'), { expires: 60_000 }) as LoaderInternal;
 
@@ -111,6 +126,17 @@ describe('getRouteLoaderResponse envelope', () => {
     expect(response.e).toBeUndefined();
   });
 
+  it('routes a plain thrown Error to the error channel', async () => {
+    const qrl = createQrl('plain-error-loader', async () => {
+      throw new Error('plain boom');
+    });
+
+    const response = await getRouteLoaderResponse(qrl, undefined, requestEv);
+
+    expect(response.d).toBeUndefined();
+    expect(response.e).toBeInstanceOf(Error);
+  });
+
   it('routes a thrown ServerError to the error channel', async () => {
     const qrl = createQrl('error-loader', async () => {
       throw new ServerError(500, 'boom');
@@ -120,7 +146,7 @@ describe('getRouteLoaderResponse envelope', () => {
 
     expect(response.d).toBeUndefined();
     expect(response.e).toBeInstanceOf(ServerError);
-    expect(response.e?.status).toBe(500);
+    expect((response.e as InstanceType<typeof ServerError>)?.status).toBe(500);
   });
 });
 

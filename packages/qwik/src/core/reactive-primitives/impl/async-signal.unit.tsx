@@ -822,7 +822,7 @@ describe('async signal', () => {
     it('throws the stored error on .value when it errored with no settled value', async () => {
       await withContainer(async () => {
         const failure = new Error('first failure');
-        const signal = createAsync$(async () => {
+        const signal = createAsync$(async (): Promise<number> => {
           throw failure;
         }) as AsyncSignalImpl<number>;
 

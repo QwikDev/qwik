@@ -13,6 +13,7 @@ import {
   _getContextEvent,
   _injectAsyncSignalValue,
   _markSignalAsExternallyOwned,
+  _redactToGeneric,
   _resolveContextWithoutSequentialScope,
   _verifySerializable,
   _UNINITIALIZED,
@@ -79,7 +80,7 @@ export const ROUTE_PATH_HEADER = 'X-Qwik-route-path';
 export type LoaderResponse = {
   d?: unknown;
   r?: string;
-  e?: InstanceType<typeof ServerError>;
+  e?: Error;
 };
 
 type LoaderFetchCacheEntry = {
@@ -756,7 +757,7 @@ export const loadRouteLoaderByQrl = (
         return value;
       },
       (err) => {
-        delete promises[loaderId];
+        // Keep the rejection memoized so re-reads settle instead of re-executing the loader.
         throw err;
       }
     );
@@ -909,6 +910,9 @@ export const getRouteLoaderResponse = async (
     }
     if (err instanceof ServerError) {
       return { e: err };
+    }
+    if (err instanceof Error) {
+      return { e: isDev ? err : _redactToGeneric(err) };
     }
     throw err;
   }

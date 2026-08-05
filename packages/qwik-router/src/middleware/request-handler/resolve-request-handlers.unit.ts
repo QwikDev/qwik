@@ -563,6 +563,21 @@ describe('resolve-request-handler', () => {
       expect(requestEv.sharedMap.get(RequestEvHttpStatusMessage)).toBe('first-error');
     });
 
+    it('a plain Error thrown in a blockSSR loader settles and still renders the page', async () => {
+      const route = pageRouteWithLoaders(
+        makeLoader('l1', () => {
+          throw new Error('loader boom');
+        })
+      );
+      const renderHandler = exitRender();
+      const requestEv = runPage(route, renderHandler);
+
+      await expect(requestEv.next()).resolves.toBeUndefined();
+
+      expect(renderHandler).toHaveBeenCalledOnce();
+      expect(requestEv.status()).toBe(200);
+    });
+
     it('a failing blockSSR:false loader does not affect the response when unread', async () => {
       const route = pageRouteWithLoaders(
         makeLoader(

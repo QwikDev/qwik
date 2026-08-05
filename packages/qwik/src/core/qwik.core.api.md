@@ -1046,6 +1046,11 @@ name?: string;
 children?: JSXChildren;
 }>> | JSXNodeInternal<InternalServerComponent<SSRRevealSlotProps>>;
 
+// @internal (undocumented)
+export const _redactToGeneric: (err: unknown) => Error & {
+    digest: string;
+};
+
 // @internal
 export const _regSymbol: (symbol: any, hash: string) => any;
 

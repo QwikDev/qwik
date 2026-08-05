@@ -19,6 +19,9 @@ const CORPUS = [
   'starters/apps/playground/src/routes/demo/flower/index.tsx',
   'starters/apps/playground/src/components/starter/counter/counter.tsx',
   'e2e/qwik-e2e/apps/vdomless-counter/src/root.tsx',
+  'e2e/qwik-e2e/apps/todo-test/src/components/footer/footer.tsx',
+  'e2e/qwik-e2e/apps/todo-test/src/components/body/body.tsx',
+  'packages/docs/src/components/sidebar/sidebar.tsx',
 ];
 
 const COVERAGE_FLOOR = 0.8;

@@ -224,9 +224,171 @@ describe('lowerValueIr', () => {
     ).toBeNull();
   });
 
-  test('call expressions are not lowerable yet', () => {
+  test('user function calls stay unsupported (plugin territory)', () => {
     expect(
       lowerValueIr({ type: 'CallExpression', callee: fnIdent(), arguments: [] }, facts)
+    ).toBeNull();
+  });
+
+  test('method calls lower to qwik: ops on lowered receivers', () => {
+    expect(
+      lowerValueIr(
+        { type: 'CallExpression', callee: member(localIdent(), 'trim'), arguments: [] },
+        facts
+      )
+    ).toEqual({
+      k: 'call',
+      fn: 'qwik:string.trim',
+      recv: { k: 'binding-read', binding: LOCAL },
+      args: [],
+    });
+    expect(
+      lowerValueIr(
+        {
+          type: 'CallExpression',
+          callee: member(member(signalIdent(), 'value'), 'toFixed'),
+          arguments: [lit(2)],
+        },
+        facts
+      )
+    ).toEqual({
+      k: 'call',
+      fn: 'qwik:number.toFixed',
+      recv: { k: 'signal-read', binding: SIGNAL },
+      args: [{ k: 'lit', v: 2 }],
+    });
+    // unknown method name fails the whole expression
+    expect(
+      lowerValueIr(
+        { type: 'CallExpression', callee: member(localIdent(), 'reverse'), arguments: [] },
+        facts
+      )
+    ).toBeNull();
+    // optional call unsupported
+    expect(
+      lowerValueIr(
+        {
+          type: 'CallExpression',
+          callee: member(localIdent(), 'trim'),
+          arguments: [],
+          optional: true,
+        },
+        facts
+      )
+    ).toBeNull();
+  });
+
+  test('static and bare-global ops require unbound globals', () => {
+    const mathAbs = {
+      type: 'CallExpression',
+      callee: {
+        type: 'MemberExpression',
+        object: unknownIdent('Math'),
+        property: { type: 'Identifier', name: 'abs' },
+        computed: false,
+      },
+      arguments: [localIdent()],
+    };
+    expect(lowerValueIr(mathAbs, facts)).toEqual({
+      k: 'call',
+      fn: 'qwik:math.abs',
+      recv: null,
+      args: [{ k: 'binding-read', binding: LOCAL }],
+    });
+    expect(
+      lowerValueIr(
+        { type: 'CallExpression', callee: unknownIdent('String'), arguments: [localIdent()] },
+        facts
+      )
+    ).toEqual({
+      k: 'call',
+      fn: 'qwik:global.String',
+      recv: null,
+      args: [{ k: 'binding-read', binding: LOCAL }],
+    });
+    // JSON.stringify only in its 1-arg form
+    const stringify = (argumentNodes: unknown[]) => ({
+      type: 'CallExpression',
+      callee: {
+        type: 'MemberExpression',
+        object: unknownIdent('JSON'),
+        property: { type: 'Identifier', name: 'stringify' },
+        computed: false,
+      },
+      arguments: argumentNodes,
+    });
+    expect(lowerValueIr(stringify([localIdent()]), facts)).toEqual({
+      k: 'call',
+      fn: 'qwik:json.stringify',
+      recv: null,
+      args: [{ k: 'binding-read', binding: LOCAL }],
+    });
+    expect(lowerValueIr(stringify([localIdent(), lit(null)]), facts)).toBeNull();
+  });
+
+  test('higher-order ops accept a restricted lambda callback', () => {
+    const PARAM = 4;
+    const lambdaFacts: typeof facts = {
+      ...facts,
+      bindingIdAt: (range) =>
+        range === null ? null : ({ 10: SIGNAL, 20: LOCAL, 40: PARAM }[range[0]] ?? null),
+    };
+    const rowParam = at(40, { type: 'Identifier', name: 'row' });
+    const filter = {
+      type: 'CallExpression',
+      callee: member(member(signalIdent(), 'value'), 'filter'),
+      arguments: [
+        {
+          type: 'ArrowFunctionExpression',
+          params: [rowParam],
+          body: {
+            type: 'BinaryExpression',
+            operator: '!==',
+            left: member(at(40, { type: 'Identifier', name: 'row' }), 'id'),
+            right: lit('hidden'),
+          },
+        },
+      ],
+    };
+    expect(lowerValueIr(filter, lambdaFacts)).toEqual({
+      k: 'call',
+      fn: 'qwik:array.filter',
+      recv: { k: 'signal-read', binding: SIGNAL },
+      args: [
+        {
+          kind: 'lambda',
+          params: [{ name: 'row', binding: PARAM }],
+          body: {
+            k: 'bin',
+            op: '!==',
+            a: { k: 'member', obj: { k: 'binding-read', binding: PARAM }, name: 'id' },
+            b: { k: 'lit', v: 'hidden' },
+          },
+        },
+      ],
+    });
+    // multi-statement lambda bodies stay unsupported
+    expect(
+      lowerValueIr(
+        {
+          type: 'CallExpression',
+          callee: member(localIdent(), 'map'),
+          arguments: [
+            {
+              type: 'ArrowFunctionExpression',
+              params: [rowParam],
+              body: {
+                type: 'BlockStatement',
+                body: [
+                  { type: 'ExpressionStatement' },
+                  { type: 'ReturnStatement', argument: lit(1) },
+                ],
+              },
+            },
+          ],
+        },
+        lambdaFacts
+      )
     ).toBeNull();
   });
 });

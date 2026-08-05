@@ -1,5 +1,5 @@
 import { getIdentifierName, getRange, unwrapExpression } from './ast-utils';
-import type { ValueIR, ValueIrBinOp, ValueIrLogicOp, ValueIrUnaryOp } from './expr-ir';
+import type { LambdaIR, ValueIR, ValueIrBinOp, ValueIrLogicOp, ValueIrUnaryOp } from './expr-ir';
 import type { BindingId, SourceRange } from './plan-types';
 import type { AstNode } from './types';
 
@@ -68,6 +68,96 @@ const BIN_OPS: ReadonlySet<string> = new Set([
   '**',
 ] satisfies ValueIrBinOp[]);
 const LOGIC_OPS: ReadonlySet<string> = new Set(['&&', '||', '??'] satisfies ValueIrLogicOp[]);
+
+/** Method name → internal-plugin op id (specs/02). Dispatch on receiver type happens at runtime. */
+const METHOD_OPS: ReadonlyMap<string, string> = new Map([
+  // string
+  ['trim', 'qwik:string.trim'],
+  ['trimStart', 'qwik:string.trimStart'],
+  ['trimEnd', 'qwik:string.trimEnd'],
+  ['toUpperCase', 'qwik:string.toUpperCase'],
+  ['toLowerCase', 'qwik:string.toLowerCase'],
+  ['startsWith', 'qwik:string.startsWith'],
+  ['endsWith', 'qwik:string.endsWith'],
+  ['split', 'qwik:string.split'],
+  ['replaceAll', 'qwik:string.replaceAll'],
+  ['padStart', 'qwik:string.padStart'],
+  ['padEnd', 'qwik:string.padEnd'],
+  ['repeat', 'qwik:string.repeat'],
+  ['charAt', 'qwik:string.charAt'],
+  // string | array (runtime dispatch)
+  ['includes', 'qwik:seq.includes'],
+  ['indexOf', 'qwik:seq.indexOf'],
+  ['slice', 'qwik:seq.slice'],
+  ['at', 'qwik:seq.at'],
+  ['concat', 'qwik:seq.concat'],
+  // number
+  ['toFixed', 'qwik:number.toFixed'],
+  // array
+  ['join', 'qwik:array.join'],
+  ['flat', 'qwik:array.flat'],
+  // date
+  ['toISOString', 'qwik:date.toISOString'],
+  ['getTime', 'qwik:date.getTime'],
+]);
+
+/** Higher-order array ops whose single callback argument may be a restricted lambda. */
+const HIGHER_ORDER_OPS: ReadonlyMap<string, string> = new Map([
+  ['filter', 'qwik:array.filter'],
+  ['map', 'qwik:array.map'],
+  ['find', 'qwik:array.find'],
+  ['findIndex', 'qwik:array.findIndex'],
+  ['some', 'qwik:array.some'],
+  ['every', 'qwik:array.every'],
+]);
+
+/** `<Global>.<method>()` ops — the global identifier must be unbound (a true global). */
+const STATIC_OPS: ReadonlyMap<string, ReadonlyMap<string, string>> = new Map([
+  [
+    'Math',
+    new Map([
+      ['abs', 'qwik:math.abs'],
+      ['floor', 'qwik:math.floor'],
+      ['ceil', 'qwik:math.ceil'],
+      ['round', 'qwik:math.round'],
+      ['trunc', 'qwik:math.trunc'],
+      ['min', 'qwik:math.min'],
+      ['max', 'qwik:math.max'],
+      ['sign', 'qwik:math.sign'],
+      ['sqrt', 'qwik:math.sqrt'],
+    ]),
+  ],
+  [
+    'Object',
+    new Map([
+      ['keys', 'qwik:object.keys'],
+      ['values', 'qwik:object.values'],
+      ['entries', 'qwik:object.entries'],
+    ]),
+  ],
+  ['JSON', new Map([['stringify', 'qwik:json.stringify']])],
+  [
+    'Number',
+    new Map([
+      ['isNaN', 'qwik:number.isNaN'],
+      ['isFinite', 'qwik:number.isFinite'],
+      ['isInteger', 'qwik:number.isInteger'],
+    ]),
+  ],
+  ['Array', new Map([['from', 'qwik:array.from']])],
+  ['Date', new Map([['now', 'qwik:date.now']])],
+]);
+
+/** Bare global calls — the callee identifier must be unbound. */
+const GLOBAL_OPS: ReadonlyMap<string, string> = new Map([
+  ['String', 'qwik:global.String'],
+  ['Number', 'qwik:global.Number'],
+  ['Boolean', 'qwik:global.Boolean'],
+  ['parseInt', 'qwik:global.parseInt'],
+  ['parseFloat', 'qwik:global.parseFloat'],
+  ['encodeURIComponent', 'qwik:global.encodeURIComponent'],
+  ['decodeURIComponent', 'qwik:global.decodeURIComponent'],
+]);
 
 export function lowerValueIr(expression: unknown, facts: ExprLowerFacts): ValueIR | null {
   const node = unwrapExpression(expression);
@@ -234,9 +324,150 @@ export function lowerValueIr(expression: unknown, facts: ExprLowerFacts): ValueI
       }
       return { k: 'object', entries };
     }
+    case 'CallExpression':
+      return lowerCall(node, facts);
     default:
       return null;
   }
+}
+
+function lowerCall(node: AstNode, facts: ExprLowerFacts): ValueIR | null {
+  const call = node as { callee: unknown; arguments: unknown[]; optional?: boolean };
+  if (call.optional === true) {
+    return null;
+  }
+  const callee = unwrapExpression(call.callee);
+  if (callee === null || callee === undefined) {
+    return null;
+  }
+  // bare global call: String(x), parseInt(x), ...
+  if (callee.type === 'Identifier') {
+    if (facts.bindingIdAt(getRange(callee)) !== null) {
+      return null; // user function — plugin territory
+    }
+    const op = GLOBAL_OPS.get(getIdentifierName(callee) ?? '');
+    if (op === undefined) {
+      return null;
+    }
+    const args = lowerArgs(call.arguments, facts, null);
+    return args === null ? null : { k: 'call', fn: op, recv: null, args };
+  }
+  if (callee.type !== 'MemberExpression') {
+    return null;
+  }
+  const member = callee as {
+    object: unknown;
+    property: unknown;
+    computed: boolean;
+    optional?: boolean;
+  };
+  if (member.computed || member.optional === true) {
+    return null;
+  }
+  const methodName = getIdentifierName(member.property);
+  if (methodName === null) {
+    return null;
+  }
+  const object = unwrapExpression(member.object);
+  // static op: Math.abs(x), Object.keys(x), ... — object must be a true (unbound) global
+  if (
+    object?.type === 'Identifier' &&
+    facts.bindingIdAt(getRange(object)) === null &&
+    STATIC_OPS.has(getIdentifierName(object) ?? '')
+  ) {
+    const op = STATIC_OPS.get(getIdentifierName(object)!)!.get(methodName);
+    if (op === undefined) {
+      return null;
+    }
+    if (op === 'qwik:json.stringify' && call.arguments.length !== 1) {
+      return null; // 1-arg form only (specs/02)
+    }
+    const args = lowerArgs(call.arguments, facts, op === 'qwik:array.from' ? 1 : null);
+    return args === null ? null : { k: 'call', fn: op, recv: null, args };
+  }
+  // method op: x.trim(), rows.filter(fn), ... — receiver must itself lower
+  const higherOrder = HIGHER_ORDER_OPS.get(methodName);
+  const op = higherOrder ?? METHOD_OPS.get(methodName);
+  if (op === undefined) {
+    return null;
+  }
+  const recv = lowerValueIr(member.object, facts);
+  if (recv === null) {
+    return null;
+  }
+  const args = lowerArgs(call.arguments, facts, higherOrder !== undefined ? 0 : null);
+  return args === null ? null : { k: 'call', fn: op, recv, args };
+}
+
+/** Lowers call arguments; `lambdaAt` marks the single position where a restricted lambda is legal. */
+function lowerArgs(
+  argumentNodes: unknown[],
+  facts: ExprLowerFacts,
+  lambdaAt: number | null
+): (ValueIR | LambdaIR)[] | null {
+  const args: (ValueIR | LambdaIR)[] = [];
+  for (let i = 0; i < argumentNodes.length; i++) {
+    const argument = unwrapExpression(argumentNodes[i]);
+    if (argument === null || argument === undefined) {
+      return null;
+    }
+    if (argument.type === 'SpreadElement') {
+      return null;
+    }
+    if (i === lambdaAt && argument.type === 'ArrowFunctionExpression') {
+      const lambda = lowerLambda(argument, facts);
+      if (lambda === null) {
+        return null;
+      }
+      args.push(lambda);
+      continue;
+    }
+    const value = lowerValueIr(argument, facts);
+    if (value === null) {
+      return null;
+    }
+    args.push(value);
+  }
+  return args;
+}
+
+function lowerLambda(node: AstNode, facts: ExprLowerFacts): LambdaIR | null {
+  const arrow = node as {
+    params: unknown[];
+    body: unknown;
+    async?: boolean;
+    generator?: boolean;
+  };
+  if (arrow.async === true || arrow.generator === true) {
+    return null;
+  }
+  const params: { name: string; binding: BindingId | null }[] = [];
+  for (const param of arrow.params) {
+    const name = getIdentifierName(param);
+    if (name === null) {
+      return null; // destructuring/defaults/rest stay unsupported (specs/02 v1)
+    }
+    params.push({ name, binding: facts.bindingIdAt(getRange(param)) });
+  }
+  const body = unwrapExpression(arrow.body) ?? arrow.body;
+  const bodyExpression = singleReturnExpression(body as AstNode) ?? body;
+  const lowered = lowerValueIr(bodyExpression, facts);
+  return lowered === null ? null : { kind: 'lambda', params, body: lowered };
+}
+
+function singleReturnExpression(body: AstNode): AstNode | null {
+  if (body.type !== 'BlockStatement') {
+    return null;
+  }
+  const statements = (body as { body: unknown[] }).body;
+  if (statements.length !== 1) {
+    return null;
+  }
+  const statement = statements[0] as AstNode & { argument?: unknown };
+  if (statement.type !== 'ReturnStatement' || statement.argument == null) {
+    return null;
+  }
+  return statement.argument as AstNode;
 }
 
 function objectKeyName(key: unknown): string | null {

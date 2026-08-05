@@ -21,7 +21,24 @@ export type ValueIR =
   | { readonly k: 'cond'; readonly test: ValueIR; readonly then: ValueIR; readonly else: ValueIR }
   | { readonly k: 'template'; readonly parts: readonly (string | ValueIR)[] }
   | { readonly k: 'array'; readonly items: readonly ValueIR[] }
-  | { readonly k: 'object'; readonly entries: readonly (readonly [string, ValueIR])[] };
+  | { readonly k: 'object'; readonly entries: readonly (readonly [string, ValueIR])[] }
+  | {
+      readonly k: 'call';
+      /**
+       * `qwik:<ns>.<op>` — internal-plugin op id; method ops dispatch on the receiver's runtime
+       * type.
+       */
+      readonly fn: string;
+      readonly recv: ValueIR | null;
+      readonly args: readonly (ValueIR | LambdaIR)[];
+    };
+
+/** Restricted lambda: only as a direct argument to a higher-order op; pure by construction. */
+export interface LambdaIR {
+  readonly kind: 'lambda';
+  readonly params: readonly { readonly name: string; readonly binding: BindingId | null }[];
+  readonly body: ValueIR;
+}
 
 export type ValueIrUnaryOp = '!' | '-' | '+' | 'typeof';
 

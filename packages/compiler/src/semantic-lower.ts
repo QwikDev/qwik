@@ -1420,9 +1420,13 @@ class SemanticLowerer {
   };
 
   private valueIr(expression: AstNode): { ir?: ValueIR } {
+    return this.namedValueIr('ir', expression);
+  }
+
+  private namedValueIr<K extends string>(key: K, expression: AstNode): { [P in K]?: ValueIR } {
     const ir = lowerValueIr(expression, this.exprLowerFacts);
     reportValueIrSite(ir !== null);
-    return ir === null ? {} : { ir };
+    return (ir === null ? {} : { [key]: ir }) as { [P in K]?: ValueIR };
   }
 
   private setupOpAt(range: SourceRange): { op?: SetupOp } {
@@ -1586,6 +1590,7 @@ class SemanticLowerer {
       range,
       lifetimeId,
       condition: this.referenceSegment(condition, lifetimeId),
+      ...this.namedValueIr('conditionIr', branch.condition),
       then: this.createExpressionRenderFunction(
         'branch',
         branch.then,
@@ -1629,6 +1634,7 @@ class SemanticLowerer {
           ? {
               kind: 'direct-array' as const,
               expression: sourceRange,
+              ...this.valueIr(collection.source),
             }
           : {
               kind: 'derived' as const,
@@ -1640,6 +1646,7 @@ class SemanticLowerer {
                 collection.source,
                 lifetimeId
               ),
+              ...this.valueIr(collection.source),
             };
     if (
       source.kind !== 'direct-array' &&
@@ -1692,6 +1699,9 @@ class SemanticLowerer {
       lifetimeId,
       source,
       key,
+      ...(key === null || collection.key === null
+        ? {}
+        : this.namedValueIr('keyIr', collection.key)),
       row,
       usesIndexSignal,
     };

@@ -25,7 +25,7 @@ const CORPUS = [
   'packages/docs/src/components/sidebar/sidebar.tsx',
 ];
 
-const COVERAGE_FLOOR = 0.8;
+const COVERAGE_FLOOR = 0.9;
 
 describe('ValueIR coverage over the fixture corpus', () => {
   test('lowered share stays above the floor', async () => {

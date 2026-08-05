@@ -318,6 +318,8 @@ export interface BranchPlan {
   readonly range: SourceRange;
   readonly lifetimeId: LifetimeId;
   readonly condition: SegmentReferencePlan;
+  /** Portable condition lowering; the segment stays for client resume. Additive. */
+  readonly conditionIr?: ValueIR;
   readonly then: RenderFunctionPlan;
   readonly else: RenderFunctionPlan | null;
 }
@@ -346,6 +348,8 @@ export interface CollectionPlan {
   readonly lifetimeId: LifetimeId;
   readonly source: CollectionSourcePlan;
   readonly key: SegmentReferencePlan | null;
+  /** Portable key lowering (row scope bindings); the segment stays for client resume. */
+  readonly keyIr?: ValueIR;
   readonly row: RenderFunctionPlan;
   readonly usesIndexSignal: boolean;
 }
@@ -354,6 +358,8 @@ export type CollectionSourcePlan =
   | {
       readonly kind: 'direct-array';
       readonly expression: SourceRange;
+      /** Portable source lowering; additive, emitters ignore it. */
+      readonly ir?: ValueIR;
     }
   | {
       /** A Qwik Source binding proven by import and binding identity. */
@@ -369,6 +375,8 @@ export type CollectionSourcePlan =
       readonly expression: SourceRange;
       /** Resumable computed segment evaluated by the collection runtime. */
       readonly segment: SegmentReferencePlan;
+      /** Portable source lowering; the segment stays for client resume. Additive. */
+      readonly ir?: ValueIR;
     };
 
 export type OrderedPropPlan =

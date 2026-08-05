@@ -4,9 +4,9 @@
 
 ```ts
 
-import type { Plugin as Plugin_2 } from 'vite';
+import { Plugin as Plugin_2 } from 'vite';
 import type { SsgRenderOptions } from 'packages/qwik-router/src/ssg';
-import type { UserConfig } from 'vite';
+import { UserConfig } from 'vite';
 
 // @public (undocumented)
 export interface AdapterSSGOptions extends Omit<SsgRenderOptions, 'outDir' | 'origin'> {
@@ -26,7 +26,7 @@ export interface ServerAdapterOptions {
 // Warning: (ae-forgotten-export) The symbol "ViteAdapterPluginOptions" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export function viteAdapter(opts: ViteAdapterPluginOptions): Plugin_2<any>[];
+export function viteAdapter(opts: ViteAdapterPluginOptions): Plugin_2<never>[];
 
 // (No @packageDocumentation comment for this package)
 

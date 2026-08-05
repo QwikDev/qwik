@@ -39,9 +39,9 @@ In the current directory, you will find files such as `projection.spec.tsx`, `us
 Here are ways to contribute in the order of time commitment:
 
 1. Review the existing code and point out what is not clear or needs more documentation.
-2. Create small fixes against the `build/v2` branch.
-3. Add missing tests to the `build/v2` branch showcasing the missing features.
-4. Attempt to implement the features in the `build/v2` branch.
+2. Create small fixes against the `main` branch.
+3. Add missing tests to the `main` branch showcasing the missing features.
+4. Attempt to implement the features in the `main` branch.
 
 **IMPORTANT START HERE:** We have created a special unit test: [`README.spec.tsx`](./README.spec.tsx). The purpose of this unit test is to:
 

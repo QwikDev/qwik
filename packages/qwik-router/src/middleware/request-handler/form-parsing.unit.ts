@@ -1,7 +1,31 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { formToObj } from './request-event-core';
 
 describe('formToObj', () => {
+  it('retains nested form paths linearly', () => {
+    const depth = 128;
+    const fd = new FormData();
+    fd.append(Array(depth).fill('a').join('.'), 'value');
+    const mapSet = vi.spyOn(Map.prototype, 'set');
+
+    const obj = formToObj(fd);
+    let retainedKeyCharacters = 0;
+    for (let i = 0; i < mapSet.mock.calls.length; i++) {
+      const key = mapSet.mock.calls[i][0];
+      if (typeof key === 'string') {
+        retainedKeyCharacters += key.length;
+      }
+    }
+    mapSet.mockRestore();
+
+    expect(retainedKeyCharacters).toBeLessThanOrEqual(depth);
+    let value = obj;
+    for (let i = 0; i < depth; i++) {
+      value = value.a;
+    }
+    expect(value).toBe('value');
+  });
+
   describe('Object prototype pollution', () => {
     it('blocks __proto__ pollution via dotted notation', () => {
       delete (Object.prototype as any).polluted;

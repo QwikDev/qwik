@@ -1,9 +1,16 @@
 import type {
+  DevtoolsVNodeTreeNode as VNodeTreeNode,
+  DevtoolsComponentDetailEntry as ComponentDetailEntry,
+  DevtoolsRenderEvent as RenderEvent,
   QwikDevtoolsComponentSnapshot,
   QwikDevtoolsSignalsSnapshot,
   QwikPerfStoreRemembered,
   QwikPreloadStoreRemembered,
 } from '@qwik.dev/devtools/kit';
+
+// The VNode/detail/render shapes are the shared data contract, owned by @qwik.dev/devtools/kit.
+// Re-export under the local names so consumers keep one import source and cannot drift.
+export type { VNodeTreeNode, ComponentDetailEntry, RenderEvent };
 
 export interface QwikContainerInfo {
   detected: boolean;
@@ -14,27 +21,6 @@ export interface QwikContainerInfo {
   manifestHash: string | null;
   containerCount: number;
   runtime: string | null;
-}
-
-export interface VNodeTreeNode {
-  name?: string;
-  id: string;
-  label?: string;
-  props?: Record<string, unknown>;
-  children?: VNodeTreeNode[];
-}
-
-export interface ComponentDetailEntry {
-  hookType: string;
-  variableName: string;
-  data: unknown;
-}
-
-export interface RenderEvent {
-  component: string;
-  phase: string;
-  duration: number;
-  timestamp: number;
 }
 
 export type ExtensionMessage =

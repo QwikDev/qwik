@@ -13,12 +13,13 @@ import { TaskFlags, isTask } from '../use/use-task';
 import { ComputedSignalImpl } from './impl/computed-signal-impl';
 import { SignalImpl } from './impl/signal-impl';
 import type { WrappedSignalImpl } from './impl/wrapped-signal-impl';
-import type { Signal } from './signal.public';
+import type { ComputedSignal, Signal } from './signal.public';
 import { SubscriptionData, type NodeProp } from './subscription-data';
 import {
   SerializationSignalFlags,
   EffectProperty,
-  SignalFlags,
+  ComputedSignalFlags,
+  NEEDS_COMPUTATION,
   type CustomSerializable,
   type EffectSubscription,
   type StoreTarget,
@@ -166,8 +167,8 @@ export const isSerializerObj = <T extends { [SerializerSymbol]: (obj: any) => an
 
 export const getComputedSignalFlags = (
   serializationStrategy: SerializationStrategy
-): SerializationSignalFlags | SignalFlags => {
-  let flags = SignalFlags.INVALID;
+): SerializationSignalFlags | ComputedSignalFlags => {
+  let flags = ComputedSignalFlags.INVALID;
   switch (serializationStrategy) {
     // TODO: implement this in the future
     // case 'auto':
@@ -181,4 +182,32 @@ export const getComputedSignalFlags = (
       break;
   }
   return flags;
+};
+
+/**
+ * Mark this signal as owned outside of the component that read it.
+ *
+ * Externally owned signals are preserved when found in a component's sequential scope during
+ * component cleanup.
+ *
+ * @internal
+ */
+export const _markSignalAsExternallyOwned = (signal: ComputedSignal<unknown>) => {
+  (signal as ComputedSignalImpl<unknown> | WrappedSignalImpl<unknown>).$flags$ |=
+    ComputedSignalFlags.PRESERVE_ON_SEQ_CLEANUP;
+};
+
+/**
+ * Whether the signal holds a computed value that was not invalidated (by dependency changes or
+ * `expires`). Unlike the public getters, this never triggers a computation.
+ *
+ * @internal
+ */
+export const _isSignalNotInvalid = (signal: ComputedSignal<unknown> | undefined): boolean => {
+  const impl = signal as ComputedSignalImpl<unknown> | undefined;
+  return (
+    !!impl &&
+    !(impl.$flags$ & ComputedSignalFlags.INVALID) &&
+    impl.$untrackedValue$ !== NEEDS_COMPUTATION
+  );
 };

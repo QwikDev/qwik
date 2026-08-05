@@ -6,8 +6,8 @@ export const IsQAction = '@isQAction';
 export const QLoaderId = '@loaderId';
 export const QActionId = '@actionId';
 
-/** Matches `/q-loader-{loaderId}.{manifestHash}.json` */
-export const LOADER_REGEX = /\/(q-loader-([^.]+)\.([^.]+)\.json)$/;
+/** Matches the final `/q-loader-{loaderId}.{manifestHash}.json` path segment. */
+export const LOADER_REGEX = /\/(q-loader-([^/.]+)\.([^/.]+)\.json)$/;
 
 export const getLoaderName = (loaderId: string, manifestHash: string) =>
   `q-loader-${loaderId}.${manifestHash}.json`;
@@ -62,4 +62,27 @@ export function trimInternalPathname(pathname: string): string {
     return trimRecognizedInternalPathname(pathname, recognized);
   }
   return pathname;
+}
+
+export function resolveValidInternalFullPathname(
+  loaderPathname: string,
+  fullPath: string | null
+): string | undefined {
+  if (!fullPath || !fullPath.startsWith('/') || fullPath.startsWith('//')) {
+    return undefined;
+  }
+  try {
+    const pageUrl = new URL(fullPath, 'http://qwik.internal');
+    if (pageUrl.origin !== 'http://qwik.internal') {
+      return undefined;
+    }
+    const pagePathname = pageUrl.pathname;
+    if (pagePathname === loaderPathname) {
+      return undefined;
+    }
+    const loaderPrefix = ensureSlash(loaderPathname);
+    return pagePathname.startsWith(loaderPrefix) ? pagePathname : undefined;
+  } catch {
+    return undefined;
+  }
 }

@@ -1,5 +1,8 @@
 import {
-  QWIK_PRELOADS_UPDATE_EVENT,
+  getOrCreateQwikDevtoolsGlobal,
+  getQwikDevtoolsGlobal,
+  DEVTOOLS_MESSAGES,
+  QWIK_DEVTOOLS_GLOBAL,
   type QwikPreloadEntryRemembered,
   type QwikPreloadLoadMatchQuality,
   type QwikPreloadMatchMode,
@@ -149,7 +152,7 @@ const inferPhase = (detail: Record<string, any>, fallback: QwikPreloadPhase = 'c
 
 const emitUpdate = (store: MutablePreloadStore) => {
   window.dispatchEvent(
-    new CustomEvent(QWIK_PRELOADS_UPDATE_EVENT, {
+    new CustomEvent(DEVTOOLS_MESSAGES.events.preloadsUpdate, {
       detail: {
         count: store.entries.length,
         updatedAt: now(),
@@ -179,7 +182,10 @@ const syncLoadDuration = (entry: QwikPreloadEntryRemembered, loadDuration?: numb
 };
 
 const createStore = (): MutablePreloadStore => {
-  const existing = window.__QWIK_PRELOADS__ as MutablePreloadStore | undefined;
+  const devtoolsGlobal = getOrCreateQwikDevtoolsGlobal(window);
+  const existing = devtoolsGlobal[QWIK_DEVTOOLS_GLOBAL.props.preloads] as
+    | MutablePreloadStore
+    | undefined;
   if (existing) {
     return existing;
   }
@@ -201,7 +207,7 @@ const createStore = (): MutablePreloadStore => {
     _byId: {},
   };
 
-  window.__QWIK_PRELOADS__ = store;
+  devtoolsGlobal[QWIK_DEVTOOLS_GLOBAL.props.preloads] = store;
   return store;
 };
 
@@ -891,8 +897,9 @@ export function ensurePreloadRuntime() {
     )
     .forEach((link) => recordLink(store, observedLinks, link, 'initial-dom'));
 
-  const ssrSnapshot = Array.isArray(window.__QWIK_SSR_PRELOADS__)
-    ? (window.__QWIK_SSR_PRELOADS__ as QwikSsrPreloadSnapshotRemembered[])
+  const devtoolsGlobal = getQwikDevtoolsGlobal(window);
+  const ssrSnapshot = Array.isArray(devtoolsGlobal?.[QWIK_DEVTOOLS_GLOBAL.props.ssrPreloads])
+    ? (devtoolsGlobal[QWIK_DEVTOOLS_GLOBAL.props.ssrPreloads] as QwikSsrPreloadSnapshotRemembered[])
     : [];
   if (ssrSnapshot.length > 0) {
     ingestSsrPreloads(store, { entries: ssrSnapshot });
@@ -1021,10 +1028,11 @@ export function ensurePreloadRuntime() {
     emitUpdate(store);
   });
 
-  window.addEventListener('qwik:ssr-preloads', (event) => {
+  window.addEventListener(DEVTOOLS_MESSAGES.events.ssrPreloads, (event) => {
     const detail = event instanceof CustomEvent ? (event.detail as Record<string, any>) : {};
     if (Array.isArray(detail.entries)) {
-      window.__QWIK_SSR_PRELOADS__ = detail.entries as QwikSsrPreloadSnapshotRemembered[];
+      getOrCreateQwikDevtoolsGlobal(window)[QWIK_DEVTOOLS_GLOBAL.props.ssrPreloads] =
+        detail.entries as QwikSsrPreloadSnapshotRemembered[];
     }
     ingestSsrPreloads(store, detail);
   });

@@ -1,11 +1,11 @@
 import { isDev } from '@qwik.dev/core/build';
 import { _run } from '../client/run-qrl';
-import { AsyncSignalImpl } from '../reactive-primitives/impl/async-signal-impl';
+import { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 import { AsyncSignalFlags, EffectProperty } from '../reactive-primitives/types';
 import { isSignal } from '../reactive-primitives/utils';
 import { isQwikComponent } from '../shared/component.public';
-import { Fragment, type Props } from '../shared/jsx/jsx-runtime';
+import { Fragment } from '../shared/jsx/jsx-runtime';
 import { directGetPropsProxyProp } from '../shared/jsx/props-proxy';
 import { Slot } from '../shared/jsx/slot.public';
 import { JSXNodeFlags, type JSXNodeInternal, type JSXOutput } from '../shared/jsx/types/jsx-node';
@@ -24,7 +24,6 @@ import { EMPTY_OBJ } from '../shared/utils/flyweight';
 import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 import {
   ELEMENT_KEY,
-  QCursorBoundary,
   QDefaultSlot,
   QScopedStyle,
   QSlot,
@@ -37,13 +36,12 @@ import { addComponentStylePrefix } from '../shared/utils/scoped-styles';
 import type { InnerContainer } from '../shared/utils/container';
 import { isFunction, type ValueOrPromise } from '../shared/utils/types';
 import { trackSignalAndAssignHost } from '../use/use-core';
-import type { CursorBoundary } from '../use/use-cursor-boundary';
 import {
   getInternalServerComponentHandler,
   isInternalServerComponent,
 } from './internal-server-component';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
-import type { ISsrComponentFrame, SSRContainer, SSRRenderJSXOptions } from './ssr-types';
+import type { ISsrComponentFrame, ISsrNode, SSRContainer, SSRRenderJSXOptions } from './ssr-types';
 import { resolveSlotName } from '../shared/utils/prop';
 
 class MaybeAsyncSignal {}
@@ -57,6 +55,20 @@ export type StackValue = ValueOrPromise<
   | AsyncGenerator
   | typeof MaybeAsyncSignal
 >;
+
+const markPromiseHandled = (
+  ssr: SSRContainer,
+  promise: Promise<unknown>,
+  host: ISsrNode | null = null
+): void => {
+  promise.catch((reason) => {
+    try {
+      ssr.handleError(reason, host);
+    } catch {
+      // Original promise remains awaited later.
+    }
+  });
+};
 
 function setParentOptions(
   mutable: { currentStyleScoped: string | null; parentComponentFrame: ISsrComponentFrame | null },
@@ -77,6 +89,11 @@ export async function _walkJSX(
 ): Promise<void> {
   const stack: StackValue[] = [value];
   const enqueue = (value: StackValue) => stack.push(value);
+  const enqueuePromise = (promise: Promise<unknown>) => {
+    markPromiseHandled(ssr, promise);
+    stack.push(promise as StackValue);
+    stack.push(Promise);
+  };
   const drain = async (): Promise<void> => {
     while (stack.length) {
       try {
@@ -98,7 +115,7 @@ export async function _walkJSX(
           }
           continue;
         }
-        processJSXNode(ssr, enqueue, value as JSXOutput, options);
+        processJSXNode(ssr, enqueue, enqueuePromise, value as JSXOutput, options);
       } finally {
         const pendingFlush = ssr.streamHandler.waitForPendingFlush();
         if (isPromise(pendingFlush)) {
@@ -113,6 +130,7 @@ export async function _walkJSX(
 function processJSXNode(
   ssr: SSRContainer,
   enqueue: (value: StackValue) => void,
+  enqueuePromise: (promise: Promise<unknown>) => void,
   value: JSXOutput,
   options: SSRRenderJSXOptions
 ) {
@@ -143,8 +161,7 @@ function processJSXNode(
     } else if (isPromise(value)) {
       ssr.openFragment(isDev ? { [DEBUG_TYPE]: VirtualType.Awaited } : EMPTY_OBJ);
       enqueue(ssr.closeFragment);
-      enqueue(value);
-      enqueue(Promise);
+      enqueuePromise(value);
       enqueue(() => ssr.streamHandler.flush());
     } else if (isAsyncGenerator(value)) {
       enqueue(async () => {
@@ -221,14 +238,9 @@ function processJSXNode(
           const componentFrame = options.parentComponentFrame;
           if (componentFrame) {
             const compId = componentFrame.componentNode.id || '';
-            const projectionAttrs: Props = isDev ? { [DEBUG_TYPE]: VirtualType.Projection } : {};
-            const cursorBoundary = directGetPropsProxyProp<CursorBoundary | null, any>(
-              jsx,
-              QCursorBoundary
-            );
-            if (cursorBoundary) {
-              projectionAttrs[QCursorBoundary] = cursorBoundary;
-            }
+            const projectionAttrs: Record<string, string | null> = isDev
+              ? { [DEBUG_TYPE]: VirtualType.Projection }
+              : {};
             projectionAttrs[QSlotParent] = compId;
             ssr.openProjection(projectionAttrs);
             const host = componentFrame.componentNode;
@@ -283,8 +295,11 @@ function processJSXNode(
             value = generator;
           }
 
-          enqueue(value as StackValue);
-          isPromise(value) && enqueue(Promise);
+          if (isPromise(value)) {
+            enqueuePromise(value);
+          } else {
+            enqueue(value as StackValue);
+          }
         } else if (type === SSRRaw) {
           ssr.htmlNode(directGetPropsProxyProp(jsx, 'data'));
         } else if (type === SSRStreamBlock) {
@@ -312,8 +327,10 @@ function processJSXNode(
           );
           enqueue(() => ssr.closeComponent());
           if (isPromise(jsxOutput)) {
+            markPromiseHandled(ssr, jsxOutput, host);
             // Defer reading QScopedStyle until after the promise resolves
             enqueue(async () => {
+              await ssr.streamHandler.flush();
               const resolvedOutput = await jsxOutput;
               const compStyleComponentId = addComponentStylePrefix(host.getProp(QScopedStyle));
 
@@ -339,8 +356,11 @@ function processJSXNode(
             type,
             jsx
           );
-          enqueue(jsxOutput);
-          isPromise(jsxOutput) && enqueue(Promise);
+          if (isPromise(jsxOutput)) {
+            enqueuePromise(jsxOutput);
+          } else {
+            enqueue(jsxOutput);
+          }
         }
       }
     }
@@ -354,7 +374,7 @@ function maybeAddPollingAsyncSignalToEagerResume(
   // Unwrap if it's a WrappedSignalImpl
   const unwrappedSignal = signal instanceof WrappedSignalImpl ? signal.$unwrapIfSignal$() : signal;
 
-  if (unwrappedSignal instanceof AsyncSignalImpl) {
+  if (unwrappedSignal instanceof ComputedSignalImpl) {
     const expires = unwrappedSignal.$expires$;
     // Don't check for $effects$ here - effects are added later during tracking.
     // The AsyncSignal's polling mechanism will check for effects before scheduling.

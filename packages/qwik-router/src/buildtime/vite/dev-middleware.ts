@@ -1,10 +1,29 @@
 import type { Render } from '@qwik.dev/core/server';
 import type { RendererOptions } from '@qwik.dev/router';
 import type { Connect, ViteDevServer } from 'vite';
+import type { LoaderInternal } from '../../runtime/src/types';
+import { isPageExt, normalizePath } from '../../utils/fs';
+import {
+  IsQLoader,
+  recognizeRequest,
+  resolveValidInternalFullPathname,
+  trimRecognizedInternalPathname,
+} from '../../middleware/request-handler/request-path';
+import { devPreloadedRouteLoaders } from '../../middleware/request-handler/dev-preloaded-route-loader';
 import { updateRoutingContext } from '../build';
+import { routeSortCompare } from '../routing/sort-routes';
 import type { RoutingContext } from '../types';
 import { formatError } from './format-error';
 import { wrapResponseForHtmlTransform } from './html-transform-wrapper';
+import { getImportPath } from '../runtime-generation/utils';
+
+const FULLPATH_HEADER = 'X-Qwik-fullpath';
+const ROUTE_PATH_HEADER = 'X-Qwik-route-path';
+type DevServerRequest = Parameters<Connect.NextHandleFunction>[0];
+
+export function getDevMiddlewareRequestPath(req: DevServerRequest) {
+  return (req as any).originalUrl || req.url;
+}
 
 export const makeRouterDevMiddleware =
   (server: ViteDevServer, ctx: RoutingContext): Connect.NextHandleFunction =>
@@ -32,6 +51,11 @@ export const makeRouterDevMiddleware =
     if (ctx!.isDirty) {
       await updateRoutingContext(ctx!);
       ctx!.isDirty = false;
+    }
+    const preloadedRouteLoader = await preloadQLoaderRouteLoader(server, ctx!, req);
+    if (preloadedRouteLoader) {
+      await server.ssrLoadModule('@qwik-router-config');
+      devPreloadedRouteLoaders.set(req, preloadedRouteLoader);
     }
 
     // entry.ts files
@@ -95,6 +119,77 @@ export const makeRouterDevMiddleware =
     }
   };
 
+async function preloadQLoaderRouteLoader(
+  server: ViteDevServer,
+  ctx: RoutingContext,
+  req: DevServerRequest
+) {
+  const requestPath = getDevMiddlewareRequestPath(req);
+  if (!requestPath) {
+    return undefined;
+  }
+  let requestUrl: URL;
+  try {
+    requestUrl = new URL(requestPath, 'http://qwik.dev');
+  } catch {
+    return undefined;
+  }
+  const recognized = recognizeRequest(requestUrl.pathname);
+  if (recognized?.type !== IsQLoader || !recognized.data?.loaderId) {
+    return undefined;
+  }
+
+  const loaderId = recognized.data.loaderId;
+  const headerValue =
+    req.headers[FULLPATH_HEADER.toLowerCase()] ?? req.headers[ROUTE_PATH_HEADER.toLowerCase()];
+  const fullPathHeader = Array.isArray(headerValue) ? headerValue[0] : (headerValue ?? null);
+  const loaderPathname = trimRecognizedInternalPathname(requestUrl.pathname, recognized);
+  const pathname =
+    resolveValidInternalFullPathname(loaderPathname, fullPathHeader) ?? loaderPathname;
+  const route = ctx.routes
+    .filter((route) => isPageExt(route.ext))
+    .slice()
+    .sort(routeSortCompare)
+    .find((route) => route.pattern.test(pathname));
+  if (!route) {
+    return undefined;
+  }
+
+  const routeRootFiles = [...route.layouts.map((layout) => layout.filePath), route.filePath];
+  const modules = await Promise.all([
+    ...ctx.serverPlugins.map((plugin) => loadSsrModule(server, plugin.filePath)),
+    ...routeRootFiles.map((filePath) => loadSsrModule(server, filePath)),
+  ]);
+  for (const mod of modules) {
+    const loader = findMatchingLoader(mod, loaderId);
+    if (loader) {
+      return loader;
+    }
+  }
+}
+
+async function loadSsrModule(server: ViteDevServer, filePath: string) {
+  return server.ssrLoadModule(getImportPath(normalizePath(filePath))) as Promise<
+    Record<string, unknown>
+  >;
+}
+
+function findMatchingLoader(mod: Record<string, unknown>, loaderId: string) {
+  for (const value of Object.values(mod)) {
+    if (isLoaderInternal(value) && matchesLoaderId(value, loaderId)) {
+      return value;
+    }
+  }
+}
+
+function matchesLoaderId(loader: LoaderInternal, loaderId: string) {
+  return loader.__id === loaderId || loader.__qrl.getHash() === loaderId;
+}
+
+function isLoaderInternal(value: unknown): value is LoaderInternal {
+  return typeof value === 'function' && (value as LoaderInternal).__brand === 'server_loader';
+}
+
 const CSS_EXTENSIONS = ['.css', '.scss', '.sass', '.less', '.styl', '.stylus'];
 const JS_EXTENSIONS = /\.[mc]?[tj]sx?$/;
 const isCssPath = (url: string) => CSS_EXTENSIONS.some((ext) => url.endsWith(ext));
@@ -138,6 +233,10 @@ const getCssUrls = (server: ViteDevServer) => {
 
         if ((isEntryCSS || hasJSImporter) && !hasCSSImporter && !cssImportedByCSS.has(mod.url)) {
           cssModules.add(`${mod.url}${mod.lastHMRTimestamp ? `?t=${mod.lastHMRTimestamp}` : ''}`);
+          // SSR-only CSS isn't watched by Vite; watch it so edits fire handleHotUpdate.
+          if (mod.file) {
+            server.watcher.add(mod.file);
+          }
         }
       }
     }
@@ -149,6 +248,39 @@ export const getRouterIndexTags = (server: ViteDevServer) => {
   const cssUrls = getCssUrls(server);
   return cssUrls.map((url) => ({
     tag: 'link',
-    attrs: { rel: 'stylesheet', href: url },
+    attrs: { rel: 'stylesheet', href: server.config.base + url.slice(1) },
   }));
+};
+
+/**
+ * Live-reload route CSS that Qwik injects as `<link>` tags; it only lives in the SSR graph, so Vite
+ * skips HMR. Emit a `css-update` to swap the `<link>` in place. Returns `true` when handled.
+ */
+export const sendRouterCssHotUpdate = (
+  server: ViteDevServer,
+  file: string,
+  timestamp: number
+): boolean => {
+  const { client, ssr } = server.environments;
+  if (!isCssPath(file) || client.moduleGraph.getModulesByFile(file)?.size) {
+    return false;
+  }
+  const paths = new Set<string>();
+  for (const mod of ssr.moduleGraph.getModulesByFile(file) ?? []) {
+    mod.lastHMRTimestamp = timestamp; // keep getCssUrls' cache-busting query fresh on full reloads
+    paths.add(mod.url.split('?')[0]);
+  }
+  if (!paths.size) {
+    return false;
+  }
+  client.hot.send({
+    type: 'update',
+    updates: [...paths].map((path) => ({
+      type: 'css-update' as const,
+      path,
+      acceptedPath: path,
+      timestamp,
+    })),
+  });
+  return true;
 };

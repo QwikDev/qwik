@@ -3,9 +3,10 @@ export {
   createStringStreamWriter,
   stringifyRootRefPath,
   writeStringRootRef,
+  writeStringRootRefDelta,
   writeStringRootRefPath,
 } from './qwik-copy';
-import { writeStringRootRef, writeStringRootRefPath } from './qwik-copy';
+import { writeStringRootRef, writeStringRootRefDelta, writeStringRootRefPath } from './qwik-copy';
 
 export const renderSSRChunks = (chunks: SSRSegmentWriteChunk[], remap?: number[]): string => {
   let out = '';
@@ -13,6 +14,10 @@ export const renderSSRChunks = (chunks: SSRSegmentWriteChunk[], remap?: number[]
     const chunk = chunks[i];
     if (typeof chunk === 'string') {
       out += chunk;
+    } else if (chunk.type === 'root-ref-delta') {
+      const id = remap ? (remap[chunk.localId] ?? chunk.localId) : chunk.localId;
+      const base = remap ? (remap[chunk.localBaseId] ?? chunk.localBaseId) : chunk.localBaseId;
+      out += String(id - base);
     } else {
       const localId = chunk.type === 'root-ref' ? chunk.localId : chunk.localPath[0];
       out += String(remap ? (remap[localId] ?? localId) : localId);
@@ -39,6 +44,9 @@ export class StringSSRWriter implements SSRInternalStreamWriter {
   writeRootRefPath(path: number[]): void {
     writeStringRootRefPath(this, path);
   }
+  writeRootRefDelta(id: number, base: number): void {
+    writeStringRootRefDelta(this, id, base);
+  }
   clear() {
     this.buffer.length = 0;
   }
@@ -57,6 +65,9 @@ export class StringBufferSegmentWriter implements SSRInternalStreamWriter {
   }
   writeRootRefPath(path: number[]): void {
     this.chunks.push({ type: 'root-ref-path', localPath: path });
+  }
+  writeRootRefDelta(id: number, base: number): void {
+    this.chunks.push({ type: 'root-ref-delta', localId: id, localBaseId: base });
   }
   clear() {
     this.chunks.length = 0;

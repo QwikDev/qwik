@@ -9,7 +9,7 @@ export const InstallButton = component$(
         onClick$={async () => {
           installingPackage.value = pkg.name;
           const rpc = getViteClientRpc();
-          const result = await rpc.installPackage(pkg.name);
+          const result = await rpc.installPackage(pkg.name, 'devDependencies');
           if (!result.success) {
             return Promise.reject(result.error || 'Installation failed');
           }

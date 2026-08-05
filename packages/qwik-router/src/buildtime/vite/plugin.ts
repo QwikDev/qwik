@@ -1,7 +1,9 @@
 import swRegister from '../runtime-generation/sw-register-build?compiled-string';
 import type { QwikVitePlugin } from '@qwik.dev/core/optimizer';
 import fs from 'node:fs';
+import { readFile } from 'node:fs/promises';
 import { basename, extname, join, resolve } from 'node:path';
+import { findExports } from 'mlly';
 import type {
   ConfigEnv,
   EnvironmentOptions,
@@ -30,7 +32,9 @@ import { createMdxTransformer, type MdxTransform } from '../markdown/mdx';
 import { transformMenu } from '../markdown/menu';
 import { generateQwikRouterEntries } from '../runtime-generation/generate-entries';
 import { generateQwikRouterConfig } from '../runtime-generation/generate-qwik-router-config';
+import type { RouteLoaderSourceFiles } from '../runtime-generation/generate-routes';
 import { generateServiceWorkerRegister } from '../runtime-generation/generate-service-worker';
+import { getServerExcludedRoutes } from '../runtime-generation/server-exclude';
 import type { RoutingContext } from '../types';
 import { getRouteImports } from './get-route-imports';
 import { imagePlugin } from './image-jsx';
@@ -41,7 +45,11 @@ import type {
   QwikRouterVitePluginOptions,
 } from './types';
 import { validatePlugin } from './validate-plugin';
-import { getRouterIndexTags, makeRouterDevMiddleware } from './dev-middleware';
+import {
+  getRouterIndexTags,
+  makeRouterDevMiddleware,
+  sendRouterCssHotUpdate,
+} from './dev-middleware';
 
 export const QWIK_ROUTER_CONFIG_ID = '@qwik-router-config';
 /**
@@ -147,6 +155,93 @@ function isRouterSourceFileForContext(filePath: string, ctx: RoutingContext) {
   );
 }
 
+function isDiscoveredRouteLoaderSource(
+  filePath: string,
+  sourceFiles: RouteLoaderSourceFiles | undefined
+) {
+  if (!sourceFiles) {
+    return false;
+  }
+  const normalizedPath = normalizePath(filePath);
+  for (const files of sourceFiles.values()) {
+    if (files.includes(normalizedPath)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+type SourceResolver = (specifier: string, importer: string) => Promise<string | undefined>;
+
+export async function findRouteLoaderSourceFiles(
+  ctx: RoutingContext,
+  resolveSource: SourceResolver
+): Promise<RouteLoaderSourceFiles> {
+  const sources = new Map<string, string[]>();
+  const owners = new Set<string>();
+  collectRouteLoaderOwners(ctx.routeTrie, owners);
+  for (const plugin of ctx.serverPlugins) {
+    owners.add(plugin.filePath);
+  }
+  await Promise.all(
+    [...owners].map((owner) => collectReExportSources(owner, owner, resolveSource, sources))
+  );
+  return sources;
+}
+
+function collectRouteLoaderOwners(node: RoutingContext['routeTrie'], owners: Set<string>) {
+  for (const file of node._files) {
+    if (file.type === 'layout' || file.type === 'route') {
+      owners.add(file.filePath);
+    }
+  }
+  for (const child of node.children.values()) {
+    collectRouteLoaderOwners(child, owners);
+  }
+}
+
+async function collectReExportSources(
+  owner: string,
+  filePath: string,
+  resolveSource: SourceResolver,
+  sources: Map<string, string[]>,
+  seen = new Set<string>([owner])
+) {
+  let code: string, exportEntries: ReturnType<typeof findExports> | null;
+  try {
+    code = await readFile(filePath, 'utf-8');
+    exportEntries = findExports(code);
+    if (!exportEntries) {
+      return;
+    }
+  } catch {
+    return;
+  }
+  await Promise.all(
+    exportEntries.map(async (exp) => {
+      if (!exp.specifier) {
+        return;
+      }
+      const resolved = await resolveSource(exp.specifier, filePath);
+      if (!resolved || resolved.charCodeAt(0) === 0) {
+        return;
+      }
+      const resolvedPath = normalizePath(resolved.split(/[?#]/, 1)[0]);
+      let ownerSources = sources.get(owner);
+      if (!ownerSources) {
+        sources.set(owner, (ownerSources = []));
+      }
+      if (!ownerSources.includes(resolvedPath)) {
+        ownerSources.push(resolvedPath);
+      }
+      if (!seen.has(resolvedPath)) {
+        seen.add(resolvedPath);
+        await collectReExportSources(owner, resolvedPath, resolveSource, sources, seen);
+      }
+    })
+  );
+}
+
 export function invalidateRouterConfigModules(server: ViteDevServer) {
   const modules: NonNullable<ReturnType<ViteDevServer['moduleGraph']['getModuleById']>>[] = [];
   const moduleGraphs = new Set<ViteDevServer['moduleGraph']>();
@@ -190,6 +285,9 @@ function qwikRouterPlugin(
   const serverPluginsDir = userOpts?.serverPluginsDir ?? routesDir;
   /** Map from source file path to array of routeLoader$ hashes found in that file */
   const loadersByFile = new Map<string, string[]>();
+  let reExportedRouteLoaderSources: RouteLoaderSourceFiles | undefined;
+  /** SSG include/exclude from the adapter (see `_setSsgRoutes`); drives the server-route prune. */
+  let ssgRoutePatterns: { include?: string[]; exclude?: string[] } | undefined;
 
   const api: QwikRouterPluginApi = {
     getBasePathname: () => ctx?.opts.basePathname ?? '/',
@@ -198,6 +296,9 @@ function qwikRouterPlugin(
     },
     getServiceWorkers: () => {
       return ctx?.serviceWorkers.slice() ?? [];
+    },
+    _setSsgRoutes: (include, exclude) => {
+      ssgRoutePatterns = include?.length ? { include, exclude } : undefined;
     },
   };
 
@@ -271,8 +372,9 @@ function qwikRouterPlugin(
 
     configEnvironment(name: string, _config: EnvironmentOptions, _env: ConfigEnv) {
       // Use environment name to distinguish server vs client — config.consumer is not yet set
-      // at the time this hook is called.
-      if (name === 'ssr') {
+      // at the time this hook is called. Adapters may add their own server environment (e.g. `ssg`),
+      // which needs the same externalization as `ssr`.
+      if (name === 'ssr' || name === 'ssg') {
         return {
           resolve: {
             external: ['node:async_hooks'],
@@ -366,11 +468,25 @@ function qwikRouterPlugin(
       }
     },
 
-    handleHotUpdate({ file, modules, server }: HmrContext) {
-      if (!ctx || !isRouterSourceFileForContext(file, ctx)) {
+    handleHotUpdate({ file, modules, server, timestamp }: HmrContext) {
+      // Route CSS is injected as a <link>; swap it in place rather than forcing a restart.
+      if (sendRouterCssHotUpdate(server, file, timestamp)) {
+        return [];
+      }
+      const clearedLoaderHashes = clearRouteLoaderHashes(loadersByFile, file);
+      if (!ctx) {
         return;
       }
-      clearRouteLoaderHashes(loadersByFile, file);
+      if (!isRouterSourceFileForContext(file, ctx)) {
+        if (
+          clearedLoaderHashes ||
+          isDiscoveredRouteLoaderSource(file, reExportedRouteLoaderSources)
+        ) {
+          const configModules = invalidateRouterConfigModules(server);
+          return [...modules, ...configModules];
+        }
+        return;
+      }
       ctx.isDirty = true;
       const configModules = invalidateRouterConfigModules(server);
       return [...modules, ...configModules];
@@ -427,11 +543,28 @@ function qwikRouterPlugin(
             // invalidation, so pass it directly. In build mode the config is loaded before
             // route files are optimized, so loadersByFile is empty here; pass undefined to
             // emit __LOADERS:...__ placeholders that generateBundle replaces after optimization.
+            const isServerConsumer = this.environment.config.consumer === 'server';
+            // Prune the deployed SSR plan (drop prerendered server-free routes so their chunks
+            // tree-shake out). The adapter's dedicated `ssg` environment renders every page, so it
+            // (like the client and dev) keeps the full trie — keyed on the environment name.
+            const serverExcludePaths =
+              isServerConsumer && !devServer && this.environment.name !== 'ssg'
+                ? await getServerExcludedRoutes(ctx, ssgRoutePatterns)
+                : undefined;
+            reExportedRouteLoaderSources = await findRouteLoaderSourceFiles(
+              ctx,
+              async (specifier, importer) => {
+                const resolved = await this.resolve(specifier, importer, { skipSelf: true });
+                return resolved?.id;
+              }
+            );
             return generateQwikRouterConfig(
               ctx,
               qwikPlugin!,
-              this.environment.config.consumer === 'server',
-              devServer ? loadersByFile : undefined
+              isServerConsumer,
+              devServer ? loadersByFile : undefined,
+              serverExcludePaths,
+              reExportedRouteLoaderSources
             );
           }
 
@@ -489,6 +622,16 @@ function qwikRouterPlugin(
     },
 
     generateBundle(_, bundles) {
+      // A separate server build skips onSegment, so recover routeLoader$ hashes from the manifest.
+      const manifest = qwikPlugin!.api.getManifest();
+      if (manifest) {
+        const srcDir = qwikPlugin!.api.getOptions().srcDir!;
+        for (const symbol of Object.values(manifest.symbols)) {
+          if (symbol.ctxName === 'routeLoader$' && symbol.origin) {
+            addRouteLoaderHash(loadersByFile, resolve(srcDir, symbol.origin), symbol.hash);
+          }
+        }
+      }
       // Replace __LOADERS:...__ placeholder strings with actual loader hash arrays.
       // Runs even when no routeLoader$ was found so placeholders collapse to `void 0`
       // (otherwise they remain as raw strings and the client iterates them per-character).
@@ -620,7 +763,12 @@ function serverFnsPlugin(buildContextRef: BuildContextRef): Plugin {
           if (!isServerBuild || serverFnModules.size === 0) {
             return '// No server$ functions';
           }
-          return [...serverFnModules].map((mod) => `import ${JSON.stringify(mod)};`).join('\n');
+          return [...serverFnModules]
+            .map(
+              (mod, index) =>
+                `import * as serverFnModule${index} from ${JSON.stringify(mod)};\nObject.values(serverFnModule${index});`
+            )
+            .join('\n');
         }
         return null;
       },

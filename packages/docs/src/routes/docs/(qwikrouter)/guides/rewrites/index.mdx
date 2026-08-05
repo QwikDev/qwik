@@ -24,9 +24,13 @@ src/routes/articles/
 
 
 ```tsx title="src/routes/plugin@article-rewrite.tsx"
-import type { RequestHandler } from "@qwik.dev/router";
+import type { RequestHandler } from '@qwik.dev/router';
 
-export const onRequest: RequestHandler = async ({ url, rewrite }) => {
+export const onRequest: RequestHandler = async ({ url, rewrite, internalRequest }) => {
+  if (internalRequest) {
+    return;
+  }
+
   const pattern = /^\/articles\/(.*)$/;
   // Detects /articles/<article-name>, returns null if url does not match the pattern.
   const match = url.pathname.match(pattern);
@@ -37,6 +41,10 @@ export const onRequest: RequestHandler = async ({ url, rewrite }) => {
   }
 };
 ```
+
+Check `internalRequest` before applying broad rewrite rules. Qwik Router uses internal JSON
+requests for route loader fetches and fetch-based action submissions, and those requests must keep
+their internal routing behavior.
 
 The `rewrite()` function, which was destructured in the RequestHandler function arguments, is invoked with a pathname string.
 

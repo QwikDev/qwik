@@ -3348,6 +3348,36 @@ describe.each([
     );
   });
 
+  it('keeps const props on a captured props proxy after eager SSR resume', async () => {
+    const Test = component$(() => <div />);
+
+    const Child = component$((props: any) => {
+      useTask$(({ track }) => {
+        track(() => props.isOpened.value);
+      });
+
+      return <Test {...props} />;
+    });
+
+    const Parent = component$(() => {
+      const isOpened = useSignal(false);
+
+      return (
+        <>
+          <button onClick$={() => (isOpened.value = !isOpened.value)}>Toggle</button>
+          <Child isOpened={isOpened} />
+        </>
+      );
+    });
+
+    const { container } = await ssrRenderToDom(<Parent />, {
+      debug,
+      statePrewarm: 0,
+    });
+
+    await trigger(container.element, 'button', 'click');
+  });
+
   describe('regression', () => {
     it('#3643', async () => {
       const Issue3643 = component$(() => {

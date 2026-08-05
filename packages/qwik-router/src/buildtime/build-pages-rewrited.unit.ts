@@ -333,3 +333,14 @@ testSameRoutes(
     assert.equal(r.pathname, '/produkt/');
   }
 );
+
+const testExclude = testAppSuite('Rewrite routes with exclude', {
+  rewriteRoutes: [{ prefix: 'it', paths: {}, exclude: ['/docs/*'] }],
+});
+
+testExclude('exclude skips localized mirrors for matched routes', ({ ctx }) => {
+  const it = ctx.routeTrie.children.get('it');
+  assert.ok(it, 'prefix mirror "it" should exist for non-excluded routes');
+  assert.ok(it!.children.get('about-us'), 'non-excluded route is mirrored under "it"');
+  assert.is(it!.children.get('docs'), undefined, '"/docs/*" is excluded from the "it" mirror');
+});

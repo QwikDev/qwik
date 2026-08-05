@@ -22,4 +22,4 @@ export const rel =
 
 export const isJSRegex = /\.[mc]?js$/;
 
-export const yieldInterval = 1000 / 60;
+export const yieldInterval = 10;

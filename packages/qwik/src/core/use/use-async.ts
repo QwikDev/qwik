@@ -1,26 +1,30 @@
 import { createAsyncSignal } from '../reactive-primitives/signal-api';
 import { type AsyncSignal } from '../reactive-primitives/signal.public';
-import type { AsyncCtx, AsyncSignalOptions } from '../reactive-primitives/types';
+import type { ComputeCtx, AsyncSignalOptions } from '../reactive-primitives/types';
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
 import type { QRL } from '../shared/qrl/qrl.public';
 import type { ValueOrPromise } from '../shared/utils/types';
 import { useConstant } from './use-signal';
 
 /**
- * Note, we don't pass the generic type to AsyncCtx because it causes TypeScript to not infer the
+ * Note, we don't pass the generic type to ComputeCtx because it causes TypeScript to not infer the
  * type of the resource correctly. The type is only used for the `previous` property, which is not
  * commonly used, and can be easily cast if needed.
  *
+ * @deprecated Use `useComputed$` with an async function instead.
  * @public
  */
-export type AsyncFn<T> = (ctx: AsyncCtx) => ValueOrPromise<T>;
+export type AsyncFn<T> = (ctx: ComputeCtx) => ValueOrPromise<T>;
 
 const creator = <T>(qrl: QRL<AsyncFn<T>>, options?: AsyncSignalOptions<T>) => {
   qrl.resolve();
   return createAsyncSignal(qrl, options);
 };
 
-/** @internal */
+/**
+ * @deprecated Use `useComputed$` instead, it has async support now.
+ * @internal
+ */
 export const useAsyncQrl = <T>(
   qrl: QRL<AsyncFn<T>>,
   options?: AsyncSignalOptions<T>
@@ -47,6 +51,8 @@ export const useAsyncQrl = <T>(
  * will subscribe to it and return the last resolved value until the new value is ready. As soon as
  * the new value is ready, the subscribers will be updated.
  *
+ * @deprecated Use `useComputed$` instead, it has async support now. It auto-tracks synchronous
+ *   reads; after the first `await`, use the provided `track()` like before.
  * @public
  */
 export const useAsync$ = implicit$FirstArg(useAsyncQrl);

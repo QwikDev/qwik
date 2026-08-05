@@ -6,11 +6,11 @@ import { startPreloading } from '../npm/index';
 import updateConf from '../utils/updateConf';
 import createDebug from 'debug';
 import {
-  findVirtualModule,
   type QwikDevtoolsOptions,
   transformComponentFile,
   transformRootFile,
 } from '../virtualmodules/virtualModules';
+import { createVirtualModuleRegistry } from '../virtualmodules/registry';
 
 const log = createDebug('qwik:devtools:plugin');
 
@@ -19,6 +19,7 @@ export function devtoolsPlugin(opts: QwikDevtoolsOptions = {}): Plugin {
   let resolvedConfig: ResolvedConfig;
   const qwikData = new Map<string, any>();
   let preloadStarted = false;
+  const virtualModuleRegistry = createVirtualModuleRegistry();
 
   return {
     name: 'vite-plugin-qwik-devtools',
@@ -26,20 +27,11 @@ export function devtoolsPlugin(opts: QwikDevtoolsOptions = {}): Plugin {
     apply: 'serve',
 
     resolveId(id) {
-      const virtualModule = findVirtualModule(id);
-      if (virtualModule) {
-        return `/${virtualModule.key}`;
-      }
+      return virtualModuleRegistry.resolveId(id);
     },
 
     load(id) {
-      const virtualModule = findVirtualModule(id);
-      if (virtualModule) {
-        return {
-          code: virtualModule.source,
-          map: { mappings: '' },
-        };
-      }
+      return virtualModuleRegistry.load(id);
     },
 
     configResolved(viteConfig) {

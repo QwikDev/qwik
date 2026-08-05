@@ -66,3 +66,25 @@ test.describe('streaming', () => {
     await expect(count).toHaveText('Rerender: 2');
   });
 });
+
+test.describe('streaming flush', () => {
+  test('should flush prefix before awaiting slow async component', async ({ page }) => {
+    await page.goto('/e2e/streaming-flush', {
+      waitUntil: 'commit',
+    });
+
+    // Prefix content must be visible quickly — the flush sends it
+    // before blocking on the 5s async component.
+    await expect(page.locator('#prefix')).toHaveText('Prefix content', {
+      timeout: 3000,
+    });
+
+    // Async content must NOT exist yet (still blocked on the delay).
+    await expect(page.locator('#async-result')).toHaveCount(0);
+
+    // After the async component resolves, the content appears.
+    await expect(page.locator('#async-result')).toHaveText('Async done', {
+      timeout: 8000,
+    });
+  });
+});

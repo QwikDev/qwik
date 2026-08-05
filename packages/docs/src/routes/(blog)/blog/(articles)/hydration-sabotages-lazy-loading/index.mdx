@@ -1,0 +1,462 @@
+---
+title: 'Hydration, the Saboteur of Lazy Loading'
+authors:
+  - 'Miško Hevery'
+tags: ['Qwik']
+date: 'October 5, 2023'
+canonical: 'https://www.builder.io/blog/hydration-sabotages-lazy-loading'
+---
+
+import { ArticleBlock } from '~/routes/(blog)/blog/components/mdx/article-block';
+import { Image } from 'qwik-image';
+import img1 from './img-1.webp';
+import img2 from './img-2.webp';
+import img3 from './img-3.webp';
+import img4 from './img-4.webp';
+import img5 from './img-5.webp';
+import img6 from './img-6.webp';
+import img7 from './img-7.webp';
+import img8 from './img-8.webp';
+import img9 from './img-9.webp';
+import img10 from './img-10.webp';
+import img11 from './img-11.webp';
+import img12 from './img-12.webp';
+import img13 from './img-13.webp';
+import img14 from './img-14.webp';
+import img15 from './img-15.webp';
+import img16 from './img-16.webp';
+import img17 from './img-17.webp';
+import img18 from './img-18.webp';
+import img19 from './img-19.webp';
+import img20 from './img-20.webp';
+
+<ArticleBlock>
+
+Lazy-loading and executing less code is standard advice to speed up a bloated application. The advice is sound, but I am here to tell you that hydration will try to sabotage you every step of the way.
+
+## The counter
+
+Let's start with building the most straightforward application we can think of, a humble counter.
+
+A counter consists of a state, a state mutation, and state binding. Sure, it is a trivial application, but it represents a real-world application because real-world apps also have state, state mutation, and state binding, just in a more complex form.
+
+<Image
+  class="w-full"
+  src={img1}
+  alt="A white diagram box labeled Counter. It contains red boxes labeled mutation, state, and render."
+/>
+
+The place where this analogy breaks down is that real-world applications consist of many components, so let's modify our counter by breaking it up from a single component to three components. Each component contains a single aspect of the application: state, state mutation, and state binding.
+
+<Image
+  class="w-full"
+  src={img2}
+  alt="A box labeled Counter contains a red box called state. Branching to the bottom left and right, there are two boxes. There is an arrow extending from the Counter to each box. On the left, an Action box contains a red box for mutation. On the right, a box for Display contains a red render box."
+/>
+
+Real-world applications are not so clean; they mix behavior and presentation. Let's make our counter more true to life by introducing wrapper components. These components have no behavior function other than to add visual styling.
+
+For all practical purposes, they are static and inert. (We represent static components with dashed borders.) But because they wrap non-static components, they are responsible for passing information to their children (prop-drilling.)
+
+<Image
+  class="w-full"
+  src={img3}
+  alt="A branching diagram. Static AppRoot connects to nonstatic Counter, which branches to static ActionWrapper and DisplayWrapper. ActionWrapper connects to nonstatic Action. DisplayWrapper connects to nonstatic Display."
+/>
+
+OK, One more thing. Let's add some actual static components that have no prop-drilling. Let's add leaf icons to our counter application to represent those.
+
+<Image
+  class="w-full"
+  src={img4}
+  alt="Counter application component tree diagram with leaf icons added."
+/>
+
+You should think about which components are needed for the application's behavior. Notice that the only data flow in the application is from the `Action` to the `Display` going through `Counter` where the state is defined; all other components bring no value to the application's behavior, only to the presentation.
+
+<Image
+  class="w-full"
+  src={img5}
+  alt="Counter application component tree diagram highlighting the data flow from Action to Display through Counter."
+/>
+
+While the counter example here is trivial, let's imagine it is large and slow to start. What can we do to improve the startup performance? The most common advice is lazy-loading and lazy execution of code. So, let's look at our example and consider which components need to be present eagerly, which can be lazy-loaded, and which should never load because they are static.
+
+Let's talk about an ideal world where the server sends pre-rendered HTML to the client, and the client downloads and executes a minimal amount of code:
+
+## Lazy-loading and lazy execution
+
+Code which should never make it to the client:
+
+- All of the components with dashed borders (`AppRoot`, `ActionWrapper`, `ActionIcon`, `DisplayWrapper`, and `DisplayIcon`) never need to re-render on the client, own no state or listeners, and are, therefore, static. There should be no need to load them for the duration of our application.
+
+Code which probably makes it to the client but should be lazy:
+
+- `Counter` component does not need to re-render on the client, but it is responsible for creating the application's state. Ideally, the code should only be executed once the user interacts with the increment button.
+- `Display` component needs to re-render on the client, but only if the state of the application changes. It should be lazy-loaded on state mutation.
+
+Code which needs to be eagerly executed on the client:
+
+- `Action` component never needs to re-render on the client, but it has the event listener that the framework needs. Ideally, we should not need to load the `Action`, but we do need to tell the framework about the listener somehow, so this code needs to be executed before the application can be interactive.
+
+## Hydration
+
+<Image
+  class="w-full"
+  src={img6}
+  alt="Counter application component tree diagram illustrating hydration."
+/>
+
+OK, so now that the stage is set, let's talk about how hydration turns our static HTML into an interactive counter. For an application to become interactive, the framework needs to know three things:
+
+1. The state of the application (current count.)
+2. The component boundaries and bindings within them (what to repaint on change.)
+3. The location and the closure of the event listeners (what to listen for and what to do.)
+
+Most frameworks gain this information by executing the application components during startup, and we call this hydration. The framework starts by executing the root component, and the component tells the framework about its state, bindings, and child components.
+
+The framework then recurses into the newly discovered components until all the components in the current render tree of the application are processed.
+
+Execute `AppRoot` and learn about `Counter`. Execute `Counter`, learn about `ActionWrapper` and `DisplayWrapper`. Execute `ActionWrapper` to learn about `Action` component. Execute `Action` component and learn about click listener, and so on…
+
+Think about how the above hydration process affects lazy loading and lazy execution:
+
+1. The `AppRoot` component must eagerly be downloaded and executed because it is the application's entry point. The framework learns about `Counter`.
+2. The `Counter` component must be executed to learn about the state of the application and to learn about `ActionWrapper` and `DisplayWrapper`.
+3. Even though `ActionWrapper` is static, the framework must execute it so that it can learn about the `Action` component.
+4. The framework must execute `Action` to learn about the click listener. Executing the component allows the framework to get a hold of the event handler closure, which closes over the state of the counter.
+5. Without some additional data (to be discussed later,) the framework must execute the `ActionIcon` component just in case there is a listener (or other components.)
+6. `DisplayWrapper` needs to be executed to pass the state from `Counter` to `Display`.
+7. `Display` must be executed to ensure there are no listeners (and to learn about the binding of state).
+8. `DisplayIcon` must also be eagerly executed to ensure no extra components or listeners.
+
+Notice what just happened. Every component in the render tree had to be downloaded and executed to make the application interactive.
+
+This must be done eagerly and completed before the application can be interacted with. Trying to do any lazy-loading of components does not help because hydration will eagerly load them anyway.
+
+Hydration must:
+
+- Start at the root component; the implication is that hydration must process components from root to leaf. It can't start in the middle of the render tree.
+- Execute the component to learn about state, listeners, and child components.
+
+Hydration has no hints about which components are static, and so it must exhaustively visit every component just in case. This really puts a damper on any lazy loading or lazy execution. Let's count how many functions we must download and execute in order to make the application interactive.
+
+<Image
+  class="w-full"
+  src={img7}
+  alt="A diagram showing how many components and elements lazy-load with hydration by default. Eager execution is on for everything, and no lazy loading is occurring."
+/>
+
+To get a better overview of the cost of hydration, let's keep a table that shows which components had to be eagerly or lazily executed to make the application interactive. In the case of classical hydration, all eight components (+1 event handler) had to be eagerly downloaded and executed. (In the case of the event handler, the code closure had to be eagerly instantiated and attached to the DOM, even though the handler closure does not run eagerly.)
+
+## Hydration derivatives
+
+<Image
+  class="w-full"
+  src={img8}
+  alt="Table summarizing the cost of classical hydration across components."
+/>
+
+We know that hydration is slow and expensive because it must visit every component in the render tree. What can we do to lessen the impact?
+
+Many of the reasons why components had to be run was _just-in-case_. What if we could give the hydration algorithm more information to short-circuit many inefficiencies? So, let's look at some hydration improvements that people have tried.
+
+## Progressive hydration
+
+Progressive hydration is like regular hydration (in the sense that it visits all components), but it can prioritize different branches in a tree based on user interaction.
+
+When the hydration processes the `Counter` component, it learns about `ActionWrapper` and `DisplayWrapper`. Which branch should be processed first? If the hydration can observe that the user has clicked on the `button` that is inside the `ActionWrapper` sub-tree, then progressive hydration can prioritize processing `ActionWrapper` over the `DisplayWrapper`. (It could also pause a branch in a tree and process a higher priority branch first if the user interactions call on it.)
+
+From the point of view of how much code has to be downloaded and executed, progressive hydration is the same as classical hydration. Still, progressive hydration is an improvement from user-observed time to interactivity.
+
+## Partial hydration or islands
+
+<Image
+  class="w-full"
+  src={img9}
+  alt="Diagram illustrating partial hydration or islands across the counter component tree."
+/>
+
+Partial hydration is about recognizing that not all of the components in a tree need to be hydrated because they are static. In our case, `AppRoot` can be skipped because it is static and it has no state (or providers) or events.
+
+But partial hydration usually can't skip static components in the middle. For example, `ActionWrapper` and `DisplayWrapper`, even though static, must be executed because they allow the framework to get from `Counter` to `Action` and `Display` and to pass relevant data to the child components. Even though they are static, they are load-bearing.
+
+The creation of islands also helps the bundler, as it designates different entry points to the application. This allows the bundler to carve out `AppRoot` and not ship it to the client.
+
+<Image
+  class="w-full"
+  src={img10}
+  alt="Table summarizing the cost of partial hydration or islands across components."
+/>
+
+Of course, the savings depend significantly on how many components can be marked as static, so it can vary greatly depending on the kind of app you are building.
+
+If the islands are small enough, then the cost of hydration can be absorbed as part of the initial interaction; in that case, the whole cost can be transferred to the lazy column. It is also possible to break the `Action` and `Display` into separate islands, but now you have a state outside of and spanning islands (further complicating the problem).
+
+## Branch pruning hydration
+
+<Image
+  class="w-full"
+  src={img11}
+  alt="Diagram illustrating branch pruning hydration across the counter component tree."
+/>
+
+`ActionIcon` and `DisplayIcon` are static branches. If hydration could be told that these branches are static, it could short circuit visiting these components since they have no interactivity.
+
+The complication is that at runtime, there is only one way for the framework to know if a component is static, and that is to execute it. So, the static nature of a component must be collected either at build time or pre-rendering time and provided to the hydration algorithm in a declarative way.
+
+Such information will also affect the bundlers, as we don't want to ship components that will not be executed. Typical tree shaking will not help here because the parent component directly references the branch component. (`Display` knows about `DisplayIcon`; therefore, bundler includes it.) So it is not just about not executing it, but also not bundling it in the first place.
+
+<Image
+  class="w-full"
+  src={img12}
+  alt="Table summarizing the cost of branch pruning hydration across components."
+/>
+
+## Server Components hydration
+
+Server Components (as popularized by React Server Components) ask the developer to mark which components are static on the client by marking them in code. Static components can't have state or event handlers.
+
+For this reason, it is possible to serialize them during SSR/SSG. This benefits the framework because the framework has all of the information about the component without actually executing the component.
+
+Through clever use of projection (`children`) it is possible to interleave static and dynamic components. So even though `DisplayWrapper` is sandwiched between `Counter` and `Display`, hydration can skip it. The same projection tricks could be applied to `DisplayIcon`, but the further the component is from the root, the harder it is to project.
+
+Part of the constraint is that components can only have one `children` property, so additional projections require other attributes, which are possible but become unergonomic, and so developers tend only to use it for the largest/most expensive components.
+
+<Image
+  class="w-full"
+  src={img13}
+  alt="Table summarizing the cost of Server Components hydration across components."
+/>
+
+Here, `ActionIcon` and `DispalyIcon` are marked with a light checkmark and give a cost 0.5, to indicate that they could be avoided but probably not.
+
+## Component pruning
+
+Some frameworks can look at `ActionIcon` or `DisplayIcon` as part of the compilation and recognize that they are leaves that will never re-render on the client and automatically omit it from the build. The branches get pruned. But this only works for static branches.
+
+This trick can't be used to prune `DisplayWrapper` because it contains `Display`, which will render on the client.
+
+<Image
+  class="w-full"
+  src={img14}
+  alt="Table summarizing the cost of component pruning across components."
+/>
+
+Of course, these strategies can be combined to further improve the results.
+
+## Hydration is ordered
+
+<Image
+  class="w-full"
+  src={img15}
+  alt="Diagram illustrating that hydration is ordered from root toward leaves."
+/>
+
+An important concept to understand is that the hydration is sequential. Hydration must start at an entry point component (typically root) and work itself towards leaves. Hydration can prioritize different branches but can't skip intermediate components to go directly to a leaf.
+
+This means that a child component in the tree will require all parent components to be hydrated before the child can be hydrated. Part of the reason is that the components get props from parent components, so to create a component, the parent component must have executed and generated the props, which is recursive to the root.
+
+## Lazy loading component
+
+<Image
+  class="w-full"
+  src={img16}
+  alt="Diagram illustrating lazy loading a component within the counter tree."
+/>
+
+An important concept to understand is that the hydration is sequential. Hydration must start at an entry point component (typically root) and work itself towards leaves. Hydration can prioritize different branches but can't skip intermediate components to go directly to a leaf.
+
+This means that a child component in the tree will require all parent components to be hydrated before the child can be hydrated. Part of the reason is that the components get props from parent components, so to create a component, the parent component must have executed and generated the props, which is recursive to the root.
+
+```jsx
+function DisplayWrapper({ count }) {
+  return (
+    <div className="my-app-styles">
+      <Display count={count} />;
+    </div>
+  );
+}
+
+function Display({ count }) {
+  return (
+    <div>
+      <DisplayIcon />
+      {count}
+    </div>
+  );
+}
+
+function DisplayIcon() {
+  return <svg>...</svg>;
+}
+```
+
+Let's lazy load a `Display` as it is unnecessary until the user interacts with the counter.
+
+1. Move `Display` (and `DisplayIcon`) into a separate file.
+2. Use dynamic `import()` to get a hold of `Display`.
+3. Wrap the dynamically loaded `Display` in `lazy()`.
+4. Finally, use the lazy `Display` in a `Suspense`.
+
+New lazy-loaded file:
+
+```jsx
+export function Display({ count }) {
+  return (
+    <div>
+      <DisplayIcon />
+      {count}
+    </div>
+  );
+}
+
+function DisplayIcon() {
+  return <svg>...</svg>;
+}
+```
+
+Existing file with new changes:
+
+```jsx
+import { lazy, Suspense } from 'react';
+
+const LazyDisplay = lazy(() => (await import('./lazy')).Display);
+
+function DisplayWrapper({count}) {
+  return (
+    <div className="my-app-styles">
+      <Suspense fallback={<span>loading...</span>}>
+        <LazyDisplay count={count} />
+      </Suspense>
+    </div>
+  );
+}
+```
+
+A few things to note:
+
+1. This is not a small change. Moving components to different files and adding the necessary wrappers (`lazy` and `Suspense`) is not trivial. A trivial change would be to add an attribute to designate a lazy-loaded boundary to declare intent.
+2. In our example, the `Display` component depends on `DisplayIcon`, which also had to be moved to get the full benefit. This is a basic case, but in the real world, just identifying which components need to move to a separate file may be a complex undertaking.
+
+But the biggest problem is that the hydration will force the `Display` component to be loaded eagerly, even though we went through a lot of work to introduce a lazy loaded boundary. (The argument can be made that lazy loading components during hydration has a negative impact on startup time.)
+
+Hydration will always cause all components in the current render tree to load eagerly because hydration must visit all components to determine if they may have state, bindings, or event handlers. **This is why hydration is sabotaging your efforts to lazy-load and lazy-execute your code.**
+
+## Lazy loading an event handler
+
+Another place that we can use lazy loading is on the event handler.
+
+```jsx
+export function Action({ setCount }) {
+  return (
+    <button onClick={() => setCount((v) => v + 1)}>
+      <ActionIcon />
+    </button>
+  );
+}
+```
+
+In our trivial example, there is little value in lazy-loading it, but let's review the motions to get insight into what is involved.
+
+Just as before, create a new file that contains the lazy-loaded handler.
+
+```jsx
+// Action_click.tsx
+export function ActionClickHandler(setCount) {
+  setCount((v) => v + 1);
+}
+```
+
+Modify existing code to perform lazy-loading.
+
+```jsx
+export function Action({ setCount }) {
+  return (
+    <button onClick={async () => {
+      const module = await import('./Action_click.tsx'));
+      module.Action_click(setCount);
+    }}>
+      <ActionIcon />
+    </button>
+  );
+}
+```
+
+A few things to note:
+
+1. While not as much work as moving multiple components to a new file, moving functions still takes work.
+
+2. The hardest part of this refactoring is that by moving the code, we have changed the code from a closure to a function. A closure closes over the state of the component, such as `setCount`, so it can just be used. But a function is top-level and hence can't close over any component state. So, during refactoring, we must explicitly identify all of the closed-over references and pass them to the lazy loaded function.
+
+3. Even though we have moved our code to the lazy loaded function, we still left behind a trampoline closure. The job of the trampoline is to:
+   - Tell the framework where to set up a listener.
+   - Capture the references from within the component.
+   - Lazy-load our code.
+   - Pass in the closed-over references to the lazy-loaded code.
+
+Depending on the size of the code we are refactoring, the added complexity of the trampoline may not be worth it. But at least hydration does not force the lazy loading of this function.
+
+However, we have now created a new problem. When the user interacts with the component, they will have to wait for the code to be loaded, and depending on their network, that may be anywhere from instant to broken.
+
+## Prefetching
+
+<Image class="w-full" src={img17} alt="Diagram illustrating prefetching of lazy-loaded code." />
+
+Prefetching is a technique of pre-populating the browser cache with data in anticipation that the user will need it later. Click handler from the previous section is a perfect use case for prefetching.
+
+Most meta-frameworks come with prefetching for the components that the meta-framework lazy-loads (typically route-based components). But if you create your own lazy loaded code, it is up to you to either prefetch those or tell the meta-framework about them to prefetch them for you. The meta-framework can't infer which files need to be prefetch, in which order, and when without some communication from the developer.
+
+The problem of prefetching falls onto the developer. Whenever a new lazy-loaded entry is created, that entry needs to be registered with a prefetcher so that the user has a good experience. On a large codebase, constantly keeping track of which entry point to prefetch can easily become a full-time task.
+
+## When does lazy-loading work?
+
+Hydration sabotages lazy loading. And when you do get lazy-loading to work, you are on your own to ensure you don't degrade the user experience by ensuring all lazy-loaded entries are pre-fetched.
+
+But it is not all bad news. There are cases when lazy loading works as advertised when the component is out of reach of hydration.
+
+Lazy loading works great for components not in the render tree and, therefore, does not need to be visited during hydration. Examples are dialog boxes that pop up on interactions or components in different routes.
+
+## Hydration alternatives
+
+<Image
+  class="w-full"
+  src={img18}
+  alt="Diagram illustrating hydration alternatives such as resumability."
+/>
+
+A framework must have information about the application state, component boundaries, and event listeners to do its work. Typically, frameworks get that information by re-executing the application. But what if there is an alternative?
+
+The key is to recognize that the framework had that information as part of SSR/SSG, but it threw it away. What if, instead of throwing the information away, the framework would serialize it into HTML and then send it to the client? Instead of executing application components, the [framework would deserialize the information from HTML](https://www.builder.io/blog/resumability-from-ground-up).
+
+What kind of impact would that have on start-up?
+
+<Image
+  class="w-full"
+  src={img19}
+  alt="Table summarizing the cost of resumability across components, showing no eager code execution."
+/>
+
+The impact is that there is no code that the framework needs to run eagerly on start-up! But even better, the amount of code that needs to be run on interaction is also significantly reduced.
+
+[In the case of Qwik](https://www.builder.io/blog/the-qase-for-qwik-love-at-first-tti), the only code we need is the event handler. (Depending on the complexity of Display we may also require its execution, which is why it is a light checkmark and gets a cost of 0.5) This is way less code than any of the hydration options.
+
+## Lazy-loading in the context of resumability
+
+Lazy-loading and resumability are not strictly coupled, but in case of Qwik, they come together through [code extraction](https://www.builder.io/blog/wtf-is-code-extraction). Because the framework is responsible for lazy-loading, the framework is also responsible for prefetching the lazy-loaded code, ensuring that all user interactions will be instant.
+
+## My framework can do that
+
+Yes, it is possible, through a lot of engineering effort, to make things fast in any technology. But the real world tells us that we have limited engineering time, and there are features to be built.
+
+So, there is a difference between "it is possible" and "it is just how it works." Yes, it is possible to make hydration fast through a lot of engineering effort by breaking your application into islands, inserting lazy loading, configuring the prefetcher, and scrutinizing every import.
+
+But these tasks are better left to a computer because they are tedious, and once you finish all the optimization, you begin to slide backward on performance with every new feature added.
+
+<Image
+  class="w-full"
+  src={img20}
+  alt="Diagram comparing hydration optimization effort against resumability."
+/>
+
+</ArticleBlock>

@@ -36,12 +36,12 @@ import { assertDefined, assertFalse } from '../error/assert';
 import type { Container } from '../types';
 import { VNodeFlags } from '../../client/types';
 import { isDev, isServer } from '@qwik.dev/core/build';
-import { QCursorBoundary } from '../utils/markers';
 import {
   addCursorBoundary,
+  clearCursorBoundary,
   clearNearestCursorBoundary,
+  getOwnCursorBoundary,
   resolveCursorBoundaries,
-  type CursorBoundary,
 } from '../../use/use-cursor-boundary';
 
 const DEBUG = false;
@@ -254,6 +254,7 @@ function finishWalk(
     }
 
     resolveCursorBoundaries(cursorData);
+    clearCursorBoundary(cursor);
 
     if (cursorData.extraPromises) {
       Promise.all(cursorData.extraPromises).then(() => {
@@ -368,14 +369,7 @@ export function getNextVNode(vNode: VNode, cursor: Cursor, container?: Container
 }
 
 function splitCursorBoundary(container: Container, vNode: VNode): boolean {
-  if (!__EXPERIMENTAL__.suspense) {
-    return false;
-  }
-  if (
-    !vNode.props ||
-    !(QCursorBoundary in vNode.props) ||
-    !container.getHostProp<CursorBoundary>(vNode as any, QCursorBoundary)
-  ) {
+  if (!getOwnCursorBoundary(vNode)) {
     return false;
   }
 

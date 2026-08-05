@@ -1,3 +1,9 @@
+import { QWIK_DEVTOOLS_GLOBAL } from '@qwik.dev/devtools/kit';
+
+const globalKey = JSON.stringify(QWIK_DEVTOOLS_GLOBAL.key);
+const globalVersion = JSON.stringify(QWIK_DEVTOOLS_GLOBAL.version);
+const componentStateKey = JSON.stringify(QWIK_DEVTOOLS_GLOBAL.props.componentState);
+
 /** Virtual module source for devtools tracking. Collects hooks and tracks render statistics. */
 const useCollectHooks = `import { $, useSignal, useVisibleTask$ } from "@qwik.dev/core"
 
@@ -9,13 +15,15 @@ function initComponentState() {
 }
 
 function getOrCreateState(src) {
-  if (!window.QWIK_DEVTOOLS_GLOBAL_STATE) {
-    window.QWIK_DEVTOOLS_GLOBAL_STATE = {}
+  const root = window[${globalKey}] || (window[${globalKey}] = { version: ${globalVersion} })
+  root.version = root.version || ${globalVersion}
+  if (!root[${componentStateKey}]) {
+    root[${componentStateKey}] = {}
   }
-  if (!window.QWIK_DEVTOOLS_GLOBAL_STATE[src]) {
-    window.QWIK_DEVTOOLS_GLOBAL_STATE[src] = initComponentState()
+  if (!root[${componentStateKey}][src]) {
+    root[${componentStateKey}][src] = initComponentState()
   }
-  return window.QWIK_DEVTOOLS_GLOBAL_STATE[src]
+  return root[${componentStateKey}][src]
 }
 
 /**

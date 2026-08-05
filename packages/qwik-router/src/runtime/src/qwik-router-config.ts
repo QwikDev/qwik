@@ -10,6 +10,7 @@ export const fallthrough = false;
 
 export default {
   routes,
+  serverPlugins,
   trailingSlash,
   basePathname,
   cacheModules,

@@ -7,7 +7,7 @@ import {
   EffectProperty,
   NEEDS_COMPUTATION,
   SerializationSignalFlags,
-  SignalFlags,
+  ComputedSignalFlags,
   type ComputeQRL,
 } from '../types';
 import { scheduleEffects, throwIfQRLNotResolved } from '../utils';
@@ -28,13 +28,13 @@ export class SerializerSignalImpl<T, S> extends ComputedSignalImpl<T> {
     super(
       container,
       argQrl as unknown as ComputeQRL<T>,
-      SignalFlags.INVALID | SerializationSignalFlags.SERIALIZATION_STRATEGY_ALWAYS
+      ComputedSignalFlags.INVALID | SerializationSignalFlags.SERIALIZATION_STRATEGY_ALWAYS
     );
   }
   $didInitialize$: boolean = false;
 
   $computeIfNeeded$() {
-    if (!(this.$flags$ & SignalFlags.INVALID)) {
+    if (!(this.$flags$ & ComputedSignalFlags.INVALID)) {
       return;
     }
     throwIfQRLNotResolved(this.$computeQrl$);
@@ -58,7 +58,7 @@ export class SerializerSignalImpl<T, S> extends ComputedSignalImpl<T> {
     this.$didInitialize$ = true;
 
     // Needs to invalidate only after all possible Promise throws happened
-    this.$flags$ &= ~SignalFlags.INVALID;
+    this.$flags$ &= ~ComputedSignalFlags.INVALID;
 
     DEBUG && log('SerializerSignal.$compute$', untrackedValue);
     // We allow forcing the update of the signal without changing the value, for example when the deserialized value is the same reference as the old value but its internals have changed. In that case we want to trigger effects that depend on this signal, even though the value is the same.

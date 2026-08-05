@@ -20,11 +20,11 @@ import { useResourceQrl } from './use-resource';
  * Be careful when using a `try/catch` statement in `useResource$`. If you catch the error and don't
  * re-throw it (or a new Error), the resource status will never be `rejected`.
  *
- * @deprecated Use `useAsync$` instead, which is more powerful and flexible. `useResource$` is still
- *   available for backward compatibility but it is recommended to migrate to `useAsync$` for new
- *   code and when updating existing code.
+ * @deprecated Use `useComputed$` instead, which is more powerful and flexible. `useResource$` is
+ *   still available for backward compatibility but it is recommended to migrate to `useComputed$`
+ *   for new code and when updating existing code.
  * @public
- * @see useAsync$
+ * @see useComputed$
  * @see Resource
  * @see ResourceReturn
  */

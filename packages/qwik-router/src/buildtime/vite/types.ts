@@ -82,6 +82,13 @@ export interface QwikRouterPluginApi {
   getBasePathname: () => string;
   getRoutes: () => BuiltRoute[];
   getServiceWorkers: () => BuiltEntry[];
+  /**
+   * Hand the adapter's SSG include/exclude patterns to the router so the production server route
+   * plan can drop fully-prerendered, server-free routes. Called by the SSG adapter.
+   *
+   * @internal
+   */
+  _setSsgRoutes?: (include: string[] | undefined, exclude: string[] | undefined) => void;
 }
 
 /**

@@ -1,7 +1,7 @@
 ---
 title: The $ dollar sign | Advanced
 contributors:
-  - the-r3aper7
+  - saisrikardumpeti
   - manucorporat
   - adamdbradley
   - saikatdas0790
@@ -191,6 +191,39 @@ component$(() => {
   console.log(foo);
 });
 ```
+
+##### Module-level variables cannot be mutated after extraction
+
+Reading an exported module-level variable from an extracted closure works, since the Optimizer turns the reference into an `import`. Assigning to it does not: `import` bindings are read-only, so mutating one from inside the extracted closure fails at build time.
+
+```tsx
+// Invalid
+export let count = 0;
+component$(() => {
+  return <button onClick$={() => count++}>{count}</button>; // count becomes an import; count++ fails
+});
+```
+
+<Note>A non-exported module-level `let` doesn't hit this error, but it's not safe either: the Optimizer duplicates the declaration into each chunk that references it, so every chunk mutates its own independent copy instead of shared state.</Note>
+
+Wrap the read and the write in their own exported functions in a separate module instead of mutating the binding directly:
+
+```tsx title="counter.ts"
+let count = 0;
+export const getCount = () => count;
+export const incrementCount = () => count++;
+```
+
+```tsx
+// Valid
+import { getCount, incrementCount } from './counter';
+
+component$(() => {
+  return <button onClick$={() => incrementCount()}>{getCount()}</button>;
+});
+```
+
+If the state needs to be reactive or scoped per component instance, use a [signal](../../core/state/index.mdx) instead of a module-level variable.
 
 ## Deep dive
 

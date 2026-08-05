@@ -43,6 +43,7 @@ export interface ContainerElement extends HTMLElement {
 
   /** String from `<script type="qwik/vnode">` tag. */
   qVnodeData?: string;
+  qDestroy?: () => void;
 
   /** Segment-local strings from `<script type="qwik/vnode" q:r="...">` tags. */
   qSegmentVnodeData?: Map<string, string>;
@@ -56,6 +57,18 @@ export interface QDocument extends Document {
    * This map is used to rebuild virtual nodes from the HTML. Missing extra text nodes, and Fragments.
    */
   qVNodeData: WeakMap<Element, string>;
+
+  /** True once root document VNode data has been scheduled at least once. */
+  qVNodeDataStarted?: boolean;
+
+  /** True when root, segment, and patch VNode data work is fully drained. */
+  qVNodeDataReady?: boolean;
+
+  /** Internal yielding state for queued VNode data jobs. */
+  qVNodeDataState?: unknown;
+
+  /** Callbacks waiting for root, segment, and patch VNode data work to drain. */
+  qVNodeDataCallbacks?: Array<() => void>;
 
   /** True once the root document VNode data has been fully processed. */
   qVNodeDataProcessed?: boolean;

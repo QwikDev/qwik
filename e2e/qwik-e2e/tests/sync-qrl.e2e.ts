@@ -24,6 +24,6 @@ test.describe('resuming', () => {
     // clicking checkbox does not toggles the checked state, because default is prevented.
     await input.click();
     await expect(input).toBeChecked();
-    await expect(await input.getAttribute('prevented')).toBeDefined();
+    await expect(input).toHaveAttribute('prevented', 'true');
   });
 });

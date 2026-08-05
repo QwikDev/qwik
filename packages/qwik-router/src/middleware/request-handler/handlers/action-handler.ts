@@ -7,8 +7,10 @@ import type {
   RequestHandler,
   ValidatorReturn,
 } from '../../../runtime/src/types';
+import { RedirectMessage } from '../redirect-handler';
 import { RequestEvSharedActionId, type RequestEventInternal } from '../request-event-core';
 import { IsQAction, QActionId } from '../request-path';
+import { throwIfControlFlowSignal } from '../server-error';
 import type { QRL } from '@qwik.dev/core';
 import type { RequestEventBase } from '../types';
 
@@ -92,10 +94,15 @@ export function actionHandler(routeActions: ActionInternal[]): RequestHandler {
             action!.__qrl.call(requestEv, result.data as JSONObject, requestEv)
           )
         : await action.__qrl.call(requestEv, result.data as JSONObject, requestEv);
+      throwIfControlFlowSignal(actionResolved);
       if (devMode) {
         verifySerializable(actionResolved, action.__qrl);
       }
       actionResult = actionResolved;
+    }
+    // The action resulted in a redirect, throw a RedirectMessage to let the redirect handler handle it.
+    if (requestEv.headers.has('Location')) {
+      throw new RedirectMessage();
     }
     const responseData: Record<string, unknown> = {
       result: actionResult,

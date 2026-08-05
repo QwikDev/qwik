@@ -1,4 +1,4 @@
-import { component$, useAsync$, useSignal } from '@qwik.dev/core';
+import { component$, useComputed$, useSignal } from '@qwik.dev/core';
 
 type Joke = {
   joke?: string;
@@ -9,9 +9,9 @@ type Joke = {
 export default component$(() => {
   const query = useSignal('');
 
-  const jokes = useAsync$(async ({ track, abortSignal }) => {
-    // Re-run when query changes.
-    const search = track(query).trim();
+  const jokes = useComputed$(async ({ abortSignal }) => {
+    // Re-run when query.value changes.
+    const search = query.value.trim();
     const url = new URL(
       'https://v2.jokeapi.dev/joke/Programming?safe-mode&amount=2'
     );
@@ -29,7 +29,7 @@ export default component$(() => {
   });
 
   let content;
-  if (jokes.loading) {
+  if (jokes.pending) {
     content = <p>Loading...</p>;
   } else if (jokes.error) {
     content = <div>Error: {jokes.error.message}</div>;

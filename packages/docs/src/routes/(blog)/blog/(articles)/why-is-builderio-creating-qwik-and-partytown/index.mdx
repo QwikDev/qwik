@@ -1,0 +1,61 @@
+---
+title: 'Why is Builder.io creating Qwik and Partytown?'
+authors:
+  - 'Miško Hevery'
+tags: ['Qwik', 'Partytown']
+date: 'April 13, 2022'
+canonical: 'https://www.builder.io/blog/why-is-builderio-creating-qwik-and-partytown'
+---
+
+import { ArticleBlock } from '~/routes/(blog)/blog/components/mdx/article-block';
+
+<ArticleBlock>
+
+At Builder.io, we're obsessed with web performance. It pains us that, no matter how many best practices we bake into [Builder.io](https://www.builder.io/), sometimes it feels like the performance of our customers' websites is limited by the web itself.
+
+That's why we started Qwik and Partytown, two open-source projects to make the web faster. We love the web, we want it to succeed, and we have a vested interest in building these technologies because it serves our company's goals.
+
+What follows is a story of how we got building started on these projects.
+
+## **The JavaScript problem**
+
+The biggest bottleneck for web performance is and always has been the overwhelming amount of JavaScript (JS) that too many websites have running on the browser's main thread. That's why server-side rendering (SSR) and static site generation (SSG) have taken off in recent years, popularized by frameworks like Next.js. These techniques execute JS templates to prerender a site's HTML, significantly speeding up paint times on the browser.
+
+SSR and SSG aren't cure-alls, however.
+
+Most sites have a large number of third-party scripts for analytics, customer support, and other functions that are indispensable for a company's business teams. These scripts run on the client, and since JavaScript is a single-threaded language, they compete with your application code for CPU access. This leads to an unacceptably long time to interactive (TTI) that is often measured in seconds.
+
+There's also the issue of hydration, the process by which your JS framework makes your prerendered HTML interactive on the browser.
+
+Hydration is pure overhead. It uses a huge amount of CPU time to produce no visual output, its core purpose being to attach listeners to the page to make it interactive. Unfortunately, the more we thought about it, the more we realized that with current frameworks, hydration is an unavoidable result of their design.
+
+There are several gaps that still need to be bridged. That's why Builder.io created Partytown and Qwik to address these root causes for poor website performance
+
+## **Partytown**
+
+[Partytown](https://partytown.builder.io) moves a page's third-party scripts from the main thread to the worker thread. This offloads a lot of work from the main thread and has a direct impact on the PageSpeed score, for which we've seen about a 20 point boost in most applications.
+
+The beauty of Partytown is that it doesn't force you to remove JS from your site. Instead, it moves it away from the overloaded main thread onto a different CPU core thread. Most modern devices have multiple CPU cores, but sites can't take advantage of them because JS is single-threaded. With Partytown, they can.
+
+## **Qwik**
+
+To optimize first-party code, Builder is working on [Qwik](https://qwik.builder.io/guide/overview), a framework which is specifically designed to delay the loading of JS for as long as possible. There are two key parts to Qwik:
+
+1.  A build system that's designed to break up your application into lots of small chunks rather than a few monolithic bundles as is the case with current tooling. All of this is with minimal effort on the part of the developer.
+2.  A runtime which is specifically designed to delay execution of JS for as long as possible. In practice, this means that the runtime knows how to deal with asynchronous loading of code during every stage of framework execution, which existing tools aren't very good at.
+
+No matter how complex a Qwik site gets, its initial download only consists of a small JS bundle containing just the Qwik runtime. The site is interactive as soon as the bundle has been downloaded and executed. Other frameworks that rely on hydration generally require that all of a page's components are downloaded.
+
+The result is that Qwik has fast site startup times even on old mobile devices on slow networks where hydration-based frameworks don't.
+
+## **What's new about our approach to performance optimization**
+
+At first glance, it would seem that Partytown and Qwik take diametrically opposed approaches to improving website performance. The former lets you keep all your third-party JS (often affectionately called "bloat") while the latter cuts the amount of JS executed in the browser to almost zero.
+
+What unites both projects is our conviction to keep as much JS out of the browser's main thread as possible.
+
+Most optimizations, like tree shaking and lazy loading, significantly improve _how much_ and _when_ JS is executed. Our approach builds on these and goes one step further, tackling _how_ JS is executed.
+
+We invite everyone in the developer community to join our efforts and help improve Partytown and Qwik. Together, we can make the world (wide web) a much lighter, more performant place.
+
+</ArticleBlock>

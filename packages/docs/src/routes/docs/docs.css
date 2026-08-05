@@ -65,11 +65,7 @@
 /* ─── Links ─── */
 
 .docs article a {
-  @apply text-secondary-foreground-base underline;
-}
-
-.docs article a:hover {
-  @apply no-underline;
+  @apply text-primary-standalone-base underline;
 }
 
 /* ─── Blockquotes ─── */

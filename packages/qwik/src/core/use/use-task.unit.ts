@@ -61,7 +61,6 @@ const createTask = (fn: (...args: any[]) => any) => {
     {
       getFn: vi.fn(() => fn),
     } as unknown as QRLInternal<unknown>,
-    undefined,
     null
   );
   return { host, task };

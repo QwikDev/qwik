@@ -53,7 +53,7 @@ export const setNodeWorkerPlatform = (qrlBaseUrl) => {
 export const runWorkerMessage = async (data, postMessage, invokeThis) => {
   const requestId = data[0];
   try {
-    const [qrl, ...args] = _deserialize(data[1]);
+    const [qrl, ...args] = await _deserialize(data[1]);
 
     const output = await qrl.apply(invokeThis ?? null, args);
     postMessage([requestId, true, output]);

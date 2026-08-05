@@ -43,11 +43,18 @@ export function setCursorPosition(
   }
 }
 
-function mergeCursors(container: Container, newCursorData: CursorData, oldCursor: VNode): void {
+export function mergeCursors(
+  container: Container,
+  newCursorData: CursorData,
+  oldCursor: VNode
+): void {
+  const oldCursorData = getCursorData(oldCursor);
+  if (!oldCursorData || oldCursorData === newCursorData) {
+    return;
+  }
+
   // delete from global cursors queue
   removeCursorFromQueue(oldCursor, container);
-  const oldCursorData = getCursorData(oldCursor)!;
-
   mergeCursorData(newCursorData, oldCursorData);
 }
 

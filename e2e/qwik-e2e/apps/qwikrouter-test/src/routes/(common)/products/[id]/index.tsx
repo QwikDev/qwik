@@ -3,13 +3,17 @@ import { Link, routeLoader$, useLocation, type DocumentHead } from '@qwik.dev/ro
 import os from 'node:os';
 
 export default component$(() => {
-  const { params, url } = useLocation();
+  const location = useLocation();
+  const { params, url } = location;
   const store = useStore({ productFetchData: '' });
 
   const product = useProductLoader();
 
   return (
     <div>
+      <output id="navigation-status" hidden>
+        {location.isNavigating ? 'navigating' : 'idle'}
+      </output>
       <h1>Product: {params.id}</h1>
 
       {product.value == null && <p>Not Found</p>}

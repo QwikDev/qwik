@@ -47,10 +47,10 @@ export {
   QScopedStyle,
   QSlot,
   QSlotParent,
+  QStatePrewarmAttr,
   QStatePatchAttr,
   QStyle,
   QSuspenseResolved,
-  QSuspenseResultParent,
   QTemplate,
   QVersionAttr,
   QwikEvContainerReady,
@@ -83,6 +83,7 @@ export {
   createStringStreamWriter,
   stringifyRootRefPath,
   writeStringRootRef,
+  writeStringRootRefDelta,
   writeStringRootRefPath,
 } from '../core/ssr/stream-writer';
 export type {

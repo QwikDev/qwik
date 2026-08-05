@@ -5,7 +5,7 @@ import type {
 } from '@qwik.dev/router/middleware/request-handler';
 import {
   _TextEncoderStream_polyfill,
-  getNotFound,
+  getErrorHtml,
   isStaticPath,
   mergeHeadersCookies,
   requestHandler,
@@ -106,17 +106,12 @@ export function createQwikRouter(opts: QwikRouterCloudflarePagesOptions) {
         }
       }
 
-      // qwik router did not have a route for this request
-      // response with 404 for this pathname
-
-      // In the development server, we replace the getNotFound function
-      // For static paths, we assign a static "Not Found" message.
-      // This ensures consistency between development and production environments for specific URLs.
+      // No matching route: respond with a minimal 404 (static paths get a plain message).
       const notFoundHtml =
         !request.headers.get('accept')?.includes('text/html') ||
         isStaticPath(request.method || 'GET', url)
           ? 'Not Found'
-          : getNotFound(url.pathname);
+          : getErrorHtml(404, 'Not Found');
       return new Response(notFoundHtml, {
         status: 404,
         headers: { 'Content-Type': 'text/html; charset=utf-8', 'X-Not-Found': url.pathname },

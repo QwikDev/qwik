@@ -5,7 +5,7 @@ import { ChoreBits } from '../vnode/enums/chore-bits.enum';
 import type { VirtualVNode } from '../vnode/virtual-vnode';
 import { isCursor, type Cursor } from './cursor';
 import { getNextVNode, partitionDirtyChildren, tryDescendDirtyChildren } from './cursor-walker';
-import { getCursorData, setCursorData, type CursorData } from './cursor-props';
+import { getCursorData, setCursorData, setCursorPosition, type CursorData } from './cursor-props';
 import type { Container } from '../types';
 import { QCursorBoundary } from '../utils/markers';
 import {
@@ -212,10 +212,7 @@ describe('getNextVNode', () => {
     NextContent.slotParent = Parent;
     NextContent.dirty = ChoreBits.COMPONENT;
 
-    const boundary = {
-      pending: { value: 0 },
-      version: { value: 0 },
-    } as CursorBoundary;
+    const boundary = { value: 0 } as CursorBoundary;
 
     vnode_setProp(BoundaryRoot, QCursorBoundary, boundary);
 
@@ -655,6 +652,46 @@ describe('tryDescendDirtyChildren', () => {
   });
 });
 
+describe('setCursorPosition', () => {
+  const createMockContainer = () =>
+    ({
+      $pendingCount$: 0,
+      $renderPromise$: null,
+      $resolveRenderPromise$: null,
+      $checkPendingCount$: () => {},
+    }) as unknown as Container;
+
+  it('should keep the cursor flag when a cursor advances back to itself', () => {
+    const container = createMockContainer();
+    const cursor = vnode_newVirtual() as Cursor;
+    const cursorData: CursorData = {
+      container,
+      position: null,
+      promise: null,
+      journal: null,
+      extraPromises: null,
+      afterFlushTasks: null,
+      priority: 0,
+      boundaries: null,
+    };
+
+    setCursorData(cursor, cursorData);
+    cursor.flags |= VNodeFlags.Cursor;
+    addCursorToQueue(container, cursor);
+
+    try {
+      setCursorPosition(container, cursorData, cursor);
+
+      expect(isCursor(cursor)).toBe(true);
+      expect(getCursorData(cursor)).toBe(cursorData);
+      expect(getHighestPriorityCursor()).toBe(cursor);
+      expect(container.$pendingCount$).toBe(1);
+    } finally {
+      removeCursorFromQueue(cursor, container);
+    }
+  });
+});
+
 describe('abandonCursor', () => {
   const createMockContainer = () =>
     ({
@@ -691,10 +728,7 @@ describe('abandonCursor', () => {
     const targetJournal = [] as CursorData['journal'];
     const sourceOperation = {} as any;
     const sourceJournal = [sourceOperation] as CursorData['journal'];
-    const boundary = {
-      pending: { value: 1 },
-      version: { value: 0 },
-    } as CursorBoundary;
+    const boundary = { value: 1 } as CursorBoundary;
 
     const targetData = createCursorData(container, target, targetJournal);
     const sourceData = createCursorData(container, source, sourceJournal);

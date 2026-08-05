@@ -12,9 +12,12 @@ export const useDadJoke = routeLoader$(async () => {
   };
 });
 
-export const useJokeVoteAction = routeAction$((props) => {
-  console.log('VOTE', props);
-});
+export const useJokeVoteAction = routeAction$(
+  (props) => {
+    console.log('VOTE', props);
+  },
+  { invalidate: [useDadJoke] }
+);
 
 export default component$(() => {
   // Calling our `useDadJoke` hook, will return a reactive signal to the loaded data.

@@ -20,9 +20,11 @@ export type BundleGraphAdder = (manifest: QwikManifest) => Record<string, {
 
 // @public
 export enum ExperimentalFeatures {
+    blockSSR = "blockSSR",
     each = "each",
     insights = "insights",
     noSPA = "noSPA",
+    show = "show",
     suspense = "suspense",
     valibot = "valibot"
 }
@@ -157,8 +159,6 @@ export type QwikVitePlugin = P<QwikVitePluginApi> & {
 
 // @public (undocumented)
 export interface QwikVitePluginApi {
-    // (undocumented)
-    getAssetsDir: () => string | undefined;
     // (undocumented)
     getClientOutDir: () => string | null;
     // (undocumented)

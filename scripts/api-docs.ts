@@ -171,22 +171,13 @@ async function createApiData(
   addMembers(apiExtractedJson, '');
 
   const memberNameCounts = getMemberNameCounts(apiData.members);
-  const memberAnchorsByMdFile = new Map(
-    apiData.members.map((member) => [member.mdFile, `#${getAnchorId(member, memberNameCounts)}`])
-  );
 
-  apiData.members.forEach((member) => {
-    // `api-documenter` emits many standalone markdown files into `dist-dev/api-docs`,
-    // but the docs site publishes a single `index.mdx` page per package. Rewrite links
-    // to included members as in-page anchors, and fall back to plain text for members
-    // we intentionally omit from the final one-page docs output.
-    member.content = member.content.replace(
-      /\[([^\]]+)\]\(\.\/([^)]+\.md)\)/g,
-      (_match, label: string, mdFile: string) => {
-        const anchor = memberAnchorsByMdFile.get(mdFile);
-        return anchor ? `[${label}](${anchor})` : label;
-      }
-    );
+  apiData.members.forEach((m) => {
+    m.anchorId = getMemberAnchorId(m, memberNameCounts);
+  });
+
+  apiData.members.forEach((m) => {
+    m.content = replaceMemberLinks(m.content, apiData.members);
   });
 
   apiData.members.sort((a, b) => {
@@ -197,7 +188,7 @@ async function createApiData(
   mkdirSync(docsDir, { recursive: true });
 
   const apiJsonPath = join(docsDir, `api.json`);
-  writeFileSync(apiJsonPath, JSON.stringify(apiData, null, 2));
+  writeFileSync(apiJsonPath, JSON.stringify(createApiJsonData(apiData), null, 2));
 
   const apiMdPath = join(docsDir, `index.mdx`);
   writeFileSync(apiMdPath, await createApiMarkdown(apiData));
@@ -217,7 +208,7 @@ async function createApiMarkdown(a: ApiData) {
 
   for (const m of a.members) {
     // const title = `${toSnakeCase(m.kind)} - ${m.name.replace(/"/g, '')}`;
-    const anchorId = getAnchorId(m, memberNameCounts);
+    const anchorId = m.anchorId ?? getMemberAnchorId(m, memberNameCounts);
 
     md.push(`<h2 id="${anchorId}">${m.name}</h2>`);
     md.push(``);
@@ -302,22 +293,59 @@ interface ApiMember {
   content: string;
   editUrl?: string;
   mdFile: string;
+  anchorId?: string;
 }
 
-function getMemberNameCounts(members: ApiMember[]) {
-  return members.reduce((acc: Record<string, number>, member) => {
-    const normalizedName = member.name.toLowerCase();
+function createApiJsonData(apiData: ApiData) {
+  return {
+    ...apiData,
+    members: apiData.members.map(({ anchorId, ...member }) => member),
+  };
+}
+
+function getMemberNameCounts(members: Pick<ApiMember, 'name'>[]) {
+  return members.reduce((acc: Record<string, number>, m) => {
+    const normalizedName = m.name.toLowerCase();
     acc[normalizedName] = (acc[normalizedName] || 0) + 1;
     return acc;
   }, {});
 }
 
-function getAnchorId(member: ApiMember, memberNameCounts: Record<string, number>) {
-  const normalizedName = member.name.toLowerCase();
-  if (memberNameCounts[normalizedName] > 1) {
-    return `${member.id}-${toSnakeCase(member.kind)}`;
+function getMemberAnchorId(
+  m: Pick<ApiMember, 'id' | 'kind' | 'name'>,
+  memberNameCounts: Record<string, number>
+) {
+  const isDuplicateName = memberNameCounts[m.name.toLowerCase()] > 1;
+  return isDuplicateName ? `${m.id}-${toSnakeCase(m.kind)}` : m.id;
+}
+
+function replaceMemberLinks(content: string, members: ApiMember[]) {
+  return content.replace(/\[([^\]]+)\]\(\.\/([^)]+)\)/g, (_match, linkText, mdFile) => {
+    const anchorId = getLinkedMemberAnchorId(members, mdFile, linkText);
+    return anchorId ? `[${linkText}](#${anchorId})` : linkText;
+  });
+}
+
+function getLinkedMemberAnchorId(members: ApiMember[], mdFile: string, linkText: string) {
+  const sameFileMembers = members.filter((m) => m.mdFile === mdFile);
+  if (sameFileMembers.length === 0) {
+    return undefined;
   }
-  return member.id;
+
+  const normalizedLinkText = normalizeApiLinkText(linkText);
+  const matchingMember =
+    sameFileMembers.find((m) => m.name === normalizedLinkText) ??
+    sameFileMembers.find((m) => m.name.toLowerCase() === normalizedLinkText.toLowerCase());
+
+  return (matchingMember ?? sameFileMembers[0]).anchorId;
+}
+
+function normalizeApiLinkText(linkText: string) {
+  return linkText
+    .replace(/\\([_$[\]])/g, '$1')
+    .replace(/<[^>]+>/g, '')
+    .replace(/`/g, '')
+    .trim();
 }
 
 function getCanonical(hierarchy: string[]) {

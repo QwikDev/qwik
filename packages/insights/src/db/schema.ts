@@ -99,9 +99,13 @@ export const symbolDetailTable = sqliteTable(
     hi: integer('hi').notNull(),
   },
   (symbolDetailTable) => ({
-    apiKeyManifestHashIndex: uniqueIndex('idx_symbolDetail_apiKey_manifestHash').on(
+    apiKeyManifestHashIndex: index('idx_symbolDetail_apiKey_manifestHash').on(
       symbolDetailTable.publicApiKey,
       symbolDetailTable.manifestHash
+    ),
+    apiKeyHashIndex: index('idx_symbolDetail_apiKey_hash').on(
+      symbolDetailTable.publicApiKey,
+      symbolDetailTable.hash
     ),
     publicApiKeyReference: foreignKey({
       columns: [symbolDetailTable.publicApiKey],

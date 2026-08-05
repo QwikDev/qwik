@@ -6,13 +6,14 @@ describe('collectServerFnModuleIds', () => {
   it('walks the reachable module graph and collects modules containing serverQrl', async () => {
     const resolvedVirtualId = '\0virtual:qwik-router-server-fns';
     const loads: string[] = [];
+    const loadResolveDependencies: (boolean | undefined)[] = [];
     const modules = new Map([
       [
         '/app/routes/index.tsx',
         {
           id: '/app/routes/index.tsx',
           code: 'export default component$(() => null);',
-          importedIds: ['/app/shared.ts', '/node_modules/@qwik.dev/core/index.mjs'],
+          importedIds: ['/app/shared.ts', '/app/qrl.ts', '/node_modules/@qwik.dev/core/index.mjs'],
           dynamicallyImportedIds: ['/app/lazy.ts'],
         },
       ],
@@ -31,6 +32,25 @@ describe('collectServerFnModuleIds', () => {
           id: '/app/shared.ts',
           code: 'export const shared = true;',
           importedIds: [resolvedVirtualId],
+          dynamicallyImportedIds: [],
+        },
+      ],
+      [
+        '/app/qrl.ts',
+        {
+          id: '/app/qrl.ts',
+          code: 'export const qrl = true;',
+          importedIds: [],
+          dynamicallyImportedIds: [],
+          meta: { qwikdeps: ['/app/qrl-segment.ts'] },
+        },
+      ],
+      [
+        '/app/qrl-segment.ts',
+        {
+          id: '/app/qrl-segment.ts',
+          code: 'export const segmentFn = serverQrl(() => null);',
+          importedIds: [],
           dynamicallyImportedIds: [],
         },
       ],
@@ -94,8 +114,9 @@ describe('collectServerFnModuleIds', () => {
 
     const pluginContext = {
       resolve: async (id: string) => ({ id, external: false }) as any,
-      load: async ({ id }: { id: string }) => {
+      load: async ({ id, resolveDependencies }: { id: string; resolveDependencies?: boolean }) => {
         loads.push(id);
+        loadResolveDependencies.push(resolveDependencies);
         const moduleInfo = modules.get(id);
         if (!moduleInfo) {
           throw new Error(`Unexpected module load: ${id}`);
@@ -106,14 +127,21 @@ describe('collectServerFnModuleIds', () => {
 
     const serverFnModules = await collectServerFnModuleIds(ctx, resolvedVirtualId, pluginContext);
 
-    expect(serverFnModules.sort()).toEqual(['/app/lazy.ts', '/app/plugin.ts']);
+    expect(serverFnModules.sort()).toEqual([
+      '/app/lazy.ts',
+      '/app/plugin.ts',
+      '/app/qrl-segment.ts',
+    ]);
     expect(loads).toEqual([
       '/app/routes/index.tsx',
       '/app/layout.tsx',
       '/app/plugin.ts',
       '/app/shared.ts',
+      '/app/qrl.ts',
       '/node_modules/@qwik.dev/core/index.mjs',
       '/app/lazy.ts',
+      '/app/qrl-segment.ts',
     ]);
+    expect(loadResolveDependencies).toEqual([true, true, true, true, true, true, true, true]);
   });
 });

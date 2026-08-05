@@ -156,14 +156,8 @@ export const ApiMemberList = component$(({ id, data, filters }: any) => {
           return;
         }
       
-        const name = member.name.toLowerCase()
-            .replace(/[$]/g, '_')
-            .replace(/[^a-zA-Z0-9_]/g, '')
-            .replace(/ /g, '-');
-
-        const anchorId = nameCounts[member.name.toLowerCase()] > 1 
-            ? `${name}-${kind}`
-            : name;
+        const anchorId =
+          nameCounts[member.name.toLowerCase()] > 1 ? `${member.id}-${kind}` : member.id;
 
         return (
           <li

@@ -18,7 +18,7 @@ import heif_1 from 'image-size/dist/types/heif.js';
 
 import type { Connect } from 'vite';
 import type { OptimizerSystem } from '../../types';
-import { formatError } from '../vite-utils';
+import { formatError } from '../format-error';
 
 // This map helps avoid validating for every single image type
 const firstBytes: Record<number, keyof typeof types> = {

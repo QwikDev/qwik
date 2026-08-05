@@ -22,6 +22,13 @@ export const writeStringRootRefPath = (
 ): ReturnType<StreamWriter['write']> => writer.write(stringifyRootRefPath(path));
 
 /** @internal */
+export const writeStringRootRefDelta = (
+  writer: Pick<StreamWriter, 'write'>,
+  id: number,
+  base: number
+): ReturnType<StreamWriter['write']> => writer.write(String(id - base));
+
+/** @internal */
 export const createStringStreamWriter = (
   write: StreamWriter['write']
 ): SSRInternalStreamWriter => ({
@@ -31,5 +38,8 @@ export const createStringStreamWriter = (
   },
   writeRootRefPath(path) {
     return writeStringRootRefPath(this, path);
+  },
+  writeRootRefDelta(id, base) {
+    return writeStringRootRefDelta(this, id, base);
   },
 });

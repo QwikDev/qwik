@@ -57,7 +57,7 @@
    */
   function resolveComponentId(target) {
     try {
-      const hook = window.__QWIK_DEVTOOLS_HOOK__;
+      const hook = window.__QWIK_DEVTOOLS__ && window.__QWIK_DEVTOOLS__.hook;
       if (hook && typeof hook.resolveElementToComponent === 'function') {
         return hook.resolveElementToComponent(target);
       }

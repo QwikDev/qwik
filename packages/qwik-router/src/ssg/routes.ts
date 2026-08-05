@@ -7,11 +7,6 @@ export function createRouteTester(
   const excludes = routesToRegExps(excludeRoutes);
 
   return (pathname: string) => {
-    if (pathname.endsWith('404.html')) {
-      // always static render 404.html routes
-      return true;
-    }
-
     if (basePathname !== '/') {
       // the "include" and "exclude" routes are relative to the file system
       // routes directory, and should not involve the URL base pathname
@@ -20,8 +15,13 @@ export function createRouteTester(
 
     for (const exclude of excludes) {
       if (exclude.test(pathname)) {
+        // `exclude` wins, even over the 404 auto-include below
         return false;
       }
+    }
+    if (pathname.endsWith('/404.html')) {
+      // the not-found page is prerendered by default so static hosts can serve it on a miss
+      return true;
     }
     for (const include of includes) {
       if (include.test(pathname)) {

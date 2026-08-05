@@ -7,6 +7,7 @@
  * - https://qwik.dev/docs/deployments/node/
  *
  */
+import { getRequestEvent } from "@qwik.dev/router";
 import {
   createQwikRouter,
   type PlatformNode,
@@ -45,6 +46,25 @@ const { router } = createQwikRouter({
 // Create the express server
 // https://expressjs.com/
 const app = express();
+
+// Optional request-aware diagnostics for crashes that escape request boundaries.
+// This does not prevent Node from crashing, but it does provide better diagnostics for uncaught exceptions.
+// See the Node documentation to handle uncaught exceptions and unhandled rejections in your app.
+process.on("uncaughtExceptionMonitor", (error, origin) => {
+  const requestEv = getRequestEvent();
+  if (requestEv) {
+    console.error("Unhandled exception during request", {
+      origin,
+      method: requestEv.method,
+      url: requestEv.url.href,
+      headersSent: requestEv.headersSent,
+      error,
+    });
+    return;
+  }
+
+  console.error("Unhandled exception outside request", { origin, error });
+});
 
 // Enable gzip compression
 // app.use(compression());

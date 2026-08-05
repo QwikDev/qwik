@@ -1,4 +1,4 @@
-import { getAppInfo, getEdgeCount } from '~/db/query';
+import { getAppInfo } from '~/db/query';
 import { routeLoader$, useLocation } from '@qwik.dev/router';
 
 import AppCard from '~/components/app-card';
@@ -9,11 +9,8 @@ import { getDB } from '~/db';
 export const useAppData = routeLoader$(async ({ params }) => {
   const db = getDB();
   const publicApiKey = params.publicApiKey;
-  const [app, symbolCount] = await Promise.all([
-    getAppInfo(db, publicApiKey),
-    getEdgeCount(db, publicApiKey),
-  ]);
-  return { app, symbolCount };
+  const app = await getAppInfo(db, publicApiKey);
+  return { app };
 });
 
 export default component$(() => {

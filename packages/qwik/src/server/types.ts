@@ -142,6 +142,14 @@ export interface RenderOptions extends SerializeDocumentOptions {
   preloader?: PreloaderOptions | false;
 
   /**
+   * Root-count threshold for eager yielded state prewarm during client resume.
+   *
+   * Defaults to `false`, keeping state fully lazy. Set to a number to enable eager prewarm when
+   * serialized state has at least that many roots.
+   */
+  statePrewarm?: number | false;
+
+  /**
    * When set, the app is serialized into a fragment. And the returned html is not a complete
    * document. Defaults to `html`
    */

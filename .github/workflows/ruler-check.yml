@@ -1,0 +1,43 @@
+# Verifies the committed agent guidance (root AGENTS.md, CLAUDE.md) matches the .ruler/ source.
+# They are committed so a fresh clone/worktree has guidance immediately; this guards against drift.
+# Skill copies (.claude/skills, .codex/skills) are gitignored and regenerated locally, not checked here.
+name: Ruler guidance in sync
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - 'build/**'
+
+permissions:
+  contents: read
+
+env:
+  CI_NODE_VERSION: 24.15.0
+
+jobs:
+  ruler-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+      - name: Setup Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Verify committed agent guidance matches .ruler/
+        run: |
+          pnpm dlx @intellectronica/ruler@0.3.42 apply --no-gitignore --no-mcp
+          DRIFT="$(git status --porcelain -- AGENTS.md CLAUDE.md)"
+          if [ -n "$DRIFT" ]; then
+            echo "::error::Committed agent guidance is out of sync with .ruler/. Run 'pnpm dlx @intellectronica/ruler apply --no-gitignore --no-mcp' and commit the result."
+            echo "$DRIFT"
+            git --no-pager diff -- AGENTS.md CLAUDE.md
+            exit 1
+          fi
+          echo "Agent guidance is in sync with .ruler/."

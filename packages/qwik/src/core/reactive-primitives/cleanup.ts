@@ -3,7 +3,7 @@ import type { Container } from '../shared/types';
 import { SignalImpl } from './impl/signal-impl';
 import { WrappedSignalImpl } from './impl/wrapped-signal-impl';
 import { StoreHandler, getStoreHandler } from './impl/store';
-import { AsyncSignalImpl } from './impl/async-signal-impl';
+import { ComputedSignalImpl } from './impl/computed-signal-impl';
 import { _PROPS_HANDLER } from '../shared/utils/constants';
 import { BackRef, _EFFECT_BACK_REF } from './backref';
 import { type Consumer, type EffectSubscription } from './types';
@@ -30,11 +30,12 @@ export function clearEffectSubscription(container: Container, effect: EffectSubs
     return;
   }
   for (const producer of backRefs) {
-    // Check AsyncSignalImpl before SignalImpl since it extends SignalImpl
-    if (producer instanceof AsyncSignalImpl) {
-      clearAsyncSignal(producer, effect);
-    } else if (producer instanceof SignalImpl) {
+    if (producer instanceof SignalImpl) {
       clearSignal(container, producer, effect);
+      if (producer instanceof ComputedSignalImpl) {
+        // computeds can carry async engine state (loading/error subscribers)
+        clearAsyncSignalEffects(producer, effect);
+      }
     } else if (isPropsProxy(producer)) {
       const propsHandler = producer[_PROPS_HANDLER];
       clearStoreOrProps(propsHandler, effect);
@@ -60,11 +61,10 @@ function clearSignal(container: Container, producer: SignalImpl, effect: EffectS
   }
 }
 
-function clearAsyncSignal(producer: AsyncSignalImpl<unknown>, effect: EffectSubscription) {
-  const effects = producer.$effects$;
-  if (effects && effects.has(effect)) {
-    effects.delete(effect);
-  }
+function clearAsyncSignalEffects(
+  producer: ComputedSignalImpl<unknown>,
+  effect: EffectSubscription
+) {
   const pendingEffects = producer.$loadingEffects$;
   if (pendingEffects && pendingEffects.has(effect)) {
     pendingEffects.delete(effect);

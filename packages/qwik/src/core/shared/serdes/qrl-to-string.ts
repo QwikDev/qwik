@@ -2,7 +2,12 @@ import { isDev } from '@qwik.dev/core/build';
 import { type SerializationContext } from './serialization-context';
 import { qError, QError } from '../error/error';
 import { getPlatform } from '../platform/platform';
-import { createQRL, type QRLInternal, type SyncQRLInternal } from '../qrl/qrl-class';
+import {
+  createQRL,
+  type QrlCaptures,
+  type QRLInternal,
+  type SyncQRLInternal,
+} from '../qrl/qrl-class';
 import { isSyncQrl } from '../qrl/qrl-utils';
 import { assertDefined } from '../error/assert';
 import type { Container } from '../types';
@@ -70,17 +75,25 @@ export function qrlToString(
 
   const captures = qrl.getCaptured();
 
-  let captureIds: string | null = null;
+  let captureDeltas: string | null = null;
   if (captures && captures.length > 0) {
     // We refer by id so every capture needs to be a root
-    captureIds = captures.map((ref) => `${serializationContext.$addRoot$(ref)}`).join(' ');
+    let previous = 0;
+    let output = '';
+    for (let i = 0; i < captures.length; i++) {
+      const captureId = serializationContext.$addRoot$(captures[i]);
+      const delta = captureId - previous;
+      previous = captureId;
+      output += (i === 0 ? '' : ' ') + delta;
+    }
+    captureDeltas = output;
   }
   if (raw) {
-    return [chunk, symbol, captureIds];
+    return [chunk, symbol, captureDeltas];
   }
   let qrlStringInline = `${chunk}#${symbol}`;
-  if (captureIds) {
-    qrlStringInline += `#${captureIds}`;
+  if (captureDeltas) {
+    qrlStringInline += `#${captureDeltas}`;
   }
   return qrlStringInline;
 }
@@ -96,12 +109,22 @@ export function qrlToChunks(
     return prefix;
   }
   const chunks: SSRWriteChunk[] = [prefix, '#'];
-  const captureIds = captures.split(' ');
-  for (let i = 0; i < captureIds.length; i++) {
-    if (i > 0) {
-      chunks.push(' ');
+  let previousCaptureId = 0;
+  let start = 0;
+  for (let i = 0; i <= captures.length; i++) {
+    if (i === captures.length || captures[i] === ' ') {
+      if (i > start) {
+        const captureId = previousCaptureId + Number(captures.slice(start, i));
+        if (start > 0) {
+          chunks.push(' ');
+          chunks.push({ id: captureId, base: previousCaptureId });
+        } else {
+          chunks.push(captureId);
+        }
+        previousCaptureId = captureId;
+      }
+      start = i + 1;
     }
-    chunks.push(Number(captureIds[i]));
   }
   return chunks;
 }
@@ -109,7 +132,7 @@ export function qrlToChunks(
 export function createQRLWithBackChannel(
   chunk: string,
   symbol: string,
-  captures: string | unknown[] | null,
+  captures: QrlCaptures,
   container?: Container
 ): QRLInternal<any> {
   let qrlImporter = null;
@@ -124,10 +147,16 @@ export function createQRLWithBackChannel(
   return createQRL(chunk, symbol, null, qrlImporter, captures, container);
 }
 
-/** Parses "chunk#hash#...rootRef" */
+/** Parses "chunk#hash#...captureDelta" */
 export function parseQRL(qrl: string, container?: Container): QRLInternal<any> {
-  const [chunk, symbol, captures] = qrl.split('#');
-  return createQRLWithBackChannel(chunk, symbol, captures || null, container);
+  const firstHash = qrl.indexOf('#');
+  const secondHash = qrl.indexOf('#', firstHash + 1);
+  const chunk = qrl.slice(0, firstHash);
+  const symbol =
+    secondHash === -1 ? qrl.slice(firstHash + 1) : qrl.slice(firstHash + 1, secondHash);
+  const captures =
+    secondHash !== -1 && secondHash + 1 < qrl.length ? qrl.slice(secondHash + 1) : null;
+  return createQRLWithBackChannel(chunk, symbol, captures, container);
 }
 
 export const QRL_RUNTIME_CHUNK = 'mock-chunk';

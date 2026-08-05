@@ -207,6 +207,10 @@ export { router }
     base: basePath,
     ...extra,
     resolve: {
+      alias: {
+        '~': appSrcDir,
+        '@': appSrcDir,
+      },
       conditions: [isProd ? 'production' : 'development'],
       mainFields: [],
     },
@@ -242,7 +246,7 @@ export { router }
               clientManifest = manifest;
             },
           },
-          experimental: ['each', 'suspense'],
+          experimental: ['each', 'show', 'suspense', 'blockSSR'],
         }),
       ],
     })
@@ -258,7 +262,7 @@ export { router }
       plugins: [
         ...plugins,
         optimizer.qwikVite({
-          experimental: ['each', 'suspense'],
+          experimental: ['each', 'show', 'suspense', 'blockSSR'],
           ssr: {
             manifestInput: clientManifest,
           },

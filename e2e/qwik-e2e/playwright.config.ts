@@ -18,9 +18,7 @@ expect.extend({
 
 const config: PlaywrightTestConfig = {
   use: {
-    launchOptions: {
-      slowMo: 100,
-    },
+    ...(inGithubCI ? {} : { launchOptions: { slowMo: 100 } }),
     viewport: {
       width: 520,
       height: 600,

@@ -3,6 +3,7 @@ import type { RoutingContext } from '../types';
 
 export type ServerFnPluginContext = Pick<Rollup.PluginContext, 'resolve' | 'load'>;
 export type ServerFnRoutingContext = Pick<RoutingContext, 'layouts' | 'routes' | 'serverPlugins'>;
+
 export async function collectServerFnModuleIds(
   routingContext: ServerFnRoutingContext,
   resolvedVirtualId: string,
@@ -44,16 +45,22 @@ export async function collectServerFnModuleIds(
       continue;
     }
 
-    const moduleInfo = await pluginContext.load({ id: resolved.id });
+    const moduleInfo = await pluginContext.load({ id: resolved.id, resolveDependencies: true });
     if (moduleInfo.code == null) {
       continue;
     }
+
+    const qwikDeps = ((moduleInfo as any).meta?.qwikdeps ?? []) as string[];
 
     if (moduleInfo.code.includes('serverQrl(')) {
       serverFnModules.add(moduleInfo.id);
     }
 
-    const resolvedImports = moduleInfo.importedIds.concat(moduleInfo.dynamicallyImportedIds);
+    const resolvedImports = [
+      ...moduleInfo.importedIds,
+      ...moduleInfo.dynamicallyImportedIds,
+      ...qwikDeps,
+    ];
     for (let i = 0; i < resolvedImports.length; i++) {
       const resolvedImport = resolvedImports[i];
       if (resolvedImport && !seenModuleIds.has(resolvedImport)) {

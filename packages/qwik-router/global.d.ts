@@ -7,7 +7,7 @@ declare module '*?compiled-string' {
 }
 
 type RequestEventInternal =
-  import('./middleware/request-handler/request-event').RequestEventInternal;
+  import('./middleware/request-handler/request-event-core').RequestEventInternal;
 type SerializationStrategy = import('@qwik.dev/core/internal').SerializationStrategy;
 declare var _qwikActionsMap: Map<string, ActionInternal> | undefined;
 
@@ -26,10 +26,11 @@ declare var __NO_TRAILING_SLASH__: boolean;
 declare var __SSR_CACHE_SIZE__: number;
 
 /**
- * When true, route loaders and actions use strict mode by default:
+ * When true, route loaders and actions use strict mode:
  *
  * - Loaders without explicit `search` act as if `search: []` — they only re-fetch on route path
  *   changes and ignore all URL search params.
+ * - Loaders get the pathname of their owning route instead of the full URL pathname
  * - Actions without explicit `invalidate` act as if `invalidate: []` — they don't re-run any loaders
  *   after completion.
  */

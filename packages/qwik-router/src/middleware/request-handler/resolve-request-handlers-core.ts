@@ -15,47 +15,48 @@ import type {
   ValidatorReturn,
 } from '../../runtime/src/types';
 import {
+  clearRouteLoaderData,
   getRouteLoaderCtx,
   getRouteLoaderValues,
   loadRouteLoader,
+  matchesRouteLoaderId,
   setRouteLoaders,
 } from '../../runtime/src/route-loaders';
 import { ensureSlash } from '../../utils/pathname';
-import type { RequestEventInternal } from './request-event-core';
+import { performETagMatch, hash, normalizeETag, setETagHeader } from './etag-hash';
+import {
+  getRequestMode,
+  RequestEvETagCacheKey,
+  RequestEvHttpStatusMessage,
+  RequestEvShareServerTiming,
+  RequestEvSharedActionFormData,
+  RequestEvSharedActionId,
+  RequestRouteName,
+  type RequestEventInternal,
+} from './request-event-core';
 import { loaderHandler } from './handlers/loader-handler';
 import { jsonRequestWrapper } from './handlers/json-request-wrapper';
 import { actionHandler } from './handlers/action-handler';
 import { IsQLoader, QLoaderId } from './request-path';
 import type { ErrorCodes, RequestEvent, RequestEventBase, RequestHandler } from './types';
+import { QACTION_KEY, QFN_KEY } from '../../runtime/src/constants';
+import { resolveRouteConfig } from '../../runtime/src/head';
+import {
+  defaultSsrCacheKey,
+  getCachedSsr,
+  MAX_CACHE_SIZE,
+  resolveCacheKey,
+  resolveETag,
+  setCachedSsr,
+} from './etag';
+import { HttpStatus } from './http-status-codes';
+import { getQwikRouterServerData } from './response-page';
+import { encoder, isContentType } from './request-utils';
+import { ServerError, throwIfControlFlowSignal } from './server-error';
 
-interface ResolveRequestHandlersDeps {
-  QACTION_KEY: string;
-  QFN_KEY: string;
-  RequestEvETagCacheKey: string;
-  RequestEvHttpStatusMessage: string;
-  RequestEvShareServerTiming: string;
-  RequestEvSharedActionId: string;
-  RequestRouteName: string;
-  RedirectMessage: new () => InstanceType<typeof import('./redirect-handler').RedirectMessage>;
-  ServerError: new <T = any>(
-    status: number,
-    data: T
-  ) => InstanceType<typeof import('./server-error').ServerError<T>>;
-  HttpStatus: typeof import('./http-status-codes').HttpStatus;
-  encoder: TextEncoder;
-  isContentType: typeof import('./request-utils').isContentType;
-  getCachedHtml: typeof import('./etag').getCachedHtml;
-  getQwikRouterServerData: typeof import('./response-page').getQwikRouterServerData;
-  getRequestMode: typeof import('./request-event-core').getRequestMode;
-  loadHttpError: () => Promise<unknown>;
-  MAX_CACHE_SIZE: number;
-  resolveCacheKey: typeof import('./etag').resolveCacheKey;
-  resolveETag: typeof import('./etag').resolveETag;
-  resolveRouteConfig: typeof import('../../runtime/src/head').resolveRouteConfig;
-  setCachedHtml: typeof import('./etag').setCachedHtml;
-}
+const loadHttpError = () => import('../../runtime/src/http-error');
 
-export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
+function createResolveRequestHandlers() {
   const resolveRequestHandlers = (
     serverPlugins: RouteModule[] | undefined,
     route: LoadedRoute,
@@ -90,6 +91,10 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
       );
     }
 
+    if (!route.$notFound$ && isPageRoute && (method === 'POST' || method === 'GET')) {
+      requestHandlers.push(runServerFunction);
+    }
+
     const routeModules = route.$mods$;
     _resolveRequestHandlers(
       routeLoaders,
@@ -114,13 +119,9 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
 
     if (isPageRoute) {
       // Per-loader handler: returns JSON with metadata and exits if IsQLoader is set
-      requestHandlers.push(loaderHandler(routeLoaders));
+      requestHandlers.push(loaderHandler(routeLoaders, route.$loaderPaths$));
       // Per-action handler: returns JSON and exits if IsQAction + Accept: json
       requestHandlers.push(actionHandler(routeActions));
-      if (method === 'POST' || method === 'GET') {
-        requestHandlers.push(runServerFunction);
-      }
-
       if (!route.$notFound$) {
         requestHandlers.push(fixTrailingSlash);
       }
@@ -128,7 +129,7 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
 
     if (isPageRoute) {
       requestHandlers.push((ev) => {
-        ev.sharedMap.set(deps.RequestRouteName, routeName);
+        ev.sharedMap.set(RequestRouteName, routeName);
       });
       requestHandlers.push(actionsMiddleware(routeActions));
       requestHandlers.push(loadersMiddleware(routeLoaders, route));
@@ -245,7 +246,10 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
       return false;
     }
     for (const value of Object.values(routeModule)) {
-      if (checkBrand(value, 'server_loader') && (value as LoaderInternal).__id === loaderId) {
+      if (
+        checkBrand(value, 'server_loader') &&
+        matchesRouteLoaderId(value as LoaderInternal, loaderId)
+      ) {
         return true;
       }
     }
@@ -265,14 +269,14 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
       }
       const { method } = requestEv;
       if (isDev && method === 'GET') {
-        if (requestEv.query.has(deps.QACTION_KEY)) {
+        if (requestEv.query.has(QACTION_KEY)) {
           console.warn(
             'Seems like you are submitting a Qwik Action via GET request. Qwik Actions should be submitted via POST request.\nMake sure your <form> has method="POST" attribute, like this: <form method="POST">'
           );
         }
       }
       if (method === 'POST') {
-        const selectedActionId = requestEv.query.get(deps.QACTION_KEY);
+        const selectedActionId = requestEv.query.get(QACTION_KEY);
         if (selectedActionId) {
           const serverActionsMap = globalThis._qwikActionsMap as
             | Map<string, ActionInternal>
@@ -281,7 +285,7 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
             routeActions.find((action) => action.__id === selectedActionId) ??
             serverActionsMap?.get(selectedActionId);
           if (action) {
-            requestEv.sharedMap.set(deps.RequestEvSharedActionId, selectedActionId);
+            requestEv.sharedMap.set(RequestEvSharedActionId, selectedActionId);
             const data = await requestEv.parseBody();
             if (!data || typeof data !== 'object') {
               throw new Error(
@@ -298,6 +302,7 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
                     action.__qrl.call(requestEv, result.data as JSONObject, requestEv)
                   )
                 : await action.__qrl.call(requestEv, result.data as JSONObject, requestEv);
+              throwIfControlFlowSignal(actionResolved);
               if (isDev) {
                 verifySerializable(actionResolved, action.__qrl);
               }
@@ -311,32 +316,56 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
   }
 
   function loadersMiddleware(routeLoaders: LoaderInternal[], route: LoadedRoute): RequestHandler {
-    return async (requestEvent: RequestEvent) => {
+    return (requestEvent: RequestEvent) => {
       const requestEv = requestEvent as RequestEventInternal;
       if (requestEv.headersSent) {
         requestEv.exit();
         return;
       }
-      if (routeLoaders.length > 0) {
-        // Set up the RouteLoaderCtx with loader paths from the route
-        const routeLoaderCtx = getRouteLoaderCtx(requestEv);
-        if (route.$loaderPaths$) {
-          Object.assign(routeLoaderCtx.loaderPaths, route.$loaderPaths$);
-        }
-
-        // Store loader internals so SSG can check __expires
-        setRouteLoaders(requestEv, routeLoaders);
-
-        // Run loaders directly and store raw values.
-        // Errors/redirects propagate so middleware can catch them (e.g. plugin@errors).
-        const loaderValues = getRouteLoaderValues(requestEv);
-        await Promise.all(
-          routeLoaders.map(async (loader) => {
-            loaderValues[loader.__id] = await loadRouteLoader(loader, requestEv);
-          })
-        );
+      if (routeLoaders.length === 0) {
+        return;
       }
+      setLoaderData(requestEv, routeLoaders, route);
+
+      // Start every loader concurrently. `blockSSR` loaders (the default) are awaited before SSR so
+      // a redirect/error short-circuits the response; the first one in route order wins. Loaders
+      // with `blockSSR: false` resolve in the background and only surface when their `.value` is
+      // read.
+      let allBlockSSRLoaders: Promise<void> | undefined;
+      for (let i = 0; i < routeLoaders.length; i++) {
+        const loader = routeLoaders[i];
+        const promise = loadRouteLoader(loader, requestEv);
+        // Handle every rejection so a background loader can't crash the request.
+        promise.catch(() => {});
+        if (loader.__blockSSR) {
+          // Chain the promises so a thrown error is handled in route order
+          // Note: status changes are last-writer wins, but that's fine
+          allBlockSSRLoaders = (
+            allBlockSSRLoaders ? allBlockSSRLoaders.then(() => promise) : promise
+          ) as Promise<void>;
+        }
+      }
+      return allBlockSSRLoaders;
     };
+  }
+
+  function setLoaderData(
+    requestEv: RequestEventInternal,
+    routeLoaders: LoaderInternal[],
+    route: LoadedRoute
+  ) {
+    if (routeLoaders.length === 0) {
+      return;
+    }
+
+    // Set up the RouteLoaderCtx with loader paths from the route.
+    const routeLoaderCtx = getRouteLoaderCtx(requestEv);
+    if (route.$loaderPaths$) {
+      Object.assign(routeLoaderCtx.loaderPaths, route.$loaderPaths$);
+    }
+
+    // Store loader internals so SSG can check __expires.
+    setRouteLoaders(requestEv, routeLoaders);
   }
 
   function eTagMiddleware(route: LoadedRoute): RequestHandler {
@@ -349,16 +378,21 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
       }
 
       const mods = route.$mods$ as ContentModule[];
-      const hasETag = mods.some((m) => {
+      const hasCachingConfig = mods.some((m) => {
         if (!m) {
           return false;
         }
         if (m.routeConfig) {
-          return typeof m.routeConfig === 'function' || m.routeConfig.eTag !== undefined;
+          return (
+            typeof m.routeConfig === 'function' ||
+            m.routeConfig.eTag !== undefined ||
+            m.routeConfig.cacheKey !== undefined
+          );
         }
-        return (m as PageModule).eTag !== undefined;
+        const page = m as PageModule;
+        return page.eTag !== undefined || page.cacheKey !== undefined;
       });
-      if (!hasETag) {
+      if (!hasCachingConfig) {
         return;
       }
 
@@ -371,7 +405,7 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
           }
           return loaderValues[id];
         }
-        return requestEv.sharedMap.get(deps.RequestEvSharedActionId) === id
+        return requestEv.sharedMap.get(RequestEvSharedActionId) === id
           ? requestEv.sharedMap.get('@actionResult')
           : undefined;
       }) as ResolveSyncValue;
@@ -384,7 +418,7 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
       };
 
       const status = requestEv.status();
-      const config = deps.resolveRouteConfig(getData, routeLocation, mods, '', status);
+      const config = resolveRouteConfig(getData, routeLocation, mods, '', status);
 
       const headProps: DocumentHeadProps = {
         head: config.head,
@@ -394,40 +428,45 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
         ...routeLocation,
       };
 
-      const eTag = deps.resolveETag(config.eTag, headProps);
-      if (!eTag) {
+      const resolvedETag = resolveETag(config.eTag, headProps);
+      const normalizedETag = resolvedETag !== null ? normalizeETag(resolvedETag) : '';
+      if (normalizedETag && performETagMatch(requestEv as RequestEventInternal, normalizedETag)) {
         return;
       }
 
-      requestEv.headers.set('ETag', eTag);
-
-      const ifNoneMatch = requestEv.request.headers.get('If-None-Match');
-      if (
-        ifNoneMatch &&
-        (ifNoneMatch === eTag || ifNoneMatch === `W/${eTag}` || `W/${ifNoneMatch}` === eTag)
-      ) {
-        requestEv.status(304);
-        requestEv.send(304 as any, '' as any);
+      if (MAX_CACHE_SIZE <= 0) {
         return;
       }
-
-      if (deps.MAX_CACHE_SIZE <= 0) {
-        return;
-      }
-      const cacheKey = deps.resolveCacheKey(config.cacheKey, status, eTag, requestEv.url.pathname);
+      const cacheKey = resolveCacheKey(
+        config.cacheKey,
+        defaultSsrCacheKey,
+        requestEv,
+        normalizedETag
+      );
       if (!cacheKey) {
         return;
       }
 
-      const cachedHtml = deps.getCachedHtml(cacheKey);
-      if (cachedHtml) {
+      const cached = getCachedSsr(cacheKey);
+      if (cached) {
         requestEv.headers.set('Content-Type', 'text/html; charset=utf-8');
         requestEv.headers.set('X-SSR-Cache', 'HIT');
-        requestEv.send(status as any, cachedHtml);
+        // Serve the eTag stored with the cache entry; only check If-None-Match if pre-render
+        // didn't already (a pre-render eTag was checked above; here it's the cached one).
+        if (!normalizedETag) {
+          if (performETagMatch(requestEv as RequestEventInternal, cached.eTag)) {
+            return;
+          }
+        } else {
+          // Pre-render eTag was set; either it differs from the cached one (re-set to match cache)
+          // or they match (idempotent).
+          setETagHeader(requestEv as RequestEventInternal, cached.eTag);
+        }
+        requestEv.send(status as any, cached.body);
         return;
       }
 
-      requestEv.sharedMap.set(deps.RequestEvETagCacheKey, cacheKey);
+      requestEv.sharedMap.set(RequestEvETagCacheKey, { key: cacheKey, eTag: normalizedETag });
     };
   }
 
@@ -439,7 +478,7 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
       try {
         await requestEv.next();
       } catch (e) {
-        if (!(e instanceof deps.ServerError) || requestEv.headersSent) {
+        if (!(e instanceof ServerError) || requestEv.headersSent) {
           throw e;
         }
 
@@ -451,19 +490,29 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
         const status = e.status as number;
         requestEv.status(status);
 
+        // $errorLoader$ is the error boundary's chain, rendered as-is — a bare error.tsx in its
+        // layouts, `error!.tsx` standalone. Undefined → built-in fallback.
         const errorLoader = route.$errorLoader$;
-        const errorModule = errorLoader ? await errorLoader() : await deps.loadHttpError();
-
-        route.$mods$ = [errorModule as RouteModule];
+        route.$mods$ = errorLoader
+          ? ((await Promise.all(errorLoader.map((load) => load()))) as RouteModule[])
+          : [(await loadHttpError()) as RouteModule];
 
         requestEv.sharedMap.set(
-          deps.RequestEvHttpStatusMessage,
+          RequestEvHttpStatusMessage,
           typeof e.data === 'string' ? e.data : 'Server Error'
         );
+        clearErrorResponseData(requestEv);
 
         await renderHandler(requestEv);
       }
     };
+  }
+
+  function clearErrorResponseData(requestEv: RequestEvent) {
+    clearRouteLoaderData(requestEv);
+    requestEv.sharedMap.delete(RequestEvSharedActionId);
+    requestEv.sharedMap.delete(RequestEvSharedActionFormData);
+    requestEv.sharedMap.delete('@actionResult');
   }
 
   async function runValidators(
@@ -499,7 +548,7 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
   }
 
   async function runServerFunction(ev: RequestEvent) {
-    const serverFnHash = ev.query.get(deps.QFN_KEY);
+    const serverFnHash = ev.query.get(QFN_KEY);
     if (
       serverFnHash &&
       ev.request.headers.get('X-QRL') === serverFnHash &&
@@ -523,27 +572,15 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
           result = await (qrl as Function).apply(ev, data[0]);
         }
       } catch (err) {
-        if (err instanceof deps.ServerError) {
+        if (err instanceof ServerError) {
           throw ev.error(err.status as ErrorCodes, err.data);
         }
         console.error(`Server function ${serverFnHash} failed:`, err);
         throw ev.error(500, 'Invalid request');
       }
+      throwIfControlFlowSignal(result);
       if (isAsyncIterator(result)) {
-        ev.headers.set('Content-Type', 'text/qwik-json-stream');
-        const writable = ev.getWritableStream();
-        const stream = writable.getWriter();
-        for await (const item of result) {
-          if (isDev) {
-            verifySerializable(item, qrl);
-          }
-          const message = await _serialize(item);
-          if (ev.signal.aborted) {
-            break;
-          }
-          await stream.write(deps.encoder.encode(`${message}\n`));
-        }
-        stream.close();
+        await streamServerFunctionResult(ev, result, qrl);
       } else {
         verifySerializable(result, qrl);
         ev.headers.set('Content-Type', 'application/qwik-json');
@@ -552,6 +589,36 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
       }
       return;
     }
+  }
+
+  async function streamServerFunctionResult(
+    ev: RequestEvent,
+    result: AsyncIterable<unknown>,
+    qrl: QRL
+  ) {
+    ev.headers.set('Content-Type', 'text/qwik-json-stream');
+    const writable = ev.getWritableStream();
+    const stream = writable.getWriter();
+    for await (const item of result) {
+      if (isDev) {
+        verifySerializable(item, qrl);
+      }
+      const message = await _serialize(item);
+      if (ev.signal.aborted) {
+        break;
+      }
+      // Swallow rejection: writable may be errored by a client disconnect.
+      await stream.write(encoder.encode(`${message}\n`)).catch((err) => {
+        if (isDev) {
+          console.error(`Server function ${qrl.getSymbol()} stream write failed:`, err);
+        }
+      });
+    }
+    await stream.close().catch((err) => {
+      if (isDev) {
+        console.error(`Server function ${qrl.getSymbol()} stream close failed:`, err);
+      }
+    });
   }
 
   function fixTrailingSlash(ev: RequestEvent) {
@@ -565,12 +632,12 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
     if (pathname !== basePathname && !pathname.endsWith('.html')) {
       if (!globalThis.__NO_TRAILING_SLASH__) {
         if (!pathname.endsWith('/')) {
-          throw ev.redirect(deps.HttpStatus.MovedPermanently, ensureSlash(pathname) + search);
+          throw ev.redirect(HttpStatus.MovedPermanently, ensureSlash(pathname) + search);
         }
       } else {
         if (pathname.endsWith('/')) {
           throw ev.redirect(
-            deps.HttpStatus.MovedPermanently,
+            HttpStatus.MovedPermanently,
             pathname.slice(0, pathname.length - 1) + search
           );
         }
@@ -626,7 +693,7 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
 
     const isSimpleRequest =
       !contentType ||
-      deps.isContentType(
+      isContentType(
         requestEv.request.headers,
         'application/x-www-form-urlencoded',
         'multipart/form-data',
@@ -667,8 +734,8 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
         responseHeaders.set('Content-Type', 'text/html; charset=utf-8');
       }
 
-      const eTagCacheKey = requestEv.sharedMap.get(deps.RequestEvETagCacheKey) as
-        | string
+      const cachePlan = requestEv.sharedMap.get(RequestEvETagCacheKey) as
+        | { key: string; eTag: string }
         | undefined;
 
       const { readable, writable } = new TextEncoderStream();
@@ -676,7 +743,7 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
 
       let cacheChunks: Uint8Array[] | undefined;
       let pipeSource: ReadableStream<Uint8Array> = readable;
-      if (eTagCacheKey) {
+      if (cachePlan) {
         cacheChunks = [];
         const capture = new TransformStream<Uint8Array, Uint8Array>({
           transform(chunk, controller) {
@@ -693,8 +760,8 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
       });
       const stream = writable.getWriter();
       try {
-        const isStatic = deps.getRequestMode(requestEv) === 'static';
-        const serverData = deps.getQwikRouterServerData(requestEv);
+        const isStatic = getRequestMode(requestEv) === 'static';
+        const serverData = getQwikRouterServerData(requestEv);
         const result = await render({
           base: requestEv.basePathname + 'build/',
           stream,
@@ -721,7 +788,7 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
         throw pipeError;
       }
 
-      if (eTagCacheKey && cacheChunks && cacheChunks.length > 0) {
+      if (cachePlan && cacheChunks && cacheChunks.length > 0) {
         const totalLength = cacheChunks.reduce((sum, chunk) => sum + chunk.length, 0);
         const combined = new Uint8Array(totalLength);
         let offset = 0;
@@ -729,7 +796,11 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
           combined.set(chunk, offset);
           offset += chunk.length;
         }
-        deps.setCachedHtml(eTagCacheKey, new TextDecoder().decode(combined));
+        const html = new TextDecoder().decode(combined);
+        // Use the pre-resolved eTag when set; otherwise auto-hash the rendered HTML so future cache
+        // hits can serve a stable validator and short-circuit with 304.
+        const cachedETag = cachePlan.eTag || hash(html);
+        setCachedSsr(cachePlan.key, { eTag: cachedETag, body: html });
       }
 
       await writableStream.close();
@@ -750,9 +821,9 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
       return await fn();
     } finally {
       const duration = now() - start;
-      let measurements = requestEv.sharedMap.get(deps.RequestEvShareServerTiming);
+      let measurements = requestEv.sharedMap.get(RequestEvShareServerTiming);
       if (!measurements) {
-        requestEv.sharedMap.set(deps.RequestEvShareServerTiming, (measurements = []));
+        requestEv.sharedMap.set(RequestEvShareServerTiming, (measurements = []));
       }
       measurements.push([name, duration]);
     }
@@ -770,6 +841,23 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
     measure,
     renderQwikMiddleware,
     resolveRequestHandlers,
+    streamServerFunctionResult,
     verifySerializable,
   };
 }
+
+export const {
+  actionsMiddleware,
+  checkBrand,
+  checkCSRF,
+  fixTrailingSlash,
+  getPathname,
+  isLastModulePageRoute,
+  isQrl,
+  loadersMiddleware,
+  measure,
+  renderQwikMiddleware,
+  resolveRequestHandlers,
+  streamServerFunctionResult,
+  verifySerializable,
+} = createResolveRequestHandlers();

@@ -7,6 +7,7 @@ import type { VNode } from './vnode/vnode';
 export interface DeserializeContainer {
   $getObjectById$: (id: number | string) => unknown;
   $getForwardRef$: (id: number) => number | string | undefined;
+  $pendingStoreTargets$?: Map<object, { t: number; v: unknown }>;
   element: HTMLElement | null;
   getSyncFn: (id: number) => (...args: unknown[]) => unknown;
   $state$?: unknown[];
@@ -159,4 +160,5 @@ export type SerializationStrategy =
 
 export const enum SsrNodeFlags {
   Updatable = 1,
+  WarnedStreamedChore = 2,
 }

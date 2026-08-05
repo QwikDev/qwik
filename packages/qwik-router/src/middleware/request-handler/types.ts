@@ -62,7 +62,14 @@ export interface ServerRenderOptions extends RenderOptions {
 /** @public */
 export type RequestHandler<PLATFORM = QwikRouterPlatform> = (
   ev: RequestEvent<PLATFORM>
-) => Promise<void> | void;
+) => Promise<void | AbortMessage | ServerError> | void | AbortMessage | ServerError;
+
+/**
+ * Internal JSON request kind handled by Qwik Router, or `false` for normal page requests.
+ *
+ * @public
+ */
+export type InternalRequest = false | 'loader' | 'action';
 
 /** @public */
 export interface SendMethod {
@@ -295,6 +302,15 @@ export interface RequestEventBase<PLATFORM = QwikRouterPlatform> {
 
   /** HTTP request URL. */
   readonly url: URL;
+
+  /**
+   * Identifies Qwik Router internal JSON requests, such as route loader fetches and fetch-based
+   * action submissions. Returns `false` for normal page requests.
+   *
+   * Check this before applying broad rewrite rules so internal JSON requests keep their routing
+   * behavior.
+   */
+  readonly internalRequest: InternalRequest;
 
   /**
    * The original HTTP request URL.

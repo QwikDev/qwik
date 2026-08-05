@@ -5,6 +5,7 @@ import {
   createEdgeRow,
   createRouteRow,
   delayBucketField,
+  delayColumns,
   delayColumnSumList,
   edgeTableDelayCount,
   latencyBucketField,
@@ -23,6 +24,18 @@ import {
   type SymbolDetailRow,
 } from './schema';
 import { time } from './logging';
+import { BUCKETS } from '~/stats/vector';
+
+const delayColumnsByBucket = Object.values(delayColumns);
+const relationBoundary = BUCKETS.findIndex((bucket) => bucket.avg >= 250);
+const relatedCount = sql<number>`sum(${sql.join(
+  delayColumnsByBucket.slice(0, relationBoundary),
+  sql.raw(' + ')
+)})`;
+const unrelatedCount = sql<number>`sum(${sql.join(
+  delayColumnsByBucket.slice(relationBoundary),
+  sql.raw(' + ')
+)})`;
 
 export async function getEdges(
   db: AppDatabase,
@@ -58,6 +71,35 @@ export async function getEdges(
   });
 }
 
+export async function getSymbolGraphEdges(
+  db: AppDatabase,
+  publicApiKey: string,
+  { limit, manifestHashes }: { limit?: number; manifestHashes: string[] }
+) {
+  if (manifestHashes.length === 0) {
+    return [];
+  }
+  return time('edgeTable.getSymbolGraphEdges', async () => {
+    return db
+      .select({
+        from: edgeTable.from,
+        to: edgeTable.to,
+        relatedCount,
+        unrelatedCount,
+      })
+      .from(edgeTable)
+      .where(
+        and(
+          eq(edgeTable.publicApiKey, publicApiKey),
+          inArray(edgeTable.manifestHash, manifestHashes)
+        )
+      )
+      .groupBy(edgeTable.from, edgeTable.to)
+      .limit(limit || 5_000)
+      .all();
+  });
+}
+
 export interface SlowEdge {
   manifestHash: string;
   to: string;
@@ -69,26 +111,30 @@ export async function getSlowEdges(
   publicApiKey: string,
   manifests: string[]
 ): Promise<SlowEdge[]> {
-  let where = eq(edgeTable.publicApiKey, publicApiKey);
-  if (manifests.length) {
-    where = and(where, inArray(edgeTable.manifestHash, manifests))!;
+  if (manifests.length === 0) {
+    return [];
   }
-  const query = db
-    .select({
-      manifestHash: edgeTable.manifestHash,
-      to: edgeTable.to,
-      ...latencyColumnSums,
-    })
-    .from(edgeTable)
-    .where(where)
-    .groupBy(edgeTable.manifestHash, edgeTable.to)
-    .orderBy(sql`${computeLatency} DESC`)
-    .limit(400);
-  return (await query.all()).map((e) => ({
-    manifestHash: e.manifestHash,
-    to: e.to,
-    latency: toVector('sumLatencyCount' as const, e),
-  }));
+  return time('edgeTable.getSlowEdges', async () => {
+    const rows = await db
+      .select({
+        manifestHash: edgeTable.manifestHash,
+        to: edgeTable.to,
+        ...latencyColumnSums,
+      })
+      .from(edgeTable)
+      .where(
+        and(eq(edgeTable.publicApiKey, publicApiKey), inArray(edgeTable.manifestHash, manifests))
+      )
+      .groupBy(edgeTable.manifestHash, edgeTable.to)
+      .orderBy(sql`${computeLatency} DESC`)
+      .limit(400)
+      .all();
+    return rows.map((edge) => ({
+      manifestHash: edge.manifestHash,
+      to: edge.to,
+      latency: toVector('sumLatencyCount' as const, edge),
+    }));
+  });
 }
 
 export type SymbolDetailForApp = Pick<
@@ -101,23 +147,25 @@ export async function getSymbolDetails(
   publicApiKey: string,
   { manifestHashes }: { manifestHashes: string[] }
 ): Promise<SymbolDetailForApp[]> {
-  return db
-    .select({
-      hash: symbolDetailTable.hash,
-      fullName: symbolDetailTable.fullName,
-      origin: symbolDetailTable.origin,
-      lo: symbolDetailTable.lo,
-      hi: symbolDetailTable.hi,
-    })
-    .from(symbolDetailTable)
-    .where(
-      and(
-        eq(symbolDetailTable.publicApiKey, publicApiKey),
-        inArray(symbolDetailTable.manifestHash, manifestHashes)
+  return time('symbolDetailTable.getSymbolDetails', async () => {
+    return db
+      .select({
+        hash: symbolDetailTable.hash,
+        fullName: symbolDetailTable.fullName,
+        origin: symbolDetailTable.origin,
+        lo: symbolDetailTable.lo,
+        hi: symbolDetailTable.hi,
+      })
+      .from(symbolDetailTable)
+      .where(
+        and(
+          eq(symbolDetailTable.publicApiKey, publicApiKey),
+          inArray(symbolDetailTable.manifestHash, manifestHashes)
+        )
       )
-    )
-    .limit(1000)
-    .all();
+      .limit(1000)
+      .all();
+  });
 }
 
 export async function getAppInfo(

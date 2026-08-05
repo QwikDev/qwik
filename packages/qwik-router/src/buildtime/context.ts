@@ -13,7 +13,7 @@ export function createBuildContext(
   const ctx: RoutingContext = {
     rootDir: normalizePath(rootDir),
     opts: normalizeOptions(rootDir, viteBasePath, userOpts),
-    routeTrie: { _files: [], _dirPath: '', children: new Map() },
+    routeTrie: { _files: [], children: new Map() },
     routes: [],
     serverPlugins: [],
     layouts: [],

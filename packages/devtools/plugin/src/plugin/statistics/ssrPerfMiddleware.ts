@@ -1,3 +1,4 @@
+import { DEVTOOLS_MESSAGES, QWIK_DEVTOOLS_GLOBAL } from '@qwik.dev/devtools/kit';
 import type { AnyRecord } from './constants';
 import { log } from './constants';
 import hookRuntime from '../../virtualmodules/hookRuntime';
@@ -200,8 +201,8 @@ export function collectSsrPreloadEntries(
   store: Record<string, unknown>
 ): SsrPreloadSnapshotEntry[] {
   const htmlEntries = extractSsrPreloadEntriesFromHtml(html);
-  const rawStoreEntries = Array.isArray(store.__QWIK_SSR_PRELOADS__)
-    ? (store.__QWIK_SSR_PRELOADS__ as SsrPreloadSnapshotEntry[])
+  const rawStoreEntries = Array.isArray(store[QWIK_DEVTOOLS_GLOBAL.ssr.preloadsProcessStore])
+    ? (store[QWIK_DEVTOOLS_GLOBAL.ssr.preloadsProcessStore] as SsrPreloadSnapshotEntry[])
     : [];
 
   const merged = new Map<string, SsrPreloadSnapshotEntry>();
@@ -237,7 +238,7 @@ export function injectSsrDevtoolsIntoHtml(
     return html;
   }
 
-  const rawPerfEntries = store.__QWIK_SSR_PERF__;
+  const rawPerfEntries = store[QWIK_DEVTOOLS_GLOBAL.ssr.perfStore];
   const perfEntries = Array.isArray(rawPerfEntries) ? rawPerfEntries : [];
   const preloadEntries = collectSsrPreloadEntries(html, store);
   log('inject ssr devtools %O', {
@@ -264,20 +265,32 @@ function createHookInjectionScript(): string {
 
 function createSsrPerfInjectionScript(entries: unknown[]): string {
   const serializedEntries = JSON.stringify(entries);
+  const globalKey = JSON.stringify(QWIK_DEVTOOLS_GLOBAL.key);
+  const componentStateKey = JSON.stringify(QWIK_DEVTOOLS_GLOBAL.props.componentState);
+  const perfKey = JSON.stringify(QWIK_DEVTOOLS_GLOBAL.props.perf);
   return `
 <script>
-  window.__QWIK_PERF__ = window.__QWIK_PERF__ || { ssr: [], csr: [] };
-  window.__QWIK_PERF__.ssr = ${serializedEntries};
-  window.dispatchEvent(new CustomEvent('qwik:ssr-perf', { detail: ${serializedEntries} }));
+  const root = window[${globalKey}] || (window[${globalKey}] = { version: ${QWIK_DEVTOOLS_GLOBAL.version}, [${componentStateKey}]: {} });
+  root.version = root.version || ${QWIK_DEVTOOLS_GLOBAL.version};
+  root[${componentStateKey}] = root[${componentStateKey}] || {};
+  root[${perfKey}] = root[${perfKey}] || { ssr: [], csr: [] };
+  root[${perfKey}].ssr = ${serializedEntries};
+  window.dispatchEvent(new CustomEvent('${DEVTOOLS_MESSAGES.events.ssrPerf}', { detail: ${serializedEntries} }));
 </script>`;
 }
 
 function createSsrPreloadInjectionScript(entries: SsrPreloadSnapshotEntry[]): string {
   const serializedEntries = JSON.stringify(entries);
+  const globalKey = JSON.stringify(QWIK_DEVTOOLS_GLOBAL.key);
+  const componentStateKey = JSON.stringify(QWIK_DEVTOOLS_GLOBAL.props.componentState);
+  const ssrPreloadsKey = JSON.stringify(QWIK_DEVTOOLS_GLOBAL.props.ssrPreloads);
   return `
 <script>
-  window.__QWIK_SSR_PRELOADS__ = ${serializedEntries};
-  window.dispatchEvent(new CustomEvent('qwik:ssr-preloads', { detail: { entries: ${serializedEntries} } }));
+  const root = window[${globalKey}] || (window[${globalKey}] = { version: ${QWIK_DEVTOOLS_GLOBAL.version}, [${componentStateKey}]: {} });
+  root.version = root.version || ${QWIK_DEVTOOLS_GLOBAL.version};
+  root[${componentStateKey}] = root[${componentStateKey}] || {};
+  root[${ssrPreloadsKey}] = ${serializedEntries};
+  window.dispatchEvent(new CustomEvent('${DEVTOOLS_MESSAGES.events.ssrPreloads}', { detail: { entries: ${serializedEntries} } }));
 </script>`;
 }
 

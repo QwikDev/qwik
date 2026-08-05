@@ -5,7 +5,7 @@ contributors:
   - mhevery
   - wtlin1228
   - AnthonyPAlicea
-  - the-r3aper7
+  - saisrikardumpeti
   - hamatoyogi
   - steve8708
   - iamyuu
@@ -37,7 +37,7 @@ export const useProductDetails = routeLoader$(async ({ params }) => {
 });
 
 export default component$(() => {
-  // AsyncSignal<Product> — read .value, watch .loading, check .error
+  // ComputedSignal<Product> — read .value, watch .pending, check .error
   const product = useProductDetails();
   return <p>Product name: {product.value.name}</p>;
 });
@@ -53,16 +53,17 @@ A few properties of route loaders:
 
 - **Server-only.** The loader function only runs on the server; the browser never sees the closure body.
 - **Keyed by route, not by call site.** Two visits to the same URL share one logical "result" per "route + url params + search params" set, not one per `useProductDetails()` call.
-- **Result is an `AsyncSignal`.** Components read `.value`, watch `.loading`, and check `.error`. Reading `.value` while the signal is in error state re-throws the error.
+- **Result is a `ComputedSignal`.** Components read `.value`, watch `.pending`, and check `.error`. Reading `.value` while the signal is in error state re-throws the error.
 - **Each loader has its own JSON endpoint.** The client fetches `q-loader-{id}.{hash}.json` for navigation, polling, and post-action invalidation. Browser HTTP cache, ETags, and the `expires` option all apply.
+- **Blocks SSR by default.** The server awaits the loader before rendering the page, so a `throw redirect()` or `throw error()` controls the response. Opt out with `blockSSR: false` to run it in the background — see [Background loaders](#background-loaders-blockssr).
 
 This means a `routeLoader$()` should be a **pure function of the URL**: same `params` and `search` → same response. Mixing in any other input (action state, request bodies, one-shot tokens) makes the cached responses inconsistent — see [Loaders cannot read action state](#loaders-cannot-read-action-state).
 
 ## Reading the result in a component
 
-Hooks return an `AsyncSignal<T>`. Branch on `.loading` and `.error` before reading `.value`:
+Hooks return a `ComputedSignal<T>`. Branch on `.pending` and `.error` before reading `.value`:
 
-```tsx /product.loading/ /product.error/ /product.value/#a title="src/routes/product/[productId]/index.tsx"
+```tsx /product.pending/ /product.error/ /product.value/#a title="src/routes/product/[productId]/index.tsx"
 import { component$ } from '@qwik.dev/core';
 import { routeLoader$ } from '@qwik.dev/router';
 
@@ -77,7 +78,7 @@ export const useProductDetails = routeLoader$(async ({ params, fail }) => {
 export default component$(() => {
   const product = useProductDetails();
 
-  if (product.loading) {
+  if (product.pending) {
     return <div>Loading…</div>;
   }
   if (product.error) {
@@ -92,10 +93,12 @@ export default component$(() => {
 
 ### Signaling failure from a loader
 
-Loaders signal failure two ways. Both put the signal into error state with `signal.error` set to a `ServerError` carrying `.status` (HTTP status) and `.data` (the payload):
+Loaders signal failure two ways:
 
-- **`return requestEvent.fail(status, data)`** — return a tagged failure. `signal.error.data` is `{ failed: true, ...data }`.
-- **`throw requestEvent.error(status, data)`** — throw a `ServerError` directly. `signal.error.data` is `data`.
+- **`throw requestEvent.error(status, data)`** — throw a `ServerError` directly. `signal.error` is `ServerError {status, data}`. Reading `signal.value` re-throws the error, so you should branch on `signal.error` first. This is the recommended way to signal failure from a loader.
+- **`return requestEvent.fail(status, data)`** — returns an inline failure. `signal.value.failed` is `true` and `signal.value` contains the rest of the data.
+
+In both cases the result is not cacheable. For a blocking loader (the default) the HTTP response status is also set to `status`; a `blockSSR: false` loader is isolated from the page response — see [Background loaders](#background-loaders-blockssr).
 
 ## Multiple `routeLoader$`s
 
@@ -147,6 +150,7 @@ A loader in `src/routes/product/[productId]/index.tsx` runs when the user naviga
 The `search` option declares which URL search parameters (not the route params) the loader actually depends on:
 
 - **What gets sent.** The loader's JSON request URL only includes the listed params, sorted into a stable order. Other params are stripped, so unrelated query strings don't bust the cache.
+- **What the loader sees.** During SSR and loader JSON requests, the loader's `url` and `query` are filtered to those same params. The original is still visible on `request.url`, but you should not use it.
 - **When it re-fetches.** The signal only re-fetches when a listed search param (or the route path) changes.
 
 ```tsx title="src/routes/products/index.tsx"
@@ -173,7 +177,7 @@ Loader responses come from per-loader JSON endpoints, so ordinary HTTP caching a
 
 ### `expires`
 
-Time in milliseconds before the data is considered stale. Sets `Cache-Control` on the JSON response and the AsyncSignal's expiry. When the data expires, the next read triggers a refetch and components update reactively when the new data arrives.
+Time in milliseconds before the data is considered stale. Sets `Cache-Control` on the JSON response and the signal's expiry. When the data expires, the next read triggers a refetch and components update reactively when the new data arrives.
 
 ```tsx title="src/routes/product/[productId]/index.tsx"
 export const useProductDetails = routeLoader$(
@@ -194,11 +198,14 @@ By default expired data stays readable while a fresh value loads in the backgrou
 
 ### `eTag`
 
-Adds an `ETag` header on the loader response and honors `If-None-Match`. Three modes:
+Adds an `ETag` header on the loader response and honors `If-None-Match`. Two modes:
 
-- **`eTag: true`** — auto-hash the serialized response. The loader still runs; only the response body is suppressed on a 304.
-- **`eTag: 'some-string'`** — static eTag. The loader is skipped entirely on a 304.
-- **`eTag: (requestEvent) => string | null`** — compute the eTag from request context (params, headers, cookies). The loader is skipped entirely on a 304. Return `null` to disable for this request.
+- **`eTag: 'some-string'`** — static eTag.
+- **`eTag: (requestEvent) => string | null`** — compute the eTag from request context (params, headers, cookies). The loader is skipped entirely on a 304. Return `null` or an empty string to disable for this request.
+
+Qwik normalizes eTag values by stripping weak-form `W/` prefixes, quotes, and forbidden chars, then sends a strong `ETag` header. Values that normalize to an empty string are treated as "no eTag provided".
+
+When a loader `cacheKey` callback needs the loader-filtered search string, read `ev.url.search`, which always reflects the loader's `search` option.
 
 ```tsx title="src/routes/subscription/index.tsx"
 export const useSubscription = routeLoader$(
@@ -219,7 +226,7 @@ export const useSubscription = routeLoader$(
 
 ### `serializationStrategy`
 
-By default the HTML response does **not** embed loader data. On hydration, the loader signal is empty until the browser fetches the JSON endpoint — meaning fast first paint, but a brief loading state for code that reads `.value` immediately.
+By default the HTML response does **not** embed loader data. When the client resumes, the loader signal is empty until the browser fetches the JSON endpoint — meaning fast first paint, but a brief pending state for code that reads `.value` immediately.
 
 | Value      | Behavior                                                                |
 | ---------- | ----------------------------------------------------------------------- |
@@ -248,7 +255,26 @@ export default () => ({
 });
 ```
 
-When using lazy-loaded data, branch on `.loading` to show a placeholder until it arrives — see [Reading the result in a component](#reading-the-result-in-a-component).
+When using lazy-loaded data, branch on `.pending` to show a placeholder until it arrives — see [Reading the result in a component](#reading-the-result-in-a-component).
+
+## Background loaders (`blockSSR`)
+
+By default a loader **blocks SSR**: the server awaits it before rendering, so a `throw redirect()` or `throw error()` short-circuits the HTTP response. When several loaders block, the first one to error, in route order, decides the error, however the last one to set the status, in chronological order, decides the status.
+
+Set `blockSSR: false` to run a loader in the background instead. The server starts it but does not wait: rendering begins immediately, and reading `.value` suspends only that read until the loader resolves. This starts SSR sooner, and is the recommended setting, unless you need to control the request from the loader.
+
+`blockSSR: false` is experimental — to use it, you must add `experimental: ['blockSSR']` to your `qwikVite` plugin options.
+
+```tsx title="src/routes/product/[productId]/index.tsx"
+export const useRecommendations = routeLoader$(
+  async ({ params }) => fetchRecommendations(params.productId),
+  { blockSSR: false }
+);
+```
+
+A background loader is treated as a **separate request**: it cannot redirect or error the page response. If it calls `redirect()` or `error()`, that control flow is captured on its own signal (surfacing when `.value` is read) and never changes the page's status or headers. Keep route guards that must redirect or set a status in a [request handler](/docs/middleware) such as `onRequest`, or in a blocking loader.
+
+Note: when the client fetches a background loader for SPA navigation, there is no difference between a blocking and non-blocking loader — the SPA fetch is always async, and the page is already rendered. Errors are not surfaced directly, but redirects are followed automatically.
 
 ## Accessing `RequestEvent`
 
@@ -331,10 +357,11 @@ export default component$(() => {
 
 | Option                  | Default      | Effect                                                                                                |
 | ----------------------- | ------------ | ----------------------------------------------------------------------------------------------------- |
-| `expires`               | `0` (static) | Time-to-live in ms. Sets `Cache-Control` and the AsyncSignal expiry. `0` means never refetched.        |
+| `expires`               | `0` (static) | Time-to-live in ms. Sets `Cache-Control` and the signal expiry. `0` means never refetched.             |
 | `poll`                  | `false`      | Auto-refetch when expired, but only while components are reading the loader.                          |
 | `allowStale`            | `true`       | Show stale data while refetching. `false` blocks readers until fresh data arrives.                    |
 | `serializationStrategy` | `'never'`    | `'never'` / `'always'` / `'auto'` — embed loader data in the SSR HTML?                                |
+| `blockSSR`              | `true`       | Await the loader before SSR (can redirect/error the response). `false` runs it in the background (experimental). |
 | `eTag`                  | —            | `true` (auto-hash), string, or `(ev) => string \| null`. Returns 304 on match.                       |
 | `search`                | `[]` *       | Allowlist of search params the loader depends on. *(default `[]` when `strictLoaders` is enabled)*    |
 | `validation`            | —            | Array of [`DataValidator`](/docs/(qwikrouter)/validator/index.mdx)s applied before the loader runs.   |

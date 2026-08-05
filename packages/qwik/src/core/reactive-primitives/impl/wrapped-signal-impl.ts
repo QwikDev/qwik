@@ -5,7 +5,7 @@ import { ChoreBits } from '../../shared/vnode/enums/chore-bits.enum';
 import { trackSignal } from '../../use/use-core';
 import { getValueProp } from '../internal-api';
 import type { AllSignalFlags, EffectSubscription } from '../types';
-import { EffectProperty, NEEDS_COMPUTATION, SignalFlags, WrappedSignalFlags } from '../types';
+import { EffectProperty, NEEDS_COMPUTATION, ComputedSignalFlags } from '../types';
 import { isSignal, scheduleEffects } from '../utils';
 import { SignalImpl } from './signal-impl';
 import { markVNodeDirty } from '../../shared/vnode/vnode-dirty';
@@ -31,7 +31,7 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> {
     fnStr: string | null,
     // We need a separate flag to know when the computation needs running because
     // we need the old value to know if effects need running after computation
-    flags: SignalFlags = SignalFlags.INVALID | WrappedSignalFlags.UNWRAP
+    flags: AllSignalFlags = ComputedSignalFlags.INVALID
   ) {
     super(container, NEEDS_COMPUTATION);
     this.$args$ = args;
@@ -41,7 +41,7 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> {
   }
 
   invalidate() {
-    this.$flags$ |= SignalFlags.INVALID;
+    this.$flags$ |= ComputedSignalFlags.INVALID;
     // we are trying to run computation without creating a chore, which can be expensive
     // for many signals. If it fails, we schedule a chore to run the computation.
     try {
@@ -53,8 +53,8 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> {
       }
     }
     // if the computation not failed, we can run the effects directly
-    if (this.$flags$ & SignalFlags.RUN_EFFECTS) {
-      this.$flags$ &= ~SignalFlags.RUN_EFFECTS;
+    if (this.$flags$ & ComputedSignalFlags.RUN_EFFECTS) {
+      this.$flags$ &= ~ComputedSignalFlags.RUN_EFFECTS;
       scheduleEffects(this.$container$, this, this.$effects$);
     }
   }
@@ -66,7 +66,7 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> {
   }
 
   $computeIfNeeded$() {
-    if (!(this.$flags$ & SignalFlags.INVALID)) {
+    if (!(this.$flags$ & ComputedSignalFlags.INVALID)) {
       return;
     }
     const untrackedValue = trackSignal(
@@ -83,10 +83,10 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> {
 
     // reset flag in case we call computedIfNeeded twice and the value was changed only the first time
     // TODO: change to version number?
-    this.$flags$ &= ~SignalFlags.RUN_EFFECTS;
+    this.$flags$ &= ~ComputedSignalFlags.RUN_EFFECTS;
     const didChange = untrackedValue !== this.$untrackedValue$;
     if (didChange) {
-      this.$flags$ |= SignalFlags.RUN_EFFECTS;
+      this.$flags$ |= ComputedSignalFlags.RUN_EFFECTS;
       this.$untrackedValue$ = untrackedValue;
     }
   }

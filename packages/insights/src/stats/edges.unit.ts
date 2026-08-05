@@ -3,8 +3,51 @@ import {
   type SymbolPairs,
   type SymbolVectors,
   computeSymbolGraph,
+  computeSymbolTree,
   computeSymbolVectors,
 } from './edges';
+
+test('empty graph', () => {
+  assert.deepEqual(computeSymbolVectors(computeSymbolGraph([])), {
+    symbols: [],
+    vectors: [],
+  });
+});
+
+test('pre-aggregated graph counts', () => {
+  const graph = computeSymbolGraph([
+    { from: 'parent', to: 'child', relatedCount: 2, unrelatedCount: 3 },
+  ]);
+  const root = graph[0];
+  const child = graph.find((symbol) => symbol.name === 'child')!;
+  const parent = graph.find((symbol) => symbol.name === 'parent')!;
+
+  assert.equal(child.count, 5);
+  assert.equal(parent.children[0].count, 2);
+  assert.equal(root.children[0].count, 3);
+});
+
+test('expands a shared symbol only once', () => {
+  const graph = computeSymbolGraph([
+    edge('->a'),
+    edge('a->b'),
+    edge('a->c'),
+    edge('b->d'),
+    edge('c->d'),
+    edge('d->e'),
+  ]);
+  const tree = computeSymbolTree(graph[0]);
+  const names: string[] = [];
+  visit(tree);
+
+  assert.equal(names.filter((name) => name === 'd').length, 2);
+  assert.equal(names.filter((name) => name === 'e').length, 1);
+
+  function visit(symbol: typeof tree) {
+    names.push(symbol.name);
+    symbol.children.forEach((child) => visit(child.to));
+  }
+});
 
 test('simple paths', () => {
   const graph = computeSymbolGraph([edge('->a'), edge('a->b'), edge('b->c'), edge('c->d')]);

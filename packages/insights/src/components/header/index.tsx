@@ -1,12 +1,14 @@
 import { component$ } from '@qwik.dev/core';
-import { Link } from '@qwik.dev/router';
+import { Link, useLocation } from '@qwik.dev/router';
 import { useSession, useSignOut } from '~/routes/plugin@auth';
 import Avatar from '../avatar';
 import { QwikIcon } from '../icons/qwik';
+import { getSettingsHref } from './header-url';
 
 export default component$(() => {
   const signOutSig = useSignOut();
   const userCtx = useSession();
+  const settingsHref = getSettingsHref(useLocation().params.publicApiKey);
 
   return (
     <header class="flex items-center gap-3 border border-b-slate-200 px-6 py-3">
@@ -17,7 +19,7 @@ export default component$(() => {
 
       {userCtx.value?.user?.email && (
         <div class="ml-auto flex items-center justify-center gap-8">
-          <Link href="/">Setting</Link>
+          {settingsHref && <Link href={settingsHref}>Settings</Link>}
           <Link
             class="cursor-pointer"
             onClick$={() => {

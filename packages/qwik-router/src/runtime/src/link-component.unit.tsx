@@ -26,7 +26,7 @@ Error.stackTraceLimit = 100;
 
 type LinkPrefetchProps = {
   prefetch?: boolean | 'js';
-  prefetchBundle?: PrefetchStrategy;
+  prefetchBundles?: PrefetchStrategy;
   prefetchData?: PrefetchStrategy;
 };
 
@@ -36,7 +36,7 @@ const Root = component$((props: LinkPrefetchProps) => {
       <Link
         href="/test"
         prefetch={props.prefetch}
-        prefetchBundle={props.prefetchBundle}
+        prefetchBundles={props.prefetchBundles}
         prefetchData={props.prefetchData}
       >
         Test Link
@@ -52,9 +52,6 @@ const renderLink = async (
   const { document } = await render(<Root {...props} />, {
     debug,
   });
-  if (render === ssrRenderToDom) {
-    await trigger(document.body, 'a', 'qvisible');
-  }
   const anchor = document.querySelector('a');
   expect(anchor).not.toBeNull();
   return { document, anchor: anchor! };
@@ -85,13 +82,13 @@ describe.each([
     const { document, anchor } = await renderLink(render);
 
     expect(anchor?.getAttribute('href')).toBe('http://localhost/test');
-    expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
-    expectPrefetchRouteCall(0, '/test', false, 0.8);
+    expect(anchor?.getAttribute('data-q-prefetch')).toBe('b');
+    expect(prefetchRouteMock).not.toHaveBeenCalled();
 
     await trigger(document.body, anchor, 'pointerenter');
 
-    expect(prefetchRouteMock).toHaveBeenCalledTimes(2);
-    expectPrefetchRouteCall(1, '/test', true, 0.8, 'dev', false);
+    expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
+    expectPrefetchRouteCall(0, '/test', true, 0.8, 'dev', false, {});
   });
 
   it('prefetches route data on intent', async () => {
@@ -106,8 +103,8 @@ describe.each([
     await trigger(document.body, anchor, 'focus');
 
     expect(prefetchRouteMock).toHaveBeenCalledTimes(2);
-    expectPrefetchRouteCall(0, '/test', true, 0.8, 'dev', false);
-    expectPrefetchRouteCall(1, '/test', true, 0.8, 'dev', false);
+    expectPrefetchRouteCall(0, '/test', true, 0.8, 'dev', false, {});
+    expectPrefetchRouteCall(1, '/test', true, 0.8, 'dev', false, {});
   });
 
   it('prefetches route data on commit', async () => {
@@ -123,43 +120,52 @@ describe.each([
     await trigger(document.body, anchor, 'keydown', { key: 'Enter' });
 
     expect(prefetchRouteMock).toHaveBeenCalledTimes(2);
-    expectPrefetchRouteCall(0, '/test', true, 0.8, 'dev', false);
-    expectPrefetchRouteCall(1, '/test', true, 0.8, 'dev', false);
+    expectPrefetchRouteCall(0, '/test', true, 0.8, 'dev', false, {});
+    expectPrefetchRouteCall(1, '/test', true, 0.8, 'dev', false, {});
   });
 
   it('prefetches route data when visible strategy is enabled', async () => {
-    await renderLink(render, { prefetchBundle: 'off', prefetchData: 'visible' });
+    const { anchor } = await renderLink(render, {
+      prefetchBundles: 'off',
+      prefetchData: 'visible',
+    });
 
-    expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
-    expectPrefetchRouteCall(0, '/test', true, 0.8, 'dev', false);
+    expect(anchor.getAttribute('data-q-prefetch')).toBe('d');
+    expect(prefetchRouteMock).not.toHaveBeenCalled();
   });
 
   it('prefetches bundles when visible strategy is enabled', async () => {
-    await renderLink(render, { prefetchBundle: 'visible', prefetchData: 'off' });
+    const { anchor } = await renderLink(render, {
+      prefetchBundles: 'visible',
+      prefetchData: 'off',
+    });
 
-    expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
-    expectPrefetchRouteCall(0, '/test', false, 0.8);
+    expect(anchor.getAttribute('data-q-prefetch')).toBe('b');
+    expect(prefetchRouteMock).not.toHaveBeenCalled();
   });
 
   it('prefetches bundles and route data when visible strategy is enabled for both', async () => {
-    await renderLink(render, { prefetchBundle: 'visible', prefetchData: 'visible' });
+    const { anchor } = await renderLink(render, {
+      prefetchBundles: 'visible',
+      prefetchData: 'visible',
+    });
 
-    expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
-    expectPrefetchRouteCall(0, '/test', true, 0.8, 'dev', true);
+    expect(anchor.getAttribute('data-q-prefetch')).toBe('bd');
+    expect(prefetchRouteMock).not.toHaveBeenCalled();
   });
 
   it('prefetches bundles when deprecated prefetch is js', async () => {
-    await renderLink(render, { prefetch: 'js' });
+    const { anchor } = await renderLink(render, { prefetch: 'js' });
 
-    expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
-    expectPrefetchRouteCall(0, '/test', false, 0.8);
+    expect(anchor.getAttribute('data-q-prefetch')).toBe('b');
+    expect(prefetchRouteMock).not.toHaveBeenCalled();
   });
 
   it('prefetches bundles and route data when deprecated prefetch is true', async () => {
-    await renderLink(render, { prefetch: true });
+    const { anchor } = await renderLink(render, { prefetch: true });
 
-    expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
-    expectPrefetchRouteCall(0, '/test', true, 0.8, 'dev', true);
+    expect(anchor.getAttribute('data-q-prefetch')).toBe('bd');
+    expect(prefetchRouteMock).not.toHaveBeenCalled();
   });
 
   it('does not prefetch route data when data prefetching is off', async () => {
@@ -178,7 +184,7 @@ describe.each([
     const DeprecatedRoot = component$(() => {
       return (
         <QwikRouterMockProvider>
-          <Link href="/test" prefetch={false} prefetchBundle="visible" prefetchData="visible">
+          <Link href="/test" prefetch={false} prefetchBundles="visible" prefetchData="visible">
             Test Link
           </Link>
         </QwikRouterMockProvider>
@@ -187,10 +193,9 @@ describe.each([
     const { document } = await render(<DeprecatedRoot />, {
       debug,
     });
-    if (render === ssrRenderToDom) {
-      await trigger(document.body, 'a', 'qvisible');
-    }
+    const anchor = document.querySelector('a');
 
+    expect(anchor?.hasAttribute('data-q-prefetch')).toBe(false);
     expect(prefetchRouteMock).not.toHaveBeenCalled();
   });
 
@@ -205,9 +210,6 @@ describe.each([
     const { document } = await render(<ClickRoot />, {
       debug,
     });
-    if (render === ssrRenderToDom) {
-      await trigger(document.body, 'a', 'qvisible');
-    }
     const anchor = document.querySelector('a');
     prefetchRouteMock.mockClear();
 

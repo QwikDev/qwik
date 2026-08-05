@@ -45,6 +45,27 @@ pnpm playwright test e2e/adapters-e2e/tests/adapters.spec.ts --project=chromium 
 pnpm playwright test e2e/qwik-react-e2e/tests/reactify.spec.ts --project=chromium --config e2e/qwik-react-e2e/playwright.config.ts
 ```
 
+## SSG snapshot suite
+
+`e2e/qwik-e2e/tests/qwikrouter/ssg-snapshot.e2e.ts` asserts two independent things against the built
+`qwikrouter-ssg-snapshot` app:
+
+- **Serialized output goldens** — `expected.state.txt` and `expected.ssg.html`. Regenerate after an
+  intentional serialization or SSR output change with `pnpm test.e2e.router.ssg.update`.
+- **Brotli size budgets** — `CORE_BROTLI_BUDGET` / `PRELOADER_BROTLI_BUDGET` /
+  `QWIKLOADER_BROTLI_BUDGET` constants in that spec. A core change that grows a bundle fails with the
+  exact over-budget byte count; bump the matching constant when the growth is intentional.
+
+Traps:
+
+- `test.e2e.router.ssg.update` regenerates the goldens only; it never touches the budgets, so a
+  budget breach survives the update.
+- The update run can exit non-zero because a sibling budget assertion failed, not the golden. "N
+  passed" with exit 1 usually means a budget breach — read the failing assertion instead of assuming
+  the golden is stale.
+- After rebasing onto a moved base the golden conflicts; regenerate it rather than hand-merging, then
+  re-run `pnpm test.e2e.router.ssg` (no update flag) to confirm it passes deterministically.
+
 ## Stop Conditions
 
 - Stop and inspect the suite config when `--browser` versus `--project` is unclear.

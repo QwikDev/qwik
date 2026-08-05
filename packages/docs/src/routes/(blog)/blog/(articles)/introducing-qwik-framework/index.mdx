@@ -1,0 +1,48 @@
+---
+title: 'A first look at Qwik - the HTML first framework'
+authors:
+  - 'Miško Hevery'
+tags: ['Qwik']
+date: 'July 1, 2021'
+canonical: 'https://www.builder.io/blog/introducing-qwik-framework'
+---
+
+import { ArticleBlock } from '~/routes/(blog)/blog/components/mdx/article-block';
+import { Image } from 'qwik-image';
+import img1 from './img-1.webp';
+
+<ArticleBlock>
+
+At [Builder.io](https://www.builder.io), we empower non-developers to build and edit blazing fast sites with a powerful visual editor. One of the cool things about our visual editor is that we can generate the same sites in different technologies—everything from Angular to WebComponents and every framework in between. The code we output is optimized for speed, and our sites are faster than the vast majority of hand-crafted sites. We are very proud of that. Our product focuses on eCommerce, and eCommerce loves speed!
+
+## Getting good time-to-interactive is hard
+
+Even with the most optimized code, it is hard for eCommerce sites to reach a 100 out of 100 score on [PageSpeed Insights](https://developers.google.com/speed/pagespeed/insights/) unless they serve only static HTML. This is why most eCommerce sites are around 20 and in the red. Only the very best, who can afford to focus on speed, can get their site to the 50s to 60s and into the yellow. Using Builder.io will also get your sites into the yellow 50s to 60s. But we want to do better!
+
+### Pure HTML is fast
+
+Well, we can do better if we serve static HTML. That will almost certainly give us a 100 out of 100 score. After all, PageSpeed Insights shows a score measured based on the amount of code the browser must execute before the page becomes interactive. By removing all of the JavaScript execution we can get a perfect score of 100 and pass with flying green colors! But, therein lies the problem. These pages are static. We need our pages to deliver content dynamically, full of interaction and life. How can we serve static HTML to receive high scores, but at the same time provide rich interaction?
+
+## Introducing Qwik - the HTML first framework
+
+Introducing Qwik, an open-source DOM-centric, resumable web-app framework designed for best possible time-to-interactive, by focusing on resumability of server-side-rendering of HTML and fine-grained lazy-loading of code. OK, that is a lot to unpack and a lot more than we could possibly cover in this blog post. So, we will break this up into a series of blog posts, which we will post over the next few weeks. But, the basic goal of Qwik is to focus on the time-to-interactive metric by delaying as much as possible to take advantage of the browser's lazy loading capabilities. This is in stark contrast to existing frameworks that treat server-side-rendering and time-to-interactive more as an afterthought rather than a primary goal, which drives all other design decisions. Qwik's goal is to crush time-to-interactive to a blink of an eye on the slowest mobile device. We want to serve static pages to the user so that they are fast, but retain all of their interactivity. We want to have our cake and eat it too!
+
+## Replayable frameworks do too much work
+
+There is a reason why virtually no eCommerce site scores 100 on PageSpeed Insights. The reason is that all existing frameworks are not designed with time-to-interactive in mind. They have complex bootstrap processes which require a lot of code to be downloaded and executed before the page can become interactive. Yes, most support server-side-rendering to get a quick flash of initial content, but the first thing they need to do is to download all of the templates on the page and execute them to rehydrate the page and make it interactive. This download and execute is what keeps existing real-world sites from scoring 100. The current set of frameworks are replayable, as they need to replay all of the work of server-side-rendering on the client to get the site interactive. And, as your site becomes more complicated, so will the replayability cost
+
+## Resumability to the rescue
+
+The basic idea behind Qwik is that it is resumable. It can continue where the server left off. There is but the tiniest amount of code to execute on the client. The qwikloader, which takes the static HTML generated from server-side-rendering and resumes it, is less than 1kb and will execute in under 1ms. I think you may want to go and re-read the last sentence. Yes, the amount of code that we need to execute is amazingly small, and it executes in less than a blink of an eye. The best part is that this code will stay constant no matter how big your application becomes. All the other interactivity of your website is downloaded lazily as you interact with the site in the smallest possible chunks.
+
+## Find out more
+
+Our primary focus is to develop this technology for our customers. But the technology will be developed in open-source and can be used by anyone for any purpose. While it will be designed as a general-purpose web framework, we will be prioritizing what we need for our customers first.
+
+I am sure you are dying to find out more. We invite you to play with a StackBlitz web-container [demo](https://stackblitz.com/edit/qwik-todo-demo). (How cool from StackBlitz folks that they were able to run node.js in the browser and allow us to demonstrate the server-side-rendering, which is a key part of the framework. Hats off to them!) You can also find the open-source repo [here](https://github.com/builderio/qwik). To set expectations, the repo is very much in the proof of concept stage and is not ready for general consumption, as we expect many things to change over time. Nevertheless, we want to know what you think. So, please join us for a [chat on our Discord server](https://discord.gg/JHVpZmqSs4).
+
+Over the next few weeks, we will be diving into many of the unique ideas behind Qwik to explain how it ticks and what makes it unique. Stay tuned!
+
+Originally published on [https://dev.to/mhevery/a-first-look-at-qwik-the-html-first-framework-af](https://dev.to/mhevery/a-first-look-at-qwik-the-html-first-framework-af)
+
+</ArticleBlock>

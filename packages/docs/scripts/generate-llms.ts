@@ -349,7 +349,7 @@ The playground focuses on rapid experimentation rather than long-form documentat
       'Experimental',
       'Suspense',
       '/docs/labs/suspense/',
-      'Experimental fallback boundaries for async rendering and out-of-order streaming, including `useAsync$`, `delay`, and `showStale` patterns.',
+      'Experimental fallback boundaries for async rendering and out-of-order streaming, including `useComputed$`, `delay`, and `Reveal` patterns.',
       toSourcePath('docs', 'labs', 'suspense', 'index.mdx')
     ),
     apiEntry('qwik'),
@@ -740,8 +740,13 @@ function preprocessMediaBlocks(sourceContent: string) {
   return content;
 }
 
+/** Drop the `<Term>` wrapper in markdown mirrors, keeping the inline word (its children). */
+function stripGlossaryTerms(sourceContent: string) {
+  return sourceContent.replace(/<\/?Term\b[^>]*>/gi, '');
+}
+
 function preprocessSimpleHtml(sourceContent: string) {
-  return sourceContent
+  return stripGlossaryTerms(sourceContent)
     .replace(/<br\s*\/?>/gi, ' ')
     .replace(/^\s*<\/?(?:div|video|source)\b[^>]*>\s*$/gim, '')
     .replace(/\n{3,}/g, '\n\n');

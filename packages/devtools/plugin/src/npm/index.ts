@@ -1,9 +1,30 @@
 import { ServerContext } from '../types';
 import fsp from 'node:fs/promises';
-import { NpmInfo } from '@qwik.dev/devtools/kit';
-import { execSync } from 'child_process';
+import type {
+  DependencyInfo,
+  DependencyOperationResult,
+  InstallDependencyType,
+  NpmInfo,
+  PackageSearchResponse,
+} from '@qwik.dev/devtools/kit';
 import path from 'path';
 import createDebug from 'debug';
+import {
+  buildInstallCommand,
+  buildUpdateCommand,
+  isValidPackageName,
+  resolvePackageProjectContext,
+  runPackageCommand,
+} from './package-manager';
+import {
+  createDependencyEntries,
+  createDependencyInfo,
+  getDependencyType,
+} from './dependency-model';
+import { fetchPackageMetadata, resolveRegistryUrl, searchRegistryPackages } from './registry';
+import { verifyDependencySync } from './package-sync';
+
+export { detectPackageManager } from './package-manager';
 
 const log = createDebug('qwik:devtools:npm');
 
@@ -28,17 +49,6 @@ export interface DependenciesStatus {
   startedAt: number | null;
   finishedAt: number | null;
   error?: string;
-}
-
-interface DependencyInfo {
-  name: string;
-  version: string;
-  description: string;
-  author?: any;
-  homepage?: string;
-  repository?: string;
-  npmUrl: string;
-  iconUrl: string | null;
 }
 
 let preloadedDependencies: DependencyInfo[] | null = null;
@@ -101,33 +111,12 @@ function getProjectStartDirFromConfig(config: any): string {
   return process.cwd();
 }
 
+function getLatestVersionFromMetadata(metadata: any): string | undefined {
+  return metadata?.distTags?.latest || metadata?.['dist-tags']?.latest || metadata?.version;
+}
+
 function nodeModulesPackageJsonPath(projectRoot: string, name: string): string {
   return path.join(projectRoot, 'node_modules', ...name.split('/'), 'package.json');
-}
-
-function normalizeRepositoryUrl(repository: any): string | undefined {
-  const url = typeof repository === 'string' ? repository : repository?.url;
-  if (!url || typeof url !== 'string') {
-    return undefined;
-  }
-  return url
-    .replace(/^git\+/, '')
-    .replace(/^ssh:\/\/git@/, 'https://')
-    .replace(/\.git$/, '');
-}
-
-function guessIconUrl(name: string, repositoryUrl?: string): string | null {
-  if (name.startsWith('@')) {
-    const scope = name.split('/')[0].substring(1);
-    return `https://avatars.githubusercontent.com/${scope}?size=64`;
-  }
-  if (repositoryUrl?.includes('github.com')) {
-    const match = repositoryUrl.match(/github\.com\/([^/]+)/);
-    if (match) {
-      return `https://avatars.githubusercontent.com/${match[1]}?size=64`;
-    }
-  }
-  return null;
 }
 
 function deferToEventLoop(): Promise<void> {
@@ -157,47 +146,26 @@ async function mapLimit<T, R>(
   return results;
 }
 
-export async function detectPackageManager(projectRoot: string): Promise<'npm' | 'pnpm' | 'yarn'> {
-  if (await fileExists(path.join(projectRoot, 'pnpm-lock.yaml'))) {
-    return 'pnpm';
-  }
-  if (await fileExists(path.join(projectRoot, 'yarn.lock'))) {
-    return 'yarn';
-  }
-  if (await fileExists(path.join(projectRoot, 'package-lock.json'))) {
-    return 'npm';
-  }
-  return 'pnpm';
-}
-
 // -----------------------------
 // Dependencies preload (Phase1 + Phase2)
 // -----------------------------
 
 async function phase1LocalIndex(
   projectRoot: string,
-  deps: [string, string][]
+  deps: ReturnType<typeof createDependencyEntries>
 ): Promise<DependencyInfo[]> {
   const localConcurrency = 16;
 
-  return mapLimit(deps, localConcurrency, async ([name, requestedVersion]) => {
+  return mapLimit(deps, localConcurrency, async ([name, requestedVersion, type]) => {
     const pkgJsonPath = nodeModulesPackageJsonPath(projectRoot, name);
     const installedPkg = await readJsonFile(pkgJsonPath);
 
-    const version = installedPkg?.version || requestedVersion;
-    const repository = normalizeRepositoryUrl(installedPkg?.repository);
-    const iconUrl = guessIconUrl(name, repository);
-
-    const info: DependencyInfo = {
+    const info = createDependencyInfo({
       name,
-      version,
-      description: installedPkg?.description || 'No description available',
-      author: installedPkg?.author,
-      homepage: installedPkg?.homepage,
-      repository,
-      npmUrl: `https://www.npmjs.com/package/${name}`,
-      iconUrl,
-    };
+      requestedVersion,
+      type,
+      installedPackage: installedPkg,
+    });
 
     dependenciesStatus.loaded++;
     if (dependenciesStatus.loaded % 50 === 0) {
@@ -208,52 +176,32 @@ async function phase1LocalIndex(
   });
 }
 
-async function phase2BackgroundEnrich(deps: DependencyInfo[]): Promise<void> {
-  const targets = deps.filter(
-    (p) => !p.repository || !p.iconUrl || p.description === 'No description available'
-  );
-
+async function phase2BackgroundEnrich(projectRoot: string, deps: DependencyInfo[]): Promise<void> {
+  const registryUrl = await resolveRegistryUrl(projectRoot);
   const enrichConcurrency = 6;
-  await mapLimit(targets, enrichConcurrency, async (p) => {
-    // local enrich first
-    const repo = normalizeRepositoryUrl(p.repository);
-    if (repo && repo !== p.repository) {
-      p.repository = repo;
-    }
-    if (!p.iconUrl) {
-      p.iconUrl = guessIconUrl(p.name, p.repository);
-    }
 
-    // optional small registry lookup for missing description/repo
-    if (!p.repository || p.description === 'No description available') {
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 1500);
-        const res = await fetch(
-          `https://registry.npmjs.org/${encodeURIComponent(p.name)}/${encodeURIComponent(p.version)}`,
-          { headers: { Accept: 'application/json' }, signal: controller.signal }
-        );
-        clearTimeout(timeoutId);
-
-        if (res.ok) {
-          const data = await res.json();
-          if (!p.repository) {
-            p.repository = normalizeRepositoryUrl(data?.repository);
-          }
-          if (p.description === 'No description available' && data?.description) {
-            p.description = data.description;
-          }
-          if (!p.iconUrl) {
-            p.iconUrl = guessIconUrl(p.name, p.repository);
-          }
-        }
-      } catch {
-        // ignore
-      }
+  await mapLimit(deps, enrichConcurrency, async (dependency) => {
+    const metadata = await fetchPackageMetadata(registryUrl, dependency.name);
+    if (!metadata) {
+      dependency.status = dependency.latestVersion ? dependency.status : 'unknown';
+      await deferToEventLoop();
+      return dependency;
     }
 
+    const installedPkg = await readJsonFile(
+      nodeModulesPackageJsonPath(projectRoot, dependency.name)
+    );
+    const enriched = createDependencyInfo({
+      name: dependency.name,
+      requestedVersion: dependency.requestedVersion,
+      type: dependency.type,
+      installedPackage: installedPkg,
+      registryMetadata: metadata,
+    });
+
+    Object.assign(dependency, enriched);
     await deferToEventLoop();
-    return p;
+    return dependency;
   });
 }
 
@@ -288,12 +236,7 @@ async function preloadDependencies(config: any): Promise<DependencyInfo[]> {
     const projectRoot = path.dirname(packageJsonPath);
     const pkg = await readJsonFile(packageJsonPath);
 
-    const allDeps = {
-      ...(pkg?.dependencies || {}),
-      ...(pkg?.devDependencies || {}),
-      ...(pkg?.peerDependencies || {}),
-    };
-    const entries = Object.entries<string>(allDeps);
+    const entries = createDependencyEntries(pkg);
     dependenciesStatus.total = entries.length;
 
     try {
@@ -304,7 +247,7 @@ async function preloadDependencies(config: any): Promise<DependencyInfo[]> {
       // Phase2 runs truly in background; never blocks Phase1 result.
       void (async () => {
         try {
-          await phase2BackgroundEnrich(list);
+          await phase2BackgroundEnrich(projectRoot, list);
           dependenciesStatus.phase = 'done';
         } catch (e) {
           dependenciesStatus.phase = 'error';
@@ -351,6 +294,20 @@ export async function startPreloading({ config }: { config: any }) {
 }
 
 export function getNpmFunctions({ config }: ServerContext) {
+  const refreshDependencyCache = async (): Promise<DependencyInfo[]> => {
+    preloadedDependencies = null;
+    isPreloading = false;
+    preloadPromise = null;
+    dependenciesStatus = {
+      phase: 'idle',
+      loaded: 0,
+      total: 0,
+      startedAt: null,
+      finishedAt: null,
+    };
+    return preloadDependencies(config);
+  };
+
   return {
     async getQwikPackages(): Promise<NpmInfo> {
       const startDir = getProjectStartDirFromConfig(config);
@@ -367,7 +324,7 @@ export function getNpmFunctions({ config }: ServerContext) {
       }
     },
 
-    async getAllDependencies(): Promise<any[]> {
+    async getAllDependencies(): Promise<DependencyInfo[]> {
       // Return preloaded data immediately if available
       if (preloadedDependencies) {
         log('[Qwik DevTools] Returning preloaded dependencies');
@@ -389,46 +346,127 @@ export function getNpmFunctions({ config }: ServerContext) {
       return dependenciesStatus;
     },
 
-    async refreshDependencies(): Promise<void> {
-      preloadedDependencies = null;
-      isPreloading = false;
-      preloadPromise = null;
-      dependenciesStatus = {
-        phase: 'idle',
-        loaded: 0,
-        total: 0,
-        startedAt: null,
-        finishedAt: null,
-      };
-      void preloadDependencies(config);
+    async refreshDependencies(): Promise<DependencyInfo[]> {
+      return refreshDependencyCache();
     },
 
-    async installPackage(
-      packageName: string,
-      isDev = true
-    ): Promise<{ success: boolean; error?: string }> {
+    async searchPackages(query: string): Promise<PackageSearchResponse> {
+      const trimmedQuery = query.trim();
+      if (!trimmedQuery) {
+        return { results: [] };
+      }
+
       try {
         const startDir = getProjectStartDirFromConfig(config);
         const pathToPackageJson = await findNearestFileUp(startDir, 'package.json');
         const projectRoot = pathToPackageJson ? path.dirname(pathToPackageJson) : startDir;
-        const pm = await detectPackageManager(projectRoot);
-        const devFlag = isDev ? (pm === 'npm' ? '--save-dev' : '-D') : '';
+        const registryUrl = await resolveRegistryUrl(projectRoot);
+        const dependencies = preloadedDependencies || (await preloadDependencies(config));
+        const installedVersions = new Map(
+          dependencies.map((dependency) => [dependency.name, dependency.currentVersion])
+        );
 
-        const command = {
-          npm: `npm install ${devFlag} ${packageName}`,
-          pnpm: `pnpm add ${devFlag} ${packageName}`,
-          yarn: `yarn add ${devFlag} ${packageName}`,
-        }[pm];
+        return {
+          results: await searchRegistryPackages(registryUrl, trimmedQuery, installedVersions),
+        };
+      } catch (error) {
+        return {
+          results: [],
+          error: error instanceof Error ? error.message : 'Package search failed',
+        };
+      }
+    },
 
-        execSync(command, {
-          cwd: projectRoot,
-          stdio: 'pipe',
-        });
+    async installPackage(
+      packageName: string,
+      dependencyType: InstallDependencyType = 'devDependencies'
+    ): Promise<DependencyOperationResult> {
+      try {
+        if (!isValidPackageName(packageName)) {
+          return {
+            success: false,
+            action: 'install',
+            packageName,
+            error: `Invalid package name: ${packageName}`,
+          };
+        }
 
-        return { success: true };
+        const startDir = getProjectStartDirFromConfig(config);
+        const context = await resolvePackageProjectContext(startDir);
+        const command = buildInstallCommand(context, packageName, dependencyType);
+
+        await runPackageCommand(command);
+        await refreshDependencyCache();
+        return { success: true, action: 'install', packageName };
       } catch (error) {
         return {
           success: false,
+          action: 'install',
+          packageName,
+          error: error instanceof Error ? error.message : 'Unknown error occurred',
+        };
+      }
+    },
+
+    async updatePackage(packageName: string): Promise<DependencyOperationResult> {
+      try {
+        if (!isValidPackageName(packageName)) {
+          return {
+            success: false,
+            action: 'update',
+            packageName,
+            error: `Invalid package name: ${packageName}`,
+          };
+        }
+
+        const startDir = getProjectStartDirFromConfig(config);
+        const context = await resolvePackageProjectContext(startDir);
+        const pkg = context.packageJsonPath ? await readJsonFile(context.packageJsonPath) : null;
+        const dependencyType = getDependencyType(pkg, packageName);
+
+        if (!dependencyType) {
+          return {
+            success: false,
+            action: 'update',
+            packageName,
+            error: `${packageName} is not installed in package.json`,
+          };
+        }
+
+        const registryUrl = await resolveRegistryUrl(context.projectRoot);
+        const metadata = await fetchPackageMetadata(registryUrl, packageName);
+        const expectedVersion = getLatestVersionFromMetadata(metadata);
+        const command = buildUpdateCommand(context, packageName, dependencyType);
+        const commandResult = await runPackageCommand(command);
+        const verification = await verifyDependencySync({
+          projectRoot: context.projectRoot,
+          workspaceRoot: context.workspaceRoot,
+          workspacePackageSelector: context.workspacePackageSelector,
+          packageName,
+          dependencyType,
+          expectedVersion,
+          packageManager: context.packageManager,
+        });
+
+        if (!verification.success) {
+          const commandOutput = [commandResult.stderr.trim(), commandResult.stdout.trim()]
+            .filter(Boolean)
+            .join('\n');
+          return {
+            success: false,
+            action: 'update',
+            packageName,
+            error: [verification.error, commandOutput].filter(Boolean).join('\n'),
+          };
+        }
+
+        await refreshDependencyCache();
+        return { success: true, action: 'update', packageName };
+      } catch (error) {
+        return {
+          success: false,
+          action: 'update',
+          packageName,
           error: error instanceof Error ? error.message : 'Unknown error occurred',
         };
       }

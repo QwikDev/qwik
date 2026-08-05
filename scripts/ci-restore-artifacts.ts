@@ -11,24 +11,54 @@ import { join, resolve } from 'node:path';
 const root = resolve(import.meta.dirname, '..');
 
 /** Each entry maps an artifact source to its package destination. */
-const artifacts: Array<{ src: string; dest: string }> = [
-  { src: 'artifact-qwik', dest: 'packages/qwik/dist' },
-  { src: 'artifact-optimizer', dest: 'packages/optimizer' },
-  { src: 'artifact-qwikrouter', dest: 'packages/qwik-router/lib' },
-  { src: 'artifact-create-qwik', dest: 'packages/create-qwik/dist' },
-  { src: 'artifact-eslint-plugin-qwik', dest: 'packages/eslint-plugin-qwik/dist' },
+const artifacts: Array<{ artifact: string; src: string; dest: string }> = [
+  { artifact: 'artifact-qwik', src: 'artifact-qwik', dest: 'packages/qwik/dist' },
+  { artifact: 'artifact-optimizer', src: 'artifact-optimizer', dest: 'packages/optimizer' },
+  {
+    artifact: 'artifact-qwikrouter',
+    src: 'artifact-qwikrouter',
+    dest: 'packages/qwik-router/lib',
+  },
+  {
+    artifact: 'artifact-create-qwik',
+    src: 'artifact-create-qwik',
+    dest: 'packages/create-qwik/dist',
+  },
+  {
+    artifact: 'artifact-eslint-plugin-qwik',
+    src: 'artifact-eslint-plugin-qwik',
+    dest: 'packages/eslint-plugin-qwik/dist',
+  },
+  { artifact: 'artifact-devtools', src: 'artifact-devtools', dest: 'packages/devtools/dist' },
   // qwik-react artifact nests its output in a `lib` subdirectory
-  { src: 'artifact-qwikreact', dest: 'packages/qwik-react/lib' },
+  { artifact: 'artifact-qwikreact', src: 'artifact-qwikreact', dest: 'packages/qwik-react/lib' },
   // docs build output (upload LCA is packages/docs/, so paths are relative to that)
-  { src: 'artifact-docs/dist', dest: 'packages/docs/dist' },
-  { src: 'artifact-docs/server', dest: 'packages/docs/server' },
+  { artifact: 'artifact-docs', src: 'artifact-docs/dist', dest: 'packages/docs/dist' },
+  { artifact: 'artifact-docs', src: 'artifact-docs/server', dest: 'packages/docs/server' },
 ];
+
+const requestedArtifacts = new Set(process.argv.slice(2));
+const knownArtifacts = new Set(artifacts.map(({ artifact }) => artifact));
+
+for (const artifact of requestedArtifacts) {
+  if (!knownArtifacts.has(artifact)) {
+    throw new Error(`Unknown artifact allowlist entry: ${artifact}`);
+  }
+}
 
 let restored = 0;
 
-for (const { src, dest } of artifacts) {
+for (const { artifact, src, dest } of artifacts) {
+  const required = requestedArtifacts.has(artifact);
+  if (requestedArtifacts.size > 0 && !required) {
+    continue;
+  }
+
   const srcPath = join(root, src);
   if (!existsSync(srcPath)) {
+    if (required) {
+      throw new Error(`Required artifact source not found: ${src}`);
+    }
     console.log(`  skip: ${src} (not found)`);
     continue;
   }
@@ -46,4 +76,4 @@ for (const entry of readdirSync(root)) {
   }
 }
 
-console.log(`Restored ${restored} artifact(s).`);
+console.log(`Restored ${restored} artifact path(s).`);

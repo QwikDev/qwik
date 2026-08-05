@@ -17,25 +17,25 @@ created_at: '2022-08-02T12:07:45Z'
 
 For this tutorial, we would like to fetch the list of repositories for a given GitHub organization. To aid you, we have added the `getRepositories()` function to the bottom of the file. Your task is to use the `getRepositories()` function to fetch the list of repositories whenever the user updates the `org` input.
 
-Qwik provides [`useAsync$()`](/docs/(qwik)/core/state/index.mdx) to help you lazily fetch and display data from the server. It returns an `AsyncSignal<T>` which has these states:
+Qwik provides [`useComputed$()`](/docs/(qwik)/core/state/index.mdx) to help you lazily fetch and display data from the server. With an async function it returns a `ComputedSignal<T>` which has these states:
 
-- loading: the data is being fetched from the server => Render `loading...` indicator. `.loading` is `true` while data is being fetched.
+- pending: the data is being fetched from the server => Render `loading...` indicator. `.pending` is `true` while data is being fetched.
 - resolved: the data has successfully been fetched from the server => Render the data. `.value` contains the last fetched data or the initial value.
 - errored: the data could not be fetched from the server due to an error => Render the error. `.error` contains the error, if any.
 
 These states are reactive, meaning that if you use them and they change, your component will automatically re-render to reflect the new state.
 
-Note that when reading `.loading`, it will trigger the actual loading of the data. So you typically won't have to trigger the load manually.
+Note that when reading `.pending`, it will trigger the actual loading of the data. So you typically won't have to trigger the load manually.
 
 ## Fetching data
 
-Use [`useAsync$()`](/docs/(qwik)/core/state/index.mdx) to set up how the data is fetched from the server.
+Use [`useComputed$()`](/docs/(qwik)/core/state/index.mdx) to set up how the data is fetched from the server.
 
 ```jsx
-  const reposResource = useAsync$<string[]>(({ track, abortSignal }) => {
+  const reposResource = useComputed$<string[]>(({ abortSignal }) => {
     // We need a way to re-run fetching data whenever the `github.org` changes.
-    // Use `track` to trigger re-running of this data fetching function.
-    const org = track(githubOrg);
+    // Reading githubOrg.value re-runs this function whenever it changes.
+    const org = githubOrg.value;
 
     // The abortSignal is automatically provided and will be aborted when this
     // function re-runs, allowing you to cancel pending operations.
@@ -45,16 +45,16 @@ Use [`useAsync$()`](/docs/(qwik)/core/state/index.mdx) to set up how the data is
   });
 ```
 
-The [`useAsync$()`](/docs/(qwik)/core/state/index.mdx) function returns an `AsyncSignal` object, which is reactive state that can be serialized by Qwik. The [`useAsync$()`](/docs/(qwik)/core/state/index.mdx) function allows you to `track` store properties so that the [`useAsync$()`](/docs/(qwik)/core/state/index.mdx) function can be reactive on store changes. The `abortSignal` allows you to cancel pending operations when the function re-runs. Finally, the [`useAsync$()`](/docs/(qwik)/core/state/index.mdx) function returns a promise that will resolve to the value.
+The [`useComputed$()`](/docs/(qwik)/core/state/index.mdx) function returns a `ComputedSignal` object, which is reactive state that can be serialized by Qwik. Qwik automatically tracks every signal and store property the function reads before the first `await`, so it re-runs when they change; reads after an `await` must use the `track()` provided on the context argument. The `abortSignal` allows you to cancel pending operations when the function re-runs. Finally, the async function returns a promise that will resolve to the value.
 
 ## Rendering data
 
-The `AsyncSignal` provides the `.loading`, `.error`, and `.value` reactive properties to allow you to render different content depending if the resource is `pending`, `resolved` or `rejected`.
+The `ComputedSignal` provides the `.pending`, `.error`, and `.value` reactive properties to allow you to render different content depending if the resource is `pending`, `resolved` or `rejected`.
 
 On the server, rendering pauses until the resource is resolved and will always render as either `resolved` or `rejected`. (On the client, all states including `pending` are rendered.)
 
 ```jsx
-{reposResource.loading && <div>Loading...</div>}
+{reposResource.pending && <div>Loading...</div>}
 {reposResource.error && <div>Error: {reposResource.error.message}</div>}
 {reposResource.value && <div>{reposResource.value}</div>}
 ```

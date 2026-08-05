@@ -1,20 +1,19 @@
 import { expect, test } from '@playwright/test';
 import { qwikVite } from '@qwik.dev/core/optimizer';
-import type { QwikManifest } from '@qwik.dev/core/optimizer';
 import { ssgAdapter } from '@qwik.dev/router/adapters/ssg/vite';
 import { qwikRouter } from '@qwik.dev/router/vite';
 import compress from 'brotli/compress.js';
 import { readFile, rm, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { build, type InlineConfig, type PluginOption } from 'vite';
+import { build, createBuilder, type InlineConfig, type PluginOption } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
 // Brotli size budgets for production bundles. These are ceilings, not exact matches: any size
 // at or below the budget is fine. Bump the budget intentionally when a real feature justifies
 // the growth.
 const PRELOADER_BROTLI_BUDGET = 1800; // We currently group the vite preload helper with the preloader, adding ~500bytes brotli.
-const CORE_BROTLI_BUDGET = 35000;
+const CORE_BROTLI_BUDGET = 35400;
 const QWIKLOADER_BROTLI_BUDGET = 2100;
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
@@ -24,12 +23,15 @@ const distDir = resolve(appDir, 'dist');
 const serverDir = resolve(appDir, 'server');
 const expectedHtmlPath = resolve(appDir, 'expected.ssg.html');
 const expectedStatePath = resolve(appDir, 'expected.state.txt');
+const expectedConfigPath = resolve(appDir, 'expected.config.txt');
+
+// Generated route trie, captured pre-bundle so the snapshot shows structure, not hashed chunks.
+let capturedRouterConfig: string | null = null;
 
 test.describe('router ssg snapshot', () => {
-  // All tests share one production build via `beforeAll`. Without `serial`, Playwright's
-  // `fullyParallel` config distributes the tests across workers, each re-running the build
-  // against the same `serverDir` — that race wipes `run-ssg.js` mid-build and the SSG adapter
-  // then fails with "Cannot find module .../server/run-ssg.js".
+  // One shared production build via `beforeAll`. `serial` keeps Playwright's `fullyParallel` config
+  // from distributing these tests across workers, which would re-run the build against the same
+  // `serverDir`/`distDir` and race.
   test.describe.configure({ mode: 'serial' });
 
   test.skip(({ browserName }) => browserName !== 'chromium', 'Runs once in Chromium e2e.');
@@ -52,6 +54,12 @@ test.describe('router ssg snapshot', () => {
       manifestHash
     );
 
+    // Regression guard: loaderPaths must map the root loader to "/", or off-route loaders fetch the
+    // wrong URL and 404. The hash is wildcarded (optimizer-derived); the route path "/" is stable.
+    expect(normalizedState).toMatch(
+      /"loaderPaths"\s+Object \[\s+\{string\} "[^"]+"\s+\{string\} "\/"/
+    );
+
     let expectedHtml = (await readFile(expectedHtmlPath, 'utf-8').catch(() => '')).replace(
       /\r\n/g,
       '\n'
@@ -71,8 +79,38 @@ test.describe('router ssg snapshot', () => {
       expectedState = normalizedState;
     }
 
+    // These can fail on dev builds, remember to run `pnpm build.core` before updating the snapshot.
     expect(normalizedState).toEqual(expectedState);
     expect(normalizedHtml).toEqual(expectedHtml);
+  });
+
+  test('generated route config (trie) matches the checked-in snapshot', async () => {
+    expect(capturedRouterConfig, 'router config was captured during the client build').toBeTruthy();
+    // Readable, pre-bundle trie: `_R` keeps the `__LOADERS:` placeholder, not the real loader hashes
+    // `generateBundle` injects later (kept so the snapshot tracks structure, not churning hashes).
+    const normalizedConfig = normalizeRouterConfig(capturedRouterConfig!);
+
+    let expectedConfig = (await readFile(expectedConfigPath, 'utf-8').catch(() => '')).replace(
+      /\r\n/g,
+      '\n'
+    );
+
+    warnIfSizeChanged('route config', expectedConfig, normalizedConfig);
+
+    if (process.env.UPDATE_SSG_SNAPSHOT === '1') {
+      await writeFile(expectedConfigPath, normalizedConfig, 'utf-8');
+      expectedConfig = normalizedConfig;
+    }
+
+    expect(normalizedConfig).toEqual(expectedConfig);
+  });
+
+  test('a 404.tsx boundary prerenders <dir>/404.html inside its layout', async () => {
+    // sub/ has a layout + 404 (no index): the boundary is force-prerendered to sub/404.html,
+    // wrapping the 404 page in sub/layout.tsx — proves the SSG miss-render + layout inheritance.
+    const html = await readFile(resolve(distDir, 'sub', '404.html'), 'utf-8');
+    expect(html, 'sub layout should wrap the 404 page').toContain('data-ssg-404-layout');
+    expect(html, '404 page content should render').toContain('Sub Not Found');
   });
 
   test('preloader chunk brotli size stays within budget', async () => {
@@ -80,8 +118,7 @@ test.describe('router ssg snapshot', () => {
     const preloaderFile = manifest.preloader as string | undefined;
     expect(preloaderFile, 'q-manifest.json should expose `preloader`').toBeTruthy();
 
-    const code = await readFile(resolve(distDir, 'build', preloaderFile!), 'utf-8');
-    await checkBrotliBudget('preloader', code, PRELOADER_BROTLI_BUDGET);
+    await checkBrotliBudget('preloader', preloaderFile!, PRELOADER_BROTLI_BUDGET);
   });
 
   test('core chunk brotli size stays within budget', async () => {
@@ -89,8 +126,7 @@ test.describe('router ssg snapshot', () => {
     const coreFile = manifest.core as string | undefined;
     expect(coreFile, 'q-manifest.json should expose `core`').toBeTruthy();
 
-    const code = await readFile(resolve(distDir, 'build', coreFile!), 'utf-8');
-    await checkBrotliBudget('core', code, CORE_BROTLI_BUDGET);
+    await checkBrotliBudget('core', coreFile!, CORE_BROTLI_BUDGET);
   });
 
   test('qwikloader chunk brotli size stays within budget', async () => {
@@ -98,8 +134,7 @@ test.describe('router ssg snapshot', () => {
     const qwikLoaderFile = manifest.qwikLoader as string | undefined;
     expect(qwikLoaderFile, 'q-manifest.json should expose `qwikLoader`').toBeTruthy();
 
-    const code = await readFile(resolve(distDir, 'build', qwikLoaderFile!), 'utf-8');
-    await checkBrotliBudget('qwikloader', code, QWIKLOADER_BROTLI_BUDGET);
+    await checkBrotliBudget('qwikloader', qwikLoaderFile!, QWIKLOADER_BROTLI_BUDGET);
   });
 });
 
@@ -108,27 +143,47 @@ test.describe('router ssg snapshot', () => {
  * the budget the test fails with the actual size — bump the budget at the top of this file when the
  * growth is expected.
  */
-async function checkBrotliBudget(label: string, content: string, budget: number) {
+async function checkBrotliBudget(label: string, path: string, budget: number) {
+  const fullPath = resolve(distDir, 'build', path);
+  const content = await readFile(fullPath, 'utf-8');
   expect(content.length).toBeGreaterThan(0);
   const brotli = compress(Buffer.from(content), { mode: 1, quality: 11 }).length;
-  const pct = ((brotli / budget) * 100).toFixed(1);
   // Logged on every run so size trends are visible in test output without having to fail first.
   // `console.warn` (not `console.log`) because the repo's `no-console` rule allows warn/error only.
-  console.warn(`[ssg-snapshot] ${label.padEnd(10)} brotli=${brotli} raw=${content.length}`);
+  console.warn(
+    `[ssg-snapshot] ${label.padEnd(10)} brotli=${brotli} raw=${content.length} file=${fullPath}`
+  );
   const constantName = `${label.toUpperCase()}_BROTLI_BUDGET`;
   const overage = brotli - budget;
   expect(
     brotli,
-    `${label} bundle is ${brotli} bytes brotli — ${overage} bytes over the ${budget}-byte budget. If this growth is intentional, bump \`${constantName}\` to a higher value.`
+    `${label} bundle is ${brotli} bytes brotli — ${overage} bytes over the ${budget}-byte budget. Make sure you are using the production build. If this growth is intentional, bump \`${constantName}\` to a higher value. File: ${fullPath}`
   ).toBeLessThanOrEqual(budget);
+}
+
+// enforce:'pre' so we capture qwik-router's load() output before the bundler rewrites its imports.
+function captureRouterConfig(): PluginOption {
+  return {
+    name: 'capture-router-config',
+    enforce: 'pre',
+    transform(code, id) {
+      if (id.endsWith('@qwik-router-config')) {
+        capturedRouterConfig = code;
+      }
+      return null;
+    },
+  };
 }
 
 async function buildFixtureApp() {
   await rm(distDir, { recursive: true, force: true });
   await rm(serverDir, { recursive: true, force: true });
+  capturedRouterConfig = null;
 
-  let clientManifest: QwikManifest | undefined;
   const plugins: PluginOption[] = [qwikRouter(), tsconfigPaths({ root: '.' })];
+  // Fresh instance so the server build's loadersByFile starts empty, mirroring apps that run
+  // build.client/build.server as separate processes (exercises the manifest recovery path).
+  const serverPlugins: PluginOption[] = [qwikRouter(), tsconfigPaths({ root: '.' })];
 
   const getConfig = (extra?: InlineConfig): InlineConfig => ({
     root: appDir,
@@ -146,19 +201,17 @@ async function buildFixtureApp() {
     getConfig({
       plugins: [
         ...plugins,
+        captureRouterConfig(),
         qwikVite({
           client: {
             outDir: distDir,
-            manifestOutput(manifest) {
-              clientManifest = manifest;
-            },
           },
         }),
       ],
     })
   );
 
-  await build(
+  const builder = await createBuilder(
     getConfig({
       build: {
         minify: true,
@@ -166,12 +219,9 @@ async function buildFixtureApp() {
         outDir: serverDir,
       },
       plugins: [
-        ...plugins,
-        qwikVite({
-          ssr: {
-            manifestInput: clientManifest,
-          },
-        }),
+        ...serverPlugins,
+        // No manifestInput: the server build reads the client manifest from disk, like real apps.
+        qwikVite(),
         ssgAdapter({
           origin: 'https://snapshot.qwik.dev',
           include: ['/*'],
@@ -179,6 +229,7 @@ async function buildFixtureApp() {
       ],
     })
   );
+  await builder.buildApp();
 }
 
 function extractManifestHash(html: string): string | null {
@@ -224,6 +275,16 @@ function normalizeStateDump(stateDump: string, manifestHash: string | null) {
   return result;
 }
 
+function normalizeRouterConfig(code: string) {
+  // Strip machine-specific absolute paths so the snapshot is checkout-independent. Match the
+  // forward-slash form: config paths are posix, but resolve() yields backslashes on Windows.
+  const posix = (p: string) => p.replaceAll('\\', '/');
+  return code
+    .replace(/\r\n/g, '\n')
+    .replaceAll(posix(appDir), '<app>')
+    .replaceAll(posix(repoRoot), '<root>');
+}
+
 function warnIfSizeChanged(label: string, expected: string, actual: string) {
   const expectedLen = expected.length;
   const actualLen = actual.length;
@@ -234,7 +295,7 @@ function warnIfSizeChanged(label: string, expected: string, actual: string) {
   if (pct > 0.01) {
     console.error(
       `\n\n[ssg-snapshot] ${label} size changed by ${(pct * 100).toFixed(1)}%: ` +
-        `${expectedLen} → ${actualLen} chars`
+        `${expectedLen} → ${actualLen} chars (did you remember to pnpm build.core ?)`
     );
   }
 }

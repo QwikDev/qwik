@@ -1,6 +1,6 @@
 import type { TreeNode } from '../../components/Tree/type';
 import type { ParsedStructure } from '@qwik.dev/devtools/kit';
-import { CAPTURE_REF_KEY, COMPUTED_QRL_KEY, QRL_KEY } from '@qwik.dev/devtools/kit';
+import { QWIK_VNODE_PROTOCOL } from '@qwik.dev/devtools/kit';
 import debug from 'debug';
 import { TreeBuilder } from './TreeBuilder';
 import {
@@ -147,7 +147,7 @@ export class HookStore {
       }
 
       case 'customhook': {
-        const captureRef = data?.[CAPTURE_REF_KEY];
+        const captureRef = data?.[QWIK_VNODE_PROTOCOL.qrl.captureRef];
         return this.treeBuilder.objectToTree({
           [`let ${variableName ?? 'customhook'} = Scope `]: captureRef,
         });
@@ -161,7 +161,7 @@ export class HookStore {
   }
 
   findScopeVariables(item: HookDataEntry): string {
-    const targets = (item.data as Record<string, unknown>)?.[CAPTURE_REF_KEY] as
+    const targets = (item.data as Record<string, unknown>)?.[QWIK_VNODE_PROTOCOL.qrl.captureRef] as
       | unknown[]
       | undefined;
 
@@ -231,7 +231,7 @@ export class HookStore {
     }
 
     const data = entry.data as Record<string, unknown>;
-    const qrlObj = data[QRL_KEY] ?? data[COMPUTED_QRL_KEY];
+    const qrlObj = data[QWIK_VNODE_PROTOCOL.qrl.qrl] ?? data[QWIK_VNODE_PROTOCOL.qrl.computed];
     return QrlUtils.getPath(qrlObj as QRLInternal);
   }
 }

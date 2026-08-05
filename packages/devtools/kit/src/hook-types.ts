@@ -1,5 +1,5 @@
 /**
- * Runtime devtools hook exposed on `window.__QWIK_DEVTOOLS_HOOK__` by the `@devtools/plugin` in dev
+ * Runtime devtools hook exposed on `window.__QWIK_DEVTOOLS__.hook` by the `@devtools/plugin` in dev
  * mode.
  *
  * Provides structured access to component state, signals, and render events for both the in-app

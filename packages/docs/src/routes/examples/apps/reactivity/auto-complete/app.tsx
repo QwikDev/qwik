@@ -1,4 +1,4 @@
-import { component$, useAsync$, useSignal, type Signal } from '@qwik.dev/core';
+import { component$, useComputed$, useSignal, type Signal } from '@qwik.dev/core';
 
 export default component$(() => {
   return (
@@ -19,9 +19,9 @@ export const AutoComplete = component$(() => {
   const searchInput = useSignal('');
   const selectedValue = useSignal('');
 
-  const searchResults = useAsync$<string[]>(
-    async ({ track, abortSignal }) => {
-      const query = track(searchInput);
+  const searchResults = useComputed$<string[]>(
+    async ({ abortSignal }) => {
+      const query = searchInput.value;
 
       if (!query) {
         return [];

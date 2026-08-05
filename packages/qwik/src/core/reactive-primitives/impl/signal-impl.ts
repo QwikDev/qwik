@@ -14,7 +14,7 @@ import {
   scheduleEffects,
 } from '../utils';
 import type { Signal } from '../signal.public';
-import { SignalFlags, type EffectSubscription } from '../types';
+import { ComputedSignalFlags, type EffectSubscription } from '../types';
 import type { WrappedSignalImpl } from './wrapped-signal-impl';
 import { isServerPlatform } from '../../shared/platform/platform';
 import type { SSRSegmentContainer } from '../../ssr/ssr-types';
@@ -138,7 +138,7 @@ export class SignalImpl<T = any> implements Signal<T> {
     if (isDev) {
       try {
         return (
-          `[${this.constructor.name}${(this as any).$flags$ & SignalFlags.INVALID ? ' INVALID' : ''} ${this.$untrackedValue$}]` +
+          `[${this.constructor.name}${(this as any).$flags$ & ComputedSignalFlags.INVALID ? ' INVALID' : ''} ${this.$untrackedValue$}]` +
           (Array.from(this.$effects$ || [])
             .map((e) => '\n -> ' + pad(qwikDebugToString(e.consumer), '    '))
             .join('\n') || '')

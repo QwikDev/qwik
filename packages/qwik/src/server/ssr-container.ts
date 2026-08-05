@@ -47,6 +47,7 @@ import {
   QScopedStyle,
   QSlot,
   QSlotParent,
+  QStatePrewarmAttr,
   QStatePatchAttr,
   QStyle,
   QSuspenseResolved,
@@ -152,6 +153,8 @@ enum QwikLoaderInclude {
   Inline,
   Done,
 }
+
+const VALID_ELEMENT_NAME = /^[A-Za-z][A-Za-z0-9._:-]*$/;
 
 const NO_SCRIPT_HERE_ELEMENTS = new Set([
   'script',
@@ -643,6 +646,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     containerAttributes[QLocaleAttr] = this.$locale$;
     containerAttributes[QManifestHashAttr] = this.resolvedManifest.manifest.manifestHash;
     containerAttributes[QInstanceAttr] = this.$instanceHash$;
+    const statePrewarm = this.renderOptions.statePrewarm;
+    if (typeof statePrewarm === 'number') {
+      containerAttributes[QStatePrewarmAttr] = String(statePrewarm);
+    } else {
+      delete containerAttributes[QStatePrewarmAttr];
+    }
 
     this.$serverData$.containerAttributes = containerAttributes;
 
@@ -670,6 +679,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     currentFile: string | null = null,
     hasMovedCaptures: boolean = true
   ): string | undefined {
+    if (!VALID_ELEMENT_NAME.test(elementName)) {
+      throw qError(QError.invalidElementName, [JSON.stringify(elementName)]);
+    }
+
     const isQwikStyle =
       isQwikStyleElement(elementName, varAttrs) || isQwikStyleElement(elementName, constAttrs);
     // keep track of parser states/contexts where inline scripts are not safe to emit.
@@ -718,7 +731,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
     this.write(' ' + Q_PROPS_SEPARATOR);
     if (key !== null) {
-      this.write(`="${key}"`);
+      this.write(ATTR_EQUALS_QUOTE);
+      this.write(escapeHTML(key));
+      this.write(QUOTE);
     } else if (qTest) {
       // Domino sometimes does not like empty attributes, so we need to add a empty value
       this.write(EMPTY_ATTR);
@@ -1283,12 +1298,13 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           this.write(VNodeDataChar.CONTEXT_CHAR);
           break;
         case QSlot:
+          encodeValue = encodeVNodeDataKey;
           this.write(VNodeDataChar.SLOT_CHAR);
           break;
         default: {
           encodeValue = encodeURI;
           this.write(VNodeDataChar.SEPARATOR_CHAR);
-          this.write(encodeVNodeDataString(key));
+          this.write(encodeVNodeDataString(encodeVNodeDataKey(key)));
           this.write(VNodeDataChar.SEPARATOR_CHAR);
         }
       }
@@ -1308,7 +1324,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   private emitStateData(): ValueOrPromise<void> {
-    if (!this.serializationCtx.$roots$.length) {
+    // eagerResume signals become roots when the qidle QRL captures are serialized
+    if (!this.serializationCtx.$roots$.length && !this.serializationCtx.$eagerResume$.size) {
       return;
     }
 
@@ -1384,7 +1401,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       if (this.renderOptions.serverData?.nonce) {
         scriptAttrs['nonce'] = this.renderOptions.serverData.nonce;
       }
-      this.writeScript(scriptAttrs, JSON.stringify(patches));
+      this.writeScript(scriptAttrs, JSON.stringify(patches).replaceAll('<', '\\u003C'));
     }
   }
 
@@ -1666,6 +1683,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
   }
 
+  writeRootRefDelta(id: number, base: number) {
+    const delta = id - base;
+    this.size += String(delta).length;
+    this.writer.writeRootRefDelta(id, base);
+  }
+
   writeArray(array: string[], separator: string) {
     for (let i = 0; i < array.length; i++) {
       const element = array[i];
@@ -1790,6 +1813,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         this.write(escapeHTML(chunk));
       } else if (typeof chunk === 'number') {
         this.writeRootRef(chunk);
+      } else if ('base' in chunk) {
+        this.writeRootRefDelta(chunk.id, chunk.base);
       } else {
         this.writeRootRefPath(chunk.path);
       }
@@ -1828,26 +1853,6 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
     super(opts);
   }
 
-  override nextOutOfOrderId(): number {
-    return this.$rootContainer$.nextOutOfOrderId();
-  }
-
-  override $runQueuedRender$<T>(render: () => ValueOrPromise<T>): ValueOrPromise<T> {
-    return this.$rootContainer$.$runQueuedRender$(render);
-  }
-
-  override queueOutOfOrderSegment(segment: Promise<void>): void {
-    this.$rootContainer$.queueOutOfOrderSegment(segment);
-  }
-
-  override emitOutOfOrderSegmentScripts(scripts: string): void {
-    this.$rootContainer$.emitOutOfOrderSegmentScripts(scripts);
-  }
-
-  override emitOutOfOrderExecutorIfNeeded(): void {
-    this.$rootContainer$.emitOutOfOrderExecutorIfNeeded();
-  }
-
   $recordExternalRootEffect$(
     producer: unknown,
     effect: EffectSubscription,
@@ -1877,7 +1882,6 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
     try {
       const commit = this.$commitRoots$(rootContainer, segmentSerializationCtx);
       this.$mergeSegmentEventData$(rootContainer, segmentSerializationCtx);
-      this.$mergeSegmentSyncFns$(rootContainer, segmentSerializationCtx);
       const subscriptionPatchRootId = this.$addSubscriptionsToRoots$(
         rootContainer,
         rootReadyAtSegment,
@@ -1962,11 +1966,7 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
   }
 
   private queueLateVNodeDataPatch(node: VNodeDataSerializableNode, addedFlags: number): void {
-    if (
-      !__EXPERIMENTAL__.suspense ||
-      !this.outOfOrderStreaming ||
-      !(addedFlags & (VNodeDataFlag.SERIALIZE | VNodeDataFlag.REFERENCE))
-    ) {
+    if (!(addedFlags & (VNodeDataFlag.SERIALIZE | VNodeDataFlag.REFERENCE))) {
       return;
     }
     const owner = this.getVNodeDataOwnerFromNodeId(node.id);
@@ -2128,17 +2128,7 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
     }
   }
 
-  private $mergeSegmentSyncFns$(
-    rootContainer: SSRContainer,
-    segmentSerializationCtx: SerializationContext
-  ): void {
-    rootContainer.serializationCtx.$syncFns$.push(...segmentSerializationCtx.$syncFns$);
-  }
-
   private collectSubscriptionPatches(rootContainer: SSRContainer, rootLimit: number) {
-    if (!__EXPERIMENTAL__.suspense || !this.outOfOrderStreaming) {
-      return;
-    }
     return collectSubscriptionPatches(
       rootContainer.serializationCtx,
       this.subscriptionPatchRecords,

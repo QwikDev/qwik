@@ -49,7 +49,7 @@ jobs:
       - name: Add PR to Qwik Development project
         id: add-project
         if: steps.team.outputs.isCore == 'true'
-        uses: actions/add-to-project@v1.0.2
+        uses: actions/add-to-project@5afcf98fcd03f1c2f92c3c83f58ae24323cc57fd # v2.0.0
         with:
           project-url: https://github.com/orgs/QwikDev/projects/1
           github-token: ${{ secrets.QWIK_AUTO_ASSIGN_PR_PAT }}

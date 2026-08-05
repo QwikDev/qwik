@@ -8,6 +8,7 @@ import type { Http2ServerRequest } from 'node:http2';
 import { basename, extname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { MIME_TYPES } from '../request-handler/mime-types';
+import { devPreloadedRouteLoaders } from '../request-handler/dev-preloaded-route-loader';
 import { computeOrigin, fromNodeHttp, getUrl } from './http';
 
 // @qwik.dev/router/middleware/node
@@ -17,7 +18,8 @@ export interface QwikRouterNodeMiddleware {
   router: (
     req: IncomingMessage | Http2ServerRequest,
     res: ServerResponse,
-    next: NodeRequestNextFunction
+    next: NodeRequestNextFunction,
+    limits?: QwikRouterNodeRequestLimits
   ) => Promise<void>;
   /** @deprecated `router` handles 404 responses. Will be removed in V3. */
   notFound: (
@@ -45,20 +47,37 @@ export function createQwikRouter(
   const router = async (
     req: IncomingMessage | Http2ServerRequest,
     res: ServerResponse,
-    next: NodeRequestNextFunction
+    next: NodeRequestNextFunction,
+    limits: QwikRouterNodeRequestLimits = {}
   ) => {
     try {
       const origin = computeOrigin(req, opts);
+      let requestBodyLimit = opts.requestBodyLimit;
+      if (limits?.bodyLimit !== undefined) {
+        if (requestBodyLimit === undefined) {
+          requestBodyLimit = limits.bodyLimit;
+        } else {
+          requestBodyLimit = Math.min(requestBodyLimit, limits.bodyLimit);
+        }
+      }
       const serverRequestEv = await fromNodeHttp(
         getUrl(req, origin),
         req,
         res,
         'server',
-        opts.getClientConn
+        opts.getClientConn,
+        requestBodyLimit
       );
       // In dev mode, inject platform from options via secret property
       if (isDev && (opts as any).platform) {
         Object.assign(serverRequestEv.platform, (opts as any).platform);
+      }
+      if (isDev) {
+        const loader = devPreloadedRouteLoaders.get(req);
+        if (loader) {
+          devPreloadedRouteLoaders.set(serverRequestEv.request, loader);
+          devPreloadedRouteLoaders.delete(req);
+        }
       }
       const handled = await requestHandler(serverRequestEv, opts);
       if (handled) {
@@ -150,6 +169,9 @@ export interface PlatformNode {
 
 /** @public */
 export interface QwikRouterNodeRequestOptions extends ServerRenderOptions {
+  /** Maximum request body size in bytes. Defaults to 10 MiB. */
+  requestBodyLimit?: number;
+
   /** Options for serving static files */
   static?: {
     /** The root folder for statics files. Defaults to /dist */
@@ -182,6 +204,12 @@ export interface QwikRouterNodeRequestOptions extends ServerRenderOptions {
  * @public
  */
 export type QwikCityNodeRequestOptions = QwikRouterNodeRequestOptions;
+
+/** @public */
+export interface QwikRouterNodeRequestLimits {
+  /** Maximum request body size in bytes imposed by the host. */
+  bodyLimit?: number;
+}
 
 /** @public */
 export interface NodeRequestNextFunction {

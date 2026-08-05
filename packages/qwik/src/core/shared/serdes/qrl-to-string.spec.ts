@@ -113,7 +113,7 @@ describe('qrlToString', () => {
       expect(mockContext.$addRoot$).toHaveBeenCalledWith(capture1);
       expect(mockContext.$addRoot$).toHaveBeenCalledWith(capture2);
       expect(mockContext.$addRoot$).toHaveBeenCalledWith(capture3);
-      expect(result).toBe('myChunk#mySymbol#1 2 3');
+      expect(result).toBe('myChunk#mySymbol#1 1 1');
     });
 
     it('should not mutate the original QRL object', () => {

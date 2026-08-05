@@ -4,6 +4,7 @@ import { RoutesIcon } from '~/components/icons/routes';
 import { getDB } from '~/db';
 import { dbGetManifestHashes } from '~/db/sql-manifest';
 import { getRouteNames } from '~/db/sql-routes';
+import { getRouteDetailsHref } from './route-url';
 
 export const useRouteData = routeLoader$(async ({ params }) => {
   const db = getDB();
@@ -16,7 +17,6 @@ export const useRouteData = routeLoader$(async ({ params }) => {
 export default component$(() => {
   const location = useLocation();
   const routesData = useRouteData();
-  const baseLink = `/app/${location.params.publicApiKey}/routes/`;
   return (
     <div>
       <h1 class="h3">
@@ -41,7 +41,9 @@ export default component$(() => {
                 <code>{route.route}</code>
               </th>
               <td scope="col" class="px-6 py-3 w-32">
-                <a href={baseLink + route.route + '/'}>View details</a>
+                <a href={getRouteDetailsHref(location.params.publicApiKey, route.route)}>
+                  View details
+                </a>
               </td>
             </tr>
           ))}

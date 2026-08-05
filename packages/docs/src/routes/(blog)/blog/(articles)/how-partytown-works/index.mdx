@@ -1,0 +1,115 @@
+---
+title: 'How Partytown Works'
+authors:
+  - 'Alex Patterson'
+tags: ['Partytown']
+date: 'May 24, 2022'
+canonical: 'https://www.builder.io/blog/how-partytown-works'
+---
+
+import { ArticleBlock } from '~/routes/(blog)/blog/components/mdx/article-block';
+import { Image } from 'qwik-image';
+import img1 from './img-1.webp';
+
+<ArticleBlock>
+
+According to Google, if a page's load time goes up from 1 second to 3 seconds, the [probability of the user bouncing increases by 32%](https://www.thinkwithgoogle.com/marketing-strategies/app-and-mobile/page-load-time-statistics/). In 2018, Google released a statement that speed is now used for landing page factors on [Google Search and Ads](https://developer.chrome.com/blog/search-ads-speed/). Way back in 2012, Fast Company noted that Amazon calculated that a page load slowdown of just one second could cost it [$1.6 billion in sales each year](https://www.fastcompany.com/1825005/how-one-second-could-cost-amazon-16-billion-sales).
+
+We set out to solve this situation, so that apps of all sizes will be able to continue to use third-party scripts without the performance hit.
+
+## Negative Impacts from Third-Party Scripts
+
+JavaScript is inherently a single threaded language running only one event loop. What this means is only one statement is executed at a time. Due to this limitation, when trying to run your own code, as well as any third-party scripts — code that is embedded within your site, but not directly under your control — they must execute within the same thread. This means they'll slow your main thread and each other and slow each other down due to the limitation on processing capability.
+
+According to Google, these are some of the [potential issues after adding third-party scripts](https://developers.google.com/web/fundamentals/performance/optimizing-content-efficiency/loading-third-party-javascript):
+
+- Firing too many network requests to multiple servers. The more requests a site has to make, the longer it can take to load.
+- Sending too much JavaScript which keeps the main thread busy. Too much JavaScript can block DOM construction, delaying how quickly pages can render.
+- CPU-intensive script parsing and execution can delay user interaction and cause battery drain.
+- Third-party scripts that were loaded without care can be a single-point of failure (SPOF).
+- Insufficient HTTP caching, forcing resources to be fetched from the network often.
+- The use of legacy APIs (e.g `document.write()`), which are known to be harmful to the user experience.
+- Excessive DOM elements or expensive CSS selectors.
+- Including multiple third-party embeds that can lead to multiple frameworks and libraries being pulled in several times, which exacerbates the performance issues.
+- Third-party scripts also often use embed techniques that can block `window.onload`, even if the embed is using async or defer.
+
+However, it's near impossible to run a successful business online without using third-party libraries like Google Analytics. Other examples include: metrics, ads, A/B testing, trackers, etc.
+
+At Builder.io, we know that the very third-party scripts you implement to improve user experience and drive conversions could end up affecting performance (we call this the conversion paradox). That's why we built Partytown, a solution to [reduce third-party JavaScript on your site by 99%](https://www.builder.io/blog/how-we-cut-99-percent-js-with-qwik-and-partytown) while still getting the business benefits. And we have good news: It's easy to implement.
+
+## What is Partytown?
+
+[Partytown](https://partytown.builder.io) is a JavaScript library that lets you offload third-party scripts to a web worker to remove the negative performance impact they can have on your site.​​
+
+To counteract the negative effects of third-party scripts listed above, Partytown aims to do the following:
+
+- Free up main thread resources to be used only for the primary web app execution.
+- Sandbox third-party scripts and allow or deny their access to main thread APIs.
+- Isolate long-running tasks within the web worker thread.
+- Reduce layout thrashing coming from third-party scripts by batching DOM setters/getter into group updates.
+- Throttle third-party scripts' access to the main thread.
+- Allow third-party scripts to run exactly how they're coded and without any alterations.
+- Read and write main thread DOM operations _synchronously_ from within a web worker, allowing scripts running from the web worker to execute as expected.
+
+## How Does Partytown Work?
+
+To put it simply, Partytown adds a worker to allow execution in both the main thread and worker thread.
+
+To understand Partytown, it is important to first understand a few technologies used by modern web browsers:
+
+- [Web Workers API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API): This makes it possible to run a script operation in a background thread separate from the main execution thread of a web application. Partytown's philosophy is that the main thread should be dedicated to your first-party code, and any scripts that are not required to be in the [critical path](https://web.dev/critical-rendering-path/) should be moved to a web worker. Main thread performance is, without question, more important than web worker thread performance.
+- [XMLHttpRequest](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest) (XHR): Objects are used to interact with servers. You can retrieve data from a URL without having to do a full page refresh. This enables a web page to update just part of a page without disrupting what the user is doing.
+- [Service Worker API:](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API) Service workers essentially act as proxy servers that sit between web applications, the browser, and the network (when available). They are intended, among other things, to enable the creation of effective offline experiences, intercept network requests, and take appropriate action based on whether the network is available, and update assets residing on the server. They will also allow access to push notifications and background sync APIs.
+- [Javascript Proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy): The proxy object allows you to create an object that can be used in place of the original object, but which may redefine fundamental object operations like getting, setting, and defining properties. Proxy objects are commonly used to log property accesses, validate, format, or sanitize inputs, and so on.
+
+Traditionally, communicating between the main thread and worker thread must be [asynchronous](https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Asynchronous/Concepts): for the two threads to communicate, they cannot use blocking calls. Partytown is different. It allows code executed from the web worker to access DOM synchronously. The benefit from this is that third-party scripts can continue to work exactly how they're coded.
+
+As you can see in the below image, code that is running in a web worker that proxies global variables uses synchronous XHR to make an asynchronous operation synchronous. This gets intercepted by a service worker and the main thread value is retrieved via a postMessage and sent back.
+
+<Image
+  class="w-full"
+  src={img1}
+  alt="Diagram of Partytown communicating between the web worker and main thread via synchronous XHR and a service worker."
+/>
+
+## How to Integrate Partytown
+
+You can easily add it to any site with a small snippet, and then tag any scripts that you want to load in the web worker with `type="text/partytown"`.
+
+It's important to note that Partytown does not automatically move all scripts to the web worker, but takes an opt-in approach. It's best that the developer can pick and choose exactly [which scripts should use Partytown](https://partytown.builder.io/partytown-scripts), while all the others would go unchanged. There are several ways to integrate Partytown into your code, which you can find in our [Getting Started](https://partytown.builder.io/getting-started) and [Copy Library Files](https://partytown.builder.io/copy-library-files) documentation.
+
+Partytown can work with any HTML page and doesn't require a specific framework. However, to make it easier to use in various frameworks or services, [plugins/wrappers can be made for their ecosystem](https://partytown.builder.io/integrations).
+
+Partytown is only enabled for specific scripts when they have the `type="text/partytown"` attribute.
+
+Here's a sequence of events:
+
+- Scripts are disabled from running on the main thread by using the `type="text/partytown"` attribute on the `<script/>` tag.
+- Service worker creates an `onfetch` handler to intercept specific requests.
+- Web workers are given the scripts to execute within the worker thread.
+- Web worker creates JavaScript Proxies to replicate and forward calls to the main thread APIs (such as DOM operations).
+- Any call to the JavaScript proxy uses [synchronous XHR](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/Synchronous_and_Asynchronous_Requests#example_http_synchronous_request) requests.
+- Service worker intercepts requests, then is able to asynchronously communicate with the main thread.
+- When the service worker receives the results from the main thread, it responds to the web worker's request.
+- From the point of view of code executing on the web worker, everything was synchronous, and each call to the document was blocking.
+
+## Example Execution Steps
+
+Any scripts that you add `type="text/partytown"` will load by default in a web worker, but have full access to global variables. The `type="text/partytown"` attribute does two things:
+
+- Informs the browser to not process the script. By giving the script a [type attribute](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script#attr-type) which the browser does not recognize: "The embedded content is treated as a data block which won't be processed by the browser."
+- Provides a query selector so Partytown can find all the scripts to run from within the web worker. When the document is ready and Partytown has initialized, Partytown will then query the selector for all of the `script[type="text/partytown"]` script elements. You'll notice that after a script has been executed in the web worker, it'll then get an updated type attribute of `type="text/partytown-x"`.
+
+We use JavaScript proxies to supply main thread globals to the worker thread, by intercepting them and forwarding to the main thread
+
+And here's the best part: We use a _synchronous_ XHR request to block the worker thread and retrieve the needed value from the main thread.
+
+And now we can use a service worker to intercept the /proxytown request, async postMessage to the main thread to get the needed value, and return it.
+
+And that's it! The end result: You can now seamlessly drop in a whole range of third-party scripts to run in a web worker, removing the main thread performance cost.
+
+## Where can I find out more?
+
+If you're looking to create [Partytown integrations](https://partytown.builder.io/integrations), reach out to us on our lively [Discord community](https://discord.gg/bNVSQmPzqy)[.](https://discord.gg/bNVSQmPzqy) You can also go through our detailed [Partytown doc](https://partytown.builder.io)umentation to learn more.
+
+</ArticleBlock>

@@ -1408,6 +1408,146 @@ describe('vNode-diff', () => {
             expect(wrapped.$effects$!.size).toBe(wrappedEffectsAfterFirst);
             expect(inner.$effects$!.size).toBe(innerEffectsAfterFirst);
           });
+
+          it('should not rerender component when wrapped signal props are equivalent', async () => {
+            const { vParent, container } = vnode_fromJSX(_jsxSorted('div', {}, null, [], 0, null));
+
+            const inner = createSignal('cls') as SignalImpl<string>;
+            const fn = () => inner.value;
+            const wrapped1 = _fnSignal(fn, [], '() => inner.value') as WrappedSignalImpl<any>;
+            const wrapped2 = _fnSignal(fn, [], '() => inner.value') as WrappedSignalImpl<any>;
+            (globalThis as any).childRenderCount = 0;
+
+            const Child = component$((props: any) => {
+              (globalThis as any).childRenderCount++;
+              return <span>{props.cls}</span>;
+            });
+
+            const test1 = _jsxSorted(
+              Child as unknown as any,
+              null,
+              { cls: wrapped1 } as any,
+              null,
+              3,
+              null
+            ) as any;
+            const journal: VNodeJournal = [];
+            vnode_setProp(vParent, NODE_DIFF_DATA_KEY, test1);
+            markVNodeDirty(container, vParent, ChoreBits.NODE_DIFF);
+            _flushJournal(journal);
+            await container.$renderPromise$;
+
+            expect((globalThis as any).childRenderCount).toBe(1);
+            expect(wrapped1.$effects$).toBeDefined();
+            expect(wrapped1.$effects$!.size).toBeGreaterThan(0);
+
+            const test2 = _jsxSorted(
+              Child as unknown as any,
+              null,
+              { cls: wrapped2 } as any,
+              null,
+              3,
+              null
+            ) as any;
+            const journal2: VNodeJournal = [];
+            vnode_setProp(vParent, NODE_DIFF_DATA_KEY, test2);
+            markVNodeDirty(container, vParent, ChoreBits.NODE_DIFF);
+            _flushJournal(journal2);
+            await container.$renderPromise$;
+
+            expect((globalThis as any).childRenderCount).toBe(1);
+            expect(wrapped2.$effects$).toBeUndefined();
+
+            delete (globalThis as any).childRenderCount;
+          });
+
+          it('should not rerender component when class arrays are equivalent', async () => {
+            const { vParent, container } = vnode_fromJSX(_jsxSorted('div', {}, null, [], 0, null));
+            (globalThis as any).classPropRenderCount = 0;
+
+            const Child = component$((props: any) => {
+              (globalThis as any).classPropRenderCount++;
+              return <span class={props.class}></span>;
+            });
+
+            const test1 = _jsxSorted(
+              Child as unknown as any,
+              null,
+              { class: ['test', 'active'] } as any,
+              null,
+              3,
+              null
+            ) as any;
+            const journal: VNodeJournal = [];
+            vnode_setProp(vParent, NODE_DIFF_DATA_KEY, test1);
+            markVNodeDirty(container, vParent, ChoreBits.NODE_DIFF);
+            _flushJournal(journal);
+            await container.$renderPromise$;
+
+            expect((globalThis as any).classPropRenderCount).toBe(1);
+
+            const test2 = _jsxSorted(
+              Child as unknown as any,
+              null,
+              { class: ['test', 'active'] } as any,
+              null,
+              3,
+              null
+            ) as any;
+            const journal2: VNodeJournal = [];
+            vnode_setProp(vParent, NODE_DIFF_DATA_KEY, test2);
+            markVNodeDirty(container, vParent, ChoreBits.NODE_DIFF);
+            _flushJournal(journal2);
+            await container.$renderPromise$;
+
+            expect((globalThis as any).classPropRenderCount).toBe(1);
+
+            delete (globalThis as any).classPropRenderCount;
+          });
+
+          it('should not rerender component when style values are equivalent', async () => {
+            const { vParent, container } = vnode_fromJSX(_jsxSorted('div', {}, null, [], 0, null));
+            (globalThis as any).stylePropRenderCount = 0;
+
+            const Child = component$((props: any) => {
+              (globalThis as any).stylePropRenderCount++;
+              return <span style={props.style}></span>;
+            });
+
+            const test1 = _jsxSorted(
+              Child as unknown as any,
+              null,
+              { style: { color: 'red', width: 10 } } as any,
+              null,
+              3,
+              null
+            ) as any;
+            const journal: VNodeJournal = [];
+            vnode_setProp(vParent, NODE_DIFF_DATA_KEY, test1);
+            markVNodeDirty(container, vParent, ChoreBits.NODE_DIFF);
+            _flushJournal(journal);
+            await container.$renderPromise$;
+
+            expect((globalThis as any).stylePropRenderCount).toBe(1);
+
+            const test2 = _jsxSorted(
+              Child as unknown as any,
+              null,
+              { style: 'color:red;width:10px' } as any,
+              null,
+              3,
+              null
+            ) as any;
+            const journal2: VNodeJournal = [];
+            vnode_setProp(vParent, NODE_DIFF_DATA_KEY, test2);
+            markVNodeDirty(container, vParent, ChoreBits.NODE_DIFF);
+            _flushJournal(journal2);
+            await container.$renderPromise$;
+
+            expect((globalThis as any).stylePropRenderCount).toBe(1);
+
+            delete (globalThis as any).stylePropRenderCount;
+          });
         });
       });
 

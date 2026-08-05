@@ -22,6 +22,10 @@ export type Cursor = VNode;
  * @returns The vNode itself, now acting as a cursor
  */
 export function addCursor(container: Container, root: VNode, priority: number): Cursor {
+  if (isCursor(root)) {
+    triggerCursors();
+    return root;
+  }
   const cursorData: CursorData = {
     afterFlushTasks: null,
     extraPromises: null,

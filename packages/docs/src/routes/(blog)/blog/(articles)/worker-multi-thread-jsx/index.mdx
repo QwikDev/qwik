@@ -1,0 +1,302 @@
+---
+title: 'Effortless Multi-threading in JSX with worker$'
+authors:
+  - 'Yoav Ganbar'
+tags: ['Qwik']
+date: 'May 31, 2023'
+canonical: 'https://www.builder.io/blog/worker-multi-thread-JSX'
+---
+
+import { ArticleBlock } from '~/routes/(blog)/blog/components/mdx/article-block';
+import { Image } from 'qwik-image';
+import img1 from './img-1.webp';
+
+<ArticleBlock>
+
+Web development has evolved at a tremendous pace, and part of that evolution includes how we structure our applications for optimal performance. One tool that has been available but under-utilized is the [Web Worker API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API).
+
+For years, it has provided a means to run JavaScript in background threads, freeing up the main thread for user interactions and ensuring your application remains responsive.
+
+However, using Web Workers in JavaScript traditionally involves some degree of complexity. Let's take a closer look at these challenges and a promising new approach that simplifies the process.
+
+## Traditional web workers: power comes with complexity
+
+When using Web Workers, developers must create a separate JavaScript file containing the logic to be run on the worker thread. This worker script is then instantiated with the `new Worker()` constructor.
+
+```javascript
+const myWorker = new Worker('worker.js');
+```
+
+Communication between your main thread and the worker thread is done manually, using `postMessage()` to send data and `onmessage` to listen for responses.
+
+```html
+<html lang="en">
+  <body>
+    <h1>Web Workers basic example</h1>
+    <div class="controls" tabindex="0">
+      <form>
+        <div>
+          <label for="number1">Multiply number 1: </label>
+          <input type="text" id="number1" value="0" />
+        </div>
+        <div>
+          <label for="number2">Multiply number 2: </label>
+          <input type="text" id="number2" value="0" />
+        </div>
+      </form>
+      <p class="result">Result: 0</p>
+    </div>
+    <script>
+      const first = document.querySelector('#number1');
+      const second = document.querySelector('#number2');
+      const result = document.querySelector('.result');
+      if (window.Worker) {
+        const myWorker = new Worker('worker.js');
+        first.onchange = function () {
+          myWorker.postMessage([first.value, second.value]);
+          console.log('Message posted to worker');
+        };
+        second.onchange = function () {
+          myWorker.postMessage([first.value, second.value]);
+          console.log('Message posted to worker');
+        };
+        myWorker.onmessage = function (e) {
+          result.textContent = e.data;
+          console.log('Message received from worker');
+        };
+      } else {
+        console.log("Your browser doesn't support web workers.");
+      }
+    </script>
+  </body>
+</html>
+```
+
+```javascript
+// worker.js
+onmessage = function (e) {
+  console.log('Worker: Message received from main script');
+  const result = e.data[0] * e.data[1];
+  if (isNaN(result)) {
+    postMessage('Please write two numbers');
+  } else {
+    const workerResult = 'Result: ' + result;
+    console.log('Worker: Posting message back to main script');
+    postMessage(workerResult);
+  }
+};
+```
+
+While this approach works, it involves a lot of boilerplate code and manual handling of communication between threads. This complexity often discourages developers from utilizing the full potential of Web Workers.
+
+## A Swift idea: inline code execution
+
+Swift, the popular language for iOS development, offers a streamlined approach to multi-threading with the Dispatch Queue. Developers can write inline code that's executed on a worker thread, a feature JavaScript developers have longed for.
+
+This type of code is much cleaner to write and read:
+
+```swift
+DispatchQueue.global(qos: .userInteractive).async {
+  // this does something in another thread
+}
+```
+
+However, libraries such as [Comlink](https://github.com/GoogleChromeLabs/comlink) have attempted to bridge this gap, allowing developers to run code in a Web Worker while keeping the main script clean and readable. But even with these libraries, the logic still needs to be written in a separate file:
+
+```javascript
+// main.js
+import * as Comlink from 'https://unpkg.com/comlink/dist/esm/comlink.mjs';
+async function init() {
+  const worker = new Worker('worker.js');
+  // WebWorkers use `postMessage` and therefore work with Comlink.
+  const obj = Comlink.wrap(worker);
+  alert(`Counter: ${await obj.counter}`);
+  await obj.inc();
+  alert(`Counter: ${await obj.counter}`);
+}
+init();
+```
+
+```javascript
+// worker.js
+importScripts('https://unpkg.com/comlink/dist/umd/comlink.js');
+// importScripts("../../../dist/umd/comlink.js");
+const obj = {
+  counter: 0,
+  inc() {
+    this.counter++;
+  },
+};
+Comlink.expose(obj);
+```
+
+## Simplifying Web Workers with Qwik's `$` syntax
+
+Qwik's new experimental `worker$()` function (`@builder.io/qwik-worker`) automatically allows developers to execute code in a Web Worker from JSX.
+
+You can find the working code examples [in this GitHub repo](https://github.com/BuilderIO/jsx-qwik-worker-post).
+
+Consider the code:
+
+```jsx
+<button
+  class="border-2 p-2 border-black"
+  onClick$={worker$(() => {
+    console.log('runs on the worker thread');
+  })}
+>
+  WEB WORKER
+</button>
+```
+
+By wrapping your function in `worker$()`, the function is automatically run in a separate Web Worker, which frees the main thread from heavy computations. This approach eliminates the need for separate worker files and manual message handling, which significantly reduces the boilerplate code associated with Web Workers.
+
+## Real-world example: image processing with median filter
+
+Consider an image processing operation like applying a [Median filter](https://en.wikipedia.org/wiki/Median_filter) to reduce noise. Such operations are CPU-intensive and would block the main thread if executed directly in JavaScript and freeze your application until the operation completes.
+
+Even a little CSS animation gets frozen when something blocks your browser's main thread, as you might notice from the blue box below:
+
+<Image class="w-full" src={img1} alt="Image processing with median filter demo" />
+
+And this is the code that runs:
+
+```typescript
+import { component$, useSignal } from '@builder.io/qwik';
+import { medianFilter } from './processor';
+import { UPNG } from './png';
+
+// This could be any image
+const IMG = 'http://localhost:5173/noisyimg.png';
+
+export default component$(() => {
+  const imageSrc = useSignal<string>();
+  return (
+    <>
+      <button class="border-2 p-2 border-black" onClick$={async () => {
+        imageSrc.value = await filterImage(IMG);
+      }}>
+        Filter
+      </button>
+      <button class="border-2 p-2 border-black" onClick$={async () => {
+        imageSrc.value = undefined;
+      }}>
+        Reset
+      </button>
+      <div class="walkabout-old-school"></div>
+      <div class="flex">
+        <img src={IMG} width="350" height="350" />
+        <img src={imageSrc.value} width="350" height="350" />
+      </div>
+    </>
+  );
+});
+
+export const filterImage = async (src: string) => {
+  const res = await fetch(src);
+  const data = await res.arrayBuffer();
+  console.time('decode');
+  const png = UPNG.decode(data) as any;
+  const output = medianFilter(png.data, png.width);
+  const newPNG = (UPNG as any).encodeLL([output],png.width,png.height,1,0,8);
+  const blob = new Blob([newPNG], { type: 'image/png' });
+  console.timeEnd('decode');
+  return URL.createObjectURL(blob);
+};
+```
+
+The `filterImage` function does the following:
+
+1. The PNG is decoded using the UPNG library. The result is an array of pixels, each pixel containing 4 bytes: R, G, B, A.
+2. The pixels are transformed into a 2D array of RGBA values.
+3. The median filter is applied to the 2D array.
+4. The result is encoded back into a PNG.
+
+With Qwik's `worker$()` function, you can offload this operation to a Web Worker to ensure your application remains responsive. All you need to do is to wrap the `median` filter function in `worker$()`, so it automatically runs in a separate Web Worker:
+
+```typescript
+export const filterImage = worker$(async (src: string) => {
+  const res = await fetch(src);
+  const data = await res.arrayBuffer();
+  console.time('decode');
+  const png = UPNG.decode(data) as any;
+  const output = medianFilter(png.data, png.width);
+  const newPNG = (UPNG as any).encodeLL([output], png.width, png.height, 1, 0, 8);
+  const blob = new Blob([newPNG], { type: 'image/png' });
+  console.timeEnd('decode');
+  return URL.createObjectURL(blob);
+});
+```
+
+As a result, the main thread remains free to handle user interactions, and your application stays responsive, even during heavy image processing. Notice how after this change, the blue block does not lag:
+
+## Server-side execution with Qwik
+
+But Qwik doesn't stop at Web Workers. With [`server$`](https://qwik.builder.io/docs/server$/#server) (which is built into Qwik City) you can execute your code on the server, which provides an ideal place to access the database or perform server-specific actions:
+
+```typescript
+import { server$ } from '@builder.io/qwik-city';
+
+const serverGreeter = server$((firstName, lastName) => {
+  // Server-side operations here
+  // Will execute on the server
+});
+```
+
+The function wrapped by `server$` is marked to always execute on the server. It can accept any number of arguments and return any value that can be serialized by Qwik. This includes primitives, objects, arrays, BigInts, JSX nodes, and even Promises.
+
+Moreover, `server$` can also return a stream of data using an async generator. This feature is particularly useful for streaming data from the server to the client. For example, this code will stream in a number to the client every 200ms:
+
+```typescript
+import { component$, useSignal } from '@builder.io/qwik';
+import { server$ } from '@builder.io/qwik-city';
+
+const stream = server$(async function* () {
+  for (let i = 0; i < 10; i++) {
+    yield i;
+    // will be logged in server console.log(i);
+    await new Promise((resolve) => setTimeout(resolve, 200));
+  }
+});
+
+export default component$(() => {
+  const messageFromServer = useSignal<string>('');
+  return (
+    <div>
+      <button class="border-2 p-2 border-black" onClick$={async () => {
+        const response = await stream();
+        for await (const i of response) {
+          messageFromServer.value += ` ${i}`;
+        }
+      }}>
+        Stream from server to client
+      </button>
+      <div>{messageFromServer.value}</div>
+    </div>
+  );
+});
+```
+
+Here it is in action:
+
+With Qwik, you can change your code from running in a Web Worker to running on the server by merely changing `worker$` to `server$`.
+
+```typescript
+const ServerButton = () => {
+  return (
+    <button onClick={server$(expensiveOperation)}>Run on Server</button>
+  );
+}
+```
+
+This action results in the execution of your code on the server. The client remains idle during the operation, improving the overall performance of your application.
+
+## Wrapping up
+
+Leveraging Web Workers and server-side execution, Qwik offers a powerful way to build fast, responsive web applications. This approach minimizes boilerplate code and improves the maintainability of your codebase, all while ensuring your application remains responsive even during intensive computations.
+
+To learn more about Qwik and its capabilities, we recommend checking out these blog posts on [code extraction](https://www.builder.io/blog/wtf-is-code-extraction) and [the journey to Qwik v1](https://www.builder.io/blog/qwik-v1).
+
+Happy coding!
+
+</ArticleBlock>

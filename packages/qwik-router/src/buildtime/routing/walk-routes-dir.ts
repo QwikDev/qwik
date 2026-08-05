@@ -50,7 +50,6 @@ export async function walkRoutes(routesDir: string): Promise<BuildTrieNode> {
   const dirPath = normalizePath(routesDir);
   const root: BuildTrieNode = {
     _files: [],
-    _dirPath: dirPath,
     children: new Map(),
   };
   await walkRouteDir(root, dirPath);
@@ -74,7 +73,6 @@ async function walkRouteDir(node: BuildTrieNode, dirPath: string) {
           if (!child) {
             child = {
               _files: [],
-              _dirPath: itemPath,
               children: new Map(),
             };
             node.children.set(itemName, child);
@@ -85,7 +83,6 @@ async function walkRouteDir(node: BuildTrieNode, dirPath: string) {
           if (!child) {
             child = {
               _files: [],
-              _dirPath: itemPath,
               children: new Map(),
             };
             if (parsed.paramName) {

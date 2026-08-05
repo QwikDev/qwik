@@ -163,7 +163,7 @@ class HtmlTransformPatcher {
 
       // The HMR bridge which is served by qwikVite
       const hmrBridge = this.server.hot
-        ? `<script type="module" src="/@id/@qwik-hmr-bridge"></script>`
+        ? `<script type="module" src="${this.server.config.base}@id/@qwik-hmr-bridge"></script>`
         : '';
 
       // Extract the pre and post head and body content. For now, ignore attributes added to the tags

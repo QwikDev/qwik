@@ -41,15 +41,12 @@ sandbox
 
 # AI tools
 .planning
+# Generated agent skills are regenerated locally via `ruler apply`, not committed (only .ruler/ source
+# and the root AGENTS.md/CLAUDE.md are). Keeps skill/note edits from tripling every PR diff.
 /.claude
-/.claude/skills
 /.codex
-/.codex/skills
 /.cursor
-/.cursor/skills
-/AGENTS.md
 /AGENTS.md.bak
-/CLAUDE.md
 /CLAUDE.md.bak
 
 # We need to ignore this because "changesets" will try to replace it

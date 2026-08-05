@@ -24,13 +24,20 @@ export interface SSRRootRefPathChunk {
 }
 
 /** @internal */
-export type SSRWriteChunk = string | number | SSRRootRefPathChunk;
+export interface SSRRootRefDeltaChunk {
+  readonly id: number;
+  readonly base: number;
+}
+
+/** @internal */
+export type SSRWriteChunk = string | number | SSRRootRefPathChunk | SSRRootRefDeltaChunk;
 
 /** @internal */
 export type SSRSegmentWriteChunk =
   | string
   | { readonly type: 'root-ref'; readonly localId: number }
-  | { readonly type: 'root-ref-path'; readonly localPath: number[] };
+  | { readonly type: 'root-ref-path'; readonly localPath: number[] }
+  | { readonly type: 'root-ref-delta'; readonly localId: number; readonly localBaseId: number };
 
 /** @internal */
 export interface StreamWriter {
@@ -42,6 +49,7 @@ export interface StreamWriter {
 export interface SSRInternalStreamWriter extends StreamWriter {
   writeRootRef(id: number): ValueOrPromise<void>;
   writeRootRefPath(path: number[]): ValueOrPromise<void>;
+  writeRootRefDelta(id: number, base: number): ValueOrPromise<void>;
   toString(remap?: number[]): string;
 }
 

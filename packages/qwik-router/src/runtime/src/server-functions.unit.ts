@@ -1,9 +1,37 @@
-import { describe, expectTypeOf, test } from 'vitest';
+import { describe, expect, expectTypeOf, test, vi } from 'vitest';
+
+const mocks = vi.hoisted(() => ({
+  asyncRequestStore: undefined as { getStore: () => unknown } | undefined,
+}));
+
+vi.mock('../../middleware/request-handler/async-request-store', () => ({
+  get _asyncRequestStore() {
+    return mocks.asyncRequestStore;
+  },
+}));
+
 import * as z from 'zod';
-import { server$ } from './server-functions';
+import { routeLoader$ } from './route-loaders';
+import { getRequestEvent, routeAction$, server$ } from './server-functions';
 import type { RequestEventBase, ValidatorErrorType } from './types';
 
 describe('types', () => {
+  test('getRequestEvent returns undefined when no async request store exists', () => {
+    mocks.asyncRequestStore = undefined;
+
+    expect(getRequestEvent()).toBeUndefined();
+  });
+
+  test('getRequestEvent returns current request from async request store', () => {
+    const requestEvent = { method: 'GET', url: new URL('http://localhost/') } as any;
+
+    mocks.asyncRequestStore = {
+      getStore: vi.fn(() => requestEvent),
+    };
+
+    expect(getRequestEvent()).toBe(requestEvent);
+  });
+
   test('matching', () => () => {
     const foo = () => server$(() => 'hello');
 
@@ -64,6 +92,13 @@ describe('types', () => {
         source: string;
       }>
     >();
+  });
+
+  test('routeAction$ accepts invalidate without validators', () => () => {
+    const useData = routeLoader$(() => ({ ok: true }));
+    const useAction = routeAction$((form) => form, { invalidate: [useData] });
+
+    expectTypeOf(useAction).not.toBeAny();
   });
 
   test('easy zod type', () => () => {

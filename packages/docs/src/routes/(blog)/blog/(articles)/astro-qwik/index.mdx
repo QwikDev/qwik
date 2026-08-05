@@ -9,6 +9,11 @@ canonical: 'https://www.builder.io/blog/astro-qwik'
 
 import { ArticleBlock } from '~/routes/(blog)/blog/components/mdx/article-block';
 import CodeSandbox from '~/components/code-sandbox/index.tsx';
+import { Image } from 'qwik-image';
+import img1 from './img-1.webp';
+import img2 from './img-2.webp';
+import img3 from './img-3.webp';
+import img4 from './img-4.webp';
 
 <ArticleBlock>
 
@@ -20,7 +25,7 @@ In mid-late 2022, I had the opportunity to try [Astro](https://astro.build/), a 
 
 It quickly became my go-to for creating landing pages, marketing websites, and even small web apps. If my clients needed something, it was almost always a click and integration guide away.
 
-![An image of a rocket on a notebook in space.](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fed9d96db1222462b89baf4f03e80617e?width=707)
+<Image class="w-full" src={img1} alt="An image of a rocket on a notebook in space." />
 
 Astro sites significantly outperformed the previous static site generators I had used. I appreciated the speed and found it intuitive to work with.
 
@@ -48,7 +53,7 @@ How would it work with islands?
 
 Well, turns out I wasn’t the only one!
 
-![A screenshot of a Discord chat between Misko and Jack.](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F988e08cd27f34323b77b937432ed88d5?width=707)
+<Image class="w-full" src={img2} alt="A screenshot of a Discord chat between Misko and Jack." />
 
 After some awesome help from Misko, creator of Angular and Qwik, as well as the Astro core team, I can finally answer that question I had back in April.
 
@@ -68,7 +73,7 @@ If we want to introduce interactivity with a framework, such as React, Vue, Svel
 
 Qwik builds on top of Astro's **Zero JS, by default** principle and then some. Thanks to resumability, the components are not executed unless resumed. Even with interactivity, the framework is also not executed until it needs to be. [It is O(1) constant](https://www.builder.io/blog/our-current-frameworks-are-on-we-need-o1), … with zero effort on the developer.
 
-![An Illustration of hydration vs resumability.](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F41f896cda32b43279d7c32ee6725c79f?width=707)
+<Image class="w-full" src={img3} alt="An Illustration of hydration vs resumability." />
 
 This integration for Astro enables resumability, fine-grained lazy loading, and many of the Qwik core stuff we know and love.
 
@@ -91,7 +96,7 @@ For example, here's how we use a Qwik counter component in Astro.
 **counter.tsx**
 
 ```tsx
-import { component$, useSignal } from "@qwik.dev/core";
+import { component$, useSignal } from '@qwik.dev/core';
 
 export const Counter = component$(() => {
   const counter = useSignal(0);
@@ -120,8 +125,11 @@ import { Counter } from "../components/counter";
 
 Yes! We can lazily execute code on interaction, just like using Qwik with Qwik Router.
 
-<video muted loop autoplay>
-  <source src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2F7be046307ece4278a81789e386737813%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=7be046307ece4278a81789e386737813&alt=media&optimized=true" type="video/mp4"/>
+<video crossorigin="anonymous" muted loop autoplay>
+  <source
+    src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2F7be046307ece4278a81789e386737813%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=7be046307ece4278a81789e386737813&alt=media&optimized=true"
+    type="video/mp4"
+  />
 </video>
 
 Here, we are refreshing the page, and you'll notice that nothing was executed until the button was clicked. Without resumability, our `<counter></counter>` component would have been executed on page load.
@@ -138,7 +146,7 @@ Instead of islands, we have Qwik containers! These fit quite well into Astro’s
 
 Below is an example of a Qwik container in Astro. In the DOM, you'll notice there aren't any custom elements. This is because, to Astro, Qwik appears as static data.
 
-![Untitled](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F1f8b5720be2b4157a614b754abd8f041?width=707)
+<Image class="w-full" src={img4} alt="Untitled" />
 
 This is just the beginning! You can try out the integration in Alpha today, by running:
 

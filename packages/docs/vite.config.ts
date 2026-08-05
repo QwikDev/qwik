@@ -14,6 +14,7 @@ import path, { resolve } from 'node:path';
 // import { qwikDevtools } from '@qwik.dev/devtools';
 import { defineConfig, loadEnv, type Plugin, type Rollup, type UserConfig } from 'vite';
 import { compiledStringPlugin } from '../../scripts/compiled-string-plugin.js';
+import { docsUpdatedData } from './vite-docs-updated';
 import { examplesData, playgroundData, rawSource, tutorialData } from './vite.repl-apps';
 import { sourceResolver } from './vite.source-resolver';
 
@@ -217,7 +218,7 @@ export default defineConfig(({ mode }) => {
     },
 
     plugins: [
-      qds({ icons: true }),
+      qds({ icons: true, asChild: true }),
       // some imported react code has sourcemap issues
       muteWarningsPlugin([
         ['SOURCEMAP_ERROR', "Can't resolve original location of error"],
@@ -232,6 +233,7 @@ export default defineConfig(({ mode }) => {
           rehypeAutolinkHeadings: true,
         },
         mdx: {
+          providerImportSource: '~/components/glossary/mdx-components',
           rehypePlugins: [
             [
               shikiRehype,
@@ -251,7 +253,7 @@ export default defineConfig(({ mode }) => {
       }),
       qwikVite({
         debug: false,
-        experimental: ['each', 'suspense', 'insights'],
+        experimental: ['each', 'show', 'suspense', 'insights'],
         devTools: { hmr: false },
       }),
       partytownVite({
@@ -259,6 +261,7 @@ export default defineConfig(({ mode }) => {
       }),
       examplesData(routesDir),
       playgroundData(routesDir),
+      docsUpdatedData(routesDir),
       tutorialData(routesDir),
       sourceResolver(docsDir),
       qwikReact(),

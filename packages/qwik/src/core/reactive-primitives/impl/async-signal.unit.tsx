@@ -767,7 +767,79 @@ describe('async signal', () => {
       });
     });
 
-    it('should throw the retried promise instead of returning a stale value after an error', async () => {
+    it('keeps the stale value when a recompute errors: .value returns it and .error is set', async () => {
+      await withContainer(async () => {
+        const ref = {
+          started: 0,
+          resolveFirst: undefined as ((value: number) => void) | undefined,
+          rejectSecond: undefined as ((error: Error) => void) | undefined,
+        };
+        const signal = createAsync$(
+          async () => {
+            ref.started++;
+            if (ref.started === 1) {
+              return new Promise<number>((resolve) => {
+                ref.resolveFirst = resolve;
+              });
+            }
+            return new Promise<number>((_resolve, reject) => {
+              ref.rejectSecond = reject;
+            });
+          },
+          { initial: 0 }
+        ) as AsyncSignalImpl<number>;
+
+        effect$(() => signal.value);
+
+        await retryOnPromise(() => {
+          if (!ref.resolveFirst) {
+            throw new Promise((resolve) => setTimeout(resolve, 0));
+          }
+          return ref.started;
+        });
+        ref.resolveFirst!(1);
+        await signal.promise();
+        expect(signal.value).toBe(1);
+
+        await signal.invalidate();
+        expect(signal.value).toBe(1);
+        await retryOnPromise(() => {
+          if (!ref.rejectSecond) {
+            throw new Promise((resolve) => setTimeout(resolve, 0));
+          }
+          return ref.started;
+        });
+        const failure = new Error('recompute failure');
+        ref.rejectSecond!(failure);
+        await signal.promise().catch(() => {});
+
+        expect(signal.error).toBe(failure);
+        expect(signal.value).toBe(1);
+        expect(signal.$untrackedValue$).toBe(1);
+      });
+    });
+
+    it('throws the stored error on .value when it errored with no settled value', async () => {
+      await withContainer(async () => {
+        const failure = new Error('first failure');
+        const signal = createAsync$(async () => {
+          throw failure;
+        }) as AsyncSignalImpl<number>;
+
+        await signal.promise().catch(() => {});
+
+        let thrown: unknown;
+        try {
+          signal.value;
+        } catch (err) {
+          thrown = err;
+        }
+        expect(thrown).toBe(failure);
+        expect(signal.error).toBe(failure);
+      });
+    });
+
+    it('returns the stale value while retrying after an error', async () => {
       await withContainer(async () => {
         const ref = {
           started: 0,
@@ -810,16 +882,9 @@ describe('async signal', () => {
           return ref.started;
         });
 
-        let thrown: unknown;
-        try {
-          signal.value;
-        } catch (err) {
-          thrown = err;
-        }
-
-        expect(thrown).toBeInstanceOf(Promise);
+        expect(signal.value).toBe(0);
         expect(signal.error).toBe(failure);
-        expect(signal.$untrackedValue$).toBe(NEEDS_COMPUTATION);
+        expect(signal.$untrackedValue$).toBe(0);
 
         ref.resolveSecond!(2);
         await signal.promise();

@@ -58,3 +58,5 @@ packages/browser-extension/public/devtools-hook.js
 # ruler-check CI). Edit .ruler/ and regenerate instead of letting Prettier reformat these.
 /AGENTS.md
 /CLAUDE.md
+# Committed conformance goldens; regenerated via UPDATE_GOLDENS=1, must stay byte-identical.
+packages/compiler/conformance/layer0/goldens

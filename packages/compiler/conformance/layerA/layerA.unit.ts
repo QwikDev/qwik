@@ -14,17 +14,23 @@ const shouldUpdate = process.env.UPDATE_GOLDENS === '1';
 describe('layerA shell goldens', () => {
   for (const name of listFixtures()) {
     test(name, async () => {
-      const { html } = await renderFixture(name);
-      const goldenFile = join(fixturesDir, name, 'expected', 'shell.html');
-      if (shouldUpdate) {
-        mkdirSync(dirname(goldenFile), { recursive: true });
-        writeFileSync(goldenFile, html + '\n');
-        return;
+      const { html, plan } = await renderFixture(name);
+      const goldens: [string, string][] = [
+        ['shell.html', html + '\n'],
+        ['plan.json', JSON.stringify(plan, null, 2) + '\n'],
+      ];
+      for (const [file, content] of goldens) {
+        const goldenFile = join(fixturesDir, name, 'expected', file);
+        if (shouldUpdate) {
+          mkdirSync(dirname(goldenFile), { recursive: true });
+          writeFileSync(goldenFile, content);
+          continue;
+        }
+        expect(
+          readFileSync(goldenFile, 'utf-8'),
+          `${name}/expected/${file} is stale — regenerate goldens`
+        ).toBe(content);
       }
-      expect(
-        readFileSync(goldenFile, 'utf-8'),
-        `${name}/expected/shell.html is stale — regenerate goldens`
-      ).toBe(html + '\n');
     });
   }
 });

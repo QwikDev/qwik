@@ -29,6 +29,8 @@ export interface QwikModulePlan {
 
 export interface PlanComponent {
   readonly name: string;
+  /** Module-scoped binding id; the link step resolves component targets against it. */
+  readonly binding: number | null;
   readonly setup: readonly PlanSetupEntry[];
   readonly render: readonly PlanNode[];
   readonly needsId: boolean;
@@ -89,7 +91,8 @@ export type PlanNode =
     }
   | {
       readonly n: PlanNodeKind.Component;
-      readonly target: number | string;
+      /** Module plans emit a binding id or tag source; the linker resolves to `{ ref }`. */
+      readonly target: number | string | { readonly ref: number };
       readonly props: readonly PlanProp[];
       readonly slots: readonly { readonly name: string; readonly render: PlanRenderFn }[];
     }
@@ -298,6 +301,7 @@ export function emitModulePlan(
     path,
     components: outputs.map((output) => ({
       name: output.component.exportName ?? '',
+      binding: output.component.bindingId,
       setup: planSetup(output.result.setup),
       render: output.result.render.roots.map(planNode),
       needsId: output.result.needsId,

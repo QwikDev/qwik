@@ -1,11 +1,10 @@
 {
-  "format": "qwik/module-plan",
+  "format": "qwik/ssr-plan",
   "version": 0,
-  "path": "src/input.tsx",
+  "entry": 0,
   "components": [
     {
       "name": "App",
-      "binding": 1,
       "setup": [
         {
           "op": "signal",
@@ -68,5 +67,6 @@
         }
       ]
     }
-  ]
+  ],
+  "unresolved": []
 }

@@ -4,7 +4,10 @@ import { dirname, join } from 'node:path';
 // built package, not source: the generated modules' bare '@qwik.dev/core' imports resolve to the
 // built lib, and ambient state (invoke context, owner) must live in ONE module world
 import { renderToString } from '@qwik.dev/core/server';
+import type { TransformModulesOptions } from '@qwik.dev/optimizer';
+import type { QwikModulePlan } from '../../src/emit-plan';
 import { transformModules } from '../../src/index';
+import { linkSsrPlan, type QwikSsrPlan } from '../../src/link-plan';
 import type { SsrRenderRoot } from '../../../qwik/src/server/ssr-render';
 import type { RenderToStringOptions } from '../../../qwik/src/server/types';
 
@@ -24,6 +27,8 @@ export function listFixtures(): string[] {
 export interface FixtureRender {
   name: string;
   html: string;
+  /** Linked entry-rooted plan — the future engine input, goldened beside the shell. */
+  plan: QwikSsrPlan;
 }
 
 export async function renderFixture(name: string): Promise<FixtureRender> {
@@ -40,7 +45,8 @@ export async function renderFixture(name: string): Promise<FixtureRender> {
     transpileTs: true,
     transpileJsx: true,
     isServer: true,
-  });
+    emitPlan: true,
+  } as TransformModulesOptions & { emitPlan: boolean });
   if (result.diagnostics.length > 0) {
     const messages = result.diagnostics.map((diagnostic) => diagnostic.message).join('\n');
     throw new Error(`fixture "${name}" produced diagnostics:\n${messages}`);
@@ -66,8 +72,20 @@ export async function renderFixture(name: string): Promise<FixtureRender> {
   if (root === undefined) {
     throw new Error(`fixture "${name}" entry module does not export App`);
   }
+  const planModule = result.modules.find((module) => module.path.endsWith('.plan.json'));
+  if (planModule === undefined) {
+    throw new Error(`fixture "${name}" emitted no module plan`);
+  }
+  const plan = linkSsrPlan(JSON.parse(planModule.code) as QwikModulePlan, 'App');
+  if (plan === null) {
+    throw new Error(`fixture "${name}" has no App entry component`);
+  }
+  if (plan.unresolved.length > 0) {
+    throw new Error(`fixture "${name}" plan has unresolved targets: ${plan.unresolved.join(', ')}`);
+  }
+
   const rendered = await renderToString(root as any, request);
   // q:version embeds build timestamp+hash; normalize so goldens survive rebuilds
   const html = rendered.html.replace(/ q:version="[^"]*"/, ' q:version="conformance"');
-  return { name, html };
+  return { name, html, plan };
 }

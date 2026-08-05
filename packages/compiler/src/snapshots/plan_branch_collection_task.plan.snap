@@ -5,6 +5,7 @@
   "components": [
     {
       "name": "App",
+      "binding": 3,
       "setup": [
         {
           "op": "signal",

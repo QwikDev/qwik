@@ -1,0 +1,55 @@
+{
+  "format": "qwik/ssr-plan",
+  "version": 0,
+  "entry": 0,
+  "components": [
+    {
+      "name": "App",
+      "setup": [],
+      "render": [
+        {
+          "n": "el",
+          "tag": "main",
+          "props": [
+            {
+              "p": "static",
+              "name": "class",
+              "value": "shell"
+            }
+          ],
+          "children": [
+            {
+              "n": "el",
+              "tag": "h1",
+              "props": [],
+              "children": [
+                {
+                  "n": "text",
+                  "value": "Static page"
+                }
+              ]
+            },
+            {
+              "n": "el",
+              "tag": "p",
+              "props": [],
+              "children": [
+                {
+                  "n": "text",
+                  "value": "No state, no handlers."
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "needsId": false,
+      "idBase": "qApp-",
+      "styleScope": null,
+      "providesContext": false,
+      "hasCustomHook": false
+    }
+  ],
+  "segments": [],
+  "unresolved": []
+}

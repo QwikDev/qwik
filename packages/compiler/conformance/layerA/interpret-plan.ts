@@ -3,6 +3,7 @@ import {
   createSsrElementTarget,
   createSsrElementTextTarget,
   createSsrNodeId,
+  createSsrRangeTextTarget,
   createSsrRecord,
   escapeHTML,
   getActiveInvokeContextOrNull,
@@ -10,6 +11,7 @@ import {
   maybeThen,
   renderSsrAttr,
   renderSsrBranch,
+  renderSsrTextExpression,
   renderSsrTextNode,
   useComputedQrl,
   useSignal,
@@ -231,19 +233,50 @@ export async function buildInterpretedRoot(
             break;
           }
           case 'dyn': {
-            if (op.target === null || op.target.kind !== 'element') {
-              throw new Error('interpreter supports element-targeted dynamic text only');
+            const planTarget = op.target;
+            if (planTarget === null || planTarget.id === null) {
+              throw new Error('interpreter needs a targeted dynamic text site');
             }
-            const runtimeId = runtimeIds.get(op.target.id);
+            const runtimeId = runtimeIds.get(planTarget.id);
             if (runtimeId === undefined) {
-              throw new Error(`dynamic text targets unopened element ${op.target.id}`);
+              throw new Error(`dynamic text targets unopened element ${planTarget.id}`);
             }
-            const signal = localSignal(op.value.ir, 'dynamic text');
-            const text = await invoke(invokeCtx, () => {
-              ctx.addRoot(signal);
-              return renderSsrTextNode(createSsrElementTextTarget(runtimeId), signal as never);
-            });
-            parts.push(escapeHTML(text as string));
+            const target =
+              planTarget.kind === 'element'
+                ? createSsrElementTextTarget(runtimeId)
+                : createSsrRangeTextTarget(runtimeId, planTarget.marker);
+            const ir = op.value.ir;
+            let text: unknown;
+            if (ir !== undefined && ir.k === 'signal-read') {
+              const signal = localSignal(ir, 'dynamic text');
+              text = await invoke(invokeCtx, () => {
+                ctx.addRoot(signal);
+                return renderSsrTextNode(target, signal as never);
+              });
+            } else if (op.value.segment !== undefined) {
+              const segmentId = op.value.segment;
+              const captureValues = (captureLists.get(segmentId) ?? []).map((binding) => {
+                if (!locals.has(binding)) {
+                  throw new Error(`expression capture ${binding} has no interpreted local`);
+                }
+                return locals.get(binding);
+              });
+              const qrl = qrls.get(segmentId);
+              if (qrl === undefined) {
+                throw new Error(`expression segment "${segmentId}" missing from the plan`);
+              }
+              text = await invoke(invokeCtx, () =>
+                renderSsrTextExpression(target, captureValues, qrl as never)
+              );
+            } else {
+              throw new Error('dynamic text needs a signal-read ir or an expression segment');
+            }
+            if (planTarget.kind === 'range') {
+              // range text is fenced by <!t> markers at emit time (derived, not in statics)
+              parts.push('<!t>', escapeHTML(text as string), '<!/t>');
+            } else {
+              parts.push(escapeHTML(text as string));
+            }
             break;
           }
           case 'branch': {

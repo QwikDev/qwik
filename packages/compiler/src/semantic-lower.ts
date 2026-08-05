@@ -1143,6 +1143,7 @@ class SemanticLowerer {
       expression: signal,
       source: signal,
       referenceBindingIds: this.referencesIn(signal),
+      ...this.valueIr(expression),
     };
     const effectId = this.pushEffect(context, {
       kind: 'attribute',

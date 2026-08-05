@@ -1,0 +1,230 @@
+{
+  "format": "qwik/ssr-plan",
+  "version": 0,
+  "entry": 0,
+  "components": [
+    {
+      "name": "App",
+      "propsBindings": [],
+      "ssr": {
+        "setup": [
+          {
+            "op": "signal",
+            "local": 3,
+            "init": {
+              "k": "lit",
+              "v": "hi"
+            }
+          },
+          {
+            "op": "store",
+            "local": 4,
+            "init": {
+              "k": "object",
+              "entries": [
+                [
+                  "sent",
+                  {
+                    "k": "lit",
+                    "v": 0
+                  }
+                ]
+              ]
+            },
+            "deep": true
+          }
+        ],
+        "directSegmentIds": [],
+        "usedSegmentIds": [
+          "segment_1"
+        ],
+        "ops": [
+          {
+            "o": "el",
+            "tag": "form",
+            "id": null,
+            "void": false,
+            "styleScopedId": null,
+            "targetUses": 0,
+            "props": [],
+            "propsEffect": null,
+            "children": [
+              {
+                "o": "el",
+                "tag": "input",
+                "id": 0,
+                "void": true,
+                "styleScopedId": null,
+                "targetUses": 1,
+                "props": [
+                  {
+                    "p": "dynamic",
+                    "name": "value",
+                    "value": {
+                      "src": "text",
+                      "ir": {
+                        "k": "binding-read",
+                        "binding": 3
+                      }
+                    },
+                    "compilerString": false
+                  },
+                  {
+                    "p": "event",
+                    "name": "q-e:input",
+                    "handlers": [
+                      {
+                        "bind": "text"
+                      }
+                    ]
+                  }
+                ],
+                "propsEffect": null,
+                "children": []
+              },
+              {
+                "o": "el",
+                "tag": "output",
+                "id": 1,
+                "void": false,
+                "styleScopedId": null,
+                "targetUses": 0,
+                "props": [],
+                "propsEffect": null,
+                "children": [
+                  {
+                    "o": "dyn",
+                    "output": "text",
+                    "value": {
+                      "src": "form.sent",
+                      "ir": {
+                        "k": "member",
+                        "obj": {
+                          "k": "binding-read",
+                          "binding": 4
+                        },
+                        "name": "sent"
+                      },
+                      "segment": "segment_1"
+                    },
+                    "synchronous": false,
+                    "target": {
+                      "kind": "element",
+                      "id": 1
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "synchronous": false,
+        "staticRoot": false,
+        "needsRootRange": false,
+        "needsId": false,
+        "idBase": "qApp-",
+        "flushTasks": false
+      },
+      "setup": [
+        {
+          "op": "signal",
+          "local": 3,
+          "init": {
+            "k": "lit",
+            "v": "hi"
+          }
+        },
+        {
+          "op": "store",
+          "local": 4,
+          "init": {
+            "k": "object",
+            "entries": [
+              [
+                "sent",
+                {
+                  "k": "lit",
+                  "v": 0
+                }
+              ]
+            ]
+          },
+          "deep": true
+        }
+      ],
+      "render": [
+        {
+          "n": "el",
+          "tag": "form",
+          "props": [],
+          "children": [
+            {
+              "n": "el",
+              "tag": "input",
+              "props": [
+                {
+                  "p": "bind",
+                  "name": "value",
+                  "value": {
+                    "src": "text",
+                    "ir": {
+                      "k": "binding-read",
+                      "binding": 3
+                    }
+                  }
+                }
+              ],
+              "children": []
+            },
+            {
+              "n": "el",
+              "tag": "output",
+              "props": [],
+              "children": [
+                {
+                  "n": "dyn",
+                  "output": "text",
+                  "value": {
+                    "src": "form.sent",
+                    "ir": {
+                      "k": "member",
+                      "obj": {
+                        "k": "binding-read",
+                        "binding": 4
+                      },
+                      "name": "sent"
+                    },
+                    "segment": "segment_1"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "needsId": false,
+      "idBase": "qApp-",
+      "styleScope": null,
+      "providesContext": false,
+      "hasCustomHook": false
+    }
+  ],
+  "segments": [
+    {
+      "id": "segment_1",
+      "symbolName": "input_text_segment_1_3k1cwavr13suv",
+      "chunk": "./input.tsx_input_text_segment_1_3k1cwavr13suv",
+      "kind": "expression",
+      "qrl": null,
+      "captures": [
+        {
+          "binding": 4,
+          "name": "form",
+          "source": "local",
+          "access": "direct"
+        }
+      ]
+    }
+  ],
+  "unresolved": []
+}

@@ -20,9 +20,13 @@ import {
   registerProjection,
   useComputedQrl,
   useSignal,
+  useStore,
   useTaskQrl,
+  inlinedQrl,
+  _chk,
   _props,
   _qrlWithChunk,
+  _val,
 } from '@qwik.dev/core';
 import type { PlanSsrOp, PlanSsrProp } from '../../src/emit-plan-ssr';
 import type { QwikSsrPlan } from '../../src/link-plan';
@@ -153,6 +157,11 @@ export async function buildInterpretedRoot(
           locals.set(op.local, evalIr(op.init));
           break;
         }
+        case 'store': {
+          const op = entry as Extract<SetupOp, { op: 'store' }>;
+          locals.set(op.local, useStore(evalIr(op.init) as never));
+          break;
+        }
         case 'computed': {
           const op = entry as Extract<SetupOp, { op: 'computed' }>;
           locals.set(op.local, useComputedQrl(qrlWithCaptures(op.segment) as never));
@@ -169,8 +178,10 @@ export async function buildInterpretedRoot(
     }
 
     const localSignal = (ir: ValueIR | undefined, site: string): unknown => {
-      if (ir === undefined || ir.k !== 'signal-read') {
-        throw new Error(`${site} needs a signal-read ir in the interpreter`);
+      // signal-read is the proven .value fast path; binding-read of a signal-valued
+      // local (bare identifier, e.g. bind:value={text}) yields the signal object itself
+      if (ir === undefined || (ir.k !== 'signal-read' && ir.k !== 'binding-read')) {
+        throw new Error(`${site} needs a signal-valued local read in the interpreter`);
       }
       if (!locals.has(ir.binding)) {
         throw new Error(`${site} reads unknown binding ${ir.binding}`);
@@ -195,7 +206,12 @@ export async function buildInterpretedRoot(
               runtimeIds.set(op.id, id);
             }
             const open: unknown[] = [`<${op.tag}`];
-            const deferredEvents: { slot: number; name: string; segment: string }[] = [];
+            const deferredEvents: {
+              slot: number;
+              name: string;
+              segment?: string;
+              bind?: { name: string; signal: unknown };
+            }[] = [];
             if (id !== null) {
               open.push(' q:id="', createSsrNodeId(id), '"');
             }
@@ -230,14 +246,29 @@ export async function buildInterpretedRoot(
                   name: string;
                   handlers: readonly ({ value?: { segment?: string } } | { bind: string })[];
                 };
-                const handler = event.handlers[0] as { value?: { segment?: string } };
-                if (event.handlers.length !== 1 || handler.value?.segment === undefined) {
-                  throw new Error('interpreter supports single segment event handlers only');
-                }
+                const handler = event.handlers[0] as {
+                  value?: { segment?: string };
+                  bind?: string;
+                };
                 // mirror emitted ordering: eventAttr runs at record assembly, after children
                 const slot = open.length;
                 open.push(null);
-                deferredEvents.push({ slot, name: event.name, segment: handler.value.segment });
+                if (event.handlers.length === 1 && handler.value?.segment !== undefined) {
+                  deferredEvents.push({ slot, name: event.name, segment: handler.value.segment });
+                } else if (event.handlers.length === 1 && handler.bind !== undefined) {
+                  // bind handlers reuse the sibling dynamic prop's signal for _val/_chk
+                  const bindName = event.name === 'q-e:input' ? 'value' : 'checked';
+                  const sibling = (op.props as readonly PlanSsrProp[]).find(
+                    (candidate) =>
+                      candidate.p === 'dynamic' && (candidate as { name: string }).name === bindName
+                  ) as { value: { ir?: ValueIR } } | undefined;
+                  const signal = localSignal(sibling?.value.ir, `bind:${bindName}`);
+                  deferredEvents.push({ slot, name: event.name, bind: { name: bindName, signal } });
+                } else {
+                  throw new Error(
+                    'interpreter supports single segment or bind event handlers only'
+                  );
+                }
               } else {
                 throw new Error(`interpreter cannot render prop kind "${prop.p}" yet`);
               }
@@ -245,7 +276,15 @@ export async function buildInterpretedRoot(
             open.push('>');
             const childParts = await interpretOps(op.children);
             for (const deferred of deferredEvents) {
-              open[deferred.slot] = ctx.eventAttr(deferred.name, qrlWithCaptures(deferred.segment));
+              open[deferred.slot] =
+                deferred.bind !== undefined
+                  ? ctx.eventAttr(
+                      deferred.name,
+                      deferred.bind.name === 'value'
+                        ? inlinedQrl(_val, '_val', [deferred.bind.signal])
+                        : inlinedQrl(_chk, '_chk', [deferred.bind.signal])
+                    )
+                  : ctx.eventAttr(deferred.name, qrlWithCaptures(deferred.segment!));
             }
             parts.push(createSsrElementRecord(op.tag, ...(open as never[])));
             parts.push(...childParts);

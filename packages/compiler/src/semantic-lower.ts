@@ -61,6 +61,8 @@ import type {
 } from './plan-types';
 import type { ValueIR } from './expr-ir';
 import { lowerValueIr, reportValueIrSite, type ExprLowerFacts } from './expr-lower';
+import type { SetupOp } from './setup-ir';
+import { lowerSetupOp, reportSetupOpSite, type SetupLowerFacts } from './setup-lower';
 import { QWIK_CORE_IMPORT, QWIK_IMPORT, QwikAttributes, QwikHooks } from './words';
 import { createSegmentSymbolName } from './segment-identity';
 import { createExtractedSegmentPlan } from './segment-plan';
@@ -1407,10 +1409,25 @@ class SemanticLowerer {
     isFunctionBinding: (binding) => this.functionBindings.has(binding),
   };
 
+  private readonly setupLowerFacts: SetupLowerFacts = {
+    ...this.exprLowerFacts,
+    isHook: (callee, hook) => this.isSparkHook(callee, hook) || this.isQwikHook(callee, hook),
+  };
+
   private valueIr(expression: AstNode): { ir?: ValueIR } {
     const ir = lowerValueIr(expression, this.exprLowerFacts);
     reportValueIrSite(ir !== null);
     return ir === null ? {} : { ir };
+  }
+
+  private setupOpAt(range: SourceRange): { op?: SetupOp } {
+    const statement = findNodeByRange(this.owner.body, range);
+    if (statement === null) {
+      return {};
+    }
+    const op = lowerSetupOp(statement, this.setupLowerFacts);
+    reportSetupOpSite(op !== null);
+    return op === null ? {} : { op };
   }
 
   private attachEmbeddedRenders(
@@ -1699,6 +1716,7 @@ class SemanticLowerer {
           (id) => !this.isSparkHookBinding(id, QwikHooks.UseId)
         ),
         useIds,
+        ...this.setupOpAt(setupRange),
       };
     });
     const segmentId = segment?.id ?? `semantic_collectionRender_${range[0]}_${range[1]}`;
@@ -1779,6 +1797,7 @@ class SemanticLowerer {
         (id) => !this.isSparkHookBinding(id, QwikHooks.UseId)
       ),
       useIds: this.collectUseIds(setupRange),
+      ...this.setupOpAt(setupRange),
     }));
     this.referenceSegment(segment, lifetimeId);
     const render = this.withRenderSegment(segment.id, () => {
@@ -2527,6 +2546,7 @@ class SemanticLowerer {
             (id) => !this.isSparkHookBinding(id, QwikHooks.UseId)
           ),
           useIds,
+          ...this.setupOpAt(range),
         });
         continue;
       }

@@ -1,6 +1,7 @@
 import type { Diagnostic, TransformModule } from '@qwik.dev/optimizer';
 import type { Expression, FunctionBody } from 'oxc-parser';
 import type { ValueIR } from './expr-ir';
+import type { SetupOp } from './setup-ir';
 import type { ParamRecord, SourceRange } from './types';
 
 export type TransformResult =
@@ -144,6 +145,8 @@ export type SetupPlan =
       readonly lifetimeId: LifetimeId;
       readonly referenceBindingIds: readonly BindingId[];
       readonly useIds: readonly UseIdPlan[];
+      /** Portable lowering when the statement is op-expressible; additive, emitters ignore it. */
+      readonly op?: SetupOp;
     }
   | {
       readonly kind: 'render-value';

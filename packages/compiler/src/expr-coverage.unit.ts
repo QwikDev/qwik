@@ -3,6 +3,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, test } from 'vitest';
 import { startValueIrCoverage, stopValueIrCoverage } from './expr-lower';
+import { startSetupOpCoverage, stopSetupOpCoverage } from './setup-lower';
 import { transformModules } from './index';
 
 /**
@@ -29,6 +30,7 @@ const COVERAGE_FLOOR = 0.8;
 describe('ValueIR coverage over the fixture corpus', () => {
   test('lowered share stays above the floor', async () => {
     const coverage = startValueIrCoverage();
+    const setupCoverage = startSetupOpCoverage();
     const perFile: string[] = [];
     try {
       for (const path of CORPUS) {
@@ -49,8 +51,12 @@ describe('ValueIR coverage over the fixture corpus', () => {
       }
     } finally {
       stopValueIrCoverage();
+      stopSetupOpCoverage();
     }
     process.stdout.write(perFile.join('\n') + '\n');
+    process.stdout.write(
+      `SetupOp coverage: ${setupCoverage.lowered}/${setupCoverage.total} statements\n`
+    );
 
     expect(coverage.total).toBeGreaterThan(0);
     const ratio = coverage.lowered / coverage.total;

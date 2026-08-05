@@ -86,6 +86,14 @@ Decisions:
   (`core/runtime/task.ts`, `core/tests/task.spec.tsx`). `TaskBody` therefore carries no hoisted
   track list: engines evaluate the steps with a collector active and dependencies fall out,
   exactly like the JS runtime.
+- **Await points restore tracking via `_await`.** Post-await tracking is not ambient magic: the
+  compiler rewrites every `await X` inside extracted segments to `(await _await(X))()`
+  (`emit-segment.ts` awaits rewrite) — `_await` (`core/reactive/tracking.ts`) captures the
+  active collector + invoke context before suspension, and the returned thunk restores both
+  after resumption, releasing them on the next microtask. Engines must give await points in
+  task/computed evaluation the same restore-across-suspension semantics; when `TaskBody` grows
+  await-carrying steps, each await point is explicit in the IR for exactly this reason (the v1
+  lowerer rejects awaits, so nothing is silently mis-modeled today).
 - **Tasks lower by default; they are not plugin territory.** The dominant SSR-relevant shape is
   derive-into-state (tracked reads + assignments), which `TaskBody` covers. Genuine I/O inside a
   task goes through `call-plugin` (an internal plugin such as `qwik:fetch`, or a user plugin) —

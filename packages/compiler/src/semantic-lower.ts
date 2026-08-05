@@ -60,7 +60,7 @@ import type {
   ValuePlan,
 } from './plan-types';
 import type { ValueIR } from './expr-ir';
-import { lowerValueIr, type ExprLowerFacts } from './expr-lower';
+import { lowerValueIr, reportValueIrSite, type ExprLowerFacts } from './expr-lower';
 import { QWIK_CORE_IMPORT, QWIK_IMPORT, QwikAttributes, QwikHooks } from './words';
 import { createSegmentSymbolName } from './segment-identity';
 import { createExtractedSegmentPlan } from './segment-plan';
@@ -1379,6 +1379,7 @@ class SemanticLowerer {
         kind: 'segment',
         expression: range,
         segment: this.referenceSegment(segment, lifetimeId),
+        ...(event ? {} : this.valueIr(expression)),
       };
     }
     if (allowRenderValue) {
@@ -1408,6 +1409,7 @@ class SemanticLowerer {
 
   private valueIr(expression: AstNode): { ir?: ValueIR } {
     const ir = lowerValueIr(expression, this.exprLowerFacts);
+    reportValueIrSite(ir !== null);
     return ir === null ? {} : { ir };
   }
 

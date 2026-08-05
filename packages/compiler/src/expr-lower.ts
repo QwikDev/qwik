@@ -17,6 +17,34 @@ export interface ExprLowerFacts {
   isFunctionBinding(binding: BindingId): boolean;
 }
 
+export interface ValueIrCoverage {
+  total: number;
+  lowered: number;
+}
+
+let activeCoverage: ValueIrCoverage | null = null;
+
+/** Test-only coverage tap: counts expression sites lowered vs total until `stop`. */
+export function startValueIrCoverage(): ValueIrCoverage {
+  const coverage: ValueIrCoverage = { total: 0, lowered: 0 };
+  activeCoverage = coverage;
+  return coverage;
+}
+
+export function stopValueIrCoverage(): void {
+  activeCoverage = null;
+}
+
+export function reportValueIrSite(lowered: boolean): void {
+  if (activeCoverage === null) {
+    return;
+  }
+  activeCoverage.total++;
+  if (lowered) {
+    activeCoverage.lowered++;
+  }
+}
+
 const UNARY_OPS: ReadonlySet<string> = new Set([
   '!',
   '-',

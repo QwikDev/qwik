@@ -430,6 +430,8 @@ export type ValuePlan =
       readonly kind: 'segment';
       readonly expression: SourceRange;
       readonly segment: SegmentReferencePlan;
+      /** Portable lowering when the expression is IR-expressible; additive, emitters ignore it. */
+      readonly ir?: ValueIR;
     }
   | {
       readonly kind: 'source';

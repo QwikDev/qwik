@@ -9,6 +9,7 @@ import type {
   SetupPlan,
   ValuePlan,
 } from './plan-types';
+import { SetupOpKind } from './setup-ir';
 import type { SetupOp } from './setup-ir';
 import type { SourceRange } from './types';
 
@@ -39,8 +40,8 @@ export interface PlanComponent {
 
 export type PlanSetupEntry =
   | SetupOp
-  | { readonly op: 'style'; readonly styleId: string; readonly scoped: boolean }
-  | { readonly op: 'js'; readonly src: string };
+  | { readonly op: SetupOpKind.Style; readonly styleId: string; readonly scoped: boolean }
+  | { readonly op: SetupOpKind.Js; readonly src: string };
 
 /** Server evaluates `ir` when present; `segment` is the client-resume QRL; `src` the JS fallback. */
 export interface PlanValue {
@@ -54,37 +55,60 @@ export interface PlanRenderFn {
   readonly render: readonly PlanNode[];
 }
 
+export const enum PlanNodeKind {
+  Text = 'text',
+  Element = 'el',
+  Dynamic = 'dyn',
+  Component = 'component',
+  Branch = 'branch',
+  Suspense = 'suspense',
+  Slot = 'slot',
+  Collection = 'collection',
+}
+
+export const enum PlanPropKind {
+  Static = 'static',
+  Dynamic = 'dynamic',
+  Spread = 'spread',
+  Event = 'event',
+  Bind = 'bind',
+}
+
 export type PlanNode =
-  | { readonly n: 'text'; readonly value: string }
+  | { readonly n: PlanNodeKind.Text; readonly value: string }
   | {
-      readonly n: 'el';
+      readonly n: PlanNodeKind.Element;
       readonly tag: string;
       readonly props: readonly PlanProp[];
       readonly children: readonly PlanNode[];
     }
-  | { readonly n: 'dyn'; readonly output: 'text' | 'content'; readonly value: PlanValue }
   | {
-      readonly n: 'component';
+      readonly n: PlanNodeKind.Dynamic;
+      readonly output: 'text' | 'content';
+      readonly value: PlanValue;
+    }
+  | {
+      readonly n: PlanNodeKind.Component;
       readonly target: number | string;
       readonly props: readonly PlanProp[];
       readonly slots: readonly { readonly name: string; readonly render: PlanRenderFn }[];
     }
   | {
-      readonly n: 'branch';
+      readonly n: PlanNodeKind.Branch;
       readonly condition: PlanValue;
       readonly then: PlanRenderFn;
       readonly else: PlanRenderFn | null;
     }
   | {
-      readonly n: 'suspense';
+      readonly n: PlanNodeKind.Suspense;
       readonly content: PlanRenderFn;
       readonly fallback: PlanValue | null;
       readonly delay: PlanValue | null;
       readonly blocking: boolean;
     }
-  | { readonly n: 'slot'; readonly name: string; readonly fallback: PlanRenderFn | null }
+  | { readonly n: PlanNodeKind.Slot; readonly name: string; readonly fallback: PlanRenderFn | null }
   | {
-      readonly n: 'collection';
+      readonly n: PlanNodeKind.Collection;
       readonly source: PlanCollectionSource;
       readonly key: PlanValue | null;
       readonly row: PlanRenderFn;
@@ -102,16 +126,16 @@ export type PlanCollectionSource =
     };
 
 export type PlanProp =
-  | { readonly p: 'static'; readonly name: string; readonly value: unknown }
-  | { readonly p: 'dynamic'; readonly name: string; readonly value: PlanValue }
-  | { readonly p: 'spread'; readonly value: PlanValue }
+  | { readonly p: PlanPropKind.Static; readonly name: string; readonly value: unknown }
+  | { readonly p: PlanPropKind.Dynamic; readonly name: string; readonly value: PlanValue }
+  | { readonly p: PlanPropKind.Spread; readonly value: PlanValue }
   | {
-      readonly p: 'event';
+      readonly p: PlanPropKind.Event;
       readonly name: string;
       readonly passive: boolean;
       readonly value: PlanValue;
     }
-  | { readonly p: 'bind'; readonly name: 'value' | 'checked'; readonly value: PlanValue }
+  | { readonly p: PlanPropKind.Bind; readonly name: 'value' | 'checked'; readonly value: PlanValue }
   | { readonly p: string; readonly src: string };
 
 export interface PlanSegmentMeta {
@@ -144,12 +168,12 @@ export function emitModulePlan(
   const planSetup = (setup: readonly SetupPlan[]): PlanSetupEntry[] =>
     setup.map((entry) => {
       if (entry.kind === 'style') {
-        return { op: 'style', styleId: entry.styleId, scoped: entry.scoped };
+        return { op: SetupOpKind.Style, styleId: entry.styleId, scoped: entry.scoped };
       }
       if (entry.kind === 'statement' && entry.op !== undefined) {
         return entry.op;
       }
-      return { op: 'js', src: slice(entry.range) };
+      return { op: SetupOpKind.Js, src: slice(entry.range) };
     });
 
   const planRenderFn = (fn: RenderFunctionPlan): PlanRenderFn => ({
@@ -160,15 +184,20 @@ export function emitModulePlan(
   const planProp = (prop: OrderedPropPlan): PlanProp => {
     switch (prop.kind) {
       case 'static':
-        return { p: 'static', name: prop.name, value: prop.value };
+        return { p: PlanPropKind.Static, name: prop.name, value: prop.value };
       case 'dynamic':
-        return { p: 'dynamic', name: prop.name, value: planValue(prop.value) };
+        return { p: PlanPropKind.Dynamic, name: prop.name, value: planValue(prop.value) };
       case 'spread':
-        return { p: 'spread', value: planValue(prop.value) };
+        return { p: PlanPropKind.Spread, value: planValue(prop.value) };
       case 'event':
-        return { p: 'event', name: prop.name, passive: prop.passive, value: planValue(prop.value) };
+        return {
+          p: PlanPropKind.Event,
+          name: prop.name,
+          passive: prop.passive,
+          value: planValue(prop.value),
+        };
       case 'bind':
-        return { p: 'bind', name: prop.name, value: planValue(prop.value) };
+        return { p: PlanPropKind.Bind, name: prop.name, value: planValue(prop.value) };
       default:
         return { p: prop.kind, src: slice(prop.range) };
     }
@@ -202,26 +231,26 @@ export function emitModulePlan(
   const planNode = (node: RenderNodePlan): PlanNode => {
     switch (node.kind) {
       case 'static-text':
-        return { n: 'text', value: node.value };
+        return { n: PlanNodeKind.Text, value: node.value };
       case 'element':
         return {
-          n: 'el',
+          n: PlanNodeKind.Element,
           tag: node.tag,
           props: node.props.map(planProp),
           children: node.children.map(planNode),
         };
       case 'dynamic-value':
-        return { n: 'dyn', output: node.output, value: planValue(node.value) };
+        return { n: PlanNodeKind.Dynamic, output: node.output, value: planValue(node.value) };
       case 'component':
         return {
-          n: 'component',
+          n: PlanNodeKind.Component,
           target: node.bindingId ?? slice(node.tagRange),
           props: node.props.map(planProp),
           slots: node.slots.map((slot) => ({ name: slot.name, render: planRenderFn(slot.render) })),
         };
       case 'branch':
         return {
-          n: 'branch',
+          n: PlanNodeKind.Branch,
           // src stays empty: the JS engine evaluates branch conditions via the segment
           condition: {
             src: '',
@@ -233,7 +262,7 @@ export function emitModulePlan(
         };
       case 'suspense':
         return {
-          n: 'suspense',
+          n: PlanNodeKind.Suspense,
           content: planRenderFn(node.content),
           fallback: node.fallback === null ? null : planValue(node.fallback),
           delay: node.delay === null ? null : planValue(node.delay),
@@ -241,13 +270,13 @@ export function emitModulePlan(
         };
       case 'slot':
         return {
-          n: 'slot',
+          n: PlanNodeKind.Slot,
           name: node.name,
           fallback: node.fallback === null ? null : planRenderFn(node.fallback),
         };
       case 'collection':
         return {
-          n: 'collection',
+          n: PlanNodeKind.Collection,
           source: planCollectionSource(node),
           key:
             node.key === null

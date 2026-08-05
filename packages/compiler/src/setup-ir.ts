@@ -8,26 +8,53 @@ import type { BindingId } from './plan-types';
  * statement without an op falls back to verbatim JS, exactly like unlowered expressions;
  * `use-on`/styles remain unrepresented (styles already have their own `StyleSetupPlan`).
  */
+export const enum SetupOpKind {
+  Signal = 'signal',
+  Store = 'store',
+  Const = 'const',
+  UseId = 'use-id',
+  ContextRead = 'context-read',
+  ContextProvider = 'context-provider',
+  ServerData = 'server-data',
+  Computed = 'computed',
+  Task = 'task',
+  VisibleTask = 'visible-task',
+  Style = 'style',
+  Js = 'js',
+}
+
+export const enum TaskStepKind {
+  SetSignal = 'set-signal',
+  SetStore = 'set-store',
+  If = 'if',
+  Let = 'let',
+  Return = 'return',
+}
+
 export type SetupOp =
-  | { readonly op: 'signal'; readonly local: BindingId; readonly init: ValueIR }
+  | { readonly op: SetupOpKind.Signal; readonly local: BindingId; readonly init: ValueIR }
   | {
-      readonly op: 'store';
+      readonly op: SetupOpKind.Store;
       readonly local: BindingId;
       readonly init: ValueIR;
       readonly deep: boolean;
     }
-  | { readonly op: 'const'; readonly local: BindingId; readonly init: ValueIR }
-  | { readonly op: 'use-id'; readonly local: BindingId }
-  | { readonly op: 'context-read'; readonly local: BindingId; readonly context: BindingId }
-  | { readonly op: 'context-provider'; readonly context: BindingId; readonly value: ValueIR }
+  | { readonly op: SetupOpKind.Const; readonly local: BindingId; readonly init: ValueIR }
+  | { readonly op: SetupOpKind.UseId; readonly local: BindingId }
+  | { readonly op: SetupOpKind.ContextRead; readonly local: BindingId; readonly context: BindingId }
   | {
-      readonly op: 'server-data';
+      readonly op: SetupOpKind.ContextProvider;
+      readonly context: BindingId;
+      readonly value: ValueIR;
+    }
+  | {
+      readonly op: SetupOpKind.ServerData;
       readonly local: BindingId;
       readonly key: ValueIR;
       readonly fallback: ValueIR | null;
     }
   | {
-      readonly op: 'computed';
+      readonly op: SetupOpKind.Computed;
       readonly local: BindingId;
       /** QRL segment id — the client resumes via this chunk (the `Reactive` pairing). */
       readonly segment: string;
@@ -35,13 +62,13 @@ export type SetupOp =
       readonly body: ValueIR | null;
     }
   | {
-      readonly op: 'task';
+      readonly op: SetupOpKind.Task;
       readonly segment: string;
       /** Portable body; null keeps segment-only evaluation. Reads auto-track (v3 semantics). */
       readonly body: TaskBody | null;
     }
   | {
-      readonly op: 'visible-task';
+      readonly op: SetupOpKind.VisibleTask;
       readonly segment: string;
       /** Client-only carrier; the body never runs during SSR. */
       readonly strategy: 'intersection-observer' | 'document-ready' | 'document-idle';
@@ -57,18 +84,18 @@ export interface TaskBody {
 }
 
 export type TaskStep =
-  | { readonly s: 'set-signal'; readonly binding: BindingId; readonly value: ValueIR }
+  | { readonly s: TaskStepKind.SetSignal; readonly binding: BindingId; readonly value: ValueIR }
   | {
-      readonly s: 'set-store';
+      readonly s: TaskStepKind.SetStore;
       readonly binding: BindingId;
       readonly path: readonly (string | ValueIR)[];
       readonly value: ValueIR;
     }
   | {
-      readonly s: 'if';
+      readonly s: TaskStepKind.If;
       readonly test: ValueIR;
       readonly then: readonly TaskStep[];
       readonly else: readonly TaskStep[];
     }
-  | { readonly s: 'let'; readonly local: BindingId; readonly value: ValueIR }
-  | { readonly s: 'return'; readonly value: ValueIR | null };
+  | { readonly s: TaskStepKind.Let; readonly local: BindingId; readonly value: ValueIR }
+  | { readonly s: TaskStepKind.Return; readonly value: ValueIR | null };

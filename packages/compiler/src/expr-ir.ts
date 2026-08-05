@@ -8,22 +8,64 @@ import type { BindingId } from './plan-types';
  * runtime value of this binding" read. Plan emission later resolves bindings to places (setup
  * slots, props, row scopes) — until then the IR stays keyed by `BindingId`.
  */
+export const enum ValueIrKind {
+  Lit = 'lit',
+  Undef = 'undef',
+  SignalRead = 'signal-read',
+  BindingRead = 'binding-read',
+  Member = 'member',
+  Index = 'index',
+  Unary = 'unary',
+  Bin = 'bin',
+  Logic = 'logic',
+  Cond = 'cond',
+  Template = 'template',
+  Array = 'array',
+  Object = 'object',
+  Call = 'call',
+}
+
 export type ValueIR =
-  | { readonly k: 'lit'; readonly v: string | number | boolean | null }
-  | { readonly k: 'undef' }
-  | { readonly k: 'signal-read'; readonly binding: BindingId }
-  | { readonly k: 'binding-read'; readonly binding: BindingId }
-  | { readonly k: 'member'; readonly obj: ValueIR; readonly name: string; readonly optional?: true }
-  | { readonly k: 'index'; readonly obj: ValueIR; readonly key: ValueIR; readonly optional?: true }
-  | { readonly k: 'unary'; readonly op: ValueIrUnaryOp; readonly a: ValueIR }
-  | { readonly k: 'bin'; readonly op: ValueIrBinOp; readonly a: ValueIR; readonly b: ValueIR }
-  | { readonly k: 'logic'; readonly op: ValueIrLogicOp; readonly a: ValueIR; readonly b: ValueIR }
-  | { readonly k: 'cond'; readonly test: ValueIR; readonly then: ValueIR; readonly else: ValueIR }
-  | { readonly k: 'template'; readonly parts: readonly (string | ValueIR)[] }
-  | { readonly k: 'array'; readonly items: readonly ValueIR[] }
-  | { readonly k: 'object'; readonly entries: readonly (readonly [string, ValueIR])[] }
+  | { readonly k: ValueIrKind.Lit; readonly v: string | number | boolean | null }
+  | { readonly k: ValueIrKind.Undef }
+  | { readonly k: ValueIrKind.SignalRead; readonly binding: BindingId }
+  | { readonly k: ValueIrKind.BindingRead; readonly binding: BindingId }
   | {
-      readonly k: 'call';
+      readonly k: ValueIrKind.Member;
+      readonly obj: ValueIR;
+      readonly name: string;
+      readonly optional?: true;
+    }
+  | {
+      readonly k: ValueIrKind.Index;
+      readonly obj: ValueIR;
+      readonly key: ValueIR;
+      readonly optional?: true;
+    }
+  | { readonly k: ValueIrKind.Unary; readonly op: ValueIrUnaryOp; readonly a: ValueIR }
+  | {
+      readonly k: ValueIrKind.Bin;
+      readonly op: ValueIrBinOp;
+      readonly a: ValueIR;
+      readonly b: ValueIR;
+    }
+  | {
+      readonly k: ValueIrKind.Logic;
+      readonly op: ValueIrLogicOp;
+      readonly a: ValueIR;
+      readonly b: ValueIR;
+    }
+  | {
+      readonly k: ValueIrKind.Cond;
+      readonly test: ValueIR;
+      readonly then: ValueIR;
+      readonly else: ValueIR;
+    }
+  | { readonly k: ValueIrKind.Template; readonly parts: readonly (string | ValueIR)[] }
+  | { readonly k: ValueIrKind.Array; readonly items: readonly ValueIR[] }
+  | { readonly k: ValueIrKind.Object; readonly entries: readonly (readonly [string, ValueIR])[] }
+  | {
+      readonly k: ValueIrKind.Call;
       /**
        * `qwik:<ns>.<op>` — internal-plugin op id; method ops dispatch on the receiver's runtime
        * type.

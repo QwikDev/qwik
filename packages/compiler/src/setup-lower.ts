@@ -1,7 +1,9 @@
 import { getIdentifierName, getRange, unwrapExpression } from './ast-utils';
+import { ValueIrKind } from './expr-ir';
 import { lowerValueIr, type ExprLowerFacts } from './expr-lower';
 import type { ValueIR } from './expr-ir';
 import type { BindingId } from './plan-types';
+import { SetupOpKind, TaskStepKind } from './setup-ir';
 import type { SetupOp, TaskBody, TaskStep } from './setup-ir';
 import type { AstNode, SourceRange } from './types';
 import { QwikHooks } from './words';
@@ -80,32 +82,36 @@ function lowerDeclaration(statement: AstNode, facts: SetupLowerFacts): SetupOp |
     return lowerHookInit(init, local, facts);
   }
   const value = lowerValueIr(init, facts);
-  return value === null ? null : { op: 'const', local, init: value };
+  return value === null ? null : { op: SetupOpKind.Const, local, init: value };
 }
 
 function lowerHookInit(call: AstNode, local: BindingId, facts: SetupLowerFacts): SetupOp | null {
   const { callee, arguments: args } = call as { callee: unknown; arguments: unknown[] };
   if (facts.isHook(callee, QwikHooks.UseSignal)) {
     const init = lowerSingleArg(args, facts);
-    return init === undefined ? null : { op: 'signal', local, init: init ?? { k: 'undef' } };
+    return init === undefined
+      ? null
+      : { op: SetupOpKind.Signal, local, init: init ?? { k: ValueIrKind.Undef } };
   }
   if (facts.isHook(callee, QwikHooks.UseStore)) {
     if (args.length !== 1) {
       return null; // options bag (deep/shallow/reactive) stays verbatim in v1
     }
     const init = lowerValueIr(args[0], facts);
-    return init === null ? null : { op: 'store', local, init, deep: true };
+    return init === null ? null : { op: SetupOpKind.Store, local, init, deep: true };
   }
   if (facts.isHook(callee, QwikHooks.UseConstant)) {
     const init = lowerSingleArg(args, facts);
-    return init === undefined || init === null ? null : { op: 'const', local, init };
+    return init === undefined || init === null ? null : { op: SetupOpKind.Const, local, init };
   }
   if (facts.isHook(callee, QwikHooks.UseId)) {
-    return args.length === 0 ? { op: 'use-id', local } : null;
+    return args.length === 0 ? { op: SetupOpKind.UseId, local } : null;
   }
   if (facts.isHook(callee, QwikHooks.UseContext)) {
     const context = contextBinding(args, facts);
-    return context === null || args.length !== 1 ? null : { op: 'context-read', local, context };
+    return context === null || args.length !== 1
+      ? null
+      : { op: SetupOpKind.ContextRead, local, context };
   }
   if (facts.isHook(callee, QwikHooks.UseServerData)) {
     if (args.length === 0 || args.length > 2) {
@@ -119,14 +125,14 @@ function lowerHookInit(call: AstNode, local: BindingId, facts: SetupLowerFacts):
     if (args.length === 2 && fallback === null) {
       return null;
     }
-    return { op: 'server-data', local, key, fallback };
+    return { op: SetupOpKind.ServerData, local, key, fallback };
   }
   if (facts.isHook(callee, QwikHooks.UseComputedDollar)) {
     const segment = callbackSegmentId(args, facts);
     if (segment === null || args.length !== 1) {
       return null;
     }
-    return { op: 'computed', local, segment, body: callbackBodyIr(args[0], facts) };
+    return { op: SetupOpKind.Computed, local, segment, body: callbackBodyIr(args[0], facts) };
   }
   return null;
 }
@@ -142,7 +148,7 @@ function lowerStatementCall(call: AstNode, facts: SetupLowerFacts): SetupOp | nu
     if (segment === null || args.length !== 1) {
       return null;
     }
-    return { op: 'task', segment, body: lowerTaskBody(args[0], facts) };
+    return { op: SetupOpKind.Task, segment, body: lowerTaskBody(args[0], facts) };
   }
   if (facts.isHook(callee, QwikHooks.UseVisibleTaskDollar)) {
     const segment = callbackSegmentId(args, facts);
@@ -150,7 +156,7 @@ function lowerStatementCall(call: AstNode, facts: SetupLowerFacts): SetupOp | nu
       return null;
     }
     const strategy = args.length === 2 ? visibleTaskStrategy(args[1]) : 'intersection-observer';
-    return strategy === null ? null : { op: 'visible-task', segment, strategy };
+    return strategy === null ? null : { op: SetupOpKind.VisibleTask, segment, strategy };
   }
   return null;
 }
@@ -268,7 +274,7 @@ function lowerTaskStep(statement: AstNode, facts: SetupLowerFacts): TaskStep | n
       const id = declarator.id as AstNode | undefined;
       const local = id?.type === 'Identifier' ? facts.bindingIdAt(getRange(id)) : null;
       const value = local === null ? null : lowerValueIr(declarator.init, facts);
-      return local === null || value === null ? null : { s: 'let', local, value };
+      return local === null || value === null ? null : { s: TaskStepKind.Let, local, value };
     }
     case 'IfStatement': {
       const conditional = statement as { test: unknown; consequent: unknown; alternate?: unknown };
@@ -282,15 +288,15 @@ function lowerTaskStep(statement: AstNode, facts: SetupLowerFacts): TaskStep | n
             : lowerTaskBranch(conditional.alternate, facts);
       return test === null || then === null || alternate === null
         ? null
-        : { s: 'if', test, then, else: alternate };
+        : { s: TaskStepKind.If, test, then, else: alternate };
     }
     case 'ReturnStatement': {
       const argument = (statement as { argument?: unknown }).argument;
       if (argument == null) {
-        return { s: 'return', value: null };
+        return { s: TaskStepKind.Return, value: null };
       }
       const value = lowerValueIr(argument, facts);
-      return value === null ? null : { s: 'return', value };
+      return value === null ? null : { s: TaskStepKind.Return, value };
     }
     default:
       return null;
@@ -355,9 +361,9 @@ function lowerAssignment(expression: AstNode, facts: SetupLowerFacts): TaskStep 
     return null;
   }
   if (path.length === 1 && path[0] === 'value' && facts.isSourceBinding(binding)) {
-    return { s: 'set-signal', binding, value };
+    return { s: TaskStepKind.SetSignal, binding, value };
   }
-  return { s: 'set-store', binding, path, value };
+  return { s: TaskStepKind.SetStore, binding, path, value };
 }
 
 function lowerProviderCall(call: AstNode, facts: SetupLowerFacts): SetupOp | null {
@@ -367,7 +373,9 @@ function lowerProviderCall(call: AstNode, facts: SetupLowerFacts): SetupOp | nul
   }
   const context = contextBinding(args, facts);
   const value = context === null ? null : lowerValueIr(args[1], facts);
-  return context === null || value === null ? null : { op: 'context-provider', context, value };
+  return context === null || value === null
+    ? null
+    : { op: SetupOpKind.ContextProvider, context, value };
 }
 
 /** Null = no argument; undefined = argument present but unlowerable. */

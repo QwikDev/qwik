@@ -1,4 +1,5 @@
 import { getIdentifierName, getRange, unwrapExpression } from './ast-utils';
+import { ValueIrKind } from './expr-ir';
 import type { LambdaIR, ValueIR, ValueIrBinOp, ValueIrLogicOp, ValueIrUnaryOp } from './expr-ir';
 import type { BindingId } from './plan-types';
 import type { SourceRange } from './types';
@@ -177,19 +178,19 @@ export function lowerValueIr(expression: unknown, facts: ExprLowerFacts): ValueI
         typeof value === 'number' ||
         typeof value === 'boolean'
       ) {
-        return { k: 'lit', v: value };
+        return { k: ValueIrKind.Lit, v: value };
       }
       return null; // bigint literals stay unsupported for now
     }
     case 'Identifier': {
       const binding = facts.bindingIdAt(getRange(node));
       if (binding === null) {
-        return getIdentifierName(node) === 'undefined' ? { k: 'undef' } : null;
+        return getIdentifierName(node) === 'undefined' ? { k: ValueIrKind.Undef } : null;
       }
       if (facts.isFunctionBinding(binding)) {
         return null;
       }
-      return { k: 'binding-read', binding };
+      return { k: ValueIrKind.BindingRead, binding };
     }
     case 'ChainExpression':
       return lowerValueIr((node as { expression: unknown }).expression, facts);
@@ -204,7 +205,7 @@ export function lowerValueIr(expression: unknown, facts: ExprLowerFacts): ValueI
         const object = unwrapExpression(member.object);
         const binding = object?.type === 'Identifier' ? facts.bindingIdAt(getRange(object)) : null;
         if (binding !== null && facts.isSourceBinding(binding)) {
-          return { k: 'signal-read', binding };
+          return { k: ValueIrKind.SignalRead, binding };
         }
       }
       const obj = lowerValueIr(member.object, facts);
@@ -215,12 +216,22 @@ export function lowerValueIr(expression: unknown, facts: ExprLowerFacts): ValueI
         const key = lowerValueIr(member.property, facts);
         return key === null
           ? null
-          : { k: 'index', obj, key, ...(member.optional === true ? { optional: true } : {}) };
+          : {
+              k: ValueIrKind.Index,
+              obj,
+              key,
+              ...(member.optional === true ? { optional: true } : {}),
+            };
       }
       const name = getIdentifierName(member.property);
       return name === null
         ? null
-        : { k: 'member', obj, name, ...(member.optional === true ? { optional: true } : {}) };
+        : {
+            k: ValueIrKind.Member,
+            obj,
+            name,
+            ...(member.optional === true ? { optional: true } : {}),
+          };
     }
     case 'UnaryExpression': {
       const unary = node as { operator: string; argument: unknown };
@@ -228,7 +239,7 @@ export function lowerValueIr(expression: unknown, facts: ExprLowerFacts): ValueI
         return null;
       }
       const a = lowerValueIr(unary.argument, facts);
-      return a === null ? null : { k: 'unary', op: unary.operator as ValueIrUnaryOp, a };
+      return a === null ? null : { k: ValueIrKind.Unary, op: unary.operator as ValueIrUnaryOp, a };
     }
     case 'BinaryExpression': {
       const binary = node as { operator: string; left: unknown; right: unknown };
@@ -239,7 +250,7 @@ export function lowerValueIr(expression: unknown, facts: ExprLowerFacts): ValueI
       const b = a === null ? null : lowerValueIr(binary.right, facts);
       return b === null || a === null
         ? null
-        : { k: 'bin', op: binary.operator as ValueIrBinOp, a, b };
+        : { k: ValueIrKind.Bin, op: binary.operator as ValueIrBinOp, a, b };
     }
     case 'LogicalExpression': {
       const logical = node as { operator: string; left: unknown; right: unknown };
@@ -250,7 +261,7 @@ export function lowerValueIr(expression: unknown, facts: ExprLowerFacts): ValueI
       const b = a === null ? null : lowerValueIr(logical.right, facts);
       return b === null || a === null
         ? null
-        : { k: 'logic', op: logical.operator as ValueIrLogicOp, a, b };
+        : { k: ValueIrKind.Logic, op: logical.operator as ValueIrLogicOp, a, b };
     }
     case 'ConditionalExpression': {
       const conditional = node as { test: unknown; consequent: unknown; alternate: unknown };
@@ -259,7 +270,7 @@ export function lowerValueIr(expression: unknown, facts: ExprLowerFacts): ValueI
       const alternate = then === null ? null : lowerValueIr(conditional.alternate, facts);
       return test === null || then === null || alternate === null
         ? null
-        : { k: 'cond', test, then, else: alternate };
+        : { k: ValueIrKind.Cond, test, then, else: alternate };
     }
     case 'TemplateLiteral': {
       const template = node as {
@@ -283,7 +294,7 @@ export function lowerValueIr(expression: unknown, facts: ExprLowerFacts): ValueI
           parts.push(part);
         }
       }
-      return { k: 'template', parts };
+      return { k: ValueIrKind.Template, parts };
     }
     case 'ArrayExpression': {
       const items: ValueIR[] = [];
@@ -300,7 +311,7 @@ export function lowerValueIr(expression: unknown, facts: ExprLowerFacts): ValueI
         }
         items.push(item);
       }
-      return { k: 'array', items };
+      return { k: ValueIrKind.Array, items };
     }
     case 'ObjectExpression': {
       const entries: (readonly [string, ValueIR])[] = [];
@@ -323,7 +334,7 @@ export function lowerValueIr(expression: unknown, facts: ExprLowerFacts): ValueI
         }
         entries.push([key, value]);
       }
-      return { k: 'object', entries };
+      return { k: ValueIrKind.Object, entries };
     }
     case 'CallExpression':
       return lowerCall(node, facts);
@@ -351,7 +362,7 @@ function lowerCall(node: AstNode, facts: ExprLowerFacts): ValueIR | null {
       return null;
     }
     const args = lowerArgs(call.arguments, facts, null);
-    return args === null ? null : { k: 'call', fn: op, recv: null, args };
+    return args === null ? null : { k: ValueIrKind.Call, fn: op, recv: null, args };
   }
   if (callee.type !== 'MemberExpression') {
     return null;
@@ -384,7 +395,7 @@ function lowerCall(node: AstNode, facts: ExprLowerFacts): ValueIR | null {
       return null; // 1-arg form only (specs/02)
     }
     const args = lowerArgs(call.arguments, facts, op === 'qwik:array.from' ? 1 : null);
-    return args === null ? null : { k: 'call', fn: op, recv: null, args };
+    return args === null ? null : { k: ValueIrKind.Call, fn: op, recv: null, args };
   }
   // method op: x.trim(), rows.filter(fn), ... — receiver must itself lower
   const higherOrder = HIGHER_ORDER_OPS.get(methodName);
@@ -397,7 +408,7 @@ function lowerCall(node: AstNode, facts: ExprLowerFacts): ValueIR | null {
     return null;
   }
   const args = lowerArgs(call.arguments, facts, higherOrder !== undefined ? 0 : null);
-  return args === null ? null : { k: 'call', fn: op, recv, args };
+  return args === null ? null : { k: ValueIrKind.Call, fn: op, recv, args };
 }
 
 /** Lowers call arguments; `lambdaAt` marks the single position where a restricted lambda is legal. */

@@ -1,5 +1,6 @@
 import type { Diagnostic, TransformModule } from '@qwik.dev/optimizer';
 import type { Expression, FunctionBody } from 'oxc-parser';
+import type { ValueIR } from './expr-ir';
 import type { ParamRecord, SourceRange } from './types';
 
 export type TransformResult =
@@ -435,6 +436,8 @@ export type ValuePlan =
       readonly expression: SourceRange;
       readonly source: SourceRange;
       readonly referenceBindingIds: readonly BindingId[];
+      /** Portable lowering when the expression is IR-expressible; additive, emitters ignore it. */
+      readonly ir?: ValueIR;
     }
   | {
       readonly kind: 'expression';
@@ -445,6 +448,8 @@ export type ValuePlan =
       /** True nested resumable boundaries; the containing expression is not a boundary. */
       readonly boundaries: readonly SegmentReferencePlan[];
       readonly embeddedRenders: readonly RenderFunctionPlan[];
+      /** Portable lowering when the expression is IR-expressible; additive, emitters ignore it. */
+      readonly ir?: ValueIR;
     }
   | {
       readonly kind: 'render-value';

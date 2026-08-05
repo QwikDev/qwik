@@ -59,6 +59,8 @@ import type {
   UseIdPlan,
   ValuePlan,
 } from './plan-types';
+import type { ValueIR } from './expr-ir';
+import { lowerValueIr, type ExprLowerFacts } from './expr-lower';
 import { QWIK_CORE_IMPORT, QWIK_IMPORT, QwikAttributes, QwikHooks } from './words';
 import { createSegmentSymbolName } from './segment-identity';
 import { createExtractedSegmentPlan } from './segment-plan';
@@ -1340,6 +1342,7 @@ class SemanticLowerer {
         compilerString: bindingId !== null && this.compilerStringBindings.has(bindingId),
         boundaries: [],
         embeddedRenders: [],
+        ...this.valueIr(expression),
       };
     }
     const source = !forceSegment && allowSource ? this.directQwikSourceRange(expression) : null;
@@ -1349,6 +1352,7 @@ class SemanticLowerer {
         expression: range,
         source,
         referenceBindingIds: this.referencesIn(range),
+        ...this.valueIr(expression),
       };
     }
     if (!forceSegment && inlineExpression) {
@@ -1360,6 +1364,7 @@ class SemanticLowerer {
         compilerString: false,
         boundaries: this.referenceInlineBoundaries(range, lifetimeId),
         embeddedRenders: [],
+        ...this.valueIr(expression),
       };
     }
     const functionRange = event && isFunctionLike(expression) ? getRange(expression) : null;
@@ -1391,7 +1396,19 @@ class SemanticLowerer {
       compilerString: false,
       boundaries: event ? this.referenceInlineBoundaries(range, lifetimeId, true) : [],
       embeddedRenders: [],
+      ...this.valueIr(expression),
     };
+  }
+
+  private readonly exprLowerFacts: ExprLowerFacts = {
+    bindingIdAt: (range) => this.bindingIdAt(range),
+    isSourceBinding: (binding) => this.sourceOutputs.has(binding),
+    isFunctionBinding: (binding) => this.functionBindings.has(binding),
+  };
+
+  private valueIr(expression: AstNode): { ir?: ValueIR } {
+    const ir = lowerValueIr(expression, this.exprLowerFacts);
+    return ir === null ? {} : { ir };
   }
 
   private attachEmbeddedRenders(

@@ -4,6 +4,10 @@ Status: active working agreement
 Last updated: 2026-07-23
 
 Cross-session architecture handoff: [`TARGET_NATIVE_HANDOFF.md`](./TARGET_NATIVE_HANDOFF.md).
+Native SSR engine specs (approved design, pre-implementation — serialized SSR plan, expression
+IR, setup opcodes, native generators): [`specs/`](./specs/README.md). Those specs add passes and
+artifacts beside this pipeline; nothing in them changes settled semantics here until their
+migration phases land.
 
 This document is the source of truth for completing `packages/compiler/src`. No phase is
 complete until its exit criteria and focused tests pass. If implementation exposes semantics not

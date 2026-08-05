@@ -17,6 +17,10 @@ If code, this handoff, and `PLAN.md` disagree, inspect the focused tests and ask
 new semantic rule. Do not silently preserve a legacy behavior or update a snapshot to hide a
 regression.
 
+Terminology: "target-native" in this document means emission without a VNode layer. It is
+unrelated to the **native SSR engine** effort (SSR rendered by Rust/Go/Zig from a serialized
+plan), which is specified separately in [`specs/`](./specs/README.md).
+
 ## Objective
 
 Qwik now has one production source-to-runtime path:

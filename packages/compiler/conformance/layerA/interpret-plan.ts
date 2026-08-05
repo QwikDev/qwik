@@ -1,4 +1,5 @@
 import {
+  createComponent,
   createSsrElementRecord,
   createSsrElementTarget,
   createSsrElementTextTarget,
@@ -13,9 +14,11 @@ import {
   renderSsrBranch,
   renderSsrTextExpression,
   renderSsrTextNode,
+  readTrackedSourceValue,
   useComputedQrl,
   useSignal,
   useTaskQrl,
+  _props,
   _qrlWithChunk,
 } from '@qwik.dev/core';
 import type { PlanSsrOp, PlanSsrProp } from '../../src/emit-plan-ssr';
@@ -62,23 +65,34 @@ export async function buildInterpretedRoot(
     ) as unknown as QrlLike;
     qrls.set(segment.id, qrl);
   }
-  for (const segmentId of ssr.directSegmentIds) {
-    const segment = plan.segments.find((candidate) => candidate.id === segmentId);
-    const qrl = segment === undefined ? undefined : qrls.get(segmentId);
-    if (segment === undefined || qrl === undefined) {
-      throw new Error(`direct segment "${segmentId}" missing from the plan`);
-    }
-    const module = await loadSegment(chunkFiles.get(segmentId)!);
-    qrl.s(module[segment.symbolName]);
+  for (const segment of plan.segments) {
+    const module = await loadSegment(chunkFiles.get(segment.id)!);
+    qrls.get(segment.id)!.s(module[segment.symbolName]);
   }
 
   const captureLists = new Map(
     plan.segments.map((segment) => [segment.id, segment.captures.map((capture) => capture.binding)])
   );
 
-  return function InterpretedApp(_props, ctx) {
+  return function InterpretedApp(rootProps, ctx) {
+    return interpretComponent(plan.entry, rootProps, ctx);
+  };
+
+  function interpretComponent(
+    componentIndex: number,
+    componentProps: unknown,
+    ctx: Parameters<SsrRenderRoot>[1]
+  ): unknown {
+    const interpreted = plan.components[componentIndex];
+    const ssr = interpreted.ssr;
+    if (ssr === null) {
+      throw new Error(`component "${interpreted.name}" has no ssr plan`);
+    }
     const invokeCtx = getActiveInvokeContextOrNull();
     const locals = new Map<number, unknown>();
+    for (const propsBinding of interpreted.propsBindings) {
+      locals.set(propsBinding, componentProps);
+    }
 
     const evalIr = (ir: ValueIR): unknown => {
       switch (ir.k) {
@@ -265,9 +279,12 @@ export async function buildInterpretedRoot(
               if (qrl === undefined) {
                 throw new Error(`expression segment "${segmentId}" missing from the plan`);
               }
-              text = await invoke(invokeCtx, () =>
-                renderSsrTextExpression(target, captureValues, qrl as never)
-              );
+              text = await invoke(invokeCtx, () => {
+                for (const captureValue of captureValues) {
+                  ctx.addRoot(captureValue);
+                }
+                return renderSsrTextExpression(target, captureValues, qrl as never);
+              });
             } else {
               throw new Error('dynamic text needs a signal-read ir or an expression segment');
             }
@@ -303,6 +320,41 @@ export async function buildInterpretedRoot(
             parts.push('<!/b>');
             break;
           }
+          case 'component': {
+            const target = op.target as unknown;
+            const ref = (target as { ref?: number }).ref;
+            if (typeof target !== 'object' || target === null || ref === undefined) {
+              throw new Error('component op is not linked to a component ref');
+            }
+            const literal: Record<string, unknown> = {};
+            const sources: Record<string, unknown> = {};
+            for (const prop of op.props as readonly PlanSsrProp[]) {
+              if (prop.p === 'static') {
+                const staticProp = prop as { name: string; value: unknown };
+                literal[staticProp.name] = staticProp.value;
+              } else if (prop.p === 'dynamic') {
+                const dynamic = prop as { name: string; value: { ir?: ValueIR } };
+                const signal = localSignal(dynamic.value.ir, `component prop ${dynamic.name}`);
+                Object.defineProperty(literal, dynamic.name, {
+                  enumerable: true,
+                  get: () => readTrackedSourceValue(signal as never),
+                });
+                sources[dynamic.name] = signal;
+              } else {
+                throw new Error(`interpreter cannot pass component prop kind "${prop.p}" yet`);
+              }
+            }
+            const rendered = await invoke(invokeCtx, () => {
+              for (const source of Object.values(sources)) {
+                ctx.addRoot(source);
+              }
+              return createComponent(_props(literal, sources) as never, (childProps: unknown) =>
+                interpretComponent(ref, childProps, ctx)
+              );
+            });
+            parts.push(rendered);
+            break;
+          }
           default:
             throw new Error(`interpreter cannot render op "${op.o}" yet`);
         }
@@ -314,5 +366,5 @@ export async function buildInterpretedRoot(
     return ssr.flushTasks
       ? maybeThen(ctx.scheduler.flush(), () => invoke(invokeCtx, run))
       : invoke(invokeCtx, run);
-  };
+  }
 }

@@ -111,7 +111,8 @@ export type PlanSsrOp =
   | { readonly o: SsrOpKind.Content; readonly segment: string; readonly root: boolean }
   | {
       readonly o: SsrOpKind.Component;
-      readonly target: string;
+      /** Module plans carry the tag source; the linker resolves to `{ ref }`. */
+      readonly target: string | { readonly ref: number };
       readonly returnMode: 'sync' | 'maybe-promise';
       readonly props: readonly PlanSsrProp[];
       readonly propsSource: string | null;

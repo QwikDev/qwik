@@ -32,6 +32,8 @@ export interface PlanComponent {
   readonly name: string;
   /** Module-scoped binding id; the link step resolves component targets against it. */
   readonly binding: number | null;
+  /** Props parameter binding ids (identifier param: one; object pattern: one per alias). */
+  readonly propsBindings: readonly number[];
   /** SSR-structural ops — the byte-parity layer engines render from; null when unplannable. */
   readonly ssr: PlanSsrComponent | null;
   readonly setup: readonly PlanSetupEntry[];
@@ -308,6 +310,7 @@ export function emitModulePlan(
     components: outputs.map((output) => ({
       name: output.component.exportName ?? '',
       binding: output.component.bindingId,
+      propsBindings: output.result.shape.parameter?.bindingIds ?? [],
       ssr: emitSsrOpPlan(output.result, output.result.segments, returnMode, source),
       setup: planSetup(output.result.setup),
       render: output.result.render.roots.map(planNode),

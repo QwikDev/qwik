@@ -1,5 +1,7 @@
 import type { PlanNode, PlanRenderFn, PlanSegmentMeta, QwikModulePlan } from './emit-plan';
 import { PlanNodeKind } from './emit-plan';
+import type { PlanSsrComponent, PlanSsrOp, PlanSsrRenderFn } from './emit-plan-ssr';
+import { SsrOpKind } from './emit-plan-ssr';
 
 /**
  * Links per-module plans into one entry-rooted `qwik/ssr-plan` (specs/01). Version 0 mirrors the
@@ -18,6 +20,7 @@ export interface QwikSsrPlan {
 
 export interface LinkedComponent {
   readonly name: string;
+  readonly propsBindings: readonly number[];
   readonly ssr: QwikModulePlan['components'][number]['ssr'];
   readonly setup: QwikModulePlan['components'][number]['setup'];
   readonly render: readonly PlanNode[];
@@ -35,6 +38,9 @@ export function linkSsrPlan(modulePlan: QwikModulePlan, entryName: string): Qwik
       componentIndexByBinding.set(component.binding, index);
     }
   });
+  const componentIndexByName = new Map(
+    modulePlan.components.map((component, index) => [component.name, index] as const)
+  );
   const entry = modulePlan.components.findIndex((component) => component.name === entryName);
   if (entry < 0) {
     return null;
@@ -86,13 +92,72 @@ export function linkSsrPlan(modulePlan: QwikModulePlan, entryName: string): Qwik
     }
   };
 
+  const linkSsrOps = (ops: readonly PlanSsrOp[]): PlanSsrOp[] => ops.map(linkSsrOp);
+  const linkSsrFn = (fn: PlanSsrRenderFn): PlanSsrRenderFn => ({ ...fn, ops: linkSsrOps(fn.ops) });
+  const linkSsrOp = (op: PlanSsrOp): PlanSsrOp => {
+    switch (op.o) {
+      case SsrOpKind.Element:
+        return { ...op, children: linkSsrOps(op.children) };
+      case SsrOpKind.Component: {
+        const target = op.target;
+        if (typeof target !== 'string') {
+          return op; // already linked
+        }
+        const resolved = componentIndexByName.get(target);
+        if (resolved === undefined) {
+          unresolved.push(target);
+          return {
+            ...op,
+            slots: op.slots.map((slot) => ({ ...slot, render: linkSsrFn(slot.render) })),
+          };
+        }
+        return {
+          ...op,
+          target: { ref: resolved },
+          slots: op.slots.map((slot) => ({ ...slot, render: linkSsrFn(slot.render) })),
+        };
+      }
+      case SsrOpKind.Branch:
+        return {
+          ...op,
+          then: linkSsrFn(op.then),
+          else: op.else === null ? null : linkSsrFn(op.else),
+        };
+      case SsrOpKind.Suspense:
+        return {
+          ...op,
+          content: linkSsrFn(op.content),
+          inOrder: op.inOrder === null ? null : linkSsrOps(op.inOrder),
+        };
+      case SsrOpKind.Slot:
+        return { ...op, fallback: op.fallback === null ? null : linkSsrFn(op.fallback) };
+      case SsrOpKind.Collection: {
+        const row = op.row;
+        // inline rows carry a required symbolName; segment rows are { segment: renderFn }
+        return {
+          ...op,
+          row: (typeof (row as { symbolName?: unknown }).symbolName === 'string'
+            ? linkSsrFn(row as PlanSsrRenderFn)
+            : { segment: linkSsrFn((row as { segment: PlanSsrRenderFn }).segment) }) as never,
+        };
+      }
+      default:
+        return op;
+    }
+  };
+  const linkSsrComponent = (ssr: PlanSsrComponent): PlanSsrComponent => ({
+    ...ssr,
+    ops: linkSsrOps(ssr.ops),
+  });
+
   return {
     format: 'qwik/ssr-plan',
     version: 0,
     entry,
     components: modulePlan.components.map((component) => ({
       name: component.name,
-      ssr: component.ssr,
+      propsBindings: component.propsBindings,
+      ssr: component.ssr === null ? null : linkSsrComponent(component.ssr),
       setup: component.setup,
       render: linkNodes(component.render),
       needsId: component.needsId,

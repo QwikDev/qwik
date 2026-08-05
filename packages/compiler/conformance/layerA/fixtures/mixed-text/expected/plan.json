@@ -5,6 +5,7 @@
   "components": [
     {
       "name": "App",
+      "propsBindings": [],
       "ssr": {
         "setup": [
           {

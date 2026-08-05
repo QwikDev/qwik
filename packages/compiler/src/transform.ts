@@ -25,6 +25,7 @@ import {
 } from './transform-diagnostics';
 import { createComponentDefinition, discoverComponentCandidates } from './discover';
 import { emitCsrModule, emitCsrSegmentRender } from './emit-csr';
+import { emitModulePlan } from './emit-plan';
 import type { EmittedModule } from './emitted-module';
 import { TargetImportResolver } from './emit-qrl';
 import {
@@ -559,7 +560,24 @@ export function transformModule(ctx: CompilerContext): TransformResult {
         module.segment === null ? null : { ...module.segment, loc: mapRange(module.segment.loc) },
     };
   });
-  return { kind: 'success', modules: [main, ...localModules, ...mappedSegments] };
+  const planModules: TransformModule[] =
+    ctx.emitTarget === 'ssr' && (ctx.options as { emitPlan?: boolean }).emitPlan === true
+      ? [
+          {
+            path: `${ctx.input.path}.plan.json`,
+            isEntry: false,
+            code: JSON.stringify(
+              emitModulePlan(outputs, allSegments, ctx.input.code, ctx.input.path),
+              null,
+              2
+            ),
+            map: null,
+            segment: null,
+            origPath: null,
+          },
+        ]
+      : [];
+  return { kind: 'success', modules: [main, ...localModules, ...mappedSegments, ...planModules] };
 }
 
 function assembleMainModule(

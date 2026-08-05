@@ -1,0 +1,299 @@
+import type { ValueIR } from './expr-ir';
+import type {
+  CollectionPlan,
+  ComponentOutput,
+  OrderedPropPlan,
+  RenderFunctionPlan,
+  RenderNodePlan,
+  SegmentPlan,
+  SetupPlan,
+  ValuePlan,
+} from './plan-types';
+import type { SetupOp } from './setup-ir';
+import type { SourceRange } from './types';
+
+/**
+ * Per-module SSR plan emission (specs/01, Phase 3), format version 0 — an intentionally unstable
+ * pre-link shape: reads stay keyed by `BindingId`, unlowered sites carry their source text (`src`)
+ * as the JS-engine fallback, and the link step later resolves component/binding references and
+ * strips JS fallbacks under a native target.
+ */
+export interface QwikModulePlan {
+  readonly format: 'qwik/module-plan';
+  readonly version: 0;
+  readonly path: string;
+  readonly components: readonly PlanComponent[];
+  readonly segments: readonly PlanSegmentMeta[];
+}
+
+export interface PlanComponent {
+  readonly name: string;
+  readonly setup: readonly PlanSetupEntry[];
+  readonly render: readonly PlanNode[];
+  readonly needsId: boolean;
+  readonly idBase: string;
+  readonly styleScope: string | null;
+  readonly providesContext: boolean;
+  readonly hasCustomHook: boolean;
+}
+
+export type PlanSetupEntry =
+  | SetupOp
+  | { readonly op: 'style'; readonly styleId: string; readonly scoped: boolean }
+  | { readonly op: 'js'; readonly src: string };
+
+/** Server evaluates `ir` when present; `segment` is the client-resume QRL; `src` the JS fallback. */
+export interface PlanValue {
+  readonly src: string;
+  readonly ir?: ValueIR;
+  readonly segment?: string;
+}
+
+export interface PlanRenderFn {
+  readonly setup: readonly PlanSetupEntry[];
+  readonly render: readonly PlanNode[];
+}
+
+export type PlanNode =
+  | { readonly n: 'text'; readonly value: string }
+  | {
+      readonly n: 'el';
+      readonly tag: string;
+      readonly props: readonly PlanProp[];
+      readonly children: readonly PlanNode[];
+    }
+  | { readonly n: 'dyn'; readonly output: 'text' | 'content'; readonly value: PlanValue }
+  | {
+      readonly n: 'component';
+      readonly target: number | string;
+      readonly props: readonly PlanProp[];
+      readonly slots: readonly { readonly name: string; readonly render: PlanRenderFn }[];
+    }
+  | {
+      readonly n: 'branch';
+      readonly condition: PlanValue;
+      readonly then: PlanRenderFn;
+      readonly else: PlanRenderFn | null;
+    }
+  | {
+      readonly n: 'suspense';
+      readonly content: PlanRenderFn;
+      readonly fallback: PlanValue | null;
+      readonly delay: PlanValue | null;
+      readonly blocking: boolean;
+    }
+  | { readonly n: 'slot'; readonly name: string; readonly fallback: PlanRenderFn | null }
+  | {
+      readonly n: 'collection';
+      readonly source: PlanCollectionSource;
+      readonly key: PlanValue | null;
+      readonly row: PlanRenderFn;
+      readonly usesIndexSignal: boolean;
+    };
+
+export type PlanCollectionSource =
+  | { readonly kind: 'direct-array'; readonly src: string; readonly ir?: ValueIR }
+  | { readonly kind: 'direct-reactive'; readonly src: string; readonly signal: string }
+  | {
+      readonly kind: 'derived';
+      readonly src: string;
+      readonly segment: string;
+      readonly ir?: ValueIR;
+    };
+
+export type PlanProp =
+  | { readonly p: 'static'; readonly name: string; readonly value: unknown }
+  | { readonly p: 'dynamic'; readonly name: string; readonly value: PlanValue }
+  | { readonly p: 'spread'; readonly value: PlanValue }
+  | {
+      readonly p: 'event';
+      readonly name: string;
+      readonly passive: boolean;
+      readonly value: PlanValue;
+    }
+  | { readonly p: 'bind'; readonly name: 'value' | 'checked'; readonly value: PlanValue }
+  | { readonly p: string; readonly src: string };
+
+export interface PlanSegmentMeta {
+  readonly id: string;
+  readonly symbolName: string;
+  readonly kind: string;
+  readonly qrl: { readonly kind: string; readonly role?: string } | null;
+  readonly captures: readonly {
+    readonly binding: number;
+    readonly name: string;
+    readonly source: string;
+    readonly access: string;
+  }[];
+}
+
+export function emitModulePlan(
+  outputs: readonly ComponentOutput[],
+  segments: readonly SegmentPlan[],
+  source: string,
+  path: string
+): QwikModulePlan {
+  const slice = (range: SourceRange) => source.slice(range[0], range[1]);
+
+  const planValue = (value: ValuePlan): PlanValue => ({
+    src: slice(value.expression),
+    ...(value.kind !== 'render-value' && value.ir !== undefined ? { ir: value.ir } : {}),
+    ...(value.kind === 'segment' ? { segment: value.segment.segmentId } : {}),
+  });
+
+  const planSetup = (setup: readonly SetupPlan[]): PlanSetupEntry[] =>
+    setup.map((entry) => {
+      if (entry.kind === 'style') {
+        return { op: 'style', styleId: entry.styleId, scoped: entry.scoped };
+      }
+      if (entry.kind === 'statement' && entry.op !== undefined) {
+        return entry.op;
+      }
+      return { op: 'js', src: slice(entry.range) };
+    });
+
+  const planRenderFn = (fn: RenderFunctionPlan): PlanRenderFn => ({
+    setup: planSetup(fn.setup),
+    render: fn.render.roots.map(planNode),
+  });
+
+  const planProp = (prop: OrderedPropPlan): PlanProp => {
+    switch (prop.kind) {
+      case 'static':
+        return { p: 'static', name: prop.name, value: prop.value };
+      case 'dynamic':
+        return { p: 'dynamic', name: prop.name, value: planValue(prop.value) };
+      case 'spread':
+        return { p: 'spread', value: planValue(prop.value) };
+      case 'event':
+        return { p: 'event', name: prop.name, passive: prop.passive, value: planValue(prop.value) };
+      case 'bind':
+        return { p: 'bind', name: prop.name, value: planValue(prop.value) };
+      default:
+        return { p: prop.kind, src: slice(prop.range) };
+    }
+  };
+
+  const planCollectionSource = (collection: CollectionPlan): PlanCollectionSource => {
+    const collectionSource = collection.source;
+    switch (collectionSource.kind) {
+      case 'direct-array':
+        return {
+          kind: 'direct-array',
+          src: slice(collectionSource.expression),
+          ...(collectionSource.ir !== undefined ? { ir: collectionSource.ir } : {}),
+        };
+      case 'direct-reactive':
+        return {
+          kind: 'direct-reactive',
+          src: slice(collectionSource.expression),
+          signal: slice(collectionSource.source),
+        };
+      case 'derived':
+        return {
+          kind: 'derived',
+          src: slice(collectionSource.expression),
+          segment: collectionSource.segment.segmentId,
+          ...(collectionSource.ir !== undefined ? { ir: collectionSource.ir } : {}),
+        };
+    }
+  };
+
+  const planNode = (node: RenderNodePlan): PlanNode => {
+    switch (node.kind) {
+      case 'static-text':
+        return { n: 'text', value: node.value };
+      case 'element':
+        return {
+          n: 'el',
+          tag: node.tag,
+          props: node.props.map(planProp),
+          children: node.children.map(planNode),
+        };
+      case 'dynamic-value':
+        return { n: 'dyn', output: node.output, value: planValue(node.value) };
+      case 'component':
+        return {
+          n: 'component',
+          target: node.bindingId ?? slice(node.tagRange),
+          props: node.props.map(planProp),
+          slots: node.slots.map((slot) => ({ name: slot.name, render: planRenderFn(slot.render) })),
+        };
+      case 'branch':
+        return {
+          n: 'branch',
+          // src stays empty: the JS engine evaluates branch conditions via the segment
+          condition: {
+            src: '',
+            segment: node.condition.segmentId,
+            ...(node.conditionIr !== undefined ? { ir: node.conditionIr } : {}),
+          },
+          then: planRenderFn(node.then),
+          else: node.else === null ? null : planRenderFn(node.else),
+        };
+      case 'suspense':
+        return {
+          n: 'suspense',
+          content: planRenderFn(node.content),
+          fallback: node.fallback === null ? null : planValue(node.fallback),
+          delay: node.delay === null ? null : planValue(node.delay),
+          blocking: node.blocking,
+        };
+      case 'slot':
+        return {
+          n: 'slot',
+          name: node.name,
+          fallback: node.fallback === null ? null : planRenderFn(node.fallback),
+        };
+      case 'collection':
+        return {
+          n: 'collection',
+          source: planCollectionSource(node),
+          key:
+            node.key === null
+              ? null
+              : {
+                  src: '',
+                  segment: node.key.segmentId,
+                  ...(node.keyIr !== undefined ? { ir: node.keyIr } : {}),
+                },
+          row: planRenderFn(node.row),
+          usesIndexSignal: node.usesIndexSignal,
+        };
+    }
+  };
+
+  return {
+    format: 'qwik/module-plan',
+    version: 0,
+    path,
+    components: outputs.map((output) => ({
+      name: output.component.exportName ?? '',
+      setup: planSetup(output.result.setup),
+      render: output.result.render.roots.map(planNode),
+      needsId: output.result.needsId,
+      idBase: output.result.idBase,
+      styleScope: output.result.styleScope,
+      providesContext: output.result.providesContext,
+      hasCustomHook: output.result.hasCustomHook,
+    })),
+    segments: segments.map((segment) => ({
+      id: segment.id,
+      symbolName: segment.symbolName,
+      kind: segment.kind,
+      qrl:
+        segment.qrl === null
+          ? null
+          : {
+              kind: segment.qrl.kind,
+              ...(segment.qrl.kind === 'implicit' ? { role: segment.qrl.role } : {}),
+            },
+      captures: segment.captures.map((capture) => ({
+        binding: capture.bindingId,
+        name: capture.name,
+        source: capture.source,
+        access: capture.access,
+      })),
+    })),
+  };
+}

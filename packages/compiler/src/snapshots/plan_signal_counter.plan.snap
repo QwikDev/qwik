@@ -1,0 +1,71 @@
+{
+  "format": "qwik/module-plan",
+  "version": 0,
+  "path": "src/input.tsx",
+  "components": [
+    {
+      "name": "App",
+      "setup": [
+        {
+          "op": "signal",
+          "local": 2,
+          "init": {
+            "k": "lit",
+            "v": 3
+          }
+        }
+      ],
+      "render": [
+        {
+          "n": "el",
+          "tag": "button",
+          "props": [
+            {
+              "p": "event",
+              "name": "onClick$",
+              "passive": false,
+              "value": {
+                "src": "() => count.value++",
+                "segment": "segment_0"
+              }
+            }
+          ],
+          "children": [
+            {
+              "n": "dyn",
+              "output": "text",
+              "value": {
+                "src": "count.value",
+                "ir": {
+                  "k": "signal-read",
+                  "binding": 2
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "needsId": false,
+      "idBase": "qApp-",
+      "styleScope": null,
+      "providesContext": false,
+      "hasCustomHook": false
+    }
+  ],
+  "segments": [
+    {
+      "id": "segment_0",
+      "symbolName": "input_q_e_click_segment_0_18mo7olhabfab",
+      "kind": "event",
+      "qrl": null,
+      "captures": [
+        {
+          "binding": 2,
+          "name": "count",
+          "source": "local",
+          "access": "direct"
+        }
+      ]
+    }
+  ]
+}

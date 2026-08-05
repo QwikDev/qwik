@@ -1,0 +1,372 @@
+{
+  "format": "qwik/module-plan",
+  "version": 0,
+  "path": "src/input.tsx",
+  "components": [
+    {
+      "name": "App",
+      "setup": [
+        {
+          "op": "signal",
+          "local": 4,
+          "init": {
+            "k": "array",
+            "items": [
+              {
+                "k": "lit",
+                "v": "a"
+              },
+              {
+                "k": "lit",
+                "v": "b"
+              }
+            ]
+          }
+        },
+        {
+          "op": "signal",
+          "local": 5,
+          "init": {
+            "k": "lit",
+            "v": "idle"
+          }
+        },
+        {
+          "op": "computed",
+          "local": 6,
+          "segment": "segment_0",
+          "body": {
+            "k": "bin",
+            "op": "*",
+            "a": {
+              "k": "member",
+              "obj": {
+                "k": "signal-read",
+                "binding": 4
+              },
+              "name": "length"
+            },
+            "b": {
+              "k": "lit",
+              "v": 2
+            }
+          }
+        },
+        {
+          "op": "task",
+          "segment": "segment_1",
+          "body": {
+            "steps": [
+              {
+                "s": "if",
+                "test": {
+                  "k": "bin",
+                  "op": "===",
+                  "a": {
+                    "k": "member",
+                    "obj": {
+                      "k": "signal-read",
+                      "binding": 4
+                    },
+                    "name": "length"
+                  },
+                  "b": {
+                    "k": "lit",
+                    "v": 0
+                  }
+                },
+                "then": [
+                  {
+                    "s": "set-signal",
+                    "binding": 5,
+                    "value": {
+                      "k": "lit",
+                      "v": "empty"
+                    }
+                  }
+                ],
+                "else": []
+              }
+            ],
+            "async": false
+          }
+        }
+      ],
+      "render": [
+        {
+          "n": "el",
+          "tag": "section",
+          "props": [
+            {
+              "p": "dynamic",
+              "name": "title",
+              "value": {
+                "src": "label.value",
+                "ir": {
+                  "k": "signal-read",
+                  "binding": 5
+                }
+              }
+            }
+          ],
+          "children": [
+            {
+              "n": "branch",
+              "condition": {
+                "src": "",
+                "segment": "segment_3",
+                "ir": {
+                  "k": "bin",
+                  "op": "===",
+                  "a": {
+                    "k": "member",
+                    "obj": {
+                      "k": "signal-read",
+                      "binding": 4
+                    },
+                    "name": "length"
+                  },
+                  "b": {
+                    "k": "lit",
+                    "v": 0
+                  }
+                }
+              },
+              "then": {
+                "setup": [],
+                "render": [
+                  {
+                    "n": "el",
+                    "tag": "p",
+                    "props": [],
+                    "children": [
+                      {
+                        "n": "text",
+                        "value": "Empty"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "else": {
+                "setup": [],
+                "render": [
+                  {
+                    "n": "el",
+                    "tag": "ul",
+                    "props": [],
+                    "children": [
+                      {
+                        "n": "collection",
+                        "source": {
+                          "kind": "direct-reactive",
+                          "src": "items.value",
+                          "signal": "items"
+                        },
+                        "key": {
+                          "src": "",
+                          "segment": "segment_7",
+                          "ir": {
+                            "k": "binding-read",
+                            "binding": 7
+                          }
+                        },
+                        "row": {
+                          "setup": [],
+                          "render": [
+                            {
+                              "n": "el",
+                              "tag": "li",
+                              "props": [],
+                              "children": [
+                                {
+                                  "n": "dyn",
+                                  "output": "text",
+                                  "value": {
+                                    "src": "index + 1",
+                                    "ir": {
+                                      "k": "bin",
+                                      "op": "+",
+                                      "a": {
+                                        "k": "binding-read",
+                                        "binding": 8
+                                      },
+                                      "b": {
+                                        "k": "lit",
+                                        "v": 1
+                                      }
+                                    },
+                                    "segment": "segment_8"
+                                  }
+                                },
+                                {
+                                  "n": "text",
+                                  "value": ". "
+                                },
+                                {
+                                  "n": "dyn",
+                                  "output": "content",
+                                  "value": {
+                                    "src": "item.toUpperCase()",
+                                    "segment": "semantic_expression_475_493"
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        "usesIndexSignal": true
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "n": "el",
+              "tag": "footer",
+              "props": [],
+              "children": [
+                {
+                  "n": "dyn",
+                  "output": "text",
+                  "value": {
+                    "src": "total.value",
+                    "ir": {
+                      "k": "signal-read",
+                      "binding": 6
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "needsId": false,
+      "idBase": "qApp-",
+      "styleScope": null,
+      "providesContext": false,
+      "hasCustomHook": false
+    }
+  ],
+  "segments": [
+    {
+      "id": "segment_0",
+      "symbolName": "input_useComputed$_segment_0_1njp779gwswof",
+      "kind": "qrl",
+      "qrl": {
+        "kind": "implicit",
+        "role": "generic"
+      },
+      "captures": [
+        {
+          "binding": 4,
+          "name": "items",
+          "source": "local",
+          "access": "direct"
+        }
+      ]
+    },
+    {
+      "id": "segment_1",
+      "symbolName": "input_useTask$_segment_1_2ngp3wzswnn6e",
+      "kind": "qrl",
+      "qrl": {
+        "kind": "implicit",
+        "role": "task"
+      },
+      "captures": [
+        {
+          "binding": 4,
+          "name": "items",
+          "source": "local",
+          "access": "direct"
+        },
+        {
+          "binding": 5,
+          "name": "label",
+          "source": "local",
+          "access": "direct"
+        }
+      ]
+    },
+    {
+      "id": "segment_3",
+      "symbolName": "input_branch_condition_segment_3_m6iaqiu5wha8",
+      "kind": "branchCondition",
+      "qrl": null,
+      "captures": [
+        {
+          "binding": 4,
+          "name": "items",
+          "source": "local",
+          "access": "direct"
+        }
+      ]
+    },
+    {
+      "id": "segment_4",
+      "symbolName": "input_branch_then_segment_4_3n2t96ggdsrxt",
+      "kind": "branchRender",
+      "qrl": null,
+      "captures": []
+    },
+    {
+      "id": "segment_5",
+      "symbolName": "input_branch_else_segment_5_f8z6bi9enhy4",
+      "kind": "branchRender",
+      "qrl": null,
+      "captures": [
+        {
+          "binding": 4,
+          "name": "items",
+          "source": "local",
+          "access": "direct"
+        }
+      ]
+    },
+    {
+      "id": "segment_6",
+      "symbolName": "input_for_render_segment_6_18lilt6ujv0qt",
+      "kind": "forRender",
+      "qrl": null,
+      "captures": []
+    },
+    {
+      "id": "segment_7",
+      "symbolName": "input_for_key_segment_7_21xk5ifpl798p",
+      "kind": "forKey",
+      "qrl": null,
+      "captures": []
+    },
+    {
+      "id": "segment_8",
+      "symbolName": "input_text_segment_8_3k1csslrtlaq4",
+      "kind": "expression",
+      "qrl": null,
+      "captures": [
+        {
+          "binding": 8,
+          "name": "index",
+          "source": "loop",
+          "access": "loop-value"
+        }
+      ]
+    },
+    {
+      "id": "semantic_expression_475_493",
+      "symbolName": "semantic_expression_475_493_2wigujdtvudrh",
+      "kind": "expression",
+      "qrl": null,
+      "captures": [
+        {
+          "binding": 7,
+          "name": "item",
+          "source": "loop",
+          "access": "direct"
+        }
+      ]
+    }
+  ]
+}

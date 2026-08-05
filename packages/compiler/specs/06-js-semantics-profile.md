@@ -94,9 +94,10 @@ init) and `TaskBody` steps, which run once per request.
 
 ## HTML escaping
 
-Frozen in [05-wire-contract.md](./05-wire-contract.md): exactly `& < > " '`. Not part of this
-profile's configurable surface — listed here because it is the other place engines are tempted to
-"improve" output.
+Frozen in [05-wire-contract.md](./05-wire-contract.md), and it is **two layers**: dynamic values
+escape `& < > " '` at render time, while compile-time statics arrive in the plan pre-escaped
+with the _narrower_ `& < >` (+`"` in attributes, never `'`) profile — the same value produces
+different bytes static vs dynamic, and engines must not "fix" either direction.
 
 ## Value domain (engine-internal, normative for observable behavior)
 

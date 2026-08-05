@@ -84,8 +84,9 @@ output: shell HTML, each `qwik/state` script, each streaming packet.
 
 Fixture sources are extracted from the existing oracles:
 
-- the 116 compiler snapshots (`packages/compiler/src/snapshots/*.snap`) — input TSX + exact
-  emitted modules;
+- the 109 compiler snapshots (`packages/compiler/src/snapshots/*.snap`) — input TSX + exact
+  emitted **module code** (they prove emission, not rendered bytes; the Layer-A harness turns
+  their inputs into renderer-level byte oracles);
 - `packages/qwik/src/server/ssr-render.unit.ts` and `ssr-script-emitter.unit.ts` scenarios;
 - selected e2e apps (`e2e/qwik-e2e/apps/*`) for realistic pages.
 

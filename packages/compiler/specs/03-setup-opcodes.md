@@ -65,7 +65,6 @@ minimal statement IR:
 
 ```ts
 interface TaskBody {
-  track: (PlaceIR | { store: PlaceIR; prop: string })[]; // track(() => x.value) hoisted
   steps: TaskStep[];
   async: boolean;
 }
@@ -81,9 +80,15 @@ type TaskStep =
 
 Decisions:
 
+- **Corrected against the code (Phase 2): v3 tasks auto-track.** `TaskCtx` exposes only
+  `cleanup` — there is no `track` function; subscribing reads inside the body record task
+  dependencies via the ambient collector, before **and** after `await`
+  (`core/runtime/task.ts`, `core/tests/task.spec.tsx`). `TaskBody` therefore carries no hoisted
+  track list: engines evaluate the steps with a collector active and dependencies fall out,
+  exactly like the JS runtime.
 - **Tasks lower by default; they are not plugin territory.** The dominant SSR-relevant shape is
-  derive-into-state (`track` + assignments), which `TaskBody` covers. Genuine I/O inside a task
-  goes through `call-plugin` (an internal plugin such as `qwik:fetch`, or a user plugin) —
+  derive-into-state (tracked reads + assignments), which `TaskBody` covers. Genuine I/O inside a
+  task goes through `call-plugin` (an internal plugin such as `qwik:fetch`, or a user plugin) —
   idiomatic Qwik routes request data through `routeLoader$` anyway, which is host territory
   ([09-compiler-plugins.md](./09-compiler-plugins.md)).
 - No declarative fetch descriptor in v1; `qwik:fetch` as an internal plugin covers the need
@@ -102,11 +107,12 @@ Where subscription recording is active decides which `EffectSubscription`/dep re
   subscription); an `untrack` node carves reads out.
 - **`computed` bodies** auto-track: every subscribing read contributes to the serialized
   ComputedSignal `deps`; `untrack` nodes remove reads from `deps`.
-- **`TaskBody` steps** are untracked by default — only the explicit `track` list subscribes the
-  task, so `untrack` inside a task body is a no-op: the compiler drops expression-form `untrack`
-  and unwraps statement-form `untrack(() => { … })` blocks into plain steps. No statement-level
-  untrack wrapper exists; every `TaskStep` value position is a `ValueIR`, where the node is
-  representable when it ever matters ([02-expression-ir.md](./02-expression-ir.md)).
+- **`TaskBody` steps auto-track** (corrected in Phase 2 — v3 has no task `track` function):
+  subscribing reads in the steps record task dependencies via the ambient collector, and
+  `untrack` inside a task body is therefore **meaningful** — it carves reads out of the task's
+  deps, same as in computed bodies. No statement-level untrack wrapper exists; every `TaskStep`
+  value position is a `ValueIR`, where the node is representable
+  ([02-expression-ir.md](./02-expression-ir.md)).
 
 ## Scheduling semantics (normative for engines)
 

@@ -1412,6 +1412,11 @@ class SemanticLowerer {
   private readonly setupLowerFacts: SetupLowerFacts = {
     ...this.exprLowerFacts,
     isHook: (callee, hook) => this.isSparkHook(callee, hook) || this.isQwikHook(callee, hook),
+    findQrlSegmentId: (range) =>
+      range === null
+        ? null
+        : (this.extracted.segments.find((segment) => sameRange(segment.functionRange, range))?.id ??
+          null),
   };
 
   private valueIr(expression: AstNode): { ir?: ValueIR } {

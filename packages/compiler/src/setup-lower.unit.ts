@@ -22,7 +22,16 @@ const HOOK_NAMES: Record<number, string> = {
   [SERVER_DATA_HOOK]: 'useServerData',
   [USE_ID_HOOK]: 'useId',
   [CONSTANT_HOOK]: 'useConstant',
+  [11]: 'useComputed$',
+  [12]: 'useTask$',
+  [13]: 'useVisibleTask$',
 };
+
+const COMPUTED_HOOK = 11;
+const TASK_HOOK = 12;
+const VISIBLE_TASK_HOOK = 13;
+const SIGNAL_BINDING = 14;
+const STORE_BINDING = 15;
 
 const BINDINGS: Record<number, number> = {
   20: LOCAL,
@@ -33,19 +42,25 @@ const BINDINGS: Record<number, number> = {
   34: SERVER_DATA_HOOK,
   35: USE_ID_HOOK,
   36: CONSTANT_HOOK,
+  37: COMPUTED_HOOK,
+  38: TASK_HOOK,
+  39: VISIBLE_TASK_HOOK,
   40: CONTEXT_ID,
   50: USER_FN,
+  60: SIGNAL_BINDING,
+  61: STORE_BINDING,
 };
 
 const facts: SetupLowerFacts = {
   bindingIdAt: (range) => (range === null ? null : (BINDINGS[range[0]] ?? null)),
-  isSourceBinding: () => false,
+  isSourceBinding: (binding) => binding === SIGNAL_BINDING,
   isFunctionBinding: (binding) => binding === USER_FN,
   isHook: (callee, hook) => {
     const node = callee as AstNode & { start?: number };
     const binding = typeof node.start === 'number' ? BINDINGS[node.start] : undefined;
     return binding !== undefined && HOOK_NAMES[binding] === hook;
   },
+  findQrlSegmentId: (range) => (range !== null && range[0] === 100 ? 'segment_0' : null),
 };
 
 const at = (start: number, node: object) => ({ start, end: start + 1, ...node });
@@ -148,6 +163,168 @@ describe('lowerSetupOp', () => {
         facts
       )
     ).toEqual({ op: 'context-provider', context: CONTEXT_ID, value: { k: 'lit', v: 'value' } });
+  });
+
+  test('useComputed$ pairs the segment with a portable body when single-expression', () => {
+    const signalRef = () => at(60, { type: 'Identifier', name: 'count' });
+    const arrow = (body: object) =>
+      at(100, { type: 'ArrowFunctionExpression', params: [], body, end: 120 });
+    expect(
+      lowerSetupOp(
+        constDecl(
+          hookCall(37, [
+            arrow({
+              type: 'BinaryExpression',
+              operator: '*',
+              left: {
+                type: 'MemberExpression',
+                object: signalRef(),
+                property: { type: 'Identifier', name: 'value' },
+                computed: false,
+              },
+              right: lit(2),
+            }),
+          ])
+        ),
+        facts
+      )
+    ).toEqual({
+      op: 'computed',
+      local: LOCAL,
+      segment: 'segment_0',
+      body: {
+        k: 'bin',
+        op: '*',
+        a: { k: 'signal-read', binding: SIGNAL_BINDING },
+        b: { k: 'lit', v: 2 },
+      },
+    });
+    // multi-statement computed keeps the segment, drops the body
+    expect(
+      lowerSetupOp(
+        constDecl(
+          hookCall(37, [
+            arrow({ type: 'BlockStatement', body: [{ type: 'ExpressionStatement' }, {}] }),
+          ])
+        ),
+        facts
+      )
+    ).toEqual({ op: 'computed', local: LOCAL, segment: 'segment_0', body: null });
+  });
+
+  test('useTask$ lowers derive-into-state bodies; v3 tasks auto-track', () => {
+    const signalValue = () => ({
+      type: 'MemberExpression',
+      object: at(60, { type: 'Identifier', name: 'count' }),
+      property: { type: 'Identifier', name: 'value' },
+      computed: false,
+    });
+    const taskStatement = {
+      type: 'ExpressionStatement',
+      expression: hookCall(38, [
+        at(100, {
+          type: 'ArrowFunctionExpression',
+          params: [],
+          async: false,
+          body: {
+            type: 'BlockStatement',
+            body: [
+              {
+                type: 'VariableDeclaration',
+                kind: 'const',
+                declarations: [{ id: local(), init: signalValue() }],
+              },
+              {
+                type: 'IfStatement',
+                test: local(),
+                consequent: {
+                  type: 'ExpressionStatement',
+                  expression: {
+                    type: 'AssignmentExpression',
+                    operator: '=',
+                    left: {
+                      type: 'MemberExpression',
+                      object: at(61, { type: 'Identifier', name: 'store' }),
+                      property: { type: 'Identifier', name: 'label' },
+                      computed: false,
+                    },
+                    right: lit('on'),
+                  },
+                },
+              },
+              {
+                type: 'ExpressionStatement',
+                expression: {
+                  type: 'AssignmentExpression',
+                  operator: '=',
+                  left: signalValue(),
+                  right: lit(0),
+                },
+              },
+            ],
+          },
+        }),
+      ]),
+    } as unknown as AstNode;
+    expect(lowerSetupOp(taskStatement, facts)).toEqual({
+      op: 'task',
+      segment: 'segment_0',
+      body: {
+        async: false,
+        steps: [
+          { s: 'let', local: LOCAL, value: { k: 'signal-read', binding: SIGNAL_BINDING } },
+          {
+            s: 'if',
+            test: { k: 'binding-read', binding: LOCAL },
+            then: [
+              {
+                s: 'set-store',
+                binding: STORE_BINDING,
+                path: ['label'],
+                value: { k: 'lit', v: 'on' },
+              },
+            ],
+            else: [],
+          },
+          { s: 'set-signal', binding: SIGNAL_BINDING, value: { k: 'lit', v: 0 } },
+        ],
+      },
+    });
+  });
+
+  test('useVisibleTask$ records the strategy carrier only', () => {
+    const arrow = at(100, {
+      type: 'ArrowFunctionExpression',
+      params: [],
+      body: { type: 'BlockStatement', body: [{ type: 'DebuggerStatement' }] },
+    });
+    const statement = (args: unknown[]) =>
+      ({ type: 'ExpressionStatement', expression: hookCall(39, args) }) as unknown as AstNode;
+    expect(lowerSetupOp(statement([arrow]), facts)).toEqual({
+      op: 'visible-task',
+      segment: 'segment_0',
+      strategy: 'intersection-observer',
+    });
+    expect(
+      lowerSetupOp(
+        statement([
+          arrow,
+          {
+            type: 'ObjectExpression',
+            properties: [
+              {
+                type: 'Property',
+                kind: 'init',
+                computed: false,
+                key: { type: 'Identifier', name: 'strategy' },
+                value: lit('document-idle'),
+              },
+            ],
+          },
+        ]),
+        facts
+      )
+    ).toEqual({ op: 'visible-task', segment: 'segment_0', strategy: 'document-idle' });
   });
 
   test('unsupported statements stay verbatim', () => {

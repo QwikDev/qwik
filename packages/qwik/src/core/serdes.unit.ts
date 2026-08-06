@@ -8,6 +8,7 @@ import { allocate } from './shared/serdes/allocate';
 import { _deserialize, _serialize } from './shared/serdes/standalone';
 import { QRL_RUNTIME_CHUNK } from './shared/serdes/qrl-to-string';
 import { SerializerSymbol } from './shared/serdes/verify';
+import { SERIALIZABLE_STATE } from './shared/component.public';
 import { EffectKind } from './dom/effect/effect-kind.enum';
 import type { AttrExpressionFn, EventExpressionFn } from './dom/effect/effect';
 import { createTextNodeEffect, type TextExpressionFn } from './dom/effect/text-effect';
@@ -107,6 +108,19 @@ describe('serdes emit-only', () => {
     await expect(
       _deserialize(JSON.stringify([TypeIds.PropsProxy, [TypeIds.Object, EMPTY_OBJECT_PAYLOAD]]))
     ).rejects.toThrow('Invalid PropsProxy source');
+  });
+
+  it('serializes a component-tagged function as its attached QRL', async () => {
+    const makeQrl = () => createQRL('./chunk', 'Filter_lifted', null, null, null);
+    const tagged = Object.assign(function Filter() {}, {
+      [SERIALIZABLE_STATE]: [makeQrl()],
+    });
+    expect(await serialize(tagged)).toEqual(await serialize(makeQrl()));
+    // sharing dedups on the function identity, like any other repeated value
+    const [first, second] = (await serialize([tagged, tagged])) as [number, unknown[]];
+    expect(first).toBe(TypeIds.Array);
+    expect((second as unknown[])[2]).toBe(TypeIds.RootRef);
+    await expect(serialize(function bare() {})).rejects.toThrow('function');
   });
 
   it('round-trips standalone serialized signals', async () => {

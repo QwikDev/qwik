@@ -39,6 +39,7 @@ import type { SerdesWriter, SsrWriteChunk } from './writer';
 import { qError, QError } from '../error/error';
 import type { QRLInternal } from '../qrl/qrl-class';
 import { isQrl } from '../qrl/qrl-utils';
+import { SERIALIZABLE_STATE } from '../component.public';
 import {
   BRACKET_CLOSE,
   BRACKET_OPEN,
@@ -444,12 +445,16 @@ export class Serializer {
             throw qError(QError.serializeErrorUnknownType, [typeof value]);
           }
           break;
-        case 'function':
-          if (isQrl(value)) {
+        case 'function': {
+          // a component-tagged function (lifted local component) serializes as its QRL
+          const qrlValue = isQrl(value)
+            ? value
+            : ((value as { [SERIALIZABLE_STATE]?: [unknown] })[SERIALIZABLE_STATE]?.[0] ?? null);
+          if (qrlValue !== null && isQrl(qrlValue)) {
             if (this.getSeenRefOrOutput(value, index)) {
               const [chunk, symbol, captureDeltasFromZero] = qrlToString(
                 this.$serializationContext$,
-                value,
+                qrlValue,
                 true
               );
               let data: string | number;
@@ -469,7 +474,7 @@ export class Serializer {
                   this.output(TypeIds.RootRef, ref);
                   return;
                 } else {
-                  this.$qrlMap$.set(data, value);
+                  this.$qrlMap$.set(data, qrlValue);
                 }
               } else {
                 // sync QRL
@@ -482,6 +487,7 @@ export class Serializer {
             throw qError(QError.serializeErrorCannotSerializeFunction, [value.toString()]);
           }
           break;
+        }
         case 'object':
           if (value === EMPTY_ARRAY) {
             this.output(TypeIds.Constant, Constants.EMPTY_ARRAY);

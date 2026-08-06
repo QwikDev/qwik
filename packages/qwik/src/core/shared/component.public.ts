@@ -131,6 +131,12 @@ export const componentQrl = <PROPS extends Record<any, any>>(
 /** @internal */
 export const SERIALIZABLE_STATE = Symbol('serializable-data');
 
+/** @internal Tag a compiled component function with its lifted QRL so it serializes as one. */
+export const _markComponent = <T extends { (...args: any[]): any }>(fn: T, qrl: unknown): T => {
+  (fn as any)[SERIALIZABLE_STATE] = [qrl];
+  return fn;
+};
+
 export const isQwikComponent = <T extends Component<any>>(component: unknown): component is T => {
   return typeof component == 'function' && (component as any)[SERIALIZABLE_STATE] !== undefined;
 };

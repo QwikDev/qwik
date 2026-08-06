@@ -43,6 +43,30 @@ shape: `emit-ssr.ts` is the JS generator and `@qwik.dev/core`'s SSR helpers are 
 | `router`    | `ParsedPathname` route matching (already declarative in `qwik-router` buildtime); loader-data injection by `__id`; status/redirect plumbing                                                                                                        |
 | `host`      | embedding trait: async executor hookup, manifest provider (`q-manifest.json` mapper), loader/action handler registry, plugin context                                                                                                               |
 
+## QRL invocation convention (normative direction)
+
+Every segment generates **one function named by its symbol**; a QRL value is
+`(chunk, symbol, captures)`; invoking a QRL means calling the symbol's function with the
+captures slice taken from the value — exactly what the JS engine does when a `.s()`-resolved
+QRL is invoked with `_captures`. The chunk ABI and the native ABI are therefore the same
+contract, per segment kind (captures always the trailing parameter):
+
+| segment kind                  | JS chunk signature               | native fn                                       |
+| ----------------------------- | -------------------------------- | ----------------------------------------------- |
+| local component               | `(props, ctx)`                   | `(ctx, out, props, captures)`                   |
+| branch arm                    | `(ctx)`                          | `(ctx, out, captures)`                          |
+| collection row                | `(ctx, rangeId, rowId, item, …)` | `(ctx, out, range_id, row_id, item…, captures)` |
+| computed / condition / source | `() => value`                    | `(ctx, tracked, captures) -> value`             |
+| event / task                  | never invoked server-side        | serialization-only, no fn                       |
+
+Call sites invoke **through the QRL value** (the component/arm/row value carries its
+environment), so capture-count never changes a signature, per-symbol functions dedupe across
+call sites, and a symbol → fn dispatch table falls out — the prerequisite for the
+[08](./08-conformance.md) CLI runner and for mechanical Go/Zig translation. Migration is
+per-construct under fixture byte-lock; local components adopt it first (replacing inline
+call-site expansion), then branch arms, rows, and computed bodies. Byte-neutral by
+construction: identical ctx call sequences behind function boundaries.
+
 ## Request lifecycle (normative)
 
 1. Host matches the route, runs middleware/loader/action handlers it owns, and hands the engine a

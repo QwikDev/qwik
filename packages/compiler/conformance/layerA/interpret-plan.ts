@@ -41,7 +41,8 @@ import {
   _qrlWithChunk,
   _val,
 } from '@qwik.dev/core';
-import type { PlanSsrOp, PlanSsrProp } from '../../src/emit-plan-ssr';
+import type { PlanSsrOp, PlanSsrProp, PlanSsrRenderFn, PlanSsrRow } from '../../src/emit-plan-ssr';
+import type { PlanLocalComponent } from '../../src/emit-plan';
 import type { QwikSsrPlan } from '../../src/link-plan';
 import type { ValueIR } from '../../src/expr-ir';
 import type { SetupOp } from '../../src/setup-ir';
@@ -116,22 +117,51 @@ export async function buildInterpretedRoot(
     return interpretComponent(plan.entry, rootProps, ctx);
   };
 
+  /** Local-component blocks interpret like components, in the owner's module with a scope copy. */
+  interface NestedBlockOptions {
+    readonly block: PlanSsrRenderFn;
+    readonly initialLocals: Map<number, unknown>;
+    readonly initialLocalComponentBindings: Map<string, number>;
+    readonly propsPlan: PlanLocalComponent['props'];
+    /** Positional values for `paramBindings` (inline collection rows). */
+    readonly paramValues?: readonly unknown[];
+  }
+
   function interpretComponent(
     componentIndex: number,
     componentProps: unknown,
-    ctx: Parameters<SsrRenderRoot>[1]
+    ctx: Parameters<SsrRenderRoot>[1],
+    nested?: NestedBlockOptions
   ): unknown {
     const interpreted = plan.components[componentIndex];
-    const ssr = interpreted.ssr;
+    const ssr = nested?.block ?? interpreted.ssr;
     if (ssr === null) {
       throw new Error(`component "${interpreted.name}" has no ssr plan`);
     }
     const qrls = moduleQrls[interpreted.module];
     const captureLists = moduleCaptureLists[interpreted.module];
     const invokeCtx = getActiveInvokeContextOrNull();
-    const locals = new Map<number, unknown>();
-    for (const propsBinding of interpreted.propsBindings) {
-      locals.set(propsBinding, componentProps);
+    const locals = nested === undefined ? new Map<number, unknown>() : nested.initialLocals;
+    const localComponentBindings = new Map<string, number>(
+      nested?.initialLocalComponentBindings ?? []
+    );
+    if (nested === undefined) {
+      for (const propsBinding of interpreted.propsBindings) {
+        locals.set(propsBinding, componentProps);
+      }
+    } else if (nested.propsPlan !== null) {
+      // destructure reads each prop getter once at function start, like the emitted const
+      if (nested.propsPlan.kind === 'identifier') {
+        locals.set(nested.propsPlan.binding, componentProps);
+      } else {
+        for (const prop of nested.propsPlan.bindings) {
+          locals.set(prop.b, (componentProps as Record<string, unknown>)[prop.name]);
+        }
+      }
+    }
+    if (nested?.paramValues !== undefined) {
+      const paramBindings = nested.block.paramBindings ?? [];
+      paramBindings.forEach((binding, index) => locals.set(binding, nested.paramValues![index]));
     }
 
     const evalIr = (ir: ValueIR): unknown => {
@@ -148,6 +178,26 @@ export async function buildInterpretedRoot(
             value[key] = evalIr(item);
           }
           return value;
+        }
+        case 'binding-read': {
+          if (!locals.has(ir.binding)) {
+            throw new Error(`setup ir reads unknown binding ${ir.binding}`);
+          }
+          return locals.get(ir.binding);
+        }
+        case 'call': {
+          const receiver = ir.recv === null ? null : evalIr(ir.recv);
+          // mirror the emitted method call exactly — no coercion
+          switch (ir.fn) {
+            case 'qwik:string.toLowerCase':
+              return (receiver as string).toLowerCase();
+            case 'qwik:string.toUpperCase':
+              return (receiver as string).toUpperCase();
+            case 'qwik:string.trim':
+              return (receiver as string).trim();
+            default:
+              throw new Error(`interpreter cannot evaluate call op "${ir.fn}" in setup yet`);
+          }
         }
         default:
           throw new Error(`interpreter cannot evaluate ir kind "${ir.k}" in setup yet`);
@@ -173,8 +223,27 @@ export async function buildInterpretedRoot(
       );
     };
 
+    // maps copy per call, so the block sees consts defined after the declaration, like a closure
+    const makeLocalComponent =
+      (entry: PlanLocalComponent) => (props: unknown, childCtx: Parameters<SsrRenderRoot>[1]) =>
+        interpretComponent(componentIndex, props, childCtx, {
+          block: entry.render,
+          initialLocals: new Map(locals),
+          initialLocalComponentBindings: new Map(localComponentBindings),
+          propsPlan: entry.props,
+        });
+    // function declarations hoist above the setup consts in the emitted module
+    for (const entry of ssr.setup as readonly (SetupOp | PlanLocalComponent)[]) {
+      if (entry.op === 'local-component') {
+        locals.set(entry.binding, makeLocalComponent(entry));
+        localComponentBindings.set(entry.name, entry.binding);
+      }
+    }
+
     for (const entry of ssr.setup as readonly (SetupOp | { op: string; src?: string })[]) {
       switch (entry.op) {
+        case 'local-component':
+          break;
         case 'signal': {
           const op = entry as Extract<SetupOp, { op: 'signal' }>;
           locals.set(op.local, useSignal(evalIr(op.init)));
@@ -500,8 +569,21 @@ export async function buildInterpretedRoot(
         }
         case 'component': {
           const target = op.target as unknown;
+          let renderTarget: ((childProps: unknown) => unknown) | null = null;
+          if (typeof target === 'string') {
+            // lexical reference to a local component in the interpreted scope chain
+            const localBinding = localComponentBindings.get(target);
+            const localFn = localBinding === undefined ? undefined : locals.get(localBinding);
+            if (typeof localFn !== 'function') {
+              throw new Error(`local component "${target}" is not in scope`);
+            }
+            renderTarget = (childProps: unknown) => localFn(childProps, ctx);
+          }
           const ref = (target as { ref?: number }).ref;
-          if (typeof target !== 'object' || target === null || ref === undefined) {
+          if (
+            renderTarget === null &&
+            (typeof target !== 'object' || target === null || ref === undefined)
+          ) {
             throw new Error('component op is not linked to a component ref');
           }
           const literal: Record<string, unknown> = {};
@@ -512,12 +594,25 @@ export async function buildInterpretedRoot(
               literal[staticProp.name] = staticProp.value;
             } else if (prop.p === 'dynamic') {
               const dynamic = prop as { name: string; value: { ir?: ValueIR } };
-              const signal = localSignal(dynamic.value.ir, `component prop ${dynamic.name}`);
-              Object.defineProperty(literal, dynamic.name, {
-                enumerable: true,
-                get: () => readTrackedSourceValue(signal as never),
-              });
-              sources[dynamic.name] = signal;
+              const ir = dynamic.value.ir;
+              if (ir !== undefined && ir.k === 'binding-read') {
+                // plain value read — emitted getters return the local directly, no rooting
+                if (!locals.has(ir.binding)) {
+                  throw new Error(`component prop ${dynamic.name} reads unknown binding`);
+                }
+                const plain = locals.get(ir.binding);
+                Object.defineProperty(literal, dynamic.name, {
+                  enumerable: true,
+                  get: () => plain,
+                });
+              } else {
+                const signal = localSignal(ir, `component prop ${dynamic.name}`);
+                Object.defineProperty(literal, dynamic.name, {
+                  enumerable: true,
+                  get: () => readTrackedSourceValue(signal as never),
+                });
+                sources[dynamic.name] = signal;
+              }
             } else {
               throw new Error(`interpreter cannot pass component prop kind "${prop.p}" yet`);
             }
@@ -548,7 +643,8 @@ export async function buildInterpretedRoot(
             // static-only props pass as a bare literal, matching emitted serialization
             const componentProps =
               Object.keys(sources).length > 0 ? (_props(literal, sources) as never) : literal;
-            const renderer = (childProps: unknown) => interpretComponent(ref, childProps, ctx);
+            const renderer =
+              renderTarget ?? ((childProps: unknown) => interpretComponent(ref!, childProps, ctx));
             return op.slots.length > 0
               ? createComponent(componentProps as never, renderer, {
                   slotScope: slotScope as never,
@@ -639,6 +735,49 @@ export async function buildInterpretedRoot(
         }
         case 'collection': {
           const source = op.source;
+          if (source.kind === 'direct-array') {
+            // static collections render without an id or range markers, like the emitted call
+            const row = op.row as PlanSsrRow;
+            if (typeof row.symbolName !== 'string') {
+              throw new Error('direct-array collections need an inline row in the interpreter');
+            }
+            if (row.rowMarker || row.slotMarker || row.rowRoot || row.usesRowId) {
+              throw new Error('interpreter cannot render marked inline rows yet');
+            }
+            if (source.ir === undefined) {
+              throw new Error('direct-array collection source needs ir');
+            }
+            const array = evalIr(source.ir);
+            const rowFn = (
+              rowCtx: Parameters<SsrRenderRoot>[1],
+              _rangeId: unknown,
+              _rowId: unknown,
+              ...args: unknown[]
+            ) =>
+              interpretComponent(componentIndex, undefined, rowCtx, {
+                block: row,
+                initialLocals: new Map(locals),
+                initialLocalComponentBindings: new Map(localComponentBindings),
+                propsPlan: null,
+                paramValues: args,
+              });
+            const rendered = invoke(invokeCtx, () =>
+              renderSsrCollection(
+                ctx as never,
+                undefined as never,
+                array as never,
+                undefined as never,
+                rowFn as never,
+                false,
+                op.idBase ?? '',
+                op.usesRowId,
+                op.rowShape
+              )
+            );
+            return maybeThen(rendered, (output) => {
+              parts.push(output);
+            });
+          }
           if (source.kind !== 'derived') {
             throw new Error(`interpreter cannot render ${source.kind} collections yet`);
           }
@@ -682,7 +821,7 @@ export async function buildInterpretedRoot(
     };
 
     const run = () => {
-      if (!interpreted.providesContext) {
+      if (nested !== undefined || !interpreted.providesContext) {
         return interpretOps(ssr.ops);
       }
       // provider components wrap their output in a context-scope range (root-ref id)

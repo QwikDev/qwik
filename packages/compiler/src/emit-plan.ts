@@ -402,33 +402,106 @@ export function emitModulePlan(
     (segment.parentId === null || directSegmentIds.has(segment.id)) &&
     shouldResolveSsrSegment(segment);
 
+  // inline collection rows never become chunks — drop their table entries (no QRL exists)
+  const inlineRowSymbols = collectInlineRowSymbols(components);
+
   return {
     format: 'qwik/module-plan',
     version: 0,
     path,
     components,
-    segments: segments.map((segment) => ({
-      id: segment.id,
-      symbolName: segment.symbolName,
-      chunk: `./${path.split('/').pop()}_${segment.symbolName}`,
-      kind: segment.kind,
-      resolved: resolvesEagerly(segment),
-      qrl:
-        segment.qrl === null
-          ? null
-          : {
-              kind: segment.qrl.kind,
-              ...(segment.qrl.kind === 'implicit' ? { role: segment.qrl.role } : {}),
-            },
-      captures: segment.captures.map((capture) => ({
-        binding: capture.bindingId,
-        name: capture.name,
-        source: capture.source,
-        access: capture.access,
+    segments: segments
+      .filter((segment) => !inlineRowSymbols.has(segment.symbolName))
+      .map((segment) => ({
+        id: segment.id,
+        symbolName: segment.symbolName,
+        chunk: `./${path.split('/').pop()}_${segment.symbolName}`,
+        kind: segment.kind,
+        resolved: resolvesEagerly(segment),
+        qrl:
+          segment.qrl === null
+            ? null
+            : {
+                kind: segment.qrl.kind,
+                ...(segment.qrl.kind === 'implicit' ? { role: segment.qrl.role } : {}),
+              },
+        captures: segment.captures.map((capture) => ({
+          binding: capture.bindingId,
+          name: capture.name,
+          source: capture.source,
+          access: capture.access,
+        })),
       })),
-    })),
     imports,
     contexts,
     defs,
   };
+}
+
+/** Symbol names of collection rows emitted inline (specs/01): no chunk, so no segments entry. */
+function collectInlineRowSymbols(components: readonly PlanComponent[]): Set<string> {
+  const symbols = new Set<string>();
+  const walkSetup = (setup: readonly PlanSetupEntry[]): void => {
+    for (const entry of setup) {
+      if (entry.op === SetupOpKind.LocalComponent) {
+        walkFn(entry.render);
+      }
+    }
+  };
+  const walkFn = (fn: PlanSsrRenderFn): void => {
+    walkSetup(fn.setup);
+    walkOps(fn.ops);
+  };
+  const walkOps = (ops: PlanSsrComponent['ops']): void => {
+    for (const op of ops) {
+      switch (op.o) {
+        case 'el':
+          walkOps(op.children);
+          break;
+        case 'component':
+          op.slots.forEach((slot) => walkFn(slot.render));
+          break;
+        case 'branch':
+          walkFn(op.then);
+          if (op.else !== null) {
+            walkFn(op.else);
+          }
+          break;
+        case 'suspense':
+          walkFn(op.content);
+          if (op.fallbackRender !== undefined) {
+            walkFn(op.fallbackRender);
+          }
+          if (op.inOrder !== null) {
+            walkOps(op.inOrder);
+          }
+          break;
+        case 'slot':
+          if (op.fallback !== null) {
+            walkFn(op.fallback);
+          }
+          break;
+        case 'collection': {
+          const row = op.row;
+          if (typeof (row as { symbolName?: unknown }).symbolName === 'string') {
+            const inline = row as Extract<typeof op.row, { symbolName: string }>;
+            symbols.add(inline.symbolName);
+            walkFn(inline);
+          } else {
+            walkFn((row as { segment: PlanSsrRenderFn }).segment);
+          }
+          break;
+        }
+        default:
+          break;
+      }
+    }
+  };
+  for (const component of components) {
+    if (component.ssr !== null) {
+      walkSetup(component.ssr.setup);
+      walkOps(component.ssr.ops);
+    }
+  }
+  return symbols;
 }

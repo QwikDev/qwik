@@ -354,6 +354,7 @@ export function emitSsrOpPlan(
     params: number
   ): PlanSsrRow => ({
     ...targetBlock(row),
+    paramBindings: row.parameterBindingIds.slice(0, params),
     symbolName,
     params,
     rowRoot: row.rowRoot,

@@ -128,7 +128,10 @@ restore, computeds wake, Suspense-swapped content behaves).
   (`conformance:generate`) is an explicit, reviewed action. CI fails on drift.
 - JS job: Layer B + golden freshness.
 - Per-native-target job: build runtime + generator, generate fixture-runner, run Layer 0 then
-  Layer A.
+  Layer A. **Implemented for Rust** (`ci.yml` `test-native`): restores the qwik dist artifact
+  (the embedded qwikloader), then `cargo fmt --check`, `clippy -D warnings`, `cargo test` over
+  the engine workspace; change-gated by a dedicated hash (engine workspace + conformance
+  goldens + qwik dist key) and wired into the requirements gate.
 - Bumping the plan format version without regenerating fixtures fails CI.
 
 ## Reporting

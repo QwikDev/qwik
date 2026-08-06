@@ -57,6 +57,7 @@ jobs:
       hash-docs: ${{ steps.cache-docs.outputs.cache-primary-key }}
       hash-insights: ${{ steps.cache-insights.outputs.cache-primary-key }}
       hash-unit: ${{ steps.cache-unit.outputs.cache-primary-key }}
+      hash-native: ${{ steps.cache-native.outputs.cache-primary-key }}
       hash-bench: ${{ steps.cache-bench.outputs.cache-primary-key }}
       hash-e2e: ${{ steps.cache-e2e.outputs.cache-primary-key }}
       hash-cli-e2e: ${{ steps.cache-cli-e2e.outputs.cache-primary-key }}
@@ -67,6 +68,7 @@ jobs:
       build-docs: ${{ steps.cache-docs.outputs.cache-hit != 'true' }}
       build-insights: ${{ steps.cache-insights.outputs.cache-hit != 'true' }}
       build-unit: ${{ steps.cache-unit.outputs.cache-hit != 'true' || steps.cache-others.outputs.cache-hit != 'true' || steps.cache-qwik.outputs.cache-hit != 'true' || steps.cache-rust.outputs.cache-hit != 'true' }}
+      build-native: ${{ steps.cache-native.outputs.cache-hit != 'true' || steps.cache-qwik.outputs.cache-hit != 'true' }}
       build-bench: ${{ steps.cache-bench.outputs.cache-hit != 'true' || steps.cache-others.outputs.cache-hit != 'true' || steps.cache-qwik.outputs.cache-hit != 'true' || steps.cache-rust.outputs.cache-hit != 'true' }}
       build-e2e: ${{ steps.cache-e2e.outputs.cache-hit != 'true' || steps.cache-others.outputs.cache-hit != 'true' || steps.cache-qwik.outputs.cache-hit != 'true' || steps.cache-rust.outputs.cache-hit != 'true' }}
       build-cli-e2e: ${{ steps.cache-cli-e2e.outputs.cache-hit != 'true' || steps.cache-others.outputs.cache-hit != 'true' || steps.cache-qwik.outputs.cache-hit != 'true' || steps.cache-rust.outputs.cache-hit != 'true' }}
@@ -154,7 +156,7 @@ jobs:
         with:
           lookup-only: true
           path: packages/optimizer/
-          key: ${{ hashfiles('Makefile', 'rust-toolchain', '**/Cargo.toml', '**/Cargo.lock', '**/*.rs') }}
+          key: ${{ hashfiles('Makefile', 'rust-toolchain', '**/Cargo.toml', '**/Cargo.lock', '**/*.rs', '!packages/qwik/native/**') }}
       - run: 'echo ${{ steps.cache-rust.outputs.cache-primary-key }} > rust-key.txt'
       - name: 'check cache: others'
         id: cache-others
@@ -193,6 +195,14 @@ jobs:
           lookup-only: true
           path: unit-tests-completed.txt
           key: ${{ hashfiles('others-key.txt', 'packages/**/*.unit.*', 'packages/**/*.spec.*') }}
+      - name: 'check cache: native engine'
+        id: cache-native
+        uses: actions/cache/restore@v5
+        with:
+          lookup-only: true
+          path: native-tests-completed.txt
+          # qwik dist (the embedded qwikloader) + the engine workspace + the shared goldens
+          key: ${{ hashfiles('qwik-key.txt', 'packages/qwik/native/**/*', 'packages/compiler/conformance/**/*') }}
       - name: 'check cache: benchmarks'
         id: cache-bench
         uses: actions/cache/restore@v5
@@ -929,6 +939,81 @@ jobs:
           path: unit-tests-completed.txt
 
   ############ BENCHMARK TEST ############
+  test-native:
+    name: Native Engine Conformance (Rust)
+    if: always() && needs.changes.outputs.build-native == 'true'
+    runs-on: ubuntu-latest
+    needs:
+      - changes
+      - build-other-packages
+
+    steps:
+      - name: Verify prerequisites
+        if: |
+          !(
+            needs.changes.result == 'success' &&
+            needs.build-other-packages.result == 'success'
+          )
+        run: exit 1
+
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
+      - name: Setup Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          cache: 'pnpm'
+
+      # the fixture runner embeds packages/qwik/dist/qwikloader.js — byte parity needs the real build
+      - name: Download Package Artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          pattern: 'artifact-qwik'
+          merge-multiple: false
+
+      - name: Move Distribution Artifacts
+        run: pnpm ci.restore-artifacts artifact-qwik
+
+      - name: Install Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@46268bd060767258de96ed93c1251119784f2ab6 # v1
+        with:
+          cache-workspaces: packages/qwik/native/rust
+
+      - name: Native conformance (fmt, clippy, layer 0 + layer A)
+        working-directory: packages/qwik/native/rust
+        run: |
+          cargo fmt --check
+          cargo clippy --all-targets -- -D warnings
+          cargo test
+
+  save-native-cache:
+    name: Save Native Engine Cache
+    runs-on: ubuntu-latest
+    needs:
+      - changes
+      - test-native
+    if: always() && needs.changes.outputs.build-native == 'true' && needs.test-native.result == 'success'
+
+    steps:
+      - name: Verify prerequisites
+        if: |
+          !(
+            needs.changes.result == 'success' &&
+            needs.test-native.result == 'success'
+          )
+        run: exit 1
+
+      - name: Mark native tests complete
+        run: echo ok > native-tests-completed.txt
+
+      - name: Save native tests cache
+        uses: actions/cache/save@v5
+        with:
+          key: ${{ needs.changes.outputs.hash-native }}
+          path: native-tests-completed.txt
+
   test-bench:
     name: Benchmark Tests
     if: always() && needs.changes.outputs.build-bench == 'true'
@@ -1627,6 +1712,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - test-unit
+      - test-native
       - test-bench
       - test-e2e
       - test-e2e-docs
@@ -1640,6 +1726,7 @@ jobs:
         if: |
           !(
             (needs.test-unit.result == 'success' || needs.test-unit.result == 'skipped') &&
+            (needs.test-native.result == 'success' || needs.test-native.result == 'skipped') &&
             (needs.test-bench.result == 'success' || needs.test-bench.result == 'skipped') &&
             (needs.test-e2e.result == 'success' || needs.test-e2e.result == 'skipped') &&
             (needs.test-e2e-docs.result == 'success' || needs.test-e2e-docs.result == 'skipped') &&

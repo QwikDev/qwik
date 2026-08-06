@@ -26,6 +26,7 @@ import {
 import { createComponentDefinition, discoverComponentCandidates } from './discover';
 import { emitCsrModule, emitCsrSegmentRender } from './emit-csr';
 import { emitModulePlan, type PlanImportMeta } from './emit-plan';
+import { validateNativeReadiness } from './validate-native';
 import type { EmittedModule } from './emitted-module';
 import { TargetImportResolver } from './emit-qrl';
 import {
@@ -285,6 +286,10 @@ export function transformModule(ctx: CompilerContext): TransformResult {
     ),
     ...validateSerializableCaptures(ctx.input.path, ctx.input.code, program, analysis, segments),
     ...validateCollectionKeys(ctx.input.path, ctx.input.code, outputs),
+    ...(ctx.emitTarget === 'ssr' &&
+    typeof (ctx.options as { nativeTarget?: string }).nativeTarget === 'string'
+      ? validateNativeReadiness(ctx.input.path, ctx.input.code, outputs, componentReturnMode)
+      : []),
   ];
   if (diagnostics.some((item) => item.category !== 'warning')) {
     return { kind: 'failure', diagnostics };

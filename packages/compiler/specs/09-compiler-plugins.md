@@ -85,9 +85,16 @@ At lowering, every call site resolves to exactly one of: a lowerable IR form, a 
 per-module `TransformResult` failure; **all are inert when `nativeTarget` is unset** — the JS
 path never regresses.
 
+The first tranche is **implemented** in `src/validate-native.ts` (wired in `transform.ts`, gated
+on the `nativeTarget` option, `ssr` target only): `native-expression` (values without `ir`,
+branch conditions, collection sources/keys, Suspense `fallback$` pending a structural plan),
+`native-setup-statement`, `native-custom-hook`, and `native-component-unplannable`. Plugin-related
+codes land with the plugin system.
+
 | code                           | severity | fires when                                                                                                                          |
 | ------------------------------ | -------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | `native-expression`            | error    | expression neither lowerable nor claimed; suggests supported rewrite, extraction to a computed, or a plugin for `<module>#<export>` |
+| `native-component-unplannable` | error    | component cannot be planned structurally (`planSsr` returns null)                                                                   |
 | `native-setup-statement`       | error    | setup statement cannot lower to a `SetupOp`                                                                                         |
 | `native-custom-hook`           | error    | non-core `use*` hook in setup                                                                                                       |
 | `native-date-tostring`         | error    | bare Date in string position ([06](./06-js-semantics-profile.md))                                                                   |

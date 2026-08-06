@@ -46,6 +46,10 @@ export const enum TransformDiagnosticCode {
   ImplicitDollarArgument = 'implicit-dollar-argument',
   UnsupportedBoundaryShape = 'unsupported-boundary-shape',
   UnsupportedRuntimeJsx = 'unsupported-runtime-jsx',
+  NativeExpression = 'native-expression',
+  NativeSetupStatement = 'native-setup-statement',
+  NativeCustomHook = 'native-custom-hook',
+  NativeComponentUnplannable = 'native-component-unplannable',
 }
 
 export function validateSerializableCaptures(
@@ -795,7 +799,7 @@ function containsRange(outer: SourceRange | null, inner: SourceRange): boolean {
   return outer !== null && inner[0] >= outer[0] && inner[1] <= outer[1];
 }
 
-function locatedDiagnostic(
+export function locatedDiagnostic(
   file: string,
   source: string,
   range: SourceRange,

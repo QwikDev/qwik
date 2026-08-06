@@ -155,6 +155,16 @@ Bytes matching is necessary, not sufficient — the proof that matters is the br
 **native-rendered** HTML into it and runs the existing interaction specs (events fire, captures
 restore, computeds wake, Suspense-swapped content behaves).
 
+Live proof exists end-to-end: `crates/qwik-ssr-host` is a minimal HTTP host whose build.rs
+generates render code from a real vite production plan (`ssrPlan: true` emits
+`server/q-ssr-plan.json`; the client pass emits `q-manifest.json`, whose `mapping` becomes the
+serializer chunk map so QRLs point at real bundles). `e2e/qwik-e2e/playwright.native.config.ts`
+boots the host and runs `tests/native-counter.e2e.ts` against
+`e2e/qwik-e2e/apps/native-counter` — a real browser resumes Rust-rendered HTML (signal +
+computed updates, local-component store writes). Build the app first with
+`pnpm node --require ./scripts/runBefore.ts e2e/qwik-e2e/native-build.ts`. Point the host at a
+different app via `QWIK_SSR_PLAN` / `QWIK_CLIENT_DIR`.
+
 ## CI wiring
 
 - Goldens are committed and stamped with the plan format version; regenerating them

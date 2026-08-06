@@ -89,6 +89,37 @@ fn main() {
 		.unwrap_or_else(|_| repo_root.join("e2e/qwik-e2e/apps"));
 	let host = Arc::new(load_apps(&apps_dir));
 
+	// `--bench <app> [n]`: time render() in-process (no HTTP), print stats, exit
+	if std::env::args().nth(1).as_deref() == Some("--bench") {
+		let app_name = std::env::args().nth(2).unwrap_or_default();
+		let iterations: usize = std::env::args()
+			.nth(3)
+			.and_then(|argument| argument.parse().ok())
+			.unwrap_or(100);
+		let Some(app) = host.apps.iter().find(|app| app.name == app_name) else {
+			eprintln!("unknown or failed app {app_name:?}");
+			std::process::exit(1);
+		};
+		let mut bytes = 0usize;
+		for warmup in 0..10 {
+			bytes += render(app, warmup).len();
+		}
+		let mut times: Vec<f64> = Vec::with_capacity(iterations);
+		for iteration in 0..iterations {
+			let start = std::time::Instant::now();
+			bytes += render(app, iteration as u64).len();
+			times.push(start.elapsed().as_secs_f64() * 1000.0);
+		}
+		times.sort_by(|a, b| a.total_cmp(b));
+		let average: f64 = times.iter().sum::<f64>() / iterations as f64;
+		println!(
+			"{app_name}: {iterations} renders, avg {average:.3}ms, p50 {:.3}ms, p95 {:.3}ms, {} bytes/render",
+			times[iterations / 2],
+			times[iterations * 95 / 100],
+			bytes / (iterations + 10)
+		);
+		return;
+	}
 	let port: u16 = std::env::args()
 		.nth(1)
 		.and_then(|argument| argument.parse().ok())

@@ -93,7 +93,9 @@ target's generator over ALL fixture plans once and compiles a single fixture-run
 it: `plan name + request.json` on stdin, length-framed output segments (shell, packets, end) on
 stdout. No FFI anywhere; any language qualifies by producing one binary.
 
-**Rust status**: **all 29 allowlisted Layer-A fixtures render byte-exact** (`cargo test` in
+**Rust status**: **all 31 allowlisted Layer-A fixtures render byte-exact** (incl. component
+event props passing the handler QRL as a prop value, expression-segment element handlers
+evaluated through the plan handler `ir`, and `cond` ternary IR) (`cargo test` in
 `packages/qwik/native/rust`). The generator covers statics, signals/stores/computeds/tasks,
 events and bind QRLs, component composition (incl. cross-module), local components at any
 nesting level, and the QRL invocation convention ([07](./07-native-engine-architecture.md))

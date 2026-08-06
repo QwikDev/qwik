@@ -130,6 +130,22 @@
               {
                 "o": "branch",
                 "condition": "segment_3",
+                "conditionIr": {
+                  "k": "bin",
+                  "op": "===",
+                  "a": {
+                    "k": "member",
+                    "obj": {
+                      "k": "signal-read",
+                      "binding": 4
+                    },
+                    "name": "length"
+                  },
+                  "b": {
+                    "k": "lit",
+                    "v": 0
+                  }
+                },
                 "root": false,
                 "idBase": null,
                 "then": {
@@ -174,7 +190,11 @@
                           "o": "collection",
                           "source": {
                             "kind": "direct-reactive",
-                            "src": "items"
+                            "src": "items",
+                            "ir": {
+                              "k": "binding-read",
+                              "binding": 4
+                            }
                           },
                           "key": "segment_7",
                           "row": {
@@ -244,7 +264,11 @@
                                 }
                               ],
                               "synchronous": false,
-                              "needsRootRange": false
+                              "needsRootRange": false,
+                              "paramBindings": [
+                                7,
+                                8
+                              ]
                             }
                           },
                           "usesIndexSignal": true,

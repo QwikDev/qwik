@@ -368,6 +368,8 @@ export type CollectionSourcePlan =
       readonly expression: SourceRange;
       /** The Source expression before the direct `.value` access. */
       readonly source: SourceRange;
+      /** Portable source-container read (binding-read of the signal); additive. */
+      readonly ir?: ValueIR;
     }
   | {
       readonly kind: 'derived';

@@ -53,6 +53,8 @@ export interface PlanSsrComponent {
 export interface PlanSsrRenderFn {
   /** Backing render segment id (arms/rows/slots resolve to QRLs at runtime). */
   readonly segment?: string;
+  /** Render-parameter binding ids (segment rows: item, index). */
+  readonly paramBindings?: readonly number[];
   readonly setup: readonly PlanSetupEntry[];
   readonly ops: readonly PlanSsrOp[];
   readonly synchronous: boolean;
@@ -132,6 +134,7 @@ export type PlanSsrOp =
   | {
       readonly o: SsrOpKind.Branch;
       readonly condition: string;
+      readonly conditionIr?: import('./expr-ir').ValueIR;
       readonly root: boolean;
       readonly idBase: string | null;
       readonly then: PlanSsrRenderFn;
@@ -153,8 +156,16 @@ export type PlanSsrOp =
   | {
       readonly o: SsrOpKind.Collection;
       readonly source:
-        | { readonly kind: 'direct-array'; readonly src: string }
-        | { readonly kind: 'direct-reactive'; readonly src: string }
+        | {
+            readonly kind: 'direct-array';
+            readonly src: string;
+            readonly ir?: import('./expr-ir').ValueIR;
+          }
+        | {
+            readonly kind: 'direct-reactive';
+            readonly src: string;
+            readonly ir?: import('./expr-ir').ValueIR;
+          }
         | { readonly kind: 'derived'; readonly segment: string; readonly keepSource: boolean };
       readonly key: string | null;
       readonly row: PlanSsrRow | { readonly segment: PlanSsrRenderFn };
@@ -337,6 +348,7 @@ export function emitSsrOpPlan(
         return {
           o: SsrOpKind.Branch,
           condition: operation.condition.segmentId,
+          ...(operation.conditionIr !== undefined ? { conditionIr: operation.conditionIr } : {}),
           root: operation.root,
           idBase: operation.idBase,
           then: renderFnBlock(operation.then),
@@ -367,11 +379,26 @@ export function emitSsrOpPlan(
                   segment: operation.source.segment.segmentId,
                   keepSource: operation.source.keepSource,
                 }
-              : { kind: operation.source.kind, src: slice(operation.source.expression) },
+              : operation.source.kind === 'direct-array'
+                ? {
+                    kind: 'direct-array' as const,
+                    src: slice(operation.source.expression),
+                    ...(operation.source.ir !== undefined ? { ir: operation.source.ir } : {}),
+                  }
+                : {
+                    kind: 'direct-reactive' as const,
+                    src: slice(operation.source.expression),
+                    ...(operation.source.ir !== undefined ? { ir: operation.source.ir } : {}),
+                  },
           key: operation.key === null ? null : operation.key.segmentId,
           row:
             operation.row.kind === 'segment'
-              ? { segment: renderFnBlock(operation.row.render) }
+              ? {
+                  segment: {
+                    ...renderFnBlock(operation.row.render),
+                    paramBindings: operation.row.render.parameterBindingIds,
+                  },
+                }
               : rowBlock(
                   operation.row.target,
                   operation.row.symbolName,

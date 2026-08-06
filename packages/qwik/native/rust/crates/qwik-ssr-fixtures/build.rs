@@ -11,6 +11,9 @@ const READY_FIXTURES: &[&str] = &[
 	"mixed-text",
 	"child-props",
 	"multi-module",
+	"store-bind",
+	"slot-projection",
+	"branch-collection",
 ];
 
 fn main() {
@@ -65,7 +68,7 @@ fn main() {
 		// with the build-stamped q:version normalized to "conformance"
 		writeln!(
 			generated,
-			"pub mod {module_name} {{\n{component_code}\
+			"#[allow(unused_mut, clippy::type_complexity, clippy::comparison_to_empty)]\npub mod {module_name} {{\n{component_code}\
              pub fn render_page() -> String {{\n    \
                  qwik_ssr_rt::render::render_page(\n        \
                      &qwik_ssr_rt::render::PageOptions {{\n            \

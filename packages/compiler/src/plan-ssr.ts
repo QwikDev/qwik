@@ -1,3 +1,4 @@
+import type { ValueIR } from './expr-ir';
 import type { SourceRange } from './types';
 import { DEFAULT_GENERATED_NAMES, type GeneratedNames } from './words';
 import { jsxEventToHtmlAttribute } from './ast-utils';
@@ -160,6 +161,8 @@ export interface SsrComponentOperation {
 export interface SsrBranchOperation {
   readonly kind: 'branch';
   readonly condition: SegmentReferencePlan;
+  /** Portable condition lowering; the segment stays for client resume. */
+  readonly conditionIr?: ValueIR;
   readonly then: RenderFunctionPlan;
   readonly else: RenderFunctionPlan | null;
   readonly root: boolean;
@@ -184,8 +187,12 @@ export interface SsrSlotOperation {
 export interface SsrCollectionOperation {
   readonly kind: 'collection';
   readonly source:
-    | { readonly kind: 'direct-array'; readonly expression: SourceRange }
-    | { readonly kind: 'direct-reactive'; readonly expression: SourceRange }
+    | { readonly kind: 'direct-array'; readonly expression: SourceRange; readonly ir?: ValueIR }
+    | {
+        readonly kind: 'direct-reactive';
+        readonly expression: SourceRange;
+        readonly ir?: ValueIR;
+      }
     | {
         readonly kind: 'derived';
         readonly segment: SegmentReferencePlan;
@@ -597,6 +604,7 @@ class SsrPlanner {
         return {
           kind: 'branch',
           condition: node.condition,
+          conditionIr: node.conditionIr,
           then: node.then,
           else: node.else,
           root: false,
@@ -656,9 +664,9 @@ class SsrPlanner {
           kind: 'collection',
           source:
             node.source.kind === 'direct-array'
-              ? { kind: 'direct-array', expression: node.source.expression }
+              ? { kind: 'direct-array', expression: node.source.expression, ir: node.source.ir }
               : node.source.kind === 'direct-reactive'
-                ? { kind: 'direct-reactive', expression: node.source.source }
+                ? { kind: 'direct-reactive', expression: node.source.source, ir: node.source.ir }
                 : {
                     kind: 'derived',
                     segment: node.source.segment,

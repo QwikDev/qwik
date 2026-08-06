@@ -6,6 +6,7 @@ publish = false
 
 [dependencies]
 qwik-ssr-rt = { path = "../qwik-ssr-rt" }
+qwik-ssr-std = { path = "../qwik-ssr-std" }
 
 [build-dependencies]
 qwik-ssr-gen = { path = "../qwik-ssr-gen" }

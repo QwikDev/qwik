@@ -40,6 +40,72 @@ pub enum SerdesValue {
 	},
 	SlotScope(RefCell<SlotScopeState>),
 	Projection(ProjectionValue),
+	/// The `EMPTY_ARRAY` flyweight — encodes as a Constant by identity (specs/04).
+	EmptyArray,
+	/// Reactive effect record (TypeId 41); shared between subscriber lists and owner items.
+	Effect(RefCell<EffectValue>),
+	Task(TaskValue),
+	Computed(RefCell<ComputedState>),
+}
+
+#[derive(Debug)]
+pub struct TaskValue {
+	pub phase: u8,
+	pub qrl: Rc<SerdesValue>,
+	pub deps: Vec<Rc<SerdesValue>>,
+}
+
+#[derive(Debug)]
+pub struct ComputedState {
+	pub qrl: Rc<SerdesValue>,
+	pub deps: Vec<Rc<SerdesValue>>,
+	/// `None` until first read → NEEDS_COMPUTATION on the wire.
+	pub value: Option<Rc<SerdesValue>>,
+	pub subs: Vec<Rc<SerdesValue>>,
+}
+
+#[derive(Debug)]
+pub enum EffectValue {
+	Scalar(EffectSubscription),
+	Branch(BranchEffect),
+	ForBlock(ForBlockEffect),
+	Content(ContentEffect),
+}
+
+/// `[3, rangeId, currentBranch, deps, conditionQrl, thenQrl, elseQrl, ownerItems, null, null, idBase]`
+#[derive(Debug)]
+pub struct BranchEffect {
+	pub range_id: u32,
+	pub current_branch: u32,
+	pub deps: Vec<Rc<SerdesValue>>,
+	pub condition_qrl: Rc<SerdesValue>,
+	pub then_qrl: Rc<SerdesValue>,
+	pub else_qrl: Option<Rc<SerdesValue>>,
+	pub owner_items: Vec<Rc<SerdesValue>>,
+	pub id_base: String,
+}
+
+/// `[5, rangeId, deps, keyQrl, renderQrl, usesIndexSignal, null, null, indexSignals, idBase, rowShape]`
+#[derive(Debug)]
+pub struct ForBlockEffect {
+	pub range_id: u32,
+	pub deps: Vec<Rc<SerdesValue>>,
+	pub key_qrl: Rc<SerdesValue>,
+	pub render_qrl: Rc<SerdesValue>,
+	pub uses_index_signal: bool,
+	pub index_signals: Vec<Rc<SerdesValue>>,
+	pub id_base: String,
+	pub row_shape: u8,
+}
+
+/// `[7, rangeId, deps, args, qrl, ownerItems(empty), null, null, contextArg]`
+#[derive(Debug)]
+pub struct ContentEffect {
+	pub range_id: u32,
+	pub deps: Vec<Rc<SerdesValue>>,
+	pub args: Vec<Rc<SerdesValue>>,
+	pub qrl: Rc<SerdesValue>,
+	pub context_arg: bool,
 }
 
 /// Slot scope: projection lists keyed by slot name (TypeId 44, flat pairs on the wire).
@@ -66,7 +132,7 @@ pub struct StoreState {
 #[derive(Debug)]
 pub struct StoreRecord {
 	pub prop: String,
-	pub subs: Vec<EffectSubscription>,
+	pub subs: Vec<Rc<SerdesValue>>,
 }
 
 /// Component props with reactive sources (`_props`): statics read directly, sources track.
@@ -79,7 +145,7 @@ pub struct PropsValue {
 #[derive(Debug)]
 pub struct SignalState {
 	pub value: Rc<SerdesValue>,
-	pub subs: Vec<EffectSubscription>,
+	pub subs: Vec<Rc<SerdesValue>>,
 }
 
 #[derive(Debug)]
@@ -136,6 +202,8 @@ const TYPE_SET: u8 = 25;
 const TYPE_MAP: u8 = 26;
 const TYPE_UINT8ARRAY: u8 = 27;
 const TYPE_BIG_ARRAY: u8 = 46;
+const TYPE_TASK: u8 = 28;
+const TYPE_COMPUTED: u8 = 32;
 
 // Constants (serdes/constants.ts).
 const CONST_UNDEFINED: f64 = 0.0;
@@ -143,6 +211,8 @@ const CONST_NULL: f64 = 1.0;
 const CONST_TRUE: f64 = 2.0;
 const CONST_FALSE: f64 = 3.0;
 const CONST_EMPTY_STRING: f64 = 4.0;
+const CONST_EMPTY_ARRAY: f64 = 5.0;
+const CONST_NEEDS_COMPUTATION: f64 = 7.0;
 const CONST_NAN: f64 = 12.0;
 const CONST_INFINITY: f64 = 13.0;
 const CONST_NEG_INFINITY: f64 = 14.0;
@@ -207,7 +277,8 @@ fn is_dedup_eligible(value: &SerdesValue) -> bool {
 		SerdesValue::Undefined
 		| SerdesValue::Null
 		| SerdesValue::Bool(_)
-		| SerdesValue::Number(_) => false,
+		| SerdesValue::Number(_)
+		| SerdesValue::EmptyArray => false,
 		_ => true,
 	}
 }
@@ -222,6 +293,9 @@ pub struct Serializer {
 	roots: Vec<PendingRoot>,
 	index: HashMap<RootKey, usize>,
 	seen_paths: HashMap<RootKey, String>,
+	/// QRL *string* dedup (distinct objects, identical encoding) — specs/04.
+	qrl_index: HashMap<String, usize>,
+	qrl_seen: HashMap<String, String>,
 }
 
 impl Default for Serializer {
@@ -236,6 +310,8 @@ impl Serializer {
 			roots: Vec::new(),
 			index: HashMap::new(),
 			seen_paths: HashMap::new(),
+			qrl_index: HashMap::new(),
+			qrl_seen: HashMap::new(),
 		}
 	}
 
@@ -376,25 +452,80 @@ impl Serializer {
 				let mut pairs = Vec::new();
 				path.push(0);
 				push_pair(&mut pairs, self.write(&state.value, current_root, path));
-				for (position, subscription) in state.subs.iter().enumerate() {
+				for (position, sub) in state.subs.iter().enumerate() {
 					*path.last_mut().unwrap() = position + 1;
-					let payload = self.write_subscription(subscription, current_root, path);
-					push_pair(&mut pairs, (TYPE_EFFECT_SUBSCRIPTION, payload));
+					let pair = self.write(sub, current_root, path);
+					push_pair(&mut pairs, pair);
 				}
 				path.pop();
 				(TYPE_SIGNAL, Payload::Arr(pairs))
 			}
+			SerdesValue::EmptyArray => (TYPE_CONSTANT, Payload::Num(CONST_EMPTY_ARRAY)),
+			SerdesValue::Effect(effect) => {
+				let payload = self.write_effect(&effect.borrow(), current_root, path);
+				(TYPE_EFFECT_SUBSCRIPTION, payload)
+			}
+			SerdesValue::Task(task) => {
+				let mut pairs = Vec::new();
+				push_pair(&mut pairs, (TYPE_PLAIN, Payload::Num(task.phase as f64)));
+				path.push(1);
+				let qrl_pair = self.write(&task.qrl, current_root, path);
+				push_pair(&mut pairs, qrl_pair);
+				*path.last_mut().unwrap() = 2;
+				if task.deps.is_empty() {
+					push_pair(&mut pairs, (TYPE_CONSTANT, Payload::Num(CONST_EMPTY_ARRAY)));
+				} else {
+					let deps_pair = self.write_value_list(&task.deps, current_root, path);
+					push_pair(&mut pairs, deps_pair);
+				}
+				path.pop();
+				(TYPE_TASK, Payload::Arr(pairs))
+			}
+			SerdesValue::Computed(state) => {
+				let state = state.borrow();
+				let mut pairs = Vec::new();
+				path.push(0);
+				let qrl_pair = self.write(&state.qrl, current_root, path);
+				push_pair(&mut pairs, qrl_pair);
+				*path.last_mut().unwrap() = 1;
+				if state.deps.is_empty() {
+					push_pair(&mut pairs, (TYPE_CONSTANT, Payload::Num(CONST_EMPTY_ARRAY)));
+				} else {
+					let deps_pair = self.write_value_list(&state.deps, current_root, path);
+					push_pair(&mut pairs, deps_pair);
+				}
+				*path.last_mut().unwrap() = 2;
+				match &state.value {
+					Some(value) => {
+						let value_pair = self.write(value, current_root, path);
+						push_pair(&mut pairs, value_pair);
+					}
+					None => push_pair(
+						&mut pairs,
+						(TYPE_CONSTANT, Payload::Num(CONST_NEEDS_COMPUTATION)),
+					),
+				}
+				for (position, sub) in state.subs.iter().enumerate() {
+					*path.last_mut().unwrap() = 3 + position;
+					let pair = self.write(sub, current_root, path);
+					push_pair(&mut pairs, pair);
+				}
+				path.pop();
+				(TYPE_COMPUTED, Payload::Arr(pairs))
+			}
 			SerdesValue::Props(props) => {
 				let mut statics_pairs = Vec::new();
 				for (position, (key, item)) in props.statics.iter().enumerate() {
-					push_pair(&mut statics_pairs, write_object_key(key));
+					let key_pair = self.write_key(key, current_root, path, position * 2);
+					push_pair(&mut statics_pairs, key_pair);
 					path.push(position * 2 + 1);
 					push_pair(&mut statics_pairs, self.write(item, current_root, path));
 					path.pop();
 				}
 				let mut sources_pairs = Vec::new();
 				for (position, (key, source)) in props.sources.iter().enumerate() {
-					push_pair(&mut sources_pairs, write_object_key(key));
+					let key_pair = self.write_key(key, current_root, path, position * 2);
+					push_pair(&mut sources_pairs, key_pair);
 					path.push(position * 2 + 1);
 					push_pair(&mut sources_pairs, self.write(source, current_root, path));
 					path.pop();
@@ -424,9 +555,9 @@ impl Serializer {
 								path,
 							),
 						);
-						for subscription in &record.subs {
-							let payload = self.write_subscription(subscription, current_root, path);
-							push_pair(&mut items, (TYPE_EFFECT_SUBSCRIPTION, payload));
+						for sub in &record.subs {
+							let pair = self.write(sub, current_root, path);
+							push_pair(&mut items, pair);
 						}
 						push_pair(&mut record_pairs, (TYPE_ARRAY, Payload::Arr(items)));
 					}
@@ -509,56 +640,178 @@ impl Serializer {
 					encoded.push_str(&(capture_id - previous).to_string());
 					previous = capture_id;
 				}
+				// distinct QRL objects with identical encodings dedup by string (specs/04)
+				if let Some(&existing) = self.qrl_index.get(&encoded) {
+					return (TYPE_ROOT_REF, Payload::Num(existing as f64));
+				}
+				if let Some(first_path) = self.qrl_seen.get(&encoded) {
+					let id = self.roots.len();
+					self.roots.push(PendingRoot::Backref(first_path.clone()));
+					self.qrl_index.insert(encoded, id);
+					return (TYPE_ROOT_REF, Payload::Num(id as f64));
+				}
+				let joined = path
+					.iter()
+					.map(|segment| segment.to_string())
+					.collect::<Vec<_>>()
+					.join(" ");
+				self.qrl_seen.insert(encoded.clone(), joined);
 				(TYPE_QRL, Payload::Str(encoded))
 			}
 		}
 	}
 
-	fn write_subscription(
+	fn write_effect(
 		&mut self,
-		subscription: &EffectSubscription,
+		effect: &EffectValue,
 		current_root: usize,
 		path: &mut Vec<usize>,
 	) -> Payload {
 		let mut pairs = Vec::new();
-		push_pair(
-			&mut pairs,
-			(TYPE_PLAIN, Payload::Num(subscription.kind as f64)),
-		);
-		push_pair(
-			&mut pairs,
-			(TYPE_PLAIN, Payload::Num(subscription.target_kind as f64)),
-		);
-		push_pair(
-			&mut pairs,
-			(TYPE_PLAIN, Payload::Num(subscription.target_id as f64)),
-		);
-		if let Some(marker_index) = subscription.marker_index {
-			push_pair(&mut pairs, (TYPE_PLAIN, Payload::Num(marker_index as f64)));
+		let mut logical = 0usize;
+		macro_rules! plain {
+			($value:expr) => {{
+				push_pair(&mut pairs, (TYPE_PLAIN, Payload::Num($value as f64)));
+				logical += 1;
+			}};
 		}
-		let deps_pair = self.write_value_list(&subscription.deps, current_root, path);
-		push_pair(&mut pairs, deps_pair);
-		if let Some(attr_name) = &subscription.attr_name {
-			let name_pair = self.write(
-				&Rc::new(SerdesValue::String(attr_name.clone())),
-				current_root,
-				path,
-			);
-			push_pair(&mut pairs, name_pair);
+		macro_rules! constant {
+			($value:expr) => {{
+				push_pair(&mut pairs, (TYPE_CONSTANT, Payload::Num($value)));
+				logical += 1;
+			}};
 		}
-		if let Some(args) = &subscription.args {
-			let args_pair = self.write_value_list(args, current_root, path);
-			push_pair(&mut pairs, args_pair);
+		macro_rules! child {
+			($value:expr) => {{
+				path.push(logical);
+				let pair = self.write($value, current_root, path);
+				path.pop();
+				push_pair(&mut pairs, pair);
+				logical += 1;
+			}};
 		}
-		if let Some(qrl) = &subscription.qrl {
-			let qrl_pair = self.write(qrl, current_root, path);
-			push_pair(&mut pairs, qrl_pair);
+		macro_rules! list {
+			($values:expr) => {{
+				if $values.is_empty() {
+					constant!(CONST_EMPTY_ARRAY);
+				} else {
+					path.push(logical);
+					let pair = self.write_value_list($values, current_root, path);
+					path.pop();
+					push_pair(&mut pairs, pair);
+					logical += 1;
+				}
+			}};
 		}
-		if subscription.attr_name.is_some() {
-			// Attr styleScopedId slot — scoped styles unsupported, always null
-			push_pair(&mut pairs, (TYPE_CONSTANT, Payload::Num(CONST_NULL)));
+		macro_rules! text {
+			($value:expr) => {{
+				path.push(logical);
+				let pair = self.write(
+					&Rc::new(SerdesValue::String($value.clone())),
+					current_root,
+					path,
+				);
+				path.pop();
+				push_pair(&mut pairs, pair);
+				logical += 1;
+			}};
 		}
+		match effect {
+			EffectValue::Scalar(scalar) => {
+				plain!(scalar.kind);
+				plain!(scalar.target_kind);
+				plain!(scalar.target_id);
+				if let Some(marker_index) = scalar.marker_index {
+					plain!(marker_index);
+				}
+				list!(&scalar.deps);
+				if let Some(attr_name) = &scalar.attr_name {
+					text!(attr_name);
+				}
+				if let Some(args) = &scalar.args {
+					list!(args);
+				}
+				if let Some(qrl) = &scalar.qrl {
+					child!(qrl);
+				}
+				if scalar.attr_name.is_some() {
+					// Attr styleScopedId slot — scoped styles unsupported, always null
+					constant!(CONST_NULL);
+				}
+			}
+			EffectValue::Branch(branch) => {
+				plain!(3u8);
+				plain!(branch.range_id);
+				plain!(branch.current_branch);
+				list!(&branch.deps);
+				child!(&branch.condition_qrl);
+				child!(&branch.then_qrl);
+				match &branch.else_qrl {
+					Some(else_qrl) => child!(else_qrl),
+					None => constant!(CONST_NULL),
+				}
+				list!(&branch.owner_items);
+				constant!(CONST_NULL); // slotScope
+				constant!(CONST_NULL); // useOnScopes
+				text!(branch.id_base);
+			}
+			EffectValue::ForBlock(for_block) => {
+				plain!(5u8);
+				plain!(for_block.range_id);
+				list!(&for_block.deps);
+				child!(&for_block.key_qrl);
+				child!(&for_block.render_qrl);
+				constant!(if for_block.uses_index_signal {
+					CONST_TRUE
+				} else {
+					CONST_FALSE
+				});
+				constant!(CONST_NULL); // slotScope
+				constant!(CONST_NULL); // reserved slot 7
+				list!(&for_block.index_signals);
+				text!(for_block.id_base);
+				plain!(for_block.row_shape);
+			}
+			EffectValue::Content(content) => {
+				plain!(7u8);
+				plain!(content.range_id);
+				list!(&content.deps);
+				list!(&content.args);
+				child!(&content.qrl);
+				constant!(CONST_EMPTY_ARRAY); // ownerItems
+				constant!(CONST_NULL); // slotScope
+				constant!(CONST_NULL); // useOnScopes
+				constant!(if content.context_arg {
+					CONST_TRUE
+				} else {
+					CONST_FALSE
+				});
+			}
+		}
+		let _ = logical;
 		Payload::Arr(pairs)
+	}
+
+	/// Object-literal / Props-statics key: numeric-folded, else the full string machinery
+	/// (interning + dedup — keys share roots with equal value strings).
+	fn write_key(
+		&mut self,
+		key: &str,
+		current_root: usize,
+		path: &mut Vec<usize>,
+		logical: usize,
+	) -> (u8, Payload) {
+		if is_foldable_numeric_key(key) {
+			return (TYPE_PLAIN, Payload::Num(key.parse::<f64>().unwrap()));
+		}
+		path.push(logical);
+		let pair = self.write(
+			&Rc::new(SerdesValue::String(key.to_string())),
+			current_root,
+			path,
+		);
+		path.pop();
+		pair
 	}
 
 	fn write_value_list(
@@ -630,9 +883,9 @@ impl Serializer {
 		let ordered = js_property_order(entries);
 		let mut pairs = Vec::with_capacity(ordered.len() * 4);
 		for (position, (object_key, object_value)) in ordered.iter().enumerate() {
-			path.push(position * 2);
-			push_pair(&mut pairs, write_object_key(object_key));
-			*path.last_mut().unwrap() = position * 2 + 1;
+			let key_pair = self.write_key(object_key, current_root, path, position * 2);
+			push_pair(&mut pairs, key_pair);
+			path.push(position * 2 + 1);
 			push_pair(&mut pairs, self.write(object_value, current_root, path));
 			path.pop();
 		}
@@ -679,22 +932,6 @@ fn write_number(number: f64) -> (u8, Payload) {
 		return (TYPE_CONSTANT, Payload::Num(CONST_MIN_SAFE_INT));
 	}
 	(TYPE_PLAIN, Payload::Num(number))
-}
-
-/// Object-literal key: numeric-folded per `/^-?[1-9][0-9]*$/ && length < 8`, else a string
-/// through the constant table (never deduped here — keys are written fresh each time).
-fn write_object_key(key: &str) -> (u8, Payload) {
-	if is_foldable_numeric_key(key) {
-		return (TYPE_PLAIN, Payload::Num(key.parse::<f64>().unwrap()));
-	}
-	match key {
-		"" => (TYPE_CONSTANT, Payload::Num(CONST_EMPTY_STRING)),
-		":" => (TYPE_CONSTANT, Payload::Num(CONST_COLON)),
-		"." => (TYPE_CONSTANT, Payload::Num(CONST_DOT)),
-		"id" => (TYPE_CONSTANT, Payload::Num(CONST_ID)),
-		"ref" => (TYPE_CONSTANT, Payload::Num(CONST_REF)),
-		_ => (TYPE_PLAIN, Payload::Str(key.to_string())),
-	}
 }
 
 fn is_foldable_numeric_key(key: &str) -> bool {

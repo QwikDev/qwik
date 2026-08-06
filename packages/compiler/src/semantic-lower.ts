@@ -1631,6 +1631,12 @@ class SemanticLowerer {
             kind: 'direct-reactive' as const,
             expression: sourceRange,
             source: directSource,
+            // the signal-container read native engines iterate (tracked at render)
+            ...this.namedValueIr(
+              'ir',
+              ((unwrapExpression(collection.source) as { object?: AstNode }).object ??
+                collection.source) as AstNode
+            ),
           }
         : this.isStaticCollectionSource(collection.source, sourceRange)
           ? {

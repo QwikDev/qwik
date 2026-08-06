@@ -80,6 +80,15 @@ fn component_has_props(plan: &Json, component_index: usize) -> bool {
 		.is_some_and(|bindings| !bindings.is_empty())
 }
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+enum LocalKind {
+	Signal,
+	Store,
+	Computed,
+	IndexSignal,
+	PlainValue,
+}
+
 struct ComponentGenerator<'plan> {
 	plan: &'plan Json,
 	module_index: usize,
@@ -87,6 +96,12 @@ struct ComponentGenerator<'plan> {
 	statics: String,
 	/// Setup binding id → generated local variable name.
 	locals: HashMap<u64, String>,
+	/// Setup binding id → reactive kind (drives read codegen).
+	local_kinds: HashMap<u64, LocalKind>,
+	/// Computed binding → body ValueIR (evaluated lazily at read sites).
+	computed_bodies: HashMap<u64, Json>,
+	/// Next element op opens a For row root (`q:row` attribute).
+	pending_row_root: bool,
 	/// Plan element id → generated runtime-id variable name.
 	element_ids: HashMap<u64, String>,
 	temp_counter: usize,
@@ -115,6 +130,9 @@ pub fn generate_component(plan: &Json, component_index: usize) -> Result<String,
 		body: String::new(),
 		statics: String::new(),
 		locals: HashMap::new(),
+		local_kinds: HashMap::new(),
+		computed_bodies: HashMap::new(),
+		pending_row_root: false,
 		element_ids: HashMap::new(),
 		temp_counter: 0,
 		uses_ctx: false,
@@ -194,6 +212,7 @@ impl ComponentGenerator<'_> {
 				)
 				.unwrap();
 				self.locals.insert(binding, variable);
+				self.local_kinds.insert(binding, LocalKind::Signal);
 				Ok(())
 			}
 			"store" => {
@@ -210,6 +229,45 @@ impl ComponentGenerator<'_> {
 				)
 				.unwrap();
 				self.locals.insert(binding, variable);
+				self.local_kinds.insert(binding, LocalKind::Store);
+				Ok(())
+			}
+			"computed" => {
+				let binding = entry["local"].as_u64().ok_or("computed op has no local")?;
+				let segment = entry["segment"]
+					.as_str()
+					.ok_or("computed op has no segment")?;
+				if entry["body"].is_null() {
+					return Err("computed without a lowered body".to_string());
+				}
+				let variable = format!("local_{binding}");
+				let qrl = self.qrl_expression(segment, true)?;
+				self.uses_ctx = true;
+				writeln!(
+					self.body,
+					"    let {variable} = qwik_ssr_rt::render::new_computed({qrl});"
+				)
+				.unwrap();
+				self.locals.insert(binding, variable);
+				self.local_kinds.insert(binding, LocalKind::Computed);
+				self.computed_bodies.insert(binding, entry["body"].clone());
+				Ok(())
+			}
+			"task" => {
+				let segment = entry["segment"].as_str().ok_or("task op has no segment")?;
+				let steps = entry["body"]["steps"]
+					.as_array()
+					.ok_or("task without a lowered body")?
+					.clone();
+				let qrl = self.qrl_expression(segment, true)?;
+				let mut body = String::new();
+				self.task_steps(&steps, "tracked", &mut body)?;
+				self.uses_ctx = true;
+				writeln!(
+					self.body,
+					"    ctx.run_task(0, {qrl}, |tracked| {{\n{body}    }});"
+				)
+				.unwrap();
 				Ok(())
 			}
 			op => Err(format!("setup op {op:?} not supported yet")),
@@ -228,6 +286,9 @@ impl ComponentGenerator<'_> {
 				"dyn" => self.write_dynamic(op, target)?,
 				"component" => self.write_component(op, target)?,
 				"slot" => self.write_slot(op, target)?,
+				"branch" => self.write_branch(op, target)?,
+				"collection" => self.write_collection(op, target)?,
+				"content" => self.write_content(op, target)?,
 				kind => return Err(format!("op {kind:?} not supported yet")),
 			}
 		}
@@ -248,6 +309,7 @@ impl ComponentGenerator<'_> {
 			.ok_or("element children missing")?;
 		let has_events = props.iter().any(|prop| prop["p"].as_str() == Some("event"));
 
+		let row_root = std::mem::take(&mut self.pending_row_root);
 		let id_variable = if op["id"].is_null() {
 			None
 		} else {
@@ -259,6 +321,11 @@ impl ComponentGenerator<'_> {
 			self.element_ids.insert(plan_id, variable.clone());
 			Some(variable)
 		};
+		let id_attr = if row_root {
+			" q:id=\\\"{}\\\" q:row"
+		} else {
+			" q:id=\\\"{}\\\""
+		};
 
 		if !has_events {
 			self.statics.push('<');
@@ -267,7 +334,7 @@ impl ComponentGenerator<'_> {
 				self.flush_statics(target);
 				writeln!(
 					self.body,
-					"    {target}.push_str(&format!(\" q:id=\\\"{{}}\\\"\", {variable}));"
+					"    {target}.push_str(&format!(\"{id_attr}\", {variable}));"
 				)
 				.unwrap();
 			}
@@ -287,10 +354,13 @@ impl ComponentGenerator<'_> {
 
 		// events resolve at record assembly, AFTER children — QRL roots must follow value roots
 		self.flush_statics(target);
+		let has_children = !children.is_empty();
 		let children_buffer = format!("children_{}", self.next_temp());
-		writeln!(self.body, "    let mut {children_buffer} = String::new();").unwrap();
-		self.write_ops(children, &children_buffer)?;
-		self.flush_statics(&children_buffer);
+		if has_children {
+			writeln!(self.body, "    let mut {children_buffer} = String::new();").unwrap();
+			self.write_ops(children, &children_buffer)?;
+			self.flush_statics(&children_buffer);
+		}
 
 		self.statics.push('<');
 		self.statics.push_str(tag);
@@ -298,7 +368,7 @@ impl ComponentGenerator<'_> {
 		if let Some(variable) = &id_variable {
 			writeln!(
 				self.body,
-				"    {target}.push_str(&format!(\" q:id=\\\"{{}}\\\"\", {variable}));"
+				"    {target}.push_str(&format!(\"{id_attr}\", {variable}));"
 			)
 			.unwrap();
 		}
@@ -314,7 +384,9 @@ impl ComponentGenerator<'_> {
 		}
 		self.statics.push('>');
 		self.flush_statics(target);
-		writeln!(self.body, "    {target}.push_str(&{children_buffer});").unwrap();
+		if has_children {
+			writeln!(self.body, "    {target}.push_str(&{children_buffer});").unwrap();
+		}
 		if !op["void"].as_bool().unwrap_or(false) {
 			self.statics.push_str(&format!("</{tag}>"));
 		}
@@ -417,9 +489,6 @@ impl ComponentGenerator<'_> {
 		let reference = op["target"]["ref"]
 			.as_u64()
 			.ok_or("component op is not linked to a ref")? as usize;
-		if !op["slots"].as_array().is_none_or(|slots| slots.is_empty()) {
-			return Err("component slots not supported yet".to_string());
-		}
 		if !op["propsSource"].is_null() {
 			return Err("component propsSource not supported yet".to_string());
 		}
@@ -613,6 +682,274 @@ impl ComponentGenerator<'_> {
 		result
 	}
 
+	fn write_branch(&mut self, op: &Json, target: &str) -> Result<(), String> {
+		if !op["idBase"].is_null() {
+			return Err("branch idBase not supported yet".to_string());
+		}
+		let condition_ir = &op["conditionIr"];
+		if condition_ir.is_null() {
+			return Err("branch without a lowered condition".to_string());
+		}
+		let condition_segment = op["condition"]
+			.as_str()
+			.ok_or("branch has no condition segment")?;
+		let then_segment = op["then"]["segment"]
+			.as_str()
+			.ok_or("branch then arm has no segment")?
+			.to_string();
+		let else_fn = &op["else"];
+		self.uses_ctx = true;
+		self.flush_statics(target);
+		let temp = self.next_temp();
+		let range = format!("branch_range_{temp}");
+		let tracked = format!("tracked_{temp}");
+		let effect = format!("branch_effect_{temp}");
+		writeln!(self.body, "    let {range} = ctx.next_id();").unwrap();
+		writeln!(
+			self.body,
+			"    {target}.push_str(&format!(\"<!b={{}}>\", {range}));"
+		)
+		.unwrap();
+		for capture in self.segment_captures(condition_segment)? {
+			writeln!(
+				self.body,
+				"    ctx.serializer.add_root(std::rc::Rc::clone(&{capture}));"
+			)
+			.unwrap();
+		}
+		let condition_expression = self.ir_expression(condition_ir, &format!("&mut {tracked}"))?;
+		let condition_qrl = self.qrl_expression(condition_segment, true)?;
+		let then_qrl = self.qrl_expression(&then_segment, true)?;
+		let else_qrl = match else_fn["segment"].as_str() {
+			Some(else_segment) => format!("Some({})", self.qrl_expression(else_segment, true)?),
+			None => "None".to_string(),
+		};
+		writeln!(
+			self.body,
+			"    let mut {tracked}: Vec<std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>> = Vec::new();\n    \
+			 let branch_taken_{temp} = qwik_ssr_rt::render::truthy(&{condition_expression});\n    \
+			 let {effect} = ctx.create_branch_effect({range}, if branch_taken_{temp} {{ 0 }} else {{ 1 }}, {tracked}.clone(), {condition_qrl}, {then_qrl}, {else_qrl});\n    \
+			 ctx.push_owner();"
+		)
+		.unwrap();
+		writeln!(self.body, "    if branch_taken_{temp} {{").unwrap();
+		self.write_render_fn_ops(&op["then"], target)?;
+		self.flush_statics(target);
+		writeln!(self.body, "    }} else {{").unwrap();
+		if !else_fn.is_null() {
+			self.write_render_fn_ops(else_fn, target)?;
+			self.flush_statics(target);
+		}
+		writeln!(self.body, "    }}").unwrap();
+		writeln!(
+			self.body,
+			"    qwik_ssr_rt::render::SsrContext::set_branch_owner_items(&{effect}, ctx.pop_owner());"
+		)
+		.unwrap();
+		self.statics.push_str("<!/b>");
+		Ok(())
+	}
+
+	/// Generate a nested render fn's ops inline (fresh element-id scope, same output target).
+	fn write_render_fn_ops(&mut self, render_fn: &Json, target: &str) -> Result<(), String> {
+		let ops = render_fn["ops"]
+			.as_array()
+			.ok_or("render fn ops missing")?
+			.clone();
+		let saved_elements = std::mem::take(&mut self.element_ids);
+		let result = self.write_ops(&ops, target);
+		self.flush_statics(target);
+		self.element_ids = saved_elements;
+		result
+	}
+
+	fn write_collection(&mut self, op: &Json, target: &str) -> Result<(), String> {
+		if !op["idBase"].is_null() {
+			return Err("collection idBase not supported yet".to_string());
+		}
+		if op["usesRowId"].as_bool() == Some(true) {
+			return Err("row-id collections not supported yet".to_string());
+		}
+		let source = &op["source"];
+		if source["kind"].as_str() != Some("direct-reactive") {
+			return Err(format!("collection source {source} not supported yet"));
+		}
+		let source_ir = &source["ir"];
+		if source_ir["k"].as_str() != Some("binding-read") {
+			return Err("collection source without a signal-container read".to_string());
+		}
+		let source_signal = self.signal_local(source_ir)?;
+		let key_segment = op["key"]
+			.as_str()
+			.ok_or("keyless collections not supported yet")?;
+		let row = &op["row"]["segment"];
+		if row.is_null() {
+			return Err("inline collection rows not supported yet".to_string());
+		}
+		let uses_index_signal = op["usesIndexSignal"].as_bool() == Some(true);
+		let row_shape = op["rowShape"]
+			.as_u64()
+			.ok_or("collection rowShape missing")?;
+		let param_bindings: Vec<u64> = row["paramBindings"]
+			.as_array()
+			.ok_or("segment row without paramBindings")?
+			.iter()
+			.map(|binding| binding.as_u64().ok_or("row param binding not a number"))
+			.collect::<Result<_, _>>()?;
+		self.uses_ctx = true;
+		self.flush_statics(target);
+		let temp = self.next_temp();
+		let range = format!("for_range_{temp}");
+		let tracked = format!("tracked_{temp}");
+		let effect = format!("for_effect_{temp}");
+		let key_qrl = self.qrl_expression(key_segment, true)?;
+		let render_qrl = self.qrl_expression(
+			row["segment"].as_str().ok_or("row segment id missing")?,
+			true,
+		)?;
+		writeln!(
+			self.body,
+			"    let {range} = ctx.next_id();\n    \
+			 {target}.push_str(&format!(\"<!f={{}}>\", {range}));\n    \
+			 let mut {tracked}: Vec<std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>> = Vec::new();\n    \
+			 let items_{temp} = qwik_ssr_rt::render::tracked_array_items(&{source_signal}, &mut {tracked});\n    \
+			 let {effect} = ctx.create_for_effect({range}, {tracked}.clone(), {key_qrl}, {render_qrl}, {uses_index_signal}, {row_shape});\n    \
+			 let mut rows_{temp}: Vec<std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>> = Vec::new();\n    \
+			 for (row_index_{temp}, row_item_{temp}) in items_{temp}.iter().enumerate() {{"
+		)
+		.unwrap();
+		// row params: item value, then the per-row index signal
+		let item_variable = format!("row_item_value_{temp}");
+		writeln!(
+			self.body,
+			"    let {item_variable} = std::rc::Rc::clone(row_item_{temp});"
+		)
+		.unwrap();
+		if let Some(item_binding) = param_bindings.first() {
+			self.locals.insert(*item_binding, item_variable.clone());
+			self.local_kinds
+				.insert(*item_binding, LocalKind::PlainValue);
+		}
+		if uses_index_signal {
+			let index_variable = format!("row_index_signal_{temp}");
+			writeln!(
+				self.body,
+				"    let {index_variable} = qwik_ssr_rt::render::new_signal(std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Number(row_index_{temp} as f64)));\n    \
+				 ctx.serializer.add_root(std::rc::Rc::clone(&{index_variable}));\n    \
+				 qwik_ssr_rt::render::SsrContext::add_index_signal(&{effect}, std::rc::Rc::clone(&{index_variable}));"
+			)
+			.unwrap();
+			if let Some(index_binding) = param_bindings.get(1) {
+				self.locals.insert(*index_binding, index_variable.clone());
+				self.local_kinds
+					.insert(*index_binding, LocalKind::IndexSignal);
+			}
+		}
+		writeln!(self.body, "    ctx.push_owner();").unwrap();
+		self.pending_row_root = true;
+		self.write_render_fn_ops(row, target)?;
+		self.pending_row_root = false;
+		writeln!(
+			self.body,
+			"    rows_{temp}.push(std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Array(ctx.pop_owner())));\n    \
+			 }}\n    \
+			 ctx.push_owner_item(std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Array(rows_{temp})));"
+		)
+		.unwrap();
+		self.statics.push_str("<!/f>");
+		Ok(())
+	}
+
+	fn write_content(&mut self, op: &Json, target: &str) -> Result<(), String> {
+		let segment_id = op["segment"].as_str().ok_or("content op has no segment")?;
+		let ir = &op["value"]["ir"];
+		if ir.is_null() {
+			return Err(format!("content op {segment_id:?} without a lowered value"));
+		}
+		if op["root"].as_bool() == Some(true) {
+			return Err("root content ops not supported yet".to_string());
+		}
+		self.uses_ctx = true;
+		self.flush_statics(target);
+		let temp = self.next_temp();
+		let range = format!("content_range_{temp}");
+		let tracked = format!("tracked_{temp}");
+		let captures = self.segment_captures(segment_id)?;
+		let mut args = String::new();
+		for capture in &captures {
+			write!(args, "std::rc::Rc::clone(&{capture}), ").unwrap();
+		}
+		writeln!(self.body, "    let {range} = ctx.next_id();").unwrap();
+		writeln!(
+			self.body,
+			"    {target}.push_str(&format!(\"<!d={{}}>\", {range}));"
+		)
+		.unwrap();
+		for capture in &captures {
+			writeln!(
+				self.body,
+				"    ctx.serializer.add_root(std::rc::Rc::clone(&{capture}));"
+			)
+			.unwrap();
+		}
+		let expression = self.ir_expression(ir, &format!("&mut {tracked}"))?;
+		let qrl = self.qrl_expression(segment_id, false)?;
+		writeln!(
+			self.body,
+			"    let mut {tracked}: Vec<std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>> = Vec::new();\n    \
+			 let content_value_{temp} = {expression};\n    \
+			 ctx.create_content_effect({range}, {tracked}, vec![{args}], {qrl});\n    \
+			 {target}.push_str(&qwik_ssr_rt::render::escape_ssr_content(&content_value_{temp}));"
+		)
+		.unwrap();
+		self.statics.push_str("<!/d>");
+		Ok(())
+	}
+
+	fn task_steps(
+		&mut self,
+		steps: &[Json],
+		tracked: &str,
+		output: &mut String,
+	) -> Result<(), String> {
+		for step in steps {
+			match step["s"].as_str().ok_or("task step has no kind")? {
+				"if" => {
+					let test = self.ir_expression(&step["test"], tracked)?;
+					writeln!(output, "        if qwik_ssr_rt::render::truthy(&{test}) {{").unwrap();
+					let then_steps = step["then"]
+						.as_array()
+						.ok_or("if step has no then")?
+						.clone();
+					self.task_steps(&then_steps, tracked, output)?;
+					writeln!(output, "        }}").unwrap();
+					if let Some(else_steps) =
+						step["else"].as_array().filter(|steps| !steps.is_empty())
+					{
+						let else_steps = else_steps.clone();
+						writeln!(output, "        else {{").unwrap();
+						self.task_steps(&else_steps, tracked, output)?;
+						writeln!(output, "        }}").unwrap();
+					}
+				}
+				"set-signal" => {
+					let binding = step["binding"]
+						.as_u64()
+						.ok_or("set-signal has no binding")?;
+					let signal = self.local(binding)?;
+					let value = self.ir_expression(&step["value"], tracked)?;
+					writeln!(
+						output,
+						"        qwik_ssr_rt::render::set_signal_value(&{signal}, {value});"
+					)
+					.unwrap();
+				}
+				kind => return Err(format!("task step {kind:?} not supported yet")),
+			}
+		}
+		Ok(())
+	}
+
 	fn write_dynamic(&mut self, op: &Json, target: &str) -> Result<(), String> {
 		if op["output"].as_str() != Some("text") {
 			return Err("dynamic content output not supported yet".to_string());
@@ -642,6 +979,45 @@ impl ComponentGenerator<'_> {
 		self.flush_statics(target);
 
 		let ir = &op["value"]["ir"];
+		if ir["k"].as_str() == Some("signal-read")
+			&& self
+				.local_kinds
+				.get(&ir["binding"].as_u64().unwrap_or(u64::MAX))
+				== Some(&LocalKind::Computed)
+		{
+			// computed fast path: evaluate lazily, subscribe the effect on the computed itself
+			let binding = ir["binding"].as_u64().ok_or("signal-read has no binding")?;
+			let computed = self.local(binding)?;
+			let body_ir = self
+				.computed_bodies
+				.get(&binding)
+				.ok_or("computed body missing")?
+				.clone();
+			let temp = self.next_temp();
+			let inner_tracked = format!("computed_tracked_{temp}");
+			let body_expression = self.ir_expression(&body_ir, &inner_tracked)?;
+			let subscribe = if is_range {
+				let marker = plan_target["marker"]
+					.as_u64()
+					.ok_or("range target has no marker")?;
+				format!("ctx.subscribe_range_text(&{computed}, {element_variable}, {marker});")
+			} else {
+				format!("ctx.subscribe_element_text(&{computed}, {element_variable});")
+			};
+			writeln!(
+				self.body,
+				"    ctx.serializer.add_root(std::rc::Rc::clone(&{computed}));\n    \
+				 let computed_value_{temp} = qwik_ssr_rt::render::computed_read(&{computed}, |{inner_tracked}| {{\n        \
+				 {body_expression}\n    \
+				 }});\n    {subscribe}\n    \
+				 {target}.push_str(&qwik_ssr_rt::escape::escape_html(&qwik_ssr_rt::render::value_text(&computed_value_{temp})));"
+			)
+			.unwrap();
+			if is_range {
+				self.statics.push_str("<!/t>");
+			}
+			return Ok(());
+		}
 		if ir["k"].as_str() == Some("signal-read") {
 			let signal = self.signal_local(ir)?;
 			let subscribe = if is_range {
@@ -675,7 +1051,7 @@ impl ComponentGenerator<'_> {
 			let temp = self.next_temp();
 			let tracked = format!("tracked_{temp}");
 			let value = format!("value_{temp}");
-			let expression = self.ir_expression(ir, &tracked)?;
+			let expression = self.ir_expression(ir, &format!("&mut {tracked}"))?;
 			let qrl = self.qrl_expression(segment_id, false)?;
 			let subscribe = if is_range {
 				let marker = plan_target["marker"]
@@ -779,23 +1155,58 @@ impl ComponentGenerator<'_> {
 	fn ir_expression(&mut self, ir: &Json, tracked: &str) -> Result<String, String> {
 		match ir["k"].as_str().ok_or("ir node has no kind")? {
 			"signal-read" => {
-				let signal = self.signal_local(ir)?;
+				let binding = ir["binding"].as_u64().ok_or("signal-read has no binding")?;
+				let signal = self.local(binding)?;
+				if self.local_kinds.get(&binding) == Some(&LocalKind::Computed) {
+					return Err("computed reads inside expressions not supported yet".to_string());
+				}
 				Ok(format!(
-					"qwik_ssr_rt::render::tracked_signal_value(&{signal}, &mut {tracked})"
+					"qwik_ssr_rt::render::tracked_signal_value(&{signal}, {tracked})"
 				))
 			}
-			"member" => {
-				let object = &ir["obj"];
-				if object["k"].as_str() != Some("binding-read") {
-					return Err(format!("member of {object} not supported yet"));
-				}
-				let binding = object["binding"]
+			"binding-read" => {
+				let binding = ir["binding"]
 					.as_u64()
 					.ok_or("binding-read has no binding")?;
 				let variable = self.local(binding)?;
+				match self.local_kinds.get(&binding) {
+					Some(LocalKind::IndexSignal) => Ok(format!(
+						"qwik_ssr_rt::render::tracked_signal_value(&{variable}, {tracked})"
+					)),
+					Some(LocalKind::PlainValue) => Ok(format!("std::rc::Rc::clone(&{variable})")),
+					kind => Err(format!(
+						"binding-read of kind {:?} not supported in expressions",
+						kind.is_some()
+					)),
+				}
+			}
+			"member" => {
+				let object = &ir["obj"];
 				let name = ir["name"].as_str().ok_or("member has no name")?;
+				if object["k"].as_str() == Some("binding-read") {
+					let binding = object["binding"]
+						.as_u64()
+						.ok_or("binding-read has no binding")?;
+					let variable = self.local(binding)?;
+					match self.local_kinds.get(&binding) {
+						Some(LocalKind::Store) | None => {
+							return Ok(format!(
+								"qwik_ssr_rt::render::member_read(&{variable}, {name:?}, {tracked})"
+							));
+						}
+						Some(LocalKind::PlainValue) => {
+							return Ok(format!(
+								"qwik_ssr_rt::render::value_member(&{variable}, {name:?})"
+							));
+						}
+						_ => {
+							return Err(format!("member on binding kind not supported: {object}"));
+						}
+					}
+				}
+				let object_expression = self.ir_expression(object, tracked)?;
 				Ok(format!(
-					"qwik_ssr_rt::render::member_read(&{variable}, {name:?}, &mut {tracked})"
+					"qwik_ssr_rt::render::value_member(&{object_expression}, {name:?})"
 				))
 			}
 			"lit" => Ok(format!("std::rc::Rc::new({})", literal_expression(ir)?)),
@@ -807,9 +1218,26 @@ impl ComponentGenerator<'_> {
 				let right = self.ir_expression(&ir["b"], tracked)?;
 				let helper = match ir["op"].as_str().ok_or("bin op missing")? {
 					"+" => "js_add",
+					"*" => "js_mul",
+					"===" => "js_strict_eq",
 					op => return Err(format!("binary operator {op:?} not supported yet")),
 				};
 				Ok(format!("qwik_ssr_rt::render::{helper}(&{left}, &{right})"))
+			}
+			"call" => {
+				let fn_id = ir["fn"].as_str().ok_or("call has no fn")?;
+				let recv = &ir["recv"];
+				if recv.is_null() {
+					return Err("receiver-less plugin calls not supported yet".to_string());
+				}
+				let recv_expression = self.ir_expression(recv, tracked)?;
+				let mut args = String::new();
+				for arg in ir["args"].as_array().ok_or("call args missing")? {
+					write!(args, "{}, ", self.ir_expression(arg, tracked)?).unwrap();
+				}
+				Ok(format!(
+					"qwik_ssr_std::call({fn_id:?}, &{recv_expression}, &[{args}])"
+				))
 			}
 			kind => Err(format!("ir kind {kind:?} not supported yet")),
 		}
@@ -844,6 +1272,17 @@ fn literal_expression(ir: &Json) -> Result<String, String> {
 	match ir["k"].as_str().ok_or("ir node has no kind")? {
 		"lit" => json_literal_expression(&ir["v"]),
 		"undef" => Ok("qwik_ssr_rt::serdes::SerdesValue::Undefined".to_string()),
+		"array" => {
+			let mut items = String::new();
+			for item in ir["items"].as_array().ok_or("array ir items missing")? {
+				use std::fmt::Write as _;
+				write!(items, "std::rc::Rc::new({}), ", literal_expression(item)?).unwrap();
+			}
+			Ok(format!(
+				"qwik_ssr_rt::serdes::SerdesValue::Array(vec![{items}])"
+			))
+		}
+		"object" => object_literal_expression(ir),
 		kind => Err(format!("setup ir {kind:?} not supported yet")),
 	}
 }

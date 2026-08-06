@@ -94,6 +94,7 @@ version = "0.0.0"
 dependencies = [
  "qwik-ssr-gen",
  "qwik-ssr-rt",
+ "qwik-ssr-std",
  "serde_json",
 ]
 
@@ -111,6 +112,13 @@ dependencies = [
  "num-bigint",
  "ryu-js",
  "serde_json",
+]
+
+[[package]]
+name = "qwik-ssr-std"
+version = "0.0.0"
+dependencies = [
+ "qwik-ssr-rt",
 ]
 
 [[package]]

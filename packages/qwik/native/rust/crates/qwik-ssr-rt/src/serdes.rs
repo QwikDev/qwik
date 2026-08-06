@@ -263,6 +263,114 @@ enum RootKey {
 	Ptr(usize),
 }
 
+/// Break request-graph Rc cycles (signal↔effect, store↔prop-handle, slot-scope↔projection) by
+/// draining every subscriber/handle list reachable from the serialized roots. Runs after the
+/// state script is written, so bytes never change — without it a long-running server accretes
+/// every request's value graph.
+pub fn release_graph(roots: &[Rc<SerdesValue>]) {
+	let mut seen: std::collections::HashSet<*const SerdesValue> = std::collections::HashSet::new();
+	let mut stack: Vec<Rc<SerdesValue>> = roots.to_vec();
+	while let Some(value) = stack.pop() {
+		if !seen.insert(Rc::as_ptr(&value)) {
+			continue;
+		}
+		match &*value {
+			SerdesValue::Array(items) | SerdesValue::Set(items) => {
+				stack.extend(items.iter().cloned());
+			}
+			SerdesValue::Object(entries) => {
+				stack.extend(entries.iter().map(|(_, item)| Rc::clone(item)));
+			}
+			SerdesValue::Map(pairs) => {
+				for (key, item) in pairs {
+					stack.push(Rc::clone(key));
+					stack.push(Rc::clone(item));
+				}
+			}
+			SerdesValue::Signal(state) => {
+				let mut signal = state.borrow_mut();
+				stack.push(Rc::clone(&signal.value));
+				stack.append(&mut signal.subs);
+			}
+			SerdesValue::Store(state) => {
+				let mut store = state.borrow_mut();
+				stack.push(Rc::clone(&store.raw));
+				for record in store.records.iter_mut() {
+					stack.append(&mut record.subs);
+				}
+				store.prop_handles.clear();
+			}
+			SerdesValue::StoreProp { store, .. } => stack.push(Rc::clone(store)),
+			SerdesValue::Props(props) => {
+				stack.extend(props.statics.iter().map(|(_, item)| Rc::clone(item)));
+				stack.extend(props.sources.iter().map(|(_, item)| Rc::clone(item)));
+			}
+			SerdesValue::Qrl(qrl) => stack.extend(qrl.captures.iter().cloned()),
+			SerdesValue::SlotScope(state) => {
+				for (_, projections) in state.borrow_mut().projections.drain(..) {
+					stack.extend(projections);
+				}
+			}
+			SerdesValue::ContextScope(state) => {
+				let scope = state.borrow();
+				if let Some(parent) = &scope.parent {
+					stack.push(Rc::clone(parent));
+				}
+				stack.extend(scope.entries.iter().map(|(_, item)| Rc::clone(item)));
+			}
+			SerdesValue::Projection(projection) => {
+				stack.push(Rc::clone(&projection.render_qrl));
+				if let Some(scope) = &projection.slot_scope {
+					stack.push(Rc::clone(scope));
+				}
+			}
+			SerdesValue::Task(task) => {
+				stack.push(Rc::clone(&task.qrl));
+				stack.extend(task.deps.iter().cloned());
+			}
+			SerdesValue::Computed(state) => {
+				let mut computed = state.borrow_mut();
+				stack.push(Rc::clone(&computed.qrl));
+				if let Some(current) = &computed.value {
+					stack.push(Rc::clone(current));
+				}
+				stack.append(&mut computed.deps);
+				stack.append(&mut computed.subs);
+			}
+			SerdesValue::Effect(effect) => match &mut *effect.borrow_mut() {
+				EffectValue::Scalar(scalar) => {
+					stack.append(&mut scalar.deps);
+					if let Some(args) = &mut scalar.args {
+						stack.append(args);
+					}
+					stack.extend(scalar.qrl.take());
+				}
+				EffectValue::Branch(branch) => {
+					stack.append(&mut branch.deps);
+					stack.append(&mut branch.owner_items);
+					stack.push(Rc::clone(&branch.condition_qrl));
+					stack.push(Rc::clone(&branch.then_qrl));
+					stack.extend(branch.else_qrl.iter().cloned());
+				}
+				EffectValue::ForBlock(for_block) => {
+					stack.append(&mut for_block.deps);
+					stack.push(Rc::clone(&for_block.key_qrl));
+					stack.push(Rc::clone(&for_block.render_qrl));
+					if let Some(index_signals) = &mut for_block.index_signals {
+						stack.append(index_signals);
+					}
+				}
+				EffectValue::Content(content) => {
+					stack.append(&mut content.deps);
+					stack.append(&mut content.args);
+					stack.push(Rc::clone(&content.qrl));
+				}
+			},
+			_ => {}
+		}
+	}
+}
+
 fn root_key(value: &Rc<SerdesValue>) -> RootKey {
 	match &**value {
 		SerdesValue::Undefined => RootKey::Undefined,
@@ -379,6 +487,15 @@ impl Serializer {
 			output.push(pair);
 			index += 1;
 		}
+		let rooted: Vec<Rc<SerdesValue>> = self
+			.roots
+			.iter()
+			.filter_map(|root| match root {
+				PendingRoot::Value(value) => Some(Rc::clone(value)),
+				PendingRoot::Backref(_) => None,
+			})
+			.collect();
+		release_graph(&rooted);
 		output
 	}
 

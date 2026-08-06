@@ -415,8 +415,7 @@ impl ComponentGenerator<'_> {
 				.unwrap();
 				self.locals.insert(binding, variable);
 				self.local_kinds.insert(binding, LocalKind::Computed);
-				let symbol =
-					self.generate_value_fn(&segment.to_string(), &entry["body"].clone())?;
+				let symbol = self.generate_value_fn(segment, &entry["body"].clone())?;
 				self.computed_fns.insert(binding, symbol);
 				Ok(())
 			}
@@ -1742,8 +1741,7 @@ impl ComponentGenerator<'_> {
 				.unwrap();
 			}
 		}
-		let condition_symbol =
-			self.generate_value_fn(&condition_segment.to_string(), &condition_ir.clone())?;
+		let condition_symbol = self.generate_value_fn(condition_segment, &condition_ir.clone())?;
 		let condition_qrl = self.qrl_expression(condition_segment, true)?;
 		let then_qrl = self.qrl_expression(&then_segment, true)?;
 		let then_symbol =

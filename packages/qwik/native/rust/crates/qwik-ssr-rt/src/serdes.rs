@@ -309,6 +309,8 @@ pub struct Serializer {
 	/// QRL *string* dedup (distinct objects, identical encoding) — specs/04.
 	qrl_index: HashMap<String, usize>,
 	qrl_seen: HashMap<String, String>,
+	/// Production chunk mapping (manifest `mapping`): symbol → bundle file.
+	pub chunk_map: Option<HashMap<String, String>>,
 }
 
 impl Default for Serializer {
@@ -325,6 +327,7 @@ impl Serializer {
 			seen_paths: HashMap::new(),
 			qrl_index: HashMap::new(),
 			qrl_seen: HashMap::new(),
+			chunk_map: None,
 		}
 	}
 
@@ -674,8 +677,14 @@ impl Serializer {
 			// state form: `${chunkRootId}#${symbolRootId - chunkRootId}[#deltas]`, chunk and
 			// symbol strings appended to the root worklist; first delta rebased on symbolRootId
 			SerdesValue::Qrl(qrl) => {
-				let chunk_id =
-					self.add_root(Rc::new(SerdesValue::String(qrl.chunk.clone()))) as i64;
+				let chunk = match &self.chunk_map {
+					Some(map) => map
+						.get(&qrl.symbol)
+						.cloned()
+						.unwrap_or_else(|| qrl.chunk.clone()),
+					None => qrl.chunk.clone(),
+				};
+				let chunk_id = self.add_root(Rc::new(SerdesValue::String(chunk))) as i64;
 				let symbol_id =
 					self.add_root(Rc::new(SerdesValue::String(qrl.symbol.clone()))) as i64;
 				let mut encoded = format!("{chunk_id}#{}", symbol_id - chunk_id);

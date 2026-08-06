@@ -29,6 +29,8 @@ pub struct PageOptions {
 	pub qwik_loader: String,
 	/// Out-of-order streaming (`renderToStream`) — suspense boundaries defer to packets.
 	pub streaming: bool,
+	/// Production chunk mapping (manifest `mapping`): symbol → bundle file.
+	pub chunk_map: Option<std::collections::HashMap<String, String>>,
 }
 
 /// `emitSuspenseRuntime` — the `_qwikS` client blob, byte-for-byte.
@@ -131,11 +133,29 @@ impl SsrContext {
 		let SerdesValue::Qrl(qrl_value) = &*qrl else {
 			panic!("event_attr expects a Qrl value");
 		};
+		let resolve_chunk = |map: &Option<std::collections::HashMap<String, String>>,
+		                     symbol: &str,
+		                     fallback: &str|
+		 -> String {
+			match map {
+				Some(map) => map
+					.get(symbol)
+					.cloned()
+					.unwrap_or_else(|| fallback.to_string()),
+				None => fallback.to_string(),
+			}
+		};
+		let run_chunk = resolve_chunk(&self.serializer.chunk_map, "_run", "mock-chunk");
+		let own_chunk = resolve_chunk(
+			&self.serializer.chunk_map,
+			&qrl_value.symbol,
+			&qrl_value.chunk,
+		);
 		let value = if !qrl_value.symbol.starts_with('_') && !qrl_value.captures.is_empty() {
 			let root_id = self.serializer.add_root(Rc::clone(&qrl));
-			format!("mock-chunk#_run#{root_id}")
+			format!("{run_chunk}#_run#{root_id}")
 		} else if qrl_value.captures.is_empty() {
-			format!("{}#{}", qrl_value.chunk, qrl_value.symbol)
+			format!("{}#{}", own_chunk, qrl_value.symbol)
 		} else {
 			// `_`-symbol QRLs (e.g. _val/_chk) inline capture deltas, previous seeded at 0
 			let mut deltas = String::new();
@@ -148,7 +168,7 @@ impl SsrContext {
 				deltas.push_str(&(capture_id - previous).to_string());
 				previous = capture_id;
 			}
-			format!("{}#{}#{deltas}", qrl_value.chunk, qrl_value.symbol)
+			format!("{}#{}#{deltas}", own_chunk, qrl_value.symbol)
 		};
 		format!(" {attr_name}=\"{}\"", escape_html(&value))
 	}
@@ -525,12 +545,12 @@ pub fn computed_read(
 	value
 }
 
+/// Value-segment fn: `(tracked, captures) -> value` (specs/07 invocation convention).
+pub type ValueSegmentFn = fn(&mut Vec<Rc<SerdesValue>>, &[Rc<SerdesValue>]) -> Rc<SerdesValue>;
+
 /// One-shot computed read through its value-segment fn (specs/07 invocation convention):
 /// the computed's own QRL supplies the captures the body evaluates with.
-pub fn computed_read_with(
-	computed: &Rc<SerdesValue>,
-	body: fn(&mut Vec<Rc<SerdesValue>>, &[Rc<SerdesValue>]) -> Rc<SerdesValue>,
-) -> Rc<SerdesValue> {
+pub fn computed_read_with(computed: &Rc<SerdesValue>, body: ValueSegmentFn) -> Rc<SerdesValue> {
 	let captures = {
 		let SerdesValue::Computed(state) = &**computed else {
 			panic!("computed_read_with expects a Computed value");
@@ -980,6 +1000,7 @@ pub fn render_page(
 ) -> String {
 	let mut ctx = SsrContext::new();
 	ctx.streaming = options.streaming;
+	ctx.serializer.chunk_map = options.chunk_map.clone();
 	let mut body = String::new();
 	root(&mut ctx, &mut body);
 

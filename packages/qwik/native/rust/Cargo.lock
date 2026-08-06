@@ -106,6 +106,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "qwik-ssr-host"
+version = "0.0.0"
+dependencies = [
+ "qwik-ssr-gen",
+ "qwik-ssr-rt",
+ "qwik-ssr-std",
+ "serde_json",
+]
+
+[[package]]
 name = "qwik-ssr-rt"
 version = "0.0.0"
 dependencies = [

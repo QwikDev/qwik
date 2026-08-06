@@ -97,7 +97,7 @@ fn main() {
 		// with the build-stamped q:version normalized to "conformance"
 		writeln!(
 			generated,
-			"#[allow(unused_mut, unused_variables, clippy::type_complexity, clippy::comparison_to_empty, clippy::needless_borrow, clippy::needless_else)]\npub mod {module_name} {{\n{component_code}\
+			"#[allow(non_snake_case, unused_mut, unused_variables, clippy::type_complexity, clippy::comparison_to_empty, clippy::needless_borrow, clippy::needless_else, clippy::borrow_deref_ref)]\npub mod {module_name} {{\n{component_code}\
              pub fn render_page() -> String {{\n    \
                  qwik_ssr_rt::render::render_page(\n        \
                      &qwik_ssr_rt::render::PageOptions {{\n            \
@@ -111,6 +111,7 @@ fn main() {
                              instance_hash: {instance_hash:?}.to_string(),\n            \
                          }},\n            \
                          qwik_loader: crate::QWIK_LOADER.to_string(),\n            \
+	                         chunk_map: None,\n            \
                          streaming: {streaming},\n        \
                      }},\n        \
                      {entry_function},\n    \

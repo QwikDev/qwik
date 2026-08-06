@@ -1,0 +1,8 @@
+{
+  "description": "Native SSR engine e2e fixture: served by the Rust host, resumed in the browser.",
+  "type": "module",
+  "__qwik__": {
+    "priority": 0,
+    "vdomless": true
+  }
+}

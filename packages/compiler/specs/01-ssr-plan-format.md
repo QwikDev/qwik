@@ -28,10 +28,10 @@ byte-identical output to today's emitted-JS SSR: same HTML, same markers and `q:
   `{kind:'import'}` component references to table indices, inlines `useStyles$` CSS. Engines
   consume only linked plans and do zero module loading/resolution.
 
-  **Build integration**: the experimental `ssrPlan` vite feature
-  (`experimental: ['ssrPlan']`) emits module plans during SSR transforms and writes the linked
-  `q-ssr-plan.json` beside the server bundle (`qwik-vite/src/plugins/ssr-plan.ts`); the render
-  entry resolves to a `Root` component or a default export in `root.tsx`.
+  **Build integration**: the `ssrPlan: true` vite plugin option emits module plans during SSR
+  transforms and writes the linked `q-ssr-plan.json` beside the server bundle
+  (`qwik-vite/src/plugins/ssr-plan.ts`); the render entry resolves to a `Root` component or a
+  default export in `root.tsx`.
 
   **v0 status** (`src/link-plan.ts`): the linker takes all module plans of a compilation, merges
   components into one table, and resolves cross-module targets through each module plan's

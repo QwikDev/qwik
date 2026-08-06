@@ -95,8 +95,6 @@ export enum ExperimentalFeatures {
   insights = 'insights',
   /** Enable the `blockSSR: false` route loader option */
   blockSSR = 'blockSSR',
-  /** Emit and link the native SSR plan (`q-ssr-plan.json`) during SSR builds */
-  ssrPlan = 'ssrPlan',
 }
 
 export interface QwikPackages {
@@ -154,6 +152,7 @@ export function createQwikPlugin(
     },
     inlineStylesUpToBytes: 20000,
     lint: false,
+    ssrPlan: false,
     experimental: undefined,
     testTarget: undefined,
   };
@@ -395,6 +394,9 @@ export function createQwikPlugin(
 
     if (typeof updatedOpts.lint === 'boolean') {
       opts.lint = updatedOpts.lint;
+    }
+    if (typeof (updatedOpts as { ssrPlan?: boolean }).ssrPlan === 'boolean') {
+      opts.ssrPlan = (updatedOpts as { ssrPlan?: boolean }).ssrPlan!;
     }
 
     if ('experimental' in updatedOpts) {
@@ -1059,7 +1061,7 @@ export function createQwikPlugin(
         transformOpts.regCtxName = REG_CTX_NAME;
       }
 
-      if (isServer && opts.experimental?.[ExperimentalFeatures.ssrPlan]) {
+      if (isServer && opts.ssrPlan) {
         (transformOpts as { emitPlan?: boolean }).emitPlan = true;
       }
       const now = Date.now();
@@ -1071,7 +1073,7 @@ export function createQwikPlugin(
         normalizePath
       );
       const newOutput = resumeTransform?.output ?? (await transformCompilerModules(transformOpts));
-      if (isServer && opts.experimental?.[ExperimentalFeatures.ssrPlan]) {
+      if (isServer && opts.ssrPlan) {
         // module plans are build metadata, never rollup modules
         newOutput.modules = ssrPlanCollector.collect(newOutput.modules);
       }
@@ -1655,6 +1657,8 @@ export interface QwikPluginOptions {
    * large projects. Defaults to `true`
    */
   lint?: boolean;
+  /** Emit and link the native SSR plan (`q-ssr-plan.json`) during SSR builds. */
+  ssrPlan?: boolean;
   /**
    * Experimental features. These can come and go in patch releases, and their API is not guaranteed
    * to be stable between releases.

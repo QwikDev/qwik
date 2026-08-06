@@ -688,9 +688,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           await Promise.all(outputs.map(patchModuleFormat));
         }
 
-        // experimental ssrPlan: link collected module plans beside the server bundle
+        // ssrPlan: link collected module plans beside the server bundle
         const collector = qwikPlugin.getSsrPlanCollector();
-        if (opts.experimental?.ssrPlan && collector.size() > 0) {
+        if (opts.ssrPlan && collector.size() > 0) {
           const linked = collector.link();
           if (linked === null) {
             console.warn(
@@ -1094,6 +1094,13 @@ interface QwikVitePluginCommonOptions {
    * large projects. Defaults to `true`
    */
   lint?: boolean;
+  /**
+   * Emit the native SSR plan during SSR builds and write the linked `q-ssr-plan.json` beside the
+   * server bundle (compiler specs/01). Native engines consume this artifact.
+   *
+   * Default `false`
+   */
+  ssrPlan?: boolean;
   /**
    * Experimental features. These can come and go in patch releases, and their API is not guaranteed
    * to be stable between releases

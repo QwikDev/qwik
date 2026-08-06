@@ -613,17 +613,56 @@ impl ComponentGenerator<'_> {
 			.ok_or("dynamic attr on an untargeted element")?;
 		let name = prop["name"].as_str().ok_or("dynamic prop has no name")?;
 		let ir = &prop["value"]["ir"];
-		if !matches!(ir["k"].as_str(), Some("binding-read") | Some("signal-read")) {
-			return Err(format!("dynamic attr ir {ir} not supported yet"));
-		}
-		let signal = self.signal_local(ir)?;
 		self.uses_ctx = true;
 		self.flush_statics(target);
+		if matches!(ir["k"].as_str(), Some("binding-read") | Some("signal-read")) {
+			let signal = self.signal_local(ir)?;
+			writeln!(
+				self.body,
+				"    ctx.serializer.add_root(std::rc::Rc::clone(&{signal}));\n    \
+				 ctx.subscribe_attr(&{signal}, {id_variable}, {name:?});\n    \
+				 {target}.push_str(&qwik_ssr_rt::render::dynamic_attr(&{signal}, {name:?}));"
+			)
+			.unwrap();
+			return Ok(());
+		}
+		// expression attrs (class objects etc.): tracked evaluation + attr-expression effect
+		let segment_id = prop["value"]["segment"]
+			.as_str()
+			.ok_or(format!("dynamic attr {name} without a segment"))?
+			.to_string();
+		let captures = self.segment_captures(&segment_id)?;
+		let mut args = String::new();
+		for capture in &captures {
+			write!(args, "std::rc::Rc::clone(&{capture}), ").unwrap();
+		}
+		for capture in &captures {
+			writeln!(
+				self.body,
+				"    ctx.serializer.add_root(std::rc::Rc::clone(&{capture}));"
+			)
+			.unwrap();
+		}
+		let temp = self.next_temp();
+		let tracked = format!("tracked_{temp}");
+		let expression = self.ir_expression(ir, &format!("&mut {tracked}"))?;
+		let qrl = self.qrl_expression(&segment_id, false)?;
 		writeln!(
 			self.body,
-			"    ctx.serializer.add_root(std::rc::Rc::clone(&{signal}));\n    \
-			 ctx.subscribe_attr(&{signal}, {id_variable}, {name:?});\n    \
-			 {target}.push_str(&qwik_ssr_rt::render::dynamic_attr(&{signal}, {name:?}));"
+			"    let mut {tracked}: Vec<std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>> = Vec::new();\n    \
+			 let attr_value_{temp} = {expression};\n    \
+			 if let Some(dep) = {tracked}.first() {{\n        \
+			 ctx.subscribe_attr_expression(dep, {id_variable}, {name:?}, vec![{args}], {qrl});\n    \
+			 }}\n    \
+			 match qwik_ssr_rt::render::attr_expression_text({name:?}, &attr_value_{temp}) {{\n        \
+			 None => {{}}\n        \
+			 Some(text) if text.is_empty() => {target}.push_str(\" {name}\"),\n        \
+			 Some(text) => {{\n            \
+			 {target}.push_str(\" {name}=\\\"\");\n            \
+			 {target}.push_str(&qwik_ssr_rt::escape::escape_html(&text));\n            \
+			 {target}.push('\\\"');\n        \
+			 }}\n    \
+			 }}"
 		)
 		.unwrap();
 		Ok(())
@@ -1612,6 +1651,30 @@ impl ComponentGenerator<'_> {
 				}
 				Ok(format!(
 					"qwik_ssr_std::call({fn_id:?}, &{recv_expression}, &[{args}])"
+				))
+			}
+			"object" => {
+				let mut entries = String::new();
+				for pair in ir["entries"]
+					.as_array()
+					.ok_or("object ir entries missing")?
+				{
+					let pair = pair.as_array().ok_or("object ir entry not a pair")?;
+					let key = pair[0].as_str().ok_or("object ir key not a string")?;
+					let value = self.ir_expression(&pair[1], tracked)?;
+					write!(entries, "({key:?}.to_string(), {value}), ").unwrap();
+				}
+				Ok(format!(
+					"std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Object(vec![{entries}]))"
+				))
+			}
+			"array" => {
+				let mut items = String::new();
+				for item in ir["items"].as_array().ok_or("array ir items missing")? {
+					write!(items, "{}, ", self.ir_expression(item, tracked)?).unwrap();
+				}
+				Ok(format!(
+					"std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Array(vec![{items}]))"
 				))
 			}
 			"def-call" => {

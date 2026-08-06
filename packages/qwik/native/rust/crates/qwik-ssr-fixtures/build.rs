@@ -24,6 +24,7 @@ const READY_FIXTURES: &[&str] = &[
 	"static-attrs",
 	"suspense-stream",
 	"def-helper",
+	"class-object",
 ];
 
 fn main() {

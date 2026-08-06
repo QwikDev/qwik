@@ -1,0 +1,177 @@
+{
+  "format": "qwik/ssr-plan",
+  "version": 0,
+  "entry": 0,
+  "components": [
+    {
+      "name": "App",
+      "module": 0,
+      "propsBindings": [],
+      "ssr": {
+        "setup": [
+          {
+            "op": "signal",
+            "local": 2,
+            "init": {
+              "k": "lit",
+              "v": true
+            }
+          }
+        ],
+        "directSegmentIds": [],
+        "usedSegmentIds": [
+          "segment_0"
+        ],
+        "ops": [
+          {
+            "o": "el",
+            "tag": "a",
+            "id": 0,
+            "void": false,
+            "styleScopedId": null,
+            "targetUses": 1,
+            "props": [
+              {
+                "p": "dynamic",
+                "name": "class",
+                "value": {
+                  "src": "{\n\t\tselected: active.value,\n\t\tmuted: false,\n\t\twide: true\n\t}",
+                  "ir": {
+                    "k": "object",
+                    "entries": [
+                      [
+                        "selected",
+                        {
+                          "k": "signal-read",
+                          "binding": 2
+                        }
+                      ],
+                      [
+                        "muted",
+                        {
+                          "k": "lit",
+                          "v": false
+                        }
+                      ],
+                      [
+                        "wide",
+                        {
+                          "k": "lit",
+                          "v": true
+                        }
+                      ]
+                    ]
+                  },
+                  "segment": "segment_0"
+                },
+                "compilerString": false
+              }
+            ],
+            "propsEffect": null,
+            "children": [
+              {
+                "o": "static",
+                "html": "link"
+              }
+            ]
+          }
+        ],
+        "synchronous": false,
+        "staticRoot": false,
+        "needsRootRange": false,
+        "needsId": false,
+        "idBase": "qApp-",
+        "flushTasks": false
+      },
+      "setup": [
+        {
+          "op": "signal",
+          "local": 2,
+          "init": {
+            "k": "lit",
+            "v": true
+          }
+        }
+      ],
+      "render": [
+        {
+          "n": "el",
+          "tag": "a",
+          "props": [
+            {
+              "p": "dynamic",
+              "name": "class",
+              "value": {
+                "src": "{\n\t\tselected: active.value,\n\t\tmuted: false,\n\t\twide: true\n\t}",
+                "ir": {
+                  "k": "object",
+                  "entries": [
+                    [
+                      "selected",
+                      {
+                        "k": "signal-read",
+                        "binding": 2
+                      }
+                    ],
+                    [
+                      "muted",
+                      {
+                        "k": "lit",
+                        "v": false
+                      }
+                    ],
+                    [
+                      "wide",
+                      {
+                        "k": "lit",
+                        "v": true
+                      }
+                    ]
+                  ]
+                },
+                "segment": "segment_0"
+              }
+            }
+          ],
+          "children": [
+            {
+              "n": "text",
+              "value": "link"
+            }
+          ]
+        }
+      ],
+      "needsId": false,
+      "idBase": "qApp-",
+      "styleScope": null,
+      "providesContext": false,
+      "hasCustomHook": false
+    }
+  ],
+  "modules": [
+    {
+      "path": "src/input.tsx",
+      "segments": [
+        {
+          "id": "segment_0",
+          "symbolName": "input_class_segment_0_1bbn4mgjg897b",
+          "chunk": "./input.tsx_input_class_segment_0_1bbn4mgjg897b",
+          "kind": "expression",
+          "resolved": true,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 2,
+              "name": "active",
+              "source": "local",
+              "access": "direct"
+            }
+          ]
+        }
+      ],
+      "contexts": [],
+      "defs": []
+    }
+  ],
+  "unresolved": []
+}

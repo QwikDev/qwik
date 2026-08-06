@@ -17,6 +17,7 @@ import {
   invoke,
   maybeThen,
   renderSsrAttr,
+  renderSsrAttrExpression,
   renderSsrBranch,
   renderSsrCollection,
   renderSsrContent,
@@ -321,15 +322,44 @@ export async function buildInterpretedRoot(
                   : ` ${staticProp.name}="${escapeHTML(String(staticProp.value))}"`
               );
             } else if (prop.p === 'dynamic') {
-              const dynamic = prop as { name: string; value: { ir?: ValueIR } };
+              const dynamic = prop as {
+                name: string;
+                value: { ir?: ValueIR; segment?: string };
+              };
               if (id === null) {
                 throw new Error('dynamic prop on an untargeted element');
               }
-              const signal = localSignal(dynamic.value.ir, `attr ${dynamic.name}`);
-              const attr = invoke(invokeCtx, () => {
-                ctx.addRoot(signal);
-                return renderSsrAttr(createSsrElementTarget(id), dynamic.name, signal as never);
-              });
+              const irKind = dynamic.value.ir?.k;
+              const attr =
+                irKind === 'signal-read' || irKind === 'binding-read'
+                  ? invoke(invokeCtx, () => {
+                      const signal = localSignal(dynamic.value.ir, `attr ${dynamic.name}`);
+                      ctx.addRoot(signal);
+                      return renderSsrAttr(
+                        createSsrElementTarget(id),
+                        dynamic.name,
+                        signal as never
+                      );
+                    })
+                  : invoke(invokeCtx, () => {
+                      // expression attrs (class objects etc.) render via their segment
+                      const segmentId = dynamic.value.segment;
+                      if (segmentId === undefined) {
+                        throw new Error(`attr ${dynamic.name} has no expression segment`);
+                      }
+                      const captureValues = (captureLists.get(segmentId) ?? []).map((binding) =>
+                        locals.get(binding)
+                      );
+                      for (const captureValue of captureValues) {
+                        ctx.addRoot(captureValue);
+                      }
+                      return renderSsrAttrExpression(
+                        createSsrElementTarget(id),
+                        dynamic.name,
+                        captureValues as never,
+                        qrls.get(segmentId) as never
+                      );
+                    });
               open.push(
                 attr === null
                   ? ''

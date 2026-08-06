@@ -235,6 +235,31 @@ impl SsrContext {
 		);
 	}
 
+	/// Attr-expression effect (`renderSsrAttrExpression`): resume args + qrl ride the record.
+	#[allow(clippy::too_many_arguments)]
+	pub fn subscribe_attr_expression(
+		&mut self,
+		dep: &Rc<SerdesValue>,
+		target_id: u32,
+		name: &str,
+		args: Vec<Rc<SerdesValue>>,
+		qrl: Rc<SerdesValue>,
+	) {
+		self.attach_effect(
+			&[Rc::clone(dep)],
+			EffectValue::Scalar(EffectSubscription {
+				kind: EFFECT_KIND_ATTR,
+				target_kind: EFFECT_TARGET_ELEMENT,
+				target_id,
+				marker_index: None,
+				deps: vec![Rc::clone(dep)],
+				attr_name: Some(name.to_string()),
+				args: Some(args),
+				qrl: Some(qrl),
+			}),
+		);
+	}
+
 	/// Plain Attr effect (`renderSsrAttr`) — reactive attribute on an element target.
 	pub fn subscribe_attr(&mut self, signal: &Rc<SerdesValue>, target_id: u32, name: &str) {
 		self.attach_effect(
@@ -592,6 +617,45 @@ pub fn escape_ssr_content(value: &Rc<SerdesValue>) -> String {
 		SerdesValue::Number(number) => escape_html(&to_js_string(*number)),
 		SerdesValue::BigInt(digits) => escape_html(digits),
 		_ => String::new(),
+	}
+}
+
+/// `serializeClass` (styles.ts): strings trim, arrays recurse, objects keep truthy keys.
+pub fn serialize_class(value: &Rc<SerdesValue>) -> String {
+	match &**value {
+		SerdesValue::Undefined | SerdesValue::Null | SerdesValue::Bool(false) => String::new(),
+		SerdesValue::String(text) => text.trim().to_string(),
+		SerdesValue::Array(items) => {
+			let mut classes: Vec<String> = Vec::new();
+			for item in items {
+				let class_list = serialize_class(item);
+				if !class_list.is_empty() {
+					classes.push(class_list);
+				}
+			}
+			classes.join(" ")
+		}
+		SerdesValue::Object(entries) => {
+			let mut classes: Vec<String> = Vec::new();
+			for (key, item) in entries {
+				if truthy(item) {
+					classes.push(key.trim().to_string());
+				}
+			}
+			classes.join(" ")
+		}
+		other => panic!("serialize_class on {other:?} not supported yet"),
+	}
+}
+
+/// Expression-attr result → attribute text: `class` objects serialize, plain values coerce.
+pub fn attr_expression_text(name: &str, value: &Rc<SerdesValue>) -> Option<String> {
+	if name == "class" {
+		return Some(serialize_class(value));
+	}
+	match &**value {
+		SerdesValue::Null | SerdesValue::Undefined => None,
+		other => Some(value_text(other)),
 	}
 }
 

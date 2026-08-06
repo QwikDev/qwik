@@ -251,6 +251,7 @@
     "release.pkg-pr-new": "pnpm dlx pkg-pr-new@^0.0.9 publish --pnpm ./packages/qwik ./packages/qwik-router ./packages/eslint-plugin-qwik ./packages/create-qwik ./packages/optimizer ./packages/compiler ./packages/devtools",
     "release.prepare": "pnpm build --prepare-release",
     "serve": "node --require ./scripts/runBefore.ts --inspect --conditions=development e2e/qwik-e2e/dev-server.ts 3300",
+    "serve.native": "node --require ./scripts/runBefore.ts e2e/qwik-e2e/native-serve.ts",
     "serve.debug": "node --require ./scripts/runBefore.ts --inspect-brk --conditions=development e2e/qwik-e2e/dev-server.ts 3300",
     "serve.perf": "node --require ./scripts/runBefore.ts --inspect --conditions=development --log-deopt --log-ic --log-maps --log-maps-details --log-code --log-source-code --prof --log-internal-timer-events --detailed-line-info --logfile=v8.log --no-logfile-per-isolate e2e/qwik-e2e/dev-server.ts 3300",
     "start": "pnpm run --stream \"/.*\\.watch/\"",

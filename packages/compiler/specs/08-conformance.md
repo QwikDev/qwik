@@ -161,9 +161,10 @@ generates render code from a real vite production plan (`ssrPlan: true` emits
 serializer chunk map so QRLs point at real bundles). `e2e/qwik-e2e/playwright.native.config.ts`
 boots the host and runs `tests/native-counter.e2e.ts` against
 `e2e/qwik-e2e/apps/native-counter` — a real browser resumes Rust-rendered HTML (signal +
-computed updates, local-component store writes). Build the app first with
-`pnpm node --require ./scripts/runBefore.ts e2e/qwik-e2e/native-build.ts`. Point the host at a
-different app via `QWIK_SSR_PLAN` / `QWIK_CLIENT_DIR`.
+computed updates, local-component store writes). `pnpm serve.native [app] [port]` builds any
+e2e app and serves it from the Rust host (defaults: native-counter, 3310); the Playwright
+config assumes the app is already built. The host also honors `QWIK_SSR_PLAN` /
+`QWIK_CLIENT_DIR` directly.
 
 ## CI wiring
 

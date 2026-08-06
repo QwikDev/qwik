@@ -1,15 +1,20 @@
-// Build the native-counter app for the Rust SSR host: client bundles + q-manifest.json,
+// Build an e2e app for the Rust SSR host: client bundles + q-manifest.json,
 // then an SSR build with `ssrPlan: true` emitting q-ssr-plan.json for qwik-ssr-gen.
 /* eslint-disable no-console */
 
 import type { QwikManifest } from '@qwik.dev/core/optimizer';
-import { rmSync } from 'node:fs';
+import { existsSync, rmSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build, type InlineConfig } from 'vite';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
-const appDir = join(__dirname, 'apps', 'native-counter');
+const appName = process.argv[2] ?? 'native-counter';
+const appDir = join(__dirname, 'apps', appName);
+if (!existsSync(appDir)) {
+  console.error(`unknown app: ${appName} (no ${appDir})`);
+  process.exit(1);
+}
 const appSrcDir = join(appDir, 'src');
 const distDir = join(appDir, 'dist');
 const serverDir = join(appDir, 'server');
@@ -68,7 +73,7 @@ async function main() {
       ],
     })
   );
-  console.log('native-counter built:', distDir, serverDir);
+  console.log(`${appName} built:`, distDir, serverDir);
 }
 
 main().catch((error) => {

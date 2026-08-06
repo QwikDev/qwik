@@ -145,6 +145,8 @@ struct ComponentGenerator<'plan> {
 	pending_segment_fns: Vec<String>,
 	/// Generated segment fns that render slots and take the slots-table parameter.
 	segment_fn_takes_slots: HashMap<String, bool>,
+	/// Object-pattern props: chunks replay the full destructure, tracking every source.
+	destructured_props: bool,
 	/// Plan element id → generated runtime-id variable name.
 	element_ids: HashMap<u64, String>,
 	temp_counter: usize,
@@ -174,6 +176,7 @@ pub fn generate_defs(plan: &Json, module_index: usize) -> Result<String, String>
 			local_components: HashMap::new(),
 			pending_segment_fns: Vec::new(),
 			segment_fn_takes_slots: HashMap::new(),
+			destructured_props: false,
 			element_ids: HashMap::new(),
 			temp_counter: 0,
 			uses_ctx: false,
@@ -238,6 +241,7 @@ pub fn generate_component(plan: &Json, component_index: usize) -> Result<String,
 		local_components: HashMap::new(),
 		pending_segment_fns: Vec::new(),
 		segment_fn_takes_slots: HashMap::new(),
+		destructured_props: false,
 		element_ids: HashMap::new(),
 		temp_counter: 0,
 		uses_ctx: false,
@@ -253,6 +257,7 @@ pub fn generate_component(plan: &Json, component_index: usize) -> Result<String,
 	// (`component-prop` access) — see segment_captures.
 	let props_plan = &component["props"];
 	if props_plan["kind"].as_str() == Some("object") {
+		generator.destructured_props = true;
 		for binding_entry in props_plan["bindings"]
 			.as_array()
 			.ok_or("component props bindings missing")?
@@ -814,8 +819,13 @@ impl ComponentGenerator<'_> {
 		let qrl = self.qrl_expression(&segment_id, false)?;
 		writeln!(
 			self.body,
-			"    let mut {tracked}: Vec<std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>> = Vec::new();\n    \
-			 let attr_value_{temp} = {expression};\n    \
+			"    let mut {tracked}: Vec<std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>> = Vec::new();"
+		)
+		.unwrap();
+		self.track_destructured_props(&segment_id, &format!("&mut {tracked}"))?;
+		writeln!(
+			self.body,
+			"    let attr_value_{temp} = {expression};\n    \
 			 if let Some(dep) = {tracked}.first() {{\n        \
 			 ctx.subscribe_attr_expression(dep, {id_variable}, {name:?}, vec![{args}], {qrl});\n    \
 			 }}\n    \
@@ -1070,6 +1080,7 @@ impl ComponentGenerator<'_> {
 			return Ok(None);
 		}
 		let mut segments: Vec<String> = Vec::new();
+		let mut sources: Vec<(String, String)> = Vec::new();
 		let mut literal_run: Option<String> = None;
 		for prop in call_props {
 			match prop["p"].as_str().ok_or("prop has no kind")? {
@@ -1096,6 +1107,22 @@ impl ComponentGenerator<'_> {
 					)
 					.unwrap();
 				}
+				"dynamic" => {
+					let ir = &prop["value"]["ir"];
+					if ir["k"].as_str() != Some("signal-read") {
+						return Err(format!("prop ir {ir} mixed with spreads not supported yet"));
+					}
+					// signal reads merge as live values; _props records their sources
+					let name = prop["name"].as_str().ok_or("dynamic prop has no name")?;
+					let source = self.signal_local(ir)?;
+					let entries = literal_run.get_or_insert_with(String::new);
+					write!(
+						entries,
+						"({name:?}.to_string(), qwik_ssr_rt::render::tracked_signal_value(&{source}, &mut Vec::new())), "
+					)
+					.unwrap();
+					sources.push((name.to_string(), source));
+				}
 				kind => {
 					return Err(format!(
 						"prop kind {kind:?} mixed with spreads not supported yet"
@@ -1108,12 +1135,33 @@ impl ComponentGenerator<'_> {
 				"std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Object(vec![{entries}]))"
 			));
 		}
-		Ok(Some(if segments.len() == 1 {
+		let merged = if segments.len() == 1 {
 			segments.remove(0)
 		} else {
 			let list = segments.join(", ");
 			format!("qwik_ssr_rt::render::merge_props(&[{list}])")
-		}))
+		};
+		if sources.is_empty() {
+			return Ok(Some(merged));
+		}
+		for (_, source) in &sources {
+			writeln!(
+				self.body,
+				"    ctx.serializer.add_root(std::rc::Rc::clone(&{source}));"
+			)
+			.unwrap();
+		}
+		let mut sources_entries = String::new();
+		for (name, source) in &sources {
+			write!(
+				sources_entries,
+				"({name:?}.to_string(), std::rc::Rc::clone(&{source})), "
+			)
+			.unwrap();
+		}
+		Ok(Some(format!(
+			"qwik_ssr_rt::render::props_from(&{merged}, vec![{sources_entries}])"
+		)))
 	}
 
 	fn write_local_component_call(&mut self, op: &Json, target: &str) -> Result<(), String> {
@@ -1339,6 +1387,7 @@ impl ComponentGenerator<'_> {
 			local_components: self.local_components.clone(),
 			pending_segment_fns: Vec::new(),
 			segment_fn_takes_slots: self.segment_fn_takes_slots.clone(),
+			destructured_props: false,
 			element_ids: HashMap::new(),
 			temp_counter: 0,
 			uses_ctx: false,
@@ -1537,6 +1586,7 @@ impl ComponentGenerator<'_> {
 			local_components: self.local_components.clone(),
 			pending_segment_fns: Vec::new(),
 			segment_fn_takes_slots: self.segment_fn_takes_slots.clone(),
+			destructured_props: false,
 			element_ids: HashMap::new(),
 			temp_counter: 0,
 			uses_ctx: false,
@@ -2245,6 +2295,12 @@ impl ComponentGenerator<'_> {
 			let value = format!("value_{temp}");
 			let expression = self.ir_expression(ir, &format!("&mut {tracked}"))?;
 			let qrl = self.qrl_expression(segment_id, false)?;
+			writeln!(
+				self.body,
+				"    let mut {tracked}: Vec<std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>> = Vec::new();"
+			)
+			.unwrap();
+			self.track_destructured_props(segment_id, &format!("&mut {tracked}"))?;
 			let subscribe = if is_range {
 				let marker = plan_target["marker"]
 					.as_u64()
@@ -2255,8 +2311,7 @@ impl ComponentGenerator<'_> {
 			};
 			writeln!(
 				self.body,
-				"    let mut {tracked}: Vec<std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>> = Vec::new();\n    \
-				 let {value} = {expression};\n    \
+				"    let {value} = {expression};\n    \
 				 if let Some(dep) = {tracked}.first() {{\n        \
 				 {subscribe}\n    \
 				 }}\n    \
@@ -2294,6 +2349,28 @@ impl ComponentGenerator<'_> {
 			self.uses_props = true;
 		}
 		Ok(variable)
+	}
+
+	/// Chunks of destructured-props components replay the full pattern before evaluating —
+	/// emit the source tracking that destructure performs (no-op for plain object props).
+	fn track_destructured_props(&mut self, segment_id: &str, tracked: &str) -> Result<(), String> {
+		if !self.destructured_props {
+			return Ok(());
+		}
+		let replays = self.segment(segment_id)?["captures"]
+			.as_array()
+			.ok_or("segment captures missing")?
+			.iter()
+			.any(|capture| capture["access"].as_str() == Some("component-prop"));
+		if replays {
+			self.uses_props = true;
+			writeln!(
+				self.body,
+				"    qwik_ssr_rt::render::track_props_sources(&props, {tracked});"
+			)
+			.unwrap();
+		}
+		Ok(())
 	}
 
 	fn segment_captures(&mut self, segment_id: &str) -> Result<Vec<String>, String> {

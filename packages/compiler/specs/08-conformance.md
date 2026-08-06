@@ -111,8 +111,11 @@ unconditionally like the emitted prep; nothing about the fallback serializes). A
 (`<Badge {...shared} />`) passes the object through as the props value, mirroring
 `createComponent(shared, …)`; mixed spreads merge through
 `mergeProps` semantics — segments in source order (literal runs grouped between spreads),
-later values win, first insertion keeps its key position. Signal sources mixed with spreads
-stay a loud gate until a fixture defines their merge bytes. Context providers work inside local
+later values win, first insertion keeps its key position. Signal sources merge with spreads
+too: `_props(mergeProps(…), sources)` — the merged literal keeps the getter, the Props record
+carries the sources (statics exclude source keys on the wire), and chunks of
+destructured-props components replay the full `const { … } = props` pattern before evaluating,
+so every effect tracks every source (the deps in the golden's three subscriptions). Context providers work inside local
 component bodies: provision belongs to the declaring local component (never the owner — a
 provider inside a nested function must not mark the outer component), whose output wraps in
 the `<!c=…>` context-scope range; provider values may be any lowerable expression, evaluated

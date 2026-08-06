@@ -610,6 +610,7 @@ export async function buildInterpretedRoot(
           const propList = op.props as readonly PlanSsrProp[];
           if (propList.some((prop) => prop.p === 'spread')) {
             const segments: Record<string, unknown>[] = [];
+            const spreadSources: Record<string, unknown> = {};
             let literalRun: Record<string, unknown> | null = null;
             for (const prop of propList) {
               if (prop.p === 'spread') {
@@ -626,11 +627,31 @@ export async function buildInterpretedRoot(
                   segments.push(literalRun);
                 }
                 literalRun[staticProp.name] = staticProp.value;
+              } else if (
+                prop.p === 'dynamic' &&
+                (prop as { value: { ir?: ValueIR } }).value.ir?.k === 'signal-read'
+              ) {
+                // signal reads merge as live getters, then _props records their sources
+                const dynamic = prop as { name: string; value: { ir?: ValueIR } };
+                const signal = localSignal(dynamic.value.ir, `component prop ${dynamic.name}`);
+                if (literalRun === null) {
+                  literalRun = {};
+                  segments.push(literalRun);
+                }
+                Object.defineProperty(literalRun, dynamic.name, {
+                  enumerable: true,
+                  configurable: true,
+                  get: () => readTrackedSourceValue(signal as never),
+                });
+                spreadSources[dynamic.name] = signal;
+                ctx.addRoot(signal);
               } else {
                 throw new Error(`interpreter cannot merge prop kind "${prop.p}" with spreads yet`);
               }
             }
-            spreadProps = segments.length === 1 ? segments[0] : mergeProps(...segments);
+            const merged = segments.length === 1 ? segments[0] : mergeProps(...segments);
+            spreadProps =
+              Object.keys(spreadSources).length > 0 ? _props(merged, spreadSources) : merged;
           }
           for (const prop of spreadProps === undefined ? propList : []) {
             if (prop.p === 'static') {

@@ -800,6 +800,19 @@ pub fn qrl_captures(qrl: &Rc<SerdesValue>) -> &[Rc<SerdesValue>] {
 	}
 }
 
+/// A destructured component chunk replays the full `const { … } = props` pattern before its
+/// expression, so every source is a tracked read at each evaluation. No-op for plain objects.
+pub fn track_props_sources(props: &Rc<SerdesValue>, tracked: &mut Vec<Rc<SerdesValue>>) {
+	if let SerdesValue::Props(value) = &**props {
+		for (_, source) in &value.sources {
+			match &**source {
+				SerdesValue::Signal(_) => tracked.push(Rc::clone(source)),
+				other => panic!("track_props_sources source {other:?} not supported yet"),
+			}
+		}
+	}
+}
+
 /// `mergeProps` — ordered object merge: later values win, first insertion keeps its position.
 pub fn merge_props(sources: &[Rc<SerdesValue>]) -> Rc<SerdesValue> {
 	let mut entries: Vec<(String, Rc<SerdesValue>)> = Vec::new();
@@ -815,6 +828,26 @@ pub fn merge_props(sources: &[Rc<SerdesValue>]) -> Rc<SerdesValue> {
 		}
 	}
 	Rc::new(SerdesValue::Object(entries))
+}
+
+/// `_props(merged, sources)` over a merged object: statics are the merged entries minus the
+/// source keys (the getters live in `sources` on the wire).
+pub fn props_from(
+	merged: &Rc<SerdesValue>,
+	sources: Vec<(String, Rc<SerdesValue>)>,
+) -> Rc<SerdesValue> {
+	let SerdesValue::Object(entries) = &**merged else {
+		panic!("props_from expects a plain object, got {merged:?}");
+	};
+	let statics = entries
+		.iter()
+		.filter(|(key, _)| !sources.iter().any(|(source_key, _)| source_key == key))
+		.cloned()
+		.collect();
+	Rc::new(SerdesValue::Props(crate::serdes::PropsValue {
+		statics,
+		sources,
+	}))
 }
 
 /// Untracked prop read for component-parameter destructuring (`const { name } = props`).

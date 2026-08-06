@@ -34,6 +34,7 @@ const READY_FIXTURES: &[&str] = &[
 	"component-spread-props",
 	"local-component-context",
 	"component-spread-mixed",
+	"component-spread-signal",
 ];
 
 fn main() {

@@ -218,6 +218,11 @@ export async function buildInterpretedRoot(
           locals.set(op.local, useContext(context as never));
           break;
         }
+        case 'qrl-const': {
+          const op = entry as Extract<SetupOp, { op: 'qrl-const' }>;
+          locals.set(op.local, qrlWithCaptures(op.segment));
+          break;
+        }
         case 'style': {
           const op = entry as { styleId: string; scoped: boolean; css?: string };
           if (op.scoped || op.css === undefined) {

@@ -122,6 +122,13 @@ function lowerDeclaration(statement: AstNode, facts: SetupLowerFacts): SetupOp |
 
 function lowerHookInit(call: AstNode, local: BindingId, facts: SetupLowerFacts): SetupOp | null {
   const { callee, arguments: args } = call as { callee: unknown; arguments: unknown[] };
+  if (facts.isHook(callee, QwikHooks.Dollar)) {
+    const target = unwrapExpression(args[0]);
+    const segment = facts.findQrlSegmentId(target === null ? null : getRange(target ?? null));
+    return args.length === 1 && segment !== null
+      ? { op: SetupOpKind.QrlConst, local, segment }
+      : null;
+  }
   if (facts.isHook(callee, QwikHooks.UseSignal)) {
     const init = lowerSingleArg(args, facts);
     return init === undefined

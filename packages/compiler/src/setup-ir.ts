@@ -22,6 +22,7 @@ export const enum SetupOpKind {
   Style = 'style',
   Js = 'js',
   Yield = 'yield',
+  QrlConst = 'qrl-const',
 }
 
 export const enum TaskStepKind {
@@ -44,6 +45,8 @@ export type SetupOp =
   | { readonly op: SetupOpKind.UseId; readonly local: BindingId }
   /** `await Promise.resolve()` — a pure microtask yield; native engines skip it. */
   | { readonly op: SetupOpKind.Yield }
+  /** `const fn = $(…)` — the local holds the segment's QRL value. */
+  | { readonly op: SetupOpKind.QrlConst; readonly local: BindingId; readonly segment: string }
   | { readonly op: SetupOpKind.ContextRead; readonly local: BindingId; readonly context: BindingId }
   | {
       readonly op: SetupOpKind.ContextProvider;

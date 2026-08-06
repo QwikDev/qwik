@@ -303,6 +303,18 @@ impl ComponentGenerator<'_> {
 				.unwrap();
 				Ok(())
 			}
+			"qrl-const" => {
+				let binding = entry["local"].as_u64().ok_or("qrl-const has no local")?;
+				let segment = entry["segment"]
+					.as_str()
+					.ok_or("qrl-const has no segment")?;
+				let qrl = self.qrl_expression(segment, true)?;
+				let variable = format!("local_{binding}");
+				writeln!(self.body, "    let {variable} = {qrl};").unwrap();
+				self.locals.insert(binding, variable);
+				self.local_kinds.insert(binding, LocalKind::PlainValue);
+				Ok(())
+			}
 			"context-provider" => {
 				let context = entry["context"]
 					.as_u64()

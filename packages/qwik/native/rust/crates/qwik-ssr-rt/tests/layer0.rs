@@ -6,8 +6,11 @@ use qwik_ssr_rt::coerce::to_ssr_text;
 use qwik_ssr_rt::escape::escape_html;
 use qwik_ssr_rt::json::stringify;
 use qwik_ssr_rt::number::{to_fixed, to_js_string};
+use qwik_ssr_rt::serdes::{SerdesValue, Serializer};
 use qwik_ssr_rt::value::{JsObject, Value};
+use std::collections::HashMap;
 use std::path::PathBuf;
+use std::rc::Rc;
 
 fn golden(name: &str) -> serde_json::Value {
 	let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -57,6 +60,128 @@ fn decode_tagged(node: &serde_json::Value) -> Value {
 				Value::Object(object)
 			}
 		},
+	}
+}
+
+/// Full TaggedValue decoder for the serdes corpus — `shared` tags decode to the same `Rc`
+/// so the serializer observes JS object identity; `set` dedups by SameValueZero.
+fn decode_serdes(
+	node: &serde_json::Value,
+	shared: &mut HashMap<String, Rc<SerdesValue>>,
+) -> Rc<SerdesValue> {
+	match node {
+		serde_json::Value::Null => Rc::new(SerdesValue::Null),
+		serde_json::Value::Bool(boolean) => Rc::new(SerdesValue::Bool(*boolean)),
+		serde_json::Value::Number(number) => {
+			Rc::new(SerdesValue::Number(number.as_f64().expect("f64 number")))
+		}
+		serde_json::Value::String(text) => Rc::new(SerdesValue::String(text.clone())),
+		serde_json::Value::Array(items) => Rc::new(SerdesValue::Array(
+			items
+				.iter()
+				.map(|item| decode_serdes(item, shared))
+				.collect(),
+		)),
+		serde_json::Value::Object(map) => {
+			let tag = map
+				.get("$")
+				.and_then(|tag| tag.as_str())
+				.expect("tagged node");
+			match tag {
+				"undefined" => Rc::new(SerdesValue::Undefined),
+				"nan" => Rc::new(SerdesValue::Number(f64::NAN)),
+				"inf" => Rc::new(SerdesValue::Number(f64::INFINITY)),
+				"-inf" => Rc::new(SerdesValue::Number(f64::NEG_INFINITY)),
+				"-0" => Rc::new(SerdesValue::Number(-0.0)),
+				"obj" => {
+					let mut entries = Vec::new();
+					for pair in map["pairs"].as_array().expect("obj pairs") {
+						let pair = pair.as_array().expect("pair");
+						entries.push((
+							pair[0].as_str().expect("key").to_string(),
+							decode_serdes(&pair[1], shared),
+						));
+					}
+					Rc::new(SerdesValue::Object(entries))
+				}
+				"date" => Rc::new(SerdesValue::Date(map["v"].as_f64().expect("date millis"))),
+				"url" => Rc::new(SerdesValue::Url(
+					map["v"].as_str().expect("url").to_string(),
+				)),
+				"regex" => Rc::new(SerdesValue::Regex {
+					source: map["src"].as_str().expect("regex source").to_string(),
+					flags: map["flags"].as_str().expect("regex flags").to_string(),
+				}),
+				"bigint" => Rc::new(SerdesValue::BigInt(
+					map["v"].as_str().expect("bigint digits").to_string(),
+				)),
+				"map" => {
+					let mut entries = Vec::new();
+					for pair in map["entries"].as_array().expect("map entries") {
+						let pair = pair.as_array().expect("map entry");
+						entries.push((
+							decode_serdes(&pair[0], shared),
+							decode_serdes(&pair[1], shared),
+						));
+					}
+					Rc::new(SerdesValue::Map(entries))
+				}
+				"set" => {
+					let mut items: Vec<Rc<SerdesValue>> = Vec::new();
+					for item in map["v"].as_array().expect("set items") {
+						let decoded = decode_serdes(item, shared);
+						let duplicate =
+							items.iter().any(|existing| match (&**existing, &*decoded) {
+								(SerdesValue::String(left), SerdesValue::String(right)) => {
+									left == right
+								}
+								(SerdesValue::Number(left), SerdesValue::Number(right)) => {
+									left == right || (left.is_nan() && right.is_nan())
+								}
+								_ => Rc::ptr_eq(existing, &decoded),
+							});
+						if !duplicate {
+							items.push(decoded);
+						}
+					}
+					Rc::new(SerdesValue::Set(items))
+				}
+				"u8" => Rc::new(SerdesValue::Bytes(
+					map["v"]
+						.as_array()
+						.expect("u8 bytes")
+						.iter()
+						.map(|byte| byte.as_u64().expect("byte") as u8)
+						.collect(),
+				)),
+				"shared" => {
+					if let Some(value) = map.get("v") {
+						let decoded = decode_serdes(value, shared);
+						shared.insert(map["id"].as_str().expect("shared id").to_string(), decoded);
+					}
+					Rc::clone(
+						shared
+							.get(map["id"].as_str().expect("shared id"))
+							.expect("shared value defined before use"),
+					)
+				}
+				tag => panic!("unknown serdes tag {tag:?}"),
+			}
+		}
+	}
+}
+
+#[test]
+fn serdes_state_scripts() {
+	for case in golden("serdes.json").as_array().unwrap() {
+		let name = case["name"].as_str().unwrap();
+		let expected = case["expected"].as_str().unwrap();
+		let mut shared = HashMap::new();
+		let mut serializer = Serializer::new();
+		for root in case["roots"].as_array().unwrap() {
+			serializer.add_root(decode_serdes(root, &mut shared));
+		}
+		assert_eq!(serializer.emit_state_scripts(), expected, "case {name:?}");
 	}
 }
 

@@ -45,11 +45,14 @@ defined in `corpora.ts` (`TaggedValue`) so native harnesses can reconstruct the 
 An engine must pass Layer 0 before any rendering work — these corpora exist so per-language
 rewrites cannot silently diverge on the three classically divergent areas.
 
-**Rust status** (`packages/qwik/native/rust`, crate `qwik-ssr-rt`): `numbers`, `tofixed`,
-`json-bytes`, `escape`, and `coerce` pass byte-exact (`cargo test`). Number formatting uses
-`ryu-js` (ECMAScript Number::toString); `toFixed` is exact big-integer decimal expansion with
-the spec's ties-toward-larger-n rule; JSON bytes come from an own writer over the `Value`
-model (serde_json's bytes differ). `serdes` awaits the state serializer.
+**Rust status** (`packages/qwik/native/rust`, crate `qwik-ssr-rt`): **all six corpora pass
+byte-exact** (`cargo test`). Number formatting uses `ryu-js` (ECMAScript Number::toString);
+`toFixed` is exact big-integer decimal expansion with the spec's ties-toward-larger-n rule;
+JSON bytes come from an own writer over the `Value` model (serde_json's bytes differ). The
+`serdes` module implements the spec-04 serializer over an `Rc`-identity `SerdesValue` heap:
+SameValueZero `addRoot` dedup, RootRef machinery with backref-path promotion, BigArray
+worklist flattening, numeric key folding, JS property order, trailing-undefined truncation,
+builtins, the raw-vs-reencoded string paths, and script chunking at 1024 roots.
 
 ## Layer A — plan-in / bytes-out fixtures
 

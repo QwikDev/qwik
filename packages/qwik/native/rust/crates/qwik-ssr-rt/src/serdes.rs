@@ -1,0 +1,516 @@
+//! `qwik/state` serializer (specs/04, freeze spec). Byte-compatible with
+//! `packages/qwik/src/core/shared/serdes/serialize.ts` + `server/ssr-script-emitter.ts`,
+//! proven by the Layer-0 `serdes.json` corpus.
+
+use crate::number::to_js_string;
+use crate::value::array_index_of;
+use std::collections::HashMap;
+use std::rc::Rc;
+
+/// Serializable heap value. Compound variants have JS object identity via `Rc` pointers;
+/// primitives compare by value (SameValueZero).
+#[derive(Debug)]
+pub enum SerdesValue {
+	Undefined,
+	Null,
+	Bool(bool),
+	Number(f64),
+	String(String),
+	Array(Vec<Rc<SerdesValue>>),
+	Object(Vec<(String, Rc<SerdesValue>)>),
+	Date(f64),
+	Url(String),
+	Regex { source: String, flags: String },
+	BigInt(String),
+	Map(Vec<(Rc<SerdesValue>, Rc<SerdesValue>)>),
+	Set(Vec<Rc<SerdesValue>>),
+	Bytes(Vec<u8>),
+}
+
+// TypeIds (serdes/type-id.ts) — only the ids this serializer emits.
+const TYPE_PLAIN: u8 = 0;
+const TYPE_ROOT_REF: u8 = 1;
+const TYPE_CONSTANT: u8 = 3;
+const TYPE_ARRAY: u8 = 4;
+const TYPE_OBJECT: u8 = 5;
+const TYPE_URL: u8 = 6;
+const TYPE_DATE: u8 = 7;
+const TYPE_REGEX: u8 = 8;
+const TYPE_BIGINT: u8 = 12;
+const TYPE_SET: u8 = 25;
+const TYPE_MAP: u8 = 26;
+const TYPE_UINT8ARRAY: u8 = 27;
+const TYPE_BIG_ARRAY: u8 = 46;
+
+// Constants (serdes/constants.ts).
+const CONST_UNDEFINED: f64 = 0.0;
+const CONST_NULL: f64 = 1.0;
+const CONST_TRUE: f64 = 2.0;
+const CONST_FALSE: f64 = 3.0;
+const CONST_EMPTY_STRING: f64 = 4.0;
+const CONST_NAN: f64 = 12.0;
+const CONST_INFINITY: f64 = 13.0;
+const CONST_NEG_INFINITY: f64 = 14.0;
+const CONST_MAX_SAFE_INT: f64 = 15.0;
+const CONST_ALMOST_MAX_SAFE_INT: f64 = 16.0;
+const CONST_MIN_SAFE_INT: f64 = 17.0;
+const CONST_COLON: f64 = 18.0;
+const CONST_DOT: f64 = 19.0;
+const CONST_ID: f64 = 20.0;
+const CONST_REF: f64 = 21.0;
+
+const MAX_SAFE_INTEGER: f64 = 9007199254740991.0;
+const MAX_INLINE_ARRAY_ITEMS: usize = 64;
+const MAX_STATE_ROOTS_PER_SCRIPT: usize = 1024;
+/// Strings shorter than this are never deduped into roots.
+const MIN_DEDUPED_STRING_LEN: usize = 4;
+
+/// Serialized JSON node — kept structured so the chunked path can re-encode
+/// (`JSON.parse` → slice → `JSON.stringify`) exactly like the JS emitter.
+#[derive(Debug, Clone)]
+pub enum Payload {
+	Num(f64),
+	Str(String),
+	Arr(Vec<Payload>),
+}
+
+/// SameValueZero key: primitives by value (-0 folded to 0, NaN canonical), compounds by identity.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+enum RootKey {
+	Undefined,
+	Null,
+	Bool(bool),
+	Number(u64),
+	Str(String),
+	Ptr(usize),
+}
+
+fn root_key(value: &Rc<SerdesValue>) -> RootKey {
+	match &**value {
+		SerdesValue::Undefined => RootKey::Undefined,
+		SerdesValue::Null => RootKey::Null,
+		SerdesValue::Bool(boolean) => RootKey::Bool(*boolean),
+		SerdesValue::Number(number) => {
+			let canonical = if *number == 0.0 {
+				0.0
+			} else if number.is_nan() {
+				f64::NAN
+			} else {
+				*number
+			};
+			RootKey::Number(canonical.to_bits())
+		}
+		SerdesValue::String(text) => RootKey::Str(text.clone()),
+		_ => RootKey::Ptr(Rc::as_ptr(value) as *const u8 as usize),
+	}
+}
+
+/// Only compounds (identity) and strings ≥ 4 chars participate in RootRef dedup.
+fn is_dedup_eligible(value: &SerdesValue) -> bool {
+	match value {
+		SerdesValue::String(text) => text.len() >= MIN_DEDUPED_STRING_LEN,
+		SerdesValue::Undefined
+		| SerdesValue::Null
+		| SerdesValue::Bool(_)
+		| SerdesValue::Number(_) => false,
+		_ => true,
+	}
+}
+
+enum PendingRoot {
+	Value(Rc<SerdesValue>),
+	/// Promotion target: the slot holds a backref path to the first inline occurrence.
+	Backref(String),
+}
+
+pub struct Serializer {
+	roots: Vec<PendingRoot>,
+	index: HashMap<RootKey, usize>,
+	seen_paths: HashMap<RootKey, String>,
+}
+
+impl Default for Serializer {
+	fn default() -> Self {
+		Self::new()
+	}
+}
+
+impl Serializer {
+	pub fn new() -> Self {
+		Self {
+			roots: Vec::new(),
+			index: HashMap::new(),
+			seen_paths: HashMap::new(),
+		}
+	}
+
+	/// Register a root; identical values (SameValueZero) reuse the existing root id.
+	pub fn add_root(&mut self, value: Rc<SerdesValue>) -> usize {
+		let key = root_key(&value);
+		if let Some(&existing) = self.index.get(&key) {
+			return existing;
+		}
+		let id = self.roots.len();
+		self.roots.push(PendingRoot::Value(value));
+		self.index.insert(key, id);
+		id
+	}
+
+	/// Serialize all roots (the worklist grows during traversal) into `(typeId, payload)` pairs.
+	pub fn serialize(mut self) -> Vec<(u8, Payload)> {
+		let mut output = Vec::new();
+		let mut index = 0;
+		while index < self.roots.len() {
+			let pair = match &self.roots[index] {
+				PendingRoot::Backref(path) => (TYPE_ROOT_REF, Payload::Str(path.clone())),
+				PendingRoot::Value(value) => {
+					let value = Rc::clone(value);
+					let mut path = vec![index];
+					self.write(&value, index, &mut path)
+				}
+			};
+			output.push(pair);
+			index += 1;
+		}
+		output
+	}
+
+	fn write(
+		&mut self,
+		value: &Rc<SerdesValue>,
+		current_root: usize,
+		path: &mut Vec<usize>,
+	) -> (u8, Payload) {
+		if is_dedup_eligible(value) {
+			let key = root_key(value);
+			let at_root_slot = path.len() == 1;
+			if let Some(&id) = self.index.get(&key) {
+				// self-reference at root level short-circuits to inline data
+				if !(at_root_slot && id == current_root) {
+					return (TYPE_ROOT_REF, Payload::Num(id as f64));
+				}
+			} else if let Some(first_path) = self.seen_paths.get(&key) {
+				// second sighting: new root's slot backrefs the inline data
+				let id = self.roots.len();
+				self.roots.push(PendingRoot::Backref(first_path.clone()));
+				self.index.insert(key, id);
+				return (TYPE_ROOT_REF, Payload::Num(id as f64));
+			} else {
+				let joined = path
+					.iter()
+					.map(|segment| segment.to_string())
+					.collect::<Vec<_>>()
+					.join(" ");
+				self.seen_paths.insert(key, joined);
+			}
+		}
+		self.write_inline(value, current_root, path)
+	}
+
+	fn write_inline(
+		&mut self,
+		value: &Rc<SerdesValue>,
+		current_root: usize,
+		path: &mut Vec<usize>,
+	) -> (u8, Payload) {
+		match &**value {
+			SerdesValue::Undefined => (TYPE_CONSTANT, Payload::Num(CONST_UNDEFINED)),
+			SerdesValue::Null => (TYPE_CONSTANT, Payload::Num(CONST_NULL)),
+			SerdesValue::Bool(true) => (TYPE_CONSTANT, Payload::Num(CONST_TRUE)),
+			SerdesValue::Bool(false) => (TYPE_CONSTANT, Payload::Num(CONST_FALSE)),
+			SerdesValue::Number(number) => write_number(*number),
+			SerdesValue::String(text) => match text.as_str() {
+				"" => (TYPE_CONSTANT, Payload::Num(CONST_EMPTY_STRING)),
+				":" => (TYPE_CONSTANT, Payload::Num(CONST_COLON)),
+				"." => (TYPE_CONSTANT, Payload::Num(CONST_DOT)),
+				"id" => (TYPE_CONSTANT, Payload::Num(CONST_ID)),
+				"ref" => (TYPE_CONSTANT, Payload::Num(CONST_REF)),
+				_ => (TYPE_PLAIN, Payload::Str(text.clone())),
+			},
+			SerdesValue::Array(items) => self.write_array(items, current_root, path),
+			SerdesValue::Object(entries) => self.write_object(entries, current_root, path),
+			SerdesValue::Date(epoch_millis) => (TYPE_DATE, Payload::Num(*epoch_millis)),
+			SerdesValue::Url(href) => (TYPE_URL, Payload::Str(href.clone())),
+			SerdesValue::Regex { source, flags } => {
+				(TYPE_REGEX, Payload::Str(format!("/{source}/{flags}")))
+			}
+			SerdesValue::BigInt(digits) => (TYPE_BIGINT, Payload::Str(digits.clone())),
+			SerdesValue::Map(entries) => {
+				let mut pairs = Vec::with_capacity(entries.len() * 4);
+				for (position, (map_key, map_value)) in entries.iter().enumerate() {
+					path.push(position * 2);
+					push_pair(&mut pairs, self.write(map_key, current_root, path));
+					*path.last_mut().unwrap() = position * 2 + 1;
+					push_pair(&mut pairs, self.write(map_value, current_root, path));
+					path.pop();
+				}
+				(TYPE_MAP, Payload::Arr(pairs))
+			}
+			SerdesValue::Set(items) => {
+				let mut pairs = Vec::with_capacity(items.len() * 2);
+				for (position, item) in items.iter().enumerate() {
+					path.push(position);
+					push_pair(&mut pairs, self.write(item, current_root, path));
+					path.pop();
+				}
+				(TYPE_SET, Payload::Arr(pairs))
+			}
+			SerdesValue::Bytes(bytes) => (TYPE_UINT8ARRAY, Payload::Str(base64_no_pad(bytes))),
+		}
+	}
+
+	fn write_array(
+		&mut self,
+		items: &[Rc<SerdesValue>],
+		current_root: usize,
+		path: &mut Vec<usize>,
+	) -> (u8, Payload) {
+		// every emitted array drops trailing undefined elements
+		let mut length = items.len();
+		while length > 0 && matches!(*items[length - 1], SerdesValue::Undefined) {
+			length -= 1;
+		}
+		let items = &items[..length];
+
+		let big_array =
+			items.len() > MAX_INLINE_ARRAY_ITEMS && items.iter().any(|item| is_flattenable(item));
+		let mut pairs = Vec::with_capacity(items.len() * 2);
+		for (position, item) in items.iter().enumerate() {
+			if big_array && is_flattenable(item) {
+				let key = root_key(item);
+				let id = *self.index.entry(key).or_insert_with(|| {
+					let id = self.roots.len();
+					self.roots.push(PendingRoot::Value(Rc::clone(item)));
+					id
+				});
+				push_pair(&mut pairs, (TYPE_ROOT_REF, Payload::Num(id as f64)));
+				continue;
+			}
+			path.push(position);
+			push_pair(&mut pairs, self.write(item, current_root, path));
+			path.pop();
+		}
+		(
+			if big_array {
+				TYPE_BIG_ARRAY
+			} else {
+				TYPE_ARRAY
+			},
+			Payload::Arr(pairs),
+		)
+	}
+
+	fn write_object(
+		&mut self,
+		entries: &[(String, Rc<SerdesValue>)],
+		current_root: usize,
+		path: &mut Vec<usize>,
+	) -> (u8, Payload) {
+		if entries.is_empty() {
+			return (TYPE_OBJECT, Payload::Num(0.0));
+		}
+		let ordered = js_property_order(entries);
+		let mut pairs = Vec::with_capacity(ordered.len() * 4);
+		for (position, (object_key, object_value)) in ordered.iter().enumerate() {
+			path.push(position * 2);
+			push_pair(&mut pairs, write_object_key(object_key));
+			*path.last_mut().unwrap() = position * 2 + 1;
+			push_pair(&mut pairs, self.write(object_value, current_root, path));
+			path.pop();
+		}
+		(TYPE_OBJECT, Payload::Arr(pairs))
+	}
+
+	/// Emit the full `<script type="qwik/state" …>` sequence, chunking past 1024 roots.
+	pub fn emit_state_scripts(self) -> String {
+		let pairs = self.serialize();
+		let root_count = pairs.len();
+		let mut output = String::new();
+		if root_count > MAX_STATE_ROOTS_PER_SCRIPT {
+			// the JS emitter re-encodes chunk slices via JSON.parse → JSON.stringify
+			let mut base = 0;
+			while base < root_count {
+				let end = (base + MAX_STATE_ROOTS_PER_SCRIPT).min(root_count);
+				write_script(&mut output, base, end - base, &pairs[base..end], true);
+				base = end;
+			}
+		} else {
+			write_script(&mut output, 0, root_count, &pairs, false);
+		}
+		output
+	}
+}
+
+fn write_number(number: f64) -> (u8, Payload) {
+	if number.is_nan() {
+		return (TYPE_CONSTANT, Payload::Num(CONST_NAN));
+	}
+	if number == f64::INFINITY {
+		return (TYPE_CONSTANT, Payload::Num(CONST_INFINITY));
+	}
+	if number == f64::NEG_INFINITY {
+		return (TYPE_CONSTANT, Payload::Num(CONST_NEG_INFINITY));
+	}
+	if number == MAX_SAFE_INTEGER {
+		return (TYPE_CONSTANT, Payload::Num(CONST_MAX_SAFE_INT));
+	}
+	if number == MAX_SAFE_INTEGER - 1.0 {
+		return (TYPE_CONSTANT, Payload::Num(CONST_ALMOST_MAX_SAFE_INT));
+	}
+	if number == -MAX_SAFE_INTEGER {
+		return (TYPE_CONSTANT, Payload::Num(CONST_MIN_SAFE_INT));
+	}
+	(TYPE_PLAIN, Payload::Num(number))
+}
+
+/// Object-literal key: numeric-folded per `/^-?[1-9][0-9]*$/ && length < 8`, else a string
+/// through the constant table (never deduped here — keys are written fresh each time).
+fn write_object_key(key: &str) -> (u8, Payload) {
+	if is_foldable_numeric_key(key) {
+		return (TYPE_PLAIN, Payload::Num(key.parse::<f64>().unwrap()));
+	}
+	match key {
+		"" => (TYPE_CONSTANT, Payload::Num(CONST_EMPTY_STRING)),
+		":" => (TYPE_CONSTANT, Payload::Num(CONST_COLON)),
+		"." => (TYPE_CONSTANT, Payload::Num(CONST_DOT)),
+		"id" => (TYPE_CONSTANT, Payload::Num(CONST_ID)),
+		"ref" => (TYPE_CONSTANT, Payload::Num(CONST_REF)),
+		_ => (TYPE_PLAIN, Payload::Str(key.to_string())),
+	}
+}
+
+fn is_foldable_numeric_key(key: &str) -> bool {
+	if key.len() >= 8 {
+		return false;
+	}
+	let digits = key.strip_prefix('-').unwrap_or(key);
+	let mut bytes = digits.bytes();
+	matches!(bytes.next(), Some(b'1'..=b'9')) && bytes.all(|byte| byte.is_ascii_digit())
+}
+
+/// Flattenable BigArray item: plain object or plain array (flyweights and backrefs excluded).
+fn is_flattenable(value: &SerdesValue) -> bool {
+	matches!(value, SerdesValue::Array(_) | SerdesValue::Object(_))
+}
+
+fn js_property_order(entries: &[(String, Rc<SerdesValue>)]) -> Vec<(&str, &Rc<SerdesValue>)> {
+	let mut indexed: Vec<(u32, &str, &Rc<SerdesValue>)> = Vec::new();
+	let mut named: Vec<(&str, &Rc<SerdesValue>)> = Vec::new();
+	for (key, value) in entries {
+		match array_index_of(key) {
+			Some(array_index) => indexed.push((array_index, key, value)),
+			None => named.push((key, value)),
+		}
+	}
+	indexed.sort_by_key(|(array_index, _, _)| *array_index);
+	indexed
+		.into_iter()
+		.map(|(_, key, value)| (key, value))
+		.chain(named)
+		.collect()
+}
+
+fn push_pair(pairs: &mut Vec<Payload>, (type_id, payload): (u8, Payload)) {
+	pairs.push(Payload::Num(type_id as f64));
+	pairs.push(payload);
+}
+
+fn write_script(
+	output: &mut String,
+	base: usize,
+	len: usize,
+	pairs: &[(u8, Payload)],
+	reencode: bool,
+) {
+	let mut body = String::from("[");
+	for (position, (type_id, payload)) in pairs.iter().enumerate() {
+		if position > 0 {
+			body.push(',');
+		}
+		body.push_str(&to_js_string(*type_id as f64));
+		body.push(',');
+		write_payload(payload, reencode, &mut body);
+	}
+	body.push(']');
+	let body = body.replace("</", "<\\/");
+	output.push_str(&format!(
+		"<script type=\"qwik/state\" q:base=\"{base}\" q:len=\"{len}\">{body}</script>"
+	));
+}
+
+fn write_payload(payload: &Payload, reencode: bool, output: &mut String) {
+	match payload {
+		Payload::Num(number) => output.push_str(&to_js_string(*number)),
+		Payload::Str(text) => {
+			if reencode {
+				write_json_quoted(text, output);
+			} else {
+				write_fast_quoted(text, output);
+			}
+		}
+		Payload::Arr(items) => {
+			output.push('[');
+			for (position, item) in items.iter().enumerate() {
+				if position > 0 {
+					output.push(',');
+				}
+				write_payload(item, reencode, output);
+			}
+			output.push(']');
+		}
+	}
+}
+
+/// Serializer fast path: raw quotes unless the string needs JSON escaping.
+fn write_fast_quoted(text: &str, output: &mut String) {
+	let needs_json = text
+		.chars()
+		.any(|ch| (ch as u32) < 32 || ch == '"' || ch == '\\');
+	if needs_json {
+		write_json_quoted(text, output);
+	} else {
+		output.push('"');
+		output.push_str(text);
+		output.push('"');
+	}
+}
+
+fn write_json_quoted(text: &str, output: &mut String) {
+	output.push('"');
+	for ch in text.chars() {
+		match ch {
+			'"' => output.push_str("\\\""),
+			'\\' => output.push_str("\\\\"),
+			'\u{8}' => output.push_str("\\b"),
+			'\u{c}' => output.push_str("\\f"),
+			'\n' => output.push_str("\\n"),
+			'\r' => output.push_str("\\r"),
+			'\t' => output.push_str("\\t"),
+			ch if (ch as u32) < 0x20 => output.push_str(&format!("\\u{:04x}", ch as u32)),
+			ch => output.push(ch),
+		}
+	}
+	output.push('"');
+}
+
+fn base64_no_pad(bytes: &[u8]) -> String {
+	const ALPHABET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+	let mut output = String::with_capacity(bytes.len().div_ceil(3) * 4);
+	for chunk in bytes.chunks(3) {
+		let buffer = [
+			chunk[0],
+			chunk.get(1).copied().unwrap_or(0),
+			chunk.get(2).copied().unwrap_or(0),
+		];
+		let bits = ((buffer[0] as u32) << 16) | ((buffer[1] as u32) << 8) | buffer[2] as u32;
+		output.push(ALPHABET[(bits >> 18) as usize & 63] as char);
+		output.push(ALPHABET[(bits >> 12) as usize & 63] as char);
+		if chunk.len() > 1 {
+			output.push(ALPHABET[(bits >> 6) as usize & 63] as char);
+		}
+		if chunk.len() > 2 {
+			output.push(ALPHABET[bits as usize & 63] as char);
+		}
+	}
+	output
+}

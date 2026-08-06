@@ -67,7 +67,7 @@ impl JsObject {
 }
 
 /// Canonical array index: decimal string of a u32 below 2^32-1, no leading zeros.
-fn array_index_of(key: &str) -> Option<u32> {
+pub(crate) fn array_index_of(key: &str) -> Option<u32> {
 	if key.is_empty() || (key.len() > 1 && key.starts_with('0')) {
 		return None;
 	}

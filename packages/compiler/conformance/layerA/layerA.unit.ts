@@ -2,8 +2,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, test } from 'vitest';
-import { renderToString } from '@qwik.dev/core/server';
-import { listFixtures, renderFixture } from './harness';
+import { listFixtures, readFixtureRequest, renderFixture, renderFixtureRoot } from './harness';
 import { buildInterpretedRoot } from './interpret-plan';
 
 /**
@@ -16,11 +15,14 @@ const shouldUpdate = process.env.UPDATE_GOLDENS === '1';
 describe('layerA shell goldens', () => {
   for (const name of listFixtures()) {
     test(name, async () => {
-      const { html, plan } = await renderFixture(name);
+      const { html, chunks, plan } = await renderFixture(name);
       const goldens: [string, string][] = [
         ['shell.html', html + '\n'],
         ['plan.json', JSON.stringify(plan, null, 2) + '\n'],
       ];
+      if (chunks !== undefined) {
+        goldens.push(['stream.json', JSON.stringify(chunks, null, 2) + '\n']);
+      }
       for (const [file, content] of goldens) {
         const goldenFile = join(fixturesDir, name, 'expected', file);
         if (shouldUpdate) {
@@ -42,18 +44,20 @@ describe('layerA reference interpreter parity', () => {
     test(name, async () => {
       // renderFixture also writes the generated segment modules the interpreter resolves
       const { plan } = await renderFixture(name);
-      const request = JSON.parse(
-        readFileSync(join(fixturesDir, name, 'request.json'), 'utf-8')
-      ) as Record<string, unknown>;
+      const request = readFixtureRequest(name);
       const root = await buildInterpretedRoot(
         plan,
         (chunkFile) => import(`./.generated/${name}/src/${chunkFile}`)
       );
-      const rendered = await renderToString(root as never, request);
-      const html = rendered.html.replace(/ q:version="[^"]*"/, ' q:version="conformance"');
+      const { html, chunks } = await renderFixtureRoot(root as never, request);
       expect(html + '\n').toBe(
         readFileSync(join(fixturesDir, name, 'expected', 'shell.html'), 'utf-8')
       );
+      if (chunks !== undefined) {
+        expect(JSON.stringify(chunks, null, 2) + '\n').toBe(
+          readFileSync(join(fixturesDir, name, 'expected', 'stream.json'), 'utf-8')
+        );
+      }
     });
   }
 });

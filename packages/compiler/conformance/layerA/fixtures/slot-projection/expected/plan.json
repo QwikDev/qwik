@@ -291,6 +291,7 @@
       "symbolName": "input_text_segment_0_3k1cvwun49quc",
       "chunk": "./input.tsx_input_text_segment_0_3k1cvwun49quc",
       "kind": "expression",
+      "resolved": true,
       "qrl": null,
       "captures": [
         {
@@ -306,6 +307,7 @@
       "symbolName": "input_slot_render_segment_1_1eeg0bp4sno4p",
       "chunk": "./input.tsx_input_slot_render_segment_1_1eeg0bp4sno4p",
       "kind": "slotRender",
+      "resolved": true,
       "qrl": null,
       "captures": [
         {
@@ -321,6 +323,7 @@
       "symbolName": "input_text_segment_2_3k1cwowuxxuve",
       "chunk": "./input.tsx_input_text_segment_2_3k1cwowuxxuve",
       "kind": "expression",
+      "resolved": false,
       "qrl": null,
       "captures": [
         {

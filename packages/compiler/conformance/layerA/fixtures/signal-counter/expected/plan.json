@@ -124,6 +124,7 @@
       "symbolName": "input_q_e_click_segment_0_18mo7olhabfab",
       "chunk": "./input.tsx_input_q_e_click_segment_0_18mo7olhabfab",
       "kind": "event",
+      "resolved": false,
       "qrl": null,
       "captures": [
         {

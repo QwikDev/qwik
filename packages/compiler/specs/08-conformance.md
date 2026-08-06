@@ -53,7 +53,17 @@ the fixture through `transformModules`, executes the emitted SSR modules against
 `@qwik.dev/core` (one module world — mixing built and source core instances splits the ambient
 invoke/owner context), renders with a fixed `instanceHash`, and normalizes the build-stamped
 `q:version` to `"conformance"`. Freshness-gated by `layerA.unit.ts`; regenerate with
-`UPDATE_GOLDENS=1`. The `plan.json` input and streamed-packet/state extraction land with Phase 3+.
+`UPDATE_GOLDENS=1`. The linked `plan.json` is goldened beside the shell, and the reference
+interpreter (`interpret-plan.ts`) byte-matches both against the emitted engine.
+
+Streaming fixtures set `"stream": true` in `request.json`: the harness renders through
+`renderToStream` (out-of-order), goldens the chunk sequence as `expected/stream.json`, and the
+parity test compares chunk boundaries, not just concatenated bytes. Two traps this catches that
+in-order rendering cannot: (1) the interpreter must sequence parts with `maybeThen`, never
+gratuitous `await`s — extra microtasks shift which serialization roots land in the shell state
+script vs the deferred packet; (2) QRL resolution timing must mirror the emitted `.s()` calls
+(`SegmentMeta.resolved`) — a lazily resolved `fallback$` settles after the eagerly resolved
+suspense content, which reorders roots byte-observably.
 
 Target fixture shape:
 
@@ -64,7 +74,7 @@ fixture/
                    # canned loader results by __id, canned plugin/fetch responses
   expected/
     shell.html
-    packets/NNN.bin   # streaming appends in order (absent for non-streaming fixtures)
+    stream.json       # ordered stream chunks (only for `"stream": true` fixtures)
     state.json        # extracted qwik/state payload(s)
 ```
 

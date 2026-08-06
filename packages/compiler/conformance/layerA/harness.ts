@@ -3,7 +3,7 @@ import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 // built package, not source: the generated modules' bare '@qwik.dev/core' imports resolve to the
 // built lib, and ambient state (invoke context, owner) must live in ONE module world
-import { renderToString } from '@qwik.dev/core/server';
+import { renderToStream, renderToString } from '@qwik.dev/core/server';
 import type { TransformModulesOptions } from '@qwik.dev/optimizer';
 import type { QwikModulePlan } from '../../src/emit-plan';
 import { transformModules } from '../../src/index';
@@ -27,16 +27,54 @@ export function listFixtures(): string[] {
 export interface FixtureRender {
   name: string;
   html: string;
+  /** Out-of-order stream chunks — present only for fixtures with `"stream": true`. */
+  chunks?: string[];
   /** Linked entry-rooted plan — the future engine input, goldened beside the shell. */
   plan: QwikSsrPlan;
+}
+
+/** `request.json` shape: render options plus the harness-only `stream` flag. */
+export type FixtureRequest = RenderToStringOptions & { stream?: boolean };
+
+export function readFixtureRequest(name: string): FixtureRequest {
+  return JSON.parse(
+    readFileSync(join(fixturesDir, name, 'request.json'), 'utf-8')
+  ) as FixtureRequest;
+}
+
+// q:version embeds build timestamp+hash; normalize so goldens survive rebuilds
+const normalizeVersion = (html: string) =>
+  html.replace(/ q:version="[^"]*"/, ' q:version="conformance"');
+
+export async function renderFixtureRoot(
+  root: SsrRenderRoot,
+  request: FixtureRequest
+): Promise<{ html: string; chunks?: string[] }> {
+  const { stream: streamFlag, ...opts } = request;
+  if (streamFlag !== true) {
+    const rendered = await renderToString(root as any, opts);
+    return { html: normalizeVersion(rendered.html) };
+  }
+  const chunks: string[] = [];
+  await renderToStream(
+    root as any,
+    {
+      ...opts,
+      stream: {
+        write(chunk: string) {
+          chunks.push(chunk);
+        },
+      },
+    } as any
+  );
+  const normalized = chunks.map(normalizeVersion);
+  return { html: normalized.join(''), chunks: normalized };
 }
 
 export async function renderFixture(name: string): Promise<FixtureRender> {
   const fixtureDir = join(fixturesDir, name);
   const code = readFileSync(join(fixtureDir, 'input.tsx'), 'utf-8');
-  const request = JSON.parse(
-    readFileSync(join(fixtureDir, 'request.json'), 'utf-8')
-  ) as RenderToStringOptions;
+  const request = readFixtureRequest(name);
 
   const result = await transformModules({
     input: [{ path: 'src/input.tsx', code }],
@@ -84,8 +122,6 @@ export async function renderFixture(name: string): Promise<FixtureRender> {
     throw new Error(`fixture "${name}" plan has unresolved targets: ${plan.unresolved.join(', ')}`);
   }
 
-  const rendered = await renderToString(root as any, request);
-  // q:version embeds build timestamp+hash; normalize so goldens survive rebuilds
-  const html = rendered.html.replace(/ q:version="[^"]*"/, ' q:version="conformance"');
-  return { name, html, plan };
+  const { html, chunks } = await renderFixtureRoot(root, request);
+  return { name, html, ...(chunks !== undefined ? { chunks } : {}), plan };
 }

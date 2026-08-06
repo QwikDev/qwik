@@ -161,6 +161,13 @@ interface SegmentMeta {
   symbolName: string;
   hash: string;
   kind: SegmentKind; // 'event' | 'expression' | 'branchCondition' | ...
+  /**
+   * True when the emitted module `.s()`-resolves the QRL at load time. Engines MUST mirror this:
+   * lazy QRLs settle later than eager ones, which reorders serialization roots between the shell
+   * state script and out-of-order packets — a byte-observable difference in streaming output. (E.g.
+   * suspense content resolves eagerly; a `fallback$` QRL stays lazy.)
+   */
+  resolved: boolean;
   captures: { name: string; source: 'local' | 'param' | 'loop' }[];
 }
 

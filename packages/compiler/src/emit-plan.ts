@@ -1,4 +1,6 @@
 import { emitSsrOpPlan, type PlanSsrComponent } from './emit-plan-ssr';
+import { isModuleStyleBoundary } from './emit-qrl';
+import { shouldResolveSsrSegment } from './emit-segment';
 import type { ValueIR } from './expr-ir';
 import type {
   CollectionPlan,
@@ -152,6 +154,11 @@ export interface PlanSegmentMeta {
   /** Chunk specifier exactly as emitted modules reference it (`./<file-base>`). */
   readonly chunk: string;
   readonly kind: string;
+  /**
+   * True when the emitted module `.s()`-resolves the QRL at load — engines must mirror this, as
+   * resolution timing is byte-observable in streaming output.
+   */
+  readonly resolved: boolean;
   readonly qrl: { readonly kind: string; readonly role?: string } | null;
   readonly captures: readonly {
     readonly binding: number;
@@ -303,28 +310,40 @@ export function emitModulePlan(
     }
   };
 
+  const components = outputs.map((output) => ({
+    name: output.component.exportName ?? '',
+    binding: output.component.bindingId,
+    propsBindings: output.result.shape.parameter?.bindingIds ?? [],
+    ssr: emitSsrOpPlan(output.result, output.result.segments, returnMode, source),
+    setup: planSetup(output.result.setup),
+    render: output.result.render.roots.map(planNode),
+    needsId: output.result.needsId,
+    idBase: output.result.idBase,
+    styleScope: output.result.styleScope,
+    providesContext: output.result.providesContext,
+    hasCustomHook: output.result.hasCustomHook,
+  }));
+  // same eligibility as the emit-ssr hoist loop, so `resolved` matches the emitted `.s()` calls
+  const directSegmentIds = new Set(
+    components.flatMap((component) => component.ssr?.directSegmentIds ?? [])
+  );
+  const resolvesEagerly = (segment: SegmentPlan): boolean =>
+    segment.qrl?.kind !== 'sync' &&
+    !isModuleStyleBoundary(segment) &&
+    (segment.parentId === null || directSegmentIds.has(segment.id)) &&
+    shouldResolveSsrSegment(segment);
+
   return {
     format: 'qwik/module-plan',
     version: 0,
     path,
-    components: outputs.map((output) => ({
-      name: output.component.exportName ?? '',
-      binding: output.component.bindingId,
-      propsBindings: output.result.shape.parameter?.bindingIds ?? [],
-      ssr: emitSsrOpPlan(output.result, output.result.segments, returnMode, source),
-      setup: planSetup(output.result.setup),
-      render: output.result.render.roots.map(planNode),
-      needsId: output.result.needsId,
-      idBase: output.result.idBase,
-      styleScope: output.result.styleScope,
-      providesContext: output.result.providesContext,
-      hasCustomHook: output.result.hasCustomHook,
-    })),
+    components,
     segments: segments.map((segment) => ({
       id: segment.id,
       symbolName: segment.symbolName,
       chunk: `./${path.split('/').pop()}_${segment.symbolName}`,
       kind: segment.kind,
+      resolved: resolvesEagerly(segment),
       qrl:
         segment.qrl === null
           ? null

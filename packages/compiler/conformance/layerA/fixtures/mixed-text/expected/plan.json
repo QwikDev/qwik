@@ -172,6 +172,7 @@
       "symbolName": "input_text_segment_1_3k1cwavr13suv",
       "chunk": "./input.tsx_input_text_segment_1_3k1cwavr13suv",
       "kind": "expression",
+      "resolved": true,
       "qrl": null,
       "captures": [
         {

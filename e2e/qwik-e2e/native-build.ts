@@ -3,7 +3,7 @@
 /* eslint-disable no-console */
 
 import type { QwikManifest } from '@qwik.dev/core/optimizer';
-import { existsSync, rmSync } from 'node:fs';
+import { existsSync, readFileSync, rmSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build, type InlineConfig } from 'vite';
@@ -19,6 +19,21 @@ const appSrcDir = join(appDir, 'src');
 const distDir = join(appDir, 'dist');
 const serverDir = join(appDir, 'server');
 const basePath = '/';
+
+// specs/09 user plugin: the authored TS module is the JS implementation; the sidecar `.rs`
+// file is the native one (a plain Rust fn named after the claimed export).
+const buildDataPlugin = {
+  name: 'vdomless-build-data',
+  claims: [{ module: './build-data', exports: ['buildData'] }],
+  targets: {
+    rust: () => ({
+      source: readFileSync(
+        join(__dirname, 'apps', 'vdomless-counter', 'src', 'build-data.rs'),
+        'utf-8'
+      ),
+    }),
+  },
+};
 
 async function main() {
   const optimizer = await import('@qwik.dev/core/optimizer');
@@ -68,6 +83,7 @@ async function main() {
       plugins: [
         optimizer.qwikVite({
           ssrPlan: true,
+          compilerPlugins: [buildDataPlugin],
           ssr: { manifestInput: clientManifest },
         }),
       ],

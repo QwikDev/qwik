@@ -235,6 +235,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         manifestInput: qwikViteOpts.ssr?.manifestInput,
         manifestInputPath: qwikViteOpts.ssr?.manifestInputPath,
         manifestOutput: qwikViteOpts.client?.manifestOutput,
+        ssrPlan: qwikViteOpts.ssrPlan,
       };
 
       const opts = await qwikPlugin.normalizeOptions(pluginOpts);

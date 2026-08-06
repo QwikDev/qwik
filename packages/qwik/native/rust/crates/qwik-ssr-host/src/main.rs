@@ -124,6 +124,10 @@ fn handle(mut stream: TcpStream, host: &Host, counter: u64) {
 		.split('?')
 		.next()
 		.unwrap_or("/");
+	let accepts_gzip = request.lines().any(|line| {
+		let lower = line.to_ascii_lowercase();
+		lower.starts_with("accept-encoding:") && lower.contains("gzip")
+	});
 
 	if path == "/" {
 		let html = homepage(host);
@@ -132,6 +136,7 @@ fn handle(mut stream: TcpStream, host: &Host, counter: u64) {
 			200,
 			"text/html; charset=utf-8",
 			html.as_bytes(),
+			accepts_gzip,
 		);
 		return;
 	}
@@ -139,13 +144,13 @@ fn handle(mut stream: TcpStream, host: &Host, counter: u64) {
 	let app_name = segments.next().unwrap_or("");
 	let rest = segments.next().unwrap_or("");
 	let Some(app) = host.apps.iter().find(|app| app.name == app_name) else {
-		respond(&mut stream, 404, "text/plain", b"not found");
+		respond(&mut stream, 404, "text/plain", b"not found", false);
 		return;
 	};
 	if let Some(file) = rest.strip_prefix("build/") {
 		// fail closed on any traversal shape
 		if file.contains("..") || file.contains('/') {
-			respond(&mut stream, 404, "text/plain", b"not found");
+			respond(&mut stream, 404, "text/plain", b"not found", false);
 			return;
 		}
 		let full = app.client_dir.join("build").join(file);
@@ -157,9 +162,9 @@ fn handle(mut stream: TcpStream, host: &Host, counter: u64) {
 					Some("json") => "application/json",
 					_ => "application/octet-stream",
 				};
-				respond(&mut stream, 200, content_type, &bytes);
+				respond(&mut stream, 200, content_type, &bytes, accepts_gzip);
 			}
-			Err(_) => respond(&mut stream, 404, "text/plain", b"not found"),
+			Err(_) => respond(&mut stream, 404, "text/plain", b"not found", false),
 		}
 		return;
 	}
@@ -170,6 +175,7 @@ fn handle(mut stream: TcpStream, host: &Host, counter: u64) {
 		200,
 		"text/html; charset=utf-8",
 		html.as_bytes(),
+		accepts_gzip,
 	);
 }
 
@@ -229,12 +235,26 @@ fn base36(mut value: u64) -> String {
 	String::from_utf8(out).unwrap()
 }
 
-fn respond(stream: &mut TcpStream, status: u16, content_type: &str, body: &[u8]) {
+fn respond(stream: &mut TcpStream, status: u16, content_type: &str, body: &[u8], gzip: bool) {
 	let reason = if status == 200 { "OK" } else { "Not Found" };
+	// gzip only pays past ~1KB; small bodies ship as-is
+	let compressed = if gzip && body.len() >= 1024 {
+		let mut encoder = flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::default());
+		encoder
+			.write_all(body)
+			.ok()
+			.and_then(|()| encoder.finish().ok())
+	} else {
+		None
+	};
+	let (payload, encoding_header) = match &compressed {
+		Some(bytes) => (bytes.as_slice(), "Content-Encoding: gzip\r\n"),
+		None => (body, ""),
+	};
 	let head = format!(
-		"HTTP/1.1 {status} {reason}\r\nContent-Type: {content_type}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
-		body.len()
+		"HTTP/1.1 {status} {reason}\r\nContent-Type: {content_type}\r\n{encoding_header}Content-Length: {}\r\nConnection: close\r\n\r\n",
+		payload.len()
 	);
 	let _ = stream.write_all(head.as_bytes());
-	let _ = stream.write_all(body);
+	let _ = stream.write_all(payload);
 }

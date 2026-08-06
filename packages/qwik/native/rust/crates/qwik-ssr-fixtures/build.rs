@@ -17,6 +17,8 @@ const READY_FIXTURES: &[&str] = &[
 	"suspense-inline",
 	"template-text",
 	"derived-collection",
+	"inner-html",
+	"visible-task",
 	"static-attrs",
 	"suspense-stream",
 ];

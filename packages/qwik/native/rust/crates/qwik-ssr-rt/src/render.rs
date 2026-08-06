@@ -215,6 +215,19 @@ impl SsrContext {
 		);
 	}
 
+	/// `useOn`-style attr (`q-e:qvisible`) — the `_visibleTask` wrapper points at the Task root.
+	pub fn use_on_attr(&mut self, attr_name: &str, task: Rc<SerdesValue>) -> String {
+		let scoped = attr_name
+			.strip_prefix("q-")
+			.unwrap_or(attr_name)
+			.to_string();
+		if !self.event_names.contains(&scoped) {
+			self.event_names.push(scoped);
+		}
+		let root_id = self.serializer.add_root(task);
+		format!(" {attr_name}=\"mock-chunk#_visibleTask#{root_id}\"")
+	}
+
 	/// Wrap, append to the open owner collector, and register on each dep's subscriber list.
 	fn attach_effect(&mut self, deps: &[Rc<SerdesValue>], effect: EffectValue) -> Rc<SerdesValue> {
 		let effect = Rc::new(SerdesValue::Effect(RefCell::new(effect)));

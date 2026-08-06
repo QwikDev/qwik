@@ -81,6 +81,7 @@ export type PlanSsrProp =
       readonly compilerString: boolean;
     }
   | { readonly p: 'spread'; readonly value: PlanValue }
+  | { readonly p: 'inner-html'; readonly html: string | number | boolean | null }
   | {
       readonly p: 'event';
       readonly name: string;
@@ -243,6 +244,12 @@ export function emitSsrOpPlan(
               : { bind: slice(handler.signal) }
           ),
         };
+      case 'inner-html':
+        // static innerHTML bakes raw children; dynamic keeps the JS fallback src
+        if (typeof item.value !== 'object' || item.value === null) {
+          return { p: 'inner-html', html: item.value };
+        }
+        return { p: item.kind, src: slice(item.range) };
       default:
         return { p: item.kind, src: slice(item.range) };
     }

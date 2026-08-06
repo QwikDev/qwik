@@ -24,6 +24,8 @@ import {
   useSignal,
   useStore,
   useTaskQrl,
+  useOn,
+  createVisibleTaskHandlerQrl,
   inlinedQrl,
   _chk,
   _props,
@@ -182,6 +184,17 @@ export async function buildInterpretedRoot(
           useTaskQrl(qrlWithCaptures(op.segment) as never);
           break;
         }
+        case 'visible-task': {
+          const op = entry as Extract<SetupOp, { op: 'visible-task' }>;
+          if (op.strategy !== 'intersection-observer') {
+            throw new Error(`interpreter cannot run visible-task strategy "${op.strategy}" yet`);
+          }
+          useOn(
+            'qvisible',
+            createVisibleTaskHandlerQrl(qrlWithCaptures(op.segment) as never) as never
+          );
+          break;
+        }
         default:
           throw new Error(`interpreter cannot run setup op "${entry.op}" yet`);
       }
@@ -229,6 +242,7 @@ export async function buildInterpretedRoot(
             runtimeIds.set(op.id, id);
           }
           const open: unknown[] = [`<${op.tag}`];
+          let innerHtmlContent: string | null = null;
           const deferredEvents: {
             slot: number;
             name: string;
@@ -298,6 +312,9 @@ export async function buildInterpretedRoot(
               } else {
                 throw new Error('interpreter supports single segment or bind event handlers only');
               }
+            } else if (prop.p === 'inner-html') {
+              const innerHtml = (prop as { html: unknown }).html;
+              innerHtmlContent = innerHtml == null ? '' : String(innerHtml);
             } else {
               throw new Error(`interpreter cannot render prop kind "${prop.p}" yet`);
             }
@@ -316,6 +333,10 @@ export async function buildInterpretedRoot(
                   : ctx.eventAttr(deferred.name, qrlWithCaptures(deferred.segment!));
             }
             parts.push(createSsrElementRecord(op.tag, ...(open as never[])));
+            if (innerHtmlContent !== null) {
+              // static innerHTML replaces children with the raw string
+              parts.push(innerHtmlContent);
+            }
             parts.push(...(childParts as unknown[]));
             if (!op.void) {
               parts.push(`</${op.tag}>`);

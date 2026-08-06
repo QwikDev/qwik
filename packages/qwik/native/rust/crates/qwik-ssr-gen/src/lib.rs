@@ -102,6 +102,8 @@ struct ComponentGenerator<'plan> {
 	computed_bodies: HashMap<u64, Json>,
 	/// Next element op opens a For row root (`q:row` attribute).
 	pending_row_root: bool,
+	/// `useOn` attrs awaiting the component's first element (attr name, task variable).
+	pending_use_on: Vec<(String, String)>,
 	/// Plan element id → generated runtime-id variable name.
 	element_ids: HashMap<u64, String>,
 	temp_counter: usize,
@@ -133,6 +135,7 @@ pub fn generate_component(plan: &Json, component_index: usize) -> Result<String,
 		local_kinds: HashMap::new(),
 		computed_bodies: HashMap::new(),
 		pending_row_root: false,
+		pending_use_on: Vec::new(),
 		element_ids: HashMap::new(),
 		temp_counter: 0,
 		uses_ctx: false,
@@ -270,6 +273,28 @@ impl ComponentGenerator<'_> {
 				.unwrap();
 				Ok(())
 			}
+			"visible-task" => {
+				if entry["strategy"].as_str() != Some("intersection-observer") {
+					return Err(format!(
+						"visible-task strategy {} not supported yet",
+						entry["strategy"]
+					));
+				}
+				let segment = entry["segment"]
+					.as_str()
+					.ok_or("visible-task op has no segment")?;
+				let qrl = self.qrl_expression(segment, true)?;
+				let variable = format!("visible_task_{}", self.next_temp());
+				// client-only: the body never runs server-side; deps stay empty
+				writeln!(
+					self.body,
+					"    let {variable} = std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Task(\n        qwik_ssr_rt::serdes::TaskValue {{ phase: 1, qrl: {qrl}, deps: Vec::new() }},\n    ));"
+				)
+				.unwrap();
+				self.pending_use_on
+					.push(("q-e:qvisible".to_string(), variable));
+				Ok(())
+			}
 			// pure microtask timing (`await Promise.resolve()`) — nothing to do natively
 			"yield" => Ok(()),
 			op => Err(format!("setup op {op:?} not supported yet")),
@@ -310,7 +335,9 @@ impl ComponentGenerator<'_> {
 		let children = op["children"]
 			.as_array()
 			.ok_or("element children missing")?;
-		let has_events = props.iter().any(|prop| prop["p"].as_str() == Some("event"));
+		let use_on_attrs = std::mem::take(&mut self.pending_use_on);
+		let has_events = !use_on_attrs.is_empty()
+			|| props.iter().any(|prop| prop["p"].as_str() == Some("event"));
 
 		let row_root = std::mem::take(&mut self.pending_row_root);
 		let id_variable = if op["id"].is_null() {
@@ -348,6 +375,9 @@ impl ComponentGenerator<'_> {
 				}
 			}
 			self.statics.push('>');
+			if let Some(raw) = Self::inner_html_of(props) {
+				self.statics.push_str(&raw);
+			}
 			self.write_ops(children, target)?;
 			if !op["void"].as_bool().unwrap_or(false) {
 				self.statics.push_str(&format!("</{tag}>"));
@@ -372,6 +402,14 @@ impl ComponentGenerator<'_> {
 			writeln!(
 				self.body,
 				"    {target}.push_str(&format!(\"{id_attr}\", {variable}));"
+			)
+			.unwrap();
+		}
+		for (attr_name, task_variable) in &use_on_attrs {
+			self.uses_ctx = true;
+			writeln!(
+				self.body,
+				"    {target}.push_str(&ctx.use_on_attr({attr_name:?}, std::rc::Rc::clone(&{task_variable})));"
 			)
 			.unwrap();
 		}
@@ -404,8 +442,23 @@ impl ComponentGenerator<'_> {
 					.push_str(&serialize_static_attr(name, &prop["value"])?);
 				Ok(())
 			}
+			// handled at element assembly (raw children), no attribute output
+			"inner-html" => Ok(()),
 			kind => Err(format!("prop {kind:?} not supported yet")),
 		}
+	}
+
+	fn inner_html_of(props: &[Json]) -> Option<String> {
+		props.iter().find_map(|prop| {
+			if prop["p"].as_str() != Some("inner-html") {
+				return None;
+			}
+			Some(match &prop["html"] {
+				Json::String(text) => text.clone(),
+				Json::Null => String::new(),
+				other => other.to_string(),
+			})
+		})
 	}
 
 	fn write_dynamic_attr(

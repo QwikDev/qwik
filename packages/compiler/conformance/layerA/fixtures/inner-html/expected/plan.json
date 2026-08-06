@@ -1,0 +1,86 @@
+{
+  "format": "qwik/ssr-plan",
+  "version": 0,
+  "entry": 0,
+  "components": [
+    {
+      "name": "App",
+      "module": 0,
+      "propsBindings": [],
+      "ssr": {
+        "setup": [],
+        "directSegmentIds": [],
+        "usedSegmentIds": [],
+        "ops": [
+          {
+            "o": "el",
+            "tag": "article",
+            "id": null,
+            "void": false,
+            "styleScopedId": null,
+            "targetUses": 0,
+            "props": [],
+            "propsEffect": null,
+            "children": [
+              {
+                "o": "el",
+                "tag": "div",
+                "id": null,
+                "void": false,
+                "styleScopedId": null,
+                "targetUses": 0,
+                "props": [
+                  {
+                    "p": "inner-html",
+                    "html": "<b>bold &amp; raw</b>"
+                  }
+                ],
+                "propsEffect": null,
+                "children": []
+              }
+            ]
+          }
+        ],
+        "synchronous": true,
+        "staticRoot": false,
+        "needsRootRange": false,
+        "needsId": false,
+        "idBase": "qApp-",
+        "flushTasks": false
+      },
+      "setup": [],
+      "render": [
+        {
+          "n": "el",
+          "tag": "article",
+          "props": [],
+          "children": [
+            {
+              "n": "el",
+              "tag": "div",
+              "props": [
+                {
+                  "p": "inner-html",
+                  "src": "dangerouslySetInnerHTML=\"<b>bold &amp; raw</b>\""
+                }
+              ],
+              "children": []
+            }
+          ]
+        }
+      ],
+      "needsId": false,
+      "idBase": "qApp-",
+      "styleScope": null,
+      "providesContext": false,
+      "hasCustomHook": false
+    }
+  ],
+  "modules": [
+    {
+      "path": "src/input.tsx",
+      "segments": []
+    }
+  ],
+  "unresolved": []
+}

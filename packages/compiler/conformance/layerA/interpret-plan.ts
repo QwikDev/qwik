@@ -320,9 +320,9 @@ export async function buildInterpretedRoot(
       }
     }
 
-    // lifted local components mark after all setup, like the emitted modules
+    // local components mark after all setup, like the emitted modules
     for (const entry of ssr.setup as readonly (SetupOp | PlanLocalComponent)[]) {
-      if (entry.op === 'local-component' && entry.segment !== undefined) {
+      if (entry.op === 'local-component') {
         _markComponent(locals.get(entry.binding) as never, qrlWithCaptures(entry.segment) as never);
       }
     }

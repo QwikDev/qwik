@@ -1370,7 +1370,7 @@ function emitCsrSetup(
         .map((statement) => `  ${statement}`)
         .join('\n');
       statements.push(`function ${setup.name}(${propsName}, ${generatedNames.ctx}) {\n${body}\n}`);
-      if (setup.segment !== null) {
+      {
         const liftedSegment = segmentById.get(setup.segment);
         if (liftedSegment === undefined) {
           return null;

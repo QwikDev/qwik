@@ -86,7 +86,7 @@ export type SsrSetupOperation =
       readonly bindingId: BindingId;
       readonly parameter: ComponentParameterPlan | null;
       readonly propNames: readonly string[];
-      readonly segment: string | null;
+      readonly segment: string;
       readonly target: SsrRenderFunctionTargetPlan;
     }
   | Extract<SetupPlan, { kind: 'style' }>;
@@ -911,9 +911,7 @@ function setupSegmentIds(operation: SsrSetupOperation): readonly string[] {
     : operation.kind === 'render-value'
       ? operation.render.usedSegmentIds
       : operation.kind === 'local-component'
-        ? operation.segment === null
-          ? operation.target.usedSegmentIds
-          : [...operation.target.usedSegmentIds, operation.segment]
+        ? [...operation.target.usedSegmentIds, operation.segment]
         : [];
 }
 

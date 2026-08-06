@@ -92,16 +92,16 @@ branch conditions, collection sources/keys, Suspense `fallback$` pending a struc
 recurses into `local-component` setup entries, so local component bodies are held to the same
 bar as component bodies. Plugin-related codes land with the plugin system.
 
-Local components compile in place (specs/03 `local-component`). When one is captured across a
-lazy QRL boundary (e.g. an extracted branch arm), the compiler **lifts** it: the compiled body
-is also emitted as its own chunk segment (kind `localComponent`, `_captures` preamble, own QRL
-hoists), the plan op records the backing `segment`, and the emitted setup tags the inline
-function with `_markComponent(fn, qrl.w([captures]))` after all setup statements (captures may
-be declared below the hoisted declaration). The serializer writes component-tagged functions as
-their QRL, so declaration form no longer decides serializability. Uncaptured locals stay pure
-inline. A call is lifted whenever _any_ extracted segment lists its binding as a capture — this
-over-lifts for rows that later inline (byte-neutral: the unused chunk and mark serialize
-nothing).
+Local components compile in place (specs/03 `local-component`) and are **always chunk-backed,
+like any component**: the compiled body is also emitted as its own chunk segment (kind
+`localComponent`, `_captures` preamble, own QRL hoists; nested local components inline their
+bodies into the enclosing chunk, whose child-segment imports collect transitively through them),
+the plan op always records the backing `segment`, and the emitted setup tags the inline function
+with `_markComponent(fn, qrl.w([captures]))` after all setup statements (captures may be
+declared below the hoisted declaration). The serializer writes component-tagged functions as
+their QRL, so a local component is serializable no matter how it escapes — segment captures,
+props, stores, or context. Direct calls keep using the inline function; the chunk is lazy and
+never fetched unless the value actually resumes on the client.
 
 | code                           | severity | fires when                                                                                                                          |
 | ------------------------------ | -------- | ----------------------------------------------------------------------------------------------------------------------------------- |

@@ -148,7 +148,7 @@ export type CsrSetupPlan =
       readonly bindingId: BindingId;
       readonly parameter: ComponentParameterPlan | null;
       readonly propNames: readonly string[];
-      readonly segment: string | null;
+      readonly segment: string;
       readonly render: CsrPlan;
     }
   | Extract<SetupPlan, { kind: 'style' }>;
@@ -607,6 +607,7 @@ class CsrPlanner {
         for (const segmentId of render.usedSegmentIds) {
           this.usedSegmentIds.add(segmentId);
         }
+        this.usedSegmentIds.add(item.segment);
         plannedSetup.push({
           kind: 'local-component',
           name: item.name,

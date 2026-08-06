@@ -659,16 +659,14 @@ function emitSetup(
       statements.push(
         `function ${operation.name}(${propsName}, ${generatedNames.ctx}) {\n${body}\n}`
       );
-      if (operation.segment !== null) {
-        const liftedSegment = segments.get(operation.segment);
-        if (liftedSegment === undefined) {
-          return null;
-        }
-        imports.add(QwikWord.MarkComponent);
-        pendingComponentMarks.push(
-          `${QwikWord.MarkComponent}(${operation.name}, ${qrlReference(liftedSegment, undefined, generatedNames)});`
-        );
+      const liftedSegment = segments.get(operation.segment);
+      if (liftedSegment === undefined) {
+        return null;
       }
+      imports.add(QwikWord.MarkComponent);
+      pendingComponentMarks.push(
+        `${QwikWord.MarkComponent}(${operation.name}, ${qrlReference(liftedSegment, undefined, generatedNames)});`
+      );
       continue;
     }
     if (operation.kind === 'style') {

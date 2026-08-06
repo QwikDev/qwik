@@ -132,7 +132,30 @@ function emitSegmentCode(
 ): string | null {
   const imports: string[] = [];
   const qwikImports = new Set<string>();
-  const childSegments = segments.filter((candidate) => candidate.parentId === segment.id);
+  // nested local components inline their bodies here, so their children belong to this chunk
+  // too (their own q_ hoists come from the inline render — they are not chunk children)
+  const chunkParentIds = new Set([segment.id]);
+  let addedNestedParent = true;
+  while (addedNestedParent) {
+    addedNestedParent = false;
+    for (const candidate of segments) {
+      if (
+        candidate.kind === 'localComponent' &&
+        candidate.parentId !== null &&
+        chunkParentIds.has(candidate.parentId) &&
+        !chunkParentIds.has(candidate.id)
+      ) {
+        chunkParentIds.add(candidate.id);
+        addedNestedParent = true;
+      }
+    }
+  }
+  const childSegments = segments.filter(
+    (candidate) =>
+      candidate.kind !== 'localComponent' &&
+      candidate.parentId !== null &&
+      chunkParentIds.has(candidate.parentId)
+  );
   const hasEmbeddedRenders = segment.embeddedRenders.length > 0;
   const embeddedInvokeContextName = hasEmbeddedRenders
     ? allocateGeneratedName(

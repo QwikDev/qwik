@@ -33,6 +33,7 @@ import {
   escapeHTML,
   createSsrElementRecord,
   maybeThen,
+  _markComponent,
   createSsrRecord,
   createComponent,
   renderSsrContent,
@@ -55,12 +56,22 @@ const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _qrlWithChun
   () => import('./component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg'),
   'component_q_e_click_segment_1_2xwyfnber1kpg'
 );
+const q_local_component_178_269_1v0zojj4cidpx = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_local_component_178_269_1v0zojj4cidpx',
+  () => import('./component.tsx_local_component_178_269_1v0zojj4cidpx'),
+  'local_component_178_269_1v0zojj4cidpx'
+);
 const q_semantic_expression_384_402_2ufkztrrdwur1 = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_semantic_expression_384_402_2ufkztrrdwur1',
   () => import('./component.tsx_semantic_expression_384_402_2ufkztrrdwur1'),
   'semantic_expression_384_402_2ufkztrrdwur1'
 );
 q_semantic_expression_384_402_2ufkztrrdwur1.s(semantic_expression_384_402_2ufkztrrdwur1);
+const q_local_component_112_432_9mplpu2ebao3 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_local_component_112_432_9mplpu2ebao3',
+  () => import('./component.tsx_local_component_112_432_9mplpu2ebao3'),
+  'local_component_112_432_9mplpu2ebao3'
+);
 export function App(props, ctx) {
   const todos = useStore({ filter: 'all' });
   function Filter(props, ctx) {
@@ -90,6 +101,7 @@ export function App(props, ctx) {
         '*</b>',
       ]);
     }
+    _markComponent(Star, q_local_component_178_269_1v0zojj4cidpx.w([todos, lower]));
     let contentId1;
     const invokeCtx3 = getActiveInvokeContextOrNull();
     const component0 = createComponent({ on: true }, (props) => Star(props, ctx));
@@ -122,6 +134,7 @@ export function App(props, ctx) {
       ])
     );
   }
+  _markComponent(Filter, q_local_component_112_432_9mplpu2ebao3.w([todos]));
   const component0 = createComponent({ name: 'All' }, (props) => Filter(props, ctx));
   return maybeThen(component0, (component0) => [
     createSsrElementRecord('ul', '<ul', '>'),
@@ -192,6 +205,76 @@ export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
   ]
 }
 */
+============================= src/component.tsx_local_component_178_269_1v0zojj4cidpx.js (ENTRY POINT)==
+
+import {
+  _qrlWithChunk,
+  _captures,
+  createSsrNodeId,
+  createSsrElementTarget,
+  renderSsrAttrExpression,
+  escapeHTML,
+  createSsrElementRecord,
+  maybeThen,
+} from '@qwik.dev/core';
+import { component_class_segment_0_3htuygud1guoj } from './component.tsx_component_class_segment_0_3htuygud1guoj';
+const q_component_class_segment_0_3htuygud1guoj = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_class_segment_0_3htuygud1guoj',
+  () => import('./component.tsx_component_class_segment_0_3htuygud1guoj'),
+  'component_class_segment_0_3htuygud1guoj'
+);
+q_component_class_segment_0_3htuygud1guoj.s(component_class_segment_0_3htuygud1guoj);
+
+export const local_component_178_269_1v0zojj4cidpx = (props, ctx) => {
+  const todos = _captures[0],
+    lower = _captures[1];
+  const { on } = props;
+  const id0 = ctx.nextId();
+  ctx.addRoot(on);
+  const attr1 = renderSsrAttrExpression(
+    createSsrElementTarget(id0),
+    'class',
+    [on, todos, lower],
+    q_component_class_segment_0_3htuygud1guoj
+  );
+  return maybeThen(attr1, (attr1) => [
+    createSsrElementRecord(
+      'b',
+      '<b q:id="',
+      createSsrNodeId(id0),
+      '"',
+      attr1 === null ? '' : ' class' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
+      '>'
+    ),
+    '*</b>',
+  ]);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "local_component_178_269_1v0zojj4cidpx",
+  "entry": null,
+  "displayName": "local_component_178_269",
+  "hash": "1v0zojj4cidpx",
+  "canonicalFilename": "component.tsx_local_component_178_269_1v0zojj4cidpx",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "localComponent",
+  "captures": true,
+  "loc": [
+    178,
+    269
+  ],
+  "paramNames": [
+    "on"
+  ],
+  "captureNames": [
+    "todos",
+    "lower"
+  ]
+}
+*/
 ============================= src/component.tsx_semantic_expression_384_402_2ufkztrrdwur1.js (ENTRY POINT)==
 
 export const semantic_expression_384_402_2ufkztrrdwur1 = (name) => {
@@ -220,6 +303,123 @@ export const semantic_expression_384_402_2ufkztrrdwur1 = (name) => {
   ]
 }
 */
+============================= src/component.tsx_local_component_112_432_9mplpu2ebao3.js (ENTRY POINT)==
+
+import {
+  _qrlWithChunk,
+  _captures,
+  createSsrElementRecord,
+  createSsrRecord,
+  createComponent,
+  renderSsrContent,
+  createSsrNodeId,
+  escapeSsrContent,
+  getActiveInvokeContextOrNull,
+  invoke,
+  maybeThen,
+  createSsrElementTarget,
+  renderSsrAttrExpression,
+  escapeHTML,
+  _markComponent,
+} from '@qwik.dev/core';
+import { component_class_segment_0_3htuygud1guoj } from './component.tsx_component_class_segment_0_3htuygud1guoj';
+import { semantic_expression_384_402_2ufkztrrdwur1 } from './component.tsx_semantic_expression_384_402_2ufkztrrdwur1';
+const q_component_class_segment_0_3htuygud1guoj = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_class_segment_0_3htuygud1guoj',
+  () => import('./component.tsx_component_class_segment_0_3htuygud1guoj'),
+  'component_class_segment_0_3htuygud1guoj'
+);
+q_component_class_segment_0_3htuygud1guoj.s(component_class_segment_0_3htuygud1guoj);
+const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg',
+  () => import('./component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg'),
+  'component_q_e_click_segment_1_2xwyfnber1kpg'
+);
+const q_semantic_expression_384_402_2ufkztrrdwur1 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_semantic_expression_384_402_2ufkztrrdwur1',
+  () => import('./component.tsx_semantic_expression_384_402_2ufkztrrdwur1'),
+  'semantic_expression_384_402_2ufkztrrdwur1'
+);
+q_semantic_expression_384_402_2ufkztrrdwur1.s(semantic_expression_384_402_2ufkztrrdwur1);
+
+export const local_component_112_432_9mplpu2ebao3 = (props, ctx) => {
+  const todos = _captures[0];
+  const { name } = props;
+  const lower = name.toLowerCase();
+  function Star(props, ctx) {
+    const { on } = props;
+    const id0 = ctx.nextId();
+    ctx.addRoot(on);
+    ctx.addRoot(todos);
+    ctx.addRoot(lower);
+    const attr1 = renderSsrAttrExpression(
+      createSsrElementTarget(id0),
+      'class',
+      [on, todos, lower],
+      q_component_class_segment_0_3htuygud1guoj
+    );
+    return maybeThen(attr1, (attr1) => [
+      createSsrElementRecord(
+        'b',
+        '<b q:id="',
+        createSsrNodeId(id0),
+        '"',
+        attr1 === null ? '' : ' class' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
+        '>'
+      ),
+      '*</b>',
+    ]);
+  }
+  _markComponent(Star, q_local_component_178_269_1v0zojj4cidpx.w([todos, lower]));
+  let contentId1;
+  const invokeCtx3 = getActiveInvokeContextOrNull();
+  const component0 = createComponent({ on: true }, (props) => Star(props, ctx));
+  const content2 = () =>
+    invoke(invokeCtx3, () => {
+      contentId1 ??= ctx.nextId();
+      ctx.addRoot(name);
+      return renderSsrContent(ctx, contentId1, [name], q_semantic_expression_384_402_2ufkztrrdwur1);
+    });
+  return maybeThen(component0, (component0) =>
+    maybeThen(content2(), (content2) => [
+      createSsrElementRecord('li', '<li', '>'),
+      createSsrRecord(
+        '<a',
+        ctx.eventAttr('q-e:click', q_component_q_e_click_segment_1_2xwyfnber1kpg.w([todos, lower])),
+        '>'
+      ),
+      component0,
+      createSsrRecord('<!d=', createSsrNodeId(contentId1), '>'),
+      escapeSsrContent(content2),
+      '<!/d></a></li>',
+    ])
+  );
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "local_component_112_432_9mplpu2ebao3",
+  "entry": null,
+  "displayName": "local_component_112_432",
+  "hash": "9mplpu2ebao3",
+  "canonicalFilename": "component.tsx_local_component_112_432_9mplpu2ebao3",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "localComponent",
+  "captures": true,
+  "loc": [
+    112,
+    432
+  ],
+  "paramNames": [
+    "name"
+  ],
+  "captureNames": [
+    "todos"
+  ]
+}
+*/
 == SSR DIAGNOSTICS ==
 
 []
@@ -232,6 +432,8 @@ import {
   _first,
   createAttrExpressionEffect,
   createTemplate,
+  _qrlWithChunk,
+  _markComponent,
   _next,
   setEvent,
   createComponent,
@@ -244,7 +446,17 @@ import { component_q_e_click_segment_1_2xwyfnber1kpg } from './component.tsx_com
 import { semantic_expression_384_402_2ufkztrrdwur1 } from './component.tsx_semantic_expression_384_402_2ufkztrrdwur1';
 
 const Star_tmpl0 = createTemplate('<b>*</b>');
+const q_local_component_178_269_1v0zojj4cidpx = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_local_component_178_269_1v0zojj4cidpx',
+  () => import('./component.tsx_local_component_178_269_1v0zojj4cidpx'),
+  'local_component_178_269_1v0zojj4cidpx'
+);
 const Filter_tmpl0 = createTemplate('<li><a><!----><!----><!----><!----></a></li>');
+const q_local_component_112_432_9mplpu2ebao3 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_local_component_112_432_9mplpu2ebao3',
+  () => import('./component.tsx_local_component_112_432_9mplpu2ebao3'),
+  'local_component_112_432_9mplpu2ebao3'
+);
 const App_tmpl0 = createTemplate('<ul><!----><!----></ul>');
 export function App(props, ctx) {
   const todos = useStore({ filter: 'all' });
@@ -265,6 +477,7 @@ export function App(props, ctx) {
       ctx.scheduler.notify(effect0);
       return el0;
     }
+    _markComponent(Star, q_local_component_178_269_1v0zojj4cidpx.w([todos, lower]));
     const fragment0 = Filter_tmpl0(ctx.document);
     const el0 = _first(fragment0);
     const el1 = _first(el0);
@@ -294,6 +507,7 @@ export function App(props, ctx) {
     ctx.scheduler.notify(content0);
     return el0;
   }
+  _markComponent(Filter, q_local_component_112_432_9mplpu2ebao3.w([todos]));
   const fragment0 = App_tmpl0(ctx.document);
   const el0 = _first(fragment0);
   const start0 = _first(el0);
@@ -374,6 +588,54 @@ export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
   ]
 }
 */
+============================= src/component.tsx_local_component_178_269_1v0zojj4cidpx.js (ENTRY POINT)==
+
+import { _captures, _first, createAttrExpressionEffect, createTemplate } from '@qwik.dev/core';
+import { component_class_segment_0_3htuygud1guoj } from './component.tsx_component_class_segment_0_3htuygud1guoj';
+const local_component_178_269_1v0zojj4cidpx_tmpl0 = createTemplate('<b>*</b>');
+
+export const local_component_178_269_1v0zojj4cidpx = (props, ctx) => {
+  const todos = _captures[0],
+    lower = _captures[1];
+  const { on } = props;
+  const fragment0 = local_component_178_269_1v0zojj4cidpx_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const effect0 = createAttrExpressionEffect(
+    el0,
+    'class',
+    [on, todos, lower],
+    component_class_segment_0_3htuygud1guoj,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect0);
+  return el0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "local_component_178_269_1v0zojj4cidpx",
+  "entry": null,
+  "displayName": "local_component_178_269",
+  "hash": "1v0zojj4cidpx",
+  "canonicalFilename": "component.tsx_local_component_178_269_1v0zojj4cidpx",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "localComponent",
+  "captures": true,
+  "loc": [
+    178,
+    269
+  ],
+  "paramNames": [
+    "on"
+  ],
+  "captureNames": [
+    "todos",
+    "lower"
+  ]
+}
+*/
 ============================= src/component.tsx_semantic_expression_384_402_2ufkztrrdwur1.js (ENTRY POINT)==
 
 export const semantic_expression_384_402_2ufkztrrdwur1 = (name) => {
@@ -399,6 +661,108 @@ export const semantic_expression_384_402_2ufkztrrdwur1 = (name) => {
   "paramNames": [],
   "captureNames": [
     "name"
+  ]
+}
+*/
+============================= src/component.tsx_local_component_112_432_9mplpu2ebao3.js (ENTRY POINT)==
+
+import {
+  _captures,
+  _first,
+  createAttrExpressionEffect,
+  createTemplate,
+  _qrlWithChunk,
+  _markComponent,
+  _next,
+  setEvent,
+  createComponent,
+  _toNodes,
+  maybeThen,
+  createContentBlock,
+} from '@qwik.dev/core';
+import { component_class_segment_0_3htuygud1guoj } from './component.tsx_component_class_segment_0_3htuygud1guoj';
+import { component_q_e_click_segment_1_2xwyfnber1kpg } from './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg';
+import { semantic_expression_384_402_2ufkztrrdwur1 } from './component.tsx_semantic_expression_384_402_2ufkztrrdwur1';
+const Star_tmpl0 = createTemplate('<b>*</b>');
+const q_local_component_178_269_1v0zojj4cidpx = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_local_component_178_269_1v0zojj4cidpx',
+  () => import('./component.tsx_local_component_178_269_1v0zojj4cidpx'),
+  'local_component_178_269_1v0zojj4cidpx'
+);
+const local_component_112_432_9mplpu2ebao3_tmpl0 = createTemplate(
+  '<li><a><!----><!----><!----><!----></a></li>'
+);
+
+export const local_component_112_432_9mplpu2ebao3 = (props, ctx) => {
+  const todos = _captures[0];
+  const { name } = props;
+  const lower = name.toLowerCase();
+  function Star(props, ctx) {
+    const { on } = props;
+    const fragment0 = Star_tmpl0(ctx.document);
+    const el0 = _first(fragment0);
+    const effect0 = createAttrExpressionEffect(
+      el0,
+      'class',
+      [on, todos, lower],
+      component_class_segment_0_3htuygud1guoj,
+      ctx.scheduler
+    );
+    ctx.scheduler.notify(effect0);
+    return el0;
+  }
+  _markComponent(Star, q_local_component_178_269_1v0zojj4cidpx.w([todos, lower]));
+  const fragment0 = local_component_112_432_9mplpu2ebao3_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const el1 = _first(el0);
+  const start0 = _first(el1);
+  const end0 = _next(start0);
+  const start1 = _next(end0);
+  const end1 = _next(start1);
+  setEvent(el1, 'q-e:click', component_q_e_click_segment_1_2xwyfnber1kpg, [todos, lower]);
+  ctx.scheduler.waitFor(
+    maybeThen(
+      createComponent({ on: true }, (props) => Star(props, ctx)),
+      (component0) => {
+        const nodes0 = _toNodes(component0);
+        for (const node of nodes0) end0.parentNode.insertBefore(node, end0);
+        start0.remove();
+        end0.remove();
+      }
+    )
+  );
+  const content0 = createContentBlock(
+    ctx,
+    start1,
+    end1,
+    [name],
+    semantic_expression_384_402_2ufkztrrdwur1
+  );
+  ctx.scheduler.notify(content0);
+  return el0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "local_component_112_432_9mplpu2ebao3",
+  "entry": null,
+  "displayName": "local_component_112_432",
+  "hash": "9mplpu2ebao3",
+  "canonicalFilename": "component.tsx_local_component_112_432_9mplpu2ebao3",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "localComponent",
+  "captures": true,
+  "loc": [
+    112,
+    432
+  ],
+  "paramNames": [
+    "name"
+  ],
+  "captureNames": [
+    "todos"
   ]
 }
 */

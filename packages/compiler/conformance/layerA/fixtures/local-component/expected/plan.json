@@ -66,6 +66,7 @@
                   "op": "local-component",
                   "name": "Star",
                   "binding": 6,
+                  "segment": "local_component_193_284",
                   "props": {
                     "kind": "object",
                     "bindings": [
@@ -259,6 +260,7 @@
           "segment_2",
           "semantic_expression_443_461",
           "segment_0",
+          "local_component_193_284",
           "local_component_127_491"
         ],
         "ops": [
@@ -554,6 +556,28 @@
               "binding": 8,
               "name": "f",
               "source": "loop",
+              "access": "direct"
+            }
+          ]
+        },
+        {
+          "id": "local_component_193_284",
+          "symbolName": "local_component_193_284_sgejdibpyok",
+          "chunk": "./input.tsx_local_component_193_284_sgejdibpyok",
+          "kind": "localComponent",
+          "resolved": false,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 2,
+              "name": "todos",
+              "source": "local",
+              "access": "direct"
+            },
+            {
+              "binding": 5,
+              "name": "lower",
+              "source": "local",
               "access": "direct"
             }
           ]

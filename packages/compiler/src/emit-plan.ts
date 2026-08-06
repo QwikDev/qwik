@@ -91,8 +91,8 @@ export interface PlanLocalComponent {
   readonly op: SetupOpKind.LocalComponent;
   readonly name: string;
   readonly binding: number;
-  /** Backing chunk segment id when lifted (captured across a lazy boundary). */
-  readonly segment?: string;
+  /** Backing chunk segment id — the component value's serialization identity. */
+  readonly segment: string;
   /** Destructured props as prop-key → binding pairs, or the whole-props identifier binding. */
   readonly props:
     | {

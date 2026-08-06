@@ -172,8 +172,8 @@ export interface LocalComponentSetupPlan {
   readonly parameter: ComponentParameterPlan | null;
   /** Object-pattern prop keys parallel to `parameter.bindingIds`; empty for identifier params. */
   readonly propNames: readonly string[];
-  /** Backing chunk segment when the component is captured across a lazy boundary (lifted). */
-  readonly segment: string | null;
+  /** Backing chunk segment — every local component is chunk-backed, like any component. */
+  readonly segment: string;
   readonly render: RenderFunctionPlan;
 }
 

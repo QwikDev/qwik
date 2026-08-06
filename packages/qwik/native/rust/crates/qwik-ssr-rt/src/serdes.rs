@@ -136,6 +136,9 @@ pub struct ProjectionValue {
 pub struct StoreState {
 	pub raw: Rc<SerdesValue>,
 	pub records: Vec<StoreRecord>,
+	/// Interned per-prop handles: reads share one StoreProp identity, like the JS proxy cache.
+	/// The store→handle→store Rc cycle only lives until process teardown.
+	pub prop_handles: Vec<(String, Rc<SerdesValue>)>,
 }
 
 #[derive(Debug)]
@@ -553,10 +556,12 @@ impl Serializer {
 				if !state.records.is_empty() {
 					*path.last_mut().unwrap() = 1;
 					let mut record_pairs = Vec::new();
-					for record in &state.records {
-						// record layout: [path[], prop, ...subs]
+					for (record_index, record) in state.records.iter().enumerate() {
+						// record layout: [path[], prop, ...subs] — logical 0 is the paths array
+						path.push(record_index);
 						let mut items = Vec::new();
 						push_pair(&mut items, (TYPE_ARRAY, Payload::Arr(Vec::new())));
+						path.push(1);
 						push_pair(
 							&mut items,
 							self.write(
@@ -565,11 +570,14 @@ impl Serializer {
 								path,
 							),
 						);
-						for sub in &record.subs {
+						for (sub_index, sub) in record.subs.iter().enumerate() {
+							*path.last_mut().unwrap() = 2 + sub_index;
 							let pair = self.write(sub, current_root, path);
 							push_pair(&mut items, pair);
 						}
+						path.pop();
 						push_pair(&mut record_pairs, (TYPE_ARRAY, Payload::Arr(items)));
+						path.pop();
 					}
 					push_pair(&mut pairs, (TYPE_ARRAY, Payload::Arr(record_pairs)));
 				}

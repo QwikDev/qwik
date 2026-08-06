@@ -25,6 +25,7 @@ const READY_FIXTURES: &[&str] = &[
 	"suspense-stream",
 	"def-helper",
 	"class-object",
+	"local-component",
 ];
 
 fn main() {

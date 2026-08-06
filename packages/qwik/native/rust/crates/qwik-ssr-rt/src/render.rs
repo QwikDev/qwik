@@ -560,6 +560,43 @@ pub fn js_strict_eq(left: &Rc<SerdesValue>, right: &Rc<SerdesValue>) -> Rc<Serde
 	Rc::new(SerdesValue::Bool(equal))
 }
 
+/// JS `==` on primitives; comparisons that would invoke ToPrimitive on objects panic.
+pub fn js_loose_eq(left: &Rc<SerdesValue>, right: &Rc<SerdesValue>) -> Rc<SerdesValue> {
+	Rc::new(SerdesValue::Bool(loose_eq_value(left, right)))
+}
+
+fn loose_eq_value(left: &Rc<SerdesValue>, right: &Rc<SerdesValue>) -> bool {
+	match (&**left, &**right) {
+		(SerdesValue::Number(a), SerdesValue::Number(b)) => a == b,
+		(SerdesValue::String(a), SerdesValue::String(b)) => a == b,
+		(SerdesValue::Bool(a), SerdesValue::Bool(b)) => a == b,
+		(
+			SerdesValue::Null | SerdesValue::Undefined,
+			SerdesValue::Null | SerdesValue::Undefined,
+		) => true,
+		(SerdesValue::Null | SerdesValue::Undefined, _)
+		| (_, SerdesValue::Null | SerdesValue::Undefined) => false,
+		(SerdesValue::Number(a), SerdesValue::String(b)) => *a == js_string_to_number(b),
+		(SerdesValue::String(a), SerdesValue::Number(b)) => js_string_to_number(a) == *b,
+		(SerdesValue::Bool(a), _) => {
+			loose_eq_value(&Rc::new(SerdesValue::Number(f64::from(*a))), right)
+		}
+		(_, SerdesValue::Bool(b)) => {
+			loose_eq_value(left, &Rc::new(SerdesValue::Number(f64::from(*b))))
+		}
+		(a, b) => panic!("loose equality of {a:?} and {b:?} not supported yet"),
+	}
+}
+
+/// JS ToNumber on strings: trimmed empty is 0, otherwise a float parse (NaN on failure).
+fn js_string_to_number(text: &str) -> f64 {
+	let trimmed = text.trim();
+	if trimmed.is_empty() {
+		return 0.0;
+	}
+	trimmed.parse::<f64>().unwrap_or(f64::NAN)
+}
+
 /// JS `*` on numbers.
 pub fn js_mul(left: &Rc<SerdesValue>, right: &Rc<SerdesValue>) -> Rc<SerdesValue> {
 	match (&**left, &**right) {
@@ -649,14 +686,20 @@ pub fn serialize_class(value: &Rc<SerdesValue>) -> String {
 }
 
 /// Expression-attr result → attribute text: `class` objects serialize, plain values coerce.
+/// Empty `class`/`style` results omit the attribute entirely, like the JS serializer.
 pub fn attr_expression_text(name: &str, value: &Rc<SerdesValue>) -> Option<String> {
 	if name == "class" {
-		return Some(serialize_class(value));
+		let text = serialize_class(value);
+		return if text.is_empty() { None } else { Some(text) };
 	}
-	match &**value {
-		SerdesValue::Null | SerdesValue::Undefined => None,
-		other => Some(value_text(other)),
+	let text = match &**value {
+		SerdesValue::Null | SerdesValue::Undefined => return None,
+		other => value_text(other),
+	};
+	if text.is_empty() && (name == "class" || name == "style") {
+		return None;
 	}
+	Some(text)
 }
 
 /// Dynamic attribute serialization: null/undefined → omitted, `''` → bare, else escaped value.
@@ -726,10 +769,23 @@ pub fn member_read(
 	match &**object {
 		SerdesValue::Signal(_) if name == "value" => tracked_signal_value(object, tracked),
 		SerdesValue::Store(state) => {
-			tracked.push(Rc::new(SerdesValue::StoreProp {
-				store: Rc::clone(object),
-				prop: name.to_string(),
-			}));
+			let handle = {
+				let mut store_state = state.borrow_mut();
+				match store_state.prop_handles.iter().find(|(key, _)| key == name) {
+					Some((_, existing)) => Rc::clone(existing),
+					None => {
+						let created = Rc::new(SerdesValue::StoreProp {
+							store: Rc::clone(object),
+							prop: name.to_string(),
+						});
+						store_state
+							.prop_handles
+							.push((name.to_string(), Rc::clone(&created)));
+						created
+					}
+				}
+			};
+			tracked.push(handle);
 			let raw = Rc::clone(&state.borrow().raw);
 			let SerdesValue::Object(entries) = &*raw else {
 				panic!("store raw must be an object");

@@ -106,6 +106,10 @@ struct ComponentGenerator<'plan> {
 	pending_use_on: Vec<(String, String)>,
 	/// Context entries this component provides: (context name, value variable).
 	provided_contexts: Vec<(String, String)>,
+	/// Lexically visible local components: name -> local-component setup entry.
+	local_components: HashMap<String, Json>,
+	/// Local components currently expanding inline (recursion guard).
+	expansion_stack: Vec<String>,
 	/// Plan element id → generated runtime-id variable name.
 	element_ids: HashMap<u64, String>,
 	temp_counter: usize,
@@ -132,6 +136,8 @@ pub fn generate_defs(plan: &Json, module_index: usize) -> Result<String, String>
 			pending_row_root: false,
 			pending_use_on: Vec::new(),
 			provided_contexts: Vec::new(),
+			local_components: HashMap::new(),
+			expansion_stack: Vec::new(),
 			element_ids: HashMap::new(),
 			temp_counter: 0,
 			uses_ctx: false,
@@ -193,6 +199,8 @@ pub fn generate_component(plan: &Json, component_index: usize) -> Result<String,
 		pending_row_root: false,
 		pending_use_on: Vec::new(),
 		provided_contexts: Vec::new(),
+		local_components: HashMap::new(),
+		expansion_stack: Vec::new(),
 		element_ids: HashMap::new(),
 		temp_counter: 0,
 		uses_ctx: false,
@@ -312,7 +320,7 @@ impl ComponentGenerator<'_> {
 				self.uses_ctx = true;
 				writeln!(
 					self.body,
-					"    let {variable} = std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Store(\n        std::cell::RefCell::new(qwik_ssr_rt::serdes::StoreState {{ raw: std::rc::Rc::new({raw}), records: Vec::new() }}),\n    ));"
+					"    let {variable} = std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Store(\n        std::cell::RefCell::new(qwik_ssr_rt::serdes::StoreState {{ raw: std::rc::Rc::new({raw}), records: Vec::new(), prop_handles: Vec::new() }}),\n    ));"
 				)
 				.unwrap();
 				self.locals.insert(binding, variable);
@@ -437,6 +445,33 @@ impl ComponentGenerator<'_> {
 				Ok(())
 			}
 			// pure microtask timing (`await Promise.resolve()`) — nothing to do natively
+			"const" => {
+				let binding = entry["local"].as_u64().ok_or("const op has no local")?;
+				let variable = format!("local_{binding}");
+				let temp = self.next_temp();
+				let tracked = format!("const_tracked_{temp}");
+				// setup reads never subscribe — the collector is a throwaway
+				let expression =
+					self.ir_expression(&entry["init"], &format!("(&mut {tracked})"))?;
+				writeln!(
+					self.body,
+					"    let mut {tracked}: Vec<std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>> = Vec::new();\n    \
+					 let {variable} = {expression};\n    \
+					 let _ = {tracked};"
+				)
+				.unwrap();
+				self.locals.insert(binding, variable);
+				self.local_kinds.insert(binding, LocalKind::PlainValue);
+				Ok(())
+			}
+			"local-component" => {
+				let name = entry["name"]
+					.as_str()
+					.ok_or("local component has no name")?;
+				self.local_components
+					.insert(name.to_string(), entry.clone());
+				Ok(())
+			}
 			"yield" => Ok(()),
 			op => Err(format!("setup op {op:?} not supported yet")),
 		}
@@ -485,7 +520,8 @@ impl ComponentGenerator<'_> {
 			None
 		} else {
 			let plan_id = op["id"].as_u64().ok_or("element id not a number")?;
-			let variable = format!("element_id_{plan_id}");
+			// unique suffix: plan ids restart per nested block, and inline expansion shares scope
+			let variable = format!("element_id_{plan_id}_{}", self.next_temp());
 			self.uses_ctx = true;
 			self.flush_statics(target);
 			writeln!(self.body, "    let {variable} = ctx.next_id();").unwrap();
@@ -526,8 +562,17 @@ impl ComponentGenerator<'_> {
 			return Ok(());
 		}
 
-		// events resolve at record assembly, AFTER children — QRL roots must follow value roots
+		// events resolve at record assembly, AFTER children — QRL roots must follow value roots;
+		// attr expressions evaluate (and subscribe) BEFORE children, like the emitted consts
 		self.flush_statics(target);
+		let mut dynamic_attr_texts: Vec<Option<String>> = Vec::new();
+		for prop in props {
+			if prop["p"].as_str() == Some("dynamic") {
+				dynamic_attr_texts.push(Some(self.eval_dynamic_attr(prop, &id_variable)?));
+			} else {
+				dynamic_attr_texts.push(None);
+			}
+		}
 		let has_children = !children.is_empty();
 		let children_buffer = format!("children_{}", self.next_temp());
 		if has_children {
@@ -554,10 +599,15 @@ impl ComponentGenerator<'_> {
 			)
 			.unwrap();
 		}
-		for prop in props {
+		for (prop_index, prop) in props.iter().enumerate() {
 			match prop["p"].as_str().ok_or("prop has no kind")? {
 				"event" => self.write_event_prop(prop, target, props)?,
-				"dynamic" => self.write_dynamic_attr(prop, target, &id_variable)?,
+				"dynamic" => {
+					let text_variable = dynamic_attr_texts[prop_index]
+						.as_ref()
+						.expect("dynamic attr evaluated above");
+					writeln!(self.body, "    {target}.push_str(&{text_variable});").unwrap();
+				}
 				_ => {
 					self.write_static_prop(prop)?;
 					self.flush_statics(target);
@@ -600,6 +650,24 @@ impl ComponentGenerator<'_> {
 				other => other.to_string(),
 			})
 		})
+	}
+
+	/// Buffered-element form: evaluate (roots + subscription) now, return the variable holding
+	/// the rendered ` name="value"` fragment for record assembly after children.
+	fn eval_dynamic_attr(
+		&mut self,
+		prop: &Json,
+		id_variable: &Option<String>,
+	) -> Result<String, String> {
+		let temp = self.next_temp();
+		let text_variable = format!("attr_text_{temp}");
+		writeln!(self.body, "    let mut {text_variable} = String::new();").unwrap();
+		let saved_body = std::mem::take(&mut self.body);
+		let result = self.write_dynamic_attr(prop, &text_variable, id_variable);
+		let evaluation = std::mem::replace(&mut self.body, saved_body);
+		result?;
+		self.body.push_str(&evaluation);
+		Ok(text_variable)
 	}
 
 	fn write_dynamic_attr(
@@ -722,6 +790,9 @@ impl ComponentGenerator<'_> {
 	}
 
 	fn write_component(&mut self, op: &Json, target: &str) -> Result<(), String> {
+		if op["target"].as_str().is_some() {
+			return self.write_local_component_call(op, target);
+		}
 		let reference = op["target"]["ref"]
 			.as_u64()
 			.ok_or("component op is not linked to a ref")? as usize;
@@ -873,6 +944,103 @@ impl ComponentGenerator<'_> {
 		Ok(())
 	}
 
+	/// Inline a local component at its call site: bind destructured props, then expand the
+	/// block in a child scope. Runtime semantics are identical to the emitted call because all
+	/// byte-observable work goes through explicit ctx calls.
+	fn write_local_component_call(&mut self, op: &Json, target: &str) -> Result<(), String> {
+		let name = op["target"]
+			.as_str()
+			.ok_or("local component target is not a name")?
+			.to_string();
+		let entry = self
+			.local_components
+			.get(&name)
+			.cloned()
+			.ok_or_else(|| format!("local component {name:?} is not in scope"))?;
+		if self.expansion_stack.contains(&name) {
+			return Err(format!("recursive local component {name:?} not supported"));
+		}
+		if !op["propsSource"].is_null() {
+			return Err("local component propsSource not supported yet".to_string());
+		}
+		if !op["slots"]
+			.as_array()
+			.ok_or("component slots missing")?
+			.is_empty()
+		{
+			return Err("local component slots not supported yet".to_string());
+		}
+		let props_plan = &entry["props"];
+		if !props_plan.is_null() && props_plan["kind"].as_str() != Some("object") {
+			return Err("identifier props on local components not supported yet".to_string());
+		}
+		self.flush_statics(target);
+		self.uses_ctx = true;
+		let call_props = op["props"].as_array().ok_or("component props missing")?;
+		let empty = Vec::new();
+		let prop_bindings = if props_plan.is_null() {
+			&empty
+		} else {
+			props_plan["bindings"]
+				.as_array()
+				.ok_or("local component props bindings missing")?
+		};
+		// destructure order: each prop binding reads its value once at expansion start
+		for binding_entry in prop_bindings {
+			let binding = binding_entry["b"]
+				.as_u64()
+				.ok_or("prop binding not a number")?;
+			let prop_name = binding_entry["name"]
+				.as_str()
+				.ok_or("prop binding has no name")?;
+			let call_prop = call_props
+				.iter()
+				.find(|prop| prop["name"].as_str() == Some(prop_name));
+			let value = match call_prop {
+				None => "std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Undefined)".to_string(),
+				Some(prop) => match prop["p"].as_str().ok_or("prop has no kind")? {
+					"static" => format!(
+						"std::rc::Rc::new({})",
+						json_literal_expression(&prop["value"])?
+					),
+					"dynamic" => {
+						let ir = &prop["value"]["ir"];
+						if ir["k"].as_str() != Some("binding-read") {
+							return Err(format!("local component prop ir {ir} not supported yet"));
+						}
+						let source = self.local(ir["binding"].as_u64().ok_or("no binding")?)?;
+						format!("std::rc::Rc::clone(&{source})")
+					}
+					kind => return Err(format!("local component prop {kind:?} not supported yet")),
+				},
+			};
+			let variable = format!("prop_{binding}");
+			writeln!(self.body, "    let {variable} = {value};").unwrap();
+			self.locals.insert(binding, variable);
+			self.local_kinds.insert(binding, LocalKind::PlainValue);
+		}
+		self.expansion_stack.push(name);
+		let saved_local_components = self.local_components.clone();
+		let saved_elements = std::mem::take(&mut self.element_ids);
+		let render = entry["render"].clone();
+		let mut expand = || -> Result<(), String> {
+			for setup_entry in render["setup"].as_array().ok_or("render setup missing")? {
+				self.write_setup(setup_entry)?;
+			}
+			self.write_ops(
+				render["ops"].as_array().ok_or("render ops missing")?,
+				target,
+			)?;
+			self.flush_statics(target);
+			Ok(())
+		};
+		let result = expand();
+		self.element_ids = saved_elements;
+		self.local_components = saved_local_components;
+		self.expansion_stack.pop();
+		result
+	}
+
 	fn write_slot(&mut self, op: &Json, target: &str) -> Result<(), String> {
 		if !op["fallback"].is_null() {
 			return Err("slot fallback not supported yet".to_string());
@@ -999,6 +1167,82 @@ impl ComponentGenerator<'_> {
 		result
 	}
 
+	/// Static collections (literal arrays) render rows in a plain loop: no id, no range
+	/// markers, no For effect and no owner arrays — nothing about them reaches the state.
+	fn write_static_collection(&mut self, op: &Json, target: &str) -> Result<(), String> {
+		let row = &op["row"];
+		if row["symbolName"].as_str().is_none() {
+			return Err("direct-array collections need an inline row".to_string());
+		}
+		for flag in ["rowMarker", "slotMarker", "rowRoot", "usesRowId"] {
+			if row[flag].as_bool() == Some(true) {
+				return Err(format!("inline row {flag} not supported yet"));
+			}
+		}
+		if op["usesIndexSignal"].as_bool() == Some(true) {
+			return Err("index signals on static collections not supported yet".to_string());
+		}
+		if !op["key"].is_null() {
+			return Err("keys on static collections not supported yet".to_string());
+		}
+		let ir = &source_ir_of(op)?;
+		if ir["k"].as_str() != Some("array") {
+			return Err("static collection source must be an array literal".to_string());
+		}
+		let param_bindings: Vec<u64> = row["paramBindings"]
+			.as_array()
+			.map(|bindings| {
+				bindings
+					.iter()
+					.map(|binding| binding.as_u64().ok_or("row param binding not a number"))
+					.collect::<Result<_, _>>()
+			})
+			.unwrap_or_else(|| Ok(Vec::new()))?;
+		if param_bindings.len() > 1 {
+			return Err("static collection index params not supported yet".to_string());
+		}
+		self.flush_statics(target);
+		self.uses_ctx = true;
+		let temp = self.next_temp();
+		let mut items = String::new();
+		for item in ir["items"].as_array().ok_or("array ir items missing")? {
+			write!(items, "std::rc::Rc::new({}), ", literal_expression(item)?).unwrap();
+		}
+		writeln!(
+			self.body,
+			"    let items_{temp}: Vec<std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>> = vec![{items}];\n    \
+			 for row_item_{temp} in items_{temp}.iter() {{"
+		)
+		.unwrap();
+		if let Some(item_binding) = param_bindings.first() {
+			let item_variable = format!("row_item_value_{temp}");
+			writeln!(
+				self.body,
+				"    let {item_variable} = std::rc::Rc::clone(row_item_{temp});"
+			)
+			.unwrap();
+			self.locals.insert(*item_binding, item_variable);
+			self.local_kinds
+				.insert(*item_binding, LocalKind::PlainValue);
+		}
+		let saved_local_components = self.local_components.clone();
+		let saved_elements = std::mem::take(&mut self.element_ids);
+		let mut expand = || -> Result<(), String> {
+			for setup_entry in row["setup"].as_array().ok_or("row setup missing")? {
+				self.write_setup(setup_entry)?;
+			}
+			self.write_ops(row["ops"].as_array().ok_or("row ops missing")?, target)?;
+			self.flush_statics(target);
+			Ok(())
+		};
+		let result = expand();
+		self.element_ids = saved_elements;
+		self.local_components = saved_local_components;
+		result?;
+		writeln!(self.body, "    }}").unwrap();
+		Ok(())
+	}
+
 	fn write_collection(&mut self, op: &Json, target: &str) -> Result<(), String> {
 		if !op["idBase"].is_null() {
 			return Err("collection idBase not supported yet".to_string());
@@ -1010,6 +1254,9 @@ impl ComponentGenerator<'_> {
 		let source_kind = source["kind"]
 			.as_str()
 			.ok_or("collection source kind missing")?;
+		if source_kind == "direct-array" {
+			return self.write_static_collection(op, target);
+		}
 		if !matches!(source_kind, "direct-reactive" | "derived") {
 			return Err(format!("collection source {source} not supported yet"));
 		}
@@ -1606,10 +1853,25 @@ impl ComponentGenerator<'_> {
 					"+" => "js_add",
 					"*" => "js_mul",
 					"===" => "js_strict_eq",
+					"==" => "js_loose_eq",
 					">" => "js_gt",
 					op => return Err(format!("binary operator {op:?} not supported yet")),
 				};
 				Ok(format!("qwik_ssr_rt::render::{helper}(&{left}, &{right})"))
+			}
+			"logic" => {
+				let a = self.ir_expression(&ir["a"], tracked)?;
+				let b = self.ir_expression(&ir["b"], tracked)?;
+				// b evaluates only when taken — its tracked reads are dep-observable
+				match ir["op"].as_str().ok_or("logic ir has no op")? {
+					"&&" => Ok(format!(
+						"{{ let logic_a = {a}; if qwik_ssr_rt::render::truthy(&logic_a) {{ {b} }} else {{ logic_a }} }}"
+					)),
+					"||" => Ok(format!(
+						"{{ let logic_a = {a}; if qwik_ssr_rt::render::truthy(&logic_a) {{ logic_a }} else {{ {b} }} }}"
+					)),
+					op => Err(format!("logic operator {op:?} not supported yet")),
+				}
 			}
 			"template" => {
 				let mut parts = String::new();
@@ -1712,6 +1974,14 @@ fn object_literal_expression(ir: &Json) -> Result<String, String> {
 	Ok(format!(
 		"qwik_ssr_rt::serdes::SerdesValue::Object(vec![{entries}])"
 	))
+}
+
+fn source_ir_of(op: &Json) -> Result<Json, String> {
+	let ir = op["source"]["ir"].clone();
+	if ir.is_null() {
+		return Err("collection source without a lowered ir".to_string());
+	}
+	Ok(ir)
 }
 
 fn literal_expression(ir: &Json) -> Result<String, String> {

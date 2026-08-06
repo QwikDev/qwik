@@ -5,6 +5,7 @@
   "components": [
     {
       "name": "Delayed",
+      "module": 0,
       "propsBindings": [],
       "ssr": {
         "setup": [
@@ -67,6 +68,7 @@
     },
     {
       "name": "App",
+      "module": 0,
       "propsBindings": [],
       "ssr": {
         "setup": [],
@@ -164,24 +166,29 @@
       "hasCustomHook": false
     }
   ],
-  "segments": [
+  "modules": [
     {
-      "id": "segment_0",
-      "symbolName": "input_fallback$_segment_0_2m585yx0u2l5p",
-      "chunk": "./input.tsx_input_fallback$_segment_0_2m585yx0u2l5p",
-      "kind": "qrl",
-      "resolved": false,
-      "qrl": null,
-      "captures": []
-    },
-    {
-      "id": "segment_1",
-      "symbolName": "input_suspense_content_segment_1_dquzp2v8u0q",
-      "chunk": "./input.tsx_input_suspense_content_segment_1_dquzp2v8u0q",
-      "kind": "suspenseRender",
-      "resolved": true,
-      "qrl": null,
-      "captures": []
+      "path": "src/input.tsx",
+      "segments": [
+        {
+          "id": "segment_0",
+          "symbolName": "input_fallback$_segment_0_2m585yx0u2l5p",
+          "chunk": "./input.tsx_input_fallback$_segment_0_2m585yx0u2l5p",
+          "kind": "qrl",
+          "resolved": false,
+          "qrl": null,
+          "captures": []
+        },
+        {
+          "id": "segment_1",
+          "symbolName": "input_suspense_content_segment_1_dquzp2v8u0q",
+          "chunk": "./input.tsx_input_suspense_content_segment_1_dquzp2v8u0q",
+          "kind": "suspenseRender",
+          "resolved": true,
+          "qrl": null,
+          "captures": []
+        }
+      ]
     }
   ],
   "unresolved": []

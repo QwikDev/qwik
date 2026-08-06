@@ -28,6 +28,15 @@ export interface QwikModulePlan {
   readonly path: string;
   readonly components: readonly PlanComponent[];
   readonly segments: readonly PlanSegmentMeta[];
+  /** Relative-source import bindings; the linker resolves cross-module component targets here. */
+  readonly imports: readonly PlanImportMeta[];
+}
+
+export interface PlanImportMeta {
+  readonly binding: number;
+  readonly name: string;
+  readonly module: string;
+  readonly export: string;
 }
 
 export interface PlanComponent {
@@ -173,7 +182,8 @@ export function emitModulePlan(
   segments: readonly SegmentPlan[],
   source: string,
   path: string,
-  returnMode: import('./plan-ssr').SsrComponentReturnModeResolver
+  returnMode: import('./plan-ssr').SsrComponentReturnModeResolver,
+  imports: readonly PlanImportMeta[] = []
 ): QwikModulePlan {
   const slice = (range: SourceRange) => source.slice(range[0], range[1]);
 
@@ -358,5 +368,6 @@ export function emitModulePlan(
         access: capture.access,
       })),
     })),
+    imports,
   };
 }

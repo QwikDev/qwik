@@ -28,6 +28,12 @@ byte-identical output to today's emitted-JS SSR: same HTML, same markers and `q:
   `{kind:'import'}` component references to table indices, inlines `useStyles$` CSS. Engines
   consume only linked plans and do zero module loading/resolution.
 
+  **v0 status** (`src/link-plan.ts`): the linker takes all module plans of a compilation, merges
+  components into one table, and resolves cross-module targets through each module plan's
+  `imports` table (relative-source bindings: `{binding, name, module, export}`). Segment ids stay
+  module-scoped — the linked plan keeps a `modules: {path, segments}[]` table and each component
+  carries its `module` index; the flat index-based `QrlRef` below is the v1 target shape.
+
 ## Encoding
 
 - Canonical JSON: `JSON.stringify` with no spacing; object keys in the construction order defined

@@ -61,31 +61,36 @@ export async function buildInterpretedRoot(
     throw new Error(`entry component "${component.name}" has no ssr plan`);
   }
 
-  const qrls = new Map<string, QrlLike>();
-  const chunkFiles = new Map<string, string>();
-  for (const segment of plan.segments) {
-    const chunkFile = `${segment.chunk.slice(2)}.js`;
-    chunkFiles.set(segment.id, chunkFile);
-    const qrl = _qrlWithChunk(
-      segment.chunk,
-      () => loadSegment(chunkFile),
-      segment.symbolName
-    ) as unknown as QrlLike;
-    qrls.set(segment.id, qrl);
-  }
-  for (const segment of plan.segments) {
-    // only `.s()` what the emitted module resolves at load — resolution timing is
-    // byte-observable in streaming output (lazy QRLs settle later than eager ones)
-    if (!segment.resolved) {
-      continue;
+  // segment ids are module-scoped — each component resolves qrls in its own module's table
+  const moduleQrls: Map<string, QrlLike>[] = [];
+  const moduleCaptureLists: Map<string, number[]>[] = [];
+  for (const linkedModule of plan.modules) {
+    const qrls = new Map<string, QrlLike>();
+    for (const segment of linkedModule.segments) {
+      const chunkFile = `${segment.chunk.slice(2)}.js`;
+      const qrl = _qrlWithChunk(
+        segment.chunk,
+        () => loadSegment(chunkFile),
+        segment.symbolName
+      ) as unknown as QrlLike;
+      qrls.set(segment.id, qrl);
+      // only `.s()` what the emitted module resolves at load — resolution timing is
+      // byte-observable in streaming output (lazy QRLs settle later than eager ones)
+      if (segment.resolved) {
+        const module = await loadSegment(chunkFile);
+        qrl.s(module[segment.symbolName]);
+      }
     }
-    const module = await loadSegment(chunkFiles.get(segment.id)!);
-    qrls.get(segment.id)!.s(module[segment.symbolName]);
+    moduleQrls.push(qrls);
+    moduleCaptureLists.push(
+      new Map(
+        linkedModule.segments.map((segment) => [
+          segment.id,
+          segment.captures.map((capture) => capture.binding),
+        ])
+      )
+    );
   }
-
-  const captureLists = new Map(
-    plan.segments.map((segment) => [segment.id, segment.captures.map((capture) => capture.binding)])
-  );
 
   return function InterpretedApp(rootProps, ctx) {
     return interpretComponent(plan.entry, rootProps, ctx);
@@ -101,6 +106,8 @@ export async function buildInterpretedRoot(
     if (ssr === null) {
       throw new Error(`component "${interpreted.name}" has no ssr plan`);
     }
+    const qrls = moduleQrls[interpreted.module];
+    const captureLists = moduleCaptureLists[interpreted.module];
     const invokeCtx = getActiveInvokeContextOrNull();
     const locals = new Map<number, unknown>();
     for (const propsBinding of interpreted.propsBindings) {

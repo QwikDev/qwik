@@ -73,11 +73,17 @@ export async function renderFixtureRoot(
 
 export async function renderFixture(name: string): Promise<FixtureRender> {
   const fixtureDir = join(fixturesDir, name);
-  const code = readFileSync(join(fixtureDir, 'input.tsx'), 'utf-8');
+  const sourceFiles = readdirSync(fixtureDir)
+    .filter((file) => file.endsWith('.tsx'))
+    .sort();
+  const input = sourceFiles.map((file) => ({
+    path: `src/${file}`,
+    code: readFileSync(join(fixtureDir, file), 'utf-8'),
+  }));
   const request = readFixtureRequest(name);
 
   const result = await transformModules({
-    input: [{ path: 'src/input.tsx', code }],
+    input,
     srcDir: 'src',
     sourceMaps: false,
     transpileTs: true,
@@ -104,17 +110,23 @@ export async function renderFixture(name: string): Promise<FixtureRender> {
   }
 
   // relative specifier so vite transforms the generated .tsx; query busts the module cache
-  const version = createHash('sha256').update(code).digest('hex').slice(0, 12);
+  const version = createHash('sha256')
+    .update(input.map((file) => file.code).join('\0'))
+    .digest('hex')
+    .slice(0, 12);
   const entry = await import(`./.generated/${name}/src/input.tsx?v=${version}`);
   const root = entry.App as SsrRenderRoot | undefined;
   if (root === undefined) {
     throw new Error(`fixture "${name}" entry module does not export App`);
   }
-  const planModule = result.modules.find((module) => module.path.endsWith('.plan.json'));
-  if (planModule === undefined) {
+  const modulePlans = result.modules
+    .filter((module) => module.path.endsWith('.plan.json'))
+    .map((module) => JSON.parse(module.code) as QwikModulePlan)
+    .sort((left, right) => left.path.localeCompare(right.path));
+  if (modulePlans.length === 0) {
     throw new Error(`fixture "${name}" emitted no module plan`);
   }
-  const plan = linkSsrPlan(JSON.parse(planModule.code) as QwikModulePlan, 'App');
+  const plan = linkSsrPlan(modulePlans, 'App', 'src/input.tsx');
   if (plan === null) {
     throw new Error(`fixture "${name}" has no App entry component`);
   }

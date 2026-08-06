@@ -25,7 +25,7 @@ import {
 } from './transform-diagnostics';
 import { createComponentDefinition, discoverComponentCandidates } from './discover';
 import { emitCsrModule, emitCsrSegmentRender } from './emit-csr';
-import { emitModulePlan } from './emit-plan';
+import { emitModulePlan, type PlanImportMeta } from './emit-plan';
 import type { EmittedModule } from './emitted-module';
 import { TargetImportResolver } from './emit-qrl';
 import {
@@ -572,7 +572,8 @@ export function transformModule(ctx: CompilerContext): TransformResult {
                 allSegments,
                 ctx.input.code,
                 ctx.input.path,
-                componentReturnMode
+                componentReturnMode,
+                collectPlanImports(analysis)
               ),
               null,
               2
@@ -1877,6 +1878,24 @@ function createComponentAnalysis(
     loc: mapRange(component.functionRange ?? [0, 0]),
     paramNames: component.params.map((param) => param.name ?? '_'),
   };
+}
+
+function collectPlanImports(analysis: ModuleAnalysis): PlanImportMeta[] {
+  const imports: PlanImportMeta[] = [];
+  for (const binding of analysis.bindings) {
+    const importBinding = binding.import;
+    // only relative sources can resolve to sibling module plans
+    if (importBinding === null || importBinding.typeOnly || !importBinding.source.startsWith('.')) {
+      continue;
+    }
+    imports.push({
+      binding: binding.id,
+      name: binding.name,
+      module: importBinding.source,
+      export: importBinding.importedName,
+    });
+  }
+  return imports;
 }
 
 function mapMetadataRange(ctx: CompilerContext): (range: SourceRange) => SourceRange {

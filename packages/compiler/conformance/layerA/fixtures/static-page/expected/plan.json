@@ -5,6 +5,7 @@
   "components": [
     {
       "name": "App",
+      "module": 0,
       "propsBindings": [],
       "ssr": {
         "setup": [],
@@ -114,6 +115,11 @@
       "hasCustomHook": false
     }
   ],
-  "segments": [],
+  "modules": [
+    {
+      "path": "src/input.tsx",
+      "segments": []
+    }
+  ],
   "unresolved": []
 }

@@ -4,13 +4,22 @@
   "entry": 1,
   "components": [
     {
-      "name": "Badge",
+      "name": "Counter",
       "module": 0,
       "propsBindings": [
-        3
+        2
       ],
       "ssr": {
-        "setup": [],
+        "setup": [
+          {
+            "op": "signal",
+            "local": 3,
+            "init": {
+              "k": "lit",
+              "v": 1
+            }
+          }
+        ],
         "directSegmentIds": [],
         "usedSegmentIds": [
           "segment_0",
@@ -19,16 +28,23 @@
         "ops": [
           {
             "o": "el",
-            "tag": "span",
+            "tag": "button",
             "id": 0,
             "void": false,
             "styleScopedId": null,
             "targetUses": 0,
             "props": [
               {
-                "p": "static",
-                "name": "class",
-                "value": "badge"
+                "p": "event",
+                "name": "q-e:click",
+                "handlers": [
+                  {
+                    "value": {
+                      "src": "() => count.value++",
+                      "segment": "segment_0"
+                    }
+                  }
+                ]
               }
             ],
             "propsEffect": null,
@@ -42,11 +58,11 @@
                     "k": "member",
                     "obj": {
                       "k": "binding-read",
-                      "binding": 3
+                      "binding": 2
                     },
                     "name": "label"
                   },
-                  "segment": "segment_0"
+                  "segment": "segment_1"
                 },
                 "synchronous": false,
                 "target": {
@@ -63,16 +79,11 @@
                 "o": "dyn",
                 "output": "text",
                 "value": {
-                  "src": "props.count",
+                  "src": "count.value",
                   "ir": {
-                    "k": "member",
-                    "obj": {
-                      "k": "binding-read",
-                      "binding": 3
-                    },
-                    "name": "count"
-                  },
-                  "segment": "segment_1"
+                    "k": "signal-read",
+                    "binding": 3
+                  }
                 },
                 "synchronous": false,
                 "target": {
@@ -88,19 +99,32 @@
         "staticRoot": false,
         "needsRootRange": false,
         "needsId": false,
-        "idBase": "qBadge-",
+        "idBase": "qCounter-",
         "flushTasks": false
       },
-      "setup": [],
+      "setup": [
+        {
+          "op": "signal",
+          "local": 3,
+          "init": {
+            "k": "lit",
+            "v": 1
+          }
+        }
+      ],
       "render": [
         {
           "n": "el",
-          "tag": "span",
+          "tag": "button",
           "props": [
             {
-              "p": "static",
-              "name": "class",
-              "value": "badge"
+              "p": "event",
+              "name": "onClick$",
+              "passive": false,
+              "value": {
+                "src": "() => count.value++",
+                "segment": "segment_0"
+              }
             }
           ],
           "children": [
@@ -113,11 +137,11 @@
                   "k": "member",
                   "obj": {
                     "k": "binding-read",
-                    "binding": 3
+                    "binding": 2
                   },
                   "name": "label"
                 },
-                "segment": "segment_0"
+                "segment": "segment_1"
               }
             },
             {
@@ -128,48 +152,34 @@
               "n": "dyn",
               "output": "text",
               "value": {
-                "src": "props.count",
+                "src": "count.value",
                 "ir": {
-                  "k": "member",
-                  "obj": {
-                    "k": "binding-read",
-                    "binding": 3
-                  },
-                  "name": "count"
-                },
-                "segment": "segment_1"
+                  "k": "signal-read",
+                  "binding": 3
+                }
               }
             }
           ]
         }
       ],
       "needsId": false,
-      "idBase": "qBadge-",
+      "idBase": "qCounter-",
       "styleScope": null,
       "providesContext": false,
       "hasCustomHook": false
     },
     {
       "name": "App",
-      "module": 0,
+      "module": 1,
       "propsBindings": [],
       "ssr": {
-        "setup": [
-          {
-            "op": "signal",
-            "local": 4,
-            "init": {
-              "k": "lit",
-              "v": 3
-            }
-          }
-        ],
+        "setup": [],
         "directSegmentIds": [],
         "usedSegmentIds": [],
         "ops": [
           {
             "o": "el",
-            "tag": "div",
+            "tag": "main",
             "id": null,
             "void": false,
             "styleScopedId": null,
@@ -177,6 +187,22 @@
             "props": [],
             "propsEffect": null,
             "children": [
+              {
+                "o": "el",
+                "tag": "h1",
+                "id": null,
+                "void": false,
+                "styleScopedId": null,
+                "targetUses": 0,
+                "props": [],
+                "propsEffect": null,
+                "children": [
+                  {
+                    "o": "static",
+                    "html": "Cross-module"
+                  }
+                ]
+              },
               {
                 "o": "component",
                 "target": {
@@ -187,19 +213,7 @@
                   {
                     "p": "static",
                     "name": "label",
-                    "value": "clicks"
-                  },
-                  {
-                    "p": "dynamic",
-                    "name": "count",
-                    "value": {
-                      "src": "count.value",
-                      "ir": {
-                        "k": "signal-read",
-                        "binding": 4
-                      }
-                    },
-                    "compilerString": false
+                    "value": "hits"
                   }
                 ],
                 "propsSource": null,
@@ -217,22 +231,24 @@
         "idBase": "qApp-",
         "flushTasks": false
       },
-      "setup": [
-        {
-          "op": "signal",
-          "local": 4,
-          "init": {
-            "k": "lit",
-            "v": 3
-          }
-        }
-      ],
+      "setup": [],
       "render": [
         {
           "n": "el",
-          "tag": "div",
+          "tag": "main",
           "props": [],
           "children": [
+            {
+              "n": "el",
+              "tag": "h1",
+              "props": [],
+              "children": [
+                {
+                  "n": "text",
+                  "value": "Cross-module"
+                }
+              ]
+            },
             {
               "n": "component",
               "target": {
@@ -242,18 +258,7 @@
                 {
                   "p": "static",
                   "name": "label",
-                  "value": "clicks"
-                },
-                {
-                  "p": "dynamic",
-                  "name": "count",
-                  "value": {
-                    "src": "count.value",
-                    "ir": {
-                      "k": "signal-read",
-                      "binding": 4
-                    }
-                  }
+                  "value": "hits"
                 }
               ],
               "slots": []
@@ -270,34 +275,34 @@
   ],
   "modules": [
     {
-      "path": "src/input.tsx",
+      "path": "src/child.tsx",
       "segments": [
         {
           "id": "segment_0",
-          "symbolName": "input_text_segment_0_3k1cvwun49quc",
-          "chunk": "./input.tsx_input_text_segment_0_3k1cvwun49quc",
-          "kind": "expression",
-          "resolved": true,
+          "symbolName": "child_q_e_click_segment_0_prymysizut4r",
+          "chunk": "./child.tsx_child_q_e_click_segment_0_prymysizut4r",
+          "kind": "event",
+          "resolved": false,
           "qrl": null,
           "captures": [
             {
               "binding": 3,
-              "name": "props",
-              "source": "param",
+              "name": "count",
+              "source": "local",
               "access": "direct"
             }
           ]
         },
         {
           "id": "segment_1",
-          "symbolName": "input_text_segment_1_3k1cwavr13suv",
-          "chunk": "./input.tsx_input_text_segment_1_3k1cwavr13suv",
+          "symbolName": "child_text_segment_1_2zpluww1ze93z",
+          "chunk": "./child.tsx_child_text_segment_1_2zpluww1ze93z",
           "kind": "expression",
           "resolved": true,
           "qrl": null,
           "captures": [
             {
-              "binding": 3,
+              "binding": 2,
               "name": "props",
               "source": "param",
               "access": "direct"
@@ -305,6 +310,10 @@
           ]
         }
       ]
+    },
+    {
+      "path": "src/input.tsx",
+      "segments": []
     }
   ],
   "unresolved": []

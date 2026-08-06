@@ -5,6 +5,7 @@
   "components": [
     {
       "name": "Card",
+      "module": 0,
       "propsBindings": [
         4
       ],
@@ -132,6 +133,7 @@
     },
     {
       "name": "App",
+      "module": 0,
       "propsBindings": [],
       "ssr": {
         "setup": [
@@ -285,52 +287,57 @@
       "hasCustomHook": false
     }
   ],
-  "segments": [
+  "modules": [
     {
-      "id": "segment_0",
-      "symbolName": "input_text_segment_0_3k1cvwun49quc",
-      "chunk": "./input.tsx_input_text_segment_0_3k1cvwun49quc",
-      "kind": "expression",
-      "resolved": true,
-      "qrl": null,
-      "captures": [
+      "path": "src/input.tsx",
+      "segments": [
         {
-          "binding": 4,
-          "name": "props",
-          "source": "param",
-          "access": "direct"
-        }
-      ]
-    },
-    {
-      "id": "segment_1",
-      "symbolName": "input_slot_render_segment_1_1eeg0bp4sno4p",
-      "chunk": "./input.tsx_input_slot_render_segment_1_1eeg0bp4sno4p",
-      "kind": "slotRender",
-      "resolved": true,
-      "qrl": null,
-      "captures": [
+          "id": "segment_0",
+          "symbolName": "input_text_segment_0_3k1cvwun49quc",
+          "chunk": "./input.tsx_input_text_segment_0_3k1cvwun49quc",
+          "kind": "expression",
+          "resolved": true,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 4,
+              "name": "props",
+              "source": "param",
+              "access": "direct"
+            }
+          ]
+        },
         {
-          "binding": 5,
-          "name": "count",
-          "source": "local",
-          "access": "direct"
-        }
-      ]
-    },
-    {
-      "id": "segment_2",
-      "symbolName": "input_text_segment_2_3k1cwowuxxuve",
-      "chunk": "./input.tsx_input_text_segment_2_3k1cwowuxxuve",
-      "kind": "expression",
-      "resolved": false,
-      "qrl": null,
-      "captures": [
+          "id": "segment_1",
+          "symbolName": "input_slot_render_segment_1_1eeg0bp4sno4p",
+          "chunk": "./input.tsx_input_slot_render_segment_1_1eeg0bp4sno4p",
+          "kind": "slotRender",
+          "resolved": true,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 5,
+              "name": "count",
+              "source": "local",
+              "access": "direct"
+            }
+          ]
+        },
         {
-          "binding": 5,
-          "name": "count",
-          "source": "local",
-          "access": "direct"
+          "id": "segment_2",
+          "symbolName": "input_text_segment_2_3k1cwowuxxuve",
+          "chunk": "./input.tsx_input_text_segment_2_3k1cwowuxxuve",
+          "kind": "expression",
+          "resolved": false,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 5,
+              "name": "count",
+              "source": "local",
+              "access": "direct"
+            }
+          ]
         }
       ]
     }

@@ -5,6 +5,7 @@
   "components": [
     {
       "name": "App",
+      "module": 0,
       "propsBindings": [],
       "ssr": {
         "setup": [
@@ -118,20 +119,25 @@
       "hasCustomHook": false
     }
   ],
-  "segments": [
+  "modules": [
     {
-      "id": "segment_0",
-      "symbolName": "input_q_e_click_segment_0_18mo7olhabfab",
-      "chunk": "./input.tsx_input_q_e_click_segment_0_18mo7olhabfab",
-      "kind": "event",
-      "resolved": false,
-      "qrl": null,
-      "captures": [
+      "path": "src/input.tsx",
+      "segments": [
         {
-          "binding": 2,
-          "name": "count",
-          "source": "local",
-          "access": "direct"
+          "id": "segment_0",
+          "symbolName": "input_q_e_click_segment_0_18mo7olhabfab",
+          "chunk": "./input.tsx_input_q_e_click_segment_0_18mo7olhabfab",
+          "kind": "event",
+          "resolved": false,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 2,
+              "name": "count",
+              "source": "local",
+              "access": "direct"
+            }
+          ]
         }
       ]
     }

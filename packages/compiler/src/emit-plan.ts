@@ -58,7 +58,13 @@ export interface PlanComponent {
 
 export type PlanSetupEntry =
   | SetupOp
-  | { readonly op: SetupOpKind.Style; readonly styleId: string; readonly scoped: boolean }
+  | {
+      readonly op: SetupOpKind.Style;
+      readonly styleId: string;
+      readonly scoped: boolean;
+      /** Inlined static CSS (specs/01 `styles`); absent when the argument is dynamic. */
+      readonly css?: string;
+    }
   | { readonly op: SetupOpKind.Js; readonly src: string };
 
 /** Server evaluates `ir` when present; `segment` is the client-resume QRL; `src` the JS fallback. */
@@ -196,7 +202,23 @@ export function emitModulePlan(
   const planSetup = (setup: readonly SetupPlan[]): PlanSetupEntry[] =>
     setup.map((entry) => {
       if (entry.kind === 'style') {
-        return { op: SetupOpKind.Style, styleId: entry.styleId, scoped: entry.scoped };
+        const raw = slice(entry.argumentRange);
+        const quote = raw[0];
+        // inline static CSS only: quoted literal, no interpolation/escapes (fail closed)
+        const inner = raw.slice(1, -1);
+        const css =
+          ['`', "'", '"'].includes(quote) &&
+          raw[raw.length - 1] === quote &&
+          !inner.includes('\\') &&
+          !(quote === '`' && inner.includes('${'))
+            ? inner
+            : null;
+        return {
+          op: SetupOpKind.Style,
+          styleId: entry.styleId,
+          scoped: entry.scoped,
+          ...(css === null ? {} : { css }),
+        };
       }
       if (entry.kind === 'statement' && entry.op !== undefined) {
         return entry.op;

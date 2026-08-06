@@ -47,6 +47,8 @@ pub struct SsrContext {
 	/// Out-of-order streaming mode (`renderToStream`); suspense boundaries defer.
 	pub streaming: bool,
 	deferred: Vec<DeferredBoundary>,
+	/// Registered styles in first-use order (`useStyles$`), deduped by style id.
+	styles: Vec<(String, String)>,
 }
 
 /// A deferred suspense boundary awaiting its post-shell template packet.
@@ -72,6 +74,13 @@ impl SsrContext {
 			owner_stack: Vec::new(),
 			streaming: false,
 			deferred: Vec::new(),
+			styles: Vec::new(),
+		}
+	}
+
+	pub fn register_style(&mut self, style_id: &str, css: &str) {
+		if !self.styles.iter().any(|(id, _)| id == style_id) {
+			self.styles.push((style_id.to_string(), css.to_string()));
 		}
 	}
 
@@ -732,7 +741,23 @@ pub fn render_page(
 		output.push('"');
 	}
 	output.push('>');
-	output.push_str(&body);
+	if ctx.styles.is_empty() {
+		output.push_str(&body);
+	} else {
+		// styled output synthesizes head/body inside the container (createContainerTags)
+		output.push_str("<head>");
+		for (style_id, css) in &ctx.styles {
+			output.push_str("<style q:style=\"");
+			output.push_str(&escape_html(style_id));
+			output.push_str("\">");
+			// style content is NOT escaped; only the id is (specs/05)
+			output.push_str(css);
+			output.push_str("</style>");
+		}
+		output.push_str("</head><body>");
+		output.push_str(&body);
+		output.push_str("</body>");
+	}
 
 	let has_roots = ctx.serializer.root_count() > 0;
 	let has_events = !ctx.event_names.is_empty();

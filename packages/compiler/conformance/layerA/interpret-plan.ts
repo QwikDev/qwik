@@ -24,6 +24,7 @@ import {
   useSignal,
   useStore,
   useTaskQrl,
+  useStyles,
   useOn,
   createVisibleTaskHandlerQrl,
   inlinedQrl,
@@ -182,6 +183,14 @@ export async function buildInterpretedRoot(
         case 'task': {
           const op = entry as Extract<SetupOp, { op: 'task' }>;
           useTaskQrl(qrlWithCaptures(op.segment) as never);
+          break;
+        }
+        case 'style': {
+          const op = entry as { styleId: string; scoped: boolean; css?: string };
+          if (op.scoped || op.css === undefined) {
+            throw new Error('interpreter supports static unscoped styles only');
+          }
+          useStyles(op.css, op.styleId);
           break;
         }
         case 'visible-task': {

@@ -19,6 +19,7 @@ const READY_FIXTURES: &[&str] = &[
 	"derived-collection",
 	"inner-html",
 	"visible-task",
+	"use-styles",
 	"static-attrs",
 	"suspense-stream",
 ];

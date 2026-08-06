@@ -273,6 +273,18 @@ impl ComponentGenerator<'_> {
 				.unwrap();
 				Ok(())
 			}
+			"style" => {
+				if entry["scoped"].as_bool() == Some(true) {
+					return Err("scoped styles not supported yet".to_string());
+				}
+				let style_id = entry["styleId"].as_str().ok_or("style op has no styleId")?;
+				let css = entry["css"]
+					.as_str()
+					.ok_or("style op without inlined static css")?;
+				self.uses_ctx = true;
+				writeln!(self.body, "    ctx.register_style({style_id:?}, {css:?});").unwrap();
+				Ok(())
+			}
 			"visible-task" => {
 				if entry["strategy"].as_str() != Some("intersection-observer") {
 					return Err(format!(

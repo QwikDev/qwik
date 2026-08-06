@@ -185,6 +185,20 @@ export type PlanSsrOp =
       readonly rowShape: 0 | 1 | 2 | 3;
     };
 
+/** Static style CSS from its argument source: quoted/backticked literal, no interpolation. */
+const staticStyleCss = (source: string): string | null => {
+  const inner = source.slice(1, -1);
+  const quote = source[0];
+  if (!['`', "'", '"'].includes(quote) || source[source.length - 1] !== quote) {
+    return null;
+  }
+  // fail closed on interpolation and escape sequences — the JS engine keeps the literal
+  if (inner.includes('\\') || (quote === '`' && inner.includes('${'))) {
+    return null;
+  }
+  return inner;
+};
+
 const UNPLANNABLE = Symbol('ssr-unplannable');
 
 export function emitSsrOpPlan(
@@ -204,7 +218,19 @@ export function emitSsrOpPlan(
   const setupEntries = (setup: readonly SsrSetupOperation[]): PlanSetupEntry[] =>
     setup.map((entry) => {
       if (entry.kind === 'style') {
-        return { op: SetupOpKind.Style, styleId: entry.styleId, scoped: entry.scoped };
+        const planned = component.setup.find(
+          (item) => item.kind === 'style' && item.styleId === entry.styleId
+        );
+        const css =
+          planned !== undefined && planned.kind === 'style'
+            ? staticStyleCss(slice(planned.argumentRange))
+            : null;
+        return {
+          op: SetupOpKind.Style,
+          styleId: entry.styleId,
+          scoped: entry.scoped,
+          ...(css === null ? {} : { css }),
+        };
       }
       if (entry.kind === 'statement') {
         const planned = component.setup.find(

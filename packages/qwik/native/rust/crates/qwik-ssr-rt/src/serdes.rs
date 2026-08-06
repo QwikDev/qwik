@@ -93,7 +93,8 @@ pub struct ForBlockEffect {
 	pub key_qrl: Rc<SerdesValue>,
 	pub render_qrl: Rc<SerdesValue>,
 	pub uses_index_signal: bool,
-	pub index_signals: Vec<Rc<SerdesValue>>,
+	/// `None` (→ Constant Null) when the block does not use index signals.
+	pub index_signals: Option<Vec<Rc<SerdesValue>>>,
 	pub id_base: String,
 	pub row_shape: u8,
 }
@@ -768,7 +769,10 @@ impl Serializer {
 				});
 				constant!(CONST_NULL); // slotScope
 				constant!(CONST_NULL); // reserved slot 7
-				list!(&for_block.index_signals);
+				match &for_block.index_signals {
+					Some(index_signals) => list!(index_signals),
+					None => constant!(CONST_NULL),
+				}
 				text!(for_block.id_base);
 				plain!(for_block.row_shape);
 			}

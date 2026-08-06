@@ -197,8 +197,11 @@ export interface SsrCollectionOperation {
         readonly kind: 'derived';
         readonly segment: SegmentReferencePlan;
         readonly keepSource: boolean;
+        readonly ir?: ValueIR;
       };
   readonly key: SegmentReferencePlan | null;
+  /** Portable key lowering (row-scope bindings); the segment stays for client resume. */
+  readonly keyIr?: ValueIR;
   readonly row:
     | { readonly kind: 'segment'; readonly render: RenderFunctionPlan }
     | {
@@ -671,8 +674,10 @@ class SsrPlanner {
                     kind: 'derived',
                     segment: node.source.segment,
                     keepSource: node.usesIndexSignal,
+                    ir: node.source.ir,
                   },
           key: node.key,
+          keyIr: node.keyIr,
           row:
             node.source.kind === 'direct-array'
               ? {

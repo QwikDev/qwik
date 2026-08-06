@@ -169,8 +169,14 @@ export type PlanSsrOp =
             readonly src: string;
             readonly ir?: import('./expr-ir').ValueIR;
           }
-        | { readonly kind: 'derived'; readonly segment: string; readonly keepSource: boolean };
+        | {
+            readonly kind: 'derived';
+            readonly segment: string;
+            readonly keepSource: boolean;
+            readonly ir?: import('./expr-ir').ValueIR;
+          };
       readonly key: string | null;
+      readonly keyIr?: import('./expr-ir').ValueIR;
       readonly row: PlanSsrRow | { readonly segment: PlanSsrRenderFn };
       readonly usesIndexSignal: boolean;
       readonly usesRowId: boolean;
@@ -396,6 +402,7 @@ export function emitSsrOpPlan(
                   kind: 'derived',
                   segment: operation.source.segment.segmentId,
                   keepSource: operation.source.keepSource,
+                  ...(operation.source.ir !== undefined ? { ir: operation.source.ir } : {}),
                 }
               : operation.source.kind === 'direct-array'
                 ? {
@@ -409,6 +416,7 @@ export function emitSsrOpPlan(
                     ...(operation.source.ir !== undefined ? { ir: operation.source.ir } : {}),
                   },
           key: operation.key === null ? null : operation.key.segmentId,
+          ...(operation.keyIr !== undefined ? { keyIr: operation.keyIr } : {}),
           row:
             operation.row.kind === 'segment'
               ? {

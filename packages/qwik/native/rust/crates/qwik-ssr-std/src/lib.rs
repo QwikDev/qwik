@@ -31,6 +31,23 @@ fn string_op(
 	Rc::new(SerdesValue::String(apply(text)))
 }
 
+/// `qwik:array.filter` — higher-order ops take native closures compiled from LambdaIR.
+pub fn array_filter(
+	recv: &Rc<SerdesValue>,
+	mut predicate: impl FnMut(&Rc<SerdesValue>) -> bool,
+) -> Rc<SerdesValue> {
+	let SerdesValue::Array(items) = &**recv else {
+		panic!("qwik:array.filter on a non-array receiver {recv:?}");
+	};
+	Rc::new(SerdesValue::Array(
+		items
+			.iter()
+			.filter(|item| predicate(item))
+			.cloned()
+			.collect(),
+	))
+}
+
 /// JS WhiteSpace ∪ LineTerminator (ECMA-262 `TrimString`).
 fn js_whitespace(ch: char) -> bool {
 	ch.is_whitespace() || ch == '\u{feff}'

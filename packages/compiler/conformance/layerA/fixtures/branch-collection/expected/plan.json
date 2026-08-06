@@ -197,6 +197,10 @@
                             }
                           },
                           "key": "segment_7",
+                          "keyIr": {
+                            "k": "binding-read",
+                            "binding": 7
+                          },
                           "row": {
                             "segment": {
                               "segment": "segment_6",

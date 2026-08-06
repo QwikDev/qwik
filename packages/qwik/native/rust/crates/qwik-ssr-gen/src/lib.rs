@@ -774,14 +774,12 @@ impl ComponentGenerator<'_> {
 			return Err("row-id collections not supported yet".to_string());
 		}
 		let source = &op["source"];
-		if source["kind"].as_str() != Some("direct-reactive") {
+		let source_kind = source["kind"]
+			.as_str()
+			.ok_or("collection source kind missing")?;
+		if !matches!(source_kind, "direct-reactive" | "derived") {
 			return Err(format!("collection source {source} not supported yet"));
 		}
-		let source_ir = &source["ir"];
-		if source_ir["k"].as_str() != Some("binding-read") {
-			return Err("collection source without a signal-container read".to_string());
-		}
-		let source_signal = self.signal_local(source_ir)?;
 		let key_segment = op["key"]
 			.as_str()
 			.ok_or("keyless collections not supported yet")?;
@@ -810,14 +808,56 @@ impl ComponentGenerator<'_> {
 			row["segment"].as_str().ok_or("row segment id missing")?,
 			true,
 		)?;
+		if source_kind == "direct-reactive" {
+			let source_ir = &source["ir"];
+			if source_ir["k"].as_str() != Some("binding-read") {
+				return Err("collection source without a signal-container read".to_string());
+			}
+			let source_signal = self.signal_local(source_ir)?;
+			writeln!(
+				self.body,
+				"    let {range} = ctx.next_id();\n    \
+				 {target}.push_str(&format!(\"<!f={{}}>\", {range}));\n    \
+				 let mut {tracked}: Vec<std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>> = Vec::new();\n    \
+				 let items_{temp} = qwik_ssr_rt::render::tracked_array_items(&{source_signal}, &mut {tracked});\n    \
+				 let {effect} = ctx.create_for_effect({range}, {tracked}.clone(), {key_qrl}, {render_qrl}, {uses_index_signal}, {row_shape});"
+			)
+			.unwrap();
+		} else {
+			// derived: the source computes through a rooted wrapper Computed the block tracks
+			let source_segment = source["segment"]
+				.as_str()
+				.ok_or("derived source has no segment")?
+				.to_string();
+			let source_ir = &source["ir"];
+			if source_ir.is_null() {
+				return Err("derived source without a lowered ir".to_string());
+			}
+			for capture in self.segment_captures(&source_segment)? {
+				writeln!(
+					self.body,
+					"    ctx.serializer.add_root(std::rc::Rc::clone(&{capture}));"
+				)
+				.unwrap();
+			}
+			let source_qrl = self.qrl_expression(&source_segment, true)?;
+			let inner_tracked = format!("derived_tracked_{temp}");
+			let source_expression = self.ir_expression(source_ir, &inner_tracked)?;
+			let derived = format!("derived_{temp}");
+			writeln!(
+				self.body,
+				"    let {range} = ctx.next_id();\n    \
+				 let {derived} = qwik_ssr_rt::render::new_computed({source_qrl});\n    \
+				 ctx.serializer.add_root(std::rc::Rc::clone(&{derived}));\n    \
+				 {target}.push_str(&format!(\"<!f={{}}>\", {range}));\n    \
+				 let items_{temp} = qwik_ssr_rt::render::array_items(&qwik_ssr_rt::render::computed_read(&{derived}, |{inner_tracked}| {{\n        {source_expression}\n    }}));\n    \
+				 let {effect} = ctx.create_for_effect({range}, vec![std::rc::Rc::clone(&{derived})], {key_qrl}, {render_qrl}, {uses_index_signal}, {row_shape});"
+			)
+			.unwrap();
+		}
 		writeln!(
 			self.body,
-			"    let {range} = ctx.next_id();\n    \
-			 {target}.push_str(&format!(\"<!f={{}}>\", {range}));\n    \
-			 let mut {tracked}: Vec<std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>> = Vec::new();\n    \
-			 let items_{temp} = qwik_ssr_rt::render::tracked_array_items(&{source_signal}, &mut {tracked});\n    \
-			 let {effect} = ctx.create_for_effect({range}, {tracked}.clone(), {key_qrl}, {render_qrl}, {uses_index_signal}, {row_shape});\n    \
-			 let mut rows_{temp}: Vec<std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>> = Vec::new();\n    \
+			"    let mut rows_{temp}: Vec<std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>> = Vec::new();\n    \
 			 for (row_index_{temp}, row_item_{temp}) in items_{temp}.iter().enumerate() {{"
 		)
 		.unwrap();
@@ -847,6 +887,19 @@ impl ComponentGenerator<'_> {
 				self.local_kinds
 					.insert(*index_binding, LocalKind::IndexSignal);
 			}
+		}
+		// row keys become state roots (reconciliation identity) before the row renders
+		if !op["keyIr"].is_null() {
+			let key_tracked = format!("key_tracked_{temp}");
+			let key_expression =
+				self.ir_expression(&op["keyIr"], &format!("(&mut {key_tracked})"))?;
+			writeln!(
+				self.body,
+				"    let mut {key_tracked}: Vec<std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>> = Vec::new();\n    \
+				 ctx.serializer.add_root({key_expression});\n    \
+				 let _ = {key_tracked};"
+			)
+			.unwrap();
 		}
 		writeln!(self.body, "    ctx.push_owner();").unwrap();
 		self.pending_row_root = true;
@@ -1219,6 +1272,24 @@ impl ComponentGenerator<'_> {
 		))
 	}
 
+	/// Compile a LambdaIR to a native predicate closure; params bind as plain row values.
+	fn lambda_expression(&mut self, lambda: &Json, tracked: &str) -> Result<String, String> {
+		let params = lambda["params"].as_array().ok_or("lambda params missing")?;
+		let [param] = params.as_slice() else {
+			return Err("multi-parameter lambdas not supported yet".to_string());
+		};
+		let binding = param["binding"]
+			.as_u64()
+			.ok_or("lambda param has no binding")?;
+		let variable = format!("lambda_arg_{}", self.next_temp());
+		self.locals.insert(binding, variable.clone());
+		self.local_kinds.insert(binding, LocalKind::PlainValue);
+		let body = self.ir_expression(&lambda["body"], tracked)?;
+		Ok(format!(
+			"|{variable}: &std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>| {{\n        let predicate_value = {body};\n        qwik_ssr_rt::render::truthy(&predicate_value)\n    }}"
+		))
+	}
+
 	/// Compile a ValueIR tree to a Rust expression producing `Rc<SerdesValue>`; signal and
 	/// props-source reads record into `tracked` (auto-track — the effect deps).
 	fn ir_expression(&mut self, ir: &Json, tracked: &str) -> Result<String, String> {
@@ -1289,6 +1360,7 @@ impl ComponentGenerator<'_> {
 					"+" => "js_add",
 					"*" => "js_mul",
 					"===" => "js_strict_eq",
+					">" => "js_gt",
 					op => return Err(format!("binary operator {op:?} not supported yet")),
 				};
 				Ok(format!("qwik_ssr_rt::render::{helper}(&{left}, &{right})"))
@@ -1317,6 +1389,16 @@ impl ComponentGenerator<'_> {
 					return Err("receiver-less plugin calls not supported yet".to_string());
 				}
 				let recv_expression = self.ir_expression(recv, tracked)?;
+				if fn_id == "qwik:array.filter" {
+					let lambda = &ir["args"][0];
+					if lambda["kind"].as_str() != Some("lambda") {
+						return Err("qwik:array.filter needs a lambda argument".to_string());
+					}
+					let predicate = self.lambda_expression(lambda, tracked)?;
+					return Ok(format!(
+						"qwik_ssr_std::array_filter(&{recv_expression}, {predicate})"
+					));
+				}
 				let mut args = String::new();
 				for arg in ir["args"].as_array().ok_or("call args missing")? {
 					write!(args, "{}, ", self.ir_expression(arg, tracked)?).unwrap();

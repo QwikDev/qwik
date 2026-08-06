@@ -297,7 +297,11 @@ impl SsrContext {
 				key_qrl,
 				render_qrl,
 				uses_index_signal,
-				index_signals: Vec::new(),
+				index_signals: if uses_index_signal {
+					Some(Vec::new())
+				} else {
+					None
+				},
 				id_base: String::new(),
 				row_shape,
 			}),
@@ -311,7 +315,11 @@ impl SsrContext {
 		let EffectValue::ForBlock(for_block) = &mut *cell.borrow_mut() else {
 			panic!("add_index_signal expects a for-block effect");
 		};
-		for_block.index_signals.push(signal);
+		for_block
+			.index_signals
+			.as_mut()
+			.expect("index signals unused on this for block")
+			.push(signal);
 	}
 
 	pub fn create_content_effect(
@@ -483,6 +491,22 @@ pub fn js_mul(left: &Rc<SerdesValue>, right: &Rc<SerdesValue>) -> Rc<SerdesValue
 		(SerdesValue::Number(a), SerdesValue::Number(b)) => Rc::new(SerdesValue::Number(a * b)),
 		(a, b) => panic!("js_mul of {a:?} and {b:?} not supported yet"),
 	}
+}
+
+/// JS `>` on numbers.
+pub fn js_gt(left: &Rc<SerdesValue>, right: &Rc<SerdesValue>) -> Rc<SerdesValue> {
+	match (&**left, &**right) {
+		(SerdesValue::Number(a), SerdesValue::Number(b)) => Rc::new(SerdesValue::Bool(a > b)),
+		(a, b) => panic!("js_gt of {a:?} and {b:?} not supported yet"),
+	}
+}
+
+/// Items of an evaluated array value (derived collection iteration).
+pub fn array_items(value: &Rc<SerdesValue>) -> Vec<Rc<SerdesValue>> {
+	let SerdesValue::Array(items) = &**value else {
+		panic!("array_items on a non-array {value:?}");
+	};
+	items.clone()
 }
 
 /// JS truthiness.

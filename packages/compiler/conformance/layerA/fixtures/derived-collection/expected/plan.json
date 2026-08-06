@@ -1,0 +1,328 @@
+{
+  "format": "qwik/ssr-plan",
+  "version": 0,
+  "entry": 0,
+  "components": [
+    {
+      "name": "App",
+      "module": 0,
+      "propsBindings": [],
+      "ssr": {
+        "setup": [
+          {
+            "op": "signal",
+            "local": 2,
+            "init": {
+              "k": "array",
+              "items": [
+                {
+                  "k": "lit",
+                  "v": "alpha"
+                },
+                {
+                  "k": "lit",
+                  "v": "beta"
+                },
+                {
+                  "k": "lit",
+                  "v": "gamma"
+                }
+              ]
+            }
+          }
+        ],
+        "directSegmentIds": [],
+        "usedSegmentIds": [
+          "semantic_collectionSource_151_196",
+          "segment_1",
+          "segment_0"
+        ],
+        "ops": [
+          {
+            "o": "el",
+            "tag": "ul",
+            "id": null,
+            "void": false,
+            "styleScopedId": null,
+            "targetUses": 0,
+            "props": [],
+            "propsEffect": null,
+            "children": [
+              {
+                "o": "collection",
+                "source": {
+                  "kind": "derived",
+                  "segment": "semantic_collectionSource_151_196",
+                  "keepSource": false,
+                  "ir": {
+                    "k": "call",
+                    "fn": "qwik:array.filter",
+                    "recv": {
+                      "k": "signal-read",
+                      "binding": 2
+                    },
+                    "args": [
+                      {
+                        "kind": "lambda",
+                        "params": [
+                          {
+                            "name": "word",
+                            "binding": 3
+                          }
+                        ],
+                        "body": {
+                          "k": "bin",
+                          "op": ">",
+                          "a": {
+                            "k": "member",
+                            "obj": {
+                              "k": "binding-read",
+                              "binding": 3
+                            },
+                            "name": "length"
+                          },
+                          "b": {
+                            "k": "lit",
+                            "v": 4
+                          }
+                        }
+                      }
+                    ]
+                  }
+                },
+                "key": "segment_1",
+                "keyIr": {
+                  "k": "binding-read",
+                  "binding": 4
+                },
+                "row": {
+                  "segment": {
+                    "segment": "segment_0",
+                    "setup": [],
+                    "ops": [
+                      {
+                        "o": "el",
+                        "tag": "li",
+                        "id": 0,
+                        "void": false,
+                        "styleScopedId": null,
+                        "targetUses": 0,
+                        "props": [],
+                        "propsEffect": null,
+                        "children": [
+                          {
+                            "o": "dyn",
+                            "output": "text",
+                            "value": {
+                              "src": "word",
+                              "ir": {
+                                "k": "binding-read",
+                                "binding": 4
+                              },
+                              "segment": "segment_2"
+                            },
+                            "synchronous": false,
+                            "target": {
+                              "kind": "element",
+                              "id": 0
+                            }
+                          }
+                        ]
+                      }
+                    ],
+                    "synchronous": false,
+                    "needsRootRange": false,
+                    "paramBindings": [
+                      4
+                    ]
+                  }
+                },
+                "usesIndexSignal": false,
+                "usesRowId": false,
+                "idBase": null,
+                "rowShape": 0
+              }
+            ]
+          }
+        ],
+        "synchronous": false,
+        "staticRoot": false,
+        "needsRootRange": false,
+        "needsId": false,
+        "idBase": "qApp-",
+        "flushTasks": false
+      },
+      "setup": [
+        {
+          "op": "signal",
+          "local": 2,
+          "init": {
+            "k": "array",
+            "items": [
+              {
+                "k": "lit",
+                "v": "alpha"
+              },
+              {
+                "k": "lit",
+                "v": "beta"
+              },
+              {
+                "k": "lit",
+                "v": "gamma"
+              }
+            ]
+          }
+        }
+      ],
+      "render": [
+        {
+          "n": "el",
+          "tag": "ul",
+          "props": [],
+          "children": [
+            {
+              "n": "collection",
+              "source": {
+                "kind": "derived",
+                "src": "words.value.filter((word) => word.length > 4)",
+                "segment": "semantic_collectionSource_151_196",
+                "ir": {
+                  "k": "call",
+                  "fn": "qwik:array.filter",
+                  "recv": {
+                    "k": "signal-read",
+                    "binding": 2
+                  },
+                  "args": [
+                    {
+                      "kind": "lambda",
+                      "params": [
+                        {
+                          "name": "word",
+                          "binding": 3
+                        }
+                      ],
+                      "body": {
+                        "k": "bin",
+                        "op": ">",
+                        "a": {
+                          "k": "member",
+                          "obj": {
+                            "k": "binding-read",
+                            "binding": 3
+                          },
+                          "name": "length"
+                        },
+                        "b": {
+                          "k": "lit",
+                          "v": 4
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "key": {
+                "src": "",
+                "segment": "segment_1",
+                "ir": {
+                  "k": "binding-read",
+                  "binding": 4
+                }
+              },
+              "row": {
+                "setup": [],
+                "render": [
+                  {
+                    "n": "el",
+                    "tag": "li",
+                    "props": [],
+                    "children": [
+                      {
+                        "n": "dyn",
+                        "output": "text",
+                        "value": {
+                          "src": "word",
+                          "ir": {
+                            "k": "binding-read",
+                            "binding": 4
+                          },
+                          "segment": "segment_2"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              "usesIndexSignal": false
+            }
+          ]
+        }
+      ],
+      "needsId": false,
+      "idBase": "qApp-",
+      "styleScope": null,
+      "providesContext": false,
+      "hasCustomHook": false
+    }
+  ],
+  "modules": [
+    {
+      "path": "src/input.tsx",
+      "segments": [
+        {
+          "id": "segment_0",
+          "symbolName": "input_for_render_segment_0_18lijh072uonn",
+          "chunk": "./input.tsx_input_for_render_segment_0_18lijh072uonn",
+          "kind": "forRender",
+          "resolved": true,
+          "qrl": null,
+          "captures": []
+        },
+        {
+          "id": "segment_1",
+          "symbolName": "input_for_key_segment_1_21xk6ahxevd9r",
+          "chunk": "./input.tsx_input_for_key_segment_1_21xk6ahxevd9r",
+          "kind": "forKey",
+          "resolved": true,
+          "qrl": null,
+          "captures": []
+        },
+        {
+          "id": "segment_2",
+          "symbolName": "input_text_segment_2_3k1cwowuxxuve",
+          "chunk": "./input.tsx_input_text_segment_2_3k1cwowuxxuve",
+          "kind": "expression",
+          "resolved": false,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 4,
+              "name": "word",
+              "source": "loop",
+              "access": "direct"
+            }
+          ]
+        },
+        {
+          "id": "semantic_collectionSource_151_196",
+          "symbolName": "semantic_collectionSource_151_196_3nc0bkmrdiew7",
+          "chunk": "./input.tsx_semantic_collectionSource_151_196_3nc0bkmrdiew7",
+          "kind": "collectionSource",
+          "resolved": true,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 2,
+              "name": "words",
+              "source": "local",
+              "access": "direct"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "unresolved": []
+}

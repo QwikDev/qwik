@@ -16,6 +16,7 @@ const READY_FIXTURES: &[&str] = &[
 	"branch-collection",
 	"suspense-inline",
 	"template-text",
+	"derived-collection",
 	"static-attrs",
 	"suspense-stream",
 ];
@@ -73,7 +74,7 @@ fn main() {
 		// with the build-stamped q:version normalized to "conformance"
 		writeln!(
 			generated,
-			"#[allow(unused_mut, clippy::type_complexity, clippy::comparison_to_empty)]\npub mod {module_name} {{\n{component_code}\
+			"#[allow(unused_mut, unused_variables, clippy::type_complexity, clippy::comparison_to_empty, clippy::needless_borrow)]\npub mod {module_name} {{\n{component_code}\
              pub fn render_page() -> String {{\n    \
                  qwik_ssr_rt::render::render_page(\n        \
                      &qwik_ssr_rt::render::PageOptions {{\n            \

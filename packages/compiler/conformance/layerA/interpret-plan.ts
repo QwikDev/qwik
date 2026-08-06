@@ -14,6 +14,7 @@ import {
   maybeThen,
   renderSsrAttr,
   renderSsrBranch,
+  renderSsrCollection,
   renderSsrTextExpression,
   renderSsrSlot,
   renderSsrTextNode,
@@ -26,6 +27,7 @@ import {
   inlinedQrl,
   _chk,
   _props,
+  _wrapArray,
   _qrlWithChunk,
   _val,
 } from '@qwik.dev/core';
@@ -507,6 +509,45 @@ export async function buildInterpretedRoot(
           );
           return maybeThen(pendingSlot, (rendered) => {
             parts.push(rendered);
+          });
+        }
+        case 'collection': {
+          const source = op.source;
+          if (source.kind !== 'derived') {
+            throw new Error(`interpreter cannot render ${source.kind} collections yet`);
+          }
+          const row = op.row as { segment?: { segment?: string } };
+          const rowSegment = row.segment?.segment;
+          const keySegment = op.key;
+          if (rowSegment === undefined || keySegment === null) {
+            throw new Error('interpreter needs segment rows and keys for collections');
+          }
+          const id = ctx.nextId();
+          // mirror emitted prep: capture roots, wrap the derived source, root the computed
+          const rendered = invoke(invokeCtx, () => {
+            for (const captureBinding of captureLists.get(source.segment) ?? []) {
+              ctx.addRoot(locals.get(captureBinding));
+            }
+            const collection = _wrapArray(qrlWithCaptures(source.segment) as never);
+            if (!Array.isArray(collection)) {
+              ctx.addRoot(collection);
+            }
+            return renderSsrCollection(
+              ctx as never,
+              id,
+              collection as never,
+              qrlWithCaptures(keySegment) as never,
+              qrlWithCaptures(rowSegment) as never,
+              op.usesIndexSignal,
+              op.idBase ?? '',
+              op.usesRowId,
+              op.rowShape
+            );
+          });
+          return maybeThen(rendered, (output) => {
+            parts.push(createSsrRecord('<!f=', createSsrNodeId(id), '>'));
+            parts.push(output);
+            parts.push('<!/f>');
           });
         }
         default:

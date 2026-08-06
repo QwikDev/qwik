@@ -5,8 +5,9 @@
 use crate::escape::escape_html;
 use crate::number::to_js_string;
 use crate::serdes::{
-	EffectSubscription, SerdesValue, Serializer, EFFECT_KIND_TEXT_EXPRESSION,
-	EFFECT_KIND_TEXT_NODE, EFFECT_TARGET_ELEMENT_TEXT, EFFECT_TARGET_RANGE_TEXT,
+	EffectSubscription, SerdesValue, Serializer, EFFECT_KIND_ATTR, EFFECT_KIND_TEXT_EXPRESSION,
+	EFFECT_KIND_TEXT_NODE, EFFECT_TARGET_ELEMENT, EFFECT_TARGET_ELEMENT_TEXT,
+	EFFECT_TARGET_RANGE_TEXT,
 };
 use std::rc::Rc;
 
@@ -73,7 +74,18 @@ impl SsrContext {
 		} else if qrl_value.captures.is_empty() {
 			format!("{}#{}", qrl_value.chunk, qrl_value.symbol)
 		} else {
-			panic!("`_`-symbol QRLs with captures not supported yet (bind handlers)");
+			// `_`-symbol QRLs (e.g. _val/_chk) inline capture deltas, previous seeded at 0
+			let mut deltas = String::new();
+			let mut previous = 0i64;
+			for (position, capture) in qrl_value.captures.iter().enumerate() {
+				let capture_id = self.serializer.add_root(Rc::clone(capture)) as i64;
+				if position > 0 {
+					deltas.push(' ');
+				}
+				deltas.push_str(&(capture_id - previous).to_string());
+				previous = capture_id;
+			}
+			format!("{}#{}#{deltas}", qrl_value.chunk, qrl_value.symbol)
 		};
 		format!(" {attr_name}=\"{}\"", escape_html(&value))
 	}
@@ -88,6 +100,7 @@ impl SsrContext {
 				target_id,
 				marker_index: None,
 				deps: vec![Rc::clone(signal)],
+				attr_name: None,
 				args: None,
 				qrl: None,
 			},
@@ -104,6 +117,7 @@ impl SsrContext {
 				target_id,
 				marker_index: Some(marker),
 				deps: vec![Rc::clone(signal)],
+				attr_name: None,
 				args: None,
 				qrl: None,
 			},
@@ -114,32 +128,97 @@ impl SsrContext {
 	/// browser passes to the resume QRL; deps are the signals read during server evaluation.
 	pub fn subscribe_text_expression(
 		&mut self,
-		signal: &Rc<SerdesValue>,
+		dep: &Rc<SerdesValue>,
 		target_id: u32,
 		marker: u32,
 		args: Vec<Rc<SerdesValue>>,
 		qrl: Rc<SerdesValue>,
 	) {
 		push_subscription(
-			signal,
+			dep,
 			EffectSubscription {
 				kind: EFFECT_KIND_TEXT_EXPRESSION,
 				target_kind: EFFECT_TARGET_RANGE_TEXT,
 				target_id,
 				marker_index: Some(marker),
-				deps: vec![Rc::clone(signal)],
+				deps: vec![Rc::clone(dep)],
+				attr_name: None,
 				args: Some(args),
 				qrl: Some(qrl),
 			},
 		);
 	}
+
+	/// TextExpression effect on an element-text target (single expression child, no markers).
+	pub fn subscribe_element_text_expression(
+		&mut self,
+		dep: &Rc<SerdesValue>,
+		target_id: u32,
+		args: Vec<Rc<SerdesValue>>,
+		qrl: Rc<SerdesValue>,
+	) {
+		push_subscription(
+			dep,
+			EffectSubscription {
+				kind: EFFECT_KIND_TEXT_EXPRESSION,
+				target_kind: EFFECT_TARGET_ELEMENT_TEXT,
+				target_id,
+				marker_index: None,
+				deps: vec![Rc::clone(dep)],
+				attr_name: None,
+				args: Some(args),
+				qrl: Some(qrl),
+			},
+		);
+	}
+
+	/// Plain Attr effect (`renderSsrAttr`) — reactive attribute on an element target.
+	pub fn subscribe_attr(&mut self, signal: &Rc<SerdesValue>, target_id: u32, name: &str) {
+		push_subscription(
+			signal,
+			EffectSubscription {
+				kind: EFFECT_KIND_ATTR,
+				target_kind: EFFECT_TARGET_ELEMENT,
+				target_id,
+				marker_index: None,
+				deps: vec![Rc::clone(signal)],
+				attr_name: Some(name.to_string()),
+				args: None,
+				qrl: None,
+			},
+		);
+	}
 }
 
-fn push_subscription(signal: &Rc<SerdesValue>, subscription: EffectSubscription) {
-	let SerdesValue::Signal(state) = &**signal else {
-		panic!("subscription target must be a Signal value");
-	};
-	state.borrow_mut().subs.push(subscription);
+/// Dynamic attribute serialization: null/undefined → omitted, `''` → bare, else escaped value.
+pub fn dynamic_attr(signal: &Rc<SerdesValue>, name: &str) -> String {
+	let value = signal_value(signal);
+	match &*value {
+		SerdesValue::Null | SerdesValue::Undefined => String::new(),
+		SerdesValue::String(text) if text.is_empty() => format!(" {name}"),
+		other => format!(" {name}=\"{}\"", escape_html(&value_text(other))),
+	}
+}
+
+fn push_subscription(dep: &Rc<SerdesValue>, subscription: EffectSubscription) {
+	match &**dep {
+		SerdesValue::Signal(state) => state.borrow_mut().subs.push(subscription),
+		SerdesValue::StoreProp { store, prop } => {
+			let SerdesValue::Store(state) = &**store else {
+				panic!("StoreProp must reference a Store");
+			};
+			let mut state = state.borrow_mut();
+			if let Some(record) = state.records.iter_mut().find(|record| record.prop == *prop) {
+				record.subs.push(subscription);
+			} else {
+				state.records.push(crate::serdes::StoreRecord {
+					prop: prop.clone(),
+					subs: vec![subscription],
+				});
+			}
+		}
+		other => panic!("subscription dep {other:?} not supported"),
+	}
 }
 
 /// SSR text interpolation of a signal's current value (`value == null ? '' : String(value)`).
@@ -167,14 +246,28 @@ pub fn value_text(value: &SerdesValue) -> String {
 	}
 }
 
-/// Tracked member read on component props: sources yield the signal's value and record the
-/// tracked source (auto-track); statics read untracked. Missing keys read `undefined`.
-pub fn props_member(
-	props: &Rc<SerdesValue>,
+/// Tracked member read: props sources and store props record their tracked dep (auto-track);
+/// statics and plain objects read untracked. Missing keys read `undefined`.
+pub fn member_read(
+	object: &Rc<SerdesValue>,
 	name: &str,
 	tracked: &mut Vec<Rc<SerdesValue>>,
 ) -> Rc<SerdesValue> {
-	match &**props {
+	match &**object {
+		SerdesValue::Store(state) => {
+			tracked.push(Rc::new(SerdesValue::StoreProp {
+				store: Rc::clone(object),
+				prop: name.to_string(),
+			}));
+			let raw = Rc::clone(&state.borrow().raw);
+			let SerdesValue::Object(entries) = &*raw else {
+				panic!("store raw must be an object");
+			};
+			match entries.iter().find(|(key, _)| key == name) {
+				Some((_, item)) => Rc::clone(item),
+				None => Rc::new(SerdesValue::Undefined),
+			}
+		}
 		SerdesValue::Props(value) => {
 			if let Some((_, source)) = value.sources.iter().find(|(key, _)| key == name) {
 				tracked.push(Rc::clone(source));
@@ -189,7 +282,7 @@ pub fn props_member(
 			Some((_, item)) => Rc::clone(item),
 			None => Rc::new(SerdesValue::Undefined),
 		},
-		other => panic!("props_member on {other:?} not supported yet"),
+		other => panic!("member_read on {other:?} not supported yet"),
 	}
 }
 

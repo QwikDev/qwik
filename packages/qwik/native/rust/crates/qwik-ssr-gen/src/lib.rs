@@ -169,6 +169,22 @@ impl ComponentGenerator<'_> {
 				self.locals.insert(binding, variable);
 				Ok(())
 			}
+			"store" => {
+				let binding = entry["local"].as_u64().ok_or("store op has no local")?;
+				if entry["deep"].as_bool() != Some(true) {
+					return Err("shallow stores not supported yet".to_string());
+				}
+				let variable = format!("local_{binding}");
+				let raw = object_literal_expression(&entry["init"])?;
+				self.uses_ctx = true;
+				writeln!(
+					self.body,
+					"    let {variable} = std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Store(\n        std::cell::RefCell::new(qwik_ssr_rt::serdes::StoreState {{ raw: std::rc::Rc::new({raw}), records: Vec::new() }}),\n    ));"
+				)
+				.unwrap();
+				self.locals.insert(binding, variable);
+				Ok(())
+			}
 			op => Err(format!("setup op {op:?} not supported yet")),
 		}
 	}
@@ -228,7 +244,10 @@ impl ComponentGenerator<'_> {
 				.unwrap();
 			}
 			for prop in props {
-				self.write_static_prop(prop)?;
+				match prop["p"].as_str().ok_or("prop has no kind")? {
+					"dynamic" => self.write_dynamic_attr(prop, target, &id_variable)?,
+					_ => self.write_static_prop(prop)?,
+				}
 			}
 			self.statics.push('>');
 			self.write_ops(children, target)?;
@@ -257,7 +276,8 @@ impl ComponentGenerator<'_> {
 		}
 		for prop in props {
 			match prop["p"].as_str().ok_or("prop has no kind")? {
-				"event" => self.write_event_prop(prop, target)?,
+				"event" => self.write_event_prop(prop, target, props)?,
+				"dynamic" => self.write_dynamic_attr(prop, target, &id_variable)?,
 				_ => {
 					self.write_static_prop(prop)?;
 					self.flush_statics(target);
@@ -285,7 +305,53 @@ impl ComponentGenerator<'_> {
 		}
 	}
 
-	fn write_event_prop(&mut self, prop: &Json, target: &str) -> Result<(), String> {
+	fn write_dynamic_attr(
+		&mut self,
+		prop: &Json,
+		target: &str,
+		id_variable: &Option<String>,
+	) -> Result<(), String> {
+		let id_variable = id_variable
+			.as_ref()
+			.ok_or("dynamic attr on an untargeted element")?;
+		let name = prop["name"].as_str().ok_or("dynamic prop has no name")?;
+		let ir = &prop["value"]["ir"];
+		if !matches!(ir["k"].as_str(), Some("binding-read") | Some("signal-read")) {
+			return Err(format!("dynamic attr ir {ir} not supported yet"));
+		}
+		let signal = self.signal_local(ir)?;
+		self.uses_ctx = true;
+		self.flush_statics(target);
+		writeln!(
+			self.body,
+			"    ctx.serializer.add_root(std::rc::Rc::clone(&{signal}));\n    \
+			 ctx.subscribe_attr(&{signal}, {id_variable}, {name:?});\n    \
+			 {target}.push_str(&qwik_ssr_rt::render::dynamic_attr(&{signal}, {name:?}));"
+		)
+		.unwrap();
+		Ok(())
+	}
+
+	fn sibling_bind_signal(
+		&mut self,
+		element_props: &[Json],
+		bind_name: &str,
+	) -> Result<String, String> {
+		let sibling = element_props
+			.iter()
+			.find(|prop| {
+				prop["p"].as_str() == Some("dynamic") && prop["name"].as_str() == Some(bind_name)
+			})
+			.ok_or(format!("bind handler without a sibling {bind_name:?} prop"))?;
+		self.signal_local(&sibling["value"]["ir"])
+	}
+
+	fn write_event_prop(
+		&mut self,
+		prop: &Json,
+		target: &str,
+		element_props: &[Json],
+	) -> Result<(), String> {
 		let attr_name = prop["name"].as_str().ok_or("event prop has no name")?;
 		let handlers = prop["handlers"]
 			.as_array()
@@ -293,11 +359,24 @@ impl ComponentGenerator<'_> {
 		let [handler] = handlers.as_slice() else {
 			return Err("multi-handler events not supported yet".to_string());
 		};
-		let segment_id = handler["value"]["segment"]
-			.as_str()
-			.ok_or("event handler without a segment (bind handlers not supported yet)")?;
-		let qrl = self.qrl_expression(segment_id, true)?;
 		self.uses_ctx = true;
+		let qrl = if let Some(segment_id) = handler["value"]["segment"].as_str() {
+			self.qrl_expression(segment_id, true)?
+		} else if handler["bind"].is_string() {
+			// bind rides the built-in _val/_chk handler capturing the bound signal
+			let symbol = if attr_name == "q-e:input" {
+				"_val"
+			} else {
+				"_chk"
+			};
+			let bind_name = if symbol == "_val" { "value" } else { "checked" };
+			let bound = self.sibling_bind_signal(element_props, bind_name)?;
+			format!(
+				"std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Qrl(qwik_ssr_rt::serdes::QrlValue {{\n        chunk: \"mock-chunk\".to_string(), symbol: {symbol:?}.to_string(), captures: vec![std::rc::Rc::clone(&{bound})],\n    }}))"
+			)
+		} else {
+			return Err("event handler without a segment or bind".to_string());
+		};
 		writeln!(
 			self.body,
 			"    {target}.push_str(&ctx.event_attr({attr_name:?}, {qrl}));"
@@ -440,12 +519,6 @@ impl ComponentGenerator<'_> {
 			)
 			.unwrap();
 		} else if let Some(segment_id) = op["value"]["segment"].as_str() {
-			if !is_range {
-				return Err("element-targeted expression text not supported yet".to_string());
-			}
-			let marker = plan_target["marker"]
-				.as_u64()
-				.ok_or("range target has no marker")?;
 			let captures = self.segment_captures(segment_id)?;
 			let mut args = String::new();
 			for capture in &captures {
@@ -464,12 +537,20 @@ impl ComponentGenerator<'_> {
 			let value = format!("value_{temp}");
 			let expression = self.ir_expression(ir, &tracked)?;
 			let qrl = self.qrl_expression(segment_id, false)?;
+			let subscribe = if is_range {
+				let marker = plan_target["marker"]
+					.as_u64()
+					.ok_or("range target has no marker")?;
+				format!("ctx.subscribe_text_expression(dep, {element_variable}, {marker}, vec![{args}], {qrl});")
+			} else {
+				format!("ctx.subscribe_element_text_expression(dep, {element_variable}, vec![{args}], {qrl});")
+			};
 			writeln!(
 				self.body,
 				"    let mut {tracked}: Vec<std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>> = Vec::new();\n    \
 				 let {value} = {expression};\n    \
 				 if let Some(dep) = {tracked}.first() {{\n        \
-				 ctx.subscribe_text_expression(dep, {element_variable}, {marker}, vec![{args}], {qrl});\n    \
+				 {subscribe}\n    \
 				 }}\n    \
 				 {target}.push_str(&qwik_ssr_rt::escape::escape_html(&qwik_ssr_rt::render::value_text(&{value})));"
 			)
@@ -574,7 +655,7 @@ impl ComponentGenerator<'_> {
 				let variable = self.local(binding)?;
 				let name = ir["name"].as_str().ok_or("member has no name")?;
 				Ok(format!(
-					"qwik_ssr_rt::render::props_member(&{variable}, {name:?}, &mut {tracked})"
+					"qwik_ssr_rt::render::member_read(&{variable}, {name:?}, &mut {tracked})"
 				))
 			}
 			"lit" => Ok(format!("std::rc::Rc::new({})", literal_expression(ir)?)),
@@ -593,6 +674,30 @@ impl ComponentGenerator<'_> {
 			kind => Err(format!("ir kind {kind:?} not supported yet")),
 		}
 	}
+}
+
+/// Object-literal ValueIR → `SerdesValue::Object` expression (store init shapes).
+fn object_literal_expression(ir: &Json) -> Result<String, String> {
+	if ir["k"].as_str() != Some("object") {
+		return Err(format!("store init {ir} not supported yet"));
+	}
+	let mut entries = String::new();
+	for pair in ir["entries"]
+		.as_array()
+		.ok_or("object ir entries missing")?
+	{
+		let pair = pair.as_array().ok_or("object ir entry not a pair")?;
+		let key = pair[0].as_str().ok_or("object ir key not a string")?;
+		let value = literal_expression(&pair[1])?;
+		write!(
+			entries,
+			"({key:?}.to_string(), std::rc::Rc::new({value})), "
+		)
+		.unwrap();
+	}
+	Ok(format!(
+		"qwik_ssr_rt::serdes::SerdesValue::Object(vec![{entries}])"
+	))
 }
 
 fn literal_expression(ir: &Json) -> Result<String, String> {

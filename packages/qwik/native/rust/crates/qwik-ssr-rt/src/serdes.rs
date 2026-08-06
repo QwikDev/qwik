@@ -21,7 +21,10 @@ pub enum SerdesValue {
 	Object(Vec<(String, Rc<SerdesValue>)>),
 	Date(f64),
 	Url(String),
-	Regex { source: String, flags: String },
+	Regex {
+		source: String,
+		flags: String,
+	},
 	BigInt(String),
 	Map(Vec<(Rc<SerdesValue>, Rc<SerdesValue>)>),
 	Set(Vec<Rc<SerdesValue>>),
@@ -29,6 +32,25 @@ pub enum SerdesValue {
 	Signal(RefCell<SignalState>),
 	Qrl(QrlValue),
 	Props(PropsValue),
+	Store(RefCell<StoreState>),
+	/// Tracked read handle for one store prop — the dep shape stores serialize (TypeId 47).
+	StoreProp {
+		store: Rc<SerdesValue>,
+		prop: String,
+	},
+}
+
+/// Deep store: raw target object plus per-prop source records with their subscribers.
+#[derive(Debug)]
+pub struct StoreState {
+	pub raw: Rc<SerdesValue>,
+	pub records: Vec<StoreRecord>,
+}
+
+#[derive(Debug)]
+pub struct StoreRecord {
+	pub prop: String,
+	pub subs: Vec<EffectSubscription>,
 }
 
 /// Component props with reactive sources (`_props`): statics read directly, sources track.
@@ -61,6 +83,8 @@ pub struct EffectSubscription {
 	/// Present only when `target_kind` is RangeText — shifts later fields by one.
 	pub marker_index: Option<u32>,
 	pub deps: Vec<Rc<SerdesValue>>,
+	/// Attr(2): attribute name; followed on the wire by a null styleScopedId.
+	pub attr_name: Option<String>,
 	/// TextExpression(1)/Attr-expression/Props: capture values passed to the QRL on resume.
 	pub args: Option<Vec<Rc<SerdesValue>>>,
 	/// Resume QRL for expression-shaped effects.
@@ -69,8 +93,10 @@ pub struct EffectSubscription {
 
 pub const EFFECT_KIND_TEXT_NODE: u8 = 0;
 pub const EFFECT_KIND_TEXT_EXPRESSION: u8 = 1;
+pub const EFFECT_KIND_ATTR: u8 = 2;
 pub const EFFECT_TARGET_ELEMENT_TEXT: u8 = 0;
 pub const EFFECT_TARGET_RANGE_TEXT: u8 = 1;
+pub const EFFECT_TARGET_ELEMENT: u8 = 2;
 
 // TypeIds (serdes/type-id.ts) — only the ids this serializer emits.
 const TYPE_PLAIN: u8 = 0;
@@ -85,6 +111,8 @@ const TYPE_QRL: u8 = 9;
 const TYPE_BIGINT: u8 = 12;
 const TYPE_SIGNAL: u8 = 30;
 const TYPE_PROPS: u8 = 39;
+const TYPE_STORE: u8 = 35;
+const TYPE_STORE_PROP: u8 = 47;
 const TYPE_EFFECT_SUBSCRIPTION: u8 = 41;
 const TYPE_SET: u8 = 25;
 const TYPE_MAP: u8 = 26;
@@ -195,6 +223,22 @@ impl Serializer {
 
 	pub fn root_count(&self) -> usize {
 		self.roots.len()
+	}
+
+	/// Root id for a value, promoting an inline first occurrence to a backref root if needed
+	/// (`StoreProp.targetRootId` — a Plain number on the wire, never a RootRef).
+	fn promote_to_root(&mut self, value: &Rc<SerdesValue>) -> usize {
+		let key = root_key(value);
+		if let Some(&existing) = self.index.get(&key) {
+			return existing;
+		}
+		if let Some(first_path) = self.seen_paths.get(&key) {
+			let id = self.roots.len();
+			self.roots.push(PendingRoot::Backref(first_path.clone()));
+			self.index.insert(key, id);
+			return id;
+		}
+		self.add_root(Rc::clone(value))
 	}
 
 	/// Register a root; identical values (SameValueZero) reuse the existing root id.
@@ -342,6 +386,55 @@ impl Serializer {
 				push_pair(&mut pairs, (TYPE_OBJECT, Payload::Arr(sources_pairs)));
 				(TYPE_PROPS, Payload::Arr(pairs))
 			}
+			SerdesValue::Store(state) => {
+				let state = state.borrow();
+				let mut pairs = Vec::new();
+				path.push(0);
+				push_pair(&mut pairs, self.write(&state.raw, current_root, path));
+				if !state.records.is_empty() {
+					*path.last_mut().unwrap() = 1;
+					let mut record_pairs = Vec::new();
+					for record in &state.records {
+						// record layout: [path[], prop, ...subs]
+						let mut items = Vec::new();
+						push_pair(&mut items, (TYPE_ARRAY, Payload::Arr(Vec::new())));
+						push_pair(
+							&mut items,
+							self.write(
+								&Rc::new(SerdesValue::String(record.prop.clone())),
+								current_root,
+								path,
+							),
+						);
+						for subscription in &record.subs {
+							let payload = self.write_subscription(subscription, current_root, path);
+							push_pair(&mut items, (TYPE_EFFECT_SUBSCRIPTION, payload));
+						}
+						push_pair(&mut record_pairs, (TYPE_ARRAY, Payload::Arr(items)));
+					}
+					push_pair(&mut pairs, (TYPE_ARRAY, Payload::Arr(record_pairs)));
+				}
+				path.pop();
+				(TYPE_STORE, Payload::Arr(pairs))
+			}
+			SerdesValue::StoreProp { store, prop } => {
+				let SerdesValue::Store(state) = &**store else {
+					panic!("StoreProp must reference a Store");
+				};
+				let raw = Rc::clone(&state.borrow().raw);
+				let target_root = self.promote_to_root(&raw);
+				let mut pairs = Vec::new();
+				push_pair(&mut pairs, (TYPE_PLAIN, Payload::Num(target_root as f64)));
+				push_pair(
+					&mut pairs,
+					self.write(
+						&Rc::new(SerdesValue::String(prop.clone())),
+						current_root,
+						path,
+					),
+				);
+				(TYPE_STORE_PROP, Payload::Arr(pairs))
+			}
 			// state form: `${chunkRootId}#${symbolRootId - chunkRootId}[#deltas]`, chunk and
 			// symbol strings appended to the root worklist; first delta rebased on symbolRootId
 			SerdesValue::Qrl(qrl) => {
@@ -384,24 +477,45 @@ impl Serializer {
 		if let Some(marker_index) = subscription.marker_index {
 			push_pair(&mut pairs, (TYPE_PLAIN, Payload::Num(marker_index as f64)));
 		}
-		let mut write_values =
-			|serializer: &mut Self, values: &[Rc<SerdesValue>], pairs: &mut Vec<Payload>| {
-				let mut value_pairs = Vec::new();
-				for (position, item) in values.iter().enumerate() {
-					path.push(position);
-					push_pair(&mut value_pairs, serializer.write(item, current_root, path));
-					path.pop();
-				}
-				push_pair(pairs, (TYPE_ARRAY, Payload::Arr(value_pairs)));
-			};
-		write_values(self, &subscription.deps, &mut pairs);
+		let deps_pair = self.write_value_list(&subscription.deps, current_root, path);
+		push_pair(&mut pairs, deps_pair);
+		if let Some(attr_name) = &subscription.attr_name {
+			let name_pair = self.write(
+				&Rc::new(SerdesValue::String(attr_name.clone())),
+				current_root,
+				path,
+			);
+			push_pair(&mut pairs, name_pair);
+		}
 		if let Some(args) = &subscription.args {
-			write_values(self, args, &mut pairs);
+			let args_pair = self.write_value_list(args, current_root, path);
+			push_pair(&mut pairs, args_pair);
 		}
 		if let Some(qrl) = &subscription.qrl {
-			push_pair(&mut pairs, self.write(qrl, current_root, path));
+			let qrl_pair = self.write(qrl, current_root, path);
+			push_pair(&mut pairs, qrl_pair);
+		}
+		if subscription.attr_name.is_some() {
+			// Attr styleScopedId slot — scoped styles unsupported, always null
+			push_pair(&mut pairs, (TYPE_CONSTANT, Payload::Num(CONST_NULL)));
 		}
 		Payload::Arr(pairs)
+	}
+
+	fn write_value_list(
+		&mut self,
+		values: &[Rc<SerdesValue>],
+		current_root: usize,
+		path: &mut Vec<usize>,
+	) -> (u8, Payload) {
+		let mut pairs = Vec::new();
+		for (position, item) in values.iter().enumerate() {
+			path.push(position);
+			let pair = self.write(item, current_root, path);
+			push_pair(&mut pairs, pair);
+			path.pop();
+		}
+		(TYPE_ARRAY, Payload::Arr(pairs))
 	}
 
 	fn write_array(

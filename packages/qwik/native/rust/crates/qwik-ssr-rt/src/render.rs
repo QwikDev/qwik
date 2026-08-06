@@ -49,6 +49,8 @@ pub struct SsrContext {
 	deferred: Vec<DeferredBoundary>,
 	/// Registered styles in first-use order (`useStyles$`), deduped by style id.
 	styles: Vec<(String, String)>,
+	/// Active context scopes, innermost last.
+	context_stack: Vec<Rc<SerdesValue>>,
 }
 
 /// A deferred suspense boundary awaiting its post-shell template packet.
@@ -75,7 +77,33 @@ impl SsrContext {
 			streaming: false,
 			deferred: Vec::new(),
 			styles: Vec::new(),
+			context_stack: Vec::new(),
 		}
+	}
+
+	pub fn push_context(&mut self, scope: Rc<SerdesValue>) {
+		self.context_stack.push(scope);
+	}
+
+	pub fn pop_context(&mut self) {
+		self.context_stack.pop();
+	}
+
+	pub fn current_context(&self) -> Option<Rc<SerdesValue>> {
+		self.context_stack.last().cloned()
+	}
+
+	/// `useContext` — innermost scope providing the name wins.
+	pub fn read_context(&self, name: &str) -> Rc<SerdesValue> {
+		for scope in self.context_stack.iter().rev() {
+			let SerdesValue::ContextScope(state) = &**scope else {
+				continue;
+			};
+			if let Some((_, value)) = state.borrow().entries.iter().find(|(key, _)| key == name) {
+				return Rc::clone(value);
+			}
+		}
+		panic!("context {name:?} not provided");
 	}
 
 	pub fn register_style(&mut self, style_id: &str, css: &str) {
@@ -632,6 +660,7 @@ pub fn member_read(
 	tracked: &mut Vec<Rc<SerdesValue>>,
 ) -> Rc<SerdesValue> {
 	match &**object {
+		SerdesValue::Signal(_) if name == "value" => tracked_signal_value(object, tracked),
 		SerdesValue::Store(state) => {
 			tracked.push(Rc::new(SerdesValue::StoreProp {
 				store: Rc::clone(object),

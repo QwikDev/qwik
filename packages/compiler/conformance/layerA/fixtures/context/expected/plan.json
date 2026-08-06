@@ -1,0 +1,232 @@
+{
+  "format": "qwik/ssr-plan",
+  "version": 0,
+  "entry": 1,
+  "components": [
+    {
+      "name": "Panel",
+      "module": 0,
+      "propsBindings": [],
+      "ssr": {
+        "setup": [
+          {
+            "op": "context-read",
+            "local": 7,
+            "context": 4
+          }
+        ],
+        "directSegmentIds": [],
+        "usedSegmentIds": [
+          "segment_0"
+        ],
+        "ops": [
+          {
+            "o": "el",
+            "tag": "p",
+            "id": 0,
+            "void": false,
+            "styleScopedId": null,
+            "targetUses": 0,
+            "props": [],
+            "propsEffect": null,
+            "children": [
+              {
+                "o": "dyn",
+                "output": "text",
+                "value": {
+                  "src": "theme.value",
+                  "ir": {
+                    "k": "member",
+                    "obj": {
+                      "k": "binding-read",
+                      "binding": 7
+                    },
+                    "name": "value"
+                  },
+                  "segment": "segment_0"
+                },
+                "synchronous": false,
+                "target": {
+                  "kind": "element",
+                  "id": 0
+                }
+              }
+            ]
+          }
+        ],
+        "synchronous": false,
+        "staticRoot": false,
+        "needsRootRange": false,
+        "needsId": false,
+        "idBase": "qPanel-",
+        "flushTasks": false
+      },
+      "setup": [
+        {
+          "op": "context-read",
+          "local": 7,
+          "context": 4
+        }
+      ],
+      "render": [
+        {
+          "n": "el",
+          "tag": "p",
+          "props": [],
+          "children": [
+            {
+              "n": "dyn",
+              "output": "text",
+              "value": {
+                "src": "theme.value",
+                "ir": {
+                  "k": "member",
+                  "obj": {
+                    "k": "binding-read",
+                    "binding": 7
+                  },
+                  "name": "value"
+                },
+                "segment": "segment_0"
+              }
+            }
+          ]
+        }
+      ],
+      "needsId": false,
+      "idBase": "qPanel-",
+      "styleScope": null,
+      "providesContext": false,
+      "hasCustomHook": false
+    },
+    {
+      "name": "App",
+      "module": 0,
+      "propsBindings": [],
+      "ssr": {
+        "setup": [
+          {
+            "op": "signal",
+            "local": 8,
+            "init": {
+              "k": "lit",
+              "v": "dark"
+            }
+          },
+          {
+            "op": "context-provider",
+            "context": 4,
+            "value": {
+              "k": "binding-read",
+              "binding": 8
+            }
+          }
+        ],
+        "directSegmentIds": [],
+        "usedSegmentIds": [],
+        "ops": [
+          {
+            "o": "el",
+            "tag": "section",
+            "id": null,
+            "void": false,
+            "styleScopedId": null,
+            "targetUses": 0,
+            "props": [],
+            "propsEffect": null,
+            "children": [
+              {
+                "o": "component",
+                "target": {
+                  "ref": 0
+                },
+                "returnMode": "maybe-promise",
+                "props": [],
+                "propsSource": null,
+                "idBase": null,
+                "blockingSuspense": false,
+                "slots": []
+              }
+            ]
+          }
+        ],
+        "synchronous": false,
+        "staticRoot": false,
+        "needsRootRange": false,
+        "needsId": false,
+        "idBase": "qApp-",
+        "flushTasks": false
+      },
+      "setup": [
+        {
+          "op": "signal",
+          "local": 8,
+          "init": {
+            "k": "lit",
+            "v": "dark"
+          }
+        },
+        {
+          "op": "context-provider",
+          "context": 4,
+          "value": {
+            "k": "binding-read",
+            "binding": 8
+          }
+        }
+      ],
+      "render": [
+        {
+          "n": "el",
+          "tag": "section",
+          "props": [],
+          "children": [
+            {
+              "n": "component",
+              "target": {
+                "ref": 0
+              },
+              "props": [],
+              "slots": []
+            }
+          ]
+        }
+      ],
+      "needsId": false,
+      "idBase": "qApp-",
+      "styleScope": null,
+      "providesContext": true,
+      "hasCustomHook": false
+    }
+  ],
+  "modules": [
+    {
+      "path": "src/input.tsx",
+      "segments": [
+        {
+          "id": "segment_0",
+          "symbolName": "input_text_segment_0_3k1cvwun49quc",
+          "chunk": "./input.tsx_input_text_segment_0_3k1cvwun49quc",
+          "kind": "expression",
+          "resolved": true,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 7,
+              "name": "theme",
+              "source": "local",
+              "access": "direct"
+            }
+          ]
+        }
+      ],
+      "contexts": [
+        {
+          "binding": 4,
+          "name": "theme"
+        }
+      ]
+    }
+  ],
+  "unresolved": []
+}

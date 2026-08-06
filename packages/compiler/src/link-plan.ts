@@ -29,6 +29,7 @@ export interface QwikSsrPlan {
 export interface LinkedModule {
   readonly path: string;
   readonly segments: readonly PlanSegmentMeta[];
+  readonly contexts: readonly { readonly binding: number; readonly name: string }[];
 }
 
 export interface LinkedComponent {
@@ -278,7 +279,11 @@ export function linkSsrPlan(
     version: 0,
     entry: componentOffsets[entryModule] + entryLocal,
     components,
-    modules: modulePlans.map((plan) => ({ path: plan.path, segments: plan.segments })),
+    modules: modulePlans.map((plan) => ({
+      path: plan.path,
+      segments: plan.segments,
+      contexts: plan.contexts,
+    })),
     unresolved,
   };
 }

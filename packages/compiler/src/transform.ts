@@ -1,6 +1,6 @@
 import type { Diagnostic, SegmentAnalysis, TransformModule } from '@qwik.dev/optimizer';
 import type { ImportDeclaration, Program } from 'oxc-parser';
-import { getIdentifierName, getRange } from './ast-utils';
+import { getIdentifierName, getRange, unwrapExpression, visit } from './ast-utils';
 import { createModule } from './module-utils';
 import { createOriginalRangeMapper } from './normalization';
 import type { CompilerContext, SourceRange } from './types';
@@ -578,7 +578,8 @@ export function transformModule(ctx: CompilerContext): TransformResult {
                 ctx.input.code,
                 ctx.input.path,
                 componentReturnMode,
-                collectPlanImports(analysis)
+                collectPlanImports(analysis),
+                collectPlanContexts(program, analysis)
               ),
               null,
               2
@@ -1883,6 +1884,54 @@ function createComponentAnalysis(
     loc: mapRange(component.functionRange ?? [0, 0]),
     paramNames: component.params.map((param) => param.name ?? '_'),
   };
+}
+
+/** Module-level `createContextId('name')` declarations — engines resolve context names here. */
+function collectPlanContexts(
+  program: Program,
+  analysis: ModuleAnalysis
+): { binding: BindingId; name: string }[] {
+  const contexts: { binding: BindingId; name: string }[] = [];
+  visit(program, (node) => {
+    if (node.type !== 'VariableDeclarator') {
+      return;
+    }
+    const declarator = node as { id: unknown; init: unknown };
+    const init = unwrapExpression(declarator.init);
+    if (init?.type !== 'CallExpression') {
+      return;
+    }
+    const call = init as { callee: unknown; arguments: unknown[] };
+    const calleeName = getIdentifierName(unwrapExpression(call.callee));
+    const isCreateContextId = analysis.bindings.some(
+      (binding) =>
+        binding.name === calleeName &&
+        binding.import?.importedName === 'createContextId' &&
+        binding.import.source.startsWith('@qwik.dev/')
+    );
+    if (!isCreateContextId) {
+      return;
+    }
+    const argument = unwrapExpression(call.arguments[0]) as
+      | { type: string; value?: unknown }
+      | null
+      | undefined;
+    if (argument?.type !== 'Literal' || typeof argument.value !== 'string') {
+      return;
+    }
+    const idRange = getRange(unwrapExpression(declarator.id));
+    const declared = analysis.bindings.find(
+      (binding) =>
+        binding.declarationRange !== null &&
+        idRange !== null &&
+        binding.declarationRange[0] === idRange[0] &&
+        binding.declarationRange[1] === idRange[1]
+    );
+    if (declared !== undefined) {
+      contexts.push({ binding: declared.id, name: argument.value });
+    }
+  });
+  return contexts;
 }
 
 function collectPlanImports(analysis: ModuleAnalysis): PlanImportMeta[] {

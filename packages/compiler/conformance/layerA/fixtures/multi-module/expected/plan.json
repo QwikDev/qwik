@@ -309,11 +309,13 @@
             }
           ]
         }
-      ]
+      ],
+      "contexts": []
     },
     {
       "path": "src/input.tsx",
-      "segments": []
+      "segments": [],
+      "contexts": []
     }
   ],
   "unresolved": []

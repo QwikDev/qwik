@@ -20,6 +20,7 @@ const READY_FIXTURES: &[&str] = &[
 	"inner-html",
 	"visible-task",
 	"use-styles",
+	"context",
 	"static-attrs",
 	"suspense-stream",
 ];

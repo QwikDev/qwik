@@ -39,6 +39,8 @@ pub enum SerdesValue {
 		prop: String,
 	},
 	SlotScope(RefCell<SlotScopeState>),
+	/// Context scope (TypeId 43): `[parent, key, value, …]` flat pairs.
+	ContextScope(RefCell<ContextScopeState>),
 	Projection(ProjectionValue),
 	/// The `EMPTY_ARRAY` flyweight — encodes as a Constant by identity (specs/04).
 	EmptyArray,
@@ -107,6 +109,12 @@ pub struct ContentEffect {
 	pub args: Vec<Rc<SerdesValue>>,
 	pub qrl: Rc<SerdesValue>,
 	pub context_arg: bool,
+}
+
+#[derive(Debug)]
+pub struct ContextScopeState {
+	pub parent: Option<Rc<SerdesValue>>,
+	pub entries: Vec<(String, Rc<SerdesValue>)>,
 }
 
 /// Slot scope: projection lists keyed by slot name (TypeId 44, flat pairs on the wire).
@@ -197,6 +205,7 @@ const TYPE_PROPS: u8 = 39;
 const TYPE_STORE: u8 = 35;
 const TYPE_STORE_PROP: u8 = 47;
 const TYPE_SLOT_SCOPE: u8 = 44;
+const TYPE_CONTEXT_SCOPE: u8 = 43;
 const TYPE_PROJECTION: u8 = 45;
 const TYPE_EFFECT_SUBSCRIPTION: u8 = 41;
 const TYPE_SET: u8 = 25;
@@ -584,6 +593,33 @@ impl Serializer {
 					),
 				);
 				(TYPE_STORE_PROP, Payload::Arr(pairs))
+			}
+			SerdesValue::ContextScope(state) => {
+				let state = state.borrow();
+				let mut pairs = Vec::new();
+				match &state.parent {
+					Some(parent) => {
+						path.push(0);
+						let parent_pair = self.write(parent, current_root, path);
+						path.pop();
+						push_pair(&mut pairs, parent_pair);
+					}
+					None => push_pair(&mut pairs, (TYPE_CONSTANT, Payload::Num(CONST_NULL))),
+				}
+				for (position, (key, value)) in state.entries.iter().enumerate() {
+					path.push(position * 2 + 1);
+					let key_pair = self.write(
+						&Rc::new(SerdesValue::String(key.clone())),
+						current_root,
+						path,
+					);
+					push_pair(&mut pairs, key_pair);
+					*path.last_mut().unwrap() = position * 2 + 2;
+					let value_pair = self.write(value, current_root, path);
+					push_pair(&mut pairs, value_pair);
+					path.pop();
+				}
+				(TYPE_CONTEXT_SCOPE, Payload::Arr(pairs))
 			}
 			SerdesValue::SlotScope(state) => {
 				let state = state.borrow();

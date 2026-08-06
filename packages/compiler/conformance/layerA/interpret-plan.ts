@@ -1,5 +1,9 @@
 import {
   createComponent,
+  createContextId,
+  useContext,
+  useContextProvider,
+  createSsrRootRef,
   createSlotScope,
   createSsrSuspense,
   createSsrElementRecord,
@@ -97,6 +101,14 @@ export async function buildInterpretedRoot(
     );
   }
 
+  // module-scoped context objects keyed by (module, binding)
+  const moduleContexts: Map<number, unknown>[] = plan.modules.map(
+    (linkedModule) =>
+      new Map(
+        linkedModule.contexts.map((entry) => [entry.binding, createContextId(entry.name)] as const)
+      )
+  );
+
   return function InterpretedApp(rootProps, ctx) {
     return interpretComponent(plan.entry, rootProps, ctx);
   };
@@ -183,6 +195,27 @@ export async function buildInterpretedRoot(
         case 'task': {
           const op = entry as Extract<SetupOp, { op: 'task' }>;
           useTaskQrl(qrlWithCaptures(op.segment) as never);
+          break;
+        }
+        case 'context-provider': {
+          const op = entry as Extract<SetupOp, { op: 'context-provider' }>;
+          const context = moduleContexts[interpreted.module].get(op.context);
+          if (context === undefined) {
+            throw new Error(`context binding ${op.context} missing from the module contexts`);
+          }
+          if (op.value.k !== 'binding-read') {
+            throw new Error('interpreter supports binding-read context values only');
+          }
+          useContextProvider(context as never, locals.get(op.value.binding) as never);
+          break;
+        }
+        case 'context-read': {
+          const op = entry as Extract<SetupOp, { op: 'context-read' }>;
+          const context = moduleContexts[interpreted.module].get(op.context);
+          if (context === undefined) {
+            throw new Error(`context binding ${op.context} missing from the module contexts`);
+          }
+          locals.set(op.local, useContext(context as never));
           break;
         }
         case 'style': {
@@ -585,7 +618,18 @@ export async function buildInterpretedRoot(
       }
     };
 
-    const run = () => interpretOps(ssr.ops);
+    const run = () => {
+      if (!interpreted.providesContext) {
+        return interpretOps(ssr.ops);
+      }
+      // provider components wrap their output in a context-scope range (root-ref id)
+      const scopeRef = ctx.contextScopeRef();
+      return maybeThen(interpretOps(ssr.ops), (parts) => [
+        createSsrRecord('<!c=', scopeRef, '>'),
+        parts,
+        '<!/c>',
+      ]);
+    };
     return ssr.flushTasks
       ? maybeThen(ctx.scheduler.flush(), () => invoke(invokeCtx, run))
       : invoke(invokeCtx, run);

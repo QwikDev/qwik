@@ -104,6 +104,8 @@ struct ComponentGenerator<'plan> {
 	pending_row_root: bool,
 	/// `useOn` attrs awaiting the component's first element (attr name, task variable).
 	pending_use_on: Vec<(String, String)>,
+	/// Context entries this component provides: (context name, value variable).
+	provided_contexts: Vec<(String, String)>,
 	/// Plan element id → generated runtime-id variable name.
 	element_ids: HashMap<u64, String>,
 	temp_counter: usize,
@@ -136,6 +138,7 @@ pub fn generate_component(plan: &Json, component_index: usize) -> Result<String,
 		computed_bodies: HashMap::new(),
 		pending_row_root: false,
 		pending_use_on: Vec::new(),
+		provided_contexts: Vec::new(),
 		element_ids: HashMap::new(),
 		temp_counter: 0,
 		uses_ctx: false,
@@ -153,8 +156,35 @@ pub fn generate_component(plan: &Json, component_index: usize) -> Result<String,
 	for entry in ssr["setup"].as_array().ok_or("ssr.setup missing")? {
 		generator.write_setup(entry)?;
 	}
+	let provided = std::mem::take(&mut generator.provided_contexts);
+	if !provided.is_empty() {
+		let mut entries = String::new();
+		for (name, value) in &provided {
+			write!(
+				entries,
+				"({name:?}.to_string(), std::rc::Rc::clone(&{value})), "
+			)
+			.unwrap();
+		}
+		generator.uses_ctx = true;
+		writeln!(
+			generator.body,
+			"    let context_scope = std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::ContextScope(\n        std::cell::RefCell::new(qwik_ssr_rt::serdes::ContextScopeState {{ parent: ctx.current_context(), entries: vec![{entries}] }}),\n    ));\n    \
+			 let context_scope_root = ctx.serializer.add_root(std::rc::Rc::clone(&context_scope));\n    \
+			 ctx.push_context(context_scope);\n    \
+			 out.push_str(&format!(\"<!c={{}}>\", context_scope_root));"
+		)
+		.unwrap();
+	}
 	generator.write_ops(ssr["ops"].as_array().ok_or("ssr.ops missing")?, "out")?;
 	generator.flush_statics("out");
+	if !provided.is_empty() {
+		writeln!(
+			generator.body,
+			"    out.push_str(\"<!/c>\");\n    ctx.pop_context();"
+		)
+		.unwrap();
+	}
 
 	let ctx_param = if generator.uses_ctx { "ctx" } else { "_ctx" };
 	let (props_param, props_rebind) = if props_bindings.is_empty() {
@@ -271,6 +301,39 @@ impl ComponentGenerator<'_> {
 					"    ctx.run_task(0, {qrl}, |tracked| {{\n{body}    }});"
 				)
 				.unwrap();
+				Ok(())
+			}
+			"context-provider" => {
+				let context = entry["context"]
+					.as_u64()
+					.ok_or("context-provider has no context binding")?;
+				let name = self.context_name(context)?;
+				let value_ir = &entry["value"];
+				if value_ir["k"].as_str() != Some("binding-read") {
+					return Err("context-provider values must be binding reads".to_string());
+				}
+				let value = self.local(
+					value_ir["binding"]
+						.as_u64()
+						.ok_or("context value has no binding")?,
+				)?;
+				self.provided_contexts.push((name, value));
+				Ok(())
+			}
+			"context-read" => {
+				let binding = entry["local"].as_u64().ok_or("context-read has no local")?;
+				let context = entry["context"]
+					.as_u64()
+					.ok_or("context-read has no context binding")?;
+				let name = self.context_name(context)?;
+				let variable = format!("local_{binding}");
+				self.uses_ctx = true;
+				writeln!(
+					self.body,
+					"    let {variable} = ctx.read_context({name:?});"
+				)
+				.unwrap();
+				self.locals.insert(binding, variable);
 				Ok(())
 			}
 			"style" => {
@@ -1302,6 +1365,19 @@ impl ComponentGenerator<'_> {
 			.into_iter()
 			.map(|binding| self.local(binding))
 			.collect()
+	}
+
+	fn context_name(&self, binding: u64) -> Result<String, String> {
+		self.plan["modules"][self.module_index]["contexts"]
+			.as_array()
+			.ok_or("module contexts missing")?
+			.iter()
+			.find(|entry| entry["binding"].as_u64() == Some(binding))
+			.and_then(|entry| entry["name"].as_str())
+			.map(|name| name.to_string())
+			.ok_or(format!(
+				"context binding {binding} missing from the module contexts"
+			))
 	}
 
 	fn segment(&self, segment_id: &str) -> Result<&'_ Json, String> {

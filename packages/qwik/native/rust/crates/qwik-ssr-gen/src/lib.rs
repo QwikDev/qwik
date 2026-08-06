@@ -80,6 +80,38 @@ fn component_has_props(plan: &Json, component_index: usize) -> bool {
 		.is_some_and(|bindings| !bindings.is_empty())
 }
 
+/// Chunk symbols may contain `$` — sanitize for the generated fn name (QRLs keep the original).
+fn rust_fn_name(symbol: &str) -> String {
+	let mut name: String = symbol
+		.chars()
+		.map(|character| {
+			if character.is_ascii_alphanumeric() || character == '_' {
+				character
+			} else {
+				'_'
+			}
+		})
+		.collect();
+	if name
+		.chars()
+		.next()
+		.is_some_and(|first| first.is_ascii_digit())
+	{
+		name.insert_str(0, "s_");
+	}
+	name
+}
+
+/// Per-kind signature head for generated segment fns (specs/07 invocation convention).
+enum SegmentFnKind {
+	LocalComponent(Json),
+	BranchArm,
+	CollectionRow {
+		param_bindings: Vec<u64>,
+		uses_index_signal: bool,
+	},
+}
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 enum LocalKind {
 	Signal,
@@ -99,7 +131,7 @@ struct ComponentGenerator<'plan> {
 	/// Setup binding id → reactive kind (drives read codegen).
 	local_kinds: HashMap<u64, LocalKind>,
 	/// Computed binding → body ValueIR (evaluated lazily at read sites).
-	computed_bodies: HashMap<u64, Json>,
+	computed_fns: HashMap<u64, String>,
 	/// Next element op opens a For row root (`q:row` attribute).
 	pending_row_root: bool,
 	/// `useOn` attrs awaiting the component's first element (attr name, task variable).
@@ -110,7 +142,7 @@ struct ComponentGenerator<'plan> {
 	local_components: HashMap<String, Json>,
 	/// Local components currently expanding inline (recursion guard).
 	/// Standalone fns for local components declared in this scope (QRL invocation convention).
-	pending_local_fns: Vec<String>,
+	pending_segment_fns: Vec<String>,
 	/// Plan element id → generated runtime-id variable name.
 	element_ids: HashMap<u64, String>,
 	temp_counter: usize,
@@ -133,12 +165,12 @@ pub fn generate_defs(plan: &Json, module_index: usize) -> Result<String, String>
 			statics: String::new(),
 			locals: HashMap::new(),
 			local_kinds: HashMap::new(),
-			computed_bodies: HashMap::new(),
+			computed_fns: HashMap::new(),
 			pending_row_root: false,
 			pending_use_on: Vec::new(),
 			provided_contexts: Vec::new(),
 			local_components: HashMap::new(),
-			pending_local_fns: Vec::new(),
+			pending_segment_fns: Vec::new(),
 			element_ids: HashMap::new(),
 			temp_counter: 0,
 			uses_ctx: false,
@@ -196,12 +228,12 @@ pub fn generate_component(plan: &Json, component_index: usize) -> Result<String,
 		statics: String::new(),
 		locals: HashMap::new(),
 		local_kinds: HashMap::new(),
-		computed_bodies: HashMap::new(),
+		computed_fns: HashMap::new(),
 		pending_row_root: false,
 		pending_use_on: Vec::new(),
 		provided_contexts: Vec::new(),
 		local_components: HashMap::new(),
-		pending_local_fns: Vec::new(),
+		pending_segment_fns: Vec::new(),
 		element_ids: HashMap::new(),
 		temp_counter: 0,
 		uses_ctx: false,
@@ -274,7 +306,7 @@ pub fn generate_component(plan: &Json, component_index: usize) -> Result<String,
 			.to_string()
 	};
 	let function_name = render_function_name(plan, component_index)?;
-	let local_fns = generator.pending_local_fns.join("");
+	let local_fns = generator.pending_segment_fns.join("");
 	Ok(format!(
 		"pub fn {function_name}({ctx_param}: &mut qwik_ssr_rt::render::SsrContext, out: &mut String{props_param}{slots_param}) {{\n{props_rebind}{}}}\n{local_fns}",
 		generator.body
@@ -347,7 +379,9 @@ impl ComponentGenerator<'_> {
 				.unwrap();
 				self.locals.insert(binding, variable);
 				self.local_kinds.insert(binding, LocalKind::Computed);
-				self.computed_bodies.insert(binding, entry["body"].clone());
+				let symbol =
+					self.generate_value_fn(&segment.to_string(), &entry["body"].clone())?;
+				self.computed_fns.insert(binding, symbol);
 				Ok(())
 			}
 			"task" => {
@@ -1048,15 +1082,32 @@ impl ComponentGenerator<'_> {
 			.as_str()
 			.ok_or("local component has no segment")?
 			.to_string();
-		let segment = self.segment(&segment_id)?.clone();
-		let symbol = segment["symbolName"]
-			.as_str()
-			.ok_or("segment has no symbol")?
-			.to_string();
 		let props_plan = &entry["props"];
 		if !props_plan.is_null() && props_plan["kind"].as_str() != Some("object") {
 			return Err("identifier props on local components not supported yet".to_string());
 		}
+		self.generate_segment_fn(
+			&segment_id,
+			&entry["render"].clone(),
+			SegmentFnKind::LocalComponent(props_plan.clone()),
+		)
+		.map(|_| ())
+	}
+
+	/// One fn per segment symbol (specs/07 QRL invocation convention): shared body machinery,
+	/// per-kind signature head, `captures` always the trailing parameter. Returns the symbol.
+	fn generate_segment_fn(
+		&mut self,
+		segment_id: &str,
+		render_fn: &Json,
+		kind: SegmentFnKind,
+	) -> Result<String, String> {
+		let segment = self.segment(segment_id)?.clone();
+		let symbol = segment["symbolName"]
+			.as_str()
+			.ok_or("segment has no symbol")?
+			.to_string();
+		let symbol = rust_fn_name(&symbol);
 		let mut child = ComponentGenerator {
 			plan: self.plan,
 			module_index: self.module_index,
@@ -1064,12 +1115,12 @@ impl ComponentGenerator<'_> {
 			statics: String::new(),
 			locals: HashMap::new(),
 			local_kinds: HashMap::new(),
-			computed_bodies: HashMap::new(),
+			computed_fns: self.computed_fns.clone(),
 			pending_row_root: false,
 			pending_use_on: Vec::new(),
 			provided_contexts: Vec::new(),
 			local_components: self.local_components.clone(),
-			pending_local_fns: Vec::new(),
+			pending_segment_fns: Vec::new(),
 			element_ids: HashMap::new(),
 			temp_counter: 0,
 			uses_ctx: false,
@@ -1097,49 +1148,162 @@ impl ComponentGenerator<'_> {
 				child.local_kinds.insert(binding, *kind);
 			}
 		}
-		if let Some(bindings) = props_plan["bindings"].as_array() {
-			for binding_entry in bindings {
-				let binding = binding_entry["b"]
-					.as_u64()
-					.ok_or("prop binding not a number")?;
-				let prop_name = binding_entry["name"]
-					.as_str()
-					.ok_or("prop binding has no name")?;
-				let variable = format!("prop_{binding}");
-				writeln!(
-					child.body,
-					"    let {variable} = qwik_ssr_rt::render::props_value(props, {prop_name:?});"
-				)
-				.unwrap();
-				child.locals.insert(binding, variable);
-				child.local_kinds.insert(binding, LocalKind::PlainValue);
+		if let SegmentFnKind::LocalComponent(props_plan) = &kind {
+			if let Some(bindings) = props_plan["bindings"].as_array() {
+				for binding_entry in bindings {
+					let binding = binding_entry["b"]
+						.as_u64()
+						.ok_or("prop binding not a number")?;
+					let prop_name = binding_entry["name"]
+						.as_str()
+						.ok_or("prop binding has no name")?;
+					let variable = format!("prop_{binding}");
+					writeln!(
+						child.body,
+						"    let {variable} = qwik_ssr_rt::render::props_value(props, {prop_name:?});"
+					)
+					.unwrap();
+					child.locals.insert(binding, variable);
+					child.local_kinds.insert(binding, LocalKind::PlainValue);
+				}
 			}
 		}
-		for setup_entry in entry["render"]["setup"]
+		if let SegmentFnKind::CollectionRow {
+			param_bindings,
+			uses_index_signal,
+		} = &kind
+		{
+			if let Some(item_binding) = param_bindings.first() {
+				writeln!(
+					child.body,
+					"    let row_item_local = std::rc::Rc::clone(row_item);"
+				)
+				.unwrap();
+				child
+					.locals
+					.insert(*item_binding, "row_item_local".to_string());
+				child
+					.local_kinds
+					.insert(*item_binding, LocalKind::PlainValue);
+			}
+			if *uses_index_signal {
+				if let Some(index_binding) = param_bindings.get(1) {
+					writeln!(
+						child.body,
+						"    let row_index_local = std::rc::Rc::clone(row_index);"
+					)
+					.unwrap();
+					child
+						.locals
+						.insert(*index_binding, "row_index_local".to_string());
+					child
+						.local_kinds
+						.insert(*index_binding, LocalKind::IndexSignal);
+				}
+			}
+			// the row's root element carries the q:row attribute
+			child.pending_row_root = true;
+		}
+		for setup_entry in render_fn["setup"]
 			.as_array()
 			.ok_or("render setup missing")?
 		{
 			child.write_setup(setup_entry)?;
 		}
 		child.write_ops(
-			entry["render"]["ops"]
-				.as_array()
-				.ok_or("render ops missing")?,
+			render_fn["ops"].as_array().ok_or("render ops missing")?,
 			"out",
 		)?;
 		child.flush_statics("out");
 		if !child.provided_contexts.is_empty() {
-			return Err("context providers in local components not supported yet".to_string());
+			return Err("context providers in segment fns not supported yet".to_string());
 		}
 		if !child.pending_use_on.is_empty() {
-			return Err("pending use-on in local components not supported yet".to_string());
+			return Err("pending use-on in segment fns not supported yet".to_string());
 		}
 		let body = child.body;
-		self.pending_local_fns.extend(child.pending_local_fns);
-		self.pending_local_fns.push(format!(
-			"fn {symbol}(ctx: &mut qwik_ssr_rt::render::SsrContext, out: &mut String, props: &std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>, captures: &[std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>]) {{\n{body}}}\n"
+		self.pending_segment_fns.extend(child.pending_segment_fns);
+		let head = match &kind {
+			SegmentFnKind::LocalComponent(_) => format!(
+				"fn {symbol}(ctx: &mut qwik_ssr_rt::render::SsrContext, out: &mut String, props: &std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>, captures: &[std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>])"
+			),
+			SegmentFnKind::BranchArm => format!(
+				"fn {symbol}(ctx: &mut qwik_ssr_rt::render::SsrContext, out: &mut String, captures: &[std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>])"
+			),
+			SegmentFnKind::CollectionRow {
+				uses_index_signal, ..
+			} => {
+				let index_param = if *uses_index_signal {
+					", row_index: &std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>"
+				} else {
+					""
+				};
+				format!(
+					"fn {symbol}(ctx: &mut qwik_ssr_rt::render::SsrContext, out: &mut String, row_item: &std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>{index_param}, captures: &[std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>])"
+				)
+			}
+		};
+		self.pending_segment_fns
+			.push(format!("{head} {{\n{body}}}\n"));
+		Ok(symbol)
+	}
+
+	/// Value-segment fn (computed bodies, branch conditions, derived sources):
+	/// `(tracked, captures) -> value`, mirroring the JS chunk's `() => value` with `_captures`.
+	fn generate_value_fn(&mut self, segment_id: &str, ir: &Json) -> Result<String, String> {
+		let segment = self.segment(segment_id)?.clone();
+		let symbol = segment["symbolName"]
+			.as_str()
+			.ok_or("segment has no symbol")?
+			.to_string();
+		let symbol = rust_fn_name(&symbol);
+		let mut child = ComponentGenerator {
+			plan: self.plan,
+			module_index: self.module_index,
+			body: String::new(),
+			statics: String::new(),
+			locals: HashMap::new(),
+			local_kinds: HashMap::new(),
+			computed_fns: self.computed_fns.clone(),
+			pending_row_root: false,
+			pending_use_on: Vec::new(),
+			provided_contexts: Vec::new(),
+			local_components: self.local_components.clone(),
+			pending_segment_fns: Vec::new(),
+			element_ids: HashMap::new(),
+			temp_counter: 0,
+			uses_ctx: false,
+			uses_props: false,
+			uses_slots: false,
+		};
+		for (position, capture) in segment["captures"]
+			.as_array()
+			.ok_or("segment captures missing")?
+			.iter()
+			.enumerate()
+		{
+			let binding = capture["binding"]
+				.as_u64()
+				.ok_or("capture has no binding")?;
+			let name = capture["name"].as_str().ok_or("capture has no name")?;
+			let variable = format!("capture_{name}");
+			writeln!(
+				child.body,
+				"    let {variable} = std::rc::Rc::clone(&captures[{position}]);"
+			)
+			.unwrap();
+			child.locals.insert(binding, variable);
+			if let Some(kind) = self.local_kinds.get(&binding) {
+				child.local_kinds.insert(binding, *kind);
+			}
+		}
+		let expression = child.ir_expression(ir, "tracked")?;
+		let body = child.body;
+		self.pending_segment_fns.extend(child.pending_segment_fns);
+		self.pending_segment_fns.push(format!(
+			"fn {symbol}(tracked: &mut Vec<std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>>, captures: &[std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>]) -> std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue> {{\n{body}    {expression}\n}}\n"
 		));
-		Ok(())
+		Ok(symbol)
 	}
 
 	fn write_slot(&mut self, op: &Json, target: &str) -> Result<(), String> {
@@ -1236,28 +1400,58 @@ impl ComponentGenerator<'_> {
 				.unwrap();
 			}
 		}
-		let condition_expression = self.ir_expression(condition_ir, &format!("&mut {tracked}"))?;
+		let condition_symbol =
+			self.generate_value_fn(&condition_segment.to_string(), &condition_ir.clone())?;
 		let condition_qrl = self.qrl_expression(condition_segment, true)?;
 		let then_qrl = self.qrl_expression(&then_segment, true)?;
-		let else_qrl = match else_fn["segment"].as_str() {
-			Some(else_segment) => format!("Some({})", self.qrl_expression(else_segment, true)?),
+		let then_symbol =
+			self.generate_segment_fn(&then_segment, &op["then"], SegmentFnKind::BranchArm)?;
+		let else_arm = match else_fn["segment"].as_str() {
+			Some(else_segment) => {
+				let else_segment = else_segment.to_string();
+				let qrl = self.qrl_expression(&else_segment, true)?;
+				let symbol =
+					self.generate_segment_fn(&else_segment, else_fn, SegmentFnKind::BranchArm)?;
+				Some((qrl, symbol))
+			}
+			None => None,
+		};
+		let target_argument = if target == "out" {
+			"out".to_string()
+		} else {
+			format!("&mut {target}")
+		};
+		let else_qrl_argument = match &else_arm {
+			Some(_) => format!("Some(std::rc::Rc::clone(&else_qrl_{temp}))"),
 			None => "None".to_string(),
 		};
+		if let Some((else_qrl, _)) = &else_arm {
+			writeln!(self.body, "    let else_qrl_{temp} = {else_qrl};").unwrap();
+		}
 		writeln!(
 			self.body,
-			"    let mut {tracked}: Vec<std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>> = Vec::new();\n    \
-			 let branch_taken_{temp} = qwik_ssr_rt::render::truthy(&{condition_expression});\n    \
-			 let {effect} = ctx.create_branch_effect({range}, if branch_taken_{temp} {{ 0 }} else {{ 1 }}, {tracked}.clone(), {condition_qrl}, {then_qrl}, {else_qrl});\n    \
+			"    let then_qrl_{temp} = {then_qrl};\n    \
+			 let condition_qrl_{temp} = {condition_qrl};\n    \
+			 let mut {tracked}: Vec<std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>> = Vec::new();\n    \
+			 let branch_taken_{temp} = qwik_ssr_rt::render::truthy(&{condition_symbol}(&mut {tracked}, qwik_ssr_rt::render::qrl_captures(&condition_qrl_{temp})));\n    \
+			 let {effect} = ctx.create_branch_effect({range}, if branch_taken_{temp} {{ 0 }} else {{ 1 }}, {tracked}.clone(), std::rc::Rc::clone(&condition_qrl_{temp}), std::rc::Rc::clone(&then_qrl_{temp}), {else_qrl_argument});\n    \
 			 ctx.push_owner();"
 		)
 		.unwrap();
-		writeln!(self.body, "    if branch_taken_{temp} {{").unwrap();
-		self.write_render_fn_ops(&op["then"], target)?;
-		self.flush_statics(target);
-		writeln!(self.body, "    }} else {{").unwrap();
-		if !else_fn.is_null() {
-			self.write_render_fn_ops(else_fn, target)?;
-			self.flush_statics(target);
+		// arms invoke through their QRL values (specs/07 invocation convention)
+		writeln!(
+			self.body,
+			"    if branch_taken_{temp} {{\n        \
+			 {then_symbol}(ctx, {target_argument}, qwik_ssr_rt::render::qrl_captures(&then_qrl_{temp}));\n    \
+			 }} else {{"
+		)
+		.unwrap();
+		if let Some((_, else_symbol)) = &else_arm {
+			writeln!(
+				self.body,
+				"        {else_symbol}(ctx, {target_argument}, qwik_ssr_rt::render::qrl_captures(&else_qrl_{temp}));"
+			)
+			.unwrap();
 		}
 		writeln!(self.body, "    }}").unwrap();
 		writeln!(
@@ -1270,18 +1464,6 @@ impl ComponentGenerator<'_> {
 	}
 
 	/// Generate a nested render fn's ops inline (fresh element-id scope, same output target).
-	fn write_render_fn_ops(&mut self, render_fn: &Json, target: &str) -> Result<(), String> {
-		let ops = render_fn["ops"]
-			.as_array()
-			.ok_or("render fn ops missing")?
-			.clone();
-		let saved_elements = std::mem::take(&mut self.element_ids);
-		let result = self.write_ops(&ops, target);
-		self.flush_statics(target);
-		self.element_ids = saved_elements;
-		result
-	}
-
 	/// Static collections (literal arrays) render rows in a plain loop: no id, no range
 	/// markers, no For effect and no owner arrays — nothing about them reaches the state.
 	fn write_static_collection(&mut self, op: &Json, target: &str) -> Result<(), String> {
@@ -1399,10 +1581,21 @@ impl ComponentGenerator<'_> {
 		let tracked = format!("tracked_{temp}");
 		let effect = format!("for_effect_{temp}");
 		let key_qrl = self.qrl_expression(key_segment, true)?;
-		let render_qrl = self.qrl_expression(
-			row["segment"].as_str().ok_or("row segment id missing")?,
-			true,
+		let row_segment = row["segment"]
+			.as_str()
+			.ok_or("row segment id missing")?
+			.to_string();
+		let render_qrl = self.qrl_expression(&row_segment, true)?;
+		let row_symbol = self.generate_segment_fn(
+			&row_segment,
+			&row.clone(),
+			SegmentFnKind::CollectionRow {
+				param_bindings: param_bindings.clone(),
+				uses_index_signal,
+			},
 		)?;
+		writeln!(self.body, "    let row_qrl_{temp} = {render_qrl};").unwrap();
+		let render_qrl = format!("std::rc::Rc::clone(&row_qrl_{temp})");
 		if source_kind == "direct-reactive" {
 			let source_ir = &source["ir"];
 			if source_ir["k"].as_str() != Some("binding-read") {
@@ -1436,8 +1629,7 @@ impl ComponentGenerator<'_> {
 				.unwrap();
 			}
 			let source_qrl = self.qrl_expression(&source_segment, true)?;
-			let inner_tracked = format!("derived_tracked_{temp}");
-			let source_expression = self.ir_expression(source_ir, &inner_tracked)?;
+			let source_symbol = self.generate_value_fn(&source_segment, &source_ir.clone())?;
 			let derived = format!("derived_{temp}");
 			writeln!(
 				self.body,
@@ -1445,7 +1637,7 @@ impl ComponentGenerator<'_> {
 				 let {derived} = qwik_ssr_rt::render::new_computed({source_qrl});\n    \
 				 ctx.serializer.add_root(std::rc::Rc::clone(&{derived}));\n    \
 				 {target}.push_str(&format!(\"<!f={{}}>\", {range}));\n    \
-				 let items_{temp} = qwik_ssr_rt::render::array_items(&qwik_ssr_rt::render::computed_read(&{derived}, |{inner_tracked}| {{\n        {source_expression}\n    }}));\n    \
+				 let items_{temp} = qwik_ssr_rt::render::array_items(&qwik_ssr_rt::render::computed_read_with(&{derived}, {source_symbol}));\n    \
 				 let {effect} = ctx.create_for_effect({range}, vec![std::rc::Rc::clone(&{derived})], {key_qrl}, {render_qrl}, {uses_index_signal}, {row_shape});"
 			)
 			.unwrap();
@@ -1457,17 +1649,7 @@ impl ComponentGenerator<'_> {
 		)
 		.unwrap();
 		// row params: item value, then the per-row index signal
-		let item_variable = format!("row_item_value_{temp}");
-		writeln!(
-			self.body,
-			"    let {item_variable} = std::rc::Rc::clone(row_item_{temp});"
-		)
-		.unwrap();
-		if let Some(item_binding) = param_bindings.first() {
-			self.locals.insert(*item_binding, item_variable.clone());
-			self.local_kinds
-				.insert(*item_binding, LocalKind::PlainValue);
-		}
+		let mut index_argument = String::new();
 		if uses_index_signal {
 			let index_variable = format!("row_index_signal_{temp}");
 			writeln!(
@@ -1477,14 +1659,17 @@ impl ComponentGenerator<'_> {
 				 qwik_ssr_rt::render::SsrContext::add_index_signal(&{effect}, std::rc::Rc::clone(&{index_variable}));"
 			)
 			.unwrap();
-			if let Some(index_binding) = param_bindings.get(1) {
-				self.locals.insert(*index_binding, index_variable.clone());
-				self.local_kinds
-					.insert(*index_binding, LocalKind::IndexSignal);
-			}
+			index_argument = format!(", &{index_variable}");
 		}
-		// row keys become state roots (reconciliation identity) before the row renders
+		// row keys become state roots (reconciliation identity) before the row renders; the
+		// key ir reads row-scope bindings, so bind them for the key expression only
 		if !op["keyIr"].is_null() {
+			if let Some(item_binding) = param_bindings.first() {
+				self.locals
+					.insert(*item_binding, format!("(*row_item_{temp})"));
+				self.local_kinds
+					.insert(*item_binding, LocalKind::PlainValue);
+			}
 			let key_tracked = format!("key_tracked_{temp}");
 			let key_expression =
 				self.ir_expression(&op["keyIr"], &format!("(&mut {key_tracked})"))?;
@@ -1496,13 +1681,17 @@ impl ComponentGenerator<'_> {
 			)
 			.unwrap();
 		}
-		writeln!(self.body, "    ctx.push_owner();").unwrap();
-		self.pending_row_root = true;
-		self.write_render_fn_ops(row, target)?;
-		self.pending_row_root = false;
+		let target_argument = if target == "out" {
+			"out".to_string()
+		} else {
+			format!("&mut {target}")
+		};
+		// rows invoke through the row QRL value (specs/07 invocation convention)
 		writeln!(
 			self.body,
-			"    rows_{temp}.push(std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Array(ctx.pop_owner())));\n    \
+			"    ctx.push_owner();\n    \
+			 {row_symbol}(ctx, {target_argument}, row_item_{temp}{index_argument}, qwik_ssr_rt::render::qrl_captures(&row_qrl_{temp}));\n    \
+			 rows_{temp}.push(std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Array(ctx.pop_owner())));\n    \
 			 }}\n    \
 			 ctx.push_owner_item(std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Array(rows_{temp})));"
 		)
@@ -1531,10 +1720,18 @@ impl ComponentGenerator<'_> {
 		let temp = self.next_temp();
 		let range = format!("suspense_range_{temp}");
 		let buffer = format!("suspense_content_{temp}");
-		writeln!(self.body, "    let {range} = ctx.next_id();").unwrap();
-		writeln!(self.body, "    let mut {buffer} = String::new();").unwrap();
-		self.write_render_fn_ops(&op["content"], &buffer)?;
 		let content_qrl = self.qrl_expression(&content_segment, true)?;
+		let content_symbol =
+			self.generate_segment_fn(&content_segment, &op["content"], SegmentFnKind::BranchArm)?;
+		writeln!(self.body, "    let {range} = ctx.next_id();").unwrap();
+		writeln!(
+			self.body,
+			"    let content_qrl_{temp} = {content_qrl};\n    \
+			 let mut {buffer} = String::new();\n    \
+			 {content_symbol}(ctx, &mut {buffer}, qwik_ssr_rt::render::qrl_captures(&content_qrl_{temp}));"
+		)
+		.unwrap();
+		let content_qrl = format!("std::rc::Rc::clone(&content_qrl_{temp})");
 		let (fallback_qrl, fallback_closure) = if fallback_render.is_null() {
 			("None".to_string(), "|_ctx, _out| {}".to_string())
 		} else {
@@ -1543,25 +1740,15 @@ impl ComponentGenerator<'_> {
 				.ok_or("fallback render has no segment")?
 				.to_string();
 			let qrl = self.qrl_expression(&fallback_segment, true)?;
-			let saved_body = std::mem::take(&mut self.body);
-			let saved_statics = std::mem::take(&mut self.statics);
-			let saved_elements = std::mem::take(&mut self.element_ids);
-			let result = self.write_ops(
-				&fallback_render["ops"]
-					.as_array()
-					.ok_or("fallback render ops missing")?
-					.clone(),
-				"out",
-			);
-			self.flush_statics("out");
-			let closure_body = self.body.clone();
-			self.body = saved_body;
-			self.statics = saved_statics;
-			self.element_ids = saved_elements;
-			result?;
+			let fallback_symbol = self.generate_segment_fn(
+				&fallback_segment,
+				fallback_render,
+				SegmentFnKind::BranchArm,
+			)?;
+			writeln!(self.body, "    let fallback_qrl_{temp} = {qrl};").unwrap();
 			(
-				format!("Some({qrl})"),
-				format!("|#[allow(unused_variables)] ctx: &mut qwik_ssr_rt::render::SsrContext, out: &mut String| {{\n{closure_body}    }}"),
+				format!("Some(std::rc::Rc::clone(&fallback_qrl_{temp}))"),
+				format!("|ctx: &mut qwik_ssr_rt::render::SsrContext, out: &mut String| {{ {fallback_symbol}(ctx, out, qwik_ssr_rt::render::qrl_captures(&fallback_qrl_{temp})); }}"),
 			)
 		};
 		let out_argument = if target == "out" {
@@ -1705,14 +1892,12 @@ impl ComponentGenerator<'_> {
 			// computed fast path: evaluate lazily, subscribe the effect on the computed itself
 			let binding = ir["binding"].as_u64().ok_or("signal-read has no binding")?;
 			let computed = self.local(binding)?;
-			let body_ir = self
-				.computed_bodies
+			let computed_fn = self
+				.computed_fns
 				.get(&binding)
-				.ok_or("computed body missing")?
+				.ok_or("computed fn missing")?
 				.clone();
 			let temp = self.next_temp();
-			let inner_tracked = format!("computed_tracked_{temp}");
-			let body_expression = self.ir_expression(&body_ir, &inner_tracked)?;
 			let subscribe = if is_range {
 				let marker = plan_target["marker"]
 					.as_u64()
@@ -1724,9 +1909,7 @@ impl ComponentGenerator<'_> {
 			writeln!(
 				self.body,
 				"    ctx.serializer.add_root(std::rc::Rc::clone(&{computed}));\n    \
-				 let computed_value_{temp} = qwik_ssr_rt::render::computed_read(&{computed}, |{inner_tracked}| {{\n        \
-				 {body_expression}\n    \
-				 }});\n    {subscribe}\n    \
+				 let computed_value_{temp} = qwik_ssr_rt::render::computed_read_with(&{computed}, {computed_fn});\n    {subscribe}\n    \
 				 {target}.push_str(&qwik_ssr_rt::escape::escape_html(&qwik_ssr_rt::render::value_text(&computed_value_{temp})));"
 			)
 			.unwrap();

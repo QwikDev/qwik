@@ -525,6 +525,21 @@ pub fn computed_read(
 	value
 }
 
+/// One-shot computed read through its value-segment fn (specs/07 invocation convention):
+/// the computed's own QRL supplies the captures the body evaluates with.
+pub fn computed_read_with(
+	computed: &Rc<SerdesValue>,
+	body: fn(&mut Vec<Rc<SerdesValue>>, &[Rc<SerdesValue>]) -> Rc<SerdesValue>,
+) -> Rc<SerdesValue> {
+	let captures = {
+		let SerdesValue::Computed(state) = &**computed else {
+			panic!("computed_read_with expects a Computed value");
+		};
+		qrl_captures(&state.borrow().qrl).to_vec()
+	};
+	computed_read(computed, |tracked| body(tracked, &captures))
+}
+
 /// Signal write (`signal.value = x`) — task bodies mutate during SSR.
 pub fn set_signal_value(signal: &Rc<SerdesValue>, value: Rc<SerdesValue>) {
 	let SerdesValue::Signal(state) = &**signal else {

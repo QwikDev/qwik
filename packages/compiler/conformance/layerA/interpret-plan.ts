@@ -36,6 +36,7 @@ import {
   createVisibleTaskHandlerQrl,
   inlinedQrl,
   _markComponent,
+  mergeProps,
   _chk,
   _props,
   _wrapArray,
@@ -603,18 +604,33 @@ export async function buildInterpretedRoot(
           }
           const literal: Record<string, unknown> = {};
           const sources: Record<string, unknown> = {};
-          // a sole spread passes the object through, like the emitted `createComponent(shared, …)`
+          // spreads merge in source order via the runtime helper: a sole spread passes the
+          // object through; mixed lists group literal runs between spreads (later wins)
           let spreadProps: unknown;
           const propList = op.props as readonly PlanSsrProp[];
           if (propList.some((prop) => prop.p === 'spread')) {
-            if (propList.length !== 1) {
-              throw new Error('interpreter cannot merge spread props with other props yet');
+            const segments: Record<string, unknown>[] = [];
+            let literalRun: Record<string, unknown> | null = null;
+            for (const prop of propList) {
+              if (prop.p === 'spread') {
+                const spread = prop as { value: { ir?: ValueIR } };
+                if (spread.value.ir?.k !== 'binding-read' || !locals.has(spread.value.ir.binding)) {
+                  throw new Error('spread props need a local binding read');
+                }
+                literalRun = null;
+                segments.push(locals.get(spread.value.ir.binding) as Record<string, unknown>);
+              } else if (prop.p === 'static') {
+                const staticProp = prop as { name: string; value: unknown };
+                if (literalRun === null) {
+                  literalRun = {};
+                  segments.push(literalRun);
+                }
+                literalRun[staticProp.name] = staticProp.value;
+              } else {
+                throw new Error(`interpreter cannot merge prop kind "${prop.p}" with spreads yet`);
+              }
             }
-            const spread = propList[0] as { value: { ir?: ValueIR } };
-            if (spread.value.ir?.k !== 'binding-read' || !locals.has(spread.value.ir.binding)) {
-              throw new Error('spread props need a local binding read');
-            }
-            spreadProps = locals.get(spread.value.ir.binding);
+            spreadProps = segments.length === 1 ? segments[0] : mergeProps(...segments);
           }
           for (const prop of spreadProps === undefined ? propList : []) {
             if (prop.p === 'static') {

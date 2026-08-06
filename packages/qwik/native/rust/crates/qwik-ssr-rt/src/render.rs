@@ -800,6 +800,23 @@ pub fn qrl_captures(qrl: &Rc<SerdesValue>) -> &[Rc<SerdesValue>] {
 	}
 }
 
+/// `mergeProps` — ordered object merge: later values win, first insertion keeps its position.
+pub fn merge_props(sources: &[Rc<SerdesValue>]) -> Rc<SerdesValue> {
+	let mut entries: Vec<(String, Rc<SerdesValue>)> = Vec::new();
+	for source in sources {
+		let SerdesValue::Object(source_entries) = &**source else {
+			panic!("merge_props expects plain objects, got {source:?}");
+		};
+		for (key, value) in source_entries {
+			match entries.iter_mut().find(|(existing, _)| existing == key) {
+				Some((_, slot)) => *slot = Rc::clone(value),
+				None => entries.push((key.clone(), Rc::clone(value))),
+			}
+		}
+	}
+	Rc::new(SerdesValue::Object(entries))
+}
+
 /// Untracked prop read for component-parameter destructuring (`const { name } = props`).
 pub fn props_value(props: &Rc<SerdesValue>, name: &str) -> Rc<SerdesValue> {
 	match &**props {

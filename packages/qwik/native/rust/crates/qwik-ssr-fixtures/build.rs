@@ -33,6 +33,7 @@ const READY_FIXTURES: &[&str] = &[
 	"slot-fallback",
 	"component-spread-props",
 	"local-component-context",
+	"component-spread-mixed",
 ];
 
 fn main() {

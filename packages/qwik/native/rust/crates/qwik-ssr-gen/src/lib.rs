@@ -899,23 +899,11 @@ impl ComponentGenerator<'_> {
 		self.flush_statics(target);
 		self.uses_ctx = true;
 
-		// a sole spread passes the object through, like the emitted `createComponent(shared, …)`
-		let call_props = op["props"].as_array().ok_or("component props missing")?;
-		let spread_local = if call_props
-			.iter()
-			.any(|prop| prop["p"].as_str() == Some("spread"))
-		{
-			if call_props.len() != 1 {
-				return Err("spread props mixed with other props not supported yet".to_string());
-			}
-			let ir = &call_props[0]["value"]["ir"];
-			if ir["k"].as_str() != Some("binding-read") {
-				return Err(format!("spread props ir {ir} not supported yet"));
-			}
-			Some(self.local(ir["binding"].as_u64().ok_or("no binding")?)?)
-		} else {
-			None
-		};
+		let call_props = op["props"]
+			.as_array()
+			.ok_or("component props missing")?
+			.clone();
+		let spread_local = self.spread_props_expression(&call_props)?;
 		let mut statics_entries = String::new();
 		let mut sources_entries = String::new();
 		let mut source_locals = Vec::new();
@@ -923,7 +911,7 @@ impl ComponentGenerator<'_> {
 		for prop in if spread_local.is_some() {
 			&no_props
 		} else {
-			call_props
+			&call_props
 		} {
 			match prop["p"].as_str().ok_or("prop has no kind")? {
 				"static" => {
@@ -1044,11 +1032,7 @@ impl ComponentGenerator<'_> {
 		}
 		let props_variable = format!("props_{}", self.next_temp());
 		if let Some(spread) = &spread_local {
-			writeln!(
-				self.body,
-				"    let {props_variable} = std::rc::Rc::clone(&{spread});"
-			)
-			.unwrap();
+			writeln!(self.body, "    let {props_variable} = {spread};").unwrap();
 		} else if source_locals.is_empty() {
 			// static-only props pass as a bare object literal (no Props record)
 			writeln!(
@@ -1076,6 +1060,62 @@ impl ComponentGenerator<'_> {
 	/// Inline a local component at its call site: bind destructured props, then expand the
 	/// block in a child scope. Runtime semantics are identical to the emitted call because all
 	/// byte-observable work goes through explicit ctx calls.
+	/// Spread-mode props: segments group literal runs between spreads and merge in order
+	/// (`mergeProps`); a sole segment passes through. `None` when the list has no spread.
+	fn spread_props_expression(&mut self, call_props: &[Json]) -> Result<Option<String>, String> {
+		if !call_props
+			.iter()
+			.any(|prop| prop["p"].as_str() == Some("spread"))
+		{
+			return Ok(None);
+		}
+		let mut segments: Vec<String> = Vec::new();
+		let mut literal_run: Option<String> = None;
+		for prop in call_props {
+			match prop["p"].as_str().ok_or("prop has no kind")? {
+				"spread" => {
+					let ir = &prop["value"]["ir"];
+					if ir["k"].as_str() != Some("binding-read") {
+						return Err(format!("spread props ir {ir} not supported yet"));
+					}
+					let source = self.local(ir["binding"].as_u64().ok_or("no binding")?)?;
+					if let Some(entries) = literal_run.take() {
+						segments.push(format!(
+							"std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Object(vec![{entries}]))"
+						));
+					}
+					segments.push(format!("std::rc::Rc::clone(&{source})"));
+				}
+				"static" => {
+					let name = prop["name"].as_str().ok_or("static prop has no name")?;
+					let value = json_literal_expression(&prop["value"])?;
+					let entries = literal_run.get_or_insert_with(String::new);
+					write!(
+						entries,
+						"({name:?}.to_string(), std::rc::Rc::new({value})), "
+					)
+					.unwrap();
+				}
+				kind => {
+					return Err(format!(
+						"prop kind {kind:?} mixed with spreads not supported yet"
+					))
+				}
+			}
+		}
+		if let Some(entries) = literal_run.take() {
+			segments.push(format!(
+				"std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Object(vec![{entries}]))"
+			));
+		}
+		Ok(Some(if segments.len() == 1 {
+			segments.remove(0)
+		} else {
+			let list = segments.join(", ");
+			format!("qwik_ssr_rt::render::merge_props(&[{list}])")
+		}))
+	}
+
 	fn write_local_component_call(&mut self, op: &Json, target: &str) -> Result<(), String> {
 		let name = op["target"]
 			.as_str()
@@ -1169,22 +1209,11 @@ impl ComponentGenerator<'_> {
 		}
 		// props mirror the emitted literal: plain values inline; signal reads become sources
 		// (`_props(literal, sources)`), rooted like any component call's reactive props
-		let call_props = op["props"].as_array().ok_or("component props missing")?;
-		let spread_local = if call_props
-			.iter()
-			.any(|prop| prop["p"].as_str() == Some("spread"))
-		{
-			if call_props.len() != 1 {
-				return Err("spread props mixed with other props not supported yet".to_string());
-			}
-			let ir = &call_props[0]["value"]["ir"];
-			if ir["k"].as_str() != Some("binding-read") {
-				return Err(format!("spread props ir {ir} not supported yet"));
-			}
-			Some(self.local(ir["binding"].as_u64().ok_or("no binding")?)?)
-		} else {
-			None
-		};
+		let call_props = op["props"]
+			.as_array()
+			.ok_or("component props missing")?
+			.clone();
+		let spread_local = self.spread_props_expression(&call_props)?;
 		let mut entries = String::new();
 		let mut sources_entries = String::new();
 		let mut source_locals = Vec::new();
@@ -1192,7 +1221,7 @@ impl ComponentGenerator<'_> {
 		for prop in if spread_local.is_some() {
 			&no_props
 		} else {
-			call_props
+			&call_props
 		} {
 			let prop_name = prop["name"].as_str().ok_or("prop has no name")?;
 			match prop["p"].as_str().ok_or("prop has no kind")? {
@@ -1246,7 +1275,7 @@ impl ComponentGenerator<'_> {
 		};
 		// static-only props pass as a bare object literal; sources promote to a Props record
 		let props_value = if let Some(spread) = &spread_local {
-			format!("std::rc::Rc::clone(&{spread})")
+			spread.clone()
 		} else if source_locals.is_empty() {
 			format!("std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Object(vec![{entries}]))")
 		} else {

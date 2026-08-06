@@ -109,8 +109,10 @@ module component calls; the destructure reads the source's current value untrack
 Slot fallbacks render through their segment fn when no projection is registered (captures root
 unconditionally like the emitted prep; nothing about the fallback serializes). A sole spread
 (`<Badge {...shared} />`) passes the object through as the props value, mirroring
-`createComponent(shared, …)`; mixing a spread with other props stays a loud gate in every
-engine until a fixture defines the merge contract. Context providers work inside local
+`createComponent(shared, …)`; mixed spreads merge through
+`mergeProps` semantics — segments in source order (literal runs grouped between spreads),
+later values win, first insertion keeps its key position. Signal sources mixed with spreads
+stay a loud gate until a fixture defines their merge bytes. Context providers work inside local
 component bodies: provision belongs to the declaring local component (never the owner — a
 provider inside a nested function must not mark the outer component), whose output wraps in
 the `<!c=…>` context-scope range; provider values may be any lowerable expression, evaluated

@@ -1099,26 +1099,54 @@ impl ComponentGenerator<'_> {
 			}
 			slots_argument = format!(", &mut [{table}]");
 		}
-		// the props object mirrors the emitted literal: values evaluate here, reads stay plain
+		// props mirror the emitted literal: plain values inline; signal reads become sources
+		// (`_props(literal, sources)`), rooted like any component call's reactive props
 		let mut entries = String::new();
+		let mut sources_entries = String::new();
+		let mut source_locals = Vec::new();
 		for prop in op["props"].as_array().ok_or("component props missing")? {
 			let prop_name = prop["name"].as_str().ok_or("prop has no name")?;
-			let value = match prop["p"].as_str().ok_or("prop has no kind")? {
-				"static" => format!(
-					"std::rc::Rc::new({})",
-					json_literal_expression(&prop["value"])?
-				),
+			match prop["p"].as_str().ok_or("prop has no kind")? {
+				"static" => {
+					let value = json_literal_expression(&prop["value"])?;
+					write!(
+						entries,
+						"({prop_name:?}.to_string(), std::rc::Rc::new({value})), "
+					)
+					.unwrap();
+				}
 				"dynamic" => {
 					let ir = &prop["value"]["ir"];
-					if ir["k"].as_str() != Some("binding-read") {
-						return Err(format!("local component prop ir {ir} not supported yet"));
+					match ir["k"].as_str() {
+						Some("binding-read") => {
+							let source = self.local(ir["binding"].as_u64().ok_or("no binding")?)?;
+							write!(
+								entries,
+								"({prop_name:?}.to_string(), std::rc::Rc::clone(&{source})), "
+							)
+							.unwrap();
+						}
+						Some("signal-read") => {
+							let source = self.signal_local(ir)?;
+							write!(
+								sources_entries,
+								"({prop_name:?}.to_string(), std::rc::Rc::clone(&{source})), "
+							)
+							.unwrap();
+							source_locals.push(source);
+						}
+						_ => return Err(format!("local component prop ir {ir} not supported yet")),
 					}
-					let source = self.local(ir["binding"].as_u64().ok_or("no binding")?)?;
-					format!("std::rc::Rc::clone(&{source})")
 				}
 				kind => return Err(format!("local component prop {kind:?} not supported yet")),
-			};
-			write!(entries, "({prop_name:?}.to_string(), {value}), ").unwrap();
+			}
+		}
+		for source in &source_locals {
+			writeln!(
+				self.body,
+				"    ctx.serializer.add_root(std::rc::Rc::clone(&{source}));"
+			)
+			.unwrap();
 		}
 		let temp = self.next_temp();
 		let qrl_local = self.local(binding)?;
@@ -1127,10 +1155,18 @@ impl ComponentGenerator<'_> {
 		} else {
 			format!("&mut {target}")
 		};
+		// static-only props pass as a bare object literal; sources promote to a Props record
+		let props_value = if source_locals.is_empty() {
+			format!("std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Object(vec![{entries}]))")
+		} else {
+			format!(
+				"std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Props(\n        qwik_ssr_rt::serdes::PropsValue {{ statics: vec![{entries}], sources: vec![{sources_entries}] }},\n    ))"
+			)
+		};
 		// invoke through the QRL value: the component value carries its captures
 		writeln!(
 			self.body,
-			"    let props_{temp} = std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Object(vec![{entries}]));\n    \
+			"    let props_{temp} = {props_value};\n    \
 			 ctx.push_component_owner();\n    \
 			 {symbol}(ctx, {target_argument}, &props_{temp}{slots_argument}, qwik_ssr_rt::render::qrl_captures(&{qrl_local}));\n    \
 			 ctx.pop_component_owner();"

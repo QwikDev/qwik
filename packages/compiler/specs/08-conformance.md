@@ -103,7 +103,9 @@ generate one symbol-named fn with a trailing `captures` slice rebound like the J
 `_captures`; call sites invoke through the QRL value, and every component call collects into
 its own owner item like `createComponent`. Branch captures serialize the binding's QRL value.
 Local components take slots (slot scope + projection closures through the same call machinery
-as module components) and whole-object identifier props (`member_read` on the props value).
+as module components), whole-object identifier props (`member_read` on the props value), and
+signal-valued props (sources promote the literal to a `Props` record and root, exactly like
+module component calls; the destructure reads the source's current value untracked).
 Still inline by design: static-collection rows (no QRL exists), `forKey` expressions, and slot
 projection closures. Attr routing rule both non-JS engines share: a `binding-read` attr value
 **with a segment** is an expression attr (plain value, no subscription unless a tracked read

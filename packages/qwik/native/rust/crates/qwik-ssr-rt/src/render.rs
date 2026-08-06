@@ -808,13 +808,19 @@ pub fn props_value(props: &Rc<SerdesValue>, name: &str) -> Rc<SerdesValue> {
 			.find(|(key, _)| key == name)
 			.map(|(_, item)| Rc::clone(item))
 			.unwrap_or_else(|| Rc::new(SerdesValue::Undefined)),
-		SerdesValue::Props(value) => value
-			.statics
-			.iter()
-			.chain(value.sources.iter())
-			.find(|(key, _)| key == name)
-			.map(|(_, item)| Rc::clone(item))
-			.unwrap_or_else(|| Rc::new(SerdesValue::Undefined)),
+		SerdesValue::Props(value) => {
+			if let Some((_, item)) = value.statics.iter().find(|(key, _)| key == name) {
+				return Rc::clone(item);
+			}
+			match value.sources.iter().find(|(key, _)| key == name) {
+				// the destructure getter returns the source's current value (untracked)
+				Some((_, source)) => match &**source {
+					SerdesValue::Signal(state) => Rc::clone(&state.borrow().value),
+					other => panic!("props_value source {other:?} not supported yet"),
+				},
+				None => Rc::new(SerdesValue::Undefined),
+			}
+		}
 		other => panic!("props_value expects Object or Props, got {other:?}"),
 	}
 }

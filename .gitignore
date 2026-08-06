@@ -23,7 +23,7 @@ external
 lib
 tsdoc-metadata.json
 /target
-native/qwik-ssr-rs/target
+packages/qwik/native/rust/target
 
 # IDE and local environment
 .idea

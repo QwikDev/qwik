@@ -64,7 +64,7 @@ options; nothing in them is scheduled.
 5. **Native target mode** — `nativeTarget` escalates fallbacks to errors; plugin claims +
    coverage validation; per-entry native-readiness report; starters compile clean with zero user
    plugins.
-6. **Rust reference engine** — `native/qwik-ssr-rs` (`qwik-ssr-rt` core + `qwik-ssr-std`
+6. **Rust reference engine** — `packages/qwik/native/rust` (`qwik-ssr-rt` core + `qwik-ssr-std`
    internal plugins + `qwik-ssr-gen`); conformance-driven build order; resume-session against
    Rust-rendered output.
 7. **Go and Zig engines** — independent implementations, same harness and CI gate.

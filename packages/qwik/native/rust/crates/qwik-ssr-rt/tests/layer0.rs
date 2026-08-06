@@ -11,7 +11,7 @@ use std::path::PathBuf;
 
 fn golden(name: &str) -> serde_json::Value {
 	let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-		.join("../../../../packages/compiler/conformance/layer0/goldens")
+		.join("../../../../../../packages/compiler/conformance/layer0/goldens")
 		.join(name);
 	let text = std::fs::read_to_string(&path)
 		.unwrap_or_else(|error| panic!("cannot read golden {path:?}: {error}"));

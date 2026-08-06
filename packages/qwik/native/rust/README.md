@@ -1,4 +1,4 @@
-# qwik-ssr-rs
+# Qwik native SSR engine — Rust
 
 Rust native SSR engine for Qwik v3 (specs in `packages/compiler/specs/`). Pure Rust — no
 WASM, no JS runtime, no C ABI. Every engine is a code generator over the compiler's SSR plan;

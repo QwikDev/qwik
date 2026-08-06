@@ -36,6 +36,7 @@ fn generate_app(plan_text: &str) -> Result<(String, String), String> {
 				.map_err(|reason| format!("defs {module_index}: {reason}"))?,
 		);
 	}
+	code.push_str(&qwik_ssr_gen::generate_plugin_fns(&plan, "rust")?);
 	Ok((code, entry_function))
 }
 

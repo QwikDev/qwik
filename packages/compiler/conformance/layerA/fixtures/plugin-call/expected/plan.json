@@ -1,0 +1,257 @@
+{
+  "format": "qwik/ssr-plan",
+  "version": 0,
+  "entry": 0,
+  "components": [
+    {
+      "name": "App",
+      "module": 0,
+      "propsBindings": [],
+      "props": null,
+      "ssr": {
+        "setup": [
+          {
+            "op": "signal",
+            "local": 3,
+            "init": {
+              "k": "plugin-call",
+              "fnId": "plugin:./greeting:makeGreeting",
+              "args": [
+                {
+                  "k": "lit",
+                  "v": "qwik"
+                }
+              ]
+            }
+          }
+        ],
+        "directSegmentIds": [],
+        "usedSegmentIds": [
+          "segment_0",
+          "segment_1"
+        ],
+        "ops": [
+          {
+            "o": "el",
+            "tag": "main",
+            "id": null,
+            "void": false,
+            "styleScopedId": null,
+            "targetUses": 0,
+            "props": [],
+            "propsEffect": null,
+            "children": [
+              {
+                "o": "el",
+                "tag": "b",
+                "id": null,
+                "void": false,
+                "styleScopedId": null,
+                "targetUses": 0,
+                "props": [
+                  {
+                    "p": "static",
+                    "name": "id",
+                    "value": "text"
+                  }
+                ],
+                "propsEffect": null,
+                "children": [
+                  {
+                    "o": "content",
+                    "segment": "segment_0",
+                    "root": false,
+                    "value": {
+                      "src": "greeting.value",
+                      "ir": {
+                        "k": "signal-read",
+                        "binding": 3
+                      },
+                      "segment": "segment_0"
+                    }
+                  }
+                ]
+              },
+              {
+                "o": "el",
+                "tag": "button",
+                "id": null,
+                "void": false,
+                "styleScopedId": null,
+                "targetUses": 0,
+                "props": [
+                  {
+                    "p": "static",
+                    "name": "id",
+                    "value": "shout"
+                  },
+                  {
+                    "p": "event",
+                    "name": "q-e:click",
+                    "handlers": [
+                      {
+                        "value": {
+                          "src": "() => greeting.value = greeting.value.toUpperCase()",
+                          "segment": "segment_1"
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "propsEffect": null,
+                "children": [
+                  {
+                    "o": "static",
+                    "html": "shout"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "synchronous": false,
+        "staticRoot": false,
+        "needsRootRange": false,
+        "needsId": false,
+        "idBase": "qApp-",
+        "flushTasks": false
+      },
+      "setup": [
+        {
+          "op": "signal",
+          "local": 3,
+          "init": {
+            "k": "plugin-call",
+            "fnId": "plugin:./greeting:makeGreeting",
+            "args": [
+              {
+                "k": "lit",
+                "v": "qwik"
+              }
+            ]
+          }
+        }
+      ],
+      "render": [
+        {
+          "n": "el",
+          "tag": "main",
+          "props": [],
+          "children": [
+            {
+              "n": "el",
+              "tag": "b",
+              "props": [
+                {
+                  "p": "static",
+                  "name": "id",
+                  "value": "text"
+                }
+              ],
+              "children": [
+                {
+                  "n": "dyn",
+                  "output": "content",
+                  "value": {
+                    "src": "greeting.value",
+                    "ir": {
+                      "k": "signal-read",
+                      "binding": 3
+                    },
+                    "segment": "segment_0"
+                  }
+                }
+              ]
+            },
+            {
+              "n": "el",
+              "tag": "button",
+              "props": [
+                {
+                  "p": "static",
+                  "name": "id",
+                  "value": "shout"
+                },
+                {
+                  "p": "event",
+                  "name": "onClick$",
+                  "passive": false,
+                  "value": {
+                    "src": "() => greeting.value = greeting.value.toUpperCase()",
+                    "segment": "segment_1"
+                  }
+                }
+              ],
+              "children": [
+                {
+                  "n": "text",
+                  "value": "shout"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "needsId": false,
+      "idBase": "qApp-",
+      "styleScope": null,
+      "providesContext": false,
+      "hasCustomHook": false
+    }
+  ],
+  "modules": [
+    {
+      "path": "src/input.tsx",
+      "segments": [
+        {
+          "id": "segment_0",
+          "symbolName": "input_text_segment_0_3k1cvwun49quc",
+          "chunk": "./input.tsx_input_text_segment_0_3k1cvwun49quc",
+          "kind": "expression",
+          "resolved": true,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 3,
+              "name": "greeting",
+              "source": "local",
+              "access": "direct"
+            }
+          ]
+        },
+        {
+          "id": "segment_1",
+          "symbolName": "input_q_e_click_segment_1_18mo7akddhd9s",
+          "chunk": "./input.tsx_input_q_e_click_segment_1_18mo7akddhd9s",
+          "kind": "event",
+          "resolved": false,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 3,
+              "name": "greeting",
+              "source": "local",
+              "access": "direct"
+            }
+          ]
+        }
+      ],
+      "contexts": [],
+      "defs": []
+    }
+  ],
+  "unresolved": [],
+  "pluginFns": [
+    {
+      "fnId": "plugin:./greeting:makeGreeting",
+      "module": "./greeting",
+      "exportName": "makeGreeting",
+      "nativeName": "plugin_plugin___greeting_makeGreeting",
+      "targets": {
+        "rust": {
+          "source": "pub fn makeGreeting(\n\targs: &[std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>],\n) -> std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue> {\n\tlet name = match &*args[0] {\n\t\tqwik_ssr_rt::serdes::SerdesValue::String(text) => text.clone(),\n\t\t_ => String::new(),\n\t};\n\tstd::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::String(format!(\n\t\t\"hello {name}\"\n\t)))\n}\n"
+        }
+      }
+    }
+  ]
+}

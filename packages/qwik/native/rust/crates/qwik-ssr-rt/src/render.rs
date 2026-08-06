@@ -943,7 +943,8 @@ pub fn member_read(
 			Some((_, item)) => Rc::clone(item),
 			None => Rc::new(SerdesValue::Undefined),
 		},
-		other => panic!("member_read on {other:?} not supported yet"),
+		// untracked value semantics cover the rest (lengths, panics on the unsupported)
+		_ => value_member(object, name),
 	}
 }
 

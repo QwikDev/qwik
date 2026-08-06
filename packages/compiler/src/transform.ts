@@ -28,6 +28,7 @@ import { emitCsrModule, emitCsrSegmentRender } from './emit-csr';
 import { emitModulePlan, type PlanImportMeta } from './emit-plan';
 import { validateNativeReadiness } from './validate-native';
 import { collectModuleDefs } from './defs-lower';
+import { drainClaimedPluginFns, setActivePlugins, type QwikCompilerPlugin } from './expr-lower';
 import type { EmittedModule } from './emitted-module';
 import { TargetImportResolver } from './emit-qrl';
 import {
@@ -102,6 +103,7 @@ export function transformModule(ctx: CompilerContext): TransformResult {
   if (program === null) {
     return { kind: 'not-applicable' };
   }
+  setActivePlugins((ctx.options as { plugins?: QwikCompilerPlugin[] }).plugins);
   const analysis = analyzeModule(program);
   const extractedQrls = extractQrls(program, ctx.input.path, analysis, ctx.options.scope);
   extractedQrls.moduleDefs = collectModuleDefs(program, analysis, {
@@ -604,7 +606,8 @@ export function transformModule(ctx: CompilerContext): TransformResult {
                   body: def.body,
                 })),
                 (binding) =>
-                  analysis.bindings.find((candidate) => candidate.id === binding)?.name ?? null
+                  analysis.bindings.find((candidate) => candidate.id === binding)?.name ?? null,
+                drainClaimedPluginFns()
               ),
               null,
               2

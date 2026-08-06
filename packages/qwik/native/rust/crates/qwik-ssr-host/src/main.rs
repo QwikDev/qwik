@@ -17,7 +17,8 @@ mod generated {
 		clippy::comparison_to_empty,
 		clippy::needless_borrow,
 		clippy::needless_else,
-		clippy::borrow_deref_ref
+		clippy::borrow_deref_ref,
+		unused_parens
 	)]
 	include!(concat!(env!("OUT_DIR"), "/generated.rs"));
 }

@@ -1,0 +1,7 @@
+[
+  {
+    "name": "greeting-plugin",
+    "claims": [{ "module": "./greeting", "exports": ["makeGreeting"] }],
+    "rustFile": "greeting.rs"
+  }
+]

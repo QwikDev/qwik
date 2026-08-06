@@ -5,6 +5,7 @@ import type {
   PlanSegmentMeta,
   QwikModulePlan,
 } from './emit-plan';
+import type { PluginFnPlan } from './expr-lower';
 import { PlanNodeKind } from './emit-plan';
 import type { PlanSsrComponent, PlanSsrOp, PlanSsrRenderFn } from './emit-plan-ssr';
 import { SsrOpKind } from './emit-plan-ssr';
@@ -25,6 +26,8 @@ export interface QwikSsrPlan {
   readonly components: readonly LinkedComponent[];
   readonly modules: readonly LinkedModule[];
   readonly unresolved: readonly (number | string)[];
+  /** Plugin-claimed fns merged across modules (specs/09), deduped by fnId. */
+  readonly pluginFns: readonly PluginFnPlan[];
 }
 
 export interface LinkedModule {
@@ -332,6 +335,13 @@ export function linkSsrPlan(
     }
   });
 
+  const pluginFns = new Map<string, PluginFnPlan>();
+  for (const plan of modulePlans) {
+    for (const fn of plan.pluginFns ?? []) {
+      pluginFns.set(fn.fnId, fn);
+    }
+  }
+
   return {
     format: 'qwik/ssr-plan',
     version: 0,
@@ -344,5 +354,6 @@ export function linkSsrPlan(
       defs: plan.defs,
     })),
     unresolved,
+    pluginFns: [...pluginFns.values()],
   };
 }

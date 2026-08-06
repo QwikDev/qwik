@@ -153,6 +153,7 @@ export function createQwikPlugin(
     inlineStylesUpToBytes: 20000,
     lint: false,
     ssrPlan: false,
+    compilerPlugins: undefined as unknown[] | undefined,
     experimental: undefined,
     testTarget: undefined,
   };
@@ -397,6 +398,9 @@ export function createQwikPlugin(
     }
     if (typeof (updatedOpts as { ssrPlan?: boolean }).ssrPlan === 'boolean') {
       opts.ssrPlan = (updatedOpts as { ssrPlan?: boolean }).ssrPlan!;
+    }
+    if ((updatedOpts as { compilerPlugins?: unknown[] }).compilerPlugins !== undefined) {
+      opts.compilerPlugins = (updatedOpts as { compilerPlugins?: unknown[] }).compilerPlugins;
     }
 
     if ('experimental' in updatedOpts) {
@@ -1064,6 +1068,9 @@ export function createQwikPlugin(
       if (isServer && opts.ssrPlan) {
         (transformOpts as { emitPlan?: boolean }).emitPlan = true;
       }
+      if (opts.compilerPlugins !== undefined) {
+        (transformOpts as { plugins?: unknown }).plugins = opts.compilerPlugins;
+      }
       const now = Date.now();
       const resumeTransform = await testResume?.transform(
         transformOpts,
@@ -1659,6 +1666,8 @@ export interface QwikPluginOptions {
   lint?: boolean;
   /** Emit and link the native SSR plan (`q-ssr-plan.json`) during SSR builds. */
   ssrPlan?: boolean;
+  /** User compiler plugins (specs/09): claim imported symbols with per-target native sources. */
+  compilerPlugins?: unknown[];
   /**
    * Experimental features. These can come and go in patch releases, and their API is not guaranteed
    * to be stable between releases.

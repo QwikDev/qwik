@@ -1416,6 +1416,7 @@ class SemanticLowerer {
       const index = this.extracted.moduleDefs?.findIndex((def) => def.binding === binding) ?? -1;
       return index < 0 ? null : index;
     },
+    importOf: (binding) => this.binding(binding)?.import ?? null,
   };
 
   private readonly setupLowerFacts: SetupLowerFacts = {

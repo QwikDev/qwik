@@ -719,5 +719,6 @@
   ],
   "imports": [],
   "contexts": [],
-  "defs": []
+  "defs": [],
+  "pluginFns": []
 }

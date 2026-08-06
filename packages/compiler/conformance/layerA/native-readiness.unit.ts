@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, test } from 'vitest';
 import type { TransformModulesOptions } from '@qwik.dev/optimizer';
 import { transformModules } from '../../src/index';
+import { readFixturePlugins } from './harness';
 
 /**
  * Native-readiness gate (specs/09): every Layer-A fixture must compile clean under `nativeTarget`
@@ -21,6 +22,7 @@ describe('layerA native readiness', () => {
       const input = readdirSync(dir)
         .filter((file) => file.endsWith('.tsx'))
         .map((file) => ({ path: `src/${file}`, code: readFileSync(join(dir, file), 'utf-8') }));
+      const plugins = readFixturePlugins(dir);
       const result = await transformModules({
         input,
         srcDir: 'src',
@@ -29,6 +31,7 @@ describe('layerA native readiness', () => {
         transpileJsx: true,
         isServer: true,
         nativeTarget: 'rust',
+        ...(plugins.length > 0 ? { plugins } : {}),
       } as TransformModulesOptions & { nativeTarget: string });
       expect(result.diagnostics.map((diagnostic) => diagnostic.code)).toEqual(
         KNOWN_GAPS[name] ?? []

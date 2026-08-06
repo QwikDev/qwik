@@ -156,6 +156,35 @@ struct ComponentGenerator<'plan> {
 }
 
 /// Emits the module's auto-lowered helper functions (`defs`, specs/02).
+/// Emit the plugin-provided fn sources for one target (specs/09). Each source is a plain Rust
+/// file defining `pub fn <exportName>(args: &[Rc<SerdesValue>]) -> Rc<SerdesValue>`; it is
+/// wrapped in a `pub mod <nativeName>` so names never collide across plugin modules.
+pub fn generate_plugin_fns(plan: &Json, target: &str) -> Result<String, String> {
+	let Some(plugin_fns) = plan["pluginFns"].as_array() else {
+		return Ok(String::new());
+	};
+	let mut output = String::new();
+	for entry in plugin_fns {
+		let fn_id = entry["fnId"].as_str().ok_or("plugin fn has no fnId")?;
+		let native_name = entry["nativeName"]
+			.as_str()
+			.ok_or("plugin fn has no nativeName")?;
+		let export_name = entry["exportName"]
+			.as_str()
+			.ok_or("plugin fn has no exportName")?;
+		let source = entry["targets"][target]["source"]
+			.as_str()
+			.ok_or(format!("plugin fn {fn_id:?} has no {target:?} target"))?;
+		if !source.contains(&format!("fn {export_name}")) {
+			return Err(format!(
+				"plugin fn {fn_id:?} {target} source does not define `pub fn {export_name}`"
+			));
+		}
+		writeln!(output, "pub mod {native_name} {{\n{source}}}").unwrap();
+	}
+	Ok(output)
+}
+
 pub fn generate_defs(plan: &Json, module_index: usize) -> Result<String, String> {
 	let Some(defs) = plan["modules"][module_index]["defs"].as_array() else {
 		return Ok(String::new());
@@ -369,11 +398,16 @@ impl ComponentGenerator<'_> {
 			"signal" => {
 				let binding = entry["local"].as_u64().ok_or("signal op has no local")?;
 				let variable = format!("local_{binding}");
-				let init = literal_expression(&entry["init"])?;
+				// plugin-call inits are already Rc-valued; literals wrap here
+				let init_rc = if entry["init"]["k"].as_str() == Some("plugin-call") {
+					self.plugin_call_expression(&entry["init"].clone())?
+				} else {
+					format!("std::rc::Rc::new({})", literal_expression(&entry["init"])?)
+				};
 				self.uses_ctx = true;
 				writeln!(
 					self.body,
-					"    let {variable} = std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Signal(\n        std::cell::RefCell::new(qwik_ssr_rt::serdes::SignalState {{ value: std::rc::Rc::new({init}), subs: Vec::new() }}),\n    ));"
+					"    let {variable} = std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Signal(\n        std::cell::RefCell::new(qwik_ssr_rt::serdes::SignalState {{ value: {init_rc}, subs: Vec::new() }}),\n    ));"
 				)
 				.unwrap();
 				self.locals.insert(binding, variable);
@@ -2490,6 +2524,33 @@ impl ComponentGenerator<'_> {
 
 	/// Segment QRL; `with_captures` carries the capture values on the QRL record itself
 	/// (event handlers), otherwise they ride the subscription args (expression effects).
+	/// `plugin-call` IR (specs/09): dispatch into the plugin's generated module.
+	fn plugin_call_expression(&mut self, ir: &Json) -> Result<String, String> {
+		let fn_id = ir["fnId"].as_str().ok_or("plugin-call has no fnId")?;
+		let entry = self.plan["pluginFns"]
+			.as_array()
+			.and_then(|fns| {
+				fns.iter()
+					.find(|entry| entry["fnId"].as_str() == Some(fn_id))
+			})
+			.ok_or(format!("plugin fn {fn_id:?} missing from plan pluginFns"))?;
+		let native_name = entry["nativeName"]
+			.as_str()
+			.ok_or("plugin fn has no nativeName")?
+			.to_string();
+		let export_name = entry["exportName"]
+			.as_str()
+			.ok_or("plugin fn has no exportName")?
+			.to_string();
+		let mut args = String::new();
+		for arg in ir["args"].as_array().ok_or("plugin-call args missing")? {
+			let value = literal_expression(arg)
+				.map_err(|reason| format!("plugin-call arg: {reason} (literals only for now)"))?;
+			write!(args, "std::rc::Rc::new({value}), ").unwrap();
+		}
+		Ok(format!("{native_name}::{export_name}(&[{args}])"))
+	}
+
 	fn qrl_expression(&mut self, segment_id: &str, with_captures: bool) -> Result<String, String> {
 		let segment = self.segment(segment_id)?;
 		let chunk = segment["chunk"]
@@ -2575,8 +2636,9 @@ impl ComponentGenerator<'_> {
 							));
 						}
 						Some(LocalKind::PlainValue) => {
+							// plain values may hold signals — member_read keeps JS semantics
 							return Ok(format!(
-								"qwik_ssr_rt::render::value_member(&{variable}, {name:?})"
+								"qwik_ssr_rt::render::member_read(&{variable}, {name:?}, {tracked})"
 							));
 						}
 						_ => {
@@ -2586,7 +2648,7 @@ impl ComponentGenerator<'_> {
 				}
 				let object_expression = self.ir_expression(object, tracked)?;
 				Ok(format!(
-					"qwik_ssr_rt::render::value_member(&{object_expression}, {name:?})"
+					"qwik_ssr_rt::render::member_read(&{object_expression}, {name:?}, {tracked})"
 				))
 			}
 			"lit" => Ok(format!("std::rc::Rc::new({})", literal_expression(ir)?)),

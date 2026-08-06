@@ -24,6 +24,7 @@ export const enum ValueIrKind {
   Object = 'object',
   Call = 'call',
   DefCall = 'def-call',
+  PluginCall = 'plugin-call',
 }
 
 export type ValueIR =
@@ -79,6 +80,12 @@ export type ValueIR =
       readonly k: ValueIrKind.DefCall;
       /** Index into the module's `defs` table. */
       readonly def: number;
+      readonly args: readonly ValueIR[];
+    }
+  | {
+      readonly k: ValueIrKind.PluginCall;
+      /** `plugin:<module>:<export>` — user-plugin fn id (specs/09). */
+      readonly fnId: string;
       readonly args: readonly ValueIR[];
     };
 

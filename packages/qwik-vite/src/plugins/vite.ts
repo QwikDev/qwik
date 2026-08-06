@@ -236,6 +236,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         manifestInputPath: qwikViteOpts.ssr?.manifestInputPath,
         manifestOutput: qwikViteOpts.client?.manifestOutput,
         ssrPlan: qwikViteOpts.ssrPlan,
+        compilerPlugins: qwikViteOpts.compilerPlugins,
       };
 
       const opts = await qwikPlugin.normalizeOptions(pluginOpts);
@@ -1102,6 +1103,8 @@ interface QwikVitePluginCommonOptions {
    * Default `false`
    */
   ssrPlan?: boolean;
+  /** User compiler plugins (specs/09) forwarded to the TypeScript compiler. */
+  compilerPlugins?: unknown[];
   /**
    * Experimental features. These can come and go in patch releases, and their API is not guaranteed
    * to be stable between releases

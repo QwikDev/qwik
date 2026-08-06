@@ -1,5 +1,6 @@
 import { emitSsrOpPlan, type PlanSsrComponent, type PlanSsrRenderFn } from './emit-plan-ssr';
 import { isModuleStyleBoundary } from './emit-qrl';
+import type { PluginFnPlan } from './expr-lower';
 import { shouldResolveSsrSegment } from './emit-segment';
 import type { ValueIR } from './expr-ir';
 import type {
@@ -34,6 +35,8 @@ export interface QwikModulePlan {
   readonly contexts: readonly PlanContextMeta[];
   /** Auto-lowered module helpers (specs/02 §defs), invoked via `def-call` by table index. */
   readonly defs: readonly PlanDefMeta[];
+  /** Plugin-claimed fns (specs/09), invoked via `plugin-call` by fnId. */
+  readonly pluginFns: readonly PluginFnPlan[];
 }
 
 export interface PlanDefMeta {
@@ -234,7 +237,8 @@ export function emitModulePlan(
   imports: readonly PlanImportMeta[] = [],
   contexts: readonly PlanContextMeta[] = [],
   defs: readonly PlanDefMeta[] = [],
-  bindingName: (binding: number) => string | null = () => null
+  bindingName: (binding: number) => string | null = () => null,
+  pluginFns: readonly PluginFnPlan[] = []
 ): QwikModulePlan {
   const slice = (range: SourceRange) => source.slice(range[0], range[1]);
 
@@ -461,6 +465,7 @@ export function emitModulePlan(
     imports,
     contexts,
     defs,
+    pluginFns,
   };
 }
 

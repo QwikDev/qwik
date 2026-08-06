@@ -37,6 +37,7 @@ const READY_FIXTURES: &[&str] = &[
 	"component-spread-signal",
 	"component-event-prop",
 	"cond-attr",
+	"plugin-call",
 ];
 
 fn main() {
@@ -90,6 +91,10 @@ fn main() {
 					.unwrap_or_else(|reason| panic!("fixture {name}: {reason}")),
 			);
 		}
+		component_code.push_str(
+			&qwik_ssr_gen::generate_plugin_fns(&plan, "rust")
+				.unwrap_or_else(|reason| panic!("fixture {name}: {reason}")),
+		);
 
 		let module_name = name.replace('-', "_");
 		let container_tag = request["containerTagName"].as_str().unwrap_or("html");

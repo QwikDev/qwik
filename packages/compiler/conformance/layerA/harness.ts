@@ -1,12 +1,12 @@
 import { createHash } from 'node:crypto';
-import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 // built package, not source: the generated modules' bare '@qwik.dev/core' imports resolve to the
 // built lib, and ambient state (invoke context, owner) must live in ONE module world
 import { renderToStream, renderToString } from '@qwik.dev/core/server';
 import type { TransformModulesOptions } from '@qwik.dev/optimizer';
 import type { QwikModulePlan } from '../../src/emit-plan';
-import { transformModules } from '../../src/index';
+import { transformModules, type QwikCompilerPlugin } from '../../src/index';
 import { linkSsrPlan, type QwikSsrPlan } from '../../src/link-plan';
 import type { SsrRenderRoot } from '../../../qwik/src/server/ssr-render';
 import type { RenderToStringOptions } from '../../../qwik/src/server/types';
@@ -71,6 +71,26 @@ export async function renderFixtureRoot(
   return { html: normalized.join(''), chunks: normalized };
 }
 
+/** Fixture plugins.json: claims plus a sidecar `.rs` file defining `pub fn <exportName>`. */
+export function readFixturePlugins(fixtureDir: string): QwikCompilerPlugin[] {
+  const pluginsPath = join(fixtureDir, 'plugins.json');
+  if (!existsSync(pluginsPath)) {
+    return [];
+  }
+  const entries = JSON.parse(readFileSync(pluginsPath, 'utf-8')) as {
+    name: string;
+    claims: { module: string; exports: string[] }[];
+    rustFile: string;
+  }[];
+  return entries.map((entry) => ({
+    name: entry.name,
+    claims: entry.claims,
+    targets: {
+      rust: () => ({ source: readFileSync(join(fixtureDir, entry.rustFile), 'utf-8') }),
+    },
+  }));
+}
+
 export async function renderFixture(name: string): Promise<FixtureRender> {
   const fixtureDir = join(fixturesDir, name);
   const sourceFiles = readdirSync(fixtureDir)
@@ -81,6 +101,7 @@ export async function renderFixture(name: string): Promise<FixtureRender> {
     code: readFileSync(join(fixtureDir, file), 'utf-8'),
   }));
   const request = readFixtureRequest(name);
+  const plugins = readFixturePlugins(fixtureDir);
 
   const result = await transformModules({
     input,
@@ -90,6 +111,7 @@ export async function renderFixture(name: string): Promise<FixtureRender> {
     transpileJsx: true,
     isServer: true,
     emitPlan: true,
+    ...(plugins.length > 0 ? { plugins } : {}),
   } as TransformModulesOptions & { emitPlan: boolean });
   if (result.diagnostics.length > 0) {
     const messages = result.diagnostics.map((diagnostic) => diagnostic.message).join('\n');

@@ -1,7 +1,7 @@
 import { getIdentifierName, getRange, unwrapExpression } from './ast-utils';
 import { ValueIrKind } from './expr-ir';
 import type { LambdaIR, ValueIR, ValueIrBinOp, ValueIrLogicOp, ValueIrUnaryOp } from './expr-ir';
-import type { BindingId } from './plan-types';
+import type { BindingId, ImportBinding } from './plan-types';
 import type { SourceRange } from './types';
 import type { AstNode } from './types';
 
@@ -19,6 +19,101 @@ export interface ExprLowerFacts {
   isFunctionBinding(binding: BindingId): boolean;
   /** Index into the module defs table when the binding is an auto-lowered helper. */
   defIndex?(binding: BindingId): number | null;
+  /** The binding's import metadata, for plugin claim matching (specs/09). */
+  importOf?(binding: BindingId): ImportBinding | null;
+}
+
+/** User compiler plugin (specs/09): claims imported symbols, provides per-target sources. */
+export interface QwikCompilerPlugin {
+  readonly name: string;
+  readonly claims: readonly {
+    readonly module: string;
+    readonly exports: readonly string[] | '*';
+  }[];
+  readonly targets: Record<
+    string,
+    (site: PluginClaimSite) => { source: string; dependencies?: Record<string, string> }
+  >;
+}
+
+export interface PluginClaimSite {
+  readonly fnId: string;
+  readonly module: string;
+  readonly exportName: string;
+  readonly argCount: number;
+  readonly async: boolean;
+  /** Generated module wrapping the target source; the source defines `pub fn <exportName>`. */
+  readonly nativeName: string;
+}
+
+/** One claimed fn collected during a module's lowering, carried on the module plan. */
+export interface PluginFnPlan {
+  readonly fnId: string;
+  readonly module: string;
+  readonly exportName: string;
+  readonly nativeName: string;
+  readonly targets: Record<string, { source: string; dependencies?: Record<string, string> }>;
+}
+
+let activePlugins: readonly QwikCompilerPlugin[] = [];
+let claimedFns = new Map<string, PluginFnPlan>();
+
+/** Install the plugin set for the current module transform; clears collected claims. */
+export function setActivePlugins(plugins: readonly QwikCompilerPlugin[] | undefined): void {
+  activePlugins = plugins ?? [];
+  claimedFns = new Map();
+}
+
+/** Claimed fns collected since the last `setActivePlugins`, in first-claim order. */
+export function drainClaimedPluginFns(): PluginFnPlan[] {
+  const drained = [...claimedFns.values()];
+  claimedFns = new Map();
+  return drained;
+}
+
+function pluginFnNativeName(fnId: string): string {
+  const sanitized: string = fnId.replace(/[^a-zA-Z0-9]/g, '_');
+  return `plugin_${sanitized}`;
+}
+
+function claimPluginCall(imported: ImportBinding, argCount: number): string | null {
+  if (imported.typeOnly || imported.importedName === '*') {
+    return null;
+  }
+  for (const plugin of activePlugins) {
+    for (const claim of plugin.claims) {
+      if (claim.module !== imported.source) {
+        continue;
+      }
+      if (claim.exports !== '*' && !claim.exports.includes(imported.importedName)) {
+        continue;
+      }
+      const fnId = `plugin:${imported.source}:${imported.importedName}`;
+      if (!claimedFns.has(fnId)) {
+        const site: PluginClaimSite = {
+          fnId,
+          module: imported.source,
+          exportName: imported.importedName,
+          argCount,
+          async: false,
+          nativeName: pluginFnNativeName(fnId),
+        };
+        const targets: PluginFnPlan['targets'] = {};
+        for (const [target, emit] of Object.entries(plugin.targets)) {
+          targets[target] = emit(site);
+        }
+        claimedFns.set(fnId, {
+          fnId,
+          module: site.module,
+          exportName: site.exportName,
+          nativeName: site.nativeName,
+          targets,
+        });
+      }
+      return fnId;
+    }
+  }
+  return null;
 }
 
 export interface ValueIrCoverage {
@@ -360,7 +455,13 @@ function lowerCall(node: AstNode, facts: ExprLowerFacts): ValueIR | null {
     if (calleeBinding !== null) {
       const def = facts.defIndex?.(calleeBinding) ?? null;
       if (def === null) {
-        return null; // user function — plugin territory
+        const imported = facts.importOf?.(calleeBinding) ?? null;
+        const fnId = imported === null ? null : claimPluginCall(imported, call.arguments.length);
+        if (fnId === null) {
+          return null; // unclaimed user function
+        }
+        const args = lowerArgs(call.arguments, facts, null);
+        return args === null ? null : { k: ValueIrKind.PluginCall, fnId, args: args as ValueIR[] };
       }
       const args = lowerArgs(call.arguments, facts, null);
       return args === null ? null : { k: ValueIrKind.DefCall, def, args: args as ValueIR[] };

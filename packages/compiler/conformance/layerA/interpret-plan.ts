@@ -112,6 +112,26 @@ export async function buildInterpretedRoot(
     );
   }
 
+  // plugin-claimed fns run their real JS implementation — the authored module is the JS target
+  const pluginImpls = new Map<string, (...args: unknown[]) => unknown>();
+  for (const pluginFn of plan.pluginFns ?? []) {
+    const spec = pluginFn.module.replace(/^\.\//, '');
+    let loaded: Record<string, unknown> | null = null;
+    for (const candidate of [`${spec}.tsx`, `${spec}.ts`, `${spec}.js`, spec]) {
+      try {
+        loaded = await loadSegment(candidate);
+        break;
+      } catch {
+        // try the next extension
+      }
+    }
+    const impl = loaded?.[pluginFn.exportName];
+    if (typeof impl !== 'function') {
+      throw new Error(`plugin module "${pluginFn.module}" has no ${pluginFn.exportName} export`);
+    }
+    pluginImpls.set(pluginFn.fnId, impl as (...args: unknown[]) => unknown);
+  }
+
   // module-scoped context objects keyed by (module, binding)
   const moduleContexts: Map<number, unknown>[] = plan.modules.map(
     (linkedModule) =>
@@ -194,6 +214,13 @@ export async function buildInterpretedRoot(
             throw new Error(`setup ir reads unknown binding ${ir.binding}`);
           }
           return locals.get(ir.binding);
+        }
+        case 'plugin-call': {
+          const impl = pluginImpls.get(ir.fnId);
+          if (impl === undefined) {
+            throw new Error(`plugin fn ${ir.fnId} has no implementation`);
+          }
+          return impl(...ir.args.map(evalIr));
         }
         case 'call': {
           const receiver = ir.recv === null ? null : evalIr(ir.recv);

@@ -5,7 +5,7 @@
 use std::fmt::Write as _;
 use std::path::PathBuf;
 
-const READY_FIXTURES: &[&str] = &["static-page", "signal-counter"];
+const READY_FIXTURES: &[&str] = &["static-page", "signal-counter", "mixed-text"];
 
 fn main() {
 	let repo_root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../../../../..");

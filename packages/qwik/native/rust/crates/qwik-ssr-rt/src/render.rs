@@ -5,7 +5,8 @@
 use crate::escape::escape_html;
 use crate::number::to_js_string;
 use crate::serdes::{
-	EffectSubscription, SerdesValue, Serializer, EFFECT_KIND_TEXT_NODE, EFFECT_TARGET_ELEMENT_TEXT,
+	EffectSubscription, SerdesValue, Serializer, EFFECT_KIND_TEXT_EXPRESSION,
+	EFFECT_KIND_TEXT_NODE, EFFECT_TARGET_ELEMENT_TEXT, EFFECT_TARGET_RANGE_TEXT,
 };
 use std::rc::Rc;
 
@@ -79,28 +80,83 @@ impl SsrContext {
 
 	/// TextNode effect subscription on an element-text target (`renderSsrTextNode`).
 	pub fn subscribe_element_text(&mut self, signal: &Rc<SerdesValue>, target_id: u32) {
-		let SerdesValue::Signal(state) = &**signal else {
-			panic!("subscribe_element_text expects a Signal value");
-		};
-		state.borrow_mut().subs.push(EffectSubscription {
-			kind: EFFECT_KIND_TEXT_NODE,
-			target_kind: EFFECT_TARGET_ELEMENT_TEXT,
-			target_id,
-			marker_index: None,
-			deps: vec![Rc::clone(signal)],
-		});
+		push_subscription(
+			signal,
+			EffectSubscription {
+				kind: EFFECT_KIND_TEXT_NODE,
+				target_kind: EFFECT_TARGET_ELEMENT_TEXT,
+				target_id,
+				marker_index: None,
+				deps: vec![Rc::clone(signal)],
+				args: None,
+				qrl: None,
+			},
+		);
 	}
+
+	/// TextNode effect subscription on a range-text target (`<!t>` fenced).
+	pub fn subscribe_range_text(&mut self, signal: &Rc<SerdesValue>, target_id: u32, marker: u32) {
+		push_subscription(
+			signal,
+			EffectSubscription {
+				kind: EFFECT_KIND_TEXT_NODE,
+				target_kind: EFFECT_TARGET_RANGE_TEXT,
+				target_id,
+				marker_index: Some(marker),
+				deps: vec![Rc::clone(signal)],
+				args: None,
+				qrl: None,
+			},
+		);
+	}
+
+	/// TextExpression effect (`renderSsrTextExpression`): args are the segment captures the
+	/// browser passes to the resume QRL; deps are the signals read during server evaluation.
+	pub fn subscribe_text_expression(
+		&mut self,
+		signal: &Rc<SerdesValue>,
+		target_id: u32,
+		marker: u32,
+		args: Vec<Rc<SerdesValue>>,
+		qrl: Rc<SerdesValue>,
+	) {
+		push_subscription(
+			signal,
+			EffectSubscription {
+				kind: EFFECT_KIND_TEXT_EXPRESSION,
+				target_kind: EFFECT_TARGET_RANGE_TEXT,
+				target_id,
+				marker_index: Some(marker),
+				deps: vec![Rc::clone(signal)],
+				args: Some(args),
+				qrl: Some(qrl),
+			},
+		);
+	}
+}
+
+fn push_subscription(signal: &Rc<SerdesValue>, subscription: EffectSubscription) {
+	let SerdesValue::Signal(state) = &**signal else {
+		panic!("subscription target must be a Signal value");
+	};
+	state.borrow_mut().subs.push(subscription);
 }
 
 /// SSR text interpolation of a signal's current value (`value == null ? '' : String(value)`).
 pub fn signal_text(signal: &Rc<SerdesValue>) -> String {
-	let SerdesValue::Signal(state) = &**signal else {
-		panic!("signal_text expects a Signal value");
-	};
-	serdes_text(&state.borrow().value)
+	value_text(&signal_value(signal))
 }
 
-fn serdes_text(value: &SerdesValue) -> String {
+/// Current value of a signal (`.value` read).
+pub fn signal_value(signal: &Rc<SerdesValue>) -> Rc<SerdesValue> {
+	let SerdesValue::Signal(state) = &**signal else {
+		panic!("signal_value expects a Signal value");
+	};
+	Rc::clone(&state.borrow().value)
+}
+
+/// SSR text interpolation (`value == null ? '' : String(value)`).
+pub fn value_text(value: &SerdesValue) -> String {
 	match value {
 		SerdesValue::Undefined | SerdesValue::Null => String::new(),
 		SerdesValue::Bool(true) => "true".to_string(),
@@ -108,6 +164,26 @@ fn serdes_text(value: &SerdesValue) -> String {
 		SerdesValue::Number(number) => to_js_string(*number),
 		SerdesValue::String(text) => text.clone(),
 		other => panic!("text interpolation of {other:?} not supported yet"),
+	}
+}
+
+/// JS `+` (specs/06): string operand → concatenation, else numeric addition.
+pub fn js_add(left: &Rc<SerdesValue>, right: &Rc<SerdesValue>) -> Rc<SerdesValue> {
+	match (&**left, &**right) {
+		(SerdesValue::Number(a), SerdesValue::Number(b)) => Rc::new(SerdesValue::Number(a + b)),
+		(SerdesValue::String(_), _) | (_, SerdesValue::String(_)) => Rc::new(SerdesValue::String(
+			format!("{}{}", js_string(left), js_string(right)),
+		)),
+		(a, b) => panic!("js_add of {a:?} and {b:?} not supported yet"),
+	}
+}
+
+/// JS ToString for primitives (`String(value)`).
+fn js_string(value: &SerdesValue) -> String {
+	match value {
+		SerdesValue::Undefined => "undefined".to_string(),
+		SerdesValue::Null => "null".to_string(),
+		_ => value_text(value),
 	}
 }
 

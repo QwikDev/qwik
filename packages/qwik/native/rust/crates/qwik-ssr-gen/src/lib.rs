@@ -50,6 +50,11 @@ fn serialize_static_attr(name: &str, value: &Json) -> Result<String, String> {
 	Ok(format!(" {name}=\"{}\"", escape_attr_static(&rendered)))
 }
 
+struct CompiledIr {
+	expression: String,
+	signal_reads: Vec<u64>,
+}
+
 struct ComponentGenerator<'plan> {
 	plan: &'plan Json,
 	module_index: usize,
@@ -270,9 +275,9 @@ impl ComponentGenerator<'_> {
 			return Err("dynamic content output not supported yet".to_string());
 		}
 		let plan_target = &op["target"];
-		if plan_target["kind"].as_str() != Some("element") {
-			return Err("range-targeted dynamic text not supported yet".to_string());
-		}
+		let target_kind = plan_target["kind"]
+			.as_str()
+			.ok_or("dynamic target missing")?;
 		let plan_id = plan_target["id"]
 			.as_u64()
 			.ok_or("dynamic target has no id")?;
@@ -281,26 +286,177 @@ impl ComponentGenerator<'_> {
 			.get(&plan_id)
 			.ok_or("dynamic text targets an unopened element")?
 			.clone();
+		let is_range = match target_kind {
+			"element" => false,
+			"range" => true,
+			kind => return Err(format!("dynamic target kind {kind:?} not supported yet")),
+		};
+		self.uses_ctx = true;
+		if is_range {
+			// range text is fenced by <!t> markers (element-targeted text stays bare)
+			self.statics.push_str("<!t>");
+		}
+		self.flush_statics(target);
+
 		let ir = &op["value"]["ir"];
-		if ir["k"].as_str() != Some("signal-read") {
+		if ir["k"].as_str() == Some("signal-read") {
+			let signal = self.signal_local(ir)?;
+			let subscribe = if is_range {
+				let marker = plan_target["marker"]
+					.as_u64()
+					.ok_or("range target has no marker")?;
+				format!("ctx.subscribe_range_text(&{signal}, {element_variable}, {marker});")
+			} else {
+				format!("ctx.subscribe_element_text(&{signal}, {element_variable});")
+			};
+			writeln!(
+				self.body,
+				"    ctx.serializer.add_root(std::rc::Rc::clone(&{signal}));\n    {subscribe}\n    \
+				 {target}.push_str(&qwik_ssr_rt::escape::escape_html(&qwik_ssr_rt::render::signal_text(&{signal})));"
+			)
+			.unwrap();
+		} else if let Some(segment_id) = op["value"]["segment"].as_str() {
+			if !is_range {
+				return Err("element-targeted expression text not supported yet".to_string());
+			}
+			let marker = plan_target["marker"]
+				.as_u64()
+				.ok_or("range target has no marker")?;
+			let compiled = self.ir_expression(ir)?;
+			let dep_binding = *compiled
+				.signal_reads
+				.first()
+				.ok_or("expression text without a tracked signal read")?;
+			if compiled
+				.signal_reads
+				.iter()
+				.any(|other| *other != dep_binding)
+			{
+				return Err("multi-signal expression deps not supported yet".to_string());
+			}
+			let dep = self.local(dep_binding)?;
+			let captures = self.segment_captures(segment_id)?;
+			let mut args = String::new();
+			for capture in &captures {
+				write!(args, "std::rc::Rc::clone(&{capture}), ").unwrap();
+			}
+			// captures are state roots (browser resume args) — registered before the effect
+			for capture in &captures {
+				writeln!(
+					self.body,
+					"    ctx.serializer.add_root(std::rc::Rc::clone(&{capture}));"
+				)
+				.unwrap();
+			}
+			let qrl = self.qrl_expression_without_captures(segment_id)?;
+			writeln!(
+				self.body,
+				"    ctx.subscribe_text_expression(&{dep}, {element_variable}, {marker}, vec![{args}], {qrl});\n    \
+				 {target}.push_str(&qwik_ssr_rt::escape::escape_html(&qwik_ssr_rt::render::value_text(&{})));",
+				compiled.expression
+			)
+			.unwrap();
+		} else {
 			return Err(format!("dynamic value ir {ir} not supported yet"));
 		}
-		let binding = ir["binding"].as_u64().ok_or("signal-read has no binding")?;
-		let signal = self
-			.locals
-			.get(&binding)
-			.ok_or(format!("signal-read of unknown binding {binding}"))?
-			.clone();
-		self.uses_ctx = true;
-		self.flush_statics(target);
-		writeln!(
-			self.body,
-			"    ctx.serializer.add_root(std::rc::Rc::clone(&{signal}));\n    \
-			 ctx.subscribe_element_text(&{signal}, {element_variable});\n    \
-			 {target}.push_str(&qwik_ssr_rt::escape::escape_html(&qwik_ssr_rt::render::signal_text(&{signal})));"
-		)
-		.unwrap();
+
+		if is_range {
+			self.statics.push_str("<!/t>");
+		}
 		Ok(())
+	}
+
+	fn signal_local(&self, ir: &Json) -> Result<String, String> {
+		let binding = ir["binding"].as_u64().ok_or("signal-read has no binding")?;
+		self.local(binding)
+	}
+
+	fn local(&self, binding: u64) -> Result<String, String> {
+		self.locals
+			.get(&binding)
+			.cloned()
+			.ok_or(format!("unknown binding {binding}"))
+	}
+
+	fn segment_captures(&self, segment_id: &str) -> Result<Vec<String>, String> {
+		let segment = self.segment(segment_id)?;
+		let mut captures = Vec::new();
+		for capture in segment["captures"]
+			.as_array()
+			.ok_or("segment captures missing")?
+		{
+			let binding = capture["binding"]
+				.as_u64()
+				.ok_or("capture has no binding")?;
+			captures.push(self.local(binding)?);
+		}
+		Ok(captures)
+	}
+
+	fn segment(&self, segment_id: &str) -> Result<&Json, String> {
+		self.plan["modules"][self.module_index]["segments"]
+			.as_array()
+			.ok_or("module segments missing")?
+			.iter()
+			.find(|segment| segment["id"].as_str() == Some(segment_id))
+			.ok_or(format!("segment {segment_id:?} missing from the plan"))
+	}
+
+	/// Resume QRL whose args ride the subscription — the QRL record itself carries no captures.
+	fn qrl_expression_without_captures(&self, segment_id: &str) -> Result<String, String> {
+		let segment = self.segment(segment_id)?;
+		let chunk = segment["chunk"]
+			.as_str()
+			.ok_or("segment has no chunk")?
+			.trim_start_matches("./");
+		let symbol = segment["symbolName"]
+			.as_str()
+			.ok_or("segment has no symbol")?;
+		Ok(format!(
+			"std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Qrl(qwik_ssr_rt::serdes::QrlValue {{\n        chunk: {chunk:?}.to_string(), symbol: {symbol:?}.to_string(), captures: vec![],\n    }}))"
+		))
+	}
+
+	/// Compile a ValueIR tree to a Rust expression producing `Rc<SerdesValue>`, collecting the
+	/// signal-read bindings in read order (the effect deps under auto-tracking).
+	fn ir_expression(&self, ir: &Json) -> Result<CompiledIr, String> {
+		match ir["k"].as_str().ok_or("ir node has no kind")? {
+			"signal-read" => {
+				let binding = ir["binding"].as_u64().ok_or("signal-read has no binding")?;
+				let signal = self.local(binding)?;
+				Ok(CompiledIr {
+					expression: format!("qwik_ssr_rt::render::signal_value(&{signal})"),
+					signal_reads: vec![binding],
+				})
+			}
+			"lit" => Ok(CompiledIr {
+				expression: format!("std::rc::Rc::new({})", literal_expression(ir)?),
+				signal_reads: vec![],
+			}),
+			"undef" => Ok(CompiledIr {
+				expression: "std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Undefined)"
+					.to_string(),
+				signal_reads: vec![],
+			}),
+			"bin" => {
+				let left = self.ir_expression(&ir["a"])?;
+				let right = self.ir_expression(&ir["b"])?;
+				let helper = match ir["op"].as_str().ok_or("bin op missing")? {
+					"+" => "js_add",
+					op => return Err(format!("binary operator {op:?} not supported yet")),
+				};
+				let mut signal_reads = left.signal_reads;
+				signal_reads.extend(right.signal_reads);
+				Ok(CompiledIr {
+					expression: format!(
+						"qwik_ssr_rt::render::{helper}(&{}, &{})",
+						left.expression, right.expression
+					),
+					signal_reads,
+				})
+			}
+			kind => Err(format!("ir kind {kind:?} not supported yet")),
+		}
 	}
 
 	fn qrl_expression(&self, segment_id: &str) -> Result<String, String> {

@@ -53,9 +53,14 @@ pub struct EffectSubscription {
 	/// Present only when `target_kind` is RangeText — shifts later fields by one.
 	pub marker_index: Option<u32>,
 	pub deps: Vec<Rc<SerdesValue>>,
+	/// TextExpression(1)/Attr-expression/Props: capture values passed to the QRL on resume.
+	pub args: Option<Vec<Rc<SerdesValue>>>,
+	/// Resume QRL for expression-shaped effects.
+	pub qrl: Option<Rc<SerdesValue>>,
 }
 
 pub const EFFECT_KIND_TEXT_NODE: u8 = 0;
+pub const EFFECT_KIND_TEXT_EXPRESSION: u8 = 1;
 pub const EFFECT_TARGET_ELEMENT_TEXT: u8 = 0;
 pub const EFFECT_TARGET_RANGE_TEXT: u8 = 1;
 
@@ -350,13 +355,23 @@ impl Serializer {
 		if let Some(marker_index) = subscription.marker_index {
 			push_pair(&mut pairs, (TYPE_PLAIN, Payload::Num(marker_index as f64)));
 		}
-		let mut dep_pairs = Vec::new();
-		for (position, dep) in subscription.deps.iter().enumerate() {
-			path.push(position);
-			push_pair(&mut dep_pairs, self.write(dep, current_root, path));
-			path.pop();
+		let mut write_values =
+			|serializer: &mut Self, values: &[Rc<SerdesValue>], pairs: &mut Vec<Payload>| {
+				let mut value_pairs = Vec::new();
+				for (position, item) in values.iter().enumerate() {
+					path.push(position);
+					push_pair(&mut value_pairs, serializer.write(item, current_root, path));
+					path.pop();
+				}
+				push_pair(pairs, (TYPE_ARRAY, Payload::Arr(value_pairs)));
+			};
+		write_values(self, &subscription.deps, &mut pairs);
+		if let Some(args) = &subscription.args {
+			write_values(self, args, &mut pairs);
 		}
-		push_pair(&mut pairs, (TYPE_ARRAY, Payload::Arr(dep_pairs)));
+		if let Some(qrl) = &subscription.qrl {
+			push_pair(&mut pairs, self.write(qrl, current_root, path));
+		}
 		Payload::Arr(pairs)
 	}
 
